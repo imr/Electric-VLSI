@@ -2,6 +2,9 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.01o: *********************************
+
+
 ************************* Version 8.01n: *********************************
 
 BUG (9/14/04, RK) NCC assertion fails when designs being compared share a cell.
