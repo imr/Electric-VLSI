@@ -23,6 +23,11 @@
  */
 package com.sun.electric.database.text;
 
+import java.io.File;
+import java.util.Date;
+import java.util.StringTokenizer;
+import java.text.DateFormat;
+
 /**
  * A Version is a text-parsing object for Electric's version number.
  * Electric's current version has the form:<BR>
@@ -46,6 +51,7 @@ public class Version
 	 * This is the current version of Electric
 	 */
 	private static final String CURRENT = "8.01g";
+    private static final String MAINJARNAME = "electric.jar";
 
 	private int major;
 	private int minor;
@@ -62,6 +68,36 @@ public class Version
 	 */
 	public static String getVersion() { return CURRENT; }
 
+    /**
+     * Method to return build date of main jar file
+     * @return string containing the date in short format
+     */
+    public static String getBuildDate()
+    {
+        // Might need to adjust token delim depending on operating system
+        StringTokenizer parse = new StringTokenizer(System.getProperty("java.class.path"));
+        String delim = System.getProperty("path.separator");
+        try
+        {
+            while (parse.hasMoreElements())
+            {
+                String val = parse.nextToken(delim);
+                // Find path for main jar
+                if (val.lastIndexOf(MAINJARNAME) != -1)
+                {
+                    File electricJar = new File(val);
+                    long date = electricJar.lastModified();
+                    Date d = new Date(date);
+                    return (DateFormat.getDateInstance().format(d));
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        return (null);
+    }
 	/**
 	 * Method to return the major part of a parsed Version number.
 	 * @return the major part of a parsed Version number.
