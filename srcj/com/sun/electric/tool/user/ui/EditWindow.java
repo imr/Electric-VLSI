@@ -1033,6 +1033,10 @@ public class EditWindow
 		int x0 = (int)gridXSpacing;
 		int y0 = (int)gridYSpacing;
 
+		// Gilda 06/03/04
+		if (x0 == 0) x0 = 1; // similar to (int)User.getDefGridXSpacing();
+		if (y0 == 0) y0 = 1; // similar to (int)User.getDefGridYSpacing();
+
 		// bold dot spacing
 		int xspacing = User.getDefGridXBoldFrequency();
 		int yspacing = User.getDefGridYBoldFrequency();
