@@ -2406,13 +2406,17 @@ public class Analyzer extends Engine
 
 	private void setDbg(String [] args)
 	{
-		if (args[1].equalsIgnoreCase("ev")) theSim.irDebug |= Sim.DEBUG_EV; else
-			if (args[1].equalsIgnoreCase("dc")) theSim.irDebug |= Sim.DEBUG_DC; else
-				if (args[1].equalsIgnoreCase("tau")) theSim.irDebug |= Sim.DEBUG_TAU; else
-					if (args[1].equalsIgnoreCase("taup")) theSim.irDebug |= Sim.DEBUG_TAUP; else
-						if (args[1].equalsIgnoreCase("spk")) theSim.irDebug |= Sim.DEBUG_SPK; else
-							if (args[1].equalsIgnoreCase("tw")) theSim.irDebug |= Sim.DEBUG_TW; else
-								if (args[1].equalsIgnoreCase("off")) theSim.irDebug = 0;
+        if (args.length == 1) {
+            theSim.irDebug = 0;
+        } else {
+            if (args[1].equalsIgnoreCase("ev")) theSim.irDebug |= Sim.DEBUG_EV; else
+                if (args[1].equalsIgnoreCase("dc")) theSim.irDebug |= Sim.DEBUG_DC; else
+                    if (args[1].equalsIgnoreCase("tau")) theSim.irDebug |= Sim.DEBUG_TAU; else
+                        if (args[1].equalsIgnoreCase("taup")) theSim.irDebug |= Sim.DEBUG_TAUP; else
+                            if (args[1].equalsIgnoreCase("spk")) theSim.irDebug |= Sim.DEBUG_SPK; else
+                                if (args[1].equalsIgnoreCase("tw")) theSim.irDebug |= Sim.DEBUG_TW; else
+                                    if (args[1].equalsIgnoreCase("off")) theSim.irDebug = 0;
+        }
 		System.out.print("Debugging");
 		if (theSim.irDebug == 0) System.out.println(" OFF"); else
 		{
