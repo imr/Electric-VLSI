@@ -45,7 +45,6 @@ import com.sun.electric.tool.ncc.trees.*;
  */
 public abstract class JemStratNone extends JemStrat {
 
-
     protected JemStratNone(){}
 
     /** 
