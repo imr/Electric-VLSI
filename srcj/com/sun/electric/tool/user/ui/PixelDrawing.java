@@ -1129,11 +1129,7 @@ public class PixelDrawing
 		{
 			// get the polygon and transform it
 			Poly poly = polys[i];
-			if (poly == null)
-			{
-				System.out.println("Warning: poly " + i + " of list of " + polys.length + " is null");
-				return;
-			}
+			if (poly == null) continue;
 			Layer layer = poly.getLayer();
 			EGraphics graphics = null;
 			if (layer != null)

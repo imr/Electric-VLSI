@@ -878,9 +878,9 @@ public class Highlight
 	}
 
 	/**
-	 * Method to return the only highlighted object.
+	 * Method to return the only highlight that encompases an object.
 	 * If there is not one highlighted object, an error is issued.
-	 * @return the highlighted object (null if error).
+	 * @return the highlight that selects an object (null if error).
 	 */
 	public static synchronized Highlight getOneHighlight()
 	{
@@ -889,12 +889,25 @@ public class Highlight
 			System.out.println("Must select an object first");
 			return null;
 		}
-		if (getNumHighlights() > 1)
+		Highlight h = null;
+		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 		{
-			System.out.println("Must select only one object");
+			Highlight theH = (Highlight)it.next();
+			if (theH.type == Type.EOBJ)
+			{
+				if (h != null)
+				{
+					System.out.println("Must select only one object");
+					return null;
+				}
+				h = theH;
+			}
+		}
+		if (h == null)
+		{
+			System.out.println("Must select an object first");
 			return null;
 		}
-		Highlight h = (Highlight)getHighlights().next();
 		return h;
 	}
 

@@ -203,13 +203,14 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 				} else if (eobj instanceof ArcInst)
 				{
 					ArcInst ai = (ArcInst)eobj;
+					double trueWidth = ai.getWidth() - ai.getProto().getWidthOffset();
 					if (numArcs != 0)
 					{
-						widthLow = Math.min(widthLow, ai.getWidth());
-						widthHigh = Math.max(widthHigh, ai.getWidth());
+						widthLow = Math.min(widthLow, trueWidth);
+						widthHigh = Math.max(widthHigh, trueWidth);
 					} else
 					{
-						widthLow = widthHigh = ai.getWidth();
+						widthLow = widthHigh = trueWidth;
 					}
 					numArcs++;
 					description = "Arc " + ai.describe();
@@ -473,7 +474,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 					ElectricObject eobj = h.getElectricObject();
 					if (!(eobj instanceof ArcInst)) continue;
 					ArcInst ai = (ArcInst)eobj;
-					ai.modify(newWidth - ai.getWidth(), 0, 0, 0, 0);
+					ai.modify(newWidth - (ai.getWidth() - ai.getProto().getWidthOffset()), 0, 0, 0, 0);
 				}
 				dialog.initialWidth = currentWidth;
 			}

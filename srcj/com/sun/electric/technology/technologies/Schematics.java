@@ -798,7 +798,7 @@ public class Schematics extends Technology
 		switchNode.setAutoGrowth(0, 4);
 
 		/** off page connector */
-		offpageNode = PrimitiveNode.newInstance("Off-Page", this, 2.0, 1.0, null,
+		offpageNode = PrimitiveNode.newInstance("Off-Page", this, 4.0, 2.0, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {

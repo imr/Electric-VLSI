@@ -84,6 +84,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 	private List portObjects;
 	private boolean bigger;
 	private boolean scalableTrans;
+	private boolean swapXY;
     private AttributesTable attributesTable;
 
     private static Preferences prefs = Preferences.userNodeForPackage(GetInfoNode.class);
@@ -305,14 +306,23 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		initialXSize = ni.getXSizeWithMirror();
 		initialYSize = ni.getYSizeWithMirror();
 		initialRotation = ni.getAngle();
+		swapXY = false;
+		if (initialRotation == 900 || initialRotation == 2700) swapXY = true;
 
 		type.setText(np.describe());
 		name.setText(initialName);
 		xPos.setText(Double.toString(initialXPos));
 		yPos.setText(Double.toString(initialYPos));
 		SizeOffset so = ni.getSizeOffset();
-		xSize.setText(Double.toString(Math.abs(initialXSize) - so.getLowXOffset() - so.getHighXOffset()));
-		ySize.setText(Double.toString(Math.abs(initialYSize) - so.getLowYOffset() - so.getHighYOffset()));
+		if (swapXY)
+		{
+			xSize.setText(Double.toString(Math.abs(initialYSize) - so.getLowYOffset() - so.getHighYOffset()));
+			ySize.setText(Double.toString(Math.abs(initialXSize) - so.getLowXOffset() - so.getHighXOffset()));
+		} else
+		{
+			xSize.setText(Double.toString(Math.abs(initialXSize) - so.getLowXOffset() - so.getHighXOffset()));
+			ySize.setText(Double.toString(Math.abs(initialYSize) - so.getLowYOffset() - so.getHighYOffset()));
+		}
 		rotation.setText(Double.toString(initialRotation / 10.0));
 		mirrorX.setSelected(initialXSize < 0);
 		mirrorY.setSelected(initialYSize < 0);
@@ -974,9 +984,17 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			SizeOffset so = ni.getSizeOffset();
 			double currentXPos = Double.parseDouble(dialog.xPos.getText());
 			double currentYPos = Double.parseDouble(dialog.yPos.getText());
-			double currentXSize = Double.parseDouble(dialog.xSize.getText()) + so.getLowXOffset() + so.getHighXOffset();
+			double currentXSize = 0, currentYSize = 0;
+			if (dialog.swapXY)
+			{
+				currentXSize = Double.parseDouble(dialog.ySize.getText()) + so.getLowXOffset() + so.getHighXOffset();
+				currentYSize = Double.parseDouble(dialog.xSize.getText()) + so.getLowYOffset() + so.getHighYOffset();
+			} else
+			{
+				currentXSize = Double.parseDouble(dialog.xSize.getText()) + so.getLowXOffset() + so.getHighXOffset();
+				currentYSize = Double.parseDouble(dialog.ySize.getText()) + so.getLowYOffset() + so.getHighYOffset();
+			}
 			if (dialog.mirrorX.isSelected()) currentXSize = -currentXSize;
-			double currentYSize = Double.parseDouble(dialog.ySize.getText()) + so.getLowYOffset() + so.getHighYOffset();
 			if (dialog.mirrorY.isSelected()) currentYSize = -currentYSize;
 			int currentRotation = (int)(Double.parseDouble(dialog.rotation.getText()) * 10);
 			if (!DBMath.doublesEqual(currentXPos, dialog.initialXPos) ||

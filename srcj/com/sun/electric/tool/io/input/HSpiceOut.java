@@ -96,7 +96,7 @@ public class HSpiceOut extends Simulate
 		}
 		if (pa0URL == null) return null;
         if (!TextUtils.URLExists(pa0URL)) return null;
-		if (openTextInput(fileURL)) return null;
+		if (openTextInput(pa0URL)) return null;
 
 		List pa0List = new ArrayList();
 		for(;;)
