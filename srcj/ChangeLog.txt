@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01aw: *********************************
 
+IMP: (12/15/04, RK) NCC: Add Net Equivalence mapping regression. The regression uncovered many bugs.
+
 BUG: (12/15/04, GVG) DRC and new thick active layers: wrong bit detection for thick active layers that make DRC to fail
 FIX: negate condition in Quick.checkDist() (Bug #117)
 

@@ -466,7 +466,7 @@ public class ToolMenu {
                 Netlist netlist = schLayCells[0].getNetlist(true);
                 // find equivalent network in layouy
                 NetEquivalence equiv = result.getNetEquivalence();
-                HierarchyEnumerator.NetNameProxy proxy = equiv.findEquivalent(VarContext.globalContext, schNet, 0);
+                HierarchyEnumerator.NetNameProxy proxy = equiv.findEquivalent(VarContext.globalContext, schNet);
                 if (proxy == null) {
                     System.out.println("No matching network in layout for "+proxy.toString()+", ignoring");
                     continue;

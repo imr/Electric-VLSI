@@ -138,15 +138,16 @@ public class NccJob extends Job {
 		Set nets = hiLite.getHighlightedNetworks();
 		Network net = (Network) nets.iterator().next();
 		NetEquivalence ne = lastResult.getNetEquivalence();
-		NetNameProxy prox = ne.findEquivalent(context, net, 0);
-		if (prox==null) {
-			System.out.println("Not found: "+context.getInstPath("/")+" "+
-					(String)net.getNames().next());
-			return;
-		}
-		VarContext eCtxt = prox.getContext();
-		String eNet = prox.leafName();
-		System.out.println("Equiv net: "+prox.toString());
+		int numErrs = ne.regressionTest();
+//		NetNameProxy prox = ne.findEquivalent(context, net);
+//		if (prox==null) {
+//			System.out.println("Not found: "+context.getInstPath("/")+" "+
+//					(String)net.getNames().next());
+//			return;
+//		}
+//		VarContext eCtxt = prox.getContext();
+//		String eNet = prox.leafName();
+//		System.out.println("Equiv net: "+prox.toString());
 	}
 
     public boolean doIt() {

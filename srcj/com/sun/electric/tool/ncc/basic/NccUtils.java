@@ -36,6 +36,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.ncc.NccEngine;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.NccResult;
+import com.sun.electric.tool.ncc.NetEquivalence;
 import com.sun.electric.tool.ncc.processing.HierarchyInfo;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowContent;
@@ -159,6 +160,9 @@ public class NccUtils {
 		NccResult result = NccEngine.compare(cell1, ctxt1, 
 		                                     cell2, ctxt2,  
 										     hierInfo, options);
+		if (options.checkNetEquivalenceMap) 
+			result.getNetEquivalence().regressionTest();
+		
 		Date after = new Date();
 
 		String timeStr = hourMinSec(before, after);

@@ -59,4 +59,7 @@ public class NccOptions {
 	/** For all diagnostic messages, how many members of an equivalence
 	 * class should I print */ 
 	public int maxEquivRecMembersToPrint = 10;
+	
+	/** Perform a regression test of the net equivalence map. */
+	public boolean checkNetEquivalenceMap = false;
 }
