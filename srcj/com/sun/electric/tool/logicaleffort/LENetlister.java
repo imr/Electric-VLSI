@@ -416,8 +416,8 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
     }
 
     private Variable getVar(Nodable no, String name) {
-        Variable var = no.getVar(name);
-        if (var == null) var = no.getVarDefaultOwner().getVar(name);
+        Variable var = no.getParameter(name);
+        //if (var == null) var = no.getVarDefaultOwner().getVar(name);
         return var;
     }
 

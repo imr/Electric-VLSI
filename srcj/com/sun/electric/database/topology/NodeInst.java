@@ -44,6 +44,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.Job;
 
@@ -784,7 +785,9 @@ public class NodeInst extends Geometric implements Nodable
             if (proto.getView() == View.ICON) {
                 // schematic has default vars
                 Cell sch = proto.getCellGroup().getMainSchematics();
-                if (sch != null) return sch;
+                if (sch != null) {
+                    return sch;
+                }
                 return proto;
             } else
                 return proto;
@@ -2083,6 +2086,7 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public String toString()
 	{
+        if (protoType == null) return "NodeInst no protoType";
 		return "NodeInst " + protoType.getName();
 	}
 

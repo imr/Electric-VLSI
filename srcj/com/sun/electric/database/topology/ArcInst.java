@@ -952,6 +952,7 @@ public class ArcInst extends Geometric
 	 */
 	public String toString()
 	{
+        if (protoType == null) return "ArcInst null protoType";
 		return "ArcInst " + protoType.getName();
 	}
 

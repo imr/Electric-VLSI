@@ -4,10 +4,7 @@ import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.menus.MenuBar;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.ToolBarButton;
+import com.sun.electric.tool.user.ui.*;
 import com.sun.electric.tool.Job;
 
 import javax.swing.*;
@@ -51,6 +48,8 @@ public class ActivityLogger {
             FileOutputStream fos = new FileOutputStream(outputFile, false);
             BufferedOutputStream bout = new BufferedOutputStream(fos);
             out = new PrintWriter(bout);
+            // redirect stderr to the log file
+            System.setErr(new PrintStream(bout, true));
         } catch (IOException e) {
             System.out.println("Warning: Activity Log disabled: "+e.getMessage());
         }
@@ -75,8 +74,19 @@ public class ActivityLogger {
     public static synchronized void logMenuActivated(JMenuItem m) {
         if (out == null) return;
         if (!logMenuActivations) return;
-        printDelimeter();
+        printDelimeter(true);
         out.println("Menu Activated: "+((MenuBar.MenuItemInterface)m).getDescription());
+        //System.out.println("Menu Activated: "+((MenuBar.MenuItemInterface)m).getDescription());
+        WindowFrame frame = WindowFrame.getCurrentWindowFrame();
+        if (frame != null) {
+            WindowContent content = frame.getContent();
+            if (content != null) {
+                Highlighter h = content.getHighlighter();
+                if (h != null) {
+                    logHighlights(h.getHighlights(), h.getHighlightOffset());
+                }
+            }
+        }
     }
 
     /**
@@ -86,7 +96,7 @@ public class ActivityLogger {
     public static synchronized void logToolBarButtonActivated(ToolBarButton b) {
         if (out == null) return;
         if (!logMenuActivations) return;
-        printDelimeter();
+        printDelimeter(true);
         out.println("ToolBarButton Activated: "+b.getName());
     }
 
@@ -103,10 +113,12 @@ public class ActivityLogger {
                                                   List savedHighlights, Point2D savedHighlightsOffset) {
         if (out == null) return;
         if (!logJobs) return;
-        printDelimeter();
+        printDelimeter(true);
         Cell cell = WindowFrame.getCurrentCell();
         String cellName = (cell == null) ? "none" : cell.libDescribe();
+        Exception e = new Exception("stack trace");
         out.println("Job Started [Current Cell: "+cellName+"] "+jobName+", "+jobType);
+        //System.out.println("Job Started [Current Cell: "+cellName+"] "+jobName+", "+jobType);
         logHighlights(savedHighlights, savedHighlightsOffset);
     }
 
@@ -143,7 +155,7 @@ public class ActivityLogger {
      */
     public static synchronized void logException(Throwable e) {
         if (out != null) {
-            printDelimeter();
+            printDelimeter(true);
             e.printStackTrace(out);
             out.flush();
         }
@@ -161,16 +173,25 @@ public class ActivityLogger {
      */
     public static synchronized void logMessage(String msg) {
         if (out == null) return;
-        printDelimeter();
+        printDelimeter(true);
+        out.println(msg);
+    }
+
+    /** Temp debug method */
+    public static synchronized void logThreadMessage(String msg) {
+        if (out == null) return;
+        printDelimeter(false);
         out.println(msg);
     }
 
     /**
      * Print a delimiter between log events for easier reading of the log file
      */
-    private static void printDelimeter() {
+    private static void printDelimeter(boolean printThreadInfo) {
         if (out == null) return;
         out.println("--------------- "+loggedCount+ " --------------");
+        Exception e = new Exception("stack trace");
+        //if (printThreadInfo) out.println("(Thread: "+Thread.currentThread()+", stack size: "+e.getStackTrace().length+")");
         if (logTimeStamps) {
             Date date = new Date(System.currentTimeMillis());
             out.println("  "+date);

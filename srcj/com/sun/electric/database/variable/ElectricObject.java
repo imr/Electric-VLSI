@@ -35,6 +35,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ActivityLogger;
 
 import java.awt.Font;
 import java.awt.geom.Point2D;
@@ -121,7 +122,6 @@ public class ElectricObject
 	public Variable getVar(Variable.Key key, Class type)
 	{
         if (key == null) return null;
-        reinheritVars();
 		if (vars == null) return null;
 		Variable var = (Variable)vars.get(key);
 		if (var != null) {
@@ -132,29 +132,52 @@ public class ElectricObject
     }
 
     /**
-     * Re-inherits Variables from the Object that owns the
-     * "default" Variables for this object.
+     * Method to return the Variable on this ElectricObject with the given key
+     * that is a parameter.  If the variable is not found on this object, it
+     * is also searched for on the default var owner.
+     * @param name the name of the Variable
+     * @return the Variable with that key, that may exist either on this object
+     * or the default owner.  Returns null if none found.
      */
-    private void reinheritVars()
+    public Variable getParameter(String name)
     {
+        Variable.Key key = findKey(name);
+        if (key == null) return null;
+        Variable var = getVar(key, null);
+        if (var != null)
+            if (var.getTextDescriptor().isParam())
+                return var;
+        // look on default var owner
         ElectricObject defOwner = getVarDefaultOwner();
-        if (defOwner == null) return;
-        if (defOwner == this) return;
+        if (defOwner == null) return null;
+        if (defOwner == this) return null;
+        return defOwner.getParameter(name);
+    }
 
-        // reinherit vars marked as parameters, unless they already exist
-        for (Iterator it = defOwner.getVariables(); it.hasNext(); ) {
-            Variable var = (Variable)it.next();
-            // skip if not a parameter
-            if (!var.getTextDescriptor().isParam()) continue;
-            // skip if we already have instance var
-            if ((vars != null) && (vars.get(var.getKey()) != null)) continue;
-            // otherwise make copy of default var locally
-            Variable newVar = newVar(var.getKey(), var.getObject());
-            if (newVar == null) continue;
-            newVar.setTextDescriptor(var.getTextDescriptor());
-            newVar.copyFlags(var);
+    /**
+     * Method to return an Iterator over all Variables marked as parameters on this ElectricObject.
+     * This may also include any parameters on the defaultVarOwner object that are not on this object.
+     * @return an Iterator over all Variables on this ElectricObject.
+     */
+    public Iterator getParameters() {
+        HashMap keysToVars = new HashMap();
+        // get all parameters on this object
+        for (Iterator it = getVariables(); it.hasNext(); ) {
+            Variable v = (Variable)it.next();
+            if (!v.getTextDescriptor().isParam()) continue;
+            keysToVars.put(v.getKey(), v);
         }
-	}
+        // look on default var owner
+        ElectricObject defOwner = getVarDefaultOwner();
+        if (defOwner == null) return keysToVars.values().iterator();
+        if (defOwner == this) return keysToVars.values().iterator();
+        for (Iterator it = defOwner.getParameters(); it.hasNext(); ) {
+            Variable v = (Variable)it.next();
+            if (keysToVars.get(v.getKey()) == null)
+                keysToVars.put(v.getKey(), v);
+        }
+        return keysToVars.values().iterator();
+    }
 
     /**
      * This method can be overridden by extending objects.
@@ -176,7 +199,6 @@ public class ElectricObject
 	 */
 	public int numDisplayableVariables(boolean multipleStrings)
 	{
-        reinheritVars();
 		if (vars == null) return 0;
 
 		int numVars = 0;
@@ -863,7 +885,6 @@ public class ElectricObject
 	 */
 	public Iterator getVariables()
 	{
-        reinheritVars();
 		if (vars == null)
 			return (new ArrayList()).iterator();
 		return vars.values().iterator();
@@ -875,7 +896,6 @@ public class ElectricObject
 	 */
 	public int getNumVariables()
 	{
-        reinheritVars();
 		if (vars == null) return 0;
 		return vars.entrySet().size();
 	}

@@ -50,10 +50,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.HighlightListener;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.EditWindow;
 
@@ -324,6 +321,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 
 		shownNode = ni;
 		shownPort = pp;
+        //ActivityLogger.logMessage("GetInfoNode loadInfo on "+ni+" or "+pp);
 
         focusClearOnTextField(name);
 

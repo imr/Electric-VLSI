@@ -43,9 +43,12 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 import java.net.URL;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.TimerTask;
 
 import javax.swing.*;
 
@@ -117,6 +120,7 @@ public final class Main
 		}
 
         ActivityLogger.initialize(true, true, false);
+        runThreadStatusTimer();
         EventProcessor ep = new EventProcessor();
 
 		// initialize Mac OS 10 if applicable
@@ -333,7 +337,36 @@ public final class Main
             }
             catch(Throwable ex) {
                 ActivityLogger.logException(ex);
+                if (ex instanceof Error) {
+                    Exception eee = new Exception("dummy exception for error");
+                    ActivityLogger.logException(eee);
+                    throw (Error)ex;
+                }
             }
+        }
+    }
+
+
+    private static void runThreadStatusTimer() {
+        int delay = 1000*60*10; // milliseconds
+        Timer timer = new Timer(delay, new ThreadStatusTask());
+        timer.start();
+    }
+
+    public static class ThreadStatusTask implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            Thread t = Thread.currentThread();
+            ThreadGroup group = t.getThreadGroup();
+            // get the top level group
+            while (group.getParent() != null)
+                group = group.getParent();
+            Thread [] threads = new Thread[200];
+            int numThreads = group.enumerate(threads, true);
+            StringBuffer buf = new StringBuffer();
+            for (int i=0; i<numThreads; i++) {
+                buf.append("Thread["+i+"] "+threads[i]+": alive: "+threads[i].isAlive()+", interrupted: "+threads[i].isInterrupted()+"\n");
+            }
+            ActivityLogger.logThreadMessage(buf.toString());
         }
     }
 

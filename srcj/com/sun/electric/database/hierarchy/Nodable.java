@@ -100,6 +100,23 @@ public interface Nodable
 	public Iterator getVariables();
 
     /**
+     * Method to return the Variable on this ElectricObject with the given key
+     * that is a parameter.  If the variable is not found on this object, it
+     * is also searched for on the default var owner.
+     * @param name the name of the variable
+     * @return the Variable with that key, that may exist either on this object
+     * or the default owner.  Returns null if none found.
+     */
+    public Variable getParameter(String name);
+
+    /**
+     * Method to return an Iterator over all Variables marked as parameters on this ElectricObject.
+     * This may also include any parameters on the defaultVarOwner object that are not on this object.
+     * @return an Iterator over all Variables on this ElectricObject.
+     */
+    public Iterator getParameters();
+
+    /**
      * Method to create a Variable on this ElectricObject with the specified values.
      * @param name the name of the Variable.
      * @param value the object to store in the Variable.

@@ -39,6 +39,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.ActivityLogger;
 
 import java.util.Arrays;
 import java.util.List;
@@ -214,6 +215,34 @@ class NetSchem extends NetCell {
 		}
 
         /**
+         * Method to return the Variable on this ElectricObject with the given key
+         * that is a parameter.  If the variable is not found on this object, it
+         * is also searched for on the default var owner.
+         * @param name the name of the variable
+         * @return the Variable with that key, that may exist either on this object
+         * or the default owner.  Returns null if none found.
+         */
+        public Variable getParameter(String name) {
+            if (shared == null)
+                return nodeInst.getParameter(name);
+            Variable var = null;
+            for (int i = 0; i < shared.length; i++) {
+                Variable v = shared[i].nodeInst.getParameter(name);
+                if (v == null) continue;
+                if (var == null) {
+                    var = v;
+                } else if (!v.getObject().equals(var.getObject())) {
+                    String msg = "Network: Cell " + cell.describe() + " has multipart icon <" + getName() +
+                        "> with ambigouos definition of parameter " + name;
+                    System.out.println(msg);
+                    ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                    log.addGeom(shared[i].nodeInst, true, cell, null);
+                }
+            }
+            return var;
+        }
+
+        /**
          * Method to create a Variable on this ElectricObject with the specified values.
          * @param name the name of the Variable.
          * @param value the object to store in the Variable.
@@ -290,6 +319,7 @@ class NetSchem extends NetCell {
          * @return the object that holds the default variables and values.
          */
         public ElectricObject getVarDefaultOwner() {
+            //ActivityLogger.logMessage("getVarDefaultOwner called for "+this);
             return nodeInst.getVarDefaultOwner();
         }
 
@@ -309,6 +339,37 @@ class NetSchem extends NetCell {
 			}
 			return allVariables.iterator();
 		}
+
+        /**
+         * Method to return an Iterator over all Variables marked as parameters on this ElectricObject.
+         * This may also include any parameters on the defaultVarOwner object that are not on this object.
+         * @return an Iterator over all Variables on this ElectricObject.
+         */
+        public Iterator getParameters() {
+            if (shared == null)
+                return nodeInst.getParameters();
+            HashMap allParameters = new HashMap();
+            for (int i = 0; i < shared.length; i++)
+            {
+                for(Iterator it = shared[i].nodeInst.getParameters(); it.hasNext(); ) {
+                    Variable v = (Variable)it.next();
+                    Variable var = (Variable)allParameters.get(v.getKey());
+                    if (var == null) {
+                        allParameters.put(v.getKey(), v);
+                        continue;
+                    }
+                    // if same value, just ignore second param
+                    if (var.getObject().equals(v.getObject())) continue;
+                    // print error, conflicting values
+                    String msg = "Network: Cell " + cell.describe() + " has multipart icon <" + getName() +
+                        "> with ambigouos definition of variable " + v.getKey().getName();
+                    System.out.println(msg);
+                    ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                    log.addGeom(shared[i].nodeInst, true, cell, null);
+                }
+            }
+            return allParameters.values().iterator();
+        }
 
 		/**
 		 * Returns a printable version of this Nodable.
