@@ -34,6 +34,8 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.change.DatabaseChangeListener;
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.User;
@@ -51,7 +53,7 @@ import javax.swing.border.BevelBorder;
 /**
  * This class manages the Electric status bar at the bottom of the edit window.
  */
-public class StatusBar extends JPanel implements HighlightListener
+public class StatusBar extends JPanel implements HighlightListener, DatabaseChangeListener
 {
 	//private int fillPosition;
 	private WindowFrame frame;
@@ -115,6 +117,7 @@ public class StatusBar extends JPanel implements HighlightListener
         } else {
             frame.getContent().getHighlighter().addHighlightListener(this);
         }
+        Undo.addDatabaseChangeListener(this);
 	}
 
     /**
@@ -398,6 +401,13 @@ public class StatusBar extends JPanel implements HighlightListener
     public void finished() {
         if (!TopLevel.isMDIMode())
             frame.getContent().getHighlighter().removeHighlightListener(this);
+        Undo.removeDatabaseChangeListener(this);
     }
 
+    public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+        redoStatusBar();
+    }
+
+    public void databaseChanged(Undo.Change evt) {}
+    public boolean isGUIListener() { return true; }
 }
