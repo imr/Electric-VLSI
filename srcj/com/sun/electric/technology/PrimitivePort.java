@@ -96,6 +96,8 @@ public class PrimitivePort extends PortProto
 		int portAngle, int portRange, int portTopology, PortProto.Characteristic characteristic,
 		EdgeH left, EdgeV bottom, EdgeH right, EdgeV top)
 	{
+		if (parent == null)
+			System.out.println("PrimitivePort " + protoName + " has no parent");
 		if (tech != Generic.tech && Generic.tech != null)
 		{
 			ArcProto [] realPortArcs = new ArcProto[portArcs.length + 3];

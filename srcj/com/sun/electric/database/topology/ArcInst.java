@@ -31,6 +31,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -761,8 +762,25 @@ public class ArcInst extends Geometric
 	 */
 	public JNetwork getNetwork(int busIndex)
 	{
-		if (protoType.getFunction() == ArcProto.Function.NONELEC) return null;
-		return ends[HEADEND].getPortInst().getNetwork();
+		return Network.getNetwork(this, busIndex);
+	}
+
+	/**
+	 * Routine to return the bus name on this ArcInst.
+	 * @return the either the bus name on this ArcInst.
+	 */
+	public String getBusName()
+	{
+		return Network.getNetworkName(this);
+	}
+
+	/**
+	 * Routine to return the bus width on this ArcInst.
+	 * @return the either the bus width on this ArcInst.
+	 */
+	public int getBusWidth()
+	{
+		return Network.getBusWidth(this);
 	}
 
 	/**

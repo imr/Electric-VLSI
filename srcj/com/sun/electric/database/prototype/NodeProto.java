@@ -1176,6 +1176,17 @@ public abstract class NodeProto extends ElectricObject
 	}
 
 	/**
+	 * Routine to check if NodeProto has isolated ports.
+	 * @return true if  NodeProto has isolated ports.
+	 */
+	public boolean hasIsolatedPorts()
+	{
+		for (int i = 0; i < ports.size(); i++)
+			if (getPort(i).isIsolated()) return true;
+		return false;
+	}
+
+	/**
 	 * Routine to return an iterator over all instances of this NodeProto.
 	 * @return an iterator over all instances of this NodeProto.
 	 */

@@ -35,9 +35,10 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Schematics;
 
-// import java.util.Arrays;
+import java.util.Arrays;
 import java.util.ArrayList;
 // import java.util.HashMap;
 import java.util.Iterator;
@@ -158,6 +159,9 @@ class NetSchem extends NetCell {
 	/** */															int[] portOffsets = new int[1];
 	/** */															int netNamesOffset;
 
+	/** */															Name[] drawnNames;
+	/** */															int[] drawnWidths;
+
 	NetSchem(Cell cell) {
 		super(cell.isIcon() ? cell.getCellGroup().getMainSchematics() : cell);
 		if (cell.isIcon() || cell.getCellGroup().getMainSchematics() == cell)
@@ -175,8 +179,14 @@ class NetSchem extends NetCell {
 		int iconCount = 0;
 		for (Iterator it = cellGroup.getCells(); it.hasNext();) {
 			Cell c = (Cell)it.next();
-			if (c.isIcon())
+			if (c.isIcon()) {
 				iconCount++;
+				for (Iterator vit = c.getVersions(); vit.hasNext();) {
+					Cell verCell = (Cell)vit.next();
+					if (verCell == c) continue;
+					iconCount++;
+				}
+			}
 		}
 		icons = new Icon[iconCount];
 		iconCount = 0;
@@ -186,6 +196,13 @@ class NetSchem extends NetCell {
 				icons[iconCount] = new Icon(c);
 				Network.setCell(c, this, ~iconCount);
 				iconCount++;
+				for (Iterator vit = c.getVersions(); vit.hasNext();) {
+					Cell verCell = (Cell)vit.next();
+					if (verCell == c) continue;
+					icons[iconCount] = new Icon(verCell);
+					Network.setCell(verCell, this, ~iconCount);
+					iconCount++;
+				}
 			}
 		}
 	}
@@ -261,6 +278,55 @@ class NetSchem extends NetCell {
 			}
 		}
 		return networks[netMap[nodeOffset + portOffset]];
+	}
+
+	/*
+	 * Get network of export.
+	 */
+	JNetwork getNetwork(Export export, int busIndex) {
+		if (export.getParent() != cell) return null;
+		PortInst originalPort = export.getOriginalPort();
+		return getNetwork(originalPort.getNodeInst(), 0, originalPort.getPortProto(), busIndex);
+	}
+
+	/*
+	 * Get network of arc.
+	 */
+	JNetwork getNetwork(ArcInst ai, int busIndex) {
+		if (ai.getParent() != cell) return null;
+		if (ai.getProto().getFunction() == ArcProto.Function.NONELEC) return null;
+		PortInst headPort = ai.getHead().getPortInst();
+		return getNetwork(headPort.getNodeInst(), 0, headPort.getPortProto(), busIndex);
+	}
+
+	/**
+	 * Routine to return either the network name or the bus name on this ArcInst.
+	 * @return the either the network name or the bus n1ame on this ArcInst.
+	 */
+	String getNetworkName(ArcInst ai) {
+		if (ai.getParent() != cell) return null;
+		if ((flags & VALID) == 0) redoNetworks();
+		int drawn = drawns[arcsOffset + ai.getArcIndex()];
+		if (drawn < 0) return null;
+		if (drawnWidths[drawn] == 1) {
+			JNetwork network = getNetwork(ai, 0);
+			if (network == null) return null;
+			return network.describe();
+		}
+		if (drawnNames[drawn] == null) return null;
+		return drawnNames[drawn].toString();
+	}
+
+	/**
+	 * Routine to return the bus width on this ArcInst.
+	 * @return the either the bus width on this ArcInst.
+	 */
+	public int getBusWidth(ArcInst ai)
+	{
+		if ((flags & VALID) == 0) redoNetworks();
+		int drawn = drawns[arcsOffset + ai.getArcIndex()];
+		if (drawn < 0) return 0;
+		return drawnWidths[drawn];
 	}
 
 	void invalidateUsagesOf(boolean strong)
@@ -362,6 +428,94 @@ class NetSchem extends NetCell {
 			if (var != null) return Global.newGlobal((String)var.getObject());
 		}
 		return null;
+	}
+
+	void calcDrawnWidths() {
+		Arrays.fill(drawnNames, null);
+		Arrays.fill(drawnWidths, -1);
+		int numPorts = cell.getNumPorts();
+		int numNodes = cell.getNumNodes();
+		int numArcs = cell.getNumArcs();
+
+		for (int i = 0; i < numPorts; i++) {
+			int drawn = drawns[i];
+			PortProto pp = dbExports[i];
+			Name name = pp.getProtoNameKey();
+			int newWidth = name.busWidth();
+			int oldWidth = drawnWidths[drawn];
+			if (oldWidth < 0) {
+				drawnNames[drawn] = name;
+				drawnWidths[drawn] = name.busWidth();
+				continue;
+			}
+			if (oldWidth != newWidth)
+				System.out.println("Network: Schematic cell " + cell.describe() + " has net with conflict name width <" +
+								   drawnNames[drawn] + "> and <" + name);
+		}
+		for (int i = 0; i < numArcs; i++) {
+			int drawn = drawns[arcsOffset + i];
+			if (drawn < 0) continue;
+			ArcInst ai = cell.getArc(i);
+			Name name = ai.getNameKey();
+			if (name.isTempname()) continue;
+			int newWidth = name.busWidth();
+			int oldWidth = drawnWidths[drawn];
+			if (oldWidth < 0) {
+				drawnNames[drawn] = name;
+				drawnWidths[drawn] = newWidth;
+				continue;
+			}
+			if (oldWidth != newWidth)
+				System.out.println("Network: Schematic cell " + cell.describe() + " has net with conflict width of names <" +
+								   drawnNames[drawn] + "> and <" + name);
+		}
+		for (int i = 0; i < numArcs; i++) {
+			int drawn = drawns[arcsOffset + i];
+			if (drawn < 0) continue;
+			ArcInst ai = cell.getArc(i);
+			Name name = ai.getNameKey();
+			if (!name.isTempname()) continue;
+			int oldWidth = drawnWidths[drawn];
+			if (oldWidth < 0)
+				drawnNames[drawn] = name;
+		}
+		for (int i = 0; i < numNodes; i++) {
+			NodeInst ni = cell.getNode(i);
+			NodeProto np = ni.getProto();
+			if (np instanceof PrimitiveNode) {
+				if (np.getFunction() == NodeProto.Function.PIN) continue;
+				if (np == Schematics.tech.offpageNode) continue;
+			}
+			int numPortInsts = np.getNumPorts();
+			for (int j = 0; j < numPortInsts; j++) {
+				PortInst pi = ni.getPortInst(j);
+				int drawn = drawns[getPortInstOffset(pi)];
+				if (drawn < 0) continue;
+				int oldWidth = drawnWidths[drawn];
+				int newWidth = 1;
+				if (isSchem(np)) {
+					NetSchem sch = (NetSchem)Network.getNetCell((Cell)np);
+					int arraySize = np.isIcon() ? ni.getNameKey().busWidth() : 1;
+					int portWidth = pi.getPortProto().getProtoNameKey().busWidth();
+					if (oldWidth == portWidth) continue;
+					newWidth = arraySize*portWidth;
+				}
+				if (oldWidth < 0) {
+					drawnWidths[drawn] = newWidth;
+					continue;
+				}
+				if (oldWidth != newWidth) 
+					System.out.println("Network: Schematic cell " + cell.describe() + " has net <" +
+						drawnNames[drawn] + "> with width conflict in connection " + pi.describe());
+			}
+		}
+		for (int i = 0; i < drawnWidths.length; i++) {
+			if (drawnWidths[i] < 1)
+				drawnWidths[i] = 1;
+			if (Network.debug ) System.out.println("Drawn "+i+" "+(drawnNames[i] != null ? drawnNames[i].toString() : "") +" has width " + drawnWidths[i]);
+		}
+		//showConnections();
+		
 	}
 
 	void addNetNames(Name name) {
@@ -520,6 +674,22 @@ class NetSchem extends NetCell {
 		*/
 	}
 
+	/**
+	 * Update map of equivalent ports newEquivPort.
+	 * @param currentTime time stamp of current network reevaluation
+	 * or will be kept untouched if not.
+	 */
+	private boolean updateInterface() {
+		boolean changed = false;
+		for (int i = 0; i < equivPorts.length; i++) {
+			if (equivPorts[i] != netMap[i]) {
+				changed = true;
+				equivPorts[i] = netMap[i];
+			}
+		}
+		return changed;
+	}
+
 	void redoNetworks()
 	{
 		if ((flags & VALID) != 0) return;
@@ -556,7 +726,13 @@ class NetSchem extends NetCell {
 			portOffsets = new int[dbExports.length + 1];
 
 		/* Set index of NodeInsts */
-		initConnections();
+		int numDrawns = makeDrawns();
+		if (drawnNames == null || drawnNames.length != numDrawns) {
+			drawnNames = new Name[numDrawns];
+			drawnWidths = new int[numDrawns];
+		}
+		calcDrawnWidths();
+
 		if (initNodables()) changed = true;
 
 		// Gather port and arc names

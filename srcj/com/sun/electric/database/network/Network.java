@@ -147,6 +147,12 @@ public class Network extends Tool
 			if (cell.isIcon() || cell.isSchematicView()) {
 				NetCell.invalidateUsagesOf(cell, true);
 				setCell(cell, null, 0);
+				for (Iterator vit = cell.getVersions(); vit.hasNext();) {
+					Cell verCell = (Cell)vit.next();
+					if (verCell == cell) continue;
+					NetCell.invalidateUsagesOf(verCell, true);
+					setCell(verCell, null, 0);
+				}
 			}
 		}
 		for (Iterator it = cellGroup.getCells(); it.hasNext();) {
@@ -154,6 +160,12 @@ public class Network extends Tool
 			if (cell.isIcon() || cell.isSchematicView()) {
 				if (getNetCell(cell) != null) continue;
 				new NetSchem(cell);
+				for (Iterator vit = cell.getVersions(); vit.hasNext();) {
+					Cell verCell = (Cell)vit.next();
+					if (verCell == cell) continue;
+					if (getNetCell(verCell) != null) continue;
+					new NetSchem(verCell);
+				}
 			}
 		}
 	}
@@ -279,6 +291,47 @@ public class Network extends Tool
 		if (no.getParent() != netCell.cell)
 			return null;
 		return netCell.getNetwork(no, arrayIndex, portProto, busIndex);
+	}
+
+	/*
+	 * Get network of export.
+	 */
+	public static JNetwork getNetwork(Export export, int busIndex) {
+		NetCell netCell = getNetCell((Cell)export.getParent());
+		if (busIndex < 0 || busIndex >= export.getProtoNameKey().busWidth())
+		{
+			System.out.println("Nodable.getNetwork: invalid arguments busIndex="+busIndex+" export="+export);
+			return null;
+		}
+		return netCell.getNetwork(export, busIndex);
+	}
+
+	/*
+	 * Get network of arc.
+	 */
+	public static JNetwork getNetwork(ArcInst ai, int busIndex) {
+		NetCell netCell = getNetCell(ai.getParent());
+		return netCell.getNetwork(ai, busIndex);
+	}
+
+	/**
+	 * Routine to return either the network name or the bus name on this ArcInst.
+	 * @return the either the network name or the bus name on this ArcInst.
+	 */
+	public static String getNetworkName(ArcInst ai)
+	{
+		NetCell netCell = getNetCell(ai.getParent());
+		return netCell.getNetworkName(ai);
+	}
+
+	/**
+	 * Routine to return the bus width on this ArcInst.
+	 * @return the either the bus width on this ArcInst.
+	 */
+	public static int getBusWidth(ArcInst ai)
+	{
+		NetCell netCell = getNetCell(ai.getParent());
+		return netCell.getBusWidth(ai);
 	}
 
 	/****************************** CHANGE LISTENER ******************************/

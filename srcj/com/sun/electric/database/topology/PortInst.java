@@ -125,11 +125,20 @@ public class PortInst extends ElectricObject
 	}
 
 	/**
+	 * Routine to describe this NodeInst as a string.
+	 * @return a description of this NodeInst as a string.
+	 */
+	public String describe()
+	{
+		return nodeInst.describe() + "." + portProto.getProtoName();
+	}
+
+	/**
 	 * Returns a printable version of this PortInst.
 	 * @return a printable version of this PortInst.
 	 */
 	public String toString()
 	{
-		return "PortInst " + nodeInst.describe() + "." + portProto.getProtoName();
+		return "PortInst " + describe();
 	}
 }

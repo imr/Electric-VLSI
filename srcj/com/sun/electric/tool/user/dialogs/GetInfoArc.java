@@ -191,11 +191,19 @@ public class GetInfoArc extends javax.swing.JDialog
 
 		// load the dialog
 		type.setText(ai.getProto().describe());
-		JNetwork net = ai.getNetwork(0);
-		network.setText(net != null ? net.describe() : "????");
+		int busWidth = ai.getBusWidth();
+		String netName = "????";
+		if (busWidth > 1)
+			netName = ai.getBusName();
+		else {
+			JNetwork net = ai.getNetwork(0);
+			if (net != null)
+				netName = net.describe();
+		}
+		network.setText(netName);
 		name.setText(initialName);
 		width.setText(Double.toString(initialWidth));
-		busSize.setText("???");
+		busSize.setText(Integer.toString(busWidth));
 		angle.setText(Double.toString(ai.getAngle() / 10.0));
 		easyToSelect.setSelected(initialEasyToSelect);
 		headNode.setText(ai.getHead().getPortInst().getNodeInst().describe());

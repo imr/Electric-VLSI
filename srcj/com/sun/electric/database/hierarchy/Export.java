@@ -32,6 +32,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
@@ -316,7 +317,12 @@ public class Export extends PortProto
 	 */
 	public JNetwork getNetwork()
 	{
-		return getOriginalPort().getNetwork();
+		if (getProtoNameKey().isBus())
+		{
+			System.out.println("Export.getNetwork() was called for instance of bus port "+getProtoName());
+			return null;
+		}
+		return Network.getNetwork(this, 0);
 	}
 
 	/**

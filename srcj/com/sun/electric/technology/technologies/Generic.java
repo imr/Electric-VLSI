@@ -139,8 +139,6 @@ public class Generic extends Technology
 		//**************************************** NODES ****************************************
 
 		/** Universal pin */
-		univPinPort = PrimitivePort.newInstance(this, universalPinNode, new ArcProto[] {universal_arc}, "univ", 0,180, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE);
 		universalPinNode = PrimitiveNode.newInstance("Universal-Pin", this, 1.0, 1.0, null,
 			new Technology.NodeLayer []
 			{
@@ -148,19 +146,21 @@ public class Generic extends Technology
 					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
 					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER)})
 			});
+		univPinPort = PrimitivePort.newInstance(this, universalPinNode, new ArcProto[] {universal_arc}, "univ", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE);
 		universalPinNode.addPrimitivePorts(new PrimitivePort [] {univPinPort});
 		universalPinNode.setFunction(NodeProto.Function.PIN);
 		universalPinNode.setWipeOn1or2();
 		universalPinNode.setHoldsOutline();
 
 		/** Invisible pin */
-		invisPinPort = PrimitivePort.newInstance(this, invisiblePinNode, new ArcProto[] {invisible_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER);
 		invisiblePinNode = PrimitiveNode.newInstance("Invisible-Pin", this, 1.0, 1.0, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(invisible_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
 			});
+		invisPinPort = PrimitivePort.newInstance(this, invisiblePinNode, new ArcProto[] {invisible_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER);
 		invisiblePinNode.addPrimitivePorts(new PrimitivePort [] {invisPinPort});
 		invisiblePinNode.setFunction(NodeProto.Function.PIN);
 		invisiblePinNode.setWipeOn1or2();
