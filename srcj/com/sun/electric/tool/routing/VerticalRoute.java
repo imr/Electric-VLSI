@@ -74,7 +74,7 @@ public class VerticalRoute {
     private static final int SEARCHLIMIT = 3000;
     private static final boolean DEBUG = false;
     private static final boolean DEBUGSEARCH = false;
-    private static final boolean DEBUGTERSE = true;
+    private static final boolean DEBUGTERSE = false;
 
     private static class SpecifiedRoute extends ArrayList {
         ArcProto startArc;
