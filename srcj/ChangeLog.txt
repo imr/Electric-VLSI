@@ -2,15 +2,20 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-IMP: (9/23/04, SMR) PostScript output includes cell frames.
-
 ************************* Version 8.01x: *********************************
+
+FIX: (9/23/04, GVG) Minor fixes for 3D view: Avoid exception if highlighter is null (3D view), new depth value for
+active cut, drawing physical layers
+
+IMP: (9/23/04, GVG) Improvements in scheduled aborts in ERC.
+
+IMP: (9/23/04, SMR) PostScript output includes cell frames.
 
 FIX: (9/23/04, GVG) ERC fix to properly detect polygons with multiple loops inside. This error could be seen in
 qfour2:pads180nm_100um:pad_part_flwout{lay}.
 
 IMP: (9/23/04, GVG) Tuning of ERC sequence of steps. Results: ERC on pad2core:fillpads_all{lay} runs in 5 mins
-compared to more than 1hr (42793 areas and 38350 contact regions checked) 
+compared to more than 1hr (42793 areas and 38350 contact regions checked)
 
 ************************* Version 8.01w: *********************************
 

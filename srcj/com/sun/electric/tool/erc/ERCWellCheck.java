@@ -34,7 +34,6 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -137,6 +136,9 @@ public class ERCWellCheck
 			Visitor wcVisitor = new Visitor(newAlgorithm, this);
 			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, wcVisitor);
 
+			// Checking if job is scheduled for abort or already aborted
+	        if (checkForAbort()) return (false);
+
 			// make a list of well and substrate areas
 			wellAreas = new ArrayList();
 			int wellIndex = 0;
@@ -146,8 +148,6 @@ public class ERCWellCheck
 			for(Iterator it = topMerge.getKeyIterator(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
-				if (!isERCLayerRelated(layer))
-					System.out.println("When does this happen 2?");
 
 				// Not sure if null goes here
 				Collection set = topMerge.getObjects(layer, false, true);
@@ -251,7 +251,6 @@ public class ERCWellCheck
 						if (ERC.isMustConnectPWellToGround())
 						{
 							MessageLog err = errorLogger.logError("P-Well contact not connected to ground", cell, 0);
-							System.out.println("Data P-Well contact" + wc.index + " net = " + wc.netNum);
 							err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
 						}
 					} else
@@ -259,7 +258,6 @@ public class ERCWellCheck
 						if (ERC.isMustConnectNWellToPower())
 						{
 							MessageLog err = errorLogger.logError("N-Well contact not connected to power", cell, 0);
-							System.out.println("Data N-Well contact" + wc.index + " net = " + wc.netNum);
 							err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
 						}
 					}
@@ -324,6 +322,9 @@ public class ERCWellCheck
 				WellArea wa = (WellArea)it.next();
 				for(Iterator oIt = wellAreas.iterator(); oIt.hasNext(); )
 				{
+					// Checking if job is scheduled for abort or already aborted
+					if (checkForAbort()) return (false);
+
 					WellArea oWa = (WellArea)oIt.next();
 					if (wa.index <= oWa.index) continue;
 					if (wa.layer != oWa.layer) continue;
@@ -477,12 +478,18 @@ public class ERCWellCheck
 		 * set the flag to abort if scheduled flag is true.
 		 * This is because setAbort and getScheduledToAbort
 		 * are protected in Job.
-		 * @return true if job is scheduled for abort
+		 * @return true if job is scheduled for abort or aborted.
+		 * and it will report it to std output
 		 */
 		protected boolean checkForAbort()
 		{
+			if (getAborted()) return (true);
 			boolean abort = getScheduledToAbort();
-			if (abort) setAborted();
+			if (abort)
+			{
+				setAborted();
+		        System.out.println("WellCheck aborted");
+			}
 			return (abort);
 		}
 	}
@@ -500,14 +507,8 @@ public class ERCWellCheck
 
         public boolean enterCell(HierarchyEnumerator.CellInfo info)
         {
-	        // Already aborted
-	        if (job.getAborted()) return (false);
-	        // Checking if job is scheduled for abort
-	        if (job.checkForAbort())
-	        {
-		       System.out.println("WellCheck aborted");
-		       return (false);
-	        }
+	        // Checking if job is scheduled for abort or already aborted
+	        if (job.checkForAbort()) return (false);
 
 			// make an object for merging all of the wells in this cell
 			Cell cell = info.getCell();
@@ -527,6 +528,9 @@ public class ERCWellCheck
 
         public void exitCell(HierarchyEnumerator.CellInfo info)
         {
+	        // Checking if job is scheduled for abort or already aborted
+	        if (job.checkForAbort()) return;
+
 			// make an object for merging all of the wells in this cell
 			Cell cell = info.getCell();
 	        GeometryHandler thisMerge = (GeometryHandler)cellMerges.get(info.getCell());
@@ -577,6 +581,9 @@ public class ERCWellCheck
 
         public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
         {
+	        // Checking if job is scheduled for abort or already aborted
+	        if (job.checkForAbort()) return (false);
+
 			// merge everything
 	        Cell cell = info.getCell();
 	        GeometryHandler thisMerge = (GeometryHandler)cellMerges.get(cell);

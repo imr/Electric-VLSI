@@ -116,6 +116,10 @@ public class View3DWindow extends JPanel
 		texAttr.setTextureMode(TextureAttributes.MODULATE);
 		//texAttr.setTextureColorTable(pattern);
 		cellApp.setTextureAttributes(texAttr);
+
+		LineAttributes lineAttr = new LineAttributes();
+		lineAttr.setLineAntialiasingEnable(true);
+		cellApp.setLineAttributes(lineAttr);
 	}
 
 	// constructor
@@ -139,6 +143,8 @@ public class View3DWindow extends JPanel
         //overall.add(this);
 		add("Center", canvas);
 		canvas.addMouseListener(this);
+
+		System.out.println("Canvas3D supports antialiasing " + canvas.getSceneAntialiasingAvailable());
 
 		// Create a simple scene and attach it to the virtual universe
 		BranchGroup scene = createSceneGraph(cell, infiniteBounds);
@@ -173,6 +179,9 @@ public class View3DWindow extends JPanel
 		BoundingSphere sceneBnd = (BoundingSphere)scene.getBounds();
 		double radius = sceneBnd.getRadius();
 		View view = u.getViewer().getView();
+
+		// Too expensive at this point
+		//view.setSceneAntialiasingEnable(true);
 
 		// Setting the projection policy
 		view.setProjectionPolicy(User.is3DPerspective()? View.PERSPECTIVE_PROJECTION : View.PARALLEL_PROJECTION);
@@ -385,7 +394,8 @@ public class View3DWindow extends JPanel
 			addPolyhedron(rect, values[0], values[1] - values[0], cellApp, objTrans);
 		}
 		else
-			addPolys(tech.getShapeOfNode(no), no.rotateOut(), objTrans);
+			addPolys(tech.getShapeOfNode(no, null, true, true), no.rotateOut(), objTrans); 
+		//addPolys(tech.getShapeOfNode(no), no.rotateOut(), objTrans); null, true, true
 	}
 
 	/**
@@ -479,6 +489,10 @@ public class View3DWindow extends JPanel
 				texAttr.setTextureMode(TextureAttributes.MODULATE);
 				//texAttr.setTextureColorTable(pattern);
 				ap.setTextureAttributes(texAttr);
+
+				LineAttributes lineAttr = new LineAttributes();
+				lineAttr.setLineAntialiasingEnable(true);
+				ap.setLineAttributes(lineAttr);
 
 				//ap.setMaterial(layerMaterial);
 				// Adding to internal map
