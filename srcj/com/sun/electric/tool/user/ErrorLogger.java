@@ -35,6 +35,7 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.TopLevel;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.*;
@@ -108,9 +109,10 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         private Cell    logCell;                // cell associated with log (not really used)
         private List   highlights;
 
-        private MessageLog(String message, int sortKey) {
+        private MessageLog(String message, Cell cell, int sortKey) {
             this.message = message;
             this.sortKey = sortKey;
+            this.logCell = cell;
             index = 0;
             highlights = new ArrayList();
         }
@@ -405,7 +407,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
     }
     public static class WarningLog extends MessageLog
     {
-       private WarningLog(String message, int sortKey) {super(message, sortKey);}
+       private WarningLog(String message, Cell cell, int sortKey) {super(message, cell, sortKey);}
     }
 
     /** Current Logger */               private static ErrorLogger currentLogger;
@@ -484,12 +486,9 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         }
 
         // create a new ErrorLog object
-        MessageLog el = new MessageLog(message, sortKey);
+        MessageLog el = new MessageLog(message, cell, sortKey);
 
         // store information about the error
-        el.message = message;
-        el.sortKey = sortKey;
-        el.logCell = cell;
         el.highlights = new ArrayList();
 
         // add the ErrorLog into the global list
@@ -523,12 +522,9 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         }
 
         // create a new ErrorLog object
-        MessageLog el = new WarningLog(message, sortKey);
+        MessageLog el = new WarningLog(message, cell, sortKey);
 
         // store information about the error
-        el.message = message;
-        el.sortKey = sortKey;
-        el.logCell = cell;
         el.highlights = new ArrayList();
 
         // add the ErrorLog into the global list
@@ -662,6 +658,16 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
                 if (getNumErrors() == 0) extraMsg = "warnings";
                 else  if (getNumWarnings() == 0) extraMsg = "errors";
 	            System.out.println("Type > and < to step through " + extraMsg + ", or open the ERRORS view in the explorer");
+                if (getNumErrors() > 0) {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        public void run() {
+                            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+                                    errorSystem + " found "+getNumErrors()+" errors, "+getNumWarnings()+" warnings!",
+                                    errorSystem + " finished with Errors",
+                                    JOptionPane.INFORMATION_MESSAGE);
+                        }
+                    });
+                }
             }
         }
         SwingUtilities.invokeLater(new Runnable() {

@@ -450,7 +450,7 @@ class NetCell
 				if (np.getFunction() == NodeProto.Function.PIN) {
 					String msg = "Network: " + cell + " has unconnected pin " + pi.describe();
                     System.out.println(msg);
-                    ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                    ErrorLogger.MessageLog log = Network.errorLogger.logWarning(msg, cell, Network.errorSortNodes);
                     log.addGeom(ni, true, cell, null);
                 }
 				addToDrawn(pi);
