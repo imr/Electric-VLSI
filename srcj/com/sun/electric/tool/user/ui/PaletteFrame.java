@@ -47,8 +47,7 @@ import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.menus.MenuCommands;
-import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.menus.CellMenu;
 import com.sun.electric.tool.user.dialogs.LayoutText;
 import com.sun.electric.tool.user.dialogs.CellBrowser;
@@ -126,7 +125,7 @@ public class PaletteFrame
 			jInternalFrame.setSize(frameSize);
 			jInternalFrame.setLocation(0, 0);
 			jInternalFrame.setAutoscrolls(true);
-			jInternalFrame.setFrameIcon(new ImageIcon(palette.getClass().getResource("IconElectric.gif")));
+			jInternalFrame.setFrameIcon(Resources.getResource(palette.getClass(), "IconElectric.gif"));
 		} else
 		{
 			JFrame jFrame = new JFrame("Components");

@@ -57,6 +57,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.database.variable.VarContext;
 
@@ -230,7 +231,7 @@ public class WindowFrame
 			jif.setSize(frameSize);
 			jif.setLocation(windowOffset+150, windowOffset);
 			jif.setAutoscrolls(true);
-			jif.setFrameIcon(new ImageIcon(WindowFrame.class.getResource("IconElectric.gif")));
+			jif.setFrameIcon(Resources.getResource(WindowFrame.class, "IconElectric.gif"));
 		} else
 		{
 			jf = new TopLevel("Electric - " + title, new Rectangle(frameSize), this, gc);

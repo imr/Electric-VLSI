@@ -30,13 +30,11 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.FlagSet;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.menus.MenuCommands;
-import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.dialogs.NewCell;
 
@@ -369,11 +367,11 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			if (lib == Library.getCurrent())
 			{
 				nodeName += " [Current]";
-				iconLibrary = new ImageIcon(getClass().getResource("IconLibraryCheck.gif"));
+				iconLibrary = Resources.getResource(getClass(), "IconLibraryCheck.gif");
 			}
 			else
 			{
-				iconLibrary = new ImageIcon(getClass().getResource("IconLibrary.gif"));
+				iconLibrary = Resources.getResource(getClass(), "IconLibrary.gif");
 			}
 			return nodeName;
 		}
@@ -484,7 +482,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			if (nodeInfo instanceof Library)
 			{
 				if (iconLibrary == null)
-					iconLibrary = new ImageIcon(getClass().getResource("IconLibrary.gif"));
+					iconLibrary = Resources.getResource(getClass(), "IconLibrary.gif");
 				setIcon(iconLibrary);
 			}
 			if (nodeInfo instanceof CellAndCount)
@@ -498,41 +496,41 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				if (cell.getView() == View.ICON)
 				{
 					if (iconViewIcon == null)
-						iconViewIcon = new ImageIcon(getClass().getResource("IconViewIcon.gif"));
+						iconViewIcon = Resources.getResource(getClass(), "IconViewIcon.gif");
 					if (iconViewOldIcon == null)
-						iconViewOldIcon = new ImageIcon(getClass().getResource("IconViewOldIcon.gif"));
+						iconViewOldIcon = Resources.getResource(getClass(), "IconViewOldIcon.gif");
 					if (cell.getNewestVersion() == cell) setIcon(iconViewIcon); else
 						setIcon(iconViewOldIcon);
 				} else if (cell.getView() == View.LAYOUT)
 				{
 					if (iconViewLayout == null)
-						iconViewLayout = new ImageIcon(getClass().getResource("IconViewLayout.gif"));
+						iconViewLayout = Resources.getResource(getClass(), "IconViewLayout.gif");
 					if (iconViewOldLayout == null)
-						iconViewOldLayout = new ImageIcon(getClass().getResource("IconViewOldLayout.gif"));
+						iconViewOldLayout = Resources.getResource(getClass(), "IconViewOldLayout.gif");
 					if (cell.getNewestVersion() == cell) setIcon(iconViewLayout); else
 						setIcon(iconViewOldLayout);
 				} else if (cell.getView() == View.SCHEMATIC || cell.getView().isMultiPageView())
 				{
 					if (iconViewSchematics == null)
-						iconViewSchematics = new ImageIcon(getClass().getResource("IconViewSchematics.gif"));
+						iconViewSchematics = Resources.getResource(getClass(), "IconViewSchematics.gif");
 					if (iconViewOldSchematics == null)
-						iconViewOldSchematics = new ImageIcon(getClass().getResource("IconViewOldSchematics.gif"));
+						iconViewOldSchematics = Resources.getResource(getClass(), "IconViewOldSchematics.gif");
 					if (cell.getNewestVersion() == cell) setIcon(iconViewSchematics); else
 						setIcon(iconViewOldSchematics);
 				} else if (cell.getView().isTextView())
 				{
 					if (iconViewText == null)
-						iconViewText = new ImageIcon(getClass().getResource("IconViewText.gif"));
+						iconViewText = Resources.getResource(getClass(), "IconViewText.gif");
 					if (iconViewOldText == null)
-						iconViewOldText = new ImageIcon(getClass().getResource("IconViewOldText.gif"));
+						iconViewOldText = Resources.getResource(getClass(), "IconViewOldText.gif");
 					if (cell.getNewestVersion() == cell) setIcon(iconViewText); else
 						setIcon(iconViewOldText);
 				} else
 				{
 					if (iconViewMisc == null)
-						iconViewMisc = new ImageIcon(getClass().getResource("IconViewMisc.gif"));
+						iconViewMisc = Resources.getResource(getClass(), "IconViewMisc.gif");
 					if (iconViewOldMisc == null)
-						iconViewOldMisc = new ImageIcon(getClass().getResource("IconViewOldMisc.gif"));
+						iconViewOldMisc = Resources.getResource(getClass(), "IconViewOldMisc.gif");
 					if (cell.getNewestVersion() == cell) setIcon(iconViewMisc); else
 						setIcon(iconViewOldMisc);
 				}
@@ -540,7 +538,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			if (nodeInfo instanceof Cell.CellGroup)
 			{
 				if (iconGroup == null)
-					iconGroup = new ImageIcon(getClass().getResource("IconGroup.gif"));
+					iconGroup = Resources.getResource(getClass(), "IconGroup.gif");
 				setIcon(iconGroup);
 			}
 			if (nodeInfo instanceof String)
@@ -549,22 +547,22 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				if (theString.equalsIgnoreCase("jobs"))
 				{
 					if (iconJobs == null)
-						iconJobs = new ImageIcon(getClass().getResource("IconJobs.gif"));
+						iconJobs = Resources.getResource(getClass(), "IconJobs.gif");
 					setIcon(iconJobs);
 				} else if (theString.equalsIgnoreCase("libraries"))
 				{
 					if (iconLibraries == null)
-						iconLibraries = new ImageIcon(getClass().getResource("IconLibraries.gif"));
+						iconLibraries = Resources.getResource(getClass(), "IconLibraries.gif");
 					setIcon(iconLibraries);
 				} else if (theString.equalsIgnoreCase("errors"))
 				{
 					if (iconErrors == null)
-						iconErrors = new ImageIcon(getClass().getResource("IconErrors.gif"));
+						iconErrors = Resources.getResource(getClass(), "IconErrors.gif");
 					setIcon(iconErrors);
 				} else if (theString.equalsIgnoreCase("signals"))
 				{
 					if (iconSignals == null)
-						iconSignals = new ImageIcon(getClass().getResource("IconSignals.gif"));
+						iconSignals = Resources.getResource(getClass(), "IconSignals.gif");
 					setIcon(iconSignals);
 				}
 			}

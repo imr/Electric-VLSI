@@ -2,6 +2,9 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (7/2/04. GVG) Reorganizing gif files under resources folders.
+3D view working with reflection now.
+
 BUG: (7/1/04, SMR) "Insert Jog In Arc" works wrong for arcs that are not on grid.
 FIX: Now keeps inserted jog inside of the arc.
 

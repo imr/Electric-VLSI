@@ -44,11 +44,9 @@ import com.sun.electric.technology.technologies.Generic;
 // Java3D packages
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.ViewingPlatform;
-import com.sun.j3d.utils.geometry.Box;
 import com.sun.j3d.utils.geometry.GeometryInfo;
 import com.sun.j3d.utils.geometry.Primitive;
 import com.sun.j3d.utils.behaviors.vp.OrbitBehavior;
-import com.sun.j3d.utils.picking.behaviors.PickZoomBehavior;
 import com.sun.j3d.utils.picking.PickTool;
 import com.sun.j3d.utils.picking.PickResult;
 import com.sun.j3d.utils.picking.PickCanvas;
@@ -92,7 +90,6 @@ public class View3DWindow extends JPanel
 	/** the window frame containing this editwindow */      private WindowFrame wf;
 	/** the cell that is in the window */					private Cell cell;
 	/** the overall panel with disp area and sliders */		private JPanel overall;
-    /** Collection of transformations per layer. It might need to go in other place */ private HashMap layers = new HashMap();
 	/** Collection of attributes per layer. It might need to go in other place */ private HashMap appearances = new HashMap();
 	private PickCanvas pickCanvas;
 
@@ -127,12 +124,10 @@ public class View3DWindow extends JPanel
 		ViewingPlatform viewingPlatform = u.getViewingPlatform();
 
 		orbit = new OrbitBehavior(canvas, OrbitBehavior.REVERSE_ALL);
-		BoundingSphere boun = new BoundingSphere(new Point3d(0.0, 0.0/*cell.getBounds().getCenterX(),cell.getBounds().getCenterY()*/,0.0), 100.0);;
 		orbit.setSchedulingBounds(infiniteBounds);
 
 		/** step A **/
-		Point3d center = new Point3d(0, 0, /*cell.getBounds().getCenterX(),cell.getBounds().getCenterY(),*/ 0);   // A
-		//center = new Point3d(cell.getBounds().getCenterX(),cell.getBounds().getCenterY(), 0);     // C
+		Point3d center = new Point3d(0, 0, /*cell.getBounds().getCenterX(),cell.getBounds().getCenterY(),*/ 0);
 
 		orbit.setRotationCenter(center);
 		orbit.setMinRadius(0);

@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.Resources;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -78,7 +79,7 @@ public class MessagesWindow
 			JInternalFrame jInternalFrame = new JInternalFrame("Electric Messages", true, false, true, true);
 			jf = jInternalFrame;
 			contentFrame = jInternalFrame.getContentPane();
-			jInternalFrame.setFrameIcon(new ImageIcon(getClass().getResource("IconElectric.gif")));
+			jInternalFrame.setFrameIcon(Resources.getResource(getClass(), "IconElectric.gif"));
 		} else
 		{
 			JFrame jFrame = new JFrame("Electric Messages");

@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.menus.MenuBar;
@@ -95,7 +96,7 @@ public class TopLevel extends JFrame
         setVisible(true);
 
 		// set an icon on the window
-		setIconImage(new ImageIcon(getClass().getResource("IconElectric.gif")).getImage());
+		setIconImage(Resources.getResource(getClass(), "IconElectric.gif").getImage());
 
 		// create the menu bar
 		menuBar = MenuCommands.createMenuBar();

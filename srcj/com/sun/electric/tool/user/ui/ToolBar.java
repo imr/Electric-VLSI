@@ -29,6 +29,7 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.EditMenu;
@@ -155,8 +156,8 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 	public static Cursor outlineCursor = readCursor("CursorOutline.gif", 0, 0);
 	public static Cursor measureCursor = readCursor("CursorMeasure.gif", 0, 0);
 
-    public static final ImageIcon selectSpecialIconOn = new ImageIcon(ToolBar.class.getResource("ButtonSelectSpecialOn.gif"));
-    public static final ImageIcon selectSpecialIconOff = new ImageIcon(ToolBar.class.getResource("ButtonSelectSpecialOff.gif"));
+    public static final ImageIcon selectSpecialIconOn = Resources.getResource(ToolBar.class, "ButtonSelectSpecialOn.gif");
+    public static final ImageIcon selectSpecialIconOff = Resources.getResource(ToolBar.class, "ButtonSelectSpecialOff.gif");
     
 	private ToolBar() {
         Undo.addPropertyChangeListener(this);
@@ -182,7 +183,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		modeGroup = new ButtonGroup();
 
 		/** Open and Save buttons */
-        ToolBarButton open = ToolBarButton.newInstance(OpenLibraryName, new ImageIcon(toolbar.getClass().getResource("ButtonOpenLibrary.gif")));
+        ToolBarButton open = ToolBarButton.newInstance(OpenLibraryName, Resources.getResource(toolbar.getClass(), "ButtonOpenLibrary.gif"));
         open.addActionListener(
             new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.openLibraryCommand(); } });
         open.setToolTipText(OpenLibraryName);
@@ -190,7 +191,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
         toolbar.add(open);
 
 		toolbar.saveLibraryButton = ToolBarButton.newInstance(SaveLibraryName,
-		        new ImageIcon(toolbar.getClass().getResource("ButtonSaveLibrary.gif")));
+		        Resources.getResource(toolbar.getClass(), "ButtonSaveLibrary.gif"));
         toolbar.saveLibraryButton.addActionListener(
             new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB, false); } });
         toolbar.saveLibraryButton.setToolTipText(SaveLibraryName);
@@ -202,7 +203,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
         toolbar.addSeparator();
 
         clickZoomWireButton = ToolBarButton.newInstance(cursorClickZoomWireName,
-            new ImageIcon(toolbar.getClass().getResource("ButtonClickZoomWire.gif")));
+            Resources.getResource(toolbar.getClass(), "ButtonClickZoomWire.gif"));
         clickZoomWireButton.addActionListener(
             new ActionListener() { public void actionPerformed(ActionEvent e) { clickZoomWireCommand(); } });
         clickZoomWireButton.setToolTipText("ClickZoomWire");
@@ -213,7 +214,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
         if (secondaryInputModes) {
 
 			selectButton = ToolBarButton.newInstance(cursorSelectName,
-				new ImageIcon(toolbar.getClass().getResource("ButtonSelect.gif")));
+				Resources.getResource(toolbar.getClass(), "ButtonSelect.gif"));
 			selectButton.addActionListener(
 				new ActionListener() { public void actionPerformed(ActionEvent e) { selectCommand(); } });
 			selectButton.setToolTipText(cursorSelectName);
@@ -222,7 +223,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 
 			// the "Wiring" button
 			wireButton = ToolBarButton.newInstance(cursorWiringName,
-				new ImageIcon(toolbar.getClass().getResource("ButtonWiring.gif")));
+				Resources.getResource(toolbar.getClass(), "ButtonWiring.gif"));
 			wireButton.addActionListener(
 				new ActionListener() { public void actionPerformed(ActionEvent e) { wiringCommand(); } });
 			wireButton.setToolTipText(cursorWiringName);
@@ -233,7 +234,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 
 		// the "Pan mode" button
 		panButton = ToolBarButton.newInstance(cursorPanName,
-            new ImageIcon(toolbar.getClass().getResource("ButtonPan.gif")));
+            Resources.getResource(toolbar.getClass(), "ButtonPan.gif"));
 		panButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { panCommand(); } });
 		panButton.setToolTipText(cursorPanName);
@@ -242,7 +243,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 
 		// the "Zoom mode" button
 		zoomButton = ToolBarButton.newInstance(cursorZoomName,
-            new ImageIcon(toolbar.getClass().getResource("ButtonZoom.gif")));
+            Resources.getResource(toolbar.getClass(), "ButtonZoom.gif"));
 		zoomButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { zoomCommand(); } });
 		zoomButton.setToolTipText(cursorZoomName);
@@ -251,7 +252,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 
 		// the "Outline edit mode" button
 		outlineButton = ToolBarButton.newInstance(cursorOutlineName,
-			new ImageIcon(toolbar.getClass().getResource("ButtonOutline.gif")));
+			Resources.getResource(toolbar.getClass(), "ButtonOutline.gif"));
 		outlineButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { outlineEditCommand(); } });
 		outlineButton.setToolTipText(cursorOutlineName);
@@ -260,7 +261,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 
 		// the "Measure mode" button
 		measureButton = ToolBarButton.newInstance(cursorMeasureName,
-			new ImageIcon(toolbar.getClass().getResource("ButtonMeasure.gif")));
+			Resources.getResource(toolbar.getClass(), "ButtonMeasure.gif"));
 		measureButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { measureCommand(); } });
 		measureButton.setToolTipText(cursorMeasureName);
@@ -273,7 +274,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		// the "Full arrow distance" button
 		arrowGroup = new ButtonGroup();
 		fullButton = ToolBarButton.newInstance(moveFullName,
-            new ImageIcon(toolbar.getClass().getResource("ButtonFull.gif")));
+            Resources.getResource(toolbar.getClass(), "ButtonFull.gif"));
 		fullButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { fullArrowDistanceCommand(); } });
 		fullButton.setToolTipText("Full motion");
@@ -283,7 +284,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 
 		// the "Half arrow distance" button
         halfButton = ToolBarButton.newInstance(moveHalfName,
-            new ImageIcon(toolbar.getClass().getResource("ButtonHalf.gif")));
+            Resources.getResource(toolbar.getClass(), "ButtonHalf.gif"));
 		halfButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { halfArrowDistanceCommand(); } });
 		halfButton.setToolTipText("Half motion");
@@ -292,7 +293,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 
 		// the "Quarter arrow distance" button
 		quarterButton = ToolBarButton.newInstance(moveQuarterName,
-            new ImageIcon(toolbar.getClass().getResource("ButtonQuarter.gif")));
+            Resources.getResource(toolbar.getClass(), "ButtonQuarter.gif"));
 		quarterButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { quarterArrowDistanceCommand(); } });
 		quarterButton.setToolTipText("Quarter motion");
@@ -305,7 +306,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
         // the "Select Objects" button
 		selectGroup = new ButtonGroup();
 		objectsButton = ToolBarButton.newInstance(selectObjectsName,
-            new ImageIcon(toolbar.getClass().getResource("ButtonObjects.gif")));
+            Resources.getResource(toolbar.getClass(), "ButtonObjects.gif"));
 		objectsButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectObjectsCommand(); } });
 		objectsButton.setToolTipText("Select Objects");
@@ -315,7 +316,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 
         // the "Select Area" button
 		areaButton = ToolBarButton.newInstance(selectAreaName,
-            new ImageIcon(toolbar.getClass().getResource("ButtonArea.gif")));
+            Resources.getResource(toolbar.getClass(), "ButtonArea.gif"));
 		areaButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectAreaCommand(); } });
 		areaButton.setToolTipText("Select Area");
@@ -335,7 +336,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 
 		// the "Preferences" buttons
 		ToolBarButton preferencesButton = ToolBarButton.newInstance("Preferences",
-            new ImageIcon(toolbar.getClass().getResource("ButtonPreferences.gif")));
+            Resources.getResource(toolbar.getClass(), "ButtonPreferences.gif"));
 		preferencesButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { PreferencesFrame.preferencesCommand(); } });
 		preferencesButton.setToolTipText("Preferences");
@@ -344,7 +345,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 
 //
 //		ToolBarButton toolOptionButton = ToolBarButton.newInstance("Tool Options",
-//            new ImageIcon(toolbar.getClass().getResource("ButtonOptionTool.gif")));
+//            Resources.getResource(toolbar.getClass(), "ButtonOptionTool.gif")));
 //		toolOptionButton.addActionListener(
 //			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolOptions.toolOptionsCommand(); } });
 //		toolOptionButton.setToolTipText("Tool Options");
@@ -352,7 +353,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 //		toolbar.add(toolOptionButton);
 //
 //		ToolBarButton ioOptionButton = ToolBarButton.newInstance("I/O Options",
-//            new ImageIcon(toolbar.getClass().getResource("ButtonOptionIO.gif")));
+//            Resources.getResource(toolbar.getClass(), "ButtonOptionIO.gif")));
 //		ioOptionButton.addActionListener(
 //			new ActionListener() { public void actionPerformed(ActionEvent e) { IOOptions.ioOptionsCommand(); } });
 //		ioOptionButton.setToolTipText("I/O Options");
@@ -362,7 +363,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
         toolbar.addSeparator();
 
         // the Undo button
-        toolbar.undoButton = new JButton(new ImageIcon(toolbar.getClass().getResource("ButtonUndo.gif")));
+        toolbar.undoButton = new JButton(Resources.getResource(toolbar.getClass(), "ButtonUndo.gif"));
         toolbar.undoButton.addActionListener(
             new ActionListener() { public void actionPerformed(ActionEvent e) { EditMenu.undoCommand(); } });
         toolbar.undoButton.setToolTipText("Undo");
@@ -371,7 +372,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
         toolbar.add(toolbar.undoButton);
 
         // the Redo button
-        toolbar.redoButton = new JButton(new ImageIcon(toolbar.getClass().getResource("ButtonRedo.gif")));
+        toolbar.redoButton = new JButton(Resources.getResource(toolbar.getClass(), "ButtonRedo.gif"));
         toolbar.redoButton.addActionListener(
             new ActionListener() { public void actionPerformed(ActionEvent e) { EditMenu.redoCommand(); } });
         toolbar.redoButton.setToolTipText("Redo");
@@ -382,14 +383,14 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
         toolbar.addSeparator();
 
         // the Cell History button
-        toolbar.goBackButton = new JButton(new ImageIcon(toolbar.getClass().getResource("ButtonGoBack.gif")));
+        toolbar.goBackButton = new JButton(Resources.getResource(toolbar.getClass(), "ButtonGoBack.gif"));
         toolbar.goBackButton.addActionListener(
             new ActionListener() { public void actionPerformed(ActionEvent e) { goBackButtonCommand(); } });
         toolbar.goBackButton.setToolTipText("Go Back a Cell");
         toolbar.goBackButton.setEnabled(false);
         toolbar.add(toolbar.goBackButton);
 
-        toolbar.goForwardButton = new JButton(new ImageIcon(toolbar.getClass().getResource("ButtonGoForward.gif")));
+        toolbar.goForwardButton = new JButton(Resources.getResource(toolbar.getClass(), "ButtonGoForward.gif"));
         toolbar.goForwardButton.addActionListener(
             new ActionListener() { public void actionPerformed(ActionEvent e) { goForwardButtonCommand(); } });
         toolbar.goForwardButton.setToolTipText("Go Forward a Cell");
@@ -402,7 +403,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 
 		// the "Expanded" button
 		ToolBarButton expandButton = ToolBarButton.newInstance("Expand Cell Instances",
-            new ImageIcon(toolbar.getClass().getResource("ButtonExpand.gif")));
+            Resources.getResource(toolbar.getClass(), "ButtonExpand.gif"));
 		expandButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.expandOneLevelDownCommand(); } });
 		expandButton.setToolTipText("Expand Cell Instances");
@@ -411,7 +412,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 
 		// the "Unexpanded" button
 		ToolBarButton unExpandButton = ToolBarButton.newInstance("Unexpand Cell Instances",
-            new ImageIcon(toolbar.getClass().getResource("ButtonUnexpand.gif")));
+            Resources.getResource(toolbar.getClass(), "ButtonUnexpand.gif"));
 		unExpandButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.unexpandOneLevelUpCommand(); } });
 		unExpandButton.setToolTipText("Unexpand Cell Instances");
@@ -426,7 +427,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 
 	public static Cursor readCursor(String cursorName, int hotX, int hotY)
 	{
-		ImageIcon imageIcon = new ImageIcon(ToolBar.class.getResource(cursorName));
+		ImageIcon imageIcon = Resources.getResource(ToolBar.class, cursorName);
 		Image image = imageIcon.getImage();
 		int width = image.getWidth(null);
 		int height = image.getHeight(null);

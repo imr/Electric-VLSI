@@ -34,6 +34,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.Resources;
 
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -786,7 +787,7 @@ public class ColorPatternPanel extends JPanel
 		 */
 		public void paint(Graphics g)
 		{
-			ImageIcon icon = new ImageIcon(getClass().getResource("IconLayerPatterns.gif"));
+			ImageIcon icon = Resources.getResource(getClass(), "IconLayerPatterns.gif");
 			g.drawImage(icon.getImage(), 0, 0, null);
 		}
 

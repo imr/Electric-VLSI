@@ -34,6 +34,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.HelpMenu;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
@@ -108,7 +109,7 @@ public final class Main
 			whole.setBorder(BorderFactory.createLineBorder(new Color(0, 170, 0), 5));
 			whole.setLayout(new BorderLayout());
 
-			JLabel l = new JLabel(new ImageIcon(LibFile.getLibFile("SplashImage.gif")));
+			JLabel l = new JLabel(Resources.getResource(TopLevel.class, "SplashImage.gif"));
 			whole.add(l, BorderLayout.CENTER);
 			JLabel v = new JLabel("Version " + Version.getVersion(), JLabel.CENTER);
 			whole.add(v, BorderLayout.SOUTH);

@@ -31,11 +31,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Simulate;
-import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.HighlightListener;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.ClickZoomWireListener;
+import com.sun.electric.tool.user.*;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -47,19 +43,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Graphics2D;
 import java.awt.BasicStroke;
-import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.DataFlavor;
-import java.awt.dnd.DragSource;
 import java.awt.dnd.DnDConstants;
-import java.awt.dnd.DragGestureListener;
-import java.awt.dnd.DragSourceListener;
-import java.awt.dnd.DragGestureEvent;
-import java.awt.dnd.InvalidDnDOperationException;
-import java.awt.dnd.DragSourceContext;
-import java.awt.dnd.DragSourceDragEvent;
-import java.awt.dnd.DragSourceDropEvent;
-import java.awt.dnd.DragSourceEvent;
 import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetEvent;
@@ -92,11 +77,9 @@ import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
-import javax.swing.JCheckBox;
 import javax.swing.JSplitPane;
 import javax.swing.JComboBox;
 import javax.swing.JPopupMenu;
@@ -215,10 +198,10 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		private static Color background = null;
 		private static int nextPanelNumber = 1;
 
-		private static final ImageIcon iconHidePanel = new ImageIcon(WaveformWindow.class.getResource("ButtonSimHide.gif"));
-		private static final ImageIcon iconClosePanel = new ImageIcon(WaveformWindow.class.getResource("ButtonSimClose.gif"));
-		private static final ImageIcon iconDeleteSignal = new ImageIcon(WaveformWindow.class.getResource("ButtonSimDelete.gif"));
-		private static final ImageIcon iconDeleteAllSignals = new ImageIcon(WaveformWindow.class.getResource("ButtonSimDeleteAll.gif"));
+		private static final ImageIcon iconHidePanel = Resources.getResource(WaveformWindow.class, "ButtonSimHide.gif");
+		private static final ImageIcon iconClosePanel = Resources.getResource(WaveformWindow.class, "ButtonSimClose.gif");
+		private static final ImageIcon iconDeleteSignal = Resources.getResource(WaveformWindow.class, "ButtonSimDelete.gif");
+		private static final ImageIcon iconDeleteAllSignals = Resources.getResource(WaveformWindow.class, "ButtonSimDeleteAll.gif");
 
 	    // constructor
 		public Panel(WaveformWindow waveWindow, boolean isAnalog)
@@ -1598,12 +1581,12 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	/** true if the time axis is the same in each panel */	private boolean timeLocked;
 	private static WaveFormDropTarget waveformDropTarget = new WaveFormDropTarget();
 
-	private static final ImageIcon iconAddPanel = new ImageIcon(WaveformWindow.class.getResource("ButtonSimAddPanel.gif"));
-	private static final ImageIcon iconLockTime = new ImageIcon(WaveformWindow.class.getResource("ButtonSimLockTime.gif"));
-	private static final ImageIcon iconUnLockTime = new ImageIcon(WaveformWindow.class.getResource("ButtonSimUnLockTime.gif"));
-	private static final ImageIcon iconRefresh = new ImageIcon(WaveformWindow.class.getResource("ButtonSimRefresh.gif"));
-	private static final ImageIcon iconGrowPanel = new ImageIcon(WaveformWindow.class.getResource("ButtonSimGrow.gif"));
-	private static final ImageIcon iconShrinkPanel = new ImageIcon(WaveformWindow.class.getResource("ButtonSimShrink.gif"));
+	private static final ImageIcon iconAddPanel = Resources.getResource(WaveformWindow.class, "ButtonSimAddPanel.gif");
+	private static final ImageIcon iconLockTime = Resources.getResource(WaveformWindow.class, "ButtonSimLockTime.gif");
+	private static final ImageIcon iconUnLockTime = Resources.getResource(WaveformWindow.class, "ButtonSimUnLockTime.gif");
+	private static final ImageIcon iconRefresh = Resources.getResource(WaveformWindow.class, "ButtonSimRefresh.gif");
+	private static final ImageIcon iconGrowPanel = Resources.getResource(WaveformWindow.class, "ButtonSimGrow.gif");
+	private static final ImageIcon iconShrinkPanel = Resources.getResource(WaveformWindow.class, "ButtonSimShrink.gif");
 
     // ************************************* CONTROL *************************************
 

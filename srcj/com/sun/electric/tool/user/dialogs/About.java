@@ -24,19 +24,11 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.text.Version;
+import com.sun.electric.tool.user.Resources;
 
 import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.Insets;
-import java.awt.GridBagConstraints;
-import javax.swing.SwingConstants;
-import java.awt.GridBagLayout;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.awt.BorderLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -612,7 +604,7 @@ public class About extends EDialog
 			case 10: socketName = "SocketUK.gif";           break;
 		}
 		if (socketName != null)
-			theIcon.setIcon(new javax.swing.ImageIcon(getClass().getResource(socketName)));
+			theIcon.setIcon(Resources.getResource(getClass(), socketName));
 	}//GEN-LAST:event_regionChanged
 	
 	/** Closes the dialog */
