@@ -2,7 +2,16 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.01q: *********************************
+
 ************************* Version 8.01p: *********************************
+
+BUG: (9/16/04, JKG) Fix to change dialog: library pull-down menu was useless.
+
+BUG: (9/16/04, JKG) Hack to get transistor width/length of serpentine transistors.
+     Length is always 2.
+
+BUG: (9/16/04, JKG) Fixed LE algorithm with caching
 
 BUG: (9/16/04, GVG) Wrong transformation sequence introduced when cells are mirrored.
 
