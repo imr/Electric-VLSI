@@ -55,7 +55,7 @@ public class EMath
 	 * Routine to return the sum of two points.
 	 * @param p the first point.
 	 * @param dx the X component of the second point
-	 * @param dt the T component of the second point
+	 * @param dy the T component of the second point
 	 * @return the sum of two points.
 	 */
 	public static Point2D.Double addPoints(Point2D.Double p, double dx, double dy)

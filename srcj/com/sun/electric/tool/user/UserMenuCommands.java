@@ -196,6 +196,15 @@ public final class UserMenuCommands
 		}
 	}
 
+	public static void toggleGridCommand()
+	{
+		UIEditFrame uif = UITopLevel.getCurrent();
+		if (uif != null)
+		{
+			uif.setGrid(!uif.getGrid());
+		}
+	}
+
 	public static void showRTreeCommand()
 	{
 		Library curLib = Library.getCurrent();

@@ -33,17 +33,14 @@ import java.util.ArrayList;
 
 
 /**
- * @author wc147374
- *
- * To change the template for this generated type comment go to
- * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
+ * This class defines an edit window, with a cell explorer on the left side.
  */
 public class UIEditFrame extends JInternalFrame
 {
-	static int windowOffset = 0;
-	UIEdit wnd;
-	UITreeView tree;
-	/** the offset of each new window on the screen */		private static List windowList = new ArrayList();
+	/** the edit window part */							private UIEdit wnd;
+	/** the tree view part */							private UITreeView tree;
+	/** the offset of each new windows from the last */	private static int windowOffset = 0;
+	/** the list of all windows on the screen */		private static List windowList = new ArrayList();
 
 	// constructor
 	private UIEditFrame(Cell cell)
@@ -111,8 +108,12 @@ public class UIEditFrame extends JInternalFrame
 	public static Iterator getWindows()
 	{
 		return windowList.iterator();
-
 	}
+
+	public void setGrid(boolean showGrid) { wnd.setGrid(showGrid); }
+
+	public boolean getGrid() { return wnd.getGrid(); }
+
 	public void setTimeTracking(boolean trackTime)
 	{
 		wnd.setTimeTracking(trackTime);

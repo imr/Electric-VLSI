@@ -1091,8 +1091,8 @@ public class Cell extends NodeProto
 
 	/**
 	 * Update map of equivalent ports userEquivPort.
-	 * @param userEquivMap HashMap (PortProto -> JNetwork) of user-specified equivalent ports
-	 * @param currentTime.time stamp of current network reevaluation
+	 * @param userEquivPorts HashMap (PortProto -> JNetwork) of user-specified equivalent ports
+	 * @param currentTime time stamp of current network reevaluation
 	 * This routine will always set equivPortsCheckTime to currentTime.
      * equivPortsUpdateTime will either change to currentTime if map will change,
 	 * or will be kept untouched if not.

@@ -33,12 +33,17 @@ import javax.swing.JTextArea;
 import javax.swing.JDesktopPane;
 
 /**
+ * This class displays a progress dialog.
  */
 public class ProgressDialog extends JInternalFrame
 {
     private JProgressBar progressBar;
     private JTextArea taskOutput;
 
+	/**
+	 * The constructor displays the progress dialog.
+	 * @param title the title of the dialog.
+	 */
 	public ProgressDialog(String title)
 	{
 		super(title);
@@ -66,6 +71,9 @@ public class ProgressDialog extends JInternalFrame
 		moveToFront();
 	}
 
+	/**
+	 * Routine to terminate the progress dialog.
+	 */
 	public void close()
 	{
 		JDesktopPane desktop = UITopLevel.getDesktop();
@@ -73,21 +81,37 @@ public class ProgressDialog extends JInternalFrame
 		dispose();
 	}
 
+	/**
+	 * Routine to set the progress amount.
+	 * @param progress the amount of progress (from 0 to 100);
+	 */
 	public void setProgress(int progress)
 	{
 		progressBar.setValue(progress);
 	}
 
+	/**
+	 * Routine to return the progress amount.
+	 * @return the amount of progress (from 0 to 100);
+	 */
 	public int getProgress()
 	{
 		return progressBar.getValue();
 	}
-	
+
+	/**
+	 * Routine to set a text message in the progress dialog.
+	 * @param note the message to display.
+	 */
 	public void setNote(String note)
 	{
 		taskOutput.setText(note);
 	}
-	
+
+	/**
+	 * Routine to return the text message in the progress dialog.
+	 * @return the message currently being displayed.
+	 */
 	public String getNote()
 	{
 		return taskOutput.getText();

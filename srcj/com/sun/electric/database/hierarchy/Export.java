@@ -88,8 +88,7 @@ public class Export extends PortProto
 	/**
 	 * Low-level access routine to fill-in the subnode and subport of this Export.
 	 * The Export is also linked into the Cell.
-	 * @param originalNode the node inside of the Export's Cell from which this Export originated.
-	 * @param originalPort the port on that node.
+	 * @param originalPort the PortInst that is being exported.
 	 * @return true on error.
 	 */
 	public boolean lowLevelPopulate(PortInst originalPort)

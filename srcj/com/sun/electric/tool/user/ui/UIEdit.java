@@ -72,6 +72,7 @@ public class UIEdit extends JPanel
 	/** starting screen point for drags in this window */	private Point startDrag = new Point();
 	/** ending screen point for drags in this window */		private Point endDrag = new Point();
 	/** true if doing drags in this window */				private boolean doingDrag = false;
+	/** true if showing grid in this window */				private boolean showGrid = false;
 
 	/** an identity transformation */						private static final AffineTransform IDENTITY = new AffineTransform();
 	/** the offset of each new window on the screen */		private static int windowOffset = 0;
@@ -131,6 +132,9 @@ public class UIEdit extends JPanel
 			drawImage();
 		}
 		g.drawImage(img, 0, 0, this);
+
+		// add in grid
+		if (showGrid) drawGrid(g);
 
 		// add in highlighting
 		for(Iterator it = highlightList.iterator(); it.hasNext(); )
@@ -585,6 +589,99 @@ public class UIEdit extends JPanel
 		g2.setColor(color);
 		g2.drawGlyphVector(gv, (float)x, (float)y);
 		g2.setTransform(saveAT);
+	}
+
+	// ************************************* GRID *************************************
+
+	/**
+	 * Routine to set the display of a grid in this window.
+	 * @param showGrid true to show the grid.
+	 */
+	public void setGrid(boolean showGrid)
+	{
+		this.showGrid = showGrid;
+		redraw();
+	}
+
+	/**
+	 * Routine to return the state of grid display in this window.
+	 * @return true if the grid is displayed in this window.
+	 */
+	public boolean getGrid() { return showGrid; }
+
+	/**
+	 * Routine to display the grid.
+	 */
+	private void drawGrid(Graphics g)
+	{
+		/* grid spacing */
+		int x0 = 1; int y0 = 1;
+
+		// bold dot spacing
+		int xspacing = 10, yspacing = 10;
+
+		/* object space extent */
+		Point2D.Double low = screenToDatabase(0, 0);
+		double x4 = low.getX();  double y4 = low.getY();
+		Point2D.Double high = screenToDatabase(sz.width, sz.height);
+		double x5 = high.getX();  double y5 = high.getY();
+
+		/* initial grid location */
+		int x1 = ((int)x4) / x0 * x0;
+		int y1 = ((int)y4) / y0 * y0;
+
+		int xnum = sz.width;
+		double xden = x5 - x4;
+		int ynum = sz.height;
+		double yden = y5 - y4;
+		int x10 = x0*xspacing;
+		int y10 = y0*yspacing;
+		int y1base = y1 - (y1 / y0 * y0);
+		int x1base = x1 - (x1 / x0 * x0);
+
+		/* adjust grid placement according to scale */
+		boolean fatdots = false;
+		if (x0 * xnum / xden < 5 || y0 * ynum / (-yden) < 5)
+		{
+			x1 = x1base - (x1base - x1) / x10 * x10;   x0 = x10;
+			y1 = y1base - (y1base - y1) / y10 * y10;   y0 = y10;
+		} else if (x0 * xnum / xden > 75 && y0 * ynum / (-yden) > 75)
+		{
+			fatdots = true;
+		}
+
+		/* draw the grid to the offscreen buffer */
+		g.setColor(Color.black);
+		for(int i = y1; i > y5; i -= y0)
+		{
+			int y = (int)((i-y4) * ynum / yden);
+			if (y < 0 || y > sz.height) continue;
+			int y10mod = (i-y1base) % y10;
+			for(int j = x1; j < x5; j += x0)
+			{
+				int x = (int)((j-x4) * xnum / xden);
+				boolean everyTen = ((j-x1base)%x10) == 0 && y10mod == 0;
+				if (fatdots && everyTen)
+				{
+					g.fillRect(x-2,y, 5, 1);
+					g.fillRect(x,y-2, 1, 5);
+					g.fillRect(x-1,y-1, 3, 3);
+					continue;
+				}
+
+				/* special case every 10 grid points in each direction */
+				if (fatdots || everyTen)
+				{
+					g.fillRect(x-1,y, 3, 1);
+					g.fillRect(x,y-1, 1, 3);
+					continue;
+				}
+
+				// just a single dot
+				g.fillRect(x,y, 1, 1);
+
+			}
+		}
 	}
 
 	// ************************************* HIGHLIGHTING *************************************

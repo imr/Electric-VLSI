@@ -44,6 +44,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.user.ui.ProgressDialog;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -366,11 +367,6 @@ public class InputText extends Input
 
 		if (mainCell >= 0)
 			lib.setCurCell((Cell)nodeProtoList[mainCell]);
-//		if (io_verbose < 0 && fileLength > 0 && newprogress && io_inputprogressdialog != 0)
-//		{
-//			DiaDoneProgress(io_inputprogressdialog);
-//			io_inputprogressdialog = 0;
-//		}
 
 		lib.clearChangedMajor();
 		lib.clearChangedMinor();
@@ -547,6 +543,10 @@ public class InputText extends Input
 			keywordArray[cindex++] = (char)c;
 		}
 		keyWord = new String(keywordArray, 0, cindex);
+		if (progress != null && fileLength > 0)
+		{
+			progress.setProgress((int)(filePosition * 100 / fileLength));
+		}
 		return false;
 	}
 
@@ -708,7 +708,7 @@ public class InputText extends Input
 		int openCurly = keyWord.indexOf('{');
 		if (openCurly < 0)
 		{
-			System.out.println("Error: missing '{' in view name: " + keyWord);
+			System.out.println("Error on line "+lineReader.getLineNumber()+": missing '{' in view name: " + keyWord);
 			return;
 		}
 		String fullName = keyWord.substring(0, openCurly);
@@ -716,7 +716,7 @@ public class InputText extends Input
 		int closeCurly = abbrev.indexOf('}');
 		if (closeCurly < 0)
 		{
-			System.out.println("Error: missing '}' in view name: " + keyWord);
+			System.out.println("Error on line "+lineReader.getLineNumber()+": missing '}' in view name: " + keyWord);
 			return;
 		}
 		abbrev = abbrev.substring(0, closeCurly);
@@ -729,7 +729,7 @@ public class InputText extends Input
 		{
 			if (!v.getAbbreviation().equals(abbrev))
 			{
-				System.out.println("Error: view "+fullName+" has abbreviation '"+abbrev+
+				System.out.println("Error on line "+lineReader.getLineNumber()+": view "+fullName+" has abbreviation '"+abbrev+
 					"' which does not match the existing abbreviation '"+v.getAbbreviation()+"'");
 				return;
 			}
@@ -1118,7 +1118,7 @@ public class InputText extends Input
 			}
 		}
 		if (curNodeInstProto == null)
-			System.out.println("Unknown node type: "+keyWord);
+			System.out.println("Error on line "+lineReader.getLineNumber()+": unknown node type: "+keyWord);
 		nodeInstList[curCellNumber].nodeProto[curNodeInstIndex] = curNodeInstProto;
 	}
 
@@ -1259,7 +1259,7 @@ public class InputText extends Input
 			}
 		}
 		if (curArcInstProto == null)
-			System.out.println("Unknown arc type: "+keyWord);
+			System.out.println("Error on line "+lineReader.getLineNumber()+": unknown arc type: "+keyWord);
 		arcInstList[curCellNumber].arcProto[curArcInstIndex] = curArcInstProto;
 	}
 
@@ -1497,7 +1497,7 @@ public class InputText extends Input
 			int len = keyWord.length();
 			if (keyWord.charAt(len-1) != ':')
 			{
-				System.out.println("Missing colon in variable specification: "+keyWord);
+				System.out.println("Error on line "+lineReader.getLineNumber()+": missing colon in variable specification: "+keyWord);
 				return;
 			}
 			for(int j=0; j<len; j++)
@@ -1522,7 +1522,7 @@ public class InputText extends Input
 			int openSquarePos = keyWord.indexOf('[');
 			if (openSquarePos < 0)
 			{
-				System.out.println("Missing type information in variable: " + keyWord);
+				System.out.println("Error on line "+lineReader.getLineNumber()+": missing type information in variable: " + keyWord);
 				return;
 			}
 			int type = EMath.atoi(keyWord, openSquarePos+1);
@@ -1555,7 +1555,7 @@ public class InputText extends Input
 			{
 				if (keyWord.charAt(0) != '[')
 				{
-					System.out.println("Missing '[' in list of variable values: " + keyWord);
+					System.out.println("Error on line "+lineReader.getLineNumber()+": missing '[' in list of variable values: " + keyWord);
 					return;
 				}
 				ArrayList al = new ArrayList();
@@ -1590,7 +1590,7 @@ public class InputText extends Input
 					}
 					if (pos >= len)
 					{
-						System.out.println("Array too short in variable values: " + keyWord);
+						System.out.println("Error on line "+lineReader.getLineNumber()+": array too short in variable values: " + keyWord);
 						return;
 					}
 					String entry = keyWord.substring(start, pos);
@@ -1598,7 +1598,7 @@ public class InputText extends Input
 					if (keyWord.charAt(pos) == ']') break;
 					if (keyWord.charAt(pos) != ',')
 					{
-						System.out.println("Missing comma between array entries: " + keyWord);
+						System.out.println("Error on line "+lineReader.getLineNumber()+": missing comma between array entries: " + keyWord);
 						return;
 					}
 					pos++;
@@ -1638,7 +1638,7 @@ public class InputText extends Input
 				Variable var = naddr.setVal(varName, value);
 				if (var == null)
 				{
-					System.out.println("Error storing array variable: " + keyWord);
+					System.out.println("Error on line "+lineReader.getLineNumber()+": cannot store array variable: " + keyWord);
 					return;
 				}
 				var.setDescriptor(td);
@@ -1704,7 +1704,7 @@ public class InputText extends Input
 					NodeProto np = NodeProto.findNodeProto(name);
 					if (np == null)
 					{
-						System.out.println("Cannot find node " + name);
+						System.out.println("Error on line "+lineReader.getLineNumber()+": cannot find node " + name);
 						return null;
 					}
 					return np;

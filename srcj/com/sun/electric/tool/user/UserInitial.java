@@ -77,6 +77,8 @@ public final class UserInitial
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.showRTreeCommand(); } });
 		steveMenu.addMenuItem("Full Display", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.fullDisplayCommand(); } });
+		steveMenu.addMenuItem("Toggle Grid", KeyStroke.getKeyStroke('G', InputEvent.CTRL_MASK),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.toggleGridCommand(); } });
 
 		// setup Russell's test menu
 		UIMenu russMenu = UIMenu.CreateUIMenu("Russell", 'R');

@@ -20,25 +20,26 @@
 
     <target depends="init,compile" name="jar">
         <!-- To make a standalone app: -->
-        <!-- 1. Created electric.mf manifest. -->
+        <!-- 1. Create electric.mf manifest. -->
         <!-- 2. Put in it two lines: -->
         <!-- Manifest-Version: 1.0 -->
-        <!-- Main-Class: com.sun.electric.user.Electric -->
+        <!-- Main-Class: com.sun.electric.user.UserInitial -->
         <!-- 3. Pass to <jar>: manifest="electric.mf" -->
         <exec executable="jar"><arg line="xf ${beanshell}"></arg></exec> 
         <delete dir="META-INF"></delete>
         <jar basedir="." compress="true" jarfile="electric.jar" manifest="electric.mf">
             <!--  <arg line="-J-mx500m"></arg>  -->
             <!--  <arg line="-J-Dcom.apple.macos.useScreenMenuBar=true"></arg>  -->
+            <exclude name="apidoc/"/>
+            <exclude name="intervalsimulation/"/>
+            <exclude name="**/.nbattrs"/>
+            <exclude name="build.xml"/>
+            <exclude name="*.group"/>
+            <exclude name="electric.jar"/>
+            <exclude name="electric.mf"/>
+            <exclude name="Hack_stack.txt"/>
             <exclude name="**/*.java"/>
             <exclude name="**/*.form"/>
-            <exclude name="**/.nbattrs"/>
-            <exclude name="electric.mf"/>
-            <exclude name="electric.jar"/>
-            <exclude name="apidoc"/>
-            <exclude name="intervalsimulation/"/>
-            <exclude name="build.xml"/>
-            <exclude name="Hack_stack.txt"/>
         </jar>
         <delete dir="bsh"></delete>
     </target>
