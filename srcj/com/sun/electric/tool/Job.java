@@ -174,8 +174,10 @@ public abstract class Job implements ActionListener, Runnable {
 			if (numStarted == allJobs.size())
 				notify();
 			allJobs.add(j);
-			explorerTree.add(j.myNode);
-			ExplorerTree.explorerTreeChanged();
+            if (j.getDisplay()) {
+                explorerTree.add(j.myNode);
+                ExplorerTree.explorerTreeChanged();
+            }
 		}
 
 		/** Remove job from list of jobs */
@@ -187,16 +189,23 @@ public abstract class Job implements ActionListener, Runnable {
 					notify();
 				if (index < numStarted) numStarted--;
 			}
-			explorerTree.remove(j.myNode);
-			ExplorerTree.explorerTreeChanged();        
+            if (j.getDisplay()) {
+                explorerTree.remove(j.myNode);
+                ExplorerTree.explorerTreeChanged();        
+            }
 		}
 
 		/** Build Job explorer tree */
 		public synchronized DefaultMutableTreeNode getExplorerTree() {
 			explorerTree.removeAllChildren();
 			for (Iterator it = allJobs.iterator(); it.hasNext();) {
-				DefaultMutableTreeNode node = new DefaultMutableTreeNode((Job)it.next());
-				explorerTree.add(node);
+                Job j = (Job)it.next();
+                if (j.getDisplay()) {
+                    DefaultMutableTreeNode node = new DefaultMutableTreeNode(j);
+                    j.myNode.setUserObject(null);       // remove reference to job on old node
+                    j.myNode = node;                    // get rid of old node, point to new node
+                    explorerTree.add(node);
+                }
 			}
 			return explorerTree;
 		}
@@ -216,6 +225,8 @@ public abstract class Job implements ActionListener, Runnable {
 	/** changing job */                         private static Job changingJob;
     /** job tree */                             private static DefaultMutableTreeNode explorerTree = new DefaultMutableTreeNode("JOBS");
     /** my tree node */                         private DefaultMutableTreeNode myNode;
+    /** delete when done if true */             private boolean deleteWhenDone;
+    /** display on job list if true */          private boolean display;
     
     // Job Status
     /** job start time */                       protected long startTime;
@@ -255,19 +266,43 @@ public abstract class Job implements ActionListener, Runnable {
 		this.downCell = downCell;
         startTime = endTime = 0;
         started = finished = aborted = scheduledToAbort = false;
-        myNode = new DefaultMutableTreeNode(this);
+        myNode = null;
 	}
 	
+    /**
+     * Start a job. By default displays Job on Job List UI, and
+     * delete Job when done.  Jobs that have state the user would like to use
+     * after the Job finishes (like DRC, NCC, etc) should call
+     * <code>startJob(true, true)</code>.
+     */
 	public void startJob()
-	{        
+	{
+        startJob(true, true);
+    }
+	
+    /**
+     * Start the job by placing it on the JobThread queue.
+     * If <code>display</code> is true, display job on Job List UI.
+     * If <code>deleteWhenDone</code> is true, Job will be deleted
+     * after it is done (frees all data and references it stores/created)
+     * @param deleteWhenDone delete when job is done if true, otherwise leave it around
+     */
+    public void startJob(boolean display, boolean deleteWhenDone)
+    {
+        this.display = display;
+        this.deleteWhenDone = deleteWhenDone;
+
+        if (display)
+            myNode = new DefaultMutableTreeNode(this);
+
         databaseChangesThread.addJob(this);
 
 		// should figure out when to start the job properly...for now, just start it
 		//Thread t = new Thread(this, jobName);
 		//t.start();
     }
-	
-
+    
+    
 	//--------------------------ABSTRACT METHODS--------------------------
     
     /** This is the main work method.  This method should
@@ -324,6 +359,11 @@ public abstract class Job implements ActionListener, Runnable {
 			}
 			System.out.println(this.getInfo());
 		}
+        
+        // delete
+        if (deleteWhenDone) {
+            databaseChangesThread.removeJob(this);
+        }
     }
 
     protected void setProgress(String progress) {
@@ -354,6 +394,11 @@ public abstract class Job implements ActionListener, Runnable {
     protected boolean getScheduledToAbort() { return scheduledToAbort; }
     /** get abort status */
     public boolean getAborted() { return aborted; }
+    /** get display status */
+    public boolean getDisplay() { return display; }
+    /** get deleteWhenDone status */
+    public boolean getDeleteWhenDone() { return deleteWhenDone; }
+    
     
     /** get all jobs iterator */
     public static Iterator getAllJobs() { return allJobs.iterator(); }
