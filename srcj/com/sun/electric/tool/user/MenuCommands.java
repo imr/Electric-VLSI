@@ -185,6 +185,11 @@ public final class MenuCommands
 
 		fileMenu.addSeparator();
 
+        fileMenu.addMenuItem("Repair Libraries", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { checkAndRepairCommand(); } });
+
+        fileMenu.addSeparator();
+
 		fileMenu.addMenuItem("Print...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { printCommand(); } });
 
@@ -226,6 +231,8 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { new UndoCommand(); } });
 		editMenu.addMenuItem("Redo", KeyStroke.getKeyStroke('Y', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { new RedoCommand(); } });
+        editMenu.addMenuItem("Show Undo List", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); } });
 
 		editMenu.addSeparator();
 
@@ -651,11 +658,6 @@ public final class MenuCommands
 			helpMenu.addMenuItem("About Electric...", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { aboutCommand(); } });
 		}
-		helpMenu.addSeparator();
-		helpMenu.addMenuItem("Check and Repair Libraries...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { checkAndRepairCommand(); } });
-		helpMenu.addMenuItem("Show Undo List", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); } });
 		helpMenu.addSeparator();
 		helpMenu.addMenuItem("Make fake circuitry...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand(); } });

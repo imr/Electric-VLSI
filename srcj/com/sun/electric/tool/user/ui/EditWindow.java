@@ -806,12 +806,20 @@ public class EditWindow extends JPanel
                 bottom.setEnabled(true);
             }
             if (!right.getValueIsAdjusting()) {
+                //System.out.println("overallBounds="+overallBounds);
+                //System.out.println("cellBounds="+cellBounds);
+                //System.out.println("offy="+offy);
+                //System.out.print(" value="+(int)(-offy-0.5*cellBounds.getHeight()));
+                //System.out.print(" extent="+(int)(cellBounds.getHeight()));
+                //System.out.print(" min="+(int)(-((overallBounds.getY()+overallBounds.getHeight()) + 0.125*overallBounds.getHeight())));
+                //System.out.println(" max="+(int)(-(overallBounds.getY() - 0.125*overallBounds.getHeight())));
                 right.getModel().setRangeProperties(
-                        (int)(-offy-0.5*cellBounds.getWidth()),
+                        (int)(-offy-0.5*cellBounds.getHeight()),
                         (int)(cellBounds.getHeight()),
                         (int)(-((overallBounds.getY()+overallBounds.getHeight()) + 0.125*overallBounds.getHeight())),
                         (int)(-(overallBounds.getY() - 0.125*overallBounds.getHeight())),
                         false);
+                //System.out.println("model is "+right.getModel());
                 right.setEnabled(false);
                 right.setUnitIncrement((int)(0.05*cellBounds.getHeight()));
                 right.setBlockIncrement((int)(0.25*cellBounds.getHeight()));
@@ -837,7 +845,7 @@ public class EditWindow extends JPanel
     public void rightScrollChanged(int value)
     {
         Rectangle2D cellBounds = cell.getBounds();
-        double newoffy = -(value+0.5*cellBounds.getWidth());
+        double newoffy = -(value+0.5*cellBounds.getHeight());
         // annoying cause +y is down in java
         //double ignoreDelta = 0.03*viewBounds.getHeight();             // ignore delta
         //double delta = newoffy - offy;
@@ -855,6 +863,7 @@ public class EditWindow extends JPanel
 	 */
 	public void focusScreen(Rectangle2D bounds)
 	{
+        if (bounds == null) return;
 		double width = bounds.getWidth();
 		double height = bounds.getHeight();
 		if (width == 0) width = 2;
