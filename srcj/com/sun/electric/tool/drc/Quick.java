@@ -845,6 +845,7 @@ public class Quick
 		Cell cell = (Cell)thisNi.getProto();
 		boolean logsFound = false;
 		Netlist netlist = getCheckProto(cell).netlist;
+		Technology cellTech = cell.getTechnology();
 
 		// Need to transform bounds coordinates first otherwise it won't
 		// never overlap
@@ -924,6 +925,13 @@ public class Quick
 			{
 				ArcInst ai = (ArcInst)geom;
 				Technology tech = ai.getProto().getTechnology();
+
+				if (tech != cellTech)
+				{
+					reportError(TECHMIXWARN, " belongs to " + tech.getTechName(), cell, 0, 0, null, null, ai, null, null, null, null);
+					continue;
+				}
+
 				Poly [] arcPolyList = tech.getShapeOfArc(ai);
 				int tot = arcPolyList.length;
 				for(int j=0; j<tot; j++)
@@ -1144,7 +1152,7 @@ public class Quick
 						if (con && touch) continue;
 
 						double nMinSize = npoly.getMinSize();
-						DRCRules.DRCRule dRule = getAdjustedMinDist(tech, layer, minSize,
+						DRCRules.DRCRule dRule = getAdjustedMinDist(layer, minSize,
                                 nLayer, nMinSize, con, multi);
 						DRCRules.DRCRule eRule = DRC.getEdgeRule(layer, nLayer);
 						if (dRule == null && eRule == null) continue;
@@ -1216,7 +1224,7 @@ public class Quick
 
 					// see how close they can get
 					double nMinSize = nPoly.getMinSize();
-					DRCRules.DRCRule dRule = getAdjustedMinDist(tech, layer, minSize,
+					DRCRules.DRCRule dRule = getAdjustedMinDist(layer, minSize,
 						nLayer, nMinSize, con, multi);
 					DRCRules.DRCRule eRule = DRC.getEdgeRule(layer, nLayer);
 					if (dRule == null && eRule == null) continue;
@@ -3226,8 +3234,8 @@ public class Quick
 	 * "tech" and library "lib".  If "con" is true, the layers are connected.  Also forces
 	 * connectivity for same-implant layers.
 	 */
-	private DRCRules.DRCRule getAdjustedMinDist(Technology tech, Layer layer1, double size1,
-		Layer layer2, double size2, boolean con, boolean multi)
+	private DRCRules.DRCRule getAdjustedMinDist(Layer layer1, double size1,
+	                                   Layer layer2, double size2, boolean con, boolean multi)
 	{
 		// if they are implant on the same layer, they connect
 		if (!con && layer1 == layer2)
