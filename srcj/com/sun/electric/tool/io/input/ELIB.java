@@ -1708,6 +1708,9 @@ public class ELIB extends LibraryFiles
                 // check to make sure location is correct
                 Poly portLocation = pi.getPoly();
                 String extra = "";
+
+	            // Forcing rounding here instead of PolyBase.calcBounds()
+	            portLocation.roundPoints();
                 if (portLocation.contains(x, y)) {
                     return pi;
                 }

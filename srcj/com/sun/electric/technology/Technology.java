@@ -598,6 +598,9 @@ public class Technology extends ElectricObject
 			{
 				Class extraTechClass = Class.forName("com.sun.electric.plugins." + extraTechnologies[i]);
 				extraTechClass.getMethod("setItUp", (Class[])null).invoke(null, (Object[])null);
+			} catch (ClassNotFoundException e)
+            {
+				 System.out.println("GNU Release without extra plugins");
 	 		} catch (Exception e)
             {
                 System.out.println("Exceptions while importing extra technologies");

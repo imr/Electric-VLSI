@@ -142,7 +142,11 @@ public class WindowFrame
 	{
 		WindowFrame frame = new WindowFrame();
 
-		if (view3DClass == null) return frame; // error in class initialization
+		if (view3DClass == null)
+		{
+			System.out.println("3D View plugin not available");
+			return frame; // error in class initialization or no plugin available
+		}
 
 		try
 		{

@@ -52,8 +52,8 @@ public class Version
 	/**
 	 * This is the current version of Electric
 	 */
-	private static final String CURRENT = "8.01z";
-    private static final String MAINJARNAME = "electric.jar";
+	private static final String CURRENT = "8.01aa";
+    private static final String ROOTARNAME = "electric";
 
 	private int major;
 	private int minor;
@@ -122,7 +122,8 @@ public class Version
             {
                 String val = parse.nextToken(delim);
                 // Find path for main jar
-                if (val.lastIndexOf(MAINJARNAME) != -1)
+	            String filename = ROOTARNAME+"-"+getVersion()+".jar";
+                if (val.lastIndexOf(filename) != -1)
                 {
                     File electricJar = new File(val);
                     long date = electricJar.lastModified();

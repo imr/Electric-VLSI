@@ -2,14 +2,19 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.01ab: *********************************
+
 ************************* Version 8.01aa: *********************************
 
-************************* Version 8.01z: *********************************
+IMP: (10/20/04, GVG) Moving rounding operation from PolyBase.calcBound to ELIB.getArcEnd.
+Modifications in build.xml (new options: -Dplugin3D -DGNU -Dsource)
 
 BUG: (10/19/04, GVG) Library Read errors give null exception.
 FIX: Test if highlighter != null in ErrorLogger
 
 IMP: (10/19/04, GVG) StringBuffer instead of String for loops (findBugs source).
+
+************************* Version 8.01z: *********************************
 
 BUG: (10/19/04, SMR) JELIB input creates extra exports in icons.
 FIX: When JELIB input creates an export, disallow creation of associated icon export.

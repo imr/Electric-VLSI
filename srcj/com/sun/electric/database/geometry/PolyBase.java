@@ -1421,6 +1421,19 @@ public class PolyBase implements Shape
 		}
 	}
 
+	/**
+	 * Attempt to control rounding errors in input libraries
+	 */
+	public void roundPoints()
+	{
+		bounds = null;
+		for (int i = 0; i < points.length; i++)
+		{
+			Point2D point = points[i];
+			point.setLocation(DBMath.round(point.getX()), DBMath.round(point.getY()));
+		}
+	}
+
 	private class PolyPathIterator implements PathIterator
 	{
 		int idx = 0;

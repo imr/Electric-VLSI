@@ -7,13 +7,16 @@
 	    <property name="JUnit" value="packaging/junit.jar"/>
     </target>
 
+	<!-- Use -DpluginD=true to include 3D plugin -->
+	<!-- Use -DGNU=true for GNU release -->
+	<!-- Use -Dsource=true to release the source  -->
     <target name="compile" depends="init" description="Compile">
         <javac debug="true" deprecation="true" destdir="." srcdir="." source="1.4">
             <classpath><pathelement location="${beanshell}"/></classpath>
             <classpath><pathelement location="${AppleJava}"/></classpath>
             <exclude name="intervalsimulation/"/>
 	        <exclude name="com/sun/electric/tests/"/>
-	        <exclude name="com/sun/electric/plugins/j3d/*.*"/>
+	        <exclude name="com/sun/electric/plugins/j3d/*.*" unless="plugin3D"/>
         </javac>
     </target>
 
@@ -40,12 +43,17 @@
         </java>
     </target>
 
+	<!-- Not able to put if confition inside unjar -->
+	<target name="unjarBsh" unless="GNU">
+        <unjar dest="." src="${beanshell}"/>
+	</target>
+
     <target name="jar" depends="init,compile" description="Make binary Jar file">
         <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
         	<arg value="-v"/>
         </java>
-        <unjar dest="." src="${beanshell}"/> 
-        <unjar dest="." src="${AppleJava}"/> 
+	    <antcall target="unjarBsh"></antcall>
+        <unjar dest="." src="${AppleJava}"/>
         <delete dir="META-INF"/>
         <copy file="packaging/electric.mf" tofile="electric.mf"/>
         <jar basedir="." compress="true" jarfile="electric-${version}.jar" manifest="electric.mf">
@@ -53,14 +61,17 @@
             <exclude name="bin/"/>
             <exclude name="intervalsimulation/"/>
             <exclude name="packaging/"/>
-            <exclude name="build.xml"/>
-            <exclude name="ChangeLog.txt"/>
+            <exclude name="build.xml" unless="source"/>
+            <exclude name="ChangeLog.txt" unless="source"/>
             <exclude name="electric-${version}.jar"/>
             <exclude name="electric.mf"/>
             <exclude name="Hack_stack.txt"/>
-            <exclude name="**/*.java"/>
-            <exclude name="**/*.form"/>
-            <exclude name="classes/"/>            
+            <exclude name="com/sun/electric/plugins/tsmc90/*.*" if="GNU"/>
+	        <exclude name="com/sun/electric/plugins/skill/*.*" if="GNU"/>
+	        <exclude name="com/sun/electric/tool/simulation/interval/*.*" if="GNU"/>
+            <exclude name="**/*.java" unless="source"/>
+            <exclude name="**/*.form" unless="source"/>
+            <exclude name="classes/" unless="source"/>
         </jar>
         <delete file="electric.mf"/>
         <delete dir="bsh"/>
@@ -70,6 +81,8 @@
                 <include name="**/*.class"/>
             </fileset>
         </delete>
+	    <!-- Don't move this property definition up -->
+        <property name="version" value=""/>
     </target>
 
     <target name="jarTSMC90" depends="init" description="Make binary Jar plugin for TSMC 90">
@@ -83,46 +96,6 @@
         <delete file="com/sun/electric/plugins/tsmc90/TSMC90.class"/>
     </target>
 
-    <!-- commands to include 3D plugin -->
-	<target name="compileWith3D" depends="init" description="Compile with 3D plugin">
-        <javac debug="true" deprecation="true" destdir="." srcdir="." source="1.4">
-            <classpath><pathelement location="${beanshell}"/></classpath>
-            <classpath><pathelement location="${AppleJava}"/></classpath>
-            <exclude name="intervalsimulation/"/>
-	        <exclude name="com/sun/electric/tests/"/>
-        </javac>
-    </target>
-
-	<target name="jarWith3D" depends="init,compileWith3D" description="Make binary Jar file including 3D plugin">
-        <property name="version" value=""/>
-        <unjar dest="." src="${beanshell}"/>
-        <unjar dest="." src="${AppleJava}"/>
-        <delete dir="META-INF"/>
-        <copy file="packaging/electric.mf" tofile="electric.mf"/>
-        <jar basedir="." compress="true" jarfile="electric${version}.jar" manifest="electric.mf">
-            <exclude name="apidoc/"/>
-            <exclude name="bin/"/>
-            <exclude name="intervalsimulation/"/>
-            <exclude name="packaging/"/>
-            <exclude name="build.xml"/>
-            <exclude name="ChangeLog.txt"/>
-            <exclude name="electric${version}.jar"/>
-            <exclude name="electric.mf"/>
-            <exclude name="Hack_stack.txt"/>
-            <exclude name="**/*.java"/>
-            <exclude name="**/*.form"/>
-            <exclude name="classes/"/>
-        </jar>
-        <delete file="electric.mf"/>
-        <delete dir="bsh"/>
-        <delete dir="com/apple"/>
-        <delete quiet="true">
-            <fileset dir="com">
-                <include name="**/*.class"/>
-            </fileset>
-        </delete>
-    </target>
-
 	<target name="jar3D" depends="init" description="Make binary Jar plugin for 3D View">
         <javac debug="true" deprecation="true" destdir="." srcdir="." source="1.4">
             <include name="com/sun/electric/plugins/j3d/View3DWindow.java"/>
@@ -132,63 +105,6 @@
             <include name="com/sun/electric/plugins/j3d/View3DWindow.class"/>
         </jar>
         <delete file="com/sun/electric/plugins/j3d/View3DWindow.class"/>
-    </target>
-
-    <target name="jarGNU" depends="init,compile" description="Make binary Jar file for GNU">
-        <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
-        	<arg value="-v"/>
-        </java>
-        <unjar dest="." src="${AppleJava}"/>
-        <delete dir="META-INF"/>
-        <copy file="packaging/electric.mf" tofile="electric.mf"/>
-        <jar basedir="." compress="true" jarfile="electric-${version}.jar" manifest="packaging/electric.mf">
-            <exclude name="apidoc/"/>
-            <exclude name="bin/"/>
-            <exclude name="intervalsimulation/"/>
-            <exclude name="packaging/"/>
-            <exclude name="electric-${version}.jar"/>
-            <exclude name="electric.mf"/>
-            <exclude name="Hack_stack.txt"/>
-            <exclude name="com/sun/electric/plugins/tsmc90/*.*"/>
-	        <exclude name="com/sun/electric/plugins/skill/*.*"/>
-	        <exclude name="com/sun/electric/tool/simulation/interval/*.*"/>
-            <exclude name="**/*.java"/>
-            <exclude name="**/*.form"/>
-        </jar>
-        <delete file="electric.mf"/>
-        <delete dir="com/apple"/>
-        <delete quiet="true">
-            <fileset dir="com">
-                <include name="**/*.class"/>
-            </fileset>
-        </delete>
-    </target>
-
-    <target name="jarGNUSource" depends="init,compile" description="Make source Jar file for GNU">
-        <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
-        	<arg value="-v"/>
-        </java>
-        <unjar dest="." src="${AppleJava}"/>
-        <delete dir="META-INF"/>
-        <copy file="packaging/electric.mf" tofile="electric.mf"/>
-        <jar basedir="." compress="true" jarfile="electric-${version}.jar" manifest="packaging/electric.mf">
-            <exclude name="apidoc/"/>
-            <exclude name="bin/"/>
-            <exclude name="intervalsimulation/"/>
-            <exclude name="packaging/"/>
-            <exclude name="electric-${version}.jar"/>
-            <exclude name="electric.mf"/>
-            <exclude name="Hack_stack.txt"/>
-            <exclude name="com/sun/electric/plugins/tsmc90/*.*"/>
-	        <exclude name="com/sun/electric/plugins/skill/*.*"/>
-        </jar>
-        <delete file="electric.mf"/>
-        <delete dir="com/apple"/>
-        <delete quiet="true">
-            <fileset dir="com">
-                <include name="**/*.class"/>
-            </fileset>
-        </delete>
     </target>
 
     <target name="testJar" depends="init,jar" description="Run Jar file">
@@ -235,7 +151,7 @@
                 <include name="**/*.class"/>
             </fileset>
         </delete>
-        <delete file="electric.jar"/>
+        <delete quiet="false" file="electric*.jar"/>
         <delete dir="apidoc"/>
     </target>
 
