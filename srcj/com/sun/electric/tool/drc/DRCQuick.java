@@ -47,6 +47,7 @@ import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLog;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -58,6 +59,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Date;
 
 /*
  * This is the "quick" DRC which does full hierarchical examination of the circuit.
@@ -86,7 +88,7 @@ import java.util.HashMap;
  * network in every cell, an array is built that is as large as the number of instances of that cell.
  * This array contains the global network number for that each instance of the cell.  The algorithm for
  * building these arrays is quick (1 second for a million-transistor chip) and the memory requirement
- * is not excessive (8 megabytes for a million-transistor chip).  It uses the CHECKINST and CHECKPROTO
+ * is not excessive (8 megabytes for a million-transistor chip).  It uses the CheckInst and CheckProto
  * objects.
  */
 public class DRCQuick
@@ -193,6 +195,10 @@ public class DRCQuick
 	/** time stamp for numbering networks. */					private static int checkTimeStamp;
 	/** for numbering networks. */								private static int checkNetNumber;
 	/** total errors found in all threads. */					private static int totalErrorsFound;
+	/** a NodeInst that is too tiny for its connection. */		private static NodeInst tinyNodeInst;
+	/** the other Geometric in "tiny" errors. */				private static Geometric tinyGeometric;
+	/** for tracking the time of good DRC. */					private static HashMap goodDRCDate = new HashMap();
+	/** for tracking the time of good DRC. */					private static boolean haveGoodDRCDate;
 
 	/* for figuring out which layers are valid for DRC */
 	private static Technology layersValidTech = null;
@@ -212,7 +218,7 @@ public class DRCQuick
 	 * entry in "validity" TRUE if it is DRC clean.
 	 * If "justArea" is TRUE, only check in the selected area.
 	 */
-	public static void doCheck(Cell cell, int count, NodeInst [] nodesToCheck, Boolean validity, boolean justarea)
+	public static void doCheck(Cell cell, int count, NodeInst [] nodesToCheck, boolean [] validity, boolean justarea)
 	{
 		// get the current DRC options
 		onlyFirstError = DRC.isOneErrorPerCell();
@@ -388,6 +394,7 @@ public class DRCQuick
 		}
 
 		// now do the DRC
+		haveGoodDRCDate = false;
 		ErrorLog.initLogging("DRC");
 		if (count == 0)
 		{
@@ -401,10 +408,41 @@ public class DRCQuick
 		} else
 		{
 			// check only these "count" instances
-//			dr_quickchecktheseinstances(cell, count, nodesToCheck, validity);
+			dr_quickchecktheseinstances(cell, count, nodesToCheck, validity);
 		}
 
 		ErrorLog.termLogging(true);
+
+		if (haveGoodDRCDate)
+		{
+			// some cells were sucessfully checked: save that information in the database
+			SaveDRCDates job = new SaveDRCDates(goodDRCDate);
+		}
+	}
+
+	/**
+	 * Class to save good DRC dates in a new thread.
+	 */
+	protected static class SaveDRCDates extends Job
+	{
+		HashMap goodDRCDate;
+
+		protected SaveDRCDates(HashMap goodDRCDate)
+		{
+			super("Save DRC Dates", DRC.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.goodDRCDate = goodDRCDate;
+			this.startJob();
+		}
+
+		public void doIt()
+		{
+			for(Iterator it = goodDRCDate.keySet().iterator(); it.hasNext(); )
+			{
+				Cell cell = (Cell)it.next();
+				Long DRCDate = (Long)goodDRCDate.get(cell);
+				cell.newVar(DRC.LAST_GOOD_DRC, DRCDate);
+			}
+		}
 	}
 
 	/*************************** QUICK DRC CELL EXAMINATION ***************************/
@@ -416,7 +454,7 @@ public class DRCQuick
 	private static int checkThisCell(Cell cell, int globalIndex, Rectangle2D bounds, boolean justArea)
 	{
 		// first check all subcells
-		boolean allsubcellsstillok = true;
+		boolean allSubCellsStillOK = true;
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
@@ -443,7 +481,7 @@ public class DRCQuick
 			int retval = checkThisCell((Cell)np, localIndex, bounds, false);
 //			if (!dr_quickparalleldrc) uphierarchy();
 			if (retval < 0) return(-1);
-			if (retval > 0) allsubcellsstillok = false;
+			if (retval > 0) allSubCellsStillOK = false;
 		}
 
 		// prepare to check cell
@@ -451,14 +489,15 @@ public class DRCQuick
 		cp.cellChecked = true;
 
 		// if the cell hasn't changed since the last good check, stop now
-		if (allsubcellsstillok)
+		if (allSubCellsStillOK)
 		{
-			Variable var = cell.getVar(DRC.LAST_GOOD_DRC);
+			Variable var = cell.getVar(DRC.LAST_GOOD_DRC, Long.class);
 			if (var != null)
 			{
-//				lastgooddate = (UINTBIG)var->addr;
-//				lastchangedate = cell->revisiondate;
-//				if (lastchangedate <= lastgooddate) return(0);
+				Long lastGoodDateInSeconds = (Long)var.getObject();
+				Date lastGoodDate = EMath.secondsToDate(lastGoodDateInSeconds.longValue());
+				Date lastChangeDate = cell.getRevisionDate();
+				if (lastGoodDate.after(lastChangeDate)) return 0;
 			}
 		}
 
@@ -466,7 +505,7 @@ public class DRCQuick
 		System.out.println("Checking cell " + cell.describe());
 
 		// remember how many errors there are on entry
-		int errcount = ErrorLog.numErrors();
+		int errCount = ErrorLog.numErrors();
 
 		// now look at every primitive node and arc here
 		totalErrorsFound = 0;
@@ -498,9 +537,13 @@ public class DRCQuick
 		}
 
 		// if there were no errors, remember that
-		int localErrors = ErrorLog.numErrors() - errcount;
+		int localErrors = ErrorLog.numErrors() - errCount;
 		if (localErrors == 0)
 		{
+			Long now = new Long(EMath.dateToSeconds(new Date()));
+			goodDRCDate.put(cell, now);
+			haveGoodDRCDate = true;
+
 //			(void)setvalkey((INTBIG)cell, VNODEPROTO, dr_lastgooddrckey,
 //				(INTBIG)getcurrenttime(), VINTEGER);
 			System.out.println("   No errors found");
@@ -832,7 +875,7 @@ public class DRCQuick
 		int globalIndex, Cell cell, NodeInst oNi, int topGlobalIndex)
 	{
 		// see how far around the box it is necessary to search
-		double bound = DRC.maxSurround(layer);
+		double bound = DRC.getMaxSurround(layer);
 		if (bound < 0) return false;
 
 		// get bounds
@@ -887,7 +930,7 @@ public class DRCQuick
 		AffineTransform trans, Cell cell, int globalIndex)
 	{
 		// see how far around the box it is necessary to search
-		double bound = DRC.maxSurround(layer);
+		double bound = DRC.getMaxSurround(layer);
 		if (bound < 0) return false;
 
 		// get bounds
@@ -930,7 +973,6 @@ public class DRCQuick
 		Rectangle2D rBound = new Rectangle2D.Double();
 		rBound.setRect(bounds);
 		EMath.transformRect(rBound, topTrans);
-
 		Geometric.Search sea = new Geometric.Search(bounds, cell);
 		int count = 0;
 		for(;;)
@@ -998,6 +1040,10 @@ public class DRCQuick
 					for(int j=0; j<tot; j++)
 					{
 						Poly npoly = subPolyList[j];
+						Layer nLayer = npoly.getLayer();
+						if (nLayer == null) continue;
+						if (nLayer.isNonElectrical()) continue;
+
 						Rectangle2D nPolyRect = npoly.getBounds2D();
 
 						// can't do this because "lxbound..." is local but the poly bounds are global
@@ -1005,9 +1051,6 @@ public class DRCQuick
 							nPolyRect.getMaxX() < rBound.getMinX() ||
 							nPolyRect.getMinY() > rBound.getMaxY() ||
 							nPolyRect.getMaxY() < rBound.getMinY()) continue;
-						Layer nLayer = npoly.getLayer();
-						if (nLayer == null) continue;
-						if (nLayer.isNonElectrical()) continue;
 
 						// determine network for this polygon
 						int nNet = getDRCNetNumber(npoly.getPort(), ni, cellGlobalIndex);
@@ -1143,22 +1186,24 @@ public class DRCQuick
 		boolean con, double dist, boolean edge, String rule)
 	{
 		// turn off flag that the nodeinst may be undersized
-//		state->tinynodeinst = NONODEINST;
+		tinyNodeInst = null;
 
+		Poly origPoly1 = poly1;
+		Poly origPoly2 = poly2;
 		Rectangle2D isBox1 = poly1.getBox();
 		Rectangle2D trueBox1 = isBox1;
 		if (trueBox1 == null) trueBox1 = poly1.getBounds2D();
 		Rectangle2D isBox2 = poly2.getBox();
 		Rectangle2D trueBox2 = isBox2;
 		if (trueBox2 == null) trueBox2 = poly2.getBounds2D();
-boolean debug = false;
-//if (layer1.getName().equalsIgnoreCase("Polysilicon-1") && layer2.getName().equalsIgnoreCase("Transistor-Poly")) debug = true;
-//if (layer2.getName().equalsIgnoreCase("Polysilicon-1") && layer1.getName().equalsIgnoreCase("Transistor-Poly")) debug = true;
-if (debug)
-{
- System.out.println("Comparing layer "+layer1.getName()+" is "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY());
- System.out.println("     with layer "+layer2.getName()+" is "+trueBox2.getMinX()+"<=X<="+trueBox2.getMaxX()+" and "+trueBox2.getMinY()+"<=Y<="+trueBox2.getMaxY());
-}
+//boolean debug = false;
+//if (layer1.getName().equalsIgnoreCase("N-Select") && layer2.getName().equalsIgnoreCase("N-Select")) debug = true;
+//if (layer2.getName().equalsIgnoreCase("N-Select") && layer1.getName().equalsIgnoreCase("N-Select")) debug = true;
+//if (debug)
+//{
+// System.out.println("Comparing layer "+layer1.getName()+" is "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY());
+// System.out.println("     with layer "+layer2.getName()+" is "+trueBox2.getMinX()+"<=X<="+trueBox2.getMaxX()+" and "+trueBox2.getMinY()+"<=Y<="+trueBox2.getMaxY());
+//}
 
 		/*
 		 * special rule for allowing touching:
@@ -1272,11 +1317,15 @@ if (debug)
 				if (cropArcInst((ArcInst)geom2, layer2, trueBox2))
 					return false;
 			}
-if (debug)
-{
- System.out.println("   Cropped layer "+layer1.getName()+" is "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY());
- System.out.println("       and layer "+layer2.getName()+" is "+trueBox2.getMinX()+"<=X<="+trueBox2.getMaxX()+" and "+trueBox2.getMinY()+"<=Y<="+trueBox2.getMaxY());
-}
+//if (debug)
+//{
+// System.out.println("   Cropped layer "+layer1.getName()+" is "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY());
+// System.out.println("       and layer "+layer2.getName()+" is "+trueBox2.getMinX()+"<=X<="+trueBox2.getMaxX()+" and "+trueBox2.getMinY()+"<=Y<="+trueBox2.getMaxY());
+//}
+			poly1 = new Poly(trueBox1);
+			poly1.setStyle(Poly.Type.FILLED);
+			poly2 = new Poly(trueBox2);
+			poly2.setStyle(Poly.Type.FILLED);
 
 			// compute the distance
 			double lX1 = trueBox1.getMinX();   double hX1 = trueBox1.getMaxX();
@@ -1290,7 +1339,6 @@ if (debug)
 					Math.min(Math.min(Math.abs(lX1-lX2), Math.abs(lX1-hX2)), Math.min(Math.abs(hX1-lX2), Math.abs(hX1-hX2))),
 					Math.min(Math.min(Math.abs(lY1-lY2), Math.abs(lY1-hY2)), Math.min(Math.abs(hY1-lY2), Math.abs(hY1-hY2))));
 				pd = Math.max(pd, pdedge);
-if (debug) System.out.println("   Edge rule, distance="+pd);
 			} else
 			{
 				pdx = Math.max(lX2-hX1, lX1-hX2);
@@ -1298,16 +1346,10 @@ if (debug) System.out.println("   Edge rule, distance="+pd);
 				if (pdx == 0 && pdy == 0) pd = 1; else
 				{
 					pd = Math.max(pdx, pdy);
-if (debug) System.out.println("   Standard rule, distance="+pd);
 
 					if (pd < dist && pd > 0)
 					{
-						Poly testPoly1 = new Poly(trueBox1);
-						testPoly1.setStyle(Poly.Type.FILLED);
-						Poly testPoly2 = new Poly(trueBox2);
-						testPoly2.setStyle(Poly.Type.FILLED);
-						pd = testPoly1.separation(testPoly2);
-if (debug) System.out.println("   Adjusting...distance="+pd);
+						pd = poly1.separation(poly2);
 					}
 				}
 			}
@@ -1335,7 +1377,6 @@ if (debug) System.out.println("   Adjusting...distance="+pd);
 		}
 
 		// see if the design rule is met
-if (debug) System.out.println("Distance between polygons="+pd+" but minimum is "+dist);
 		if (pd >= dist)
 		{ 
 			return false;
@@ -1378,20 +1419,19 @@ if (debug) System.out.println("Distance between polygons="+pd+" but minimum is "
 		}
 
 		String msg = null;
-//		if (state->tinynodeinst != null)
-//		{
-//			// see if the node/arc that failed was involved in the error
-//			if ((state->tinynodeinst->geom == geom1 || state->tinynodeinst->geom == geom2) &&
-//				(state->tinyobj == geom1 || state->tinyobj == geom2))
-//			{
-//				msg = tinynodeinst.describe() + " is too small for the " + tinyobj.describe();
-//			}
-//		}
-if (debug) System.out.println("***** ERROR");
+		if (tinyNodeInst != null)
+		{
+			// see if the node/arc that failed was involved in the error
+			if ((tinyNodeInst == geom1 || tinyNodeInst == geom2) &&
+				(tinyGeometric == geom1 || tinyGeometric == geom2))
+			{
+				msg = tinyNodeInst.describe() + " is too small for the " + tinyGeometric.describe();
+			}
+		}
 
 		reportError(errorType, tech, msg, cell, dist, pd, rule,
-			poly1, geom1, layer1, net1,
-			poly2, geom2, layer2, net2);
+			origPoly1, geom1, layer1, net1,
+			origPoly2, geom2, layer2, net2);
 		return true;
 	}
 
@@ -1401,103 +1441,97 @@ if (debug) System.out.println("***** ERROR");
 	 * Method to examine, in cell "cell", the "count" instances in "nodesToCheck".
 	 * If they are DRC clean, set the associated entry in "validity" to TRUE.
 	 */
-//	void dr_quickchecktheseinstances(NODEPROTO *cell, INTBIG count, NODEINST **nodesToCheck, BOOLEAN *validity)
-//	{
-//		REGISTER INTBIG lx, hx, ly, hy, search, globalIndex, localIndex, i, j;
-//		INTBIG sublx, subhx, subly, subhy;
-//		REGISTER GEOM *geom;
-//		REGISTER NODEINST *ni, *oNi;
-//		XARRAY rtrans, ttrans, downtrans, uptrans;
-//		REGISTER CHECKINST *ci;
-//		REGISTER CHECKSTATE *state;
-//
-//		globalIndex = 0;
-//		state = dr_quickstate[0];
-//		state->globalIndex = globalIndex;
-//
-//		// loop through all of the instances to be checked
-//		for(i=0; i<count; i++)
-//		{
-//			ni = nodesToCheck[i];
-//			validity[i] = TRUE;
-//
-//			// look for other instances surrounding this one
-//			lx = ni->geom->lowx - worstInteractionDistance;
-//			hx = ni->geom->highx + worstInteractionDistance;
-//			ly = ni->geom->lowy - worstInteractionDistance;
-//			hy = ni->geom->highy + worstInteractionDistance;
-//			search = initsearch(lx, hx, ly, hy, ni->parent);
-//			for(;;)
-//			{
-//				geom = nextobject(search);
-//				if (geom == NOGEOM) break;
-//				if (!geom->entryisnode)
-//				{
-//					if (dr_quickcheckgeomagainstinstance(geom, ni, state))
-//					{
-//						validity[i] = FALSE;
-//						termsearch(search);
-//						break;
-//					}
-//					continue;
-//				}
-//				oNi = geom->entryaddr.ni;
-//				if (oNi->proto->primindex != 0)
-//				{
-//					// found a primitive node: check it against the instance contents
-//					if (dr_quickcheckgeomagainstinstance(geom, ni, state))
-//					{
-//						validity[i] = FALSE;
-//						termsearch(search);
-//						break;
-//					}
-//					continue;
-//				}
-//
-//				// ignore if it is one of the instances in the list
-//				for(j=0; j<count; j++)
-//					if (oNi == nodesToCheck[j]) break;
-//				if (j < count) continue;
-//
-//				// found other instance "oNi", look for everything in "ni" that is near it
-//				sublx = oNi->geom->lowx - worstInteractionDistance;
-//				subhx = oNi->geom->highx + worstInteractionDistance;
-//				subly = oNi->geom->lowy - worstInteractionDistance;
-//				subhy = oNi->geom->highy + worstInteractionDistance;
-//				makerotI(ni, rtrans);
-//				maketransI(ni, ttrans);
-//				transmult(rtrans, ttrans, downtrans);
-//				xformbox(&sublx, &subhx, &subly, &subhy, downtrans);
-//
-//				maketrans(ni, ttrans);
-//				makerot(ni, rtrans);
-//				transmult(ttrans, rtrans, uptrans);
-//
-//				ci = (CHECKINST *)ni->temp1;
-//				localIndex = globalIndex * ci->multiplier + ci->localIndex + ci->offset;
-//
-//				// recursively search instance "ni" in the vicinity of "oNi"
-//				if (checkCellInstContents(sublx, subhx, subly, subhy, ni->proto, uptrans,
-//					localIndex, oNi, globalIndex, dr_quickstate[0]))
-//				{
-//					// errors were found: bail
-//					validity[i] = FALSE;
-//					termsearch(search);
-//					break;
-//				}
-//			}
-//		}
-//	}
+	private static void dr_quickchecktheseinstances(Cell cell, int count, NodeInst [] nodesToCheck, boolean [] validity)
+	{
+		int globalIndex = 0;
+
+		// loop through all of the instances to be checked
+		for(int i=0; i<count; i++)
+		{
+			NodeInst ni = nodesToCheck[i];
+			validity[i] = true;
+
+			// look for other instances surrounding this one
+			Rectangle2D nodeBounds = ni.getBounds();
+			Rectangle2D searchBounds = new Rectangle2D.Double(
+				nodeBounds.getMinX()-worstInteractionDistance,
+				nodeBounds.getMinY()-worstInteractionDistance,
+				nodeBounds.getWidth() + worstInteractionDistance*2,
+				nodeBounds.getHeight() + worstInteractionDistance*2);
+			Geometric.Search search = new Geometric.Search(searchBounds, cell);
+			for(;;)
+			{
+				Geometric geom = search.nextObject();
+				if (geom == null) break;
+				if (geom instanceof ArcInst)
+				{
+					if (dr_quickcheckgeomagainstinstance(geom, ni))
+					{
+						validity[i] = false;
+						break;
+					}
+					continue;
+				}
+				NodeInst oNi = (NodeInst)geom;
+				if (oNi.getProto() instanceof PrimitiveNode)
+				{
+					// found a primitive node: check it against the instance contents
+					if (dr_quickcheckgeomagainstinstance(geom, ni))
+					{
+						validity[i] = false;
+						break;
+					}
+					continue;
+				}
+
+				// ignore if it is one of the instances in the list
+				boolean found = false;
+				for(int j=0; j<count; j++)
+					if (oNi == nodesToCheck[j]) { found = true;   break; }
+				if (found) continue;
+
+				// found other instance "oNi", look for everything in "ni" that is near it
+				Rectangle2D subNodeBounds = oNi.getBounds();
+				Rectangle2D subBounds = new Rectangle2D.Double(
+					subNodeBounds.getMinX()-worstInteractionDistance,
+					subNodeBounds.getMinY()-worstInteractionDistance,
+					subNodeBounds.getWidth() + worstInteractionDistance*2,
+					subNodeBounds.getHeight() + worstInteractionDistance*2);
+				AffineTransform downTrans = ni.rotateIn();
+				AffineTransform tTransI = ni.translateIn();
+				downTrans.preConcatenate(tTransI);
+//				transmult(rtrans, ttrans, downTrans);
+				EMath.transformRect(subBounds, downTrans);
+
+				AffineTransform upTrans = ni.translateOut();
+				AffineTransform rTrans = ni.rotateOut();
+				upTrans.preConcatenate(rTrans);
+//				transmult(ttrans, rtrans, upTrans);
+
+				CheckInst ci = (CheckInst)checkInsts.get(ni);
+				int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
+
+				// recursively search instance "ni" in the vicinity of "oNi"
+				if (checkCellInstContents(subBounds, (Cell)ni.getProto(), upTrans,
+					localIndex, oNi, globalIndex))
+				{
+					// errors were found: bail
+					validity[i] = false;
+					break;
+				}
+			}
+		}
+	}
 
 	/*
 	 * Method to check primitive object "geom" (an arcinst or primitive nodeinst) against cell instance "ni".
 	 * Returns TRUE if there are design-rule violations in their interaction.
 	 */
-	boolean dr_quickcheckgeomagainstinstance(Geometric geom, NodeInst ni)
+	private static boolean dr_quickcheckgeomagainstinstance(Geometric geom, NodeInst ni)
 	{
 		NodeProto np = ni.getProto();
 		int globalIndex = 0;
-		Cell subcell = geom.getParent();
+		Cell subCell = geom.getParent();
 		boolean baseMulti = false;
 		Technology tech = null;
 		Poly [] nodeInstPolyList;
@@ -1522,46 +1556,53 @@ if (debug) System.out.println("***** ERROR");
 		CheckInst ci = (CheckInst)checkInsts.get(ni);
 		int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
 
-//		// examine the polygons on this node
-//		for(int j=0; j<tot; j++)
-//		{
-//			poly = state->nodeinstpolylist->polygons[j];
-//			if (poly->layer < 0) continue;
-//
-//			// see how far around the box it is necessary to search
-//			bound = maxdrcsurround(tech, subcell->lib, poly->layer);
-//			if (bound < 0) continue;
-//
-//			// determine network for this polygon
-//			if (geom->entryisnode)
-//			{
-//				net = getDRCNetNumber(poly->portproto, oNi, globalIndex);
-//			} else
-//			{
-//				net = ((INTBIG *)oai->network->temp1)[globalIndex];
-//			}
-//
-//			// determine if original object has multiple contact cuts
-//			minSize = polyminsize(poly);
-//
-//			// determine area to search inside of cell to check this layer
-//			getbbox(poly, &lx, &hx, &ly, &hy);
-//			slx = lx-bound;   shx = hx+bound;
-//			sly = ly-bound;   shy = hy+bound;
-//			makerotI(ni, rtrans);
-//			maketransI(ni, ttrans);
+		// examine the polygons on this node
+		for(int j=0; j<tot; j++)
+		{
+			Poly poly = nodeInstPolyList[j];
+			Layer polyLayer = poly.getLayer();
+			if (polyLayer == null) continue;
+
+			// see how far around the box it is necessary to search
+			double bound = DRC.getMaxSurround(polyLayer);
+			if (bound < 0) continue;
+
+			// determine network for this polygon
+			int net;
+			if (geom instanceof NodeInst)
+			{
+				net = getDRCNetNumber(poly.getPort(), (NodeInst)geom, globalIndex);
+			} else
+			{
+				ArcInst oAi = (ArcInst)geom;
+				JNetwork jNet = oAi.getNetwork(0);
+				Integer [] netNumbers = (Integer [])networkLists.get(jNet);
+				net = netNumbers[globalIndex].intValue();
+			}
+
+			// determine if original object has multiple contact cuts
+			double minSize = poly.getMinSize();
+
+			// determine area to search inside of cell to check this layer
+			Rectangle2D polyBounds = poly.getBounds2D();
+			Rectangle2D subBounds = new Rectangle2D.Double(polyBounds.getMinX() - bound,
+				polyBounds.getMinY()-bound, polyBounds.getWidth()+bound*2, polyBounds.getHeight()+bound*2);
+			AffineTransform tempTrans = ni.rotateIn();
+			AffineTransform tTransI = ni.translateIn();
+			tempTrans.preConcatenate(tTransI);
 //			transmult(rtrans, ttrans, temptrans);
-//			xformbox(&slx, &shx, &sly, &shy, temptrans);
-//
-//			maketrans(ni, ttrans);
-//			makerot(ni, rtrans);
-//			transmult(ttrans, rtrans, subtrans);
-//
-//			// see if this polygon has errors in the cell
-//			if (badBoxInArea(poly, poly->layer, tech, net, geom, trans, globalIndex,
-//				slx, shx, sly, shy, np, localIndex,
-//				subcell, globalIndex, subtrans, minSize, baseMulti, state, FALSE)) return(TRUE);
-//		}
+			EMath.transformRect(subBounds, tempTrans);
+
+			AffineTransform subTrans = ni.translateOut();
+			AffineTransform rTrans = ni.rotateOut();
+			subTrans.preConcatenate(rTrans);
+//			transmult(ttrans, rtrans, subTrans);
+
+			// see if this polygon has errors in the cell
+			if (badBoxInArea(poly, polyLayer, tech, net, geom, trans, globalIndex,
+				subBounds, (Cell)np, localIndex,
+				subCell, globalIndex, subTrans, minSize, baseMulti, false)) return true;
+		}
 		return false;
 	}
 
@@ -2468,8 +2509,8 @@ if (debug) System.out.println("***** ERROR");
 				if (temp > 0) { allgone = true;   break; }
 				if (temp < 0)
 				{
-//					state->tinynodeinst = ni;
-//					state->tinyobj = nGeom;
+					tinyNodeInst = ni;
+					tinyGeometric = nGeom;
 				}
 			}
 		}
@@ -2516,8 +2557,8 @@ if (debug) System.out.println("***** ERROR");
 				if (temp > 0) return true;
 				if (temp < 0)
 				{
-//					state->tinynodeinst = ni;
-//					state->tinyobj = ai->geom;
+					tinyNodeInst = ni;
+					tinyGeometric = ai;
 				}
 			}
 		}
@@ -2717,10 +2758,17 @@ if (debug) System.out.println("***** ERROR");
 			for(int i=0; i<numLayers; i++) layersInNode[i] = false;
 
 			Technology.NodeLayer [] layers = np.getLayers();
+			Technology.NodeLayer [] eLayers = np.getElectricalLayers();
+			if (eLayers != null) layers = eLayers;
 			for(int i=0; i<layers.length; i++)
 			{
 				Layer layer = layers[i].getLayer();
-				layersInNode[layer.getIndex()] = true;
+				for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
+				{
+					Layer oLayer = (Layer)lIt.next();
+					if (DRC.isAnyRule(layer, oLayer))
+						layersInNode[oLayer.getIndex()] = true;
+				}
 			}
 			layersInterNodes.put(np, layersInNode);
 		}
@@ -2737,7 +2785,12 @@ if (debug) System.out.println("***** ERROR");
 			for(int i=0; i<layers.length; i++)
 			{
 				Layer layer = layers[i].getLayer();
-				layersInArc[layer.getIndex()] = true;
+				for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
+				{
+					Layer oLayer = (Layer)lIt.next();
+					if (DRC.isAnyRule(layer, oLayer))
+						layersInArc[oLayer.getIndex()] = true;
+				}
 			}
 			layersInterArcs.put(ap, layersInArc);
 		}
@@ -2944,7 +2997,7 @@ if (debug) System.out.println("***** ERROR");
 				errorMessage += ", layer %" + layer1.getName();
 				errorMessage += " NEEDS SURROUND OF LAYER " + layer2.getName() + " BY " + limit;
 			}
-			sortLayer = layer1.getIndex();
+			if (layer1 != null) sortLayer = layer1.getIndex();
 		}
 		if (rule != null) errorMessage += " [rule " + rule + "]";
 

@@ -58,6 +58,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.Stack;
 import java.util.EventListener;
 import java.awt.event.MouseMotionListener;
@@ -1203,7 +1205,8 @@ public class EditWindow extends JPanel
     /**
      * Pop out of an instance (go up the hierarchy)
      */
-    public void upHierarchy() {
+    public void upHierarchy()
+	{
         try {
             Nodable ni = cellVarContext.getNodable();
             Cell parent = ni.getParent();
@@ -1211,48 +1214,63 @@ public class EditWindow extends JPanel
             setCell(parent, context);
 			if (ni instanceof NodeInst)
 				Highlight.addElectricObject((NodeInst)ni, parent);
-            needsUpdate = true;
-        } catch (NullPointerException e) {
+        } catch (NullPointerException e)
+		{
             // no parent - if icon, go to sch view
-            // - otherwise, ask user where to go if necessary
-            if (cell.getView() == View.ICON) {
+            if (cell.getView() == View.ICON)
+			{
                 Cell schCell = cell.getEquivalent();
                 if (schCell == null) return;        // nothing to do
                 setCell(schCell, VarContext.globalContext);
                 return;
             }            
-            JPopupMenu parents = new JPopupMenu("parents");
-            // find all possible parents in all libraries
-            HashSet found = new HashSet();
-            for (Iterator libIt = Library.getLibraries(); libIt.hasNext();) {
-                Library lib = (Library)libIt.next();
-//                System.out.println("checking library "+lib);
-                for (Iterator cellIt = lib.getCells(); cellIt.hasNext();) {
-                    Cell cel = (Cell)cellIt.next();
-                    if (cel == this.cell) continue; // don't add myself
-                    for (Iterator instIt = cel.getNodes(); instIt.hasNext();) {
-                        NodeInst inst = (NodeInst)instIt.next();  // get all instances in this cell
-                        NodeProto np = inst.getProto(); // get prototype
-                        if (!(np instanceof Cell)) continue;
-                        Cell npCell = (Cell)np;
-                        // see if same cell group (but alternate view)
-                        String libcellname = cel.describe();
-                        if (this.cell.getCellGroup().containsCell(npCell) &&
-                            !found.contains(libcellname)) {
-                            found.add(libcellname); // for multiple instances in same cell
-                            JMenuItem menuItem = new JMenuItem(libcellname);
-                            menuItem.addActionListener(this);
-                            parents.add(menuItem);
-                        }
-                    }
-                }
-            }
-            if (parents.getComponentCount() > 0)
-                parents.show(this, 0, 0);
-            else {
-                parents.add(new JMenuItem("not instantiated anywhere"));
-                parents.show(this, 0, 0);
-            }
+
+			// find all possible parents in all libraries
+            Set found = new TreeSet();
+			for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				Cell parent = ni.getParent();
+				found.add(parent.describe());
+			}
+			if (cell.getView() == View.SCHEMATIC)
+			{
+				Cell iconView = cell.iconView();
+				if (iconView != null)
+				{
+					for(Iterator it = iconView.getInstancesOf(); it.hasNext(); )
+					{
+						NodeInst ni = (NodeInst)it.next();
+						Cell parent = ni.getParent();
+						found.add(parent.describe());
+					}
+				}
+			}
+
+			// see what was found
+			if (found.size() == 0)
+			{
+				// no parent cell
+				System.out.println("Not in any cells");
+			} else if (found.size() == 1)
+			{
+				// just one parent cell: show it
+				String cellName = (String)found.iterator().next();
+				Cell parent = (Cell)NodeProto.findNodeProto(cellName);
+                setCell(parent, VarContext.globalContext);
+			} else
+			{
+				// prompt the user to choose a parent cell
+				JPopupMenu parents = new JPopupMenu("parents");
+				for(Iterator it = found.iterator(); it.hasNext(); )
+				{
+					String cellName = (String)it.next();
+					JMenuItem menuItem = new JMenuItem(cellName);
+					menuItem.addActionListener(this);
+					parents.add(menuItem);
+				}
+				parents.show(this, 0, 0);
+			}
         }
     }
 
@@ -1260,10 +1278,11 @@ public class EditWindow extends JPanel
      * Respond to an action performed, in this case change the current cell
      * when the user clicks on an entry in the upHierarchy popup menu.
      */
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(ActionEvent e)
+	{
         JMenuItem source = (JMenuItem)e.getSource();
         // extract library and cell from string
-        Cell cell = Cell.getCellFromDescription(source.getText());
+        Cell cell = (Cell)NodeProto.findNodeProto(source.getText());
         if (cell == null) return;
         setCell(cell, VarContext.globalContext);
     }

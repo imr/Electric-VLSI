@@ -26,6 +26,9 @@ package com.sun.electric.database.geometry;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
+import java.util.Date;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 
 /**
  * This class is a collection of math utilities.
@@ -291,6 +294,32 @@ public class EMath
 		if (i == len) return true;
 
 		return false;
+	}
+	
+	/**
+	 * Method to convert an integer date (seconds since the epoch) to a Java Date object.
+	 * @param secondsSinceEpoch the number of seconds since the epoch (Jan 1, 1970).
+	 * @return a Java Date object.
+	 */
+	public static Date secondsToDate(long secondsSinceEpoch)
+	{
+		GregorianCalendar creation = new GregorianCalendar();
+		creation.setTimeInMillis(0);
+		creation.setLenient(true);
+		creation.add(Calendar.SECOND, (int)secondsSinceEpoch);
+		return creation.getTime();
+	}
+
+	/**
+	 * Method to convert a Java Date object to an integer (seconds since the epoch).
+	 * @param date a Java Date object.
+	 * @return the number of seconds since the epoch (Jan 1, 1970);
+	 */
+	public static long dateToSeconds(Date date)
+	{
+		GregorianCalendar creation = new GregorianCalendar();
+		creation.setTime(date);
+		return creation.getTimeInMillis() / 1000;
 	}
 
 	/**

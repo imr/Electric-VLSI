@@ -36,7 +36,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.user.Prefs;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.simulation.Spice;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.drc.DRC;
@@ -200,6 +200,38 @@ public class ToolOptions extends javax.swing.JDialog
 		initLogicalEffort();	// initialize the Logical Effort Options panel
 		initRouting();			// initialize the Routing Options panel
 		initCompaction();		// initialize the Compaction Options panel
+	}
+
+	/**
+	 * Class to apply changes to tool options in a new thread.
+	 */
+	protected static class ApplyToolOptions extends Job
+	{
+		ToolOptions dialog;
+
+		protected ApplyToolOptions(ToolOptions dialog)
+		{
+			super("Apply Tool Options", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.dialog = dialog;
+			this.startJob();
+		}
+
+		public void doIt()
+		{
+			dialog.termDRC();			// terminate the DRC Options panel
+			dialog.termDesignRules();	// terminate the Design Rules panel
+			dialog.termSpice();			// terminate the SPICE Options panel
+			dialog.termVerilog();		// terminate the Verilog Options panel
+			dialog.termFastHenry();		// terminate the Fast Henry Options panel
+			dialog.termWellCheck();		// terminate the Well Check Options panel
+			dialog.termAntennaRules();	// terminate the Antenna Rules Options panel
+			dialog.termNetwork();		// terminate the Network Options panel
+			dialog.termNCC();			// terminate the NCC Options panel
+			dialog.termLogicalEffort();	// terminate the Logical Effort Options panel
+			dialog.termRouting();		// terminate the Routing Options panel
+			dialog.termCompaction();	// terminate the Compaction Options panel
+			dialog.closeDialog(null);
+		}
 	}
 
 	private void factoryResetActionPerformed(ActionEvent evt)
@@ -1856,8 +1888,8 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         jPanel3.add(drcIncrementalOn, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1874,8 +1906,8 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         jPanel4.add(drcOneErrorPerCell, gridBagConstraints);
 
         drcClearValidDates.setText("Clear valid DRC dates");
@@ -1883,8 +1915,8 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         jPanel4.add(drcClearValidDates, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1901,16 +1933,16 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 8;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         jPanel5.add(drcUseMultipleThreads, gridBagConstraints);
 
         jLabel33.setText("Number of threads:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 9;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         jPanel5.add(jLabel33, gridBagConstraints);
 
         drcNumberOfThreads.setColumns(6);
@@ -1924,8 +1956,8 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 10;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         jPanel5.add(drcIgnoreCenterCuts, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1942,8 +1974,8 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 13;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         jPanel6.add(drcEditRulesDeck, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -3998,20 +4030,7 @@ public class ToolOptions extends javax.swing.JDialog
 
 	private void OKButton(java.awt.event.ActionEvent evt)//GEN-FIRST:event_OKButton
 	{//GEN-HEADEREND:event_OKButton
-		termDRC();				// terminate the DRC Options panel
-		termDesignRules();		// terminate the Design Rules panel
-		termSpice();			// terminate the SPICE Options panel
-		termVerilog();			// terminate the Verilog Options panel
-		termFastHenry();		// terminate the Fast Henry Options panel
-		termWellCheck();		// terminate the Well Check Options panel
-		termAntennaRules();		// terminate the Antenna Rules Options panel
-		termNetwork();			// terminate the Network Options panel
-		termNCC();				// terminate the NCC Options panel
-		termLogicalEffort();	// terminate the Logical Effort Options panel
-		termRouting();			// terminate the Routing Options panel
-		termCompaction();		// terminate the Compaction Options panel
-
-		closeDialog(null);
+		ApplyToolOptions job = new ApplyToolOptions(this);
 	}//GEN-LAST:event_OKButton
 	
 	/** Closes the dialog */

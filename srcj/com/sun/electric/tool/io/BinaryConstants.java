@@ -23,10 +23,6 @@
  */
 package com.sun.electric.tool.io;
 
-import java.util.Date;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-
 /**
  * This class has constants for reading and writing binary (.elib) files.
  */
@@ -69,30 +65,4 @@ public class BinaryConstants
 	/** Defines the array length (0: array is -1 terminated). */				public static final int VLENGTH =         03777777000;
 	/** Defines the right shift for VLENGTH. */									public static final int VLENGTHSH =                 9;
 	/** Defines whether the variable is interpreted code (with VCODE1). */		public static final int VCODE2 =          04000000000;
-	
-	/**
-	 * Method to convert the C-Electric-format date to a Java Data object.
-	 * @param secondsSinceEpoch the number of seconds since the epoch (Jan 1, 1970).
-	 * @return a Java Date object.
-	 */
-	public static Date fromElectricDate(int secondsSinceEpoch)
-	{
-		GregorianCalendar creation = new GregorianCalendar();
-		creation.setTimeInMillis(0);
-		creation.setLenient(true);
-		creation.add(Calendar.SECOND, secondsSinceEpoch);
-		return creation.getTime();
-	}
-
-	/**
-	 * Method to convert the Java Date object to a C-Electric-format date.
-	 * @param date a Java Date object.
-	 * @return the number of seconds since the epoch (Jan 1, 1970);
-	 */
-	public static long toElectricDate(Date date)
-	{
-		GregorianCalendar creation = new GregorianCalendar();
-		creation.setTime(date);
-		return creation.getTimeInMillis() / 1000;
-	}
 }

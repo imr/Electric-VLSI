@@ -26,15 +26,18 @@ package com.sun.electric.tool.drc;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRCQuick;
+import com.sun.electric.tool.drc.DRCSchematics;
 import com.sun.electric.tool.user.ErrorLog;
 
 import java.util.Iterator;
@@ -191,6 +194,21 @@ public class DRC extends Tool
 		public void doIt()
 		{
 			long startTime = System.currentTimeMillis();
+			if (cell.getView() == View.SCHEMATIC || cell.getTechnology() == Schematics.tech)
+			{
+				// hierarchical check of schematics
+				System.out.println("Cannot do Schematic DRC yet");
+//				for(lib = el_curlib; lib != NOLIBRARY; lib = lib->nextlibrary)
+//					for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
+//						np->temp1 = 0;
+//				initerrorlogging(_("Schematic DRC"));
+				DRCSchematics.dr_checkschematiccellrecursively(cell);
+//				dr_checkschematiccellrecursively(cell);
+//				errorcount = numerrors();
+//				if (errorcount != 0) ttyputmsg(_("TOTAL OF %ld ERRORS FOUND"), errorcount);
+//				termerrorlogging(TRUE);
+				return;
+			}
 			DRCQuick.doCheck(cell, 0, null, null, false);
 			long endTime = System.currentTimeMillis();
 			int errorcount = ErrorLog.numErrors();
@@ -267,7 +285,7 @@ public class DRC extends Tool
 	 * @param layer the Layer to examine.
 	 * @return the maximum design-rule distance around the layer.
 	 */
-	public static double maxSurround(Layer layer)
+	public static double getMaxSurround(Layer layer)
 	{
 		Technology tech = layer.getTechnology();
 		cacheDesignRules(tech);
@@ -327,39 +345,67 @@ public class DRC extends Tool
 		Technology tech = layer1.getTechnology();
 		cacheDesignRules(tech);
 		int pIndex = getIndex(tech, layer1.getIndex(), layer2.getIndex());
+
+		double bestDist = -1;
+		String rule = null;
+		if (connected)
+		{
+			double dist = currentRules.conList[pIndex].doubleValue();
+			if (dist >= 0) { bestDist = dist;   rule = currentRules.conListRules[pIndex]; }
+		} else
+		{
+			double dist = currentRules.unConList[pIndex].doubleValue();
+			if (dist >= 0) { bestDist = dist;   rule = currentRules.unConListRules[pIndex]; }
+		}
+
 		if (wide)
 		{
 			if (connected)
 			{
 				double dist = currentRules.conListWide[pIndex].doubleValue();
-				if (dist < 0) return null;
-				return new Rule(dist, currentRules.conListWideRules[pIndex]);
+				if (dist >= 0) { bestDist = dist;   rule = currentRules.conListWideRules[pIndex]; }
+			} else
+			{
+				double dist = currentRules.unConListWide[pIndex].doubleValue();
+				if (dist >= 0) { bestDist = dist;   rule = currentRules.unConListWideRules[pIndex]; }
 			}
-			double dist = currentRules.unConListWide[pIndex].doubleValue();
-			if (dist < 0) return null;
-			return new Rule(dist, currentRules.unConListWideRules[pIndex]);
 		}
+
 		if (multiCut)
 		{
 			if (connected)
 			{
 				double dist = currentRules.conListMulti[pIndex].doubleValue();
-				if (dist < 0) return null;
-				return new Rule(dist, currentRules.conListMultiRules[pIndex]);
+				if (dist >= 0) { bestDist = dist;   rule = currentRules.conListMultiRules[pIndex]; }
+			} else
+			{
+				double dist = currentRules.unConListMulti[pIndex].doubleValue();
+				if (dist >= 0) { bestDist = dist;   rule = currentRules.unConListMultiRules[pIndex]; }
 			}
-			double dist = currentRules.unConListMulti[pIndex].doubleValue();
-			if (dist < 0) return null;
-			return new Rule(dist, currentRules.unConListMultiRules[pIndex]);
 		}
-		if (connected)
-		{
-			double dist = currentRules.conList[pIndex].doubleValue();
-			if (dist < 0) return null;
-			return new Rule(dist, currentRules.conListRules[pIndex]);
-		}
-		double dist = currentRules.unConList[pIndex].doubleValue();
-		if (dist < 0) return null;
-		return new Rule(dist, currentRules.unConListRules[pIndex]);
+		if (bestDist < 0) return null;
+		return new Rule(bestDist, rule);
+	}
+
+	/**
+	 * Method to tell whether there are any design rules between two layers.
+	 * @param layer1 the first Layer to check.
+	 * @param layer2 the second Layer to check.
+	 * @return true if there are design rules between the layers.
+	 */
+	public static boolean isAnyRule(Layer layer1, Layer layer2)
+	{
+		Technology tech = layer1.getTechnology();
+		cacheDesignRules(tech);
+		int pIndex = getIndex(tech, layer1.getIndex(), layer2.getIndex());
+		if (currentRules.conList[pIndex].doubleValue() >= 0) return true;
+		if (currentRules.unConList[pIndex].doubleValue() >= 0) return true;
+		if (currentRules.conListWide[pIndex].doubleValue() >= 0) return true;
+		if (currentRules.unConListWide[pIndex].doubleValue() >= 0) return true;
+		if (currentRules.conListMulti[pIndex].doubleValue() >= 0) return true;
+		if (currentRules.unConListMulti[pIndex].doubleValue() >= 0) return true;
+		if (currentRules.edgeList[pIndex].doubleValue() >= 0) return true;
+		return false;
 	}
 
 	/**

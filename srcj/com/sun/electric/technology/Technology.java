@@ -48,7 +48,6 @@ import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.MoCMOSOld;
 import com.sun.electric.technology.technologies.MoCMOSSub;
 import com.sun.electric.technology.technologies.nMOS;
-import com.sun.electric.tool.user.Prefs;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.drc.DRC;
 
@@ -1290,26 +1289,22 @@ public class Technology extends ElectricObject
 			double cutHX = so.getHighXOffset();
 			double cutLY = so.getLowYOffset();
 			double cutHY = so.getHighYOffset();
-
-			Rectangle2D bounds = ni.getBounds();
-			double lx = bounds.getMinX() + cutLX;
-			double hx = bounds.getMaxX() - cutHX;
-			double ly = bounds.getMinY() + cutLY;
-			double hy = bounds.getMaxY() - cutHY;
+			double cutAreaWidth = ni.getXSize() - cutLX - cutHX;
+			double cutAreaHeight = ni.getYSize() - cutLY - cutHY;
 
 			// number of cuts depends on the size
-			cutsX = (int)((hx-lx)-cutIndent*2+cutSep) / (int)(cutSizeX+cutSep);
-			cutsY = (int)((hy-ly)-cutIndent*2+cutSep) / (int)(cutSizeY+cutSep);
+			cutsX = (int)(cutAreaWidth-cutIndent*2+cutSep) / (int)(cutSizeX+cutSep);
+			cutsY = (int)(cutAreaHeight-cutIndent*2+cutSep) / (int)(cutSizeY+cutSep);
 			if (cutsX <= 0) cutsX = 1;
 			if (cutsY <= 0) cutsY = 1;
 			cutsReasonable = cutsTotal = cutsX * cutsY;
 			if (cutsTotal != 1)
 			{
 				// prepare for the multiple contact cut locations
-				cutBaseX = (hx-lx-cutIndent*2 - cutSizeX*cutsX -
-					cutSep*(cutsX-1)) / 2 + (cutLX + cutIndent + cutSizeX/2) + bounds.getMinX();
-				cutBaseY = (hy-ly-cutIndent*2 - cutSizeY*cutsY -
-					cutSep*(cutsY-1)) / 2 + (cutLY + cutIndent + cutSizeY/2) + bounds.getMinY();
+				cutBaseX = (cutAreaWidth-cutIndent*2 - cutSizeX*cutsX -
+					cutSep*(cutsX-1)) / 2 + (cutLX + cutIndent + cutSizeX/2) + ni.getGrabCenterX() - ni.getXSize() / 2;
+				cutBaseY = (cutAreaHeight-cutIndent*2 - cutSizeY*cutsY -
+					cutSep*(cutsY-1)) / 2 + (cutLY + cutIndent + cutSizeY/2) + ni.getGrabCenterY() - ni.getYSize() / 2;
 				if (cutsX > 2 && cutsY > 2)
 				{
 					cutsReasonable = cutsX * 2 + (cutsY-2) * 2;

@@ -35,7 +35,6 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.*;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.user.Prefs;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.Job;

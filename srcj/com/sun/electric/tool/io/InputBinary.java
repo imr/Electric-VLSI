@@ -1330,8 +1330,8 @@ public class InputBinary extends Input
 			theProtoName += ";" + version + "{" + v.getAbbreviation() + "}";
 			int creationDate = readBigInteger();
 			int revisionDate = readBigInteger();
-			cell.lowLevelSetCreationDate(BinaryConstants.fromElectricDate(creationDate));
-			cell.lowLevelSetRevisionDate(BinaryConstants.fromElectricDate(revisionDate));
+			cell.lowLevelSetCreationDate(EMath.secondsToDate(creationDate));
+			cell.lowLevelSetRevisionDate(EMath.secondsToDate(revisionDate));
 		} else
 		{
 			// versions 8 and earlier read a cell name
@@ -1497,8 +1497,8 @@ public class InputBinary extends Input
 		if (v == null) v = View.UNKNOWN;
 		int version = readBigInteger();
 		String fullCellName = theProtoName + ";" + version + "{" + v.getAbbreviation() + "}";
-		Date creationDate = BinaryConstants.fromElectricDate(readBigInteger());
-		Date revisionDate = BinaryConstants.fromElectricDate(readBigInteger());
+		Date creationDate = EMath.secondsToDate(readBigInteger());
+		Date revisionDate = EMath.secondsToDate(readBigInteger());
 
 		// read the nodeproto bounding box
 		int lowX = readBigInteger();

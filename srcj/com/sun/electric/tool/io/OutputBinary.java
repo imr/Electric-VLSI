@@ -24,6 +24,7 @@
 package com.sun.electric.tool.io;
 
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
@@ -626,8 +627,8 @@ public class OutputBinary extends Output
 		writeBigInteger(nextCont);
 		writeBigInteger(cell.getView().getTempInt());
 		writeBigInteger(cell.getVersion());
-		writeBigInteger((int)BinaryConstants.toElectricDate(cell.getCreationDate()));
-		writeBigInteger((int)BinaryConstants.toElectricDate(cell.getRevisionDate()));
+		writeBigInteger((int)EMath.dateToSeconds(cell.getCreationDate()));
+		writeBigInteger((int)EMath.dateToSeconds(cell.getRevisionDate()));
 
 		// write the nodeproto bounding box
 		Technology tech = cell.getTechnology();

@@ -3050,9 +3050,6 @@ public class MoCMOS extends Technology
 
 		// now rewrite the description
 		setTechDesc(describeState(state));
-
-		// recache design rules
-//		tech_initmaxdrcsurround();
 	}
 
 	/**
