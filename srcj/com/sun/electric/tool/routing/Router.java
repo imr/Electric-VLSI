@@ -352,16 +352,11 @@ public abstract class Router {
         Dimension2D start = getContactSize(startRE);
         Dimension2D end = getContactSize(endRE);
 
-        System.out.println("start contact size: "+start);
-        System.out.println("end contact size: "+end);
-
         // use the largest of the dimensions
         Dimension2D dim = new Dimension2D.Double(start);
         if (end.getWidth() > dim.getWidth()) dim.setSize(end.getWidth(), dim.getHeight());
         if (end.getHeight() > dim.getHeight()) dim.setSize(dim.getWidth(), end.getHeight());
 
-
-        System.out.println("final contact size: "+dim);
         return dim;
     }
 
@@ -377,7 +372,6 @@ public abstract class Router {
             if (re.isNewArcHorizontal()) {
                 if (re.getArcWidth() > height) height = re.getArcWidth();
             }
-            System.out.println("found newArc size "+width+","+height+" of type "+re.getArcProto());
         }
 
         // special case: if this is a contact cut, use the size of the contact cut

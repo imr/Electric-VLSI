@@ -74,8 +74,8 @@ public class VerticalRoute {
 
     private int searchNumber;
     private static final int SEARCHLIMIT = 100;
-    private static final boolean DEBUG = true;
-    private static final boolean DEBUGSEARCH = true;
+    private static final boolean DEBUG = false;
+    private static final boolean DEBUGSEARCH = false;
 
     /**
      * Create new VerticalRoute object to route between startRE and endRE
