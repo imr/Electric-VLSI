@@ -55,6 +55,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.AffineTransform;
 
 /**
  * This class reads files in readable-dump (.txt) format.
@@ -480,6 +482,15 @@ public class InputText extends Input
 			{
 				height = -height;
 				rotation = (rotation + 900) % 3600;
+			}
+			if (np instanceof Cell)
+			{
+				Cell subCell = (Cell)np;
+				Rectangle2D bounds = subCell.getBounds();
+				Point2D shift = new Point2D.Double(-bounds.getCenterX(), -bounds.getCenterY());
+				AffineTransform trans = NodeInst.pureRotate(rotation, width, height);
+				trans.transform(shift, shift);
+				center.setLocation(center.getX() + shift.getX(), center.getY() + shift.getY());
 			}
 			ni.lowLevelPopulate(np, center, width, height, rotation, cell);
 			if (name != null) ni.setNameKey(name);

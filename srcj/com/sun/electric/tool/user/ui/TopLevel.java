@@ -35,6 +35,8 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.Cursor;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import javax.swing.JFrame;
 import javax.swing.JDesktopPane;
@@ -110,7 +112,13 @@ public class TopLevel extends JFrame
 		sb = new StatusBar(frame);
 		getContentPane().add(sb, BorderLayout.SOUTH);
 
-		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		if (isMDIMode())
+		{
+			addWindowListener(new WindowsEvents());
+		} else
+		{
+			setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		}
 
 		cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
 	}
@@ -262,4 +270,14 @@ public class TopLevel extends JFrame
 	 * @param wnd the EditWindow to associatd with this.
 	 */
 	public void setEditWindow(EditWindow wnd) { this.wnd = wnd; }
+
+	/**
+	 * This class handles close events for JFrame objects (used in MDI mode to quit).
+	 */
+	static class WindowsEvents extends WindowAdapter
+	{
+		WindowsEvents() { super(); }
+
+		public void windowClosing(WindowEvent evt) { UserMenuCommands.quitCommand(); }
+	}
 }

@@ -198,6 +198,7 @@ public class EditWindow extends JPanel
 		Highlight.clear();
 		Highlight.finished();
 		fillScreen();
+//if (cell != null) System.out.println("Filled screen, off=("+offx+","+offy+"), bounds="+cell.getBounds());
 		if (wf != null)
 		{
 			if (cell == null)
@@ -304,6 +305,7 @@ public class EditWindow extends JPanel
 	 */
 	void drawImage()
 	{
+//if (cell != null) System.out.println("Drawing cell, off=("+offx+","+offy+"), bounds="+cell.getBounds());
 		// set background color
 		Graphics2D g2 = (Graphics2D)img.getGraphics();
 		g2.setColor(Color.lightGray);
