@@ -161,7 +161,7 @@ public class LENodable {
      * @param mfactor the parent's mfactor
      * @param su the parent's step-up
      */
-    protected LENodable createUniqueInstance(VarContext context, LENetwork outputNetwork, float mfactor, float su, LENetlister2.NetlisterConstants constants) {
+    protected LENodable createUniqueInstance(VarContext context, LENetwork outputNetwork, float mfactor, float su, LENetlister.NetlisterConstants constants) {
         LENodable instance = new LENodable(no, type, mfactorVar, suVar, parallelGroupVar);
         // copy pins
         for (Iterator it = pins.iterator(); it.hasNext(); ) {

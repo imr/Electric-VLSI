@@ -25,36 +25,240 @@
 package com.sun.electric.tool.logicaleffort;
 
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.Job;
 
-public interface LENetlister {
+import javax.swing.*;
+import java.util.Iterator;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.Point2D;
 
-    /** Call to start netlisting */
-    public void netlist(Cell cell, VarContext context);
+public abstract class LENetlister extends HierarchyEnumerator.Visitor {
+
+    public static final Variable.Key ATTR_su = ElectricObject.newKey("ATTR_su");
+    public static final Variable.Key ATTR_le = ElectricObject.newKey("ATTR_le");
+    public static final Variable.Key ATTR_wire_ratio = ElectricObject.newKey("ATTR_wire_ratio");
+    public static final Variable.Key ATTR_epsilon = ElectricObject.newKey("ATTR_epsilon");
+    public static final Variable.Key ATTR_max_iter = ElectricObject.newKey("ATTR_max_iter");
+    public static final Variable.Key ATTR_gate_cap = ElectricObject.newKey("ATTR_gate_cap");
+    public static final Variable.Key ATTR_alpha = ElectricObject.newKey("ATTR_alpha");
+    public static final Variable.Key ATTR_keeper_ratio = ElectricObject.newKey("ATTR_keeper_ratio");
+
+    public static class NetlisterConstants {
+        /** global step-up */                       public final float su;
+        /** wire to gate cap ratio */               public final float wireRatio;
+        /** convergence criteron */                 public final float epsilon;
+        /** max number of iterations */             public final int maxIterations;
+        /** gate cap, in fF/lambda */               public final float gateCap;
+        /** ratio of diffusion to gate cap */       public final float alpha;
+        /** ratio of keeper to driver size */       public final float keeperRatio;
+        
+        public NetlisterConstants(float su, float wireRatio, float epsilon,
+                                  int maxIterations, float gateCap, float alpha, float keeperRatio) {
+            this.su = su;
+            this.wireRatio = wireRatio;
+            this.epsilon = epsilon;
+            this.maxIterations = maxIterations;
+            this.gateCap = gateCap;
+            this.alpha = alpha;
+            this.keeperRatio = keeperRatio;
+        }
+
+        /** Create a new set of constants from the user's settings */
+        public NetlisterConstants() {
+            su = (float)LETool.getGlobalFanout();
+            epsilon = (float)LETool.getConvergenceEpsilon();
+            maxIterations = LETool.getMaxIterations();
+            gateCap = (float)LETool.getGateCapacitance();
+            wireRatio = (float)LETool.getWireRatio();
+            alpha = (float)LETool.getDiffAlpha();
+            keeperRatio = (float)LETool.getKeeperRatio();
+        }
+
+        /** Returns true if the two NetlisterConstants have the same values for all fields */
+        public boolean equals(NetlisterConstants other) {
+            if (su != other.su) return false;
+            if (wireRatio != other.wireRatio) return false;
+            if (epsilon != other.epsilon) return false;
+            if (maxIterations != other.maxIterations) return false;
+            if (gateCap != other.gateCap) return false;
+            if (alpha != other.alpha) return false;
+            if (keeperRatio != other.keeperRatio) return false;
+            return true;
+        }
+    }
+    
+
+    /** Call to start netlisting. Returns false if failed */
+    public abstract boolean netlist(Cell cell, VarContext context);
 
     /** Call to stop or interrupt netlisting */
-    public void done();
+    public abstract void done();
 
     /**
      * Call to size netlist with the specified algorithm
      * @return true if successful, false otherwise
      */
-    public boolean size(LESizer.Alg algorithm);
+    public abstract boolean size(LESizer.Alg algorithm);
 
     /** Call to update and save sizes */
-    public void updateSizes();
+    public abstract void updateSizes();
 
     /** Get the error logger */
-    public ErrorLogger getErrorLogger();
+    public abstract ErrorLogger getErrorLogger();
+
+    /** Get the settings used for sizing */
+    public abstract NetlisterConstants getConstants();
 
     // ---------------------------- statistics ---------------------------------
 
     /** print the results for the Nodable
      * @return true if successful, false otherwise */
-    public boolean printResults(Nodable no, VarContext context);
+    public abstract boolean printResults(Nodable no, VarContext context);
 
     /** Get the total size of all gates sized using Logical Effort */
-    public float getTotalLESize();
+    public abstract float getTotalLESize();
+
+    // ------------------------- Utility ---------------------------------------
+
+    /**
+     * Get any Logical Effort settings saved on the specified cell
+     * @param cell the cell in question
+     * @return the netlister constants settings, or null if none found
+     */
+    protected NetlisterConstants getSettings(Cell cell) {
+        for (Iterator instIt = cell.getNodes(); instIt.hasNext();) {
+            NodeInst ni = (NodeInst)instIt.next();
+            if (ni.isIconOfParent()) continue;
+            if (!(ni.getProto() instanceof Cell)) continue;
+            if (ni.getVar("ATTR_LESETTINGS") != null) {
+                float su = (float)LETool.getGlobalFanout();
+                float epsilon = (float)LETool.getConvergenceEpsilon();
+                int maxIterations = LETool.getMaxIterations();
+                float gateCap = (float)LETool.getGateCapacitance();
+                float wireRatio = (float)LETool.getWireRatio();
+                float alpha = (float)LETool.getDiffAlpha();
+                float keeperRatio = (float)LETool.getKeeperRatio();
+                Variable var;
+                VarContext context = VarContext.globalContext;
+                if ((var = ni.getVar(ATTR_su)) != null) su = VarContext.objectToFloat(context.evalVar(var), su);
+                if ((var = ni.getVar(ATTR_wire_ratio)) != null) wireRatio = VarContext.objectToFloat(context.evalVar(var), wireRatio);
+                if ((var = ni.getVar(ATTR_epsilon)) != null) epsilon = VarContext.objectToFloat(context.evalVar(var), epsilon);
+                if ((var = ni.getVar(ATTR_max_iter)) != null) maxIterations = VarContext.objectToInt(context.evalVar(var), maxIterations);
+                if ((var = ni.getVar(ATTR_gate_cap)) != null) gateCap = VarContext.objectToFloat(context.evalVar(var), gateCap);
+                if ((var = ni.getVar(ATTR_alpha)) != null) alpha = VarContext.objectToFloat(context.evalVar(var), alpha);
+                if ((var = ni.getVar(ATTR_keeper_ratio)) != null) keeperRatio = VarContext.objectToFloat(context.evalVar(var), keeperRatio);
+                return new NetlisterConstants(su, wireRatio, epsilon, maxIterations, gateCap, alpha, keeperRatio);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * This checks for LE settings in the cell, and returns true if they conflict.
+     * It also warns the user that there are conflicting settings from the subcell.
+     * @param current the current settings (from the top level cell, or global options)
+     * @return true if there was a conflict, false otherwise
+     */
+    protected boolean isSettingsConflict(NetlisterConstants current, Cell topLevelCell, Cell subcell) {
+        assert(current != null);
+        NetlisterConstants local = getSettings(subcell);
+        if (local == null) return false;
+        if (!current.equals(local)) {
+            System.out.println("Error: Global settings from \""+topLevelCell.describe()+"\" do not match global settings from \""+subcell.describe()+"\"");
+            System.out.println("       Global settings are by definition global, and differences may indicate an inconsistency in your design.");
+            System.out.println("       Note that step-up, \"su\", can be made local by defining a \"su\" parameter on an instance.");
+            if (current.su != local.su) System.out.println("su:\t"+current.su+" vs "+local.su);
+            if (current.wireRatio != local.wireRatio) System.out.println("wireRatio:\t"+current.wireRatio+" vs "+local.wireRatio);
+            if (current.epsilon != local.epsilon) System.out.println("epsilon:\t"+current.epsilon+" vs "+local.epsilon);
+            if (current.maxIterations != local.maxIterations) System.out.println("maxIterations:\t"+current.maxIterations+" vs "+local.maxIterations);
+            if (current.gateCap != local.gateCap) System.out.println("gateCap:\t"+current.gateCap+" vs "+local.gateCap);
+            if (current.alpha != local.alpha) System.out.println("alpha:\t"+current.alpha+" vs "+local.alpha);
+            if (current.keeperRatio != local.keeperRatio) System.out.println("keeperRatio:\t"+current.keeperRatio+" vs "+local.keeperRatio);
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    JOptionPane.showMessageDialog(null, "Conflicting global parameter settings were found, " +
+                            "please see message window for details", "Settings Conflict Found!!", JOptionPane.ERROR_MESSAGE);
+                }
+            });
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Saves the Global settings to the cell. Note that this does not overwrite
+     * settings already there.  If any settings are found, it does nothing and returns false.
+     * @return true if settings saved, false otherwise
+     */
+    protected boolean saveSettings(NetlisterConstants constants, Cell cell) {
+        // make sure no settings already on cell
+        if (getSettings(cell) != null) return false;
+
+        // first we need to find the LESettings Cell
+        Cell settings = null;
+        for (Iterator it = Library.getLibraries(); it.hasNext(); ) {
+            Library lib = (Library)it.next();
+            for (Iterator it2 = lib.getCells(); it2.hasNext(); ) {
+                Cell c = (Cell)it2.next();
+                if (c.getVar("ATTR_LESETTINGS") != null) {
+                    settings = c;
+                    break;
+                }
+            }
+            if (settings != null) break;
+        }
+        if (settings == null) {
+            System.out.println("Could not find LESETTINGS cell in order to save settings to cell "+cell.describe());
+            return false;
+        }
+        System.out.println("Creating new LESETTINGS box on \""+cell.describe()+"\" from User Preferences because none found. Logical effort requires this box");
+        SaveSettings job = new SaveSettings(cell, settings, constants);
+        return true;
+    }
+
+    private static class SaveSettings extends Job {
+        private Cell cell;
+        private Cell settings;
+        private NetlisterConstants constants;
+        public SaveSettings(Cell cell, Cell settings, NetlisterConstants constants) {
+            super("Clear LE Sizes", LETool.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.cell = cell;
+            this.settings = settings;
+            this.constants = constants;
+            startJob();
+        }
+
+        public boolean doIt() {
+            Rectangle2D bounds = cell.getBounds();
+            int x = (int)bounds.getMaxX();
+            int y = (int)bounds.getMinY();
+            Cell temp = settings.iconView();
+            if (temp != null) settings = temp;
+            NodeInst ni = NodeInst.makeInstance(settings, new Point2D.Double(x, y), settings.getDefWidth(),
+                    settings.getDefHeight(), cell);
+            if (ni == null) {
+                System.out.println("Could not make instance of LESETTINGS in cell "+cell.describe()+" to save settings.");
+                return false;
+            }
+            ni.updateVar(ATTR_su, new Float(constants.su));
+            ni.updateVar(ATTR_wire_ratio, new Float(constants.wireRatio));
+            ni.updateVar(ATTR_epsilon, new Float(constants.epsilon));
+            ni.updateVar(ATTR_max_iter, new Integer(constants.maxIterations));
+            ni.updateVar(ATTR_gate_cap, new Float(constants.gateCap));
+            ni.updateVar(ATTR_alpha, new Float(constants.alpha));
+            ni.updateVar(ATTR_keeper_ratio, new Float(constants.keeperRatio));
+
+            return true;
+        }
+
+    }
+
 }

@@ -370,7 +370,8 @@ public class LETool extends Tool {
                 netlister = new LENetlister2(this);
             else
                 netlister = new LENetlister1(this);
-            netlister.netlist(cell, context);
+            boolean success = netlister.netlist(cell, context);
+            if (!success) return false;
 
             // calculate statistics
             long equationsDone = System.currentTimeMillis();
@@ -385,7 +386,7 @@ public class LETool extends Tool {
 
             System.out.println("Starting iterations: ");
             setProgress("iterating");
-            boolean success = netlister.size(algorithm);
+            boolean success2 = netlister.size(algorithm);
 
             // if user aborted, return, and do not update sizes
             if (checkAbort(null)) {
@@ -393,7 +394,7 @@ public class LETool extends Tool {
                 return false;
             }
 
-            if (success) {
+            if (success2) {
                 System.out.println("Sizing finished, updating sizes...");
                 UpdateSizes job = new UpdateSizes(netlister, cell, wnd);
             } else {

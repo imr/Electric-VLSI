@@ -65,7 +65,7 @@ import java.util.Map;
  *
  * @author  gainsley
  */
-public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetlister {
+public class LENetlister2 extends LENetlister {
 
     /** Netlister constants */                  protected NetlisterConstants constants;
     /** Map of Cells to CachedCells */          private Map cellMap;
@@ -81,38 +81,21 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
     /** True if we got aborted */               private boolean aborted;
     /** for logging errors */                   private ErrorLogger errorLogger;
     /** record definition errors so no multiple warnings */ private HashMap lePortError;
+    /** The top level cell netlisted */         private Cell topLevelCell;
+
 
     private static final boolean DEBUG = false;
     private static final boolean DISABLE_CACHING = false;
     private static final boolean DEBUG_FIRSTPASS = false;
     private static final boolean DEBUG_PRINTCACHEDCELLS = false;
 
-    public static final Variable.Key ATTR_su = ElectricObject.newKey("ATTR_su");
-    public static final Variable.Key ATTR_le = ElectricObject.newKey("ATTR_le");
-
-    protected static class NetlisterConstants {
-        /** global step-up */                       protected float su;
-        /** wire to gate cap ratio */               protected float wireRatio;
-        /** convergence criteron */                 protected float epsilon;
-        /** max number of iterations */             protected int maxIterations;
-        /** gate cap, in fF/lambda */               protected float gateCap;
-        /** ratio of diffusion to gate cap */       protected float alpha;
-        /** ratio of keeper to driver size */       protected float keeperRatio;
-    }
-
     /** Creates a new instance of LENetlister */
     public LENetlister2(Job job) {
         // get preferences for this package
         Tool leTool = Tool.findTool("logical effort");
-        constants = new NetlisterConstants();
-        constants.su = (float)LETool.getGlobalFanout();
-        constants.epsilon = (float)LETool.getConvergenceEpsilon();
-        constants.maxIterations = LETool.getMaxIterations();
-        constants.gateCap = (float)LETool.getGateCapacitance();
-        constants.wireRatio = (float)LETool.getWireRatio();
-        constants.alpha = (float)LETool.getDiffAlpha();
-        constants.keeperRatio = (float)LETool.getKeeperRatio();
-        
+        constants = null;
+        topLevelCell = null;
+
         this.job = job;
         this.cellMap = new HashMap();
         this.globalNetworks = new HashMap();
@@ -127,7 +110,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
     }
     
     // Entry point: This netlists the cell
-    public void netlist(Cell cell, VarContext context) {
+    public boolean netlist(Cell cell, VarContext context) {
 
         //ArrayList connectedPorts = new ArrayList();
         //connectedPorts.add(Schematics.tech.resistorNode.getPortsList());
@@ -137,14 +120,16 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
         Netlist netlist = cell.getNetlist(true);
         
         // read schematic-specific sizing options
-        for (Iterator instIt = cell.getNodes(); instIt.hasNext();) {
-            NodeInst ni = (NodeInst)instIt.next();
-            if (ni.getVar("ATTR_LESETTINGS") != null) {
-                useLESettings(ni, context);            // get settings from object
-                break;
+        constants = getSettings(cell);
+        if (constants == null) {
+            constants = new NetlisterConstants();
+            if (!saveSettings(constants, cell)) {
+                // couldn't save settings to cell, abort
+                return false;
             }
         }
 
+        topLevelCell = cell;
         FirstPassEnum firstPass = new FirstPassEnum(this);
         HierarchyEnumerator.enumerateCell(cell, context, netlist, firstPass);
         firstPass.cleanup();
@@ -178,6 +163,8 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
             }
         }
         HierarchyEnumerator.enumerateCell(cell, context, netlist, this);
+        if (aborted) return false;
+        return true;
     }
 
     /**
@@ -232,19 +219,9 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
         errorLogger = null;
     }
 
-    public ErrorLogger getErrorLogger() { return errorLogger; }    
+    public ErrorLogger getErrorLogger() { return errorLogger; }
 
-    /** NodeInst should be an LESettings instance */
-    private void useLESettings(NodeInst ni, VarContext context) {
-        Variable var;
-        if ((var = ni.getVar("ATTR_su")) != null) constants.su = VarContext.objectToFloat(context.evalVar(var), constants.su);
-        if ((var = ni.getVar("ATTR_wire_ratio")) != null) constants.wireRatio = VarContext.objectToFloat(context.evalVar(var), constants.wireRatio);
-        if ((var = ni.getVar("ATTR_epsilon")) != null) constants.epsilon = VarContext.objectToFloat(context.evalVar(var), constants.epsilon);
-        if ((var = ni.getVar("ATTR_max_iter")) != null) constants.maxIterations = VarContext.objectToInt(context.evalVar(var), constants.maxIterations);
-        if ((var = ni.getVar("ATTR_gate_cap")) != null) constants.gateCap = VarContext.objectToFloat(context.evalVar(var), constants.gateCap);
-        if ((var = ni.getVar("ATTR_alpha")) != null) constants.alpha = VarContext.objectToFloat(context.evalVar(var), constants.alpha);
-        if ((var = ni.getVar("ATTR_keeper_ratio")) != null) constants.keeperRatio = VarContext.objectToFloat(context.evalVar(var), constants.keeperRatio);
-    }
+    public NetlisterConstants getConstants() { return constants; }
 
     protected Iterator getSizeableNodables() { return sizableLENodables.iterator(); }
 
@@ -380,6 +357,14 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
         if (((LETool.AnalyzeCell)job).checkAbort(null)) {
             aborted = true;
             return false;
+        }
+
+        // check if conflicting settings
+        if (topLevelCell != info.getCell()) {
+            if (isSettingsConflict(constants, topLevelCell, info.getCell())) {
+                aborted = true;
+                return false;
+            }
         }
 
         LECellInfo leinfo = (LECellInfo)info;

@@ -117,7 +117,7 @@ public class CachedCell {
      * @param subCellInfo the subcell CellInfo
      */
     protected void add(Nodable no, LENetlister2.LECellInfo info,
-                       CachedCell subCell, LENetlister2.LECellInfo subCellInfo, LENetlister2.NetlisterConstants constants) {
+                       CachedCell subCell, LENetlister2.LECellInfo subCellInfo, LENetlister.NetlisterConstants constants) {
         CellNodable ceno = new CellNodable();
         ceno.no = no;
         ceno.subCell = subCell;
@@ -156,7 +156,7 @@ public class CachedCell {
         }
     }
 
-    protected boolean isContextFree(LENetlister2.NetlisterConstants constants) {
+    protected boolean isContextFree(LENetlister.NetlisterConstants constants) {
         if (contextFree == null) {
             // this cell has not yet been evaluated, do it now
             if (isContainsSizableGates()) {
