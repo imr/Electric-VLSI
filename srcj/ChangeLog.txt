@@ -1,6 +1,12 @@
 			Java Electric change log
 
 ************************* Version 8.01l: *********************************
+
+IMP/MAN: (8/31/04, JKG) "Optimize Gates for Equal Delay With Caching" new menu item,
+    eventually old command will be removed.  In Tool->Logical Effort
+
+IMP/MAN: (8/31/04, JKG) "Repeat Last Command" in Edit menu.
+
 IMP: (8/30/04, GVG) New transistors in TSMC90. Changes in TechPalette to select them.
 
 IMP: (8/30/04, RK) Transistor size checking. 
