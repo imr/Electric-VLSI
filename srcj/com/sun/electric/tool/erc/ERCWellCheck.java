@@ -24,11 +24,7 @@
 package com.sun.electric.tool.erc;
 
 import com.sun.electric.Main;
-import com.sun.electric.database.geometry.GeometryHandler;
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.PolyBase;
-import com.sun.electric.database.geometry.PolyMerge;
-import com.sun.electric.database.geometry.PolyQTree;
+import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -72,6 +68,7 @@ public class ERCWellCheck
 	List wellCons = new ArrayList();
 	List wellAreas = new ArrayList();
 	HashMap cellMerges = new HashMap(); // make a map of merge information in each cell
+    HashMap otherCellMerges = new HashMap(); //
 	HashMap doneCells = new HashMap(); // Mark if cells are done already.
 	WellCheckJob job;
 
@@ -146,8 +143,7 @@ public class ERCWellCheck
 
 		// make a list of well and substrate areas
 		int wellIndex = 0;
-
-		GeometryHandler topMerge = (GeometryHandler)cellMerges.get(cell);
+        GeometryHandler topMerge = (GeometryHandler)cellMerges.get(cell);
 
 		for(Iterator it = topMerge.getKeyIterator(); it.hasNext(); )
 		{
@@ -495,6 +491,7 @@ public class ERCWellCheck
 		wellCons.clear();
 		doneCells.clear();
 		cellMerges.clear();
+        otherCellMerges.clear();
 		errorLogger.termLogging(true);
 		return (errorCount);
 	}
@@ -558,6 +555,7 @@ public class ERCWellCheck
 			// make an object for merging all of the wells in this cell
 			Cell cell = info.getCell();
 	        GeometryHandler thisMerge = (GeometryHandler)(check.cellMerges.get(cell));
+            GeometryHandler newMerge = (GeometryHandler)(check.otherCellMerges.get(cell));
 
 			if (thisMerge == null)
 			{
@@ -567,6 +565,14 @@ public class ERCWellCheck
 					thisMerge = new PolyMerge();
 				check.cellMerges.put(cell, thisMerge);
 			}
+            if (Main.getDebug())
+            {
+            if (newMerge == null)
+            {
+                newMerge = new PolySweepMerge();
+                check.otherCellMerges.put(cell, newMerge);
+            }
+            }
 
             return true;
         }
@@ -580,6 +586,8 @@ public class ERCWellCheck
 			Cell cell = info.getCell();
 	        GeometryHandler thisMerge = (GeometryHandler)check.cellMerges.get(info.getCell());
 			if (thisMerge == null) throw new Error("wrong condition in ERCWellCheck.enterCell()");
+            GeometryHandler newMerge = (GeometryHandler)(check.otherCellMerges.get(cell));
+            if (newMerge == null) throw new Error("wrong condition in ERCWellCheck.enterCell()");
 
 	        if (check.doneCells.get(cell) == null)
 	        {
@@ -596,24 +604,14 @@ public class ERCWellCheck
 						Poly poly = arcInstPolyList[i];
 						Layer layer = poly.getLayer();
 						// Only interested in well/select
-//						if (Main.LOCALDEBUGFLAG)
-//						{
-//						if (!isERCLayerRelated(layer))
-//						{
-//							System.out.println("This should not happen");
-//							continue;
-//						}
-//						}
-//						if (getWellLayerType(layer) == ERCPSEUDO)
-//						{
-//							System.out.println("When happens?");
-//							continue;
-//						}
 						Object newElem = poly;
 
 						if (check.newAlgorithm)
 							newElem = new PolyQTree.PolyNode(poly);
 						thisMerge.add(layer, newElem, check.newAlgorithm);
+
+                        if (Main.getDebug())
+                        newMerge.add(layer, poly, false);
 					}
 				}
 	        }
@@ -631,11 +629,20 @@ public class ERCWellCheck
 				GeometryHandler subMerge = (GeometryHandler)check.cellMerges.get(subNp);
 				if (subMerge != null)
 				{
-					AffineTransform trans = ni.rotateOut();
-					AffineTransform tTrans = ni.translateOut(trans);
+					AffineTransform tTrans = ni.translateOut(ni.rotateOut());
 					thisMerge.addAll(subMerge, tTrans);
 				}
+                if (Main.LOCALDEBUGFLAG)
+                {
+                GeometryHandler newSubMerge = (GeometryHandler)check.otherCellMerges.get(subNp);
+                if (newSubMerge != null)
+				{
+					AffineTransform tTrans = ni.translateOut(ni.rotateOut());
+					newMerge.addAll(newSubMerge, tTrans);
+				}
+                }
 			}
+            ((PolySweepMerge)newMerge).postProcess();
        }
         public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
         {
@@ -645,10 +652,11 @@ public class ERCWellCheck
 			// merge everything
 	        Cell cell = info.getCell();
 	        GeometryHandler thisMerge = (GeometryHandler)check.cellMerges.get(cell);
+            GeometryHandler newMerge = (GeometryHandler)(check.otherCellMerges.get(cell));
 			NodeInst ni = no.getNodeInst();
 			//AffineTransform trans = ni.transformOut();
-			AffineTransform trans = ni.rotateOut();
             PrimitiveNode.Function fun = ni.getFunction();
+            AffineTransform trans = null;
 	        boolean wellSubsContact = (fun == PrimitiveNode.Function.WELL || fun == PrimitiveNode.Function.SUBSTRATE);
 
 	        if (NodeInst.isSpecialNode(ni))
@@ -670,23 +678,16 @@ public class ERCWellCheck
 					{
 						Poly poly = nodeInstPolyList[i];
 						Layer layer = poly.getLayer();
-						//int layerType = getWellLayerType(layer);
 						// Only interested in well/select regions
 
-//						if (Main.LOCALDEBUGFLAG)
-//						{
-//						if (!isERCLayerRelated(layer))
-//						{
-//							System.out.println("This should not happen");
-//							continue;
-//						}
-//						}
+                        if (trans == null) trans = ni.rotateOut();  // transformation only calculated when required.
 						poly.transform(trans);
 						Object newElem = poly;
 
 						if (check.newAlgorithm)
                             newElem = new PolyQTree.PolyNode(poly);
 						thisMerge.add(layer, newElem, check.newAlgorithm);
+                        newMerge.add(layer, poly, false);
 					}
 				}
 	        }
@@ -696,6 +697,7 @@ public class ERCWellCheck
 			{
 				WellCon wc = new WellCon();
 				wc.ctr = ni.getTrueCenter();
+                if (trans == null) trans = ni.rotateOut();  // transformation only calculated when required.
 				trans.transform(wc.ctr, wc.ctr);
 				info.getTransformToRoot().transform(wc.ctr, wc.ctr);
 				wc.fun = fun;
