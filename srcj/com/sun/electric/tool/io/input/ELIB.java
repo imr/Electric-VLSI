@@ -1305,7 +1305,7 @@ public class ELIB extends LibraryFiles
 								if (var != null)
 								{
 									if (origVar.isDisplay()) var.setDisplay();
-									if (origVar.isJava()) var.setJava();
+									var.setCode(origVar.getCode());
 									var.setTextDescriptor(origVar.getTextDescriptor());									
 								}
 								ni.delVar(origVarKey);

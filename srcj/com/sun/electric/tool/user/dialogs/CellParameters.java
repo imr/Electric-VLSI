@@ -68,10 +68,10 @@ public class CellParameters extends EDialog
 			public void mouseClicked(java.awt.event.MouseEvent evt) { paramListClick(); }
 		});
 
-		language.addItem("Not Code");
-		language.addItem("TCL (not available)");
-		language.addItem("LISP (not available)");
-		language.addItem("Java");
+        // add variable code types
+        for (Iterator it = Variable.Code.getCodes(); it.hasNext(); ) {
+            language.addItem(it.next());
+        }
 
 		units.addItem("None");
 		units.addItem("Resistance");
@@ -198,8 +198,8 @@ public class CellParameters extends EDialog
 				td.setInherit();
 				td.setDispPart(TextDescriptor.DispPos.NAMEVALINH);
 
-				int currentLanguage = dialog.language.getSelectedIndex();
-				if (currentLanguage == 3) var.setJava();
+				Variable.Code currentCode = (Variable.Code)dialog.language.getSelectedItem();
+				var.setCode(currentCode);
 
 				int unitIndex = dialog.units.getSelectedIndex();
 				switch (unitIndex)
@@ -231,11 +231,7 @@ public class CellParameters extends EDialog
 		newParameter.setText(var.getTrueName());
 		defaultValue.setText(var.getPureValue(-1, -1));
 
-		int initialLanguage = 0;
-		if (var.isTCL()) initialLanguage = 1; else
-		if (var.isLisp()) initialLanguage = 2; else
-		if (var.isJava()) initialLanguage = 3;
-		language.setSelectedIndex(initialLanguage);
+		language.setSelectedItem(var.getCode());
 
 		TextDescriptor.Unit unit = var.getTextDescriptor().getUnit();
 		if (unit == TextDescriptor.Unit.NONE) units.setSelectedIndex(0); else
@@ -323,9 +319,7 @@ public class CellParameters extends EDialog
 						}
 						if (instVar != null)
 						{
-							if (cVar.isTCL()) instVar.setTCL();
-							if (cVar.isLisp()) instVar.setLisp();
-							if (cVar.isJava()) instVar.setJava();
+                            instVar.setCode(cVar.getCode());
 							TextDescriptor td = instVar.getTextDescriptor();
 							td.setParam();
 							td.clearInterior();

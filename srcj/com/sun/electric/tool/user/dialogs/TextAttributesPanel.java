@@ -42,11 +42,6 @@ import java.awt.*;
  */
 public class TextAttributesPanel extends javax.swing.JPanel {
 
-    private static final String notcode = "Not Code";
-    private static final String isjava = "Java";
-    private static final String istcl = "TCL (not avail.)";
-    private static final String islisp = "Lisp (not avail.)";
-
     private static final String displaynone = "None";
 
     private Variable var;
@@ -56,7 +51,7 @@ public class TextAttributesPanel extends javax.swing.JPanel {
     private TextDescriptor.Unit initialUnit;
     private Object initialDispPos;      // this needs to be an object because one choice, "none" is a string
                                         // instead of a TextDescriptor.DispPos
-    private String initialCode;
+    private Variable.Code initialCode;
 
     /**
      * Create a Panel for editing attribute specific
@@ -65,11 +60,10 @@ public class TextAttributesPanel extends javax.swing.JPanel {
     public TextAttributesPanel() {
         initComponents();
 
-        // populate code dialog box
-        code.addItem(notcode);
-        code.addItem(isjava);
-        code.addItem(istcl);
-        code.addItem(islisp);
+        // add variable code types
+        for (Iterator it = Variable.Code.getCodes(); it.hasNext(); ) {
+            code.addItem(it.next());
+        }
 
         // populate units dialog box
         for (Iterator it = TextDescriptor.Unit.getUnits(); it.hasNext(); ) {
@@ -82,8 +76,8 @@ public class TextAttributesPanel extends javax.swing.JPanel {
         // default settings
 
         // set code
-        initialCode = notcode;
-        code.setSelectedItem(notcode);
+        initialCode = Variable.Code.NONE;
+        code.setSelectedItem(Variable.Code.NONE);
         // set units
         initialUnit = TextDescriptor.Unit.NONE;
         units.setSelectedItem(initialUnit);
@@ -139,11 +133,10 @@ public class TextAttributesPanel extends javax.swing.JPanel {
         // otherwise, use td
 
         // set code
-        code.setSelectedItem(notcode); initialCode = notcode;
+        initialCode = Variable.Code.NONE;
         if (var != null) {
-            if (var.isJava()) { code.setSelectedItem(isjava); initialCode = isjava; }
-            if (var.isTCL()) { code.setSelectedItem(istcl); initialCode = istcl; }
-            if (var.isLisp()) { code.setSelectedItem(islisp); initialCode = islisp; }
+            initialCode = var.getCode();
+            code.setSelectedItem(initialCode);
         } else {
             // var null, disable code
             code.setEnabled(false);
@@ -178,8 +171,8 @@ public class TextAttributesPanel extends javax.swing.JPanel {
         boolean changed = false;
 
         // see if code changed
-        String newCode = (String)code.getSelectedItem();
-        if (!newCode.equals(initialCode)) changed = true;
+        Variable.Code newCode = (Variable.Code)code.getSelectedItem();
+        if (newCode != initialCode) changed = true;
         // see if units changed
         TextDescriptor.Unit newUnit = (TextDescriptor.Unit)units.getSelectedItem();
         if (newUnit != initialUnit) changed = true;
@@ -227,7 +220,7 @@ public class TextAttributesPanel extends javax.swing.JPanel {
         private Variable var;
         private TextDescriptor td;
         private String futureVarName;
-        private String code;
+        private Variable.Code code;
         private TextDescriptor.Unit unit;
         private Object dispPos;
 
@@ -236,7 +229,7 @@ public class TextAttributesPanel extends javax.swing.JPanel {
                 Variable var,
                 TextDescriptor td,
                 String futureVarName,
-                String code,
+                Variable.Code code,
                 TextDescriptor.Unit unit,
                 Object dispPos
                 )
@@ -262,10 +255,7 @@ public class TextAttributesPanel extends javax.swing.JPanel {
 
             // change the code type
             if (var != null) {
-                if (code.equals(notcode)) var.clearCode();
-                else if (code.equals(isjava)) var.setJava();
-                else if (code.equals(istcl)) var.setTCL();
-                else if (code.equals(islisp)) var.setLisp();
+                var.setCode(code);
             }
             // change the units
             td.setUnit(unit);

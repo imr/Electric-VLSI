@@ -5081,9 +5081,7 @@ public class CircuitChanges
 				if (i == TextDescriptor.DispPos.NAMEVALINH || i == TextDescriptor.DispPos.NAMEVALINHALL)
 					newDescript.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
 			}
-			if (var.isJava()) newVar.setJava();
-			if (var.isTCL()) newVar.setTCL();
-			if (var.isLisp()) newVar.setLisp();
+            newVar.setCode(var.getCode());
 		}
 	}
 

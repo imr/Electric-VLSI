@@ -427,7 +427,7 @@ public class ElectricObject
 			return newVar(key, value);
 		}
 		boolean oldCantSet = var.isCantSet();
-		boolean oldJava = var.isJava();
+		Variable.Code oldCode = var.getCode();
 		boolean oldDisplay = var.isDisplay();
 		boolean oldTemporary = var.isDontSave();
 		TextDescriptor td = var.getTextDescriptor();
@@ -439,7 +439,7 @@ public class ElectricObject
 		// restore values
 		newVar.setTextDescriptor(td);
 		if (oldCantSet) newVar.setCantSet();
-		if (oldJava) newVar.setJava();
+		newVar.setCode(oldCode);
 		if (oldDisplay) newVar.setDisplay();
 		if (oldTemporary) newVar.setDontSave();
 		return newVar;

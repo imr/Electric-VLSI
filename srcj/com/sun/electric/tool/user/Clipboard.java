@@ -1017,6 +1017,7 @@ public class Clipboard
             showList();
 
             WindowFrame.setListener(currentListener);
+            Highlight.clear();
             PasteObjects job = new PasteObjects(pasteList, -oX, -oY);
 		}
 

@@ -73,17 +73,18 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 	private static PortProto shownPort = null;
 	private double initialXPos, initialYPos;
 	private double initialXSize, initialYSize;
-	private int initialRotation, initialListPopupEntry, initialPopupIndex;
+	private int initialRotation, initialPopupIndex;
+    private Variable.Code initialListPopupEntry;
 	private boolean initialEasyToSelect, initialInvisibleOutsideCell, initialLocked, initialExpansion;
 	private String initialName, initialTextField;
 	private String initialPopupEntry, initialListTextField;
 	private DefaultListModel listModel;
 	private JList list;
 	private List allAttributes;
-	private List allParameters;
 	private List portObjects;
 	private boolean bigger;
 	private boolean scalableTrans;
+    private AttributesTable attributesTable;
 
     private static Preferences prefs = Preferences.userNodeForPackage(GetInfoNode.class);
 
@@ -155,7 +156,10 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		    getContentPane().remove(moreStuffTop);
 		    getContentPane().remove(listPane);
 		    getContentPane().remove(moreStuffBottom);
+            more.setText("More");
             pack();
+        } else {
+            more.setText("Less");
         }
 
 		// make the list
@@ -168,19 +172,18 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			public void mouseClicked(java.awt.event.MouseEvent evt) { listClick(); }
 		});
 		allAttributes = new ArrayList();
-		allParameters = new ArrayList();
 		portObjects = new ArrayList();
 
-		listPopup.addItem("Not Code");
-		listPopup.addItem("TCL (not available)");
-		listPopup.addItem("LISP (not available)");
-		listPopup.addItem("Java");
+        attributesTable = new AttributesTable(true);
+
+        // add variable code types
+        for (Iterator it = Variable.Code.getCodes(); it.hasNext(); ) {
+            listPopup.addItem(it.next());
+        }
 
         if (buttonSelected == 0)
 		    ports.setSelected(true);
         if (buttonSelected == 1)
-		    parameters.setSelected(true);
-        if (buttonSelected == 2)
 		    attributes.setSelected(true);
 
 		loadNodeInfo();
@@ -260,8 +263,9 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				popup.removeAllItems();
 				popup.setEnabled(false);
 				ports.setEnabled(false);
-				parameters.setEnabled(false);
 				attributes.setEnabled(false);
+                attributesTable.clearVariables();
+                attributesTable.setEnabled(false);
 				listPane.setEnabled(false);
 				listModel.clear();
 				locked.setEnabled(false);
@@ -317,19 +321,19 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		easyToSelect.setEnabled(true);
 		invisibleOutsideCell.setEnabled(true);
 		ports.setEnabled(true);
-		parameters.setEnabled(true);
 		attributes.setEnabled(true);
+        attributesTable.setEnabled(true);
 		listPane.setEnabled(true);
 		locked.setEnabled(true);
 		attributesButton.setEnabled(true);
 
 		// grab all attributes and parameters
 		allAttributes.clear();
-		allParameters.clear();
 
 		for(Iterator it = ni.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
+/*
 			if (var.getTextDescriptor().isParam())
 			{
 				// found a parameter
@@ -338,9 +342,9 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				avp.trueName = var.getTrueName();
 				avp.value = var.getObject().toString();
 				avp.code = var.isCode();
-				allParameters.add(avp);
 				continue;
 			}
+*/
 			String name = var.getKey().getName();
 			if (!name.startsWith("ATTR_")) continue;
 
@@ -353,9 +357,9 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			allAttributes.add(avp);
 		}
 		attributes.setEnabled(allAttributes.size() != 0);
-		parameters.setEnabled(allParameters.size() != 0);
-		if ((attributes.isSelected() && allAttributes.size() == 0) ||
-			(parameters.isSelected() && allParameters.size() == 0)) ports.setSelected(true);
+        attributesTable.setEnabled(allAttributes.size() != 0);
+        attributesTable.clearVariables();
+		//if (attributes.isSelected() && allAttributes.size() == 0) ports.setSelected(true);
 		showProperList();
 
 		// special lines default to empty
@@ -686,23 +690,14 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			listPopupLabel.setText("");
 			listEvalLabel.setText("");
 			listEval.setText("");
-		}
-		if (parameters.isSelected())
-		{
-			// show parameters
-			for(Iterator it = allParameters.iterator(); it.hasNext(); )
-			{
-				AttValPair avp = (AttValPair)it.next();
-				listModel.addElement(avp.trueName + " = " + avp.value);
-			}
-			see.setEnabled(false);
-			listEdit.setEditable(true);
-			listPopup.setEnabled(true);
-			listPopupLabel.setText("Type:");
+            listPane.setViewportView(list);
+            list.setSelectedIndex(0);
+            listClick();
 		}
 		if (attributes.isSelected())
 		{
 			// show attributes
+/*
 			for(Iterator it = allAttributes.iterator(); it.hasNext(); )
 			{
 				AttValPair avp = (AttValPair)it.next();
@@ -712,34 +707,20 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			listEdit.setEditable(true);
 			listPopup.setEnabled(true);
 			listPopupLabel.setText("Type:");
+*/
+            attributesTable.clearVariables();
+            for (Iterator it = allAttributes.iterator(); it.hasNext(); ) {
+                AttValPair avp = (AttValPair)it.next();
+                Variable.Key key = avp.key;
+                attributesTable.addVariable(shownNode.getVar(key), shownNode);
+            }
+            listPane.setViewportView(attributesTable);
 		}
-		list.setSelectedIndex(0);
-		listClick();
 	}
 
 	private void listClick()
 	{
 		int index = list.getSelectedIndex();
-		if (parameters.isSelected())
-		{
-			AttValPair avp = (AttValPair)allParameters.get(index);
-			listEditLabel.setText("Parameter '" + avp.trueName + "'");
-			initialListTextField = new String(avp.value);
-			listEdit.setText(initialListTextField);
-			if (avp.code)
-			{
-				initialListPopupEntry = 3;
-				listEvalLabel.setText("Evaluation:");
-				Variable var = shownNode.getVar(avp.key);
-				listEval.setText(var.describe(-1, -1, VarContext.globalContext, shownNode));
-			} else
-			{
-				initialListPopupEntry = 0;
-				listEvalLabel.setText("");
-				listEval.setText("");
-			}
-			listPopup.setSelectedIndex(initialListPopupEntry);
-		}
 		if (attributes.isSelected())
 		{
 			AttValPair avp = (AttValPair)allAttributes.get(index);
@@ -748,17 +729,17 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			listEdit.setText(initialListTextField);
 			if (avp.code)
 			{
-				initialListPopupEntry = 3;
+				initialListPopupEntry = Variable.Code.JAVA;
 				listEvalLabel.setText("Evaluation:");
 				Variable var = shownNode.getVar(avp.key);
 				listEval.setText(var.describe(-1, -1, VarContext.globalContext, shownNode));
 			} else
 			{
-				initialListPopupEntry = 0;
+				initialListPopupEntry = Variable.Code.NONE;
 				listEvalLabel.setText("");
 				listEval.setText("");
 			}
-			listPopup.setSelectedIndex(initialListPopupEntry);
+			listPopup.setSelectedItem(initialListPopupEntry);
 		}
 	}
 
@@ -990,40 +971,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				}
 			}
 
-			// update parameter/attribute if it changed
-			if (dialog.parameters.isSelected())
-			{
-				String currentTextField = dialog.listEdit.getText();
-				int currentIndex = dialog.listPopup.getSelectedIndex();
-				if (!currentTextField.equals(dialog.initialListTextField) ||
-					currentIndex != dialog.initialListPopupEntry)
-				{
-					int index = dialog.list.getSelectedIndex();
-					AttValPair avp = (AttValPair)dialog.allParameters.get(index);
-					Variable var = ni.updateVar(avp.key, currentTextField);
-					if (currentIndex == 3) var.setJava(); else var.clearCode();
-					dialog.initialListTextField = currentTextField;
-					dialog.initialListPopupEntry = currentIndex;
-					changed = true;
-				}
-			}
-			if (dialog.attributes.isSelected())
-			{
-				String currentTextField = dialog.listEdit.getText();
-				int currentIndex = dialog.listPopup.getSelectedIndex();
-				if (!currentTextField.equals(dialog.initialListTextField) ||
-					currentIndex != dialog.initialListPopupEntry)
-				{
-					int index = dialog.list.getSelectedIndex();
-					AttValPair avp = (AttValPair)dialog.allAttributes.get(index);
-					Variable var = ni.updateVar(avp.key, currentTextField);
-					if (currentIndex == 3) var.setJava(); else var.clearCode();
-					dialog.initialListTextField = currentTextField;
-					dialog.initialListPopupEntry = currentIndex;
-					changed = true;
-				}
-			}
-
 			SizeOffset so = Technology.getSizeOffset(ni);
 			double currentXPos = Double.parseDouble(dialog.xPos.getText());
 			double currentYPos = Double.parseDouble(dialog.yPos.getText());
@@ -1056,8 +1003,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 	 * WARNING: Do NOT modify this code. The content of this method is
 	 * always regenerated by the Form Editor.
 	 */
-    private void initComponents()//GEN-BEGIN:initComponents
-    {
+    private void initComponents() {//GEN-BEGIN:initComponents
         java.awt.GridBagConstraints gridBagConstraints;
 
         expansion = new javax.swing.ButtonGroup();
@@ -1092,7 +1038,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         popupLabel = new javax.swing.JLabel();
         popup = new javax.swing.JComboBox();
         ports = new javax.swing.JRadioButton();
-        parameters = new javax.swing.JRadioButton();
         attributes = new javax.swing.JRadioButton();
         moreStuffBottom = new javax.swing.JPanel();
         locked = new javax.swing.JCheckBox();
@@ -1110,10 +1055,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 
         setTitle("Node Properties");
         setName("");
-        addWindowListener(new java.awt.event.WindowAdapter()
-        {
-            public void windowClosing(java.awt.event.WindowEvent evt)
-            {
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
                 closeDialog(evt);
             }
         });
@@ -1136,10 +1079,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         getContentPane().add(name, gridBagConstraints);
 
         cancel.setText("Cancel");
-        cancel.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        cancel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cancelActionPerformed(evt);
             }
         });
@@ -1151,10 +1092,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         getContentPane().add(cancel, gridBagConstraints);
 
         ok.setText("OK");
-        ok.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        ok.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 okActionPerformed(evt);
             }
         });
@@ -1276,10 +1215,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         getContentPane().add(mirrorX, gridBagConstraints);
 
         more.setText("More");
-        more.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        more.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 moreActionPerformed(evt);
             }
         });
@@ -1291,10 +1228,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         getContentPane().add(more, gridBagConstraints);
 
         apply.setText("Apply");
-        apply.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        apply.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 applyActionPerformed(evt);
             }
         });
@@ -1381,10 +1316,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 
         ports.setText("Ports:");
         selection.add(ports);
-        ports.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        ports.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 portsActionPerformed(evt);
             }
         });
@@ -1395,34 +1328,16 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         moreStuffTop.add(ports, gridBagConstraints);
 
-        parameters.setText("Parameters:");
-        selection.add(parameters);
-        parameters.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                parametersActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
-        moreStuffTop.add(parameters, gridBagConstraints);
-
         attributes.setText("Attributes:");
         selection.add(attributes);
-        attributes.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        attributes.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 attributesActionPerformed(evt);
             }
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         moreStuffTop.add(attributes, gridBagConstraints);
@@ -1446,10 +1361,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         moreStuffBottom.add(locked, gridBagConstraints);
 
         see.setText("See");
-        see.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        see.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 seeActionPerformed(evt);
             }
         });
@@ -1461,10 +1374,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         moreStuffBottom.add(see, gridBagConstraints);
 
         attributesButton.setText("Attributes");
-        attributesButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        attributesButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 attributesButtonActionPerformed(evt);
             }
         });
@@ -1618,11 +1529,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		theDialog.showProperList();
 	}//GEN-LAST:event_attributesActionPerformed
 
-	private void parametersActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_parametersActionPerformed
-	{//GEN-HEADEREND:event_parametersActionPerformed
-		theDialog.showProperList();
-	}//GEN-LAST:event_parametersActionPerformed
-
 	private void portsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_portsActionPerformed
 	{//GEN-HEADEREND:event_portsActionPerformed
 		theDialog.showProperList();
@@ -1649,8 +1555,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 	{
         prefs.putBoolean("GetInfoNode-bigger", bigger);
         if (ports.isSelected()) prefs.putInt("GetInfoNode-buttonSelected", 0);
-        if (parameters.isSelected()) prefs.putInt("GetInfoNode-buttonSelected", 1);
-        if (attributes.isSelected()) prefs.putInt("GetInfoNode-buttonSelected", 2);
+        if (attributes.isSelected()) prefs.putInt("GetInfoNode-buttonSelected", 1);
 		setVisible(false);
 		//theDialog = null;
         //Highlight.removeHighlightListener(this);
@@ -1689,7 +1594,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
     private javax.swing.JPanel moreStuffTop;
     private javax.swing.JTextField name;
     private javax.swing.JButton ok;
-    private javax.swing.JRadioButton parameters;
     private javax.swing.JComboBox popup;
     private javax.swing.JLabel popupLabel;
     private javax.swing.JRadioButton ports;

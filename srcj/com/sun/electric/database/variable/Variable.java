@@ -36,6 +36,8 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.FieldPosition;
 import java.util.Locale;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * The Variable class defines a single attribute-value pair that can be attached to any ElectricObject.
@@ -81,6 +83,31 @@ public class Variable
          */
         public boolean equals(Key k) { return name.equals(k.getName()); }
 	}
+
+    /**
+     * The type of Code that determines how this Variable's
+     * value should be evaluated. If NONE, no evaluation is done.
+     */
+    public static class Code {
+        private final String name;
+        private static final ArrayList allCodes = new ArrayList();
+
+        public Code(String name) {
+            this.name = name;
+            allCodes.add(this);
+        }
+
+        public String toString() { return name; }
+
+        /** Get an iterator over all Code types */
+        public static Iterator getCodes() { return allCodes.iterator(); }
+
+        public static final Code JAVA = new Code("Java");
+        public static final Code LISP = new Code("Lisp");
+        public static final Code TCL = new Code("TCL");
+        public static final Code NONE = new Code("Not Code");
+    }
+
 
 	private Object addr;
 	private Key key;
@@ -514,18 +541,40 @@ public class Variable
 	 */
 	public boolean isDisplay() { return (flags & VDISPLAY) != 0; }
 
+    /**
+     * Determine what code type this variable has, if any
+     * @return the code type
+     */
+    public Code getCode() {
+        if (isJava()) return Code.JAVA;
+        if (isTCL()) return Code.TCL;
+        if (isLisp()) return Code.LISP;
+        return Code.NONE;
+    }
+
+    /**
+     * Sets the code type of this Variable
+     * @param code the code to set to
+     */
+    public void setCode(Code code) {
+        if (code == Code.JAVA) setJava();
+        if (code == Code.LISP) setLisp();
+        if (code == Code.TCL) setTCL();
+        if (code == Code.NONE) clearCode();
+    }
+
 	/**
 	 * Method to set this Variable to be Java.
 	 * Java Variables contain Java code that is evaluated in order to produce a value.
 	 */
-	public void setJava() { checkChanging(); flags = (flags & ~(VCODE1|VCODE2)) | VJAVA; }
+	private void setJava() { checkChanging(); flags = (flags & ~(VCODE1|VCODE2)) | VJAVA; }
 
 	/**
 	 * Method to return true if this Variable is Java.
 	 * Java Variables contain Java code that is evaluated in order to produce a value.
 	 * @return true if this Variable is Java.
 	 */
-	public boolean isJava() { return (flags & (VCODE1|VCODE2)) == VJAVA; }
+	private boolean isJava() { return (flags & (VCODE1|VCODE2)) == VJAVA; }
 
 	/**
 	 * Method to set this Variable to be Lisp.
@@ -533,7 +582,7 @@ public class Variable
 	 * Although the C version of Electric had a Lisp interpreter in it, the Java version
 	 * does not, so this facility is not implemented.
 	 */
-	public void setLisp() { checkChanging(); flags = (flags & ~(VCODE1|VCODE2)) | VLISP; }
+	private void setLisp() { checkChanging(); flags = (flags & ~(VCODE1|VCODE2)) | VLISP; }
 
 	/**
 	 * Method to return true if this Variable is Lisp.
@@ -542,7 +591,7 @@ public class Variable
 	 * does not, so this facility is not implemented.
 	 * @return true if this Variable is Lisp.
 	 */
-	public boolean isLisp() { return (flags & (VCODE1|VCODE2)) == VLISP; }
+	private boolean isLisp() { return (flags & (VCODE1|VCODE2)) == VLISP; }
 
 	/**
 	 * Method to set this Variable to be TCL.
@@ -550,7 +599,7 @@ public class Variable
 	 * Although the C version of Electric had a TCL interpreter in it, the Java version
 	 * does not, so this facility is not implemented.
 	 */
-	public void setTCL() { checkChanging(); flags = (flags & ~(VCODE1|VCODE2)) | VTCL; }
+	private void setTCL() { checkChanging(); flags = (flags & ~(VCODE1|VCODE2)) | VTCL; }
 
 	/**
 	 * Method to return true if this Variable is TCL.
@@ -559,7 +608,7 @@ public class Variable
 	 * does not, so this facility is not implemented.
 	 * @return true if this Variable is TCL.
 	 */
-	public boolean isTCL() { return (flags & (VCODE1|VCODE2)) == VTCL; }
+	private boolean isTCL() { return (flags & (VCODE1|VCODE2)) == VTCL; }
 
 	/**
 	 * Method to tell whether this Variable is any code.
@@ -570,7 +619,7 @@ public class Variable
 	/**
 	 * Method to set this Variable to be not-code.
 	 */
-	public void clearCode() { checkChanging(); flags &= ~(VCODE1|VCODE2); }
+	private void clearCode() { checkChanging(); flags &= ~(VCODE1|VCODE2); }
 
 	/**
 	 * Method to set this Variable to be not-saved.

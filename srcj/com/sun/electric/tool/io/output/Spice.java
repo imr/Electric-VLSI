@@ -547,7 +547,7 @@ public class Spice extends Topology
 							Variable attrVar = no.getVar(varName);
 							if (attrVar == null) infstr.append("??"); else
 							{
-                                if (attrVar.isJava() || attrVar.isTCL() || attrVar.isLisp())
+                                if (attrVar.getCode() != Variable.Code.NONE)
                                     infstr.append(context.evalVar(attrVar));
                                 else
 								    infstr.append(attrVar.getPureValue(-1, -1));

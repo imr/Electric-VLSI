@@ -488,7 +488,7 @@ public class ELIB extends Output
 						Undo.setNextChangeQuiet();
 						Variable newVar = ni.newVar(newVarName, var.getObject());
 						if (var.isDisplay()) newVar.setDisplay();
-						if (var.isJava()) newVar.setJava();
+						newVar.setCode(var.getCode());
 						newVar.setTextDescriptor(var.getTextDescriptor());
 					}
 				}
