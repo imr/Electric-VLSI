@@ -25,13 +25,7 @@ package com.sun.electric.database.prototype;
 
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
-import com.sun.electric.technology.PrimitivePort;
-
-import java.awt.Rectangle;
-import java.awt.geom.Point2D;
-import java.util.Iterator;
 
 /**
  * The ArcProto class defines a type of ArcInst.
@@ -251,19 +245,25 @@ public abstract class ArcProto extends ElectricObject
 
 	/**
 	 * Routine to set this ArcProto so that instances of it are slidable.
-	 * Slidable arcs may move within their ports without moving the NodeInst.
+	 * Arcs that slide will not move their connected NodeInsts if the arc's end is still within the port area.
+	 * Arcs that cannot slide will force their NodeInsts to move by the same amount as the arc.
+	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
 	 */
 	public void setSlidable() { userBits &= ~WANTCANTSLIDE; }
 
 	/**
 	 * Routine to set this ArcProto so that instances of it are not slidable.
-	 * Slidable arcs may move within their ports without moving the NodeInst.
+	 * Arcs that slide will not move their connected NodeInsts if the arc's end is still within the port area.
+	 * Arcs that cannot slide will force their NodeInsts to move by the same amount as the arc.
+	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
 	 */
 	public void clearSlidable() { userBits |= WANTCANTSLIDE; }
 
 	/**
 	 * Routine to tell if instances of this ArcProto are slidable.
-	 * Slidable arcs may move within their ports without moving the NodeInst.
+	 * Arcs that slide will not move their connected NodeInsts if the arc's end is still within the port area.
+	 * Arcs that cannot slide will force their NodeInsts to move by the same amount as the arc.
+	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
 	 * @return true if instances of this ArcProto are slidable.
 	 */
 	public boolean isSlidable() { return (userBits & WANTCANTSLIDE) == 0; }
@@ -336,26 +336,38 @@ public abstract class ArcProto extends ElectricObject
 
 	/**
 	 * Routine to set this ArcProto so that instances of it can wipe nodes.
-	 * Wiping a node means erasing it, and only nodes that are "wipable" can
-	 * be affected in this way.  Typically, pin nodes are wiped by arcs so that
-	 * the system does not have to draw them when connected to an ArcInst.
+	 * For display efficiency reasons, pins that have arcs connected to them should not bother being drawn.
+	 * Those arc prototypes that can erase their connecting pins have this state set,
+	 * and when instances of these arcs connect to the pins, those pins stop being drawn.
+	 * It is necessary for the pin node prototype to enable wiping (with setArcsWipe).
+	 * A NodeInst that becomes wiped out has "setWiped" called.
+	 * @see NodeProto#setArcsWipe
+	 * @see NodeInst#setWiped
 	 */
 	public void setWipable() { userBits |= CANWIPE; }
 
 	/**
 	 * Routine to set this ArcProto so that instances of it cannot wipe nodes.
-	 * Wiping a node means erasing it, and only nodes that are "wipable" can
-	 * be affected in this way.  Typically, pin nodes are wiped by arcs so that
-	 * the system does not have to draw them when connected to an ArcInst.
+	 * For display efficiency reasons, pins that have arcs connected to them should not bother being drawn.
+	 * Those arc prototypes that can erase their connecting pins have this state set,
+	 * and when instances of these arcs connect to the pins, those pins stop being drawn.
+	 * It is necessary for the pin node prototype to enable wiping (with setArcsWipe).
+	 * A NodeInst that becomes wiped out has "setWiped" called.
+	 * @see NodeProto#setArcsWipe
+	 * @see NodeInst#setWiped
 	 */
 	public void clearWipable() { userBits &= ~CANWIPE; }
 
 	/**
 	 * Routine to tell if instances of this ArcProto can wipe nodes.
-	 * Wiping a node means erasing it, and only nodes that are "wipable" can
-	 * be affected in this way.  Typically, pin nodes are wiped by arcs so that
-	 * the system does not have to draw them when connected to an ArcInst.
+	 * For display efficiency reasons, pins that have arcs connected to them should not bother being drawn.
+	 * Those arc prototypes that can erase their connecting pins have this state set,
+	 * and when instances of these arcs connect to the pins, those pins stop being drawn.
+	 * It is necessary for the pin node prototype to enable wiping (with setArcsWipe).
+	 * A NodeInst that becomes wiped out has "setWiped" called.
 	 * @return true if instances of this ArcProto can wipe nodes.
+	 * @see NodeProto#setArcsWipe
+	 * @see NodeInst#setWiped
 	 */
 	public boolean isWipable() { return (userBits & CANWIPE) != 0; }
 
@@ -363,6 +375,7 @@ public abstract class ArcProto extends ElectricObject
 	 * Routine to set this ArcProto so that instances of it can curve.
 	 * Since arc curvature is complex to draw, arcs with this capability
 	 * must be marked this way.
+	 * A curved arc has the variable "arc_radius" on it with a curvature factor.
 	 */
 	public void setCurvable() { userBits |= CANCURVE; }
 
@@ -370,6 +383,7 @@ public abstract class ArcProto extends ElectricObject
 	 * Routine to set this ArcProto so that instances of it cannot curve.
 	 * Since arc curvature is complex to draw, arcs with this capability
 	 * must be marked this way.
+	 * A curved arc has the variable "arc_radius" on it with a curvature factor.
 	 */
 	public void clearCurvable() { userBits &= ~CANCURVE; }
 
@@ -377,6 +391,7 @@ public abstract class ArcProto extends ElectricObject
 	 * Routine to tell if instances of this ArcProto can curve.
 	 * Since arc curvature is complex to draw, arcs with this capability
 	 * must be marked this way.
+	 * A curved arc has the variable "arc_radius" on it with a curvature factor.
 	 * @return true if instances of this ArcProto can curve.
 	 */
 	public boolean isCurvable() { return (userBits & CANCURVE) != 0; }

@@ -26,28 +26,27 @@ package com.sun.electric.database.geometry;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.hierarchy.Cell;
 
-import java.awt.Dimension;
-import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
 
 /**
- * This class is the superclass for all Electric classes that have visual
- * bounds on the screen.  These include NodeInst and ArcInst, but NOT
- * NodeProto and its ilk, which have size, but aren't visual objects on
- * the screen.
+ * This class is the superclass for the Electric classes that have visual
+ * bounds on the screen, specifically NodeInst and ArcInst.
  *
- * The methods in this class will take care of geometry caching: what
- * were R-trees in Electric may turn out to be many-to-many rectangular
- * buckets on the Java side.
+ * Besides representing the geometry of these objects, it organizes them
+ * into an R-tree, which is a spatial structure that enables fast searching.
  */
 public class Geometric extends ElectricObject
 {
 	/** lower bound on R-tree node size */			private static final int MINRTNODESIZE = 4;
 	/** upper bound on R-tree node size */			private static final int MAXRTNODESIZE = (MINRTNODESIZE*2);
 
+	/**
+	 * The Search class is used to do spatial searches in a Cell.
+	 * You create a Search object with a bounds, and then call the "nextObject"
+	 * method until it returns null.
+	 */
 	public static class Search
 	{
 		/** maximum depth of search */			private static final int MAXDEPTH = 100;
@@ -59,6 +58,12 @@ public class Geometric extends ElectricObject
 		/** size of search area */				private double sX, sY;
 		/** desired search bounds */			private Rectangle2D.Double bounds;
 
+		/**
+		 * The constructor starts a search in a specified bounds of a Cell.
+		 * @param bounds the bounds in which to search.
+		 * All objects that touch this bound will be returned.
+		 * @param cell the Cell in which to search.
+		 */
 		public Search(Rectangle2D.Double bounds, Cell cell)
 		{
 			this.depth = 0;
@@ -74,9 +79,8 @@ public class Geometric extends ElectricObject
 		}
 
 		/*
-		 * second routine for searches: takes the search module returned by
-		 * "initsearch" and returns the next geometry module in the
-		 * search area.  If there are no more, this returns NOGEOM.
+		 * Routine to return the next object in the bounds of the search.
+		 * @return the next object found.  Returns null when all objects have been reported.
 		 */
 		public Geometric nextObject()
 		{
@@ -121,12 +125,12 @@ public class Geometric extends ElectricObject
 	 * R-trees come from this paper: Guttman, Antonin, “R-Trees: A Dynamic Index Structure for Spatial Searching”,
 	 * ACM SIGMOD, 14:2, 47-57, June 1984.
 	 * <P>
-	 * R-trees are height-balanced trees in which all leaves are at the same depth and contain spatial objects (the
-	 * nodes and arcs). Entries higher in the tree also store boundary information that tightly encloses the leaves
+	 * R-trees are height-balanced trees in which all leaves are at the same depth and contain Geometric objects (the
+	 * NodeInsts and ArcInsts). Entries higher in the tree store boundary information that tightly encloses the leaves
 	 * below. All nodes hold from M to 2M entries, where M is 4. The bounding boxes of two entries may
 	 * overlap, which allows arbitrary structures to be represented. A search for a point or an area is a simple
 	 * recursive walk through the tree to collect appropriate leaf nodes. Insertion and deletion, however, are more
-	 * complex operations.
+	 * complex operations.  The figure below illustrates how R-Trees work:
 	 * <P>
 	 * <CENTER><IMG SRC="doc-files/Geometric-1.gif"></CENTER>
 	 */
@@ -145,34 +149,35 @@ public class Geometric extends ElectricObject
 		}
 
 		/** Routine to get the number of children of this RTNode. */
-		public int getTotal() { return total; }
+		private int getTotal() { return total; }
 		/** Routine to set the number of children of this RTNode. */
-		public void setTotal(int total) { this.total = total; }
+		private void setTotal(int total) { this.total = total; }
 
 		/** Routine to get the parent of this RTNode. */
-		public RTNode getParent() { return parent; }
+		private RTNode getParent() { return parent; }
 		/** Routine to set the parent of this RTNode. */
-		public void setParent(RTNode parent) { this.parent = parent; }
+		private void setParent(RTNode parent) { this.parent = parent; }
 
 		/** Routine to get the number of children of this RTNode. */
-		public Object getChild(int index) { return pointers[index]; }
+		private Object getChild(int index) { return pointers[index]; }
 		/** Routine to set the number of children of this RTNode. */
-		public void setChild(int index, Object obj) { this.pointers[index] = obj; }
+		private void setChild(int index, Object obj) { this.pointers[index] = obj; }
 
 		/** Routine to get the leaf/branch flag of this RTNode. */
-		public boolean getFlag() { return flag; }
+		private boolean getFlag() { return flag; }
 		/** Routine to set the leaf/branch flag of this RTNode. */
-		public void setFlag(boolean flag) { this.flag = flag; }
+		private void setFlag(boolean flag) { this.flag = flag; }
 
 		/** Routine to get the bounds of this RTNode. */
-		public Rectangle2D.Double getBounds() { return bounds; }
+		private Rectangle2D.Double getBounds() { return bounds; }
 		/** Routine to set the bounds of this RTNode. */
-		public void setBounds(Rectangle2D.Double bounds) { this.bounds.setRect(bounds); }
+		private void setBounds(Rectangle2D.Double bounds) { this.bounds.setRect(bounds); }
 		/** Routine to extend the bounds of this RTNode by "bounds". */
-		public void unionBounds(Rectangle2D.Double bounds) { Rectangle2D.Double.union(this.bounds, bounds, this.bounds); }
+		private void unionBounds(Rectangle2D.Double bounds) { Rectangle2D.Double.union(this.bounds, bounds, this.bounds); }
 
 		/**
-		 * routine to create the top-level structure for a new cell.
+		 * Routine to create the top-level R-Tree structure for a new Cell.
+		 * @return an RTNode object that is empty.
 		 */
 		public static RTNode makeTopLevel()
 		{
@@ -181,38 +186,6 @@ public class Geometric extends ElectricObject
 			top.flag = true;
 			top.parent = null;
 			return top;
-		}
-
-		/**
-		 * routine to get the bounding box of child "child" of this R-tree node.
-		 */
-		public Rectangle2D.Double getBBox(int child)
-		{
-			if (flag)
-			{
-				Geometric geom = (Geometric)pointers[child];
-				return geom.getBounds();
-			} else
-			{
-				RTNode subrtn = (RTNode)pointers[child];
-				return subrtn.getBounds();
-			}
-		}
-
-
-		/**
-		 * routine to recompute the bounds of this R-tree node.
-		 */
-		void figBounds()
-		{
-			if (total == 0)
-			{
-				bounds.setRect(0, 0, 0, 0);
-				return;
-			}
-			bounds.setRect(getBBox(0));
-			for(int i=1; i<total; i++)
-				unionBounds(getBBox(i));
 		}
 
 		private static int branchCount;
@@ -250,6 +223,38 @@ public class Geometric extends ElectricObject
 					((RTNode)getChild(j)).printRTree(indent+3);
 				}
 			}
+		}
+
+		/**
+		 * Routine to get the bounding box of child "child" of this R-tree node.
+		 */
+		private Rectangle2D.Double getBBox(int child)
+		{
+			if (flag)
+			{
+				Geometric geom = (Geometric)pointers[child];
+				return geom.getBounds();
+			} else
+			{
+				RTNode subrtn = (RTNode)pointers[child];
+				return subrtn.getBounds();
+			}
+		}
+
+
+		/**
+		 * routine to recompute the bounds of this R-tree node.
+		 */
+		private void figBounds()
+		{
+			if (total == 0)
+			{
+				bounds.setRect(0, 0, 0, 0);
+				return;
+			}
+			bounds.setRect(getBBox(0));
+			for(int i=1; i<total; i++)
+				unionBounds(getBBox(i));
 		}
 
 		/**
@@ -483,7 +488,8 @@ public class Geometric extends ElectricObject
 	}
 
 	/**
-	 * Routine to link this geometry module into the R-tree that is in cell "parnt".
+	 * Routine to link this Geometric into the R-tree of its parent Cell.
+	 * @param parnt the parent Cell.
 	 */
 	protected void linkGeom(Cell parnt)
 	{
@@ -545,18 +551,30 @@ public class Geometric extends ElectricObject
 
 	// ------------------------ private and protected methods--------------------
 
-	// create a new geometric object
+	/**
+	 * The constructor is only called from subclasses.
+	 */
 	protected Geometric()
 	{
 	}
 
+	/**
+	 * Routine to set the parent Cell of this Geometric.
+	 * @param parent the parent Cell of this Geometric.
+	 */
 	protected void setParent(Cell parent) { this.parent = parent; }
 
-	/** remove this geometric thing */
+	/**
+	 * Routine to remove this Geometric from the parent Cell.
+	 */
 	public void remove()
 	{
 	}
 
+	/*
+	 * Routine to write a description of this Geometric.
+	 * Displays the description in the Messages Window.
+	 */
 	protected void getInfo()
 	{
 		System.out.println(" Parent: " + parent.describe());
@@ -567,6 +585,15 @@ public class Geometric extends ElectricObject
 
 	private AffineTransform rotateTranspose = null;
 
+	/**
+	 * Routine to return a transformation that rotates an object about a point.
+	 * @param angle the amount to rotate (in radians).
+	 * @param sX the X scale of the Geometric (if this or sY are negative, a transposition will be done).
+	 * @param sY the Y scale of the Geometric (if this or sY are negative, a transposition will be done).
+	 * @param cX the center X coordinate about which to rotate.
+	 * @param cY the center Y coordinate about which to rotate.
+	 * @return a transformation that rotates about that point.
+	 */
 	public AffineTransform rotateAbout(double angle, double sX, double sY, double cX, double cY)
 	{
 		AffineTransform transform = new AffineTransform();
@@ -586,7 +613,10 @@ public class Geometric extends ElectricObject
 		}
 		return transform;
 	}
-	
+
+	/**
+	 * Routine to compute the bounds of this Geometric.
+	 */
 	public void updateGeometricBounds()
 	{
 		// start with a unit polygon, centered at the origin
@@ -609,36 +639,67 @@ public class Geometric extends ElectricObject
 
 	// ------------------------ public methods -----------------------------
 
-	/** Cell containing this Geometric object */
+	/**
+	 * Routine to return the Cell that contains this Geometric object.
+	 * @return the Cell that contains this Geometric object.
+	 */
 	public Cell getParent() { return parent; }
 
+	/**
+	 * Routine to return the center point of this Geometric object.
+	 * @return the center point of this Geometric object.
+	 */
 	Point2D.Double getCenter()
 	{
 		return new Point2D.Double(cX, cY);
 	}
 
-	/** Get X coordinate of this object's origin.  If this object is a
-	 * NodeInst then get the X coordinate of the NodeProto's
-	 * reference point. */
+	/**
+	 * Routine to return the center X coordinate of this Geometric.
+	 * @return the center X coordinate of this Geometric.
+	 */
 	public double getCenterX() { return cX; }
 
-	/** Get Y coordinate of this object's origin.  If this object is a
-	 * NodeInst then get the Y coordinate of the NodeProto's
-	 * reference point. */
+	/**
+	 * Routine to return the center Y coordinate of this Geometric.
+	 * @return the center Y coordinate of this Geometric.
+	 */
 	public double getCenterY() { return cY; }
 
-	/** Returns the angle of rotation in radians */
+	/**
+	 * Routine to return the rotation angle of this Geometric.
+	 * @return the rotation angle of this Geometric (in radians).
+	 */
 	public double getAngle() { return angle; }
-	/** Returns the X size of the ArcInst or NodeInst. */
+
+	/**
+	 * Routine to return the X size of this Geometric.
+	 * @return the X size of this Geometric.
+	 */
 	public double getXSize() { return Math.abs(sX); }
-	/** Returns the Y size of the ArcInst or NodeInst. */
+
+	/**
+	 * Routine to return the Y size of this Geometric.
+	 * @return the Y size of this Geometric.
+	 */
 	public double getYSize() { return Math.abs(sY); }
-	/** Returns the bounds of the ArcInst or NodeInst. */
+
+	/**
+	 * Routine to return the bounds of this Geometric.
+	 * @return the bounds of this Geometric.
+	 */
 	public Rectangle2D.Double getBounds() { return visBounds; }
 
-	/** Returns the temporary integer value. */
+	/**
+	 * Routine to get the temporary integer on this Geometric.
+	 * @return the temporary integer on this Geometric.
+	 */
 	public int getTempInt() { return tempInt; }
-	/** Sets the temporary integer value. */
+
+	/**
+	 * Routine to set an arbitrary integer in a temporary location on this Geometric.
+	 * @param tempInt the integer to be set on this Geometric.
+	 */
 	public void setTempInt(int tempInt) { this.tempInt = tempInt; }
 
 }

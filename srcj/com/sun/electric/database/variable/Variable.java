@@ -1,6 +1,5 @@
 package com.sun.electric.database.variable;
 
-import com.sun.electric.database.hierarchy.VarContext;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -200,7 +199,7 @@ public class Variable
 	 * This general access to the bits is required because the binary ".elib"
 	 * file format stores it as a full integer.
 	 * This should not normally be called by any other part of the system.
-	 * @return the "user bits".
+	 * @return the "type bits".
 	 */
 	public int lowLevelGetFlags() { return flags; }
 
@@ -211,7 +210,7 @@ public class Variable
 	 * This general access to the bits is required because the binary ".elib"
 	 * file format stores it as a full integer.
 	 * This should not normally be called by any other part of the system.
-	 * @param userBits the new "user bits".
+	 * @param flags the new "type bits".
 	 */
 	public void lowLevelSetFlags(int flags) { this.flags = flags; }
 

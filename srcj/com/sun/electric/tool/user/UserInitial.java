@@ -84,9 +84,8 @@ public final class UserInitial
 		UIMenu dimaMenu = UIMenu.CreateUIMenu("Dima");
 		dimaMenu.addMenuItem("redo Network Numbering", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.redoNetworkNumberingCommand(); } });
+
 		// create the menu bar
-		// should set com.apple.macos.useScreenMenuBar to TRUE (see http://developer.apple.com/documentation/Java/Conceptual/Java131Development/value_add/chapter_6_section_4.html)
-		// so, use -Dcom.apple.macos.useScreenMenuBar=true
 		JMenuBar menuBar = new JMenuBar();
 		menuBar.add(fileMenu);
 		menuBar.add(steveMenu);

@@ -40,7 +40,6 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 
-import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.util.Iterator;
 
@@ -49,39 +48,39 @@ import java.util.Iterator;
  */
 public class Schematics extends Technology
 {
-	public static final Schematics tech = new Schematics();
+	/** the Schematics Technology object. */			public static final Schematics tech = new Schematics();
 
-	/** Flip-flop type */						public static final int FFTYPE =    07;
-	/** Flip-flop is RS type */					public static final int FFTYPERS =   0;
-	/** Flip-flop is JK type */					public static final int FFTYPEJK =   1;
-	/** Flip-flop is D type */					public static final int FFTYPED =    2;
-	/** Flip-flop is T type */					public static final int FFTYPET =    3;
-	/** Flip-flop clocking bits */				public static final int FFCLOCK =  014;
-	/** Flip-flop is Master/Slave */			public static final int FFCLOCKMS =  0;
-	/** Flip-flop is Positive clock */			public static final int FFCLOCKP =  04;
-	/** Flip-flop is Negative clock */			public static final int FFCLOCKN = 010;
+	/** Defines the Flip-flop type. */					public static final int FFTYPE =    07;
+	/** Defines an RS Flip-flop. */						public static final int FFTYPERS =   0;
+	/** Defines a JK Flip-flop. */						public static final int FFTYPEJK =   1;
+	/** Defines a D Flip-flop. */						public static final int FFTYPED =    2;
+	/** Defines a T Flip-flop. */						public static final int FFTYPET =    3;
+	/** Defines the Flip-flop clocking bits. */			public static final int FFCLOCK =  014;
+	/** Defines a Master/Slave Flip-flop. */			public static final int FFCLOCKMS =  0;
+	/** Defines a Positive clock Flip-flop. */			public static final int FFCLOCKP =  04;
+	/** Defines a Negative clock Flip-flop. */			public static final int FFCLOCKN = 010;
 
-	/** Transistor is nMOS */					public static final int TRANNMOS =   0;
-	/** Transistor is DMOS */					public static final int TRANDMOS =   1;
-	/** Transistor is PMOS */					public static final int TRANPMOS =   2;
-	/** Transistor is NPN Junction */			public static final int TRANNPN =    3;
-	/** Transistor is PNP Junction */			public static final int TRANPNP =    4;
-	/** Transistor is N Junction FET */			public static final int TRANNJFET =  5;
-	/** Transistor is P Junction FET */			public static final int TRANPJFET =  6;
-	/** Transistor is Depletion MESFET */		public static final int TRANDMES =   7;
-	/** Transistor is Enhancement MESFET */		public static final int TRANEMES =   8;
+	/** Defines an nMOS transistor. */					public static final int TRANNMOS =   0;
+	/** Defines a DMOS transistor. */					public static final int TRANDMOS =   1;
+	/** Defines a PMOS transistor. */					public static final int TRANPMOS =   2;
+	/** Defines an NPN Junction transistor. */			public static final int TRANNPN =    3;
+	/** Defines a PNP Junction transistor. */			public static final int TRANPNP =    4;
+	/** Defines an N Junction FET transistor. */		public static final int TRANNJFET =  5;
+	/** Defines a P Junction FET transistor. */			public static final int TRANPJFET =  6;
+	/** Defines a Depletion MESFET transistor. */		public static final int TRANDMES =   7;
+	/** Defines an Enhancement MESFET transistor. */	public static final int TRANEMES =   8;
 
-	/** Diode is normal */						public static final int DIODENORM =  0;
-	/** Diode is Zener */						public static final int DIODEZENER = 1;
+	/** Defines a normal Diode. */						public static final int DIODENORM =  0;
+	/** Defines a Zener Diode. */						public static final int DIODEZENER = 1;
 
-	/** Capacitor is normal */					public static final int CAPACNORM =  0;
-	/** Capacitor is Electrolytic */			public static final int CAPACELEC =  1;
+	/** Defines a normal Capacitor. */					public static final int CAPACNORM =  0;
+	/** Defines an Electrolytic Capacitor. */			public static final int CAPACELEC =  1;
 
-	/** Two-port is Transconductance (VCCS) */	public static final int TWOPVCCS =  0;
-	/** Two-port is Transresistance (CCVS) */	public static final int TWOPCCVS =  1;
-	/** Two-port is Voltage gain (VCVS) */		public static final int TWOPVCVS =  2;
-	/** Two-port is Current gain (CCCS) */		public static final int TWOPCCCS =  3;
-	/** Two-port is Transmission Line */		public static final int TWOPTLINE = 4;
+	/** Defines a Transconductance two-port (VCCS). */	public static final int TWOPVCCS =  0;
+	/** Defines a Transresistance two-port (CCVS). */	public static final int TWOPCCVS =  1;
+	/** Defines a Voltage gain two-port (VCVS). */		public static final int TWOPVCVS =  2;
+	/** Defines a Current gain two-port (CCCS). */		public static final int TWOPCCCS =  3;
+	/** Defines a Transmission Line two-port. */		public static final int TWOPTLINE = 4;
 
 	/** wire arc */						private PrimitiveArc wire_arc;
 	/** bus arc */						private PrimitiveArc bus_arc;
@@ -234,13 +233,13 @@ public class Schematics extends Technology
 
 		/** arc layer */
 		arc_lay = Layer.newInstance("Arc",
-			new EGraphics(EGraphics.LAYERO, EGraphics.BLUE, EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,255,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,255,0.8,1,
 			new int[] {0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,
 				0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF}));
 
 		/** bus layer */
 		bus_lay = Layer.newInstance("Bus",
-			new EGraphics(EGraphics.LAYERT3, EGraphics.COLORT3, EGraphics.SOLIDC, EGraphics.PATTERNED, 107,226,96,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 107,226,96,0.8,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -260,13 +259,13 @@ public class Schematics extends Technology
 
 		/** node layer */
 		node_lay = Layer.newInstance("Node",
-			new EGraphics(EGraphics.LAYERO, EGraphics.RED, EGraphics.SOLIDC, EGraphics.SOLIDC, 255,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 255,0,0,0.8,1,
 			new int[] {0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,
 				0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF}));
 
 		/** text layer */
 		text_lay = Layer.newInstance("Text",
-			new EGraphics(EGraphics.LAYERO, EGraphics.CELLTXT, EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,0,0.8,1,
 			new int[] {0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,
 				0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF}));
 
@@ -347,11 +346,10 @@ public class Schematics extends Technology
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX),
 				letterJ = new Technology.NodeLayer(text_lay, 0, Poly.Type.TEXTCENT, Technology.NodeLayer.POINTS, Technology.TechPoint.ATCENTER)
 			});
-		wireCon_node.addPrimitivePorts(new PrimitivePort []
-			{
-				PrimitivePort.newInstance(this, wireCon_node, new ArcProto[] {wire_arc, bus_arc}, "wire", 0,180, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.fromLeft(0.5), EdgeV.fromBottom(0.5), EdgeH.fromRight(0.5), EdgeV.fromTop(0.5))
-			});
+		PrimitivePort wireCon_port = PrimitivePort.newInstance(this, wireCon_node, new ArcProto[] {wire_arc, bus_arc}, "wire", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+			EdgeH.fromLeft(0.5), EdgeV.fromBottom(0.5), EdgeH.fromRight(0.5), EdgeV.fromTop(0.5));
+		wireCon_port.setIsolated();
+		wireCon_node.addPrimitivePorts(new PrimitivePort [] {wireCon_port});
 		wireCon_node.setFunction(NodeProto.Function.CONNECT);
 		letterJ.setMessage("J");
 
@@ -395,10 +393,12 @@ public class Schematics extends Technology
 						new Technology.TechPoint(EdgeH.fromCenter(0.5), EdgeV.fromCenter(-3))
 					})
 			});
+		PrimitivePort and_port = PrimitivePort.newInstance(this, and_node, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Characteristic.IN,
+			EdgeH.fromCenter(-4), EdgeV.BOTTOMEDGE, EdgeH.fromCenter(-4), EdgeV.TOPEDGE);
+		and_port.setIsolated();
 		and_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, and_node, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Characteristic.IN,
-					EdgeH.fromCenter(-4), EdgeV.BOTTOMEDGE, EdgeH.fromCenter(-4), EdgeV.TOPEDGE),
+				and_port,
 				PrimitivePort.newInstance(this, and_node, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 1, PortProto.Characteristic.OUT,
 					EdgeH.fromCenter(3.5), EdgeV.BOTTOMEDGE, EdgeH.fromCenter(3.5), EdgeV.TOPEDGE),
 				PrimitivePort.newInstance(this, and_node, new ArcProto[] {wire_arc, bus_arc}, "yt", 0,0, 2, PortProto.Characteristic.OUT,
@@ -435,10 +435,12 @@ public class Schematics extends Technology
 					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(-3))
 				})
 			});
+		PrimitivePort or_port = PrimitivePort.newInstance(this, or_node, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Characteristic.IN,
+			EdgeH.fromCenter(-4), EdgeV.BOTTOMEDGE, EdgeH.fromCenter(-3), EdgeV.TOPEDGE);
+		or_port.setIsolated();
 		or_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, or_node, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Characteristic.IN,
-					EdgeH.fromCenter(-4), EdgeV.BOTTOMEDGE, EdgeH.fromCenter(-3), EdgeV.TOPEDGE),
+				or_port,
 				PrimitivePort.newInstance(this, or_node, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 1, PortProto.Characteristic.OUT,
 					EdgeH.fromCenter(4.5), EdgeV.CENTER, EdgeH.fromCenter(4.5), EdgeV.CENTER),
 				PrimitivePort.newInstance(this, or_node, new ArcProto[] {wire_arc, bus_arc}, "yt", 0,0, 2, PortProto.Characteristic.OUT,
@@ -479,10 +481,12 @@ public class Schematics extends Technology
 					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(-3))
 				})
 			});
+		PrimitivePort xor_port = PrimitivePort.newInstance(this, xor_node, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Characteristic.IN,
+			EdgeH.fromCenter(-4), EdgeV.BOTTOMEDGE, EdgeH.fromCenter(-3), EdgeV.TOPEDGE);
+		xor_port.setIsolated();
 		xor_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, xor_node, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Characteristic.IN,
-					EdgeH.fromCenter(-4), EdgeV.BOTTOMEDGE, EdgeH.fromCenter(-3), EdgeV.TOPEDGE),
+				xor_port,
 				PrimitivePort.newInstance(this, xor_node, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 1, PortProto.Characteristic.OUT,
 					EdgeH.fromCenter(4.5), EdgeV.CENTER, EdgeH.fromCenter(4.5), EdgeV.CENTER),
 				PrimitivePort.newInstance(this, xor_node, new ArcProto[] {wire_arc, bus_arc}, "yt", 0,0, 2, PortProto.Characteristic.OUT,
@@ -673,10 +677,12 @@ public class Schematics extends Technology
 						new Technology.TechPoint(LEFTBYP8, EdgeV.TOPEDGE)
 					})
 			});
+		PrimitivePort mux_port = PrimitivePort.newInstance(this, mux_node, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Characteristic.IN,
+			LEFTBYP8, EdgeV.BOTTOMEDGE, LEFTBYP8, EdgeV.TOPEDGE);
+		mux_port.setIsolated();
 		mux_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, mux_node, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Characteristic.IN,
-					LEFTBYP8, EdgeV.BOTTOMEDGE, LEFTBYP8, EdgeV.TOPEDGE),
+				mux_port,
 				PrimitivePort.newInstance(this, mux_node, new ArcProto[] {wire_arc}, "s", 270,0, 2, PortProto.Characteristic.IN,
 					EdgeH.CENTER, BOTBYP875, EdgeH.CENTER, BOTBYP875),
 				PrimitivePort.newInstance(this, mux_node, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 1, PortProto.Characteristic.OUT,
@@ -690,17 +696,19 @@ public class Schematics extends Technology
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
 			});
-		bbox_node.addPrimitivePorts(new PrimitivePort []
-			{
-				PrimitivePort.newInstance(this, bbox_node, new ArcProto[] {wire_arc, bus_arc}, "a", 0,45, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE),
-				PrimitivePort.newInstance(this, bbox_node, new ArcProto[] {wire_arc, bus_arc}, "b", 90,45, 1, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, EdgeV.TOPEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE),
-				PrimitivePort.newInstance(this, bbox_node, new ArcProto[] {wire_arc, bus_arc}, "c", 180,45, 2, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.LEFTEDGE, EdgeV.TOPEDGE),
-				PrimitivePort.newInstance(this, bbox_node, new ArcProto[] {wire_arc, bus_arc}, "d", 270,45, 3, PortProto.Characteristic.UNKNOWN,
-					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE)
-			});
+		PrimitivePort bbox_port1 = PrimitivePort.newInstance(this, bbox_node, new ArcProto[] {wire_arc, bus_arc}, "a", 0,45, 0, PortProto.Characteristic.UNKNOWN,
+			EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE);
+		bbox_port1.setIsolated();
+		PrimitivePort bbox_port2 = PrimitivePort.newInstance(this, bbox_node, new ArcProto[] {wire_arc, bus_arc}, "b", 90,45, 1, PortProto.Characteristic.UNKNOWN,
+			EdgeH.LEFTEDGE, EdgeV.TOPEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE);
+		bbox_port2.setIsolated();
+		PrimitivePort bbox_port3 = PrimitivePort.newInstance(this, bbox_node, new ArcProto[] {wire_arc, bus_arc}, "c", 180,45, 2, PortProto.Characteristic.UNKNOWN,
+			EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.LEFTEDGE, EdgeV.TOPEDGE);
+		bbox_port3.setIsolated();
+		PrimitivePort bbox_port4 = PrimitivePort.newInstance(this, bbox_node, new ArcProto[] {wire_arc, bus_arc}, "d", 270,45, 3, PortProto.Characteristic.UNKNOWN,
+			EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.BOTTOMEDGE);
+		bbox_port4.setIsolated();
+		bbox_node.addPrimitivePorts(new PrimitivePort [] {bbox_port1, bbox_port2, bbox_port3, bbox_port4});
 		bbox_node.setFunction(NodeProto.Function.UNKNOWN);
 
 		/** switch */
@@ -717,10 +725,12 @@ public class Schematics extends Technology
 					new Technology.TechPoint(EdgeH.fromRight(1), EdgeV.CENTER),
 					new Technology.TechPoint(EdgeH.fromLeft(1), EdgeV.fromCenter(1))})
 			});
+		PrimitivePort switch_port = PrimitivePort.newInstance(this, switch_node, new ArcProto[] {wire_arc, bus_arc}, "a", 180,90, 0, PortProto.Characteristic.UNKNOWN,
+			EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromLeft(1), EdgeV.fromTop(1));
+		switch_port.setIsolated();
 		switch_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, switch_node, new ArcProto[] {wire_arc, bus_arc}, "a", 180,90, 0, PortProto.Characteristic.UNKNOWN,
-					EdgeH.fromLeft(1), EdgeV.fromBottom(1), EdgeH.fromLeft(1), EdgeV.fromTop(1)),
+				switch_port,
 				PrimitivePort.newInstance(this, switch_node, new ArcProto[] {wire_arc, bus_arc}, "y", 0,90, 1, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromRight(1), EdgeV.CENTER, EdgeH.fromRight(1), EdgeV.CENTER)
 			});
@@ -1279,7 +1289,11 @@ public class Schematics extends Technology
 	//**************************************** ROUTINES ****************************************
 
 	/**
-	 * Get a list of polygons that describe node "ni"
+	 * Routine to return a list of Polys that describe a given NodeInst.
+	 * This routine overrides the general one in the Technology object
+	 * because of the unusual primitives in the Artwork Technology.
+	 * @param ni the NodeInst to describe.
+	 * @return an array of Poly objects.
 	 */
 	public Poly [] getShape(NodeInst ni)
 	{
@@ -1470,6 +1484,13 @@ public class Schematics extends Technology
 		return getShape(ni, primLayers);
 	}
 
+	/**
+	 * Routine to return a list of Polys that describe a given ArcInst.
+	 * This routine overrides the general one in the Technology object
+	 * because of the unusual primitives in the Artwork Technology.
+	 * @param ai the ArcInst to describe.
+	 * @return an array of Poly objects.
+	 */
 	public Poly [] getShape(ArcInst ai)
 	{
 		// Bus arcs are handled in a standard way

@@ -29,9 +29,6 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.technology.technologies.Generic;
 
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-
 /**
  * A PrimitivePort lives in a PrimitiveNode in a Tecnology.
  * It contains a list of ArcProto types that it
@@ -79,8 +76,11 @@ public class PrimitivePort extends PortProto
 	 * @param parent the PrimitiveNode on which this PrimitivePort resides.
 	 * @param portArcs an array of ArcProtos which can connect to this PrimitivePort.
 	 * @param protoName the name of this PrimitivePort.
-	 * @param portAngle the primary angle that the PrimitivePort faces on the PrimitiveNode.
-	 * @param portRange the range about the angle of allowable connections.
+	 * It may not have unprintable characters, spaces, or tabs in it.
+	 * @param portAngle the primary angle that the PrimitivePort faces on the PrimitiveNode (in degrees).
+	 * This angle is measured counter-clockwise from a right-pointing direction.
+	 * @param portRange the range about the angle of allowable connections (in degrees).
+	 * Arcs must connect to this port within this many degrees of the port connection angle.
 	 * When this value is 180, then all angles are permissible, since arcs
 	 * can connect at up to 180 degrees in either direction from the port angle.
 	 * @param portTopology is a small integer that is unique among PrimitivePorts on the PrimitiveNode.

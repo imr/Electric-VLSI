@@ -25,21 +25,16 @@ package com.sun.electric.database.topology;
 
 import com.sun.electric.database.variable.ElectricObject;
 
-import java.awt.Point;
 import java.awt.geom.Point2D;
-import java.util.HashMap;
 
-/** A Connection is the bond between a node and an arc.
- * 
- * <p> A Connection has an x,y location indicating the endpoint of the
- * arc, a pointer to the NodeInst and ArcInst, and a pointer to the
- * PortProto that represents the port this connection belongs to.  To
- * find the arc(s) associated with a particular port on a node, ask
+/**
+ * A Connection is the link between a PortInst on a NodeInst and an ArcInst.
+ * A Connection has an location indicating the endpoint of the
+ * ArcInst, a pointer to the PortInst on a NodeInst and a pointer to that ArcInst.
+ * To find the arc(s) associated with a particular port on a node, ask
  * the node for a list of its connections.  The connections that point
  * to the portproto are also connected to the wires of interest.
- *
- * <p> Most users will find JNetworks a more convenient way to
- * discover connectivity. */
+ */
 public class Connection extends ElectricObject
 {
 	// ------------------------- private data --------------------------------
@@ -48,6 +43,13 @@ public class Connection extends ElectricObject
 	/** the PortInst on the connected node */		private PortInst portInst;
 	/** the location of this connection */			private Point2D.Double location;
 
+	/**
+	 * The constructor creates a new Connection from the given values.
+	 * @param arc the ArcInst that makes a Connection.
+	 * @param portInst the PortInst on a NodeInst that makes a Connection.
+	 * @param x the X coordinate on the NodeInst.
+	 * @param y the Y coordinate on the NodeInst.
+	 */
 	protected Connection(ArcInst arc, PortInst portInst, double x, double y)
 	{
 		this.arc = arc;
@@ -57,21 +59,32 @@ public class Connection extends ElectricObject
 	}
 
 	// --------------------------- public methods --------------------------
-	/** the arc this connection connects to */
+
+	/**
+	 * Routine to return the ArcInst on this Connection.
+	 * @return the ArcInst on this Connection.
+	 */
 	public ArcInst getArc() { return arc; }
 
-	/** Get the PortInst connected to by this Connection */
+	/**
+	 * Routine to return the PortInst on this Connection.
+	 * @return the PortInst on this Connection.
+	 */
 	public PortInst getPortInst() { return portInst; }
 
-	/** The location of this connection */
+	/**
+	 * Routine to return the location on this Connection.
+	 * @return the location on this Connection.
+	 */
 	public Point2D.Double getLocation() { return location; }
 
-	/** Which end of the arc this connection connects to.  Arcs have
-	 * true ends and false ends. No more meaning can be read into the
-	 * end. */
-	public boolean getArcEnd()
+	/**
+	 * Routine to determine whether this Connection is on the head end of the ArcInst.
+	 * @return true if this Connection is on the head of the ArcInst.
+	 */
+	public boolean isHeadEnd()
 	{
-		return arc.getConnection(true) == this;
+		return arc.getHead() == this;
 	}
 
 	/** disconnect this connection from all database parts */
@@ -98,7 +111,7 @@ public class Connection extends ElectricObject
 
 	/** Set the location of this Connection. This must lie within the
 	 * PortInst's boundary.
-	 * TODO: not yet implemented */
+	 */
 	/*
 	public void setLocation(Point2D loc) {
 	  error(true, "not yet implemented");

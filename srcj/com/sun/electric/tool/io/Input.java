@@ -24,18 +24,11 @@
 package com.sun.electric.tool.io;
 
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.tool.user.ui.UIEditFrame;
 
 import java.io.*;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 public class Input
 {
@@ -62,10 +55,10 @@ public class Input
 
 		public String toString() { return name; }
 
-		/** binary input */			public static final ImportType BINARY=   new ImportType("binary");
-		/** text input */			public static final ImportType TEXT=     new ImportType("text");
-		/** CIF input */			public static final ImportType CIF=      new ImportType("CIF");
-		/** GDS input */			public static final ImportType GDS=      new ImportType("GDS");
+		/** binary input */			public static final ImportType BINARY =   new ImportType("binary");
+		/** text input */			public static final ImportType TEXT =     new ImportType("text");
+		/** CIF input */			public static final ImportType CIF =      new ImportType("CIF");
+		/** GDS input */			public static final ImportType GDS =      new ImportType("GDS");
 	}
 
 	public static class FakeCell
@@ -173,7 +166,7 @@ public class Input
 			if (topLevel) mainLibDirectory = null;
 			return null;
 		}
-		BufferedInputStream bufStrm = 
+		BufferedInputStream bufStrm =
 		    new BufferedInputStream(in.fileInputStream, READ_BUFFER_SIZE);
 		in.dataInputStream = new DataInputStream(bufStrm);
 		boolean error = in.ReadLib();

@@ -40,7 +40,7 @@ public class FlagSet
 	 */
 	public static class Generator
 	{
-		/** used to request flag bit sets */		private static int flagBitsUsed = 0;
+		/** used to request flag bit sets */		private int flagBitsUsed = 0;
 	}
 
 	private FlagSet() {}

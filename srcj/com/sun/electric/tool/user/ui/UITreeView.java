@@ -24,12 +24,10 @@
 package com.sun.electric.tool.user.ui;
 
 import javax.swing.ImageIcon;
-import javax.swing.event.*;
 import javax.swing.JTree;
 import javax.swing.tree.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.user.ui.UIEdit;
 

@@ -32,10 +32,6 @@ import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -84,116 +80,257 @@ public abstract class NodeProto extends ElectricObject
 		 */
 		public String toString() { return name; }
 
-		/** Describes a node with unknown type. */
-			public static final Function UNKNOWN=   new Function("unknown",						"node",     "NPUNKNOWN");
-		/** Describes a single-layer pin. */
-			public static final Function PIN=       new Function("pin",							"pin",      "NPPIN");
-		/** Describes a two-layer contact. */
-			public static final Function CONTACT=   new Function("contact",						"contact",  "NPCONTACT");
-		/** Describes a single-layer node. */
-			public static final Function NODE=      new Function("pure-layer-node",				"plnode",   "NPNODE");
-		/** node a node that connects all ports. */
-			public static final Function CONNECT=   new Function("connection",					"conn",     "NPCONNECT");
-		/** Describes a MOS enhancement transistor. */
-			public static final Function TRANMOS=   new Function("nMOS-transistor",				"nmos",     "NPTRANMOS");
-		/** Describes a MOS depletion transistor. */
-			public static final Function TRADMOS=   new Function("DMOS-transistor",				"dmos",     "NPTRADMOS");
-		/** Describes a MOS complementary transistor. */
-			public static final Function TRAPMOS=   new Function("pMOS-transistor",				"pmos",     "NPTRAPMOS");
-		/** Describes a NPN junction transistor. */
-			public static final Function TRANPN=    new Function("NPN-transistor",				"npn",      "NPTRANPN");
-		/** Describes a PNP junction transistor. */
-			public static final Function TRAPNP=    new Function("PNP-transistor",				"pnp",      "NPTRAPNP");
-		/** Describes a N-channel junction transistor. */
-			public static final Function TRANJFET=  new Function("n-type-JFET-transistor",		"njfet",    "NPTRANJFET");
-		/** Describes a P-channel junction transistor. */
-			public static final Function TRAPJFET=  new Function("p-type-JFET-transistor",		"pjfet",    "NPTRAPJFET");
-		/** Describes a MESFET depletion transistor. */
-			public static final Function TRADMES=   new Function("depletion-mesfet",			"dmes",     "NPTRADMES");
-		/** Describes a MESFET enhancement transistor. */
-			public static final Function TRAEMES=   new Function("enhancement-mesfet",			"emes",     "NPTRAEMES");
-		/** Describes a prototype-defined transistor. */
-			public static final Function TRANSREF=  new Function("prototype-defined-transistor","tref",     "NPTRANSREF");
-		/** Describes an undetermined transistor. */
-			public static final Function TRANS=     new Function("transistor",					"trans",    "NPTRANS");
-		/** Describes a 4-port MOS enhancement transistor. */
-			public static final Function TRA4NMOS=  new Function("4-port-nMOS-transistor",		"nmos4p",   "NPTRA4NMOS");
-		/** Describes a 4-port MOS depletion transistor. */
-			public static final Function TRA4DMOS=  new Function("4-port-DMOS-transistor",		"dmos4p",   "NPTRA4DMOS");
-		/** Describes a 4-port MOS complementary transistor. */
-			public static final Function TRA4PMOS=  new Function("4-port-pMOS-transistor",		"pmos4p",   "NPTRA4PMOS");
-		/** Describes a 4-port NPN junction transistor. */
-			public static final Function TRA4NPN=   new Function("4-port-NPN-transistor",		"npn4p",    "NPTRA4NPN");
-		/** Describes a 4-port PNP junction transistor. */
-			public static final Function TRA4PNP=   new Function("4-port-PNP-transistor",		"pnp4p",    "NPTRA4PNP");
-		/** Describes a 4-port N-channel junction transistor. */
-			public static final Function TRA4NJFET= new Function("4-port-n-type-JFET-transistor","njfet4p", "NPTRA4NJFET");
-		/** Describes a 4-port P-channel junction transistor. */
-			public static final Function TRA4PJFET= new Function("4-port-p-type-JFET-transistor","pjfet4p", "NPTRA4PJFET");
-		/** Describes a 4-port MESFET depletion transistor. */
-			public static final Function TRA4DMES=  new Function("4-port-depletion-mesfet",		"dmes4p",   "NPTRA4DMES");
-		/** Describes a 4-port MESFET enhancement transistor. */
-			public static final Function TRA4EMES=  new Function("4-port-enhancement-mesfet",	"emes4p",   "NPTRA4EMES");
-		/** Describes an E2L transistor. */
-			public static final Function TRANS4=    new Function("4-port-transistor",			"trans4p",  "NPTRANS4");
-		/** Describes a resistor. */
-			public static final Function RESIST=    new Function("resistor",					"res",      "NPRESIST");
-		/** Describes a capacitor. */
-			public static final Function CAPAC=     new Function("capacitor",					"cap",      "NPCAPAC");
-		/** Describes an electrolytic capacitor. */
-			public static final Function ECAPAC=    new Function("electrolytic-capacitor",		"ecap",     "NPECAPAC");
-		/** Describes a diode. */
-			public static final Function DIODE=     new Function("diode",						"diode",    "NPDIODE");
-		/** Describes a zener diode. */
-			public static final Function DIODEZ=    new Function("zener-diode",					"zdiode",   "NPDIODEZ");
-		/** Describes an inductor. */
-			public static final Function INDUCT=    new Function("inductor",					"ind",      "NPINDUCT");
-		/** Describes a meter. */
-			public static final Function METER=     new Function("meter",						"meter",    "NPMETER");
-		/** Describes a transistor base. */
-			public static final Function BASE=      new Function("base",						"base",     "NPBASE");
-		/** Describes a transistor emitter. */
-			public static final Function EMIT=      new Function("emitter",						"emit",     "NPEMIT");
-		/** Describes a transistor collector. */
-			public static final Function COLLECT=   new Function("collector",					"coll",     "NPCOLLECT");
-		/** Describes a buffer. */
-			public static final Function BUFFER=    new Function("buffer",						"buf",      "NPBUFFER");
-		/** Describes an AND gate. */
-			public static final Function GATEAND=   new Function("AND-gate",					"and",      "NPGATEAND");
-		/** Describes an OR gate. */
-			public static final Function GATEOR=    new Function("OR-gate",						"or",       "NPGATEOR");
-		/** Describes an XOR gate. */
-			public static final Function GATEXOR=   new Function("XOR-gate",					"xor",      "NPGATEXOR");
-		/** Describes a flip-flop. */
-			public static final Function FLIPFLOP=  new Function("flip-flop",					"ff",       "NPFLIPFLOP");
-		/** Describes a multiplexor. */
-			public static final Function MUX=       new Function("multiplexor",					"mux",      "NPMUX");
-		/** Describes a power connection. */
-			public static final Function CONPOWER=  new Function("power",						"pwr",      "NPCONPOWER");
-		/** Describes a ground connection. */
-			public static final Function CONGROUND= new Function("ground",						"gnd",      "NPCONGROUND");
-		/** Describes voltage or current source. */
-			public static final Function SOURCE=    new Function("source",						"source",   "NPSOURCE");
-		/** Describes a substrate contact. */
-			public static final Function SUBSTRATE= new Function("substrate",					"substr",   "NPSUBSTRATE");
-		/** Describes a well contact. */
-			public static final Function WELL=      new Function("well",						"well",     "NPWELL");
-		/** Describes a pure artwork. */
-			public static final Function ART=       new Function("artwork",						"art",      "NPART");
-		/** Describes an array. */
-			public static final Function ARRAY=     new Function("array",						"array",    "NPARRAY");
-		/** Describes an alignment object. */
-			public static final Function ALIGN=     new Function("align",						"align",    "NPALIGN");
-		/** Describes a current-controlled voltage source. */
-			public static final Function CCVS=      new Function("ccvs",						"ccvs",     "NPCCVS");
-		/** Describes a current-controlled current source. */
-			public static final Function CCCS=      new Function("cccs",						"cccs",     "NPCCCS");
-		/** Describes a voltage-controlled voltage source. */
-			public static final Function VCVS=      new Function("vcvs",						"vcvs",     "NPVCVS");
-		/** Describes a voltage-controlled current source. */
-			public static final Function VCCS=      new Function("vccs",						"vccs",     "NPVCCS");
-		/** Describes a transmission line. */
-			public static final Function TLINE=     new Function("transmission-line",			"transm",   "NPTLINE");
+		/**
+		 * Describes a node with unknown behavior.
+		 */
+		public static final Function UNKNOWN=   new Function("unknown",						"node",     "NPUNKNOWN");
+		/**
+		 * Describes a single-layer pin.
+		 * Pins connects wires of a single layer, have no geometry, and connect in the center of the node.
+		 */
+		public static final Function PIN=       new Function("pin",							"pin",      "NPPIN");
+		/**
+		 * Describes a two-layer contact.
+		 * Contacts connects wires of two different layers in the center of the node.
+		 */
+		public static final Function CONTACT=   new Function("contact",						"contact",  "NPCONTACT");
+		/**
+		 * Describes a pure-layer node.
+		 * Pure-layer nodes have a solid piece of geometry on a single layer.
+		 */
+		public static final Function NODE=      new Function("pure-layer-node",				"plnode",   "NPNODE");
+		/**
+		 * node a node that connects all ports.
+		 */
+		public static final Function CONNECT=   new Function("connection",					"conn",     "NPCONNECT");
+		/**
+		 * Describes a MOS enhancement transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port.
+		 */
+		public static final Function TRANMOS=   new Function("nMOS-transistor",				"nmos",     "NPTRANMOS");
+		/**
+		 * Describes a MOS depletion transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port.
+		 */
+		public static final Function TRADMOS=   new Function("DMOS-transistor",				"dmos",     "NPTRADMOS");
+		/**
+		 * Describes a MOS complementary transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port.
+		 */
+		public static final Function TRAPMOS=   new Function("pMOS-transistor",				"pmos",     "NPTRAPMOS");
+		/**
+		 * Describes a NPN junction transistor.
+		 * It has base on the first port, emitter on the second port, and collector on the third port.
+		 */
+		public static final Function TRANPN=    new Function("NPN-transistor",				"npn",      "NPTRANPN");
+		/**
+		 * Describes a PNP junction transistor.
+		 * It has base on the first port, emitter on the second port, and collector on the third port.
+		 */
+		public static final Function TRAPNP=    new Function("PNP-transistor",				"pnp",      "NPTRAPNP");
+		/**
+		 * Describes a N-channel junction transistor.
+		 * It has gate on the first port, source on the second port, and drain on the third port.
+		 */
+		public static final Function TRANJFET=  new Function("n-type-JFET-transistor",		"njfet",    "NPTRANJFET");
+		/**
+		 * Describes a P-channel junction transistor.
+		 * It has gate on the first port, source on the second port, and drain on the third port.
+		 */
+		public static final Function TRAPJFET=  new Function("p-type-JFET-transistor",		"pjfet",    "NPTRAPJFET");
+		/**
+		 * Describes a MESFET depletion transistor.
+		 * It has gate on the first port, source on the second port, and drain on the third port.
+		 */
+		public static final Function TRADMES=   new Function("depletion-mesfet",			"dmes",     "NPTRADMES");
+		/**
+		 * Describes a MESFET enhancement transistor.
+		 * It has gate on the first port, source on the second port, and drain on the third port.
+		 */
+		public static final Function TRAEMES=   new Function("enhancement-mesfet",			"emes",     "NPTRAEMES");
+		/**
+		 * Describes a general-purpose transistor.
+		 * It is defined self-referentially by the prototype name of the primitive.
+		 */
+		public static final Function TRANSREF=  new Function("prototype-defined-transistor","tref",     "NPTRANSREF");
+		/**
+		 * Describes an undetermined transistor.
+		 * It has gate on the first port, source on the second port, and drain on the third port.
+		 * The specific transistor type can be determined by examining the value from the NodeInst's "getTechSpecific" routine.
+		 */
+		public static final Function TRANS=     new Function("transistor",					"trans",    "NPTRANS");
+		/**
+		 * Describes a 4-port MOS enhancement transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
+		 */
+		public static final Function TRA4NMOS=  new Function("4-port-nMOS-transistor",		"nmos4p",   "NPTRA4NMOS");
+		/**
+		 * Describes a 4-port MOS depletion transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
+		 */
+		public static final Function TRA4DMOS=  new Function("4-port-DMOS-transistor",		"dmos4p",   "NPTRA4DMOS");
+		/**
+		 * Describes a 4-port MOS complementary transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
+		 */
+		public static final Function TRA4PMOS=  new Function("4-port-pMOS-transistor",		"pmos4p",   "NPTRA4PMOS");
+		/**
+		 * Describes a 4-port NPN junction transistor.
+		 * It has base on the first port, emitter on the second port, collector on the third port, and substrate on the fourth port.
+		 */
+		public static final Function TRA4NPN=   new Function("4-port-NPN-transistor",		"npn4p",    "NPTRA4NPN");
+		/**
+		 * Describes a 4-port PNP junction transistor.
+		 * It has base on the first port, emitter on the second port, collector on the third port, and substrate on the fourth port.
+		 */
+		public static final Function TRA4PNP=   new Function("4-port-PNP-transistor",		"pnp4p",    "NPTRA4PNP");
+		/**
+		 * Describes a 4-port N-channel junction transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
+		 */
+		public static final Function TRA4NJFET= new Function("4-port-n-type-JFET-transistor","njfet4p", "NPTRA4NJFET");
+		/**
+		 * Describes a 4-port P-channel junction transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
+		 */
+		public static final Function TRA4PJFET= new Function("4-port-p-type-JFET-transistor","pjfet4p", "NPTRA4PJFET");
+		/**
+		 * Describes a 4-port MESFET depletion transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
+		 */
+		public static final Function TRA4DMES=  new Function("4-port-depletion-mesfet",		"dmes4p",   "NPTRA4DMES");
+		/**
+		 * Describes a 4-port MESFET enhancement transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
+		 */
+		public static final Function TRA4EMES=  new Function("4-port-enhancement-mesfet",	"emes4p",   "NPTRA4EMES");
+		/**
+		 * Describes a general-purpose transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
+		 * The specific transistor type can be determined by examining the value from the NodeInst's "getTechSpecific" routine.
+		 */
+		public static final Function TRANS4=    new Function("4-port-transistor",			"trans4p",  "NPTRANS4");
+		/**
+		 * Describes a resistor.
+		 */
+		public static final Function RESIST=    new Function("resistor",					"res",      "NPRESIST");
+		/**
+		 * Describes a capacitor.
+		 */
+		public static final Function CAPAC=     new Function("capacitor",					"cap",      "NPCAPAC");
+		/**
+		 * Describes an electrolytic capacitor.
+		 */
+		public static final Function ECAPAC=    new Function("electrolytic-capacitor",		"ecap",     "NPECAPAC");
+		/**
+		 * Describes a diode.
+		 */
+		public static final Function DIODE=     new Function("diode",						"diode",    "NPDIODE");
+		/**
+		 * Describes a zener diode.
+		 */
+		public static final Function DIODEZ=    new Function("zener-diode",					"zdiode",   "NPDIODEZ");
+		/**
+		 * Describes an inductor.
+		 */
+		public static final Function INDUCT=    new Function("inductor",					"ind",      "NPINDUCT");
+		/**
+		 * Describes a meter.
+		 */
+		public static final Function METER=     new Function("meter",						"meter",    "NPMETER");
+		/**
+		 * Describes a transistor base.
+		 */
+		public static final Function BASE=      new Function("base",						"base",     "NPBASE");
+		/**
+		 * Describes a transistor emitter.
+		 */
+		public static final Function EMIT=      new Function("emitter",						"emit",     "NPEMIT");
+		/**
+		 * Describes a transistor collector.
+		 */
+		public static final Function COLLECT=   new Function("collector",					"coll",     "NPCOLLECT");
+		/**
+		 * Describes a buffer.
+		 * It has input on the first port, clocking on the second port, and output on the third port.
+		 */
+		public static final Function BUFFER=    new Function("buffer",						"buf",      "NPBUFFER");
+		/**
+		 * Describes an AND gate.
+		 * It has inputs on the first port and output on the second port.
+		 */
+		public static final Function GATEAND=   new Function("AND-gate",					"and",      "NPGATEAND");
+		/**
+		 * Describes an OR gate.
+		 * It has inputs on the first port and output on the second port.
+		 */
+		public static final Function GATEOR=    new Function("OR-gate",						"or",       "NPGATEOR");
+		/**
+		 * Describes an XOR gate.
+		 * It has inputs on the first port and output on the second port.
+		 */
+		public static final Function GATEXOR=   new Function("XOR-gate",					"xor",      "NPGATEXOR");
+		/**
+		 * Describes a flip-flop.
+		 * The specific flip-flop type can be determined by examining the value from the NodeInst's "getTechSpecific" routine.
+		 */
+		public static final Function FLIPFLOP=  new Function("flip-flop",					"ff",       "NPFLIPFLOP");
+		/**
+		 * Describes a multiplexor.
+		 */
+		public static final Function MUX=       new Function("multiplexor",					"mux",      "NPMUX");
+		/**
+		 * Describes a power connection.
+		 */
+		public static final Function CONPOWER=  new Function("power",						"pwr",      "NPCONPOWER");
+		/**
+		 * Describes a ground connection.
+		 */
+		public static final Function CONGROUND= new Function("ground",						"gnd",      "NPCONGROUND");
+		/**
+		 * Describes voltage or current source.
+		 */
+		public static final Function SOURCE=    new Function("source",						"source",   "NPSOURCE");
+		/**
+		 * Describes a substrate contact.
+		 */
+		public static final Function SUBSTRATE= new Function("substrate",					"substr",   "NPSUBSTRATE");
+		/**
+		 * Describes a well contact.
+		 */
+		public static final Function WELL=      new Function("well",						"well",     "NPWELL");
+		/**
+		 * Describes a pure artwork.
+		 */
+		public static final Function ART=       new Function("artwork",						"art",      "NPART");
+		/**
+		 * Describes an array.
+		 */
+		public static final Function ARRAY=     new Function("array",						"array",    "NPARRAY");
+		/**
+		 * Describes an alignment object.
+		 */
+		public static final Function ALIGN=     new Function("align",						"align",    "NPALIGN");
+		/**
+		 * Describes a current-controlled voltage source.
+		 */
+		public static final Function CCVS=      new Function("ccvs",						"ccvs",     "NPCCVS");
+		/**
+		 * Describes a current-controlled current source.
+		 */
+		public static final Function CCCS=      new Function("cccs",						"cccs",     "NPCCCS");
+		/**
+		 * Describes a voltage-controlled voltage source.
+		 */
+		public static final Function VCVS=      new Function("vcvs",						"vcvs",     "NPVCVS");
+		/**
+		 * Describes a voltage-controlled current source.
+		 */
+		public static final Function VCCS=      new Function("vccs",						"vccs",     "NPVCCS");
+		/**
+		 * Describes a transmission line.
+		 */
+		public static final Function TLINE=     new Function("transmission-line",			"transm",   "NPTLINE");
 	}
 
 	// ------------------------ private data --------------------------
@@ -228,7 +365,7 @@ public abstract class NodeProto extends ElectricObject
 	/** The temporary integer value. */						private int tempInt;
 	/** The temporary Object. */							private Object tempObj;
 	/** The temporary flag bits. */							private int flagBits;
-	/** The object used to request flag bits. */			private static FlagSet.Generator flagGenerator;
+	/** The object used to request flag bits. */			private static FlagSet.Generator flagGenerator = new FlagSet.Generator();
 
 	// ----------------- protected and private methods -----------------
 
@@ -349,36 +486,57 @@ public abstract class NodeProto extends ElectricObject
 	// ----------------------- public methods -----------------------
 
 	/**
-	 * Routine to set this NodeProto to be "shrunk".
-	 * A shrunk node is one that may be reduced in size to accomodate its environment.
+	 * Routine to allow instances of this NodeProto to shrink.
+	 * Shrinkage occurs on MOS transistors when they are connected to wires at angles that are not manhattan
+	 * (the angle between the transistor and the wire is not a multiple of 90 degrees).
+	 * The actual transistor must be shrunk back appropriately to prevent little tabs from emerging at the connection site.
+	 * This state is only set on primitive node prototypes.
+	 * If the actual NodeInst is to shrink, it must be marked with "setShortened".
+	 * Note that shrinkage does not apply if there is no arc connected.
 	 */
-	public void setShrunk() { userBits |= NODESHRINK; }
+	public void setCanShrink() { userBits |= NODESHRINK; }
 
 	/**
-	 * Routine to set this NodeProto to be "not shrunk".
-	 * A shrunk node is one that may be reduced in size to accomodate its environment.
+	 * Routine to prevent instances of this NodeProto from shrinking.
+	 * Shrinkage occurs on MOS transistors when they are connected to wires at angles that are not manhattan
+	 * (the angle between the transistor and the wire is not a multiple of 90 degrees).
+	 * The actual transistor must be shrunk back appropriately to prevent little tabs from emerging at the connection site.
+	 * This state is only set on primitive node prototypes.
+	 * If the actual NodeInst is to shrink, it must be marked with "setShortened".
+	 * Note that shrinkage does not apply if there is no arc connected.
 	 */
-	public void clearShrunk() { userBits &= ~NODESHRINK; }
+	public void clearCanShrink() { userBits &= ~NODESHRINK; }
 
 	/**
-	 * Routine to tell if this NodeProto is "shrunk".
-	 * A shrunk node is one that may be reduced in size to accomodate its environment.
-	 * @return true if this NodeProto is "shrunk".
+	 * Routine to tell if instances of this NodeProto can shrink.
+	 * Shrinkage occurs on MOS transistors when they are connected to wires at angles that are not manhattan
+	 * (the angle between the transistor and the wire is not a multiple of 90 degrees).
+	 * The actual transistor must be shrunk back appropriately to prevent little tabs from emerging at the connection site.
+	 * This state is only set on primitive node prototypes.
+	 * If the actual NodeInst is to shrink, it must be marked with "setShortened".
+	 * Note that shrinkage does not apply if there is no arc connected.
+	 * @return true if instances of this NodeProto can shrink.
 	 */
-	public boolean isShrunk() { return (userBits & NODESHRINK) != 0; }
+	public boolean canShrink() { return (userBits & NODESHRINK) != 0; }
 
 	/**
 	 * Routine to set this NodeProto so that instances of it are "expanded" by when created.
+	 * Expanded NodeInsts are instances of Cells that show their contents.
+	 * The setting has no meaning for PrimitiveNode instances.
 	 */
 	public void setWantExpanded() { userBits |= WANTNEXPAND; }
 
 	/**
 	 * Routine to set this NodeProto so that instances of it are "not expanded" by when created.
+	 * Expanded NodeInsts are instances of Cells that show their contents.
+	 * The setting has no meaning for PrimitiveNode instances.
 	 */
 	public void clearWantExpanded() { userBits &= ~WANTNEXPAND; }
 
 	/**
 	 * Routine to tell if instances of it are "not expanded" by when created.
+	 * Expanded NodeInsts are instances of Cells that show their contents.
+	 * The setting has no meaning for PrimitiveNode instances.
 	 * @return true if instances of it are "not expanded" by when created.
 	 */
 	public boolean isWantExpanded() { return (userBits & WANTNEXPAND) != 0; }
@@ -399,41 +557,59 @@ public abstract class NodeProto extends ElectricObject
 
 	/**
 	 * Routine to set this NodeProto so that instances of it are "arc-wipable".
-	 * An arc-wipable node is one that is not drawn if there are connecting arcs
-	 * because the arcs cover it.  Typically, pins are wiped.
+	 * For display efficiency reasons, pins that have arcs connected to them should not bother being drawn.
+	 * Therefore, pin prototypes have this state set, and when instances of the
+	 * appropriate arc prototypes connect to instances of these pins, they stop being drawn.
+	 * It is necessary for the arc prototype to enable wiping (with setWipable).
+	 * A NodeInst that becomes wiped out has "setWiped" called.
+	 * @see ArcProto#setWipable
+	 * @see NodeInst#setWiped
 	 */
 	public void setArcsWipe() { userBits |= ARCSWIPE; }
 
 	/**
 	 * Routine to set this NodeProto so that instances of it are not "arc-wipable".
-	 * An arc-wipable node is one that is not drawn if there are connecting arcs
-	 * because the arcs cover it.  Typically, pins are wiped.
+	 * For display efficiency reasons, pins that have arcs connected to them should not bother being drawn.
+	 * Therefore, pin prototypes have this state set, and when instances of the
+	 * appropriate arc prototypes connect to instances of these pins, they stop being drawn.
+	 * It is necessary for the arc prototype to enable wiping (with setWipable).
+	 * A NodeInst that becomes wiped out has "setWiped" called.
+	 * @see ArcProto#setWipable
+	 * @see NodeInst#setWiped
 	 */
 	public void clearArcsWipe() { userBits &= ~ARCSWIPE; }
 
 	/**
 	 * Routine to tell if instances of this NodeProto are "arc-wipable" by when created.
-	 * An arc-wipable node is one that is not drawn if there are connecting arcs
-	 * because the arcs cover it.  Typically, pins are wiped.
+	 * For display efficiency reasons, pins that have arcs connected to them should not bother being drawn.
+	 * Therefore, pin prototypes have this state set, and when instances of the
+	 * appropriate arc prototypes connect to instances of these pins, they stop being drawn.
+	 * It is necessary for the arc prototype to enable wiping (with setWipable).
+	 * A NodeInst that becomes wiped out has "setWiped" called.
 	 * @return true if instances of this NodeProto are "arc-wipable" by when created.
+	 * @see ArcProto#setWipable
+	 * @see NodeInst#setWiped
 	 */
 	public boolean isArcsWipe() { return (userBits & ARCSWIPE) != 0; }
 
 	/**
 	 * Routine to set this NodeProto so that instances of it are "square".
 	 * Square nodes must have the same X and Y size.
+	 * This is useful for round components that really have only one dimension.
 	 */
 	public void setSquare() { userBits |= NSQUARE; }
 
 	/**
 	 * Routine to set this NodeProto so that instances of it are not "square".
 	 * Square nodes must have the same X and Y size.
+	 * This is useful for round components that really have only one dimension.
 	 */
 	public void clearSquare() { userBits &= ~NSQUARE; }
 
 	/**
 	 * Routine to tell if instances of this NodeProto are square.
 	 * Square nodes must have the same X and Y size.
+	 * This is useful for round components that really have only one dimension.
 	 * @return true if instances of this NodeProto are square.
 	 */
 	public boolean isSquare() { return (userBits & NSQUARE) != 0; }
@@ -486,22 +662,25 @@ public abstract class NodeProto extends ElectricObject
 
 	/**
 	 * Routine to set this NodeProto so that instances of it are locked.
-	 * Locked instances are used in FPGA technologies, which place instances that cannot be moved
-	 * because it is part of the background circuitry.
+	 * Locked Primitives cannot be created, deleted, or modified.
+	 * Typically, array technologies (such as FPGA) have lockable primitives which are used for the fixed part of a design,
+	 * and then locked to prevent the customization work from damaging the circuit.
 	 */
 	public void setLockedPrim() { userBits |= LOCKEDPRIM; }
 
 	/**
 	 * Routine to set this NodeProto so that instances of it are not locked.
-	 * Locked instances are used in FPGA technologies, which place instances that cannot be moved
-	 * because it is part of the background circuitry.
+	 * Locked Primitives cannot be created, deleted, or modified.
+	 * Typically, array technologies (such as FPGA) have lockable primitives which are used for the fixed part of a design,
+	 * and then locked to prevent the customization work from damaging the circuit.
 	 */
 	public void clearLockedPrim() { userBits &= ~LOCKEDPRIM; }
 
 	/**
 	 * Routine to tell if instances of this NodeProto are loced.
-	 * Locked instances are used in FPGA technologies, which place instances that cannot be moved
-	 * because it is part of the background circuitry.
+	 * Locked Primitives cannot be created, deleted, or modified.
+	 * Typically, array technologies (such as FPGA) have lockable primitives which are used for the fixed part of a design,
+	 * and then locked to prevent the customization work from damaging the circuit.
 	 * @return true if instances of this NodeProto are loced.
 	 */
 	public boolean isLockedPrim() { return (userBits & LOCKEDPRIM) != 0; }
@@ -529,24 +708,24 @@ public abstract class NodeProto extends ElectricObject
 	public boolean isEdgeSelect() { return (userBits & NEDGESELECT) != 0; }
 
 	/**
-	 * Routine to set this NodeProto so that instances of it are shrinkable if connected in nonManhattan ways.
-	 * An example of a shrinkable node is the MOS transistor, whose tabs shrink slightly if connected to a nonmanhattan arc.
-	 * Note that the nonManhattan arc must also shrink, and then the connection is smooth.
+	 * Routine to set this NodeProto so that arcs connected to instances will shrink in nonmanhattan situations.
+	 * This happens to pins where any combination of multiple arcs in angles that are not increments of 90 degrees
+	 * will cause tabs to emerge at the connection site.
 	 */
 	public void setArcsShrink() { userBits |= ARCSHRINK; }
 
 	/**
-	 * Routine to set this NodeProto so that instances of it are not shrinkable if connected in nonManhattan ways.
-	 * An example of a shrinkable node is the MOS transistor, whose tabs shrink slightly if connected to a nonmanhattan arc.
-	 * Note that the nonManhattan arc must also shrink, and then the connection is smooth.
+	 * Routine to set this NodeProto so that arcs connected to instances will not shrink in nonmanhattan situations.
+	 * This happens to pins where any combination of multiple arcs in angles that are not increments of 90 degrees
+	 * will cause tabs to emerge at the connection site.
 	 */
 	public void clearArcsShrink() { userBits &= ~ARCSHRINK; }
 
 	/**
-	 * Routine to tell if instances of this NodeProto are shrinkable if connected in nonManhattan ways.
-	 * An example of a shrinkable node is the MOS transistor, whose tabs shrink slightly if connected to a nonmanhattan arc.
-	 * Note that the nonManhattan arc must also shrink, and then the connection is smooth.
-	 * @return true if instances of this NodeProto are shrinkable if connected in nonManhattan ways.
+	 * Routine to tell if instances of this NodeProto cause arcs to shrink in nonmanhattan situations.
+	 * This happens to pins where any combination of multiple arcs in angles that are not increments of 90 degrees
+	 * will cause tabs to emerge at the connection site.
+	 * @return true if instances of this NodeProto cause arcs to shrink in nonmanhattan situations.
 	 */
 	public boolean isArcsShrink() { return (userBits & ARCSHRINK) != 0; }
 
@@ -597,40 +776,46 @@ public abstract class NodeProto extends ElectricObject
 	/**
 	 * Routine to set this NodeProto so that it is not used.
 	 * Unused nodes do not appear in the component menus and cannot be created by the user.
+	 * The state is useful for hiding primitives that the user should not use.
 	 */
 	public void setNotUsed() { userBits |= NNOTUSED; }
 
 	/**
 	 * Routine to set this NodeProto so that it is used.
 	 * Unused nodes do not appear in the component menus and cannot be created by the user.
+	 * The state is useful for hiding primitives that the user should not use.
 	 */
 	public void clearNotUsed() { userBits &= ~NNOTUSED; }
 
 	/**
 	 * Routine to tell if this NodeProto is used.
 	 * Unused nodes do not appear in the component menus and cannot be created by the user.
+	 * The state is useful for hiding primitives that the user should not use.
 	 * @return true if this NodeProto is used.
 	 */
 	public boolean isNotUsed() { return (userBits & NNOTUSED) != 0; }
 
 	/**
 	 * Routine to set this NodeProto so that it is part of a cell library.
-	 * Cell libraries are those libraries that contain sets of cells for use
-	 * in other circuits, and do not contain complete circuitry.
+	 * Cell libraries are simply libraries that contain standard cells but no hierarchy
+	 * (as opposed to libraries that define a complete circuit).
+	 * Certain commands exclude facets from cell libraries, so that the actual circuit hierarchy can be more clearly seen.
 	 */
 	public void setInCellLibrary() { userBits |= INCELLLIBRARY; }
 
 	/**
 	 * Routine to set this NodeProto so that it is not part of a cell library.
-	 * Cell libraries are those libraries that contain sets of cells for use
-	 * in other circuits, and do not contain complete circuitry.
+	 * Cell libraries are simply libraries that contain standard cells but no hierarchy
+	 * (as opposed to libraries that define a complete circuit).
+	 * Certain commands exclude facets from cell libraries, so that the actual circuit hierarchy can be more clearly seen.
 	 */
 	public void clearInCellLibrary() { userBits &= ~INCELLLIBRARY; }
 
 	/**
 	 * Routine to tell if this NodeProto is part of a cell library.
-	 * Cell libraries are those libraries that contain sets of cells for use
-	 * in other circuits, and do not contain complete circuitry.
+	 * Cell libraries are simply libraries that contain standard cells but no hierarchy
+	 * (as opposed to libraries that define a complete circuit).
+	 * Certain commands exclude facets from cell libraries, so that the actual circuit hierarchy can be more clearly seen.
 	 * @return true if this NodeProto is part of a cell library.
 	 */
 	public boolean isInCellLibrary() { return (userBits & INCELLLIBRARY) != 0; }

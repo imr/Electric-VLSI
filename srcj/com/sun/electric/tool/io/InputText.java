@@ -23,39 +23,13 @@
  */
 package com.sun.electric.tool.io;
 
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitiveArc;
-import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.tool.Tool;
 
 import java.io.IOException;
-import java.io.File;
-import java.util.Iterator;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.Date;
-import java.awt.geom.Point2D;
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.nio.DoubleBuffer;
-import java.nio.ByteOrder;
-import java.awt.geom.Rectangle2D;
 
 //#define REPORTRATE  100		/* number of elements between graphical update
 

@@ -77,21 +77,10 @@ public class TextDescriptor
 	private static final int VTUNITSDIST =                6;		/* 1:   units: distance */
 	private static final int VTUNITSTIME =                7;		/* 1:   units: time */
 
-
-	/* text font sizes (in VARIABLE, NODEINST, PORTPROTO, and POLYGON->textdescription) */
-	/** points from 1 to TXTMAXPOINTS */					public static final int TXTPOINTS =        077;
-	/** right-shift of TXTPOINTS */							public static final int TXTPOINTSSH =        0;
-	public static final int TXTMAXPOINTS =      63;
-//	public static final int TXTSETPOINTS(p)   ((p)<<TXTPOINTSSH)
-//	public static final int TXTGETPOINTS(p)   (((p)&TXTPOINTS)>>TXTPOINTSSH)
-
-	public static final int TXTQGRID =    077700;		
-	public static final int TXTQGRIDSH =       6;		
-	public static final int TXTMAXQGRID =    511;
-//	public static final int TXTSETQGRID(ql) ((ql)<<TXTQGRIDSH)
-//	public static final int TXTGETQGRIDql) (((ql)&TXTQGRID)>>TXTQGRIDSH)
-	/** fixed-width text for text editing */			public static final int TXTEDITOR =     077770;
-	/** text for menu selection */						public static final int TXTMENU =       077771;
+	// text size information
+	private static final int TXTMAXPOINTS =    63;
+	private static final int TXTQGRIDSH =       6;		
+	private static final int TXTMAXQGRID =    511;
 
 	/**
 	 * Position is a typesafe enum class that describes the text position of a Variable.
@@ -125,16 +114,56 @@ public class TextDescriptor
 		 */
 		public String toString() { return name; }
 
-		/** Describes text centered at a point. */					public static final Position CENT =      new Position("centered", VTPOSCENT);
-		/** Describes text centered above a point. */				public static final Position UP =        new Position("up", VTPOSUP);
-		/** Describes text centered below a point. */				public static final Position DOWN =      new Position("down", VTPOSDOWN);
-		/** Describes text centered to left of a point. */			public static final Position LEFT =      new Position("left", VTPOSLEFT);
-		/** Describes text centered to right of a point. */			public static final Position RIGHT =     new Position("right", VTPOSRIGHT);
-		/** Describes text centered to upper-left of a point. */	public static final Position UPLEFT =    new Position("up-left", VTPOSUPLEFT);
-		/** Describes text centered to upper-right of a point. */	public static final Position UPRIGHT =   new Position("up-right", VTPOSUPRIGHT);
-		/** Describes text centered to lower-left of a point. */	public static final Position DOWNLEFT =  new Position("down-left", VTPOSDOWNLEFT);
-		/** Describes text centered to lower-right of a point. */	public static final Position DOWNRIGHT = new Position("down-right", VTPOSDOWNRIGHT);
-		/** Describes text centered and limited to object size. */	public static final Position BOXED =     new Position("boxed", VTPOSBOXED);
+		/**
+		 * Describes text centered at a point.
+		 */
+		public static final Position CENT = new Position("centered", VTPOSCENT);
+
+		/**
+		 * Describes text centered above a point.
+		 */
+		public static final Position UP = new Position("up", VTPOSUP);
+
+		/**
+		 * Describes text centered below a point.
+		 */
+		public static final Position DOWN = new Position("down", VTPOSDOWN);
+
+		/**
+		 * Describes text centered to left of a point.
+		 */
+		public static final Position LEFT = new Position("left", VTPOSLEFT);
+
+		/**
+		 * Describes text centered to right of a point.
+		 */
+		public static final Position RIGHT = new Position("right", VTPOSRIGHT);
+
+		/**
+		 * Describes text centered to upper-left of a point.
+		 */
+		public static final Position UPLEFT = new Position("up-left", VTPOSUPLEFT);
+
+		/**
+		 * Describes text centered to upper-right of a point.
+		 */
+		public static final Position UPRIGHT = new Position("up-right", VTPOSUPRIGHT);
+
+		/**
+		 * Describes text centered to lower-left of a point.
+		 */
+		public static final Position DOWNLEFT = new Position("down-left", VTPOSDOWNLEFT);
+
+		/**
+		 * Describes text centered to lower-right of a point.
+		 */
+		public static final Position DOWNRIGHT = new Position("down-right", VTPOSDOWNRIGHT);
+
+		/**
+		 * Describes text centered and limited to the object size.
+		 * This means that the text may shrink in size or clip letters if necessary.
+		 */
+		public static final Position BOXED = new Position("boxed", VTPOSBOXED);
 	}
 	private static final Position [] thePositions = new Position[] {Position.CENT, Position.UP, Position.DOWN,
 		Position.LEFT, Position.RIGHT, Position.UPLEFT, Position.UPRIGHT, Position.DOWNLEFT, Position.DOWNRIGHT, Position.BOXED};
@@ -166,17 +195,143 @@ public class TextDescriptor
 		 */
 		public String toString() { return name; }
 
-		/** Describes a Variable that displays its value. */
-			public static final DispPos VALUE =         new DispPos("value", VTDISPLAYVALUE);
-		/** Describes a Variable that displays its name and value. */
-			public static final DispPos NAMEVALUE =     new DispPos("name/value", VTDISPLAYNAMEVALUE);
-		/** Describes a Variable that displays its name, value, 1-level inherit. */
-			public static final DispPos NAMEVALINH =    new DispPos("name/value/inherit-1", VTDISPLAYNAMEVALINH);
-		/** Describes a Variable that displays its name, value, any inherit. */
-			public static final DispPos NAMEVALINHALL = new DispPos("name/value/inherit-all", VTDISPLAYNAMEVALINHALL);
+		/**
+		 * Describes a Variable that displays its value.
+		 */
+		public static final DispPos VALUE = new DispPos("value", VTDISPLAYVALUE);
+
+		/**
+		 * Describes a Variable that displays its name and value.
+		 * The form of the display is “ATTR=VALUE”;
+		 */
+		public static final DispPos NAMEVALUE = new DispPos("name/value", VTDISPLAYNAMEVALUE);
+
+		/**
+		 * Describes a Variable that displays its name, value, 1-level inherit.
+		 * The form of the display is “ATTR=VALUE;def=DEFAULT”;
+		 */
+		public static final DispPos NAMEVALINH = new DispPos("name/value/inherit-1", VTDISPLAYNAMEVALINH);
+
+		/**
+		 * Describes a Variable that displays its name, value, any inherit.
+		 * The form of the display is “ATTR=VALUE;def=DEFAULT”;
+		 */
+		public static final DispPos NAMEVALINHALL = new DispPos("name/value/inherit-all", VTDISPLAYNAMEVALINHALL);
 	}
 	private static final DispPos [] theDispPos = new DispPos[] {DispPos.VALUE, DispPos.NAMEVALUE, DispPos.NAMEVALINH,
 		DispPos.NAMEVALINHALL};
+
+
+	/**
+	 * Size is a class that describes text's size on a Variable.
+	 * Text size can be absolute (in points) or relative (in quarter grid units).
+	 */
+	public static class Size
+	{
+		private final boolean absolute;
+		private final int size;
+		private final int bits;
+
+		private Size(int size, boolean absolute)
+		{
+			this.size = size;
+			this.absolute = absolute;
+			if (absolute)
+			{
+				this.bits = size;
+			} else
+			{
+				this.bits = size << TXTQGRIDSH;
+			}
+		}
+
+		/**
+		 * Routine to return bits associated with this text Size.
+		 * @return bits associated with this text Size.
+		 */
+		private int getBits() { return bits; }
+
+		/**
+		 * Routine to return a Size object that describes a relative text size (in grid units).
+		 * The size must be between 1 and 63 points.
+		 * @param size the size in units.
+		 * Returns null if the size is invalid.
+		 */
+		public static Size newAbsSize(int size)
+		{
+			if (size <= 0 || size > TXTMAXPOINTS) return null;
+			return new Size(size, true);
+		}
+		
+		/**
+		 * Routine to return a Size object that describes an absolute point text size.
+		 * The size must be between 0.25 and 127.75 grid units (in .25 increments).
+		 * @param size the size in points.
+		 * Returns null if the size is invalid.
+		 */
+		public static Size newRelSize(double size)
+		{
+			int iSize = (int)(size * 4);
+			if (iSize <= 0 || iSize > TXTMAXQGRID) return null;
+			return new Size(iSize, false);
+		}
+
+		/**
+		 * Routine to return text Size value (in points or units).
+		 * @return the text Size value (in points or units).
+		 */
+		public double getSize()
+		{
+			if (absolute) return size;
+			return size / 4;
+		}
+
+		/**
+		 * Routine to tell whether this text Size is absolute or relative.
+		 * @return true if this text size is absolute
+		 */
+		public boolean isAbsolute() { return absolute; }
+
+		/**
+		 * Returns a printable version of this Size.
+		 * @return a printable version of this Size.
+		 */
+		public String toString() { return "Text Size"; }
+	}
+
+	/**
+	 * Rotation is a typesafe enum class that describes text's rotation in a Variable.
+	 */
+	public static class Rotation
+	{
+		private final int angle;
+		private final int bits;
+
+		private Rotation(int angle, int bits)
+		{
+			this.angle = angle;
+			this.bits = bits;
+		}
+
+		/**
+		 * Routine to return the integer equivalent of this DispPos.
+		 * @return the integer equivalent of this DispPos.
+		 */
+		private int getBits() { return bits; }
+
+		/**
+		 * Returns a printable version of this Rotation.
+		 * @return a printable version of this Rotation.
+		 */
+		public String toString() { return "Rotation "+angle; }
+
+		/** Describes a Rotation of 0 degrees. */	public static final Rotation ROT0 = new Rotation(0, 0);
+		/** Describes a Rotation of 90 degrees. */	public static final Rotation ROT90 = new Rotation(90, 1);
+		/** Describes a Rotation of 180 degrees. */	public static final Rotation ROT180 = new Rotation(180, 2);
+		/** Describes a Rotation of 270 degrees. */	public static final Rotation ROT270 = new Rotation(270, 3);
+	}
+	private static final Rotation [] theRotations = new Rotation[] {Rotation.ROT0, Rotation.ROT90, Rotation.ROT180,
+		Rotation.ROT270};
 
 
 	/**
@@ -301,16 +456,41 @@ public class TextDescriptor
 	public void setPos(Position p) {descriptor0 = (descriptor0 & ~VTPOSITION) | p.getIndex(); }
 
 	/**
-	 * Routine to return the text size of the TextDescriptor.
-	 * @return the text size of the TextDescriptor.
+	 * Routine to return the text size of the text in this TextDescriptor.
+	 * This is a Size object that can describe either absolute text (in points)
+	 * or relative text (in quarter units).
+	 * @return the text size of the text in this TextDescriptor.
 	 */
-	public int getSize() { return (descriptor1 & VTSIZE) >> VTSIZESH; }
+	public Size getSize()
+	{
+		int textSize = (descriptor1 & VTSIZE) >> VTSIZESH;
+		if (textSize <= TXTMAXPOINTS) return Size.newAbsSize(textSize);
+		return Size.newRelSize((textSize>>TXTQGRIDSH) / 4);
+	}
 
 	/**
-	 * Routine to set the text size of the TextDescriptor.
-	 * @param s the text size of the TextDescriptor.
+	 * Routine to set the text size of this TextDescriptor to an absolute size (in points).
+	 * The size must be between 1 and 63 points.
+	 * @param s the point size of this TextDescriptor.
 	 */
-	public void setSize(int s) {descriptor1 = (descriptor1 & ~VTSIZE) | (s << VTSIZESH); }
+	public void setAbsSize(int s)
+	{
+		Size size = Size.newAbsSize(s);
+		if (size != null)
+			descriptor1 = (descriptor1 & ~VTSIZE) | (size.getBits() << VTSIZESH);
+	}
+
+	/**
+	 * Routine to set the text size of this TextDescriptor to a relative size (in units).
+	 * The size must be between 0.25 and 127.75 grid units (in .25 increments).
+	 * @param s the unit size of this TextDescriptor.
+	 */
+	public void setRelSize(double s)
+	{
+		Size size = Size.newRelSize(s);
+		if (size != null)
+			descriptor1 = (descriptor1 & ~VTSIZE) | (size.getBits() << VTSIZESH);
+	}
 
 	/**
 	 * Routine to return the text font of the TextDescriptor.
@@ -326,15 +506,17 @@ public class TextDescriptor
 
 	/**
 	 * Routine to return the text rotation of the TextDescriptor.
+	 * There are only 4 rotations: 0, 90 degrees, 180 degrees, and 270 degrees.
 	 * @return the text rotation of the TextDescriptor.
 	 */
-	public int getRotation() { return (descriptor1 & VTROTATION) >> VTROTATIONSH; }
+	public Rotation getRotation() { return theRotations[(descriptor1 & VTROTATION) >> VTROTATIONSH]; }
 
 	/**
 	 * Routine to set the text rotation of the TextDescriptor.
-	 * @param f the text rotation of the TextDescriptor.
+	 * There are only 4 rotations: 0, 90 degrees, 180 degrees, and 270 degrees.
+	 * @param r the text rotation of the TextDescriptor.
 	 */
-	public void setRotation(int r) {descriptor1 = (descriptor1 & ~VTROTATION) | (r << VTROTATIONSH); }
+	public void setRotation(Rotation r) {descriptor1 = (descriptor1 & ~VTROTATION) | (r.getBits() << VTROTATIONSH); }
 
 	/**
 	 * Routine to return the text display part of the TextDescriptor.
@@ -344,7 +526,7 @@ public class TextDescriptor
 
 	/**
 	 * Routine to set the text display part of the TextDescriptor.
-	 * @param f the text display part of the TextDescriptor.
+	 * @param d the text display part of the TextDescriptor.
 	 */
 	public void setDispPart(DispPos d) {descriptor0 = (descriptor0 & ~VTDISPLAYPART) | d.getIndex(); }
 

@@ -28,7 +28,6 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
@@ -54,10 +53,6 @@ import java.util.GregorianCalendar;
 import java.util.Date;
 import java.awt.geom.Point2D;
 import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.nio.DoubleBuffer;
-import java.nio.ByteOrder;
-import java.awt.geom.Rectangle2D;
 
 
 public class InputBinary extends Input
@@ -1220,7 +1215,7 @@ public class InputBinary extends Input
 			View v = getView(readBigInteger());
 			if (v == null) v = View.UNKNOWN;
 			int version = readBigInteger();
-			theProtoName += ";" + version + "{" + v.getShortName() + "}";
+			theProtoName += ";" + version + "{" + v.getAbbreviation() + "}";
 			int creationDate = readBigInteger();
 			int revisionDate = readBigInteger();
 			cell.lowLevelSetCreationDate(fromElectricDate(creationDate));
@@ -1388,7 +1383,7 @@ public class InputBinary extends Input
 		View v = getView(readBigInteger());
 		if (v == null) v = View.UNKNOWN;
 		int version = readBigInteger();
-		String fullCellName = theProtoName + ";" + version + "{" + v.getShortName() + "}";
+		String fullCellName = theProtoName + ";" + version + "{" + v.getAbbreviation() + "}";
 		Date creationDate = fromElectricDate(readBigInteger());
 		Date revisionDate = fromElectricDate(readBigInteger());
 

@@ -25,11 +25,8 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
-
-import java.awt.BorderLayout;
 import javax.swing.*;
 import javax.swing.event.*;
-import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;

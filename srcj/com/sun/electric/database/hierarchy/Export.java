@@ -23,7 +23,6 @@
  */
 package com.sun.electric.database.hierarchy;
 
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -36,6 +35,14 @@ import java.awt.geom.AffineTransform;
 /**
  * An Export is a PortProto at the Cell level.  It points to the
  * PortProto that got exported, and the NodeInst for that port.
+ * <P>
+ * An Export takes a PortInst on a NodeInst and makes it available as a PortInst
+ * on instances of this NodeInst, farther up the hierarchy.
+ * An Export therefore sits on the NodeInst that is its source and also on the Cell
+ * that the NodeInst belongs to.
+ * The data structures look like this:
+ * <P>
+ * <CENTER><IMG SRC="doc-files/Export-1.gif"></CENTER>
  */
 public class Export extends PortProto
 {
@@ -67,6 +74,7 @@ public class Export extends PortProto
 	 * Low-level access routine to fill-in the Cell parent and the name of this Export.
 	 * @param parent the Cell in which this Export resides.
 	 * @param protoName the name of this Export.
+	 * It may not have unprintable characters, spaces, or tabs in it.
 	 * @return true on error.
 	 */
 	public boolean lowLevelName(Cell parent, String protoName)
@@ -112,6 +120,7 @@ public class Export extends PortProto
 	 * @param originalNode the node inside of the Export's Cell from which this Export originated.
 	 * @param originalPort the port on that node.
 	 * @param protoName the name of this Export.
+	 * It may not have unprintable characters, spaces, or tabs in it.
 	 * @return the newly created Export.
 	 */
 	public static Export newInstance(Cell parent, NodeInst originalNode, PortInst originalPort, String protoName)

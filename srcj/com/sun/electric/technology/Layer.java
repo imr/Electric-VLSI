@@ -25,11 +25,6 @@ package com.sun.electric.technology;
 
 import com.sun.electric.database.geometry.EGraphics;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Paint;
-import java.awt.Shape;
-
 /**
  * The Layer class defines a single layer of material, out of which NodeInst and ArcInst objects are created.
  * The Layers are defined by the PrimitiveNode and PrimitiveArc classes, and are used in the generation of geometry.
@@ -65,10 +60,10 @@ public class Layer
 		/** Describes a light doped layer. */						public static final int LIGHT =         02000;
 		/** Describes a heavy doped layer. */						public static final int HEAVY =         04000;
 		/** Describes a pseudo layer. */							public static final int PSEUDO =       010000;
-		/** Describes a nonelectrical layer. */						public static final int NONELEC =      020000;
-		/** Describes a layer that is contacts metal. */			public static final int CONMETAL =     040000;
-		/** Describes a layer that is contacts polysilicon. */		public static final int CONPOLY =     0100000;
-		/** Describes a layer that is contacts diffusion. */		public static final int CONDIFF =     0200000;
+		/** Describes a nonelectrical layer (does not carry signals). */						public static final int NONELEC =      020000;
+		/** Describes a layer that is contacts metal (used to identify contacts/vias). */		public static final int CONMETAL =     040000;
+		/** Describes a layer that is contacts polysilicon (used to identify contacts/vias). */	public static final int CONPOLY =     0100000;
+		/** Describes a layer that is contacts diffusion (used to identify contacts/vias). */	public static final int CONDIFF =     0200000;
 		/** Describes a layer that is inside transistor. */			public static final int INTRANS =   020000000;
 
 		/** Describes an unknown layer. */							public static final Function UNKNOWN    = new Function("unknown",    "LFUNKNOWN");
@@ -103,17 +98,17 @@ public class Layer
 		/** Describes a contact layer 11. */						public static final Function CONTACT11  = new Function("contact-11", "LFCONTACT11");
 		/** Describes a contact layer 12. */						public static final Function CONTACT12  = new Function("contact-12", "LFCONTACT12");
 		/** Describes a sinker layer (diffusion-to-buried plug). */	public static final Function PLUG       = new Function("plug",       "LFPLUG");
-		/** Describes an overglass layer. */						public static final Function OVERGLASS  = new Function("overglass",  "LFOVERGLASS");
+		/** Describes an overglass layer (passivation). */			public static final Function OVERGLASS  = new Function("overglass",  "LFOVERGLASS");
 		/** Describes a resistor layer. */							public static final Function RESISTOR   = new Function("resistor",   "LFRESISTOR");
 		/** Describes a capacitor layer. */							public static final Function CAP        = new Function("capacitor",  "LFCAP");
-		/** Describes a transistor layer. */						public static final Function TRANSISTOR = new Function("transistor", "LFTRANSISTOR");
-		/** Describes an emitter layer. */							public static final Function EMITTER    = new Function("emitter",    "LFEMITTER");
-		/** Describes a base layer. */								public static final Function BASE       = new Function("base",       "LFBASE");
-		/** Describes a collector layer. */							public static final Function COLLECTOR  = new Function("collector",  "LFCOLLECTOR");
+		/** Describes a transistor layer (usually a pseudo-layer). */	public static final Function TRANSISTOR = new Function("transistor", "LFTRANSISTOR");
+		/** Describes an emitter layer of a bipolar transistor. */	public static final Function EMITTER    = new Function("emitter",    "LFEMITTER");
+		/** Describes a base layer of a bipolar transistor. */		public static final Function BASE       = new Function("base",       "LFBASE");
+		/** Describes a collector layer of a bipolar transistor. */	public static final Function COLLECTOR  = new Function("collector",  "LFCOLLECTOR");
 		/** Describes a substrate layer. */							public static final Function SUBSTRATE  = new Function("substrate",  "LFSUBSTRATE");
 		/** Describes a well layer. */								public static final Function WELL       = new Function("well",       "LFWELL");
 		/** Describes a guard layer. */								public static final Function GUARD      = new Function("guard",      "LFGUARD");
-		/** Describes an isolation layer. */						public static final Function ISOLATION  = new Function("isolation",  "LFISOLATION");
+		/** Describes an isolation layer (bipolar). */				public static final Function ISOLATION  = new Function("isolation",  "LFISOLATION");
 		/** Describes a bus layer. */								public static final Function BUS        = new Function("bus",        "LFBUS");
 		/** Describes an artwork layer. */							public static final Function ART        = new Function("art",        "LFART");
 		/** Describes a control layer. */							public static final Function CONTROL    = new Function("control",    "LFCONTROL");

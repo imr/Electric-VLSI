@@ -37,27 +37,26 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.NodeProto;
 
-import java.awt.Point;
-import java.awt.geom.Point2D;
 import java.util.Iterator;
 
 /**
- * This is the MOSIS CMOS technology.
+ * This is the Generic technology.
  */
 public class Generic extends Technology
 {
-	public static final Generic tech = new Generic();
-	public PrimitiveNode universalPin_node;
-	public PrimitiveNode invisiblePin_node;
-	public PrimitiveNode unroutedPin_node;
-	public PrimitiveNode cellCenter_node;
-	public PrimitiveNode port_node;
-	public PrimitiveNode drc_node;
-	public PrimitiveNode essentialBounds_node;
-	public PrimitiveNode simProbe_node;
-	public PrimitiveArc universal_arc;
-	public PrimitiveArc invisible_arc;
-	public PrimitiveArc unrouted_arc;
+	/** the Generic Technology object. */	public static final Generic tech = new Generic();
+	/** the Universal Pin node. */			public PrimitiveNode universalPin_node;
+	/** the Invisible Pin node. */			public PrimitiveNode invisiblePin_node;
+	/** the Unrouted Pin node. */			public PrimitiveNode unroutedPin_node;
+	/** the Cell-Center node. */			public PrimitiveNode cellCenter_node;
+	/** the Port-definition node. */		public PrimitiveNode port_node;
+	/** the DRC exclusion node. */			public PrimitiveNode drc_node;
+	/** the Essential-bounds node. */		public PrimitiveNode essentialBounds_node;
+	/** the Simulation-Probe node. */		public PrimitiveNode simProbe_node;
+	/** the Universal arc. */				public PrimitiveArc universal_arc;
+	/** the Invisible arc. */				public PrimitiveArc invisible_arc;
+	/** the Unrouted arc. */				public PrimitiveArc unrouted_arc;
+
 	private PrimitivePort univPinPort;
 	private PrimitivePort invisPinPort;
 
@@ -72,32 +71,32 @@ public class Generic extends Technology
 
 		/** Universal layer */
 		Layer universal_lay = Layer.newInstance("Universal",
-			new EGraphics(EGraphics.LAYERO, EGraphics.MENTXT, EGraphics.SOLIDC, EGraphics.PATTERNED, 0,0,0,1.0,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 0,0,0,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** Invisible layer */
 		Layer invisible_lay = Layer.newInstance("Invisible",
-			new EGraphics(EGraphics.LAYERO, EGraphics.GRAY, EGraphics.SOLIDC, EGraphics.PATTERNED, 0,0,0,1.0,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 0,0,0,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** Unrouted layer */
 		Layer unrouted_lay = Layer.newInstance("Unrouted",
-			new EGraphics(EGraphics.LAYERO, EGraphics.DGRAY, EGraphics.SOLIDC, EGraphics.PATTERNED, 0,0,0,1.0,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 0,0,0,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** Glyph layer */
 		Layer glyph_lay = Layer.newInstance("Glyph",
-			new EGraphics(EGraphics.LAYERO, EGraphics.MENGLY, EGraphics.SOLIDC, EGraphics.PATTERNED, 0,0,0,1.0,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 0,0,0,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** DRC layer */
 		Layer drc_lay = Layer.newInstance("DRC",
-			new EGraphics(EGraphics.LAYERO, EGraphics.ORANGE, EGraphics.SOLIDC, EGraphics.PATTERNED, 0,0,0,1.0,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 0,0,0,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** Simulation Probe layer */
 		Layer simprobe_lay = Layer.newInstance("Sim-Probe",
-			new EGraphics(EGraphics.LAYERO, EGraphics.GREEN, EGraphics.SOLIDC, EGraphics.PATTERNED, 0,0,0,1.0,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 0,0,0,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		// The layer functions
@@ -255,9 +254,9 @@ public class Generic extends Technology
 	}
 
 	/**
-	 * routine to update the connecitivity list for universal and invisible pins so that
+	 * Routine to update the connecitivity list for universal and invisible pins so that
 	 * they can connect to ALL arcs.  This is called at initialization and again
-	 * whenever the number of technologies changes
+	 * whenever the number of technologies changes.
 	 */
 	public void makeUnivList()
 	{
@@ -293,8 +292,10 @@ public class Generic extends Technology
 		invisPinPort.setConnections(upconn);
 	}
 
-	/*
-	 * Routine to convert old primitive names to their proper nodeprotos.
+	/**
+	 * Routine to convert old primitive names to their proper NodeProtos.
+	 * @param name the name of the old primitive.
+	 * @return the proper PrimitiveNode to use (or null if none can be determined).
 	 */
 	public PrimitiveNode convertOldNodeName(String name)
 	{

@@ -31,10 +31,9 @@ import java.util.Iterator;
 
 /**
  * This class represents a Tool in Electric.  It's here mostly for the name
- * of the tool and the variables attached.  The UI tool ("User") holds
+ * of the tool and the variables attached.  The User holds
  * variables that keep track of the currently selected object, and other
- * useful information.  Use <code>Electric.askTool</code> to cause tools
- * to do things.
+ * useful information.
  */
 public class Tool extends ElectricObject
 {
@@ -47,19 +46,23 @@ public class Tool extends ElectricObject
 	private static List tools = new ArrayList();
 	private static int toolNumber = 0;
 
-	/** set if tool is on */								public static final int TOOLON =             01;
-	/** set if tool is running in background */				public static final int TOOLBG =             02;
-	/** set if tool will fix errors */						public static final int TOOLFIX =            04;
-	/** set if tool is coded in interpretive language */	public static final int TOOLLANG =          010;
-	/** set if tool functions incrementally */				public static final int TOOLINCREMENTAL =   020;
-	/** set if tool does analysis */						public static final int TOOLANALYSIS =      040;
-	/** set if tool does synthesis */						public static final int TOOLSYNTHESIS =    0100;
+	/** set if tool is on */								private static final int TOOLON =             01;
+	/** set if tool is running in background */				private static final int TOOLBG =             02;
+	/** set if tool will fix errors */						private static final int TOOLFIX =            04;
+	/** set if tool is coded in interpretive language */	private static final int TOOLLANG =          010;
+	/** set if tool functions incrementally */				private static final int TOOLINCREMENTAL =   020;
+	/** set if tool does analysis */						private static final int TOOLANALYSIS =      040;
+	/** set if tool does synthesis */						private static final int TOOLSYNTHESIS =    0100;
 
 	private Tool()
 	{
 	}
 
-	/** Initialize this tool with a name */
+	/**
+	 * Routine to create a new Tool with a given name.
+	 * @param toolName the name of the Tool.
+	 * @return the newly created Tool.
+	 */
 	public static final Tool newInstance(String toolName)
 	{
 		Tool t = new Tool();
@@ -68,14 +71,21 @@ public class Tool extends ElectricObject
 		return t;
 	}
 
-	public static void askTool(Tool t, String cmd, String msg)
+	/**
+	 * Routine to send a message to a Tool.
+	 * @param tool the tool to send the message to.
+	 * @param cmd the command to send to the Tool.
+	 * @param msg the parameter to send to the Tool.
+	 */
+	public static void askTool(Tool tool, String cmd, String msg)
 	{
 	}
 
-	/** Find the tool with a particular name.  See the Electric internals
-	 * manual for examples of Tools.
-	 * @param name the name of the desired tool
-	 * @return the Tool with the same name, or null if no tool matches. */
+	/**
+	 * Routine to find the Tool with a specified name.
+	 * @param name the name of the desired Tool.
+	 * @return the Tool with that name, or null if no tool matches.
+	 */
 	public static Tool findTool(String name)
 	{
 		for (int i = 0; i < tools.size(); i++)
@@ -87,20 +97,35 @@ public class Tool extends ElectricObject
 		return null;
 	}
 
-	/** Get an iterator over all tools. */
+	/**
+	 * Routine to return an Iterator over all of the Tools in Electric.
+	 * @return an Iterator over all of the Tools in Electric.
+	 */
 	public static Iterator getTools()
 	{
 		return tools.iterator();
 	}
 
-	/** Get the number of tools. */
+	/**
+	 * Routine to return the number of Tools.
+	 * @return the number of Tools.
+	 */
 	public static int getNumTools()
 	{
 		return tools.size();
 	}
 
-	/** Get the name of this tool */
+	/**
+	 * Routine to return the name of this Tool.
+	 * @return the name of this Tool.
+	 */
 	public String getName() { return toolName; }
+
+	/**
+	 * Routine to return the index of this Tool.
+	 * Each tool has a 0-based index that can be used to access arrays of Tools.
+	 * @return the index of this Tool.
+	 */
 	public int getIndex() { return toolIndex; }
 
 	/**
@@ -124,6 +149,10 @@ public class Tool extends ElectricObject
 		return false;
 	}
 
+	/**
+	 * Returns a printable version of this Tool.
+	 * @return a printable version of this Tool.
+	 */
 	public String toString()
 	{
 		return "Tool '" + toolName;

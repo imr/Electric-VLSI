@@ -44,14 +44,11 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.user.ui.UITopLevel;
 import com.sun.electric.tool.io.InputBinary;
 
 import java.io.IOException;
-import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Date;
 import java.awt.geom.Point2D;
@@ -336,7 +333,7 @@ public class OutputBinary extends Output
 			View view = (View)it.next();
 			if (view.getTempInt() < 0) continue;
 			writeString(view.getFullName());
-			writeString(view.getShortName());
+			writeString(view.getAbbreviation());
 		}
 
 		// write total number of arcinsts, nodeinsts, and ports in each cell

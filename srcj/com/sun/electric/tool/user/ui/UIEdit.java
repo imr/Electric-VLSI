@@ -35,6 +35,7 @@ import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Layer;
@@ -390,6 +391,7 @@ public class UIEdit extends JPanel
 			{
 				double x = poly.getCenterX();
 				double y = poly.getCenterY();
+				TextDescriptor descript = poly.getTextDescriptor();
 				drawTextCentered(g2, x, y, poly.getString(), 0.1, Color.black);
 			} else if (style == Poly.Type.CIRCLE || style == Poly.Type.THICKCIRCLE || style == Poly.Type.DISC)
 			{
@@ -605,12 +607,6 @@ public class UIEdit extends JPanel
 	void showHighlight(Graphics g, Geometric geom)
 	{
 		g.setColor(Color.white);
-		Rectangle2D.Double highRect = geom.getBounds();
-		if (geom instanceof NodeInst)
-		{
-			NodeInst ni = (NodeInst)geom;
-			highRect.setRect(ni.getCenterX(), ni.getCenterY(), ni.getXSize(), ni.getYSize());
-		}
 		Rectangle2D rect = geom.getBounds();
 		Point c1 = databaseToScreen(rect.getMinX(), rect.getMinY());
 		Point c2 = databaseToScreen(rect.getMinX(), rect.getMaxY());
@@ -659,8 +655,8 @@ public class UIEdit extends JPanel
 		oldx = evt.getX();
 		oldy = evt.getY();
 
-		if ((evt.getModifiers()&evt.SHIFT_MASK) != 0) return;
-		if ((evt.getModifiers()&evt.CTRL_MASK) != 0) return;
+		if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) != 0) return;
+		if ((evt.getModifiers()&MouseEvent.CTRL_MASK) != 0) return;
 
 		// standard selection: drag out a selection box
 		startDrag.setLocation(oldx, oldy);
@@ -705,11 +701,11 @@ public class UIEdit extends JPanel
 			repaint();
 			return;
 		}
-		if ((evt.getModifiers()&evt.CTRL_MASK) != 0)
+		if ((evt.getModifiers()&MouseEvent.CTRL_MASK) != 0)
 		{
 			// control key held: zoom
 			scale = scale * Math.exp((oldy-newY) / 100.0f);
-		} else if ((evt.getModifiers()&evt.SHIFT_MASK) != 0)
+		} else if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) != 0)
 		{
 			// shift key held: pan
 			offx -= (newX - oldx) / scale;

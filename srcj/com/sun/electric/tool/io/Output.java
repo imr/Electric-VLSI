@@ -24,15 +24,8 @@
 package com.sun.electric.tool.io;
 
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
 
 import java.io.*;
-import java.util.Iterator;
 
 public class Output
 {

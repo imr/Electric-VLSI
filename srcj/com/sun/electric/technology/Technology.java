@@ -124,6 +124,8 @@ public class Technology extends ElectricObject
 
 		/**
 		 * Returns the distance from the outside of the ArcInst to this ArcLayer.
+		 * This is the difference between the width of this layer and the overall width of the arc.
+		 * For example, a value of 4 on an arc that is 6 wide indicates that this layer should be only 2 wide.
 		 * @return the distance from the outside of the ArcInst to this ArcLayer.
 		 */
 		public int getOffset() { return offset; }
@@ -268,21 +270,36 @@ public class Technology extends ElectricObject
 		private String message;
 
 		// the meaning of "representation"
-		/** Indicates that the "points" list defines scalable points. */			public static final int POINTS=     0;
-		/** Indicates that the "points" list defines a rectangle. */				public static final int BOX=        1;
-		/** Indicates that the "points" list defines a list of absolute points. */	public static final int ABSPOINTS=  2;
-		/** Indicates that the "points" list defines a minimum sized rectangle. */	public static final int MINBOX=     3;
+		/**
+		 * Indicates that the "points" list defines scalable points.
+		 * Each point here becomes a point on the Poly.
+		 */
+		public static final int POINTS = 0;
+
+		/**
+		 * Indicates that the "points" list defines a rectangle.
+		 * It contains two diagonally opposite points.
+		 */
+		public static final int BOX = 1;
+
+		/**
+		 * Indicates that the "points" list defines a minimum sized rectangle.
+		 * It contains two diagonally opposite points, like BOX,
+		 * and also contains a minimum box size beyond which the polygon will not shrink
+		 * (again, two diagonally opposite points).
+		 */
+		public static final int MINBOX = 2;
 
 		/**
 		 * Constructs a <CODE>NodeLayer</CODE> with the specified description.
 		 * @param layer the <CODE>Layer</CODE> this is on.
 		 * @param portNum a 0-based index of the port (from the actual NodeInst) on this layer.
+		 * A negative value indicates that this layer is not connected to an electrical layer.
 		 * @param style the Poly.Type this NodeLayer will generate (polygon, circle, text, etc.).
-		 * @param representation tells how to interpret "points".  It can be POINTS, BOX, ABSPOINTS, or MINBOX.
+		 * @param representation tells how to interpret "points".  It can be POINTS, BOX, or MINBOX.
 		 * @param points the list of coordinates (stored as TechPoints) associated with this NodeLayer.
 		 */
-		public NodeLayer(Layer layer, int portNum, Poly.Type style, int representation,
-			TechPoint [] points)
+		public NodeLayer(Layer layer, int portNum, Poly.Type style, int representation, TechPoint [] points)
 		{
 			this.layer = layer;
 			this.portNum = portNum;
@@ -462,8 +479,8 @@ public class Technology extends ElectricObject
 
 	/**
 	 * Sets the technology to be "non-electrical".
-	 * Users should never call this routine.  It is set once
-	 * by the technology during initialization.
+	 * Users should never call this routine.
+	 * It is set once by the technology during initialization.
 	 * Examples of non-electrical technologies are "Artwork" and "Gem".
 	 */
 	protected void setNonElectrical() { userBits |= NONELECTRICAL; }
@@ -477,9 +494,11 @@ public class Technology extends ElectricObject
 
 	/**
 	 * Sets the technology to have no directional arcs.
-	 * Users should never call this routine.  It is set once
-	 * by the technology during initialization.
+	 * Users should never call this routine.
+	 * It is set once by the technology during initialization.
 	 * Directional arcs are those with arrows on them, indicating (only graphically) the direction of flow through the arc.
+	 * @see ArcInst#setDirectional
+	 * @see ArcProto#setDirectional
 	 */
 	protected void setNoDirectionalArcs() { userBits |= NODIRECTIONALARCS; }
 
@@ -487,15 +506,19 @@ public class Technology extends ElectricObject
 	 * Returns true if this technology does not have directional arcs.
 	 * @return true if this technology does not have directional arcs.
 	 * Directional arcs are those with arrows on them, indicating (only graphically) the direction of flow through the arc.
+	 * @see ArcInst#setDirectional
+	 * @see ArcProto#setDirectional
 	 */
 	public boolean isNoDirectionalArcs() { return (userBits & NODIRECTIONALARCS) != 0; }
 
 	/**
 	 * Sets the technology to have no negated arcs.
-	 * Users should never call this routine.  It is set once
-	 * by the technology during initialization.
+	 * Users should never call this routine.
+	 * It is set once by the technology during initialization.
 	 * Negated arcs have bubbles on them to graphically indicated negation.
 	 * Only Schematics and related technologies allow negated arcs.
+	 * @see ArcInst#setNegated
+	 * @see ArcProto#setNegated
 	 */
 	protected void setNoNegatedArcs() { userBits |= NONEGATEDARCS; }
 
@@ -504,13 +527,15 @@ public class Technology extends ElectricObject
 	 * @return true if this technology does not have negated arcs.
 	 * Negated arcs have bubbles on them to graphically indicated negation.
 	 * Only Schematics and related technologies allow negated arcs.
+	 * @see ArcInst#setNegated
+	 * @see ArcProto#setNegated
 	 */
 	public boolean isNoNegatedArcs() { return (userBits & NONEGATEDARCS) != 0; }
 
 	/**
 	 * Sets the technology to be non-standard.
-	 * Users should never call this routine.  It is set once
-	 * by the technology during initialization.
+	 * Users should never call this routine.
+	 * It is set once by the technology during initialization.
 	 * A non-standard technology cannot be edited in the technology editor.
 	 * Examples are Schematics and Artwork, which have more complex graphics.
 	 */
@@ -526,8 +551,8 @@ public class Technology extends ElectricObject
 
 	/**
 	 * Sets the technology to be "static".
-	 * Users should never call this routine.  It is set once
-	 * by the technology during initialization.
+	 * Users should never call this routine.
+	 * It is set once by the technology during initialization.
 	 * Static technologies are the core set of technologies in Electric that are
 	 * essential, and cannot be deleted.
 	 * The technology-editor can create others later, and they can be deleted.
@@ -545,8 +570,8 @@ public class Technology extends ElectricObject
 
 	/**
 	 * Sets the technology to have no primitives.
-	 * Users should never call this routine.  It is set once
-	 * by the technology during initialization.
+	 * Users should never call this routine.
+	 * It is set once by the technology during initialization.
 	 * This indicates to the user interface that it should not switch to this technology.
 	 * The FPGA technology has this bit set because it initially contains no primitives,
 	 * and they are only created dynamically.
@@ -795,6 +820,7 @@ public class Technology extends ElectricObject
 				style == Poly.Type.TEXTBOX)
 			{
 				polys[i].setString(primLayer.getMessage());
+				polys[i].setTextDescriptor(null);
 			}
 			polys[i].setStyle(style);
 			polys[i].setLayer(primLayer.getLayer());
@@ -970,7 +996,7 @@ public class Technology extends ElectricObject
 		for(int i = 0; i < primLayers.length; i++)
 		{
 			Technology.ArcLayer primLayer = primLayers[i];
-			polys[polyNum] = ai.makearcpoly(ai.getXSize(), ai.getWidth() - primLayer.getOffset(), primLayer.getStyle());
+			polys[polyNum] = ai.makePoly(ai.getXSize(), ai.getWidth() - primLayer.getOffset(), primLayer.getStyle());
 			if (polys[polyNum] == null) return null;
 			polys[polyNum].setLayer(primLayer.getLayer());
 			polyNum++;
@@ -1086,31 +1112,31 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * Routine to convert old primitive node names to their proper nodeprotos.
+	 * Routine to convert old primitive node names to their proper NodeProtos.
 	 * This method is overridden by those technologies that have any special node name conversion issues.
 	 * By default, there is nothing to be done, because by the time this
 	 * routine is called, normal searches have failed.
-	 * @param name the unknown node name, read from an old library.
+	 * @param name the unknown node name, read from an old Library.
 	 * @return the proper PrimitiveNode to use for this name.
 	 */
 	public PrimitiveNode convertOldNodeName(String name) { return null; }
 
 	/**
-	 * Routine to convert old primitive arc names to their proper arcprotos.
+	 * Routine to convert old primitive arc names to their proper ArcProtos.
 	 * This method is overridden by those technologies that have any special arc name conversion issues.
 	 * By default, there is nothing to be done, because by the time this
 	 * routine is called, normal searches have failed.
-	 * @param name the unknown arc name, read from an old library.
+	 * @param name the unknown arc name, read from an old Library.
 	 * @return the proper PrimitiveArc to use for this name.
 	 */
 	public PrimitiveArc convertOldArcName(String name) { return null; }
 
 	/**
-	 * Routine to convert old primitive port names to their proper portprotos.
+	 * Routine to convert old primitive port names to their proper PortProtos.
 	 * This method is overridden by those technologies that have any special port name conversion issues.
 	 * By default, there is nothing to be done, because by the time this
 	 * routine is called, normal searches have failed.
-	 * @param portName the unknown port name, read from an old library.
+	 * @param portName the unknown port name, read from an old Library.
 	 * @param np the PrimitiveNode on which this port resides.
 	 * @return the proper PrimitivePort to use for this name.
 	 */

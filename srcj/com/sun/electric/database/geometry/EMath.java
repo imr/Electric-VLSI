@@ -23,18 +23,18 @@
  */
 package com.sun.electric.database.geometry;
 
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 
+/**
+ * This class is a collection of math utilities.
+ */
 public class EMath
 {
 	/**
-	 * Routine to return the angle from (x1,y1) to (x2,y2) in degrees.
+	 * Routine to return the angle between two points.
+	 * @param end1 the first point.
+	 * @param end2 the second point.
+	 * @return the angle between the points (in degrees).
 	 */
 	public static double figureAngle(Point2D.Double end1, Point2D.Double end2)
 	{
@@ -44,7 +44,10 @@ public class EMath
 	}
 
 	/**
-	 * Routine to return the distance from (x1,y1) to (x2,y2).
+	 * Routine to return the distance between two points.
+	 * @param end1 the first point.
+	 * @param end2 the second point.
+	 * @return the distance between the points.
 	 */
 	public static double computeDistance(Point2D.Double end1, Point2D.Double end2)
 	{
@@ -56,8 +59,11 @@ public class EMath
 	}
 
 	/**
-	 * routine to return true if the point (x,y) is on the line segment from
-	 * (x1,y1) to (x2,y2)
+	 * Routine to tell whether a point is on a given line segment.
+	 * @param end1 the first end of the line segment.
+	 * @param end2 the second end of the line segment.
+	 * @param pt the point in question.
+	 * @return true if the point is on the line segment.
 	 */
 	public static boolean isOnLine(Point2D.Double end1, Point2D.Double end2, Point2D.Double pt)
 	{

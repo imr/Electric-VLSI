@@ -27,16 +27,12 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.geometry.Poly;
 
-import java.awt.Rectangle;
-import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.Iterator;
 
-/** The PortInst class represents an instance of a Port.  It is the
- * combination of a NodeInst and a PortProto. There is no
- * corresponding object in Electric.  I'm adding it because I've found
- * that the PortInst objects simplify client programs considerably. */
+/**
+ * The PortInst class represents an instance of a Port.  It is the
+ * combination of a NodeInst and a PortProto.
+ */
 public class PortInst
 {
 	// ------------------------ private data ------------------------
@@ -54,6 +50,12 @@ public class PortInst
 
 	// ------------------------ public methods -------------------------
 
+	/**
+	 * Routine to create a PortInst object.
+	 * @param portProto the PortProto on the prototype of the NodeInst.
+	 * @param nodeInst the NodeInst that owns the port.
+	 * @return the newly created PortInst.
+	 */
 	public static PortInst newInstance(PortProto portProto, NodeInst nodeInst)
 	{
 		PortInst pi = new PortInst();
@@ -62,21 +64,57 @@ public class PortInst
 		return pi;
 	}
 
+	/**
+	 * Routine to return the NodeInst that this PortInst resides on.
+	 * @return the NodeInst that this PortInst resides on.
+	 */
 	public NodeInst getNodeInst() { return nodeInst; }
 
+	/**
+	 * Routine to return the PortProto that this PortInst is an instance of.
+	 * @return the PortProto that this PortInst is an instance of.
+	 */
 	public PortProto getPortProto() { return portProto; }
 
+	/**
+	 * Routine to return the JNetwork connected to this PortInst.
+	 * @return the JNetwork connected to this PortInst.
+	 */
 	public JNetwork getNetwork() { return network; }
+
+	/**
+	 * Routine to set the JNetwork connected to this PortInst.
+	 * @param net the JNetwork connected to this PortInst.
+	 */
 	public void setNetwork(JNetwork net) { network = net; }
 
+	/**
+	 * Routine to return the index value on this PortInst.
+	 * @return the index value on this PortInst.
+	 */
 	public int getIndex() { return index; }
+
+	/**
+	 * Routine to set the index value on this PortInst.
+	 * @param i the index value on this PortInst.
+	 */
 	public void setIndex(int i) { index = i; }
 
+	/**
+	 * Routine to return the bounds of this PortInst.
+	 * The bounds are determined by getting the Poly and bounding it.
+	 * @return the bounds of this PortInst.
+	 */
 	public Rectangle2D getBounds()
 	{
 		Rectangle2D r = portProto.getPoly(nodeInst).getBounds2D();
 		return r;
 	}
+
+	/**
+	 * Routine to return the Poly that describes this PortInst.
+	 * @return the Poly that describes this PortInst.
+	 */
 	public Poly getPoly()
 	{
 		return portProto.getPoly(nodeInst);

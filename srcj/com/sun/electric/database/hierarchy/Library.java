@@ -25,7 +25,6 @@ package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.text.CellName;
-import com.sun.electric.tool.user.ui.UIEditFrame;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -156,9 +155,13 @@ public class Library extends ElectricObject
 
 	/**
 	 * This routine is a factory to create new libraries.
+	 * A Library has both a name and a file.
 	 * @param libName the name of the library (for example, "gates").
 	 * Library names must be unique, and they must not contain spaces.
 	 * @param libFile the full path to the disk file (for example "/home/strubin/gates.elib").
+	 * If the Library is being created, the libFile can be null.
+	 * If the Library file is given and it points to an existing file, then the I/O system
+	 * can be told to read that file and populate the Library.
 	 * @return the Library object.
 	 */
 	public static Library newInstance(String libName, String libFile)

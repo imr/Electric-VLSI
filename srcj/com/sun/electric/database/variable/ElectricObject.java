@@ -23,12 +23,9 @@
  */
 package com.sun.electric.database.variable;
 
-import com.sun.electric.database.hierarchy.VarContext;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.ArcInst;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -142,6 +139,7 @@ public class ElectricObject
 			polys[start] = new Poly(pointList);
 			polys[start].setStyle(Poly.Type.TEXTCENT);
 			polys[start].setString(var.describe());
+			polys[start].setTextDescriptor(td);
 			polys[start].setLayer(null);
 			start++;
 		}

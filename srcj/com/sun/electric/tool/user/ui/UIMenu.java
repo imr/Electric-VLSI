@@ -31,7 +31,6 @@ package com.sun.electric.tool.user.ui;
  */
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.*;
 
 /**

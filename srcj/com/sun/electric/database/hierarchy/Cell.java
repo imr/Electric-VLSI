@@ -30,16 +30,12 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.database.text.CellName;
 
-import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.Point2D;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Date;
@@ -226,6 +222,7 @@ public class Cell extends NodeProto
 	 * Low-level access routine to fill-in the cell name.
 	 * Unless you know what you are doing, do not use this method.
 	 * @param name the name of this cell.
+	 * Cell names may not contain unprintable characters, spaces, tabs, a colon (:), semicolon (;) or curly braces ({}).
 	 * @return true on error.
 	 */
 	public boolean lowLevelPopulate(String name)
@@ -316,7 +313,8 @@ public class Cell extends NodeProto
 	 * Factory method to create a new Cell.
 	 * @param lib the Library in which to place this cell.
 	 * @param name the name of this cell.
-	 * The name can be fully qualified with version and view information.
+	 * Cell names may not contain unprintable characters, spaces, tabs, a colon (:), semicolon (;) or curly braces ({}).
+	 * However, the name can be fully qualified with version and view information.
 	 * For example, "foo;2{sch}".
 	 * @return the newly created cell (null on error).
 	 */
@@ -334,7 +332,6 @@ public class Cell extends NodeProto
 	public void remove()
 	{
 		// remove ourselves from the cellGroup.
-		// TODO: should this also remove the cell from the library?
 		cellGroup.remove(this);
 		versionGroup.remove(this);
 		lib.removeCell(this); // remove ourselves from the library
@@ -915,7 +912,7 @@ public class Cell extends NodeProto
 		if (getNewestVersion() != this)
 			name += ";" + version;
 		if (view != null)
-			name += "{" +  view.getShortName() + "}";
+			name += "{" +  view.getAbbreviation() + "}";
 		return name;
 	}
 
@@ -960,8 +957,8 @@ public class Cell extends NodeProto
 	}
 	
 	/**
-	 * Returns a printable version of this object.
-	 * @return a printable version of this object.
+	 * Returns a printable version of this Cell.
+	 * @return a printable version of this Cell.
 	 */
 	public String toString()
 	{

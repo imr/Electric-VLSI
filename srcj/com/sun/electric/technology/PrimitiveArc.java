@@ -28,8 +28,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 
-import java.awt.Rectangle;
-import java.awt.geom.Point2D;
 import java.util.Iterator;
 
 /**
@@ -70,6 +68,7 @@ public class PrimitiveArc extends ArcProto
 	 * Routine to create a new PrimitiveArc from the parameters.
 	 * @param tech the Technology in which to place this PrimitiveArc.
 	 * @param protoName the name of this PrimitiveArc.
+	 * It may not have unprintable characters, spaces, or tabs in it.
 	 * @param defaultWidth the default width of this PrimitiveArc.
 	 * @param layers the Layers that make up this PrimitiveArc.
 	 * @return the newly created PrimitiveArc.

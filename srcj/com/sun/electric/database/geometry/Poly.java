@@ -25,8 +25,8 @@ package com.sun.electric.database.geometry;
 
 import com.sun.electric.technology.Layer;
 import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.variable.TextDescriptor;
 
-import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
@@ -34,12 +34,15 @@ import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
-/** Represents a transformable Polygon with floating-point
- * coordinates, and a specific Layer. */
+/**
+ * The Poly class describes an extended set of points
+ * that can be outlines, filled shapes, curves, text, and more.
+ * The Poly also contains a Layer and some connectivity information.
+ */
 public class Poly implements Shape
 {
 	/**
-	 * Type is a typesafe enum class that describes the function of an Poly.
+	 * Type is a typesafe enum class that describes the nature of a Poly.
 	 */
 	public static class Type
 	{
@@ -49,41 +52,167 @@ public class Poly implements Shape
 
 		public String toString() { return "Polygon type"; }
 
-		// polygons ************
-		/** closed polygon, filled in */					public static final Type FILLED =         new Type();
-		/** closed polygon, outline  */						public static final Type CLOSED =         new Type();
-		// rectangles ************
-//		/** closed rectangle, filled in */					public static final Type FILLEDRECT =     new Type();
-//		/** closed rectangle, outline */					public static final Type CLOSEDRECT =     new Type();
-		/** closed rectangle, outline crossed */			public static final Type CROSSED =        new Type();
-		// lines ************
-		/** open outline, solid */							public static final Type OPENED =         new Type();
-		/** open outline, dotted */							public static final Type OPENEDT1 =       new Type();
-		/** open outline, dashed  */						public static final Type OPENEDT2 =       new Type();
-		/** open outline, thicker */						public static final Type OPENEDT3 =       new Type();
-		/** open outline pushed by 1 */						public static final Type OPENEDO1 =       new Type();
-		/** vector endpoint pairs, solid */					public static final Type VECTORS =        new Type();
-		// curves ************
-		/** circle at [0] radius to [1] */					public static final Type CIRCLE =         new Type();
-		/** thick circle at [0] radius to [1] */			public static final Type THICKCIRCLE =    new Type();
-		/** filled circle */								public static final Type DISC =           new Type();
-		/** arc of circle at [0] ends [1] and [2] */		public static final Type CIRCLEARC =      new Type();
-		/** thick arc of circle at [0] ends [1] and [2] */	public static final Type THICKCIRCLEARC = new Type();
-		// text ************
-		/** text at center */								public static final Type TEXTCENT =       new Type();
-		/** text below top edge */							public static final Type TEXTTOP =        new Type();
-		/** text above bottom edge */						public static final Type TEXTBOT =        new Type();
-		/** text to right of left edge */					public static final Type TEXTLEFT =       new Type();
-		/** text to left of right edge */					public static final Type TEXTRIGHT =      new Type();
-		/** text to lower-right of top-left corner */		public static final Type TEXTTOPLEFT =    new Type();
-		/** text to upper-right of bottom-left corner */	public static final Type TEXTBOTLEFT =    new Type();
-		/** text to lower-left of top-right corner */		public static final Type TEXTTOPRIGHT =   new Type();
-		/** text to upper-left of bottom-right corner */	public static final Type TEXTBOTRIGHT =   new Type();
-		/** text that fits in box (may shrink) */			public static final Type TEXTBOX =        new Type();
-		// miscellaneous ************
-		/** grid dots in the window */						public static final Type GRIDDOTS =       new Type();
-		/** cross */										public static final Type CROSS =          new Type();
-		/** big cross */									public static final Type BIGCROSS =       new Type();
+		// ************************ polygons ************************
+		/**
+		 * Describes a closed polygon which is filled in.
+		 */
+		public static final Type FILLED = new Type();
+		/**
+		 * Describes a closed polygon with only the outline drawn.
+		 */
+		public static final Type CLOSED = new Type();
+		/**
+		 * Describes a closed rectangle with the outline drawn and an "X" drawn through it.
+		 */
+		public static final Type CROSSED = new Type();
+
+		// ************************ lines ************************
+		/**
+		 * Describes an open outline.
+		 * The last point is not implicitly connected to the first point.
+		 */
+		public static final Type OPENED = new Type();
+		/**
+		 * Describes an open outline, drawn with a dotted texture.
+		 * The last point is not implicitly connected to the first point.
+		 */
+		public static final Type OPENEDT1 = new Type();
+		/**
+		 * Describes an open outline, drawn with a dashed texture. 
+		 * The last point is not implicitly connected to the first point.
+		 */
+		public static final Type OPENEDT2 = new Type();
+		/**
+		 * Describes an open outline, drawn with thicker lines.
+		 * The last point is not implicitly connected to the first point.
+		 */
+		public static final Type OPENEDT3 = new Type();
+		/**
+		 * Describes an open outline pushed outward by 1 screen pixel.
+		 * The last point is not implicitly connected to the first point.
+		 * This is useful in highlighting objects where the highlight line belongs outside of the highlighted object.
+		 */
+		public static final Type OPENEDO1 = new Type();
+		/**
+		 * Describes a vector endpoint pairs, solid.
+		 * There must be an even number of points in the Poly so that vectors can be drawn from point 0 to 1,
+		 * then from point 2 to 3, etc.
+		 */
+		public static final Type VECTORS = new Type();
+
+		// ************************ curves ************************
+		/**
+		 * Describes a circle (only the outline is drawn).
+		 * The first point is the center of the circle and the second point is on the edge, thus defining the radius.
+		 * This second point should be on the same horizontal level as the radius point to make radius computation easier.
+		 */
+		public static final Type CIRCLE = new Type();
+		/**
+		 * Describes a circle, drawn with thick lines (only the outline is drawn).
+		 * The first point is the center of the circle and the second point is on the edge, thus defining the radius.
+		 * This second point should be on the same horizontal level as the radius point to make radius computation easier.
+		 */
+		public static final Type THICKCIRCLE = new Type();
+		/**
+		 * Describes a filled circle.
+		 * The first point is the center of the circle and the second point is on the edge, thus defining the radius.
+		 * This second point should be on the same horizontal level as the radius point to make radius computation easier.
+		 */
+		public static final Type DISC = new Type();
+		/**
+		 * Describes an arc of a circle.
+		 * The first point is the center of the circle, the second point is the start of the arc, and
+		 * the third point is the end of the arc.
+		 * The arc will be drawn counter-clockwise from the start point to the end point.
+		 */
+		public static final Type CIRCLEARC = new Type();
+		/**
+		 * Describes an arc of a circle, drawn with thick lines.
+		 * The first point is the center of the circle, the second point is the start of the arc, and
+		 * the third point is the end of the arc.
+		 * The arc will be drawn counter-clockwise from the start point to the end point.
+		 */
+		public static final Type THICKCIRCLEARC = new Type();
+
+		// ************************ text ************************
+		/**
+		 * Describes text that should be centered about the Poly point.
+		 * Only one point need be specified.
+		 */
+		public static final Type TEXTCENT = new Type();
+		/**
+		 * Describes text that should be placed so that the Poly point is at the top-center.
+		 * Only one point need be specified, and the text will be below that point.
+		 */
+		public static final Type TEXTTOP = new Type();
+		/**
+		 * Describes text that should be placed so that the Poly point is at the bottom-center.
+		 * Only one point need be specified, and the text will be above that point.
+		 */
+		public static final Type TEXTBOT = new Type();
+		/**
+		 * Describes text that should be placed so that the Poly point is at the left-center.
+		 * Only one point need be specified, and the text will be to the right of that point.
+		 */
+		public static final Type TEXTLEFT = new Type();
+		/**
+		 * Describes text that should be placed so that the Poly point is at the right-center.
+		 * Only one point need be specified, and the text will be to the left of that point.
+		 */
+		public static final Type TEXTRIGHT = new Type();
+		/**
+		 * Describes text that should be placed so that the Poly point is at the upper-left.
+		 * Only one point need be specified, and the text will be to the lower-right of that point.
+		 */
+		public static final Type TEXTTOPLEFT = new Type();
+		/**
+		 * Describes text that should be placed so that the Poly point is at the lower-left.
+		 * Only one point need be specified, and the text will be to the upper-right of that point.
+		 * This is the normal starting point for most text.
+		 */
+		public static final Type TEXTBOTLEFT = new Type();
+		/**
+		 * Describes text that should be placed so that the Poly point is at the upper-right.
+		 * Only one point need be specified, and the text will be to the lower-left of that point.
+		 */
+		public static final Type TEXTTOPRIGHT = new Type();
+		/**
+		 * Describes text that should be placed so that the Poly point is at the lower-right.
+		 * Only one point need be specified, and the text will be to the upper-left of that point.
+		 */
+		public static final Type TEXTBOTRIGHT = new Type();
+		/**
+		 * Describes text that is centered in the Poly and must remain inside.
+		 * If the letters do not fit, a smaller font will be used, and if that still does not work,
+		 * any letters that cannot fit are not written.
+		 * The Poly coordinates must define an area for the text to live in.
+		 */
+		public static final Type TEXTBOX = new Type();
+
+		// ************************ miscellaneous ************************
+		/**
+		 * Describes grid dots in the window.
+		 * The grid is to be drawn with the following characteristics:
+		 * point 0 defines the spacing of the grid in "grid space";
+		 * point 1 defines the lower-left dot to set in "grid space";
+		 * point 2 defines the lower-left extent of the grid on the screen;
+		 * point 3 defines the upper-right extent of the grid on the screen;
+		 * point 4 defines the lower-left extent of "grid space";
+		 * point 5 defines the upper-right extent of "grid space".
+		 */
+		public static final Type GRIDDOTS = new Type();
+		/**
+		 * Describes a small cross, drawn at the specified location.
+		 * Typically there will be only one point in this polygon
+		 * but if there are more they are averaged and the cross is drawn in the center.
+		 */
+		public static final Type CROSS = new Type();
+		/**
+		 * Describes a big cross, drawn at the specified location.
+		 * Typically there will be only one point in this polygon
+		 * but if there are more they are averaged and the cross is drawn in the center.
+		 */
+		public static final Type BIGCROSS = new Type();
 	}
 
 	/** the layer (used for graphics) */					private Layer layer;
@@ -91,8 +220,13 @@ public class Poly implements Shape
 	/** the bounds of the points */							private Rectangle2D.Double bounds;
 	/** the style (outline, text, lines, etc.) */			private Poly.Type style;
 	/** the string (if of type TEXT) */						private String string;
+	/** the text descriptor (if of type TEXT) */			private TextDescriptor descript;
+	
 
-	/** Create a new Poly given (x,y) points and a specific Layer */
+	/**
+	 * The constructor creates a new Poly given an array of points.
+	 * @param points the array of coordinates.
+	 */
 	public Poly(Point2D.Double [] points)
 	{
 		this.points = points;
@@ -101,7 +235,13 @@ public class Poly implements Shape
 		bounds = null;
 	}
 
-	/** Create a new rectangular Poly given a specific Layer */
+	/**
+	 * The constructor creates a new Poly that describes a rectangle.
+	 * @param cX the center X coordinate of the rectangle.
+	 * @param cY the center Y coordinate of the rectangle.
+	 * @param width the width of the rectangle.
+	 * @param height the height of the rectangle.
+	 */
 	public Poly(double cX, double cY, double width, double height)
 	{
 		double halfWidth = width / 2;
@@ -116,27 +256,72 @@ public class Poly implements Shape
 		bounds = null;
 	}
 
-	/** Get the layer associated with this polygon. */
+	/**
+	 * Routine to return the layer associated with this Poly.
+	 * @return the layer associated with this Poly.
+	 */
 	public Layer getLayer() { return layer; }
-	/** Set the layer associated with this polygon. */
+
+	/**
+	 * Routine to set the layer associated with this Poly.
+	 * @param layer the layer associated with this Poly.
+	 */
 	public void setLayer(Layer layer) { this.layer = layer; }
 
-	/** Get the style (Poly.Type) associated with this polygon. */
+	/**
+	 * Routine to return the style associated with this Poly.
+	 * The style controls how the points are interpreted (FILLED, CIRCLE, etc.)
+	 * @return the style associated with this Poly.
+	 */
 	public Poly.Type getStyle() { return style; }
-	/** Set the style (Poly.Type) associated with this polygon. */
+
+	/**
+	 * Routine to set the style associated with this Poly.
+	 * The style controls how the points are interpreted (FILLED, CIRCLE, etc.)
+	 * @param style the style associated with this Poly.
+	 */
 	public void setStyle(Poly.Type style) { this.style = style; }
 
-	/** Get the String associated with this polygon. */
+	/**
+	 * Routine to return the String associated with this Poly.
+	 * This only applies to text Polys which display a message.
+	 * @return the String associated with this Poly.
+	 */
 	public String getString() { return string; }
-	/** Set the String associated with this polygon. */
+
+	/**
+	 * Routine to set the String associated with this Poly.
+	 * This only applies to text Polys which display a message.
+	 * @param string the String associated with this Poly.
+	 */
 	public void setString(String string) { this.string = string; }
 
-	/** Get the array of points associated with this polygon. */
+	/**
+	 * Routine to return the Text Descriptor associated with this Poly.
+	 * This only applies to text Polys which display a message.
+	 * Only the size, face, italic, bold, and underline fields are relevant.
+	 * @return the Text Descriptor associated with this Poly.
+	 */
+	public TextDescriptor getTextDescriptor() { return descript; }
+
+	/**
+	 * Routine to set the Text Descriptor associated with this Poly.
+	 * This only applies to text Polys which display a message.
+	 * Only the size, face, italic, bold, and underline fields are relevant.
+	 * @param descript the Text Descriptor associated with this Poly.
+	 */
+	public void setTextDescriptor(TextDescriptor descript) { this.descript = descript; }
+
+	/**
+	 * Routine to return the points associated with this Poly.
+	 * @return the points associated with this Poly.
+	 */
 	public Point2D.Double [] getPoints() { return points; }
 
-	/** Get a transformed copy of this polygon, including scale, offset,
-	 * and rotation.
-	 * @param af transformation to apply */
+	/**
+	 * Routine to transformed the points in this Poly.
+	 * @param af transformation to apply.
+	 */
 	public void transform(AffineTransform af)
 	{
 		af.transform(points, 0, points, 0, points.length);
@@ -145,8 +330,9 @@ public class Poly implements Shape
 	}
 
 	/**
-	 * routine to return a Rectangle that describes the orthogonal box in polygon "poly".
-	 * If the polygon is not an orthogonal box, returns null.
+	 * Routine to return a Rectangle that describes the orthogonal box in this Poly.
+	 * @return the Rectangle that describes this Poly.
+	 * If the Poly is not an orthogonal box, returns null.
 	 */
 	public Rectangle2D.Double getBox()
 	{
@@ -211,7 +397,9 @@ public class Poly implements Shape
 	}
 
 	/**
-	 * routine to return true if (X,Y) is inside of polygon "poly"
+	 * Routine to tell whether a coordinate is inside of this Poly.
+	 * @param pt the point in question.
+	 * @return true if the point is inside of this Poly.
 	 */
 	public boolean isinside(Point2D.Double pt)
 	{
@@ -323,72 +511,127 @@ public class Poly implements Shape
 		return false;
 	}
 
-	// SHAPE REQUIREMENTS:
-	/** Returns true if point (x,y) is contained in the poly. */
+	/**
+	 * Routine to tell whether a point is inside of this Poly.
+	 * This method is a requirement of the Shape implementation.
+	 * @param x the X coordinate of the point.
+	 * @param y the Y coordinate of the point.
+	 * @return true if the point is inside the Poly.
+	 */
 	public boolean contains(double x, double y)
 	{
 		return isinside(new Point2D.Double(x, y));
 	}
 
-	/** Returns true if point "p" is contained in the poly. */
+	/**
+	 * Routine to tell whether a point is inside of this Poly.
+	 * This method is a requirement of the Shape implementation.
+	 * @param p the point.
+	 * @return true if the point is inside the Poly.
+	 */
 	public boolean contains(Point2D p)
 	{
 		return isinside(new Point2D.Double(p.getX(), p.getY()));
 	}
 
-	/** TODO: write contains(double, double, double, double); */
+	/**
+	 * Routine to tell whether a rectangle is inside of this Poly.
+	 * This method is a requirement of the Shape implementation.
+	 * THIS METHOD HAS NOT BEEN WRITTEN YET!!!
+	 * @param x the X corner of the rectangle.
+	 * @param y the Y corner of the rectangle.
+	 * @param w the width of the rectangle.
+	 * @param h the height of the rectangle.
+	 * @return true if the rectangle is inside the Poly.
+	 */
 	public boolean contains(double x, double y, double w, double h)
 	{
 		return false;
 	}
 
-	/** TODO: write contains(Rectangle2D); */
+	/**
+	 * Routine to tell whether a rectangle is inside of this Poly.
+	 * This method is a requirement of the Shape implementation.
+	 * THIS METHOD HAS NOT BEEN WRITTEN YET!!!
+	 * @param r the rectangle.
+	 * @return true if the rectangle is inside the Poly.
+	 */
 	public boolean contains(Rectangle2D r)
 	{
 		return contains(r.getX(), r.getY(), r.getWidth(), r.getHeight());
 	}
 
-	/** TODO: write intersects(double, double, double, double); */
+	/**
+	 * Routine to tell whether a rectangle intersects this Poly.
+	 * This method is a requirement of the Shape implementation.
+	 * THIS METHOD HAS NOT BEEN WRITTEN YET!!!
+	 * @param x the X corner of the rectangle.
+	 * @param y the Y corner of the rectangle.
+	 * @param w the width of the rectangle.
+	 * @param h the height of the rectangle.
+	 * @return true if the rectangle intersects the Poly.
+	 */
 	public boolean intersects(double x, double y, double w, double h)
 	{
 		return false;
 	}
 
-	/** TODO: write intersects(Rectangle2D); */
+	/**
+	 * Routine to tell whether a rectangle intersects this Poly.
+	 * This method is a requirement of the Shape implementation.
+	 * THIS METHOD HAS NOT BEEN WRITTEN YET!!!
+	 * @param r the rectangle.
+	 * @return true if the rectangle intersects the Poly.
+	 */
 	public boolean intersects(Rectangle2D r)
 	{
 		return intersects(r.getX(), r.getY(), r.getWidth(), r.getHeight());
 	}
 
-	/** Get the x coordinate of the center of this poly */
+	/**
+	 * Routine to return the X center coordinate of this Poly.
+	 * @return the X center coordinate of this Poly.
+	 */
 	public double getCenterX()
 	{
 		Rectangle2D b = getBounds2D();
 		return b.getCenterX();
 	}
 
-	/** Get the y coordinate of the center of this poly */
+	/**
+	 * Routine to return the Y center coordinate of this Poly.
+	 * @return the Y center coordinate of this Poly.
+	 */
 	public double getCenterY()
 	{
 		Rectangle2D b = getBounds2D();
 		return b.getCenterY();
 	}
 
-	/** Get the bounds of this poly, as a Rectangle2D */
+	/**
+	 * Routine to return the bounds of this Poly.
+	 * @return the bounds of this Poly.
+	 */
 	public Rectangle2D getBounds2D()
 	{
 		if (bounds == null) calcBounds();
 		return bounds;
 	}
 
-	/** Get the bounds of this poly, as a Rectangle2D */
+	/**
+	 * Routine to return the bounds of this Poly.
+	 * @return the bounds of this Poly.
+	 */
 	public Rectangle2D.Double getBounds2DDouble()
 	{
 		if (bounds == null) calcBounds();
 		return bounds;
 	}
 
-	/** Get the bounds of this poly, as a Rectangle */
+	/**
+	 * Routine to return the bounds of this Poly.
+	 * @return the bounds of this Poly.
+	 */
 	public Rectangle getBounds()
 	{
 		if (bounds == null) calcBounds();
@@ -396,7 +639,7 @@ public class Poly implements Shape
 		return new Rectangle((int)r.getX(), (int)r.getY(), (int)r.getWidth(), (int)r.getHeight());
 	}
 
-	protected void calcBounds()
+	private void calcBounds()
 	{
 		double lx, ly, hx, hy;
 		Rectangle2D sum;
@@ -465,14 +708,24 @@ public class Poly implements Shape
 		}
 	}
 
-	/** Get a PathIterator for this poly after a transform */
+	/**
+	 * Routine to return a PathIterator for this Poly after a transformation.
+	 * This method is a requirement of the Shape implementation.
+	 * @param at the transformation to apply.
+	 * @return the PathIterator.
+	 */
 	public PathIterator getPathIterator(AffineTransform at)
 	{
 		return new PolyPathIterator(this, at);
 	}
 
-	/** Get a PathIterator for this poly after a transform, with a particular
-	 * flatness */
+	/**
+	 * Routine to return a PathIterator with a particular flatness for this Poly after a transformation.
+	 * This method is a requirement of the Shape implementation.
+	 * @param at the transformation to apply.
+	 * @param flatness the required flatness.
+	 * @return the PathIterator.
+	 */
 	public PathIterator getPathIterator(AffineTransform at, double flatness)
 	{
 		return getPathIterator(at);

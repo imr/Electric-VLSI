@@ -26,12 +26,6 @@ package com.sun.electric.technology;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.technology.Technology;
 
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.Point2D;
-import java.util.Iterator;
-
 /**
  * A PrimitiveNode represents information about a NodeProto that lives in a
  * Technology.  It has a name, and several functions that describe how
@@ -43,7 +37,6 @@ public class PrimitiveNode extends NodeProto
 	/** Defines a serpentine transistor. */					public static final int SERPTRANS = 1;
 	/** Defines a polygonal transistor. */					public static final int POLYGONAL = 2;
 	/** Defines a multi-cut contact. */						public static final int MULTICUT =  3;
-	/** Defines a MOS transistor (nonserpentine). */		public static final int MOSTRANS =  4;
 
 	// --------------------- private data -----------------------------------
 	
@@ -83,6 +76,7 @@ public class PrimitiveNode extends NodeProto
 	/**
 	 * Routine to create a new PrimitiveNode from the parameters.
 	 * @param protoName the name of the PrimitiveNode.
+	 * Primitive names may not contain unprintable characters, spaces, tabs, a colon (:), semicolon (;) or curly braces ({}).
 	 * @param tech the Technology of the PrimitiveNode.
 	 * @param width the width of the PrimitiveNode.
 	 * @param height the height of the PrimitiveNode.
@@ -183,7 +177,7 @@ public class PrimitiveNode extends NodeProto
 	/**
 	 * Routine to return the special values stored on this PrimitiveNode.
 	 * The special values are an array of integers that describe unusual features of the PrimitiveNode.
-	 * Element [0] of the array is one of SERPTRANS, POLYGONAL, MULTICUT, or MOSTRANS.
+	 * Element [0] of the array is one of SERPTRANS, POLYGONAL, or MULTICUT.
 	 * Other values depend on the first entry:
 	 * <UL>
 	 * <LI>for MULTICUT:

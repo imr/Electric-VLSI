@@ -25,15 +25,11 @@ package com.sun.electric.database.topology;
 
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveArc;
-import com.sun.electric.technology.PrimitivePort;
 
-import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
@@ -83,7 +79,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 //	/** only local arcinst re-drawing desired */		private static final int RELOCLA =          01000000000;
 //	/**transparent arcinst re-draw is done */			private static final int RETDONA =          02000000000;
 //	/** opaque arcinst re-draw is done */				private static final int REODONA =          04000000000;
-	/** general flag for spreading and highlighting */	private static final int ARCFLAGBIT =      010000000000;
+//	/** general flag for spreading and highlighting */	private static final int ARCFLAGBIT =      010000000000;
 	/** set if hard to select */						private static final int HARDSELECTA =     020000000000;
 
 	// Name of the variable holding the ArcInst's name.
@@ -95,15 +91,17 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	/** end connections of this arc instance */			private Connection head, tail;
 
 	// -------------------- private and protected methods ------------------------
-	
+
+	/**
+	 * The constructor is never called.  Use the factory "newInstance" instead.
+	 */
 	private ArcInst()
 	{
 		this.userBits = 0;
 	}
 
 	/**
-	 * recalculate the transform on this arc to get the endpoints
-	 * where they should be.
+	 * Routine to recompute the Geometric information on this ArcInst.
 	 */
 	void updateGeometric()
 	{
@@ -120,23 +118,26 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		updateGeometricBounds();
 	}
 
-	/** set the connection on a particular end */
-	void setConnection(Connection c, boolean onHead)
-	{
-		if (onHead) head = c; else
-			tail = c;
-	}
-
-	/** get the connection on a particular end */
+	/**
+	 * Routine to return the connection at an end of this ArcInst.
+	 * @param onHead true to get get the connection the head of this ArcInst.
+	 * false to get get the connection the tail of this ArcInst.
+	 */
 	public Connection getConnection(boolean onHead)
 	{
 		return onHead ? head : tail;
 	}
 
-	/** get the Head connection */
+	/**
+	 * Routine to return the Connection on the head end of this ArcInst.
+	 * @return the Connection on the head end of this ArcInst.
+	 */
 	public Connection getHead() { return head; }
 
-	/** get the Tail connection */
+	/**
+	 * Routine to return the Connection on the tail end of this ArcInst.
+	 * @return the Connection on the tail end of this ArcInst.
+	 */
 	public Connection getTail() { return tail; }
 
 	// Remove this ArcInst.  Will also remove the connections on either side.
@@ -148,7 +149,11 @@ public class ArcInst extends Geometric /*implements Networkable*/
 //		super.remove();
 //	}
 
-	/** remove the connection from a particular end */
+	/**
+	 * Routine to remove the Connection from an end of this ArcInst.
+	 * @param c the Connection to remove.
+	 * @param onHead true if the Connection is on the head of this ArcInst.
+	 */
 	void removeConnection(Connection c, boolean onHead)
 	{
 		/* safety check */
@@ -161,7 +166,10 @@ public class ArcInst extends Geometric /*implements Networkable*/
 			tail = null;
 	}
 
-	/** Reports information about this ArcInst */
+	/*
+	 * Routine to write a description of this ArcInst.
+	 * Displays the description in the Messages Window.
+	 */
 	public void getInfo()
 	{
 		System.out.println("--------- ARC INSTANCE: ---------");
@@ -180,6 +188,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 
 	/**
 	 * Low-level access routine to create a ArcInst.
+	 * @return the newly created ArcInst.
 	 */
 	public static ArcInst lowLevelAllocate()
 	{
@@ -189,10 +198,18 @@ public class ArcInst extends Geometric /*implements Networkable*/
 
 	/**
 	 * Low-level routine to fill-in the ArcInst information.
-	 * Returns true on error.
+	 * @param protoType the ArcProto of this ArcInst.
+	 * @param arcWidth the width of this ArcInst.
+	 * @param headPort the head end PortInst.
+	 * @param headX the X coordinate of the head end PortInst.
+	 * @param headY the Y coordinate of the head end PortInst.
+	 * @param tailPort the tail end PortInst.
+	 * @param tailX the X coordinate of the tail end PortInst.
+	 * @param tailY the Y coordinate of the tail end PortInst.
+	 * @return true on error.
 	 */
 	public boolean lowLevelPopulate(ArcProto protoType, double arcWidth,
-		PortInst a, double aX, double aY, PortInst b, double bX, double bY)
+		PortInst headPort, double headX, double headY, PortInst tailPort, double tailX, double tailY)
 	{
 		// initialize this object
 		this.protoType = protoType;
@@ -201,8 +218,8 @@ public class ArcInst extends Geometric /*implements Networkable*/
 			arcWidth = protoType.getWidth();
 		this.arcWidth = arcWidth;
 
-		Cell parent = a.getNodeInst().getParent();
-		if (parent != b.getNodeInst().getParent())
+		Cell parent = headPort.getNodeInst().getParent();
+		if (parent != tailPort.getNodeInst().getParent())
 		{
 			System.out.println("ArcProto.newInst: the 2 PortInsts are in different Cells!");
 			return true;
@@ -228,8 +245,8 @@ public class ArcInst extends Geometric /*implements Networkable*/
 //		}
 
 		// create node/arc connections and place them properly
-		head = new Connection(this, a, aX, aY);
-		tail = new Connection(this, b, bX, bY);
+		head = new Connection(this, headPort, headX, headY);
+		tail = new Connection(this, tailPort, tailX, tailY);
 		
 		// fill in the geometry
 		updateGeometric();
@@ -239,8 +256,8 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	}
 
 	/**
-	 * Low-level access routine to link the ArcInst into its Cell.
-	 * Returns true on error.
+	 * Low-level routine to link the ArcInst into its Cell.
+	 * @return true on error.
 	 */
 	public boolean lowLevelLink()
 	{
@@ -254,159 +271,386 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		return false;
 	}
 
-	/** Create a new ArcInst connecting two PortInsts.
-	 *
-	 * <p> Arcs are connected to the <i>center</i> of the PortInsts. If
-	 * the two PortInst centers don't line up vertically or
-	 * horizontally, then generate 'L' shaped wires by first routing
-	 * horizontally from PortInst a and then vertically to PortInst b.
-	 * @param width the width of this material.  Width
-	 * must be >0. A zero width means "use the default width".
-	 * @param a start PortInst
-	 * @param b end PortInst */
-	public static ArcInst newInstance(ArcProto type, double width, PortInst a, PortInst b)
+	/**
+	 * Routine to create a new ArcInst connecting two PortInsts.
+	 * Since no coordinates are given, the ArcInst connects to the center of the PortInsts.
+	 * @param type the prototype of the new ArcInst.
+	 * @param width the width of the new ArcInst.  The width must be > 0.
+	 * @param head the head end PortInst.
+	 * @param tail the tail end PortInst.
+	 * @return the newly created ArcInst, or null if there is an error.
+	 */
+	public static ArcInst newInstance(ArcProto type, double width, PortInst head, PortInst tail)
 	{
-		Rectangle2D aBounds = a.getBounds();
-		double aX = aBounds.getCenterX();
-		double aY = aBounds.getCenterY();
-		Rectangle2D bBounds = b.getBounds();
-		double bX = bBounds.getCenterX();
-		double bY = bBounds.getCenterY();
-		return newInstance(type, width, a, aX, aY, b, bX, bY);
+		Rectangle2D headBounds = head.getBounds();
+		double headX = headBounds.getCenterX();
+		double headY = headBounds.getCenterY();
+		Rectangle2D tailBounds = tail.getBounds();
+		double tailX = tailBounds.getCenterX();
+		double tailY = tailBounds.getCenterY();
+		return newInstance(type, width, head, headX, headY, tail, tailX, tailY);
 	}
 
-	/** Create an ArcInst connecting two PortInsts at the specified
-	 * locations.
-	 *
-	 * <p> The locations must lie within their respective ports.
-	 *
-	 * <p> This routine presents the full generality of Electric's
-	 * database.  However, I've never found it to be useful. I recommend
-	 * using the other newInst method. */
-	public static ArcInst newInstance(ArcProto type, double arcWidth,
-		PortInst a, double aX, double aY, PortInst b, double bX, double bY)
+	/**
+	 * Routine to create a new ArcInst connecting two PortInsts at specified locations.
+	 * This is more general than the version that does not take coordinates.
+	 * @param type the prototype of the new ArcInst.
+	 * @param width the width of the new ArcInst.  The width must be > 0.
+	 * @param head the head end PortInst.
+	 * @param headX the X coordinate of the head end PortInst.
+	 * @param headY the Y coordinate of the head end PortInst.
+	 * @param tail the tail end PortInst.
+	 * @param tailX the X coordinate of the tail end PortInst.
+	 * @param tailY the Y coordinate of the tail end PortInst.
+	 * @return the newly created ArcInst, or null if there is an error.
+	 */
+	public static ArcInst newInstance(ArcProto type, double width,
+		PortInst head, double headX, double headY, PortInst tail, double tailX, double tailY)
 	{
 		ArcInst ai = lowLevelAllocate();
-		if (ai.lowLevelPopulate(type, arcWidth, a, aX, aY, b, bX, bY)) return null;
+		if (ai.lowLevelPopulate(type, width, head, headX, headY, tail, tailX, tailY)) return null;
 		if (ai.lowLevelLink()) return null;
 		return ai;
 	}
 
-	/** Set the Rigid bit */
+	/**
+	 * Routine to set this ArcInst to be rigid.
+	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
+	 */
 	public void setRigid() { userBits |= FIXED; }
-	/** Clear the Rigid bit */
+
+	/**
+	 * Routine to set this ArcInst to be not rigid.
+	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
+	 */
 	public void clearRigid() { userBits &= ~FIXED; }
-	/** Get the Rigid bit */
+
+	/**
+	 * Routine to tell whether this ArcInst is rigid.
+	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
+	 * @return true if this ArcInst is rigid.
+	 */
 	public boolean isRigid() { return (userBits & FIXED) != 0; }
 
-	/** Set the Fixed-angle bit */
+	/**
+	 * Routine to set this ArcInst to be fixed-angle.
+	 * Fixed-angle arcs cannot change their angle, so if one end moves,
+	 * the other may also adjust to keep the arc angle constant.
+	 */
 	public void setFixedAngle() { userBits |= FIXANG; }
-	/** Clear the Fixed-angle bit */
+
+	/**
+	 * Routine to set this ArcInst to be not fixed-angle.
+	 * Fixed-angle arcs cannot change their angle, so if one end moves,
+	 * the other may also adjust to keep the arc angle constant.
+	 */
 	public void clearFixedAngle() { userBits &= ~FIXANG; }
-	/** Get the Fixed-angle bit */
+
+	/**
+	 * Routine to tell whether this ArcInst is fixed-angle.
+	 * Fixed-angle arcs cannot change their angle, so if one end moves,
+	 * the other may also adjust to keep the arc angle constant.
+	 * @return true if this ArcInst is fixed-angle.
+	 */
 	public boolean isFixedAngle() { return (userBits & FIXANG) != 0; }
 
-	/** Set the Slidable bit */
+	/**
+	 * Routine to set this ArcInst to be slidable.
+	 * Arcs that slide will not move their connected NodeInsts if the arc's end is still within the port area.
+	 * Arcs that cannot slide will force their NodeInsts to move by the same amount as the arc.
+	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
+	 */
 	public void setSlidable() { userBits &= ~CANTSLIDE; }
-	/** Clear the Slidable bit */
+
+	/**
+	 * Routine to set this ArcInst to be not slidable.
+	 * Arcs that slide will not move their connected NodeInsts if the arc's end is still within the port area.
+	 * Arcs that cannot slide will force their NodeInsts to move by the same amount as the arc.
+	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
+	 */
 	public void clearSlidable() { userBits |= CANTSLIDE; }
-	/** Get the Slidable bit */
+
+	/**
+	 * Routine to tell whether this ArcInst is slidable.
+	 * Arcs that slide will not move their connected NodeInsts if the arc's end is still within the port area.
+	 * Arcs that cannot slide will force their NodeInsts to move by the same amount as the arc.
+	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
+	 * @return true if this ArcInst is slidable.
+	 */
 	public boolean isSlidable() { return (userBits & CANTSLIDE) == 0; }
 
-	/** Set the Far text bit */
+	/**
+	 * Routine to set this ArcInst to have far-text.
+	 * Far text is text that is so far offset from the object that normal searches do not find it.
+	 */
 	public void setFarText() { userBits |= AHASFARTEXT; }
-	/** Clear the Far text bit */
+
+	/**
+	 * Routine to set this ArcInst to not have far-text.
+	 * Far text is text that is so far offset from the object that normal searches do not find it.
+	 */
 	public void clearFarText() { userBits &= ~AHASFARTEXT; }
-	/** Get the Far text bit */
+
+	/**
+	 * Routine to tell whether this ArcInst has far-text.
+	 * Far text is text that is so far offset from the object that normal searches do not find it.
+	 * @return true if this ArcInst has far-text.
+	 */
 	public boolean isFarText() { return (userBits & AHASFARTEXT) != 0; }
 
-	/** Low-level routine to set the Arc angle value.  Should not normally be called. */
+	/**
+	 * Low-level routine to set the ArcInst angle in the "user bits".
+	 * This general access to the bits is required because the binary ".elib"
+	 * file format stores it this way.
+	 * This should not normally be called by any other part of the system.
+	 * @param angle the angle of the ArcInst (in degrees).
+	 */
 	public void lowLevelSetArcAngle(int angle) { userBits = (userBits & ~AANGLE) | (angle << AANGLESH); }
-	/** Low-level routine to get the Arc angle value.  Should not normally be called. */
+
+	/**
+	 * Low-level routine to get the ArcInst angle from the "user bits".
+	 * This general access to the bits is required because the binary ".elib"
+	 * file format stores it this way.
+	 * This should not normally be called by any other part of the system.
+	 * @return the arc angle (in degrees).
+	 */
 	public int lowLevelGetArcAngle() { return (userBits & AANGLE) >> AANGLESH; }
 
-	/** Set the Shorten bit */
+	/**
+	 * Routine to set this ArcInst to be shortened.
+	 * Arcs that meet at angles which are not multiples of 90 degrees will have
+	 * extra tabs emerging from the connection site if they are not shortened.
+	 * Therefore, shortened arcs reduce the amount they extend their ends.
+	 */
 	public void setShortened() { userBits |= ASHORT; }
-	/** Clear the Shorten bit */
+
+	/**
+	 * Routine to set this ArcInst to be not shortened.
+	 * Arcs that meet at angles which are not multiples of 90 degrees will have
+	 * extra tabs emerging from the connection site if they are not shortened.
+	 * Therefore, shortened arcs reduce the amount they extend their ends.
+	 */
 	public void clearShortened() { userBits &= ~ASHORT; }
-	/** Get the Shorten bit */
+
+	/**
+	 * Routine to tell whether this ArcInst is shortened.
+	 * Arcs that meet at angles which are not multiples of 90 degrees will have
+	 * extra tabs emerging from the connection site if they are not shortened.
+	 * Therefore, shortened arcs reduce the amount they extend their ends.
+	 * @return true if this ArcInst is shortened.
+	 */
 	public boolean isShortened() { return (userBits & ASHORT) != 0; }
 
-	/** Set the ends-extend bit */
+	/**
+	 * Routine to set this ArcInst to have its ends extended.
+	 * End-extension causes an arc to extend past its endpoint by half of its width.
+	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
+	 */
 	public void setExtended() { userBits &= ~NOEXTEND; }
-	/** Clear the ends-extend bit */
+
+	/**
+	 * Routine to set this ArcInst to have its ends not extended.
+	 * End-extension causes an arc to extend past its endpoint by half of its width.
+	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
+	 */
 	public void clearExtended() { userBits |= NOEXTEND; }
-	/** Get the ends-extend bit */
+
+	/**
+	 * Routine to tell whether this ArcInst has its ends extended.
+	 * End-extension causes an arc to extend past its endpoint by half of its width.
+	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
+	 * @return true if this ArcInst has its ends extended.
+	 */
 	public boolean isExtended() { return (userBits & NOEXTEND) == 0; }
 
-	/** Set the Negated bit */
+	/**
+	 * Routine to set this ArcInst to be negated.
+	 * Negated arcs have a bubble drawn on their tail end to indicate negation.
+	 * If the arc is reversed, then the bubble appears on the head.
+	 * This is used only in Schematics technologies to place negating bubbles on any node.
+	 * @see ArcInst#setReverseEnds
+	 */
 	public void setNegated() { userBits |= ISNEGATED; }
-	/** Clear the Negated bit */
+
+	/**
+	 * Routine to set this ArcInst to be not negated.
+	 * Negated arcs have a bubble drawn on their tail end to indicate negation.
+	 * If the arc is reversed, then the bubble appears on the head.
+	 * This is used only in Schematics technologies to place negating bubbles on any node.
+	 * @see ArcInst#setReverseEnds
+	 */
 	public void clearNegated() { userBits &= ~ISNEGATED; }
-	/** Get the Negated bit */
+
+	/**
+	 * Routine to tell whether this ArcInst is negated.
+	 * Negated arcs have a bubble drawn on their tail end to indicate negation.
+	 * If the arc is reversed, then the bubble appears on the head.
+	 * This is used only in Schematics technologies to place negating bubbles on any node.
+	 * @return true if this ArcInst is negated.
+	 * @see ArcInst#setReverseEnds
+	 */
 	public boolean isNegated() { return (userBits & ISNEGATED) != 0; }
 
-	/** Set the Directional bit */
+	/**
+	 * Routine to set this ArcInst to be directional.
+	 * Directional arcs have an arrow drawn on them to indicate flow.
+	 * The arrow head is on the arc's head end, unless the arc is reversed.
+	 * It is only for documentation purposes and does not affect the circuit.
+	 * @see ArcInst#setReverseEnds
+	 */
 	public void setDirectional() { userBits |= ISDIRECTIONAL; }
-	/** Clear the Directional bit */
+
+	/**
+	 * Routine to set this ArcInst to be not directional.
+	 * Directional arcs have an arrow drawn on them to indicate flow.
+	 * The arrow head is on the arc's head end, unless the arc is reversed.
+	 * It is only for documentation purposes and does not affect the circuit.
+	 * @see ArcInst#setReverseEnds
+	 */
 	public void clearDirectional() { userBits &= ~ISDIRECTIONAL; }
-	/** Get the Directional bit */
+
+	/**
+	 * Routine to tell whether this ArcInst is directional.
+	 * Directional arcs have an arrow drawn on them to indicate flow.
+	 * The arrow head is on the arc's head end, unless the arc is reversed.
+	 * It is only for documentation purposes and does not affect the circuit.
+	 * @return true if this ArcInst is directional.
+	 * @see ArcInst#setReverseEnds
+	 */
 	public boolean isDirectional() { return (userBits & ISDIRECTIONAL) != 0; }
 
-	/** Set the Skip-Head bit */
+	/**
+	 * Routine to set this ArcInst to have its head skipped.
+	 * Skipping the head causes any special actions that are normally applied to the
+	 * head to be ignored.  For example, the directional arrow is on the arc head,
+	 * so skipping the head will remove the arrow-head, but not the body of the arrow.
+	 */
 	public void setSkipHead() { userBits |= NOTEND0; }
-	/** Clear the Skip-Head bit */
+
+	/**
+	 * Routine to set this ArcInst to have its head not skipped.
+	 * Skipping the head causes any special actions that are normally applied to the
+	 * head to be ignored.  For example, the directional arrow is on the arc head,
+	 * so skipping the head will remove the arrow-head, but not the body of the arrow.
+	 */
 	public void clearSkipHead() { userBits &= ~NOTEND0; }
-	/** Get the Skip-Head bit */
+
+	/**
+	 * Routine to tell whether this ArcInst has its head skipped.
+	 * Skipping the head causes any special actions that are normally applied to the
+	 * head to be ignored.  For example, the directional arrow is on the arc head,
+	 * so skipping the head will remove the arrow-head, but not the body of the arrow.
+	 * @return true if this ArcInst has its head skipped.
+	 */
 	public boolean isSkipHead() { return (userBits & NOTEND0) != 0; }
 
-	/** Set the Skip-Tail bit */
+	/**
+	 * Routine to set this ArcInst to have its tail skipped.
+	 * Skipping the tail causes any special actions that are normally applied to the
+	 * tail to be ignored.  For example, the negating bubble is on the arc tail,
+	 * so skipping the tail will remove the bubble.
+	 */
 	public void setSkipTail() { userBits |= NOTEND1; }
-	/** Clear the Skip-Tail bit */
+
+	/**
+	 * Routine to set this ArcInst to have its tail not skipped.
+	 * Skipping the tail causes any special actions that are normally applied to the
+	 * tail to be ignored.  For example, the negating bubble is on the arc tail,
+	 * so skipping the tail will remove the bubble.
+	 */
 	public void clearSkipTail() { userBits &= ~NOTEND1; }
-	/** Get the Skip-Tail bit */
+
+	/**
+	 * Routine to tell whether this ArcInst has its tail skipped.
+	 * Skipping the tail causes any special actions that are normally applied to the
+	 * tail to be ignored.  For example, the negating bubble is on the arc tail,
+	 * so skipping the tail will remove the bubble.
+	 * @return true if this ArcInst has its tail skipped.
+	 */
 	public boolean isSkipTail() { return (userBits & NOTEND1) != 0; }
 
-	/** Set the Reverse-ends bit */
+	/**
+	 * Routine to reverse the ends of this ArcInst.
+	 * A reversed arc switches its head and tail.
+	 * This is useful if the negating bubble appears on the wrong end.
+	 */
 	public void setReverseEnds() { userBits |= REVERSEEND; }
-	/** Clear the Reverse-ends bit */
+
+	/**
+	 * Routine to restore the proper ends of this ArcInst.
+	 * A reversed arc switches its head and tail.
+	 * This is useful if the negating bubble appears on the wrong end.
+	 */
 	public void clearReverseEnds() { userBits &= ~REVERSEEND; }
-	/** Get the Reverse-ends bit */
+
+	/**
+	 * Routine to tell whether this ArcInst has been reversed.
+	 * A reversed arc switches its head and tail.
+	 * This is useful if the negating bubble appears on the wrong end.
+	 * @return true if this ArcInst has been reversed.
+	 */
 	public boolean isReverseEnds() { return (userBits & REVERSEEND) != 0; }
 
-	/** Set the general flag bit */
-	public void setFlagged() { userBits |= ARCFLAGBIT; }
-	/** Clear the general flag bit */
-	public void clearFlagged() { userBits &= ~ARCFLAGBIT; }
-	/** Get the general flag bit */
-	public boolean isFlagged() { return (userBits & ARCFLAGBIT) != 0; }
-
-	/** Set the Hard-to-Select bit */
+	/**
+	 * Routine to set this ArcInst to be hard-to-select.
+	 * Hard-to-select ArcInsts cannot be selected by clicking on them.
+	 * Instead, the "special select" command must be given.
+	 */
 	public void setHardSelect() { userBits |= HARDSELECTA; }
-	/** Clear the Hard-to-Select bit */
+
+	/**
+	 * Routine to set this ArcInst to be easy-to-select.
+	 * Hard-to-select ArcInsts cannot be selected by clicking on them.
+	 * Instead, the "special select" command must be given.
+	 */
 	public void clearHardSelect() { userBits &= ~HARDSELECTA; }
-	/** Get the Hard-to-Select bit */
+
+	/**
+	 * Routine to tell whether this ArcInst is hard-to-select.
+	 * Hard-to-select ArcInsts cannot be selected by clicking on them.
+	 * Instead, the "special select" command must be given.
+	 * @return true if this ArcInst is hard-to-select.
+	 */
 	public boolean isHardSelect() { return (userBits & HARDSELECTA) != 0; }
 
-	/** Low-level routine to get the flag bits.  Should not normally be called. */
+	/**
+	 * Low-level routine to get the user bits.
+	 * The "user bits" are a collection of flags that are more sensibly accessed
+	 * through special methods.
+	 * This general access to the bits is required because the binary ".elib"
+	 * file format stores it as a full integer.
+	 * This should not normally be called by any other part of the system.
+	 * @return the "user bits".
+	 */
 	public int lowLevelGetUserbits() { return userBits; }
-	/** Low-level routine to set the flag bits.  Should not normally be called. */
+
+	/**
+	 * Low-level routine to set the user bits.
+	 * The "user bits" are a collection of flags that are more sensibly accessed
+	 * through special methods.
+	 * This general access to the bits is required because the binary ".elib"
+	 * file format stores it as a full integer.
+	 * This should not normally be called by any other part of the system.
+	 * @param userBits the new "user bits".
+	 */
 	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
 
-	/** Get the width of this ArcInst.
-	 *
-	 * <p> Note that this call excludes material surrounding this
-	 * ArcInst. For example, if this is a diffusion ArcInst then return
-	 * the width of the diffusion and ignore the width of well and
-	 * select. */
+	/**
+	 * Routine to return the width of this ArcInst.
+	 * Note that this call excludes material surrounding this ArcInst.
+	 * For example, if this is a diffusion ArcInst then return
+	 * the width of the diffusion and ignore the width of well and select.
+	 * @return the width of this ArcInst.
+	 */
 	public double getWidth()
 	{
 		return arcWidth - ((PrimitiveArc)protoType).getWidthOffset();
 	}
 
-	/** Change the width of this ArcInst.
-	 * @param dWidth the change to the arc width.
-	 * means "use the default width". */
+	/**
+	 * Routine to change the width of this ArcInst.
+	 * @param dWidth the change to the ArcInst width.
+	 */
 	public void modify(double dWidth)
 	{
 		arcWidth += dWidth;
@@ -414,14 +658,19 @@ public class ArcInst extends Geometric /*implements Networkable*/
 //		Electric.modifyArcInst(getAddr(), dWidth);
 	}
 
-	/** Get the ArcProto of this ArcInst. */
+	/**
+	 * Routine to return the prototype of this ArcInst.
+	 * @return the prototype of this ArcInst.
+	 */
 	public ArcProto getProto()
 	{
 		return protoType;
 	}
 
 	/**
-	 * Set the name of this ArcInst.
+	 * Routine to set the name of this ArcInst.
+	 * The name is a local string that can be set by the user.
+	 * @param name the new name of this ArcInst.
 	 */
 	public Variable setName(String name)
 	{
@@ -431,7 +680,9 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	}
 
 	/**
-	 * Get the name of this ArcInst.
+	 * Routine to return the name of this ArcInst.
+	 * The name is a local string that can be set by the user.
+	 * @return the name of this ArcInst, null if there is no name.
 	 */
 	public String getName()
 	{
@@ -440,13 +691,21 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		return (String) var.getObject();
 	}
 
-	public Poly makearcpoly(double len, double wid, Poly.Type style)
+	/**
+	 * Routine to create a Poly object that describes an ArcInst.
+	 * The ArcInst is described by its length, width and style.
+	 * @param length the length of the ArcInst.
+	 * @param width the width of the ArcInst.
+	 * @param style the style of the ArcInst.
+	 * @return a Poly that describes the ArcInst.
+	 */
+	public Poly makePoly(double length, double width, Poly.Type style)
 	{
 		Point2D.Double end1 = head.getLocation();
 		Point2D.Double end2 = tail.getLocation();
 
 		// zero-width polygons are simply lines
-		if (wid == 0)
+		if (width == 0)
 		{
 			Poly poly = new Poly(new Point2D.Double[]{end1, end2});
 			if (style == Poly.Type.FILLED) style = Poly.Type.OPENED;
@@ -455,8 +714,8 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		}
 
 		// determine the end extension on each end
-		double e1 = wid/2;
-		double e2 = wid/2;
+		double e1 = width/2;
+		double e2 = width/2;
 		if (!isExtended())
 		{
 			// nonextension arc: set extension to zero for all included ends
@@ -465,17 +724,17 @@ public class ArcInst extends Geometric /*implements Networkable*/
 //		} else if (isShortened())
 //		{
 //			// shortened arc: compute variable extension
-//			e1 = tech_getextendfactor(wid, ai->endshrink&0xFFFF);
-//			e2 = tech_getextendfactor(wid, (ai->endshrink>>16)&0xFFFF);
+//			e1 = tech_getextendfactor(width, ai->endshrink&0xFFFF);
+//			e2 = tech_getextendfactor(width, (ai->endshrink>>16)&0xFFFF);
 		}
 
 		// make the polygon
-		Poly poly = makeEndPointPoly(len, wid, getAngle(), end1, e1, end2, e2);
+		Poly poly = makeEndPointPoly(length, width, getAngle(), end1, e1, end2, e2);
 		if (poly != null) poly.setStyle(style);
 		return poly;
 	}
 
-	Poly makeEndPointPoly(double len, double wid, double angle, Point2D end1, double e1,
+	private Poly makeEndPointPoly(double len, double wid, double angle, Point2D end1, double e1,
 		Point2D end2, double e2)
 	{
 		double temp, xextra, yextra, xe1, ye1, xe2, ye2, w2, sa, ca;
@@ -550,13 +809,17 @@ public class ArcInst extends Geometric /*implements Networkable*/
 
 	/**
 	 * Routine to describe this ArcInst as a string.
+	 * @return a description of this ArcInst.
 	 */
 	public String describe()
 	{
 		return protoType.getProtoName();
 	}
 
-	/** Printable version of this ArcInst */
+	/**
+	 * Returns a printable version of this ArcInst.
+	 * @return a printable version of this ArcInst.
+	 */
 	public String toString()
 	{
 		return "ArcInst " + protoType.getProtoName();

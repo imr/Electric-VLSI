@@ -30,12 +30,9 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 
-import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
@@ -45,10 +42,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 /**
- * A NodeInst is an instance of a NodeProto (a primitive node or a Cell).
- * A NodeInst points to its prototype and the Cell on which it has been
+ * A NodeInst is an instance of a NodeProto (a PrimitiveNode or a Cell).
+ * A NodeInst points to its prototype and the Cell in which it has been
  * instantiated.  It also has a name, and contains a list of Connections
  * and Exports.
+ * <P>
+ * The rotation and transposition of a NodeInst can be confusing, so it is illustrated here.
+ * Nodes are transposed when one of their scale factors is negative.
  * <P>
  * <CENTER><IMG SRC="doc-files/NodeInst-1.gif"></CENTER>
  */
@@ -66,7 +66,7 @@ public class NodeInst extends Geometric
 //	/** only local nodeinst re-drawing desired */			private static final int RELOCLN =                01000;
 //	/** transparent nodeinst re-draw is done */				private static final int RETDONN =                02000;
 //	/** opaque nodeinst re-draw is done */					private static final int REODONN =                04000;
-	/** general flag used in spreading and highlighting */	private static final int NODEFLAGBIT =           010000;
+//	/** general flag used in spreading and highlighting */	private static final int NODEFLAGBIT =           010000;
 //	/** if on, nodeinst wants to be (un)expanded */			private static final int WANTEXP =               020000;
 //	/** temporary flag for nodeinst display */				private static final int TEMPFLG =               040000;
 	/** set if hard to select */							private static final int HARDSELECTN =          0100000;
@@ -88,6 +88,10 @@ public class NodeInst extends Geometric
 	/** Text descriptor */									private TextDescriptor descriptor;
 
 	// --------------------- private and protected methods ---------------------
+
+	/**
+	 * The constructor is never called.  Use the factory "newInstance" instead.
+	 */
 	private NodeInst()
 	{
 		// initialize this object
@@ -100,8 +104,7 @@ public class NodeInst extends Geometric
 	}
 
 	/**
-	 * Recalculate the transform on this arc to get the endpoints
-	 * where they should be.
+	 * Routine to recalculate the Geometric information for this NodeInst.
 	 */
 	void updateGeometric()
 	{
@@ -110,6 +113,7 @@ public class NodeInst extends Geometric
 
 	/**
 	 * Low-level access routine to create a NodeInst.
+	 * @return the newly created NodeInst.
 	 */
 	public static NodeInst lowLevelAllocate()
 	{
@@ -120,7 +124,13 @@ public class NodeInst extends Geometric
 
 	/**
 	 * Low-level routine to fill-in the NodeInst information.
-	 * Returns true on error.
+	 * @param protoType the NodeProto of which this is an instance.
+	 * @param center the center location of this NodeInst.
+	 * @param width the width of this NodeInst.
+	 * @param height the height of this NodeInst.
+	 * @param angle the angle of this NodeInst (in radians).
+	 * @param parent the Cell in which this NodeInst will reside.
+	 * @return true on error.
 	 */
 	public boolean lowLevelPopulate(NodeProto protoType, Point2D.Double center, double width, double height, double angle,
 		Cell parent)
@@ -156,7 +166,7 @@ public class NodeInst extends Geometric
 
 	/**
 	 * Low-level access routine to link the NodeInst into its Cell.
-	 * Returns true on error.
+	 * @return true on error.
 	 */
 	public boolean lowLevelLink()
 	{
@@ -166,17 +176,32 @@ public class NodeInst extends Geometric
 		return false;
 	}
 
-	public static NodeInst newInstance(NodeProto type, Point2D.Double center, double width, double height,
+	/**
+	 * Routine to create a NodeInst.
+	 * @param protoType the NodeProto of which this is an instance.
+	 * @param center the center location of this NodeInst.
+	 * @param width the width of this NodeInst.
+	 * @param height the height of this NodeInst.
+	 * @param angle the angle of this NodeInst (in radians).
+	 * @param parent the Cell in which this NodeInst will reside.
+	 * @return the newly created NodeInst, or null on error.
+	 */
+	public static NodeInst newInstance(NodeProto protoType, Point2D.Double center, double width, double height,
 		double angle, Cell parent)
 	{
 		NodeInst ni = lowLevelAllocate();
-		if (ni.lowLevelPopulate(type, center, width, height, angle, parent)) return null;
+		if (ni.lowLevelPopulate(protoType, center, width, height, angle, parent)) return null;
 		if (ni.lowLevelLink()) return null;
 		return ni;
 	}
 
 	/**
-	 * Change this node by (dx,dy) in position, (dxsize,dysize) in size, and drot in rotation.
+	 * Routine to change this NodeInst.
+	 * @param dx the amount to move the NodeInst in X.
+	 * @param dy the amount to move the NodeInst in Y.
+	 * @param dxsize the amount to scale the NodeInst in X.
+	 * @param dysize the amount to scale the NodeInst in Y.
+	 * @param drot the amount to alter the NodeInst rotation.
 	 */
 	public void modifyInstance(double dx, double dy, double dxsize, double dysize, double drot)
 	{
@@ -191,20 +216,12 @@ public class NodeInst extends Geometric
 		parent.setDirty();
 	}
 
-	public void delete()
-	{
-//		// avoid removing items from the same list we're iterating over
-//		ArrayList conns = (ArrayList) connections.clone();
-//		for (Iterator it = conns.iterator(); it.hasNext();)
-//		{
-//			Connection c = (Connection) it.next();
-//			ArcInst ai = c.getArc();
-//			ai.delete();
-//		}
-//		super.delete();
-	}
-
-	/** Returns true if this NodeInst is an icon of its parent.
+	/**
+	 * Routine to tell whether this NodeInst is an icon of its parent.
+	 * Electric does not allow recursive circuit hierarchies (instances of Cells inside of themselves).
+	 * However, it does allow one exception: a schematic may contain its own icon for documentation purposes.
+	 * This routine determines whether this NodeInst is such an icon.
+	 * @return true if this NodeInst is an icon of its parent.
 	 */
 	public boolean isIconOfParent()
 	{
@@ -215,20 +232,9 @@ public class NodeInst extends Geometric
 		return getParent().getCellGroup() == ((Cell) np).getCellGroup();
 	}
 
-	public void addExport(Export e)
-	{
-		exports.add(e);
-	}
-
-	public void removeExport(Export e)
-	{
-		if (!exports.contains(e))
-		{
-			throw new RuntimeException("Tried to remove a non-existant export");
-		}
-		exports.remove(e);
-	}
-
+	/**
+	 * Routine to delete this NodeInst.
+	 */
 	public void remove()
 	{
 		// kill the arcs attached to the connections.  This will also
@@ -289,7 +295,9 @@ public class NodeInst extends Geometric
 		}
 	}
 
-	/** sanity check function, used by Connection.checkobj */
+	/**
+	 * sanity check function, used by Connection.checkobj
+	 */
 	boolean containsConnection(Connection c)
 	{
 		return connections.contains(c);
@@ -323,7 +331,10 @@ public class NodeInst extends Geometric
 	}
 
 	/**
-	 * Recomputes the "WIPED" flag bit on the node, depending on whether there are wipable arcs.
+	 * Routine to recomputes the "Wiped" flag bit on this NodeInst.
+	 * The Wiped flag is set if the NodeInst is "wipable" and if it is connected to
+	 * ArcInsts that wipe.  Wiping means erasing.  Typically, pin NodeInsts can be wiped.
+	 * This means that when an arc connects to the pin, it is no longer drawn.
 	 */
 	public void computeWipeState()
 	{
@@ -345,65 +356,188 @@ public class NodeInst extends Geometric
 
 	// ------------------------ public methods -------------------------------
 
-	/** Set the Far-Text bit */
+	/**
+	 * Routine to set this NodeInst to have far-text.
+	 * Far text is text that is so far offset from the object that normal searches do not find it.
+	 */
 	public void setFarText() { userBits |= NHASFARTEXT; }
-	/** Clear the Far-Text bit */
+
+	/**
+	 * Routine to set this NodeInst to not have far-text.
+	 * Far text is text that is so far offset from the object that normal searches do not find it.
+	 */
 	public void clearFarText() { userBits &= ~NHASFARTEXT; }
-	/** Get the Far-Text bit */
+
+	/**
+	 * Routine to tell whether this NodeInst has far-text.
+	 * Far text is text that is so far offset from the object that normal searches do not find it.
+	 * @return true if this NodeInst has far-text.
+	 */
 	public boolean isFarText() { return (userBits & NHASFARTEXT) != 0; }
 
-	/** Set the Expanded bit */
+	/**
+	 * Routine to set this NodeInst to be expanded.
+	 * Expanded NodeInsts are instances of Cells that show their contents.
+	 * Unexpanded Cell instances are shown as boxes with the node prototype names in them.
+	 * The state has no meaning for instances of primitive node prototypes.
+	 */
 	public void setExpanded() { userBits |= NEXPAND; }
-	/** Clear the Expanded bit */
+
+	/**
+	 * Routine to set this NodeInst to be unexpanded.
+	 * Expanded NodeInsts are instances of Cells that show their contents.
+	 * Unexpanded Cell instances are shown as boxes with the node prototype names in them.
+	 * The state has no meaning for instances of primitive node prototypes.
+	 */
 	public void clearExpanded() { userBits &= ~NEXPAND; }
-	/** Get the Expanded bit */
+
+	/**
+	 * Routine to tell whether this NodeInst is expanded.
+	 * Expanded NodeInsts are instances of Cells that show their contents.
+	 * Unexpanded Cell instances are shown as boxes with the node prototype names in them.
+	 * The state has no meaning for instances of primitive node prototypes.
+	 * @return true if this NodeInst is expanded.
+	 */
 	public boolean isExpanded() { return (userBits & NEXPAND) != 0; }
 
-	/** Set the Wiped bit */
+	/**
+	 * Routine to set this NodeInst to be wiped.
+	 * Wiped NodeInsts are erased.  Typically, pin NodeInsts can be wiped.
+	 * This means that when an arc connects to the pin, it is no longer drawn.
+	 * In order for a NodeInst to be wiped, its prototype must have the "setArcsWipe" state,
+	 * and the arcs connected to it must have "setWipable" in their prototype.
+	 * @see NodeProto#setArcsWipe
+	 * @see ArcProto#setWipable
+	 */
 	public void setWiped() { userBits |= WIPED; }
-	/** Clear the Wiped bit */
+
+	/**
+	 * Routine to set this NodeInst to be not wiped.
+	 * Wiped NodeInsts are erased.  Typically, pin NodeInsts can be wiped.
+	 * This means that when an arc connects to the pin, it is no longer drawn.
+	 * In order for a NodeInst to be wiped, its prototype must have the "setArcsWipe" state,
+	 * and the arcs connected to it must have "setWipable" in their prototype.
+	 * @see NodeProto#setArcsWipe
+	 * @see ArcProto#setWipable
+	 */
 	public void clearWiped() { userBits &= ~WIPED; }
-	/** Get the Wiped bit */
+
+	/**
+	 * Routine to tell whether this NodeInst is wiped.
+	 * Wiped NodeInsts are erased.  Typically, pin NodeInsts can be wiped.
+	 * This means that when an arc connects to the pin, it is no longer drawn.
+	 * In order for a NodeInst to be wiped, its prototype must have the "setArcsWipe" state,
+	 * and the arcs connected to it must have "setWipable" in their prototype.
+	 * @return true if this NodeInst is wiped.
+	 * @see NodeProto#setArcsWipe
+	 * @see ArcProto#setWipable
+	 */
 	public boolean isWiped() { return (userBits & WIPED) != 0; }
 
-	/** Set the Shortened bit */
+	/**
+	 * Routine to set this NodeInst to be shortened.
+	 * Shortened NodeInst have been reduced in size to account for the fact that
+	 * they are connected at nonManhattan angles and must connect smoothly.
+	 * This state can only get set if the node's prototype has the "setCanShrink" state.
+	 */
 	public void setShortened() { userBits |= NSHORT; }
-	/** Clear the Shortened bit */
+
+	/**
+	 * Routine to set this NodeInst to be not shortened.
+	 * Shortened NodeInst have been reduced in size to account for the fact that
+	 * they are connected at nonManhattan angles and must connect smoothly.
+	 * This state can only get set if the node's prototype has the "setCanShrink" state.
+	 */
 	public void clearShortened() { userBits &= ~NSHORT; }
-	/** Get the Shortened bit */
+
+	/**
+	 * Routine to tell whether this NodeInst is shortened.
+	 * Shortened NodeInst have been reduced in size to account for the fact that
+	 * they are connected at nonManhattan angles and must connect smoothly.
+	 * This state can only get set if the node's prototype has the "setCanShrink" state.
+	 * @return true if this NodeInst is shortened.
+	 */
 	public boolean isShortened() { return (userBits & NSHORT) != 0; }
 
-	/** Set the general flag bit */
-	public void setFlagged() { userBits |= NODEFLAGBIT; }
-	/** Clear the general flag bit */
-	public void clearFlagged() { userBits &= ~NODEFLAGBIT; }
-	/** Get the general flag bit */
-	public boolean isFlagged() { return (userBits & NODEFLAGBIT) != 0; }
-
-	/** Set the Hard-to-Select bit */
+	/**
+	 * Routine to set this NodeInst to be hard-to-select.
+	 * Hard-to-select NodeInsts cannot be selected by clicking on them.
+	 * Instead, the "special select" command must be given.
+	 */
 	public void setHardSelect() { userBits |= HARDSELECTN; }
-	/** Clear the Hard-to-Select bit */
+
+	/**
+	 * Routine to set this NodeInst to be easy-to-select.
+	 * Hard-to-select NodeInsts cannot be selected by clicking on them.
+	 * Instead, the "special select" command must be given.
+	 */
 	public void clearHardSelect() { userBits &= ~HARDSELECTN; }
-	/** Get the Hard-to-Select bit */
+
+	/**
+	 * Routine to tell whether this NodeInst is hard-to-select.
+	 * Hard-to-select NodeInsts cannot be selected by clicking on them.
+	 * Instead, the "special select" command must be given.
+	 * @return true if this NodeInst is hard-to-select.
+	 */
 	public boolean isHardSelect() { return (userBits & HARDSELECTN) != 0; }
 
-	/** Set the Visible-Inside bit */
+	/**
+	 * Routine to set this NodeInst to be visible-inside.
+	 * A NodeInst that is "visible inside" is only drawn when viewing inside of the Cell.
+	 * It is not visible from outside (meaning from higher-up the hierarchy).
+	 */
 	public void setVisInside() { userBits |= NVISIBLEINSIDE; }
-	/** Clear the Visible-Inside bit */
+
+	/**
+	 * Routine to set this NodeInst to be not visible-inside.
+	 * A NodeInst that is "visible inside" is only drawn when viewing inside of the Cell.
+	 * It is not visible from outside (meaning from higher-up the hierarchy).
+	 */
 	public void clearVisInside() { userBits &= ~NVISIBLEINSIDE; }
-	/** Get the Visible-Inside bit */
+
+	/**
+	 * Routine to tell whether this NodeInst is visible-inside.
+	 * A NodeInst that is "visible inside" is only drawn when viewing inside of the Cell.
+	 * It is not visible from outside (meaning from higher-up the hierarchy).
+	 * @return true if this NodeInst is visible-inside.
+	 */
 	public boolean isVisInside() { return (userBits & NVISIBLEINSIDE) != 0; }
 
-	/** Set the Locked bit */
+	/**
+	 * Routine to set this NodeInst to be locked.
+	 * Locked NodeInsts cannot be modified or deleted.
+	 */
 	public void setLocked() { userBits |= NILOCKED; }
-	/** Clear the Locked bit */
+
+	/**
+	 * Routine to set this NodeInst to be unlocked.
+	 * Locked NodeInsts cannot be modified or deleted.
+	 */
 	public void clearLocked() { userBits &= ~NILOCKED; }
-	/** Get the Locked bit */
+
+	/**
+	 * Routine to tell whether this NodeInst is locked.
+	 * Locked NodeInsts cannot be modified or deleted.
+	 * @return true if this NodeInst is locked.
+	 */
 	public boolean isLocked() { return (userBits & NILOCKED) != 0; }
 
-	/** Set the Technology-specific value */
+	/**
+	 * Routine to set a Technology-specific value on this NodeInst.
+	 * This is mostly used by the Schematics technology which allows variations
+	 * on a NodeInst to be stored.
+	 * For example, the Transistor primitive uses these bits to distinguish nMOS, pMOS, etc.
+	 * @param value the Technology-specific value to store on this NodeInst.
+	 */
 	public void setTechSpecific(int value) { userBits = (userBits & ~NTECHBITS) | (value << NTECHBITSSH); }
-	/** Get the Locked bit */
+
+	/**
+	 * Routine to return the Technology-specific value on this NodeInst.
+	 * This is mostly used by the Schematics technology which allows variations
+	 * on a NodeInst to be stored.
+	 * For example, the Transistor primitive uses these bits to distinguish nMOS, pMOS, etc.
+	 * @return the Technology-specific value on this NodeInst.
+	 */
 	public int getTechSpecific() { return (userBits & NTECHBITS) >> NTECHBITSSH; }
 
 	/**
@@ -428,6 +562,13 @@ public class NodeInst extends Geometric
 	 */
 	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
 
+	/**
+	 * Routine to return a transformation that moves up the hierarchy.
+	 * Presuming that this NodeInst is a Cell instance, the transformation goes
+	 * from the space of that Cell to the space of this NodeInst's parent Cell.
+	 * The transformation includes the rotation of this NodeInst.
+	 * @return a transformation that moves up the hierarchy.
+	 */
 	public AffineTransform transformOut()
 	{
 		// to transform out of this node instance, first translate inner coordinates to outer
@@ -441,6 +582,14 @@ public class NodeInst extends Geometric
 		return transform;
 	}
 
+	/**
+	 * Routine to return a transformation that moves up the hierarchy, combined with a previous transformation.
+	 * Presuming that this NodeInst is a Cell instance, the transformation goes
+	 * from the space of that Cell to the space of this NodeInst's parent Cell.
+	 * The transformation includes the rotation of this NodeInst.
+	 * @param prevTransform the previous transformation to the NodeInst's Cell.
+	 * @return a transformation that moves up the hierarchy, including the previous transformation.
+	 */
 	public AffineTransform transformOut(AffineTransform prevTransform)
 	{
 		AffineTransform transform = transformOut();
@@ -449,6 +598,14 @@ public class NodeInst extends Geometric
 		return returnTransform;
 	}
 
+	/**
+	 * Routine to return a transformation that translates up the hierarchy.
+	 * Presuming that this NodeInst is a Cell instance, the transformation goes
+	 * from the space of that Cell to the space of this NodeInst's parent Cell.
+	 * However, it does not account for the rotation of this NodeInst...it only
+	 * translates from one space to another.
+	 * @return a transformation that translates up the hierarchy.
+	 */
 	public AffineTransform translateOut()
 	{
 		// to transform out of this node instance, first translate inner coordinates to outer
@@ -461,6 +618,15 @@ public class NodeInst extends Geometric
 		return transform;
 	}
 
+	/**
+	 * Routine to return a transformation that translates up the hierarchy, combined with a previous transformation.
+	 * Presuming that this NodeInst is a Cell instance, the transformation goes
+	 * from the space of that Cell to the space of this NodeInst's parent Cell.
+	 * However, it does not account for the rotation of this NodeInst...it only
+	 * translates from one space to another.
+	 * @param prevTransform the previous transformation to the NodeInst's Cell.
+	 * @return a transformation that translates up the hierarchy, including the previous transformation.
+	 */
 	public AffineTransform translateOut(AffineTransform prevTransform)
 	{
 		AffineTransform transform = translateOut();
@@ -469,11 +635,24 @@ public class NodeInst extends Geometric
 		return returnTransform;
 	}
 
+	/**
+	 * Routine to return a transformation that rotates this NodeInst.
+	 * It transforms points on this NodeInst to account for the NodeInst's rotation.
+	 * @return a transformation that rotates this NodeInst.
+	 * If this NodeInst is not rotated, the returned transformation is identity.
+	 */
 	public AffineTransform rotateOut()
 	{
 		return rotateAbout(angle, sX, sY, cX, cY);
 	}
 
+	/**
+	 * Routine to return a transformation that rotates this NodeInst, combined with a previous transformation.
+	 * It transforms points on this NodeInst to account for the NodeInst's rotation.
+	 * @param prevTransform the previous transformation to be applied.
+	 * @return a transformation that rotates this NodeInst, combined with a previous transformation..
+	 * If this NodeInst is not rotated, the returned transformation is identity.
+	 */
 	public AffineTransform rotateOut(AffineTransform prevTransform)
 	{
 		// if there is no transformation, stop now
@@ -485,35 +664,59 @@ public class NodeInst extends Geometric
 		return returnTransform;
 	}
 
-	/** Get an iterator for all PortInst's */
+	/**
+	 * Routine to return an Iterator for all PortInsts on this NodeInst.
+	 * @return an Iterator for all PortInsts on this NodeInst.
+	 */
 	public Iterator getPortInsts()
 	{
 		return portMap.values().iterator();
 	}
 
-	/** Get the number of PortInst's */
+	/**
+	 * Routine to return the number of PortInsts on this NodeInst.
+	 * @return the number of PortInsts on this NodeInst.
+	 */
 	public int getNumPortInsts()
 	{
 		return portMap.size();
 	}
 
-	/** Get the only port. <br> This is quite useful for vias and pins
-	 * which have only one port. If there's more or less than one port
-	 * then die. */
+	/**
+	 * Routine to return the only PortInst on this NodeInst.
+	 * This is quite useful for vias and pins which have only one PortInst.
+	 * @return the only PortInst on this NodeInst.
+	 * If there are more than 1 PortInst, then return null.
+	 */
 	public PortInst getOnlyPortInst()
 	{
 		int sz = portMap.size();
-		if (sz != 1) System.out.println("NodeInst.getOnlyPort: there isn't exactly one port: " + sz);
+		if (sz != 1)
+		{
+			System.out.println("NodeInst.getOnlyPort: there isn't exactly one port: " + sz);
+			return null;
+		}
 		return (PortInst) portMap.values().iterator().next();
 	}
 
-	/** Find the PortInst with the given name. If no PortInst has this
-	 * name then return null. */
+	/**
+	 * Routine to return the named PortInst on this NodeInst.
+	 * @param name the name of the PortInst.
+	 * @return the selected PortInst.  If the name is not found, return null.
+	 */
 	public PortInst findPortInst(String name)
 	{
 		return (PortInst) portMap.get(name);
 	}
-	
+
+	/**
+	 * Routine to return the "outline" information on this NodeInst.
+	 * Outline information is a set of coordinate points that further refines the NodeInst description.
+	 * It is typically used in Artwork primitives to give them a precise shape.
+	 * It is also used by pure-layer nodes in all layout technologies to allow them to take any shape.
+	 * It is even used by many MOS transistors to allow a precise gate path to be specified.
+	 * @return an array of Integers, organized as X/Y/X/Y.
+	 */
 	public Integer [] getTrace()
 	{
 		Variable var = this.getVal("trace", Integer[].class);
@@ -524,10 +727,10 @@ public class NodeInst extends Geometric
 	}
 
 	/**
-	 * routine to determine whether pin display should be supressed by counting
-	 * the number of arcs and seeing if there are one or two and also by seeing if
-	 * the node has exports (then draw it if there are three or more).
-	 * Returns true if the pin should be supressed.
+	 * Routine to determine whether the display of this pin NodeInst should be supressed.
+	 * In Schematics technologies, pins are not displayed if there are 1 or 2 connections,
+	 * but are shown for 0 or 3 or more connections (called "Steiner points").
+	 * @return true if this pin NodeInst should be supressed.
 	 */
 	public boolean pinUseCount()
 	{
@@ -538,16 +741,20 @@ public class NodeInst extends Geometric
 	}
 
 	/**
-	 * can this node connect to a particular arc.
-	 * @param arc the type of arc to test for
+	 * Routine to tell whether this NodeInst can connect to a given ArcProto.
+	 * @param arc the type of arc to test for.
 	 * @return the first port that can connect to this node, or
-	 * null, if no such port on this node exists
+	 * null, if no such port on this node exists.
 	 */
 	public PortProto connectsTo(ArcProto arc)
 	{
 		return protoType.connectsTo(arc);
 	}
 
+	/**
+	 * Routine to add an Connection to this NodeInst.
+	 * @param c the Connection to add.
+	 */
 	void addConnection(Connection c)
 	{
 		connections.add(c);
@@ -555,6 +762,10 @@ public class NodeInst extends Geometric
 		ni.computeWipeState();
 	}
 
+	/**
+	 * Routine to remove an Connection from this NodeInst.
+	 * @param c the Connection to remove.
+	 */
 	void removeConnection(Connection c)
 	{
 		connections.remove(c);
@@ -562,39 +773,87 @@ public class NodeInst extends Geometric
 		ni.computeWipeState();
 	}
 
+	/**
+	 * Routine to add an Export to this NodeInst.
+	 * @param e the Export to add.
+	 */
+	public void addExport(Export e)
+	{
+		exports.add(e);
+	}
+
+	/**
+	 * Routine to remove an Export from this NodeInst.
+	 * @param e the Export to remove.
+	 */
+	public void removeExport(Export e)
+	{
+		if (!exports.contains(e))
+		{
+			throw new RuntimeException("Tried to remove a non-existant export");
+		}
+		exports.remove(e);
+	}
+
+	/**
+	 * Routine to return an Iterator over all Exports on this NodeInst.
+	 * @return an Iterator over all Exports on this NodeInst.
+	 */
 	public Iterator getExports()
 	{
 		return exports.iterator();
 	}
 
+	/**
+	 * Routine to return the number of Exports on this NodeInst.
+	 * @return the number of Exports on this NodeInst.
+	 */
 	public int getNumExports() { return exports.size(); }
 
+	/**
+	 * Routine to return an Iterator over all Connections on this NodeInst.
+	 * @return an Iterator over all Connections on this NodeInst.
+	 */
 	public Iterator getConnections()
 	{
 		return connections.iterator();
 	}
 
+	/**
+	 * Routine to return the number of Connections on this NodeInst.
+	 * @return the number of Connections on this NodeInst.
+	 */
 	public int getNumConnections() { return connections.size(); }
 
-	public NodeProto getProto()
-	{
-		return protoType;
-	}
+	/**
+	 * Routine to return the prototype of this NodeInst.
+	 * @return the prototype of this NodeInst.
+	 */
+	public NodeProto getProto() { return protoType; }
 
-	/** Get the Text Descriptor associated with this port. */
+	/**
+	 * Routine to return the Text Descriptor associated with this NodeInst.
+	 * The only NodeInsts that need Text Descriptors are instances of Cells that are unexpanded.
+	 * In this situation, the Cell instance is drawn as a box with a name.
+	 * The Text Descriptor applies to the display of that name.
+	 * @return the Text Descriptor for this NodeInst.
+	 */
 	public TextDescriptor getTextDescriptor() { return descriptor; }
 
-	/** Get the Text Descriptor associated with this port. */
+	/**
+	 * Routine to set the Text Descriptor associated with this NodeInst.
+	 * The only NodeInsts that need Text Descriptors are instances of Cells that are unexpanded.
+	 * In this situation, the Cell instance is drawn as a box with a name.
+	 * The Text Descriptor applies to the display of that name.
+	 * @param descriptor the Text Descriptor for this NodeInst.
+	 */
 	public void setTextDescriptor(TextDescriptor descriptor) { this.descriptor = descriptor; }
 
-	/** Returns true if there a label attached to this node inst.
+	/**
+	 * Routine to return the name of this NodeInst.
+	 * The name is a local string that can be set by the user.
+	 * @return the name of this NodeInst, null if there is no name.
 	 */
-	public boolean hasLabel()
-	{
-		return (textbits & 060) != 0;
-	}
-
-	/** Return the instance name. <p> If there is no name return null. */
 	public String getName()
 	{
 		Variable var = getVal(VAR_INST_NAME, String.class);
@@ -602,7 +861,11 @@ public class NodeInst extends Geometric
 		return (String) var.getObject();
 	}
 
-	/** Set the instance name. */
+	/**
+	 * Routine to set the name of this NodeInst.
+	 * The name is a local string that can be set by the user.
+	 * @param name the new name of this NodeInst.
+	 */
 	public Variable setName(String name)
 	{
 		Variable var = setVal(VAR_INST_NAME, name);

@@ -40,15 +40,14 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 
-import java.awt.Point;
 import java.awt.geom.Point2D;
 
 /**
- * This is the General Purpose Sketchpad Facility technology.
+ * This is the general purpose sketching technology.
  */
 public class Artwork extends Technology
 {
-	public static final Artwork tech = new Artwork();
+	/** the Artwork Technology object. */	public static final Artwork tech = new Artwork();
 
 	/** number of lines in an ellipse */	private static final int ELLIPSEPOINTS =        30;
 	/** granularity of a spline */			private static final int SPLINEGRAIN   =        20;
@@ -92,7 +91,7 @@ public class Artwork extends Technology
 
 		/** Graphics layer */
 		G_lay = Layer.newInstance("Graphics",
-			new EGraphics(EGraphics.LAYERO, EGraphics.BLACK, EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,0,0.8,1,
 			new int[] {0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
 				0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff}));
 
@@ -408,7 +407,11 @@ public class Artwork extends Technology
 	};
 
 	/**
-	 * Get a list of polygons that describe node "ni"
+	 * Routine to return a list of Polys that describe a given NodeInst.
+	 * This routine overrides the general one in the Technology object
+	 * because of the unusual primitives in the Artwork Technology.
+	 * @param ni the NodeInst to describe.
+	 * @return an array of Poly objects.
 	 */
 	public Poly [] getShape(NodeInst ni)
 	{
@@ -473,6 +476,13 @@ public class Artwork extends Technology
 		return super.getShape(ni);
 	}
 
+	/**
+	 * Routine to return a list of Polys that describe a given ArcInst.
+	 * This routine overrides the general one in the Technology object
+	 * because of the unusual primitives in the Artwork Technology.
+	 * @param ai the ArcInst to describe.
+	 * @return an array of Poly objects.
+	 */
 	public Poly [] getShape(ArcInst ai)
 	{
 		getGraphics(ai);
@@ -480,10 +490,17 @@ public class Artwork extends Technology
 	}
 
 	/**
-	 * routine to fill polygon "poly" with the vectors for the ellipse whose
-	 * bounding box is given by the rectangle (lx-hx) and (ly-hy).
+	 * Routine to return an array of Point2D.Double that describe an ellipse.
+	 * @param cX the center X coordinate of the ellipse.
+	 * @param cY the center Y coordinate of the ellipse.
+	 * @param sX the X size of the ellipse.
+	 * @param sY the Y size of the ellipse.
+	 * @param startoffset the starting angle of the ellipse, in radians.
+	 * @param endangle the ending angle of the ellipse, in radians.
+	 * If both startoffset and endangle are zero, draw the full ellipse.
+	 * @return an array of points that describes the ellipse.
 	 */
-	Point2D.Double [] fillEllipse(double cX, double cY, double sX, double sY, double startoffset, double endangle)
+	private Point2D.Double [] fillEllipse(double cX, double cY, double sX, double sY, double startoffset, double endangle)
 	{
 		// ensure that the polygon can hold the vectors
 		boolean closed = true;
@@ -531,23 +548,40 @@ public class Artwork extends Technology
 		return points;
 	}
 
-	double getTracePointX(Integer [] tracePoints, int index, double cX)
+	/**
+	 * Routine to extract an X coordinate from an array.
+	 * @param tracePoints the array of coordinate values, alternating X/Y/X/Y.
+	 * @param index the entry in the array to retrieve.
+	 * @param cX an offset value to add to the retrieved value.
+	 * @return the X coordinate value.
+	 */
+	private double getTracePointX(Integer [] tracePoints, int index, double cX)
 	{
 		double v = tracePoints[index*2].doubleValue();
 		return v + cX;
 	}
 
-	double getTracePointY(Integer [] tracePoints, int index, double cY)
+	/**
+	 * Routine to extract an Y coordinate from an array.
+	 * @param tracePoints the array of coordinate values, alternating X/Y/X/Y.
+	 * @param index the entry in the array to retrieve.
+	 * @param cY an offset value to add to the retrieved value.
+	 * @return the Y coordinate value.
+	 */
+	private double getTracePointY(Integer [] tracePoints, int index, double cY)
 	{
 		double v = tracePoints[index*2+1].doubleValue();
 		return v + cY;
 	}
 
 	/*
-	 * Routine to convert the "count" spline control points in "points" that are centered at (cx,cy)
-	 * to a line approximation in "poly".  Uses "steps" lines per spline segment.
+	 * Routine to convert the given spline control points into a spline curve.
+	 * @param cX the center X coordinate of the spline.
+	 * @param cY the center Y coordinate of the spline.
+	 * @param tracePoints the array of control point values, alternating X/Y/X/Y.
+	 * @return an array of points that describes the spline.
 	 */
-	Point2D.Double [] fillSpline(double cX, double cY, Integer [] tracePoints)
+	private Point2D.Double [] fillSpline(double cX, double cY, Integer [] tracePoints)
 	{
 		int steps = SPLINEGRAIN;
 		int count = tracePoints.length / 2;
@@ -598,15 +632,14 @@ public class Artwork extends Technology
 	}
 
 	/**
-	 * routine to get the starting and ending angle of the arc described by node "ni".
-	 * Sets "startoffset" to the fractional difference between the node rotation and the
-	 * true starting angle of the arc (this will be less than a tenth of a degree, since
-	 * node rotation is in tenths of a degree).  Sets "endangle" to the ending rotation
-	 * of the arc (the true ending angle is this plus the node rotation and "startoffset").
-	 * Both "startoffset" and "endangle" are in radians).
-	 * If the node is not circular, both values are set to zero.
+	 * Routine to return the starting and ending angle of an arc described by the given NodeInst.
+	 * These values can be found in the "ART_degrees" variable on the NodeInst.
+	 * @param ni the NodeInst with the curvature.
+	 * @return a 2-long double array with the starting offset in the first entry (a value in radians)
+	 * and the amount of curvature in the second entry (in radians).
+	 * If the NodeInst does not have circular information, both values are set to zero.
 	 */
-	double [] getarcdegrees(NodeInst ni)
+	private double [] getarcdegrees(NodeInst ni)
 	{
 		double [] returnValues = new double[2];
 		returnValues[0] = returnValues[1] = 0.0;
@@ -634,7 +667,11 @@ public class Artwork extends Technology
 		return returnValues;
 	}
 
-	void getGraphics(ElectricObject obj)
+	/**
+	 * Routine to find examine the ElectricObject and prepare for any Graphics found there.
+	 * @param obj the object with graphics specifications.
+	 */
+	private void getGraphics(ElectricObject obj)
 	{
 		// get the color information
 		Variable var = obj.getVal("ART_color", Integer.class);
@@ -682,8 +719,10 @@ public class Artwork extends Technology
 //		}
 	}
 
-	/*
-	 * Routine to convert old primitive node names to their proper type.
+	/**
+	 * Routine to convert old primitive names to their proper NodeProtos.
+	 * @param name the name of the old primitive.
+	 * @return the proper PrimitiveNode to use (or null if none can be determined).
 	 */
 	public PrimitiveNode convertOldNodeName(String name)
 	{
@@ -694,8 +733,10 @@ public class Artwork extends Technology
 		return null;
 	}
 
-	/*
-	 * Routine to convert old primitive arc names to their proper type.
+	/**
+	 * Routine to convert old primitive names to their proper ArcProtos.
+	 * @param name the name of the old primitive.
+	 * @return the proper PrimitiveArc to use (or null if none can be determined).
 	 */
 	public PrimitiveArc convertOldArcName(String name)
 	{

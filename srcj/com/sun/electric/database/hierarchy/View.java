@@ -33,6 +33,9 @@ import java.util.Iterator;
 /**
  * A View is an object that represents a style of design, for example schematic, layout, etc.
  * Each Cell has a View associated with it.
+ * Views have full names (such as "layout") and abbreviations which are used in cell names
+ * (for example "gate{lay}").
+ * <P>
  * Electric has a set of Views at the start, and users can define their own.
  */
 public class View extends ElectricObject
@@ -44,7 +47,7 @@ public class View extends ElectricObject
 	/** view is statically defined and cannot be deleted */ private final static int PERMANENTVIEW  = 04;	
 
 	/** the full name of the view */						private String fullName;
-	/** the abbreviation of the view */						private String shortName;
+	/** the abbreviation of the view */						private String abbreviation;
 	/** flag bits for the view */							private int type;
 	/** temporary integer for the view */					private int tempInt;
 	/** a list of all views in existence */					private static List views = new ArrayList();
@@ -52,38 +55,109 @@ public class View extends ElectricObject
 
 	// -------------------------- public data -----------------------------
 
-	/** Defines the unknown view. */
-		public static final View UNKNOWN = newInstance("unknown", "");
-	/** Defines the simulation snapshot view. */
-		public static final View SIMSNAP = newInstance("simulation-snapshot", "sim");
-	/** Defines the NetLisp (netlist) view. */
-		public static final View NETLISTNETLISP = newTextInstance("netlist-netlisp-format", "net-netlisp");
-	/** Defines the RSIM (netlist) view. */
-		public static final View NETLISTRSIM = newTextInstance("netlist-rsim-format", "net-rsim");
-	/** Defines the SILOS (netlist) view. */
-		public static final View NETLISTSILOS = newTextInstance("netlist-silos-format", "net-silos");
-	/** Defines the QUISC (netlist) view. */
-		public static final View NETLISTQUISC = newTextInstance("netlist-quisc-format", "net-quisc");
-	/** Defines the ALS (netlist) view. */
-		public static final View NETLISTALS = newTextInstance("netlist-als-format", "net-als");
-	/** Defines the general Netlist view. */
-		public static final View NETLIST = newTextInstance("netlist", "net");
-	/** Defines the VHDL view. */
-		public static final View VHDL = newTextInstance("VHDL", "vhdl");
-	/** Defines the Verilog view. */
-		public static final View VERILOG = newTextInstance("Verilog", "ver");
-	/** Defines the Skeleton view. */
-		public static final View SKELETON = newInstance("skeleton", "sk");
-	/** Defines the Compensated view. */
-		public static final View COMP = newInstance("compensated", "comp");
-	/** Defines the Documentation view. */
-		public static final View DOC = newTextInstance("documentation", "doc");
-	/** Defines the Icon view. */
-		public static final View ICON = newInstance("icon", "ic");
-	/** Defines the Schematic view. */
-		public static final View SCHEMATIC = newInstance("schematic", "sch");
-	/** Defines the Layout view. */
-		public static final View LAYOUT = newInstance("layout", "lay");
+	/**
+	 * Defines the unknown view.
+	 * This view has an empty abbreviation.
+	 */
+	public static final View UNKNOWN = newInstance("unknown", "");
+
+	/**
+	 * Defines the Layout view.
+	 */
+	public static final View LAYOUT = newInstance("layout", "lay");
+
+	/**
+	 * Defines the Schematic view.
+	 */
+	public static final View SCHEMATIC = newInstance("schematic", "sch");
+
+	/**
+	 * Defines the Icon view.
+	 * This is used in schematics to represent instances.
+	 * Cells with this view typically use primitives from the Artwork Technology.
+	 */
+	public static final View ICON = newInstance("icon", "ic");
+
+	/**
+	 * Defines the Skeleton view.
+	 * Cells with this view contains only a protection frame or other dummy version of true layout.
+	 */
+	public static final View SKELETON = newInstance("skeleton", "sk");
+
+	/**
+	 * Defines the Documentation view (a text view).
+	 * Cells with this view contain documentation for other cells in the cell group.
+	 * The text is located in the “FACET_message” variable on the cell.
+	 */
+	public static final View DOC = newTextInstance("documentation", "doc");
+
+	/**
+	 * Defines the simulation snapshot view.
+	 * Cells with this view contain snapshots of the simulation waveform window.
+	 */
+	public static final View SIMSNAP = newInstance("simulation-snapshot", "sim");
+
+	/**
+	 * Defines the NetLisp (netlist) view (a text view).
+	 * Cells with this view contain a "netlisp" format netlist (for simulation).
+	 * The text is located in the “FACET_message” variable on the cell.
+	 */
+	public static final View NETLISTNETLISP = newTextInstance("netlist-netlisp-format", "net-netlisp");
+
+	/**
+	 * Defines the RSIM (netlist) view (a text view).
+	 * Cells with this view contain an "RSIM" format netlist (for simulation).
+	 * The text is located in the “FACET_message” variable on the cell.
+	 */
+	public static final View NETLISTRSIM = newTextInstance("netlist-rsim-format", "net-rsim");
+
+	/**
+	 * Defines the SILOS (netlist) view (a text view).
+	 * Cells with this view contain a "SILOS" format netlist (for simulation).
+	 * The text is located in the “FACET_message” variable on the cell.
+	 */
+	public static final View NETLISTSILOS = newTextInstance("netlist-silos-format", "net-silos");
+
+	/**
+	 * Defines the QUISC (netlist) view (a text view).
+	 * Cells with this view contain an "QUISC" format netlist (for place-and-route by the QUISC Silicon Compiler).
+	 * The text is located in the “FACET_message” variable on the cell.
+	 */
+	public static final View NETLISTQUISC = newTextInstance("netlist-quisc-format", "net-quisc");
+
+	/**
+	 * Defines the ALS (netlist) view (a text view).
+	 * Cells with this view contain an "ALS" format netlist (for simulation).
+	 * The text is located in the “FACET_message” variable on the cell.
+	 */
+	public static final View NETLISTALS = newTextInstance("netlist-als-format", "net-als");
+
+	/**
+	 * Defines the general Netlist view (a text view).
+	 * Cells with this view contain an unknown format netlist.
+	 * The text is located in the “FACET_message” variable on the cell.
+	 */
+	public static final View NETLIST = newTextInstance("netlist", "net");
+
+	/**
+	 * Defines the VHDL view (a text view).
+	 * Cells with this view contains a textual description in the VHDL hardware-description language.
+	 * The text is located in the “FACET_message” variable on the cell.
+	 */
+	public static final View VHDL = newTextInstance("VHDL", "vhdl");
+
+	/**
+	 * Defines the Verilog view (a text view).
+	 * Cells with this view contains a textual description in the Verilog hardware-description language.
+	 * The text is located in the “FACET_message” variable on the cell.
+	 */
+	public static final View VERILOG = newTextInstance("Verilog", "ver");
+
+	/**
+	 * Defines the Compensated view.
+	 * Cells with this view contains compensated layout (adjusted for fabrication).
+	 */
+	public static final View COMP = newInstance("compensated", "comp");
 
 	// -------------------------- private methods -----------------------------
 
@@ -94,12 +168,12 @@ public class View extends ElectricObject
 	{
 	}
 
-	private static View makeInstance(String fullName, String shortName, int type)
+	private static View makeInstance(String fullName, String abbreviation, int type)
 	{
 		// make sure the view doesn't already exist
-		if (viewNames.get(shortName) != null)
+		if (viewNames.get(abbreviation) != null)
 		{
-			System.out.println("multiple views with same name: " + shortName);
+			System.out.println("multiple views with same name: " + abbreviation);
 			return null;
 		}
 		if (viewNames.get(fullName) != null)
@@ -114,12 +188,12 @@ public class View extends ElectricObject
 		// create the view
 		View v = new View();
 		v.fullName = fullName;
-		v.shortName = shortName;
+		v.abbreviation = abbreviation;
 		v.type = type;
 
 		// enter both the full and short names into the hash table
 		viewNames.put(fullName, v);
-		viewNames.put(shortName, v);
+		viewNames.put(abbreviation, v);
 		views.add(v);
 		return v;
 	}
@@ -129,26 +203,26 @@ public class View extends ElectricObject
 	/**
 	 * Routine to create a View with the given name.
 	 * @param fullName the full name of the View, for example "layout".
-	 * @param shortName the short name of the View, for example "lay".
+	 * @param abbreviation the short name of the View, for example "lay".
 	 * The short name is used inside of braces when naming a cell (for example "gate{lay}").
 	 * @return the newly created View.
 	 */
-	public static View newInstance(String fullName, String shortName)
+	public static View newInstance(String fullName, String abbreviation)
 	{
-		return makeInstance(fullName, shortName, 0);
+		return makeInstance(fullName, abbreviation, 0);
 	}
 
 	/**
 	 * Routine to create a Text-only View with the given name.
 	 * Cells with text-only views have no nodes or arcs, just text.
 	 * @param fullName the full name of the View, for example "documentation".
-	 * @param shortName the short name of the View, for example "doc".
+	 * @param abbreviation the short name of the View, for example "doc".
 	 * The short name is used inside of braces when naming a cell (for example "gate{doc}").
 	 * @return the newly created Text-only View.
 	 */
-	public static View newTextInstance(String fullName, String shortName)
+	public static View newTextInstance(String fullName, String abbreviation)
 	{
-		return makeInstance(fullName, shortName, TEXTVIEW);
+		return makeInstance(fullName, abbreviation, TEXTVIEW);
 	}
 
 	/**
@@ -172,7 +246,7 @@ public class View extends ElectricObject
 	 * The short name is used inside of braces when naming a cell (for example "gate{doc}").
 	 * @return the short name of this View.
 	 */
-	public String getShortName() { return shortName; }
+	public String getAbbreviation() { return abbreviation; }
 
 	/**
 	 * Routine to set an arbitrary integer in a temporary location on this View.

@@ -309,6 +309,69 @@ public abstract class PortProto extends ElectricObject implements Networkable
 	}
 
 	/**
+	 * Routine to set this PortProto to be isolated.
+	 * Isolated ports do not electrically connect their arcs.
+	 * This occurs in the multiple inputs to a schematic gate that all connect to the same port but do not themselves connect.
+	 */
+	public void setIsolated() { userBits |= PORTISOLATED; }
+
+	/**
+	 * Routine to set this PortProto to be not isolated.
+	 * Isolated ports do not electrically connect their arcs.
+	 * This occurs in the multiple inputs to a schematic gate that all connect to the same port but do not themselves connect.
+	 */
+	public void clearIsolated() { userBits &= ~PORTISOLATED; }
+
+	/**
+	 * Routine to tell whether this PortProto is isolated.
+	 * Isolated ports do not electrically connect their arcs.
+	 * This occurs in the multiple inputs to a schematic gate that all connect to the same port but do not themselves connect.
+	 * @return true if this PortProto is isolated.
+	 */
+	public boolean isIsolated() { return (userBits & PORTISOLATED) != 0; }
+
+	/**
+	 * Routine to set this PortProto to be always drawn.
+	 * Ports that are always drawn have their name displayed at all times, even when an arc is connected to them.
+	 */
+	public void setAlwaysDrawn() { userBits |= PORTDRAWN; }
+
+	/**
+	 * Routine to set this PortProto to be not always drawn.
+	 * Ports that are always drawn have their name displayed at all times, even when an arc is connected to them.
+	 */
+	public void clearAlwaysDrawn() { userBits &= ~PORTDRAWN; }
+
+	/**
+	 * Routine to tell whether this PortProto is always drawn.
+	 * Ports that are always drawn have their name displayed at all times, even when an arc is connected to them.
+	 * @return true if this PortProto is always drawn.
+	 */
+	public boolean isAlwaysDrawn() { return (userBits & PORTDRAWN) != 0; }
+
+	/**
+	 * Routine to set this PortProto to exist only in the body of a cell.
+	 * Ports that exist only in the body do not have an equivalent in the icon.
+	 * This is used by simulators and icon generators to recognize less significant ports.
+	 */
+	public void setBodyOnly() { userBits |= BODYONLY; }
+
+	/**
+	 * Routine to set this PortProto to exist in the body and icon of a cell.
+	 * Ports that exist only in the body do not have an equivalent in the icon.
+	 * This is used by simulators and icon generators to recognize less significant ports.
+	 */
+	public void clearBodyOnly() { userBits &= ~BODYONLY; }
+
+	/**
+	 * Routine to tell whether this PortProto exists only in the body of a cell.
+	 * Ports that exist only in the body do not have an equivalent in the icon.
+	 * This is used by simulators and icon generators to recognize less significant ports.
+	 * @return true if this PortProto exists only in the body of a cell.
+	 */
+	public boolean isBodyOnly() { return (userBits & BODYONLY) != 0; }
+
+	/**
 	 * Abstract routine to return the base-level port that this PortProto is created from.
 	 * For a PrimitivePort, it simply returns itself.
 	 * For an Export, it returns the base port of its sub-port, the port on the NodeInst
