@@ -70,7 +70,6 @@ public class ClickZoomWireListener
     private static long zoomInDelayMillis; /* zoom in delay in milliseconds */
 
     private static final boolean debug = false; /* for debugging */
-    private static final boolean useMouseOverHighlighter = true;
 
     public static ClickZoomWireListener theOne = new ClickZoomWireListener();
 
@@ -840,7 +839,7 @@ public class ClickZoomWireListener
      * @param wnd
      */
     private void mouseOver(Point2D dbMouse, EditWindow wnd) {
-        if (!useMouseOverHighlighter) return;
+        if (!User.isMouseOverHighlightingEnabled()) return;
 
         Highlighter highlighter = wnd.getHighlighter();
         Highlighter mouseOverHighlighter = wnd.getMouseOverHighlighter();

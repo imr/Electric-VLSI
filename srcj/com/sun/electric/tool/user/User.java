@@ -519,6 +519,19 @@ public class User extends Listener
 	 */
 	public static void setDraggingMustEncloseObjects(boolean on) { cacheDraggingMustEncloseObjects.setBoolean(on); }
 
+    private static Pref cacheMouseOverHighlighting = Pref.makeBooleanPref("UseMouseOverHighlighting", User.tool.prefs, true);
+    /**
+     * Method to tell whether dragging a selection rectangle must completely encose objects in order to select them.
+     * The default is "false", which means that the selection rectangle need only touch an object in order to select it.
+     * @return true if dragging a selection rectangle must completely encose objects in order to select them.
+     */
+    public static boolean isMouseOverHighlightingEnabled() { return cacheMouseOverHighlighting.getBoolean(); }
+    /**
+     * Method to set whether dragging a selection rectangle must completely encose objects in order to select them.
+     * @param on true if dragging a selection rectangle must completely encose objects in order to select them.
+     */
+    public static void setMouseOverHighlightingEnabled(boolean on) { cacheMouseOverHighlighting.setBoolean(on); }
+
 	/****************************** GRID AND ALIGNMENT PREFERENCES ******************************/
 
 	private static Pref cacheDefGridXSpacing = Pref.makeDoublePref("DefGridXSpacing", User.tool.prefs, 1);
