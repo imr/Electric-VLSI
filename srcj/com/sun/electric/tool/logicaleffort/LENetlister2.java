@@ -530,7 +530,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
         else if ((ni.getProto() != null) && (ni.getProto().getFunction() == PrimitiveNode.Function.CAPAC)) {
             return LENodable.Type.CAPACITOR;
         }
-        else if ((var = ni.getParameter("ATTR_LEIGNORE")) != null) {
+        else if ((var = ni.getVar("ATTR_LEIGNORE")) != null) {
             int ignore = VarContext.objectToInt(info.getContext().evalVar(var), 1);
             if (ignore == 1)
                 return LENodable.Type.IGNORE;
