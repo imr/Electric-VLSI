@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02j: *********************************
 
+IMP: (03/11/04, RK) Reorganized qLite regression data
+
 IMP: (03/10/05, GVG) Adding ability to turn off/on bounding box associated to cells in 3D (Robert)
 
 BUG: (03/10/05, SMR) Deleting circuitry doesn't remove all highlighting (Bug #219).
