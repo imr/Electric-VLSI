@@ -219,6 +219,12 @@ public class Pref
         String fileName = OpenFile.chooseInputFile(FileType.PREFS, "Saved Preferences");
         if (fileName == null) return;
 
+        importPrefs(fileName);
+    }
+
+    public static void importPrefs(String fileName)
+    {
+        if (fileName == null) return;
         // import preferences
         try
 		{
@@ -300,6 +306,13 @@ public class Pref
 	{
 		// prompt for the XML file
         String fileName = OpenFile.chooseOutputFile(FileType.PREFS, "Saved Preferences", "electricPrefs");
+        if (fileName == null) return;
+
+        exportPrefs(fileName);
+    }
+
+    public static void exportPrefs(String fileName)
+    {
         if (fileName == null) return;
 
         // save preferences there
