@@ -349,24 +349,26 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         name.setText(initialName);
         xPos.setText(TextUtils.formatDouble(initialXPos));
         yPos.setText(TextUtils.formatDouble(initialYPos));
-        initialMirrorX = (initXSize < 0);
-        initialMirrorY = (initYSize < 0);
+        boolean realMirrorX = (initXSize < 0);
+        boolean realMirrorY = (initYSize < 0);
         SizeOffset so = ni.getSizeOffset();
         if (swapXY)
         {
             xSize.setText(TextUtils.formatDouble(Math.abs(initYSize) - so.getLowYOffset() - so.getHighYOffset()));
             ySize.setText(TextUtils.formatDouble(Math.abs(initXSize) - so.getLowXOffset() - so.getHighXOffset()));
-            mirrorX.setSelected(initialMirrorY);
-            mirrorY.setSelected(initialMirrorX);
+            initialMirrorX = realMirrorY;
+            initialMirrorY = realMirrorX;
         } else
         {
             xSize.setText(TextUtils.formatDouble(Math.abs(initXSize) - so.getLowXOffset() - so.getHighXOffset()));
             ySize.setText(TextUtils.formatDouble(Math.abs(initYSize) - so.getLowYOffset() - so.getHighYOffset()));
-            mirrorX.setSelected(initialMirrorX);
-            mirrorY.setSelected(initialMirrorY);
+            initialMirrorX = realMirrorX;
+            initialMirrorY = realMirrorY;
         }
         initialXSize = xSize.getText();
         initialYSize = ySize.getText();
+        mirrorX.setSelected(initialMirrorX);
+        mirrorY.setSelected(initialMirrorY);
 		rotation.setText(TextUtils.formatDouble(initialRotation / 10.0));
 
         // special case for transistors
@@ -1014,24 +1016,38 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
             double initXSize = 0, initYSize = 0;
 
             // Figure out change in X and Y size
+            // if swapXY, X size was put in Y text box, and vice versa.
             if (dialog.swapXY)
             {
-                currentXSize = TextUtils.atof(dialog.ySize.getText(), new Double(ni.getYSize())) + so.getLowYOffset() + so.getHighYOffset();
-                currentYSize = TextUtils.atof(dialog.xSize.getText(), new Double(ni.getXSize())) + so.getLowXOffset() + so.getHighXOffset();
+                // get true size minus offset (this is the size the user sees
+                currentXSize = TextUtils.atof(dialog.ySize.getText(), new Double(ni.getXSize() - (so.getLowXOffset() + so.getHighXOffset())));
+                currentYSize = TextUtils.atof(dialog.xSize.getText(), new Double(ni.getYSize() - (so.getLowYOffset() + so.getHighYOffset())));
+                initXSize = TextUtils.atof(dialog.initialYSize, new Double(currentXSize));
+                initYSize = TextUtils.atof(dialog.initialXSize, new Double(currentYSize));
+                // bloat by offset
+                currentXSize += (so.getLowXOffset() + so.getHighXOffset());
+                currentYSize += (so.getLowYOffset() + so.getHighYOffset());
+                initXSize += (so.getLowXOffset() + so.getHighXOffset());
+                initYSize += (so.getLowYOffset() + so.getHighYOffset());
+                // mirror
 				if (dialog.mirrorX.isSelected()) currentYSize = -currentYSize;
 				if (dialog.mirrorY.isSelected()) currentXSize = -currentXSize;
-                initXSize = TextUtils.atof(dialog.initialYSize, new Double(currentYSize)) + so.getLowYOffset() + so.getHighYOffset();
-                initYSize = TextUtils.atof(dialog.initialXSize, new Double(currentXSize)) + so.getLowXOffset() + so.getHighXOffset();
 				if (dialog.initialMirrorX) initYSize = -initYSize;
 				if (dialog.initialMirrorY) initXSize = -initXSize;
             } else
             {
-                currentXSize = TextUtils.atof(dialog.xSize.getText(), new Double(ni.getXSize())) + so.getLowXOffset() + so.getHighXOffset();
-                currentYSize = TextUtils.atof(dialog.ySize.getText(), new Double(ni.getYSize())) + so.getLowYOffset() + so.getHighYOffset();
+                currentXSize = TextUtils.atof(dialog.xSize.getText(), new Double(ni.getXSize() - (so.getLowXOffset() + so.getHighXOffset())));
+                currentYSize = TextUtils.atof(dialog.ySize.getText(), new Double(ni.getYSize() - (so.getLowYOffset() + so.getHighYOffset())));
+                initXSize = TextUtils.atof(dialog.initialXSize, new Double(currentXSize));
+                initYSize = TextUtils.atof(dialog.initialYSize, new Double(currentYSize));
+                // bloat by offset
+                currentXSize += (so.getLowXOffset() + so.getHighXOffset());
+                currentYSize += (so.getLowYOffset() + so.getHighYOffset());
+                initXSize += (so.getLowXOffset() + so.getHighXOffset());
+                initYSize += (so.getLowYOffset() + so.getHighYOffset());
+                // mirror
                 if (dialog.mirrorX.isSelected()) currentXSize = -currentXSize;
                 if (dialog.mirrorY.isSelected()) currentYSize = -currentYSize;
-				initXSize = TextUtils.atof(dialog.initialXSize, new Double(currentXSize)) + so.getLowXOffset() + so.getHighXOffset();
-				initYSize = TextUtils.atof(dialog.initialYSize, new Double(currentYSize)) + so.getLowYOffset() + so.getHighYOffset();
 				if (dialog.initialMirrorX) initXSize = -initXSize;
 				if (dialog.initialMirrorY) initYSize = -initYSize;
             }
@@ -1040,6 +1056,10 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
             // Width and Length, and therefore may override the values such that the node size does not
             // get set by them.
             if (ni.getTransistorSize(VarContext.globalContext) != null) {
+
+                // ignore and calculated size change: it's not applicable
+                currentXSize = initXSize;
+                currentYSize = initYSize;
 
                 // see if this is a schematic transistor
                 if (np == Schematics.tech.transistorNode || np == Schematics.tech.transistor4Node)
@@ -1089,8 +1109,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
                             length = new Double(l);
                         }
                         ni.setTransistorSize(width, length);
-						currentXSize = initXSize;
-						currentYSize = initYSize;
                     }
                 } else
                 {
@@ -1101,8 +1119,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
                         // set transistor size
                         ni.setTransistorSize(Math.abs(currentXSize) - so.getLowXOffset() - so.getHighXOffset(),
 							Math.abs(currentYSize) - so.getLowYOffset() - so.getHighYOffset());
-						currentXSize = initXSize;
-						currentYSize = initYSize;
                     }
                 }
             }
