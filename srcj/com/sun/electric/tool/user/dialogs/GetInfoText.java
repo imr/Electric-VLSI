@@ -388,6 +388,7 @@ public class GetInfoText extends EDialog {
 	                if (endPos < startPos) continue; // empty line, just return character
                     textArray[i] = currentText.substring(startPos, endPos);
                 } catch (javax.swing.text.BadLocationException e) {
+                    e.printStackTrace(System.out);
                 }
             }
 

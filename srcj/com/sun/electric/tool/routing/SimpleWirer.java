@@ -88,6 +88,9 @@ public class SimpleWirer extends InteractiveRouter {
                 }
                 */
                 // get new startRE to start route from (last RE in addedRoute)
+
+
+                /*
                 for (Iterator it = addedRoute.iterator(); it.hasNext(); ) {
                     RouteElement re = (RouteElement)it.next();
                     if (re.getAction() == RouteElement.RouteElementAction.newNode ||
@@ -98,6 +101,8 @@ public class SimpleWirer extends InteractiveRouter {
                 route.addAll(addedRoute);
                 useArc = getArcToUse(startRE.getPortProto(), endPort);
                 if (useArc == null) return false;               // this should never happen
+
+                */
             }
         }
 
