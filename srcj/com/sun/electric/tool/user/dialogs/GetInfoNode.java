@@ -201,7 +201,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		allAttributes = new ArrayList();
 		portObjects = new ArrayList();
 
-        attributesTable = new AttributesTable(true);
+        attributesTable = new AttributesTable(true, false, false);
 
         // add variable code types
         for (Iterator it = Variable.Code.getCodes(); it.hasNext(); ) {
