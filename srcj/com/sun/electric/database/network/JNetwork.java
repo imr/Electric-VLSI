@@ -198,6 +198,8 @@ public class JNetwork
 		return arcs.iterator();
 	}
 
+    public boolean isExported() { return (exportedNames.size() > 0); }
+
 	/**
 	 * Method to describe this JNetwork as a string.
 	 * @return a String describing this JNetwork.

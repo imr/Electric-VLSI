@@ -795,4 +795,38 @@ public final class HierarchyEnumerator {
             hierCellsRecurse((Cell)np, uniqueCells);
         }
     }
+
+    /**
+     * Get the JNetwork in the childNodable's parent that corresponds to the JNetwork
+     * inside the childNodable.
+     * @param network the network in the childNodable
+     * @return the network in the parent that connects to the
+     * specified network, or null if no such network.
+     */
+    public static JNetwork getNetworkInParent(JNetwork network, Nodable childNodable) {
+        if (childNodable == null || network == null) return null;
+        if (!(childNodable.getProto() instanceof Cell)) return null;
+        Cell childCell = (Cell)childNodable.getProto();
+        // find export on network
+        boolean found = false;
+        Export export = null;
+        int i = 0;
+        for (Iterator it = childCell.getPorts(); it.hasNext(); ) {
+            export = (Export)it.next();
+            for (i=0; i<export.getNameKey().busWidth(); i++) {
+                JNetwork net = Network.getUserNetlist(childCell).getNetwork(export, i);
+                if (net == network) { found = true; break; }
+            }
+            if (found) break;
+        }
+        if (!found) return null;
+        // find corresponding port on icon
+        //System.out.println("In "+cell.describe()+" JNet "+network.describe()+" is exported as "+export.getName()+"; index "+i);
+        PortProto pp = childNodable.getProto().findPortProto(export.getNameKey());
+        //System.out.println("Found corresponding port proto "+pp.getName()+" on cell "+no.getProto().describe());
+        // find corresponding network in parent
+        Cell parentCell = childNodable.getParent();
+        JNetwork parentNet = Network.getUserNetlist(parentCell).getNetwork(childNodable, pp, i);
+        return parentNet;
+    }
 }

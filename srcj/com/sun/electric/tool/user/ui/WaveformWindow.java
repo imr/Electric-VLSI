@@ -31,6 +31,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
@@ -92,12 +93,7 @@ import java.awt.font.GlyphVector;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -1978,7 +1974,7 @@ public class WaveformWindow implements WindowContent
 	public static class Locator
 	{
 		private WaveformWindow ww;
-		private String context;
+		private VarContext context;
 
 		/**
 		 * The constructor takes an EditWindow and locates the associated WaveformWindow.
@@ -1990,17 +1986,22 @@ public class WaveformWindow implements WindowContent
 			Cell cellInWindow = wnd.getCell();
 			VarContext curContext = wnd.getVarContext();
 			ww = null;
-			context = "";
+            Stack contextStack = new Stack();
 			for(;;)
 			{
 				ww = WaveformWindow.findWaveformWindow(cellInWindow);
 				if (ww != null) break;
 				Nodable no = curContext.getNodable();
 				if (no == null) break;
+                contextStack.push(no);
 				cellInWindow = no.getParent();
-				curContext = curContext.pop();
-				context = no.getName() + "." + context;
+				//curContext = curContext.pop();
+				//context = no.getName() + "." + context;
 			}
+            context = VarContext.globalContext;
+            while (!contextStack.isEmpty()) {
+                context = context.push((Nodable)contextStack.pop());
+            }
 		}
 
 		/**
@@ -2014,16 +2015,21 @@ public class WaveformWindow implements WindowContent
 			Cell cellInWindow = wnd.getCell();
 			VarContext curContext = wnd.getVarContext();
 			ww = null;
-			context = "";
+            Stack contextStack = new Stack();
 			for(;;)
 			{
 				if (wantWW.getCell() == cellInWindow) { ww = wantWW;   break; }
 				Nodable no = curContext.getNodable();
 				if (no == null) break;
+                contextStack.push(no);
 				cellInWindow = no.getParent();
-				curContext = curContext.pop();
-				context = no.getName() + "." + context;
+				//curContext = curContext.pop();
+				//context = no.getName() + "." + context;
 			}
+            context = VarContext.globalContext;
+            while (!contextStack.isEmpty()) {
+                context = context.push((Nodable)contextStack.pop());
+            }
 		}
 
 		/**
@@ -2038,7 +2044,7 @@ public class WaveformWindow implements WindowContent
 		 * @return the context to prepend to all signals in the EditWindow.
 		 * If the EditWindow is directly associated with a WaveformWindow, returns "".
 		 */
-		public String getContext() { return context.toLowerCase().replace('@', '_'); }
+		public VarContext getContext() { return context; }
 	}
 
 	// ************************************* HIGHLIGHT LISTENER FOR ALL WAVEFORM WINDOWS *************************************
@@ -2081,7 +2087,8 @@ public class WaveformWindow implements WindowContent
 					Locator loc = new Locator(wnd, ww);
 					if (loc.getWaveformWindow() != ww) continue;
 					JNetwork net = (JNetwork)highSet.iterator().next();
-					String netName = loc.getContext() + net.describe();
+					//String netName = loc.getContext() + net.describe();
+                    String netName = WaveformWindow.getSpiceNetName(loc.getContext(), net);
 					Simulation.SimSignal sSig = ww.sd.findSignalForNetwork(netName);
 					if (sSig == null) return;
 	
@@ -2515,7 +2522,7 @@ public class WaveformWindow implements WindowContent
 
 			Locator loc = new Locator(wnd, this);
 			if (loc.getWaveformWindow() != this) continue;
-			String context = loc.getContext();
+			VarContext context = loc.getContext();
 
 			hl.clear();
 			for(Iterator it = wavePanels.iterator(); it.hasNext(); )
@@ -2526,8 +2533,9 @@ public class WaveformWindow implements WindowContent
 					Signal ws = (Signal)pIt.next();
 					if (!ws.highlighted) continue;
 					String want = ws.sSig.getFullName();
-					if (context.length() > 0 && !want.startsWith(context)) continue;
-					JNetwork net = findNetwork(netlist, want.substring(context.length()));
+                    String contextStr = getSpiceNetName(context, null);
+					if (contextStr.length() > 0 && !want.startsWith(contextStr)) continue;
+					JNetwork net = findNetwork(netlist, want.substring(contextStr.length()));
 					if (net != null)
 					{
 						hl.addNetwork(net, cell);
@@ -2879,14 +2887,14 @@ public class WaveformWindow implements WindowContent
 		for(Iterator nIt = netlist.getNetworks(); nIt.hasNext(); )
 		{
 			JNetwork net = (JNetwork)nIt.next();
-			if (net.describe().equalsIgnoreCase(name)) return net;
+			if (getSpiceNetName(net).equalsIgnoreCase(name)) return net;
 		}
 
 		// try converting "@" in network names
 		for(Iterator nIt = netlist.getNetworks(); nIt.hasNext(); )
 		{
 			JNetwork net = (JNetwork)nIt.next();
-			String convertedName = net.describe().replace('@', '_');
+			String convertedName = getSpiceNetName(net).replace('@', '_');
 			if (convertedName.equalsIgnoreCase(name)) return net;
 		}
 		return null;
@@ -2899,7 +2907,7 @@ public class WaveformWindow implements WindowContent
 	 * (a string to prepend to them to get the actual simulation signal name).
 	 * @param newPanel true to create new panels for each signal.
 	 */
-	public void showSignals(Set nets, String context, boolean newPanel)
+	public void showSignals(Set nets, VarContext context, boolean newPanel)
 	{
 		// determine the current panel
 		Panel wp = null;
@@ -2923,7 +2931,8 @@ public class WaveformWindow implements WindowContent
 		for(Iterator it = nets.iterator(); it.hasNext(); )
 		{
 			JNetwork net = (JNetwork)it.next();
-			String netName = context + net.describe();
+            String netName = WaveformWindow.getSpiceNetName(context, net);
+			//String netName = context + net.describe();
 			Simulation.SimSignal sSig = sd.findSignalForNetwork(netName);
 			if (sSig == null)
 			{
@@ -2967,6 +2976,54 @@ public class WaveformWindow implements WindowContent
 			saveSignalOrder();
 		}
 	}
+
+    /**
+     * Get the spice net name associated with the network and the context.
+     * If the network is null, a String describing only the context is returned.
+     * @param context the context
+     * @param net the network, or null
+     * @return a String describing the unique, global spice name for the network,
+     * or a String describing the context if net is null
+     */
+    public static String getSpiceNetName(VarContext context, JNetwork net) {
+        if (net != null) {
+            while (net.isExported() && (context != VarContext.globalContext)) {
+                // net is exported, find net in parent
+                net = HierarchyEnumerator.getNetworkInParent(net, context.getNodable());
+                if (net == null) break;
+                context = context.pop();
+            }
+        }
+        // create net name
+        String contextStr = context.getInstPath(".");
+        contextStr = contextStr.toLowerCase().replace('@', '_');
+        if (net == null)
+            return contextStr;
+        else {
+            if (context == VarContext.globalContext) return getSpiceNetName(net);
+            else return contextStr + "." + getSpiceNetName(net);
+        }
+    }
+
+    public static String getSpiceNetName(JNetwork net) {
+        String name = "";
+        if (net.hasNames())
+        {
+            if (net.getExportedNames().hasNext())
+            {
+                name = (String)net.getExportedNames().next();
+            } else
+            {
+                name = (String)net.getNames().next();
+            }
+        } else
+        {
+            name = net.describe();
+            if (name.equals(""))
+                name = "UNCONNECTED";
+        }
+        return name;
+    }
 
 	/**
 	 * Method to locate a simulation signal in the waveform.
