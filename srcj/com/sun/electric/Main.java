@@ -58,7 +58,21 @@ import com.apple.eawt.ApplicationAdapter;
 import com.apple.eawt.ApplicationEvent;
 
 /**
- * This class initializes Electric and starts the system.
+ * This class initializes Electric and starts the system. How to run Electric:
+ * <P>
+ * <P> <CODE>java -jar electric.jar [electric-options]</CODE> without plugins
+ * <P> <CODE>java -classpath electric.jar<i>delim</i>{list of plugins} com.sun.electric.Launcher [electric-options]</CODE>
+ * otherwise, where <i>delim</i> is OS-dependant separator
+ * <P> And Electric options are:
+ * <P> <CODE>         -mdi: multiple document interface mode </CODE>
+ * <P> <CODE>         -sdi: single document interface mode </CODE>
+ * <P> <CODE>         -NOMINMEM: ignore minimum memory provided for JVM </CODE>
+ * <P> <CODE>         -s script name: bean shell script to execute </CODE>
+ * <P> <CODE>        -version: version information </CODE>
+ * <P> <CODE>         -debug: debug mode. Extra information is available </CODE>
+ * <P> <CODE>        -help: this message </CODE>
+ * <P> <P>
+ * See manual for more instructions.
  */
 public final class Main
 {
