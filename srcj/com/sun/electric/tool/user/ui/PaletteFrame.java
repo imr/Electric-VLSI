@@ -806,9 +806,9 @@ public class PaletteFrame
 					if (toDraw instanceof String)
 					{
 						String str = (String)toDraw;
-						g.setColor(Color.LIGHT_GRAY);
+						g.setColor(new Color(User.getColorBackground()));
 						g.fillRect(imgX, imgY, frame.entrySize, frame.entrySize);
-						g.setColor(Color.BLACK);
+						g.setColor(new Color(User.getColorText()));
 						g.setFont(new Font("Helvetica", Font.PLAIN, 20));
 						FontMetrics fm = g.getFontMetrics();
 						int strWid = fm.stringWidth(str);

@@ -492,6 +492,7 @@ public class Technology extends ElectricObject
 	/** true if "scale" is relevant to this technology */	private boolean scaleRelevant;
 	/** number of transparent layers in technology */		private int transparentLayers;
 	/** the color map for this technology */				private Color [] colorMap;
+	/** the saved transparent colors for this technology */	private Pref [] transparentColorPrefs;
 	/** list of layers in this technology */				private List layers;
 	/** count of layers in this technology */				private int layerIndex = 0;
 	/** list of primitive nodes in this technology */		private List nodes;
@@ -2301,6 +2302,69 @@ public class Technology extends ElectricObject
 	protected void setColorMap(Color [] map)
 	{
 		colorMap = map;
+	}
+
+	/**
+	 * Sets the color map for transparent layers in this technology.
+	 * Users should never call this method.
+	 * It is set once by the technology during initialization.
+	 * @param map an array of colors, one per transparent layer.
+	 * This is expanded to a map that is 2 to the power "getNumTransparentLayers()".
+	 * Color merging is computed automatically.
+	 */
+	protected void factorySetColorMapFromLayers(Color [] layers)
+	{
+		// pull these values from preferences
+		transparentColorPrefs = new Pref[transparentLayers];
+		for(int i=0; i<layers.length; i++)
+		{
+			transparentColorPrefs[i] = Pref.makeIntPref("TransparentLayer"+(i+1)+"For"+techName, prefs, layers[i].getRGB());
+			layers[i] = new Color(transparentColorPrefs[i].getInt());
+		}
+		setColorMapFromLayers(layers);
+	}
+
+	/**
+	 * Sets the color map for transparent layers in this technology.
+	 * @param map an array of colors, one per transparent layer.
+	 * This is expanded to a map that is 2 to the power "getNumTransparentLayers()".
+	 * Color merging is computed automatically.
+	 */
+	public void setColorMapFromLayers(Color [] layers)
+	{
+		// update preferences
+		if (transparentColorPrefs != null)
+		{
+			for(int i=0; i<layers.length; i++)
+			{
+				Pref pref = transparentColorPrefs[i];
+				pref.setInt(layers[i].getRGB());
+			}
+		}
+
+		int numEntries = 1 << transparentLayers;
+		Color [] map = new Color[numEntries];
+		for(int i=0; i<numEntries; i++)
+		{
+			int r=0, g=0, b=0;
+			int overlapCount = 0;
+			for(int j=0; j<transparentLayers; j++)
+			{
+				if ((i & (1<<j)) == 0) continue;
+				overlapCount++;
+				r += layers[j].getRed();
+				g += layers[j].getGreen();
+				b += layers[j].getBlue();
+			}
+			if (overlapCount == 0) r = g = b = 200; else
+			{
+				r /= overlapCount;
+				g /= overlapCount;
+				b /= overlapCount;
+			}
+			map[i] = new Color(r, g, b);
+		}
+		setColorMap(map);
 	}
 
 	/**

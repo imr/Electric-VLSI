@@ -55,10 +55,11 @@ import java.util.prefs.BackingStoreException;
  * <UL>
  * <LI><B>Windows:</B>
  *   In the registry.
- *   Look in HKEY_CURRENT_USER / Software / JavaSoft / Prefs / com / sun / electric.
+ *   Look in: HKEY_CURRENT_USER / Software / JavaSoft / Prefs / com / sun / electric.
  * </LI>
  * <LI><B>UNIX/Linux:</B>
- *   DON'T KNOW YET.
+ *   In your home directory.
+ *   Look in: ~/.java/.userPrefs/com/sun/electric
  * </LI>
  * <LI><B>Macintosh System 10:</B>
  *   DON'T KNOW YET.

@@ -727,7 +727,7 @@ public class Artwork extends Technology
 		EGraphics graphics = G_lay.getGraphics();
 		if (var == null)
 		{
-			graphics.setColor(EGraphics.BLACK);
+			graphics.setColorIndex(EGraphics.BLACK);
 			return G_lay;
 		}
 
@@ -738,7 +738,7 @@ public class Artwork extends Technology
 		graphics = new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,0,0, 0.8,1,
 			new int[] {0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
 				0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff});
-		graphics.setColor(color.intValue());
+		graphics.setColorIndex(color.intValue());
 		thisLayer = Layer.newInstance(this, "Graphics", graphics);
 		allLayers.put(color, thisLayer);
 		return thisLayer;

@@ -427,10 +427,12 @@ public class EGraphics
 	}
 
 	/**
-	 * Method to set the color associated with this EGraphics.
-	 * @param color the color to set.
+	 * Method to set the color index associated with this EGraphics.
+	 * Color indices are more general than colors, because they can handle
+	 * the old C-Electric color values as well as full color values.
+	 * @param color the color index to set.
 	 */
-	public void setColor(int color)
+	public void setColorIndex(int color)
 	{
 		if ((color&OPAQUEBIT) != 0)
 		{

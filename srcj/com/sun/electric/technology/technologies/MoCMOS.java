@@ -564,40 +564,13 @@ public class MoCMOS extends Technology
 		setNoNegatedArcs();
 		setStaticTechnology();
 		setNumTransparentLayers(5);
-		setColorMap(new Color []
-		{                           /*     Metal-3 Metal-2 Active Polysilicon-1 Metal-1 */
-			new Color(200,200,200), /*  0:                                              */
-			new Color( 96,209,255), /*  1:                                      Metal-1 */
-			new Color(255,155,192), /*  2:                        Polysilicon-1         */
-			new Color(111,144,177), /*  3:                        Polysilicon-1 Metal-1 */
-			new Color(107,226, 96), /*  4:                 Active                       */
-			new Color( 83,179,160), /*  5:                 Active               Metal-1 */
-			new Color(161,151,126), /*  6:                 Active Polysilicon-1         */
-			new Color(110,171,152), /*  7:                 Active Polysilicon-1 Metal-1 */
-			new Color(224, 95,255), /*  8:         Metal-2                              */
-			new Color(135,100,191), /*  9:         Metal-2                      Metal-1 */
-			new Color(170, 83,170), /* 10:         Metal-2        Polysilicon-1         */
-			new Color(152,104,175), /* 11:         Metal-2        Polysilicon-1 Metal-1 */
-			new Color(150,124,163), /* 12:         Metal-2 Active                       */
-			new Color(129,144,165), /* 13:         Metal-2 Active               Metal-1 */
-			new Color(155,133,151), /* 14:         Metal-2 Active Polysilicon-1         */
-			new Color(141,146,153), /* 15:         Metal-2 Active Polysilicon-1 Metal-1 */
-			new Color(247,251, 20), /* 16: Metal-3                                      */
-			new Color(154,186, 78), /* 17: Metal-3                              Metal-1 */
-			new Color(186,163, 57), /* 18: Metal-3                Polysilicon-1         */
-			new Color(167,164, 99), /* 19: Metal-3                Polysilicon-1 Metal-1 */
-			new Color(156,197, 41), /* 20: Metal-3         Active                       */
-			new Color(138,197, 83), /* 21: Metal-3         Active               Metal-1 */
-			new Color(161,184, 69), /* 22: Metal-3         Active Polysilicon-1         */
-			new Color(147,183, 97), /* 23: Metal-3         Active Polysilicon-1 Metal-1 */
-			new Color(186,155, 76), /* 24: Metal-3 Metal-2                              */
-			new Color(155,163,119), /* 25: Metal-3 Metal-2                      Metal-1 */
-			new Color(187,142, 97), /* 26: Metal-3 Metal-2        Polysilicon-1         */
-			new Color(165,146,126), /* 27: Metal-3 Metal-2        Polysilicon-1 Metal-1 */
-			new Color(161,178, 82), /* 28: Metal-3 Metal-2 Active                       */
-			new Color(139,182,111), /* 29: Metal-3 Metal-2 Active               Metal-1 */
-			new Color(162,170, 97), /* 30: Metal-3 Metal-2 Active Polysilicon-1         */
-			new Color(147,172,116)  /* 31: Metal-3 Metal-2 Active Polysilicon-1 Metal-1 */
+		factorySetColorMapFromLayers(new Color []
+		{
+			new Color( 96,209,255), // Metal-1
+			new Color(255,155,192), // Polysilicon-1
+			new Color(107,226, 96), // Active
+			new Color(224, 95,255), // Metal-2
+			new Color(247,251, 20)  // Metal-3
 		});
 
 		//**************************************** LAYERS ****************************************

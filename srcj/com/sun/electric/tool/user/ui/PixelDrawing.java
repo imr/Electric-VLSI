@@ -202,7 +202,6 @@ public class PixelDrawing
 	/** the number of transparent layers */					private int numLayerBitMaps;
 	/** the number of bytes per row in offscreen maps */	private int numBytesPerRow;
 	/** the number of offscreen transparent maps made */	private int numLayerBitMapsCreated;
-	/** the color map of the window */						private Color [] colorMap;
 	/** the technology of the window */						private Technology curTech;
 
 	/** whether to occasionally update the display. */		private boolean periodicRefresh;
@@ -237,7 +236,7 @@ public class PixelDrawing
 		opaqueData = dbi.getData();
 		total = sz.height * sz.width;
 		numBytesPerRow = (sz.width + 7) / 8;
-		backgroundColor = Color.LIGHT_GRAY.getRGB() & 0xFFFFFF;
+		backgroundColor = User.getColorBackground() & 0xFFFFFF;
 		backgroundValue = backgroundColor | 0xFF000000;
 
 		curTech = null;
@@ -248,8 +247,9 @@ public class PixelDrawing
 	}
 
 	/**
-	 * Method to set the background color.
+	 * Method to override the background color.
 	 * Must be called before "drawImage()".
+	 * This is used by printing, which forces the background to be white.
 	 * @param bg the background color to use.
 	 */
 	public void setBackgroundColor(Color bg)
@@ -296,6 +296,7 @@ public class PixelDrawing
 				noCellTextDescriptor.setBold();
 			}
 			Rectangle rect = new Rectangle(sz);
+			blackGraphics.setColor(new Color(User.getColorText()));
 			drawText(rect, Poly.Type.TEXTBOX, noCellTextDescriptor, "No cell in this window", null, blackGraphics);
 		} else
 		{
@@ -384,6 +385,7 @@ public class PixelDrawing
 		// merge in the transparent layers
 		if (numLayerBitMapsCreated > 0)
 		{
+			Color [] colorMap = curTech.getColorMap();
 			for(int y=0; y<sz.height; y++)
 			{
 				for(int i=0; i<numLayerBitMaps; i++)
@@ -472,7 +474,6 @@ public class PixelDrawing
 		compositeRows = new byte[numLayerBitMaps][];
 		for(int i=0; i<numLayerBitMaps; i++) layerBitMaps[i] = null;
 		numLayerBitMapsCreated = 0;
-		colorMap = curTech.getColorMap();
 	}
 
 	// ************************************* HIERARCHY TRAVERSAL *************************************
@@ -603,6 +604,7 @@ public class PixelDrawing
 		{
 			int exportDisplayLevel = User.getExportDisplayLevel();
 			Iterator it = ni.getExports();
+			blackGraphics.setColor(new Color(User.getColorText()));
 			while (it.hasNext())
 			{
 				Export e = (Export)it.next();
@@ -753,6 +755,7 @@ public class PixelDrawing
 			if (lastI < 0) lastI = points.length - 1;
 			Point from = wnd.databaseToScreen(points[lastI]);
 			Point to = wnd.databaseToScreen(points[i]);
+			blackGraphics.setColor(new Color(User.getColorInstanceOutline()));
 			drawLine(from, to, null, blackGraphics, 0);
 		}
 
@@ -762,6 +765,7 @@ public class PixelDrawing
 			Rectangle2D bounds = poly.getBounds2D();
 			Rectangle rect = wnd.databaseToScreen(bounds);
 			TextDescriptor descript = ni.getProtoTextDescriptor();
+			blackGraphics.setColor(new Color(User.getColorText()));
 			drawText(rect, Poly.Type.TEXTBOX, descript, np.describe(), null, blackGraphics);
 		}
 	}

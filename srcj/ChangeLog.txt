@@ -2,6 +2,11 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (6/7/04, SMR) Implemented "Color" tab of "Edit Options" as well as the color commands
+     "Black Background Colors", "White Background Colors", and "Restore Default Colors".
+
+IMP: (6/7/04, SMR) Implemented Spice command "Add Multiplier".
+
 IMP: (6/7/04, GVG) Ctrl P for printing. Corrections to M factor code in Spice.java
 
 IMP: (6/6/04, SMR) Implemented "Layer" tab of "Edit Options" dialog.

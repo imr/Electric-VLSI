@@ -49,7 +49,7 @@ public class Version
 	/**
 	 * This is the current version of Electric
 	 */
-	private static final String CURRENT = "8.00i";
+	private static final String CURRENT = "8.00j";
 
 	/**
 	 * Constructs a <CODE>Version</CODE> (cannot be called).

@@ -720,6 +720,14 @@ public final class MenuCommands
 
         windowMenu.addMenuItem("Layer Visibility...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { layerVisibilityCommand(); } });
+		Menu colorSubMenu = new Menu("Color");
+		windowMenu.add(colorSubMenu);
+		colorSubMenu.addMenuItem("Restore Default Colors", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { defaultBackgroundCommand(); }});
+		colorSubMenu.addMenuItem("Black Background Colors", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { blackBackgroundCommand(); }});
+		colorSubMenu.addMenuItem("White Background Colors", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { whiteBackgroundCommand(); }});
 
 		/****************************** THE TOOL MENU ******************************/
 
@@ -741,6 +749,8 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.CDL, true); }});
 		spiceSimulationSubMenu.addMenuItem("Plot Spice Listing...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotSpiceResults(); }});
+		spiceSimulationSubMenu.addMenuItem("Add Multiplier", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { addMultiplierCommand(); }});
 
 		spiceSimulationSubMenu.addSeparator();
 		spiceSimulationSubMenu.addMenuItem("Set Generic SPICE Template", null,
@@ -2579,6 +2589,51 @@ public final class MenuCommands
 		dialog.show();
 	}
 
+	/**
+	 * This method implements the command to set default colors.
+	 */
+	public static void defaultBackgroundCommand()
+	{
+		User.setColorBackground(Color.LIGHT_GRAY.getRGB());
+		User.setColorGrid(Color.BLACK.getRGB());
+		User.setColorHighlight(Color.WHITE.getRGB());
+		User.setColorPortHighlight(Color.YELLOW.getRGB());
+		User.setColorText(Color.BLACK.getRGB());
+		User.setColorInstanceOutline(Color.BLACK.getRGB());
+		EditWindow.repaintAllContents();
+		TopLevel.getPaletteFrame().loadForTechnology();
+	}
+
+	/**
+	 * This method implements the command to set colors so that there is a black background.
+	 */
+	public static void blackBackgroundCommand()
+	{
+		User.setColorBackground(Color.BLACK.getRGB());
+		User.setColorGrid(Color.WHITE.getRGB());
+		User.setColorHighlight(Color.RED.getRGB());
+		User.setColorPortHighlight(Color.YELLOW.getRGB());
+		User.setColorText(Color.WHITE.getRGB());
+		User.setColorInstanceOutline(Color.WHITE.getRGB());
+		EditWindow.repaintAllContents();
+		TopLevel.getPaletteFrame().loadForTechnology();
+	}
+
+	/**
+	 * This method implements the command to set colors so that there is a white background.
+	 */
+	public static void whiteBackgroundCommand()
+	{
+		User.setColorBackground(Color.WHITE.getRGB());
+		User.setColorGrid(Color.BLACK.getRGB());
+		User.setColorHighlight(Color.RED.getRGB());
+		User.setColorPortHighlight(Color.DARK_GRAY.getRGB());
+		User.setColorText(Color.BLACK.getRGB());
+		User.setColorInstanceOutline(Color.BLACK.getRGB());
+		EditWindow.repaintAllContents();
+		TopLevel.getPaletteFrame().loadForTechnology();
+	}
+
     public static void moveToOtherDisplayCommand()
     {
         // this only works in SDI mode
@@ -3105,6 +3160,39 @@ public final class MenuCommands
 		IRSIMTool.tool.netlistCell(curEdit.getCell(), curEdit.getVarContext(), curEdit);
 	}
 
+	/**
+	 * Method to add a "M" multiplier factor to the currently selected node.
+	 */
+	public static void addMultiplierCommand()
+	{
+		NodeInst ni = (NodeInst)Highlight.getOneElectricObject(NodeInst.class);
+		if (ni == null) return;
+		AddMultiplier job = new AddMultiplier(ni);
+	}
+
+	private static class AddMultiplier extends Job
+	{
+		private NodeInst ni;
+
+		protected AddMultiplier(NodeInst ni)
+		{
+			super("Add Spice Multiplier", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.ni = ni;
+			startJob();
+		}
+
+		public void doIt()
+		{
+			Variable var = ni.newVar("ATTR_M", new Double(1.0));
+			if (var != null)
+			{
+				var.setDisplay();
+				TextDescriptor td = var.getTextDescriptor();
+				td.setOff(-1.5, -1);
+				td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
+			}
+		}
+	}
 	/**
 	 * Method to create a new template in the current cell.
 	 * Templates can be for SPICE or Verilog, depending on the Variable name.

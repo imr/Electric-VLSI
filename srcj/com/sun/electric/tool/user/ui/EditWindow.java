@@ -427,10 +427,7 @@ public class EditWindow extends JPanel
 	{
 		//wf = null;                          // clear reference
 		//offscreen = null;                   // need to clear this ref, because it points to this
-		synchronized(redrawThese)
-		{
-//			  if (redrawThese.contains(this)) redrawThese.remove(this);
-		}
+
 		// remove myself from listener list
 		removeKeyListener(this);
 		removeMouseListener(this);
@@ -510,18 +507,6 @@ public class EditWindow extends JPanel
 		Image img = offscreen.getImage();
 		synchronized(img) { g.drawImage(img, 0, 0, this); };
 
-//			synchronized(redrawThese)
-//			{
-//				if (redrawThese.size() > 0)
-//				{
-//					EditWindow nextWnd = (EditWindow)redrawThese.get(0);
-//					redrawThese.remove(0);
-//					RenderJob nextJob = new RenderJob(nextWnd, nextWnd.getOffscreen());
-//					return;
-//				}
-////				runningNow = false;
-//			}
-
 		// overlay other things if there is a valid cell
 		if (cell != null)
 		{
@@ -597,8 +582,8 @@ public class EditWindow extends JPanel
 		{
 			if (runningNow)
 			{
-//				if (!redrawThese.contains(this))
-//					redrawThese.add(this);
+				if (!redrawThese.contains(this))
+					redrawThese.add(this);
 				return;
 			}
 			runningNow = true;
@@ -624,9 +609,19 @@ public class EditWindow extends JPanel
 
 		public void doIt()
 		{
+			// do the hard work of re-rendering the image
 			offscreen.drawImage();
+
+			// see if anything else is queued
 			synchronized(redrawThese)
 			{
+				if (redrawThese.size() > 0)
+				{
+					EditWindow nextWnd = (EditWindow)redrawThese.get(0);
+					redrawThese.remove(0);
+					RenderJob nextJob = new RenderJob(nextWnd, nextWnd.getOffscreen());
+					return;
+				}
 				runningNow = false;
 			}
 			wnd.repaint();
@@ -1074,7 +1069,7 @@ public class EditWindow extends JPanel
 		}
 
 		/* draw the grid to the offscreen buffer */
-		g.setColor(Color.black);
+		g.setColor(new Color(User.getColorGrid()));
 		for(int i = y1; i > y5; i -= y0)
 		{
 			int y = (int)((i-y4) * ynum / yden);

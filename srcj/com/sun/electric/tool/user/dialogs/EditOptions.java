@@ -67,6 +67,10 @@ import java.awt.font.GlyphVector;
 import java.awt.geom.Point2D;
 import java.util.Iterator;
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Collections;
 import javax.swing.JOptionPane;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -1871,7 +1875,7 @@ public class EditOptions extends EDialog
 			int color = (li.red << 16) | (li.green << 8) | li.blue;
 			if (color != (graphics.getColor().getRGB() & 0xFFFFFF))
 			{
-				graphics.setColor((color << 8) | EGraphics.FULLRGBBIT);
+				graphics.setColor(new Color(color));
 				changed = true;
 			}
 			if (li.transparentLayer != graphics.getTransparentLayer())
@@ -1889,12 +1893,157 @@ public class EditOptions extends EDialog
 
 	//******************************** COLORS ********************************
 
+	private Technology colorTech;
+	private JList colorLayerList;
+	private DefaultListModel colorLayerModel;
+	private HashMap colorMap;
+
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Colors tab.
 	 */
 	private void initColors()
 	{
+		colorTech = Technology.getCurrent();
+		colorMap = new HashMap();
+		colorLayerModel = new DefaultListModel();
+		colorLayerList = new JList(colorLayerModel);
+		colorLayerList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		colorLayerPane.setViewportView(colorLayerList);
+		colorLayerList.addMouseListener(new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent evt) { colorClickedLayer(); }
+		});
+
+		// look at all layers, pull out the transparent ones
+		HashMap transparentLayers = new HashMap();
+		for(Iterator it = colorTech.getLayers(); it.hasNext(); )
+		{
+			Layer layer = (Layer)it.next();
+			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+			EGraphics graphics = layer.getGraphics();
+			int transparentLayer = graphics.getTransparentLayer();
+			if (transparentLayer == 0) continue;
+
+			StringBuffer layers = (StringBuffer)transparentLayers.get(new Integer(transparentLayer));
+			if (layers == null)
+			{
+				layers = new StringBuffer();
+				layers.append(layer.getName());
+				transparentLayers.put(new Integer(transparentLayer), layers);
+			} else
+			{
+				layers.append(", " + layer.getName());
+			}
+		}
+
+		// sort and display the transparent layers
+		Color [] currentMap = colorTech.getColorMap();
+		List transparentSet = new ArrayList();
+		for(Iterator it = transparentLayers.keySet().iterator(); it.hasNext(); )
+			transparentSet.add(it.next());
+		Collections.sort(transparentSet, new TransparentSort());
+		for(Iterator it = transparentSet.iterator(); it.hasNext(); )
+		{
+			Integer layerNumber = (Integer)it.next();
+			StringBuffer layerNames = (StringBuffer)transparentLayers.get(layerNumber);
+			colorLayerModel.addElement("Transparent " + layerNumber.intValue() + ": " + layerNames.toString());
+			int color = currentMap[1 << (layerNumber.intValue()-1)].getRGB();
+			colorMap.put(layerNumber, new EMath.MutableInteger(color));
+		}
+
+		// add the nontransparent layers
+		for(Iterator it = colorTech.getLayers(); it.hasNext(); )
+		{
+			Layer layer = (Layer)it.next();
+			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+			EGraphics graphics = layer.getGraphics();
+			if (graphics.getTransparentLayer() > 0) continue;
+
+			colorLayerModel.addElement(layer.getName());
+			int color = layer.getGraphics().getColor().getRGB();
+			colorMap.put(layer, new EMath.MutableInteger(color));
+		}
+
+		// add the special colors
+		int color = User.getColorBackground();
+		String name = "Special: BACKGROUND";
+		colorLayerModel.addElement(name);
+		colorMap.put(name, new EMath.MutableInteger(color));
+
+		color = User.getColorGrid();
+		name = "Special: GRID";
+		colorLayerModel.addElement(name);
+		colorMap.put(name, new EMath.MutableInteger(color));
+
+		color = User.getColorHighlight();
+		name = "Special: HIGHLIGHT";
+		colorLayerModel.addElement(name);
+		colorMap.put(name, new EMath.MutableInteger(color));
+
+		color = User.getColorPortHighlight();
+		name = "Special: PORT HIGHLIGHT";
+		colorLayerModel.addElement(name);
+		colorMap.put(name, new EMath.MutableInteger(color));
+
+		color = User.getColorText();
+		name = "Special: TEXT";
+		colorLayerModel.addElement(name);
+		colorMap.put(name, new EMath.MutableInteger(color));
+
+		color = User.getColorInstanceOutline();
+		name = "Special: INSTANCE OUTLINES";
+		colorLayerModel.addElement(name);
+		colorMap.put(name, new EMath.MutableInteger(color));
+
+		// finish initialization
+		colorLayerList.setSelectedIndex(0);
+		colorChooser.getSelectionModel().addChangeListener(new ChangeListener()
+		{
+			public void stateChanged(ChangeEvent e) { colorChanged(); }
+		});
+		colorClickedLayer();
+	}
+
+	private static class TransparentSort implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Integer i1 = (Integer)o1;
+			Integer i2 = (Integer)o2;
+			return i1.intValue() - i2.intValue();
+		}
+	}
+
+	private EMath.MutableInteger colorGetCurrent()
+	{
+		String layerName = (String)colorLayerList.getSelectedValue();
+		if (layerName.startsWith("Transparent "))
+		{
+			int layerNumber = TextUtils.atoi(layerName.substring(12));
+			return (EMath.MutableInteger)colorMap.get(new Integer(layerNumber));
+		}
+		if (layerName.startsWith("Special: "))
+		{
+			return (EMath.MutableInteger)colorMap.get(layerName);
+		}
+		Layer layer = colorTech.findLayer(layerName);
+		if (layer == null) return null;
+		return (EMath.MutableInteger)colorMap.get(layer);
+	}
+
+	private void colorChanged()
+	{
+		EMath.MutableInteger color = colorGetCurrent();
+		if (color == null) return;
+		color.setValue(colorChooser.getColor().getRGB());
+	}
+
+	private void colorClickedLayer()
+	{
+		EMath.MutableInteger color = colorGetCurrent();
+		if (color == null) return;
+		colorChooser.setColor(new Color(color.intValue()));
 	}
 
 	/**
@@ -1903,6 +2052,94 @@ public class EditOptions extends EDialog
 	 */
 	private void termColors()
 	{
+		Color [] currentMap = colorTech.getColorMap();
+		boolean colorChanged = false;
+		boolean mapChanged = false;
+		Color [] transparentLayerColors = new Color[colorTech.getNumTransparentLayers()];
+		for(int i=0; i<colorLayerModel.getSize(); i++)
+		{
+			String layerName = (String)colorLayerModel.get(i);
+			if (layerName.startsWith("Transparent "))
+			{
+				int layerNumber = TextUtils.atoi(layerName.substring(12));
+				EMath.MutableInteger color = (EMath.MutableInteger)colorMap.get(new Integer(layerNumber));
+				transparentLayerColors[layerNumber-1] = new Color(color.intValue());
+				int mapIndex = 1 << (layerNumber-1);
+				int origColor = currentMap[mapIndex].getRGB();
+				if (color.intValue() != origColor)
+				{
+					currentMap[mapIndex] = new Color(color.intValue());
+					mapChanged = colorChanged = true;
+				}
+			} else if (layerName.startsWith("Special: "))
+			{
+				EMath.MutableInteger color = (EMath.MutableInteger)colorMap.get(layerName);
+				if (layerName.equals("Special: BACKGROUND"))
+				{
+					if (color.intValue() != User.getColorBackground())
+					{
+						User.setColorBackground(color.intValue());
+						colorChanged = true;
+					}
+				} else if (layerName.equals("Special: GRID"))
+				{
+					if (color.intValue() != User.getColorGrid())
+					{
+						User.setColorGrid(color.intValue());
+						colorChanged = true;
+					}
+				} else if (layerName.equals("Special: HIGHLIGHT"))
+				{
+					if (color.intValue() != User.getColorHighlight())
+					{
+						User.setColorHighlight(color.intValue());
+						colorChanged = true;
+					}
+				} else if (layerName.equals("Special: PORT HIGHLIGHT"))
+				{
+					if (color.intValue() != User.getColorPortHighlight())
+					{
+						User.setColorPortHighlight(color.intValue());
+						colorChanged = true;
+					}
+				} else if (layerName.equals("Special: TEXT"))
+				{
+					if (color.intValue() != User.getColorText())
+					{
+						User.setColorText(color.intValue());
+						colorChanged = true;
+					}
+				} else if (layerName.equals("Special: INSTANCE OUTLINES"))
+				{
+					if (color.intValue() != User.getColorInstanceOutline())
+					{
+						User.setColorInstanceOutline(color.intValue());
+						colorChanged = true;
+					}
+				}
+			} else
+			{
+				Layer layer = colorTech.findLayer(layerName);
+				if (layer == null) continue;
+				EMath.MutableInteger color = (EMath.MutableInteger)colorMap.get(layer);
+				int origColor = layer.getGraphics().getColor().getRGB();
+				if (color.intValue() != origColor)
+				{
+					layer.getGraphics().setColor(new Color(color.intValue()));
+					colorChanged = true;
+				}
+			}
+		}
+		if (mapChanged)
+		{
+			// rebuild color map from primaries
+			colorTech.setColorMapFromLayers(transparentLayerColors);
+		}
+		if (colorChanged)
+		{
+			EditWindow.repaintAllContents();
+			TopLevel.getPaletteFrame().loadForTechnology();
+		}
 	}
 
 	//******************************** TEXT ********************************
@@ -2812,7 +3049,7 @@ public class EditOptions extends EDialog
         layerOutlinePatternPrinter = new javax.swing.JCheckBox();
         colors = new javax.swing.JPanel();
         colorChooser = new javax.swing.JColorChooser();
-        jLabel64 = new javax.swing.JLabel();
+        colorLayerPane = new javax.swing.JScrollPane();
         text = new javax.swing.JPanel();
         top = new javax.swing.JPanel();
         jLabel41 = new javax.swing.JLabel();
@@ -4257,14 +4494,16 @@ public class EditOptions extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         colors.add(colorChooser, gridBagConstraints);
 
-        jLabel64.setText("CANNOT SET COLORS YET");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 20, 0);
-        colors.add(jLabel64, gridBagConstraints);
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.weighty = 1.0;
+        colors.add(colorLayerPane, gridBagConstraints);
 
         tabPane.addTab("Colors", colors);
 
@@ -4893,6 +5132,7 @@ public class EditOptions extends EDialog
     private javax.swing.JPanel bottom;
     private javax.swing.JButton cancel;
     private javax.swing.JColorChooser colorChooser;
+    private javax.swing.JScrollPane colorLayerPane;
     private javax.swing.JPanel colors;
     private javax.swing.ButtonGroup exportGroup;
     private javax.swing.JPanel frame;
@@ -5005,7 +5245,6 @@ public class EditOptions extends EDialog
     private javax.swing.JLabel jLabel60;
     private javax.swing.JLabel jLabel61;
     private javax.swing.JLabel jLabel62;
-    private javax.swing.JLabel jLabel64;
     private javax.swing.JLabel jLabel65;
     private javax.swing.JLabel jLabel67;
     private javax.swing.JLabel jLabel7;

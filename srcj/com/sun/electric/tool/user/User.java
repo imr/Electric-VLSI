@@ -43,7 +43,9 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.StatusBar;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.TextWindow;
+import com.sun.electric.tool.user.ui.PixelDrawing;
 
+import java.awt.Color;
 import java.util.Iterator;
 
 /**
@@ -788,6 +790,99 @@ public class User extends Listener
 	 * @param c the project name to use in schematic frames.
 	 */
 	public static void setFrameProjectName(String c) { cacheFrameProjectName.setString(c); }
+
+	/****************************** COLOR PREFERENCES ******************************/
+
+	private static Pref cacheColorBackground = Pref.makeIntPref("ColorBackground", User.tool.prefs, Color.LIGHT_GRAY.getRGB());
+	/**
+	 * Method to get the color of the background on the display.
+	 * The default is "light gray".
+	 * @return the color of the background on the display.
+	 */
+	public static int getColorBackground() { return cacheColorBackground.getInt(); }
+	/**
+	 * Method to set the color of the background on the display.
+	 * @param c the color of the background on the display.
+	 */
+	public static void setColorBackground(int c)
+	{
+		cacheColorBackground.setInt(c);
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			if (wf.getContent() instanceof EditWindow)
+			{
+				EditWindow wnd = (EditWindow)wf.getContent();
+				PixelDrawing offscreen = wnd.getOffscreen();
+				offscreen.setBackgroundColor(new Color(c));
+			}
+		}
+	}
+
+	private static Pref cacheColorGrid = Pref.makeIntPref("ColorGrid", User.tool.prefs, Color.BLACK.getRGB());
+	/**
+	 * Method to get the color of the grid on the display.
+	 * The default is "black".
+	 * @return the color of the grid on the display.
+	 */
+	public static int getColorGrid() { return cacheColorGrid.getInt(); }
+	/**
+	 * Method to set the color of the grid on the display.
+	 * @param c the color of the grid on the display.
+	 */
+	public static void setColorGrid(int c) { cacheColorGrid.setInt(c); }
+
+	private static Pref cacheColorHighlight = Pref.makeIntPref("ColorHighlight", User.tool.prefs, Color.WHITE.getRGB());
+	/**
+	 * Method to get the color of the highlight on the display.
+	 * The default is "white".
+	 * @return the color of the highlight on the display.
+	 */
+	public static int getColorHighlight() { return cacheColorHighlight.getInt(); }
+	/**
+	 * Method to set the color of the highlight on the display.
+	 * @param c the color of the highlight on the display.
+	 */
+	public static void setColorHighlight(int c) { cacheColorHighlight.setInt(c); }
+
+	private static Pref cacheColorPortHighlight = Pref.makeIntPref("ColorPortHighlight", User.tool.prefs, Color.YELLOW.getRGB());
+	/**
+	 * Method to get the color of the port highlight on the display.
+	 * The default is "yellow".
+	 * @return the color of the port highlight on the display.
+	 */
+	public static int getColorPortHighlight() { return cacheColorPortHighlight.getInt(); }
+	/**
+	 * Method to set the color of the port highlight on the display.
+	 * @param c the color of the port highlight on the display.
+	 */
+	public static void setColorPortHighlight(int c) { cacheColorPortHighlight.setInt(c); }
+
+	private static Pref cacheColorText = Pref.makeIntPref("ColorText", User.tool.prefs, Color.BLACK.getRGB());
+	/**
+	 * Method to get the color of the text on the display.
+	 * The default is "black".
+	 * @return the color of the text on the display.
+	 */
+	public static int getColorText() { return cacheColorText.getInt(); }
+	/**
+	 * Method to set the color of the text on the display.
+	 * @param c the color of the text on the display.
+	 */
+	public static void setColorText(int c) { cacheColorText.setInt(c); }
+
+	private static Pref cacheColorInstanceOutline = Pref.makeIntPref("ColorInstanceOutline", User.tool.prefs, Color.BLACK.getRGB());
+	/**
+	 * Method to get the color of the instance outlines on the display.
+	 * The default is "black".
+	 * @return the color of the instance outlines on the display.
+	 */
+	public static int getColorInstanceOutline() { return cacheColorInstanceOutline.getInt(); }
+	/**
+	 * Method to set the color of the instance outlines on the display.
+	 * @param c the color of the instance outlines on the display.
+	 */
+	public static void setColorInstanceOutline(int c) { cacheColorInstanceOutline.setInt(c); }
 
 	/****************************** MISCELLANEOUS PREFERENCES ******************************/
 

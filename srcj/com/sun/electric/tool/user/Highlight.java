@@ -948,7 +948,7 @@ public class Highlight
 	 */
 	public void showHighlight(EditWindow wnd, Graphics g)
 	{
-		g.setColor(Color.WHITE);
+		g.setColor(new Color(User.getColorHighlight()));
 		if (type == Type.BBOX)
 		{
 			Point2D [] points = new Point2D.Double[5];
@@ -1194,7 +1194,7 @@ public class Highlight
 			// draw the selected port
 			if (pp != null)
 			{
-				g.setColor(Color.YELLOW);
+				g.setColor(new Color(User.getColorPortHighlight()));
 				Poly poly = ni.getShapeOfPort(pp);
 				boolean opened = true;
 				if (poly.getStyle() == Poly.Type.FILLED || poly.getStyle() == Poly.Type.CLOSED) opened = false;
@@ -1216,7 +1216,7 @@ public class Highlight
 				{
 					drawOutlineFromPoints(wnd, g, poly.getPoints(), offX, offY, opened, null);
 				}
-				g.setColor(Color.WHITE);
+				g.setColor(new Color(User.getColorHighlight()));
 
                 // show name of port
                 if (!(np instanceof PrimitiveNode) && (g instanceof Graphics2D))
