@@ -462,6 +462,31 @@ public abstract class InteractiveRouter extends Router {
                                               Point2D startPoint, Point2D endPoint, Poly startPoly, Poly endPoly,
                                               ArcProto startArc, ArcProto endArc) {
 
+/*        Point2D[] points = startPoly.getPoints();
+        System.out.print("StartPoly: ");
+        for (int i=0; i<points.length; i++) {
+            System.out.print(points[i]+", ");
+        }
+        System.out.println("");
+        if (endPoly != null) {
+            points = endPoly.getPoints();
+            System.out.print("EndPoly: ");
+            for (int i=0; i<points.length; i++) {
+                System.out.print(points[i]+", ");
+            }
+            System.out.println("");
+        }*/
+        if (startPoly.getBox() == null || (endPoly != null && endPoly.getBox() == null)) {
+            // special case: one of the polys is not a rectangle
+            startPoint.setLocation(startPoly.closestPoint(clicked));
+            if (endPoly == null) {
+                endPoint.setLocation(getClosestOrthogonalPoint(startPoint, clicked));
+            } else {
+                endPoint.setLocation(endPoly.closestPoint(clicked));
+            }
+            return;
+        }
+
         // just go by bounds for now
         Rectangle2D startBounds = startPoly.getBounds2D();
         // default is center point
