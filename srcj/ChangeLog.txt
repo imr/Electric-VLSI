@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.02h: *********************************
+
 ************************* Version 8.02g: *********************************
 
 IMP: Sweep algorithm by default in ERC, geometry on network and coverage implants and list layer coverage.
