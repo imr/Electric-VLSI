@@ -94,6 +94,7 @@ public class Attributes extends JDialog implements HighlightListener
             }
         }
         theDialog.loadAttributesInfo();
+        if (!theDialog.isVisible()) theDialog.pack();        
         theDialog.show();
     }
 

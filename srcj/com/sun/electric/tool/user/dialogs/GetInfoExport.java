@@ -75,6 +75,8 @@ public class GetInfoExport extends JDialog implements HighlightListener
                 theDialog = new GetInfoExport(null, false);
             }
 		}
+        theDialog.loadExportInfo();
+        if (!theDialog.isVisible()) theDialog.pack();
 		theDialog.show();
 	}
 

@@ -70,6 +70,7 @@ public class GetInfoMulti extends JDialog implements HighlightListener
 			theDialog = new GetInfoMulti(jf, false);
 		}
         theDialog.loadMultiInfo();
+        if (!theDialog.isVisible()) theDialog.pack();
 		theDialog.show();
 	}
 

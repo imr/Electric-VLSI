@@ -64,6 +64,7 @@ public class GetInfoArc extends JDialog implements HighlightListener
 			theDialog = new GetInfoArc(jf, false);
 		}
         theDialog.loadArcInfo();
+        if (!theDialog.isVisible()) theDialog.pack();
 		theDialog.show();
 	}
 
@@ -74,7 +75,6 @@ public class GetInfoArc extends JDialog implements HighlightListener
 	{
         if (!isVisible()) return;
 		loadArcInfo();
-        pack();
 	}
 
 	/** Creates new form Arc Get-Info */

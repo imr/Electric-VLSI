@@ -81,6 +81,7 @@ public class GetInfoText extends JDialog implements HighlightListener {
             }
         }
         theDialog.loadTextInfo();
+        if (!theDialog.isVisible()) theDialog.pack();
         theDialog.show();
     }
 

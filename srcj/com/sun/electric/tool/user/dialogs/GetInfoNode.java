@@ -96,6 +96,7 @@ public class GetInfoNode extends JDialog implements HighlightListener
 			theDialog = new GetInfoNode(jf, false);
 		}
         theDialog.loadNodeInfo();
+        if (!theDialog.isVisible()) theDialog.pack();
 		theDialog.show();
 	}
 
