@@ -1550,6 +1550,16 @@ public class Cell extends NodeProto implements Comparable
 		return name;
 	}
 
+    /**
+     * Method to describe this cell.
+     * The description has the form: Library:cell;version{view}
+     * @return a String that describes this cell.
+     */
+    public String libDescribe()
+    {
+        return (lib.getName() + ":" + noLibDescribe());
+    }
+
 	/**
 	 * Method to describe this cell.
 	 * The description has the form: cell;version{view}

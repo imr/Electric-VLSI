@@ -190,7 +190,8 @@ public class PixelDrawing
 	private static class ExpandedCellInfo
 	{
 		int instanceCount;
-		EditWindow wnd;
+		//EditWindow wnd;
+        PixelDrawing offscreen;
 	}
 
 	/** the EditWindow being drawn */						private EditWindow wnd;
@@ -725,15 +726,6 @@ public class PixelDrawing
         if ((drawBounds != null) && (!drawBounds.intersects(dbBounds))) {
             return;
         }
-/*
-        if (drawBounds != null) {
-            if (!drawBounds.contains(dbBounds.getX(), dbBounds.getY()) &&
-                !drawBounds.contains(dbBounds.getX(), dbBounds.getY()+dbBounds.getHeight()) &&
-                !drawBounds.contains(dbBounds.getX()+dbBounds.getWidth(), dbBounds.getY()) &&
-                !drawBounds.contains(dbBounds.getX()+dbBounds.getWidth(), dbBounds.getY()+dbBounds.getHeight()))
-                return;
-        }
-*/
 
         double arcSize = Math.max(arcBounds.getWidth(), arcBounds.getHeight());
 		// if the arc it tiny, just approximate it with a single dot
@@ -930,17 +922,16 @@ public class PixelDrawing
 		{
 			expandedCellCount = new ExpandedCellInfo();
 			expandedCellCount.instanceCount = 0;
-			expandedCellCount.wnd = null;
+			expandedCellCount.offscreen = null;
 			expandedCells.put(expandedName, expandedCellCount);
 		}
 
 		// render into the offscreen buffer (on the first time)
-		EditWindow renderedCell = expandedCellCount.wnd;
-		if (renderedCell == null)
+        PixelDrawing offscreen = expandedCellCount.offscreen;
+		if (offscreen == null)
 		{
-			renderedCell = EditWindow.CreateElectricDoc(subCell, null);
+			EditWindow renderedCell = EditWindow.CreateElectricDoc(subCell, null);
             Undo.removeDatabaseChangeListener(renderedCell);
-			expandedCellCount.wnd = renderedCell;
 			renderedCell.setScreenSize(new Dimension(screenBounds.width, screenBounds.height));
 			renderedCell.setScale(wnd.getScale());
 
@@ -952,11 +943,16 @@ public class PixelDrawing
 			// render the contents of the expanded cell into its own offscreen cache
 			renderedCell.getOffscreen().renderedWindow = false;
 			renderedCell.getOffscreen().drawCell(subCell, bounds, subTrans, false);
+            expandedCellCount.offscreen = renderedCell.getOffscreen();
+            offscreen = expandedCellCount.offscreen;
+            // set wnd reference to null or it will not get garbage collected
+            offscreen.wnd = null;
+            renderedCell.finished();
 			offscreensCreated++;
 		}
 
 		// copy out of the offscreen buffer into the main buffer
-		copyBits(renderedCell, screenBounds);
+		copyBits(offscreen, screenBounds);
 		offscreensUsed++;
 		return true;
 	}
@@ -1051,9 +1047,9 @@ public class PixelDrawing
 	/**
 	 * Method to copy the offscreen bits for a cell into the offscreen bits for the entire screen.
 	 */
-	private void copyBits(EditWindow renderedCell, Rectangle screenBounds)
+	private void copyBits(PixelDrawing srcOffscreen, Rectangle screenBounds)
 	{
-		PixelDrawing srcOffscreen = renderedCell.getOffscreen();
+		//PixelDrawing srcOffscreen = renderedCell.getOffscreen();
 		if (srcOffscreen == null) return;
 //		if (srcOffscreen.layerBitMaps == null)
 //		{

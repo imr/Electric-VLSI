@@ -96,6 +96,13 @@ public class Highlighter implements DatabaseChangeListener {
     }
 
     /**
+     * Destructor
+     */
+    public void delete() {
+        Undo.removeDatabaseChangeListener(this);
+    }
+
+    /**
 	 * Method to add an ElectricObject to the list of highlighted objects.
 	 * @param eobj the ElectricObject to add to the list of highlighted objects.
 	 * @param cell the Cell in which the ElectricObject resides.

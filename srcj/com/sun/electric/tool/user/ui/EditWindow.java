@@ -507,6 +507,7 @@ public class EditWindow extends JPanel
 		removeMouseWheelListener(this);
         highlighter.removeHighlightListener(this);
         Undo.removeDatabaseChangeListener(this);
+        highlighter.delete();
 	}
 
 	// ************************************* SCROLLING *************************************

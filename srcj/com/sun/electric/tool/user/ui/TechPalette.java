@@ -72,6 +72,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
     /** the size of a palette entry. */					private int entrySize;
     /** the list of objects in the palette. */			private List inPalette;
     /** the currently selected Node object. */			private Object highlightedNode;
+    /** the current canvas */                           private EditWindow wnd;
 
     TechPalette()
     {
@@ -616,9 +617,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         entrySize = Math.min(wid / menuX - 1, hei / menuY - 1);
 
         // create an EditWindow for rendering nodes and arcs
-        EditWindow w = EditWindow.CreateElectricDoc(null, null);
-        Undo.removeDatabaseChangeListener(w.getHighlighter());
-        w.setScreenSize(new Dimension(entrySize, entrySize));
+        if (wnd != null) wnd.finished();
+        wnd = EditWindow.CreateElectricDoc(null, null);
+        Undo.removeDatabaseChangeListener(wnd.getHighlighter());
+        wnd.setScreenSize(new Dimension(entrySize, entrySize));
 
         // draw the menu entries
         for(int x=0; x<menuX; x++)
@@ -629,7 +631,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 int index = x * menuY + y;
                 if (index >= inPalette.size()) continue;
                 Object toDraw = inPalette.get(index);
-                Image img = drawMenuEntry(w, toDraw);
+                Image img = drawMenuEntry(wnd, toDraw);
 
                 // put the Image in the proper place
                 int imgX = x * (entrySize+1)+1;
