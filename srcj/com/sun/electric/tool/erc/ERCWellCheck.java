@@ -132,11 +132,10 @@ public class ERCWellCheck
 			cellMerges = new HashMap();
 
 			// enumerate the hierarchy below here
-			Visitor wcVisitor = new Visitor(newAlgorithm);
+			Visitor wcVisitor = new Visitor(newAlgorithm, this);
 			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, wcVisitor);
 
 			// make a list of well and substrate areas
-			//PolyMerge topMerge = (PolyMerge)cellMerges.get(cell);
 			wellAreas = new ArrayList();
 			int wellIndex = 0;
 
@@ -443,19 +442,44 @@ public class ERCWellCheck
 			errorLogger.termLogging(true);
 			return true;
 		}
+
+		/**
+		 * Method to access scheduled abort flag in Job and
+		 * set the flag to abort if scheduled flag is true.
+		 * This is because setAbort and getScheduledToAbort
+		 * are protected in Job.
+		 * @return true if job is scheduled for abort
+		 */
+		protected boolean checkForAbort()
+		{
+			boolean abort = getScheduledToAbort();
+			if (abort) setAborted();
+			return (abort);
+		}
 	}
 
 	public static class Visitor extends HierarchyEnumerator.Visitor
     {
 		boolean newAlgorithm;
+		WellCheck job;
 
-        public Visitor(boolean newAlgorithm)
+        public Visitor(boolean newAlgorithm, WellCheck job)
         {
 	        this.newAlgorithm = newAlgorithm;
+	        this.job = job;
         }
 
         public boolean enterCell(HierarchyEnumerator.CellInfo info)
         {
+	        // Already aborted
+	        if (job.getAborted()) return (false);
+	        // Checking if job is scheduled for abort
+	        if (job.checkForAbort())
+	        {
+		       System.out.println("WellCheck aborted");
+		       return (false);
+	        }
+
 			// make an object for merging all of the wells in this cell
 			Cell cell = info.getCell();
 	        GeometryHandler thisMerge = (GeometryHandler)cellMerges.get(cell);
