@@ -111,7 +111,7 @@ public class TopLevel extends JFrame
 		ToolBar toolBar = ToolBar.createToolBar();
 		getContentPane().add(toolBar, BorderLayout.NORTH);
 
-		if (!mdi)
+		if (!isMDIMode())
 			setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
 		windowList.add(this);
@@ -123,6 +123,16 @@ public class TopLevel extends JFrame
 	 * Routine to initialize the window system.
 	 */
 	public static void Initialize()
+	{
+		// initialize the messages window
+		MessagesWindow cl = new MessagesWindow(scrnSize);
+		palette = PaletteFrame.newInstance();
+	}
+
+	/**
+	 * Routine to initialize the window system.
+	 */
+	public static void OSInitialize()
 	{
 		// setup the size of the screen
 		scrnSize = (Toolkit.getDefaultToolkit()).getScreenSize();
@@ -152,7 +162,7 @@ public class TopLevel extends JFrame
 		} catch(Exception e) {}
 
 		// in MDI, create the top frame now
-		if (mdi)
+		if (isMDIMode())
 		{
 			topLevel = new TopLevel("Electric", scrnSize);	
 
@@ -160,10 +170,6 @@ public class TopLevel extends JFrame
 			desktop = new JDesktopPane();
 			topLevel.getContentPane().add(desktop, BorderLayout.CENTER);
 		}
-
-		// initialize the messages window
-		MessagesWindow cl = new MessagesWindow(scrnSize);
-		palette = PaletteFrame.newInstance();
 	}
 
 	/**
@@ -180,7 +186,10 @@ public class TopLevel extends JFrame
 	 * This is used on Windows.
 	 * @return true if Electric is in MDI mode.
 	 */
-	public static boolean isMDIMode() { return mdi; }
+	public static boolean isMDIMode()
+	{
+		return mdi;
+	}
 
 	/**
 	 * Routine to return an iterator over all top-level windows.
@@ -229,7 +238,7 @@ public class TopLevel extends JFrame
 	 */
 	public static EditWindow getCurrentEditWindow()
 	{
-		if (mdi)
+		if (isMDIMode())
         {
         	JInternalFrame frame = desktop.getSelectedFrame();
 			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
@@ -266,7 +275,7 @@ public class TopLevel extends JFrame
 	 */
 	public static JFrame getCurrentJFrame()
 	{
-		if (mdi)
+		if (isMDIMode())
         {
 			return topLevel;
  		} else

@@ -42,6 +42,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -59,8 +60,10 @@ public final class UserInitial
         // convert args to array list
         ArrayList argsList = new ArrayList();
         for (int i=0; i<args.length; i++) argsList.add(args[i]);
-        
-        // initialize database
+
+		TopLevel.OSInitialize();
+
+		// initialize database
 		new InitDatabase();
 
         if (hasCommandLineOption(argsList, "-m")) {
