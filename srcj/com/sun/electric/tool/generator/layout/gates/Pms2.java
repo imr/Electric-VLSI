@@ -80,7 +80,7 @@ public class Pms2 {
 										fw.gateWid, pms2);
 		
 		// g2  m1_wid/2 + m1_m1_sp + m1_wid/2
-		double g2X = stdCell.getRightDiffX(pmos) + 2 + 3 + 2;
+		double g2X = StdCellParams.getRightDiffX(pmos) + 2 + 3 + 2;
 		LayoutLib.newExport(pms2, "g2", PortProto.Characteristic.IN, Tech.m1,
 							4, g2X, g2Y);
 		// output  m1_wid/2 + m1_m1_sp + m1_wid/2

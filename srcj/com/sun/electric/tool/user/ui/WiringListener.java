@@ -572,7 +572,7 @@ public class WiringListener
 			// make one-bend
 			WiringPlan [] list = new WiringPlan[3];
 			Point2D intermediate = new Point2D.Double(startLoc.getX(), endLoc.getY());
-			PrimitiveNode np = ((PrimitiveArc)startAp).findPinProto();
+			PrimitiveNode np = ((PrimitiveArc)startAp).findOverridablePinProto();
 			PrimitivePort pp = (PrimitivePort)np.getPorts().next();
 			list[0] = WiringPlan.makeNode(null, np, pp, intermediate, np.getDefWidth(), np.getDefHeight());
 			list[1] = WiringPlan.makeArc(startAp, list[0], pp, intermediate,
@@ -632,7 +632,7 @@ public class WiringListener
 					}
 
 					// splitting the arc in the middle
-					PrimitiveNode np = ((PrimitiveArc)ai.getProto()).findPinProto();
+					PrimitiveNode np = ((PrimitiveArc)ai.getProto()).findOverridablePinProto();
 					PrimitivePort pp = (PrimitivePort)np.getPorts().next();
 					Point2D center = EMath.closestPointToSegment(aiHead.getLocation(), aiTail.getLocation(), startPoint);
 					EditWindow.gridAlign(center);
@@ -761,7 +761,7 @@ public class WiringListener
 				}
 				EditWindow.gridAlign(trueEnd);
 
-				PrimitiveNode pinType = ((PrimitiveArc)useAp).findPinProto();
+				PrimitiveNode pinType = ((PrimitiveArc)useAp).findOverridablePinProto();
 				PrimitivePort pinPort = (PrimitivePort)pinType.getPorts().next();
 
 				// create the destination pin and run the wire

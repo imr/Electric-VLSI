@@ -128,7 +128,7 @@ public class SimpleWirer extends InteractiveRouter {
             // else it is near to pin1 quad, use pin1
 
             // make new pin of arc type
-            PrimitiveNode pn = ((PrimitiveArc)useArc).findPinProto();
+            PrimitiveNode pn = ((PrimitiveArc)useArc).findOverridablePinProto();
             RouteElement pinRE = RouteElement.newNode(cell, pn, pn.getPort(0), pin1,
                     pn.getDefWidth(), pn.getDefHeight());
             RouteElement arcRE1 = RouteElement.newArc(cell, useArc, width, startRE, pinRE, null);

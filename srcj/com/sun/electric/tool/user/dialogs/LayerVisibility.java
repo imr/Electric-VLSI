@@ -41,7 +41,7 @@ import javax.swing.Box;
 /**
  * Class to handle the "Layer Visibility" dialog.
  */
-public class LayerVisibility extends javax.swing.JDialog
+public class LayerVisibility extends EDialog
 {
 	private Box layerBox;
 	private List layerList;
@@ -58,7 +58,6 @@ public class LayerVisibility extends javax.swing.JDialog
 	public LayerVisibility(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
-		setLocation(100, 50);
 		initComponents();
 
 		// initialize text visibility checkboxes

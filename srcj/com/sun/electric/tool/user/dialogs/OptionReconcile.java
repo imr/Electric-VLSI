@@ -52,7 +52,7 @@ import javax.swing.JSeparator;
 /**
  * Class to handle the "Option Reconcile" dialog.
  */
-public class OptionReconcile extends JDialog
+public class OptionReconcile extends EDialog
 {
 	private HashMap changedOptions;
 	
@@ -61,7 +61,6 @@ public class OptionReconcile extends JDialog
 	public OptionReconcile(Frame parent, boolean modal, List optionsThatChanged)
 	{
 		super(parent, modal);
-		setLocation(100, 50);
 		initComponents();
         getRootPane().setDefaultButton(ok);
 

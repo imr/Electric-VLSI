@@ -343,7 +343,8 @@ public class Quick
 		if (justArea)
 		{
 			EditWindow wnd = EditWindow.getCurrent();
-			bounds = Highlight.getHighlightedArea(wnd);
+			if (wnd != null)
+				bounds = Highlight.getHighlightedArea(wnd);
 		}
 
 		// now do the DRC

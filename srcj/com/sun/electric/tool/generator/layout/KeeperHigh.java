@@ -53,15 +53,15 @@ public class KeeperHigh {
 			NodeInst ni = (NodeInst) nodes.next();
 			String nm = ni.getProto().getProtoName();
 			if (nm.equals("pms1K{ic}")) {
-				szPmos = stdCell.getSize(ni, context);
+				szPmos = StdCellParams.getSize(ni, context);
 			} else if (nm.equals("invK{ic}")) {
-				szK = stdCell.getSize(ni, context);
+				szK = StdCellParams.getSize(ni, context);
 			} else if (nm.equals("inv{ic}")) {
 				JNetwork net = netlist.getNetwork(ni.findPortInst("in"));
 				if (net.hasName("mc")) {
-					szMc = stdCell.getSize(ni, context);
+					szMc = StdCellParams.getSize(ni, context);
 				} else if (net.hasName("d")) {
-					szI = stdCell.getSize(ni, context);
+					szI = StdCellParams.getSize(ni, context);
 				} else {
 					System.out.println("Unrecognized net: ");
 					Iterator it = net.getNames();

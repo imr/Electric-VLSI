@@ -114,7 +114,7 @@ class Nor2_star {
 		}
 		
 		// Nor input A
-		double inaX = stdCell.getRightDiffX(pmos, nmoss) + 2 + 3 + 2;
+		double inaX = StdCellParams.getRightDiffX(pmos, nmoss) + 2 + 3 + 2;
 		LayoutLib.newExport(nor, "ina", PortProto.Characteristic.IN, Tech.m1,
 							4, inaX, inaY);
 		TrackRouter inA = new TrackRouterH(Tech.m1, 3, inaY, nor);

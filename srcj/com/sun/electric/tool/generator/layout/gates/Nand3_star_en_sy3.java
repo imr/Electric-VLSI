@@ -115,7 +115,7 @@ class Nand3_star_en_sy3 {
 		}
 		
 		// Create one FoldedMos for weak PMOS
-		double weakX = stdCell.getRightDiffX(pmoss) + 12;// for now don't share
+		double weakX = StdCellParams.getRightDiffX(pmoss) + 12;// for now don't share
 		double weakY = weakBot + fwW.physWid/2;
 		FoldedMos weak = new FoldedPmos(weakX, weakY, fwW.nbFolds, 1,
 										fwW.gateWid, nand);
@@ -188,7 +188,7 @@ class Nand3_star_en_sy3 {
 		
 		// Nand input A
 		// m1_wid + m1_space + m1_wid/2
-		double inaX = stdCell.getRightDiffX(nmos) + 2 + 3 + 2;
+		double inaX = StdCellParams.getRightDiffX(nmos) + 2 + 3 + 2;
 		double gndBot = stdCell.getGndY() - stdCell.getGndWidth()/2;
 		double inaLoY = gndBot - 3 - 2;	// -m1_m1_sp -m1_wid/2
 		// -polyOverhangDiff - p1_p1_sp -p1m1/2

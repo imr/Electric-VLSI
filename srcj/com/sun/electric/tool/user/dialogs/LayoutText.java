@@ -47,7 +47,7 @@ import java.util.Iterator;
 /**
  * Class to handle the "Layout Text" dialog.
  */
-public class LayoutText extends javax.swing.JDialog
+public class LayoutText extends EDialog
 {
 	private static int lastSize = 12;
 	private static double lastScale = 1;
@@ -63,7 +63,6 @@ public class LayoutText extends javax.swing.JDialog
 	public LayoutText(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
-		setLocation(100, 50);
 		initComponents();
         getRootPane().setDefaultButton(ok);
 

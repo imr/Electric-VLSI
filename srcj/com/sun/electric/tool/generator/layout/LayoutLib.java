@@ -460,7 +460,7 @@ public class LayoutLib {
 			return newArcInst(ap, width, head, hX, hY, tail, tX, tY);
 		} else {
 			Cell parent = head.getNodeInst().getParent();
-			NodeProto pinProto = ((PrimitiveArc)ap).findPinProto();
+			NodeProto pinProto = ((PrimitiveArc)ap).findOverridablePinProto();
 			PortInst pin = newNodeInst(pinProto, tX, hY, DEF_SIZE, DEF_SIZE, 0, 
 			                           parent).getOnlyPortInst(); 
 			newArcInst(ap, width, head, pin);
@@ -495,7 +495,7 @@ public class LayoutLib {
 	public static Export newExport(Cell cell, String name, 
 	                               PortProto.Characteristic role,
 	                               ArcProto ap, double w, double x, double y) {
-		NodeProto np = ((PrimitiveArc)ap).findPinProto();
+		NodeProto np = ((PrimitiveArc)ap).findOverridablePinProto();
 		error(np==null, "LayoutLib.newExport: This layer has no layer-pin");
 		
 		double defSz = LayoutLib.DEF_SIZE;

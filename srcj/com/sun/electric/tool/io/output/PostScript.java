@@ -584,7 +584,7 @@ public class PostScript extends Output
 				psPoly(poly);
 
 				poly.setStyle(Poly.Type.TEXTBOX);
-				TextDescriptor td = TextDescriptor.newInstanceDescriptor(null);
+				TextDescriptor td = TextDescriptor.getInstanceTextDescriptor(null);
 				td.setAbsSize(24);
 				poly.setTextDescriptor(td);
 				poly.setString(ni.getProto().describe());
@@ -665,7 +665,6 @@ public class PostScript extends Output
 					Date lastChangeDate = oCell.getRevisionDate();
 					if (lastSavedDate.after(lastChangeDate)) continue;
 				}
-                // TODO: where to get right context from?
 				boolean err = writeCellToFile(oCell, VarContext.globalContext, syncFileName);
 				if (err) return true;
 				numSyncs++;

@@ -133,7 +133,7 @@ public class Inv_passgate {
 		for (int i=0; i<pmos.nbGates(); i++) in.connect(pmos.getGate(i, 'B'));
 		for (int i=0; i<nbPullDnFolds; i++) in.connect(nmos.getGate(i, 'T'));
 		
-		double jogX = stdCell.getRightDiffX(nmos, pmos) + wirePitch;
+		double jogX = StdCellParams.getRightDiffX(nmos, pmos) + wirePitch;
 		double enX = jogX + wirePitch;
 		double outX = enX + wirePitch;
 		

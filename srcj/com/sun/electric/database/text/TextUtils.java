@@ -318,14 +318,17 @@ public class TextUtils
 	 * @param search the string being located in the main string.
 	 * @param startingPos the starting position in the main string to look (0 to search the whole string).
 	 * @param caseSensitive true to do a case-sensitive search.
+	 * @param reverse true to search from the back of the string.
 	 * @return the position of the search string.  Returns negative if the string is not found.
 	 */
-	public static int findStringInString(String string, String search, int startingPos, boolean caseSensitive)
+	public static int findStringInString(String string, String search, int startingPos, boolean caseSensitive, boolean reverse)
 	{
 		if (caseSensitive)
 		{
 			// case-sensitive search
-			int i = string.indexOf(search, startingPos);
+			int i = 0;
+			if (reverse) i = string.lastIndexOf(search, startingPos); else
+				i = string.indexOf(search, startingPos);
 			return i;
 		}
 
@@ -333,7 +336,9 @@ public class TextUtils
 		if (startingPos > 0) string = string.substring(startingPos);
 		String stringLC = string.toLowerCase();
 		String searchLC = search.toLowerCase();
-		int i = stringLC.indexOf(searchLC);
+		int i = 0;
+		if (reverse) i = stringLC.lastIndexOf(searchLC); else
+			i = stringLC.indexOf(searchLC);
 		if (i >= 0) i += startingPos;
 		return i;
 	}

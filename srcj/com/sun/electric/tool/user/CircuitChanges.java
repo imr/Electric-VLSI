@@ -834,17 +834,23 @@ public class CircuitChanges
 
 	/****************************** DELETE A CELL ******************************/
 
-	public static void deleteCell(Cell cell, boolean confirm)
+	/**
+	 * Method to delete a cell.
+	 * @param cell the cell to delete.
+	 * @param confirm true to prompt the user to confirm the deletion.
+	 * @return true if the cell will be deleted (in a separate Job).
+	 */
+	public static boolean deleteCell(Cell cell, boolean confirm)
 	{
 		// see if this cell is in use anywhere
-		if (cell.isInUse("delete")) return;
+		if (cell.isInUse("delete")) return false;
 
 		// make sure the user really wants to delete the cell
 		if (confirm)
 		{
 			int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
 				"Are you sure you want to delete cell " + cell.describe() + "?");
-			if (response != JOptionPane.YES_OPTION) return;
+			if (response != JOptionPane.YES_OPTION) return false;
 		}
 
         // update any windows that used the cell
@@ -858,6 +864,7 @@ public class CircuitChanges
 
 		// delete the cell
 		DeleteCell job = new DeleteCell(cell);
+		return true;
 	}
 
 	/**

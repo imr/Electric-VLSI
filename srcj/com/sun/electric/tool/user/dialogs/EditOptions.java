@@ -27,10 +27,12 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.technologies.MoCMOS;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
@@ -55,7 +57,7 @@ import javax.swing.event.ChangeListener;
 /**
  * Class to handle the "Edit Options" dialog.
  */
-public class EditOptions extends javax.swing.JDialog
+public class EditOptions extends EDialog
 {
 	/** The name of the current tab in this dialog. */	private static String currentTabName = null;
 
@@ -63,7 +65,6 @@ public class EditOptions extends javax.swing.JDialog
 	public EditOptions(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
-		setLocation(100, 50);
 		initComponents();
 
 		// if the last know tab name is available, find that tab again
@@ -141,10 +142,6 @@ public class EditOptions extends javax.swing.JDialog
 		generalMemoryUsage.setText("Current memory usage: " + Long.toString(maxMemLimit) + " megabytes");
 		initialMaxMem = User.getMemorySize();
 		generalMaxMem.setText(Long.toString(initialMaxMem));
-
-		// not yet
-		generalShowFileDialog.setEnabled(false);
-		generalMotionHysteresis.setEditable(false);
 	}
 
 	/**
@@ -160,6 +157,10 @@ public class EditOptions extends javax.swing.JDialog
 		boolean curentClickSounds = generalPlayClickSounds.isSelected();
 		if (curentClickSounds != initialClickSounds)
 			User.setPlayClickSoundsWhenCreatingArcs(curentClickSounds);
+
+		boolean curentShowFileSelectionForNetlists = generalShowFileDialog.isSelected();
+		if (curentShowFileSelectionForNetlists != initialShowFileSelectionForNetlists)
+			User.setShowFileSelectionForNetlists(curentShowFileSelectionForNetlists);
 
 		boolean curentIncludeDateAndVersion = generalIncludeDateAndVersion.isSelected();
 		if (curentIncludeDateAndVersion != initialIncludeDateAndVersion)
@@ -180,9 +181,9 @@ public class EditOptions extends javax.swing.JDialog
 	{
 		double initialWid, wid;
 		double initialHei, hei;
-		boolean initialOverride, override;
-		int initialRotation, rotation;
-		boolean initialMirrorX, mirrorX;
+//		boolean initialOverride, override;
+//		int initialRotation, rotation;
+//		boolean initialMirrorX, mirrorX;
 		Variable var;
 	}
 	private HashMap initialNewNodesPrimInfo;
@@ -192,8 +193,6 @@ public class EditOptions extends javax.swing.JDialog
 	private boolean initialNewNodesDisallowModificationLockedPrims;
 	private boolean initialNewNodesMoveAfterDuplicate;
 	private boolean initialNewNodesDupCopiesExports;
-	private int initialNewNodesRotation;
-	private boolean initialNewNodesMirrorX;
 	private boolean newNodesDataChanging = false;
 
 	/**
@@ -210,27 +209,6 @@ public class EditOptions extends javax.swing.JDialog
 			PrimNodeInfo pni = new PrimNodeInfo();
 			pni.initialWid = pni.wid = np.getDefWidth();
 			pni.initialHei = pni.hei = np.getDefHeight();
-			pni.var = np.getVar(User.PLACEMENT_ANGLE, Integer.class);
-			if (pni.var != null)
-			{
-				Integer rot = (Integer)pni.var.getObject();
-				pni.override = true;
-				pni.rotation = rot.intValue();
-				pni.mirrorX = false;
-				if (pni.rotation >= 3600)
-				{
-					pni.rotation -= 3600;
-					pni.mirrorX = true;
-				}
-			} else
-			{
-				pni.override = false;
-				pni.rotation = 0;
-				pni.mirrorX = false;
-			}
-			pni.initialOverride = pni.override;
-			pni.initialRotation = pni.rotation;
-			pni.initialMirrorX = pni.mirrorX;
 			initialNewNodesPrimInfo.put(np, pni);
 			nodePrimitive.addItem(np.getProtoName());
 		}
@@ -245,28 +223,14 @@ public class EditOptions extends javax.swing.JDialog
 		nodeDisallowModificationLockedPrims.setSelected(initialNewNodesDisallowModificationLockedPrims = User.isDisallowModificationLockedPrims());
 		nodeMoveAfterDuplicate.setSelected(initialNewNodesMoveAfterDuplicate = User.isMoveAfterDuplicate());
 		nodeCopyExports.setSelected(initialNewNodesDupCopiesExports = User.isDupCopiesExports());
-		nodeAllRotation.setText(Double.toString((initialNewNodesRotation = User.getNewNodeRotation()) / 10));
-		nodeAllMirror.setSelected(initialNewNodesMirrorX = User.isDupCopiesExports());
 
-		// setup listeners to react to any changes in the top part of the dialog
+		// setup listeners to react to any changes to a primitive size
 		nodePrimitive.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { newNodesPrimPopupChanged(); }
 		});
-		nodeOverrideDefaultOrientation.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt) { newNodesOverrideChanged(); }
-		});
-		nodePrimitiveMirror.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt) { newNodesPrimDataChanged(); }
-		});
 		nodePrimitiveXSize.getDocument().addDocumentListener(new NewNodeDocumentListener(this));
 		nodePrimitiveYSize.getDocument().addDocumentListener(new NewNodeDocumentListener(this));
-		nodePrimitiveRotation.getDocument().addDocumentListener(new NewNodeDocumentListener(this));
-
-		// some things are not available yet
-		nodeHashLimit.setEditable(false);
 	}
 
 	/**
@@ -281,9 +245,6 @@ public class EditOptions extends javax.swing.JDialog
 		newNodesDataChanging = true;
 		nodePrimitiveXSize.setText(Double.toString(pni.wid));
 		nodePrimitiveYSize.setText(Double.toString(pni.hei));
-		nodeOverrideDefaultOrientation.setSelected(pni.override);
-		nodePrimitiveRotation.setText(Double.toString(pni.rotation / 10));
-		nodePrimitiveMirror.setSelected(pni.mirrorX);
 		newNodesDataChanging = false;
 	}
 
@@ -314,36 +275,6 @@ public class EditOptions extends javax.swing.JDialog
 		if (pni == null) return;
 		pni.wid = TextUtils.atof(nodePrimitiveXSize.getText());
 		pni.hei = TextUtils.atof(nodePrimitiveYSize.getText());
-		pni.rotation = (int)(TextUtils.atof(nodePrimitiveRotation.getText()) * 10);
-		pni.mirrorX = nodePrimitiveMirror.isSelected();
-		if (pni.rotation != pni.initialRotation || pni.mirrorX != pni.initialMirrorX)
-		{
-			if (!pni.override)
-				nodeOverrideDefaultOrientation.setSelected(pni.override = true);
-		}
-	}
-
-	/**
-	 * Method called when the "Override default orientation" checkbox is changed.
-	 * This affects whether primitive nodes have an individual orientation override.
-	 */
-	private void newNodesOverrideChanged()
-	{
-		if (newNodesDataChanging) return;
-		String primName = (String)nodePrimitive.getSelectedItem();
-		PrimitiveNode np = Technology.getCurrent().findNodeProto(primName);
-		PrimNodeInfo pni = (PrimNodeInfo)initialNewNodesPrimInfo.get(np);
-		if (pni == null) return;
-		pni.override = nodeOverrideDefaultOrientation.isSelected();
-		if (!pni.override)
-		{
-			pni.rotation = pni.initialRotation;
-			pni.mirrorX = pni.initialMirrorX;
-			newNodesDataChanging = true;
-			nodePrimitiveRotation.setText(Double.toString(pni.rotation / 10));
-			nodePrimitiveMirror.setSelected(pni.mirrorX);
-			newNodesDataChanging = false;
-		}
 	}
 
 	/**
@@ -377,14 +308,6 @@ public class EditOptions extends javax.swing.JDialog
 		boolean currentCopyExports = nodeCopyExports.isSelected();
 		if (currentCopyExports != initialNewNodesDupCopiesExports)
 			User.setDupCopiesExports(currentCopyExports);
-
-		int currentAllRotation = (int)(TextUtils.atof(nodeAllRotation.getText()) * 10);
-		if (currentAllRotation != initialNewNodesRotation)
-			User.setNewNodeRotation(currentAllRotation);
-
-		boolean currentMirrorX = nodeAllMirror.isSelected();
-		if (currentMirrorX != initialNewNodesMirrorX)
-			User.setDupCopiesExports(currentMirrorX);
 	}
 
 	/**
@@ -409,19 +332,6 @@ public class EditOptions extends javax.swing.JDialog
 				PrimNodeInfo pni = (PrimNodeInfo)dialog.initialNewNodesPrimInfo.get(np);
 				if (pni.wid != pni.initialWid || pni.hei != pni.initialHei)
 					np.setDefSize(pni.wid, pni.hei);
-				if (pni.override != pni.initialOverride)
-				{
-					if (pni.override)
-					{
-						int rot = pni.rotation;
-						if (pni.mirrorX) rot += 3600;
-						np.newVar(User.PLACEMENT_ANGLE, new Integer(rot));
-					} else
-					{
-						if (pni.var != null)
-							np.delVar(User.PLACEMENT_ANGLE);
-					}
-				}
 			}
 		}
 	}
@@ -470,7 +380,7 @@ public class EditOptions extends javax.swing.JDialog
 
 			pai.initialWid = pai.wid = ap.getDefaultWidth();
 			pai.initialAngleIncrement = pai.angleIncrement = ap.getAngleIncrement();
-			pai.initialPin = pai.pin = ap.findPinProto();
+			pai.initialPin = pai.pin = ap.findOverridablePinProto();
 
 			initialNewArcsPrimInfo.put(ap, pai);
 			arcProtoList.addItem(ap.getProtoName());
@@ -625,7 +535,7 @@ public class EditOptions extends javax.swing.JDialog
 					ap.setAngleIncrement(pai.angleIncrement);
 				if (pai.pin != pai.initialPin)
 				{
-					ap.newVar(PrimitiveArc.ARC_DEFAULT_PIN, pai.pin);
+					ap.setPinProto(pai.pin);
 				}
 			}
 		}
@@ -968,8 +878,11 @@ public class EditOptions extends javax.swing.JDialog
 		gridBoldVert.setText(Double.toString(initialGridDefYBoldFrequency = User.getDefGridYBoldFrequency()));
 
 		gridAlignCursor.setText(Double.toString(initialGridAlignment = User.getAlignmentToGrid()));
+
+		// not yet
 		gridAlignEdges.setText(Double.toString(initialGridEdgeAlignment = User.getEdgeAlignmentToGrid()));
 		gridAlignEdges.setEnabled(false);
+		jLabel39.setEnabled(false);
 	}
 
 	/**
@@ -1058,7 +971,28 @@ public class EditOptions extends javax.swing.JDialog
 
 	//******************************** TEXT ********************************
 
-	private String initialFontName;
+	private String initialTextFontName;
+	private TextDescriptor initialTextNodeDescriptor, currentTextNodeDescriptor;
+	private TextDescriptor initialTextArcDescriptor, currentTextArcDescriptor;
+	private TextDescriptor initialTextExportDescriptor, currentTextExportDescriptor;
+	private TextDescriptor initialTextAnnotationDescriptor, currentTextAnnotationDescriptor;
+	private TextDescriptor initialTextInstanceDescriptor, currentTextInstanceDescriptor;
+	private TextDescriptor initialTextCellDescriptor, currentTextCellDescriptor;
+	private TextDescriptor currentTextDescriptor;
+	private String initialTextNodeFont;
+	private String initialTextArcFont;
+	private String initialTextExportFont;
+	private String initialTextAnnotationFont;
+	private String initialTextInstanceFont;
+	private String initialTextCellFont;
+	private StringBuffer currentTextNodeFont;
+	private StringBuffer currentTextArcFont;
+	private StringBuffer currentTextExportFont;
+	private StringBuffer currentTextAnnotationFont;
+	private StringBuffer currentTextInstanceFont;
+	private StringBuffer currentTextCellFont;
+	private StringBuffer currentTextFont;
+	private boolean textValuesChanging = false;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -1066,50 +1000,125 @@ public class EditOptions extends javax.swing.JDialog
 	 */
 	private void initText()
 	{
-		textIconCenter.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabCenter.gif")));
-		textIconLeft.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabLeft.gif")));
-		textIconRight.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabRight.gif")));
-		textIconTop.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabTop.gif")));
-		textIconBottom.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabBottom.gif")));
-		textIconLowerRight.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabLowerRight.gif")));
-		textIconLowerLeft.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabLowerLeft.gif")));
-		textIconUpperRight.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabUpperRight.gif")));
-		textIconUpperLeft.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabUpperLeft.gif")));
-		textIconBoxed.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabBoxed.gif")));
+//		textIconCenter.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabCenter.gif")));
+//		textIconLeft.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabLeft.gif")));
+//		textIconRight.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabRight.gif")));
+//		textIconTop.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabTop.gif")));
+//		textIconBottom.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabBottom.gif")));
+//		textIconLowerRight.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabLowerRight.gif")));
+//		textIconLowerLeft.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabLowerLeft.gif")));
+//		textIconUpperRight.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabUpperRight.gif")));
+//		textIconUpperLeft.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabUpperLeft.gif")));
+//		textIconBoxed.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabBoxed.gif")));
+		for (Iterator it = TextDescriptor.Position.getPositions(); it.hasNext(); )
+		{
+			TextDescriptor.Position pos = (TextDescriptor.Position)it.next();
+			textAnchor.addItem(pos);
+		}
 
-		initialFontName = User.getDefaultFont();
+		// get initial descriptors
+		initialTextNodeDescriptor = TextDescriptor.getNodeTextDescriptor(null);
+		initialTextArcDescriptor = TextDescriptor.getArcTextDescriptor(null);
+		initialTextExportDescriptor = TextDescriptor.getExportTextDescriptor(null);
+		initialTextAnnotationDescriptor = TextDescriptor.getAnnotationTextDescriptor(null);
+		initialTextInstanceDescriptor = TextDescriptor.getInstanceTextDescriptor(null);
+		initialTextCellDescriptor = TextDescriptor.getCellTextDescriptor(null);
+		initialTextNodeFont = TextDescriptor.getNodeTextDescriptorFont();
+		initialTextArcFont = TextDescriptor.getArcTextDescriptorFont();
+		initialTextExportFont = TextDescriptor.getExportTextDescriptorFont();
+		initialTextAnnotationFont = TextDescriptor.getAnnotationTextDescriptorFont();
+		initialTextInstanceFont = TextDescriptor.getInstanceTextDescriptorFont();
+		initialTextCellFont = TextDescriptor.getCellTextDescriptorFont();
+
+		// get current descriptors (gets changed by dialog)
+		currentTextNodeDescriptor = TextDescriptor.getNodeTextDescriptor(null);
+		currentTextArcDescriptor = TextDescriptor.getArcTextDescriptor(null);
+		currentTextExportDescriptor = TextDescriptor.getExportTextDescriptor(null);
+		currentTextAnnotationDescriptor = TextDescriptor.getAnnotationTextDescriptor(null);
+		currentTextInstanceDescriptor = TextDescriptor.getInstanceTextDescriptor(null);
+		currentTextCellDescriptor = TextDescriptor.getCellTextDescriptor(null);
+		currentTextNodeFont = new StringBuffer(TextDescriptor.getNodeTextDescriptorFont());
+		currentTextArcFont = new StringBuffer(TextDescriptor.getArcTextDescriptorFont());
+		currentTextExportFont = new StringBuffer(TextDescriptor.getExportTextDescriptorFont());
+		currentTextAnnotationFont = new StringBuffer(TextDescriptor.getAnnotationTextDescriptorFont());
+		currentTextInstanceFont = new StringBuffer(TextDescriptor.getInstanceTextDescriptorFont());
+		currentTextCellFont = new StringBuffer(TextDescriptor.getCellTextDescriptorFont());
+
+		initialTextFontName = User.getDefaultFont();
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		String [] fontNames = ge.getAvailableFontFamilyNames();
+		textFace.addItem("DEFAULT FONT");
 		for(int i=0; i<fontNames.length; i++)
+		{
 			textDefaultFont.addItem(fontNames[i]);
-		textDefaultFont.setSelectedItem(initialFontName);
+			textFace.addItem(fontNames[i]);
+		}
+		textDefaultFont.setSelectedItem(initialTextFontName);
+
+		textNodes.setSelected(true);
+		textButtonChanged();
+
+		textNodes.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { textButtonChanged(); }
+		});
+		textArcs.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { textButtonChanged(); }
+		});
+		textPorts.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { textButtonChanged(); }
+		});
+		textAnnotation.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { textButtonChanged(); }
+		});
+		textInstances.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { textButtonChanged(); }
+		});
+		textCellText.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { textButtonChanged(); }
+		});
+
+		textPoints.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { textValuesChanged(); }
+		});
+		textUnits.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { textValuesChanged(); }
+		});
+		textItalic.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { textValuesChanged(); }
+		});
+		textBold.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { textValuesChanged(); }
+		});
+		textUnderline.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { textValuesChanged(); }
+		});
+		textFace.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { textValuesChanged(); }
+		});
+		textAnchor.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { textValuesChanged(); }
+		});
+		textNewVisibleInsideCell.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { textValuesChanged(); }
+		});
+		textPointSize.getDocument().addDocumentListener(new TextSizeDocumentListener(this));
+		textUnitSize.getDocument().addDocumentListener(new TextSizeDocumentListener(this));
 
 		// not yet
-		textNodes.setEnabled(false);
-		textArcs.setEnabled(false);
-		textPorts.setEnabled(false);
-		textNonlayout.setEnabled(false);
-		textInstances.setEnabled(false);
-		textCellText.setEnabled(false);
-		textPointSize.setEditable(false);
-		textUnitSize.setEditable(false);
-		textFace.setEnabled(false);
-		textItalic.setEnabled(false);
-		textBold.setEnabled(false);
-		textUnderline.setEnabled(false);
-		textPoints.setEnabled(false);
-		textUnits.setEnabled(false);
-		textNewVisibleInsideCell.setEnabled(false);
-		textGrabCenter.setEnabled(false);
-		textGrabBottom.setEnabled(false);
-		textGrabTop.setEnabled(false);
-		textGrabRight.setEnabled(false);
-		textGrabLeft.setEnabled(false);
-		textGrabLowerRight.setEnabled(false);
-		textGrabLowerLeft.setEnabled(false);
-		textGrabUpperRight.setEnabled(false);
-		textGrabUpperLeft.setEnabled(false);
-		textGrabBoxed.setEnabled(false);
 		textSmartVerticalOff.setEnabled(false);
 		textSmartVerticalInside.setEnabled(false);
 		textSmartVerticalOutside.setEnabled(false);
@@ -1119,14 +1128,145 @@ public class EditOptions extends javax.swing.JDialog
 	}
 
 	/**
+	 * Class to handle special changes to text sizes.
+	 */
+	private static class TextSizeDocumentListener implements DocumentListener
+	{
+		EditOptions dialog;
+
+		TextSizeDocumentListener(EditOptions dialog) { this.dialog = dialog; }
+
+		public void changedUpdate(DocumentEvent e) { dialog.textValuesChanged(); }
+		public void insertUpdate(DocumentEvent e) { dialog.textValuesChanged(); }
+		public void removeUpdate(DocumentEvent e) { dialog.textValuesChanged(); }
+	}
+
+	private void textValuesChanged()
+	{
+		if (textValuesChanging) return;
+		if (textPoints.isSelected())
+		{
+			int size = TextUtils.atoi(textPointSize.getText());
+			currentTextDescriptor.setAbsSize(size);
+		} else
+		{
+			double size = TextUtils.atof(textUnitSize.getText());
+			currentTextDescriptor.setRelSize(size);
+		}
+
+		if (textItalic.isSelected()) currentTextDescriptor.setItalic(); else
+			currentTextDescriptor.clearItalic();
+		if (textBold.isSelected()) currentTextDescriptor.setBold(); else
+			currentTextDescriptor.clearBold();
+		if (textUnderline.isSelected()) currentTextDescriptor.setUnderline(); else
+			currentTextDescriptor.clearUnderline();
+
+		currentTextDescriptor.setPos((TextDescriptor.Position)textAnchor.getSelectedItem());
+
+		if (textNewVisibleInsideCell.isSelected()) currentTextDescriptor.setInterior(); else
+			currentTextDescriptor.clearInterior();
+
+		int index = textFace.getSelectedIndex();
+		int len = currentTextFont.length();
+		currentTextFont.delete(0, len);
+		if (index != 0)
+			currentTextFont.append((String)textFace.getSelectedItem());
+	}
+
+	private void textButtonChanged()
+	{
+		currentTextDescriptor = null;
+		if (textNodes.isSelected())
+		{
+			currentTextDescriptor = currentTextNodeDescriptor;
+			currentTextFont = currentTextNodeFont;
+		} else if (textArcs.isSelected())
+		{
+			currentTextDescriptor = currentTextArcDescriptor;
+			currentTextFont = currentTextArcFont;
+		} else if (textPorts.isSelected())
+		{
+			currentTextDescriptor = currentTextExportDescriptor;
+			currentTextFont = currentTextExportFont;
+		} else if (textAnnotation.isSelected())
+		{
+			currentTextDescriptor = currentTextAnnotationDescriptor;
+			currentTextFont = currentTextAnnotationFont;
+		} else if (textInstances.isSelected())
+		{
+			currentTextDescriptor = currentTextInstanceDescriptor;
+			currentTextFont = currentTextInstanceFont;
+		} else if (textCellText.isSelected())
+		{
+			currentTextDescriptor = currentTextCellDescriptor;
+			currentTextFont = currentTextCellFont;
+		}
+		loadCurrentDescriptorInfo();
+	}
+
+	private void loadCurrentDescriptorInfo()
+	{
+		textValuesChanging = true;
+		TextDescriptor.Size size = currentTextDescriptor.getSize();
+		if (size.isAbsolute())
+		{
+			textPoints.setSelected(true);
+			textPointSize.setText(Integer.toString((int)size.getSize()));
+			textUnitSize.setText("");
+		} else
+		{
+			textUnits.setSelected(true);
+			textUnitSize.setText(Double.toString(size.getSize()));
+			textPointSize.setText("");
+		}
+		textItalic.setSelected(currentTextDescriptor.isItalic());
+		textBold.setSelected(currentTextDescriptor.isBold());
+		textUnderline.setSelected(currentTextDescriptor.isUnderline());
+		
+		textAnchor.setSelectedItem(currentTextDescriptor.getPos());
+		textValuesChanging = false;
+
+		textNewVisibleInsideCell.setSelected(currentTextDescriptor.isInterior());
+
+		if (currentTextFont.length() == 0) textFace.setSelectedIndex(0); else
+			textFace.setSelectedItem(currentTextFont.toString());
+	}
+
+	/**
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Text tab.
 	 */
 	private void termText()
 	{
 		String currentFontName = (String)textDefaultFont.getSelectedItem();
-		if (!currentFontName.equalsIgnoreCase(initialFontName))
+		if (!currentFontName.equalsIgnoreCase(initialTextFontName))
 			User.setDefaultFont(currentFontName);
+
+		if (!currentTextNodeDescriptor.compare(initialTextNodeDescriptor))
+			TextDescriptor.setNodeTextDescriptor(currentTextNodeDescriptor);
+		if (!currentTextArcDescriptor.compare(initialTextArcDescriptor))
+			TextDescriptor.setArcTextDescriptor(currentTextArcDescriptor);
+		if (!currentTextExportDescriptor.compare(initialTextExportDescriptor))
+			TextDescriptor.setExportTextDescriptor(currentTextExportDescriptor);
+		if (!currentTextAnnotationDescriptor.compare(initialTextAnnotationDescriptor))
+			TextDescriptor.setAnnotationTextDescriptor(currentTextAnnotationDescriptor);
+		if (!currentTextInstanceDescriptor.compare(initialTextInstanceDescriptor))
+			TextDescriptor.setInstanceTextDescriptor(currentTextInstanceDescriptor);
+		if (!currentTextCellDescriptor.compare(initialTextCellDescriptor))
+			TextDescriptor.setCellTextDescriptor(currentTextCellDescriptor);
+
+		if (!currentTextNodeFont.toString().equals(initialTextNodeFont))
+			TextDescriptor.setNodeTextDescriptorFont(currentTextNodeFont.toString());
+		if (!currentTextArcFont.toString().equals(initialTextArcFont))
+			TextDescriptor.setArcTextDescriptorFont(currentTextArcFont.toString());
+		if (!currentTextExportFont.toString().equals(initialTextExportFont))
+			TextDescriptor.setExportTextDescriptorFont(currentTextExportFont.toString());
+		if (!currentTextAnnotationFont.toString().equals(initialTextAnnotationFont))
+			TextDescriptor.setAnnotationTextDescriptorFont(currentTextAnnotationFont.toString());
+		if (!currentTextInstanceFont.toString().equals(initialTextInstanceFont))
+			TextDescriptor.setInstanceTextDescriptorFont(currentTextInstanceFont.toString());
+		if (!currentTextCellFont.toString().equals(initialTextCellFont))
+			TextDescriptor.setCellTextDescriptorFont(currentTextCellFont.toString());
 	}
 
 	//******************************** 3D ********************************
@@ -1157,6 +1297,7 @@ public class EditOptions extends javax.swing.JDialog
 	private boolean initialTechAlternateContactRules;
 	private boolean initialTechSpecialTransistors;
 	private boolean initialTechStickFigures;
+	private double initialTechNegatingBubbleSize;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -1203,11 +1344,13 @@ public class EditOptions extends javax.swing.JDialog
 		}
 		technologyPopup.setSelectedItem(initialSchematicTechnology);
 
+		initialTechNegatingBubbleSize = Schematics.getNegatingBubbleSize();
+		techSchematicsNegatingSize.setText(Double.toString(initialTechNegatingBubbleSize));
+
 		// not yet
 		techMOCMOSFullGeom.setEnabled(false);
 		techMOCMOSStickFigures.setEnabled(false);
 		techArtworkArrowsFilled.setEnabled(false);
-		techSchematicsNegatingSize.setEditable(false);
 	}
 
 	/**
@@ -1306,6 +1449,10 @@ public class EditOptions extends javax.swing.JDialog
 			if (!currentTech.equals(dialog.initialSchematicTechnology))
 				User.setSchematicTechnology(currentTech);
 
+			double currentNegatingBubbleSize = TextUtils.atof(dialog.techSchematicsNegatingSize.getText());
+			if (currentNegatingBubbleSize != dialog.initialTechNegatingBubbleSize)
+				Schematics.setNegatingBubbleSize(currentNegatingBubbleSize);
+
 			// update the display
 			if (redrawPalette)
 			{
@@ -1346,9 +1493,6 @@ public class EditOptions extends javax.swing.JDialog
         generalShowFileDialog = new javax.swing.JCheckBox();
         jLabel46 = new javax.swing.JLabel();
         generalErrorLimit = new javax.swing.JTextField();
-        jLabel50 = new javax.swing.JLabel();
-        generalMotionHysteresis = new javax.swing.JTextField();
-        jLabel51 = new javax.swing.JLabel();
         jLabel53 = new javax.swing.JLabel();
         jPanel11 = new javax.swing.JPanel();
         jLabel60 = new javax.swing.JLabel();
@@ -1364,20 +1508,11 @@ public class EditOptions extends javax.swing.JDialog
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         nodePrimitiveYSize = new javax.swing.JTextField();
-        nodeOverrideDefaultOrientation = new javax.swing.JCheckBox();
-        jLabel4 = new javax.swing.JLabel();
-        nodePrimitiveRotation = new javax.swing.JTextField();
-        nodePrimitiveMirror = new javax.swing.JCheckBox();
         jPanel3 = new javax.swing.JPanel();
         nodeCheckCellDates = new javax.swing.JCheckBox();
         nodeSwitchTechnology = new javax.swing.JCheckBox();
         nodePlaceCellCenter = new javax.swing.JCheckBox();
-        jLabel47 = new javax.swing.JLabel();
-        nodeHashLimit = new javax.swing.JTextField();
         jPanel4 = new javax.swing.JPanel();
-        jLabel6 = new javax.swing.JLabel();
-        nodeAllRotation = new javax.swing.JTextField();
-        nodeAllMirror = new javax.swing.JCheckBox();
         nodeDisallowModificationLockedPrims = new javax.swing.JCheckBox();
         nodeMoveAfterDuplicate = new javax.swing.JCheckBox();
         nodeCopyExports = new javax.swing.JCheckBox();
@@ -1505,7 +1640,7 @@ public class EditOptions extends javax.swing.JDialog
         textNodes = new javax.swing.JRadioButton();
         textArcs = new javax.swing.JRadioButton();
         textPorts = new javax.swing.JRadioButton();
-        textNonlayout = new javax.swing.JRadioButton();
+        textAnnotation = new javax.swing.JRadioButton();
         textInstances = new javax.swing.JRadioButton();
         textCellText = new javax.swing.JRadioButton();
         jLabel42 = new javax.swing.JLabel();
@@ -1518,33 +1653,15 @@ public class EditOptions extends javax.swing.JDialog
         textUnderline = new javax.swing.JCheckBox();
         textPoints = new javax.swing.JRadioButton();
         textUnits = new javax.swing.JRadioButton();
+        jSeparator3 = new javax.swing.JSeparator();
+        jLabel4 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
+        textAnchor = new javax.swing.JComboBox();
+        textNewVisibleInsideCell = new javax.swing.JCheckBox();
         middle = new javax.swing.JPanel();
         jLabel44 = new javax.swing.JLabel();
         textDefaultFont = new javax.swing.JComboBox();
-        textNewVisibleInsideCell = new javax.swing.JCheckBox();
         bottom = new javax.swing.JPanel();
-        jLabel45 = new javax.swing.JLabel();
-        textGrabCenter = new javax.swing.JRadioButton();
-        textGrabBottom = new javax.swing.JRadioButton();
-        textGrabTop = new javax.swing.JRadioButton();
-        textGrabRight = new javax.swing.JRadioButton();
-        textGrabLeft = new javax.swing.JRadioButton();
-        textGrabLowerRight = new javax.swing.JRadioButton();
-        textGrabLowerLeft = new javax.swing.JRadioButton();
-        textGrabUpperRight = new javax.swing.JRadioButton();
-        textGrabUpperLeft = new javax.swing.JRadioButton();
-        textGrabBoxed = new javax.swing.JRadioButton();
-        textIconCenter = new javax.swing.JLabel();
-        textIconBottom = new javax.swing.JLabel();
-        textIconTop = new javax.swing.JLabel();
-        textIconRight = new javax.swing.JLabel();
-        textIconLeft = new javax.swing.JLabel();
-        textIconLowerRight = new javax.swing.JLabel();
-        textIconLowerLeft = new javax.swing.JLabel();
-        textIconUpperRight = new javax.swing.JLabel();
-        textIconUpperLeft = new javax.swing.JLabel();
-        textIconBoxed = new javax.swing.JLabel();
-        jSeparator5 = new javax.swing.JSeparator();
         jLabel56 = new javax.swing.JLabel();
         textSmartVerticalOff = new javax.swing.JRadioButton();
         textSmartVerticalInside = new javax.swing.JRadioButton();
@@ -1553,8 +1670,7 @@ public class EditOptions extends javax.swing.JDialog
         textSmartHorizontalOff = new javax.swing.JRadioButton();
         textSmartHorizontalInside = new javax.swing.JRadioButton();
         textSmartHorizontalOutside = new javax.swing.JRadioButton();
-        jSeparator3 = new javax.swing.JSeparator();
-        jSeparator4 = new javax.swing.JSeparator();
+        jSeparator1 = new javax.swing.JSeparator();
         threeD = new javax.swing.JPanel();
         jLabel65 = new javax.swing.JLabel();
         technology = new javax.swing.JPanel();
@@ -1646,29 +1762,6 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         general.add(generalErrorLimit, gridBagConstraints);
 
-        jLabel50.setText("Prevent motion after selection for:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        general.add(jLabel50, gridBagConstraints);
-
-        generalMotionHysteresis.setColumns(6);
-        generalMotionHysteresis.setText(" ");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        general.add(generalMotionHysteresis, gridBagConstraints);
-
-        jLabel51.setText("seconds");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        general.add(jLabel51, gridBagConstraints);
-
         jLabel53.setText("(0 for infinite)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
@@ -1723,7 +1816,7 @@ public class EditOptions extends javax.swing.JDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         general.add(jPanel11, gridBagConstraints);
@@ -1761,7 +1854,7 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel2.add(nodePrimitiveXSize, gridBagConstraints);
 
-        jLabel2.setText("X size of new primitives:");
+        jLabel2.setText("Default X size:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -1769,7 +1862,7 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel2.add(jLabel2, gridBagConstraints);
 
-        jLabel3.setText("Y size of new primitives:");
+        jLabel3.setText("Default Y size:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
@@ -1785,39 +1878,6 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel2.add(nodePrimitiveYSize, gridBagConstraints);
-
-        nodeOverrideDefaultOrientation.setText("Override default orientation");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel2.add(nodeOverrideDefaultOrientation, gridBagConstraints);
-
-        jLabel4.setText("Rotation of new nodes:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
-        jPanel2.add(jLabel4, gridBagConstraints);
-
-        nodePrimitiveRotation.setColumns(6);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel2.add(nodePrimitiveRotation, gridBagConstraints);
-
-        nodePrimitiveMirror.setText("Mirror X");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel2.add(nodePrimitiveMirror, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1855,22 +1915,6 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         jPanel3.add(nodePlaceCellCenter, gridBagConstraints);
 
-        jLabel47.setText("Units per pixel when cells are hashed:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 20, 4, 4);
-        jPanel3.add(jLabel47, gridBagConstraints);
-
-        nodeHashLimit.setColumns(8);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
-        jPanel3.add(nodeHashLimit, gridBagConstraints);
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
@@ -1880,35 +1924,10 @@ public class EditOptions extends javax.swing.JDialog
         jPanel4.setLayout(new java.awt.GridBagLayout());
 
         jPanel4.setBorder(new javax.swing.border.TitledBorder("For All Nodes"));
-        jLabel6.setText("Rotation of new nodes:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel4.add(jLabel6, gridBagConstraints);
-
-        nodeAllRotation.setColumns(6);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel4.add(nodeAllRotation, gridBagConstraints);
-
-        nodeAllMirror.setText("Mirror X");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel4.add(nodeAllMirror, gridBagConstraints);
-
         nodeDisallowModificationLockedPrims.setText("Disallow modification of locked primitives");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
@@ -1917,7 +1936,7 @@ public class EditOptions extends javax.swing.JDialog
         nodeMoveAfterDuplicate.setText("Move after Duplicate");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
@@ -1926,7 +1945,7 @@ public class EditOptions extends javax.swing.JDialog
         nodeCopyExports.setText("Duplicate/Array/Extract copies exports");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
@@ -1965,8 +1984,8 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel7.add(arcDirectional, gridBagConstraints);
 
         arcSlidable.setText("Slidable");
@@ -1982,8 +2001,8 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel7.add(arcEndsExtend, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -2933,13 +2952,13 @@ public class EditOptions extends javax.swing.JDialog
 
         top.setLayout(new java.awt.GridBagLayout());
 
-        jLabel41.setText("Default text information for different types of text:");
+        top.setBorder(new javax.swing.border.TitledBorder("Default Text Style"));
+        jLabel41.setText("Which type of text:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 0);
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
         top.add(jLabel41, gridBagConstraints);
 
         textNodes.setText("Nodes");
@@ -2948,122 +2967,177 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         top.add(textNodes, gridBagConstraints);
 
         textArcs.setText("Arcs");
         textTypeGroup.add(textArcs);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         top.add(textArcs, gridBagConstraints);
 
         textPorts.setText("Exports/Ports");
         textTypeGroup.add(textPorts);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         top.add(textPorts, gridBagConstraints);
 
-        textNonlayout.setText("Nonlayout text");
-        textTypeGroup.add(textNonlayout);
+        textAnnotation.setText("Annotation text");
+        textTypeGroup.add(textAnnotation);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        top.add(textNonlayout, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        top.add(textAnnotation, gridBagConstraints);
 
         textInstances.setText("Instance names");
         textTypeGroup.add(textInstances);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         top.add(textInstances, gridBagConstraints);
 
         textCellText.setText("Cell text");
         textTypeGroup.add(textCellText);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         top.add(textCellText, gridBagConstraints);
 
-        jLabel42.setText("Size");
+        jLabel42.setText("Size:");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         top.add(jLabel42, gridBagConstraints);
 
         textPointSize.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         top.add(textPointSize, gridBagConstraints);
 
         textUnitSize.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         top.add(textUnitSize, gridBagConstraints);
 
-        jLabel43.setText("Type face:");
+        jLabel43.setText("Font::");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         top.add(jLabel43, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         top.add(textFace, gridBagConstraints);
 
         textItalic.setText("Italic");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         top.add(textItalic, gridBagConstraints);
 
         textBold.setText("Bold");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         top.add(textBold, gridBagConstraints);
 
         textUnderline.setText("Underline");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         top.add(textUnderline, gridBagConstraints);
 
         textPoints.setText("Points (max 63)");
         textSizeGroup.add(textPoints);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         top.add(textPoints, gridBagConstraints);
 
         textUnits.setText("Units (max 127.75)");
         textSizeGroup.add(textUnits);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         top.add(textUnits, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        top.add(jSeparator3, gridBagConstraints);
+
+        jLabel4.setText("Default style:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        top.add(jLabel4, gridBagConstraints);
+
+        jLabel6.setText("Anchor:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        top.add(jLabel6, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        top.add(textAnchor, gridBagConstraints);
+
+        textNewVisibleInsideCell.setText("Invisible outside cell");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        top.add(textNewVisibleInsideCell, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -3078,6 +3152,7 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         middle.add(jLabel44, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -3085,17 +3160,9 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         middle.add(textDefaultFont, gridBagConstraints);
-
-        textNewVisibleInsideCell.setText("New text visible only inside cell");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        middle.add(textNewVisibleInsideCell, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -3105,276 +3172,93 @@ public class EditOptions extends javax.swing.JDialog
 
         bottom.setLayout(new java.awt.GridBagLayout());
 
-        jLabel45.setText("Text corner:");
+        bottom.setBorder(new javax.swing.border.TitledBorder("Smart Text Placement"));
+        jLabel56.setText("Vertical Placement");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        bottom.add(jLabel45, gridBagConstraints);
-
-        textGrabCenter.setText("Center");
-        textCornerGroup.add(textGrabCenter);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        bottom.add(textGrabCenter, gridBagConstraints);
-
-        textGrabBottom.setText("Bottom");
-        textCornerGroup.add(textGrabBottom);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        bottom.add(textGrabBottom, gridBagConstraints);
-
-        textGrabTop.setText("Top");
-        textCornerGroup.add(textGrabTop);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        bottom.add(textGrabTop, gridBagConstraints);
-
-        textGrabRight.setText("Right");
-        textCornerGroup.add(textGrabRight);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        bottom.add(textGrabRight, gridBagConstraints);
-
-        textGrabLeft.setText("Left");
-        textCornerGroup.add(textGrabLeft);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        bottom.add(textGrabLeft, gridBagConstraints);
-
-        textGrabLowerRight.setText("Lower right");
-        textCornerGroup.add(textGrabLowerRight);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        bottom.add(textGrabLowerRight, gridBagConstraints);
-
-        textGrabLowerLeft.setText("Lower left");
-        textCornerGroup.add(textGrabLowerLeft);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        bottom.add(textGrabLowerLeft, gridBagConstraints);
-
-        textGrabUpperRight.setText("Upper right");
-        textCornerGroup.add(textGrabUpperRight);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        bottom.add(textGrabUpperRight, gridBagConstraints);
-
-        textGrabUpperLeft.setText("Upper left");
-        textCornerGroup.add(textGrabUpperLeft);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        bottom.add(textGrabUpperLeft, gridBagConstraints);
-
-        textGrabBoxed.setText("Boxed");
-        textCornerGroup.add(textGrabBoxed);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 10;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        bottom.add(textGrabBoxed, gridBagConstraints);
-
-        textIconCenter.setMinimumSize(new java.awt.Dimension(25, 15));
-        textIconCenter.setPreferredSize(new java.awt.Dimension(25, 15));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        bottom.add(textIconCenter, gridBagConstraints);
-
-        textIconBottom.setMinimumSize(new java.awt.Dimension(25, 15));
-        textIconBottom.setPreferredSize(new java.awt.Dimension(25, 15));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        bottom.add(textIconBottom, gridBagConstraints);
-
-        textIconTop.setMinimumSize(new java.awt.Dimension(25, 15));
-        textIconTop.setPreferredSize(new java.awt.Dimension(25, 15));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        bottom.add(textIconTop, gridBagConstraints);
-
-        textIconRight.setMinimumSize(new java.awt.Dimension(25, 15));
-        textIconRight.setPreferredSize(new java.awt.Dimension(25, 15));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        bottom.add(textIconRight, gridBagConstraints);
-
-        textIconLeft.setMinimumSize(new java.awt.Dimension(25, 15));
-        textIconLeft.setPreferredSize(new java.awt.Dimension(25, 15));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        bottom.add(textIconLeft, gridBagConstraints);
-
-        textIconLowerRight.setMinimumSize(new java.awt.Dimension(25, 15));
-        textIconLowerRight.setPreferredSize(new java.awt.Dimension(25, 15));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        bottom.add(textIconLowerRight, gridBagConstraints);
-
-        textIconLowerLeft.setMinimumSize(new java.awt.Dimension(25, 15));
-        textIconLowerLeft.setPreferredSize(new java.awt.Dimension(25, 15));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        bottom.add(textIconLowerLeft, gridBagConstraints);
-
-        textIconUpperRight.setMinimumSize(new java.awt.Dimension(25, 15));
-        textIconUpperRight.setPreferredSize(new java.awt.Dimension(25, 15));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        bottom.add(textIconUpperRight, gridBagConstraints);
-
-        textIconUpperLeft.setMinimumSize(new java.awt.Dimension(25, 15));
-        textIconUpperLeft.setPreferredSize(new java.awt.Dimension(25, 15));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 9;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        bottom.add(textIconUpperLeft, gridBagConstraints);
-
-        textIconBoxed.setMinimumSize(new java.awt.Dimension(25, 15));
-        textIconBoxed.setPreferredSize(new java.awt.Dimension(25, 15));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 10;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        bottom.add(textIconBoxed, gridBagConstraints);
-
-        jSeparator5.setOrientation(javax.swing.SwingConstants.VERTICAL);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridheight = 11;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
-        bottom.add(jSeparator5, gridBagConstraints);
-
-        jLabel56.setText("Smart Vertical Placement");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
         bottom.add(jLabel56, gridBagConstraints);
 
         textSmartVerticalOff.setText("Off");
         textVerticalGroup.add(textSmartVerticalOff);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         bottom.add(textSmartVerticalOff, gridBagConstraints);
 
         textSmartVerticalInside.setText("Inside");
         textVerticalGroup.add(textSmartVerticalInside);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         bottom.add(textSmartVerticalInside, gridBagConstraints);
 
         textSmartVerticalOutside.setText("Outside");
         textVerticalGroup.add(textSmartVerticalOutside);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
         bottom.add(textSmartVerticalOutside, gridBagConstraints);
 
-        jLabel57.setText("Smart Horizontal Placement");
+        jLabel57.setText("Horizontal Placement");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
         bottom.add(jLabel57, gridBagConstraints);
 
         textSmartHorizontalOff.setText("Off");
         textHorizontalGroup.add(textSmartHorizontalOff);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         bottom.add(textSmartHorizontalOff, gridBagConstraints);
 
         textSmartHorizontalInside.setText("Inside");
         textHorizontalGroup.add(textSmartHorizontalInside);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         bottom.add(textSmartHorizontalInside, gridBagConstraints);
 
         textSmartHorizontalOutside.setText("Outside");
         textHorizontalGroup.add(textSmartHorizontalOutside);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
         bottom.add(textSmartHorizontalOutside, gridBagConstraints);
+
+        jSeparator1.setOrientation(javax.swing.SwingConstants.VERTICAL);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridheight = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
+        gridBagConstraints.weighty = 1.0;
+        bottom.add(jSeparator1, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         text.add(bottom, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        text.add(jSeparator3, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        text.add(jSeparator4, gridBagConstraints);
 
         tabPane.addTab("Text", text);
 
@@ -3671,7 +3555,6 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JCheckBox generalIncludeDateAndVersion;
     private javax.swing.JTextField generalMaxMem;
     private javax.swing.JLabel generalMemoryUsage;
-    private javax.swing.JTextField generalMotionHysteresis;
     private javax.swing.JCheckBox generalPlayClickSounds;
     private javax.swing.JCheckBox generalShowFileDialog;
     private javax.swing.JPanel grid;
@@ -3742,14 +3625,10 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JLabel jLabel42;
     private javax.swing.JLabel jLabel43;
     private javax.swing.JLabel jLabel44;
-    private javax.swing.JLabel jLabel45;
     private javax.swing.JLabel jLabel46;
-    private javax.swing.JLabel jLabel47;
     private javax.swing.JLabel jLabel48;
     private javax.swing.JLabel jLabel49;
     private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel50;
-    private javax.swing.JLabel jLabel51;
     private javax.swing.JLabel jLabel52;
     private javax.swing.JLabel jLabel53;
     private javax.swing.JLabel jLabel54;
@@ -3779,11 +3658,10 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JPanel jPanel7;
     private javax.swing.JPanel jPanel8;
     private javax.swing.JPanel jPanel9;
+    private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator11;
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JSeparator jSeparator3;
-    private javax.swing.JSeparator jSeparator4;
-    private javax.swing.JSeparator jSeparator5;
     private javax.swing.JSeparator jSeparator9;
     private javax.swing.JComboBox layerName;
     private javax.swing.JPanel layers;
@@ -3791,18 +3669,12 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JPanel newArc;
     private javax.swing.ButtonGroup newArcGroup;
     private javax.swing.JPanel newNode;
-    private javax.swing.JCheckBox nodeAllMirror;
-    private javax.swing.JTextField nodeAllRotation;
     private javax.swing.JCheckBox nodeCheckCellDates;
     private javax.swing.JCheckBox nodeCopyExports;
     private javax.swing.JCheckBox nodeDisallowModificationLockedPrims;
-    private javax.swing.JTextField nodeHashLimit;
     private javax.swing.JCheckBox nodeMoveAfterDuplicate;
-    private javax.swing.JCheckBox nodeOverrideDefaultOrientation;
     private javax.swing.JCheckBox nodePlaceCellCenter;
     private javax.swing.JComboBox nodePrimitive;
-    private javax.swing.JCheckBox nodePrimitiveMirror;
-    private javax.swing.JTextField nodePrimitiveRotation;
     private javax.swing.JTextField nodePrimitiveXSize;
     private javax.swing.JTextField nodePrimitiveYSize;
     private javax.swing.JCheckBox nodeSwitchTechnology;
@@ -3839,38 +3711,19 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JPanel technology;
     private javax.swing.JComboBox technologyPopup;
     private javax.swing.JPanel text;
+    private javax.swing.JComboBox textAnchor;
+    private javax.swing.JRadioButton textAnnotation;
     private javax.swing.JRadioButton textArcs;
     private javax.swing.JCheckBox textBold;
     private javax.swing.JRadioButton textCellText;
     private javax.swing.ButtonGroup textCornerGroup;
     private javax.swing.JComboBox textDefaultFont;
     private javax.swing.JComboBox textFace;
-    private javax.swing.JRadioButton textGrabBottom;
-    private javax.swing.JRadioButton textGrabBoxed;
-    private javax.swing.JRadioButton textGrabCenter;
-    private javax.swing.JRadioButton textGrabLeft;
-    private javax.swing.JRadioButton textGrabLowerLeft;
-    private javax.swing.JRadioButton textGrabLowerRight;
-    private javax.swing.JRadioButton textGrabRight;
-    private javax.swing.JRadioButton textGrabTop;
-    private javax.swing.JRadioButton textGrabUpperLeft;
-    private javax.swing.JRadioButton textGrabUpperRight;
     private javax.swing.ButtonGroup textHorizontalGroup;
-    private javax.swing.JLabel textIconBottom;
-    private javax.swing.JLabel textIconBoxed;
-    private javax.swing.JLabel textIconCenter;
-    private javax.swing.JLabel textIconLeft;
-    private javax.swing.JLabel textIconLowerLeft;
-    private javax.swing.JLabel textIconLowerRight;
-    private javax.swing.JLabel textIconRight;
-    private javax.swing.JLabel textIconTop;
-    private javax.swing.JLabel textIconUpperLeft;
-    private javax.swing.JLabel textIconUpperRight;
     private javax.swing.JRadioButton textInstances;
     private javax.swing.JCheckBox textItalic;
     private javax.swing.JCheckBox textNewVisibleInsideCell;
     private javax.swing.JRadioButton textNodes;
-    private javax.swing.JRadioButton textNonlayout;
     private javax.swing.JTextField textPointSize;
     private javax.swing.JRadioButton textPoints;
     private javax.swing.JRadioButton textPorts;

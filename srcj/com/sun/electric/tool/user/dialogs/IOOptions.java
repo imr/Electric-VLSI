@@ -56,7 +56,7 @@ import javax.swing.event.ChangeListener;
 /**
  * Class to handle the "IO Options" dialog.
  */
-public class IOOptions extends javax.swing.JDialog
+public class IOOptions extends EDialog
 {
 
 	/** The name of the current tab in this dialog. */	private static String currentTabName = null;
@@ -65,7 +65,6 @@ public class IOOptions extends javax.swing.JDialog
 	public IOOptions(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
-		setLocation(100, 50);
 		initComponents();
 
 		// if the last know tab name is available, find that tab again
@@ -991,9 +990,11 @@ public class IOOptions extends javax.swing.JDialog
         edifUseSchematicView = new javax.swing.JCheckBox();
         jLabel13 = new javax.swing.JLabel();
         edifInputScale = new javax.swing.JTextField();
+        jLabel12 = new javax.swing.JLabel();
         def = new javax.swing.JPanel();
         defPlacePhysical = new javax.swing.JCheckBox();
         defPlaceLogical = new javax.swing.JCheckBox();
+        jLabel24 = new javax.swing.JLabel();
         cdl = new javax.swing.JPanel();
         jLabel14 = new javax.swing.JLabel();
         cdlLibraryName = new javax.swing.JTextField();
@@ -1008,8 +1009,10 @@ public class IOOptions extends javax.swing.JDialog
         dxfInputReadsAllLayers = new javax.swing.JCheckBox();
         jLabel17 = new javax.swing.JLabel();
         dxfScale = new javax.swing.JComboBox();
+        jLabel25 = new javax.swing.JLabel();
         sue = new javax.swing.JPanel();
         sueMake4PortTransistors = new javax.swing.JCheckBox();
+        jLabel28 = new javax.swing.JLabel();
         units = new javax.swing.JPanel();
         unitsList = new javax.swing.JScrollPane();
         jLabel10 = new javax.swing.JLabel();
@@ -1379,6 +1382,13 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         edif.add(edifInputScale, gridBagConstraints);
 
+        jLabel12.setText("EDIF I/O IS NOT YET AVAILABLE");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
+        edif.add(jLabel12, gridBagConstraints);
+
         tabPane.addTab("EDIF", edif);
 
         def.setLayout(new java.awt.GridBagLayout());
@@ -1398,6 +1408,12 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         def.add(defPlaceLogical, gridBagConstraints);
+
+        jLabel24.setText("DEF I/O IS NOT YET AVAILABLE");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        def.add(jLabel24, gridBagConstraints);
 
         tabPane.addTab("DEF", def);
 
@@ -1514,6 +1530,13 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         dxf.add(dxfScale, gridBagConstraints);
 
+        jLabel25.setText("DXF I/O IS NOT YET AVAILABLE");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
+        dxf.add(jLabel25, gridBagConstraints);
+
         tabPane.addTab("DXF", dxf);
 
         sue.setLayout(new java.awt.GridBagLayout());
@@ -1523,6 +1546,12 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         sue.add(sueMake4PortTransistors, gridBagConstraints);
+
+        jLabel28.setText("SUE INPUT IS NOT YET AVAILABLE");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        sue.add(jLabel28, gridBagConstraints);
 
         tabPane.addTab("SUE", sue);
 
@@ -2093,6 +2122,7 @@ public class IOOptions extends javax.swing.JDialog
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel15;
@@ -2105,8 +2135,11 @@ public class IOOptions extends javax.swing.JDialog
     private javax.swing.JLabel jLabel21;
     private javax.swing.JLabel jLabel22;
     private javax.swing.JLabel jLabel23;
+    private javax.swing.JLabel jLabel24;
+    private javax.swing.JLabel jLabel25;
     private javax.swing.JLabel jLabel26;
     private javax.swing.JLabel jLabel27;
+    private javax.swing.JLabel jLabel28;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;

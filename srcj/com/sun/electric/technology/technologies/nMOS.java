@@ -1053,5 +1053,18 @@ public class nMOS extends Technology
 		len_node.setFunction(NodeProto.Function.NODE);
 		len_node.setHoldsOutline();
 		len_node.setSpecialType(PrimitiveNode.POLYGONAL);
+
+		// The pure layer nodes
+		M_lay.setPureLayerNode(mn_node);		// Metal
+		P_lay.setPureLayerNode(pn_node);		// Polysilicon
+		D_lay.setPureLayerNode(dn_node);		// Diffusion
+		I_lay.setPureLayerNode(in_node);		// Implant
+		CC_lay.setPureLayerNode(cn_node);		// Contact-Cut
+		BC_lay.setPureLayerNode(bn_node);		// Buried-Contact
+		O_lay.setPureLayerNode(on_node);		// Overglass
+		LI_lay.setPureLayerNode(lin_node);		// Light-Implant
+		OC_lay.setPureLayerNode(ocn_node);		// Oversize-Contact
+		HE_lay.setPureLayerNode(hen_node);		// Hard-Enhancement
+		LE_lay.setPureLayerNode(len_node);		// Light-Enhancement
 	};
 }

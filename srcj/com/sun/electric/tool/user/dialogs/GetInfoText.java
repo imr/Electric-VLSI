@@ -54,7 +54,7 @@ import javax.swing.JFrame;
 /**
  * Class to handle the "Text Get-Info" dialog.
  */
-public class GetInfoText extends javax.swing.JDialog
+public class GetInfoText extends EDialog
 {
 	private static GetInfoText theDialog = null;
 	private Highlight shownText;
@@ -373,7 +373,6 @@ public class GetInfoText extends javax.swing.JDialog
 	private GetInfoText(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
-		setLocation(100, 50);
 		initComponents();
         getRootPane().setDefaultButton(ok);
 

@@ -103,7 +103,7 @@ public class Inv2i {
 		nGates.connect(buf.findExport("in[n]"));
 		
 		// input p
-		double lastSrcDrnX = stdCell.getRightDiffX(pmos, nmos);
+		double lastSrcDrnX = StdCellParams.getRightDiffX(pmos, nmos);
 		double inPX = lastSrcDrnX + 2 + 3 + 2; // ndm1/2 + m1_m1_sp + m1_wid/2
 		LayoutLib.newExport(buf,"in[p]", PortProto.Characteristic.IN, Tech.m1,
 							4, inPX, pGatesY);

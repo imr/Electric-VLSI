@@ -1284,5 +1284,23 @@ public class MoCMOSOld extends Technology
 		pfn_node.setFunction(NodeProto.Function.NODE);
 		pfn_node.setHoldsOutline();
 		pfn_node.setSpecialType(PrimitiveNode.POLYGONAL);
+
+		// The pure layer nodes
+		M_lay.setPureLayerNode(mn_node);		// Metal-1
+		M0_lay.setPureLayerNode(mn0_node);		// Metal-2
+		P_lay.setPureLayerNode(pn_node);		// Polysilicon
+		SA_lay.setPureLayerNode(an_node);		// S-Active
+		DA_lay.setPureLayerNode(dan_node);		// D-Active
+		PS_lay.setPureLayerNode(psn_node);		// P-Select
+		NS_lay.setPureLayerNode(psn_node);		// N-Select
+		PW_lay.setPureLayerNode(pwn_node);		// P-Well
+		NW_lay.setPureLayerNode(pwn_node);		// N-Well
+		CC_lay.setPureLayerNode(cn_node);		// Contact-Cut
+		V_lay.setPureLayerNode(vn_node);		// Via
+		P0_lay.setPureLayerNode(pn0_node);		// Passivation
+		PC_lay.setPureLayerNode(pcn_node);		// Poly-Cut
+		AC_lay.setPureLayerNode(acn_node);		// Active-Cut
+		SAW_lay.setPureLayerNode(pwn_node);		// S-Active-Well
+		PF_lay.setPureLayerNode(pfn_node);		// Pad-Frame
 	};
 }

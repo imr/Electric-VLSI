@@ -50,6 +50,9 @@ import java.io.InputStream;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.List;
@@ -72,11 +75,6 @@ import javax.swing.text.BadLocationException;
 public class TextWindow
 	implements WindowContent
 {
-
-//	/** set if search is case-sensitive. */					public static final int CASE_SENSITIVE = 4;
-//	/** set to replace all occurrences. */					public static final int REPLACE_ALL = 2;
-//	/** set search backwards. */							public static final int FIND_REVERSE = 8;
-
 	/** the cell that is in the window */					private Cell cell;
 	/** the window frame containing this editwindow */      private WindowFrame wf;
 	/** the overall panel with disp area and sliders */		private JPanel overall;
@@ -311,7 +309,41 @@ public class TextWindow
 	 */
 	public static void writeTextCell()
 	{
-		System.out.println("CANNOT YET");
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (wf == null) return;
+		WindowContent content = wf.getContent();
+		if (content instanceof TextWindow)
+		{
+			TextWindow tw = (TextWindow)content;
+			String fileName = OpenFile.chooseOutputFile(OpenFile.Type.TEXT, "Text file", content.getCell().getProtoName() + ".txt");
+			if (fileName != null)
+			{
+				try
+				{
+					PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
+					Document doc = tw.textArea.getDocument();
+					Element paragraph = doc.getDefaultRootElement();
+					int lines = paragraph.getElementCount();
+					for(int i=0; i<lines; i++)
+					{
+						Element e = paragraph.getElement(i);
+						int startPos = e.getStartOffset();
+						int endPos = e.getEndOffset();
+						try
+						{
+							String line = tw.textArea.getText(startPos, endPos - startPos);
+							printWriter.print(line);
+						} catch (BadLocationException ex) {}
+					}
+					printWriter.close();
+				} catch (IOException e)
+				{
+					System.out.println("Error saving " + fileName);
+					return;
+				}
+				System.out.println("Wrote " + fileName);
+			}
+		}
 	}
 
 	/**
@@ -505,21 +537,28 @@ public class TextWindow
 		Element paragraph = doc.getDefaultRootElement();
 		int lines = paragraph.getElementCount();
 		int lineNo = 0;
-		int endSelection = textArea.getSelectionEnd();
+		int searchPoint = textArea.getSelectionEnd();
+		if (reverse) searchPoint = textArea.getSelectionStart();
 		try
 		{
-			lineNo = textArea.getLineOfOffset(endSelection);
+			lineNo = textArea.getLineOfOffset(searchPoint);
 		} catch (BadLocationException e)
 		{
 			return false;
 		}
 
-		for(int i=0; i<lines; i++)
+		for(int i=0; i<=lines; i++)
 		{
-			Element e = paragraph.getElement((i+lineNo) % lines);
+			int index = lineNo + i;
+			if (reverse) index = lineNo - i + lines;
+			Element e = paragraph.getElement(index % lines);
 			int startPos = e.getStartOffset();
 			int endPos = e.getEndOffset();
-			if (i == 0) startPos = endSelection;
+			if (i == 0)
+			{
+				if (reverse) endPos = searchPoint+1; else
+					startPos = searchPoint;
+			}
 
 			String theLine = null;
 			try
@@ -529,7 +568,7 @@ public class TextWindow
 			{
 				return false;
 			}
-			int foundPos = TextUtils.findStringInString(theLine, searchString, 0, searchCaseSensitive);
+			int foundPos = TextUtils.findStringInString(theLine, searchString, 0, searchCaseSensitive, reverse);
 			if (foundPos >= 0)
 			{
 				textArea.setSelectionStart(startPos + foundPos);
@@ -557,31 +596,33 @@ public class TextWindow
 	 */
 	public void replaceAllText(String replace)
 	{
-//		String entire = textArea.getText();
-//		int len = entire.length();
-//		int total = 0;
-//		char lastCh = 0;
-//		for(int i=0; i<len; i++)
-//		{
-//			lastCh = entire.charAt(i);
-//			if (lastCh == '\n') total++;
-//		}
-//		if (lastCh != '\n') total++;
-//
-//		String [] strings = new String[total];
-//		int fill = 0;
-//		int start = 0;
-//		for(int i=0; i<len; i++)
-//		{
-//			lastCh = entire.charAt(i);
-//			if (lastCh == '\n')
-//			{
-//				strings[fill] = entire.substring(start, i);
-//				start = i+1;
-//				fill++;
-//			}
-//		}
-//		if (start < len) strings[fill] = entire.substring(start, len);
-//		return strings;
+		Document doc = textArea.getDocument();
+		Element paragraph = doc.getDefaultRootElement();
+		int lines = paragraph.getElementCount();
+		for(int i=0; i<lines; i++)
+		{
+			Element e = paragraph.getElement(i);
+			int startPos = e.getStartOffset();
+			int endPos = e.getEndOffset()-1;
+			String theLine = null;
+			try
+			{
+				theLine = textArea.getText(startPos, endPos - startPos);
+			} catch (BadLocationException ex)
+			{
+				return;
+			}
+			boolean found = false;
+			int scanPos = 0;
+			for(;;)
+			{
+				int foundPos = TextUtils.findStringInString(theLine, searchString, scanPos, searchCaseSensitive, false);
+				if (foundPos < 0) break;
+				theLine = theLine.substring(0, foundPos) + replace + theLine.substring(foundPos+searchString.length());
+				scanPos = foundPos + replace.length();
+				found = true;
+			}
+			if (found) textArea.replaceRange(theLine, startPos, endPos);
+		}
 	}
 }

@@ -38,7 +38,7 @@ import java.util.Iterator;
  *
  * @author  gainsley
  */
-public class EditKeyBinding extends javax.swing.JDialog {
+public class EditKeyBinding extends EDialog {
 
     /** The MenuItem we are adding a key binding to */  private JMenuItem menuItem;
     /** The MenuBar that item is a part of */           private MenuBar menuBar;

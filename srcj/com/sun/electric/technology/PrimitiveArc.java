@@ -24,10 +24,12 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 
 import java.util.Iterator;
+import java.util.HashMap;
 import java.util.NoSuchElementException;
 
 /**
@@ -44,8 +46,6 @@ import java.util.NoSuchElementException;
  */
 public class PrimitiveArc extends ArcProto
 {
-	/** key of Variable holding override pin. */	public static final Variable.Key ARC_DEFAULT_PIN = ElectricObject.newKey("ARC_Default_Pin");
-
 	// ----------------------- private data -------------------------------
 
 	/** Layers in this arc */							private Technology.ArcLayer [] layers;
@@ -62,7 +62,6 @@ public class PrimitiveArc extends ArcProto
 		this.tech = tech;
 		this.layers = layers;
 		setFactoryDefaultWidth(defaultWidth);
-		this.defaultWidth = getDefaultWidth();
 	}
 
 	// ------------------------ public methods -------------------------------
@@ -158,23 +157,60 @@ public class PrimitiveArc extends ArcProto
 		return null;
 	}
 
+
+	HashMap arcPinPrefs = new HashMap();
+
+	private Pref getArcPinPref()
+	{
+		Pref pref = (Pref)arcPinPrefs.get(this);
+		if (pref == null)
+		{
+			pref = Pref.makeStringPref("PinFor" + protoName + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), "");
+			arcPinPrefs.put(this, pref);
+		}
+		return pref;
+	}
+
+	/**
+	 * Method to set the default pin node to use for this PrimitiveArc.
+	 * The pin node is used for making bends in wires.
+	 * It must have just 1 port in the center, and be able to connect
+	 * to this type of arc.
+	 * @param np the default pin node to use for this PrimitiveArc.
+	 */
+	public void setPinProto(PrimitiveNode np)
+	{
+		Pref pref = getArcPinPref();
+		pref.setString(np.getProtoName());
+	}
+
+	/**
+	 * Method to find the PrimitiveNode pin corresponding to this PrimitiveArc type.
+	 * Users can override the pin to use, and this method returns the user setting.
+	 * For example, if this PrimitiveArc is metal-1 then return the Metal-1-pin,
+	 * but the user could set it to Metal-1-Metal-2-Contact.
+	 * @return the PrimitiveNode pin to use for arc bends.
+	 */
+	public PrimitiveNode findOverridablePinProto()
+	{
+		// see if there is a default on this arc proto
+		Pref pref = getArcPinPref();
+		String primName = pref.getString();
+		if (primName != null && primName.length() > 0)
+		{
+			PrimitiveNode np = tech.findNodeProto(primName);
+			if (np != null) return np;
+		}
+		return findPinProto();
+	}
+
 	/**
 	 * Method to find the PrimitiveNode pin corresponding to this PrimitiveArc type.
 	 * For example, if this PrimitiveArc is metal-1 then return the Metal-1-pin.
-	 * @return the PrimitiveNode pin that matches, or null if there is no match.
+	 * @return the PrimitiveNode pin to use for arc bends.
 	 */
 	public PrimitiveNode findPinProto()
 	{
-		// see if there is a default on this arc proto
-		Variable var = getVar(ARC_DEFAULT_PIN);
-		if (var != null)
-		{
-			if (var.getObject() instanceof PrimitiveNode)
-			{
-				return (PrimitiveNode)var.getObject();
-			}
-		}
-
 		// search for an appropriate pin
 		Iterator it = tech.getNodes();
 		while (it.hasNext())

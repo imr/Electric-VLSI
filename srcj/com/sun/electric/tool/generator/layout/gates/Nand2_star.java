@@ -143,7 +143,7 @@ class Nand2_star {
 		
 		// Nand input B
 		// m1_wid + m1_space + m1_wid/2
-		double inbX = stdCell.getRightDiffX(pmos, nmoss) + 2 + 3 + 2;
+		double inbX = StdCellParams.getRightDiffX(pmos, nmoss) + 2 + 3 + 2;
 		LayoutLib.newExport(nand, "inb", PortProto.Characteristic.IN, Tech.m1,
 							4, inbX, inbY);
 		TrackRouter inb = new TrackRouterH(Tech.m1, 3, inbY, nand);

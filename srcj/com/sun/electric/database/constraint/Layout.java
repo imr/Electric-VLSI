@@ -1025,7 +1025,7 @@ public class Layout extends Constraints
 		ArcProto ap = ai.getProto();   Cell pnt = ai.getParent();   double wid = ai.getWidth();
 
 		// figure out what nodeinst proto connects these arcs
-		PrimitiveNode np = ((PrimitiveArc)ap).findPinProto();
+		PrimitiveNode np = ((PrimitiveArc)ap).findOverridablePinProto();
 		double psx = np.getDefWidth();
 		double psy = np.getDefHeight();
 

@@ -41,7 +41,7 @@ import javax.swing.SwingUtilities;
 /**
  * Class to handle the "Cross-Library Copy" dialog.
  */
-public class CrossLibCopy extends javax.swing.JDialog
+public class CrossLibCopy extends EDialog
 {
 	private List libList;
 	private Library curLibLeft, curLibRight;
@@ -57,7 +57,6 @@ public class CrossLibCopy extends javax.swing.JDialog
 	public CrossLibCopy(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
-		setLocation(100, 50);
 		initComponents();
 
 		// setup the library popups

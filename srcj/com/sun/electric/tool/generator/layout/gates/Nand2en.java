@@ -106,8 +106,8 @@ public class Nand2en {
 		
 		// Build weak PMOS.  Allocate two folds per FoldedPmos. Align PMOS
 		// gate 0 with NMOS gate k such that (k mod 4 == 3).
-		double rightPdiffX = stdCell.getRightDiffX(pmoss);
-		double rightNdiffX = stdCell.getRightDiffX(nmos);
+		double rightPdiffX = StdCellParams.getRightDiffX(pmoss);
+		double rightNdiffX = StdCellParams.getRightDiffX(nmos);
 		double weakX = Math.max(rightPdiffX+11, rightNdiffX+2.5);
 		double weakY = pmosBot + fwW.physWid/2;
 		FoldedMos weak = new FoldedPmos(weakX, weakY, fwW.nbFolds, 1,
@@ -149,7 +149,7 @@ public class Nand2en {
 		}
 		
 		// Nand input: ina
-		double rightDiffX = stdCell.getRightDiffX(weak, weak);
+		double rightDiffX = StdCellParams.getRightDiffX(weak, weak);
 		double inaX = rightDiffX + wirePitch;
 		LayoutLib.newExport(nand, "ina", PortProto.Characteristic.IN, Tech.m1,
 							4, inaX, inaY);

@@ -47,6 +47,20 @@ import java.util.prefs.BackingStoreException;
  * In addition, "meaning" options are stored in libraries.  When the libraries
  * are read back into Electric, the stored meaning options are checked against
  * the current meaning options, the two are reconciled.
+ * <P>
+ * Where are these options stored?  It varies with each operating system.
+ * <UL>
+ * <LI><B>Windows:</B>
+ *   In the registry.
+ *   Look in HKEY_CURRENT_USER / Software / JavaSoft / Prefs / com / sun / electric.
+ * </LI>
+ * <LI><B>UNIX/Linux:</B>
+ *   DON'T KNOW YET.
+ * </LI>
+ * <LI><B>Macintosh System 10:</B>
+ *   DON'T KNOW YET.
+ * </LI>
+ * </UL>
  */
 public class Pref
 {
@@ -62,6 +76,13 @@ public class Pref
 		private boolean marked;
 		private String [] trueMeaning;
 
+		/**
+		 * Constructor for Meaning options to attach them to an object in the database.
+		 * @param eObj the ElectricObject in the database that this Meaning attaches to.
+		 * @param pref the Pref object for storing the option value.
+		 * @param location the user-command that can affect this Meaning option.
+		 * @param description the description of this Meaning option.
+		 */
 		Meaning(ElectricObject eObj, Pref pref, String location, String description)
 		{
 			this.eObj = eObj;
@@ -70,20 +91,58 @@ public class Pref
 			this.description = description;
 		}
 
+		/**
+		 * Method to return the Pref associated with this Meaning option.
+		 * @return the Pref associated with this Meaning option.
+		 */
 		public Pref getPref() { return pref; }
+
+		/**
+		 * Method to return the ElectricObject associated with this Meaning option.
+		 * @return the ElectricObject associated with this Meaning option.
+		 */
 		public ElectricObject getElectricObject() { return eObj; }
+
+		/**
+		 * Method to return the user-command that can affect this Meaning option.
+		 * @return the user-command that can affect this Meaning option.
+		 */
 		public String getLocation() { return location; }
+
+		/**
+		 * Method to return the description of this Meaning option.
+		 * @return the Pref description of this Meaning option.
+		 */
 		public String getDescription() { return description; }
+
+		/**
+		 * Method to associate an array of strings to be used for integer Meaning options.
+		 * @param trueMeaning the array of strings that should be used for this integer Meaning option.
+		 * Some options are multiple-choice, for example the MOSIS CMOS rule set which can be
+		 * 0, 1, or 2 depending on whether the set is SCMOS, Submicron, or Deep.
+		 * By giving an array of 3 strings to this method, a proper description of the option
+		 * can be given to the user.
+		 */
 		public void setTrueMeaning(String [] trueMeaning) { this.trueMeaning = trueMeaning; }
+
+		/**
+		 * Method to return an array of strings to be used for integer Meaning options.
+		 * Some options are multiple-choice, for example the MOSIS CMOS rule set which can be
+		 * 0, 1, or 2 depending on whether the set is SCMOS, Submicron, or Deep.
+		 * By giving an array of 3 strings to this method, a proper description of the option
+		 * can be given to the user.
+		 * @return the array of strings that should be used for this integer Meaning option.
+		 */
 		public String [] getTrueMeaning() { return trueMeaning; }
 		public void setDesiredValue(Object desiredValue) { this.desiredValue = desiredValue; }
 		public Object getDesiredValue() { return desiredValue; }
 	}
 
-	public static final int BOOLEAN = 0;
-	public static final int INTEGER = 1;
-	public static final int DOUBLE = 2;
-	public static final int STRING = 3;
+	/** The value for boolean options. */		public static final int BOOLEAN = 0;
+	/** The value for integer options. */		public static final int INTEGER = 1;
+	/** The value for long options. */			public static final int LONG    = 2;
+	/** The value for double options. */		public static final int DOUBLE  = 3;
+	/** The value for string options. */		public static final int STRING  = 4;
 
 	private   String      name;
 	private   int         type;
@@ -93,10 +152,18 @@ public class Pref
 	protected Object      factoryObj;
 
 	private static List allPrefs = new ArrayList();
+	private static List meaningVariablesThatChanged;
 
 	protected Pref() {}
 
-	// factory methods to create these objects
+	/**
+	 * Factory methods to create a boolean Pref objects.
+	 * The proper way to create a boolean Pref is with makeBooleanPref;
+	 * use of this method is only for subclasses.
+	 * @param name the name of this Pref.
+	 * @param prefs the actual java.util.prefs.Preferences object to use for this Pref.
+	 * @param factory the "factory" default value (if nothing is stored).
+	 */
 	protected void initBoolean(String name, Preferences prefs, boolean factory)
 	{
 		this.name = name;
@@ -107,6 +174,12 @@ public class Pref
 		this.cachedObj = new Integer(prefs.getBoolean(name, factory) ? 1 : 0);
 		allPrefs.add(this);
 	}
+	/**
+	 * Factory methods to create a boolean Pref objects.
+	 * @param name the name of this Pref.
+	 * @param prefs the actual java.util.prefs.Preferences object to use for this Pref.
+	 * @param factory the "factory" default value (if nothing is stored).
+	 */
 	public static Pref makeBooleanPref(String name, Preferences prefs, boolean factory)
 	{
 		Pref pref = new Pref();
@@ -114,6 +187,14 @@ public class Pref
 		return pref;
 	}
 
+	/**
+	 * Factory methods to create an integer Pref objects.
+	 * The proper way to create an integer Pref is with makeIntPref;
+	 * use of this method is only for subclasses.
+	 * @param name the name of this Pref.
+	 * @param prefs the actual java.util.prefs.Preferences object to use for this Pref.
+	 * @param factory the "factory" default value (if nothing is stored).
+	 */
 	protected void initInt(String name, Preferences prefs, int factory)
 	{
 		this.name = name;
@@ -124,6 +205,12 @@ public class Pref
 		this.cachedObj = new Integer(prefs.getInt(name, factory));
 		allPrefs.add(this);
 	}
+	/**
+	 * Factory methods to create an integer Pref objects.
+	 * @param name the name of this Pref.
+	 * @param prefs the actual java.util.prefs.Preferences object to use for this Pref.
+	 * @param factory the "factory" default value (if nothing is stored).
+	 */
 	public static Pref makeIntPref(String name, Preferences prefs, int factory)
 	{
 		Pref pref = new Pref();
@@ -131,6 +218,45 @@ public class Pref
 		return pref;
 	}
 
+	/**
+	 * Factory methods to create a long Pref objects.
+	 * The proper way to create a long Pref is with makeLongPref;
+	 * use of this method is only for subclasses.
+	 * @param name the name of this Pref.
+	 * @param prefs the actual java.util.prefs.Preferences object to use for this Pref.
+	 * @param factory the "factory" default value (if nothing is stored).
+	 */
+	protected void initLong(String name, Preferences prefs, long factory)
+	{
+		this.name = name;
+		this.prefs = prefs;
+		this.type = LONG;
+		this.meaning = null;
+		this.factoryObj = new Long(factory);
+		this.cachedObj = new Long(prefs.getLong(name, factory));
+		allPrefs.add(this);
+	}
+	/**
+	 * Factory methods to create a long Pref objects.
+	 * @param name the name of this Pref.
+	 * @param prefs the actual java.util.prefs.Preferences object to use for this Pref.
+	 * @param factory the "factory" default value (if nothing is stored).
+	 */
+	public static Pref makeLongPref(String name, Preferences prefs, long factory)
+	{
+		Pref pref = new Pref();
+		pref.initLong(name, prefs, factory);
+		return pref;
+	}
+
+	/**
+	 * Factory methods to create a double Pref objects.
+	 * The proper way to create a double Pref is with makeDoublePref;
+	 * use of this method is only for subclasses.
+	 * @param name the name of this Pref.
+	 * @param prefs the actual java.util.prefs.Preferences object to use for this Pref.
+	 * @param factory the "factory" default value (if nothing is stored).
+	 */
 	protected void initDouble(String name, Preferences prefs, double factory)
 	{
 		this.name = name;
@@ -141,6 +267,12 @@ public class Pref
 		this.cachedObj = new Double(prefs.getDouble(name, factory));
 		allPrefs.add(this);
 	}
+	/**
+	 * Factory methods to create a double Pref objects.
+	 * @param name the name of this Pref.
+	 * @param prefs the actual java.util.prefs.Preferences object to use for this Pref.
+	 * @param factory the "factory" default value (if nothing is stored).
+	 */
 	public static Pref makeDoublePref(String name, Preferences prefs, double factory)
 	{
 		Pref pref = new Pref();
@@ -148,6 +280,14 @@ public class Pref
 		return pref;
 	}
 
+	/**
+	 * Factory methods to create a string Pref objects.
+	 * The proper way to create a string Pref is with makeStringPref;
+	 * use of this method is only for subclasses.
+	 * @param name the name of this Pref.
+	 * @param prefs the actual java.util.prefs.Preferences object to use for this Pref.
+	 * @param factory the "factory" default value (if nothing is stored).
+	 */
 	protected void initString(String name, Preferences prefs, String factory)
 	{
 		this.name = name;
@@ -158,6 +298,12 @@ public class Pref
 		this.cachedObj = new String(prefs.get(name, factory));
 		allPrefs.add(this);
 	}
+	/**
+	 * Factory methods to create a string Pref objects.
+	 * @param name the name of this Pref.
+	 * @param prefs the actual java.util.prefs.Preferences object to use for this Pref.
+	 * @param factory the "factory" default value (if nothing is stored).
+	 */
 	public static Pref makeStringPref(String name, Preferences prefs, String factory)
 	{
 		Pref pref = new Pref();
@@ -165,16 +311,70 @@ public class Pref
 		return pref;
 	}
 
-	// methods for getting values from the objects
+	/**
+	 * Method to get the boolean value on this Pref object.
+	 * The object must have been created as "boolean".
+	 * @return the boolean value on this Pref object.
+	 */
 	public boolean getBoolean() { return ((Integer)cachedObj).intValue() != 0; }
+	/**
+	 * Method to get the integer value on this Pref object.
+	 * The object must have been created as "integer".
+	 * @return the integer value on this Pref object.
+	 */
 	public int getInt() { return ((Integer)cachedObj).intValue(); }
+	/**
+	 * Method to get the long value on this Pref object.
+	 * The object must have been created as "long".
+	 * @return the long value on this Pref object.
+	 */
+	public long getLong() { return ((Long)cachedObj).longValue(); }
+	/**
+	 * Method to get the double value on this Pref object.
+	 * The object must have been created as "double".
+	 * @return the double value on this Pref object.
+	 */
 	public double getDouble() { return ((Double)cachedObj).doubleValue(); }
+	/**
+	 * Method to get the string value on this Pref object.
+	 * The object must have been created as "string".
+	 * @return the string value on this Pref object.
+	 */
 	public String getString() { return (String)cachedObj; }
 
+	/**
+	 * Method to get the name of this Pref object.
+	 * @return the name of this Pref object.
+	 */
 	public String getPrefName() { return name; }
+
+	/**
+	 * Method to get the value of this Pref object as an Object.
+	 * The proper way to get the current value is to use one of the type-specific
+	 * methods such as getInt(), getBoolean(), etc.
+	 * @return the Object value of this Pref object.
+	 */
 	public Object getValue() { return cachedObj; }
+
+	/**
+	 * Method to get the factory-default value of this Pref object.
+	 * @return the factory-default value of this Pref object.
+	 */
 	public Object getFactoryValue() { return factoryObj; }
+
+	/**
+	 * Method to get the type of this Pref object.
+	 * @return an integer type: either BOOLEAN, INTEGER, LONG, DOUBLE, or STRING.
+	 */
 	public int getType() { return type; }
+
+	/**
+	 * Method to get the Meaning associated with this Pref object.
+	 * Not all Pref objects have a meaning, and those that don't are not
+	 * meaning options, but instead are appearance options.
+	 * @return the Meaning associated with this Pref object.
+	 * Returns null if this Pref is not a meaning option.
+	 */
 	public Meaning getMeaning() { return meaning; }
 
 	/**
@@ -183,7 +383,10 @@ public class Pref
 	 */
 	public void setSideEffect() {}
 
-	// methods for setting values on the objects
+	/**
+	 * Method to set a new boolean value on this Pref object.
+	 * @param v the new boolean value of this Pref object.
+	 */
 	public void setBoolean(boolean v)
 	{
 		boolean cachedBool = ((Integer)cachedObj).intValue() != 0 ? true : false;
@@ -195,6 +398,11 @@ public class Pref
 		}
 		setSideEffect();
 	}
+
+	/**
+	 * Method to set a new integer value on this Pref object.
+	 * @param v the new integer value of this Pref object.
+	 */
 	public void setInt(int v)
 	{
 		int cachedInt = ((Integer)cachedObj).intValue();
@@ -206,6 +414,27 @@ public class Pref
 		}
 		setSideEffect();
 	}
+
+	/**
+	 * Method to set a new long value on this Pref object.
+	 * @param v the new long value of this Pref object.
+	 */
+	public void setLong(long v)
+	{
+		long cachedLong = ((Long)cachedObj).longValue();
+		if (v != cachedLong)
+		{
+			cachedObj = new Long(v);
+			prefs.putLong(name, v);
+			flushOptions();
+		}
+		setSideEffect();
+	}
+
+	/**
+	 * Method to set a new double value on this Pref object.
+	 * @param v the new double value of this Pref object.
+	 */
 	public void setDouble(double v)
 	{
 		double cachedDouble = ((Double)cachedObj).doubleValue();
@@ -217,6 +446,11 @@ public class Pref
 		}
 		setSideEffect();
 	}
+
+	/**
+	 * Method to set a new string value on this Pref object.
+	 * @param str the new string value of this Pref object.
+	 */
 	public void setString(String str)
 	{
 		String cachedString = (String)cachedObj;
@@ -231,7 +465,13 @@ public class Pref
 
 	/**
 	 * Method to make this Pref a "meaning" option.
-	 * Options that relate to "meaning"
+	 * Meaning options are attached to objects in the Electric database,
+	 * and are saved with libraries.
+	 * @param eObj the ElectricObject to attach this Pref to.
+	 * @param location the user-command that can affect this meaning option.
+	 * @param description the description of this meaning option.
+	 * @return a Meaning object, now associated with this Pref object, that
+	 * gives the option meaning.
 	 */
 	public Meaning attachToObject(ElectricObject eObj, String location, String description)
 	{
@@ -239,6 +479,13 @@ public class Pref
 		return meaning;
 	}
 
+	/**
+	 * Method to find the Meaning object associated with a given part of the
+	 * Electric database.
+	 * @param eObj the ElectricObject on which to find a Meaning object.
+	 * @param name the name of the desired Meaning object.
+	 * @return the Meaning object on that part of the database.
+	 */
 	public static Meaning getMeaningVariable(ElectricObject eObj, String name)
 	{
 		for(Iterator it = allPrefs.iterator(); it.hasNext(); )
@@ -277,13 +524,24 @@ public class Pref
 		}
 	}
 
-	private static List meaningVariablesThatChanged;
-
+	/**
+	 * Method to start the collection of meaning options that have changed.
+	 * After this, calls to changedMeaningVariable() will be collected for
+	 * reconciliation.
+	 * This is typically done during library input, to help reconcile option
+	 * changes caused by the library input with prior option values.
+	 */
 	public static void initMeaningVariableGathering()
 	{
 		meaningVariablesThatChanged = new ArrayList();
 	}
 
+	/**
+	 * Method to record a Meaning option was altered.
+	 * This happens during library input, where changed meaning options
+	 * must be reconciled with existing values.
+	 * @param meaning the Meaning option that was altered.
+	 */
 	public static void changedMeaningVariable(Meaning meaning)
 	{
 		meaningVariablesThatChanged.add(meaning);
@@ -291,6 +549,8 @@ public class Pref
 
 	/**
 	 * Method to adjust "meaning" options that were saved with a library.
+	 * Presents the user with a dialog to help reconcile the difference
+	 * between meaning options stored in a library and the original values.
 	 */
 	public static void reconcileMeaningVariables()
 	{
@@ -332,7 +592,7 @@ public class Pref
 		dialog.show();
 	}
 
-	/****************************** FOR PREFERENCES ******************************/
+	/****************************** private methods ******************************/
 
 	/**
 	 * Method to force all Preferences to be saved.

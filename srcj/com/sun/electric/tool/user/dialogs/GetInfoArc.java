@@ -41,7 +41,7 @@ import javax.swing.JFrame;
 /**
  * Class to handle the "Arc Get-Info" dialog.
  */
-public class GetInfoArc extends javax.swing.JDialog
+public class GetInfoArc extends EDialog
 {
 	private static GetInfoArc theDialog = null;
 	private static ArcInst shownArc = null;
@@ -78,7 +78,6 @@ public class GetInfoArc extends javax.swing.JDialog
 	private GetInfoArc(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
-		setLocation(100, 50);
 		initComponents();
         getRootPane().setDefaultButton(ok);
 		loadArcInfo();

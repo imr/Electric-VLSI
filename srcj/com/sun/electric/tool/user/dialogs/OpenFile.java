@@ -27,6 +27,10 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.FileDialog;
+//import java.awt.Point;
+//import java.awt.Rectangle;
+//import java.awt.event.ComponentListener;
+//import java.awt.event.ComponentEvent;
 import java.io.File;
 import java.io.FilenameFilter;
 import javax.swing.JFileChooser;
@@ -203,6 +207,8 @@ public class OpenFile
 		}
 	}
 
+//	/** the location of the open file dialog */		private static Point location = null;
+
 	/**
 	 * Factory method to create a new open dialog box using the default Type.
 	 * @param type the type of file to read. Defaults to ANY if null.
@@ -220,6 +226,8 @@ public class OpenFile
 		if (TopLevel.getOperatingSystem() == TopLevel.OS.MACINTOSH)
 			useSwing = false;
 
+//		if (location == null) location = new Point(100, 50);
+//		System.out.println("Put it at "+location);
 		if (useSwing)
 		{
 			OpenFileSwing dialog = new OpenFileSwing();
@@ -227,6 +235,8 @@ public class OpenFile
 			dialog.setDialogTitle(title);
 			dialog.setFileFilter(type.getFileFilterSwing());
 			dialog.setCurrentDirectory(new File(User.getWorkingDirectory()));
+//			dialog.setLocation(location.x, location.y);
+//			dialog.addComponentListener(new MoveComponentListener());
 			int returnVal = dialog.showOpenDialog(null);
 			if (returnVal == JFileChooser.APPROVE_OPTION)
 			{
@@ -248,6 +258,19 @@ public class OpenFile
 		}
 	}
 	
+//	private static class MoveComponentListener implements ComponentListener
+//	{
+//		public void componentHidden(ComponentEvent e) {}
+//		public void componentShown(ComponentEvent e) {}
+//		public void componentResized(ComponentEvent e) {}
+//		public void componentMoved(ComponentEvent e)
+//		{
+//			Rectangle bound = ((JFileChooser)e.getSource()).getBounds();
+//			location.x = (int)bound.getMinX();
+//			location.y = (int)bound.getMinY();
+//System.out.println("Moved to "+location);
+//		}
+//	}
 
 	/**
 	 * Factory method to create a new save dialog box using the

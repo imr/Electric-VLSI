@@ -49,6 +49,8 @@ import java.awt.event.ActionEvent;
 import java.awt.Insets;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.ComponentEvent;
 import javax.swing.JScrollPane;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -58,7 +60,7 @@ import javax.swing.JSeparator;
 /**
  * Class to handle the "Search and Replace" dialog.
  */
-public class FindText extends JDialog
+public class FindText extends EDialog
 {
 	private static String lastFindTextMessage = null;
 	private static String lastReplaceTextMessage = null;
@@ -76,7 +78,6 @@ public class FindText extends JDialog
 	private FindText(Frame parent, boolean modal)
 	{
 		super(parent, modal);
-		setLocation(100, 50);
 		initComponents();
 		if (lastFindTextMessage != null)
 			findString.setText(lastFindTextMessage);

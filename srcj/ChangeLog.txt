@@ -2,6 +2,16 @@
 
 ************************* Version 8.00a: Released  *************************
 
+IMP: (5/23/04, SMR) Implemented "Text" panel of "Edit Options".
+
+IMP: (5/23/04, SMR) Implemented ability to disable file-selection dialogs for netlist output.
+
+IMP: (5/23/04, SMR) Implemented saving of primitive node sizes.
+
+IMP: (5/21/04, SMR) Added EDialog class as super to all dialogs to remember position.
+
+IMP: (5/21/04, SMR) Added Layer.getPureLayerNode() to obtain the pure-layer node associated with a Layer.
+
 IMP: (5/21/04, GVG) Coverage Implants functionality in MenuCommands added.
 
 FIX: (5/20/04, JKG) LE.subdrive() fixed. Various EvalJavaBsh code clean-up. Now uses reflection only. 

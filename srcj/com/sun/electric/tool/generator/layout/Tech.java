@@ -143,15 +143,15 @@ public class Tech {
 		pdiff = tech.findArcProto("P-Active");
 		ndiff = tech.findArcProto("N-Active");
 
-		pdpin = pdiff.findPinProto();
-		ndpin = ndiff.findPinProto();
-		p1pin = p1.findPinProto();
-		m1pin = m1.findPinProto();
-		m2pin = m2.findPinProto();
-		m3pin = m3.findPinProto();
-		m4pin = m4.findPinProto();
-		m5pin = m5.findPinProto();
-		m6pin = m6.findPinProto();
+		pdpin = pdiff.findOverridablePinProto();
+		ndpin = ndiff.findOverridablePinProto();
+		p1pin = p1.findOverridablePinProto();
+		m1pin = m1.findOverridablePinProto();
+		m2pin = m2.findOverridablePinProto();
+		m3pin = m3.findOverridablePinProto();
+		m4pin = m4.findOverridablePinProto();
+		m5pin = m5.findOverridablePinProto();
+		m6pin = m6.findOverridablePinProto();
 
 		// initialize vias
 		for (int i = 0; i < nbLay - 1; i++) {

@@ -65,7 +65,7 @@ import javax.swing.DefaultListModel;
 /**
  * Class to handle the "Node Get-Info" dialog.
  */
-public class GetInfoNode extends javax.swing.JDialog
+public class GetInfoNode extends EDialog
 {
 	private static GetInfoNode theDialog = null;
 	private static NodeInst shownNode = null;
@@ -111,7 +111,6 @@ public class GetInfoNode extends javax.swing.JDialog
 	private GetInfoNode(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
-		setLocation(100, 50);
 		initComponents();
         getRootPane().setDefaultButton(ok);
 

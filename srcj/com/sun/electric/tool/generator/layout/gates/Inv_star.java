@@ -102,7 +102,7 @@ class Inv_star {
 		                                fwP.gateWid, inv);
 
 		// inverter output:  m1_wid/2 + m1_m1_sp + m1_wid/2 
-		double outX = stdCell.getRightDiffX(nmos, pmos) + 2 + 3 + 2;
+		double outX = StdCellParams.getRightDiffX(nmos, pmos) + 2 + 3 + 2;
 		LayoutLib.newExport(inv, "out", PortProto.Characteristic.OUT,
 			                Tech.m1, 4, outX, 0);
 

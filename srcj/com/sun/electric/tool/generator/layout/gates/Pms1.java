@@ -77,7 +77,7 @@ public class Pms1 {
 		FoldedMos pmos = new FoldedPmos(mosX, pmosY, fw.nbFolds, 1,
 										fw.gateWid, pms1);
 		// output  m1_wid/2 + m1_m1_sp + m1_wid/2
-		double dX = stdCell.getRightDiffX(pmos) + 2 + 3 + 2;
+		double dX = StdCellParams.getRightDiffX(pmos) + 2 + 3 + 2;
 		LayoutLib.newExport(pms1, "d", PortProto.Characteristic.OUT, Tech.m1,
 							4, dX, dY);
 		// create gnd export and connect to MOS source/drains

@@ -52,7 +52,7 @@ import javax.swing.DefaultListModel;
 /**
  * Class to handle the "Multi-object Get Info" dialog.
  */
-public class GetInfoMulti extends javax.swing.JDialog
+public class GetInfoMulti extends EDialog
 {
 	private static GetInfoMulti theDialog = null;
 	private DefaultListModel listModel;
@@ -87,7 +87,6 @@ public class GetInfoMulti extends javax.swing.JDialog
 	private GetInfoMulti(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
-		setLocation(100, 50);
 		highlightList = new ArrayList();
 		initComponents();
         getRootPane().setDefaultButton(ok);

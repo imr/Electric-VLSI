@@ -2025,5 +2025,32 @@ public class MoCMOSSub extends Technology
 		pawn_node.setFunction(NodeProto.Function.NODE);
 		pawn_node.setHoldsOutline();
 		pawn_node.setSpecialType(PrimitiveNode.POLYGONAL);
+
+		// The pure layer nodes
+		M_lay.setPureLayerNode(mn_node);		// Metal-1
+		M0_lay.setPureLayerNode(mn0_node);		// Metal-2
+		M1_lay.setPureLayerNode(mn1_node);		// Metal-3
+		M2_lay.setPureLayerNode(mn2_node);		// Metal-4
+		M3_lay.setPureLayerNode(mn3_node);		// Metal-5
+		M4_lay.setPureLayerNode(mn4_node);		// Metal-6
+		P_lay.setPureLayerNode(pn_node);		// Polysilicon-1
+		P0_lay.setPureLayerNode(pn0_node);		// Polysilicon-2
+		PA_lay.setPureLayerNode(an_node);		// P-Active
+		NA_lay.setPureLayerNode(nan_node);		// N-Active
+		PS_lay.setPureLayerNode(psn_node);		// P-Select
+		NS_lay.setPureLayerNode(nsn_node);		// N-Select
+		PW_lay.setPureLayerNode(pwn_node);		// P-Well
+		NW_lay.setPureLayerNode(nwn_node);		// N-Well
+		PC_lay.setPureLayerNode(pcn_node);		// Poly-Cut
+		AC_lay.setPureLayerNode(acn_node);		// Active-Cut
+		V_lay.setPureLayerNode(vn_node);		// Via1
+		V0_lay.setPureLayerNode(vn0_node);		// Via2
+		V1_lay.setPureLayerNode(vn1_node);		// Via3
+		V2_lay.setPureLayerNode(vn2_node);		// Via4
+		V3_lay.setPureLayerNode(vn3_node);		// Via5
+		P1_lay.setPureLayerNode(pn1_node);		// Passivation
+		PC0_lay.setPureLayerNode(pcn0_node);		// Poly-Cap
+		PAW_lay.setPureLayerNode(pawn_node);		// P-Active-Well
+		PF_lay.setPureLayerNode(pn1_node);		// Pad-Frame
 	};
 }

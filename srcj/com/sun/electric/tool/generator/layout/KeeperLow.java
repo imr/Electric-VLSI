@@ -51,11 +51,11 @@ public class KeeperLow {
 			NodeInst ni = (NodeInst) nodes.next();
 			String nm = ni.getProto().getProtoName();
 			if (nm.equals("nms1K{ic}")) {
-				szNmos = stdCell.getSize(ni, context);
+				szNmos = StdCellParams.getSize(ni, context);
 			} else if (nm.equals("invK{ic}")) {
-				szK = stdCell.getSize(ni, context);
+				szK = StdCellParams.getSize(ni, context);
 			} else if (nm.equals("inv{ic}")) {
-				szI = stdCell.getSize(ni, context);
+				szI = StdCellParams.getSize(ni, context);
 			}
 		}
 		error(szNmos == -1, "KeeperLow: nmos not found");

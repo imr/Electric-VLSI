@@ -680,12 +680,8 @@ public final class ExportChanges
 
 	private static void showPortsAndExports(List nodes)
 	{
-		EditWindow wnd = EditWindow.getCurrent();
-		if (wnd == null)
-		{
-			System.out.println("No current window");
-			return;
-		}
+		EditWindow wnd = EditWindow.needCurrent();
+		if (wnd == null) return;
 		Cell cell = wnd.getCell();
 		if (cell == null)
 		{

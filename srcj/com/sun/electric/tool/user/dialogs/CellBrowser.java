@@ -48,7 +48,7 @@ import java.util.regex.Matcher;
  *
  * @author  gainsley
  */
-public class CellBrowser extends javax.swing.JDialog {
+public class CellBrowser extends EDialog {
 
     private static Preferences prefs = Preferences.userNodeForPackage(CellBrowser.class);
 
@@ -88,7 +88,6 @@ public class CellBrowser extends javax.swing.JDialog {
     public CellBrowser(java.awt.Frame parent, boolean modal, DoAction action) {
         super(parent, modal);
         this.action = action;
-        setLocation(100, 50);
 
         initComponents();                       // init components (netbeans generated method)
         setTitle(action.name);                  // set the dialog title

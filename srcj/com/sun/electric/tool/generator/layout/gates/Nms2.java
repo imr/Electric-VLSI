@@ -88,7 +88,7 @@ public class Nms2 {
 				fw.gateWid,
 				nms2);
 		// g2  m1_wid/2 + m1_m1_sp + m1_wid/2
-		double g2X = stdCell.getRightDiffX(nmos) + 2 + 3 + 2;
+		double g2X = StdCellParams.getRightDiffX(nmos) + 2 + 3 + 2;
 		LayoutLib.newExport(nms2, "g2", PortProto.Characteristic.IN, Tech.m1,
 							4, g2X, g2Y);
 		// output d  m1_wid/2 + m1_m1_sp + m1_wid/2

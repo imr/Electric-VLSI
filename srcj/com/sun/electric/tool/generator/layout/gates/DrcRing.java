@@ -53,7 +53,7 @@ public class DrcRing {
     // metal-5 minimum width is 6 lambda
     double arcW = 6;
     
-    NodeProto pin = ((PrimitiveArc)arc).findPinProto();
+    NodeProto pin = ((PrimitiveArc)arc).findOverridablePinProto();
     double pinLoX = - arcW/2;
     double pinHiX = w + arcW/2;
     double pinLoY = - arcW/2;

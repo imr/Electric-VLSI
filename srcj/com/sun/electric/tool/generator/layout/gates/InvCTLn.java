@@ -132,7 +132,7 @@ public class InvCTLn {
 		}
 		
 		// Inv input: ctl
-		double rightDiffX = stdCell.getRightDiffX(nmos, pmoss);
+		double rightDiffX = StdCellParams.getRightDiffX(nmos, pmoss);
 		double ctlX = rightDiffX + wirePitch;
 		LayoutLib.newExport(inv, "ctl", PortProto.Characteristic.IN, Tech.m1, 4,
 							ctlX, ctlY);

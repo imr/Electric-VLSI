@@ -28,7 +28,7 @@ package com.sun.electric.tool.user.dialogs;
  *
  * @author  gainsley
  */
-public class EditKeyBindingConflict extends javax.swing.JDialog {
+public class EditKeyBindingConflict extends EDialog {
     
     /** Creates new form EditKeyBindingConflict */
     public EditKeyBindingConflict(java.awt.Frame parent, boolean modal) {

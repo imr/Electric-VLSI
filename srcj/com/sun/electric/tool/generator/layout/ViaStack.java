@@ -85,7 +85,7 @@ class ViaStack {
 		int h2 = Tech.layerHeight(arc2);
 		int deltaZ = h2 - h1;
 		if (arc1==arc2) {
-			NodeProto pin = ((PrimitiveArc)arc1).findPinProto(); 
+			NodeProto pin = ((PrimitiveArc)arc1).findOverridablePinProto(); 
 			double defSz = LayoutLib.DEF_SIZE;
 			NodeInst pinInst = LayoutLib.newNodeInst(pin,x,y,defSz,defSz,0,f); 
 			port1 =	port2 = pinInst.getOnlyPortInst();

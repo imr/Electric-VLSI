@@ -140,7 +140,7 @@ public class NodeInst extends Geometric implements Nodable
 		this.portInsts = new ArrayList();
 		this.connections = new ArrayList();
 		this.exports = new ArrayList();
-		this.protoDescriptor = TextDescriptor.newInstanceDescriptor(this);
+		this.protoDescriptor = TextDescriptor.getInstanceTextDescriptor(this);
 		center = new Point2D.Double();
 	}
 
@@ -545,7 +545,7 @@ public class NodeInst extends Geometric implements Nodable
 				// make that two wires
 				double cX = newPoint[0].getX();
 				double cY = newPoint[1].getY();
-				NodeProto pinNp = ((PrimitiveArc)ai.getProto()).findPinProto();
+				NodeProto pinNp = ((PrimitiveArc)ai.getProto()).findOverridablePinProto();
 				double psx = pinNp.getDefWidth();
 				double psy = pinNp.getDefHeight();
 				NodeInst pinNi = NodeInst.newInstance(pinNp, new Point2D.Double(cX, cY), psx, psy, 0, getParent(), null);

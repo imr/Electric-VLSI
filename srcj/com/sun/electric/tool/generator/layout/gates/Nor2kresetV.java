@@ -110,8 +110,8 @@ public class Nor2kresetV {
 		stdCell.fillDiffNotches(nmoss);
 		
 		// Strong NMOS is 10x size of weak NMOS
-		double rightNDiffX = stdCell.getRightDiffX(nmoss, nmoss);
-		double rightPDiffX = stdCell.getRightDiffX(pmos, pmos);
+		double rightNDiffX = StdCellParams.getRightDiffX(nmoss, nmoss);
+		double rightPDiffX = StdCellParams.getRightDiffX(pmos, pmos);
 		// diff_diff_sp
 		double bigNmosX = Math.max(rightPDiffX, rightNDiffX + 11);
 		double bigY = nmosTop - fwS.physWid/2;
@@ -175,7 +175,7 @@ public class Nor2kresetV {
 		
 		// resetV input
 		// ndm1_wid
-		double resetX = stdCell.getRightDiffX(bigMos) + 2 + 3 + 2;
+		double resetX = StdCellParams.getRightDiffX(bigMos) + 2 + 3 + 2;
 		double resetY = nmosTop - fwS.physWid + 2.5 - wirePitch;
 		LayoutLib.newExport(nor, "resetV", PortProto.Characteristic.IN,
 							Tech.m1, 4, resetX, resetY);

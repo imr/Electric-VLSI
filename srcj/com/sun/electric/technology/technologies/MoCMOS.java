@@ -44,6 +44,9 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Color;
+import java.awt.geom.Point2D;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.prefs.Preferences;
 
 /**
@@ -2740,20 +2743,6 @@ public class MoCMOS extends Technology
 		polyCap_lay.setPureLayerNode(polyCapNode_node);					// Poly-Cap
 		pActiveWell_lay.setPureLayerNode(pActiveWellNode_node);			// P-Active-Well
 		silicideBlock_lay.setPureLayerNode(silicideBlockNode_node);		// Silicide-Block
-//		pseudoMetal1_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-Metal-1
-//		pseudoMetal2_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-Metal-2
-//		pseudoMetal3_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-Metal-3
-//		pseudoMetal4_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-Metal-4
-//		pseudoMetal5_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-Metal-5
-//		pseudoMetal6_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-Metal-6
-//		pseudoPoly1_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-Polysilicon-1
-//		pseudoPoly2_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-Polysilicon-2
-//		pseudoPActive_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-P-Active
-//		pseudoNActive_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-N-Active
-//		pseudoPSelect_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-P-Select
-//		pseudoNSelect_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-N-Select
-//		pseudoPWell_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-P-Well
-//		pseudoNWell_lay.setPureLayerNode(XXXXXXXXXXXXX);				// Pseudo-N-Well
 		padFrame_lay.setPureLayerNode(padFrameNode_node);				// Pad-Frame
 	}
 
@@ -2764,7 +2753,48 @@ public class MoCMOS extends Technology
 	 */
 	public void init()
 	{
+		// remember the arc widths as specified by previous defaults
+		HashMap arcWidths = new HashMap();
+		for(Iterator it = getArcs(); it.hasNext(); )
+		{
+			PrimitiveArc ap = (PrimitiveArc)it.next();
+			double width = ap.getDefaultWidth();
+			arcWidths.put(ap, new Double(width));
+		}
+
+		// remember the node sizes as specified by previous defaults
+		HashMap nodeSizes = new HashMap();
+		for(Iterator it = getNodes(); it.hasNext(); )
+		{
+			PrimitiveNode np = (PrimitiveNode)it.next();
+			double width = np.getDefWidth();
+			double height = np.getDefHeight();
+			nodeSizes.put(np, new Point2D.Double(width, height));
+		}
+
+		// initialize all design rules in the technology (overwrites arc widths)
 		setState();
+
+		// now restore arc width defaults if they are wider than what is set
+		for(Iterator it = getArcs(); it.hasNext(); )
+		{
+			PrimitiveArc ap = (PrimitiveArc)it.next();
+			Double origWidth = (Double)arcWidths.get(ap);
+			if (origWidth == null) continue;
+			double width = ap.getDefaultWidth();
+			if (origWidth.doubleValue() > width) ap.setDefaultWidth(origWidth.doubleValue());
+		}
+
+		// now restore node size defaults if they are larger than what is set
+		for(Iterator it = getNodes(); it.hasNext(); )
+		{
+			PrimitiveNode np = (PrimitiveNode)it.next();
+			Point2D size = (Point2D)nodeSizes.get(np);
+			if (size == null) continue;
+			double width = np.getDefWidth();
+			double height = np.getDefHeight();
+			if (size.getX() > width || size.getY() > height) np.setDefSize(size.getX(), size.getY());
+		}		
 	}
 
 	/**
@@ -3821,140 +3851,6 @@ public class MoCMOS extends Technology
 		}
 	}
 
-	/******************** SWITCHING N AND P LAYERS ********************/
-
-//	/*
-//	 * Method to switch N and P layers (not terribly useful)
-//	 */
-//	void switchnp(void)
-//	{
-//		REGISTER LIBRARY *lib;
-//		REGISTER NODEPROTO *np;
-//		REGISTER NODEINST *ni, *rni;
-//		REGISTER ARCINST *ai;
-//		REGISTER ARCPROTO *ap, *app, *apn;
-//		REGISTER PORTPROTO *pp, *rpp;
-//		REGISTER PORTARCINST *pi;
-//		REGISTER PORTEXPINST *pe;
-//		REGISTER INTBIG i, j, k;
-//
-//		// find the important node and arc prototypes
-//		setupprimswap(NPACTP, NNACTP, &primswap[0]);
-//		setupprimswap(NMETPACTC, NMETNACTC, &primswap[1]);
-//		setupprimswap(NTRANSP, NTRANSN, &primswap[2]);
-//		setupprimswap(NPWBUT, NNWBUT, &primswap[3]);
-//		setupprimswap(NPACTIVEN, NNACTIVEN, &primswap[4]);
-//		setupprimswap(NSELECTPN, NSELECTNN, &primswap[5]);
-//		setupprimswap(NWELLPN, NWELLNN, &primswap[6]);
-//		app = apn = NOARCPROTO;
-//		for(ap = tech->firstarcproto; ap != NOARCPROTO; ap = ap->nextarcproto)
-//		{
-//			if (namesame(ap->protoname, "P-Active")) == 0) app = ap;
-//			if (namesame(ap->protoname, "N-Active")) == 0) apn = ap;
-//		}
-//
-//		for(lib = el_curlib; lib != NOLIBRARY; lib = lib->nextlibrary)
-//		{
-//			for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//			{
-//				for(ni = np->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//				{
-//					if (ni->proto->primindex == 0) continue;
-//					if (ni->proto->tech != tech) continue;
-//					for(i=0; i<7; i++)
-//					{
-//						for(k=0; k<2; k++)
-//						{
-//							if (ni->proto == primswap[i].np[k])
-//							{
-//								ni->proto = primswap[i].np[1-k];
-//								for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//								{
-//									for(j=0; j<primswap[i].portcount; j++)
-//									{
-//										if (pi->proto == primswap[i].pp[k][j])
-//										{
-//											pi->proto = primswap[i].pp[1-k][j];
-//											break;
-//										}
-//									}
-//								}
-//								for(pe = ni->firstportexpinst; pe != NOPORTEXPINST; pe = pe->nextportexpinst)
-//								{
-//									for(j=0; j<primswap[i].portcount; j++)
-//									{
-//										if (pe->proto == primswap[i].pp[k][j])
-//										{
-//											pe->proto = primswap[i].pp[1-k][j];
-//											pe->exportproto->subportproto = pe->proto;
-//											break;
-//										}
-//									}
-//								}
-//								break;
-//							}
-//						}
-//					}
-//				}
-//				for(ai = np->firstarcinst; ai != NOARCINST; ai = ai->nextarcinst)
-//				{
-//					if (ai->proto->tech != tech) continue;
-//					if (ai->proto == app)
-//					{
-//						ai->proto = apn;
-//					} else if (ai->proto == apn)
-//					{
-//						ai->proto = app;
-//					}
-//				}
-//			}
-//			for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//			{
-//				for(pp = np->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
-//				{
-//					// find the primitive at the bottom
-//					rpp = pp->subportproto;
-//					rni = pp->subnodeinst;
-//					while (rni->proto->primindex == 0)
-//					{
-//						rni = rpp->subnodeinst;
-//						rpp = rpp->subportproto;
-//					}
-//					pp->connects = rpp->connects;
-//				}
-//			}
-//		}
-//		for(i=0; i<7; i++)
-//		{
-//			ni = primswap[i].np[0]->firstinst;
-//			primswap[i].np[0]->firstinst = primswap[i].np[1]->firstinst;
-//			primswap[i].np[1]->firstinst = ni;
-//		}
-//	}
-//
-//	/*
-//	 * Helper method for "switchnp()".
-//	 */
-//	void setupprimswap(INTBIG index1, INTBIG index2, PRIMSWAP *swap)
-//	{
-//		REGISTER NODEPROTO *np;
-//		REGISTER PORTPROTO *pp;
-//
-//		swap->np[0] = swap->np[1] = NONODEPROTO;
-//		for(np = tech->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//		{
-//			if (np->primindex == index1) swap->np[0] = np;
-//			if (np->primindex == index2) swap->np[1] = np;
-//		}
-//		if (swap->np[0] == NONODEPROTO || swap->np[1] == NONODEPROTO) return;
-//		swap->portcount = 0;
-//		for(pp = swap->np[0]->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
-//			swap->pp[0][swap->portcount++] = pp;
-//		swap->portcount = 0;
-//		for(pp = swap->np[1]->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
-//			swap->pp[1][swap->portcount++] = pp;
-//	}
-
 /******************** NODE DESCRIPTION (GRAPHICAL) ********************/
 
 //INTBIG intnodepolys(NODEINST *ni, INTBIG *reasonable, WINDOWPART *win, POLYLOOP *pl, MOCPOLYLOOP *mocpl)
@@ -4433,20 +4329,6 @@ public class MoCMOS extends Technology
 //}
 //
 ///******************** ARC DESCRIPTION ********************/
-//
-//INTBIG intarcpolys(ARCINST *ai, WINDOWPART *win, POLYLOOP *pl, MOCPOLYLOOP *mocpl)
-//{
-//	REGISTER INTBIG i;
-//
-//	i = 1;
-//	mocpl->arrowbox = -1;
-//	if ((ai->userbits&ISDIRECTIONAL) != 0) mocpl->arrowbox = i++;
-//
-//	// add in displayable variables
-//	pl->realpolys = i;
-//	i += tech_displayableavars(ai, win, pl);
-//	return(i);
-//}
 //
 //void intshapearcpoly(ARCINST *ai, INTBIG box, POLYGON *poly, POLYLOOP *pl, MOCPOLYLOOP *mocpl)
 //{

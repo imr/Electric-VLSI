@@ -393,12 +393,29 @@ public class EditWindow
 
 	/**
 	 * Method to return the current EditWindow.
+	 * @return the current EditWindow (null if none).
 	 */
 	public static EditWindow getCurrent()
 	{
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 		if (wf == null) return null;
 		if (wf.getContent() instanceof EditWindow) return (EditWindow)wf.getContent();
+		return null;
+	}
+
+	/**
+	 * Method to return the current EditWindow.
+	 * @return the current EditWindow.
+	 * If there is none, an error message is displayed and it returns null.
+	 */
+	public static EditWindow needCurrent()
+	{
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (wf != null)
+		{
+			if (wf.getContent() instanceof EditWindow) return (EditWindow)wf.getContent();
+		}
+		System.out.println("There is no current window for this operation");
 		return null;
 	}
 
@@ -973,7 +990,7 @@ public class EditWindow
 	{
 		for(int startPos = 0; ; )
 		{
-			startPos = TextUtils.findStringInString(theLine, search, startPos, caseSensitive);
+			startPos = TextUtils.findStringInString(theLine, search, startPos, caseSensitive, false);
 			if (startPos < 0) break;
 			int endPos = startPos + search.length();
 			Variable.Key key = null;

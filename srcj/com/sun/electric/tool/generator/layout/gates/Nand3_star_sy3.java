@@ -222,7 +222,7 @@ public class Nand3_star_sy3 {
 		}
 		
 		// m1_wid + m1_space + m1_wid/2
-		double incX = stdCell.getRightDiffX(nmos) + 2 + 3 + 2;
+		double incX = StdCellParams.getRightDiffX(nmos) + 2 + 3 + 2;
 		LayoutLib.newExport(nand, "inc", PortProto.Characteristic.IN, Tech.m1,
 							4, incX, incY);
 		inc.connect(nand.findExport("inc"));

@@ -175,7 +175,15 @@ public class DRC extends Tool
 	{
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
-        CheckHierarchically job = new CheckHierarchically(curCell, false);
+		if (curCell.getView() == View.SCHEMATIC || curCell.getTechnology() == Schematics.tech)
+		{
+			// hierarchical check of schematics
+			CheckSchematicHierarchically job = new CheckSchematicHierarchically(curCell, false);
+		} else
+		{
+			// hierarchical check of layout
+			CheckLayoutHierarchically job = new CheckLayoutHierarchically(curCell, false);
+		}
 	}
 
 	/**
@@ -185,15 +193,23 @@ public class DRC extends Tool
 	{
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
-        CheckHierarchically job = new CheckHierarchically(curCell, true);
+		if (curCell.getView() == View.SCHEMATIC || curCell.getTechnology() == Schematics.tech)
+		{
+			// hierarchical check of schematics
+			CheckSchematicHierarchically job = new CheckSchematicHierarchically(curCell, true);
+		} else
+		{
+			// hierarchical check of layout
+			CheckLayoutHierarchically job = new CheckLayoutHierarchically(curCell, true);
+		}
 	}
 
-	protected static class CheckHierarchically extends Job
+	protected static class CheckLayoutHierarchically extends Job
 	{
 		Cell cell;
 		boolean justArea;
 
-		protected CheckHierarchically(Cell cell, boolean justArea)
+		protected CheckLayoutHierarchically(Cell cell, boolean justArea)
 		{
 			super("Design-Rule Check", tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.cell = cell;
@@ -204,15 +220,30 @@ public class DRC extends Tool
 		public void doIt()
 		{
 			long startTime = System.currentTimeMillis();
-			if (cell.getView() == View.SCHEMATIC || cell.getTechnology() == Schematics.tech)
-			{
-				// hierarchical check of schematics
-				Schematic.doCheck(cell);
-			} else
-			{
-				// hierarchical check of layout
-				Quick.doCheck(cell, 0, null, null, justArea);
-			}
+			Quick.doCheck(cell, 0, null, null, justArea);
+			long endTime = System.currentTimeMillis();
+			int errorcount = ErrorLog.numErrors();
+			System.out.println(errorcount + " errors found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
+		}
+	}
+
+	protected static class CheckSchematicHierarchically extends Job
+	{
+		Cell cell;
+		boolean justArea;
+
+		protected CheckSchematicHierarchically(Cell cell, boolean justArea)
+		{
+			super("Design-Rule Check", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cell = cell;
+			this.justArea = justArea;
+			startJob();
+		}
+
+		public void doIt()
+		{
+			long startTime = System.currentTimeMillis();
+			Schematic.doCheck(cell);
 			long endTime = System.currentTimeMillis();
 			int errorcount = ErrorLog.numErrors();
 			System.out.println(errorcount + " errors found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");

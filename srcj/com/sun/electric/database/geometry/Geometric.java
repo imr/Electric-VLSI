@@ -26,6 +26,7 @@ package com.sun.electric.database.geometry;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -788,7 +789,8 @@ public abstract class Geometric extends ElectricObject
 	protected Geometric()
 	{
 		this.userBits = 0;
-		nameDescriptor = TextDescriptor.newNodeArcDescriptor(this);
+		if (this instanceof NodeInst) nameDescriptor = TextDescriptor.getNodeTextDescriptor(this); else
+			nameDescriptor = TextDescriptor.getArcTextDescriptor(this);
 		visBounds = new Rectangle2D.Double(0, 0, 0, 0);
 	}
 

@@ -24,8 +24,10 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.text.Pref;
 
 import java.util.Iterator;
+import java.util.HashMap;
 import java.util.NoSuchElementException;
 
 /**
@@ -36,10 +38,10 @@ import java.util.NoSuchElementException;
 public class PrimitiveNode extends NodeProto
 {
 	// constants used in the "specialType" field
-	/** Defines a normal node. */							public static final int NORMAL = 0;
-	/** Defines a serpentine transistor. */					public static final int SERPTRANS = 1;
-	/** Defines a polygonal transistor. */					public static final int POLYGONAL = 2;
-	/** Defines a multi-cut contact. */						public static final int MULTICUT =  3;
+	/** Defines a normal node. */					public static final int NORMAL = 0;
+	/** Defines a serpentine transistor. */			public static final int SERPTRANS = 1;
+	/** Defines a polygonal transistor. */			public static final int POLYGONAL = 2;
+	/** Defines a multi-cut contact. */				public static final int MULTICUT =  3;
 
 	// --------------------- private data -----------------------------------
 	
@@ -49,11 +51,13 @@ public class PrimitiveNode extends NodeProto
 	/** Index of this PrimitiveNode. */				private int primNodeIndex;
 	/** special type of unusual primitives */		private int specialType;
 	/** special factors for unusual primitives */	private double[] specialValues;
-	/** default width and height */					private double defWidth, defHeight;
 	/** minimum width and height */					private double minWidth, minHeight;
 	/** minimum width and height rule */			private String minSizeRule;
 	/** offset from database to user */				private SizeOffset offset;
+
 	/** counter for enumerating primitive nodes */	private static int primNodeNumber = 0;
+	/** Pref map for node width. */					private static HashMap defaultWidthPrefs = new HashMap();
+	/** Pref map for node height. */				private static HashMap defaultHeightPrefs = new HashMap();
 
 	// ------------------ private and protected methods ----------------------
 
@@ -72,8 +76,7 @@ public class PrimitiveNode extends NodeProto
 		this.electricalLayers = null;
 		this.userBits = 0;
 		specialType = NORMAL;
-		this.defWidth = defWidth;
-		this.defHeight = defHeight;
+		setFactoryDefSize(defWidth, defHeight);
 		if (offset == null) offset = new SizeOffset(0,0,0,0);
 		this.offset = offset;
 		this.minWidth = this.minHeight = -1;
@@ -206,27 +209,71 @@ public class PrimitiveNode extends NodeProto
 	}
 
 	/**
+	 * Method to return the Pref that describes the defaut width of this PrimitiveNode.
+	 * @param factoryWidth the "factory" default width of this PrimitiveNode.
+	 * @return a Pref that stores the proper default width of this PrimitiveNode.
+	 */
+	private Pref getNodeProtoWidthPref(double factoryWidth)
+	{
+		Pref pref = (Pref)defaultWidthPrefs.get(this);
+		if (pref == null)
+		{
+			pref = Pref.makeDoublePref("DefaultWidthFor" + protoName + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factoryWidth);
+			defaultWidthPrefs.put(this, pref);
+		}
+		return pref;
+	}
+
+	/**
+	 * Method to return the Pref that describes the defaut height of this PrimitiveNode.
+	 * @param factoryHeight the "factory" default height of this PrimitiveNode.
+	 * @return a Pref that stores the proper default height of this PrimitiveNode.
+	 */
+	private Pref getNodeProtoHeightPref(double factoryHeight)
+	{
+		Pref pref = (Pref)defaultHeightPrefs.get(this);
+		if (pref == null)
+		{
+			pref = Pref.makeDoublePref("DefaultHeightFor" + protoName + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factoryHeight);
+			defaultHeightPrefs.put(this, pref);
+		}
+		return pref;
+	}
+
+	/**
+	 * Method to set the factory-default width of this PrimitiveNode.
+	 * This is only called during construction.
+	 * @param defWidth the factory-default width of this PrimitiveNode.
+	 * @param defHeight the factory-default height of this PrimitiveNode.
+	 */
+	protected void setFactoryDefSize(double defWidth, double defHeight)
+	{
+		getNodeProtoWidthPref(defWidth);
+		getNodeProtoHeightPref(defHeight);
+	}
+
+	/**
 	 * Method to set the default size of this PrimitiveNode.
 	 * @param defWidth the new default width of this PrimitiveNode.
 	 * @param defHeight the new default height of this PrimitiveNode.
 	 */
 	public void setDefSize(double defWidth, double defHeight)
 	{
-		this.defWidth = defWidth;
-		this.defHeight = defHeight;
+		getNodeProtoWidthPref(0).setDouble(defWidth);
+		getNodeProtoHeightPref(0).setDouble(defHeight);
 	}
 
 	/**
 	 * Method to return the default width of this PrimitiveNode.
 	 * @return the default width of this PrimitiveNode.
 	 */
-	public double getDefWidth() { return defWidth; }
+	public double getDefWidth() { return getNodeProtoWidthPref(0).getDouble(); }
 
 	/**
 	 * Method to return the default height of this PrimitiveNode.
 	 * @return the default height of this PrimitiveNode.
 	 */
-	public double getDefHeight() { return defHeight; }
+	public double getDefHeight() { return getNodeProtoHeightPref(0).getDouble(); }
 
 	/**
 	 * Method to get the size offset of this PrimitiveNode.

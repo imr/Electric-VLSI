@@ -57,7 +57,7 @@ import javax.swing.JOptionPane;
 /**
  * Class to handle the "Array" dialog.
  */
-public class Array extends javax.swing.JDialog
+public class Array extends EDialog
 {
 	/** Space by edge overlap. */				private static final int SPACING_EDGE = 1;
 	/** Space by centerline distance. */		private static final int SPACING_CENTER = 2;
@@ -96,7 +96,6 @@ public class Array extends javax.swing.JDialog
 	private Array(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
-		setLocation(100, 50);
 		initComponents();
         getRootPane().setDefaultButton(ok);
 

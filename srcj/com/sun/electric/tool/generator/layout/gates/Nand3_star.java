@@ -144,8 +144,8 @@ class Nand3_star {
 			inc.connect(pmoss[i].getGate(2, 'B'), 1.5);
 		}
 		// m1_wid + m1_space + m1_wid/2
-		double nmosRight = stdCell.getRightDiffX(nmos);
-		double pmosRight = stdCell.getRightDiffX(pmoss);
+		double nmosRight = StdCellParams.getRightDiffX(nmos);
+		double pmosRight = StdCellParams.getRightDiffX(pmoss);
 		double incX = Math.max(nmosRight, pmosRight) + 2 + 3 + 2;
 		LayoutLib.newExport(nand, "inc", PortProto.Characteristic.IN, Tech.m1,
 							4, incX, incY);

@@ -262,8 +262,8 @@ class Nand3_star_en_star {
 		}
 		
 		// Drop down a single PMOS pullup for ina
-		double rightPdiffX = stdCell.getRightDiffX(pmoss);
-		double rightNdiffX = stdCell.getRightDiffX(nmos);
+		double rightPdiffX = StdCellParams.getRightDiffX(pmoss);
+		double rightNdiffX = StdCellParams.getRightDiffX(nmos);
 		// pdm1_wid/2 + selOverhangDiff + sel_sel_sp + selOverhangDiff + pdm1_wid/2
 		double pmosaFromPmos = rightPdiffX + 2.5 + 2 + 2 + 2 + 2.5;
 		double pmosaFromNmos = rightNdiffX - 8;

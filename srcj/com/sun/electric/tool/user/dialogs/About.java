@@ -47,7 +47,7 @@ import javax.swing.DefaultListModel;
 /**
  * Class to handle the "About" dialog.
  */
-public class About extends javax.swing.JDialog
+public class About extends EDialog
 {
 	JList list;
 	DefaultListModel model;
@@ -114,7 +114,6 @@ public class About extends javax.swing.JDialog
 	public About(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
-		setLocation(100, 50);
 		initComponents();
         getRootPane().setDefaultButton(ok);
 

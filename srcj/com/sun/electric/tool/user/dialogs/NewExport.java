@@ -41,7 +41,7 @@ import javax.swing.JOptionPane;
 /**
  * Class to handle the "Create New Export" dialog.
  */
-public class NewExport extends javax.swing.JDialog
+public class NewExport extends EDialog
 {
 	private static String latestCharacteristic;
 
@@ -49,7 +49,6 @@ public class NewExport extends javax.swing.JDialog
 	public NewExport(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
-		setLocation(100, 50);
 		initComponents();
         getRootPane().setDefaultButton(ok);
 

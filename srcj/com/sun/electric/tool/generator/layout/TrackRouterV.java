@@ -88,7 +88,7 @@ public class TrackRouterV extends TrackRouter {
 
 		// Connect to new port.
 		if (wireOffset != 0) {
-			NodeProto pin = ((PrimitiveArc)portLyr).findPinProto();
+			NodeProto pin = ((PrimitiveArc)portLyr).findOverridablePinProto();
 			double defSz = LayoutLib.DEF_SIZE;
 			NodeInst pinInst = 
 			  LayoutLib.newNodeInst(pin, center.doubleValue()+wireOffset, lastPort.getBounds().getCenterY(), 

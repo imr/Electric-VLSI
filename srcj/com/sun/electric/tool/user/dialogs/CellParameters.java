@@ -46,7 +46,7 @@ import javax.swing.ListSelectionModel;
 /**
  * Class to handle the "Cell Parameters" dialog.
  */
-public class CellParameters extends javax.swing.JDialog
+public class CellParameters extends EDialog
 {
 	private DefaultListModel paramListModel;
 	private JList paramJList;
@@ -56,7 +56,6 @@ public class CellParameters extends javax.swing.JDialog
 	public CellParameters(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
-		setLocation(100, 50);
 		initComponents();
 
 		// build the parameter list

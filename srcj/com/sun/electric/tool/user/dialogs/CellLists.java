@@ -57,7 +57,7 @@ import javax.swing.JFrame;
 /**
  * Class to handle the "New Cell" dialog.
  */
-public class CellLists extends javax.swing.JDialog
+public class CellLists extends EDialog
 {
 	FlagSet nodeFlagBit;
 	FlagSet portFlagBit;
@@ -85,7 +85,6 @@ public class CellLists extends javax.swing.JDialog
 	private CellLists(JFrame parent, boolean modal)
 	{
 		super(parent, modal);
-		setLocation(100, 50);
 		initComponents();
         getRootPane().setDefaultButton(ok);
 

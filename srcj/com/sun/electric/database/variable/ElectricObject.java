@@ -31,6 +31,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -386,7 +387,13 @@ public class ElectricObject
 			if (inDatabase())
 				Undo.killVariable(this, oldVar);
 		}
-		Variable v = new Variable(this, value, TextDescriptor.newNodeArcDescriptor(null), key);
+		TextDescriptor td = null;
+		if (this instanceof Cell) td = TextDescriptor.getCellTextDescriptor(this); else
+			if (this instanceof Export) td = TextDescriptor.getExportTextDescriptor(this); else
+				if (this instanceof NodeInst) td = TextDescriptor.getNodeTextDescriptor(this); else
+					if (this instanceof ArcInst) td = TextDescriptor.getArcTextDescriptor(this); else
+						td = TextDescriptor.getAnnotationTextDescriptor(this);
+		Variable v = new Variable(this, value, td, key);
 		lowLevelLinkVar(v);
 		if (inDatabase())
 			Undo.newVariable(this, v);

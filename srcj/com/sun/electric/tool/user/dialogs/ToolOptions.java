@@ -63,7 +63,7 @@ import javax.swing.text.BadLocationException;
 /**
  * Class to handle the "Tool Options" dialog.
  */
-public class ToolOptions extends javax.swing.JDialog
+public class ToolOptions extends EDialog
 {
 	private Technology curTech;
 	private Library curLib;
@@ -145,7 +145,6 @@ public class ToolOptions extends javax.swing.JDialog
 	public ToolOptions(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
-		setLocation(100, 50);
 		initComponents();
 
 		// if the last know tab name is available, find that tab again
@@ -2070,6 +2069,7 @@ public class ToolOptions extends javax.swing.JDialog
         fhMakeSpice = new javax.swing.JCheckBox();
         jLabel63 = new javax.swing.JLabel();
         fhAfterAction = new javax.swing.JComboBox();
+        jLabel30 = new javax.swing.JLabel();
         wellCheck = new javax.swing.JPanel();
         jLabel64 = new javax.swing.JLabel();
         jLabel65 = new javax.swing.JLabel();
@@ -3417,6 +3417,14 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         fastHenry.add(fhAfterAction, gridBagConstraints);
 
+        jLabel30.setText("FASTHENRY OUTPUT IS NOT YET SUPPORTED");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        fastHenry.add(jLabel30, gridBagConstraints);
+
         tabPane.addTab("Fast Henry", fastHenry);
 
         wellCheck.setLayout(new java.awt.GridBagLayout());
@@ -4560,6 +4568,7 @@ public class ToolOptions extends javax.swing.JDialog
     private javax.swing.JLabel jLabel28;
     private javax.swing.JLabel jLabel29;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel30;
     private javax.swing.JLabel jLabel33;
     private javax.swing.JLabel jLabel35;
     private javax.swing.JLabel jLabel37;

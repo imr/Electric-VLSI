@@ -85,7 +85,7 @@ public class MullerC_sy {
 										fwP.gateWid, mull);
 		
 		// inb  m1_wid/2 + m1_m1_sp + m1_wid/2
-		double inbX = stdCell.getRightDiffX(pmos) + 2 + 3 + 2;
+		double inbX = StdCellParams.getRightDiffX(pmos) + 2 + 3 + 2;
 		LayoutLib.newExport(mull, "inb", PortProto.Characteristic.IN, Tech.m1,
 							4, inbX, inbY);
 		// output d  m1_wid/2 + m1_m1_sp + m1_wid/2

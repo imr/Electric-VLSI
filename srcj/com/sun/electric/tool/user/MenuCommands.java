@@ -98,6 +98,7 @@ import java.awt.print.PrinterJob;
 import java.awt.print.Printable;
 import java.awt.print.PageFormat;
 import java.awt.print.PrinterException;
+import java.io.File;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
@@ -166,11 +167,11 @@ public final class MenuCommands
 		Menu exportSubMenu = new Menu("Export");
 		fileMenu.add(exportSubMenu);
 		exportSubMenu.addMenuItem("CIF (Caltech Intermediate Format)", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.CIF); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.CIF, false); } });
 		exportSubMenu.addMenuItem("GDS II (Stream)", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.GDS); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.GDS, false); } });
 		exportSubMenu.addMenuItem("PostScript", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.POSTSCRIPT); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.POSTSCRIPT, false); } });
 
 		fileMenu.addSeparator();
 
@@ -599,9 +600,9 @@ public final class MenuCommands
 		Menu spiceSimulationSubMenu = new Menu("Simulation (SPICE)", 'S');
 		toolMenu.add(spiceSimulationSubMenu);
 		spiceSimulationSubMenu.addMenuItem("Write SPICE Deck...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.SPICE); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.SPICE, true); }});
 		spiceSimulationSubMenu.addMenuItem("Write CDL Deck...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.CDL); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.CDL, true); }});
 		spiceSimulationSubMenu.addMenuItem("Plot Spice Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotSpiceResults(); }});
 
@@ -624,7 +625,7 @@ public final class MenuCommands
 		Menu verilogSimulationSubMenu = new Menu("Simulation (Verilog)", 'V');
 		toolMenu.add(verilogSimulationSubMenu);
 		verilogSimulationSubMenu.addMenuItem("Write Verilog Deck...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.VERILOG); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.VERILOG, true); } });
 		verilogSimulationSubMenu.addMenuItem("Plot Verilog Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotVerilogResults(); }});
 		verilogSimulationSubMenu.addSeparator();
@@ -636,7 +637,7 @@ public final class MenuCommands
 		netlisters.addMenuItem("Write IRSIM Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { irsimNetlistCommand(); }});
 		netlisters.addMenuItem("Write Maxwell Deck...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.MAXWELL); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.MAXWELL, true); } });
 
 		Menu ercSubMenu = new Menu("ERC", 'E');
 		toolMenu.add(ercSubMenu);
@@ -1018,22 +1019,31 @@ public final class MenuCommands
 	 * This method implements the export cell command for different export types.
 	 * It is interactive, and pops up a dialog box.
 	 */
-	public static void exportCellCommand(OpenFile.Type type)
+	public static void exportCellCommand(OpenFile.Type type, boolean isNetlist)
 	{
 		if (type == OpenFile.Type.POSTSCRIPT)
 		{
 			if (PostScript.syncAll()) return;
 		}
-        EditWindow wnd = EditWindow.getCurrent();
-		//Cell cell = Library.needCurCell();
+        EditWindow wnd = EditWindow.needCurrent();
         Cell cell = wnd.getCell();
+        if (cell == null)
+        {
+        	System.out.println("No cell in this window");
+        	return;
+        }
         VarContext context = wnd.getVarContext();
 
-		if (cell == null) return;
-
 		String [] extensions = type.getExtensions();
-		String filePath = OpenFile.chooseOutputFile(type, null, cell.getProtoName() + "." + extensions[0]);
-		if (filePath == null) return;
+		String filePath = cell.getProtoName() + "." + extensions[0];
+		if (User.isShowFileSelectionForNetlists() || !isNetlist)
+		{
+			filePath = OpenFile.chooseOutputFile(type, null, filePath);
+			if (filePath == null) return;
+		} else
+		{
+			filePath = User.getWorkingDirectory() + File.separator + filePath;
+		}
 
 		exportCellCommand(cell, context, filePath, type);
 	}
@@ -1669,7 +1679,7 @@ public final class MenuCommands
 	 * This command pushes down the hierarchy
 	 */
 	public static void downHierCommand() {
-		EditWindow curEdit = EditWindow.getCurrent();
+		EditWindow curEdit = EditWindow.needCurrent();
 		curEdit.downHierarchy();
 	}
 
@@ -1677,7 +1687,7 @@ public final class MenuCommands
 	 * This command goes up the hierarchy
 	 */
 	public static void upHierCommand() {
-		EditWindow curEdit = EditWindow.getCurrent();
+		EditWindow curEdit = EditWindow.needCurrent();
 		curEdit.upHierarchy();
 	}
 
@@ -1913,11 +1923,9 @@ public final class MenuCommands
 	 */
 	public static void toggleGridCommand()
 	{
-		EditWindow wnd = EditWindow.getCurrent();
-		if (wnd != null)
-		{
-			wnd.setGrid(!wnd.isGrid());
-		}
+		EditWindow wnd = EditWindow.needCurrent();
+		if (wnd == null) return;
+		wnd.setGrid(!wnd.isGrid());
 	}
 
 	/**
@@ -2091,11 +2099,8 @@ public final class MenuCommands
 	// Logical Effort Tool
 	public static void optimizeEqualGateDelaysCommand()
 	{
-		EditWindow curEdit = EditWindow.getCurrent();
-		if (curEdit == null) {
-			System.out.println("Please select valid window first");
-			return;
-		}
+		EditWindow curEdit = EditWindow.needCurrent();
+		if (curEdit == null) return;
 		LETool letool = LETool.getLETool();
 		if (letool == null) {
 			System.out.println("Logical Effort tool not found");
@@ -2153,11 +2158,8 @@ public final class MenuCommands
 
 	public static void irsimNetlistCommand()
 	{
-		EditWindow curEdit = EditWindow.getCurrent();
-		if (curEdit == null) {
-			System.out.println("Please select valid window first");
-			return;
-		}
+		EditWindow curEdit = EditWindow.needCurrent();
+		if (curEdit == null) return;
 		IRSIMTool.tool.netlistCell(curEdit.getCell(), curEdit.getVarContext(), curEdit);
 	}		
 
@@ -2664,11 +2666,8 @@ public final class MenuCommands
 	}
 
 	public static void evalVarsOnObject() {
-		EditWindow curEdit = EditWindow.getCurrent();
-		if (Highlight.getNumHighlights() == 0) {
-			System.out.println("Nothing highlighted");
-			return;
-		}
+		EditWindow curEdit = EditWindow.needCurrent();
+		if (Highlight.getNumHighlights() == 0) return;
 		for (Iterator it = Highlight.getHighlights(); it.hasNext();) {
 			Highlight h = (Highlight)it.next();
 			if (h.getType() != Highlight.Type.EOBJ) continue;

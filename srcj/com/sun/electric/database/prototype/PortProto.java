@@ -259,7 +259,7 @@ public abstract class PortProto extends ElectricObject
 	{
 		this.parent = null;
 		this.userBits = 0;
-		this.descriptor = TextDescriptor.newExportDescriptor(this);
+		this.descriptor = TextDescriptor.getExportTextDescriptor(this);
 		this.tempObj = null;
 	}
 

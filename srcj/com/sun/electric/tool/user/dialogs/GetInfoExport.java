@@ -49,7 +49,7 @@ import javax.swing.JFrame;
 /**
  * Class to handle the "Export Get-Info" dialog.
  */
-public class GetInfoExport extends javax.swing.JDialog
+public class GetInfoExport extends EDialog
 {
 	private static GetInfoExport theDialog = null;
 	private Export shownExport;
@@ -267,7 +267,6 @@ public class GetInfoExport extends javax.swing.JDialog
 	private GetInfoExport(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
-		setLocation(100, 50);
 		initComponents();
         getRootPane().setDefaultButton(ok);
 

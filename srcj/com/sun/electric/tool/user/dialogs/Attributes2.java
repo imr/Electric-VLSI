@@ -57,7 +57,7 @@ import javax.swing.*;
 /**
  * Class to handle the "Attributes" dialog.
  */
-public class Attributes2 extends javax.swing.JDialog
+public class Attributes2 extends EDialog
 {
     private static Attributes2 theDialog = null;
     private DefaultListModel listModel;
@@ -110,7 +110,6 @@ public class Attributes2 extends javax.swing.JDialog
     private Attributes2(java.awt.Frame parent, boolean modal)
     {
         super(parent, modal);
-        setLocation(100, 50);
         initComponents();
 
         // make the list

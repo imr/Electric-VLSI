@@ -113,7 +113,7 @@ public abstract class ArcProto extends ElectricObject
 
 	/** The name of this ArcProto. */							protected String protoName;
 	/** The technology in which this ArcProto resides. */		protected Technology tech;
-	/** The default width of this ArcProto. */					protected double defaultWidth;
+//	/** The "factory" default width of this ArcProto. */		protected double factoryDefaultWidth;
 	/** The offset from width to reported/displayed width. */	protected double widthOffset;
 	/** Flags bits for this ArcProto. */						private int userBits;
 	/** The function of this ArcProto. */						private Function function;
@@ -178,7 +178,7 @@ public abstract class ArcProto extends ElectricObject
 		Pref pref = (Pref)defaultWidthPrefs.get(this);
 		if (pref == null)
 		{
-			pref = Pref.makeDoublePref("DefaultWidthFor" + protoName + "IN" + tech.getTechName(), User.tool.prefs, factory);
+			pref = Pref.makeDoublePref("DefaultWidthFor" + protoName + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factory);
 			defaultWidthPrefs.put(this, pref);
 		}
 		return pref;
@@ -198,7 +198,7 @@ public abstract class ArcProto extends ElectricObject
 	 * This call returns the width of all of these layers. 
 	 * @param defaultWidth the full default width of this ArcProto.
 	 */
-	public void setDefaultWidth(double defaultWidth) { getArcProtoWidthPref(this.defaultWidth).setDouble(defaultWidth); }
+	public void setDefaultWidth(double defaultWidth) { getArcProtoWidthPref(0).setDouble(defaultWidth); }
 
 	/**
 	 * Method to return the full default width of this ArcProto.
@@ -206,7 +206,7 @@ public abstract class ArcProto extends ElectricObject
 	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
 	 * @return the full default width of this ArcProto.
 	 */
-	public double getDefaultWidth() { return getArcProtoWidthPref(defaultWidth).getDouble(); }
+	public double getDefaultWidth() { return getArcProtoWidthPref(0).getDouble(); }
 
 	/**
 	 * Method to set the width offset of this ArcProto.
@@ -243,7 +243,7 @@ public abstract class ArcProto extends ElectricObject
 	 */
 	public double getWidth()
 	{
-		return defaultWidth - widthOffset;
+		return getDefaultWidth() - widthOffset;
 	}
 
 	private Pref getArcProtoBitPref(String what, HashMap map, boolean factory)

@@ -94,15 +94,15 @@ public class Nand2PH {
 		FoldedMos nmosB = new FoldedNmos(mosX, nmosWeakY, fwW.nbFolds, 1,
 										 fwW.gateWid, gate);
 		// reset NMOS
-		double nmosBRightX = stdCell.getRightDiffX(nmosB);
+		double nmosBRightX = StdCellParams.getRightDiffX(nmosB);
 		double nmosX = nmosBRightX + 11; 	// ndm1_ndm1_sp
 		double nmosY = nmosTop - fwN.physWid/2;
 		FoldedMos nmosR = new FoldedNmos(nmosX, nmosY, fwN.nbFolds, 1,
 										 fwN.gateWid, gate);
 		
 		// weak NMOS A
-		double rstNmosRightX = stdCell.getRightDiffX(nmosR);
-		double pmosRightX = stdCell.getRightDiffX(pmos);
+		double rstNmosRightX = StdCellParams.getRightDiffX(nmosR);
+		double pmosRightX = StdCellParams.getRightDiffX(pmos);
 		// We may be either 11 lambda right of reset NMOS or our right
 		// diff aligns with right diff of PMOS.
 		double nmosAX = Math.max(rstNmosRightX + 11,	// ndm1_ndm1_sp
@@ -160,7 +160,7 @@ public class Nand2PH {
 		bGates.connect(gate.findExport("inb"));
 		
 		// input A
-		double rightDiffX = stdCell.getRightDiffX(pmos, nmosA);
+		double rightDiffX = StdCellParams.getRightDiffX(pmos, nmosA);
 		double inaX = rightDiffX + 7;	// track_pitch
 		LayoutLib.newExport(gate, "ina", PortProto.Characteristic.IN, Tech.m1,
 							4, inaX, nGatesY);

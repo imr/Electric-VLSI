@@ -37,7 +37,7 @@ import javax.swing.ListSelectionModel;
 /**
  * Class to handle the "View Control" dialog.
  */
-public class ViewControl extends javax.swing.JDialog
+public class ViewControl extends EDialog
 {
 	private DefaultListModel listModel;
 	private JList list;
@@ -47,7 +47,6 @@ public class ViewControl extends javax.swing.JDialog
 	public ViewControl(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
-		setLocation(100, 50);
 		initComponents();
 
 		// make the list of Views

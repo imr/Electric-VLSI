@@ -124,7 +124,7 @@ public class Inv2iKp {
 		FoldedMos nmos = new FoldedNmos(mosX, nmosY, fwN.nbFolds, 1,
 										fwN.gateWid, null, 'T', buf);
 		// weak NMOS overlaps strong NMOS
-		double rightSrcDrnX = stdCell.getRightDiffX(nmos);
+		double rightSrcDrnX = StdCellParams.getRightDiffX(nmos);
 		boolean strongNmosOneFold = fwN.nbFolds==1;
 		nmosY = nmosTop - fwW.physWid/2;
 		FoldedMos nmosW = new FoldedNmos(rightSrcDrnX, nmosY, fwW.nbFolds, 1,
@@ -152,7 +152,7 @@ public class Inv2iKp {
 		}
 		
 		// input n is a reset input
-		double lastSrcDrnX = stdCell.getRightDiffX(nmosW, pmos);
+		double lastSrcDrnX = StdCellParams.getRightDiffX(nmosW, pmos);
 		double inNX = lastSrcDrnX + 7; // track_pitch
 		LayoutLib.newExport(buf, "in[n]", PortProto.Characteristic.IN, Tech.m1,
 							4, inNX, nGatesY);

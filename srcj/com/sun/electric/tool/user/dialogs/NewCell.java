@@ -44,13 +44,12 @@ import javax.swing.JOptionPane;
 /**
  * Class to handle the "New Cell" dialog.
  */
-public class NewCell extends javax.swing.JDialog
+public class NewCell extends EDialog
 {
 	/** Creates new form New Cell */
 	public NewCell(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
-		setLocation(100, 50);
 		initComponents();
         getRootPane().setDefaultButton(ok);
 

@@ -851,5 +851,15 @@ public class CMOS extends Technology
 		on_node.setFunction(NodeProto.Function.NODE);
 		on_node.setHoldsOutline();
 		on_node.setSpecialType(PrimitiveNode.POLYGONAL);
+
+		// The pure layer nodes
+		M_lay.setPureLayerNode(mn_node);		// Metal
+		P_lay.setPureLayerNode(pn_node);		// Polysilicon
+		D_lay.setPureLayerNode(dn_node);		// Diffusion
+		P0_lay.setPureLayerNode(pn0_node);		// P+
+		CC_lay.setPureLayerNode(cn_node);		// Contact-Cut
+		OC_lay.setPureLayerNode(ocn_node);		// Ohmic-Cut
+		PW_lay.setPureLayerNode(wn_node);		// P-Well
+		O_lay.setPureLayerNode(on_node);		// Overglass
 	};
 }

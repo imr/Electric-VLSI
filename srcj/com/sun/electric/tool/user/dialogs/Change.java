@@ -64,7 +64,7 @@ import javax.swing.ListSelectionModel;
 /**
  * Class to handle the "Change" dialog.
  */
-public class Change extends javax.swing.JDialog
+public class Change extends EDialog
 {
 	/** Change selected only. */				private static final int CHANGE_SELECTED = 1;
 	/** Change all connected to this. */		private static final int CHANGE_CONNECTED = 2;
@@ -100,7 +100,6 @@ public class Change extends javax.swing.JDialog
 	private Change(java.awt.Frame parent, boolean modal, Geometric geomToChange)
 	{
 		super(parent, modal);
-		setLocation(100, 50);
 		initComponents();
         getRootPane().setDefaultButton(ok);
 
@@ -789,7 +788,7 @@ public class Change extends javax.swing.JDialog
 			}
 
 			// now create new pins where they belong
-			PrimitiveNode pin = ((PrimitiveArc)ap).findPinProto();
+			PrimitiveNode pin = ((PrimitiveArc)ap).findOverridablePinProto();
 			double xS = pin.getDefWidth();
 			double yS = pin.getDefHeight();
 			List dupPins = new ArrayList();

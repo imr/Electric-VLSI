@@ -60,7 +60,7 @@ import javax.swing.JRadioButton;
 /**
  * Class to handle the "Attributes" dialog.
  */
-public class Attributes extends javax.swing.JDialog
+public class Attributes extends EDialog
 {
 	private static Attributes theDialog = null;
 	private DefaultListModel listModel;
@@ -115,7 +115,6 @@ public class Attributes extends javax.swing.JDialog
 	private Attributes(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
-		setLocation(100, 50);
 		initComponents();
 
 		// load "show" popup

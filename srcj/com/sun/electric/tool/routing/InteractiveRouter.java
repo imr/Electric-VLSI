@@ -266,7 +266,7 @@ public abstract class InteractiveRouter extends Router {
                 return new ArrayList();
             }
             // make new pin to route to
-            PrimitiveNode pn = ((PrimitiveArc)useArc).findPinProto();
+            PrimitiveNode pn = ((PrimitiveArc)useArc).findOverridablePinProto();
             Point2D location = getClosestOrthogonalPoint(startRE.getLocation(), clicked);
             endRE = RouteElement.newNode(cell, pn, pn.getPort(0), location,
                     pn.getDefWidth(), pn.getDefHeight());
@@ -379,7 +379,7 @@ public abstract class InteractiveRouter extends Router {
 
         Cell cell = arc.getParent();
         // determine pin type to use if bisecting arc
-        PrimitiveNode pn = ((PrimitiveArc)arc.getProto()).findPinProto();
+        PrimitiveNode pn = ((PrimitiveArc)arc.getProto()).findOverridablePinProto();
         // make new pin
         RouteElement newPinRE = RouteElement.newNode(cell, pn, pn.getPort(0),
                 bisectPoint, pn.getDefWidth(), pn.getDefHeight());

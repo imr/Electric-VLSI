@@ -1709,15 +1709,15 @@ public class Schematics extends Technology
 					if (bestDist == Double.MAX_VALUE) System.out.println("Warning: cannot find gate port");
 
 					// make sure the node is large enough
-	//				if (bestIndex*lambda*2 >= ni.getYSize())
-	//				{
-	//					modifynodeinst(ni, 0, -lambda*2, 0, lambda*2, 0, 0);
-	//
-	//					// make this gate change visible if it is in a window
-	//					for(w = el_topwindowpart; w != NOWINDOWPART; w = w->nextwindowpart)
-	//						if (w->curnodeproto == ni->parent) break;
-	//					if (w != NOWINDOWPART) (void)asktool(us_tool, x_("flush-changes"));
-	//				}
+//					if (bestIndex*lambda*2 >= ni.getYSize())
+//					{
+//						modifynodeinst(ni, 0, -lambda*2, 0, lambda*2, 0, 0);
+//	
+//						// make this gate change visible if it is in a window
+//						for(w = el_topwindowpart; w != NOWINDOWPART; w = w->nextwindowpart)
+//							if (w->curnodeproto == ni->parent) break;
+//						if (w != NOWINDOWPART) (void)asktool(us_tool, x_("flush-changes"));
+//					}
 
 					// set the closest port
 					Point2D [] points = new Point2D[1];

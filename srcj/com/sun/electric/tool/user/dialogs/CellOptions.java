@@ -62,15 +62,7 @@ import javax.swing.text.BadLocationException;
 /**
  * Class to handle the "Cell Options" dialog.
  */
-/**
-* This code was generated using CloudGarden's Jigloo
-* SWT/Swing GUI Builder, which is free for non-commercial
-* use. If Jigloo is being used commercially (ie, by a
-* for-profit company or business) then you should purchase
-* a license - please visit www.cloudgarden.com for details.
-*/
-
-public class CellOptions extends javax.swing.JDialog
+public class CellOptions extends EDialog
 {
 	private JList cellList;
 	private DefaultListModel cellListModel;
@@ -79,10 +71,6 @@ public class CellOptions extends javax.swing.JDialog
 	private boolean initialAutoTechnologySwitch;
 	private boolean initialPlaceCellCenter;
 
-
-	public CellOptions() {
-		initGUI();
-	}
 	static class OldValues
 	{
 		boolean disAllMod;
@@ -103,7 +91,6 @@ public class CellOptions extends javax.swing.JDialog
 	public CellOptions(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
-		setLocation(100, 50);
 		initComponents();
 
 		// cache all information
@@ -755,8 +742,13 @@ public class CellOptions extends javax.swing.JDialog
 		if (cellName == null) return;
 		Cell cell = lib.findNodeProto(cellName);
 		boolean confirm = confirmDelete.isSelected();
-		CircuitChanges.deleteCell(cell, confirm);
-		loadCellList();
+		if (CircuitChanges.deleteCell(cell, confirm))
+		{
+			// cell will be deleted: delete entry from list
+			int index = cellList.getSelectedIndex();
+			cellListModel.remove(index);
+//			loadCellList();
+		}
 	}//GEN-LAST:event_deleteActionPerformed
 
 	private void editCellActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_editCellActionPerformed
@@ -1043,299 +1035,4 @@ public class CellOptions extends javax.swing.JDialog
     private JButton setUseTechEditor;
     private JRadioButton unexpandNewInstances;
     private JCheckBox useTechEditor;
-	/**
-	* Initializes the GUI.
-	* Auto-generated code - any changes you make will disappear.
-	*/
-	public void initGUI(){
-		try {
-			preInitGUI();
-			expansion = new ButtonGroup();
-	
-	
-			cancel = new JButton();
-			ok = new JButton();
-			jLabel1 = new JLabel();
-			libraryPopup = new JComboBox();
-			cellPane = new JScrollPane();
-			disallowModAnyInCell = new JCheckBox();
-			setDisallowModAnyInCell = new JButton();
-			clearDisallowModAnyInCell = new JButton();
-			disallowModInstInCell = new JCheckBox();
-			setDisallowModInstInCell = new JButton();
-			clearDisallowModInstInCell = new JButton();
-			partOfCellLib = new JCheckBox();
-			setPartOfCellLib = new JButton();
-			clearPartOfCellLib = new JButton();
-			useTechEditor = new JCheckBox();
-			setUseTechEditor = new JButton();
-			clearUseTechEditor = new JButton();
-			expandNewInstances = new JRadioButton();
-			unexpandNewInstances = new JRadioButton();
-			jLabel2 = new JLabel();
-			charXSpacing = new JTextField();
-			jLabel3 = new JLabel();
-			charYSpacing = new JTextField();
-			jLabel4 = new JLabel();
-			editCell = new JButton();
-			cellName = new JTextField();
-			rename = new JButton();
-			delete = new JButton();
-			confirmDelete = new JCheckBox();
-	
-			GridBagLayout thisLayout = new GridBagLayout();
-			this.getContentPane().setLayout(thisLayout);
-			thisLayout.columnWidths = new int[] {1,1,1,1,1,1};
-			thisLayout.rowHeights = new int[] {1,1,1,1,1,1,1,1,1,1};
-			thisLayout.columnWeights = new double[] {0.1,0.1,0.1,0.1,0.1,0.1};
-			thisLayout.rowWeights = new double[] {0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1};
-			this.setTitle("Cell Control");
-			this.setName("");
-			this.addWindowListener( new WindowAdapter() {
-				public void windowClosing(WindowEvent evt) {
-					CellOptionsWindowClosing(evt);
-				}
-			});
-	
-			cancel.setText("Cancel");
-			this.getContentPane().add(cancel, new GridBagConstraints(4, 8, 2, 1, 0.5, 0.0, 10, 0, new Insets(0, 0, 0, 0), 0, 0));
-			cancel.addActionListener( new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					cancel(evt);
-				}
-			});
-	
-			ok.setText("OK");
-			this.getContentPane().add(ok, new GridBagConstraints(4, 9, 2, 1, 0.5, 0.0, 10, 0, new Insets(0, 0, 0, 0), 0, 0));
-			ok.addActionListener( new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					ok(evt);
-				}
-			});
-	
-			jLabel1.setText("Library:");
-			this.getContentPane().add(jLabel1, new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0, 17, 0, new Insets(0, 0, 0, 0), 0, 0));
-	
-			this.getContentPane().add(libraryPopup, new GridBagConstraints(1, 0, 2, 1, 0.0, 0.0, 10, 2, new Insets(0, 0, 0, 0), 0, 0));
-			libraryPopup.addActionListener( new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					libraryPopupActionPerformed(evt);
-				}
-			});
-	
-			cellPane.setMinimumSize(new java.awt.Dimension(200,250));
-			cellPane.setPreferredSize(new java.awt.Dimension(200,250));
-			this.getContentPane().add(cellPane, new GridBagConstraints(0, 1, 2, 8, 1.0, 1.0, 10, 1, new Insets(0, 0, 0, 0), 0, 0));
-	
-			disallowModAnyInCell.setText("Disallow modification of anything in this cell");
-			this.getContentPane().add(disallowModAnyInCell, new GridBagConstraints(2, 1, 2, 1, 0.0, 0.0, 17, 0, new Insets(0, 0, 0, 0), 0, 0));
-			disallowModAnyInCell.addActionListener( new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					disallowModAnyInCellActionPerformed(evt);
-				}
-			});
-	
-			setDisallowModAnyInCell.setText("Set");
-			setDisallowModAnyInCell.setMinimumSize(new java.awt.Dimension(53,20));
-			setDisallowModAnyInCell.setPreferredSize(new java.awt.Dimension(53,20));
-			this.getContentPane().add(setDisallowModAnyInCell, new GridBagConstraints(4, 1, 1, 1, 0.0, 0.0, 10, 0, new Insets(0, 0, 0, 0), 0, 0));
-			setDisallowModAnyInCell.addActionListener( new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					setDisallowModAnyInCellActionPerformed(evt);
-				}
-			});
-	
-			clearDisallowModAnyInCell.setText("Clear");
-			clearDisallowModAnyInCell.setMinimumSize(new java.awt.Dimension(64,20));
-			clearDisallowModAnyInCell.setPreferredSize(new java.awt.Dimension(64,20));
-			this.getContentPane().add(clearDisallowModAnyInCell, new GridBagConstraints(5, 1, 1, 1, 0.0, 0.0, 10, 0, new Insets(0, 0, 0, 0), 0, 0));
-			clearDisallowModAnyInCell.addActionListener( new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					clearDisallowModAnyInCellActionPerformed(evt);
-				}
-			});
-	
-			disallowModInstInCell.setText("Disallow modification of instances in this cell");
-			this.getContentPane().add(disallowModInstInCell, new GridBagConstraints(2, 2, 2, 1, 0.0, 0.0, 17, 0, new Insets(0, 0, 0, 0), 0, 0));
-			disallowModInstInCell.addActionListener( new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					disallowModInstInCellActionPerformed(evt);
-				}
-			});
-	
-			setDisallowModInstInCell.setText("Set");
-			setDisallowModInstInCell.setMinimumSize(new java.awt.Dimension(53,20));
-			setDisallowModInstInCell.setPreferredSize(new java.awt.Dimension(53,20));
-			this.getContentPane().add(setDisallowModInstInCell, new GridBagConstraints(4, 2, 1, 1, 0.0, 0.0, 10, 0, new Insets(0, 0, 0, 0), 0, 0));
-			setDisallowModInstInCell.addActionListener( new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					setDisallowModInstInCellActionPerformed(evt);
-				}
-			});
-	
-			clearDisallowModInstInCell.setText("Clear");
-			clearDisallowModInstInCell.setMinimumSize(new java.awt.Dimension(64,20));
-			clearDisallowModInstInCell.setPreferredSize(new java.awt.Dimension(64,20));
-			this.getContentPane().add(clearDisallowModInstInCell, new GridBagConstraints(5, 2, 1, 1, 0.0, 0.0, 10, 0, new Insets(0, 0, 0, 0), 0, 0));
-			clearDisallowModInstInCell.addActionListener( new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					clearDisallowModInstInCellActionPerformed(evt);
-				}
-			});
-	
-			partOfCellLib.setText("Part of a cell-library");
-			this.getContentPane().add(partOfCellLib, new GridBagConstraints(2, 3, 2, 1, 0.0, 0.0, 17, 0, new Insets(0, 0, 0, 0), 0, 0));
-			partOfCellLib.addActionListener( new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					partOfCellLibActionPerformed(evt);
-				}
-			});
-	
-			setPartOfCellLib.setText("Set");
-			setPartOfCellLib.setMinimumSize(new java.awt.Dimension(53,20));
-			setPartOfCellLib.setPreferredSize(new java.awt.Dimension(53,20));
-			this.getContentPane().add(setPartOfCellLib, new GridBagConstraints(4, 3, 1, 1, 0.0, 0.0, 10, 0, new Insets(0, 0, 0, 0), 0, 0));
-			setPartOfCellLib.addActionListener( new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					setPartOfCellLibActionPerformed(evt);
-				}
-			});
-	
-			clearPartOfCellLib.setText("Clear");
-			clearPartOfCellLib.setMinimumSize(new java.awt.Dimension(64,20));
-			clearPartOfCellLib.setPreferredSize(new java.awt.Dimension(64,20));
-			this.getContentPane().add(clearPartOfCellLib, new GridBagConstraints(5, 3, 1, 1, 0.0, 0.0, 10, 0, new Insets(0, 0, 0, 0), 0, 0));
-			clearPartOfCellLib.addActionListener( new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					clearPartOfCellLibActionPerformed(evt);
-				}
-			});
-	
-			useTechEditor.setText("Use technology editor on this cell");
-			this.getContentPane().add(useTechEditor, new GridBagConstraints(2, 4, 2, 1, 0.0, 0.0, 17, 0, new Insets(0, 0, 0, 0), 0, 0));
-			useTechEditor.addActionListener( new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					useTechEditorActionPerformed(evt);
-				}
-			});
-	
-			setUseTechEditor.setText("Set");
-			setUseTechEditor.setMinimumSize(new java.awt.Dimension(53,20));
-			setUseTechEditor.setPreferredSize(new java.awt.Dimension(53,20));
-			this.getContentPane().add(setUseTechEditor, new GridBagConstraints(4, 4, 1, 1, 0.0, 0.0, 10, 0, new Insets(0, 0, 0, 0), 0, 0));
-			setUseTechEditor.addActionListener( new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					setUseTechEditorActionPerformed(evt);
-				}
-			});
-	
-			clearUseTechEditor.setText("Clear");
-			clearUseTechEditor.setMinimumSize(new java.awt.Dimension(64,20));
-			clearUseTechEditor.setPreferredSize(new java.awt.Dimension(64,20));
-			this.getContentPane().add(clearUseTechEditor, new GridBagConstraints(5, 4, 1, 1, 0.0, 0.0, 10, 0, new Insets(0, 0, 0, 0), 0, 0));
-			clearUseTechEditor.addActionListener( new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					clearUseTechEditorActionPerformed(evt);
-				}
-			});
-	
-			expandNewInstances.setText("Expand new instances");
-			expansion.add(expandNewInstances);
-			this.getContentPane().add(expandNewInstances, new GridBagConstraints(2, 5, 1, 1, 0.0, 0.0, 17, 0, new Insets(0, 0, 0, 0), 0, 0));
-			expandNewInstances.addActionListener( new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					expandNewInstancesActionPerformed(evt);
-				}
-			});
-	
-			unexpandNewInstances.setText("Unexpand new instances");
-			expansion.add(unexpandNewInstances);
-			this.getContentPane().add(unexpandNewInstances, new GridBagConstraints(3, 5, 3, 1, 0.0, 0.0, 10, 0, new Insets(0, 0, 0, 0), 0, 0));
-			unexpandNewInstances.addActionListener( new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					unexpandNewInstancesActionPerformed(evt);
-				}
-			});
-	
-			jLabel2.setText("Characteristic X Spacing:");
-			this.getContentPane().add(jLabel2, new GridBagConstraints(2, 6, 1, 1, 0.0, 0.0, 17, 0, new Insets(0, 0, 0, 0), 0, 0));
-	
-			charXSpacing.setText(" ");
-			this.getContentPane().add(charXSpacing, new GridBagConstraints(3, 6, 2, 1, 0.0, 0.0, 17, 2, new Insets(0, 0, 0, 0), 0, 0));
-	
-			jLabel3.setText("Characteristic Y Spacing:");
-			this.getContentPane().add(jLabel3, new GridBagConstraints(2, 7, 1, 1, 0.0, 0.0, 17, 0, new Insets(0, 0, 0, 0), 0, 0));
-	
-			charYSpacing.setText(" ");
-			this.getContentPane().add(charYSpacing, new GridBagConstraints(3, 7, 2, 1, 0.0, 0.0, 10, 2, new Insets(0, 0, 0, 0), 0, 0));
-	
-			jLabel4.setText("Every cell:");
-			this.getContentPane().add(jLabel4, new GridBagConstraints(4, 0, 2, 1, 0.0, 0.0, 10, 0, new Insets(0, 0, 0, 0), 0, 0));
-	
-			editCell.setText("Edit Cell");
-			this.getContentPane().add(editCell, new GridBagConstraints(2, 8, 1, 1, 0.0, 0.0, 10, 0, new Insets(0, 0, 0, 0), 0, 0));
-			editCell.addActionListener( new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					editCellActionPerformed(evt);
-				}
-			});
-	
-			cellName.setText(" ");
-			this.getContentPane().add(cellName, new GridBagConstraints(0, 9, 2, 1, 0.0, 0.0, 10, 2, new Insets(0, 0, 0, 0), 0, 0));
-	
-			rename.setText("Rename Cell");
-			this.getContentPane().add(rename, new GridBagConstraints(2, 9, 1, 1, 0.0, 0.0, 10, 0, new Insets(0, 0, 0, 0), 0, 0));
-			rename.addActionListener( new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					renameActionPerformed(evt);
-				}
-			});
-	
-			delete.setText("Delete Cell");
-			this.getContentPane().add(delete, new GridBagConstraints(3, 8, 1, 1, 0.0, 0.0, 10, 0, new Insets(0, 0, 0, 0), 0, 0));
-			delete.addActionListener( new ActionListener() {
-				public void actionPerformed(ActionEvent evt) {
-					deleteActionPerformed(evt);
-				}
-			});
-	
-			confirmDelete.setText("Confirm Delete");
-			this.getContentPane().add(confirmDelete, new GridBagConstraints(3, 9, 1, 1, 0.0, 0.0, 10, 0, new Insets(0, 0, 0, 0), 0, 0));
-			pack();
-	
-			postInitGUI();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	/** Add your pre-init code in here 	*/
-	public void preInitGUI(){
-	}
-
-	/** Add your post-init code in here 	*/
-	public void postInitGUI(){
-	}
-
-	/** Auto-generated main method */
-	public static void main(String[] args){
-		showGUI();
-	}
-
-	/**
-	* This static method creates a new instance of this class and shows
-	* it inside a new JFrame, (unless it is already a JFrame).
-	*
-	* It is a convenience method for showing the GUI, but it can be
-	* copied and used as a basis for your own code.	*
-	* It is auto-generated code - the body of this method will be
-	* re-generated after any changes are made to the GUI.
-	* However, if you delete this method it will not be re-created.	*/
-	public static void showGUI(){
-		try {
-			CellOptions inst = new CellOptions();
-			inst.setVisible(true);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
 }

@@ -54,7 +54,7 @@ import javax.swing.tree.TreePath;
  *
  * @author  gainsley
  */
-public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectionListener {
+public class EditKeyBindings extends EDialog implements TreeSelectionListener {
     
     /** MenuBar for building dialog tree */                 MenuBar menuBar;
     
@@ -93,7 +93,6 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
     /** Creates new form EditKeyBindings */
     public EditKeyBindings(MenuBar menuBar, java.awt.Frame parent, boolean modal) {
 		super(parent, modal);
-        setLocation(300, 100);
         this.menuBar = menuBar;
 
         initComponents();

@@ -105,7 +105,7 @@ public class Nand2en_sy {
 		stdCell.fillDiffNotches(pmoss);
 		
 		// Create weak PMOS
-		double rightDiffX = stdCell.getRightDiffX(pmoss, nmos);
+		double rightDiffX = StdCellParams.getRightDiffX(pmoss, nmos);
 		// unrelated diffusion pitch is 8.5 lambda
 		double weakX = rightDiffX + 8.5;
 		double weakY = pmosBot + fwW.physWid/2;
@@ -155,7 +155,7 @@ public class Nand2en_sy {
 		
 		// Nand input A
 		// m1_wid + m1_space + m1_wid/2
-		double inaX = stdCell.getRightDiffX(weakPmos, nmos) + 2 + 3 + 2;
+		double inaX = StdCellParams.getRightDiffX(weakPmos, nmos) + 2 + 3 + 2;
 		LayoutLib.newExport(nand, "ina", PortProto.Characteristic.IN, Tech.m1,
 							4, inaX, inaY);
 		TrackRouter ina = new TrackRouterH(Tech.m1, 3, inaY, nand);
