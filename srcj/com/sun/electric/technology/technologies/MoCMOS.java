@@ -38,6 +38,7 @@ import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.technologies.utils.MOSRules;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.Main;
 
 import java.awt.Color;
 import java.awt.geom.Point2D;
@@ -3147,9 +3148,12 @@ public class MoCMOS extends Technology
 				int index = -1;
 				if (layert1 >= 0 && layert2 >= 0)
 				{
+					/*
 					if (layert1 > layert2) {int temp = layert1; layert1 = layert2;  layert2 = temp; }
 					index = (layert1+1) * (layert1/2) + (layert1&1) * ((layert1+1)/2);
 					index = layert2 + getNumLayers() * layert1 - index;
+					*/
+					index = getLayerIndex(layert1, layert2);
 				}
 
 				// find the nodes and arcs associated with the rule
@@ -3212,6 +3216,8 @@ public class MoCMOS extends Technology
 				switch (theRules[i].ruleType)
 				{
 					case DRCTemplate.MINWID:
+						if (Main.getDebug() && layert1 >= 0 && layert2 >= 0)
+							System.out.println("Error in swap old tech");
 						rules.minWidth[layert1] = new Double(distance);
 						rules.minWidthRules[layert1] = rule;
 						setLayerMinWidth(theRules[i].layer1, theRules[i].rule, distance);

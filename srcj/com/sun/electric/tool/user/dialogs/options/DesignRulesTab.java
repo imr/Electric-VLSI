@@ -271,8 +271,8 @@ public class DesignRulesTab extends PreferencePanel
 			if (layer1 < 0) return;
 			int layer2 = designRulesGetSelectedLayer(designRulesToList);
 			if (layer2 < 0) return;
-			int lowLayer = layer1, highLayer = layer2;
             /*
+			int lowLayer = layer1, highLayer = layer2;
 			if (lowLayer > highLayer) { int temp = lowLayer; lowLayer = highLayer;  highLayer = temp; }
 			int dindex = (lowLayer+1) * (lowLayer/2) + (lowLayer&1) * ((lowLayer+1)/2);
 			dindex = highLayer + drRules.numLayers * lowLayer - dindex;
