@@ -411,6 +411,8 @@ public class LibraryFiles extends Input
 
 		// adjust for old library conversion
 		convertOldLibraries();
+        // clean up init (free LibraryFiles for garbage collection)
+        libsBeingRead.clear();
 	}
 
 	private static void convertOldLibraries()
