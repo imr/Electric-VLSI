@@ -282,11 +282,18 @@ public class Netlist
 	 */
 	public boolean portsConnected(Nodable no, PortProto port1, PortProto port2)
 	{
-		int index1 = getNetIndex(no, port1, 0);
-		if (index1 < 0) return false;
-		int index2 = getNetIndex(no, port2, 0);
-		if (index2 < 0) return false;
-		return networks[index1] == networks[index2];
+// 		int index1 = getNetIndex(no, port1, 0);
+// 		if (index1 < 0) return false;
+// 		int index2 = getNetIndex(no, port2, 0);
+// 		if (index2 < 0) return false;
+// 		return networks[index1] == networks[index2];
+		int busWidth = port1.getProtoNameKey().busWidth();
+		if (port2.getProtoNameKey().busWidth() != busWidth) return false;
+		for (int i = 0; i < busWidth; i++) {
+			if (getNetIndex(no, port1, i) != getNetIndex(no, port2, i))
+				return false;
+		}
+		return true;
 	}
 
 	/*
