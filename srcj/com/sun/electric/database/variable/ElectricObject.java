@@ -71,7 +71,7 @@ public abstract class ElectricObject
     /**
      * Returns true if object is linked into database
      */
-    public synchronized boolean isLinked() { return linked; }
+    public boolean isLinked() { return linked; }
 
     /**
      * Sets the flag that says the object is linked into the database.
@@ -79,7 +79,7 @@ public abstract class ElectricObject
      * lowLevelLink and lowLevelUnlink methods.
      * @param linked true if object is now linked, false if not.
      */
-    protected synchronized void setLinked(boolean linked) { this.linked = linked; }
+    protected void setLinked(boolean linked) { this.linked = linked; }
 	
     /**
      * Returns true if this ElectricObject is completely linked into database.
@@ -242,13 +242,8 @@ public abstract class ElectricObject
 	public int numPersistentVariables()
 	{
         //checkExamine();
-        Iterator it;
-        synchronized(this) {
-		    if (vars == null) return 0;
-            it = vars.values().iterator();
-        }
 		int numVars = 0;
-		while (it.hasNext())
+		for (Iterator it = getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
 			if (var.isDontSave()) continue;
@@ -266,13 +261,8 @@ public abstract class ElectricObject
 	public int numDisplayableVariables(boolean multipleStrings)
 	{
         //checkExamine();
-        Iterator it;
-        synchronized(this) {
-		    if (vars == null) return 0;
-            it = vars.values().iterator();
-        }
 		int numVars = 0;
-		while (it.hasNext())
+		for (Iterator it = getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
 			if (var.isDisplay())
@@ -306,14 +296,9 @@ public abstract class ElectricObject
 	{
         checkExamine();
 		int numAddedVariables = 0;
-        Iterator it;
-        synchronized(this) {
-		    if (vars == null) return 0;
-            it = vars.values().iterator();
-        }
         double cX = rect.getCenterX();
         double cY = rect.getCenterY();
-		while (it.hasNext())
+		for (Iterator it = getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
 			if (!var.isDisplay()) continue;
@@ -1104,15 +1089,14 @@ public abstract class ElectricObject
 	 * Method to write a description of this ElectricObject (lists all Variables).
 	 * Displays the description in the Messages Window.
 	 */
-	public synchronized void getInfo()
+	public void getInfo()
 	{
         checkExamine();
-		if (vars == null) return;
 		boolean firstvar = true;
-		for(Iterator it = vars.keySet().iterator(); it.hasNext() ;)
+		for(Iterator it = getVariables(); it.hasNext() ;)
 		{
-            Variable.Key key = (Variable.Key) it.next();
-			Variable val = (Variable)vars.get(key);
+            Variable val = (Variable)it.next();
+            Variable.Key key = val.getKey();
 			if (val == null) continue;
 			if (firstvar) System.out.println("Variables:");   firstvar = false;
 			Object addr = val.getObject();

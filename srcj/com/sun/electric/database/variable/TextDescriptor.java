@@ -1164,7 +1164,7 @@ public class TextDescriptor
 	 * This should not normally be called by any other part of the system.
 	 * @return the first word of the bits in the TextDescriptor.
 	 */
-	public synchronized int lowLevelGet0() { return descriptor0; }
+	public int lowLevelGet0() { return descriptor0; }
 
 	/**
 	 * Low-level method to get the second word of the bits in the TextDescriptor.
@@ -1175,7 +1175,7 @@ public class TextDescriptor
 	 * This should not normally be called by any other part of the system.
 	 * @return the second word of the bits in the TextDescriptor.
 	 */
-	public synchronized int lowLevelGet1() { return descriptor1; }
+	public int lowLevelGet1() { return descriptor1; }
 
 	/**
 	 * Low-level method to get the bits in the TextDescriptor.
@@ -1195,7 +1195,7 @@ public class TextDescriptor
 	 * Methods in "EGraphics" manipulate color indices.
 	 * @return the color index of the TextDescriptor.
 	 */
-	public synchronized int getColorIndex() { return colorIndex; }
+	public int getColorIndex() { return colorIndex; }
 
 	/**
 	 * Method to set the color index of the TextDescriptor.
@@ -1226,7 +1226,7 @@ public class TextDescriptor
 	 * which is the point on the text that is attached to the object and does not move.
 	 * @return the text position of the TextDescriptor.
 	 */
-	public synchronized Position getPos()
+	public Position getPos()
 	{
 		int pos = descriptor0 & VTPOSITION;
 		if (pos >= Position.getNumPositions()) pos = 0;
@@ -1314,7 +1314,7 @@ public class TextDescriptor
 	 * Method to return the text font of the TextDescriptor.
 	 * @return the text font of the TextDescriptor.
 	 */
-	public synchronized int getFace() { return (descriptor1 & VTFACE) >> VTFACESH; }
+	public int getFace() { return (descriptor1 & VTFACE) >> VTFACESH; }
 
 	/**
 	 * Method to set the text font of the TextDescriptor.
@@ -1331,7 +1331,7 @@ public class TextDescriptor
 	 * There are only 4 rotations: 0, 90 degrees, 180 degrees, and 270 degrees.
 	 * @return the text rotation of the TextDescriptor.
 	 */
-	public synchronized Rotation getRotation() { return Rotation.getRotationAt((descriptor1 & VTROTATION) >> VTROTATIONSH); }
+	public Rotation getRotation() { return Rotation.getRotationAt((descriptor1 & VTROTATION) >> VTROTATIONSH); }
 
 	/**
 	 * Method to set the text rotation of the TextDescriptor.
@@ -1348,7 +1348,7 @@ public class TextDescriptor
 	 * Method to return the text display part of the TextDescriptor.
 	 * @return the text display part of the TextDescriptor.
 	 */
-	public synchronized DispPos getDispPart() { return DispPos.getShowStylesAt((descriptor0 & VTDISPLAYPART) >> VTDISPLAYPARTSH); }
+	public DispPos getDispPart() { return DispPos.getShowStylesAt((descriptor0 & VTDISPLAYPART) >> VTDISPLAYPARTSH); }
 
 	/**
 	 * Method to set the text display part of the TextDescriptor.
@@ -1364,7 +1364,7 @@ public class TextDescriptor
 	 * Method to return true if the text in the TextDescriptor is italic.
 	 * @return true if the text in the TextDescriptor is italic.
 	 */
-	public synchronized boolean isItalic() { return (descriptor0 & VTITALIC) != 0; }
+	public boolean isItalic() { return (descriptor0 & VTITALIC) != 0; }
 
 	/**
 	 * Method to set the text in the TextDescriptor to be italic.
@@ -1382,7 +1382,7 @@ public class TextDescriptor
 	 * Method to return true if the text in the TextDescriptor is bold.
 	 * @return true if the text in the TextDescriptor is bold.
 	 */
-	public synchronized boolean isBold() { return (descriptor0 & VTBOLD) != 0; }
+	public boolean isBold() { return (descriptor0 & VTBOLD) != 0; }
 
 	/**
 	 * Method to set the text in the TextDescriptor to be bold.
@@ -1400,7 +1400,7 @@ public class TextDescriptor
 	 * Method to return true if the text in the TextDescriptor is underlined.
 	 * @return true if the text in the TextDescriptor is underlined.
 	 */
-	public synchronized boolean isUnderline() { return (descriptor0 & VTUNDERLINE) != 0; }
+	public boolean isUnderline() { return (descriptor0 & VTUNDERLINE) != 0; }
 
 	/**
 	 * Method to set the text in the TextDescriptor to be underlined.
@@ -1419,7 +1419,7 @@ public class TextDescriptor
 	 * Interior text is not seen at higher levels of the hierarchy.
 	 * @return true if the text in the TextDescriptor is interior.
 	 */
-	public synchronized boolean isInterior() { return (descriptor0 & VTINTERIOR) != 0; }
+	public boolean isInterior() { return (descriptor0 & VTINTERIOR) != 0; }
 
 	/**
 	 * Method to set the text in the TextDescriptor to be interior.
@@ -1442,7 +1442,7 @@ public class TextDescriptor
 	 * created on that NodeInst.
 	 * @return true if the text in the TextDescriptor is inheritable.
 	 */
-	public synchronized boolean isInherit() { return (descriptor0 & VTINHERIT) != 0; }
+	public boolean isInherit() { return (descriptor0 & VTINHERIT) != 0; }
 
 	/**
 	 * Method to set the text in the TextDescriptor to be inheritable.
@@ -1467,7 +1467,7 @@ public class TextDescriptor
 	 * Parameters can only exist on NodeInst objects.
 	 * @return true if the text in the TextDescriptor is a parameter.
 	 */
-	public synchronized boolean isParam() { return (descriptor0 & VTISPARAMETER) != 0; }
+	public boolean isParam() { return (descriptor0 & VTISPARAMETER) != 0; }
 
 	/**
 	 * Method to set the text in the TextDescriptor to be a parameter.
@@ -1540,7 +1540,7 @@ public class TextDescriptor
 	}
 
 	/** Method to return the offset scale of the text in the text descriptor. */
-	private synchronized int getOffScale() { return (descriptor1 & VTOFFSCALE) >> VTOFFSCALESH; }
+	private int getOffScale() { return (descriptor1 & VTOFFSCALE) >> VTOFFSCALESH; }
 
 	/**
 	 * Method to return the Unit of the TextDescriptor.
@@ -1549,7 +1549,7 @@ public class TextDescriptor
 	 * is volts, millivolts, microvolts, etc.
 	 * @return the Unit of the TextDescriptor.
 	 */
-	public synchronized Unit getUnit() { return Unit.getUnitAt(((descriptor1 & VTUNITS) >> VTUNITSSH) & VTUNITSHMASK); }
+	public Unit getUnit() { return Unit.getUnitAt(((descriptor1 & VTUNITS) >> VTUNITSSH) & VTUNITSHMASK); }
 
 	/**
 	 * Method to set the Unit of the TextDescriptor.

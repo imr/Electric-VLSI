@@ -171,7 +171,7 @@ public class KeyBindingManager {
      */
     private static class PrefixAction extends AbstractAction
     {
-        /** The action description analagous to KeyBinding */ public String actionDesc = "KeyBindingManager prefix action";
+        /** The action description analagous to KeyBinding */ public static final String actionDesc = "KeyBindingManager prefix action";
         /** the key binding manager using this aciton */    private KeyBindingManager manager;
 
         public PrefixAction(KeyBindingManager manager) {
@@ -419,7 +419,7 @@ public class KeyBindingManager {
             if (list != null) {
                 for (Iterator it = list.iterator(); it.hasNext(); ) {
                     String str = (String)it.next();
-                    if (str.equals(prefixAction.actionDesc)) {
+                    if (str.equals(PrefixAction.actionDesc)) {
                         list.remove(str);
                         break;
                     }
@@ -552,7 +552,7 @@ public class KeyBindingManager {
             if (list != null) {
                 for (Iterator it = list.iterator(); it.hasNext(); ) {
                     String str = (String)it.next();
-                    if (str.equals(prefixAction.actionDesc)) continue;
+                    if (str.equals(PrefixAction.actionDesc)) continue;
                     // add to conflicts
                     conflictsStrings.add(str);
                 }
@@ -566,7 +566,7 @@ public class KeyBindingManager {
                 for (Iterator it = list.iterator(); it.hasNext(); ) {
                     String str = (String)it.next();
 
-                    if (str.equals(prefixAction.actionDesc)) {
+                    if (str.equals(PrefixAction.actionDesc)) {
                         // find all string associated with prefix in prefix map
                         // NOTE: this condition is never true if prefixStroke is valid
                         // and we are using a prefixed map...prefixActions are only in primary inputMap.
@@ -716,7 +716,7 @@ public class KeyBindingManager {
                 list = new ArrayList();
                 inputMap.put(prefixStroke, list);
             }
-            list.add(prefixAction.actionDesc);
+            list.add(PrefixAction.actionDesc);
         }
         // add stroke to input map to use
         List list = (List)inputMapToUse.get(stroke);

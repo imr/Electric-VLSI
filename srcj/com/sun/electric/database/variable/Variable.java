@@ -210,7 +210,7 @@ public class Variable
      * Get the actual object stored in this Variable.
      * @return the object stored in this Variable.
      */
-    public synchronized Object getObject() { return addr; }
+    public Object getObject() { return addr; }
 
     /** 
      * Treat the stored Object as an array of Objects and
@@ -264,16 +264,14 @@ public class Variable
     /**
      * Set if this variable is linked to an ElectricObject
      */
-    public synchronized void setLinked(boolean linked) { this.linked = linked; }
+    public void setLinked(boolean linked) { this.linked = linked; }
 
     /**
      * Returns true if variable is linked to a linked database object, false otherwise.
      * @return true if variable is linked to a linked database object, false otherwise.
      */
     public boolean isLinked() {
-        boolean thisLinked;
-        synchronized(this) { thisLinked = linked; }
-        return (thisLinked && descriptor.owner.isLinked());
+        return (linked && descriptor.owner.isLinked());
     }
 
     /**
@@ -572,7 +570,7 @@ public class Variable
 	 * This should not normally be called by any other part of the system.
 	 * @return the "type bits".
 	 */
-	public synchronized int lowLevelGetFlags() { return flags; }
+	public int lowLevelGetFlags() { return flags; }
 
 	/**
 	 * Low-level method to set the type bits.
@@ -611,7 +609,7 @@ public class Variable
 	 * Method to return true if this Variable is displayable.
 	 * @return true if this Variable is displayable.
 	 */
-	public synchronized boolean isDisplay() { return (flags & VDISPLAY) != 0; }
+	public boolean isDisplay() { return (flags & VDISPLAY) != 0; }
 
     /**
      * Determine what code type this variable has, if any
@@ -686,7 +684,7 @@ public class Variable
 	 * Method to tell whether this Variable is any code.
 	 * @return true if this Variable is any code.
 	 */
-	public synchronized boolean isCode() { return (flags & (VCODE1|VCODE2)) != 0; }
+	public boolean isCode() { return (flags & (VCODE1|VCODE2)) != 0; }
 
 	/**
 	 * Method to set this Variable to be not-code.
@@ -710,7 +708,7 @@ public class Variable
 	 * Variables that are saved are written to disk when libraries are saved.
 	 * @return true if this Variable is to be saved.
 	 */
-	public synchronized boolean isDontSave() { return (flags & VDONTSAVE) != 0; }
+	public boolean isDontSave() { return (flags & VDONTSAVE) != 0; }
 
 	/**
 	 * Method to set this Variable to be not-settable.
@@ -729,13 +727,13 @@ public class Variable
 	 * Only Variables that are settable can have their value changed.
 	 * @return true if this Variable is settable.
 	 */
-	public synchronized boolean isCantSet() { return (flags & VCANTSET) != 0; }
+	public boolean isCantSet() { return (flags & VCANTSET) != 0; }
 
     /**
      * Method to return if this is Variable is a User Attribute.
      * @return true if this Variable is an attribute, false otherwise.
      */
-    public synchronized boolean isAttribute() { return getKey().getName().startsWith("ATTR_"); }
+    public boolean isAttribute() { return getKey().getName().startsWith("ATTR_"); }
 
 	/**
 	 * Returns a printable version of this Variable.
