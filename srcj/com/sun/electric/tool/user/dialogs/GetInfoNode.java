@@ -80,6 +80,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 	private PortProto shownPort = null;
 	private double initialXPos, initialYPos;
 	private String initialXSize, initialYSize;
+    private boolean initialMirrorX, initialMirrorY;
 	private int initialRotation, initialPopupIndex;
     private Variable.Code initialListPopupEntry;
 	private boolean initialEasyToSelect, initialInvisibleOutsideCell, initialLocked, initialExpansion;
@@ -349,19 +350,25 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         name.setText(initialName);
         xPos.setText(TextUtils.formatDouble(initialXPos));
         yPos.setText(TextUtils.formatDouble(initialYPos));
+        initialMirrorX = (initXSize < 0);
+        initialMirrorY = (initYSize < 0);
         SizeOffset so = ni.getSizeOffset();
         if (swapXY)
         {
             xSize.setText(TextUtils.formatDouble(Math.abs(initYSize) - so.getLowYOffset() - so.getHighYOffset()));
             ySize.setText(TextUtils.formatDouble(Math.abs(initXSize) - so.getLowXOffset() - so.getHighXOffset()));
+            mirrorX.setSelected(initialMirrorY);
+            mirrorY.setSelected(initialMirrorX);
         } else
         {
             xSize.setText(TextUtils.formatDouble(Math.abs(initXSize) - so.getLowXOffset() - so.getHighXOffset()));
             ySize.setText(TextUtils.formatDouble(Math.abs(initYSize) - so.getLowYOffset() - so.getHighYOffset()));
+            mirrorX.setSelected(initialMirrorX);
+            mirrorY.setSelected(initialMirrorY);
         }
+        initialXSize = xSize.getText();
+        initialYSize = ySize.getText();
 		rotation.setText(TextUtils.formatDouble(initialRotation / 10.0));
-		mirrorX.setSelected(initXSize < 0);
-		mirrorY.setSelected(initYSize < 0);
 
         // special case for transistors
         TransistorSize transSize = ni.getTransistorSize(VarContext.globalContext);
@@ -379,13 +386,12 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
                 ySize.setText(transSize.getLength().toString());
             else
                 ySize.setText(TextUtils.formatDouble(length));
+            initialXSize = xSize.getText();
+            initialYSize = ySize.getText();
         } else {
             xsizeLabel.setText("X size:");
             ysizeLabel.setText("Y size:");
         }
-
-        initialXSize = xSize.getText();
-        initialYSize = ySize.getText();
 
 		// in "more" version
 		easyToSelect.setEnabled(true);
@@ -1019,28 +1025,21 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
             {
                 currentXSize = TextUtils.atof(dialog.ySize.getText(), new Double(ni.getYSize() - so.getLowXOffset() - so.getHighXOffset()));
                 currentYSize = TextUtils.atof(dialog.xSize.getText(), new Double(ni.getXSize() - so.getLowYOffset() - so.getHighYOffset()));
+                initXSize = TextUtils.atof(dialog.initialYSize, new Double(currentXSize));
+                initYSize = TextUtils.atof(dialog.initialXSize, new Double(currentYSize));
+                if (dialog.mirrorX.isSelected()) currentYSize = -currentYSize;
+                if (dialog.mirrorY.isSelected()) currentXSize = -currentXSize;
             } else
             {
                 currentXSize = TextUtils.atof(dialog.xSize.getText(), new Double(ni.getXSize() - so.getLowXOffset() - so.getHighXOffset()));
                 currentYSize = TextUtils.atof(dialog.ySize.getText(), new Double(ni.getYSize() - so.getLowYOffset() - so.getHighYOffset()));
+                initXSize = TextUtils.atof(dialog.initialXSize, new Double(currentXSize));
+                initYSize = TextUtils.atof(dialog.initialYSize, new Double(currentYSize));
+                if (dialog.mirrorX.isSelected()) currentXSize = -currentXSize;
+                if (dialog.mirrorY.isSelected()) currentYSize = -currentYSize;
             }
-            if (dialog.mirrorX.isSelected()) currentXSize = -currentXSize;
-            if (dialog.mirrorY.isSelected()) currentYSize = -currentYSize;
-            try {
-                initXSize = Double.valueOf(dialog.initialXSize).doubleValue();
-            } catch (NumberFormatException e) {
-                initXSize = currentXSize;
-            }
-            try {
-                initYSize = Double.valueOf(dialog.initialYSize).doubleValue();
-            } catch (NumberFormatException e) {
-                initYSize = currentYSize;
-            }
-            if (dialog.swapXY) {
-                double temp = initXSize;
-                initXSize = initYSize;
-                initYSize = temp;
-            }
+            if (dialog.initialMirrorX) initXSize = -initXSize;
+            if (dialog.initialMirrorY) initYSize = -initYSize;
 
             // The following code is specific for transistors, and uses the X/Y size fields for
             // Width and Length, and therefore may override the values such that the node size does not
