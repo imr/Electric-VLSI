@@ -669,11 +669,11 @@ public class JThreeDTab extends ThreeDTab
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         threeD.add(directionPanel, gridBagConstraints);
 
-        threeDCellBnd.setText("Display Cell  Bounding Box");
+        threeDCellBnd.setText("Cell  Bounding Box");
         threeDCellBnd.setToolTipText("Turn on Antialiasing if available");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -722,7 +722,7 @@ public class JThreeDTab extends ThreeDTab
         threeDZoom.setMinimumSize(new java.awt.Dimension(70, 19));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -731,7 +731,7 @@ public class JThreeDTab extends ThreeDTab
         initZoomLabel.setText("Initial Zoom:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         initialViewPanel.add(initZoomLabel, gridBagConstraints);
@@ -758,7 +758,7 @@ public class JThreeDTab extends ThreeDTab
         scaleField.setMinimumSize(new java.awt.Dimension(70, 19));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -767,7 +767,7 @@ public class JThreeDTab extends ThreeDTab
         scaleLabel.setText("Z Scale:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         initialViewPanel.add(scaleLabel, gridBagConstraints);
