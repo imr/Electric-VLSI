@@ -624,9 +624,9 @@ public class Spice extends Topology
 							if (attrVar == null) infstr.append("??"); else
 							{
                                 if (attrVar.getCode() != Variable.Code.NONE)
-                                    infstr.append(context.evalVar(attrVar));
+                                    infstr.append(trimSingleQuotes(String.valueOf(context.evalVar(attrVar))));
                                 else
-								    infstr.append(attrVar.getPureValue(-1, -1));
+								    infstr.append(trimSingleQuotes(attrVar.getPureValue(-1, -1)));
 							}
 						}
 					}
@@ -910,13 +910,13 @@ public class Spice extends Topology
 				{
                     // schematic transistors may be text
                     if ((size.getDoubleLength() == 0) && (size.getLength() instanceof String)) {
-                        infstr.append(" L="+formatParam((String)size.getLength()));
+                        infstr.append(" L="+formatParam(trimSingleQuotes((String)size.getLength())));
                     } else {
                         infstr.append(" L=" + TextUtils.formatDouble(l, 2));
                         if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("U");
                     }
                     if ((size.getDoubleWidth() == 0) && (size.getWidth() instanceof String)) {
-                        infstr.append(" W="+formatParam((String)size.getWidth()));
+                        infstr.append(" W="+formatParam(trimSingleQuotes((String)size.getWidth())));
                     } else {
                         infstr.append(" W=" + TextUtils.formatDouble(w, 2));
                         if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("U");
@@ -931,9 +931,9 @@ public class Spice extends Topology
 				}
 			} else {
                 if ((size.getDoubleLength() == 0) && (size.getLength() instanceof String))
-                    infstr.append(" L="+formatParam((String)size.getLength()));
+                    infstr.append(" L="+formatParam(trimSingleQuotes((String)size.getLength())));
                 if ((size.getDoubleWidth() == 0) && (size.getWidth() instanceof String))
-                    infstr.append(" W="+formatParam((String)size.getWidth()));
+                    infstr.append(" W="+formatParam(trimSingleQuotes((String)size.getWidth())));
             }
 
 			// make sure transistor is connected to nets
@@ -1312,6 +1312,13 @@ public class Spice extends Topology
     private static String formatParam(String param) {
         if (param.endsWith("'") || param.startsWith("'")) return param;
         return ("'"+param+"'");
+    }
+
+    private static String trimSingleQuotes(String param) {
+        if (param.startsWith("'") && param.endsWith("'")) {
+            return param.substring(1, param.length()-1);
+        }
+        return param;
     }
 
 	/******************** PARASITIC CALCULATIONS ********************/
