@@ -226,7 +226,6 @@ public class FileMenu {
             Library lib = Library.newInstance(newLibName, null);
             if (lib == null) return false;
             lib.setCurrent();
-            //WindowFrame.wantToRedoLibraryTree();
             EditWindow.repaintAll();
             TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
             System.out.println("New Library '"+lib.getName()+"' created");
@@ -340,7 +339,6 @@ public class FileMenu {
             if (success) {
                 // close no name library
                 //mainLib.kill();
-                //WindowFrame.wantToRedoLibraryTree();
                 // the calls to repaint actually cause the
                 // EditWindow to come up BLANK in Linux SDI mode
                 //EditWindow.repaintAll();
@@ -476,7 +474,6 @@ public class FileMenu {
             {
                 System.out.println("Library " + lib.getName() + " closed");
 	            WindowFrame.wantToRedoTitleNames();
-	            //WindowFrame.wantToRedoLibraryTree();
 	            EditWindow.repaintAll();
 
 	            // Disable save icon if no more libraries are open

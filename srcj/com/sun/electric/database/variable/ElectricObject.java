@@ -36,6 +36,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.tool.user.User;
 
 import java.awt.Font;
 import java.awt.Point;
@@ -520,6 +521,7 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 			// compute text height
 			if (font == null) height = 1 / scale; else
 				height = font.getSize2D() / scale;
+			scale *= User.getGlobalTextScale();
 			if (td.getDispPart() == TextDescriptor.DispPos.NAMEVALUE)
 			{
 				headerString = true;

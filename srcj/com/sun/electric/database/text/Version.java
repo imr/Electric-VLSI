@@ -26,9 +26,9 @@ package com.sun.electric.database.text;
 import com.sun.electric.tool.user.ActivityLogger;
 
 import java.io.File;
+import java.text.DateFormat;
 import java.util.Date;
 import java.util.StringTokenizer;
-import java.text.DateFormat;
 
 /**
  * A Version is a text-parsing object for Electric's version number.
@@ -120,7 +120,7 @@ public class Version implements Comparable
 					restOfString = restOfString.substring(1);
 				}
 				if (restOfString.length() > 0)
-					throw new NumberFormatException(version);
+					System.out.println("Invalid version string " + version);
 			}
 		}
 
@@ -285,12 +285,7 @@ public class Version implements Comparable
 	 */
 	public static Version parseVersion(String version)
 	{
-		Version v = null;
-		try {
-			v = new Version(version);
-		} catch (NumberFormatException e) {
-			System.out.println("Invalid version string " + version);
-		}
+		Version v = new Version(version);
 		return v;
 	}
 }

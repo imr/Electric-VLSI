@@ -219,15 +219,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 
 	protected void escapePressed() { cancelActionPerformed(null); }
 
-	private static class AttValPair
-	{
-		Variable.Key key;
-		String trueName;
-		String value;
-		String eval;
-		boolean code;
-	};
-
 	protected void loadInfo()
 	{
         // update current window
@@ -416,7 +407,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			if (!name.startsWith("ATTR_")) continue;
 
 			// found an attribute
-			AttValPair avp = new AttValPair();
+			AttributesTable.AttValPair avp = new AttributesTable.AttValPair();
 			avp.key = var.getKey();
 			avp.trueName = var.getTrueName();
 			avp.value = var.getObject().toString();
@@ -777,7 +768,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		int index = list.getSelectedIndex();
 		if (attributes.isSelected())
 		{
-			AttValPair avp = (AttValPair)allAttributes.get(index);
+			AttributesTable.AttValPair avp = (AttributesTable.AttValPair)allAttributes.get(index);
 			listEditLabel.setText("Attribute '" + avp.trueName + "'");
 			initialListTextField = new String(avp.value);
 			listEdit.setText(initialListTextField);

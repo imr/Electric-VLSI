@@ -135,6 +135,9 @@ public class WindowFrame
 			frame.buildWindowStructure(eWnd, cell, null);
 			setCurrentWindowFrame(frame);
 			frame.populateJFrame();
+
+			// make sure the edit window has the right size
+			eWnd.setScreenSize(eWnd.getSize());
 			eWnd.fillScreen();
 		}
         removeUIBinding(frame.js, KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0));
@@ -438,19 +441,16 @@ public class WindowFrame
 	private boolean wantToRedoSignalTree = false;
 
     /**
-     * @deprecated the library tree is reloaded when the appropriate
-     * database change event is caught by WindowFrame.LibraryTreeUpdater
+     * Method to request that the library tree be reloaded.
      */
 	public static void wantToRedoLibraryTree()
 	{
-/*
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			wf.wantToRedoLibraryTree = true;
-			wf.getContent().repaint();
+            wf.redoExplorerTreeIfRequested();
 		}
-*/
 	}
 
 	public static void wantToRedoJobTree()

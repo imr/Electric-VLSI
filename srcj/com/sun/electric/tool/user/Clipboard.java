@@ -36,7 +36,6 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
@@ -48,6 +47,9 @@ import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -63,9 +65,9 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EventListener;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.HashMap;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -156,7 +158,48 @@ public class Clipboard
 
 	public static void copy()
 	{
-        CopyObjects job = new CopyObjects(MenuCommands.getHighlighted());
+		// special case: if one text object is selected, copy its text to the system clipboard
+		copySelectedText();
+
+		CopyObjects job = new CopyObjects(MenuCommands.getHighlighted());
+	}
+
+	/**
+	 * Method to copy any selected text to the system-wide clipboard.
+	 */
+	private static void copySelectedText()
+	{
+		List highlights = MenuCommands.getHighlighted();
+		if (highlights.size() == 1)
+		{
+			Highlight h = (Highlight)highlights.get(0);
+			if (h.getType() == Highlight.Type.TEXT)
+			{
+				String selected = null;
+				Variable var = h.getVar();
+				ElectricObject eObj = h.getElectricObject();
+				if (var != null)
+				{
+					selected = var.describe(-1);
+				} else if (h.getName() != null)
+				{
+					selected = h.getName().toString();
+				} else if (eObj instanceof Export)
+				{
+					selected = ((Export)eObj).getName();
+				} else if (eObj instanceof NodeInst)
+				{
+					selected = ((NodeInst)eObj).getProto().describe();
+				}
+				if (selected != null)
+				{
+					// put the text in the clipboard
+					java.awt.datatransfer.Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
+					Transferable transferable = new StringSelection(selected);
+					cb.setContents(transferable, null);
+				}
+			}
+		}
 	}
 
 	private static class CopyObjects extends Job
@@ -201,7 +244,10 @@ public class Clipboard
 
 	public static void cut()
 	{
-        CutObjects job = new CutObjects(MenuCommands.getHighlighted());
+		// special case: if one text object is selected, copy its text to the system clipboard
+		copySelectedText();
+
+		CutObjects job = new CutObjects(MenuCommands.getHighlighted());
 	}
 
 	private static class CutObjects extends Job
@@ -793,12 +839,9 @@ public class Clipboard
         }
 
         // figure bounds
-        //System.out.println("Lower left corner is "+llcorner);
-        //System.out.println("upper right corner is "+urcorner);
         double width = urcorner.getX() - llcorner.getX();
         double height = urcorner.getY() - llcorner.getY();
         Rectangle2D bounds = new Rectangle2D.Double(llcorner.getX(), llcorner.getY(), width, height);
-        //System.out.println("bounds is "+bounds);
         return bounds;
     }
 

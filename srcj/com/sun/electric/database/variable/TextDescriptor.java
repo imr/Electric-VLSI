@@ -1099,18 +1099,25 @@ public class TextDescriptor implements Serializable
 	 */
 	public double getTrueSize(EditWindow wnd)
 	{
+		double scale = 14;
 		Size s = getSize();
-		if (s == null) return 14;
-
-		// absolute font sizes are easy
-		if (s.isAbsolute()) return (int)s.getSize();
-
-		// relative font: get size in grid units
-		if (wnd == null) return 14;
-		double height = s.getSize();
-
-		// convert to screen units
-		return wnd.getTextScreenSize(height);
+		if (s != null)
+		{
+			// absolute font sizes are easy
+			if (s.isAbsolute()) scale = s.getSize(); else
+			{	
+				// relative font: get size in grid units
+				if (wnd != null)
+				{
+					double height = s.getSize();
+			
+					// convert to screen units
+					scale = wnd.getTextScreenSize(height);
+				}
+			}
+		}
+		scale *= User.getGlobalTextScale();
+		return scale;
 	}
 
 	/**

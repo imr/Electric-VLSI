@@ -32,6 +32,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
@@ -43,9 +44,15 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.prefs.Preferences;
 
+import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
+import javax.swing.JList;
+import javax.swing.ListSelectionModel;
 
 
 /**
@@ -55,7 +62,9 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 {
 	private static GetInfoArc theDialog = null;
 	private static ArcInst shownArc = null;
-	private String initialName;
+    private static Preferences prefs = Preferences.userNodeForPackage(GetInfoArc.class);
+
+    private String initialName;
 	private double initialWidth;
 	private boolean initialEasyToSelect;
 	private boolean initialRigid, initialFixedAngle, initialSlidable;
@@ -63,7 +72,10 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 	private boolean initialSkipHead, initialSkipTail, initialReverseEnds;
     private String initialColor;
     private EditWindow wnd;
+    private AttributesTable attributesTable;
+	private List allAttributes;
     /** true if need to reload info due to failure to get Examine lock on DB */ private boolean needReload = false;
+	private boolean bigger;
 
 	/**
 	 * Method to show the Arc Get-Info dialog.
@@ -148,6 +160,22 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
         getRootPane().setDefaultButton(ok);
         Undo.addDatabaseChangeListener(this);
 
+        bigger = prefs.getBoolean("GetInfoArc-bigger", false);
+        int buttonSelected = prefs.getInt("GetInfoNode-buttonSelected", 0);
+
+		// start small
+		if (!bigger)
+		{
+		    getContentPane().remove(jPanel2);
+		    getContentPane().remove(jPanel3);
+		    getContentPane().remove(attributesPane);
+		    moreLess.setText("More");
+            pack();
+        } else
+        {
+            moreLess.setText("Less");
+        }
+
         // populate arc color combo box (only for Artwork technology)
         int [] colorIndices = EGraphics.getColorIndices();
         arcColorComboBox.addItem("");
@@ -155,6 +183,11 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
             String str = EGraphics.getColorIndexName(colorIndices[i]);
             arcColorComboBox.addItem(str);
         }
+
+		// make the attributes list
+		allAttributes = new ArrayList();
+        attributesTable = new AttributesTable(null, true, false, false);
+		attributesPane.setViewportView(attributesTable);
 		finishInitialization();
 	}
 
@@ -171,7 +204,8 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
             curWnd.getHighlighter().addHighlightListener(this);
             wnd = curWnd;
         }
-        if (wnd == null) {
+        if (wnd == null)
+        {
             disableDialog();
             return;
         }
@@ -195,16 +229,14 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 		if (arcCount > 1) ai = null;
 		if (ai == null)
 		{
-			if (shownArc != null)
-			{
-                disableDialog();
-			}
+			if (shownArc != null) disableDialog();
 			return;
 		}
 
         // try to get Examine lock. If fails, set needReload to true to
         // call loadInfo again when database is done changing
-        if (!Job.acquireExamineLock(false)) {
+        if (!Job.acquireExamineLock(false))
+        {
             needReload = true;
             disableDialog();
             return;
@@ -228,6 +260,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
             headSee.setEnabled(true);
             tailSee.setEnabled(true);
             apply.setEnabled(true);
+            attributes.setEnabled(true);
             arcColorComboBox.setEnabled(false);
 
             // get initial values
@@ -283,7 +316,27 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
             if (ai.getProto().getTechnology() == Artwork.tech) {
                 arcColorComboBox.setEnabled(true);
             }
-            Job.releaseExamineLock();
+
+    		// grab all attributes and parameters
+    		allAttributes.clear();
+    		for(Iterator it = ai.getVariables(); it.hasNext(); )
+    		{
+    			Variable aVar = (Variable)it.next();
+    			String name = aVar.getKey().getName();
+    			if (!name.startsWith("ATTR_")) continue;
+
+    			// found an attribute
+    			AttributesTable.AttValPair avp = new AttributesTable.AttValPair();
+    			avp.key = aVar.getKey();
+    			avp.trueName = aVar.getTrueName();
+    			avp.value = aVar.getObject().toString();
+    			avp.code = aVar.isCode();
+    			allAttributes.add(avp);
+    		}
+            attributesTable.setEnabled(allAttributes.size() != 0);
+            attributesTable.setElectricObject(ai);
+
+    		Job.releaseExamineLock();
         } catch (Error e) {
             Job.releaseExamineLock();
             throw e;
@@ -327,7 +380,10 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
         reverseEnds.setEnabled(false);
         reverseEnds.setSelected(false);
         apply.setEnabled(false);
+        attributes.setEnabled(false);
         arcColorComboBox.setEnabled(false);
+        attributesTable.setElectricObject(null);
+        attributesTable.setEnabled(false);
 
         shownArc = null;
     }
@@ -337,7 +393,8 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 	 * WARNING: Do NOT modify this code. The content of this method is
 	 * always regenerated by the Form Editor.
 	 */
-    private void initComponents() {//GEN-BEGIN:initComponents
+    private void initComponents()//GEN-BEGIN:initComponents
+    {
         java.awt.GridBagConstraints gridBagConstraints;
 
         jPanel1 = new javax.swing.JPanel();
@@ -376,18 +433,22 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
         jPanel3 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         arcColorComboBox = new javax.swing.JComboBox();
+        attributes = new javax.swing.JButton();
         jPanel4 = new javax.swing.JPanel();
         ok = new javax.swing.JButton();
         cancel = new javax.swing.JButton();
         apply = new javax.swing.JButton();
-        attributes = new javax.swing.JButton();
+        moreLess = new javax.swing.JButton();
+        attributesPane = new javax.swing.JScrollPane();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
         setTitle("Arc Properties");
         setName("");
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent evt) {
+        addWindowListener(new java.awt.event.WindowAdapter()
+        {
+            public void windowClosing(java.awt.event.WindowEvent evt)
+            {
                 closeDialog(evt);
             }
         });
@@ -546,15 +607,18 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
         headSee.setText("See");
         headSee.setMinimumSize(new java.awt.Dimension(56, 20));
         headSee.setPreferredSize(new java.awt.Dimension(56, 20));
-        headSee.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        headSee.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 headSeeActionPerformed(evt);
             }
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridheight = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(headSee, gridBagConstraints);
 
@@ -597,20 +661,23 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
         tailSee.setText("See");
         tailSee.setMinimumSize(new java.awt.Dimension(56, 20));
         tailSee.setPreferredSize(new java.awt.Dimension(56, 20));
-        tailSee.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        tailSee.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 tailSeeActionPerformed(evt);
             }
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridheight = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(tailSee, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         getContentPane().add(jPanel1, gridBagConstraints);
 
@@ -620,9 +687,9 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         jPanel2.add(rigid, gridBagConstraints);
 
         reverseEnds.setText("Reverse head and tail");
@@ -630,69 +697,69 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         jPanel2.add(reverseEnds, gridBagConstraints);
 
         endsExtend.setText("Ends extend");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         jPanel2.add(endsExtend, gridBagConstraints);
 
         slidable.setText("Slidable");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         jPanel2.add(slidable, gridBagConstraints);
 
         skipTail.setText("Ignore tail");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         jPanel2.add(skipTail, gridBagConstraints);
 
         directional.setText("Directional");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         jPanel2.add(directional, gridBagConstraints);
 
         fixedAngle.setText("Fixed-angle");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         jPanel2.add(fixedAngle, gridBagConstraints);
 
         skipHead.setText("Ignore head");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         jPanel2.add(skipHead, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         getContentPane().add(jPanel2, gridBagConstraints);
 
@@ -700,27 +767,47 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 
         jLabel2.setText("Color: ");
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel3.add(jLabel2, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel3.add(arcColorComboBox, gridBagConstraints);
+
+        attributes.setText("Attributes");
+        attributes.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                attributesActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        jPanel3.add(attributes, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         getContentPane().add(jPanel3, gridBagConstraints);
 
         jPanel4.setLayout(new java.awt.GridBagLayout());
 
         ok.setText("OK");
-        ok.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        ok.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 okActionPerformed(evt);
             }
         });
@@ -728,13 +815,15 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel4.add(ok, gridBagConstraints);
 
         cancel.setText("Cancel");
-        cancel.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        cancel.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 cancelActionPerformed(evt);
             }
         });
@@ -742,13 +831,15 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel4.add(cancel, gridBagConstraints);
 
         apply.setText("Apply");
-        apply.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        apply.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 applyActionPerformed(evt);
             }
         });
@@ -756,14 +847,16 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel4.add(apply, gridBagConstraints);
 
-        attributes.setText("Attributes");
-        attributes.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                attributesActionPerformed(evt);
+        moreLess.setText("More");
+        moreLess.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                moreLessActionPerformed(evt);
             }
         });
 
@@ -771,14 +864,24 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.weightx = 1.0;
-        jPanel4.add(attributes, gridBagConstraints);
+        jPanel4.add(moreLess, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         getContentPane().add(jPanel4, gridBagConstraints);
+
+        attributesPane.setMinimumSize(new java.awt.Dimension(22, 100));
+        attributesPane.setPreferredSize(new java.awt.Dimension(22, 100));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        getContentPane().add(attributesPane, gridBagConstraints);
 
         pack();
     }//GEN-END:initComponents
@@ -787,6 +890,44 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 	{//GEN-HEADEREND:event_attributesActionPerformed
 		Attributes.showDialog();
 	}//GEN-LAST:event_attributesActionPerformed
+
+	private void moreLessActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_moreLessActionPerformed
+	{//GEN-HEADEREND:event_moreLessActionPerformed
+		bigger = !bigger;
+		if (bigger)
+		{
+			java.awt.GridBagConstraints gridBagConstraints;
+			gridBagConstraints = new java.awt.GridBagConstraints();
+			gridBagConstraints.gridx = 0;
+			gridBagConstraints.gridy = 2;
+			gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+			gridBagConstraints.weightx = 1.0;
+			getContentPane().add(jPanel2, gridBagConstraints);
+
+			gridBagConstraints = new java.awt.GridBagConstraints();
+			gridBagConstraints.gridx = 0;
+			gridBagConstraints.gridy = 3;
+			gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+			gridBagConstraints.weightx = 1.0;
+			getContentPane().add(jPanel3, gridBagConstraints);
+
+			gridBagConstraints = new java.awt.GridBagConstraints();
+			gridBagConstraints.gridx = 0;
+			gridBagConstraints.gridy = 4;
+			gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+			gridBagConstraints.weightx = 1.0;
+			getContentPane().add(attributesPane, gridBagConstraints);
+
+			moreLess.setText("Less");
+		} else
+		{
+		    getContentPane().remove(jPanel2);
+		    getContentPane().remove(jPanel3);
+		    getContentPane().remove(attributesPane);
+		    moreLess.setText("More");
+		}
+        pack();
+	}//GEN-LAST:event_moreLessActionPerformed
 
 	private void tailSeeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tailSeeActionPerformed
 	{//GEN-HEADEREND:event_tailSeeActionPerformed
@@ -820,6 +961,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 	{//GEN-HEADEREND:event_applyActionPerformed
 		if (shownArc == null) return;
 		ChangeArc job = new ChangeArc(shownArc, this);
+        attributesTable.applyChanges();
 	}//GEN-LAST:event_applyActionPerformed
 
 	private void okActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_okActionPerformed
@@ -836,6 +978,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
+        prefs.putBoolean("GetInfoArc-bigger", bigger);
 		setVisible(false);
 		//theDialog = null;
         //Highlight.removeHighlightListener(this);
@@ -956,6 +1099,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
     private javax.swing.JButton apply;
     private javax.swing.JComboBox arcColorComboBox;
     private javax.swing.JButton attributes;
+    private javax.swing.JScrollPane attributesPane;
     private javax.swing.JLabel busSize;
     private javax.swing.JButton cancel;
     private javax.swing.JCheckBox directional;
@@ -980,6 +1124,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
+    private javax.swing.JButton moreLess;
     private javax.swing.JTextField name;
     private javax.swing.JLabel network;
     private javax.swing.JButton ok;

@@ -69,6 +69,7 @@ public class TextTab extends PreferencePanel
 	private String initialTextCellFont;
 	private int initialTextSmartVertical;
 	private int initialTextSmartHorizontal;
+	private double initialGlobalTextScale;
 	private StringBuffer currentTextNodeFont;
 	private StringBuffer currentTextArcFont;
 	private StringBuffer currentTextExportFont;
@@ -144,6 +145,9 @@ public class TextTab extends PreferencePanel
 		}
 		textDefaultFont.setSelectedItem(initialTextFontName);
 
+		initialGlobalTextScale = User.getGlobalTextScale() * 100;
+		textGlobalScale.setText(TextUtils.formatDouble(initialGlobalTextScale));
+		
 		textNodes.setSelected(true);
 		textButtonChanged();
 
@@ -356,6 +360,10 @@ public class TextTab extends PreferencePanel
 			if (textSmartHorizontalOutside.isSelected()) currentSmartHorizontal = 2;
 		if (currentSmartHorizontal != initialTextSmartHorizontal)
 			User.setSmartHorizontalPlacement(currentSmartHorizontal);
+
+		double currentGlobalScale = TextUtils.atof(textGlobalScale.getText()) / 100;
+		if (currentGlobalScale != initialGlobalTextScale)
+			User.setGlobalTextScale(currentGlobalScale);
 	}
 
 	/** This method is called from within the constructor to
@@ -398,6 +406,9 @@ public class TextTab extends PreferencePanel
         middle = new javax.swing.JPanel();
         jLabel44 = new javax.swing.JLabel();
         textDefaultFont = new javax.swing.JComboBox();
+        jLabel1 = new javax.swing.JLabel();
+        textGlobalScale = new javax.swing.JTextField();
+        jLabel2 = new javax.swing.JLabel();
         bottom = new javax.swing.JPanel();
         jLabel56 = new javax.swing.JLabel();
         textSmartVerticalOff = new javax.swing.JRadioButton();
@@ -631,11 +642,34 @@ public class TextTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         middle.add(textDefaultFont, gridBagConstraints);
+
+        jLabel1.setText("Global text scale:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        middle.add(jLabel1, gridBagConstraints);
+
+        textGlobalScale.setColumns(10);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        middle.add(textGlobalScale, gridBagConstraints);
+
+        jLabel2.setText("percent");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        middle.add(jLabel2, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -727,7 +761,7 @@ public class TextTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         text.add(bottom, gridBagConstraints);
 
@@ -745,6 +779,8 @@ public class TextTab extends PreferencePanel
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel bottom;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel41;
     private javax.swing.JLabel jLabel42;
@@ -764,6 +800,7 @@ public class TextTab extends PreferencePanel
     private javax.swing.JRadioButton textCellText;
     private javax.swing.JComboBox textDefaultFont;
     private javax.swing.JComboBox textFace;
+    private javax.swing.JTextField textGlobalScale;
     private javax.swing.ButtonGroup textHorizontalGroup;
     private javax.swing.JRadioButton textInstances;
     private javax.swing.JCheckBox textItalic;

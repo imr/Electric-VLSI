@@ -534,7 +534,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 			if (size <= 0) size = 1;
 			size = theFont.getSize();
 
-			String[] textArray = tc.getText().split("\\n");
+			String[] textArray = tc.getText().split("\\n", -1);
 			double totalHeight = 0;
 			double totalWidth = 0;
 			for (int i=0; i<textArray.length; i++)

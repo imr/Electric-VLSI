@@ -64,7 +64,17 @@ import javax.swing.table.TableColumn;
  */
 public class AttributesTable extends JTable implements DatabaseChangeListener {
 
-    /**
+
+	public static class AttValPair
+	{
+		Variable.Key key;
+		String trueName;
+		String value;
+		String eval;
+		boolean code;
+	};
+
+	/**
      * Model for storing Table data
      * */
     private static class VariableTableModel extends AbstractTableModel {

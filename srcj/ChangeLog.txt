@@ -9,7 +9,23 @@ IMP: (01/11/05, DN) All database objects are comparable and the are ordered in d
 BUG: (01/10/05, GVG) DRC and min area, still problems with well areas which are not part of any network
 FIX: Forcing substrate to ignore network information in Quick.java
 
-IMP/MAN: (01/09/05, GVG)YES_NO dialog for deleting cells in Explorer instead of YES_NO_CANCEL type
+BUG: (01/10/05, SMR) Some old Electric versions crash ("5.3b22").
+FIX: Version.java no longer throws a NumberFormatException...just prints an error message.
+
+BUG: (01/10/05, SMR) New windows don't appear with the cell filling it (Bug #140).
+FIX: In WindowFrame.createEditWindow(), set the EditWindow size before filling the screen.
+
+IMP/MAN: (01/10/05, SMR) Added a global text scale that applies to all text.
+     Settable as a parameter (in the Text tab) and with the "Edit / Text" commands
+     "Increase All Text Size" and "Decrease All Text Size".
+
+BUG: (01/10/05, SMR) Viewing the explorer tree "hierarchically" does not work right.
+FIX: Re-implemented WindowFrame.wantToRedoLibraryTree() and use it when changing the explorer view style.
+
+BUG: (01/10/05, SMR) Editing text in-place doesn't properly calculate the number of lines of text (Bug #141).
+FIX: In GetInfoText.figureSize(), have "split()" use a second parameter of -1 to include all trailing fields.
+
+IMP/MAN: (01/09/05,GVG) YES_NO dialog for deleting cells in Explorer instead of YES_NO_CANCEL type
 
 IMP: (01/09/05, DN) Settors are removed from TextDescriptor class. Database TextDescriptors are almost
 readonly (except low-level methods). MutableTextDescriptor class is
@@ -23,11 +39,15 @@ IMP: (01/08/05, GVG) Catching expection due to bad filename while generating Ima
 
 IMP: (01/08/05, GVG) Avoid exception if new name is null due to errors in Cell.rename.
 
+IMP: (01/05/05, DN) View, Libraries, Cells, Exports, Tools, Technologies,
+     PrimitveNodes, PrimitiveArcs, Variables are comparable by name and ordered in database.
+
 IMP/MAN: (1/3/5, SMR) Added silicon compiler and VHDL compiler.
      Initial translation without any improvements.
      Added commands "Tool / Silicon Compiler / Convert Current Cell to Layout",
      "View / Make VHDL View"
      "View / Compile VHDL to Netlist View"
+     "View / Generate VHDL View"
 
 BUG: Must quote system properties when relaunching.
 FIX: In Launcher.invokeElectric()", quote results of System.getProperty().
@@ -203,7 +223,7 @@ FIX: In WaveformWindow.getSignalsForExplorer(), ensure that all levels of the si
 BUG: (12/9/04, SMR) Spice netlister may mix-up ground signal names (Bug #81).
 FIX: Change Spice.getGroundName to return null.
 
-IMP/MAN: (12/9/04, SMR) "Layer Visibility" dialog also lets you "highlight" layers.
+IMP: (12/9/04, SMR) "Layer Visibility" dialog also lets you "highlight" layers.
 
 BUG: (12/9/04, SMR) Resizing a window doesn't always redraw its contents.
 FIX: In EditWindow.java, queue resizing, just like panning and zooming.
@@ -227,7 +247,7 @@ FIX: NodeInst.isIconOfParent() uses NodeUsage.isIconOfParent() to.
 
 IMP: (12/8/04, GVG) DRC good dates work with min area and coverage bits (Bug #17)
 
-IMP/MAN: (12/8/04, GVG) Save Library in ExplorerTree to avoid the setup as current library previous to the saving action.
+IMP: (12/8/04, GVG) Save Library in ExplorerTree to avoid the setup as current library previous to the saving action.
 
 IMP: (12/8/04, GVG) Layer visibilty stored in technology preferences (Bug #76)
 
@@ -258,7 +278,7 @@ IMP: (12/7/04, SMR) Screen sizes are computed better on multi-display systems (B
 BUG: (12/7/04, SMR) Auto-stitcher may remove useful pins (Bug #59).
 FIX: In AutoStitch.comparePoly(), only delete pins if they have no connections or exports.
 
-IMP/MAN: (12/6/04, GVG) ERC: optimizing code (1)DRC check only available by request (not fully decomissioned yet
+IMP: (12/6/04, GVG) ERC: optimizing code (1)DRC check only available by request (not fully decomissioned yet
      until 100% sure about consequences) (2) caching information for arcs in HierarchyEnumerator Visitor.
 
 IMP: (12/6/04, SMR) Screen sizes are computed better on multi-display systems (Bug #48).
@@ -284,7 +304,7 @@ IMP: (12/5/04, SMR) Sped up drawing of highlights by doing proper clipping in Hi
 IMP: (12/3/04, SMR) Made Artwork Circles work properly, including problems with constraints (Layout.modFlex()),
      selection, better highlighting.
 
-IMP/MAN: (12/3/04, SMR) Redid Layer Visibility once more; can select range of layers.
+IMP: (12/3/04, SMR) Redid Layer Visibility once more; can select range of layers.
 
 IMP: (12/3/04, GVG) TSMC90: New default size in pure p/n select nodes (Bug #54)
 
@@ -337,7 +357,7 @@ FIX: In GetInfoMulti.MultiChange.doIt(), account for mirroring when computing ne
 
 IMP: (12/1/04, SMR) "Pure" menu entry no longer offers contact or via layers.
 
-IMP/MAN: (12/1/04, SMR) "Layer Visibility" dialog now shows layers sorted by height (Bug #26, 33)
+IMP: (12/1/04, SMR) "Layer Visibility" dialog now shows layers sorted by height (Bug #26, 33)
      and lets you set all layers above or below a point to be visible/invisible.
 
 ************************* Version 8.01ar: *********************************
@@ -354,7 +374,7 @@ FIX: Halve the number of "%" characters (they were duplicated for C formatting).
 IMP: (11/30/04, SMR) "Confirm delete" in "Delete Cell" dialo, and "Make new window" in "New Cell" dialog
      are remembered between dialogs.
 
-IMP/MAN: (11/29/04, SMR) Double-clicking on vertical axis of waveform window gives dialog for setting extents.
+IMP: (11/29/04, SMR) Double-clicking on vertical axis of waveform window gives dialog for setting extents.
 
 BUG: (11/29/04, RK) NCC wasn't stopping upon finding first error for Cell Groups with more than one comparison.
 
@@ -369,15 +389,15 @@ IMP: (11/29/04, SMR) Improved name incrementing so that lists are all incremente
 IMP: (11/28/04, SMR) Added primitive node/arc invisibility when all of their layers
      are invisible, so that they are not selectable.
 
-IMP/MAN: (11/25/04, SMR) Added DXF input.
+IMP: (11/25/04, SMR) Added DXF input.
 
 IMP: (11/25/04, SMR) Added "grid" button to analog waveform window.
 
 IMP: (11/25/04, SMR) Renaming a group shows up in the explorer tree.
 
-IMP/MAN: (11/25/04, SMR) New Arc Preference: Duplicate/Array/Paste auto-increments arc names.
+IMP: (11/25/04, SMR) New Arc Preference: Duplicate/Array/Paste auto-increments arc names.
 
-IMP/MAN: (11/25/04, GVG) 3D View: automatic resizing in Z axis in any open 3D view if scale changes.
+IMP: (11/25/04, GVG) 3D View: automatic resizing in Z axis in any open 3D view if scale changes.
      New location of scale factor in 3D dialog.
 
 BUG: (11/25/04, GVG) DRC badBoxArea not returning when error found and then wrong good date was stored (Bug #13)
@@ -458,7 +478,7 @@ FIX: In "CrossLibCopy.showCells()", use "nameSameNumeric".
 BUG: (11/18/04, DN) Port moved always reported for ports of transistors rotated to 45 degree.
 FIX: ArcInst.stillInPort() tolerates distance to nearest grid point "0.01*sqrt(0.5)".
 
-IMP/MAN: (11/18/04, DN) Menu entry "File|CheckAndRepairLibraries" is splitted to two:
+IMP: (11/18/04, DN) Menu entry "File|CheckAndRepairLibraries" is splitted to two:
     "File|CheckLibraries|Check" and "File|CheckLibraries|Repair".
 
 BUG: (11/18/04, DN) CheckAndRepair may change database, but it isn't executed in the change thread.
@@ -476,7 +496,7 @@ FIX: In Cell.copyNodeProto() ignore existing cross-library references.
 
 BUG: (11/16/04, RK) NCC: NCC crashes if A and B are in the same Cell group and A instantiates B.
 
-IMP/MAN: (11/16/04, GVG) DRC: dates stored disabled (OUT)
+IMP: (11/16/04, GVG) DRC: dates stored disabled (OUT)
 
 BUG: (11/16/04, GVG) Rounding issue in Quick.lookForCrossPolygons()
 FIX: round bounding box before looking for points. This fixes JonG's DRC notch error reported on 11/09/05 (90nm tech)
@@ -491,9 +511,9 @@ FIX: getShapeOfNode and getShapeOfPort use getAnchorCenter instead of getTrueCen
 BUG: (11/16/04, SMR) Hierarchical display of wires is sometimes off by 1 pixel.
 FIX: In EditWindow.databaseToScreen() use rounding for better accuracy.
 
-IMP/MAN: (11/15/04, GVG) Network tool connected to 3D View
+IMP: (11/15/04, GVG) Network tool connected to 3D View
 
-IMP/MAN: (11/15/04, GVG) Ability to save ErrorLogger for debugging purposes.
+IMP: (11/15/04, GVG) Ability to save ErrorLogger for debugging purposes.
 
 ************************* Version 8.01ao: *********************************
 
@@ -538,14 +558,14 @@ IMP: (11/12/04, GVG) List Geometry on Network: fast algorithm in PolyQTree worki
 FIX (11/12/04, JKG) Parasitic extraction of capacitance in the Spice netlister
     now works properly.
 
-IMP/MAN (11/12/04, JKG) Added units to parasitic section of Spice Options Tab,
+IMP (11/12/04, JKG) Added units to parasitic section of Spice Options Tab,
     added new option "Gate Length Subtraction".
 
 IMP: (11/12/04, SMR) Resizing a node lets you make it smaller without jumping corners.
 
-IMP/MAN (11/12/04, JKG) Added command Tool->Network->List Total Wire Lengths on All Networks
+IMP (11/12/04, JKG) Added command Tool->Network->List Total Wire Lengths on All Networks
 
-IMP/MAN (11/12/04, JKG) Added command Tool->Logical Effort->Back Annotate Wire Lengths
+IMP (11/12/04, JKG) Added command Tool->Logical Effort->Back Annotate Wire Lengths
 
 IMP: (11/12/04, SMR) Solid opaque layers no longer obscure text.
 
@@ -587,7 +607,7 @@ FIX: Check of null pointer in input.JELIB.realizeCellsRecursively .
 BUG: (11/11/04, DN) TextUtils.nameSameNumeric may loop infinitely after my previous change.
 FIX: Reimplement TextUtils.nameSameNumeric. It is case-sensitive. "nameSameNumeric(s1,s2) == 0" IFF "s1.equals(s2)".
 
-IMP/MAN: (11/10/04, GVG) Scaling factor in 3D view.
+IMP: (11/10/04, GVG) Scaling factor in 3D view.
 
 IMP: (11/10/04, GVG) Removing one toggle in DRC tab
 
@@ -612,7 +632,7 @@ IMP: (11/10/04, DN) Better diagnostic in JELIB reader when point doesn't fit a p
 
 BUG: (11/10/04, RK) Make gate generator generate gates for every instance of a Cell (For Justin)
 
-IMP/MAN: (11/9/04, GVG) Two new toggles in DRC tab to ignore hierarchical/poly-select conditions.
+IMP: (11/9/04, GVG) Two new toggles in DRC tab to ignore hierarchical/poly-select conditions.
 
 IMP: (11/9/04, GVG) LayoutLib.openLibForRead works with JELIB format. Terminate program if -batch option in EvalJavaBsh
                                                         
@@ -659,7 +679,7 @@ IMP: (11/8/04, GVG) Correct aligment of m2/m3, m4/m5, m6/m7, and m8/m9 for TSMC9
 BUG: (11/8/04, SMR) Reloading waveform window fails if there are a different number of sweeps.
 FIX: Reload sweeps list correctly.
 
-IMP/MAN: (11/8/04, SMR) When interactively resizing a node, holding Control limits
+IMP: (11/8/04, SMR) When interactively resizing a node, holding Control limits
      resize to a single axis.  Holding Shift switches to center-based sizing.
 
 IMP: (11/8/04, SMR) Disallow moving the cell-center when other objects are moving.
@@ -720,11 +740,11 @@ IMP: (11/3/04, SMR) Removed unused listeners: ClickAndDragListener and WiringLis
 
 IMP: (11/3/04, GVG) Fix in network evaluation during hierarchical min area checking
 
-IMP/MAN: (11/3/04, SMR) Printing resolution is now higher and can be set in the Preferences panel.
+IMP: (11/3/04, SMR) Printing resolution is now higher and can be set in the Preferences panel.
 
 IMP: (11/3/04, GVG) Another algorithm for DRC TSMC90 PP/NP.R.1 rule
 
-IMP/MAN: (11/3/04, GVG) Default technology in preferences. It will be used for setting palette. Manual updated.
+IMP: (11/3/04, GVG) Default technology in preferences. It will be used for setting palette. Manual updated.
 
 BUG: (11/2/04, RK) Repair bugs from partial conversion of gate layout generators to tsmc90
 
@@ -800,9 +820,9 @@ IMP: (10/29/04, RK) Add hook for running Layout generator for MOCMOS or tsmc90
 
 BUG: (10/29/04, RK) NCC Flat top cell must be prepared for null VarContext
 
-IMP/MAN (10/29/04, GVG) Batch option. Ability to run JElectric on batch mode (-batch).
+IMP (10/29/04, GVG) Batch option. Ability to run JElectric on batch mode (-batch).
 
-IMP/MAN (10/29/04, JKG) Open file dialog opens ELIB and JELIBS, removed ELIBS
+IMP (10/29/04, JKG) Open file dialog opens ELIB and JELIBS, removed ELIBS
     from import/export, Added command under File to save all libraries as a
     different format (ELIB or JELIB).
 
@@ -844,7 +864,7 @@ FIX: Use untransformed node bounds when computing text location.
 BUG: (10/28/04, DN) IgnoreResitors option connects incorrectly.
 FIX: In NetSchem.internalConnections replace "drawn" by "drawnOffsets[drawn]"
 
-IMP/MAN: (10/27/04, GVG) New scheme in TechPalette, Schematic. Extra text in well contacts.
+IMP: (10/27/04, GVG) New scheme in TechPalette, Schematic. Extra text in well contacts.
 
 BUG: (10/27/04, SMR) Pasting primitives does not adjust sizes right (shifts their positions instead).
 FIX: In "Clipboard.pasteNodeToNode()" fixed this.
@@ -857,7 +877,7 @@ FIX: Each sweep can now have its own time values.
 FIX: (10/27/04, JKG) Added code in LibraryFiles.readExternalLibraryFromFilename to handle
      references to other library formats.
 
-IMP/MAN: (10/27/04, JKG) Added File->Export->ELIB (version 7) All libraries command.
+IMP: (10/27/04, JKG) Added File->Export->ELIB (version 7) All libraries command.
 
 BUG: (10/27/04, GVG) Miscellaneous: another attempt to remove out of bound exception and fix the group naming
      (it was removing last character due to <= condition) Removing TSMC90 PP/NP.S.7 rule in DRC.
@@ -896,14 +916,14 @@ FIX: Add method "modifyCellGroup" to interface "database.changes.Change".
 IMP: (10/25/04, DN) Explorer context menu allows only newest versions of schematic cells to be
      main schematics.
 
-IMP/MAN: (10/25/04, SMR) Added "BiCMOS" technology.
+IMP: (10/25/04, SMR) Added "BiCMOS" technology.
 
 BUG: (10/24/04, SMR) JELIB files fail if there is a library with the same name as a technology.
 FIX: In JELIB, node instances now distinguish between primitive and cell instance by using "N" and "I".
 
-IMP/MAN: (10/24/04, SMR) Added "EFIDO" (digital filter) technology.
+IMP: (10/24/04, SMR) Added "EFIDO" (digital filter) technology.
 
-IMP/MAN: (10/24/04, SMR) Added "GDS" input.
+IMP: (10/24/04, SMR) Added "GDS" input.
 
 BUG: (10/24/04, SMR) Changing an icon size does not affect the "example" instance in the schematic.
 FIX: In "database.constraint.Layout.lookDown()", do not ignore example icons.
@@ -950,7 +970,7 @@ IMP: (10/21/04, SMR) Selecting a signal in the schematic shows all equivalents i
 
 IMP: (10/21/04, GVG) Cross-shaped contacts in TSMC90 including multiple cuts.
 
-IMP/MAN: (10/21/04, SMR) Added "CIF" input.
+IMP: (10/21/04, SMR) Added "CIF" input.
 
 IMP: (10/20/04, DN) Deprectated those variables on Technology, Tool,
      View, PrimitiveNode/Arc/Part objects which are not meaningful preferences.
@@ -1008,55 +1028,55 @@ BUG: (10/14/04, SMR) Spice output gets confuses when a single-wire export connec
 FIX: In "Topology.doGetNetworks()" sort networks by bus width as they are accumulated, not later.
      Changed Spice output to favor export names (isNetworksUseExportedNames).
 
-IMP/MAN: (10/13/04, SMR) Added maze routing.
+IMP: (10/13/04, SMR) Added maze routing.
 
 IMP: (10/12/04, SMR) A holdover from "C Electric" is the "temporary object".  It is unsafe and wastes memory.
      Its use has been replaced with HashMaps, and it has been removed from Geometric, ArcProto, and Cell.
 
-IMP/MAN: (10/12/04, SMR) Added unrouting.
+IMP: (10/12/04, SMR) Added unrouting.
 
-IMP/MAN: (10/11/04, SMR) Added river routing.
+IMP: (10/11/04, SMR) Added river routing.
 
 BUG: (10/11/04, DN) Networks of isolated ports have no names.
 FIX: Add names "node.port".
 
-IMP/MAN: (10/10/04, SMR) Added Messages Window font selection.
+IMP: (10/10/04, SMR) Added Messages Window font selection.
 
-IMP/MAN: (10/9/04, SMR) Added technology conversion ("View / Make Alternate Layout View").
+IMP: (10/9/04, SMR) Added technology conversion ("View / Make Alternate Layout View").
 
-IMP/MAN: (10/7/04, SMR) Added Explorer-pane context menu item on cell groups to rename the entire group.
+IMP: (10/7/04, SMR) Added Explorer-pane context menu item on cell groups to rename the entire group.
 
 BUG: (10/6/04, SMR) Arc negation is lost during many operations (copy/paste, cross-library copy, insert jog in arc).
 FIX: Must reset this information.
 
-IMP/MAN: (10/6/04, SMR) Added "EDIF" output.
+IMP: (10/6/04, SMR) Added "EDIF" output.
 
 IMP: (10/5/04, GVG) 3DView: Ability to turn on/off antialiasing without closing 3D window. Changes in diffuse, specular
      and ambient colors. Parasitic: arc cropping added.
 
-IMP/MAN: (10/4/04, GVG) First basic coding for parasitic extraction (Package tool/parasitic added).
+IMP: (10/4/04, GVG) First basic coding for parasitic extraction (Package tool/parasitic added).
 
-IMP/MAN: (10/2/04, SMR) Added "LEF" and "DXF" output.
+IMP: (10/2/04, SMR) Added "LEF" and "DXF" output.
 
-IMP/MAN: (10/2/04, SMR) Added "MOSSIM" netlisting.
+IMP: (10/2/04, SMR) Added "MOSSIM" netlisting.
 
-IMP/MAN: (10/2/04, SMR) Added "L" output.
+IMP: (10/2/04, SMR) Added "L" output.
 
 IMP: (10/1/04, GVG) badSubBox: Cell parameter out. PolyBase.calcBound: out rounding.
 
-IMP/MAN: (10/1/04, SMR) Added "ESIM/RSIM/RNL/COSMOS" netlisting.
+IMP: (10/1/04, SMR) Added "ESIM/RSIM/RNL/COSMOS" netlisting.
 
-IMP/MAN: (10/1/04, SMR) Added "FastHenry" netlisting, Preferences panel, and arc properties.
+IMP: (10/1/04, SMR) Added "FastHenry" netlisting, Preferences panel, and arc properties.
 
 IMP: (9/30/04, GVG) ArcProto preferences moved to ERC package so no circular dependencies (de-coupling action).
 Profiling DRC: Arrays.fill instead of iterator.
 
-IMP/MAN: (9/29/04, SMR) Added "Skill" netlisting and a "Skill" panel in Preferences.
+IMP: (9/29/04, SMR) Added "Skill" netlisting and a "Skill" panel in Preferences.
 
 IMP: (9/28/04, GVG) 3D view: object highlight and connection with 2D view in both directions.
 Click.wav to resources folder.
 
-IMP/MAN: (9/28/04, SMR) Added "Tegas" netlisting.
+IMP: (9/28/04, SMR) Added "Tegas" netlisting.
 
 IMP: (9/27/04, GVG) ERC profiling: removal of 3 fields in WellArea/WellCon (15% reduction in WellArea, 20% in WellCon).
 Poly classs splitted: new PolyBase classs should be used if only geometrical information is required. Poly class contains
@@ -1068,7 +1088,7 @@ manual was updated.
 
 BUG: (9/24/04, GVG) Geometries on Network: arcs were not transformed up to the top cell and adding export detection.
 
-IMP/MAN: (9/24/04, SMR) Added Silos netlisting.
+IMP: (9/24/04, SMR) Added Silos netlisting.
 
 BUG: (9/24/04, SMR) Cell names are sorted incorrectly.
 FIX: In TextUtils.nameSameNumeric(), make sure numbers are evaluated in base 10.
@@ -1093,13 +1113,13 @@ compared to more than 1hr (42793 areas and 38350 contact regions checked)
 
 IMP: (9/23/04, SMR) PostScript output improved.
 
-IMP/MAN: (9/22/04, SMR) Waveform window has button to show vertex points.
+IMP: (9/22/04, SMR) Waveform window has button to show vertex points.
 
-IMP/MAN: (9/22/04, SMR) Added "bipolar" and "pcb" technologies.
+IMP: (9/22/04, SMR) Added "bipolar" and "pcb" technologies.
 
-IMP/MAN: (9/22/04, SMR) Added ability to show sweeps and intervals to waveform window.
+IMP: (9/22/04, SMR) Added ability to show sweeps and intervals to waveform window.
 
-IMP/MAN: (9/21/04, SMR) Added "Make Schematic" to convert layout to schematics.
+IMP: (9/21/04, SMR) Added "Make Schematic" to convert layout to schematics.
 
 IMP: (9/22/04, GVG) Refactoring NodeInst/ArcInst makeInstance/newInstance methods.
      From now on, short/long definitions are available
@@ -1115,7 +1135,7 @@ IMP (9/21/04, RK) Performance tuning flat NCC algorithm. I replaced StratFrontie
 FIX (9/21/04, JKG+GVG) Fix for checking export type on ERC well network.
      Don't check if well networks are not connected together; NCC will check that
 
-IMP/MAN: (9/21/04, SMR) Added "Down Hierarchy In Place".
+IMP: (9/21/04, SMR) Added "Down Hierarchy In Place".
 
 BUG: (9/21/04, SMR) Verilog netlister doesn't handle doubly-indexed busses where the first index is non-numeric.
 FIX: In Topology.doGetNetworks() must find any numeric index to determine ascending/descending order.
@@ -1169,7 +1189,7 @@ FIX: (9/17/04, GVG) DRC fix related to Well regions not connected and serpentine
 
 IMP: (9/17/04, GVG) Improvements to speed up incremental DRC.
 
-IMP/MAN: (9/17/04, JKG) new command "Tool -> Logical Effort -> Clear LE Sizes in all Libraries"
+IMP: (9/17/04, JKG) new command "Tool -> Logical Effort -> Clear LE Sizes in all Libraries"
 
 ************************* Version 8.01q: *********************************
 
@@ -1205,14 +1225,14 @@ IMP: (9/15/04, GVG) Check box in DRC Tab to disable area checking.
 
 IMP: (9/15/04, GVG) Improvement in List Geometry on Network
 
-IMP/MAN: (9/15/04, GVG) Adding option to disconnect DRC area checking. Manual
+IMP: (9/15/04, GVG) Adding option to disconnect DRC area checking. Manual
      updated on 9/16/04
 
 ************************* Version 8.01o: *********************************
 
 BUG: (9/15/04, JKG) Fixed changing transistor sizes/mirror etc from GetInfo dialog
 
-IMP/MAN: (9/15/04, JKG) Add Tool -> Logical Effort -> Clear LE Sizes on node
+IMP: (9/15/04, JKG) Add Tool -> Logical Effort -> Clear LE Sizes on node
      to delete LE sizes on a node.
 
 IMP: (9/15/04, SMR) "Change" dialog always goes to currently selected cell, even
@@ -1230,11 +1250,11 @@ FIX: Clipboard updated to handle Highlights instead of Geometrics.
 
 IMP: (9/15/04, SMR) "Text Properties" dialog on cell instance names doesn't allow changes.
 
-IMP/MAN: (9/15/04, JKG) Added "File->Force Quit (and Save) " to kill Electric
+IMP: (9/15/04, JKG) Added "File->Force Quit (and Save) " to kill Electric
 
 IMP: (9/14/04, SMR) Can now print waveform windows.
 
-IMP/MAN: (9/14/04, SMR) Added "Eagle", "Pads", and "ECAD" netlist output.
+IMP: (9/14/04, SMR) Added "Eagle", "Pads", and "ECAD" netlist output.
 
 ************************* Version 8.01n: *********************************
 
@@ -1259,7 +1279,7 @@ IMP: (9/13/04, SMR) Improved placement of icon ports when new schematic exports 
 BUG: (9/10/04, GVG) CrossLibCopy: not comparing attributes and wrong comparison for Exports
 FIX: Extra code in Cell, NodeInst, PortInst, PortProto and Variable.
 
-IMP/MAN: (9/10/04, GVG) New look@feel in CrossLibCopy dialog. Center column will display date comparison.
+IMP: (9/10/04, GVG) New look@feel in CrossLibCopy dialog. Center column will display date comparison.
      Two extra toggles were created to handle quiet mode and "date and content" comparison. Buttons "List Diff" and "Examine
      Quietly" were removed
 
@@ -1279,14 +1299,14 @@ BUG: (9/10/04, SMR) When instances in a cell are locked, moving more than one ob
      erroneously invokes the locked-warning dialog.
 FIX: In CircuitChanges.ManyMove.doIt() only check nodes that moved, not all in the cell.
 
-IMP/MAN (9/10/04, RK) Allow user to control number of items printed in the error diagnostics.
+IMP (9/10/04, RK) Allow user to control number of items printed in the error diagnostics.
 
-IMP/MAN (9/10/04, RK) Reworked the NCC commands. The operation is now selected by the NCC preferences pane while the number of windows is selected by the menu.
+IMP (9/10/04, RK) Reworked the NCC commands. The operation is now selected by the NCC preferences pane while the number of windows is selected by the menu.
 
 BUG: (9/10/04, SMR) Arraying arcs doesn't copy their constraining properties.
 FIX: Array code calls "copyPropertiesFrom()".
 
-IMP/MAN: (9/10/04, SMR) Added David Harris's ROM generator.
+IMP: (9/10/04, SMR) Added David Harris's ROM generator.
 
 IMP: (9/9/04, GVG) DRC Adding warning messages when zero width arcs are detected (covered or non-covered by other layers).
 
@@ -1327,7 +1347,7 @@ IMP: (9/8/04, SMR) Waveform window lets you cross-probe at lower levels of hiera
 
 IMP: (9/8/04, SMR) Can now add signals multiple times to the waveform window.
 
-IMP/MAN: (9/8/04, JKG) Added cancel button to Change CellGroup dialog
+IMP: (9/8/04, JKG) Added cancel button to Change CellGroup dialog
 
 BUG: (9/8/04, JKG) Window focus problems in MDI mode
 FIX: moved show() calls out of Job threads and into AWT Event thread.
@@ -1385,10 +1405,10 @@ FIX: In Export.rename(), allow case-changes without thinking that it is an exist
 BUG: (8/31/04, SMR) Waveform window crashes when "Down Hierarchy" or "Up Hierachy" commands are used.
 FIX: Ignore these commands: they don't apply to the waveform window.
 
-IMP/MAN: (8/31/04, JKG) "Optimize Gates for Equal Delay With Caching" new menu item,
+IMP: (8/31/04, JKG) "Optimize Gates for Equal Delay With Caching" new menu item,
     eventually old command will be removed.  In Tool->Logical Effort
 
-IMP/MAN: (8/31/04, JKG) "Repeat Last Command" in Edit menu.
+IMP: (8/31/04, JKG) "Repeat Last Command" in Edit menu.
 
 IMP: (8/30/04, GVG) New transistors in TSMC90. Changes in TechPalette to select them.
 
@@ -1423,14 +1443,14 @@ BUG: (8/25/04, JKG) Automatic reinheritance of default parameters inside getVar(
     bad idea. Call ElectricObject.getParameter() or ElectricObject.getParameters() if you
     want the returned variables to include default parameter variables.
 
-IMP/MAN: (8/25/04, JKG) Added File Menu -> Page Setup... command
+IMP: (8/25/04, JKG) Added File Menu -> Page Setup... command
 
 BUG: (8/25//04, GVG) MoCMOS wrong min spacing for active in different implants (Same problem in C-Electric)
 FIX: 4 instead of 3
 
 IMP: for a given pair, DRC only reports errors once.
 
-IMP/MAN: (8/25/04, SMR) "Array" dialog allows negative array amounts to create
+IMP: (8/25/04, SMR) "Array" dialog allows negative array amounts to create
      arrays in the other direction.
 
 BUG: (8/24/04, SMR) Verilog output sometimes writes 2 connections for a transistor instead of 3.
@@ -1450,7 +1470,7 @@ BUG: (8/23/04, GVG) DRC and wide rules in MoCMOS not properly translated to new 
      (Metal2-Metal3 wide distance setup calling wrong constructor)
 FIX: Adding missing argument (WIDELIMIT)
 
-IMP/MAN: (8/22/04, JKG) Added mouse-over highlighter. To disable if necessary, set
+IMP: (8/22/04, JKG) Added mouse-over highlighter. To disable if necessary, set
      ClickZoomWireListener.useMouseOverHighlighter to false.
      Controlled with "Selection" and "Color" tabs of Preferences.
 
@@ -1472,9 +1492,9 @@ FIX: Non-connected contacts get netNum = -1 in Java
 BUG: (8/22/04, SMR) "Cleanup Pins" doesn't get two inline pins in a row.
 FIX: Made inline pin cleanup iterative to keep finding more.
 
-IMP/MAN: (8/22/04, SMR) Added context menu in Messages Window to cut/copy/paste its contents.
+IMP: (8/22/04, SMR) Added context menu in Messages Window to cut/copy/paste its contents.
 
-IMP/MAN: (8/22/04, SMR) Added "View / Make Skeleton View".
+IMP: (8/22/04, SMR) Added "View / Make Skeleton View".
 
 IMP: (8/21/04, SMR) "Array" now places objects in proper name order.
 
@@ -1486,7 +1506,7 @@ IMP: (8/21/04, SMR) Text can now be colored.
 BUG: (8/21/04, SMR) Re-exporting creates duplicate exports.
 FIX: In "tool.user.menus.ExportChanges.reExportNodes()" check for existing exports.
 
-IMP/MAN: (8/21/04, SMR) "Change" dialog is now modeless.
+IMP: (8/21/04, SMR) "Change" dialog is now modeless.
 
 BUG: (8/20/04, SMR) Text anchor does not rotate properly when nodes are mirrored.
 FIX: Fixed database.geometry.Poly.rotateType().
@@ -1496,7 +1516,7 @@ FIX: Fixed to remember proper original size.
 
 ************************* Version 8.01i: *********************************
 
-IMP/MAN: (8/19/04, JKG) new command line options: -mdi (force MDI mode) and
+IMP: (8/19/04, JKG) new command line options: -mdi (force MDI mode) and
     -sdi (force SDI mode). -m no longer works.
 
 BUG: (8/19/04, GVG)In DRC, wrong condition for wide wire rule (<= instead of <)
@@ -1524,10 +1544,10 @@ FIX: In "tool.io.input.ELIB.realizeNode()" must offset the anchor values by (xof
 BUG: (8/18/04, SMR) "Show Ports On Node" and "Show Exports" display incorrectly when zoomed in.
 FIX: Determines visible ports before arranging them on the display.
 
-BUG/MAN: (8/18/04, SMR) "Size" on nodes doesn't work right for mirrored nodes; should not be center-based.
+BUG: (8/18/04, SMR) "Size" on nodes doesn't work right for mirrored nodes; should not be center-based.
 FIX: Size now works from farthest corner (unless Control is held).
 
-FIX/IMP/MAN: (8/18/04, JKG) copy/paste fixes: default paste by center point,
+FIX/IMP: (8/18/04, JKG) copy/paste fixes: default paste by center point,
     can move anchor point, shows delta from copy to paste. Right click menu added when pasting.
 
 IMP (8/18/04, GVG): Extra sizing rules for metals (another level) and area
@@ -1536,11 +1556,11 @@ IMP (8/18/04, GVG): Extra sizing rules for metals (another level) and area
 
 FIX: (8/17/04, RK) exportsConnectedByParent works on "implicit" expots created for global signals
 
-IMP/MAN: (8/17/04, GVG) More rules for new technology. Important changes in DRC code so previous version was tagged as version-8-01g just in case
+IMP: (8/17/04, GVG) More rules for new technology. Important changes in DRC code so previous version was tagged as version-8-01g just in case
 
 FIX (8/15/04, JKG) Closing a library now actually closes all Cells in library as well.
 
-IMP/MAN (8/15/04, JKG) Added library palette to Components palette.
+IMP (8/15/04, JKG) Added library palette to Components palette.
 
 ************************* Version 8.01f: *********************************
 
@@ -1549,7 +1569,7 @@ FIX: (8/13/04, JKG) Round doubles before truncating to int in ELIB writer, fixes
 
 FIX: (8/13/04, JKG) Various fixes to Highlighter introduced in last version
 
-IMP/MAN (8/13/04, JKG) Show networks now works hierarchically for layout (keep hitting ctrl-k)
+IMP (8/13/04, JKG) Show networks now works hierarchically for layout (keep hitting ctrl-k)
 
 IMP: (8/13/04, RK) "Better" NCC error reporting for Hash Code parition failures
 
@@ -1563,7 +1583,7 @@ FIX: (8/13/04, RK) When NCCing hierarchically and continuing after errors, flatt
 
 ************************* Version 8.01e: *********************************
 
-IMP/MAN: (8/12/04, JKG) Added preference in General Tab as to how Electric chooses the working dir.
+IMP: (8/12/04, JKG) Added preference in General Tab as to how Electric chooses the working dir.
 
 IMP: (8/11/04, JKG) Highlighter now selects from a stack of objects based on last object selected.
 
@@ -1571,7 +1591,7 @@ FIX: (8/9/04, GVG): DRC: Missing transformation in hierarchical DRC so neighbor 
 
 IMP: (8/9/04, GVG): GDS values in TSMC90 tech.
 
-IMP/MAN: (8/9/04, JKG) Added color chooser to GetInfoArc
+IMP: (8/9/04, JKG) Added color chooser to GetInfoArc
 
 FIX: (8/9/04, JKG) Fixed X/Y size mirroring bug in GetInfoNode dialog
 
@@ -1592,28 +1612,28 @@ IMP: (8/03/04, JKG) GetInfoNode now shows transistor width/length instead of x/y
 
 FIX: (8/2/04, RK) NCC wasn't checking that same named Exports are on the equivalent nets.
 
-IMP/MAN (8/2/04, RK) Added NCC annotation: "notSubcircuit".
+IMP (8/2/04, RK) Added NCC annotation: "notSubcircuit".
 
-IMP/MAN: (7/29/04, JKG) Added "Re-export Selected, include wired ports", and
+IMP: (7/29/04, JKG) Added "Re-export Selected, include wired ports", and
         "Re-export Highlighted Area, inc. wired ports" menu commands.
 
-IMP/MAN: (7/25/04, JKG) Added "Re-export Selected" menu item.
+IMP: (7/25/04, JKG) Added "Re-export Selected" menu item.
 
 IMP (7/23/04, RK) If Export names don't match then suggest a possible mapping
 
 
 ************************* Version 8.01a: Released 7/22/04 ************************
 
-IMP/MAN: (7/22/04, JKG) Numerical display now always formats to show postfix. Units Preferences
+IMP: (7/22/04, JKG) Numerical display now always formats to show postfix. Units Preferences
      disabled, as they no longer make sense. Use TextUtils.parseUserInput to read in numbers.
 
 FIX: (7/22/04, JKG) Many many small fixes in copy/moving/arraying/editing/displaying.
 
-IMP/MAN: (7/21/04, JKG) Wiring Tool revamped, all cases checked
+IMP: (7/21/04, JKG) Wiring Tool revamped, all cases checked
 
 IMP: (7/22/04, GVG) New interface for geometrical operation. Error thrown if Java3D is not found. Some improvements in ERC.
 
-IMP/MAN: (7/20/04, RK) Add Regular Expressions to FindText Dialog. Allow user selection of objects to be searched. Report finds and changes in Messages Window. Persist dialog settings.  Allow temporary arc and node inst names to be searched.
+IMP: (7/20/04, RK) Add Regular Expressions to FindText Dialog. Allow user selection of objects to be searched. Report finds and changes in Messages Window. Persist dialog settings.  Allow temporary arc and node inst names to be searched.
 
 BUG: (7/20/04, RK) Fix button (it did nothing). Exports weren't being searched.
 

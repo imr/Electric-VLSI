@@ -1151,6 +1151,9 @@ public class PixelDrawing
 
 	public static void forceRedraw(Cell cell)
 	{
+		// if there is no global for remembering cached cells, do not cache
+		if (expandedCells == null) return;
+
 		List keys = new ArrayList();
 		for(Iterator it = expandedCells.keySet().iterator(); it.hasNext(); )
 			keys.add(it.next());

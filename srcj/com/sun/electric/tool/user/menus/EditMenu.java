@@ -312,6 +312,10 @@ public class EditMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FindText.findTextDialog(); }});
 		textSubMenu.addMenuItem("Change Text Size...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ChangeText.changeTextDialog(); }});
+		textSubMenu.addMenuItem("Increase All Text Size", KeyStroke.getKeyStroke('=', buckyBit),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { changeGlobalTextSize(1.25); }});
+		textSubMenu.addMenuItem("Decrease All Text Size", KeyStroke.getKeyStroke('-', buckyBit),
+				new ActionListener() { public void actionPerformed(ActionEvent e) { changeGlobalTextSize(0.8); }});
 
 		MenuBar.Menu cleanupSubMenu = new MenuBar.Menu("Cleanup Cell");
 		editMenu.add(cleanupSubMenu);
@@ -717,7 +721,22 @@ public class EditMenu {
         }
     }
 
-	/**
+    /**
+     * Method to change the global text scale by a given amount.
+     * @param scale the amount to scale the global text size.
+     */
+    public static void changeGlobalTextSize(double scale)
+    {
+    	double curScale = User.getGlobalTextScale();
+    	curScale *= scale;
+    	if (curScale != 0)
+    	{
+    		User.setGlobalTextScale(curScale);
+    		EditWindow.repaintAllContents();
+    	}
+    }
+
+    /**
 	 * This method implements the command to highlight all objects in the current Cell.
 	 */
 	public static void selectAllCommand()

@@ -34,6 +34,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
@@ -2615,36 +2616,48 @@ public class EditWindow extends JPanel
         Cell oldCell = cell;
 
         // determine which export is selected so it can be shown in the upper level
-        List what = highlighter.getHighlights();
         Export selectedExport = null;
-        for(Iterator it = what.iterator(); it.hasNext(); )
+        Set nets = highlighter.getHighlightedNetworks();
+        for(Iterator it = nets.iterator(); it.hasNext(); )
         {
-        	Highlight h = (Highlight)it.next();
-        	if (h.getType() == Highlight.Type.EOBJ)
+        	Network net = (Network)it.next();
+        	for(Iterator eIt = net.getExports(); eIt.hasNext(); )
         	{
-        		ElectricObject eObj = h.getElectricObject();
-        		if (eObj instanceof PortInst)
-        		{
-        			PortInst pi = (PortInst)eObj;
-        			for(Iterator eIt = pi.getNodeInst().getExports(); eIt.hasNext(); )
-        			{
-        				Export e = (Export)eIt.next();
-        				if (e.getOriginalPort() == pi)
-        				{
-        					selectedExport = e;
-        					break;
-        				}
-        			}
-        		}
-        	} else if (h.getType() == Highlight.Type.TEXT)
-        	{
-        		if (h.getVar() == null && h.getName() == null && h.getElectricObject() instanceof Export)
-        		{
-					selectedExport = (Export)h.getElectricObject();
-					break;
-        		}
+        		Export e = (Export)eIt.next();
+        		selectedExport = e;
+        		break;
         	}
+        	if (selectedExport != null) break;
         }
+//        List what = highlighter.getHighlights();
+//        for(Iterator it = what.iterator(); it.hasNext(); )
+//        {
+//        	Highlight h = (Highlight)it.next();
+//        	if (h.getType() == Highlight.Type.EOBJ)
+//        	{
+//        		ElectricObject eObj = h.getElectricObject();
+//        		if (eObj instanceof PortInst)
+//        		{
+//        			PortInst pi = (PortInst)eObj;
+//        			for(Iterator eIt = pi.getNodeInst().getExports(); eIt.hasNext(); )
+//        			{
+//        				Export e = (Export)eIt.next();
+//        				if (e.getOriginalPort() == pi)
+//        				{
+//        					selectedExport = e;
+//        					break;
+//        				}
+//        			}
+//        		}
+//        	} else if (h.getType() == Highlight.Type.TEXT)
+//        	{
+//        		if (h.getVar() == null && h.getName() == null && h.getElectricObject() instanceof Export)
+//        		{
+//					selectedExport = (Export)h.getElectricObject();
+//					break;
+//        		}
+//        	}
+//        }
 
         try {
             Nodable no = cellVarContext.getNodable();
