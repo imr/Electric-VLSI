@@ -49,6 +49,7 @@ import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.Main;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -148,7 +149,7 @@ public class ERCWellCheck
 				Layer layer = (Layer)it.next();
 
 				// Not sure if null goes here
-				Collection set = topMerge.getObjects(layer, false);
+				Collection set = topMerge.getObjects(layer, false, true);
 
 				for(Iterator pIt = set.iterator(); pIt.hasNext(); )
 				{
@@ -315,7 +316,6 @@ public class ERCWellCheck
 					boolean con = false;
 					if (wa.netNum == oWa.netNum && wa.netNum >= 0) con = true;
 					DRC.Rule rule = DRC.getSpacingRule(wa.layer, wa.layer, con, false, 0);
-					//DRC.Rule rule = DRC.getSpacingRule(wa.layer, wa.layer, con, false, false, 0);
 					if (rule.value < 0) continue;
 					if (wa.bounds.getMinX() > oWa.bounds.getMaxX()+rule.value ||
 						oWa.bounds.getMinX() > wa.bounds.getMaxX()+rule.value ||
@@ -596,7 +596,6 @@ public class ERCWellCheck
 			// make an object for merging all of the wells in this cell
 			Cell cell = info.getCell();
 	        GeometryHandler merge = (GeometryHandler)cellMerges.get(cell);
-			//PolyMerge merge = (PolyMerge)cellMerges.get(cell);
 
 			if (merge == null)
 			{
@@ -605,6 +604,8 @@ public class ERCWellCheck
 				else
 					merge = new PolyMerge();
 				cellMerges.put(cell, merge);
+			} else if (Main.getDebug())
+				System.out.println("Chech this condition in ERCWellCheck::exitCell");
 
 				// merge everything
 				for(Iterator it = cell.getNodes(); it.hasNext(); )
@@ -661,7 +662,6 @@ public class ERCWellCheck
 						merge.add(layer, newElem);
 					}
 				}
-			}
 
 			// look for well and substrate contacts
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
