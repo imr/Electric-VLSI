@@ -690,7 +690,18 @@ public class GDS extends Geometry
 	private void outputBoundary(Poly poly, int layerNumber)
 	{
 		Point2D [] points = poly.getPoints();
-		int count = points.length;
+
+		// remove redundant points
+		Point2D [] newPoints = new Point2D[points.length];
+		int count = 0;
+		newPoints[count++] = points[0];
+		for(int i=1; i<points.length; i++)
+		{
+			if (points[i].equals(points[i-1])) continue;
+			newPoints[count++] = points[i];
+		}
+		points = newPoints;
+
 		if (count > MAXPOINTS)
 		{
 //			getbbox(poly, &lx, &hx, &ly, &hy);
@@ -716,7 +727,6 @@ public class GDS extends Geometry
 			for( ; sofar<count; sofar++)
 				if (points[sofar].getX() == points[start].getX() && points[sofar].getY() == points[start].getY()) break;
 			if (sofar < count) sofar++;
-
 			outputHeader(HDR_BOUNDARY, 0);
 			outputHeader(HDR_LAYER, layerNumber);
 			outputHeader(HDR_DATATYPE, 0);
