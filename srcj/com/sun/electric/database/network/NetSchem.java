@@ -598,6 +598,7 @@ class NetSchem extends NetCell {
 		for (int i = 0; i < numDrawns; i++) {
 			drawnOffsets[i] = mapOffset;
 			mapOffset += drawnWidths[i];
+			if (Network.debug) System.out.println("Drawn " + i + " has offset " + drawnOffsets[i]);
 		}
 		if (nodeProxies == null || nodeProxies.length != nodeProxiesOffset)
 			nodeProxies = new Proxy[nodeProxiesOffset];
@@ -958,12 +959,31 @@ class NetSchem extends NetCell {
 			userNetlist.getNetworkByMap(netNamesOffset + nn.index).addName(nn.name.toString());
 		}
 		
+		// add temporary names to unnamed nets
+		int numArcs = cell.getNumArcs();
+		for (int i = 0; i < numArcs; i++) {
+			ArcInst ai = cell.getArc(i);
+			int drawn = drawns[arcsOffset + i];
+			if (drawn < 0) continue;
+			for (int j = 0; j < drawnWidths[drawn]; j++) {
+				JNetwork network = userNetlist.getNetwork(ai, j);
+				if (network == null || network.hasNames()) continue;
+				if (drawnNames[drawn] == null) continue;
+				if (drawnWidths[drawn] == 1)
+					network.addName(drawnNames[drawn].toString());
+				else if (drawnNames[drawn].isTempname())
+					network.addName(drawnNames[drawn].toString() + "[" + j + "]");
+				else
+					network.addName(drawnNames[drawn].subname(j).toString());
+			}
+		}
+
 		/*
 		// debug info
 		System.out.println("BuildNetworkList "+cell);
 		int i = 0;
-		for (int l = 0; l < networks.length; l++) {
-			JNetwork network = networks[l];
+		for (int l = 0; l < userNetlist.networks.length; l++) {
+			JNetwork network = userNetlist.networks[l];
 			if (network == null) continue;
 			String s = "";
 			for (Iterator sit = network.getNames(); sit.hasNext(); )
@@ -974,26 +994,28 @@ class NetSchem extends NetCell {
 			System.out.println("    "+i+"    "+s);
 			i++;
 			for (int k = 0; k < globals.size(); k++) {
-				if (networks[netMap[k]] != network) continue;
+				if (userNetlist.nm_net[userNetlist.netMap[k]] != l) continue;
 				System.out.println("\t" + globals.get(k));
 			}
 			int numPorts = cell.getNumPorts();
 			for (int k = 0; k < numPorts; k++) {
 				Export e = (Export) cell.getPort(k);
 				for (int j = 0; j < e.getNameKey().busWidth(); j++) {
-					if (networks[netMap[portOffsets[k] + j]] != network) continue;
+					if (userNetlist.nm_net[userNetlist.netMap[portOffsets[k] + j]] != l) continue;
 					System.out.println("\t" + e + " [" + j + "]");
 				}
 			}
 			for (int k = 0; k < numDrawns; k++) {
 				for (int j = 0; j < drawnWidths[k]; j++) {
-					if (networks[netMap[drawnOffsets[k] + j]] != network) continue;
+					int ind = drawnOffsets[k] + j;
+					int netInd = userNetlist.netMap[ind];
+					if (userNetlist.nm_net[userNetlist.netMap[drawnOffsets[k] + j]] != l) continue;
 					System.out.println("\tDrawn " + k + " [" + j + "]");
 				}
 			}
 			for (Iterator it = netNames.values().iterator(); it.hasNext();) {
 				NetName nn = (NetName)it.next();
-				if (networks[netMap[netNamesOffset + nn.index]] != network) continue;
+				if (userNetlist.nm_net[userNetlist.netMap[netNamesOffset + nn.index]] != l) continue;
 				System.out.println("\tNetName " + nn.name);
 			}
 		}
