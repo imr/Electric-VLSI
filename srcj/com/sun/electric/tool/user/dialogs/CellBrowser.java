@@ -77,6 +77,8 @@ public class CellBrowser extends EDialog {
             this.name = name;
         }
 
+        public String toString() { return name; }
+
         public static final DoAction newInstance = new DoAction("New Cell Instance");
         public static final DoAction editCell = new DoAction("Edit Cell");
         public static final DoAction renameCell = new DoAction("Rename Cell");
@@ -93,9 +95,9 @@ public class CellBrowser extends EDialog {
         setTitle(action.name);                  // set the dialog title
         doAction.setText(action.name);          // set the action button's text
         getRootPane().setDefaultButton(doAction); // return will do action
-        lastFilter = prefs.get(prefFilter, "");
+        lastFilter = prefs.get(action+prefFilter, "");
         lastPattern = Pattern.compile(lastFilter);
-        lastSelectedCell = prefs.get(prefSelectedCell, null);
+        lastSelectedCell = prefs.get(action+prefSelectedCell, null);
         cellFilter.setText(lastFilter);         // restore last filter
         initComboBoxes();                       // set up the combo boxes
         initExtras();                           // set up an extra components
@@ -303,7 +305,7 @@ public class CellBrowser extends EDialog {
         // initialize library combo box with choices
         libraryComboBox.addItem("All");
 
-        lastSelectedLib = prefs.get(prefSelectedLib, null);
+        lastSelectedLib = prefs.get(action+prefSelectedLib, null);
         int curLibIndex = -1;
         int curIndex = -1;
         int i = 1;
@@ -323,7 +325,7 @@ public class CellBrowser extends EDialog {
 
         viewComboBox.addItem("All");
 
-        lastSelectedView = prefs.get(prefSelectedView, null);
+        lastSelectedView = prefs.get(action+prefSelectedView, null);
         curIndex = -1;
         i = 1;
 
@@ -404,12 +406,12 @@ public class CellBrowser extends EDialog {
     private void closeDialog(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_closeDialog
 
         // save all preferences
-        prefs.put(prefSelectedLib, (String)libraryComboBox.getSelectedItem());
-        prefs.put(prefSelectedView, (String)viewComboBox.getSelectedItem());
+        prefs.put(action+prefSelectedLib, (String)libraryComboBox.getSelectedItem());
+        prefs.put(action+prefSelectedView, (String)viewComboBox.getSelectedItem());
         if (jList1.getSelectedValue() != null) {
-            prefs.put(prefSelectedCell, (String)jList1.getSelectedValue());
+            prefs.put(action+prefSelectedCell, (String)jList1.getSelectedValue());
         }
-        prefs.put(prefFilter, lastFilter);
+        prefs.put(action+prefFilter, lastFilter);
 
         if (action == DoAction.editCell) {
             prefs.putBoolean(prefEditInNewWindow, editInNewWindow.isSelected());
