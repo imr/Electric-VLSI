@@ -41,6 +41,12 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 
+class NccMismatchException extends RuntimeException {
+	NccMismatchException() {
+		super("NCC mismatch found");	
+	}
+}
+
 class NccBotUp extends HierarchyEnumerator.Visitor {
 	private HashSet enteredCells = new HashSet();
 	private HashSet nccedCells = new HashSet();
@@ -65,18 +71,30 @@ class NccBotUp extends HierarchyEnumerator.Visitor {
 			else if (c.getView()==View.LAYOUT) layout=c;
 		}
 		if (layout!=null && schematic!=null) {
+//			String nm = schematic.getName();
+//			if (nm.equals("noise_gen") || // slow
+//				nm.equals("exp_50mV") || 
+//				nm.equals("exp_100mV") ||
+//				nm.equals("exp_150mV") ||
+//				nm.equals("exp_200mV") ||
+//				nm.equals("loco_wires") || // slow
+//				nm.equals("mem_inv_latch_36")) {
+//				System.out.println("Skipping: "+nm);
+//				return;
+//			}
+//			
 			System.out.println("Comparing schematic: "+
 							   schematic.getLibrary().getName() +
-							   " : "+
+							   ":"+
 			                   schematic.getName()+
                                " with layout: "+layout.getLibrary().getName()+
-                               " : "+
+                               ":"+
                                layout.getName());
 			NccOptions options = new NccOptions();
 			options.verbose = false;
 			boolean ok = NccEngine.compare(schematic, null, layout, null, 
 			                               options);
-			LayoutLib.error(!ok, "NccJob finds mismatch");
+			if (!ok) throw new NccMismatchException();
 			nccedCells.add(cell);
 		}
 	}
@@ -168,14 +186,13 @@ public class NccJob extends Job {
 				System.out.println("Please open the schematic for which you " +
 								   "want to generate gate layouts.");
 			}
-
 		} else {
 			Library lib = LayoutLib.openLibForRead(libName, 
 												   testDir+libName+".elib");
 			rootCell = lib.findNodeProto("loco_top{sch}");
 			LayoutLib.error(rootCell==null, "can't find root Cell");
 		}
-		bottomUp(rootCell);
+		if (rootCell!=null)  bottomUp(rootCell);
 	}
 	
 	public void bottomUp(Cell rootCell) {
@@ -188,8 +205,14 @@ public class NccJob extends Job {
 		System.out.println("Ncc starting");
 		
 		String testDir = "c:/a1/kao/Sun/loco-final/";
-		bottomUp(testDir, "pads2");
-
+		boolean match = true;
+		try {
+			bottomUp(testDir, "pads2");
+		} catch (NccMismatchException e) {
+			match = false;
+			System.out.println(e);
+		}
+		
 //		String homeDir;
 //		if (!LayoutLib.osIsWindows()) {
 //			homeDir = "/home/rkao/";
@@ -215,7 +238,7 @@ public class NccJob extends Job {
 //		//doLib(testDir, "rxPads");
 		
 		System.out.println("Ncc done");
-		return true;
+		return match;
     }
 
 	// ------------------------- public method --------------------------------

@@ -54,16 +54,14 @@ import java.io.FileOutputStream;
 
 public class NccEngine {
 	// ------------------------------ private data ----------------------------
-	private JemLeafList mismatchList = new JemLeafList();
-	private JemLeafList activeList = new JemLeafList();
 	private NccGlobals globals;
 	private boolean matched = true;
 
 	// ----------------------- private methods --------------------------------
 	private List buildNccNetlists(List cells, List contexts, List netlists) {
 		globals.error(cells.size()!=contexts.size() || 
-						contexts.size()!=netlists.size(),
-						"number of cells, contexts, and netlists must be the same");										
+					  contexts.size()!=netlists.size(),
+					  "number of cells, contexts, and netlists must be the same");										
 		List nccLists = new ArrayList();
 		Iterator itCell, itCon, itNet;
 		for (itCell=cells.iterator(),
@@ -73,6 +71,12 @@ public class NccEngine {
 			VarContext context = (VarContext) itCon.next();
 			Netlist netlist = (Netlist) itNet.next();
 			NccNetlist nccList = new NccNetlist(cell, context, netlist, globals);
+			if (nccList.getSkipNccReason()!=null) {
+				System.out.println("Skip NCC of "+
+								   nccList.getRootCellName()+
+				                   " because "+nccList.getSkipNccReason());
+				return null;
+			}
 			nccLists.add(nccList);
 		}
 		return nccLists;
@@ -87,15 +91,12 @@ public class NccEngine {
 			JemExportChecker expCheck = checkExports ? new JemExportChecker(globals) : null;
 
 			if (!JemStratLocal.doYourJob(globals)) return false;
-			JemStratVariable.doYourJob(globals);
-			boolean matched = true;
-			if (checkExports) 
-				matched &= expCheck.ensureExportsWithMatchingNamesAreOnEquivalentNets();
-			
-			matched &= JemStratResult.doYourJob(mismatchList, activeList, globals);
+			boolean same = JemStratVariable.doYourJob(globals);
+			if (checkExports)  
+				same &= expCheck.ensureExportsWithMatchingNamesAreOnEquivalentNets();
 
-			if (!matched) JemStratDebug.doYourJob(globals);
-			return matched;
+			if (!same) JemStratDebug.doYourJob(globals);
+			return same;
 		}
 	}
 	
@@ -107,9 +108,11 @@ public class NccEngine {
 		globals.println("****************************************");					  		
 
 		List nccNetlists = buildNccNetlists(cells, contexts, netlists);
-		globals.setInitialNetlists(nccNetlists);
-		matched = designsMatch();
-
+		if (nccNetlists!=null) {
+			globals.setInitialNetlists(nccNetlists);
+			matched = designsMatch();
+		}
+		
 		globals.print("****************************************");					  		
 		globals.println("****************************************");					  		
 	}

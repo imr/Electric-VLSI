@@ -56,7 +56,7 @@ public class JemStratPreanalysisReport extends JemStrat {
              " have these characteristics: ");
 		for (Iterator it=ckt.getNetObjs(); it.hasNext();) {
 			NetObject o = (NetObject) it.next();
-			prln("    "+o.nameString());
+			prln("    "+o.toString());
 		}
 	}
 	

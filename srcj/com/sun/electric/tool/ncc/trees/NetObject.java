@@ -112,7 +112,7 @@ public abstract class NetObject {
 	 * @return a String with name and connections
 	 */
     public String toString(){
-        return (nameString() + ": " + connectionString(6));
+        return (nameString() + ": " + connectionString(12));
     }
 
     public abstract void printMe(int i, Messenger messenger); //i is the size limit

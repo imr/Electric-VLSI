@@ -184,8 +184,8 @@ public class Wire extends NetObject{
 		int i=0;
         for (Iterator it=getParts(); it.hasNext() && i<maxParts; i++){
             Part p = (Part)it.next();
-            String cc = p.getName();
-            s= s + " " + cc + ":" + p.connectionString(this);
+            String cc = p.nameString();
+            s= s + " (" + cc + " " + p.connectionString(this)+") ";
         }
         return s;
     }

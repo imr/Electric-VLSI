@@ -75,26 +75,64 @@ public class NccNetlist {
 	private NccGlobals globals;
 	private ArrayList wires, parts, ports;
 	private String rootCellName;
-	
+	private String skipNccReason;
+	private List exportsConnectedAnnot = new ArrayList();
+
+	private void processSkipAnnotation(String note) {
+		skipNccReason = "";
+		int sp = note.indexOf(" ");
+		if (sp!=-1) skipNccReason = note.substring(sp);
+	}
+	private void doAnnotation(String note) {
+		if (note.startsWith("exportsConnectedByParent")) {
+			exportsConnectedAnnot.add(note);
+		} else if (note.startsWith("skipNCC")) {
+			processSkipAnnotation(note);
+		} else {
+			System.out.println("Unrecognized NCC annotation: "+note);
+		}
+	}
+	private void readCellAnnotations(Cell rootCell) {
+		Variable nccVar = rootCell.getVar("ATTR_NCC");
+		if (nccVar==null) return;
+		Object annotation = nccVar.getObject();
+		
+		if (annotation instanceof String) {
+			doAnnotation((String) annotation);
+		} else if (annotation instanceof String[]) {
+			String[] ss = (String[]) annotation;
+			for (int i=0; i<ss.length; i++)  doAnnotation(ss[i]);
+		} else {
+			System.out.println("ignoring bad NCC annotation: "+annotation+
+							   " on Cell: "+rootCell.getName());
+		}
+	}
+
 	// ---------------------------- public methods ---------------------------
 	public NccNetlist(Cell root, VarContext context, Netlist netlist, 
 					  NccGlobals globals) {
 		this.globals = globals;
-
-		Visitor v = new Visitor(globals);
-		HierarchyEnumerator.enumerateCell(root, context, netlist, v);
-		wires = v.getWireList();
-		parts = v.getPartList();
-		ports = v.getPortList();
+		
 		String libNm = root.getLibrary().getName();
 		String cellNm = root.getName();
 		String viewNm = root.getView().getAbbreviation();
 		rootCellName = libNm+":"+cellNm+"{"+viewNm+"}";
+
+		readCellAnnotations(root);
+		
+		if (skipNccReason!=null) return;
+
+		Visitor v = new Visitor(globals, exportsConnectedAnnot);
+		HierarchyEnumerator.enumerateCell(root, context, netlist, v);
+		wires = v.getWireList();
+		parts = v.getPartList();
+		ports = v.getPortList();
 	}
 	public ArrayList getWireArray() {return wires;}
 	public ArrayList getPartArray() {return parts;}
 	public ArrayList getPortArray() {return ports;}
 	public String getRootCellName() {return rootCellName;}
+	public String getSkipNccReason() {return skipNccReason;}
 }
 
 /** map from netID to NCC Wire */
@@ -256,6 +294,8 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	/** map from netID to Wire */	 private Wires wires;
 	/** all Parts in the net list */ private ArrayList parts = new ArrayList();
 	/** all ports in the net list */ private ArrayList ports = new ArrayList();
+	/** Exports connected by parent*/private List exportsConnAnnots = 
+	                                                           new ArrayList();
 	
 	// --------------------------- private methods ----------------------------
 	private void error(boolean pred, String msg) {globals.error(pred, msg);}
@@ -275,9 +315,9 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			}
 		}
 	}
-	private void processExportConnectedAnnotation(
-							TransitiveRelation mergedNetIDs, String note, 
-	            			HierarchyEnumerator.CellInfo rootInfo) {
+	private void doExportsConnAnnot(TransitiveRelation mergedNetIDs,
+	                                String note, 
+	            			        HierarchyEnumerator.CellInfo rootInfo) {
 		StringTokenizer st = new StringTokenizer(note);
 		st.nextToken();  // skip the keyword
 		List netIDs = new ArrayList();
@@ -288,37 +328,15 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			mergedNetIDs.theseAreRelated(netIDs.get(0), netIDs.get(i));
 		}
 	}
-	private void doAnnotation(TransitiveRelation mergedNetIDs, String note,
-							  HierarchyEnumerator.CellInfo rootInfo) {
-		if (note.startsWith("exportsConnectedByParent")) {
-			processExportConnectedAnnotation(mergedNetIDs, note, rootInfo);
-		} else {
-			System.out.println("Unrecognized NCC annotation: "+note);
-		}
-	}
-	private void readCellAnnotations(TransitiveRelation mergedNetIDs,
+	private void doExportsConnAnnots(TransitiveRelation mergedNetIDs,
 	                                 HierarchyEnumerator.CellInfo rootInfo) {
-		Cell rootCell = rootInfo.getCell();
-		Variable nccVar = rootCell.getVar("ATTR_NCC");
-		if (nccVar==null) return;
-		Object annotation = nccVar.getObject();
-		
-		if (annotation instanceof String) {
-			doAnnotation(mergedNetIDs, (String) annotation, rootInfo);
-		} else if (annotation instanceof String[]) {
-			String[] ss = (String[]) annotation;
-			for (int i=0; i<ss.length; i++) {
-				doAnnotation(mergedNetIDs, ss[i], rootInfo);
-			}
-		} else {
-			System.out.println("ignoring bad NCC annotations: "+annotation+
-			                   " on Cell: "+rootCell.getName());
+		for (Iterator it=exportsConnAnnots.iterator(); it.hasNext();) {
+			doExportsConnAnnot(mergedNetIDs, (String)it.next(), rootInfo);					                                     
 		}
 	}
-	
 	private void initWires(HierarchyEnumerator.CellInfo rootInfo) {
 		TransitiveRelation mergedNetIDs = new TransitiveRelation();
-		readCellAnnotations(mergedNetIDs, rootInfo);
+		doExportsConnAnnots(mergedNetIDs, rootInfo);
 		wires = new Wires(mergedNetIDs, rootInfo);
 	}
 	
@@ -367,7 +385,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	}
 
 	private void buildMOS(NodeInst ni, Transistor.Type type, NccCellInfo info){
-		String name = ni.getName();
+		String name = info.getUniqueNodableName(ni, "/");
 		int mul = info.getSizeMultiplier();
 //		if (mul!=1) {
 //			globals.println("mul="+mul+" for "+
@@ -459,5 +477,8 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	public ArrayList getPartList() {return parts;}
 	public ArrayList getPortList() {return ports;}
 	
-	public Visitor(NccGlobals globals) {this.globals=globals;}
+	public Visitor(NccGlobals globals, List exportsConnAnnots) {
+		this.globals=globals;
+		this.exportsConnAnnots = exportsConnAnnots;
+	}
 }

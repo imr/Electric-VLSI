@@ -204,7 +204,8 @@ public class JemStratVariable {
 	}
 
 	// ------------------------ public methods --------------------------------
-	public static void doYourJob(NccGlobals globals) {
+	public static boolean doYourJob(NccGlobals globals) {
 		new JemStratVariable(globals);
+		return JemStratResult.doYourJob(globals);
 	}
 }

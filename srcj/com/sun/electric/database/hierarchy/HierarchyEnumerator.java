@@ -403,6 +403,12 @@ public final class HierarchyEnumerator {
 			return a;
 		}
 
+		private String makePath(VarContext context, String sep) {
+			String path = context.getInstPath(sep);
+			if (!path.equals(""))  path+=sep;
+			return path; 
+		}
+
 		/**
 		 * Temporary for testing the HierarchyEnumerator.
 		 * 
@@ -584,11 +590,11 @@ public final class HierarchyEnumerator {
         public final String getUniqueNetName(JNetwork net, String sep) {
         	return getUniqueNetName(net.getNetIndex(), sep);
         }
-
+        
 		/** Get a unique, flat net name for the network.  The network 
 		 * name will contain the hierarchical context as returned by
 		 * VarContext.getInstPath() if it is not a top-level network.
-		 * @param sep the context separator to use if needed.
+		 * @param sep the hierarchy separator to use if needed.
 		 * @return a unique String identifier for the network
 		 */
 		public final String getUniqueNetName(int netID, String sep) {
@@ -600,17 +606,28 @@ public final class HierarchyEnumerator {
                 System.out.println("cell info is null");
             }
             VarContext netContext = ns.getCellInfo().getContext();
+			String path = makePath(netContext, sep); 
 
-            StringBuffer buf = new StringBuffer();
-            buf.append(ns.getCellInfo().getContext().getInstPath(sep));  // append hier path if any
-            if (!buf.toString().equals("")) buf.append(sep);
+//            StringBuffer buf = new StringBuffer();
+//            buf.append(ns.getCellInfo().getContext().getInstPath(sep));  // append hier path if any
+//            if (!buf.toString().equals("")) buf.append(sep);
         	Iterator it = ns.getNet().getNames();
             if (it.hasNext()) {
-    			buf.append((String) it.next());
+    			path += (String) it.next();
     		} else {
-        		buf.append("netID"+netID);
+        		path += "netID"+netID;
             }
-            return buf.toString();
+            return path;
+        }
+        
+        /** Get a unique, flat instance name for the Nodable.
+         * 
+         * @param no 
+         * @param sep the hierarchy separator to use if needed
+         * @return a unique String identifer for the Nodable
+         */
+        public final String getUniqueNodableName(Nodable no, String sep) {
+        	return makePath(getContext(), sep)+no.getName();
         }
         
 		/** Get the JNetwork that is closest to the root in the design

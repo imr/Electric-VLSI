@@ -30,6 +30,7 @@ import java.util.Iterator;
 
 import com.sun.electric.tool.ncc.basicA.Messenger; 
 import com.sun.electric.tool.ncc.NccGlobals; 
+import com.sun.electric.tool.ncc.NccOptions; 
 import com.sun.electric.tool.ncc.trees.JemEquivRecord;
 import com.sun.electric.tool.ncc.trees.JemCircuit;
 import com.sun.electric.tool.ncc.jemNets.Port;
@@ -40,7 +41,6 @@ import com.sun.electric.tool.ncc.jemNets.Wire;
  */
 public class JemExportChecker {
 	private NccGlobals globals;
-	private Messenger messenger;
 	private boolean match = true;
 	/** The 0th element is null. The ith element maps every port of the 0th
 	 * design to the equivalent port of the ith design. */ 
@@ -48,7 +48,7 @@ public class JemExportChecker {
 	 	
 	private JemCircuit[] getJemCircuitsHoldingPorts() {
 		JemEquivRecord ports = globals.getPorts();
-		messenger.error(!ports.isLeaf(), "globals ports must hold circuits");
+		globals.error(!ports.isLeaf(), "globals ports must hold circuits");
 
 		int numCkts = globals.getNumNetlistsBeingCompared();
 		JemCircuit[] portCkts = new JemCircuit[numCkts];
@@ -67,18 +67,19 @@ public class JemExportChecker {
 		}
 		return map;
 	}
-	private void pr(String s) {System.out.println(s);}
+	private void prln(String s) {globals.println(s);}
+	private void pr(String s) {globals.print(s);}
 	private void printOneToManyError(String design1, String exports1,
 								     String design2, String exports2a,
 								     String exports2b) {
-		pr("A single network in: "+design1+
-		   " has Exports with names that match multiple Exports in: "+
-		   design2+". However, the "+design2+
+		prln("A single network in: "+design1+
+		   " has Exports with names that ");
+		pr("match multiple Exports in: "+design2);
+		prln("However, the "+design2+
 		   " Exports are attached to more than one network.");
-		pr("    The "+design1+" Exports are: "+exports1);
-		pr("    The 1st set of "+design2+" Exports are: "+exports2a);
-		pr("    The 2nd set of "+design2+" Exports are: "+exports2b);
-		System.out.println();
+		prln("    The "+design1+" Exports are: "+exports1);
+		prln("    The 1st set of "+design2+" Exports are: "+exports2a);
+		prln("    The 2nd set of "+design2+" Exports are: "+exports2b);
 	}
 	/** For each port, p1, in ports1 make sure there is exactly one port in ports2 
 	 * that shares any of p1's export names. Return a map from ports1 ports
@@ -105,10 +106,9 @@ public class JemExportChecker {
 				}
 			}
 			if (p2==null) {
-				System.out.println("In "+designName1+
-								   " the network with Exports: "+p1.exportNamesString()+
-								   " matches no Export with the same name in: "+
-								   designName2);
+				pr("In "+designName1+
+				   " the network with Exports: "+p1.exportNamesString());
+				prln("    matches no Export with the same name in: "+designName2);
 				match = false;
 			} else {
 				p1ToP2.put(p1, p2);
@@ -136,13 +136,20 @@ public class JemExportChecker {
 	 * Export name inconsistencies. */
 	public JemExportChecker(NccGlobals globals) {
 		this.globals=globals;
-		messenger = globals.getMessenger();
+		NccOptions options = globals.getOptions();
+		boolean verboseSave = options.verbose;
+		options.verbose = true;
 		matchExportsByName();
+		options.verbose = verboseSave;
 	}
 
 	/** Check that Exports with matching names are on equivalent nets.
 	 * @return true if equivalent. */ 
     public boolean ensureExportsWithMatchingNamesAreOnEquivalentNets() {
+    	NccOptions options = globals.getOptions();
+    	boolean verboseSave = options.verbose;
+    	options.verbose = true;
+    	
 		String[] rootCellNames = globals.getRootCellNames();
     	for (int i=1; i<equivPortMaps.length; i++) {
     		HashMap portToPort = equivPortMaps[i];
@@ -152,7 +159,7 @@ public class JemExportChecker {
 				JemEquivRecord er0 = p0.getParent().getParent();
 				JemEquivRecord ern = pn.getParent().getParent();
 				if (er0!=ern) {
-					pr("Exports that match by name aren't on equivalent"+
+					prln("Exports that match by name aren't on equivalent"+
 					   " networks\n"+
 					   "  Cell1: "+rootCellNames[0]+"\n"+
 					   "  Exports1: "+p0.exportNamesString()+"\n"+
@@ -162,6 +169,8 @@ public class JemExportChecker {
 				}
     		}
     	}
+    	
+    	options.verbose = verboseSave;
     	return match;
     }
 }
