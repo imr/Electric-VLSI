@@ -738,11 +738,17 @@ public abstract class Topology extends Output
 					for(int k=cas.low; k<=cas.high; k++)
 					{
 						CellSignal cs = cas.signals[k-cas.low];
-						cs.name = cas.name + "[" + k + "]";
+						cs.name = getSafeNetName(cas.name + "[" + k + "]");
 					}
 				}
 			}
-		}
+		} else {
+            // just get safe net names for all cell signals
+            for (Iterator it = cni.cellSignalsSorted.iterator(); it.hasNext(); ) {
+                CellSignal cs = (CellSignal)it.next();
+                cs.name = getSafeNetName(cs.name);
+            }
+        }
 
 		return cni;
 	}

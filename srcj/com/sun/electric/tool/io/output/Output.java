@@ -333,7 +333,10 @@ public class Output
 			Silos.writeSilosFile(cell, context, filePath);
 		} else if (type == FileType.SKILL)
 		{
-			IOTool.writeSkill(cell, filePath);
+			IOTool.writeSkill(cell, filePath, false);
+        } else if (type == FileType.SKILLEXPORTSONLY)
+        {
+            IOTool.writeSkill(cell, filePath, true);
 		} else if (type == FileType.SPICE)
 		{
 			Spice.writeSpiceFile(cell, context, filePath, false);

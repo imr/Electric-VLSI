@@ -64,11 +64,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.net.URL;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This is the Simulation Interface tool.
@@ -89,8 +85,10 @@ public class Spice extends Topology
 	/** Prefix for spice extension. */                          public static final String SPICE_EXTENSION_PREFIX = "Extension ";
 
 	/** maximum subcircuit name length */						private static final int SPICEMAXLENSUBCKTNAME     = 70;
-	/** legal characters in a spice deck */						private static final String SPICELEGALCHARS        = "!#$%*+-/<>[]_";
+    /** maximum subcircuit name length */						private static final int CDLMAXLENSUBCKTNAME     = 40;
+	/** legal characters in a spice deck */						private static final String SPICELEGALCHARS        = "!#$%*+-/<>[]_@";
 	/** legal characters in a CDL deck */						private static final String CDLNOBRACKETLEGALCHARS = "!#$%*+-/<>_";
+    /** if CDL writes out empty subckt definitions */           private static final boolean CDLWRITESEMPTYSUBCKTS = false;
 
 	/** default Technology to use. */				private Technology layoutTechnology;
 	/** Mask shrink factor (default =1) */			private double  maskScale;
@@ -169,11 +167,11 @@ public class Spice extends Topology
 			if (libPath.length() > 0)
 				out.printWriter.print("\n                             " + libPath);
 			out.printWriter.print("\"\n");
-			out.printWriter.print("    'cdlFile                \"" + deckPath + "\"\n");
+			out.printWriter.print("    'cdlFile                \"" + deckPath + File.separator + deckFile + "\"\n");
 			out.printWriter.print("    'userSkillFile          \"\"\n");
 			out.printWriter.print("    'opusLib                \"" + libName + "\"\n");
 			out.printWriter.print("    'primaryCell            \"" + cell.getName() + "\"\n");
-			out.printWriter.print("    'caseSensitivity        \"preserve\"\n");
+			out.printWriter.print("    'caseSensitivity        \"lower\"\n");
 			out.printWriter.print("    'hierarchy              \"flatten\"\n");
 			out.printWriter.print("    'cellTable              \"\"\n");
 			out.printWriter.print("    'viewName               \"netlist\"\n");
@@ -502,6 +500,11 @@ public class Spice extends Topology
 			multiLinePrint(true, "\n*** TOP LEVEL CELL: " + cell.describe() + "\n");
 		} else
 		{
+            if (useCDL && !CDLWRITESEMPTYSUBCKTS) {
+                if (cellIsEmpty(cell))
+                    return;
+            }
+
 			String cellName = cni.getParameterizedName();
 			multiLinePrint(false, "\n*** CELL: " + cell.describe() + "\n");
 			StringBuffer infstr = new StringBuffer();
@@ -591,7 +594,7 @@ public class Spice extends Topology
 					varTemplate = subCell.getVar(SPICE_TEMPLATE_KEY);
 
 				// handle self-defined models
-				if (varTemplate != null)
+				if (varTemplate != null && !useCDL)
 				{
 					String line = varTemplate.getObject().toString();
 					StringBuffer infstr = replacePortsAndVars(line, no, context, cni);
@@ -606,6 +609,12 @@ public class Spice extends Topology
 				// get the ports on this node (in proper order)
 				CellNetInfo subCni = getCellNetInfo(parameterizedName(no, context));
 				if (subCni == null) continue;
+
+                if (useCDL && !CDLWRITESEMPTYSUBCKTS) {
+                    // do not instantiate if empty
+                    if (cellIsEmpty((Cell)niProto))
+                        continue;
+                }
 
 				String modelChar = "X";
 				if (no.getName() != null) modelChar += getSafeNetName(no.getName());
@@ -634,7 +643,11 @@ public class Spice extends Topology
 						infstr.append(" " + global.getName());
 					}
 				}
-				infstr.append(" " + subCni.getParameterizedName());
+                if (useCDL) {
+				    infstr.append(" /" + subCni.getParameterizedName());
+                } else {
+                    infstr.append(" " + subCni.getParameterizedName());
+                }
 
 				if (!useCDL && Simulation.isSpiceUseCellParameters())
 				{
@@ -1069,17 +1082,16 @@ public class Spice extends Topology
                 no.getProto() instanceof Cell)
             {
                 // if there are parameters, append them to this name
-                HashMap paramValues = new HashMap();
+                List paramValues = new ArrayList();
                 for(Iterator it = no.getVariables(); it.hasNext(); )
                 {
                     Variable var = (Variable)it.next();
                     if (!var.getTextDescriptor().isParam()) continue;
-                    paramValues.put(var.getKey(), var);
+                    paramValues.add(var);
                 }
-                for(Iterator it = paramValues.keySet().iterator(); it.hasNext(); )
+                for(Iterator it = paramValues.iterator(); it.hasNext(); )
                 {
-                    Variable.Key key = (Variable.Key)it.next();
-                    Variable var = no.getVar(key.getName());
+                    Variable var = (Variable)it.next();
                     String eval = var.describe(context, no.getNodeInst());
                     //Object eval = context.evalVar(var, no);
                     if (eval == null) continue;
@@ -1233,7 +1245,7 @@ public class Spice extends Topology
         Variable varTemplate = cell.getVar(preferedEgnineTemplateKey);
         if (varTemplate == null)
             varTemplate = cell.getVar(SPICE_TEMPLATE_KEY);
-        if (varTemplate != null) return true;
+        if (varTemplate != null && !useCDL) return true;
         return false;
     }
 
@@ -1291,13 +1303,13 @@ public class Spice extends Topology
 	/**
 	 * Method to tell whether the topological analysis should mangle cell names that are parameterized.
 	 */
-	protected boolean canParameterizeNames() { return !useCDL; }
+	protected boolean canParameterizeNames() { return true; } //return !useCDL; }
 
 	/**
 	 * Method to tell set a limit on the number of characters in a name.
 	 * @return the limit to name size (SPICE limits to 32 character names?????). 
 	 */
-	protected int maxNameLength() { return SPICEMAXLENSUBCKTNAME; }
+	protected int maxNameLength() { if (useCDL) return CDLMAXLENSUBCKTNAME; return SPICEMAXLENSUBCKTNAME; }
 
 	/******************** DECK GENERATION SUPPORT ********************/
 
@@ -1610,6 +1622,67 @@ public class Spice extends Topology
 		if (fun == ArcProto.Function.DIFFS || fun == ArcProto.Function.DIFFW) return true;
 		return false;
 	}
+
+    private static final boolean CELLISEMPTYDEBUG = true;
+    private HashMap checkedCells = new HashMap();
+    private boolean cellIsEmpty(Cell cell)
+    {
+        Boolean b = (Boolean)checkedCells.get(cell);
+        if (b != null) return b.booleanValue();
+
+        boolean empty = true;
+
+        ArrayList emptyCells = new ArrayList();
+
+        for (Iterator it = cell.getNodes(); it.hasNext(); ) {
+            NodeInst ni = (NodeInst)it.next();
+
+            // if node is a cell, check if subcell is empty
+            if (ni.getProto() instanceof Cell) {
+                // ignore own icon
+                if (ni.isIconOfParent()) {
+                    continue;
+                }
+                Cell iconCell = (Cell)ni.getProto();
+                Cell schCell = iconCell.contentsView();
+                if (schCell == null) schCell = iconCell;
+                if (cellIsEmpty(schCell)) {
+                    if (CELLISEMPTYDEBUG) emptyCells.add(schCell);
+                    continue;
+                } else {
+                    empty = false;
+                    break;
+                }
+            }
+
+            // otherwise, this is a primitive
+            PrimitiveNode.Function fun = ni.getFunction();
+            // Passive devices used by spice/CDL
+            if (fun == PrimitiveNode.Function.RESIST || fun == PrimitiveNode.Function.INDUCT ||
+                fun == PrimitiveNode.Function.CAPAC || fun == PrimitiveNode.Function.ECAPAC ||
+                fun == PrimitiveNode.Function.DIODE || fun == PrimitiveNode.Function.DIODEZ)
+            {
+                empty = false;
+                break;
+            }
+            // active devices used by Spice/CDL
+            if (((PrimitiveNode)ni.getProto()).getGroupFunction() == PrimitiveNode.Function.TRANS) {
+                empty = false;
+                break;
+            }
+        }
+        // empty
+        if (CELLISEMPTYDEBUG && empty) {
+            System.out.println("Cell "+cell.describe()+" is empty and contains the following empty cells:");
+            for (Iterator it = emptyCells.iterator(); it.hasNext(); ) {
+                Cell c = (Cell)it.next();
+                System.out.println("   "+c.describe());
+            }
+        }
+        checkedCells.put(cell, new Boolean(empty));
+        return empty;
+
+    }
 
 	/******************** LOW-LEVEL OUTPUT METHODS ********************/
 
