@@ -59,7 +59,11 @@ public class JNetwork
 // 		}
 // 	}
 
-	// used to build Cell networks
+	/**
+	 * Creates JNetwork in a given netlist with specified index.
+	 * @param netlist Netlist where JNetwork lives.
+	 * @param netIndex index of JNetwork.
+	 */
 	public JNetwork(Netlist netlist, int netIndex)
 	{
 		this.netlist = netlist;
@@ -67,6 +71,11 @@ public class JNetwork
 		//		this(new ArrayList(), cell);
 	}
 
+	/**
+	 * Add name to list of names of this JNetwork.
+	 * @param nm name to add.
+	 * @param exported true if name is exported.
+	 */
 	public void addName(String nm, boolean exported)
 	{
 		if (nm != null) {
@@ -80,6 +89,9 @@ public class JNetwork
 	}
 
 	// --------------------------- public methods ------------------------------
+	/** Returns parent cell of this JNetwork.
+	 * @return parent cell of this JNetwork.
+	 */
 	public Cell getParent()
 	{
 		return netlist.netCell.cell;

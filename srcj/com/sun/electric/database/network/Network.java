@@ -58,10 +58,10 @@ public class Network extends Listener
 
 	/** NetCells. */								private static NetCell[] cells;
 
-    /** The logger for logging Network errors */    protected static ErrorLogger errorLogger = ErrorLogger.newInstance("Network Errors", true);
-    /** sort keys for sorting network errors */     protected static final int errorSortNetworks = 0;
-                                                    protected static final int errorSortNodes = 1;
-                                                    protected static final int errorSortPorts = 2;
+    /** The logger for logging Network errors */    static ErrorLogger errorLogger = ErrorLogger.newInstance("Network Errors", true);
+    /** sort keys for sorting network errors */     static final int errorSortNetworks = 0;
+                                                    static final int errorSortNodes = 1;
+                                                    static final int errorSortPorts = 2;
 
 	/**
 	 * The constructor sets up the Network tool.
@@ -72,6 +72,9 @@ public class Network extends Listener
 		reload();
 	}
 
+	/**
+	 * Reloads cell information after major changes such as librairy read.
+	 */
 	static public void reload()
 	{
 		int maxCell = 1;
@@ -129,6 +132,11 @@ public class Network extends Listener
 
 	/****************************** PUBLIC METHODS ******************************/
 
+	/**
+	 * Returns Netlist for a given cell obtain with user-default set of options.
+	 * @param cell cell to get Netlist.
+	 * @return Netlist of this cell.
+	 */
 	public static synchronized Netlist getUserNetlist(Cell cell) {
         //synchronized(cells) {
             return getNetCell(cell).getUserNetlist();
@@ -159,6 +167,9 @@ public class Network extends Listener
 
 	/****************************** CHANGE LISTENER ******************************/
 
+	/**
+	 * Method to initialize a tool.
+	 */
 	public void init()
 	{
 		setOn();

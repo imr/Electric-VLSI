@@ -1,4 +1,4 @@
-import com.sun.electric.tool.simulation.interval.Interval;
+import com.sun.electric.tool.simulation.interval.MutableInterval;
 import net.sourceforge.interval.ia_math.RMath;
 import net.sourceforge.interval.ia_math.RealInterval;
 import net.sourceforge.interval.ia_math.IAMath;
@@ -6,16 +6,16 @@ import su.nsk.nbsp.Functions;
 
 class TestIntervals {
 
-    private Interval mix, miy, miz;
+    private MutableInterval mix, miy, miz;
     private su.nsk.nbsp.Interval nix, niy, niz;
     private RealInterval tix, tiy, tiz;
     private boolean mb, nb;
     private double md, nd;
 
     TestIntervals() {
-	mix = new Interval();
-	miy = new Interval();
-	miz = new Interval();
+	mix = new MutableInterval();
+	miy = new MutableInterval();
+	miz = new MutableInterval();
 	nix = new su.nsk.nbsp.Interval();
 	niy = new su.nsk.nbsp.Interval();
 	niz = new su.nsk.nbsp.Interval();
@@ -54,22 +54,22 @@ class TestIntervals {
 	Double.POSITIVE_INFINITY
     };
 
-    private static Interval[] mrel;
+    private static MutableInterval[] mrel;
     private static su.nsk.nbsp.Interval[] nrel;
 
     static {
 	int l = relnums.length;
 	int n = 1 + l*(l+1)/2;
-	mrel = new Interval[n];
+	mrel = new MutableInterval[n];
 	nrel = new su.nsk.nbsp.Interval[n];
-	mrel[0] = new Interval().assignEmpty();
+	mrel[0] = new MutableInterval().assignEmpty();
 	nrel[0] = (new su.nsk.nbsp.Interval(-1)).log();
 	int k = 1;
 	for (int i = 0; i < relnums.length; i++) {
 	    for (int j = i; j < relnums.length; j++) {
 		double inf = relnums[i];
 		double sup = relnums[j];
-		mrel[k] = new Interval(inf, sup);
+		mrel[k] = new MutableInterval(inf, sup);
 		nrel[k] = new su.nsk.nbsp.Interval(inf, sup);
 		k++;
 	    }

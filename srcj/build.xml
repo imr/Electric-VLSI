@@ -172,7 +172,7 @@
 
     <target name="javadoc" depends="init" description="Create Javadoc">
         <mkdir dir="apidoc"/>
-        <javadoc destdir="apidoc" packagenames="com.sun.electric.*">
+        <javadoc destdir="apidoc" packagenames="com.sun.electric.*" source="1.4">
             <classpath>
                 <pathelement location="${beanshell}"/>
                 <pathelement location="${AppleJava}"/>

@@ -230,6 +230,10 @@ public class Global
 			return compareTo((Global.Set)o);
 		}
 
+		/**
+		 * Returns a printable version of this GlobalSet.
+		 * @return a printable version of this GlobalSet.
+		 */
 		public String toString() {
 			String s = "Global.Set {";
 // 			for (int i = 0; i < size(); i++) {

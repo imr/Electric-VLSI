@@ -188,6 +188,14 @@ public class Netlist
 	// ---------------------- public methods -----------------
 
     // JKG: trying this out
+	/**
+	 * Returns Nodable for given NodeInst and array index.
+	 * The Nodable is NodeInst itself for primitives and layout subcells.
+	 * The Nodable is a proxy nodable for icon instances.
+	 * @param ni node instance
+	 * @param arrayIndex array index for arrayed icons or zero.
+	 * @return Nodable for given NodeInst and array index.
+	 */
     public static Nodable getNodableFor(NodeInst ni, int arrayIndex) {
         Cell parent = ni.getParent();
         Netlist netlist = Network.getUserNetlist(parent);
@@ -208,12 +216,21 @@ public class Netlist
 		return netCell.getNodables();
 	}
 
+	/**
+	 * Returns subnetlist for a given Nodable.
+	 * @param no Nadable in this Netlist
+	 * @return subnetlist for a given Nidable.
+	 */
 	public Netlist getNetlist(Nodable no) {
 		NodeProto np = no.getProto();
 		if (!(np instanceof Cell)) return null;
 		return Network.getUserNetlist((Cell)np);
 	}
 
+	/**
+	 * Returns set of global signals in this Netlist.
+	 * @return set of global signals in this Netlist.
+	 */
 	public Global.Set getGlobals() {
 		checkForModification();
 		return netCell.getGlobals();
@@ -246,8 +263,10 @@ public class Netlist
 		return Arrays.asList(networks).iterator();
 	}
 
-	/*
-	 * Get network of global signal.
+	/**
+	 * Get net index of a global signal.
+	 * @param global global signal.
+	 * @return net index of a gloabal signal.
 	 */
 	public int getNetIndex(Global global) {
 		checkForModification();
@@ -256,8 +275,12 @@ public class Netlist
 		return nm_net[netMapIndex];
 	}
 
-	/*
-	 * Get network of port instance.
+	/**
+	 * Get net index of signal in a port instance of nodable.
+	 * @param no nodable 
+	 * @param portProto port of nodable
+	 * @param busIndex index of signal in a bus or zero.
+	 * @return net index
 	 */
 	public int getNetIndex(Nodable no, PortProto portProto, int busIndex) {
 		checkForModification();
@@ -278,8 +301,11 @@ public class Netlist
 		return nm_net[netMapIndex];
 	}
 
-	/*
-	 * Get network of export.
+	/**
+	 * Get net index of signal in export.
+	 * @param export given Export.
+	 * @param busIndex index of signal in a bus or zero.
+	 * @return net index.
 	 */
 	public int getNetIndex(Export export, int busIndex) {
 		checkForModification();
@@ -294,8 +320,11 @@ public class Netlist
 		return nm_net[netMapIndex];
 	}
 
-	/*
-	 * Get network index of arc.
+	/**
+	 * Get net index of signal on arc.
+	 * @param ai arc instance
+	 * @param busIndex index of signal in a bus or zero.
+	 * @return net index.
 	 */
 	public int getNetIndex(ArcInst ai, int busIndex) {
 		checkForModification();
@@ -305,8 +334,12 @@ public class Netlist
 		return nm_net[netMapIndex];
 	}
 
-	/*
-	 * Get network of port instance.
+	/**
+	 * Get network of signal in a port instance of nodable.
+	 * @param no nodable 
+	 * @param portProto port of nodable
+	 * @param busIndex index of signal in a bus or zero.
+	 * @return network.
 	 */
 	public JNetwork getNetwork(Nodable no, PortProto portProto, int busIndex) {
 		int netIndex = getNetIndex(no, portProto, busIndex);
@@ -332,8 +365,10 @@ public class Netlist
 		return true;
 	}
 
-	/*
+	/**
 	 * Get network of port instance.
+	 * @param pi port instance.
+	 * @return signal on port index or null.
 	 */
 	public JNetwork getNetwork(PortInst pi) {
 		PortProto portProto = pi.getPortProto();
@@ -345,8 +380,11 @@ public class Netlist
 		return getNetwork(pi.getNodeInst(), portProto, 0);
 	}
 
-	/*
-	 * Get network of export.
+	/**
+	 * Get network of signal in export.
+	 * @param export given Export.
+	 * @param busIndex index of signal in a bus or zero.
+	 * @return network.
 	 */
 	public JNetwork getNetwork(Export export, int busIndex) {
 		int netIndex = getNetIndex(export, busIndex);
@@ -354,8 +392,11 @@ public class Netlist
 		return networks[netIndex];
 	}
 
-	/*
-	 * Get network of arc.
+	/**
+	 * Get network of signal on arc.
+	 * @param ai arc instance
+	 * @param busIndex index of signal in a bus or zero.
+	 * @return network.
 	 */
 	public JNetwork getNetwork(ArcInst ai, int busIndex) {
 		int netIndex = getNetIndex(ai, busIndex);

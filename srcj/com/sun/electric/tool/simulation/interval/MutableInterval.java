@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: Interval.java
+ * File: MutableInterval.java
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *
@@ -30,7 +30,7 @@ import java.math.BigDecimal;
  * Mutable class for representation of intervals X = [a, b]. a and b are double 
  * precision floation point numbers with a <= b. 
  * 
- * Closed ("extended") interval system is emplemented, which is the extension
+ * Closed ("extended") interval system is implemented, which is the extension
  * of regular interval system.
  *
  * The elements of the regular interval system (IR) are intervals with regular 
@@ -53,7 +53,7 @@ import java.math.BigDecimal;
  * operations are guaranteed to produce results consistent with these 
  * representations.
  */
-public class Interval
+public class MutableInterval
 {
     /* Fields */
 
@@ -94,25 +94,25 @@ public class Interval
 	/**
 	 * Constructs a point interval [0,0].
 	 */
-	public Interval() {
+	public MutableInterval() {
 	}
 
 	/**
 	 * Constructs a point interval [x,x].
 	 */
-	public Interval(int x) {
+	public MutableInterval(int x) {
 		assign(x);
 	}
 
 	/**
 	 * Constructs sharpest interval containing x.
 	 */
-	public Interval(long x) {
+	public MutableInterval(long x) {
 		assign(x);
 	}
 
 	/**
-	 * Constructs a point interval.
+	 * Constructs a point interval [x,x].
 	 *
 	 * Special cases in the extended system:
 	 * <UL>
@@ -121,7 +121,7 @@ public class Interval
 	 * <LI> if x == NaN then the entire interval [ -INF,+INF ] is constructed
 	 * </UL>
 	 */
-    public Interval(double x) {
+    public MutableInterval(double x) {
 		assign(x);
 	}
 
@@ -136,7 +136,7 @@ public class Interval
 	 * @param inf The infimum of the interval to be constructed.
 	 * @param sup The supremum of the interval to be constructed.
 	 */
-	public Interval(int inf, int sup) {
+	public MutableInterval(int inf, int sup) {
 		assign(inf, sup);
 	}
 
@@ -151,7 +151,7 @@ public class Interval
 	 * @param inf The infimum of the interval to be constructed.
 	 * @param sup The supremum of the interval to be constructed.
 	 */
-	public Interval(long inf, long sup) {
+	public MutableInterval(long inf, long sup) {
 		assign(inf, sup);
 	}
 
@@ -169,28 +169,28 @@ public class Interval
 	 * @param inf The infimum of the interval to be constructed.
 	 * @param sup The supremum of the interval to be constructed.
 	 */
-	public Interval(double inf, double sup) {
+	public MutableInterval(double inf, double sup) {
 		assign(inf, sup);
 	}
 
 	/**
 	 * Constructs the interval same as x.
 	 */
-	public Interval(Interval x) {
+	public MutableInterval(MutableInterval x) {
 		assign(x);
 	}
 
 	/**
 	 * Constructs the interval from string.
 	 */
-	public Interval(String s) {
+	public MutableInterval(String s) {
 		assign(s);
 	}
 
 	/**
 	 * Constructs the interval from character array.
 	 */
-	public Interval(char[] b) {
+	public MutableInterval(char[] b) {
 		assign(b);
 	}
 
@@ -201,7 +201,7 @@ public class Interval
 	/**
 	 * Assigns a point interval [x,x].
 	 */
-	public Interval assign(int x) {
+	public MutableInterval assign(int x) {
 		inf = sup = (double)x;
 		return this;
 	}
@@ -209,7 +209,7 @@ public class Interval
 	/**
 	 * Assigns sharpest interval containing x.
 	 */
-	public Interval assign(long x) {
+	public MutableInterval assign(long x) {
 		double xd = (double)x;
 		inf = sup = xd;
 		if (Math.abs(x) > EXACT_LONG) {
@@ -232,7 +232,7 @@ public class Interval
 	 * <LI> if x == NaN then the entire interval [ -INF,+INF ] is constructed
 	 * </UL>
 	 */
-    public Interval assign(double x) {
+    public MutableInterval assign(double x) {
 		inf = sup = x;
 		if (x == Double.POSITIVE_INFINITY)
 			inf = Double.MAX_VALUE;
@@ -254,7 +254,7 @@ public class Interval
 	 * @param inf The infimum of the interval to be constructed.
 	 * @param sup The supremum of the interval to be constructed.
 	 */
-	public Interval assign(int inf, int sup) {
+	public MutableInterval assign(int inf, int sup) {
 		if (inf <= sup) {
 			this.inf = (double)inf;
 			this.sup = (double)sup;
@@ -274,7 +274,7 @@ public class Interval
 	 * @param inf The infimum of the interval to be constructed.
 	 * @param sup The supremum of the interval to be constructed.
 	 */
-	public Interval assign(long inf, long sup) {
+	public MutableInterval assign(long inf, long sup) {
 		if (inf <= sup) {
 			this.inf = (double)inf;
 			this.sup = (double)sup;
@@ -303,7 +303,7 @@ public class Interval
 	 * @param inf The infimum of the interval to be constructed.
 	 * @param sup The supremum of the interval to be constructed.
 	 */
-	public Interval assign(double inf, double sup) {
+	public MutableInterval assign(double inf, double sup) {
 		if (inf <= sup) {
 			this.inf = (inf == Double.POSITIVE_INFINITY ? Double.MAX_VALUE : inf);
 			this.sup = (sup == Double.NEGATIVE_INFINITY ? -Double.MAX_VALUE : sup);
@@ -315,7 +315,7 @@ public class Interval
 	/**
 	 * Assigns interval same as x.:
 	 */
-	public Interval assign(Interval x) {
+	public MutableInterval assign(MutableInterval x) {
 		this.inf = x.inf;
 		this.sup = x.sup;
 		return this;
@@ -324,7 +324,7 @@ public class Interval
 	/**
 	 * Assigns the interval from string.
 	 */
-	public Interval assign(String s) {
+	public MutableInterval assign(String s) {
 		parse(s);
 		return this;
 	}
@@ -332,27 +332,27 @@ public class Interval
 	/**
 	 * Assigns the interval from character array.
 	 */
-	public Interval assign(char[] b) {
+	public MutableInterval assign(char[] b) {
 		parse(new String(b));
 		return this;
 	}
 
 	/**
-     * Creates and returns a copy of this Interval.
+     * Creates and returns a copy of this MutableInterval.
 	 */
-	public Interval clon() {
+	public MutableInterval clon() {
 		try {
-			return (Interval)clone();
+			return (MutableInterval)clone();
 		}
 		catch (CloneNotSupportedException e) {
-			return new Interval(inf, sup);
+			return new MutableInterval(inf, sup);
 		}
 	}
 
 	/**
 	 * Assigns entire interval [ -INF, +INF ].
 	 */
-	public Interval assignEntire() {
+	public MutableInterval assignEntire() {
 		inf = Double.NEGATIVE_INFINITY;
 		sup = Double.POSITIVE_INFINITY;
 		return this;
@@ -361,7 +361,7 @@ public class Interval
 	/**
 	 * Assigns empty interval [-EMPTY ].
 	 */
-	public Interval assignEmpty() {
+	public MutableInterval assignEmpty() {
 		inf = sup = Double.NaN;
 		return this;
 	}
@@ -573,7 +573,7 @@ public class Interval
 	 * <LI> x.abs() == [ +INF ] for x == [ +/- INF ]
 	 * </UL>
 	 */
-	public Interval abs()
+	public MutableInterval abs()
     {
 		if (sup <= 0) {
 			double h = sup;
@@ -599,7 +599,7 @@ public class Interval
 	 * <LI> x.min(y) == [ EMPTY ] for x == [ EMPTY ] and y == [ EMPTY ] 
 	 * </UL>
 	 */
-	public Interval min(Interval y) {
+	public MutableInterval min(MutableInterval y) {
 		if (this.inf != this.inf) // inf = this.inf; sup = this.sup;
 			return this;
 		inf = (this.inf < y.inf ? this.inf : y.inf);
@@ -618,7 +618,7 @@ public class Interval
 	 * <LI> x.max(y) == [ EMPTY ] for x == [ EMPTY ] and y == [ EMPTY ]
 	 * </UL>
 	 */
-	public Interval max(Interval y) {
+	public MutableInterval max(MutableInterval y) {
 		if (this.inf != this.inf) // inf = this.inf; sup = this.sup;
 			return this;
 		inf = (this.inf > y.inf ? this.inf : y.inf);
@@ -637,7 +637,7 @@ public class Interval
 	 * <LI> x.dist(y) == NaN for x == [ EMPTY ] or y == [ EMPTY ] 
 	 * </UL>
 	 */
-	double dist(Interval x) {
+	double dist(MutableInterval x) {
 
 		if (isEmpty() || x.isEmpty())
 			return Double.NaN;
@@ -666,7 +666,7 @@ public class Interval
 	 * <LI> x.intersect(y) == [ EMPTY ] iff x and y are disjoint
 	 * </UL>
 	 */
-	public Interval intersect(Interval y) {
+	public MutableInterval intersect(MutableInterval y) {
 		double l, u;
 		if (isEmpty() || y.isEmpty()) {
 			this.inf = Double.NaN;
@@ -689,7 +689,7 @@ public class Interval
 	/**
 	 * Same as x.intersect(y)
 	 */
-	public Interval ix(Interval y) {
+	public MutableInterval ix(MutableInterval y) {
 		return intersect(y);
 	}
   
@@ -701,7 +701,7 @@ public class Interval
 	 * <LI> x.interval_hull(y) == [ EMPTY ] for x == y == [ EMPTY ]
 	 * </UL>
 	 */
-	public Interval interval_hull(Interval y) {
+	public MutableInterval interval_hull(MutableInterval y) {
 		if (isEmpty()) {
 			this.inf = y.inf;
 			this.sup = y.sup;
@@ -722,7 +722,7 @@ public class Interval
 	 * <LI> x.interval_hull(y) == [ -INF,+INF ] for y == NaN
 	 * </UL>
 	 */
-	public Interval interval_hull(double x) {
+	public MutableInterval interval_hull(double x) {
 		if (isEmpty())
 			return assign(x);
 		if (x != x)
@@ -735,7 +735,7 @@ public class Interval
 	/**
 	 * Same as x.interval_hull(y)
 	 */
-	public Interval ih(Interval y) {
+	public MutableInterval ih(MutableInterval y) {
 		return interval_hull(y);
 	}
 
@@ -751,14 +751,14 @@ public class Interval
 	 * <LI> x.disjoint(y) == true for x or y == [ EMPTY ]
 	 * </UL>
 	 */
-	public boolean disjoint(Interval y) {
+	public boolean disjoint(MutableInterval y) {
 		return !(this.inf <= y.sup && y.inf <= this.sup);
 	}
   
 	/**
 	 * Same as x.disjoint(y)
 	 */
-	public boolean dj(Interval y) {
+	public boolean dj(MutableInterval y) {
 		return !(this.inf <= y.sup && y.inf <= this.sup);
 	}
 
@@ -799,14 +799,14 @@ public class Interval
 	 * <LI> x.in_interior(y) == true for x == [ EMPTY ] 
 	 * </UL>
 	 */
-	public boolean in_interior(Interval y) {
+	public boolean in_interior(MutableInterval y) {
 		return (inf > y.inf && sup < y.sup) || isEmpty();
 	}
 
 	/**
 	 * Same as x.interior(y)
 	 */
-	public boolean interior(Interval y) {
+	public boolean interior(MutableInterval y) {
 		return in_interior(y);
 	}
 
@@ -819,7 +819,7 @@ public class Interval
 	 * <LI> x.proper_subset(y) == true for x == [ EMPTY ] and y != [ EMPTY ] 
 	 * </UL>
 	 */
-	public boolean proper_subset(Interval y) {
+	public boolean proper_subset(MutableInterval y) {
 		return (inf >= y.inf && sup <= y.sup && (inf > y.inf || sup < y.sup)) ||
 			(isEmpty() && ! y.isEmpty());
 	}
@@ -832,7 +832,7 @@ public class Interval
 	 * <LI> x.subset(y) == true for x == [ EMPTY ] 
 	 * </UL>   
 	 */
-	public boolean subset(Interval y) {
+	public boolean subset(MutableInterval y) {
 		return y.inf <= inf && sup <= y.sup || isEmpty();
 	}
   
@@ -844,7 +844,7 @@ public class Interval
 	 * <LI> x.proper_superset(y) == true for x != [ EMPTY ] and y == [ EMPTY ] 
 	 * </UL>
 	 */
-	public boolean proper_superset(Interval y) {
+	public boolean proper_superset(MutableInterval y) {
 		return (inf <= y.inf && y.sup <= sup && (inf < y.inf || y.sup < sup)) ||
 			(y.isEmpty() && ! isEmpty());
 	}
@@ -857,7 +857,7 @@ public class Interval
 	 * <LI> x.superset(y) == true for y == [ EMPTY ] 
 	 * </UL>
 	 */
-	public boolean superset(Interval y) {
+	public boolean superset(MutableInterval y) {
 		return inf <= y.inf && y.sup <= sup || y.isEmpty();
 	}
   
@@ -869,14 +869,14 @@ public class Interval
 	 * <LI> x.seq(y) == true for x == y == [ EMPTY ] 
 	 * </UL>
 	 */
-	public boolean seq(Interval y) {
+	public boolean seq(MutableInterval y) {
 		return (inf == y.inf && sup == y.sup) || isEmpty() && y.isEmpty();
 	}
   
 	/**
 	 * Returns true iff this interval is set-not-equal to interval x.
 	 */
-	public boolean sne(Interval y) {
+	public boolean sne(MutableInterval y) {
 		return !seq(y);
 	}
 
@@ -889,7 +889,7 @@ public class Interval
 	 * <LI> x.sge(y) == true for x == y == [ EMPTY ] 
 	 * </UL>
 	 */
-	public boolean sge(Interval y) {
+	public boolean sge(MutableInterval y) {
 		return inf >= y.inf && sup >= y.sup || isEmpty() && y.isEmpty();
 	}
 
@@ -901,7 +901,7 @@ public class Interval
 	 * <LI> x.sgt(y) == false for x == [ EMPTY ] or y == [ EMPTY ] 
 	 * </UL>
 	 */
-	public boolean sgt(Interval y) {
+	public boolean sgt(MutableInterval y) {
 		return inf > y.inf && sup > y.sup;
 	}
   
@@ -914,7 +914,7 @@ public class Interval
 	 * <LI> x.sle(y) == true for x == y == [ EMPTY ] 
 	 * </UL>
 	 */
-	public boolean sle(Interval y) {
+	public boolean sle(MutableInterval y) {
 		return inf <= y.inf && sup <= y.sup || isEmpty() && y.isEmpty();
 	}
 
@@ -926,7 +926,7 @@ public class Interval
 	 * <LI> x.slt(y) == false for x == [ EMPTY ] or y == [ EMPTY ] 
 	 * </UL>
 	 */
-	public boolean slt(Interval y) {
+	public boolean slt(MutableInterval y) {
 		return inf < y.inf && sup < y.sup;
 	}
   
@@ -942,7 +942,7 @@ public class Interval
 	 * <LI> x.ceq(y) == false for x == [ EMPTY ] or y == [ EMPTY ] 
 	 * </UL>
 	 */
-	public boolean ceq(Interval y) {
+	public boolean ceq(MutableInterval y) {
 		return sup <= y.inf && inf >= y.sup;
 	}
 
@@ -954,7 +954,7 @@ public class Interval
 	 * <LI> x.cne(y) == true for x == [ EMPTY ] or y == [ EMPTY ] 
 	 * </UL>
 	 */
-	public boolean cne(Interval y) {
+	public boolean cne(MutableInterval y) {
 		return !(inf <= y.sup && y.inf <= sup);
 	}
 
@@ -967,7 +967,7 @@ public class Interval
 	 * <LI> x.cge(y) == false for x == [ EMPTY ] or y == [ EMPTY ]
 	 * </UL>
 	 */
-	public boolean cge(Interval y) {
+	public boolean cge(MutableInterval y) {
 		return inf >= y.sup;
 	}
 
@@ -979,7 +979,7 @@ public class Interval
 	 * <LI> x.cgt(y) == false for x == [ EMPTY ] or y == [ EMPTY ] 
 	 * </UL>
 	 */
-	public boolean cgt(Interval y) {
+	public boolean cgt(MutableInterval y) {
 		return inf > y.sup;
 	}
 
@@ -992,7 +992,7 @@ public class Interval
 	 * <LI> x.cle(y) == false for x == [ EMPTY ] or y == [ EMPTY ]
 	 * </UL>
 	 */
-	public boolean cle(Interval y) {
+	public boolean cle(MutableInterval y) {
 		return sup <= y.inf;
 	}
 
@@ -1004,7 +1004,7 @@ public class Interval
 	 * <LI> x.clt(y) == false for x == [ EMPTY ] or y == [ EMPTY ] 
 	 * </UL>
 	 */
-	public boolean clt(Interval y) {
+	public boolean clt(MutableInterval y) {
 		return sup < y.inf;
 	}
 
@@ -1020,7 +1020,7 @@ public class Interval
 	 * <LI> x.peq(y) == false for x == [ EMPTY ] or y == [ EMPTY ] 
 	 * </UL>
 	 */
-	public boolean peq(Interval y) {
+	public boolean peq(MutableInterval y) {
 		return inf <= y.sup && sup >= y.inf;
 	}
 
@@ -1032,7 +1032,7 @@ public class Interval
 	 * <LI> x.pne(y) == true for x == [ EMPTY ] or y == [ EMPTY ] 
 	 * </UL>
 	 */
-	public boolean pne(Interval y) {
+	public boolean pne(MutableInterval y) {
 		return !(sup <= y.inf && inf >= y.sup);
 	}
 
@@ -1045,7 +1045,7 @@ public class Interval
 	 * <LI> x.pge(y) == false for x == [ EMPTY ] or y == [ EMPTY ]
 	 * </UL>
 	 */
-	public boolean pge(Interval y) {
+	public boolean pge(MutableInterval y) {
 		return sup >= y.inf;
 	}
 
@@ -1057,7 +1057,7 @@ public class Interval
 	 * <LI> x.pgt(y) == false for x == [ EMPTY ] or y == [ EMPTY ] 
 	 * </UL>
 	 */
-	public boolean pgt(Interval y) {
+	public boolean pgt(MutableInterval y) {
 		return sup > y.inf;
 	}
 
@@ -1070,7 +1070,7 @@ public class Interval
 	 * <LI> x.ple(y) == false for x == [ EMPTY ] or y == [ EMPTY ]
 	 * </UL>
 	 */
-	public boolean ple(Interval y) {
+	public boolean ple(MutableInterval y) {
 		return inf <= y.sup;
 	}
 
@@ -1082,7 +1082,7 @@ public class Interval
 	 * <LI> x.plt(y) == false for x == [ EMPTY ] or y == [ EMPTY ] 
 	 * </UL>
 	 */
-	public boolean plt(Interval y) {
+	public boolean plt(MutableInterval y) {
 		return inf < y.sup;
 	}
 
@@ -1098,7 +1098,7 @@ public class Interval
 	 * <LI> -x == [ EMPTY ] for x == [ EMPTY ]
 	 * </UL>
 	 */
-	public Interval negate() {
+	public MutableInterval negate() {
 		double l = inf;
 		inf = -sup;
 		sup = -l;
@@ -1113,7 +1113,7 @@ public class Interval
 	 * <LI> x += y == [ EMPTY ] for x == [ EMPTY ] or y == [ EMPTY ]
 	 * </UL>
 	 */
-	public Interval add(Interval y) {
+	public MutableInterval add(MutableInterval y) {
 		double l = this.inf + y.inf;
 		if (l - this.inf > y.inf || l - y.inf > this.inf) {
 			assert Math.abs(l) >= MIN_NORMAL*2;
@@ -1137,7 +1137,7 @@ public class Interval
 	 * <LI> x += y == [ EMPTY ] for x == [ EMPTY ] or y == NaN
 	 * </UL>
 	 */
-	public Interval add(double y) {
+	public MutableInterval add(double y) {
 		double l = this.inf + y;
 		if (l - this.inf > y || l - y > this.inf) {
 			assert Math.abs(l) >= MIN_NORMAL*2;
@@ -1168,7 +1168,7 @@ public class Interval
 	 * <LI> x -= y == [ EMPTY ] for x == [ EMPTY ] or y == [ EMPTY ]
 	 * </UL>
 	 */
-	public Interval sub(Interval y) {
+	public MutableInterval sub(MutableInterval y) {
 		double l = this.inf - y.sup;
 		if (this.inf - l < y.sup || l + y.sup > this.inf) {
 			assert Math.abs(l) >= MIN_NORMAL*2;
@@ -1192,7 +1192,7 @@ public class Interval
 	 * <LI> x -= y == [ EMPTY ] for x == [ EMPTY ] or y == NaN
 	 * </UL>
 	 */
-	public Interval sub(double y) {
+	public MutableInterval sub(double y) {
 		double l = this.inf - y;
 		if (this.inf - l < y || l + y > this.inf) {
 			assert Math.abs(l) >= MIN_NORMAL*2;
@@ -1223,7 +1223,7 @@ public class Interval
 	 * <LI> x *= y == [ EMPTY ] for x == [ EMPTY ] or y == [ EMPTY ]
 	 * </UL>
 	 */
-	public Interval mul(Interval y) {
+	public MutableInterval mul(MutableInterval y) {
 		double l, h;
 
 		if (y.inf > 0) {
@@ -1299,7 +1299,7 @@ public class Interval
 	 * <LI> x /= y == [ ENTIRE ] if y contains 0
 	 * </UL>
 	 */
-	public Interval div(Interval y) {
+	public MutableInterval div(MutableInterval y) {
 		double l, h;
 
 		if (y.inf > 0) {
@@ -1358,7 +1358,7 @@ public class Interval
 	/**
 	 * Replaces this interval by an interval enclosure of its exponential.
 	 */
-    public Interval exp() {
+    public MutableInterval exp() {
 		double l = Math.exp(this.inf);
 		if (l > 0)
 			l = prevPos(l);
@@ -1372,7 +1372,7 @@ public class Interval
 	/**
 	 * Replaces this interval by an interval enclosure of its natural logarithm.
 	 */
-	public Interval log() {
+	public MutableInterval log() {
 		double l = Math.log(this.inf);
 		double h = Math.log(this.sup);
 		if (l > 0)
