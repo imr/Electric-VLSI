@@ -1023,7 +1023,7 @@ public class JELIB extends LibraryFiles
 					" (cell " + cell.describe() + ") point (" + headPt.getX() + "," + headPt.getY() + ") does not fit in port " +
 					pi.describe() + " which is centered at (" + poly.getCenterX() + "," + poly.getCenterY() + ")", cell, -1);
 				log.addPoint(headPt.getX(), headPt.getY(), cell);
-				if (np instanceof Export)
+				if (np instanceof Cell)
 					pi = null;
 			}
 		}

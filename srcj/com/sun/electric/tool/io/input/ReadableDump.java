@@ -63,6 +63,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * This class reads files in readable-dump (.txt) format.
@@ -421,8 +423,13 @@ public class ReadableDump extends LibraryFiles
 		return changed;
 	}
 
-	protected double computeLambda(Cell cell, int cellIndex)
+	protected void computeTech(Cell cell, Set uncomputedCells)
 	{
+		uncomputedCells.remove(cell);
+		int cellIndex = 0;
+		for(; cellIndex<nodeProtoCount && nodeProtoList[cellIndex] != cell; cellIndex++);
+		if (cellIndex >= nodeProtoCount || nodeInstList == null) return; // error
+
 		LibraryFiles.NodeInstList nil = nodeInstList[cellIndex];
 		int numNodes = 0;
 		NodeProto [] nodePrototypes = null;
@@ -430,6 +437,17 @@ public class ReadableDump extends LibraryFiles
 		{
 			nodePrototypes = nil.protoType;
 			numNodes = nodePrototypes.length;
+		}
+
+		// recursively ensure that subcells's technologies are computed
+		for(int i=0; i<numNodes; i++)
+		{
+			NodeProto np = nodePrototypes[i];
+			if (!uncomputedCells.contains(np)) continue;
+			Cell subCell = (Cell)np;
+			LibraryFiles reader = getReaderForLib(subCell.getLibrary());
+			if (reader != null)
+				reader.computeTech(subCell, uncomputedCells);
 		}
 
 		ArcInstList ail = arcInstList[cellIndex];
@@ -443,7 +461,32 @@ public class ReadableDump extends LibraryFiles
 		Technology cellTech = Technology.whatTechnology(cell, nodePrototypes, 0, numNodes,
 			arcPrototypes, 0, numArcs);
 		cell.setTechnology(cellTech);
-		double lambda = 1;
+	}
+
+	protected double computeLambda(Cell cell, int cellIndex)
+	{
+// 		LibraryFiles.NodeInstList nil = nodeInstList[cellIndex];
+// 		int numNodes = 0;
+// 		NodeProto [] nodePrototypes = null;
+// 		if (nil != null)
+// 		{
+// 			nodePrototypes = nil.protoType;
+// 			numNodes = nodePrototypes.length;
+// 		}
+
+// 		ArcInstList ail = arcInstList[cellIndex];
+// 		int numArcs = 0;
+// 		ArcProto [] arcPrototypes = null;
+// 		if (ail != null)
+// 		{
+// 			arcPrototypes = ail.arcProto;
+// 			numArcs = arcPrototypes.length;
+// 		}
+// 		Technology cellTech = Technology.whatTechnology(cell, nodePrototypes, 0, numNodes,
+// 			arcPrototypes, 0, numArcs);
+// 		cell.setTechnology(cellTech);
+		Technology cellTech = cell.getTechnology();
+		double lambda = 1.0;
 		if (cellTech != null)
 		{
 			for(int i=0; i<techList.length; i++)

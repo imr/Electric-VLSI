@@ -520,7 +520,7 @@ public class Highlight
 	{
         if (!isValid()) return;
 
-        assert(Job.hasExamineLock());
+//        assert(Job.hasExamineLock());
         
 		g.setColor(mainColor);
         Graphics2D g2 = (Graphics2D)g;

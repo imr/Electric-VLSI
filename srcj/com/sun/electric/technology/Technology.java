@@ -2984,7 +2984,7 @@ public class Technology
 		}
 
 		Technology retTech = null;
-		if (cell.isIcon())
+		if (cell.isIcon() || cell.getView().isTextView())
 		{
 			// in icons, if there is any artwork, use it
 			if (useCount[Artwork.tech.getIndex()] > 0) return(Artwork.tech);

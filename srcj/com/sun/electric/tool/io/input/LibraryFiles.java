@@ -49,6 +49,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 
 /**
@@ -370,6 +372,31 @@ public class LibraryFiles extends Input
 		progress.setNote("Constructing cell contents...");
 		progress.setProgress(0);
 
+		// Compute technology of new cells
+		Set uncomputedCells = new HashSet();
+		for(Iterator it = libsBeingRead.iterator(); it.hasNext(); )
+		{
+			LibraryFiles reader = (LibraryFiles)it.next();
+			for(int cellIndex=0; cellIndex<reader.nodeProtoCount; cellIndex++)
+			{
+				Cell cell = reader.nodeProtoList[cellIndex];
+				if (cell == null) continue;
+				if (cell.getLibrary() != reader.lib) continue;
+				uncomputedCells.add(cell);
+			}
+		}
+		for(Iterator it = libsBeingRead.iterator(); it.hasNext(); )
+		{
+			LibraryFiles reader = (LibraryFiles)it.next();
+			for(int cellIndex=0; cellIndex<reader.nodeProtoCount; cellIndex++)
+			{
+				Cell cell = reader.nodeProtoList[cellIndex];
+				if (cell == null) continue;
+				if (cell.getLibrary() != reader.lib) continue;
+				reader.computeTech(cell, uncomputedCells);
+			}
+		}
+
 		// clear flag bits for scanning the library hierarchically
 		totalCells = 0;
 		FlagSet markCellForNodes = Cell.getFlagSet(1);
@@ -517,6 +544,11 @@ public class LibraryFiles extends Input
 	}
 
 	// *************************** THE CELL CLEANUP INTERFACE ***************************
+
+	protected void computeTech(Cell cell, Set uncomputedCells)
+	{
+		uncomputedCells.remove(cell);
+	}
 
 	protected double computeLambda(Cell cell, int cellIndex) { return 1; }
 

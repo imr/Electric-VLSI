@@ -371,9 +371,8 @@ public class Quick
 		// now do the DRC
 
 		boolean validVersion = true;
-	    Object version = cell.getLibrary().getVar(Library.LIBRARY_VERSION, Version.class);
-		if (version != null) version = ((Variable)version).getObject();
-		if (version != null) validVersion = ((Version)version).compareTo(Version.getVersion()) >=0;
+	    Version version = cell.getLibrary().getVersion();
+		if (version != null) validVersion = version.compareTo(Version.getVersion()) >=0;
 		errorLogger = null;
         int logsFound = 0;
 		if (count == 0)

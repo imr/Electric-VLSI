@@ -56,7 +56,6 @@ import javax.swing.JOptionPane;
 public class Library extends ElectricObject
 {
 	/** key of Variable holding font associations. */		public static final Variable.Key FONT_ASSOCIATIONS = ElectricObject.newKey("LIB_font_associations");
-	/** key of Variable holding library version */		    public static final Variable.Key LIBRARY_VERSION = ElectricObject.newKey("LIB_version");
 
 	// ------------------------ private data ------------------------------
 
@@ -71,6 +70,7 @@ public class Library extends ElectricObject
 
 	/** name of this library  */							private String libName;
 	/** file location of this library */					private URL libFile;
+	/** version of Electric which wrote the library. */		private Version version;
 	/** list of Cells in this library */					private ArrayList cells;
 //	/** Cell currently being edited */						private Cell curCell;
 	/** Preference for cell currently being edited */		private Pref curCellPref;
@@ -960,13 +960,21 @@ public class Library extends ElectricObject
     }
 
 	/**
-	 * Method to set library version found in header as internal variable.
-	 * Such variable will not be saved.
+	 * Returns verison of Electric which wrote this library.
+	 * Returns null for ReadableDumps, for new libraries and for dummy libraries.
+	 * @return version
+	 */
+	public Version getVersion()
+	{
+		return version;
+	}
+
+	/**
+	 * Method to set library version found in header.
 	 * @param version
 	 */
 	public void setVersion(Version version)
 	{
-		Variable newVar = newVar(Library.LIBRARY_VERSION, version);
-		newVar.setDontSave();
+		this.version = version;
 	}
 }

@@ -36,6 +36,8 @@ import java.net.URL;
  */
 public final class Launcher
 {
+	private static final boolean enableAssertions = true;
+
 	private Launcher() {}
 
 	/**
@@ -94,6 +96,8 @@ public final class Launcher
 		if (maxMemWanted <= maxMem)
 		{
 			// already have the desired amount of memory: just start Electric
+			if (enableAssertions)
+				ClassLoader.getSystemClassLoader().setDefaultAssertionStatus(true);
 			Main.main(args);
 			return;
 		}
@@ -114,6 +118,8 @@ public final class Launcher
         command += " -ss2m";
 		command += " -mx" + maxMemWanted + "m com.sun.electric.Main";
         System.out.println("Rerunning Electric with memory footprint of "+maxMemWanted+"m because "+maxMem+"m is too small");
+		if (enableAssertions)
+			command += " -ea"; // enable assertions
         for (int i=0; i<args.length; i++) command += " " + args[i];
         //System.out.println("exec: "+command);
 		try

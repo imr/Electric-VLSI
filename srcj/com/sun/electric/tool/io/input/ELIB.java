@@ -773,6 +773,12 @@ public class ELIB extends LibraryFiles
 				}
 			}
 		}
+		for (Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology tech = (Technology)it.next();
+			if (techScale[tech.getIndex()] > 0.0) continue;
+			techScale[tech.getIndex()] = tech.getScale();
+		}
 
 		// read the global namespace
 		if (readNameSpace())
@@ -1193,6 +1199,7 @@ public class ELIB extends LibraryFiles
 		progress.setProgress(cellsConstructed * 100 / totalCells);
 
 		double lambdaX = cellLambda[cellIndex];
+		assert lambdaX > 0;
 		double lambdaY = lambdaX;
 		NodeInst [] oldNodes = null;
 
@@ -1297,15 +1304,43 @@ public class ELIB extends LibraryFiles
 		return changed;
 	}
 
-	protected double computeLambda(Cell cell, int cellIndex)
+	protected void computeTech(Cell cell, Set uncomputedCells)
 	{
-		double lambda = 1.0;
+		uncomputedCells.remove(cell);
+		int cellIndex = 0;
+		for(; cellIndex<nodeProtoCount && nodeProtoList[cellIndex] != cell; cellIndex++);
+		if (cellIndex >= nodeProtoCount) return;
+		
 		int startNode = firstNodeIndex[cellIndex];
 		int endNode = firstNodeIndex[cellIndex+1];
+
+		// recursively ensure that subcells's technologies are computed
+		for(int i=startNode; i<endNode; i++)
+		{
+			NodeProto np = nodeInstList.protoType[i];
+			if (!uncomputedCells.contains(np)) continue;
+			Cell subCell = (Cell)np;
+			LibraryFiles reader = getReaderForLib(subCell.getLibrary());
+			if (reader != null)
+				reader.computeTech(subCell, uncomputedCells);
+		}
+
 		int startArc = firstArcIndex[cellIndex];
 		int endArc = firstArcIndex[cellIndex+1];
 		Technology cellTech = Technology.whatTechnology(cell, nodeInstList.protoType, startNode, endNode, arcTypeList, startArc, endArc);
 		cell.setTechnology(cellTech);
+	}
+
+	protected double computeLambda(Cell cell, int cellIndex)
+	{
+		double lambda = 1.0;
+// 		int startNode = firstNodeIndex[cellIndex];
+// 		int endNode = firstNodeIndex[cellIndex+1];
+// 		int startArc = firstArcIndex[cellIndex];
+// 		int endArc = firstArcIndex[cellIndex+1];
+// 		Technology cellTech = Technology.whatTechnology(cell, nodeInstList.protoType, startNode, endNode, arcTypeList, startArc, endArc);
+// 		cell.setTechnology(cellTech);
+		Technology cellTech = cell.getTechnology();
 		if (cellTech != null) lambda = techScale[cellTech.getIndex()];
 		return lambda;
 	}
