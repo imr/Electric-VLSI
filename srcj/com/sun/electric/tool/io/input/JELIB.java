@@ -74,6 +74,7 @@ import java.util.Iterator;
  *   Node userbits
  *   Arc userbits
  *   Export userbits
+ *   Deprecated variables
  */
 public class JELIB extends LibraryFiles
 {
@@ -91,6 +92,7 @@ public class JELIB extends LibraryFiles
 	}
 
 	private HashMap allCells;
+	private String curLibName;
 
 	JELIB()
 	{
@@ -121,6 +123,8 @@ public class JELIB extends LibraryFiles
 	{
 		lib.erase();
 		allCells = new HashMap();
+		curLibName = null;
+		String mainCell = "";
 
 		for(;;)
 		{
@@ -136,6 +140,9 @@ public class JELIB extends LibraryFiles
 			if (first == 'H')
 			{
 				// parse header
+				List pieces = parseLine(line);
+				curLibName = (String)pieces.get(0);
+				mainCell = (String)pieces.get(2);
 				continue;
 			}
 
@@ -180,19 +187,17 @@ public class JELIB extends LibraryFiles
 				// group information
 				continue;
 			}
-
-			if (first == 'R')
-			{
-				// the main cell
-				List pieces = parseLine(line);
-				Cell mainCell = lib.findNodeProto((String)pieces.get(0));
-				if (mainCell != null)
-					lib.setCurCell(mainCell);
-				continue;
-			}
 		}
 
 		instantiateCellContents();
+
+		// set the main cell
+		if (mainCell.length() > 0)
+		{
+			Cell main = lib.findNodeProto(mainCell);
+			if (main != null)
+				lib.setCurCell(main);
+		}
 
 		lib.clearChangedMajor();
 		lib.clearChangedMinor();
@@ -224,8 +229,15 @@ public class JELIB extends LibraryFiles
 			List pieces = parseLine(cellString);
 			String protoName = (String)pieces.get(0);
 			NodeProto np = null;
-			if (protoName.indexOf(':') < 0) np = lib.findNodeProto(protoName); else
-				np = NodeProto.findNodeProto(protoName);
+			int colonPos = protoName.indexOf(':');
+			if (colonPos < 0) np = lib.findNodeProto(protoName); else
+			{
+				String prefixName = protoName.substring(0, colonPos);
+				if (prefixName.equals(curLibName)) np = lib.findNodeProto(protoName); else
+				{
+					np = NodeProto.findNodeProto(protoName);
+				}
+			}
 			if (np == null)
 			{
 				System.out.println("Cell " + cell.describe() + ": cannot find node " + protoName);

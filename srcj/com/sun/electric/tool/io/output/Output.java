@@ -23,58 +23,57 @@
  */
 package com.sun.electric.tool.io.output;
 
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Listener;
+import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.Input;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
-import javax.swing.*;
 import java.awt.geom.Rectangle2D;
-import java.io.FileOutputStream;
-import java.io.DataOutputStream;
 import java.io.BufferedOutputStream;
-import java.io.PrintWriter;
 import java.io.BufferedWriter;
+import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.Iterator;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Date;
-//import javax.print.PrintServiceLookup;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.swing.JOptionPane;
+
 
 /**
  * This class manages writing files in different formats.
  * The class is subclassed by the different file writers.
  */
-public class Output//extends IOTool
+public class Output
 {
 	/** file path */                            protected String filePath;
 	/** for writing text files */               protected PrintWriter printWriter;

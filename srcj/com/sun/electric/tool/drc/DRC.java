@@ -856,7 +856,7 @@ public class DRC extends Listener
 
 		// determine override differences from the factory rules
 
-		StringBuffer changes = tech.getRuleDifferences(factoryRules, newRules);
+		StringBuffer changes = Technology.getRuleDifferences(factoryRules, newRules);
 
 
 

@@ -911,6 +911,13 @@ public class ElectricObject
 	 */
 	public boolean isDeprecatedVariable(Variable.Key key)
 	{
+		String name = key.getName();
+		if (name.length() == 0) return true;
+		if (name.length() == 1)
+		{
+			char chr = name.charAt(0);
+			if (!Character.isLetter(chr)) return true;
+		}
 		return false;
 	}
 

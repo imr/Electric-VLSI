@@ -1375,7 +1375,7 @@ public abstract class NodeProto extends ElectricObject
 		if (name.equals("NET_last_good_ncc") ||
 			name.equals("NET_last_good_ncc_facet") ||
 			name.equals("SIM_window_signal_order")) return true;
-		return false;
+		return super.isDeprecatedVariable(key);
 	}
 
 	/**

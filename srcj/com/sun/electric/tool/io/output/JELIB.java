@@ -98,19 +98,7 @@ public class JELIB extends Output
 	private boolean writeTheLibrary(Library lib)
 		throws IOException
 	{
-		printWriter.print("# A arc (instance or primitive) information\n");
-		printWriter.print("# C cell information\n");
-		printWriter.print("# E export information\n");
-		printWriter.print("# G group information\n");
-		printWriter.print("# H library header\n");
-		printWriter.print("# N node (instance or primitive) information\n");
-		printWriter.print("# O tool information\n");
-		printWriter.print("# P port (on primitive) information\n");
-		printWriter.print("# R main cell name\n");
-		printWriter.print("# T technology information\n");
-		printWriter.print("# V view information\n");
-		printWriter.print("# X end of cell\n");
-		printWriter.print("\n");
+		printWriter.print("# header information:\n");
 
 		// pick up all full names that might become abbreviations
 		abbreviationMap = new HashMap();
@@ -126,8 +114,10 @@ public class JELIB extends Output
 			if (abbr == null) textRecurse(cell, lib);
 		}
 
-		// write header information
-		printWriter.print("H" + Version.getVersion() + "|" + lib.getName());
+		// write header information (library, version, main cell)
+		Cell curCell = lib.getCurCell();
+		printWriter.print("H" + lib.getName() + "|" + Version.getVersion() + "|");
+		if (curCell != null) printWriter.print(curCell.noLibDescribe());
 		writeVars(lib, null);
 		printWriter.print("\n");
 
@@ -388,14 +378,6 @@ public class JELIB extends Output
 			printWriter.print("\n");
 		}
 
-		// write the main cell
-		Cell curCell = lib.getCurCell();
-		if (curCell != null)
-		{
-			printWriter.print("\n# Main cell:\n");
-			printWriter.print("R" + curCell.noLibDescribe() + "\n");
-		}
-
 		// clean up and return
 		lib.clearChangedMinor();
 		lib.clearChangedMajor();
@@ -454,6 +436,18 @@ public class JELIB extends Output
 			return s1.compareToIgnoreCase(s2);
 		}
 	}
+
+	private static class VariablesByName implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Variable v1 = (Variable)o1;
+			Variable v2 = (Variable)o2;
+			String s1 = v1.getKey().getName();
+			String s2 = v2.getKey().getName();
+			return s1.compareToIgnoreCase(s2);
+		}
+	}
 	
 	/**
 	 * Method to help order the library for proper nonforward references
@@ -494,7 +488,7 @@ public class JELIB extends Output
 		}
 
 		// add this cell to the list
-		abbreviationMap.put(cell, new StringBuffer(cell.noLibDescribe()));
+		abbreviationMap.put(cell, new StringBuffer(cell.getLibrary().getName() + ":" + cell.noLibDescribe()));
 	}
 
 	/**
@@ -615,7 +609,33 @@ public class JELIB extends Output
 	private void writeVars(ElectricObject eObj, Cell curCell)
 	{
 		// count the number of variables
+		int numVars = 0;
 		for(Iterator it = eObj.getVariables(); it.hasNext(); )
+		{
+			Variable var = (Variable)it.next();
+			if (var.isDontSave()) continue;
+			numVars++;
+		}
+		if (numVars == 0) return;
+
+		// sort the variables if there are more than 1
+		Iterator varIterator = eObj.getVariables();
+		if (numVars > 1)
+		{
+			// must sort the names
+			List sortedVars = new ArrayList();
+			for(Iterator it = eObj.getVariables(); it.hasNext(); )
+			{
+				Variable var = (Variable)it.next();
+				if (var.isDontSave()) continue;
+				sortedVars.add(var);
+			}
+			Collections.sort(sortedVars, new VariablesByName());
+			varIterator = sortedVars.iterator();
+		}
+
+		// write the variables
+		for(Iterator it = varIterator; it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
 			if (var.isDontSave()) continue;
@@ -705,6 +725,12 @@ public class JELIB extends Output
 		if (obj instanceof Long)
 		{
 			infstr.append(((Long)obj).longValue());
+			return;
+		}
+		if (obj instanceof Point2D)
+		{
+			Point2D pt2 = (Point2D)obj;
+			infstr.append(TextUtils.formatDouble(pt2.getX()) + "/" + TextUtils.formatDouble(pt2.getY()));
 			return;
 		}
 		if (obj instanceof Technology)
@@ -800,6 +826,7 @@ public class JELIB extends Output
 		if (obj instanceof ArcProto) return "R";
 		if (obj instanceof String) return "S";
 		if (obj instanceof Technology) return "T";
+		if (obj instanceof Point2D) return "V";
 		if (obj instanceof Byte) return "Y";
 		return null;
 	}

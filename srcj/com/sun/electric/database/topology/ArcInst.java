@@ -958,7 +958,11 @@ public class ArcInst extends Geometric
 	 * @param key the key of the variable.
 	 * @return true if the variable key is deprecated.
 	 */
-	public boolean isDeprecatedVariable(Variable.Key key) { return key == ARC_NAME; }
+	public boolean isDeprecatedVariable(Variable.Key key)
+	{
+		if (key == ARC_NAME) return true;
+		return super.isDeprecatedVariable(key);
+	}
 
 	/**
 	 * Method to write a description of this ArcInst.

@@ -23,21 +23,36 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.tool.user.CircuitChanges;
 
-import javax.swing.*;
-import java.util.*;
-import java.util.List;
-import java.awt.*;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.ActionListener;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JList;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.ListSelectionModel;
 
 /**
  * This JPanel is a palette of library cells that can be placed in the

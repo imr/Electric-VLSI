@@ -1999,7 +1999,11 @@ public class NodeInst extends Geometric implements Nodable
 	 * @param key the key of the variable.
 	 * @return true if the variable key is deprecated.
 	 */
-	public boolean isDeprecatedVariable(Variable.Key key) { return key == NODE_NAME; }
+	public boolean isDeprecatedVariable(Variable.Key key)
+	{
+		if (key == NODE_NAME) return true;
+		return super.isDeprecatedVariable(key);
+	}
 
 	/**
 	 * Method to determine whether this is an Invisible Pin with text.
