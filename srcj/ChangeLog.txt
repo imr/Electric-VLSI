@@ -7,6 +7,10 @@ NOTE: Please place changes under the version that will be released next.
 BUG: (10/11/04, DN) Networks of isolated ports have no names.
 FIX: Add names "node.port".
 
+IMP/MAN: (10/10/04, SMR) Added Messages Window font selection.
+
+IMP/MAN: (10/9/04, SMR) Added technology conversion ("View / Make Alternate Layout View").
+
 IMP/MAN: (10/7/04, SMR) Added Explorer-pane context menu item on cell groups to rename the entire group.
 
 BUG: (10/6/04, SMR) Arc negation is lost during many operations (copy/paste, cross-library copy, insert jog in arc).
@@ -15,7 +19,7 @@ FIX: Must reset this information.
 IMP/MAN: (10/6/04, SMR) Added "EDIF" output.
 
 IMP: (10/5/04, GVG) 3DView: Ability to turn on/off antialiasing without closing 3D window. Changes in diffuse, specular
-and ambient colors. Parasitic: arc cropping added.
+     and ambient colors. Parasitic: arc cropping added.
 
 IMP/MAN: (10/4/04, GVG) First basic coding for parasitic extraction (Package tool/parasitic added).
 

@@ -267,7 +267,7 @@ public class NodeInst extends Geometric implements Nodable
 				NodeInst oNi = (NodeInst)it.next();
 				if (oNi.getProto() == Generic.tech.cellCenterNode)
 				{
-					System.out.println("Can only be one cell-center in a cell: new one ignored");
+					System.out.println("Can only be one cell-center in cell " + parent.describe() + ": new one ignored");
 					return null;
 				}
 			}

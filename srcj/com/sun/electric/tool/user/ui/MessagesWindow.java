@@ -23,16 +23,22 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.GraphicsEnvironment;
+import java.awt.GridBagConstraints;
+import java.awt.List;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
-import java.awt.Font;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.StringSelection;
@@ -41,6 +47,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.BufferedWriter;
@@ -51,14 +58,20 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 
 /**
@@ -391,6 +404,206 @@ public class MessagesWindow
 			Runtime rt = Runtime.getRuntime();
 			System.out.println("Total memory: " + rt.totalMemory());
 			System.out.println("Free memory: " + rt.freeMemory());
+		}
+	}
+
+    /************************************ MESSAGES WINDOW FONT SETTING ************************************/
+
+	/**
+	 * Method to interactively select the messages window font.
+	 */
+    public void selectFont()
+	{
+         if (TopLevel.isMDIMode())
+        {
+            JFrame jf = TopLevel.getCurrentJFrame();
+            new FontSelectDialog(jf);
+        } else
+        {
+            new FontSelectDialog(null);
+        }
+	}
+
+	private class FontSelectDialog extends EDialog
+	{
+		private Font initialFont;
+		private String initialFontName;
+		private int initialFontSize;
+		private JLabel sampleText;
+		private JList fontNameList;
+		private JList fontSizeList;
+
+		public FontSelectDialog(Frame parent)
+		{
+			super(parent, true);
+			setTitle("Set Messages Window Font");
+	        getContentPane().setLayout(new java.awt.GridBagLayout());
+
+			// get the current messages window font
+			initialFont = info.getFont();
+			initialFontName = initialFont.getName();
+			initialFontSize = initialFont.getSize();
+
+			// the title of the font column
+			JLabel fontLabel = new JLabel("Font:");
+			GridBagConstraints gbc = new GridBagConstraints();
+			gbc.gridx = 0;
+			gbc.gridy = 0;
+			gbc.anchor = java.awt.GridBagConstraints.WEST;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+	        getContentPane().add(fontLabel, gbc);
+
+	        // the font column
+			Toolkit toolkit = Toolkit.getDefaultToolkit();
+			GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+			String [] fontNames = ge.getAvailableFontFamilyNames();
+			JScrollPane fontNamePane = new JScrollPane();
+			DefaultListModel fontNameListModel = new DefaultListModel();
+			fontNameList = new JList(fontNameListModel);
+			fontNameList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+			fontNamePane.setViewportView(fontNameList);
+			int initialIndex = 0;
+			for(int i=0; i<fontNames.length; i++)
+			{
+				if (fontNames[i].equals(initialFontName)) initialIndex = i;
+				fontNameListModel.addElement(fontNames[i]);
+			}
+			fontNameList.setSelectedIndex(initialIndex);
+			fontNameList.ensureIndexIsVisible(initialIndex);
+			fontNameList.addMouseListener(new MouseAdapter()
+			{
+				public void mouseClicked(MouseEvent evt) { updateSampleText(); }
+			});
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;
+			gbc.gridy = 1;
+			gbc.weightx = 1;
+			gbc.weighty = 1;
+			gbc.fill = GridBagConstraints.BOTH;
+			gbc.anchor = java.awt.GridBagConstraints.WEST;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+	        getContentPane().add(fontNamePane, gbc);
+
+	        // the title of the font size column
+	        JLabel sizeLabel = new JLabel("Size:");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 1;
+			gbc.gridy = 0;
+			gbc.anchor = java.awt.GridBagConstraints.WEST;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+	        getContentPane().add(sizeLabel, gbc);
+
+	        // the font size column
+			JScrollPane fontSizePane = new JScrollPane();
+			DefaultListModel fontSizeListModel = new DefaultListModel();
+			fontSizeList = new JList(fontSizeListModel);
+			fontSizeList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+			fontSizePane.setViewportView(fontSizeList);
+			fontSizeListModel.addElement("8");
+			fontSizeListModel.addElement("9");
+			fontSizeListModel.addElement("10");
+			fontSizeListModel.addElement("11");
+			fontSizeListModel.addElement("12");
+			fontSizeListModel.addElement("14");
+			fontSizeListModel.addElement("16");
+			fontSizeListModel.addElement("18");
+			fontSizeListModel.addElement("20");
+			fontSizeListModel.addElement("22");
+			fontSizeListModel.addElement("24");
+			fontSizeListModel.addElement("28");
+			fontSizeListModel.addElement("32");
+			fontSizeListModel.addElement("36");
+			fontSizeListModel.addElement("40");
+			fontSizeListModel.addElement("48");
+			fontSizeListModel.addElement("72");
+			fontSizeList.setSelectedValue(Integer.toString(initialFontSize), true);
+			fontSizeList.addMouseListener(new MouseAdapter()
+			{
+				public void mouseClicked(MouseEvent evt) { updateSampleText(); }
+			});
+			gbc = new GridBagConstraints();
+			gbc.gridx = 1;
+			gbc.gridy = 1;
+			gbc.fill = GridBagConstraints.BOTH;
+			gbc.anchor = java.awt.GridBagConstraints.WEST;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+	        getContentPane().add(fontSizePane, gbc);
+
+	        // the sample text
+			sampleText = new JLabel("The Electric VLSI Design System");
+	        sampleText.setBorder(javax.swing.BorderFactory.createTitledBorder("Sample text"));
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;
+			gbc.gridy = 2;
+			gbc.gridwidth = 2;
+			gbc.fill = GridBagConstraints.HORIZONTAL;
+			gbc.anchor = java.awt.GridBagConstraints.WEST;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+	        getContentPane().add(sampleText, gbc);
+	        sampleText.setFont(initialFont);
+
+	        // the "OK" button
+			JButton okButton = new JButton("OK");
+			okButton.addActionListener(new java.awt.event.ActionListener()
+			{
+	            public void actionPerformed(java.awt.event.ActionEvent evt) { OK(); }
+	        });
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;
+			gbc.gridy = 3;
+			gbc.anchor = java.awt.GridBagConstraints.WEST;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+	        getContentPane().add(okButton, gbc);
+
+	        // the "Cancel" button
+	        JButton cancelButton = new JButton("Cancel");
+			cancelButton.addActionListener(new java.awt.event.ActionListener()
+			{
+	            public void actionPerformed(java.awt.event.ActionEvent evt) { cancel(); }
+	        });
+			gbc = new GridBagConstraints();
+			gbc.gridx = 1;
+			gbc.gridy = 3;
+			gbc.anchor = java.awt.GridBagConstraints.WEST;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+	        getContentPane().add(cancelButton, gbc);
+
+	        pack();
+	        addWindowListener(new java.awt.event.WindowAdapter()
+	        {
+	            public void windowClosing(java.awt.event.WindowEvent evt) { cancel(); }
+	        });
+			setVisible(true);
+		}
+
+		private void cancel()
+		{
+			dispose();
+		}
+
+		private void updateSampleText()
+		{
+			String currentFontName = initialFontName;
+			if (fontNameList.getSelectedIndex() != -1) currentFontName = (String)fontNameList.getSelectedValue();
+			int currentFontSize = initialFontSize;
+			if (fontSizeList.getSelectedIndex() != -1) currentFontSize = TextUtils.atoi((String)fontSizeList.getSelectedValue());
+			Font font = new Font(currentFontName, 0, currentFontSize);
+			sampleText.setFont(font);
+		}
+
+		private void OK()
+		{
+			String currentFontName = initialFontName;
+			if (fontNameList.getSelectedIndex() != -1) currentFontName = (String)fontNameList.getSelectedValue();
+			int currentFontSize = initialFontSize;
+			if (fontSizeList.getSelectedIndex() != -1) currentFontSize = TextUtils.atoi((String)fontSizeList.getSelectedValue());
+			if (!currentFontName.equals(initialFontName) || currentFontSize != initialFontSize)
+			{
+				initialFont = new Font(currentFontName, 0, currentFontSize);
+				info.setFont(initialFont);
+				System.out.println("Messages window font is now " + currentFontName + ", size " + currentFontSize);
+			}
+			cancel();
 		}
 	}
 

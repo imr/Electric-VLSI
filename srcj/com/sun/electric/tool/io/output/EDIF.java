@@ -105,7 +105,7 @@ public class EDIF extends Topology
 		// See if schematic view is requested
 		double meters_to_lambda = TextUtils.convertDistance(1, Technology.getCurrent(), TextUtils.UnitScale.NONE);
 
-		String name = io_ediftoken(topCell.getName());
+		String name = makeToken(topCell.getName());
 
 		// If this is a layout representation, then create the footprint
 		if (topCell.getView() == View.LAYOUT)
@@ -125,7 +125,7 @@ public class EDIF extends Topology
 //			}
 
 			// write the header
-			System.out.println("Writing footprint for cell " + io_ediftoken(topCell.getName()));
+			System.out.println("Writing footprint for cell " + makeToken(topCell.getName()));
 			printWriter.println("(footprint " + TextUtils.formatDouble(route) + "e-06");
 			printWriter.println(" (unknownLayoutRep");
 
@@ -133,7 +133,7 @@ public class EDIF extends Topology
 			Rectangle2D cellBounds = topCell.getBounds();
 			double width = cellBounds.getWidth() / rgrid;
 			double height = cellBounds.getHeight() / rgrid;
-			printWriter.println("  (" + io_ediftoken(topCell.getName()) + " standard (" +
+			printWriter.println("  (" + makeToken(topCell.getName()) + " standard (" +
 				TextUtils.formatDouble(height) + " " + TextUtils.formatDouble(width) + ")");
 			printWriter.println(")))");
 			return;
@@ -145,27 +145,27 @@ public class EDIF extends Topology
 		{
 			header += ", version " + Version.getVersion();
 		}
-		EO_put_header(topCell, header, "EDIF Writer", topCell.getLibrary().getName());
+		writeHeader(topCell, header, "EDIF Writer", topCell.getLibrary().getName());
 
 		// determine the primitives being used
 		HashMap useCount = new HashMap();
-		if (io_edifsearch(topCell, useCount) != 0)
+		if (searchHierarchy(topCell, useCount) != 0)
 		{
 			// write out all primitives used in the library
-			EO_open_block("library");
-			EO_put_identifier("lib0");
-			EO_put_block("edifLevel", "0");
-			EO_open_block("technology");
-			EO_open_block("numberDefinition");
+			blockOpen("library");
+			blockPutIdentifier("lib0");
+			blockPut("edifLevel", "0");
+			blockOpen("technology");
+			blockOpen("numberDefinition");
 			if (IOTool.isEDIFUseSchematicView())
 			{
-				EO_open_block("scale");
-				EO_put_integer(1);
-				EO_put_float(meters_to_lambda);
-				EO_put_block("unit", "DISTANCE");
-				EO_close_block("scale");
+				blockOpen("scale");
+				blockPutInteger(1);
+				blockPutDouble(meters_to_lambda);
+				blockPut("unit", "DISTANCE");
+				blockClose("scale");
 			}
-			EO_close_block("technology");
+			blockClose("technology");
 			for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 			{
 				Technology tech = (Technology)it.next();
@@ -180,42 +180,42 @@ public class EDIF extends Topology
 						fun == NodeProto.Function.CONTACT || fun == NodeProto.Function.NODE ||
 						fun == NodeProto.Function.CONNECT || fun == NodeProto.Function.ART) continue;
 					for (int i = 0; i < mi.intValue(); i++)
-						io_edifwriteprim(np, i, fun);
+						writePrimitive(np, i, fun);
 				}
 			}
-			EO_close_block("library");
+			blockClose("library");
 		}
 
 		// now recursively write the cells expanded within the library
-		EO_open_block("library");
-		EO_put_identifier(io_ediftoken(topCell.getLibrary().getName()));
-		EO_put_block("edifLevel", "0");
-		EO_open_block("technology");
-		EO_open_block("numberDefinition");
+		blockOpen("library");
+		blockPutIdentifier(makeToken(topCell.getLibrary().getName()));
+		blockPut("edifLevel", "0");
+		blockOpen("technology");
+		blockOpen("numberDefinition");
 		if (IOTool.isEDIFUseSchematicView())
 		{
-			EO_open_block("scale");
-			EO_put_integer(1);
-			EO_put_float(meters_to_lambda);
-			EO_put_block("unit", "DISTANCE");
-			EO_close_block("scale");
+			blockOpen("scale");
+			blockPutInteger(1);
+			blockPutDouble(meters_to_lambda);
+			blockPut("unit", "DISTANCE");
+			blockClose("scale");
 		}
-		EO_close_block("technology");
+		blockClose("technology");
 	}
 
 	protected void done()
 	{
-		EO_close_block("library");
+		blockClose("library");
 
 		// post-identify the design and library
-		EO_open_block("design");
-		EO_put_identifier(io_ediftoken(topCell.getName()));
-		EO_open_block("cellRef");
-		EO_put_identifier(io_ediftoken(topCell.getName()));
-		EO_put_block("libraryRef", io_ediftoken(topCell.getLibrary().getName()));
+		blockOpen("design");
+		blockPutIdentifier(makeToken(topCell.getName()));
+		blockOpen("cellRef");
+		blockPutIdentifier(makeToken(topCell.getName()));
+		blockPut("libraryRef", makeToken(topCell.getLibrary().getName()));
 
 		// clean up
-		EO_close_stream();
+		blockFinish();
 	}
 
 	/**
@@ -224,15 +224,15 @@ public class EDIF extends Topology
 	protected void writeCellTopology(Cell cell, CellNetInfo cni, VarContext context)
 	{
 		// write out the cell header information
-		EO_open_block("cell");
-		EO_put_identifier(io_ediftoken(cell.getName()));
-		EO_put_block("cellType", "generic");
-		EO_open_block("view");
-		EO_put_identifier("cell");
-		EO_put_block("viewType", IOTool.isEDIFUseSchematicView() ? "SCHEMATIC" : "NETLIST");
+		blockOpen("cell");
+		blockPutIdentifier(makeToken(cell.getName()));
+		blockPut("cellType", "generic");
+		blockOpen("view");
+		blockPutIdentifier("cell");
+		blockPut("viewType", IOTool.isEDIFUseSchematicView() ? "SCHEMATIC" : "NETLIST");
 
 		// write out the interface description
-		EO_open_block("interface");
+		blockOpen("interface");
 
 		// write ports and directions
 		for(Iterator it = cni.getCellSignals(); it.hasNext(); )
@@ -245,19 +245,19 @@ public class EDIF extends Topology
 				if (e.getCharacteristic() == PortProto.Characteristic.OUT ||
 					e.getCharacteristic() == PortProto.Characteristic.REFOUT) direction = "OUTPUT";
 				if (e.getCharacteristic() == PortProto.Characteristic.BIDIR) direction = "INOUT";
-				EO_open_block("port");
-				EO_put_identifier(io_ediftoken(cs.getName()));
-				EO_put_block("direction", direction);
-				EO_close_block("port");
+				blockOpen("port");
+				blockPutIdentifier(makeToken(cs.getName()));
+				blockPut("direction", direction);
+				blockClose("port");
 			}
 		}
 		if (IOTool.isEDIFUseSchematicView() && cell.getView() == View.ICON)
 		{
 			// output the icon
-			io_edifsymbol(cell);
+			writeSymbol(cell);
 		}
 
-		EO_close_block("interface");
+		blockClose("interface");
 
 		// write cell contents
 		Netlist netList = cni.getNetList();
@@ -272,24 +272,24 @@ public class EDIF extends Topology
 					fun == NodeProto.Function.CONNECT || fun == NodeProto.Function.ART) continue;
 			}
 
-			EO_open_block("instance");
-			String iname = io_edifwritecompname(no);
+			blockOpen("instance");
+			String iname = makeComponentName(no);
 			String oname = no.getName();
 			if (!oname.equalsIgnoreCase(iname))
 			{
-				EO_open_block("rename");
-				EO_put_identifier(iname);
-				EO_put_string(oname);
-				EO_close_block("rename");
-			} else EO_put_identifier(iname);
+				blockOpen("rename");
+				blockPutIdentifier(iname);
+				blockPutString(oname);
+				blockClose("rename");
+			} else blockPutIdentifier(iname);
 
 			if (no.getProto() instanceof PrimitiveNode)
 			{
 				NodeInst ni = (NodeInst)no;
 				NodeProto.Function fun = ni.getFunction();
-				EO_open_block("viewRef");
-				EO_put_identifier("cell");
-				EO_open_block("cellRef");
+				blockOpen("viewRef");
+				blockPutIdentifier("cell");
+				blockOpen("cellRef");
 				if (fun == NodeProto.Function.GATEAND || fun == NodeProto.Function.GATEOR || fun == NodeProto.Function.GATEXOR)
 				{
 					// count the number of inputs
@@ -299,33 +299,33 @@ public class EDIF extends Topology
 						Connection con = (Connection)pIt.next();
 						if (con.getPortInst().getPortProto().getName().equals("a")) i++;
 					}
-					String name = io_ediftoken(ni.getProto().getName()) + i;
-					EO_put_identifier(name);
-				} else EO_put_identifier(io_edifdescribepriminst(ni, fun));
-				EO_put_block("libraryRef", "lib0");
-				EO_close_block("viewRef");
+					String name = makeToken(ni.getProto().getName()) + i;
+					blockPutIdentifier(name);
+				} else blockPutIdentifier(describePrimitive(ni, fun));
+				blockPut("libraryRef", "lib0");
+				blockClose("viewRef");
 			} else
 			{
 //				if (((Cell)ni.getProto()).getView() == View.ICON &&
-//						((Cell)ni.getProto()).contentsView() == null)
+//					((Cell)ni.getProto()).contentsView() == null)
 //				{
 //					// this node came from an external schematic library
-//					EO_open_block("viewRef");
-//					EO_put_identifier("cell");
-//					EO_open_block("cellRef");
-//					EO_put_identifier(io_ediftoken(ni.getProto().getName()));
+//					blockOpen("viewRef");
+//					blockPutIdentifier("cell");
+//					blockOpen("cellRef");
+//					blockPutIdentifier(makeToken(ni.getProto().getName()));
 //					String name = "schem_lib_" + ni.getProto().getName();
-//					EO_put_block("libraryRef", name);
-//					EO_close_block("viewRef");
+//					blockPut("libraryRef", name);
+//					blockClose("viewRef");
 //				} else
 				{
 					// this node came from this library
-					EO_open_block("viewRef");
-					EO_put_identifier("cell");
-					EO_open_block("cellRef");
-					EO_put_identifier(io_ediftoken(no.getProto().getName()));
-					EO_put_block("libraryRef", cell.getLibrary().getName());
-					EO_close_block("viewRef");
+					blockOpen("viewRef");
+					blockPutIdentifier("cell");
+					blockOpen("cellRef");
+					blockPutIdentifier(makeToken(no.getProto().getName()));
+					blockPut("libraryRef", cell.getLibrary().getName());
+					blockClose("viewRef");
 				}
 			}
 
@@ -335,13 +335,13 @@ public class EDIF extends Topology
 				if (no instanceof NodeInst)
 				{
 					NodeInst ni = (NodeInst)no;
-					EO_open_block("transform");
+					blockOpen("transform");
 
 					// get the orientation (note only support orthogonal)
-					EO_put_block("orientation", io_edif_orientation(ni));
+					blockPut("orientation", getOrientation(ni));
 
 					// now the origin
-					EO_open_block("origin");
+					blockOpen("origin");
 					double cX = ni.getAnchorCenterX(), cY = ni.getAnchorCenterY();
 					if (no.getProto() instanceof Cell)
 					{
@@ -352,8 +352,8 @@ public class EDIF extends Topology
 					Point2D pt = new Point2D.Double(cX, cY);
 					AffineTransform trans = ni.rotateOut();
 					trans.transform(pt, pt);
-					io_edif_pt(pt.getX(), pt.getY());
-					EO_close_block("transform");
+					writePoint(pt.getX(), pt.getY());
+					blockClose("transform");
 				}
 			}
 
@@ -377,15 +377,15 @@ public class EDIF extends Topology
 						if (name == null) continue;
 						AffineTransform trans = ni.rotateOut();
 						varPoly.transform(trans);
-						EO_open_block("property");
-						EO_put_identifier(name);
-						EO_open_block("string");
-						io_edifsymbol_showpoly(varPoly);
-						EO_close_block("property");
+						blockOpen("property");
+						blockPutIdentifier(name);
+						blockOpen("string");
+						writeSymbolPoly(varPoly);
+						blockClose("property");
 					}
 				}
 			}
-			EO_close_block("instance");
+			blockClose("instance");
 		}
 
 		// if there is anything to connect, write the networks in the cell
@@ -393,43 +393,47 @@ public class EDIF extends Topology
 		{
 			CellSignal cs = (CellSignal)it.next();
 
+			// ignore unconnected (unnamed) nets
+			String netName = cs.getNetwork().describe();
+			if (netName.length() == 0) continue;
+
 			// establish if this is a global net
 			boolean globalport = false;
 //			if ((pp = (PORTPROTO *) net->temp2) != NOPORTPROTO)
-//				globalport = io_edifisglobal(pp);
+//				globalport = isGlobalExport(pp);
 
-			EO_open_block("net");
-			String netName = cs.getName();
+			blockOpen("net");
+			netName = cs.getName();
 			if (globalport)
 			{
-				EO_open_block("rename");
-				EO_put_identifier(io_ediftoken(netName));
-				String name = io_ediftoken(netName) + "!";
-				EO_put_identifier(name);
-				EO_close_block("rename");
-				EO_put_block("property", "GLOBAL");
+				blockOpen("rename");
+				blockPutIdentifier(makeToken(netName));
+				String name = makeToken(netName) + "!";
+				blockPutIdentifier(name);
+				blockClose("rename");
+				blockPut("property", "GLOBAL");
 			} else
 			{
-				String oname = io_ediftoken(netName);
+				String oname = makeToken(netName);
 				if (!oname.equals(netName))
 				{
 					// different names
-					EO_open_block("rename");
-					EO_put_identifier(oname);
-					EO_put_string(netName);
-					EO_close_block("rename");
-				} else EO_put_identifier(oname);
+					blockOpen("rename");
+					blockPutIdentifier(oname);
+					blockPutString(netName);
+					blockClose("rename");
+				} else blockPutIdentifier(oname);
 			}
 
 			// write net connections
-			EO_open_block("joined");
+			blockOpen("joined");
 
 			// include exported ports
 			if (cs.isExported())
 			{
 				Export e = cs.getExport();
 				String pt = e.getName();
-				EO_put_block("portRef", io_ediftoken(pt));
+				blockPut("portRef", makeToken(pt));
 			}
 
 			Network net = cs.getNetwork();
@@ -450,12 +454,12 @@ public class EDIF extends Topology
 						if (subPp == null) continue;
 
 						// single signal
-						Network subNet = netList.getNetwork(no, subPp, cs.getExportIndex());
+						Network subNet = netList.getNetwork(no, subPp, subCs.getExportIndex());
 						if (cs != cni.getCellSignal(subNet)) continue;
-						EO_open_block("portRef");
-						EO_put_identifier(io_ediftoken(subCs.getName()));
-						EO_put_block("instanceRef", io_edifwritecompname(no));
-						EO_close_block("portRef");
+						blockOpen("portRef");
+						blockPutIdentifier(makeToken(subCs.getName()));
+						blockPut("instanceRef", makeComponentName(no));
+						blockClose("portRef");
 					}
 				} else
 				{
@@ -471,14 +475,14 @@ public class EDIF extends Topology
 						Network aNet = netList.getNetwork(ai, 0);
 						if (aNet != net) continue;
 						String pt = con.getPortInst().getPortProto().getName();
-						EO_open_block("portRef");
-						EO_put_identifier(io_ediftoken(pt));
-						EO_put_block("instanceRef", io_edifwritecompname(no));
-						EO_close_block("portRef");
+						blockOpen("portRef");
+						blockPutIdentifier(makeToken(pt));
+						blockPut("instanceRef", makeComponentName(no));
+						blockClose("portRef");
 					}
 				}
 			}
-			EO_close_block("joined");
+			blockClose("joined");
 
 			if (IOTool.isEDIFUseSchematicView())
 			{
@@ -491,15 +495,15 @@ public class EDIF extends Topology
 					int aWidth = netList.getBusWidth(ai);
 					if (aWidth > 1) continue;
 					Network aNet = netList.getNetwork(ai, 0);
-					if (aNet == net) io_edifsymbol_arcinst(ai, GenMath.MATID);
+					if (aNet == net) writeSymbolArcInst(ai, GenMath.MATID);
 				}
-				io_edifsetgraphic(EGUNKNOWN);
+				setGraphic(EGUNKNOWN);
 				egraphic_override = EGUNKNOWN;
 			}
 
 			if (globalport)
-				EO_put_block("userData", "global");
-			EO_close_block("net");
+				blockPut("userData", "global");
+			blockClose("net");
 		}
 
 		// write busses
@@ -510,38 +514,38 @@ public class EDIF extends Topology
 			// ignore single signals
 			if (cas.getLowIndex() > cas.getHighIndex()) continue;
 
-			EO_open_block("netBundle");
+			blockOpen("netBundle");
 			String busName = cas.getNameWithIndices();
-			String oname = io_ediftoken(busName);
+			String oname = makeToken(busName);
 			if (!oname.equals(busName))
 			{
 				// different names
-				EO_open_block("rename");
-				EO_put_identifier(oname);
-				EO_put_string(busName);
-				EO_close_block("rename");
-			} else EO_put_identifier(oname);
-			EO_open_block("listOfNets");
+				blockOpen("rename");
+				blockPutIdentifier(oname);
+				blockPutString(busName);
+				blockClose("rename");
+			} else blockPutIdentifier(oname);
+			blockOpen("listOfNets");
 
 			// now each sub-net name
 			int numSignals = cas.getHighIndex() - cas.getLowIndex() + 1;
 			for (int k=0; k<numSignals; k++)
 			{
-				EO_open_block("net");
+				blockOpen("net");
 
 				// now output this name
 				CellSignal cs = cas.getSignal(k);
 				String pt = cs.getName();
-				oname = io_ediftoken(pt);
+				oname = makeToken(pt);
 				if (!oname.equals(pt))
 				{
 					// different names
-					EO_open_block("rename");
-					EO_put_identifier(oname);
-					EO_put_string(pt);
-					EO_close_block("rename");
-				} else EO_put_identifier(oname);
-				EO_close_block("net");
+					blockOpen("rename");
+					blockPutIdentifier(oname);
+					blockPutString(pt);
+					blockClose("rename");
+				} else blockPutIdentifier(oname);
+				blockClose("net");
 			}
 
 			// now graphics for the bus
@@ -555,77 +559,77 @@ public class EDIF extends Topology
 					ArcInst ai = (ArcInst)aIt.next();
 					if (ai.getProto() != Schematics.tech.bus_arc) continue;
 					String arcBusName = netList.getBusName(ai).toString();
-					if (arcBusName.equals(busName)) io_edifsymbol_arcinst(ai, GenMath.MATID);
+					if (arcBusName.equals(busName)) writeSymbolArcInst(ai, GenMath.MATID);
 				}
-				io_edifsetgraphic(EGUNKNOWN);
+				setGraphic(EGUNKNOWN);
 				egraphic_override = EGUNKNOWN;
 			}
 
-			EO_close_block("netBundle");
+			blockClose("netBundle");
 			continue;
 		}
 
 		// matches "(cell "
-		EO_close_block("cell");
+		blockClose("cell");
 	}
 
 	/****************************** MIDDLE-LEVEL HELPER METHODS ******************************/
 
-	private void EO_put_header(Cell cell, String program, String comment, String origin)
+	private void writeHeader(Cell cell, String program, String comment, String origin)
 	{
 		// output the standard EDIF 2 0 0 header
-		EO_open_block("edif");
-		EO_put_identifier(cell.getName());
-		EO_put_block("edifVersion", "2 0 0");
-		EO_put_block("edifLevel", "0");
-		EO_open_block("keywordMap");
-		EO_put_block("keywordLevel", "0");		// was "1"
-		EO_close_block("keywordMap");
-		EO_open_block("status");
-		EO_open_block("written");
+		blockOpen("edif");
+		blockPutIdentifier(cell.getName());
+		blockPut("edifVersion", "2 0 0");
+		blockPut("edifLevel", "0");
+		blockOpen("keywordMap");
+		blockPut("keywordLevel", "0");		// was "1"
+		blockClose("keywordMap");
+		blockOpen("status");
+		blockOpen("written");
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy MM dd HH mm ss");
-		EO_put_block("timeStamp", simpleDateFormat.format(new Date()));
-		if (program != null) EO_put_block("program", "\"" + program + "\"");
-		if (comment != null) EO_put_block("comment", "\"" + comment + "\"");
-		if (origin != null) EO_put_block("dataOrigin", "\"" + origin + "\"");
-		EO_close_block("status");
+		blockPut("timeStamp", simpleDateFormat.format(new Date()));
+		if (program != null) blockPut("program", "\"" + program + "\"");
+		if (comment != null) blockPut("comment", "\"" + comment + "\"");
+		if (origin != null) blockPut("dataOrigin", "\"" + origin + "\"");
+		blockClose("status");
 	}
 
 	/**
 	 * Method to dump the description of primitive "np" to the EDIF file
 	 * If the primitive is a schematic gate, use "i" as the number of inputs
 	 */
-	private void io_edifwriteprim(NodeProto np, int i, NodeProto.Function fun)
+	private void writePrimitive(NodeProto np, int i, NodeProto.Function fun)
 	{
 		// write primitive name
 		if (fun == NodeProto.Function.GATEAND || fun == NodeProto.Function.GATEOR || fun == NodeProto.Function.GATEXOR)
 		{
-			EO_open_block("cell");
-			String name = io_ediftoken(np.getName()) + i;
-			EO_put_identifier(name);
+			blockOpen("cell");
+			String name = makeToken(np.getName()) + i;
+			blockPutIdentifier(name);
 		} else
 		{
-			EO_open_block("cell");
-			EO_put_identifier(io_ediftoken(np.getName()));
+			blockOpen("cell");
+			blockPutIdentifier(makeToken(np.getName()));
 		}
 
 		// write primitive connections
-		EO_put_block("cellType", "GENERIC");
-		EO_open_block("view");
-		EO_put_identifier("cell");
-		EO_put_block("viewType", IOTool.isEDIFUseSchematicView() ? "SCHEMATIC" : "NETLIST");
-		EO_open_block("interface");
+		blockPut("cellType", "GENERIC");
+		blockOpen("view");
+		blockPutIdentifier("cell");
+		blockPut("viewType", IOTool.isEDIFUseSchematicView() ? "SCHEMATIC" : "NETLIST");
+		blockOpen("interface");
 
 		int firstPortIndex = 0;
 		if (fun == NodeProto.Function.GATEAND || fun == NodeProto.Function.GATEOR || fun == NodeProto.Function.GATEXOR)
 		{
 			for (int j = 0; j < i; j++)
 			{
-				EO_open_block("port");
+				blockOpen("port");
 				String name = "IN" + (j + 1);
-				EO_put_identifier(name);
-				EO_put_block("direction", "INPUT");
-				EO_close_block("port");
+				blockPutIdentifier(name);
+				blockPut("direction", "INPUT");
+				blockClose("port");
 			}
 			firstPortIndex = 1;
 		}
@@ -635,18 +639,18 @@ public class EDIF extends Topology
 			String direction = "input";
 			if (pp.getCharacteristic() == PortProto.Characteristic.OUT) direction = "output"; else
 				if (pp.getCharacteristic() == PortProto.Characteristic.BIDIR) direction = "inout";
-			EO_open_block("port");
-			EO_put_identifier(io_ediftoken(pp.getName()));
-			EO_put_block("direction", direction);
-			EO_close_block("port");
+			blockOpen("port");
+			blockPutIdentifier(makeToken(pp.getName()));
+			blockPut("direction", direction);
+			blockClose("port");
 		}
-		EO_close_block("cell");
+		blockClose("cell");
 	}
 
 	/**
 	 * Method to count the usage of primitives hierarchically below cell "np"
 	 */
-	private int io_edifsearch(Cell cell, HashMap useMap)
+	private int searchHierarchy(Cell cell, HashMap useMap)
 	{
 		// do not search this cell if it is an icon
 		if (cell.getView() == View.ICON) return 0;
@@ -696,7 +700,7 @@ public class EDIF extends Topology
 
 			// search the subcell
 			GenMath.MutableInteger count = (GenMath.MutableInteger)useMap.get(oNp);
-			if (count == null) primcount += io_edifsearch(oNp, useMap);
+			if (count == null) primcount += searchHierarchy(oNp, useMap);
 		}
 		GenMath.MutableInteger count = (GenMath.MutableInteger)useMap.get(cell);
 		if (count == null)
@@ -711,18 +715,18 @@ public class EDIF extends Topology
 	/**
 	 * Method to generate a pt symbol (pt x y)
 	 */
-	private void io_edif_pt(double x, double y)
+	private void writePoint(double x, double y)
 	{
-		EO_open_block("pt");
-		EO_put_integer(io_edif_scale(x));
-		EO_put_integer(io_edif_scale(y));
-		EO_close_block("pt");
+		blockOpen("pt");
+		blockPutInteger(scaleValue(x));
+		blockPutInteger(scaleValue(y));
+		blockClose("pt");
 	}
 
 	/**
 	 * Method to map Electric orientations to EDIF orientations
 	 */
-	private String io_edif_orientation(NodeInst ni)
+	private String getOrientation(NodeInst ni)
 	{
 		String orientation = "ERROR";
 		switch (ni.getAngle())
@@ -742,7 +746,7 @@ public class EDIF extends Topology
 	 * Method to scale the requested integer
 	 * returns the scaled value
 	 */
-	private double io_edif_scale(double val)
+	private double scaleValue(double val)
 	{
 		return val;
 	}
@@ -750,7 +754,7 @@ public class EDIF extends Topology
 	/**
 	 * Establish whether port 'e' is a global port or not
 	 */
-	private boolean io_edifisglobal(Export e)
+	private boolean isGlobalExport(Export e)
 	{
 		// pp is a global port if it is marked global
 		if (e.isBodyOnly()) return true;
@@ -767,21 +771,21 @@ public class EDIF extends Topology
 	 * Method to properly identify an instance of a primitive node
 	 * for ASPECT netlists
 	 */
-	private String io_edifdescribepriminst(NodeInst ni, NodeProto.Function fun)
+	private String describePrimitive(NodeInst ni, NodeProto.Function fun)
 	{
 		if (fun == NodeProto.Function.RESIST) return "Resistor";
 		if (fun == NodeProto.Function.TRANPN) return "npn";
 		if (fun == NodeProto.Function.TRAPNP) return "pnp";
 		if (fun == NodeProto.Function.SUBSTRATE) return "gtap";
-		return io_ediftoken(ni.getProto().getName());
+		return makeToken(ni.getProto().getName());
 	}
 
 	/**
 	 * Helper name builder
 	 */
-	private String io_edifwritecompname(Nodable no)
+	private String makeComponentName(Nodable no)
 	{
-		String okname = io_edifvalidname(no.getName());
+		String okname = makeValidName(no.getName());
 		if (okname.length() > 0)
 		{
 			char chr = okname.charAt(0);
@@ -794,7 +798,7 @@ public class EDIF extends Topology
 	/**
 	 * Method to return null if there is no valid name in "var", corrected name if valid.
 	 */
-	private String io_edifvalidname(String name)
+	private String makeValidName(String name)
 	{
 		StringBuffer iptr = new StringBuffer(name);
 
@@ -817,7 +821,7 @@ public class EDIF extends Topology
 	 * In order to use NSC program ce2verilog, we need to suppress the '_' which replaces
 	 * ']' in bus definitions.
 	 */
-	private String io_ediftoken(String str)
+	private String makeToken(String str)
 	{
 		if (str.length() == 0) return str;
 		StringBuffer sb = new StringBuffer();
@@ -838,62 +842,62 @@ public class EDIF extends Topology
 	/**
 	 * Method to output all graphic objects of a symbol.
 	 */
-	private void io_edifsymbol(Cell cell)
+	private void writeSymbol(Cell cell)
 	{
-		EO_open_block("symbol");
+		blockOpen("symbol");
 		egraphic_override = EGWIRE;
 		egraphic = EGUNKNOWN;
 		for(Iterator it = cell.getPorts(); it.hasNext(); )
 		{
 			Export e = (Export)it.next();
-			EO_open_block("portImplementation");
-			EO_put_identifier(io_ediftoken(e.getName()));
-			EO_open_block("connectLocation");
+			blockOpen("portImplementation");
+			blockPutIdentifier(makeToken(e.getName()));
+			blockOpen("connectLocation");
 			Poly portPoly = e.getOriginalPort().getPoly();
-			io_edifsymbol_showpoly(portPoly);
+			writeSymbolPoly(portPoly);
 	
 			// close figure
-			io_edifsetgraphic(EGUNKNOWN);
-			EO_close_block("portImplementation");
+			setGraphic(EGUNKNOWN);
+			blockClose("portImplementation");
 		}
 		egraphic_override = EGUNKNOWN;
 
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			io_edifsymbol_cell(ni, GenMath.MATID);
+			writeSymbolCell(ni, GenMath.MATID);
 		}
 		for(Iterator it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
-			io_edifsymbol_arcinst(ai, GenMath.MATID);
+			writeSymbolArcInst(ai, GenMath.MATID);
 		}
 
 		// close figure
-		io_edifsetgraphic(EGUNKNOWN);
-		EO_close_block("symbol");
+		setGraphic(EGUNKNOWN);
+		blockClose("symbol");
 	}
 
 	/**
 	 * Method to output a specific symbol cell
 	 */
-	private void io_edifsymbol_cell(NodeInst ni, AffineTransform prevtrans)
+	private void writeSymbolCell(NodeInst ni, AffineTransform prevtrans)
 	{
 		// make transformation matrix within the current nodeinst
 		if (ni.getAngle() == 0 && !ni.isMirroredAboutXAxis() && !ni.isMirroredAboutYAxis())
 		{
-			io_edifsymbol_nodeinst(ni, prevtrans);
+			writeSymbolNodeInst(ni, prevtrans);
 		} else
 		{
 			AffineTransform localtran = ni.rotateOut(prevtrans);
-			io_edifsymbol_nodeinst(ni, localtran);
+			writeSymbolNodeInst(ni, localtran);
 		}
 	}
 
 	/**
 	 * Method to symbol "ni" when transformed through "prevtrans".
 	 */
-	private void io_edifsymbol_nodeinst(NodeInst ni, AffineTransform prevtrans)
+	private void writeSymbolNodeInst(NodeInst ni, AffineTransform prevtrans)
 	{
 		NodeProto np = ni.getProto();
 
@@ -923,12 +927,12 @@ public class EDIF extends Topology
 				{
 					istext = true;
 					// close the current figure ...
-					io_edifsetgraphic(EGUNKNOWN);
-					EO_open_block("annotate");
+					setGraphic(EGUNKNOWN);
+					blockOpen("annotate");
 				}
 
-				io_edifsymbol_showpoly(poly);
-				if (istext) EO_close_block("annotate");
+				writeSymbolPoly(poly);
+				if (istext) blockClose("annotate");
 			}
 		} else
 		{
@@ -939,7 +943,7 @@ public class EDIF extends Topology
 			// see if there are displayable variables on the cell
 			int num = ni.numDisplayableVariables(false);
 			if (num != 0)
-				io_edifsetgraphic(EGUNKNOWN);
+				setGraphic(EGUNKNOWN);
 			Poly [] varPolys = new Poly[num];
 			ni.addDisplayableVariables(ni.getBounds(), varPolys, 0, null, false);
 			for(int i=0; i<num; i++)
@@ -952,23 +956,23 @@ public class EDIF extends Topology
 				if (name == null) continue;
 				AffineTransform trans = ni.rotateOut();
 				varPoly.transform(prevtrans);
-				EO_open_block("property");
-				EO_put_identifier(name);
-				EO_open_block("string");
-				io_edifsymbol_showpoly(varPoly);
-				EO_close_block("property");
+				blockOpen("property");
+				blockPutIdentifier(name);
+				blockOpen("string");
+				writeSymbolPoly(varPoly);
+				blockClose("property");
 			}
 
 			// search through cell
 			for(Iterator it = subCell.getNodes(); it.hasNext(); )
 			{
 				NodeInst sNi = (NodeInst)it.next();
-				io_edifsymbol_cell(sNi, subrot);
+				writeSymbolCell(sNi, subrot);
 			}
 			for(Iterator it = subCell.getArcs(); it.hasNext(); )
 			{
 				ArcInst sAi = (ArcInst)it.next();
-				io_edifsymbol_arcinst(sAi, subrot);
+				writeSymbolArcInst(sAi, subrot);
 			}
 		}
 	}
@@ -977,7 +981,7 @@ public class EDIF extends Topology
 	 * Method to draw an arcinst.  Returns indicator of what else needs to
 	 * be drawn.  Returns negative if display interrupted
 	 */
-	private void io_edifsymbol_arcinst(ArcInst ai, AffineTransform trans)
+	private void writeSymbolArcInst(ArcInst ai, AffineTransform trans)
 	{
 		Technology tech = ai.getProto().getTechnology();
 		Poly [] polys = tech.getShapeOfArc(ai);
@@ -989,12 +993,12 @@ public class EDIF extends Topology
 		Poly poly = new Poly(points);
 		poly.setStyle(Poly.Type.OPENED);
 		poly.transform(trans);
-		io_edifsymbol_showpoly(poly);
+		writeSymbolPoly(poly);
 
 		// now get the variables
 		int num = ai.numDisplayableVariables(false);
 		if (num != 0)
-			io_edifsetgraphic(EGUNKNOWN);
+			setGraphic(EGUNKNOWN);
 		Poly [] varPolys = new Poly[num];
 		ai.addDisplayableVariables(ai.getBounds(), varPolys, 0, null, false);
 		for(int i=0; i<num; i++)
@@ -1006,20 +1010,20 @@ public class EDIF extends Topology
 				if (varPoly.getName() != null) name = "ARC_name";
 			if (name == null) continue;
 			poly.transform(trans);
-			EO_open_block("property");
-			EO_put_identifier(name);
-			EO_open_block("string");
-			io_edifsymbol_showpoly(varPoly);
-			EO_close_block("property");
+			blockOpen("property");
+			blockPutIdentifier(name);
+			blockOpen("string");
+			writeSymbolPoly(varPoly);
+			blockClose("property");
 		}
 	}
 
-	private void io_edifsetgraphic(EGraphic type)
+	private void setGraphic(EGraphic type)
 	{
 		if (type == EGUNKNOWN)
 		{
 			// terminate the figure
-			if (egraphic != EGUNKNOWN) EO_close_block("figure");
+			if (egraphic != EGUNKNOWN) blockClose("figure");
 			egraphic = EGUNKNOWN;
 		} else if (egraphic_override == EGUNKNOWN)
 		{
@@ -1027,59 +1031,59 @@ public class EDIF extends Topology
 			if (type != egraphic)
 			{
 				// new egraphic type
-				if (egraphic != EGUNKNOWN) EO_close_block("figure");
+				if (egraphic != EGUNKNOWN) blockClose("figure");
 				egraphic = type;
-				EO_open_block("figure");
-				EO_put_identifier(egraphic.getText());
+				blockOpen("figure");
+				blockPutIdentifier(egraphic.getText());
 			}
 		} else if (egraphic != egraphic_override)
 		{
 			// override figure
-			if (egraphic != EGUNKNOWN) EO_close_block("figure");
+			if (egraphic != EGUNKNOWN) blockClose("figure");
 			egraphic = egraphic_override;
-			EO_open_block("figure");
-			EO_put_identifier(egraphic.getText());
+			blockOpen("figure");
+			blockPutIdentifier(egraphic.getText());
 		}
 	}
 
 	/**
 	 * Method to write polys into EDIF syntax
 	 */
-	private void io_edifsymbol_showpoly(Poly obj)
+	private void writeSymbolPoly(Poly obj)
 	{
 		// now draw the polygon
 		Poly.Type type = obj.getStyle();
 		Point2D [] points = obj.getPoints();
 		if (type == Poly.Type.CIRCLE || type == Poly.Type.DISC)
 		{
-			io_edifsetgraphic(EGART);
+			setGraphic(EGART);
 			double i = points[0].distance(points[1]);
-			EO_open_block("circle");
-			io_edif_pt(points[0].getX() - i, points[0].getY());
-			io_edif_pt(points[0].getX() + i, points[0].getY());
-			EO_close_block("circle");
+			blockOpen("circle");
+			writePoint(points[0].getX() - i, points[0].getY());
+			writePoint(points[0].getX() + i, points[0].getY());
+			blockClose("circle");
 			return;
 		}
 
 		if (type == Poly.Type.CIRCLEARC)
 		{
-			io_edifsetgraphic(EGART);
+			setGraphic(EGART);
 
 			// arcs at [i] points [1+i] [2+i] clockwise
 			if (points.length == 0) return;
 			if ((points.length % 3) != 0) return;
 			for (int i = 0; i < points.length; i += 3)
 			{
-				EO_open_block("openShape");
-				EO_open_block("curve");
-				EO_open_block("arc");
-				io_edif_pt(points[i + 1].getX(), points[i + 1].getY());
+				blockOpen("openShape");
+				blockOpen("curve");
+				blockOpen("arc");
+				writePoint(points[i + 1].getX(), points[i + 1].getY());
 
 				// calculate a point between the first and second point
-				Point2D si = io_compute_center(points[i], points[i + 1], points[i + 2]);
-				io_edif_pt(si.getX(), si.getY());
-				io_edif_pt(points[i + 2].getX(), points[i + 2].getY());
-				EO_close_block("openShape");
+				Point2D si = computeArcCenter(points[i], points[i + 1], points[i + 2]);
+				writePoint(si.getX(), si.getY());
+				writePoint(points[i + 2].getX(), points[i + 2].getY());
+				blockClose("openShape");
 			}
 			return;
 		}
@@ -1093,64 +1097,64 @@ public class EDIF extends Topology
 				if (bounds.getWidth() == 0 && bounds.getHeight() == 0)
 				{
 					if (egraphic_override == EGUNKNOWN) return;
-					io_edifsetgraphic(EGART);
-					EO_open_block("dot");
-					io_edif_pt(bounds.getCenterX(), bounds.getCenterY());
-					EO_close_block("dot");
+					setGraphic(EGART);
+					blockOpen("dot");
+					writePoint(bounds.getCenterX(), bounds.getCenterY());
+					blockClose("dot");
 				} else
 				{
-					io_edifsetgraphic(EGART);
-					EO_open_block("rectangle");
-					io_edif_pt(bounds.getMinX(), bounds.getMinY());
-					io_edif_pt(bounds.getMaxY(), bounds.getMaxY());
-					EO_close_block("rectangle");
+					setGraphic(EGART);
+					blockOpen("rectangle");
+					writePoint(bounds.getMinX(), bounds.getMinY());
+					writePoint(bounds.getMaxY(), bounds.getMaxY());
+					blockClose("rectangle");
 				}
 			} else
 			{
-				io_edifsetgraphic(EGART);
-				EO_open_block("path");
-				EO_open_block("pointList");
+				setGraphic(EGART);
+				blockOpen("path");
+				blockOpen("pointList");
 				for (int i = 0; i < points.length; i++)
-					io_edif_pt(points[i].getX(), points[i].getY());
-				if (points.length > 2) io_edif_pt(points[0].getX(), points[0].getY());
-				EO_close_block("path");
+					writePoint(points[i].getX(), points[i].getY());
+				if (points.length > 2) writePoint(points[0].getX(), points[0].getY());
+				blockClose("path");
 			}
 			return;
 		}
 		if (type.isText())
 		{	
 			Rectangle2D bounds = obj.getBounds2D();
-			io_edifsetgraphic(EGUNKNOWN);
-			EO_open_block("stringDisplay");
-			EO_put_string(obj.getString());
-			EO_open_block("display");
+			setGraphic(EGUNKNOWN);
+			blockOpen("stringDisplay");
+			blockPutString(obj.getString());
+			blockOpen("display");
 			TextDescriptor td = obj.getTextDescriptor();
 			if (td.getSize().isAbsolute())
 			{
-				EO_open_block("figureGroupOverride");
-				EO_put_identifier(EGART.getText());
+				blockOpen("figureGroupOverride");
+				blockPutIdentifier(EGART.getText());
 
 				// output the text height
-				EO_open_block("textHeight");
+				blockOpen("textHeight");
 
 				// 2 pixels = 0.0278 in or 36 double pixels per inch
 				double height = td.getSize().getSize() * 10 / 36;
-				EO_put_integer(io_edif_scale(height));
-				EO_close_block("figureGroupOverride");
-			} else EO_put_identifier(EGART.getText());
-			if (type == Poly.Type.TEXTCENT) EO_put_block("justify", "CENTERCENTER"); else
-			if (type == Poly.Type.TEXTTOP) EO_put_block("justify", "LOWERCENTER"); else
-			if (type == Poly.Type.TEXTBOT) EO_put_block("justify", "UPPERCENTER"); else
-			if (type == Poly.Type.TEXTLEFT) EO_put_block("justify", "CENTERRIGHT"); else
-			if (type == Poly.Type.TEXTRIGHT) EO_put_block("justify", "CENTERLEFT"); else
-			if (type == Poly.Type.TEXTTOPLEFT) EO_put_block("justify", "LOWERRIGHT"); else
-			if (type == Poly.Type.TEXTBOTLEFT) EO_put_block("justify", "UPPERRIGHT"); else
-			if (type == Poly.Type.TEXTTOPRIGHT) EO_put_block("justify", "LOWERLEFT"); else
-			if (type == Poly.Type.TEXTBOTRIGHT) EO_put_block("justify", "UPPERLEFT");
-			EO_put_block("orientation", "R0");
-			EO_open_block("origin");
-			io_edif_pt(bounds.getMinX(), bounds.getMinY());
-			EO_close_block("stringDisplay");
+				blockPutInteger(scaleValue(height));
+				blockClose("figureGroupOverride");
+			} else blockPutIdentifier(EGART.getText());
+			if (type == Poly.Type.TEXTCENT) blockPut("justify", "CENTERCENTER"); else
+			if (type == Poly.Type.TEXTTOP) blockPut("justify", "LOWERCENTER"); else
+			if (type == Poly.Type.TEXTBOT) blockPut("justify", "UPPERCENTER"); else
+			if (type == Poly.Type.TEXTLEFT) blockPut("justify", "CENTERRIGHT"); else
+			if (type == Poly.Type.TEXTRIGHT) blockPut("justify", "CENTERLEFT"); else
+			if (type == Poly.Type.TEXTTOPLEFT) blockPut("justify", "LOWERRIGHT"); else
+			if (type == Poly.Type.TEXTBOTLEFT) blockPut("justify", "UPPERRIGHT"); else
+			if (type == Poly.Type.TEXTTOPRIGHT) blockPut("justify", "LOWERLEFT"); else
+			if (type == Poly.Type.TEXTBOTRIGHT) blockPut("justify", "UPPERLEFT");
+			blockPut("orientation", "R0");
+			blockOpen("origin");
+			writePoint(bounds.getMinX(), bounds.getMinY());
+			blockClose("stringDisplay");
 			return;
 		}
 		if (type == Poly.Type.OPENED || type == Poly.Type.OPENEDT1 ||
@@ -1166,39 +1170,39 @@ public class EDIF extends Topology
 					if (bounds.getWidth() == 0 && bounds.getHeight() == 0)
 					{
 						if (egraphic_override == EGUNKNOWN) return;
-						io_edifsetgraphic(EGART);
-						EO_open_block("dot");
-						io_edif_pt(bounds.getCenterX(), bounds.getCenterY());
-						EO_close_block("dot");
+						setGraphic(EGART);
+						blockOpen("dot");
+						writePoint(bounds.getCenterX(), bounds.getCenterY());
+						blockClose("dot");
 					} else
 					{
-						io_edifsetgraphic(EGART);
-						EO_open_block("rectangle");
-						io_edif_pt(bounds.getMinX(), bounds.getMinY());
-						io_edif_pt(bounds.getMaxX(), bounds.getMaxY());
-						EO_close_block("rectangle");
+						setGraphic(EGART);
+						blockOpen("rectangle");
+						writePoint(bounds.getMinX(), bounds.getMinY());
+						writePoint(bounds.getMaxX(), bounds.getMaxY());
+						blockClose("rectangle");
 					}
 					return;
 				}
 			}
-			io_edifsetgraphic(EGART);
-			EO_open_block("path");
-			EO_open_block("pointList");
+			setGraphic(EGART);
+			blockOpen("path");
+			blockOpen("pointList");
 			for (int i = 0; i < points.length; i++)
-				io_edif_pt(points[i].getX(), points[i].getY());
-			EO_close_block("path");
+				writePoint(points[i].getX(), points[i].getY());
+			blockClose("path");
 			return;
 		}
 		if (type == Poly.Type.VECTORS)
 		{
-			io_edifsetgraphic(EGART);
+			setGraphic(EGART);
 			for (int i = 0; i < points.length; i += 2)
 			{
-				EO_open_block("path");
-				EO_open_block("pointList");
-				io_edif_pt(points[i].getX(), points[i].getY());
-				io_edif_pt(points[i + 1].getX(), points[i + 1].getY());
-				EO_close_block("path");
+				blockOpen("path");
+				blockOpen("pointList");
+				writePoint(points[i].getX(), points[i].getY());
+				writePoint(points[i + 1].getX(), points[i + 1].getY());
+				blockClose("path");
 			}
 			return;
 		}
@@ -1207,19 +1211,19 @@ public class EDIF extends Topology
 	/**
 	 * Method used by "ioedifo.c" and "routmaze.c".
 	 */
-	private Point2D io_compute_center(Point2D c, Point2D p1, Point2D p2)
+	private Point2D computeArcCenter(Point2D c, Point2D p1, Point2D p2)
 	{
 		// reconstruct angles to p1 and p2
 		double radius = p1.distance(c);
-		double a1 = io_calc_angle(radius, p1.getX() - c.getX(), p1.getY() - c.getY());
-		double a2 = io_calc_angle(radius, p2.getX() - c.getX(), p1.getY() - c.getY());
+		double a1 = calculateAngle(radius, p1.getX() - c.getX(), p1.getY() - c.getY());
+		double a2 = calculateAngle(radius, p2.getX() - c.getX(), p1.getY() - c.getY());
 		if (a1 < a2) a1 += 3600;
 		double a = (a1 + a2) / 2;
 		double theta = a * Math.PI / 1800.0;	/* in radians */
 		return new Point2D.Double(c.getX() + radius * Math.cos(theta), c.getY() + radius * Math.sin(theta));
 	}
 
-	private double io_calc_angle(double r, double dx, double dy)
+	private double calculateAngle(double r, double dx, double dy)
 	{
 		double ratio, a1, a2;
 
@@ -1236,7 +1240,7 @@ public class EDIF extends Topology
 	 * Will open a new keyword block, will indent the new block
 	 * depending on depth of the keyword
 	 */
-	private void EO_open_block(String keyword)
+	private void blockOpen(String keyword)
 	{
 		// output the new block
 		if (blkstack_ptr > 0) printWriter.print("\n");
@@ -1249,7 +1253,7 @@ public class EDIF extends Topology
 	/**
 	 * Will output a one identifier block
 	 */
-	private void EO_put_block(String keyword, String identifier)
+	private void blockPut(String keyword, String identifier)
 	{
 		// output the new block
 		if (blkstack_ptr != 0) printWriter.print("\n");
@@ -1261,7 +1265,7 @@ public class EDIF extends Topology
 	/**
 	 * Will output a string identifier to the file
 	 */
-	private void EO_put_identifier(String str)
+	private void blockPutIdentifier(String str)
 	{
 		printWriter.print(" " + str);
 	}
@@ -1269,7 +1273,7 @@ public class EDIF extends Topology
 	/**
 	 * Will output a quoted string to the file
 	 */
-	private void EO_put_string(String str)
+	private void blockPutString(String str)
 	{
 		printWriter.print(" \"" + str + "\"");
 	}
@@ -1277,7 +1281,7 @@ public class EDIF extends Topology
 	/**
 	 * Will output an integer to the edif file
 	 */
-	private void EO_put_integer(double val)
+	private void blockPutInteger(double val)
 	{
 		printWriter.print(" " + TextUtils.formatDouble(val));
 	}
@@ -1286,7 +1290,7 @@ public class EDIF extends Topology
 	 * Will output a floating value to the edif file
 	 */
 	private static DecimalFormat decimalFormatScientific = null;
-	private void EO_put_float(double val)
+	private void blockPutDouble(double val)
 	{
 		if (decimalFormatScientific == null)
 		{
@@ -1297,7 +1301,7 @@ public class EDIF extends Topology
 		printWriter.print(" ( e " + ret + " )");
 	}
 
-	private void EO_close_block(String keyword)
+	private void blockClose(String keyword)
 	{
 		if (blkstack_ptr == 0) return;
 		int depth = 1;
@@ -1326,11 +1330,11 @@ public class EDIF extends Topology
 	/**
 	 * Method to terminate all currently open blocks.
 	 */
-	private void EO_close_stream()
+	private void blockFinish()
 	{
 		if (blkstack_ptr > 0)
 		{
-			EO_close_block(blkstack[0]);
+			blockClose(blkstack[0]);
 		}
 		printWriter.print("\n");
 	}

@@ -287,6 +287,97 @@ public class GenMath
     }
 
     /**
+     * Method to determine whether an arc at angle "ang" can connect the two ports
+     * whose bounding boxes are "lx1<=X<=hx1" and "ly1<=Y<=hy1" for port 1 and
+     * "lx2<=X<=hx2" and "ly2<=Y<=hy2" for port 2.  Returns true if a line can
+     * be drawn at that angle between the two ports and returns connection points
+     * in (x1,y1) and (x2,y2)
+     */
+    public static Point2D [] arcconnects(int ang, Rectangle2D bounds1, Rectangle2D bounds2)
+    //double lx1, double hx1, double ly1, double hy1, double lx2, double hx2, double ly2, double hy2, INTBIG *x1, INTBIG *y1, INTBIG *x2, INTBIG *y2
+    {
+     	// first try simple solutions
+    	Point2D [] points = new Point2D[2];
+       	double lx1 = bounds1.getMinX(), hx1 = bounds1.getMaxX();
+       	double ly1 = bounds1.getMinY(), hy1 = bounds1.getMaxY();
+       	double lx2 = bounds2.getMinX(), hx2 = bounds2.getMaxX();
+       	double ly2 = bounds2.getMinY(), hy2 = bounds2.getMaxY();
+    	if ((ang%1800) == 0)
+    	{
+    		// horizontal angle: simply test Y coordinates
+    		if (ly1 > hy2 || ly2 > hy1) return null;
+
+    		double y = (Math.max(ly1, ly2) + Math.min(hy1, hy2)) / 2;
+    		points[0] = new Point2D.Double((lx1+hx1) / 2, y);
+    		points[1] = new Point2D.Double((lx2+hx2) / 2, y);
+     		return points;
+    	}
+    	if ((ang%1800) == 900)
+    	{
+    		// vertical angle: simply test X coordinates
+    		if (lx1 > hx2 || lx2 > hx1) return null;
+    		double x = (Math.max(lx1, lx2) + Math.min(hx1, hx2)) / 2;
+    		points[0] = new Point2D.Double(x, (ly1+hy1) / 2);
+    		points[1] = new Point2D.Double(x, (ly2+hy2) / 2);
+     		return points;
+    	}
+
+    	// construct an imaginary line at the proper angle that runs through (0,0)
+    	double a = DBMath.sin(ang) / 1073741824.0;
+    	double b = -DBMath.cos(ang) / 1073741824.0;
+
+    	// get the range of distances from the line to port 1
+    	double lx = lx1;   double hx = hx1;   double ly = ly1;   double hy = hy1;
+    	double d = lx*a + ly*b;   double low1 = d; double high1 = d;
+    	d = hx*a + ly*b;   if (d < low1) low1 = d;   if (d > high1) high1 = d;
+    	d = hx*a + hy*b;   if (d < low1) low1 = d;   if (d > high1) high1 = d;
+    	d = lx*a + hy*b;   if (d < low1) low1 = d;   if (d > high1) high1 = d;
+
+    	// get the range of distances from the line to port 2
+    	lx = lx2;   hx = hx2;   ly = ly2;   hy = hy2;
+    	d = lx*a + ly*b;   double low2 = d;   double high2 = d;
+    	d = hx*a + ly*b;   if (d < low2) low2 = d;   if (d > high2) high2 = d;
+    	d = hx*a + hy*b;   if (d < low2) low2 = d;   if (d > high2) high2 = d;
+    	d = lx*a + hy*b;   if (d < low2) low2 = d;   if (d > high2) high2 = d;
+
+    	// if the ranges do not overlap, a line cannot be drawn
+    	if (low1 > high2 || low2 > high1) return null;
+
+    	// the line can be drawn: determine equation (aX + bY = d)
+    	d = ((low1 > low2 ? low1 : low2) + (high1 < high2 ? high1 : high2)) / 2.0f;
+
+    	// determine intersection with polygon 1
+    	points[0] = db_findconnectionpoint(lx1, hx1, ly1, hy1, a, b, d);
+    	points[0] = db_findconnectionpoint(lx2, hx2, ly2, hy2, a, b, d);
+    	return points;
+    }
+
+    /**
+     * Method to find a point inside the rectangle bounded by (lx<=X<=hx, ly<=Y<=hy)
+     * that satisfies the equation aX + bY = d.  Returns the point in (x,y).
+     */
+    private static Point2D db_findconnectionpoint(double lx, double hx, double ly, double hy, double a, double b, double d)
+    {
+     	if (a != 0.0)
+    	{
+    		double out = (d - b * ly) / a;
+    		if (out >= lx && out <= hx) return new Point2D.Double(out, ly);
+    		out = (d - b * hy) / a;
+    		if (out >= lx && out <= hx) return new Point2D.Double(out, hy);
+    	}
+    	if (b != 0.0)
+    	{
+    		double out = (d - b * lx) / a;
+    		if (out >= ly && out <= hy) return new Point2D.Double(lx, out);
+    		out = (d - b * hx) / a;
+    		if (out >= ly && out <= hy) return new Point2D.Double(hx, out);
+    	}
+
+    	// not the right solution, but nothing else works
+    	return new Point2D.Double((lx+hx) / 2, (ly+hy) / 2);
+    }
+
+    /**
      * Method to compute the distance between point (x,y) and the line that runs
      * from (x1,y1) to (x2,y2).
      */

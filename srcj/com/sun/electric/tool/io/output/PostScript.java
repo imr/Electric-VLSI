@@ -211,27 +211,11 @@ public class PostScript extends Output
 			}
 		}
 
-		// create the PostScript file
-//		Variable var = cell.getVar(POSTSCRIPT_FILENAME);
-//		if (synchronize != 0)
-//		{
-//			(void)esnprintf(file, 100, x_("%s"), synchronize);
-//			io_psout = xcreate(file, io_filetypeps, 0, &truename);
-//			if (io_psout == NULL)
-//			{
-//				ttyputerr(_("Cannot synchronize cell %s with file %s"),
-//					describenodeproto(np), file);
-//				return;
-//			}
-//		}
-
 		// for pure color plotting, use special merging code
 		if (psUseColorMerge)
 		{
 			System.out.println("Cannot do color merging yet");
 //			io_pscolorplot(np, epsFormat, useplotter, pagewid, pagehei, pagemarginps);
-//			xclose(io_psout);
-//			ttyputmsg(_("%s written"), truename);
 //			return;
 		}
 
@@ -469,8 +453,7 @@ public class PostScript extends Output
 		/**
 		 * Constructor for cell frame rendering.
 		 * @param cell the Cell that is having a frame drawn.
-		 * @param g the Graphics to which to draw the frame.
-		 * @param wnd the EditWindow in which this is being drawn.
+		 * @param writer the PostScript object for access to field variables.
 		 */
 		public PostScriptFrame(Cell cell, PostScript writer)
 		{
@@ -750,7 +733,6 @@ public class PostScript extends Output
 
 				// mark the synchronized date
 				IOTool.setPrintEPSSavedDate(oCell, new Date());
-				// TODO: this is tricky: because the "newVar" modifies the cell, so the date should be set by hand
 
 				numSyncs++;
 			}
@@ -1078,7 +1060,7 @@ public class PostScript extends Output
 		printWriter.print("] " + (hx-lx+1) + " " + (hy-ly+1) + " " + lx + " " + ly + " Filledpolygon\n");
 	}
 
-	String defaultFontName = null;
+	String defaultFontName = "Times";
 
 	/**
 	 * draw text
@@ -1097,13 +1079,7 @@ public class PostScript extends Output
 		String text = poly.getString().trim();
 		if (text.length() == 0) return;
 
-		// get the default font name
-		if (defaultFontName == null)
-		{
-			defaultFontName = "Times";
-//			estrcpy(defaultfontname, screengetdefaultfacename());
-		}
-
+		// write header information
 		Point2D psL = psXform(new Point2D.Double(bounds.getMinX(), bounds.getMinY()));
 		Point2D psH = psXform(new Point2D.Double(bounds.getMaxX(), bounds.getMaxY()));
 		double cX = (psL.getX() + psH.getX()) / 2;
@@ -1117,8 +1093,8 @@ public class PostScript extends Output
 		int faceNumber = td.getFace();
 		if (faceNumber != 0)
 		{
-//			(void)screengetfacelist(&facelist, FALSE);
-//			faceName = facelist[faceNumber];
+			TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(faceNumber);
+			if (af != null) faceName = af.getName();
 		}
 		if (faceName != null)
 		{

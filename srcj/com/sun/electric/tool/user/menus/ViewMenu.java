@@ -81,9 +81,11 @@ public class ViewMenu {
         viewMenu.addMenuItem("Make Icon View", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ViewChanges.makeIconViewCommand(); } });
 		viewMenu.addMenuItem("Make Schematic View", null,
-				new ActionListener() { public void actionPerformed(ActionEvent e) { ViewChanges.makeSchematicView(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ViewChanges.makeSchematicView(); } });
+		viewMenu.addMenuItem("Make Alternate Layout View...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ViewChanges.makeLayoutView(); } });
 		viewMenu.addMenuItem("Make Multi-Page Schematic View...", null,
-				new ActionListener() { public void actionPerformed(ActionEvent e) { ViewChanges.makeMultiPageSchematicViewCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ViewChanges.makeMultiPageSchematicViewCommand(); } });
 		viewMenu.addMenuItem("Make Skeleton View", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ViewChanges.makeSkeletonViewCommand(); } });
 

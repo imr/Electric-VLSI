@@ -650,7 +650,7 @@ public class CMOS extends Technology
 				PrimitivePort.newInstance(this, t_node, new ArcProto [] {Diffusion_p_arc}, "trans-diff-bottom", 270,85, 3, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(3), EdgeV.fromBottom(1), EdgeH.fromRight(3), EdgeV.fromBottom(1))
 			});
-		t_node.setFunction(NodeProto.Function.TRANMOS);
+		t_node.setFunction(NodeProto.Function.TRAPMOS);
 		t_node.setHoldsOutline();
 		t_node.setCanShrink();
 		t_node.setSpecialType(PrimitiveNode.SERPTRANS);
@@ -675,7 +675,7 @@ public class CMOS extends Technology
 				PrimitivePort.newInstance(this, tw_node, new ArcProto [] {Diffusion_well_arc}, "transw-diff-bottom", 270,85, 1, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(4), EdgeV.fromBottom(2), EdgeH.fromRight(4), EdgeV.fromBottom(2))
 			});
-		tw_node.setFunction(NodeProto.Function.TRAPMOS);
+		tw_node.setFunction(NodeProto.Function.TRANMOS);
 		tw_node.setHoldsOutline();
 		tw_node.setCanShrink();
 		tw_node.setSpecialType(PrimitiveNode.SERPTRANS);

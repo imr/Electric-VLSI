@@ -416,7 +416,6 @@ public class FindText extends EDialog
     }//GEN-END:initComponents
 
     private void doneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_doneActionPerformed
-        // TODO add your handling code here:
         closeDialog(null);
     }//GEN-LAST:event_doneActionPerformed
 

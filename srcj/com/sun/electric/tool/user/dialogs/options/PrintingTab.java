@@ -139,7 +139,8 @@ public class PrintingTab extends PreferencePanel
 
 	private void printSetEPSSyncActionPerformed()
 	{
-		String fileName = OpenFile.chooseInputFile(OpenFile.Type.POSTSCRIPT, null);
+		String defaultFileName = initialCell.getName() + ".eps";
+		String fileName = OpenFile.chooseOutputFile(OpenFile.Type.POSTSCRIPT, "Choose EPS file", defaultFileName);
 		if (fileName == null) return;
 		printSyncFileName.setText(fileName);
 	}

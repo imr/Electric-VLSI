@@ -25,11 +25,13 @@
 package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.tool.user.ui.*;
+import com.sun.electric.tool.user.dialogs.GetInfoText;
 import com.sun.electric.tool.user.dialogs.LayerVisibility;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.database.hierarchy.Cell;
 
 import javax.swing.*;
+
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -146,12 +148,14 @@ public class WindowMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { TopLevel.getMessagesWindow().save(); }});
         messagesSubMenu.addMenuItem("Clear", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { TopLevel.getMessagesWindow().clear(); }});
+        messagesSubMenu.addMenuItem("Set Font...", null,
+             new ActionListener() { public void actionPerformed(ActionEvent e) { TopLevel.getMessagesWindow().selectFont(); }});
 
         /** 3D view */
 	    windowMenu.addMenuItem("3D Display", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) { create3DViewCommand(); } });
     }
-
+   
 	/**
 	 * This method creates 3D view of current cell
 	 */
@@ -574,6 +578,5 @@ public class WindowMenu {
 
         curWF.moveEditWindow(gs[i].getDefaultConfiguration());
     }
-
 
 }

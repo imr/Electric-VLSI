@@ -1248,6 +1248,7 @@ public class TextDescriptor
 		if (s.isAbsolute()) return (int)s.getSize();
 
 		// relative font: get size in grid units
+		if (wnd == null) return 14;
 		double height = s.getSize();
 
 		// convert to screen units

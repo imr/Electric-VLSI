@@ -103,12 +103,12 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.CIF, false); } });
 		exportSubMenu.addMenuItem("GDS II (Stream)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.GDS, false); } });
-		exportSubMenu.addMenuItem("EDIF...", null,
+		exportSubMenu.addMenuItem("EDIF (Electronic Design Interchange Format)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.EDIF, false); } });
-		exportSubMenu.addMenuItem("LEF...", null,
+		exportSubMenu.addMenuItem("LEF (Library Exchange Format)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.LEF, false); } });
 		if (IOTool.hasSkill())
-			exportSubMenu.addMenuItem("Skill...", null,
+			exportSubMenu.addMenuItem("Skill (Cadence Commands)...", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.SKILL, false); } });
 		exportSubMenu.addSeparator();
 		exportSubMenu.addMenuItem("Eagle...", null,
@@ -122,7 +122,7 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.writeTextCell(); }});
 		exportSubMenu.addMenuItem("PostScript...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.POSTSCRIPT, false); } });
-		exportSubMenu.addMenuItem("DXF...", null,
+		exportSubMenu.addMenuItem("DXF (AutoCAD)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.DXF, false); } });
 		exportSubMenu.addMenuItem("L...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.L, false); } });

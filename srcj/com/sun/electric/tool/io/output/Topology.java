@@ -447,43 +447,22 @@ public abstract class Topology extends Output
 			}
 
 			if (portWidth <= 1) continue;
-			boolean upDir = false, downDir = false, randomDir = false;
-			int last = 0;
+			Network [] nets = new Network[portWidth];
 			for(int i=0; i<portWidth; i++)
-			{
-				Network subNet = cni.netList.getNetwork(pp, i);
-				if (subNet == null) continue;
-				if (!subNet.hasNames()) break;
-				String firstName = (String)subNet.getNames().next();
-				int index = -1;
-				int charPos = 0;
-				for(;;)
-				{
-					charPos = firstName.indexOf('[', charPos);
-					if (charPos < 0) break;
-					charPos++;
-					if (!Character.isDigit(firstName.charAt(charPos))) continue;
-					index = TextUtils.atoi(firstName.substring(charPos));
-					break;
-				}
-				if (index < 0) break;
-				if (i != 0)
-				{
-					if (index == last-1) downDir = true; else
-						if (index == last+1) upDir = true; else
-							randomDir = true;
-				}
-				last = index;
-			}
-			if (randomDir) continue;
-			if (upDir && downDir) continue;
-			if (!upDir && !downDir) continue;
-			for(int i=0; i<portWidth; i++)
-			{
-				Network subNet = cni.netList.getNetwork(pp, i);
-				CellSignal cs = (CellSignal)cni.cellSignals.get(subNet);
-				cs.descending = downDir;
-			}
+				nets[i] = cni.netList.getNetwork(pp, i);
+			setBusDirectionality(nets, cni);
+		}
+
+		// look at all busses and mark directionality
+		for(Iterator aIt = cell.getArcs(); aIt.hasNext(); )
+		{
+			ArcInst ai = (ArcInst)aIt.next();
+			int width = cni.netList.getBusWidth(ai);
+			if (width < 2) continue;
+			Network [] nets = new Network[width];
+			for(int i=0; i<width; i++)
+				nets[i] = cni.netList.getNetwork(ai, i);
+			setBusDirectionality(nets, cni);
 		}
 
 		// find power and ground
@@ -743,7 +722,51 @@ public abstract class Topology extends Output
 		return cni;
 	}
 
-	/*
+	private void setBusDirectionality(Network [] nets, CellNetInfo cni)
+	{
+		boolean upDir = false, downDir = false, randomDir = false;
+		int last = 0;
+		int width = nets.length;
+		for(int i=0; i<width; i++)
+		{
+			Network subNet = nets[i];
+			if (subNet == null) continue;
+			if (!subNet.hasNames()) break;
+			String firstName = (String)subNet.getNames().next();
+			int index = -1;
+			int charPos = 0;
+			for(;;)
+			{
+				charPos = firstName.indexOf('[', charPos);
+				if (charPos < 0) break;
+				charPos++;
+				if (!Character.isDigit(firstName.charAt(charPos))) continue;
+				index = TextUtils.atoi(firstName.substring(charPos));
+				break;
+			}
+			if (index < 0) break;
+			if (i != 0)
+			{
+				if (index == last-1) downDir = true; else
+					if (index == last+1) upDir = true; else
+						randomDir = true;
+			}
+			last = index;
+		}
+		if (randomDir) return;
+		if (upDir && downDir) return;
+		if (!upDir && !downDir) return;
+
+		// valid direction found: set it on all entries of the bus
+		for(int i=0; i<width; i++)
+		{
+			Network subNet = nets[i];
+			CellSignal cs = (CellSignal)cni.cellSignals.get(subNet);
+			cs.descending = downDir;
+		}
+	}
+
+	/**
 	 * Method to return the character position in network name "name" that is the start of indexing.
 	 * If there is no indexing ("clock"), this will point to the end of the string.
 	 * If there is simple indexing ("dog[12]"), this will point to the "[".
@@ -794,7 +817,7 @@ public abstract class Topology extends Output
 		}
 	}
 
-	/*
+	/**
 	 * Method to create a parameterized name for node instance "ni".
 	 * If the node is not parameterized, returns zero.
 	 * If it returns a name, that name must be deallocated when done.
@@ -841,7 +864,7 @@ public abstract class Topology extends Output
 		return getSafeCellName(uniqueCellName);
 	}
 
-	/*
+	/**
 	 * Method to return the name of cell "c", given that it may be ambiguously used in multiple
 	 * libraries.
 	 */
@@ -851,7 +874,7 @@ public abstract class Topology extends Output
 		return name;
 	}
 
-	/*
+	/**
 	 * determine whether any cells have name clashes in other libraries
 	 */
 	private void makeCellNameMap()

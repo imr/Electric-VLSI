@@ -25,6 +25,7 @@ package com.sun.electric.tool.user;
 
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -44,6 +45,9 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -59,6 +63,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -243,7 +248,7 @@ public class ViewChanges
 				Point2D center = new Point2D.Double(bottomNi.getAnchorCenterX(), bottomNi.getAnchorCenterY());
 				subRot.transform(center, center);
 				NodeInst newNi = NodeInst.makeInstance(bottomNi.getProto(), center, bottomNi.getXSize(), bottomNi.getYSize(),
-				        skeletonCell, newAng, null, 0);
+					skeletonCell, newAng, null, 0);
 				if (newNi == null)
 				{
 					System.out.println("Cannot create node in this cell");
@@ -289,12 +294,12 @@ public class ViewChanges
 				}
 			}
 
-			// copy the cell center and essential-bounds nodes if they exist
+			// copy the essential-bounds nodes if they exist
 			for(Iterator it = curCell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				NodeProto np = ni.getProto();
-				if (np != Generic.tech.cellCenterNode && np != Generic.tech.essentialBoundsNode) continue;
+				if (np != Generic.tech.essentialBoundsNode) continue;
 				NodeInst newNi = NodeInst.makeInstance(np, ni.getAnchorCenter(),
 					ni.getXSizeWithMirror(), ni.getYSizeWithMirror(), skeletonCell, ni.getAngle(), null, 0);
 				if (newNi == null)
@@ -329,21 +334,21 @@ public class ViewChanges
 
 	public static void makeIconViewCommand()
 	{
-        Cell curCell = WindowFrame.needCurCell();
-        if (curCell == null) return;
-        MakeIconView job = new MakeIconView(curCell);
+		Cell curCell = WindowFrame.needCurCell();
+		if (curCell == null) return;
+		MakeIconView job = new MakeIconView(curCell);
 	}
 
 	private static class MakeIconView extends Job
 	{
 		private static boolean reverseIconExportOrder;
-        private Cell curCell;
+		private Cell curCell;
 
 		protected MakeIconView(Cell cell)
 		{
 			super("Make Icon View", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.curCell = cell;
-            startJob();
+			startJob();
 		}
 
 		public boolean doIt()
@@ -414,7 +419,7 @@ public class ViewChanges
 			NodeInst bbNi = null;
 			if (User.isIconGenDrawBody())
 			{
-                bbNi = NodeInst.newInstance(Artwork.tech.boxNode, new Point2D.Double(0,0), xSize, ySize, iconCell);
+				bbNi = NodeInst.newInstance(Artwork.tech.boxNode, new Point2D.Double(0,0), xSize, ySize, iconCell);
 				if (bbNi == null) return false;
 				bbNi.newVar(Artwork.ART_COLOR, new Integer(EGraphics.RED));
 
@@ -507,15 +512,15 @@ public class ViewChanges
 			NodeInst ni = NodeInst.makeInstance(iconCell, iconPos, px, py, curCell);
 			if (ni != null)
 			{
-                EditWindow wnd = EditWindow.getCurrent();
-                if (wnd != null) {
-                    if (wnd.getCell() == curCell) {
-                        Highlighter highlighter = wnd.getHighlighter();
-                        highlighter.clear();
-                        highlighter.addElectricObject(ni, curCell);
-                        highlighter.finished();
-                    }
-                }
+				EditWindow wnd = EditWindow.getCurrent();
+				if (wnd != null) {
+					if (wnd.getCell() == curCell) {
+						Highlighter highlighter = wnd.getHighlighter();
+						highlighter.clear();
+						highlighter.addElectricObject(ni, curCell);
+						highlighter.finished();
+					}
+				}
 			}
 			return true;
 		}
@@ -642,9 +647,9 @@ public class ViewChanges
 				PortInst tail = pinNi.getOnlyPortInst();
 				ArcInst ai = ArcInst.makeInstance(wireType, wireType.getDefaultWidth(),
 					head, tail, new Point2D.Double(xBBPos, yBBPos),
-				        new Point2D.Double(xPos, yPos), null);
+						new Point2D.Double(xPos, yPos), null);
 				if (ai != null && wireType == Schematics.tech.bus_arc)
-                    ai.setExtended(false);
+					ai.setExtended(false);
 			}
 		}
 		return true;
@@ -687,27 +692,27 @@ public class ViewChanges
 	 */
 	public static void makeSchematicView()
 	{
-        Cell oldCell = WindowFrame.needCurCell();
-        if (oldCell == null) return;
-        MakeSchematicView job = new MakeSchematicView(oldCell);
+		Cell oldCell = WindowFrame.needCurCell();
+		if (oldCell == null) return;
+		MakeSchematicView job = new MakeSchematicView(oldCell);
 	}
 
 	private static class MakeSchematicView extends Job
 	{
 		private static boolean reverseIconExportOrder;
-        private Cell oldCell;
+		private Cell oldCell;
 
 		protected MakeSchematicView(Cell cell)
 		{
 			super("Make Schematic View", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.oldCell = cell;
-            startJob();
+			startJob();
 		}
 
 		public boolean doIt()
 		{
-	        // create cell in new technology
-			Cell newCell = makeSchematicCell(oldCell.getName(), View.SCHEMATIC, oldCell);
+			// create cell in new technology
+			Cell newCell = makeNewCell(oldCell.getName(), View.SCHEMATIC, oldCell);
 			if (newCell == null) return false;
 
 			// create the parts in this cell
@@ -740,7 +745,7 @@ public class ViewChanges
 	 * equivalent to an old cell in "cell".  The view type of the new cell is
 	 * in "newcellview" and the view type of the old cell is in "cellview"
 	 */
-	private static Cell makeSchematicCell(String newCellName, View newCellView, Cell cell)
+	private static Cell makeNewCell(String newCellName, View newCellView, Cell cell)
 	{
 		// create the new cell
 		String cellName = newCellName;
@@ -755,7 +760,7 @@ public class ViewChanges
 		return newCell;
 	}
 	
-	private static void buildSchematicNodes(Cell cell, Cell newCell, Technology newtech, HashMap newNodes)
+	private static void buildSchematicNodes(Cell cell, Cell newCell, Technology newTech, HashMap newNodes)
 	{
 		// for each node, create a new node in the newcell, of the correct logical type.
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
@@ -977,502 +982,433 @@ public class ViewChanges
 
 	/****************************** CONVERT TO ALTERNATE LAYOUT ******************************/
 
-//	/*
-//	 * routine to recursively descend from cell "oldcell" and find subcells that
-//	 * have to be converted.  When all subcells have been converted, convert this
-//	 * one into a new one called "newcellname".  The technology for the old cell
-//	 * is "oldtech" and the technology to use for the new cell is "newtech".  The
-//	 * old view type is "oldview" and the new view type is "nview".
-//	 */
-//	NODEPROTO *us_tran_makelayoutcells(NODEPROTO *oldcell, CHAR *newcellname,
-//		TECHNOLOGY *oldtech, TECHNOLOGY *newtech, VIEW *nview)
-//	{
-//		REGISTER NODEPROTO *newcell, *rnp;
-//		REGISTER INTBIG bits;
-//		REGISTER NODEINST *ni;
-//		REGISTER ARCINST *ai;
-//		CHAR *str;
-//
-//		// first convert the sub-cells */
-//		for(ni = oldcell->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//		{
-//			/* ignore primitives */
-//			if (ni->proto->primindex != 0) continue;
-//
-//			/* ignore recursive references (showing icon in contents) */
-//			if (isiconof(ni->proto, oldcell)) continue;
-//
-//			/* ignore cells with associations */
-//			FOR_CELLGROUP(rnp, ni->proto)
-//				if (rnp->cellview == nview) break;
-//			if (rnp != NONODEPROTO) continue;
-//
-//			/* make up a name for this cell */
-//			(void)allocstring(&str, ni->proto->protoname, el_tempcluster);
-//
-//			(void)us_tran_makelayoutcells(ni->proto, str, oldtech, newtech, nview);
-//			efree(str);
-//		}
-//
-//		/* create the cell and fill it with parts */
-//		newcell = makeSchematicCell(newcellname, nview, oldcell);
-//		if (newcell == NONODEPROTO) return(NONODEPROTO);
-//		if (us_tran_makelayoutparts(oldcell, newcell, oldtech, newtech, nview))
-//		{
-//			/* adjust for maximum Manhattan-ness */
-//			makeArcsManhattan(newcell);
-//
-//			/* reset shrinkage values and constraints to defaults (is this needed? !!!) */
-//			for(ai = newcell->firstarcinst; ai != NOARCINST; ai = ai->nextarcinst)
-//			{
-//				bits = us_makearcuserbits(ai->proto);
-//				if ((bits&FIXED) != 0) ai->userbits |= FIXED;
-//				if ((bits&FIXANG) != 0) ai->userbits |= FIXANG;
-//				(void)setshrinkvalue(ai, FALSE);
-//			}
-//		}
-//
-//		return(newcell);
-//	}
-//
-//	/*
-//	 * routine to create a new cell in "newcell" from the contents of an old cell
-//	 * in "oldcell".  The technology for the old cell is "oldtech" and the
-//	 * technology to use for the new cell is "newtech".
-//	 */
-//	BOOLEAN us_tran_makelayoutparts(NODEPROTO *oldcell, NODEPROTO *newcell,
-//		TECHNOLOGY *oldtech, TECHNOLOGY *newtech, VIEW *nview)
-//	{
-//		REGISTER NODEPROTO *newnp;
-//		REGISTER NODEINST *ni, *end1, *end2;
-//		ARCPROTO *ap, *newap;
-//		ARCINST *ai;
-//		REGISTER PORTPROTO *mospp1, *mospp2, *schempp1, *schempp2;
-//		INTBIG x1, y1, x2, y2, lx1, hx1, ly1, hy1, lx2, hx2, ly2, hy2, tx1, ty1, tx2, ty2;
-//		REGISTER INTBIG newwid, newbits, oldlambda, newlambda, defwid, curwid;
-//		REGISTER INTBIG badarcs, i, j;
-//		REGISTER BOOLEAN univarcs;
-//		static POLYGON *poly1 = NOPOLYGON, *poly2 = NOPOLYGON;
-//
-//		/* get a polygon */
-//		(void)needstaticpolygon(&poly1, 4, us_tool->cluster);
-//		(void)needstaticpolygon(&poly2, 4, us_tool->cluster);
-//
-//		/* get lambda values */
-//		oldlambda = el_curlib->lambda[oldtech->techindex];
-//		newlambda = el_curlib->lambda[newtech->techindex];
-//
-//		/* first convert the nodes */
-//		for(ni = oldcell->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//			ni->temp1 = 0;
-//		for(ni = oldcell->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//		{
-//			/* handle sub-cells */
-//			if (ni->proto->primindex == 0)
-//			{
-//				FOR_CELLGROUP(newnp, ni->proto)
-//					if (newnp->cellview == nview) break;
-//				if (newnp == NONODEPROTO)
-//				{
-//					ttyputerr(_("No equivalent cell for %s"), describenodeproto(ni->proto));
-//					continue;
-//				}
-//				us_tranplacenode(ni, newnp, newcell, oldtech, newtech);
-//				continue;
-//			}
-//
-//			/* handle primitives */
-//			if (ni->proto == gen_cellcenterprim) continue;
-//			newnp = us_figurenewnproto(ni, newtech);
-//			us_tranplacenode(ni, newnp, newcell, oldtech, newtech);
-//		}
-//
-//		/*
-//		 * for each arc in cell, find the ends in the new technology, and
-//		 * make a new arc to connect them in the new cell
-//		 */
-//		badarcs = 0;
-//		univarcs = FALSE;
-//		for(ai = oldcell->firstarcinst; ai != NOARCINST; ai = ai->nextarcinst)
-//		{
-//			/* get the nodes and ports on the two ends of the arc */
-//			end1 = (NODEINST *)ai->end[0].nodeinst->temp1;
-//			end2 = (NODEINST *)ai->end[1].nodeinst->temp1;
-//			if (end1 == 0 || end2 == 0) continue;
-//			mospp1 = ai->end[0].portarcinst->proto;
-//			mospp2 = ai->end[1].portarcinst->proto;
-//			schempp1 = us_convport(ai->end[0].nodeinst, end1, mospp1);
-//			schempp2 = us_convport(ai->end[1].nodeinst, end2, mospp2);
-//
-//			/* set bits in arc prototypes that can make the connection */
-//			for(ap = newtech->firstarcproto; ap != NOARCPROTO; ap = ap->nextarcproto)
-//				ap->userbits &= ~CANCONNECT;
-//			for(i=0; schempp1->connects[i] != NOARCPROTO; i++)
-//			{
-//				for(j=0; schempp2->connects[j] != NOARCPROTO; j++)
-//				{
-//					if (schempp1->connects[i] != schempp2->connects[j]) continue;
-//					schempp1->connects[i]->userbits |= CANCONNECT;
-//					break;
-//				}
-//			}
-//
-//			/* compute arc type and see if it is acceptable */
-//			newap = us_figurenewaproto(ai->proto, newtech);
-//			if (newap->tech == newtech && (newap->userbits&CANCONNECT) == 0)
-//			{
-//				/* not acceptable: see if there are any valid ones */
-//				for(newap = newtech->firstarcproto; newap != NOARCPROTO; newap = newap->nextarcproto)
-//					if ((newap->userbits&CANCONNECT) != 0) break;
-//
-//				/* none are valid: use universal */
-//				if (newap == NOARCPROTO) newap = gen_universalarc;
-//			}
-//
-//			/* determine new arc width */
-//			newbits = ai->userbits;
-//			if (newap == gen_universalarc)
-//			{
-//				newwid = 0;
-//				univarcs = TRUE;
-//				newbits &= ~(FIXED | FIXANG);
-//			} else
-//			{
-//				defwid = ai->proto->nominalwidth - arcprotowidthoffset(ai->proto);
-//				curwid = ai->width - arcwidthoffset(ai);
-//				newwid = muldiv(newap->nominalwidth - arcprotowidthoffset(newap), curwid, defwid) +
-//					arcprotowidthoffset(newap);
-//				if (newwid <= 0) newwid = defaultarcwidth(newap);
-//			}
-//
-//			/* find the endpoints of the arc */
-//			x1 = muldiv(ai->end[0].xpos, newlambda, oldlambda);
-//			y1 = muldiv(ai->end[0].ypos, newlambda, oldlambda);
-//			shapeportpoly(end1, schempp1, poly1, FALSE);
-//			x2 = muldiv(ai->end[1].xpos, newlambda, oldlambda);
-//			y2 = muldiv(ai->end[1].ypos, newlambda, oldlambda);
-//			shapeportpoly(end2, schempp2, poly2, FALSE);
-//
-//			/* see if the new arc can connect without end adjustment */
-//			if (!isinside(x1, y1, poly1) || !isinside(x2, y2, poly2))
-//			{
-//				/* arc cannot be run exactly ... presume port centers */
-//				portposition(end1, schempp1, &x1, &y1);
-//				portposition(end2, schempp2, &x2, &y2);
-//				if ((newbits & FIXANG) != 0)
-//				{
-//					/* old arc was fixed-angle so look for a similar-angle path */
-//					reduceportpoly(poly1, end1, schempp1, newwid-arcprotowidthoffset(newap), -1);
-//					getbbox(poly1, &lx1, &hx1, &ly1, &hy1);
-//					reduceportpoly(poly2, end2, schempp2, newwid-arcprotowidthoffset(newap), -1);
-//					getbbox(poly2, &lx2, &hx2, &ly2, &hy2);
-//					if (!arcconnects(((ai->userbits&AANGLE) >> AANGLESH) * 10, lx1, hx1, ly1, hy1,
-//						lx2, hx2, ly2, hy2, &tx1, &ty1, &tx2, &ty2)) badarcs++; else
-//					{
-//						x1 = tx1;   y1 = ty1;
-//						x2 = tx2;   y2 = ty2;
-//					}
-//				}
-//			}
-//			/* create the new arc */
-//			if (newarcinst(newap, newwid, newbits, end1, schempp1, x1, y1,
-//				end2, schempp2, x2, y2, newcell) == NOARCINST)
-//			{
-//				ttyputmsg(_("Cell %s: can't run arc from node %s port %s at (%s,%s)"),
-//					describenodeproto(newcell), describenodeinst(end1),
-//						schempp1->protoname, latoa(x1, 0), latoa(y1, 0));
-//				ttyputmsg(_("   to node %s port %s at (%s,%s)"), describenodeinst(end2),
-//					schempp2->protoname, latoa(x2, 0), latoa(y2, 0));
-//			}
-//		}
-//
-//		/* print warning if arcs were made nonmanhattan */
-//		if (badarcs != 0)
-//			ttyputmsg(_("WARNING: %ld %s made not-fixed-angle in cell %s"), badarcs,
-//				makeplural(_("arc"), badarcs), describenodeproto(newcell));
-//		return(univarcs);
-//	}
-//
-//	void us_tranplacenode(NODEINST *ni, NODEPROTO *newnp, NODEPROTO *newcell,
-//		TECHNOLOGY *oldtech, TECHNOLOGY *newtech)
-//	{
-//		INTBIG lx, ly, hx, hy, nlx, nly, nhx, nhy, bx, by, length, width;
-//		REGISTER INTBIG i, len, newsx, newsy, x1, y1, newlx, newhx, newly, newhy, *newtrace,
-//			oldlambda, newlambda, thissizex, thissizey, defsizex, defsizey;
-//		XARRAY trans;
-//		REGISTER INTSML trn;
-//		REGISTER PORTEXPINST *pexp;
-//		REGISTER NODEINST *newni;
-//		REGISTER PORTPROTO *pp, *pp2;
-//		REGISTER VARIABLE *var;
-//
-//		oldlambda = el_curlib->lambda[oldtech->techindex];
-//		newlambda = el_curlib->lambda[newtech->techindex];
-//
-//		/* scale edge offsets if this is a primitive */
-//		trn = ni->transpose;
-//		if (ni->proto->primindex != 0)
-//		{
-//			/* get offsets for new node type */
-//			nodeprotosizeoffset(newnp, &nlx, &nly, &nhx, &nhy, NONODEPROTO);
-//
-//			/* special case for schematic transistors: get size from description */
-//			if (((ni->proto->userbits&NFUNCTION) >> NFUNCTIONSH) == NPTRANS)
-//			{
-//				transistorsize(ni, &length, &width);
-//				if (length < 0) length = newnp->highy - newnp->lowy - nly - nhy;
-//				if (width < 0) width = newnp->highx - newnp->lowx - nlx - nhx;
-//				lx = (ni->lowx + ni->highx - width) / 2;
-//				hx = (ni->lowx + ni->highx + width) / 2;
-//				ly = (ni->lowy + ni->highy - length) / 2;
-//				hy = (ni->lowy + ni->highy + length) / 2;
-//				trn = 1 - trn;
-//
-//				/* compute scaled size for new node */
-//				newsx = muldiv(hx - lx, newlambda, oldlambda);
-//				newsy = muldiv(hy - ly, newlambda, oldlambda);
-//			} else
-//			{
-//				/* determine this node's percentage of the default node's size */
-//				nodeprotosizeoffset(ni->proto, &lx, &ly, &hx, &hy, NONODEPROTO);
-//				defsizex = (ni->proto->highx - hx) - (ni->proto->lowx + lx);
-//				defsizey = (ni->proto->highy - hy) - (ni->proto->lowy + ly);
-//
-//				nodesizeoffset(ni, &lx, &ly, &hx, &hy);
-//				thissizex = (ni->highx - hx) - (ni->lowx + lx);
-//				thissizey = (ni->highy - hy) - (ni->lowy + ly);
-//
-//				/* compute size of new node that is the same percentage of its default */
-//				newsx = muldiv((newnp->highx - nhx) - (newnp->lowx + nlx), thissizex, defsizex);
-//				newsy = muldiv((newnp->highy - nhy) - (newnp->lowy + nly), thissizey, defsizey);
-//
-//				/* determine location of new node */
-//				lx = ni->lowx + lx;   hx = ni->highx - hx;
-//				ly = ni->lowy + ly;   hy = ni->highy - hy;
-//			}
-//
-//			/* compute center of old node */
-//			x1 = muldiv((hx + lx) / 2, newlambda, oldlambda);
-//			y1 = muldiv((hy + ly) / 2, newlambda, oldlambda);
-//
-//			/* compute bounds of the new node */
-//			newlx = x1 - newsx/2 - nlx;   newhx = newlx + newsx + nlx + nhx;
-//			newly = y1 - newsy/2 - nly;   newhy = newly + newsy + nly + nhy;
-//		} else
-//		{
-//			x1 = (newnp->highx+newnp->lowx)/2 - (ni->proto->highx+ni->proto->lowx)/2;
-//			y1 = (newnp->highy+newnp->lowy)/2 - (ni->proto->highy+ni->proto->lowy)/2;
-//			makeangle(ni->rotation, ni->transpose, trans);
-//			xform(x1, y1, &bx, &by, trans);
-//			newlx = ni->lowx + bx;   newhx = ni->highx + bx;
-//			newly = ni->lowy + by;   newhy = ni->highy + by;
-//			newlx += ((newhx-newlx) - (newnp->highx-newnp->lowx)) / 2;
-//			newhx = newlx + newnp->highx - newnp->lowx;
-//			newly += ((newhy-newly) - (newnp->highy-newnp->lowy)) / 2;
-//			newhy = newly + newnp->highy - newnp->lowy;
-//		}
-//
-//		/* create the node */
-//		newni = newnodeinst(newnp, newlx, newhx, newly, newhy, trn, ni->rotation, newcell);
-//		if (newni == NONODEINST) return;
-//		newni->userbits |= (ni->userbits & (NEXPAND | WIPED | NSHORT));
-//		ni->temp1 = (INTBIG)newni;
-//		(void)copyvars((INTBIG)ni, VNODEINST, (INTBIG)newni, VNODEINST, FALSE);
-//
-//		/* copy "trace" information if there is any */
-//		var = gettrace(ni);
-//		if (var != NOVARIABLE)
-//		{
-//			len = getlength(var);
-//			newtrace = emalloc((len * SIZEOFINTBIG), el_tempcluster);
-//			if (newtrace == 0) return;
-//			for(i=0; i<len; i++)
-//				newtrace[i] = muldiv(((INTBIG *)var->addr)[i], newlambda, oldlambda);
-//			(void)setvalkey((INTBIG)newni, VNODEINST, el_trace_key, (INTBIG)newtrace,
-//				VINTEGER|VISARRAY|(len<<VLENGTHSH));
-//			efree((CHAR *)newtrace);
-//		}
-//		endobjectchange((INTBIG)newni, VNODEINST);
-//
-//		/* re-export any ports on the node */
-//		for(pexp = ni->firstportexpinst; pexp != NOPORTEXPINST; pexp = pexp->nextportexpinst)
-//		{
-//			pp = us_convport(ni, newni, pexp->proto);
-//			pp2 = newportproto(newcell, newni, pp, pexp->exportproto->protoname);
-//			if (pp2 == NOPORTPROTO) return;
-//			pp2->userbits = (pp2->userbits & ~STATEBITS) | (pexp->exportproto->userbits & STATEBITS);
-//			TDCOPY(pp2->textdescript, pexp->exportproto->textdescript);
-//			if (copyvars((INTBIG)pexp->exportproto, VPORTPROTO, (INTBIG)pp2, VPORTPROTO, FALSE))
-//				return;
-//		}
-//	}
-//
-//	/*
-//	 * routine to determine the port to use on node "newni" assuming that it should
-//	 * be the same as port "oldpp" on equivalent node "ni"
-//	 */
-//	PORTPROTO *us_convport(NODEINST *ni, NODEINST *newni, PORTPROTO *oldpp)
-//	{
-//		REGISTER PORTPROTO *pp, *npp;
-//		REGISTER INTBIG oldfun, newfun;
-//
-//		if (newni->proto->primindex == 0)
-//		{
-//			/* cells can associate by comparing names */
-//			pp = getportproto(newni->proto, oldpp->protoname);
-//			if (pp != NOPORTPROTO) return(pp);
-//		}
-//
-//		/* if functions are different, handle some special cases */
-//		oldfun = (ni->proto->userbits&NFUNCTION) >> NFUNCTIONSH;
-//		newfun = (newni->proto->userbits&NFUNCTION) >> NFUNCTIONSH;
-//		if (oldfun != newfun)
-//		{
-//			if (oldfun == NPTRANS && isfet(newni->geom))
-//			{
-//				/* converting from stick-figure to layout */
-//				pp = ni->proto->firstportproto;   npp = newni->proto->firstportproto;
-//				if (pp == oldpp) return(npp);
-//				pp = pp->nextportproto;           npp = npp->nextportproto;
-//				if (pp == oldpp) return(npp);
-//				pp = pp->nextportproto;           npp = npp->nextportproto->nextportproto;
-//				if (pp == oldpp) return(npp);
-//			}
-//		}
-//
-//		/* associate by position in port list */
-//		for(pp = ni->proto->firstportproto, npp = newni->proto->firstportproto;
-//			pp != NOPORTPROTO && npp != NOPORTPROTO;
-//				pp = pp->nextportproto, npp = npp->nextportproto)
-//					if (pp == oldpp) return(npp);
-//
-//		/* special case again: one-port capacitors are OK */
-//		if (oldfun == NPCAPAC && newfun == NPCAPAC) return(newni->proto->firstportproto);
-//
-//		/* association has failed: assume the first port */
-//		ttyputmsg(_("No port association between %s, port %s and %s"),
-//			describenodeproto(ni->proto), oldpp->protoname,
-//				describenodeproto(newni->proto));
-//		return(newni->proto->firstportproto);
-//	}
-//
-//	/*
-//	 * routine to determine the equivalent prototype in technology "newtech" for
-//	 * node prototype "oldnp".
-//	 */
-//	ARCPROTO *us_figurenewaproto(ARCPROTO *oldap, TECHNOLOGY *newtech)
-//	{
-//		REGISTER INTBIG type;
-//		REGISTER ARCPROTO *ap;
-//
-//		/* schematic wires become universal arcs */
-//		if (oldap == sch_wirearc) return(gen_universalarc);
-//
-//		/* determine the proper association of this node */
-//		type = (oldap->userbits & AFUNCTION) >> AFUNCTIONSH;
-//		for(ap = newtech->firstarcproto; ap != NOARCPROTO; ap = ap->nextarcproto)
-//			if ((INTBIG)((ap->userbits&AFUNCTION) >> AFUNCTIONSH) == type) break;
-//		if (ap == NOARCPROTO)
-//		{
-//			ttyputmsg(_("No equivalent arc for %s"), describearcproto(oldap));
-//			return(oldap);
-//		}
-//		return(ap);
-//	}
-//
-//	/*
-//	 * routine to determine the equivalent prototype in technology "newtech" for
-//	 * node prototype "oldnp".
-//	 */
-//	NODEPROTO *us_figurenewnproto(NODEINST *oldni, TECHNOLOGY *newtech)
-//	{
-//		REGISTER INTBIG type, i, j, k;
-//		REGISTER ARCPROTO *ap, *oap;
-//		REGISTER INTBIG important, funct;
-//		REGISTER NODEPROTO *np, *rnp, *oldnp;
-//		REGISTER NODEINST *ni;
-//		NODEINST node;
-//		static POLYGON *poly = NOPOLYGON;
-//
-//		/* get a polygon */
-//		(void)needstaticpolygon(&poly, 4, us_tool->cluster);
-//
-//		/* easy translation if complex or already in the proper technology */
-//		oldnp = oldni->proto;
-//		if (oldnp->primindex == 0 || oldnp->tech == newtech) return(oldnp);
-//
-//		/* if this is a layer node, check the layer functions */
-//		type = nodefunction(oldni);
-//		if (type == NPNODE)
-//		{
-//			/* get the polygon describing the first box of the old node */
-//			(void)nodepolys(oldni, 0, NOWINDOWPART);
-//			shapenodepoly(oldni, 0, poly);
-//			important = LFTYPE | LFPSEUDO | LFNONELEC;
-//			funct = layerfunction(oldnp->tech, poly->layer) & important;
-//
-//			/* now search for that function in the other technology */
-//			for(np = newtech->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//			{
-//				if (((np->userbits&NFUNCTION) >> NFUNCTIONSH) != NPNODE) continue;
-//				ni = &node;   initdummynode(ni);
-//				ni->proto = np;
-//				(void)nodepolys(ni, 0, NOWINDOWPART);
-//				shapenodepoly(ni, 0, poly);
-//				if ((layerfunction(newtech, poly->layer)&important) == funct)
-//					return(np);
-//			}
-//		}
-//
-//		/* see if one node in the new technology has the same function */
-//		for(i = 0, np = newtech->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//			if ((INTBIG)((np->userbits&NFUNCTION) >> NFUNCTIONSH) == type)
-//		{
-//			rnp = np;   i++;
-//		}
-//		if (i == 1) return(rnp);
-//
-//		/* if there are too many matches, determine which is proper from arcs */
-//		if (i > 1)
-//		{
-//			for(np = newtech->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//			{
-//				if ((INTBIG)((np->userbits&NFUNCTION) >> NFUNCTIONSH) != type) continue;
-//
-//				/* see if this node has equivalent arcs */
-//				for(j=0; oldnp->firstportproto->connects[j] != NOARCPROTO; j++)
-//				{
-//					oap = oldnp->firstportproto->connects[j];
-//					if (oap->tech == gen_tech) continue;
-//
-//					for(k=0; np->firstportproto->connects[k] != NOARCPROTO; k++)
-//					{
-//						ap = np->firstportproto->connects[k];
-//						if (ap->tech == gen_tech) continue;
-//						if ((ap->userbits&AFUNCTION) == (oap->userbits&AFUNCTION)) break;
-//					}
-//					if (np->firstportproto->connects[k] == NOARCPROTO) break;
-//				}
-//				if (oldnp->firstportproto->connects[j] == NOARCPROTO) break;
-//			}
-//			if (np != NONODEPROTO)
-//			{
-//				rnp = np;
-//				i = 1;
-//			}
-//		}
-//
-//		/* give up if it still cannot be determined */
-//		if (i != 1)
-//		{
-//			if (oldnp->temp1 == 0)
-//				ttyputmsg(_("Node %s (function %s) has no equivalent in the %s technology"),
-//					describenodeproto(oldnp), nodefunctionname(type, oldni),
-//						newtech->techname);
-//			oldnp->temp1 = 1;
-//			return(oldnp);
-//		}
-//		return(rnp);
-//	}
+	/**
+	 * Method to converts the current Cell into a schematic.
+	 */
+	public static void makeLayoutView()
+	{
+		Cell oldCell = WindowFrame.needCurCell();
+		if (oldCell == null) return;
+		MakeLayoutView job = new MakeLayoutView(oldCell);
+	}
+
+	private static class MakeLayoutView extends Job
+	{
+		private static boolean reverseIconExportOrder;
+		private Cell oldCell;
+		private HashMap convertedNodes;
+
+		protected MakeLayoutView(Cell oldCell)
+		{
+			super("Make Alternate Layout", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.oldCell = oldCell;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			// find out which technology they want to convert to
+			Technology oldTech = oldCell.getTechnology();
+			List techs = Technology.getTechnologiesSortedByName();
+			int numTechs = 0;
+			for(Iterator it = techs.iterator(); it.hasNext(); )
+			{
+				Technology tech = (Technology)it.next();
+				if (tech.isScaleRelevant()) numTechs++;
+			}
+			String [] techNames = new String[numTechs];
+			int i=0;
+			for(Iterator it = techs.iterator(); it.hasNext(); )
+			{
+				Technology tech = (Technology)it.next();
+				if (tech.isScaleRelevant()) techNames[i++] = tech.getTechName();
+			}
+			String selectedValue = (String)JOptionPane.showInputDialog(null,
+				"New technology to create", "Technology conversion",
+				JOptionPane.INFORMATION_MESSAGE, null, techNames, techNames[0]);
+			if (selectedValue == null) return false;
+			Technology newTech = Technology.findTechnology(selectedValue);
+			if (newTech == null) return false;
+			if (newTech == oldTech)
+			{
+				System.out.println("Cell " + oldCell.describe() + " is already in the " + newTech.getTechName() + " technology");
+				return false;
+			}
+
+			// convert the cell and all subcells
+			HashMap convertedCells = new HashMap();
+			Cell newCell = makeLayoutCells(oldCell, oldCell.getName(), oldTech, newTech, oldCell.getView(), convertedCells);
+			System.out.println("Cell " + newCell.describe() + " created with a " + newTech.getTechName() + " layout equivalent of " +
+				oldCell.describe());
+			WindowFrame.createEditWindow(newCell);
+			return true;
+		}
+
+		/**
+		 * Method to recursively descend from cell "oldCell" and find subcells that
+		 * have to be converted.  When all subcells have been converted, convert this
+		 * one into a new one called "newcellname".  The technology for the old cell
+		 * is "oldtech" and the technology to use for the new cell is "newtech".  The
+		 * old view type is "oldview" and the new view type is "nView".
+		 */
+		private Cell makeLayoutCells(Cell oldCell, String newCellName,
+			Technology oldTech, Technology newTech, View nView, HashMap convertedCells)
+		{
+			// first convert the sub-cells
+			for(Iterator it = oldCell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+
+				// ignore primitives
+				if (!(ni.getProto() instanceof Cell)) continue;
+
+				// ignore recursive references (showing icon in contents)
+				if (ni.isIconOfParent()) continue;
+
+				Cell subCell = (Cell)ni.getProto();
+				if (convertedCells.containsKey(subCell)) continue;
+				makeLayoutCells(subCell, subCell.getName(), oldTech, newTech, nView, convertedCells);
+			}
+
+			// create the cell and fill it with parts
+			Cell newCell = makeNewCell(newCellName, nView, oldCell);
+			if (newCell == null) return null;
+			makeLayoutParts(oldCell, newCell, oldTech, newTech, nView, convertedCells);
+
+			// adjust for maximum Manhattan-ness
+			makeArcsManhattan(newCell);
+
+			convertedCells.put(oldCell, newCell);
+			return newCell;
+		}
+
+		/**
+		 * Method to create a new cell in "newcell" from the contents of an old cell
+		 * in "oldcell".  The technology for the old cell is "oldtech" and the
+		 * technology to use for the new cell is "newTech".
+		 */
+		private void makeLayoutParts(Cell oldCell, Cell newCell,
+			Technology oldTech, Technology newTech, View nView, HashMap convertedCells)
+		{
+			// first convert the nodes
+			convertedNodes = new HashMap();
+			for(Iterator it = oldCell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				// handle sub-cells
+				if (ni.getProto() instanceof Cell)
+				{
+					Cell newCellType = (Cell)convertedCells.get(ni.getProto());
+					if (newCellType == null)
+					{
+						System.out.println("No equivalent cell for " + ni.getProto().describe());
+						continue;
+					}
+					placeLayoutNode(ni, newCellType, newCell);
+					continue;
+				}
+
+				// handle primitives
+				if (ni.getProto() == Generic.tech.cellCenterNode) continue;
+				NodeProto newNp = figureNewNodeProto(ni, newTech);
+				if (newNp != null)
+					placeLayoutNode(ni, newNp, newCell);
+			}
+
+			/*
+			 * for each arc in cell, find the ends in the new technology, and
+			 * make a new arc to connect them in the new cell
+			 */
+			int badArcs = 0;
+			for(Iterator it = oldCell.getArcs(); it.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)it.next();
+				// get the nodes and ports on the two ends of the arc
+				NodeInst oldHeadNi = ai.getHead().getPortInst().getNodeInst();
+				NodeInst oldTailNi = ai.getTail().getPortInst().getNodeInst();
+
+				NodeInst newHeadNi = (NodeInst)convertedNodes.get(oldHeadNi);
+				NodeInst newTailNi = (NodeInst)convertedNodes.get(oldTailNi);
+				if (newHeadNi == null || newTailNi == null) continue;
+				PortProto oldHeadPp = ai.getHead().getPortInst().getPortProto();
+				PortProto oldTailPp = ai.getTail().getPortInst().getPortProto();
+				PortProto newHeadPp = convertPortProto(oldHeadNi, newHeadNi, oldHeadPp);
+				PortProto newTailPp = convertPortProto(oldTailNi, newTailNi, oldTailPp);
+				if (newHeadPp == null || newTailPp == null) continue;
+
+				// compute arc type and see if it is acceptable
+				ArcProto newAp = figureNewArcProto(ai.getProto(), newTech, newHeadPp, newTailPp);
+
+				// determine new arc width
+				boolean fixAng = ai.isFixedAngle();
+				double newWid = 0;
+				if (newAp == Generic.tech.universal_arc) fixAng = false; else
+				{
+					double defwid = ai.getProto().getDefaultWidth() - ai.getProto().getWidthOffset();
+					double curwid = ai.getWidth() - ai.getProto().getWidthOffset();
+					newWid = (newAp.getDefaultWidth() - newAp.getWidthOffset()) * curwid / defwid + newAp.getWidthOffset();
+					if (newWid <= 0) newWid = newAp.getDefaultWidth();
+				}
+
+				// find the endpoints of the arc
+				Point2D pHead = ai.getHead().getLocation();
+				Point2D pTail = ai.getTail().getLocation();
+				PortInst newHeadPi = newHeadNi.findPortInstFromProto(newHeadPp);
+				PortInst newTailPi = newTailNi.findPortInstFromProto(newTailPp);
+				Poly newHeadPoly = newHeadPi.getPoly();
+				Poly newTailPoly = newTailPi.getPoly();
+
+				// see if the new arc can connect without end adjustment
+				if (!newHeadPoly.contains(pHead) || !newTailPoly.contains(pTail))
+				{
+					// arc cannot be run exactly ... presume port centers
+					if (!newHeadPoly.contains(pHead)) pHead.setLocation(newHeadPoly.getCenterX(), newHeadPoly.getCenterY());
+					if (fixAng)
+					{
+						// old arc was fixed-angle so look for a similar-angle path
+						Rectangle2D headBounds = newHeadPoly.getBounds2D();
+						Rectangle2D tailBounds = newTailPoly.getBounds2D();
+						Point2D [] newPoints = GenMath.arcconnects(ai.getAngle(), headBounds, tailBounds);
+						if (newPoints != null)
+						{
+							pHead.setLocation(newPoints[0].getX(), newPoints[0].getY());
+							pTail.setLocation(newPoints[1].getX(), newPoints[1].getY());
+						}
+					}
+				}
+
+				// create the new arc
+				ArcInst newAi = ArcInst.makeInstance(newAp, newWid, newHeadPi, newTailPi, pHead, pTail, ai.getName());
+				if (newAi == null)
+				{
+					System.out.println("Cell " + newCell.describe() + ": can't run " + newAp.getName() + " arc from node " +
+						newHeadNi.describe() + " port " + newHeadPp.getName() + " at (" + pHead.getX() + "," + pHead.getY() + ") to node " +
+						newTailNi.describe() + " port " + newTailPp.getName() + " at (" + pTail.getX() + "," + pTail.getY() + ")");
+					continue;
+				}
+				newAi.copyPropertiesFrom(ai);
+				if (newAp == Generic.tech.universal_arc)
+				{
+					ai.setFixedAngle(false);
+					ai.setRigid(false);
+				}
+			}
+		}
+
+		/**
+		 * Method to determine the equivalent prototype in technology "newtech" for
+		 * node prototype "oldnp".
+		 */
+		private NodeProto figureNewNodeProto(NodeInst oldni, Technology newTech)
+		{
+			// easy translation if complex or already in the proper technology
+			NodeProto oldNp = oldni.getProto();
+			if (oldNp instanceof Cell || oldNp.getTechnology() == newTech) return oldNp;
+
+			// if this is a layer node, check the layer functions
+			NodeProto.Function type = oldni.getFunction();
+			if (type == NodeProto.Function.NODE)
+			{
+				// get the polygon describing the first box of the old node
+				PrimitiveNode np = (PrimitiveNode)oldNp;
+				Technology.NodeLayer [] nodeLayers = np.getLayers();
+				Layer layer = nodeLayers[0].getLayer();
+				Layer.Function fun = layer.getFunction();
+
+				// now search for that function in the other technology
+				for(Iterator it = newTech.getNodes(); it.hasNext(); )
+				{
+					PrimitiveNode oNp = (PrimitiveNode)it.next();
+					if (oNp.getFunction() != NodeProto.Function.NODE) continue;
+					Technology.NodeLayer [] oNodeLayers = oNp.getLayers();
+					Layer oLayer = oNodeLayers[0].getLayer();
+					Layer.Function oFun = oLayer.getFunction();
+					if (fun == oFun) return oNp;
+				}
+			}
+
+			// see if one node in the new technology has the same function
+			int i = 0;
+			PrimitiveNode rNp = null;
+			for(Iterator it = newTech.getNodes(); it.hasNext(); )
+			{
+				PrimitiveNode np = (PrimitiveNode)it.next();
+				if (np.getFunction() == type)
+				{
+					rNp = np;   i++;
+				}
+			}
+			if (i == 1) return rNp;
+
+			// if there are too many matches, determine which is proper from arcs
+			if (i > 1)
+			{
+				// see if this node has equivalent arcs
+				PrimitiveNode pOldNp = (PrimitiveNode)oldNp;
+				PrimitivePort pOldPp = (PrimitivePort)pOldNp.getPort(0);
+				ArcProto [] oldConnections = pOldPp.getConnections();
+
+				for(Iterator it = newTech.getNodes(); it.hasNext(); )
+				{
+					PrimitiveNode pNewNp = (PrimitiveNode)it.next();
+					if (pNewNp.getFunction() != type) continue;
+					PrimitivePort pNewPp = (PrimitivePort)pNewNp.getPort(0);
+					ArcProto [] newConnections = pNewPp.getConnections();
+
+					boolean oldMatches = true;
+					for(int j=0; j<oldConnections.length; j++)
+					{
+						ArcProto oap = oldConnections[j];
+						if (oap.getTechnology() == Generic.tech) continue;
+
+						boolean foundNew = false;
+						for(int k=0; k<newConnections.length; k++)
+						{
+							ArcProto ap = newConnections[k];
+							if (ap.getTechnology() == Generic.tech) continue;
+							if (ap.getFunction() == oap.getFunction()) { foundNew = true;   break; }
+						}
+						if (!foundNew) { oldMatches = false;   break; }
+					}
+					if (oldMatches) { rNp = pNewNp;   i = 1;   break; }
+				}
+			}
+
+			// give up if it still cannot be determined
+			return rNp;
+		}
+
+		private void placeLayoutNode(NodeInst ni, NodeProto newNp, Cell newCell)
+		{
+			// scale edge offsets if this is a primitive
+			double newXSize = 0, newYSize = 0;
+			if (newNp instanceof PrimitiveNode)
+			{
+				// get offsets for new node type
+				PrimitiveNode pNewNp = (PrimitiveNode)newNp;
+				PrimitiveNode pOldNp = (PrimitiveNode)ni.getProto();
+				newXSize = pNewNp.getDefWidth() + ni.getXSize() - pOldNp.getDefWidth();
+				newYSize = pNewNp.getDefHeight() + ni.getYSize() - pOldNp.getDefHeight();
+			} else
+			{
+				Cell np = (Cell)newNp;
+				Rectangle2D bounds = np.getBounds();
+				newXSize = bounds.getWidth();
+				newYSize = bounds.getHeight();
+			}
+			if (ni.isXMirrored()) newXSize = -newXSize;
+			if (ni.isYMirrored()) newYSize = -newYSize;
+
+			// create the node
+			NodeInst newNi = NodeInst.makeInstance(newNp, ni.getAnchorCenter(), newXSize, newYSize, newCell, ni.getAngle(), ni.getName(), ni.getTechSpecific());
+			if (newNi == null)
+			{
+				System.out.println("Could not create node " + newNp.describe() + " in cell " + newCell.describe());
+				return;
+			}
+			convertedNodes.put(ni, newNi);
+			newNi.copyStateBits(ni);
+			newNi.copyVarsFrom(ni);
+
+			// re-export any ports on the node
+			for(Iterator it = ni.getExports(); it.hasNext(); )
+			{
+				Export e = (Export)it.next();
+				PortProto pp = convertPortProto(ni, newNi, e.getOriginalPort().getPortProto());
+				PortInst pi = newNi.findPortInstFromProto(pp);
+				Export pp2 = Export.newInstance(newCell, pi, e.getName());
+				if (pp2 == null) return;
+				pp2.copyVarsFrom(e);
+			}
+		}
+
+		/**
+		 * Method to determine the equivalent prototype in technology "newTech" for
+		 * node prototype "oldnp".
+		 */
+		private ArcProto figureNewArcProto(ArcProto oldAp, Technology newTech, PortProto headPp, PortProto tailPp)
+		{
+			// schematic wires become universal arcs
+			if (oldAp != Schematics.tech.wire_arc)
+			{
+				// determine the proper association of this node
+				ArcProto.Function type = oldAp.getFunction();
+				for(Iterator it = newTech.getArcs(); it.hasNext(); )
+				{
+					ArcProto newAp = (ArcProto)it.next();
+					if (newAp.getFunction() == type) return newAp;
+				}
+			}
+
+			// cannot figure it out from the function: find anything that can connect
+			HashSet possibleArcs = new HashSet();
+			ArcProto [] headArcs = headPp.getBasePort().getConnections();
+			ArcProto [] tailArcs = tailPp.getBasePort().getConnections();
+			for(int i=0; i < headArcs.length; i++)
+			{
+				if (headArcs[i].getTechnology() == Generic.tech) continue;
+				for(int j=0; j < tailArcs.length; j++)
+				{
+					if (tailArcs[j].getTechnology() == Generic.tech) continue;
+					if (headArcs[i] != tailArcs[j]) continue;
+					possibleArcs.add(headArcs[i]);
+					break;
+				}
+			}
+			for(Iterator it = newTech.getArcs(); it.hasNext(); )
+			{
+				ArcProto ap = (ArcProto)it.next();
+				if (possibleArcs.contains(ap)) return ap;
+			}
+			System.out.println("No equivalent arc for " + oldAp.describe());
+			return Generic.tech.universal_arc;
+		}
+
+		/**
+		 * Method to determine the port to use on node "newni" assuming that it should
+		 * be the same as port "oldPp" on equivalent node "ni"
+		 */
+		private PortProto convertPortProto(NodeInst ni, NodeInst newNi, PortProto oldPp)
+		{
+			if (newNi.getProto() instanceof Cell)
+			{
+				// cells can associate by comparing names
+				PortProto pp = newNi.getProto().findPortProto(oldPp.getName());
+				if (pp != null) return pp;
+				System.out.println("Cannot find export " + oldPp.getName() + " in cell " + newNi.getProto().describe());
+				return newNi.getProto().getPort(0);
+			}
+
+			// if each has only 1 port, they match
+			int numNewPorts = newNi.getProto().getNumPorts();
+			if (numNewPorts == 0) return null;
+			if (numNewPorts == 1)
+			{
+				return newNi.getProto().getPort(0);
+			}
+
+			// associate by position in port list
+			Iterator oldPortIt = ni.getProto().getPorts();
+			Iterator newPortIt = newNi.getProto().getPorts();
+			while (oldPortIt.hasNext() && newPortIt.hasNext())
+			{
+				PortProto pp = (PortProto)oldPortIt.next();
+				PortProto newPp = (PortProto)newPortIt.next();
+				if (pp == oldPp) return newPp;
+			}
+
+			// special case again: one-port capacitors are OK
+			NodeProto.Function oldFun = ni.getFunction();
+			NodeProto.Function newFun = newNi.getFunction();
+			if (oldFun == NodeProto.Function.CAPAC && newFun == NodeProto.Function.ECAPAC) return newNi.getProto().getPort(0);
+
+			// association has failed: assume the first port
+			System.out.println("No port association between " + ni.getProto().describe() + ", port "
+				+ oldPp.getName() + " and " + newNi.getProto().describe());
+			return newNi.getProto().getPort(0);
+		}
+
+	}
+
 }
 
