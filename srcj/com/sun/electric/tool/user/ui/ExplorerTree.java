@@ -682,8 +682,6 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 		public void mouseReleased(MouseEvent e)
 		{
-			cacheEvent(e);
-			if (e.isPopupTrigger()) doContextMenu();
 		}
 
 		public void mouseDragged(MouseEvent e)
@@ -1044,6 +1042,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
         private void changeCellGroupAction() {
             Cell cell = (Cell)currentSelectedObject;
+            if (cell == null) return;
             ChangeCellGroup dialog = new ChangeCellGroup(TopLevel.getCurrentJFrame(), true, cell, cell.getLibrary());
             dialog.show();
         }
