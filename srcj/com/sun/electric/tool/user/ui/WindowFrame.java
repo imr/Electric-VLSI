@@ -27,12 +27,7 @@ import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
 import java.awt.Rectangle;
 import java.awt.Cursor;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseWheelListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -41,11 +36,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.swing.ImageIcon;
-import javax.swing.JInternalFrame;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTextArea;
+import javax.swing.*;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -122,6 +113,8 @@ public class WindowFrame
 			frame.populateJFrame();
 			eWnd.fillScreen();
 		}
+        removeUIBinding(frame.js, KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0));
+        removeUIBinding(frame.js, KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0));
 		return frame;
 	}
 
@@ -726,6 +719,17 @@ public class WindowFrame
         } else {
             if (jf != null) jf.setTitle(title);
         }
+    }
+
+    private static void removeUIBinding(JComponent comp, KeyStroke key) {
+        removeUIBinding(comp.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT), key);
+        removeUIBinding(comp.getInputMap(JComponent.WHEN_FOCUSED), key);
+        removeUIBinding(comp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW), key);
+    }
+    private static void removeUIBinding(InputMap map, KeyStroke key) {
+        if (map == null) return;
+        map.remove(key);
+        removeUIBinding(map.getParent(), key);
     }
 
 	//******************************** HANDLERS FOR WINDOW EVENTS ********************************
