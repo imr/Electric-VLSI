@@ -6,7 +6,7 @@
         <property name="AppleJava" value="packaging/AppleJavaExtensions.jar"/>
     </target>
 
-    <target depends="init" name="compile">
+    <target name="compile" depends="init">
         <javac debug="true" deprecation="true" destdir="." srcdir=".">
             <classpath><pathelement location="${beanshell}"/></classpath>
             <classpath><pathelement location="${AppleJava}"/></classpath>
@@ -14,7 +14,7 @@
         </javac>
     </target>
 
-    <target depends="init,compile" name="run">
+    <target name="run" depends="init,compile">
         <java classname="com.sun.electric.Launcher" failonerror="true" fork="true" maxmemory="1024m">
             <classpath>
                 <pathelement location="."/>
@@ -24,7 +24,7 @@
         </java>
     </target>
 
-    <target depends="init,compile" name="runMain">
+    <target name="runMain" depends="init,compile">
         <java classname="com.sun.electric.Main" failonerror="true" fork="true" maxmemory="256m">
             <classpath>
                 <pathelement location="."/>
@@ -34,14 +34,7 @@
         </java>
     </target>
 
-    <target depends="init" name="checkStyle">
-        <taskdef classpath="C:\TEMP\checkstyle-3.4\checkstyle-all-3.4.jar" resource="checkstyletask.properties"/>
-        <checkstyle config="C:\TEMP\checkstyle-3.4\docs\sun_checks.xml">
-           <fileset dir="." includes="**/*.java"/>
-        </checkstyle>
-    </target>
-
-    <target depends="init,compile" description="Make binary Jar file" name="jar">
+    <target name="jar" depends="init,compile" description="Make binary Jar file">
         <!-- To make a standalone app: -->
         <!-- 1. Create electric.mf manifest. -->
         <!-- 2. Put in it two lines: -->
@@ -69,24 +62,14 @@
         <delete file="electric${version}.mf"/>
         <delete dir="bsh"/>
         <delete dir="com/apple"/>
+        <delete quiet="true">
+            <fileset dir="com">
+                <include name="**/*.class"/>
+            </fileset>
+        </delete>
     </target>
 
-    <target depends="jar" name="mac-app">
-        <property name="appdir" value="electric.app"/>
-        <mkdir dir="${appdir}"/>
-        <mkdir dir="${appdir}/Contents"/>
-        <mkdir dir="${appdir}/Contents/MacOS"/>
-        <mkdir dir="${appdir}/Contents/Resources"/>
-        <mkdir dir="${appdir}/Contents/Resources/Java"/>
-        <copy file="/System/Library/Frameworks/JavaVM.framework/Versions/Current/Resources/MacOS/JavaApplicationStub" todir="${appdir}/Contents/MacOS"/>
-        <chmod file="${appdir}/Contents/MacOS/JavaApplicationStub" perm="755"/>
-        <copy file="Info.plist" todir="${appdir}/Contents"/>
-        <copy file="electric.icns" todir="${appdir}/Contents/Resources"/>
-        <copy file="electric.jar" todir="${appdir}/Contents/Resources/Java"/>
-        <exec command="/Developer/Tools/SetFile -a B ${appdir}"/>
-    </target>
-
-    <target depends="init,compile" description="Make source Jar file" name="jarSource">
+    <target name="jarSource" depends="init,compile" description="Make source Jar file">
         <unjar dest="." src="${beanshell}"/> 
         <unjar dest="." src="${AppleJava}"/> 
         <delete dir="META-INF"/>
@@ -102,7 +85,22 @@
         <delete dir="com/apple"/>
     </target>
 
-    <target depends="init,jar" description="Run Jar file" name="testJar">
+    <target name="mac-app" depends="jar">
+        <property name="appdir" value="electric.app"/>
+        <mkdir dir="${appdir}"/>
+        <mkdir dir="${appdir}/Contents"/>
+        <mkdir dir="${appdir}/Contents/MacOS"/>
+        <mkdir dir="${appdir}/Contents/Resources"/>
+        <mkdir dir="${appdir}/Contents/Resources/Java"/>
+        <copy file="/System/Library/Frameworks/JavaVM.framework/Versions/Current/Resources/MacOS/JavaApplicationStub" todir="${appdir}/Contents/MacOS"/>
+        <chmod file="${appdir}/Contents/MacOS/JavaApplicationStub" perm="755"/>
+        <copy file="Info.plist" todir="${appdir}/Contents"/>
+        <copy file="electric.icns" todir="${appdir}/Contents/Resources"/>
+        <copy file="electric.jar" todir="${appdir}/Contents/Resources/Java"/>
+        <exec command="/Developer/Tools/SetFile -a B ${appdir}"/>
+    </target>
+
+    <target name="testJar" depends="init,jar" description="Run Jar file">
         <java classname="com.sun.electric.Launcher" failonerror="true" fork="true">
             <classpath>
                 <pathelement location="."/>
@@ -112,7 +110,7 @@
         </java>
     </target>
 
-    <target depends="init" description="Create Javadoc" name="javadoc">
+    <target name="javadoc" depends="init" description="Create Javadoc">
         <mkdir dir="apidoc"/>
         <javadoc destdir="apidoc" packagenames="com.sun.electric.*">
             <classpath>
@@ -125,12 +123,9 @@
         </javadoc>
     </target>
 
-    <target depends="init" description="Clean all build products" name="clean">
+    <target name="clean" depends="init" description="Clean all build products">
         <delete quiet="true">
             <fileset dir=".">
-                <include name="**/*.class"/>
-            </fileset>
-            <fileset dir="../srcjClasses">
                 <include name="**/*.class"/>
             </fileset>
         </delete>

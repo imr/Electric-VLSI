@@ -218,8 +218,8 @@ public class ClickZoomWireListener
 
 		if (evt.getSource() instanceof EditWindow.CircuitPart)
 		{
-            EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-            EditWindow wnd = ecp.wnd;
+			EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
+			EditWindow wnd = ecp.wnd;
 	        Cell cell = wnd.getCell();
 	        if (cell == null) return;
 	        clickX = evt.getX();
@@ -398,8 +398,8 @@ public class ClickZoomWireListener
 
  		if (evt.getSource() instanceof EditWindow.CircuitPart)
 		{
-             EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-             EditWindow wnd = ecp.wnd;
+			EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
+			EditWindow wnd = ecp.wnd;
 	        Cell cell = wnd.getCell();
 	        if (cell == null) return;
 	
@@ -545,8 +545,8 @@ public class ClickZoomWireListener
 
 		if (evt.getSource() instanceof EditWindow.CircuitPart)
 		{
-            EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-            EditWindow wnd = ecp.wnd;
+			EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
+			EditWindow wnd = ecp.wnd;
 	        Cell cell = wnd.getCell();
 	        if (cell == null) return;
 	        // add back in offset
