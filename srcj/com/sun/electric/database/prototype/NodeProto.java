@@ -72,13 +72,13 @@ public abstract class NodeProto extends ElectricObject
 		private final String name;
 		private final String shortName;
 		private final Name basename;
-		//private final String constantName;
+		private final String constantName; // Used only by Technology editor?
 
 		private Function(String name, String shortName, String constantName)
 		{
 			this.name = name;
 			this.shortName = shortName;
-			//this.constantName = constantName;
+			this.constantName = constantName;
 			this.basename = Name.findName(shortName+'@').getBasename();
 		}
 
