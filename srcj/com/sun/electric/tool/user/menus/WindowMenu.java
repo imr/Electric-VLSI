@@ -27,6 +27,7 @@ package com.sun.electric.tool.user.menus;
 import com.sun.electric.tool.user.ui.*;
 import com.sun.electric.tool.user.dialogs.LayerVisibility;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.database.hierarchy.Cell;
 
 import javax.swing.*;
 import java.awt.event.ActionListener;
@@ -142,8 +143,21 @@ public class WindowMenu {
         messagesSubMenu.addMenuItem("Clear", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { TopLevel.getMessagesWindow().clear(); }});
 
+        /** 3D view */
+	    windowMenu.addMenuItem("3D Display", null,
+                new ActionListener() { public void actionPerformed(ActionEvent e) { create3DViewCommand(); } });
     }
 
+	/**
+	 * This method creates 3D view of current cell
+	 */
+	public static void create3DViewCommand()
+    {
+	    Cell curCell = WindowFrame.needCurCell();
+
+	    if (curCell == null) return;
+	    WindowFrame.create3DViewtWindow(curCell);
+    }
 
     public static void fullDisplay()
     {
