@@ -614,6 +614,9 @@ public class TextUtils
     public static Number parsePostFixNumber(String s) throws NumberFormatException {
         // remove character denoting multiplier at end, if any
 
+        // remove commas that denote 1000's separators
+        s = s.replaceAll(",", "");
+
         Number n = null;                                    // the number
         Number m = null;                                    // the multiplier
 
