@@ -62,7 +62,8 @@ public class Input extends IOTool
 	protected static final int READ_BUFFER_SIZE = 65536;
 
 	/** key of Varible holding true library of fake cell. */		public static final Variable.Key IO_TRUE_LIBRARY = ElectricObject.newKey("IO_true_library");
-	
+	/** key of Variable to denote a dummy cell or library */        public static final Variable.Key IO_DUMMY_OBJECT = ElectricObject.newKey("IO_dummy_object");
+
 	/** Name of the file being input. */					protected String filePath;
 	/** The Library being input. */							protected Library lib;
 	/** The raw input stream. */							protected InputStream inputStream;

@@ -61,15 +61,13 @@ import com.sun.electric.tool.io.ELIBConstants;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.File;
 import java.net.URL;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.HashMap;
-import java.util.Date;
+import java.util.*;
 
 
 /**
@@ -126,6 +124,7 @@ public class ELIB extends LibraryFiles
 	/** index of first Export in each cell of the library */				private int [] firstPortIndex;
 	/** X center each cell of the library */								private int [] cellXOff;
 	/** Y center each cell of the library */								private int [] cellYOff;
+    /** List of dummy cells we've created */                                private Map dummyCells;
 	/** true if this x-lib cell ref is satisfied */							private boolean [] xLibRefSatisfied;
 	/** mapping view indices to views */									private HashMap viewMapping;
 
@@ -344,6 +343,7 @@ public class ELIB extends LibraryFiles
 		cellXOff = new int[nodeProtoCount];
 		cellYOff = new int[nodeProtoCount];
 		xLibRefSatisfied = new boolean[nodeProtoCount];
+        dummyCells = new HashMap();
 
 		// allocate pointers for the NodeInsts
 		nodeInstList = new LibraryFiles.NodeInstList();
@@ -1001,6 +1001,10 @@ public class ELIB extends LibraryFiles
 		// do not realize cross-library references
 		if (cell.getLibrary() != lib) return;
 
+        // skip if dummy cell, already created
+        boolean dummyCell = (cell.getVar(IO_DUMMY_OBJECT) != null) ? true : false;
+        if (dummyCell) return;
+
 		// get information about this cell
 		int cellIndex = cell.getTempInt();
 		if (cellIndex+1 >= firstNodeIndex.length) return;
@@ -1148,6 +1152,9 @@ public class ELIB extends LibraryFiles
 			if (np instanceof PrimitiveNode) continue;
 			Cell subCell = (Cell)np;
 
+            // ignore dummy cells, they are created in the default lambda
+            if (subCell.getVar(IO_DUMMY_OBJECT) != null) continue;
+
 			LibraryFiles reader = this;
 			if (subCell.getLibrary() != lib)
 			{
@@ -1196,9 +1203,13 @@ public class ELIB extends LibraryFiles
 //				if (pp != null) portProtoList[i] = pp;
 //			}
 			if (!(portProtoList[i] instanceof Export))
-			{
-				System.out.println("Cell "+cell.describe() + ": export " + portProtoNameList[i] + " is unresolved");
-				continue;
+            {
+                // could be missing because this is a dummy cell
+                if (dummyCells.get(cell) != null)
+                    continue;               // don't issue error message
+                // not on a dummy cell, issue error message
+                System.out.println("ERROR: Cell "+cell.describe() + ": export " + portProtoNameList[i] + " is unresolved");
+                continue;
 			}
 			Export pp = (Export)portProtoList[i];
 			if (scaledCellName != null)
@@ -1210,7 +1221,7 @@ public class ELIB extends LibraryFiles
 			int nodeIndex = portProtoSubNodeList[i];
 			if (nodeIndex < 0)
 			{
-				System.out.println("Cell " + cell.describe() + ": cannot find the node on which export " + pp.getName() + " resides");
+				System.out.println("ERROR: Cell " + cell.describe() + ": cannot find the node on which export " + pp.getName() + " resides");
 				continue;
 			}
 			NodeInst subNodeInst = nodeInstList.theNode[nodeIndex];
@@ -1223,10 +1234,13 @@ public class ELIB extends LibraryFiles
 			PortProto subPortProto = (PortProto)portProtoSubPortList[i];
 
 			// null entries happen when there are external cell references
-			if (subNodeInst == null || subPortProto == null) continue;
+			if (subNodeInst == null || subPortProto == null) {
+                System.out.println("ERROR: Cell "+cell.describe() + ": export " + portProtoNameList[i] + " could not be created");
+                continue;
+            }
 			if (subNodeInst.getProto() == null)
 			{
-				System.out.println("proto bad!");
+                System.out.println("ERROR: Cell "+cell.describe() + ": export " + portProtoNameList[i] + " could not be created...proto bad!");
 				continue;
 			}
 
@@ -1332,12 +1346,20 @@ public class ELIB extends LibraryFiles
 			NodeInst headNode = nodeInstList.theNode[arcHeadNodeList[i]];
 			Object headPort = arcHeadPortList[i];
 			int headPortIntValue = -1;
+            String headname = "Port name not found";
 			if (headPort instanceof Integer)
 			{
 				// this was an external reference that couldn't be resolved yet.  Do it now
 				headPortIntValue = ((Integer)headPort).intValue();
 				headPort = convertPortProto(headPortIntValue);
 			}
+            if (headPort != null) {
+                headname = ((PortProto)headPort).getName();
+            } else {
+                if (headPortIntValue >= 0 && headPortIntValue < portProtoNameList.length)
+                    headname = portProtoNameList[headPortIntValue];
+            }
+
 			if (arcTailNodeList[i] < 0)
 			{
 				System.out.println("ERROR: tail of arc " + ap.describe() + " not known");
@@ -1346,30 +1368,39 @@ public class ELIB extends LibraryFiles
 			NodeInst tailNode = nodeInstList.theNode[arcTailNodeList[i]];
 			Object tailPort = arcTailPortList[i];
 			int tailPortIntValue = -1;
+            String tailname = "Port name not found";
 			if (tailPort instanceof Integer)
 			{
 				// this was an external reference that couldn't be resolved yet.  Do it now
 				tailPortIntValue = ((Integer)tailPort).intValue();
 				tailPort = convertPortProto(tailPortIntValue);
+                if (tailPortIntValue > 0 && tailPortIntValue < portProtoNameList.length)
+                    tailname = portProtoNameList[tailPortIntValue];
 			}
-			if (headNode == null || headPort == null || tailNode == null || tailPort == null)
+            if (tailPort != null) {
+                tailname = ((PortProto)tailPort).getName();
+            } else {
+                if (tailPortIntValue >= 0 && tailPortIntValue < portProtoNameList.length)
+                    tailname = portProtoNameList[tailPortIntValue];
+            }
+            /*			if (headNode == null || headPort == null || tailNode == null || tailPort == null)
 			{
 				if (!arcInfoError)
 				{
 					System.out.println("ERROR: Missing arc information in cell " + cell.noLibDescribe() +
 						" in library " + lib.getName() + " ...");
 					if (headNode == null) System.out.println("   Head node not found");
-					if (headPort == null) System.out.println("   Head port not found (was "+headPortIntValue+", node="+headNode+")");
+					if (headPort == null) System.out.println("   Head port "+headname+" not found (was "+headPortIntValue+", node="+headNode+")");
 					if (tailNode == null) System.out.println("   Tail node not found");
-					if (tailPort == null) System.out.println("   Tail port not found (was "+tailPortIntValue+", node="+tailNode+")");
+					if (tailPort == null) System.out.println("   Tail port "+tailname+" not found (was "+tailPortIntValue+", node="+tailNode+")");
 					arcInfoError = true;
 				}
 				continue;
-			}
-            PortInst headPortInst = headNode.findPortInst(((PortProto)headPort).getName());
-            PortInst tailPortInst = tailNode.findPortInst(((PortProto)tailPort).getName());
-            //PortInst headPortInst = getArcEnd(ai, ap, headNode, ((PortProto)headPort).getName(), headX, headY, cell);
-            //PortInst tailPortInst = getArcEnd(ai, ap, tailNode, ((PortProto)tailPort).getName(), tailX, tailY, cell);
+			}*/
+            //PortInst headPortInst = headNode.findPortInst(((PortProto)headPort).getName());
+            //PortInst tailPortInst = tailNode.findPortInst(((PortProto)tailPort).getName());
+            PortInst headPortInst = getArcEnd(ai, ap, headNode, headname, headX, headY, cell);
+            PortInst tailPortInst = getArcEnd(ai, ap, tailNode, tailname, tailX, tailY, cell);
 			if (headPortInst == null || tailPortInst == null)
 			{
 				System.out.println("Cannot create arc of type " + ap.getName() + " in cell " + cell.getName() +
@@ -1411,6 +1442,8 @@ public class ELIB extends LibraryFiles
 		Point2D center = new Point2D.Double(((lowX + highX) / 2) / lambdaX, ((lowY + highY) / 2) / lambdaY);
 		double width = (highX - lowX) / lambdaX;
 		double height = (highY - lowY) / lambdaY;
+        double anchorX = nodeInstList.anchorX[i] / lambdaX;
+        double anchorY = nodeInstList.anchorY[i] / lambdaY;
 		if (np instanceof Cell)
 		{
 			Cell subCell = (Cell)np;
@@ -1558,12 +1591,23 @@ public class ELIB extends LibraryFiles
 			Point2D shift = new Point2D.Double(-bounds.getCenterX(), -bounds.getCenterY());
 			AffineTransform trans = NodeInst.pureRotate(rotation, width < 0, height < 0);
 			trans.transform(shift, shift);
-			center.setLocation(center.getX() + shift.getX(), center.getY() + shift.getY());
+            if (magic <= ELIBConstants.MAGIC13) {
+                // version 13 and later stores and uses anchor location
+                center.setLocation(anchorX, anchorY);
+            } else {
+                center.setLocation(center.getX() + shift.getX(), center.getY() + shift.getY());
+            }
 		}
 		ni.lowLevelSetUserbits(nodeInstList.userBits[i]);
 		ni.lowLevelPopulate(np, center, width, height, rotation, cell);
 		if (name != null) ni.setNameKey(name);
 		ni.lowLevelLink();
+
+        // if this was a dummy cell, log instance as an error so the user can find easily
+        if (np.getVar(IO_DUMMY_OBJECT) != null) {
+            ErrorLog error = ErrorLog.logError("Instance of dummy cell "+np.getName(), cell, 1);
+            error.addGeom(ni, true, 0, null);
+        }
 
 		// convert outline information, if present
 		scaleOutlineInformation(ni, np, lambdaX, lambdaY);
@@ -1590,38 +1634,70 @@ public class ELIB extends LibraryFiles
     // node is node we expect to have port 'portname' at location x,y.
     protected PortInst getArcEnd(ArcInst ai, ArcProto ap, NodeInst node, String portname, double x, double y, Cell cell)
     {
-        PortInst pi = node.findPortInst(portname);
-        String whatHappenedToPort = "?";
+        PortInst pi = null;
+        String whatHappenedToPort = "not found";
+        String nodeName = "missing node";
 
-        if (pi != null) {
-            // check to make sure location is correct
-            Poly portLocation = pi.getPoly();
-            if (portLocation.contains(x, y)) {
-                return pi;
-            }
-            whatHappenedToPort = "has moved";
-            pi = null;
-        } else {
-            // name not found, see if any ports exist at location
-            for (Iterator it = node.getPortInsts(); it.hasNext(); ) {
-                pi = (PortInst)it.next();
+        if (node != null) {
+            pi = node.findPortInst(portname);
+            nodeName = node.getName();
+
+            if (pi != null) {
+                // check to make sure location is correct
                 Poly portLocation = pi.getPoly();
+                String extra = "";
                 if (portLocation.contains(x, y)) {
-                    // connect to this port
-                    String msg = "Port "+portname+" on "+node.describe()+" not found, connecting to port "+
-                            pi.getPortProto().getName()+" at the same location";
-                    System.out.println("ERROR: "+msg);
-                    ErrorLog error = ErrorLog.logError(msg, cell, 0);
-                    error.addGeom(ai, true, 0, null);
                     return pi;
                 }
+                // give extra info to user if didn't contain port
+                Rectangle2D box = portLocation.getBox();
+                if (box != null) {
+                    extra = "...expected ("+x+","+y+"), found ("+box.getCenterX()+","+box.getCenterY()+")";
+                }
+                whatHappenedToPort = "has moved"+extra;
                 pi = null;
+            } else {
+                // name not found, see if any ports exist at location that we can connect to
+                for (Iterator it = node.getPortInsts(); it.hasNext(); ) {
+                    pi = (PortInst)it.next();
+                    Poly portLocation = pi.getPoly();
+                    if (portLocation.contains(x, y)) {
+                        if (pi.getPortProto().connectsTo(ap)) {
+                            // connect to this port
+                            String msg = "Cell "+cell.getName()+": Port '"+portname+"' on '"+nodeName+"' not found, connecting to port '"+
+                                    pi.getPortProto().getName()+"' at the same location";
+                            System.out.println("ERROR: "+msg);
+                            ErrorLog error = ErrorLog.logError(msg, cell, 0);
+                            error.addGeom(ai, true, 0, null);
+                            return pi;
+                        }
+                    }
+                    pi = null;
+                }
+                whatHappenedToPort = "is missing";
             }
-            whatHappenedToPort = "is missing";
+
+            // if this was a dummy cell, create the export in cell
+            Cell c = (Cell)dummyCells.get(node.getProto());
+            if (c != null) {
+                double anchorX = node.getAnchorCenterX();
+                double anchorY = node.getAnchorCenterY();
+                Point2D expected = new Point2D.Double(x, y);
+                AffineTransform trans = node.rotateIn();
+                expected = trans.transform(expected, expected);
+                Point2D center = new Point2D.Double(expected.getX() - anchorX, expected.getY() - anchorY);
+                PrimitiveNode pn = Generic.tech.universalPinNode;
+                NodeInst ni = NodeInst.newInstance(pn, center, 0, 0, 0, c, "");
+                Export ex = Export.newInstance(c, ni.getOnlyPortInst(), portname);
+                if (ex != null) {
+                    return node.findPortInst(portname);
+                }
+            }
         }
 
+
         // create pin as new end point of arc
-        String msg = "Port '"+portname+"' on '"+node.describe()+"' "+whatHappenedToPort+": leaving arc disconnected";
+        String msg = "Cell "+cell.getName()+": Port '"+portname+"' on '"+nodeName+"' "+whatHappenedToPort+": leaving arc disconnected";
         System.out.println("ERROR: "+msg);
         ErrorLog error = ErrorLog.logError(msg, cell, 0);
         error.addGeom(ai, true, 0, null);
@@ -1890,6 +1966,7 @@ public class ELIB extends LibraryFiles
 		if (v == null) v = View.UNKNOWN;
 		int version = readBigInteger();
 		String fullCellName = theProtoName + ";" + version + "{" + v.getAbbreviation() + "}";
+        if (version <= 1) fullCellName = theProtoName + "{" + v.getAbbreviation() + "}";
 		Date creationDate = ELIBConstants.secondsToDate(readBigInteger());
 		Date revisionDate = ELIBConstants.secondsToDate(readBigInteger());
 
@@ -1910,10 +1987,17 @@ public class ELIB extends LibraryFiles
 
 		// find this cell in the external library
 		Cell c = elib.findNodeProto(fullCellName);
+
+        // if can't find, look for dummy version
+        String dummyName = "DUMMY" + fullCellName;
+        if (c == null) {
+            c = elib.findNodeProto(dummyName);
+        }
+
 		if (c == null)
 		{
 			// cell not found in library: issue warning
-			System.out.println("Cannot find cell " + fullCellName + " in library " + elib.getName());
+			System.out.println("ERROR: Cannot find cell " + fullCellName + " in library " + elib.getName());
 		}
 
 		// if cell found, check that size is unchanged (size is unknown at this point)
@@ -1940,6 +2024,7 @@ public class ELIB extends LibraryFiles
 //		}
 
 		// if cell found, check that ports match
+/*
 		if (c != null)
 		{
 			for(int j=0; j<portCount; j++)
@@ -1965,6 +2050,7 @@ public class ELIB extends LibraryFiles
 				}
 			}
 		}
+*/
 
 		// if cell found, warn if minor modification was made
 		if (c != null)
@@ -1982,6 +2068,7 @@ public class ELIB extends LibraryFiles
 		if (c == null)
 		{
 			// create a cell that meets these specs
+/*
 			String dummyCellName = null;
 			for(int index=0; ; index++)
 			{
@@ -1991,26 +2078,37 @@ public class ELIB extends LibraryFiles
 				if (lib.findNodeProto(dummyCellName) == null) break;
 			}
 			c = Cell.newInstance(lib, dummyCellName);
-			if (c == null) return true;
-			c.lowLevelSetCreationDate(creationDate);
-			c.lowLevelSetRevisionDate(revisionDate);
+*/
+            c = Cell.newInstance(elib, dummyName);
+            if (c == null) return true;
+            c.lowLevelSetCreationDate(creationDate);
+            c.lowLevelSetRevisionDate(revisionDate);
 
-			// create an artwork "Crossed box" to define the cell size
-			Technology tech = MoCMOS.tech;
-			if (v == View.ICON) tech = Artwork.tech; else
-				if (v == View.SCHEMATIC) tech = Schematics.tech;
-			double lambda = techScale[tech.getIndex()];
-			int cX = (lowX + highX) / 2;
-			int cY = (lowY + highY) / 2;
-			double width = (highX - lowX) / lambda;
-			double height = (highY - lowY) / lambda;
-			Point2D center = new Point2D.Double(cX / lambda, cY / lambda);
-			NodeInst.newInstance(Generic.tech.drcNode, center, width, height, 0, c, null);
-			fakeNodeInst = NodeInst.newInstance(Generic.tech.universalPinNode, center, width, height, 0, c, null);
+            // create an artwork "Crossed box" to define the cell size
+            Technology tech = MoCMOS.tech;
+            if (v == View.ICON) tech = Artwork.tech; else
+                if (v == View.SCHEMATIC) tech = Schematics.tech;
+            double lambda = techScale[tech.getIndex()];
+            int cX = (lowX + highX) / 2;
+            int cY = (lowY + highY) / 2;
+            double width = (highX - lowX) / lambda;
+            double height = (highY - lowY) / lambda;
+            Point2D center = new Point2D.Double(cX / lambda, cY / lambda);
+            NodeInst.newInstance(Generic.tech.drcNode, center, width, height, 0, c, null);
+            //PrimitiveNode cellCenter = Generic.tech.cellCenterNode;
+            //NodeInst.newInstance(cellCenter, new Point2D.Double(0,0), cellCenter.getDefWidth(),
+            //        cellCenter.getDefHeight(), 0, c, null);
+            //fakeNodeInst = NodeInst.newInstance(Generic.tech.universalPinNode, center, width, height, 0, c, null);
 
-			newCell = true;
-			System.out.println("...Creating dummy version of cell in library " + lib.getName());
-			c.newVar(IO_TRUE_LIBRARY, elib.getName());
+            // note that exports get created in getArcEnd. If it tries to connect to a missing export
+            // on a dummy cell, it creates the export site.
+            dummyCells.put(c, c);
+
+            newCell = true;
+            System.out.println("...Creating dummy cell '"+dummyName+"' in library " + elib.getName() +
+                    ". Instances will be logged as Errors.");
+            c.newVar(IO_TRUE_LIBRARY, elib.getName());
+            c.newVar(IO_DUMMY_OBJECT, fullCellName);
 		}
 		nodeProtoList[cellIndex] = c;
 

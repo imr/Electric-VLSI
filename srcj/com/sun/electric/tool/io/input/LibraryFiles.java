@@ -177,7 +177,8 @@ public class LibraryFiles extends Input
 	 * Method to read an external library file, given its name as stored on disk.
 	 * Attempts to find the file in many different ways, including asking the user.
 	 * @param theFileName the full path to the file, as written to disk.
-	 * @return a Library that was read (null on error).
+	 * @return a Library that was read. If library cannot be read or found, creates
+     * a Library called DUMMYname, and returns that.
 	 */
 	protected Library readExternalLibraryFromFilename(String theFileName)
 	{
@@ -290,8 +291,8 @@ public class LibraryFiles extends Input
 
             if (elib == null) {
                 System.out.println("Error: cannot find referenced library " + libFile.getPath() +
-                        ", creating DUMMY"+libName+" Library instead");
-                elib = Library.newInstance("DUMMY"+libName, null);
+                        ", creating new "+libName+" Library instead");
+                elib = Library.newInstance(libName, null);
             }
 //			if (failed) elib->userbits |= UNWANTEDLIB; else
 //			{

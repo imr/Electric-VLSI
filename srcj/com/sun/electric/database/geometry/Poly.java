@@ -578,6 +578,11 @@ public class Poly implements Shape
 			if (bounds != null)
 			{
 				if (EMath.pointInRect(pt, bounds)) return true;
+                // special case: single point, take care of double precision error
+                if (bounds.getWidth() == 0 && bounds.getHeight() == 0) {
+                    if (EMath.doublesClose(pt.getX(), bounds.getX()) &&
+                        EMath.doublesClose(pt.getY(), bounds.getY())) return true;
+                }
 				return false;
 			}
 
