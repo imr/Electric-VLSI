@@ -274,8 +274,11 @@ public class TextUtils
                 d.setDecimalSeparatorAlwaysShown(false);
             } catch (Exception e) {}
         }
-		numberFormatSpecific.setMaximumFractionDigits(numFractions);
-		numberFormatSpecific.setMinimumFractionDigits(numFractions);
+		if (numFractions == 0) {
+            numberFormatSpecific.setMaximumFractionDigits(340);
+        } else {
+            numberFormatSpecific.setMaximumFractionDigits(numFractions);
+        }
 		return numberFormatSpecific.format(v);
 	}
 
