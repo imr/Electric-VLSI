@@ -643,7 +643,8 @@ public class ERCWellCheck
 					Network parentNet = net;
 					HierarchyEnumerator.CellInfo cinfo = info;
 					while (cinfo.getParentInst() != null) {
-						parentNet = HierarchyEnumerator.getNetworkInParent(parentNet, cinfo.getParentInst());
+						parentNet = cinfo.getNetworkInParent(parentNet);
+//						parentNet = HierarchyEnumerator.getNetworkInParent(parentNet, cinfo.getParentInst());
 						cinfo = cinfo.getParentInfo();
 					}
 					if (parentNet != null)

@@ -1006,10 +1006,11 @@ public class ToolMenu {
 					HierarchyEnumerator.CellInfo cinfo = info;
 					boolean netFound = false;
 					while ((netFound = netSet.contains(parentNet)) == false && cinfo.getParentInst() != null) {
-						parentNet = HierarchyEnumerator.getNetworkInParent(parentNet, cinfo.getParentInst());
+						parentNet = cinfo.getNetworkInParent(parentNet);
+//						parentNet = HierarchyEnumerator.getNetworkInParent(parentNet, cinfo.getParentInst());
 						cinfo = cinfo.getParentInfo();
 					}
-                     found = netFound;
+					found = netFound;
 				}
 				if (!found) return (false);
 
@@ -1026,7 +1027,8 @@ public class ToolMenu {
 						HierarchyEnumerator.CellInfo cinfo = info;
 						boolean netFound = false;
 						while ((netFound = netSet.contains(parentNet)) == false && cinfo.getParentInst() != null) {
-							parentNet = HierarchyEnumerator.getNetworkInParent(parentNet, cinfo.getParentInst());
+							parentNet = cinfo.getNetworkInParent(parentNet);
+//							parentNet = HierarchyEnumerator.getNetworkInParent(parentNet, cinfo.getParentInst());
 							cinfo = cinfo.getParentInfo();
 						}
 		                found = netFound;
@@ -1084,7 +1086,8 @@ public class ToolMenu {
 						HierarchyEnumerator.CellInfo cinfo = info;
 						boolean netFound = false;
 						while ((netFound = netSet.contains(parentNet)) == false && cinfo.getParentInst() != null) {
-							parentNet = HierarchyEnumerator.getNetworkInParent(parentNet, cinfo.getParentInst());
+							parentNet = cinfo.getNetworkInParent(parentNet);
+//							parentNet = HierarchyEnumerator.getNetworkInParent(parentNet, cinfo.getParentInst());
 							cinfo = cinfo.getParentInfo();
 						}
 		                found = netFound;

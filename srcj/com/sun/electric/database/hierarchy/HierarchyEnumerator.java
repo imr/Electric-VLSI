@@ -685,6 +685,7 @@ public final class HierarchyEnumerator {
          */
         public Network getNetworkInParent(Network network) {
             if (parentInfo == null) return null;
+			if (network.getNetlist() != netlist) return null;
             // find export on network
             boolean found = false;
             Export export = null;
@@ -811,43 +812,6 @@ public final class HierarchyEnumerator {
     }
 
     /**
-     * Get the Network in the childNodable's parent that corresponds to the Network
-     * inside the childNodable.
-     * @param childNetwork the network in the childNodable
-     * @return the network in the parent that connects to the
-     * specified network, or null if no such network.
-     */
-    public static Network getNetworkInParent(Network childNetwork, Nodable childNodable) {
-        if (childNodable == null || childNetwork == null) return null;
-        if (!(childNodable.getProto() instanceof Cell)) return null;
-        Cell childCell = (Cell)childNodable.getProto();
-        if (childCell.contentsView() != null)
-            childCell = childCell.contentsView();
-        // find export on network
-        boolean found = false;
-        Export export = null;
-        int i = 0;
-        for (Iterator it = childCell.getPorts(); it.hasNext(); ) {
-            export = (Export)it.next();
-            for (i=0; i<export.getNameKey().busWidth(); i++) {
-                Network net = NetworkTool.getUserNetlist(childCell).getNetwork(export, i);
-                if (net == childNetwork) { found = true; break; }
-            }
-            if (found) break;
-        }
-        if (!found) return null;
-        // find corresponding port on icon
-        //System.out.println("In "+cell.describe()+" JNet "+network.describe()+" is exported as "+export.getName()+"; index "+i);
-        PortProto pp = childNodable.getProto().findPortProto(export.getNameKey());
-        //System.out.println("Found corresponding port proto "+pp.getName()+" on cell "+no.getProto().describe());
-        // find corresponding network in parent
-        Cell parentCell = childNodable.getParent();
-        //if (childNodable instanceof NodeInst) childNodable = Netlist.getNodableFor((NodeInst)childNodable, 0);
-        Network parentNet = NetworkTool.getUserNetlist(parentCell).getNetwork(childNodable, pp, i);
-        return parentNet;
-    }
-
-    /**
      * Get the Network in the childNodable that corresponds to the Network in the childNodable's
      * parent cell.
      * @param parentNet the network in the parent
@@ -859,6 +823,8 @@ public final class HierarchyEnumerator {
         if (childNodable == null || parentNet == null) return null;
         if (!(childNodable.getProto() instanceof Cell)) return null;
         Cell childCell = (Cell)childNodable.getProto();
+		Netlist parentNetlist = parentNet.getNetlist();
+		Netlist childNetlist = parentNetlist.getNetlist(childNodable);
         PortProto pp = null;
         int i = 0;
         boolean found = false;
@@ -868,7 +834,8 @@ public final class HierarchyEnumerator {
             PortInst pi = (PortInst)it.next();
             pp = pi.getPortProto();
             for (i=0; i<pp.getNameKey().busWidth(); i++) {
-                Network net = childNodable.getParent().getUserNetlist().getNetwork(childNodable, pp, i);
+                Network net = parentNetlist.getNetwork(childNodable, pp, i);
+//                Network net = childNodable.getParent().getUserNetlist().getNetwork(childNodable, pp, i);
                 if (net == parentNet) { found = true; break; }
             }
             if (found) break;
@@ -878,7 +845,8 @@ public final class HierarchyEnumerator {
         if (childCell.contentsView() != null)
             childCell = childCell.contentsView();
         Export export = childCell.findExport(pp.getNameKey());
-        Network childNet = childCell.getUserNetlist().getNetwork(export, i);
+        Network childNet = childNetlist.getNetwork(export, i);
+//        Network childNet = childCell.getUserNetlist().getNetwork(export, i);
         return childNet;
     }
 }

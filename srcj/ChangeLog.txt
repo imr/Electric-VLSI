@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ag: *********************************
 
+BUG: (10/29/04, DN) Ncc regression fails, because Network tool doesn't ignore
+  resistors properly.
+FIX: Netlist.getNetlist(Nodable) returns sublist with "shortResistors" from parent
+     netlist instead of user preferences. Removed "getUserNetlist" calls from Hierarchy
+     enumerator.
+
 IMP: (10/28/04, GVG) Bug fix in hierarchical checking for minArea
 
 IMP: (10/28/04, SMR) Renaming a cell such that it is the same as an existing one makes it a new version.

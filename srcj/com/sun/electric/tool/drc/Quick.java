@@ -3418,7 +3418,8 @@ public class Quick
 					Network net = info.getNetlist().getNetwork(exp, 0);
 					HierarchyEnumerator.CellInfo cinfo = info;
 					while (!found && cinfo.getParentInst() != null) {
-						net = HierarchyEnumerator.getNetworkInParent(net, cinfo.getParentInst());
+						net = cinfo.getNetworkInParent(net);
+//						net = HierarchyEnumerator.getNetworkInParent(net, cinfo.getParentInst());
 						if (jNet == net)
 						{
 							if (Main.getDebug()) System.out.println("Found network in Arc " + ai + " network " + net);

@@ -777,7 +777,7 @@ class NetCell
 	boolean redoNetworks1() {
 		/* Set index of NodeInsts */
 		checkLayoutCell();
-		netlist = new Netlist(this, numDrawns);
+		netlist = new Netlist(this, false, numDrawns);
 
 		internalConnections();
 		buildNetworkList();

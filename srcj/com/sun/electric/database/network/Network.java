@@ -104,6 +104,15 @@ public class Network
 	}
 
 	// --------------------------- public methods ------------------------------
+
+	/** Returns the Netlist of this Network.
+	 * @return Netlist of this Network.
+	 */
+	public Netlist getNetlist()
+	{
+		return netlist;
+	}
+
 	/** Returns parent cell of this Network.
 	 * @return parent cell of this Network.
 	 */

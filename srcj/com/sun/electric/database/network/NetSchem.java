@@ -1248,10 +1248,10 @@ class NetSchem extends NetCell {
 		boolean changed = initNodables();
 		// Gather port and arc names
 		int mapSize = netNamesOffset + netNames.size();
-		netlistF = new Netlist(this, mapSize);
+		netlistF = new Netlist(this, false, mapSize);
 		localConnections();
 
-		netlistT = new Netlist(this, netlistF);
+		netlistT = new Netlist(this, true, netlistF);
 		internalConnections();
 		buildNetworkLists();
 		if (updatePortImplementation()) changed = true;

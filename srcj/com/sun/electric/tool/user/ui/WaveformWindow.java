@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Network;
@@ -3217,7 +3218,8 @@ public class WaveformWindow implements WindowContent
         if (net != null) {
             while (net.isExported() && (context != VarContext.globalContext)) {
                 // net is exported, find net in parent
-                net = HierarchyEnumerator.getNetworkInParent(net, context.getNodable());
+                net = getNetworkInParent(net, context.getNodable());
+//                net = HierarchyEnumerator.getNetworkInParent(net, context.getNodable());
                 if (net == null) break;
                 context = context.pop();
             }
@@ -3231,6 +3233,43 @@ public class WaveformWindow implements WindowContent
             if (context == VarContext.globalContext) return getSpiceNetName(net);
             else return contextStr + "." + getSpiceNetName(net);
         }
+    }
+
+    /**
+     * Get the Network in the childNodable's parent that corresponds to the Network
+     * inside the childNodable.
+     * @param childNetwork the network in the childNodable
+     * @return the network in the parent that connects to the
+     * specified network, or null if no such network.
+     */
+    public static Network getNetworkInParent(Network childNetwork, Nodable childNodable) {
+        if (childNodable == null || childNetwork == null) return null;
+        if (!(childNodable.getProto() instanceof Cell)) return null;
+        Cell childCell = (Cell)childNodable.getProto();
+        if (childCell.contentsView() != null)
+            childCell = childCell.contentsView();
+        // find export on network
+        boolean found = false;
+        Export export = null;
+        int i = 0;
+        for (Iterator it = childCell.getPorts(); it.hasNext(); ) {
+            export = (Export)it.next();
+            for (i=0; i<export.getNameKey().busWidth(); i++) {
+                Network net = childCell.getUserNetlist().getNetwork(export, i);
+                if (net == childNetwork) { found = true; break; }
+            }
+            if (found) break;
+        }
+        if (!found) return null;
+        // find corresponding port on icon
+        //System.out.println("In "+cell.describe()+" JNet "+network.describe()+" is exported as "+export.getName()+"; index "+i);
+        Export pp = (Export)childNodable.getProto().findPortProto(export.getNameKey());
+        //System.out.println("Found corresponding port proto "+pp.getName()+" on cell "+no.getProto().describe());
+        // find corresponding network in parent
+        Cell parentCell = childNodable.getParent();
+        //if (childNodable instanceof NodeInst) childNodable = Netlist.getNodableFor((NodeInst)childNodable, 0);
+        Network parentNet = parentCell.getUserNetlist().getNetwork(childNodable, pp, i);
+        return parentNet;
     }
 
     public static String getSpiceNetName(Network net) {
