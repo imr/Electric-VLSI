@@ -2,7 +2,15 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.01t: *********************************
+
+
 ************************* Version 8.01s: *********************************
+
+FIX: (9/18/04, JKG) Fixed waveform window cross-probing and cross-highlighting
+     of exported networks
+
+FIX: (9/18/04, SMR) Fix for verilog netlisting of busses
 
 IMP: (9/17/04, GVG) New active size for new technology. All transistors affected.
 
