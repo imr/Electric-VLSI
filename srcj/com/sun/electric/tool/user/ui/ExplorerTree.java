@@ -36,6 +36,7 @@ import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.dialogs.NewCell;
+import com.sun.electric.tool.user.dialogs.ChangeCellGroup;
 import com.sun.electric.tool.user.menus.FileMenu;
 
 import java.awt.Component;
@@ -392,20 +393,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		if (nodeInfo instanceof Cell.CellGroup)
 		{
 			Cell.CellGroup group = (Cell.CellGroup)nodeInfo;
-			Set groupNames = new TreeSet();
-			for(Iterator it = group.getCells(); it.hasNext(); )
-			{
-				Cell cell = (Cell)it.next();
-				groupNames.add(cell.getName());
-			}
-			String groupName = null;
-			for(Iterator it = groupNames.iterator(); it.hasNext(); )
-			{
-				String oneName = (String)it.next();
-				if (groupName == null) groupName = oneName; else
-					groupName += "," + oneName;
-			}
-			return groupName;
+            return group.getName();
 		}
 		if (nodeInfo instanceof ErrorLogger)
 		{
@@ -785,6 +773,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					subMenuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { reViewCellAction(e); } });
 				}
 
+                menu.addSeparator();
+
+                menuItem = new JMenuItem("Change Cell Group...");
+                menu.add(menuItem);
+                menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { changeCellGroupAction(); }});
+
 				menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 				return;
 			}
@@ -1040,6 +1034,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				CircuitChanges.changeCellView(cell, newView);
 			}
 		}
+
+        private void changeCellGroupAction() {
+            Cell cell = (Cell)currentSelectedObject;
+            ChangeCellGroup dialog = new ChangeCellGroup(TopLevel.getCurrentJFrame(), true, cell, cell.getLibrary());
+            dialog.show();
+        }
 
 		private void showAlphabeticallyAction()
 		{

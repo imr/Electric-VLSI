@@ -57,14 +57,7 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.swing.JOptionPane;
 
@@ -125,7 +118,8 @@ public class Cell extends NodeProto implements Comparable
 		{
 			synchronized(cells)
 			{
-				cells.add(cell);
+                if (!cells.contains(cell))
+				    cells.add(cell);
 			}
 			cell.cellGroup = this;
 		}
@@ -209,6 +203,26 @@ public class Cell extends NodeProto implements Comparable
 		 * @return a printable version of this CellGroup.
 		 */
 		public String toString() { return "CELLGROUP"; }
+
+        /**
+         * Returns a string representing the name of the cell group
+         */
+        public String getName() {
+            Set groupNames = new TreeSet();
+            for(Iterator it = getCells(); it.hasNext(); )
+            {
+                Cell cell = (Cell)it.next();
+                groupNames.add(cell.getName());
+            }
+            String groupName = null;
+            for(Iterator it = groupNames.iterator(); it.hasNext(); )
+            {
+                String oneName = (String)it.next();
+                if (groupName == null) groupName = oneName; else
+                    groupName += "," + oneName;
+            }
+            return groupName;
+        }
 	}
 
 	private static class VersionGroup
@@ -429,12 +443,7 @@ public class Cell extends NodeProto implements Comparable
 	 */
 	public void joinGroup(Cell otherCell)
 	{
-		// stop if already that way
-		if (otherCell.cellGroup == cellGroup) return;
-
-		cellGroup.remove(this);
-		cellGroup = otherCell.cellGroup;
-		cellGroup.add(this);
+        setCellGroup(otherCell.getCellGroup());
 	}
 
 	/**
@@ -2449,7 +2458,20 @@ public class Cell extends NodeProto implements Comparable
 	 * Method to put this Cell into the given CellGroup.
 	 * @param cellGroup the CellGroup that this cell belongs to.
 	 */
-	public void setCellGroup(CellGroup cellGroup) { this.cellGroup = cellGroup; }
+	public void setCellGroup(CellGroup cellGroup) {
+
+        if (cellGroup == null) {
+            Exception e = new Exception("Cannot set CellGroup to NULL!");
+            e.printStackTrace(System.out);
+        }
+
+        // stop if already that way
+        if (this.cellGroup == cellGroup) return;
+
+        if (this.cellGroup != null) this.cellGroup.remove(this);
+        this.cellGroup = cellGroup;
+        if (cellGroup != null) cellGroup.add(this);
+    }
 
 	/**
 	 * Method to return the version number of this Cell.
