@@ -487,11 +487,11 @@ public final class UserMenuCommands
 			    new com.sun.electric.tool.generator.layout.GateRegression();
 		    }
 		});
-		russMenu.addMenuItem("Jemini", null, new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				new com.sun.electric.tool.ncc.jemini_2();
-			}
-		});
+//		russMenu.addMenuItem("Jemini", null, new ActionListener() {
+//			public void actionPerformed(ActionEvent e) {
+//				new com.sun.electric.tool.ncc.jemini_2();
+//			}
+//		});
 		
 		/****************************** Jon's TEST MENU ******************************/
 

@@ -34,7 +34,9 @@ import com.sun.electric.tool.user.UserMenuCommands;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
+
 import javax.swing.JPanel;
+import javax.swing.JFrame;
 import javax.swing.JToolBar;
 import javax.swing.ImageIcon;
 import javax.swing.JPopupMenu;
@@ -44,12 +46,14 @@ import javax.swing.JToggleButton;
 import javax.swing.ButtonGroup;
 import javax.swing.AbstractAction;
 import javax.swing.border.BevelBorder;
+import javax.swing.border.LineBorder;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.Color;
 import java.awt.Insets;
 import java.awt.Cursor;
 import java.awt.Toolkit;
@@ -90,6 +94,9 @@ public class StatusBar extends JPanel
 
 	private void addField(JLabel field, int index)
 	{
+//		JPanel frame = new JPanel();
+//		frame.setBorder(new LineBorder(Color.BLACK));
+//		frame.add(field);
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = index;   gbc.gridy = 0;
 		gbc.weightx = 0.5;
