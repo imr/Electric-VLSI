@@ -36,6 +36,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
+import javax.swing.JFrame;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -92,6 +93,35 @@ public class MessagesWindow
 		jf.show();
 
 		System.setOut(new java.io.PrintStream(this));
+	}
+	
+	public MessagesWindow(Dimension scrnSize, boolean sdi)
+	{
+		if(sdi==true)
+		{
+			JFrame jf = new JFrame("Messages");  
+		    jf.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+			bi = new Interpreter();
+			history = new ArrayList();
+			entry = new JTextField();
+			entry.addActionListener(this);
+			entry.addKeyListener(this);
+			info = new JTextArea(10, 80);
+			info.addCaretListener(this);
+			info.setLineWrap(false);
+			JScrollPane scroll = new JScrollPane(info,
+				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+			vertscroll = scroll.getVerticalScrollBar();
+			jf.getContentPane().setLayout(new BorderLayout());
+			jf.getContentPane().add(entry, BorderLayout.SOUTH);
+			jf.getContentPane().add(scroll, BorderLayout.CENTER);
+			jf.pack();
+			jf.setLocation(0, 500);
+			jf.show();
+	
+			System.setOut(new java.io.PrintStream(this));
+		}
 	}
 
 	public JInternalFrame getFrame() { return jf; }

@@ -226,8 +226,16 @@ public final class UserMenuCommands
 			if (lib == null) return;
 			Library.setCurrent(lib);
 			Cell cell = lib.getCurCell();
-			if (cell == null) System.out.println("No current cell in this library"); else
-				WindowFrame.createEditWindow(cell);
+			if (cell == null) System.out.println("No current cell in this library"); 
+			else
+			{
+				if(TopLevel.getMode()==TopLevel.SDIMode)
+				{
+					TopLevel.createEditWindow(cell);
+				}
+				else
+					WindowFrame.createEditWindow(cell);
+			}
 		}
 	}
 
@@ -260,8 +268,16 @@ public final class UserMenuCommands
 			if (lib == null) return;
 			Library.setCurrent(lib);
 			Cell cell = lib.getCurCell();
-			if (cell == null) System.out.println("No current cell in this library"); else
-				WindowFrame.createEditWindow(cell);
+			if (cell == null) System.out.println("No current cell in this library"); 
+			else
+			{
+				if(TopLevel.getMode()==TopLevel.SDIMode)
+				{
+					TopLevel.createEditWindow(cell);
+				}
+				else
+					WindowFrame.createEditWindow(cell);
+			}
 		}
 	}
 

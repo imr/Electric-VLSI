@@ -25,7 +25,8 @@ package com.sun.electric.tool.user.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Insets;
-import javax.swing.BorderFactory;
+
+import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -39,7 +40,7 @@ public class ProgressDialog extends JInternalFrame
 {
     private JProgressBar progressBar;
     private JTextArea taskOutput;
-
+	private JFrame jf;
 	/**
 	 * The constructor displays the progress dialog.
 	 * @param title the title of the dialog.
@@ -64,10 +65,21 @@ public class ProgressDialog extends JInternalFrame
 		panel.add(progressBar, BorderLayout.CENTER);
 		panel.add(taskOutput, BorderLayout.SOUTH);
 
-		this.getContentPane().add(panel);
-		show();
-		JDesktopPane desktop = TopLevel.getDesktop();
-		desktop.add(this); 
+		if(TopLevel.getMode()==TopLevel.MDIMode)
+		{
+			this.getContentPane().add(panel);
+			show();
+			JDesktopPane desktop = TopLevel.getDesktop();
+			desktop.add(this);
+		}
+		else
+		{	
+			jf = new JFrame();
+			jf.setSize(300,80);
+			jf.getContentPane().add(panel);
+			jf.setLocation(300,300);
+			jf.show();	
+		}
 		moveToFront();
 	}
 
@@ -76,8 +88,15 @@ public class ProgressDialog extends JInternalFrame
 	 */
 	public void close()
 	{
-		JDesktopPane desktop = TopLevel.getDesktop();
-		dispose();
+		if(TopLevel.getMode()==TopLevel.MDIMode)
+		{
+			JDesktopPane desktop = TopLevel.getDesktop();
+			dispose();
+		}
+		else
+		{
+			jf.dispose();
+		}		
 	}
 
 	/**
