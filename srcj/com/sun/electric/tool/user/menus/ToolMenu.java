@@ -873,6 +873,7 @@ public class ToolMenu {
                 TextDescriptor td = templateVar.getTextDescriptor();
                 td.setInterior(true);
                 td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
+                System.out.println("Set "+templateKey.getName().replaceFirst("ATTR_", "")+" for cell "+cell.describe());
             }
             return true;
         }
