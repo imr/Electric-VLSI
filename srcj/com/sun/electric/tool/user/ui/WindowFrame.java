@@ -70,7 +70,7 @@ public class WindowFrame
 {
 	/** the nature of the main window part (from above) */	private WindowContent content;
 	/** the text edit window part */					private JTextArea textWnd;
-	/** the text edit window component. */				private JScrollPane textPanel;
+//	/** the text edit window component. */				private JScrollPane textPanel;
 	/** the split pane that shows explorer and edit. */	private JSplitPane js;
     /** the internal frame (if MDI). */					private JInternalFrame jif = null;
     /** the top-level frame (if SDI). */				private TopLevel jf = null;

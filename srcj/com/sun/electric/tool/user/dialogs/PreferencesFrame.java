@@ -186,6 +186,10 @@ public class PreferencesFrame extends EDialog
 		optionPanes.add(sut);
 		ioSet.add(new DefaultMutableTreeNode(sut.getName()));
 
+		LibraryTab lit = new LibraryTab(parent, modal);
+		optionPanes.add(lit);
+		ioSet.add(new DefaultMutableTreeNode(lit.getName()));
+
 
 		// the "Tools" section of the Preferences
 		DefaultMutableTreeNode toolSet = new DefaultMutableTreeNode("Tools ");

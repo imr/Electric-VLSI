@@ -96,6 +96,33 @@ public class DesignRulesTab extends PreferencePanel
 	{
 		// get the design rules for the current technology
 		drRules = DRC.getRules(curTech);
+		if (drRules == null)
+		{
+			drTechName.setText(curTech.getTechName() + " HAS NO DESIGN RULES");
+			drLayers.setEnabled(false);
+			drNodes.setEnabled(false);
+			drShowOnlyLinesWithRules.setEnabled(false);
+			drMinWidth.setEnabled(false);
+			drMinWidthRule.setEnabled(false);
+			drMinHeight.setEnabled(false);
+			drNormalConnected.setEnabled(false);
+			drNormalConnectedRule.setEnabled(false);
+			drNormalUnconnected.setEnabled(false);
+			drNormalUnconnectedRule.setEnabled(false);
+			drNormalEdge.setEnabled(false);
+			drNormalEdgeRule.setEnabled(false);
+			drWideConnected.setEnabled(false);
+			drWideConnectedRule.setEnabled(false);
+			drWideUnconnected.setEnabled(false);
+			drWideUnconnectedRule.setEnabled(false);
+			drMultiConnected.setEnabled(false);
+			drMultiConnectedRule.setEnabled(false);
+			drMultiUnconnected.setEnabled(false);
+			drMultiUnconnectedRule.setEnabled(false);
+			drWideLimit.setEnabled(false);
+			factoryReset.setEnabled(false);
+			return;
+		}
 
 		drLayers.setSelected(true);
 
@@ -639,9 +666,10 @@ public class DesignRulesTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         designRules.add(drTechName, gridBagConstraints);
 
         drLayers.setText("Layers:");

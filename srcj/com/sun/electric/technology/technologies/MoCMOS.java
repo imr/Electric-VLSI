@@ -1474,7 +1474,7 @@ public class MoCMOS extends Technology
 		pseudoNWell_lay.setFactory3DInfo(0, 0);				// Pseudo-N-Well
 		padFrame_lay.setFactory3DInfo(0, 33);				// Pad-Frame
 
-		// The layer height
+		// The Spice parasitics
 		metal1_lay.setFactoryParasitics(0.06, 0.07, 0);			// Metal-1
 		metal2_lay.setFactoryParasitics(0.06, 0.04, 0);			// Metal-2
 		metal3_lay.setFactoryParasitics(0.06, 0.04, 0);			// Metal-3

@@ -55,6 +55,9 @@ import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
+import java.lang.reflect.Method;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -531,6 +534,8 @@ public class Technology extends ElectricObject
 		technologies.add(this);
 	}
 
+	private static final String [] extraTechnologies = {"TSMC90"};
+
 	/**
 	 * This is called once, at the start of Electric, to initialize the technologies.
 	 * Because of Java's "lazy evaluation", the only way to force the technology constructors to fire
@@ -548,6 +553,16 @@ public class Technology extends ElectricObject
 		nMOS.tech.setup();
 		Schematics.tech.setup();
 		Generic.tech.setup();
+
+		// initialize technologies that may not be present
+		for(int i=0; i<extraTechnologies.length; i++)
+		{
+			try
+			{
+				Class extraTechClass = Class.forName("com.sun.electric.technology.technologies." + extraTechnologies[i]);
+				extraTechClass.getMethod("setItUp", null).invoke(null, null);
+	 		} catch (Exception e) {}
+		}
 
 		// set the current technology
 		MoCMOS.tech.setCurrent();

@@ -54,7 +54,7 @@ import javax.swing.JFrame;
 
 
 /**
- * Class to handle the "New Cell" dialog.
+ * Class to handle the "Cell Lists" dialog.
  */
 public class CellLists extends EDialog
 {
@@ -80,7 +80,7 @@ public class CellLists extends EDialog
 		dialog.setVisible(true);
 	}
 
-	/** Creates new form New Cell */
+	/** Creates new form Cell Lists */
 	private CellLists(JFrame parent, boolean modal)
 	{
 		super(parent, modal);
@@ -607,7 +607,7 @@ public class CellLists extends EDialog
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
-        setTitle("New Cell");
+        setTitle("Cell Lists");
         setName("");
         addWindowListener(new java.awt.event.WindowAdapter()
         {
