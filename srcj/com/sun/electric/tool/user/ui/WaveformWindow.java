@@ -1995,7 +1995,7 @@ public class WaveformWindow implements WindowContent
 				if (no == null) break;
                 contextStack.push(no);
 				cellInWindow = no.getParent();
-				//curContext = curContext.pop();
+				curContext = curContext.pop();
 				//context = no.getName() + "." + context;
 			}
             context = VarContext.globalContext;
@@ -2023,7 +2023,7 @@ public class WaveformWindow implements WindowContent
 				if (no == null) break;
                 contextStack.push(no);
 				cellInWindow = no.getParent();
-				//curContext = curContext.pop();
+				curContext = curContext.pop();
 				//context = no.getName() + "." + context;
 			}
             context = VarContext.globalContext;
@@ -2533,13 +2533,38 @@ public class WaveformWindow implements WindowContent
 					Signal ws = (Signal)pIt.next();
 					if (!ws.highlighted) continue;
 					String want = ws.sSig.getFullName();
-                    String contextStr = getSpiceNetName(context, null);
-					if (contextStr.length() > 0 && !want.startsWith(contextStr)) continue;
-					JNetwork net = findNetwork(netlist, want.substring(contextStr.length()));
-					if (net != null)
-					{
-						hl.addNetwork(net, cell);
-					}
+                    Stack upNodables = new Stack();
+                    JNetwork net = null;
+                    for (;;) {
+                        String contextStr = getSpiceNetName(context, null) + ".";
+                        if (contextStr.length() > 0 && !want.startsWith(contextStr)) {
+                            if (context == VarContext.globalContext) break;
+                            netlist = context.getNodable().getParent().getUserNetlist();
+                            upNodables.push(context.getNodable());
+                            context = context.pop();
+                            continue;
+                        }
+                        net = findNetwork(netlist, want.substring(contextStr.length()));
+                        if (net != null)
+                        {
+                            break;
+                        }
+                        if (context == VarContext.globalContext) break;
+                        netlist = context.getNodable().getParent().getUserNetlist();
+                        upNodables.push(context.getNodable());
+                        context = context.pop();
+                    }
+                    if (net != null) {
+                        // found network
+                        while (!upNodables.isEmpty()) {
+                            Nodable no = (Nodable)upNodables.pop();
+                            net = HierarchyEnumerator.getNetworkInChild(net, no);
+                            if (net == null) break;
+                        }
+                    }
+                    if (net != null) {
+                        hl.addNetwork(net, cell);                        
+                    }
 				}
 			}
 			hl.finished();
