@@ -1725,6 +1725,8 @@ public class ELIB extends LibraryFiles
                 center.setLocation(center.getX() + shift.getX(), center.getY() + shift.getY());
             }
 		}
+		// convert outline information, if present
+		scaleOutlineInformation(ni, np, lambdaX, lambdaY);
 		ni.lowLevelSetUserbits(nodeInstList.userBits[i]);
 		ni.lowLevelPopulate(np, center, width, height, rotation, cell);
 		if (name != null) ni.setNameKey(name);
@@ -1735,9 +1737,6 @@ public class ELIB extends LibraryFiles
             ErrorLogger.MessageLog error = Input.errorLogger.logError("Instance of dummy cell "+np.getName(), cell, 1);
             error.addGeom(ni, true, cell, null);
         }
-
-		// convert outline information, if present
-		scaleOutlineInformation(ni, np, lambdaX, lambdaY);
 	}
 
 	protected boolean readerHasExport(Cell c, String portName)
@@ -1775,12 +1774,13 @@ public class ELIB extends LibraryFiles
                 String extra = "";
 
 	            // Forcing rounding here instead of PolyBase.calcBounds()
-	            portLocation.roundPoints();
-                if (portLocation.contains(x, y)) {
+//	            portLocation.roundPoints();
+                if (portLocation.contains(x, y) || portLocation.polyDistance(x, y) < TINYDISTANCE) {
                     return pi;
                 }
                 // give extra info to user if didn't contain port
                 Rectangle2D box = portLocation.getBox();
+
                 if (box != null) {
                     extra = "...expected ("+x+","+y+"), found ("+box.getCenterX()+","+box.getCenterY()+")";
                 }

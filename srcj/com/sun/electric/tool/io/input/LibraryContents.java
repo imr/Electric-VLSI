@@ -856,7 +856,7 @@ public class LibraryContents
 			if (pi != null)
 			{
 				Poly poly = pi.getPoly();
-				if (!poly.isInside(headPt))
+				if (!(poly.isInside(headPt) || poly.polyDistance(xPos, yPos) < LibraryFiles.TINYDISTANCE))
 				{
 					NodeProto np = ni.getProto();
 					ErrorLogger.MessageLog log = logError("point (" + headPt.getX() + "," + headPt.getY() + ") does not fit in port " +
@@ -1776,7 +1776,7 @@ public class LibraryContents
 		if (pi != null)
 		{
 			Poly poly = pi.getPoly();
-			if (!poly.isInside(headPt))
+			if (!(poly.isInside(headPt) || poly.polyDistance(xPos, yPos) < LibraryFiles.TINYDISTANCE))
 			{
 				NodeProto np = ni.getProto();
 				ErrorLogger.MessageLog log = logError("point (" + headPt.getX() + "," + headPt.getY() + ") does not fit in port " +

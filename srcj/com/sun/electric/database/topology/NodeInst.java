@@ -1228,6 +1228,21 @@ public class NodeInst extends Geometric implements Nodable
 		}
 
 		// special case for polygonally-defined nodes: compute precise geometry
+// 		if (pn.isHoldsOutline() && getTrace() != null)
+// 		{
+// 			AffineTransform trans = rotateOut();
+// 			Poly[] polys = pn.getTechnology().getShapeOfNode(this);
+// 			for (int i = 0; i < polys.length; i++)
+// 			{
+// 				Poly poly = polys[i];
+// 				poly.transform(trans);
+// 				if (i == 0)
+// 					visBounds.setRect(poly.getBounds2D());
+// 				else
+// 					Rectangle2D.union(poly.getBounds2D(), visBounds, visBounds);
+// 			}
+// 			return;
+// 		}
 		if (pn.isHoldsOutline())
 		{
 			Point2D [] outline = getTrace();
@@ -2680,6 +2695,35 @@ public class NodeInst extends Geometric implements Nodable
 			}
 		} else
 		{
+// 			PrimitiveNode pn = (PrimitiveNode)protoType;
+// 			if (pn.isHoldsOutline() && getTrace() != null)
+// 			{
+// 				Rectangle2D bounds = new Rectangle2D.Double();
+// 				AffineTransform trans = rotateOut();
+// 				Poly[] polys = pn.getTechnology().getShapeOfNode(this);
+// 				for (int i = 0; i < polys.length; i++)
+// 				{
+// 					Poly poly = polys[i];
+// 					poly.transform(trans);
+// 					if (i == 0)
+// 						bounds.setRect(poly.getBounds2D());
+// 					else
+// 						Rectangle2D.union(poly.getBounds2D(), bounds, bounds);
+// 				}
+// 				if (bounds.getWidth() != getXSize() || bounds.getHeight() != getYSize())
+// 				{
+// 					System.out.println("Cell " + parent.describe() + ", node " + describe() +
+// 						" is " + getXSize() + "x" + getYSize() +
+// 						" but has outline of size " + bounds.getWidth() + "x" + bounds.getHeight() +
+// 						" (REPAIRED)");
+// 					sX = DBMath.round(bounds.getWidth()) * (isXMirrored() ? -1 : 1);
+// 					sY = DBMath.round(bounds.getHeight()) * (isYMirrored() ? -1 : 1);
+// // 					sX = (hX-lX) * getXSize() / getXSizeWithMirror();
+// // 					sY = (hY-lY) * getYSize() / getYSizeWithMirror();
+// 					redoGeometric();
+// 					warningCount++;
+// 				}
+// 			}
 			Point2D [] points = getTrace();
 			if (points != null)
 			{

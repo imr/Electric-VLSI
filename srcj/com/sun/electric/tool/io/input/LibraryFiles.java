@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
@@ -87,6 +88,8 @@ public class LibraryFiles extends Input
 
 	/** collection of libraries and their input objects. */					private static List libsBeingRead;
 	protected static final boolean VERBOSE = false;
+	protected static final double TINYDISTANCE = DBMath.getEpsilon()*2;
+
 
 	LibraryFiles() {}
 

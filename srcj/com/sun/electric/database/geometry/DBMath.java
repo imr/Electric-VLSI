@@ -34,12 +34,7 @@ import java.awt.geom.Rectangle2D;
 public class DBMath extends GenMath {
 
 	/**
-	 * NDECIMALS number digits to round decimal numbers
-	 */
-	private static final int NDECIMALS = 2;
-
-	/**
-	 * Number of grid points per unit = 10^NDECIMALS
+	 * Number of grid points per unit
 	 */
 	private static final double GRID = 100;
 
@@ -106,8 +101,6 @@ public class DBMath extends GenMath {
 	public static double round(double x)
 	{
 		return Math.rint(x * GRID) / GRID;
-//         double pow10 = Math.pow(10, NDECIMALS);
-//         return (Math.floor(x*pow10 + 0.5) / pow10);
 	}
 
     /**

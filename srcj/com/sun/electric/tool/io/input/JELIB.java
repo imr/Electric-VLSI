@@ -1012,7 +1012,7 @@ public class JELIB extends LibraryFiles
 		if (pi != null)
 		{
 			Poly poly = pi.getPoly();
-			if (!poly.isInside(headPt))
+			if (!(poly.isInside(headPt) || poly.polyDistance(xPos, yPos) < TINYDISTANCE))
 			{
 				NodeProto np = ni.getProto();
 				ErrorLogger.MessageLog log = Input.errorLogger.logError(fileName + ", line " + lineNumber +

@@ -4,6 +4,16 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ao: *********************************
 
+BUG: (11/15/04, DN) Arcs in ELIB from Electric C may not fit into port insts.
+FIX: In ELIB and JELIB readers use poly.polyDistance(pnt) < 0.02 instead of poly.isInside(pnt).
+
+BUG: (11/15/04, DN) Size of rotated primitives with polygon trace are not
+    calculated, when ELIB is loaded.
+FIX: Move scaleOutlineInformation(ni) before ni.lowLevelPopulate().
+
+Deleting an export may delete the node.
+FIX: Do not consider exports to be attached to nodes when deleting.
+
 BUG: (11/14/04, RK) MoCMOS Gate generators were producing CIF resolution errors
 
 IMP: (11/14/04, RK) Improve NCC size mismatch error messages

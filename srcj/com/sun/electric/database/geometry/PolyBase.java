@@ -703,6 +703,20 @@ public class PolyBase implements Shape
 	}
 
 	/**
+	 * Method to report the distance of a point to this Poly.
+	 * @param x coordinate of a point.
+	 * @param y coordinate of a point.
+	 * @return the distance of the point to the Poly.
+	 * The method returns a negative amount if the point is a direct hit on or inside
+	 * the polygon (the more negative, the closer to the center).
+	 */
+	public double polyDistance(double x, double y)
+	{
+		return polyDistance(new Rectangle2D.Double(x, y, 0, 0));
+	}
+
+
+	/**
 	 * Method to report the distance of a rectangle or point to this Poly.
 	 * @param otherBounds the area to test for distance to the Poly.
 	 * @return the distance of the area to the Poly.

@@ -742,7 +742,7 @@ public class JELIB1 extends LibraryFiles
 		if (cell.getLibrary() != lib) return;
 
 		LibraryContents.CellContents cc = (LibraryContents.CellContents)cellToContents.get(cell);
-		if (cc.isFilledIn()) return;
+		if (cc == null || cc.isFilledIn()) return;
 
 		// cannot do scaling yet
 		if (scaledCellName != null) return;
