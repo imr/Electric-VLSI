@@ -4,6 +4,7 @@
     <target name="init">
         <!-- You can set up any variables you want used throughout the script here. -->
         <property name="beanshell" value="../lib/java/bsh-1.2b3.jar"/>
+        <property name="AppleJava" value="AppleJavaExtensions.jar"/>
     </target>
 
     <target depends="init" name="compile">
@@ -13,6 +14,7 @@
         <javac debug="true" deprecation="true" destdir="." srcdir=".">
             <!-- To add something to the classpath: -->
             <classpath><pathelement location="${beanshell}"/></classpath>
+            <classpath><pathelement location="${AppleJava}"/></classpath>
             <!-- To exclude some files: -->
             <exclude name="intervalsimulation/"/>
         </javac>
@@ -26,6 +28,7 @@
         <!-- Main-Class: com.sun.electric.Main -->
         <!-- 3. Pass to <jar>: manifest="electric.mf" -->
         <exec executable="jar"><arg line="xf ${beanshell}"></arg></exec> 
+        <exec executable="jar"><arg line="xf ${AppleJava}"></arg></exec> 
         <delete dir="META-INF"></delete>
         <jar basedir="." compress="true" jarfile="electric.jar" manifest="electric.mf">
             <!--  <arg line="-J-mx500m"></arg>  -->
@@ -41,6 +44,7 @@
             <exclude name="**/*.form"/>
         </jar>
         <delete dir="bsh"></delete>
+        <delete dir="com/apple"></delete>
     </target>
 
     <target depends="init,jar" description="Build everything." name="all">
@@ -52,6 +56,7 @@
             <classpath>
                 <pathelement location="."/>
                 <pathelement location="${beanshell}"/>
+                <pathelement location="${AppleJava}"/>
            </classpath>
             <!-- Pass some args, perhaps: -->
             <!-- arg value="-myfile"/ -->
@@ -78,6 +83,7 @@
         <javadoc destdir="apidoc" packagenames="com.sun.electric.*">
             <classpath>
                 <pathelement location="${beanshell}"/>
+                <pathelement location="${AppleJava}"/>
            </classpath>
            <sourcepath>
                 <pathelement location="."/>

@@ -146,13 +146,7 @@ public final class MenuCommands
         fileMenu.add(exportSubMenu);
         exportSubMenu.addMenuItem("CIF (Caltech Intermediate Format)", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.CIF); } });
-		if (TopLevel.getOperatingSystem() == TopLevel.OS.MACINTOSH)
-		{
-//			MRJApplicationUtils.registerQuitHandler(new MRJQuitHandler()
-//			{
-//				public void handleQuit() { quitCommand(); }
-//			});
-		} else
+		if (TopLevel.getOperatingSystem() != TopLevel.OS.MACINTOSH)
 		{
 			fileMenu.addSeparator();
 			fileMenu.addMenuItem("Quit", KeyStroke.getKeyStroke('Q', InputEvent.CTRL_MASK),
@@ -470,8 +464,11 @@ public final class MenuCommands
 		Menu helpMenu = Menu.createMenu("Help", 'H');
 		menuBar.add(helpMenu);
 
-		helpMenu.addMenuItem("About Electric...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { aboutCommand(); } });
+		if (TopLevel.getOperatingSystem() != TopLevel.OS.MACINTOSH)
+		{
+			helpMenu.addMenuItem("About Electric...", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { aboutCommand(); } });
+		}
 		helpMenu.addMenuItem("Check and Repair Libraries...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { checkAndRepairCommand(); } });
 		helpMenu.addMenuItem("Show Undo List", null,

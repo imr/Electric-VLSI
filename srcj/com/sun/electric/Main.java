@@ -52,6 +52,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.lang.reflect.Method;
 
+import com.apple.eawt.Application;
+import com.apple.eawt.ApplicationAdapter;
+import com.apple.eawt.ApplicationEvent;
+
 /**
  * This class initializes the User Interface.
  * It is the main class of Electric.
@@ -61,7 +65,7 @@ public final class Main
 	public static void main(String[] args)
 	{
 		// initialize Mac OS 10 if applicable
-		macOSXRegistration();
+		MacOSXAdapter.registerMacOSXApplication();
 
 		// convert args to array list
         ArrayList argsList = new ArrayList();
@@ -164,37 +168,62 @@ public final class Main
 			Constraints.setCurrent(con);
 		}
 	}
-	
+
 	/**
-	 * Generic registration with the Mac OS X application menu.
-	 * Attempts to register with the Apple EAWT.
-	 * This method calls OSXAdapter.registerMacOSXApplication().
+	 * Class for initializing the Macintosh OS X world.
 	 */
-	private static void macOSXRegistration()
+	static class MacOSXAdapter extends ApplicationAdapter
 	{
-		try
+		private static MacOSXAdapter adapter = null;
+		private static Application application = null;
+
+		private MacOSXAdapter () {}
+
+		/**
+		 * Method called when the "About" item is selected in the Macintosh "Electric" menu.
+		 */
+		public void handleAbout(ApplicationEvent ae)
 		{
-			Class osxAdapter = Class.forName("com.sun.electric.tool.user.ui.OSXAdapter");
-			Class[] defArgs = {};
-			Method registerMethod = osxAdapter.getDeclaredMethod("registerMacOSXApplication", defArgs);
-			if (registerMethod != null)
-			{
-				Object[] args = {};
-				registerMethod.invoke(osxAdapter, args);
-			}
-		} catch (NoClassDefFoundError e)
-		{
-			// This will be thrown if the OSXAdapter is loaded on a system without the EAWT
-			// because OSXAdapter extends ApplicationAdapter in its def
-			System.err.println("NoClassDefFoundError: This version of Mac OS X does not support the Apple EAWT.  Application Menu handling has been disabled (" + e + ")");
-		} catch (ClassNotFoundException e)
-		{
-			// If the class is not found, then perhaps this isn't a Macintosh, and we should stop
-		} catch (Exception e)
-		{
-			System.err.println("Exception while loading the OSXAdapter:");
-			e.printStackTrace();
+			ae.setHandled(true);
+			MenuCommands.aboutCommand();
 		}
-	}
+
+		/**
+		 * Method called when the "Preferences" item is selected in the Macintosh "Electric" menu.
+		 */
+		public void handlePreferences(ApplicationEvent ae)
+		{
+			ae.setHandled(true);
+			MenuCommands.editOptionsCommand();
+		}
+
+		/**
+		 * Method called when the "Quit" item is selected in the Macintosh "Electric" menu.
+		 */
+		public void handleQuit(ApplicationEvent ae)
+		{
+			ae.setHandled(false);
+			MenuCommands.quitCommand();
+		}
+
+		/**
+		 * Method to initialize the Macintosh OS X environment.
+		 */
+		public static void registerMacOSXApplication()
+		{
+			// tell it to use the system menubar
+			System.setProperty("com.apple.macos.useScreenMenuBar", "true");
+			System.setProperty("apple.laf.useScreenMenuBar", "true");
+
+			// set the name of the leftmost pulldown menu to "Electric"
+			System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Electric");
+
+			// create Mac objects for handling the "Electric" menu
+			if (application == null) application = new com.apple.eawt.Application();
+			if (adapter == null) adapter = new MacOSXAdapter();
+			application.addApplicationListener(adapter);
+			application.setEnabledPreferencesMenu(true);
+		}
+	} 
 
 }
