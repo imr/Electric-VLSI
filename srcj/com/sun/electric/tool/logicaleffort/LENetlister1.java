@@ -306,7 +306,7 @@ public class LENetlister1 extends HierarchyEnumerator.Visitor implements LENetli
             if (gate == 1)
                 type = Instance.Type.LEGATE;
             else
-                type = Instance.Type.STATICGATE;
+                return true;
         }
         else if ((var = getVar(ni, "ATTR_LEKEEPER")) != null) {
             // assume it is LEKEEPER if can't resolve value
@@ -314,7 +314,7 @@ public class LENetlister1 extends HierarchyEnumerator.Visitor implements LENetli
             if (gate == 1)
                 type = Instance.Type.LEKEEPER;
             else
-                type = Instance.Type.STATICGATE;
+                return true;
         }
         else if (getVar(ni, "ATTR_LEWIRE") != null) {
             type = Instance.Type.WIRE;
