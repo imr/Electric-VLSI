@@ -6,10 +6,10 @@ NOTE: Please place changes under the version that will be released next.
 
 IMP: (01/11/05, DN) All database objects are comparable and the are ordered in database.
 
-BUG: DRC and min area, still problems with well areas which are not part of any network
+BUG: (01/10/05, GVG) DRC and min area, still problems with well areas which are not part of any network
 FIX: Forcing substrate to ignore network information in Quick.java
 
-IMP/MAN: (01/09/05,GVG)YES_NO dialog for deleting cells in Explorer instead of YES_NO_CANCEL type
+IMP/MAN: (01/09/05, GVG)YES_NO dialog for deleting cells in Explorer instead of YES_NO_CANCEL type
 
 IMP: (01/09/05, DN) Settors are removed from TextDescriptor class. Database TextDescriptors are almost
 readonly (except low-level methods). MutableTextDescriptor class is
