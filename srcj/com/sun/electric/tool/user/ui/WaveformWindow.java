@@ -1495,6 +1495,7 @@ public class WaveformWindow implements WindowContent
 	public void setWindowTitle()
 	{
 		if (wf == null) return;
+		/*
 		if (sd.getCell() == null)
 		{
 			wf.setTitle("***WAVEFORM WITH NO CELL***");
@@ -1504,7 +1505,8 @@ public class WaveformWindow implements WindowContent
 		String title = "Waveform for " + sd.getCell().describe();
 		if (sd.getCell().getLibrary() != Library.getCurrent())
 			title += " - Current library: " + Library.getCurrent().getName();
-		wf.setTitle(title);
+			*/
+		wf.setTitle(wf.composeTitle(sd.getCell(), "Waveform for "));
 	}
 
 	private static class StepSize

@@ -87,7 +87,8 @@ public final class Main
         List argsList = new ArrayList();
         for (int i=0; i<args.length; i++) argsList.add(args[i]);
 
-		TopLevel.OSInitialize();
+		// -m for multiple windows
+		TopLevel.OSInitialize(hasCommandLineOption(argsList, "-m"));
 
 		// initialize database
 		new InitDatabase(argsList, sw);

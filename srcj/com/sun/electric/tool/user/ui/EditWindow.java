@@ -397,6 +397,7 @@ public class EditWindow extends JPanel
 	public void setWindowTitle()
 	{
 		if (wf == null) return;
+		/*
 		if (cell == null)
 		{
 			wf.setTitle("***NONE***");
@@ -407,6 +408,8 @@ public class EditWindow extends JPanel
 		if (cell.getLibrary() != Library.getCurrent())
 			title += " - Current library: " + Library.getCurrent().getName();
 		wf.setTitle(title);
+		*/
+		wf.setTitle(wf.composeTitle(cell, ""));
 	}
 
 	/**

@@ -1067,6 +1067,8 @@ public final class MenuCommands
 					new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(false, false);}});
 			gildaMenu.addMenuItem("List Layer Coverage", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, true); } });
+			gildaMenu.addMenuItem("3D View", null,
+			        new ActionListener() { public void actionPerformed(ActionEvent e) { create3DViewCommand(Job.Type.EXAMINE); } });
 		}
 
         /********************************* Hidden Menus *******************************/
@@ -1650,8 +1652,8 @@ public final class MenuCommands
 
 		public boolean doIt()
 		{
-			//Highlight.clear();
-			//Highlight.finished();
+		  //Highlight.clear();
+		  //Highlight.finished();
 			if (!Undo.undoABatch())
 				System.out.println("Undo failed!");
 			return true;
@@ -4041,6 +4043,19 @@ public final class MenuCommands
 	}
 
     // ---------------------- Gilda's Stuff MENU -----------------
+    public static void create3DViewCommand(Job.Type jobType)
+    {     
+	    Cell curCell = WindowFrame.needCurCell();
+
+	    if (curCell == null) return;
+	    WindowFrame.create3DViewtWindow(curCell);
+    }
+
+	/**
+	 * First attempt for coverage implant
+	 * @param newIdea
+	 * @param test
+	 */
 	public static void implantGeneratorCommand(boolean newIdea, boolean test) {
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;

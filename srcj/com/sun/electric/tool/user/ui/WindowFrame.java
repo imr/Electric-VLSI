@@ -34,6 +34,7 @@ import java.awt.event.MouseWheelListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.HashMap;
@@ -58,6 +59,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.user.ErrorLog;
 import com.sun.electric.tool.user.MenuCommands;
+//import com.sun.electric.tool.user.ui.j3d.View3DWindow;
 import com.sun.electric.database.variable.VarContext;
 
 /**
@@ -120,6 +122,46 @@ public class WindowFrame
 			frame.populateJFrame();
 			eWnd.fillScreen();
 		}
+		return frame;
+	}
+
+	/**
+	 * Method to create a new 3D view window on the screen for the given cell
+	 * @param cell the cell to display.
+	 * @return the WindowFrame that shows the Cell.
+	 */
+	public static WindowFrame create3DViewtWindow(Cell cell)
+	{
+		WindowFrame frame = new WindowFrame();
+
+		//WindowContent vWnd1 = new View3DWindow(cell, frame);
+
+		Class view3DClass;
+
+		try
+        {
+            view3DClass = Class.forName("com.sun.electric.tool.user.ui.j3d.View3DWindow");
+
+        } catch (ClassNotFoundException e)
+        {
+            System.out.println("Can't find 3D View module: " + e.getMessage());
+			return frame;
+        }
+
+		try
+		{
+			Object vWnd = view3DClass.newInstance();
+			Method constructor = view3DClass.getMethod("View3DWindow", new Class[] {String.class});
+			constructor.invoke(vWnd, new Object[] {cell, frame});
+			frame.buildWindowStructure((WindowContent)vWnd, cell, null);
+
+			setCurrentWindowFrame(frame);
+			frame.populateJFrame();
+			//vWnd.fillScreen()
+		} catch (Exception e) {
+            System.out.println("Can't open 3D View window: " + e.getMessage());
+        }
+
 		return frame;
 	}
 
@@ -626,6 +668,28 @@ public class WindowFrame
 	 */
 	public static Iterator getWindows() { return windowList.iterator(); }
 
+	/**
+	 * Centralized version of naming windows! Might move it to class
+	 * that would replace WindowContext
+	 * @param cell
+	 * @param prefix
+	 */
+	public String composeTitle(Cell cell, String prefix)
+	{
+		// StringBuffer should be more efficient
+		StringBuffer title = new StringBuffer();
+
+		if (cell != null)
+		{
+			title.append(prefix + cell.describe());
+
+			if (cell.getLibrary() != Library.getCurrent())
+				title.append(" - Current library: " + Library.getCurrent().getName());
+		}
+		else
+			title.append("***NONE***");
+		return (title.toString());
+	}
     /**
      * Method to set the description on the window frame
      */
@@ -643,7 +707,7 @@ public class WindowFrame
 	/**
 	 * This class handles activation and close events for JFrame objects (used in SDI mode).
 	 */
-	private static class WindowsEvents extends WindowAdapter
+	static class WindowsEvents extends WindowAdapter
 	{
         /** A weak reference to the WindowFrame */
 		WeakReference wf;
@@ -668,7 +732,7 @@ public class WindowFrame
 	/**
 	 * This class handles activation and close events for JInternalFrame objects (used in MDI mode).
 	 */
-	private static class InternalWindowsEvents extends InternalFrameAdapter
+	static class InternalWindowsEvents extends InternalFrameAdapter
 	{
         /** A weak reference to the WindowFrame */
 		WeakReference wf;

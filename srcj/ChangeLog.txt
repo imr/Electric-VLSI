@@ -2,6 +2,9 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (6/17/04, GVG) Window title string composed in WindowFrame.
+MDI mode read from command arguments (valid only for window). Preparing code for 3DView
+
 IMP: (6/15/04, SMR) Changed all "dialog.show()" calls to "dialog.setVisible(true)" because of deprecation in 1.5.
 
 IMP: (6/15/04, SMR) Implemented "Window / Center / Selection" and "Window / Center / Cursor".

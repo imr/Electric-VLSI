@@ -87,7 +87,7 @@ public class TextWindow
 	 * Factory method to create a new TextWindow with a given cell, in a given WindowFrame.
 	 * @param cell the cell in this TextWindow.
 	 * @param wf the WindowFrame that this TextWindow lives in.
-	 * @return the new TextWindow.
+	 * //@return the new TextWindow.
 	 */
 	public TextWindow(Cell cell, WindowFrame wf)
 	{
@@ -229,6 +229,7 @@ public class TextWindow
 	public void setWindowTitle()
 	{
 		if (wf == null) return;
+		/*
 		if (cell == null)
 		{
 			wf.setTitle("***NONE***");
@@ -238,7 +239,8 @@ public class TextWindow
 		String title = cell.describe();
 		if (cell.getLibrary() != Library.getCurrent())
 			title += " - Current library: " + Library.getCurrent().getName();
-		wf.setTitle(title);
+			*/
+		wf.setTitle(wf.composeTitle(cell, ""));
 	}
 
 	/**

@@ -42,8 +42,6 @@ import java.util.Iterator;
 import javax.swing.JFrame;
 import javax.swing.JDesktopPane;
 import javax.swing.JInternalFrame;
-import javax.swing.JPanel;
-import javax.swing.JMenuBar;
 import javax.swing.UIManager;
 import javax.swing.ImageIcon;
 
@@ -146,7 +144,7 @@ public class TopLevel extends JFrame
 	/**
 	 * Method to initialize the window system.
 	 */
-	public static void OSInitialize()
+	public static void OSInitialize(boolean mdiMode)
 	{
 		// setup the size of the screen
 		scrnSize = (Toolkit.getDefaultToolkit()).getScreenSize();
@@ -158,7 +156,7 @@ public class TopLevel extends JFrame
 			if (osName.startsWith("windows"))
 			{
 				os = OS.WINDOWS;
-				mdi = true;     // default
+				mdi = mdiMode;     // default
 				scrnSize.height -= 30;
 				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 			} else if (osName.startsWith("linux") || osName.startsWith("solaris") || osName.startsWith("sunos"))
