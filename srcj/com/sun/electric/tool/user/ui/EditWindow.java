@@ -96,6 +96,10 @@ public class EditWindow extends JPanel
 	/** starting screen point for drags in this window */	private Point startDrag = new Point();
 	/** ending screen point for drags in this window */		private Point endDrag = new Point();
 
+    /** true if drawing popup cloud */                      private boolean showPopupCloud = false;
+    /** Strings to write to popup cloud */                  private List popupCloudText;
+    /** lower left corner of popup cloud */                 private Point2D popupCloudPoint;
+
 	/** current mouse listener */							private static MouseListener curMouseListener = ClickZoomWireListener.theOne;
     /** current mouse motion listener */					private static MouseMotionListener curMouseMotionListener = ClickZoomWireListener.theOne;
     /** current mouse wheel listener */						private static MouseWheelListener curMouseWheelListener = ClickZoomWireListener.theOne;
@@ -356,6 +360,8 @@ public class EditWindow extends JPanel
 
 			// add in drag area
 			if (doingAreaDrag) showDragBox(g);
+            // add in popup cloud
+            if (showPopupCloud) drawPopupCloud((Graphics2D)g);
 		}
 		synchronized(redrawThese)
 		{
@@ -586,6 +592,33 @@ public class EditWindow extends JPanel
 			}
 		}
 	}
+
+    // ************************************* POPUP CLOUD *************************************
+
+    public boolean getShowPopupCloud() { return showPopupCloud; }
+
+    public void setShowPopupCloud(List text, Point2D point)
+    {
+        showPopupCloud = true;
+        popupCloudText = text;
+        popupCloudPoint = point;
+    }
+
+    public void clearShowPopupCloud() { showPopupCloud = false; }
+
+    private void drawPopupCloud(Graphics2D g)
+    {
+        if (popupCloudText == null || popupCloudText.size() == 0) return;
+        // draw cloud
+        float yspacing = 5;
+        float x = (float)popupCloudPoint.getX() + 25;
+        float y = (float)popupCloudPoint.getY() + 10 + yspacing;
+        for (int i=0; i<popupCloudText.size(); i++) {
+            GlyphVector glyph = getFont().createGlyphVector(g.getFontRenderContext(), (String)popupCloudText.get(i));
+            g.drawGlyphVector(glyph, x, y);
+            y += glyph.getVisualBounds().getHeight() + yspacing;
+        }
+    }
 
 	// ************************************* WINDOW ZOOM AND PAN *************************************
 

@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.MenuCommands;
@@ -39,6 +40,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.*;
 import java.util.List;
 import java.util.Iterator;
+import java.util.ArrayList;
 
 /**
  * Handles Selection, Zooming, and Wiring.
@@ -70,6 +72,9 @@ public class ClickZoomWireListener
     private String lastPopupMenu = null;        /* last used popupmenu */
     private long leftMousePressedTimeStamp;     /* log of last left mouse pressed time */
     private long rightMousePressedTimeStamp;    /* log of last left mouse pressed time */
+    private boolean wiringPopupCloudUp;         /* true if wiring popup cloud is displayed */
+    private List wiringPopupCloudList;           /* list of items in wiring popup cloud */
+    private Point2D wiringLastDBMouse;          /* last point mouse was at */
 
     // wiring stuff
     private InteractiveRouter router;           /* router used to connect objects */
@@ -393,7 +398,7 @@ public class ClickZoomWireListener
             }
             if (modeRight == Mode.wiringFind || modeRight == Mode.stickyWiring) {
                 // see if anything under the pointer
-                int numFound = Highlight.findObject(dbMouse, wnd, false, false, false, true, false, specialSelect, true);
+                int numFound = Highlight.findObject(dbMouse, wnd, false, false, false, true, false, specialSelect, false);
                 if (numFound == 0) {
                     // not over anything, nothing to connect to
                     EditWindow.gridAlign(dbMouse);
@@ -403,6 +408,41 @@ public class ClickZoomWireListener
                     Highlight h2 = (Highlight)hIt.next();
                     EditWindow.gridAlign(dbMouse);
                     router.highlightRoute(wnd, startObj, h2.getElectricObject(), dbMouse);
+                }
+                // clear any previous popup cloud
+                wnd.clearShowPopupCloud();
+                wiringPopupCloudUp = false;
+                // popup list of stuff under mouse to connect to if more than one
+                List underCursor = Highlight.findAllInArea(cell, false, true, true, false, specialSelect, false,
+                    new Rectangle2D.Double(dbMouse.getX(), dbMouse.getY(), 0, 0), wnd);
+                if (underCursor.size() > 1) {
+                    ArrayList text = new ArrayList();
+                    ArrayList portList = new ArrayList();
+                    text.add("Connect to:");
+                    int num = 1;
+                    for (int i=0; i<underCursor.size(); i++) {
+                        Highlight h = (Highlight)underCursor.get(i);
+                        ElectricObject obj = h.getElectricObject();
+                        if (num == 10) {
+                            text.add("...too many to display");
+                            break;
+                        }
+                        if (obj instanceof PortInst) {
+                            // only give option to connect to ports
+                            PortInst pi = (PortInst)obj;
+                            String str = "("+num+"): Port "+pi.getPortProto().getProtoName()+" on "+pi.getNodeInst().getName();
+                            text.add(str);
+                            portList.add(pi);
+                            num++;
+                        }
+                    }
+                    if (num > 2) {
+                        // only show if more than one port to connect to under mouse
+                        wnd.setShowPopupCloud(text, new Point2D.Double(mouseX, mouseY));
+                        wiringPopupCloudUp = true;
+                        wiringPopupCloudList = portList;
+                        wiringLastDBMouse = dbMouse;
+                    }
                 }
             }
             if (modeRight == Mode.wiringConnect) {
@@ -547,6 +587,8 @@ public class ClickZoomWireListener
                     EditWindow.gridAlign(dbMouse);
                     router.makeRoute(wnd, startObj, h2.getElectricObject(), dbMouse);
                 }
+                // clear any popup cloud we had
+                wnd.clearShowPopupCloud();
             }
             if (modeRight == Mode.wiringConnect) {
                 EditWindow.gridAlign(dbMouse);
@@ -673,6 +715,21 @@ public class ClickZoomWireListener
             Highlight.setHighlightOffset(0, 0);
             wnd.repaint();
         }
+        // wiring popup cloud selection
+        if (wiringPopupCloudUp && (modeRight == Mode.stickyWiring || modeRight == Mode.wiringFind)) {
+            for (int i=0; i<wiringPopupCloudList.size(); i++) {
+                if (chr == (KeyEvent.VK_1 + i)) {
+                    PortInst pi = (PortInst)wiringPopupCloudList.get(i);
+                    EditWindow.gridAlign(wiringLastDBMouse);
+                    router.makeRoute(wnd, startObj, pi, wiringLastDBMouse);
+                    wnd.clearShowPopupCloud();      // clear popup cloud
+                    wiringPopupCloudUp = false;
+                    modeRight = Mode.none;
+                    return;
+                }
+            }
+        }
+
     }
 
     public void keyReleased(KeyEvent evt) {
