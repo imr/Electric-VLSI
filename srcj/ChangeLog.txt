@@ -104,7 +104,7 @@ IMP/MAN: (12/6/04, GVG) ERC: optimizing code (1)DRC check only available by requ
 
 IMP: (12/6/04, SMR) Screen sizes are computed better on multi-display systems (Bug #48).
 
-BUG: (12/6/04, SMR) Conversin from layout to schematic is broken (Bug #56).
+BUG: (12/6/04, SMR) Conversion from layout to schematic is broken (Bug #56).
 FIX: Fixed "ViewChanges.java" to work right.
 
 BUG: (12/6/04, SMR) PostScript output is empty.
@@ -136,7 +136,7 @@ IMP: (12/3/04, GVG) DRC: generating warnings if generic arcs are found in layout
 BUG: (12/3/04, GVG) TSMC90: Active ports got wrong active arcs attached (Bug #52)
 FIX: Switched to N type
 
-BUG: (12/3/04, DN) In ELIB input technology and scale calculation is undeterministic(Bug #20).
+BUG: (12/3/04, DN) In ELIB input technology and scale calculation is undeterministic (Bug #20).
 FIX: LibraryFiles.computeTech() ensures that subcells have computed technology.
 
 IMP: (12/3/04, DN) Technology.whatTechnology returns Artwork for text files.     
@@ -355,7 +355,7 @@ BUG: (11/15/04, DN) Size of rotated primitives with polygon trace are not
     calculated, when ELIB is loaded.
 FIX: Move scaleOutlineInformation(ni) before ni.lowLevelPopulate().
 
-Deleting an export may delete the node.
+BUG: Deleting an export may delete the node.
 FIX: Do not consider exports to be attached to nodes when deleting.
 
 BUG: (11/14/04, RK) MoCMOS Gate generators were producing CIF resolution errors
@@ -417,7 +417,7 @@ IMP: (11/10/04, SMR) Added initial regression tests for I/O.
 
 IMP: (11/10/04, SMR) Added Job.flushBatch() to reset constraints in the middle of a job.
 
-BUG: (11/11/04, GVG) MinAre DRC didn't detect errors in subcells if nodes were not part of exports
+BUG: (11/11/04, GVG) MinArea DRC didn't detect errors in subcells if nodes were not part of exports
 FIX: Collect those nodes and check at the end.
 
 BUG: (11/11/04, RK) NCC crashes when a Cell has an Export and global with the same name.
