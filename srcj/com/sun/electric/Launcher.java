@@ -111,6 +111,7 @@ public final class Launcher
 		String command = program;
 		command += " -cp " + System.getProperty("java.class.path",".");
 //		command += " -mx" + maxMemWanted + "m -jar " + jarfile;
+        command += " -ss2m";
 		command += " -mx" + maxMemWanted + "m com.sun.electric.Main";
         System.out.println("Rerunning Electric with memory footprint of "+maxMemWanted+"m because "+maxMem+"m is too small");
         for (int i=0; i<args.length; i++) command += " " + args[i];
