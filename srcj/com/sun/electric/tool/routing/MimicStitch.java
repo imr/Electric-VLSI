@@ -35,10 +35,8 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -46,10 +44,10 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.JOptionPane;
 
@@ -58,7 +56,7 @@ import javax.swing.JOptionPane;
  */
 public class MimicStitch
 {
-    /** router to use */            static InteractiveRouter router = new SimpleWirer();
+	/** router to use */            static InteractiveRouter router = new SimpleWirer();
 
 	/**
 	 * Entry point for mimic router.
@@ -66,9 +64,9 @@ public class MimicStitch
 	 */
 	public static void mimicStitch(boolean forced)
 	{
-        EditWindow wnd = EditWindow.needCurrent();
-        if (wnd == null) return;
-        Highlighter highlighter = wnd.getHighlighter();
+		EditWindow wnd = EditWindow.needCurrent();
+		if (wnd == null) return;
+		Highlighter highlighter = wnd.getHighlighter();
 
 		Routing.Activity lastActivity = Routing.tool.getLastActivity();
 		if (lastActivity == null)
@@ -99,33 +97,27 @@ public class MimicStitch
 		if (lastActivity.numCreatedArcs > 1 && lastActivity.numCreatedNodes > 0)
 		{
 			// find the ends of arcs that do not attach to the intermediate pins
-			FlagSet nodeGotOne = NodeInst.getFlagSet(1);
-			FlagSet nodeGotMany = NodeInst.getFlagSet(1);
 			ArcProto proto = lastActivity.createdArcs[0].getProto();
 			Cell parent = lastActivity.createdArcs[0].getParent();
-			for(Iterator it = parent.getNodes(); it.hasNext(); )
-			{
-				NodeInst ni = (NodeInst)it.next();
-				ni.clearBit(nodeGotOne);
-				ni.clearBit(nodeGotMany);
-			}
+			HashSet gotOne = new HashSet();
+			HashSet gotMany = new HashSet();
 			for(int i=0; i<lastActivity.numCreatedArcs; i++)
 			{
 				ArcInst ai = lastActivity.createdArcs[i];
 				for(int e=0; e<2; e++)
 				{
 					NodeInst ni = ai.getConnection(e).getPortInst().getNodeInst();
-					if (!ni.isBit(nodeGotMany))
+					if (!gotMany.contains(ni))
 					{
-						if (!ni.isBit(nodeGotOne)) ni.setBit(nodeGotOne); else
+						if (!gotOne.contains(ni)) gotOne.add(ni); else
 						{
-							ni.clearBit(nodeGotOne);
-							ni.setBit(nodeGotMany);
+							gotOne.remove(ni);
+							gotMany.add(ni);
 						}
 					}
 				}
 			}
-			int foundends = 0;
+			int foundEnds = 0;
 			Connection [] ends = new Connection[2];
 			double width = 0;
 			for(int i=0; i<lastActivity.numCreatedArcs; i++)
@@ -134,33 +126,31 @@ public class MimicStitch
 				for(int e=0; e<2; e++)
 				{
 					NodeInst ni = ai.getConnection(e).getPortInst().getNodeInst();
-					if (!ni.isBit(nodeGotOne)) continue;
-					if (foundends < 2)
+					if (!gotOne.contains(ni)) continue;
+					if (foundEnds < 2)
 					{
-						ends[foundends] = ai.getConnection(e);
+						ends[foundEnds] = ai.getConnection(e);
 						if (ai.getWidth() > width)
 							width = ai.getWidth();
 					}
-					foundends++;
+					foundEnds++;
 				}
 			}
-			nodeGotOne.freeFlagSet();
-			nodeGotMany.freeFlagSet();
 
 			// if exactly two ends are found, mimic that connection
-			if (foundends == 2)
+			if (foundEnds == 2)
 			{
-				double prefx = 0, prefy = 0;
+				double prefX = 0, prefY = 0;
 				if (lastActivity.numCreatedNodes == 1)
 				{
 					Poly portPoly0 = ends[0].getPortInst().getPoly();
-				double x0 = portPoly0.getCenterX();
+					double x0 = portPoly0.getCenterX();
 					double y0 = portPoly0.getCenterY();
 					Poly portPoly1 = ends[1].getPortInst().getPoly();
 					double x1 = portPoly1.getCenterX();
 					double y1 = portPoly1.getCenterY();
-					prefx = lastActivity.createdNodes[0].getAnchorCenterX() - (x0+x1) / 2;
-					prefy = lastActivity.createdNodes[0].getAnchorCenterY() - (y0+y1) / 2;
+					prefX = lastActivity.createdNodes[0].getAnchorCenterX() - (x0+x1) / 2;
+					prefY = lastActivity.createdNodes[0].getAnchorCenterY() - (y0+y1) / 2;
 				} else if (lastActivity.numCreatedNodes == 2)
 				{
 					Poly portPoly0 = ends[0].getPortInst().getPoly();
@@ -169,14 +159,12 @@ public class MimicStitch
 					Poly portPoly1 = ends[1].getPortInst().getPoly();
 					double x1 = portPoly1.getCenterX();
 					double y1 = portPoly1.getCenterY();
-					prefx = (lastActivity.createdNodes[0].getAnchorCenterX() +
-						lastActivity.createdNodes[1].getAnchorCenterX()) / 2 -
-							(x0+x1) / 2;
-					prefy = (lastActivity.createdNodes[0].getAnchorCenterY() +
-						lastActivity.createdNodes[1].getAnchorCenterY()) / 2 -
-							(y0+y1) / 2;
+					prefX = (lastActivity.createdNodes[0].getAnchorCenterX() +
+						lastActivity.createdNodes[1].getAnchorCenterX()) / 2 - (x0+x1) / 2;
+					prefY = (lastActivity.createdNodes[0].getAnchorCenterY() +
+						lastActivity.createdNodes[1].getAnchorCenterY()) / 2 - (y0+y1) / 2;
 				}
-				MimicStitchJob job = new MimicStitchJob(ends[0], ends[1], width, proto, prefx, prefy, forced, highlighter);
+				MimicStitchJob job = new MimicStitchJob(ends[0], ends[1], width, proto, prefX, prefY, forced, highlighter);
 			}
 			lastActivity.numCreatedArcs = 0;
 			return;
@@ -220,12 +208,12 @@ public class MimicStitch
 			// must be the same length and angle
 			Point2D end0 = ai.getHead().getLocation();
 			Point2D end1 = ai.getTail().getLocation();
-			double thisdist = end0.distance(end1);
-			if (dist != thisdist) continue;
+			double thisDist = end0.distance(end1);
+			if (dist != thisDist) continue;
 			if (dist != 0)
 			{
-				int thisangle = DBMath.figureAngle(end0, end1);
-				if ((angle%1800) != (thisangle%1800)) continue;
+				int thisAngle = DBMath.figureAngle(end0, end1);
+				if ((angle%1800) != (thisAngle%1800)) continue;
 			}
 
 			// the same! queue it for deletion
@@ -241,11 +229,11 @@ public class MimicStitch
 	{
 		List arcKills;
 
-		protected MimicUnstitchJob(List arcKills)
+		public MimicUnstitchJob(List arcKills)
 		{
 			super("Mimic-Unstitch", Routing.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.arcKills = arcKills;
-            setReportExecutionFlag(true);
+			setReportExecutionFlag(true);
 			startJob();
 		}
 
@@ -276,16 +264,15 @@ public class MimicStitch
 		private ArcProto oProto;
 		private double prefX, prefY;
 		private boolean forced;
-		HashSet portMark;
-        private List allRoutes;                         // all routes to be created
-        private Highlighter highlighter;
+		private List allRoutes;                         // all routes to be created
+		private Highlighter highlighter;
 
-		static class PossibleArc
+		private static class PossibleArc
 		{
-			int               situation;
-			NodeInst          ni1, ni2;
-			PortProto         pp1, pp2;
-			Point2D           pt1, pt2;
+			private int       situation;
+			private NodeInst  ni1, ni2;
+			private PortProto pp1, pp2;
+			private Point2D   pt1, pt2;
 		};
 
 		private static final int LIKELYDIFFPORT     =  1;
@@ -333,8 +320,8 @@ public class MimicStitch
 			LIKELYARCSSAMEDIR|LIKELYDIFFNODESIZE|LIKELYDIFFARCCOUNT|LIKELYDIFFPORT|LIKELYDIFFNODETYPE
 		};
 
-		protected MimicStitchJob(Connection conn1, Connection conn2, double oWidth, ArcProto oProto,
-                                 double prefX, double prefY, boolean forced, Highlighter highlighter)
+		public MimicStitchJob(Connection conn1, Connection conn2, double oWidth, ArcProto oProto,
+								double prefX, double prefY, boolean forced, Highlighter highlighter)
 		{
 			super("Mimic-Stitch", Routing.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.conn1 = conn1;
@@ -344,20 +331,13 @@ public class MimicStitch
 			this.prefX = prefX;
 			this.prefY = prefY;
 			this.forced = forced;
-            allRoutes = new ArrayList();
-            this.highlighter = highlighter;
-            setReportExecutionFlag(true);
+			allRoutes = new ArrayList();
+			this.highlighter = highlighter;
+			setReportExecutionFlag(true);
 			startJob();
 		}
 
 		public boolean doIt()
-		{
-			portMark = new HashSet();
-			int result = mimic();
-			return true;
-		}
-
-		private int mimic()
 		{
 			if (forced) System.out.println("Mimicing last arc...");
 
@@ -386,36 +366,19 @@ public class MimicStitch
 			// count the number of other arcs on the ends
 			int con1 = endPi[0].getNodeInst().getNumConnections() + endPi[1].getNodeInst().getNumConnections() - 2;
 
-			// precompute information about every port in the cell
-			int total = 0;
+			// precompute polygon information about every port in the cell
+			HashMap cachedPortPoly = new HashMap();
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
-				for(Iterator pIt = ni.getProto().getPorts(); pIt.hasNext(); )
+				for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
 				{
-					PortProto pp = (PortProto)pIt.next();
-					if (!pp.connectsTo(oProto)) continue;
-					portMark.add(pp);
-					total++;
+					PortInst pi = (PortInst)pIt.next();
+					if (!pi.getPortProto().connectsTo(oProto)) continue;
+					cachedPortPoly.put(pi, pi.getPoly());
 				}
 			}
-			if (total == 0) return count;
-
-			Poly [] ro_mimicportpolys = new Poly[total];
-			int i = 0;
-			HashMap nodeIndex = new HashMap();
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
-			{
-				NodeInst ni = (NodeInst)it.next();
-				nodeIndex.put(ni, new Integer(i));
-				for(Iterator pIt = ni.getProto().getPorts(); pIt.hasNext(); )
-				{
-					PortProto pp = (PortProto)pIt.next();
-					if (!portMark.contains(pp)) continue;
-					ro_mimicportpolys[i] = ni.getShapeOfPort(pp);
-					i++;
-				}
-			}
+			if (cachedPortPoly.size() == 0) return true;
 
 			// search from both ends
 			for(int end=0; end<2; end++)
@@ -438,9 +401,9 @@ public class MimicStitch
 					angleRadians = DBMath.figureAngleRadians(pt0, pt1);
 					useFAngle = true;
 				}
-				Poly port0Poly = pi0.getPoly();   // node0.getShapeOfPort(port0);
-				double end0offx = pt0.getX() - port0Poly.getCenterX();
-				double end0offy = pt0.getY() - port0Poly.getCenterY();
+				Poly port0Poly = pi0.getPoly();
+				double end0Offx = pt0.getX() - port0Poly.getCenterX();
+				double end0Offy = pt0.getY() - port0Poly.getCenterY();
 
 				SizeOffset so0 = node0.getSizeOffset();
 				double node0Wid = node0.getXSize() - so0.getLowXOffset() - so0.getHighXOffset();
@@ -478,18 +441,18 @@ public class MimicStitch
 						if (oBounds.getMinY() - bounds.getMaxY() > dist) continue;
 
 						// compare each port
-						int portPos = ((Integer)nodeIndex.get(ni)).intValue();
-						for(Iterator pIt = ni.getProto().getPorts(); pIt.hasNext(); )
+						for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
 						{
-							PortProto pp = (PortProto)pIt.next();
+							PortInst pi = (PortInst)pIt.next();
+							PortProto pp = pi.getPortProto();
 
-							// make sure the arc can connect
-							if (!portMark.contains(pp)) continue;
+							// if this port is not cached, it cannot connect, so ignore it
+							Poly poly = (Poly)cachedPortPoly.get(pi);
+							if (poly == null) continue;
 
-							Poly poly = ro_mimicportpolys[portPos++];
 							double x0 = poly.getCenterX();
 							double y0 = poly.getCenterY();
-							x0 += end0offx;   y0 += end0offy;
+							x0 += end0Offx;   y0 += end0Offy;
 							double wantX1 = x0;
 							double wantY1 = y0;
 							if (dist != 0)
@@ -507,17 +470,17 @@ public class MimicStitch
 							Point2D xy0 = new Point2D.Double(x0, y0);
 							Point2D want1 = new Point2D.Double(wantX1, wantY1);
 
-							int oPortPos = ((Integer)nodeIndex.get(oNi)).intValue();
-							for(Iterator oPIt = oNi.getProto().getPorts(); oPIt.hasNext(); )
+							for(Iterator oPIt = oNi.getPortInsts(); oPIt.hasNext(); )
 							{
-								PortProto opp = (PortProto)oPIt.next();
+								PortInst oPi = (PortInst)oPIt.next();
+								PortProto oPp = oPi.getPortProto();
 
-								// make sure the arc can connect
-								if (!portMark.contains(pp)) continue;
-								Poly thisPoly = ro_mimicportpolys[oPortPos++];
+								// if this port is not cached, it cannot connect, so ignore it
+								Poly thisPoly = (Poly)cachedPortPoly.get(oPi);
+								if (thisPoly == null) continue;
 
 								// don't replicate what is already done
-								if (ni == node0 && pp == port0 && oNi == node1 && opp == port1) continue;
+								if (pi == pi0 && oPi == pi1) continue;
 
 								// see if they are the same distance apart
 								boolean ptInPoly = thisPoly.isInside(want1);
@@ -534,27 +497,27 @@ public class MimicStitch
 								for(Iterator pII = ni.getConnections(); pII.hasNext(); )
 								{
 									Connection con = (Connection)pII.next();
-									PortInst pi = con.getPortInst();
-									if (pi.getPortProto() != pp) continue;
-									ArcInst oai = con.getArc();
-									piNet0 = pi;
+									PortInst aPi = con.getPortInst();
+									if (aPi.getPortProto() != pp) continue;
+									ArcInst oAi = con.getArc();
+									piNet0 = aPi;
 									if (desiredAngle < 0)
 									{
-										if (oai.getHead().getLocation().getX() == oai.getTail().getLocation().getX() &&
-											oai.getHead().getLocation().getY() == oai.getTail().getLocation().getY())
+										if (oAi.getHead().getLocation().getX() == oAi.getTail().getLocation().getX() &&
+											oAi.getHead().getLocation().getY() == oAi.getTail().getLocation().getY())
 										{
 											situation |= LIKELYARCSSAMEDIR;
 											break;
 										}
 									} else
 									{
-										if (oai.getHead().getLocation().getX() == oai.getTail().getLocation().getX() &&
-											oai.getHead().getLocation().getY() == oai.getTail().getLocation().getY())
+										if (oAi.getHead().getLocation().getX() == oAi.getTail().getLocation().getX() &&
+											oAi.getHead().getLocation().getY() == oAi.getTail().getLocation().getY())
 												continue;
 										int thisend = 0;
-										if (oai.getTail().getPortInst() == pi) thisend = 1;
-										int existingAngle = DBMath.figureAngle(oai.getConnection(thisend).getLocation(),
-											oai.getConnection(1-thisend).getLocation());
+										if (oAi.getTail().getPortInst() == aPi) thisend = 1;
+										int existingAngle = DBMath.figureAngle(oAi.getConnection(thisend).getLocation(),
+											oAi.getConnection(1-thisend).getLocation());
 										if (existingAngle == desiredAngle)
 										{
 											situation |= LIKELYARCSSAMEDIR;
@@ -570,27 +533,27 @@ public class MimicStitch
 								for(Iterator pII = oNi.getConnections(); pII.hasNext(); )
 								{
 									Connection con = (Connection)pII.next();
-									PortInst pi = con.getPortInst();
-									if (pi.getPortProto() != opp) continue;
-									ArcInst oai = con.getArc();
-									piNet1 = pi;
+									PortInst aPi = con.getPortInst();
+									if (aPi.getPortProto() != oPp) continue;
+									ArcInst oAi = con.getArc();
+									piNet1 = aPi;
 									if (desiredAngle < 0)
 									{
-										if (oai.getHead().getLocation().getX() == oai.getTail().getLocation().getX() &&
-											oai.getHead().getLocation().getY() == oai.getTail().getLocation().getY())
+										if (oAi.getHead().getLocation().getX() == oAi.getTail().getLocation().getX() &&
+											oAi.getHead().getLocation().getY() == oAi.getTail().getLocation().getY())
 										{
 											situation |= LIKELYARCSSAMEDIR;
 											break;
 										}
 									} else
 									{
-										if (oai.getHead().getLocation().getX() == oai.getTail().getLocation().getX() &&
-											oai.getHead().getLocation().getY() == oai.getTail().getLocation().getY())
+										if (oAi.getHead().getLocation().getX() == oAi.getTail().getLocation().getX() &&
+											oAi.getHead().getLocation().getY() == oAi.getTail().getLocation().getY())
 												continue;
 										int thisend = 0;
-										if (oai.getTail().getPortInst() == pi) thisend = 1;
-										int existingAngle = DBMath.figureAngle(oai.getConnection(thisend).getLocation(),
-											oai.getConnection(1-thisend).getLocation());
+										if (oAi.getTail().getPortInst() == aPi) thisend = 1;
+										int existingAngle = DBMath.figureAngle(oAi.getConnection(thisend).getLocation(),
+												oAi.getConnection(1-thisend).getLocation());
 										if (existingAngle == desiredAngle)
 										{
 											situation |= LIKELYARCSSAMEDIR;
@@ -606,7 +569,7 @@ public class MimicStitch
 										piNet1.getNodeInst(), piNet1.getPortProto())) continue;
 								}
 
-								if (pp != port0 || opp != port1)
+								if (pp != port0 || oPp != port1)
 									situation |= LIKELYDIFFPORT;
 								int con2 = ni.getNumConnections() + oNi.getNumConnections();
 								if (con1 != con2) situation |= LIKELYDIFFARCCOUNT;
@@ -627,9 +590,9 @@ public class MimicStitch
 								for(Iterator paIt = possibleArcs.iterator(); paIt.hasNext(); )
 								{
 									PossibleArc pa = (PossibleArc)paIt.next();
-									if (pa.ni1 == ni && pa.pp1 == pp && pa.ni2 == oNi && pa.pp2 == opp)
+									if (pa.ni1 == ni && pa.pp1 == pp && pa.ni2 == oNi && pa.pp2 == oPp)
 									{ found = pa;   break; }
-									if (pa.ni2 == ni && pa.pp2 == pp && pa.ni1 == oNi && pa.pp1 == opp)
+									if (pa.ni2 == ni && pa.pp2 == pp && pa.ni1 == oNi && pa.pp1 == oPp)
 									{ found = pa;   break; }
 								}
 								if (found != null)
@@ -650,7 +613,7 @@ public class MimicStitch
 									possibleArcs.add(found);
 								}
 								found.ni1 = ni;      found.pp1 = pp;    found.pt1 = xy0;
-								found.ni2 = oNi;     found.pp2 = opp;   found.pt2 = want1;
+								found.ni2 = oNi;     found.pp2 = oPp;   found.pt2 = want1;
 								found.situation = situation;
 							}
 						}
@@ -665,7 +628,7 @@ public class MimicStitch
 			for(int j=0; j<situations.length; j++)
 			{
 				// see if this situation is possible
-				total = 0;
+				int total = 0;
 				for(Iterator it = possibleArcs.iterator(); it.hasNext(); )
 				{
 					PossibleArc pa = (PossibleArc)it.next();
@@ -707,11 +670,11 @@ public class MimicStitch
 				{
 					// save what is highlighted
 					List saveHighlights = new ArrayList();
-                    for(Iterator it = highlighter.getHighlights().iterator(); it.hasNext(); )
-                        saveHighlights.add(it.next());
+					for(Iterator it = highlighter.getHighlights().iterator(); it.hasNext(); )
+						saveHighlights.add(it.next());
 
-                    // show the wires to be created
-                    highlighter.clear();
+					// show the wires to be created
+					highlighter.clear();
 					for(Iterator it = possibleArcs.iterator(); it.hasNext(); )
 					{
 						PossibleArc pa = (PossibleArc)it.next();
@@ -746,7 +709,7 @@ public class MimicStitch
 				}
 
 				// make the wires
-                allRoutes.clear();
+				allRoutes.clear();
 				for(Iterator it = possibleArcs.iterator(); it.hasNext(); )
 				{
 					PossibleArc pa = (PossibleArc)it.next();
@@ -756,28 +719,27 @@ public class MimicStitch
 					Poly portPoly2 = pa.ni2.getShapeOfPort(pa.pp2);
 					Point2D bend = new Point2D.Double((portPoly1.getCenterX() + portPoly2.getCenterX()) / 2 + prefX,
 						(portPoly1.getCenterY() + portPoly2.getCenterY()) / 2 + prefY);
-					//List added = WiringListener.makeConnection(pa.ni1, pa.pp1, pa.ni2, pa.pp2, bend, false, false);
-                    PortInst pi1 = pa.ni1.findPortInstFromProto(pa.pp1);
-                    PortInst pi2 = pa.ni2.findPortInstFromProto(pa.pp2);
-                    Route route = router.planRoute(pa.ni1.getParent(), pi1, pi2, bend);
-                    if (route.size() == 0)
+					PortInst pi1 = pa.ni1.findPortInstFromProto(pa.pp1);
+					PortInst pi2 = pa.ni2.findPortInstFromProto(pa.pp2);
+					Route route = router.planRoute(pa.ni1.getParent(), pi1, pi2, bend);
+					if (route.size() == 0)
 					{
 						System.out.println("Problem creating arc");
 						continue;
 					}
-                    allRoutes.add(route);
-                    //Router.createRouteNoJob(route, pa.ni1.getParent(), false);
+					allRoutes.add(route);
 					flushStructureChanges = true;
 					count++;
 				}
 
-                // create the routes
-                for (Iterator it = allRoutes.iterator(); it.hasNext(); ) {
-                    Route route = (Route)it.next();
-                    RouteElement re = (RouteElement)route.get(0);
-                    Cell c = re.getCell();
-                    Router.createRouteNoJob(route, c, false, false, highlighter);
-                }
+				// create the routes
+				for (Iterator it = allRoutes.iterator(); it.hasNext(); )
+				{
+					Route route = (Route)it.next();
+					RouteElement re = (RouteElement)route.get(0);
+					Cell c = re.getCell();
+					Router.createRouteNoJob(route, c, false, false, highlighter);
+				}
 
 				// stop now if requested
 				if (stopWhenDone) break;
@@ -806,9 +768,7 @@ public class MimicStitch
 						System.out.println(" (settings are in the Tools / Routing tab of the Preferences)");
 				}
 			}
-			return count;
+			return true;
 		}
-
 	}
-
 }

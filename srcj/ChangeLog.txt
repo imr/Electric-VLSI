@@ -2,6 +2,9 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+BUG: (11/9/04, SMR) Mimic stitching crashes.
+FIX: Replaced array of cached Polygons with a more robust HashMap.
+
 ************************* Version 8.01am: *********************************
 
 IMP: (11/9/04, GVG) Metal1 back from 1.4 -> 1.2
