@@ -59,14 +59,14 @@ import java.util.HashMap;
  */
 public class PolyMerge
 {
-	private HashMap allLayers;
+	private HashMap allLayers = new HashMap(); // should be more efficient here
 
 	/**
 	 * Method to create a new "merge" object.
 	 */
 	public PolyMerge()
 	{
-		allLayers = new HashMap();
+		;
 	}
 
 	/**
