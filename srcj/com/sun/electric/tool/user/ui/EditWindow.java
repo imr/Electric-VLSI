@@ -2539,8 +2539,8 @@ public class EditWindow extends JPanel
        		dbX = dbPt.getX();
        		dbY = dbPt.getY();
 		}
-		int screenX = (int)(sz.width/2 + (dbX - offx) * scale);
-		int screenY = (int)(sz.height/2 - (dbY - offy) * scale);
+		int screenX = (int)Math.round(sz.width/2 + (dbX - offx) * scale);
+		int screenY = (int)Math.round(sz.height/2 - (dbY - offy) * scale);
 		return new Point(screenX, screenY);
 	}
 

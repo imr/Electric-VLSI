@@ -25,39 +25,29 @@
  */
 package com.sun.electric.tool.io.input;
 
-import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.text.TextUtils.UnitScale;
-import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.technology.PrimitiveArc;
-import com.sun.electric.technology.SizeOffset;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * This class reads files in DEF files.
@@ -99,8 +89,10 @@ public class DXF extends Input
 	private int                 io_dxfinputmode;			/* 0: pairs not read, 1: normal pairs, 2: blank lines */
 	private HashSet             validLayerNames;
 	private HashSet             ignoredLayerNames;
-//	static INTBIG               io_dxflayerkey = 0;
 	private TextUtils.UnitScale io_dxfdispunit;
+	/** key of Variable holding DXF layer name. */			public static final Variable.Key DXF_LAYER_KEY = ElectricObject.newKey("IO_dxf_layer");
+	/** key of Variable holding DXF header text. */			public static final Variable.Key DXF_HEADER_TEXT_KEY = ElectricObject.newKey("IO_dxf_header_text");
+	/** key of Variable holding DXF header information. */	public static final Variable.Key DXF_HEADER_ID_KEY = ElectricObject.newKey("IO_dxf_header_ID");
 
 	/**
 	 * Method to import a library from disk.
@@ -125,9 +117,6 @@ public class DXF extends Input
 	private boolean io_readdxflibrary(Library lib)
 		throws IOException
 	{
-		// parameters for reading files
-//		if (io_dxflayerkey == 0) io_dxflayerkey = makekey(x_("IO_dxf_layer"));
-	
 		// set the scale
 		io_dxfsetcurunits();
 	
@@ -228,7 +217,7 @@ public class DXF extends Input
 			}
 			if (IOTool.isDXFInputFlattensHierarchy())
 			{
-//				if (io_dxfextractinsert(found, fr->x, fr->y, fr->xsca, fr->ysca, fr->rot, fr->parent) != 0) return true;
+				if (io_dxfextractinsert(found, fr.x, fr.y, fr.xsca, fr.ysca, fr.rot, fr.parent)) return true;
 			} else
 			{
 				if (fr.xsca != 1.0 || fr.ysca != 1.0)
@@ -246,12 +235,19 @@ public class DXF extends Input
 		// save header with library
 		if (io_dxfheaderid.size() > 0)
 		{
-//			setval((INTBIG)lib, VLIBRARY, x_("IO_dxf_header_text"), (INTBIG)io_dxfheadertext,
-//				VSTRING|VISARRAY|(io_dxfheadercount<<VLENGTHSH));
-//			setval((INTBIG)lib, VLIBRARY, x_("IO_dxf_header_ID"), (INTBIG)io_dxfheaderid,
-//				VSHORT|VISARRAY|(io_dxfheadercount<<VLENGTHSH));
+			int len = io_dxfheaderid.size();
+			Integer [] headerIDs = new Integer[len];
+			for(int i=0; i<len; i++) headerIDs[i] = (Integer)io_dxfheaderid.get(i);
+			lib.newVar(DXF_HEADER_ID_KEY, headerIDs);
 		}
-	
+		if (io_dxfheadertext.size() > 0)
+		{
+			int len = io_dxfheadertext.size();
+			String [] headerTexts = new String[len];
+			for(int i=0; i<len; i++) headerTexts[i] = (String)io_dxfheadertext.get(i);
+			lib.newVar(DXF_HEADER_TEXT_KEY, headerTexts);
+		}
+
 		if (io_dxfreadpolylines > 0 || io_dxfreadlines > 0 || io_dxfreadcircles > 0 ||
 			io_dxfreadsolids > 0 || io_dxfread3dfaces > 0 || io_dxfreadarcs > 0 ||
 			io_dxfreadtexts > 0 || io_dxfreadinserts > 0)
@@ -698,8 +694,8 @@ public class DXF extends Input
 		if (sAngle > eAngle) eAngle += 360.0;
 		double startoffset = sAngle;
 		startoffset -= (double)iangle / 10.0;
-//		setarcdegrees(ni, startoffset * EPI / 180.0, (eAngle-sAngle) * EPI / 180.0);
-//		setvalkey((INTBIG)ni, VNODEINST, io_dxflayerkey, (INTBIG)layer.layerName, VSTRING);
+		ni.setArcDegrees(startoffset * Math.PI / 1800.0, (eAngle-sAngle) * Math.PI / 180.0);
+		ni.newVar(DXF_LAYER_KEY, layer.layerName);
 		io_dxfreadarcs++;
 		return false;
 	}
@@ -747,7 +743,7 @@ public class DXF extends Input
 		if (!io_dxfacceptablelayer(layer)) return false;
 		NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(x, y), rad*2, rad*2, io_dxfcurcell);
 		if (ni == null) return true;
-//		setvalkey((INTBIG)ni, VNODEINST, io_dxflayerkey, (INTBIG)layer->layerName, VSTRING);
+		ni.newVar(DXF_LAYER_KEY, layer.layerName);
 		io_dxfreadcircles++;
 		return false;
 	}
@@ -879,7 +875,7 @@ public class DXF extends Input
 		points[0] = new Point2D.Double(x1 - cX, y1 - cY);
 		points[1] = new Point2D.Double(x2 - cX, y2 - cY);
 		ni.newVar(NodeInst.TRACE, points);
-//		setvalkey((INTBIG)ni, VNODEINST, io_dxflayerkey, (INTBIG)layer->layerName, VSTRING);
+		ni.newVar(DXF_LAYER_KEY, layer.layerName);
 		io_dxfreadlines++;
 		return false;
 	}
@@ -1005,8 +1001,8 @@ public class DXF extends Input
 							if (ni == null) return true;
 							double startoffset = sa;
 							startoffset -= iangle;
-//							setarcdegrees(ni, startoffset * EPI / 1800.0, EPI);
-//							setvalkey((INTBIG)ni, VNODEINST, io_dxflayerkey, (INTBIG)layer->layerName, VSTRING);
+							ni.setArcDegrees(startoffset * Math.PI / 1800.0, Math.PI);
+							ni.newVar(DXF_LAYER_KEY, layer.layerName);
 							continue;
 						}
 
@@ -1066,8 +1062,8 @@ public class DXF extends Input
 						if (sa > ea) ea += 3600.0;
 						double startoffset = sa;
 						startoffset -= (double)iangle;
-//						setarcdegrees(ni, startoffset * EPI / 1800.0, (ea-sa) * EPI / 1800.0);
-//						setvalkey((INTBIG)ni, VNODEINST, io_dxflayerkey, (INTBIG)layer->layerName, VSTRING);
+						ni.setArcDegrees(startoffset * Math.PI / 1800.0, (ea-sa) * Math.PI / 1800.0);
+						ni.newVar(DXF_LAYER_KEY, layer.layerName);
 						continue;
 					}
 
@@ -1082,7 +1078,7 @@ public class DXF extends Input
 					points[0] = new Point2D.Double(x1 - cX, y1 - cY);
 					points[1] = new Point2D.Double(x2 - cX, y2 - cY);
 					ni.newVar(NodeInst.TRACE, points);
-//					setvalkey((INTBIG)ni, VNODEINST, io_dxflayerkey, (INTBIG)layer->layerName, VSTRING);
+					ni.newVar(DXF_LAYER_KEY, layer.layerName);
 				}
 			} else
 			{
@@ -1121,7 +1117,7 @@ public class DXF extends Input
 					points[i] = new Point2D.Double(pp.x - cX, pp.y - cY);
 				}
 				ni.newVar(NodeInst.TRACE, points);
-//				setvalkey((INTBIG)ni, VNODEINST, io_dxflayerkey, (INTBIG)layer->layerName, VSTRING);
+				ni.newVar(DXF_LAYER_KEY, layer.layerName);
 			}
 		}
 		io_dxfreadpolylines++;
@@ -1184,7 +1180,7 @@ public class DXF extends Input
 		points[2] = new Point2D.Double(x3 - cX, y3 - cY);
 		points[3] = new Point2D.Double(x4 - cX, y4 - cY);
 		ni.newVar(NodeInst.TRACE, points);
-//		setvalkey((INTBIG)ni, VNODEINST, io_dxflayerkey, (INTBIG)layer->layerName, VSTRING);
+		ni.newVar(DXF_LAYER_KEY, layer.layerName);
 		io_dxfreadsolids++;
 		return false;
 	}
@@ -1227,9 +1223,11 @@ public class DXF extends Input
 		{
 			if (msg != null)
 			{
-//				screengettextsize(el_curwindowpart, msg, &px, &py);
-//				lx = x;	hx = x + height*px/py;
-//				ly = y;	hy = y + height;
+				double h = 1;
+				EditWindow wnd = EditWindow.getCurrent();
+				if (wnd != null) h = wnd.getTextScreenSize(height);
+				lx = x;	hx = x + height * h;
+				ly = y;	hy = y + height;
 			}
 		}
 		if (!io_dxfacceptablelayer(layer)) return true;
@@ -1245,7 +1243,7 @@ public class DXF extends Input
 				td.setPos(TextDescriptor.Position.BOXED);
 				td.setAbsSize(TextDescriptor.Size.TXTMAXPOINTS);
 			}
-//			setvalkey((INTBIG)ni, VNODEINST, io_dxflayerkey, (INTBIG)layer->layerName, VSTRING);
+			ni.newVar(DXF_LAYER_KEY, layer.layerName);
 			io_dxfreadtexts++;
 		}
 		return false;
@@ -1302,7 +1300,7 @@ public class DXF extends Input
 		points[2] = new Point2D.Double(x3 - cX, y3 - cY);
 		points[3] = new Point2D.Double(x4 - cX, y4 - cY);
 		ni.newVar(NodeInst.TRACE, points);
-//		setvalkey((INTBIG)ni, VNODEINST, io_dxflayerkey, (INTBIG)layer->layerName, VSTRING);
+		ni.newVar(DXF_LAYER_KEY, layer.layerName);
 		io_dxfread3dfaces++;
 		return false;
 	}
@@ -1333,153 +1331,136 @@ public class DXF extends Input
 	
 	private boolean io_dxfextractinsert(Cell onp, double x, double y, double xsca, double ysca, int rot, Cell np)
 	{
-//		INTBIG *newtrace, tx, ty;
-//		REGISTER INTBIG sx, sy, cx, cy;
-//		INTBIG i, len;
-//		NODEINST *ni, *nni;
-//		double startoffset, endangle;
-//		REGISTER VARIABLE *var;
-//		XARRAY trans;
+		// rotate "rot*10" about point [(onp->lowx+onp->highx)/2+x, (onp->lowy+onp->highy)/2+y]
+		AffineTransform trans = NodeInst.pureRotate(rot*10, false, false);
+		double m00 = trans.getScaleX();
+		double m01 = trans.getShearX();
+		double m11 = trans.getScaleY();
+		double m10 = trans.getShearY();
+		Rectangle2D bounds = onp.getBounds();
+		double m02 = bounds.getCenterX() + x;
+		double m12 = bounds.getCenterY() + y;
+		trans.setTransform(m00, m10, m01, m11, m02, m12);
+		Point2D pt = new Point2D.Double(-m02, -m12);
+		trans.transform(pt, pt);
+		trans.setTransform(m00, m10, m01, m11, pt.getX(), pt.getY());
+
+		for(Iterator it = onp.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (ni.getProto() instanceof Cell)
+			{
+				System.out.println("Cannot insert block '" + onp.describe() + "'...it has inserts in it");
+				return true;
+			}
+			if (ni.getProto() == Generic.tech.cellCenterNode) continue;
+			double sX = ni.getXSize() * xsca;
+			double sY = ni.getYSize() * ysca;
+			double cx = x + ni.getAnchorCenterX() * xsca / 2.0;
+			double cy = y + ni.getAnchorCenterY() * ysca / 2.0;
+			Point2D tPt = new Point2D.Double(cx, cy);
+			trans.transform(tPt, tPt);
+			if (ni.isXMirrored()) sX = -sX;
+			if (ni.isYMirrored()) sY = -sY;
+			NodeInst nni = NodeInst.makeInstance(ni.getProto(), tPt, sX, sY, np, (ni.getAngle()+rot*10)%3600, null, 0);
+			if (nni == null) return true;
+			if (ni.getProto() == Artwork.tech.closedPolygonNode || ni.getProto() == Artwork.tech.filledPolygonNode ||
+				ni.getProto() == Artwork.tech.openedPolygonNode || ni.getProto() == Artwork.tech.openedDashedPolygonNode)
+			{
+				// copy trace information
+				Variable var = ni.getVar(NodeInst.TRACE);
+				if (var != null)
+				{
+					int len = var.getLength();
+					Point2D [] oldTrace = (Point2D [])var.getObject();
+					Point2D [] newTrace = new Point2D[len];
+					for(int i=0; i<len; i++)
+						newTrace[i] = new Point2D.Double(oldTrace[i].getX() * xsca, oldTrace[i].getY() * ysca);
+					nni.newVar(Artwork.ART_MESSAGE, newTrace);
+				}
+			} else if (ni.getProto() == Generic.tech.invisiblePinNode)
+			{
+				// copy text information
+				Variable var = ni.getVar(Artwork.ART_MESSAGE);
+				if (var != null) nni.newVar(Artwork.ART_MESSAGE, var.getObject());
+			} else if (ni.getProto() == Artwork.tech.circleNode || ni.getProto() == Artwork.tech.thickCircleNode)
+			{
+				// copy arc information
+				double [] curvature = ni.getArcDegrees();
+				nni.setArcDegrees(curvature[0], curvature[1]);
+			}
 	
-//		// rotate "rot*10" about point [(onp->lowx+onp->highx)/2+x, (onp->lowy+onp->highy)/2+y]
-//		makeangle(rot*10, 0, trans);
-//		trans[2][0] = (onp->lowx+onp->highx)/2+x;
-//		trans[2][1] = (onp->lowy+onp->highy)/2+y;
-//		xform(-trans[2][0], -trans[2][1], &trans[2][0], &trans[2][1], trans);
-//	
-//		for(ni = onp->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//		{
-//			if (ni->proto->primindex == 0)
-//			{
-//				ttyputmsg(_("Cannot insert block '%s'...it has inserts in it"),
-//					onp->protoname);
-//				return(1);
-//			}
-//			if (ni->proto == gen_cellcenterprim) continue;
-//			sx = roundfloat((float)(ni->highx-ni->lowx) * xsca);
-//			sy = roundfloat((float)(ni->highy-ni->lowy) * ysca);
-//			cx = x + roundfloat((float)(ni->highx+ni->lowx) * xsca / 2.0f);
-//			cy = y + roundfloat((float)(ni->highy+ni->lowy) * ysca / 2.0f);
-//			xform(cx, cy, &tx, &ty, trans);
-//			tx -= sx/2;   ty -= sy/2;
-//			nni = newnodeinst(ni->proto, tx, tx+sx, ty, ty+sy, ni->transpose, (ni->rotation+rot*10)%3600, np);
-//			if (nni == NONODEINST) return(1);
-//			if (ni->proto == art_closedpolygonprim || ni->proto == art_filledpolygonprim ||
-//				ni->proto == art_openedpolygonprim || ni->proto == art_openeddashedpolygonprim)
-//			{
-//				// copy trace information
-//				var = gettrace(ni);
-//				if (var != NOVARIABLE)
-//				{
-//					len = (var->type&VLENGTH) >> VLENGTHSH;
-//					newtrace = (INTBIG *)emalloc(len * SIZEOFINTBIG, el_tempcluster);
-//					if (newtrace == 0) return(1);
-//					for(i=0; i<len; i++)
-//					{
-//						newtrace[i] = (INTBIG)(((INTBIG *)var->addr)[i] * ((i&1) == 0 ? xsca : ysca));
-//					}
-//					(void)setvalkey((INTBIG)nni, VNODEINST, el_trace_key, (INTBIG)newtrace, var->type);
-//					efree((CHAR *)newtrace);
-//				}
-//			} else if (ni->proto == gen_invispinprim)
-//			{
-//				// copy text information
-//				var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, art_messagekey);
-//				if (var != NOVARIABLE)
-//					var = setvalkey((INTBIG)nni, VNODEINST, art_messagekey, var->addr, var->type);
-//			} else if (ni->proto == art_circleprim || ni->proto == art_thickcircleprim)
-//			{
-//				// copy arc information
-//				getarcdegrees(ni, &startoffset, &endangle);
-//				setarcdegrees(nni, startoffset, endangle);
-//			}
-//	
-//			// copy other information
-//			var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, io_dxflayerkey);
-//			if (var != NOVARIABLE)
-//				setvalkey((INTBIG)nni, VNODEINST, io_dxflayerkey, var->addr, var->type);
-//			var = getvalkey((INTBIG)ni, VNODEINST, VINTEGER, art_colorkey);
-//			if (var != NOVARIABLE)
-//				setvalkey((INTBIG)nni, VNODEINST, art_colorkey, var->addr, var->type);
-//		}
+			// copy other information
+			Variable var = ni.getVar(DXF_LAYER_KEY);
+			if (var != null) nni.newVar(DXF_LAYER_KEY, var.getObject());
+			var = ni.getVar(Artwork.ART_COLOR);
+			if (var != null) nni.newVar(Artwork.ART_COLOR, var.getObject());
+		}
 		return false;
 	}
 	
 	private Cell io_dxfgetscaledcell(Cell onp, double xsca, double ysca)
 	{
-//		CHAR sviewname[100], fviewname[100], cellname[200];
-//		INTBIG *newtrace;
-//		INTBIG i, len;
-//		VIEW *view;
-//		NODEINST *ni, *nni;
-//		NODEPROTO *np;
-//		double startoffset, endangle;
-//		REGISTER VARIABLE *var;
-//	
-//		esnprintf(fviewname, 100, x_("scaled%gx%g"), xsca, ysca);
-//		esnprintf(sviewname, 100, x_("s%gx%g"), xsca, ysca);
-//		view = getview(fviewname);
-//		if (view == NOVIEW)
-//		{
-//			view = newview(fviewname, sviewname);
-//			if (view == NOVIEW) return(NONODEPROTO);
-//		}
-//	
-//		// find the view of this cell
-//		FOR_CELLGROUP(np, onp)
-//			if (np->cellview == view) return(np);
-//	
-//		// not found: create it
-//		esnprintf(cellname, 200, x_("%s{%s}"), onp->protoname, sviewname);
-//		np = us_newnodeproto(cellname, onp->lib);
-//		if (np == NONODEPROTO) return(NONODEPROTO);
-//	
-//		for(ni = onp->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//		{
-//			if (ni->proto->primindex == 0)
-//			{
-//				ttyputmsg(_("Cannot scale insert of block '%s'...it has inserts in it"),
-//					onp->protoname);
-//				return(NONODEPROTO);
-//			}
-//			nni = newnodeinst(ni->proto, (INTBIG)(ni->lowx*xsca), (INTBIG)(ni->highx*xsca),
-//				(INTBIG)(ni->lowy*ysca), (INTBIG)(ni->highy*ysca), ni->transpose, ni->rotation, np);
-//			if (nni == NONODEINST) return(NONODEPROTO);
-//			if (ni->proto == art_closedpolygonprim || ni->proto == art_filledpolygonprim ||
-//				ni->proto == art_openedpolygonprim || ni->proto == art_openeddashedpolygonprim)
-//			{
-//				// copy trace information
-//				var = gettrace(ni);
-//				if (var != NOVARIABLE)
-//				{
-//					len = (var->type&VLENGTH) >> VLENGTHSH;
-//					newtrace = (INTBIG *)emalloc(len * SIZEOFINTBIG, el_tempcluster);
-//					if (newtrace == 0) return(NONODEPROTO);
-//					for(i=0; i<len; i++)
-//						newtrace[i] = (INTBIG)(((INTBIG *)var->addr)[i] * ((i&1) == 0 ? xsca : ysca));
-//					(void)setvalkey((INTBIG)nni, VNODEINST, el_trace_key, (INTBIG)newtrace, var->type);
-//					efree((CHAR *)newtrace);
-//				}
-//			} else if (ni->proto == gen_invispinprim)
-//			{
-//				// copy text information
-//				var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, art_messagekey);
-//				if (var != NOVARIABLE)
-//					var = setvalkey((INTBIG)nni, VNODEINST, art_messagekey, var->addr, var->type);
-//			} else if (ni->proto == art_circleprim || ni->proto == art_thickcircleprim)
-//			{
-//				// copy arc information
-//				getarcdegrees(ni, &startoffset, &endangle);
-//				setarcdegrees(nni, startoffset, endangle);
-//			}
-//	
-//			// copy layer information
-//			var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, io_dxflayerkey);
-//			if (var != NOVARIABLE)
-//				setvalkey((INTBIG)nni, VNODEINST, io_dxflayerkey, var->addr, var->type);
-//		}
-//		return(np);
-		return null;
+		String fviewname = "scaled" + xsca + "x" + ysca;
+		String sviewname = "s" + xsca + "x" + ysca;
+		View view = View.findView(fviewname);
+		if (view == null)
+		{
+			view = View.newInstance(fviewname, sviewname);
+			if (view == null) return null;
+		}
+	
+		// find the view of this cell
+		Cell rightView = onp.otherView(view);
+		if (rightView != null) return rightView;
+	
+		// not found: create it
+		String cellname = onp.getName() + "{" + sviewname + "}";
+		Cell np = Cell.makeInstance(onp.getLibrary(), cellname);
+		if (np == null) return null;
+	
+		for(Iterator it = onp.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (ni.getProto() instanceof Cell)
+			{
+				System.out.println("Cannot insert block '" + onp.describe() + "'...it has inserts in it");
+				return null;
+			}
+			NodeInst nni = NodeInst.makeInstance(ni.getProto(), ni.getAnchorCenter(),
+				ni.getXSizeWithMirror()*xsca, ni.getYSizeWithMirror()*ysca, np, ni.getAngle(), null, 0);
+			if (nni == null) return null;
+			if (ni.getProto() == Artwork.tech.closedPolygonNode || ni.getProto() == Artwork.tech.filledPolygonNode ||
+				ni.getProto() == Artwork.tech.openedPolygonNode || ni.getProto() == Artwork.tech.openedDashedPolygonNode)
+			{
+				// copy trace information
+				Variable var = ni.getVar(NodeInst.TRACE);
+				if (var != null)
+				{
+					int len = var.getLength();
+					Point2D [] oldTrace = (Point2D [])var.getObject();
+					Point2D [] newTrace = new Point2D[len];
+					for(int i=0; i<len; i++)
+						newTrace[i] = new Point2D.Double(oldTrace[i].getX() * xsca, oldTrace[i].getY() * ysca);
+					nni.newVar(Artwork.ART_MESSAGE, newTrace);
+				}
+			} else if (ni.getProto() == Generic.tech.invisiblePinNode)
+			{
+				// copy text information
+				Variable var = ni.getVar(Artwork.ART_MESSAGE);
+				if (var != null) nni.newVar(Artwork.ART_MESSAGE, var.getObject());
+			} else if (ni.getProto() == Artwork.tech.circleNode || ni.getProto() == Artwork.tech.thickCircleNode)
+			{
+				// copy arc information
+				double [] curvature = ni.getArcDegrees();
+				nni.setArcDegrees(curvature[0], curvature[1]);
+			}
+	
+			// copy layer information
+			Variable var = ni.getVar(DXF_LAYER_KEY);
+			if (var != null) nni.newVar(DXF_LAYER_KEY, var.getObject());
+		}
+		return np;
 	}
 	
 	private DXFLAYER io_dxfgetlayer(String name)

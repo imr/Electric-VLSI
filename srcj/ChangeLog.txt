@@ -8,6 +8,9 @@ IMP: (11/17/04, DN) XSize and YSize of serpentine transistors are not properly c
 FIX: getShapeOfNode and getShapeOfPort use getAnchorCenter instead of getTrueCenter
      In NodeInst use getShapeOfNode to calculate sizes of primitive with TRACE.
 
+BUG: (11/16/04, SMR) Hierarchical display of wires is sometimes off by 1 pixel.
+FIX: In EditWindow.databaseToScreen() use rounding for better accuracy.
+
 IMP/MAN: (11/15/04, GVG) Network tool connected to 3D View
 
 IMP/MAN: (11/15/04, GVG) Ability to save ErrorLogger for debugging purposes.
