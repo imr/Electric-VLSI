@@ -168,22 +168,22 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		this.parent = parent;
 
 		// make sure the arc can connect to these ports
-		PortProto pa = a.getPortProto();
-		PrimitivePort ppa = (PrimitivePort)(pa.getBasePort());
-		if (!ppa.connectsTo(protoType))
-		{
-			System.out.println("Cannot create " + protoType.describe() + " arc in cell " + parent.describe() +
-				" because it cannot connect to port " + pa.getProtoName());
-			return true;
-		}
-		PortProto pb = b.getPortProto();
-		PrimitivePort ppb = (PrimitivePort)(pb.getBasePort());
-		if (!ppb.connectsTo(protoType))
-		{
-			System.out.println("Cannot create " + protoType.describe() + " arc in cell " + parent.describe() +
-				" because it cannot connect to port " + pb.getProtoName());
-			return true;
-		}
+//		PortProto pa = a.getPortProto();
+//		PrimitivePort ppa = (PrimitivePort)(pa.getBasePort());
+//		if (!ppa.connectsTo(protoType))
+//		{
+//			System.out.println("Cannot create " + protoType.describe() + " arc in cell " + parent.describe() +
+//				" because it cannot connect to port " + pa.getProtoName());
+//			return true;
+//		}
+//		PortProto pb = b.getPortProto();
+//		PrimitivePort ppb = (PrimitivePort)(pb.getBasePort());
+//		if (!ppb.connectsTo(protoType))
+//		{
+//			System.out.println("Cannot create " + protoType.describe() + " arc in cell " + parent.describe() +
+//				" because it cannot connect to port " + pb.getProtoName());
+//			return true;
+//		}
 
 		// create node/arc connections and place them properly
 		head = new Connection(this, a, aX, aY);

@@ -38,18 +38,28 @@ public class Export extends PortProto
 	}
 
 	/**
-	 * Low-level access routine to fill-in the cell name.
+	 * Low-level access routine to fill-in the cell name and parent.
 	 * Returns true on error.
 	 */
-	public boolean lowLevelPopulate(Cell parent, NodeInst originalNode, PortInst originalPort, String protoName)
+	public boolean lowLevelName(Cell parent, String protoName)
 	{
 		// initialize the parent object
 		this.parent = parent;
 		this.protoName = protoName;
+		setParent(parent);
+		return false;
+	}
 
+	/**
+	 * Low-level access routine to fill-in the subnode and subport.
+	 * Returns true on error.
+	 */
+	public boolean lowLevelPopulate(NodeInst originalNode, PortInst originalPort)
+	{
 		// initialize this object
 		this.originalPort = originalPort;
 		this.originalNode = originalNode;
+		originalNode.addExport(this);
 		return false;
 	}
 
@@ -59,8 +69,6 @@ public class Export extends PortProto
 	 */
 	public boolean lowLevelLink()
 	{
-		originalNode.addExport(this);
-		setParent(parent);
 		return false;
 	}
 
@@ -70,8 +78,8 @@ public class Export extends PortProto
 	public static Export newInstance(Cell parent, NodeInst originalNode, PortInst originalPort, String protoName)
 	{
 		Export pp = lowLevelAllocate();
-		if (pp.lowLevelPopulate(parent, originalNode, originalPort, protoName)) return null;
-		if (pp.lowLevelLink()) return null;
+		if (pp.lowLevelName(parent, protoName)) return null;
+		if (pp.lowLevelPopulate(originalNode, originalPort)) return null;
 		return pp;
 	}	
 

@@ -6,6 +6,10 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.TecGeneric;
 import com.sun.electric.technology.technologies.TecSchematics;
 import com.sun.electric.technology.technologies.TecArtwork;
+import com.sun.electric.technology.technologies.TecCMOS;
+import com.sun.electric.technology.technologies.TecMoCMOS;
+import com.sun.electric.technology.technologies.TecMoCMOSOld;
+import com.sun.electric.technology.technologies.TecMoCMOSSub;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.NodeProto;
@@ -197,6 +201,25 @@ public class Technology extends ElectricObject
 	public void addArcProto(PrimitiveArc ap)
 	{
 		arcs.add(ap);
+	}
+		
+	public static void initAllTechnologies()
+	{
+		// Because of lazy evaluation, technologies aren't initialized unless they're referenced here
+		Technology.setCurrent(TecGeneric.tech);		// must be called first
+
+		// now all of the rest
+		Technology.setCurrent(TecSchematics.tech);
+		Technology.setCurrent(TecArtwork.tech);
+		Technology.setCurrent(TecCMOS.tech);
+		Technology.setCurrent(TecMoCMOSOld.tech);
+		Technology.setCurrent(TecMoCMOSSub.tech);
+
+		// the last one is the real current technology
+		Technology.setCurrent(TecMoCMOS.tech);
+
+		// setup the generic technology to handle all connections
+		TecGeneric.tech.makeUnivList();
 	}
 
 	/** Set the NonElectrical bit */

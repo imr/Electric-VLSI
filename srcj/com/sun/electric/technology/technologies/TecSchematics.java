@@ -325,7 +325,7 @@ public class TecSchematics extends Technology
 			});
 		wireCon_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, wireCon_node, new ArcProto[] {wire_arc}, "wire", 0,180, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, wireCon_node, new ArcProto[] {wire_arc, bus_arc}, "wire", 0,180, 0, PortProto.Function.UNKNOWN,
 					EdgeH.fromLeft(0.5), EdgeV.fromBottom(0.5), EdgeH.fromRight(0.5), EdgeV.fromTop(0.5))
 			});
 		wireCon_node.setFunction(NodeProto.Function.CONNECT);
@@ -620,19 +620,19 @@ public class TecSchematics extends Technology
 		flipflop_node = PrimitiveNode.newInstance("Flip-Flop", this, 6.0, 10.0, null, ffLayersRSMS);
 		flipflop_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, flipflop_node, new ArcProto[] {wire_arc, bus_arc}, "i1", 180,45, 0, PortProto.Function.IN,
+				PrimitivePort.newInstance(this, flipflop_node, new ArcProto[] {wire_arc}, "i1", 180,45, 0, PortProto.Function.IN,
 					EdgeH.LEFTEDGE, TOPBYP6, EdgeH.LEFTEDGE, TOPBYP6),
-				PrimitivePort.newInstance(this, flipflop_node, new ArcProto[] {wire_arc, bus_arc}, "i2", 180,45, 1, PortProto.Function.IN,
+				PrimitivePort.newInstance(this, flipflop_node, new ArcProto[] {wire_arc}, "i2", 180,45, 1, PortProto.Function.IN,
 					EdgeH.LEFTEDGE, BOTBYP6, EdgeH.LEFTEDGE, BOTBYP6),
-				PrimitivePort.newInstance(this, flipflop_node, new ArcProto[] {wire_arc, bus_arc}, "q", 0,45, 2, PortProto.Function.OUT,
+				PrimitivePort.newInstance(this, flipflop_node, new ArcProto[] {wire_arc}, "q", 0,45, 2, PortProto.Function.OUT,
 					EdgeH.RIGHTEDGE, TOPBYP6, EdgeH.RIGHTEDGE, TOPBYP6),
-				PrimitivePort.newInstance(this, flipflop_node, new ArcProto[] {wire_arc, bus_arc}, "qb", 0,45, 3, PortProto.Function.OUT,
+				PrimitivePort.newInstance(this, flipflop_node, new ArcProto[] {wire_arc}, "qb", 0,45, 3, PortProto.Function.OUT,
 					EdgeH.RIGHTEDGE, BOTBYP6, EdgeH.RIGHTEDGE, BOTBYP6),
-				PrimitivePort.newInstance(this, flipflop_node, new ArcProto[] {wire_arc, bus_arc}, "ck", 180,45, 4, PortProto.Function.IN,
+				PrimitivePort.newInstance(this, flipflop_node, new ArcProto[] {wire_arc}, "ck", 180,45, 4, PortProto.Function.IN,
 					EdgeH.LEFTEDGE, EdgeV.CENTER, EdgeH.LEFTEDGE, EdgeV.CENTER),
-				PrimitivePort.newInstance(this, flipflop_node, new ArcProto[] {wire_arc, bus_arc}, "preset", 90,45, 5, PortProto.Function.IN,
+				PrimitivePort.newInstance(this, flipflop_node, new ArcProto[] {wire_arc}, "preset", 90,45, 5, PortProto.Function.IN,
 					EdgeH.CENTER, EdgeV.TOPEDGE, EdgeH.CENTER, EdgeV.TOPEDGE),
-				PrimitivePort.newInstance(this, flipflop_node, new ArcProto[] {wire_arc, bus_arc}, "clear", 270,45, 6, PortProto.Function.IN,
+				PrimitivePort.newInstance(this, flipflop_node, new ArcProto[] {wire_arc}, "clear", 270,45, 6, PortProto.Function.IN,
 					EdgeH.CENTER, EdgeV.BOTTOMEDGE, EdgeH.CENTER, EdgeV.BOTTOMEDGE)
 			});
 		flipflop_node.setFunction(NodeProto.Function.FLIPFLOP);
@@ -653,7 +653,7 @@ public class TecSchematics extends Technology
 			{
 				PrimitivePort.newInstance(this, mux_node, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Function.IN,
 					LEFTBYP8, EdgeV.BOTTOMEDGE, LEFTBYP8, EdgeV.TOPEDGE),
-				PrimitivePort.newInstance(this, mux_node, new ArcProto[] {wire_arc, bus_arc}, "s", 270,0, 2, PortProto.Function.IN,
+				PrimitivePort.newInstance(this, mux_node, new ArcProto[] {wire_arc}, "s", 270,0, 2, PortProto.Function.IN,
 					EdgeH.CENTER, BOTBYP875, EdgeH.CENTER, BOTBYP875),
 				PrimitivePort.newInstance(this, mux_node, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 1, PortProto.Function.OUT,
 					RIGHTBYP8, EdgeV.CENTER, RIGHTBYP8, EdgeV.CENTER)
@@ -735,7 +735,7 @@ public class TecSchematics extends Technology
 			});
 		power_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, power_node, new ArcProto[] {wire_arc, bus_arc}, "pwr", 0,180, 0, PortProto.Function.PWR,
+				PrimitivePort.newInstance(this, power_node, new ArcProto[] {wire_arc}, "pwr", 0,180, 0, PortProto.Function.PWR,
 					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER)
 			});
 		power_node.setFunction(NodeProto.Function.CONPOWER);
@@ -755,7 +755,7 @@ public class TecSchematics extends Technology
 			});
 		ground_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, ground_node, new ArcProto[] {wire_arc, bus_arc}, "gnd", 90,90, 0, PortProto.Function.GND,
+				PrimitivePort.newInstance(this, ground_node, new ArcProto[] {wire_arc}, "gnd", 90,90, 0, PortProto.Function.GND,
 					EdgeH.CENTER, EdgeV.TOPEDGE, EdgeH.CENTER, EdgeV.TOPEDGE)
 			});
 		ground_node.setFunction(NodeProto.Function.CONGROUND);
@@ -892,9 +892,9 @@ public class TecSchematics extends Technology
 			});
 		resistor_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, resistor_node, new ArcProto[] {wire_arc, bus_arc}, "a", 180,90, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, resistor_node, new ArcProto[] {wire_arc}, "a", 180,90, 0, PortProto.Function.UNKNOWN,
 					LEFTBYP66, EdgeV.CENTER, LEFTBYP66, EdgeV.CENTER),
-				PrimitivePort.newInstance(this, resistor_node, new ArcProto[] {wire_arc, bus_arc}, "b", 0,90, 1, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, resistor_node, new ArcProto[] {wire_arc}, "b", 0,90, 1, PortProto.Function.UNKNOWN,
 					RIGHTBYP66, EdgeV.CENTER, RIGHTBYP66, EdgeV.CENTER)
 			});
 		resistor_node.setFunction(NodeProto.Function.RESIST);
@@ -919,9 +919,9 @@ public class TecSchematics extends Technology
 		capacitor_node = PrimitiveNode.newInstance("Capacitor", this, 3.0, 4.0, null, capacitorLayersNorm);
 		capacitor_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, capacitor_node, new ArcProto[] {wire_arc, bus_arc}, "a", 90,90, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, capacitor_node, new ArcProto[] {wire_arc}, "a", 90,90, 0, PortProto.Function.UNKNOWN,
 					EdgeH.CENTER, EdgeV.TOPEDGE, EdgeH.CENTER, EdgeV.TOPEDGE),
-				PrimitivePort.newInstance(this, capacitor_node, new ArcProto[] {wire_arc, bus_arc}, "b", 270,90, 1, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, capacitor_node, new ArcProto[] {wire_arc}, "b", 270,90, 1, PortProto.Function.UNKNOWN,
 					EdgeH.CENTER, EdgeV.BOTTOMEDGE, EdgeH.CENTER, EdgeV.BOTTOMEDGE)
 			});
 		capacitor_node.setFunction(NodeProto.Function.CAPAC);
@@ -954,9 +954,9 @@ public class TecSchematics extends Technology
 		diode_node = PrimitiveNode.newInstance("Diode", this, 2.0, 4.0, null,diodeLayersNorm);
 		diode_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, diode_node, new ArcProto[] {wire_arc, bus_arc}, "a", 90,90, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, diode_node, new ArcProto[] {wire_arc}, "a", 90,90, 0, PortProto.Function.UNKNOWN,
 					EdgeH.CENTER, EdgeV.TOPEDGE, EdgeH.CENTER, EdgeV.TOPEDGE),
-				PrimitivePort.newInstance(this, diode_node, new ArcProto[] {wire_arc, bus_arc}, "b", 270,90, 1, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, diode_node, new ArcProto[] {wire_arc}, "b", 270,90, 1, PortProto.Function.UNKNOWN,
 					EdgeH.CENTER, EdgeV.BOTTOMEDGE, EdgeH.CENTER, EdgeV.BOTTOMEDGE)
 			});
 		diode_node.setFunction(NodeProto.Function.DIODE);
@@ -980,9 +980,9 @@ public class TecSchematics extends Technology
 			});
 		inductor_node.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, inductor_node, new ArcProto[] {wire_arc, bus_arc}, "a", 90,90, 0, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, inductor_node, new ArcProto[] {wire_arc}, "a", 90,90, 0, PortProto.Function.UNKNOWN,
 					EdgeH.CENTER, EdgeV.TOPEDGE, EdgeH.CENTER, EdgeV.TOPEDGE),
-				PrimitivePort.newInstance(this, inductor_node, new ArcProto[] {wire_arc, bus_arc}, "b", 270,90, 1, PortProto.Function.UNKNOWN,
+				PrimitivePort.newInstance(this, inductor_node, new ArcProto[] {wire_arc}, "b", 270,90, 1, PortProto.Function.UNKNOWN,
 					EdgeH.CENTER, EdgeV.BOTTOMEDGE, EdgeH.CENTER, EdgeV.BOTTOMEDGE)
 			});
 		inductor_node.setFunction(NodeProto.Function.INDUCT);

@@ -40,11 +40,18 @@ public class OpenElectricFile implements ActionListener
 
 			//frame.setVisible(true);
 			Library lib = Input.ReadLibrary(file.getPath(), null, Input.ImportType.BINARY);
-			if (lib != null)
+			if (lib == null)
 			{
+				System.out.println("Error reading the library file");
+			} else
+			{
+				System.out.println("Library read");
 				Library.setCurrent(lib);
 				Cell cell = lib.getCurCell();
-				if (cell != null)
+				if (cell == null)
+				{
+					System.out.println("No current cell in this library");
+				} else
 				{
 					ElectricDocWndFrame frame = ElectricDocWndFrame.CreateElectricDocFrame(cell);
 					desktop.add(frame); 

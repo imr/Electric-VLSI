@@ -182,8 +182,10 @@ public class ElectricDocWnd extends JPanel
 				Rectangle2D cellBounds = ni.getBounds();
 				Poly poly = new Poly(cellBounds.getCenterX(), cellBounds.getCenterY(), cellBounds.getWidth(), cellBounds.getHeight());
 				g2.setColor(Color.black);
+				g2.setStroke(solidLine);
 				g2.draw(poly);
-				drawTextCentered(g2, poly.getCenterX(), poly.getCenterY(), np.describe(), 1.0, Color.black);
+				Rectangle2D bounds = poly.getBounds2D();
+				drawTextBoxed(g2, bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(), bounds.getMaxY(), np.describe(), 1.0, Color.black);
 
 				// show the ports
 				int numPorts = ni.getNumPortInsts();
@@ -446,6 +448,36 @@ public class ElectricDocWnd extends JPanel
 
 		// adjust to place text in the center
 		Rectangle2D glyphBounds = gv.getVisualBounds();
+		x -= glyphBounds.getCenterX() * textScale;
+		y += glyphBounds.getCenterY() * textScale;
+
+		// draw the text
+		AffineTransform saveAT = g2.getTransform();
+		g2.translate(x, y);
+		g2.scale(textScale, -textScale);
+		g2.translate(-x, -y);
+		g2.setColor(color);
+		g2.drawGlyphVector(gv, (float)x, (float)y);
+		g2.setTransform(saveAT);
+	}
+
+	void drawTextBoxed(Graphics2D g2, double lowX, double highX, double lowY, double highY, String text, double textScale, Color color)
+	{
+		// make a glyph vector for the desired text
+		Font font = g2.getFont();
+		FontRenderContext frc = new FontRenderContext(null, false, false);
+		GlyphVector gv = font.createGlyphVector(frc, text);
+
+		// adjust to place text in the center
+		Rectangle2D glyphBounds = gv.getVisualBounds();
+		double textWidth = glyphBounds.getWidth() * textScale;
+		double textHeight = glyphBounds.getHeight() * textScale;
+		if (textWidth > highX - lowX)
+		{
+			textScale *= (highX - lowX) / textWidth;
+		}
+		double x = (lowX + highX) / 2;
+		double y = (lowY + highY) / 2;
 		x -= glyphBounds.getCenterX() * textScale;
 		y += glyphBounds.getCenterY() * textScale;
 

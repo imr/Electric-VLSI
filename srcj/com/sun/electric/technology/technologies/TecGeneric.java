@@ -16,6 +16,7 @@ import com.sun.electric.database.prototype.NodeProto;
 
 import java.awt.Point;
 import java.awt.geom.Point2D;
+import java.util.Iterator;
 
 /**
  * This is the MOSIS CMOS technology.
@@ -34,6 +35,8 @@ public class TecGeneric extends Technology
 	public PrimitiveArc universal_arc;
 	public PrimitiveArc invisible_arc;
 	public PrimitiveArc unrouted_arc;
+	private PrimitivePort univPinPort;
+	private PrimitivePort invisPinPort;
 
 	// -------------------- private and protected methods ------------------------
 	private TecGeneric()
@@ -113,6 +116,8 @@ public class TecGeneric extends Technology
 		//**************************************** NODES ****************************************
 
 		/** Universal pin */
+		univPinPort = PrimitivePort.newInstance(this, universalPin_node, new ArcProto[] {universal_arc}, "univ", 0,180, 0, PortProto.Function.UNKNOWN,
+					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER);
 		universalPin_node = PrimitiveNode.newInstance("Universal-Pin", this, 1.0, 1.0, null,
 			new Technology.NodeLayer []
 			{
@@ -120,26 +125,20 @@ public class TecGeneric extends Technology
 					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
 					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.CENTER)})
 			});
-		universalPin_node.addPrimitivePorts(new PrimitivePort []
-			{
-				PrimitivePort.newInstance(this, universalPin_node, new ArcProto[] {universal_arc}, "univ", 0,180, 0, PortProto.Function.UNKNOWN,
-					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER)
-			});
+		universalPin_node.addPrimitivePorts(new PrimitivePort [] {univPinPort});
 		universalPin_node.setFunction(NodeProto.Function.PIN);
 		universalPin_node.setWipeOn1or2();
 		universalPin_node.setHoldsOutline();
 
 		/** Invisible pin */
+		invisPinPort = PrimitivePort.newInstance(this, invisiblePin_node, new ArcProto[] {invisible_arc}, "center", 0,180, 0, PortProto.Function.UNKNOWN,
+					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER);
 		invisiblePin_node = PrimitiveNode.newInstance("Invisible-Pin", this, 1.0, 1.0, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(invisible_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
 			});
-		invisiblePin_node.addPrimitivePorts(new PrimitivePort []
-			{
-				PrimitivePort.newInstance(this, invisiblePin_node, new ArcProto[] {invisible_arc}, "center", 0,180, 0, PortProto.Function.UNKNOWN,
-					EdgeH.CENTER, EdgeV.CENTER, EdgeH.CENTER, EdgeV.CENTER)
-			});
+		invisiblePin_node.addPrimitivePorts(new PrimitivePort [] {invisPinPort});
 		invisiblePin_node.setFunction(NodeProto.Function.PIN);
 		invisiblePin_node.setWipeOn1or2();
 
@@ -229,6 +228,45 @@ public class TecGeneric extends Technology
 					EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE, EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)
 			});
 		simProbe_node.setFunction(NodeProto.Function.ART);
+	}
+
+	/**
+	 * routine to update the connecitivity list for universal and invisible pins so that
+	 * they can connect to ALL arcs.  This is called at initialization and again
+	 * whenever the number of technologies changes
+	 */
+	public void makeUnivList()
+	{
+		// count the number of arcs in all technologies
+		int tot = 0;
+		for(Iterator it = Technology.getTechnologyIterator(); it.hasNext(); )
+		{
+			Technology tech = (Technology)it.next();
+			for(Iterator ait = tech.getArcIterator(); ait.hasNext(); )
+			{
+				ArcProto ap = (ArcProto)ait.next();
+				tot++;
+			}
+		}
+
+		// make an array for each arc
+		ArcProto [] upconn = new ArcProto[tot];
+
+		// fill the array
+		tot = 0;
+		for(Iterator it = Technology.getTechnologyIterator(); it.hasNext(); )
+		{
+			Technology tech = (Technology)it.next();
+			for(Iterator ait = tech.getArcIterator(); ait.hasNext(); )
+			{
+				ArcProto ap = (ArcProto)ait.next();
+				upconn[tot++] = ap;
+			}
+		}
+
+		// store the array in this technology
+		univPinPort.setConnections(upconn);
+		invisPinPort.setConnections(upconn);
 	}
 
 	/*

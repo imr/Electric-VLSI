@@ -69,12 +69,6 @@ public class PrimitivePort extends PortProto
 		return pp;
 	}
 
-	// Get the bounds for this port with respect to some NodeInst.
-	public Poly getPoly(NodeInst ni)
-	{
-		return tech.getPoly(ni, this);
-	}
-
 	protected void getInfo()
 	{
 		System.out.println(" Connection types: " + portArcs.length);
@@ -86,6 +80,18 @@ public class PrimitivePort extends PortProto
 	}
 
 	// ------------------------ public methods ------------------------
+
+	// Get the bounds for this port with respect to some NodeInst.
+	public void setConnections(ArcProto [] portArcs)
+	{
+		this.portArcs = portArcs;
+	}
+
+	// Get the bounds for this port with respect to some NodeInst.
+	public Poly getPoly(NodeInst ni)
+	{
+		return tech.getPoly(ni, this);
+	}
 
 	/** Return this object (it *is* a base port) */
 	public PrimitivePort getBasePort() { return this; }

@@ -9,13 +9,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.technology.technologies.TecGeneric;
-import com.sun.electric.technology.technologies.TecSchematics;
-import com.sun.electric.technology.technologies.TecArtwork;
-import com.sun.electric.technology.technologies.TecCMOS;
-import com.sun.electric.technology.technologies.TecMoCMOS;
-import com.sun.electric.technology.technologies.TecMoCMOSOld;
-import com.sun.electric.technology.technologies.TecMoCMOSSub;
 
 import java.awt.Point;
 import java.awt.geom.Point2D;
@@ -60,15 +53,8 @@ public final class Electric
 		electricFrame.setVisible(true);
 
 		
-		
-		// Because of lazy evaluation, technologies aren't initialized unless they're referenced here
-		Technology.setCurrent(TecGeneric.tech);		// must be called first
-		Technology.setCurrent(TecSchematics.tech);
-		Technology.setCurrent(TecArtwork.tech);
-		Technology.setCurrent(TecCMOS.tech);
-		Technology.setCurrent(TecMoCMOSOld.tech);
-		Technology.setCurrent(TecMoCMOSSub.tech);
-		Technology.setCurrent(TecMoCMOS.tech);
+		// initialize all of the technologies
+		Technology.initAllTechnologies();
 
 		// get information about the nodes
 		NodeProto m1m2Proto = NodeProto.findNodeProto("mocmos:Metal-1-Metal-2-Con");

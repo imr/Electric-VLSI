@@ -115,6 +115,7 @@ public class InputBinary extends Input
 
 	// the Exports in the library
 	/** the number of Exports in the library */								private int portProtoCount;
+	/** counter for Exports in the library */								private int portProtoIndex;
 	/** list of all Exports in the library */								private Export [] portProtoList;
 	/** list of NodeInsts that are origins of Exports in the library */		private NodeInst [] portProtoSubNodeList;
 	/** list of PortProtos that are origins of Exports in the library */	private PortProto [] portProtoSubPortList;
@@ -674,11 +675,6 @@ public class InputBinary extends Input
 		lib.clearChangedMajor();
 		lib.clearChangedMinor();
 		lib.setFromDisk();
-		if (curCell >= 0)
-		{
-			NodeProto currentCell = convertNodeProto(curCell);
-			lib.setCurCell((Cell)currentCell);
-		}
 
 		// get the lambda values in the library
 		for(int i=0; i<techCount; i++)
@@ -787,7 +783,7 @@ public class InputBinary extends Input
 		}
 
 		// read the cells
-		portProtoCount = 0;
+		portProtoIndex = 0;
 		for(int i=0; i<nodeProtoCount; i++)
 		{
 			Cell cell = nodeProtoList[i];
@@ -855,7 +851,7 @@ public class InputBinary extends Input
 //			for(pp = np->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
 //			{
 //				if (pp->temp2 == 0) continue;
-//				if (io_convertportproto(&pp->subportproto, showError))
+//				if (convertPortProto(&pp->subportproto, showError))
 //				{
 //					if (showError)
 //						ttyputmsg(_("  While reading library %s, on cell %s, port %s (lib %s temp1 is %ld)"),
@@ -894,7 +890,7 @@ public class InputBinary extends Input
 					arcIndex++;
 				} else
 				{
-					if (readNodeInst(nodeIndex, cell)) return true;
+					if (readNodeInst(nodeIndex, cellIndex)) return true;
 					nodeIndex++;
 				}
 			} else
@@ -907,7 +903,7 @@ public class InputBinary extends Input
 				}
 				for(int j=0; j<nodeCounts[cellIndex]; j++)
 				{
-					if (readNodeInst(nodeIndex, cell)) return true;
+					if (readNodeInst(nodeIndex, cellIndex)) return true;
 					nodeIndex++;
 				}
 			}
@@ -929,6 +925,12 @@ public class InputBinary extends Input
 			Cell cell = nodeProtoList[cellIndex];
 			if (cell.getTemp1() != 0) continue;
 			completeCellSetupRecursively(cell, cellIndex);
+		}
+
+		if (curCell >= 0)
+		{
+			NodeProto currentCell = convertNodeProto(curCell);
+			lib.setCurCell((Cell)currentCell);
 		}
 
 		// library read successfully
@@ -1020,10 +1022,7 @@ public class InputBinary extends Input
 			// convert portproto to portinst
 			String exportName = portProtoNameList[i];
 			PortInst pi = subNodeInst.findPortInst(subPortProto.getProtoName());
-			if (!pp.lowLevelPopulate(cell, subNodeInst, pi, exportName))
-			{
-				pp.lowLevelLink();
-			}
+			if (pp.lowLevelPopulate(subNodeInst, pi)) return;
 		}
 
 		// finish initializing the ArcInsts in the cell
@@ -1054,10 +1053,18 @@ public class InputBinary extends Input
 			PortInst tailPortInst = tailNode.findPortInst(tailPort.getProtoName());
 			if (headPortInst == null || tailPortInst == null)
 			{
-				System.out.println("Cannot create arc of type " + ap.getProtoName() +
+				System.out.println("Cannot create arc of type " + ap.getProtoName() + " in cell " + cell.getProtoName() +
 					" because ends are unknown");
 				continue;
 			}
+PortProto headPortProto = headPortInst.getPortProto();
+PortProto tailPortProto = tailPortInst.getPortProto();
+if (headPortProto == null || tailPortProto == null)
+{
+	System.out.println("Cannot create arc of type " + ap.getProtoName() + " in cell " + cell.getProtoName() +
+		" because end PROTOS are unknown");
+	continue;
+}
 			ai.lowLevelPopulate(ap, width, tailPortInst, tailX, tailY, headPortInst, headX, headY);
 			ai.lowLevelLink();
 		}
@@ -1168,36 +1175,36 @@ public class InputBinary extends Input
 			int nextIndex = readBigInteger();
 		}
 
-		// read the portprotos on this nodeproto
-		firstPortIndex[cellIndex] = portProtoCount;
+		// read the exports on this nodeproto
+		firstPortIndex[cellIndex] = portProtoIndex;
 		int portCount = readBigInteger();
 		if (portCount != portCounts[cellIndex])
 			System.out.println("Error! Cell header lists " + portCounts[cellIndex] + " exports, but body lists " + portCount);
 		for(int j=0; j<portCount; j++)
 		{
 			// set pointers to portproto
-			Export pp = portProtoList[portProtoCount];
+			Export pp = portProtoList[portProtoIndex];
 
 			// read the sub-NodeInst for this Export
-			portProtoSubNodeList[portProtoCount] = null;
+			portProtoSubNodeList[portProtoIndex] = null;
 			int whichNode = readBigInteger();
 			if (whichNode >= 0 && whichNode < nodeCount)
-				portProtoSubNodeList[portProtoCount] = nodeList[whichNode];
+				portProtoSubNodeList[portProtoIndex] = nodeList[whichNode];
 
 			// read the sub-PortProto on the sub-NodeInst
-			portProtoSubPortList[portProtoCount] = null;
+			portProtoSubPortList[portProtoIndex] = null;
 			int whichPort = readBigInteger();
 			if (whichPort < 0 || portProtoList[whichPort] != null)
-				portProtoSubPortList[portProtoCount] = convertPortProto(whichPort);
+				portProtoSubPortList[portProtoIndex] = convertPortProto(whichPort);
 
 			// read the Export name
 			String exportName = readString();
-			portProtoNameList[portProtoCount] = exportName;
+			portProtoNameList[portProtoIndex] = exportName;
+			if (pp.lowLevelName(cell, exportName)) return true;
 
-			// check for problems
-			if (portProtoSubNodeList[portProtoCount] == null || portProtoSubPortList[portProtoCount] == null)
+			if (portProtoSubNodeList[portProtoIndex] == null)
 			{
-				System.out.println("Error: Export '" + exportName + " of cell " + theProtoName +
+				System.out.println("Error: Export '" + exportName + "' of cell " + theProtoName +
 					" cannot be read properly");
 			}
 
@@ -1242,7 +1249,7 @@ public class InputBinary extends Input
 			// read the export variables
 			if (readVariables(pp) < 0) return true;
 
-			portProtoCount++;
+			portProtoIndex++;
 		}
 
 		// ignore the cell's geometry information
@@ -1356,15 +1363,16 @@ public class InputBinary extends Input
 			if (externalFile != null)
 			{
 				System.out.println("Reading referenced library " + externalFile);
+				elib = Library.newInstance(libName, externalFile);
 			} else
 			{
 				System.out.println("CANNOT FIND referenced library " + libFile.getPath());
+				elib = null;
 //				infstr = initinfstr();
 //				formatinfstr(infstr, _("Reference library '%s'"), libname);
 //				pt = fileselect(returninfstr(infstr), filetype, x_(""));
 //				if (pt != 0) filename = pt;
 			}
-			elib = Library.newInstance(libName, externalFile);
 			if (elib == null) return true;
 
 			// read the external library
@@ -1528,7 +1536,7 @@ public class InputBinary extends Input
 		nodeProtoList[cellIndex] = c;
 
 		// read the portprotos on this Cell
-		firstPortIndex[cellIndex] = portProtoCount;
+		firstPortIndex[cellIndex] = portProtoIndex;
 		if (portCount != portCounts[cellIndex])
 			System.out.println("Error! Cell header lists " + portCounts[cellIndex] + " exports, but body lists " + portCount);
 		for(int j=0; j<portCount; j++)
@@ -1541,11 +1549,11 @@ public class InputBinary extends Input
 				if (!newCell)
 					System.out.println("Cannot find port " + protoName + " on cell " + c.describe() + " in library " + elib.getLibName());
 			}
-			portProtoList[portProtoCount] = pp;
-			portProtoNameList[portProtoCount] = protoName;
-//			portProtoSubNodeList[portProtoCount] = protoName;
-//			portProtoSubPortList[portProtoCount] = protoName;
-			portProtoCount++;
+			portProtoList[portProtoIndex] = pp;
+			portProtoNameList[portProtoIndex] = protoName;
+//			portProtoSubNodeList[portProtoIndex] = protoName;
+//			portProtoSubPortList[portProtoIndex] = protoName;
+			portProtoIndex++;
 		}
 		return false;
 	}
@@ -1553,10 +1561,11 @@ public class InputBinary extends Input
 	/**
 	 * routine to read a node instance.  returns true upon error
 	 */
-	boolean readNodeInst(int nodeIndex, Cell parent)
+	boolean readNodeInst(int nodeIndex, int cellIndex)
 		throws IOException
 	{
 		// read the nodeproto index
+		Cell parent = nodeProtoList[cellIndex];
 		NodeInst ni = nodeList[nodeIndex];
 		int protoIndex = readBigInteger();
 		NodeProto np = convertNodeProto(protoIndex);
