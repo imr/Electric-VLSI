@@ -986,6 +986,7 @@ public class View3DWindow extends JPanel
             if (poly == null) continue; // Case for transistors and active regions.
 			Layer layer = poly.getLayer();
 
+            if (layer.getTechnology() == null) continue; // Non-layout technology. E.g Artwork
 			if (!layer.isVisible()) continue; // Doesn't generate the graph
 
 			double thickness = layer.getThickness() * scale;
