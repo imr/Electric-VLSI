@@ -74,8 +74,8 @@ public class ClickZoomWireListener
     public static ClickZoomWireListener theOne = new ClickZoomWireListener();
 
     private int clickX, clickY;                 /* last mouse pressed coords in screen space */
-    private int dbMoveStartX, dbMoveStartY;     /* left mouse pressed coords for move in database space */
-    private int lastdbMouseX, lastdbMouseY;     /* last location of mouse */
+    private double dbMoveStartX, dbMoveStartY;     /* left mouse pressed coords for move in database space */
+    private double lastdbMouseX, lastdbMouseY;     /* last location of mouse */
     private Mode modeLeft = Mode.none;          /* left mouse button context mode */
     private Mode modeRight = Mode.none;         /* right mouse button context mode */
     private boolean specialSelect = false;      /* if hard-to-select objects are to be selected */
@@ -252,8 +252,8 @@ public class ClickZoomWireListener
 	        clickX = evt.getX();
 	        clickY = evt.getY();
 	        Point2D dbClick = wnd.screenToDatabase(clickX, clickY);
-	        lastdbMouseX = (int)dbClick.getX();
-	        lastdbMouseY = (int)dbClick.getY();
+	        lastdbMouseX = dbClick.getX();
+	        lastdbMouseY = dbClick.getY();
 	
 	        boolean another = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
 	        invertSelection = (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0;
@@ -361,7 +361,7 @@ public class ClickZoomWireListener
 	                // moving objects
 	                if (another)
 	                    dbClick = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbClick);
-	                Point2D dbDelta = new Point((int)dbClick.getX() - dbMoveStartX, (int)dbClick.getY() - dbMoveStartY);
+	                Point2D dbDelta = new Point2D.Double(dbClick.getX() - dbMoveStartX, dbClick.getY() - dbMoveStartY);
 	                EditWindow.gridAlign(dbDelta);
 	                if (dbDelta.getX() != 0 || dbDelta.getY() != 0) {
 	                    highlighter.setHighlightOffset(0, 0);
@@ -415,8 +415,8 @@ public class ClickZoomWireListener
 	            if (!another && !invertSelection && highlighter.overHighlighted(wnd, clickX, clickY)) {
 	                highlighter.finished();
                     // over something, user may want to move objects
-	                dbMoveStartX = (int)dbClick.getX();
-	                dbMoveStartY = (int)dbClick.getY();
+	                dbMoveStartX = dbClick.getX();
+	                dbMoveStartY = dbClick.getY();
                     moveDelta = null;
 	                modeLeft = Mode.move;
 	            } else {
@@ -821,7 +821,7 @@ public class ClickZoomWireListener
 			if (modeLeft == Mode.stickyMove) {
 				if (another)
 					dbMouse = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbMouse);
-				Point2D dbDelta = new Point((int)dbMouse.getX() - dbMoveStartX, (int)dbMouse.getY() - dbMoveStartY);
+				Point2D dbDelta = new Point2D.Double(dbMouse.getX() - dbMoveStartX, dbMouse.getY() - dbMoveStartY);
 				EditWindow.gridAlign(dbDelta);
 				Point2D screenDelta = wnd.deltaDatabaseToScreen((int)dbDelta.getX(), (int)dbDelta.getY());
 				highlighter.setHighlightOffset((int)screenDelta.getX(), (int)screenDelta.getY());
