@@ -655,7 +655,7 @@ public abstract class Job implements ActionListener, Runnable {
      * @see #invokeExamineLater(Runnable, Object)
      */
     public static synchronized void releaseExamineLock() {
-        if (!Main.getDebug()) return true;      // only enable if DEBUG mode
+        if (!Main.getDebug()) return;      // only enable if DEBUG mode
         Job dummy = databaseChangesThread.getJob(Thread.currentThread());
         assert(dummy != null);
         assert(dummy instanceof InthreadExamineJob);
