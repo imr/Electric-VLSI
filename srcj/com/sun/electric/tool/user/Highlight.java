@@ -123,6 +123,7 @@ public class Highlight
 
 	/** The type of the highlighting. */						private Type type;
 	/** The highlighted object. */								private ElectricObject eobj;
+    /** For Highlighted networks, this prevents excess highlights */ private boolean highlightConnected;
 	/** The Cell containing the selection. */					private Cell cell;
 	/** The highlighted outline point (only for NodeInst). */	private int point;
 	/** The highlighted variable. */							private Variable var;
@@ -146,6 +147,7 @@ public class Highlight
 	{
 		this.type = type;
 		this.eobj = null;
+        this.highlightConnected = true;
 		this.cell = null;
 		this.point = -1;
 		this.var = null;
@@ -235,17 +237,33 @@ public class Highlight
             l.highlightChanged();
         }
     }
+
 	/**
 	 * Method to add an ElectricObject to the list of highlighted objects.
 	 * @param eobj the ElectricObject to add to the list of highlighted objects.
 	 * @param cell the Cell in which the ElectricObject resides.
 	 * @return the newly created Highlight object.
 	 */
-	public static synchronized Highlight addElectricObject(ElectricObject eobj, Cell cell)
+    public static synchronized Highlight addElectricObject(ElectricObject eobj, Cell cell)
+    {
+        return addElectricObject(eobj, cell, true);
+    }
+
+    /**
+     * Method to add an ElectricObject to the list of highlighted objects.
+     * @param eobj the ElectricObject to add to the list of highlighted objects.
+     * @param cell the Cell in which the ElectricObject resides.
+     * @param highlightConnected if true, highlight all objects that are in some way connected
+     * to this object.  If false, do not. This is used by addNetwork to prevent extra
+     * things from being highlighted later that are not connected to the network.
+     * @return the newly created Highlight object.
+     */
+	public static synchronized Highlight addElectricObject(ElectricObject eobj, Cell cell, boolean highlightConnected)
 	{
 		Highlight h = new Highlight(Type.EOBJ);
 		h.eobj = eobj;
 		h.cell = cell;
+        h.highlightConnected = highlightConnected;
 
 		highlightList.add(h);
 		return h;
@@ -414,6 +432,7 @@ public class Highlight
 	{
 		Netlist netlist = cell.getUserNetlist();
         List nodesAdded = new ArrayList();
+        System.out.println("Adding objects on network "+net.toString());
 
 		// show all arcs on the network
 		for(Iterator aIt = cell.getArcs(); aIt.hasNext(); )
@@ -425,13 +444,14 @@ public class Highlight
 				JNetwork oNet = netlist.getNetwork(ai, i);
 				if (oNet == net)
 				{
-					Highlight.addElectricObject(ai, cell);
+                    System.out.println("Network on "+ai.getName()+", index "+i+" matches");
+					Highlight.addElectricObject(ai, cell, false);
                     // also highlight end nodes of arc, if they are primitive nodes
                     PortInst pi = ai.getHead().getPortInst();
                     if (pi.getNodeInst().getProto() instanceof PrimitiveNode) {
                         if (!nodesAdded.contains(pi)) {
                             // prevent duplicates
-                            Highlight.addElectricObject(pi, cell);
+                            Highlight.addElectricObject(pi, cell, false);
                             nodesAdded.add(pi);
                         }
                     }
@@ -439,7 +459,7 @@ public class Highlight
                     if (pi.getNodeInst().getProto() instanceof PrimitiveNode)
                         if (!nodesAdded.contains(pi)) {
                             // prevent duplicates
-                            Highlight.addElectricObject(pi, cell);
+                            Highlight.addElectricObject(pi, cell, false);
                             nodesAdded.add(pi);
                         }
 					break;
@@ -1382,68 +1402,74 @@ public class Highlight
 					}
                 }
 
-				// handle verbose highlighting of nodes
-				Netlist netlist = cell.getUserNetlist();
-				Nodable no = Netlist.getNodableFor(ni, 0);
-				PortProto epp = pp.getEquivalent();
-				if (epp == null) epp = pp;
-				int busWidth = pp.getNameKey().busWidth();
+				// highlight objects that are electrically connected to this object
+                // unless specified not to. HighlightConnected is set to false by addNetwork when
+                // it figures out what's connected and adds them manually. Because they are added
+                // in addNetwork, we shouldn't try and add connected objects here.
+                if (highlightConnected) {
+                    Netlist netlist = cell.getUserNetlist();
+                    Nodable no = Netlist.getNodableFor(ni, 0);
+                    PortProto epp = pp.getEquivalent();
+                    if (epp == null) epp = pp;
+                    int busWidth = pp.getNameKey().busWidth();
 
-				FlagSet markObj = Geometric.getFlagSet(1);
-				for(Iterator it = cell.getNodes(); it.hasNext(); )
-					((NodeInst)it.next()).clearBit(markObj);
-				for(Iterator it = cell.getArcs(); it.hasNext(); )
-				{
-					ArcInst ai = (ArcInst)it.next();
-					ai.clearBit(markObj);
-					if (!netlist.sameNetwork(no, epp, ai)) continue;
+                    FlagSet markObj = Geometric.getFlagSet(1);
+                    for(Iterator it = cell.getNodes(); it.hasNext(); )
+                        ((NodeInst)it.next()).clearBit(markObj);
+                    for(Iterator it = cell.getArcs(); it.hasNext(); )
+                    {
+                        ArcInst ai = (ArcInst)it.next();
+                        ai.clearBit(markObj);
 
-					ai.setBit(markObj);
-					ai.getHead().getPortInst().getNodeInst().setBit(markObj);
-					ai.getTail().getPortInst().getNodeInst().setBit(markObj);
-				}
+                        if (!netlist.sameNetwork(no, epp, ai)) continue;
 
-				// draw lines along all of the arcs on the network
-				Graphics2D g2 = (Graphics2D)g;
-				g2.setStroke(dashedLine);
-				for(Iterator it = cell.getArcs(); it.hasNext(); )
-				{
-					ArcInst ai = (ArcInst)it.next();
-					if (!ai.isBit(markObj)) continue;
-					Point c1 = wnd.databaseToScreen(ai.getHead().getLocation());
-					Point c2 = wnd.databaseToScreen(ai.getTail().getLocation());
-					drawLine(g, wnd, c1.x, c1.y, c2.x, c2.y);
-				}
+                        ai.setBit(markObj);
+                        ai.getHead().getPortInst().getNodeInst().setBit(markObj);
+                        ai.getTail().getPortInst().getNodeInst().setBit(markObj);
+                    }
 
-				// draw dots in all connected nodes
-				for(Iterator it = cell.getNodes(); it.hasNext(); )
-				{
-					NodeInst oNi = (NodeInst)it.next();
-					if (oNi == ni) continue;
-					if (!oNi.isBit(markObj)) continue;
+                    // draw lines along all of the arcs on the network
+                    Graphics2D g2 = (Graphics2D)g;
+                    g2.setStroke(dashedLine);
+                    for(Iterator it = cell.getArcs(); it.hasNext(); )
+                    {
+                        ArcInst ai = (ArcInst)it.next();
+                        if (!ai.isBit(markObj)) continue;
+                        Point c1 = wnd.databaseToScreen(ai.getHead().getLocation());
+                        Point c2 = wnd.databaseToScreen(ai.getTail().getLocation());
+                        drawLine(g, wnd, c1.x, c1.y, c2.x, c2.y);
+                    }
 
-					Point c = wnd.databaseToScreen(oNi.getTrueCenter());
-					g.fillOval(c.x-4, c.y-4, 8, 8);
+                    // draw dots in all connected nodes
+                    for(Iterator it = cell.getNodes(); it.hasNext(); )
+                    {
+                        NodeInst oNi = (NodeInst)it.next();
+                        if (oNi == ni) continue;
+                        if (!oNi.isBit(markObj)) continue;
 
-					// connect the center dots to the input arcs
-					Point2D nodeCenter = oNi.getTrueCenter();
-					for(Iterator pIt = oNi.getConnections(); pIt.hasNext(); )
-					{
-						Connection con = (Connection)pIt.next();
-						ArcInst ai = con.getArc();
-						if (!ai.isBit(markObj)) continue;
-						Point2D arcEnd = con.getLocation();
-						if (arcEnd.getX() != nodeCenter.getX() || arcEnd.getY() != nodeCenter.getY())
-						{
-							Point c1 = wnd.databaseToScreen(arcEnd);
-							Point c2 = wnd.databaseToScreen(nodeCenter);
-							g2.setStroke(dottedLine);
-							drawLine(g, wnd, c1.x, c1.y, c2.x, c2.y);
-						}
-					}
-				}
-				g2.setStroke(solidLine);
-				markObj.freeFlagSet();
+                        Point c = wnd.databaseToScreen(oNi.getTrueCenter());
+                        g.fillOval(c.x-4, c.y-4, 8, 8);
+
+                        // connect the center dots to the input arcs
+                        Point2D nodeCenter = oNi.getTrueCenter();
+                        for(Iterator pIt = oNi.getConnections(); pIt.hasNext(); )
+                        {
+                            Connection con = (Connection)pIt.next();
+                            ArcInst ai = con.getArc();
+                            if (!ai.isBit(markObj)) continue;
+                            Point2D arcEnd = con.getLocation();
+                            if (arcEnd.getX() != nodeCenter.getX() || arcEnd.getY() != nodeCenter.getY())
+                            {
+                                Point c1 = wnd.databaseToScreen(arcEnd);
+                                Point c2 = wnd.databaseToScreen(nodeCenter);
+                                g2.setStroke(dottedLine);
+                                drawLine(g, wnd, c1.x, c1.y, c2.x, c2.y);
+                            }
+                        }
+                    }
+                    g2.setStroke(solidLine);
+                    markObj.freeFlagSet();
+                }
 			}
 		}
 	}
