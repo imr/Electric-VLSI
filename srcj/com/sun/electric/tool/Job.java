@@ -141,9 +141,18 @@ public abstract class Job implements ActionListener, Runnable {
 			{
 				Job job = waitChangeJob();
 
-                SwingUtilities.invokeLater(new Runnable() { public void run() { TopLevel.setBusyCursor(true); }});
                 job.run();
-                SwingUtilities.invokeLater(new Runnable() { public void run() { TopLevel.setBusyCursor(false); }});
+                // turn off busy cursor if no more change jobs
+                synchronized(this) {
+                    Iterator it;
+                    for (it = allJobs.iterator(); it.hasNext(); ) {
+                        Job j = (Job)it.next();
+                        if (j.jobType == Type.CHANGE) break;
+                    }
+                    if (!it.hasNext()) {
+                        SwingUtilities.invokeLater(new Runnable() { public void run() { TopLevel.setBusyCursor(false); }});
+                    }
+                }
 			}
 		}
 
@@ -199,6 +208,9 @@ public abstract class Job implements ActionListener, Runnable {
 			if (numStarted == allJobs.size())
 				notify();
             allJobs.add(j);
+            if (j.jobType == Type.CHANGE) {
+                SwingUtilities.invokeLater(new Runnable() { public void run() { TopLevel.setBusyCursor(true); }});
+            }
             if (j.getDisplay()) {
                 WindowFrame.wantToRedoJobTree();
             }
@@ -628,7 +640,7 @@ public abstract class Job implements ActionListener, Runnable {
      * associated with the current thread.  This should only be called if a
      * lock was acquired for the current thread.
      * @see #acquireExamineLock(boolean)
-     * @see #invokeExamineLater(Runnable, Object) 
+     * @see #invokeExamineLater(Runnable, Object)
      */
     public static synchronized void releaseExamineLock() {
         Job dummy = databaseChangesThread.getJob(Thread.currentThread());
@@ -674,6 +686,14 @@ public abstract class Job implements ActionListener, Runnable {
      * This method basically reserves a slot in the Job queue with an Examine Job,
      * calls the runnable with SwingUtilities.invokeAndWait when the Job starts, and
      * ends the Job only after the runnable finishes.
+     * <P>
+     * IMPORTANT!  Note that this ties up both the Job queue and the Swing event queue.
+     * It is possible to deadlock if the SwingExamineJob waits on a Change Job thread (unlikely,
+     * but possible).  Note that this also runs examines sequentially, because that is
+     * how the Swing event queue runs events.  This is less efficient than the Job queue examines,
+     * but also maintains sequential ordering and process of events, which may be necessary
+     * if state is being shared/modified between events (such as between mousePressed and
+     * mouseReleased events).
      * @param task the Runnable to run in the swing thread. A call to
      * Job.acquireExamineLock from within run() is guaranteed to return true.
      * @param singularKey if not null, this specifies a key by which
