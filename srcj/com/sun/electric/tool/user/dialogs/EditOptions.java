@@ -32,6 +32,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.CircuitChanges;
 
 import java.awt.Component;
@@ -97,7 +98,6 @@ public class EditOptions extends javax.swing.JDialog
 		initFrame();			// initialize the Frame Options panel
 		initIcon();				// initialize the Icon Options panel
 		initGrid();				// initialize the Grid Options panel
-		initAlignment();		// initialize the Alignment Options panel
 		initLayers();			// initialize the Layers Options panel
 		initColors();			// initialize the Colors Options panel
 		initText();				// initialize the Text Options panel
@@ -437,19 +437,33 @@ public class EditOptions extends javax.swing.JDialog
 
 	//******************************** PORTS ********************************
 
+	private int initialPortDisplayPortLevel;
+	private int initialPortDisplayExportLevel;
+	private boolean initialPortMoveNodeWithExport;
+
 	/**
 	 * Routine called at the start of the dialog.
 	 * Caches current values and displays them in the Ports tab.
 	 */
 	private void initPorts()
 	{
-		portFullPort.setEnabled(false);
-		portFullExport.setEnabled(false);
-		portShortPort.setEnabled(false);
-		portShortExport.setEnabled(false);
-		portCrossPort.setEnabled(false);
-		portCrossExport.setEnabled(false);
+		switch (initialPortDisplayPortLevel = User.getPortDisplayLevel())
+		{
+			case 0: portFullPort.setSelected(true);    break;
+			case 1: portShortPort.setSelected(true);   break;
+			case 2: portCrossPort.setSelected(true);   break;
+		}
+
+		switch (initialPortDisplayExportLevel = User.getExportDisplayLevel())
+		{
+			case 0: portFullExport.setSelected(true);    break;
+			case 1: portShortExport.setSelected(true);   break;
+			case 2: portCrossExport.setSelected(true);   break;
+		}
+
+		// doesn't work yet
 		portMoveNode.setEnabled(false);
+		portMoveNode.setSelected(initialPortMoveNodeWithExport = User.isMoveNodeWithExport());
 	}
 
 	/**
@@ -458,6 +472,26 @@ public class EditOptions extends javax.swing.JDialog
 	 */
 	private void termPorts()
 	{
+		int currentDisplayPortLevel = 0;
+		if (portShortPort.isSelected()) currentDisplayPortLevel = 1; else
+			if (portCrossPort.isSelected()) currentDisplayPortLevel = 2;
+		if (currentDisplayPortLevel != initialPortDisplayPortLevel)
+			User.setPortDisplayLevels(currentDisplayPortLevel);
+
+		int currentDisplayExportLevel = 0;
+		if (portShortExport.isSelected()) currentDisplayExportLevel = 1; else
+			if (portCrossExport.isSelected()) currentDisplayExportLevel = 2;
+		if (currentDisplayExportLevel != initialPortDisplayExportLevel)
+			User.setExportDisplayLevels(currentDisplayExportLevel);
+
+		boolean currentMoveNodeWithExport = portMoveNode.isSelected();
+		if (currentMoveNodeWithExport != initialPortMoveNodeWithExport)
+			User.setMoveNodeWithExport(currentMoveNodeWithExport);
+
+		// redisplay everything if port options changed
+		if (currentDisplayPortLevel != initialPortDisplayPortLevel ||
+			currentDisplayExportLevel != initialPortDisplayExportLevel)
+				EditWindow.redrawAll();
 	}
 
 	//******************************** FRAME ********************************
@@ -656,19 +690,45 @@ public class EditOptions extends javax.swing.JDialog
 
 	//******************************** GRID ********************************
 
+	private float initialGridXSpacing, initialGridYSpacing;
+	private float initialGridDefXSpacing, initialGridDefYSpacing;
+	private int initialGridDefXBoldFrequency, initialGridDefYBoldFrequency;
+	private boolean initialGridAlignWithCircuitry;
+	private float initialGridAlignment, initialGridEdgeAlignment;
+
 	/**
 	 * Routine called at the start of the dialog.
 	 * Caches current values and displays them in the Grid tab.
 	 */
 	private void initGrid()
 	{
-		gridCurrentHoriz.setEditable(false);
-		gridCurrentVert.setEditable(false);
-		gridNewHoriz.setEditable(false);
-		gridNewVert.setEditable(false);
-		gridBoldHoriz.setEditable(false);
-		gridBoldVert.setEditable(false);
+		EditWindow wnd = EditWindow.getCurrent();
+		if (wnd == null)
+		{
+			initialGridXSpacing = initialGridYSpacing = 0;
+			gridCurrentHoriz.setEditable(false);
+			gridCurrentHoriz.setText("");
+			gridCurrentVert.setEditable(false);
+			gridCurrentVert.setText("");
+		} else
+		{
+			gridCurrentHoriz.setEditable(true);
+			gridCurrentHoriz.setText(Double.toString(initialGridXSpacing = wnd.getGridXSpacing()));
+			gridCurrentVert.setEditable(true);
+			gridCurrentVert.setText(Double.toString(initialGridYSpacing = wnd.getGridYSpacing()));
+		}
+
+		gridNewHoriz.setText(Double.toString(initialGridDefXSpacing = User.getDefGridXSpacing()));
+		gridNewVert.setText(Double.toString(initialGridDefYSpacing = User.getDefGridYSpacing()));
+		gridBoldHoriz.setText(Double.toString(initialGridDefXBoldFrequency = User.getDefGridXBoldFrequency()));
+		gridBoldVert.setText(Double.toString(initialGridDefYBoldFrequency = User.getDefGridYBoldFrequency()));
+
+		gridAlign.setSelected(initialGridAlignWithCircuitry = User.isAlignGridWithCircuitry());
 		gridAlign.setEnabled(false);
+
+		gridAlignCursor.setText(Double.toString(initialGridAlignment = User.getAlignmentToGrid()));
+		gridAlignEdges.setText(Double.toString(initialGridEdgeAlignment = User.getEdgeAlignmentToGrid()));
+		gridAlignEdges.setEnabled(false);
 	}
 
 	/**
@@ -677,26 +737,45 @@ public class EditOptions extends javax.swing.JDialog
 	 */
 	private void termGrid()
 	{
-	}
+		EditWindow wnd = EditWindow.getCurrent();
+		if (wnd != null)
+		{
+			float currentXSpacing = (float)EMath.atof(gridCurrentHoriz.getText());
+			if (currentXSpacing != initialGridXSpacing)
+				wnd.setGridXSpacing(currentXSpacing);
 
-	//******************************** ALIGNMENT ********************************
+			float currentYSpacing = (float)EMath.atof(gridCurrentVert.getText());
+			if (currentYSpacing != initialGridYSpacing)
+				wnd.setGridYSpacing(currentYSpacing);
+		}
 
-	/**
-	 * Routine called at the start of the dialog.
-	 * Caches current values and displays them in the Alignment tab.
-	 */
-	private void initAlignment()
-	{
-		alignCursor.setEditable(false);
-		alignEdges.setEditable(false);
-	}
+		float currentDefXSpacing = (float)EMath.atof(gridNewHoriz.getText());
+		if (currentDefXSpacing != initialGridDefXSpacing)
+			User.setDefGridXSpacing(currentDefXSpacing);
 
-	/**
-	 * Routine called when the "OK" panel is hit.
-	 * Updates any changed fields in the Alignment tab.
-	 */
-	private void termAlignment()
-	{
+		float currentDefYSpacing = (float)EMath.atof(gridNewVert.getText());
+		if (currentDefYSpacing != initialGridDefYSpacing)
+			User.setDefGridYSpacing(currentDefYSpacing);
+
+		int currentDefXBoldFrequency = EMath.atoi(gridBoldHoriz.getText());
+		if (currentDefXBoldFrequency != initialGridDefXBoldFrequency)
+			User.setDefGridXBoldFrequency(currentDefXBoldFrequency);
+
+		int currentDefYBoldFrequency = EMath.atoi(gridBoldVert.getText());
+		if (currentDefYBoldFrequency != initialGridDefYBoldFrequency)
+			User.setDefGridYBoldFrequency(currentDefYBoldFrequency);
+
+		boolean currentAlignWithCircuitry = gridAlign.isSelected();
+		if (currentAlignWithCircuitry != initialGridAlignWithCircuitry)
+			User.setAlignGridWithCircuitry(currentAlignWithCircuitry);
+
+		float currentAlignment = (float)EMath.atof(gridAlignCursor.getText());
+		if (currentAlignment != initialGridAlignment)
+			User.setAlignmentToGrid(currentAlignment);
+
+		float currentEdgeAlignment = (float)EMath.atof(gridAlignEdges.getText());
+		if (currentEdgeAlignment != initialGridEdgeAlignment)
+			User.setEdgeAlignmentToGrid(currentEdgeAlignment);
 	}
 
 	//******************************** LAYERS ********************************
@@ -867,50 +946,52 @@ public class EditOptions extends javax.swing.JDialog
         techMOCMOSSticks = new javax.swing.ButtonGroup();
         tabPane = new javax.swing.JTabbedPane();
         newNode = new javax.swing.JPanel();
+        jPanel2 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         nodePrimitive = new javax.swing.JComboBox();
-        jLabel2 = new javax.swing.JLabel();
         nodePrimitiveXSize = new javax.swing.JTextField();
+        jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         nodePrimitiveYSize = new javax.swing.JTextField();
         nodeOverrideDefaultOrientation = new javax.swing.JCheckBox();
         jLabel4 = new javax.swing.JLabel();
         nodePrimitiveRotation = new javax.swing.JTextField();
         nodePrimitiveMirror = new javax.swing.JCheckBox();
-        jSeparator1 = new javax.swing.JSeparator();
-        jLabel5 = new javax.swing.JLabel();
-        jLabel6 = new javax.swing.JLabel();
-        nodeDisallowModificationLockedPrims = new javax.swing.JCheckBox();
-        nodeMoveAfterDuplicate = new javax.swing.JCheckBox();
-        nodeCopyExports = new javax.swing.JCheckBox();
-        nodeAllRotation = new javax.swing.JTextField();
-        nodeAllMirror = new javax.swing.JCheckBox();
+        jPanel3 = new javax.swing.JPanel();
         nodeCheckCellDates = new javax.swing.JCheckBox();
         nodeSwitchTechnology = new javax.swing.JCheckBox();
         nodePlaceCellCenter = new javax.swing.JCheckBox();
         nodeTinyCellsHashedOut = new javax.swing.JCheckBox();
         jLabel47 = new javax.swing.JLabel();
         nodeHashLimit = new javax.swing.JTextField();
-        jSeparator8 = new javax.swing.JSeparator();
-        jLabel53 = new javax.swing.JLabel();
+        jPanel4 = new javax.swing.JPanel();
+        jLabel6 = new javax.swing.JLabel();
+        nodeAllRotation = new javax.swing.JTextField();
+        nodeAllMirror = new javax.swing.JCheckBox();
+        nodeDisallowModificationLockedPrims = new javax.swing.JCheckBox();
+        nodeMoveAfterDuplicate = new javax.swing.JCheckBox();
+        nodeCopyExports = new javax.swing.JCheckBox();
         newArc = new javax.swing.JPanel();
+        jPanel1 = new javax.swing.JPanel();
         arcDefaultForArc = new javax.swing.JRadioButton();
-        arcProtoList = new javax.swing.JComboBox();
         arcDefaultForAllArcs = new javax.swing.JRadioButton();
+        arcProtoList = new javax.swing.JComboBox();
         arcReset = new javax.swing.JButton();
+        jPanel7 = new javax.swing.JPanel();
         arcRigid = new javax.swing.JCheckBox();
-        arcFixedAngle = new javax.swing.JCheckBox();
-        arcSlidable = new javax.swing.JCheckBox();
         arcNegated = new javax.swing.JCheckBox();
+        arcFixedAngle = new javax.swing.JCheckBox();
         arcDirectional = new javax.swing.JCheckBox();
+        arcSlidable = new javax.swing.JCheckBox();
         arcEndsExtend = new javax.swing.JCheckBox();
+        jPanel8 = new javax.swing.JPanel();
         jLabel7 = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
         arcWidth = new javax.swing.JTextField();
         jLabel8 = new javax.swing.JLabel();
         arcAngle = new javax.swing.JTextField();
-        jLabel9 = new javax.swing.JLabel();
-        arcPinName = new javax.swing.JLabel();
         arcSetPin = new javax.swing.JButton();
+        arcPinName = new javax.swing.JLabel();
         selection = new javax.swing.JPanel();
         selEasyCellInstances = new javax.swing.JCheckBox();
         selEasyAnnotationText = new javax.swing.JCheckBox();
@@ -947,41 +1028,42 @@ public class EditOptions extends javax.swing.JDialog
         frameDefaultProject = new javax.swing.JTextField();
         frameLibraryProject = new javax.swing.JTextField();
         icon = new javax.swing.JPanel();
-        jPanel1 = new javax.swing.JPanel();
-        jLabel20 = new javax.swing.JLabel();
-        iconInputPos = new javax.swing.JComboBox();
-        jLabel21 = new javax.swing.JLabel();
-        iconPowerPos = new javax.swing.JComboBox();
-        jLabel22 = new javax.swing.JLabel();
-        iconOutputPos = new javax.swing.JComboBox();
-        jLabel23 = new javax.swing.JLabel();
-        iconGroundPos = new javax.swing.JComboBox();
-        jLabel24 = new javax.swing.JLabel();
-        iconBidirPos = new javax.swing.JComboBox();
-        jLabel25 = new javax.swing.JLabel();
-        iconClockPos = new javax.swing.JComboBox();
-        iconDrawLeads = new javax.swing.JCheckBox();
-        jLabel26 = new javax.swing.JLabel();
-        iconLeadLength = new javax.swing.JTextField();
-        iconDrawBody = new javax.swing.JCheckBox();
-        jLabel27 = new javax.swing.JLabel();
-        iconLeadSpacing = new javax.swing.JTextField();
-        jLabel28 = new javax.swing.JLabel();
-        iconExportPos = new javax.swing.JComboBox();
-        jLabel29 = new javax.swing.JLabel();
-        iconExportStyle = new javax.swing.JComboBox();
-        jLabel30 = new javax.swing.JLabel();
-        iconExportTechnology = new javax.swing.JComboBox();
-        iconReverseOrder = new javax.swing.JCheckBox();
-        jLabel31 = new javax.swing.JLabel();
-        iconInstancePos = new javax.swing.JComboBox();
         jLabel48 = new javax.swing.JLabel();
         jLabel54 = new javax.swing.JLabel();
         iconCurrentCell = new javax.swing.JLabel();
         iconMakeIcon = new javax.swing.JButton();
-        jSeparator10 = new javax.swing.JSeparator();
         jSeparator11 = new javax.swing.JSeparator();
+        iconInstancePos = new javax.swing.JComboBox();
+        jLabel30 = new javax.swing.JLabel();
+        jPanel5 = new javax.swing.JPanel();
+        jLabel20 = new javax.swing.JLabel();
+        iconInputPos = new javax.swing.JComboBox();
+        jLabel21 = new javax.swing.JLabel();
+        iconPowerPos = new javax.swing.JComboBox();
+        iconGroundPos = new javax.swing.JComboBox();
+        jLabel23 = new javax.swing.JLabel();
+        iconOutputPos = new javax.swing.JComboBox();
+        jLabel22 = new javax.swing.JLabel();
+        jLabel24 = new javax.swing.JLabel();
+        iconBidirPos = new javax.swing.JComboBox();
+        jLabel25 = new javax.swing.JLabel();
+        iconClockPos = new javax.swing.JComboBox();
+        jLabel31 = new javax.swing.JLabel();
+        iconExportTechnology = new javax.swing.JComboBox();
+        jPanel6 = new javax.swing.JPanel();
+        iconDrawLeads = new javax.swing.JCheckBox();
+        iconDrawBody = new javax.swing.JCheckBox();
+        jLabel26 = new javax.swing.JLabel();
+        iconLeadLength = new javax.swing.JTextField();
+        iconLeadSpacing = new javax.swing.JTextField();
+        jLabel27 = new javax.swing.JLabel();
+        jLabel28 = new javax.swing.JLabel();
+        iconExportPos = new javax.swing.JComboBox();
+        jLabel29 = new javax.swing.JLabel();
+        iconExportStyle = new javax.swing.JComboBox();
+        iconReverseOrder = new javax.swing.JCheckBox();
         grid = new javax.swing.JPanel();
+        gridPart = new javax.swing.JPanel();
         jLabel32 = new javax.swing.JLabel();
         jLabel33 = new javax.swing.JLabel();
         jLabel34 = new javax.swing.JLabel();
@@ -996,12 +1078,12 @@ public class EditOptions extends javax.swing.JDialog
         gridAlign = new javax.swing.JCheckBox();
         jLabel10 = new javax.swing.JLabel();
         jLabel13 = new javax.swing.JLabel();
-        alignment = new javax.swing.JPanel();
+        alignPart = new javax.swing.JPanel();
         jLabel37 = new javax.swing.JLabel();
-        alignCursor = new javax.swing.JTextField();
+        gridAlignCursor = new javax.swing.JTextField();
         jLabel38 = new javax.swing.JLabel();
         jLabel39 = new javax.swing.JLabel();
-        alignEdges = new javax.swing.JTextField();
+        gridAlignEdges = new javax.swing.JTextField();
         layers = new javax.swing.JPanel();
         jLabel40 = new javax.swing.JLabel();
         layerName = new javax.swing.JComboBox();
@@ -1100,30 +1182,25 @@ public class EditOptions extends javax.swing.JDialog
 
         newNode.setLayout(new java.awt.GridBagLayout());
 
-        jLabel1.setText("For primitive:");
+        jPanel2.setLayout(new java.awt.GridBagLayout());
+
+        jPanel2.setBorder(new javax.swing.border.TitledBorder("For Primitive Nodes"));
+        jLabel1.setText("Primitive:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        newNode.add(jLabel1, gridBagConstraints);
+        jPanel2.add(jLabel1, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newNode.add(nodePrimitive, gridBagConstraints);
-
-        jLabel2.setText("X size of new primitives:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        newNode.add(jLabel2, gridBagConstraints);
+        gridBagConstraints.weightx = 1.0;
+        jPanel2.add(nodePrimitive, gridBagConstraints);
 
         nodePrimitiveXSize.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1132,15 +1209,23 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newNode.add(nodePrimitiveXSize, gridBagConstraints);
+        jPanel2.add(nodePrimitiveXSize, gridBagConstraints);
+
+        jLabel2.setText("X size of new primitives:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel2.add(jLabel2, gridBagConstraints);
 
         jLabel3.setText("Y size of new primitives:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        newNode.add(jLabel3, gridBagConstraints);
+        jPanel2.add(jLabel3, gridBagConstraints);
 
         nodePrimitiveYSize.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1149,24 +1234,24 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newNode.add(nodePrimitiveYSize, gridBagConstraints);
+        jPanel2.add(nodePrimitiveYSize, gridBagConstraints);
 
         nodeOverrideDefaultOrientation.setText("Override default orientation");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
-        newNode.add(nodeOverrideDefaultOrientation, gridBagConstraints);
+        jPanel2.add(nodeOverrideDefaultOrientation, gridBagConstraints);
 
         jLabel4.setText("Rotation of new nodes:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        newNode.add(jLabel4, gridBagConstraints);
+        jPanel2.add(jLabel4, gridBagConstraints);
 
         nodePrimitiveRotation.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1174,297 +1259,322 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newNode.add(nodePrimitiveRotation, gridBagConstraints);
+        jPanel2.add(nodePrimitiveRotation, gridBagConstraints);
 
         nodePrimitiveMirror.setText("Mirror X");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newNode.add(nodePrimitiveMirror, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel2.add(nodePrimitiveMirror, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newNode.add(jSeparator1, gridBagConstraints);
+        gridBagConstraints.weightx = 1.0;
+        newNode.add(jPanel2, gridBagConstraints);
 
-        jLabel5.setText("For all nodes:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 13;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 0);
-        newNode.add(jLabel5, gridBagConstraints);
+        jPanel3.setLayout(new java.awt.GridBagLayout());
 
-        jLabel6.setText("Rotation of new nodes:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 14;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        newNode.add(jLabel6, gridBagConstraints);
-
-        nodeDisallowModificationLockedPrims.setText("Disallow modification of locked primitives");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 15;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 2, 4);
-        newNode.add(nodeDisallowModificationLockedPrims, gridBagConstraints);
-
-        nodeMoveAfterDuplicate.setText("Move after Duplicate");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 16;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 20, 2, 4);
-        newNode.add(nodeMoveAfterDuplicate, gridBagConstraints);
-
-        nodeCopyExports.setText("Duplicate/Array/Extract copies exports");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 17;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 20, 0, 0);
-        newNode.add(nodeCopyExports, gridBagConstraints);
-
-        nodeAllRotation.setColumns(6);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 14;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newNode.add(nodeAllRotation, gridBagConstraints);
-
-        nodeAllMirror.setText("Mirror X");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 14;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newNode.add(nodeAllMirror, gridBagConstraints);
-
+        jPanel3.setBorder(new javax.swing.border.TitledBorder("For Cells"));
         nodeCheckCellDates.setText("Check cell dates during editing");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        newNode.add(nodeCheckCellDates, gridBagConstraints);
+        jPanel3.add(nodeCheckCellDates, gridBagConstraints);
 
         nodeSwitchTechnology.setText("Switch technology to match current cell");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        newNode.add(nodeSwitchTechnology, gridBagConstraints);
+        jPanel3.add(nodeSwitchTechnology, gridBagConstraints);
 
         nodePlaceCellCenter.setText("Place Cell-Center in new cells");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        newNode.add(nodePlaceCellCenter, gridBagConstraints);
+        jPanel3.add(nodePlaceCellCenter, gridBagConstraints);
 
         nodeTinyCellsHashedOut.setText("Tiny cell instances hashed out");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 10;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        newNode.add(nodeTinyCellsHashedOut, gridBagConstraints);
+        jPanel3.add(nodeTinyCellsHashedOut, gridBagConstraints);
 
         jLabel47.setText("Units per pixel when cells are hashed:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 11;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.insets = new java.awt.Insets(2, 20, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        newNode.add(jLabel47, gridBagConstraints);
+        jPanel3.add(jLabel47, gridBagConstraints);
 
         nodeHashLimit.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 11;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newNode.add(nodeHashLimit, gridBagConstraints);
+        jPanel3.add(nodeHashLimit, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 12;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        newNode.add(jSeparator8, gridBagConstraints);
+        gridBagConstraints.weightx = 1.0;
+        newNode.add(jPanel3, gridBagConstraints);
 
-        jLabel53.setText("For cells:");
+        jPanel4.setLayout(new java.awt.GridBagLayout());
+
+        jPanel4.setBorder(new javax.swing.border.TitledBorder("For All Nodes"));
+        jLabel6.setText("Rotation of new nodes:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        newNode.add(jLabel53, gridBagConstraints);
+        jPanel4.add(jLabel6, gridBagConstraints);
+
+        nodeAllRotation.setColumns(6);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel4.add(nodeAllRotation, gridBagConstraints);
+
+        nodeAllMirror.setText("Mirror X");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel4.add(nodeAllMirror, gridBagConstraints);
+
+        nodeDisallowModificationLockedPrims.setText("Disallow modification of locked primitives");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel4.add(nodeDisallowModificationLockedPrims, gridBagConstraints);
+
+        nodeMoveAfterDuplicate.setText("Move after Duplicate");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel4.add(nodeMoveAfterDuplicate, gridBagConstraints);
+
+        nodeCopyExports.setText("Duplicate/Array/Extract copies exports");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel4.add(nodeCopyExports, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        newNode.add(jPanel4, gridBagConstraints);
 
         tabPane.addTab("New Nodes", newNode);
 
         newArc.setLayout(new java.awt.GridBagLayout());
 
-        arcDefaultForArc.setText("Default for arc:");
+        jPanel1.setLayout(new java.awt.GridBagLayout());
+
+        jPanel1.setBorder(new javax.swing.border.TitledBorder("Which Arcs"));
+        arcDefaultForArc.setText("For arc:");
         newArcGroup.add(arcDefaultForArc);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newArc.add(arcDefaultForArc, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newArc.add(arcProtoList, gridBagConstraints);
+        jPanel1.add(arcDefaultForArc, gridBagConstraints);
 
-        arcDefaultForAllArcs.setText("Defaults for all arcs");
+        arcDefaultForAllArcs.setText("For all arcs");
         newArcGroup.add(arcDefaultForAllArcs);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newArc.add(arcDefaultForAllArcs, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(arcDefaultForAllArcs, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        jPanel1.add(arcProtoList, gridBagConstraints);
 
         arcReset.setText("Reset to initial defaults");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newArc.add(arcReset, gridBagConstraints);
+        jPanel1.add(arcReset, gridBagConstraints);
 
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        newArc.add(jPanel1, gridBagConstraints);
+
+        jPanel7.setLayout(new java.awt.GridBagLayout());
+
+        jPanel7.setBorder(new javax.swing.border.TitledBorder("Default Constraints"));
         arcRigid.setText("Rigid");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newArc.add(arcRigid, gridBagConstraints);
-
-        arcFixedAngle.setText("Fixed-angle");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newArc.add(arcFixedAngle, gridBagConstraints);
-
-        arcSlidable.setText("Slidable");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newArc.add(arcSlidable, gridBagConstraints);
+        jPanel7.add(arcRigid, gridBagConstraints);
 
         arcNegated.setText("Negated");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newArc.add(arcNegated, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel7.add(arcNegated, gridBagConstraints);
+
+        arcFixedAngle.setText("Fixed-angle");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel7.add(arcFixedAngle, gridBagConstraints);
 
         arcDirectional.setText("Directional");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newArc.add(arcDirectional, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel7.add(arcDirectional, gridBagConstraints);
+
+        arcSlidable.setText("Slidable");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel7.add(arcSlidable, gridBagConstraints);
 
         arcEndsExtend.setText("Ends extended");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newArc.add(arcEndsExtend, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel7.add(arcEndsExtend, gridBagConstraints);
 
-        jLabel7.setText("Width:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        newArc.add(jPanel7, gridBagConstraints);
+
+        jPanel8.setLayout(new java.awt.GridBagLayout());
+
+        jPanel8.setBorder(new javax.swing.border.TitledBorder("Other Information"));
+        jLabel7.setText("Default Width:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        newArc.add(jLabel7, gridBagConstraints);
-
-        arcWidth.setColumns(8);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newArc.add(arcWidth, gridBagConstraints);
-
-        jLabel8.setText("Angle:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        newArc.add(jLabel8, gridBagConstraints);
-
-        arcAngle.setColumns(6);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newArc.add(arcAngle, gridBagConstraints);
+        jPanel8.add(jLabel7, gridBagConstraints);
 
         jLabel9.setText("Pin:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        newArc.add(jLabel9, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel8.add(jLabel9, gridBagConstraints);
 
+        arcWidth.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        newArc.add(arcPinName, gridBagConstraints);
+        gridBagConstraints.weightx = 1.0;
+        jPanel8.add(arcWidth, gridBagConstraints);
+
+        jLabel8.setText("Placement angle:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel8.add(jLabel8, gridBagConstraints);
+
+        arcAngle.setColumns(6);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        jPanel8.add(arcAngle, gridBagConstraints);
 
         arcSetPin.setText("Set Pin");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newArc.add(arcSetPin, gridBagConstraints);
+        jPanel8.add(arcSetPin, gridBagConstraints);
+
+        arcPinName.setText(" ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        jPanel8.add(arcPinName, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        newArc.add(jPanel8, gridBagConstraints);
 
         tabPane.addTab("New Arcs", newArc);
 
@@ -1766,244 +1876,6 @@ public class EditOptions extends javax.swing.JDialog
 
         icon.setLayout(new java.awt.GridBagLayout());
 
-        jPanel1.setLayout(new java.awt.GridBagLayout());
-
-        jLabel20.setText("Inputs on:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel1.add(jLabel20, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 0.5;
-        jPanel1.add(iconInputPos, gridBagConstraints);
-
-        jLabel21.setText("Power on:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel1.add(jLabel21, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 0.5;
-        jPanel1.add(iconPowerPos, gridBagConstraints);
-
-        jLabel22.setText("Outputs on:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel1.add(jLabel22, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 0.5;
-        jPanel1.add(iconOutputPos, gridBagConstraints);
-
-        jLabel23.setText("Ground on:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel1.add(jLabel23, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 0.5;
-        jPanel1.add(iconGroundPos, gridBagConstraints);
-
-        jLabel24.setText("Bidir. on:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel1.add(jLabel24, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 0.5;
-        jPanel1.add(iconBidirPos, gridBagConstraints);
-
-        jLabel25.setText("Clock on:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel1.add(jLabel25, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 0.5;
-        jPanel1.add(iconClockPos, gridBagConstraints);
-
-        iconDrawLeads.setText("Draw leads");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel1.add(iconDrawLeads, gridBagConstraints);
-
-        jLabel26.setText("Lead length:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel1.add(jLabel26, gridBagConstraints);
-
-        iconLeadLength.setColumns(8);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel1.add(iconLeadLength, gridBagConstraints);
-
-        iconDrawBody.setText("Draw body");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel1.add(iconDrawBody, gridBagConstraints);
-
-        jLabel27.setText("Lead spacing:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel1.add(jLabel27, gridBagConstraints);
-
-        iconLeadSpacing.setColumns(8);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel1.add(iconLeadSpacing, gridBagConstraints);
-
-        jLabel28.setText("Export location:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel1.add(jLabel28, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel1.add(iconExportPos, gridBagConstraints);
-
-        jLabel29.setText("Export style:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel1.add(jLabel29, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel1.add(iconExportStyle, gridBagConstraints);
-
-        jLabel30.setText("Export technology:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel1.add(jLabel30, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel1.add(iconExportTechnology, gridBagConstraints);
-
-        iconReverseOrder.setText("Reverse export order");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel1.add(iconReverseOrder, gridBagConstraints);
-
-        jLabel31.setText("Instance location:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel1.add(jLabel31, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 9;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel1.add(iconInstancePos, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        icon.add(jPanel1, gridBagConstraints);
-
         jLabel48.setText("These are the settings used to automatically generate an icon from a schematic.");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -2016,14 +1888,14 @@ public class EditOptions extends javax.swing.JDialog
         jLabel54.setText("Current cell:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         icon.add(jLabel54, gridBagConstraints);
 
         iconCurrentCell.setText(" ");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 1.0;
@@ -2032,51 +1904,305 @@ public class EditOptions extends javax.swing.JDialog
         iconMakeIcon.setText("Make Icon");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         icon.add(iconMakeIcon, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        icon.add(jSeparator11, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        icon.add(iconInstancePos, gridBagConstraints);
+
+        jLabel30.setText("Export technology:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        icon.add(jLabel30, gridBagConstraints);
+
+        jPanel5.setLayout(new java.awt.GridBagLayout());
+
+        jPanel5.setBorder(new javax.swing.border.TitledBorder("Export location by Characteristic"));
+        jLabel20.setText("Inputs on:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel5.add(jLabel20, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.5;
+        jPanel5.add(iconInputPos, gridBagConstraints);
+
+        jLabel21.setText("Power on:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel5.add(jLabel21, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.5;
+        jPanel5.add(iconPowerPos, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.5;
+        jPanel5.add(iconGroundPos, gridBagConstraints);
+
+        jLabel23.setText("Ground on:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel5.add(jLabel23, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.5;
+        jPanel5.add(iconOutputPos, gridBagConstraints);
+
+        jLabel22.setText("Outputs on:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel5.add(jLabel22, gridBagConstraints);
+
+        jLabel24.setText("Bidir. on:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel5.add(jLabel24, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.5;
+        jPanel5.add(iconBidirPos, gridBagConstraints);
+
+        jLabel25.setText("Clock on:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel5.add(jLabel25, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.5;
+        jPanel5.add(iconClockPos, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        icon.add(jSeparator10, gridBagConstraints);
+        gridBagConstraints.weightx = 1.0;
+        icon.add(jPanel5, gridBagConstraints);
 
+        jLabel31.setText("Instance location:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        icon.add(jLabel31, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        icon.add(iconExportTechnology, gridBagConstraints);
+
+        jPanel6.setLayout(new java.awt.GridBagLayout());
+
+        jPanel6.setBorder(new javax.swing.border.TitledBorder("Body and Leads"));
+        iconDrawLeads.setText("Draw leads");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel6.add(iconDrawLeads, gridBagConstraints);
+
+        iconDrawBody.setText("Draw body");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel6.add(iconDrawBody, gridBagConstraints);
+
+        jLabel26.setText("Lead length:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel6.add(jLabel26, gridBagConstraints);
+
+        iconLeadLength.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.5;
+        jPanel6.add(iconLeadLength, gridBagConstraints);
+
+        iconLeadSpacing.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.5;
+        jPanel6.add(iconLeadSpacing, gridBagConstraints);
+
+        jLabel27.setText("Lead spacing:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel6.add(jLabel27, gridBagConstraints);
+
+        jLabel28.setText("Export location:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel6.add(jLabel28, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        jPanel6.add(iconExportPos, gridBagConstraints);
+
+        jLabel29.setText("Export style:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel6.add(jLabel29, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        icon.add(jSeparator11, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        jPanel6.add(iconExportStyle, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        icon.add(jPanel6, gridBagConstraints);
+
+        iconReverseOrder.setText("Place Exports in Reverse Alphabetical Order");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        icon.add(iconReverseOrder, gridBagConstraints);
 
         tabPane.addTab("Icon", icon);
 
         grid.setLayout(new java.awt.GridBagLayout());
 
+        gridPart.setLayout(new java.awt.GridBagLayout());
+
+        gridPart.setBorder(new javax.swing.border.TitledBorder("Grid Display"));
         jLabel32.setText("Horizontal:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        grid.add(jLabel32, gridBagConstraints);
+        gridPart.add(jLabel32, gridBagConstraints);
 
         jLabel33.setText("Vertical:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        grid.add(jLabel33, gridBagConstraints);
+        gridPart.add(jLabel33, gridBagConstraints);
 
         jLabel34.setText("Grid dot spacing:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(8, 4, 0, 0);
-        grid.add(jLabel34, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridPart.add(jLabel34, gridBagConstraints);
 
         gridCurrentHoriz.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -2084,10 +2210,10 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        grid.add(gridCurrentHoriz, gridBagConstraints);
+        gridPart.add(gridCurrentHoriz, gridBagConstraints);
 
         gridCurrentVert.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -2095,18 +2221,18 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        grid.add(gridCurrentVert, gridBagConstraints);
+        gridPart.add(gridCurrentVert, gridBagConstraints);
 
         jLabel35.setText("Default grid spacing:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(8, 4, 0, 0);
-        grid.add(jLabel35, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridPart.add(jLabel35, gridBagConstraints);
 
         gridNewHoriz.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -2114,10 +2240,10 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        grid.add(gridNewHoriz, gridBagConstraints);
+        gridPart.add(gridNewHoriz, gridBagConstraints);
 
         gridNewVert.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -2125,38 +2251,38 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        grid.add(gridNewVert, gridBagConstraints);
+        gridPart.add(gridNewVert, gridBagConstraints);
 
-        jLabel36.setText("Distance between bold dots:");
+        jLabel36.setText("Frequency of bold dots:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(8, 4, 8, 0);
-        grid.add(jLabel36, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridPart.add(jLabel36, gridBagConstraints);
 
         gridBoldHoriz.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        grid.add(gridBoldHoriz, gridBagConstraints);
+        gridPart.add(gridBoldHoriz, gridBagConstraints);
 
         gridBoldVert.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        grid.add(gridBoldVert, gridBagConstraints);
+        gridPart.add(gridBoldVert, gridBagConstraints);
 
         gridAlign.setText("Align grid with circuitry");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -2164,45 +2290,51 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        grid.add(gridAlign, gridBagConstraints);
+        gridPart.add(gridAlign, gridBagConstraints);
 
         jLabel10.setText("(for current window)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 14, 8, 0);
-        grid.add(jLabel10, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridPart.add(jLabel10, gridBagConstraints);
 
         jLabel13.setText("(for new windows)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 14, 8, 0);
-        grid.add(jLabel13, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridPart.add(jLabel13, gridBagConstraints);
 
-        tabPane.addTab("Grid", grid);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        grid.add(gridPart, gridBagConstraints);
 
-        alignment.setLayout(new java.awt.GridBagLayout());
+        alignPart.setLayout(new java.awt.GridBagLayout());
 
+        alignPart.setBorder(new javax.swing.border.TitledBorder("Alignment to Grid"));
         jLabel37.setText("Alignment of cursor to grid:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        alignment.add(jLabel37, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        alignPart.add(jLabel37, gridBagConstraints);
 
-        alignCursor.setColumns(8);
+        gridAlignCursor.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        alignment.add(alignCursor, gridBagConstraints);
+        alignPart.add(gridAlignCursor, gridBagConstraints);
 
         jLabel38.setText("Values of zero will cause no alignment");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -2210,27 +2342,34 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        alignment.add(jLabel38, gridBagConstraints);
+        alignPart.add(jLabel38, gridBagConstraints);
 
         jLabel39.setText("Alignment of edges to grid:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        alignment.add(jLabel39, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        alignPart.add(jLabel39, gridBagConstraints);
 
-        alignEdges.setColumns(8);
+        gridAlignEdges.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        alignment.add(alignEdges, gridBagConstraints);
+        alignPart.add(gridAlignEdges, gridBagConstraints);
 
-        tabPane.addTab("Alignment", alignment);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        grid.add(alignPart, gridBagConstraints);
+
+        tabPane.addTab("Grid/Alignment", grid);
 
         layers.setLayout(new java.awt.GridBagLayout());
 
@@ -2899,8 +3038,8 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 40, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(cancel, gridBagConstraints);
 
         ok.setText("OK");
@@ -2915,12 +3054,17 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 40);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         getContentPane().add(ok, gridBagConstraints);
 
         pack();
     }//GEN-END:initComponents
+
+	private void cancelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cancelActionPerformed
+	{//GEN-HEADEREND:event_cancelActionPerformed
+		closeDialog(null);
+	}//GEN-LAST:event_cancelActionPerformed
 
 	private void okActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_okActionPerformed
 	{//GEN-HEADEREND:event_okActionPerformed
@@ -2931,7 +3075,6 @@ public class EditOptions extends javax.swing.JDialog
 		termFrame();			// terminate the Frame Options panel
 		termIcon();				// terminate the Icon Options panel
 		termGrid();				// terminate the Grid Options panel
-		termAlignment();		// terminate the Alignment Options panel
 		termLayers();			// terminate the Layers Options panel
 		termColors();			// terminate the Colors Options panel
 		termText();				// terminate the Text Options panel
@@ -2939,11 +3082,6 @@ public class EditOptions extends javax.swing.JDialog
 		termTechnology();		// terminate the Technology Options panel
 		closeDialog(null);
 	}//GEN-LAST:event_okActionPerformed
-
-	private void cancelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cancelActionPerformed
-	{//GEN-HEADEREND:event_cancelActionPerformed
-		closeDialog(null);
-	}//GEN-LAST:event_cancelActionPerformed
 	
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
@@ -2953,9 +3091,7 @@ public class EditOptions extends javax.swing.JDialog
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTextField alignCursor;
-    private javax.swing.JTextField alignEdges;
-    private javax.swing.JPanel alignment;
+    private javax.swing.JPanel alignPart;
     private javax.swing.JTextField arcAngle;
     private javax.swing.JRadioButton arcDefaultForAllArcs;
     private javax.swing.JRadioButton arcDefaultForArc;
@@ -2990,12 +3126,15 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JCheckBox frameTitleBox;
     private javax.swing.JPanel grid;
     private javax.swing.JCheckBox gridAlign;
+    private javax.swing.JTextField gridAlignCursor;
+    private javax.swing.JTextField gridAlignEdges;
     private javax.swing.JTextField gridBoldHoriz;
     private javax.swing.JTextField gridBoldVert;
     private javax.swing.JTextField gridCurrentHoriz;
     private javax.swing.JTextField gridCurrentVert;
     private javax.swing.JTextField gridNewHoriz;
     private javax.swing.JTextField gridNewVert;
+    private javax.swing.JPanel gridPart;
     private javax.swing.JPanel icon;
     private javax.swing.JComboBox iconBidirPos;
     private javax.swing.JComboBox iconClockPos;
@@ -3058,11 +3197,9 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JLabel jLabel47;
     private javax.swing.JLabel jLabel48;
     private javax.swing.JLabel jLabel49;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel50;
     private javax.swing.JLabel jLabel51;
     private javax.swing.JLabel jLabel52;
-    private javax.swing.JLabel jLabel53;
     private javax.swing.JLabel jLabel54;
     private javax.swing.JLabel jLabel56;
     private javax.swing.JLabel jLabel57;
@@ -3071,8 +3208,13 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JSeparator jSeparator10;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
+    private javax.swing.JPanel jPanel6;
+    private javax.swing.JPanel jPanel7;
+    private javax.swing.JPanel jPanel8;
     private javax.swing.JSeparator jSeparator11;
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JSeparator jSeparator3;
@@ -3080,7 +3222,6 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JSeparator jSeparator5;
     private javax.swing.JSeparator jSeparator6;
     private javax.swing.JSeparator jSeparator7;
-    private javax.swing.JSeparator jSeparator8;
     private javax.swing.JSeparator jSeparator9;
     private javax.swing.JComboBox layerName;
     private javax.swing.JPanel layers;

@@ -300,6 +300,24 @@ public abstract class PortProto extends ElectricObject
 	public String getProtoName() { return protoName.toString(); }
 
 	/**
+	 * Routine to return the short name of this PortProto.
+	 * The short name is everything up to the first nonalphabetic character.
+	 * @return the short name of this PortProto.
+	 */
+	public String getShortProtoName()
+	{
+		String name = protoName.toString();
+		int len = name.length();
+		for(int i=0; i<len; i++)
+		{
+			char ch = name.charAt(i);
+			if (Character.isLetterOrDigit(ch)) continue;
+			return name.substring(0, i);
+		}
+		return name;
+	}
+
+	/**
 	 * Routine to return the parent NodeProto of this PortProto.
 	 * @return the parent NodeProto of this PortProto.
 	 */

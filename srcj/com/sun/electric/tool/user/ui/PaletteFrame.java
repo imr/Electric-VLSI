@@ -935,7 +935,7 @@ public class PaletteFrame
 
 			// draw it
 			drawnLoc = wnd.screenToDatabase(oldx, oldy);
-			wnd.gridAlign(drawnLoc, 1);
+			EditWindow.gridAlign(drawnLoc);
 			NodeProto np = null;
 			if (toDraw instanceof NodeInst)
 			{
@@ -980,7 +980,7 @@ public class PaletteFrame
 				return;
 			}
 			Point2D where = wnd.screenToDatabase(oldx, oldy);
-			wnd.gridAlign(where, 1);
+			EditWindow.gridAlign(where);
 
 			// schedule the node to be created
 			NodeInst ni = null;

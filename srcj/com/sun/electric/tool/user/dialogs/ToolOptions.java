@@ -42,6 +42,10 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.awt.event.ItemEvent;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseAdapter;
 import javax.swing.JComboBox;
 import javax.swing.JCheckBox;
 import javax.swing.JList;
@@ -173,6 +177,10 @@ public class ToolOptions extends javax.swing.JDialog
 		curLib = Library.getCurrent();
 
 		// factory reset not working yet
+		factoryReset.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { factoryResetActionPerformed(evt); }
+		});
 		factoryReset.setEnabled(false);
 
 		initDRC();				// initialize the DRC Options panel
@@ -189,6 +197,10 @@ public class ToolOptions extends javax.swing.JDialog
 		initCompaction();		// initialize the Compaction Options panel
 	}
 
+	private void factoryResetActionPerformed(ActionEvent evt)
+	{
+	}
+
 	private void showLayersInTechnology(DefaultListModel model)
 	{
 		model.clear();
@@ -201,6 +213,10 @@ public class ToolOptions extends javax.swing.JDialog
 
 	//******************************** DRC ********************************
 
+	/**
+	 * Routine called at the start of the dialog.
+	 * Caches current values and displays them in the DRC tab.
+	 */
 	private void initDRC()
 	{
 		drcIncrementalOn.setEnabled(false);
@@ -212,8 +228,20 @@ public class ToolOptions extends javax.swing.JDialog
 		drcEditRulesDeck.setEnabled(false);		
 	}
 
+	/**
+	 * Routine called when the "OK" panel is hit.
+	 * Updates any changed fields in the DRC tab.
+	 */
+	private void termDRC()
+	{
+	}
+
 	//******************************** DESIGN RULES ********************************
 
+	/**
+	 * Routine called at the start of the dialog.
+	 * Caches current values and displays them in the Design Rules tab.
+	 */
 	private void initDesignRules()
 	{
 		drLayers.setEnabled(false);
@@ -241,6 +269,14 @@ public class ToolOptions extends javax.swing.JDialog
 		drMultiUnconnectedRule.setEditable(false);
 	}
 
+	/**
+	 * Routine called when the "OK" panel is hit.
+	 * Updates any changed fields in the Design Rules tab.
+	 */
+	private void termDesignRules()
+	{
+	}
+
 	//******************************** SPICE ********************************
 
 	private JList spiceLayerList, spiceCellList;
@@ -255,6 +291,10 @@ public class ToolOptions extends javax.swing.JDialog
 	private HashMap spiceLayerEdgeCapacitanceOptions;
 	private HashMap spiceCellModelOptions;
 
+	/**
+	 * Routine called at the start of the dialog.
+	 * Caches current values and displays them in the Spice tab.
+	 */
 	private void initSpice()
 	{
 		// the top section: general controls
@@ -326,9 +366,9 @@ public class ToolOptions extends javax.swing.JDialog
 		spiceLayerList = new JList(spiceLayerListModel);
 		spiceLayerList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		spiceLayer.setViewportView(spiceLayerList);
-		spiceLayerList.addMouseListener(new java.awt.event.MouseAdapter()
+		spiceLayerList.addMouseListener(new MouseAdapter()
 		{
-			public void mouseClicked(java.awt.event.MouseEvent evt) { spiceLayerListClick(); }
+			public void mouseClicked(MouseEvent evt) { spiceLayerListClick(); }
 		});
 		showLayersInTechnology(spiceLayerListModel);
 		spiceLayerList.setSelectedIndex(0);
@@ -370,6 +410,14 @@ public class ToolOptions extends javax.swing.JDialog
 				spiceTrailerCardFile.setText(spiceTrailerCardInitial);
 			}
 		}
+		spiceBrowseHeaderFile.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { spiceBrowseHeaderFileActionPerformed(evt); }
+		});
+		spiceBrowseTrailerFile.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { spiceBrowseTrailerFileActionPerformed(evt); }
+		});
 
 		// the last section has cell overrides
 		spiceCellModelOptions = new HashMap();
@@ -388,9 +436,13 @@ public class ToolOptions extends javax.swing.JDialog
 			spiceCellListModel.addElement(cell.noLibDescribe());
 		}
 		spiceCellList.setSelectedIndex(0);
-		spiceCellList.addMouseListener(new java.awt.event.MouseAdapter()
+		spiceCellList.addMouseListener(new MouseAdapter()
 		{
-			public void mouseClicked(java.awt.event.MouseEvent evt) { spiceCellListClick(); }
+			public void mouseClicked(MouseEvent evt) { spiceCellListClick(); }
+		});
+		spiceModelFileBrowse.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { spiceModelFileBrowseActionPerformed(evt); }
 		});
 //		spiceCellListClick();
 //		spiceCell.getDocument().addDocumentListener(new CellDocumentListener(spiceCellModelOptions, spiceCellList, curLib));
@@ -407,6 +459,34 @@ public class ToolOptions extends javax.swing.JDialog
 		}
 	}
 
+	private void spiceModelFileBrowseActionPerformed(ActionEvent evt)
+	{
+		String fileName = DialogOpenFile.chooseInputFile(DialogOpenFile.ANY, null);
+		if (fileName == null) return;
+		spiceModelCell.setText(fileName);
+		spiceUseModelFromFile.setSelected(true);
+	}
+
+	private void spiceBrowseTrailerFileActionPerformed(ActionEvent evt)
+	{
+		String fileName = DialogOpenFile.chooseInputFile(DialogOpenFile.ANY, null);
+		if (fileName == null) return;
+		spiceTrailerCardFile.setText(fileName);
+		spiceTrailerCardsFromFile.setSelected(true);
+	}
+
+	private void spiceBrowseHeaderFileActionPerformed(ActionEvent evt)
+	{
+		String fileName = DialogOpenFile.chooseInputFile(DialogOpenFile.ANY, null);
+		if (fileName == null) return;
+		spiceHeaderCardFile.setText(fileName);
+		spiceHeaderCardsFromFile.setSelected(true);
+	}
+
+	/**
+	 * Routine called when the "OK" panel is hit.
+	 * Updates any changed fields in the Spice tab.
+	 */
 	private void termSpice()
 	{
 		// the top section: general controls
@@ -541,6 +621,10 @@ public class ToolOptions extends javax.swing.JDialog
 
 	//******************************** VERILOG ********************************
 
+	/**
+	 * Routine called at the start of the dialog.
+	 * Caches current values and displays them in the Verilog tab.
+	 */
 	private void initVerilog()
 	{
 		verLibrary.setEnabled(false);
@@ -553,8 +637,20 @@ public class ToolOptions extends javax.swing.JDialog
 		verFileName.setEditable(false);
 	}
 
+	/**
+	 * Routine called when the "OK" panel is hit.
+	 * Updates any changed fields in the Verilog tab.
+	 */
+	private void termVerilog()
+	{
+	}
+
 	//******************************** FAST HENRY ********************************
 
+	/**
+	 * Routine called at the start of the dialog.
+	 * Caches current values and displays them in the Fast Henry tab.
+	 */
 	private void initFastHenry()
 	{
 		fhUseSingleFrequency.setEnabled(false);
@@ -572,8 +668,20 @@ public class ToolOptions extends javax.swing.JDialog
 		fhAfterAction.setEnabled(false);
 	}
 
+	/**
+	 * Routine called when the "OK" panel is hit.
+	 * Updates any changed fields in the Fast Henry tab.
+	 */
+	private void termFastHenry()
+	{
+	}
+
 	//******************************** WELL CHECK ********************************
 
+	/**
+	 * Routine called at the start of the dialog.
+	 * Caches current values and displays them in the Well Check tab.
+	 */
 	private void initWellCheck()
 	{
 		wellPMustHaveAllContacts.setEnabled(false);
@@ -587,13 +695,33 @@ public class ToolOptions extends javax.swing.JDialog
 		wellFindFarthestDistance.setEnabled(false);
 	}
 
+	/**
+	 * Routine called when the "OK" panel is hit.
+	 * Updates any changed fields in the Well Check tab.
+	 */
+	private void termWellCheck()
+	{
+	}
+
 	//******************************** ANTENNA RULES ********************************
 
+	/**
+	 * Routine called at the start of the dialog.
+	 * Caches current values and displays them in the Antenna Rules tab.
+	 */
 	private void initAntennaRules()
 	{
 		antTechnology.setEnabled(false);
 		antArcList.setEnabled(false);
 		antMaxRatio.setEditable(false);
+	}
+
+	/**
+	 * Routine called when the "OK" panel is hit.
+	 * Updates any changed fields in the Antenna Rules tab.
+	 */
+	private void termAntennaRules()
+	{
 	}
 
 	//******************************** NETWORK ********************************
@@ -602,6 +730,10 @@ public class ToolOptions extends javax.swing.JDialog
 	private String netUnificationPrefixInitial;
 	private boolean netBusBaseZeroInitial, netBusAscendingInitial;
 
+	/**
+	 * Routine called at the start of the dialog.
+	 * Caches current values and displays them in the Network tab.
+	 */
 	private void initNetwork()
 	{
 		netUnifyPwrGndInitial = JNetwork.isUnifyPowerAndGround();
@@ -649,6 +781,10 @@ public class ToolOptions extends javax.swing.JDialog
 
 	//******************************** NCC ********************************
 
+	/**
+	 * Routine called at the start of the dialog.
+	 * Caches current values and displays them in the NCC tab.
+	 */
 	private void initNCC()
 	{
 		nccFirstCell.setEditable(false);
@@ -689,6 +825,14 @@ public class ToolOptions extends javax.swing.JDialog
 		nccRemoveOverrides.setEnabled(false);
 	}
 
+	/**
+	 * Routine called when the "OK" panel is hit.
+	 * Updates any changed fields in the NCC tab.
+	 */
+	private void termNCC()
+	{
+	}
+
 	//******************************** LOGICAL EFFORT ********************************
 
 	private JList leArcList;
@@ -700,6 +844,10 @@ public class ToolOptions extends javax.swing.JDialog
 	private float leGateCapacitanceInitial, leDefaultWireCapRatioInitial, leDiffToGateCapRatioInitial;
 	private float leKeeperSizeRatioInitial;
 
+	/**
+	 * Routine called at the start of the dialog.
+	 * Caches current values and displays them in the Logical Effort tab.
+	 */
 	private void initLogicalEffort()
 	{
         Tool leTool = Tool.findTool("logical effort");
@@ -746,16 +894,29 @@ public class ToolOptions extends javax.swing.JDialog
 		leArcList = new JList(leArcListModel);
 		leArcList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		leArc.setViewportView(leArcList);
-		leArcList.addMouseListener(new java.awt.event.MouseAdapter()
+		leArcList.addMouseListener(new MouseAdapter()
 		{
-			public void mouseClicked(java.awt.event.MouseEvent evt) { leArcListClick(evt); }
+			public void mouseClicked(MouseEvent evt) { leArcListClick(evt); }
 		});
 		showArcsInTechnology(leArcListModel);
 		leArcList.setSelectedIndex(0);
 		leArcListClick(null);
 		leWireRatio.getDocument().addDocumentListener(new ArcDocumentListener(leArcOptions, leArcList, leArcListModel, curTech));
+		leHelp.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { leHelpActionPerformed(evt); }
+		});
 	}
 
+	private void leHelpActionPerformed(ActionEvent evt)
+	{
+		System.out.println("No help yet");
+	}
+
+	/**
+	 * Routine called when the "OK" panel is hit.
+	 * Updates any changed fields in the Logical Effort tab.
+	 */
 	private void termLogicalEffort()
 	{
         Tool leTool = Tool.findTool("logical effort");
@@ -799,7 +960,7 @@ public class ToolOptions extends javax.swing.JDialog
 		}
 	}
 
-	private void leArcListClick(java.awt.event.MouseEvent evt)
+	private void leArcListClick(MouseEvent evt)
 	{
 		String arcName = (String)leArcList.getSelectedValue();
 		int firstSpace = arcName.indexOf(' ');
@@ -872,6 +1033,10 @@ public class ToolOptions extends javax.swing.JDialog
 
 	//******************************** ROUTING ********************************
 
+	/**
+	 * Routine called at the start of the dialog.
+	 * Caches current values and displays them in the Routing tab.
+	 */
 	private void initRouting()
 	{
 		routDefaultArc.setEnabled(false);
@@ -884,12 +1049,32 @@ public class ToolOptions extends javax.swing.JDialog
 		routMimicInteractive.setEnabled(false);
 	}
 
+	/**
+	 * Routine called when the "OK" panel is hit.
+	 * Updates any changed fields in the Routing tab.
+	 */
+	private void termRouting()
+	{
+	}
+
 	//******************************** COMPACTION ********************************
 
+	/**
+	 * Routine called at the start of the dialog.
+	 * Caches current values and displays them in the Compaction tab.
+	 */
 	private void initCompaction()
 	{
 		compAllowSpreading.setEnabled(false);
 		compVerbose.setEnabled(false);
+	}
+
+	/**
+	 * Routine called when the "OK" panel is hit.
+	 * Updates any changed fields in the Compaction tab.
+	 */
+	private void termCompaction()
+	{
 	}
 
 	/** This method is called from within the constructor to
@@ -1562,14 +1747,6 @@ public class ToolOptions extends javax.swing.JDialog
         designRules.add(drNormalUnconnectedRule, gridBagConstraints);
 
         drNormalEdge.setColumns(6);
-        drNormalEdge.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                drNormalEdgeActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 8;
@@ -2012,14 +2189,6 @@ public class ToolOptions extends javax.swing.JDialog
         spiceBrowseHeaderFile.setText("Browse");
         spiceBrowseHeaderFile.setMinimumSize(new java.awt.Dimension(78, 20));
         spiceBrowseHeaderFile.setPreferredSize(new java.awt.Dimension(78, 20));
-        spiceBrowseHeaderFile.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                spiceBrowseHeaderFileActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
@@ -2049,14 +2218,6 @@ public class ToolOptions extends javax.swing.JDialog
         spiceBrowseTrailerFile.setText("Browse");
         spiceBrowseTrailerFile.setMinimumSize(new java.awt.Dimension(78, 20));
         spiceBrowseTrailerFile.setPreferredSize(new java.awt.Dimension(78, 20));
-        spiceBrowseTrailerFile.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                spiceBrowseTrailerFileActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 5;
@@ -2125,14 +2286,6 @@ public class ToolOptions extends javax.swing.JDialog
         spice6.add(spiceUseModelFromFile, gridBagConstraints);
 
         spiceModelFileBrowse.setText("Browse");
-        spiceModelFileBrowse.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                spiceModelFileBrowseActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 1;
@@ -2472,14 +2625,6 @@ public class ToolOptions extends javax.swing.JDialog
         wellCheck.add(wellNMustHaveAllContacts, gridBagConstraints);
 
         wellNMustHave1Contact.setText("Must have at least 1 contact");
-        wellNMustHave1Contact.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                wellNMustHave1ContactActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
@@ -2512,14 +2657,6 @@ public class ToolOptions extends javax.swing.JDialog
         wellCheck.add(wellNMustConnectPower, gridBagConstraints);
 
         wellFindFarthestDistance.setText("Find farthest distance from contact to edge");
-        wellFindFarthestDistance.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                wellFindFarthestDistanceActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
@@ -2668,14 +2805,6 @@ public class ToolOptions extends javax.swing.JDialog
 
         netAscending.setText("Ascending (0:N)");
         netDefaultOrder.add(netAscending);
-        netAscending.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                netAscendingActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 11;
@@ -3101,14 +3230,6 @@ public class ToolOptions extends javax.swing.JDialog
         logicalEffort.add(jLabel14, gridBagConstraints);
 
         leHelp.setText("Help");
-        leHelp.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                leHelpActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 11;
@@ -3389,14 +3510,6 @@ public class ToolOptions extends javax.swing.JDialog
         getContentPane().add(ok, gridBagConstraints);
 
         factoryReset.setText("Factory Reset");
-        factoryReset.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                factoryResetActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
@@ -3407,74 +3520,27 @@ public class ToolOptions extends javax.swing.JDialog
         pack();
     }//GEN-END:initComponents
 
-	private void wellNMustHave1ContactActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_wellNMustHave1ContactActionPerformed
-	{//GEN-HEADEREND:event_wellNMustHave1ContactActionPerformed
-		// Add your handling code here:
-	}//GEN-LAST:event_wellNMustHave1ContactActionPerformed
-
-	private void wellFindFarthestDistanceActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_wellFindFarthestDistanceActionPerformed
-	{//GEN-HEADEREND:event_wellFindFarthestDistanceActionPerformed
-		// Add your handling code here:
-	}//GEN-LAST:event_wellFindFarthestDistanceActionPerformed
-
-	private void drNormalEdgeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_drNormalEdgeActionPerformed
-	{//GEN-HEADEREND:event_drNormalEdgeActionPerformed
-		// Add your handling code here:
-	}//GEN-LAST:event_drNormalEdgeActionPerformed
-
-	private void netAscendingActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_netAscendingActionPerformed
-	{//GEN-HEADEREND:event_netAscendingActionPerformed
-		// Add your handling code here:
-	}//GEN-LAST:event_netAscendingActionPerformed
-
-	private void spiceModelFileBrowseActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_spiceModelFileBrowseActionPerformed
-	{//GEN-HEADEREND:event_spiceModelFileBrowseActionPerformed
-		String fileName = DialogOpenFile.chooseInputFile(DialogOpenFile.ANY, null);
-		if (fileName == null) return;
-		spiceModelCell.setText(fileName);
-		spiceUseModelFromFile.setSelected(true);
-	}//GEN-LAST:event_spiceModelFileBrowseActionPerformed
-
-	private void spiceBrowseTrailerFileActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_spiceBrowseTrailerFileActionPerformed
-	{//GEN-HEADEREND:event_spiceBrowseTrailerFileActionPerformed
-		String fileName = DialogOpenFile.chooseInputFile(DialogOpenFile.ANY, null);
-		if (fileName == null) return;
-		spiceTrailerCardFile.setText(fileName);
-		spiceTrailerCardsFromFile.setSelected(true);
-	}//GEN-LAST:event_spiceBrowseTrailerFileActionPerformed
-
-	private void spiceBrowseHeaderFileActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_spiceBrowseHeaderFileActionPerformed
-	{//GEN-HEADEREND:event_spiceBrowseHeaderFileActionPerformed
-		String fileName = DialogOpenFile.chooseInputFile(DialogOpenFile.ANY, null);
-		if (fileName == null) return;
-		spiceHeaderCardFile.setText(fileName);
-		spiceHeaderCardsFromFile.setSelected(true);
-	}//GEN-LAST:event_spiceBrowseHeaderFileActionPerformed
-
-	private void factoryResetActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_factoryResetActionPerformed
-	{//GEN-HEADEREND:event_factoryResetActionPerformed
-
-	}//GEN-LAST:event_factoryResetActionPerformed
-
-	private void leHelpActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_leHelpActionPerformed
-	{//GEN-HEADEREND:event_leHelpActionPerformed
-		System.out.println("No help yet");
-	}//GEN-LAST:event_leHelpActionPerformed
-
 	private void CancelButton(java.awt.event.ActionEvent evt)//GEN-FIRST:event_CancelButton
 	{//GEN-HEADEREND:event_CancelButton
-		setVisible(false);
-		dispose();
+		closeDialog(null);
 	}//GEN-LAST:event_CancelButton
 
 	private void OKButton(java.awt.event.ActionEvent evt)//GEN-FIRST:event_OKButton
 	{//GEN-HEADEREND:event_OKButton
-		termSpice();
-		termLogicalEffort();
-		termNetwork();
+		termDRC();				// terminate the DRC Options panel
+		termDesignRules();		// terminate the Design Rules panel
+		termSpice();			// terminate the SPICE Options panel
+		termVerilog();			// terminate the Verilog Options panel
+		termFastHenry();		// terminate the Fast Henry Options panel
+		termWellCheck();		// terminate the Well Check Options panel
+		termAntennaRules();		// terminate the Antenna Rules Options panel
+		termNetwork();			// terminate the Network Options panel
+		termNCC();				// terminate the NCC Options panel
+		termLogicalEffort();	// terminate the Logical Effort Options panel
+		termRouting();			// terminate the Routing Options panel
+		termCompaction();		// terminate the Compaction Options panel
 
-		setVisible(false);
-		dispose();
+		closeDialog(null);
 	}//GEN-LAST:event_OKButton
 	
 	/** Closes the dialog */

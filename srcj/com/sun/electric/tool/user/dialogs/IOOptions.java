@@ -91,6 +91,10 @@ public class IOOptions extends javax.swing.JDialog
 
 	//******************************** CIF ********************************
 
+	/**
+	 * Routine called at the start of the dialog.
+	 * Caches current values and displays them in the CIF tab.
+	 */
 	private void initCIF()
 	{
 		cifLayers.setEnabled(false);
@@ -104,8 +108,20 @@ public class IOOptions extends javax.swing.JDialog
 		cifResolutionValue.setEditable(false);
 	}
 
+	/**
+	 * Routine called when the "OK" panel is hit.
+	 * Updates any changed fields in the CIF tab.
+	 */
+	private void termCIF()
+	{
+	}
+
 	//******************************** GDS ********************************
 
+	/**
+	 * Routine called at the start of the dialog.
+	 * Caches current values and displays them in the GDS tab.
+	 */
 	private void initGDS()
 	{
 		gdsLayerList.setEnabled(false);
@@ -124,24 +140,60 @@ public class IOOptions extends javax.swing.JDialog
 		gdsMaxArcSag.setEditable(false);
 	}
 
+	/**
+	 * Routine called when the "OK" panel is hit.
+	 * Updates any changed fields in the GDS tab.
+	 */
+	private void termGDS()
+	{
+	}
+
 	//******************************** EDIF ********************************
 
+	/**
+	 * Routine called at the start of the dialog.
+	 * Caches current values and displays them in the EDIF tab.
+	 */
 	private void initEDIF()
 	{
 		edifUseSchematicView.setEnabled(false);
 		edifInputScale.setEditable(false);
 	}
 
+	/**
+	 * Routine called when the "OK" panel is hit.
+	 * Updates any changed fields in the EDIF tab.
+	 */
+	private void termEDIF()
+	{
+	}
+
 	//******************************** DEF ********************************
 
+	/**
+	 * Routine called at the start of the dialog.
+	 * Caches current values and displays them in the DEF tab.
+	 */
 	private void initDEF()
 	{
 		defPlacePhysical.setEnabled(false);
 		defPlaceLogical.setEnabled(false);
 	}
 
+	/**
+	 * Routine called when the "OK" panel is hit.
+	 * Updates any changed fields in the DEF tab.
+	 */
+	private void termDEF()
+	{
+	}
+
 	//******************************** CDL ********************************
 
+	/**
+	 * Routine called at the start of the dialog.
+	 * Caches current values and displays them in the CDL tab.
+	 */
 	private void initCDL()
 	{
 		cdlLibraryName.setEditable(false);
@@ -149,8 +201,20 @@ public class IOOptions extends javax.swing.JDialog
 		cdlConvertBrackets.setEnabled(false);
 	}
 
+	/**
+	 * Routine called when the "OK" panel is hit.
+	 * Updates any changed fields in the CDL tab.
+	 */
+	private void termCDL()
+	{
+	}
+
 	//******************************** DXF ********************************
 
+	/**
+	 * Routine called at the start of the dialog.
+	 * Caches current values and displays them in the DXF tab.
+	 */
 	private void initDXF()
 	{
 		dxfLayerList.setEnabled(false);
@@ -160,15 +224,39 @@ public class IOOptions extends javax.swing.JDialog
 		dxfScale.setEnabled(false);
 	}
 
+	/**
+	 * Routine called when the "OK" panel is hit.
+	 * Updates any changed fields in the DXF tab.
+	 */
+	private void termDXF()
+	{
+	}
+
 	//******************************** SUE ********************************
 
+	/**
+	 * Routine called at the start of the dialog.
+	 * Caches current values and displays them in the SUE tab.
+	 */
 	private void initSUE()
 	{
 		sueMake4PortTransistors.setEnabled(false);
 	}
 
+	/**
+	 * Routine called when the "OK" panel is hit.
+	 * Updates any changed fields in the SUE tab.
+	 */
+	private void termSUE()
+	{
+	}
+
 	//******************************** COPYRIGHT ********************************
 
+	/**
+	 * Routine called at the start of the dialog.
+	 * Caches current values and displays them in the Copyright tab.
+	 */
 	private void initCopyright()
 	{
 		copyrightNone.setEnabled(false);
@@ -177,8 +265,20 @@ public class IOOptions extends javax.swing.JDialog
 		copyrightBrowse.setEnabled(false);
 	}
 
+	/**
+	 * Routine called when the "OK" panel is hit.
+	 * Updates any changed fields in the Copyright tab.
+	 */
+	private void termCopyright()
+	{
+	}
+
 	//******************************** LIBRARY ********************************
 
+	/**
+	 * Routine called at the start of the dialog.
+	 * Caches current values and displays them in the Library tab.
+	 */
 	private void initLibrary()
 	{
 		libNoBackup.setEnabled(false);
@@ -187,8 +287,20 @@ public class IOOptions extends javax.swing.JDialog
 		libCheckDatabase.setEnabled(false);
 	}
 
+	/**
+	 * Routine called when the "OK" panel is hit.
+	 * Updates any changed fields in the Library tab.
+	 */
+	private void termLibrary()
+	{
+	}
+
 	//******************************** PRINTING ********************************
 
+	/**
+	 * Routine called at the start of the dialog.
+	 * Caches current values and displays them in the Printing tab.
+	 */
 	private void initPrinting()
 	{
 		printPlotEntireCell.setEnabled(false);
@@ -212,6 +324,14 @@ public class IOOptions extends javax.swing.JDialog
 		printHPGLFillsPage.setEnabled(false);
 		printHPGLFixedScale.setEnabled(false);
 		printHPGLScale.setEditable(false);
+	}
+
+	/**
+	 * Routine called when the "OK" panel is hit.
+	 * Updates any changed fields in the Printing tab.
+	 */
+	private void termPrinting()
+	{
 	}
 
 	/** This method is called from within the constructor to
@@ -301,18 +421,24 @@ public class IOOptions extends javax.swing.JDialog
         libBackupHistory = new javax.swing.JRadioButton();
         libCheckDatabase = new javax.swing.JCheckBox();
         printing = new javax.swing.JPanel();
-        jPanel1 = new javax.swing.JPanel();
+        jPanel4 = new javax.swing.JPanel();
         printPlotEntireCell = new javax.swing.JRadioButton();
-        printPlotHighlightedArea = new javax.swing.JRadioButton();
-        printPlotDisplayedWindow = new javax.swing.JRadioButton();
         printPlotDateInCorner = new javax.swing.JCheckBox();
+        printPlotHighlightedArea = new javax.swing.JRadioButton();
         jLabel18 = new javax.swing.JLabel();
+        printPlotDisplayedWindow = new javax.swing.JRadioButton();
         printDefaultPrinter = new javax.swing.JComboBox();
         jLabel19 = new javax.swing.JLabel();
         printResolution = new javax.swing.JTextField();
-        jSeparator1 = new javax.swing.JSeparator();
-        jPanel2 = new javax.swing.JPanel();
-        jLabel20 = new javax.swing.JLabel();
+        jPanel5 = new javax.swing.JPanel();
+        jLabel26 = new javax.swing.JLabel();
+        printHPGL1 = new javax.swing.JRadioButton();
+        printHPGL2 = new javax.swing.JRadioButton();
+        printHPGLFillsPage = new javax.swing.JRadioButton();
+        printHPGLFixedScale = new javax.swing.JRadioButton();
+        printHPGLScale = new javax.swing.JTextField();
+        jLabel27 = new javax.swing.JLabel();
+        jPanel6 = new javax.swing.JPanel();
         printEncapsulated = new javax.swing.JCheckBox();
         printPostScriptStyle = new javax.swing.JComboBox();
         printUsePrinter = new javax.swing.JRadioButton();
@@ -328,15 +454,7 @@ public class IOOptions extends javax.swing.JDialog
         jLabel25 = new javax.swing.JLabel();
         printEPSScale = new javax.swing.JTextField();
         printSynchronizeToFile = new javax.swing.JCheckBox();
-        jSeparator2 = new javax.swing.JSeparator();
-        jPanel3 = new javax.swing.JPanel();
-        jLabel26 = new javax.swing.JLabel();
-        printHPGL1 = new javax.swing.JRadioButton();
-        printHPGL2 = new javax.swing.JRadioButton();
-        printHPGLFillsPage = new javax.swing.JRadioButton();
-        printHPGLFixedScale = new javax.swing.JRadioButton();
-        printHPGLScale = new javax.swing.JTextField();
-        jLabel27 = new javax.swing.JLabel();
+        jLabel20 = new javax.swing.JLabel();
         ok = new javax.swing.JButton();
         Cancel = new javax.swing.JButton();
 
@@ -373,14 +491,6 @@ public class IOOptions extends javax.swing.JDialog
         cif.add(cifLayers, gridBagConstraints);
 
         cifOutputMimicsDisplay.setText("Output Mimics Display");
-        cifOutputMimicsDisplay.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                cifOutputMimicsDisplayActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
@@ -389,14 +499,6 @@ public class IOOptions extends javax.swing.JDialog
         cif.add(cifOutputMimicsDisplay, gridBagConstraints);
 
         cifOutputMergesBoxes.setText("Output Merges Boxes");
-        cifOutputMergesBoxes.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                cifOutputMergesBoxesActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
@@ -405,14 +507,6 @@ public class IOOptions extends javax.swing.JDialog
         cif.add(cifOutputMergesBoxes, gridBagConstraints);
 
         cifOutputInstantiatesTopLevel.setText("Output Instantiates Top Level");
-        cifOutputInstantiatesTopLevel.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                cifOutputInstantiatesTopLevelActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
@@ -421,14 +515,6 @@ public class IOOptions extends javax.swing.JDialog
         cif.add(cifOutputInstantiatesTopLevel, gridBagConstraints);
 
         cifNormalizeCoordinates.setText("Normalize Coordinates");
-        cifNormalizeCoordinates.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                cifNormalizeCoordinatesActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 5;
@@ -437,14 +523,6 @@ public class IOOptions extends javax.swing.JDialog
         cif.add(cifNormalizeCoordinates, gridBagConstraints);
 
         cifInputSquaresWires.setText("Input Squares Wires");
-        cifInputSquaresWires.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                cifInputSquaresWiresActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 6;
@@ -458,14 +536,6 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 3;
         cif.add(jLabel2, gridBagConstraints);
-
-        cifResolution.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                cifResolutionActionPerformed(evt);
-            }
-        });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -540,14 +610,6 @@ public class IOOptions extends javax.swing.JDialog
         gds.add(jLabel7, gridBagConstraints);
 
         gdsPinLayer.setColumns(8);
-        gdsPinLayer.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                gdsPinLayerActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
@@ -690,14 +752,6 @@ public class IOOptions extends javax.swing.JDialog
         gds.add(jLabel12, gridBagConstraints);
 
         gdsMaxArcSag.setColumns(8);
-        gdsMaxArcSag.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                gdsMaxArcSagActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 13;
@@ -922,14 +976,6 @@ public class IOOptions extends javax.swing.JDialog
         copyright.add(copyrightFileName, gridBagConstraints);
 
         copyrightBrowse.setText("Browse");
-        copyrightBrowse.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                copyrightBrowseActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
@@ -989,258 +1035,113 @@ public class IOOptions extends javax.swing.JDialog
 
         printing.setLayout(new java.awt.GridBagLayout());
 
-        jPanel1.setLayout(new java.awt.GridBagLayout());
+        jPanel4.setLayout(new java.awt.GridBagLayout());
 
+        jPanel4.setBorder(new javax.swing.border.TitledBorder("For all printing"));
         printPlotEntireCell.setText("Plot Entire Cell");
         printingPlotArea.add(printPlotEntireCell);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
-        jPanel1.add(printPlotEntireCell, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel4.add(printPlotEntireCell, gridBagConstraints);
+
+        printPlotDateInCorner.setText("Plot Date In Corner");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel4.add(printPlotDateInCorner, gridBagConstraints);
 
         printPlotHighlightedArea.setText("Plot only Highlighted Area");
         printingPlotArea.add(printPlotHighlightedArea);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        jPanel1.add(printPlotHighlightedArea, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel4.add(printPlotHighlightedArea, gridBagConstraints);
+
+        jLabel18.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel18.setText("Default printer:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel4.add(jLabel18, gridBagConstraints);
 
         printPlotDisplayedWindow.setText("Plot only Displayed Window");
         printingPlotArea.add(printPlotDisplayedWindow);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
-        jPanel1.add(printPlotDisplayedWindow, gridBagConstraints);
-
-        printPlotDateInCorner.setText("Plot Date In Corner");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel1.add(printPlotDateInCorner, gridBagConstraints);
-
-        jLabel18.setText("Default printer:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel1.add(jLabel18, gridBagConstraints);
+        jPanel4.add(printPlotDisplayedWindow, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel1.add(printDefaultPrinter, gridBagConstraints);
+        jPanel4.add(printDefaultPrinter, gridBagConstraints);
 
         jLabel19.setText("Print and Copy resolution factor:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel1.add(jLabel19, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel4.add(jLabel19, gridBagConstraints);
 
         printResolution.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel1.add(printResolution, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel4.add(printResolution, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        printing.add(jPanel1, gridBagConstraints);
+        printing.add(jPanel4, gridBagConstraints);
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        printing.add(jSeparator1, gridBagConstraints);
+        jPanel5.setLayout(new java.awt.GridBagLayout());
 
-        jPanel2.setLayout(new java.awt.GridBagLayout());
-
-        jLabel20.setText("PostScript:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(jLabel20, gridBagConstraints);
-
-        printEncapsulated.setText("Encapsulated");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel2.add(printEncapsulated, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel2.add(printPostScriptStyle, gridBagConstraints);
-
-        printUsePrinter.setText("Printer");
-        printingPlotOrPrint.add(printUsePrinter);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        jPanel2.add(printUsePrinter, gridBagConstraints);
-
-        printUsePlotter.setText("Plotter");
-        printingPlotOrPrint.add(printUsePlotter);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(printUsePlotter, gridBagConstraints);
-
-        jLabel21.setText("Width (in):");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        jPanel2.add(jLabel21, gridBagConstraints);
-
-        printWidth.setColumns(6);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel2.add(printWidth, gridBagConstraints);
-
-        jLabel22.setText("Height (in):");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(jLabel22, gridBagConstraints);
-
-        printHeight.setColumns(6);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel2.add(printHeight, gridBagConstraints);
-
-        jLabel23.setText("Margin (in):");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(jLabel23, gridBagConstraints);
-
-        printMargin.setColumns(6);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 5;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel2.add(printMargin, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
-        jPanel2.add(printRotation, gridBagConstraints);
-
-        jLabel24.setText("For cell:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(jLabel24, gridBagConstraints);
-
-        jLabel25.setText("EPS Scale:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        jPanel2.add(jLabel25, gridBagConstraints);
-
-        printEPSScale.setColumns(8);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel2.add(printEPSScale, gridBagConstraints);
-
-        printSynchronizeToFile.setText("Synchronize to file:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
-        jPanel2.add(printSynchronizeToFile, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        printing.add(jPanel2, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        printing.add(jSeparator2, gridBagConstraints);
-
-        jPanel3.setLayout(new java.awt.GridBagLayout());
-
+        jPanel5.setBorder(new javax.swing.border.TitledBorder("For HPGL printing"));
         jLabel26.setText("HPGL Level:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jLabel26, gridBagConstraints);
+        jPanel5.add(jLabel26, gridBagConstraints);
 
         printHPGL1.setText("HPGL");
         printingHPGL.add(printHPGL1);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel3.add(printHPGL1, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel5.add(printHPGL1, gridBagConstraints);
 
         printHPGL2.setText("HPGL/2");
         printingHPGL.add(printHPGL2);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel3.add(printHPGL2, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel5.add(printHPGL2, gridBagConstraints);
 
         printHPGLFillsPage.setText("HPGL/2 plot fills page");
         printingHPGLScale.add(printHPGLFillsPage);
@@ -1248,10 +1149,10 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel3.add(printHPGLFillsPage, gridBagConstraints);
+        jPanel5.add(printHPGLFillsPage, gridBagConstraints);
 
         printHPGLFixedScale.setText("HPGL/2 plot fixed at:");
         printingHPGLScale.add(printHPGLFixedScale);
@@ -1259,30 +1160,176 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel3.add(printHPGLFixedScale, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel5.add(printHPGLFixedScale, gridBagConstraints);
 
         printHPGLScale.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel3.add(printHPGLScale, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel5.add(printHPGLScale, gridBagConstraints);
 
         jLabel27.setText("grid units per pixel");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel3.add(jLabel27, gridBagConstraints);
+        jPanel5.add(jLabel27, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        printing.add(jPanel3, gridBagConstraints);
+        printing.add(jPanel5, gridBagConstraints);
+
+        jPanel6.setLayout(new java.awt.GridBagLayout());
+
+        jPanel6.setBorder(new javax.swing.border.TitledBorder("For PostScript printing"));
+        printEncapsulated.setText("Encapsulated");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel6.add(printEncapsulated, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel6.add(printPostScriptStyle, gridBagConstraints);
+
+        printUsePrinter.setText("Printer");
+        printingPlotOrPrint.add(printUsePrinter);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel6.add(printUsePrinter, gridBagConstraints);
+
+        printUsePlotter.setText("Plotter");
+        printingPlotOrPrint.add(printUsePlotter);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel6.add(printUsePlotter, gridBagConstraints);
+
+        jLabel21.setText("Width (in):");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel6.add(jLabel21, gridBagConstraints);
+
+        printWidth.setColumns(6);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel6.add(printWidth, gridBagConstraints);
+
+        jLabel22.setText("Height (in):");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel6.add(jLabel22, gridBagConstraints);
+
+        printHeight.setColumns(6);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel6.add(printHeight, gridBagConstraints);
+
+        jLabel23.setText("Margin (in):");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel6.add(jLabel23, gridBagConstraints);
+
+        printMargin.setColumns(6);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel6.add(printMargin, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel6.add(printRotation, gridBagConstraints);
+
+        jLabel24.setText("For cell:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 6;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel6.add(jLabel24, gridBagConstraints);
+
+        jLabel25.setText("EPS Scale:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel6.add(jLabel25, gridBagConstraints);
+
+        printEPSScale.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel6.add(printEPSScale, gridBagConstraints);
+
+        printSynchronizeToFile.setText("Synchronize to file:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel6.add(printSynchronizeToFile, gridBagConstraints);
+
+        jLabel20.setText("Rotation:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel6.add(jLabel20, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        printing.add(jPanel6, gridBagConstraints);
 
         tabPane.addTab("Printing", printing);
 
@@ -1328,53 +1375,19 @@ public class IOOptions extends javax.swing.JDialog
         pack();
     }//GEN-END:initComponents
 
-	private void gdsPinLayerActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_gdsPinLayerActionPerformed
-	{//GEN-HEADEREND:event_gdsPinLayerActionPerformed
-		// Add your handling code here:
-	}//GEN-LAST:event_gdsPinLayerActionPerformed
-
-	private void gdsMaxArcSagActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_gdsMaxArcSagActionPerformed
-	{//GEN-HEADEREND:event_gdsMaxArcSagActionPerformed
-		// Add your handling code here:
-	}//GEN-LAST:event_gdsMaxArcSagActionPerformed
-
-	private void copyrightBrowseActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_copyrightBrowseActionPerformed
-	{//GEN-HEADEREND:event_copyrightBrowseActionPerformed
-		// Add your handling code here:
-	}//GEN-LAST:event_copyrightBrowseActionPerformed
-
-	private void cifResolutionActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cifResolutionActionPerformed
-	{//GEN-HEADEREND:event_cifResolutionActionPerformed
-		// Add your handling code here:
-	}//GEN-LAST:event_cifResolutionActionPerformed
-
-	private void cifInputSquaresWiresActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cifInputSquaresWiresActionPerformed
-	{//GEN-HEADEREND:event_cifInputSquaresWiresActionPerformed
-		// Add your handling code here:
-	}//GEN-LAST:event_cifInputSquaresWiresActionPerformed
-
-	private void cifNormalizeCoordinatesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cifNormalizeCoordinatesActionPerformed
-	{//GEN-HEADEREND:event_cifNormalizeCoordinatesActionPerformed
-		// Add your handling code here:
-	}//GEN-LAST:event_cifNormalizeCoordinatesActionPerformed
-
-	private void cifOutputInstantiatesTopLevelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cifOutputInstantiatesTopLevelActionPerformed
-	{//GEN-HEADEREND:event_cifOutputInstantiatesTopLevelActionPerformed
-		// Add your handling code here:
-	}//GEN-LAST:event_cifOutputInstantiatesTopLevelActionPerformed
-
-	private void cifOutputMergesBoxesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cifOutputMergesBoxesActionPerformed
-	{//GEN-HEADEREND:event_cifOutputMergesBoxesActionPerformed
-		// Add your handling code here:
-	}//GEN-LAST:event_cifOutputMergesBoxesActionPerformed
-
-	private void cifOutputMimicsDisplayActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cifOutputMimicsDisplayActionPerformed
-	{//GEN-HEADEREND:event_cifOutputMimicsDisplayActionPerformed
-		// Add your handling code here:
-	}//GEN-LAST:event_cifOutputMimicsDisplayActionPerformed
-
 	private void okActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_okActionPerformed
 	{//GEN-HEADEREND:event_okActionPerformed
+		termCIF();			// terminate the CIF panel
+		termGDS();			// terminate the GDS panel
+		termEDIF();			// terminate the EDIF panel
+		termDEF();			// terminate the DEF panel
+		termCDL();			// terminate the CDL panel
+		termDXF();			// terminate the DXF panel
+		termSUE();			// terminate the SUE panel
+		termCopyright();	// terminate the Copyright panel
+		termLibrary();		// terminate the Library panel
+		termPrinting();		// terminate the Printing panel
+
 		closeDialog(null);
 	}//GEN-LAST:event_okActionPerformed
 
@@ -1466,11 +1479,9 @@ public class IOOptions extends javax.swing.JDialog
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
-    private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JSeparator jSeparator2;
+    private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
+    private javax.swing.JPanel jPanel6;
     private javax.swing.JRadioButton libBackupHistory;
     private javax.swing.JRadioButton libBackupLast;
     private javax.swing.JCheckBox libCheckDatabase;

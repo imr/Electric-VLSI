@@ -532,7 +532,7 @@ public class PadGenerator
 				{
 					Rectangle2D bounds = cell.getBounds();
 					Point2D center = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
-					EditWindow.gridAlign(center, 1);
+					EditWindow.gridAlign(center);
 
 					SizeOffset so = corenp.getSizeOffset();
 					NodeInst ni = NodeInst.makeInstance(corenp, center, corenp.getDefWidth(), corenp.getDefHeight(), 0, cell, null);

@@ -236,19 +236,24 @@ public class ToolBar extends JToolBar
 		// a separator
 		toolbar.addSeparator();
 
-//		// a test button
-//		Button testButton = Button.newInstance(new ImageIcon(toolbar.getClass().getResource("ButtonTest.gif")));
-//		testButton.setToolTipText("test");
-//
-//		// set an area for popup menu to be triggered within a button
-//		Insets insets = new Insets(22,22,32,32);
-//		JPopupMenu popup = new JPopupMenu();
-//		JMenuItem testItem = new JMenuItem("test 1");
-//		popup.add(testItem);
-//		testItem = new JMenuItem("test 2");
-//		popup.add(testItem);
-//		testButton.addPopupMenu(popup, insets);
-//		toolbar.add(testButton);
+		// the "Options" buttons
+		JButton editOptionButton = Button.newInstance(new ImageIcon(toolbar.getClass().getResource("ButtonOptionEdit.gif")));
+		editOptionButton.addActionListener(
+			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.editOptionsCommand(); } });
+		editOptionButton.setToolTipText("Edit Options");
+		toolbar.add(editOptionButton);
+
+		JButton toolOptionButton = Button.newInstance(new ImageIcon(toolbar.getClass().getResource("ButtonOptionTool.gif")));
+		toolOptionButton.addActionListener(
+			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.toolOptionsCommand(); } });
+		toolOptionButton.setToolTipText("Tool Options");
+		toolbar.add(toolOptionButton);
+
+		JButton ioOptionButton = Button.newInstance(new ImageIcon(toolbar.getClass().getResource("ButtonOptionIO.gif")));
+		ioOptionButton.addActionListener(
+			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.ioOptionsCommand(); } });
+		ioOptionButton.setToolTipText("I/O Options");
+		toolbar.add(ioOptionButton);
 
 		// return the toolbar
 		return toolbar;

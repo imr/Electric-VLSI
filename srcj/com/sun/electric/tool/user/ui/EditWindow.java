@@ -109,6 +109,8 @@ public class EditWindow extends JPanel
     /** the window frame containing this editwindow */      private WindowFrame wf;
 	/** true if the window needs to be rerendered */		private boolean needsUpdate = true;
 	/** true if showing grid in this window */				private boolean showGrid = false;
+	/** X spacing of grid dots in this window */			private float gridXSpacing;
+	/** Y spacing of grid dots in this window */			private float gridYSpacing;
 	/** true if doing object-selection drag */				private boolean doingAreaDrag = false;
 	/** starting screen point for drags in this window */	private Point startDrag = new Point();
 	/** ending screen point for drags in this window */		private Point endDrag = new Point();
@@ -138,7 +140,9 @@ public class EditWindow extends JPanel
         this.cell = cell;
         this.cellVarContext = VarContext.globalContext;
         this.wf = wf;
-        
+		this.gridXSpacing = User.getDefGridXSpacing();
+		this.gridYSpacing = User.getDefGridYSpacing();
+
 		sz = new Dimension(500, 500);
 		setSize(sz.width, sz.height);
 		setPreferredSize(sz);
@@ -363,6 +367,7 @@ public class EditWindow extends JPanel
 					PortInst pi = exp.getOriginalPort();
 					pi.getPortProto().setBit(fs);
 				}
+				int portDisplayLevel = User.getPortDisplayLevel();
 				for(Iterator it = ni.getProto().getPorts(); it.hasNext(); )
 				{
 					PortProto pp = (PortProto)it.next();
@@ -371,10 +376,24 @@ public class EditWindow extends JPanel
 					Poly portPoly = ni.getShapeOfPort(pp);
 					if (portPoly == null) continue;
 					portPoly.transform(trans);
-					descript = portPoly.getTextDescriptor();
-					Poly.Type type = descript.getPos().getPolyType();
-					drawText(g2, portPoly.getCenterX(), portPoly.getCenterX(), portPoly.getCenterY(), portPoly.getCenterY(), type,
-						descript, pp.getProtoName(), Color.red);
+					if (portDisplayLevel == 2)
+					{
+						// draw port as a cross
+						drawCross(g2, portPoly, Color.red);
+					} else
+					{
+						// draw port as text
+						descript = portPoly.getTextDescriptor();
+						Poly.Type type = descript.getPos().getPolyType();
+						String portName = pp.getProtoName();
+						if (portDisplayLevel == 1)
+						{
+							// use shorter port name
+							portName = pp.getShortProtoName();
+						}
+						drawText(g2, portPoly.getCenterX(), portPoly.getCenterX(), portPoly.getCenterY(), portPoly.getCenterY(), type,
+							descript, portName, Color.red);
+					}
 				}
 				fs.freeFlagSet();
 			}
@@ -402,17 +421,32 @@ public class EditWindow extends JPanel
 		// draw any exports from the node
 		if (topLevel)
 		{
+			int exportDisplayLevel = User.getExportDisplayLevel();
 			Iterator it = ni.getExports();
 			while (it.hasNext())
 			{
-				Export e = (Export) it.next();
+				Export e = (Export)it.next();
 				Poly poly = e.getNamePoly();
 				Rectangle2D rect = (Rectangle2D)poly.getBounds2D().clone();
 				poly.transform(localTrans);
-				TextDescriptor descript = poly.getTextDescriptor();
-				Poly.Type type = descript.getPos().getPolyType();
-				drawText(g2, poly.getCenterX(), poly.getCenterX(), poly.getCenterY(), poly.getCenterY(), type,
-					descript, e.getProtoName(), Color.black);
+				if (exportDisplayLevel == 2)
+				{
+					// draw port as a cross
+					drawCross(g2, poly, Color.black);
+				} else
+				{
+					// draw port as text
+					TextDescriptor descript = poly.getTextDescriptor();
+					Poly.Type type = descript.getPos().getPolyType();
+					String portName = e.getProtoName();
+					if (exportDisplayLevel == 1)
+					{
+						// use shorter port name
+						portName = e.getShortProtoName();
+					}
+					drawText(g2, poly.getCenterX(), poly.getCenterX(), poly.getCenterY(), poly.getCenterY(), type,
+						descript, portName, Color.black);
+				}
 
 				// draw variables on the export
 				int numPolys = e.numDisplayableVariables(true);
@@ -537,7 +571,7 @@ public class EditWindow extends JPanel
 			} else if (style == Poly.Type.CROSS || style == Poly.Type.BIGCROSS)
 			{
 				// draw the big cross
-				drawCross(g2, poly);
+				drawCross(g2, poly, Color.black);
 			}
 		}
 		return false;
@@ -548,14 +582,14 @@ public class EditWindow extends JPanel
 	/**
 	 * Routine to draw a large or small cross, as described in "poly".
 	 */
-	void drawCross(Graphics2D g2, Poly poly)
+	void drawCross(Graphics2D g2, Poly poly, Color color)
 	{
 		float x = (float)poly.getCenterX();
 		float y = (float)poly.getCenterY();
 		float size = 5 / (float)scale;
 		if (poly.getStyle() == Poly.Type.CROSS) size = 3 / (float)scale;
 		g2.setStroke(solidLine);
-		g2.setColor(Color.black);
+		g2.setColor(color);
 		GeneralPath gp = new GeneralPath();
 		gp.moveTo(x+size, y);  gp.lineTo(x-size, y);
 		gp.moveTo(x, y+size);  gp.lineTo(x, y-size);
@@ -825,15 +859,39 @@ public class EditWindow extends JPanel
 	public boolean getGrid() { return showGrid; }
 
 	/**
+	 * Routine to return the distance between grid dots in the X direction.
+	 * @return the distance between grid dots in the X direction.
+	 */
+	public float getGridXSpacing() { return gridXSpacing; }
+	/**
+	 * Routine to set the distance between grid dots in the X direction.
+	 * @param spacing the distance between grid dots in the X direction.
+	 */
+	public void setGridXSpacing(float spacing) { gridXSpacing = spacing; }
+
+	/**
+	 * Routine to return the distance between grid dots in the Y direction.
+	 * @return the distance between grid dots in the Y direction.
+	 */
+	public float getGridYSpacing() { return gridYSpacing; }
+	/**
+	 * Routine to set the distance between grid dots in the Y direction.
+	 * @param spacing the distance between grid dots in the Y direction.
+	 */
+	public void setGridYSpacing(float spacing) { gridYSpacing = spacing; }
+
+	/**
 	 * Routine to display the grid.
 	 */
 	private void drawGrid(Graphics g)
 	{
 		/* grid spacing */
-		int x0 = 1; int y0 = 1;
+		int x0 = (int)gridXSpacing;
+		int y0 = (int)gridYSpacing;
 
 		// bold dot spacing
-		int xspacing = 10, yspacing = 10;
+		int xspacing = User.getDefGridXBoldFrequency();
+		int yspacing = User.getDefGridYBoldFrequency();
 
 		/* object space extent */
 		Point2D low = screenToDatabase(0, 0);
@@ -1121,8 +1179,9 @@ public class EditWindow extends JPanel
 	 * @param pt the point to be snapped.
 	 * @param alignment the size of the snap grid (1 to round to whole numbers)
 	 */
-	public static void gridAlign(Point2D pt, double alignment)
+	public static void gridAlign(Point2D pt)
 	{
+		double alignment = User.getAlignmentToGrid();
 		long x = Math.round(pt.getX() / alignment);
 		long y = Math.round(pt.getY() / alignment);
 		pt.setLocation(x * alignment, y * alignment);

@@ -685,7 +685,7 @@ public class CircuitChanges
 					iconPos.setLocation(cellBounds.getMinX()-halfWidth, cellBounds.getMinY()-halfHeight);
 					break;
 			}
-			EditWindow.gridAlign(iconPos, 1);
+			EditWindow.gridAlign(iconPos);
 			double px = iconCell.getBounds().getWidth();
 			double py = iconCell.getBounds().getHeight();
 			NodeInst ni = NodeInst.makeInstance(iconCell, iconPos, px, py, 0, curCell, null);

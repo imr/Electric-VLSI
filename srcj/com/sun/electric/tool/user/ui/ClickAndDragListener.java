@@ -140,7 +140,7 @@ class ClickAndDragListener
 			int newX = evt.getX();
 			int newY = evt.getY();
 			Point2D delta = wnd.deltaScreenToDatabase(newX - oldx, newY - oldy);
-			wnd.gridAlign(delta, 1);
+			EditWindow.gridAlign(delta);
 			Highlight.setHighlightOffset(0, 0);
 			CircuitChanges.manyMove(delta.getX(), delta.getY());
 			wnd.redraw();

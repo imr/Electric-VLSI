@@ -529,7 +529,7 @@ class WiringListener
 					PrimitiveNode np = ((PrimitiveArc)ai.getProto()).findPinProto();
 					PrimitivePort pp = (PrimitivePort)np.getPorts().next();
 					Point2D center = EMath.closestPointToSegment(ai.getHead().getLocation(), ai.getTail().getLocation(), startPoint);
-					EditWindow.gridAlign(center, 1);
+					EditWindow.gridAlign(center);
 					WiringPlan [] list = new WiringPlan[4];
 					list[0] = WiringPlan.makeNode(null, np, pp, center, np.getDefWidth(), np.getDefHeight());
 					list[1] = WiringPlan.makeArc(ai.getProto(), ai.getHead().getPortInst().getNodeInst(),
@@ -653,7 +653,7 @@ class WiringListener
 						}
 					}
 				}
-				EditWindow.gridAlign(trueEnd, 1);
+				EditWindow.gridAlign(trueEnd);
 
 				PrimitiveNode pinType = ((PrimitiveArc)useAp).findPinProto();
 				PrimitivePort pinPort = (PrimitivePort)pinType.getPorts().next();

@@ -398,6 +398,193 @@ public class User extends Tool
 	 */
 	public static void setIconGenLeadSpacing(float dist) { tool.prefs.putFloat("IconGenLeadSpacing", dist);   flushOptions(); }
 
+	/****************************** PORT AND EXPORT PREFERENCES ******************************/
+
+	/**
+	 * Routine to tell how to display ports.
+	 * @return how to display ports.
+	 * 0: full port names (the default).
+	 * 1: short port names (stopping at the first nonalphabetic character).
+	 * 2: ports drawn as crosses.
+	 */
+	public static int getPortDisplayLevel() { return tool.prefs.getInt("PortDisplayLevel", 0); }
+	/**
+	 * Routine to set how to display ports.
+	 * @param level how to display ports.
+	 * 0: full port names (the default).
+	 * 1: short port names (stopping at the first nonalphabetic character).
+	 * 2: ports drawn as crosses.
+	 */
+	public static void setPortDisplayLevels(int level) { tool.prefs.putInt("PortDisplayLevel", level);   flushOptions(); }
+
+	/**
+	 * Routine to tell how to display exports.
+	 * @return how to display exports.
+	 * 0: full export names (the default).
+	 * 1: short export names (stopping at the first nonalphabetic character).
+	 * 2: exports drawn as crosses.
+	 */
+	public static int getExportDisplayLevel() { return tool.prefs.getInt("ExportDisplayLevel", 0); }
+	/**
+	 * Routine to set how to display exports.
+	 * @param level how to display exports.
+	 * 0: full export names (the default).
+	 * 1: short export names (stopping at the first nonalphabetic character).
+	 * 2: exports drawn as crosses.
+	 */
+	public static void setExportDisplayLevels(int level) { tool.prefs.putInt("ExportDisplayLevel", level);   flushOptions(); }
+
+	/**
+	 * Routine to tell whether to move a node when its export name moves.
+	 * The default is "false", which means that the export text can move independently.
+	 * @return true to move a node when its export name moves.
+	 */
+	public static boolean isMoveNodeWithExport() { return tool.prefs.getBoolean("MoveNodeWithExport", false); }
+	/**
+	 * Routine to set whether to move a node when its export name moves.
+	 * @param on true to move a node when its export name moves.
+	 */
+	public static void setMoveNodeWithExport(boolean on) { tool.prefs.putBoolean("MoveNodeWithExport", on);   flushOptions(); }
+
+	/****************************** SELECTION PREFERENCES ******************************/
+
+	/**
+	 * Routine to tell whether cell instances are all be easy-to-select.
+	 * The default is "true".
+	 * @return true if cell instances are all be easy-to-select.
+	 */
+	public static boolean isEasySelectionOfCellInstances() { return tool.prefs.getBoolean("EasySelectionOfCellInstances", true); }
+	/**
+	 * Routine to set whether cell instances are all be easy-to-select.
+	 * @param on true if cell instances are all to be easy-to-select.
+	 */
+	public static void setEasySelectionOfCellInstances(boolean on) { tool.prefs.putBoolean("EasySelectionOfCellInstances", on);   flushOptions(); }
+
+	private static boolean annotationTextInvalid = true;
+	private static boolean annotationTextHardCache = false;
+
+	/**
+	 * Routine to tell whether annotation text is easy-to-select.
+	 * The default is "true".
+	 * @return true if annotation text is easy-to-select.
+	 */
+	public static boolean isEasySelectionOfAnnotationText()
+	{
+		if (annotationTextInvalid)
+		{
+			annotationTextHardCache = tool.prefs.getBoolean("EasySelectionOfAnnotationText", true);
+			annotationTextInvalid = false;
+		}
+		return annotationTextHardCache;
+	}
+	/**
+	 * Routine to set whether annotation text is easy-to-select.
+	 * @param on true if annotation text is easy-to-select.
+	 */
+	public static void setEasySelectionOfAnnotationText(boolean on)
+	{
+		tool.prefs.putBoolean("EasySelectionOfAnnotationText", annotationTextHardCache = on);
+		flushOptions();
+	}
+
+	/**
+	 * Routine to tell whether dragging a selection rectangle must completely encose objects in order to select them.
+	 * The default is "false", which means that the selection rectangle need only touch an object in order to select it.
+	 * @return true if dragging a selection rectangle must completely encose objects in order to select them.
+	 */
+	public static boolean isDraggingMustEncloseObjects() { return tool.prefs.getBoolean("DraggingMustEncloseObjects", false); }
+	/**
+	 * Routine to set whether dragging a selection rectangle must completely encose objects in order to select them.
+	 * @param on true if dragging a selection rectangle must completely encose objects in order to select them.
+	 */
+	public static void setDraggingMustEncloseObjects(boolean on) { tool.prefs.putBoolean("DraggingMustEncloseObjects", on);   flushOptions(); }
+
+	/****************************** GRID AND ALIGNMENT PREFERENCES ******************************/
+
+	/**
+	 * Routine to return the default spacing of grid dots in the X direction.
+	 * The default is 1.
+	 * @return true the default spacing of grid dots in the X direction.
+	 */
+	public static float getDefGridXSpacing() { return tool.prefs.getFloat("DefGridXSpacing", 1); }
+	/**
+	 * Routine to set the default spacing of grid dots in the X direction.
+	 * @param dist the default spacing of grid dots in the X direction.
+	 */
+	public static void setDefGridXSpacing(float dist) { tool.prefs.putFloat("DefGridXSpacing", dist);   flushOptions(); }
+
+	/**
+	 * Routine to return the default spacing of grid dots in the Y direction.
+	 * The default is 1.
+	 * @return true the default spacing of grid dots in the Y direction.
+	 */
+	public static float getDefGridYSpacing() { return tool.prefs.getFloat("DefGridYSpacing", 1); }
+	/**
+	 * Routine to set the default spacing of grid dots in the Y direction.
+	 * @param dist the default spacing of grid dots in the Y direction.
+	 */
+	public static void setDefGridYSpacing(float dist) { tool.prefs.putFloat("DefGridYSpacing", dist);   flushOptions(); }
+
+	/**
+	 * Routine to return the default frequency of bold grid dots in the X direction.
+	 * The default is 10.
+	 * @return true the default frequency of bold grid dots in the X direction.
+	 */
+	public static int getDefGridXBoldFrequency() { return tool.prefs.getInt("DefGridXBoldFrequency", 10); }
+	/**
+	 * Routine to set the default frequency of bold grid dots in the X direction.
+	 * @param dist the default frequency of bold grid dots in the X direction.
+	 */
+	public static void setDefGridXBoldFrequency(int dist) { tool.prefs.putInt("DefGridXBoldFrequency", dist);   flushOptions(); }
+
+	/**
+	 * Routine to return the default frequency of bold grid dots in the Y direction.
+	 * The default is 10.
+	 * @return true the default frequency of bold grid dots in the Y direction.
+	 */
+	public static int getDefGridYBoldFrequency() { return tool.prefs.getInt("DefGridYBoldFrequency", 10); }
+	/**
+	 * Routine to set the default frequency of bold grid dots in the Y direction.
+	 * @param dist the default frequency of bold grid dots in the Y direction.
+	 */
+	public static void setDefGridYBoldFrequency(int dist) { tool.prefs.putInt("DefGridYBoldFrequency", dist);   flushOptions(); }
+
+	/**
+	 * Routine to tell whether to align the grid dots with the circuitry.
+	 * The default is "false", which implies that the grid dots are placed independently of object locations.
+	 * @return true to align the grid dots with the circuitry.
+	 */
+	public static boolean isAlignGridWithCircuitry() { return tool.prefs.getBoolean("AlignGridWithCircuitry", true); }
+	/**
+	 * Routine to set whether to align the grid dots with the circuitry.
+	 * @param on true to align the grid dots with the circuitry.
+	 */
+	public static void setAlignGridWithCircuitry(boolean on) { tool.prefs.putBoolean("AlignGridWithCircuitry", on);   flushOptions(); }
+
+	/**
+	 * Routine to return the default alignment of objects to the grid.
+	 * The default is 1, meaning that placement and movement should land on whole grid units.
+	 * @return true the default alignment of objects to the grid.
+	 */
+	public static float getAlignmentToGrid() { return tool.prefs.getFloat("AlignmentToGrid", 1); }
+	/**
+	 * Routine to set the default alignment of objects to the grid.
+	 * @param dist the default alignment of objects to the grid.
+	 */
+	public static void setAlignmentToGrid(float dist) { tool.prefs.putFloat("AlignmentToGrid", dist);   flushOptions(); }
+
+	/**
+	 * Routine to return the default alignment of object edges to the grid.
+	 * The default is 0, meaning that no alignment is to be done.
+	 * @return true the default alignment of object edges to the grid.
+	 */
+	public static float getEdgeAlignmentToGrid() { return tool.prefs.getFloat("EdgeAlignmentToGrid", 0); }
+	/**
+	 * Routine to set the default alignment of object edges to the grid.
+	 * @param dist the default alignment of object edges to the grid.
+	 */
+	public static void setEdgeAlignmentToGrid(float dist) { tool.prefs.putFloat("EdgeAlignmentToGrid", dist);   flushOptions(); }
+
 	/****************************** MISCELLANEOUS PREFERENCES ******************************/
 
 	/**
@@ -481,7 +668,7 @@ public class User extends Tool
 	/**
 	 * Routine to return the default rotation of all new nodes.
 	 * The default is 0.
-	 * @return truethe  default rotation of all new nodes.
+	 * @return the default rotation of all new nodes.
 	 */
 	public static int getNewNodeRotation() { return tool.prefs.getInt("NewNodeRotation", 0); }
 	/**
@@ -501,56 +688,5 @@ public class User extends Tool
 	 * @param on true if new nodes are mirrored in X.
 	 */
 	public static void setNewNodeMirrorX(boolean on) { tool.prefs.putBoolean("NewNodeMirrorX", on);   flushOptions(); }
-
-	/**
-	 * Routine to tell whether cell instances are all be easy-to-select.
-	 * The default is "true".
-	 * @return true if cell instances are all be easy-to-select.
-	 */
-	public static boolean isEasySelectionOfCellInstances() { return tool.prefs.getBoolean("EasySelectionOfCellInstances", true); }
-	/**
-	 * Routine to set whether cell instances are all be easy-to-select.
-	 * @param on true if cell instances are all to be easy-to-select.
-	 */
-	public static void setEasySelectionOfCellInstances(boolean on) { tool.prefs.putBoolean("EasySelectionOfCellInstances", on);   flushOptions(); }
-
-	private static boolean annotationTextInvalid = true;
-	private static boolean annotationTextHardCache = false;
-
-	/**
-	 * Routine to tell whether annotation text is easy-to-select.
-	 * The default is "true".
-	 * @return true if annotation text is easy-to-select.
-	 */
-	public static boolean isEasySelectionOfAnnotationText()
-	{
-		if (annotationTextInvalid)
-		{
-			annotationTextHardCache = tool.prefs.getBoolean("EasySelectionOfAnnotationText", true);
-			annotationTextInvalid = false;
-		}
-		return annotationTextHardCache;
-	}
-	/**
-	 * Routine to set whether annotation text is easy-to-select.
-	 * @param on true if annotation text is easy-to-select.
-	 */
-	public static void setEasySelectionOfAnnotationText(boolean on)
-	{
-		tool.prefs.putBoolean("EasySelectionOfAnnotationText", annotationTextHardCache = on);
-		flushOptions();
-	}
-
-	/**
-	 * Routine to tell whether dragging a selection rectangle must completely encose objects in order to select them.
-	 * The default is "false", which means that the selection rectangle need only touch an object in order to select it.
-	 * @return true if dragging a selection rectangle must completely encose objects in order to select them.
-	 */
-	public static boolean isDraggingMustEncloseObjects() { return tool.prefs.getBoolean("DraggingMustEncloseObjects", false); }
-	/**
-	 * Routine to set whether dragging a selection rectangle must completely encose objects in order to select them.
-	 * @param on true if dragging a selection rectangle must completely encose objects in order to select them.
-	 */
-	public static void setDraggingMustEncloseObjects(boolean on) { tool.prefs.putBoolean("DraggingMustEncloseObjects", on);   flushOptions(); }
 
 }

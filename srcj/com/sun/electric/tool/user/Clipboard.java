@@ -469,7 +469,7 @@ public class Clipboard
 		}
 
 		// adjust this corner so that, after grid alignment, objects are in the same location
-		EditWindow.gridAlign(corner, 1);
+		EditWindow.gridAlign(corner);
 
 		// special case when moving one node: account for cell center
 		if (theNodes.size() == 1 && list.size() == 1)
