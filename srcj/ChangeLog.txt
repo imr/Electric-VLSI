@@ -7,6 +7,8 @@ NOTE: Please place changes under the version that will be released next.
 ************************* END OF Version 8.01, GNU RELEASE *********************************
 ************************* Version 8.01ax: *********************************
 
+IMP: (12/22/04, GVG): Change should leave object(s) selected (Bug #129)
+
 IMP: (12/22/04, GVG): New scale for 3D panning.
 
 IMP: (12/22/04, GVG): New names for VTH/VTL/OD18 pure nodes to be consisten with rest of names.

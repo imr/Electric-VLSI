@@ -528,6 +528,7 @@ public class Change extends EDialog implements HighlightListener
 							"Change failed", JOptionPane.ERROR_MESSAGE);
 						return false;
 					}
+					dialog.wnd.getHighlighter().addElectricObject(onlyNewNi, onlyNewNi.getParent());
 
 					// do additional replacements if requested
 					int total = 1;
@@ -735,6 +736,7 @@ public class Change extends EDialog implements HighlightListener
 						System.out.println(ap.describe() + " does not fit in the place of " + oldAType.describe());
 						return false;
 					}
+					dialog.wnd.getHighlighter().addElectricObject(onlyNewAi, onlyNewAi.getParent());
 
 					// do additional replacements if requested
 					int total = 1;
