@@ -39,11 +39,13 @@ import java.util.Iterator;
 
 public class Input
 {
-	/** Name of the file being input. */					protected String filePath;
-	/** The Library being input. */							protected Library lib;
-	/** The raw input stream. */							protected FileInputStream fileInputStream;
-	/** The binary input stream. */							protected DataInputStream dataInputStream;
-	/** static list of all libraries in Electric */			protected static List newLibraries = new ArrayList();
+	private static final int READ_BUFFER_SIZE = 65536;
+	
+	/** Name of the file being input. */					String filePath;
+	/** The Library being input. */							Library lib;
+	/** The raw input stream. */							private FileInputStream fileInputStream;
+	/** The binary input stream. */							DataInputStream dataInputStream;
+	/** static list of all libraries in Electric */			static List newLibraries = new ArrayList();
 	static String mainLibDirectory = null;
 
 	/**
@@ -112,7 +114,7 @@ public class Input
 	 * If "lib" is not null, this is a recursive read caused by a cross-library
 	 * reference from inside another library.
 	 */
-	protected static Library readALibrary(String fileName, Library lib, ImportType type)
+	static Library readALibrary(String fileName, Library lib, ImportType type)
 	{
 		Input in;
 
@@ -171,7 +173,9 @@ public class Input
 			if (topLevel) mainLibDirectory = null;
 			return null;
 		}
-		in.dataInputStream = new DataInputStream(in.fileInputStream);
+		BufferedInputStream bufStrm = 
+		    new BufferedInputStream(in.fileInputStream, READ_BUFFER_SIZE);
+		in.dataInputStream = new DataInputStream(bufStrm);
 		boolean error = in.ReadLib();
 		try
 		{
