@@ -49,8 +49,8 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.BinaryConstants;
-import com.sun.electric.tool.user.ui.UITopLevel;
-import com.sun.electric.tool.user.ui.UIDialogOpenFile;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.DialogOpenFile;
 import com.sun.electric.tool.user.ui.ProgressDialog;
 
 import java.io.IOException;
@@ -1436,7 +1436,7 @@ public class InputBinary extends Input
 				if (!testFile.exists())
 				{
 					// try the Electric library area
-					String libraryDirectory = UITopLevel.getLibDir();
+					String libraryDirectory = TopLevel.getLibDir();
 					externalFile = libraryDirectory + File.separator + libFileName;
 					testFile = new File(externalFile);
 					if (!testFile.exists()) externalFile = null;
@@ -1446,7 +1446,7 @@ public class InputBinary extends Input
 			{
 				System.out.println("CANNOT FIND referenced library " + libFile.getPath());
 				String description = "Reference library '" + libFileName + "'";
-				String pt = UIDialogOpenFile.ELIB.chooseInputFile(description);
+				String pt = DialogOpenFile.ELIB.chooseInputFile(description);
 				if (pt != null) externalFile = pt;
 			}
 			if (externalFile != null)

@@ -35,7 +35,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.tool.user.ui.UIEdit;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -646,7 +646,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 * @param wnd the window in which the text will be drawn.
 	 * @return an array of Polys that describes the text.
 	 */
-	public Poly [] getAllText(boolean hardToSelect, UIEdit wnd)
+	public Poly [] getAllText(boolean hardToSelect, EditWindow wnd)
 	{
 		int dispVars = numDisplayableVariables(false);
 		int totalText = dispVars;

@@ -66,7 +66,7 @@ public class ProgressDialog extends JInternalFrame
 
 		this.getContentPane().add(panel);
 		show();
-		JDesktopPane desktop = UITopLevel.getDesktop();
+		JDesktopPane desktop = TopLevel.getDesktop();
 		desktop.add(this); 
 		moveToFront();
 	}
@@ -76,7 +76,7 @@ public class ProgressDialog extends JInternalFrame
 	 */
 	public void close()
 	{
-		JDesktopPane desktop = UITopLevel.getDesktop();
+		JDesktopPane desktop = TopLevel.getDesktop();
 		dispose();
 	}
 

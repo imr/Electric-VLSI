@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: UIEditFrame.java
+ * File: WindowFrame.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -39,15 +39,15 @@ import javax.swing.event.InternalFrameEvent;
 /**
  * This class defines an edit window, with a cell explorer on the left side.
  */
-public class UIEditFrame extends JInternalFrame
+public class WindowFrame extends JInternalFrame
 {
-	/** the edit window part */							private UIEdit wnd;
-	/** the tree view part */							private UITreeView tree;
+	/** the edit window part */							private EditWindow wnd;
+	/** the tree view part */							private TreeView tree;
 	/** the offset of each new windows from the last */	private static int windowOffset = 0;
 	/** the list of all windows on the screen */		private static List windowList = new ArrayList();
 
 	// constructor
-	private UIEditFrame(Cell cell)
+	private WindowFrame(Cell cell)
 	{
 		// initialize the frame
 		super(cell.describe(), true, true, true, true);
@@ -58,10 +58,10 @@ public class UIEditFrame extends JInternalFrame
 		setAutoscrolls(true);
 
 		// the right half: an edit window
-		wnd = UIEdit.CreateElectricDoc(cell);
+		wnd = EditWindow.CreateElectricDoc(cell);
 
 		// the left half: a cell explorer tree in a scroll pane
-		tree = UITreeView.CreateTreeView(Library.getExplorerTree(), wnd);
+		tree = TreeView.CreateTreeView(Library.getExplorerTree(), wnd);
 		JScrollPane scrolledTree = new JScrollPane(tree);
 
 		// put them together into the frame
@@ -83,28 +83,28 @@ public class UIEditFrame extends JInternalFrame
 	}
 
 	// factory
-	public static UIEditFrame CreateEditWindow(Cell cell)
+	public static WindowFrame createEditWindow(Cell cell)
 	{
-		UIEditFrame frame = new UIEditFrame(cell);
+		WindowFrame frame = new WindowFrame(cell);
 
-		JDesktopPane desktop = UITopLevel.getDesktop();
+		JDesktopPane desktop = TopLevel.getDesktop();
 		desktop.add(frame); 
 		frame.moveToFront();
 		return frame;
 	}
 
-	public void windowClosed()
+	private void windowClosed()
 	{
 		windowList.remove(this);
 	}
 
-	public UIEdit getEdit() { return wnd; }
+	public EditWindow getEditWindow() { return wnd; }
 
 	public static void explorerTreeChanged()
 	{
 		for(Iterator it = getWindows(); it.hasNext(); )
 		{
-			UIEditFrame uif = (UIEditFrame)it.next();
+			WindowFrame uif = (WindowFrame)it.next();
 			uif.tree.updateUI();
 		}
 	}
@@ -112,20 +112,6 @@ public class UIEditFrame extends JInternalFrame
 	public static Iterator getWindows()
 	{
 		return windowList.iterator();
-	}
-
-	public void setGrid(boolean showGrid) { wnd.setGrid(showGrid); }
-
-	public boolean getGrid() { return wnd.getGrid(); }
-
-	public void setTimeTracking(boolean trackTime)
-	{
-		wnd.setTimeTracking(trackTime);
-	}
-
-	public void redraw()
-	{
-		wnd.redraw();
 	}
 	
 }

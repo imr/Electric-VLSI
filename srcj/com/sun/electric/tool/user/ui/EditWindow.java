@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: UIEdit.java
+ * File: EditWindow.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -47,6 +47,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.user.UserMenuCommands;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.ui.ToolBar;
 
 import java.util.Iterator;
 import java.util.List;
@@ -88,7 +89,7 @@ import javax.swing.JPopupMenu;
  * This class defines an editing window for circuitry.
  */
 
-public class UIEdit extends JPanel
+public class EditWindow extends JPanel
 implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener {
     /** the window scale */									private double scale;
     /** the window offset */								private double offx, offy;
@@ -118,7 +119,7 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
     // ************************************* CONTROL *************************************
     
     // constructor
-    private UIEdit(Cell cell) {
+    private EditWindow(Cell cell) {
         //super(cell.describe(), true, true, true, true);
         this.cell = cell;
         this.cellVarContext = VarContext.globalContext;
@@ -134,9 +135,9 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 	}
 
 	// factory
-	public static UIEdit CreateElectricDoc(Cell cell)
+	public static EditWindow CreateElectricDoc(Cell cell)
 	{
-		UIEdit ui = new UIEdit(cell);
+		EditWindow ui = new EditWindow(cell);
 		return ui;
 	}
 
@@ -949,6 +950,7 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 	// ************************************* WINDOW INTERACTION *************************************
 
 	private int oldx, oldy;
+	private ToolBar.Mode mode;
 
 	public Point2D.Double screenToDatabase(int screenX, int screenY)
 	{
@@ -998,32 +1000,39 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 		oldx = evt.getX();
 		oldy = evt.getY();
 
-		if (evt.getButton() == MouseEvent.BUTTON3)
+		mode = ToolBar.getMode();
+		if (mode == ToolBar.Mode.ZOOM)
 		{
-			// right button: if over selected things, move them
+			if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) != 0) mode = ToolBar.Mode.PAN;
+		} else if (mode == ToolBar.Mode.PAN)
+		{
+			if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) != 0) mode = ToolBar.Mode.ZOOM;
+		}
+		if (mode == ToolBar.Mode.SELECT)
+		{
+			// selection: if over selected things, move them
 			if (Highlight.overHighlighted(this, oldx, oldy))
 			{
 				doingMotionDrag = true;
 				return;
 			}
-		}
-		if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) != 0) return;
-		if ((evt.getModifiers()&MouseEvent.CTRL_MASK) != 0) return;
 
-		// standard selection: drag out a selection box
-		Point2D.Double pt = screenToDatabase(oldx, oldy);
-		Highlight.findObject(pt, this, false, false, true, false, false);
-		if (Highlight.getNumHighlights() == 0)
-		{
-			startDrag.setLocation(oldx, oldy);
-			endDrag.setLocation(oldx, oldy);
-			doingAreaDrag = true;
+			// standard selection: drag out a selection box
+			Point2D.Double pt = screenToDatabase(oldx, oldy);
+			Highlight.findObject(pt, this, false, false, true, false, false);
+			if (Highlight.getNumHighlights() == 0)
+			{
+				startDrag.setLocation(oldx, oldy);
+				endDrag.setLocation(oldx, oldy);
+				doingAreaDrag = true;
+			}
+			repaint();
 		}
-		repaint();
 	}
 
 	public void mouseReleased(MouseEvent evt)
 	{
+		// handle dragging out a selection rectangle
 		if (doingAreaDrag)
 		{
 			double minSelX = Math.min(startDrag.getX(), endDrag.getX());
@@ -1034,6 +1043,8 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 			doingAreaDrag = false;
 			repaint();
 		}
+
+		// handle dragging the selected objects
 		if (doingMotionDrag)
 		{
 			doingMotionDrag = false;
@@ -1055,23 +1066,27 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 	{
 		int newX = evt.getX();
 		int newY = evt.getY();
+
+		// handle dragging the selected objects
 		if (doingMotionDrag)
 		{
 			Highlight.setHighlightOffset(newX - oldx, newY - oldy);
 			redraw();
 			return;
 		}
+
+		// handle dragging out a selection rectangle
 		if (doingAreaDrag)
 		{
 			endDrag.setLocation(newX, newY);
 			repaint();
 			return;
 		}
-		if ((evt.getModifiers()&MouseEvent.CTRL_MASK) != 0)
+		if (mode == ToolBar.Mode.ZOOM)
 		{
 			// control key held: zoom
 			scale = scale * Math.exp((oldy-newY) / 100.0f);
-		} else if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) != 0)
+		} else if (mode == ToolBar.Mode.PAN)
 		{
 			// shift key held: pan
 			offx -= (newX - oldx) / scale;

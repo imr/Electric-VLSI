@@ -50,7 +50,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.UserMenuCommands;
 import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.ui.UIEdit;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.util.Iterator;
 import java.util.List;
@@ -289,7 +289,7 @@ public class Highlight
 	 * @param minSelY the low Y coordinate of the area.
 	 * @param maxSelY the high Y coordinate of the area.
 	 */
-	public static void selectArea(UIEdit wnd, double minSelX, double maxSelX, double minSelY, double maxSelY)
+	public static void selectArea(EditWindow wnd, double minSelX, double maxSelX, double minSelY, double maxSelY)
 	{
 		clearHighlighting();
 		Point2D.Double start = wnd.screenToDatabase((int)minSelX-EXACTSELECTDISTANCE, (int)minSelY-EXACTSELECTDISTANCE);
@@ -305,7 +305,7 @@ public class Highlight
 		}
 	}
 
-	public static boolean overHighlighted(UIEdit wnd, int oldx, int oldy)
+	public static boolean overHighlighted(EditWindow wnd, int oldx, int oldy)
 	{
 		int numHighlights = getNumHighlights();
 		if (numHighlights == 0) return false;
@@ -336,7 +336,7 @@ public class Highlight
 	 * @param wnd the window in which to draw the highlight.
 	 * @param g the Graphics associated with the window.
 	 */
-	public void showHighlight(UIEdit wnd, Graphics g)
+	public void showHighlight(EditWindow wnd, Graphics g)
 	{
 		g.setColor(Color.white);
 		if (type == Type.BBOX)
@@ -524,7 +524,7 @@ public class Highlight
 	 * is also desired.  If "under" is nonzero, only find objects exactly under the
 	 * desired cursor location.  If "special" is nonzero, special selection rules apply.
 	 */
-	public static void findObject(Point2D.Double pt, UIEdit wnd, boolean exclusively, boolean another, boolean findPort, boolean under, boolean findSpecial)
+	public static void findObject(Point2D.Double pt, EditWindow wnd, boolean exclusively, boolean another, boolean findPort, boolean under, boolean findSpecial)
 	{
 		// initialize
 		double bestdist = Double.MAX_VALUE;
@@ -687,7 +687,7 @@ public class Highlight
 	 * from 0 to 2 according to the type of object desired.
 	 */
 	private static List findAllAtPoint(Cell cell, boolean exclusively, boolean another, boolean findPort,
-		boolean under, boolean findSpecial, Point2D.Double pt, UIEdit wnd)
+		boolean under, boolean findSpecial, Point2D.Double pt, EditWindow wnd)
 	{
 		// make a list of things under the cursor
 		List list = new ArrayList();
@@ -775,7 +775,7 @@ public class Highlight
 	 * @param wnd the window being examined
 	 * @return a Highlight that defines the object, or null if the point is not over any part of this object.
 	 */
-	private static Highlight checkOutObject(Geometric geom, boolean findPort, boolean findSpecial, Point2D.Double pt, UIEdit wnd)
+	private static Highlight checkOutObject(Geometric geom, boolean findPort, boolean findSpecial, Point2D.Double pt, EditWindow wnd)
 	{
 		// compute threshold for direct hits
 		Point2D.Double extra = wnd.deltaScreenToDatabase(EXACTSELECTDISTANCE, EXACTSELECTDISTANCE);
@@ -908,7 +908,7 @@ public class Highlight
 	 * @return the distance from the point to the Geometric.
 	 * Negative values are direct hits.
 	 */
-	private static double distToObject(Point2D.Double pt, Geometric geom, UIEdit wnd)
+	private static double distToObject(Point2D.Double pt, Geometric geom, EditWindow wnd)
 	{
 		if (geom instanceof NodeInst)
 		{
@@ -1005,7 +1005,7 @@ public class Highlight
 
 	// ************************************* SUPPORT *************************************
 
-	private static void drawOutlineFromPoints(UIEdit wnd, Graphics g, Point2D.Double [] points, int offX, int offY)
+	private static void drawOutlineFromPoints(EditWindow wnd, Graphics g, Point2D.Double [] points, int offX, int offY)
 	{
 		for(int i=0; i<points.length; i++)
 		{

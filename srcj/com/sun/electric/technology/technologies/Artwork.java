@@ -39,7 +39,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.tool.user.ui.UIEdit;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Point2D;
 
@@ -415,7 +415,7 @@ public class Artwork extends Technology
 	 * @param wnd the window in which this node will be drawn.
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShape(NodeInst ni, UIEdit wnd)
+	public Poly [] getShape(NodeInst ni, EditWindow wnd)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		getGraphics(ni);
@@ -486,7 +486,7 @@ public class Artwork extends Technology
 	 * @param wnd the window in which this arc will be drawn.
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShape(ArcInst ai, UIEdit wnd)
+	public Poly [] getShape(ArcInst ai, EditWindow wnd)
 	{
 		getGraphics(ai);
 		return super.getShape(ai, wnd);

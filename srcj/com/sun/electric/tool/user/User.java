@@ -26,8 +26,8 @@ package com.sun.electric.tool.user;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.user.ui.UIEditFrame;
-import com.sun.electric.tool.user.ui.UIEdit;
+import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.EditWindow;
 import java.util.Iterator;
 
 /**
@@ -66,10 +66,10 @@ public class User extends Tool
 		for(Iterator it = Undo.getChangedCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			for(Iterator wit = UIEditFrame.getWindows(); wit.hasNext(); )
+			for(Iterator wit = WindowFrame.getWindows(); wit.hasNext(); )
 			{
-				UIEditFrame window = (UIEditFrame)wit.next();
-				UIEdit win = window.getEdit();
+				WindowFrame window = (WindowFrame)wit.next();
+				EditWindow win = window.getEditWindow();
 				Cell winCell = win.getCell();
 				if (winCell == cell) win.redraw();
 			}

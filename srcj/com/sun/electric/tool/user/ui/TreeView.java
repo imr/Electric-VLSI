@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: UITreeView.java
+ * File: TreeView.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -32,16 +32,16 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.tool.user.ui.UIEdit;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 /**
  * Class to display a cell explorer tree-view of the database.
  */
-public class UITreeView extends JTree 
+public class TreeView extends JTree 
 {
-	private UITreeHandler handler = null;
+	private TreeHandler handler = null;
 
-	private UITreeView(TreeNode str)
+	private TreeView(TreeNode str)
 	{
 		super(str);
 
@@ -55,10 +55,10 @@ public class UITreeView extends JTree
 	//	collapseRow(1);
 	}
 
-	public static UITreeView CreateTreeView(TreeNode str, UIEdit wnd)
+	public static TreeView CreateTreeView(TreeNode str, EditWindow wnd)
 	{
-		final UITreeView tree = new UITreeView(str);
-		tree.handler = new UITreeHandler();
+		final TreeView tree = new TreeView(str);
+		tree.handler = new TreeHandler();
 		tree.handler.setTreeView(tree);
 		tree.handler.setTreeWindow(wnd);
 		tree.addTreeSelectionListener(tree.handler);

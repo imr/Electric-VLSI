@@ -27,7 +27,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.tool.user.ui.UIEdit;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -543,7 +543,7 @@ public class Poly implements Shape
 	 * Routine to convert text Polys to their precise bounds in a given window.
 	 * @param wnd the window.
 	 */
-	public void setExactTextBounds(UIEdit wnd)
+	public void setExactTextBounds(EditWindow wnd)
 	{
 		int numLines = 1;
 		if (var != null) numLines = var.getLength();

@@ -31,7 +31,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.tool.user.ui.UIEdit;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -134,7 +134,7 @@ public class ElectricObject
 	 * @param polys an array of Poly objects that will be filled with the displayable Variables.
 	 * @param start the starting index in the array of Poly objects to fill with displayable Variables.
 	 */
-	public void addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start, UIEdit wnd, boolean multipleStrings)
+	public void addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start, EditWindow wnd, boolean multipleStrings)
 	{
 		if (vars == null) return;
 

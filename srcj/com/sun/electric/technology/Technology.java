@@ -44,7 +44,7 @@ import com.sun.electric.technology.technologies.CMOS;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.MoCMOSOld;
 import com.sun.electric.technology.technologies.MoCMOSSub;
-import com.sun.electric.tool.user.ui.UIEdit;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -783,7 +783,7 @@ public class Technology extends ElectricObject
 	 * @return an array of Poly objects that describes this NodeInst graphically.
 	 * This array includes displayable variables on the NodeInst.
 	 */
-	public Poly [] getShape(NodeInst ni, UIEdit wnd)
+	public Poly [] getShape(NodeInst ni, EditWindow wnd)
 	{
 		NodeProto prototype = ni.getProto();
 		if (!(prototype instanceof PrimitiveNode)) return null;
@@ -809,7 +809,7 @@ public class Technology extends ElectricObject
 	 * @return an array of Poly objects that describes this NodeInst graphically.
 	 * This array includes displayable variables on the NodeInst.
 	 */
-	public Poly [] getShape(NodeInst ni, UIEdit wnd, Technology.NodeLayer [] primLayers)
+	public Poly [] getShape(NodeInst ni, EditWindow wnd, Technology.NodeLayer [] primLayers)
 	{
 		// get information about the node
 		double halfWidth = ni.getXSize() / 2;
@@ -1421,7 +1421,7 @@ public class Technology extends ElectricObject
 	 * @return an array of Poly objects that describes this ArcInst graphically.
 	 * This array includes displayable variables on the ArcInst.
 	 */
-	public Poly [] getShape(ArcInst ai, UIEdit wnd)
+	public Poly [] getShape(ArcInst ai, EditWindow wnd)
 	{
 		// get information about the arc
 		PrimitiveArc ap = (PrimitiveArc)ai.getProto();

@@ -41,7 +41,7 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.SizeOffset;
-import com.sun.electric.tool.user.ui.UIEdit;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Point2D;
 import java.util.Iterator;
@@ -1318,7 +1318,7 @@ public class Schematics extends Technology
 	 * @param wnd the window in which this node will be drawn.
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShape(NodeInst ni, UIEdit wnd)
+	public Poly [] getShape(NodeInst ni, EditWindow wnd)
 	{
 		NodeProto prototype = ni.getProto();
 		if (!(prototype instanceof PrimitiveNode)) return null;
@@ -1515,7 +1515,7 @@ public class Schematics extends Technology
 	 * @param wnd the window in which this arc will be drawn.
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShape(ArcInst ai, UIEdit wnd)
+	public Poly [] getShape(ArcInst ai, EditWindow wnd)
 	{
 		// Bus arcs are handled in a standard way
 		PrimitiveArc ap = (PrimitiveArc)ai.getProto();

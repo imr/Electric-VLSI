@@ -25,7 +25,7 @@ package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.text.CellName;
-import com.sun.electric.tool.user.ui.UIEditFrame;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.util.List;
 import java.util.Comparator;
@@ -412,7 +412,7 @@ public class Library extends ElectricObject
 			}
 			explorerTree.add(libTree);
 		}
-		UIEditFrame.explorerTreeChanged();
+		WindowFrame.explorerTreeChanged();
 		return explorerTree;
 	}
 

@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: UIMenu.java
+ * File: Menu.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -30,7 +30,10 @@ package com.sun.electric.tool.user.ui;
  * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
 
+import com.sun.electric.tool.user.UserMenuCommands;
+
 import java.awt.event.ActionListener;
+
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
@@ -41,44 +44,37 @@ import javax.swing.KeyStroke;
  * To change the template for this generated type comment go to
  * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
-public class UIMenu extends JMenu 
+public class Menu extends JMenu 
 {
-	private JMenuItem menuItem = null;
-	
 	// constructor
-	private UIMenu(String s)
+	private Menu(String s, char mnemonic)
 	{
 		super(s);
-	}
-	
-	private UIMenu(String s, char mnemonic)
-	{
-		super(s);
-		setMnemonic(mnemonic);
+		if (mnemonic != 0) setMnemonic(mnemonic);
 	}
 
-	// factory function
-	public static UIMenu CreateUIMenu(String s)
+	// factory functions
+	public static Menu createMenu(String s)
 	{
-		return new UIMenu(s);
+		return new Menu(s, (char)0);
 	}
-	
-	public static UIMenu CreateUIMenu(String s, char mnemonic)
+
+	public static Menu createMenu(String s, char mnemonic)
 	{
-		return new UIMenu(s, mnemonic);
+		return new Menu(s, mnemonic);
 	}
-	
+
 	// add menu item
 	public void addMenuItem(String s, ActionListener action)
 	{
-		menuItem = new JMenuItem(s);
+		JMenuItem menuItem = new JMenuItem(s);
 		menuItem.addActionListener(action);
 		this.add(menuItem);
 	}
 	
 	public void addMenuItem(String s, KeyStroke accelerator, ActionListener action)
 	{
-		menuItem = new JMenuItem(s);
+		JMenuItem menuItem = new JMenuItem(s);
 		menuItem.setAccelerator(accelerator);
 		menuItem.addActionListener(action);
 		this.add(menuItem);

@@ -36,27 +36,14 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.user.ui.Button;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.user.ui.UIEditFrame;
-import com.sun.electric.tool.user.ui.UIMenu;
-import com.sun.electric.tool.user.ui.ToolBar;
-import com.sun.electric.tool.user.ui.UITopLevel;
+import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.TopLevel;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Insets;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
 
-import javax.swing.ImageIcon;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-import javax.swing.KeyStroke;
-import javax.swing.JMenuBar;
+
 
 /**
  * This class initializes the User Interface.
@@ -64,158 +51,10 @@ import javax.swing.JMenuBar;
  */
 public final class UserInitial
 {
-	// ------------------------- private data ----------------------------
-
 	public static void main(String[] args)
 	{
 		// initialize the display
-		UITopLevel.Initialize();
-       
-		// setup the File menu
-		UIMenu fileMenu = UIMenu.CreateUIMenu("File", 'F');
-		fileMenu.addMenuItem("Open", KeyStroke.getKeyStroke('O', InputEvent.CTRL_MASK),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.openLibraryCommand(); } });
-		UIMenu importSubMenu = UIMenu.CreateUIMenu("Import");
-		fileMenu.add(importSubMenu);
-		importSubMenu.addMenuItem("Readable Dump", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.importLibraryCommand(); } });
-		fileMenu.addMenuItem("Save", KeyStroke.getKeyStroke('S', InputEvent.CTRL_MASK),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.saveLibraryCommand(); } });
-		fileMenu.addMenuItem("Save as...",null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.saveAsLibraryCommand(); } });
-		fileMenu.addSeparator();
-		fileMenu.addMenuItem("Quit", KeyStroke.getKeyStroke('Q', InputEvent.CTRL_MASK),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.quitCommand(); } });
-
-		// setup the Edit menu
-		UIMenu editMenu = UIMenu.CreateUIMenu("Edit", 'E');
-		editMenu.addMenuItem("Undo", KeyStroke.getKeyStroke('Z', InputEvent.CTRL_MASK),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.undoCommand(); } });
-		editMenu.addMenuItem("Redo", KeyStroke.getKeyStroke('Y', InputEvent.CTRL_MASK),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.redoCommand(); } });
-		editMenu.addMenuItem("Show Undo List", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.showUndoListCommand(); } });
-
-		// setup the Cell menu
-		UIMenu cellMenu = UIMenu.CreateUIMenu("Cell", 'C');
-        cellMenu.addMenuItem("Down Hierarchy", KeyStroke.getKeyStroke('D', InputEvent.CTRL_MASK),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.downHierCommand(); }});
-        cellMenu.addMenuItem("Up Hierarchy", KeyStroke.getKeyStroke('U', InputEvent.CTRL_MASK),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.upHierCommand(); }});
-		cellMenu.addMenuItem("Show Cell Groups", KeyStroke.getKeyStroke('T', InputEvent.CTRL_MASK),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.showCellGroupsCommand(); } });
-
-		// setup the Export menu
-		UIMenu exportMenu = UIMenu.CreateUIMenu("Export", 'X');
-
-		// setup the View menu
-		UIMenu viewMenu = UIMenu.CreateUIMenu("View", 'V');
-
-		// setup the Window menu
-		UIMenu windowMenu = UIMenu.CreateUIMenu("Window", 'W');
-		windowMenu.addMenuItem("Full Display", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.fullDisplayCommand(); } });
-		windowMenu.addMenuItem("Toggle Grid", KeyStroke.getKeyStroke('G', InputEvent.CTRL_MASK),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.toggleGridCommand(); } });
-
-		// setup the Technology menu
-		UIMenu technologyMenu = UIMenu.CreateUIMenu("Technology", 'H');
-
-		// setup the Tool menu
-		UIMenu toolMenu = UIMenu.CreateUIMenu("Tool", 'T');
-		UIMenu drcSubMenu = UIMenu.CreateUIMenu("DRC", 'D');
-		UIMenu simulationSubMenu = UIMenu.CreateUIMenu("Simulation", 'S');
-		UIMenu ercSubMenu = UIMenu.CreateUIMenu("ERC", 'E');
-		UIMenu networkSubMenu = UIMenu.CreateUIMenu("Network", 'N');
-		UIMenu logEffortSubMenu = UIMenu.CreateUIMenu("Logical Effort", 'L');
-		UIMenu routingSubMenu = UIMenu.CreateUIMenu("Routing", 'R');
-		UIMenu generationSubMenu = UIMenu.CreateUIMenu("Generation", 'G');
-		UIMenu compactionSubMenu = UIMenu.CreateUIMenu("Compaction", 'C');
-		toolMenu.add(drcSubMenu);
-		toolMenu.add(simulationSubMenu);
-		toolMenu.add(ercSubMenu);
-		toolMenu.add(networkSubMenu);
-		toolMenu.add(logEffortSubMenu);
-		toolMenu.addSeparator();
-		toolMenu.add(routingSubMenu);
-		toolMenu.add(generationSubMenu);
-		toolMenu.add(compactionSubMenu);
-
-		// setup the Help menu
-		UIMenu helpMenu = UIMenu.CreateUIMenu("Help", 'H');
-
-		// setup Steve's test menu
-		UIMenu steveMenu = UIMenu.CreateUIMenu("Steve", 'S');
-		steveMenu.addMenuItem("Get Info", KeyStroke.getKeyStroke('I', InputEvent.CTRL_MASK),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.getInfoCommand(); } });
-		steveMenu.addMenuItem("Show R-Tree", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.showRTreeCommand(); } });
-
-		// setup Russell's test menu
-		UIMenu russMenu = UIMenu.CreateUIMenu("Russell", 'R');
-		russMenu.addMenuItem("ivanFlat", new com.sun.electric.rkao.IvanFlat());
-		russMenu.addMenuItem("layout flat", new com.sun.electric.rkao.LayFlat());
-
-		// setup Dima's test menu
-		UIMenu dimaMenu = UIMenu.CreateUIMenu("Dima", 'D');
-		dimaMenu.addMenuItem("redo Network Numbering", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.redoNetworkNumberingCommand(); } });
-		dimaMenu.addMenuItem("test NodeInstsOterator", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.testNodeInstsIteratorCommand(); } });
-
-        // setup JonGainsley's test menu
-        UIMenu jongMenu = UIMenu.CreateUIMenu("JonG", 'J');
-        jongMenu.addMenuItem("Describe Vars", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.listVarsOnObject(); }});
-        jongMenu.addMenuItem("Eval Vars", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.evalVarsOnObject(); }});
-
-            
-		// create the menu bar
-		JMenuBar menuBar = new JMenuBar();
-		menuBar.add(fileMenu);
-		menuBar.add(editMenu);
-		menuBar.add(cellMenu);
-		menuBar.add(exportMenu);
-		menuBar.add(viewMenu);
-		menuBar.add(windowMenu);
-		menuBar.add(technologyMenu);
-		menuBar.add(toolMenu);
-		menuBar.add(helpMenu);
-		menuBar.add(steveMenu);
-		menuBar.add(russMenu);
-		menuBar.add(dimaMenu);
-        menuBar.add(jongMenu);
-		UITopLevel.setMenuBar(menuBar);
-
-		//create button
-		String libraryDirectory = UITopLevel.getLibDir();
-
-		Button openButton = Button.CreateButton(new ImageIcon(libraryDirectory+"buttonOpen.gif"));
-		openButton.addActionListener(
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.openLibraryCommand(); } });
-		openButton.setToolTipText("Open");
-
-		Button aButton = Button.CreateButton(new ImageIcon(libraryDirectory+"buttonTest.gif"));
-		aButton.setToolTipText("test");
-
-		//set an area for popup menu to be triggered within a button
-		Insets insets = new Insets(22,22,32,32);
-		JPopupMenu popup = new JPopupMenu();
-		JMenuItem testItem = new JMenuItem("test 1");
-		popup.add(testItem);
-		testItem = new JMenuItem("test 2");
-		popup.add(testItem);
-		
-		aButton.addPopupMenu(popup, insets);
-		
-		//add buttons to toolbar
-		ToolBar toolbar = ToolBar.CreateToolBar();
-		toolbar.add(openButton);
-		toolbar.add(aButton);
-
-		(UITopLevel.getTopLevel()).getContentPane().add(toolbar, BorderLayout.NORTH);
-
+		TopLevel.Initialize();
 
 		// initialize all of the technologies
 		Technology.initAllTechnologies();
@@ -230,6 +69,8 @@ public final class UserInitial
 		// test code to make and show something
 		makeFakeCircuitry();
 	}
+
+	// ---------------------- THE TOOLBAR -----------------
 
 	private static void makeFakeCircuitry()
 	{
@@ -384,7 +225,7 @@ public final class UserInitial
 //		instanceArc.getInfo();
 
 		// display some cells
-		UIEditFrame window1 = UIEditFrame.CreateEditWindow(myCell);
+		WindowFrame window1 = WindowFrame.createEditWindow(myCell);
 		System.out.println("************* Use SHIFT-CLICK to Pan *************");
 		System.out.println("************* Use CONTROL-CLICK to Zoom *************");
 	}

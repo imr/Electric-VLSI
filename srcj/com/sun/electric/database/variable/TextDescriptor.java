@@ -24,7 +24,7 @@
 package com.sun.electric.database.variable;
 
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.tool.user.ui.UIEdit;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Point;
 
@@ -545,7 +545,7 @@ public class TextDescriptor
 		return Size.newRelSize(size);
 	}
 
-	public int getTrueSize(UIEdit wnd)
+	public int getTrueSize(EditWindow wnd)
 	{
 		Size s = getSize();
 		if (s == null) return 14;

@@ -30,7 +30,6 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.user.ui.ProgressDialog;
-import com.sun.electric.tool.user.ui.UITopLevel;
 
 import java.io.File;
 import java.io.FileInputStream;

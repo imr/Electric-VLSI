@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: UITreeHandler.java
+ * File: TreeHandler.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -36,10 +36,10 @@ import javax.swing.tree.DefaultMutableTreeNode;
  * To change the template for this generated type comment go to
  * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
-public class UITreeHandler implements TreeSelectionListener 
+public class TreeHandler implements TreeSelectionListener 
 {
-	private UITreeView tree;
-	private UIEdit wnd;
+	private TreeView tree;
+	private EditWindow wnd;
 	
 	public void valueChanged(TreeSelectionEvent arg0) 
 	{
@@ -63,9 +63,9 @@ public class UITreeHandler implements TreeSelectionListener
 		
 	}
 	
-	public UITreeView getTreeView() { return tree; }
+	public TreeView getTreeView() { return tree; }
 	
-	public void setTreeView(UITreeView tree) { this.tree = tree; }
+	public void setTreeView(TreeView tree) { this.tree = tree; }
 	
-	public void setTreeWindow(UIEdit wnd) { this.wnd = wnd; }
+	public void setTreeWindow(EditWindow wnd) { this.wnd = wnd; }
 }

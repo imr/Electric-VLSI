@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: UIMessages.java
+ * File: MessagesWindow.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -49,11 +49,11 @@ import javax.swing.JInternalFrame;
  * a console for the Java side of Electric.  Used because the standard
  * Electric console can't handle multiple threads of printing.
  * An instance of this class should be set as the PrintStream for System.out,
- * e.g. System.setOut(new PrintStream(new UIMessages()));
+ * e.g. System.setOut(new PrintStream(new MessagesWindow()));
  * In such a situation, there should never be a reason to call any of
  * the methods of this class directly.
  */
-public class UIMessages
+public class MessagesWindow
 	extends OutputStream
 	implements ActionListener, KeyListener, CaretListener, Runnable
 {
@@ -68,7 +68,7 @@ public class UIMessages
 	JInternalFrame jf;
 
 	// -------------------- private and protected methods ------------------------
-	public UIMessages(Dimension scrnSize)
+	public MessagesWindow(Dimension scrnSize)
 	{
 		jf = new JInternalFrame("Messages", true, false, true, true);
 		// jf.setDefaultCloseOperation(jf.DO_NOTHING_ON_CLOSE);

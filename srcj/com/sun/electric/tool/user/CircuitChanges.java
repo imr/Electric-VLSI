@@ -36,7 +36,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.variable.FlagSet;
-import com.sun.electric.tool.user.ui.UIEdit;
+//import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.Highlight;
 
 import java.util.Iterator;

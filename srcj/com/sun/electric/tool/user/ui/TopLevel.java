@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: UITopLevel.java
+ * File: TopLevel.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -23,6 +23,9 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.tool.user.UserMenuCommands;
+import com.sun.electric.tool.user.ui.ToolBar;
+
 import java.io.File;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -42,24 +45,20 @@ import javax.swing.ImageIcon;
  * To change the template for this generated type comment go to
  * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
-public class UITopLevel extends JFrame
+public class TopLevel extends JFrame
 {
-	static JDesktopPane desktop;
-	static UITopLevel topLevel;
-	static String libdir;
+	private static JDesktopPane desktop;
+	private static TopLevel topLevel;
+	private static String libdir;
 
-	private UITopLevel()
-	{
-		super();
-	}
-	
-	private UITopLevel(String s)
+	private TopLevel(String s)
 	{
 		super(s);
 	}
-	
+
 	public static void Initialize()
 	{
+		// setup specific look-and-feel
 		try{
 			String os = System.getProperty("os.name").toLowerCase();
 			if (os.startsWith("windows"))
@@ -74,22 +73,6 @@ public class UITopLevel extends JFrame
 			}
 		} catch(Exception e) {}
 
-		topLevel = new UITopLevel("Electric");	
-		topLevel.AddWindowExit();
-		Dimension scrnSize = (Toolkit.getDefaultToolkit()).getScreenSize();
-		scrnSize.height -= 30;
-		topLevel.setSize(scrnSize);
-
-		// make the desktop
-		desktop = new JDesktopPane();
-		topLevel.getContentPane().setLayout(new BorderLayout());
-		topLevel.getContentPane().add(desktop, BorderLayout.CENTER);
-		topLevel.setVisible(true);
-
-		// create the messages window
-		UIMessages cl = new UIMessages(desktop.getSize());
-		desktop.add(cl.getFrame());
-
 		// figure out the library directory
 		libdir = null;
 		File dir1 = new File ("./lib");
@@ -97,21 +80,50 @@ public class UITopLevel extends JFrame
 		{
 			libdir = dir1.getCanonicalPath();
 		} catch(Exception e) { libdir = null; }
-		libdir = "C:\\DevelE\\Electric\\lib\\";
+		if (libdir == null)
+		{
+			libdir = "C:\\DevelE\\Electric\\lib\\";
+		}
 
-		topLevel.setIconImage(new ImageIcon(UITopLevel.getLibDir() + "ElectricIcon.gif").getImage());
-	}
-	
-	public static void setMenuBar(JMenuBar menuBar)
-	{
+		// make the top-level window
+		topLevel = new TopLevel("Electric");	
+		topLevel.AddWindowExit();
+		Dimension scrnSize = (Toolkit.getDefaultToolkit()).getScreenSize();
+		scrnSize.height -= 30;
+		topLevel.setSize(scrnSize);
+
+		// set an icon with the application
+		topLevel.setIconImage(new ImageIcon(libdir + "ElectricIcon.gif").getImage());
+
+		// make the desktop
+		desktop = new JDesktopPane();
+		topLevel.getContentPane().setLayout(new BorderLayout());
+		topLevel.getContentPane().add(desktop, BorderLayout.CENTER);
+		topLevel.setVisible(true);
+
+		// create the menu bar
+		JMenuBar menuBar = UserMenuCommands.createMenuBar();
 		topLevel.setJMenuBar(menuBar);
+
+		// create the tool bar
+		ToolBar toolBar = ToolBar.createToolBar();
+		topLevel.getContentPane().add(toolBar, BorderLayout.NORTH);
+
+		// create the messages window
+		MessagesWindow cl = new MessagesWindow(desktop.getSize());
+		desktop.add(cl.getFrame());
 	}
 
 	public static JDesktopPane getDesktop() { return desktop; }
+
 	public static String getLibDir() { return libdir; }
-	public static UIEditFrame getCurrent() { return (UIEditFrame)desktop.getSelectedFrame(); }
-	public static UITopLevel getTopLevel() { return topLevel;}
-	
+
+	public static EditWindow getCurrentEditWindow()
+	{
+		WindowFrame wf = (WindowFrame)desktop.getSelectedFrame();
+		if (wf == null) return null;
+		return wf.getEditWindow();
+	}
 
 	public void AddWindowExit()
 	{

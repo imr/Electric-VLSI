@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: UIDialogOpenFile.java
+ * File: DialogOpenFile.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -31,7 +31,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 
-public class UIDialogOpenFile extends JFileChooser
+public class DialogOpenFile extends JFileChooser
 {
 	static class EFileFilter extends FileFilter
 	{
@@ -81,9 +81,9 @@ public class UIDialogOpenFile extends JFileChooser
 	/** The description of files associated with this dialog */		private String description;
 	/** True if this is a file save dialog */						private boolean saveDialog;
 
-	public static final UIDialogOpenFile ANY = new UIDialogOpenFile(null, "Any File");
-	public static final UIDialogOpenFile TEXT = new UIDialogOpenFile("txt", "Text File");
-	public static final UIDialogOpenFile ELIB = new UIDialogOpenFile("elib", "Library File");
+	public static final DialogOpenFile ANY = new DialogOpenFile(null, "Any File");
+	public static final DialogOpenFile TEXT = new DialogOpenFile("txt", "Text File");
+	public static final DialogOpenFile ELIB = new DialogOpenFile("elib", "Library File");
 
 	/**
 	 * Constructor creates a link to files with the extension "extension" and
@@ -92,7 +92,7 @@ public class UIDialogOpenFile extends JFileChooser
 	 * After construction, the "chooseInputFile()" or "chooseOutputFile()" methods
 	 * may be called to return a selected input or output file.
 	 */
-	public UIDialogOpenFile(String extension, String description)
+	public DialogOpenFile(String extension, String description)
 	{
 		this.extension = extension;
 		this.description = description;
