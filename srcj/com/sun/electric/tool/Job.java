@@ -371,7 +371,9 @@ public abstract class Job implements ActionListener, Runnable {
 			if (jobType == Type.CHANGE)	Undo.endChanges();
 		} catch (Throwable e) {
             endTime = System.currentTimeMillis();
+            e.printStackTrace(System.err);
             ActivityLogger.logException(e);
+            if (e instanceof Error) throw (Error)e;
 		} finally {
 			if (jobType == Type.EXAMINE)
 			{

@@ -336,12 +336,9 @@ public final class Main
                 super.dispatchEvent(e);
             }
             catch(Throwable ex) {
+                ex.printStackTrace(System.err);
                 ActivityLogger.logException(ex);
-                if (ex instanceof Error) {
-                    Exception eee = new Exception("dummy exception for error");
-                    ActivityLogger.logException(eee);
-                    throw (Error)ex;
-                }
+                if (ex instanceof Error) throw (Error)ex;
             }
         }
     }
