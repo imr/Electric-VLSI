@@ -446,7 +446,7 @@ public class EditWindow extends JPanel
 		{
 			if (cell != null)
 			{
-				if (wf == WindowFrame.getCurrentWindowFrame())
+				if (wf == WindowFrame.getCurrentWindowFrame(false))
 				{
 					// if auto-switching technology, do it
 					PaletteFrame.autoTechnologySwitch(cell);
