@@ -60,16 +60,9 @@ public final class UserInitial
         ArrayList argsList = new ArrayList();
         for (int i=0; i<args.length; i++) argsList.add(args[i]);
         
-        // initialize all of the technologies
-		new InitTechnologies();
+        // initialize database
+		new InitDatabase();
 
-		// initialize all of the tools
-		Tool.initAllTools();
-
-		// initialize the constraint system
-		Layout con = Layout.getConstraint();
-		Constraint.setCurrent(con);
-        
         if (hasCommandLineOption(argsList, "-m")) {
             // set multiheaded option here
         }
@@ -142,17 +135,25 @@ public final class UserInitial
 	/**
 	 * Class to init all technologies.
 	 */
-	protected static class InitTechnologies extends Job
+	protected static class InitDatabase extends Job
 	{
-		protected InitTechnologies()
+		protected InitDatabase()
 		{
-			super("Init technologies", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Init database", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.startJob();
 		}
 
 		public void doIt()
 		{
+			// initialize all of the technologies
 			Technology.initAllTechnologies();
+
+			// initialize all of the tools
+			Tool.initAllTools();
+			
+			// initialize the constraint system
+			Layout con = Layout.getConstraint();
+			Constraint.setCurrent(con);
 		}
 	}
     
