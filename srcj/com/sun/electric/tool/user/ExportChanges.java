@@ -652,8 +652,23 @@ public final class ExportChanges
             Cell cell = pi.getNodeInst().getParent();
             if (CircuitChanges.cantEdit(cell, null, true)) continue;
 
-            // get unique name here so Export.newInstance doesn't print message
+            // get match ref export, if any
+            Export refExport = null;
+            if (referenceExports != null) {
+                for (Iterator refIt = referenceExports.iterator(); refIt.hasNext(); ) {
+                    Export export = (Export)refIt.next();
+                    if (export.getOriginalPort().getPortProto() == pi.getPortProto()) {
+                        refExport = export;
+                        break;
+                    }
+                }
+            }
+
             String protoName = pi.getPortProto().getName();
+            // or use export name if there is a reference export
+            if (refExport != null) protoName = refExport.getName();
+
+            // get unique name here so Export.newInstance doesn't print message
             protoName = ElectricObject.uniqueObjectName(protoName, cell, PortProto.class);
             // create export
             Export newPp = Export.newInstance(cell, pi, protoName);
@@ -664,16 +679,10 @@ public final class ExportChanges
                 newPp.copyVars(pi.getPortProto());
                 newPp.setCharacteristic(pi.getPortProto().getCharacteristic());
                 // find original export if any, and copy text descriptor, vars, and characteristic
-                if (referenceExports != null) {
-                    for (Iterator refIt = referenceExports.iterator(); refIt.hasNext(); ) {
-                        Export refExport = (Export)refIt.next();
-                        if (refExport.getOriginalPort().getPortProto() == pi.getPortProto()) {
-                            newPp.setTextDescriptor(refExport.getTextDescriptor());
-                            newPp.copyVars(refExport);
-                            newPp.setCharacteristic(refExport.getCharacteristic());
-                            break;
-                        }
-                    }
+                if (refExport != null) {
+                    newPp.setTextDescriptor(refExport.getTextDescriptor());
+                    newPp.copyVars(refExport);
+                    newPp.setCharacteristic(refExport.getCharacteristic());
                 }
                 total++;
             }
