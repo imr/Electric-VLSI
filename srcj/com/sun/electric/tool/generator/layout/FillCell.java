@@ -376,18 +376,19 @@ public class FillCell extends Job {
 	private void genFillCells() {
 		Library lib = 
 			LayoutLib.openLibForWrite("fillLib", "fillLib.elib");
-		double width = 60;
-		double height = 80; 
+		double width = 218;
+		double height = 170; 
 		boolean topHori = false;
-									 	
+		// m1 via = 4, m1 sp = 6
+		// m6 via = 5, m6 sp = 8
 		Floorplan[] plans = {
 			null,
-			new Floorplan(width, height, 6, 6, 6, !topHori),	// metal 1
-			new Floorplan(width, height, 6, 6, 6,  topHori),	// metal 2
-			new Floorplan(width, height, 6, 6, 6, !topHori),	// metal 3
-			new Floorplan(width, height, 6, 6, 6,  topHori),	// metal 4
-			new Floorplan(width, height, 6, 6, 6, !topHori),	// metal 5
-			new Floorplan(width, height, 8, 8, 8,  topHori)		// metal 6
+			new Floorplan(width, height, 16, 16, 6, !topHori),	// metal 1
+			new Floorplan(width, height, 16, 16, 6,  topHori),	// metal 2
+			new Floorplan(width, height, 16, 16, 6, !topHori),	// metal 3
+			new Floorplan(width, height, 16, 16, 6,  topHori),	// metal 4
+			new Floorplan(width, height, 16, 16, 6, !topHori),	// metal 5
+			new Floorplan(width, height, 21, 21, 8,  topHori)	// metal 6
 		};
 		//genFillCell(lib, plans, 5, 5, true);
 		for (int i=1; i<=6; i++) {
