@@ -55,6 +55,7 @@ import com.sun.electric.tool.Tool;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -135,7 +136,8 @@ public class JELIB extends Output
 				printWriter.println("# External Libraries and cells:");
 				libraryHeaderPrinted = true;
 			}
-			String libFile = eLib.getLibFile().toString();
+			URL libUrl = eLib.getLibFile();
+			String libFile = libUrl != null ? libUrl.toString() : eLib.getName();
 			printWriter.println();
 			printWriter.println("L" + convertString(eLib.getName()) + "|" + convertString(libFile));
 			for(Iterator cIt = eLib.getCells(); cIt.hasNext(); )

@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02i: *********************************
 
+BUG: (03/04/05, DN) Library write crashes (Bug #216)
+FIX: In "output.ELIB" "output.JELIB" "output.ReadableDump" write name
+of external library in case it has not file name yet.
+
+BUG: (03/04/05, DN) Network tool didn't renumber after change of name in global primitive.
+FIX: In "NetworkTool.newVariable" "NetworkTool.killVariable" put "setNetworksDirty".
+
+
 IMP/MAN: 
 IMP/MAN: (03/02/05, GVG) Adding observable-observer pattern to notify changes in light color and direction
 

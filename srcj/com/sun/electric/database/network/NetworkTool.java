@@ -38,6 +38,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
@@ -493,12 +494,20 @@ public class NetworkTool extends Listener
 
 	public void newVariable(ElectricObject obj, Variable var)
 	{
+		if (var.getKey() == Schematics.SCHEM_GLOBAL_NAME) {
+			Cell cell = obj.whichCell();
+			if (cell != null) getNetCell(cell).setNetworksDirty();
+		}
 		if (!debug) return;
 		System.out.println("NetworkTool.newVariable("+obj+","+var+")");
 	}
 
 	public void killVariable(ElectricObject obj, Variable var)
 	{
+		if (var.getKey() == Schematics.SCHEM_GLOBAL_NAME) {
+			Cell cell = obj.whichCell();
+			if (cell != null) getNetCell(cell).setNetworksDirty();
+		}
 		if (!debug) return;
 		System.out.println("NetworkTool.killVariable("+obj+","+var+")");
 	}

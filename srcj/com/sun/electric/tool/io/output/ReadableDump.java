@@ -58,6 +58,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -274,7 +275,9 @@ public class ReadableDump extends Output
 			// cells in external libraries mention the library and stop
 			if (cell.getLibrary() != lib)
 			{
-				printWriter.println("externallibrary: \"" + cell.getLibrary().getLibFile().getFile() + "\"");
+				URL libUrl = cell.getLibrary().getLibFile();
+				String libFile = libUrl != null ? libUrl.getFile() : cell.getLibrary().getName();
+				printWriter.println("externallibrary: \"" + libFile + "\"");
 				continue;
 			}
 

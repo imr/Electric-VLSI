@@ -56,6 +56,7 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -530,7 +531,8 @@ public class ELIB extends Output
 		if (!thislib)
 		{
 			Library instlib = cell.getLibrary();
-            String filePath = instlib.getLibFile().getPath();
+			URL fileUrl = instlib.getLibFile();
+            String filePath = fileUrl != null ? fileUrl.getPath() : instlib.getName();
 			writeString(filePath);
 		}
 
