@@ -713,6 +713,7 @@ public class Clipboard
 					for(int i=0; i<polys.length; i++)
 					{
 						Poly poly = polys[i];
+                        if (poly == null) continue;
 						Highlight h = Highlight.addText(ni, toCell, poly.getVariable(), poly.getName());
 					}
 					continue;

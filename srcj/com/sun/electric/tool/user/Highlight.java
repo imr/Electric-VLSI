@@ -1739,6 +1739,7 @@ public class Highlight
 				for(int i=0; i<polys.length; i++)
 				{
 					Poly poly = polys[i];
+                    if (poly == null) continue;
 					poly.transform(trans);
 					if (poly.setExactTextBounds(wnd, ni)) continue;
 

@@ -192,7 +192,7 @@ public class ElectricObject
 				PortInst pi = pp.getOriginalPort();
 				Rectangle2D bounds = pi.getPoly().getBounds2D();
 				Poly [] polys = pp.getPolyList(var, bounds.getCenterX(), bounds.getCenterY(), wnd, false);
-				if (polys != null)
+				if (polys.length > 0)
 				{
 					poly = polys[0];
 					poly.transform(pi.getNodeInst().rotateOut());
@@ -202,7 +202,7 @@ public class ElectricObject
 				PortInst pi = (PortInst)this;
 				Rectangle2D bounds = pi.getPoly().getBounds2D();
 				Poly [] polys = pi.getPolyList(var, bounds.getCenterX(), bounds.getCenterY(), wnd, false);
-				if (polys != null)
+				if (polys.length > 0)
 				{
 					poly = polys[0];
 					poly.transform(pi.getNodeInst().rotateOut());
@@ -211,7 +211,7 @@ public class ElectricObject
 			{
 				Geometric geom = (Geometric)this;
 				Poly [] polys = geom.getPolyList(var, geom.getTrueCenterX(), geom.getTrueCenterY(), wnd, false);
-				if (polys != null)
+				if (polys.length > 0)
 				{
 					poly = polys[0];
 					if (geom instanceof NodeInst)
@@ -222,7 +222,7 @@ public class ElectricObject
 				Cell cell = (Cell)this;
 				Rectangle2D bounds = cell.getBounds();
 				Poly [] polys = cell.getPolyList(var, 0, 0, wnd, false);
-				if (polys != null) poly = polys[0];
+				if (polys.length > 0) poly = polys[0];
 			}
 		} else
 		{
@@ -298,7 +298,7 @@ public class ElectricObject
 	 * @param cY the center Y coordinate of the ElectricObject.
 	 * @param wnd window in which the Variable will be displayed.
 	 * @param multipleStrings true to break multiline text into multiple Polys.
-	 * @return an array of Poly objects that describe the Variable.
+	 * @return an array of Poly objects that describe the Variable. May return zero length array.
 	 */
 	public Poly [] getPolyList(Variable var, double cX, double cY, EditWindow wnd, boolean multipleStrings)
 	{
