@@ -88,6 +88,9 @@ public final class Main
 	 */
 	public static void main(String[] args)
 	{
+		// initialize Mac OS 10 if applicable
+		MacOSXInterface.registerMacOSXApplication();
+
 		// convert args to array list
         List argsList = new ArrayList();
         for (int i=0; i<args.length; i++) argsList.add(args[i]);

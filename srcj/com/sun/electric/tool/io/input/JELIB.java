@@ -645,7 +645,7 @@ public class JELIB extends LibraryFiles
 			if (pi == null) continue;
 
 			// create the export
-			Export pp = Export.newInstance(cell, pi, exportName);
+			Export pp = Export.newInstance(cell, pi, exportName, false);
 			if (pp == null)
 			{
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
@@ -856,7 +856,7 @@ public class JELIB extends LibraryFiles
 			return null;
 		}
 		PortInst portPI = portNI.getOnlyPortInst();
-		Export pp = Export.newInstance(subCell, portPI, name);
+		Export pp = Export.newInstance(subCell, portPI, name, false);
 		if (pp == null)
 		{
 			Input.errorLogger.logError(fileName + ", line " + lineNumber +

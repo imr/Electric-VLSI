@@ -37,6 +37,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
@@ -829,7 +830,7 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 			} else if (toDraw instanceof NodeInst)
 			{
 				ni = (NodeInst)toDraw;
-				np = (NodeProto)ni.getProto();
+				np = ni.getProto();
 			}
 			double width = np.getDefWidth();
 			double height = np.getDefHeight();
@@ -842,10 +843,10 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 			{
 				defAngle = ni.getAngle();
 				techBits = ni.getTechSpecific();
-			} else
+			} else if (np instanceof PrimitiveNode)
 			{
-// 				defAngle = pn.getDefPlacementAngle();
-				defAngle = User.getNewNodeRotation();
+				PrimitiveNode pn = (PrimitiveNode)np;
+				defAngle = pn.getDefPlacementAngle();
 				if (defAngle >= 3600)
 				{
 					defAngle %= 3600;
