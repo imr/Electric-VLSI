@@ -47,11 +47,10 @@ public class J3DKeyBehavior extends Behavior
 	protected static final double SLOW_SPEED = 0.5;
 
 	protected TransformGroup transformGroup; /* Contains main scene*/
-    private BranchGroup axes; /* Contains the 3 axes, they should only be rotated */
+    //private BranchGroup axes; /* Contains the 3 axes, they should only be rotated */
 	protected Transform3D transform3D;
 	protected WakeupCondition keyCriterion;
 
-	private final static double TWO_PI = (2.0 * Math.PI);
 	private double rotateXAmount = Math.PI / 16.0;
 	private double rotateYAmount = Math.PI / 16.0;
 	private double rotateZAmount = Math.PI / 16.0;
@@ -72,7 +71,7 @@ public class J3DKeyBehavior extends Behavior
 		super();
 
 		transformGroup = tg;
-        this.axes = axes;
+        //this.axes = axes;
 		transform3D = new Transform3D( );
 	}
 
@@ -209,14 +208,14 @@ public class J3DKeyBehavior extends Behavior
      */
     private void rotateAxes(Transform3D toMove)
     {
-        for (Enumeration e = axes.getAllChildren(); e.hasMoreElements(); )
-        {
-            TransformGroup axisTrans = (TransformGroup)e.nextElement();
-            Transform3D tmp = new Transform3D( );
-            axisTrans.getTransform(tmp);
-            tmp.mul(toMove);
-            axisTrans.setTransform(tmp);
-        }
+//        for (Enumeration e = axes.getAllChildren(); e.hasMoreElements(); )
+//        {
+//            TransformGroup axisTrans = (TransformGroup)e.nextElement();
+//            Transform3D tmp = new Transform3D( );
+//            axisTrans.getTransform(tmp);
+//            tmp.mul(toMove);
+//            axisTrans.setTransform(tmp);
+//        }
     }
 
 	protected void doRotateY( double radians )

@@ -75,7 +75,6 @@ import java.io.*;
 
 import com.sun.j3d.utils.behaviors.mouse.*;
 import com.sun.j3d.utils.behaviors.interpolators.KBKeyFrame;
-import com.sun.j3d.utils.behaviors.interpolators.KBRotPosScaleSplinePathInterpolator;
 import com.sun.j3d.utils.behaviors.interpolators.RotPosScaleTCBSplinePathInterpolator;
 import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
 import com.sun.j3d.utils.picking.PickCanvas;
@@ -113,7 +112,7 @@ public class View3DWindow extends JPanel
 	private JMouseRotate rotateB;
 	private JMouseZoom zoomB;
 	private JMouseTranslate translateB;
-	private J3DUtils.OffScreenCanvas3D offScreenCanvas3D;
+	//private J3DUtils.OffScreenCanvas3D offScreenCanvas3D;
 
     // For demo cases
     //KBRotPosScaleSplinePathInterpolator kbSplineInter;
@@ -472,7 +471,7 @@ public class View3DWindow extends JPanel
 //		objRoot.addChild( key );
 
         // create the KeyBehavior and attach
-		keyBehavior = new J3DKeyCollision(objTrans, axes, this);
+		keyBehavior = new J3DKeyCollision(objTrans, null, this);
 		keyBehavior.setSchedulingBounds(infiniteBounds);
 		//keyBehavior.setMovementRate( 0.7 );
 		objTrans.addChild(keyBehavior);
@@ -993,7 +992,7 @@ public class View3DWindow extends JPanel
 	public BufferedImage getOffScreenImage(ElectricPrinter ep)
     {
 		BufferedImage bImage = ep.getBufferedImage();
-        int OFF_SCREEN_SCALE = 3;
+        //int OFF_SCREEN_SCALE = 3;
 
 		// might have problems if visibility of some layers is switched off
 		if (bImage == null)
@@ -1473,6 +1472,12 @@ public class View3DWindow extends JPanel
      */
     public Map addInterpolatorPerGroup(List knotList, TransformGroup grp, Map interMap)
     {
+        if (knotList.size() < 2)
+        {
+            System.out.println("Needs at least 2 frams for the interpolator");
+            return null;
+        }
+
         if (interMap == null)
             interMap = new HashMap(1);
         if (grp == null)

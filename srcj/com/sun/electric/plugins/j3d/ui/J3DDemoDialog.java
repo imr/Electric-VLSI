@@ -235,6 +235,8 @@ public class J3DDemoDialog extends EDialog
     }//GEN-LAST:event_autoActionPerformed
 
     private void closeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeActionPerformed
+        if (interMap != null)
+            view3D.removeInterpolator(interMap);
         setVisible(false);
         dispose();
     }//GEN-LAST:event_closeActionPerformed
