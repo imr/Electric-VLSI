@@ -85,7 +85,6 @@ import com.sun.j3d.utils.geometry.Primitive;
 import com.sun.j3d.utils.geometry.Cylinder;
 
 import javax.media.j3d.*;
-import javax.media.MediaLocator;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.vecmath.*;
