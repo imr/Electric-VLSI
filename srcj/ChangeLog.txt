@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ad: *********************************
 
+IMP: (10/23/04, GVG) Cleaning TechPalette and putting in default position last PrimitiveNode selected
+
 ************************* Version 8.01ac: *********************************
 
 BUG: (10/22/04, GVG) Out of bound in Cell.getName() as cell names don't have same length

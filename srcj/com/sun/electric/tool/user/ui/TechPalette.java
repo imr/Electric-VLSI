@@ -33,10 +33,7 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Artwork;
-import com.sun.electric.technology.PrimitiveArc;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.*;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.CellBrowser;
 import com.sun.electric.tool.user.dialogs.AnnularRing;
@@ -56,9 +53,8 @@ import java.awt.image.BufferedImage;
 import java.awt.geom.Point2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
+import java.util.*;
 import java.util.List;
-import java.util.Iterator;
-import java.util.ArrayList;
 import java.net.URL;
 
 /**
@@ -75,9 +71,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
     /** the size of a palette entry. */					private int entrySize;
     /** the list of objects in the palette. */			private List inPalette = new ArrayList();
     /** the currently selected Node object. */			private Object highlightedNode;
-	/** to collect all types of P transistors */        private List pTransistorList = new ArrayList();
-    /** to collect all types of N transistors */        private List nTransistorList = new ArrayList();
-	/** to collect all contacts including X types */    private List contactList = new ArrayList();
+    /** to collect contacts that must be groups */      private HashMap elementsMap = new HashMap();
     /** cached palette image */                         private Image paletteImage;
     /** if the palette image needs to be redrawn */     private boolean paletteImageStale;
 
@@ -101,9 +95,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
     public Dimension loadForTechnology(Technology tech)
     {
         inPalette.clear();
-	    pTransistorList.clear();
-	    nTransistorList.clear();
-	    contactList.clear();
+        elementsMap.clear();
 
         if (tech == Schematics.tech)
         {
@@ -186,7 +178,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             inPalette.add("Cell");
             inPalette.add("Misc.");
             inPalette.add("Pure");
-	        List nTransistors = new ArrayList();
+
+
             for(Iterator it = tech.getNodes(); it.hasNext(); )
             {
                 PrimitiveNode np = (PrimitiveNode)it.next();
@@ -200,18 +193,45 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	                pureTotal++;
                 else
                 {
-	                if (fun == PrimitiveNode.Function.TRANMOS)
-	                    nTransistorList.add(np);
-	                else if (fun == PrimitiveNode.Function.TRAPMOS)
-	                    pTransistorList.add(np);
-	                else if (fun == PrimitiveNode.Function.CONTACT && np.isGroupNode())
-	                    contactList.add(np);
+                    boolean found = false;
+                    List list = null;
+                    Object map = null;
+	                if (fun == PrimitiveNode.Function.TRANMOS || fun == PrimitiveNode.Function.TRAPMOS)
+                        map = fun;
+                    else if (fun == PrimitiveNode.Function.CONTACT && np.isGroupNode())
+                        map = np.getLayers()[1].getLayer();
+                    if (map != null)
+                    {
+                        list = (List)elementsMap.get(map);
+                        if (list == null)
+                        {
+                            list = new ArrayList();
+                            elementsMap.put(map, list);
+                            inPalette.add(list);
+                        }
+                        list.add(np);
+                        found = true;
+                    }
 	                // Leaving standard transistors or contact
 	                if (!np.isSpecialNode())
 	                {
                         compTotal++;
+                        if (!found)
 		                inPalette.add(np);
 	                }
+                }
+            }
+            // Sorting list elements and leaving !isSpecialNode() as default
+            for (Iterator it = elementsMap.keySet().iterator(); it.hasNext(); )
+            {
+                Object map = it.next();
+                List list = (List)elementsMap.get(map);
+                // Only for more than 1
+                if (list.size() > 1)
+                {
+                   PrimitiveNode np = (PrimitiveNode)list.get(0);
+                   // Not default -> swap
+                   if (np.isSpecialNode()) Collections.swap(list, 0, 1);
                 }
             }
             if (pinTotal + compTotal == 0) pinTotal = pureTotal;
@@ -264,7 +284,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         Object obj = getObjectUnderCursor(e);
         JMenuItem menuItem;
 
-        if (obj instanceof NodeProto || obj instanceof NodeInst)
+        if (obj instanceof NodeProto || obj instanceof NodeInst || obj instanceof List)
         {
             if (obj == Schematics.tech.diodeNode)
             {
@@ -371,34 +391,25 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     return;
                 }
             }
-			if (obj instanceof PrimitiveNode)
-			{
-				// Dealing with special transistors or normal/cross contacts
-				List list = null;
-				if (nTransistorList.contains(obj)) list = nTransistorList;
-				else if (pTransistorList.contains(obj)) list = pTransistorList;
-				else if (contactList.contains(obj)) list = contactList;
-				// Menu only if more than one transistor or contact is found
-				// and only if click on right bottom corner.
-				if (list != null && list.size() > 1 && isCursorOnCorner(e))
+            if (obj instanceof List)
+            {
+                List list = (List)obj;
+                obj = list.get(0);
+                if (list != null && list.size() > 1 && isCursorOnCorner(e))
 				{
+                    // Careful with this name
 					JPopupMenu menu = new JPopupMenu(((PrimitiveNode)obj).getName());
-					PrimitiveNode thisNp = (PrimitiveNode)obj;
-					boolean isContact = thisNp.getFunction() == PrimitiveNode.Function.CONTACT;
 
 					for (Iterator it = list.iterator(); it.hasNext();)
 					{
 					   PrimitiveNode np = (PrimitiveNode)it.next();
-						// Filtering same type of contacts via layers
-						if (isContact && (np.getLayers()[0].getLayer() != thisNp.getLayers()[0].getLayer()))
-							continue;
 					   menu.add(menuItem = new JMenuItem(np.getName()));
-					   menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, np));
+					   menuItem.addActionListener(new TechPalette.PlacePopupListListener(panel, np, list));
 					}
 					menu.show(panel, e.getX(), e.getY());
 					return;
 				}
-			}
+            }
             PaletteFrame.placeInstance(obj, panel, false);
         } else if (obj instanceof PrimitiveArc)
         {
@@ -604,8 +615,24 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         public void actionPerformed(ActionEvent evt)
         {
             JMenuItem mi = (JMenuItem)evt.getSource();
-            String msg = mi.getText();
             PaletteFrame.placeInstance(obj, panel, false);
+        }
+    };
+
+    static class PlacePopupListListener extends PlacePopupListener
+            implements ActionListener
+    {
+        List list;
+
+        PlacePopupListListener(TechPalette panel, Object obj, List list) { super(panel, obj); this.list = list;}
+
+        public void actionPerformed(ActionEvent evt)
+        {
+            PaletteFrame.placeInstance(obj, panel, false);
+            // No first element -> make it default
+           Collections.swap(list, 0, list.indexOf(obj));
+           //panel.repaint();
+            synchronized(this) { panel.paletteImageStale = true; }
         }
     };
 
@@ -779,6 +806,15 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     int index = x * menuY + y;
                     if (index >= inPalette.size()) continue;
                     Object toDraw = inPalette.get(index);
+                    boolean drawArrow = false;
+
+                    if (toDraw instanceof List)
+                    {
+                        List list = ((List)toDraw);
+                        toDraw = list.get(0);
+                        drawArrow = list.size() > 1;
+                    }
+
                     Image img = drawMenuEntry(wnd, toDraw);
 
                     // put the Image in the proper place
@@ -799,7 +835,6 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     }
                     if (toDraw instanceof NodeProto || toDraw instanceof NodeInst)
                     {
-                        boolean drawArrow = false;
                         if (toDraw == Schematics.tech.diodeNode || toDraw == Schematics.tech.capacitorNode ||
                             toDraw == Schematics.tech.flipflopNode) drawArrow = true;
                         if (toDraw instanceof NodeInst)
@@ -809,13 +844,6 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                                 ni.getFunction() == PrimitiveNode.Function.TRA4PNP)
                                 drawArrow = true;
                         }
-
-                        // Searching for transistor or contact types
-                        if (!drawArrow)
-                            drawArrow = (
-                                    (palette.nTransistorList.size() > 1 && palette.nTransistorList.contains(toDraw)) ||
-                                    (palette.pTransistorList.size() > 1 && palette.pTransistorList.contains(toDraw)) ||
-                                    (palette.contactList.size() > 1 && palette.contactList.contains(toDraw)));
 
                         g.setColor(Color.BLUE);
                         g.drawRect(imgX, imgY, entrySize-1, entrySize-1);
