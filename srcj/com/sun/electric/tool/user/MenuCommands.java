@@ -665,7 +665,7 @@ public final class MenuCommands
 		Menu ercSubMenu = new Menu("ERC", 'E');
 		toolMenu.add(ercSubMenu);
 		ercSubMenu.addMenuItem("Check Wells", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(true); } });
 
 		Menu networkSubMenu = new Menu("Network", 'N');
 		toolMenu.add(networkSubMenu);
