@@ -279,7 +279,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
             // assume it is LEKEEPER if can't resolve value
             int gate = VarContext.objectToInt(info.getContext().evalVar(var), 1);
             if (gate == 1)
-                type = Instance.Type.LEGATE;
+                type = Instance.Type.LEKEEPER;
             else
                 type = Instance.Type.STATICGATE;
         }

@@ -156,7 +156,7 @@ public class LESizer {
                     // if this is an LEKEEPER, we need to find smallest gate (or group)
                     // that also drives this net, it is assumed that will have to overpower this keeper
                     if (instance.getType() == Instance.Type.LEKEEPER) {
-                        ArrayList drivingGroups = new ArrayList();
+                        Map drivingGroups = new HashMap();
 
                         float smallestX = 0;
 
@@ -170,24 +170,26 @@ public class LESizer {
                                 (inst.getType() == Instance.Type.STATICGATE)) {
                                 // organize by groups
                                 int i = inst.getParallelGroup();
+                                Integer integer = new Integer(i);
                                 if (i <= 0) {
                                     // this gate drives independently, check size
                                     if (smallestX == 0) smallestX = inst.getLeX();
                                     if (inst.getLeX() < smallestX) smallestX = inst.getLeX();
                                 }
-                                // otherwise, add to group to sum up drive strength later
-                                ArrayList groupList = (ArrayList)drivingGroups.get(i);
+                                // add to group to sum up drive strength later
+                                ArrayList groupList = (ArrayList)drivingGroups.get(integer.toString());
                                 if (groupList == null) {
                                     groupList = new ArrayList();
-                                    drivingGroups.add(i, groupList);
+                                    drivingGroups.put(integer.toString(), groupList);
                                 }
                                 groupList.add(inst);
                             }
                         }
 
                         // find smallest total size of groups
-                        for (Iterator it = drivingGroups.iterator(); it.hasNext(); ) {
-                            ArrayList groupList = (ArrayList)it.next();
+                        Set keys = drivingGroups.keySet();
+                        for (Iterator it = keys.iterator(); it.hasNext(); ) {
+                            ArrayList groupList = (ArrayList)drivingGroups.get(it.next());
                             if (groupList == null) continue;            // skip empty groups
                             // get size
                             float sizeX = 0;
