@@ -51,6 +51,8 @@ import java.awt.event.KeyEvent;
 import java.util.Iterator;
 import java.util.ArrayList;
 import javax.swing.JFrame;
+import javax.swing.BorderFactory;
+import javax.swing.border.BevelBorder;
 
 /**
  * Class to handle the "Text Get-Info" dialog.
@@ -110,14 +112,21 @@ public class GetInfoText extends EDialog {
         }
         if (!enabled) {
             header.setText("No Text Selected");
-            evaluation.setText("");
+            evaluation.setText(" ");
             theText.setText("");
             theText.setEnabled(false);
             shownText = null;
             textPanel.setTextDescriptor(null, null, null);
             attrPanel.setVariable(null, null, null, null);
+            ok.setEnabled(false);
+            apply.setEnabled(false);
+            multiLine.setEnabled(false);
             return;
         }
+        // enable buttons
+        ok.setEnabled(true);
+        apply.setEnabled(true);
+
         String description = "Unknown text";
         initialText = "";
         td = null;
@@ -160,7 +169,6 @@ public class GetInfoText extends EDialog {
         }
         shownText = textHighlight;
         header.setText(description);
-        System.out.println("Setting initial text: "+initialText);
         theText.setText(initialText);
         theText.setEditable(true);
         // if multiline text, make it a TextArea, otherwise it's a TextField
@@ -182,10 +190,8 @@ public class GetInfoText extends EDialog {
             }
             multiLine.setSelected(false);
         }
-        theText.setText(initialText);
-        changeTextComponent(multiLine.isSelected());
         // if the var is code, evaluate it
-        evaluation.setText("");
+        evaluation.setText(" ");
         if (var != null) {
             if (var.isCode()) {
                 evaluation.setText("Evaluation: " + var.describe(-1, -1));
@@ -194,6 +200,9 @@ public class GetInfoText extends EDialog {
         // set the text edit panel
         textPanel.setTextDescriptor(td, null, owner);
         attrPanel.setVariable(var, td, null, owner);
+
+        // do this last so everything gets packed right
+        changeTextComponent(initialText, multiLine.isSelected());
     }
 
     /**
@@ -282,6 +291,7 @@ public class GetInfoText extends EDialog {
         multiLine = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
+        getRootPane().setDefaultButton(ok);
 
         setTitle("Text Properties");
         setName("");
@@ -302,7 +312,7 @@ public class GetInfoText extends EDialog {
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(header, gridBagConstraints);
 
-        changeTextComponent(true);
+        changeTextComponent("", false);
 
         multiLine.setText("Multi-Line Text");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -313,13 +323,13 @@ public class GetInfoText extends EDialog {
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         getContentPane().add(multiLine, gridBagConstraints);
-        multiLine.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent e) {
+        multiLine.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
                 multiLineStateChanged();
             }
         });
 
-        evaluation.setText("");
+        evaluation.setText(" ");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
@@ -404,14 +414,14 @@ getContentPane().add(buttonsPanel, gridBagConstraints);
 
     private void multiLineStateChanged() {
         // set text box type
-        changeTextComponent(multiLine.isSelected());
+        changeTextComponent(theText.getText(), multiLine.isSelected());
     }
 
-    private void changeTextComponent(boolean multipleLines) {
+    private void changeTextComponent(String currentText, boolean multipleLines) {
 
-        String currentText = theText.getText();
+        boolean enabled = (shownText == null) ? false : true;
+        if (!enabled) return;
 
-        System.out.println("ChangeTextComponent old text: "+currentText);
         getContentPane().remove(theText);
 
         if (currentText == null) currentText = "";
@@ -420,9 +430,10 @@ getContentPane().add(buttonsPanel, gridBagConstraints);
             // multiline text, change to text area
             theText = new javax.swing.JTextArea();
             String[] text = currentText.split("\\n");
-            int size = 2;
+            int size = 1;
             if (text.length > size) size = text.length;
             ((javax.swing.JTextArea)theText).setRows(size);
+            ((javax.swing.JTextArea)theText).setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
 
             // add listener to increase the number of rows if needed
             theText.addKeyListener(new KeyListener() {
@@ -437,11 +448,11 @@ getContentPane().add(buttonsPanel, gridBagConstraints);
 
         } else {
             theText = new javax.swing.JTextField();
+            javax.swing.JTextField field = (javax.swing.JTextField)theText;
             if (currentText.matches(".*?\\n.*")) {
                 currentText = currentText.substring(0, currentText.indexOf('\n'));
             }
         }
-        System.out.println("ChangeTextComponent new text: "+currentText);
         theText.setText(currentText);
 
         java.awt.GridBagConstraints gridBagConstraints;
@@ -456,6 +467,7 @@ getContentPane().add(buttonsPanel, gridBagConstraints);
         getContentPane().add(theText, gridBagConstraints);
 
         pack();
+        theText.requestFocus();
     }
 
     private String getDelimtedText(javax.swing.text.JTextComponent c) {
@@ -498,7 +510,7 @@ getContentPane().add(buttonsPanel, gridBagConstraints);
         boolean changed = false;
 
         // see if text changed
-        String currentText = getDelimtedText(theText);
+        String currentText = theText.getText();
         if (!currentText.equals(initialText)) changed = true;
 
         if (changed) {
