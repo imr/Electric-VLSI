@@ -185,7 +185,7 @@ public class DRC extends Listener
 		{
 			incrementalRunning = true;
 			long startTime = System.currentTimeMillis();
-			int errorsFound = Quick.checkDesignRules(cell, objectsToCheck.length, objectsToCheck, null, null);
+			int errorsFound = Quick.checkDesignRules(cell, objectsToCheck.length, objectsToCheck, null, null, this);
 			long endTime = System.currentTimeMillis();
 			if (errorsFound > 0)
 			{
@@ -327,7 +327,7 @@ public class DRC extends Listener
 		{
 			long startTime = System.currentTimeMillis();
             int errorCount = 0, warnCount = 0;
-            if (Quick.checkDesignRules(cell, 0, null, null, bounds) > 0)
+            if (Quick.checkDesignRules(cell, 0, null, null, bounds, this) > 0)
             {
                 errorCount = ErrorLogger.getCurrent().getNumErrors();
                 warnCount = ErrorLogger.getCurrent().getNumWarnings();
