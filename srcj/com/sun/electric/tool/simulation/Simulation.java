@@ -70,6 +70,50 @@ public class Simulation extends Tool
 	public static boolean getVerilogUseTrireg() { return cacheVerilogUseTrireg.getBoolean(); }
 	public static void setVerilogUseTrireg(boolean use) { cacheVerilogUseTrireg.setBoolean(use); }
 
+	/****************************** CDL OPTIONS ******************************/
+
+	private static Pref cacheCDLLibName = Simulation.tool.makeStringPref("CDLLibName", "");
+	/**
+	 * Method to return the CDL library name.
+	 * CDL is a weak form of a Spice deck, and it includes a Cadence library name.
+	 * @return the CDL library name.
+	 */
+	public static String getCDLLibName() { return cacheCDLLibName.getString(); }
+	/**
+	 * Method to set the CDL library name.
+	 * CDL is a weak form of a Spice deck, and it includes a Cadence library name.
+	 * @param libName the CDL library name.
+	 */
+	public static void setCDLLibName(String libName) { cacheCDLLibName.setString(libName); }
+
+	private static Pref cacheCDLLibPath = Simulation.tool.makeStringPref("CDLLibPath", "");
+	/**
+	 * Method to return the CDL library path.
+	 * CDL is a weak form of a Spice deck, and it includes a Cadence library.
+	 * @return the CDL library path.
+	 */
+	public static String getCDLLibPath() { return cacheCDLLibPath.getString(); }
+	/**
+	 * Method to set the CDL library path.
+	 * CDL is a weak form of a Spice deck, and it includes a Cadence library.
+	 * @param libName the CDL library path.
+	 */
+	public static void setCDLLibPath(String libName) { cacheCDLLibPath.setString(libName); }
+
+	private static Pref cacheCDLConvertBrackets = Simulation.tool.makeBooleanPref("CDLConvertBrackets", false);
+	/**
+	 * Method to tell whether CDL converts square bracket characters.
+	 * CDL is a weak form of a Spice deck, and it includes a Cadence library.
+	 * @return true if CDL converts square bracket characters.
+	 */
+	public static boolean isCDLConvertBrackets() { return cacheCDLConvertBrackets.getBoolean(); }
+	/**
+	 * Method to set if CDL converts square bracket characters.
+	 * CDL is a weak form of a Spice deck, and it includes a Cadence library.
+	 * @param c true if CDL converts square bracket characters.
+	 */
+	public static void setCDLConvertBrackets(boolean c) { cacheCDLConvertBrackets.setBoolean(c); }
+
 	/****************************** SPICE OPTIONS ******************************/
 
 	/** Spice 2 engine. */		public static final int SPICE_ENGINE_2 = 0;

@@ -575,6 +575,8 @@ public final class MenuCommands
 		toolMenu.add(spiceSimulationSubMenu);
 		spiceSimulationSubMenu.addMenuItem("Write SPICE Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.SPICE, OpenFile.SPI); }});
+		spiceSimulationSubMenu.addMenuItem("Write CDL Deck...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.CDL, OpenFile.SPI); }});
 		spiceSimulationSubMenu.addSeparator();
 		spiceSimulationSubMenu.addMenuItem("Set Generic SPICE Template", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(OutputSpice.SPICE_TEMPLATE_KEY); }});

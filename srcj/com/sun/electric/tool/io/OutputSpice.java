@@ -53,6 +53,7 @@ import com.sun.electric.tool.user.User;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Iterator;
 import java.util.List;
@@ -64,9 +65,6 @@ import java.util.Date;
 
 //#define sim_spice_puts(s,iscomment) sim_spice_xputs(s, sim_spice_file, iscomment)
 
-//static CHAR       *sim_spice_ac;						/* AC analysis message */
-//static CHAR       *sim_spice_dc;						/* DC analysis message */
-//static CHAR       *sim_spice_tran;						/* Transient analysis message */
 //static INTBIG      sim_spice_unnamednum;
 //       INTBIG      sim_spice_nameuniqueid;				/* key for "SIM_spice_nameuniqueid" */
 //       INTBIG      sim_spice_listingfilekey;			/* key for "SIM_listingfile" */
@@ -113,25 +111,33 @@ public class OutputSpice extends OutputTopology
 	private Technology sim_spice_tech;
 	private int sim_spice_netindex;
 	/* diffusion layers indices */					private int [] sim_spice_diffusion_index = new int[3];
-	private FlagSet markGeom;
-	private double  sim_spice_mask_scale;			/* Mask shrink factor (default =1) */
-	private boolean sim_spice_cdl;                       /* If "sim_spice_cdl" is true, put handle CDL format */
-
+	/* Mask shrink factor (default =1) */			private double  sim_spice_mask_scale;
+	/* True to write CDL format */					private boolean sim_spice_cdl;
 	/** Duplicated area on each layer */			private float [] sim_spice_extra_area;
 	/** Legal characters */							private String sim_spicelegalchars;
 	/** Template Key for current spice engine */	private Variable.Key sim_spice_preferedkey;
 	/** Spice type: 2, 3, H, P, etc */				private int spiceEngine;
+	/* AC analysis message */						private String sim_spice_ac;
+	/* DC analysis message */						private String sim_spice_dc;
+	/* Transient analysis message */				private String sim_spice_tran;
 
 	private static class SpiceNet
 	{
-		/* network object associated with this */	JNetwork      network;					
-			PolyMerge merge;
-		/* internal unique net number */			int           netnumber;				
-		/* area of diffusion */						float      [] diffarea;		
-		/* perimeter of diffusion */				float      [] diffperim;	
-		/* amount of resistance */					float         resistance;				
-		/* amount of capacitance */					float         capacitance;				
-		/* number of components connected to net */	int        [] components;	
+		/* network object associated with this */	JNetwork      network;
+													PolyMerge     merge;
+		/* internal unique net number */			int           netnumber;
+		/* area of diffusion */						float      [] diffarea;
+		/* perimeter of diffusion */				float      [] diffperim;
+		/* amount of resistance */					float         resistance;
+		/* amount of capacitance */					float         capacitance;
+		/* number of components connected to net */	int        [] components;
+		
+		SpiceNet()
+		{
+			diffarea = new float[3];
+			diffperim = new float[3];
+			components = new int[3];
+		}
 	}
 
 	/**
@@ -140,14 +146,68 @@ public class OutputSpice extends OutputTopology
 	 * @param filePath the disk file to create with Spice.
 	 * @return true on error.
 	 */
-	public static boolean writeSpiceFile(Cell cell, String filePath)
+	public static boolean writeSpiceFile(Cell cell, String filePath, boolean cdl)
 	{
 		boolean error = false;
 		OutputSpice out = new OutputSpice();
+		out.sim_spice_cdl = cdl;
 		if (out.openTextOutputStream(filePath)) error = true;
 		if (out.writeCell(cell)) error = true;
 		if (out.closeTextOutputStream()) error = true;
 		if (!error) System.out.println(filePath + " written");
+
+		// write CDL support file if requested
+		if (out.sim_spice_cdl)
+		{
+			// write the control files
+			String templateFile = cell.getProtoName() + ".cdltemplate";
+//			sim_spice_file = xcreate(templatefile, sim_filetypectemp, _("CDL Template File"), &pt);
+			if (out.openTextOutputStream(templateFile)) error = true;
+
+			String deckFile = filePath;
+			String deckPath = "";
+			int lastDirSep = deckFile.lastIndexOf(File.pathSeparatorChar);
+			if (lastDirSep > 0)
+			{
+				deckPath = deckFile.substring(0, lastDirSep);
+				deckFile = deckFile.substring(lastDirSep+1);
+			}
+			String libName = Simulation.getCDLLibName();
+			String libPath = Simulation.getCDLLibPath();
+			out.printWriter.print("cdlInKeys = list(nil\n");
+			out.printWriter.print("    'searchPath             \"" + deckFile + "");
+			if (libPath.length() > 0)
+				out.printWriter.print("\n                             " + libPath);
+			out.printWriter.print("\"\n");
+			out.printWriter.print("    'cdlFile                \"" + deckPath + "\"\n");
+			out.printWriter.print("    'userSkillFile          \"\"\n");
+			out.printWriter.print("    'opusLib                \"" + libName + "\"\n");
+			out.printWriter.print("    'primaryCell            \"" + cell.getProtoName() + "\"\n");
+			out.printWriter.print("    'caseSensitivity        \"preserve\"\n");
+			out.printWriter.print("    'hierarchy              \"flatten\"\n");
+			out.printWriter.print("    'cellTable              \"\"\n");
+			out.printWriter.print("    'viewName               \"netlist\"\n");
+			out.printWriter.print("    'viewType               \"\"\n");
+			out.printWriter.print("    'pr                     nil\n");
+			out.printWriter.print("    'skipDevice             nil\n");
+			out.printWriter.print("    'schemaLib              \"sample\"\n");
+			out.printWriter.print("    'refLib                 \"\"\n");
+			out.printWriter.print("    'globalNodeExpand       \"full\"\n");
+			out.printWriter.print(")\n");
+			if (out.closeTextOutputStream()) error = true;
+			System.out.println(templateFile + " written");
+//			ttyputmsg(x_("Now type: exec nino CDLIN %s &"), templatefile);
+		}
+
+//		// run spice (if requested)
+//		var = getvalkey((INTBIG)sim_tool, VTOOL, VINTEGER, sim_dontrunkey);
+//		if (var != NOVARIABLE && var->addr != SIMRUNNO)
+//		{
+//			ttyputmsg(_("Running SPICE..."));
+//			var = getvalkey((INTBIG)sim_tool, VTOOL, VSTRING, sim_spice_listingfilekey);
+//			if (var == NOVARIABLE) sim_spice_execute(deckfile, x_(""), np); else
+//				sim_spice_execute(deckfile, (CHAR *)var->addr, np);
+//		}
 		return error;
 	}
 
@@ -179,10 +239,10 @@ public class OutputSpice extends OutputTopology
 			case Simulation.SPICE_ENGINE_S: sim_spice_preferedkey = SPICE_SM_TEMPLATE_KEY;   break;
 		}
 
-//		// get the mask scale
+		// get the mask scale
+		sim_spice_mask_scale = 1.0;
 //		var = getval((INTBIG)sim_spice_tech, VTECHNOLOGY, VFLOAT, x_("SIM_spice_mask_scale"));
-//		if (var != NOVARIABLE) sim_spice_mask_scale = castfloat(var->addr); else
-			sim_spice_mask_scale = 1.0;
+//		if (var != NOVARIABLE) sim_spice_mask_scale = castfloat(var->addr);
 
 		// setup the legal characters
 		sim_spicelegalchars = SPICELEGALCHARS;
@@ -191,38 +251,13 @@ public class OutputSpice extends OutputTopology
 		sim_spice_cdl = false;
 		if (sim_spice_cdl)
 		{
-//			// setup bracket conversion for CDL
-//			curstate = io_getstatebits();
-//			if ((curstate[1]&CDLNOBRACKETS) != 0)
-//				sim_spicelegalchars = CDLNOBRACKETLEGALCHARS;
-//
-//			(void)estrcpy(deckfile, topCell->protoname);
-//			(void)estrcat(deckfile, x_(".cdl"));
-//			pt = deckfile;
-//			prompt = 0;
-//			if ((us_useroptions&NOPROMPTBEFOREWRITE) == 0) prompt = _("CDL File");
-//			sim_spice_file = xcreate(deckfile, sim_filetypecdl, prompt, &pt);
-//			if (pt != 0) (void)estrcpy(deckfile, pt);
-//			if (sim_spice_file == NULL)
-//			{
-//				ttyputerr(_("Cannot create CDL file: %s"), deckfile);
-//				return;
-//			}
-//			sim_spice_xprintf(true, "* First line is ignored\n");
+			// setup bracket conversion for CDL
+			if (Simulation.isCDLConvertBrackets())
+				sim_spicelegalchars = CDLNOBRACKETLEGALCHARS;
+
+			sim_spice_xprintf(true, "* First line is ignored\n");
 		} else
 		{
-//			(void)estrcpy(deckfile, topCell->protoname);
-//			(void)estrcat(deckfile, x_(".spi"));
-//			pt = deckfile;
-//			prompt = 0;
-//			if ((us_useroptions&NOPROMPTBEFOREWRITE) == 0) prompt = _("SPICE File");
-//			sim_spice_file = xcreate(deckfile, sim_filetypespice, prompt, &pt);
-//			if (pt != 0) (void)estrcpy(deckfile, pt);
-//			if (sim_spice_file == NULL)
-//			{
-//				ttyputerr(_("Cannot create SPICE file: %s"), deckfile);
-//				return;
-//			}
 			sim_spice_writeheader(topCell);
 		}
 
@@ -246,100 +281,39 @@ public class OutputSpice extends OutputTopology
 		}
 
 //		sim_spice_unnamednum = 1;
-//
-//		// initialize for parameterized cells
-//		if (sim_spice_cdl || !Simulation.isSpiceUseCellParameters()) initparameterizedcells();
-//
-//		// we don't know the type of analysis yet...
-//		sim_spice_ac = sim_spice_dc = sim_spice_tran = NULL;
-//
+
+		// we don't know the type of analysis yet...
+		sim_spice_ac = sim_spice_dc = sim_spice_tran = null;
+
 //		// initialize the polygon merging system
 //		mrginit();
-//
-//		// initialize SpiceCell structures
-//		SpiceCell::clearAll();
 	}
 
 	protected void done()
 	{
-//		// handle AC, DC, and TRAN analysis cards
-//		analysiscards = 0;
-//		if (sim_spice_dc != NULL) analysiscards++;
-//		if (sim_spice_tran != NULL) analysiscards++;
-//		if (sim_spice_ac != NULL) analysiscards++;
-//		if (analysiscards > 1)
-//			ttyputerr(_("WARNING: can only have one DC, Transient or AC source node"));
-//		if (sim_spice_tran != NULL)
-//		{
-//			sim_spice_xprintf(false, "%s\n", sim_spice_tran);
-//		} else if (sim_spice_ac != NULL)
-//		{
-//			sim_spice_xprintf(false, "%s\n", sim_spice_ac);
-//		} else if (sim_spice_dc != NULL)
-//		{
-//			sim_spice_xprintf(false, "%s\n", sim_spice_dc);
-//		}
-//
+		// handle AC, DC, and TRAN analysis cards
+		int analysiscards = 0;
+		if (sim_spice_dc != null) analysiscards++;
+		if (sim_spice_tran != null) analysiscards++;
+		if (sim_spice_ac != null) analysiscards++;
+		if (analysiscards > 1)
+			System.out.println("WARNING: can only have one DC, Transient or AC source node");
+		if (sim_spice_tran != null)
+		{
+			sim_spice_xprintf(false, sim_spice_tran + "\n");
+		} else if (sim_spice_ac != null)
+		{
+			sim_spice_xprintf(false, sim_spice_ac + "\n");
+		} else if (sim_spice_dc != null)
+		{
+			sim_spice_xprintf(false, sim_spice_dc + "\n");
+		}
+
 		if (!sim_spice_cdl)
 		{
 //			sim_spice_writetrailer(np);
 			sim_spice_xprintf(false, ".END\n");
 		}
-
-		if (sim_spice_cdl)
-		{
-//			// write the control files
-//			(void)estrcpy(templatefile, np->protoname);
-//			(void)estrcat(templatefile, x_(".cdltemplate"));
-//			sim_spice_file = xcreate(templatefile, sim_filetypectemp, _("CDL Template File"), &pt);
-//			if (pt != 0) (void)estrcpy(templatefile, pt);
-//			if (sim_spice_file == NULL)
-//			{
-//				ttyputerr(_("Cannot create CDL template file: %s"), templatefile);
-//				return;
-//			}
-//			for(i=estrlen(deckfile)-1; i>0; i--) if (deckfile[i] == DIRSEP) break;
-//			if (deckfile[i] == DIRSEP) deckfile[i++] = 0;
-//			var = getval((INTBIG)io_tool, VTOOL, VSTRING, x_("IO_cdl_library_name"));
-//			if (var == NOVARIABLE) libname = x_(""); else
-//				libname = (CHAR *)var->addr;
-//			var = getval((INTBIG)io_tool, VTOOL, VSTRING, x_("IO_cdl_library_path"));
-//			if (var == NOVARIABLE) libpath = x_(""); else
-//				libpath = (CHAR *)var->addr;
-//			xprintf(sim_spice_file, x_("cdlInKeys = list(nil\n"));
-//			xprintf(sim_spice_file, x_("    'searchPath             \"%s"), deckfile);
-//			if (libpath[0] != 0)
-//				xprintf(sim_spice_file, x_("\n                             %s"), libpath);
-//			xprintf(sim_spice_file, x_("\"\n"));
-//			xprintf(sim_spice_file, x_("    'cdlFile                \"%s\"\n"), &deckfile[i]);
-//			xprintf(sim_spice_file, x_("    'userSkillFile          \"\"\n"));
-//			xprintf(sim_spice_file, x_("    'opusLib                \"%s\"\n"), libname);
-//			xprintf(sim_spice_file, x_("    'primaryCell            \"%s\"\n"), sim_spice_cellname(np));
-//			xprintf(sim_spice_file, x_("    'caseSensitivity        \"preserve\"\n"));
-//			xprintf(sim_spice_file, x_("    'hierarchy              \"flatten\"\n"));
-//			xprintf(sim_spice_file, x_("    'cellTable              \"\"\n"));
-//			xprintf(sim_spice_file, x_("    'viewName               \"netlist\"\n"));
-//			xprintf(sim_spice_file, x_("    'viewType               \"\"\n"));
-//			xprintf(sim_spice_file, x_("    'pr                     nil\n"));
-//			xprintf(sim_spice_file, x_("    'skipDevice             nil\n"));
-//			xprintf(sim_spice_file, x_("    'schemaLib              \"sample\"\n"));
-//			xprintf(sim_spice_file, x_("    'refLib                 \"\"\n"));
-//			xprintf(sim_spice_file, x_("    'globalNodeExpand       \"full\"\n"));
-//			xprintf(sim_spice_file, x_(")\n"));
-//			xclose(sim_spice_file);
-//			ttyputmsg(_("%s written"), templatefile);
-//			ttyputmsg(x_("Now type: exec nino CDLIN %s &"), templatefile);
-		}
-
-//		// run spice (if requested)
-//		var = getvalkey((INTBIG)sim_tool, VTOOL, VINTEGER, sim_dontrunkey);
-//		if (var != NOVARIABLE && var->addr != SIMRUNNO)
-//		{
-//			ttyputmsg(_("Running SPICE..."));
-//			var = getvalkey((INTBIG)sim_tool, VTOOL, VSTRING, sim_spice_listingfilekey);
-//			if (var == NOVARIABLE) sim_spice_execute(deckfile, x_(""), np); else
-//				sim_spice_execute(deckfile, (CHAR *)var->addr, np);
-//		}
 	}
 
 	/**

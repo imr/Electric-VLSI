@@ -35,6 +35,7 @@ import com.sun.electric.tool.io.Output;
 import com.sun.electric.tool.io.OutputCIF;
 import com.sun.electric.tool.io.OutputGDS;
 import com.sun.electric.tool.io.OutputPostScript;
+import com.sun.electric.tool.simulation.Simulation;
 
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseAdapter;
@@ -491,15 +492,24 @@ public class IOOptions extends javax.swing.JDialog
 
 	//******************************** CDL ********************************
 
+	private String initialCDLLibName;
+	private String initialCDLLibPath;
+	private boolean initialCDLConvertBrackets;
+
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the CDL tab.
 	 */
 	private void initCDL()
 	{
-		cdlLibraryName.setEditable(false);
-		cdlLibraryPath.setEditable(false);
-		cdlConvertBrackets.setEnabled(false);
+		initialCDLLibName = Simulation.getCDLLibName();
+		cdlLibraryName.setText(initialCDLLibName);
+
+		initialCDLLibPath = Simulation.getCDLLibPath();
+		cdlLibraryPath.setText(initialCDLLibPath);
+
+		initialCDLConvertBrackets = Simulation.isCDLConvertBrackets();
+		cdlConvertBrackets.setSelected(initialCDLConvertBrackets);
 	}
 
 	/**
@@ -508,6 +518,14 @@ public class IOOptions extends javax.swing.JDialog
 	 */
 	private void termCDL()
 	{
+		String nameNow = cdlLibraryName.getText();
+		if (!nameNow.equals(initialCDLLibName)) Simulation.setCDLLibName(nameNow);
+
+		String pathNow = cdlLibraryPath.getText();
+		if (!pathNow.equals(initialCDLLibPath)) Simulation.setCDLLibPath(pathNow);
+
+		boolean convertNow = cdlConvertBrackets.isSelected();
+		if (convertNow != initialCDLConvertBrackets) Simulation.setCDLConvertBrackets(convertNow);
 	}
 
 	//******************************** DXF ********************************

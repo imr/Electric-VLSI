@@ -100,6 +100,7 @@ public class Output extends IOTool
 		/** Describes GDS output. */			public static final ExportType GDS       = new ExportType("GDS");
 		/** Describes PostScript output. */		public static final ExportType POSTSCRIPT= new ExportType("PostScript");
 		/** Describes SPICE output .*/			public static final ExportType SPICE     = new ExportType("Spice");
+		/** Describes CDL output .*/			public static final ExportType CDL       = new ExportType("CDL");
 		/** Describes VERILOG output. */		public static final ExportType VERILOG   = new ExportType("Verilog");
 		/** Describes MAXWELL output. */		public static final ExportType MAXWELL   = new ExportType("Maxwell");
 		/** Describes IRSIM output. */			public static final ExportType IRSIM     = new ExportType("IRSIM");
@@ -248,7 +249,10 @@ public class Output extends IOTool
 			error = OutputGDS.writeGDSFile(cell, filePath);
 		} else if (type == ExportType.SPICE)
 		{
-			error = OutputSpice.writeSpiceFile(cell, filePath);
+			error = OutputSpice.writeSpiceFile(cell, filePath, false);
+		} else if (type == ExportType.CDL)
+		{
+			error = OutputSpice.writeSpiceFile(cell, filePath, true);
 		} else if (type == ExportType.VERILOG)
 		{
 			error = OutputVerilog.writeVerilogFile(cell, filePath);
