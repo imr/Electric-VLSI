@@ -4,23 +4,27 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01as: *********************************
 
-BUG: (12/2/04, SMR) JELIB input may crash.
-FIX: In "JELIB.instantiateCellContent()" handle null "lineReader".
+Other Bugzilla fixes: Status bar coordinates are wider and right-aligned (Bug #33)
 
-IMP: (12/2/04, SMR) PostScript output improved (fills paper better, writes all ports).
+BUG: (12/2/04, SMR) JELIB input may crash.
+FIX: In "JELIB.instantiateCellContent()" handle null "lineReader". (Bug #46)
+
+IMP: (12/2/04, SMR) PostScript output improved (fills paper better, writes all ports). (Bug #25)
 
 BUG: (12/2/04, SMR) Extracting instances doesn't preserve export characteristics.
-FIX: In CircuitChanges.extractOneNode(), copy all export information.
+FIX: In CircuitChanges.extractOneNode(), copy all export information. (Bug #44)
 
-IMP: (12/2/04, SMR) HSpice output reader can now handle wide signal format (9601).
+IMP: (12/2/04, SMR) HSpice output reader can now handle wide signal format (9601). (Bug# 39)
+
+FIX: (12/1/04, JKG) MoCMOS Gate Layout Generator regression fails in 8.01ar (Bug#40)
 
 BUG: (12/1/04, SMR) Multi-object Properties does not adjust sizes right when mirroring is involved.
-FIX: In GetInfoMulti.MultiChange.doIt(), account for mirroring when computing new size.
+FIX: In GetInfoMulti.MultiChange.doIt(), account for mirroring when computing new size. (Bug #32)
 
 IMP: (12/1/04, SMR) "Pure" menu entry no longer offers contact or via layers.
 
 IMP/MAN: (12/1/04, SMR) "Layer Visibility" dialog now shows layers sorted by height
-     and lets you set all layers above or below a point to be visible/invisible.
+     and lets you set all layers above or below a point to be visible/invisible. (Bug #26)
 
 ************************* Version 8.01ar: *********************************
 
