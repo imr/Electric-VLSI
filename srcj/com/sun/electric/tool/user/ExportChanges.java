@@ -398,14 +398,14 @@ public final class ExportChanges
 		// disallow port action if lock is on
 		if (CircuitChanges.cantEdit(cell, null, true)) return;
 
-		ReExport job = new ReExport(cell, null, false);
+		ReExport job = new ReExport(cell, null, false, false);
 	}
 
 	/**
 	 * Method to re-export all unwired/unexported ports on cell instances in the current Cell.
 	 * Only works in the currently highlighted area.
 	 */
-	public static void reExportHighlighted()
+	public static void reExportHighlighted(boolean includeWiredPorts)
 	{
 		// make sure there is a current cell
 		Cell cell = WindowFrame.needCurCell();
@@ -422,10 +422,10 @@ public final class ExportChanges
 					"Re-export failed", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		ReExport job = new ReExport(cell, bounds, false);
+		ReExport job = new ReExport(cell, bounds, false, includeWiredPorts);
 	}
 
-    public static void reExportSelected()
+    public static void reExportSelected(boolean includeWiredPorts)
     {
         // make sure there is a current cell
         Cell cell = WindowFrame.needCurCell();
@@ -442,7 +442,7 @@ public final class ExportChanges
             }
         }
         if (portsToExport.size() > 0) {
-            ExportPorts job = new ExportPorts(cell, portsToExport);
+            ExportPorts job = new ExportPorts(cell, portsToExport, includeWiredPorts);
         } else {
             System.out.println("No ports on selected objects to export");
         }
@@ -452,11 +452,13 @@ public final class ExportChanges
     {
         Cell cell;
         List portsToExport;
+        boolean includeWiredPorts;
 
-        protected ExportPorts(Cell cell, List portsToExport) {
+        protected ExportPorts(Cell cell, List portsToExport, boolean includeWiredPorts) {
             super("Export ports on Selected", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.cell = cell;
             this.portsToExport = portsToExport;
+            this.includeWiredPorts = includeWiredPorts;
             startJob();
         }
 
@@ -467,6 +469,10 @@ public final class ExportChanges
             int exported = 0;
             for (Iterator it = portsToExport.iterator(); it.hasNext(); ) {
                 PortInst pi = (PortInst)it.next();
+                if (!includeWiredPorts) {
+                    Iterator connIt = pi.getConnections();
+                    if (connIt.hasNext()) continue;
+                }
                 Export ex = Export.newInstance(cell, pi, pi.getPortProto().getName());
                 if (ex == null) {
                     System.out.println("ERROR trying to export "+pi.describe());
@@ -492,7 +498,7 @@ public final class ExportChanges
 		// disallow port action if lock is on
 		if (CircuitChanges.cantEdit(cell, null, true)) return;
 
-		ReExport job = new ReExport(cell, null, true);
+		ReExport job = new ReExport(cell, null, true, false);
 	}
 
 	private static class ReExport extends Job
@@ -500,13 +506,15 @@ public final class ExportChanges
 		Cell cell;
 		Rectangle2D bounds;
 		boolean pAndG;
+        boolean includeWiredPorts;
 
-		protected ReExport(Cell cell, Rectangle2D bounds, boolean pAndG)
+		protected ReExport(Cell cell, Rectangle2D bounds, boolean pAndG, boolean includeWiredPorts)
 		{
 			super("Re-export ports", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.bounds = bounds;
 			this.pAndG = pAndG;
+            this.includeWiredPorts = includeWiredPorts;
 			startJob();
 		}
 
@@ -534,11 +542,13 @@ public final class ExportChanges
 				}
 
 				// mark the connected and exports
-				for(Iterator pIt = ni.getConnections(); pIt.hasNext(); )
-				{
-					Connection con = (Connection)pIt.next();
-					con.getPortInst().getPortProto().setBit(portMarked);
-				}
+                if (!includeWiredPorts) {
+                    for(Iterator pIt = ni.getConnections(); pIt.hasNext(); )
+                    {
+                        Connection con = (Connection)pIt.next();
+                        con.getPortInst().getPortProto().setBit(portMarked);
+                    }
+                }
 				for(Iterator pIt = ni.getExports(); pIt.hasNext(); )
 				{
 					Export e = (Export)pIt.next();

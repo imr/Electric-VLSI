@@ -2,6 +2,9 @@
 
 ************************* Version 8.01b: *********************************
 
+IMP/MAN: (7/29/04, JKG) Added "Re-export Selected, include wired ports", and
+        "Re-export Highlighted Area, inc. wired ports" menu commands.
+
 IMP/MAN: (7/25/04, JKG) Added "Re-export Selected" menu item.
 
 IMP (7/23/04, RK) If Export names don't match then suggest a possible mapping
