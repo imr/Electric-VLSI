@@ -27,6 +27,7 @@ import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -156,6 +157,9 @@ public class GetInfoArc extends javax.swing.JDialog
 			return;
 		}
 
+		ai.getParent().rebuildNetworks(null, false);
+		JNetwork net = ai.getNetwork(0);
+
 		// enable it
 		name.setEditable(true);
 		width.setEditable(true);
@@ -186,7 +190,7 @@ public class GetInfoArc extends javax.swing.JDialog
 
 		// load the dialog
 		type.setText(ai.getProto().describe());
-		network.setText("????");
+		network.setText(net != null ? net.describe() : "????");
 		name.setText(initialName);
 		width.setText(Double.toString(initialWidth));
 		busSize.setText("???");

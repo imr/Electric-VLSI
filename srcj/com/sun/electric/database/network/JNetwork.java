@@ -172,6 +172,42 @@ public class JNetwork
 		return arcs.iterator();
 	}
 
+	/**
+	 * Routine to describe this JNetwork as a string.
+	 * @return a String describing this JNetwork.
+	 */
+	public String describe()
+	{
+		if (names.size() > 0)
+		{
+			Iterator it = names.iterator();
+			String name = (String)it.next();
+			while (it.hasNext())
+				name += "/" + (String)it.next();
+			return name;
+		}
+		/* Unnamed net */
+		for (Iterator it = ((Cell) parent).getArcs(); it.hasNext();)
+		{
+			ArcInst ai = (ArcInst) it.next();
+			if (ai.getHead().getPortInst().getNetwork() == this
+				|| ai.getTail().getPortInst().getNetwork() == this)
+			{
+				return ai.getName();
+			}
+		}
+		return "";
+	}
+
+	/**
+	 * Returns a printable version of this JNetwork.
+	 * @return a printable version of this JNetwork.
+	 */
+	public String toString()
+	{
+		return "Network "+describe();
+	}
+
 	// options
 	private static Preferences prefs = null;
 

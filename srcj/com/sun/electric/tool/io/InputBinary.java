@@ -1180,6 +1180,7 @@ public class InputBinary extends Input
 			}
 			bytesSwapped = true;
 		}
+		System.out.println("bytesSwapped="+bytesSwapped);
 		
 		// determine the size of "big" and "small" integers as well as characters on disk
 		if (magic <= MAGIC10)
@@ -2233,19 +2234,29 @@ public class InputBinary extends Input
 	private int readBigInteger()
 		throws IOException
 	{
-		if (bytesSwapped)
+		if (sizeOfBig == 4)
 		{
 			readMoreBytes(4);
-			return dataInputStream.readInt();
+			int data = dataInputStream.readInt();
+			if (!bytesSwapped)
+				data = ((data >> 24) & 0xFF) | ((data >> 8) & 0xFF00) | ((data & 0xFF00) << 8) | ((data & 0xFF) << 24);
+			return data;
+		}
+		readBytes(rawData, sizeOfBig, 4, true);
+		if (bytesSwapped)
+		{
+			bb.put(0, rawData[0]);
+			bb.put(1, rawData[1]);
+			bb.put(2, rawData[2]);
+			bb.put(3, rawData[3]);
 		} else
 		{
-			readBytes(rawData, sizeOfBig, 4, true);
 			bb.put(0, rawData[3]);
 			bb.put(1, rawData[2]);
 			bb.put(2, rawData[1]);
 			bb.put(3, rawData[0]);
-			return bb.getInt(0);
 		}
+		return bb.getInt(0);
 	}
 
 	/**
@@ -2300,17 +2311,25 @@ public class InputBinary extends Input
 	private short readSmallInteger()
 		throws IOException
 	{
-		if (bytesSwapped)
+		if (sizeOfSmall == 2)
 		{
 			readMoreBytes(2);
-			return dataInputStream.readShort();
+			int data = dataInputStream.readShort();
+			if (!bytesSwapped)
+				data = ((data >> 8) & 0xFF) | ((data & 0xFF) << 8);
+			return data;
+		}
+		readBytes(rawData, sizeOfSmall, 2, true);
+		if (bytesSwapped)
+		{
+			bb.put(0, rawData[0]);
+			bb.put(1, rawData[1]);
 		} else
 		{
-			readBytes(rawData, sizeOfSmall, 2, true);
 			bb.put(0, rawData[1]);
 			bb.put(1, rawData[0]);
-			return bb.getShort(0);
 		}
+		return bb.getShort(0);
 	}
 
 	/**
@@ -2356,30 +2375,24 @@ public class InputBinary extends Input
 			// not a simple read, use a buffer
 			int ret = dataInputStream.read(rawData, 0, diskSize);
 			if (ret != diskSize) throw new IOException();
-			if (diskSize == memorySize)
+			if (diskSize > memorySize)
 			{
+				// trouble! disk has more bits than memory.  check for clipping
 				for(int i=0; i<memorySize; i++) data[i] = rawData[i];
+				for(int i=memorySize; i<diskSize; i++)
+					if (rawData[i] != 0 && rawData[i] != 0xFF)
+						clippedIntegers++;
 			} else
 			{
-				if (diskSize > memorySize)
+				// disk has smaller integer
+				if (!signExtend || (rawData[diskSize-1] & 0x80) == 0)
 				{
-					// trouble! disk has more bits than memory.  check for clipping
-					for(int i=0; i<memorySize; i++) data[i] = rawData[i];
-					for(int i=memorySize; i<diskSize; i++)
-						if (rawData[i] != 0 && rawData[i] != 0xFF)
-							clippedIntegers++;
+					for(int i=diskSize; i<memorySize; i++) rawData[i] = 0;
 				} else
 				{
-					// disk has smaller integer
-					if (!signExtend || (rawData[diskSize-1] & 0x80) == 0)
-					{
-						for(int i=diskSize; i<memorySize; i++) rawData[i] = 0;
-					} else
-					{
-						for(int i=diskSize; i<memorySize; i++) rawData[i] = (byte)0xFF;
-					}
-					for(int i=0; i<memorySize; i++) data[i] = rawData[i];
+					for(int i=diskSize; i<memorySize; i++) rawData[i] = (byte)0xFF;
 				}
+				for(int i=0; i<memorySize; i++) data[i] = rawData[i];
 			}
 		}
 		readMoreBytes(diskSize);

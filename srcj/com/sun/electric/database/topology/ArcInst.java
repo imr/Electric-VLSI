@@ -30,6 +30,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -770,6 +771,15 @@ public class ArcInst extends Geometric
 	public Connection getConnection(int index)
 	{
 		return ends[index];
+	}
+
+	/**
+	 * Routine to return the network of this ArcInst..
+	 * @param busIndex index of subnetwork for busses
+	 */
+	public JNetwork getNetwork(int busIndex)
+	{
+		return ends[HEADEND].getPortInst().getNetwork();
 	}
 
 	/**
