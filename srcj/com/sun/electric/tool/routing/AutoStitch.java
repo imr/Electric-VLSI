@@ -121,6 +121,7 @@ public class AutoStitch
 			this.forced = forced;
             this.allRoutes = new ArrayList();
             this.possibleInlinePins = new ArrayList();
+            setReportExecutionFlag(true);
 			startJob();
 		}
 

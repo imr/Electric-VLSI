@@ -242,6 +242,7 @@ public class MimicStitch
 		{
 			super("Mimic-Unstitch", Routing.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.arcKills = arcKills;
+            setReportExecutionFlag(true);
 			startJob();
 		}
 
@@ -342,6 +343,7 @@ public class MimicStitch
 			this.forced = forced;
             allRoutes = new ArrayList();
             this.highlighter = highlighter;
+            setReportExecutionFlag(true);
 			startJob();
 		}
 
