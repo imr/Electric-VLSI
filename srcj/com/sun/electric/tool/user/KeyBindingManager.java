@@ -60,7 +60,7 @@ import java.awt.*;
  * <p>
  * This model is similar to jawa.swing.InputMap and java.swing.ActionMap.
  * However, secondary InputMaps allow two-stroke key bindings.  Additionally,
- * everything has been enveloped in an object which can
+ * the KeybindingManager has been enveloped in an object which can
  * then be inserted into the event hierarchy in different ways, instead of having
  * to set a Component's InputMap and ActionMap.
  * <p><p>
@@ -653,6 +653,16 @@ public class KeyBindingManager {
      */
     private synchronized KeyBindings addKeyBinding(String actionDesc, KeyStrokePair pair) {
         if (pair == null) return null;
+
+        // warn if conflicting key bindings created
+        List conflicts = getConflictingKeyBindings(pair);
+        if (conflicts.size() > 0) {
+            System.out.println("WARNING: Key binding for "+actionDesc+" [ " +pair.toString()+" ] conflicts with:");
+            for (Iterator it = conflicts.iterator(); it.hasNext(); ) {
+                KeyBindings k = (KeyBindings)it.next();
+                System.out.println("  > "+k.getActionDesc()+" [ "+k.bindingsToString()+" ]");
+            }
+        }
 
         if (DEBUG) System.out.println("Adding binding for "+actionDesc+": "+pair.toString());
         KeyStroke prefixStroke = pair.getPrefixStroke();
