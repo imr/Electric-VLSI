@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.TextUtils;
@@ -57,6 +58,7 @@ public class TextInfoPanel extends javax.swing.JPanel
     private int initialFont;
     private double initialXOffset, initialYOffset;
     private double initialBoxedWidth, initialBoxedHeight;
+    private String initialColor;
 
     private TextDescriptor td;
     private String futureVarName;
@@ -87,6 +89,14 @@ public class TextInfoPanel extends javax.swing.JPanel
         for (Iterator it = TextDescriptor.Position.getPositions(); it.hasNext(); ) {
             TextDescriptor.Position pos = (TextDescriptor.Position)it.next();
             textAnchor.addItem(pos);
+        }
+
+        // populate color combo box
+        int [] colorIndices = EGraphics.getColorIndices();
+        textColorComboBox.addItem("");
+        for (int i=0; i<colorIndices.length; i++) {
+            String str = EGraphics.getColorIndexName(colorIndices[i]);
+            textColorComboBox.addItem(str);
         }
 
         // default settings
@@ -163,6 +173,7 @@ public class TextInfoPanel extends javax.swing.JPanel
         seeNode.setEnabled(enabled);
         boxedWidth.setEnabled(false);               // only enabled when boxed anchor is selected
         boxedHeight.setEnabled(false);               // only enabled when boxed anchor is selected
+        textColorComboBox.setEnabled(enabled);
 
         if (!enabled) return;
 
@@ -278,6 +289,11 @@ public class TextInfoPanel extends javax.swing.JPanel
         // set the rotation
         initialRotation = td.getRotation();
         rotation.setSelectedIndex(td.getRotation().getIndex());
+
+        // set the color
+        initialColor = "";
+        initialColor = EGraphics.getColorIndexName(td.getColorIndex());
+        textColorComboBox.setSelectedItem(initialColor);
     }
 
     /**
@@ -353,6 +369,8 @@ public class TextInfoPanel extends javax.swing.JPanel
         if (newUnderlined != initialUnderline) changed = true;
         boolean newInvis = invisibleOutsideCell.isSelected();
         if (newInvis != initialInvisibleOutsideCell) changed = true;
+        String newColor = (String)textColorComboBox.getSelectedItem();
+        if (!newColor.equals(initialColor)) changed = true;
 
         if (futureVarName == null) {
             // no changes on current td, return false
@@ -376,7 +394,7 @@ public class TextInfoPanel extends javax.swing.JPanel
                 newRotation,
                 (String)font.getSelectedItem(),
                 currentXOffset, currentYOffset,
-                newItalic, newBold, newUnderlined, newInvis);
+                newItalic, newBold, newUnderlined, newInvis, newColor);
 
 
         initialSize = newSize;
@@ -391,6 +409,7 @@ public class TextInfoPanel extends javax.swing.JPanel
         initialInvisibleOutsideCell = newInvis;
         initialBoxedWidth = newBoxedWidth;
         initialBoxedHeight = newBoxedHeight;
+        initialColor = newColor;
 
         return true;
     }
@@ -407,6 +426,7 @@ public class TextInfoPanel extends javax.swing.JPanel
         private String font;
         private double xoffset, yoffset;
         private boolean italic, bold, underline, invis;
+        private String newColor;
 
         private ChangeText(
                 TextDescriptor td,
@@ -417,7 +437,7 @@ public class TextInfoPanel extends javax.swing.JPanel
                 TextDescriptor.Rotation rotation,
                 String font,
                 double xoffset, double yoffset,
-                boolean italic, boolean bold, boolean underline, boolean invis
+                boolean italic, boolean bold, boolean underline, boolean invis, String newColor
                 )
         {
             super("Modify Text", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -432,6 +452,7 @@ public class TextInfoPanel extends javax.swing.JPanel
             this.font = font;
             this.xoffset = xoffset; this.yoffset = yoffset;
             this.italic = italic; this.bold = bold; this.underline = underline; this.invis = invis;
+            this.newColor = newColor;
             startJob();
         }
 
@@ -499,6 +520,7 @@ public class TextInfoPanel extends javax.swing.JPanel
             td.setItalic(italic);
             td.setBold(bold);
             td.setUnderline(underline);
+            td.setColorIndex(EGraphics.findColorIndex(newColor));
 			return true;
         }
     }
@@ -538,6 +560,8 @@ public class TextInfoPanel extends javax.swing.JPanel
         boxedHeight = new javax.swing.JTextField();
         jLabelX = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        textColorComboBox = new javax.swing.JComboBox();
 
         setLayout(new java.awt.GridBagLayout());
 
@@ -774,6 +798,22 @@ public class TextInfoPanel extends javax.swing.JPanel
         gridBagConstraints.insets = new java.awt.Insets(0, 6, 0, 0);
         add(jLabel7, gridBagConstraints);
 
+        jLabel3.setText("Color:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        add(jLabel3, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        add(textColorComboBox, gridBagConstraints);
+
     }//GEN-END:initComponents
 
     private void textAnchorItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_textAnchorItemStateChanged
@@ -842,6 +882,7 @@ public class TextInfoPanel extends javax.swing.JPanel
     private javax.swing.JCheckBox italic;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
@@ -856,6 +897,7 @@ public class TextInfoPanel extends javax.swing.JPanel
     private javax.swing.JButton seeNode;
     private javax.swing.ButtonGroup sizes;
     private javax.swing.JComboBox textAnchor;
+    private javax.swing.JComboBox textColorComboBox;
     private javax.swing.JCheckBox underline;
     private javax.swing.JRadioButton unitsButton;
     private javax.swing.JTextField unitsSize;
