@@ -3524,8 +3524,28 @@ public class Quick
 				ArcInst ai = (ArcInst)it.next();
 				Technology tech = ai.getProto().getTechnology();
 				Network aNet = info.getNetlist().getNetwork(ai, 0);
+				boolean found = false;
 
-				if (aNet != jNet) continue; // no same net
+				for (Iterator arcIt = aNet.getExports(); !found && arcIt.hasNext();)
+				{
+					Export exp = (Export)arcIt.next();
+					Network net = info.getNetlist().getNetwork(exp, 0);
+					HierarchyEnumerator.CellInfo cinfo = info;
+					while (!found && cinfo.getParentInst() != null) {
+						net = HierarchyEnumerator.getNetworkInParent(net, cinfo.getParentInst());
+						if (jNet == net)
+						{
+							if (Main.getDebug()) System.out.println("Found network in Arc " + ai + " network " + net);
+							found = true;
+							break;
+						}
+						cinfo = cinfo.getParentInfo();
+					}
+					if (found) break;
+				}
+
+				if (!found && aNet != jNet)
+					continue; // no same net
 
 				Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
 				int tot = arcInstPolyList.length;
@@ -3560,31 +3580,13 @@ public class Quick
 			AffineTransform trans = ni.rotateOut();
 			NodeProto np = ni.getProto();
 
-			// Skipping cells. Flat analysis for now
+			// Cells
 			if (!(np instanceof PrimitiveNode)) return (true);
 
 			PrimitiveNode pNp = (PrimitiveNode)np;
 			if (np instanceof PrimitiveNode && np == Generic.tech.cellCenterNode) return (false);
 
 			boolean found = false;
-			/*
-			Network parentNet = jNet;
-			HierarchyEnumerator.CellInfo cinfo = info;
-			while (cinfo.getParentInst() != null) {
-				parentNet = HierarchyEnumerator.getNetworkInParent(parentNet, cinfo.getParentInst());
-				cinfo = cinfo.getParentInfo();
-			}
-					if (parentNet != null)
-					{
-						for (Iterator it = parentNet.getExports(); !found && it.hasNext();)
-						{
-							Export exp = (Export)it.next();
-							if ((searchWell && exp.isGround()) || (!searchWell && exp.isPower()))
-								wc.onProperRail = true;
-						}
-					}
-            */
-			
 			for(Iterator pIt = ni.getPortInsts(); !found && pIt.hasNext(); )
 			{
 				PortInst pi = (PortInst)pIt.next();

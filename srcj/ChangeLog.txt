@@ -2,6 +2,10 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.01ag: *********************************
+
+IMP: (10/28/04, GVG) Bug fix in hierarchical checking for minArea
+
 ************************* Version 8.01af: *********************************
 
 IMP: (10/28/04, SMR) Added SUE input.
