@@ -62,7 +62,7 @@ public class CMOS extends Technology
 
 		/** M layer */
 		Layer M_lay = Layer.newInstance(this, "Metal",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0,255,0,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,255,0,0.8,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -82,7 +82,7 @@ public class CMOS extends Technology
 
 		/** P layer */
 		Layer P_lay = Layer.newInstance(this, "Polysilicon",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 255,190,6,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 255,190,6,0.8,1,
 			new int[] { 0x0808,   //     X       X   
 						0x0404,   //      X       X  
 						0x0202,   //       X       X 
@@ -102,7 +102,7 @@ public class CMOS extends Technology
 
 		/** D layer */
 		Layer D_lay = Layer.newInstance(this, "Diffusion",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 170,140,30,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 170,140,30,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -122,7 +122,7 @@ public class CMOS extends Technology
 
 		/** P0 layer */
 		Layer P0_lay = Layer.newInstance(this, "P+",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 255,190,6,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 255,190,6,0.8,1,
 			new int[] { 0x1000,   //    X            
 						0x0020,   //           X     
 						0x0000,   //                 
@@ -142,17 +142,17 @@ public class CMOS extends Technology
 
 		/** CC layer */
 		Layer CC_lay = Layer.newInstance(this, "Contact-Cut",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 180,130,0,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 180,130,0,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** OC layer */
 		Layer OC_lay = Layer.newInstance(this, "Ohmic-Cut",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 180,130,0,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 180,130,0,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** PW layer */
 		Layer PW_lay = Layer.newInstance(this, "P-Well",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,0,0,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x00c0,   //         XX      
 						0x0000,   //                 
@@ -172,7 +172,7 @@ public class CMOS extends Technology
 
 		/** O layer */
 		Layer O_lay = Layer.newInstance(this, "Overglass",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,0,0,0.8,1,
 			new int[] { 0x1c1c,   //    XXX     XXX  
 						0x3e3e,   //   XXXXX   XXXXX 
 						0x3636,   //   XX XX   XX XX 
@@ -192,12 +192,12 @@ public class CMOS extends Technology
 
 		/** T layer */
 		Layer T_lay = Layer.newInstance(this, "Transistor",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 200,200,200,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 200,200,200,0.8,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** PM layer */
 		Layer PM_lay = Layer.newInstance(this, "Pseudo-Metal",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0,255,0,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,255,0,0.8,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -217,7 +217,7 @@ public class CMOS extends Technology
 
 		/** PP layer */
 		Layer PP_lay = Layer.newInstance(this, "Pseudo-Polysilicon",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 255,190,6,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 255,190,6,0.8,1,
 			new int[] { 0x0808,   //     X       X   
 						0x0404,   //      X       X  
 						0x0202,   //       X       X 
@@ -237,7 +237,7 @@ public class CMOS extends Technology
 
 		/** PD layer */
 		Layer PD_lay = Layer.newInstance(this, "Pseudo-Diffusion",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 170,140,30,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 170,140,30,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -257,7 +257,7 @@ public class CMOS extends Technology
 
 		/** PP0 layer */
 		Layer PP0_lay = Layer.newInstance(this, "Pseudo-P+",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 255,190,6,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 255,190,6,0.8,1,
 			new int[] { 0x1000,   //    X            
 						0x0020,   //           X     
 						0x0000,   //                 
@@ -277,7 +277,7 @@ public class CMOS extends Technology
 
 		/** PPW layer */
 		Layer PPW_lay = Layer.newInstance(this, "Pseudo-P-Well",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,0,0,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x00c0,   //         XX      
 						0x0000,   //                 
@@ -534,6 +534,8 @@ public class CMOS extends Technology
 					EdgeH.fromLeft(2), EdgeV.fromBottom(2), EdgeH.fromRight(2), EdgeV.fromTop(2))
 			});
 		mpc_node.setFunction(NodeProto.Function.CONTACT);
+		mpc_node.setSpecialType(PrimitiveNode.MULTICUT);
+		mpc_node.setSpecialValues(new double [] {2, 2, 1, 2});
 
 		/** Metal-Diff-P-Con */
 		PrimitiveNode mdpc_node = PrimitiveNode.newInstance("Metal-Diff-P-Con", this, 8, 8, new SizeOffset(2, 2, 2, 2),
@@ -550,6 +552,8 @@ public class CMOS extends Technology
 					EdgeH.fromLeft(3), EdgeV.fromBottom(3), EdgeH.fromRight(3), EdgeV.fromTop(3))
 			});
 		mdpc_node.setFunction(NodeProto.Function.CONTACT);
+		mdpc_node.setSpecialType(PrimitiveNode.MULTICUT);
+		mdpc_node.setSpecialValues(new double [] {2, 2, 1, 2});
 
 		/** Metal-Diff-Well-Con */
 		PrimitiveNode mdwc_node = PrimitiveNode.newInstance("Metal-Diff-Well-Con", this, 10, 10, new SizeOffset(3, 3, 3, 3),
@@ -566,6 +570,8 @@ public class CMOS extends Technology
 					EdgeH.fromLeft(4), EdgeV.fromBottom(4), EdgeH.fromRight(4), EdgeV.fromTop(4))
 			});
 		mdwc_node.setFunction(NodeProto.Function.CONTACT);
+		mdwc_node.setSpecialType(PrimitiveNode.MULTICUT);
+		mdwc_node.setSpecialValues(new double [] {2, 2, 1, 2});
 
 		/** Transistor */
 		PrimitiveNode t_node = PrimitiveNode.newInstance("Transistor", this, 8, 8, new SizeOffset(3, 3, 3, 3),
@@ -589,6 +595,8 @@ public class CMOS extends Technology
 		t_node.setFunction(NodeProto.Function.TRANMOS);
 		t_node.setHoldsOutline();
 		t_node.setCanShrink();
+		t_node.setSpecialType(PrimitiveNode.SERPTRANS);
+		t_node.setSpecialValues(new double [] {5, 1, 1, 2, 1, 1});
 
 		/** Transistor-Well */
 		PrimitiveNode tw_node = PrimitiveNode.newInstance("Transistor-Well", this, 8, 8, new SizeOffset(3, 3, 3, 3),
@@ -612,6 +620,8 @@ public class CMOS extends Technology
 		tw_node.setFunction(NodeProto.Function.TRAPMOS);
 		tw_node.setHoldsOutline();
 		tw_node.setCanShrink();
+		tw_node.setSpecialType(PrimitiveNode.SERPTRANS);
+		tw_node.setSpecialValues(new double [] {5, 1, 1, 2, 1, 1});
 
 		/** Metal-Diff-Split-Cut */
 		PrimitiveNode mdsc_node = PrimitiveNode.newInstance("Metal-Diff-Split-Cut", this, 14, 10, new SizeOffset(3, 3, 3, 3),

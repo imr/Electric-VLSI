@@ -52,12 +52,15 @@ import java.io.DataOutputStream;
 import java.io.BufferedOutputStream;
 import java.io.PrintWriter;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * This class manages writing files in different formats.
@@ -139,6 +142,45 @@ public class Output extends IOTool
         boolean error = false;
 		if (type == ExportType.BINARY)
 		{
+			// backup previous files if requested
+			int backupScheme = IOTool.getBackupRedundancy();
+			if (backupScheme == 1)
+			{
+				// one-level backup
+				String backupFileName = n.makeName() + "~";
+				File oldFile = new File(backupFileName);
+				if (oldFile.exists())
+				{
+					oldFile.delete();
+				}
+				File newFile = new File(n.makeName());
+				if (newFile.exists())
+				{
+					newFile.renameTo(oldFile);
+				}
+			} else if (backupScheme == 2)
+			{
+				// full-history backup
+				File newFile = new File(n.makeName());
+				if (newFile.exists())
+				{
+					long modified = newFile.lastModified();
+					Date modifiedDate = new Date(modified);
+					SimpleDateFormat sdf = new SimpleDateFormat("-yyyy-MM-dd");
+					for(int i=0; i<1000; i++)
+					{
+						String backupFileName = n.getPath() + File.separator + n.getName() + sdf.format(modifiedDate);
+						if (i != 0)
+							backupFileName += "--" + i;
+						backupFileName += "." + n.getExtension();
+						File oldFile = new File(backupFileName);
+						if (oldFile.exists()) continue;
+						newFile.renameTo(oldFile);
+						break;
+					}
+				}
+			}
+
 			out = (Output)new OutputBinary();
 			n.setExtension("elib");
             if (out.openBinaryOutputStream(n.makeName())) error = true;

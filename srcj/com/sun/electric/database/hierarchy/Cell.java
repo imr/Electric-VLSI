@@ -1106,6 +1106,20 @@ public class Cell extends NodeProto
 		}
 	}
 
+	/**
+	 * Method to determine whether this Cell has a cell center in it.
+	 * @return true if this Cell has a Cell-center node in it.
+	 */
+	public boolean alreadyCellCenter()
+	{
+		for(Iterator it = getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (ni.getProto() == Generic.tech.cellCenterNode) return true;
+		}
+		return false;
+	}
+
 	/****************************** NODES ******************************/
 
 	/**

@@ -475,6 +475,7 @@ public class Technology extends ElectricObject
 	/** flags for the technology */						private int userBits;
 	/** 0-based index of the technology */				private int techIndex;
 	/** critical dimensions for the technology */		private double scale;
+	/** number of transparent layers in technology */	private int transparentLayers;
 	/** list of layers in the technology */				private List layers;
 	/** count of layers in the technology */			private int layerIndex = 0;
 	/** list of primitive nodes in the technology */	private List nodes;
@@ -2064,6 +2065,22 @@ public class Technology extends ElectricObject
 	{
 		if (scale != 0) this.scale = scale;
 	}
+
+	/**
+	 * Sets the number of transparent layers in this technology.
+	 * Users should never call this method.
+	 * It is set once by the technology during initialization.
+	 * Informs the display system of the number of overlapping or transparent layers
+	 * in use.
+	 */
+	protected void setNumTransparentLayers(int num) { transparentLayers = num; }
+
+	/**
+	 * Returns the number of transparent layers in this technology.
+	 * Informs the display system of the number of overlapping or transparent layers
+	 * in use.
+	 */
+	protected int getNumTransparentLayers() { return transparentLayers; }
 
 	/**
 	 * Returns the 0-based index of this Technology.

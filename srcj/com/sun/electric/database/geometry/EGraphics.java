@@ -29,6 +29,7 @@ public class EGraphics
 {
 	/** appearance on a display */							private int displayMethod;
 	/** appearance on paper */								private int printMethod;
+	/** transparent layer to use (0 for none) */			private int transparentLayer;
 	/** color to use */										private int red, green, blue;
 	/** opacity (0 to 1) of color */						private double opacity;
 	/** whether to draw color in foregound */				private int foreground;
@@ -82,10 +83,12 @@ public class EGraphics
 	 * @param pattern the 16x16 stipple pattern of this EGraphics (16 integers).
 	 * This pattern is tessellated across the polygon.
 	 */
-	public EGraphics(int displayMethod, int printMethod, int red, int green, int blue, double opacity, int foreground, int[] pattern)
+	public EGraphics(int displayMethod, int printMethod, int transparentLayer,
+		int red, int green, int blue, double opacity, int foreground, int[] pattern)
 	{
 		this.displayMethod = displayMethod;
 		this.printMethod = printMethod;
+		this.transparentLayer = transparentLayer;
 		this.red = red;
 		this.green = green;
 		this.blue = blue;
@@ -114,6 +117,14 @@ public class EGraphics
 	 */
 	public boolean isPatternedOnPrinter() { return (printMethod & NATURE) == PATTERNED; }
 
+	/**
+	 * Method to return the transparent layer associated with this EGraphics.
+	 * @return the transparent layer associated with this EGraphics.
+	 * A value of zero means that this Layer is not drawn transparently.
+	 * Instead, use the "getColor()" method to get its solid color.
+	 */
+	public int getTransparentLayer() { return transparentLayer; }
+	
 	/**
 	 * Method to return the color associated with this EGraphics.
 	 * @return the color associated with this EGraphics.

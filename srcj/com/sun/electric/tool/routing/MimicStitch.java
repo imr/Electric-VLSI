@@ -33,6 +33,7 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.FlagSet;
@@ -520,14 +521,14 @@ public class MimicStitch
 								int desiredangle = -1;
 								if (x0 != wantX1 || y0 != wantY1)
 									desiredangle = EMath.figureAngle(xy0, want1);
-								JNetwork net0 = null;
+								PortInst piNet0 = null;
 								for(Iterator pII = ni.getConnections(); pII.hasNext(); )
 								{
 									Connection con = (Connection)pII.next();
 									PortInst pi = con.getPortInst();
 									if (pi.getPortProto() != pp) continue;
 									ArcInst oai = con.getArc();
-									net0 = netlist.getNetwork(pi);
+									piNet0 = pi;
 									if (desiredangle < 0)
 									{
 										if (oai.getHead().getLocation().getX() == oai.getTail().getLocation().getX() &&
@@ -556,14 +557,14 @@ public class MimicStitch
 								desiredangle = -1;
 								if (x0 != wantX1 || y0 != wantY1)
 									desiredangle = EMath.figureAngle(want1, xy0);
-								JNetwork net1 = null;
+								PortInst piNet1 = null;
 								for(Iterator pII = oNi.getConnections(); pII.hasNext(); )
 								{
 									Connection con = (Connection)pII.next();
 									PortInst pi = con.getPortInst();
 									if (pi.getPortProto() != opp) continue;
 									ArcInst oai = con.getArc();
-									net1 = netlist.getNetwork(pi);
+									piNet1 = pi;
 									if (desiredangle < 0)
 									{
 										if (oai.getHead().getLocation().getX() == oai.getTail().getLocation().getX() &&
@@ -590,7 +591,11 @@ public class MimicStitch
 								}
 
 								// if there is a network that already connects these, ignore
-								if (net1 == net0 && net0 != null) continue;
+								if (piNet0 != null && piNet1 != null)
+								{
+									if (netlist.sameNetwork(piNet0.getNodeInst(), piNet0.getPortProto(),
+										piNet1.getNodeInst(), piNet1.getPortProto())) continue;
+								}
 
 								if (pp != port0 || opp != port1)
 									situation |= LIKELYDIFFPORT;

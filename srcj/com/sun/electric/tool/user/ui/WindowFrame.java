@@ -177,10 +177,9 @@ public class WindowFrame
 
 		// put them together into the frame
 		frame.js = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-		frame.js.setResizeWeight(0.5);
 		frame.js.setRightComponent(frame.circuitPanel);
 		frame.js.setLeftComponent(scrolledTree);
-		frame.js.setDividerLocation(250);
+		frame.js.setDividerLocation(0.2);
 		if (TopLevel.isMDIMode())
 		{
 			frame.jif.getContentPane().add(frame.js);
@@ -340,7 +339,7 @@ public class WindowFrame
     }
 
 	/**
-	 * This class handles activation and close events for JFrame objects (used in SDI mode).
+	 * This class handles changes to the edit window scroll bars.
 	 */
 	static class ScrollAdjustmentListener implements AdjustmentListener
 	{

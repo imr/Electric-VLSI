@@ -362,6 +362,49 @@ public class Netlist
 	}
 
 	/**
+	 * Method to tell whether a PortProto on a Nodable is electrically equivalent to an ArcInst.
+	 * This considers individual elements of busses.
+	 * @param no the Nodable.
+	 * @param pp the PortProto on the Nodable.
+	 * @param ai the ArcInst.
+	 * @return true if they are electrically connected.
+	 */
+	public boolean sameNetwork(Nodable no, PortProto pp, ArcInst ai)
+	{
+		int busWidth1 = pp.getProtoNameKey().busWidth();
+		int busWidth2 = netCell.getBusWidth(ai);
+		if (busWidth1 != busWidth2) return false;
+		for(int i=0; i<busWidth1; i++)
+		{
+			if (getNetIndex(no, pp, i) != getNetIndex(ai, i))
+				return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Method to tell whether two PortProto / Nodable pairs are electrically equivalent.
+	 * This considers individual elements of busses.
+	 * @param no1 the first Nodable.
+	 * @param pp1 the PortProto on the first Nodable.
+	 * @param no2 the second Nodable.
+	 * @param pp2 the PortProto on the second Nodable.
+	 * @return true if they are electrically connected.
+	 */
+	public boolean sameNetwork(Nodable no1, PortProto pp1, Nodable no2, PortProto pp2)
+	{
+		int busWidth1 = pp1.getProtoNameKey().busWidth();
+		int busWidth2 = pp2.getProtoNameKey().busWidth();
+		if (busWidth1 != busWidth2) return false;
+		for(int i=0; i<busWidth1; i++)
+		{
+			if (getNetIndex(no1, pp1, i) != getNetIndex(no2, pp2, i))
+				return false;
+		}
+		return true;
+	}
+
+	/**
 	 * Method to return either the network name or the bus name on this ArcInst.
 	 * @return the either the network name or the bus name on this ArcInst.
 	 */

@@ -548,19 +548,6 @@ public class User extends Listener
 	 */
 	public static void setDefGridYBoldFrequency(int dist) { cacheDefGridYBoldFrequency.setInt(dist); }
 
-	private static Tool.Pref cacheAlignGridWithCircuitry = User.tool.makeBooleanPref("AlignGridWithCircuitry", false);
-	/**
-	 * Method to tell whether to align the grid dots with the circuitry.
-	 * The default is "false", which implies that the grid dots are placed independently of object locations.
-	 * @return true to align the grid dots with the circuitry.
-	 */
-	public static boolean isAlignGridWithCircuitry() { return cacheAlignGridWithCircuitry.getBoolean(); }
-	/**
-	 * Method to set whether to align the grid dots with the circuitry.
-	 * @param on true to align the grid dots with the circuitry.
-	 */
-	public static void setAlignGridWithCircuitry(boolean on) { cacheAlignGridWithCircuitry.setBoolean(on); }
-
 	private static Tool.Pref cacheShowCursorCoordinates = User.tool.makeBooleanPref("ShowCursorCoordinates", false);
 	/**
 	 * Method to tell whether to show the cursor coordinates as they move in the edit window.

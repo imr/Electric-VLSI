@@ -435,7 +435,6 @@ public class Library extends ElectricObject
 		}
 	}
 
-	// why must this class be "static"?   --smr
 	private static class VisibleLibraryIterator implements Iterator
 	{
 		private Iterator uit;

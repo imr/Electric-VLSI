@@ -94,7 +94,7 @@ public class OutputPostScript extends Output
 	/** true to plot date information in the corner. */					private boolean plotDates;
 	/** matrix from database units to PS units. */						private AffineTransform matrix;
 	/** fake layer for drawing outlines and text. */					private static Layer blackLayer = Layer.newInstance(null, "black",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 100,100,100,1.0,1, new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 100,100,100,1.0,1, new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 	/**
 	 * Main entry point for PostScript output.
@@ -443,7 +443,6 @@ public class OutputPostScript extends Output
 			int hy = (int)cell.getBounds().getMaxY();
 			int gridlx = lx / gridx * gridx;
 			int gridly = ly / gridy * gridy;
-			if (User.isAlignGridWithCircuitry()) gridlx = gridly = 0;
 
 			// adjust to ensure that the first point is inside the range
 			if (gridlx > lx) gridlx -= (gridlx - lx) / gridx * gridx;

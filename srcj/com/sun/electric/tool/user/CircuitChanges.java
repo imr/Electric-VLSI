@@ -2197,17 +2197,25 @@ public class CircuitChanges
 					if (cantEdit(np, null, true)) continue;
 				}
 
+				// handle nodes that move with text
+				ElectricObject eobj = high.getElectricObject();
+				if (high.nodeMovesWithText())
+				{
+					NodeInst ni = null;
+					if (eobj instanceof NodeInst) ni = (NodeInst)eobj;
+					if (eobj instanceof Export) ni = ((Export)eobj).getOriginalPort().getNodeInst();
+					if (ni != null)
+					{
+						ni.modifyInstance(dX, dY, 0, 0, 0);
+						continue;
+					}
+				}
+
 				// moving variable on object
 				Variable var = high.getVar();
-				ElectricObject eobj = high.getElectricObject();
 				if (var != null)
 				{
 					TextDescriptor td = var.getTextDescriptor();
-					if (eobj instanceof NodeInst && ((NodeInst)eobj).isInvisiblePinWithText())
-					{
-						((NodeInst)eobj).modifyInstance(dX, dY, 0, 0, 0);
-						return;
-					}
 					if (eobj instanceof NodeInst || eobj instanceof PortInst || eobj instanceof Export)
 					{
 						NodeInst ni = null;

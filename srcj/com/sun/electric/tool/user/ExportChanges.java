@@ -133,7 +133,6 @@ public final class ExportChanges
 				int blJ = ((ExportList)exports.get(j)).busList;
 				if (eqJ != -1 || blJ != -1) continue;
 				Export ppJ = ((ExportList)exports.get(j)).pp;
-				JNetwork netJ = netlist.getNetwork(ppJ.getOriginalPort());
 				for(int k=j+1; k<num_found; k++)
 				{
 					int eqK = ((ExportList)exports.get(k)).equiv;
@@ -141,8 +140,8 @@ public final class ExportChanges
 					if (eqK != -1 || blK != -1) continue;
 					Export ppK = ((ExportList)exports.get(k)).pp;
 					if (ppJ.getCharacteristic() != ppK.getCharacteristic()) break;
-					JNetwork netK = netlist.getNetwork(ppK.getOriginalPort());
-					if (netJ != netK) continue;
+					if (!netlist.sameNetwork(ppJ.getOriginalPort().getNodeInst(), ppJ.getOriginalPort().getPortProto(),
+						ppK.getOriginalPort().getNodeInst(), ppK.getOriginalPort().getPortProto())) continue;
 					((ExportList)exports.get(k)).equiv = j;
 					((ExportList)exports.get(j)).equiv = -2;
 				}

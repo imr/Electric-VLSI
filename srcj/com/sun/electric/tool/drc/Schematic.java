@@ -468,12 +468,14 @@ public class Schematic
 					for(Iterator it = ni.getConnections(); it.hasNext(); )
 					{
 						Connection con = (Connection)it.next();
-						JNetwork net = netlist.getNetwork(con.getArc(), 0);
 						for(Iterator oIt = oNi.getConnections(); oIt.hasNext(); )
 						{
 							Connection oCon = (Connection)oIt.next();
-							JNetwork oNet = netlist.getNetwork(oCon.getArc(), 0);
-							if (net == oNet) { found = true;   break; }
+							if (netlist.sameNetwork(con.getArc(), oCon.getArc()))
+							{
+								found = true;
+								break;
+							}
 						}
 						if (found) break;
 					}
@@ -481,13 +483,15 @@ public class Schematic
 				} else
 				{			
 					// this is arc, nearby is node: see if electrically connected
-					JNetwork net = netlist.getNetwork(ai, 0);
 					boolean found = false;
 					for(Iterator oIt = oNi.getConnections(); oIt.hasNext(); )
 					{
 						Connection oCon = (Connection)oIt.next();
-						JNetwork oNet = netlist.getNetwork(oCon.getArc(), 0);
-						if (net == oNet) { found = true;   break; }
+						if (netlist.sameNetwork(ai, oCon.getArc()))
+						{
+							found = true;
+							break;
+						}
 					}
 					if (found) continue;
 				}
@@ -504,13 +508,15 @@ public class Schematic
 				if (geom instanceof NodeInst)
 				{
 					// this is node, nearby is arc: see if electrically connected
-					JNetwork oNet = netlist.getNetwork(oAi, 0);
 					boolean found = false;
 					for(Iterator it = ni.getConnections(); it.hasNext(); )
 					{
 						Connection con = (Connection)it.next();
-						JNetwork net = netlist.getNetwork(con.getArc(), 0);
-						if (net == oNet) { found = true;   break; }
+						if (netlist.sameNetwork(oAi, con.getArc()))
+						{
+							found = true;
+							break;
+						}
 					}
 					if (found) continue;
 
@@ -528,9 +534,7 @@ public class Schematic
 
 					// if not connected, check to see if they touch
 					boolean connected = false;
-					JNetwork net = netlist.getNetwork(ai, 0);
-					JNetwork oNet = netlist.getNetwork(oAi, 0);
-					if (net == oNet) connected = true; else
+					if (netlist.sameNetwork(ai, oAi)) connected = true; else
 					{
 						int aiBusWidth = netlist.getBusWidth(ai);
 						int oAiBusWidth = netlist.getBusWidth(oAi);

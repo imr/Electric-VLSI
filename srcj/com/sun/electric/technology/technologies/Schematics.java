@@ -244,13 +244,13 @@ public class Schematics extends Technology
 
 		/** arc layer */
 		arc_lay = Layer.newInstance(this, "Arc",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,255,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,0,255,0.8,1,
 			new int[] {0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,
 				0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF}));
 
 		/** bus layer */
 		bus_lay = Layer.newInstance(this, "Bus",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 107,226,96,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 0, 107,226,96,0.8,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -270,13 +270,13 @@ public class Schematics extends Technology
 
 		/** node layer */
 		node_lay = Layer.newInstance(this, "Node",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 255,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 255,0,0,0.8,1,
 			new int[] {0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,
 				0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF}));
 
 		/** text layer */
 		text_lay = Layer.newInstance(this, "Text",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,0,0,0.8,1,
 			new int[] {0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,
 				0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF}));
 

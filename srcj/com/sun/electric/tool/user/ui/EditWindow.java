@@ -1129,7 +1129,9 @@ public class EditWindow extends JPanel
 		int computedXThumbPos = (int)((offx - xCenter) / xWidth * scaleFactor) + scrollBarResolution/2;
 		if (computedXThumbPos != xThumbPos)
 		{
+//System.out.println("Computed thumb = " + computedXThumbPos + " but real is " + xThumbPos+ " offx was " + offx);
 			offx = (xThumbPos-scrollBarResolution/2)/scaleFactor * xWidth + xCenter;
+//System.out.println("   now offx="+offx);
 			redraw();
 		}
 	}

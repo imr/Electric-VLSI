@@ -176,4 +176,26 @@ public class IOTool extends Tool
 		}
 		td.setFace(fontNumber);
 	}
+
+	/****************************** INPUT / OUTPUT PREFERENCES ******************************/
+
+	private static Tool.Pref cacheBackupRedundancy = IOTool.tool.makeIntPref("int", 0);
+	/**
+	 * Method to tell what kind of redundancy to apply when writing library files.
+	 * The value is:
+	 * 0 for no backup (just overwrite the old file) [the default];
+	 * 1 for 1-level backup (rename the old file to have a "~" at the end);
+	 * 2 for full history backup (rename the old file to have date information in it).
+	 * @return the level of redundancy to apply when writing library files.
+	 */
+	public static int getBackupRedundancy() { return cacheBackupRedundancy.getInt(); }
+	/**
+	 * Method to set the level of redundancy to apply when writing library files.
+	 * The value is:
+	 * 0 for no backup (just overwrite the old file);
+	 * 1 for 1-level backup (rename the old file to have a "~" at the end);
+	 * 2 for full history backup (rename the old file to have date information in it).
+	 * @param r the level of redundancy to apply when writing library files.
+	 */
+	public static void setBackupRedundancy(int r) { cacheBackupRedundancy.setInt(r); }
 }

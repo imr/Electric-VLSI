@@ -437,8 +437,43 @@ public class Highlight
 					highlightedGeoms.add(eobj);
 				}
 			}
+			if (h.getType() == Type.TEXT)
+			{
+				if (h.nodeMovesWithText())
+				{
+					ElectricObject eobj = h.getElectricObject();
+					if (eobj instanceof Export) eobj = ((Export)eobj).getOriginalPort().getNodeInst();
+					highlightedGeoms.add(eobj);
+				}
+			}
 		}
 		return highlightedGeoms;
+	}
+
+	/**
+	 * Method to tell whether this Highlight is text that stays with its node.
+	 * The two possibilities are (1) text on invisible pins
+	 * (2) export names, when the option to move exports with their labels is requested.
+	 * @return true if this Highlight is text that should move with its node.
+	 */
+	public boolean nodeMovesWithText()
+	{
+		if (type != Type.TEXT) return false;
+		if (var != null)
+		{
+			/* moving variable text */
+			if (!(eobj instanceof NodeInst)) return false;
+			NodeInst ni = (NodeInst)eobj;
+			if (ni.isInvisiblePinWithText()) return true;
+		} else
+		{
+			/* moving export text */
+			if (!(eobj instanceof Export)) return false;
+			Export pp = (Export)eobj;
+			if (pp.getOriginalPort().getNodeInst().getProto() == Generic.tech.invisiblePinNode) return true;
+			if (User.isMoveNodeWithExport()) return true;
+		}
+		return false;
 	}
 
 	/**
@@ -541,7 +576,7 @@ public class Highlight
 			{
 				if (wnd != null)
 				{
-					Poly poly = h.computeTextPoly(wnd);
+					Poly poly = computeTextPoly(wnd, h.getElectricObject(), h.getVar(), h.getName());
 					if (poly != null) highBounds = poly.getBounds2D();
 				}
 			} else if (h.getType() == Type.BBOX)
@@ -692,7 +727,7 @@ public class Highlight
 			if (style == Highlight.Type.TEXT)
 			{
 				Point2D start = wnd.screenToDatabase((int)x, (int)y);
-				Poly poly = h.computeTextPoly(wnd);
+				Poly poly = computeTextPoly(wnd, h.getElectricObject(), h.getVar(), h.getName());
 				if (poly.isInside(start)) return true;
 			} else if (style == Highlight.Type.EOBJ)
 			{
@@ -756,7 +791,7 @@ public class Highlight
 			points[2] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
 			points[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
 			points[4] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-			drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
+			drawOutlineFromPoints(wnd, g, points, highOffX, highOffY, false);
 			return;
 		}
 		if (type == Type.LINE)
@@ -764,102 +799,19 @@ public class Highlight
 			Point2D [] points = new Point2D.Double[2];
 			points[0] = new Point2D.Double(pt1.getX(), pt1.getY());
 			points[1] = new Point2D.Double(pt2.getX(), pt2.getY());
-			drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
+			drawOutlineFromPoints(wnd, g, points, highOffX, highOffY, false);
 			return;
 		}
 		if (type == Type.TEXT)
 		{
-			Poly poly = computeTextPoly(wnd);
-			if (poly == null) return;
-			Poly.Type style = poly.getStyle();
-			Rectangle2D bounds = poly.getBounds2D();
-			Point2D [] points = new Point2D.Double[2];
-			if (style == Poly.Type.TEXTCENT)
+			Point2D [] points = describeHighlightText(wnd, getElectricObject(), getVar(), getName());
+			if (points == null) return;
+			Point2D [] linePoints = new Point2D[2];
+			for(int i=0; i<points.length; i += 2)
 			{
-				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-//				g.drawLine((int)points[0].getX() + highOffX, (int)points[0].getY() + highOffY, (int)points[1].getX() + highOffX, (int)points[1].getY() + highOffY);
-				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
-				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
-				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
-//				g.drawLine((int)points[0].getX() + highOffX, (int)points[0].getY() + highOffY, (int)points[1].getX() + highOffX, (int)points[1].getY() + highOffY);
-				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
-			} else if (style == Poly.Type.TEXTBOT)
-			{
-				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
-				points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
-				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
-				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
-				points[0] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
-				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
-			} else if (style == Poly.Type.TEXTTOP)
-			{
-				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-				points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
-				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
-				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
-				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
-				points[0] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
-				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
-			} else if (style == Poly.Type.TEXTLEFT)
-			{
-				points[0] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
-				points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
-				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-				points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
-				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
-				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
-				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
-			} else if (style == Poly.Type.TEXTRIGHT)
-			{
-				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
-				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
-				points[0] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
-				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
-				points[0] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-				points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
-				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
-			} else if (style == Poly.Type.TEXTTOPLEFT)
-			{
-				points[0] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-				points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
-				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
-				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
-				points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
-			} else if (style == Poly.Type.TEXTBOTLEFT)
-			{
-				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
-				points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
-				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
-				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
-			} else if (style == Poly.Type.TEXTTOPRIGHT)
-			{
-				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
-				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
-				points[0] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
-				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
-			} else if (style == Poly.Type.TEXTBOTRIGHT)
-			{
-				points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
-				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
-				points[0] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
-				points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-				drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
+				linePoints[0] = points[i];
+				linePoints[1] = points[i+1];
+				drawOutlineFromPoints(wnd, g, linePoints, highOffX, highOffY, false);
 			}
 			return;
 		}
@@ -873,12 +825,11 @@ public class Highlight
 		if (eobj instanceof ArcInst)
 		{
 			ArcInst ai = (ArcInst)eobj;
-			double offset = ai.getProto().getWidthOffset();
 
 			// construct the polygons that describe the basic arc
-			Poly poly = ai.makePoly(ai.getLength(), ai.getWidth() - offset, Poly.Type.CLOSED);
+			Poly poly = ai.makePoly(ai.getLength(), ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
 			if (poly == null) return;
-			drawOutlineFromPoints(wnd, g,  poly.getPoints(), highOffX, highOffY, false);
+			drawOutlineFromPoints(wnd, g, poly.getPoints(), highOffX, highOffY, false);
 
 			if (getNumHighlights() == 1)
 			{
@@ -934,7 +885,7 @@ public class Highlight
 //							pointList[i] = new Point2D.Double(ni.getCenterX() + outline[i*2].floatValue(),
 //								ni.getCenterY() + outline[i*2+1].floatValue());
 //						}
-//						drawOutlineFromPoints(wnd, g,  pointList, highOffX, highOffY, false);
+//						drawOutlineFromPoints(wnd, g, pointList, highOffX, highOffY, false);
 //					}
 //				}
 			}
@@ -1057,7 +1008,7 @@ public class Highlight
 				double nodeY = (nodeLowY + nodeHighY) / 2;
 				Poly poly = new Poly(nodeX, nodeY, nodeHighX-nodeLowX, nodeHighY-nodeLowY);
 				poly.transform(trans);
-				drawOutlineFromPoints(wnd, g,  poly.getPoints(), offX, offY, false);
+				drawOutlineFromPoints(wnd, g, poly.getPoints(), offX, offY, false);
 			}
 
 			// draw the selected port
@@ -1072,17 +1023,17 @@ public class Highlight
 					Point2D [] points = poly.getPoints();
 					double sX = points[0].distance(points[1]) * 2;
 					Point2D [] pts = Artwork.fillEllipse(points[0], sX, sX, 0, 360);
-					drawOutlineFromPoints(wnd, g,  pts, offX, offY, opened);
+					drawOutlineFromPoints(wnd, g, pts, offX, offY, opened);
 				} else if (poly.getStyle() == Poly.Type.CIRCLEARC)
 				{
 					Point2D [] points = poly.getPoints();
 					double [] angles = ni.getArcDegrees();
 					double sX = points[0].distance(points[1]) * 2;
 					Point2D [] pts = Artwork.fillEllipse(points[0], sX, sX, angles[0], angles[1]);
-					drawOutlineFromPoints(wnd, g,  pts, offX, offY, opened);
+					drawOutlineFromPoints(wnd, g, pts, offX, offY, opened);
 				} else
 				{
-					drawOutlineFromPoints(wnd, g,  poly.getPoints(), offX, offY, opened);
+					drawOutlineFromPoints(wnd, g, poly.getPoints(), offX, offY, opened);
 				}
 
 				// handle verbose highlighting of nodes
@@ -1096,18 +1047,7 @@ public class Highlight
 				{
 					ArcInst ai = (ArcInst)it.next();
 					ai.clearBit(markObj);
-					int arcBusWidth = netlist.getBusWidth(ai);
-					if (arcBusWidth != busWidth) continue;
-					boolean different = false;
-					for(int i=0; i<busWidth; i++)
-					{
-						if (netlist.getNetwork(ni, pp, i) != netlist.getNetwork(ai, i))
-						{
-							different = true;
-							break;
-						}
-					}
-					if (different) continue;
+					if (!netlist.sameNetwork(ni, pp, ai)) continue;
 
 					ai.setBit(markObj);
 					ai.getHead().getPortInst().getNodeInst().setBit(markObj);
@@ -1160,15 +1100,115 @@ public class Highlight
 	}
 
 	/**
+	 * Method to convert this Highlight to a series of points that describes the text.
+	 * It is assumed that this Highlight describes text.
+	 */
+	public static Point2D [] describeHighlightText(EditWindow wnd, ElectricObject eobj, Variable var, Name name)
+	{
+		Poly poly = computeTextPoly(wnd, eobj, var, name);
+		if (poly == null) return null;
+		Poly.Type style = poly.getStyle();
+		Rectangle2D bounds = poly.getBounds2D();
+		if (style == Poly.Type.TEXTCENT)
+		{
+			Point2D [] points = new Point2D.Double[4];
+			points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+			points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+			points[2] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+			points[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+			return points;
+		}
+		if (style == Poly.Type.TEXTBOT)
+		{
+			Point2D [] points = new Point2D.Double[6];
+			points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+			points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+			points[2] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+			points[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+			points[4] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+			points[5] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+			return points;
+		}
+		if (style == Poly.Type.TEXTTOP)
+		{
+			Point2D [] points = new Point2D.Double[6];
+			points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+			points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+			points[2] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+			points[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+			points[4] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+			points[5] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+			return points;
+		}
+		if (style == Poly.Type.TEXTLEFT)
+		{
+			Point2D [] points = new Point2D.Double[6];
+			points[0] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+			points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+			points[2] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+			points[3] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+			points[4] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+			points[5] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+			return points;
+		}
+		if (style == Poly.Type.TEXTRIGHT)
+		{
+			Point2D [] points = new Point2D.Double[6];
+			points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+			points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+			points[2] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+			points[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+			points[4] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+			points[5] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+			return points;
+		}
+		if (style == Poly.Type.TEXTTOPLEFT)
+		{
+			Point2D [] points = new Point2D.Double[4];
+			points[0] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+			points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+			points[2] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+			points[3] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+			return points;
+		}
+		if (style == Poly.Type.TEXTBOTLEFT)
+		{
+			Point2D [] points = new Point2D.Double[4];
+			points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+			points[1] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+			points[2] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+			points[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+			return points;
+		}
+		if (style == Poly.Type.TEXTTOPRIGHT)
+		{
+			Point2D [] points = new Point2D.Double[4];
+			points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+			points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+			points[2] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+			points[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+			return points;
+		}
+		if (style == Poly.Type.TEXTBOTRIGHT)
+		{
+			Point2D [] points = new Point2D.Double[4];
+			points[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+			points[1] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+			points[2] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+			points[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+			return points;
+		}
+		return null;
+	}
+
+	/**
 	 * Method to compute a Poly that describes the current Highlight text.
 	 * @param wnd the EditWindow in which the text will be drawn.
 	 * @return a Poly that covers the text completely.
 	 */
-	private Poly computeTextPoly(EditWindow wnd)
+	private static Poly computeTextPoly(EditWindow wnd, ElectricObject eobj, Variable var, Name name)
 	{
 		Poly poly = null;
-		Variable var = getVar();
-		ElectricObject eobj = getElectricObject();
 		if (var != null)
 		{
 			if (eobj instanceof Export)
@@ -1204,15 +1244,16 @@ public class Highlight
 				}
 			} else if (eobj instanceof Cell)
 			{
-				Rectangle2D bounds = getCell().getBounds();
-				Poly [] polys = getCell().getPolyList(var, 0, 0, wnd, false);
+				Cell cell = wnd.getCell();
+				Rectangle2D bounds = cell.getBounds();
+				Poly [] polys = cell.getPolyList(var, 0, 0, wnd, false);
 				if (polys != null) poly = polys[0];
 			}
 			if (poly != null)
 				poly.setExactTextBounds(wnd);
 		} else
 		{
-			if (getName() != null)
+			if (name != null)
 			{
 				if (!(eobj instanceof Geometric)) return null;
 				Geometric geom = (Geometric)eobj;
@@ -1225,7 +1266,6 @@ public class Highlight
 				{
 					poly.transform(((NodeInst)geom).rotateOut());
 				}
-				Name name = getName();
 				poly.setTextDescriptor(td);
 				poly.setString(name.toString());
 				poly.setExactTextBounds(wnd);

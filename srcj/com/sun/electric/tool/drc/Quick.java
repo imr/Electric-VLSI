@@ -2736,8 +2736,8 @@ public class Quick
 		if (pp == null) return -1;
 
 		// see if there is an arc connected
-		PortInst pi = ni.findPortInstFromProto(pp);
-		JNetwork net = netlist.getNetwork(pi);
+//		PortInst pi = ni.findPortInstFromProto(pp);
+		JNetwork net = netlist.getNetwork(ni, pp, 0);
 		Integer [] nets = (Integer [])networkLists.get(net);
 		return nets[globalIndex].intValue();
 	}

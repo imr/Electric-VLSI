@@ -228,11 +228,6 @@ public class EditOptions extends javax.swing.JDialog
 		}
 		newNodesPrimPopupChanged();
 
-		// some things are not available yet
-		nodeTinyCellsHashedOut.setEnabled(false);
-		nodeHashLimit.setEditable(false);
-		nodeMoveAfterDuplicate.setEnabled(false);
-
 		// set checkboxes for "Cells" area
 		nodeCheckCellDates.setSelected(initialNewNodesCheckDatesDuringCreation = User.isCheckCellDates());
 		nodeSwitchTechnology.setSelected(initialNewNodesAutoTechnologySwitch = User.isAutoTechnologySwitch());
@@ -261,6 +256,10 @@ public class EditOptions extends javax.swing.JDialog
 		nodePrimitiveXSize.getDocument().addDocumentListener(new NewNodeDocumentListener(this));
 		nodePrimitiveYSize.getDocument().addDocumentListener(new NewNodeDocumentListener(this));
 		nodePrimitiveRotation.getDocument().addDocumentListener(new NewNodeDocumentListener(this));
+
+		// some things are not available yet
+		nodeTinyCellsHashedOut.setEnabled(false);
+		nodeHashLimit.setEditable(false);
 	}
 
 	/**
@@ -360,15 +359,15 @@ public class EditOptions extends javax.swing.JDialog
 		if (currentPlaceCellCenters != initialNewNodesPlaceCellCenter)
 			User.setPlaceCellCenter(currentPlaceCellCenters);
 
-		boolean currentDisallowModificationLockedPrims = nodePlaceCellCenter.isSelected();
+		boolean currentDisallowModificationLockedPrims = nodeDisallowModificationLockedPrims.isSelected();
 		if (currentDisallowModificationLockedPrims != initialNewNodesDisallowModificationLockedPrims)
 			User.setDisallowModificationLockedPrims(currentDisallowModificationLockedPrims);
 
-		boolean currentMoveAfterDuplicate = nodePlaceCellCenter.isSelected();
+		boolean currentMoveAfterDuplicate = nodeMoveAfterDuplicate.isSelected();
 		if (currentMoveAfterDuplicate != initialNewNodesMoveAfterDuplicate)
 			User.setMoveAfterDuplicate(currentMoveAfterDuplicate);
 
-		boolean currentCopyExports = nodePlaceCellCenter.isSelected();
+		boolean currentCopyExports = nodeCopyExports.isSelected();
 		if (currentCopyExports != initialNewNodesDupCopiesExports)
 			User.setDupCopiesExports(currentCopyExports);
 
@@ -715,9 +714,8 @@ public class EditOptions extends javax.swing.JDialog
 			case 2: portCrossExport.setSelected(true);   break;
 		}
 
-		// doesn't work yet
-		portMoveNode.setEnabled(false);
-		portMoveNode.setSelected(initialPortMoveNodeWithExport = User.isMoveNodeWithExport());
+		initialPortMoveNodeWithExport = User.isMoveNodeWithExport();
+		portMoveNode.setSelected(initialPortMoveNodeWithExport);
 	}
 
 	/**
@@ -977,11 +975,6 @@ public class EditOptions extends javax.swing.JDialog
 		gridBoldHoriz.setText(Double.toString(initialGridDefXBoldFrequency = User.getDefGridXBoldFrequency()));
 		gridBoldVert.setText(Double.toString(initialGridDefYBoldFrequency = User.getDefGridYBoldFrequency()));
 
-		gridAlign.setSelected(initialGridAlignWithCircuitry = User.isAlignGridWithCircuitry());
-		gridShowCursorCoords.setSelected(initialShowCursorCoordinates = User.isShowCursorCoordinates());
-
-		gridAlign.setEnabled(false);
-
 		gridAlignCursor.setText(Double.toString(initialGridAlignment = User.getAlignmentToGrid()));
 		gridAlignEdges.setText(Double.toString(initialGridEdgeAlignment = User.getEdgeAlignmentToGrid()));
 		gridAlignEdges.setEnabled(false);
@@ -1020,10 +1013,6 @@ public class EditOptions extends javax.swing.JDialog
 		int currentDefYBoldFrequency = TextUtils.atoi(gridBoldVert.getText());
 		if (currentDefYBoldFrequency != initialGridDefYBoldFrequency)
 			User.setDefGridYBoldFrequency(currentDefYBoldFrequency);
-
-		boolean currentAlignWithCircuitry = gridAlign.isSelected();
-		if (currentAlignWithCircuitry != initialGridAlignWithCircuitry)
-			User.setAlignGridWithCircuitry(currentAlignWithCircuitry);
 
 		boolean currentShowCursorCoordinates = gridShowCursorCoords.isSelected();
 		if (currentShowCursorCoordinates != initialShowCursorCoordinates)
@@ -1451,7 +1440,6 @@ public class EditOptions extends javax.swing.JDialog
         jLabel36 = new javax.swing.JLabel();
         gridBoldHoriz = new javax.swing.JTextField();
         gridBoldVert = new javax.swing.JTextField();
-        gridAlign = new javax.swing.JCheckBox();
         jLabel10 = new javax.swing.JLabel();
         jLabel13 = new javax.swing.JLabel();
         gridShowCursorCoords = new javax.swing.JCheckBox();
@@ -2710,14 +2698,6 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridPart.add(gridBoldVert, gridBagConstraints);
 
-        gridAlign.setText("Align grid with circuitry");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridPart.add(gridAlign, gridBagConstraints);
-
         jLabel10.setText("(for current window)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -2737,7 +2717,7 @@ public class EditOptions extends javax.swing.JDialog
         gridShowCursorCoords.setText("Show cursor coordinates in the status bar");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 3;
         gridPart.add(gridShowCursorCoords, gridBagConstraints);
 
@@ -3553,7 +3533,6 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JCheckBox generalPlayClickSounds;
     private javax.swing.JCheckBox generalShowFileDialog;
     private javax.swing.JPanel grid;
-    private javax.swing.JCheckBox gridAlign;
     private javax.swing.JTextField gridAlignCursor;
     private javax.swing.JTextField gridAlignEdges;
     private javax.swing.JTextField gridBoldHoriz;

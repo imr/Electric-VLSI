@@ -483,12 +483,10 @@ public class Change extends javax.swing.JDialog
 						for(Iterator pIt = onlyNewNi.getPortInsts(); pIt.hasNext(); )
 						{
 							PortInst pi = (PortInst)pIt.next();
-							JNetwork net = netlist.getNetwork(pi);
 							for(Iterator lPIt = lNi.getPortInsts(); lPIt.hasNext(); )
 							{
 								PortInst lPi = (PortInst)lPIt.next();
-								JNetwork lNet = netlist.getNetwork(lPi);
-								if (lNet == net)
+								if (netlist.sameNetwork(pi.getNodeInst(), pi.getPortProto(), lPi.getNodeInst(), lPi.getPortProto()))
 								{
 									found = true;
 									break;
@@ -674,9 +672,7 @@ public class Change extends javax.swing.JDialog
 					{
 						ArcInst lAi = (ArcInst)it.next();
 						if (lAi == onlyNewAi) continue;
-						JNetwork net = netlist.getNetwork(onlyNewAi, 0);
-						JNetwork lNet = netlist.getNetwork(lAi, 0);
-						if (net == lNet) others.add(lAi);
+						if (netlist.sameNetwork(onlyNewAi, lAi)) others.add(lAi);
 					}
 
 					for(Iterator it = others.iterator(); it.hasNext(); )
@@ -733,9 +729,7 @@ public class Change extends javax.swing.JDialog
 				{
 					ArcInst ai = (ArcInst)it.next();
 					if (ai.getProto() != oldAi.getProto()) continue;
-					JNetwork net = netlist.getNetwork(ai, 0);
-					JNetwork oNet = netlist.getNetwork(oldAi, 0);
-					if (net != oNet) continue;
+					if (!netlist.sameNetwork(ai, oldAi)) continue;
 					ai.setBit(marked);
 				}
 			}

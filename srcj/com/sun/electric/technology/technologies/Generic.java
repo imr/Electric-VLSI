@@ -71,32 +71,32 @@ public class Generic extends Technology
 
 		/** Universal layer */
 		Layer universal_lay = Layer.newInstance(this, "Universal",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 0,0,0,1.0,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 0, 0,0,0,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** Invisible layer */
 		Layer invisible_lay = Layer.newInstance(this, "Invisible",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 180,180,180,1.0,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 0, 180,180,180,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** Unrouted layer */
 		Layer unrouted_lay = Layer.newInstance(this, "Unrouted",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 100,100,100,1.0,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 0, 100,100,100,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** Glyph layer */
 		Layer glyph_lay = Layer.newInstance(this, "Glyph",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 0,0,0,1.0,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 0, 0,0,0,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** DRC layer */
 		Layer drc_lay = Layer.newInstance(this, "DRC",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 255,190,6,1.0,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 0, 255,190,6,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** Simulation Probe layer */
 		Layer simprobe_lay = Layer.newInstance(this, "Sim-Probe",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 0,255,0,1.0,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, 0, 0,255,0,1.0,1,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		// The layer functions

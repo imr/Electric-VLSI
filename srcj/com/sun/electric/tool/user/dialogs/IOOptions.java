@@ -30,6 +30,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.Output;
 import com.sun.electric.tool.io.OutputCIF;
 import com.sun.electric.tool.io.OutputGDS;
@@ -597,16 +598,21 @@ public class IOOptions extends javax.swing.JDialog
 
 	//******************************** LIBRARY ********************************
 
+	private int initialLibraryBackup;
+
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Library tab.
 	 */
 	private void initLibrary()
 	{
-		libNoBackup.setEnabled(false);
-		libBackupLast.setEnabled(false);
-		libBackupHistory.setEnabled(false);
-		libCheckDatabase.setEnabled(false);
+		initialLibraryBackup = IOTool.getBackupRedundancy();
+		switch (initialLibraryBackup)
+		{
+			case 0: libNoBackup.setSelected(true);        break;
+			case 1: libBackupLast.setSelected(true);      break;
+			case 2: libBackupHistory.setSelected(true);   break;
+		}
 	}
 
 	/**
@@ -615,6 +621,11 @@ public class IOOptions extends javax.swing.JDialog
 	 */
 	private void termLibrary()
 	{
+		int currentLibraryBackup = 0;
+		if (libBackupLast.isSelected()) currentLibraryBackup = 1; else
+		if (libBackupHistory.isSelected()) currentLibraryBackup = 2;
+		if (currentLibraryBackup != initialLibraryBackup)
+			IOTool.setBackupRedundancy(currentLibraryBackup);
 	}
 
 	//******************************** PRINTING ********************************
@@ -851,7 +862,6 @@ public class IOOptions extends javax.swing.JDialog
         libNoBackup = new javax.swing.JRadioButton();
         libBackupLast = new javax.swing.JRadioButton();
         libBackupHistory = new javax.swing.JRadioButton();
-        libCheckDatabase = new javax.swing.JCheckBox();
         printing = new javax.swing.JPanel();
         jPanel4 = new javax.swing.JPanel();
         printPlotEntireCell = new javax.swing.JRadioButton();
@@ -1428,14 +1438,6 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         library.add(libBackupHistory, gridBagConstraints);
 
-        libCheckDatabase.setText("Check database after write");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(20, 4, 4, 4);
-        library.add(libCheckDatabase, gridBagConstraints);
-
         tabPane.addTab("Library", library);
 
         printing.setLayout(new java.awt.GridBagLayout());
@@ -1554,9 +1556,9 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         jPanel5.add(printHPGLFillsPage, gridBagConstraints);
 
         printHPGLFixedScale.setText("HPGL/2 plot fixed at:");
@@ -1565,24 +1567,24 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         jPanel5.add(printHPGLFixedScale, gridBagConstraints);
 
         printHPGLScale.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         jPanel5.add(printHPGLScale, gridBagConstraints);
 
         jLabel27.setText("grid units per pixel");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         jPanel5.add(jLabel27, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1692,16 +1694,16 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel6.add(printCellName, gridBagConstraints);
 
         printEPSScaleLabel.setText("EPS Scale:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 5;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         jPanel6.add(printEPSScaleLabel, gridBagConstraints);
 
         printEPSScale.setColumns(8);
@@ -1709,8 +1711,8 @@ public class IOOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel6.add(printEPSScale, gridBagConstraints);
 
         jLabel20.setText("Rotation:");
@@ -1903,7 +1905,6 @@ public class IOOptions extends javax.swing.JDialog
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JRadioButton libBackupHistory;
     private javax.swing.JRadioButton libBackupLast;
-    private javax.swing.JCheckBox libCheckDatabase;
     private javax.swing.JRadioButton libNoBackup;
     private javax.swing.JPanel library;
     private javax.swing.ButtonGroup libraryGroup;
