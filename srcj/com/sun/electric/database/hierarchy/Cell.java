@@ -938,6 +938,13 @@ public class Cell extends NodeProto
 		boundsDirty = true;
 	}
 
+	/**
+	 * Method to return an interator over all Geometric objects in a given area of this Cell.
+	 * @param bounds the specified area to search.
+	 * @return an iterator over all of the Geometric objects in that area.
+	 */
+	public Iterator searchIterator(Rectangle2D bounds) { return new Geometric.Search(bounds, this); }
+
 	private boolean boundLock = false;
 	private Rectangle2D lastBounds = new Rectangle2D.Double();
 

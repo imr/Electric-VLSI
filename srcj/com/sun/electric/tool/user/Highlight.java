@@ -1702,11 +1702,9 @@ public class Highlight
 			if (phase == 0 && !findSpecial && !User.isEasySelectionOfCellInstances()) continue;
 
 			// examine everything in the area
-			Geometric.Search sea = new Geometric.Search(searchArea, cell);
-			for(;;)
+			for(Iterator it = cell.searchIterator(searchArea); it.hasNext(); )
 			{
-				Geometric geom = sea.nextObject();
-				if (geom == null) break;
+				Geometric geom = (Geometric)it.next();
 
 				Highlight h;
 				switch (phase)

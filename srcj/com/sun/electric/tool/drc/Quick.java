@@ -672,11 +672,9 @@ public class Quick
 			nodeBounds.getMinY()-worstInteractionDistance,
 			nodeBounds.getWidth() + worstInteractionDistance*2,
 			nodeBounds.getHeight() + worstInteractionDistance*2);
-		Geometric.Search sea = new Geometric.Search(searchBounds, ni.getParent());
-		for(;;)
+		for(Iterator it = ni.getParent().searchIterator(searchBounds); it.hasNext(); )
 		{
-			Geometric geom = sea.nextObject();
-			if (geom == null) break;
+			Geometric geom = (Geometric)it.next();
 			if (!(geom instanceof NodeInst)) continue;
 			NodeInst oNi = (NodeInst)geom;
 
@@ -728,11 +726,9 @@ public class Quick
 	{
 		boolean errorsFound = false;
 		Netlist netlist = getCheckProto(cell).netlist;
-		Geometric.Search subsearch = new Geometric.Search(bounds, cell);
-		for(;;)
+		for(Iterator it = cell.searchIterator(bounds); it.hasNext(); )
 		{
-			Geometric geom = subsearch.nextObject();
-			if (geom == null) break;
+			Geometric geom = (Geometric)it.next();
 			if (geom instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)geom;
@@ -932,12 +928,10 @@ public class Quick
 		rBound.setRect(bounds);
 		EMath.transformRect(rBound, topTrans);
 		Netlist netlist = getCheckProto(cell).netlist;
-		Geometric.Search sea = new Geometric.Search(bounds, cell);
 		int count = 0;
-		for(;;)
+		for(Iterator it = cell.searchIterator(bounds); it.hasNext(); )
 		{
-			Geometric nGeom = sea.nextObject();
-			if (nGeom == null) break;
+			Geometric nGeom = (Geometric)it.next();
 			if (sameInstance && (nGeom == geom)) continue;
 			if (nGeom instanceof NodeInst)
 			{
@@ -1423,11 +1417,9 @@ public class Quick
 				nodeBounds.getMinY()-worstInteractionDistance,
 				nodeBounds.getWidth() + worstInteractionDistance*2,
 				nodeBounds.getHeight() + worstInteractionDistance*2);
-			Geometric.Search search = new Geometric.Search(searchBounds, cell);
-			for(;;)
+			for(Iterator it = cell.searchIterator(searchBounds); it.hasNext(); )
 			{
-				Geometric geom = search.nextObject();
-				if (geom == null) break;
+				Geometric geom = (Geometric)it.next();
 				if (geom instanceof ArcInst)
 				{
 					if (checkGeomAgainstInstance(netlist, geom, ni))
@@ -2153,11 +2145,9 @@ public class Quick
 	private static boolean lookForLayer(Cell cell, Layer layer, AffineTransform moreTrans,
 		Rectangle2D bounds, Point2D pt1, Point2D pt2, Point2D pt3, boolean [] pointsFound)
 	{
-		Geometric.Search sea = new Geometric.Search(bounds, cell);
-		for(;;)
+		for(Iterator it = cell.searchIterator(bounds); it.hasNext(); )
 		{
-			Geometric g = sea.nextObject();
-			if (g == null) break;
+			Geometric g = (Geometric)it.next();
 			if (g instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)g;
@@ -2256,11 +2246,9 @@ public class Quick
 		int net1, int net2, Cell cell, int globalIndex, AffineTransform trans)
 	{
 		Netlist netlist = getCheckProto(cell).netlist;
-		Geometric.Search sea = new Geometric.Search(bounds, cell);
-		for(;;)
+		for(Iterator sIt = cell.searchIterator(bounds); sIt.hasNext(); )
 		{
-			Geometric g = sea.nextObject();
-			if (g == null) break;
+			Geometric g = (Geometric)sIt.next();
 			if (!(g instanceof NodeInst)) continue;
 			NodeInst ni = (NodeInst)g;
 			NodeProto np = ni.getProto();

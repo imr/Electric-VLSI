@@ -763,6 +763,10 @@ public final class MenuCommands
 		networkSubMenu.addMenuItem("List Geometry on Network", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { listGeometryOnNetworkCommand(); } });
 		networkSubMenu.addSeparator();
+		networkSubMenu.addMenuItem("Show Power and Ground", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { showPowerAndGround(); } });
+		networkSubMenu.addMenuItem("Validate Power and Ground", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { validatePowerAndGround(); } });
 		networkSubMenu.addMenuItem("Redo Network Numbering", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { redoNetworkNumberingCommand(); } });
 
@@ -2822,6 +2826,87 @@ public final class MenuCommands
 //			efree((CHAR *)arpelist[i]);
 //		}
 //		if (totalWire > 0.0) ttyputmsg(_("Total wire length = %s"), latoa(totalWire,lambda));
+	}
+
+	public static void showPowerAndGround()
+	{
+		Cell cell = WindowFrame.needCurCell();
+		if (cell == null) return;
+		Netlist netlist = cell.getUserNetlist();
+		HashSet pAndG = new HashSet();
+		for(Iterator it = cell.getPorts(); it.hasNext(); )
+		{
+			Export pp = (Export)it.next();
+			if (pp.isPower() || pp.isGround())
+			{
+				int width = netlist.getBusWidth(pp);
+				for(int i=0; i<width; i++)
+				{
+					JNetwork net = netlist.getNetwork(pp, i);
+					pAndG.add(net);
+				}
+			}
+		}
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			NodeProto.Function fun = ni.getFunction();
+			if (fun != NodeProto.Function.CONPOWER && fun != NodeProto.Function.CONGROUND)
+				continue;
+			for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+			{
+				Connection con = (Connection)cIt.next();
+				ArcInst ai = con.getArc();
+				int width = netlist.getBusWidth(ai);
+				for(int i=0; i<width; i++)
+				{
+					JNetwork net = netlist.getNetwork(ai, i);
+					pAndG.add(net);
+				}
+			}
+		}
+
+		Highlight.clear();
+		for(Iterator it = pAndG.iterator(); it.hasNext(); )
+		{
+			JNetwork net = (JNetwork)it.next();
+			Highlight.addNetwork(net, cell);
+		}
+		Highlight.finished();
+		if (pAndG.size() == 0)
+			System.out.println("This cell has no Power or Ground networks");
+	}
+
+	public static void validatePowerAndGround()
+	{
+		System.out.println("Validating power and ground networks");
+		int total = 0;
+		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+		{
+			Library lib = (Library)lIt.next();
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = (Cell)cIt.next();
+				for(Iterator pIt = cell.getPorts(); pIt.hasNext(); )
+				{
+					Export pp = (Export)pIt.next();
+					if (pp.isNamedGround() && pp.getCharacteristic() != PortProto.Characteristic.GND)
+					{
+						System.out.println("Cell " + cell.describe() + ", export " + pp.getProtoName() +
+							": does not have 'GROUND' characteristic");
+						total++;
+					}
+					if (pp.isNamedPower() && pp.getCharacteristic() != PortProto.Characteristic.PWR)
+					{
+						System.out.println("Cell " + cell.describe() + ", export " + pp.getProtoName() +
+							": does not have 'POWER' characteristic");
+						total++;
+					}
+				}
+			}
+		}
+		if (total == 0) System.out.println("No problems found"); else
+			System.out.println("Found " + total + " export problems");
 	}
 
 	public static void redoNetworkNumberingCommand()

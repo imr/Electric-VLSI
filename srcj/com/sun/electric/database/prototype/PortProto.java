@@ -396,11 +396,21 @@ public abstract class PortProto extends ElectricObject
 		Characteristic ch = getCharacteristic();
 		if (ch == Characteristic.PWR) return true;
 		if (ch != Characteristic.UNKNOWN) return false;
+		return isNamedPower();
+	}
+
+	/**
+	 * Method to determine whether this PortProto has a name that suggests Power.
+	 * This is determined by having a name starting with "vdd", "vcc", "pwr", or "power".
+	 * @return true if this PortProto has a name that suggests Power.
+	 */
+	public boolean isNamedPower()
+	{
 		String name = getProtoName().toLowerCase();
-		if (name.startsWith("vdd")) return true;
-		if (name.startsWith("vcc")) return true;
-		if (name.startsWith("pwr")) return true;
-		if (name.startsWith("power")) return true;
+		if (name.indexOf("vdd") >= 0) return true;
+		if (name.indexOf("vcc") >= 0) return true;
+		if (name.indexOf("pwr") >= 0) return true;
+		if (name.indexOf("power") >= 0) return true;
 		return false;
 	}
 
@@ -415,10 +425,20 @@ public abstract class PortProto extends ElectricObject
 		Characteristic ch = getCharacteristic();
 		if (ch == Characteristic.GND) return true;
 		if (ch != Characteristic.UNKNOWN) return false;
+		return isNamedGround();
+	}
+
+	/**
+	 * Method to determine whether this PortProto has a name that suggests Ground.
+	 * This is determined by either having a name starting with "vss", "gnd", or "ground".
+	 * @return true if this PortProto has a name that suggests Ground.
+	 */
+	public boolean isNamedGround()
+	{
 		String name = getProtoName().toLowerCase();
-		if (name.startsWith("vss")) return true;
-		if (name.startsWith("gnd")) return true;
-		if (name.startsWith("ground")) return true;
+		if (name.indexOf("vss") >= 0) return true;
+		if (name.indexOf("gnd") >= 0) return true;
+		if (name.indexOf("ground") >= 0) return true;
 		return false;
 	}
 

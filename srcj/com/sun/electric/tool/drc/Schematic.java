@@ -443,11 +443,9 @@ public class Schematic
 		ArcInst ai = null;
 		if (geom instanceof NodeInst) ni = (NodeInst)geom; else ai = (ArcInst)geom;
 		Rectangle2D bounds = geom.getBounds();
-		Geometric.Search sea = new Geometric.Search(bounds, cell);
-		for(;;)
+		for(Iterator sIt = cell.searchIterator(bounds); sIt.hasNext(); )
 		{
-			Geometric oGeom = sea.nextObject();
-			if (oGeom == null) break;
+			Geometric oGeom = (Geometric)sIt.next();
 
 			// canonicalize so that errors are found only once
 //			if ((INTBIG)geom <= (INTBIG)oGeom) continue;

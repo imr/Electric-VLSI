@@ -34,6 +34,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.Iterator;
 
 /**
  * This class is the superclass for the Electric classes that have visual
@@ -47,47 +48,32 @@ public abstract class Geometric extends ElectricObject
 	/** lower bound on R-tree node size */			private static final int MINRTNODESIZE = 4;
 	/** upper bound on R-tree node size */			private static final int MAXRTNODESIZE = (MINRTNODESIZE*2);
 
-	/**
-	 * The Search class is used to do spatial searches in a Cell.
-	 * You create a Search object with a bounds, and then call the "nextObject"
-	 * method until it returns null.
-	 */
-	public static class Search
+	public static class Search implements Iterator
 	{
 		/** maximum depth of search */			private static final int MAXDEPTH = 100;
 
 		/** current depth of search */			private int depth;
 		/** RTNode stack of search */			private RTNode [] rtn;
 		/** index stack of search */			private int [] position;
-		/** lower-left corner of search area */	private double lX, lY;
-		/** size of search area */				private double sX, sY;
 		/** desired search bounds */			private Rectangle2D searchBounds;
+		/** the next object to return */		private Geometric nextObj;
 
-		/**
-		 * The constructor starts a search in a specified bounds of a Cell.
-		 * @param bounds the bounds in which to search.
-		 * All objects that touch this bound will be returned.
-		 * @param cell the Cell in which to search.
-		 */
 		public Search(Rectangle2D bounds, Cell cell)
 		{
 			this.depth = 0;
 			this.rtn = new RTNode[MAXDEPTH];
 			this.position = new int[MAXDEPTH];
 			this.rtn[0] = cell.getRTree();
-			this.lX = bounds.getMinX();
-			this.lY = bounds.getMinY();
-			this.sX = bounds.getWidth();
-			this.sY = bounds.getHeight();
 			this.searchBounds = new Rectangle2D.Double();
 			this.searchBounds.setRect(bounds);
+			this.nextObj = null;
 		}
 
 		/**
 		 * Method to return the next object in the bounds of the search.
 		 * @return the next object found.  Returns null when all objects have been reported.
 		 */
-		public Geometric nextObject()
+		private Geometric nextObject()
 		{
 			for(;;)
 			{
@@ -120,7 +106,104 @@ public abstract class Geometric extends ElectricObject
 			}
 			return null;
 		}
+
+		public boolean hasNext()
+		{
+			if (nextObj == null)
+			{
+				nextObj = nextObject();
+			}
+			return nextObj != null;
+		}
+
+		public Object next()
+		{
+			if (nextObj != null)
+			{
+				Geometric ret = nextObj;
+				nextObj = null;
+				return ret;
+			}
+			return nextObject();
+		}
+
+		public void remove() { throw new UnsupportedOperationException("Search.remove()"); };
 	}
+
+//	/**
+//	 * The Search class is used to do spatial searches in a Cell.
+//	 * You create a Search object with a bounds, and then call the "nextObject"
+//	 * method until it returns null.
+//	 */
+//	public static class Search
+//	{
+//		/** maximum depth of search */			private static final int MAXDEPTH = 100;
+//
+//		/** current depth of search */			private int depth;
+//		/** RTNode stack of search */			private RTNode [] rtn;
+//		/** index stack of search */			private int [] position;
+//		/** lower-left corner of search area */	private double lX, lY;
+//		/** size of search area */				private double sX, sY;
+//		/** desired search bounds */			private Rectangle2D searchBounds;
+//
+//		/**
+//		 * The constructor starts a search in a specified bounds of a Cell.
+//		 * @param bounds the bounds in which to search.
+//		 * All objects that touch this bound will be returned.
+//		 * @param cell the Cell in which to search.
+//		 */
+//		public Search(Rectangle2D bounds, Cell cell)
+//		{
+//			this.depth = 0;
+//			this.rtn = new RTNode[MAXDEPTH];
+//			this.position = new int[MAXDEPTH];
+//			this.rtn[0] = cell.getRTree();
+//			this.lX = bounds.getMinX();
+//			this.lY = bounds.getMinY();
+//			this.sX = bounds.getWidth();
+//			this.sY = bounds.getHeight();
+//			this.searchBounds = new Rectangle2D.Double();
+//			this.searchBounds.setRect(bounds);
+//		}
+//
+//		/**
+//		 * Method to return the next object in the bounds of the search.
+//		 * @return the next object found.  Returns null when all objects have been reported.
+//		 */
+//		public Geometric nextObject()
+//		{
+//			for(;;)
+//			{
+//				RTNode rtnode = rtn[depth];
+//				int i = position[depth]++;
+//				if (i < rtnode.getTotal())
+//				{
+//					Rectangle2D nodeBounds = rtnode.getBBox(i);
+//					if (nodeBounds.getMaxX() < searchBounds.getMinX()) continue;
+//					if (nodeBounds.getMinX() > searchBounds.getMaxX()) continue;
+//					if (nodeBounds.getMaxY() < searchBounds.getMinY()) continue;
+//					if (nodeBounds.getMinY() > searchBounds.getMaxY()) continue;
+//					if (rtnode.getFlag()) return((Geometric)rtnode.getChild(i));
+//
+//					/* look down the hierarchy */
+//					if (depth >= MAXDEPTH-1)
+//					{
+//						System.out.println("R-trees: search too deep");
+//						continue;
+//					}
+//					depth++;
+//					rtn[depth] = (RTNode)rtnode.getChild(i);
+//					position[depth] = 0;
+//				} else
+//				{
+//					/* pop up the hierarchy */
+//					if (depth == 0) break;
+//					depth--;
+//				}
+//			}
+//			return null;
+//		}
+//	}
 
 	/**
 	 * The RTNode class implements R-Trees.

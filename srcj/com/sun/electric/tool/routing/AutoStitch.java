@@ -253,11 +253,9 @@ public class AutoStitch
 
 			// gather a list of other nodes that touch or overlap this one
 			List nodesInArea = new ArrayList();
-			Geometric.Search search = new Geometric.Search(ni.getBounds(), cell);
-			for(;;)
+			for(Iterator it = cell.searchIterator(ni.getBounds()); it.hasNext(); )
 			{
-				Geometric geom = search.nextObject();
-				if (geom == null) break;
+				Geometric geom = (Geometric)it.next();
 				if (geom instanceof NodeInst) nodesInArea.add(geom);
 			}
 

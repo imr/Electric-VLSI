@@ -1818,11 +1818,9 @@ public class CircuitChanges
 
 			// copy the nodes into the new cell
 			HashMap newNodes = new HashMap();
-			Geometric.Search search = new Geometric.Search(bounds, curCell);
-			for(;;)
+			for(Iterator sIt = curCell.searchIterator(bounds); sIt.hasNext(); )
 			{
-				Geometric look = search.nextObject();
-				if (look == null) break;
+				Geometric look = (Geometric)sIt.next();
 				if (!(look instanceof NodeInst)) continue;
 				NodeInst ni = (NodeInst)look;
 
@@ -1850,11 +1848,9 @@ public class CircuitChanges
 			}
 	
 			// copy the arcs into the new cell
-			search = new Geometric.Search(bounds, curCell);
-			for(;;)
+			for(Iterator sIt = curCell.searchIterator(bounds); sIt.hasNext(); )
 			{
-				Geometric look = search.nextObject();
-				if (look == null) break;
+				Geometric look = (Geometric)sIt.next();
 				if (!(look instanceof ArcInst)) continue;
 				ArcInst ai = (ArcInst)look;
 				NodeInst niTail = (NodeInst)newNodes.get(ai.getTail().getPortInst().getNodeInst());

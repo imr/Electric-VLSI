@@ -1775,7 +1775,7 @@ public class PixelDrawing
 		if (descript != null)
 		{
 			size = descript.getTrueSize(wnd);
-			if (size <= 0) size = 1;
+			if (size < 5) return;
 			italic = descript.isItalic();
 			bold = descript.isBold();
 			underline = descript.isUnderline();
