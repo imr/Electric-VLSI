@@ -540,7 +540,6 @@ public abstract class NodeProto extends ElectricObject
 			PortProto pp = (PortProto)ports.get(i);
 			if (pp.getPortIndex() != i)
 			{
-				System.out.println();
 				System.out.println(this + ", " + pp + " has wrong index");
 				errorCount++;
 			}

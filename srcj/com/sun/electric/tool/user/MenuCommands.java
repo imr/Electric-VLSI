@@ -914,7 +914,7 @@ public final class MenuCommands
 		}
 		if (numSet == 0) System.out.println("No arcs made Rigid"); else
 			System.out.println("Made " + numSet + " arcs Rigid");
-		EditWindow.redrawAll();
+		EditWindow.repaintAll();
 	}
 
 	/**
@@ -937,7 +937,7 @@ public final class MenuCommands
 		}
 		if (numSet == 0) System.out.println("No arcs made Non-Rigid"); else
 			System.out.println("Made " + numSet + " arcs Non-Rigid");
-		EditWindow.redrawAll();
+		EditWindow.repaintAll();
 	}
 
 	/**
@@ -960,7 +960,7 @@ public final class MenuCommands
 		}
 		if (numSet == 0) System.out.println("No arcs made Fixed-Angle"); else
 			System.out.println("Made " + numSet + " arcs Fixed-Angle");
-		EditWindow.redrawAll();
+		EditWindow.repaintAll();
 	}
 
 	/**
@@ -983,7 +983,7 @@ public final class MenuCommands
 		}
 		if (numSet == 0) System.out.println("No arcs made Not-Fixed-Angle"); else
 			System.out.println("Made " + numSet + " arcs Not-Fixed-Angle");
-		EditWindow.redrawAll();
+		EditWindow.repaintAll();
 	}
 
 	/**
@@ -1414,7 +1414,7 @@ public final class MenuCommands
 
 		// make the circuit fill the window
 		wnd.fillScreen();
-		wnd.redraw();
+		wnd.repaintContents();
 	}
 
 	public static void zoomOutDisplayCommand()
@@ -1426,7 +1426,7 @@ public final class MenuCommands
 		// zoom out by a factor of two
 		double scale = wnd.getScale();
 		wnd.setScale(scale / 2);
-		wnd.redraw();
+		wnd.repaintContents();
 	}
 
 	public static void zoomInDisplayCommand()
@@ -1438,7 +1438,7 @@ public final class MenuCommands
 		// zoom in by a factor of two
 		double scale = wnd.getScale();
 		wnd.setScale(scale * 2);
-		wnd.redraw();
+		wnd.repaintContents();
 	}
 
 	public static void focusOnHighlightedCommand()
@@ -1450,7 +1450,7 @@ public final class MenuCommands
 		// focus on highlighting
 		Rectangle2D bounds = Highlight.getHighlightedArea(wnd);
 		wnd.focusScreen(bounds);
-		wnd.redraw();
+		wnd.repaintContents();
 	}
 
 	/**

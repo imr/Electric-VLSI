@@ -400,7 +400,7 @@ public class Tool extends ElectricObject
 	 */
 	public String toString()
 	{
-		return "Tool '" + toolName;
+		return "Tool '" + toolName + "'";
 	}
     
 	public void setVarInJob(ElectricObject obj, Variable.Key key, Object newVal)

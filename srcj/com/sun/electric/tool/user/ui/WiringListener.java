@@ -208,7 +208,7 @@ public class WiringListener
 			Highlight.addArea(highlight, cellBeingWired);
 		}
 		Highlight.finished();
-		wnd.redraw();
+		wnd.repaint();
 	}
 
 	public void mouseReleased(MouseEvent evt)
@@ -223,7 +223,7 @@ public class WiringListener
 		WiringPlan [] curPath = WiringPlan.getWiringPlan(wpStartList, wpEndList, endPoint);
 		if (curPath == null) return;
 		RealizeWiring job = new RealizeWiring(curPath, cellBeingWired);
-		wnd.redraw();
+		wnd.repaintContents();
 	}
 
 	public static List makeConnection(NodeInst fromNi, PortProto fromPP, NodeInst toNi, PortProto toPP, Point2D pt,

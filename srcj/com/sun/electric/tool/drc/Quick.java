@@ -2594,6 +2594,7 @@ public class Quick
 		// must be manhattan
 		Rectangle2D polyBounds = poly.getBox();
 		if (polyBounds == null) return;
+		polyBounds = new Rectangle2D.Double(polyBounds.getMinX(), polyBounds.getMinY(), polyBounds.getWidth(), polyBounds.getHeight());
 
 		// search for adjoining transistor in the cell
 		boolean cropped = false;

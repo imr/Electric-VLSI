@@ -116,6 +116,7 @@ public class EditWindow extends JPanel
 {
     /** the window scale */									private double scale;
     /** the window offset */								private double offx, offy;
+    /** the window bounds in database units */				private Rectangle2D databaseBounds;
     /** the size of the window (in pixels) */				private Dimension sz;
     /** the cell that is in the window */					private Cell cell;
     /** Cell's VarContext */                                private VarContext cellVarContext;
@@ -162,6 +163,8 @@ public class EditWindow extends JPanel
 		sz = new Dimension(500, 500);
 		setSize(sz.width, sz.height);
 		setPreferredSize(sz);
+		databaseBounds = new Rectangle2D.Double();
+
 		//setAutoscrolls(true);
 		addKeyListener(this);
 		addMouseListener(this);
@@ -265,26 +268,36 @@ public class EditWindow extends JPanel
 				}
 			}
 		}
-		redraw();
+		repaintContents();
 
 		if (cell != null && User.isCheckCellDates()) cell.checkCellDates();
 	}
 
 	// ************************************* RENDERING A WINDOW *************************************
 
-	public void redraw()
+	public void repaintContents()
 	{
 		needsUpdate = true;
 		repaint();
 	}
 
-	public static void redrawAll()
+	public static void repaintAllContents()
 	{
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			EditWindow wnd = wf.getEditWindow();
-			wnd.redraw();
+			wnd.repaintContents();
+		}
+	}
+
+	public static void repaintAll()
+	{
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			EditWindow wnd = wf.getEditWindow();
+			wnd.repaint();
 		}
 	}
 
@@ -306,10 +319,10 @@ public class EditWindow extends JPanel
 		{
 			needsUpdate = false;
 			setScrollPosition();
-//long startTime = System.currentTimeMillis();
+long startTime = System.currentTimeMillis();
 			drawImage();
-//long endTime = System.currentTimeMillis();
-//System.out.println("Rendering took "+(endTime-startTime)+" milliseconds");
+long endTime = System.currentTimeMillis();
+System.out.println("Rendering took "+(endTime-startTime)+" milliseconds");
 		}
 		g.drawImage(offscreen.getImage(), 0, 0, this);
 
@@ -401,12 +414,14 @@ public class EditWindow extends JPanel
 		AffineTransform localTrans = ni.rotateOut(trans);
 
 		// see if the node is completely clipped from the screen
-//		Rectangle2D clipBound = ni.getBounds();
-//		Poly clipPoly = new Poly(clipBound.getCenterX(), clipBound.getCenterY(), clipBound.getWidth(), clipBound.getHeight());
-//		AffineTransform screen = g2.getTransform();
-//		clipPoly.transform(screen);
-//		clipBound = clipPoly.getBounds();
-//System.out.println("node is "+clipBound.getWidth()+"x"+clipBound.getHeight()+" at ("+clipBound.getCenterX()+","+clipBound.getCenterY());
+		Point2D ctr = ni.getTrueCenter();
+		trans.transform(ctr, ctr);
+		double halfWidth = Math.max(ni.getXSize(), ni.getYSize()) / 2;
+		Rectangle2D databaseBounds = getDisplayedBounds();
+		if (ctr.getX() + halfWidth < databaseBounds.getMinX()) return;
+		if (ctr.getX() - halfWidth > databaseBounds.getMaxX()) return;
+		if (ctr.getY() + halfWidth < databaseBounds.getMinY()) return;
+		if (ctr.getY() - halfWidth > databaseBounds.getMaxY()) return;
 
 		if (np instanceof Cell)
 		{
@@ -475,7 +490,7 @@ public class EditWindow extends JPanel
 					portPoly.transform(trans);
 					if (portDisplayLevel == 2)
 					{
-						// draw port as a cross
+						// draw port as a crossz
 						offscreen.drawCross(portPoly, redGraphics);
 					} else
 					{
@@ -667,7 +682,7 @@ public class EditWindow extends JPanel
 	public void setGrid(boolean showGrid)
 	{
 		this.showGrid = showGrid;
-		redraw();
+		repaint();
 	}
 
 	/**
@@ -747,6 +762,7 @@ public class EditWindow extends JPanel
 		{
 			x1 = x1base - (x1base - x1) / x10 * x10;   x0 = x10;
 			y1 = y1base - (y1base - y1) / y10 * y10;   y0 = y10;
+			if (x0 * xnum / xden < 10 || y0 * ynum / (-yden) < 10) return;
 		} else if (x0 * xnum / xden > 75 && y0 * ynum / (-yden) > 75)
 		{
 			fatdots = true;
@@ -797,7 +813,11 @@ public class EditWindow extends JPanel
 	 * Method to set the scale factor for this window.
 	 * @param scale the scale factor for this window.
 	 */
-	public void setScale(double scale) { this.scale = scale; }
+	public void setScale(double scale)
+	{
+		this.scale = scale;
+		computeDatabaseBounds();
+	}
 
 	/**
 	 * Method to return the offset factor for this window.
@@ -809,7 +829,20 @@ public class EditWindow extends JPanel
 	 * Method to set the offset factor for this window.
 	 * @param off the offset factor for this window.
 	 */
-	public void setOffset(Point2D off) { offx = off.getX();   offy = off.getY(); }
+	public void setOffset(Point2D off)
+	{
+		offx = off.getX();   offy = off.getY();
+		computeDatabaseBounds();
+	}
+
+	private void computeDatabaseBounds()
+	{
+		double width = sz.width/scale;
+		double height = sz.height/scale;
+		databaseBounds.setRect(offx - width/2, offy - height/2, width, height);
+	}
+
+	public Rectangle2D getDisplayedBounds() { return databaseBounds; }
 
 	/**
 	 * Method called when the bottom scrollbar changes.
@@ -818,11 +851,11 @@ public class EditWindow extends JPanel
 	{
 		if (cell == null) return;
 
-		Rectangle2D bounds = cell.getBounds();
+		Rectangle2D bounds = getDisplayedBounds();
 		double xWidth = bounds.getWidth();
 		double xCenter = bounds.getCenterX();
 
-		JScrollBar bottom = this.wf.getBottomScrollBar();
+		JScrollBar bottom = wf.getBottomScrollBar();
 		int xThumbPos = bottom.getValue();
 		int scrollBarResolution = WindowFrame.getScrollBarResolution();
 		double scaleFactor = scrollBarResolution / 4;
@@ -831,8 +864,9 @@ public class EditWindow extends JPanel
 		{
 //System.out.println("Computed thumb = " + computedXThumbPos + " but real is " + xThumbPos+ " offx was " + offx);
 			offx = (xThumbPos-scrollBarResolution/2)/scaleFactor * xWidth + xCenter;
+			computeDatabaseBounds();
 //System.out.println("   now offx="+offx);
-			redraw();
+			repaintContents();
 		}
 	}
 
@@ -843,11 +877,11 @@ public class EditWindow extends JPanel
 	{
 		if (cell == null) return;
 
-		Rectangle2D bounds = cell.getBounds();
+		Rectangle2D bounds = getDisplayedBounds();
 		double yHeight = bounds.getHeight();
 		double yCenter = bounds.getCenterY();
 
-		JScrollBar right = this.wf.getRightScrollBar();
+		JScrollBar right = wf.getRightScrollBar();
 		int yThumbPos = right.getValue();
 		int scrollBarResolution = WindowFrame.getScrollBarResolution();
 		double scaleFactor = scrollBarResolution / 4;
@@ -855,7 +889,8 @@ public class EditWindow extends JPanel
 		if (computedYThumbPos != yThumbPos)
 		{
 			offy = yCenter - (yThumbPos - scrollBarResolution/2) / scaleFactor * yHeight;
-			redraw();
+			computeDatabaseBounds();
+			repaintContents();
 		}
 	}
 
@@ -874,7 +909,7 @@ public class EditWindow extends JPanel
 			int scrollBarResolution = WindowFrame.getScrollBarResolution();
 			double scaleFactor = scrollBarResolution / 4;
 
-			Rectangle2D bounds = cell.getBounds();
+			Rectangle2D bounds = getDisplayedBounds();
 			double xWidth = bounds.getWidth();
 			double xCenter = bounds.getCenterX();
 			int xThumbPos = (int)((offx - xCenter) / xWidth * scaleFactor) + scrollBarResolution/2;
@@ -901,16 +936,8 @@ public class EditWindow extends JPanel
 		scale = Math.min(scalex, scaley);
 		offx = bounds.getCenterX();
 		offy = bounds.getCenterY();
+		computeDatabaseBounds();
 		needsUpdate = true;
-	}
-
-	public Rectangle2D getDisplayedBounds()
-	{
-		Rectangle2D bounds = new Rectangle2D.Double();
-		double width = sz.width/scale;
-		double height = sz.height/scale;
-		bounds.setRect(offx - width/2, offy - height/2, width, height);
-		return bounds;
 	}
 
 	/**
@@ -954,7 +981,7 @@ public class EditWindow extends JPanel
         Cell schCell = cell.getEquivalent();
         // special case: if cell is icon of current cell, descend into icon
         if (this.cell == schCell) schCell = cell;
-        if (schCell == null) return;                // nothing to descend into
+        if (schCell == null) schCell = cell;
         setCell(schCell, cellVarContext.push(ni));
     }
 

@@ -48,6 +48,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.io.InputLibrary;
 import com.sun.electric.tool.user.dialogs.Progress;
 
 import java.awt.geom.Point2D;
@@ -62,21 +63,9 @@ import java.util.Iterator;
 /**
  * This class reads files in readable-dump (.txt) format.
  */
-public class InputText extends Input
+public class InputText extends InputLibrary
 {
 	// ------------------------- private data ----------------------------
-	static class NodeInstList
-	{
-		private NodeInst []  nodeList;
-		private NodeProto [] nodeProto;
-		private Name []      nodeInstName;
-		private int []       nodeInstLowX;
-		private int []       nodeInstHighX;
-		private int []       nodeInstLowY;
-		private int []       nodeInstHighY;
-		private int []       nodeInstRotation;
-		private int []       nodeInstTranspose;
-	};
 	static class ArcInstList
 	{
 		private ArcInst []   arcList;
@@ -102,7 +91,6 @@ public class InputText extends Input
 
 	/** The current position in the file. */						private int filePosition;
 	/** The version of Electric that made the file. */				private int emajor, eminor, edetail;
-	/** The number of Cells in the file. */							private int cellCount;
 	/** The state of reading the file. */							private int textLevel;
 	/** A counter for reading multiple Tools, Technologies, etc. */	private int bitCount;
 	/** The current Cell in the Library. */							private int mainCell;
@@ -113,8 +101,9 @@ public class InputText extends Input
 	/** The index of the current NodeInst being processed. */		private int curNodeInstIndex;
 	/** The index of the current ArcInst being processed. */		private int curArcInstIndex;
 	/** The index of the current Export being processed. */			private int curExportIndex;
-	/** A list of cells being read. */								private Cell [] nodeProtoList;
-	/** All data for NodeInsts in each Cell. */						private NodeInstList[] nodeInstList;
+//	/** Lambda values for cells being read. */						private double [] cellLambda;
+	/** Offset values for cells being read. */						private double [] nodeProtoOffX, nodeProtoOffY;
+	/** All data for NodeInsts in each Cell. */						private InputLibrary.NodeInstList[] nodeInstList;
 	/** All data for ArcInsts in each Cell. */						private ArcInstList[] arcInstList;
 	/** All data for Exports in each Cell. */						private ExportList [] exportList;
 	/** True to convert old MOSIS CMOS technologies. */				private boolean convertMosisCMOSTechnologies;
@@ -128,7 +117,6 @@ public class InputText extends Input
 	/** The current Technology being processed. */					private Technology curTech;
 	/** The values of Lambda for each Technology. */				private int [] lambdaValues;
 	/** The name of the current Cell being processed. */			private CellName cellName;
-	/** cell flag for recursive setup */							private FlagSet recursiveSetupFlag;
 
 	// state of input (value of "textLevel")
 	/** Currently reading Library information. */		private static final int INLIB =         1;
@@ -300,24 +288,6 @@ public class InputText extends Input
 			}
 		}
 
-		// clear flag bits for scanning the library hierarchically
-		recursiveSetupFlag = NodeProto.getFlagSet(1);
-		for(int cellIndex=0; cellIndex<cellCount; cellIndex++)
-		{
-			Cell cell = nodeProtoList[cellIndex];
-			cell.clearBit(recursiveSetupFlag);
-			cell.setTempInt(cellIndex);
-		}
-
-		// scan library hierarchically and complete the setup
-		for(int cellIndex=0; cellIndex<cellCount; cellIndex++)
-		{
-			Cell cell = nodeProtoList[cellIndex];
-			if (cell.isBit(recursiveSetupFlag)) continue;
-			completeCellSetupRecursively(cell, cellIndex);
-		}
-		recursiveSetupFlag.freeFlagSet();
-
 		// see if cellgroup information was included
 //		for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
 //			if (np->temp1 == -1) break;
@@ -381,50 +351,92 @@ public class InputText extends Input
 		return false;
 	}
 
+	//************************************* recursive
+
 	/**
 	 * Method to recursively create the contents of each cell in the library.
 	 */
-	private void completeCellSetupRecursively(Cell cell, int cellIndex)
+	protected void realizeCellsRecursively(Cell cell, FlagSet markCellForNodes)
 	{
-		// prepare to setup this cell
-		NodeInstList nil = nodeInstList[cellIndex];
+		// recursively scan the nodes to the bottom and only proceed when everything below is built
+		int cellIndex = cell.getTempInt();
+		InputLibrary.NodeInstList nil = nodeInstList[cellIndex];
 		int numNodes = 0;
-		if (nil != null) numNodes = nil.nodeProto.length;
+		NodeProto [] nodePrototypes = null;
+		if (nil != null)
+		{
+			nodePrototypes = nil.protoType;
+			numNodes = nodePrototypes.length;
+		}
+		scanNodesForRecursion(cell, markCellForNodes, nodePrototypes, 0, numNodes);
+
+		// now fill in the nodes
+		if (InputLibrary.VERBOSE)
+			System.out.println("Text: Doing contents of cell " + cell.describe() + " in library " + lib.getLibName());
+
+		double lambda = cellLambda[cellIndex];
+		Point2D offset = realizeNode(cell, nil, lambda);
+		nodeProtoOffX[cellIndex] = offset.getX();
+		nodeProtoOffY[cellIndex] = offset.getY();
+
+		// do the exports now
+		realizeExports(cell, cellIndex);
+
+		// do the arcs now
+		realizeArcs(cell, cellIndex);
+	}
+
+	protected boolean spreadLambda(Cell cell, int cellIndex)
+	{
+		boolean changed = false;
+		InputLibrary.NodeInstList nil = nodeInstList[cellIndex];
+		int numNodes = 0;
+		if (nil != null) numNodes = nil.protoType.length;
+		double thisLambda = cellLambda[cellIndex];
+		for(int i=0; i<numNodes; i++)
+		{
+			NodeProto np = nil.protoType[i];
+			if (np instanceof PrimitiveNode) continue;
+			Cell subCell = (Cell)np;
+
+			InputLibrary reader = this;
+			if (subCell.getLibrary() != lib)
+			{
+				reader = getReaderForLib(subCell.getLibrary());
+			}
+			int subCellIndex = subCell.getTempInt();
+			double subLambda = reader.cellLambda[subCellIndex];
+			if (subLambda != thisLambda)
+			{
+				reader.cellLambda[subCellIndex] = thisLambda;
+				changed = true;
+			}
+		}
+		return changed;
+	}
+
+	protected double computeLambda(Cell cell, int cellIndex)
+	{
+		InputLibrary.NodeInstList nil = nodeInstList[cellIndex];
+		int numNodes = 0;
+		NodeProto [] nodePrototypes = null;
+		if (nil != null)
+		{
+			nodePrototypes = nil.protoType;
+			numNodes = nodePrototypes.length;
+		}
 
 		ArcInstList ail = arcInstList[cellIndex];
 		int numArcs = 0;
-		if (ail != null) numArcs = ail.arcProto.length;
-
-		ExportList el = exportList[cellIndex];
-		int numExports = 0;
-		if (el != null) numExports = el.exportList.length;
-
-		// scan the nodes in this cell and recurse
-		for(int j=0; j<numNodes; j++)
+		ArcProto [] arcPrototypes = null;
+		if (ail != null)
 		{
-			NodeProto np = nil.nodeProto[j];
-			if (np instanceof PrimitiveNode) continue;
-			Cell otherCell = (Cell)np;
-			if (otherCell == null) continue;
-
-			// ignore cross-reference instances
-			if (otherCell.getLibrary() != cell.getLibrary()) continue;
-
-			// subcell: make sure that cell is setup
-			if (otherCell.isBit(recursiveSetupFlag)) continue;
-
-			// setup the subcell recursively
-			completeCellSetupRecursively(otherCell,  otherCell.getTempInt());
+			arcPrototypes = ail.arcProto;
+			numArcs = arcPrototypes.length;
 		}
-		cell.setBit(recursiveSetupFlag);
-
-		// determine lambda
+		Technology cellTech = Technology.whatTechnology(cell, nodePrototypes, 0, numNodes,
+			arcPrototypes, 0, numArcs);
 		double lambda = 1;
-		NodeProto [] nodeProtoList = null;
-		if (nil != null) nodeProtoList = nil.nodeProto;
-		ArcProto [] arcProtoList = null;
-		if (ail != null) arcProtoList = ail.arcProto;
-		Technology cellTech = Technology.whatTechnology(cell, nodeProtoList, 0, numNodes, arcProtoList, 0, numArcs);
 		if (cellTech != null)
 		{
 			for(int i=0; i<techList.length; i++)
@@ -434,65 +446,72 @@ public class InputText extends Input
 				break;
 			}
 		}
+		return lambda;
+	}
 
-		// finish initializing the NodeInsts in the cell
+	private Point2D realizeNode(Cell cell, InputLibrary.NodeInstList nil, double lambda)
+	{
+		// find the "cell center" node and place it first
 		double xoff = 0, yoff = 0;
+		int numNodes = 0;
+		if (nil != null) numNodes = nil.protoType.length;
 		for(int j=0; j<numNodes; j++)
 		{
 			// convert to new style
-			NodeProto np = nil.nodeProto[j];
+			NodeProto np = nil.protoType[j];
 			if (np == Generic.tech.cellCenterNode)
 			{
-				NodeInst ni = nil.nodeList[j];
-				Name name = nil.nodeInstName[j];
-				int lowX = nil.nodeInstLowX[j];
-				int lowY = nil.nodeInstLowY[j];
-				int highX = nil.nodeInstHighX[j];
-				int highY = nil.nodeInstHighY[j];
+				NodeInst ni = nil.theNode[j];
+				Name name = nil.name[j];
+				int lowX = nil.lowX[j];
+				int lowY = nil.lowY[j];
+				int highX = nil.highX[j];
+				int highY = nil.highY[j];
 				xoff = (lowX + highX) / 2;
 				yoff = (lowY + highY) / 2;
 				Point2D center = new Point2D.Double(xoff / lambda, yoff / lambda);
 				double width = (highX - lowX) / lambda;
 				double height = (highY - lowY) / lambda;
-				ni.lowLevelPopulate(np, center, width, height, nil.nodeInstRotation[j], cell);
+				ni.lowLevelPopulate(np, center, width, height, nil.rotation[j], cell);
 				if (name != null) ni.setNameKey(name);
 				ni.lowLevelLink();
 			}
 		}
+		Point2D offset = new Point2D.Double(xoff, yoff);
 
-		// create the nodes
+		// create the rest of the nodes
 		for(int j=0; j<numNodes; j++)
 		{
-			NodeProto np = nil.nodeProto[j];
+			NodeProto np = nil.protoType[j];
 			if (np == null) continue;
 			if (np == Generic.tech.cellCenterNode) continue;
-			NodeInst ni = nil.nodeList[j];
-			Name name = nil.nodeInstName[j];
-			int lowX = nil.nodeInstLowX[j];
-			int lowY = nil.nodeInstLowY[j];
-			int highX = nil.nodeInstHighX[j];
-			int highY = nil.nodeInstHighY[j];
+			NodeInst ni = nil.theNode[j];
+			Name name = nil.name[j];
+			int lowX = nil.lowX[j];
+			int lowY = nil.lowY[j];
+			int highX = nil.highX[j];
+			int highY = nil.highY[j];
 			int cX = (lowX + highX) / 2;
 			int cY = (lowY + highY) / 2;
 			Point2D center = new Point2D.Double((double)(cX-xoff) / lambda, (double)(cY-yoff) / lambda);
 			double width = (highX - lowX) / lambda;
 			double height = (highY - lowY) / lambda;
-			int rotation = nil.nodeInstRotation[j];
+			int rotation = nil.rotation[j];
 
 			if (emajor > 7 || (emajor == 7 && eminor >= 1))
 			{
 				// new version: allow mirror bits
-				if ((nil.nodeInstTranspose[j]&1) != 0)
+				if ((nil.transpose[j]&1) != 0)
 				{
 					height = -height;
 					rotation = (rotation + 900) % 3600;
 				}
-				if ((nil.nodeInstTranspose[j]&2) != 0)
+				if ((nil.transpose[j]&2) != 0)
 				{
 					// mirror in X
 					width = -width;
 				}
-				if ((nil.nodeInstTranspose[j]&4) != 0)
+				if ((nil.transpose[j]&4) != 0)
 				{
 					// mirror in Y
 					height = -height;
@@ -500,7 +519,7 @@ public class InputText extends Input
 			} else
 			{
 				// old version: just use transpose information
-				if (nil.nodeInstTranspose[j] != 0)
+				if (nil.transpose[j] != 0)
 				{
 					height = -height;
 					rotation = (rotation + 900) % 3600;
@@ -522,6 +541,37 @@ public class InputText extends Input
 			// convert outline information, if present
 			scaleOutlineInformation(ni, np, lambda);
 		}
+		return offset;
+	}
+
+	private void realizeExports(Cell cell, int cellIndex)
+	{
+		ExportList el = exportList[cellIndex];
+		int numExports = 0;
+		if (el != null) numExports = el.exportList.length;
+		for(int j=0; j<numExports; j++)
+		{
+			Export pp = el.exportList[j];
+			if (pp.lowLevelName(cell, el.exportName[j])) return;
+//			if (!el.exportSubNode[j].isLinked())
+//			{
+//System.out.println("Text export UNRESOLVED");
+//				continue;
+//			}
+			PortInst pi = el.exportSubNode[j].findPortInst(el.exportSubPort[j]);
+			if (pp.lowLevelPopulate(pi)) return;
+			if (pp.lowLevelLink(null)) return;
+		}
+	}
+
+	private void realizeArcs(Cell cell, int cellIndex)
+	{
+		ArcInstList ail = arcInstList[cellIndex];
+		int numArcs = 0;
+		if (ail != null) numArcs = ail.arcProto.length;
+		double lambda = cellLambda[cellIndex];
+		double xoff = nodeProtoOffX[cellIndex];
+		double yoff = nodeProtoOffY[cellIndex];
 
 		// create the arcs
 		for(int j=0; j<numArcs; j++)
@@ -555,17 +605,32 @@ public class InputText extends Input
 			if (name != null) ai.setNameKey(name);
 			ai.lowLevelLink();
 		}
+	}
 
-		// create the exports
-		for(int j=0; j<numExports; j++)
+	protected boolean readerHasExport(Cell c, String portName)
+	{
+		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
 		{
-			Export pp = el.exportList[j];
-			if (pp.lowLevelName(cell, el.exportName[j])) return;
-			if (!el.exportSubNode[j].isLinked()) continue;
-			PortInst pi = el.exportSubNode[j].findPortInst(el.exportSubPort[j]);
-			if (pp.lowLevelPopulate(pi)) return;
-			if (pp.lowLevelLink(null)) return;
+			Cell cell = nodeProtoList[cellIndex];
+			if (cell != c) continue;
+			ExportList el = exportList[cellIndex];
+			int numExports = 0;
+			if (el != null) numExports = el.exportList.length;
+			for(int j=0; j<numExports; j++)
+			{
+				String exportName = el.exportName[j];
+				if (exportName.equalsIgnoreCase(portName)) return true;
+			}
+			break;
+//			Export pp = el.exportList[j];
+//			if (pp.lowLevelName(cell, el.exportName[j])) return;
+//			if (!el.exportSubNode[j].isLinked()) continue;
+//			PortInst pi = el.exportSubNode[j].findPortInst(el.exportSubPort[j]);
+//			if (pp.lowLevelPopulate(pi)) return;
+//			if (pp.lowLevelLink(null)) return;
 		}
+		System.out.println("readHasExport could not find port!!!!");
+		return false;
 	}
 
 	private boolean getKeyword()
@@ -744,16 +809,19 @@ public class InputText extends Input
 	{
 		varPos = INVLIBRARY;
 
-		cellCount = Integer.parseInt(keyWord);
-		if (cellCount == 0) return;
+		nodeProtoCount = Integer.parseInt(keyWord);
+		if (nodeProtoCount == 0) return;
 
 		// allocate a list of node prototypes for this library
-		nodeProtoList = new Cell[cellCount];
-		nodeInstList = new NodeInstList[cellCount];
-		arcInstList = new ArcInstList[cellCount];
-		exportList = new ExportList[cellCount];
+		nodeProtoList = new Cell[nodeProtoCount];
+		cellLambda = new double[nodeProtoCount];
+		nodeProtoOffX = new double[nodeProtoCount];
+		nodeProtoOffY = new double[nodeProtoCount];
+		nodeInstList = new InputLibrary.NodeInstList[nodeProtoCount];
+		arcInstList = new ArcInstList[nodeProtoCount];
+		exportList = new ExportList[nodeProtoCount];
 
-		for(int i=0; i<cellCount; i++)
+		for(int i=0; i<nodeProtoCount; i++)
 		{
 			nodeProtoList[i] = Cell.lowLevelAllocate(lib);
 			if (nodeProtoList[i] == null) break;
@@ -1074,20 +1142,20 @@ public class InputText extends Input
 	{
 		int nodeInstCount = Integer.parseInt(keyWord);
 		if (nodeInstCount == 0) return;
-		NodeInstList nil = new NodeInstList();
+		InputLibrary.NodeInstList nil = new InputLibrary.NodeInstList();
 		nodeInstList[curCellNumber] = nil;
-		nil.nodeList = new NodeInst[nodeInstCount];
-		nil.nodeProto = new NodeProto[nodeInstCount];
-		nil.nodeInstName = new Name[nodeInstCount];
-		nil.nodeInstLowX = new int[nodeInstCount];
-		nil.nodeInstHighX = new int[nodeInstCount];
-		nil.nodeInstLowY = new int[nodeInstCount];
-		nil.nodeInstHighY = new int[nodeInstCount];
-		nil.nodeInstRotation = new int[nodeInstCount];
-		nil.nodeInstTranspose = new int[nodeInstCount];
+		nil.theNode = new NodeInst[nodeInstCount];
+		nil.protoType = new NodeProto[nodeInstCount];
+		nil.name = new Name[nodeInstCount];
+		nil.lowX = new int[nodeInstCount];
+		nil.highX = new int[nodeInstCount];
+		nil.lowY = new int[nodeInstCount];
+		nil.highY = new int[nodeInstCount];
+		nil.rotation = new short[nodeInstCount];
+		nil.transpose = new int[nodeInstCount];
 		for(int i=0; i<nodeInstCount; i++)
 		{
-			nil.nodeList[i] = NodeInst.lowLevelAllocate();
+			nil.theNode[i] = NodeInst.lowLevelAllocate();
 		}
 	}
 
@@ -1189,7 +1257,7 @@ public class InputText extends Input
 		}
 		if (curNodeInstProto == null)
 			System.out.println("Error on line "+lineReader.getLineNumber()+": unknown node type: "+keyWord);
-		nodeInstList[curCellNumber].nodeProto[curNodeInstIndex] = curNodeInstProto;
+		nodeInstList[curCellNumber].protoType[curNodeInstIndex] = curNodeInstProto;
 	}
 
 	/**
@@ -1197,22 +1265,22 @@ public class InputText extends Input
 	 */
 	private void io_nodlx()
 	{
-		nodeInstList[curCellNumber].nodeInstLowX[curNodeInstIndex] = TextUtils.atoi(keyWord);
+		nodeInstList[curCellNumber].lowX[curNodeInstIndex] = TextUtils.atoi(keyWord);
 	}
 
 	private void io_nodhx()
 	{
-		nodeInstList[curCellNumber].nodeInstHighX[curNodeInstIndex] = TextUtils.atoi(keyWord);
+		nodeInstList[curCellNumber].highX[curNodeInstIndex] = TextUtils.atoi(keyWord);
 	}
 
 	private void io_nodly()
 	{
-		nodeInstList[curCellNumber].nodeInstLowY[curNodeInstIndex] = TextUtils.atoi(keyWord);
+		nodeInstList[curCellNumber].lowY[curNodeInstIndex] = TextUtils.atoi(keyWord);
 	}
 
 	private void io_nodhy()
 	{
-		nodeInstList[curCellNumber].nodeInstHighY[curNodeInstIndex] = TextUtils.atoi(keyWord);
+		nodeInstList[curCellNumber].highY[curNodeInstIndex] = TextUtils.atoi(keyWord);
 	}
 
 	/**
@@ -1220,7 +1288,7 @@ public class InputText extends Input
 	 */
 	private void io_nodnam()
 	{
-		nodeInstList[curCellNumber].nodeList[curNodeInstIndex].setName(keyWord);
+		nodeInstList[curCellNumber].theNode[curNodeInstIndex].setName(keyWord);
 	}
 
 	/**
@@ -1235,7 +1303,7 @@ public class InputText extends Input
 			td1 = TextUtils.atoi(keyWord.substring(slashPos+1));
 		TextDescriptor td = new TextDescriptor(null, td0, td1);
 		Input.fixTextDescriptorFont(td);
-		nodeInstList[curCellNumber].nodeList[curNodeInstIndex].setProtoTextDescriptor(td);
+		nodeInstList[curCellNumber].theNode[curNodeInstIndex].setProtoTextDescriptor(td);
 	}
 
 	/**
@@ -1243,7 +1311,7 @@ public class InputText extends Input
 	 */
 	private void io_nodrot()
 	{
-		nodeInstList[curCellNumber].nodeInstRotation[curNodeInstIndex] = Integer.parseInt(keyWord);
+		nodeInstList[curCellNumber].rotation[curNodeInstIndex] = (short)Integer.parseInt(keyWord);
 	}
 
 	/**
@@ -1251,7 +1319,7 @@ public class InputText extends Input
 	 */
 	private void io_nodtra()
 	{
-		nodeInstList[curCellNumber].nodeInstTranspose[curNodeInstIndex] = Integer.parseInt(keyWord);
+		nodeInstList[curCellNumber].transpose[curNodeInstIndex] = Integer.parseInt(keyWord);
 	}
 
 	/**
@@ -1272,7 +1340,7 @@ public class InputText extends Input
 	 */
 	private void io_nodbit()
 	{
-		if (bitCount == 0) nodeInstList[curCellNumber].nodeList[curNodeInstIndex].lowLevelSetUserbits(TextUtils.atoi(keyWord));
+		if (bitCount == 0) nodeInstList[curCellNumber].theNode[curNodeInstIndex].lowLevelSetUserbits(TextUtils.atoi(keyWord));
 		bitCount++;
 	}
 
@@ -1281,7 +1349,7 @@ public class InputText extends Input
 	 */
 	private void io_nodusb()
 	{
-		nodeInstList[curCellNumber].nodeList[curNodeInstIndex].lowLevelSetUserbits(TextUtils.atoi(keyWord));
+		nodeInstList[curCellNumber].theNode[curNodeInstIndex].lowLevelSetUserbits(TextUtils.atoi(keyWord));
 	}
 
 	/**
@@ -1364,10 +1432,10 @@ public class InputText extends Input
 		int endIndex = TextUtils.atoi(keyWord);
 		if (curArcEnd == 0)
 		{
-			arcInstList[curCellNumber].arcHeadNode[curArcInstIndex] = nodeInstList[curCellNumber].nodeList[endIndex];
+			arcInstList[curCellNumber].arcHeadNode[curArcInstIndex] = nodeInstList[curCellNumber].theNode[endIndex];
 		} else
 		{
-			arcInstList[curCellNumber].arcTailNode[curArcInstIndex] = nodeInstList[curCellNumber].nodeList[endIndex];
+			arcInstList[curCellNumber].arcTailNode[curArcInstIndex] = nodeInstList[curCellNumber].theNode[endIndex];
 		}
 	}
 
@@ -1478,7 +1546,7 @@ public class InputText extends Input
 	private void io_ptsno()
 	{
 		int index = Integer.parseInt(keyWord);
-		exportList[curCellNumber].exportSubNode[curExportIndex] = nodeInstList[curCellNumber].nodeList[index];
+		exportList[curCellNumber].exportSubNode[curExportIndex] = nodeInstList[curCellNumber].theNode[index];
 	}
 
 	/**
@@ -1538,7 +1606,7 @@ public class InputText extends Input
 				naddr = curNodeProto;
 				break;
 			case INVNODEINST:			// keyword applies to nodeinst
-				naddr = nodeInstList[curCellNumber].nodeList[curNodeInstIndex];
+				naddr = nodeInstList[curCellNumber].theNode[curNodeInstIndex];
 				break;
 			case INVPORTPROTO:			// keyword applies to portproto
 				naddr = exportList[curCellNumber].exportList[curExportIndex];
@@ -1711,7 +1779,7 @@ public class InputText extends Input
 					geom.setNameTextDescriptor(td);
 					Name name = makeGeomName(geom, value, type);
 					if (naddr instanceof NodeInst)
-						nodeInstList[curCellNumber].nodeInstName[curNodeInstIndex] = name;
+						nodeInstList[curCellNumber].name[curNodeInstIndex] = name;
 					else
 						arcInstList[curCellNumber].arcInstName[curArcInstIndex] = name;
 					continue;
@@ -1780,7 +1848,7 @@ public class InputText extends Input
 				return new Double(Double.parseDouble(name));
 			case BinaryConstants.VNODEINST:
 				int niIndex = TextUtils.atoi(name);
-				NodeInst ni = nodeInstList[curCellNumber].nodeList[niIndex];
+				NodeInst ni = nodeInstList[curCellNumber].theNode[niIndex];
 				return ni;
 			case BinaryConstants.VNODEPROTO:
 				int colonPos = name.indexOf(':');

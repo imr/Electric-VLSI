@@ -1016,6 +1016,7 @@ public class Cell extends NodeProto
 			}
 			cellBounds.setRect(EMath.smooth(cellLowX), EMath.smooth(cellLowY),
 				EMath.smooth(cellHighX - cellLowX), EMath.smooth(cellHighY - cellLowY));
+//			cellBounds.setRect(cellLowX, cellLowY, cellHighX - cellLowX, cellHighY - cellLowY);
 			boundsDirty = false;
 		}
 		return cellBounds;

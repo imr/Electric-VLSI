@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.CircuitChanges;
@@ -192,7 +193,7 @@ public class ClickZoomWireListener
                 if (dbDelta.getX() != 0 || dbDelta.getY() != 0) {
                     Highlight.setHighlightOffset(0, 0);
                     CircuitChanges.manyMove(dbDelta.getX(), dbDelta.getY(), wnd);
-                    wnd.redraw();
+                    wnd.repaintContents();
                 }
                 modeLeft = Mode.none;
                 return;
@@ -362,7 +363,7 @@ public class ClickZoomWireListener
                 EditWindow.gridAlign(dbDelta);              // align to grid
                 Point2D screenDelta = wnd.deltaDatabaseToScreen((int)dbDelta.getX(), (int)dbDelta.getY());
                 Highlight.setHighlightOffset((int)screenDelta.getX(), (int)screenDelta.getY());
-                wnd.redraw();
+                wnd.repaint();
             }
         }
 
@@ -400,7 +401,7 @@ public class ClickZoomWireListener
                 router.highlightRoute(wnd, startObj, endObj, dbMouse);
             }
         }
-        wnd.redraw();
+        wnd.repaint();
     }
 
     /** Handle mouse released event
@@ -457,7 +458,7 @@ public class ClickZoomWireListener
                     if (dbDelta.getX() != 0 || dbDelta.getY() != 0) {
                         Highlight.setHighlightOffset(0, 0);
                         CircuitChanges.manyMove(dbDelta.getX(), dbDelta.getY(), wnd);
-                        wnd.redraw();
+                        wnd.repaintContents();
                     }
                 }
                 modeLeft = Mode.none;
@@ -473,14 +474,14 @@ public class ClickZoomWireListener
                 double scale = wnd.getScale();
                 wnd.setScale(scale * 2);
                 wnd.clearDoingAreaDrag();
-                wnd.redraw();
+                wnd.repaintContents();
             }
             if (modeRight == Mode.zoomOut) {
                 // zoom out by a factor of two
                 double scale = wnd.getScale();
                 wnd.setScale(scale / 2);
                 wnd.clearDoingAreaDrag();
-                wnd.redraw();
+                wnd.repaintContents();
             }
             if (modeRight == Mode.drawBox || modeRight == Mode.zoomBox) {
                 // drawing boxes
@@ -508,7 +509,7 @@ public class ClickZoomWireListener
                         double scale = wnd.getScale();
                         wnd.setScale(scale / 2);
                         wnd.clearDoingAreaDrag();
-                        wnd.redraw();
+                        wnd.repaintContents();
                     }
 
                 }
@@ -564,7 +565,7 @@ public class ClickZoomWireListener
             EditWindow.gridAlign(dbDelta);
             Point2D screenDelta = wnd.deltaDatabaseToScreen((int)dbDelta.getX(), (int)dbDelta.getY());
             Highlight.setHighlightOffset((int)screenDelta.getX(), (int)screenDelta.getY());
-            wnd.redraw();
+            wnd.repaint();
         }
     }
 
@@ -618,7 +619,7 @@ public class ClickZoomWireListener
             newOffset = new Point2D.Double(wndOffset.getX(), wndOffset.getY() - mult*rotation);
         }
         wnd.setOffset(newOffset);
-        wnd.redraw();
+        wnd.repaintContents();
     }
 
     /** Key pressed event
@@ -637,13 +638,13 @@ public class ClickZoomWireListener
         }
         // move stuff around
         else if (chr == KeyEvent.VK_LEFT) {
-            moveSelected(wnd, -1, 0);
+            moveSelected(evt, -1, 0);
         } else if (chr == KeyEvent.VK_RIGHT) {
-            moveSelected(wnd, 1, 0);
+            moveSelected(evt, 1, 0);
         } else if (chr == KeyEvent.VK_UP) {
-            moveSelected(wnd, 0, 1);
+            moveSelected(evt, 0, 1);
         } else if (chr == KeyEvent.VK_DOWN) {
-            moveSelected(wnd, 0, -1);
+            moveSelected(evt, 0, -1);
         }
         // cancel current mode
         else if (chr == KeyEvent.VK_ESCAPE) {
@@ -653,7 +654,7 @@ public class ClickZoomWireListener
             modeLeft = Mode.none;
             modeRight = Mode.none;
             Highlight.setHighlightOffset(0, 0);
-            wnd.redraw();
+            wnd.repaint();
         }
     }
 
@@ -669,18 +670,22 @@ public class ClickZoomWireListener
 
     /** Move selected object(s) via keystroke
      *
-     * @param wnd current EditWindow
+     * @param evt the event of the keystroke
      * @param dX amount to move in X in lambda
      * @param dY amount to move in Y in lambda
      */
-    public void moveSelected(EditWindow wnd, double dX, double dY) {
+    public void moveSelected(KeyEvent evt, double dX, double dY) {
         // scale distance according to arrow motion
+        EditWindow wnd = (EditWindow)evt.getSource();
 		double arrowDistance = ToolBar.getArrowDistance();
 		dX *= arrowDistance;
 		dY *= arrowDistance;
+		int scale = User.getDefGridXBoldFrequency();
+		if (evt.isShiftDown()) { dX *= scale;   dY *= scale; }
+		if (evt.isControlDown()) { dX *= scale;   dY *= scale; }
 		Highlight.setHighlightOffset(0, 0);
 		CircuitChanges.manyMove(dX, dY, wnd);
-		wnd.redraw();
+		wnd.repaintContents();
 	}
 
     /**

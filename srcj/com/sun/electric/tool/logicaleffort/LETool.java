@@ -151,7 +151,7 @@ public class LETool extends Tool {
                     donesleeping = true;
                 }
             } catch (InterruptedException e) {}
-            wnd.redraw();
+            wnd.repaintContents();
         }
         
         // add more info to default getInfo

@@ -35,8 +35,10 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.tool.io.InputLibrary;
 import com.sun.electric.tool.user.dialogs.Progress;
 
 import java.awt.geom.Point2D;
@@ -48,6 +50,7 @@ import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 
 /**
@@ -67,7 +70,6 @@ public class Input extends IOTool
 	/** The length of the file. */							protected long fileLength;
 	/** The progress during input. */						protected static Progress progress = null;
 	/** the path to the library being read. */				protected static String mainLibDirectory = null;
-	/** static list of all libraries in Electric */			private static List newLibraries = new ArrayList();
 
     
 	/**
@@ -109,14 +111,6 @@ public class Input extends IOTool
 	{
 	}
 
-	/**
-	 * Method to read a Library.
-	 * This method is never called.
-	 * Instead, it is always overridden by the appropriate read subclass.
-	 * @return true on error.
-	 */
-	protected boolean readLib() { return true; }
-
 	// ----------------------- public methods -------------------------------
 
 	/**
@@ -130,8 +124,16 @@ public class Input extends IOTool
 		long startTime = System.currentTimeMillis();
         InputLibDirs.readLibDirs();
 		//Undo.noUndoAllowed();
+		InputLibrary.initializeLibraryInput();
 		Undo.changesQuiet(true);
 		Library lib = readALibrary(fileName, null, type);
+		if (InputLibrary.VERBOSE)
+			System.out.println("Done reading data for all libraries");
+
+		InputLibrary.cleanupLibraryInput();
+		if (InputLibrary.VERBOSE)
+			System.out.println("Done instantiating data for all libraries");
+
 		Undo.changesQuiet(false);
 		Network.reload();
 		if (lib != null)
@@ -155,8 +157,6 @@ public class Input extends IOTool
 	 */
 	protected static Library readALibrary(String fileName, Library lib, ImportType type)
 	{
-		Input in;
-
 		// break file name into library name and path; determine whether this is top-level
 		Library.Name n = Library.Name.newInstance(fileName);
 		boolean topLevel = false;
@@ -167,12 +167,13 @@ public class Input extends IOTool
 		}
 
 		// handle different file types
+		InputLibrary in;
 		if (type == ImportType.BINARY)
 		{
-			in = (Input)new InputBinary();
+			in = (InputLibrary)new InputBinary();
 		} else if (type == ImportType.TEXT)
 		{
-			in = (Input)new InputText();
+			in = (InputLibrary)new InputText();
 		} else
 		{
 			System.out.println("Unknown import type: " + type);
@@ -192,7 +193,7 @@ public class Input extends IOTool
 			if (topLevel) mainLibDirectory = null;
 			return null;
 		}
-		
+
 		if (lib == null)
 		{
 			lib = Library.findLibrary(n.getName());
@@ -206,9 +207,6 @@ public class Input extends IOTool
 				lib = Library.newInstance(n.getName(), fileName);
 			}
 		}
-		// add to the list of libraries read at once
-		if (topLevel) newLibraries.clear();
-		newLibraries.add(lib);
 
 		in.lib = lib;
 
@@ -222,7 +220,9 @@ public class Input extends IOTool
 			progress = new Progress("Reading library "+lib.getLibName()+"...");
 			progress.setProgress(0);
 		}
-		boolean error = in.readLib();
+
+		// read the library
+		boolean error = in.readInputLibrary();
 		if (topLevel && progress != null)
 		{
 			progress.close();
@@ -246,9 +246,10 @@ public class Input extends IOTool
 //		{
 //			mainLibDirectory = null;
 //			System.out.println("Top level done.  Libraries are");
-//			for(Iterator it = newLibraries.iterator(); it.hasNext(); )
+//			for(Iterator it = libsBeingRead.iterator(); it.hasNext(); )
 //			{
-//				Library l = (Library)it.next();
+//				Input i = (Input)it.next();
+//				Library l = i.lib;
 //				System.out.println("   Library " + l.getLibName());
 //				for(Iterator cit = l.getCells(); cit.hasNext(); )
 //				{

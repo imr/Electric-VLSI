@@ -224,23 +224,13 @@ public class ErrorLog
 	 */
 	public void addPoly(Poly poly)
 	{
-//		Rectangle2D bounds = poly.getBox();
-//		if (bounds != null)
-//		{
-//			(void)addlinetoerror(errorlist, bounds.getMinX(), bounds.getMinY(), bounds.getMinX(), bounds.getMaxY());
-//			(void)addlinetoerror(errorlist, bounds.getMinX(), bounds.getMaxY(), bounds.getMaxX(), bounds.getMaxY());
-//			(void)addlinetoerror(errorlist, bounds.getMaxX(), bounds.getMaxY(), bounds.getMaxX(), bounds.getMinY()) ;
-//			(void)addlinetoerror(errorlist, bounds.getMaxX(), bounds.getMinY(), bounds.getMinX(), bounds.getMinY());;
-//		} else
+		Point2D [] points = poly.getPoints();
+		for(int i=0; i<points.length; i++)
 		{
-			Point2D [] points = poly.getPoints();
-			for(int i=0; i<points.length; i++)
-			{
-				int prev = i-1;
-				if (i == 0) prev = points.length-1;
-				addLine(points[prev].getX(), points[prev].getY(),
-					points[i].getX(), points[i].getY());
-			}
+			int prev = i-1;
+			if (i == 0) prev = points.length-1;
+			addLine(points[prev].getX(), points[prev].getY(),
+				points[i].getX(), points[i].getY());
 		}
 	}
 
@@ -279,7 +269,7 @@ public class ErrorLog
 		}
 		rebuildExplorerTree();
 		ExplorerTree.explorerTreeChanged();
-		EditWindow.redrawAll();
+		EditWindow.repaintAll();
 	}
 
 	/**

@@ -926,7 +926,7 @@ public class Clipboard
 			oY = delta.getY();
 			showList();
 
-			wnd.redraw();
+			wnd.repaint();
 		}
 
 		public void mouseReleased(MouseEvent evt)

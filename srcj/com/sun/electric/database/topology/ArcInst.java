@@ -188,7 +188,11 @@ public class ArcInst extends Geometric
 	public static ArcInst makeDummyInstance(PrimitiveArc ap, double arcLength)
 	{
 		PrimitiveNode npEnd = ap.findPinProto();
-		if (npEnd == null) return null;
+		if (npEnd == null)
+		{
+			System.out.println("Cannot find pin for arc " + ap.describe());
+			return null;
+		}
 
 		// create the head node
 		NodeInst niH = NodeInst.lowLevelAllocate();
@@ -656,11 +660,16 @@ public class ArcInst extends Geometric
 				double temp = y1;   y1 = y2;   y2 = temp;
 				temp = extendH;   extendH = extendT;   extendT = temp;
 			}
+//			return new Poly(new Point2D.Double[] {
+//				new Point2D.Double(EMath.smooth(x1 - w2), EMath.smooth(y1 - extendH)),
+//				new Point2D.Double(EMath.smooth(x1 + w2), EMath.smooth(y1 - extendH)),
+//				new Point2D.Double(EMath.smooth(x2 + w2), EMath.smooth(y2 + extendT)),
+//				new Point2D.Double(EMath.smooth(x2 - w2), EMath.smooth(y2 + extendT))});
 			return new Poly(new Point2D.Double[] {
-				new Point2D.Double(EMath.smooth(x1 - w2), EMath.smooth(y1 - extendH)),
-				new Point2D.Double(EMath.smooth(x1 + w2), EMath.smooth(y1 - extendH)),
-				new Point2D.Double(EMath.smooth(x2 + w2), EMath.smooth(y2 + extendT)),
-				new Point2D.Double(EMath.smooth(x2 - w2), EMath.smooth(y2 + extendT))});
+				new Point2D.Double(x1 - w2, y1 - extendH),
+				new Point2D.Double(x1 + w2, y1 - extendH),
+				new Point2D.Double(x2 + w2, y2 + extendT),
+				new Point2D.Double(x2 - w2, y2 + extendT)});
 		}
 		if (angle == 0 || angle == 1800)
 		{
@@ -669,11 +678,16 @@ public class ArcInst extends Geometric
 				double temp = x1;   x1 = x2;   x2 = temp;
 				temp = extendH;   extendH = extendT;   extendT = temp;
 			}
+//			return new Poly(new Point2D.Double[] {
+//				new Point2D.Double(EMath.smooth(x1 - extendH), EMath.smooth(y1 - w2)),
+//				new Point2D.Double(EMath.smooth(x1 - extendH), EMath.smooth(y1 + w2)),
+//				new Point2D.Double(EMath.smooth(x2 + extendT), EMath.smooth(y2 + w2)),
+//				new Point2D.Double(EMath.smooth(x2 + extendT), EMath.smooth(y2 - w2))});
 			return new Poly(new Point2D.Double[] {
-				new Point2D.Double(EMath.smooth(x1 - extendH), EMath.smooth(y1 - w2)),
-				new Point2D.Double(EMath.smooth(x1 - extendH), EMath.smooth(y1 + w2)),
-				new Point2D.Double(EMath.smooth(x2 + extendT), EMath.smooth(y2 + w2)),
-				new Point2D.Double(EMath.smooth(x2 + extendT), EMath.smooth(y2 - w2))});
+				new Point2D.Double(x1 - extendH, y1 - w2),
+				new Point2D.Double(x1 - extendH, y1 + w2),
+				new Point2D.Double(x2 + extendT, y2 + w2),
+				new Point2D.Double(x2 + extendT, y2 - w2)});
 		}
 
 		// nonmanhattan arcs cannot have zero length so re-compute it
@@ -701,11 +715,16 @@ public class ArcInst extends Geometric
 			xextra = w2 * (x2-x1) / len;
 			yextra = w2 * (y2-y1) / len;
 		}
+//		return new Poly(new Point2D.Double[] {
+//			new Point2D.Double(EMath.smooth(yextra + xe1), EMath.smooth(ye1 - xextra)),
+//			new Point2D.Double(EMath.smooth(xe1 - yextra), EMath.smooth(xextra + ye1)),
+//			new Point2D.Double(EMath.smooth(xe2 - yextra), EMath.smooth(xextra + ye2)),
+//			new Point2D.Double(EMath.smooth(yextra + xe2), EMath.smooth(ye2 - xextra))});
 		return new Poly(new Point2D.Double[] {
-			new Point2D.Double(EMath.smooth(yextra + xe1), EMath.smooth(ye1 - xextra)),
-			new Point2D.Double(EMath.smooth(xe1 - yextra), EMath.smooth(xextra + ye1)),
-			new Point2D.Double(EMath.smooth(xe2 - yextra), EMath.smooth(xextra + ye2)),
-			new Point2D.Double(EMath.smooth(yextra + xe2), EMath.smooth(ye2 - xextra))});
+			new Point2D.Double(yextra + xe1, ye1 - xextra),
+			new Point2D.Double(xe1 - yextra, xextra + ye1),
+			new Point2D.Double(xe2 - yextra, xextra + ye2),
+			new Point2D.Double(yextra + xe2, ye2 - xextra)});
 	}
 
 	private static int [] extendFactor = {0,

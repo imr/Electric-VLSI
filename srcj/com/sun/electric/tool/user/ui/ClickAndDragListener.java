@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.MenuCommands;
@@ -145,7 +146,7 @@ class ClickAndDragListener
 			if (delta.getX() == 0 && delta.getY() == 0) return;
 			Highlight.setHighlightOffset(0, 0);
 			CircuitChanges.manyMove(delta.getX(), delta.getY(), wnd);
-			wnd.redraw();
+			wnd.repaint();
 		}
 	}
 
@@ -172,7 +173,7 @@ class ClickAndDragListener
 		if (doingMotionDrag)
 		{
 			Highlight.setHighlightOffset(newX - oldx, newY - oldy);
-			wnd.redraw();
+			wnd.repaint();
 			return;
 		}
 
@@ -185,7 +186,7 @@ class ClickAndDragListener
 		}
 		oldx = newX;
 		oldy = newY;
-		wnd.redraw();
+		wnd.repaint();
 	}
 
 	public void mouseWheelMoved(MouseWheelEvent evt)
@@ -206,31 +207,35 @@ class ClickAndDragListener
 			CircuitChanges.deleteSelected();
 		} else if (chr == KeyEvent.VK_LEFT)
 		{
-			moveSelected(wnd, -1, 0);
+			moveSelected(evt, -1, 0);
 		} else if (chr == KeyEvent.VK_RIGHT)
 		{
-			moveSelected(wnd, 1, 0);
+			moveSelected(evt, 1, 0);
 		} else if (chr == KeyEvent.VK_UP)
 		{
-			moveSelected(wnd, 0, 1);
+			moveSelected(evt, 0, 1);
 		} else if (chr == KeyEvent.VK_DOWN)
 		{
-			moveSelected(wnd, 0, -1);
+			moveSelected(evt, 0, -1);
 		}
 	}
 
 	public void keyReleased(KeyEvent evt) {}
 	public void keyTyped(KeyEvent evt) {}
 
-	private void moveSelected(EditWindow wnd, double dX, double dY)
+	private void moveSelected(KeyEvent evt, double dX, double dY)
 	{
         // scale distance according to arrow motion
+		EditWindow wnd = (EditWindow)evt.getSource();
 		double arrowDistance = ToolBar.getArrowDistance();
 		dX *= arrowDistance;
 		dY *= arrowDistance;
+		int scale = User.getDefGridXBoldFrequency();
+		if (evt.isShiftDown()) { dX *= scale;   dY *= scale; }
+		if (evt.isControlDown()) { dX *= scale;   dY *= scale; }
 		Highlight.setHighlightOffset(0, 0);
 		CircuitChanges.manyMove(dX, dY, wnd);
-		wnd.redraw();
+		wnd.repaintContents();
 	}
 
 }

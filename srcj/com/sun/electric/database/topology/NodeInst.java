@@ -1993,11 +1993,7 @@ public class NodeInst extends Geometric implements Nodable
 			if (polyList.length > 0)
 			{
 				Poly.Type style = polyList[0].getStyle();
-				if (style != Poly.Type.TEXTCENT && style != Poly.Type.TEXTTOP &&
-					style != Poly.Type.TEXTBOT && style != Poly.Type.TEXTLEFT &&
-					style != Poly.Type.TEXTRIGHT && style != Poly.Type.TEXTTOPLEFT &&
-					style != Poly.Type.TEXTBOTLEFT && style != Poly.Type.TEXTTOPRIGHT &&
-					style != Poly.Type.TEXTBOTRIGHT && style != Poly.Type.TEXTBOX) return null;
+				if (!style.isText()) return null;
 			}
 		}
 
@@ -2162,6 +2158,20 @@ public class NodeInst extends Geometric implements Nodable
 	public int checkAndRepair()
 	{
 		int errorCount = 0;
+		if (protoType instanceof Cell)
+		{
+			// make sure the instance is the same size as the cell
+			Rectangle2D bounds = ((Cell)protoType).getBounds();
+			if (bounds.getWidth() != getXSize() ||
+				bounds.getHeight() != getYSize())
+			{
+				System.out.println("Library " + parent.getLibrary().getLibName() +
+				", cell " + parent.describe() + ", node " + describe() +
+				" is " + getXSize() + "x" + getYSize() + ", but prototype is " + bounds.getWidth() +
+				" x " + bounds.getHeight());
+				errorCount++;
+			}
+		}
 		if (portInsts.size() != protoType.getNumPorts())
 		{
 			System.out.println("Library " + parent.getLibrary().getLibName() +

@@ -40,6 +40,7 @@ import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.SizeOffset;
 
 import java.awt.Point;
+import java.awt.Color;
 import java.awt.geom.Point2D;
 
 /**
@@ -49,6 +50,12 @@ public class MoCMOSSub extends Technology
 {
 	/** the Complementary MOS (old, from MOSIS, Submicron, 2-6 metals [4], double poly) Technology object. */	public static final MoCMOSSub tech = new MoCMOSSub();
 
+	/** defines the first transparent layer (metal-1). */			private static final int TRANSPARENT_1 = 1;
+	/** defines the second transparent layer (poly-1). */			private static final int TRANSPARENT_2 = 2;
+	/** defines the third transparent layer (active). */			private static final int TRANSPARENT_3 = 3;
+	/** defines the fourth transparent layer (metal-2). */			private static final int TRANSPARENT_4 = 4;
+	/** defines the fifth transparent layer (metal-3). */			private static final int TRANSPARENT_5 = 5;
+
 	// -------------------- private and protected methods ------------------------
 	private MoCMOSSub()
 	{
@@ -57,12 +64,47 @@ public class MoCMOSSub extends Technology
 		setScale(200);			// in nanometers: really 0.2 micron
 		setNoNegatedArcs();
 		setStaticTechnology();
+		setColorMap(new Color [] 
+		{                           /*     Metal-3 Metal-2 Active Polysilicon-1 Metal-1 */
+			new Color(200,200,200), /*  0:                                              */
+			new Color( 96,209,255), /*  1:                                      Metal-1 */
+			new Color(255,155,192), /*  2:                        Polysilicon-1         */
+			new Color(111,144,177), /*  3:                        Polysilicon-1 Metal-1 */
+			new Color(107,226, 96), /*  4:                 Active                       */
+			new Color( 83,179,160), /*  5:                 Active               Metal-1 */
+			new Color(161,151,126), /*  6:                 Active Polysilicon-1         */
+			new Color(110,171,152), /*  7:                 Active Polysilicon-1 Metal-1 */
+			new Color(224, 95,255), /*  8:         Metal-2                              */
+			new Color(135,100,191), /*  9:         Metal-2                      Metal-1 */
+			new Color(170, 83,170), /* 10:         Metal-2        Polysilicon-1         */
+			new Color(152,104,175), /* 11:         Metal-2        Polysilicon-1 Metal-1 */
+			new Color(150,124,163), /* 12:         Metal-2 Active                       */
+			new Color(129,144,165), /* 13:         Metal-2 Active               Metal-1 */
+			new Color(155,133,151), /* 14:         Metal-2 Active Polysilicon-1         */
+			new Color(141,146,153), /* 15:         Metal-2 Active Polysilicon-1 Metal-1 */
+			new Color(247,251, 20), /* 16: Metal-3                                      */
+			new Color(154,186, 78), /* 17: Metal-3                              Metal-1 */
+			new Color(186,163, 57), /* 18: Metal-3                Polysilicon-1         */
+			new Color(167,164, 99), /* 19: Metal-3                Polysilicon-1 Metal-1 */
+			new Color(156,197, 41), /* 20: Metal-3         Active                       */
+			new Color(138,197, 83), /* 21: Metal-3         Active               Metal-1 */
+			new Color(161,184, 69), /* 22: Metal-3         Active Polysilicon-1         */
+			new Color(147,183, 97), /* 23: Metal-3         Active Polysilicon-1 Metal-1 */
+			new Color(186,155, 76), /* 24: Metal-3 Metal-2                              */
+			new Color(155,163,119), /* 25: Metal-3 Metal-2                      Metal-1 */
+			new Color(187,142, 97), /* 26: Metal-3 Metal-2        Polysilicon-1         */
+			new Color(165,146,126), /* 27: Metal-3 Metal-2        Polysilicon-1 Metal-1 */
+			new Color(161,178, 82), /* 28: Metal-3 Metal-2 Active                       */
+			new Color(139,182,111), /* 29: Metal-3 Metal-2 Active               Metal-1 */
+			new Color(162,170, 97), /* 30: Metal-3 Metal-2 Active Polysilicon-1         */
+			new Color(147,172,116)  /* 31: Metal-3 Metal-2 Active Polysilicon-1 Metal-1 */
+		});
 
 		//**************************************** LAYERS ****************************************
 
 		/** M layer */
 		Layer M_lay = Layer.newInstance(this, "Metal-1",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 107,226,96,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_1, 107,226,96,0.8,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -82,7 +124,7 @@ public class MoCMOSSub extends Technology
 
 		/** M0 layer */
 		Layer M0_lay = Layer.newInstance(this, "Metal-2",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 224,95,255,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_4, 224,95,255,0.8,1,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -102,7 +144,7 @@ public class MoCMOSSub extends Technology
 
 		/** M1 layer */
 		Layer M1_lay = Layer.newInstance(this, "Metal-3",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_5, 0,0,0,0.8,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -182,7 +224,7 @@ public class MoCMOSSub extends Technology
 
 		/** P layer */
 		Layer P_lay = Layer.newInstance(this, "Polysilicon-1",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 224,95,255,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_2, 224,95,255,0.8,1,
 			new int[] { 0x1111,   //    X   X   X   X
 						0xffff,   // XXXXXXXXXXXXXXXX
 						0x1111,   //    X   X   X   X
@@ -222,7 +264,7 @@ public class MoCMOSSub extends Technology
 
 		/** PA layer */
 		Layer PA_lay = Layer.newInstance(this, "P-Active",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 247,251,20,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_3, 247,251,20,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -242,7 +284,7 @@ public class MoCMOSSub extends Technology
 
 		/** NA layer */
 		Layer NA_lay = Layer.newInstance(this, "N-Active",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 247,251,20,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_3, 247,251,20,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -407,7 +449,7 @@ public class MoCMOSSub extends Technology
 
 		/** PAW layer */
 		Layer PAW_lay = Layer.newInstance(this, "P-Active-Well",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 247,251,20,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_3, 247,251,20,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -427,7 +469,7 @@ public class MoCMOSSub extends Technology
 
 		/** PM layer */
 		Layer PM_lay = Layer.newInstance(this, "Pseudo-Metal-1",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 107,226,96,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_1, 107,226,96,0.8,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -447,7 +489,7 @@ public class MoCMOSSub extends Technology
 
 		/** PM0 layer */
 		Layer PM0_lay = Layer.newInstance(this, "Pseudo-Metal-2",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 224,95,255,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_4, 224,95,255,0.8,1,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -467,7 +509,7 @@ public class MoCMOSSub extends Technology
 
 		/** PM1 layer */
 		Layer PM1_lay = Layer.newInstance(this, "Pseudo-Metal-3",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_5, 0,0,0,0.8,1,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -547,7 +589,7 @@ public class MoCMOSSub extends Technology
 
 		/** PP layer */
 		Layer PP_lay = Layer.newInstance(this, "Pseudo-Polysilicon",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 224,95,255,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_2, 224,95,255,0.8,1,
 			new int[] { 0x1111,   //    X   X   X   X
 						0xffff,   // XXXXXXXXXXXXXXXX
 						0x1111,   //    X   X   X   X
@@ -587,7 +629,7 @@ public class MoCMOSSub extends Technology
 
 		/** PPA layer */
 		Layer PPA_lay = Layer.newInstance(this, "Pseudo-P-Active",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 247,251,20,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_3, 247,251,20,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -607,7 +649,7 @@ public class MoCMOSSub extends Technology
 
 		/** PNA layer */
 		Layer PNA_lay = Layer.newInstance(this, "Pseudo-N-Active",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 247,251,20,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_3, 247,251,20,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   

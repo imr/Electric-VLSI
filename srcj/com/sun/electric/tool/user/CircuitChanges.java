@@ -792,7 +792,7 @@ public class CircuitChanges
 			if (totalDeleted == 0) System.out.println("No unused old cell versions to delete"); else
 			{
 				System.out.println("Deleted " + totalDeleted + " cells");
-				EditWindow.redrawAll();
+				EditWindow.repaintAll();
 			}
 		}
 	}
@@ -1392,7 +1392,7 @@ public class CircuitChanges
 		public void doIt()
 		{
 			cell.setView(newView);
-			EditWindow.redrawAll();
+			EditWindow.repaintAll();
 		}
 	}
 
@@ -1430,7 +1430,7 @@ public class CircuitChanges
 				if (wnd.getCell() == cell)
 					wnd.setCell(newVersion, null);
 			}
-			EditWindow.redrawAll();
+			EditWindow.repaintAll();
 		}
 	}
 
@@ -1818,7 +1818,7 @@ public class CircuitChanges
 				if (wnd.getCell() == cell)
 					wnd.setCell(dupCell, null);
 			}
-			EditWindow.redrawAll();
+			EditWindow.repaintAll();
 		}
 	}
 
@@ -2061,6 +2061,7 @@ public class CircuitChanges
 				}
 				NodeInst.modifyInstances(nis, dXs, dYs, dSize, dSize, dRot);
 			}
+			flag.freeFlagSet();
 
 			// look at all arcs and move them appropriately
 			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
@@ -2740,6 +2741,8 @@ public class CircuitChanges
 					doExpand(ni, amount, 0);
 				Undo.redrawObject(ni);
 			}
+			expandFlagBit.freeFlagSet();
+			EditWindow.repaintAllContents();
 		}
 	}
 

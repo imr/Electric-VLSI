@@ -2,11 +2,11 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: nmos.java
+ * File: nMOS.java
  * nmos technology description
  * Generated automatically from a library
  *
- * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,11 +25,6 @@
  */
 package com.sun.electric.technology.technologies;
 
-import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -38,8 +33,14 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.NodeProto;
 
 import java.awt.Point;
+import java.awt.Color;
 import java.awt.geom.Point2D;
 
 /**
@@ -49,20 +50,61 @@ public class nMOS extends Technology
 {
 	/** the n-channel MOS (from Mead & Conway) Technology object. */	public static final nMOS tech = new nMOS();
 
+/** defines the 1st transparent layer. */			private static final int TRANSPARENT_1 = 1;
+/** defines the 2nd transparent layer. */			private static final int TRANSPARENT_2 = 2;
+/** defines the 3rd transparent layer. */			private static final int TRANSPARENT_3 = 3;
+/** defines the 4th transparent layer. */			private static final int TRANSPARENT_4 = 4;
+/** defines the 5th transparent layer. */			private static final int TRANSPARENT_5 = 5;
+
 	// -------------------- private and protected methods ------------------------
 	private nMOS()
 	{
 		setTechName("nmos");
 		setTechDesc("n-channel MOS (from Mead & Conway)");
-		setScale(2000);			// in nanometers: really 2 micron
+		setScale(2000);   // in nanometers: really 2 microns
 		setNoNegatedArcs();
 		setStaticTechnology();
+		setColorMap(new Color []
+		{
+			new Color(200,200,200), //  0:      +           +         +       +              
+			new Color(  0,  0,200), //  1: Metal+           +         +       +              
+			new Color(220,  0,120), //  2:      +Polysilicon+         +       +              
+			new Color( 80,  0,160), //  3: Metal+Polysilicon+         +       +              
+			new Color( 70,250, 70), //  4:      +           +Diffusion+       +              
+			new Color(  0,140,140), //  5: Metal+           +Diffusion+       +              
+			new Color(180,130,  0), //  6:      +Polysilicon+Diffusion+       +              
+			new Color( 55, 70,140), //  7: Metal+Polysilicon+Diffusion+       +              
+			new Color(250,250,  0), //  8:      +           +         +Implant+              
+			new Color( 85,105,160), //  9: Metal+           +         +Implant+              
+			new Color(190, 80,100), // 10:      +Polysilicon+         +Implant+              
+			new Color( 70, 50,150), // 11: Metal+Polysilicon+         +Implant+              
+			new Color( 80,210,  0), // 12:      +           +Diffusion+Implant+              
+			new Color( 50,105,130), // 13: Metal+           +Diffusion+Implant+              
+			new Color(170,110,  0), // 14:      +Polysilicon+Diffusion+Implant+              
+			new Color( 60, 60,130), // 15: Metal+Polysilicon+Diffusion+Implant+              
+			new Color(180,180,180), // 16:      +           +         +       +Buried-Contact
+			new Color(  0,  0,180), // 17: Metal+           +         +       +Buried-Contact
+			new Color(200,  0,100), // 18:      +Polysilicon+         +       +Buried-Contact
+			new Color( 60,  0,140), // 19: Metal+Polysilicon+         +       +Buried-Contact
+			new Color( 50,230, 50), // 20:      +           +Diffusion+       +Buried-Contact
+			new Color(  0,120,120), // 21: Metal+           +Diffusion+       +Buried-Contact
+			new Color(160,110,  0), // 22:      +Polysilicon+Diffusion+       +Buried-Contact
+			new Color( 35, 50,120), // 23: Metal+Polysilicon+Diffusion+       +Buried-Contact
+			new Color(230,230,  0), // 24:      +           +         +Implant+Buried-Contact
+			new Color( 65, 85,140), // 25: Metal+           +         +Implant+Buried-Contact
+			new Color(170, 60, 80), // 26:      +Polysilicon+         +Implant+Buried-Contact
+			new Color( 50, 30,130), // 27: Metal+Polysilicon+         +Implant+Buried-Contact
+			new Color( 60,190,  0), // 28:      +           +Diffusion+Implant+Buried-Contact
+			new Color( 30, 85,110), // 29: Metal+           +Diffusion+Implant+Buried-Contact
+			new Color(150, 90,  0), // 30:      +Polysilicon+Diffusion+Implant+Buried-Contact
+			new Color( 40, 40,110), // 31: Metal+Polysilicon+Diffusion+Implant+Buried-Contact
+		});
 
 		//**************************************** LAYERS ****************************************
 
 		/** M layer */
 		Layer M_lay = Layer.newInstance(this, "Metal",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 70,250,70,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_1, 70,250,70,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0000,   //                 
 						0x2222,   //   X   X   X   X 
@@ -82,7 +124,7 @@ public class nMOS extends Technology
 
 		/** P layer */
 		Layer P_lay = Layer.newInstance(this, "Polysilicon",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 250,250,0,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_2, 250,250,0,0.8,1,
 			new int[] { 0x1111,   //    X   X   X   X
 						0x8888,   // X   X   X   X   
 						0x4444,   //  X   X   X   X  
@@ -102,7 +144,7 @@ public class nMOS extends Technology
 
 		/** D layer */
 		Layer D_lay = Layer.newInstance(this, "Diffusion",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 180,180,180,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_3, 180,180,180,0.8,1,
 			new int[] { 0x4444,   //  X   X   X   X  
 						0x1111,   //    X   X   X   X
 						0x4444,   //  X   X   X   X  
@@ -122,7 +164,7 @@ public class nMOS extends Technology
 
 		/** I layer */
 		Layer I_lay = Layer.newInstance(this, "Implant",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 250,250,0,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_4, 0,0,0,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0000,   //                 
 						0x1111,   //    X   X   X   X
@@ -147,7 +189,7 @@ public class nMOS extends Technology
 
 		/** BC layer */
 		Layer BC_lay = Layer.newInstance(this, "Buried-Contact",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_5, 0,0,0,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x2222,   //   X   X   X   X 
 						0x4444,   //  X   X   X   X  
@@ -257,7 +299,7 @@ public class nMOS extends Technology
 
 		/** PM layer */
 		Layer PM_lay = Layer.newInstance(this, "Pseudo-Metal",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 70,250,70,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_1, 70,250,70,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0000,   //                 
 						0x2222,   //   X   X   X   X 
@@ -277,7 +319,7 @@ public class nMOS extends Technology
 
 		/** PP layer */
 		Layer PP_lay = Layer.newInstance(this, "Pseudo-Polysilicon",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 250,250,0,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_2, 250,250,0,0.8,1,
 			new int[] { 0x1111,   //    X   X   X   X
 						0x8888,   // X   X   X   X   
 						0x4444,   //  X   X   X   X  
@@ -297,7 +339,7 @@ public class nMOS extends Technology
 
 		/** PD layer */
 		Layer PD_lay = Layer.newInstance(this, "Pseudo-Diffusion",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 180,180,180,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_3, 180,180,180,0.8,1,
 			new int[] { 0x4444,   //  X   X   X   X  
 						0x1111,   //    X   X   X   X
 						0x4444,   //  X   X   X   X  
@@ -382,6 +424,24 @@ public class nMOS extends Technology
 		PM_lay.setGDSLayer("");		// Pseudo-Metal
 		PP_lay.setGDSLayer("");		// Pseudo-Polysilicon
 		PD_lay.setGDSLayer("");		// Pseudo-Diffusion
+
+		// The SPICE information
+		M_lay.setDefaultParasitics(0.03f, 0.03f, 0);		// Metal
+		P_lay.setDefaultParasitics(50.0f, 0.04f, 0);		// Polysilicon
+		D_lay.setDefaultParasitics(10.0f, 0.1f, 0);		// Diffusion
+		I_lay.setDefaultParasitics(0, 0, 0);		// Implant
+		CC_lay.setDefaultParasitics(0, 0, 0);		// Contact-Cut
+		BC_lay.setDefaultParasitics(0, 0, 0);		// Buried-Contact
+		O_lay.setDefaultParasitics(0, 0, 0);		// Overglass
+		LI_lay.setDefaultParasitics(0, 0, 0);		// Light-Implant
+		OC_lay.setDefaultParasitics(0, 0, 0);		// Oversize-Contact
+		HE_lay.setDefaultParasitics(0, 0, 0);		// Hard-Enhancement
+		LE_lay.setDefaultParasitics(0, 0, 0);		// Light-Enhancement
+		T_lay.setDefaultParasitics(0, 0, 0);		// Transistor
+		PM_lay.setDefaultParasitics(0, 0, 0);		// Pseudo-Metal
+		PP_lay.setDefaultParasitics(0, 0, 0);		// Pseudo-Polysilicon
+		PD_lay.setDefaultParasitics(0, 0, 0);		// Pseudo-Diffusion
+		setDefaultParasitics(50, 50);
 
 		//******************** ARCS ********************
 
@@ -474,36 +534,52 @@ public class nMOS extends Technology
 			new Technology.TechPoint(EdgeH.fromRight(1), EdgeV.fromTop(1)),
 		};
 		Technology.TechPoint [] box_11 = new Technology.TechPoint[] {
+			new Technology.TechPoint(EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5)),
+			new Technology.TechPoint(EdgeH.fromRight(1.5), EdgeV.fromTop(1.5)),
+		};
+		Technology.TechPoint [] box_12 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.fromBottom(1)),
 			new Technology.TechPoint(EdgeH.fromRight(3), EdgeV.makeCenter()),
 		};
-		Technology.TechPoint [] box_12 = new Technology.TechPoint[] {
+		Technology.TechPoint [] box_13 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.makeCenter()),
 			new Technology.TechPoint(EdgeH.fromRight(3), EdgeV.fromTop(1)),
 		};
-		Technology.TechPoint [] box_13 = new Technology.TechPoint[] {
+		Technology.TechPoint [] box_14 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.fromLeft(1), EdgeV.fromBottom(3)),
 			new Technology.TechPoint(EdgeH.fromRight(1), EdgeV.fromTop(3)),
 		};
-		Technology.TechPoint [] box_14 = new Technology.TechPoint[] {
+		Technology.TechPoint [] box_15 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.fromLeft(1), EdgeV.fromBottom(2)),
 			new Technology.TechPoint(EdgeH.fromRight(1), EdgeV.fromTop(2)),
 		};
-		Technology.TechPoint [] box_15 = new Technology.TechPoint[] {
+		Technology.TechPoint [] box_16 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.fromBottom(1)),
 			new Technology.TechPoint(EdgeH.fromRight(3), EdgeV.fromTop(1)),
 		};
-		Technology.TechPoint [] box_16 = new Technology.TechPoint[] {
+		Technology.TechPoint [] box_17 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.fromLeft(1), EdgeV.fromBottom(1)),
 			new Technology.TechPoint(EdgeH.fromCenter(1), EdgeV.fromTop(1)),
 		};
-		Technology.TechPoint [] box_17 = new Technology.TechPoint[] {
+		Technology.TechPoint [] box_18 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.fromBottom(1)),
 			new Technology.TechPoint(EdgeH.fromRight(1), EdgeV.fromTop(1)),
 		};
-		Technology.TechPoint [] box_18 = new Technology.TechPoint[] {
+		Technology.TechPoint [] box_19 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.fromLeft(1), EdgeV.fromBottom(1)),
 			new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.fromBottom(3)),
+		};
+		Technology.TechPoint [] box_20 = new Technology.TechPoint[] {
+			new Technology.TechPoint(EdgeH.fromLeft(1), EdgeV.fromBottom(1)),
+			new Technology.TechPoint(EdgeH.fromRight(1), EdgeV.fromTop(1)),
+		};
+		Technology.TechPoint [] box_21 = new Technology.TechPoint[] {
+			new Technology.TechPoint(EdgeH.fromLeft(0.5), EdgeV.fromBottom(0.5)),
+			new Technology.TechPoint(EdgeH.fromRight(0.5), EdgeV.fromTop(0.5)),
+		};
+		Technology.TechPoint [] box_22 = new Technology.TechPoint[] {
+			new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.fromBottom(2)),
+			new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.fromTop(2)),
 		};
 
 		//******************** NODES ********************
@@ -512,7 +588,7 @@ public class nMOS extends Technology
 		PrimitiveNode mp_node = PrimitiveNode.newInstance("Metal-Pin", this, 4, 4, new SizeOffset(0.5, 0.5, 0.5, 0.5),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(PM_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(0.5))
+				new Technology.NodeLayer(PM_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, box_21)
 			});
 		mp_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -527,7 +603,7 @@ public class nMOS extends Technology
 		PrimitiveNode pp_node = PrimitiveNode.newInstance("Polysilicon-Pin", this, 4, 4, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(PP_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1))
+				new Technology.NodeLayer(PP_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, box_20)
 			});
 		pp_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -542,7 +618,7 @@ public class nMOS extends Technology
 		PrimitiveNode dp_node = PrimitiveNode.newInstance("Diffusion-Pin", this, 4, 4, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(PD_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1))
+				new Technology.NodeLayer(PD_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, box_20)
 			});
 		dp_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -557,9 +633,9 @@ public class nMOS extends Technology
 		PrimitiveNode mpc_node = PrimitiveNode.newInstance("Metal-Polysilicon-Con", this, 6, 6, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
-				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
-				new Technology.NodeLayer(CC_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, box_18)
+				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_20),
+				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_20),
+				new Technology.NodeLayer(CC_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, box_19)
 			});
 		mpc_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -574,9 +650,9 @@ public class nMOS extends Technology
 		PrimitiveNode mdc_node = PrimitiveNode.newInstance("Metal-Diffusion-Con", this, 6, 6, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
-				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
-				new Technology.NodeLayer(CC_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, box_18)
+				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_20),
+				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_20),
+				new Technology.NodeLayer(CC_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, box_19)
 			});
 		mdc_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -591,10 +667,10 @@ public class nMOS extends Technology
 		PrimitiveNode bc_node = PrimitiveNode.newInstance("Butting-Con", this, 8, 6, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_17),
-				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
-				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_16),
-				new Technology.NodeLayer(CC_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
+				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_18),
+				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_20),
+				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_17),
+				new Technology.NodeLayer(CC_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, box_22)
 			});
 		bc_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -609,9 +685,9 @@ public class nMOS extends Technology
 		PrimitiveNode bcc_node = PrimitiveNode.newInstance("Buried-Con-Cross", this, 8, 6, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_15),
-				new Technology.NodeLayer(BC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
-				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_14)
+				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_16),
+				new Technology.NodeLayer(BC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_20),
+				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_15)
 			});
 		bcc_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -630,8 +706,8 @@ public class nMOS extends Technology
 		PrimitiveNode t_node = PrimitiveNode.newInstance("Transistor", this, 8, 8, new SizeOffset(3, 3, 3, 3),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_15, 3, 3, 0, 0),
-				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13, 1, 1, 2, 2)
+				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_16, 3, 3, 0, 0),
+				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_14, 1, 1, 2, 2)
 			});
 		t_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -648,15 +724,15 @@ public class nMOS extends Technology
 		t_node.setHoldsOutline();
 		t_node.setCanShrink();
 		t_node.setSpecialType(PrimitiveNode.SERPTRANS);
-		t_node.setSpecialValues(new double [] {4, 1, 1, 2, 1, 1});
+		t_node.setSpecialValues(new double [] {0.025, 1, 1, 2, 1, 1});
 
 		/** Implant-Transistor */
 		PrimitiveNode it_node = PrimitiveNode.newInstance("Implant-Transistor", this, 8, 8, new SizeOffset(3, 3, 3, 3),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13, 1, 1, 2, 2),
-				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_15, 3, 3, 0, 0),
-				new Technology.NodeLayer(I_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1.5), 2.5, 2.5, 1.5, 1.5)
+				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_14, 1, 1, 2, 2),
+				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_16, 3, 3, 0, 0),
+				new Technology.NodeLayer(I_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_11, 2.5, 2.5, 1.5, 1.5)
 			});
 		it_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -673,15 +749,15 @@ public class nMOS extends Technology
 		it_node.setHoldsOutline();
 		it_node.setCanShrink();
 		it_node.setSpecialType(PrimitiveNode.SERPTRANS);
-		it_node.setSpecialValues(new double [] {4, 1, 1, 2, 1, 1});
+		it_node.setSpecialValues(new double [] {0.0333333, 1, 1, 2, 1, 1});
 
 		/** Buried-Con-Cross-S */
 		PrimitiveNode bccs_node = PrimitiveNode.newInstance("Buried-Con-Cross-S", this, 6, 6, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_14),
+				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_15),
 				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_10),
-				new Technology.NodeLayer(BC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1))
+				new Technology.NodeLayer(BC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_20)
 			});
 		bccs_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -720,7 +796,7 @@ public class nMOS extends Technology
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_10),
-				new Technology.NodeLayer(BC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
+				new Technology.NodeLayer(BC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_20),
 				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_7)
 			});
 		bcp_node.addPrimitivePorts(new PrimitivePort[]
@@ -758,7 +834,7 @@ public class nMOS extends Technology
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_4),
-				new Technology.NodeLayer(BC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
+				new Technology.NodeLayer(BC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_20),
 				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.POINTS, box_3)
 			});
 		bcdt_node.addPrimitivePorts(new PrimitivePort[]
@@ -793,7 +869,7 @@ public class nMOS extends Technology
 		PrimitiveNode mn_node = PrimitiveNode.newInstance("Metal-Node", this, 4, 4, new SizeOffset(0.5, 0.5, 0.5, 0.5),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(0.5))
+				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_21)
 			});
 		mn_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -802,12 +878,13 @@ public class nMOS extends Technology
 			});
 		mn_node.setFunction(NodeProto.Function.NODE);
 		mn_node.setHoldsOutline();
+		mn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
 		/** Polysilicon-Node */
 		PrimitiveNode pn_node = PrimitiveNode.newInstance("Polysilicon-Node", this, 4, 4, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1))
+				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_20)
 			});
 		pn_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -816,12 +893,13 @@ public class nMOS extends Technology
 			});
 		pn_node.setFunction(NodeProto.Function.NODE);
 		pn_node.setHoldsOutline();
+		pn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
 		/** Diffusion-Node */
 		PrimitiveNode dn_node = PrimitiveNode.newInstance("Diffusion-Node", this, 4, 4, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1))
+				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_20)
 			});
 		dn_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -830,12 +908,13 @@ public class nMOS extends Technology
 			});
 		dn_node.setFunction(NodeProto.Function.NODE);
 		dn_node.setHoldsOutline();
+		dn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
 		/** Implant-Node */
 		PrimitiveNode in_node = PrimitiveNode.newInstance("Implant-Node", this, 6, 6, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(I_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
+				new Technology.NodeLayer(I_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_22)
 			});
 		in_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -844,12 +923,13 @@ public class nMOS extends Technology
 			});
 		in_node.setFunction(NodeProto.Function.NODE);
 		in_node.setHoldsOutline();
+		in_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
 		/** Cut-Node */
 		PrimitiveNode cn_node = PrimitiveNode.newInstance("Cut-Node", this, 6, 6, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(CC_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
+				new Technology.NodeLayer(CC_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, box_22)
 			});
 		cn_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -858,12 +938,13 @@ public class nMOS extends Technology
 			});
 		cn_node.setFunction(NodeProto.Function.NODE);
 		cn_node.setHoldsOutline();
+		cn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
 		/** Buried-Node */
 		PrimitiveNode bn_node = PrimitiveNode.newInstance("Buried-Node", this, 6, 6, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(BC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
+				new Technology.NodeLayer(BC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_22)
 			});
 		bn_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -872,12 +953,13 @@ public class nMOS extends Technology
 			});
 		bn_node.setFunction(NodeProto.Function.NODE);
 		bn_node.setHoldsOutline();
+		bn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
 		/** Overglass-Node */
 		PrimitiveNode on_node = PrimitiveNode.newInstance("Overglass-Node", this, 6, 6, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(O_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
+				new Technology.NodeLayer(O_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_22)
 			});
 		on_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -886,12 +968,13 @@ public class nMOS extends Technology
 			});
 		on_node.setFunction(NodeProto.Function.NODE);
 		on_node.setHoldsOutline();
+		on_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
 		/** Light-Implant-Node */
 		PrimitiveNode lin_node = PrimitiveNode.newInstance("Light-Implant-Node", this, 6, 6, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(LI_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
+				new Technology.NodeLayer(LI_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_22)
 			});
 		lin_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -900,12 +983,13 @@ public class nMOS extends Technology
 			});
 		lin_node.setFunction(NodeProto.Function.NODE);
 		lin_node.setHoldsOutline();
+		lin_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
 		/** Oversize-Cut-Node */
 		PrimitiveNode ocn_node = PrimitiveNode.newInstance("Oversize-Cut-Node", this, 6, 6, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(OC_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
+				new Technology.NodeLayer(OC_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, box_22)
 			});
 		ocn_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -914,12 +998,13 @@ public class nMOS extends Technology
 			});
 		ocn_node.setFunction(NodeProto.Function.NODE);
 		ocn_node.setHoldsOutline();
+		ocn_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
 		/** Hard-Enhancement-Node */
 		PrimitiveNode hen_node = PrimitiveNode.newInstance("Hard-Enhancement-Node", this, 6, 6, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(HE_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
+				new Technology.NodeLayer(HE_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_22)
 			});
 		hen_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -928,12 +1013,13 @@ public class nMOS extends Technology
 			});
 		hen_node.setFunction(NodeProto.Function.NODE);
 		hen_node.setHoldsOutline();
+		hen_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
 		/** Light-Enhancement-Node */
 		PrimitiveNode len_node = PrimitiveNode.newInstance("Light-Enhancement-Node", this, 6, 6, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(LE_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
+				new Technology.NodeLayer(LE_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_22)
 			});
 		len_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -942,5 +1028,6 @@ public class nMOS extends Technology
 			});
 		len_node.setFunction(NodeProto.Function.NODE);
 		len_node.setHoldsOutline();
+		len_node.setSpecialType(PrimitiveNode.POLYGONAL);
 	};
 }

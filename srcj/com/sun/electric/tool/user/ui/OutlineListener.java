@@ -64,7 +64,7 @@ class OutlineListener
 		high.setPoint(0);
 		point = 0;
 		EditWindow wnd = EditWindow.getCurrent();
-		if (wnd != null) wnd.redraw();
+		if (wnd != null) wnd.repaintContents();
 	}
 
 	public void mousePressed(MouseEvent evt)
@@ -120,7 +120,7 @@ class OutlineListener
 			Highlight.setHighlightOffset(0, 0);
 
 			moveSelectedPoint(delta.getX(), delta.getY());
-			wnd.redraw();
+			wnd.repaintContents();
 		}
 	}
 
@@ -144,12 +144,12 @@ class OutlineListener
 		if (doingMotionDrag)
 		{
 			Highlight.setHighlightOffset(newX - oldx, newY - oldy);
-			wnd.redraw();
+			wnd.repaintContents();
 			return;
 		}
 		oldx = newX;
 		oldy = newY;
-		wnd.redraw();
+		wnd.repaintContents();
 	}
 
 	public void mouseWheelMoved(MouseWheelEvent evt)
@@ -267,7 +267,7 @@ class OutlineListener
 			int nextPoint = point + 1;
 			if (nextPoint >= origPoints.length) nextPoint = 0;
 			high.setPoint(point = nextPoint);
-			wnd.redraw();
+			wnd.repaint();
 		} else if (chr == KeyEvent.VK_COMMA)
 		{
 			// backup to previous point
@@ -275,7 +275,7 @@ class OutlineListener
 			int prevPoint = point - 1;
 			if (prevPoint < 0) prevPoint = origPoints.length - 1;
 			high.setPoint(point = prevPoint);
-			wnd.redraw();
+			wnd.repaint();
 		}
 	}
 

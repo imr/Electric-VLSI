@@ -52,6 +52,7 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.BinaryConstants;
+import com.sun.electric.tool.io.InputLibrary;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.Progress;
 
@@ -62,13 +63,14 @@ import java.io.IOException;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
+import java.util.HashMap;
 import java.util.Date;
 
 
 /**
  * This class reads files in binary (.elib) format.
  */
-public class InputBinary extends Input
+public class InputBinary extends InputLibrary
 {
 	// ------------------------- private data ----------------------------
 	/** the magic number in the library file */								private int magic;
@@ -111,10 +113,8 @@ public class InputBinary extends Input
 	/** the most popular layout technology */								private Technology layoutTech;
 
 	// the cell information
-	/** the number of NodeProtos in the file */								private int nodeProtoCount;
 	/** the number of Cells in the file */									private int cellCount;
 	/** the index of the current Cell */									private int curCell;
-	/** list of all Cells in the library */									private Cell [] nodeProtoList;
 	/** list of all former cells in the library */							private FakeCell [] fakeCellList;
 	/** list of number of NodeInsts in each Cell of the library */			private int [] nodeCounts;
 	/** index of first NodeInst in each cell of the library */				private int [] firstNodeIndex;
@@ -122,18 +122,14 @@ public class InputBinary extends Input
 	/** index of first ArcInst in each cell of the library */				private int [] firstArcIndex;
 	/** list of all Exports in each Cell of the library */					private int [] portCounts;
 	/** index of first Export in each cell of the library */				private int [] firstPortIndex;
+	/** X center each cell of the library */								private int [] cellXOff;
+	/** Y center each cell of the library */								private int [] cellYOff;
+	/** true if this x-lib cell ref is satisfied */							private boolean [] xLibRefSatisfied;
+	/** mapping view indices to views */									private HashMap viewMapping;
 
 	// the NodeInsts in the library
 	/** the number of NodeInsts in the library */							private int nodeCount;
-	/** list of all NodeInsts in the library */								private NodeInst [] nodeList;
-	/** list of Prototypes of NodeInsts in the library */					private NodeProto [] nodeTypeList;
-	/** list of Names of NodeInsts in the library */						private Name [] nodeNameList;
-	/** list of Low X values for NodeInsts in the library */				private int [] nodeLowXList;
-	/** list of High X values for NodeInsts in the library */				private int [] nodeHighXList;
-	/** list of Low Y values for NodeInsts in the library */				private int [] nodeLowYList;
-	/** list of High Y values for NodeInsts in the library */				private int [] nodeHighYList;
-	/** list of rotation values for NodeInsts in the library */				private short [] nodeRotationList;
-	/** list of transpose values for NodeInsts in the library */			private int [] nodeTransposeList;
+	/** All data for NodeInsts in each Cell. */								private InputLibrary.NodeInstList nodeInstList;
 
 	// the ArcInsts in the library
 	/** the number of ArcInsts in the library */							private int arcCount;
@@ -144,16 +140,16 @@ public class InputBinary extends Input
 	/** list of the head X of the ArcInsts in the library */				private int [] arcHeadXPosList;
 	/** list of the head Y of the ArcInsts in the library */				private int [] arcHeadYPosList;
 	/** list of the head node of the ArcInsts in the library */				private NodeInst [] arcHeadNodeList;
-	/** list of the head port of the ArcInsts in the library */				private PortProto [] arcHeadPortList;
+	/** list of the head port of the ArcInsts in the library */				private Object [] arcHeadPortList;
 	/** list of the tail X of the ArcInsts in the library */				private int [] arcTailXPosList;
 	/** list of the tail Y of the ArcInsts in the library */				private int [] arcTailYPosList;
 	/** list of the tail node of the ArcInsts in the library */				private NodeInst [] arcTailNodeList;
-	/** list of the tail port of the ArcInsts in the library */				private PortProto [] arcTailPortList;
+	/** list of the tail port of the ArcInsts in the library */				private Object [] arcTailPortList;
 
 	// the Exports in the library
 	/** the number of Exports in the library */								private int portProtoCount;
 	/** counter for Exports in the library */								private int portProtoIndex;
-	/** list of all Exports in the library */								private Export [] portProtoList;
+	/** list of all Exports in the library */								private Object [] portProtoList;
 	/** list of NodeInsts that are origins of Exports in the library */		private NodeInst [] portProtoSubNodeList;
 	/** list of PortProtos that are origins of Exports in the library */	private Object [] portProtoSubPortList;
 	/** list of Export names in the library */								private String [] portProtoNameList;
@@ -169,8 +165,6 @@ public class InputBinary extends Input
 	/** list of variable keys in the library */								private Variable.Key [] realKey;
 	/** true to convert all text descriptor values */						private boolean convertTextDescriptors;
 	/** true to require text descriptor values */							private boolean alwaysTextDescriptors;
-
-	/** cell flag for recursive setup */									private FlagSet recursiveSetupFlag;
 
 	// ".elib" file version numbers
 	/** current magic number: version 12 */		public static final int MAGIC12 = -1595;
@@ -277,27 +271,23 @@ public class InputBinary extends Input
 		}
 
 		// get the newly created views (version 9 and later)
-		for (Iterator it = View.getViews(); it.hasNext();)
-		{
-			View view = (View) it.next();
-			view.setTempInt(0);
-		}
-		View.UNKNOWN.setTempInt(-1);
-		View.LAYOUT.setTempInt(-2);
-		View.SCHEMATIC.setTempInt(-3);
-		View.ICON.setTempInt(-4);
-		View.DOCWAVE.setTempInt(-5);
-		View.LAYOUTSKEL.setTempInt(-6);
-		View.VHDL.setTempInt(-7);
-		View.NETLIST.setTempInt(-8);
-		View.DOC.setTempInt(-9);
-		View.NETLISTNETLISP.setTempInt(-10);
-		View.NETLISTALS.setTempInt(-11);
-		View.NETLISTQUISC.setTempInt(-12);
-		View.NETLISTRSIM.setTempInt(-13);
-		View.NETLISTSILOS.setTempInt(-14);
-		View.VERILOG.setTempInt(-15);
-		View.LAYOUTCOMP.setTempInt(-16);
+		viewMapping = new HashMap();
+		viewMapping.put(new Integer(-1), View.UNKNOWN);
+		viewMapping.put(new Integer(-2), View.LAYOUT);
+		viewMapping.put(new Integer(-3), View.SCHEMATIC);
+		viewMapping.put(new Integer(-4), View.ICON);
+		viewMapping.put(new Integer(-5), View.DOCWAVE);
+		viewMapping.put(new Integer(-6), View.LAYOUTSKEL);
+		viewMapping.put(new Integer(-7), View.VHDL);
+		viewMapping.put(new Integer(-8), View.NETLIST);
+		viewMapping.put(new Integer(-9), View.DOC);
+		viewMapping.put(new Integer(-10), View.NETLISTNETLISP);
+		viewMapping.put(new Integer(-11), View.NETLISTALS);
+		viewMapping.put(new Integer(-12), View.NETLISTQUISC);
+		viewMapping.put(new Integer(-13), View.NETLISTRSIM);
+		viewMapping.put(new Integer(-14), View.NETLISTSILOS);
+		viewMapping.put(new Integer(-15), View.VERILOG);
+		viewMapping.put(new Integer(-16), View.LAYOUTCOMP);
 		if (magic <= MAGIC9)
 		{
 			int numExtraViews = readBigInteger();
@@ -327,7 +317,7 @@ public class InputBinary extends Input
 						if (view == null) return true;
 					}
 				}
-				view.setTempInt(i + 1);
+				viewMapping.put(new Integer(i+1), view);
 			}
 		}
 
@@ -370,18 +360,22 @@ public class InputBinary extends Input
 		firstArcIndex = new int[nodeProtoCount+1];
 		portCounts = new int[nodeProtoCount];
 		firstPortIndex = new int[nodeProtoCount];
+		cellLambda = new double[nodeProtoCount];
+		cellXOff = new int[nodeProtoCount];
+		cellYOff = new int[nodeProtoCount];
+		xLibRefSatisfied = new boolean[nodeProtoCount];
 
 		// allocate pointers for the NodeInsts
-		nodeList = new NodeInst[nodeCount];
-		nodeTypeList = new NodeProto[nodeCount];
-		nodeNameList = new Name[nodeCount];
-		nodeLowXList = new int[nodeCount];
-		nodeHighXList = new int[nodeCount];
-		nodeLowYList = new int[nodeCount];
-		nodeHighYList = new int[nodeCount];
-		nodeRotationList = new short[nodeCount];
-		nodeTransposeList = new int[nodeCount];
-
+		nodeInstList = new InputLibrary.NodeInstList();
+		nodeInstList.theNode = new NodeInst[nodeCount];
+		nodeInstList.protoType = new NodeProto[nodeCount];
+		nodeInstList.name = new Name[nodeCount];
+		nodeInstList.lowX = new int[nodeCount];
+		nodeInstList.highX = new int[nodeCount];
+		nodeInstList.lowY = new int[nodeCount];
+		nodeInstList.highY = new int[nodeCount];
+		nodeInstList.rotation = new short[nodeCount];
+		nodeInstList.transpose = new int[nodeCount];
 
 		// allocate pointers for the ArcInsts
 		arcList = new ArcInst[arcCount];
@@ -391,11 +385,11 @@ public class InputBinary extends Input
 		arcHeadXPosList = new int[arcCount];
 		arcHeadYPosList = new int[arcCount];
 		arcHeadNodeList = new NodeInst[arcCount];
-		arcHeadPortList = new PortProto[arcCount];
+		arcHeadPortList = new Object[arcCount];
 		arcTailXPosList = new int[arcCount];
 		arcTailYPosList = new int[arcCount];
 		arcTailNodeList = new NodeInst[arcCount];
-		arcTailPortList = new PortProto[arcCount];
+		arcTailPortList = new Object[arcCount];
 		for(int i = 0; i < arcCount; i++)
 		{
 			arcHeadNodeList[i] = null;
@@ -406,7 +400,7 @@ public class InputBinary extends Input
 		}
 
 		// allocate pointers for the Exports
-		portProtoList = new Export[portProtoCount];
+		portProtoList = new Object[portProtoCount];
 		portProtoSubNodeList = new NodeInst[portProtoCount];
 		portProtoSubPortList = new Object[portProtoCount];
 		portProtoNameList = new String[portProtoCount];
@@ -480,10 +474,12 @@ public class InputBinary extends Input
 			{
 				// this cell is from an external library
 				nodeProtoList[i] = null;
+				xLibRefSatisfied[i] = false;
 			} else
 			{
 				nodeProtoList[i] = Cell.lowLevelAllocate(lib);
 				if (nodeProtoList[i] == null) return true;
+				xLibRefSatisfied[i] = true;
 			}
 		}
 
@@ -505,8 +501,8 @@ public class InputBinary extends Input
 			for(int i=0; i<nodeCounts[cellIndex]; i++)
 			{
 				int thisone = i + nodeinstpos;
-				nodeList[thisone] = NodeInst.lowLevelAllocate();
-				if (nodeList[thisone] == null) return true;
+				nodeInstList.theNode[thisone] = NodeInst.lowLevelAllocate();
+				if (nodeInstList.theNode[thisone] == null) return true;
 			}
 			nodeinstpos += nodeCounts[cellIndex];
 
@@ -998,93 +994,158 @@ public class InputBinary extends Input
 		firstNodeIndex[nodeProtoCount] = nodeIndex;
 		firstArcIndex[nodeProtoCount] = arcIndex;
 
-		// clear flag bits for scanning the library hierarchically
-		recursiveSetupFlag = NodeProto.getFlagSet(1);
-		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
-		{
-			Cell cell = nodeProtoList[cellIndex];
-			cell.clearBit(recursiveSetupFlag);
-			cell.setTempInt(cellIndex);
-		}
-
-		// scan library hierarchically and complete the setup
-		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
-		{
-			Cell cell = nodeProtoList[cellIndex];
-			if (cell.isBit(recursiveSetupFlag)) continue;
-			completeCellSetupRecursively(cell, cellIndex);
-		}
-		recursiveSetupFlag.freeFlagSet();
-		if (curCell >= 0)
+		if (curCell >= 0 && curCell < nodeProtoCount)
 		{
 			NodeProto currentCell = convertNodeProto(curCell);
 			lib.setCurCell((Cell)currentCell);
 		}
 
 		// library read successfully
+		if (InputLibrary.VERBOSE)
+			System.out.println("Binary: finished reading data for library " + lib.getLibName());
 		return false;
 	}
+
+	// *************************** THE CELL CLEANUP INTERFACE ***************************
 
 	/**
 	 * Method to recursively create the contents of each cell in the library.
 	 */
-	private void completeCellSetupRecursively(Cell cell, int cellIndex)
+	protected void realizeCellsRecursively(Cell cell, FlagSet recursiveSetupFlag)
 	{
-		// scan the nodes in this cell and recurse
+		// get informatino about this cell
+		int cellIndex = cell.getTempInt();
 		int startNode = firstNodeIndex[cellIndex];
 		int endNode = firstNodeIndex[cellIndex+1];
+
+		// recursively ensure that external library references are satisfied
 		for(int i=startNode; i<endNode; i++)
 		{
-			// convert to new style
-			NodeInst ni = nodeList[i];
-			NodeProto np = nodeTypeList[i];
+			NodeProto np = nodeInstList.protoType[i];
 			if (np instanceof PrimitiveNode) continue;
-			Cell otherCell = (Cell)np;
-
-			// ignore cross-reference instances
-			if (otherCell.getLibrary() != cell.getLibrary()) continue;
+			Cell subCell = (Cell)np;
+			if (subCell.getLibrary() == lib) continue;
 
 			// subcell: make sure that cell is setup
-			if (otherCell.isBit(recursiveSetupFlag)) continue;
-
-			// setup the subcell recursively
-			completeCellSetupRecursively(otherCell,  otherCell.getTempInt());
-		}
-		cell.setBit(recursiveSetupFlag);
-
-		// determine the lambda value for this cell
-		double lambda = 1.0;
-		int startArc = firstArcIndex[cellIndex];
-		int endArc = firstArcIndex[cellIndex+1];
-		Technology cellTech = Technology.whatTechnology(cell, nodeTypeList, startNode, endNode, arcTypeList, startArc, endArc);
-		if (cellTech != null) lambda = techScale[cellTech.getIndex()];
-
-		// finish initializing the NodeInsts in the cell: start with the cell-center
-		int xoff = 0, yoff = 0;
-		for(int i=startNode; i<endNode; i++)
-		{
-			if (nodeTypeList[i] == Generic.tech.cellCenterNode)
+			for(int cI = 0; cI<nodeProtoCount; cI++)
 			{
-				buildNodeInst(i, xoff, yoff, lambda, cell);
-				xoff = (nodeLowXList[i] + nodeHighXList[i]) / 2;
-				yoff = (nodeLowYList[i] + nodeHighYList[i]) / 2;
+				if (nodeProtoList[cI] != subCell) continue;
+				if (xLibRefSatisfied[cI]) break;
+
+				// make sure that cell is properly built
+				if (!subCell.isBit(recursiveSetupFlag))
+				{
+					InputLibrary reader = getReaderForLib(subCell.getLibrary());
+					reader.realizeCellsRecursively(subCell, recursiveSetupFlag);
+				}
+
+				int startPort = firstPortIndex[cI];
+				int endPort = startPort + portCounts[cI];
+				for(int j=startPort; j<endPort; j++)
+				{
+					Object obj = portProtoList[j];
+					Export pp = null;
+					Cell otherCell = null;
+					if (obj instanceof Cell)
+					{
+						otherCell = (Cell)obj;
+						pp = otherCell.findExport(portProtoNameList[j]);
+						if (pp != null)
+						{
+							portProtoList[j] = pp;
+						}
+					}
+				}
+				xLibRefSatisfied[cI] = true;
 				break;
 			}
 		}
 
+		// recursively scan the nodes to the bottom and only proceed when everything below is built
+		scanNodesForRecursion(cell, recursiveSetupFlag, nodeInstList.protoType, startNode, endNode);
+
+		// now fill in the nodes
+		if (InputLibrary.VERBOSE)
+			System.out.println("Binary: Doing contents of cell " + cell.describe() + " in library " + lib.getLibName());
+
+		// finish initializing the NodeInsts in the cell: start with the cell-center
+		double lambda = cellLambda[cellIndex];
+		int xoff = 0, yoff = 0;
+		for(int i=startNode; i<endNode; i++)
+		{
+			if (nodeInstList.protoType[i] == Generic.tech.cellCenterNode)
+			{
+				realizeNode(i, xoff, yoff, lambda, cell);
+				xoff = (nodeInstList.lowX[i] + nodeInstList.highX[i]) / 2;
+				yoff = (nodeInstList.lowY[i] + nodeInstList.highY[i]) / 2;
+				break;
+			}
+		}
+		cellXOff[cellIndex] = xoff;
+		cellYOff[cellIndex] = yoff;
+
 		// finish creating the rest of the NodeInsts
 		for(int i=startNode; i<endNode; i++)
 		{
-			if (nodeTypeList[i] != Generic.tech.cellCenterNode)
-				buildNodeInst(i, xoff, yoff, lambda, cell);
+			if (nodeInstList.protoType[i] != Generic.tech.cellCenterNode)
+				realizeNode(i, xoff, yoff, lambda, cell);
 		}
 
+		// do the exports now
+		realizeExports(cell, cellIndex);
+
+		// do the arcs now
+		realizeArcs(cell, cellIndex);
+	}
+
+	protected boolean spreadLambda(Cell cell, int cellIndex)
+	{
+		boolean changed = false;
+		int startNode = firstNodeIndex[cellIndex];
+		int endNode = firstNodeIndex[cellIndex+1];
+		double thisLambda = cellLambda[cellIndex];
+		for(int i=startNode; i<endNode; i++)
+		{
+			NodeProto np = nodeInstList.protoType[i];
+			if (np instanceof PrimitiveNode) continue;
+			Cell subCell = (Cell)np;
+
+			InputLibrary reader = this;
+			if (subCell.getLibrary() != lib)
+			{
+				reader = getReaderForLib(subCell.getLibrary());
+			}
+			int subCellIndex = subCell.getTempInt();
+			double subLambda = reader.cellLambda[subCellIndex];
+			if (subLambda < thisLambda)
+			{
+				reader.cellLambda[subCellIndex] = thisLambda;
+				changed = true;
+			}
+		}
+		return changed;
+	}
+
+	protected double computeLambda(Cell cell, int cellIndex)
+	{
+		double lambda = 1.0;
+		int startNode = firstNodeIndex[cellIndex];
+		int endNode = firstNodeIndex[cellIndex+1];
+		int startArc = firstArcIndex[cellIndex];
+		int endArc = firstArcIndex[cellIndex+1];
+		Technology cellTech = Technology.whatTechnology(cell, nodeInstList.protoType, startNode, endNode, arcTypeList, startArc, endArc);
+		if (cellTech != null) lambda = techScale[cellTech.getIndex()];
+		return lambda;
+	}
+
+	private void realizeExports(Cell cell, int cellIndex)
+	{
 		// finish initializing the Exports in the cell
 		int startPort = firstPortIndex[cellIndex];
 		int endPort = startPort + portCounts[cellIndex];
 		for(int i=startPort; i<endPort; i++)
 		{
-			Export pp = portProtoList[i];
+			Export pp = (Export)portProtoList[i];
 			NodeInst subNodeInst = portProtoSubNodeList[i];
 			if (portProtoSubPortList[i] instanceof Integer)
 			{
@@ -1096,6 +1157,11 @@ public class InputBinary extends Input
 
 			// null entries happen when there are external cell references
 			if (subNodeInst == null || subPortProto == null) continue;
+			if (subNodeInst.getProto() == null)
+			{
+				System.out.println("proto bad!");
+				continue;
+			}
 
 			// convert portproto to portinst
 			String exportName = portProtoNameList[i];
@@ -1105,53 +1171,12 @@ public class InputBinary extends Input
 			pp.lowLevelSetUserbits(portProtoUserbits[i]);
 		}
 
-		// finish initializing the ArcInsts in the cell
-		boolean arcInfoError = false;
-		for(int i=startArc; i<endArc; i++)
-		{
-			ArcInst ai = arcList[i];
-			ArcProto ap = arcTypeList[i];
-			Name name = arcNameList[i];
-			double width = arcWidthList[i] / lambda;
-			double headX = (arcHeadXPosList[i] - xoff) / lambda;
-			double headY = (arcHeadYPosList[i] - yoff) / lambda;
-			double tailX = (arcTailXPosList[i] - xoff) / lambda;
-			double tailY = (arcTailYPosList[i] - yoff) / lambda;
-			NodeInst headNode = arcHeadNodeList[i];
-			PortProto headPort = arcHeadPortList[i];
-			NodeInst tailNode = arcTailNodeList[i];
-			PortProto tailPort = arcTailPortList[i];
-			if (headNode == null || headPort == null || tailNode == null || tailPort == null)
-			{
-				if (!arcInfoError)
-				{
-					System.out.println("Missing arc information in cell " + cell.noLibDescribe() +
-						" ...  Database may be corrupt");
-					if (headNode == null) System.out.println("   Head node not found");
-					if (headPort == null) System.out.println("   Head port not found");
-					if (tailNode == null) System.out.println("   Tail node not found");
-					if (tailPort == null) System.out.println("   Tail port not found");
-					arcInfoError = true;
-				}
-				continue;
-			}
-			PortInst headPortInst = headNode.findPortInst(headPort.getProtoName());
-			PortInst tailPortInst = tailNode.findPortInst(tailPort.getProtoName());
-			if (headPortInst == null || tailPortInst == null)
-			{
-				System.out.println("Cannot create arc of type " + ap.getProtoName() + " in cell " + cell.getProtoName() +
-					" because ends are unknown");
-				continue;
-			}
-			ai.lowLevelPopulate(ap, width, tailPortInst, new Point2D.Double(tailX, tailY), headPortInst, new Point2D.Double(headX, headY));
-			if (name != null) ai.setNameKey(name);
-			ai.lowLevelLink();
-		}
-
 		// convert "ATTRP_" variables on NodeInsts to be on PortInsts
+		int startNode = firstNodeIndex[cellIndex];
+		int endNode = firstNodeIndex[cellIndex+1];
 		for(int i=startNode; i<endNode; i++)
 		{
-			NodeInst ni = nodeList[i];
+			NodeInst ni = nodeInstList.theNode[i];
 			boolean found = true;
 			while (found)
 			{
@@ -1209,36 +1234,119 @@ public class InputBinary extends Input
 	}
 
 	/**
+	 * Method to create the ArcInsts in a given cell and it's index in the global lists.
+	 */
+	private void realizeArcs(Cell cell, int cellIndex)
+	{
+		double lambda = cellLambda[cellIndex];
+		int xoff = cellXOff[cellIndex];
+		int yoff = cellYOff[cellIndex];
+		boolean arcInfoError = false;
+		int startArc = firstArcIndex[cellIndex];
+		int endArc = firstArcIndex[cellIndex+1];
+		for(int i=startArc; i<endArc; i++)
+		{
+			ArcInst ai = arcList[i];
+			ArcProto ap = arcTypeList[i];
+			Name name = arcNameList[i];
+			double width = arcWidthList[i] / lambda;
+			double headX = (arcHeadXPosList[i] - xoff) / lambda;
+			double headY = (arcHeadYPosList[i] - yoff) / lambda;
+			double tailX = (arcTailXPosList[i] - xoff) / lambda;
+			double tailY = (arcTailYPosList[i] - yoff) / lambda;
+			NodeInst headNode = arcHeadNodeList[i];
+			Object headPort = arcHeadPortList[i];
+			int headPortIntValue = -1;
+			if (headPort instanceof Integer)
+			{
+				// this was an external reference that couldn't be resolved yet.  Do it now
+				headPortIntValue = ((Integer)headPort).intValue();
+				headPort = convertPortProto(headPortIntValue);
+			}
+			NodeInst tailNode = arcTailNodeList[i];
+			Object tailPort = arcTailPortList[i];
+			int tailPortIntValue = -1;
+			if (tailPort instanceof Integer)
+			{
+				// this was an external reference that couldn't be resolved yet.  Do it now
+				tailPortIntValue = ((Integer)tailPort).intValue();
+				tailPort = convertPortProto(tailPortIntValue);
+			}
+			if (headNode == null || headPort == null || tailNode == null || tailPort == null)
+			{
+				if (!arcInfoError)
+				{
+					System.out.println("ERROR: Missing arc information in cell " + cell.noLibDescribe() +
+						" in library " + lib.getLibName() + " ...");
+					if (headNode == null) System.out.println("   Head node not found");
+					if (headPort == null) System.out.println("   Head port not found (was "+headPortIntValue+", node="+headNode+")");
+					if (tailNode == null) System.out.println("   Tail node not found");
+					if (tailPort == null) System.out.println("   Tail port not found (was "+tailPortIntValue+", node="+tailNode+")");
+					arcInfoError = true;
+				}
+				continue;
+			}
+			PortInst headPortInst = headNode.findPortInst(((PortProto)headPort).getProtoName());
+			PortInst tailPortInst = tailNode.findPortInst(((PortProto)tailPort).getProtoName());
+			if (headPortInst == null || tailPortInst == null)
+			{
+				System.out.println("Cannot create arc of type " + ap.getProtoName() + " in cell " + cell.getProtoName() +
+					" because ends are unknown");
+				continue;
+			}
+			ai.lowLevelPopulate(ap, width, tailPortInst, new Point2D.Double(tailX, tailY), headPortInst, new Point2D.Double(headX, headY));
+			if (name != null) ai.setNameKey(name);
+			ai.lowLevelLink();
+		}
+	}
+
+	/**
 	 * Method to build a NodeInst.
 	 */
-	private void buildNodeInst(int i, int xoff, int yoff, double lambda, Cell cell)
+	private void realizeNode(int i, int xoff, int yoff, double lambda, Cell cell)
 	{
-		NodeInst ni = nodeList[i];
-		NodeProto np = nodeTypeList[i];
-		Name name = nodeNameList[i];
-		double lowX = nodeLowXList[i]-xoff;
-		double lowY = nodeLowYList[i]-yoff;
-		double highX = nodeHighXList[i]-xoff;
-		double highY = nodeHighYList[i]-yoff;
+		NodeInst ni = nodeInstList.theNode[i];
+		NodeProto np = nodeInstList.protoType[i];
+		Name name = nodeInstList.name[i];
+		double lowX = nodeInstList.lowX[i]-xoff;
+		double lowY = nodeInstList.lowY[i]-yoff;
+		double highX = nodeInstList.highX[i]-xoff;
+		double highY = nodeInstList.highY[i]-yoff;
 		Point2D center = new Point2D.Double(((lowX + highX) / 2) / lambda, ((lowY + highY) / 2) / lambda);
 		double width = (highX - lowX) / lambda;
 		double height = (highY - lowY) / lambda;
+		if (np instanceof Cell)
+		{
+			Rectangle2D bounds = ((Cell)np).getBounds();
+			if (bounds.getWidth() != width || bounds.getHeight() != height)
+			{
+				if (Math.abs(bounds.getWidth() - width) > 0.5 ||
+					Math.abs(bounds.getHeight() - height) > 0.5)
+				{
+					System.out.println("Adjusting size of " + ((Cell)np).describe() +
+						" (cell is " + bounds.getWidth() + "x" + bounds.getHeight() +
+						" but instance is " + width + "x" + height + ")");
+				}
+				width = bounds.getWidth();
+				height = bounds.getHeight();
+			}
+		}
 
-		int rotation = nodeRotationList[i];
+		int rotation = nodeInstList.rotation[i];
 		if (version.getMajor() > 7 || (version.getMajor() == 7 && version.getMinor() >= 1))
 		{
 			// new version: allow mirror bits
-			if ((nodeTransposeList[i]&1) != 0)
+			if ((nodeInstList.transpose[i]&1) != 0)
 			{
 				height = -height;
 				rotation = (rotation + 900) % 3600;
 			}
-			if ((nodeTransposeList[i]&2) != 0)
+			if ((nodeInstList.transpose[i]&2) != 0)
 			{
 				// mirror in X
 				width = -width;
 			}
-			if ((nodeTransposeList[i]&4) != 0)
+			if ((nodeInstList.transpose[i]&4) != 0)
 			{
 				// mirror in Y
 				height = -height;
@@ -1246,7 +1354,7 @@ public class InputBinary extends Input
 		} else
 		{
 			// old version: just use transpose information
-			if (nodeTransposeList[i] != 0)
+			if (nodeInstList.transpose[i] != 0)
 			{
 				height = -height;
 				rotation = (rotation + 900) % 3600;
@@ -1269,6 +1377,24 @@ public class InputBinary extends Input
 
 		// convert outline information, if present
 		scaleOutlineInformation(ni, np, lambda);
+	}
+
+	protected boolean readerHasExport(Cell c, String portName)
+	{
+		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
+		{
+			Cell cell = nodeProtoList[cellIndex];
+			if (cell != c) continue;
+			int startPort = firstPortIndex[cellIndex];
+			int endPort = startPort + portCounts[cellIndex];
+			for(int i=startPort; i<endPort; i++)
+			{
+				String exportName = portProtoNameList[i];
+				if (exportName.equalsIgnoreCase(portName)) return true;
+			}
+			break;
+		}
+		return false;
 	}
 
 	// --------------------------------- HIGH-LEVEL OBJECTS ---------------------------------
@@ -1383,13 +1509,13 @@ public class InputBinary extends Input
 		for(int j=0; j<portCount; j++)
 		{
 			// set pointers to portproto
-			Export pp = portProtoList[portProtoIndex];
+			Export pp = (Export)portProtoList[portProtoIndex];
 
 			// read the sub-NodeInst for this Export
 			portProtoSubNodeList[portProtoIndex] = null;
 			int whichNode = readBigInteger();
 			if (whichNode >= 0 && whichNode < nodeCount)
-				portProtoSubNodeList[portProtoIndex] = nodeList[whichNode];
+				portProtoSubNodeList[portProtoIndex] = nodeInstList.theNode[whichNode];
 
 			// read the sub-PortProto on the sub-NodeInst
 			portProtoSubPortList[portProtoIndex] = null;
@@ -1664,12 +1790,18 @@ public class InputBinary extends Input
 				PortProto pp = c.findExport(localPortNames[j]);
 				if (pp == null)
 				{
+					InputLibrary reader = getReaderForLib(elib);
+					if (reader != null)
+					{
+						if (reader.readerHasExport(c, localPortNames[j])) continue;
+					}
+
 					System.out.println("Error: cell " + c.noLibDescribe() + " in library " + elib.getLibName() +
-						" is missing export " + localPortNames[j]);
+						" is missing export '" + localPortNames[j] + "'");
 // 					for (Iterator it = c.getPorts(); it.hasNext(); )
 // 					{
-// 						PortProto pp = (PortProto)it.next();
-// 						System.out.println("\t"+pp.getProtoName());
+// 						PortProto ppo = (PortProto)it.next();
+// 						System.out.println("\t"+ppo.getProtoName());
 // 					}
 					c = null;
 					break;
@@ -1682,7 +1814,7 @@ public class InputBinary extends Input
 		{
 			if (revisionDate.compareTo(c.getRevisionDate()) != 0)
 			{
-				System.out.println("Error: cell " + c.noLibDescribe() + " in library " + elib.getLibName() +
+				System.out.println("Warning: cell " + c.noLibDescribe() + " in library " + elib.getLibName() +
 					" has changed since its use in library " + lib.getLibName());
 			}
 		}
@@ -1733,19 +1865,19 @@ public class InputBinary extends Input
 		{
 			// read the portproto name
 			String protoName = localPortNames[j];
-			Export pp = c.findExport(protoName);
-			if (pp == null)
-			{
-				if (newCell)
-				{
-					PortInst pi = fakeNodeInst.findPortInst("univ");
-					pp = Export.newInstance(c, pi, protoName);
-				} else
-				{
-					System.out.println("Cannot find port " + protoName + " on cell " + c.describe() + " in library " + elib.getLibName());
-				}
-			}
-			portProtoList[portProtoIndex] = pp;
+//			Export pp = c.findExport(protoName);
+//			if (pp == null)
+//			{
+//				if (newCell)
+//				{
+//					PortInst pi = fakeNodeInst.findPortInst("univ");
+//					pp = Export.newInstance(c, pi, protoName);
+//				} else
+//				{
+//					System.out.println("Cannot find port " + protoName + " on cell " + c.describe() + " in library " + elib.getLibName());
+//				}
+//			}
+			portProtoList[portProtoIndex] = c;
 			portProtoNameList[portProtoIndex] = protoName;
 			portProtoIndex++;
 		}
@@ -1760,20 +1892,20 @@ public class InputBinary extends Input
 	{
 		// read the nodeproto index
 		Cell parent = nodeProtoList[cellIndex];
-		NodeInst ni = nodeList[nodeIndex];
+		NodeInst ni = nodeInstList.theNode[nodeIndex];
 		int protoIndex = readBigInteger();
 		NodeProto np = convertNodeProto(protoIndex);
 		if (np == null) return true;
 
 		// read the descriptive information
-		nodeTypeList[nodeIndex] = np;
-		nodeLowXList[nodeIndex] = readBigInteger();
-		nodeLowYList[nodeIndex] = readBigInteger();
-		nodeHighXList[nodeIndex] = readBigInteger();
-		nodeHighYList[nodeIndex] = readBigInteger();
-		nodeTransposeList[nodeIndex] = readBigInteger();
-		nodeRotationList[nodeIndex] = (short)readBigInteger();
-		nodeNameList[nodeIndex] = null;
+		nodeInstList.protoType[nodeIndex] = np;
+		nodeInstList.lowX[nodeIndex] = readBigInteger();
+		nodeInstList.lowY[nodeIndex] = readBigInteger();
+		nodeInstList.highX[nodeIndex] = readBigInteger();
+		nodeInstList.highY[nodeIndex] = readBigInteger();
+		nodeInstList.transpose[nodeIndex] = readBigInteger();
+		nodeInstList.rotation[nodeIndex] = (short)readBigInteger();
+		nodeInstList.name[nodeIndex] = null;
 
 		// versions 9 and later get text descriptor for cell name
 		int descript0 = 0, descript1 = 0;
@@ -1815,7 +1947,9 @@ public class InputBinary extends Input
 
 			// read the port information
 			int portIndex = readBigInteger();
-			PortProto pp = convertPortProto(portIndex);
+			Object pp = convertPortProto(portIndex);
+			if (pp == null)
+				pp = new Integer(portIndex);
 			if ((k&1) == 0) arcHeadPortList[arcIndex] = pp; else
 				arcTailPortList[arcIndex] = pp;
 
@@ -1893,14 +2027,14 @@ public class InputBinary extends Input
 		arcHeadYPosList[arcIndex] = readBigInteger();
 		int nodeIndex = readBigInteger();
 		if (nodeIndex >= 0 && nodeIndex < nodeCount)
-			arcHeadNodeList[arcIndex] = nodeList[nodeIndex];
+			arcHeadNodeList[arcIndex] = nodeInstList.theNode[nodeIndex];
 
 		// read the tail information
 		arcTailXPosList[arcIndex] = readBigInteger();
 		arcTailYPosList[arcIndex] = readBigInteger();
 		nodeIndex = readBigInteger();
 		if (nodeIndex >= 0 && nodeIndex < nodeCount)
-			arcTailNodeList[arcIndex] = nodeList[nodeIndex];
+			arcTailNodeList[arcIndex] = nodeInstList.theNode[nodeIndex];
 
 		// ignore the geometry index (versions 4 or older)
 		if (magic > MAGIC5) readBigInteger();
@@ -2098,7 +2232,7 @@ public class InputBinary extends Input
 					geom.setNameTextDescriptor(nameDescript);
 					Name name = makeGeomName(geom, newAddr, newtype);
 					if (obj instanceof NodeInst)
-						nodeNameList[index] = name;
+						nodeInstList.name[index] = name;
 					else
 						arcNameList[index] = name;
 					continue;
@@ -2176,7 +2310,7 @@ public class InputBinary extends Input
 			case BinaryConstants.VNODEINST:
 				i = readBigInteger();
 				if (i < 0 || i >= nodeCount) return null;
-				return nodeList[i];
+				return nodeInstList.theNode[i];
 			case BinaryConstants.VNODEPROTO:
 				i = readBigInteger();
 				return convertNodeProto(i);
@@ -2252,7 +2386,7 @@ public class InputBinary extends Input
 		if (i >= nodeProtoCount)
 		{
 			System.out.println("Error: want cell index " + i + " when limit is " + nodeProtoCount);
-			return getPrimNodeProtoList(0);
+			return null;
 		}
 		return nodeProtoList[i];
 	}
@@ -2292,7 +2426,8 @@ public class InputBinary extends Input
 			System.out.println("Error: want port index " + i + " when limit is " + portProtoCount);
 			i = 0;
 		}
-		return portProtoList[i];
+		if (portProtoList[i] instanceof Cell) return null;
+		return (Export)portProtoList[i];
 	}
 
 	private NodeProto getPrimNodeProtoList(int i)
@@ -2346,13 +2481,8 @@ public class InputBinary extends Input
 	 */
 	private View getView(int i)
 	{
-		View v = null;
-		for(Iterator it = View.getViews(); it.hasNext(); )
-		{
-			v = (View) it.next();
-			if (v.getTempInt() == i) return v;
-		}
-		return null;
+		View v = (View)viewMapping.get(new Integer(i));
+		return v;
 	}
 
 	// --------------------------------- LOW-LEVEL INPUT ---------------------------------

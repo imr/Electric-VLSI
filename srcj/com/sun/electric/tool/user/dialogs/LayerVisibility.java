@@ -158,7 +158,7 @@ public class LayerVisibility extends javax.swing.JDialog
 		if (currentTextOnCell != initialTextOnCell)
 			User.setTextVisibilityOnCell(initialTextOnCell = currentTextOnCell);
 
-		EditWindow.redrawAll();
+		EditWindow.repaintAllContents();
 	}
 
 	private void showLayersForTechnology()

@@ -743,7 +743,7 @@ public class EditOptions extends javax.swing.JDialog
 		// redisplay everything if port options changed
 		if (currentDisplayPortLevel != initialPortDisplayPortLevel ||
 			currentDisplayExportLevel != initialPortDisplayExportLevel)
-				EditWindow.redrawAll();
+				EditWindow.repaintAllContents();
 	}
 
 	//******************************** FRAME ********************************
@@ -1276,7 +1276,7 @@ public class EditOptions extends javax.swing.JDialog
 			}
 			if (redrawWindows)
 			{
-				EditWindow.redrawAll();
+				EditWindow.repaintAllContents();
 			}
 		}
 	}

@@ -691,7 +691,7 @@ public class ExplorerTree extends JTree
 			tree.updateUI();
 
 //			tree.treeDidChange();
-//			EditWindow.redrawAll();
+//			EditWindow.repaintAll();
 		}
 
 		private void cacheEvent(MouseEvent e)
@@ -935,7 +935,7 @@ public class ExplorerTree extends JTree
 			Library lib = (Library)currentSelectedObject;
 			Library.setCurrent(lib);
 			explorerTreeChanged();
-			EditWindow.redrawAll();
+			EditWindow.repaintAll();
 		}
 
 		private void renameLibraryAction()
@@ -1021,21 +1021,21 @@ public class ExplorerTree extends JTree
 		{
 			howToShow = SHOWALPHABETICALLY;
 			explorerTreeChanged();
-			EditWindow.redrawAll();
+			EditWindow.repaintAll();
 		}
 
 		private void showByGroupAction()
 		{
 			howToShow = SHOWBYCELLGROUP;
 			explorerTreeChanged();
-			EditWindow.redrawAll();
+			EditWindow.repaintAll();
 		}
 
 		private void showByHierarchyAction()
 		{
 			howToShow = SHOWBYHIERARCHY;
 			explorerTreeChanged();
-			EditWindow.redrawAll();
+			EditWindow.repaintAll();
 		}
 
 	}

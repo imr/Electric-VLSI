@@ -1170,17 +1170,8 @@ public class Technology extends ElectricObject
 	 */
 	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers)
 	{
-		// get information about the node
-		double halfWidth = ni.getXSize() / 2;
-		double lowX = ni.getTrueCenterX() - halfWidth;
-		double highX = ni.getTrueCenterX() + halfWidth;
-		double halfHeight = ni.getYSize() / 2;
-		double lowY = ni.getTrueCenterY() - halfHeight;
-		double highY = ni.getTrueCenterY() + halfHeight;
-
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		int specialType = np.getSpecialType();
-		double [] specialValues = np.getSpecialValues();
 		if (specialType != PrimitiveNode.SERPTRANS && np.isHoldsOutline())
 		{
 			Point2D [] outline = ni.getTrace();
@@ -1214,13 +1205,13 @@ public class Technology extends ElectricObject
 		SerpentineTrans std = null;
 		if (specialType == PrimitiveNode.MULTICUT)
 		{
-			mcd = new MultiCutData(ni, specialValues);
+			mcd = new MultiCutData(ni, np.getSpecialValues());
 			if (reasonable) numExtraCuts = mcd.cutsReasonable; else
 				numExtraCuts = mcd.cutsTotal;
 			numBasicLayers--;
 		} else if (specialType == PrimitiveNode.SERPTRANS)
 		{
-			std = new SerpentineTrans(ni, specialValues);
+			std = new SerpentineTrans(ni, np.getSpecialValues());
 			if (std.layersTotal > 0)
 			{
 				numExtraCuts = std.layersTotal;
@@ -1236,18 +1227,28 @@ public class Technology extends ElectricObject
 		// add in the basic polygons
 		for(int i = 0; i < numBasicLayers; i++)
 		{
+			double xCenter = ni.getTrueCenterX();
+			double yCenter = ni.getTrueCenterY();
+			double xSize = ni.getXSize();
+			double ySize = ni.getYSize();
 			Technology.NodeLayer primLayer = primLayers[i];
 			int representation = primLayer.getRepresentation();
-			Poly.Type style = primLayer.getStyle();
 			if (representation == Technology.NodeLayer.BOX || representation == Technology.NodeLayer.MINBOX)
 			{
-				double portLowX = ni.getTrueCenterX() + primLayer.getLeftEdge().getMultiplier() * ni.getXSize() + primLayer.getLeftEdge().getAdder();
-				double portHighX = ni.getTrueCenterX() + primLayer.getRightEdge().getMultiplier() * ni.getXSize() + primLayer.getRightEdge().getAdder();
-				double portLowY = ni.getTrueCenterY() + primLayer.getBottomEdge().getMultiplier() * ni.getYSize() + primLayer.getBottomEdge().getAdder();
-				double portHighY = ni.getTrueCenterY() + primLayer.getTopEdge().getMultiplier() * ni.getYSize() + primLayer.getTopEdge().getAdder();
-				double portX = (portLowX + portHighX) / 2;
-				double portY = (portLowY + portHighY) / 2;
-				polys[i] = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
+				EdgeH leftEdge = primLayer.getLeftEdge();
+				EdgeH rightEdge = primLayer.getRightEdge();
+				EdgeV topEdge = primLayer.getTopEdge();
+				EdgeV bottomEdge = primLayer.getBottomEdge();
+				double portLowX = xCenter + leftEdge.getMultiplier() * xSize + leftEdge.getAdder();
+				double portHighX = xCenter + rightEdge.getMultiplier() * xSize + rightEdge.getAdder();
+				double portLowY = yCenter + bottomEdge.getMultiplier() * ySize + bottomEdge.getAdder();
+				double portHighY = yCenter + topEdge.getMultiplier() * ySize + topEdge.getAdder();
+				Point2D [] pointList = new Point2D.Double[] {
+					new Point2D.Double(portLowX, portLowY),
+					new Point2D.Double(portHighX, portLowY),
+					new Point2D.Double(portHighX, portHighY),
+					new Point2D.Double(portLowX, portHighY)};
+				polys[i] = new Poly(pointList);
 			} else if (representation == Technology.NodeLayer.POINTS)
 			{
 				TechPoint [] points = primLayer.getPoints();
@@ -1259,17 +1260,15 @@ public class Technology extends ElectricObject
 					double x = 0, y = 0;
 					if (xFactor != null && yFactor != null)
 					{
-						x = ni.getTrueCenterX() + xFactor.getMultiplier() * ni.getXSize() + xFactor.getAdder();
-						y = ni.getTrueCenterY() + yFactor.getMultiplier() * ni.getYSize() + yFactor.getAdder();
+						x = xCenter + xFactor.getMultiplier() * xSize + xFactor.getAdder();
+						y = yCenter + yFactor.getMultiplier() * ySize + yFactor.getAdder();
 					}
 					pointList[j] = new Point2D.Double(x, y);
 				}
 				polys[i] = new Poly(pointList);
 			}
-			if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTTOP || style == Poly.Type.TEXTBOT ||
-				style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT || style == Poly.Type.TEXTTOPLEFT ||
-				style == Poly.Type.TEXTBOTLEFT || style == Poly.Type.TEXTTOPRIGHT || style == Poly.Type.TEXTBOTRIGHT ||
-				style == Poly.Type.TEXTBOX)
+			Poly.Type style = primLayer.getStyle();
+			if (style.isText())
 			{
 				polys[i].setString(primLayer.getMessage());
 				polys[i].setTextDescriptor(primLayer.getDescriptor());

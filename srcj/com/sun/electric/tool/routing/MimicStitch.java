@@ -719,7 +719,7 @@ public class MimicStitch
 					Highlight.finished();
 					if (flushStructureChanges)
 					{
-						EditWindow.redrawAll();
+						EditWindow.repaintAllContents();
 					}
 					String [] options = {"Yes", "No", "No, and stop", "Yes, then stop"};
 					int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),

@@ -759,7 +759,7 @@ public class Highlight
 							{
 								alreadyHighlighted.setElectricObject(got.getElectricObject());
 								alreadyHighlighted.setPoint(got.getPoint());
-								wnd.redraw();
+								wnd.repaintContents();
 							}
 							break;
 						}

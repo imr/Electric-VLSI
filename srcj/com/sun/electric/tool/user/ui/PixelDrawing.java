@@ -64,6 +64,7 @@ public class PixelDrawing
 	/** size of the opaque layer of the window */			private int total;
 
 	/** the offscreen maps for transparent layers */		private byte [][][] layerBitMaps;
+	/** row pointers for transparent layers */				private byte [][] compositeRows;
 	/** the number of transparent layers */					private int numLayerBitMaps;
 	/** the number of bytes per row in offscreen maps */	private int numBytesPerRow;
 	/** the nuber of offscreen transparent maps made */		private int numLayerBitMapsCreated;
@@ -83,8 +84,10 @@ public class PixelDrawing
 
 		// allocate pointers to the overlappable layers
 		Technology tech = Technology.getCurrent();
+		if (tech == null) return;
 		numLayerBitMaps = tech.getNumTransparentLayers();
 		layerBitMaps = new byte[numLayerBitMaps][][];
+		compositeRows = new byte[numLayerBitMaps][];
 		for(int i=0; i<numLayerBitMaps; i++) layerBitMaps[i] = null;
 		numBytesPerRow = (sz.width + 7) / 8;
 		numLayerBitMapsCreated = 0;
@@ -117,35 +120,39 @@ public class PixelDrawing
 		// merge in the transparent layers
 		if (numLayerBitMapsCreated > 0)
 		{
-			byte [][] rows = new byte[numLayerBitMaps][];
 			for(int y=0; y<sz.height; y++)
 			{
 				for(int i=0; i<numLayerBitMaps; i++)
 				{
 					byte [][] layerBitMap = layerBitMaps[i];
-					if (layerBitMap == null) rows[i] = null; else
+					if (layerBitMap == null) compositeRows[i] = null; else
 					{
-						rows[i] = layerBitMap[y];
+						compositeRows[i] = layerBitMap[y];
 					}
 				}
+				int baseIndex = y * sz.width;
 				for(int x=0; x<sz.width; x++)
 				{
-					int bits = 0;
-					for(int i=0; i<numLayerBitMaps; i++)
-					{
-						if (rows[i] == null) continue;
-						int byt = rows[i][x>>3];
-						if ((byt & (1 << (x&7))) != 0) bits |= (1<<i);
-					}
-					int index = y*sz.width + x;
+					int index = baseIndex + x;
 					if (opaqueData[index] == -1)
 					{
+						int bits = 0;
+						int entry = x >> 3;
+						int maskBit = 1 << (x & 7);
+						for(int i=0; i<numLayerBitMaps; i++)
+						{
+							if (compositeRows[i] == null) continue;
+							int byt = compositeRows[i][entry];
+							if ((byt & maskBit) != 0) bits |= (1<<i);
+						}
+
 						if (bits != 0)
 						{
 							// set a transparent color
 							opaqueData[index] = colorMap[bits].getRGB();
 						} else
 						{
+							// set the background color
 							opaqueData[index] = Color.LIGHT_GRAY.getRGB();
 						}
 					}
@@ -160,26 +167,29 @@ public class PixelDrawing
 	}
 
 	/**
-	 * @return true if this poly was properly rendered
+	 * Render a Poly to the offscreen buffer.
 	 */
 	public void renderPoly(Poly poly, EGraphics graphics)
 	{
+//		Rectangle2D databaseBounds = world.getDisplayedBounds();
+//		Rectangle2D polyBounds = poly.getBounds2D();
+//		if (polyBounds.getMaxX() < databaseBounds.getMinX()) return;
+//		if (polyBounds.getMinX() > databaseBounds.getMaxX()) return;
+//		if (polyBounds.getMaxY() < databaseBounds.getMinY()) return;
+//		if (polyBounds.getMinY() > databaseBounds.getMaxY()) return;
+
 		int layerNum = -1;
 		if (graphics != null) layerNum = graphics.getTransparentLayer() - 1;
 		if (layerNum >= numLayerBitMaps) return;
 
-		Point2D offset = world.getOffset();
-		double offx = offset.getX();
-		double offy = offset.getY();
-		double scale = world.getScale();
-
 		byte [][] layerBitMap = null;
 		if (layerNum >= 0)
 		{
-			if (layerBitMaps[layerNum] == null)
+			layerBitMap = layerBitMaps[layerNum];
+			if (layerBitMap == null)
 			{
 				 // allocate this bitplane dynamically
-				layerBitMaps[layerNum] = new byte[sz.height][];
+				layerBitMap = layerBitMaps[layerNum] = new byte[sz.height][];
 				for(int y=0; y<sz.height; y++)
 				{
 					byte [] row = new byte[numBytesPerRow];
@@ -188,7 +198,6 @@ public class PixelDrawing
 				}
 				numLayerBitMapsCreated++;
 			}
-			layerBitMap = layerBitMaps[layerNum];
 		}
 
 		// now draw it
@@ -199,21 +208,18 @@ public class PixelDrawing
 			Rectangle2D bounds = poly.getBox();
 			if (bounds != null)
 			{
-				// convert coordinates and test for complete clipping
+				// convert coordinates
 				int lX = world.databaseToScreenX(bounds.getMinX());
 				int hX = world.databaseToScreenX(bounds.getMaxX());
-				if (lX >= sz.width) return;
-				if (hX < 0) return;
 				int hY = world.databaseToScreenY(bounds.getMinY());
 				int lY = world.databaseToScreenY(bounds.getMaxY());
-				if (lY >= sz.height) return;
-				if (hY < 0) return;
 
-				// finish clipping
+				// do clipping
 				if (lX < 0) lX = 0;
 				if (hX >= sz.width) hX = sz.width-1;
 				if (lY < 0) lY = 0;
 				if (hY >= sz.height) hY = sz.height-1;
+				if (lX > hX || lY > hY) return;
 
 				// draw the box
 				drawBox(lX, hX, lY, hY, layerBitMap, graphics);
@@ -222,7 +228,7 @@ public class PixelDrawing
 			Point [] intPoints = new Point[points.length];
 			for(int i=0; i<points.length; i++)
 				intPoints[i] = world.databaseToScreen(points[i]);
-			Point [] clippedPoints = clipPoly(intPoints, 0, sz.width, 0, sz.height);
+			Point [] clippedPoints = clipPoly(intPoints, 0, sz.width-1, 0, sz.height-1);
 			drawPolygon(clippedPoints, layerBitMap, graphics);
 			return;
 		}
@@ -244,10 +250,7 @@ public class PixelDrawing
 			drawLine(pt1c, pt3c, layerBitMap, graphics, 0);
 			return;
 		}
-		if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTTOP || style == Poly.Type.TEXTBOT ||
-			style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT || style == Poly.Type.TEXTTOPLEFT ||
-			style == Poly.Type.TEXTBOTLEFT || style == Poly.Type.TEXTTOPRIGHT || style == Poly.Type.TEXTBOTRIGHT ||
-			style == Poly.Type.TEXTBOX)
+		if (style.isText())
 		{
 			Rectangle2D bounds = poly.getBounds2D();
 			Rectangle rect = world.databaseToScreen(bounds);
@@ -320,11 +323,6 @@ public class PixelDrawing
 		{
 			// draw the cross
 			drawCross(poly, graphics);
-//			Point center = world.databaseToScreen(points[0]);
-//			int size = 3;
-//			if (style == Poly.Type.BIGCROSS) size = 5;
-//			drawLine(new Point(center.x-size, center.y), new Point(center.x+size, center.y), layerBitMap, graphics, 0);
-//			drawLine(new Point(center.x, center.y-size), new Point(center.x, center.y+size), layerBitMap, graphics, 0);
 			return;
 		}
 		if (style == Poly.Type.BIGCROSS)

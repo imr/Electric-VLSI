@@ -435,11 +435,7 @@ public class Schematic
 	{
 		// don't check text
 		Poly.Type style = poly.getStyle();
-		if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTTOP ||
-			style == Poly.Type.TEXTBOT || style == Poly.Type.TEXTLEFT ||
-			style == Poly.Type.TEXTRIGHT || style == Poly.Type.TEXTTOPLEFT ||
-			style == Poly.Type.TEXTBOTLEFT || style == Poly.Type.TEXTTOPRIGHT ||
-			style == Poly.Type.TEXTBOTRIGHT || style == Poly.Type.TEXTBOX) return false;
+		if (style.isText()) return false;
 
 		Cell cell = geom.getParent();
 		NodeInst ni = null;

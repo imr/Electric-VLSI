@@ -140,7 +140,7 @@ public class User extends Listener
 			WindowFrame window = (WindowFrame)wit.next();
 			EditWindow win = window.getEditWindow();
 			Cell winCell = win.getCell();
-			if (winCell == cell) win.redraw();
+			if (winCell == cell) win.repaint();
 		}
 
 		if (recurseUp)

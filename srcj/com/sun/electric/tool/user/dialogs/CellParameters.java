@@ -164,7 +164,7 @@ public class CellParameters extends javax.swing.JDialog
 			dialog.updateInstances();
 
 			dialog.reloadParamList();
-			EditWindow.redrawAll();
+			EditWindow.repaintAllContents();
 		}
 	}
 
@@ -242,7 +242,7 @@ public class CellParameters extends javax.swing.JDialog
 				dialog.updateInstances();
 
 				dialog.reloadParamList();
-				EditWindow.redrawAll();
+				EditWindow.repaintAllContents();
 			}
 		}
 	}
