@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.FileDialog;
@@ -34,6 +35,7 @@ import java.awt.FileDialog;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
@@ -45,6 +47,8 @@ public class OpenFile
 	 */
 	public static class Type
 	{
+        /** all types */                        private static final ArrayList allTypes = new ArrayList();
+
 		/** Describes any file.*/				public static final Type ANY          = new Type("All", new String[] {}, "All Files");
 		/** Describes CDL decks.*/				public static final Type CDL          = new Type("CDL", new String[] {"cdl"}, "CDL Deck (cdl)");
 		/** Describes CIF files. */				public static final Type CIF          = new Type("CIF", new String[] {"cif"}, "CIF File (cif)");
@@ -123,6 +127,7 @@ public class OpenFile
 			this.desc = desc;
 			this.ffs = null;
 			this.ffa = null;
+            allTypes.add(this);
 		}
 
 		public String getName() { return name; }
@@ -146,6 +151,28 @@ public class OpenFile
 		 * @return a printable version of this Type.
 		 */
 		public String toString() { return name; }
+
+        /**
+         * Get the Type for the specified filter
+         */
+        public static Type getType(FileFilter filter) {
+            for (Iterator it = allTypes.iterator(); it.hasNext(); ) {
+                Type type = (Type)it.next();
+                if (type.ffs == filter) return type;
+            }
+            return null;
+        }
+
+        /**
+         * Get the Type for the specified filter
+         */
+        public static Type getType(FilenameFilter filter) {
+            for (Iterator it = allTypes.iterator(); it.hasNext(); ) {
+                Type type = (Type)it.next();
+                if (type.ffa == filter) return type;
+            }
+            return null;
+        }
 	}
 
 	private static class FileFilterSwing extends FileFilter
@@ -317,20 +344,36 @@ public class OpenFile
 //		}
 //	}
 
+    /**
+     * Factory method to create a new save dialog box using the
+     * default EFileFilter.
+     * @param type the type of file. Defaults to ANY if null.
+     * @param title dialog title to use; if null uses "Write 'filetype'".
+     * @param defaultFile default file name to write.
+     */
+    public static String chooseOutputFile(Type type, String title, String defaultFile)
+    {
+        Type [] types;
+        if (type == null) types = null;
+        else types = new Type [] {type};
+        return chooseOutputFile(types, title, defaultFile);
+    }
+
 	/**
 	 * Factory method to create a new save dialog box using the
 	 * default EFileFilter.
-	 * @param type the type of file. Defaults to ANY if null.
+	 * @param types the types of file. Defaults to ANY if null.
 	 * @param title dialog title to use; if null uses "Write 'filetype'".
 	 * @param defaultFile default file name to write.
 	 */
-	public static String chooseOutputFile(Type type, String title, String defaultFile)
+	public static String chooseOutputFile(Type [] types, String title, String defaultFile)
 	{
 		if (title != null)
 		{
-			if (type != null) title = "Write " + type.getDescription(); else
+			if (types != null) title = "Write " + types[0].getDescription(); else
 				title = "Write file";
 		}
+        if (types == null) types = new Type [] {Type.ANY};
 
 		boolean useSwing = true;
 		if (TopLevel.getOperatingSystem() == TopLevel.OS.MACINTOSH)
@@ -341,15 +384,29 @@ public class OpenFile
 			OpenFileSwing dialog = new OpenFileSwing();
 			dialog.saveDialog = true;
 			dialog.setDialogTitle(title);
-			dialog.setFileFilter(type.getFileFilterSwing());
-			dialog.addChoosableFileFilter(type.getFileFilterSwing());
+            for (int i=0; i<types.length; i++) {
+			    dialog.addChoosableFileFilter(types[i].getFileFilterSwing());
+            }
+			dialog.setFileFilter(FileMenu.getLibraryFormat(defaultFile, types[0]).getFileFilterSwing());
 			dialog.setCurrentDirectory(new File(User.getWorkingDirectory()));
 			dialog.setSelectedFile(new File(defaultFile));
 			int returnVal = dialog.showSaveDialog(null);
 			if (returnVal == JFileChooser.APPROVE_OPTION)
 			{
 				File file = dialog.getSelectedFile();
-				return file.getPath();
+                Type selectedType = Type.getType(dialog.getFileFilter());
+                String fileName = file.getPath();
+                int dotPos = fileName.lastIndexOf('.');
+                String extension = selectedType.getExtensions()[0];
+                if (dotPos < 0) fileName += "." + extension; else
+                {
+                    if (!fileName.substring(dotPos+1).equals(extension))
+                    {
+                        //fileName = fileName.substring(0, dotPos) + "." + extension;
+                        fileName = fileName + "." + extension;
+                    }
+                }
+				return fileName;
 			}
 			return null;
 		} else
@@ -358,7 +415,7 @@ public class OpenFile
 			FileDialog awtDialog = new FileDialog(TopLevel.getCurrentJFrame(), title, FileDialog.SAVE);
 			awtDialog.setDirectory(User.getWorkingDirectory());
 			awtDialog.setFile(defaultFile);
-			awtDialog.setFilenameFilter(type.getFileFilterAWT());
+			awtDialog.setFilenameFilter(types[0].getFileFilterAWT());
 			awtDialog.setVisible(true);
 			String fileName = awtDialog.getFile();
 			if (fileName == null) return null;

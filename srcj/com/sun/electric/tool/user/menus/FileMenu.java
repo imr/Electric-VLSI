@@ -232,7 +232,7 @@ public class FileMenu {
 
     /** Get the type from the fileName, or if no valid Library type found, return defaultType.
      */
-    private static OpenFile.Type getLibraryFormat(String fileName, OpenFile.Type defaultType) {
+    public static OpenFile.Type getLibraryFormat(String fileName, OpenFile.Type defaultType) {
         for (int i=0; i<OpenFile.Type.libraryTypes.length; i++) {
             OpenFile.Type type = OpenFile.Type.libraryTypes[i];
             if (fileName.endsWith("."+type.getExtensions()[0])) return type;
@@ -457,20 +457,25 @@ public class FileMenu {
 					if (fileName.endsWith(".txt")) type = OpenFile.Type.READABLEDUMP;
 	            }
 	        }
+            // check to see that file is writable
+            if (fileName != null) {
+                File file = new File(fileName);
+                if (file.exists() && !file.canWrite()) fileName = null;
+/*
+                try {
+                    if (!file.createNewFile()) fileName = null;
+                } catch (java.io.IOException e) {
+                    System.out.println(e.getMessage());
+                    fileName = null;
+                }
+*/
+            }
         }
         if (fileName == null)
         {
-            fileName = OpenFile.chooseOutputFile(type, null, lib.getName() + "." + extension);
+            fileName = OpenFile.chooseOutputFile(OpenFile.Type.libraryTypes, null, lib.getName() + "." + extension);
             if (fileName == null) return false;
-
-            int dotPos = fileName.lastIndexOf('.');
-            if (dotPos < 0) fileName += "." + extension; else
-            {
-                if (!fileName.substring(dotPos+1).equals(extension))
-                {
-                    fileName = fileName.substring(0, dotPos) + "." + extension;
-                }
-            }
+            type = getLibraryFormat(fileName, type);
         }
         SaveLibrary job = new SaveLibrary(lib, fileName, type, compatibleWith6);
         return true;
@@ -573,6 +578,7 @@ public class FileMenu {
         for (Iterator it = Library.getLibraries(); it.hasNext(); ) {
             Library lib = (Library)it.next();
             if (lib.isHidden()) continue;
+            if (!lib.isFromDisk()) continue;
             if (lib.getLibFile() != null) {
                 // set library file to new format
                 String fullName = lib.getLibFile().getFile();
