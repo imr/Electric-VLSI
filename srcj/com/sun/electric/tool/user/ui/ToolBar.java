@@ -66,12 +66,11 @@ public class ToolBar extends JToolBar
 
 		public String toString() { return "CursorMode="+name; }
         
+        /** Describes ClickZoomWire mode (does everything). */  public static final CursorMode CLICKZOOMWIRE = new CursorMode("clickzoomwire");
 		/** Describes Selection mode (click and drag). */		public static final CursorMode SELECT = new CursorMode("select");
 		/** Describes wiring mode (creating arcs). */			public static final CursorMode WIRE = new CursorMode("wire");
-		/** Describes Selection mode (click and drag). */		public static final CursorMode SELECTSPECIAL = new CursorMode("select");
 		/** Describes Panning mode (move window contents). */	public static final CursorMode PAN = new CursorMode("pan");
 		/** Describes Zoom mode (scale window contents). */		public static final CursorMode ZOOM = new CursorMode("zoom");
-        /** Describes ClickZoomWire mode (does everything). */  public static final CursorMode CLICKZOOMWIRE = new CursorMode("clickzoomwire");
 		/** Describes Outline edit mode. */						public static final CursorMode OUTLINE = new CursorMode("outline");
 	}
 
@@ -117,7 +116,6 @@ public class ToolBar extends JToolBar
 	private static SelectMode curSelectMode = SelectMode.OBJECTS;
     private static Cursor zoomCursor = readCursor("CursorZoom.gif", 6, 6);
 	private static Cursor panCursor = readCursor("CursorPan.gif", 8, 8);
-	private static Cursor specialSelectCursor = readCursor("CursorSelectSpecial.gif", 0, 1);
 	private static Cursor wiringCursor = readCursor("CursorWiring.gif", 0, 0);
 	private static Cursor outlineCursor = readCursor("CursorOutline.gif", 0, 0);
 	private static ToolBar toolbar = null;
@@ -319,7 +317,6 @@ public class ToolBar extends JToolBar
 	private static void makeCursors()
 	{
 		if (wiringCursor == null) wiringCursor = readCursor("CursorWiring.gif", 0, 0);
-		if (specialSelectCursor == null) specialSelectCursor = readCursor("CursorSelectSpecial.gif", 0, 1);
 		if (panCursor == null) panCursor = readCursor("CursorPan.gif", 8, 8);
 		if (zoomCursor == null) zoomCursor = readCursor("CursorZoom.gif", 6, 6);
 		if (outlineCursor == null) outlineCursor = readCursor("CursorOutline.gif", 0, 0);
@@ -386,18 +383,6 @@ public class ToolBar extends JToolBar
 		//makeCursors();
 		TopLevel.setCurrentCursor(wiringCursor);
 		curMode = CursorMode.WIRE;
-	}
-
-	/**
-	 * Method called when the "select special" button is pressed.
-     * Depricated - replaced by toggleSpecialSelectCommand.
-	 */
-	public static void selectSpecialCommand()
-	{
-		EditWindow.setListener(ClickAndDragListener.theOne);
-		//makeCursors();
-		TopLevel.setCurrentCursor(specialSelectCursor);
-		curMode = CursorMode.SELECTSPECIAL;
 	}
 
     /**

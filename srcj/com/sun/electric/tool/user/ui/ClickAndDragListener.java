@@ -61,7 +61,7 @@ class ClickAndDragListener
 
 		boolean another = (evt.getModifiers()&MouseEvent.CTRL_MASK) != 0;
 		invertSelection = (evt.getModifiers()&MouseEvent.SHIFT_MASK) != 0;
-		boolean special = (ToolBar.getCursorMode() == ToolBar.CursorMode.SELECTSPECIAL);
+		boolean special = ToolBar.getSelectSpecial();
 
 		// show "get info" on double-click
 		if (evt.getClickCount() == 2 && !another && !invertSelection)
@@ -125,7 +125,7 @@ class ClickAndDragListener
 			if (ToolBar.getSelectMode() == ToolBar.SelectMode.OBJECTS)
 			{
 				Highlight.selectArea(wnd, minSelX, maxSelX, minSelY, maxSelY, invertSelection,
-					ToolBar.getCursorMode() == ToolBar.CursorMode.SELECTSPECIAL);
+					ToolBar.getSelectSpecial());
 			} else
 			{
 				Highlight.addArea(new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY), cell);
