@@ -1,5 +1,7 @@
 package com.sun.electric.database;
 
+import com.sun.electric.user.*;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;

@@ -136,6 +136,7 @@ public class Poly implements Shape
 	{
 		af.transform(points, 0, points, 0, points.length);
 //		af.transform(points, points);
+		bounds = null;
 	}
 
 	// SHAPE REQUIREMENTS:

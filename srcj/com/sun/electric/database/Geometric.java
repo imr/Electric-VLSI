@@ -111,12 +111,12 @@ public class Geometric extends ElectricObject
 	/** Get X coordinate of this object's origin.  If this object is a
 	 * NodeInst then get the X coordinate of the NodeProto's
 	 * reference point. */
-	public double getX() { return cX; }
+	public double getCenterX() { return cX; }
 
 	/** Get Y coordinate of this object's origin.  If this object is a
 	 * NodeInst then get the Y coordinate of the NodeProto's
 	 * reference point. */
-	public double getY() { return cY; }
+	public double getCenterY() { return cY; }
 
 	/** get angle of rotation in degrees */
 	public double getAngle() { return angle; }

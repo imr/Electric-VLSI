@@ -131,7 +131,14 @@ public class NodeInst extends Geometric
 			PortInst pi = PortInst.newInstance(pp, ni);
 			ni.portMap.put(pp.getProtoName(), pi);
 		}
-		int sz = ni.portMap.size();
+		
+		// enumerate the port instances
+		int i = 0;
+		for(Iterator it = ni.getPorts(); it.hasNext();)
+		{
+			PortInst pi = (PortInst) it.next();
+			pi.setIndex(i++);
+		}
 		return ni;
 	}
 
@@ -161,16 +168,12 @@ public class NodeInst extends Geometric
 
 	void addExport(Export e)
 	{
-		if (exports == null)
-		{
-			exports = new ArrayList();
-		}
 		exports.add(e);
 	}
 
 	void removeExport(Export e)
 	{
-		if (exports == null || !exports.contains(e))
+		if (!exports.contains(e))
 		{
 			throw new RuntimeException("Tried to remove a non-existant export");
 		}
@@ -188,13 +191,11 @@ public class NodeInst extends Geometric
 				.remove();
 		}
 		// remove any exports
-		if (exports != null)
+		while (exports.size() > 0)
 		{
-			while (exports.size() > 0)
-			{
-				((Export) exports.get(exports.size() - 1)).remove();
-			}
+			((Export) exports.get(exports.size() - 1)).remove();
 		}
+
 		// disconnect from the parent
 		getParent().removeNode(this);
 		// remove instance from the prototype
@@ -340,12 +341,20 @@ public class NodeInst extends Geometric
 		// to transform out of this node instance, first translate inner coordinates to outer
 		Cell lowerCell = (Cell)prototype;
 		Rectangle2D bounds = lowerCell.getBounds();
-		double dx = getX() - bounds.getX();
-		double dy = getY() - bounds.getY();
+		double dx = getCenterX() - bounds.getCenterX();
+		double dy = getCenterY() - bounds.getCenterY();
 		AffineTransform transform = new AffineTransform();
 		transform.setToRotation(angle, cX, cY);
 		transform.translate(dx, dy);
 		return transform;
+	}
+	
+	public AffineTransform transformOut(AffineTransform prevTransform)
+	{
+		AffineTransform transform = transformOut();
+		AffineTransform returnTransform = new AffineTransform(prevTransform);
+		returnTransform.concatenate(transform);
+		return returnTransform;
 	}
 	
 	public AffineTransform translateOut()
@@ -353,25 +362,46 @@ public class NodeInst extends Geometric
 		// to transform out of this node instance, first translate inner coordinates to outer
 		Cell lowerCell = (Cell)prototype;
 		Rectangle2D bounds = lowerCell.getBounds();
-		double dx = getX() - bounds.getX();
-		double dy = getY() - bounds.getY();
+		double dx = getCenterX() - bounds.getCenterX();
+		double dy = getCenterY() - bounds.getCenterY();
 		AffineTransform transform = new AffineTransform();
 		transform.translate(dx, dy);
 		return transform;
 	}
 	
+	public AffineTransform translateOut(AffineTransform prevTransform)
+	{
+		AffineTransform transform = translateOut();
+		AffineTransform returnTransform = new AffineTransform(prevTransform);
+		returnTransform.concatenate(transform);
+		return returnTransform;
+	}
+
 	public AffineTransform rotateOut()
 	{
-		// to transform out of this node instance, first translate inner coordinates to outer
 		AffineTransform transform = new AffineTransform();
 		transform.setToRotation(angle, cX, cY);
 		return transform;
+	}
+	
+	public AffineTransform rotateOut(AffineTransform prevTransform)
+	{
+		AffineTransform transform = rotateOut();
+		AffineTransform returnTransform = new AffineTransform(prevTransform);
+		returnTransform.concatenate(transform);
+		return returnTransform;
 	}
 
 	/** Get an iterator for all PortInst's */
 	public Iterator getPorts()
 	{
 		return portMap.values().iterator();
+	}
+
+	/** Get the number of PortInst's */
+	public int getNumPorts()
+	{
+		return portMap.size();
 	}
 
 	/** Get the only port. <br> This is quite useful for vias and pins
@@ -428,13 +458,12 @@ public class NodeInst extends Geometric
 
 	public Iterator getExports()
 	{
-		if (exports == null)
-		{
-			return (new ArrayList()).iterator();
-		} else
-		{
-			return exports.iterator();
-		}
+		return exports.iterator();
+	}
+
+	public Iterator getConnections()
+	{
+		return connections.iterator();
 	}
 
 	public NodeProto getProto()

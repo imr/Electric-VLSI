@@ -188,11 +188,11 @@ public class Technology extends ElectricObject
 
 		// get information about the node
 		double halfWidth = ni.getXSize() / 2;
-		double lowX = ni.getX() - halfWidth;
-		double highX = ni.getX() + halfWidth;
+		double lowX = ni.getCenterX() - halfWidth;
+		double highX = ni.getCenterX() + halfWidth;
 		double halfHeight = ni.getYSize() / 2;
-		double lowY = ni.getY() - halfHeight;
-		double highY = ni.getY() + halfHeight;
+		double lowY = ni.getCenterY() - halfHeight;
+		double highY = ni.getCenterY() + halfHeight;
 		
 		// construct the polygons
 		Poly [] polys = new Poly[primLayers.length];
@@ -207,10 +207,10 @@ public class Technology extends ElectricObject
 //				{
 //				} else
 				{
-					double portLowX = ni.getX() + primLayer.leftEdge.getMultiplier() * ni.getXSize() + primLayer.leftEdge.getAdder();
-					double portHighX = ni.getX() + primLayer.rightEdge.getMultiplier() * ni.getXSize() + primLayer.rightEdge.getAdder();
-					double portLowY = ni.getY() + primLayer.bottomEdge.getMultiplier() * ni.getYSize() + primLayer.bottomEdge.getAdder();
-					double portHighY = ni.getY() + primLayer.topEdge.getMultiplier() * ni.getYSize() + primLayer.topEdge.getAdder();
+					double portLowX = ni.getCenterX() + primLayer.leftEdge.getMultiplier() * ni.getXSize() + primLayer.leftEdge.getAdder();
+					double portHighX = ni.getCenterX() + primLayer.rightEdge.getMultiplier() * ni.getXSize() + primLayer.rightEdge.getAdder();
+					double portLowY = ni.getCenterY() + primLayer.bottomEdge.getMultiplier() * ni.getYSize() + primLayer.bottomEdge.getAdder();
+					double portHighY = ni.getCenterY() + primLayer.topEdge.getMultiplier() * ni.getYSize() + primLayer.topEdge.getAdder();
 					double portX = (portLowX + portHighX) / 2;
 					double portY = (portLowY + portHighY) / 2;
 					polys[i] = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
@@ -231,11 +231,11 @@ public class Technology extends ElectricObject
 
 		// get information about the arc
 		double halfWidth = ai.getXSize() / 2;
-		double lowX = ai.getX() - halfWidth;
-		double highX = ai.getX() + halfWidth;
+		double lowX = ai.getCenterX() - halfWidth;
+		double highX = ai.getCenterX() + halfWidth;
 		double halfHeight = ai.getYSize() / 2;
-		double lowY = ai.getY() - halfHeight;
-		double highY = ai.getY() + halfHeight;
+		double lowY = ai.getCenterY() - halfHeight;
+		double highY = ai.getCenterY() + halfHeight;
 		
 		// construct the polygons
 		Poly [] polys = new Poly[primLayers.length];
@@ -273,16 +273,16 @@ public class Technology extends ElectricObject
 			{
 				// standard port computation
 				double halfWidth = ni.getXSize() / 2;
-				double lowX = ni.getX() - halfWidth;
-				double highX = ni.getX() + halfWidth;
+				double lowX = ni.getCenterX() - halfWidth;
+				double highX = ni.getCenterX() + halfWidth;
 				double halfHeight = ni.getYSize() / 2;
-				double lowY = ni.getY() - halfHeight;
-				double highY = ni.getY() + halfHeight;
+				double lowY = ni.getCenterY() - halfHeight;
+				double highY = ni.getCenterY() + halfHeight;
 				
-				double portLowX = ni.getX() + pp.getLeft().getMultiplier() * ni.getXSize() + pp.getLeft().getAdder();
-				double portHighX = ni.getX() + pp.getRight().getMultiplier() * ni.getXSize() + pp.getRight().getAdder();
-				double portLowY = ni.getY() + pp.getBottom().getMultiplier() * ni.getYSize() + pp.getBottom().getAdder();
-				double portHighY = ni.getY() +pp.getTop().getMultiplier() * ni.getYSize() + pp.getTop().getAdder();
+				double portLowX = ni.getCenterX() + pp.getLeft().getMultiplier() * ni.getXSize() + pp.getLeft().getAdder();
+				double portHighX = ni.getCenterX() + pp.getRight().getMultiplier() * ni.getXSize() + pp.getRight().getAdder();
+				double portLowY = ni.getCenterY() + pp.getBottom().getMultiplier() * ni.getYSize() + pp.getBottom().getAdder();
+				double portHighY = ni.getCenterY() +pp.getTop().getMultiplier() * ni.getYSize() + pp.getTop().getAdder();
 				double portX = (portLowX + portHighX) / 2;
 				double portY = (portLowY + portHighY) / 2;
 				Poly portpoly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);

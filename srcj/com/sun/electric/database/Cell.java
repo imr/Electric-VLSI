@@ -547,9 +547,9 @@ public class Cell extends NodeProto
 			{
 				NodeInst ni = (NodeInst) it.next();
 				double xOffset = ni.getXSize()/2;
-				double xCenter = ni.getX();
+				double xCenter = ni.getCenterX();
 				double yOffset = ni.getYSize()/2;
-				double yCenter = ni.getY();
+				double yCenter = ni.getCenterY();
 				double lowx = xCenter - xOffset;
 				double highx = xCenter + xOffset;
 				double lowy = yCenter - yOffset;
@@ -601,10 +601,10 @@ public class Cell extends NodeProto
 		for (int i = 0; i < essenBounds.size(); i++)
 		{
 			NodeInst ni = (NodeInst) essenBounds.get(i);
-			minX = Math.min(minX, ni.getX());
-			maxX = Math.max(maxX, ni.getX());
-			minY = Math.min(minY, ni.getY());
-			maxY = Math.max(maxY, ni.getY());
+			minX = Math.min(minX, ni.getCenterX());
+			maxX = Math.max(maxX, ni.getCenterX());
+			minY = Math.min(minY, ni.getCenterY());
+			maxY = Math.max(maxY, ni.getCenterY());
 		}
 
 		return new Rectangle2D.Double(minX, minY, maxX - minX, maxY - minY);
@@ -630,7 +630,7 @@ public class Cell extends NodeProto
 			} else
 			{
 				NodeInst newInst =
-					NodeInst.newInstance(oldProto,new Point2D.Double(oldInst.getX(), oldInst.getY()),
+					NodeInst.newInstance(oldProto,new Point2D.Double(oldInst.getCenterX(), oldInst.getCenterY()),
 						oldInst.getXSize(), oldInst.getYSize(), oldInst.getAngle(), f);
 				String nm = oldInst.getName();
 				if (nm != null)

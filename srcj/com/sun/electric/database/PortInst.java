@@ -16,6 +16,7 @@ public class PortInst
 
 	private NodeInst nodeInst;
 	private PortProto portProto;
+	private int index;
 	private JNetwork network;
 
 	// -------------------protected or private methods ---------------
@@ -40,6 +41,9 @@ public class PortInst
 
 	public JNetwork getNetwork() { return network; }
 	public void setNetwork(JNetwork net) { network = net; }
+
+	public int getIndex() { return index; }
+	public void setIndex(int i) { index = i; }
 
 	public Rectangle2D getBounds()
 	{
