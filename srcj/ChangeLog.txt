@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02a: *********************************
 
+IMP; (11/2/04, GVG) CO.S.1, VIAx.S.1 and VIAn.S.1 rules for vias (meta1 and actives cuts)
+
 ************************* Version 8.01ai: *********************************
 
 BUG: (11/2/04, DN) Library.findNodeProto should find the newest
