@@ -321,7 +321,7 @@ public final class HierarchyEnumerator {
 	 * hierarchy in which the JNetwork occurs. The visitor can use
 	 * NetDescription to formulate, for example, the name of
 	 * the net */
-	private static class NetDescription {
+	public static class NetDescription {
 		private JNetwork net;
 		private CellInfo info;
 		NetDescription(JNetwork net, CellInfo info) {
@@ -665,6 +665,40 @@ public final class HierarchyEnumerator {
 			return (NetDescription) netIdToNetDesc.get(netID);
 		}
 
+        /**
+         * Get the JNetwork in the parent that connects to the specified
+         * JNetwork in this cell.  Returns null if no network in parent connects
+         * to this network (i.e. network is not connected to export), or null
+         * if no parent.
+         * @param network the network in this cell
+         * @return the network in the parent that connects to the
+         * specified network, or null if no such network.
+         */
+        public JNetwork getNetworkInParent(JNetwork network) {
+            if (parentInfo == null) return null;
+            // find export on network
+            boolean found = false;
+            Export export = null;
+            int i = 0;
+            for (Iterator it = cell.getPorts(); it.hasNext(); ) {
+                export = (Export)it.next();
+                for (i=0; i<export.getNameKey().busWidth(); i++) {
+                    JNetwork net = netlist.getNetwork(export, i);
+                    if (net == network) { found = true; break; }
+                }
+                if (found) break;
+            }
+            if (!found) return null;
+            // find corresponding port on icon
+            //System.out.println("In "+cell.describe()+" JNet "+network.describe()+" is exported as "+export.getName()+"; index "+i);
+            Nodable no = context.getNodable();
+            PortProto pp = no.getProto().findPortProto(export.getNameKey());
+            //System.out.println("Found corresponding port proto "+pp.getName()+" on cell "+no.getProto().describe());
+            // find corresponding network in parent
+            JNetwork parentNet = parentInfo.getNetlist().getNetwork(no, pp, i);
+            return parentNet;
+        }
+
 		/** Find position of NodeInst: ni in the root Cell. The
 		 * getPositionInRoot method is useful for flattening
 		 * layout. */
@@ -726,7 +760,9 @@ public final class HierarchyEnumerator {
 
 	// ----------------------- public methods --------------------------
 
-	/** Begin enumeration of the contents of the Cell root.
+	/** Begin enumeration of the contents of the Cell root.  You MUST
+	 * call rebuildNetworks() on the root Cell before calling
+	 * beginEnumeration().
 	 * @param root the starting point of the enumeration.
 	 * @param context the VarContext for evaluating parameters in Cell
 	 * root. If context is null then VarContext.globalContext is used.
