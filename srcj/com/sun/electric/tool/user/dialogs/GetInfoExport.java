@@ -185,6 +185,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
         textPanel.setTextDescriptor(td, null, pp);
 
 		shownExport = pp;
+        focusOnTextField(theText);
 	}
 
 	/** Creates new form Export Get-Info */

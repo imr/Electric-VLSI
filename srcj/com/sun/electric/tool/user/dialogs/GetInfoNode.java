@@ -643,6 +643,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			textField.setEditable(true);
 			textField.setText(initialTextField);
 		}
+        focusOnTextField(name);
 	}
 
 	private void showProperList()

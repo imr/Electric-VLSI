@@ -368,7 +368,7 @@ public class NodeInst extends Geometric implements Nodable
 		// create the new NodeInst
 		double newXS = np.getDefWidth();
 		double newYS = np.getDefHeight();
-		if (np instanceof PrimitiveNode && getProto() instanceof PrimitiveNode)
+		if ((np instanceof PrimitiveNode) && (getProto() instanceof PrimitiveNode))
 		{
 			// replacing one primitive with another: adjust sizes accordingly
 			SizeOffset oldSO = getProto().getProtoSizeOffset();
@@ -382,6 +382,9 @@ public class NodeInst extends Geometric implements Nodable
             if (getXSize() == getProto().getDefWidth()) newXS = np.getDefWidth();
             if (getYSize() == getProto().getDefHeight()) newYS = np.getDefHeight();
 		}
+        // see if nodeinst is mirrored
+        if (getXSizeWithMirror() < 0) newXS *= -1;
+        if (getYSizeWithMirror() < 0) newYS *= -1;
 		NodeInst newNi = NodeInst.newInstance(np, oldCenter, newXS, newYS, getAngle(), getParent(), null);
 		if (newNi == null) return null;
 

@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 
 /**
  * Superclass for all dialogs that handles remembering the last location.
@@ -73,6 +74,17 @@ public class EDialog extends JDialog
 
     /** used to cancel the dialog */
 	protected void escapePressed() {}
+
+    /**
+     * Sets the cursor to have focus in the specified textComponent, and
+     * highlights any text in that text field.
+     * @param textComponent the text field
+     */
+    protected void focusOnTextField(JTextComponent textComponent) {
+        textComponent.requestFocus();
+        textComponent.setSelectionStart(0);
+        textComponent.setSelectionEnd(textComponent.getDocument().getLength());
+    }
 
     private static class TextBoxFocusListener implements FocusListener {
         public void focusGained(FocusEvent e) {

@@ -227,6 +227,8 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 
         // do this last so everything gets packed right
         changeTextComponent(initialText, multiLine.isSelected());
+
+        focusOnTextField(theText);
     }
 
     /**

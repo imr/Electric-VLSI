@@ -244,6 +244,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 		reverseEnds.setSelected(initialReverseEnds);
 
 		shownArc = ai;
+        focusOnTextField(name);
 	}
 
 	/** This method is called from within the constructor to
