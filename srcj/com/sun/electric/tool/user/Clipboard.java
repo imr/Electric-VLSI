@@ -555,7 +555,9 @@ public class Clipboard
 		// make sure they are all in the same cell
 		for(Iterator it = list.iterator(); it.hasNext(); )
 		{
-			Geometric geom = (Geometric)it.next();
+			Object obj = it.next();
+			if (!(obj instanceof Geometric)) continue; // Temporary fix?
+			Geometric geom = (Geometric)obj;
 			if (fromCell != geom.getParent())
 			{
 				System.out.println("All duplicated objects must be in the same cell");
@@ -567,7 +569,9 @@ public class Clipboard
         List theNodes = new ArrayList();
         List theArcs = new ArrayList();
         for (Iterator it = list.iterator(); it.hasNext(); ) {
-            Geometric geom = (Geometric)it.next();
+	        Object obj = it.next();
+			if (!(obj instanceof Geometric)) continue; // Temporary fix?
+            Geometric geom = (Geometric)obj;
             if (geom instanceof NodeInst)
                 theNodes.add(geom);
             if (geom instanceof ArcInst) {

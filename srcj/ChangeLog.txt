@@ -2,6 +2,9 @@
 
 ************************* Version 8.01l: *********************************
 
+BUG: (9/2/04, GVG) Clipboard crashes if list in copyListToCell contains Exports
+FIX: Temporary fix to avoid the exception, non-Geometric objects are ignored.
+
 IMP: (9/2/04, SMR) Removed printer choice from "Printing" tab of "Preferences".
 
 BUG: (9/1/04, GVG) Artwork arcs don't have network associated then modification in StatusBar crashes

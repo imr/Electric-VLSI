@@ -114,7 +114,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
         // add myself as listener for highlight changes in SDI mode
         if (TopLevel.isMDIMode()) {
             // do nothing
-        } else {
+        } else if (frame.getContent().getHighlighter() != null) {
             frame.getContent().getHighlighter().addHighlightListener(this);
         }
         Undo.addDatabaseChangeListener(this);
