@@ -223,6 +223,24 @@ class NetSchem extends NetCell {
 		}
 
 		/**
+		 * Method to return the number of actual NodeProtos which
+		 * produced this Nodable.
+		 * @return number of actual NodeProtos.
+		 */
+		public int getNumActualProtos() { return shared == null ? 1 : shared.length; }
+
+		/**
+		 * Method to return the i-th actual NodeProto which produced
+		 * this Nodable.
+		 * @param i specified index of actual NodeProto.
+		 * @return actual NodeProt.
+		 */
+		public NodeProto getActualProto(int i) {
+			if (shared == null && i == 0) return nodeInst.getProto();
+			return shared[i].nodeInst.getProto();
+		}
+
+		/**
 		 * Method to return the Cell that contains this Nodable.
 		 * @return the Cell that contains this Nodable.
 		 */

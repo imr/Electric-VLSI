@@ -570,18 +570,29 @@ public class Output extends IOTool
 	 */
 	public static void setPlotDate(boolean pd) { cachePlotDate.setBoolean(pd); }
 
-	private static Pref cachePrinterName = IOTool.tool.makeStringPref("PrinterName",
-		PrintServiceLookup.lookupDefaultPrintService().getName());
+	private static Pref cachePrinterName = null;
+
+	private static Pref getCachePrinterName()
+	{
+		if (cachePrinterName == null)
+		{
+			cachePrinterName = IOTool.tool.makeStringPref("PrinterName",
+				PrintServiceLookup.lookupDefaultPrintService().getName());
+		}
+		return cachePrinterName;
+	}
+
 	/**
 	 * Method to tell the default printer name to use.
 	 * The default is "".
 	 * @return the default printer name to use.
 	 */
-	public static String getPrinterName() { return cachePrinterName.getString(); }
+	public static String getPrinterName() { return getCachePrinterName().getString(); }
 	/**
 	 * Method to set the default printer name to use.
 	 * @param pName the default printer name to use.
 	 */
-	public static void setPrinterName(String pName) { cachePrinterName.setString(pName); }
+	public static void setPrinterName(String pName) { getCachePrinterName().setString(pName); }
 
 }
+
