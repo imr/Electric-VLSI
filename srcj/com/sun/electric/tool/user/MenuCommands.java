@@ -752,6 +752,9 @@ public final class MenuCommands
         russMenu.addMenuItem("Generate layout for current cell", null, new ActionListener() {
             public void actionPerformed(ActionEvent e) { generateLayoutCommand(); }
         });
+        russMenu.addMenuItem("Generate layout for current cell (secondary power supply)", null, new ActionListener() {
+            public void actionPerformed(ActionEvent e) { generateLayoutCommandSecondaryPower(); }
+        });
 		russMenu.addMenuItem("create flat netlists for Ivan", null, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				new com.sun.electric.tool.generator.layout.IvanFlat();
@@ -2887,6 +2890,13 @@ public final class MenuCommands
         Cell cell = wnd.getCell();
         Library outLib = cell.getLibrary();
         Loco.generateCommand(cell, outLib);
+    }
+
+    public static void generateLayoutCommandSecondaryPower() {
+        EditWindow wnd = EditWindow.getCurrent();
+        Cell cell = wnd.getCell();
+        Library outLib = cell.getLibrary();
+        Loco.generateCommandSecondaryPower(cell, outLib);
     }
 
 	public static void whitDiffieCommand()

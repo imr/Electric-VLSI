@@ -183,14 +183,19 @@ public class Loco extends Job {
 
 
     public static void generateCommand(Cell cell, Library outputLib) {
-        GenerateLayout job = new GenerateLayout(cell, outputLib);
+        GenerateLayout job = new GenerateLayout(cell, outputLib, false);
+    }
+
+    public static void generateCommandSecondaryPower(Cell cell, Library outputLib) {
+        GenerateLayout job = new GenerateLayout(cell, outputLib, true);
     }
 
     private static class GenerateLayout extends Job {
         private Cell cell;
         private Library outputLib;
+        private boolean useSecondaryPower;      // TODO: fix this total hack
 
-        private GenerateLayout(Cell cell, Library outputLib) {
+        private GenerateLayout(Cell cell, Library outputLib, boolean useSecondaryPower) {
             super("Generate Layout", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.cell = cell;
             this.outputLib = outputLib;
@@ -199,8 +204,16 @@ public class Loco extends Job {
 
         public void doIt() {
             StdCellParams stdCell = locoParams(outputLib);
+            StdCellParams stdCellPwr = locoParams(outputLib);
+            if (useSecondaryPower) {
+                stdCellPwr.setVddExportName("power");
+                stdCellPwr.setVddExportRole(PortProto.Characteristic.IN);
+            } else {
+                stdCellPwr.setVddExportName("vdd");
+                stdCellPwr.setVddExportRole(PortProto.Characteristic.PWR);                
+            }
             GenerateLayoutForGatesInSchematic visitor =
-                    new GenerateLayoutForGatesInSchematic("redFour", new HashSet(), stdCell);
+                    new GenerateLayoutForGatesInSchematic("redFour", new HashSet(), stdCell, stdCellPwr);
             HierarchyEnumerator.enumerateCell(cell, null, null, visitor);
         }
     }
