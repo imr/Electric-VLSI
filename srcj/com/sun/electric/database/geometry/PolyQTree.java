@@ -245,8 +245,9 @@ public class PolyQTree implements GeometryHandler
 		}
 
 		/**
-		 */
-		public Point2D[] getPoints()
+         * @param includeInitialPoint
+         */
+		public Point2D[] getPoints(boolean includeInitialPoint)
 		{
 			PathIterator pi = getPathIterator(null);
 			double coords[] = new double[6];
@@ -258,7 +259,7 @@ public class PolyQTree implements GeometryHandler
 				switch (type) {
 	                case PathIterator.SEG_CLOSE:
 						// next available loop
-						if (lastMoveTo != null)
+						if (includeInitialPoint && lastMoveTo != null)
 							pointList.add(lastMoveTo);
 						lastMoveTo = null;
 						break;
@@ -665,9 +666,6 @@ public class PolyQTree implements GeometryHandler
 		 */
 		private boolean compact()
 		{
-
-			//System.out.println("To implement") ;
-
 			//@TODO GVG Compact tree
 			if (children != null)
 			{
@@ -679,7 +677,6 @@ public class PolyQTree implements GeometryHandler
 					}
 			}
 			return (nodes == null || nodes.isEmpty());
-			//return (false);
 		}
 
 		/**

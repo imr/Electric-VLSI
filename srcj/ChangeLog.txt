@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02f: *********************************
 
+BUG: (02/01/05, GVG) Covering implants not working with PolyQTree structure after
+code re-organization. Job was not started and it was not detecting correctly original geometries.
+
 BUG: (02/01/05, SMR) Artwork solid arcs are drawn in outline form when made thick.
 FIX: In "Artwork.java", change the solid arc to have type FILLED.
 

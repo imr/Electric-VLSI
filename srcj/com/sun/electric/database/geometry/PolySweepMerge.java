@@ -26,17 +26,34 @@ import java.util.Set;
 public class PolySweepMerge implements GeometryHandler
 {
 	private HashMap layers = new HashMap(); // should be more efficient here
-    static final PolySweepSort polySweetSort = new PolySweepSort();
+    static final PolySweepShapeSort shapeSort = new PolySweepShapeSort();
+    static final PolySweepAreaSort areaSort = new PolySweepAreaSort();
 
     /**
-     * Auxiliar class to sort geometries in array
+     * Auxiliar class to sort shapes in array
      */
-    public static class PolySweepSort implements Comparator
+    private static class PolySweepShapeSort implements Comparator
     {
         public int compare(Object o1, Object o2)
         {
             double bb1 = ((Shape)o1).getBounds2D().getX();
             double bb2 = ((Shape)o2).getBounds2D().getX();
+            // Sorting along X
+            if (bb1 < bb2) return -1;
+            else if (bb1 > bb2) return 1;
+            return (0); // identical
+        }
+    }
+
+    /**
+     * Auxiliar class to sort areas in array
+     */
+    private static class PolySweepAreaSort implements Comparator
+    {
+        public int compare(Object o1, Object o2)
+        {
+            double bb1 = ((Area)o1).getBounds2D().getX();
+            double bb2 = ((Area)o2).getBounds2D().getX();
             // Sorting along X
             if (bb1 < bb2) return -1;
             else if (bb1 > bb2) return 1;
@@ -54,7 +71,7 @@ public class PolySweepMerge implements GeometryHandler
     private static class PolySweepContainer
     {
         List polyList = new ArrayList();
-        Set areas = null;
+        List areas = null; // Needs to be a list to apply sort
 
         public void add(Object value)
         {
@@ -79,7 +96,47 @@ public class PolySweepMerge implements GeometryHandler
 	// To add an entire GeometryHandler like collections
 	public void addAll(GeometryHandler subMerge, AffineTransform tTrans)
     {
-        System.out.println("addAll not implementd in PolySweepMerge");
+        PolySweepMerge other = (PolySweepMerge)subMerge;
+        List list = new ArrayList();
+
+		for(Iterator it = other.layers.keySet().iterator(); it.hasNext();)
+		{
+			Object layer = it.next();
+            PolySweepContainer container = (PolySweepContainer)layers.get(layer);
+            PolySweepContainer otherContainer = (PolySweepContainer)other.layers.get(layer);
+            Collections.sort(otherContainer.areas, areaSort);
+            Collections.sort(container.areas, areaSort);
+            for (int i = 0; i < otherContainer.areas.size(); i++)
+            {
+                Area area = (Area)otherContainer.areas.get(i);
+                Rectangle2D rect = area.getBounds2D();
+                double areaMinX = rect.getMinX();
+                double areaMaxX = rect.getMaxX();
+                double minSweep = -Double.MAX_VALUE;
+                boolean done = false;
+                list.clear();
+                // Search for all elements that might overlap
+                for (int j = 0; j < container.areas.size() && !done; j++)
+                {
+                    Area thisArea = (Area)container.areas.get(j);
+                    Rectangle2D thisRect = thisArea.getBounds2D();
+                    if (areaMaxX < thisRect.getMinX())
+                    {
+                        done = true;
+                        break;
+                    }
+                    // They could collide
+                    if (areaMinX <= thisRect.getMaxX())
+                    {
+                        list.add(thisArea);
+                        area.add(thisArea);
+                    }
+                }
+                // Remove elements with collisions
+                container.areas.removeAll(list);
+                container.areas.add(area);
+            }
+        }
     }
 
 	/**
@@ -107,11 +164,10 @@ public class PolySweepMerge implements GeometryHandler
             PolySweepContainer container = (PolySweepContainer)layers.get(layer);
             if (container != null)
             {
-                Collections.sort(container.polyList, polySweetSort);
-                double minSweep = -Double.MAX_VALUE;
+                Collections.sort(container.polyList, shapeSort);
                 double maxSweep = -Double.MAX_VALUE;
                 Area areaTmp = null;
-                container.areas = new HashSet();
+                container.areas = new ArrayList();
 
                 for (int i = 0; i < container.polyList.size(); i++)
                 {
@@ -138,7 +194,9 @@ public class PolySweepMerge implements GeometryHandler
                     if (y > maxSweep)
                         maxSweep = y;
                 }
-                container.areas.add(areaTmp);
+                // Can't use HashSet due to Comparator
+                if (!container.areas.contains(areaTmp))
+                    container.areas.add(areaTmp);
             }
         }
     }

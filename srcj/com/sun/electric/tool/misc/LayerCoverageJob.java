@@ -27,6 +27,7 @@ package com.sun.electric.tool.misc;
 
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyQTree;
+import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -101,7 +102,7 @@ public class LayerCoverageJob extends Job
 	{
 		private boolean testCase;
 		private PolyQTree tree;
-		private java.util.List deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
+		private List deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
 		private final int function;
 		private HashMap originalPolygons;
 		private Set netSet; // For network type, rest is null
@@ -196,24 +197,34 @@ public class LayerCoverageJob extends Job
 					if (!value) continue;
 
 					poly.transform(info.getTransformToRoot());
-						PolyQTree.PolyNode pnode = new PolyQTree.PolyNode(poly);
-						if (function == IMPLANT)
-						{
-							// For coverage implants
-							Map map = (Map)originalPolygons.get(layer);
-							if (map == null)
-							{
-								map = new HashMap();
-								originalPolygons.put(layer, map);
-							}
-							map.put(pnode, pnode.clone());
-						}
+
+                    // If points are not rounded, in IMPLANT map.containsValue() might not work
+                    poly.roundPoints();
+
+                    PolyQTree.PolyNode pnode = new PolyQTree.PolyNode(poly);
+
+                    storeOriginalPolygons(layer, poly);
 					//if (layer.getName().equals("Metal-1"))
 					tree.add(layer, pnode, /*false*/function==NETWORK);  // tmp fix
 				}
 			}
 			return (true);
 		}
+
+        private void storeOriginalPolygons(Layer layer, PolyBase poly)
+        {
+            if (function != IMPLANT) return;
+            // For coverage implants
+            Set polySet = (Set)originalPolygons.get(layer);
+            if (polySet == null)
+            {
+                polySet = new HashSet();
+                originalPolygons.put(layer, polySet);
+            }
+            //map.put(pnode, pnode.clone());
+            polySet.add(poly);
+        }
+
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
 		{
 			//if (checkAbort()) return false;
@@ -276,18 +287,13 @@ public class LayerCoverageJob extends Job
 				// Not sure if I need this for general merge polygons function
 				poly.transform(info.getTransformToRoot());
 
+                // If points are not rounded, in IMPLANT map.containsValue() might not work
+                poly.roundPoints();
+
 				PolyQTree.PolyNode pnode = new PolyQTree.PolyNode(poly);
-				if (function == IMPLANT)
-				{
-					// For coverage implants
-					Map map = (Map)originalPolygons.get(layer);
-					if (map == null)
-					{
-						map = new HashMap();
-						originalPolygons.put(layer, map);
-					}
-					map.put(pnode, pnode.clone());
-				}
+
+                storeOriginalPolygons(layer, poly);
+
 				//if (layer.getName().equals("Metal-1"))
 				tree.add(layer, pnode, /*false*/function==NETWORK);
 			}
@@ -312,7 +318,8 @@ public class LayerCoverageJob extends Job
 	public boolean doIt()
 	{
 		// enumerate the hierarchy below here
-		LayerVisitor visitor = new LayerVisitor(testCase, tree, deleteList, function, originalPolygons, geoms.nets);
+		LayerVisitor visitor = new LayerVisitor(testCase, tree, deleteList, function, originalPolygons,
+                (geoms != null) ? (geoms.nets) : null);
 		HierarchyEnumerator.enumerateCell(curCell, VarContext.globalContext, null, visitor);
 
 		switch (function)
@@ -356,19 +363,31 @@ public class LayerCoverageJob extends Job
 					{
 						Layer layer = (Layer)it.next();
 						Collection set = tree.getObjects(layer, !isMerge, true);
+                        Set polySet = (function == IMPLANT) ? (Set)originalPolygons.get(layer) : null;
 
 						// Ready to create new implants.
 						for (Iterator i = set.iterator(); i.hasNext(); )
 						{
 							PolyQTree.PolyNode qNode = (PolyQTree.PolyNode)i.next();
 
-							if (function == IMPLANT)
-							{
-								Map map = (Map)originalPolygons.get(layer);
-								// One of the original elements
-								if (map.containsValue(qNode))
-									continue;
-							}
+							// One of the original elements
+							if (polySet != null)
+                            {
+                                Object[] array = polySet.toArray();
+                                Point2D[] pts = qNode.getPoints(false);
+                                PolyBase polyB = new PolyBase(pts);
+                                polyB.roundPoints();
+                                boolean foundOrigPoly = false;
+                                for (int j = 0; j < array.length; j++)
+                                {
+                                    foundOrigPoly = polyB.polySame((PolyBase)array[j]);
+                                    if (foundOrigPoly)
+                                        break;
+                                }
+                                if (foundOrigPoly)
+                                    continue;
+                            }
+
 							Rectangle2D rect = qNode.getBounds2D();
 							Point2D center = new Point2D.Double(rect.getCenterX(), rect.getCenterY());
 							PrimitiveNode priNode = layer.getPureLayerNode();
@@ -379,7 +398,7 @@ public class LayerCoverageJob extends Job
 
 							if (isMerge)
 							{
-								Point2D [] points = qNode.getPoints();
+								Point2D [] points = qNode.getPoints(true);
 								node.newVar(NodeInst.TRACE, points);
 							}
 							else
@@ -402,7 +421,6 @@ public class LayerCoverageJob extends Job
 				break;
 			case NETWORK:
 				{
-					double totalWire = 0;
 			        double lambda = 1; // lambdaofcell(np);
 
 					// Traversing tree with merged geometry and sorting layers per name first
@@ -427,23 +445,8 @@ public class LayerCoverageJob extends Job
 						perimeter /= 2;
 
 						geoms.addLayer(layer, layerArea, perimeter);
-
-//						Layer.Function func = layer.getFunction();
-//
-//						/* accumulate total wire length on all metal/poly layers */
-//						if (func.isPoly() && !func.isGatePoly() || func.isMetal())
-//							totalWire += perimeter;
-//
-//						System.out.println("\tLayer " + layer.getName()
-//						        + ":\t area " + TextUtils.formatDouble(layerArea)
-//						        + "\t half-perimeter " + TextUtils.formatDouble(perimeter)
-//						        + "\t ratio " + TextUtils.formatDouble(layerArea/perimeter));
 					}
-				    //geoms.endTime = System.currentTimeMillis();
-					geoms.print();
-//				    if (totalWire > 0)
-//					    System.out.println("Total wire length = " + TextUtils.formatDouble(totalWire/lambda) + " (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
-				}
+					geoms.print();				}
 				break;
 			default:
 				System.out.println("Error in LayerCoverageJob: function not implemented");
@@ -483,7 +486,6 @@ public class LayerCoverageJob extends Job
 	        Layer.Function func = layer.getFunction();
 	        /* accumulate total wire length on all metal/poly layers */
 	        if (func.isPoly() && !func.isGatePoly() || func.isMetal()) {
-	            //System.out.println(func.toString()+": "+halfperimeter);
 	            totalWire += halfperimeter;
 	        }
 	    }

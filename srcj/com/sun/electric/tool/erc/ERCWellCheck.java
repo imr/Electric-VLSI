@@ -166,7 +166,7 @@ public class ERCWellCheck
                         break;
                     case ALGO_QTREE:
                         PolyQTree.PolyNode pn = (PolyQTree.PolyNode)pIt.next();
-					    poly = new PolyBase(pn.getPoints());
+					    poly = new PolyBase(pn.getPoints(true));
                         break;
                     case ALGO_POLYMERGE:
                         poly = (PolyBase)pIt.next();

@@ -1136,6 +1136,7 @@ public class ToolMenu {
 		    highlighter = wnd.getHighlighter();
 
         Job job = new LayerCoverageJob(jobType, curCell, func, test, highlighter, null);
+        job.startJob();
     }
 
 	public static void listToolsCommand()
