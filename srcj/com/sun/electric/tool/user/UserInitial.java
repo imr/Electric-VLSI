@@ -40,7 +40,6 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ui.UIEditFrame;
 import com.sun.electric.tool.user.ui.UIMenu;
 import com.sun.electric.tool.user.ui.UITopLevel;
-import com.sun.electric.tool.user.Options;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -62,10 +61,7 @@ public final class UserInitial
 	{
 		// initialize the display
 		UITopLevel.Initialize();
-
-        // initialize options
-        Options.Initialize();
-        
+       
 		// setup the File menu
 		UIMenu fileMenu = UIMenu.CreateUIMenu("File", 'F');
 		fileMenu.addMenuItem("Open", KeyStroke.getKeyStroke('O', InputEvent.CTRL_MASK),
