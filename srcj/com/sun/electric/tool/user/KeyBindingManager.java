@@ -605,7 +605,7 @@ public class KeyBindingManager implements KeyEventPostProcessor {
     private synchronized KeyBindings addKeyBinding(String actionDesc, KeyStrokePair pair) {
         if (pair == null) return null;
 
-        System.out.println("Adding binding for "+actionDesc+": "+pair.toString());
+        //System.out.println("Adding binding for "+actionDesc+": "+pair.toString());
         KeyStroke prefixStroke = pair.getPrefixStroke();
         KeyStroke stroke = pair.getStroke();
 
