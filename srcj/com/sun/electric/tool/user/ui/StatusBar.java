@@ -90,7 +90,7 @@ public class StatusBar extends JPanel
 		User.setShowCursorCoordinates(show);
 		if (TopLevel.isMDIMode())
 		{
-			StatusBar sb = TopLevel.getTopLevel().getStatusBar();
+			StatusBar sb = TopLevel.getCurrentJFrame().getStatusBar();
 			if (show) sb.addField(sb.fieldCoords, 3); else
 			{
 				sb.remove(sb.fieldCoords);
@@ -115,7 +115,7 @@ public class StatusBar extends JPanel
 		StatusBar sb = null;
 		if (TopLevel.isMDIMode())
 		{
-			sb = TopLevel.getTopLevel().getStatusBar();
+			sb = TopLevel.getCurrentJFrame().getStatusBar();
 		} else
 		{
 			sb = wf.getFrame().getStatusBar();
@@ -138,7 +138,7 @@ public class StatusBar extends JPanel
 	{
 		if (TopLevel.isMDIMode())
 		{
-			StatusBar sb = TopLevel.getTopLevel().getStatusBar();
+			StatusBar sb = TopLevel.getCurrentJFrame().getStatusBar();
 			sb.redoStatusBar();
 		} else
 		{

@@ -349,7 +349,7 @@ public class Clipboard
         if (User.isMoveAfterDuplicate())
 		{
 			EventListener currentListener = WindowFrame.getListener();
-			WindowFrame.setListener(new PasteListener(wnd, pasteList, currentListener));
+			WindowFrame.setListener(new PasteListener(wnd, pasteList, currentListener, null));
 		} else
 		{
             // get offset of highlighted objects from mouse
@@ -879,21 +879,35 @@ public class Clipboard
 		private EditWindow wnd;
 		private List pasteList;
 		private EventListener currentListener;
-		private int origX, origY;                   // screen units
+		private int origX, origY;                   // database units
 		private double oX, oY;                      // database units
 
-		public PasteListener(EditWindow wnd, List pasteList, EventListener currentListener)
+        /**
+         * Create a new paste listener
+         * @param wnd Controlling window
+         * @param pasteList list of objects to paste
+         * @param currentListener listener to restore when done
+         * @param startPaste starting location of paste, in database units. If null,
+         * uses current mouse location.
+         */
+		public PasteListener(EditWindow wnd, List pasteList, EventListener currentListener, Point2D startPaste)
 		{
 			this.wnd = wnd;
 			this.pasteList = pasteList;
 			this.currentListener = currentListener;
 
-			// determine the initial offset of the objects
-			//oX = oY = 1;
-            Point2D mouse = ClickZoomWireListener.theOne.getLastMouse();
-            origX = (int)mouse.getX(); origY = (int)mouse.getY();
-            Point2D mouseDB = wnd.screenToDatabase((int)mouse.getX(), (int)mouse.getY());
+			// determine the initial offset of the objects if not given
+            Point2D mouseDB;
+            if (startPaste == null) {
+			    // get starting point from current mouse location
+                Point2D mouse = ClickZoomWireListener.theOne.getLastMouse();
+                mouseDB = wnd.screenToDatabase((int)mouse.getX(), (int)mouse.getY());
+            } else {
+                // get starting point from given coords
+                mouseDB = startPaste;
+            }
             EditWindow.gridAlign(mouseDB);
+            origX = (int)mouseDB.getX(); origY = (int)mouseDB.getY();
             oX = mouseDB.getX();
             oY = mouseDB.getY();
 
@@ -972,6 +986,15 @@ public class Clipboard
 
 		public void mousePressed(MouseEvent evt)
 		{
+		}
+
+		public void mouseDragged(MouseEvent evt)
+		{
+            mouseMoved(evt);
+		}
+
+		public void mouseReleased(MouseEvent evt)
+		{
             Point2D mouseDB = wnd.screenToDatabase((int)evt.getX(), (int)evt.getY());
             EditWindow.gridAlign(mouseDB);
             oX = mouseDB.getX();
@@ -980,60 +1003,38 @@ public class Clipboard
 
             WindowFrame.setListener(currentListener);
             PasteObjects job = new PasteObjects(pasteList, -oX, -oY);
-/*
-			origX = evt.getX();
-			origY = evt.getY();
-            if (!(evt.getSource() instanceof EditWindow.CircuitPart)) return;
-            EditWindow.CircuitPart source = (EditWindow.CircuitPart)evt.getSource();
-			EditWindow wnd = source.getEditWindow();
-			wnd.repaint();
-*/
-		}
-
-		public void mouseDragged(MouseEvent evt)
-		{
-/*
-			int newX = evt.getX();
-			int newY = evt.getY();
-			Point2D delta = wnd.deltaScreenToDatabase(newX - origX, newY - origY);
-			EditWindow.gridAlign(delta);
-			oX = delta.getX();
-			oY = delta.getY();
-			showList();
-			wnd.repaint();
-*/
-		}
-
-		public void mouseReleased(MouseEvent evt)
-		{
-/*
-			int newX = evt.getX();
-			int newY = evt.getY();
-			Point2D delta = wnd.deltaScreenToDatabase(newX - origX, newY - origY);
-			EditWindow.gridAlign(delta);
-			oX = delta.getX();
-			oY = delta.getY();
-			showList();
-
-			WindowFrame.setListener(currentListener);
-		    PasteObjects job = new PasteObjects(pasteList, oX, oY);
-*/
 		}
 
 		public void mouseMoved(MouseEvent evt)
         {
+            boolean ctrl = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
             Point2D mouseDB = wnd.screenToDatabase((int)evt.getX(), (int)evt.getY());
+
+            // if user holds control, only move orthogonally
+            if (ctrl) {
+                mouseDB = ClickZoomWireListener.convertToOrthogonal(new Point2D.Double(origX, origY), mouseDB);
+            }
             EditWindow.gridAlign(mouseDB);
             oX = mouseDB.getX();
             oY = mouseDB.getY();
             showList();
             wnd.repaint();
         }
+
 		public void mouseClicked(MouseEvent evt) {}
 		public void mouseEntered(MouseEvent evt) {}
 		public void mouseExited(MouseEvent evt) {}
 		public void mouseWheelMoved(MouseWheelEvent e) {}
-		public void keyPressed(KeyEvent e) {}
+		public void keyPressed(KeyEvent evt) {
+            int chr = evt.getKeyCode();
+            if (chr == KeyEvent.VK_ESCAPE) {
+                // abort on ESC
+                Highlight.clear();
+                Highlight.finished();
+                WindowFrame.setListener(currentListener);
+                wnd.repaint();
+            }
+        }
 		public void keyReleased(KeyEvent e) {}
 		public void keyTyped(KeyEvent e) {}
 	}

@@ -674,7 +674,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
             WindowFrame useFrame = null;
             for (Iterator it = WindowFrame.getWindows(); it.hasNext(); ) {
                 WindowFrame frame = (WindowFrame)it.next();
-                if (frame.getInternalFrame() == source) {
+                if (frame.generatedEvent(e)) {
                     useFrame = frame;
                     break;
                 }

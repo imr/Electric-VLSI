@@ -914,7 +914,7 @@ public final class MenuCommands
 		lib.setCurrent();
 		WindowFrame.wantToRedoLibraryTree();
 		EditWindow.repaintAll();
-		TopLevel.getTopLevel().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
+		TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
 	}
 
 	/**
@@ -967,13 +967,13 @@ public final class MenuCommands
 					{
 						wf.setCellWindow(cell);
 						WindowFrame.setCurrentWindowFrame(wf);
-						TopLevel.getTopLevel().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
+						TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
 						return;
 					}
 				}
 				WindowFrame.createEditWindow(cell);
 				// no clean for now.
-				TopLevel.getTopLevel().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
+				TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
 			}
 		}
 	}
@@ -1045,7 +1045,7 @@ public final class MenuCommands
 		WindowFrame.wantToRedoLibraryTree();
 		EditWindow.repaintAll();
 		// Disable save icon if no more libraries are open
-		TopLevel.getTopLevel().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
+		TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
 	}
 
 	/**

@@ -369,10 +369,10 @@ public class WindowFrame
 			jif.show();
 			TopLevel.addToDesktop(jif);
             // add tool bar as listener so it can find out state of cell history in EditWindow
-            jif.addInternalFrameListener(TopLevel.getTopLevel().getToolBar());
+            jif.addInternalFrameListener(TopLevel.getCurrentJFrame().getToolBar());
             //content.getPanel().addPropertyChangeListener(TopLevel.getTopLevel().getToolBar());
-            content.getPanel().addPropertyChangeListener(EditWindow.propGoBackEnabled, TopLevel.getTopLevel().getToolBar());
-            content.getPanel().addPropertyChangeListener(EditWindow.propGoForwardEnabled, TopLevel.getTopLevel().getToolBar());
+            content.getPanel().addPropertyChangeListener(EditWindow.propGoBackEnabled, TopLevel.getCurrentJFrame().getToolBar());
+            content.getPanel().addPropertyChangeListener(EditWindow.propGoForwardEnabled, TopLevel.getCurrentJFrame().getToolBar());
 //			frame.jif.moveToFront();
 			try
 			{
@@ -403,9 +403,9 @@ public class WindowFrame
         if (TopLevel.isMDIMode()) {
             jif.getContentPane().remove(js);
             jif.removeInternalFrameListener(internalWindowsEvents);
-            jif.removeInternalFrameListener(TopLevel.getTopLevel().getToolBar());
+            jif.removeInternalFrameListener(TopLevel.getCurrentJFrame().getToolBar());
             // TopLevel.removeFromDesktop(jif);
-            content.getPanel().removePropertyChangeListener(TopLevel.getTopLevel().getToolBar());
+            content.getPanel().removePropertyChangeListener(TopLevel.getCurrentJFrame().getToolBar());
         } else {
             jf.getContentPane().remove(js);
             jf.removeWindowListener(windowsEvents);
@@ -551,18 +551,34 @@ public class WindowFrame
 	public ExplorerTree getExplorerTree() { return tree; }
 
 	/**
-	 * Method to return the JInternalFrame associated with this WindowFrame.
-	 * This only makes sense in MDI mode, because in SDI mode, the WindowFrame is a JFrame.
-	 * @return the JInternalFrame associated with this WindowFrame.
-	 */
-	public JInternalFrame getInternalFrame() { return jif; }
-
-	/**
 	 * Method to return the TopLevel associated with this WindowFrame.
-	 * This only makes sense in SDI mode, because in MDI mode, the WindowFrame is a JInternalFrame.
+     * In SDI mode this returns this WindowFrame's TopLevel Frame.
+     * In MDI mode there is only one TopLevel frame, so this method will
+     * return that Frame.
 	 * @return the TopLevel associated with this WindowFrame.
 	 */
-	public TopLevel getFrame() { return jf; }
+	public TopLevel getFrame() {
+        if (TopLevel.isMDIMode()) {
+            return TopLevel.getCurrentJFrame();
+        }
+        return jf;
+    }
+
+    /**
+     * Returns true if this window frame or it's components generated
+     * this event.
+     * @param e the event generated
+     * @return true if this window frame or it's components generated this
+     * event, false otherwise.
+     */
+    public boolean generatedEvent(java.awt.AWTEvent e) {
+        if (e instanceof InternalFrameEvent) {
+            JInternalFrame source = ((InternalFrameEvent)e).getInternalFrame();
+            if (source == jif) return true;
+            else return false;
+        }
+        return false;
+    }
 
 	/**
 	 * Method to return the number of WindowFrames.

@@ -935,7 +935,7 @@ public class ClickZoomWireListener
      * @param mousePoint the mouse point
      * @return a new point orthogonal to startPoint
      */
-    private Point2D convertToOrthogonal(Point2D startPoint, Point2D mousePoint) {
+    public static Point2D convertToOrthogonal(Point2D startPoint, Point2D mousePoint) {
         // move in direction that is farther
         double xdist, ydist;
         xdist = Math.abs(mousePoint.getX() - startPoint.getX());

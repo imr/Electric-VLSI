@@ -232,17 +232,6 @@ public class TopLevel extends JFrame
 	public static MessagesWindow getMessagesWindow() { return messages; }
 
 	/**
-	 * Method to return the only TopLevel frame.
-	 * This applies only in MDI mode.
-	 * @return the only TopLevel frame.
-	 */
-	public static TopLevel getTopLevel()
-    {
-        printError(!isMDIMode(), "TopLevel.getTopLevel() should not be called in SDI mode");
-        return topLevel;
-    }
-
-	/**
 	 * Method to return status bar associated with this TopLevel.
 	 * @return the status bar associated with this TopLevel.
 	 */
@@ -303,7 +292,7 @@ public class TopLevel extends JFrame
 	 * Method to return the current JFrame on the screen.
 	 * @return the current JFrame.
 	 */
-	public static JFrame getCurrentJFrame()
+	public static TopLevel getCurrentJFrame()
 	{
 		if (isMDIMode())
         {
