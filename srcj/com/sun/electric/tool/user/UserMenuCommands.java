@@ -1044,8 +1044,7 @@ public final class UserMenuCommands
 	 */
 	public static void crossLibraryCopyCommand()
 	{
-		JFrame jf = TopLevel.getCurrentJFrame();
- 		CrossLibCopy dialog = new CrossLibCopy(jf, true);
+ 		CrossLibCopy dialog = new CrossLibCopy(TopLevel.getCurrentJFrame(), true);
 		dialog.show();
 	}
 

@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
@@ -34,30 +35,42 @@ import com.sun.electric.tool.user.ui.PaletteFrame;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.AdjustmentListener;
+import java.awt.event.AdjustmentEvent;
 import javax.swing.JInternalFrame;
 import javax.swing.JFrame;
-import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JDesktopPane;
+import javax.swing.JComponent;
 import javax.swing.JButton;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollBar;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 
 /**
  * This class defines an edit window, with a cell explorer on the left side.
  */
 public class WindowFrame
 {
-	/** the edit window part */							private EditWindow wnd;
+	/** the circuit edit window part */					private EditWindow wnd;
+	/** the circuit edit window component. */			private JPanel circuitPanel;
+	/** the text edit window part */					private JTextArea textWnd;
+	/** the text edit window component. */				private JScrollPane textPanel;
+	/** the split pane that shows explorer and edit. */	private JSplitPane js;
+
 	/** the tree view part */							private ExplorerTree tree;
 	/** the offset of each new windows from the last */	private static int windowOffset = 0;
 	/** the list of all windows on the screen */		private static List windowList = new ArrayList();
@@ -66,6 +79,8 @@ public class WindowFrame
 	/** the top-level frame (if SDI). */				private TopLevel jf;
 	/** the explorer part of a frame. */				private static DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Explorer");
 	/** the explorer part of a frame. */				private static DefaultTreeModel treeModel = null;
+	/** the bottom scrollbar on the edit window. */		private JScrollBar bottomScrollBar;
+	/** the right scrollbar on the edit window. */		private JScrollBar rightScrollBar;
 
 	// constructor
 	private WindowFrame() {}
@@ -98,10 +113,44 @@ public class WindowFrame
 		windowOffset += 70;
 		if (windowOffset > 300) windowOffset = 0;
 
-		// the right half: an edit window
-		frame.wnd = EditWindow.CreateElectricDoc(cell, frame);
-//		JScrollPane scrolledWindow = new JScrollPane(frame.wnd, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-		JComponent rightSide = frame.wnd;
+		// the right half: an edit window with scroll bars
+		frame.circuitPanel = new JPanel(new GridBagLayout());
+
+		// the horizontal scroll bar in the edit window
+		frame.bottomScrollBar = new JScrollBar(JScrollBar.HORIZONTAL, 100, 10, 0, 210);
+		frame.bottomScrollBar.setBlockIncrement(50);
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.gridx = 0;   gbc.gridy = 1;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		frame.circuitPanel.add(frame.bottomScrollBar, gbc);
+		frame.bottomScrollBar.addAdjustmentListener(new ScrollAdjustmentListener(frame));
+		frame.bottomScrollBar.setValue(frame.bottomScrollBar.getMaximum()/2);
+
+		// the vertical scroll bar in the edit window
+		frame.rightScrollBar = new JScrollBar(JScrollBar.VERTICAL, 100, 10, 0, 210);
+		frame.rightScrollBar.setBlockIncrement(50);
+		gbc = new GridBagConstraints();
+		gbc.gridx = 1;   gbc.gridy = 0;
+		gbc.fill = GridBagConstraints.VERTICAL;
+		frame.circuitPanel.add(frame.rightScrollBar, gbc);
+		frame.rightScrollBar.addAdjustmentListener(new ScrollAdjustmentListener(frame));
+		frame.rightScrollBar.setValue(frame.rightScrollBar.getMaximum()/2);
+
+//		JButton explorerButton = Button.newInstance(new ImageIcon(frame.getClass().getResource("IconExplorer.gif")));
+//		js.setCorner(JScrollPane.LOWER_LEFT_CORNER, explorerButton);
+
+		// the edit window
+		frame.wnd = EditWindow.CreateElectricDoc(null, frame);
+		gbc = new GridBagConstraints();
+		gbc.gridx = 0;   gbc.gridy = 0;
+		gbc.fill = GridBagConstraints.BOTH;
+		gbc.weightx = gbc.weighty = 1;
+		frame.circuitPanel.add(frame.wnd, gbc);
+
+		// the text edit window (for textual cells)
+		frame.textWnd = new JTextArea();
+		frame.textWnd.setTabSize(4);
+		frame.textPanel = new JScrollPane(frame.textWnd);
 
 		// the left half: an explorer tree in a scroll pane
 		rootNode.removeAllChildren();
@@ -111,16 +160,16 @@ public class WindowFrame
 		frame.tree = ExplorerTree.CreateExplorerTree(rootNode, treeModel, frame.wnd);
 		ExplorerTree.explorerTreeChanged();
 		JScrollPane scrolledTree = new JScrollPane(frame.tree);
-		JButton explorerButton = Button.newInstance(new ImageIcon(frame.getClass().getResource("IconExplorer.gif")));
 
 		// put them together into the frame
-		JSplitPane js = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-		js.setRightComponent(rightSide);
-		js.setLeftComponent(scrolledTree);
-		js.setDividerLocation(220);
+		frame.js = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+		frame.js.setResizeWeight(0.5);
+		frame.js.setRightComponent(frame.circuitPanel);
+		frame.js.setLeftComponent(scrolledTree);
+		frame.js.setDividerLocation(0.3);
 		if (TopLevel.isMDIMode())
 		{
-			frame.jif.getContentPane().add(js);
+			frame.jif.getContentPane().add(frame.js);
 			frame.jif.addInternalFrameListener(new InternalWindowsEvents(frame));
 			frame.jif.show();
 			TopLevel.addToDesktop(frame.jif);
@@ -131,14 +180,15 @@ public class WindowFrame
 			} catch (java.beans.PropertyVetoException e) {}
 		} else
 		{
-			frame.jf.getContentPane().add(js);
+			frame.jf.getContentPane().add(frame.js);
 			frame.jf.addWindowListener(new WindowsEvents(frame));
 			frame.jf.addWindowFocusListener(new WindowsEvents(frame));
 			frame.jf.setEditWindow(frame.wnd);
 			frame.jf.show();
 		}
 //		js.requestFocusInWindow();
-//		js.setCorner(JScrollPane.LOWER_LEFT_CORNER, explorerButton);
+
+		frame.wnd.setCell(cell, VarContext.globalContext);
 
 		// accumulate a list of current windows
 		windowList.add(frame);
@@ -197,10 +247,43 @@ public class WindowFrame
 	}
 
 	/**
+	 * Routine to return the horizontal scroll bar at the bottom of the edit window.
+	 * @return the horizontal scroll bar at the bottom of the edit window.
+	 */
+	public JScrollBar getBottomScrollBar() { return bottomScrollBar; }
+
+	/**
+	 * Routine to return the vertical scroll bar at the right side of the edit window.
+	 * @return the vertical scroll bar at the right side of the edit window.
+	 */
+	public JScrollBar getRightScrollBar() { return rightScrollBar; }
+
+	/**
 	 * Routine to return the EditWindow associated with this frame.
 	 * @return the EditWindow associated with this frame.
 	 */
 	public EditWindow getEditWindow() { return wnd; }
+
+	/**
+	 * Routine to return the text edit window associated with this frame.
+	 * @return the text edit window associated with this frame.
+	 */
+	public JTextArea getTextEditWindow() { return textWnd; }
+
+	/**
+	 * Routine to control whether text editing or circuit editing is being shown.
+	 * @param on true if text editing is to be shown.
+	 */
+	public void showTextEdit(boolean on)
+	{
+		if (on)
+		{
+			js.setRightComponent(textPanel);
+		} else
+		{
+			js.setRightComponent(circuitPanel);
+		}
+	}
 
 	/**
 	 * Routine to return the ExplorerTree associated with this frame.
@@ -238,6 +321,30 @@ public class WindowFrame
         else
             jf.setTitle(title);
     }
+
+	/**
+	 * This class handles activation and close events for JFrame objects (used in SDI mode).
+	 */
+	static class ScrollAdjustmentListener implements AdjustmentListener
+	{
+		WindowFrame wf;
+
+		ScrollAdjustmentListener(WindowFrame wf)
+		{
+			super();
+			this.wf = wf;
+		}
+
+		public void adjustmentValueChanged(AdjustmentEvent e)
+		{
+			EditWindow wnd = wf.getEditWindow();
+			if (wnd == null) return;
+			if (e.getSource() == wf.getBottomScrollBar())
+				wnd.bottomScrollChanged();
+			if (e.getSource() == wf.getRightScrollBar())
+				wnd.rightScrollChanged();
+		}
+	}
 
 	/**
 	 * This class handles activation and close events for JFrame objects (used in SDI mode).

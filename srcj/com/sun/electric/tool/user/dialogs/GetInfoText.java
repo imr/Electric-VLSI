@@ -43,6 +43,8 @@ import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.util.Iterator;
+import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.awt.geom.Rectangle2D;
 import javax.swing.JFrame;
 import javax.swing.JComboBox;
@@ -70,6 +72,7 @@ public class GetInfoText extends javax.swing.JDialog
 	private boolean initialItalic, initialBold, initialUnderline;
 	private boolean initialInvisibleOutsideCell;
 	private int initialLanguage;
+	private int initialFont;
 	private String initialText;
 	private double initialXOffset, initialYOffset;
 	private boolean posNotOffset;
@@ -322,6 +325,13 @@ public class GetInfoText extends javax.swing.JDialog
 
 		// set the font
 		font.setEnabled(true);
+		initialFont = td.getFace();
+		if (initialFont == 0) font.setSelectedIndex(0); else
+		{
+			TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(initialFont);
+			if (af != null)
+				font.setSelectedItem(af.getName());
+		}
 
 		// set italic / bold / underline
 		italic.setEnabled(true);
@@ -387,6 +397,9 @@ public class GetInfoText extends javax.swing.JDialog
 		show.addItem("Name,Inherit-All,Value");
 
 		font.addItem("DEFAULT FONT");
+		Font[] fonts = GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts();
+		for(int i=0; i<fonts.length; i++)
+			font.addItem(fonts[i].getFontName());
 
 		rotation.addItem("None");
 		rotation.addItem("90 degrees counterclockwise");
@@ -585,6 +598,19 @@ public class GetInfoText extends javax.swing.JDialog
 			}
 
 			// handle changes to the font
+			int currentFont = dialog.font.getSelectedIndex();
+			if (currentFont != dialog.initialFont)
+			{
+				changed = true;
+				if (currentFont == 0) td.setFace(0); else
+				{
+					String fontName = (String)dialog.font.getSelectedItem();
+					TextDescriptor.ActiveFont newFont = TextDescriptor.ActiveFont.findActiveFont(fontName);
+					int newFontIndex = newFont.getIndex();
+					td.setFace(newFontIndex);
+				}
+				dialog.initialFont = currentFont;
+			}
 
 			// handle changes to italic / bold / underline
 			boolean currentItalic = dialog.italic.isSelected();

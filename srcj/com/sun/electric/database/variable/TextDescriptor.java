@@ -33,6 +33,7 @@ import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 
 /**
@@ -484,6 +485,79 @@ public class TextDescriptor
 		/** Describes time units. */			public static final Unit TIME =        new Unit("time", VTUNITSTIME);
 		private static final Unit [] theUnits = new Unit[] {Unit.NONE, Unit.RESISTANCE, Unit.CAPACITANCE,
 			Unit.INDUCTANCE, Unit.CURRENT, Unit.VOLTAGE, Unit.DISTANCE, Unit.TIME};
+	}
+
+	/**
+	 * ActiveFont is a class that describes fonts currently in use.
+	 */
+	public static class ActiveFont
+	{
+		private String fontName;
+		private int index;
+		private static int indexCount = 0;
+		private static HashMap fontMap = new HashMap();
+		private static List fontList = new ArrayList();
+
+		private ActiveFont(String fontName)
+		{
+			indexCount++;
+			this.index = indexCount;
+			this.fontName = fontName;
+			fontMap.put(fontName, this);
+			fontList.add(this);
+		}
+
+		/**
+		 * Routine to return the maximum index value for ActiveFonts.
+		 * @return the maximum index value.
+		 * ActiveFonts will have indices ranging from 1 to this value.
+		 */
+		public static int getMaxIndex() { return indexCount; }
+
+		/**
+		 * Routine to return the index for this ActiveFont.
+		 * @return the index of this ActiveFont.
+		 * The index value is 1-based, because font 0 is the "default font".
+		 */
+		public int getIndex() { return index; }
+
+		/**
+		 * Routine to return the font name associated with this ActiveFont.
+		 * @return the font name associated with this ActiveFont.
+		 */
+		public String getName() { return fontName; }
+
+		/**
+		 * Routine to return the ActiveFont with a given name.
+		 * @param fontName the name of the font.
+		 * @return an ActiveFont object.  If there is no ActiveFont
+		 * associated with this fontname, one is created.
+		 */
+		public static ActiveFont findActiveFont(String fontName)
+		{
+			ActiveFont af = (ActiveFont)fontMap.get(fontName);
+			if (af == null)
+				af = new ActiveFont(fontName);
+			return af;
+		}
+
+		/**
+		 * Routine to return the ActiveFont with a given index.
+		 * @param index the index number (1-based) of the ActiveFont.
+		 * @return the ActiveFont with this index.  Returns null if there is none.
+		 */
+		public static ActiveFont findActiveFont(int index)
+		{
+			if (index <= 0) return null;
+			ActiveFont af = (ActiveFont)fontList.get(index-1);
+			return af;
+		}
+
+		/**
+		 * Returns a printable version of this ActiveFont.
+		 * @return a printable version of this ActiveFont.
+		 */
+		public String toString() { return fontName; }
 	}
 
 

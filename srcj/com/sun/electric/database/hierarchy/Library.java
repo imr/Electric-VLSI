@@ -27,6 +27,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.variable.FlagSet;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.user.ui.ExplorerTree;
 
 import java.util.List;
@@ -64,6 +65,8 @@ public class Library extends ElectricObject
 	/** list of Cells in this library */					private ArrayList cells;
 	/** Cell currently being edited */						private Cell curCell;
 	/** flag bits */										private int userBits;
+
+	/** key of Variable holding font associations. */		public static final Variable.Key FONT_ASSOCIATIONS = ElectricObject.newKey("LIB_font_associations");
 
 	/** static list of all libraries in Electric */			private static List libraries = new ArrayList();
 	/** the current library in Electric */					private static Library curLib = null;

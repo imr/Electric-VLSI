@@ -50,6 +50,8 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.Job;
 
+import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.awt.geom.Point2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -94,6 +96,7 @@ public class Attributes extends javax.swing.JDialog
 	private boolean initialItalic, initialBold, initialUnderline;
 	private TextDescriptor.Rotation initialRotation;
 	private TextDescriptor.Position initialPosition;
+	private int initialFont;
 
 	/**
 	 * Routine to show the Attributes dialog.
@@ -146,6 +149,12 @@ public class Attributes extends javax.swing.JDialog
 			TextDescriptor.DispPos tdp = TextDescriptor.DispPos.getShowStylesAt(i);
 			show.addItem(tdp.getName());
 		}
+
+		// load the "Fonts" popup
+		font.addItem("DEFAULT FONT");
+		Font[] fonts = GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts();
+		for(int i=0; i<fonts.length; i++)
+			font.addItem(fonts[i].getFontName());
 
 		// load the "Rotation" popup
 		int numRotations = TextDescriptor.Rotation.getNumRotations();
@@ -624,7 +633,12 @@ public class Attributes extends javax.swing.JDialog
 		underline.setSelected(initialUnderline);
 
 		// set text font popup
-//		us_setpopupface(DATR_TEXTFACE, TDGETFACE(var->textdescript), FALSE, dia);
+		if (initialFont == 0) font.setSelectedIndex(0); else
+		{
+			TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(initialFont);
+			if (af != null)
+				font.setSelectedItem(af.getName());
+		}
 
 		// set text rotation popup
 		rotation.setSelectedIndex(initialRotation.getIndex());
@@ -691,6 +705,7 @@ public class Attributes extends javax.swing.JDialog
 		initialUnderline = td.isUnderline();
 
 		// get initial text font popup
+		initialFont = td.getFace();
 
 		// get initial text rotation popup
 		initialRotation = td.getRotation();
@@ -880,7 +895,18 @@ public class Attributes extends javax.swing.JDialog
 			}
 
 			// set text font popup
-//			us_setpopupface(DATR_TEXTFACE, TDGETFACE(var->textdescript), FALSE, dia);
+			int currentFont = dialog.font.getSelectedIndex();
+			if (currentFont != dialog.initialFont)
+			{
+				if (currentFont == 0) td.setFace(0); else
+				{
+					String fontName = (String)dialog.font.getSelectedItem();
+					TextDescriptor.ActiveFont newFont = TextDescriptor.ActiveFont.findActiveFont(fontName);
+					int newFontIndex = newFont.getIndex();
+					td.setFace(newFontIndex);
+				}
+				dialog.initialFont = currentFont;
+			}
 
 			// set text rotation popup
 			int currentRotationIndex = dialog.rotation.getSelectedIndex();
@@ -1128,8 +1154,8 @@ public class Attributes extends javax.swing.JDialog
         gridBagConstraints.gridy = 12;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         body.add(pointsButton, gridBagConstraints);
 
         unitsButton.setText("Units (max 127.75)");

@@ -45,6 +45,7 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.Spice;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.dialogs.LayoutText;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.io.Input;
@@ -67,6 +68,7 @@ import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseWheelListener;
@@ -311,7 +313,7 @@ public class PaletteFrame
 
 		TechnologyPopupActionListener(PaletteFrame palette) { this.palette = palette; }
 
-		public void actionPerformed(java.awt.event.ActionEvent evt)
+		public void actionPerformed(ActionEvent evt)
 		{
 			// the popup of libraies changed
 			JComboBox cb = (JComboBox)evt.getSource();
@@ -511,8 +513,11 @@ public class PaletteFrame
 				} else if (msg.equals("Misc."))
 				{
 					JPopupMenu specialMenu = new JPopupMenu("Special");
-					JMenuItem menuItem = new JMenuItem("Annotation text");
+					JMenuItem menuItem = new JMenuItem("Annotation Text");
 					menuItem.addActionListener(new PlacePopupListener(panel, Generic.tech.invisiblePinNode));
+					specialMenu.add(menuItem);
+					menuItem = new JMenuItem("Layout Text...");
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeLayoutTextCommand(); } });
 					specialMenu.add(menuItem);
 					menuItem = new JMenuItem("Cell Center");
 					menuItem.addActionListener(new PlacePopupListener(panel, Generic.tech.cellCenterNode));
@@ -564,6 +569,12 @@ public class PaletteFrame
 				}
 			}
 			repaint();
+		}
+
+		public void makeLayoutTextCommand()
+		{
+			LayoutText dialog = new LayoutText(TopLevel.getCurrentJFrame(), true);
+			dialog.show();
 		}
 
 //		static class MyPopupListener implements PopupMenuListener, MouseListener
@@ -621,7 +632,7 @@ public class PaletteFrame
 
 			PlacePopupListener(PalettePanel panel, Object obj) { super();  this.panel = panel;   this.obj = obj; }
 
-			public void actionPerformed(java.awt.event.ActionEvent evt)
+			public void actionPerformed(ActionEvent evt)
 			{
 				// the popup of libraies changed
 				JMenuItem mi = (JMenuItem)evt.getSource();

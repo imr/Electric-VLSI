@@ -25,6 +25,19 @@ package com.sun.electric.tool.io;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.tool.Tool;
 
 import java.io.FileOutputStream;
 import java.io.DataOutputStream;
@@ -34,6 +47,9 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * This class manages writing files in different formats.
@@ -174,6 +190,120 @@ public class Output
 		}
 		return false;        
     }
+
+	/**
+	 * Routine to gather all font settings in a Library and attach them to the Library.
+	 * @param lib the Library to examine.
+	 * The routine examines all TextDescriptors that might be saved with the Library
+	 * and adds a new Variable to that Library that describes the font associations.
+	 * The Variable is called "LIB_font_associations" and it is an array of Strings.
+	 * Each String is of the format NUMBER/FONTNAME where NUMBER is the font number
+	 * in the TextDescriptor and FONTNAME is the font name.
+	 */
+	public static void createFontAssociationVariable(Library lib)
+	{
+		int maxIndices = TextDescriptor.ActiveFont.getMaxIndex();
+		if (maxIndices == 0) return;
+		boolean [] fontFound = new boolean[maxIndices];
+		for(int i=0; i<maxIndices; i++) fontFound[i] = false;
+
+		// now examine all objects to see which fonts are in use
+		checkFontUsage(lib, fontFound);
+		for(Iterator it = lib.getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			checkFontUsage(cell, fontFound);
+			for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)nIt.next();
+				checkFontUsage(ni, fontFound);
+				updateFontUsage(ni.getNameTextDescriptor(), fontFound);
+				if (ni.getProto() instanceof Cell)
+					updateFontUsage(ni.getProtoTextDescriptor(), fontFound);
+				for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+				{
+					PortInst pi = (PortInst)pIt.next();
+					checkFontUsage(pi, fontFound);
+				}
+			}
+			for(Iterator aIt = cell.getArcs(); aIt.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)aIt.next();
+				checkFontUsage(ai, fontFound);
+				updateFontUsage(ai.getNameTextDescriptor(), fontFound);
+			}
+			for(Iterator eIt = cell.getPorts(); eIt.hasNext(); )
+			{
+				Export pp = (Export)eIt.next();
+				checkFontUsage(pp, fontFound);
+				updateFontUsage(pp.getTextDescriptor(), fontFound);
+			}
+		}
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology tech = (Technology)it.next();
+			checkFontUsage(tech, fontFound);
+			for(Iterator nIt = tech.getNodes(); nIt.hasNext(); )
+			{
+				PrimitiveNode np = (PrimitiveNode)nIt.next();
+				checkFontUsage(np, fontFound);
+				for(Iterator pIt = np.getPorts(); pIt.hasNext(); )
+				{
+					PrimitivePort pp = (PrimitivePort)pIt.next();
+					checkFontUsage(pp, fontFound);
+				}
+			}
+			for(Iterator aIt = tech.getArcs(); aIt.hasNext(); )
+			{
+				PrimitiveArc ap = (PrimitiveArc)aIt.next();
+				checkFontUsage(ap, fontFound);
+			}
+		}
+		for(Iterator it = Tool.getTools(); it.hasNext(); )
+		{
+			Tool tool = (Tool)it.next();
+			checkFontUsage(tool, fontFound);
+		}
+		for(Iterator it = View.getViews(); it.hasNext(); )
+		{
+			View view = (View)it.next();
+			checkFontUsage(view, fontFound);
+		}
+
+		// now save the associations
+		List associations = new ArrayList();
+		for(int i=0; i<maxIndices; i++)
+		{
+			if (!fontFound[i]) continue;
+			TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(i+1);
+			if (af == null) continue;
+			String association = Integer.toString(i+1) + "/" + af.getName();
+			associations.add(association);
+		}
+		int numAssociations = associations.size();
+		if (numAssociations == 0) return;
+		String [] assocArray = new String[numAssociations];
+		int i = 0;
+		for(Iterator it = associations.iterator(); it.hasNext(); )
+			assocArray[i++] = (String)it.next();
+		lib.newVar(Library.FONT_ASSOCIATIONS, assocArray);
+	}
+
+	private static void checkFontUsage(ElectricObject eobj, boolean [] fontFound)
+	{
+		for(Iterator it = eobj.getVariables(); it.hasNext(); )
+		{
+			Variable var = (Variable)it.next();
+			updateFontUsage(var.getTextDescriptor(), fontFound);
+		}
+	}
+
+	private static void updateFontUsage(TextDescriptor td, boolean [] fontFound)
+	{
+		int fontIndex = td.getFace();
+		if (fontIndex == 0) return;
+		fontFound[fontIndex-1] = true;
+	}
 
     
     /**

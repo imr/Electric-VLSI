@@ -758,12 +758,19 @@ public class InputBinary extends Input
 		// read the library variables
 		if (readVariables(lib, -1) < 0) return true;
 
+		// grab font associations from the library
+		Input.getFontAssociationVariable(lib);
+		Input.fixVariableFont(lib);
+
 		// read the tool variables
 		for(int i=0; i<toolCount; i++)
 		{
 			Tool tool = toolList[i];
 			if (tool == null) ignoreVariables(); else
+			{
 				if (readVariables(tool, -1) < 0) return true;
+				Input.fixVariableFont(tool);
+			}
 		}
 
 		// read the technology variables
@@ -775,6 +782,7 @@ public class InputBinary extends Input
 				int j = readVariables(tech, -1);
 				if (j < 0) return true;
 				if (j > 0) getTechList(i);
+				Input.fixVariableFont(tech);
 			}
 		}
 
@@ -785,6 +793,7 @@ public class InputBinary extends Input
 			int j = readVariables(ap, -1);
 			if (j < 0) return true;
 			if (j > 0) getArcProtoList(i);
+			Input.fixVariableFont(ap);
 		}
 
 		// read the primitive nodeproto variables
@@ -794,6 +803,7 @@ public class InputBinary extends Input
 			int j = readVariables(np, -1);
 			if (j < 0) return true;
 			if (j > 0) getPrimNodeProtoList(i);
+			Input.fixVariableFont(np);
 		}
 
 		// read the primitive portproto variables
@@ -816,6 +826,7 @@ public class InputBinary extends Input
 				if (v != null)
 				{
 					if (readVariables(v, -1) < 0) return true;
+					Input.fixVariableFont(v);
 				} else
 				{
 					System.out.println("View index " + j + " not found");
@@ -1176,7 +1187,7 @@ public class InputBinary extends Input
 							PortInst pi = ni.findPortInst(thePortName);
 							if (pi != null)
 							{
-System.out.println("Setting variable '"+varName+"' on port "+thePortName);
+//System.out.println("Setting variable '"+varName+"' on port "+thePortName);
 								Variable var = pi.newVar(varName, origVar.getObject());
 								if (var != null)
 								{
@@ -1382,6 +1393,7 @@ System.out.println("Setting variable '"+varName+"' on port "+thePortName);
 				}
 			}
 			TextDescriptor descript = new TextDescriptor(null, descript0, descript1);
+			Input.fixTextDescriptorFont(descript);
 			pp.setTextDescriptor(descript);
 
 			// ignore the "seen" bits (versions 8 and older)
@@ -1405,6 +1417,7 @@ System.out.println("Setting variable '"+varName+"' on port "+thePortName);
 
 			// read the export variables
 			if (readVariables(pp, -1) < 0) return true;
+			Input.fixVariableFont(pp);
 
 			portProtoIndex++;
 		}
@@ -1442,6 +1455,7 @@ System.out.println("Setting variable '"+varName+"' on port "+thePortName);
 
 		// read variable information
 		if (readVariables(cell, -1) < 0) return true;
+		Input.fixVariableFont(cell);
 
 		// cell read successfully
 		return false;
@@ -1741,6 +1755,7 @@ System.out.println("Setting variable '"+varName+"' on port "+thePortName);
 			}
 		}
 		TextDescriptor descript = new TextDescriptor(null, descript0, descript1);
+		Input.fixTextDescriptorFont(descript);
 		ni.setProtoTextDescriptor(descript);
 
 		// read the nodeinst name (versions 1, 2, or 3 only)
@@ -1801,6 +1816,7 @@ System.out.println("Setting variable '"+varName+"' on port "+thePortName);
 
 		// read variable information
 		if (readVariables(ni, nodeIndex) < 0) return true;
+		Input.fixVariableFont(ni);
 
 		// node read successfully
 		return false;
@@ -1876,6 +1892,7 @@ System.out.println("Setting variable '"+varName+"' on port "+thePortName);
 
 		// read variable information
 		if (readVariables(ai, arcIndex) < 0) return true;
+		Input.fixVariableFont(ai);
 
 		// arc read successfully
 		return false;
@@ -2041,7 +2058,9 @@ System.out.println("Setting variable '"+varName+"' on port "+thePortName);
 					(obj instanceof ArcInst && realKey[key] == ArcInst.ARC_NAME))
 				{
 					Geometric geom = (Geometric)obj;
-					geom.setNameTextDescriptor(new TextDescriptor(null, descript0, descript1));
+					TextDescriptor nameDescript = new TextDescriptor(null, descript0, descript1);
+					Input.fixTextDescriptorFont(nameDescript);
+					geom.setNameTextDescriptor(nameDescript);
 					Name name = makeGeomName(geom, newAddr, newtype);
 					if (obj instanceof NodeInst)
 						nodeNameList[index] = name;

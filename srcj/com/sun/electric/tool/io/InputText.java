@@ -1200,6 +1200,7 @@ public class InputText extends Input
 		if (slashPos >= 0)
 			td1 = EMath.atoi(keyWord.substring(slashPos+1));
 		TextDescriptor td = new TextDescriptor(null, td0, td1);
+		Input.fixTextDescriptorFont(td);
 		nodeInstList[curCellNumber].nodeList[curNodeInstIndex].setProtoTextDescriptor(td);
 	}
 
@@ -1434,6 +1435,7 @@ public class InputText extends Input
 		if (slashPos >= 0)
 			td1 = EMath.atoi(keyWord, slashPos+1);
 		TextDescriptor td = new TextDescriptor(null, td0, td1);
+		Input.fixTextDescriptorFont(td);
 		exportList[curCellNumber].exportList[curExportIndex].setTextDescriptor(td);
 	}
 
@@ -1672,6 +1674,7 @@ public class InputText extends Input
 					(naddr instanceof ArcInst && varKey == ArcInst.ARC_NAME))
 				{
 					Geometric geom = (Geometric)naddr;
+					Input.fixTextDescriptorFont(td);
 					geom.setNameTextDescriptor(td);
 					Name name = makeGeomName(geom, value, type);
 					if (naddr instanceof NodeInst)
@@ -1697,6 +1700,12 @@ public class InputText extends Input
 //					changedtechnologyvariable(key);
 			}
 		}
+		if (varPos == INVLIBRARY)
+		{
+			// cache the font associations
+			Input.getFontAssociationVariable(lib);
+		}
+		Input.fixVariableFont(naddr);
 	}
 
 	private Object io_decode(String name, int type)

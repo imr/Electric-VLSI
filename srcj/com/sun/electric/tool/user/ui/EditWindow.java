@@ -41,6 +41,7 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
@@ -90,7 +91,8 @@ import javax.swing.JPanel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
-import javax.swing.Scrollable;
+import javax.swing.JScrollBar;
+import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 
 /*
@@ -98,7 +100,7 @@ import javax.swing.SwingConstants;
  */
 
 public class EditWindow extends JPanel
-	implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener, Scrollable
+	implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener
 {
     /** the window scale */									private double scale;
     /** the window offset */								private double offx, offy;
@@ -137,8 +139,6 @@ public class EditWindow extends JPanel
     private EditWindow(Cell cell, WindowFrame wf)
 	{
         //super(cell.describe(), true, true, true, true);
-        this.cell = cell;
-        this.cellVarContext = VarContext.globalContext;
         this.wf = wf;
 		this.gridXSpacing = User.getDefGridXSpacing();
 		this.gridYSpacing = User.getDefGridYSpacing();
@@ -151,6 +151,7 @@ public class EditWindow extends JPanel
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		addMouseWheelListener(this);
+		if (wf != null) setCell(cell, VarContext.globalContext);
 	}
 
 	// factory
@@ -178,6 +179,60 @@ public class EditWindow extends JPanel
 		return wf.getEditWindow();
 	}
 
+	/**
+	 * Routine to return the cell that is shown in this window.
+	 * @return the cell that is shown in this window.
+	 */
+	public Cell getCell() { return cell; }
+
+	/**
+	 * Routine to set the cell that is shown in the window to "cell".
+	 */
+	public void setCell(Cell cell, VarContext context)
+	{
+		this.cell = cell;
+        this.cellVarContext = context;
+		Library curLib = Library.getCurrent();
+		curLib.setCurCell(cell);
+		Highlight.clear();
+		Highlight.finished();
+		fillScreen();
+		if (wf != null)
+		{
+			if (cell == null)
+			{
+				wf.setTitle("***NONE***");
+			} else
+			{
+				wf.setTitle(cell.describe());
+				wf.showTextEdit(cell.getView().isTextView());
+
+				if (cell.getView().isTextView())
+				{
+					// reload with text information
+					JTextArea ta = wf.getTextEditWindow();
+					Variable var = cell.getVar("FACET_message");
+					if (var != null)
+					{
+						int len = var.getLength();
+						String [] lines = (String [])var.getObject();
+						String totalText = "";
+						for(int i=0; i<len; i++)
+						{
+							totalText += lines[i] + "\n";
+						}
+						ta.setText(totalText);
+						ta.setCaretPosition(0);
+					}
+					return;
+				}
+			}
+		}
+		redraw();
+
+		if (cell != null && User.isCheckCellDates()) cell.checkCellDates();
+	}
+
 	// ************************************* RENDERING A WINDOW *************************************
 
 	public void redraw()
@@ -200,7 +255,7 @@ public class EditWindow extends JPanel
 	{
         Graphics2D g2 = (Graphics2D)g;
 
-		// to enable keys to be recieved
+		// to enable keys to be received
 		if (cell != null && cell == Library.getCurrent().getCurCell())
 			requestFocus();
 
@@ -216,6 +271,7 @@ public class EditWindow extends JPanel
 		if (needsUpdate)
 		{
 			needsUpdate = false;
+			setScrollPosition();
 			drawImage();
 		}
 		g2.drawImage(img, 0, 0, this);
@@ -684,14 +740,21 @@ public class EditWindow extends JPanel
 		// make a glyph vector for the desired text
 		int size = 14;
 		int fontStyle = Font.PLAIN;
+		String fontName = "SansSerif";
 		if (descript != null)
 		{
 			size = descript.getTrueSize(this);
 			if (size <= 0) size = 1;
 			if (descript.isItalic()) fontStyle |= Font.ITALIC;
 			if (descript.isBold()) fontStyle |= Font.BOLD;
+			int fontIndex = descript.getFace();
+			if (fontIndex != 0)
+			{
+				TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(fontIndex);
+				if (af != null) fontName = af.getName();
+			}
 		}
-		Font font = new Font("SansSerif", fontStyle, size);
+		Font font = new Font(fontName, fontStyle, size);
 		FontRenderContext frc = new FontRenderContext(null, false, false);
 		GlyphVector gv = font.createGlyphVector(frc, text);
 		return gv;
@@ -982,6 +1045,75 @@ public class EditWindow extends JPanel
 	 */
 	public void setOffset(Point2D off) { offx = off.getX();   offy = off.getY(); }
 
+	private static final double SCALEFACTOR = 50;
+
+	/**
+	 * Routine called when the bottom scrollbar changes.
+	 */
+	public void bottomScrollChanged()
+	{
+		if (cell == null) return;
+
+		Rectangle2D bounds = cell.getBounds();
+		double xWidth = bounds.getWidth();
+		double xCenter = bounds.getCenterX();
+
+		JScrollBar bottom = this.wf.getBottomScrollBar();
+		int xThumbPos = bottom.getValue();
+		int computedXThumbPos = (int)((offx - xCenter) / xWidth * SCALEFACTOR) + 100;
+		if (computedXThumbPos != xThumbPos)
+		{
+			offx = (xThumbPos-100.0)/SCALEFACTOR * xWidth + xCenter;
+			redraw();
+		}
+	}
+
+	/**
+	 * Routine called when the right scrollbar changes.
+	 */
+	public void rightScrollChanged()
+	{
+		if (cell == null) return;
+
+		Rectangle2D bounds = cell.getBounds();
+		double yHeight = bounds.getWidth();
+		double yCenter = bounds.getCenterX();
+
+		JScrollBar right = this.wf.getRightScrollBar();
+		int yThumbPos = right.getValue();
+		int computedYThumbPos = (int)((yCenter - offy) / yHeight * SCALEFACTOR) + 100;
+		if (computedYThumbPos != yThumbPos)
+		{
+			offy = yCenter - (yThumbPos - 100.0) / SCALEFACTOR * yHeight;
+			redraw();
+		}
+	}
+
+	/**
+	 * Routine to update the scrollbars on the sides of the edit window
+	 * so they reflect the true offset of the circuit.
+	 */
+	public void setScrollPosition()
+	{
+		JScrollBar bottom = wf.getBottomScrollBar();
+		JScrollBar right = wf.getRightScrollBar();
+		bottom.setEnabled(cell != null);
+		right.setEnabled(cell != null);
+		if (cell != null)
+		{
+			Rectangle2D bounds = cell.getBounds();
+			double xWidth = bounds.getWidth();
+			double xCenter = bounds.getCenterX();
+			int xThumbPos = (int)((offx - xCenter) / xWidth * SCALEFACTOR) + 100;
+			bottom.setValue(xThumbPos);
+
+			double yHeight = bounds.getWidth();
+			double yCenter = bounds.getCenterX();
+			int yThumbPos = (int)((yCenter - offy) / yHeight * SCALEFACTOR) + 100;
+			right.setValue(yThumbPos);
+		}
+	}
+
 	/**
 	 * Routine to focus the screen so that an area fills it.
 	 * @param bounds the area to make fill the screen.
@@ -1007,10 +1139,13 @@ public class EditWindow extends JPanel
 	{
 		if (cell != null)
 		{
-			Rectangle2D cellBounds = cell.getBounds();
-			if (cellBounds.getWidth() == 0 && cellBounds.getHeight() == 0)
-				cellBounds.setRect(0, 0, 60, 60);
-			focusScreen(cellBounds);
+			if (!cell.getView().isTextView())
+			{
+				Rectangle2D cellBounds = cell.getBounds();
+				if (cellBounds.getWidth() == 0 && cellBounds.getHeight() == 0)
+					cellBounds.setRect(0, 0, 60, 60);
+				focusScreen(cellBounds);
+			}
 		}
  		needsUpdate = true;
    }
@@ -1224,61 +1359,7 @@ public class EditWindow extends JPanel
 	public void keyReleased(KeyEvent evt) { curKeyListener.keyReleased(evt); }
 	public void keyTyped(KeyEvent evt) { curKeyListener.keyTyped(evt); }
 
-	// the Scrollable events
-	public Dimension getPreferredScrollableViewportSize()
-	{
-		return new Dimension(500, 500);
-	}
-
-	public int getScrollableBlockIncrement(java.awt.Rectangle visibleRect, int orientation, int direction)
-	{
-		if (orientation == SwingConstants.HORIZONTAL)
-			return visibleRect.width - 50;
-		return visibleRect.height - 50;
-	}
-
-	public boolean getScrollableTracksViewportHeight()
-	{
-		return true;
-	}
-
-	public boolean getScrollableTracksViewportWidth()
-	{
-		return true;
-	}
-
-	public int getScrollableUnitIncrement(java.awt.Rectangle visibleRect, int orientation, int direction)
-	{
-		return 1;
-	}
-
 	// ************************************* MISCELLANEOUS *************************************
-
-	/**
-	 * Routine to return the cell that is shown in this window.
-	 * @return the cell that is shown in this window.
-	 */
-	public Cell getCell() { return cell; }
-
-	/**
-	 * Routine to set the cell that is shown in the window to "cell".
-	 */
-	public void setCell(Cell cell, VarContext context)
-	{
-		this.cell = cell;
-        this.cellVarContext = context;
-		Library curLib = Library.getCurrent();
-		curLib.setCurCell(cell);
-		Highlight.clear();
-//        if (lastPushed != null) Highlight.addGeometric(lastPushed);
-		Highlight.finished();
-		fillScreen();
-		redraw();
-		if (cell == null) wf.setTitle("***NONE***"); else
-	        wf.setTitle(cell.describe());
-
-		if (User.isCheckCellDates()) cell.checkCellDates();
-	}
 
 	public boolean isDoingAreaDrag() { return doingAreaDrag; }
 
