@@ -38,11 +38,13 @@ import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.user.UserMenuCommands;
+import com.sun.electric.tool.user.CircuitChanges;
 
 import java.util.Iterator;
 import java.util.List;
@@ -175,6 +177,12 @@ public class UIEdit extends JPanel
 	{
 		this.trackTime = trackTime;
 	}
+
+	/**
+	 * Routine to return the cell that is shown in this window.
+	 * @return the cell that is shown in this window.
+	 */
+	public Cell getCell() { return cell; }
 
 	/**
 	 * Routine to set the cell that is shown in the window to "cell".
@@ -753,7 +761,6 @@ public class UIEdit extends JPanel
 
 				// just a single dot
 				g.fillRect(x,y, 1, 1);
-
 			}
 		}
 	}
@@ -839,6 +846,7 @@ public class UIEdit extends JPanel
 		g.drawLine(hX, hY, hX, lY);
 		g.drawLine(hX, lY, lX, lY);
 	}
+
 	// ************************************* WINDOW INTERACTION *************************************
 
 	private int oldx, oldy;
@@ -931,6 +939,16 @@ public class UIEdit extends JPanel
 
 	public void keyPressed(KeyEvent e)
 	{
+		int chr = e.getKeyCode();
+		if (chr == KeyEvent.VK_F)
+		{
+			System.out.println("doing full display...");
+			UserMenuCommands.fullDisplayCommand();
+			System.out.println("...did full display");
+		} else if (chr == KeyEvent.VK_DELETE || chr == KeyEvent.VK_BACK_SPACE)
+		{
+			CircuitChanges.deleteSelected();
+		}
 	}
 
 	public void keyReleased(KeyEvent e)
@@ -939,12 +957,6 @@ public class UIEdit extends JPanel
 
 	public void keyTyped(KeyEvent e)
 	{
-		if (e.getKeyChar() == 'f')
-		{
-			System.out.println("doing full display...");
-			UserMenuCommands.fullDisplayCommand();
-			System.out.println("...did full display");
-		}
 	}
 
 	public void mouseWheelMoved(MouseWheelEvent e)

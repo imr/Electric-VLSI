@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -35,6 +36,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ui.UIEditFrame;
 import com.sun.electric.tool.user.ui.UIMenu;
 import com.sun.electric.tool.user.ui.UITopLevel;
@@ -78,10 +80,18 @@ public final class UserInitial
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.getInfoCommand(); } });
 		steveMenu.addMenuItem("Show R-Tree", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.showRTreeCommand(); } });
+		steveMenu.addSeparator();
 		steveMenu.addMenuItem("Full Display", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.fullDisplayCommand(); } });
 		steveMenu.addMenuItem("Toggle Grid", KeyStroke.getKeyStroke('G', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.toggleGridCommand(); } });
+		steveMenu.addSeparator();
+		steveMenu.addMenuItem("Undo", KeyStroke.getKeyStroke('Z', InputEvent.CTRL_MASK),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.undoCommand(); } });
+		steveMenu.addMenuItem("Redo", KeyStroke.getKeyStroke('Y', InputEvent.CTRL_MASK),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.redoCommand(); } });
+		steveMenu.addMenuItem("Show Undo List", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.showUndoListCommand(); } });
 
 		// setup Russell's test menu
 		UIMenu russMenu = UIMenu.CreateUIMenu("Russell", 'R');
@@ -115,6 +125,9 @@ public final class UserInitial
 		// initialize all of the technologies
 		Technology.initAllTechnologies();
 
+		// initialize all of the tools
+		Tool.initAllTools();
+
 		// create the first library
 		Library mainLib = Library.newInstance("noname", null);
 		Library.setCurrent(mainLib);
@@ -142,8 +155,8 @@ public final class UserInitial
 		// get the current library
 		Library mainLib = Library.getCurrent();
 
-
 		// create a layout cell in the library
+		Undo.startChanges(User.tool, "Build test{lay}");
 		Cell myCell = Cell.newInstance(mainLib, "test{lay}");
 		NodeInst cellCenter = NodeInst.newInstance(cellCenterProto, new Point2D.Double(30.0, 30.0), cellCenterProto.getDefWidth(), cellCenterProto.getDefHeight(), 0, myCell);
 		cellCenter.setVisInside();
@@ -176,9 +189,11 @@ public final class UserInitial
 		Export p1Export = Export.newInstance(myCell, p1Port, "out");
 		p1Export.setCharacteristic(PortProto.Characteristic.OUT);
 		System.out.println("Created cell " + myCell.describe());
+		Undo.endChanges();
 
 
 		// now up the hierarchy
+		Undo.startChanges(User.tool, "Build higher{lay}");
 		Cell higherCell = Cell.newInstance(mainLib, "higher{lay}");
 		Rectangle2D bounds = myCell.getBounds();
 		NodeInst instance1Node = NodeInst.newInstance(myCell, new Point2D.Double(0, 0),
@@ -235,8 +250,11 @@ public final class UserInitial
 		ArcInst instanceArc = ArcInst.newInstance(m1Proto, m1Proto.getWidth(), instance1Port, instance2Port);
 		instanceArc.setFixedAngle();
 		System.out.println("Created cell " + higherCell.describe());
+		Undo.endChanges();
 
+		
 		// now up the hierarchy even farther
+		Undo.startChanges(User.tool, "Build big{lay}");
 		Cell bigCell = Cell.newInstance(mainLib, "big{lay}");
 		int arraySize = 20;
 		double cellWidth = myCell.getDefWidth();
@@ -258,6 +276,7 @@ public final class UserInitial
 			}
 		}
 		System.out.println("Created cell " + bigCell.describe());
+		Undo.endChanges();
 
 		// show some stuff
 //		instance1Node.getInfo();

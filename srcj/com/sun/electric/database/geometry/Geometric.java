@@ -23,8 +23,9 @@
  */
 package com.sun.electric.database.geometry;
 
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.FlagSet;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -119,7 +120,7 @@ public class Geometric extends ElectricObject
 
 	/**
 	 * The RTNode class implements R-Trees.
-	 * R-trees come from this paper: Guttman, Antonin, ?R-Trees: A Dynamic Index Structure for Spatial Searching?,
+	 * R-trees come from this paper: Guttman, Antonin, "R-Trees: A Dynamic Index Structure for Spatial Searching",
 	 * ACM SIGMOD, 14:2, 47-57, June 1984.
 	 * <P>
 	 * R-trees are height-balanced trees in which all leaves are at the same depth and contain Geometric objects (the
@@ -768,6 +769,8 @@ public class Geometric extends ElectricObject
 	/** size of this geometric */							protected double sX, sY;
 	/** angle of this geometric (in tenth-degrees). */		protected int angle;
 	/** temporary integer value for the node or arc */		private int tempInt;
+	/** The temporary flag bits. */							private int flagBits;
+	/** The object used to request flag bits. */			private static FlagSet.Generator flagGenerator = new FlagSet.Generator();
 
 	// ------------------------ private and protected methods--------------------
 
@@ -784,13 +787,6 @@ public class Geometric extends ElectricObject
 	 * @param parent the parent Cell of this Geometric.
 	 */
 	protected void setParent(Cell parent) { this.parent = parent; }
-
-	/**
-	 * Routine to remove this Geometric from the parent Cell.
-	 */
-	public void remove()
-	{
-	}
 
 	/**
 	 * Routine to describe this Geometric as a string.
@@ -894,6 +890,51 @@ public class Geometric extends ElectricObject
 	 * @return the bounds of this Geometric.
 	 */
 	public Rectangle2D.Double getBounds() { return visBounds; }
+
+	/**
+	 * Routine to get access to flag bits on this Geometric.
+	 * Flag bits allow Geometric to be marked and examined more conveniently.
+	 * However, multiple competing activities may want to mark the nodes at
+	 * the same time.  To solve this, each activity that wants to mark nodes
+	 * must create a FlagSet that allocates bits in the node.  When done,
+	 * the FlagSet must be released.
+	 * @param numBits the number of flag bits desired.
+	 * @return a FlagSet object that can be used to mark and test the Geometric.
+	 */
+	public static FlagSet getFlagSet(int numBits) { return FlagSet.getFlagSet(flagGenerator, numBits); }
+
+	/**
+	 * Routine to set the specified flag bits on this Geometric.
+	 * @param set the flag bits that are to be set on this Geometric.
+	 */
+	public void setBit(FlagSet set) { flagBits = flagBits | set.getMask(); }
+
+	/**
+	 * Routine to set the specified flag bits on this Geometric.
+	 * @param set the flag bits that are to be cleared on this Geometric.
+	 */
+	public void clearBit(FlagSet set) { flagBits = flagBits & set.getUnmask(); }
+
+	/**
+	 * Routine to set the specified flag bits on this Geometric.
+	 * @param set the flag bits that are to be set on this Geometric.
+	 * @param value the value to be set on this Geometric.
+	 */
+	public void setFlagValue(FlagSet set, int value) { flagBits = (flagBits & set.getUnmask()) | ((value << set.getShift()) & set.getMask()); }
+
+	/**
+	 * Routine to return the specified flag bits on this Geometric.
+	 * @param set the flag bits that are to be examined on this Geometric.
+	 * @return the value of the specified flag bits on this Geometric.
+	 */
+	public int getFlagValue(FlagSet set) { return (flagBits & set.getMask()) >> set.getShift(); }
+
+	/**
+	 * Routine to test the specified flag bits on this Geometric.
+	 * @param set the flag bits that are to be tested on this Geometric.
+	 * @return true if the flag bits are set.
+	 */
+	public boolean isBit(FlagSet set) { return (flagBits & set.getMask()) != 0; }
 
 	/**
 	 * Routine to get the temporary integer on this Geometric.

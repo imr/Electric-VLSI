@@ -308,7 +308,7 @@ public class InputText extends Input
 			if (cell.isBit(recursiveSetupFlag)) continue;
 			completeCellSetupRecursively(cell, cellIndex);
 		}
-		NodeProto.freeFlagSet(recursiveSetupFlag);
+		recursiveSetupFlag.freeFlagSet();
 
 		// see if cellgroup information was included
 //		for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
@@ -497,6 +497,7 @@ public class InputText extends Input
 			if (pp.lowLevelName(cell, el.exportName[j])) return;
 			PortInst pi = el.exportSubNode[j].findPortInst(el.exportSubPort[j]);
 			if (pp.lowLevelPopulate(pi)) return;
+			if (pp.lowLevelLink()) return;
 		}
 	}
 
@@ -1150,7 +1151,6 @@ public class InputText extends Input
 	 */
 	private void io_nodnam()
 	{
-//		nextchangequiet();
 		nodeInstList[curCellNumber].nodeList[curNodeInstIndex].setName(keyWord);
 	}
 
@@ -1268,7 +1268,6 @@ public class InputText extends Input
 	 */
 	private void io_arcnam()
 	{
-//		nextchangequiet();
 		arcInstList[curCellNumber].arcList[curArcInstIndex].setName(keyWord);
 	}
 
@@ -1634,7 +1633,6 @@ public class InputText extends Input
 			}
 			if (!invalid)
 			{
-//				nextchangequiet();
 				Variable var = naddr.setVal(varName, value);
 				if (var == null)
 				{

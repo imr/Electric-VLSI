@@ -195,13 +195,12 @@ public abstract class PortProto extends ElectricObject implements Networkable
 	public void setParent(NodeProto parent)
 	{
 		this.parent = parent;
-		parent.addPort(this);
 	}
 
 	/**
 	 * Routine to remove this PortProto from its parent NodeProto.
 	 */
-	public void remove()
+	public void kill()
 	{
 		parent.removePort(this);
 	}

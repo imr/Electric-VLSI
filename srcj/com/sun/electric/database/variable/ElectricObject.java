@@ -23,9 +23,14 @@
  */
 package com.sun.electric.database.variable;
 
+import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.geometry.Poly;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -248,6 +253,34 @@ public class ElectricObject
 	}
 
 	/**
+	 * Routine to indicate that changes are starting on this ElectricObjects.
+	 */
+	public void startChange()
+	{
+		// handle change control, constraint, and broadcast
+		if (Undo.recordChange())
+		{
+			// tell all tools about this change
+			Undo.Change ch = Undo.newChange(this, Undo.Type.OBJECTSTART, 0, 0, 0, 0, 0, 0);
+		}
+		Undo.clearNextChangeQuiet();
+	}
+
+	/**
+	 * Routine to indicate that changes are ending on this ElectricObjects.
+	 */
+	public void endChange()
+	{
+		// handle change control, constraint, and broadcast
+		if (Undo.recordChange())
+		{
+			// tell all tools about this change
+			Undo.Change ch = Undo.newChange(this, Undo.Type.OBJECTEND, 0, 0, 0, 0, 0, 0);
+		}
+		Undo.clearNextChangeQuiet();
+	}
+
+	/**
 	 * Routine to return the Name object for a given Variable name.
 	 * Variable Name objects are caches of the actual string name of the Variable.
 	 * @return the Name object for a given Variable name.
@@ -256,6 +289,20 @@ public class ElectricObject
 	{
 		Variable.Name vn = (Variable.Name)varNames.get(name);
 		return vn;
+	}
+
+	/*
+	 * Routine to determine the appropriate Cell associated with this ElectricObject.
+	 * @return the appropriate Cell associated with this ElectricObject.
+	 * Returns null if no Cell can be found.
+	 */
+	public Cell whichCell()
+	{
+		if (this instanceof NodeInst) return ((NodeInst)this).getParent();
+		if (this instanceof ArcInst) return ((ArcInst)this).getParent();
+		if (this instanceof Cell) return (Cell)this;
+		if (this instanceof Export) return (Cell)((Export)this).getParent();
+		return null;
 	}
 
 	/*

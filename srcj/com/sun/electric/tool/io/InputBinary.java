@@ -854,7 +854,7 @@ public class InputBinary extends Input
 				cell = otherCell;
 			}
 		}
-		NodeProto.freeFlagSet(cellFlag);
+		cellFlag.freeFlagSet();
 
 		// cleanup cellgroup processing, link the cells
 		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
@@ -976,7 +976,7 @@ public class InputBinary extends Input
 			if (cell.isBit(recursiveSetupFlag)) continue;
 			completeCellSetupRecursively(cell, cellIndex);
 		}
-		NodeProto.freeFlagSet(recursiveSetupFlag);
+		recursiveSetupFlag.freeFlagSet();
 		if (curCell >= 0)
 		{
 			NodeProto currentCell = convertNodeProto(curCell);
@@ -1094,6 +1094,7 @@ public class InputBinary extends Input
 			String exportName = portProtoNameList[i];
 			PortInst pi = subNodeInst.findPortInst(subPortProto.getProtoName());
 			if (pp.lowLevelPopulate(pi)) return;
+			if (pp.lowLevelLink()) return;
 			pp.lowLevelSetUserbits(portProtoUserbits[i]);
 		}
 
@@ -1649,10 +1650,7 @@ public class InputBinary extends Input
 		{
 			String instName = readString();
 			if (instName.length() > 0)
-			{
-//				nextChangeQuiet();
 				ni.setName(instName);
-			}
 		}
 
 		// ignore the geometry index (versions 4 or older)
@@ -1738,10 +1736,7 @@ public class InputBinary extends Input
 		{
 			String instName = readString();
 			if (instName.length() > 0)
-			{
-//				nextChangeQuiet();
 				ai.setName(instName);
-			}
 		}
 
 		// read the head information
@@ -1940,7 +1935,6 @@ public class InputBinary extends Input
 			boolean invalid = obj.isDeprecatedVariable(realName[key]);
 			if (!invalid)
 			{
-//				nextChangeQuiet();
 				Variable var = obj.setVal(realName[key], newAddr);
 				if (var == null) return(-1);
 				var.getTextDescriptor().lowLevelSet(descript0, descript1);

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.topology;
 
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.prototype.ArcProto;
@@ -95,108 +96,12 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	/** prototype of this arc instance */				private ArcProto protoType;
 	/** end connections of this arc instance */			private Connection head, tail;
 
-	// -------------------- private and protected methods ------------------------
-
 	/**
 	 * The constructor is never called.  Use the factory "newInstance" instead.
 	 */
 	private ArcInst()
 	{
 		this.userBits = 0;
-	}
-
-	/**
-	 * Routine to recompute the Geometric information on this ArcInst.
-	 */
-	void updateGeometric()
-	{
-		Point2D.Double p1 = head.getLocation();
-		Point2D.Double p2 = tail.getLocation();
-		double dx = p2.x - p1.x;
-		double dy = p2.y - p1.y;
-		this.sX = Math.sqrt(dx * dx + dy * dy);
-		this.sY = arcWidth;
-		this.cX = EMath.smooth((p1.x + p2.x) / 2);
-		this.cY = EMath.smooth((p1.y + p2.y) / 2);
-		if (p1.equals(p2)) this.angle = 0; else
-			this.angle = EMath.figureAngle(p1, p2);
-
-		// compute the bounds
-		Poly poly = makePoly(this.sX, arcWidth, Poly.Type.FILLED);
-		visBounds.setRect(poly.getBounds2DDouble());
-//if (parent.getProtoName().equalsIgnoreCase("aa_qFour_padframe") && parent.getView() == View.SCHEMATIC)
-//{
-//	System.out.println("Arc " + describe() + " in cell " + parent.describe() + " angle " + this.angle + " bounds " + visBounds);
-//	for(int i=0; i<poly.getPoints().length; i++)
-//	{
-//		System.out.println("   "+poly.getPoints()[i]);
-//	}
-//}
-	}
-
-	/**
-	 * Routine to return the connection at an end of this ArcInst.
-	 * @param onHead true to get get the connection the head of this ArcInst.
-	 * false to get get the connection the tail of this ArcInst.
-	 */
-	public Connection getConnection(boolean onHead)
-	{
-		return onHead ? head : tail;
-	}
-
-	/**
-	 * Routine to return the Connection on the head end of this ArcInst.
-	 * @return the Connection on the head end of this ArcInst.
-	 */
-	public Connection getHead() { return head; }
-
-	/**
-	 * Routine to return the Connection on the tail end of this ArcInst.
-	 * @return the Connection on the tail end of this ArcInst.
-	 */
-	public Connection getTail() { return tail; }
-
-	// Remove this ArcInst.  Will also remove the connections on either side.
-//	public void remove()
-//	{
-//		head.remove();
-//		tail.remove();
-//		getParent().removeArc(this);
-//		super.remove();
-//	}
-
-	/**
-	 * Routine to remove the Connection from an end of this ArcInst.
-	 * @param c the Connection to remove.
-	 * @param onHead true if the Connection is on the head of this ArcInst.
-	 */
-	void removeConnection(Connection c, boolean onHead)
-	{
-		/* safety check */
-		if ((onHead ? head : tail) != c)
-		{
-			System.out.println("Tried to remove the wrong connection from a wire end: "
-				+ c + " on " + this);
-		}
-		if (onHead) head = null; else
-			tail = null;
-	}
-
-	/*
-	 * Routine to write a description of this ArcInst.
-	 * Displays the description in the Messages Window.
-	 */
-	public void getInfo()
-	{
-		System.out.println("-------------- ARC INSTANCE " + describe() + ": --------------");
-		Point2D loc = head.getLocation();
-		System.out.println(" Head on " + head.getPortInst().getNodeInst().describe() +
-			" at (" + loc.getX() + "," + loc.getY() + ")");
-
-		loc = tail.getLocation();
-		System.out.println(" Tail on " + tail.getPortInst().getNodeInst().describe() +
-			" at (" + loc.getX() + "," + loc.getY() + ")");
-		super.getInfo();
 	}
 
 	// -------------------------- public methods -----------------------------
@@ -265,7 +170,6 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		
 		// fill in the geometry
 		updateGeometric();
-		linkGeom(parent);
 
 		return false;
 	}
@@ -281,9 +185,23 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		tail.getPortInst().getNodeInst().addConnection(tail);
 
 		// add this arc to the cell
-		Cell parent = getParent();
+		linkGeom(parent);
 		parent.addArc(this);
 		return false;
+	}
+
+	/**
+	 * Low-level routine to unlink the ArcInst from its Cell.
+	 */
+	public void lowLevelUnlink()
+	{
+		// remove this arc from the two nodes it connects
+		head.getPortInst().getNodeInst().removeConnection(head);
+		tail.getPortInst().getNodeInst().removeConnection(tail);
+
+		// add this arc to the cell
+		unLinkGeom(parent);
+		parent.removeArc(this);
 	}
 
 	/**
@@ -325,7 +243,64 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		ArcInst ai = lowLevelAllocate();
 		if (ai.lowLevelPopulate(type, width, head, headX, headY, tail, tailX, tailY)) return null;
 		if (ai.lowLevelLink()) return null;
+
+		// handle change control, constraint, and broadcast
+		if (Undo.recordChange())
+		{
+			// tell all tools about this ArcInst
+			Undo.Change ch = Undo.newChange(ai, Undo.Type.ARCINSTNEW, 0, 0, 0, 0, 0, 0);
+
+			// tell constraint system about new ArcInst
+//			(*el_curconstraint->newobject)((INTBIG)ni, VARCINST);
+		}
+		Undo.clearNextChangeQuiet();
 		return ai;
+	}
+
+	/**
+	 * Routine to delete this ArcInst.
+	 */
+	public void kill()
+	{
+		// remove the arc
+		lowLevelUnlink();
+
+		// handle change control, constraint, and broadcast
+		if (Undo.recordChange())
+		{
+			// tell all tools about this ArcInst
+			Undo.Change ch = Undo.newChange(this, Undo.Type.ARCINSTKILL, 0, 0, 0, 0, 0, 0);
+
+			// tell constraint system about killed ArcInst
+//			(*el_curconstraint->killobject)((INTBIG)ni, VARCINST);
+		}
+	}
+
+	/**
+	 * Routine to change the width of this ArcInst.
+	 * @param dWidth the change to the ArcInst width.
+	 */
+	public void modify(double dWidth, double dHeadX, double dHeadY, double dTailX, double dTailY)
+	{
+		// first remove from the R-Tree structure
+		unLinkGeom(parent);
+
+		// now make the change
+		arcWidth += dWidth;
+		if (dHeadX != 0 || dHeadY != 0)
+		{
+			Point2D.Double pt = head.getLocation();
+			head.setLocation(new Point2D.Double(EMath.smooth(dHeadX+pt.getX()), EMath.smooth(pt.getY()+dHeadY)));
+		}
+		if (dTailX != 0 || dTailY != 0)
+		{
+			Point2D.Double pt = tail.getLocation();
+			tail.setLocation(new Point2D.Double(EMath.smooth(dTailX+pt.getX()), EMath.smooth(pt.getY()+dTailY)));
+		}
+		updateGeometric();
+
+		// reinsert in the R-Tree structure
+		linkGeom(parent);
 	}
 
 	/**
@@ -660,33 +635,6 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	}
 
 	/**
-	 * Routine to change the width of this ArcInst.
-	 * @param dWidth the change to the ArcInst width.
-	 */
-	public void modify(double dWidth, double dHeadX, double dHeadY, double dTailX, double dTailY)
-	{
-		// first remove from the R-Tree structure
-		unLinkGeom(parent);
-
-		// now make the change
-		arcWidth += dWidth;
-		if (dHeadX != 0 || dHeadY != 0)
-		{
-			Point2D.Double pt = head.getLocation();
-			head.setLocation(new Point2D.Double(EMath.smooth(dHeadX+pt.getX()), EMath.smooth(pt.getY()+dHeadY)));
-		}
-		if (dTailX != 0 || dTailY != 0)
-		{
-			Point2D.Double pt = tail.getLocation();
-			tail.setLocation(new Point2D.Double(EMath.smooth(dTailX+pt.getX()), EMath.smooth(pt.getY()+dTailY)));
-		}
-		updateGeometric();
-
-		// reinsert in the R-Tree structure
-		linkGeom(parent);
-	}
-
-	/**
 	 * Routine to return the prototype of this ArcInst.
 	 * @return the prototype of this ArcInst.
 	 */
@@ -717,6 +665,45 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		Variable var = getVal(VAR_ARC_NAME, String.class);
 		if (var == null) return null;
 		return (String) var.getObject();
+	}
+
+	/**
+	 * Routine to return the connection at an end of this ArcInst.
+	 * @param onHead true to get get the connection the head of this ArcInst.
+	 * false to get get the connection the tail of this ArcInst.
+	 */
+	public Connection getConnection(boolean onHead)
+	{
+		return onHead ? head : tail;
+	}
+
+	/**
+	 * Routine to return the Connection on the head end of this ArcInst.
+	 * @return the Connection on the head end of this ArcInst.
+	 */
+	public Connection getHead() { return head; }
+
+	/**
+	 * Routine to return the Connection on the tail end of this ArcInst.
+	 * @return the Connection on the tail end of this ArcInst.
+	 */
+	public Connection getTail() { return tail; }
+
+	/*
+	 * Routine to write a description of this ArcInst.
+	 * Displays the description in the Messages Window.
+	 */
+	public void getInfo()
+	{
+		System.out.println("-------------- ARC INSTANCE " + describe() + ": --------------");
+		Point2D loc = head.getLocation();
+		System.out.println(" Head on " + head.getPortInst().getNodeInst().describe() +
+			" at (" + loc.getX() + "," + loc.getY() + ")");
+
+		loc = tail.getLocation();
+		System.out.println(" Tail on " + tail.getPortInst().getNodeInst().describe() +
+			" at (" + loc.getX() + "," + loc.getY() + ")");
+		super.getInfo();
 	}
 
 	/**
@@ -848,6 +835,47 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	public String toString()
 	{
 		return "ArcInst " + protoType.getProtoName();
+	}
+
+	// -------------------- private and protected methods ------------------------
+
+	/**
+	 * Routine to recompute the Geometric information on this ArcInst.
+	 */
+	void updateGeometric()
+	{
+		Point2D.Double p1 = head.getLocation();
+		Point2D.Double p2 = tail.getLocation();
+		double dx = p2.x - p1.x;
+		double dy = p2.y - p1.y;
+		this.sX = Math.sqrt(dx * dx + dy * dy);
+		this.sY = arcWidth;
+		this.cX = EMath.smooth((p1.x + p2.x) / 2);
+		this.cY = EMath.smooth((p1.y + p2.y) / 2);
+		if (p1.equals(p2)) this.angle = 0; else
+			this.angle = EMath.figureAngle(p1, p2);
+
+		// compute the bounds
+		Poly poly = makePoly(this.sX, arcWidth, Poly.Type.FILLED);
+		visBounds.setRect(poly.getBounds2DDouble());
+	}
+
+
+	/**
+	 * Routine to remove the Connection from an end of this ArcInst.
+	 * @param c the Connection to remove.
+	 * @param onHead true if the Connection is on the head of this ArcInst.
+	 */
+	void removeConnection(Connection c, boolean onHead)
+	{
+		/* safety check */
+		if ((onHead ? head : tail) != c)
+		{
+			System.out.println("Tried to remove the wrong connection from a wire end: "
+				+ c + " on " + this);
+		}
+		if (onHead) head = null; else
+			tail = null;
 	}
 
 }

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
@@ -215,6 +216,11 @@ public final class UserMenuCommands
 		curCell.getRTree().printRTree(0);
 	}
 
+	public static void showUndoListCommand()
+	{
+		Undo.showHistoryList();
+	}
+
 	public static void showCellGroupsCommand()
 	{
 		// list things by cell group
@@ -239,7 +245,19 @@ public final class UserMenuCommands
 				cellInGroup.setBit(cellFlag);
 			}
 		}
-		NodeProto.freeFlagSet(cellFlag);
+		cellFlag.freeFlagSet();
+	}
+
+	public static void undoCommand()
+	{
+		if (!Undo.undoABatch())
+			System.out.println("Undo failed!");
+	}
+
+	public static void redoCommand()
+	{
+		if (!Undo.redoABatch())
+			System.out.println("Redo failed!");
 	}
 
 	// ---------------------- THE DIMA MENU -----------------

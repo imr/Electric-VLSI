@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.topology;
 
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.NodeProto;
@@ -228,7 +229,6 @@ public class NodeInst extends Geometric
 
 		// fill in the geometry
 		updateGeometric();
-		linkGeom(parent);
 		return false;
 	}
 
@@ -239,9 +239,21 @@ public class NodeInst extends Geometric
 	public boolean lowLevelLink()
 	{
 		// add to linked lists
+		linkGeom(parent);
 		protoType.addInstance(this);
 		parent.addNode(this);
 		return false;
+	}
+
+	/**
+	 * Low-level routine to unlink the NodeInst from its Cell.
+	 */
+	public void lowLevelUnlink()
+	{
+		// remove this node from the cell
+		unLinkGeom(parent);
+		protoType.removeInstance(this);
+		parent.removeNode(this);
 	}
 
 	/**
@@ -260,7 +272,53 @@ public class NodeInst extends Geometric
 		NodeInst ni = lowLevelAllocate();
 		if (ni.lowLevelPopulate(protoType, center, width, height, angle, parent)) return null;
 		if (ni.lowLevelLink()) return null;
+
+		// handle change control, constraint, and broadcast
+		if (Undo.recordChange())
+		{
+			// tell all tools about this NodeInst
+			Undo.Change ch = Undo.newChange(ni, Undo.Type.NODEINSTNEW, 0, 0, 0, 0, 0, 0);
+
+			// tell constraint system about new NodeInst
+//			(*el_curconstraint->newobject)((INTBIG)ni, VNODEINST);
+		}
+		Undo.clearNextChangeQuiet();
 		return ni;
+	}
+
+	/**
+	 * Routine to delete this NodeInst.
+	 */
+	public void kill()
+	{
+		// kill the arcs attached to the connections.  This will also remove the connections themselves
+		while (connections.size() > 0)
+		{
+			Connection con = (Connection)connections.get(connections.size() - 1);
+			con.getArc().startChange();
+			con.getArc().kill();
+		}
+
+		// remove any exports
+		while (exports.size() > 0)
+		{
+			Export pp = (Export)exports.get(exports.size() - 1);
+			pp.startChange();
+			pp.kill();
+		}
+
+		// remove the node
+		lowLevelUnlink();
+
+		// handle change control, constraint, and broadcast
+		if (Undo.recordChange())
+		{
+			// tell all tools about this NodeInst
+			Undo.Change ch = Undo.newChange(this, Undo.Type.NODEINSTKILL, 0, 0, 0, 0, 0, 0);
+
+			// tell constraint system about killed NodeInst
+//			(*el_curconstraint->killobject)((INTBIG)ni, VNODEINST);
+		}
 	}
 
 	/**
@@ -319,32 +377,6 @@ public class NodeInst extends Geometric
 			return false;
 
 		return getParent().getCellGroup() == ((Cell) np).getCellGroup();
-	}
-
-	/**
-	 * Routine to delete this NodeInst.
-	 */
-	public void remove()
-	{
-		// kill the arcs attached to the connections.  This will also
-		// remove the connections themselves
-		while (connections.size() > 0)
-		{
-			((Connection) connections.get(connections.size() - 1))
-				.getArc()
-				.remove();
-		}
-		// remove any exports
-		while (exports.size() > 0)
-		{
-			((Export) exports.get(exports.size() - 1)).remove();
-		}
-
-		// disconnect from the parent
-		getParent().removeNode(this);
-		// remove instance from the prototype
-		protoType.removeInstance(this);
-		super.remove();
 	}
 
 	/*

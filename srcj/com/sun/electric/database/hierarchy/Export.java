@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.hierarchy;
 
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -87,7 +88,6 @@ public class Export extends PortProto
 
 	/**
 	 * Low-level access routine to fill-in the subnode and subport of this Export.
-	 * The Export is also linked into the Cell.
 	 * @param originalPort the PortInst that is being exported.
 	 * @return true on error.
 	 */
@@ -100,11 +100,32 @@ public class Export extends PortProto
 			return true;
 		}
 		this.originalPort = originalPort;
-		NodeInst originalNode = originalPort.getNodeInst();
-		originalNode.addExport(this);
 		
 		this.userBits = originalPort.getPortProto().lowLevelGetUserbits();
 		return false;
+	}
+
+	/**
+	 * Low-level access routine to link this Export into its cell.
+	 * @return true on error.
+	 */
+	public boolean lowLevelLink()
+	{
+		NodeInst originalNode = originalPort.getNodeInst();
+		originalNode.addExport(this);
+		getParent().addPort(this);
+		return false;
+	}
+
+	/**
+	 * Low-level access routine to unlink this Export from its cell.
+	 * @return true on error.
+	 */
+	public void lowLevelUnlink()
+	{
+		NodeInst originalNode = originalPort.getNodeInst();
+		originalNode.removeExport(this);
+		getParent().removePort(this);
 	}
 
 	/**
@@ -120,17 +141,39 @@ public class Export extends PortProto
 		Export pp = lowLevelAllocate();
 		if (pp.lowLevelName(parent, protoName)) return null;
 		if (pp.lowLevelPopulate(portInst)) return null;
+		if (pp.lowLevelLink()) return null;
+
+		// handle change control, constraint, and broadcast
+		if (Undo.recordChange())
+		{
+			// tell all tools about this Export
+			Undo.Change ch = Undo.newChange(pp, Undo.Type.EXPORTNEW, 0, 0, 0, 0, 0, 0);
+
+			// tell constraint system about new Export
+//			(*el_curconstraint->newobject)((INTBIG)pp, VPORTPROTO);
+		}
+		Undo.clearNextChangeQuiet();
+
 		return pp;
 	}	
 
 	/**
 	 * Routine to unlink this Export from its Cell.
 	 */
-	public void remove()
+	public void kill()
 	{
-		NodeInst originalNode = originalPort.getNodeInst();
-		originalNode.removeExport(this);
-		super.remove();
+		lowLevelUnlink();
+
+		// handle change control, constraint, and broadcast
+		if (Undo.recordChange())
+		{
+			// tell all tools about this Export
+			Undo.Change ch = Undo.newChange(this, Undo.Type.EXPORTKILL, 0, 0, 0, 0, 0, 0);
+
+			// tell constraint system about killed Export
+//			(*el_curconstraint->newobject)((INTBIG)this, VPORTPROTO);
+		}
+		Undo.clearNextChangeQuiet();
 	}
 
 	/**

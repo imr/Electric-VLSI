@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.hierarchy;
 
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.prototype.NodeProto;
@@ -276,7 +277,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Low-level access routine to link a cell into its library.
+	 * Low-level access routine to link this Cell into its library.
 	 * @return true on error.
 	 */
 	public boolean lowLevelLink()
@@ -312,6 +313,18 @@ public class Cell extends NodeProto
 	}
 
 	/**
+	 * Low-level access routine to unlink this Cell from its library.
+	 */
+	public void lowLevelUnlink()
+	{
+		cellGroup.remove(this);
+		versionGroup.remove(this);
+		Library lib = getLibrary();
+		lib.removeCell(this);
+		super.kill();
+	}
+
+	/**
 	 * Factory method to create a new Cell.
 	 * @param lib the Library in which to place this cell.
 	 * @param name the name of this cell.
@@ -322,28 +335,41 @@ public class Cell extends NodeProto
 	 */
 	public static Cell newInstance(Library lib, String name)
 	{
-		Cell theCell = lowLevelAllocate(lib);
-		if (theCell.lowLevelPopulate(name)) return null;
-		if (theCell.lowLevelLink()) return null;
-		return theCell;
+		Cell cell = lowLevelAllocate(lib);
+		if (cell.lowLevelPopulate(name)) return null;
+		if (cell.lowLevelLink()) return null;
+
+		// handle change control, constraint, and broadcast
+		if (Undo.recordChange())
+		{
+			// tell all tools about this Cell
+			Undo.Change ch = Undo.newChange(cell, Undo.Type.CELLNEW, 0, 0, 0, 0, 0, 0);
+
+			// tell constraint system about new Cell
+//			(*el_curconstraint->newobject)((INTBIG)cell, VNODEPROTO);
+		}
+		Undo.clearNextChangeQuiet();
+		return cell;
 	}
 
 	/**
 	 * Routine to remove this node from all lists.
 	 */
-	public void remove()
+	public void kill()
 	{
 		// remove ourselves from the cellGroup.
-		cellGroup.remove(this);
-		versionGroup.remove(this);
-		lib.removeCell(this); // remove ourselves from the library
-//		removeAll(nodes); // kill nodes
+		lowLevelUnlink();
 
-		// arcs should have been killed by ditching the nodes
-		if (arcs.size() != 0)
-			System.out.println("Arcs should have been removed when the nodes were killed");
+		// handle change control, constraint, and broadcast
+		if (Undo.recordChange())
+		{
+			// tell all tools about this Cell
+			Undo.Change ch = Undo.newChange(this, Undo.Type.CELLKILL, 0, 0, 0, 0, 0, 0);
 
-		super.remove();
+			// tell constraint system about killed Cell
+//			(*el_curconstraint->newobject)((INTBIG)this, VNODEPROTO);
+		}
+		Undo.clearNextChangeQuiet();
 	}
 
 	/**
@@ -776,6 +802,11 @@ public class Cell extends NodeProto
 	 * @param revisionDate the date of this Cell's last revision.
 	 */
 	public void lowLevelSetRevisionDate(Date revisionDate) { this.revisionDate = revisionDate; }
+
+	/**
+	 * Routine to set this Cell's revision date to the current time.
+	 */
+	public void madeRevision() { this.revisionDate = new Date(); }
 
 	/**
 	 * Routine to find a named Export on this Cell.

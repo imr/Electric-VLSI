@@ -134,7 +134,7 @@ public class OutputBinary extends Output
 				lastCellInGroup = firstCellInGroup = cell;
 			lastCellInGroup.setTempObj(firstCellInGroup);
 		}
-		NodeProto.freeFlagSet(cellFlag);
+		cellFlag.freeFlagSet();
 
 		// initialize the number of objects in the database
 		int nodeIndex = 0;
@@ -525,7 +525,7 @@ public class OutputBinary extends Output
 		lib.clearChangedMinor();
 		lib.clearChangedMajor();
 		lib.setFromDisk();
-		NodeProto.freeFlagSet(externalRefFlag);
+		externalRefFlag.freeFlagSet();
 
 		// library written successfully
 		return false;

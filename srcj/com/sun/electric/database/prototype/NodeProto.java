@@ -397,7 +397,7 @@ public abstract class NodeProto extends ElectricObject
 	 * Adds Exports for Cells, PrimitivePorts for PrimitiveNodes.
 	 * @param port the PortProto to add to this NodeProto.
 	 */
-	void addPort(PortProto port)
+	public void addPort(PortProto port)
 	{
 		ports.add(port);
 		notifyCellsNetworks();
@@ -407,7 +407,7 @@ public abstract class NodeProto extends ElectricObject
 	 * Removes a PortProto from this NodeProto.
 	 * @param port the PortProto to remove from this NodeProto.
 	 */
-	void removePort(PortProto port)
+	public void removePort(PortProto port)
 	{
 		ports.remove(port);
 		notifyCellsNetworks();
@@ -473,7 +473,7 @@ public abstract class NodeProto extends ElectricObject
 	 * Remove this NodeProto.
 	 * Also deletes the ports associated with this NodeProto.
 	 */
-	public void remove()
+	public void kill()
 	{
 		// kill ports
 //		removeAll(ports);
@@ -1026,17 +1026,6 @@ public abstract class NodeProto extends ElectricObject
 	 * @return a FlagSet object that can be used to mark and test the NodeProto.
 	 */
 	public static FlagSet getFlagSet(int numBits) { return FlagSet.getFlagSet(flagGenerator, numBits); }
-
-	/**
-	 * Routine to free a set of flag bits on this NodeProto.
-	 * Flag bits allow NodeProtos to be marked and examined more conveniently.
-	 * However, multiple competing activities may want to mark the nodes at
-	 * the same time.  To solve this, each activity that wants to mark nodes
-	 * must create a FlagSet that allocates bits in the node.  When done,
-	 * the FlagSet must be released.
-	 * @param fs the flag bits that are no longer needed.
-	 */
-	public static void freeFlagSet(FlagSet fs) { fs.freeFlagSet(flagGenerator); }
 
 	/**
 	 * Routine to set the specified flag bits on this NodeProto.

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.io;
 
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
@@ -115,7 +116,10 @@ public class Input
 	public static Library readLibrary(String fileName, ImportType type)
 	{
 		long startTime = System.currentTimeMillis();
+		Undo.noUndoAllowed();
+		Undo.changesQuiet(true);
 		Library lib = readALibrary(fileName, null, type);
+		Undo.changesQuiet(false);
 		if (lib != null)
 		{
 			long endTime = System.currentTimeMillis();
