@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: InputLIF.java
+ * File: LibDirs.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.io;
+package com.sun.electric.tool.io.input;
 
 import java.io.File;
 import java.io.FileReader;
@@ -47,14 +47,14 @@ import java.util.ArrayList;
  *
  * <p>
  */
-public class InputLibDirs {
+public class LibDirs {
 
     /** Default LibDirs file name */                        private static String libDirsFile = "LIBDIRS";
     /** List of library directories from LibDirs file*/     private static ArrayList dirs = new ArrayList();
     /** List of libDirsFiles read (prevent recursion) */    private static ArrayList libDirsFiles = new ArrayList();
     
-    /** Creates a new instance of InputLIF */
-    InputLibDirs() {
+    /** Creates a new instance of LibDirs */
+    LibDirs() {
     }
 
     /** return list of Lib Dirs 

@@ -39,7 +39,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.erc.ERC;
-import com.sun.electric.tool.io.OutputVerilog;
+import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.simulation.Simulation;
@@ -973,7 +973,7 @@ public class ToolOptions extends javax.swing.JDialog
 
 	private void spiceModelFileBrowseActionPerformed()
 	{
-		String fileName = OpenFile.chooseInputFile(OpenFile.ANY, null);
+		String fileName = OpenFile.chooseInputFile(OpenFile.Type.ANY, null);
 		if (fileName == null) return;
 		spiceModelCell.setText(fileName);
 		spiceUseModelFromFile.setSelected(true);
@@ -981,7 +981,7 @@ public class ToolOptions extends javax.swing.JDialog
 
 	private void spiceBrowseTrailerFileActionPerformed()
 	{
-		String fileName = OpenFile.chooseInputFile(OpenFile.ANY, null);
+		String fileName = OpenFile.chooseInputFile(OpenFile.Type.ANY, null);
 		if (fileName == null) return;
 		spiceTrailerCardFile.setText(fileName);
 		spiceTrailerCardsFromFile.setSelected(true);
@@ -989,7 +989,7 @@ public class ToolOptions extends javax.swing.JDialog
 
 	private void spiceBrowseHeaderFileActionPerformed()
 	{
-		String fileName = OpenFile.chooseInputFile(OpenFile.ANY, null);
+		String fileName = OpenFile.chooseInputFile(OpenFile.Type.ANY, null);
 		if (fileName == null) return;
 		spiceHeaderCardFile.setText(fileName);
 		spiceHeaderCardsFromFile.setSelected(true);
@@ -1159,7 +1159,7 @@ public class ToolOptions extends javax.swing.JDialog
 			{
 				Cell cell = (Cell)cIt.next();
 				String behaveFile = "";
-				Variable var = cell.getVar(OutputVerilog.VERILOG_BEHAVE_FILE_KEY);
+				Variable var = cell.getVar(Verilog.VERILOG_BEHAVE_FILE_KEY);
 				if (var != null) behaveFile = var.getObject().toString();
 				initialVerilogBehaveFiles.put(cell, Option.newStringOption(behaveFile));
 			}
@@ -1205,7 +1205,7 @@ public class ToolOptions extends javax.swing.JDialog
 
 	private void verModelFileBrowseActionPerformed()
 	{
-		String fileName = OpenFile.chooseInputFile(OpenFile.VERILOG, null);
+		String fileName = OpenFile.chooseInputFile(OpenFile.Type.VERILOG, null);
 		if (fileName == null) return;
 		verUseModelFile.setSelected(true);
 		verFileName.setEditable(true);
@@ -1333,7 +1333,7 @@ public class ToolOptions extends javax.swing.JDialog
 				if (behaveOption == null) continue;
 				if (behaveOption.isChanged())
 				{
-					cell.newVar(OutputVerilog.VERILOG_BEHAVE_FILE_KEY, behaveOption.getStringValue());
+					cell.newVar(Verilog.VERILOG_BEHAVE_FILE_KEY, behaveOption.getStringValue());
 				}
 			}
 		}

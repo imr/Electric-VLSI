@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: OutputGeometry.java
+ * File: Geometry.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.io;
+package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
@@ -48,7 +48,7 @@ import java.util.Iterator;
 /**
  * Base class for writing geometry to a file
  */
-public abstract class OutputGeometry extends Output
+public abstract class Geometry extends Output
 {
     /** number of unique cells processed */             protected int numVisited;
     /** number of unique cells to process */            protected int numCells;
@@ -56,8 +56,8 @@ public abstract class OutputGeometry extends Output
 
     /** HashMap of all CellGeoms */                     protected HashMap cellGeoms;
 
-    /** Creates a new instance of OutputGeometry */
-    OutputGeometry() 
+    /** Creates a new instance of Geometry */
+    Geometry() 
     {
     }
 
@@ -142,13 +142,13 @@ public abstract class OutputGeometry extends Output
 
     public class Visitor extends HierarchyEnumerator.Visitor
     {
-        /** OutputGeometry object this Visitor is enumerating for */	private OutputGeometry outGeom;
-        /** Current cellGeom */                                         protected CellGeom cellGeom = null;
-        /** OutputGeometry stack when descending hierarchy */			private CellGeom [] outGeomStack;
-        /** hierarchy max depth */                                      private int maxHierDepth;
-        /** current hierarchy depth */                                  private int curHierDepth;
+        /** Geometry object this Visitor is enumerating for */	private Geometry outGeom;
+        /** Current cellGeom */                                 protected CellGeom cellGeom = null;
+        /** Geometry stack when descending hierarchy */			private CellGeom [] outGeomStack;
+        /** hierarchy max depth */                              private int maxHierDepth;
+        /** current hierarchy depth */                          private int curHierDepth;
 
-        public Visitor(OutputGeometry outGeom, int maxHierDepth)
+        public Visitor(Geometry outGeom, int maxHierDepth)
         {
 			this.outGeom = outGeom;
 			this.maxHierDepth = maxHierDepth;

@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: InputBinary.java
+ * File: ELIB.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.io;
+package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Geometric;
@@ -53,8 +53,8 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.io.BinaryConstants;
-import com.sun.electric.tool.io.InputLibrary;
+import com.sun.electric.tool.io.ELIBConstants;
+import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.Progress;
 
@@ -74,7 +74,7 @@ import java.util.Date;
 /**
  * This class reads files in binary (.elib) format.
  */
-public class InputBinary extends InputLibrary
+public class ELIB extends LibraryFiles
 {
 	// ------------------------- private data ----------------------------
 	/** the magic number in the library file */								private int magic;
@@ -88,7 +88,6 @@ public class InputBinary extends InputLibrary
 
 	// statistics about the file
 	/** the number of integers on disk that got clipped during input */		private int clippedIntegers;
-	/** the number of bytes of data read so far */							private int byteCount;
 
 	// the tool information
 	/** the number of tools in the file */									private int toolCount;
@@ -133,7 +132,7 @@ public class InputBinary extends InputLibrary
 
 	// the NodeInsts in the library
 	/** the number of NodeInsts in the library */							private int nodeCount;
-	/** All data for NodeInsts in each Cell. */								private InputLibrary.NodeInstList nodeInstList;
+	/** All data for NodeInsts in each Cell. */								private LibraryFiles.NodeInstList nodeInstList;
 
 	// the ArcInsts in the library
 	/** the number of ArcInsts in the library */							private int arcCount;
@@ -171,21 +170,7 @@ public class InputBinary extends InputLibrary
 	/** true to convert all text descriptor values */						private boolean convertTextDescriptors;
 	/** true to require text descriptor values */							private boolean alwaysTextDescriptors;
 
-	// ".elib" file version numbers
-	/** current magic number: version 12 */		public static final int MAGIC12 = -1595;
-	/** older magic number: version 11 */		private static final int MAGIC11 = -1593;
-	/** older magic number: version 10 */		private static final int MAGIC10 = -1591;
-	/** older magic number: version 9 */		private static final int MAGIC9 =  -1589;
-	/** older magic number: version 8 */		private static final int MAGIC8 =  -1587;
-	/** older magic number: version 7 */		private static final int MAGIC7 =  -1585;
-	/** older magic number: version 6 */		private static final int MAGIC6 =  -1583;
-	/** older magic number: version 5 */		private static final int MAGIC5 =  -1581;
-	/** older magic number: version 4 */		private static final int MAGIC4 =  -1579;
-	/** older magic number: version 3 */		private static final int MAGIC3 =  -1577;
-	/** older magic number: version 2 */		private static final int MAGIC2 =  -1575;
-	/** oldest magic number: version 1 */		private static final int MAGIC1 =  -1573;
-
-	InputBinary() {}
+	ELIB() {}
 
 	// ----------------------- public methods -------------------------------
 
@@ -231,7 +216,7 @@ public class InputBinary extends InputLibrary
 		portProtoCount = readBigInteger();
 		arcCount = readBigInteger();
 		geomCount = readBigInteger();
-		if (magic <= MAGIC9 && magic >= MAGIC11)
+		if (magic <= ELIBConstants.MAGIC9 && magic >= ELIBConstants.MAGIC11)
 		{
 			// versions 9 through 11 stored a "cell count"
 			cellCount = readBigInteger();
@@ -244,7 +229,7 @@ public class InputBinary extends InputLibrary
 
 		// get the Electric version (version 8 and later)
 		String versionString;
-		if (magic <= MAGIC8) versionString = readString(); else
+		if (magic <= ELIBConstants.MAGIC8) versionString = readString(); else
 			versionString = "3.35";
 		version = Version.parseVersion(versionString);
 
@@ -294,7 +279,7 @@ public class InputBinary extends InputLibrary
 		viewMapping.put(new Integer(-14), View.NETLISTSILOS);
 		viewMapping.put(new Integer(-15), View.VERILOG);
 		viewMapping.put(new Integer(-16), View.LAYOUTCOMP);
-		if (magic <= MAGIC9)
+		if (magic <= ELIBConstants.MAGIC9)
 		{
 			int numExtraViews = readBigInteger();
 			for(int i=0; i<numExtraViews; i++)
@@ -328,7 +313,7 @@ public class InputBinary extends InputLibrary
 		}
 
 		// get the number of toolbits to ignore
-		if (magic <= MAGIC3 && magic >= MAGIC6)
+		if (magic <= ELIBConstants.MAGIC3 && magic >= ELIBConstants.MAGIC6)
 		{
 			// versions 3, 4, 5, and 6 find this in the file
 			toolBCount = readBigInteger();
@@ -372,7 +357,7 @@ public class InputBinary extends InputLibrary
 		xLibRefSatisfied = new boolean[nodeProtoCount];
 
 		// allocate pointers for the NodeInsts
-		nodeInstList = new InputLibrary.NodeInstList();
+		nodeInstList = new LibraryFiles.NodeInstList();
 		nodeInstList.theNode = new NodeInst[nodeCount];
 		nodeInstList.protoType = new NodeProto[nodeCount];
 		nodeInstList.name = new Name[nodeCount];
@@ -416,7 +401,7 @@ public class InputBinary extends InputLibrary
 		portProtoUserbits = new int[portProtoCount];
 
 		// versions 9 to 11 allocate fake-cell pointers
-		if (magic <= MAGIC9 && magic >= MAGIC11)
+		if (magic <= ELIBConstants.MAGIC9 && magic >= ELIBConstants.MAGIC11)
 		{
 			fakeCellList = new FakeCell[cellCount];
 			for(int i=0; i<cellCount; i++)
@@ -424,14 +409,14 @@ public class InputBinary extends InputLibrary
 		}
 
 		// versions 4 and earlier allocate geometric pointers
-		if (magic > MAGIC5)
+		if (magic > ELIBConstants.MAGIC5)
 		{
 			geomType = new boolean [geomCount];
 			geomMoreUp = new int [geomCount];
 		}
 
 		// get number of arcinsts and nodeinsts in each cell
-		if (magic != MAGIC1)
+		if (magic != ELIBConstants.MAGIC1)
 		{
 			// versions 2 and later find this in the file
 			int nodeInstPos = 0, arcInstPos = 0, portProtoPos = 0;
@@ -722,7 +707,7 @@ public class InputBinary extends InputLibrary
 			if (i != toolIndex) toolBitsMessed = true;
 			toolList[i] = t;
 		}
-		if (magic <= MAGIC3 && magic >= MAGIC6)
+		if (magic <= ELIBConstants.MAGIC3 && magic >= ELIBConstants.MAGIC6)
 		{
 			// versions 3, 4, 5, and 6 must ignore toolbits associations
 			for(int i=0; i<toolBCount; i++) readString();
@@ -730,7 +715,7 @@ public class InputBinary extends InputLibrary
 
 		// get the library userbits
 		int userBits = 0;
-		if (magic <= MAGIC7)
+		if (magic <= ELIBConstants.MAGIC7)
 		{
 			// version 7 and later simply read the relevant data
 			userBits = readBigInteger();
@@ -823,7 +808,7 @@ public class InputBinary extends InputLibrary
 		}
 
 		// read the view variables (version 9 and later)
-		if (magic <= MAGIC9)
+		if (magic <= ELIBConstants.MAGIC9)
 		{
 			int count = readBigInteger();
 			for(int i=0; i<count; i++)
@@ -843,7 +828,7 @@ public class InputBinary extends InputLibrary
 		}
 
 		// setup fake cell structures (version 9 to 11)
-		if (magic <= MAGIC9 && magic >= MAGIC11)
+		if (magic <= ELIBConstants.MAGIC9 && magic >= ELIBConstants.MAGIC11)
 		{
 			for(int i=0; i<cellCount; i++)
 			{
@@ -875,7 +860,7 @@ public class InputBinary extends InputLibrary
 		// process the cell groups
 		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
 		{
-			if (magic <= MAGIC9 && magic >= MAGIC11) continue;
+			if (magic <= ELIBConstants.MAGIC9 && magic >= ELIBConstants.MAGIC11) continue;
 			Cell cell = nodeProtoList[cellIndex];
 			if (cell == null) continue;
 			if (cell.isBit(cellFlag)) continue;
@@ -961,7 +946,7 @@ public class InputBinary extends InputLibrary
 			Cell cell = nodeProtoList[cellIndex];
 			firstNodeIndex[cellIndex] = nodeIndex;
 			firstArcIndex[cellIndex] = arcIndex;
-			if (magic > MAGIC5)
+			if (magic > ELIBConstants.MAGIC5)
 			{
 				// versions 4 and earlier must read some geometric information
 				int j = geomIndex;
@@ -1010,7 +995,7 @@ public class InputBinary extends InputLibrary
 		}
 
 		// library read successfully
-		if (InputLibrary.VERBOSE)
+		if (LibraryFiles.VERBOSE)
 			System.out.println("Binary: finished reading data for library " + lib.getLibName());
 		return false;
 	}
@@ -1045,7 +1030,7 @@ public class InputBinary extends InputLibrary
 				// make sure that cell is properly built
 				if (!subCell.isBit(recursiveSetupFlag))
 				{
-					InputLibrary reader = getReaderForLib(subCell.getLibrary());
+					LibraryFiles reader = getReaderForLib(subCell.getLibrary());
 					if (reader != null)
 						reader.realizeCellsRecursively(subCell, recursiveSetupFlag, null, 0);
 				}
@@ -1076,7 +1061,7 @@ public class InputBinary extends InputLibrary
 		scanNodesForRecursion(cell, recursiveSetupFlag, nodeInstList.protoType, startNode, endNode);
 
 		// report progress
-		if (InputLibrary.VERBOSE)
+		if (LibraryFiles.VERBOSE)
 		{
 			if (scaledCellName == null)
 			{
@@ -1166,7 +1151,7 @@ public class InputBinary extends InputLibrary
 			if (np instanceof PrimitiveNode) continue;
 			Cell subCell = (Cell)np;
 
-			InputLibrary reader = this;
+			LibraryFiles reader = this;
 			if (subCell.getLibrary() != lib)
 			{
 				reader = getReaderForLib(subCell.getLibrary());
@@ -1436,7 +1421,7 @@ public class InputBinary extends InputLibrary
 						if (scaledCell == null)
 						{
 							// create a scaled version of the cell
-							InputLibrary reader = this;
+							LibraryFiles reader = this;
 							if (subCell.getLibrary() != lib)
 							{
 								reader = getReaderForLib(subCell.getLibrary());
@@ -1551,14 +1536,20 @@ public class InputBinary extends InputLibrary
 		byte byte3 = readByte();
 		byte byte4 = readByte();
 		magic = ((byte4&0xFF) << 24) | ((byte3&0xFF) << 16) | ((byte2&0xFF) << 8) | (byte1&0xFF);
-		if (magic != MAGIC1 && magic != MAGIC2 && magic != MAGIC3 && magic != MAGIC4 &&
-			magic != MAGIC5 && magic != MAGIC6 && magic != MAGIC7 && magic != MAGIC8 &&
-			magic != MAGIC9 && magic != MAGIC10 && magic != MAGIC11 && magic != MAGIC12)
+		if (magic != ELIBConstants.MAGIC1 && magic != ELIBConstants.MAGIC2 &&
+			magic != ELIBConstants.MAGIC3 && magic != ELIBConstants.MAGIC4 &&
+			magic != ELIBConstants.MAGIC5 && magic != ELIBConstants.MAGIC6 &&
+			magic != ELIBConstants.MAGIC7 && magic != ELIBConstants.MAGIC8 &&
+			magic != ELIBConstants.MAGIC9 && magic != ELIBConstants.MAGIC10 &&
+			magic != ELIBConstants.MAGIC11 && magic != ELIBConstants.MAGIC12)
 		{
 			magic = ((byte1&0xFF) << 24) | ((byte2&0xFF) << 16) | ((byte3&0xFF) << 8) | (byte4&0xFF);
-			if (magic != MAGIC1 && magic != MAGIC2 && magic != MAGIC3 && magic != MAGIC4 &&
-				magic != MAGIC5 && magic != MAGIC6 && magic != MAGIC7 && magic != MAGIC8 &&
-				magic != MAGIC9 && magic != MAGIC10 && magic != MAGIC11 && magic != MAGIC12)
+			if (magic != ELIBConstants.MAGIC1 && magic != ELIBConstants.MAGIC2 &&
+				magic != ELIBConstants.MAGIC3 && magic != ELIBConstants.MAGIC4 &&
+				magic != ELIBConstants.MAGIC5 && magic != ELIBConstants.MAGIC6 &&
+				magic != ELIBConstants.MAGIC7 && magic != ELIBConstants.MAGIC8 &&
+				magic != ELIBConstants.MAGIC9 && magic != ELIBConstants.MAGIC10 &&
+				magic != ELIBConstants.MAGIC11 && magic != ELIBConstants.MAGIC12)
 			{
 				System.out.println("Bad file format: does not start with proper magic number");
 				return true;
@@ -1567,7 +1558,7 @@ public class InputBinary extends InputLibrary
 		}
 		
 		// determine the size of "big" and "small" integers as well as characters on disk
-		if (magic <= MAGIC10)
+		if (magic <= ELIBConstants.MAGIC10)
 		{
 			sizeOfSmall = readByte();
 			sizeOfBig = readByte();
@@ -1576,7 +1567,7 @@ public class InputBinary extends InputLibrary
 			sizeOfSmall = 2;
 			sizeOfBig = 4;
 		}
-		if (magic <= MAGIC11)
+		if (magic <= ELIBConstants.MAGIC11)
 		{
 			sizeOfChar = readByte();
 		} else
@@ -1594,10 +1585,10 @@ public class InputBinary extends InputLibrary
 	{
 		// read the cell name
 		String theProtoName;
-		if (magic <= MAGIC9)
+		if (magic <= ELIBConstants.MAGIC9)
 		{
 			// read the cell information (version 9 and later)
-			if (magic >= MAGIC11)
+			if (magic >= ELIBConstants.MAGIC11)
 			{
 				// only versions 9 to 11
 				int k = readBigInteger();
@@ -1617,8 +1608,8 @@ public class InputBinary extends InputLibrary
 			theProtoName += ";" + version + "{" + v.getAbbreviation() + "}";
 			int creationDate = readBigInteger();
 			int revisionDate = readBigInteger();
-			cell.lowLevelSetCreationDate(BinaryConstants.secondsToDate(creationDate));
-			cell.lowLevelSetRevisionDate(BinaryConstants.secondsToDate(revisionDate));
+			cell.lowLevelSetCreationDate(ELIBConstants.secondsToDate(creationDate));
+			cell.lowLevelSetRevisionDate(ELIBConstants.secondsToDate(revisionDate));
 		} else
 		{
 			// versions 8 and earlier read a cell name
@@ -1633,7 +1624,7 @@ public class InputBinary extends InputLibrary
 		int highY = readBigInteger();
 
 		// ignore the linked list pointers (versions 5 or older)
-		if (magic >= MAGIC5)
+		if (magic >= ELIBConstants.MAGIC5)
 		{
 			int prevIndex = readBigInteger();
 			int nextIndex = readBigInteger();
@@ -1678,7 +1669,7 @@ public class InputBinary extends InputLibrary
 
 			// read the portproto text descriptor
 			int descript0 = 0, descript1 = 0;
-			if (magic <= MAGIC9)
+			if (magic <= ELIBConstants.MAGIC9)
 			{
 				if (convertTextDescriptors)
 				{
@@ -1696,17 +1687,17 @@ public class InputBinary extends InputLibrary
 			pp.setTextDescriptor(descript);
 
 			// ignore the "seen" bits (versions 8 and older)
-			if (magic > MAGIC9) readBigInteger();
+			if (magic > ELIBConstants.MAGIC9) readBigInteger();
 
 			// read the portproto's "user bits"
 			portProtoUserbits[portProtoIndex] = 0;
-			if (magic <= MAGIC7)
+			if (magic <= ELIBConstants.MAGIC7)
 			{
 				// version 7 and later simply read the relevant data
 				portProtoUserbits[portProtoIndex] = readBigInteger();
 
 				// versions 7 and 8 ignore net number
-				if (magic >= MAGIC8) readBigInteger();
+				if (magic >= ELIBConstants.MAGIC8) readBigInteger();
 			} else
 			{
 				// version 6 and earlier must sift through the information
@@ -1722,7 +1713,7 @@ public class InputBinary extends InputLibrary
 		}
 
 		// ignore the cell's geometry information
-		if (magic > MAGIC5)
+		if (magic > ELIBConstants.MAGIC5)
 		{
 			// versions 4 and older have geometry module pointers (ignore it)
 			readBigInteger();
@@ -1737,13 +1728,13 @@ public class InputBinary extends InputLibrary
 		
 		// read the "user bits"
 		int userBits = 0;
-		if (magic <= MAGIC7)
+		if (magic <= ELIBConstants.MAGIC7)
 		{
 			// version 7 and later simply read the relevant data
 			userBits = readBigInteger();
 
 			// versions 7 and 8 ignore net number
-			if (magic >= MAGIC8) readBigInteger();
+			if (magic >= ELIBConstants.MAGIC8) readBigInteger();
 		} else
 		{
 			// version 6 and earlier must sift through the information
@@ -1766,7 +1757,7 @@ public class InputBinary extends InputLibrary
 	{
 		// read the cell information (version 9 and later)
 		String theProtoName;
-		if (magic >= MAGIC11)
+		if (magic >= ELIBConstants.MAGIC11)
 		{
 			// only versions 9 to 11
 			int k = readBigInteger();
@@ -1784,8 +1775,8 @@ public class InputBinary extends InputLibrary
 		if (v == null) v = View.UNKNOWN;
 		int version = readBigInteger();
 		String fullCellName = theProtoName + ";" + version + "{" + v.getAbbreviation() + "}";
-		Date creationDate = BinaryConstants.secondsToDate(readBigInteger());
-		Date revisionDate = BinaryConstants.secondsToDate(readBigInteger());
+		Date creationDate = ELIBConstants.secondsToDate(readBigInteger());
+		Date revisionDate = ELIBConstants.secondsToDate(readBigInteger());
 
 		// read the nodeproto bounding box
 		int lowX = readBigInteger();
@@ -1810,7 +1801,7 @@ public class InputBinary extends InputLibrary
 			libFileName = libFileName.substring(charPos+1);
 			libFilePath = "";
 		}
-		ImportType importType = ImportType.BINARY;
+		OpenFile.Type importType = OpenFile.Type.ELIB;
 		String libName = libFileName;
 		if (libName.endsWith(".elib"))
 		{
@@ -1818,7 +1809,7 @@ public class InputBinary extends InputLibrary
 		} else if (libName.endsWith(".txt"))
 		{
 			libName = libName.substring(0, libName.length()-4);
-			importType = ImportType.TEXT;
+			importType = OpenFile.Type.READABLEDUMP;
 		} else
 		{
 			// no recognizable extension, add one to the file name
@@ -1833,7 +1824,7 @@ public class InputBinary extends InputLibrary
 			if (externalStream == null)
 			{
 				// try secondary library file locations
-				for (Iterator libIt = InputLibDirs.getLibDirs(); libIt.hasNext(); )
+				for (Iterator libIt = LibDirs.getLibDirs(); libIt.hasNext(); )
 				{
 					externalURL = TextUtils.makeURLToFile((String)libIt.next() + File.separator + libFileName);
 					externalStream = TextUtils.getURLStream(externalURL);
@@ -1856,7 +1847,7 @@ public class InputBinary extends InputLibrary
 			{
 				System.out.println("CANNOT FIND referenced library " + libFile.getPath());
 				String description = "Reference library '" + libFileName + "'";
-				String pt = OpenFile.chooseInputFile(OpenFile.ELIB, description);
+				String pt = OpenFile.chooseInputFile(OpenFile.Type.ELIB, description);
 				if (pt != null) externalURL = TextUtils.makeURLToFile(pt);
 			}
 			if (externalStream != null)
@@ -1934,7 +1925,7 @@ public class InputBinary extends InputLibrary
 				PortProto pp = c.findExport(localPortNames[j]);
 				if (pp == null)
 				{
-					InputLibrary reader = getReaderForLib(elib);
+					LibraryFiles reader = getReaderForLib(elib);
 					if (reader != null)
 					{
 						if (reader.readerHasExport(c, localPortNames[j])) continue;
@@ -2041,7 +2032,7 @@ public class InputBinary extends InputLibrary
 
 		// versions 9 and later get text descriptor for cell name
 		int descript0 = 0, descript1 = 0;
-		if (magic <= MAGIC9)
+		if (magic <= ELIBConstants.MAGIC9)
 		{
 			if (convertTextDescriptors)
 			{
@@ -2058,7 +2049,7 @@ public class InputBinary extends InputLibrary
 		ni.setProtoTextDescriptor(descript);
 
 		// read the nodeinst name (versions 1, 2, or 3 only)
-		if (magic >= MAGIC3)
+		if (magic >= ELIBConstants.MAGIC3)
 		{
 			String instName = readString();
 			if (instName.length() > 0)
@@ -2066,7 +2057,7 @@ public class InputBinary extends InputLibrary
 		}
 
 		// ignore the geometry index (versions 4 or older)
-		if (magic > MAGIC5) readBigInteger();
+		if (magic > ELIBConstants.MAGIC5) readBigInteger();
 
 		// read the arc ports
 		int numPorts = readBigInteger();
@@ -2099,11 +2090,11 @@ public class InputBinary extends InputLibrary
 		}
 
 		// ignore the "seen" bits (versions 8 and older)
-		if (magic > MAGIC9) readBigInteger();
+		if (magic > ELIBConstants.MAGIC9) readBigInteger();
 
 		// read the tool information
 		int userBits = 0;
-		if (magic <= MAGIC7)
+		if (magic <= ELIBConstants.MAGIC7)
 		{
 			// version 7 and later simply read the relevant data
 			userBits = readBigInteger();
@@ -2137,17 +2128,17 @@ public class InputBinary extends InputLibrary
 		arcTypeList[arcIndex] = ap;
 
 		// read the arc length (versions 5 or older)
-		if (magic >= MAGIC5) readBigInteger();
+		if (magic >= ELIBConstants.MAGIC5) readBigInteger();
 
 		// read the arc width
 		arcWidthList[arcIndex] = readBigInteger();
 
 		// ignore the signals value (versions 6, 7, or 8)
-		if (magic <= MAGIC6 && magic >= MAGIC8)
+		if (magic <= ELIBConstants.MAGIC6 && magic >= ELIBConstants.MAGIC8)
 			readBigInteger();
 
 		// read the arcinst name (versions 3 or older)
-		if (magic >= MAGIC3)
+		if (magic >= ELIBConstants.MAGIC3)
 		{
 			String instName = readString();
 			if (instName.length() > 0)
@@ -2169,20 +2160,20 @@ public class InputBinary extends InputLibrary
 			arcTailNodeList[arcIndex] = nodeIndex;
 
 		// ignore the geometry index (versions 4 or older)
-		if (magic > MAGIC5) readBigInteger();
+		if (magic > ELIBConstants.MAGIC5) readBigInteger();
 
 		// ignore the "seen" bits (versions 8 and older)
-		if (magic > MAGIC9) readBigInteger();
+		if (magic > ELIBConstants.MAGIC9) readBigInteger();
 
 		// read the arcinst's tool information
 		int userBits = 0;
-		if (magic <= MAGIC7)
+		if (magic <= ELIBConstants.MAGIC7)
 		{
 			// version 7 and later simply read the relevant data
 			userBits = readBigInteger();
 
 			// versions 7 and 8 ignore net number
-			if (magic >= MAGIC8) readBigInteger();
+			if (magic >= ELIBConstants.MAGIC8) readBigInteger();
 		} else
 		{
 			// version 6 and earlier must sift through the information
@@ -2265,7 +2256,7 @@ public class InputBinary extends InputLibrary
 			TextDescriptor td;
 			int descript0 = 0;
 			int descript1 = 0;
-			if (magic <= MAGIC9)
+			if (magic <= ELIBConstants.MAGIC9)
 			{
 				if (alwaysTextDescriptors)
 				{
@@ -2274,7 +2265,7 @@ public class InputBinary extends InputLibrary
 					definedDescript = true;
 				} else
 				{
-					if ((newtype&BinaryConstants.VDISPLAY) != 0)
+					if ((newtype&ELIBConstants.VDISPLAY) != 0)
 					{
 						if (convertTextDescriptors)
 						{
@@ -2294,34 +2285,34 @@ public class InputBinary extends InputLibrary
 //				defaulttextdescript(newDescript, NOGEOM);
 			}
 			Object newAddr;
-			if ((newtype&BinaryConstants.VISARRAY) != 0)
+			if ((newtype&ELIBConstants.VISARRAY) != 0)
 			{
 				int len = readBigInteger();
 				int cou = len;
-				if ((newtype&BinaryConstants.VLENGTH) == 0) cou++;
+				if ((newtype&ELIBConstants.VLENGTH) == 0) cou++;
 				Object [] newAddrArray = null;
-				switch (newtype&BinaryConstants.VTYPE)
+				switch (newtype&ELIBConstants.VTYPE)
 				{
-					case BinaryConstants.VADDRESS:
-					case BinaryConstants.VINTEGER:    newAddrArray = new Integer[cou];     break;
-					case BinaryConstants.VFRACT:      
-					case BinaryConstants.VFLOAT:      newAddrArray = new Float[cou];       break;
-					case BinaryConstants.VDOUBLE:     newAddrArray = new Double[cou];      break;
-					case BinaryConstants.VSHORT:      newAddrArray = new Short[cou];       break;
-					case BinaryConstants.VBOOLEAN:
-					case BinaryConstants.VCHAR:       newAddrArray = new Byte[cou];        break;
-					case BinaryConstants.VSTRING:     newAddrArray = new String[cou];      break;
-					case BinaryConstants.VNODEINST:   newAddrArray = new NodeInst[cou];    break;
-					case BinaryConstants.VNODEPROTO:  newAddrArray = new NodeProto[cou];   break;
-					case BinaryConstants.VARCPROTO:   newAddrArray = new ArcProto[cou];    break;
-					case BinaryConstants.VPORTPROTO:  newAddrArray = new PortProto[cou];   break;
-					case BinaryConstants.VARCINST:    newAddrArray = new ArcInst[cou];     break;
-					case BinaryConstants.VTECHNOLOGY: newAddrArray = new Technology[cou];  break;
-					case BinaryConstants.VLIBRARY:    newAddrArray = new Library[cou];     break;
-					case BinaryConstants.VTOOL:       newAddrArray = new Tool[cou];        break;
+					case ELIBConstants.VADDRESS:
+					case ELIBConstants.VINTEGER:    newAddrArray = new Integer[cou];     break;
+					case ELIBConstants.VFRACT:      
+					case ELIBConstants.VFLOAT:      newAddrArray = new Float[cou];       break;
+					case ELIBConstants.VDOUBLE:     newAddrArray = new Double[cou];      break;
+					case ELIBConstants.VSHORT:      newAddrArray = new Short[cou];       break;
+					case ELIBConstants.VBOOLEAN:
+					case ELIBConstants.VCHAR:       newAddrArray = new Byte[cou];        break;
+					case ELIBConstants.VSTRING:     newAddrArray = new String[cou];      break;
+					case ELIBConstants.VNODEINST:   newAddrArray = new NodeInst[cou];    break;
+					case ELIBConstants.VNODEPROTO:  newAddrArray = new NodeProto[cou];   break;
+					case ELIBConstants.VARCPROTO:   newAddrArray = new ArcProto[cou];    break;
+					case ELIBConstants.VPORTPROTO:  newAddrArray = new PortProto[cou];   break;
+					case ELIBConstants.VARCINST:    newAddrArray = new ArcInst[cou];     break;
+					case ELIBConstants.VTECHNOLOGY: newAddrArray = new Technology[cou];  break;
+					case ELIBConstants.VLIBRARY:    newAddrArray = new Library[cou];     break;
+					case ELIBConstants.VTOOL:       newAddrArray = new Tool[cou];        break;
 				}
 				newAddr = newAddrArray;
-				if ((newtype&BinaryConstants.VTYPE) == BinaryConstants.VGENERAL)
+				if ((newtype&ELIBConstants.VTYPE) == ELIBConstants.VGENERAL)
 				{
 					for(int j=0; j<len; j += 2)
 					{
@@ -2426,59 +2417,59 @@ public class InputBinary extends InputLibrary
 	{
 		int i;
 
-		if ((ty&(BinaryConstants.VCODE1|BinaryConstants.VCODE2)) != 0) ty = BinaryConstants.VSTRING;
-		switch (ty&BinaryConstants.VTYPE)
+		if ((ty&(ELIBConstants.VCODE1|ELIBConstants.VCODE2)) != 0) ty = ELIBConstants.VSTRING;
+		switch (ty&ELIBConstants.VTYPE)
 		{
-			case BinaryConstants.VADDRESS:
-			case BinaryConstants.VINTEGER:
+			case ELIBConstants.VADDRESS:
+			case ELIBConstants.VINTEGER:
 				return new Integer(readBigInteger());
-			case BinaryConstants.VFRACT:
+			case ELIBConstants.VFRACT:
 				return new Float(readBigInteger() / 120.0f);
-			case BinaryConstants.VFLOAT:
+			case ELIBConstants.VFLOAT:
 				return new Float(readFloat());
-			case BinaryConstants.VDOUBLE:
+			case ELIBConstants.VDOUBLE:
 				return new Double(readDouble());
-			case BinaryConstants.VSHORT:
+			case ELIBConstants.VSHORT:
 				return new Short(readSmallInteger());
-			case BinaryConstants.VBOOLEAN:
-			case BinaryConstants.VCHAR:
+			case ELIBConstants.VBOOLEAN:
+			case ELIBConstants.VCHAR:
 				return new Byte(readByte());
-			case BinaryConstants.VSTRING:
+			case ELIBConstants.VSTRING:
 				return readString();
-			case BinaryConstants.VNODEINST:
+			case ELIBConstants.VNODEINST:
 				i = readBigInteger();
 				if (i < 0 || i >= nodeCount) return null;
 				return nodeInstList.theNode[i];
-			case BinaryConstants.VNODEPROTO:
+			case ELIBConstants.VNODEPROTO:
 				i = readBigInteger();
 				return convertNodeProto(i);
-			case BinaryConstants.VARCPROTO:
+			case ELIBConstants.VARCPROTO:
 				i = readBigInteger();
 				return convertArcProto(i);
-			case BinaryConstants.VPORTPROTO:
+			case ELIBConstants.VPORTPROTO:
 				i = readBigInteger();
 				return convertPortProto(i);
-			case BinaryConstants.VARCINST:
+			case ELIBConstants.VARCINST:
 				i = readBigInteger();
 				if (i < 0 || i >= arcCount) return null;
 				return arcList[i];
-			case BinaryConstants.VGEOM:
+			case ELIBConstants.VGEOM:
 				readBigInteger();
 				return null;
-			case BinaryConstants.VTECHNOLOGY:
+			case ELIBConstants.VTECHNOLOGY:
 				i = readBigInteger();
 				if (i == -1) return null;
 				return getTechList(i);
-			case BinaryConstants.VPORTARCINST:
+			case ELIBConstants.VPORTARCINST:
 				readBigInteger();
 				return null;
-			case BinaryConstants.VPORTEXPINST:
+			case ELIBConstants.VPORTEXPINST:
 				readBigInteger();
 				return null;
-			case BinaryConstants.VLIBRARY:
+			case ELIBConstants.VLIBRARY:
 				String libName = readString();
 				return Library.findLibrary(libName);
-			case BinaryConstants.VTOOL:
+			case ELIBConstants.VTOOL:
 				i = readBigInteger();
 				if (i < 0 || i >= toolCount) return null;
 				Tool tool = toolList[i];
@@ -2492,7 +2483,7 @@ public class InputBinary extends InputLibrary
 					}
 				}
 				return tool;
-			case BinaryConstants.VRTNODE:
+			case ELIBConstants.VRTNODE:
 				readBigInteger();
 				return null;
 		}
@@ -2633,7 +2624,7 @@ public class InputBinary extends InputLibrary
 	{
 		int value = dataInputStream.read();
 		if (value == -1) throw new IOException();
-		readMoreBytes(1);
+		updateProgressDialog(1);
 		return (byte)value;
 	}
 
@@ -2648,7 +2639,7 @@ public class InputBinary extends InputLibrary
 	{
 		if (sizeOfBig == 4)
 		{
-			readMoreBytes(4);
+			updateProgressDialog(4);
 			int data = dataInputStream.readInt();
 			if (!bytesSwapped)
 				data = ((data >> 24) & 0xFF) | ((data >> 8) & 0xFF00) | ((data & 0xFF00) << 8) | ((data & 0xFF) << 24);
@@ -2679,7 +2670,7 @@ public class InputBinary extends InputLibrary
 	{
 		if (bytesSwapped)
 		{
-			readMoreBytes(4);
+			updateProgressDialog(4);
 			return dataInputStream.readFloat();
 		} else
 		{
@@ -2700,7 +2691,7 @@ public class InputBinary extends InputLibrary
 	{
 		if (bytesSwapped)
 		{
-			readMoreBytes(8);
+			updateProgressDialog(8);
 			return dataInputStream.readDouble();
 		} else
 		{
@@ -2725,7 +2716,7 @@ public class InputBinary extends InputLibrary
 	{
 		if (sizeOfSmall == 2)
 		{
-			readMoreBytes(2);
+			updateProgressDialog(2);
 			int data = dataInputStream.readShort();
 			if (!bytesSwapped)
 				data = ((data >> 8) & 0xFF) | ((data & 0xFF) << 8);
@@ -2764,7 +2755,7 @@ public class InputBinary extends InputLibrary
 			byte [] stringBytes = new byte[len];
 			int ret = dataInputStream.read(stringBytes, 0, len);
 			if (ret != len) throw new IOException();
-			readMoreBytes(len);
+			updateProgressDialog(len);
 			String theString = new String(stringBytes);
 			return theString;
 		}
@@ -2807,15 +2798,6 @@ public class InputBinary extends InputLibrary
 				for(int i=0; i<memorySize; i++) data[i] = rawData[i];
 			}
 		}
-		readMoreBytes(diskSize);
-	}
-	
-	private void readMoreBytes(int diskSize)
-	{
-		byteCount += diskSize;
-		if (progress != null && fileLength > 0)
-		{
-			progress.setProgress((int)(byteCount * 100 / fileLength));
-		}
+		updateProgressDialog(diskSize);
 	}
 }

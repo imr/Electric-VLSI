@@ -62,15 +62,6 @@ public class IOTool extends Tool
 	/** the IO tool. */										public static IOTool tool = new IOTool();
 
 	/** Varible key for true library of fake cell. */		public static final Variable.Key IO_TRUE_LIBRARY = ElectricObject.newKey("IO_true_library");
-	
-//	/** Name of the file being input. */					protected String filePath;
-//	/** The Library being input. */							protected Library lib;
-//	/** The raw input stream. */							protected FileInputStream fileInputStream;
-//	/** The binary input stream. */							protected DataInputStream dataInputStream;
-//	/** The length of the file. */							protected long fileLength;
-//	/** The progress during input. */						protected static Progress progress = null;
-//	/** the path to the library being read. */				protected static String mainLibDirectory = null;
-//	/** static list of all libraries in Electric */			private static List newLibraries = new ArrayList();
 
 	// ---------------------- private and protected methods -----------------
 
@@ -93,7 +84,7 @@ public class IOTool extends Tool
 		if (value == null || !(value instanceof String)) return null;
 		String str = (String)value;
 		Name name = Name.findName(str);
-		if ((type & BinaryConstants.VDISPLAY) != 0)
+		if ((type & ELIBConstants.VDISPLAY) != 0)
 		{
 			if (name.isTempname())
 			{

@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: OutputTopology.java
+ * File: Topology.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.io;
+package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -47,7 +47,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.io.Output;
+import com.sun.electric.tool.io.output.Output;
 
 import java.awt.geom.AffineTransform;
 import java.util.HashMap;
@@ -60,15 +60,15 @@ import java.util.Collections;
 /**
  * This is the Simulation Interface tool.
  */
-public abstract class OutputTopology extends Output
+public abstract class Topology extends Output
 {
 	/** top-level cell being processed */				protected Cell topCell;
 
 	/** HashMap of all CellTopologies */				private HashMap cellTopos;
 	/** HashMap of all Cell names */					private HashMap cellNameMap;
 
-	/** Creates a new instance of OutputTopology */
-	OutputTopology() 
+	/** Creates a new instance of Topology */
+	Topology() 
 	{
 	}
 
@@ -158,9 +158,9 @@ public abstract class OutputTopology extends Output
 
 	public class Visitor extends HierarchyEnumerator.Visitor
 	{
-		/** OutputTopology object this Visitor is enumerating for */	private OutputTopology outGeom;
+		/** Topology object this Visitor is enumerating for */	private Topology outGeom;
 
-		public Visitor(OutputTopology outGeom)
+		public Visitor(Topology outGeom)
 		{
 			this.outGeom = outGeom;
 		}

@@ -426,6 +426,11 @@ public class Name implements Comparable
 	 */
 	private void makeSplitSubNames(int split)
 	{
+		if (split >= ns.length())
+		{
+//			System.out.println("HEY! string is '"+ns+"' but want index "+split);
+			return;
+		}
 		Name baseName = findTrimmedName(ns.substring(0,split));
 		Name indexList = findTrimmedName(ns.substring(split));
 		subnames = new Name[baseName.busWidth()*indexList.busWidth()];

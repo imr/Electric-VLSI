@@ -690,7 +690,7 @@ public class TextDescriptor
 	 * Low-level method to set the bits in the TextDescriptor.
 	 * These bits are a collection of flags that are more sensibly accessed
 	 * through special methods.
-	 * This general access to the bits is required because the binary ".elib"
+	 * This general access to the bits is required because the ELIB
 	 * file format stores it as a full integer.
 	 * This should not normally be called by any other part of the system.
 	 * @param descriptor0 the first word of the new TextDescriptor.
@@ -706,7 +706,7 @@ public class TextDescriptor
 	 * Method to copy other TextDescriptor to this TextDescriptor.
 	 * These bits are a collection of flags that are more sensibly accessed
 	 * through special methods.
-	 * This general access to the bits is required because the binary ".elib"
+	 * This general access to the bits is required because the ELIB
 	 * file format stores it as a full integer.
 	 * This should not normally be called by any other part of the system.
 	 * @param descriptor other TextDescriptor.
@@ -722,7 +722,7 @@ public class TextDescriptor
 	 * Low-level method to get the first word of the bits in the TextDescriptor.
 	 * These bits are a collection of flags that are more sensibly accessed
 	 * through special methods.
-	 * This general access to the bits is required because the binary ".elib"
+	 * This general access to the bits is required because the ELIB
 	 * file format stores it as a full integer.
 	 * This should not normally be called by any other part of the system.
 	 * @return the first word of the bits in the TextDescriptor.
@@ -733,7 +733,7 @@ public class TextDescriptor
 	 * Low-level method to get the second word of the bits in the TextDescriptor.
 	 * These bits are a collection of flags that are more sensibly accessed
 	 * through special methods.
-	 * This general access to the bits is required because the binary ".elib"
+	 * This general access to the bits is required because the ELIB
 	 * file format stores it as a full integer.
 	 * This should not normally be called by any other part of the system.
 	 * @return the second word of the bits in the TextDescriptor.

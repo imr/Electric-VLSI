@@ -131,7 +131,7 @@ public final class Main
             }
             System.out.println("Opening library "+arg);
 			URL url = TextUtils.makeURLToFile(arg);
-    		MenuCommands.ReadBinaryLibrary job = new MenuCommands.ReadBinaryLibrary(url);
+    		MenuCommands.ReadELIB job = new MenuCommands.ReadELIB(url);
             openedALib = true;
         }
         return openedALib;

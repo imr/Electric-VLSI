@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: InputLibrary.java
+ * File: LibraryFiles.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.io;
+package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Geometric;
@@ -40,6 +40,7 @@ import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.MoCMOS;
+import com.sun.electric.tool.io.input.Input;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -53,9 +54,9 @@ import java.util.HashMap;
 
 
 /**
- * This class reads Library files (binary or readable dump) format.
+ * This class reads Library files (ELIB or readable dump) format.
  */
-public class InputLibrary extends Input
+public class LibraryFiles extends Input
 {
 	// the cell information
 	/** The number of Cells in the file. */									protected int nodeProtoCount;
@@ -65,7 +66,7 @@ public class InputLibrary extends Input
 	/** number of cells constructed so far. */								protected static int cellsConstructed;
 	/** the number of scaled Cells that got created */						protected int numScaledCells;
 
-	static class NodeInstList
+	protected static class NodeInstList
 	{
 		protected NodeInst []  theNode;
 		protected NodeProto [] protoType;
@@ -82,7 +83,7 @@ public class InputLibrary extends Input
 	/** collection of libraries and their input objects. */					private static HashMap libsBeingRead;
 	protected static final boolean VERBOSE = false;
 
-	InputLibrary() {}
+	LibraryFiles() {}
 
 	// *************************** THE CREATION INTERFACE ***************************
 
@@ -112,7 +113,7 @@ public class InputLibrary extends Input
 			// subcell: make sure that cell is setup
 			if (otherCell.isBit(markCellForNodes)) continue;
 
-			InputLibrary reader = this;
+			LibraryFiles reader = this;
 			if (otherCell.getLibrary() != cell.getLibrary())
 				reader = getReaderForLib(otherCell.getLibrary());
 
@@ -141,7 +142,7 @@ public class InputLibrary extends Input
 		FlagSet markCellForNodes = NodeProto.getFlagSet(1);
 		for(Iterator it = libsBeingRead.values().iterator(); it.hasNext(); )
 		{
-			InputLibrary reader = (InputLibrary)it.next();
+			LibraryFiles reader = (LibraryFiles)it.next();
 			totalCells += reader.nodeProtoCount;
 			for(int cellIndex=0; cellIndex<reader.nodeProtoCount; cellIndex++)
 			{
@@ -155,14 +156,14 @@ public class InputLibrary extends Input
 		cellsConstructed = 0;
 
 		// now recursively adjust lambda sizes
-		if (InputLibrary.VERBOSE)
+		if (LibraryFiles.VERBOSE)
 			System.out.println("Preparing to compute scale factors");
 		for(int i=0; i<20; i++)
 		{
 			boolean unchanged = true;
 			for(Iterator it = libsBeingRead.values().iterator(); it.hasNext(); )
 			{
-				InputLibrary reader = (InputLibrary)it.next();
+				LibraryFiles reader = (LibraryFiles)it.next();
 				for(int cellIndex=0; cellIndex<reader.nodeProtoCount; cellIndex++)
 				{
 					Cell cell = reader.nodeProtoList[cellIndex];
@@ -175,13 +176,13 @@ public class InputLibrary extends Input
 			}
 			if (unchanged) break;
 		}
-		if (InputLibrary.VERBOSE)
+		if (LibraryFiles.VERBOSE)
 			System.out.println("Finished computing scale factors");
 
 		// recursively create the cell contents
 		for(Iterator it = libsBeingRead.values().iterator(); it.hasNext(); )
 		{
-			InputLibrary reader = (InputLibrary)it.next();
+			LibraryFiles reader = (LibraryFiles)it.next();
 			for(int cellIndex=0; cellIndex<reader.nodeProtoCount; cellIndex++)
 			{
 				Cell cell = reader.nodeProtoList[cellIndex];
@@ -195,7 +196,7 @@ public class InputLibrary extends Input
 		boolean first = true;
 		for(Iterator it = libsBeingRead.values().iterator(); it.hasNext(); )
 		{
-			InputLibrary reader = (InputLibrary)it.next();
+			LibraryFiles reader = (LibraryFiles)it.next();
 			if (reader.numScaledCells != 0)
 			{
 				if (first)
@@ -217,7 +218,7 @@ public class InputLibrary extends Input
 		MoCMOS.tech.convertOldState();
 	}
 
-	protected InputLibrary getReaderForLib(Library lib) { return (InputLibrary)libsBeingRead.get(lib); }
+	protected LibraryFiles getReaderForLib(Library lib) { return (LibraryFiles)libsBeingRead.get(lib); }
 
 	// *************************** THE CELL CLEANUP INTERFACE ***************************
 

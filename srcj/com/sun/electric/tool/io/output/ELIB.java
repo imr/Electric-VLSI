@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: OutputBinary.java
+ * File: ELIB.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.io;
+package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.EMath;
@@ -47,8 +47,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.io.InputBinary;
-import com.sun.electric.tool.io.BinaryConstants;
+import com.sun.electric.tool.io.ELIBConstants;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -64,14 +63,14 @@ import java.util.Collections;
 /**
  * This class writes files in binary (.elib) format.
  */
-public class OutputBinary extends Output
+public class ELIB extends Output
 {
 
 	/** cell flag for finding external cell refernces */		private FlagSet externalRefFlag;
 
 	/** all of the names used in variables */					private static HashMap varNames;
 
-	OutputBinary()
+	ELIB()
 	{
 	}
 
@@ -100,7 +99,7 @@ public class OutputBinary extends Output
 	private boolean writeTheLibrary(Library lib)
 		throws IOException
 	{
-		writeBigInteger(InputBinary.MAGIC12);
+		writeBigInteger(ELIBConstants.MAGIC12);
 		writeByte((byte)2);		// size of Short
 		writeByte((byte)4);		// size of Int
 		writeByte((byte)1);		// size of Char
@@ -627,8 +626,8 @@ public class OutputBinary extends Output
 		writeBigInteger(nextCont);
 		writeBigInteger(cell.getView().getTempInt());
 		writeBigInteger(cell.getVersion());
-		writeBigInteger((int)BinaryConstants.dateToSeconds(cell.getCreationDate()));
-		writeBigInteger((int)BinaryConstants.dateToSeconds(cell.getRevisionDate()));
+		writeBigInteger((int)ELIBConstants.dateToSeconds(cell.getCreationDate()));
+		writeBigInteger((int)ELIBConstants.dateToSeconds(cell.getRevisionDate()));
 
 		// write the nodeproto bounding box
 		Technology tech = cell.getTechnology();
@@ -932,11 +931,11 @@ public class OutputBinary extends Output
 
 			// create the "type" field
 			Object varObj = var.getObject();
-			int type = var.lowLevelGetFlags() & ~(BinaryConstants.VTYPE|BinaryConstants.VISARRAY|BinaryConstants.VLENGTH);
+			int type = var.lowLevelGetFlags() & ~(ELIBConstants.VTYPE|ELIBConstants.VISARRAY|ELIBConstants.VLENGTH);
 			if (varObj instanceof Object[])
 			{
 				Object [] objList = (Object [])varObj;
-				type |= getVarType(objList[0]) | BinaryConstants.VISARRAY | (objList.length << BinaryConstants.VLENGTHSH);
+				type |= getVarType(objList[0]) | ELIBConstants.VISARRAY | (objList.length << ELIBConstants.VLENGTHSH);
 			} else
 			{
 				type |= getVarType(varObj);
@@ -947,8 +946,8 @@ public class OutputBinary extends Output
 			if (obj instanceof NodeInst && key == NodeInst.TRACE && varObj instanceof Object[])
 			{
 				Object [] objList = (Object [])varObj;
-				type = var.lowLevelGetFlags() & ~(BinaryConstants.VTYPE|BinaryConstants.VISARRAY|BinaryConstants.VLENGTH);
-				type |= BinaryConstants.VFLOAT | BinaryConstants.VISARRAY | ((objList.length*2) << BinaryConstants.VLENGTHSH);
+				type = var.lowLevelGetFlags() & ~(ELIBConstants.VTYPE|ELIBConstants.VISARRAY|ELIBConstants.VLENGTH);
+				type |= ELIBConstants.VFLOAT | ELIBConstants.VISARRAY | ((objList.length*2) << ELIBConstants.VLENGTHSH);
 				convertTrace = true;
 			}
 			writeBigInteger(type);
@@ -987,8 +986,8 @@ public class OutputBinary extends Output
 			Geometric geom = (Geometric)obj;
 			Variable.Key key = geom instanceof NodeInst ? NodeInst.NODE_NAME : ArcInst.ARC_NAME;
 			writeSmallInteger((short)key.getIndex());
-			int type = BinaryConstants.VSTRING;
-			if (geom.isUsernamed()) type |= BinaryConstants.VDISPLAY;
+			int type = ELIBConstants.VSTRING;
+			if (geom.isUsernamed()) type |= ELIBConstants.VDISPLAY;
 			writeBigInteger(type);
 
 			// write the text descriptor of name
@@ -1002,21 +1001,21 @@ public class OutputBinary extends Output
 
 	private int getVarType(Object obj)
 	{
-		if (obj instanceof Integer) return BinaryConstants.VINTEGER;
-		if (obj instanceof Short) return BinaryConstants.VSHORT;
-		if (obj instanceof Byte) return BinaryConstants.VCHAR;
-		if (obj instanceof String) return BinaryConstants.VSTRING;
-		if (obj instanceof Float) return BinaryConstants.VFLOAT;
-		if (obj instanceof Double) return BinaryConstants.VDOUBLE;
-		if (obj instanceof Technology) return BinaryConstants.VTECHNOLOGY;
-		if (obj instanceof Library) return BinaryConstants.VLIBRARY;
-		if (obj instanceof Tool) return BinaryConstants.VTOOL;
-		if (obj instanceof NodeInst) return BinaryConstants.VNODEINST;
-		if (obj instanceof ArcInst) return BinaryConstants.VARCINST;
-		if (obj instanceof NodeProto) return BinaryConstants.VNODEPROTO;
-		if (obj instanceof ArcProto) return BinaryConstants.VARCPROTO;
-		if (obj instanceof PortProto) return BinaryConstants.VPORTPROTO;
-		return BinaryConstants.VUNKNOWN;
+		if (obj instanceof Integer) return ELIBConstants.VINTEGER;
+		if (obj instanceof Short) return ELIBConstants.VSHORT;
+		if (obj instanceof Byte) return ELIBConstants.VCHAR;
+		if (obj instanceof String) return ELIBConstants.VSTRING;
+		if (obj instanceof Float) return ELIBConstants.VFLOAT;
+		if (obj instanceof Double) return ELIBConstants.VDOUBLE;
+		if (obj instanceof Technology) return ELIBConstants.VTECHNOLOGY;
+		if (obj instanceof Library) return ELIBConstants.VLIBRARY;
+		if (obj instanceof Tool) return ELIBConstants.VTOOL;
+		if (obj instanceof NodeInst) return ELIBConstants.VNODEINST;
+		if (obj instanceof ArcInst) return ELIBConstants.VARCINST;
+		if (obj instanceof NodeProto) return ELIBConstants.VNODEPROTO;
+		if (obj instanceof ArcProto) return ELIBConstants.VARCPROTO;
+		if (obj instanceof PortProto) return ELIBConstants.VPORTPROTO;
+		return ELIBConstants.VUNKNOWN;
 	}
 
 	/**

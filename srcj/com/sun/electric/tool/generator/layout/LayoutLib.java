@@ -32,7 +32,10 @@ import com.sun.electric.database.prototype.*;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.*;
 import com.sun.electric.technology.*;
-import com.sun.electric.tool.io.*;
+//import com.sun.electric.tool.io.*;
+import com.sun.electric.tool.io.input.Input;
+import com.sun.electric.tool.io.output.Output;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 
 /**
  * The LayoutLib class provides an assortment of methods that I
@@ -98,7 +101,7 @@ public class LayoutLib {
 		Library lib = Library.findLibrary(libName);
 		if (lib==null) {
 			URL libFileURL = TextUtils.makeURLToFile(libFileName);
-			lib = Input.readLibrary(libFileURL, Input.ImportType.BINARY);
+			lib = Input.readLibrary(libFileURL, OpenFile.Type.ELIB);
 		}
 		error(lib==null, "can't open Library for reading: "+libFileName);
 		return lib;
@@ -121,7 +124,7 @@ public class LayoutLib {
 
 		// open a Library file if it exists
 		URL libFileURL = TextUtils.makeURLToFile(libFileName);
-		lib = Input.readLibrary(libFileURL, Input.ImportType.BINARY);
+		lib = Input.readLibrary(libFileURL, OpenFile.Type.ELIB);
 		if (lib!=null)  return lib;
 		
 		// create a new Library
@@ -131,11 +134,11 @@ public class LayoutLib {
 		return lib;
 	}
 	/**
-	 * Write a library in binary format.
+	 * Write a library in ELIB format.
 	 * @param lib the library to be written.
 	 */
 	public static void writeLibrary(Library lib) {
-		Output.writeLibrary(lib, Output.ExportType.BINARY);
+		Output.writeLibrary(lib, OpenFile.Type.ELIB);
 	}
 	/**
 	 * Get the width of an ArcInst. The getArcInstWidth method differs

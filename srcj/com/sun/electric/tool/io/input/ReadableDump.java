@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: InputText.java
+ * File: ReadableDump.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.io;
+package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Poly;
@@ -48,22 +48,21 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.io.InputLibrary;
+import com.sun.electric.tool.io.ELIBConstants;
+import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.user.dialogs.Progress;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.LineNumberReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
  * This class reads files in readable-dump (.txt) format.
  */
-public class InputText extends InputLibrary
+public class ReadableDump extends LibraryFiles
 {
 	// ------------------------- private data ----------------------------
 	static class ArcInstList
@@ -102,11 +101,10 @@ public class InputText extends InputLibrary
 	/** The index of the current ArcInst being processed. */		private int curArcInstIndex;
 	/** The index of the current Export being processed. */			private int curExportIndex;
 	/** Offset values for cells being read. */						private double [] nodeProtoOffX, nodeProtoOffY;
-	/** All data for NodeInsts in each Cell. */						private InputLibrary.NodeInstList[] nodeInstList;
+	/** All data for NodeInsts in each Cell. */						private LibraryFiles.NodeInstList[] nodeInstList;
 	/** All data for ArcInsts in each Cell. */						private ArcInstList[] arcInstList;
 	/** All data for Exports in each Cell. */						private ExportList [] exportList;
 	/** True to convert old MOSIS CMOS technologies. */				private boolean convertMosisCMOSTechnologies;
-	/** The input stream that counts lines. */						private LineNumberReader lineReader;
 	/** The maximum characters in a keyword. */						private int keywordArrayLen;
 	/** An array of keyword data. */								private char [] keywordArray = null;
 	/** The current keyword from the file. */						private String keyWord;
@@ -135,7 +133,7 @@ public class InputText extends InputLibrary
 	/** Currently reading a Export. */					private static final int INVPORTPROTO =   6;
 	/** Currently reading a ArcInst. */					private static final int INVARCINST =     7;
 
-	InputText()
+	ReadableDump()
 	{
 	}
 
@@ -164,9 +162,6 @@ public class InputText extends InputLibrary
 	private boolean readTheLibrary()
 		throws IOException
 	{
-		InputStreamReader is = new InputStreamReader(inputStream);
-		lineReader = new LineNumberReader(is);
-
 		lib.erase();
 
 		textLevel = INLIB;
@@ -362,7 +357,7 @@ public class InputText extends InputLibrary
 
 		// recursively scan the nodes to the bottom and only proceed when everything below is built
 		int cellIndex = cell.getTempInt();
-		InputLibrary.NodeInstList nil = nodeInstList[cellIndex];
+		LibraryFiles.NodeInstList nil = nodeInstList[cellIndex];
 		int numNodes = 0;
 		NodeProto [] nodePrototypes = null;
 		if (nil != null)
@@ -373,7 +368,7 @@ public class InputText extends InputLibrary
 		scanNodesForRecursion(cell, markCellForNodes, nodePrototypes, 0, numNodes);
 
 		// report progress
-		if (InputLibrary.VERBOSE)
+		if (LibraryFiles.VERBOSE)
 			System.out.println("Text: Doing contents of cell " + cell.describe() + " in library " + lib.getLibName());
 		cellsConstructed++;
 		progress.setProgress(cellsConstructed * 100 / totalCells);
@@ -394,7 +389,7 @@ public class InputText extends InputLibrary
 	protected boolean spreadLambda(Cell cell, int cellIndex)
 	{
 		boolean changed = false;
-		InputLibrary.NodeInstList nil = nodeInstList[cellIndex];
+		LibraryFiles.NodeInstList nil = nodeInstList[cellIndex];
 		int numNodes = 0;
 		if (nil != null) numNodes = nil.protoType.length;
 		double thisLambda = cellLambda[cellIndex];
@@ -404,7 +399,7 @@ public class InputText extends InputLibrary
 			if (np instanceof PrimitiveNode) continue;
 			Cell subCell = (Cell)np;
 
-			InputLibrary reader = this;
+			LibraryFiles reader = this;
 			if (subCell.getLibrary() != lib)
 			{
 				reader = getReaderForLib(subCell.getLibrary());
@@ -423,7 +418,7 @@ public class InputText extends InputLibrary
 
 	protected double computeLambda(Cell cell, int cellIndex)
 	{
-		InputLibrary.NodeInstList nil = nodeInstList[cellIndex];
+		LibraryFiles.NodeInstList nil = nodeInstList[cellIndex];
 		int numNodes = 0;
 		NodeProto [] nodePrototypes = null;
 		if (nil != null)
@@ -455,7 +450,7 @@ public class InputText extends InputLibrary
 		return lambda;
 	}
 
-	private Point2D realizeNode(Cell cell, InputLibrary.NodeInstList nil, double lambda)
+	private Point2D realizeNode(Cell cell, LibraryFiles.NodeInstList nil, double lambda)
 	{
 		// find the "cell center" node and place it first
 		double xoff = 0, yoff = 0;
@@ -813,7 +808,7 @@ public class InputText extends InputLibrary
 		cellLambda = new double[nodeProtoCount];
 		nodeProtoOffX = new double[nodeProtoCount];
 		nodeProtoOffY = new double[nodeProtoCount];
-		nodeInstList = new InputLibrary.NodeInstList[nodeProtoCount];
+		nodeInstList = new LibraryFiles.NodeInstList[nodeProtoCount];
 		arcInstList = new ArcInstList[nodeProtoCount];
 		exportList = new ExportList[nodeProtoCount];
 
@@ -908,7 +903,7 @@ public class InputText extends InputLibrary
 	 */
 	private void io_celcre()
 	{
-		curNodeProto.lowLevelSetCreationDate(BinaryConstants.secondsToDate(TextUtils.atoi(keyWord)));
+		curNodeProto.lowLevelSetCreationDate(ELIBConstants.secondsToDate(TextUtils.atoi(keyWord)));
 	}
 
 	/**
@@ -916,7 +911,7 @@ public class InputText extends InputLibrary
 	 */
 	private void io_celrev()
 	{
-		curNodeProto.lowLevelSetRevisionDate(BinaryConstants.secondsToDate(TextUtils.atoi(keyWord)));
+		curNodeProto.lowLevelSetRevisionDate(ELIBConstants.secondsToDate(TextUtils.atoi(keyWord)));
 	}
 
 	/**
@@ -1138,7 +1133,7 @@ public class InputText extends InputLibrary
 	{
 		int nodeInstCount = Integer.parseInt(keyWord);
 		if (nodeInstCount == 0) return;
-		InputLibrary.NodeInstList nil = new InputLibrary.NodeInstList();
+		LibraryFiles.NodeInstList nil = new LibraryFiles.NodeInstList();
 		nodeInstList[curCellNumber] = nil;
 		nil.theNode = new NodeInst[nodeInstCount];
 		nil.protoType = new NodeProto[nodeInstCount];
@@ -1680,7 +1675,7 @@ public class InputText extends InputLibrary
 				return;
 			}
 			Object value = null;
-			if ((type&BinaryConstants.VISARRAY) == 0)
+			if ((type&ELIBConstants.VISARRAY) == 0)
 			{
 				value = io_decode(keyWord, type);
 			} else
@@ -1697,7 +1692,7 @@ public class InputText extends InputLibrary
 				{
 					// string arrays must be handled specially
 					int start = pos;
-					if ((type&BinaryConstants.VTYPE) == BinaryConstants.VSTRING)
+					if ((type&ELIBConstants.VTYPE) == ELIBConstants.VSTRING)
 					{
 						while (keyWord.charAt(pos) != '"' && pos < len-1) pos++;
 						start = pos;
@@ -1736,25 +1731,25 @@ public class InputText extends InputLibrary
 					pos++;
 				}
 				int arrayLen = al.size();
-				switch (type&BinaryConstants.VTYPE)
+				switch (type&ELIBConstants.VTYPE)
 				{
-					case BinaryConstants.VADDRESS:
-					case BinaryConstants.VINTEGER:    value = new Integer[arrayLen];     break;
-					case BinaryConstants.VFRACT:      
-					case BinaryConstants.VFLOAT:      value = new Float[arrayLen];       break;
-					case BinaryConstants.VDOUBLE:     value = new Double[arrayLen];      break;
-					case BinaryConstants.VSHORT:      value = new Short[arrayLen];       break;
-					case BinaryConstants.VBOOLEAN:
-					case BinaryConstants.VCHAR:       value = new Byte[arrayLen];        break;
-					case BinaryConstants.VSTRING:     value = new String[arrayLen];      break;
-					case BinaryConstants.VNODEINST:   value = new NodeInst[arrayLen];    break;
-					case BinaryConstants.VNODEPROTO:  value = new NodeProto[arrayLen];   break;
-					case BinaryConstants.VARCPROTO:   value = new ArcProto[arrayLen];    break;
-					case BinaryConstants.VPORTPROTO:  value = new PortProto[arrayLen];   break;
-					case BinaryConstants.VARCINST:    value = new ArcInst[arrayLen];     break;
-					case BinaryConstants.VTECHNOLOGY: value = new Technology[arrayLen];  break;
-					case BinaryConstants.VLIBRARY:    value = new Library[arrayLen];     break;
-					case BinaryConstants.VTOOL:       value = new Tool[arrayLen];        break;
+					case ELIBConstants.VADDRESS:
+					case ELIBConstants.VINTEGER:    value = new Integer[arrayLen];     break;
+					case ELIBConstants.VFRACT:      
+					case ELIBConstants.VFLOAT:      value = new Float[arrayLen];       break;
+					case ELIBConstants.VDOUBLE:     value = new Double[arrayLen];      break;
+					case ELIBConstants.VSHORT:      value = new Short[arrayLen];       break;
+					case ELIBConstants.VBOOLEAN:
+					case ELIBConstants.VCHAR:       value = new Byte[arrayLen];        break;
+					case ELIBConstants.VSTRING:     value = new String[arrayLen];      break;
+					case ELIBConstants.VNODEINST:   value = new NodeInst[arrayLen];    break;
+					case ELIBConstants.VNODEPROTO:  value = new NodeProto[arrayLen];   break;
+					case ELIBConstants.VARCPROTO:   value = new ArcProto[arrayLen];    break;
+					case ELIBConstants.VPORTPROTO:  value = new PortProto[arrayLen];   break;
+					case ELIBConstants.VARCINST:    value = new ArcInst[arrayLen];     break;
+					case ELIBConstants.VTECHNOLOGY: value = new Technology[arrayLen];  break;
+					case ELIBConstants.VLIBRARY:    value = new Library[arrayLen];     break;
+					case ELIBConstants.VTOOL:       value = new Tool[arrayLen];        break;
 				}
 				if (value != null)
 				{
@@ -1808,20 +1803,20 @@ public class InputText extends InputLibrary
 	private Object io_decode(String name, int type)
 	{
 		int thistype = type;
-		if ((thistype&(BinaryConstants.VCODE1|BinaryConstants.VCODE2)) != 0) thistype = BinaryConstants.VSTRING;
+		if ((thistype&(ELIBConstants.VCODE1|ELIBConstants.VCODE2)) != 0) thistype = ELIBConstants.VSTRING;
 
-		switch (thistype&BinaryConstants.VTYPE)
+		switch (thistype&ELIBConstants.VTYPE)
 		{
-			case BinaryConstants.VINTEGER:
-			case BinaryConstants.VSHORT:
-			case BinaryConstants.VBOOLEAN:
-			case BinaryConstants.VADDRESS:
+			case ELIBConstants.VINTEGER:
+			case ELIBConstants.VSHORT:
+			case ELIBConstants.VBOOLEAN:
+			case ELIBConstants.VADDRESS:
 				return new Integer(TextUtils.atoi(name));
-			case BinaryConstants.VFRACT:
+			case ELIBConstants.VFRACT:
 				return new Float(TextUtils.atoi(name) / 120.0f);
-			case BinaryConstants.VCHAR:
+			case ELIBConstants.VCHAR:
 				return new Character(name.charAt(0));
-			case BinaryConstants.VSTRING:
+			case ELIBConstants.VSTRING:
 				char [] letters = new char[name.length()];
 				int outpos = 0;
 				int inpos = 0;
@@ -1838,15 +1833,15 @@ public class InputText extends InputLibrary
 					letters[outpos++] = name.charAt(inpos);
 				}
 				return new String(letters, 0, outpos);
-			case BinaryConstants.VFLOAT:
+			case ELIBConstants.VFLOAT:
 				return new Float(Float.parseFloat(name));
-			case BinaryConstants.VDOUBLE:
+			case ELIBConstants.VDOUBLE:
 				return new Double(Double.parseDouble(name));
-			case BinaryConstants.VNODEINST:
+			case ELIBConstants.VNODEINST:
 				int niIndex = TextUtils.atoi(name);
 				NodeInst ni = nodeInstList[curCellNumber].theNode[niIndex];
 				return ni;
-			case BinaryConstants.VNODEPROTO:
+			case ELIBConstants.VNODEPROTO:
 				int colonPos = name.indexOf(':');
 				if (colonPos < 0)
 				{
@@ -1864,19 +1859,19 @@ public class InputText extends InputLibrary
 					}
 					return np;
 				}
-			case BinaryConstants.VPORTPROTO:
+			case ELIBConstants.VPORTPROTO:
 				int ppIndex = TextUtils.atoi(name);
 				PortProto pp = exportList[curCellNumber].exportList[ppIndex];
 				return pp;
-			case BinaryConstants.VARCINST:
+			case ELIBConstants.VARCINST:
 				int aiIndex = TextUtils.atoi(name);
 				ArcInst ai = arcInstList[curCellNumber].arcList[aiIndex];
 				return ai;
-			case BinaryConstants.VARCPROTO:
+			case ELIBConstants.VARCPROTO:
 				return ArcProto.findArcProto(name);
-			case BinaryConstants.VTECHNOLOGY:
+			case ELIBConstants.VTECHNOLOGY:
 				return Technology.findTechnology(name);
-			case BinaryConstants.VTOOL:
+			case ELIBConstants.VTOOL:
 				return Tool.findTool(name);
 		}
 		return null;

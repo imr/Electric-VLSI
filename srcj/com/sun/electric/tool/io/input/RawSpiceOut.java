@@ -1,0 +1,228 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: RawSpiceOut.java
+ *
+ * Copyright (c) 2004 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
+package com.sun.electric.tool.io.input;
+
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.io.input.Input;
+import com.sun.electric.tool.io.input.Simulate;
+
+import java.io.InputStream;
+import java.io.IOException;
+import java.io.DataInputStream;
+import java.net.URL;
+import java.util.List;
+import java.util.ArrayList;
+
+/**
+ * Class for reading and displaying waveforms from Raw Spice output.
+ * Thease are contained in .raw files.
+ */
+public class RawSpiceOut extends Simulate
+{
+	RawSpiceOut() {}
+
+	/**
+	 * Method to read an Raw Spice output file.
+	 */
+	protected SimData readSimulationOutput(URL fileURL)
+		throws IOException
+	{
+		// open the file
+		InputStream stream = TextUtils.getURLStream(fileURL);
+		if (stream == null) return null;
+		if (openBinaryInput(fileURL, stream)) return null;
+
+		// show progress reading .tr0 file
+		startProgressDialog("Raw Spice output", fileURL.getFile());
+
+		// read the actual signal data from the .tr0 file
+		SimData sd = readRawFile();
+
+		// stop progress dialog, close the file
+		stopProgressDialog();
+		closeInput();
+
+		// return the simulation data
+		return sd;
+	}
+
+	private SimData readRawFile()
+		throws IOException
+	{
+		boolean first = true;
+		List events = new ArrayList();
+		int numSignals = -1;
+		int rowCount = -1;
+		String [] signalNames = null;
+		for(;;)
+		{
+			String line = getLineFromSimulator();
+			if (line == null) break;
+			if (first)
+			{
+				// check the first line for HSPICE format possibility
+				first = false;
+				if (line.length() >= 20 && line.substring(16, 20).equals("9007"))
+				{
+					System.out.println("This is an HSPICE file, not a RAWFILE file");
+					System.out.println("Change the SPICE format and reread");
+					return null;
+				}
+			}
+
+			// find the ":" separator
+			int colonPos = line.indexOf(":");
+			if (colonPos < 0) continue;
+			String preColon = line.substring(0, colonPos);
+			String postColon = line.substring(colonPos+1).trim();
+
+			if (preColon.equals("Plotname"))
+			{
+//				if (sim_spice_cellname[0] == '\0')
+//					estrcpy(sim_spice_cellname, ptr);
+				continue;
+			}
+
+			if (preColon.equals("No. Variables"))
+			{
+				numSignals = TextUtils.atoi(postColon) - 1;
+				continue;
+			}
+
+			if (preColon.equals("No. Points"))
+			{
+				rowCount = TextUtils.atoi(postColon);
+				continue;
+			}
+
+			if (preColon.equals("Variables"))
+			{
+				if (numSignals < 0)
+				{
+					System.out.println("Missing variable count in file");
+					return null;
+				}
+				signalNames = new String[numSignals];
+				for(int i=0; i<=numSignals; i++)
+				{
+					line = getLineFromSimulator();
+					if (line == null)
+					{
+						System.out.println("Error: end of file during signal names");
+						return null;
+					}
+					line = line.trim();
+					int numberOnLine = TextUtils.atoi(line);
+					if (numberOnLine != i)
+						System.out.println("Warning: Variable " + i + " has number " + numberOnLine);
+					int spacePos = line.indexOf(" ");   if (spacePos < 0) spacePos = line.length();
+					int tabPos = line.indexOf("\t");    if (tabPos < 0) tabPos = line.length();
+					int pos = Math.min(spacePos, tabPos);
+					String name = line.substring(pos).trim();
+					spacePos = name.indexOf(" ");   if (spacePos < 0) spacePos = line.length();
+					tabPos = name.indexOf("\t");    if (tabPos < 0) tabPos = line.length();
+					pos = Math.min(spacePos, tabPos);
+					name = name.substring(0, pos);
+					if (i == 0)
+					{
+						if (!name.equals("time"))
+							System.out.println("Warning: the first variable should be time, is '" + name + "'");
+					} else
+					{
+						signalNames[i-1] = name;
+					}
+				}
+				continue;
+			}
+			if (preColon.equals("Values"))
+			{
+				if (numSignals < 0)
+				{
+					System.out.println("Missing variable count in file");
+					return null;
+				}
+				if (rowCount < 0)
+				{
+					System.out.println("Missing point count in file");
+					return null;
+				}
+				for(int j=0; j<rowCount; j++)
+				{
+					SimEvent se = new SimEvent();
+					se.values = new double[numSignals];
+					for(int i=0; i<=numSignals; i++)
+					{
+						line = getLineFromSimulator();
+						if (line == null)
+						{
+							System.out.println("Error: end of file during data points (read " + j + " out of " + rowCount);
+							return null;
+						}
+						if (i == 0)
+						{
+							int lineNumber = TextUtils.atoi(line);
+							if (lineNumber != j)
+								System.out.println("Warning: data point " + j + " has number " + lineNumber);
+							while (Character.isDigit(line.charAt(0))) line = line.substring(1);
+						}
+						line = line.trim();
+						if (i == 0) se.time = TextUtils.atof(line); else
+							se.values[i-1] = TextUtils.atof(line);
+					}
+					events.add(se);
+				}
+			}
+			if (preColon.equals("Binary"))
+			{
+				if (numSignals < 0)
+				{
+					System.out.println("Missing variable count in file");
+					return null;
+				}
+				if (rowCount < 0)
+				{
+					System.out.println("Missing point count in file");
+					return null;
+				}
+
+				// read the data
+				for(int j=0; j<rowCount; j++)
+				{
+					SimEvent se = new SimEvent();
+					se.values = new double[numSignals];
+
+					double time = dataInputStream.readDouble();
+					for(int i=0; i<numSignals; i++)
+						se.values[i] = dataInputStream.readDouble();
+				}
+			}
+		}
+
+		SimData sd = new SimData();
+		sd.signalNames = signalNames;
+		sd.events = events;
+		return sd;
+	}
+
+}

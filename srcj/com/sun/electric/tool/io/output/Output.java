@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.io;
+package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
@@ -41,13 +41,14 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.IOTool;
-import com.sun.electric.tool.io.OutputCIF;
-import com.sun.electric.tool.io.OutputGDS;
-import com.sun.electric.tool.io.OutputMaxwell;
-import com.sun.electric.tool.io.OutputPostScript;
-import com.sun.electric.tool.io.OutputSpice;
-import com.sun.electric.tool.io.OutputVerilog;
+import com.sun.electric.tool.io.output.CIF;
+import com.sun.electric.tool.io.output.GDS;
+import com.sun.electric.tool.io.output.Maxwell;
+import com.sun.electric.tool.io.output.PostScript;
+import com.sun.electric.tool.io.output.Spice;
+import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Rectangle2D;
@@ -77,45 +78,9 @@ public class Output extends IOTool
 	/** for writing text files */               protected PrintWriter printWriter;
 	/** for writing binary files */             protected DataOutputStream dataOutputStream;
 
-	/**
-	 * Function is a typesafe enum class that describes the types of files that can be written.
-	 */
-	public static class ExportType
-	{
-		private final String name;
-
-		private ExportType(String name)
-		{
-			this.name = name;
-		}
-
-		/**
-		 * Returns a printable version of this ExportType.
-		 * @return a printable version of this ExportType.
-		 */
-		public String toString() { return name; }
-
-		/** Describes binary output .*/			public static final ExportType BINARY    = new ExportType("binary");
-		/** Describes text output. */			public static final ExportType TEXT      = new ExportType("text");
-		/** Describes CIF output. */			public static final ExportType CIF       = new ExportType("CIF");
-		/** Describes GDS output. */			public static final ExportType GDS       = new ExportType("GDS");
-		/** Describes PostScript output. */		public static final ExportType POSTSCRIPT= new ExportType("PostScript");
-		/** Describes SPICE output .*/			public static final ExportType SPICE     = new ExportType("Spice");
-		/** Describes CDL output .*/			public static final ExportType CDL       = new ExportType("CDL");
-		/** Describes VERILOG output. */		public static final ExportType VERILOG   = new ExportType("Verilog");
-		/** Describes MAXWELL output. */		public static final ExportType MAXWELL   = new ExportType("Maxwell");
-		/** Describes IRSIM output. */			public static final ExportType IRSIM     = new ExportType("IRSIM");
-	}
-
-	// ------------------------- private data ----------------------------
-
-	// ---------------------- private and protected methods -----------------
-
 	Output()
 	{
 	}
-
-	// ----------------------- public methods -------------------------------
 
 	/**
 	 * Method to write a Library.
@@ -138,14 +103,14 @@ public class Output extends IOTool
 	/**
 	 * Method to write an entire Library with a particular format.
 	 * This is used for output formats that capture the entire library
-	 * (only the Binary and Text/Readable Dump formats).
+	 * (only the ELIB and Readable Dump formats).
 	 * The alternative to writing the entire library is writing a single
 	 * cell and the hierarchy below it (use "writeCell").
 	 * @param lib the Library to be written.
 	 * @param type the format of the output file.
      * @return true on error.
 	 */
-	public static boolean writeLibrary(Library lib, ExportType type)
+	public static boolean writeLibrary(Library lib, OpenFile.Type type)
 	{
 		Output out;
 
@@ -156,7 +121,7 @@ public class Output extends IOTool
 		Library.Name n;
 		if (lib.getLibFile() != null) n = Library.Name.newInstance(lib.getLibFile()); else
 			n = Library.Name.newInstance(lib.getLibName());
-		if (type == ExportType.BINARY)
+		if (type == OpenFile.Type.ELIB)
 		{
 			// backup previous files if requested
 			int backupScheme = IOTool.getBackupRedundancy();
@@ -197,21 +162,21 @@ public class Output extends IOTool
 				}
 			}
 
-			out = (Output)new OutputBinary();
+			out = (Output)new ELIB();
 			n.setExtension("elib");
             if (out.openBinaryOutputStream(n.makeName())) return true;
             if (out.writeLib(lib)) return true;
             if (out.closeBinaryOutputStream()) return true;
-		} else if (type == ExportType.TEXT)
+		} else if (type == OpenFile.Type.READABLEDUMP)
 		{
-//			out = (Output)new OutputText();
+//			out = (Output)new ReadableDump();
 //			n.setExtension("txt");
 //          if (out.openTextOutputStream(n.makeName())) error = true;
 //          if (out.writeLib(lib)) error = true;
 //          if (out.closeTextOutputStream()) error = true;          
             
 			// no text writer yet, see if an elib can be found
-			out = (Output)new OutputBinary();
+			out = (Output)new ELIB();
 			n.setExtension("elib");
             if (out.openBinaryOutputStream(n.makeName())) return true;
             if (out.writeLib(lib)) return true;
@@ -234,29 +199,29 @@ public class Output extends IOTool
      * @param filePath the path to the disk file to be written.
      * @param type the format of the output file.
      */
-    public static void writeCell(Cell cell, String filePath, ExportType type)
+    public static void writeCell(Cell cell, String filePath, OpenFile.Type type)
     {
-		if (type == ExportType.CDL)
+		if (type == OpenFile.Type.CDL)
 		{
-			OutputSpice.writeSpiceFile(cell, filePath, true);
-		} else if (type == ExportType.CIF)
+			Spice.writeSpiceFile(cell, filePath, true);
+		} else if (type == OpenFile.Type.CIF)
 		{
-			OutputCIF.writeCIFFile(cell, filePath);
-		} else if (type == ExportType.GDS)
+			CIF.writeCIFFile(cell, filePath);
+		} else if (type == OpenFile.Type.GDS)
 		{
-			OutputGDS.writeGDSFile(cell, filePath);
-		} else if (type == ExportType.MAXWELL)
+			GDS.writeGDSFile(cell, filePath);
+		} else if (type == OpenFile.Type.MAXWELL)
 		{
-			OutputMaxwell.writeMaxwellFile(cell, filePath);
-		} else if (type == ExportType.POSTSCRIPT)
+			Maxwell.writeMaxwellFile(cell, filePath);
+		} else if (type == OpenFile.Type.POSTSCRIPT)
 		{
-			OutputPostScript.writePostScriptFile(cell, filePath);
-		} else if (type == ExportType.SPICE)
+			PostScript.writePostScriptFile(cell, filePath);
+		} else if (type == OpenFile.Type.SPICE)
 		{
-			OutputSpice.writeSpiceFile(cell, filePath, false);
-		} else if (type == ExportType.VERILOG)
+			Spice.writeSpiceFile(cell, filePath, false);
+		} else if (type == OpenFile.Type.VERILOG)
 		{
-			OutputVerilog.writeVerilogFile(cell, filePath);
+			Verilog.writeVerilogFile(cell, filePath);
 		}
         
 //		if (error)

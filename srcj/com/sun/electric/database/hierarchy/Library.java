@@ -404,7 +404,7 @@ public class Library extends ElectricObject
 	 * Low-level method to get the user bits.
 	 * The "user bits" are a collection of flags that are more sensibly accessed
 	 * through special methods.
-	 * This general access to the bits is required because the binary ".elib"
+	 * This general access to the bits is required because the ELIB
 	 * file format stores it as a full integer.
 	 * This should not normally be called by any other part of the system.
 	 * @return the "user bits".
@@ -415,7 +415,7 @@ public class Library extends ElectricObject
 	 * Low-level method to set the user bits.
 	 * The "user bits" are a collection of flags that are more sensibly accessed
 	 * through special methods.
-	 * This general access to the bits is required because the binary ".elib"
+	 * This general access to the bits is required because the ELIB
 	 * file format stores it as a full integer.
 	 * This should not normally be called by any other part of the system.
 	 * @param userBits the new "user bits".

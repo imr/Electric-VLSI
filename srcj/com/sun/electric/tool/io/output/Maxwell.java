@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: OutputMaxwell.java
+ * File: Maxwell.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.io;
+package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -42,7 +42,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.io.OutputGeometry;
+import com.sun.electric.tool.io.output.Geometry;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Color;
@@ -62,7 +62,7 @@ import java.util.HashMap;
 /**
  * Class to generate Maxwell netlists.
  */
-public class OutputMaxwell extends Output
+public class Maxwell extends Output
 {	
 	HashMap maxNetMap;
 	int boxNumber;
@@ -74,7 +74,7 @@ public class OutputMaxwell extends Output
 	 */
 	public static void writeMaxwellFile(Cell cell, String filePath)
 	{
-		OutputMaxwell out = new OutputMaxwell();
+		Maxwell out = new Maxwell();
 		if (out.openTextOutputStream(filePath)) return;
 		out.initialize(cell);
 
@@ -88,9 +88,9 @@ public class OutputMaxwell extends Output
 	}
 
 	/**
-	 * Creates a new instance of OutputMaxwell
+	 * Creates a new instance of Maxwell
 	 */
-	OutputMaxwell()
+	Maxwell()
 	{
 	}
 
@@ -164,9 +164,9 @@ public class OutputMaxwell extends Output
 
     public static class Visitor extends HierarchyEnumerator.Visitor
     {
-		OutputMaxwell generator;
+		Maxwell generator;
 
-        public Visitor(OutputMaxwell generator)
+        public Visitor(Maxwell generator)
         {
 			this.generator = generator;
         }

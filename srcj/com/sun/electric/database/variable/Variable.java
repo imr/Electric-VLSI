@@ -474,7 +474,7 @@ public class Variable
 	 * Low-level method to get the type bits.
 	 * The "type bits" are a collection of flags that are more sensibly accessed
 	 * through special methods.
-	 * This general access to the bits is required because the binary ".elib"
+	 * This general access to the bits is required because the ELIB
 	 * file format stores it as a full integer.
 	 * This should not normally be called by any other part of the system.
 	 * @return the "type bits".
@@ -485,7 +485,7 @@ public class Variable
 	 * Low-level method to set the type bits.
 	 * The "type bits" are a collection of flags that are more sensibly accessed
 	 * through special methods.
-	 * This general access to the bits is required because the binary ".elib"
+	 * This general access to the bits is required because the ELIB
 	 * file format stores it as a full integer.
 	 * This should not normally be called by any other part of the system.
 	 * @param flags the new "type bits".

@@ -1119,7 +1119,7 @@ public class ArcInst extends Geometric
 
 	/**
 	 * Low-level method to set the ArcInst angle in the "user bits".
-	 * This general access to the bits is required because the binary ".elib"
+	 * This general access to the bits is required because the ELIB
 	 * file format stores it this way.
 	 * This should not normally be called by any other part of the system.
 	 * @param angle the angle of the ArcInst (in degrees).
@@ -1128,7 +1128,7 @@ public class ArcInst extends Geometric
 
 	/**
 	 * Low-level method to get the ArcInst angle from the "user bits".
-	 * This general access to the bits is required because the binary ".elib"
+	 * This general access to the bits is required because the ELIB
 	 * file format stores it this way.
 	 * This should not normally be called by any other part of the system.
 	 * @return the arc angle (in degrees).

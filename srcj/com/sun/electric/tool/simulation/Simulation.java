@@ -193,7 +193,23 @@ public class Simulation extends Tool
 
 	private static Pref cacheSpiceOutputFormat = Pref.makeStringPref("SpiceOutputFormat", Simulation.tool.prefs, "Standard");
     static { cacheSpiceOutputFormat.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Output Format"); }
+	/**
+	 * Method to tell the type of output files expected from Spice.
+	 * @return the type of output files expected from Spice.
+	 * The values are:<BR>
+	 * "Standard": Standard output (the default)<BR>
+	 * "Raw" Raw output<BR>
+	 * "Raw/Smart": Raw output from SmartSpice<BR>
+	 */
 	public static String getSpiceOutputFormat() { return cacheSpiceOutputFormat.getString(); }
+	/**
+	 * Method to set the type of output files expected from Spice.
+	 * @param format the type of output files expected from Spice.
+	 * The values are:<BR>
+	 * "Standard": Standard output (the default)<BR>
+	 * "Raw" Raw output<BR>
+	 * "Raw/Smart": Raw output from SmartSpice<BR>
+	 */
 	public static void setSpiceOutputFormat(String format) { cacheSpiceOutputFormat.setString(format); }
 
 	private static Pref cacheSpicePartsLibrary = null;

@@ -31,7 +31,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.io.IOTool;
-import com.sun.electric.tool.io.OutputGDS;
+import com.sun.electric.tool.io.output.GDS;
 import com.sun.electric.tool.simulation.Simulation;
 
 import java.awt.event.MouseEvent;
@@ -341,7 +341,7 @@ public class IOOptions extends javax.swing.JDialog
 	{
 		changingGDS = true;
 		String str = (String)gdsLayersList.getSelectedValue();
-		OutputGDS.GDSLayers numbers = gdsGetNumbers(str);
+		GDS.GDSLayers numbers = gdsGetNumbers(str);
 		if (numbers == null) return;
 		if (numbers.normal < 0) gdsLayerNumber.setText(""); else
 			gdsLayerNumber.setText(Integer.toString(numbers.normal));
@@ -356,14 +356,14 @@ public class IOOptions extends javax.swing.JDialog
 	 * Method to parse the line in the scrollable list and return the GDS layer numbers part
 	 * (in parentheses).
 	 */
-	private OutputGDS.GDSLayers gdsGetNumbers(String str)
+	private GDS.GDSLayers gdsGetNumbers(String str)
 	{
 		int openParen = str.indexOf('(');
 		if (openParen < 0) return null;
 		int closeParen = str.lastIndexOf(')');
 		if (closeParen < 0) return null;
 		String gdsNumbers = str.substring(openParen+1, closeParen);
-		OutputGDS.GDSLayers numbers = OutputGDS.parseLayerString(gdsNumbers);
+		GDS.GDSLayers numbers = GDS.parseLayerString(gdsNumbers);
 		return numbers;
 	}
 
@@ -424,7 +424,7 @@ public class IOOptions extends javax.swing.JDialog
 			Layer layer = gdsGetLayer(str);
 			if (layer == null) continue;
 
-			OutputGDS.GDSLayers numbers = gdsGetNumbers(str);
+			GDS.GDSLayers numbers = gdsGetNumbers(str);
 			if (numbers == null) continue;
 			String currentGDSNumbers = "";
 			if (numbers.normal >= 0) currentGDSNumbers += Integer.toString(numbers.normal);
@@ -746,7 +746,7 @@ public class IOOptions extends javax.swing.JDialog
 
 	private void printSetEPSSyncActionPerformed()
 	{
-		String fileName = OpenFile.chooseInputFile(OpenFile.POSTSCRIPT, null);
+		String fileName = OpenFile.chooseInputFile(OpenFile.Type.POSTSCRIPT, null);
 		if (fileName == null) return;
 		printSyncFileName.setText(fileName);
 	}

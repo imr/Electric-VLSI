@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: OutputGDS.java
+ * File: GDS.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.io;
+package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -42,7 +42,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.io.OutputGeometry;
+import com.sun.electric.tool.io.output.Geometry;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -58,7 +58,7 @@ import java.util.List;
 /**
  * This class writes files in GDS format.
  */
-public class OutputGDS extends OutputGeometry
+public class GDS extends Geometry
 {
 	private static final int GDSVERSION        =      3;
 	private static final int BYTEMASK          =   0xFF;
@@ -137,7 +137,7 @@ public class OutputGDS extends OutputGeometry
 	 */
 	public static void writeGDSFile(Cell cell, String filePath)
 	{
-		OutputGDS out = new OutputGDS();
+		GDS out = new GDS();
 		if (out.openBinaryOutputStream(filePath)) return;
 		BloatVisitor visitor = out.makeBloatVisitor(getMaxHierDepth(cell));
 		if (out.writeCell(cell, visitor)) return;
@@ -145,8 +145,8 @@ public class OutputGDS extends OutputGeometry
 		System.out.println(filePath + " written");
 	}
 
-	/** Creates a new instance of OutputGDS */
-	OutputGDS()
+	/** Creates a new instance of GDS */
+	GDS()
 	{
 	}
 
@@ -374,12 +374,12 @@ public class OutputGDS extends OutputGeometry
 	}
 
 	/**
-	 * Class to override the OutputGeometry visitor and add bloating to all polygons.
+	 * Class to override the Geometry visitor and add bloating to all polygons.
 	 * Currently, no bloating is being done.
 	 */
-	private class BloatVisitor extends OutputGeometry.Visitor
+	private class BloatVisitor extends Geometry.Visitor
 	{
-		BloatVisitor(OutputGeometry outGeom, int maxHierDepth)
+		BloatVisitor(Geometry outGeom, int maxHierDepth)
 		{
 			super(outGeom, maxHierDepth);
 		}

@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: OutputPostScript.java
+ * File: PostScript.java
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *
@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.io;
+package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Poly;
@@ -45,7 +45,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.io.Output;
+import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -66,7 +66,7 @@ import javax.swing.JOptionPane;
 /**
  * This class writes files in PostScript format.
  */
-public class OutputPostScript extends Output
+public class PostScript extends Output
 {
 	/** scale factor for PostScript */				private static final int PSSCALE         =    4;
 	/** size of text in the corner */				private static final int CORNERDATESIZE   =  14;
@@ -110,7 +110,7 @@ public class OutputPostScript extends Output
 	private static boolean writeCellToFile(Cell cell, String filePath)
 	{
 		boolean error = false;
-		OutputPostScript out = new OutputPostScript();
+		PostScript out = new PostScript();
 		out.cell = cell;
 		if (out.openTextOutputStream(filePath)) error = true;
 
@@ -128,8 +128,8 @@ public class OutputPostScript extends Output
 		return error;
 	}
 
-	/** Creates a new instance of OutputPostScript */
-	private OutputPostScript()
+	/** Creates a new instance of PostScript */
+	private PostScript()
 	{
 	}
 
@@ -151,7 +151,7 @@ public class OutputPostScript extends Output
 
 		// get control options
 		psUseColor = psUseColorStip = psUseColorMerge = false;
-		switch (OutputPostScript.getPrintColorMethod())
+		switch (PostScript.getPrintColorMethod())
 		{
 			case 1:		// color
 				psUseColor = true;
@@ -163,8 +163,8 @@ public class OutputPostScript extends Output
 				psUseColor = psUseColorMerge = true;
 				break;
 		}
-		boolean usePlotter = OutputPostScript.isPrintForPlotter();
-		plotDates = OutputPostScript.isPlotDate();
+		boolean usePlotter = PostScript.isPrintForPlotter();
+		plotDates = PostScript.isPlotDate();
 		boolean epsFormat = isPrintEncapsulated();
 //		if (printit) epsFormat = false;
 
@@ -178,7 +178,7 @@ public class OutputPostScript extends Output
 		if (printBounds == null) return;
 
 		boolean rotatePlot = false;
-		switch (OutputPostScript.getPrintRotation())
+		switch (PostScript.getPrintRotation())
 		{
 			case 1:		// rotate 90 degrees
 				rotatePlot = true;
@@ -519,9 +519,9 @@ public class OutputPostScript extends Output
 
     private class PSVisitor extends HierarchyEnumerator.Visitor
     {
-        /** OutputPostScript object this Visitor is enumerating for */	private OutputPostScript outPS;
+        /** PostScript object this Visitor is enumerating for */	private PostScript outPS;
 
-		public PSVisitor(OutputPostScript outPS)
+		public PSVisitor(PostScript outPS)
         {
             this.outPS = outPS;
         }

@@ -44,13 +44,14 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.io.Input;
+import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.dialogs.LayoutText;
 import com.sun.electric.tool.user.dialogs.CellBrowser;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Dimension;
@@ -615,7 +616,7 @@ public class PaletteFrame
 
 			public void doIt()
 			{
-				Library lib = Input.readLibrary(fileURL, Input.ImportType.TEXT);
+				Library lib = Input.readLibrary(fileURL, OpenFile.Type.READABLEDUMP);
 				Undo.noUndoAllowed();
 				if (lib == null) return;
 				for(Iterator it = lib.getCells(); it.hasNext(); )

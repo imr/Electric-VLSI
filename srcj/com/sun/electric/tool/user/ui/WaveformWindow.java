@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -79,7 +80,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 /**
- * This class defines the a screenful of WavePanels that make up a waveform display.
+ * This class defines the a screenful of Panels that make up a waveform display.
  */
 public class WaveformWindow
 {
@@ -95,21 +96,21 @@ public class WaveformWindow
 
 		// make the waveform window
 		WaveformWindow ww = new WaveformWindow(null, wf);
-		double timeStep = 0.000000001;
+		double timeStep = 0.0000000001;
 		ww.setMainTimeCursor(timeStep*22);
 		ww.setExtensionTimeCursor(timeStep*77);
 
 		// put waveform panels in it
 		for(int i=0; i<6; i++)
 		{
-			WavePanel wp = new WavePanel(ww);
+			Panel wp = new Panel(ww);
 			wp.setTimeRange(0, timeStep*100);
 			wp.setValueRange(-5, 5);
 			for(int j=0; j<(i+1)*3; j++)
 			{
 				String text = "Signal"+(j+1);
 				Color color = colorArray[j % colorArray.length];
-				WaveSignal wsig = new WaveSignal(wp, text, color);
+				Signal wsig = new Signal(wp, text, color);
 				double [] time = new double[100];
 				double [] value = new double[100];
 				for(int k=0; k<100; k++)
@@ -123,13 +124,13 @@ public class WaveformWindow
 	}
 
 	/**
-	 * This class defines a single panel of WaveSignals with an associated list of signal names.
+	 * This class defines a single panel of Signals with an associated list of signal names.
 	 */
-	static class WavePanel extends JPanel
+	public static class Panel extends JPanel
 		implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 	{
 		/** the main waveform window this is part of */			private WaveformWindow waveWindow;
-		/** maps signal buttons to the actual WaveSignal */		private HashMap waveSignals;
+		/** maps signal buttons to the actual Signal */			private HashMap waveSignals;
 		/** the list of signal names on the left */				private JPanel signalNames;
 		/** the left side: with signal names etc. */			private JPanel leftHalf;
 		/** the right side: with signal traces */				private JPanel rightHalf;
@@ -158,7 +159,7 @@ public class WaveformWindow
 		private static final ImageIcon iconDeleteAllSignals = new ImageIcon(WaveformWindow.class.getResource("ButtonSimDeleteAll.gif"));
 
 	    // constructor
-		WavePanel(WaveformWindow waveWindow)
+		public Panel(WaveformWindow waveWindow)
 		{
 			// remember state
 			this.waveWindow = waveWindow;
@@ -306,7 +307,7 @@ public class WaveformWindow
 			waveWindow.wavePanels.add(this);
 		}
 
-		private void closePanel()
+		public void closePanel()
 		{
 			waveWindow.closePanel(this);
 		}
@@ -381,7 +382,7 @@ public class WaveformWindow
 			// look at all traces in this panel
 			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
 			{
-				WaveSignal ws = (WaveSignal)it.next();
+				Signal ws = (Signal)it.next();
 				g.setColor(ws.color);
 				if (ws.valueArray != null)
 				{
@@ -428,7 +429,7 @@ public class WaveformWindow
 					if (value > ss.high) break;
 					int y = scaleValueToY(value);
 					g.drawLine(VERTLABELWIDTH-10, y, VERTLABELWIDTH, y);
-					String yValue = convertToEngineeringNotation(value, "", ss.stepScale);
+					String yValue = sim_window_prettyprint(value, ss.rangeScale, ss.stepScale);
 					GlyphVector gv = font.createGlyphVector(frc, yValue);
 					Rectangle2D glyphBounds = gv.getVisualBounds();
 					int height = (int)glyphBounds.getHeight();
@@ -511,7 +512,7 @@ public class WaveformWindow
 		}
 
 		/**
-		 * Method to find the WaveSignals in an area.
+		 * Method to find the Signals in an area.
 		 * @param lX the low X coordinate of the area.
 		 * @param hX the high X coordinate of the area.
 		 * @param lY the low Y coordinate of the area.
@@ -524,7 +525,7 @@ public class WaveformWindow
 			List foundList = new ArrayList();
 			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
 			{
-				WaveSignal ws = (WaveSignal)it.next();
+				Signal ws = (Signal)it.next();
 				if (ws.valueArray != null)
 				{
 					// search analog trace
@@ -554,7 +555,7 @@ public class WaveformWindow
 		{
 			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
 			{
-				WaveSignal ws = (WaveSignal)it.next();
+				Signal ws = (Signal)it.next();
 				if (!ws.highlighted) continue;
 				ws.highlighted = false;
 				ws.signalName.setBackground(background);
@@ -562,7 +563,7 @@ public class WaveformWindow
 			repaint();
 		}
 
-		private void addHighlightedSignal(WaveSignal ws)
+		private void addHighlightedSignal(Signal ws)
 		{
 			if (background == null) background = ws.signalName.getBackground();
 			ws.highlighted = true;
@@ -570,7 +571,7 @@ public class WaveformWindow
 			repaint();
 		}
 
-		private void removeHighlightedSignal(WaveSignal ws)
+		private void removeHighlightedSignal(Signal ws)
 		{
 			ws.highlighted = false;
 			ws.signalName.setBackground(background);
@@ -596,7 +597,7 @@ public class WaveformWindow
 			}
 
 			// look for a selected signal
-			WavePanel wp = (WavePanel)evt.getSource();
+			Panel wp = (Panel)evt.getSource();
 			List foundList = wp.findSignalsInArea(evt.getX(), evt.getX(), evt.getY(), evt.getY());
 			if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) == 0)
 			{
@@ -604,7 +605,7 @@ public class WaveformWindow
 				clearHighlightedSignals();
 				for(Iterator it = foundList.iterator(); it.hasNext(); )
 				{
-					WaveSignal ws = (WaveSignal)it.next();
+					Signal ws = (Signal)it.next();
 					wp.addHighlightedSignal(ws);
 				}
 			} else
@@ -612,7 +613,7 @@ public class WaveformWindow
 				// shift click: add or remove to list of highlighted traces
 				for(Iterator it = foundList.iterator(); it.hasNext(); )
 				{
-					WaveSignal ws = (WaveSignal)it.next();
+					Signal ws = (Signal)it.next();
 					if (ws.highlighted) removeHighlightedSignal(ws); else
 						wp.addHighlightedSignal(ws);
 				}
@@ -670,14 +671,14 @@ public class WaveformWindow
 	// ************************************* TIME GRID ALONG THE TOP OF EACH PANEL *************************************
 
 	/**
-	 * This class defines the horizontal time tick display at the top of each WavePanel.
+	 * This class defines the horizontal time tick display at the top of each Panel.
 	 */
-	static class TimeTickPanel extends JPanel
+	private static class TimeTickPanel extends JPanel
 	{
-		WavePanel wavePanel;
+		Panel wavePanel;
 
 		// constructor
-		TimeTickPanel(WavePanel wavePanel)
+		TimeTickPanel(Panel wavePanel)
 		{
 			// remember state
 			this.wavePanel = wavePanel;
@@ -714,7 +715,8 @@ public class WaveformWindow
 				if (time > ss.high) break;
 				int x = wavePanel.scaleTimeToX(time);
 				g.drawLine(x, 0, x, hei);
-				g.drawString(convertToEngineeringNotation(time, "s", ss.stepScale), x+2, hei-2);
+				String timeVal = convertToEngineeringNotation(time, "s", ss.stepScale);
+				g.drawString(timeVal, x+2, hei-2);
 				time += ss.separation;
 			}
 		}
@@ -723,11 +725,11 @@ public class WaveformWindow
 	// ************************************* INDIVIDUAL TRACES *************************************
 
 	/**
-	 * This class defines a single trace in a WavePanel.
+	 * This class defines a single trace in a Panel.
 	 */
-	static class WaveSignal
+	public static class Signal
 	{
-		/** the panel that holds this signal */			private WavePanel wavePanel;
+		/** the panel that holds this signal */			private Panel wavePanel;
 		/** the name of this signal */					private String name;
 		/** true if this signal is highlighted */		private boolean highlighted;
 		/** the color of this signal */					private Color color;
@@ -741,7 +743,7 @@ public class WaveformWindow
 //		INTBIG    busindex;			/* index of this trace in the bus (when part of a bus) */
 //		struct Itrace *buschannel;
 
-		WaveSignal(WavePanel wavePanel, String name, Color color)
+		public Signal(Panel wavePanel, String name, Color color)
 		{
 			this.wavePanel = wavePanel;
 			this.name = name;
@@ -762,7 +764,7 @@ public class WaveformWindow
 		private void signalNameClicked(ActionEvent evt)
 		{
 			JButton signal = (JButton)evt.getSource();
-			WaveSignal ws = (WaveSignal)wavePanel.waveSignals.get(signal);
+			Signal ws = (Signal)wavePanel.waveSignals.get(signal);
 			if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) == 0)
 			{
 				// standard click: add this as the only trace
@@ -817,7 +819,7 @@ public class WaveformWindow
 
     // ************************************* CONTROL *************************************
 
-	WaveformWindow(Cell cell, WindowFrame wf)
+	public WaveformWindow(Cell cell, WindowFrame wf)
 	{
 		// initialize the structure
 		this.wf = wf;
@@ -918,7 +920,7 @@ public class WaveformWindow
 	{
 		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
 		{
-			WavePanel wp = (WavePanel)it.next();
+			Panel wp = (Panel)it.next();
 			wp.repaint();
 		}
 	}
@@ -982,11 +984,12 @@ public class WaveformWindow
 		while ( range <= 1.0  ) { range *= 10.0;   ss.rangeScale--; }
 
 		// determine powers of ten in the step size
-		double d = Math.abs(h - l)/(float)n;
+		double d = Math.abs(h - l)/(double)n;
 		if (Math.abs(d/(h+l)) < 0.0000001) d = 0.1f;
-		double m = 1.0;
-		while ( d >= 10.0 ) { d /= 10.0;   m *= 10.0;   ss.stepScale++; }
-		while ( d <= 1.0  ) { d *= 10.0;   m /= 10.0;   ss.stepScale--; }
+		int mp = 0;
+		while ( d >= 10.0 ) { d /= 10.0;   mp++;   ss.stepScale++; }
+		while ( d <= 1.0  ) { d *= 10.0;   mp--;   ss.stepScale--; }
+		double m = Math.pow(10, mp);
 
 		int di = (int)d;
 		if (di > 2 && di <= 5) di = 5; else 
@@ -997,10 +1000,37 @@ public class WaveformWindow
 		hi = (hi/di) * di;
 		if (li < 0) li -= di;
 		if (hi > 0) hi += di;
-		l = (double)li * m;
-		h = (double)hi * m;
+		ss.low = (double)li * m;
+		ss.high = (double)hi * m;
 		ss.separation = di * m;
 		return ss;
+	}
+
+	private static String sim_window_prettyprint(double v, int i1, int i2)
+	{
+		double d = 1.0;
+		if (i2 > 0)
+			for(int i = 0; i < i2; i++) d *= 10.0;
+		if (i2 < 0)
+			for(int i = 0; i > i2; i--) d /= 10.0;
+
+		if (Math.abs(v)*100.0 < d) return "0";
+
+		if (i1 <= 4 && i1 >= 0 && i2 >= 0)
+		{
+			String s = TextUtils.formatDouble(v, 1);
+			return s;
+		}
+		if (i1 <= 4 && i1 >= -2 && i2 < 0)
+		{
+			String s = TextUtils.formatDouble(v, -i2);
+			return s;
+		}
+
+		int p = i1 - 12 - 1;
+		if (p < 0) p = 0;
+		String s = TextUtils.formatDouble(v/d, p);
+		return s + "e" + i2;
 	}
 
 	/*
@@ -1086,14 +1116,17 @@ public class WaveformWindow
 			}
 		}
 		scaled /= 1.0E2;
-		return negative + scaled + secType;
+		String numPart = TextUtils.formatDouble(scaled, scalePower - precpower);
+		while (numPart.endsWith("0")) numPart = numPart.substring(0, numPart.length()-1);
+		if (numPart.endsWith(".")) numPart = numPart.substring(0, numPart.length()-1);
+		return negative + numPart + secType;
 	}
 
 	/**
-	 * Method called when a WavePanel is to be closed.
-	 * @param wp the WavePanel to close.
+	 * Method called when a Panel is to be closed.
+	 * @param wp the Panel to close.
 	 */
-	public void closePanel(WavePanel wp)
+	public void closePanel(Panel wp)
 	{
 		// cannot delete the last panel
 		if (wavePanels.size() <= 1)
@@ -1110,7 +1143,7 @@ public class WaveformWindow
 	}
 
 	/**
-	 * Method called when a new WavePanel is to be created.
+	 * Method called when a new Panel is to be created.
 	 * This is typically overridden by the specific simulation module
 	 * which knows the signal names.
 	 */
@@ -1120,21 +1153,21 @@ public class WaveformWindow
 	}
 
 	/**
-	 * Method called when a signal is to be added to a WavePanel.
+	 * Method called when a signal is to be added to a Panel.
 	 * This is typically overridden by the specific simulation module
 	 * which knows the signal names.
-	 * @param wp the WavePanel in which to add the signal.
+	 * @param wp the Panel in which to add the signal.
 	 */
-	public void overlaySignalInPanel(WavePanel wp)
+	public void overlaySignalInPanel(Panel wp)
 	{
 		System.out.println("Cannot add a signal to this panel");
 	}
 
 	/**
-	 * Method called to delete the highlighted signal from its WavePanel.
-	 * @param wp the WavePanel with the signal to be deleted.
+	 * Method called to delete the highlighted signal from its Panel.
+	 * @param wp the Panel with the signal to be deleted.
 	 */
-	public void deleteSignalFromPanel(WavePanel wp)
+	public void deleteSignalFromPanel(Panel wp)
 	{
 		boolean found = true;
 		while (found)
@@ -1142,7 +1175,7 @@ public class WaveformWindow
 			found = false;
 			for(Iterator it = wp.waveSignals.values().iterator(); it.hasNext(); )
 			{
-				WaveSignal ws = (WaveSignal)it.next();
+				Signal ws = (Signal)it.next();
 				if (!ws.highlighted) continue;
 				wp.removeHighlightedSignal(ws);
 				wp.signalNames.remove(ws.signalName);
@@ -1157,10 +1190,10 @@ public class WaveformWindow
 	}
 
 	/**
-	 * Method called to delete all signals from a WavePanel.
-	 * @param wp the WavePanel to clear.
+	 * Method called to delete all signals from a Panel.
+	 * @param wp the Panel to clear.
 	 */
-	public void deleteAllSignalsFromPanel(WavePanel wp)
+	public void deleteAllSignalsFromPanel(Panel wp)
 	{
 		wp.clearHighlightedSignals();
 		wp.signalNames.removeAll();

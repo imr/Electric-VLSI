@@ -1093,7 +1093,7 @@ public class CellLists extends javax.swing.JDialog
 			// finally show the results
 			if (saveToDisk.isSelected())
 			{
-				String trueName = OpenFile.chooseOutputFile(OpenFile.TEXT, null, "celllist.txt");
+				String trueName = OpenFile.chooseOutputFile(OpenFile.Type.READABLEDUMP, null, "celllist.txt");
 				if (trueName == null) System.out.println("Cannot write cell listing"); else
 				{
 					FileOutputStream fileOutputStream = null;

@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: OutputCIF.java
+ * File: CIF.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.io;
+package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.EMath;
@@ -51,7 +51,7 @@ import java.util.Iterator;
 /** 
  * Class to write CIF output to disk.
  */
-public class OutputCIF extends OutputGeometry
+public class CIF extends Geometry
 {
 	// preferences
 	/** minimum output grid resolution */				private double minAllowedResolution;
@@ -78,7 +78,7 @@ public class OutputCIF extends OutputGeometry
 	public static void writeCIFFile(Cell cell, String filePath)
 	{
 		ErrorLog.initLogging("CIF resolution");
-		OutputCIF out = new OutputCIF();
+		CIF out = new CIF();
 		if (out.openTextOutputStream(filePath)) return;
 		CIFVisitor visitor = out.makeCIFVisitor(getMaxHierDepth(cell));
 		if (out.writeCell(cell, visitor)) return;
@@ -90,9 +90,9 @@ public class OutputCIF extends OutputGeometry
 	}
 
 	/**
-	 * Creates a new instance of OutputCIF
+	 * Creates a new instance of CIF
 	 */
-	OutputCIF()
+	CIF()
 	{
 		cellNumbers = new HashMap();
 
@@ -369,12 +369,12 @@ public class OutputCIF extends OutputGeometry
 	}
 
 	/**
-	 * Class to override the OutputGeometry visitor and add bloating to all polygons.
+	 * Class to override the Geometry visitor and add bloating to all polygons.
 	 * Currently, no bloating is being done.
 	 */
-	private class CIFVisitor extends OutputGeometry.Visitor
+	private class CIFVisitor extends Geometry.Visitor
 	{
-		CIFVisitor(OutputGeometry outGeom, int maxHierDepth)
+		CIFVisitor(Geometry outGeom, int maxHierDepth)
 		{
 			super(outGeom, maxHierDepth);
 		}

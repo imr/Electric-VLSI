@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.io;
+package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.EMath;
@@ -39,8 +39,11 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.tool.io.InputLibrary;
+import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.io.input.LibraryFiles;
+import com.sun.electric.tool.io.input.ReadableDump;
 import com.sun.electric.tool.user.dialogs.Progress;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.MenuCommands;
 
 import java.awt.geom.Point2D;
@@ -50,6 +53,8 @@ import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.List;
@@ -63,45 +68,23 @@ import java.util.Iterator;
  */
 public class Input extends IOTool
 {
-	private static final int READ_BUFFER_SIZE = 65536;
+	protected static final int READ_BUFFER_SIZE = 65536;
 
 	/** key of Varible holding true library of fake cell. */		public static final Variable.Key IO_TRUE_LIBRARY = ElectricObject.newKey("IO_true_library");
 	
 	/** Name of the file being input. */					protected String filePath;
 	/** The Library being input. */							protected Library lib;
 	/** The raw input stream. */							protected InputStream inputStream;
-	/** The binary input stream. */							protected DataInputStream dataInputStream;
+	/** The URL connection. */								protected URLConnection urlCon;
+	/** The line number reader (text only). */				protected LineNumberReader lineReader;
+	/** The input stream. */								protected DataInputStream dataInputStream;
 	/** The length of the file. */							protected long fileLength;
 	/** The progress during input. */						protected static Progress progress = null;
 	/** the path to the library being read. */				protected static String mainLibDirectory = null;
 	/** true if the library is the main one being read. */	protected boolean topLevelLibrary;
+	/** the number of bytes of data read so far */			protected int byteCount;
 
-    
-	/**
-	 * Function is a typesafe enum class that describes the types of files that can be read.
-	 */
-	public static class ImportType
-	{
-		private final String name;
-
-		private ImportType(String name)
-		{
-			this.name = name;
-		}
-
-		/**
-		 * Returns a printable version of this ImportType.
-		 * @return a printable version of this ImportType.
-		 */
-		public String toString() { return name; }
-
-		/** Defines binary input. */		public static final ImportType BINARY =   new ImportType("binary");
-		/** Defines text input. */			public static final ImportType TEXT =     new ImportType("text");
-		/** Defines CIF input. */			public static final ImportType CIF =      new ImportType("CIF");
-		/** Defines GDS input. */			public static final ImportType GDS =      new ImportType("GDS");
-	}
-
-	/**
+ 	/**
 	 * This class is used to convert old "facet" style Libraries to pure Cell Libraries.
 	 */
 	protected static class FakeCell
@@ -121,35 +104,32 @@ public class Input extends IOTool
 	/**
 	 * Method to read a Library from disk.
 	 * @param fileURL the URL to the disk file.
-	 * @param type the type of library file (BINARY .elib, CIF, GDS, etc.)
+	 * @param type the type of library file (ELIB, CIF, GDS, etc.)
 	 * @return the read Library, or null if an error occurred.
 	 */
-	public static Library readLibrary(URL fileURL, ImportType type)
+	public static Library readLibrary(URL fileURL, OpenFile.Type type)
 	{
 		if (fileURL == null) return null;
 		long startTime = System.currentTimeMillis();
-		InputLibDirs.readLibDirs();
+		LibDirs.readLibDirs();
 		//Undo.noUndoAllowed();
-		InputLibrary.initializeLibraryInput();
+		LibraryFiles.initializeLibraryInput();
 		Undo.changesQuiet(true);
 		Pref.initMeaningVariableGathering();
 
 		// show progress
-		String fileName = fileURL.getFile();
-		progress = new Progress("Reading library " + fileName + "...");
-		progress.setProgress(0);
+		startProgressDialog("library", fileURL.getFile());
 
 		InputStream stream = TextUtils.getURLStream(fileURL);
 		Library lib = readALibrary(fileURL, stream, null, type);
-		if (InputLibrary.VERBOSE)
+		if (LibraryFiles.VERBOSE)
 			System.out.println("Done reading data for all libraries");
 
-		InputLibrary.cleanupLibraryInput();
-		if (InputLibrary.VERBOSE)
+		LibraryFiles.cleanupLibraryInput();
+		if (LibraryFiles.VERBOSE)
 			System.out.println("Done instantiating data for all libraries");
 
-		progress.close();
-		progress = null;
+		stopProgressDialog();
 
 		Undo.changesQuiet(false);
 		Network.reload();
@@ -157,7 +137,7 @@ public class Input extends IOTool
 		{
 			long endTime = System.currentTimeMillis();
 			float finalTime = (endTime - startTime) / 1000F;
-			System.out.println("Library " + fileName + " read, took " + finalTime + " seconds");
+			System.out.println("Library " + fileURL.getFile() + " read, took " + finalTime + " seconds");
 		}
 		Pref.reconcileMeaningVariables();
 		return lib;
@@ -171,23 +151,25 @@ public class Input extends IOTool
 	 * If the "lib" is null, this is an entry-level library read, and one is created.
 	 * If "lib" is not null, this is a recursive read caused by a cross-library
 	 * reference from inside another library.
-	 * @param type the type of library file (BINARY .elib, CIF, GDS, etc.)
+	 * @param type the type of library file (ELIB, CIF, GDS, etc.)
 	 * @return the read Library, or null if an error occurred.
 	 */
-	protected static Library readALibrary(URL fileURL, InputStream stream, Library lib, ImportType type)
+	protected static Library readALibrary(URL fileURL, InputStream stream, Library lib, OpenFile.Type type)
 	{
 		// get the library file name and path
 		String fileName = fileURL.getFile();
 		Library.Name n = Library.Name.newInstance(fileName);
 
 		// handle different file types
-		InputLibrary in;
-		if (type == ImportType.BINARY)
+		LibraryFiles in;
+		if (type == OpenFile.Type.ELIB)
 		{
-			in = (InputLibrary)new InputBinary();
-		} else if (type == ImportType.TEXT)
+			in = (LibraryFiles)new ELIB();
+			if (in.openBinaryInput(fileURL, stream)) return null;
+		} else if (type == OpenFile.Type.READABLEDUMP)
 		{
-			in = (InputLibrary)new InputText();
+			in = (LibraryFiles)new ReadableDump();
+			if (in.openTextInput(fileURL, stream)) return null;
 		} else
 		{
 			System.out.println("Unknown import type: " + type);
@@ -201,21 +183,6 @@ public class Input extends IOTool
 			mainLibDirectory = n.getPath() + File.separator;
 			in.topLevelLibrary = true;
 		}
-
-		// get information about the file
-		in.filePath = fileName;
-		in.inputStream = stream;
-		URLConnection urlCon = null;
-		try
-		{
-			urlCon = fileURL.openConnection();
-		} catch (IOException e)
-		{
-			System.out.println("Could not find file: " + fileName);
-			if (in.topLevelLibrary) mainLibDirectory = null;
-			return null;
-		}
-		in.fileLength = urlCon.getContentLength();
 
 		if (lib == null)
 		{
@@ -233,20 +200,9 @@ public class Input extends IOTool
 
 		in.lib = lib;
 
-		BufferedInputStream bufStrm =
-			new BufferedInputStream(in.inputStream, READ_BUFFER_SIZE);
-		in.dataInputStream = new DataInputStream(bufStrm);
-
 		// read the library
 		boolean error = in.readInputLibrary();
-		try
-		{
-			in.inputStream.close();
-		} catch (IOException e)
-		{
-			System.out.println("Error closing " + fileName);
-			return null;
-		}
+		in.closeInput();
 		if (error)
 		{
 			System.out.println("Error reading library");
@@ -310,6 +266,69 @@ public class Input extends IOTool
 			if (newVar == null)
 				System.out.println("Could not preserve outline information on node in cell "+ni.getParent().describe());
 			return;
+		}
+	}
+
+	javax.swing.ProgressMonitorInputStream is = null;
+	
+	protected boolean openBinaryInput(URL fileURL, InputStream stream)
+	{
+		filePath = fileURL.getFile();
+		inputStream = stream;
+		urlCon = null;
+		try
+		{
+			urlCon = fileURL.openConnection();
+		} catch (IOException e)
+		{
+			System.out.println("Could not find file: " + fileURL.getFile());
+			return true;
+		}
+		fileLength = urlCon.getContentLength();
+		byteCount = 0;
+
+		BufferedInputStream bufStrm = new BufferedInputStream(inputStream, READ_BUFFER_SIZE);
+		dataInputStream = new DataInputStream(bufStrm);
+		return false;
+	}
+
+	protected boolean openTextInput(URL fileURL, InputStream stream)
+	{
+		if (openBinaryInput(fileURL, stream)) return true;
+		InputStreamReader is = new InputStreamReader(inputStream);
+		lineReader = new LineNumberReader(is);
+		return false;
+	}
+
+	protected static void startProgressDialog(String type, String filePath)
+	{
+		progress = new Progress("Reading " + type + " " + filePath + "...");
+		progress.setProgress(0);
+	}
+
+	protected static void stopProgressDialog()
+	{
+		progress.close();
+		progress = null;
+	}
+	
+	protected void updateProgressDialog(int bytesRead)
+	{
+		byteCount += bytesRead;
+		if (progress != null && fileLength > 0)
+		{
+			progress.setProgress((int)(byteCount * 100 / fileLength));
+		}
+	}
+
+	protected void closeInput()
+	{
+		try
+		{
+			inputStream.close();
+		} catch (IOException e)
+		{
+			System.out.println("Error closing file");
 		}
 	}
 

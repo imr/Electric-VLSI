@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: OutputVerilog.java
+ * File: Verilog.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.io;
+package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -44,8 +44,8 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.io.OutputTopology;
-import com.sun.electric.tool.io.Output;
+import com.sun.electric.tool.io.output.Topology;
+import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
 
@@ -59,7 +59,7 @@ import java.util.Date;
 /**
  * This is the Simulation Interface tool.
  */
-public class OutputVerilog extends OutputTopology
+public class Verilog extends Topology
 {
 	/* maximum size of output line */						private static final int MAXDECLARATIONWIDTH = 80;
 	/* name of inverters generated from negated wires */	private static final String IMPLICITINVERTERNODENAME = "Imp";
@@ -78,7 +78,7 @@ public class OutputVerilog extends OutputTopology
 	 */
 	public static void writeVerilogFile(Cell cell, String filePath)
 	{
-		OutputVerilog out = new OutputVerilog();
+		Verilog out = new Verilog();
 		if (out.openTextOutputStream(filePath)) return;
 		if (out.writeCell(cell)) return;
 		if (out.closeTextOutputStream()) return;
@@ -88,7 +88,7 @@ public class OutputVerilog extends OutputTopology
 	/**
 	 * Creates a new instance of Verilog
 	 */
-	OutputVerilog()
+	Verilog()
 	{
 	}
 

@@ -38,45 +38,70 @@ import javax.swing.filechooser.FileFilter;
 
 public class OpenFile
 {
-	public static final EFileFilter ANY        = null;					// default to built-in filter "All Files"
-	public static final EFileFilter TEXT       = new EFileFilter(new String[] {"txt"}, "Text File (txt)");
-	public static final EFileFilter ELIB       = new EFileFilter(new String[] {"elib"}, "Library File (elib)");
-	public static final EFileFilter SPI        = new EFileFilter(new String[] {"spi", "sp"}, "Spice Deck (spi, sp)");
-	public static final EFileFilter VERILOG    = new EFileFilter(new String[] {"v"}, "Verilog Deck (v)");
-	public static final EFileFilter MAXWELL    = new EFileFilter(new String[] {"mac"}, "Maxwell Deck (mac)");
-	public static final EFileFilter JAVA       = new EFileFilter(new String[] {"java", "bsh"}, "Java Script File (java, bsh)");
-	public static final EFileFilter CIF        = new EFileFilter(new String[] {"cif"}, "CIF File (cif)");
-	public static final EFileFilter GDS        = new EFileFilter(new String[] {"gds"}, "GDS File (gds)");
-	public static final EFileFilter ARR        = new EFileFilter(new String[] {"arr"}, "Pad Generator Array File (arr)");
-	public static final EFileFilter POSTSCRIPT = new EFileFilter(new String[] {"ps"}, "PostScript (ps)");
-
 	/**
-	 * Class to filter appropriate files during the open and save dialogs.
+	 * Function is a typesafe enum class that describes the types of files that can be read or written.
 	 */
-	public static class EFileFilter
+	public static class Type
 	{
-		/** description of filter */		private FileFilterSwing swingFilter;
-		/** description of filter */		private FileFilterAWT awtFilter;
-		/** list of valid extensions */		private String[] extensions;
+		/** Describes any file.*/				public static final Type ANY          = new Type("All", new String[] {}, "All Files");
+		/** Describes ELIB files.*/				public static final Type ELIB         = new Type("ELIB", new String[] {"elib"}, "Library File (elib)");
+		/** Describes Readable Dump files. */	public static final Type READABLEDUMP = new Type("ReadableDump", new String[] {"txt"}, "Readable Dump Library File (txt)");
+		/** Describes CIF files. */				public static final Type CIF          = new Type("CIF", new String[] {"cif"}, "CIF File (cif)");
+		/** Describes GDS files. */				public static final Type GDS          = new Type("GDS", new String[] {"gds"}, "GDS File (gds)");
+		/** Describes PostScript files. */		public static final Type POSTSCRIPT   = new Type("PostScript", new String[] {"ps"}, "PostScript (ps)");
+		/** Describes SPICE decks.*/			public static final Type SPICE        = new Type("Spice", new String[] {"spi", "sp"}, "Spice Deck (spi, sp)");
+		/** Describes SPICE standard output.*/	public static final Type SPICEOUT     = new Type("SpiceOutput", new String[] {"spo"}, "Spice/GNUCap Output FIle (spo)");
+		/** Describes PSpice standard output.*/	public static final Type PSPICEOUT    = new Type("PSpiceOutput", new String[] {"spo"}, "PSpice/Spice3 Output FIle (spo)");
+		/** Describes HSpice output. */			public static final Type HSPICEOUT    = new Type("HSpiceOutput", new String[] {"tr0", "pa0"}, "HSpice Output File (tr0/pa0)");
+		/** Describes Raw Spice output. */		public static final Type RAWSPICEOUT  = new Type("RawSpiceOutput", new String[] {"raw"}, "Spice Raw Output File (raw)");
+		/** Describes Raw SmartSpice output. */	public static final Type RAWSSPICEOUT = new Type("RawSmartSpiceOutput", new String[] {"raw"}, "SmartSPICE Raw Output File (raw)");
+		/** Describes CDL decks.*/				public static final Type CDL          = new Type("CDL", new String[] {"cdl"}, "CDL Deck (cdl)");
+		/** Describes VERILOG decks. */			public static final Type VERILOG      = new Type("Verilog", new String[] {"v"}, "Verilog Deck (v)");
+		/** Describes VERILOG output. */		public static final Type VERILOGOUT   = new Type("VerilogOutput", new String[] {"vcd"}, "Verilog VCD Dump (vcd)");
+		/** Describes MAXWELL decks. */			public static final Type MAXWELL      = new Type("Maxwell", new String[] {"mac"}, "Maxwell Deck (mac)");
+		/** Describes IRSIM decks. */			public static final Type IRSIM        = new Type("IRSIM", new String[] {"sim"}, "IRSIM Deck (sim)");
+		/** Describes Java source. */			public static final Type JAVA         = new Type("Java", new String[] {"java", "bsh"}, "Java Script File (java, bsh)");
+		/** Describes Pad Frame Array spec. */	public static final Type PADARR       = new Type("PadArray", new String[] {"arr"}, "Pad Generator Array File (arr)");
 
-		/** Creates a new instance of EFileFilter */
-		public EFileFilter(String[] extensions, String desc)
+		private final String name;
+		private final String [] extensions;
+		private final String desc;
+		private FileFilterSwing ffs;
+		private FileFilterAWT ffa;
+
+		private Type(String name, String [] extensions, String desc)
 		{
+			this.name = name;
 			this.extensions = extensions;
-			swingFilter = new FileFilterSwing(extensions, desc);
-			awtFilter = new FileFilterAWT(extensions, desc);
+			this.desc = desc;
+			this.ffs = null;
+			this.ffa = null;
 		}
 
-		public String getDescription() { return swingFilter.getDescription(); }
-
+		public String getName() { return name; }
+		public String getDescription() { return desc; }
 		public String [] getExtensions() { return extensions; }
 
-		FileFilterSwing getSwingFilter() { return swingFilter; }
+		public FileFilterSwing getFileFilterSwing()
+		{
+			if (ffs == null) ffs = new FileFilterSwing(extensions, desc);
+			return ffs;
+		}
 
-		FileFilterAWT getAWTFilter() { return awtFilter; }
+		public FileFilterAWT getFileFilterAWT()
+		{
+			if (ffa == null) ffa = new FileFilterAWT(extensions, desc);
+			return ffa;
+		}
+
+		/**
+		 * Returns a printable version of this Type.
+		 * @return a printable version of this Type.
+		 */
+		public String toString() { return name; }
 	}
 
-	public static class FileFilterSwing extends FileFilter
+	private static class FileFilterSwing extends FileFilter
 	{
 		/** list of valid extensions */		private String[] extensions;
 		/** description of filter */		private String desc;
@@ -114,7 +139,7 @@ public class OpenFile
 	}
 
 
-	public static class FileFilterAWT implements FilenameFilter
+	private static class FileFilterAWT implements FilenameFilter
 	{
 		/** list of valid extensions */		private String[] extensions;
 		/** description of filter */		private String desc;
@@ -148,7 +173,7 @@ public class OpenFile
 		public String getDescription() { return desc; }
 	}
 
-	public static class OpenFileSwing extends JFileChooser
+	private static class OpenFileSwing extends JFileChooser
 	{
 		/** True if this is a file save dialog */						private boolean saveDialog;
 
@@ -181,16 +206,16 @@ public class OpenFile
 	}
 
 	/**
-	 * Factory method to create a new open dialog box using the default EFileFilter.
-	 * @param filter used to filter file types. Defaults to ANY if null.
+	 * Factory method to create a new open dialog box using the default Type.
+	 * @param type the type of file to read. Defaults to ANY if null.
 	 * @param title dialog title to use; if null uses "Open 'filetype'".
 	 */
-	public static String chooseInputFile(EFileFilter filter, String title)
+	public static String chooseInputFile(Type type, String title)
 	{
 		if (title == null)
 		{
 			title = "Open file";
-			if (filter != null) title = "Open " + filter.getDescription();
+			if (type != null) title = "Open " + type.getDescription();
 		}
 
 		boolean useSwing = true;
@@ -202,7 +227,7 @@ public class OpenFile
 			OpenFileSwing dialog = new OpenFileSwing();
 			dialog.saveDialog = false;
 			dialog.setDialogTitle(title);
-			dialog.setFileFilter(filter.getSwingFilter());
+			dialog.setFileFilter(type.getFileFilterSwing());
 			dialog.setCurrentDirectory(new File(User.getWorkingDirectory()));
 			int returnVal = dialog.showOpenDialog(null);
 			if (returnVal == JFileChooser.APPROVE_OPTION)
@@ -216,7 +241,7 @@ public class OpenFile
 			// the AWT way
 			FileDialog dialog = new FileDialog(TopLevel.getCurrentJFrame(), title, FileDialog.LOAD);
 			dialog.setDirectory(User.getWorkingDirectory());
-			dialog.setFilenameFilter(filter.getAWTFilter());
+			dialog.setFilenameFilter(type.getFileFilterAWT());
 			dialog.show();
 			String fileName = dialog.getFile();
 			if (fileName == null) return null;
@@ -229,15 +254,15 @@ public class OpenFile
 	/**
 	 * Factory method to create a new save dialog box using the
 	 * default EFileFilter.
-	 * @param filter used to filter file types. Defaults to ANY if null.
+	 * @param type the type of file. Defaults to ANY if null.
 	 * @param title dialog title to use; if null uses "Write 'filetype'".
 	 * @param defaultFile default file name to write.
 	 */
-	public static String chooseOutputFile(EFileFilter filter, String title, String defaultFile)
+	public static String chooseOutputFile(Type type, String title, String defaultFile)
 	{
 		if (title != null)
 		{
-			if (filter != null) title = "Write " + filter.getDescription(); else
+			if (type != null) title = "Write " + type.getDescription(); else
 				title = "Write file";
 		}
 
@@ -250,8 +275,8 @@ public class OpenFile
 			OpenFileSwing dialog = new OpenFileSwing();
 			dialog.saveDialog = true;
 			dialog.setDialogTitle(title);
-			dialog.setFileFilter(filter.getSwingFilter());
-			dialog.addChoosableFileFilter(filter.getSwingFilter());
+			dialog.setFileFilter(type.getFileFilterSwing());
+			dialog.addChoosableFileFilter(type.getFileFilterSwing());
 			dialog.setCurrentDirectory(new File(User.getWorkingDirectory()));
 			dialog.setSelectedFile(new File(defaultFile));
 			int returnVal = dialog.showSaveDialog(null);
@@ -267,7 +292,7 @@ public class OpenFile
 			FileDialog awtDialog = new FileDialog(TopLevel.getCurrentJFrame(), title, FileDialog.SAVE);
 			awtDialog.setDirectory(User.getWorkingDirectory());
 			awtDialog.setFile(defaultFile);
-			awtDialog.setFilenameFilter(filter.getAWTFilter());
+			awtDialog.setFilenameFilter(type.getFileFilterAWT());
 			awtDialog.show();
 			String fileName = awtDialog.getFile();
 			if (fileName == null) return null;

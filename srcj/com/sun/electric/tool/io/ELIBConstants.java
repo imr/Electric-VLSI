@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: BinaryConstants.java
+ * File: ELIBConstants.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -30,8 +30,22 @@ import java.util.GregorianCalendar;
 /**
  * This class has constants for reading and writing binary (.elib) files.
  */
-public class BinaryConstants
+public class ELIBConstants
 {
+	// ".elib" file version numbers
+	/** current magic number: version 12 */		public static final int MAGIC12 = -1595;
+	/** older magic number: version 11 */		public static final int MAGIC11 = -1593;
+	/** older magic number: version 10 */		public static final int MAGIC10 = -1591;
+	/** older magic number: version 9 */		public static final int MAGIC9 =  -1589;
+	/** older magic number: version 8 */		public static final int MAGIC8 =  -1587;
+	/** older magic number: version 7 */		public static final int MAGIC7 =  -1585;
+	/** older magic number: version 6 */		public static final int MAGIC6 =  -1583;
+	/** older magic number: version 5 */		public static final int MAGIC5 =  -1581;
+	/** older magic number: version 4 */		public static final int MAGIC4 =  -1579;
+	/** older magic number: version 3 */		public static final int MAGIC3 =  -1577;
+	/** older magic number: version 2 */		public static final int MAGIC2 =  -1575;
+	/** oldest magic number: version 1 */		public static final int MAGIC1 =  -1573;
+
 	/** Defines an undefined variable. */										public static final int VUNKNOWN =                  0;
 	/** Defines a 32-bit integer variable. */									public static final int VINTEGER =                 01;
 	/** Defines an unsigned address. */											public static final int VADDRESS =                 02;

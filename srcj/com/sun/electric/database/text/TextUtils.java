@@ -107,7 +107,7 @@ public class TextUtils
 	 */
 	public static int atoi(String s)
 	{
-		return atoi(s, 0);
+		return atoi(s, 0, 0);
 	}
 
 	/**
@@ -119,7 +119,19 @@ public class TextUtils
 	 */
 	public static int atoi(String s, int pos)
 	{
-		int base = 10;
+		return atoi(s, pos, 0);
+	}
+
+	/**
+	 * Method to parse the number in a string.
+	 * See the comments for "atoi(String s)" for reasons why this method exists.
+	 * @param s the string with a number in it.
+	 * @param pos the starting position in the string to find the number.
+	 * @param base the forced base of the number (0 to determine it automatically).
+	 * @return the numeric value.
+	 */
+	public static int atoi(String s, int pos, int base)
+	{
 		int num = 0;
 		int sign = 1;
 		int len = s.length();
@@ -128,14 +140,18 @@ public class TextUtils
 			pos++;
 			sign = -1;
 		}
-		if (pos < len && s.charAt(pos) == '0')
+		if (base == 0)
 		{
-			pos++;
-			base = 8;
-			if (pos < len && (s.charAt(pos) == 'x' || s.charAt(pos) == 'X'))
+			base = 10;
+			if (pos < len && s.charAt(pos) == '0')
 			{
 				pos++;
-				base = 16;
+				base = 8;
+				if (pos < len && (s.charAt(pos) == 'x' || s.charAt(pos) == 'X'))
+				{
+					pos++;
+					base = 16;
+				}
 			}
 		}
 		for(; pos < len; pos++)

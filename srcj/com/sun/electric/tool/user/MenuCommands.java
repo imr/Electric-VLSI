@@ -46,16 +46,16 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.generator.PadGenerator;
-import com.sun.electric.tool.io.Input;
-import com.sun.electric.tool.io.Output;
-import com.sun.electric.tool.io.OutputPostScript;
-import com.sun.electric.tool.io.OutputSpice;
-import com.sun.electric.tool.io.OutputVerilog;
+import com.sun.electric.tool.io.input.Input;
+import com.sun.electric.tool.io.input.Simulate;
+import com.sun.electric.tool.io.output.Output;
+import com.sun.electric.tool.io.output.PostScript;
+import com.sun.electric.tool.io.output.Spice;
+import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.routing.MimicStitch;
-import com.sun.electric.tool.simulation.Spice;
 import com.sun.electric.tool.simulation.IRSIMTool;
 import com.sun.electric.tool.user.dialogs.About;
 import com.sun.electric.tool.user.dialogs.Array;
@@ -178,11 +178,11 @@ public final class MenuCommands
 		Menu exportSubMenu = new Menu("Export");
 		fileMenu.add(exportSubMenu);
 		exportSubMenu.addMenuItem("CIF (Caltech Intermediate Format)", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.CIF, OpenFile.CIF); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.CIF); } });
 		exportSubMenu.addMenuItem("GDS II (Stream)", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.GDS, OpenFile.GDS); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.GDS); } });
 		exportSubMenu.addMenuItem("PostScript", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.POSTSCRIPT, OpenFile.POSTSCRIPT); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.POSTSCRIPT); } });
 
 		fileMenu.addSeparator();
 
@@ -611,39 +611,44 @@ public final class MenuCommands
 		Menu spiceSimulationSubMenu = new Menu("Simulation (SPICE)", 'S');
 		toolMenu.add(spiceSimulationSubMenu);
 		spiceSimulationSubMenu.addMenuItem("Write SPICE Deck...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.SPICE, OpenFile.SPI); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.SPICE); }});
 		spiceSimulationSubMenu.addMenuItem("Write CDL Deck...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.CDL, OpenFile.SPI); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.CDL); }});
+		spiceSimulationSubMenu.addMenuItem("Plot Spice Deck...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotSpiceResults(); }});
+
 		spiceSimulationSubMenu.addSeparator();
 		spiceSimulationSubMenu.addMenuItem("Set Generic SPICE Template", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(OutputSpice.SPICE_TEMPLATE_KEY); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_TEMPLATE_KEY); }});
 		spiceSimulationSubMenu.addMenuItem("Set SPICE 2 Template", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(OutputSpice.SPICE_2_TEMPLATE_KEY); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_2_TEMPLATE_KEY); }});
 		spiceSimulationSubMenu.addMenuItem("Set SPICE 3 Template", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(OutputSpice.SPICE_3_TEMPLATE_KEY); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_3_TEMPLATE_KEY); }});
 		spiceSimulationSubMenu.addMenuItem("Set HSPICE Template", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(OutputSpice.SPICE_H_TEMPLATE_KEY); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_H_TEMPLATE_KEY); }});
 		spiceSimulationSubMenu.addMenuItem("Set PSPICE Template", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(OutputSpice.SPICE_P_TEMPLATE_KEY); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_P_TEMPLATE_KEY); }});
 		spiceSimulationSubMenu.addMenuItem("Set GnuCap Template", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(OutputSpice.SPICE_GC_TEMPLATE_KEY); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_GC_TEMPLATE_KEY); }});
 		spiceSimulationSubMenu.addMenuItem("Set SmartSPICE Template", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(OutputSpice.SPICE_SM_TEMPLATE_KEY); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_SM_TEMPLATE_KEY); }});
 
 		Menu verilogSimulationSubMenu = new Menu("Simulation (Verilog)", 'V');
 		toolMenu.add(verilogSimulationSubMenu);
 		verilogSimulationSubMenu.addMenuItem("Write Verilog Deck...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.VERILOG, OpenFile.VERILOG); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.VERILOG); } });
+		verilogSimulationSubMenu.addMenuItem("Plot Verilog Deck...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotVerilogResults(); }});
 		verilogSimulationSubMenu.addSeparator();
 		verilogSimulationSubMenu.addMenuItem("Set Verilog Template", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(OutputVerilog.VERILOG_TEMPLATE_KEY); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Verilog.VERILOG_TEMPLATE_KEY); }});
 
 		Menu netlisters = new Menu("Simulation (others)");
 		toolMenu.add(netlisters);
 		netlisters.addMenuItem("Write IRSIM Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { irsimNetlistCommand(); }});
 		netlisters.addMenuItem("Write Maxwell Deck...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.MAXWELL, OpenFile.MAXWELL); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.MAXWELL); } });
 
 		Menu ercSubMenu = new Menu("ERC", 'E');
 		toolMenu.add(ercSubMenu);
@@ -793,24 +798,24 @@ public final class MenuCommands
 	 */
 	public static void openLibraryCommand()
 	{
-		String fileName = OpenFile.chooseInputFile(OpenFile.ELIB, null);
+		String fileName = OpenFile.chooseInputFile(OpenFile.Type.ELIB, null);
 		if (fileName != null)
 		{
 			// start a job to do the input
 			URL fileURL = TextUtils.makeURLToFile(fileName);
-			ReadBinaryLibrary job = new ReadBinaryLibrary(fileURL);
+			ReadELIB job = new ReadELIB(fileURL);
 		}
 	}
 
 	/**
 	 * Class to read a library in a new thread.
-	 * For a non-interactive script, use ReadBinaryLibrary job = new ReadBinaryLibrary(filename).
+	 * For a non-interactive script, use ReadELIB job = new ReadELIB(filename).
 	 */
-	public static class ReadBinaryLibrary extends Job
+	public static class ReadELIB extends Job
 	{
 		URL fileURL;
 
-		public ReadBinaryLibrary(URL fileURL)
+		public ReadELIB(URL fileURL)
 		{
 			super("Read Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.fileURL = fileURL;
@@ -819,7 +824,7 @@ public final class MenuCommands
 
 		public void doIt()
 		{
-			Library lib = Input.readLibrary(fileURL, Input.ImportType.BINARY);
+			Library lib = Input.readLibrary(fileURL, OpenFile.Type.ELIB);
 			Undo.noUndoAllowed();
 			if (lib == null) return;
 			lib.setCurrent();
@@ -846,7 +851,7 @@ public final class MenuCommands
 	 */
 	public static void importLibraryCommand()
 	{
-		String fileName = OpenFile.chooseInputFile(OpenFile.TEXT, null);
+		String fileName = OpenFile.chooseInputFile(OpenFile.Type.READABLEDUMP, null);
 		if (fileName != null)
 		{
 			// start a job to do the input
@@ -871,7 +876,7 @@ public final class MenuCommands
 
 		public void doIt()
 		{
-			Library lib = Input.readLibrary(fileURL, Input.ImportType.TEXT);
+			Library lib = Input.readLibrary(fileURL, OpenFile.Type.READABLEDUMP);
 			Undo.noUndoAllowed();
 			if (lib == null) return;
 			lib.setCurrent();
@@ -916,7 +921,7 @@ public final class MenuCommands
 			fileName = lib.getLibFile();
 		} else
 		{
-			fileName = OpenFile.chooseOutputFile(OpenFile.ELIB, null, lib.getLibName()+".elib");
+			fileName = OpenFile.chooseOutputFile(OpenFile.Type.ELIB, null, lib.getLibName()+".elib");
 			if (fileName == null) return false;
 
 			Library.Name n = Library.Name.newInstance(fileName);
@@ -946,7 +951,7 @@ public final class MenuCommands
 
 		public void doIt()
 		{
-			boolean error = Output.writeLibrary(lib, Output.ExportType.BINARY);
+			boolean error = Output.writeLibrary(lib, OpenFile.Type.ELIB);
 			if (error)
 			{
 				System.out.println("Error writing the library file");
@@ -969,17 +974,17 @@ public final class MenuCommands
 	 * This method implements the export cell command for different export types.
 	 * It is interactive, and pops up a dialog box.
 	 */
-	public static void exportCellCommand(Output.ExportType type, OpenFile.EFileFilter filter)
+	public static void exportCellCommand(OpenFile.Type type)
 	{
-		if (type == Output.ExportType.POSTSCRIPT)
+		if (type == OpenFile.Type.POSTSCRIPT)
 		{
-			if (OutputPostScript.syncAll()) return;
+			if (PostScript.syncAll()) return;
 		}
 		Cell cell = Library.needCurCell();
 		if (cell == null) return;
 
-		String [] extensions = filter.getExtensions();
-		String filePath = OpenFile.chooseOutputFile(filter, null, cell.getProtoName() + "." + extensions[0]);
+		String [] extensions = type.getExtensions();
+		String filePath = OpenFile.chooseOutputFile(type, null, cell.getProtoName() + "." + extensions[0]);
 		if (filePath == null) return;
 
 		exportCellCommand(cell, filePath, type);
@@ -988,7 +993,7 @@ public final class MenuCommands
 	/**
 	 * This is the non-interactive version of exportCellCommand
 	 */
-	public static void exportCellCommand(Cell cell, String filePath, Output.ExportType type)
+	public static void exportCellCommand(Cell cell, String filePath, OpenFile.Type type)
 	{
 		ExportCell job = new ExportCell(cell, filePath, type);
 	}
@@ -1003,9 +1008,9 @@ public final class MenuCommands
 	{
 		Cell cell;
 		String filePath;
-		Output.ExportType type;
+		OpenFile.Type type;
 		
-		public ExportCell(Cell cell, String filePath, Output.ExportType type)
+		public ExportCell(Cell cell, String filePath, OpenFile.Type type)
 		{
 			super("Export "+cell.describe()+" ("+type+")", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.cell = cell;
@@ -2233,7 +2238,7 @@ public final class MenuCommands
 	
 	public static void javaBshScriptCommand()
 	{
-		String fileName = OpenFile.chooseInputFile(OpenFile.JAVA, null);
+		String fileName = OpenFile.chooseInputFile(OpenFile.Type.JAVA, null);
 		if (fileName != null)
 		{
 			// start a job to run the script
@@ -2599,7 +2604,7 @@ public final class MenuCommands
 	
 	public static void openP4libCommand() {
 		URL url = TextUtils.makeURLToFile("/export/gainsley/soesrc_java/test/purpleFour.elib");
-		ReadBinaryLibrary job = new ReadBinaryLibrary(url);
+		ReadELIB job = new ReadELIB(url);
 //		OpenBinLibraryThread oThread = new OpenBinLibraryThread("/export/gainsley/soesrc_java/test/purpleFour.elib");
 //		oThread.start();
 	}

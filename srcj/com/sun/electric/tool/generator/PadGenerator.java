@@ -38,7 +38,7 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.io.Input;
+import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -157,8 +157,8 @@ public class PadGenerator
 												}
 											}
 
-											Input.ImportType style = Input.ImportType.BINARY;
-											if (n.getExtension().equals("txt")) style = Input.ImportType.TEXT;
+											OpenFile.Type style = OpenFile.Type.ELIB;
+											if (n.getExtension().equals("txt")) style = OpenFile.Type.READABLEDUMP;
 											Library saveLib = Library.getCurrent();
 											cellLib = Library.newInstance(n.getName(), externalFile);
 											cellLib = Input.readLibrary(fileURL, style);
@@ -565,7 +565,7 @@ public class PadGenerator
 
 	public void ArrayFromFile()
 	{
-		String fileName = OpenFile.chooseInputFile(OpenFile.ARR, null);
+		String fileName = OpenFile.chooseInputFile(OpenFile.Type.PADARR, null);
 		if (fileName == null)
 		{
 			System.out.println("File not found");

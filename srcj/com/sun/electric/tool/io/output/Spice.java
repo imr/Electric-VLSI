@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: OutputSpice.java
+ * File: Spice.java
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *
@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.io;
+package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
@@ -48,7 +48,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.io.OutputTopology;
+import com.sun.electric.tool.io.output.Topology;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
 
@@ -66,7 +66,7 @@ import java.util.Date;
 /**
  * This is the Simulation Interface tool.
  */
-public class OutputSpice extends OutputTopology
+public class Spice extends Topology
 {
 	/** key of Variable holding generic Spice templates. */		public static final Variable.Key SPICE_TEMPLATE_KEY = ElectricObject.newKey("ATTR_SPICE_template");
 	/** key of Variable holding Spice 2 templates. */			public static final Variable.Key SPICE_2_TEMPLATE_KEY = ElectricObject.newKey("ATTR_SPICE_template_spice2");
@@ -106,7 +106,7 @@ public class OutputSpice extends OutputTopology
 	 */
 	public static void writeSpiceFile(Cell cell, String filePath, boolean cdl)
 	{
-		OutputSpice out = new OutputSpice();
+		Spice out = new Spice();
 		out.useCDL = cdl;
 		if (out.openTextOutputStream(filePath)) return;
 		if (out.writeCell(cell)) return;
@@ -169,7 +169,7 @@ public class OutputSpice extends OutputTopology
 	/**
 	 * Creates a new instance of Spice
 	 */
-	OutputSpice()
+	Spice()
 	{
 	}
 
