@@ -936,6 +936,12 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { implantGeneratorCommand(true, false); }});
 		generationSubMenu.addMenuItem("Pad Frame Generator", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
+		generationSubMenu.addMenuItem("Generate gate layouts", null,
+							 		  new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new com.sun.electric.tool.generator.layout.GateLayoutGenerator();
+			}
+		});
 
 		toolMenu.addSeparator();
 
@@ -972,21 +978,10 @@ public final class MenuCommands
 
 		Menu russMenu = new Menu("Russell", 'R');
 		menuBar.add(russMenu);
-		russMenu.addMenuItem("Generate fill cells", null, new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				new com.sun.electric.tool.generator.layout.FillLibGen();
-			}
-		});
 		russMenu.addMenuItem("Gate Generator Regression", null,
 		                     new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				new com.sun.electric.tool.generator.layout.GateRegression();
-			}
-		});
-		russMenu.addMenuItem("Generate gate layouts", null,
-							 new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				new com.sun.electric.tool.generator.layout.GateLayoutGenerator();
 			}
 		});
 		russMenu.addMenuItem("create flat netlists for Ivan", null, new ActionListener() {

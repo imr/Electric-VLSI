@@ -1003,6 +1003,18 @@ class TiledCell {
 		}
 		return rows;
 	}
+	/** Geometric center of bottom left cell is at (0, 0). */
+	private void addEssentialBounds(double cellW, double cellH, 
+	                                int numX, int numY, Cell tiled) {
+		double blX = -cellW/2;
+		double blY = -cellH/2;
+		double tlX = cellW/2 + (numX-1)*cellW;
+		double tlY = cellH/2 + (numY-1)*cellH;
+		LayoutLib.newNodeInst(Tech.essentialBounds, blX, blY,
+							  G.DEF_SIZE, G.DEF_SIZE, 180, tiled);
+		LayoutLib.newNodeInst(Tech.essentialBounds, tlX, tlY,
+							  G.DEF_SIZE, G.DEF_SIZE, 0, tiled);
+	}
 	private TiledCell(int numX, int numY, Cell cell, Floorplan[] plans, 
 	                  Library lib, StdCellParams stdCell) {
 	    vddNm = stdCell.getVddExportName();
@@ -1032,6 +1044,7 @@ class TiledCell {
 		ArrayList portInsts = getAllPortInsts(tiled);
 		Router.connectCoincident(portInsts);
 		exportUnconnectedPortInsts(rows, plans, tiled, stdCell);
+		addEssentialBounds(cellW, cellH, numX, numY, tiled);
 	}
 	public static void makeTiledCell(int numX, int numY, Cell cell, 
 	                                 Floorplan[] plans, Library lib,
@@ -1072,7 +1085,6 @@ public class FillGenerator {
 	private Library lib;
 	private boolean libInitialized;
 	private boolean evenLayersHorizontal;
-	private int[] tiledSizes;
 	private double[] vddReserved = {0, 0, 0, 0, 0, 0, 0}; 
 	private double[] gndReserved = {0, 0, 0, 0, 0, 0, 0}; 
 	private StdCellParams stdCell, stdCellP;
@@ -1140,7 +1152,7 @@ public class FillGenerator {
 	}
 
 	private void makeTiledCells(Cell cell, Floorplan[] plans, Library lib,
-								StdCellParams stdCell) {
+								int[] tiledSizes, StdCellParams stdCell) {
 		if (tiledSizes==null) return;
 		for (int i=0; i<tiledSizes.length; i++) {
 			int num = tiledSizes[i];
@@ -1149,10 +1161,10 @@ public class FillGenerator {
 	}
 	private void makeAndTileCell(Library lib, Floorplan[] plans, int lowLay, 
 								 int hiLay, CapCell capCell, boolean wireLowest, 
-								 StdCellParams stdCell) {
+								 int[] tiledSizes, StdCellParams stdCell) {
 		Cell c = FillCell.makeFillCell(lib, plans, lowLay, hiLay, capCell, 
 									   wireLowest, stdCell);
-		makeTiledCells(c, plans, lib, stdCell);
+		makeTiledCells(c, plans, lib, tiledSizes, stdCell);
 	}
 
 	public static final Units LAMBDA = Units.LAMBDA;
@@ -1192,12 +1204,6 @@ public class FillGenerator {
 		changeWarning();
 		evenLayersHorizontal = b;
 	}
-	/** Specify how fill cells should be tiled to form larger fill cells.
-	 * For example setTiledCellSizes(new int[] {2, 3}) generates cells by 
-	 * tiling together 2x2 and 3x3 arrays of fill cells. 
-	 * @param sizes an array of sizes. The default value is null.  The
-	 * value null means don't generate anything. */
-	public void setTiledCellSizes(int[] sizes) {tiledSizes=sizes;}
 	/** Reserve space in the middle of the Vdd and ground straps for signals. 
 	 * @param layer the layer number. This may be 2, 3, 4, 5, or 6. The layer 
 	 * number 1 is reserved to mean "capacitor between Vdd and ground".
@@ -1211,7 +1217,8 @@ public class FillGenerator {
 	 * that these two ground straps should abut to form a single large strap
 	 * instead of two smaller adjacent straps.
 	 * @param gndUnits LAMBDA or TRACKS
-	 */
+	 * @param tiledSizes an array of sizes. The default value is null.  The
+	 * value null means don't generate anything. */
 	public void reserveSpaceOnLayer(int layer, 
 									double vddReserved, Units vddUnits, 
 							   		double gndReserved, Units gndUnits) {
@@ -1238,7 +1245,7 @@ public class FillGenerator {
 	 * export has name "power" and type "input".
 	 */
 	public void makeFillCell(int loLayer, int hiLayer, ExportConfig exportConfig,
-							 PowerType powerType) {
+							 PowerType powerType, int[] tiledSizes) {
 		initFillParameters();
 		
 		LayoutLib.error(loLayer<1, "loLayer must be >=1");
@@ -1246,9 +1253,11 @@ public class FillGenerator {
 		LayoutLib.error(loLayer>hiLayer, "loLayer must be <= hiLayer");
 		boolean wireLowest = exportConfig==PERIMETER_AND_INTERNAL;
 		if (powerType==VDD) {
-			makeAndTileCell(lib, plans, loLayer, hiLayer, capCell, wireLowest, stdCell);
+			makeAndTileCell(lib, plans, loLayer, hiLayer, capCell, wireLowest, 
+			                tiledSizes, stdCell);
 		} else {
-			makeAndTileCell(lib, plans, loLayer, hiLayer, capCellP, wireLowest, stdCellP);
+			makeAndTileCell(lib, plans, loLayer, hiLayer, capCellP, wireLowest, 
+			                tiledSizes, stdCellP);
 		}
 	}
 	public void makeGallery() {

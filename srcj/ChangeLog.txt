@@ -2,6 +2,8 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (6/11/04, RK) Move fill generation to a script. Add Essential-Bounds to tiled fill cells. 
+
 IMP: (6/10/04, SMR) Changed the Job.doIt() method to return a success indicator.
 
 BUG: (6/10/04, DN) Unnamed bus connected to array node may detect wrong width.
