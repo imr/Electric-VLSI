@@ -582,12 +582,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
                 if (theLog instanceof ErrorLogger.WarningLog)
                 {
                     if (iconWarnMsg == null)
-                        iconWarnMsg = Resources.getResource(getClass(), "IconViewLayout.gif");
+                        iconWarnMsg = Resources.getResource(getClass(), "IconWarningLog.gif");
                     setIcon(iconWarnMsg);
                 } else // warning
                 {
                     if (iconErrorMsg == null)
-                        iconErrorMsg = Resources.getResource(getClass(), "IconViewSchematics.gif");
+                        iconErrorMsg = Resources.getResource(getClass(), "IconErrorLog.gif");
                     setIcon(iconErrorMsg);
                 }
             }
