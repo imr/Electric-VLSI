@@ -34,6 +34,7 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
@@ -45,6 +46,8 @@ import com.sun.electric.Main;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Set;
+import java.util.HashSet;
 import javax.swing.SwingUtilities;
 
 /**
@@ -291,7 +294,43 @@ public class NetworkTool extends Listener
 		}
 	}
 
-	/****************************** CHANGE LISTENER ******************************/
+    /**
+     * Method to retrieve all networks for a portInst.
+     * Used by Highlighter and Connection
+     * @param pi
+     * @param netlist
+     * @param nets
+     * @return
+     */
+    public static Set getNetworksOnPort(PortInst pi, Netlist netlist, Set nets)
+    {
+        boolean added = false;
+        if (nets == null) nets = new HashSet();
+
+        for(Iterator aIt = pi.getNodeInst().getConnections(); aIt.hasNext(); )
+        {
+            Connection con = (Connection)aIt.next();
+            ArcInst ai = con.getArc();
+            int wid = netlist.getBusWidth(ai);
+            for(int i=0; i<wid; i++)
+            {
+                Network net = netlist.getNetwork(ai, i);
+                if (net != null)
+                {
+                    added = true;
+                    nets.add(net);
+                }
+            }
+        }
+        if (!added)
+        {
+            Network net = netlist.getNetwork(pi);
+            if (net != null) nets.add(net);
+        }
+        return nets;
+    }
+
+    /****************************** CHANGE LISTENER ******************************/
 
 	/**
 	 * Method to initialize a tool.
