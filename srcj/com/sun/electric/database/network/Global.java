@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.network;
 
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 
 import java.util.Arrays;
@@ -44,7 +45,7 @@ public class Global
 	/** the 0-based index of this Global. */	private int index;
 
 	/** All Globals. */							private static Global[] allGlobals = new Global[0];
-	/** Buffer for construction Global.Set. */	private static boolean[] globalsBuf;
+	/** Buffer for construction Global.Set. */	private static PortProto.Characteristic[] globalsBuf;
 	/** Map Name -> Global. */					private static Map globalsByName = new HashMap();
 
 	/** global signal ground. */				public static final Global ground = newGlobal("Ground");
@@ -58,7 +59,7 @@ public class Global
 		this.name = name;
 		index = allGlobals.length;
 		Global[] newGlobals = new Global[index + 1];
-		boolean[] newGlobalsBuf = new boolean[index + 1];
+		PortProto.Characteristic[] newGlobalsBuf = new PortProto.Characteristic[index + 1];
 		for (int i = 0; i < index; i++) {
 			newGlobals[i] = allGlobals[i];
 			newGlobalsBuf[i] = globalsBuf[i];
@@ -107,29 +108,29 @@ public class Global
 	 */
 	public static class Set implements Comparable {
 
-		/** bitmap which defines set. */			private boolean[] elemMap;
+		/** bitmap which defines set. */			private PortProto.Characteristic[] elemMap;
 		/** map localInd->globalInd. */				private Global[] elems;
 		/** map globalInd->localInd. */				private int[] indexOf;
 
 		/** Map Set->Set of all Global.Sets. */		private static Map allSets = new TreeMap();
-		/** A private set for search in allSets. */	private static Global.Set fakeSet = new Global.Set(new boolean[0]);
-		/** A private set for search in allSets. */	public static final Global.Set empty = newSet(new boolean[0]);
+		/** A private set for search in allSets. */	private static Global.Set fakeSet = new Global.Set(new PortProto.Characteristic[0]);
+		/** A private set for search in allSets. */	public static final Global.Set empty = newSet(new PortProto.Characteristic[0]);
 
 		/**
 		 * Constructs Global.Set with specified bitmap of Globals.
 		 * @param elemMap bitmap which specifies which elemenst are in set.
 		 */
-		private Set(boolean[] elemMap) {
+		private Set(PortProto.Characteristic[] elemMap) {
 			int maxElem = -1;
 			int numElem = 0;
 
 			for (int i = 0; i < elemMap.length; i++) {
-				if (!elemMap[i]) continue;
+				if (elemMap[i] == null) continue;
 				maxElem = i;
 				numElem++;
 			}
 
-			this.elemMap = new boolean[maxElem + 1];
+			this.elemMap = new PortProto.Characteristic[maxElem + 1];
 			elems = new Global[numElem];
 			indexOf = new int[maxElem + 1];
 			Arrays.fill(indexOf, -1);
@@ -137,8 +138,8 @@ public class Global
 
 			int local = 0;
 			for (int i = 0; i < elemMap.length; i++) {
-				if (!elemMap[i]) continue;
-				this.elemMap[i] = true;
+				if (elemMap[i] == null) continue;
+				this.elemMap[i] = elemMap[i];
 				elems[local] = allGlobals[i];
 				indexOf[i] = local;
 				local++;
@@ -150,7 +151,15 @@ public class Global
 		 * @param global The Global whose presence in this set is to be tested
 		 * @return <tt>true</tt> if this Global Set contains a specified Global.
 		 */
-		public final boolean contains(Global global) { return global.index < elemMap.length && elemMap[global.index]; }
+		public final boolean contains(Global global) { return global.index < elemMap.length && elemMap[global.index] != null; }
+
+		/**
+		 * Returns characteristic of a specified Global in a set.
+		 * Returns null if a specified Global not in a set..
+		 * @param global The Global whose presence in this set is to be tested
+		 * @return Characteristic of specified Global or null.
+		 */
+		public PortProto.Characteristic getCharacteristic(Global global) { return global.index < elemMap.length ? elemMap[global.index] : null; }
 
 		/**
 		 * Returns the number of Globals in this Global.Set.
@@ -194,11 +203,16 @@ public class Global
 			for (i = 0; i < minLen; i++) {
 				if (this.elemMap[i] != set.elemMap[i]) break;
 			}
-			if (i < minLen) return (this.elemMap[i] ? 1 : -1);
+			if (i < minLen)
+			{
+				if (this.elemMap[i] == null) return -1;
+				if (set.elemMap[i] == null) return 1;
+				return this.elemMap[i].getOrder() - set.elemMap[i].getOrder();
+			}
 			for (; i < this.elemMap.length; i++)
-				if (this.elemMap[i]) return 1;
+				if (this.elemMap[i] != null) return 1;
 			for (; i < set.elemMap.length; i++)
-				if (set.elemMap[i]) return -1;
+				if (set.elemMap[i] != null) return -1;
 			return 0;
 		}
 
@@ -220,8 +234,14 @@ public class Global
 
 		public String toString() {
 			String s = "Global.Set {";
-			for (int i = 0; i < size(); i++)
-				s += " " + get(i);
+// 			for (int i = 0; i < size(); i++) {
+// 				Global g = elems[i];
+// 				s += " " + g + ":" + elemMap[g.index].getName();
+// 			}
+			for (int i = 0; i < elemMap.length; i++) {
+				if (elemMap[i] == null) continue;	
+				s += " " + allGlobals[i] + ":" + elemMap[i].getName();
+			}
 			s += "}";
 			return s;
 		}
@@ -231,9 +251,10 @@ public class Global
 		 * @param elemMap bitmap which specifies which elemenst are in set.
 		 * @return set of specified Globals.
 		 */
-		private static Global.Set newSet(boolean[] elemMap) {
+		private static Global.Set newSet(PortProto.Characteristic[] elemMap) {
 			fakeSet.elemMap = elemMap;
 			Global.Set set = (Global.Set) allSets.get(fakeSet);
+			fakeSet.elemMap = null;
 			if (set == null) {
 				set = new Global.Set(elemMap);
 				allSets.put(set, set);
@@ -248,24 +269,38 @@ public class Global
 	 * Clear all Globals from the buffer.
 	 */
 	static void clearBuf() {
-		Arrays.fill(globalsBuf, false);
+		Arrays.fill(globalsBuf, null);
 	}
 
 	/**
 	 * Add specified Global to the buffer.
 	 * @param g specified Global.
 	 */
-	static void addToBuf(Global g) {
-		globalsBuf[g.index] = true;
+	static String addToBuf(Global g, PortProto.Characteristic characteristic) {
+		String errorMsg = null;
+		PortProto.Characteristic oldCharacteristic = globalsBuf[g.index];
+		if (oldCharacteristic == null)
+			globalsBuf[g.index] = characteristic;
+		else if (oldCharacteristic != characteristic)
+			errorMsg = g.getName() + "(" + oldCharacteristic.getName() + "->" + characteristic.getName() + ")";
+		return errorMsg;
 	}
 
 	/**
 	 * Add specified Global.Set to the buffer.
 	 * @param sey specified Global.Set.
 	 */
-	static void addToBuf(Global.Set set) {
-		for (int i = 0; i < set.elems.length; i++)
-			globalsBuf[set.elems[i].index] = true;
+	static String addToBuf(Global.Set set) {
+		String errorMsg = null;
+		for (int i = 0; i < set.elems.length; i++) {
+			int index = set.elems[i].index;
+			String msg = addToBuf(allGlobals[index], set.elemMap[index]);
+			if (msg != null) {
+				if (errorMsg != null) errorMsg += " ";
+				errorMsg += msg;
+			}
+		}
+		return errorMsg;
 	}
 
 	/**

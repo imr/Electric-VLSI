@@ -431,10 +431,31 @@ class NetSchem extends NetCell {
 			}
 			if (netCell != null) {
 				NetSchem sch = Network.getNetCell((Cell)np).getSchem();
-				if (sch != null) Global.addToBuf(sch.globals);
+				if (sch != null) {
+					String errorMsg = Global.addToBuf(sch.globals);
+					if (errorMsg != null)
+						System.out.println("Network: Cell " + cell.describe() + " has globals with conflicting characteristic " + errorMsg);
+				}
 			} else {
 				Global g = globalInst(ni);
-				if (g != null) Global.addToBuf(g);
+				if (g != null) {
+					PortProto.Characteristic characteristic;
+					if (g == Global.ground)
+						characteristic = PortProto.Characteristic.GND;
+					else if (g == Global.power)
+						characteristic = PortProto.Characteristic.PWR;
+					else {
+						characteristic = PortProto.Characteristic.findCharacteristic(ni.getTechSpecific());
+						if (characteristic == null) {
+							System.out.println("Network: Cell " + cell.describe() + " has global " + g.getName() +
+								" with unknown characteristic bits");
+							characteristic = PortProto.Characteristic.UNKNOWN;
+						}
+					}
+					String errorMsg = Global.addToBuf(g, characteristic);
+					if (errorMsg != null)
+						System.out.println("Network: Cell " + cell.describe() + " has global with conflicting characteristic " + errorMsg);
+				}
 			}
 		}
 		Global.Set newGlobals = Global.getBuf();
