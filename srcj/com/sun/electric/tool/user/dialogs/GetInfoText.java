@@ -1115,4 +1115,370 @@ public class GetInfoText extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 12;
-        gridBagConstraints.insets = new java.awt.Inset                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(seeNode, gridBagConstraints);
+
+        apply.setText("Apply");
+        apply.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                applyActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 16;
+        getContentPane().add(apply, gridBagConstraints);
+
+        evaluation.setText(" ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        getContentPane().add(evaluation, gridBagConstraints);
+
+        jPanel1.setLayout(new java.awt.GridBagLayout());
+
+        jPanel1.setBorder(new javax.swing.border.TitledBorder("Text Corner"));
+        center.setText("Center");
+        grab.add(center);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.ipady = -4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(center, gridBagConstraints);
+
+        bottom.setText("Bottom");
+        grab.add(bottom);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.ipady = -4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(bottom, gridBagConstraints);
+
+        top.setText("Top");
+        grab.add(top);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.ipady = -4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(top, gridBagConstraints);
+
+        right.setText("Right");
+        grab.add(right);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.ipady = -4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(right, gridBagConstraints);
+
+        left.setText("Left");
+        grab.add(left);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.ipady = -4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(left, gridBagConstraints);
+
+        lowerRight.setText("Lower right");
+        grab.add(lowerRight);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.ipady = -4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(lowerRight, gridBagConstraints);
+
+        lowerLeft.setText("Lower left");
+        grab.add(lowerLeft);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.ipady = -4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(lowerLeft, gridBagConstraints);
+
+        upperRight.setText("Upper right");
+        grab.add(upperRight);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.ipady = -4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(upperRight, gridBagConstraints);
+
+        upperLeft.setText("Upper left");
+        grab.add(upperLeft);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 12;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.ipady = -4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(upperLeft, gridBagConstraints);
+
+        boxed.setText("Boxed:");
+        grab.add(boxed);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 13;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.ipady = -4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(boxed, gridBagConstraints);
+
+        textIconCenter.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconCenter.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        jPanel1.add(textIconCenter, gridBagConstraints);
+
+        textIconBottom.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconBottom.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        jPanel1.add(textIconBottom, gridBagConstraints);
+
+        textIconTop.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconTop.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        jPanel1.add(textIconTop, gridBagConstraints);
+
+        textIconRight.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconRight.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        jPanel1.add(textIconRight, gridBagConstraints);
+
+        textIconLeft.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconLeft.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        jPanel1.add(textIconLeft, gridBagConstraints);
+
+        textIconLowerRight.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconLowerRight.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        jPanel1.add(textIconLowerRight, gridBagConstraints);
+
+        textIconLowerLeft.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconLowerLeft.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 10;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        jPanel1.add(textIconLowerLeft, gridBagConstraints);
+
+        textIconUpperRight.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconUpperRight.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        jPanel1.add(textIconUpperRight, gridBagConstraints);
+
+        textIconUpperLeft.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconUpperLeft.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 12;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        jPanel1.add(textIconUpperLeft, gridBagConstraints);
+
+        textIconBoxed.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconBoxed.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 13;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        jPanel1.add(textIconBoxed, gridBagConstraints);
+
+        textBoxedWid.setColumns(4);
+        textBoxedWid.setText(" ");
+        textBoxedWid.setMinimumSize(new java.awt.Dimension(35, 20));
+        textBoxedWid.setPreferredSize(new java.awt.Dimension(48, 20));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 14;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
+        jPanel1.add(textBoxedWid, gridBagConstraints);
+
+        textBoxedHei.setColumns(4);
+        textBoxedHei.setText(" ");
+        textBoxedHei.setMinimumSize(new java.awt.Dimension(35, 20));
+        textBoxedHei.setPreferredSize(new java.awt.Dimension(48, 20));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 14;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
+        jPanel1.add(textBoxedHei, gridBagConstraints);
+
+        textX.setText("x");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 14;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
+        jPanel1.add(textX, gridBagConstraints);
+
+        jLabel2.setText("     ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 14;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
+        jPanel1.add(jLabel2, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridheight = 11;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+        getContentPane().add(jPanel1, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(theText, gridBagConstraints);
+
+        pack();
+    }//GEN-END:initComponents
+
+	private void seeNodeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_seeNodeActionPerformed
+	{//GEN-HEADEREND:event_seeNodeActionPerformed
+		ElectricObject eobj = shownText.getElectricObject();
+		if (eobj instanceof NodeInst || eobj instanceof PortInst)
+		{
+			Cell cell = shownText.getCell();
+			Variable var = shownText.getVar();
+			Name name = shownText.getName();
+
+			Highlight.clear();
+			Highlight.addElectricObject(eobj, cell);
+			Highlight newHigh = Highlight.addText(eobj, cell, var, name);
+			Highlight.finished();
+		}
+	}//GEN-LAST:event_seeNodeActionPerformed
+
+	private void applyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_applyActionPerformed
+	{//GEN-HEADEREND:event_applyActionPerformed
+		if (shownText == null) return;
+		ChangeText job = new ChangeText(shownText, this);
+	}//GEN-LAST:event_applyActionPerformed
+
+	private void okActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_okActionPerformed
+	{//GEN-HEADEREND:event_okActionPerformed
+		applyActionPerformed(evt);
+		closeDialog(null);
+	}//GEN-LAST:event_okActionPerformed
+
+	private void cancelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cancelActionPerformed
+	{//GEN-HEADEREND:event_cancelActionPerformed
+		closeDialog(null);
+	}//GEN-LAST:event_cancelActionPerformed
+	
+	/** Closes the dialog */
+	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
+	{
+		setVisible(false);
+//		dispose();
+	}//GEN-LAST:event_closeDialog
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton apply;
+    private javax.swing.JCheckBox bold;
+    private javax.swing.JRadioButton bottom;
+    private javax.swing.JRadioButton boxed;
+    private javax.swing.JButton cancel;
+    private javax.swing.JRadioButton center;
+    private javax.swing.JLabel evaluation;
+    private javax.swing.JComboBox font;
+    private javax.swing.ButtonGroup grab;
+    private javax.swing.JLabel header;
+    private javax.swing.JCheckBox invisibleOutsideCell;
+    private javax.swing.JCheckBox italic;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JComboBox language;
+    private javax.swing.JRadioButton left;
+    private javax.swing.JRadioButton lowerLeft;
+    private javax.swing.JRadioButton lowerRight;
+    private javax.swing.JButton ok;
+    private javax.swing.JRadioButton pointsButton;
+    private javax.swing.JTextField pointsSize;
+    private javax.swing.JRadioButton right;
+    private javax.swing.JComboBox rotation;
+    private javax.swing.JButton seeNode;
+    private javax.swing.JComboBox show;
+    private javax.swing.ButtonGroup sizes;
+    private javax.swing.JTextField textBoxedHei;
+    private javax.swing.JTextField textBoxedWid;
+    private javax.swing.JLabel textIconBottom;
+    private javax.swing.JLabel textIconBoxed;
+    private javax.swing.JLabel textIconCenter;
+    private javax.swing.JLabel textIconLeft;
+    private javax.swing.JLabel textIconLowerLeft;
+    private javax.swing.JLabel textIconLowerRight;
+    private javax.swing.JLabel textIconRight;
+    private javax.swing.JLabel textIconTop;
+    private javax.swing.JLabel textIconUpperLeft;
+    private javax.swing.JLabel textIconUpperRight;
+    private javax.swing.JLabel textX;
+    private javax.swing.JTextArea theText;
+    private javax.swing.JRadioButton top;
+    private javax.swing.JCheckBox underline;
+    private javax.swing.JComboBox units;
+    private javax.swing.JRadioButton unitsButton;
+    private javax.swing.JTextField unitsSize;
+    private javax.swing.JRadioButton upperLeft;
+    private javax.swing.JRadioButton upperRight;
+    private javax.swing.JTextField xOffset;
+    private javax.swing.JTextField yOffset;
+    // End of variables declaration//GEN-END:variables
+	
+}
