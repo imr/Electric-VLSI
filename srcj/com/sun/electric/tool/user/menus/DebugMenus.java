@@ -25,7 +25,6 @@
 package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.Main;
-import com.sun.electric.plugins.tsmc90.TSMC90;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.geometry.PolyQTree;
@@ -59,12 +58,15 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.misc.LayerCoverageJob;
 import com.sun.electric.tool.parasitic.ParasiticTool;
 import com.sun.electric.tool.erc.ERCWellCheck;
+import com.sun.electric.tool.generator.layout.StdCellParams;
+import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LENetlister1;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.interval.Diode;
 import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.ExecDialog;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WaveformWindow;
@@ -77,6 +79,8 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
+import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.*;
 
 /**
@@ -93,8 +97,9 @@ public class DebugMenus {
 
 		helpMenu.addMenuItem("Make fake circuitry MoCMOS", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand("mocmos"); } });
-	    helpMenu.addMenuItem("Make fake circuitry TSMC90", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand("tsmc90"); } });
+		if (Technology.getTSMC90Technology() != null)
+			helpMenu.addMenuItem("Make fake circuitry TSMC90", null,
+					new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand("tsmc90"); } });
 		helpMenu.addMenuItem("Make fake analog simulation window", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeWaveformCommand(); }});
 		helpMenu.addMenuItem("Make fake interval simulation window", null,
@@ -112,12 +117,9 @@ public class DebugMenus {
 				new com.sun.electric.tool.generator.layout.GateRegression(MoCMOS.tech);
 			}
 		});
-        russMenu.addMenuItem("Gate Generator Regression (TSMC90)", null,
-                             new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                new com.sun.electric.tool.generator.layout.GateRegression(TSMC90.tech);
-            }
-        });
+		if (Technology.getTSMC90Technology() != null)
+			russMenu.addMenuItem("Gate Generator Regression (TSMC90)", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateRegression(Technology.getTSMC90Technology()); } });
         russMenu.addMenuItem("create flat netlists for Ivan", null, new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 new com.sun.electric.tool.generator.layout.IvanFlat();
@@ -166,8 +168,9 @@ public class DebugMenus {
             new ActionListener() { public void actionPerformed(ActionEvent e) { timeMethodCalls(); }});
         jongMenu.addMenuItem("Delete layout cells in current library", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { deleteCells(View.LAYOUT); }});
-        jongMenu.addMenuItem("fill generator 90nm test", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { com.sun.electric.tool.generator.layout.fill90nm.FillGenerator90.test(); }});
+		if (Technology.getTSMC90Technology() != null)
+			jongMenu.addMenuItem("fill generator 90nm test", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { invokeTSMC90FillGenerator(); }});
 
         /****************************** Gilda's TEST MENU ******************************/
 
@@ -200,6 +203,56 @@ public class DebugMenus {
             new ActionListener() { public void actionPerformed(ActionEvent e) { Diode.plotDiode(User.getWorkingDirectory() + File.separator + "diode.raw"); } });
 	    dimaMenu.addMenuItem("Show tech vars", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { showTechnologyVariablesCommand(); } });
+    }
+
+	// ---------------------- For Regression Testing -----------------
+
+    /**
+     * Class to set a cell to be the current cell, done in a Job.
+     * By encapsulating this simple operation in a Job, it gets done
+     * in the proper order when scheduled by a regression test.
+     */
+    public static class SetCellJob extends Job
+    {
+    	private String cellName;
+
+        public SetCellJob(String cellName)
+        {
+            super("Set current cell", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.cellName = cellName;
+            startJob();
+        }
+
+        public boolean doIt()
+        {
+    		Library lib = Library.getCurrent();
+    		lib.setCurCell(lib.findNodeProto(cellName));
+            return true;
+        }
+    }
+
+    public static class SaveLibraryJob extends Job
+    {
+    	private String fileName;
+
+    	public SaveLibraryJob(String fileName)
+        {
+            super("Save Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.fileName = fileName;
+            startJob();
+        }
+
+        public boolean doIt()
+        {
+    		Library lib = Library.getCurrent();
+    		Cell cell = lib.getCurCell();
+    		cell.lowLevelSetRevisionDate(new Date(0));	// reset modification date for consistent output
+    		URL outURL = TextUtils.makeURLToFile(fileName);
+    		lib.setLibFile(outURL);
+    		lib.setName(TextUtils.getFileNameWithoutExtension(outURL));
+    		Output.writeLibrary(lib, OpenFile.Type.JELIB, false);
+            return true;
+        }
     }
 
 	// ---------------------- Help Menu additions -----------------
@@ -735,7 +788,22 @@ public class DebugMenus {
 			return true;
 		}
 	}
+
 	// ---------------------- THE JON GAINSLEY MENU -----------------
+
+	private static void invokeTSMC90FillGenerator()
+	{
+		try
+		{
+			Class tsmc90FillGeneratorClass = Class.forName("com.sun.electric.plugins.tsmc90.fill90nm.FillGenerator90");
+			Class [] parameterTypes = new Class[] {};
+			Method testMethod = tsmc90FillGeneratorClass.getDeclaredMethod("test", parameterTypes);
+			testMethod.invoke(null, new Object[] {});
+ 		} catch (Exception e)
+        {
+ 			System.out.println("ERROR invoking the Fill Generator test");
+        }
+	}
 
 	public static void listVarsOnObject(boolean useproto) {
         EditWindow wnd = EditWindow.getCurrent();

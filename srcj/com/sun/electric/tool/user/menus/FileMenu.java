@@ -375,7 +375,6 @@ public class FileMenu {
             }
         }
         return true;
-
     }
 
     public static class CreateCellWindow implements Runnable {

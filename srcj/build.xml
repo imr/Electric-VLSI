@@ -2,7 +2,7 @@
 <project basedir="." default="run" name="electric">
 
     <target name="init" description="Initialization">
-        <property name="beanshell" value="../lib/java/bsh-1.2b3.jar"/>
+        <property name="beanshell" value="../lib/java/bsh-2.0b2.jar"/>
         <property name="AppleJava" value="packaging/AppleJavaExtensions.jar"/>
 	    <property name="JUnit" value="packaging/junit.jar"/>
     </target>

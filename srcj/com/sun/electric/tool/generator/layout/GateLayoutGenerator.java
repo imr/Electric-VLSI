@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.generator.layout;
+import java.lang.reflect.Method;
 import java.util.HashSet;
 
 import com.sun.electric.database.hierarchy.Cell;
@@ -35,11 +36,9 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.generator.layout.gates.MoCMOSGenerator;
-import com.sun.electric.tool.generator.layout.gates90nm.TSMC90Generator;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.plugins.tsmc90.TSMC90;
 
 /*
  * Regression test for gate generators
@@ -67,7 +66,8 @@ public class GateLayoutGenerator extends Job {
 	
 	private Library generateLayout(Library outLib, Cell cell, Technology technology) {
         StdCellParams stdCell;
-        if (technology == TSMC90.tech) {
+        Technology tsmc90 = Technology.getTSMC90Technology();
+        if (tsmc90 != null && technology == tsmc90) {
             Tech.setTechnology(Tech.TSMC90);
             stdCell = sportParams(outLib);
         } else {
@@ -196,8 +196,24 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 		int pwr = pNm.indexOf("_pwr");
 		if (pwr!=-1) pNm = pNm.substring(0, pwr);
 
-		Cell c = Tech.isTSMC90() ? TSMC90Generator.makeGate(pNm, x, stdCell)
-                                 : MoCMOSGenerator.makeGate(pNm, x, stdCell);
+		Cell c = null;
+		if (Tech.isTSMC90())
+		{
+    		try
+			{
+				Class tsmc90GeneratorClass = Class.forName("com.sun.electric.plugins.tsmc90.gates90nm.TSMC90Generator");
+				Class [] parameterTypes = new Class[] {String.class, Double.class, StdCellParams.class};
+				Method makeGateMethod = tsmc90GeneratorClass.getDeclaredMethod("makeGate", parameterTypes);
+				c = (Cell)makeGateMethod.invoke(null, new Object[] {pNm, new Double(x), stdCell});
+	 		} catch (Exception e)
+	        {
+	 			System.out.println("ERROR invoking the TSMC90 gate generator");
+	        }
+//			c = TSMC90Generator.makeGate(pNm, x, stdCell);
+		} else
+		{
+			c = MoCMOSGenerator.makeGate(pNm, x, stdCell);
+		}
 		if (c!=null) {
 			System.out.println("Use: "+pNm+" X="+x+" for instance: "+
 			                   info.getUniqueNodableName(iconInst, "/"));

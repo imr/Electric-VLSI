@@ -347,16 +347,6 @@ public class MimicStitch
 
 		public boolean doIt()
 		{
-			if (forced) System.out.println("Mimicing last arc...");
-
-			PortInst [] endPi = new PortInst[2];
-			endPi[0] = conn1.getPortInst();   endPi[1] = conn2.getPortInst();
-			Point2D [] endPts = new Point2D[2];
-			endPts[0] = conn1.getLocation();   endPts[1] = conn2.getLocation();
-
-			Cell cell = endPi[0].getNodeInst().getParent();
-			Netlist netlist = cell.getUserNetlist();
-
 			// get options
 			boolean mimicInteractive = Routing.isMimicStitchInteractive();
 			boolean matchPorts = Routing.isMimicStitchMatchPorts();
@@ -365,363 +355,417 @@ public class MimicStitch
 			boolean matchNodeSize = Routing.isMimicStitchMatchNodeSize();
 			boolean noOtherArcsThisDir = Routing.isMimicStitchNoOtherArcsSameDir();
 
-			// make list of possible arc connections
-			List possibleArcs = new ArrayList();
+			mimicOneArc(conn1, conn2, oWidth, oProto, prefX, prefY, forced, highlighter, Job.Type.EXAMINE,
+				mimicInteractive, matchPorts, matchArcCount, matchNodeType, matchNodeSize, noOtherArcsThisDir);
+			return true;
+		}
+	}
 
-			// count the number of other arcs on the ends
-			int con1 = endPi[0].getNodeInst().getNumConnections() + endPi[1].getNodeInst().getNumConnections() - 2;
+	/**
+	 * Method to do mimic stitching.
+	 * It can be used during batch processing to mimic directly.
+	 * @param conn1 the connection at one end of the mimic.
+	 * @param conn2 the connection at the other end of the mimic.
+	 * @param oWidth the width of the arc to run.
+	 * @param oProto the type of arc to run.
+	 * @param prefX the preferred X position of the mimic (if there is a choice).
+	 * @param prefY the preferred Y position of the mimic (if there is a choice).
+	 * @param forced true if this was an explicitly requested mimic.
+	 * @param highlighter the highlighter to use for highlighting the results.
+	 * @param method the type of job that is running (CHANGE or EXAMINE).
+	 * @param mimicInteractive true to run interactively.
+	 * @param matchPorts true to require port types to match.
+	 * @param matchArcCount true to require the number of arcs to match.
+	 * @param matchNodeType true to require the node types to match.
+	 * @param matchNodeSize true to require the node sizes to match.
+	 * @param noOtherArcsThisDir true to require that no other arcs exist in the same direction.
+	 */
+	public static void mimicOneArc(Connection conn1, Connection conn2, double oWidth, ArcProto oProto, double prefX, double prefY,
+			boolean forced, Highlighter highlighter, Job.Type method,
+			boolean mimicInteractive, boolean matchPorts, boolean matchArcCount, boolean matchNodeType, boolean matchNodeSize, boolean noOtherArcsThisDir)
+	{
+		if (forced) System.out.println("Mimicing last arc...");
 
-			// precompute polygon information about every port in the cell
-			HashMap cachedPortPoly = new HashMap();
+		PortInst [] endPi = new PortInst[2];
+		endPi[0] = conn1.getPortInst();   endPi[1] = conn2.getPortInst();
+		Point2D [] endPts = new Point2D[2];
+		endPts[0] = conn1.getLocation();   endPts[1] = conn2.getLocation();
+
+		Cell cell = endPi[0].getNodeInst().getParent();
+		Netlist netlist = cell.getUserNetlist();
+
+		// make list of possible arc connections
+		List possibleArcs = new ArrayList();
+
+		// count the number of other arcs on the ends
+		int con1 = endPi[0].getNodeInst().getNumConnections() + endPi[1].getNodeInst().getNumConnections() - 2;
+
+		// precompute polygon information about every port in the cell
+		HashMap cachedPortPoly = new HashMap();
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+			{
+				PortInst pi = (PortInst)pIt.next();
+				if (!pi.getPortProto().connectsTo(oProto)) continue;
+				cachedPortPoly.put(pi, pi.getPoly());
+			}
+		}
+		if (cachedPortPoly.size() == 0) return;
+
+		// search from both ends
+		for(int end=0; end<2; end++)
+		{
+			PortInst pi0 = endPi[end];
+			PortInst pi1 = endPi[1-end];
+			NodeInst node0 = pi0.getNodeInst();
+			NodeInst node1 = pi1.getNodeInst();
+			PortProto port0 = pi0.getPortProto();
+			PortProto port1 = pi1.getPortProto();
+			Point2D pt0 = endPts[end];
+			Point2D pt1 = endPts[1-end];
+			double dist = pt0.distance(pt1);
+			double distX = pt1.getX() - pt0.getX();
+			double distY = pt1.getY() - pt0.getY();
+			int angle = 0;
+			if (dist != 0) angle = DBMath.figureAngle(pt0, pt1);
+			boolean useFAngle = false;
+			double angleRadians = 0;
+			if ((angle%900) != 0)
+			{
+				angleRadians = DBMath.figureAngleRadians(pt0, pt1);
+				useFAngle = true;
+			}
+			Poly port0Poly = pi0.getPoly();
+			double end0Offx = pt0.getX() - port0Poly.getCenterX();
+			double end0Offy = pt0.getY() - port0Poly.getCenterY();
+
+			SizeOffset so0 = node0.getSizeOffset();
+			double node0Wid = node0.getXSize() - so0.getLowXOffset() - so0.getHighXOffset();
+			double node0Hei = node0.getYSize() - so0.getLowYOffset() - so0.getHighYOffset();
+
+			SizeOffset so1 = node1.getSizeOffset();
+			double node1Wid = node1.getXSize() - so1.getLowXOffset() - so1.getHighXOffset();
+			double node1Hei = node1.getYSize() - so1.getLowYOffset() - so1.getHighYOffset();
+
+			// now search every node in the cell
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
-				for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+				Rectangle2D bounds = ni.getBounds();
+
+				// now look for another node that matches the situation
+				for(Iterator oIt = cell.getNodes(); oIt.hasNext(); )
 				{
-					PortInst pi = (PortInst)pIt.next();
-					if (!pi.getPortProto().connectsTo(oProto)) continue;
-					cachedPortPoly.put(pi, pi.getPoly());
-				}
-			}
-			if (cachedPortPoly.size() == 0) return true;
+					NodeInst oNi = (NodeInst)oIt.next();
+					Rectangle2D oBounds = oNi.getBounds();
 
-			// search from both ends
-			for(int end=0; end<2; end++)
-			{
-				PortInst pi0 = endPi[end];
-				PortInst pi1 = endPi[1-end];
-				NodeInst node0 = pi0.getNodeInst();
-				NodeInst node1 = pi1.getNodeInst();
-				PortProto port0 = pi0.getPortProto();
-				PortProto port1 = pi1.getPortProto();
-				Point2D pt0 = endPts[end];
-				Point2D pt1 = endPts[1-end];
-				double dist = pt0.distance(pt1);
-				double distX = pt1.getX() - pt0.getX();
-				double distY = pt1.getY() - pt0.getY();
-				int angle = 0;
-				if (dist != 0) angle = DBMath.figureAngle(pt0, pt1);
-				boolean useFAngle = false;
-				double angleRadians = 0;
-				if ((angle%900) != 0)
-				{
-					angleRadians = DBMath.figureAngleRadians(pt0, pt1);
-					useFAngle = true;
-				}
-				Poly port0Poly = pi0.getPoly();
-				double end0Offx = pt0.getX() - port0Poly.getCenterX();
-				double end0Offy = pt0.getY() - port0Poly.getCenterY();
-
-				SizeOffset so0 = node0.getSizeOffset();
-				double node0Wid = node0.getXSize() - so0.getLowXOffset() - so0.getHighXOffset();
-				double node0Hei = node0.getYSize() - so0.getLowYOffset() - so0.getHighYOffset();
-
-				SizeOffset so1 = node1.getSizeOffset();
-				double node1Wid = node1.getXSize() - so1.getLowXOffset() - so1.getHighXOffset();
-				double node1Hei = node1.getYSize() - so1.getLowYOffset() - so1.getHighYOffset();
-
-				// now search every node in the cell
-				for(Iterator it = cell.getNodes(); it.hasNext(); )
-				{
-					NodeInst ni = (NodeInst)it.next();
-					Rectangle2D bounds = ni.getBounds();
-
-					// now look for another node that matches the situation
-					for(Iterator oIt = cell.getNodes(); oIt.hasNext(); )
+					// ensure that intra-node wirings stay that way
+					if (node0 == node1)
 					{
-						NodeInst oNi = (NodeInst)oIt.next();
-						Rectangle2D oBounds = oNi.getBounds();
+						if (ni != oNi) continue;
+					} else
+					{
+						if (ni == oNi) continue;
+					}
 
-						// ensure that intra-node wirings stay that way
-						if (node0 == node1)
-						{
-							if (ni != oNi) continue;
-						} else
-						{
-							if (ni == oNi) continue;
-						}
+					// make sure the distances are sensible
+					if (distX > 0)
+					{
+						if (bounds.getMaxX() + distX < oBounds.getMinX()) continue;
+						if (bounds.getMinX() + distX > oBounds.getMaxX()) continue;
+					} else
+					{
+						if (bounds.getMinX() + distX > oBounds.getMaxX()) continue;
+						if (bounds.getMaxX() + distX < oBounds.getMinX()) continue;
+					}
+					if (distY > 0)
+					{
+						if (bounds.getMaxY() + distY < oBounds.getMinY()) continue;
+						if (bounds.getMinY() + distY > oBounds.getMaxY()) continue;
+					} else
+					{
+						if (bounds.getMinY() + distY > oBounds.getMaxY()) continue;
+						if (bounds.getMaxY() + distY < oBounds.getMinY()) continue;
+					}
 
-						// make sure the distances are sensible
-						if (distX > 0)
-						{
-							if (bounds.getMaxX() + distX < oBounds.getMinX()) continue;
-							if (bounds.getMinX() + distX > oBounds.getMaxX()) continue;
-						} else
-						{
-							if (bounds.getMinX() + distX > oBounds.getMaxX()) continue;
-							if (bounds.getMaxX() + distX < oBounds.getMinX()) continue;
-						}
-						if (distY > 0)
-						{
-							if (bounds.getMaxY() + distY < oBounds.getMinY()) continue;
-							if (bounds.getMinY() + distY > oBounds.getMaxY()) continue;
-						} else
-						{
-							if (bounds.getMinY() + distY > oBounds.getMaxY()) continue;
-							if (bounds.getMaxY() + distY < oBounds.getMinY()) continue;
-						}
-//						if (bounds.getMinX() - oBounds.getMaxX() > dist) continue;
-//						if (oBounds.getMinX() - bounds.getMaxX() > dist) continue;
-//						if (bounds.getMinY() - oBounds.getMaxY() > dist) continue;
-//						if (oBounds.getMinY() - bounds.getMaxY() > dist) continue;
+					// compare each port
+					for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+					{
+						PortInst pi = (PortInst)pIt.next();
+						PortProto pp = pi.getPortProto();
 
-						// compare each port
-						for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+						// if this port is not cached, it cannot connect, so ignore it
+						Poly poly = (Poly)cachedPortPoly.get(pi);
+						if (poly == null) continue;
+
+						double x0 = poly.getCenterX();
+						double y0 = poly.getCenterY();
+						x0 += end0Offx;   y0 += end0Offy;
+						double wantX1 = x0;
+						double wantY1 = y0;
+						if (dist != 0)
 						{
-							PortInst pi = (PortInst)pIt.next();
-							PortProto pp = pi.getPortProto();
+							if (useFAngle)
+							{
+								wantX1 = x0 + Math.cos(angleRadians) * dist;
+								wantY1 = y0 + Math.sin(angleRadians) * dist;
+							} else
+							{
+								wantX1 = x0 + DBMath.cos(angle) * dist;
+								wantY1 = y0 + DBMath.sin(angle) * dist;
+							}
+						}
+						Point2D xy0 = new Point2D.Double(x0, y0);
+						Point2D want1 = new Point2D.Double(wantX1, wantY1);
+
+						for(Iterator oPIt = oNi.getPortInsts(); oPIt.hasNext(); )
+						{
+							PortInst oPi = (PortInst)oPIt.next();
+							PortProto oPp = oPi.getPortProto();
 
 							// if this port is not cached, it cannot connect, so ignore it
-							Poly poly = (Poly)cachedPortPoly.get(pi);
-							if (poly == null) continue;
+							Poly thisPoly = (Poly)cachedPortPoly.get(oPi);
+							if (thisPoly == null) continue;
 
-							double x0 = poly.getCenterX();
-							double y0 = poly.getCenterY();
-							x0 += end0Offx;   y0 += end0Offy;
-							double wantX1 = x0;
-							double wantY1 = y0;
-							if (dist != 0)
+							// don't replicate what is already done
+							if (pi == pi0 && oPi == pi1) continue;
+
+							// see if they are the same distance apart
+							boolean ptInPoly = thisPoly.isInside(want1);
+							if (!ptInPoly) continue;
+
+							// figure out the wiring situation here
+							int situation = 0;
+
+							// see if there are already wires going in this direction
+							int desiredAngle = -1;
+							if (x0 != wantX1 || y0 != wantY1)
+								desiredAngle = DBMath.figureAngle(xy0, want1);
+							PortInst piNet0 = null;
+							for(Iterator pII = ni.getConnections(); pII.hasNext(); )
 							{
-								if (useFAngle)
+								Connection con = (Connection)pII.next();
+								PortInst aPi = con.getPortInst();
+								if (aPi.getPortProto() != pp) continue;
+								ArcInst oAi = con.getArc();
+								piNet0 = aPi;
+								if (desiredAngle < 0)
 								{
-									wantX1 = x0 + Math.cos(angleRadians) * dist;
-									wantY1 = y0 + Math.sin(angleRadians) * dist;
+									if (oAi.getHead().getLocation().getX() == oAi.getTail().getLocation().getX() &&
+										oAi.getHead().getLocation().getY() == oAi.getTail().getLocation().getY())
+									{
+										situation |= LIKELYARCSSAMEDIR;
+										break;
+									}
 								} else
 								{
-									wantX1 = x0 + DBMath.cos(angle) * dist;
-									wantY1 = y0 + DBMath.sin(angle) * dist;
+									if (oAi.getHead().getLocation().getX() == oAi.getTail().getLocation().getX() &&
+										oAi.getHead().getLocation().getY() == oAi.getTail().getLocation().getY())
+											continue;
+									int thisend = 0;
+									if (oAi.getTail().getPortInst() == aPi) thisend = 1;
+									int existingAngle = DBMath.figureAngle(oAi.getConnection(thisend).getLocation(),
+										oAi.getConnection(1-thisend).getLocation());
+									if (existingAngle == desiredAngle)
+									{
+										situation |= LIKELYARCSSAMEDIR;
+										break;
+									}
 								}
 							}
-							Point2D xy0 = new Point2D.Double(x0, y0);
-							Point2D want1 = new Point2D.Double(wantX1, wantY1);
 
-							for(Iterator oPIt = oNi.getPortInsts(); oPIt.hasNext(); )
+							desiredAngle = -1;
+							if (x0 != wantX1 || y0 != wantY1)
+								desiredAngle = DBMath.figureAngle(want1, xy0);
+							PortInst piNet1 = null;
+							for(Iterator pII = oNi.getConnections(); pII.hasNext(); )
 							{
-								PortInst oPi = (PortInst)oPIt.next();
-								PortProto oPp = oPi.getPortProto();
-
-								// if this port is not cached, it cannot connect, so ignore it
-								Poly thisPoly = (Poly)cachedPortPoly.get(oPi);
-								if (thisPoly == null) continue;
-
-								// don't replicate what is already done
-								if (pi == pi0 && oPi == pi1) continue;
-
-								// see if they are the same distance apart
-								boolean ptInPoly = thisPoly.isInside(want1);
-								if (!ptInPoly) continue;
-
-								// figure out the wiring situation here
-								int situation = 0;
-
-								// see if there are already wires going in this direction
-								int desiredAngle = -1;
-								if (x0 != wantX1 || y0 != wantY1)
-									desiredAngle = DBMath.figureAngle(xy0, want1);
-								PortInst piNet0 = null;
-								for(Iterator pII = ni.getConnections(); pII.hasNext(); )
+								Connection con = (Connection)pII.next();
+								PortInst aPi = con.getPortInst();
+								if (aPi.getPortProto() != oPp) continue;
+								ArcInst oAi = con.getArc();
+								piNet1 = aPi;
+								if (desiredAngle < 0)
 								{
-									Connection con = (Connection)pII.next();
-									PortInst aPi = con.getPortInst();
-									if (aPi.getPortProto() != pp) continue;
-									ArcInst oAi = con.getArc();
-									piNet0 = aPi;
-									if (desiredAngle < 0)
+									if (oAi.getHead().getLocation().getX() == oAi.getTail().getLocation().getX() &&
+										oAi.getHead().getLocation().getY() == oAi.getTail().getLocation().getY())
 									{
-										if (oAi.getHead().getLocation().getX() == oAi.getTail().getLocation().getX() &&
-											oAi.getHead().getLocation().getY() == oAi.getTail().getLocation().getY())
-										{
-											situation |= LIKELYARCSSAMEDIR;
-											break;
-										}
-									} else
-									{
-										if (oAi.getHead().getLocation().getX() == oAi.getTail().getLocation().getX() &&
-											oAi.getHead().getLocation().getY() == oAi.getTail().getLocation().getY())
-												continue;
-										int thisend = 0;
-										if (oAi.getTail().getPortInst() == aPi) thisend = 1;
-										int existingAngle = DBMath.figureAngle(oAi.getConnection(thisend).getLocation(),
+										situation |= LIKELYARCSSAMEDIR;
+										break;
+									}
+								} else
+								{
+									if (oAi.getHead().getLocation().getX() == oAi.getTail().getLocation().getX() &&
+										oAi.getHead().getLocation().getY() == oAi.getTail().getLocation().getY())
+											continue;
+									int thisend = 0;
+									if (oAi.getTail().getPortInst() == aPi) thisend = 1;
+									int existingAngle = DBMath.figureAngle(oAi.getConnection(thisend).getLocation(),
 											oAi.getConnection(1-thisend).getLocation());
-										if (existingAngle == desiredAngle)
-										{
-											situation |= LIKELYARCSSAMEDIR;
-											break;
-										}
+									if (existingAngle == desiredAngle)
+									{
+										situation |= LIKELYARCSSAMEDIR;
+										break;
 									}
 								}
-
-								desiredAngle = -1;
-								if (x0 != wantX1 || y0 != wantY1)
-									desiredAngle = DBMath.figureAngle(want1, xy0);
-								PortInst piNet1 = null;
-								for(Iterator pII = oNi.getConnections(); pII.hasNext(); )
-								{
-									Connection con = (Connection)pII.next();
-									PortInst aPi = con.getPortInst();
-									if (aPi.getPortProto() != oPp) continue;
-									ArcInst oAi = con.getArc();
-									piNet1 = aPi;
-									if (desiredAngle < 0)
-									{
-										if (oAi.getHead().getLocation().getX() == oAi.getTail().getLocation().getX() &&
-											oAi.getHead().getLocation().getY() == oAi.getTail().getLocation().getY())
-										{
-											situation |= LIKELYARCSSAMEDIR;
-											break;
-										}
-									} else
-									{
-										if (oAi.getHead().getLocation().getX() == oAi.getTail().getLocation().getX() &&
-											oAi.getHead().getLocation().getY() == oAi.getTail().getLocation().getY())
-												continue;
-										int thisend = 0;
-										if (oAi.getTail().getPortInst() == aPi) thisend = 1;
-										int existingAngle = DBMath.figureAngle(oAi.getConnection(thisend).getLocation(),
-												oAi.getConnection(1-thisend).getLocation());
-										if (existingAngle == desiredAngle)
-										{
-											situation |= LIKELYARCSSAMEDIR;
-											break;
-										}
-									}
-								}
-
-								// if there is a network that already connects these, ignore
-								if (piNet0 != null && piNet1 != null)
-								{
-									if (netlist.sameNetwork(piNet0.getNodeInst(), piNet0.getPortProto(),
-										piNet1.getNodeInst(), piNet1.getPortProto())) continue;
-								}
-
-								if (pp != port0 || oPp != port1)
-									situation |= LIKELYDIFFPORT;
-								int con2 = ni.getNumConnections() + oNi.getNumConnections();
-								if (con1 != con2) situation |= LIKELYDIFFARCCOUNT;
-								if (ni.getProto() != node0.getProto() || oNi.getProto() != node1.getProto())
-									situation |= LIKELYDIFFNODETYPE;
-
-								SizeOffset so = ni.getSizeOffset();
-								double wid = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-								double hei = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
-								if (wid != node0Wid || hei != node0Hei) situation |= LIKELYDIFFNODESIZE;
-								so = oNi.getSizeOffset();
-								wid = oNi.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-								hei = oNi.getYSize() - so.getLowYOffset() - so.getHighYOffset();
-								if (wid != node1Wid || hei != node1Hei) situation |= LIKELYDIFFNODESIZE;
-
-								// see if this combination has already been considered
-								PossibleArc found = null;
-								for(Iterator paIt = possibleArcs.iterator(); paIt.hasNext(); )
-								{
-									PossibleArc pa = (PossibleArc)paIt.next();
-									if (pa.ni1 == ni && pa.pp1 == pp && pa.ni2 == oNi && pa.pp2 == oPp)
-									{ found = pa;   break; }
-									if (pa.ni2 == ni && pa.pp2 == pp && pa.ni1 == oNi && pa.pp1 == oPp)
-									{ found = pa;   break; }
-								}
-								if (found != null)
-								{
-									if (found.situation == situation) continue;
-									int foundIndex = -1;
-									for(int k=0; k<situations.length; k++)
-									{
-										if (found.situation == situations[k]) break;
-										if (situation == situations[k]) { foundIndex = k;   break; }
-									}
-									if (foundIndex >= 0 && found.situation == situations[foundIndex])
-										continue;
-								}
-								if (found == null)
-								{
-									found = new PossibleArc();
-									possibleArcs.add(found);
-								}
-								found.ni1 = ni;      found.pp1 = pp;    found.pt1 = xy0;
-								found.ni2 = oNi;     found.pp2 = oPp;   found.pt2 = want1;
-								found.situation = situation;
 							}
+
+							// if there is a network that already connects these, ignore
+							if (piNet0 != null && piNet1 != null)
+							{
+								if (netlist.sameNetwork(piNet0.getNodeInst(), piNet0.getPortProto(),
+									piNet1.getNodeInst(), piNet1.getPortProto())) continue;
+							}
+
+							if (pp != port0 || oPp != port1)
+								situation |= LIKELYDIFFPORT;
+							int con2 = ni.getNumConnections() + oNi.getNumConnections();
+							if (con1 != con2) situation |= LIKELYDIFFARCCOUNT;
+							if (ni.getProto() != node0.getProto() || oNi.getProto() != node1.getProto())
+								situation |= LIKELYDIFFNODETYPE;
+
+							SizeOffset so = ni.getSizeOffset();
+							double wid = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+							double hei = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+							if (wid != node0Wid || hei != node0Hei) situation |= LIKELYDIFFNODESIZE;
+							so = oNi.getSizeOffset();
+							wid = oNi.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+							hei = oNi.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+							if (wid != node1Wid || hei != node1Hei) situation |= LIKELYDIFFNODESIZE;
+
+							// see if this combination has already been considered
+							PossibleArc found = null;
+							for(Iterator paIt = possibleArcs.iterator(); paIt.hasNext(); )
+							{
+								PossibleArc pa = (PossibleArc)paIt.next();
+								if (pa.ni1 == ni && pa.pp1 == pp && pa.ni2 == oNi && pa.pp2 == oPp)
+								{ found = pa;   break; }
+								if (pa.ni2 == ni && pa.pp2 == pp && pa.ni1 == oNi && pa.pp1 == oPp)
+								{ found = pa;   break; }
+							}
+							if (found != null)
+							{
+								if (found.situation == situation) continue;
+								int foundIndex = -1;
+								for(int k=0; k<situations.length; k++)
+								{
+									if (found.situation == situations[k]) break;
+									if (situation == situations[k]) { foundIndex = k;   break; }
+								}
+								if (foundIndex >= 0 && found.situation == situations[foundIndex])
+									continue;
+							}
+							if (found == null)
+							{
+								found = new PossibleArc();
+								possibleArcs.add(found);
+							}
+							found.ni1 = ni;      found.pp1 = pp;    found.pt1 = xy0;
+							found.ni2 = oNi;     found.pp2 = oPp;   found.pt2 = want1;
+							found.situation = situation;
 						}
 					}
 				}
 			}
+		}
 
-			// now create the mimiced arcs
-			if (mimicInteractive)
+		// now create the mimiced arcs
+		if (mimicInteractive)
+		{
+			// do this in a separate thread so that this examine job can finish
+			MimicInteractive task = new MimicInteractive(cell, possibleArcs, prefX, prefY, highlighter);
+			SwingUtilities.invokeLater(task);
+		} else
+		{
+			// not interactive: follow rules in the Preferences
+			int ifIgnorePorts = 0, ifIgnoreArcCount = 0, ifIgnoreNodeType = 0,
+				ifIgnoreNodeSize = 0, ifIgnoreOtherSameDir = 0;
+			int count = 0;
+			for(int j=0; j<situations.length; j++)
 			{
-				// do this in a separate thread so that this examine job can finish
-				MimicInteractive task = new MimicInteractive(cell, possibleArcs, prefX, prefY, highlighter);
-				SwingUtilities.invokeLater(task);
-			} else
-			{
-				// not interactive: follow rules in the Preferences
-				int ifIgnorePorts = 0, ifIgnoreArcCount = 0, ifIgnoreNodeType = 0,
-					ifIgnoreNodeSize = 0, ifIgnoreOtherSameDir = 0;
-				int count = 0;
-				for(int j=0; j<situations.length; j++)
+				// see if this situation is possible
+				List allRoutes = new ArrayList();
+				for(Iterator it = possibleArcs.iterator(); it.hasNext(); )
 				{
-					// see if this situation is possible
-					List allRoutes = new ArrayList();
-					for(Iterator it = possibleArcs.iterator(); it.hasNext(); )
+					PossibleArc pa = (PossibleArc)it.next();
+					if (pa.situation != situations[j]) continue;
+
+					Poly portPoly1 = pa.ni1.getShapeOfPort(pa.pp1);
+					Poly portPoly2 = pa.ni2.getShapeOfPort(pa.pp2);
+					Point2D bend = new Point2D.Double((portPoly1.getCenterX() + portPoly2.getCenterX()) / 2 + prefX,
+						(portPoly1.getCenterY() + portPoly2.getCenterY()) / 2 + prefY);
+					PortInst pi1 = pa.ni1.findPortInstFromProto(pa.pp1);
+					PortInst pi2 = pa.ni2.findPortInstFromProto(pa.pp2);
+					Route route = router.planRoute(pa.ni1.getParent(), pi1, pi2, bend);
+					if (route.size() == 0)
 					{
-						PossibleArc pa = (PossibleArc)it.next();
-						if (pa.situation != situations[j]) continue;
-
-						Poly portPoly1 = pa.ni1.getShapeOfPort(pa.pp1);
-						Poly portPoly2 = pa.ni2.getShapeOfPort(pa.pp2);
-						Point2D bend = new Point2D.Double((portPoly1.getCenterX() + portPoly2.getCenterX()) / 2 + prefX,
-							(portPoly1.getCenterY() + portPoly2.getCenterY()) / 2 + prefY);
-						PortInst pi1 = pa.ni1.findPortInstFromProto(pa.pp1);
-						PortInst pi2 = pa.ni2.findPortInstFromProto(pa.pp2);
-						Route route = router.planRoute(pa.ni1.getParent(), pi1, pi2, bend);
-						if (route.size() == 0)
-						{
-							System.out.println("Problem creating arc");
-							continue;
-						}
-						allRoutes.add(route);
+						System.out.println("Problem creating arc");
+						continue;
 					}
-					int total = allRoutes.size();
-					if (total == 0) continue;
-
-					// make sure this situation is the desired one
-					if (matchPorts && (situations[j]&LIKELYDIFFPORT) != 0) { ifIgnorePorts += total;   continue; }
-					if (matchArcCount && (situations[j]&LIKELYDIFFARCCOUNT) != 0) { ifIgnoreArcCount += total;   continue; }
-					if (matchNodeType && (situations[j]&LIKELYDIFFNODETYPE) != 0) { ifIgnoreNodeType += total;   continue; }
-					if (matchNodeSize && (situations[j]&LIKELYDIFFNODESIZE) != 0) { ifIgnoreNodeSize += total;   continue; }
-					if (noOtherArcsThisDir && (situations[j]&LIKELYARCSSAMEDIR) != 0) { ifIgnoreOtherSameDir += total;   continue; }
-
-					// create the routes
-					MimicWireJob job = new MimicWireJob(allRoutes, highlighter, false);
-					count += total;
+					allRoutes.add(route);
 				}
+				int total = allRoutes.size();
+				if (total == 0) continue;
 
-				if (count != 0)
+				// make sure this situation is the desired one
+				if (matchPorts && (situations[j]&LIKELYDIFFPORT) != 0) { ifIgnorePorts += total;   continue; }
+				if (matchArcCount && (situations[j]&LIKELYDIFFARCCOUNT) != 0) { ifIgnoreArcCount += total;   continue; }
+				if (matchNodeType && (situations[j]&LIKELYDIFFNODETYPE) != 0) { ifIgnoreNodeType += total;   continue; }
+				if (matchNodeSize && (situations[j]&LIKELYDIFFNODESIZE) != 0) { ifIgnoreNodeSize += total;   continue; }
+				if (noOtherArcsThisDir && (situations[j]&LIKELYARCSSAMEDIR) != 0) { ifIgnoreOtherSameDir += total;   continue; }
+
+				// create the routes
+				if (method == Job.Type.EXAMINE)
 				{
-					System.out.println("MIMIC ROUTING: Created " + count + " arcs");
+					// since this is an examine job, queue a change job to make the wires
+					MimicWireJob job = new MimicWireJob(allRoutes, highlighter, false);
 				} else
 				{
-					if (forced)
-					{
-						String msg = "No wires added";
-						if (ifIgnorePorts != 0)
-							msg += ", might have added " + ifIgnorePorts + " wires if 'ports must match' were off";
-						if (ifIgnoreArcCount != 0)
-							msg += ", might have added " + ifIgnoreArcCount + " wires if 'number of existing arcs must match' were off";
-						if (ifIgnoreNodeType != 0)
-							msg += ", might have added " + ifIgnoreNodeType + " wires if 'node types must match' were off";
-						if (ifIgnoreNodeSize != 0)
-							msg += ", might have added " + ifIgnoreNodeSize + " wires if 'nodes sizes must match' were off";
-						if (ifIgnoreOtherSameDir != 0)
-							msg += ", might have added " + ifIgnoreOtherSameDir + " wires if 'cannot have other arcs in the same direction' were off";
-						System.out.println(msg);
-						if (ifIgnorePorts + ifIgnoreArcCount + ifIgnoreNodeType + ifIgnoreNodeSize + ifIgnoreOtherSameDir != 0)
-							System.out.println(" (settings are in the Tools / Routing tab of the Preferences)");
-					}
+					// since this is a change job, do the wires now
+					runTheWires(allRoutes, highlighter, false);
+				}
+				count += total;
+			}
+
+			if (count != 0)
+			{
+				System.out.println("MIMIC ROUTING: Created " + count + " arcs");
+			} else
+			{
+				if (forced)
+				{
+					String msg = "No wires added";
+					if (ifIgnorePorts != 0)
+						msg += ", might have added " + ifIgnorePorts + " wires if 'ports must match' were off";
+					if (ifIgnoreArcCount != 0)
+						msg += ", might have added " + ifIgnoreArcCount + " wires if 'number of existing arcs must match' were off";
+					if (ifIgnoreNodeType != 0)
+						msg += ", might have added " + ifIgnoreNodeType + " wires if 'node types must match' were off";
+					if (ifIgnoreNodeSize != 0)
+						msg += ", might have added " + ifIgnoreNodeSize + " wires if 'nodes sizes must match' were off";
+					if (ifIgnoreOtherSameDir != 0)
+						msg += ", might have added " + ifIgnoreOtherSameDir + " wires if 'cannot have other arcs in the same direction' were off";
+					System.out.println(msg);
+					if (ifIgnorePorts + ifIgnoreArcCount + ifIgnoreNodeType + ifIgnoreNodeSize + ifIgnoreOtherSameDir != 0)
+						System.out.println(" (settings are in the Tools / Routing tab of the Preferences)");
 				}
 			}
-			return true;
 		}
+	}
+
+	private static void runTheWires(List allRoutes, Highlighter highlighter, boolean redisplay)
+	{
+		// create the routes
+		for (Iterator it = allRoutes.iterator(); it.hasNext(); )
+		{
+			Route route = (Route)it.next();
+			RouteElement re = (RouteElement)route.get(0);
+			Cell c = re.getCell();
+			Router.createRouteNoJob(route, c, false, false, highlighter);
+		}
+		if (redisplay) EditWindow.repaintAllContents();
 	}
 
 	/**
@@ -744,15 +788,7 @@ public class MimicStitch
 
 		public boolean doIt()
 		{
-			// create the routes
-			for (Iterator it = allRoutes.iterator(); it.hasNext(); )
-			{
-				Route route = (Route)it.next();
-				RouteElement re = (RouteElement)route.get(0);
-				Cell c = re.getCell();
-				Router.createRouteNoJob(route, c, false, false, highlighter);
-			}
-			if (redisplay) EditWindow.repaintAllContents();
+			runTheWires(allRoutes, highlighter, redisplay);
 			return true;
 		}
 	}

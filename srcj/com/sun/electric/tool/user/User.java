@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
@@ -197,6 +198,8 @@ public class User extends Listener
 	 */
 	public void endBatch()
 	{
+		if (Main.BATCHMODE) return;
+
 		// redraw all windows with Cells that changed
 		for(Iterator it = Undo.ChangeCell.getIterator(); it.hasNext(); )
 		{

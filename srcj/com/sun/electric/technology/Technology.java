@@ -620,6 +620,28 @@ public class Technology
 		Generic.tech.makeUnivList();
 	}
 
+    private static Technology tsmc90 = null;
+    private static boolean tsmcCached = false;
+	/**
+	 * Method to return the TSMC 90 nanometer technology.
+	 * Since the technology is a "plugin" and not distributed universally, it may not exist.
+	 * @return the TSMC90 technology object (null if it does not exist).
+	 */
+    public static Technology getTSMC90Technology()
+    {
+    	if (tsmcCached) return tsmc90;
+    	tsmcCached = true;
+		try
+		{
+			Class tsmc90Class = Class.forName("com.sun.electric.plugins.tsmc90.TSMC90");
+			java.lang.reflect.Field techField = tsmc90Class.getDeclaredField("tech");
+			tsmc90 = (Technology) techField.get(null);
+ 		} catch (Exception e)
+        {
+        }
+ 		return tsmc90;
+    }
+
 	/**
 	 * Method to initialize a technology.
 	 * Calls the technology's specific "init()" method (if any).

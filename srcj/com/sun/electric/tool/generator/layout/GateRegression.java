@@ -27,14 +27,15 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.plugins.tsmc90.TSMC90;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.generator.layout.gates.MoCMOSGenerator;
-import com.sun.electric.tool.generator.layout.gates90nm.TSMC90Generator;
 import com.sun.electric.tool.io.output.CIF;
+import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
+
+import java.lang.reflect.Method;
 
 /*
  * Regression test for gate generators
@@ -42,7 +43,7 @@ import com.sun.electric.tool.user.User;
 public class GateRegression extends Job {
     private Technology technology;
 
-	// specify which gates shouldn't be surrounded by DRC rings
+    // specify which gates shouldn't be surrounded by DRC rings
 	private static final DrcRings.Filter FILTER = new DrcRings.Filter() {
 		public boolean skip(NodeInst ni) {
 			// well tie cells don't pass DRC with DrcRings
@@ -69,9 +70,22 @@ public class GateRegression extends Job {
             Tech.setTechnology(Tech.MOCMOS);
             MoCMOSGenerator.generateAllGates(x, stdCell);
         }
-        if (technology == TSMC90.tech) {
+        Technology tsmc90 = Technology.getTSMC90Technology();
+        if (tsmc90 != null && technology == tsmc90) {
             Tech.setTechnology(Tech.TSMC90);
-            TSMC90Generator.generateAllGates(x, stdCell);
+
+            // invoke the TSMC90 generator by reflection because it may not exist
+    		try
+			{
+				Class tsmc90GeneratorClass = Class.forName("com.sun.electric.plugins.tsmc90.gates90nm.TSMC90Generator");
+				Class [] parameterTypes = new Class[] {Double.class, StdCellParams.class};
+				Method generateMethod = tsmc90GeneratorClass.getDeclaredMethod("generateAllGates", parameterTypes);
+				generateMethod.invoke(null, new Object[] {new Double(x), stdCell});
+	 		} catch (Exception e)
+	        {
+	 			System.out.println("ERROR invoking the TSMC90 gate generator");
+	        }
+//            TSMC90Generator.generateAllGates(x, stdCell);
         }
     }
 
@@ -89,7 +103,8 @@ public class GateRegression extends Job {
 		  LayoutLib.openLibForWrite("scratch", "scratch");
 
         StdCellParams stdCell;
-        if (technology == TSMC90.tech) {
+        Technology tsmc90 = Technology.getTSMC90Technology();
+        if (tsmc90 != null && technology == tsmc90) {
             stdCell = new StdCellParams(scratchLib, Tech.TSMC90);
             stdCell.enableNCC("purpleFour");
             stdCell.setSizeQuantizationError(0.05);
