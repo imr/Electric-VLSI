@@ -364,17 +364,19 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 				List list = null;
 				if (nTransistorList.contains(obj)) list = nTransistorList;
 				else if (pTransistorList.contains(obj)) list = pTransistorList;
-				if (list == null) return; // do nothing. Not sure if case would occurr
-				JPopupMenu menu = new JPopupMenu(((PrimitiveNode)obj).getName());
-
-				for (Iterator it = list.iterator(); it.hasNext();)
+				if (list != null)
 				{
-				   PrimitiveNode np = (PrimitiveNode)it.next();
-				   menu.add(menuItem = new JMenuItem(np.getName()));
-				   menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, np));
+					JPopupMenu menu = new JPopupMenu(((PrimitiveNode)obj).getName());
+
+					for (Iterator it = list.iterator(); it.hasNext();)
+					{
+					   PrimitiveNode np = (PrimitiveNode)it.next();
+					   menu.add(menuItem = new JMenuItem(np.getName()));
+					   menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, np));
+					}
+					menu.show(panel, e.getX(), e.getY());
+					return;
 				}
-				menu.show(panel, e.getX(), e.getY());
-				return;
 			}
             PaletteFrame.placeInstance(obj, panel, false);
         } else if (obj instanceof PrimitiveArc)

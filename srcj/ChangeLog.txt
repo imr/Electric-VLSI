@@ -1,7 +1,7 @@
 			Java Electric change log
 
 ************************* Version 8.01l: *********************************
-IMP: (8/30/04, GVG) Four new transistors in TSMC90. Changes in TechPalette to select them.
+IMP: (8/30/04, GVG) New transistors in TSMC90. Changes in TechPalette to select them.
 
 IMP: (8/30/04, RK) Transistor size checking. 
 
