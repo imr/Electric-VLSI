@@ -61,9 +61,9 @@ public class Routing extends Tool
 	}
 
 	private Activity current, past = null;
+	private boolean checkAutoStitch = false;
 
 	/** the Routing tool. */		public static Routing tool = new Routing();
-	/** preferences for Routing. */	private Preferences prefs = Preferences.userNodeForPackage(getClass());
 
 	/**
 	 * The constructor sets up the Routing tool.
@@ -80,27 +80,45 @@ public class Routing extends Tool
 	{
 		setOn();
 	}
-    
-//	public void slice() {}
 
 	public void startBatch(Tool tool, boolean undoRedo)
 	{
 		current = new Activity();
+		checkAutoStitch = false;
 	}
 
 	public void endBatch()
 	{
+		if (current == null) return;
 		if (current.numCreatedArcs > 0 || current.numCreatedNodes > 0 ||
 			current.numDeletedArcs > 0 || current.numDeletedNodes > 0)
 		{
 			past = current;
+			if (isMimicStitchOn())
+			{
+				MimicStitch.mimicStitch(false);
+				return;
+			}
 		}
+		if (checkAutoStitch && isAutoStitchOn())
+		{
+			AutoStitch.autoStitch(false, false);
+		}
+	}
+	public void modifyNodeInst(NodeInst ni, double oCX, double oCY, double oSX, double oSY, int oRot)
+	{
+		checkAutoStitch = true;
+	}
+	public void modifyNodeInsts(NodeInst [] nis, double [] oCX, double [] oCY, double [] oSX, double [] oSY, int [] oRot)
+	{
+		checkAutoStitch = true;
 	}
 
 	public void newObject(ElectricObject obj)
 	{
 		if (obj instanceof NodeInst)
 		{
+			checkAutoStitch = true;
 			if (current.numCreatedNodes < 3)
 				current.createdNodes[current.numCreatedNodes++] = (NodeInst)obj;
 		} else if (obj instanceof ArcInst)

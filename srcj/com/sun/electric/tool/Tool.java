@@ -36,7 +36,9 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.logicaleffort.LETool;
+import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.simulation.Simulation;
 
 import java.util.List;
@@ -61,7 +63,7 @@ public class Tool extends ElectricObject implements Changes
 	private static List tools = new ArrayList();
 	private static int toolNumber = 0;
 
-    /** Preferences for this Tool */                        private Preferences prefs;
+    /** Preferences for this Tool */                        protected Preferences prefs;
     
 	/** set if tool is on */								private static final int TOOLON =             01;
 	/** set if tool is running in background */				private static final int TOOLBG =             02;
@@ -100,6 +102,8 @@ public class Tool extends ElectricObject implements Changes
         // otherwise Interpreter will be null
         LETool.tool.init();
         Simulation.tool.init();
+        Routing.tool.init();
+        DRC.tool.init();
 	}
 
 	/**

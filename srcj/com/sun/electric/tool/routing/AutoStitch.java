@@ -69,7 +69,7 @@ public class AutoStitch
 	 * @param highlighted true to stitch only the highlighted objects.
 	 * False to stitch the entire current cell.
 	 */
-	public static void autoStitch(boolean highlighted)
+	public static void autoStitch(boolean highlighted, boolean forced)
 	{
 		List nodesToStitch = new ArrayList();
 		if (highlighted)
@@ -90,7 +90,7 @@ public class AutoStitch
 		}
 		if (nodesToStitch.size() > 0)
 		{
-			AutoStitchJob job = new AutoStitchJob(nodesToStitch);
+			AutoStitchJob job = new AutoStitchJob(nodesToStitch, forced);
 		}
 	}
 
@@ -101,11 +101,13 @@ public class AutoStitch
 	{
 		List nodesToStitch;
 		FlagSet nodeMark;
+		boolean forced;
 
-		protected AutoStitchJob(List nodesToStitch)
+		protected AutoStitchJob(List nodesToStitch, boolean forced)
 		{
 			super("Auto-Stitch", Routing.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.nodesToStitch = nodesToStitch;
+			this.forced = forced;
 			this.startJob();
 		}
 
@@ -212,8 +214,13 @@ public class AutoStitch
 
 			// report results
 			if (count != 0)
-				System.out.println("AUTO ROUTING: added " + count + " wires"); else
+			{
+				System.out.println("AUTO ROUTING: added " + count + " wires");
+			} else
+			{
+				if (forced)
 					System.out.println("No arcs added");
+			}
 
 			// clean up
 			for(Iterator it = Technology.getTechnologies(); it.hasNext(); )

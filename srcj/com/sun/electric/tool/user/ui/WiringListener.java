@@ -110,7 +110,7 @@ public class WiringListener
 		// object wiring: start by seeing if cursor is over a highlighted object
 		if (!another && Highlight.overHighlighted(wnd, startx, starty))
 		{
-			// over a highlighted object: move it
+			// over a highlighted object: draw from it
 			Highlight high = (Highlight)Highlight.getHighlights().next();
 			if (high == null) return;
 			if (high.getType() != Highlight.Type.EOBJ) return;
@@ -153,7 +153,11 @@ public class WiringListener
 		if (doingWiringDrag)
 		{
 			wpStartList = WiringPlan.getClosestEnd(startGeom, startPort, startPoint, startPoint);
-			if (wpStartList == null) doingWiringDrag = false;
+			if (wpStartList == null)
+			{
+				System.out.println("ERROR: Cannot run arcs from " + startGeom.describe()); 
+				doingWiringDrag = false;
+			}
 		}
 		wnd.repaint();
 	}
@@ -306,6 +310,10 @@ public class WiringListener
 		List added = new ArrayList();
 		WiringPlan wpEnd = null;
 		int arcsCreated = 0, nodesCreated = 0;
+		ArcProto defArc = User.tool.getCurrentArcProto();
+		ArcProto otherArc = null;
+		ArcInst lastPlacedArc = null;
+		boolean madeDefArcs = false;
 		for(int i=0; i<wpList.length; i++)
 		{
 			WiringPlan wp = wpList[i];
@@ -346,12 +354,22 @@ public class WiringListener
 				if (newAi == null) return null;
 				arcsCreated++;
 				added.add(newAi);
+				lastPlacedArc = newAi;
+				if (newAi.getProto() == defArc) madeDefArcs = true; else
+				{
+					otherArc = newAi.getProto();
+				}
 			}
 			if (wp.getType() == WiringListener.Type.ARCDEL)
 			{
 				ArcInst ai = wp.getArc();
 				ai.kill();
 			}
+		}
+		if (otherArc != null && !madeDefArcs)
+		{
+			// switch default arc to something that was just made
+			User.tool.setCurrentArcProto(otherArc);
 		}
 
 		/* show the end node */
@@ -362,6 +380,10 @@ public class WiringListener
 			{
 				NodeInst ni = (NodeInst)wpEnd.getNodeObject();
 				Highlight.addElectricObject(ni, ni.getParent());
+			} else
+			{
+				if (lastPlacedArc != null)
+					Highlight.addElectricObject(lastPlacedArc, lastPlacedArc.getParent());
 			}
 			if (arcsCreated != 0 || nodesCreated != 0)
 			{
@@ -550,6 +572,7 @@ public class WiringListener
 				if (port == null)
 				{
 					PortInst pi = ni.findClosestPortInst(point);
+					if (pi == null) return null;
 					port = pi.getPortProto();
 				}
 				PortInst pi = ni.findPortInstFromProto(port);

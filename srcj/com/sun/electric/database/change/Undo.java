@@ -858,8 +858,15 @@ public class Undo
 		{
 			doneList.remove(0);
 		}
+
 		// start the batch of changes
 		Constraints.getCurrent().startBatch(tool, false);
+
+		for(Iterator it = Tool.getTools(); it.hasNext(); )
+		{
+			Tool t = (Tool)it.next();
+			if (t.isOn()) t.startBatch(tool, false);
+		}
 	}
 
 	/**

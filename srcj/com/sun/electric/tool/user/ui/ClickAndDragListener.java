@@ -144,7 +144,7 @@ class ClickAndDragListener
 			EditWindow.gridAlign(delta);
 			if (delta.getX() == 0 && delta.getY() == 0) return;
 			Highlight.setHighlightOffset(0, 0);
-			CircuitChanges.manyMove(delta.getX(), delta.getY());
+			CircuitChanges.manyMove(delta.getX(), delta.getY(), wnd);
 			wnd.redraw();
 		}
 	}
@@ -229,7 +229,7 @@ class ClickAndDragListener
 		dX *= arrowDistance;
 		dY *= arrowDistance;
 		Highlight.setHighlightOffset(0, 0);
-		CircuitChanges.manyMove(dX, dY);
+		CircuitChanges.manyMove(dX, dY, wnd);
 		wnd.redraw();
 	}
 

@@ -46,19 +46,11 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.io.Input;
-import com.sun.electric.tool.io.Output;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.ErrorLog;
-import com.sun.electric.tool.user.ui.Menu;
-import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.dialogs.About;
 import com.sun.electric.tool.user.dialogs.Array;
 import com.sun.electric.tool.user.dialogs.Attributes;
@@ -78,8 +70,14 @@ import com.sun.electric.tool.user.dialogs.IOOptions;
 import com.sun.electric.tool.user.dialogs.LayerVisibility;
 import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.dialogs.NewExport;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.ToolOptions;
 import com.sun.electric.tool.user.dialogs.ViewControl;
+import com.sun.electric.tool.user.ui.Menu;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.ToolBar;
+import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.drc.DRC;
@@ -88,6 +86,7 @@ import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.routing.MimicStitch;
 import com.sun.electric.tool.simulation.Spice;
 import com.sun.electric.tool.simulation.IRSIMTool;
+import com.sun.electric.tool.io.Input;
 import com.sun.electric.tool.io.Output;
 //import com.sun.electric.tool.ncc.factory.NetFactory;
 
@@ -448,9 +447,9 @@ public final class MenuCommands
         routingSubMenu.addMenuItem("Mimic-Stitch Now", KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), 
             new ActionListener() { public void actionPerformed(ActionEvent e) { MimicStitch.mimicStitch(true); }});
        routingSubMenu.addMenuItem("Auto-Stitch Now", null, 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { AutoStitch.autoStitch(false); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { AutoStitch.autoStitch(false, true); }});
         routingSubMenu.addMenuItem("Auto-Stitch Highlighted Now", KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { AutoStitch.autoStitch(true); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { AutoStitch.autoStitch(true, true); }});
 		toolMenu.add(routingSubMenu);
 
 		Menu generationSubMenu = Menu.createMenu("Generation", 'G');

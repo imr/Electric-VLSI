@@ -36,11 +36,11 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.simulation.Spice;
-import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.drc.DRC;
+import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.routing.Routing;
+import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.util.Iterator;
@@ -804,7 +804,7 @@ public class ToolOptions extends javax.swing.JDialog
 	private void initSpice()
 	{
 		// the top section: general controls
-		spiceEngineInitial = Spice.getEngine();
+		spiceEngineInitial = Simulation.getSpiceEngine();
 		spiceEnginePopup.addItem("Spice 2");
 		spiceEnginePopup.addItem("Spice 3");
 		spiceEnginePopup.addItem("HSpice");
@@ -813,13 +813,13 @@ public class ToolOptions extends javax.swing.JDialog
 		spiceEnginePopup.addItem("SmartSpice");
 		spiceEnginePopup.setSelectedItem(spiceEngineInitial);
 
-		spiceLevelInitial = Spice.getLevel();
+		spiceLevelInitial = Simulation.getSpiceLevel();
 		spiceLevelPopup.addItem("1");
 		spiceLevelPopup.addItem("2");
 		spiceLevelPopup.addItem("3");
 		spiceLevelPopup.setSelectedItem(spiceLevelInitial);
 
-		spiceOutputFormatInitial = Spice.getOutputFormat();
+		spiceOutputFormatInitial = Simulation.getSpiceOutputFormat();
 		spiceOutputFormatPopup.addItem("Standard");
 		spiceOutputFormatPopup.addItem("Raw");
 		spiceOutputFormatPopup.addItem("Raw/Smart");
@@ -832,24 +832,24 @@ public class ToolOptions extends javax.swing.JDialog
 		spiceRunPopup.addItem("Run SPICE Quietly, Read Output");
 		spiceRunPopup.setEnabled(false);
 
-		spiceUseParasiticsInitial = Spice.isUseParasitics();
+		spiceUseParasiticsInitial = Simulation.isSpiceUseParasitics();
 		spiceUseParasitics.setSelected(spiceUseParasiticsInitial);
 
-		spiceUseNodeNamesInitial = Spice.isUseNodeNames();
+		spiceUseNodeNamesInitial = Simulation.isSpiceUseNodeNames();
 		spiceUseNodeNames.setSelected(spiceUseNodeNamesInitial);
 
-		spiceForceGlobalPwrGndInitial = Spice.isForceGlobalPwrGnd();
+		spiceForceGlobalPwrGndInitial = Simulation.isSpiceForceGlobalPwrGnd();
 		spiceForceGlobalPwrGnd.setSelected(spiceForceGlobalPwrGndInitial);
 
-		spiceUseCellParametersInitial = Spice.isUseCellParameters();
+		spiceUseCellParametersInitial = Simulation.isSpiceUseCellParameters();
 		spiceUseCellParameters.setSelected(spiceUseCellParametersInitial);
 
-		spiceWriteTransSizesInLambdaInitial = Spice.isWriteTransSizeInLambda();
+		spiceWriteTransSizesInLambdaInitial = Simulation.isSpiceWriteTransSizeInLambda();
 		spiceWriteTransSizesInLambda.setSelected(spiceWriteTransSizesInLambdaInitial);
 
 		spiceRunParameters.setEnabled(false);
 
-		spicePartsLibraryInitial = Spice.getSpicePartsLibrary();
+		spicePartsLibraryInitial = Simulation.getSpicePartsLibrary();
 		String [] libFiles = LibFile.getSpicePartsLibraries();
 		for(int i=0; i<libFiles.length; i++)
 			spicePrimitivesetPopup.addItem(libFiles[i]);
@@ -890,7 +890,7 @@ public class ToolOptions extends javax.swing.JDialog
 		spiceMinCapacitance.setText(Double.toString(spiceTechMinCapacitanceInitial));
 
 		// the next section: header and trailer cards
-		spiceHeaderCardInitial = Spice.getHeaderCardInfo();
+		spiceHeaderCardInitial = Simulation.getSpiceHeaderCardInfo();
 		if (spiceHeaderCardInitial.length() == 0) spiceNoHeaderCards.setSelected(true); else
 		{
 			if (spiceHeaderCardInitial.startsWith(":::::"))
@@ -903,7 +903,7 @@ public class ToolOptions extends javax.swing.JDialog
 				spiceHeaderCardFile.setText(spiceHeaderCardInitial);
 			}
 		}
-		spiceTrailerCardInitial = Spice.getTrailerCardInfo();
+		spiceTrailerCardInitial = Simulation.getSpiceTrailerCardInfo();
 		if (spiceTrailerCardInitial.length() == 0) spiceNoTrailerCards.setSelected(true); else
 		{
 			if (spiceTrailerCardInitial.startsWith(":::::"))
@@ -997,33 +997,31 @@ public class ToolOptions extends javax.swing.JDialog
 	{
 		// the top section: general controls
 		String stringNow = (String)spiceEnginePopup.getSelectedItem();
-		if (!spiceEngineInitial.equals(stringNow)) Spice.setEngine(stringNow);
+		if (!spiceEngineInitial.equals(stringNow)) Simulation.setSpiceEngine(stringNow);
 
 		stringNow = (String)spiceLevelPopup.getSelectedItem();
-		if (!spiceLevelInitial.equals(stringNow)) Spice.setLevel(stringNow);
+		if (!spiceLevelInitial.equals(stringNow)) Simulation.setSpiceLevel(stringNow);
 
 		stringNow = (String)spiceOutputFormatPopup.getSelectedItem();
-		if (!spiceOutputFormatInitial.equals(stringNow)) Spice.setOutputFormat(stringNow);
+		if (!spiceOutputFormatInitial.equals(stringNow)) Simulation.setSpiceOutputFormat(stringNow);
 
 		stringNow = (String)spicePrimitivesetPopup.getSelectedItem();
-		if (!spicePartsLibraryInitial.equals(stringNow)) Spice.setSpicePartsLibrary(stringNow);
+		if (!spicePartsLibraryInitial.equals(stringNow)) Simulation.setSpicePartsLibrary(stringNow);
 
 		boolean booleanNow = spiceUseNodeNames.isSelected();
-		if (spiceUseNodeNamesInitial != booleanNow) Spice.setUseNodeNames(booleanNow);
+		if (spiceUseNodeNamesInitial != booleanNow) Simulation.setSpiceUseNodeNames(booleanNow);
 
 		booleanNow = spiceForceGlobalPwrGnd.isSelected();
-		if (spiceForceGlobalPwrGndInitial != booleanNow) Spice.setForceGlobalPwrGnd(booleanNow);
+		if (spiceForceGlobalPwrGndInitial != booleanNow) Simulation.setSpiceForceGlobalPwrGnd(booleanNow);
 
 		booleanNow = spiceUseCellParameters.isSelected();
-		if (spiceUseCellParametersInitial != booleanNow) Spice.setUseCellParameters(booleanNow);
+		if (spiceUseCellParametersInitial != booleanNow) Simulation.setSpiceUseCellParameters(booleanNow);
 
 		booleanNow = spiceWriteTransSizesInLambda.isSelected();
-		if (spiceWriteTransSizesInLambdaInitial != booleanNow) Spice.setWriteTransSizeInLambda(booleanNow);
+		if (spiceWriteTransSizesInLambdaInitial != booleanNow) Simulation.setSpiceWriteTransSizeInLambda(booleanNow);
 
 		booleanNow = spiceUseParasitics.isSelected();
-		if (spiceUseParasiticsInitial != booleanNow) Spice.setUseParasitics(booleanNow);
-
-		Spice.flushOptions();
+		if (spiceUseParasiticsInitial != booleanNow) Simulation.setSpiceUseParasitics(booleanNow);
 
 		// the next section: parasitic values
 		double doubleNow = EMath.atof(spiceMinResistance.getText());
@@ -1054,7 +1052,7 @@ public class ToolOptions extends javax.swing.JDialog
 		{
 			header = spiceHeaderCardFile.getText();
 		}
-		if (!spiceTrailerCardInitial.equals(header)) Spice.setHeaderCardInfo(header);
+		if (!spiceTrailerCardInitial.equals(header)) Simulation.setSpiceHeaderCardInfo(header);
 
 		String trailer = "";
 		if (spiceTrailerCardsWithExtension.isSelected())
@@ -1064,7 +1062,7 @@ public class ToolOptions extends javax.swing.JDialog
 		{
 			trailer = spiceTrailerCardFile.getText();
 		}
-		if (spiceTrailerCardInitial.equals(trailer)) Spice.setTrailerCardInfo(trailer);
+		if (spiceTrailerCardInitial.equals(trailer)) Simulation.setSpiceTrailerCardInfo(trailer);
 	}
 
 	private void spiceLayerListClick()
@@ -1539,6 +1537,7 @@ public class ToolOptions extends javax.swing.JDialog
 
 	//******************************** ROUTING ********************************
 
+	private boolean initRoutMimicOn, initRoutAutoOn;
 	private ArcProto initRoutDefArc;
 	private boolean initRoutMimicCanUnstitch;
 	private boolean initRoutMimicInteractive;
@@ -1553,6 +1552,14 @@ public class ToolOptions extends javax.swing.JDialog
 	 */
 	private void initRouting()
 	{
+		initRoutMimicOn = Routing.isMimicStitchOn();
+		initRoutAutoOn = Routing.isAutoStitchOn();
+		if (!initRoutMimicOn && !initRoutAutoOn) routNoStitcher.setSelected(true); else
+		{
+			if (initRoutMimicOn) routMimicStitcher.setSelected(true); else
+				routAutoStitcher.setSelected(true);
+		}
+
 		Technology tech = Technology.getCurrent();
 		routDefaultArc.addItem("DEFAULT ARC");
 		for(Iterator it = tech.getArcs(); it.hasNext(); )
@@ -1595,6 +1602,13 @@ public class ToolOptions extends javax.swing.JDialog
 	 */
 	private void termRouting()
 	{
+		boolean curMimic = routMimicStitcher.isSelected();
+		if (curMimic != initRoutMimicOn)
+			Routing.setMimicStitchOn(curMimic);
+		boolean curAuto = routAutoStitcher.isSelected();
+		if (curAuto != initRoutAutoOn)
+			Routing.setAutoStitchOn(curAuto);
+
 		ArcProto ap = null;
 		int curArcIndex = routDefaultArc.getSelectedIndex();
 		if (curArcIndex > 0)
@@ -1673,6 +1687,7 @@ public class ToolOptions extends javax.swing.JDialog
         netDefaultOrder = new javax.swing.ButtonGroup();
         verilogModel = new javax.swing.ButtonGroup();
         drLayerOrNode = new javax.swing.ButtonGroup();
+        routStitcher = new javax.swing.ButtonGroup();
         tabPane = new javax.swing.JTabbedPane();
         drc = new javax.swing.JPanel();
         jPanel3 = new javax.swing.JPanel();
@@ -1927,17 +1942,22 @@ public class ToolOptions extends javax.swing.JDialog
         leKeeperSizeRatio = new javax.swing.JTextField();
         leWireRatio = new javax.swing.JTextField();
         routing = new javax.swing.JPanel();
-        jLabel67 = new javax.swing.JLabel();
-        jLabel69 = new javax.swing.JLabel();
-        routDefaultArc = new javax.swing.JComboBox();
-        routMimicCanUnstitch = new javax.swing.JCheckBox();
+        jPanel7 = new javax.swing.JPanel();
         jLabel70 = new javax.swing.JLabel();
         routMimicPortsMustMatch = new javax.swing.JCheckBox();
+        routMimicInteractive = new javax.swing.JCheckBox();
+        routMimicCanUnstitch = new javax.swing.JCheckBox();
         routMimicNumArcsMustMatch = new javax.swing.JCheckBox();
         routMimicNodeSizesMustMatch = new javax.swing.JCheckBox();
         routMimicNodeTypesMustMatch = new javax.swing.JCheckBox();
         routMimicNoOtherArcs = new javax.swing.JCheckBox();
-        routMimicInteractive = new javax.swing.JCheckBox();
+        jPanel8 = new javax.swing.JPanel();
+        jLabel67 = new javax.swing.JLabel();
+        jLabel69 = new javax.swing.JLabel();
+        routDefaultArc = new javax.swing.JComboBox();
+        routNoStitcher = new javax.swing.JRadioButton();
+        routAutoStitcher = new javax.swing.JRadioButton();
+        routMimicStitcher = new javax.swing.JRadioButton();
         compaction = new javax.swing.JPanel();
         compAllowSpreading = new javax.swing.JCheckBox();
         compVerbose = new javax.swing.JCheckBox();
@@ -3930,102 +3950,151 @@ public class ToolOptions extends javax.swing.JDialog
 
         routing.setLayout(new java.awt.GridBagLayout());
 
-        jLabel67.setText("Arc to use in stitching routers:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        routing.add(jLabel67, gridBagConstraints);
+        jPanel7.setLayout(new java.awt.GridBagLayout());
 
-        jLabel69.setText("Currently:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        routing.add(jLabel69, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        routing.add(routDefaultArc, gridBagConstraints);
-
-        routMimicCanUnstitch.setText("Mimic stitching can unstitch");
+        jPanel7.setBorder(new javax.swing.border.TitledBorder("Mimic Stitcher"));
+        jLabel70.setText("Mimic stitching restrictions (non-interactive):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        routing.add(routMimicCanUnstitch, gridBagConstraints);
+        jPanel7.add(jLabel70, gridBagConstraints);
 
-        jLabel70.setText("Mimic stitching restrictions:");
+        routMimicPortsMustMatch.setText("Ports must match");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        routing.add(jLabel70, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
+        jPanel7.add(routMimicPortsMustMatch, gridBagConstraints);
 
-        routMimicPortsMustMatch.setText("Ports must match");
+        routMimicInteractive.setText("Mimic stitching runs interactively");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel7.add(routMimicInteractive, gridBagConstraints);
+
+        routMimicCanUnstitch.setText("Mimic stitching can unstitch");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel7.add(routMimicCanUnstitch, gridBagConstraints);
+
+        routMimicNumArcsMustMatch.setText("Number of existing arcs must match");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
-        routing.add(routMimicPortsMustMatch, gridBagConstraints);
+        jPanel7.add(routMimicNumArcsMustMatch, gridBagConstraints);
 
-        routMimicNumArcsMustMatch.setText("Number of existing arcs must match");
+        routMimicNodeSizesMustMatch.setText("Node sizes must match");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
-        routing.add(routMimicNumArcsMustMatch, gridBagConstraints);
+        jPanel7.add(routMimicNodeSizesMustMatch, gridBagConstraints);
 
-        routMimicNodeSizesMustMatch.setText("Node sizes must match");
+        routMimicNodeTypesMustMatch.setText("Node types must match");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
-        routing.add(routMimicNodeSizesMustMatch, gridBagConstraints);
+        jPanel7.add(routMimicNodeTypesMustMatch, gridBagConstraints);
 
-        routMimicNodeTypesMustMatch.setText("Node types must match");
+        routMimicNoOtherArcs.setText("Cannot have other arcs in the same direction");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 7;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
-        routing.add(routMimicNodeTypesMustMatch, gridBagConstraints);
+        jPanel7.add(routMimicNoOtherArcs, gridBagConstraints);
 
-        routMimicNoOtherArcs.setText("Cannot have other arcs in the same direction");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
-        routing.add(routMimicNoOtherArcs, gridBagConstraints);
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        routing.add(jPanel7, gridBagConstraints);
 
-        routMimicInteractive.setText("Mimic stitching runs interactively");
+        jPanel8.setLayout(new java.awt.GridBagLayout());
+
+        jPanel8.setBorder(new javax.swing.border.TitledBorder("All Routers"));
+        jLabel67.setText("Arc to use in stitching routers:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        routing.add(routMimicInteractive, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        jPanel8.add(jLabel67, gridBagConstraints);
+
+        jLabel69.setText("Currently:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel8.add(jLabel69, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.weightx = 1.0;
+        jPanel8.add(routDefaultArc, gridBagConstraints);
+
+        routNoStitcher.setText("No stitcher running");
+        routStitcher.add(routNoStitcher);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel8.add(routNoStitcher, gridBagConstraints);
+
+        routAutoStitcher.setText("Auto-stitcher running");
+        routStitcher.add(routAutoStitcher);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel8.add(routAutoStitcher, gridBagConstraints);
+
+        routMimicStitcher.setText("Mimic-stitcher running");
+        routStitcher.add(routMimicStitcher);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel8.add(routMimicStitcher, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        routing.add(jPanel8, gridBagConstraints);
 
         tabPane.addTab("Routing", routing);
 
@@ -4255,6 +4324,8 @@ public class ToolOptions extends javax.swing.JDialog
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
+    private javax.swing.JPanel jPanel7;
+    private javax.swing.JPanel jPanel8;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator10;
     private javax.swing.JSeparator jSeparator2;
@@ -4323,6 +4394,7 @@ public class ToolOptions extends javax.swing.JDialog
     private javax.swing.JCheckBox netUnifyPwrGnd;
     private javax.swing.JPanel network;
     private javax.swing.JButton ok;
+    private javax.swing.JRadioButton routAutoStitcher;
     private javax.swing.JComboBox routDefaultArc;
     private javax.swing.JCheckBox routMimicCanUnstitch;
     private javax.swing.JCheckBox routMimicInteractive;
@@ -4331,6 +4403,9 @@ public class ToolOptions extends javax.swing.JDialog
     private javax.swing.JCheckBox routMimicNodeTypesMustMatch;
     private javax.swing.JCheckBox routMimicNumArcsMustMatch;
     private javax.swing.JCheckBox routMimicPortsMustMatch;
+    private javax.swing.JRadioButton routMimicStitcher;
+    private javax.swing.JRadioButton routNoStitcher;
+    private javax.swing.ButtonGroup routStitcher;
     private javax.swing.JPanel routing;
     private javax.swing.JPanel spice;
     private javax.swing.JPanel spice1;

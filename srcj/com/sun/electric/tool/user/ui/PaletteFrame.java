@@ -43,7 +43,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.simulation.Spice;
+import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.dialogs.LayoutText;
 import com.sun.electric.tool.user.User;
@@ -162,6 +162,11 @@ public class PaletteFrame
 	}
 
 	public PalettePanel getPanel() { return panel; }
+
+	public void arcProtoChanged()
+	{
+		panel.repaint();
+	}
 
 	/**
 	 * Method to automatically switch to the proper technology for a Cell.
@@ -567,7 +572,7 @@ public class PaletteFrame
 				{
 					JPopupMenu cellMenu = new JPopupMenu("Spice");
 
-					String currentSpiceLib = Spice.getSpicePartsLibrary();
+					String currentSpiceLib = Simulation.getSpicePartsLibrary();
 					Library spiceLib = Library.findLibrary(currentSpiceLib);
 					if (spiceLib == null)
 					{

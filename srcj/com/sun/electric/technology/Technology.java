@@ -1029,6 +1029,8 @@ public class Technology extends ElectricObject
 		return np.getSizeOffset();
 	}
 
+	private static final Technology.NodeLayer [] nullPrimLayers = new Technology.NodeLayer [0];
+
 	/**
 	 * Returns the polygons that describe node "ni".
 	 * @param ni the NodeInst that is being described.
@@ -1039,12 +1041,7 @@ public class Technology extends ElectricObject
 	 */
 	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd)
 	{
-		NodeProto prototype = ni.getProto();
-		if (!(prototype instanceof PrimitiveNode)) return null;
-
-		PrimitiveNode np = (PrimitiveNode)prototype;
-		Technology.NodeLayer [] primLayers = np.getLayers();
-		return getShapeOfNode(ni, wnd, false, false, primLayers);
+		return getShapeOfNode(ni, wnd, false, false);
 	}
 
 	/**
@@ -1075,6 +1072,15 @@ public class Technology extends ElectricObject
 		{
 			Technology.NodeLayer [] eLayers = np.getElectricalLayers();
 			if (eLayers != null) primLayers = eLayers;
+		}
+
+		// if node is erased, remove layers
+		if (ni.isWiped()) primLayers = nullPrimLayers; else
+		{
+			if (np.isWipeOn1or2())
+			{
+				if (ni.pinUseCount()) primLayers = nullPrimLayers;
+			}
 		}
 		return getShapeOfNode(ni, wnd, electrical, reasonable, primLayers);
 	}
@@ -1140,11 +1146,6 @@ public class Technology extends ElectricObject
 
 		// determine the number of polygons (considering that it may be "wiped")
 		int numBasicLayers = primLayers.length;
-		if (ni.isWiped()) numBasicLayers = 0;
-		if (np.isWipeOn1or2())
-		{
-			if (ni.pinUseCount()) numBasicLayers = 0;
-		}
 
 		// if a MultiCut contact, determine the number of extra cuts
 		int numExtraCuts = 0;
@@ -1782,11 +1783,11 @@ public class Technology extends ElectricObject
 
 			// standard port computation
 			double halfWidth = ni.getXSize() / 2;
-			double lowX = ni.getTrueCenterX() - halfWidth;
-			double highX = ni.getTrueCenterX() + halfWidth;
-			double halfHeight = ni.getYSize() / 2;
-			double lowY = ni.getTrueCenterY() - halfHeight;
-			double highY = ni.getTrueCenterY() + halfHeight;
+//			double lowX = ni.getTrueCenterX() - halfWidth;
+//			double highX = ni.getTrueCenterX() + halfWidth;
+//			double halfHeight = ni.getYSize() / 2;
+//			double lowY = ni.getTrueCenterY() - halfHeight;
+//			double highY = ni.getTrueCenterY() + halfHeight;
 
 			double portLowX = ni.getTrueCenterX() + pp.getLeft().getMultiplier() * ni.getXSize() + pp.getLeft().getAdder();
 			double portHighX = ni.getTrueCenterX() + pp.getRight().getMultiplier() * ni.getXSize() + pp.getRight().getAdder();

@@ -418,6 +418,27 @@ public class Highlight
 	}
 
 	/**
+	 * Method to return a List of all highlighted text.
+	 * @return a list with the Highlight objects that point to text.
+	 */
+	public static List getHighlightedText()
+	{
+		// now place the objects in the list
+		List highlightedText = new ArrayList();
+		for(Iterator it = getHighlights(); it.hasNext(); )
+		{
+			Highlight h = (Highlight)it.next();
+
+			if (h.getType() == Type.TEXT)
+			{
+				if (highlightedText.contains(h)) continue;
+				highlightedText.add(h);
+			}
+		}
+		return highlightedText;
+	}
+
+	/**
 	 * Method to return the bounds of the highlighted objects.
 	 * @param wnd the window in which to get bounds.
 	 * @return the bounds of the highlighted objects (null if nothing is highlighted).
@@ -552,41 +573,51 @@ public class Highlight
 	/**
 	 * Method to tell whether a point is over this Highlight.
 	 * @param wnd the window being examined.
-	 * @param x the X coordinate of the point.
-	 * @param y the Y coordinate of the point.
+	 * @param x the X screen coordinate of the point.
+	 * @param y the Y screen coordinate of the point.
 	 * @return true if the point is over this Highlight.
 	 */
 	public static boolean overHighlighted(EditWindow wnd, int x, int y)
 	{
-		int numHighlights = getNumHighlights();
-		if (numHighlights == 0) return false;
-
-		Point2D slop = wnd.deltaScreenToDatabase(EXACTSELECTDISTANCE*2, EXACTSELECTDISTANCE*2);
-		double directHitDist = slop.getX();
-		double slopWidth = Math.abs(slop.getX());
-		double slopHeight = Math.abs(slop.getY());
-		Point2D start = wnd.screenToDatabase((int)x, (int)y);
-		Rectangle2D searchArea = new Rectangle2D.Double(start.getX()-slopWidth/2, start.getY()-slopHeight/2, slopWidth, slopHeight);
-		Geometric.Search sea = new Geometric.Search(searchArea, wnd.getCell());
-		for(;;)
+		for(Iterator it = getHighlights(); it.hasNext(); )
 		{
-			Geometric nextGeom = sea.nextObject();
-			if (nextGeom == null) break;
-			Highlight h = checkOutObject(nextGeom, true, true, searchArea, wnd, directHitDist, false);
-			if (h == null) continue;
-			ElectricObject hReal = h.getElectricObject();
-			if (hReal instanceof PortInst) hReal = ((PortInst)hReal).getNodeInst();
-			for(Iterator it = getHighlights(); it.hasNext(); )
+			Highlight h = (Highlight)it.next();
+			Highlight.Type style = h.getType();
+			if (style == Highlight.Type.TEXT)
 			{
-				Highlight alreadyHighlighted = (Highlight)it.next();
-				if (alreadyHighlighted.getType() != h.getType()) continue;
-				ElectricObject aHReal = alreadyHighlighted.getElectricObject();
-				if (aHReal instanceof PortInst) aHReal = ((PortInst)aHReal).getNodeInst();
-				if (hReal == aHReal)
+				Point2D start = wnd.screenToDatabase((int)x, (int)y);
+				Poly poly = h.computeTextPoly(wnd);
+				return poly.isInside(start);
+			} else if (style == Highlight.Type.EOBJ)
+			{
+				Point2D slop = wnd.deltaScreenToDatabase(EXACTSELECTDISTANCE*2, EXACTSELECTDISTANCE*2);
+				double directHitDist = slop.getX();
+				double slopWidth = Math.abs(slop.getX());
+				double slopHeight = Math.abs(slop.getY());
+				Point2D start = wnd.screenToDatabase((int)x, (int)y);
+				Rectangle2D searchArea = new Rectangle2D.Double(start.getX()-slopWidth/2, start.getY()-slopHeight/2, slopWidth, slopHeight);
+
+				ElectricObject eobj = h.getElectricObject();
+				if (eobj instanceof Geometric)
 				{
-					// found it: adjust the port/point
-					alreadyHighlighted.setElectricObject(h.getElectricObject());
-					alreadyHighlighted.setPoint(h.getPoint());
+					Highlight got = checkOutObject((Geometric)eobj, true, true, searchArea, wnd, directHitDist, false);
+					if (got == null) continue;
+					ElectricObject hReal = got.getElectricObject();
+					if (hReal instanceof PortInst) hReal = ((PortInst)hReal).getNodeInst();
+					for(Iterator sIt = getHighlights(); sIt.hasNext(); )
+					{
+						Highlight alreadyHighlighted = (Highlight)sIt.next();
+						if (alreadyHighlighted.getType() != got.getType()) continue;
+						ElectricObject aHReal = alreadyHighlighted.getElectricObject();
+						if (aHReal instanceof PortInst) aHReal = ((PortInst)aHReal).getNodeInst();
+						if (hReal == aHReal)
+						{
+							// found it: adjust the port/point
+							alreadyHighlighted.setElectricObject(got.getElectricObject());
+							alreadyHighlighted.setPoint(got.getPoint());
+							break;
+						}
+					}
 					return true;
 				}
 			}

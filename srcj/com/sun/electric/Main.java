@@ -50,6 +50,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.lang.reflect.Method;
 
 /**
  * This class initializes the User Interface.
@@ -59,7 +60,10 @@ public final class Main
 {
 	public static void main(String[] args)
 	{
-        // convert args to array list
+		// initialize Mac OS 10 if applicable
+		macOSXRegistration();
+
+		// convert args to array list
         ArrayList argsList = new ArrayList();
         for (int i=0; i<args.length; i++) argsList.add(args[i]);
 
@@ -158,6 +162,38 @@ public final class Main
 			// initialize the constraint system
 			Layout con = Layout.getConstraint();
 			Constraints.setCurrent(con);
+		}
+	}
+	
+	/**
+	 * Generic registration with the Mac OS X application menu.
+	 * Attempts to register with the Apple EAWT.
+	 * This method calls OSXAdapter.registerMacOSXApplication().
+	 */
+	private static void macOSXRegistration()
+	{
+		try
+		{
+			Class osxAdapter = Class.forName("com.sun.electric.tool.user.ui.OSXAdapter");
+			Class[] defArgs = {};
+			Method registerMethod = osxAdapter.getDeclaredMethod("registerMacOSXApplication", defArgs);
+			if (registerMethod != null)
+			{
+				Object[] args = {};
+				registerMethod.invoke(osxAdapter, args);
+			}
+		} catch (NoClassDefFoundError e)
+		{
+			// This will be thrown if the OSXAdapter is loaded on a system without the EAWT
+			// because OSXAdapter extends ApplicationAdapter in its def
+			System.err.println("NoClassDefFoundError: This version of Mac OS X does not support the Apple EAWT.  Application Menu handling has been disabled (" + e + ")");
+		} catch (ClassNotFoundException e)
+		{
+			// If the class is not found, then perhaps this isn't a Macintosh, and we should stop
+		} catch (Exception e)
+		{
+			System.err.println("Exception while loading the OSXAdapter:");
+			e.printStackTrace();
 		}
 	}
 

@@ -96,6 +96,7 @@ public class CircuitChanges
 		public void doIt()
 		{
 			if (Highlight.getNumHighlights() == 0) return;
+			List highlightedText = Highlight.getHighlightedText();
 			List deleteList = new ArrayList();
 			Cell cell = null;
 			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
@@ -118,8 +119,65 @@ public class CircuitChanges
 				}
 				deleteList.add(eobj);
 			}
+
+			/* clear the highlighting */
 			Highlight.clear();
 			Highlight.finished();
+
+			/* delete the text */
+			for(Iterator it = highlightedText.iterator(); it.hasNext(); )
+			{
+				Highlight high = (Highlight)it.next();
+
+				/* disallow erasing if lock is on */
+				Cell np = high.getCell();
+				if (np != null)
+				{
+//					if (us_cantedit(np, NONODEINST, TRUE)) continue;
+				}
+
+//				/* do not deal with text on an object if the object is already in the list */
+//				if (high.fromgeom != NOGEOM)
+//				{
+//					for(j=0; list[j] != NOGEOM; j++)
+//						if (list[j] == high.fromgeom) break;
+//					if (list[j] != NOGEOM) continue;
+//				}
+
+				/* deleting variable on object */
+				Variable var = high.getVar();
+				ElectricObject eobj = high.getElectricObject();
+				if (var != null)
+				{
+					eobj.delVar(var.getKey());
+				} else
+				{
+					if (high.getName() != null)
+					{
+						if (eobj instanceof Geometric)
+						{
+							Geometric geom = (Geometric)eobj;
+							if (geom instanceof NodeInst)
+							{
+								NodeInst ni = (NodeInst)geom;
+//								ni.setName("");
+								ni.modifyInstance(0, 0, 0, 0, 0);
+							} else
+							{
+								ArcInst ai = (ArcInst)geom;
+//								ai.setName("");
+							}
+						}
+					} else
+					{
+						if (eobj instanceof Export)
+						{
+							Export pp = (Export)eobj;
+							pp.kill();
+						}
+					}
+				}
+			}
 			if (cell != null)
 				eraseObjectsInList(cell, deleteList);
 		}
@@ -908,20 +966,23 @@ public class CircuitChanges
 
 	/**
 	 * Method to move the arcs in the GEOM module list "list" (terminated by
-	 * NOGEOM) and the "total" nodes in the list "nodelist" by (dx, dy).
+	 * NOGEOM) and the "total" nodes in the list "nodelist" by (dX, dY).
 	 */
-	public static void manyMove(double dx, double dy)
+	public static void manyMove(double dX, double dY, EditWindow wnd)
 	{
-        ManyMove job = new ManyMove(dx, dy);
+        ManyMove job = new ManyMove(dX, dY, wnd);
 	}
 
 	protected static class ManyMove extends Job
 	{
-		double dx, dy;
-		protected ManyMove(double dx, double dy)
+		double dX, dY;
+		EditWindow wnd;
+
+		protected ManyMove(double dX, double dY, EditWindow wnd)
 		{
 			super("Move", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.dx = dx;   this.dy = dy;
+			this.dX = dX;   this.dY = dY;
+			this.wnd = wnd;
 			this.startJob();
 		}
 
@@ -930,21 +991,23 @@ public class CircuitChanges
 			// get information about what is highlighted
 			int total = Highlight.getNumHighlights();
 			if (total <= 0) return;
+			List highlightedText = Highlight.getHighlightedText();
 			Iterator oit = Highlight.getHighlights();
 			Highlight firstH = (Highlight)oit.next();
 			ElectricObject firstEObj = firstH.getElectricObject();
 			Cell cell = firstH.getCell();
 
 			// special case if moving only one node
-			if (total == 1 && firstEObj instanceof NodeInst)
+			if (total == 1 && firstH.getType() == Highlight.Type.EOBJ &&
+				firstEObj instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)firstEObj;
-				ni.modifyInstance(dx, dy, 0, 0, 0);
+				ni.modifyInstance(dX, dY, 0, 0, 0);
 				return;
 			}
 
 			// special case if moving diagonal fixed-angle arcs connected to single manhattan arcs
-			boolean found = true;
+			boolean found = false;
 			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
@@ -953,31 +1016,34 @@ public class CircuitChanges
 				if (eobj instanceof ArcInst)
 				{
 					ArcInst ai = (ArcInst)eobj;
-					if (ai.getHead().getLocation().getX() == ai.getTail().getLocation().getX() ||
-						ai.getHead().getLocation().getY() == ai.getTail().getLocation().getY()) { found = false;   break; }
-					if (!ai.isFixedAngle()) { found = false;   break; }
-					if (ai.isRigid()) { found = false;   break; }
-					int j;
-					for(j=0; j<2; j++)
+					if (ai.getHead().getLocation().getX() != ai.getTail().getLocation().getX() &&
+						ai.getHead().getLocation().getY() != ai.getTail().getLocation().getY())
 					{
-						NodeInst ni = ai.getConnection(j).getPortInst().getNodeInst();
-						ArcInst oai = null;
-						for(Iterator pIt = ni.getConnections(); pIt.hasNext(); )
+						if (ai.isFixedAngle() && !ai.isRigid())
 						{
-							Connection con = (Connection)pIt.next();
-							if (con.getArc() == ai) continue;
-							if (oai == null) oai = con.getArc(); else
+							int j;
+							for(j=0; j<2; j++)
 							{
-								oai = null;
-								break;
+								NodeInst ni = ai.getConnection(j).getPortInst().getNodeInst();
+								ArcInst oai = null;
+								for(Iterator pIt = ni.getConnections(); pIt.hasNext(); )
+								{
+									Connection con = (Connection)pIt.next();
+									if (con.getArc() == ai) continue;
+									if (oai == null) oai = con.getArc(); else
+									{
+										oai = null;
+										break;
+									}
+								}
+								if (oai == null) break;
+								if (oai.getHead().getLocation().getX() != oai.getTail().getLocation().getX() &&
+									oai.getHead().getLocation().getY() != oai.getTail().getLocation().getY()) break;
 							}
+							if (j >= 2) { found = true;   break; }
 						}
-						if (oai == null) break;
-						if (oai.getHead().getLocation().getX() != oai.getTail().getLocation().getX() &&
-							oai.getHead().getLocation().getY() != oai.getTail().getLocation().getY()) break;
 					}
-					if (j < 2) { found = false;   break; }
-				} else found = false;
+				}
 			}
 			if (found)
 			{
@@ -1013,13 +1079,13 @@ public class CircuitChanges
 						if (EMath.doublesEqual(oai.getHead().getLocation().getX(), oai.getTail().getLocation().getX()))
 						{
 							Point2D iPt = EMath.intersect(oai.getHead().getLocation(), 900,
-								new Point2D.Double(ai.getHead().getLocation().getX()+dx, ai.getHead().getLocation().getY()+dy), arcangle);
+								new Point2D.Double(ai.getHead().getLocation().getX()+dX, ai.getHead().getLocation().getY()+dY), arcangle);
 							deltaXs[j] = iPt.getX() - ai.getConnection(j).getLocation().getX();
 							deltaYs[j] = iPt.getY() - ai.getConnection(j).getLocation().getY();
 						} else if (EMath.doublesEqual(oai.getHead().getLocation().getY(), oai.getTail().getLocation().getY()))
 						{
 							Point2D iPt = EMath.intersect(oai.getHead().getLocation(), 0,
-								new Point2D.Double(ai.getHead().getLocation().getX()+dx, ai.getHead().getLocation().getY()+dy), arcangle);
+								new Point2D.Double(ai.getHead().getLocation().getX()+dX, ai.getHead().getLocation().getY()+dY), arcangle);
 							deltaXs[j] = iPt.getX() - ai.getConnection(j).getLocation().getX();
 							deltaYs[j] = iPt.getY() - ai.getConnection(j).getLocation().getY();
 						}
@@ -1032,7 +1098,7 @@ public class CircuitChanges
 			}
 
 			// special case if moving only arcs and they slide
-			boolean onlySlidable = true;
+			boolean onlySlidable = true, foundArc = false;
 			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
@@ -1041,19 +1107,20 @@ public class CircuitChanges
 				if (eobj instanceof ArcInst)
 				{
 					ArcInst ai = (ArcInst)eobj;
+					foundArc = true;
 					// see if the arc moves in its ports
 					if (ai.isSlidable())
 					{
 						Connection head = ai.getHead();
 						Connection tail = ai.getTail();
-						Point2D newHead = new Point2D.Double(head.getLocation().getX()+dx, head.getLocation().getY()+dy);
-						Point2D newTail = new Point2D.Double(tail.getLocation().getX()+dx, tail.getLocation().getY()+dy);
+						Point2D newHead = new Point2D.Double(head.getLocation().getX()+dX, head.getLocation().getY()+dY);
+						Point2D newTail = new Point2D.Double(tail.getLocation().getX()+dX, tail.getLocation().getY()+dY);
 						if (ai.stillInPort(head, newHead, true) && ai.stillInPort(tail, newTail, true)) continue;
 					}
 				}
 				onlySlidable = false;
 			}
-			if (onlySlidable)
+			if (foundArc && onlySlidable)
 			{
 				for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 				{
@@ -1063,7 +1130,7 @@ public class CircuitChanges
 					if (eobj instanceof ArcInst)
 					{
 						ArcInst ai = (ArcInst)eobj;
-						ai.modify(0, dx, dy, dx, dy);
+						ai.modify(0, dX, dY, dX, dY);
 					}
 				}
 				return;
@@ -1114,8 +1181,8 @@ public class CircuitChanges
 			if (numNodes > 0)
 			{
 				NodeInst [] nis = new NodeInst[numNodes];
-				double [] dX = new double[numNodes];
-				double [] dY = new double[numNodes];
+				double [] dXs = new double[numNodes];
+				double [] dYs = new double[numNodes];
 				double [] dSize = new double[numNodes];
 				int [] dRot = new int[numNodes];
 				boolean [] dTrn = new boolean[numNodes];
@@ -1125,14 +1192,14 @@ public class CircuitChanges
 					NodeInst ni = (NodeInst)it.next();
 					if (!ni.isBit(flag)) continue;
 					nis[numNodes] = ni;
-					dX[numNodes] = dx;
-					dY[numNodes] = dy;
+					dXs[numNodes] = dX;
+					dYs[numNodes] = dY;
 					dSize[numNodes] = 0;
 					dRot[numNodes] = 0;
 					dTrn[numNodes] = false;
 					numNodes++;
 				}
-				NodeInst.modifyInstances(nis, dX, dY, dSize, dSize, dRot);
+				NodeInst.modifyInstances(nis, dXs, dYs, dSize, dSize, dRot);
 			}
 
 			// look at all arcs and move them appropriately
@@ -1152,15 +1219,15 @@ public class CircuitChanges
 				if (!ai.isRigid() && ai.isSlidable())
 				{
 					headInPort = ai.stillInPort(ai.getHead(),
-						new Point2D.Double(ai.getHead().getLocation().getX()+dx, ai.getHead().getLocation().getY()+dy), true);
+						new Point2D.Double(ai.getHead().getLocation().getX()+dX, ai.getHead().getLocation().getY()+dY), true);
 					tailInPort = ai.stillInPort(ai.getTail(),
-						new Point2D.Double(ai.getTail().getLocation().getX()+dx, ai.getTail().getLocation().getY()+dy), true);
+						new Point2D.Double(ai.getTail().getLocation().getX()+dX, ai.getTail().getLocation().getY()+dY), true);
 				}
 
 				// if both ends slide in their port, move the arc
 				if (headInPort && tailInPort)
 				{
-					ai.modify(0, dx, dy, dx, dy);
+					ai.modify(0, dX, dY, dX, dY);
 					continue;
 				}
 
@@ -1188,15 +1255,15 @@ public class CircuitChanges
 								if (aPt.getX() != oai.getTrueCenterX() ||
 									aPt.getY() != oai.getTrueCenterY()) continue;
 								if (oai.stillInPort(oai.getHead(),
-										new Point2D.Double(ai.getHead().getLocation().getX()+dx, ai.getHead().getLocation().getY()+dy), true) ||
+										new Point2D.Double(ai.getHead().getLocation().getX()+dX, ai.getHead().getLocation().getY()+dY), true) ||
 									oai.stillInPort(oai.getTail(),
-										new Point2D.Double(ai.getTail().getLocation().getX()+dx, ai.getTail().getLocation().getY()+dy), true))
+										new Point2D.Double(ai.getTail().getLocation().getX()+dX, ai.getTail().getLocation().getY()+dY), true))
 											continue;
 								Layout.setTempRigid(oai, true);
 							}
 						}
-						ni.modifyInstance(dx - (ni.getGrabCenterX() - nPt.getX()),
-							dy - (ni.getGrabCenterY() - nPt.getY()), 0, 0, 0);
+						ni.modifyInstance(dX - (ni.getGrabCenterX() - nPt.getX()),
+							dY - (ni.getGrabCenterY() - nPt.getY()), 0, 0, 0);
 					}
 					continue;
 				}
@@ -1216,20 +1283,20 @@ public class CircuitChanges
 //							if (oai->temp1 != (oai->end[0].xpos + oai->end[1].xpos) / 2 ||
 //								oai->temp2 != (oai->end[0].ypos + oai->end[1].ypos) / 2) continue;
 //							if (oai->end[0].nodeinst == ni) otherend = 1; else otherend = 0;
-//							if (db_stillinport(oai, otherend, ai->end[otherend].xpos+dx,
-//								ai->end[otherend].ypos+dy)) continue;
+//							if (db_stillinport(oai, otherend, ai->end[otherend].xpos+dX,
+//								ai->end[otherend].ypos+dY)) continue;
 //							(void)(*el_curconstraint->setobject)((INTBIG)oai,
 //								VARCINST, CHANGETYPETEMPRIGID, 0);
 //						}
 //						startobjectchange((INTBIG)ni, VNODEINST);
-//						modifynodeinst(ni, dx-(ni->lowx-ni->temp1), dy-(ni->lowy-ni->temp2),
-//							dx-(ni->lowx-ni->temp1), dy-(ni->lowy-ni->temp2), 0, 0);
+//						modifynodeinst(ni, dX-(ni->lowx-ni->temp1), dY-(ni->lowy-ni->temp2),
+//							dX-(ni->lowx-ni->temp1), dY-(ni->lowy-ni->temp2), 0, 0);
 //						endobjectchange((INTBIG)ni, VNODEINST);
 //
 //						if (ai->temp1 != (ai->end[0].xpos + ai->end[1].xpos) / 2 ||
 //							ai->temp2 != (ai->end[0].ypos + ai->end[1].ypos) / 2) continue;
 //						startobjectchange((INTBIG)ai, VARCINST);
-//						(void)modifyarcinst(ai, 0, dx, dy, dx, dy);
+//						(void)modifyarcinst(ai, 0, dX, dY, dX, dY);
 //						endobjectchange((INTBIG)ai, VARCINST);
 //					}
 //				}
@@ -1246,8 +1313,148 @@ public class CircuitChanges
 				ArcInst ai = (ArcInst)it.next();
 				ai.setTempObj(null);
 			}
+
+			// also move selected text
+			moveSelectedText(highlightedText);
+		}
+
+		/*
+		 * Method to move the "numtexts" text objects described (as highlight strings)
+		 * in the array "textlist", by "odx" and "ody".  Geometry objects in "list" (NOGEOM-terminated)
+		 * and the "total" nodes in "nodelist" have already been moved, so don't move any text that
+		 * is on these objects.
+		 */
+		private void moveSelectedText(List highlightedText)
+		{
+			for(Iterator it = highlightedText.iterator(); it.hasNext(); )
+			{
+				Highlight high = (Highlight)it.next();
+
+				// disallow moving if lock is on
+				Cell np = high.getCell();
+				if (np != null)
+				{
+//					if (us_cantedit(np, null, true)) continue;
+				}
+
+				// moving variable on object
+				Variable var = high.getVar();
+				ElectricObject eobj = high.getElectricObject();
+				if (var != null)
+				{
+					TextDescriptor td = var.getTextDescriptor();
+//					if (eobj instanceof NodeInst || eobj instanceof PortInst || eobj instanceof Export)
+//					{
+//						NodeInst ni = null;
+//						if (eobj instanceof NodeInst) ni = (NodeInst)eobj; else
+//							if (eobj instanceof PortInst) ni = ((PortInst)eobj).getNodeInst(); else
+//								if (eobj instanceof Export) ni = ((Export)eobj).getOriginalPort().getNodeInst();
+//						if (ni != null)
+//						{
+//							AffineTransform rotate = ni.rotateOut();
+//							Point2D txtLoc = new Point2D.Double(td.getXOff(), td.getYOff());
+//							rotate.transform(txtLoc, txtLoc);
+//						}
+//					} else
+					{
+						td.setOff(td.getXOff()+dX, td.getYOff()+dY);
+					}
+				} else
+				{
+					if (high.getName() != null)
+					{
+						TextDescriptor td = ((Geometric)eobj).getNameTextDescriptor();
+						td.setOff(td.getXOff()+dX, td.getYOff()+dY);
+					} else
+					{
+						if (eobj instanceof Export)
+						{
+							Export pp = (Export)eobj;
+							TextDescriptor td = pp.getTextDescriptor();
+							td.setOff(td.getXOff()+dX, td.getYOff()+dY);
+						}
+					}
+				}
+			}
 		}
 	}
+
+//
+//
+//
+//
+//				/* undraw the text */
+//				if (eobj instanceof Export)
+//				{
+//					NodeInst ni = ((Export)eobj).getOriginalPort().getNodeInst();
+////					for(j=0; list[j] != NOGEOM; j++)
+////						if (list[j]->entryisnode && list[j]->entryaddr.ni == ni) break;
+////					if (list[j] != NOGEOM) continue;
+//
+//					if (us_nodemoveswithtext(high))
+//					{
+//						modifynodeinst(ni, dX, dY, dX, dY, 0, 0);
+//						continue;
+//					}
+////					if (ni->transpose != 0)
+////						makeangle(ni->rotation, ni->transpose, trans); else
+////							makeangle((3600-ni->rotation)%3600, 0, trans);
+////					xform(dX, dY, &dX, &dY, trans);
+//				} else if (eobj instanceof NodeInst)
+//					{
+//						NodeInst ni = (NodeInst)eobj;
+////						for(j=0; list[j] != NOGEOM; j++)
+////							if (list[j]->entryisnode && list[j]->entryaddr.ni == ni) break;
+////						if (list[j] != NOGEOM) continue;
+//
+//						if (us_nodemoveswithtext(high))
+//						{
+//							modifynodeinst(ni, dX, dY, dX, dY, 0, 0);
+//							continue;
+//						}
+////						if (ni->transpose != 0)
+////							makeangle(ni->rotation, ni->transpose, trans); else
+////								makeangle((3600-ni->rotation)%3600, 0, trans);
+////						xform(dX, dY, &dX, &dY, trans);
+//					}
+//				}
+////				if (eobj == NodeProto && high.getVar() != null)
+////					us_undrawcellvariable(high.fromvar, (NODEPROTO *)addr);
+//
+//				/* set the new descriptor on the text */
+//				dX = dX*4/lambda;   dY = dY*4/lambda;
+//				us_gethighdescript(&high, descript);
+//				dX += TDGETXOFF(descript);
+//				dY += TDGETYOFF(descript);
+//				us_setdescriptoffset(descript, dX, dY);
+//				us_modifytextdescript(&high, descript);
+//
+//				/* redisplay the text */
+//				if (type == VNODEPROTO && high.fromvar != NOVARIABLE)
+//					us_drawcellvariable(high.fromvar, (NODEPROTO *)addr);
+//				if (type == VPORTPROTO)
+//				{
+//					endobjectchange((INTBIG)ni, VNODEINST);
+//				} else
+//				{
+//					endobjectchange(addr, type);
+//				}
+//				us_addhighlight(&high);
+//
+//				/* modify all higher-level nodes if port moved */
+//				if (high.fromvar == NOVARIABLE && high.fromport != NOPORTPROTO)
+//				{
+//					for(ni = high.fromport->parent->firstinst; ni != NONODEINST; ni = ni->nextinst)
+//					{
+//						if ((ni->userbits&NEXPAND) != 0 &&
+//							(high.fromport->userbits&PORTDRAWN) == 0) continue;
+//						startobjectchange((INTBIG)ni, VNODEINST);
+//						endobjectchange((INTBIG)ni, VNODEINST);
+//					}
+//				}
+//			}
+//		}
+//	}
 
 //	typedef struct Ireconnect
 //	{
@@ -1255,7 +1462,7 @@ public class CircuitChanges
 //		INTBIG arcsfound;				/* number of arcs found on this reconnection */
 //		INTBIG reconx[2], recony[2];	/* coordinate at other end of arc */
 //		INTBIG origx[2], origy[2];		/* coordinate where arc hits deleted node */
-//		INTBIG dx[2], dy[2];			/* distance between ends */
+//		INTBIG dX[2], dY[2];			/* distance between ends */
 //		NODEINST *reconno[2];			/* node at other end of arc */
 //		PORTPROTO *reconpt[2];			/* port at other end of arc */
 //		ARCINST *reconar[2];			/* arcinst being reconnected */
@@ -1305,10 +1512,10 @@ public class CircuitChanges
 //				re->reconpt[j] = ai->end[i].portarcinst->proto;
 //				re->reconx[j] = ai->end[i].xpos;
 //				re->origx[j] = ai->end[1-i].xpos;
-//				re->dx[j] = re->reconx[j] - re->origx[j];
+//				re->dX[j] = re->reconx[j] - re->origx[j];
 //				re->recony[j] = ai->end[i].ypos;
 //				re->origy[j] = ai->end[1-i].ypos;
-//				re->dy[j] = re->recony[j] - re->origy[j];
+//				re->dY[j] = re->recony[j] - re->origy[j];
 //			}
 //		}
 //
@@ -1327,18 +1534,18 @@ public class CircuitChanges
 //				if (re->reconar[0]->width != re->reconar[1]->width) { re->arcsfound = -2; continue; }
 //
 //				// verify that the two arcs have the same slope
-//				if ((re->dx[1]*re->dy[0]) != (re->dx[0]*re->dy[1])) { re->arcsfound = -3; continue; }
+//				if ((re->dX[1]*re->dY[0]) != (re->dX[0]*re->dY[1])) { re->arcsfound = -3; continue; }
 //				if (re->origx[0] != re->origx[1] || re->origy[0] != re->origy[1])
 //				{
 //					// did not connect at the same location: be sure that angle is consistent
-//					if (re->dx[0] != 0 || re->dy[0] != 0)
+//					if (re->dX[0] != 0 || re->dY[0] != 0)
 //					{
-//						if (((re->origx[0]-re->origx[1])*re->dy[0]) !=
-//							(re->dx[0]*(re->origy[0]-re->origy[1]))) { re->arcsfound = -3; continue; }
-//					} else if (re->dx[1] != 0 || re->dy[1] != 0)
+//						if (((re->origx[0]-re->origx[1])*re->dY[0]) !=
+//							(re->dX[0]*(re->origy[0]-re->origy[1]))) { re->arcsfound = -3; continue; }
+//					} else if (re->dX[1] != 0 || re->dY[1] != 0)
 //					{
-//						if (((re->origx[0]-re->origx[1])*re->dy[1]) !=
-//							(re->dx[1]*(re->origy[0]-re->origy[1]))) { re->arcsfound = -3; continue; }
+//						if (((re->origx[0]-re->origx[1])*re->dY[1]) !=
+//							(re->dX[1]*(re->origy[0]-re->origy[1]))) { re->arcsfound = -3; continue; }
 //					} else { re->arcsfound = -3; continue; }
 //				}
 //			}
@@ -1985,8 +2192,8 @@ public class CircuitChanges
 				double lambda = 1;
 				TextDescriptor descript = new TextDescriptor(null);
 				var.setDescriptor(descript);
-				double dx = descript.getXOff();
-				double dy = descript.getYOff();
+				double dX = descript.getXOff();
+				double dY = descript.getYOff();
 
 //				saverot = pp->subnodeinst->rotation;
 //				savetrn = pp->subnodeinst->transpose;
@@ -1994,7 +2201,7 @@ public class CircuitChanges
 //				portposition(pp->subnodeinst, pp->subportproto, &x, &y);
 //				pp->subnodeinst->rotation = saverot;
 //				pp->subnodeinst->transpose = savetrn;
-//				x += dx;   y += dy;
+//				x += dX;   y += dY;
 //				makerot(pp->subnodeinst, trans);
 //				xform(x, y, &x, &y, trans);
 //				maketrans(ni, trans);
@@ -2150,6 +2357,7 @@ public class CircuitChanges
 
 		return retVal;
 	}
+
 	/****************************** DETERMINE ABILITY TO MAKE CHANGES ******************************/
 
 	/**

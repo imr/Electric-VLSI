@@ -150,7 +150,6 @@ public class DRC extends Tool
 		}
 	}
 
-	private Preferences prefs = Preferences.userNodeForPackage(getClass());
 	/** Cached rules for a specific technology. */		private static Rules currentRules = null;
 	/** The Technology whose rules are cached. */		private static Technology currentTechnology = null;
 

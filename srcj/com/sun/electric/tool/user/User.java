@@ -61,7 +61,6 @@ public class User extends Tool
 
 	private ArcProto currentArcProto = null;
 	private NodeProto currentNodeProto = null;
-	private Preferences prefs = Preferences.userNodeForPackage(getClass());
 
 	/**
 	 * The constructor sets up the User tool.
@@ -109,7 +108,7 @@ public class User extends Tool
 	 * The current ArcProto is highlighted with a bolder red border in the component menu on the left.
 	 * @param np the new "current" ArcProto.
 	 */
-	public void setCurrentArcProto(ArcProto ap) { currentArcProto = ap; }
+	public void setCurrentArcProto(ArcProto ap) { currentArcProto = ap;   TopLevel.getPaletteFrame().arcProtoChanged(); }
 
 	/**
 	 * Daemon Method called when an object is to be redrawn.

@@ -354,7 +354,7 @@ public class Schematics extends Technology
 			});
 		busPinNode.setFunction(NodeProto.Function.PIN);
 		busPinNode.setSquare();
-//		busPinNode.setWipeOn1or2();
+		busPinNode.setWipeOn1or2();
 
 		/** wire con */
 		Technology.NodeLayer letterJ;
@@ -1337,9 +1337,6 @@ public class Schematics extends Technology
 	{
 		NodeProto prototype = ni.getProto();
 		if (!(prototype instanceof PrimitiveNode)) return null;
-
-		// see if the node is "wiped" (not drawn)
-		if (ni.isWiped()) return null;
 
 		PrimitiveNode np = (PrimitiveNode)prototype;
 		if (np == wirePinNode)

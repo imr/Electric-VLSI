@@ -37,7 +37,6 @@ import java.awt.Toolkit;
 import java.awt.Cursor;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.lang.reflect.Method;
 
 import javax.swing.JFrame;
 import javax.swing.JDesktopPane;
@@ -159,11 +158,7 @@ public class TopLevel extends JFrame
 			} else if (osName.startsWith("mac"))
 			{
 				os = OS.MACINTOSH;
-				System.setProperty("com.apple.macos.useScreenMenuBar", "true");
-				System.setProperty("apple.laf.useScreenMenuBar", "true");
-				System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Electric");
 				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.MacLookAndFeel");
-				macOSXRegistration();
 			}
 		} catch(Exception e) {}
 
@@ -281,40 +276,6 @@ public class TopLevel extends JFrame
 		WindowsEvents() { super(); }
 
 		public void windowClosing(WindowEvent evt) { MenuCommands.quitCommand(); }
-	}
-	
-	/**
-	 * Generic registration with the Mac OS X application menu.
-	 * Attempts to register with the Apple EAWT.
-	 * This method calls OSXAdapter.registerMacOSXApplication().
-	 */
-	private static void macOSXRegistration()
-	{
-		try
-		{
-			Class osxAdapter = Class.forName("com.sun.electric.tool.user.ui.OSXAdapter");
-			Class[] defArgs = {};
-			Method registerMethod = osxAdapter.getDeclaredMethod("registerMacOSXApplication", defArgs);
-			if (registerMethod != null)
-			{
-				Object[] args = {};
-				registerMethod.invoke(osxAdapter, args);
-			}
-		} catch (NoClassDefFoundError e)
-		{
-			// This will be thrown first if the OSXAdapter is loaded on a system without the EAWT
-			// because OSXAdapter extends ApplicationAdapter in its def
-			System.err.println("This version of Mac OS X does not support the Apple EAWT.  Application Menu handling has been disabled (" + e + ")");
-		} catch (ClassNotFoundException e)
-		{
-			// This shouldn't be reached; if there's a problem with the OSXAdapter we should get the 
-			// above NoClassDefFoundError first.
-			System.err.println("This version of Mac OS X does not support the Apple EAWT.  Application Menu handling has been disabled (" + e + ")");
-		} catch (Exception e)
-		{
-			System.err.println("Exception while loading the OSXAdapter:");
-			e.printStackTrace();
-		}
 	}
 	
 }
