@@ -3062,7 +3062,6 @@ public class MoCMOS extends Technology
 	{
 		MOSRules rules = new MOSRules(this);
 
-		//rules.displayMessage = null;
 		// load the DRC tables from the explanation table
 		rules.wideLimit = new Double(WIDELIMIT);
 		for(int pass=0; pass<2; pass++)
@@ -3290,6 +3289,7 @@ public class MoCMOS extends Technology
 				}
 			}
 		}
+		rules.calculateNumberOfRules();
 		return rules;
 	}
 

@@ -45,10 +45,10 @@ public class MOSRules implements DRCRules {
 	/** names of nodes */										public String [] nodeNames;
 	/** minimim node size in the technology */					public Double [] minNodeSize;
 	/** minimim node size rules */								public String [] minNodeSizeRules;
+	/** number of rules stored */                               private int      numberOfRules;
+		/** DEFAULT null rule */                                private final static int MOSNORULE = -1;
 
 	public MOSRules() {}
-
-	//public int getNumLayers() { return numLayers; }
         
 	public void setMinNodeSize(int index, double value)
 	{
@@ -107,20 +107,20 @@ public class MOSRules implements DRCRules {
 		// clear all tables
 		for(int i=0; i<uTSize; i++)
 		{
-			conList[i] = new Double(-1);         conListRules[i] = "";
-			unConList[i] = new Double(-1);       unConListRules[i] = "";
+			conList[i] = new Double(MOSNORULE);         conListRules[i] = "";
+			unConList[i] = new Double(MOSNORULE);       unConListRules[i] = "";
 
-			conListWide[i] = new Double(-1);     conListWideRules[i] = "";
-			unConListWide[i] = new Double(-1);   unConListWideRules[i] = "";
+			conListWide[i] = new Double(MOSNORULE);     conListWideRules[i] = "";
+			unConListWide[i] = new Double(MOSNORULE);   unConListWideRules[i] = "";
 
-			conListMulti[i] = new Double(-1);    conListMultiRules[i] = "";
-			unConListMulti[i] = new Double(-1);  unConListMultiRules[i] = "";
+			conListMulti[i] = new Double(MOSNORULE);    conListMultiRules[i] = "";
+			unConListMulti[i] = new Double(MOSNORULE);  unConListMultiRules[i] = "";
 
-			edgeList[i] = new Double(-1);        edgeListRules[i] = "";
+			edgeList[i] = new Double(MOSNORULE);        edgeListRules[i] = "";
 		}
 		for(int i=0; i<numLayers; i++)
 		{
-			minWidth[i] = new Double(-1);        minWidthRules[i] = "";
+			minWidth[i] = new Double(MOSNORULE);        minWidthRules[i] = "";
 		}
 
 		// build node size tables
@@ -295,6 +295,45 @@ public class MOSRules implements DRCRules {
         if (edgeList[pIndex].doubleValue() >= 0) return true;
         return false;
     }
+
+	/**
+	 * Method to retrieve total number of rules stored
+	 * @return
+	 */
+	public int getNumberOfRules()
+	{
+		return numberOfRules;
+	}
+
+	/**
+	 * Method to calculate final number of rules
+	 */
+	public void calculateNumberOfRules()
+	{
+		int count = 0;
+		for(int i = 0; i < uTSize; i++)
+		{
+			//Uncon
+			if (unConList[i].doubleValue() > MOSNORULE) count++;
+			if (unConListWide[i].doubleValue() > MOSNORULE) count++;;
+			if (unConListMulti[i].doubleValue() > MOSNORULE) count++;
+			// Con
+			if (conList[i].doubleValue() > MOSNORULE) count++;
+			if (conListWide[i].doubleValue() > MOSNORULE) count++;;
+			if (conListMulti[i].doubleValue() > MOSNORULE) count++;
+			// Edge rules
+			if (edgeList[i].doubleValue() > MOSNORULE) count++;
+		}
+		for(int i=0; i<numLayers; i++)
+		{
+			if (minWidth[i].doubleValue() > MOSNORULE) count++;
+		}
+		for(int i=0; i<minNodeSize.length; i++)
+		{
+			if (minNodeSize[i].doubleValue() > MOSNORULE) count++;
+		}
+		numberOfRules = count;
+	}
 
     /**
 	 * Method to get the minimum <type> rule for a Layer

@@ -216,6 +216,13 @@ public class Quick
     // returns the number of errors found
 	private int doCheck(Cell cell, int count, Geometric [] geomsToCheck, boolean [] validity, Rectangle2D bounds)
 	{
+
+		// Check if there are DRC rules for particular tech
+		DRCRules rules = DRC.getRules(cell.getTechnology());
+
+		// Nothing to check for this particular technology
+		if (rules == null || rules.getNumberOfRules() == 0) return 0;
+
 		// get the current DRC options
 		onlyFirstError = DRC.isOneErrorPerCell();
 		ignoreCenterCuts = DRC.isIgnoreCenterCuts();
@@ -575,6 +582,7 @@ public class Quick
 		if (isSpecialNode(np)) return false; // Oct 5;
 
         if (np.getFunction() == PrimitiveNode.Function.PIN) return false; // Sept 30
+
 		// get all of the polygons on this node
 		Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
 		convertPseudoLayers(ni, nodeInstPolyList);

@@ -61,6 +61,7 @@ public interface DRCRules {
     public DRCRules.DRCRule getSpacingRule(Technology tech, Layer layer1, Layer layer2, boolean connected,
                                            boolean multiCut, double wideS);
     public boolean isAnyRule(Technology tech, Layer layer1, Layer layer2);
+	public int getNumberOfRules();
     public DRCRules.DRCRule getMinValue(Layer layer, int type);
     public void applyDRCOverrides(String override, Technology tech);
     
