@@ -202,17 +202,17 @@ public class TextInfoPanel extends javax.swing.JPanel
         if (initialSize.isAbsolute())
         {
             pointsButton.setSelected(true);
-            pointsSize.setText(Double.toString(initialSize.getSize()));
+            pointsSize.setText(TextUtils.formatDouble(initialSize.getSize(), 2));
             unitsSize.setText("");
             if (wnd != null)
             {
                 double unitSize = wnd.getTextUnitSize((int)initialSize.getSize());
-                unitsSize.setText(Double.toString(unitSize));
+                unitsSize.setText(TextUtils.formatDouble(unitSize, 2));
             }
         } else
         {
             unitsButton.setSelected(true);
-            unitsSize.setText(Double.toString(initialSize.getSize()));
+            unitsSize.setText(TextUtils.formatDouble(initialSize.getSize(), 2));
             pointsSize.setText("");
             if (wnd != null)
             {
