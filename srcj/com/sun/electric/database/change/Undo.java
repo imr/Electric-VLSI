@@ -765,8 +765,9 @@ public class Undo
 
 	/**
 	 * ChangeBatch describes a batch of changes.
+	 * There are no public methods or field variables.
 	 */
-	public static class ChangeBatch
+	static class ChangeBatch
 	{
 		private List changes;
 		private int batchNumber;
@@ -1121,7 +1122,7 @@ public class Undo
 		return changeCells.iterator();
 	}
 
-	/*
+	/**
 	 * Routine to display all changes.
 	 */
 	public static void showHistoryList()
