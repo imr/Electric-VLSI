@@ -212,6 +212,7 @@ public abstract class ArcProto
 	/** right shift for AFUNCTION */							private static final int AFUNCTIONSH  =         8;
 //	/** angle increment for this type of arc */					private static final int AANGLEINC  =   017760000;
 //	/** right shift for AANGLEINC */							private static final int AANGLEINCSH  =        13;
+    /** set if arc is not selectable in palette */			    private static final int ARCSPECIAL  = 010000000;
 	/** set if arc is selectable by edge, not area */			private static final int AEDGESELECT  = 020000000;
 	/** set if arc is invisible and unselectable */				private static final int AINVISIBLE   = 040000000;
 	/** set if arc is not used */								private static final int ANOTUSED  = 020000000000;
@@ -585,6 +586,18 @@ public abstract class ArcProto
 	 * @return true if instances of this ArcProto can be selected by their edge.
 	 */
 	public boolean isEdgeSelect() { return (userBits & AEDGESELECT) != 0; }
+
+    /**
+	 * Method to allow instances of this ArcProto to be special in menu.
+	 * Valid for menu display
+	 */
+	public void setSpecialArc() { userBits |= ARCSPECIAL; }
+
+	/**
+	 * Method to tell if instaces of this ArcProto are special (don't appear in menu).
+	 * Valid for menu display
+	 */
+	public boolean isSpecialArc() { return (userBits & ARCSPECIAL) != 0; }
 
 	/**
 	 * Method to set the function of this ArcProto.

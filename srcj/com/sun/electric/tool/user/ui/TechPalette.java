@@ -1189,6 +1189,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             {
                 PrimitiveNode otherNp = (PrimitiveNode)it.next();
                 if (otherNp.getGroupFunction() != groupFunction) continue;
+                if (otherNp.isSpecialNode()) continue;
                 if (otherNp.getDefHeight() > largest) largest = otherNp.getDefHeight();
                 if (otherNp.getDefWidth() > largest) largest = otherNp.getDefWidth();
             }
@@ -1240,6 +1241,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 for(Iterator it = ap.getTechnology().getArcs(); it.hasNext(); )
                 {
                     PrimitiveArc otherAp = (PrimitiveArc)it.next();
+                    if (otherAp.isSpecialArc()) continue;  // these are not drawn in palette
                     double wid = otherAp.getDefaultWidth();
                     if (wid+menuArcLength > largest) largest = wid+menuArcLength;
                 }
