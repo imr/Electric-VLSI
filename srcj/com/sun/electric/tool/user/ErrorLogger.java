@@ -553,9 +553,9 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 	 * Method to determine if existing report was not looged already
 	 * as error or warning
 	 */
-	public synchronized boolean findMessage(Cell cell, Geometric geom1, Cell cell2, Geometric geom2, boolean onlyError)
+	public synchronized boolean findMessage(Cell cell, Geometric geom1, Cell cell2, Geometric geom2, boolean searchInError)
 	{
-        if (onlyError)
+        if (searchInError)
         {
             for (int i = 0; i < allErrors.size(); i++)
             {
