@@ -92,33 +92,7 @@ import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.Viewer;
 import com.sun.j3d.utils.universe.ViewingPlatform;
 
-import javax.media.j3d.Alpha;
-import javax.media.j3d.AmbientLight;
-import javax.media.j3d.Appearance;
-import javax.media.j3d.Background;
-import javax.media.j3d.BoundingBox;
-import javax.media.j3d.BoundingSphere;
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.Canvas3D;
-import javax.media.j3d.ColoringAttributes;
-import javax.media.j3d.DirectionalLight;
-import javax.media.j3d.GeometryArray;
-import javax.media.j3d.ImageComponent;
-import javax.media.j3d.ImageComponent2D;
-import javax.media.j3d.Light;
-import javax.media.j3d.LineAttributes;
-import javax.media.j3d.Material;
-import javax.media.j3d.Node;
-import javax.media.j3d.PolygonAttributes;
-import javax.media.j3d.PositionInterpolator;
-import javax.media.j3d.RenderingAttributes;
-import javax.media.j3d.Screen3D;
-import javax.media.j3d.Shape3D;
-import javax.media.j3d.TextureAttributes;
-import javax.media.j3d.Transform3D;
-import javax.media.j3d.TransformGroup;
-import javax.media.j3d.TransparencyAttributes;
-import javax.media.j3d.View;
+import javax.media.j3d.*;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -140,10 +114,9 @@ public class View3DWindow extends JPanel
 	private JMouseZoom zoomB;
 	private JMouseTranslate translateB;
 	private OffScreenCanvas3D offScreenCanvas3D;
-    private BranchGroup scene;
 
-    Alpha alpha = new Alpha (1,Alpha.INCREASING_ENABLE,0,0,1000,0,0,0,0,0);
-    PositionInterpolator inter;
+    Alpha alpha = new Alpha (-1,Alpha.INCREASING_ENABLE,0,0,1000,0,0,0,0,0);
+    Interpolator splineInterpolator;
 
 	/** the window frame containing this editwindow */      private WindowFrame wf;
 	/** reference to 2D view of the cell */                 private WindowContent view2D;
@@ -226,7 +199,7 @@ public class View3DWindow extends JPanel
 		canvas.addMouseListener(this);
 
 		// Create a simple scene and attach it to the virtual universe
-		scene = createSceneGraph(cell, infiniteBounds);
+		BranchGroup scene = createSceneGraph(cell, infiniteBounds);
 
 		ViewingPlatform viewP = new ViewingPlatform(4);
 		viewP.setCapability(ViewingPlatform.ALLOW_CHILDREN_READ);
@@ -384,11 +357,7 @@ public class View3DWindow extends JPanel
         pickCanvas.setMode(PickCanvas.GEOMETRY_INTERSECT_INFO);
         pickCanvas.setTolerance(4.0f);
 
-        // Interpolation
-        inter = new PositionInterpolator(alpha, objTrans, new Transform3D(), 0, 1);
-        inter.setEnable(false);
-        inter.setSchedulingBounds(infiniteBounds);
-        objTrans.addChild(inter);
+        setInterpolator(infiniteBounds);
 
 		// Have Java 3D perform optimizations on this scene graph.
 	    objRoot.compile();
@@ -1116,43 +1085,13 @@ public class View3DWindow extends JPanel
      * @param y
      * @param z
      */
-    public static void set3DCameraOld(WindowContent content, Double x, Double y, Double z)
+    public static void set3DCamera(WindowContent content, Double x, Double y, Double z)
     {
         if (!(content instanceof View3DWindow)) return;
         View3DWindow wnd = (View3DWindow)content;
-        Cell cell = wnd.cell;
 
-        for (Iterator it = cell.getNodes(); it.hasNext();)
-        {
-            NodeInst ni = (NodeInst)it.next();
-            if (ni.getProto() == Artwork.tech.pinNode)
-            {
-                Poly [] polyList = Artwork.tech.getShapeOfNode(ni);
-                System.out.println("Art " + ni.getBounds() + " " +
-                        polyList[0].getCenterX() + " " + polyList[0].getCenterY());
-
-            }
-        }
-        // Just stopping the motion
-        if (x == null)
-        {
-            wnd.inter.setEnable(false);
-            return;
-        }
-//	    angle += Math.toRadians(10.0);
-//	    trans.rotY(angle);
-	    //objTrans.setTransform(t);
-        Transform3D t = new Transform3D();
-        //objTrans.getTransform(t);
-        Point3d view = new Point3d(x.doubleValue(), y.doubleValue(), z.doubleValue());
-        Vector3d up = new Vector3d(0,0,1);
-        Point3d center = new Point3d(wnd.cell.getBounds().getCenterX(), wnd.cell.getBounds().getCenterY(), -10);
-        t.lookAt(view, center, up);
-        t.invert();
-        wnd.inter.setEnable(false);
-        wnd.inter.setTransformAxis(t);
-        wnd.inter.setEnable(true);
-        //wnd.inter.initialize();
+        boolean state = wnd.splineInterpolator.getEnable();
+        wnd.splineInterpolator.setEnable(!state);
     }
 
 	/**
@@ -1577,24 +1516,58 @@ public class View3DWindow extends JPanel
 
     // Setting Camera functions
 
-    public static void set3DCamera(WindowContent content, Double x, Double y, Double z)
+    private void setInterpolator(BoundingSphere infiniteBounds)
     {
-        KBKeyFrame[] splineKeyFrames = new KBKeyFrame[6];
-       BranchGroup behaviorBranch = new BranchGroup();
+        //KBKeyFrame[] splineKeyFrames = new KBKeyFrame[6];
+        BranchGroup behaviorBranch = new BranchGroup();
 
-        if (!(content instanceof View3DWindow)) return;
-        View3DWindow wnd = (View3DWindow)content;
-        Cell cell = wnd.cell;
+        //setupSplineKeyFrames (splineKeyFrames);
+        Transform3D yAxis = new Transform3D();
+        List polys = new ArrayList();
 
-       setupSplineKeyFrames (splineKeyFrames);
-       Transform3D yAxis = new Transform3D();
-       Interpolator splineInterpolator =
-         new KBRotPosScaleSplinePathInterpolator(wnd.alpha, wnd.objTrans,
+        for (Iterator it = cell.getNodes(); it.hasNext();)
+        {
+            NodeInst ni = (NodeInst)it.next();
+            if (ni.getProto() == Artwork.tech.pinNode)
+            {
+                Poly [] polyList = Artwork.tech.getShapeOfNode(ni);
+                System.out.println("Art " + ni.getBounds() + " " +
+                        polyList[0].getCenterX() + " " + polyList[0].getCenterY());
+                polys.add(polyList[0]);
+            }
+        }
+
+        KBKeyFrame[] splineKeyFrames = new KBKeyFrame[polys.size()];
+        for (int i = 0; i < polys.size(); i++)
+        {
+            splineKeyFrames[i] = getNextKeyFrame((float)((float)i/(polys.size()-1)), (Poly)polys.get(i));
+        }
+        splineInterpolator = new KBRotPosScaleSplinePathInterpolator(alpha, objTrans,
                                                   yAxis, splineKeyFrames);
-       splineInterpolator.setSchedulingBounds((BoundingSphere)wnd.scene.getBounds());
+        splineInterpolator.setSchedulingBounds(infiniteBounds);
         behaviorBranch.addChild(splineInterpolator);
-       //wnd.objTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE); 
-       wnd.objTrans.addChild(behaviorBranch);
+        splineInterpolator.setEnable(false);
+        objTrans.addChild(behaviorBranch);
+    }
+
+    /**
+     * Method to generate each individual frame key for the interporlation
+     * based on Poly information
+     * @param value
+     * @param poly
+     * @return
+     */
+    private static KBKeyFrame getNextKeyFrame(float value, Poly poly)
+    {
+        // Prepare spline keyframe data
+        Vector3f pos = new Vector3f ((float)poly.getCenterX(), (float)poly.getCenterY(), 0);
+        Point3f p   = new Point3f (pos);            // position
+        float head  = 0.0f; //(float)Math.PI/2.0f;           // heading
+        float pitch = 0.0f;                          // pitch
+        float bank  = 0.0f;                          // bank
+        Point3f s   = new Point3f(1.0f, 1.0f, 1.0f); // uniform scale
+        KBKeyFrame key = new KBKeyFrame(value, 1, p, head, pitch, bank, s, 0.0f, 0.0f, 0.0f);
+        return key;
     }
 
     private static void setupSplineKeyFrames (KBKeyFrame[] splineKeyFrames) {
