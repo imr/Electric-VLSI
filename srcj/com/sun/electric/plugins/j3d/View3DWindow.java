@@ -122,6 +122,8 @@ public class View3DWindow extends JPanel
 	/** Highlighter for this window */                      private Highlighter highlighter;
 	private PickCanvas pickCanvas;
 	/** Lis with all Shape3D drawn per ElectricObject */    private HashMap electricObjectMap = new HashMap();
+    private boolean oneTransformPerNode = false;
+    /** Map with object transformation for individual moves */ private HashMap transformGroupMap = new HashMap();
 
 	// Done only once.
 	/** cell has a unique appearance **/                    private static final JAppearance cellApp = new JAppearance(null, TransparencyAttributes.SCREEN_DOOR, 0);
@@ -303,7 +305,6 @@ public class View3DWindow extends JPanel
 		bg.setApplicationBounds(infiniteBounds);
 		objRoot.addChild(bg);
 
-		//addCell(cell);
 		View3DEnumerator view3D = new View3DEnumerator();
 		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, view3D);
 
@@ -630,6 +631,10 @@ public class View3DWindow extends JPanel
             if (boxList != null) list.addAll(boxList);
         }
 		electricObjectMap.put(no, list);
+        for (int i = 0; i < list.size(); i++)
+        {
+            transformGroupMap.put(list.get(i), objTrans);
+        }
 	}
 
     /**
@@ -855,6 +860,39 @@ public class View3DWindow extends JPanel
 		//WindowFrame.curMouseListener.mouseReleased(evt);
 	}
 
+    /**
+     * Method to rotate individual groups
+     * @param posX
+     * @param posY
+     * @param posZ
+     */
+    public void moveAndRotate(double posX, double posY, double posZ,
+                              double rotX, double rotY, double rotZ)
+    {
+        Vector3d extraTrans = new Vector3d(posX, posY, posZ);
+        Vector3d rotation = new Vector3d(rotX, rotY, rotZ);
+        Transform3D transformX = new Transform3D();
+        Transform3D currXform = new Transform3D();
+
+        for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext();)
+        {
+            Highlight h = (Highlight)it.next();
+			Shape3D obj = (Shape3D)h.getObject();
+            TransformGroup grp = (TransformGroup)transformGroupMap.get(obj);
+
+            grp.getTransform(currXform);
+            transformX.set(extraTrans);
+            boolean invert = false;
+            if (invert) {
+                currXform.mul(currXform, transformX);
+            } else {
+                currXform.mul(transformX, currXform);
+            }
+            currXform.setEuler(rotation);
+            grp.setTransform(currXform);
+        }
+    }
+
 	/**
 	 * Internal method to hightlight objects
 	 * @param toSelect true if element must be highlighted
@@ -878,7 +916,7 @@ public class View3DWindow extends JPanel
 				JAppearance app = (JAppearance)obj.getAppearance();
 				obj.setAppearance(JAppearance.highligtAp);
 				//app.getRenderingAttributes().setVisible(false);
-				JAppearance.highligtAp.seGraphics(app.getGraphics());
+				JAppearance.highligtAp.setGraphics(app.getGraphics());
 				if (view2D != null && do2D)
 				{
 					//Geometry geo = obj.getGeometry();
@@ -1059,7 +1097,15 @@ public class View3DWindow extends JPanel
 			if (root.getType() != AffineTransform.TYPE_IDENTITY)
 				trans.preConcatenate(root);
 
-			addNode(ni, trans, objTrans);
+            TransformGroup grp = objTrans;
+            if (oneTransformPerNode)
+            {
+                grp = new TransformGroup();
+                grp.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+		        grp.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+                objTrans.addChild(grp);
+            }
+			addNode(ni, trans, grp);
 
 			// For cells, it should go into the hierarchy
             return ni.isExpanded();

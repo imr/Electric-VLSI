@@ -59,8 +59,11 @@ public class J3DViewDialog extends EDialog
         getRootPane().setDefaultButton(start);
         spline.addItem("KB Spline");
         spline.addItem("TCB Spline");
-        slider.addChangeListener(view3d.jAlpha);
-        auto.setSelected(view3d.jAlpha.getAutoMode());
+        if (view3d.jAlpha != null)
+        {
+            slider.addChangeListener(view3d.jAlpha);
+            auto.setSelected(view3d.jAlpha.getAutoMode());
+        }
 		finishInitialization();
 	}
 
@@ -79,6 +82,19 @@ public class J3DViewDialog extends EDialog
         slider = new javax.swing.JSlider();
         auto = new javax.swing.JCheckBox();
         spline = new javax.swing.JComboBox();
+        separator = new javax.swing.JSeparator();
+        xLabel = new javax.swing.JLabel();
+        xField = new javax.swing.JTextField();
+        yLabel = new javax.swing.JLabel();
+        yField = new javax.swing.JTextField();
+        zLabel = new javax.swing.JLabel();
+        zField = new javax.swing.JTextField();
+        xRotLabel = new javax.swing.JLabel();
+        xRotField = new javax.swing.JTextField();
+        yRotLabel = new javax.swing.JLabel();
+        yRotField = new javax.swing.JTextField();
+        zRotLabel = new javax.swing.JLabel();
+        zRotField = new javax.swing.JTextField();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -144,6 +160,91 @@ public class J3DViewDialog extends EDialog
         gridBagConstraints.gridy = 1;
         getContentPane().add(spline, gridBagConstraints);
 
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        getContentPane().add(separator, gridBagConstraints);
+
+        xLabel.setText("X:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        getContentPane().add(xLabel, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        getContentPane().add(xField, gridBagConstraints);
+
+        yLabel.setText("Y:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        getContentPane().add(yLabel, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        getContentPane().add(yField, gridBagConstraints);
+
+        zLabel.setText("Z:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        getContentPane().add(zLabel, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        getContentPane().add(zField, gridBagConstraints);
+
+        xRotLabel.setText("Rot X:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        getContentPane().add(xRotLabel, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        getContentPane().add(xRotField, gridBagConstraints);
+
+        yRotLabel.setText("Rot Y:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
+        getContentPane().add(yRotLabel, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        getContentPane().add(yRotField, gridBagConstraints);
+
+        zRotLabel.setText("Rot Z:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 9;
+        getContentPane().add(zRotLabel, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        getContentPane().add(zRotField, gridBagConstraints);
+
         pack();
     }//GEN-END:initComponents
 
@@ -156,7 +257,11 @@ public class J3DViewDialog extends EDialog
             start.setText("Stop");
         else
            start.setText("Start");
-        view3D.set3DCamera(spline.getSelectedIndex());
+        //view3D.set3DCamera(spline.getSelectedIndex());
+        view3D.moveAndRotate(TextUtils.atof(xField.getText()),
+                TextUtils.atof(yField.getText()), TextUtils.atof(zField.getText()),
+                        TextUtils.atof(xRotField.getText()),
+                TextUtils.atof(yRotField.getText()), TextUtils.atof(zRotField.getText()));
     }//GEN-LAST:event_startActionPerformed
 
 	private void cancelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cancelActionPerformed
@@ -174,9 +279,22 @@ public class J3DViewDialog extends EDialog
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox auto;
     private javax.swing.JButton cancel;
+    private javax.swing.JSeparator separator;
     private javax.swing.JSlider slider;
     private javax.swing.JComboBox spline;
     private javax.swing.JButton start;
+    private javax.swing.JTextField xField;
+    private javax.swing.JLabel xLabel;
+    private javax.swing.JTextField xRotField;
+    private javax.swing.JLabel xRotLabel;
+    private javax.swing.JTextField yField;
+    private javax.swing.JLabel yLabel;
+    private javax.swing.JTextField yRotField;
+    private javax.swing.JLabel yRotLabel;
+    private javax.swing.JTextField zField;
+    private javax.swing.JLabel zLabel;
+    private javax.swing.JTextField zRotField;
+    private javax.swing.JLabel zRotLabel;
     // End of variables declaration//GEN-END:variables
 
 }

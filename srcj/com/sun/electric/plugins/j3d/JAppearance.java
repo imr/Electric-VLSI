@@ -51,7 +51,7 @@ public class JAppearance extends Appearance
         this.graphics = graphics;
         setOtherAppearanceValues(this, mode, factor);
     }
-    public void seGraphics(EGraphics graphics) {this.graphics = graphics;}
+    public void setGraphics(EGraphics graphics) {this.graphics = graphics;}
     public EGraphics getGraphics() { return graphics;}
 
     private static void setOtherAppearanceValues(JAppearance ap,  int mode, float factor)
