@@ -623,20 +623,20 @@ public class ERCWellCheck
                 if (check.mode == GeometryHandler.ALGO_SWEEP)
                     ((PolySweepMerge)thisMerge).postProcess();
 
-			// merge everything sub trees
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
-			{
-				NodeInst ni = (NodeInst)it.next();
-				NodeProto subNp = ni.getProto();
-				if (subNp instanceof PrimitiveNode) continue;
-				// get sub-merge information for the cell instance
-				GeometryHandler subMerge = (GeometryHandler)check.cellMerges.get(subNp);
-				if (subMerge != null)
-				{
-					AffineTransform tTrans = ni.translateOut(ni.rotateOut());
-					thisMerge.addAll(subMerge, tTrans);
-				}
-			}
+                // merge everything sub trees
+                for(Iterator it = cell.getNodes(); it.hasNext(); )
+                {
+                    NodeInst ni = (NodeInst)it.next();
+                    NodeProto subNp = ni.getProto();
+                    if (subNp instanceof PrimitiveNode) continue;
+                    // get sub-merge information for the cell instance
+                    GeometryHandler subMerge = (GeometryHandler)check.cellMerges.get(subNp);
+                    if (subMerge != null)
+                    {
+                        AffineTransform tTrans = ni.translateOut(ni.rotateOut());
+                        thisMerge.addAll(subMerge, tTrans);
+                    }
+                }
 	        }
 
 	        // To mark if cell is already done
