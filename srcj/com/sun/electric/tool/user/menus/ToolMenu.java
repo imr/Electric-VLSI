@@ -313,9 +313,9 @@ public class ToolMenu {
 		generationSubMenu.addMenuItem("ROM Generator...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ROMGenerator.generateROM(); }});
 		generationSubMenu.addMenuItem("Generate gate layouts (MoCMOS)", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateLayoutGenerator(TSMC90.tech); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateLayoutGenerator(MoCMOS.tech); }});
         generationSubMenu.addMenuItem("Generate gate layouts (TSMC90)", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateLayoutGenerator(MoCMOS.tech); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateLayoutGenerator(TSMC90.tech); }});
 
 		toolMenu.addSeparator();
 
