@@ -333,6 +333,8 @@ public abstract class Router {
         double width = ap.getDefaultWidth();
         for (Iterator it = pi.getConnections(); it.hasNext(); ) {
             Connection c = (Connection)it.next();
+            ArcInst ai = c.getArc();
+            if (ai.getProto() != ap) continue;
             double newWidth = c.getArc().getWidth() - c.getArc().getProto().getWidthOffset();
             if (width < newWidth) width = newWidth;
         }

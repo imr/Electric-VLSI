@@ -41,7 +41,7 @@ public class ChangeCellGroup extends EDialog {
         cellNameLabel.setText("Change Cell Group for Cell: "+cell.describe());
 
         // populate cell group combo box
-        populateCellGroupsComboBox(initialLibrary);
+        populateCellGroupsComboBox(cell, initialLibrary);
 
         // get last state of dialog
         int selected = prefs.getInt(selectedRadioButton, 0);
@@ -54,13 +54,14 @@ public class ChangeCellGroup extends EDialog {
         pack();
     }
 
-    private void populateCellGroupsComboBox(Library lib) {
+    private void populateCellGroupsComboBox(Cell cell, Library lib) {
         cellGroups.clear();
         cellGroupsComboBox.removeAllItems();
         for (Iterator it = lib.getCells(); it.hasNext(); ) {
             Cell c = (Cell)it.next();
             Cell.CellGroup cg = c.getCellGroup();
             if (cg == null) continue;
+            if (cg == cell.getCellGroup()) continue;
             if (!cellGroups.contains(cg)) {
                 cellGroups.add(cg);
                 cellGroupsComboBox.addItem(cg.getName());

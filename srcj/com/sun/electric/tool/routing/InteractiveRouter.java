@@ -35,6 +35,7 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.geometry.Dimension2D;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.*;
 
@@ -418,7 +419,9 @@ public abstract class InteractiveRouter extends Router {
             PortInst pi = (PortInst)obj;
             NodeInst ni = pi.getNodeInst();
             PortProto pp = pi.getPortProto();
-            Poly poly = ni.getShapeOfPort(pp, clicked); // this is for multi-site ports
+            boolean compressPort = false;
+            if (ni.getProto() instanceof PrimitiveNode) compressPort = true;
+            Poly poly = ni.getShapeOfPort(pp, clicked, compressPort); // this is for multi-site ports
             return poly;
         }
         if (obj instanceof ArcInst) {

@@ -1342,7 +1342,7 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public Poly getShapeOfPort(PortProto thePort)
 	{
-		return getShapeOfPort(thePort, null);
+		return getShapeOfPort(thePort, null, false);
 	}
 
 	/**
@@ -1352,10 +1352,13 @@ public class NodeInst extends Geometric implements Nodable
 	 * @param selectPt if not null, it requests a new location on the port,
 	 * away from existing arcs, and close to this point.
 	 * This is useful for "area" ports such as the left side of AND and OR gates.
+     * @param compressPort this is an experimental flag that will reduce the *untransformed*
+     * port width to zero if the primitive node's width is the default width. Likewise with
+     * the port height.
 	 * @return a Poly that describes the location of the Export.
 	 * The Poly is transformed to account for rotation on this NodeInst.
 	 */
-	public Poly getShapeOfPort(PortProto thePort, Point2D selectPt)
+	public Poly getShapeOfPort(PortProto thePort, Point2D selectPt, boolean compressPort)
 	{
 		NodeInst ni = this;
 		PortProto pp = thePort;
@@ -1373,6 +1376,22 @@ public class NodeInst extends Geometric implements Nodable
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		Technology tech = np.getTechnology();
 		Poly poly = tech.getShapeOfPort(ni, (PrimitivePort)pp, selectPt);
+
+        // we only compress port if it is a rectangle
+        Rectangle2D box = poly.getBox();
+        if (compressPort && (box != null)) {
+            if (ni.getXSize() == np.getDefWidth()) {
+                double x = poly.getCenterX();
+                box = new Rectangle2D.Double(x, box.getMinY(), 0, box.getHeight());
+            }
+            if (ni.getYSize() == np.getDefHeight()) {
+                double y = poly.getCenterY();
+                box = new Rectangle2D.Double(box.getMinX(), y, box.getWidth(), 0);
+            }
+            poly = new Poly(box);
+        }
+
+        // transform port out to current level
 		poly.transform(trans);
 		return poly;
 	}
