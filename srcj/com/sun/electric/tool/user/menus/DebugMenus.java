@@ -55,6 +55,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.extract.LayerCoverageJob;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.io.FileType;
@@ -753,6 +754,26 @@ public class DebugMenus {
      */
     public static void testBash()
     {
+        String regressionname = "sportTop";
+String testname = "sportTop";
+String testpath = "sport/correctedData/";
+String testlib = "sport";
+String logname = "output/"+regressionname+"IO-"+Version.getVersion()+".log";
+
+try {
+  TopLevel.getMessagesWindow().save(logname);
+
+  LayoutLib.openLibForRead("../../data/"+testpath+"/"+testlib+".jelib");
+  Library rootLib = Library.findLibrary(testlib);
+  Cell lay = rootLib.findNodeProto(testname+"{lay}");
+
+  FileMenu.SaveLibrary job = new FileMenu.SaveLibrary(rootLib, "output"+testlib, FileType.JELIB, false);
+
+} catch (Exception e) {
+  System.out.println("exception: "+e);
+  e.printStackTrace();
+  System.exit(1);
+}
     }
 
     public static void threeViewCommand()
