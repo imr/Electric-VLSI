@@ -53,8 +53,9 @@ public class ElectricObject
 	/** Index of this ElectricObject */						private int index;
 
 	/** a list of all variable keys */						private static HashMap varKeys = new HashMap();
-	/** key for NODE_NAME */								public static final Variable.Key nodeNameKey = new Variable.Key(NodeInst.NODE_NAME);
-	/** key for VAR_ARC_NAME */								public static final Variable.Key arcNameKey = new Variable.Key(ArcInst.VAR_ARC_NAME);
+	/** all variable keys addressed by lower case name */	private static HashMap varLowCaseKeys = new HashMap();
+	/** key for NODE_NAME */								public static final Variable.Key nodeNameKey = newKey(NodeInst.NODE_NAME);
+	/** key for VAR_ARC_NAME */								public static final Variable.Key arcNameKey = newKey(ArcInst.VAR_ARC_NAME);
 	{
 		varKeys.put(nodeNameKey.getName(), nodeNameKey);
 		varKeys.put(arcNameKey.getName(), arcNameKey);
@@ -74,10 +75,17 @@ public class ElectricObject
 	 * @param name the name of the Variable.
 	 * @return the Variable with that name, or null if there is no such Variable.
 	 */
-	public Variable getVar(String name)
+	public Variable getVar(String name) { Variable.Key key = findKey(name); return key != null ? getVar(key) : null; }
+
+	/**
+	 * Routine to return the Variable on this ElectricObject with a given key.
+	 * @param key the key of the Variable.
+	 * @return the Variable with that key, or null if there is no such Variable.
+	 */
+	public Variable getVar(Variable.Key key)
 	{
 		if (vars == null) return null;
-		Variable var = (Variable)vars.get(name);
+		Variable var = (Variable)vars.get(key);
 		return var;
 	}
 
@@ -87,9 +95,18 @@ public class ElectricObject
 	 * @param type the required type of the Variable.
 	 * @return the Variable with that name and type, or null if there is no such Variable.
 	 */
-	public Variable getVar(String name, Class type)
+	public Variable getVar(String name, Class type) { Variable.Key key = findKey(name); return key != null ? getVar(key, type) : null; }
+
+	/**
+	 * Routine to return the Variable on this ElectricObject with a given key and type.
+	 * @param key the key of the Variable.
+	 * @param type the required type of the Variable.
+	 * @return the Variable with that key and type, or null if there is no such Variable.
+	 */
+	public Variable getVar(Variable.Key key, Class type)
 	{
-		Variable var = getVar(name);
+		if (vars == null) return null;
+		Variable var = (Variable)vars.get(key);
 		if (var == null) return null;
 		if (!type.isInstance(var.getObject())) return null;
 		return var;
@@ -225,63 +242,121 @@ public class ElectricObject
 	 * @param value the object to store in the Variable.
 	 * @return the Variable that has been created.
 	 */
-	public Variable setVar(String name, Object value)
+	public Variable setVar(String name, Object value) { return setVar(newKey(name), value); }
+
+	/**
+	 * Routine to create a Variable on this ElectricObject with the specified values.
+	 * @param key the key of the Variable.
+	 * @param value the object to store in the Variable.
+	 * @return the Variable that has been created.
+	 */
+	public Variable setVar(Variable.Key key, Object value)
 	{
 		checkChanging();
-		Variable.Key key = findKey(name);
-		if (key == null)
-		{
-			key = new Variable.Key(name);
-			varKeys.put(name, key);
-		}
-
 		if (vars == null)
 		{
 			vars = new HashMap();
 		}
-		Variable v = (Variable) vars.get(name);
-		if (v == null)
+		Variable oldVar = (Variable) vars.get(key);
+		if (oldVar != null)
 		{
-			v = new Variable(this, value, TextDescriptor.newNodeArcDescriptor(null), key);
-			vars.put(name, v);
-		} else
-		{
-			v.setObject(value);
+			lowLevelUnlinkVar(oldVar);
+			Undo.killVariable(this, oldVar);
 		}
+		Variable v = new Variable(this, value, TextDescriptor.newNodeArcDescriptor(null), key);
+		lowLevelLinkVar(v);
+		Undo.newVariable(this, v);
 		return v;
 	}
 
 	/**
+	 * Routine to delete a Variable from this ElectricObject.
+	 * @param key the key of the Variable to delete.
+	 */
+	public void delVar(Variable.Key key)
+	{
+		checkChanging();
+		if (vars == null) return;
+		Variable v = getVar(key);
+		if (v == null) return;
+		lowLevelUnlinkVar(v);
+		Undo.killVariable(this, v);
+	}
+
+	/**
+	 * Low-level access routine to link Variabke into this ElectricObject.
+	 * @param var Variable to link
+	 */
+	public void lowLevelLinkVar(Variable var)
+	{
+		vars.put(var.getKey(), var);
+	}
+
+	/**
+	 * Low-level access routine to unlink Variabke from this ElectricObject.
+	 * @param var Variable to unlink.
+	 */
+	public void lowLevelUnlinkVar(Variable var)
+	{
+		vars.remove(var.getKey());
+	}
+
+	/**
 	 * Routine to put an Object into an entry in an arrayed Variable on this ElectricObject.
-	 * @param name the name of the arrayed Variable.
+	 * @param key the key of the arrayed Variable.
 	 * @param value the object to store in an entry of the arrayed Variable.
 	 * @param index the location in the arrayed Variable to store the value.
 	 */
-	public void setVar(String name, Object value, int index)
+	public void setVar(Variable.Key key, Object value, int index)
 	{
 		checkChanging();
-		Variable v = getVar(name);
+		Variable v = getVar(key);
 		if (v == null) return;
 		Object addr = v.getObject();
 		if (addr instanceof Object[])
 		{
-			((Object[]) addr)[index] = value;
+			Object[] arr = (Object[])addr;
+			Object oldVal = arr[index];
+			arr[index] = value;
+			Undo.modifyVariable(this, v, index, oldVal);
 		}
 	}
 
 	/**
-	 * Routine to delete a Variable from this ElectricObject.
-	 * @param name the name of the Variable to delete.
+	 * Routine to insert an Object into an arrayed Variable on this ElectricObject.
+	 * @param key the key of the arrayed Variable.
+	 * @param index the location in the arrayed Variable to insert the value.
+	 * @param value the object to insert into the arrayed Variable.
 	 */
-	public void delVar(String name)
+	public void insertInVar(Variable.Key key, int index, Object value)
 	{
 		checkChanging();
-		if (vars == null) return;
-		Variable v = getVar(name);
-		if (v != null)
+		Variable v = getVar(key);
+		if (v == null) return;
+		Object addr = v.getObject();
+		if (addr instanceof Object[])
 		{
-			v.kill();
-			vars.remove(name);
+			v.lowLevelInsert(index, value);
+			Undo.insertVariable(this, v, index);
+		}
+	}
+
+	/**
+	 * Routine to delete an Object from an arrayed Variable on this ElectricObject.
+	 * @param key the key of the arrayed Variable.
+	 * @param index the location in the arrayed Variable to delete the value.
+	 */
+	public void deleteFromVar(Variable.Key key, int index)
+	{
+		checkChanging();
+		Variable v = getVar(key);
+		if (v == null) return;
+		Object addr = v.getObject();
+		if (addr instanceof Object[])
+		{
+			Object oldVal = ((Object[])addr)[index];
+			v.lowLevelDelete(index);
+			Undo.deleteVariable(this, v, index, oldVal);
 		}
 	}
 
@@ -299,7 +374,7 @@ public class ElectricObject
 			Object obj = var.getObject();
 			int flags = var.lowLevelGetFlags();
 			TextDescriptor td = var.getTextDescriptor();
-			Variable newVar = this.setVar(key.getName(), obj);
+			Variable newVar = this.setVar(key, obj);
 			if (newVar != null)
 			{
 				newVar.copyFlags(var);
@@ -547,6 +622,28 @@ public class ElectricObject
 	public static Variable.Key findKey(String name)
 	{
 		Variable.Key key = (Variable.Key)varKeys.get(name);
+		if (key == null)
+		{
+			String lowCaseName = name.toLowerCase();
+			if (!lowCaseName.equals(name))
+				key = (Variable.Key)varKeys.get(lowCaseName);
+		}
+		return key;
+	}
+
+	/**
+	 * Routine to find or create the Key object for a given Variable name.
+	 * Variable Key objects are caches of the actual string name of the Variable.
+	 * @param name given Variable name.
+	 * @return the Key object for a given Variable name.
+	 */
+	public static Variable.Key newKey(String name)
+	{
+		Variable.Key key = findKey(name);
+		if (key != null) return key;
+		key = new Variable.Key(name);
+		varKeys.put(name, key);
+		varLowCaseKeys.put(name.toLowerCase(), key);
 		return key;
 	}
 

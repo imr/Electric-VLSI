@@ -56,12 +56,12 @@ public interface Change
 
 	void newObject(ElectricObject obj);
 	void killObject(ElectricObject obj);
-	void newVariable(ElectricObject obj, Variable.Key key, int type);
-	void killVariable(ElectricObject obj, Variable.Key key, Object oldValue, TextDescriptor oldDescript);
+	void newVariable(ElectricObject obj, Variable var);
+	void killVariable(ElectricObject obj, Variable var);
 	void modifyVariableFlags(ElectricObject obj, Variable var, int oldFlags);
-	void modifyVariable(ElectricObject obj, Variable.Key key, int type, int index, Object oldValue);
-	void insertVariable(ElectricObject obj, Variable.Key key, int type, int index);
-	void deleteVariable(ElectricObject obj, Variable.Key key, int type, int index, Object oldValue);
+	void modifyVariable(ElectricObject obj, Variable var, int index, Object oldValue);
+	void insertVariable(ElectricObject obj, Variable var, int index);
+	void deleteVariable(ElectricObject obj, Variable var, int index, Object oldValue);
 
 	void readLibrary(Library lib);
 	void eraseLibrary(Library lib);

@@ -737,7 +737,7 @@ public class Clipboard
 				Variable.Key key = destvar.getKey();
 				Variable srcVar = srcNode.getVar(key.getName());
 				if (srcVar != null) continue;
-				srcNode.delVar(key.getName());
+				srcNode.delVar(key);
 				checkAgain = true;
 				break;
 			}
@@ -758,12 +758,12 @@ public class Clipboard
 
 	static class PossibleVariables
 	{
-		String varName;
+		Variable.Key varKey;
 		PrimitiveNode pn;
 
 		private PossibleVariables(String varName, PrimitiveNode pn)
 		{
-			this.varName = varName;
+			this.varKey = ElectricObject.newKey(varName);
 			this.pn = pn;
 		}
 		public static final PossibleVariables [] list = new PossibleVariables []
@@ -803,9 +803,9 @@ public class Clipboard
 				for(int i=0; i<PossibleVariables.list.length; i++)
 				{
 					if (newNi.getProto() == PossibleVariables.list[i].pn) continue;
-					Variable var = newNi.getVar(PossibleVariables.list[i].varName);
+					Variable var = newNi.getVar(PossibleVariables.list[i].varKey);
 					if (var != null)
-						newNi.delVar(PossibleVariables.list[i].varName);
+						newNi.delVar(PossibleVariables.list[i].varKey);
 				}
 			} else
 			{
@@ -828,7 +828,7 @@ public class Clipboard
 						if (var.getKey() != cVar.getKey()) continue;
 						if (cVar.getTextDescriptor().isParam())
 						{
-							newNi.delVar(var.getKey().getName());
+							newNi.delVar(var.getKey());
 							break;
 						}
 					}
@@ -917,7 +917,7 @@ public class Clipboard
 				}
 				if (oVar != null)
 				{
-					ni.delVar(var.getKey().getName());
+					ni.delVar(var.getKey());
 					found = true;
 					break;
 				}
@@ -1146,7 +1146,7 @@ public class Clipboard
 				Variable.Key key = destvar.getKey();
 				Variable srcVar = srcArc.getVar(key.getName());
 				if (srcVar != null) continue;
-				destArc.delVar(key.getName());
+				destArc.delVar(key);
 				checkAgain = true;
 				break;
 			}

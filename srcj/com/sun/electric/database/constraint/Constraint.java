@@ -60,12 +60,12 @@ public class Constraint implements Change
 
 	public void newObject(ElectricObject obj) {}
 	public void killObject(ElectricObject obj) {}
-	public void newVariable(ElectricObject obj, Variable.Key key, int type) {}
-	public void killVariable(ElectricObject obj, Variable.Key key, Object oldValue, TextDescriptor oldDescript) {}
+	public void newVariable(ElectricObject obj, Variable var) {}
+	public void killVariable(ElectricObject obj, Variable var) {}
 	public void modifyVariableFlags(ElectricObject obj, Variable var, int oldFlags) {}
-	public void modifyVariable(ElectricObject obj, Variable.Key key, int type, int index, Object oldValue) {}
-	public void insertVariable(ElectricObject obj, Variable.Key key, int type, int index) {}
-	public void deleteVariable(ElectricObject obj, Variable.Key key, int type, int index, Object oldValue) {}
+	public void modifyVariable(ElectricObject obj, Variable var, int index, Object oldValue) {}
+	public void insertVariable(ElectricObject obj, Variable var, int index) {}
+	public void deleteVariable(ElectricObject obj, Variable var, int index, Object oldValue) {}
 
 	public void readLibrary(Library lib) {}
 	public void eraseLibrary(Library lib) {}

@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
@@ -277,7 +278,8 @@ public class Input
 		if (!np.isHoldsOutline()) return;
 
 		// see if there really is outline information
-		Variable var = ni.getVar("trace", Integer[].class);
+		Variable.Key traceKey = ElectricObject.newKey("trace");
+		Variable var = ni.getVar(traceKey, Integer[].class);
 		if (var == null) return;
 
 		// scale the outline information
@@ -288,8 +290,8 @@ public class Input
 			float oldValue = outline[j].intValue();
 			newOutline[j] = new Float(oldValue/lambda);
 		}
-		ni.delVar("trace");
-		Variable newVar = ni.setVar("trace", newOutline);
+		ni.delVar(traceKey);
+		Variable newVar = ni.setVar(traceKey, newOutline);
 		if (newVar == null)
 			System.out.println("Could not preserve outline information on node in cell "+ni.getParent().describe());
 	}

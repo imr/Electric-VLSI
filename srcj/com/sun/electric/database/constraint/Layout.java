@@ -180,7 +180,7 @@ public class Layout extends Constraint
 	/*
 	 * If an export is renamed, touch all instances of the cell
 	 */
-	public void newVariable(ElectricObject obj, Variable.Key key, int type)
+	public void newVariable(ElectricObject obj, Variable var)
 	{
 //		if (type == VPORTPROTO)
 //		{

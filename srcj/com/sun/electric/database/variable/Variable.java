@@ -101,16 +101,6 @@ public class Variable
 	}
     
 	/**
-	 * Clear variable field to catch improper reference of removed variable.
-	 */
-	void kill()
-	{
-		addr = null;
-		descriptor = null;
-		key = null;
-	}
-    
-	/**
 	 * Routine to check if this Variable can be changed.
 	 */
 	public final void checkChanging()
@@ -144,12 +134,12 @@ public class Variable
      * Set the actual object stored in this Variable.
 	 * @param the object to be stored in this variable .
      */
-    void setObject(Object addr)
-	{
-		// owner.checkChanging(); this is not necessary,
-		// because this method can be called only from this package
-		this.addr = addr;
-	}
+//     void setObject(Object addr)
+// 	{
+// 		// owner.checkChanging(); this is not necessary,
+// 		// because this method can be called only from this package
+// 		this.addr = addr;
+// 	}
     
     /** 
      * Treat the stored Object as an array of Objects and
@@ -163,6 +153,37 @@ public class Variable
 		return ((Object[]) addr)[index];
     }
         
+	/**
+	 * Low-level routine to insert to object array.
+	 * This should not normally be called by any other part of the system.
+	 * @param index insertion index
+	 * @param value object to insert
+	 */
+	public void lowLevelInsert(int index, Object value)
+	{
+		Object[] oldArr = (Object[])addr;
+		Object[] newArr = new Object[oldArr.length+1];
+		for (int i = 0; i < index; i++) newArr[i] = oldArr[i];
+		newArr[index] = value;
+		for (int i = index; i < oldArr.length; i++) newArr[i+1] = oldArr[i];
+		addr = newArr;
+	}
+
+	/**
+	 * Low-level routine to delete from object array.
+	 * This should not normally be called by any other part of the system.
+	 * This should not normally be called by any other part of the system.
+	 * @param index deletion index
+	 */
+	public void lowLevelDelete(int index)
+	{
+		Object[] oldArr = (Object[])addr;
+		Object[] newArr = new Object[oldArr.length-1];
+		for (int i = 0; i < index; i++) newArr[i] = oldArr[i];
+		for (int i = index; i < newArr.length; i++) newArr[i] = oldArr[i+1];
+		addr = newArr;
+	}
+
 	/**
 	 * Routine to return the Variable Key associated with this Variable.
 	 * @return the Variable Key associated with this variable.

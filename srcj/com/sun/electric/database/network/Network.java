@@ -254,16 +254,16 @@ public class Network extends Tool
 		System.out.println("Network.killObject("+obj+")");
 	}
 
-	public void newVariable(ElectricObject obj, Variable.Key key, int type)
+	public void newVariable(ElectricObject obj, Variable var)
 	{
 		if (!debug) return;
-		System.out.println("Network.newVariable("+obj+","+key+","+type+")");
+		System.out.println("Network.newVariable("+obj+","+var+")");
 	}
 
-	public void killVariable(ElectricObject obj, Variable.Key key, Object oldValue, TextDescriptor oldDescript)
+	public void killVariable(ElectricObject obj, Variable var)
 	{
 		if (!debug) return;
-		System.out.println("Network.killVariable("+obj+","+key+","+oldValue+","+oldDescript+")");
+		System.out.println("Network.killVariable("+obj+","+var+")");
 	}
 
 	public void modifyVariableFlags(ElectricObject obj, Variable var, int oldFlags)
@@ -272,22 +272,22 @@ public class Network extends Tool
 		System.out.println("Network.modifyVariableFlags("+obj+","+var+"."+oldFlags+")");
 	}
 
-	public void modifyVariable(ElectricObject obj, Variable.Key key, int type, int index, Object oldValue)
+	public void modifyVariable(ElectricObject obj, Variable var, int index, Object oldValue)
 	{
 		if (!debug) return;
-		System.out.println("Network.modifyVariable("+obj+","+key+","+type+","+index+","+oldValue+")");
+		System.out.println("Network.modifyVariable("+obj+","+var+","+index+","+oldValue+")");
 	}
 
-	public void insertVariable(ElectricObject obj, Variable.Key key, int type, int index)
+	public void insertVariable(ElectricObject obj, Variable var, int index)
 	{
 		if (!debug) return;
-		System.out.println("Network.insertVariable("+obj+","+key+","+type+","+index+")");
+		System.out.println("Network.insertVariable("+obj+","+var+","+index+")");
 	}
 
-	public void deleteVariable(ElectricObject obj, Variable.Key key, int type, int index, Object oldValue)
+	public void deleteVariable(ElectricObject obj, Variable var, int index, Object oldValue)
 	{
 		if (!debug) return;
-		System.out.println("Network.deleteVariable("+obj+","+key+","+type+","+index+","+oldValue+")");
+		System.out.println("Network.deleteVariable("+obj+","+var+","+index+","+oldValue+")");
 	}
 
 	public void readLibrary(Library lib)

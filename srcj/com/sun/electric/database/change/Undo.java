@@ -93,34 +93,24 @@ public class Undo
 		private Type type;
 		private double a1, a2, a3, a4, a5;
 		private int i1, i2;
-		private Object o1;
+		private Object o1, o2;
 
 		Change(ElectricObject obj, Type type)
 		{
 			this.obj = obj;
 			this.type = type;
 		}
-		public void setDoubles(double a1, double a2, double a3, double a4, double a5)
+		private void setDoubles(double a1, double a2, double a3, double a4)
 		{
 			this.a1 = a1;
 			this.a2 = a2;
 			this.a3 = a3;
 			this.a4 = a4;
-			this.a5 = a5;
-		}
-		public void setInts(int i1, int i2)
-		{
-			this.i1 = i1;
-			this.i2 = i2;
-		}
-		public void setObject(Object o1)
-		{
-			this.o1 = o1;
 		}
 		
 		public ElectricObject getObject() { return obj; }
 		public Type getType() { return type; }
-		public void setType(Type change) { this.type = type; }
+		private void setType(Type change) { this.type = type; }
 		public double getA1() { return a1; }
 		public double getA2() { return a2; }
 		public double getA3() { return a3; }
@@ -129,6 +119,7 @@ public class Undo
 		public int getI1() { return i1; }
 		public int getI2() { return i2; }
 		public Object getO1() { return o1; }
+		public Object getO2() { return o2; }
 
 		/**
 		 * Routine to broadcast a change to all tools that are on.
@@ -197,16 +188,14 @@ public class Undo
 				for(Iterator it = Tool.getTools(); it.hasNext(); )
 				{
 					Tool tool = (Tool)it.next();
-//					if (tool.isOn()) (*el_tools[i].newvariable)(c->entryaddr, c->p1, c->p2, c->p3);
+					if (tool.isOn()) tool.newVariable(obj, (Variable)o1);
 				}
 			} else if (type == Type.VARIABLEKILL)
 			{
-//				descript[0] = c->p5;
-//				descript[1] = c->p6;
 				for(Iterator it = Tool.getTools(); it.hasNext(); )
 				{
 					Tool tool = (Tool)it.next();
-//					if (tool.isOn()) (*el_tools[i].killvariable)(c->entryaddr, c->p1, c->p2, c->p3, c->p4, descript);
+					if (tool.isOn()) tool.killVariable(obj, (Variable)o1);
 				}
 			} else if (type == Type.VARIABLEMODFLAGS)
 			{
@@ -220,21 +209,21 @@ public class Undo
 				for(Iterator it = Tool.getTools(); it.hasNext(); )
 				{
 					Tool tool = (Tool)it.next();
-//					if (tool.isOn()) (*el_tools[i].modifyvariable)(c->entryaddr, c->p1, c->p2, c->p3, c->p4, c->p5);
+					if (tool.isOn()) tool.modifyVariable(obj, (Variable)o1, i1, o2);
 				}
 			} else if (type == Type.VARIABLEINSERT)
 			{
 				for(Iterator it = Tool.getTools(); it.hasNext(); )
 				{
 					Tool tool = (Tool)it.next();
-//					if (tool.isOn()) (*el_tools[i].insertvariable)(c->entryaddr, c->p1, c->p2, c->p3, c->p4);
+					if (tool.isOn()) tool.insertVariable(obj, (Variable)o1, i1);
 				}
 			} else if (type == Type.VARIABLEDELETE)
 			{
 				for(Iterator it = Tool.getTools(); it.hasNext(); )
 				{
 					Tool tool = (Tool)it.next();
-//					if (tool.isOn()) (*el_tools[i].deletevariable)(c->entryaddr, c->p1, c->p2, c->p3, c->p4, c->p5);
+					if (tool.isOn()) tool.deleteVariable(obj, (Variable)o1, i1, o2);
 				}
 			} else if (type == Type.DESCRIPTORMOD)
 			{
@@ -253,7 +242,7 @@ public class Undo
 		void reverse()
 		{
 			// determine what needs to be marked as changed
-			setDirty(type, obj);
+			setDirty(type, obj, o1);
 
 			if (type == Type.NODEINSTNEW)
 			{
@@ -407,80 +396,15 @@ public class Undo
 			}
 			if (type == Type.VARIABLENEW)
 			{
-				// args: addr, type, key, newtype, newdescript[0], newdescript[1]
-//				if ((c->p3&VCREF) != 0)
-//				{
-//					// hange to fixed attribute
-//					attname = changedvariablename(c->p1, c->p2, c->p3);
-//					var = getvalnoeval(c->entryaddr, c->p1, c->p3 & (VTYPE|VISARRAY), attname);
-//					if (var == NOVARIABLE)
-//					{
-//						ttyputmsg(_("Warning: Could not find attribute %s on object %s"),
-//							attname, describeobject(c->entryaddr, c->p1));
-//						break;
-//					}
-//					c->p3 = var->addr;
-//					c->p4 = var->type;
-//					c->p5 = var->textdescript[0];
-//					c->p6 = var->textdescript[1];
-//					c->Type = VARIABLEKILL;
-//					if (c->p1 == VNODEINST || c->p1 == VARCINST) return(TRUE);
-//					if (c->p1 == VPORTPROTO)
-//					{
-//						if (estrcmp(attname, x_("textdescript")) == 0 ||
-//							estrcmp(attname, x_("userbits")) == 0 ||
-//							estrcmp(attname, x_("protoname")) == 0) return(TRUE);
-//					}
-//					break;
-//				}
-//
-//				// change to variable attribute: get current value
-//				var = getvalkeynoeval(c->entryaddr, c->p1, c->p3&(VTYPE|VISARRAY), c->p2);
-//				if (var == NOVARIABLE)
-//				{
-//					ttyputmsg(_("Warning: Could not find attribute %s on object %s"),
-//						makename(c->p2), describeobject(c->entryaddr, c->p1));
-//					break;
-//				}
-//				c->p3 = var->addr;
-//				c->p4 = var->type;
-//				c->p5 = var->textdescript[0];
-//				c->p6 = var->textdescript[1];
+				Variable var = (Variable)o1;
+				obj.lowLevelUnlinkVar(var);
 				type = Type.VARIABLEKILL;
-//				var->type = VINTEGER;		// fake it out so no memory is deallocated
-//				nextchangequiet();
-//				(void)delvalkey(c->entryaddr, c->p1, c->p2);
 				return;
 			}
 			if (type == Type.VARIABLEKILL)
 			{
-				// args: addr, type, key, oldaddr, oldtype, olddescript
-//				if ((c->p4&VCREF) != 0)
-//				{
-//					attname = changedvariablename(c->p1, c->p2, c->p4);
-//					nextchangequiet();
-//					var = setval(c->entryaddr, c->p1, attname, c->p3, c->p4);
-//					if (var == NOVARIABLE)
-//					{
-//						ttyputmsg(_("Warning: Could not set attribute %s on object %s"),
-//							attname, describeobject(c->entryaddr, c->p1));
-//						break;
-//					}
-//				} else
-//				{
-//					nextchangequiet();
-//					var = setvalkey(c->entryaddr, c->p1, c->p2, c->p3, c->p4);
-//					if (var == NOVARIABLE)
-//					{
-//						ttyputmsg(_("Warning: Could not set attribute %s on object %s"),
-//							makename(c->p2), describeobject(c->entryaddr, c->p1));
-//						break;
-//					}
-//					var->textdescript[0] = c->p5;
-//					var->textdescript[1] = c->p6;
-//				}
-//				db_freevar(c->p3, c->p4);
-//				c->p3 = c->p4;
+				Variable var = (Variable)o1;
+				obj.lowLevelLinkVar(var);
 				type = Type.VARIABLENEW;
 				return;
 			}
@@ -494,63 +418,26 @@ public class Undo
 			}
 			if (type == Type.VARIABLEMOD)
 			{
-				// args: addr, type, key, vartype, aindex, oldvalue
-//				if ((c->p3&VCREF) != 0)
-//				{
-//					attname = changedvariablename(c->p1, c->p2, c->p3);
-//					if (getind(c->entryaddr, c->p1, attname, c->p4, &oldval))
-//					{
-//						ttyputmsg(_("Warning: Could not find index %ld of attribute %s on object %s"),
-//							c->p4, attname, describeobject(c->entryaddr, c->p1));
-//						break;
-//					}
-//					nextchangequiet();
-//					(void)setind(c->entryaddr, c->p1, attname, c->p4, c->p5);
-//					c->p5 = oldval;
-//					if (c->p1 == VPORTPROTO)
-//					{
-//						if (estrcmp(attname, x_("textdescript")) == 0) return(TRUE);
-//					}
-//				} else
-//				{
-//					if (getindkey(c->entryaddr, c->p1, c->p2, c->p4, &oldval))
-//					{
-//						ttyputmsg(_("Warning: Could not find index %ld of attribute %s on object %s"),
-//							c->p4, makename(c->p2), describeobject(c->entryaddr, c->p1));
-//						break;
-//					}
-//					if ((c->p3&(VCODE1|VCODE2)) != 0 || (c->p3&VTYPE) == VSTRING)
-//					{
-//						// because this change is done quietly, the memory is freed and must be saved
-//						(void)allocstring(&storage, (CHAR *)oldval, db_cluster);
-//						oldval = (INTBIG)storage;
-//					}
-//					nextchangequiet();
-//					(void)setindkey(c->entryaddr, c->p1, c->p2, c->p4, c->p5);
-//					c->p5 = oldval;
-//				}
+				Variable var = (Variable)o1;
+				Object[] arr = (Object[])var.getObject();
+				Object oldVal = arr[i1];
+				arr[i1] = o2;
+				o2 = oldVal;
 				return;
 			}
 			if (type == Type.VARIABLEINSERT)
 			{
-				// args: addr, type, key, vartype, aindex
-//				if (getindkey(c->entryaddr, c->p1, c->p2, c->p4, &oldval))
-//				{
-//					ttyputmsg(_("Warning: Could not find index %ld of attribute %s on object %s"),
-//						c->p4, makename(c->p2), describeobject(c->entryaddr, c->p1));
-//					break;
-//				}
-//				nextchangequiet();
-//				(void)delindkey(c->entryaddr, c->p1, c->p2, c->p4);
-//				c->p5 = oldval;
+				Variable var = (Variable)o1;
+				Object[] oldArr = (Object[])var.getObject();
+				o2 = oldArr[i1];
+				var.lowLevelDelete(i1);
 				type = Type.VARIABLEDELETE;
 				return;
 			}
 			if (type == Type.VARIABLEDELETE)
 			{
-				// args: addr, type, key, vartype, aindex, oldvalue
-//				nextchangequiet();
-//				(void)insindkey(c->entryaddr, c->p1, c->p2, c->p4, c->p5);
+				Variable var = (Variable)o1;
+				var.lowLevelInsert(i1, o2);
 				type = Type.VARIABLEINSERT;
 				return;
 			}
@@ -571,7 +458,7 @@ public class Undo
 		 * @param change the type of change being made.
 		 * @param obj the object to which the change is applied.
 		 */
-		private static void setDirty(Type type, ElectricObject obj)
+		private static void setDirty(Type type, ElectricObject obj, Object o1)
 		{
 			Cell cell = null;
 			Library lib = null;
@@ -607,27 +494,13 @@ public class Undo
 			{
 				cell = obj.whichCell();
 				if (cell != null) lib = cell.getLibrary();
-			} else if (type == Type.VARIABLENEW || type == Type.VARIABLEMOD ||
+			} else if (type == Type.VARIABLENEW || type == Type.VARIABLEKILL || type == Type.VARIABLEMOD ||
 				type == Type.VARIABLEINSERT || type == Type.VARIABLEDELETE)
 			{
-//				if ((a3&VDONTSAVE) == 0)
-//				{
-//					cell = obj.whichCell();
-//					if (cell != null) lib = cell.getLibrary();
-//
-//					// special cases that make the change "major"
-//					if (db_majorvariable(a1, a2)) major = true;
-//				}
-			} else if (type == Type.VARIABLEKILL)
-			{
-//				if ((a4&VDONTSAVE) == 0)
-//				{
-//					cell = obj.whichCell();
-//					if (cell != null) lib = cell.getLibrary();
-//
-//					// special cases that make the change "major"
-//					if (db_majorvariable(a1, a2)) major = true;
-//				}
+				cell = obj.whichCell();
+				if (cell != null) lib = cell.getLibrary();
+				Variable var = (Variable)o1;
+				major = isMajorVariable(obj, var.getKey());
 			} else if (type == Type.VARIABLEMODFLAGS || type == Type.DESCRIPTORMOD)
 			{
 				cell = obj.whichCell();
@@ -648,6 +521,13 @@ public class Undo
 				if (major) lib.setChangedMajor(); else
 					lib.setChangedMinor();
 			}
+		}
+
+		private static boolean isMajorVariable(ElectricObject obj, Variable.Key key)
+		{
+// 			if ((obj instanceof Cell) && key == el_cell_message_key) return true;
+// 			if ((obj instanceof NodeInst) && key == sim_weaknodekey) return true;
+			return false;
 		}
 
 		/**
@@ -729,44 +609,27 @@ public class Undo
 			}
 			if (type == Type.VARIABLENEW)
 			{
-				return "Created variable";
-//				formatinfstr(infstr, M_(" Variable '%s' created on %s"), changedvariablename(p1, p2, p3),
-//					describeobject(entryaddr, p1));
+				return "Created variable "+o1+" on "+obj;
 			}
 			if (type == Type.VARIABLEKILL)
 			{
-				return "Deleted variable";
-//				myvar.key = p2;  myvar.type = p4;  myvar.addr = p3;
-//				formatinfstr(infstr, M_(" Variable '%s' killed on %s [was %s]"), changedvariablename(p1, p2, p4),
-//					describeobject(entryaddr, p1), describevariable(&myvar, -1, -1));
+				return "Deleted variable "+o1+" on "+obj+" [was "+((Variable)o1).getObject()+"]";
 			}
 			if (type == Type.VARIABLEMODFLAGS)
 			{
-				return "Modified variable flags "+obj+" "+((Variable)o1).getReadableName()+" [was 0"+Integer.toOctalString(i1)+"]";
+				return "Modified variable flags "+obj+" "+o1+" [was 0"+Integer.toOctalString(i1)+"]";
 			}
 			if (type == Type.VARIABLEMOD)
 			{
-				return "Modified variable";
-//				formatinfstr(infstr, M_(" Variable '%s[%ld]' changed on %s"), changedvariablename(p1, p2, p3), p4,
-//					describeobject(entryaddr, p1));
-//				if ((p3&VCREF) == 0)
-//				{
-//					myvar.key = p2;  myvar.type = p3 & ~VISARRAY;
-//					myvar.addr = p5;
-//					formatinfstr(infstr, M_(" [was '%s']"), describevariable(&myvar, -1, -1));
-//				}
+				return "Modified variable "+o1+"["+i1+"] on "+obj;
 			}
 			if (type == Type.VARIABLEINSERT)
 			{
-				return "Inserted variable";
-//				formatinfstr(infstr, M_(" Variable '%s[%ld]' inserted on %s"), changedvariablename(p1, p2, p3), p4,
-//					describeobject(entryaddr, p1));
+				return "Inserted variable "+o1+" on "+obj;
 			}
 			if (type == Type.VARIABLEDELETE)
 			{
-				return "Deleted variable";
-//				formatinfstr(infstr, M_(" Variable '%s[%ld]' deleted on %s"), changedvariablename(p1, p2, p3), p4,
-//					describeobject(entryaddr, p1));
+				return "Deleted variable "+o1+" on "+obj;
 			}
 			if (type == Type.DESCRIPTORMOD)
 			{
@@ -1026,19 +889,19 @@ public class Undo
 	 * <LI>CELLMOD takes a1=oldLowX a2=oldHighX a3=oldLowY a4=oldHighY.
 	 * <LI>OBJECTNEW takes nothing.
 	 * <LI>OBJECTKILL takes nothing.
-	 * <LI>VARIABLENEW takes a1=objtype(obsolete) a2=key a3=type.
-	 * <LI>VARIABLEKILL takes a1=objtype(obsolete) a2=key a3=oldAddr a4=oldType a5=td[0] a6=td[1].
-	 * <LI>VARIABLEMOD takes a1=objtype(obsolete) a2=key a3=type a4=index a5=oldValue.
-	 * <LI>VARIABLEMODFLAGS takes o1=variable i1=flags.
-	 * <LI>VARIABLEINSERT takes a1=objtype(obsolete) a2=key a3=type a4=index.
-	 * <LI>VARIABLEDELETE takes a1=objtype(obsolete) a2=key a3=type a4=index a5=oldValue.
+	 * <LI>VARIABLENEW takes o1=var.
+	 * <LI>VARIABLEKILL takes o1=var.
+	 * <LI>VARIABLEMOD takes o1=var i1=index o2=oldValue.
+	 * <LI>VARIABLEMODFLAGS takes o1=var i1=flags.
+	 * <LI>VARIABLEINSERT takes o1=var i1=index.
+	 * <LI>VARIABLEDELETE takes a1=var i1=index o2=oldValue.
 	 * <LI>DESCRIPTORMOD takes o1=descript i1=oldDescript0 i2=oldDescript1.
 	 * </UL>
 	 * @param obj the object to which the change applies.
 	 * @param change the change being recorded.
 	 * @return the change object (null on error).
 	 */
-	private static Change newChange(ElectricObject obj, Type change)
+	private static Change newChange(ElectricObject obj, Type change, Object o1)
 	{
 		if (currentBatch == null)
 		{
@@ -1052,7 +915,7 @@ public class Undo
 		}
 
 		// determine what needs to be marked as changed
-		Change.setDirty(change, obj);
+		Change.setDirty(change, obj, o1);
 
 		// see if this is the first change
 		boolean firstChange = false;
@@ -1060,6 +923,7 @@ public class Undo
 
 		// get change module
 		Change ch = new Change(obj, change);
+		ch.o1 = o1;
 
 		// insert new change module into linked list
 		currentBatch.add(ch);
@@ -1072,9 +936,9 @@ public class Undo
 	public static void modifyNodeInst(NodeInst ni, double oCX, double oCY, double oSX, double oSY, int oRot)
 	{
 		if (!recordChange()) return;
-		Change ch = newChange(ni, Type.NODEINSTMOD);
-		ch.setDoubles(oCX, oCY, oSX, oSY, 0);
-		ch.setInts(oRot, 0);
+		Change ch = newChange(ni, Type.NODEINSTMOD, null);
+		ch.setDoubles(oCX, oCY, oSX, oSY);
+		ch.i1 = oRot;
 		ni.setChange(ch);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
@@ -1084,8 +948,9 @@ public class Undo
 	public static void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, double oWid)
 	{
 		if (!recordChange()) return;
-		Change ch = newChange(ai, Type.ARCINSTMOD);
-		ch.setDoubles(oHX, oHY, oTX, oTY, oWid);
+		Change ch = newChange(ai, Type.ARCINSTMOD, null);
+		ch.setDoubles(oHX, oHY, oTX, oTY);
+		ch.a5 = oWid;
 		ai.setChange(ch);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
@@ -1095,8 +960,7 @@ public class Undo
 	public static void modifyExport(Export pp, PortInst oldPi)
 	{
 		if (!recordChange()) return;
-		Change ch = newChange(pp, Type.EXPORTMOD);
-		ch.setObject(oldPi);
+		Change ch = newChange(pp, Type.EXPORTMOD, oldPi);
 		pp.setChange(ch);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
@@ -1106,8 +970,8 @@ public class Undo
 	public static void modifyCell(Cell cell, double oLX, double oHX, double oLY, double oHY)
 	{
 		if (!recordChange()) return;
-		Change ch = newChange(cell, Type.CELLMOD);
-		ch.setDoubles(oLX, oHX, oLY, oHY, 0);
+		Change ch = newChange(cell, Type.CELLMOD, null);
+		ch.setDoubles(oLX, oHX, oLY, oHY);
 		cell.setChange(ch);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
@@ -1117,9 +981,9 @@ public class Undo
 	public static void  modifyTextDescript(ElectricObject obj, TextDescriptor descript, int oldDescript0, int oldDescript1)
 	{
 		if (!recordChange()) return;
-		Change ch = newChange(obj, Type.DESCRIPTORMOD);
-		ch.setObject(descript);
-		ch.setInts(oldDescript0, oldDescript1);
+		Change ch = newChange(obj, Type.DESCRIPTORMOD, descript);
+		ch.i1 = oldDescript0;
+		ch.i2 = oldDescript1;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
 		// tell constraint system about this TextDescriptor
@@ -1134,7 +998,7 @@ public class Undo
 		else if (obj instanceof NodeInst) type = type.NODEINSTNEW;
 		else if (obj instanceof ArcInst) type = type.ARCINSTNEW;
 		else if (obj instanceof Export) type = type.EXPORTNEW;
-		Change ch = newChange(obj, type);
+		Change ch = newChange(obj, type, null);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
 		Constraint.getCurrent().newObject(obj);
@@ -1148,21 +1012,72 @@ public class Undo
 		else if (obj instanceof NodeInst) type = Type.NODEINSTKILL;
 		else if (obj instanceof ArcInst) type = Type.ARCINSTKILL;
 		else if (obj instanceof Export) type = Type.EXPORTKILL;
-		Change ch = newChange(obj, type);
+		Change ch = newChange(obj, type, null);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
 		Constraint.getCurrent().killObject(obj);
 	}
 
+	public static void newVariable(ElectricObject obj, Variable var)
+	{
+		if (!recordChange()) return;
+		Type type = Type.VARIABLENEW;
+		Change ch = newChange(obj, type, var);
+
+		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+		Constraint.getCurrent().newVariable(obj, var);
+	}
+
+	public static void killVariable(ElectricObject obj, Variable var)
+	{
+		if (!recordChange()) return;
+		Type type = Type.VARIABLEKILL;
+		Change ch = newChange(obj, type, var);
+
+		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+		Constraint.getCurrent().killVariable(obj, var);
+	}
+
 	public static void modifyVariableFlags(ElectricObject obj, Variable var, int oldFlags)
 	{
 		if (!recordChange()) return;
-		Change ch = Undo.newChange(obj, Type.VARIABLEMODFLAGS);
-		ch.setObject(var);
-		ch.setInts(oldFlags, 0);
+		Change ch = Undo.newChange(obj, Type.VARIABLEMODFLAGS, var);
+		ch.i1 = oldFlags;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
 		Constraint.getCurrent().modifyVariableFlags(obj, var, oldFlags);
+	}
+
+	public static void modifyVariable(ElectricObject obj, Variable var, int index, Object oldValue)
+	{
+		if (!recordChange()) return;
+		Change ch = Undo.newChange(obj, Type.VARIABLEMOD, var);
+		ch.i1 = index;
+		ch.o2 = oldValue;
+
+		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+		Constraint.getCurrent().modifyVariable(obj, var, index, oldValue);
+	}
+
+	public static void insertVariable(ElectricObject obj, Variable var, int index)
+	{
+		if (!recordChange()) return;
+		Change ch = Undo.newChange(obj, Type.VARIABLEINSERT, var);
+		ch.i1 = index;
+
+		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+		Constraint.getCurrent().insertVariable(obj, var, index);
+	}
+
+	public static void deleteVariable(ElectricObject obj, Variable var, int index, Object oldValue)
+	{
+		if (!recordChange()) return;
+		Change ch = Undo.newChange(obj, Type.VARIABLEDELETE, var);
+		ch.i1 = index;
+		ch.o2 = oldValue;
+
+		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+		Constraint.getCurrent().deleteVariable(obj, var, index, oldValue);
 	}
 
 	/**
