@@ -682,7 +682,7 @@ public class ErrorLogger implements ActionListener {
             ErrorLogger logger = (ErrorLogger)eit.next();
             if (logger.getNumErrors() == 0) continue;
             DefaultMutableTreeNode loggerNode = new DefaultMutableTreeNode(logger);
-            for (Iterator it = logger.allErrors.iterator(); it.hasNext();)
+            for (Iterator it = logger.getErrors(); it.hasNext();)
             {
                 ErrorLog el = (ErrorLog)it.next();
                 DefaultMutableTreeNode node = new DefaultMutableTreeNode(el);
