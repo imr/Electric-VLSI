@@ -7,7 +7,7 @@ NOTE: Please place changes under the version that will be released next.
 IMP: (11/29/04, GVG) 3D View: (a)Fill Window functionality available in 3D View. (b) First attempt to program
 ZoomOut/ZoomIn
 
-BUG: (11/29/04, RK) Fix NCC crash when designs have no Parts or no Wires and a Hash Code partitioning mismatch is reported.
+BUG: (11/29/04, RK) Fix NCC crash when designs have no Parts or no Wires and a Hash Code partitioning mismatch is reported. Re: Bugzilla bug #16
 
 IMP: (11/29/04, SMR) Improved name incrementing so that lists are all incremented
      (for example, "A,B" used to become "A,B_1" but now becomes "A_1,B_1").
