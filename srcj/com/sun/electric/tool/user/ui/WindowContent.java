@@ -28,6 +28,9 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.user.Highlighter;
 
 import java.util.Set;
+import java.awt.*;
+import java.awt.image.ImageObserver;
+import java.awt.print.PageFormat;
 import javax.swing.JPanel;
 import javax.swing.tree.DefaultMutableTreeNode;
 
@@ -99,4 +102,11 @@ public interface WindowContent
 	public abstract void cellHistoryGoBack();
 	public abstract void cellHistoryGoForward();
 	public abstract void setWindowTitle();
+
+	/**
+	 * Method to print window using offscreen canvas
+	 * @param ep Image observer plus printable object
+	 * @return Printable.NO_SUCH_PAGE or Printable.PAGE_EXISTS
+	 */
+	public abstract int getOffScreenImage(ElectricPrinter ep); // For printing purposes
 }

@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ar: *********************************
 
+IMP: (11/30/04, GVG) New stipple patterns for m7/m8 in TSMC90 (Bug #22)
+
+BUG: (11/30/04, GVG) Wrong sizeoff in X m7m8 and m8m9 contacts. Values amended (Bug #19)
+
+IMP: (11/30/04, GVG) 3D View: printing capability from FileMenu->Print (new API in WindowContext to be more generic).
+
 BUG: (11/30/04, SMR) Encapsulated PostScript is wrong.
 FIX: Halve the number of "%" characters (they were duplicated for C formatting).
 

@@ -1024,11 +1024,11 @@ public class View3DWindow extends JPanel
 			View3DWindow wnd = (View3DWindow)content;
 			View view = wnd.u.getViewer().getView();
 			view.setSceneAntialiasingEnable(value.booleanValue());
-            //wnd.print();
+			//wnd.print();
 		}
 	}
 
-    private void print()
+	private void print()
     {
         // Create the off-screen Canvas3D object
 	    OffScreenCanvas3D offScreenCanvas3D = new OffScreenCanvas3D(SimpleUniverse.getPreferredConfiguration(), true);
@@ -1053,6 +1053,61 @@ public class View3DWindow extends JPanel
 	    offScreenCanvas3D.waitForOffScreenRendering();
 	    bImage = offScreenCanvas3D.getOffScreenBuffer().getImage();
         new ImagePrinter(bImage).print();
+    }
+
+	/**
+	 * Method to print window using offscreen canvas
+	 * @param ep Image observer plus printable object
+	 * @return Printable.NO_SUCH_PAGE or Printable.PAGE_EXISTS
+	 */
+	public int getOffScreenImage(ElectricPrinter ep)
+    {
+		BufferedImage bImage = (BufferedImage)ep.getImage();
+
+		// might have problems if visibility of some layers is switched off
+		if (bImage == null)
+		{
+			// Create the off-screen Canvas3D object
+			OffScreenCanvas3D offScreenCanvas3D = new OffScreenCanvas3D(SimpleUniverse.getPreferredConfiguration(), true);
+			// Set the off-screen size based on a scale factor times the
+			// on-screen size
+			Screen3D sOn = canvas.getScreen3D();
+			Screen3D sOff = offScreenCanvas3D.getScreen3D();
+			Dimension dim = sOn.getSize();
+			dim.width *= ImagePrinter.OFF_SCREEN_SCALE;
+			dim.height *= ImagePrinter.OFF_SCREEN_SCALE;
+			sOff.setSize(dim);
+			sOff.setPhysicalScreenWidth(sOn.getPhysicalScreenWidth() * ImagePrinter.OFF_SCREEN_SCALE);
+			sOff.setPhysicalScreenHeight(sOn.getPhysicalScreenHeight() * ImagePrinter.OFF_SCREEN_SCALE);
+
+			// attach the offscreen canvas to the view
+			u.getViewer().getView().addCanvas3D(offScreenCanvas3D);
+			bImage = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
+			ImageComponent2D buffer = new ImageComponent2D(ImageComponent.FORMAT_RGBA, bImage);
+
+			offScreenCanvas3D.setOffScreenBuffer(buffer);
+			offScreenCanvas3D.renderOffScreenBuffer();
+			offScreenCanvas3D.waitForOffScreenRendering();
+			bImage = offScreenCanvas3D.getOffScreenBuffer().getImage();
+			ep.setImage(bImage);
+		}
+		Graphics2D g2d = (Graphics2D)ep.getGraphics();
+		AffineTransform t2d = new AffineTransform();
+		t2d.translate(ep.getPageFormat().getImageableX(), ep.getPageFormat().getImageableY());
+		double xscale  = ep.getPageFormat().getImageableWidth() / (double)bImage.getWidth();
+		double yscale  = ep.getPageFormat().getImageableHeight() / (double)bImage.getHeight();
+		double scale = Math.min(xscale, yscale);
+		t2d.scale(scale, scale);
+
+		try {
+			ImageObserver obj = (ImageObserver)ep;
+			g2d.drawImage(bImage, t2d, obj);
+		}
+		catch (Exception ex) {
+			ex.printStackTrace();
+			return Printable.NO_SUCH_PAGE;
+		}
+        return Printable.PAGE_EXISTS;
     }
 
 	// ************************************* EVENT LISTENERS *************************************
@@ -1533,24 +1588,23 @@ public class View3DWindow extends JPanel
     private class OffScreenCanvas3D extends Canvas3D {
         OffScreenCanvas3D(GraphicsConfiguration graphicsConfiguration,
                   boolean offScreen) {
-
-        super(graphicsConfiguration, offScreen);
+            super(graphicsConfiguration, offScreen);
         }
 
-        BufferedImage doRender(int width, int height) {
+        BufferedImage doRender(int width, int height)
+        {
+			BufferedImage bImage =
+				new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 
-        BufferedImage bImage =
-            new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+			ImageComponent2D buffer =
+				new ImageComponent2D(ImageComponent.FORMAT_RGBA, bImage);
 
-        ImageComponent2D buffer =
-            new ImageComponent2D(ImageComponent.FORMAT_RGBA, bImage);
+			setOffScreenBuffer(buffer);
+			renderOffScreenBuffer();
+			waitForOffScreenRendering();
+			bImage = getOffScreenBuffer().getImage();
 
-        setOffScreenBuffer(buffer);
-        renderOffScreenBuffer();
-        waitForOffScreenRendering();
-        bImage = getOffScreenBuffer().getImage();
-
-        return bImage;
+			return bImage;
         }
 
         public void postSwap() {

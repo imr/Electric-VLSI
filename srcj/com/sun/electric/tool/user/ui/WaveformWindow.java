@@ -50,18 +50,9 @@ import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.WaveformZoom;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.Point;
+import java.awt.*;
+import java.awt.print.PageFormat;
+import java.awt.print.Printable;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
@@ -4337,4 +4328,17 @@ public class WaveformWindow implements WindowContent
 	 */
 	public void replaceAllText(String replace) {}
 
+	/**
+	 * Method to print window using offscreen canvas
+	 * @param ep Image observer plus printable object
+	 * @return Printable.NO_SUCH_PAGE or Printable.PAGE_EXISTS
+	 */
+	public int getOffScreenImage(ElectricPrinter ep)
+	{
+		Graphics2D g2d = (Graphics2D)ep.getGraphics();
+		g2d.translate(ep.getPageFormat().getImageableX(), ep.getPageFormat().getImageableY());
+		JPanel printArea = wf.getContent().getPanel();
+		printArea.paint(g2d);
+		return Printable.PAGE_EXISTS;
+	}
 }

@@ -44,6 +44,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.SwingExamineTask;
+import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -67,6 +68,9 @@ import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.awt.image.ImageObserver;
+import java.awt.print.PageFormat;
+import java.awt.print.Printable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
@@ -2836,4 +2840,37 @@ public class EditWindow extends JPanel
     public void databaseChanged(Undo.Change evt) {}
     
     public boolean isGUIListener() { return true; }
+
+	/**
+	 * Method to print window using offscreen canvas
+	 * @param ep Image observer plus printable object
+	 * @return Printable.NO_SUCH_PAGE or Printable.PAGE_EXISTS
+	 */
+	public int getOffScreenImage(ElectricPrinter ep)
+	{
+		if (getCell() == null) return Printable.NO_SUCH_PAGE;
+		
+		Image img = ep.getImage();
+		if (img == null)
+		{
+			EditWindow w = EditWindow.CreateElectricDoc(null, null);
+			int iw = (int)ep.getPageFormat().getImageableWidth() * ep.getDesiredDPI() / 72;
+			int ih = (int)ep.getPageFormat().getImageableHeight() * ep.getDesiredDPI() / 72;
+			w.setScreenSize(new Dimension(iw, ih));
+			w.setCell(getCell(), getVarContext());
+			PixelDrawing offscreen = w.getOffscreen();
+			offscreen.setBackgroundColor(Color.WHITE);
+			offscreen.drawImage(null);
+			img = offscreen.getImage();
+			ep.setImage(img);
+		}
+
+		// copy the image to the page
+		int ix = (int)ep.getPageFormat().getImageableX() * ep.getDesiredDPI() / 72;
+		int iy = (int)ep.getPageFormat().getImageableY() * ep.getDesiredDPI() / 72;
+		Graphics2D g2d = (Graphics2D)ep.getGraphics();
+		g2d.scale(72.0 / ep.getDesiredDPI(), 72.0 / ep.getDesiredDPI());
+		g2d.drawImage(img, ix, iy, null);
+		return Printable.PAGE_EXISTS;
+	}
 }

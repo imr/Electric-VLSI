@@ -23,31 +23,22 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.dialogs.FindText;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.menus.MenuBar;
 
-import java.awt.BorderLayout;
-import java.awt.Graphics;
+import java.awt.*;
+import java.awt.image.ImageObserver;
+import java.awt.print.PageFormat;
+import java.awt.print.Printable;
 import java.awt.event.FocusListener;
 import java.awt.event.FocusEvent;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.io.InputStream;
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -57,8 +48,6 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.List;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
 import javax.swing.JPanel;
@@ -67,7 +56,6 @@ import javax.swing.JScrollPane;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.text.Position;
 import javax.swing.text.Document;
 import javax.swing.text.Element;
 import javax.swing.text.BadLocationException;
@@ -669,5 +657,15 @@ public class TextWindow
 			}
 			if (found) textArea.replaceRange(theLine, startPos, endPos);
 		}
+	}
+
+	/**
+	 * Method to print window using offscreen canvas
+	 * @param ep Image observer plus printable object
+	 * @return Printable.NO_SUCH_PAGE or Printable.PAGE_EXISTS
+	 */
+	public int getOffScreenImage(ElectricPrinter ep)
+	{
+		return Printable.NO_SUCH_PAGE;
 	}
 }

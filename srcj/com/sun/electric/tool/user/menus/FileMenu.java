@@ -47,10 +47,8 @@ import javax.swing.*;
 import javax.print.PrintService;
 import javax.print.PrintServiceLookup;
 import java.awt.*;
-import java.awt.List;
 import java.awt.print.PrinterJob;
 import java.awt.print.PrinterException;
-import java.awt.print.Printable;
 import java.awt.print.PageFormat;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -786,7 +784,11 @@ public class FileMenu {
         PrinterJob pj = PrinterJob.getPrinterJob();
         pj.setJobName(wf.getTitle());
  		if (pageFormat == null)
+		 {
 			pageFormat = pj.defaultPage();
+			pageFormat.setOrientation(PageFormat.LANDSCAPE);
+            pageFormat = pj.validatePage(pageFormat);
+		 }
 
  		ElectricPrinter ep = new ElectricPrinter();
 		ep.setPrintWindow(wf);
@@ -874,65 +876,6 @@ public class FileMenu {
 			}
 		}
 	}
-
-    private static class ElectricPrinter implements Printable
-    {
-    	private WindowFrame wf;
-        private Image img = null;
-
-        public void setPrintWindow(WindowFrame wf) {
-            this.wf = wf;
-        }
-
-        public int print(Graphics g, PageFormat pageFormat, int page)
-            throws java.awt.print.PrinterException
-        {
-            if (page != 0) return Printable.NO_SUCH_PAGE;
-
-			// handle different window types
-			if (wf.getContent() instanceof EditWindow)
-			{
-				EditWindow wnd = (EditWindow)wf.getContent();
-				VarContext context = wnd.getVarContext();
-				Cell printCell = wnd.getCell();
-				if (printCell == null) return Printable.NO_SUCH_PAGE;
-
-	            // create an EditWindow for rendering this cell
-				int desiredDPI = IOTool.getPrintResolution();
-	            if (img == null)
-	            {
-	                EditWindow w = EditWindow.CreateElectricDoc(null, null);
-	                int iw = (int)pageFormat.getImageableWidth() * desiredDPI / 72;
-	                int ih = (int)pageFormat.getImageableHeight() * desiredDPI / 72;
-	                w.setScreenSize(new Dimension(iw, ih));
-	                w.setCell(printCell, context);
-	                PixelDrawing offscreen = w.getOffscreen();
-	                offscreen.setBackgroundColor(Color.WHITE);
-	                offscreen.drawImage(null);
-	                img = offscreen.getImage();
-	            }
-
-	            // copy the image to the page
-	            int ix = (int)pageFormat.getImageableX() * desiredDPI / 72;
-	            int iy = (int)pageFormat.getImageableY() * desiredDPI / 72;
-				Graphics2D g2d = (Graphics2D)g;
-				g2d.scale(72.0 / desiredDPI, 72.0 / desiredDPI);
-	            g.drawImage(img, ix, iy, null);
-	            return Printable.PAGE_EXISTS;
-			} else if (wf.getContent() instanceof WaveformWindow)
-			{
-				WaveformWindow ww = (WaveformWindow)wf.getContent();
-				Graphics2D g2d = (Graphics2D)g;
-				g2d.translate(pageFormat.getImageableX(), pageFormat.getImageableY());
-				JPanel printArea = wf.getContent().getPanel();
-				printArea.paint(g);
-				return Printable.PAGE_EXISTS;
-			}
-
-			// can't handle this type of window
-			return Printable.NO_SUCH_PAGE;
-        }
-    }
 
     /**
      * This method implements the command to quit Electric.
