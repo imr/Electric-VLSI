@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02i: *********************************
 
+IMP/MAN: (03/04/05, SMR) Initial implementation of IRSIM simulator.
+
 IMP/MAN: (03/04/05, GVG) First version of fly-through demo for 3D view. Ability to save/read demos
 using serialization. "J3D" as new file type for demo files.
 
