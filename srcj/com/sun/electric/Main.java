@@ -88,12 +88,19 @@ public final class Main
 	 */
 	public static void main(String[] args)
 	{
-		// initialize Mac OS 10 if applicable
-		MacOSXInterface.registerMacOSXApplication();
-
 		// convert args to array list
         List argsList = new ArrayList();
         for (int i=0; i<args.length; i++) argsList.add(args[i]);
+
+		// -v (short version)
+		if (hasCommandLineOption(argsList, "-v"))
+		{
+			System.out.println(Version.getVersion());
+			System.exit(0);
+		}
+
+		// initialize Mac OS 10 if applicable
+		MacOSXInterface.registerMacOSXApplication();
 
 		// -version
 		if (hasCommandLineOption(argsList, "-version"))
@@ -103,13 +110,6 @@ public final class Main
 			System.out.println("\t"+Version.getAuthorInformation());
 			System.out.println("\t"+Version.getCopyrightInformation());
 			System.out.println("\t"+Version.getWarrantyInformation());
-			System.exit(0);
-		}
-
-		// -v (short version)
-		if (hasCommandLineOption(argsList, "-v"))
-		{
-			System.out.println(Version.getVersion());
 			System.exit(0);
 		}
 
