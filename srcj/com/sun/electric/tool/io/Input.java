@@ -31,10 +31,14 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.user.ui.ProgressDialog;
 import com.sun.electric.tool.user.ui.UITopLevel;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.ArrayList;
-//import javax.swing.ProgressMonitor;
 
 /**
  * This class manages reading files in different formats.

@@ -25,7 +25,8 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Cell;
 
-import javax.swing.event.*;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
@@ -35,7 +36,6 @@ import javax.swing.tree.DefaultMutableTreeNode;
  * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
 public class UITreeHandler implements TreeSelectionListener 
-//,TreeExpansionListener,TreeModelListener 
 {
 	private UITreeView tree;
 	private UIEdit wnd;

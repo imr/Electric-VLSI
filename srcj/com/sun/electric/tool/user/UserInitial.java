@@ -41,8 +41,11 @@ import com.sun.electric.tool.user.ui.UITopLevel;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.event.*;
-import javax.swing.*;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
+import javax.swing.KeyStroke;
+import javax.swing.JMenuBar;
 
 public final class UserInitial
 {

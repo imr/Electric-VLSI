@@ -23,7 +23,7 @@
  */
 package com.sun.electric.database.geometry;
 
-import java.awt.*;
+import java.awt.Color;
 
 public class EGraphics
 {

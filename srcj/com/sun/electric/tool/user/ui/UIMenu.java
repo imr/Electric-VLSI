@@ -30,8 +30,10 @@ package com.sun.electric.tool.user.ui;
  * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
 
-import javax.swing.*;
-import java.awt.event.*;
+import java.awt.event.ActionListener;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.KeyStroke;
 
 /**
  * @author wc147374

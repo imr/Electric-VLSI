@@ -23,10 +23,16 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
 import java.io.File;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import javax.swing.JFrame;
+import javax.swing.JDesktopPane;
+import javax.swing.JMenuBar;
+import javax.swing.UIManager;
+import javax.swing.ImageIcon;
 
 
 /**

@@ -25,7 +25,11 @@ package com.sun.electric.tool.io;
 
 import com.sun.electric.database.hierarchy.Library;
 
-import java.io.*;
+import java.io.FileOutputStream;
+import java.io.DataOutputStream;
+import java.io.BufferedOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 /**
  * This class manages writing files in different formats.

@@ -26,17 +26,16 @@ package com.sun.electric.tool.user.ui;
 import javax.swing.ImageIcon;
 import javax.swing.JTree;
 import javax.swing.JScrollPane;
-import javax.swing.tree.*;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreeSelectionModel;
+import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.user.ui.UIEdit;
 
 /**
- * @author wc147374
- *
- * To change the template for this generated type comment go to
- * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
+ * Class to display a cell explorer tree-view of the database.
  */
 public class UITreeView extends JTree 
 {

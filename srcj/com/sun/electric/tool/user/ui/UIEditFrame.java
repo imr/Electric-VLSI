@@ -25,12 +25,16 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
-import javax.swing.*;
-import javax.swing.event.*;
+
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
-
+import javax.swing.JInternalFrame;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JDesktopPane;
+import javax.swing.event.InternalFrameAdapter;
+import javax.swing.event.InternalFrameEvent;
 
 /**
  * This class defines an edit window, with a cell explorer on the left side.
