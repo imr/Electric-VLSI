@@ -29,6 +29,7 @@
 
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.tool.user.ui.ToolBar;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -44,6 +45,12 @@ import javax.swing.JToggleButton;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.UIManager;
+import javax.accessibility.Accessible;
+import javax.accessibility.AccessibleContext;
+import javax.accessibility.AccessibleRole;
+import java.awt.Component;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 import javax.swing.plaf.ButtonUI;
 
 
@@ -185,7 +192,26 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
         AbstractButton b = (AbstractButton)list.get(0);
         b.doClick();
     }
-    
+
+    /**
+     * Called when a TopLevel (in SDI mode) is disposed. This gets rid
+     * of references to freed tool bar buttons, so that memory allocated to them
+     * can be reclaimed.
+     * @param menuBar the ToolBar being disposed of.
+     */
+    public static void disposeOf(ToolBar toolBar) 
+    {
+        // find ToolBarButtons
+        Component [] components = toolBar.getComponents();
+        for (int i=0; i<components.length; i++) {
+            if (components[i] instanceof ToolBarButton) {
+                ToolBarButton b = (ToolBarButton)components[i];
+                ArrayList list = (ArrayList)allButtons.get(b.getName());
+                if (list == null) continue;
+                list.remove(b);
+            }
+        }
+    }    
     
     // ---------------------------------- UI ---------------------------------
     

@@ -61,6 +61,8 @@ import javax.swing.event.InternalFrameEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
+import java.awt.*;
+
 /**
  * This class defines an edit window, with a cell explorer on the left side.
  */
@@ -99,7 +101,12 @@ public class WindowFrame
 	 * @param cell the cell to display.
 	 * @return the WindowFrame that shows the Cell.
 	 */
-	public static WindowFrame createEditWindow(Cell cell)
+    public static WindowFrame createEditWindow(Cell cell)
+    {
+        return createEditWindow(cell, null);
+    }
+    
+	public static WindowFrame createEditWindow(Cell cell, GraphicsConfiguration gc)
 	{
 		final WindowFrame frame = new WindowFrame();
 
@@ -116,7 +123,7 @@ public class WindowFrame
 			frame.jif.setFrameIcon(new ImageIcon(frame.getClass().getResource("IconElectric.gif")));
 		} else
 		{
-			frame.jf = new TopLevel("Electric - " + cellDescription, new Rectangle(frameSize), frame);
+			frame.jf = new TopLevel("Electric - " + cellDescription, new Rectangle(frameSize), frame, gc);
 			frame.jf.setSize(frameSize);
 			frame.jf.setLocation(windowOffset+150, windowOffset);
 		}
@@ -259,8 +266,14 @@ public class WindowFrame
 	 */
 	private void windowClosed()
 	{
-		windowList.remove(this);
+        // remove references to this
+        windowList.remove(this);
 		if (curWindowFrame == this) curWindowFrame = null;
+        
+        if (!TopLevel.isMDIMode()) {
+            // TopLevel frame is closing, tell it to remove persistent references
+            ((TopLevel)jf).disposeOfMenuAndToolBar();
+        }
 	}
 
 	/**
@@ -404,9 +417,10 @@ public class WindowFrame
 					"Cannot close the last window");
 				return;
 			}
-			wf.windowClosed();
-			if (!TopLevel.isMDIMode())
+			if (!TopLevel.isMDIMode()) {
 				wf.getFrame().dispose();
+            }
+			wf.windowClosed();
 		}
 	}
 

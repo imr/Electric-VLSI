@@ -272,7 +272,7 @@ public class ClickZoomWireListener
             rightMousePressedTimeStamp = currentTime;
 
             // draw possible wire connection
-            if (!specialSelect) {
+            if (!invertSelection) {
                 Iterator hIt = Highlight.getHighlights();
                 // if already 2 objects, wire them up
                 if (Highlight.getNumHighlights() == 2) {
@@ -310,7 +310,7 @@ public class ClickZoomWireListener
             wnd.setEndDrag(clickX, clickY);
             wnd.setDoingAreaDrag();
             // zoom out and zoom to box mode
-            if (!invertSelection && another) {
+            if (invertSelection && !another) {
                 // A single click zooms out, but a drag box zooms to box
                 // The distinction is if the user starts dragging a box,
                 // which we check for in mouseDragged after a set time delay

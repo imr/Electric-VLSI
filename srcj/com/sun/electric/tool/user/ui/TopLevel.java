@@ -37,6 +37,7 @@ import java.awt.Toolkit;
 import java.awt.Cursor;
 import java.awt.Component;
 import java.awt.Rectangle;
+import java.awt.GraphicsConfiguration;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.ComponentAdapter;
@@ -94,13 +95,16 @@ public class TopLevel extends JFrame
 	/** The messages window. */								private static MessagesWindow messages;
 	/** The cursor being displayed. */						private static Cursor cursor;
 
+    /** The menu bar */                                     private JMenuBar menuBar;
+    /** The tool bar */                                     private ToolBar toolBar;
+    
 	/**
 	 * Constructor to build a window.
 	 * @param name the title of the window.
 	 */
-	public TopLevel(String name, Rectangle bound, WindowFrame frame)
+	public TopLevel(String name, Rectangle bound, WindowFrame frame, GraphicsConfiguration gc)
 	{
-		super(name);
+		super(name, gc);
 		setLocation(bound.x, bound.y);
 		setSize(bound.width, bound.height);
 		getContentPane().setLayout(new BorderLayout());
@@ -110,11 +114,11 @@ public class TopLevel extends JFrame
 		setIconImage(new ImageIcon(getClass().getResource("IconElectric.gif")).getImage());
 
 		// create the menu bar
-		JMenuBar menuBar = MenuCommands.createMenuBar();
+		menuBar = MenuCommands.createMenuBar();
 		setJMenuBar(menuBar);
 
 		// create the tool bar
-		ToolBar toolBar = ToolBar.createToolBar();
+		toolBar = ToolBar.createToolBar();
 		getContentPane().add(toolBar, BorderLayout.NORTH);
 
 		// create the status bar
@@ -141,7 +145,7 @@ public class TopLevel extends JFrame
 		// initialize the messages window and palette
 		messages = new MessagesWindow();
 		palette = PaletteFrame.newInstance();
-	}
+    }
 
 	private static Tool.Pref cacheWindowLoc = User.tool.makeStringPref("WindowLocation", "");
 
@@ -181,7 +185,7 @@ public class TopLevel extends JFrame
 			Rectangle bound = parseBound(loc);
 			if (bound == null)
 				bound = new Rectangle(scrnSize);
-			topLevel = new TopLevel("Electric", bound, null);
+			topLevel = new TopLevel("Electric", bound, null, null);
 
 			// make the desktop
 			desktop = new JDesktopPane();
@@ -320,6 +324,20 @@ public class TopLevel extends JFrame
 	 */
 	public void setEditWindow(EditWindow wnd) { this.wnd = wnd; }
 
+    /**
+     * Method called when disposing of this Frame.  Both the menuBar
+     * and toolBar have persistent state in static hash tables to maintain
+     * consistency across different menu bars and tool bars in SDI mode.
+     * Those references must be nullified for garbage collection to reclaim
+     * that memory.  This is really for SDI mode, because in MDI mode the 
+     * TopLevel is only closed on exit, and all the application memory will be freed.
+     */
+    public void disposeOfMenuAndToolBar()
+    {
+        Menu.disposeOf(menuBar);
+        ToolBarButton.disposeOf(toolBar);
+    }
+    
 	static class ReshapeComponentAdapter extends ComponentAdapter
 	{
 		public void componentMoved (ComponentEvent e) { saveLocation(e); } 

@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.prefs.Preferences;
 import javax.swing.AbstractButton;
 import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JCheckBoxMenuItem;
@@ -260,6 +261,31 @@ public class Menu extends JMenu implements ActionListener
         }
     }
 
+    /**
+     * Called when a TopLevel (in SDI mode) is disposed. This gets rid
+     * of references to freed menu items, so that memory allocated to them
+     * can be reclaimed.
+     * @param menuBar the JMenuBar being disposed of.
+     */
+    public static void disposeOf(JMenuBar menuBar) 
+    {
+        // remove all menu items from hash table
+        // all menus
+        for (int i=0; i<menuBar.getMenuCount(); i++) {
+            JMenu menu = menuBar.getMenu(i);
+            if (menu == null) continue;
+            // all menu items
+            for (int j=0; j<menu.getItemCount(); j++) {
+                JMenuItem item = menu.getItem(j);
+                if (item == null) continue;
+                ArrayList list = (ArrayList)menuItems.get(item.getText());
+                if (list == null) continue;
+                // remove reference to item
+                list.remove(item);
+            }
+        }
+    }
+    
     //------------------------------PRIVATE METHODS--------------------------------------
     
     /** Add JMenuItem to Menu */

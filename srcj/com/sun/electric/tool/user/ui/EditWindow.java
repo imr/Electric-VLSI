@@ -277,6 +277,20 @@ public class EditWindow extends JPanel
 	 */
 	public PixelDrawing getOffscreen() { return offscreen; }
 
+    /**
+     * Method to get rid of this EditWindow.  Called by WindowFrame when
+     * that windowFrame gets closed.
+     */
+    public void close() 
+    {
+        wf = null;                          // clear reference
+        offscreen = null;                   // need to clear this ref, because it points to this
+        synchronized(redrawThese)
+        {
+            if (redrawThese.contains(this)) redrawThese.remove(this);
+        }
+    }
+    
 	// ************************************* RENDERING A WINDOW *************************************
 
 	/**

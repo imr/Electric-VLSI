@@ -121,6 +121,12 @@ import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 import javax.swing.JOptionPane;
 
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.event.WindowListener;
+import java.awt.event.WindowEvent;
+
 /**
  * This class has all of the pulldown menu commands in Electric.
  * <p>
@@ -536,9 +542,15 @@ public final class MenuCommands
 
 		windowMenu.addSeparator();
 
-		windowMenu.addMenuItem("Layer Visibility...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { layerVisibilityCommand(); } });
+        windowMenu.addMenuItem("Layer Visibility...", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { layerVisibilityCommand(); } });
 
+        if (!TopLevel.isMDIMode()) {
+            windowMenu.addSeparator();
+            windowMenu.addMenuItem("Move to Other Display", null,
+                new ActionListener() { public void actionPerformed(ActionEvent e) { moveToOtherDisplayCommand(); } });
+        }
+            
 		/****************************** THE TOOL MENU ******************************/
 
 		Menu toolMenu = Menu.createMenu("Tool", 'T');
@@ -1851,6 +1863,39 @@ public final class MenuCommands
 		dialog.show();
 	}
 
+    public static void moveToOtherDisplayCommand()
+    {
+        // this only works in SDI mode
+        if (TopLevel.isMDIMode()) return;
+        
+        // find current screen
+		EditWindow curEdit = EditWindow.getCurrent();
+        WindowFrame curWF = WindowFrame.getCurrentWindowFrame();
+        GraphicsConfiguration curConfig = curEdit.getGraphicsConfiguration();
+        GraphicsDevice curDevice = curConfig.getDevice();
+        
+        // get all screens
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice[] gs = ge.getScreenDevices();
+        // find screen after current screen
+        int i;
+        for (i=0; i<gs.length; i++) {
+            if (gs[i] == curDevice) break;
+        }
+        if (i == (gs.length - 1)) i = 0; else i++;      // go to next device
+        
+        // only way to move window is to rebuild it in other display
+        Cell cell = curEdit.getCell();
+        WindowFrame.createEditWindow(cell, gs[i].getDefaultConfiguration());
+        // destroy old window by firing window close event
+        WindowListener listeners[] = curWF.getFrame().getWindowListeners();
+        for (int j=0; j<listeners.length; j++) {
+            WindowEvent e = new WindowEvent(curWF.getFrame(), WindowEvent.WINDOW_CLOSING);
+            WindowListener listener = listeners[j];
+            listener.windowClosing(e);
+        }
+    }
+    
 	// ---------------------- THE TOOLS MENU -----------------
 
 	// Logical Effort Tool

@@ -322,7 +322,7 @@ public class ToolBar extends JToolBar
 		if (outlineCursor == null) outlineCursor = readCursor("CursorOutline.gif", 0, 0);
 	}
 
-	private static Cursor readCursor(String cursorName, int hotX, int hotY)
+	public static Cursor readCursor(String cursorName, int hotX, int hotY)
 	{
 		ImageIcon imageIcon = new ImageIcon(ToolBar.class.getResource(cursorName));
 		Image image = imageIcon.getImage();
