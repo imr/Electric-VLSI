@@ -227,6 +227,10 @@ public class Cell extends NodeProto
 	/** Whether the bounds have anything in them. */				private boolean boundsEmpty;
 	/** The geometric data structure. */							private Geometric.RTNode rTree;
 	/** The Change object. */										private Undo.Change change;
+	/** Lock count. lock=0 "no locked",
+	 *  lock=-1 "locked for changes".
+	 *  lock=n>0 "locked for examination n times"
+	 */                                                             private int lock;
 
 	// ------------------ protected and private methods -----------------------
 
@@ -247,6 +251,7 @@ public class Cell extends NodeProto
 	 */
 	public static Cell lowLevelAllocate(Library lib)
 	{
+		Undo.checkChanging();
 		Cell c = new Cell();
 		c.nodes = new ArrayList();
 		c.usagesIn = new HashMap();
@@ -274,6 +279,7 @@ public class Cell extends NodeProto
 	 */
 	public boolean lowLevelPopulate(String name)
 	{
+		checkChanging();
 		// see if this cell already exists
 		Library lib = getLibrary();
 		Cell existingCell = lib.findNodeProto(name);
@@ -326,6 +332,7 @@ public class Cell extends NodeProto
 	 */
 	public boolean lowLevelLink()
 	{
+		checkChanging();
 		// determine the cell group
 		if (cellGroup == null)
 		{
@@ -361,6 +368,7 @@ public class Cell extends NodeProto
 	 */
 	public void lowLevelUnlink()
 	{
+		checkChanging();
 		cellGroup.remove(this);
 		versionGroup.remove(this);
 		Library lib = getLibrary();
@@ -379,6 +387,7 @@ public class Cell extends NodeProto
 	 */
 	public static Cell newInstance(Library lib, String name)
 	{
+		Undo.checkChanging();
 		Cell cell = lowLevelAllocate(lib);
 		if (cell.lowLevelPopulate(name)) return null;
 		if (cell.lowLevelLink()) return null;
@@ -400,6 +409,7 @@ public class Cell extends NodeProto
 	 */
 	public void kill()
 	{
+		checkChanging();
 		// remove ourselves from the cellGroup.
 		lowLevelUnlink();
 
@@ -562,11 +572,67 @@ public class Cell extends NodeProto
 	}
 
 	/**
+	 * Routine to set change lock of cells in up-tree of this cell.
+	 */
+	public void setChangeLock()
+	{
+		if (lock < 0) return;
+		if (lock > 0)
+		{
+			System.out.println("An attemt to set change lock of cell "+describe()+" being examined");
+			return;
+		}
+		lock = -1;
+		for (Iterator it = getUsagesOf(); it.hasNext(); )
+		{
+			NodeUsage nu = (NodeUsage)it.next();
+			nu.getParent().setChangeLock();
+		}
+		if (this != cellGroup.getMainSchematics()) return;
+		for (Iterator it = cellGroup.getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			if (cell.view == View.ICON) cell.setChangeLock();
+		}
+	}
+
+	/**
+	 * Routine to clear change lock of this cell.
+	 */
+	public void clearChangeLock()
+	{
+		if (lock >= 0) return;
+		lock = 0;
+	}
+
+	/**
+	 * Routing to check whether changing of this cell allowed or not.
+	 */
+	public void checkChanging()
+	{
+		if (Undo.getChangingThread() != Thread.currentThread())
+		{
+			if (Undo.getChangingThread() == null)
+				System.out.println(this+" is changing without Undo.startChanges() lock");
+			else
+				System.out.println(this+" is changing by other thread");
+			//throw new IllegalStateException("Cell.checkChanging()");
+		}
+		Cell rootCell = Undo.getChangingCell();
+		if (lock != -1 && rootCell != null)
+		{
+			System.out.println(this+" is changing which is not in up-tree of "+rootCell);
+			//throw new IllegalStateException("Cell.checkChanging()");
+		}
+	}
+
+	/**
 	 * Routine to add a new ArcInst to the cell.
 	 * @param ai the ArcInst to be included in the cell.
 	 */
 	public void addArc(ArcInst ai)
 	{
+		checkChanging();
 		if (arcs.contains(ai))
 		{
 			System.out.println("Cell " + this +" already contains arc " + ai);
@@ -585,6 +651,7 @@ public class Cell extends NodeProto
 	 */
 	public void removeArc(ArcInst ai)
 	{
+		checkChanging();
 		if (!arcs.contains(ai))
 		{
 			System.out.println("Cell " + this +" doesn't contain arc " + ai);
@@ -604,6 +671,7 @@ public class Cell extends NodeProto
 	 */
 	public void adjustReferencePoint(NodeInst referencePointNode)
 	{
+		checkChanging();
 		// if there is no change, stop now
 		double cX = referencePointNode.getCenterX();
 		double cY = referencePointNode.getCenterY();
@@ -654,6 +722,7 @@ public class Cell extends NodeProto
 	 */
 	public NodeUsage addNode(NodeInst ni)
 	{
+		checkChanging();
 		NodeUsage nu = addUsage(ni.getProto());
 
 		// error check
@@ -691,6 +760,7 @@ public class Cell extends NodeProto
 	 */
 	public void removeNode(NodeInst ni)
 	{
+		checkChanging();
 		NodeUsage nu = ni.getNodeUsage();
 		if (!nu.contains(ni))
 		{
@@ -860,14 +930,14 @@ public class Cell extends NodeProto
 	 * Routine to set the R-Tree of this Cell.
 	 * @param rTree the head of the new R-Tree for this Cell.
 	 */
-	public void setRTree(Geometric.RTNode rTree) { this.rTree = rTree; }
+	public void setRTree(Geometric.RTNode rTree) { checkChanging(); this.rTree = rTree; }
 
 	/**
 	 * Routine to set a Change object on this Cell.
 	 * This is used during constraint propagation to tell whether this object has already been changed and by how much.
 	 * @param change the Change object to be set on this Cell.
 	 */
-	public void setChange(Undo.Change change) { this.change = change; }
+	public void setChange(Undo.Change change) { checkChanging(); this.change = change; }
 
 	/**
 	 * Routine to get the Change object on this Cell.
@@ -1007,6 +1077,13 @@ public class Cell extends NodeProto
 //	}
 
 	/*
+	 * Routine to determine the appropriate Cell associated with this ElectricObject.
+	 * @return the appropriate Cell associated with this ElectricObject..
+	 * Returns null if no Cell can be found.
+	 */
+	public Cell whichCell()	{ return this; }
+
+	/*
 	 * Routine to write a description of this Cell.
 	 * Displays the description in the Messages Window.
 	 */
@@ -1090,7 +1167,7 @@ public class Cell extends NodeProto
 	 * This is a low-level routine and should not be called unless you know what you are doing.
 	 * @param creationDate the date of this Cell's creation.
 	 */
-	public void lowLevelSetCreationDate(Date creationDate) { this.creationDate = creationDate; }
+	public void lowLevelSetCreationDate(Date creationDate) { checkChanging(); this.creationDate = creationDate; }
 
 	/**
 	 * Routine to return the revision date of this Cell.
@@ -1103,12 +1180,12 @@ public class Cell extends NodeProto
 	 * This is a low-level routine and should not be called unless you know what you are doing.
 	 * @param revisionDate the date of this Cell's last revision.
 	 */
-	public void lowLevelSetRevisionDate(Date revisionDate) { this.revisionDate = revisionDate; }
+	public void lowLevelSetRevisionDate(Date revisionDate) { checkChanging(); this.revisionDate = revisionDate; }
 
 	/**
 	 * Routine to set this Cell's revision date to the current time.
 	 */
-	public void madeRevision() { this.revisionDate = new Date(); }
+	public void madeRevision() { checkChanging(); this.revisionDate = new Date(); }
 
 	/**
 	 * Routine to find a named Export on this Cell.

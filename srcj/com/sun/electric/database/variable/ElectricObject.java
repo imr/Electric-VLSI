@@ -198,6 +198,7 @@ public class ElectricObject
 	 */
 	public Variable setVal(String name, Object value)
 	{
+		checkChanging();
 		Variable.Key key = findKey(name);
 		if (key == null)
 		{
@@ -222,6 +223,7 @@ public class ElectricObject
 	 */
 	public void setVal(String name, Object value, int index)
 	{
+		checkChanging();
 		Variable v = getVar(name);
 		if (v == null) return;
 		Object addr = v.getObject();
@@ -237,6 +239,7 @@ public class ElectricObject
 	 */
 	public void delVal(String name)
 	{
+		checkChanging();
 		if (vars == null) return;
 		vars.remove(name);
 	}
@@ -248,6 +251,7 @@ public class ElectricObject
 	 */
 	public void copyVars(ElectricObject other, boolean uniqueNames)
 	{
+		checkChanging();
 		for(Iterator it = other.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
@@ -506,6 +510,7 @@ public class ElectricObject
 	 */
 	public void startChange()
 	{
+		checkChanging();
 		// handle change control, constraint, and broadcast
 		if (Undo.recordChange())
 		{
@@ -519,6 +524,7 @@ public class ElectricObject
 	 */
 	public void endChange()
 	{
+		checkChanging();
 		// handle change control, constraint, and broadcast
 		if (Undo.recordChange())
 		{
@@ -526,6 +532,20 @@ public class ElectricObject
 			Undo.Change ch = Undo.newChange(this, Undo.Type.OBJECTEND);
 		}
 	}
+
+	/**
+	 * Routing to check whether changing of this cell allowed or not.
+	 * By default checks whole database change. Overriden in subclasses.
+	 */
+	public void checkChanging()
+	{
+		Cell cell = whichCell();
+		if (cell != null)
+			cell.checkChanging();
+		else
+			Undo.checkChanging();
+	}
+
 
 	/**
 	 * Routine to return the Key object for a given Variable name.
@@ -543,14 +563,7 @@ public class ElectricObject
 	 * @return the appropriate Cell associated with this ElectricObject.
 	 * Returns null if no Cell can be found.
 	 */
-	public Cell whichCell()
-	{
-		if (this instanceof NodeInst) return ((NodeInst)this).getParent();
-		if (this instanceof ArcInst) return ((ArcInst)this).getParent();
-		if (this instanceof Cell) return (Cell)this;
-		if (this instanceof Export) return (Cell)((Export)this).getParent();
-		return null;
-	}
+	public Cell whichCell() { return null; }
 
 	/*
 	 * Routine to write a description of this ElectricObject (lists all Variables).

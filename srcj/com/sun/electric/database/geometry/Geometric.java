@@ -803,6 +803,12 @@ public class Geometric extends ElectricObject
 	public String describe() { return "?"; }
 
 	/*
+	 * Routine to determine the appropriate Cell associated with this ElectricObject.
+	 * @return the appropriate Cell associated with this ElectricicObject.
+	 */
+	public Cell whichCell() { return parent; }
+
+	/*
 	 * Routine to write a description of this Geometric.
 	 * Displays the description in the Messages Window.
 	 */

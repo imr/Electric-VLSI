@@ -79,7 +79,7 @@ public class CircuitChanges
 			deleteList.add(geom);
 		}
 		Highlight.clear();
-		Undo.startChanges(User.tool, "Delete");
+		Undo.startChanges(User.tool, "Delete", cell);
 		eraseObjectsInList(cell, deleteList);
 		Undo.endChanges();
 	}
@@ -102,7 +102,7 @@ public class CircuitChanges
 		if (total == 1 && firstGeom instanceof NodeInst)
 		{
 			NodeInst ni = (NodeInst)firstGeom;
-			Undo.startChanges(User.tool, "Move");
+			Undo.startChanges(User.tool, "Move", cell);
 			ni.startChange();
 			ni.modifyInstance(dx, dy, 0, 0, 0);
 			ni.endChange();
@@ -192,7 +192,7 @@ public class CircuitChanges
 					}
 				}
 				if (j < 2) continue;
-				Undo.startChanges(User.tool, "Move");
+				Undo.startChanges(User.tool, "Move", cell);
 				niList[0].startChange();
 				niList[1].startChange();
 				deltaRots[0] = deltaRots[1] = 0;
@@ -236,7 +236,7 @@ public class CircuitChanges
 				if (geom instanceof ArcInst)
 				{
 					ArcInst ai = (ArcInst)geom;
-					Undo.startChanges(User.tool, "Slide Arc");
+					Undo.startChanges(User.tool, "Slide Arc", cell);
 					ai.startChange();
 					ai.modify(0, dx, dy, dx, dy);
 					ai.endChange();
@@ -281,7 +281,7 @@ public class CircuitChanges
 		}
 
 		// start this change
-		Undo.startChanges(User.tool, "Move");
+		Undo.startChanges(User.tool, "Move", cell);
 
 		// look at all nodes and move them appropriately
 		if (numNodes > 0)

@@ -58,7 +58,9 @@ public final class UserInitial
 		TopLevel.Initialize();
 	
 		// initialize all of the technologies
+		Undo.startChanges(User.tool, "Init technologies");
 		Technology.initAllTechnologies();
+		Undo.endChanges();
 
 		// initialize all of the tools
 		Tool.initAllTools();
@@ -73,6 +75,9 @@ public final class UserInitial
 
 		// test code to make and show something
 		makeFakeCircuitry();
+
+		// disallow undo
+		Undo.noUndoAllowed();
 	}
 
 	// ---------------------- THE TOOLBAR -----------------
@@ -334,9 +339,6 @@ public final class UserInitial
 		}
 		System.out.println("Created cell " + bigCell.describe());
 		Undo.endChanges();
-
-		// disallow undo
-		Undo.noUndoAllowed();
 
 		// show some stuff
 //		instance1Node.getInfo();

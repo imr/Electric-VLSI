@@ -183,10 +183,10 @@ public class Clipboard
 //		us_clipboardcell->cellview = parent->cellview;
 		copyListToCell(wnd, geoms, parent, clipCell, false, false, false);
 //		us_clipboardcell->cellview = saveview;
-		Undo.endChanges();
 
 		// and delete the original objects
 		CircuitChanges.eraseObjectsInList(parent, geoms);
+		Undo.endChanges();
 	}
 
 	public static void paste()

@@ -282,6 +282,13 @@ public class Export extends PortProto
 	/****************************** TEXT ******************************/
 
 	/*
+	 * Routine to determine the appropriate Cell associated with this ElectricObject.
+	 * @return the appropriate Cell associated with this ElectricObject.
+	 * Returns null if no Cell can be found.
+	 */
+	public Cell whichCell() { return (Cell)getParent(); };
+
+	/*
 	 * Routine to write a description of this Export.
 	 * Displays the description in the Messages Window.
 	 */

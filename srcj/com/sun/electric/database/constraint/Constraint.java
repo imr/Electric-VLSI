@@ -38,7 +38,7 @@ import com.sun.electric.tool.Tool;
 
 public class Constraint implements Change
 {
-	private static Constraint curConstraint;
+	private static Constraint curConstraint = new Constraint();
 
 	public static void setCurrent(Constraint con) { curConstraint = con; }
 	public static Constraint getCurrent() { return curConstraint; }

@@ -402,6 +402,7 @@ public abstract class NodeProto extends ElectricObject
 	 */
 	public void addPort(PortProto port)
 	{
+		checkChanging();
 		ports.add(port);
 		notifyCellsNetworks();
 	}
@@ -412,6 +413,7 @@ public abstract class NodeProto extends ElectricObject
 	 */
 	public void removePort(PortProto port)
 	{
+		checkChanging();
 		ports.remove(port);
 		notifyCellsNetworks();
 	}
@@ -510,6 +512,7 @@ public abstract class NodeProto extends ElectricObject
 	 */
 	public void kill()
 	{
+		checkChanging();
 		// kill ports
 //		removeAll(ports);
 
@@ -702,7 +705,7 @@ public abstract class NodeProto extends ElectricObject
 	 * If the actual NodeInst is to shrink, it must be marked with "setShortened".
 	 * Note that shrinkage does not apply if there is no arc connected.
 	 */
-	public void setCanShrink() { userBits |= NODESHRINK; }
+	public void setCanShrink() { checkChanging(); userBits |= NODESHRINK; }
 
 	/**
 	 * Routine to prevent instances of this NodeProto from shrinking.
@@ -713,7 +716,7 @@ public abstract class NodeProto extends ElectricObject
 	 * If the actual NodeInst is to shrink, it must be marked with "setShortened".
 	 * Note that shrinkage does not apply if there is no arc connected.
 	 */
-	public void clearCanShrink() { userBits &= ~NODESHRINK; }
+	public void clearCanShrink() { checkChanging(); userBits &= ~NODESHRINK; }
 
 	/**
 	 * Routine to tell if instances of this NodeProto can shrink.
@@ -732,14 +735,14 @@ public abstract class NodeProto extends ElectricObject
 	 * Expanded NodeInsts are instances of Cells that show their contents.
 	 * The setting has no meaning for PrimitiveNode instances.
 	 */
-	public void setWantExpanded() { userBits |= WANTNEXPAND; }
+	public void setWantExpanded() { checkChanging(); userBits |= WANTNEXPAND; }
 
 	/**
 	 * Routine to set this NodeProto so that instances of it are "not expanded" by when created.
 	 * Expanded NodeInsts are instances of Cells that show their contents.
 	 * The setting has no meaning for PrimitiveNode instances.
 	 */
-	public void clearWantExpanded() { userBits &= ~WANTNEXPAND; }
+	public void clearWantExpanded() { checkChanging(); userBits &= ~WANTNEXPAND; }
 
 	/**
 	 * Routine to tell if instances of it are "not expanded" by when created.
@@ -754,7 +757,7 @@ public abstract class NodeProto extends ElectricObject
 	 * The Function is a technology-independent description of the behavior of this NodeProto.
 	 * @param function the new function of this NodeProto.
 	 */
-	public void setFunction(Function function) { this.function = function; }
+	public void setFunction(Function function) { checkChanging(); this.function = function; }
 
 	/**
 	 * Routine to return the function of this NodeProto.
@@ -773,7 +776,7 @@ public abstract class NodeProto extends ElectricObject
 	 * @see ArcProto#setWipable
 	 * @see NodeInst#setWiped
 	 */
-	public void setArcsWipe() { userBits |= ARCSWIPE; }
+	public void setArcsWipe() { checkChanging(); userBits |= ARCSWIPE; }
 
 	/**
 	 * Routine to set this NodeProto so that instances of it are not "arc-wipable".
@@ -785,7 +788,7 @@ public abstract class NodeProto extends ElectricObject
 	 * @see ArcProto#setWipable
 	 * @see NodeInst#setWiped
 	 */
-	public void clearArcsWipe() { userBits &= ~ARCSWIPE; }
+	public void clearArcsWipe() { checkChanging(); userBits &= ~ARCSWIPE; }
 
 	/**
 	 * Routine to tell if instances of this NodeProto are "arc-wipable" by when created.
@@ -805,14 +808,14 @@ public abstract class NodeProto extends ElectricObject
 	 * Square nodes must have the same X and Y size.
 	 * This is useful for round components that really have only one dimension.
 	 */
-	public void setSquare() { userBits |= NSQUARE; }
+	public void setSquare() { checkChanging(); userBits |= NSQUARE; }
 
 	/**
 	 * Routine to set this NodeProto so that instances of it are not "square".
 	 * Square nodes must have the same X and Y size.
 	 * This is useful for round components that really have only one dimension.
 	 */
-	public void clearSquare() { userBits &= ~NSQUARE; }
+	public void clearSquare() { checkChanging(); userBits &= ~NSQUARE; }
 
 	/**
 	 * Routine to tell if instances of this NodeProto are square.
@@ -828,7 +831,7 @@ public abstract class NodeProto extends ElectricObject
 	 * It can be as simple as an opened-polygon that connects the points,
 	 * or a serpentine transistor that lays down polysilicon to follow the points.
 	 */
-	public void setHoldsOutline() { userBits |= HOLDSTRACE; }
+	public void setHoldsOutline() { checkChanging(); userBits |= HOLDSTRACE; }
 
 	/**
 	 * Routine to set this NodeProto so that instances of it may not hold outline information.
@@ -836,7 +839,7 @@ public abstract class NodeProto extends ElectricObject
 	 * It can be as simple as an opened-polygon that connects the points,
 	 * or a serpentine transistor that lays down polysilicon to follow the points.
 	 */
-	public void clearHoldsOutline() { userBits &= ~HOLDSTRACE; }
+	public void clearHoldsOutline() { checkChanging(); userBits &= ~HOLDSTRACE; }
 
 	/**
 	 * Routine to tell if instances of this NodeProto can hold an outline.
@@ -852,13 +855,13 @@ public abstract class NodeProto extends ElectricObject
 	 * This is used in Schematics pins, which are not shown if 1 or 2 arcs connect, but are shown
 	 * when standing alone, or when 3 or more arcs make a "T" or other connection to it.
 	 */
-	public void setWipeOn1or2() { userBits |= WIPEON1OR2; }
+	public void setWipeOn1or2() { checkChanging(); userBits |= WIPEON1OR2; }
 
 	/**
 	 * Routine to set this NodeProto so that instances of it are not wiped when 1 or 2 arcs connect.
 	 * Only Schematics pins enable this state.
 	 */
-	public void clearWipeOn1or2() { userBits &= ~WIPEON1OR2; }
+	public void clearWipeOn1or2() { checkChanging(); userBits &= ~WIPEON1OR2; }
 
 	/**
 	 * Routine to tell if instances of this NodeProto are wiped when 1 or 2 arcs connect.
@@ -874,7 +877,7 @@ public abstract class NodeProto extends ElectricObject
 	 * Typically, array technologies (such as FPGA) have lockable primitives which are used for the fixed part of a design,
 	 * and then locked to prevent the customization work from damaging the circuit.
 	 */
-	public void setLockedPrim() { userBits |= LOCKEDPRIM; }
+	public void setLockedPrim() { checkChanging(); userBits |= LOCKEDPRIM; }
 
 	/**
 	 * Routine to set this NodeProto so that instances of it are not locked.
@@ -882,7 +885,7 @@ public abstract class NodeProto extends ElectricObject
 	 * Typically, array technologies (such as FPGA) have lockable primitives which are used for the fixed part of a design,
 	 * and then locked to prevent the customization work from damaging the circuit.
 	 */
-	public void clearLockedPrim() { userBits &= ~LOCKEDPRIM; }
+	public void clearLockedPrim() { checkChanging(); userBits &= ~LOCKEDPRIM; }
 
 	/**
 	 * Routine to tell if instances of this NodeProto are loced.
@@ -898,14 +901,14 @@ public abstract class NodeProto extends ElectricObject
 	 * Artwork primitives that are not filled-in or are outlines want edge-selection, instead
 	 * of allowing a click anywhere in the bounding box to work.
 	 */
-	public void setEdgeSelect() { userBits |= NEDGESELECT; }
+	public void setEdgeSelect() { checkChanging(); userBits |= NEDGESELECT; }
 
 	/**
 	 * Routine to set this NodeProto so that instances of it are not selectable only by their edges.
 	 * Artwork primitives that are not filled-in or are outlines want edge-selection, instead
 	 * of allowing a click anywhere in the bounding box to work.
 	 */
-	public void clearEdgeSelect() { userBits &= ~NEDGESELECT; }
+	public void clearEdgeSelect() { checkChanging(); userBits &= ~NEDGESELECT; }
 
 	/**
 	 * Routine to tell if instances of this NodeProto are selectable on their edges.
@@ -920,14 +923,14 @@ public abstract class NodeProto extends ElectricObject
 	 * This happens to pins where any combination of multiple arcs in angles that are not increments of 90 degrees
 	 * will cause tabs to emerge at the connection site.
 	 */
-	public void setArcsShrink() { userBits |= ARCSHRINK; }
+	public void setArcsShrink() { checkChanging(); userBits |= ARCSHRINK; }
 
 	/**
 	 * Routine to set this NodeProto so that arcs connected to instances will not shrink in nonmanhattan situations.
 	 * This happens to pins where any combination of multiple arcs in angles that are not increments of 90 degrees
 	 * will cause tabs to emerge at the connection site.
 	 */
-	public void clearArcsShrink() { userBits &= ~ARCSHRINK; }
+	public void clearArcsShrink() { checkChanging(); userBits &= ~ARCSHRINK; }
 
 	/**
 	 * Routine to tell if instances of this NodeProto cause arcs to shrink in nonmanhattan situations.
@@ -942,14 +945,14 @@ public abstract class NodeProto extends ElectricObject
 	 * Locked instances cannot be moved or deleted.
 	 * This only applies to Cells.
 	 */
-	public void setAllLocked() { userBits |= NPLOCKED; }
+	public void setAllLocked() { checkChanging(); userBits |= NPLOCKED; }
 
 	/**
 	 * Routine to set this NodeProto so that everything inside of it is not locked.
 	 * Locked instances cannot be moved or deleted.
 	 * This only applies to Cells.
 	 */
-	public void clearAllLocked() { userBits &= ~NPLOCKED; }
+	public void clearAllLocked() { checkChanging(); userBits &= ~NPLOCKED; }
 
 	/**
 	 * Routine to tell if the contents of this NodeProto are locked.
@@ -964,14 +967,14 @@ public abstract class NodeProto extends ElectricObject
 	 * Locked instances cannot be moved or deleted.
 	 * This only applies to Cells.
 	 */
-	public void setInstancesLocked() { userBits |= NPILOCKED; }
+	public void setInstancesLocked() { checkChanging(); userBits |= NPILOCKED; }
 
 	/**
 	 * Routine to set this NodeProto so that all instances inside of it are not locked.
 	 * Locked instances cannot be moved or deleted.
 	 * This only applies to Cells.
 	 */
-	public void clearInstancesLocked() { userBits &= ~NPILOCKED; }
+	public void clearInstancesLocked() { checkChanging(); userBits &= ~NPILOCKED; }
 
 	/**
 	 * Routine to tell if the sub-instances in this NodeProto are locked.
@@ -986,14 +989,14 @@ public abstract class NodeProto extends ElectricObject
 	 * Unused nodes do not appear in the component menus and cannot be created by the user.
 	 * The state is useful for hiding primitives that the user should not use.
 	 */
-	public void setNotUsed() { userBits |= NNOTUSED; }
+	public void setNotUsed() { checkChanging(); userBits |= NNOTUSED; }
 
 	/**
 	 * Routine to set this NodeProto so that it is used.
 	 * Unused nodes do not appear in the component menus and cannot be created by the user.
 	 * The state is useful for hiding primitives that the user should not use.
 	 */
-	public void clearNotUsed() { userBits &= ~NNOTUSED; }
+	public void clearNotUsed() { checkChanging(); userBits &= ~NNOTUSED; }
 
 	/**
 	 * Routine to tell if this NodeProto is used.
@@ -1009,7 +1012,7 @@ public abstract class NodeProto extends ElectricObject
 	 * (as opposed to libraries that define a complete circuit).
 	 * Certain commands exclude facets from cell libraries, so that the actual circuit hierarchy can be more clearly seen.
 	 */
-	public void setInCellLibrary() { userBits |= INCELLLIBRARY; }
+	public void setInCellLibrary() { checkChanging(); userBits |= INCELLLIBRARY; }
 
 	/**
 	 * Routine to set this NodeProto so that it is not part of a cell library.
@@ -1017,7 +1020,7 @@ public abstract class NodeProto extends ElectricObject
 	 * (as opposed to libraries that define a complete circuit).
 	 * Certain commands exclude facets from cell libraries, so that the actual circuit hierarchy can be more clearly seen.
 	 */
-	public void clearInCellLibrary() { userBits &= ~INCELLLIBRARY; }
+	public void clearInCellLibrary() { checkChanging(); userBits &= ~INCELLLIBRARY; }
 
 	/**
 	 * Routine to tell if this NodeProto is part of a cell library.
@@ -1033,14 +1036,14 @@ public abstract class NodeProto extends ElectricObject
 	 * Technology libraries are those libraries that contain Cells with
 	 * graphical descriptions of the nodes, arcs, and layers of a technology.
 	 */
-	public void setInTechnologyLibrary() { userBits |= TECEDITCELL; }
+	public void setInTechnologyLibrary() { checkChanging(); userBits |= TECEDITCELL; }
 
 	/**
 	 * Routine to set this NodeProto so that it is not part of a technology library.
 	 * Technology libraries are those libraries that contain Cells with
 	 * graphical descriptions of the nodes, arcs, and layers of a technology.
 	 */
-	public void clearInTechnologyLibrary() { userBits &= ~TECEDITCELL; }
+	public void clearInTechnologyLibrary() { checkChanging(); userBits &= ~TECEDITCELL; }
 
 	/**
 	 * Routine to tell if this NodeProto is part of a Technology Library.
@@ -1066,13 +1069,13 @@ public abstract class NodeProto extends ElectricObject
 	 * Routine to set the specified flag bits on this NodeProto.
 	 * @param set the flag bits that are to be set on this NodeProto.
 	 */
-	public void setBit(FlagSet set) { flagBits = flagBits | set.getMask(); }
+	public void setBit(FlagSet set) { checkChanging(); flagBits = flagBits | set.getMask(); }
 
 	/**
 	 * Routine to set the specified flag bits on this NodeProto.
 	 * @param set the flag bits that are to be cleared on this NodeProto.
 	 */
-	public void clearBit(FlagSet set) { flagBits = flagBits & set.getUnmask(); }
+	public void clearBit(FlagSet set) { checkChanging(); flagBits = flagBits & set.getUnmask(); }
 
 	/**
 	 * Routine to test the specified flag bits on this NodeProto.
@@ -1085,7 +1088,7 @@ public abstract class NodeProto extends ElectricObject
 	 * Routine to set an arbitrary integer in a temporary location on this NodeProto.
 	 * @param tempInt the integer to be set on this NodeProto.
 	 */
-	public void setTempInt(int tempInt) { this.tempInt = tempInt; }
+	public void setTempInt(int tempInt) { checkChanging(); this.tempInt = tempInt; }
 
 	/**
 	 * Routine to get the temporary integer on this NodeProto.
@@ -1097,7 +1100,7 @@ public abstract class NodeProto extends ElectricObject
 	 * Routine to set an arbitrary Object in a temporary location on this NodeProto.
 	 * @param tempObj the Object to be set on this NodeProto.
 	 */
-	public void setTempObj(Object tempObj) { this.tempObj = tempObj; }
+	public void setTempObj(Object tempObj) { checkChanging(); this.tempObj = tempObj; }
 
 	/**
 	 * Routine to get the temporary Object on this NodeProto.
@@ -1389,7 +1392,7 @@ public abstract class NodeProto extends ElectricObject
 	 * This should not normally be called by any other part of the system.
 	 * @param userBits the new "user bits".
 	 */
-	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
+	public void lowLevelSetUserbits(int userBits) { checkChanging(); this.userBits = userBits; }
 
 	/**
 	 * Routine to return map of equivalent ports of this NodeProto.

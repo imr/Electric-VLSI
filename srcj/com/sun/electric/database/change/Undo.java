@@ -808,8 +808,10 @@ public class Undo
 		private boolean done;
 		private Tool tool;
 		private String activity;
+		private Thread thread;
+		private Cell rootCell;
 
-		ChangeBatch() {}
+		ChangeBatch() { thread = Thread.currentThread(); }
 		
 		void add(Change change) { changes.add(change); }
 		public Iterator getChanges() { return changes.iterator(); }
@@ -948,14 +950,29 @@ public class Undo
 	private static List undoneList = new ArrayList();
 
 	/**
-	 * Routine to start a new batch of changes.
+	 * Routine to start a new batch of changes on whole database.
 	 * @param tool the tool that is producing the activity.
 	 * @param activity a String describing the activity.
 	 */
 	public static void startChanges(Tool tool, String activity)
 	{
-		// close any open batch of changes
-		endChanges();
+		startChanges(tool, activity, null);
+	}
+
+	/**
+	 * Routine to start a new batch of changes.
+	 * @param tool the tool that is producing the activity.
+	 * @param activity a String describing the activity.
+	 * @param cell root of up-tree or null for whole database lock
+	 */
+	public static void startChanges(Tool tool, String activity, Cell cell)
+	{
+		if (currentBatch != null)
+		{
+			System.out.println("Change "+activity+" is nested in change "+currentBatch.activity);
+			// close any open batch of changes
+			endChanges();
+		}
 
 		// kill off any undone batches
 		noRedoAllowed();
@@ -970,6 +987,8 @@ public class Undo
 		currentBatch.done = true;
 		currentBatch.tool = tool;
 		currentBatch.activity = activity;
+		currentBatch.rootCell = cell;
+		if (cell != null) cell.setChangeLock();
 
 		// put at head of list
 		doneList.add(currentBatch);
@@ -990,7 +1009,16 @@ public class Undo
 	public static void endChanges()
 	{
 		// if no changes were recorded, stop
-		if (currentBatch == null) return;
+		if (currentBatch == null)
+		{
+			System.out.println("Mismatch of Undo.startChanges() and Undo.endChanges()");
+			throw new IllegalStateException("Undo.endChanges()");
+		}
+		if (currentBatch.thread != Thread.currentThread())
+		{
+			System.out.println("Threads of Undo.startChanges() and Undo.endChanges() are different");
+			throw new IllegalStateException("Undo.endChanges()");
+		}
 
 		// changes made: apply final constraints to this batch of changes
 		Constraint.getCurrent().endBatch();
@@ -1001,7 +1029,41 @@ public class Undo
 			if (tool.isOn()) tool.endBatch();
 		}
 
+		// clear change flag
+		Library.clearChangeLocks();
 		currentBatch = null;
+	}
+
+	/**
+	 * Returns thread which activated current changes or null if no changes.
+	 * @return thread which activated current changes or null if no changes.
+	 */
+	public static Thread getChangingThread() { return currentBatch != null ? currentBatch.thread : null; }
+
+	/**
+	 * Returns cell which is root of up-tree of current changes or null, if no changes or whole database changes.
+	 * @return cell which is root of up-tree of current changes or null, if no changes or whole database changes.
+	 */
+	public static Cell getChangingCell() { return currentBatch != null ? currentBatch.rootCell : null; }
+
+	/**
+	 * Routing to check whether changing of whole database allowed or not.
+	 */
+	public static void checkChanging()
+	{
+		if (currentBatch == null)
+		{
+			System.out.println("Database is changing without Undo.startChanges() lock");
+			//throw new IllegalStateException("Undo.checkChanging()");
+		} else if (currentBatch.thread != Thread.currentThread())
+		{
+			System.out.println("Database is changing by other thread");
+			//throw new IllegalStateException("Undo.checkChanging()");
+		} else if (currentBatch.rootCell != null)
+		{
+			System.out.println("Database is changing which only up-tree of "+currentBatch.rootCell+" is locked");
+			//throw new IllegalStateException("Undo.checkChanging()");
+		}
 	}
 
 	/**
@@ -1107,7 +1169,8 @@ public class Undo
 	public static boolean undoABatch()
 	{
 		// close out the current batch
-		endChanges();
+		if (currentBatch != null)
+			endChanges();
 
 		// get the most recent batch of changes
 		int listSize = doneList.size();
@@ -1115,6 +1178,11 @@ public class Undo
 		ChangeBatch batch = (ChangeBatch)doneList.get(listSize-1);
 		doneList.remove(listSize-1);
 		undoneList.add(batch);
+
+		// for checking
+		currentBatch = batch;
+		batch.thread = Thread.currentThread();
+		if (batch.rootCell != null) batch.rootCell.setChangeLock();
 
 		// look through the changes in this batch
 		boolean firstChange = true;
@@ -1140,6 +1208,7 @@ public class Undo
 
 		// mark that this batch is undone
 		batch.done = false;
+		currentBatch = null;
 		return true;
 	}
 
@@ -1150,7 +1219,8 @@ public class Undo
 	public static boolean redoABatch()
 	{
 		// close out the current batch
-		endChanges();
+		if (currentBatch != null)
+			endChanges();
 
 		// get the most recent batch of changes
 		int listSize = undoneList.size();
@@ -1158,6 +1228,11 @@ public class Undo
 		ChangeBatch batch = (ChangeBatch)undoneList.get(listSize-1);
 		undoneList.remove(listSize-1);
 		doneList.add(batch);
+
+		// for checking
+		currentBatch = batch;
+		batch.thread = Thread.currentThread();
+		if (batch.rootCell != null) batch.rootCell.setChangeLock();
 
 		// look through the changes in this batch
 		boolean firstChange = true;
@@ -1183,6 +1258,7 @@ public class Undo
 
 		// mark that this batch is redone
 		batch.done = true;
+		currentBatch = null;
 		return true;
 	}
 
@@ -1191,12 +1267,13 @@ public class Undo
 	 */
 	public static void noUndoAllowed()
 	{
-		// properly terminate the current batch
-		endChanges();
+ 		// properly terminate the current batch
+		if (currentBatch != null)
+			endChanges();
 
-		// kill them all
-		doneList.clear();
-		undoneList.clear();
+ 		// kill them all
+ 		doneList.clear();
+ 		undoneList.clear();
 	}
 
 	/**
@@ -1205,7 +1282,8 @@ public class Undo
 	public static void noRedoAllowed()
 	{
 		// properly terminate the current batch
-		endChanges();
+		if (currentBatch != null)
+			endChanges();
 
 		undoneList.clear();
 	}

@@ -433,6 +433,25 @@ public class Library extends ElectricObject
 		return null;
 	}
 
+	/**
+	 * Routine to find a Library with the specified name.
+	 * @param libName the name of the Library.
+	 * Note that this is the Library name, and not the Library file.
+	 * @return the Library, or null if there is no known Library by that name.
+	 */
+	public static void clearChangeLocks()
+	{
+		for (int i = 0; i < libraries.size(); i++)
+		{
+			Library l = (Library) libraries.get(i);
+			for (int j = 0; j < l.cells.size(); j++)
+			{
+				Cell c = (Cell) l.cells.get(j);
+				c.clearChangeLock();
+			}
+		}
+	}
+
 	static class LibCaseInsensitive implements Comparator
 	{
 		public int compare(Object o1, Object o2)

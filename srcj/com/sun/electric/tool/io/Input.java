@@ -115,7 +115,7 @@ public class Input
 	public static Library readLibrary(String fileName, ImportType type)
 	{
 		long startTime = System.currentTimeMillis();
-		Undo.noUndoAllowed();
+		//Undo.noUndoAllowed();
 		Undo.changesQuiet(true);
 		Library lib = readALibrary(fileName, null, type);
 		Undo.changesQuiet(false);

@@ -231,7 +231,10 @@ public final class UserMenuCommands
 
 		public void run()
 		{
+			Undo.startChanges(User.tool, "ReadLibrary");
 			Library lib = Input.readLibrary(fileName, Input.ImportType.BINARY);
+			Undo.endChanges();
+			Undo.noUndoAllowed();
 			if (lib == null) return;
 			Library.setCurrent(lib);
 			Cell cell = lib.getCurCell();
@@ -267,7 +270,10 @@ public final class UserMenuCommands
 
 		public void run()
 		{
+			Undo.startChanges(User.tool, "ReadTextLibrary");
 			Library lib = Input.readLibrary(fileName, Input.ImportType.TEXT);
+			Undo.endChanges();
+			Undo.noUndoAllowed();
 			if (lib == null) return;
 			Library.setCurrent(lib);
 			Cell cell = lib.getCurCell();
