@@ -310,7 +310,7 @@ public class TextUtils
 		return result + u.getPostFix();
 	}
 
-    private static final HashMap formatsByFractions = new HashMap();
+    private static NumberFormat numberFormatSpecific = null;
 
     /**
      * Method to convert a double to a string.
@@ -333,9 +333,8 @@ public class TextUtils
 	 * @param numFractions the number of digits to the right of the decimal point.
 	 * @return the string representation of the number.
 	 */
-	public static String formatDouble(double v, int numFractions)
+	public static synchronized String formatDouble(double v, int numFractions)
 	{
-        NumberFormat numberFormatSpecific = (NumberFormat)formatsByFractions.get(new Integer(numFractions));
 		if (numberFormatSpecific == null) {
             numberFormatSpecific = NumberFormat.getInstance(Locale.US);
             if (numberFormatSpecific != null) numberFormatSpecific.setGroupingUsed(false);
@@ -344,12 +343,11 @@ public class TextUtils
                 d.setDecimalSeparatorAlwaysShown(false);
             } catch (Exception e) {}
 
-            if (numFractions == 0) {
-                numberFormatSpecific.setMaximumFractionDigits(340);
-            } else {
-                numberFormatSpecific.setMaximumFractionDigits(numFractions);
-            }
-            formatsByFractions.put(new Integer(numFractions), numberFormatSpecific);
+        }
+        if (numFractions == 0) {
+            numberFormatSpecific.setMaximumFractionDigits(340);
+        } else {
+            numberFormatSpecific.setMaximumFractionDigits(numFractions);
         }
 		return numberFormatSpecific.format(v);
 	}
