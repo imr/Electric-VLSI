@@ -2212,6 +2212,7 @@ public class EditWindow extends JPanel
 			{
 				NodeInst ni = (NodeInst)it.next();
 				Cell parent = ni.getParent();
+                if (parent.getLibrary().isHidden()) continue;
 				found.add(parent);
 			}
 			if (cell.getView() == View.SCHEMATIC)
@@ -2224,6 +2225,7 @@ public class EditWindow extends JPanel
 						NodeInst ni = (NodeInst)it.next();
 						if (ni.isIconOfParent()) continue;
 						Cell parent = ni.getParent();
+                        if (parent.getLibrary().isHidden()) continue;
 						found.add(parent);
 					}
 				}
