@@ -366,6 +366,27 @@ public class Highlight
 	}
 
 	/**
+	 * Routine to return the only highlighted object.
+	 * If there is not one highlighted object, an error is issued.
+	 * @return the highlighted object (null if error).
+	 */
+	public static Highlight getOneHighlight()
+	{
+		if (getNumHighlights() == 0)
+		{
+			System.out.println("Must select an object first");
+			return null;
+		}
+		if (getNumHighlights() > 1)
+		{
+			System.out.println("Must select only one object");
+			return null;
+		}
+		Highlight h = (Highlight)getHighlights().next();
+		return h;
+	}
+
+	/**
 	 * Routine to return the current window in which the highlights reside.
 	 * @return the EditWindow to redraw with the highlighted objects.
 	 * Prints an error messagen returns null if no EditWindow can be determined.

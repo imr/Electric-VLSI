@@ -263,10 +263,14 @@ public class CircuitChanges
 				return;
 			}
 
+			// make flag to track the nodes that move
+			FlagSet flag = Geometric.getFlagSet(1);
+
 			// remember the location of every node and arc
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
+				ni.clearBit(flag);
 				ni.setTempObj(new Point2D.Double(ni.getCenterX(), ni.getCenterY()));
 			}
 			for(Iterator it = cell.getArcs(); it.hasNext(); )
@@ -281,18 +285,20 @@ public class CircuitChanges
 				Highlight h = (Highlight)it.next();
 				if (h.getType() != Highlight.Type.GEOM) continue;
 				Geometric geom = h.getGeom();
-				if (geom instanceof NodeInst) numNodes++;
-			}
-
-			// make all ArcInsts temporarily rigid
-			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
-			{
-				Highlight h = (Highlight)it.next();
-				if (h.getType() != Highlight.Type.GEOM) continue;
-				Geometric geom = h.getGeom();
-				if (geom instanceof ArcInst)
+				if (geom instanceof NodeInst)
+				{
+					NodeInst ni = (NodeInst)geom;
+					if (!ni.isBit(flag)) numNodes++;
+					ni.setBit(flag);
+				} else
 				{
 					ArcInst ai = (ArcInst)geom;
+					NodeInst ni1 = ai.getHead().getPortInst().getNodeInst();
+					NodeInst ni2 = ai.getTail().getPortInst().getNodeInst();
+					if (!ni1.isBit(flag)) numNodes++;
+					if (!ni2.isBit(flag)) numNodes++;
+					ni1.setBit(flag);
+					ni2.setBit(flag);
 					Layout.setTempRigid(ai, true);
 				}
 			}
@@ -307,22 +313,17 @@ public class CircuitChanges
 				int [] dRot = new int[numNodes];
 				boolean [] dTrn = new boolean[numNodes];
 				numNodes = 0;
-				for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+				for(Iterator it = cell.getNodes(); it.hasNext(); )
 				{
-					Highlight h = (Highlight)it.next();
-					if (h.getType() != Highlight.Type.GEOM) continue;
-					Geometric geom = h.getGeom();
-					if (geom instanceof NodeInst)
-					{
-						NodeInst ni = (NodeInst)geom;
-						nis[numNodes] = ni;
-						dX[numNodes] = dx;
-						dY[numNodes] = dy;
-						dSize[numNodes] = 0;
-						dRot[numNodes] = 0;
-						dTrn[numNodes] = false;
-						numNodes++;
-					}
+					NodeInst ni = (NodeInst)it.next();
+					if (!ni.isBit(flag)) continue;
+					nis[numNodes] = ni;
+					dX[numNodes] = dx;
+					dY[numNodes] = dy;
+					dSize[numNodes] = 0;
+					dRot[numNodes] = 0;
+					dTrn[numNodes] = false;
+					numNodes++;
 				}
 				NodeInst.modifyInstances(nis, dX, dY, dSize, dSize, dRot);
 			}

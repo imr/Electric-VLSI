@@ -59,6 +59,8 @@ public class Layout extends Constraint
 {
 	private static final Layout layoutConstraint = new Layout();
 
+	private static final boolean DEBUG = false;
+
 	/**
 	 * The meaning of changeClock for object modification:
 	 *
@@ -280,9 +282,7 @@ public class Layout extends Constraint
 
 //		// if simple rotation on transposed nodeinst, reverse rotation
 //		if (ni->transpose != 0 && dtrans == 0) dAngle = (3600 - dAngle) % 3600;
-
-//		if (ni.getChangeClock() < changeClock-1 && announce)
-//			Undo.newChange(ni, Undo.Type.OBJECTSTART);
+		if (DEBUG) System.out.println("Moving node "+ni.describe()+" by ("+deltaCX+","+deltaCY+")");
 
 		// make changes to the nodeinst
 		int oldang = ni.getAngle();
@@ -302,8 +302,6 @@ public class Layout extends Constraint
 				c.setInts(oldang, 0);
 			}
 			ni.setChange(c);
-//			if (announce)
-//				Undo.newChange(ni, Undo.Type.OBJECTEND);
 		}
 
 		ni.setChangeClock(changeClock + change);
@@ -324,6 +322,8 @@ public class Layout extends Constraint
 	 */
 	private static boolean modNodeArcs(NodeInst ni, int dangle, double dSX, double dSY)
 	{
+		if (DEBUG) System.out.println("Updating arcs on node "+ni.describe());
+
 		// assume cell needs no further looks
 		boolean examineCell = false;
 
@@ -438,10 +438,12 @@ public class Layout extends Constraint
 			ArcInst ai = (ArcInst)it.next();
 //			if ((ai->userbits&DEADA) != 0) continue;
 			ai.clearRigidModified();
+			if (DEBUG) System.out.println("  Modifying Rigid arc "+ai.describe());
 
 			// if rigid arcinst has already been changed check its connectivity
 			if (ai.getChangeClock() == changeClock)
 			{
+				if (DEBUG) System.out.println("  Arc already changed");
 				ensureArcInst(ai, 0);
 				continue;
 			}
@@ -522,12 +524,14 @@ public class Layout extends Constraint
 				if (dx != 0 || dy != 0 || nextAngle != 0 || ono.getChangeClock() != changeClock-1)
 				{
 					ai.setRigidModified();
+					if (DEBUG) System.out.println("  Moving node "+ono.describe()+" at other end by ("+dx+","+dy+")");
 					if (alterNodeInst(ono, dx, dy, 0, 0, nextAngle, true))
 						examineCell = true;
 				}
 			}
 
 			// move the arcinst
+			if (DEBUG) System.out.println("  Altering arc, end moves to "+newPts[0]+" tail moves to "+newPts[1]);
 			doMoveArcInst(ai, newPts[0], newPts[1], 0);
 		}
 
@@ -550,6 +554,7 @@ public class Layout extends Constraint
 			nextAngle = dAngle;
 //			if (dtrans != 0 && ((CHANGE *)ono->changeaddr)->p6 != ((CHANGE *)ni->changeaddr)->p6)
 //				nextAngle = (3600 - nextAngle) % 3600;
+			if (DEBUG) System.out.println("Propagating to other node "+ono.describe());
 			if (modNodeArcs(ono, nextAngle, 0, 0)) examineCell = true;
 		}
 		return examineCell;
@@ -600,16 +605,17 @@ public class Layout extends Constraint
 		{
 			ArcInst ai = (ArcInst)it.next();
 //			if ((ai->userbits&DEADA) != 0) continue;
+			if (DEBUG) System.out.println("  Modifying fixed-angle arc "+ai.describe());
 
 			// if flexible arcinst has been changed, verify its connectivity
 			if (ai.getChangeClock() >= changeClock+1)
 			{
-//System.out.println("Arc "+ai.describe()+" has changed");
+				if (DEBUG) System.out.println("   Arc already changed");
 				ensureArcInst(ai, 1);
 				continue;
 			}
 
-			// figure where each end of the arcinst is, ignore internal arcs
+			// figure where each end of the arcinst is
 			Connection thisEnd = ai.getHead();   int thisEndIndex = 0;
 			Connection thatEnd = ai.getTail();   int thatEndIndex = 1;
 			if (thatEnd.getPortInst().getNodeInst() == ni)
@@ -624,7 +630,7 @@ public class Layout extends Constraint
 
 			Undo.Change change = ni.getChange();
 			double ox = 0, oy = 0;
-			if (change.getType() != Undo.Type.NODEINSTNEW)
+			if (change.getType() == Undo.Type.NODEINSTMOD)
 			{
 				ox = change.getA1();
 				oy = change.getA2();
@@ -639,6 +645,8 @@ public class Layout extends Constraint
 			// figure out the new location of this arcinst connection
 			Point2D src = new Point2D.Double(thisEnd.getLocation().getX()-ox, thisEnd.getLocation().getY()-oy);
 			trans.transform(src, newPts[thisEndIndex]);
+			newPts[thisEndIndex].setLocation(EMath.smooth(newPts[thisEndIndex].getX()),
+				EMath.smooth(newPts[thisEndIndex].getY()));
 
 			// make sure the arc end is still in the port
 			Poly poly = thisEnd.getPortInst().getPoly();
@@ -700,7 +708,6 @@ public class Layout extends Constraint
 				double dy = newPts[thisEndIndex].getY() - thisEnd.getLocation().getY();
 				double odx = newPts[thatEndIndex].getX() - thatEnd.getLocation().getX();
 				double ody = newPts[thatEndIndex].getY() - thatEnd.getLocation().getY();
-//System.out.println("Arc "+ai.describe()+" will change, one end moves ("+dx+","+dy+") other moves ("+odx+","+ody+")");
 				if (EMath.doublesEqual(thisEnd.getLocation().getX(), thatEnd.getLocation().getX()))
 				{
 					// null arcinst must not be explicitly horizontal
@@ -722,9 +729,13 @@ public class Layout extends Constraint
 
 						if (dx != odx)
 						{
-							if (alterNodeInst(ono, dx-odx, 0, 0, 0, 0, true))
+							double xAmount = EMath.smooth(dx-odx);
+							if (DEBUG) System.out.println("  Moving node "+ono.describe()+" by ("+xAmount+",0)");
+							if (alterNodeInst(ono, xAmount, 0, 0, 0, 0, true))
 								examineCell = true;
 						}
+						if (DEBUG) System.out.println("  Moving vertical arc so head=("+newPts[0].getX()+","+newPts[0].getY()+
+							") and tail=("+newPts[1].getX()+","+newPts[1].getY()+")");
 						doMoveArcInst(ai, newPts[0], newPts[1], 1);
 						if (!EMath.doublesEqual(dx, odx))
 							if (modNodeArcs(ono, 0, 0, 0)) examineCell = true;
@@ -749,9 +760,12 @@ public class Layout extends Constraint
 
 					if (!EMath.doublesEqual(dy, ody))
 					{
+						if (DEBUG) System.out.println("  Moving node "+ono.describe()+" by (0,"+(dy-ody)+")");
 						if (alterNodeInst(ono, 0, dy-ody, 0, 0, 0, true))
 							examineCell = true;
 					}
+					if (DEBUG) System.out.println("  Moving horizontal arc so head=("+newPts[0].getX()+","+newPts[0].getY()+
+						") and tail=("+newPts[1].getX()+","+newPts[1].getY()+")");
 					doMoveArcInst(ai, newPts[0], newPts[1], 1);
 					if (!EMath.doublesEqual(dy, ody))
 						if (modNodeArcs(ono, 0, 0, 0)) examineCell = true;
@@ -773,6 +787,7 @@ public class Layout extends Constraint
 
 				if (dx != 0 || dy != 0)
 				{
+					if (DEBUG) System.out.println("  Moving node "+ono.describe()+" by ("+dx+","+dy+")");
 					if (alterNodeInst(ono, dx, dy, 0, 0, 0, true))
 						examineCell = true;
 					if (modNodeArcs(ono, 0, 0, 0)) examineCell = true;
@@ -781,6 +796,8 @@ public class Layout extends Constraint
 			}
 
 			// other node has changed or arc is funny, just use its position
+			if (DEBUG) System.out.println("  Moving nonmanhattan arc so head=("+newPts[0].getX()+","+newPts[0].getY()+
+				") and tail=("+newPts[1].getX()+","+newPts[1].getY()+")");
 			doMoveArcInst(ai, newPts[0], newPts[1], 1);
 		}
 
@@ -849,7 +866,7 @@ public class Layout extends Constraint
 		Connection head = ai.getHead();
 		Point2D headPoint = head.getLocation();
 		boolean inside0 = ai.stillInPort(head, headPoint, true);
-		Connection tail = ai.getHead();
+		Connection tail = ai.getTail();
 		Point2D tailPoint = tail.getLocation();
 		boolean inside1 = ai.stillInPort(tail, tailPoint, true);
 		if (inside0 && inside1) return;
@@ -914,16 +931,11 @@ public class Layout extends Constraint
 	 */
 	private static void updateArc(ArcInst ai, Point2D headPt, Point2D tailPt, int arctyp)
 	{
-		// start changes on this arc
-//		Undo.newChange(ai, Undo.Type.OBJECTSTART);
-
 		// set the proper arcinst position
 		Point2D oldHeadPt = ai.getHead().getLocation();
 		Point2D oldTailPt = ai.getTail().getLocation();
 		double oldHeadX = oldHeadPt.getX();   double oldHeadY = oldHeadPt.getY();
 		double oldTailX = oldTailPt.getX();   double oldTailY = oldTailPt.getY();
-//System.out.println("modify arc "+ai.describe()+" was ("+oldHeadX+","+oldHeadY+")-("+oldTailPt.getX()+","+oldTailPt.getY()+
-//	") is ("+headPt.getX()+","+headPt.getY()+")-("+tailPt.getX()+","+tailPt.getY()+")");
 		ai.lowLevelModify(0, headPt.getX() - oldHeadX, headPt.getY() - oldHeadY, tailPt.getX() - oldTailX, tailPt.getY() - oldTailY);
 
 		// if the arc hasn't changed yet, record this change
@@ -934,9 +946,6 @@ public class Layout extends Constraint
 			ai.setChange(change);
 			ai.setChangeClock(changeClock + arctyp);
 		}
-
-		// end changes on this arc
-//		Undo.newChange(ai, Undo.Type.OBJECTEND);
 	}
 
 	/**
@@ -959,7 +968,7 @@ public class Layout extends Constraint
 		}
 
 		// if the angle is the same or doesn't need to be, simply make the change
-		if (!ai.isRigid() ||
+		if (!ai.isFixedAngle() ||
 			(ai.isRigid() && ai.getChangeClock() != changeClock-1) ||
 			ai.getChangeClock() == changeClock-2 ||
 			headPt.equals(tailPt) ||
@@ -968,8 +977,9 @@ public class Layout extends Constraint
 			updateArc(ai, headPt, tailPt, arctyp);
 			return;
 		}
-System.out.println("Jogging arc");
+
 		// manhattan arcinst becomes nonmanhattan: remember facts about it
+		if (DEBUG) System.out.println("Jogging arc");
 		PortInst fpi = head.getPortInst();
 		NodeInst fno = fpi.getNodeInst();   PortProto fpt = fpi.getPortProto();
 		PortInst tpi = tail.getPortInst();
@@ -1006,11 +1016,7 @@ System.out.println("Jogging arc");
 			System.out.println("Problem creating jog pins");
 			return;
 		}
-//		Undo.newChange(no1, Undo.Type.OBJECTEND);
-//		Undo.newChange(no2, Undo.Type.OBJECTEND);
 
-		Iterator it = np.getPorts();
-		PortProto pp = (PortProto)it.next();
 		PortInst no1pi = no1.getOnlyPortInst();
 		Rectangle2D no1Bounds = no1pi.getPoly().getBounds2D();
 		Point2D no1Pt = new Point2D.Double(no1Bounds.getCenterX(), no1Bounds.getCenterY());
@@ -1019,11 +1025,11 @@ System.out.println("Jogging arc");
 		Rectangle2D no2Bounds = no2pi.getPoly().getBounds2D();
 		Point2D no2Pt = new Point2D.Double(no2Bounds.getCenterX(), no2Bounds.getCenterY());
 
-		ArcInst ar1 = ArcInst.newInstance(ap, wid, fpi, head.getLocation(), no2pi, no2Pt, null);
+		ArcInst ar1 = ArcInst.newInstance(ap, wid, fpi, headPt, no2pi, no2Pt, null);
 		ar1.copyStateBits(ai);
 		ArcInst ar2 = ArcInst.newInstance(ap, wid, no2pi, no2Pt, no1pi, no1Pt, null);
 		ar2.copyStateBits(ai);   ar2.clearNegated();
-		ArcInst ar3 = ArcInst.newInstance(ap, wid, no1pi, no1Pt, tpi, tail.getLocation(), null);
+		ArcInst ar3 = ArcInst.newInstance(ap, wid, no1pi, no1Pt, tpi, tailPt, null);
 		ar3.copyStateBits(ai);   ar3.clearNegated();
 		if (ar1 == null || ar2 == null || ar3 == null)
 		{
@@ -1032,15 +1038,11 @@ System.out.println("Jogging arc");
 		}
 		ar2.copyVars(ai);
 		ar2.setNameTextDescriptor(ai.getNameTextDescriptor());
-//		Undo.newChange(ar1, Undo.Type.OBJECTEND);
-//		Undo.newChange(ar2, Undo.Type.OBJECTEND);
-//		Undo.newChange(ar3, Undo.Type.OBJECTEND);
 		ar1.setChangeClock(changeClock + arctyp);
 		ar2.setChangeClock(changeClock + arctyp);
 		ar3.setChangeClock(changeClock + arctyp);
 
 		// now kill the arcinst
-//		Undo.newChange(ai, Undo.Type.OBJECTSTART);
 //		if ((CHANGE *)ai->changeaddr != NOCHANGE)
 //		{
 //			ai->end[0].xpos = ((CHANGE *)ai->changeaddr)->p1;
@@ -1192,8 +1194,8 @@ System.out.println("Jogging arc");
 		change = np.getChange();
 		if (change != null && change.getType() == Undo.Type.CELLMOD)
 		{
-			pCX = change.getA1();
-			pCY = change.getA2();
+			pCX = (change.getA1()+change.getA2()) / 2;
+			pCY = (change.getA2()+change.getA4()) / 2;
 		}
 
 		// create the former translation matrix (this hack is stolen from NodeInst.translateOut())
@@ -1434,11 +1436,17 @@ System.out.println("Jogging arc");
 		}
 
 		// now change the arcs in the nodes in this cell that changed
+		List nodesThatChanged = new ArrayList();
+		for(Iterator it = start.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (ni.isBit(touchNode)) nodesThatChanged.add(ni);
+		}
 		foundone = true;
 		while (foundone)
 		{
 			foundone = false;
-			for(Iterator it = start.getNodes(); it.hasNext(); )
+			for(Iterator it = nodesThatChanged.iterator(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				if (!ni.isBit(touchNode)) continue;

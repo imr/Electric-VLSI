@@ -29,15 +29,14 @@
         <delete dir="META-INF"></delete>
         <jar basedir="." compress="true" jarfile="electric.jar" manifest="electric.mf">
             <!--  <arg line="-J-mx500m"></arg>  -->
-            <!--  <arg line="-J-Dcom.apple.macos.useScreenMenuBar=true"></arg>  -->
             <exclude name="apidoc/"/>
             <exclude name="intervalsimulation/"/>
-            <exclude name="**/.nbattrs"/>
             <exclude name="build.xml"/>
-            <exclude name="*.group"/>
             <exclude name="electric.jar"/>
             <exclude name="electric.mf"/>
             <exclude name="Hack_stack.txt"/>
+            <exclude name="*.group"/>
+            <exclude name="**/.nbattrs"/>
             <exclude name="**/*.java"/>
             <exclude name="**/*.form"/>
         </jar>

@@ -873,7 +873,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		if (!stillInPort(getTail(), tailPt, false))
 		{
 			System.out.println("Cell " + parent.describe() + ", arc " + describe() +
-				": tail not in port, is at (" + headPt.getX() + "," + headPt.getY() + ")");
+				": tail not in port, is at (" + tailPt.getX() + "," + tailPt.getY() + ")");
 			errorCount++;
 		}
 

@@ -117,12 +117,28 @@ public abstract class PortProto extends ElectricObject implements Networkable
 		/**
 		 * Routine to find the characteristic associated with the given bit value.
 		 * @param bits the bit value associated with a Characteristic.
+		 * @return the desired Characteristic (null if not found).
 		 */
 		static Characteristic findCharacteristic(int bits)
 		{
 			Object obj = characteristicList.get(new Integer(bits));
 			if (obj == null) return null;
 			return (Characteristic)obj;
+		}
+
+		/**
+		 * Routine to find the characteristic associated with the given name.
+		 * @param wantName the name of a Characteristic.
+		 * @return the desired Characteristic (null if not found).
+		 */
+		public static Characteristic findCharacteristic(String wantName)
+		{
+			for(Iterator it = getCharacteristics(); it.hasNext(); )
+			{
+				Characteristic ch = (Characteristic)it.next();
+				if (ch.name.equals(wantName)) return ch;
+			}
+			return null;
 		}
 
 		/**

@@ -704,7 +704,7 @@ public final class UserMenuCommands
         EditWindow curEdit = TopLevel.getCurrentEditWindow();
         curEdit.downHierarchy();
     }
-    
+
     public static void upHierCommand() {
         EditWindow curEdit = TopLevel.getCurrentEditWindow();
         curEdit.upHierarchy();
@@ -824,28 +824,32 @@ public final class UserMenuCommands
 	// NCC Tool
 	public static void nccTest1Command()
 	{
+		System.out.println("Not yet");
 //		NetFactory nf = new NetFactory();
 //		nf.testOne();
 	}
 
 	public static void nccTest2Command()
 	{
+		System.out.println("Not yet");
 //		NetFactory nf = new NetFactory();
 //		nf.testTwo();
 	}
 
 	public static void nccTest3Command()
 	{
+		System.out.println("Not yet");
 //		NetFactory nf = new NetFactory();
 //		nf.testThree();
 	}
 
 	public static void nccTest4Command()
 	{
+		System.out.println("Not yet");
 //		NetFactory nf = new NetFactory();
 //		nf.testFour();
 	}
-    
+
     public static void irsimNetlistCommand()
     {
         EditWindow curEdit = TopLevel.getCurrentEditWindow();
@@ -861,7 +865,7 @@ public final class UserMenuCommands
 		PadGenerator gen = new PadGenerator();
 		gen.ArrayFromFile();
 	}
-    
+
     // ---------------------- THE HELP MENU -----------------
 
 	public static void aboutCommand()
