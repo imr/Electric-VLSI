@@ -3,6 +3,7 @@ package com.sun.electric.plugins.j3d;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WindowContent;
+import com.sun.electric.plugins.j3d.utils.J3DUtils;
 
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.BranchGroup;
@@ -28,13 +29,13 @@ public class J3DDemoView extends View3DWindow
         super(cell, wf, view2D, transPerNode);
     }
 
-    protected BranchGroup createSceneGraph(Cell cell, BoundingSphere infiniteBounds)
+    protected BranchGroup createSceneGraph(Cell cell)
     {
-        BranchGroup scene = super.createSceneGraph(cell, infiniteBounds);
+        BranchGroup scene = super.createSceneGraph(cell);
 
         // create the KeyBehavior and attach
 		J3DKeyCollision keyBehavior = new J3DKeyCollision(objTrans, null, this);
-		keyBehavior.setSchedulingBounds(infiniteBounds);
+		keyBehavior.setSchedulingBounds(J3DUtils.infiniteBounds);
 		//keyBehavior.setMovementRate( 0.7 );
 //        BranchGroup behaviorBranch = new BranchGroup();
 //        behaviorBranch.addChild(keyBehavior);

@@ -1077,7 +1077,7 @@ public class User extends Listener
         }
     }
 
-    private static Pref cache3DLightDirs = Pref.makeStringPref("3DLightDirs", User.tool.prefs, "(1 1 -1)(-1 1 -1)");
+    private static Pref cache3DLightDirs = Pref.makeStringPref("3DLightDirs", User.tool.prefs, "(-1 1 -1)(1 -1 -1)");
 	/**
 	 * Method to return the first light direction.
 	 * The default is the X axis.

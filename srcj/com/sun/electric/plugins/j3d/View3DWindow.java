@@ -79,6 +79,7 @@ import com.sun.j3d.utils.picking.PickIntersection;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.Viewer;
 import com.sun.j3d.utils.universe.ViewingPlatform;
+import com.sun.j3d.utils.universe.PlatformGeometry;
 import com.sun.j3d.utils.geometry.Cone;
 import com.sun.j3d.utils.geometry.Primitive;
 import com.sun.j3d.utils.geometry.Cylinder;
@@ -99,7 +100,6 @@ public class View3DWindow extends JPanel
 {
 
 	/** # of nodes to consider scene graph big */       private static final int MAX3DVIEWNODES = 5000;
-    /** bounding of scene graph */                      public static final BoundingSphere infiniteBounds = new BoundingSphere(new Point3d(), Double.MAX_VALUE);
 
 	private SimpleUniverse u;
 	private J3DCanvas3D canvas;
@@ -201,7 +201,7 @@ public class View3DWindow extends JPanel
         J3DAppearance.setAxisAppearanceValues(this);
 
 		// Create a simple scene and attach it to the virtual universe
-		scene = createSceneGraph(cell, infiniteBounds);
+		scene = createSceneGraph(cell);
 
 		// Have Java 3D perform optimizations on this scene graph.
 	    scene.compile();
@@ -212,9 +212,14 @@ public class View3DWindow extends JPanel
 		u = new SimpleUniverse(viewingPlatform, viewer);
 		u.addBranchGraph(scene);
 
+        // lights on ViewPlatform geometry group
+        PlatformGeometry pg = new PlatformGeometry();
+        J3DUtils.createLights(pg);
+        viewingPlatform.setPlatformGeometry(pg) ;
+
         JMouseTranslate translate = new JMouseTranslate(canvas, MouseTranslate.INVERT_INPUT);
         translate.setTransformGroup(objTrans); //viewingPlatform.getMultiTransformGroup().getTransformGroup(2));
-        translate.setSchedulingBounds(infiniteBounds);
+        translate.setSchedulingBounds(J3DUtils.infiniteBounds);
 		double scale = (cell.getDefWidth() < cell.getDefHeight()) ? cell.getDefWidth() : cell.getDefHeight();
         translate.setFactor(0.01 * scale); // default 0.02
         BranchGroup translateBG = new BranchGroup();
@@ -224,7 +229,7 @@ public class View3DWindow extends JPanel
 
         JMouseZoom zoom = new JMouseZoom(canvas, MouseZoom.INVERT_INPUT);
         zoom.setTransformGroup(viewingPlatform.getMultiTransformGroup().getTransformGroup(1));
-        zoom.setSchedulingBounds(infiniteBounds);
+        zoom.setSchedulingBounds(J3DUtils.infiniteBounds);
         zoom.setFactor(0.7);    // default 0.4
         BranchGroup zoomBG = new BranchGroup();
         zoomBG.addChild(zoom);
@@ -236,7 +241,7 @@ public class View3DWindow extends JPanel
         BranchGroup rotateBG = new BranchGroup();
         rotateBG.addChild(rotate);
         viewingPlatform.addChild(rotateBG);
-        rotate.setSchedulingBounds(infiniteBounds);
+        rotate.setSchedulingBounds(J3DUtils.infiniteBounds);
 		rotateB = rotate;
 
 //		OrbitBehavior orbit = new OrbitBehavior(canvas, OrbitBehavior.REVERSE_ALL);
@@ -378,10 +383,9 @@ public class View3DWindow extends JPanel
     /**
      * Method to create main transformation group
      * @param cell
-     * @param infiniteBounds
      * @return
      */
-    protected BranchGroup createSceneGraph(Cell cell, BoundingSphere infiniteBounds)
+    protected BranchGroup createSceneGraph(Cell cell)
 	{
 		// Create the root of the branch graph
 		BranchGroup objRoot = new BranchGroup();
@@ -409,9 +413,6 @@ public class View3DWindow extends JPanel
 		View3DEnumerator view3D = new View3DEnumerator();
 		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, view3D);
 
-        // lights
-        J3DUtils.createLights(objRoot);
-
         // Create Axes
         Rectangle2D cellBnd = cell.getBounds();
         double length = cellBnd.getHeight() > cellBnd.getWidth() ? cellBnd.getHeight() : cellBnd.getWidth();
@@ -435,11 +436,11 @@ public class View3DWindow extends JPanel
         pickCanvas.setMode(PickCanvas.GEOMETRY_INTERSECT_INFO);
         pickCanvas.setTolerance(4.0f);
 
-        setInterpolator(infiniteBounds);
+        setInterpolator();
 
         // create the KeyBehavior and attach main transformation group
 		keyBehavior = new J3DKeyCollision(objTrans, null, this);
-		keyBehavior.setSchedulingBounds(infiniteBounds);
+		keyBehavior.setSchedulingBounds(J3DUtils.infiniteBounds);
 		//keyBehavior.setMovementRate( 0.7 );
 		objTrans.addChild(keyBehavior);
 
@@ -1290,9 +1291,8 @@ public class View3DWindow extends JPanel
 
     /**
      * Method to create spline interpolator for demo mode
-     * @param infiniteBounds
      */
-    private void setInterpolator(BoundingSphere infiniteBounds)
+    private void setInterpolator()
     {
         //BranchGroup behaviorBranch = new BranchGroup();
         Transform3D yAxis = new Transform3D();
@@ -1352,7 +1352,7 @@ public class View3DWindow extends JPanel
 
         Interpolator tcbSplineInter = new RotPosScaleTCBSplinePathInterpolator(jAlpha, objTrans,
                                                   yAxis, keyFrames);
-        tcbSplineInter.setSchedulingBounds(infiniteBounds);
+        tcbSplineInter.setSchedulingBounds(J3DUtils.infiniteBounds);
         //behaviorBranch.addChild(tcbSplineInter);
         tcbSplineInter.setEnable(false);
         interpolatorMap.put(objTrans, tcbSplineInter);

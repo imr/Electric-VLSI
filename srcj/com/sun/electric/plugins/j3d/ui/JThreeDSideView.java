@@ -11,6 +11,7 @@ import com.sun.electric.plugins.j3d.utils.J3DAppearance;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.ViewingPlatform;
 import com.sun.j3d.utils.universe.Viewer;
+import com.sun.j3d.utils.universe.PlatformGeometry;
 import com.sun.j3d.utils.behaviors.mouse.MouseRotate;
 import com.sun.j3d.utils.behaviors.mouse.MouseZoom;
 import com.sun.j3d.utils.behaviors.mouse.MouseTranslate;
@@ -68,6 +69,12 @@ public class JThreeDSideView extends JPanel
         Viewer viewer = new Viewer(canvas);
         SimpleUniverse u = new SimpleUniverse(viewP, viewer);
         u.addBranchGraph(scene);
+
+
+        // lights on ViewPlatform geometry group
+        PlatformGeometry pg = new PlatformGeometry();
+        J3DUtils.createLights(pg);
+        viewP.setPlatformGeometry(pg) ;
 
 //        BranchGroup rotateBG = new BranchGroup();
 //        Billboard billboard = new Billboard( objTrans, Billboard.ROTATE_ABOUT_AXIS, new Point3f( 1.0f, 1.0f, 0.0f ) );
@@ -168,9 +175,6 @@ public class JThreeDSideView extends JPanel
             if (max > highHeight)
                 highHeight = max;
         }
-
-        // lights
-        J3DUtils.createLights(objRoot);
 
         // picking tool
         pickCanvas = new PickCanvas(canvas, objRoot);

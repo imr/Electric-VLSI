@@ -324,7 +324,6 @@ public final class J3DUtils
         }
     }
 
-
     public static void setViewPoint(SimpleUniverse u, Canvas3D canvas, BranchGroup scene, Rectangle2D cellBnd)
     {
 		BoundingSphere sceneBnd = (BoundingSphere)scene.getBounds();
