@@ -565,7 +565,7 @@ public class ViewChanges
 
 		// determine the type of wires used for leads
 		PrimitiveArc wireType = Schematics.tech.wire_arc;
-		if (pp.getBasePort().connectsTo(Schematics.tech.bus_arc))
+		if (pp.getBasePort().connectsTo(Schematics.tech.bus_arc) && pp.getNameKey().isBus())
 		{
 			wireType = Schematics.tech.bus_arc;
 			pinType = Schematics.tech.busPinNode;
