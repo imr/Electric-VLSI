@@ -177,9 +177,6 @@ public class FileMenu {
      */
     public static void openLibraryCommand()
     {
-        Integer i = null;
-        System.out.println(i.toString());
-
         String fileName = OpenFile.chooseInputFile(OpenFile.Type.ELIB, null);
         if (fileName != null)
         {
