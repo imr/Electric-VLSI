@@ -33,10 +33,12 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.HelpMenu;
+import com.sun.electric.tool.user.menus.MenuBar.Menu;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -46,11 +48,13 @@ import java.awt.event.WindowListener;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.net.URL;
+import java.util.Date;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.TimerTask;
 
 import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 // these may not exist on non-Macintosh platforms, and are stubbed-out in "AppleJavaExtensions.jar"
 import com.apple.eawt.Application;
@@ -133,6 +137,7 @@ public final class Main
 	        System.out.println("\t-debug: debug mode. Extra information is available");
             System.out.println("\t-NOTHREADING: turn off Job threading.");
 	        System.out.println("\t-batch: running in batch mode.");
+	        System.out.println("\t-pulldowns: list all pulldown menus in Electric");
 	        System.out.println("\t-help: this message");
 
 			System.exit(0);
@@ -162,6 +167,8 @@ public final class Main
         if (mdiMode) mode = TopLevel.Mode.MDI;
         if (sdiMode) mode = TopLevel.Mode.SDI;
 		TopLevel.OSInitialize(mode);
+
+		if (hasCommandLineOption(argsList, "-pulldowns")) dumpPulldownMenus();
 
 		// initialize database
 		new InitDatabase(argsList, sw);
@@ -286,6 +293,40 @@ public final class Main
 	    {
             FileMenu.ReadInitialELIBs job = new FileMenu.ReadInitialELIBs(fileURLs);
 	    }
+    }
+
+    /**
+     * Method to dump the pulldown menus in indented style.
+     */
+    private static void dumpPulldownMenus()
+    {
+		Date now = new Date();
+    	System.out.println("Pulldown menus in Electric as of " + TextUtils.formatDate(now));
+        TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
+    	MenuBar menuBar = top.getTheMenuBar();
+        for (int i=0; i<menuBar.getMenuCount(); i++)
+        {
+            Menu menu = (Menu)menuBar.getMenu(i);
+            printIndented("\n" + menu.getText() + ":", 0);
+            addMenu(menu, 1);
+        }
+    }
+    private static void printIndented(String str, int depth)
+    {
+    	for(int i=0; i<depth*3; i++) System.out.print(" ");
+    	System.out.println(str);
+    	
+    }
+    private static void addMenu(Menu menu, int depth)
+    {
+        for (int i=0; i<menu.getItemCount(); i++)
+        {
+            JMenuItem menuItem = menu.getItem(i);
+            if (menuItem == null) { printIndented("----------", depth); continue; }
+            printIndented(menuItem.getText(), depth);
+            if (menuItem instanceof JMenu)
+                addMenu((Menu)menuItem, depth+1);              // recurse
+        }
     }
 
 	/**

@@ -4,8 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01aw: *********************************
 
+BUG: (12/16/04, SMR) PostScript export of waveform windows crashes (Bug #119).
+FIX: In PostScript.java, check for null EditWindow pointer.
+
 IMP: (12/15/04, SMR) Minor changes to GUI to help with documentation: About dialog, New Arc Preferences,
-     outline edit, verilog of and/or gates, multipage schematics, command-line help, Export menu.
+     outline edit, verilog of and/or gates, multipage schematics, command-line help, Export menu,
+     pulldown reporting.
 
 BUG: (12/15/04, SMR) "Antenna" preferences crash if current technology has no metal.
 FIX: Check for empty list.

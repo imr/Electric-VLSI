@@ -472,7 +472,13 @@ public abstract class ElectricObject
 		double height = 0;
 		Poly.Type style = td.getPos().getPolyType();
 		boolean headerString = false;
-		Font font = wnd.getFont(td);
+		Font font = null;
+		double scale = 1;
+		if (wnd != null)
+		{
+			font = wnd.getFont(td);
+			scale = wnd.getScale();
+		}
 		if (varLength > 1)
 		{
 			// compute text height
@@ -482,8 +488,8 @@ public abstract class ElectricObject
 //				varLength = 0;
 //			} else
 			{
-				if (font == null) height = 1 / wnd.getScale(); else
-					height = font.getSize2D() / wnd.getScale();
+				if (font == null) height = 1 / scale; else
+					height = font.getSize2D() / scale;
 				if (td.getDispPart() == TextDescriptor.DispPos.NAMEVALUE)
 				{
 					headerString = true;
@@ -545,7 +551,7 @@ public abstract class ElectricObject
 				if (font == null)
 				{
 					// text too small: make it "greek"
-					double fakeWidth = message.length() * entryTD.getTrueSize(wnd) * 0.75 / wnd.getScale();
+					double fakeWidth = message.length() * entryTD.getTrueSize(wnd) * 0.75 / scale;
 //System.out.println("Greek text "+fakeWidth+" wide but window scale is "+wnd.getScale());
 					pointList = new Point2D.Double[2];
 					pointList[0] = new Point2D.Double(cX+offX-fakeWidth/2, cY+offY);
