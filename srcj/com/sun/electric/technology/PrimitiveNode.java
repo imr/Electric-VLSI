@@ -1027,7 +1027,7 @@ public class PrimitiveNode implements NodeProto
 	 * Method to allow instances of this PrimitiveNode to be grouped with other instances
 	 * Valid for menu display
 	 */
-	public void setGroupNode() { userBits |= NODEGROUP; }
+	public void setGroupNode() { checkChanging(); userBits |= NODEGROUP; }
 
 	/**
 	 * Method to tell if instaces of this PrimitiveNode are grouped.
