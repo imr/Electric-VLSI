@@ -244,6 +244,7 @@ public class Layer
 		this.graphics = graphics;
 		this.nonPseudoLayer = this;
 		this.visible = true;
+		this.function = Function.UNKNOWN;
 	}
 
 	/**

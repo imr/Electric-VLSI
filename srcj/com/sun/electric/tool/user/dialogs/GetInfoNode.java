@@ -1100,6 +1100,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
                 currentXSize = initXSize;
                 currentYSize = initYSize;
             }
+System.out.println("Initial size is "+initXSize+"x"+initYSize+" current is "+currentXSize+"x"+currentYSize);
 
 			int currentRotation = (int)(TextUtils.atof(dialog.rotation.getText(), new Double(dialog.initialRotation)) * 10);
 			if (!DBMath.doublesEqual(currentXPos, dialog.initialXPos) ||

@@ -317,6 +317,7 @@ public class TopLevel extends JFrame
 	 * @param jif the internal frame to add.
 	 */
 	public static void addToDesktop(JInternalFrame jif) { desktop.add(jif); }
+	public static JDesktopPane getDesktop() { return desktop; }
 
 	public static Cursor getCurrentCursor() { return cursor; }
 

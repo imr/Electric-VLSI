@@ -239,7 +239,41 @@ public class WindowFrame
 			jf.setLocation(windowOffset+150, windowOffset);
 		}
 	}        
-    
+
+	public void addJS(JComponent js, int width, int height, int lowX, int lowY)
+	{
+		if (TopLevel.isMDIMode())
+		{
+//			JInternalFrame newJIF = new JInternalFrame();
+//			newJIF.setBorder(new javax.swing.border.EmptyBorder(0,0,0,0));
+//			newJIF.setSize(new Dimension(width, height));
+//			newJIF.setLocation(300, 300);
+//			newJIF.getContentPane().add(js);
+//			newJIF.show();
+//			TopLevel.addToDesktop(newJIF);
+//			try
+//			{
+//				newJIF.setSelected(true);
+//			} catch (java.beans.PropertyVetoException e) {}
+
+			js.setSize(new Dimension(width, height));
+			js.setBorder(new javax.swing.border.EmptyBorder(0,0,0,0));
+			js.setLocation(lowX, lowY);
+			js.setVisible(true);
+			js.requestFocus();
+			js.requestFocusInWindow();
+			TopLevel.getDesktop().add(js, 0);
+//			try
+//			{
+//				js.setSelected(true);
+//			} catch (java.beans.PropertyVetoException e) {}
+		} else
+		{
+			jf.getContentPane().add(js);
+			jf.show();
+		}
+	}
+
 	/**
 	 * Populate the JFrame with the Components
 	 */

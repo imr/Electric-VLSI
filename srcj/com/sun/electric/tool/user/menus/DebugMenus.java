@@ -25,6 +25,7 @@
 package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.Main;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.geometry.PolyQTree;
@@ -63,6 +64,11 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.ZoomAndPanListener;
 
 import java.awt.Toolkit;
+import java.awt.Point;
+import java.awt.Font;
+import java.awt.font.GlyphVector;
+import java.awt.font.LineMetrics;
+import java.awt.font.FontRenderContext;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
@@ -70,6 +76,8 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.util.*;
+import javax.swing.JTextField;
+import javax.swing.JInternalFrame;
 
 /**
  * Class to handle the commands in the debugging pulldown menus.
@@ -89,6 +97,8 @@ public class DebugMenus {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand("tsmc90"); } });
 		helpMenu.addMenuItem("Make fake analog simulation window", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeWaveformCommand(); }});
+		helpMenu.addMenuItem("Test in-place Text Edit", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { editTextInPlace(); }});
 //		helpMenu.addMenuItem("Whit Diffie's design...", null,
 //			new ActionListener() { public void actionPerformed(ActionEvent e) { whitDiffieCommand(); } });
 
@@ -453,6 +463,120 @@ public class DebugMenus {
 			WindowFrame.createEditWindow(myCell);
 			return true;
 		}
+	}
+
+	/**
+	 * Test method to edit text in place.
+	 */
+	public static void editTextInPlace()
+	{
+		EditWindow curWnd = EditWindow.getCurrent();
+		
+		// must have a single text selected
+		Highlight textHighlight = null;
+		int textCount = 0;
+		if (curWnd != null)
+		{
+			for (Iterator it = curWnd.getHighlighter().getHighlights().iterator(); it.hasNext();)
+			{
+				Highlight h = (Highlight)it.next();
+				if (h.getType() != Highlight.Type.TEXT) continue;
+				textHighlight = h;
+				textCount++;
+			}
+		}
+		if (textCount > 1) textHighlight = null;
+		if (textHighlight == null) return;
+
+		String initialText = "";
+		TextDescriptor td = null;
+		ElectricObject owner = textHighlight.getElectricObject();
+		Variable var = textHighlight.getVar();
+		if (var != null)
+		{
+			td = var.getTextDescriptor();
+			Object obj = var.getObject();
+			if (obj instanceof Object[])
+			{
+				// unwind the array elements by hand
+				Object[] theArray = (Object[]) obj;
+				for (int i = 0; i < theArray.length; i++)
+				{
+					if (i != 0) initialText += "\n";
+					initialText += theArray[i];
+				}
+			} else
+			{
+				initialText = var.getPureValue(-1, -1);
+			}
+		} else
+		{
+			if (textHighlight.getName() != null)
+			{
+				if (owner instanceof Geometric)
+				{
+					Geometric geom = (Geometric) owner;
+					td = geom.getNameTextDescriptor();
+					initialText = geom.getName();
+				}
+			} else if (owner instanceof NodeInst)
+			{
+				NodeInst ni = (NodeInst)owner;
+				td = ni.getProtoTextDescriptor();
+				initialText = ni.getProto().describe();
+			}
+		}
+
+		// make the text-edit component
+		JTextField tf = new JTextField(initialText);
+//		tf.setOpaque(false);
+		tf.selectAll();
+
+		// get text description
+		int size = EditWindow.getDefaultFontSize();
+		int fontStyle = Font.PLAIN;
+		String fontName = User.getDefaultFont();
+		if (td != null)
+		{
+			size = td.getTrueSize(curWnd);
+			if (td.isItalic()) fontStyle |= Font.ITALIC;
+			if (td.isBold()) fontStyle |= Font.BOLD;
+			int fontIndex = td.getFace();
+			if (fontIndex != 0)
+			{
+				TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(fontIndex);
+				if (af != null) fontName = af.getName();
+			}
+		}
+		Font theFont = new Font(fontName, fontStyle, size);
+		if (theFont != null) tf.setFont(theFont);
+
+		Point2D [] points = Highlighter.describeHighlightText(curWnd, owner, var, textHighlight.getName());
+		int lowX=0, highX=0, lowY=0, highY=0;
+		for(int i=0; i<points.length; i++)
+		{
+			Point pt = curWnd.databaseToScreen(points[i]);
+			if (i == 0)
+			{
+				lowX = highX = pt.x;
+				lowY = highY = pt.y;
+			} else
+			{
+				if (pt.x < lowX) lowX = pt.x;
+				if (pt.x > highX) highX = pt.x;
+				if (pt.y < lowY) lowY = pt.y;
+				if (pt.y > highY) highY = pt.y;
+			}
+		}
+		int width = highX - lowX;
+		int height = highY - lowY;
+		java.awt.Point wndOnScreen = curWnd.getPanel().getLocationOnScreen();
+		java.awt.Point deskOnScreen = TopLevel.getDesktop().getLocationOnScreen();
+		System.out.println("window is ("+wndOnScreen.x+","+wndOnScreen.y+")");
+		System.out.println("desk is ("+deskOnScreen.x+","+deskOnScreen.y+")");
+		lowX += wndOnScreen.x - deskOnScreen.x;
+		lowY += wndOnScreen.y - deskOnScreen.y;
+		curWnd.getWindowFrame().addJS(tf, width, height, lowX, lowY);
 	}
 
 	/**
