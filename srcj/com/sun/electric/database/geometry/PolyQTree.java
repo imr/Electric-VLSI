@@ -25,7 +25,9 @@
 package com.sun.electric.database.geometry;
 
 import java.awt.geom.*;
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 /**
  * This class represents a quad-tree to compute overlapping regions.
@@ -76,11 +78,6 @@ public class PolyQTree {
 	}
 
 	/**
-	 * Retrieves list of leaf elements in the tree give a layer
-	 * @param layer
-	 * @return List contains all leave elements
-	 */
-	/**
 	 * Retrieves list of leaf elements in the tree for a given layer
 	 * @param layer Layer under analysis
 	 * @param modified True if only the original elements should not be retrieved
@@ -112,9 +109,6 @@ public class PolyQTree {
 			root = new PolyQNode();
 			layers.put(layer, root);
 		};
-		// Check whether original got changed! shouldn't happen because they are by value
-		//testBox.setRect(obj);
-		//testBox = root.removeObjects(box, testBox);
 		// Only if no other identical element was found, element is inserted
 		Rectangle2D areaBB = obj.getBounds2D();
 		if (!root.findAndRemoveObjects(box, obj, areaBB))
@@ -142,10 +136,38 @@ public class PolyQTree {
 	{
 		private byte original;
 
-		public PolyNode(Rectangle2D rect)
+		public PolyNode(Shape shape)
 		{
-			super(rect);
+			super(shape);
 		}
+		/**
+		 *
+		 * @return
+		 */
+		public Point2D[] getPoints()
+		{
+			PathIterator pi = getPathIterator(null);
+			double coords[] = new double[6];
+			List pointList = new ArrayList();
+
+			while (!pi.isDone()) {
+				switch (pi.currentSegment(coords)) {
+	                case PathIterator.SEG_CLOSE:
+						// do nothing
+						break;
+					default:
+						Point2D pt = new Point2D.Double(coords[0], coords[1]);
+						pointList.add(pt);
+	            }
+	            pi.next();
+			}
+			Point2D [] points = new Point2D[pointList.size()];
+			return ((Point2D [])(pointList.toArray(points)));
+		}
+		/**
+		 *
+		 * @return
+		 */
 		public double getArea()
 		{
 			if (isRectangular())
@@ -157,28 +179,27 @@ public class PolyQTree {
             double [] coords = new double[6];
 			List pointList = new ArrayList();
 			double area = 0;
+            PathIterator pi = getPathIterator(null);
 
-			for (PathIterator pIt = getPathIterator(null); !pIt.isDone(); )
-			{
-				int type = pIt.currentSegment(coords);
-
-				// Closed polygon obtained
-				if (type == PathIterator.SEG_CLOSE)
-				{
-					Object [] points = pointList.toArray();
-					for (int i = 0; i < pointList.size(); i++)
-					{
-						int j = (i + 1)% pointList.size();
-						area += ((Point2D)points[i]).getX()*((Point2D)points[j]).getY();
-						area -= ((Point2D)points[j]).getX()*((Point2D)points[i]).getY();
-					}
-					pointList.clear();
-				} else if (type == PathIterator.SEG_MOVETO || type == PathIterator.SEG_LINETO)
-				{
-					Point2D pt = new Point2D.Double(coords[0], coords[1]);
-					pointList.add(pt);
-				}
-				pIt.next();
+			while (!pi.isDone()) {
+				switch (pi.currentSegment(coords)) {
+	                case PathIterator.SEG_CLOSE:
+						{
+							Object [] points = pointList.toArray();
+							for (int i = 0; i < pointList.size(); i++)
+							{
+								int j = (i + 1)% pointList.size();
+								area += ((Point2D)points[i]).getX()*((Point2D)points[j]).getY();
+								area -= ((Point2D)points[j]).getX()*((Point2D)points[i]).getY();
+							}
+							pointList.clear();
+						}
+						break;
+					default:
+						Point2D pt = new Point2D.Double(coords[0], coords[1]);
+						pointList.add(pt);
+	            }
+	            pi.next();
 			}
 			area /= 2;
 			return(area < 0 ? -area : area);
@@ -197,9 +218,15 @@ public class PolyQTree {
 			{
 				return (a.intersects(getBounds2D()));
 			}
-			// @TODO: GVG Missing part
-			System.out.println("IMPLEMENT!!");
-			return (a.intersects(getBounds2D()));
+			// @TODO: GVG Missing part. Doesn't detect if elements are touching
+			//System.out.println("IMPLEMENT!!");
+			// @TODO: GVG very expensive?
+			Area area = (Area)this.clone();
+			area.intersect(a);
+			boolean inter = !area.isEmpty();
+
+			return (inter);
+			//return (a.intersects(getBounds2D()));
 		}
 		private boolean isOriginal()
 		{

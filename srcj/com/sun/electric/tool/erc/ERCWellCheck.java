@@ -880,7 +880,7 @@ public class ERCWellCheck
         {
         }
 
-        public boolean enterCell(HierarchyEnumerator.CellInfo info) 
+        public boolean enterCell(HierarchyEnumerator.CellInfo info)
         {
             return true;
         }

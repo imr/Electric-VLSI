@@ -58,7 +58,6 @@ import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.erc.ERCAntenna;
 import com.sun.electric.tool.generator.PadGenerator;
-import com.sun.electric.tool.generator.layout.Loco;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.io.output.Output;
@@ -67,7 +66,6 @@ import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LETool;
-import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.routing.MimicStitch;
 import com.sun.electric.tool.simulation.IRSIMTool;
@@ -107,7 +105,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.Area;
 import java.awt.print.PrinterJob;
 import java.awt.print.Printable;
 import java.awt.print.PageFormat;
@@ -352,7 +349,7 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { defaultParamVisibilityCommand(); } });
 		editInfoSubMenu.addSeparator();
 		editInfoSubMenu.addMenuItem("List Layer Coverage", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(false); } });
 
 		editMenu.addSeparator();
 
@@ -450,12 +447,6 @@ public final class MenuCommands
 		editMenu.add(specialSubMenu);
 		specialSubMenu.addMenuItem("Show Undo List", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); } });
-		m = specialSubMenu.addMenuItem("Show Cursor Coordinates", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); }});
-		m.setEnabled(false);
-		m = specialSubMenu.addMenuItem("Artwork Appearance...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); }});
-		m.setEnabled(false);
 
 		Menu selListSubMenu = new Menu("Selection");
 		editMenu.add(selListSubMenu);
@@ -479,13 +470,6 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectMakeEasyCommand(); }});
 		selListSubMenu.addMenuItem("Make Selected Hard", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectMakeHardCommand(); }});
-		selListSubMenu.addSeparator();
-		m = selListSubMenu.addMenuItem("Push Selection", KeyStroke.getKeyStroke('1', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { selectMakeEasyCommand(); }});
-		m.setEnabled(false);
-		m = selListSubMenu.addMenuItem("Pop Selection", KeyStroke.getKeyStroke('3', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { selectMakeEasyCommand(); }});
-		m.setEnabled(false);
 		selListSubMenu.addSeparator();
 		selListSubMenu.addMenuItem("Enclosed Objects", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectEnclosedObjectsCommand(); }});
@@ -526,9 +510,6 @@ public final class MenuCommands
 
 		cellMenu.addMenuItem("Down Hierarchy", KeyStroke.getKeyStroke('D', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { downHierCommand(); }});
-		m = cellMenu.addMenuItem("Down Hierarchy In Place", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { downHierCommand(); }});
-		m.setEnabled(false);
 		cellMenu.addMenuItem("Up Hierarchy", KeyStroke.getKeyStroke('U', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { upHierCommand(); }});
 
@@ -576,9 +557,6 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { unexpandFullCommand(); }});
 		unExpandListSubMenu.addMenuItem("Specified Amount", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { unexpandSpecificCommand(); }});
-		m = cellMenu.addMenuItem("Look Inside Highlighted", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { unexpandSpecificCommand(); }});
-		m.setEnabled(false);
 
 		cellMenu.addSeparator();
 		cellMenu.addMenuItem("Package Into Cell...", null,
@@ -646,8 +624,6 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { editLayoutViewCommand(); } });
 		viewMenu.addMenuItem("Edit Schematic View", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { editSchematicViewCommand(); } });
-		viewMenu.addMenuItem("Edit Multi-Page Schematic View...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { editMultiPageSchematicViewCommand(); } });
 		viewMenu.addMenuItem("Edit Icon View", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { editIconViewCommand(); } });
 		viewMenu.addMenuItem("Edit VHDL View", null,
@@ -663,8 +639,6 @@ public final class MenuCommands
 
 		viewMenu.addMenuItem("Make Icon View", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.makeIconViewCommand(); } });
-		viewMenu.addMenuItem("Make Multi-Page Schematic View...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.makeMultiPageSchematicViewCommand(); } });
 
 		/****************************** THE WINDOW MENU ******************************/
 
@@ -681,19 +655,12 @@ public final class MenuCommands
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, buckyBit), null);
         m = windowMenu.addMenuItem("Zoom In", KeyStroke.getKeyStroke('7', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { zoomInDisplay(); } });
-
-		Menu specialZoomSubMenu = new Menu("Special Zoom");
-		windowMenu.add(specialZoomSubMenu);
-		m = specialZoomSubMenu.addMenuItem("Focus on Highlighted", KeyStroke.getKeyStroke('F', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { focusOnHighlighted(); } });
-		menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD5, buckyBit), null);
-		m = specialZoomSubMenu.addMenuItem("Zoom Box", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { zoomBoxCommand(); }});
+        m = windowMenu.addMenuItem("Zoom Box", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { zoomBoxCommand(); } });
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD7, buckyBit), null);
-		specialZoomSubMenu.addMenuItem("Make Grid Just Visible", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { makeGridJustVisibleCommand(); }});
-		specialZoomSubMenu.addMenuItem("Match Other Window", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { matchOtherWindowCommand(); }});
+        m = windowMenu.addMenuItem("Focus on Highlighted", KeyStroke.getKeyStroke('F', buckyBit),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { focusOnHighlighted(); } });
+        menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD5, buckyBit), null);
 
         windowMenu.addSeparator();
 
@@ -751,28 +718,11 @@ public final class MenuCommands
 
         windowMenu.addMenuItem("Layer Visibility...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { layerVisibilityCommand(); } });
-		Menu colorSubMenu = new Menu("Color");
-		windowMenu.add(colorSubMenu);
-		colorSubMenu.addMenuItem("Restore Default Colors", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { defaultBackgroundCommand(); }});
-		colorSubMenu.addMenuItem("Black Background Colors", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { blackBackgroundCommand(); }});
-		colorSubMenu.addMenuItem("White Background Colors", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { whiteBackgroundCommand(); }});
-
-		Menu messagesSubMenu = new Menu("Messages Window");
-		windowMenu.add(messagesSubMenu);
-		messagesSubMenu.addMenuItem("Save Messages", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { TopLevel.getMessagesWindow().save(); }});
-		messagesSubMenu.addMenuItem("Clear", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { TopLevel.getMessagesWindow().clear(); }});
 
 		/****************************** THE TOOL MENU ******************************/
 
 		Menu toolMenu = new Menu("Tool", 'T');
 		menuBar.add(toolMenu);
-
-		//------------------- DRC
 
 		Menu drcSubMenu = new Menu("DRC", 'D');
 		toolMenu.add(drcSubMenu);
@@ -780,8 +730,6 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(); }});
 		drcSubMenu.addMenuItem("Check Selection Area Hierarchically", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkAreaHierarchically(); }});
-
-		//------------------- Simulation (SPICE)
 
 		Menu spiceSimulationSubMenu = new Menu("Simulation (SPICE)", 'S');
 		toolMenu.add(spiceSimulationSubMenu);
@@ -791,16 +739,8 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.CDL, true); }});
 		spiceSimulationSubMenu.addMenuItem("Plot Spice Listing...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotSpiceResults(); }});
-		m = spiceSimulationSubMenu.addMenuItem("Plot Spice for This Cell", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { addMultiplierCommand(); }});
-		m.setEnabled(false);
-		spiceSimulationSubMenu.addMenuItem("Set Spice Model...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setSpiceModel(); }});
-		spiceSimulationSubMenu.addMenuItem("Add Multiplier", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { addMultiplierCommand(); }});
 
 		spiceSimulationSubMenu.addSeparator();
-
 		spiceSimulationSubMenu.addMenuItem("Set Generic SPICE Template", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_TEMPLATE_KEY); }});
 		spiceSimulationSubMenu.addMenuItem("Set SPICE 2 Template", null,
@@ -816,40 +756,22 @@ public final class MenuCommands
 		spiceSimulationSubMenu.addMenuItem("Set SmartSPICE Template", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_SM_TEMPLATE_KEY); }});
 
-		//------------------- Simulation (Verilog)
-
 		Menu verilogSimulationSubMenu = new Menu("Simulation (Verilog)", 'V');
 		toolMenu.add(verilogSimulationSubMenu);
 		verilogSimulationSubMenu.addMenuItem("Write Verilog Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.VERILOG, true); } });
 		verilogSimulationSubMenu.addMenuItem("Plot Verilog VCD Dump...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotVerilogResults(); }});
-		m = verilogSimulationSubMenu.addMenuItem("Plot Verilog for This Cell", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { addMultiplierCommand(); }});
-		m.setEnabled(false);
 		verilogSimulationSubMenu.addSeparator();
 		verilogSimulationSubMenu.addMenuItem("Set Verilog Template", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Verilog.VERILOG_TEMPLATE_KEY); }});
-
 		verilogSimulationSubMenu.addSeparator();
-
-		Menu verilogWireTypeSubMenu = new Menu("Set Verilog Wire", 'W');
-		verilogWireTypeSubMenu.addMenuItem("Wire", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setVerilogWireCommand(0); }});
-		verilogWireTypeSubMenu.addMenuItem("Trireg", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setVerilogWireCommand(1); }});
-		verilogWireTypeSubMenu.addMenuItem("Default", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setVerilogWireCommand(2); }});
-		verilogSimulationSubMenu.add(verilogWireTypeSubMenu);
-
 		Menu transistorStrengthSubMenu = new Menu("Transistor Strength", 'T');
 		transistorStrengthSubMenu.addMenuItem("Weak", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setTransistorStrengthCommand(true); }});
 		transistorStrengthSubMenu.addMenuItem("Normal", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setTransistorStrengthCommand(false); }});
 		verilogSimulationSubMenu.add(transistorStrengthSubMenu);
-
-		//------------------- Simulation (others)
 
 		Menu netlisters = new Menu("Simulation (others)");
 		toolMenu.add(netlisters);
@@ -858,16 +780,12 @@ public final class MenuCommands
 		netlisters.addMenuItem("Write Maxwell Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.MAXWELL, true); } });
 
-		//------------------- ERC
-
 		Menu ercSubMenu = new Menu("ERC", 'E');
 		toolMenu.add(ercSubMenu);
 		ercSubMenu.addMenuItem("Check Wells", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(true); } });
 		ercSubMenu.addMenuItem("Antenna Check", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { new ERCAntenna(); } });
-
-		//------------------- Network
 
 		Menu networkSubMenu = new Menu("Network", 'N');
 		toolMenu.add(networkSubMenu);
@@ -891,8 +809,6 @@ public final class MenuCommands
 		networkSubMenu.addMenuItem("Redo Network Numbering", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { redoNetworkNumberingCommand(); } });
 
-		//------------------- Logical Effort
-
 		Menu logEffortSubMenu = new Menu("Logical Effort", 'L');
 		logEffortSubMenu.addMenuItem("Optimize for Equal Gate Delays", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { optimizeEqualGateDelaysCommand(); }});
@@ -900,38 +816,18 @@ public final class MenuCommands
             new ActionListener() { public void actionPerformed(ActionEvent e) { printLEInfoCommand(); }});
 		toolMenu.add(logEffortSubMenu);
 
-		//------------------- Routing
 
 		Menu routingSubMenu = new Menu("Routing", 'R');
-		toolMenu.add(routingSubMenu);
-		routingSubMenu.addCheckBox("Enable Auto-Stitching", Routing.isAutoStitchOn(), null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.toggleEnableAutoStitching(e); } });
+		routingSubMenu.addMenuItem("Mimic-Stitch Now", KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { MimicStitch.mimicStitch(true); }});
 	    routingSubMenu.addMenuItem("Auto-Stitch Now", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { AutoStitch.autoStitch(false, true); }});
 		routingSubMenu.addMenuItem("Auto-Stitch Highlighted Now", KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { AutoStitch.autoStitch(true, true); }});
-
+		toolMenu.add(routingSubMenu);
 		routingSubMenu.addSeparator();
-
-		routingSubMenu.addCheckBox("Enable Mimic-Stitching", Routing.isMimicStitchOn(), null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.toggleEnableMimicStitching(e); }});
-		routingSubMenu.addMenuItem("Mimic-Stitch Now", KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { MimicStitch.mimicStitch(true); }});
-		routingSubMenu.addMenuItem("Mimic Selected", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.tool.mimicSelected(); }});
-
-		routingSubMenu.addSeparator();
-
 		routingSubMenu.addMenuItem("Get Unrouted Wire", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { getUnroutedArcCommand(); }});
-		m = routingSubMenu.addMenuItem("Copy Routing Topology", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { addMultiplierCommand(); }});
-		m.setEnabled(false);
-		m = routingSubMenu.addMenuItem("Paste Routing Topology", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { addMultiplierCommand(); }});
-		m.setEnabled(false);
-
-		//------------------- Generation
 
 		Menu generationSubMenu = new Menu("Generation", 'G');
 		toolMenu.add(generationSubMenu);
@@ -939,8 +835,6 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { implantGeneratorCommand(true, false); }});
 		generationSubMenu.addMenuItem("Pad Frame Generator", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
-
-		//------------------- Compaction
 
 		Menu compactionSubMenu = new Menu("Compaction", 'C');
 		toolMenu.add(compactionSubMenu);
@@ -1045,10 +939,12 @@ public final class MenuCommands
 		menuBar.add(gildaMenu);
 		gildaMenu.addMenuItem("Merge Polyons", null,
 		        new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(true, true);}});
+		gildaMenu.addMenuItem("Covering Implants", null,
+		        new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(true, false);}});
 		gildaMenu.addMenuItem("Covering Implants Old", null,
 		        new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(false, false);}});
 		gildaMenu.addMenuItem("List Layer Coverage", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(true); } });
 
         /********************************* Hidden Menus *******************************/
 
@@ -1795,66 +1691,98 @@ public final class MenuCommands
 	/**
 	 * Method to handle the "List Layer Coverage" command.
 	 */
-	public static void layerCoverageCommand()
+	public static void layerCoverageCommand(boolean test)
 	{
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
-        Job job = new LayerCoverage(curCell);
+        Job job = new LayerCoverage(curCell, test);
 	}
 
 	private static class LayerCoverage extends Job
 	{
 		private Cell curCell;
+		private boolean testCase;
+		PolyQTree tree = new PolyQTree();
 
-		protected LayerCoverage(Cell cell)
+		public static class LayerVisitor extends HierarchyEnumerator.Visitor
+		{
+			private boolean testCase;
+			private PolyQTree tree;
+			private AffineTransform transformation;
+
+			public LayerVisitor(boolean test, PolyQTree t)
+			{
+				this.testCase = test;
+				this.tree = t;
+			}
+		    public void exitCell(HierarchyEnumerator.CellInfo info)
+            {
+                //return true;
+            }
+			public boolean enterCell(HierarchyEnumerator.CellInfo info)
+			{
+				Cell curCell = info.getCell();
+
+				// Traversing nodes
+				for (Iterator it = curCell.getNodes(); it.hasNext(); )
+				{
+					NodeInst node = (NodeInst)it .next();
+
+					// Coverage implants are pure primitive nodes
+					// and they are ignored.
+					if (!testCase && node.getFunction() == NodeProto.Function.NODE) continue;
+
+					NodeProto protoType = node.getProto();
+					//  Analyzing only leaves
+					if (!(protoType instanceof Cell))
+					{
+						Technology tech = protoType.getTechnology();
+						Poly[] polyList = tech.getShapeOfNode(node);
+						AffineTransform transform = node.rotateOut();
+
+						for (int i = 0; i < polyList.length; i++)
+						{
+							Poly poly = polyList[i];
+							Layer layer = poly.getLayer();
+							Layer.Function func = layer.getFunction();
+
+							// Only checking poly or metal
+							if (!testCase && !func.isPoly() && !func.isMetal()) continue;
+
+							poly.transform(transform);
+							poly.transform(info.getTransformToRoot());
+
+							//System.out.println("Rect BB " + poly.getBounds() + " Trans" + info.getTransformToRoot() + " layer " + layer.getName());
+							tree.insert((Object)layer, curCell.getBounds(), new PolyQTree.PolyNode(poly));
+						}
+					}
+				}
+				return true;
+			}
+			public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
+            {
+                return true;
+            }
+		}
+
+		protected LayerCoverage(Cell cell, boolean test)
 		{
 			super("Layer Coverage", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.curCell = cell;
+			this.testCase = test;
 			setReportExecutionFlag(true);
 			startJob();
 		}
 
 		public void doIt()
 		{
-			PolyQTree tree = new PolyQTree();
-
-			// Traversing nodes
-			for (Iterator it = curCell.getNodes(); it.hasNext(); )
-			{
-				NodeInst node = (NodeInst)it .next();
-
-				// Coverage implants are pure primitive nodes
-				// and they are ignored.
-				if (node.getFunction() == NodeProto.Function.NODE) continue;
-
-				NodeProto protoType = node.getProto();
-				if (protoType instanceof Cell)
-				{
-					System.out.println("recursive");
-				}
-                else
-				{
-					Technology tech = protoType.getTechnology();
-					Poly[] polyList = tech.getShapeOfNode(node);
-					AffineTransform transform = node.rotateOut();
-
-					for (int i = 0; i < polyList.length; i++)
-					{
-						Poly poly = polyList[i];
-						Layer layer = poly.getLayer();
-						Layer.Function func = layer.getFunction();
-
-						// Only checking poly or metal
-						if (!func.isPoly() && !func.isMetal()) continue;
-
-						poly.transform(transform);
-						tree.insert((Object)layer, curCell.getBounds(), new PolyQTree.PolyNode(poly.getBounds2D()));
-					}
-				}
-			}
+			// enumerate the hierarchy below here
+			LayerVisitor visitor = new LayerVisitor(testCase, tree);
+            HierarchyEnumerator.enumerateCell(curCell, VarContext.globalContext, null, visitor);
 
 			double lambdaSqr = 1;
 			// @todo GVG Calculates lambda!
+			// @todo GVG Missing arcs!!!
 			Rectangle2D bbox = curCell.getBounds();
 			double totalArea =  (bbox.getHeight()*bbox.getWidth())/lambdaSqr;
 
@@ -1876,113 +1804,6 @@ public final class MenuCommands
 
 			System.out.println("Cell is " + TextUtils.formatDouble(totalArea) + " square lambda");
 		}
-//		// initialize for analysis
-//		us_coveragetech = cell->tech;
-//
-//		// determine which layers are being collected
-//		us_coveragelayercount = 0;
-//		for(i=0; i<us_coveragetech->layercount; i++)
-//		{
-//			fun = layerfunction(us_coveragetech, i);
-//			if ((fun&LFPSEUDO) != 0) continue;
-//			if (!layerismetal(fun) && !layerispoly(fun)) continue;
-//			us_coveragelayercount++;
-//		}
-//		if (us_coveragelayercount == 0)
-//		{
-//			ttyputerr(_("No metal or polysilicon layers in this technology"));
-//			return;
-//		}
-//		us_coveragelayers = (INTBIG *)emalloc(us_coveragelayercount * SIZEOFINTBIG, us_tool->cluster);
-//		if (us_coveragelayers == 0) return;
-//		us_coveragelayercount = 0;
-//		for(i=0; i<us_coveragetech->layercount; i++)
-//		{
-//			fun = layerfunction(us_coveragetech, i);
-//			if ((fun&LFPSEUDO) != 0) continue;
-//			if (!layerismetal(fun) && !layerispoly(fun)) continue;
-//			us_coveragelayers[us_coveragelayercount++] = i;
-//		}
-//
-//		// show the progress dialog
-//		us_coveragedialog = DiaInitProgress(_("Merging geometry..."), 0);
-//		if (us_coveragedialog == 0)
-//		{
-//			termerrorlogging(TRUE);
-//			return;
-//		}
-//		DiaSetProgress(us_coveragedialog, 0, 1);
-//
-//		// reset merging information
-//		for(lib = el_curlib; lib != NOLIBRARY; lib = lib->nextlibrary)
-//		{
-//			for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//			{
-//				np->temp1 = 0;
-//
-//				// if this cell has parameters, force its polygons to be examined for every instance
-//				for(i=0; i<np->numvar; i++)
-//				{
-//					var = &np->firstvar[i];
-//					if (TDGETISPARAM(var->textdescript) != 0) break;
-//				}
-//				if (i < np->numvar) np->temp1 = -1;
-//			}
-//		}
-//
-//		// run through the work and count the number of polygons
-//		us_coveragepolyscrunched = 0;
-//		us_gathercoveragegeometry(cell, el_matid, 0);
-//		us_coveragejobsize = us_coveragepolyscrunched;
-//
-//		// now gather all of the geometry into the polygon merging system
-//		polymerge = (void **)emalloc(us_coveragelayercount * (sizeof (void *)), us_tool->cluster);
-//		if (polymerge == 0) return;
-//		for(i=0; i<us_coveragelayercount; i++)
-//			polymerge[i] = mergenew(us_tool->cluster);
-//		us_coveragepolyscrunched = 0;
-//		us_gathercoveragegeometry(cell, el_matid, polymerge);
-//
-//		// extract the information
-//		us_coveragearea = (float *)emalloc(us_coveragelayercount * (sizeof (float)), us_tool->cluster);
-//		if (us_coveragearea == 0) return;
-//		for(i=0; i<us_coveragelayercount; i++)
-//		{
-//			us_coveragearea[i] = 0.0;
-//			mergeextract(polymerge[i], us_getcoveragegeometry);
-//		}
-//
-//		// show the results
-//		totalarea = (float)(cell->highx - cell->lowx);
-//		totalarea *= (float)(cell->highy - cell->lowy);
-//		ttyputmsg(x_("Cell is %g square lambda"), totalarea/(float)lambda/(float)lambda);
-//		for(i=0; i<us_coveragelayercount; i++)
-//		{
-//			if (us_coveragearea[i] == 0.0) continue;
-//			if (totalarea == 0.0) coverageratio = 0.0; else
-//				coverageratio = us_coveragearea[i] / totalarea;
-//			percentcoverage = (INTBIG)(coverageratio * 100.0 + 0.5);
-//
-//			ttyputmsg(x_("Layer %s covers %g square lambda (%ld%%)"),
-//				layername(us_coveragetech, us_coveragelayers[i]),
-//				us_coveragearea[i]/(float)lambda/(float)lambda, percentcoverage);
-//		}
-//
-//		// delete merge information
-//		for(lib = el_curlib; lib != NOLIBRARY; lib = lib->nextlibrary)
-//		{
-//			for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//			{
-//				if (np->temp1 == 0 || np->temp1 == -1) continue;
-//				submerge = (void **)np->temp1;
-//				for(i=0; i<us_coveragelayercount; i++)
-//					mergedelete(submerge[i]);
-//				efree((CHAR *)submerge);
-//			}
-//		}
-//		for(i=0; i<us_coveragelayercount; i++)
-//			mergedelete(polymerge[i]);
-//		efree((CHAR *)polymerge);
 	}
 
 	/**
@@ -2426,31 +2247,6 @@ public final class MenuCommands
 			WindowFrame.createEditWindow(schematicView);
 	}
 
-	public static void editMultiPageSchematicViewCommand()
-	{
-		Cell curCell = WindowFrame.needCurCell();
-		if (curCell == null) return;
-		String newSchematicPage = JOptionPane.showInputDialog("Page Number", "");
-		if (newSchematicPage == null) return;
-		int pageNo = TextUtils.atoi(newSchematicPage);
-		if (pageNo <= 0)
-		{
-			System.out.println("Multi-page schematics are numbered starting at page 1");
-			return;
-		}
-		View v = View.findMultiPageSchematicView(pageNo);
-		if (v != null)
-		{
-			Cell otherView = curCell.otherView(v);
-			if (otherView != null)
-			{
-				WindowFrame.createEditWindow(otherView);
-				return;
-			}
-		}
-		System.out.println("Cannot find schematic page " + pageNo + " of this cell");
-	}
-
 	public static void editIconViewCommand()
 	{
 		Cell curCell = WindowFrame.needCurCell();
@@ -2545,55 +2341,6 @@ public final class MenuCommands
         WindowFrame.setListener(ClickZoomWireListener.theOne);
         ClickZoomWireListener.theOne.zoomBoxSingleShot(oldListener);
     }
-
-	/**
-	 * Method to make the current window's grid be just visible.
-	 * If it is zoomed-out beyond grid visibility, it is zoomed-in so that the grid is shown.
-	 * If it is zoomed-in such that the grid is not at minimum pitch,
-	 * it is zoomed-out so that the grid is barely able to fit.
-	 */
-	public static void makeGridJustVisibleCommand()
-	{
-		EditWindow wnd = EditWindow.needCurrent();
-		if (wnd == null) return;
-		Rectangle2D displayable = wnd.displayableBounds();
-		Dimension sz = wnd.getSize();
-		double scaleX = wnd.getGridXSpacing() * sz.width / 5 / displayable.getWidth();
-		double scaleY = wnd.getGridYSpacing() * sz.height / 5 / displayable.getHeight();
-		double scale = Math.min(scaleX, scaleY);
-		wnd.setScale(wnd.getScale() / scale);
-		wnd.repaintContents();
-	}
-
-	/**
-	 * Method to zoom the current window so that its scale matches that of the "other" window.
-	 * For this to work, there must be exactly one other window shown.
-	 */
-	public static void matchOtherWindowCommand()
-	{
-		EditWindow wnd = EditWindow.needCurrent();
-		if (wnd == null) return;
-		int numOthers = 0;
-		EditWindow other = null;
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = (WindowFrame)it.next();
-			if (wf.getContent() instanceof EditWindow)
-			{
-				EditWindow wfWnd = (EditWindow)wf.getContent();
-				if (wfWnd == wnd) continue;
-				numOthers++;
-				other = wfWnd;
-			}
-		}
-		if (numOthers != 1)
-		{
-			System.out.println("There must be exactly two windows in order for one to match the other");
-			return;
-		}
-		wnd.setScale(other.getScale());
-		wnd.repaintContents();
-	}
 
 	public static void focusOnHighlighted()
 	{
@@ -2755,51 +2502,6 @@ public final class MenuCommands
 	{
  		LayerVisibility dialog = new LayerVisibility(TopLevel.getCurrentJFrame(), false);
 		dialog.show();
-	}
-
-	/**
-	 * This method implements the command to set default colors.
-	 */
-	public static void defaultBackgroundCommand()
-	{
-		User.setColorBackground(Color.LIGHT_GRAY.getRGB());
-		User.setColorGrid(Color.BLACK.getRGB());
-		User.setColorHighlight(Color.WHITE.getRGB());
-		User.setColorPortHighlight(Color.YELLOW.getRGB());
-		User.setColorText(Color.BLACK.getRGB());
-		User.setColorInstanceOutline(Color.BLACK.getRGB());
-		EditWindow.repaintAllContents();
-		TopLevel.getPaletteFrame().loadForTechnology();
-	}
-
-	/**
-	 * This method implements the command to set colors so that there is a black background.
-	 */
-	public static void blackBackgroundCommand()
-	{
-		User.setColorBackground(Color.BLACK.getRGB());
-		User.setColorGrid(Color.WHITE.getRGB());
-		User.setColorHighlight(Color.RED.getRGB());
-		User.setColorPortHighlight(Color.YELLOW.getRGB());
-		User.setColorText(Color.WHITE.getRGB());
-		User.setColorInstanceOutline(Color.WHITE.getRGB());
-		EditWindow.repaintAllContents();
-		TopLevel.getPaletteFrame().loadForTechnology();
-	}
-
-	/**
-	 * This method implements the command to set colors so that there is a white background.
-	 */
-	public static void whiteBackgroundCommand()
-	{
-		User.setColorBackground(Color.WHITE.getRGB());
-		User.setColorGrid(Color.BLACK.getRGB());
-		User.setColorHighlight(Color.RED.getRGB());
-		User.setColorPortHighlight(Color.DARK_GRAY.getRGB());
-		User.setColorText(Color.BLACK.getRGB());
-		User.setColorInstanceOutline(Color.BLACK.getRGB());
-		EditWindow.repaintAllContents();
-		TopLevel.getPaletteFrame().loadForTechnology();
 	}
 
     public static void moveToOtherDisplayCommand()
@@ -3328,39 +3030,6 @@ public final class MenuCommands
 		IRSIMTool.tool.netlistCell(curEdit.getCell(), curEdit.getVarContext(), curEdit);
 	}
 
-	/**
-	 * Method to add a "M" multiplier factor to the currently selected node.
-	 */
-	public static void addMultiplierCommand()
-	{
-		NodeInst ni = (NodeInst)Highlight.getOneElectricObject(NodeInst.class);
-		if (ni == null) return;
-		AddMultiplier job = new AddMultiplier(ni);
-	}
-
-	private static class AddMultiplier extends Job
-	{
-		private NodeInst ni;
-
-		protected AddMultiplier(NodeInst ni)
-		{
-			super("Add Spice Multiplier", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.ni = ni;
-			startJob();
-		}
-
-		public void doIt()
-		{
-			Variable var = ni.newVar("ATTR_M", new Double(1.0));
-			if (var != null)
-			{
-				var.setDisplay();
-				TextDescriptor td = var.getTextDescriptor();
-				td.setOff(-1.5, -1);
-				td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
-			}
-		}
-	}
 	/**
 	 * Method to create a new template in the current cell.
 	 * Templates can be for SPICE or Verilog, depending on the Variable name.
@@ -4008,6 +3677,9 @@ public final class MenuCommands
 			}
 			System.out.println("Created cell " + bigCell.describe());
 
+			// disallow undo
+			Undo.noUndoAllowed();
+
 			// display a cell
 			WindowFrame.createEditWindow(myCell);
 		}
@@ -4066,8 +3738,7 @@ public final class MenuCommands
 
 					if (Main.getDebug() || func.isSubstrate())
 					{
-						//Area bounds = new PolyQTree.PolyNode(poly.getBounds2D());
-						tree.insert((Object)layer, curCell.getBounds(), new PolyQTree.PolyNode(poly.getBounds2D()));
+						tree.insert((Object)layer, curCell.getBounds(), new PolyQTree.PolyNode(poly));
 					}
 				}
 			}
@@ -4078,7 +3749,7 @@ public final class MenuCommands
 
 				// New coverage implants are pure primitive nodes
 				// and previous get deleted and ignored.
-				if (!Main.getDebug() && node.getFunction() == NodeProto.Function.NODE)
+				if (!testMerge && node.getFunction() == NodeProto.Function.NODE)
 				{
 					deleteList.add(node);
 					continue;
@@ -4101,8 +3772,7 @@ public final class MenuCommands
 					if (Main.getDebug() || func.isSubstrate())
 					{
 						poly.transform(transform);
-						//Area bounds = new PolyQTree.PolyNode(poly.getBounds2D());
-						tree.insert((Object)layer, curCell.getBounds(), new PolyQTree.PolyNode(poly.getBounds2D()));
+						tree.insert((Object)layer, curCell.getBounds(), new PolyQTree.PolyNode(poly));
 					}
 				}
 			}
@@ -4111,7 +3781,7 @@ public final class MenuCommands
 
 			// With polygons collected, new geometries are calculated
 			Highlight.clear();
-			List nodesList = new ArrayList();
+            boolean noNewNodes = true;
 
 			// Need to detect if geometry was really modified
 			for(Iterator it = tree.getKeyIterator(); it.hasNext(); )
@@ -4122,15 +3792,25 @@ public final class MenuCommands
 				// Ready to create new implants.
 				for (Iterator i = set.iterator(); i.hasNext(); )
 				{
-					Rectangle2D rect = ((PolyQTree.PolyNode)i.next()).getBounds2D();
+					PolyQTree.PolyNode qNode = (PolyQTree.PolyNode)i.next();
+					Rectangle2D rect = qNode.getBounds2D();
 					Point2D center = new Point2D.Double(rect.getCenterX(), rect.getCenterY());
 					PrimitiveNode priNode = layer.getPureLayerNode();
 					// Adding the new implant. New implant not assigned to any local variable                                .
 					NodeInst node = NodeInst.makeInstance(priNode, center, rect.getWidth(), rect.getHeight(), 0, curCell, null);
 					Highlight.addElectricObject(node, curCell);
-					// New implant can't be selected again
-					node.setHardSelect();
-					nodesList.add(node);
+
+					if ( testMerge )
+					{
+						Point2D [] points = qNode.getPoints();
+						node.newVar(NodeInst.TRACE, points);
+					}
+					else
+					{
+						// New implant can't be selected again
+						node.setHardSelect();
+					}
+					noNewNodes = false;
 				}
 			}
 			Highlight.finished();
@@ -4139,7 +3819,7 @@ public final class MenuCommands
 				NodeInst node = (NodeInst)it .next();
 				node.kill();
 			}
-			if ( nodesList.isEmpty() )
+			if ( noNewNodes )
 				System.out.println("No implant areas added");
 		}
 	}
