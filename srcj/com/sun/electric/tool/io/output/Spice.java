@@ -309,8 +309,8 @@ public class Spice extends Topology
 				{
 					Global global = (Global)globals.get(i);
 					String name = global.getName();
-					if (global == Global.power) { if (getPowerName() != null) name = getPowerName(); }
-					if (global == Global.ground) { if (getGroundName() != null) name = getGroundName(); }
+					if (global == Global.power) { if (getPowerName(null) != null) name = getPowerName(null); }
+					if (global == Global.ground) { if (getGroundName(null) != null) name = getGroundName(null); }
 					infstr.append(" " + name);
 				}
 				infstr.append("\n");
@@ -1181,10 +1181,34 @@ public class Spice extends Topology
 	}
 
 	/** Method to return the proper name of Power */
-	protected String getPowerName() { return null; }
+	protected String getPowerName(Network net)
+	{
+		if (net != null)
+		{
+			// favor "vdd" if it is present
+			for(Iterator it = net.getNames(); it.hasNext(); )
+			{
+				String netName = (String)it.next();
+				if (netName.equalsIgnoreCase("vdd")) return "vdd";
+			}
+		}
+		return null;
+	}
 
 	/** Method to return the proper name of Ground */
-	protected String getGroundName() { return null; } // "gnd"; }
+	protected String getGroundName(Network net)
+	{
+		if (net != null)
+		{
+			// favor "gnd" if it is present
+			for(Iterator it = net.getNames(); it.hasNext(); )
+			{
+				String netName = (String)it.next();
+				if (netName.equalsIgnoreCase("gnd")) return "gnd";
+			}
+		}
+		return null;
+	}
 
 	/** Method to return the proper name of a Global signal */
 	protected String getGlobalName(Global glob) { return glob.getName(); }

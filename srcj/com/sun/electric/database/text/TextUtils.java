@@ -580,19 +580,22 @@ public class TextUtils
 
 		/** The largest unit value. */					private static final int UNIT_BASE =  -3;
         /** The smallest unit value. */                 private static final int UNIT_END = 5;
-		/** Describes giga scale (1 billion). */		public static final UnitScale GIGA =  new UnitScale("Giga",  "giga:  x 1000000000",      -3, "G", new Integer(1000000000));
-		/** Describes mega scale (1 million). */		public static final UnitScale MEGA =  new UnitScale("Mega",  "mega:  x 1000000",         -2, "meg", new Integer(1000000));
-		/** Describes kilo scale (1 thousand). */		public static final UnitScale KILO =  new UnitScale("Kilo",  "kilo:  x 1000",            -1, "k", new Integer(1000));
-		/** Describes unit scale (1). */				public static final UnitScale NONE =  new UnitScale("",      "-:     x 1",                0, "", new Integer(1));
-		/** Describes milli scale (1 thousandth). */	public static final UnitScale MILLI = new UnitScale("Milli", "milli: / 1000",             1, "m", new Double(0.001));
-		/** Describes micro scale (1 millionth). */		public static final UnitScale MICRO = new UnitScale("Micro", "micro: / 1000000",          2, "u", new Double(0.000001));
-		/** Describes nano scale (1 billionth). */		public static final UnitScale NANO =  new UnitScale("Nano",  "nano:  / 1000000000",       3, "n", new Double(0.000000001));
-		/** Describes pico scale (1 quadrillionth). */	public static final UnitScale PICO =  new UnitScale("Pico",  "pico:  / 1000000000000",    4, "p", new Double(0.000000000001));
-		/** Describes femto scale (1 quintillionth). */	public static final UnitScale FEMTO = new UnitScale("Femto", "femto: / 1000000000000000", 5, "f", new Double(0.000000000000001));
+		/** Describes giga scale (1 billion). */		public static final UnitScale GIGA =  new UnitScale("Giga",  "giga:  x 1000000000", -3, "G", new Integer(1000000000));
+		/** Describes mega scale (1 million). */		public static final UnitScale MEGA =  new UnitScale("Mega",  "mega:  x 1000000",    -2, "meg", new Integer(1000000));
+		/** Describes kilo scale (1 thousand). */		public static final UnitScale KILO =  new UnitScale("Kilo",  "kilo:  x 1000",       -1, "k", new Integer(1000));
+		/** Describes unit scale (1). */				public static final UnitScale NONE =  new UnitScale("",      "-:     x 1",           0, "", new Integer(1));
+		/** Describes milli scale (1 thousandth). */	public static final UnitScale MILLI = new UnitScale("Milli", "milli: x 10 ^ -3",     1, "m", new Double(0.001));
+		/** Describes micro scale (1 millionth). */		public static final UnitScale MICRO = new UnitScale("Micro", "micro: x 10 ^ -6",     2, "u", new Double(0.000001));
+		/** Describes nano scale (1 billionth). */		public static final UnitScale NANO =  new UnitScale("Nano",  "nano:  x 10 ^ -9",     3, "n", new Double(0.000000001));
+		/** Describes pico scale (10 to the -12th). */	public static final UnitScale PICO =  new UnitScale("Pico",  "pico:  x 10 ^ -12",    4, "p", new Double(0.000000000001));
+		/** Describes femto scale (10 to the -15th). */	public static final UnitScale FEMTO = new UnitScale("Femto", "femto: x 10 ^ -15",    5, "f", new Double(0.000000000000001));
+		/** Describes atto scale (10 to the -18th). */	public static final UnitScale ATTO  = new UnitScale("Atto",  "atto:  x 10 ^ -18",    6, "a", new Double(0.000000000000000001));
+		/** Describes zepto scale (10 to the -21st). */	public static final UnitScale ZEPTO = new UnitScale("Zepto", "zepto: x 10 ^ -21",    7, "z", new Double(0.000000000000000000001));
+		/** Describes yocto scale (10 to the -24th). */	public static final UnitScale YOCTO = new UnitScale("Yocto", "yocto: x 10 ^ -24",    8, "y", new Double(0.000000000000000000000001));
 
 		private final static UnitScale [] allUnits =
 		{
-			GIGA, MEGA, KILO, NONE, MILLI, MICRO, NANO, PICO, FEMTO
+			GIGA, MEGA, KILO, NONE, MILLI, MICRO, NANO, PICO, FEMTO, ATTO, ZEPTO, YOCTO
 		};
 	}
 

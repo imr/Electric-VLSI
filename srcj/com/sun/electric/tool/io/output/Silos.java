@@ -849,10 +849,10 @@ public class Silos extends Topology
 	protected String getSafeCellName(String name) { return name; }
 
 	/** Method to return the proper name of Power */
-	protected String getPowerName() { return ".VDD"; }
+	protected String getPowerName(Network net) { return ".VDD"; }
 
 	/** Method to return the proper name of Ground */
-	protected String getGroundName() { return ".GND"; }
+	protected String getGroundName(Network net) { return ".GND"; }
 
 	/** Method to return the proper name of a Global signal */
 	protected String getGlobalName(Global glob) { return glob.getName(); }

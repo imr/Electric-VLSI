@@ -283,14 +283,14 @@ public class Tegas extends Topology
 			{
 				if (wrotePower) continue;
 				wrotePower = true;
-				writeWidthLimited(getPowerName((NodeInst)no));
+				writeWidthLimited(getNameOfPower((NodeInst)no));
 				continue;
 			}
 			if (fun == PrimitiveNode.Function.CONGROUND)
 			{
 				if (wroteGround) continue;
 				wroteGround = true;
-				writeWidthLimited(getPowerName((NodeInst)no));
+				writeWidthLimited(getNameOfPower((NodeInst)no));
 				continue;
 			}
 	
@@ -615,7 +615,7 @@ public class Tegas extends Topology
 	 * @param ni the Power/Ground node.
 	 * @return the node name (returns an empty string if not applicable).
 	 */
-	private String getPowerName(NodeInst ni)
+	private String getNameOfPower(NodeInst ni)
 	{
 		// To prevent Un-connected power nodes
 		if (ni.getNumConnections() == 0)
@@ -811,10 +811,10 @@ public class Tegas extends Topology
 	protected String getSafeCellName(String name) { return name; }
 
 	/** Method to return the proper name of Power */
-	protected String getPowerName() { return ".VDD"; }
+	protected String getPowerName(Network net) { return ".VDD"; }
 
 	/** Method to return the proper name of Ground */
-	protected String getGroundName() { return "GRND"; }
+	protected String getGroundName(Network net) { return "GRND"; }
 
 	/** Method to return the proper name of a Global signal */
 	protected String getGlobalName(Global glob) { return glob.getName(); }

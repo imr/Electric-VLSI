@@ -983,10 +983,10 @@ public class Verilog extends Topology
 	}
 
 	/** Method to return the proper name of Power */
-	protected String getPowerName() { return "vdd"; }
+	protected String getPowerName(Network net) { return "vdd"; }
 
 	/** Method to return the proper name of Ground */
-	protected String getGroundName() { return "gnd"; }
+	protected String getGroundName(Network net) { return "gnd"; }
 
 	/** Method to return the proper name of a Global signal */
 	protected String getGlobalName(Global glob) { return "glbl." + glob.getName(); }
