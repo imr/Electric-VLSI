@@ -1,6 +1,16 @@
-package com.sun.electric.database;
+package com.sun.electric.database.hierarchy;
 
-import com.sun.electric.technologies.*;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.technology.Technology;
+import com.sun.electric.database.technology.PrimitiveNode;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.technologies.TecGeneric;
 
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -201,7 +211,7 @@ public class Cell extends NodeProto
 		return c;
 	}
 
-	void remove()
+	public void remove()
 	{
 		// remove ourselves from the cellGroup.
 		// TODO: should this also remove the cell from the library?
@@ -217,7 +227,7 @@ public class Cell extends NodeProto
 		super.remove();
 	}
 
-	void addArc(ArcInst a)
+	public void addArc(ArcInst a)
 	{
 		if (arcs.contains(a))
 		{
@@ -229,7 +239,7 @@ public class Cell extends NodeProto
 		boundsDirty = true;
 	}
 
-	void removeArc(ArcInst a)
+	public void removeArc(ArcInst a)
 	{
 		if (!arcs.contains(a))
 		{
@@ -244,7 +254,7 @@ public class Cell extends NodeProto
 	/**
 	 * Routine to add node instance "ni" to the list of nodes in this cell
 	 */
-	void addNode(NodeInst ni)
+	public void addNode(NodeInst ni)
 	{
 		// error check
 		if (nodes.contains(ni))
@@ -272,7 +282,7 @@ public class Cell extends NodeProto
 		}
 	}
 
-	void removeNode(NodeInst ni)
+	public void removeNode(NodeInst ni)
 	{
 		if (!nodes.contains(ni))
 		{

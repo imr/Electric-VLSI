@@ -1,4 +1,11 @@
-package com.sun.electric.database;
+package com.sun.electric.database.prototype;
+
+import com.sun.electric.database.variables.ElectricObject;
+import com.sun.electric.database.network.Networkable;
+import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.technology.PrimitivePort;
 
 /**
  * A PortProto object lives at the PrimitiveNode level as a PrimitivePort,
@@ -87,7 +94,7 @@ public abstract class PortProto extends ElectricObject implements Networkable
 	}
 
 	/** Get the NodeProto (Cell or PrimitiveNode) that owns this port. */
-	void setParent(NodeProto parent)
+	public void setParent(NodeProto parent)
 	{
 		this.parent = parent;
 		parent.addPort(this);
@@ -95,7 +102,7 @@ public abstract class PortProto extends ElectricObject implements Networkable
 
 	/** Remove this portproto.  Also removes this port from the parent
 	 * NodeProto's ports list. */
-	void remove()
+	public void remove()
 	{
 		parent.removePort(this);
 	}

@@ -1,4 +1,8 @@
-package com.sun.electric.database;
+package com.sun.electric.database.topology;
+
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.geometry.Poly;
 
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;

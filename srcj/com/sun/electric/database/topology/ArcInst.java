@@ -1,4 +1,11 @@
-package com.sun.electric.database;
+package com.sun.electric.database.topology;
+
+import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.technology.PrimitivePort;
 
 //import java.awt.geom.AffineTransform;
 import java.awt.Point;
@@ -91,7 +98,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	}
 
 	// Remove this ArcInst.  Will also remove the connections on either side.
-	void remove()
+	public void remove()
 	{
 		head.remove();
 		tail.remove();
@@ -351,7 +358,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		return (String) getVar(VAR_ARC_NAME);
 	}
 
-	Poly makearcpoly(double len, double wid, Poly.Type style)
+	public Poly makearcpoly(double len, double wid, Poly.Type style)
 	{
 		Point2D end1 = head.getLocation();
 		Point2D end2 = tail.getLocation();

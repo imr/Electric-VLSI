@@ -1,4 +1,12 @@
-package com.sun.electric.database;
+package com.sun.electric.database.prototype;
+
+import com.sun.electric.database.variables.ElectricObject;
+import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.technology.Technology;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.technology.PrimitiveNode;
 
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -204,7 +212,7 @@ public abstract class NodeProto extends ElectricObject
 	}
 
 	/** Add a Network to this Cell */
-	void addNetwork(JNetwork n)
+	public void addNetwork(JNetwork n)
 	{
 		if (networks.contains(n))
 		{
@@ -223,13 +231,13 @@ public abstract class NodeProto extends ElectricObject
 		networks.remove(n);
 	}
 
-	void removeAllNetworks()
+	public void removeAllNetworks()
 	{
 		networks.clear();
 	}
 
 	/** Add an instance of this nodeproto to its instances list */
-	void addInstance(NodeInst inst)
+	public void addInstance(NodeInst inst)
 	{
 		if (instances == null)
 		{
@@ -239,14 +247,14 @@ public abstract class NodeProto extends ElectricObject
 	}
 
 	/** Remove an instance of this nodeproto from its instances list */
-	void removeInstance(NodeInst inst)
+	public void removeInstance(NodeInst inst)
 	{
 		instances.remove(inst);
 	}
 
 	/** Remove this NodeProto.  Also offs the ports associated with this
 	 * nodeproto. */
-	void remove()
+	public void remove()
 	{
 		// kill ports
 //		removeAll(ports);

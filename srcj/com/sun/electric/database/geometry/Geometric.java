@@ -1,4 +1,7 @@
-package com.sun.electric.database;
+package com.sun.electric.database.geometry;
+
+import com.sun.electric.database.variables.ElectricObject;
+import com.sun.electric.database.hierarchy.Cell;
 
 import java.awt.Dimension;
 import java.awt.Point;
@@ -49,7 +52,7 @@ public class Geometric extends ElectricObject
 	}
 
 	/** remove this geometric thing */
-	void remove()
+	public void remove()
 	{
 	}
 
@@ -61,7 +64,7 @@ public class Geometric extends ElectricObject
 			visBounds.getWidth() + "x" + visBounds.getHeight());
 	}
 
-	void updateGeometricBounds()
+	public void updateGeometricBounds()
 	{
 		// start with a unit polygon, centered at the origin
 		Poly poly = new Poly(0.0, 0.0, 1.0, 1.0);

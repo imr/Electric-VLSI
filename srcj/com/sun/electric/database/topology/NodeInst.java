@@ -1,4 +1,12 @@
-package com.sun.electric.database;
+package com.sun.electric.database.topology;
+
+import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.ArcProto;
 
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -167,12 +175,12 @@ public class NodeInst extends Geometric
 		return getParent().getCellGroup() == ((Cell) np).getCellGroup();
 	}
 
-	void addExport(Export e)
+	public void addExport(Export e)
 	{
 		exports.add(e);
 	}
 
-	void removeExport(Export e)
+	public void removeExport(Export e)
 	{
 		if (!exports.contains(e))
 		{
@@ -181,7 +189,7 @@ public class NodeInst extends Geometric
 		exports.remove(e);
 	}
 
-	void remove()
+	public void remove()
 	{
 		// kill the arcs attached to the connections.  This will also
 		// remove the connections themselves
@@ -263,7 +271,7 @@ public class NodeInst extends Geometric
 
 			String expNm = e.getProtoName();
 			String portNm = e.getPortInst().getPortProto().getProtoName();
-			e.delete();
+//			e.delete();
 			PortInst newPort = newInst.findPortInst(portNm);
 			error(
 				newPort == null,

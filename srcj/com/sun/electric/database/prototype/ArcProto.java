@@ -1,6 +1,9 @@
-package com.sun.electric.database;
+package com.sun.electric.database.prototype;
 
-import com.sun.electric.technologies.*;
+import com.sun.electric.database.variables.ElectricObject;
+import com.sun.electric.database.technology.Technology;
+import com.sun.electric.database.technology.PrimitiveNode;
+import com.sun.electric.database.technology.PrimitivePort;
 
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;

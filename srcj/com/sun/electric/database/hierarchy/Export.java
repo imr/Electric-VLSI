@@ -1,4 +1,12 @@
-package com.sun.electric.database;
+package com.sun.electric.database.hierarchy;
+
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.technology.PrimitivePort;
+import com.sun.electric.database.network.JNetwork;
 
 import java.awt.geom.AffineTransform;
 
@@ -38,7 +46,7 @@ public class Export extends PortProto
 		return pp;
 	}	
 
-	protected void remove()
+	public void remove()
 	{
 		originalNode.removeExport(this);
 		super.remove();

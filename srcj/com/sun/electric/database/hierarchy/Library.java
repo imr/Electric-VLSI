@@ -1,4 +1,6 @@
-package com.sun.electric.database;
+package com.sun.electric.database.hierarchy;
+
+import com.sun.electric.database.variables.ElectricObject;
 
 import java.util.List;
 import java.util.ArrayList;

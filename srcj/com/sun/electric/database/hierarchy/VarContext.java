@@ -1,7 +1,6 @@
-package com.sun.electric.database;
+package com.sun.electric.database.hierarchy;
 
-//import bsh.*;
-//import java.util.*;
+import com.sun.electric.database.topology.NodeInst;
 
 /**
  * VarContext represents a hierarchical path of NodeInsts.  Its

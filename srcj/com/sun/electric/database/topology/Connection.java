@@ -1,4 +1,7 @@
-package com.sun.electric.database;
+package com.sun.electric.database.topology;
+
+import com.sun.electric.database.variables.ElectricObject;
+import com.sun.electric.database.network.JNetwork;
 
 import java.awt.Point;
 import java.awt.geom.Point2D;
@@ -53,7 +56,7 @@ public class Connection extends ElectricObject
 	}
 
 	/** The location of this connection */
-	Point2D.Double getLocation()
+	public Point2D.Double getLocation()
 	{
 		return location;
 	}

@@ -1,4 +1,6 @@
-package com.sun.electric.database;
+package com.sun.electric.database.geometry;
+
+import com.sun.electric.database.technology.Layer;
 
 import java.awt.Graphics2D;
 import java.awt.Rectangle;

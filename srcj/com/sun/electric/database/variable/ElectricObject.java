@@ -1,6 +1,8 @@
-package com.sun.electric.database;
+package com.sun.electric.database.variables;
 
-import com.sun.electric.user.*;
+import com.sun.electric.database.hierarchy.VarContext;
+import com.sun.electric.user.Electric;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -22,7 +24,7 @@ public class ElectricObject
 	// ------------------------ private and protected methods -------------------
 
 	/** utility function to remove all Electric elements from an ArrayList */
-	static void removeAll(ArrayList l)
+	static public void removeAll(ArrayList l)
 	{
 		while (l.size() > 0)
 		{
@@ -171,25 +173,25 @@ public class ElectricObject
 
 	/** Remove this ElectricObject from Electric's and Jose's data base.
 	 */
-	public void delete()
-	{
-		error(this instanceof Tool, "Tools can't be deleted");
-		error(this instanceof PrimitivePort, "PrimitivePorts can't be deleted");
-		error(this instanceof Connection,
-			"Connections can't be deleted, " + "delete entire ArcInst instead");
-		error(this instanceof ArcProto, "ArcProtos can't be deleted");
-
+//	public void delete()
+//	{
+//		error(this instanceof Tool, "Tools can't be deleted");
+//		error(this instanceof PrimitivePort, "PrimitivePorts can't be deleted");
+//		error(this instanceof Connection,
+//			"Connections can't be deleted, " + "delete entire ArcInst instead");
+//		error(this instanceof ArcProto, "ArcProtos can't be deleted");
+//
 //		boolean err;
-		if (this instanceof Export)
-		{
-			Cell f = (Cell) ((Export) this).getParent();
+//		if (this instanceof Export)
+//		{
+//			Cell f = (Cell) ((Export) this).getParent();
 //			err = Electric.delElectricObject(getAddr(), getVType(this), f.getAddr());
-		} else
-		{
+//		} else
+//		{
 //			err = Electric.delElectricObject(getAddr(), getVType(this), 0);
-		}
+//		}
 //		error(err, "delete failed");
-	}
+//	}
 
 	/** Retrieve an object from the array variable. <br>
 	 * Get the object that is the value of a variable on this Electric

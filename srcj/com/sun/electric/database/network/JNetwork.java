@@ -1,6 +1,12 @@
-package com.sun.electric.database;
+package com.sun.electric.database.network;
 
-import com.sun.electric.user.*;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.technology.PrimitiveNode;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.user.Electric;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -52,7 +58,7 @@ public class JNetwork
 	}
 
 	// used for PrimitivePorts
-	private JNetwork(Collection names, NodeProto np)
+	public JNetwork(Collection names, NodeProto np)
 	{
 		this.parent = np;
 		this.portInsts = new ArrayList();
@@ -63,7 +69,7 @@ public class JNetwork
 	}
 
 	// used to build Cell networks
-	JNetwork(NodeProto np)
+	public JNetwork(NodeProto np)
 	{
 		this(new ArrayList(), np);
 	}
@@ -82,7 +88,7 @@ public class JNetwork
 	}
 	*/
 
-	void addPortInst(PortInst port)
+	public void addPortInst(PortInst port)
 	{
 		if (portInsts.contains(port))
 		{
@@ -95,7 +101,7 @@ public class JNetwork
 		}
 	}
 
-	void addName(String nm)
+	public void addName(String nm)
 	{
 		if (nm != null)
 			names.add(nm);
@@ -121,7 +127,7 @@ public class JNetwork
 
 	/** Merge nets net0 and net1. Invalidates discarded net to catch
 	 * anyone trying to reference it */
-	static JNetwork merge(JNetwork net0, JNetwork net1)
+	public static JNetwork merge(JNetwork net0, JNetwork net1)
 	{
 		error(
 			net0.parent != net1.parent,
@@ -156,7 +162,7 @@ public class JNetwork
 		return bigNet;
 	}
 
-	static JNetwork merge(HashSet nets)
+	public static JNetwork merge(HashSet nets)
 	{
 		JNetwork bigNet = findBiggestNet(nets.iterator());
 		for (Iterator it = nets.iterator(); it.hasNext();)

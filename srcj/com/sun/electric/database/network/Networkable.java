@@ -1,4 +1,4 @@
-package com.sun.electric.database;
+package com.sun.electric.database.network;
 
 /**
  * allows implementing classes to play nice with JNetworks
