@@ -240,6 +240,17 @@ public class Spice extends Topology
 		}
 	}
 
+    /**
+     * To write M factor information into given string buffer
+     * @param no Nodable representing the node
+     * @param infstr Buffer where to write to
+     */
+    private void writeMFactor(NodeProto no, StringBuffer infstr)
+    {
+        Variable mVar = no.getVar("ATTR_M");
+
+        if (mVar != null) infstr.append(" M=" + mVar.getObject().toString());
+    }
 	/**
 	 * Method to write cellGeom
 	 */
@@ -452,6 +463,8 @@ public class Spice extends Topology
 					infstr.append(" " + paramVar.getTrueName() + "=" + paramVar.getPureValue(-1, -1));
 				}
 			}
+            // Writing M factor
+            writeMFactor(cell, infstr);
 			infstr.append("\n");
 			multiLinePrint(false, infstr.toString());
 
@@ -544,6 +557,8 @@ public class Spice extends Topology
 							}
 						}
 					}
+                    // Writing MFactor if available. Not sure here
+                    writeMFactor(niProto, infstr);
 					infstr.append('\n');
 					multiLinePrint(false, infstr.toString());
 					continue;
@@ -608,8 +623,12 @@ public class Spice extends Topology
 					}
 				}
 				// Calculating M Factor if exists
+                /*
 				Variable mVar = no.getVar("ATTR_M");
 				if (mVar != null) infstr.append(" M=" + mVar.getObject().toString());
+                */
+                // Writing MFactor if available.
+                writeMFactor(no.getProto(), infstr);
 				infstr.append("\n");
 				multiLinePrint(false, infstr.toString());
 				continue;
@@ -871,8 +890,13 @@ public class Spice extends Topology
 				}
 			}
 			// Calculating M Factor if exists
+            /*
 			Variable mVar = ni.getVar("ATTR_M");
 			if (mVar != null) infstr.append(" M=" + mVar.getObject().toString());
+            */
+            // Writing MFactor if available.
+            writeMFactor(ni.getProto(), infstr);
+
 			infstr.append("\n");
 			multiLinePrint(false, infstr.toString());
 		}
@@ -1058,11 +1082,13 @@ public class Spice extends Topology
 		String headerFile = Simulation.getSpiceHeaderCardInfo();
 		if (headerFile.length() > 0)
 		{
-			if (headerFile.startsWith("Extension "))
+			//if (headerFile.startsWith("Extension "))
+            String prefixheader = Spice.SPICE_PREFIX_KEY.getName();
+            if (headerFile.startsWith(prefixheader))
 			{
 				// extension specified: look for a file with the cell name and that extension
 				String headerPath = TextUtils.getFilePath(cell.getLibrary().getLibFile());
-				String fileName = headerPath + cell.getProtoName() + "." + headerFile.substring(10);
+				String fileName = headerPath + cell.getProtoName() + "." + headerFile.substring(prefixheader.length());
 				File test = new File(fileName);
 				if (test.exists())
 				{

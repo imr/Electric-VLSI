@@ -1134,7 +1134,7 @@ public class ToolOptions extends EDialog
 		{
 			header = spiceHeaderCardFile.getText();
 		}
-		if (!spiceTrailerCardInitial.equals(header)) Simulation.setSpiceHeaderCardInfo(header);
+		if (!spiceHeaderCardInitial.equals(header)) Simulation.setSpiceHeaderCardInfo(header);
 
 		String trailer = "";
 		if (spiceTrailerCardsWithExtension.isSelected())
@@ -1144,7 +1144,7 @@ public class ToolOptions extends EDialog
 		{
 			trailer = spiceTrailerCardFile.getText();
 		}
-		if (spiceTrailerCardInitial.equals(trailer)) Simulation.setSpiceTrailerCardInfo(trailer);
+		if (!spiceTrailerCardInitial.equals(trailer)) Simulation.setSpiceTrailerCardInfo(trailer);
 
 		// bottom section: model file overrides for cells
 		for(Iterator it = curLib.getCells(); it.hasNext(); )
