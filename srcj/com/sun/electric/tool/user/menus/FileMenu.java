@@ -165,6 +165,7 @@ public class FileMenu {
             WindowFrame.wantToRedoLibraryTree();
             EditWindow.repaintAll();
             TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
+            System.out.println("New Library '"+lib.getName()+"' created");
             return true;
         }
     }

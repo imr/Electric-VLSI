@@ -543,12 +543,6 @@ public abstract class NodeProto extends ElectricObject
 	public void addUsageOf(NodeUsage nu)
 	{
         NodeProto np = nu.getProto();
-        if (np instanceof Cell) {
-            Cell c = (Cell)np;
-            if (c.noLibDescribe().equals("driverOne;1{lay}")) {
-                System.out.println("Adding usage of driverOne;1{lay}");
-            }
-        }
 		usagesOf.add(nu);
 	}
 

@@ -132,8 +132,6 @@ public class Library extends ElectricObject
         // always broadcast library changes
         Undo.setNextChangeQuiet(false);
         Undo.newObject(lib);
-
-        System.out.println("New Library '"+legalName+"' created");
 		return lib;
 	}
 
