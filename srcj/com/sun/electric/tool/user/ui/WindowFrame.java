@@ -558,6 +558,14 @@ public class WindowFrame
 				PaletteFrame.autoTechnologySwitch(cell);
 			}
 		}
+		// rebuild window titles
+		for (Iterator it = getWindows(); it.hasNext(); )
+		{
+			WindowFrame w = (WindowFrame)it.next();
+			WindowContent content = w.getContent();
+
+			if (content != null) content.setWindowTitle();
+		}
 	}
 
 	public void setWindowSize(Rectangle frameRect)

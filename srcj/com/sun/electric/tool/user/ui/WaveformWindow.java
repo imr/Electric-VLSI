@@ -1386,7 +1386,11 @@ public class WaveformWindow implements WindowContent
 	 */
 	public JPanel getPanel() { return overall; }
 
-	public void setCell(Cell cell, VarContext context) { sd.setCell(cell); }
+	public void setCell(Cell cell, VarContext context)
+	{
+		sd.setCell(cell);
+		setWindowTitle();
+	}
 
 	/**
 	 * Method to return the cell that is shown in this window.

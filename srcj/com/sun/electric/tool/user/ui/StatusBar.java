@@ -37,8 +37,7 @@ import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.HighlightListener;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
+import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 
@@ -61,7 +60,7 @@ public class StatusBar extends JPanel implements HighlightListener
 
 	public StatusBar(WindowFrame frame)
 	{
-		super(new GridBagLayout());
+		super(new GridLayout());
 
 		setBorder(new BevelBorder(BevelBorder.LOWERED));
 

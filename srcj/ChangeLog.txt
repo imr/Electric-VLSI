@@ -2,6 +2,9 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (6/17/04, GVG) Change LayerManager in StatusBar to GridLayout to avoid "flickering" in messages.
+Add TextUtils.formatDouble(<double>, 2) to coordinates. Refresh of window titles when current cell changes.
+
 IMP: (6/17/04, GVG) Window title string composed in WindowFrame.
 MDI mode read from command arguments (valid only for window). Preparing code for 3DView
 
