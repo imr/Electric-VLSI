@@ -1167,6 +1167,7 @@ public class PaletteFrame
 			String descript = "Create ";
 			if (np instanceof Cell) descript += ((Cell)np).noLibDescribe(); else
 				descript += np.getName() + " Primitive";
+            wnd.getHighlighter().clear();
 			PlaceNewNode job = new PlaceNewNode(descript, toDraw, where, wnd.getCell(), textNode, makePort);
 
 			// restore the former listener to the edit windows
