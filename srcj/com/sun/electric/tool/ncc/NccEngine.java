@@ -57,7 +57,7 @@ public class NccEngine {
 	private JemLeafList mismatchList = new JemLeafList();
 	private JemLeafList activeList = new JemLeafList();
 	private NccGlobals globals;
-	private boolean matched;
+	private boolean matched = true;
 
 	// ----------------------- private methods --------------------------------
 	private List buildNccNetlists(List cells, List contexts, List netlists) {
@@ -90,14 +90,13 @@ public class NccEngine {
 		
 		if (globals.getRoot()==null) {
 			globals.println("empty cell");
-			matched = true;				  	
 		} else {
 			JemExportChecker expCheck = null;
 			if (options.checkExports) expCheck = new JemExportChecker(globals);
 			JemStratFixed.doYourJob(globals);
 			JemStratVariable.doYourJob(globals);
 			if (options.checkExports) 
-			    matched = expCheck.ensureExportsWithMatchingNamesAreOnEquivalentNets();
+			    matched &= expCheck.ensureExportsWithMatchingNamesAreOnEquivalentNets();
 			//JemStratDebug.doYourJob(globals);
 			
 			matched &= JemStratResult.doYourJob(mismatchList, activeList, globals);

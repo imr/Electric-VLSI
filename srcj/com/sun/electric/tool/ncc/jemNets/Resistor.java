@@ -110,6 +110,16 @@ public class Resistor extends Part {
 		String e = pins[1].getName();
 		return ("S= " + s + " E= " + e);
     }
+    
+    public String connectionString(Wire w) {
+    	String s = "";
+    	for (int i=0; i<pins.length; i++) {
+    		if (pins[i]!=w) continue;
+    		if (s.length()!=0) s+=",";
+    		s += i==0 ? "S" : "E";
+    	}
+    	return s;
+    }
 
 }
 

@@ -76,7 +76,7 @@ public class Port extends NetObject {
 
 	public void printMe(int maxCon, Messenger messenger){
 		messenger.print("Port on wire: " + wire.getName() +
-		                "has Export names: ");
+		                " has Export names:");
 		for (Iterator it=names.iterator(); it.hasNext();) {
 			String nm = (String) it.next();
 			messenger.print(" "+nm);

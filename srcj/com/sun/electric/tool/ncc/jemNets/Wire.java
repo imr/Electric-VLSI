@@ -175,15 +175,17 @@ public class Wire extends NetObject{
 	 * @param n the maximum number of connections to list
 	 * @return a String of connections.
 	 */
-    public String connectionString(int n){
-        if (content.size()==0)return ("is unconnected");
-        if (content.size()>n)return ("has " + content.size() + " pins");
-        Iterator it= getParts();
-        String s= "";
-        while(it.hasNext()){
-            Part pp= (Part)it.next();
-            String cc= pp.getName();
-            s= s + " " + cc;
+    public String connectionString(int maxParts){
+        if (content.size()==0) return (" unconnected");
+        String s = " connected to";
+		if (numParts()>maxParts)  s+=" "+content.size() + " parts starting with";
+        s += ": ";
+        
+		int i=0;
+        for (Iterator it=getParts(); it.hasNext() && i<maxParts; i++){
+            Part p = (Part)it.next();
+            String cc = p.getName();
+            s= s + " " + cc + ":" + p.connectionString(this);
         }
         return s;
     }
@@ -191,21 +193,7 @@ public class Wire extends NetObject{
     public void printMe(int x, Messenger messenger){
         int maxPins= 3;
         messenger.print(nameString());
-        String s= "";
-        if(numParts()>maxPins){
-            int count= 0;
-            s= " has " + numParts() + " pins starting:";
-            Iterator it= getParts();
-            while(it.hasNext()&&(count<maxPins)){
-                Part pp= (Part)it.next();
-                String cc= pp.getName();
-                s= s + " " + cc;
-                count++;
-            }
-        }else{
-            s= connectionString(maxPins);
-        }
-        messenger.println(s);
+        messenger.println(connectionString(maxPins));
     }
 
 }

@@ -64,10 +64,15 @@ class NccBotUp extends HierarchyEnumerator.Visitor {
 			else if (c.getView()==View.LAYOUT) layout=c;
 		}
 		if (layout!=null && schematic!=null) {
-			System.out.println("Comparing schematic: "+schematic.getName()+
-                               " with layout: "+layout.getName());
+			System.out.println("Comparing schematic: "+
+							   schematic.getLibrary().getName() +
+							   " : "+
+			                   schematic.getName()+
+                               " with layout: "+layout.getLibrary().getName()+
+                               " : "+
+                               layout.getName());
 			NccOptions options = new NccOptions();
-			options.verbose = schematic.getName().equals("samplers_2x3");
+			options.verbose = false;
 			boolean ok = NccEngine.compare(schematic, null, layout, null, 
 			                               options);
 			LayoutLib.error(!ok, "NccJob finds mismatch");

@@ -68,7 +68,9 @@ public class JemStratFrontier extends JemStrat {
     }
     
     public static JemLeafList doYourJob(JemEquivRecord r,
-    									 NccGlobals globals) {
+    									NccGlobals globals) {
+    	if (r==null)  return new JemLeafList();
+    	
     	JemStratFrontier jsf = new JemStratFrontier(globals);
     	jsf.preamble(r);
     	JemLeafList el = jsf.doFor(r);

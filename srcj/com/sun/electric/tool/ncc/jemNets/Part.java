@@ -163,6 +163,8 @@ public abstract class Part extends NetObject {
 	 * @return true if the terminal is a gate, false otherwise
 	 */
 	protected abstract boolean isThisGate(int x);
+	
+	public abstract String connectionString(Wire w);
 
 //	/** 
 //	 * A method to compute the hash code for this NetObject.

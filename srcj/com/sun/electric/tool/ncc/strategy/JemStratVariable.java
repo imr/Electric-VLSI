@@ -135,14 +135,16 @@ public class JemStratVariable {
 			if (partOffspring.size()==0 && wireOffspring.size()==0) break;
 		}
 	}
+	private boolean done() {
+		JemLeafList p = JemStratFrontier.doYourJob(globals.getParts(),
+		                                           globals);
+		JemLeafList w = JemStratFrontier.doYourJob(globals.getWires(),
+												   globals);
+		return p.size()==0 && w.size()==0;
+	}
 	
-	// contructor does all the work
-	private JemStratVariable(NccGlobals globals){
-		this.globals = globals;
-
-		globals.println("----- starting JemStratVariable");
-		hashFrontier();
-		
+	private void useExportNames() {
+		globals.println("----- use Export Names");
 		while (true) {
 			JemStratCount.doYourJob(globals.getRoot(), globals);
 			JemLeafList offspring = JemWireName.doYourJob(globals);
@@ -150,7 +152,54 @@ public class JemStratVariable {
 			chaseRetired(offspring);
 			hashFrontier();
 		}
+	}
+	
+	private JemEquivRecord findSmallestActive(JemEquivRecord root) {
+		JemLeafList frontier = JemStratFrontier.doYourJob(root, globals);
+		int minSz = Integer.MAX_VALUE;
+		JemEquivRecord minRec = null;
+		for (Iterator ri=frontier.iterator(); ri.hasNext();) {
+			JemEquivRecord r = (JemEquivRecord) ri.next();
+			if (r.isMismatched())  continue;
+			int sz  = r.maxSize();
+			if (sz<minSz) {
+				minSz = sz;
+				minRec = r;
+			}
+		}
+		return minRec;
+	}
+	
+	private JemEquivRecord findSmallestActive() {
+		JemEquivRecord w = findSmallestActive(globals.getWires());
+		JemEquivRecord p = findSmallestActive(globals.getParts());
+		if (p==null) return w;
+		if (p==null) return p;
+		return p.maxSize()<w.maxSize() ? p : w; 
+	}
+	
+	private void randomMatch() {
+		globals.println("----- random matching");
+		while (true) {
+			JemEquivRecord smallest = findSmallestActive();
+			if (smallest==null) return; 
+			JemLeafList el = new JemLeafList();
+			el.add(smallest);
+			JemLeafList offspring = JemStratRandomMatch.doYourJob(el, globals);
+			if (offspring.size()!=0) chaseRetired(offspring);
+		}
+	}
+	
+	// contructor does all the work
+	private JemStratVariable(NccGlobals globals){
+		this.globals = globals;
 
+		globals.println("----- starting JemStratVariable");
+
+		if (!done()) hashFrontier();
+		if (!done()) useExportNames();
+		if (!done()) randomMatch();
+		
 		globals.println("----- done JemStratVariable");
 	}
 

@@ -298,9 +298,16 @@ public class JemEquivRecord {
 	 * otherwise
 	 */
 	public boolean isMismatched() {
+		boolean first = true;
+		int sz = 0;
 	    for (Iterator it=getCircuits(); it.hasNext();) {
 	        JemCircuit c = (JemCircuit) it.next();
-	        if (c.numNetObjs()==0) return true;
+	        if (first) {
+	        	sz = c.numNetObjs();
+	        	first = false;
+	        } else {
+				if (c.numNetObjs()!=sz) return true;
+	        }
 	    }
 	    return false;
 	}

@@ -195,6 +195,26 @@ public class Transistor extends Part {
 		}
 		return msg;
 	}
+	
+	public String connectionString(Wire w) {
+		String s = "";
+		for (int i=0; i<pins.length; i++) {
+			if (pins[i]!=w)  continue;
+			if (s.length()!=0) s+=",";
+			if (i==0) {
+				s += "S";
+			} else if (i==pins.length-1) {
+				s += "D"; 
+			} else {
+				if (pins.length==3) {
+					s += "G"; 
+				} else {
+					s += "G"+i;
+				}
+			}
+		}
+		return s;
+	}
 
 	/**
 	 * Compare the type (N vs P) and the gate length

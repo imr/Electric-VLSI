@@ -19,7 +19,7 @@ public class JemStratDebug extends JemStrat {
 	private JemStratDebug(NccGlobals globals) {
 		super(globals);
 		globals.println("begin JemStratDebug");
-		globals.println("dumping all active JemEquivRecords");
+		globals.println("dumping active and mismatched JemEquivRecords");
 		doFor(globals.getRoot());
 		globals.println("end JemStratDebug");
 	}
@@ -27,7 +27,7 @@ public class JemStratDebug extends JemStrat {
     // ---------- the tree walking code ---------
 	public JemLeafList doFor(JemEquivRecord er) {
 		if (er.isLeaf()) {
-			if (er.isActive()) {
+			if (er.isActive() || er.isMismatched()) {
 				globals.println("Print JemEquivRecord:");
 				super.doFor(er);
 			}
