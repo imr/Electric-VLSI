@@ -911,7 +911,7 @@ public class ToolMenu {
             Layer.Function func = layer.getFunction();
             /* accumulate total wire length on all metal/poly layers */
             if (func.isPoly() && !func.isGatePoly() || func.isMetal()) {
-                System.out.println(func.toString()+": "+halfperimeter);
+                //System.out.println(func.toString()+": "+halfperimeter);
                 totalWire += halfperimeter;
             }
         }
