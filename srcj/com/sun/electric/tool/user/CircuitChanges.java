@@ -2524,15 +2524,7 @@ public class CircuitChanges
 
 		// see which cells (in any library) have nonmanhattan stuff
 		FlagSet cellMark = NodeProto.getFlagSet(1);
-		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
-		{
-			Library lib = (Library)lIt.next();
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
-			{
-				Cell cell = (Cell)cIt.next();
-				cell.clearBit(cellMark);
-			}
-		}
+		cellMark.clearOnAllCells();
 		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
 			Library lib = (Library)lIt.next();

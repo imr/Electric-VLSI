@@ -116,15 +116,7 @@ public class AutoStitch
 			nodeMark = NodeInst.getFlagSet(1);
 
 			// clear flag for finding cells that will be checked
-			for(Iterator it = Library.getLibraries(); it.hasNext(); )
-			{
-				Library lib = (Library)it.next();
-				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
-				{
-					Cell cell = (Cell)cIt.next();
-					cell.clearBit(cellMark);
-				}
-			}
+			cellMark.clearOnAllCells();
 
 			// next pre-compute bounds on all nodes in cells to be changed
 			int count = 0;

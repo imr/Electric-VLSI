@@ -913,15 +913,7 @@ public class CellLists extends EDialog
 		} else
 		{
 			// mark no cells for display, filter according to request
-			for(Iterator it = Library.getLibraries(); it.hasNext(); )
-			{
-				Library lib = (Library)it.next();
-				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
-				{
-					Cell cell = (Cell)cIt.next();
-					cell.clearBit(nodeFlagBit);
-				}
-			}
+			nodeFlagBit.clearOnAllCells();
 			if (onlyCellsUnderCurrent.isSelected())
 			{
 				// mark those that are under this

@@ -1007,6 +1007,9 @@ public class ELIB extends LibraryFiles
 	 */
 	protected void realizeCellsRecursively(Cell cell, FlagSet recursiveSetupFlag, String scaledCellName, double scaleX, double scaleY)
 	{
+		// do not realize cross-library references
+		if (cell.getLibrary() != lib) return;
+
 		// get information about this cell
 		int cellIndex = cell.getTempInt();
 		if (cellIndex+1 >= firstNodeIndex.length) return;

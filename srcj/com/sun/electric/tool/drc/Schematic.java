@@ -60,15 +60,7 @@ public class Schematic
 	public static void doCheck(Cell cell)
 	{
 		cellsCheckedBit = NodeProto.getFlagSet(1);
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library lib = (Library)it.next();
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
-			{
-				Cell c = (Cell)cIt.next();
-				c.clearBit(cellsCheckedBit);
-			}
-		}
+		cellsCheckedBit.clearOnAllCells();
 
 		ErrorLog.initLogging("Schematic DRC");
 		checkSchematicCellRecursively(cell);

@@ -346,6 +346,9 @@ public class ReadableDump extends LibraryFiles
 	 */
 	protected void realizeCellsRecursively(Cell cell, FlagSet markCellForNodes, String scaledCellName, double scaleX, double scaleY)
 	{
+		// do not realize cross-library references
+		if (cell.getLibrary() != lib) return;
+
 		// cannot do scaling yet
 		if (scaledCellName != null) return;
 

@@ -176,15 +176,7 @@ public class ELIB extends Output
 
 		// prepare to locate references to cells in other libraries
 		FlagSet externalRefFlag = NodeProto.getFlagSet(1);
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library olib = (Library)it.next();
-			for(Iterator cit = olib.getCells(); cit.hasNext(); )
-			{
-				Cell cell = (Cell)cit.next();
-				cell.clearBit(externalRefFlag);
-			}
-		}
+		externalRefFlag.clearOnAllCells();
 
 		// scan for all cross-library references
 		varNames = new HashMap();

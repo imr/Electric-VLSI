@@ -2111,15 +2111,7 @@ public class Cell extends NodeProto
 	{
 		cellDateFlagSet = NodeProto.getFlagSet(1);
 
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library lib = (Library)it.next();
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
-			{
-				Cell oCell = (Cell)cIt.next();
-				oCell.clearBit(cellDateFlagSet);
-			}
-		}
+		cellDateFlagSet.clearOnAllCells();
 		checkCellDate(getRevisionDate());
 		cellDateFlagSet.freeFlagSet();
 	}
