@@ -26,6 +26,8 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.VarContext;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
@@ -82,7 +84,8 @@ public class UIEdit extends JPanel
 	/** the window offset */								private double offx, offy;
 	/** the size of the window (in pixels) */				private Dimension sz;
 	/** the cell that is in the window */					private Cell cell;
-	/** the offscreen image of the window */				private Image img = null;
+	/** Cell's VarContext */                                private VarContext cellVarContext;
+    /** the offscreen image of the window */				private Image img = null;
 	/** true if the window needs to be rerendered */		private boolean needsUpdate = false;
 	/** true to track the time for redraw */				private boolean trackTime = false;
 	/** the highlighted objects in this window */			private static List highlightList = new ArrayList();
@@ -90,6 +93,7 @@ public class UIEdit extends JPanel
 	/** ending screen point for drags in this window */		private Point endDrag = new Point();
 	/** true if doing drags in this window */				private boolean doingDrag = false;
 	/** true if showing grid in this window */				private boolean showGrid = false;
+    
 
 	/** an identity transformation */						private static final AffineTransform IDENTITY = new AffineTransform();
 	/** the offset of each new window on the screen */		private static int windowOffset = 0;
@@ -108,7 +112,8 @@ public class UIEdit extends JPanel
 	{
 		//super(cell.describe(), true, true, true, true);
 		this.cell = cell;
-
+        this.cellVarContext = VarContext.globalContext;
+        
 		sz = new Dimension(500, 500);
 		setSize(sz.width, sz.height);
 		setPreferredSize(sz);
@@ -174,9 +179,10 @@ public class UIEdit extends JPanel
 	/**
 	 * Routine to set the cell that is shown in the window to "cell".
 	 */
-	public void setCell(Cell cell)
+	public void setCell(Cell cell, VarContext context)
 	{
 		this.cell = cell;
+        this.cellVarContext = context;
 		Library curLib = Library.getCurrent();
 		curLib.setCurCell(cell);
 		clearHighlighting();
@@ -197,7 +203,58 @@ public class UIEdit extends JPanel
 		needsUpdate = true;
 	}
 
-	// ************************************* RENDERING A WINDOW *************************************
+    public void downHierarchy() {
+        if (getNumHighlights() <= 0) {
+            System.out.println("Nothing highlighted, cannot descend");
+            return;
+        }
+        if (getNumHighlights() > 1) {
+            System.out.println("More than one thing highlighted, cannot descend");
+            return;
+        }
+        Iterator it = getHighlights();
+        Geometric geom = (Geometric)it.next();
+        if (!(geom instanceof NodeInst)) {
+            System.out.println("Cannot descend into that object");
+            return;
+        }
+        NodeInst ni = (NodeInst)geom;
+        NodeProto np = ni.getProto();
+        if (!(np instanceof Cell)) {
+            //System.out.println("Cannot descend into that object");
+            return;
+        }
+        Cell cell = (Cell)np;
+        Cell schCell = cell.getEquivalent();
+        // special case: if cell is icon of current cell, descend into icon
+        if (this.cell == schCell) schCell = cell;
+        if (schCell == null) return;                // nothing to descend into
+        setCell(schCell, cellVarContext.push(ni));
+        drawImage();
+    }
+    
+    public void upHierarchy() {
+        try {
+            NodeInst ni = cellVarContext.getNodeInst();
+            Cell parent = ni.getParent();
+            VarContext context = cellVarContext.pop();
+            setCell(parent, context);
+            drawImage();
+        } catch (NullPointerException e) {
+            // no parent - if icon, go to sch view
+            // - otherwise, ask user where to go if necessary
+            if (cell.getView() == View.ICON) {
+                Cell schCell = cell.getEquivalent();
+                if (schCell == null) return;        // nothing to do
+                setCell(schCell, VarContext.globalContext);
+                drawImage();
+                return;
+            }
+            // TODO: find possible parents, ask user to choose if needed
+        }
+    }
+
+    // ************************************* RENDERING A WINDOW *************************************
 
 	/**
 	 * Routine to draw the current window.
@@ -816,7 +873,7 @@ public class UIEdit extends JPanel
 	}
 
 	private static final int EXACTSELECTDISTANCE = 5;
-
+    
 	public void mouseReleased(MouseEvent evt)
 	{
 		if (doingDrag)

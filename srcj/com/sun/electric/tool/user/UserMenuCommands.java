@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.tool.user.ui.UIEdit;
 import com.sun.electric.tool.user.ui.UIEditFrame;
@@ -269,4 +270,30 @@ public final class UserMenuCommands
 		float finalTime = (endTime - startTime) / 1000F;
 		System.out.println("**** Renumber networks took " + finalTime + " seconds");
 	}
+    
+    // ---------------------- THE JON GAINSLEY MENU -----------------
+
+    public static void downHierCommand() {
+        UIEditFrame curFrame = UITopLevel.getCurrent();
+        UIEdit curEdit = curFrame.getEdit();
+        curEdit.downHierarchy();
+    }
+    
+    public static void upHierCommand() {
+        UIEditFrame curFrame = UITopLevel.getCurrent();
+        UIEdit curEdit = curFrame.getEdit();
+        curEdit.upHierarchy();
+    }
+    
+    public static void listVarsOnObject() {
+        if (UIEdit.getNumHighlights() == 0) {
+            System.out.println("Nothing highlighted");
+            return;
+        }
+        for (Iterator it = UIEdit.getHighlights(); it.hasNext();) {
+            Geometric geom = (Geometric)it.next();
+            geom.getInfo();
+        }
+    }
+
 }

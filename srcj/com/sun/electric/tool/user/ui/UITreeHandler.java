@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.VarContext;
 
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
@@ -53,7 +54,7 @@ public class UITreeHandler implements TreeSelectionListener
 			if (nodeInfo instanceof Cell)
 			{
 				Cell cell = (Cell)nodeInfo;
-				wnd.setCell(cell);
+				wnd.setCell(cell, VarContext.globalContext);
 			}
 		} else
 		{

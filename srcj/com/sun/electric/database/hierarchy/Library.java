@@ -395,14 +395,14 @@ public class Library extends ElectricObject
 	public static DefaultMutableTreeNode getExplorerTree()
 	{
 		if (explorerTree == null)
-			explorerTree = new DefaultMutableTreeNode("CONTENTS VIEW");
+			explorerTree = new DefaultMutableTreeNode("LIBRARY EXPLORER");
 		explorerTree.removeAllChildren();
 		Library curLib = Library.getCurrent();
 		for(Iterator it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
-			String nodeName = "Library " + lib.getLibName();
-			if (lib == curLib) nodeName = "Current " + nodeName;
+			String nodeName = lib.getLibName();
+			if (lib == curLib) nodeName = "[Current] " + nodeName;
 			DefaultMutableTreeNode libTree = new DefaultMutableTreeNode(nodeName);
 			for(Iterator eit = lib.getCells(); eit.hasNext(); )
 			{

@@ -119,7 +119,7 @@ public class Geometric extends ElectricObject
 
 	/**
 	 * The RTNode class implements R-Trees.
-	 * R-trees come from this paper: Guttman, Antonin, “R-Trees: A Dynamic Index Structure for Spatial Searching”,
+	 * R-trees come from this paper: Guttman, Antonin, ?R-Trees: A Dynamic Index Structure for Spatial Searching?,
 	 * ACM SIGMOD, 14:2, 47-57, June 1984.
 	 * <P>
 	 * R-trees are height-balanced trees in which all leaves are at the same depth and contain Geometric objects (the
@@ -809,6 +809,7 @@ public class Geometric extends ElectricObject
 		System.out.println(" Center: (" + cX + "," + cY + "), size: " + sX + "x" + sY + ", rotated " + angle/10.0);
 		System.out.println(" Bounds: (" + visBounds.getCenterX() + "," + visBounds.getCenterY() + "), size: " +
 			visBounds.getWidth() + "x" + visBounds.getHeight());
+        super.getInfo();
 	}
 
 	private AffineTransform rotateTranspose = null;

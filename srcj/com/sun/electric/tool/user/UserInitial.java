@@ -93,12 +93,23 @@ public final class UserInitial
 		dimaMenu.addMenuItem("redo Network Numbering", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.redoNetworkNumberingCommand(); } });
 
+        // setup JonGainsley's test menu
+        UIMenu jongMenu = UIMenu.CreateUIMenu("JonG", 'J');
+        jongMenu.addMenuItem("Down Hierarchy", KeyStroke.getKeyStroke('D', InputEvent.CTRL_MASK),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.downHierCommand(); }});
+        jongMenu.addMenuItem("Up Hierarchy", KeyStroke.getKeyStroke('U', InputEvent.CTRL_MASK),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.upHierCommand(); }});
+        jongMenu.addMenuItem("Describe Vars", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.listVarsOnObject(); }});
+
+            
 		// create the menu bar
 		JMenuBar menuBar = new JMenuBar();
 		menuBar.add(fileMenu);
 		menuBar.add(steveMenu);
 		menuBar.add(russMenu);
 		menuBar.add(dimaMenu);
+        menuBar.add(jongMenu);
 		UITopLevel.setMenuBar(menuBar);
 
 		// initialize all of the technologies
