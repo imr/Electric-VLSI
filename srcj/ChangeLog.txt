@@ -2,13 +2,18 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.01al: *********************************
+
+BUG: (11/8/04, GVG) Metal 1 pin didn't get correct offset after resizing (1.2 -> 1.4 done on 11/06/04)
+FIX: Metal 1 min width rule: 1.2 -> 1.4 to keep code consistent
+
+IMP: (11/8/04, GVG) Correct aligment of m2/m3, m4/m5, m6/m7, and m8/m9 for TSMC90
+
 BUG: (11/8/04, SMR) Reloading waveform window fails if there are a different number of sweeps.
 FIX: Reload sweeps list correctly.
 
 IMP/MAN: (11/8/04, SMR) When interactively resizing a node, holding Control limits
      resize to a single axis.  Holding Shift switches to center-based sizing.
-
-************************* Version 8.01al: *********************************
 
 IMP: (11/8/04, SMR) Disallow moving the cell-center when other objects are moving.
 
@@ -56,6 +61,12 @@ BUG: (11/4/04, GVG) Rouding points before merging in DRC min area calculation ot
 
 BUG: (11/4/04, GVG) DRC and PolySelect rule, ignoring case when remaining area after second substract was empty.
 FIX: call Area.isEmpty()
+
+IMP: (11/7/04, SMR) Added copy/paste topology (for routers).
+
+IMP: (11/7/04, SMR) Cleaned-up outline-edit mode.
+
+IMP: (11/5/04, SMR) Added EDIF input.
 
 IMP: (11/4/04, SMR) GDS output produces better cell names.
 

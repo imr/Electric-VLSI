@@ -272,7 +272,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	                if (fun == PrimitiveNode.Function.TRANMOS || fun == PrimitiveNode.Function.TRAPMOS)
                         map = fun;
                     else if (fun == PrimitiveNode.Function.CONTACT && np.isGroupNode())
-                        map = np.getLayers()[1].getLayer();
+                        map = np.getLayers()[2].getLayer(); // vias as mapping
 	                // Trick to get "well" in well contacts
 	                else if (fun == PrimitiveNode.Function.SUBSTRATE || fun == PrimitiveNode.Function.WELL)
                     {
