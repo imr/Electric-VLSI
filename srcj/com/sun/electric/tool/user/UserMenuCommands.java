@@ -602,13 +602,12 @@ public final class UserMenuCommands
 		} else
 		{
 			fileName = DialogOpenFile.chooseOutputFile(DialogOpenFile.ELIB, null, lib.getLibName()+".elib");
-			if (fileName != null)
-			{
-				Library.Name n = Library.Name.newInstance(fileName);
-				n.setExtension("elib");
-				lib.setLibFile(n.makeName());
-				lib.setLibName(n.getName());
-			}
+			if (fileName == null) return;
+
+			Library.Name n = Library.Name.newInstance(fileName);
+			n.setExtension("elib");
+			lib.setLibFile(n.makeName());
+			lib.setLibName(n.getName());
 		}
 		SaveLibrary job = new SaveLibrary(lib);
 	}

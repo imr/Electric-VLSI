@@ -49,6 +49,7 @@ import com.sun.electric.technology.technologies.MoCMOSSub;
 import com.sun.electric.technology.technologies.nMOS;
 import com.sun.electric.tool.user.Prefs;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.drc.DRC;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -421,6 +422,12 @@ public class Technology extends ElectricObject
 		 * @return the left extension of this layer.
 		 */
 		public double getSerpentineLWidth() { return lWidth; }
+		/**
+		 * Sets the left extension of this layer.
+		 * Only makes sense when this is a layer in a serpentine transistor.
+		 * @param lWidth the left extension of this layer.
+		 */
+		public void setSerpentineLWidth(double lWidth) { this.lWidth = lWidth; }
 
 		/**
 		 * Returns the right extension of this layer.
@@ -428,6 +435,12 @@ public class Technology extends ElectricObject
 		 * @return the right extension of this layer.
 		 */
 		public double getSerpentineRWidth() { return rWidth; }
+		/**
+		 * Sets the right extension of this layer.
+		 * Only makes sense when this is a layer in a serpentine transistor.
+		 * @param rWidth the right extension of this layer.
+		 */
+		public void setSerpentineRWidth(double rWidth) { this.rWidth = rWidth; }
 
 		/**
 		 * Returns the top extension of this layer.
@@ -435,6 +448,12 @@ public class Technology extends ElectricObject
 		 * @return the top extension of this layer.
 		 */
 		public double getSerpentineExtentT() { return extentT; }
+		/**
+		 * Sets the top extension of this layer.
+		 * Only makes sense when this is a layer in a serpentine transistor.
+		 * @param extentT the top extension of this layer.
+		 */
+		public void setSerpentineExtentT(double extentT) { this.extentT = extentT; }
 
 		/**
 		 * Returns the bottom extension of this layer.
@@ -442,6 +461,12 @@ public class Technology extends ElectricObject
 		 * @return the bottom extension of this layer.
 		 */
 		public double getSerpentineExtentB() { return extendB; }
+		/**
+		 * Sets the bottom extension of this layer.
+		 * Only makes sense when this is a layer in a serpentine transistor.
+		 * @param extendB the bottom extension of this layer.
+		 */
+		public void setSerpentineExtentB(double extendB) { this.extendB = extendB; }
 	}
 
 	/** name of the technology */						private String techName;
@@ -1782,6 +1807,160 @@ public class Technology extends ElectricObject
 			double edgeCapacitance = prefs.getDouble("LayerEdgeCapacitance_" + techName + "_" + layer.getName(), layer.getEdgeCapacitance());
 			layer.setDefaultParasitics(resistance, capacitance, edgeCapacitance);
 		}
+	}
+
+	/****************************** DESIGN RULES ******************************/
+
+	/**
+	 * Method to build a DRC.Rules object that contains all of the design rules for this Technology.
+	 * The DRC dialogs use this to hold the values while editing them.
+	 * @return a new DRC.Rules object with the design rules for this Technology.
+	 */
+	public DRC.Rules getDRCRules()
+	{
+		DRC.Rules rules = new DRC.Rules();
+		rules.techName = getTechName();
+		rules.numLayers = getNumLayers();
+		rules.uTSize = (rules.numLayers * rules.numLayers + rules.numLayers) / 2;
+		Variable var = getVar(DRC.WIDE_LIMIT, Double.class);
+		if (var == null) rules.wideLimit = new Double(10); else
+			rules.wideLimit = (Double)var.getObject();
+		rules.layerNames = new String[rules.numLayers];
+
+		int j=0;
+		for(Iterator it = getLayers(); it.hasNext(); )
+		{
+			Layer layer = (Layer)it.next();
+			rules.layerNames[j++] = layer.getName();
+		}
+
+		// minimum widths of each layer
+		Variable minWidthVar = getVar(DRC.MIN_WIDTH, Double[].class);
+		if (minWidthVar != null) rules.minWidth = (Double[])minWidthVar.getObject(); else
+		{
+			rules.minWidth = new Double[rules.numLayers];
+			for(int i=0; i<rules.numLayers; i++) rules.minWidth[i] = new Double(-1);
+		}
+		Variable minWidthRulesVar = getVar(DRC.MIN_WIDTH_RULE, String[].class);
+		if (minWidthRulesVar != null) rules.minWidthRules = (String[])minWidthRulesVar.getObject(); else
+		{
+			rules.minWidthRules = new String[rules.numLayers];
+			for(int i=0; i<rules.numLayers; i++) rules.minWidthRules[i] = "";
+		}
+
+		// for connected layers
+		Variable conListVar = getVar(DRC.MIN_CONNECTED_DISTANCES, Double[].class);
+		if (conListVar != null) rules.conList = (Double[])conListVar.getObject(); else
+		{
+			rules.conList = new Double[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.conList[i] = new Double(-1);
+		}
+		Variable conListRulesVar = getVar(DRC.MIN_CONNECTED_DISTANCES_RULE, String[].class);
+		if (conListRulesVar != null) rules.conListRules = (String[])conListRulesVar.getObject(); else
+		{
+			rules.conListRules = new String[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.conListRules[i] = "";
+		}
+
+		// for unconnected layers
+		Variable unConListVar = getVar(DRC.MIN_UNCONNECTED_DISTANCES, Double[].class);
+		if (unConListVar != null) rules.unConList = (Double[])unConListVar.getObject(); else
+		{
+			rules.unConList = new Double[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.unConList[i] = new Double(-1);
+		}
+		Variable unConListRulesVar = getVar(DRC.MIN_UNCONNECTED_DISTANCES_RULE, String[].class);
+		if (unConListRulesVar != null) rules.unConListRules = (String[])unConListRulesVar.getObject(); else
+		{
+			rules.unConListRules = new String[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.unConListRules[i] = "";
+		}
+
+		// for connected layers that are wide
+		Variable conListWideVar = getVar(DRC.MIN_CONNECTED_DISTANCES_WIDE, Double[].class);
+		if (conListWideVar != null) rules.conListWide = (Double[])conListWideVar.getObject(); else
+		{
+			rules.conListWide = new Double[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.conListWide[i] = new Double(-1);
+		}
+		Variable conListWideRulesVar = getVar(DRC.MIN_CONNECTED_DISTANCES_WIDE_RULE, String[].class);
+		if (conListWideRulesVar != null) rules.conListWideRules = (String[])conListWideRulesVar.getObject(); else
+		{
+			rules.conListWideRules = new String[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.conListWideRules[i] = "";
+		}
+
+		// for unconnected layers that are wide
+		Variable unConListWideVar = getVar(DRC.MIN_UNCONNECTED_DISTANCES_WIDE, Double[].class);
+		if (unConListWideVar != null) rules.unConListWide = (Double[])unConListWideVar.getObject(); else
+		{
+			rules.unConListWide = new Double[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.unConListWide[i] = new Double(-1);
+		}
+		Variable unConListWideRulesVar = getVar(DRC.MIN_UNCONNECTED_DISTANCES_WIDE_RULE, String[].class);
+		if (unConListWideRulesVar != null) rules.unConListWideRules = (String[])unConListWideRulesVar.getObject(); else
+		{
+			rules.unConListWideRules = new String[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.unConListWideRules[i] = "";
+		}
+
+		// for connected layers that are multicut
+		Variable conListMultiVar = getVar(DRC.MIN_CONNECTED_DISTANCES_MULTI, Double[].class);
+		if (conListMultiVar != null) rules.conListMulti = (Double[])conListMultiVar.getObject(); else
+		{
+			rules.conListMulti = new Double[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.conListMulti[i] = new Double(-1);
+		}
+		Variable conListMultiRulesVar = getVar(DRC.MIN_CONNECTED_DISTANCES_MULTI_RULE, String[].class);
+		if (conListMultiRulesVar != null) rules.conListMultiRules = (String[])conListMultiRulesVar.getObject(); else
+		{
+			rules.conListMultiRules = new String[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.conListMultiRules[i] = "";
+		}
+
+		// for unconnected layers that are multicut
+		Variable unConListMultiVar = getVar(DRC.MIN_UNCONNECTED_DISTANCES_MULTI, Double[].class);
+		if (unConListMultiVar != null) rules.unConListMulti = (Double[])unConListMultiVar.getObject(); else
+		{
+			rules.unConListMulti = new Double[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.unConListMulti[i] = new Double(-1);
+		}
+		Variable unConListMultiRulesVar = getVar(DRC.MIN_UNCONNECTED_DISTANCES_MULTI_RULE, String[].class);
+		if (unConListMultiRulesVar != null) rules.unConListMultiRules = (String[])unConListMultiRulesVar.getObject(); else
+		{
+			rules.unConListMultiRules = new String[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.unConListMultiRules[i] = "";
+		}
+
+		// for edge distances between layers
+		Variable edgeListVar = getVar(DRC.MIN_EDGE_DISTANCES, Double[].class);
+		if (edgeListVar != null) rules.edgeList = (Double[])edgeListVar.getObject(); else
+		{
+			rules.edgeList = new Double[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.edgeList[i] = new Double(-1);
+		}
+		Variable edgeListRulesVar = getVar(DRC.MIN_EDGE_DISTANCES_RULE, String[].class);
+		if (edgeListRulesVar != null) rules.edgeListRules = (String[])edgeListRulesVar.getObject(); else
+		{
+			rules.edgeListRules = new String[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.edgeListRules[i] = "";
+		}
+
+		rules.numNodes = getNumNodes();
+		rules.nodeNames = new String[rules.numNodes];
+		rules.minNodeSize = new Double[rules.numNodes*2];
+		rules.minNodeSizeRules = new String[rules.numNodes];
+		j = 0;
+		for(Iterator it = getNodes(); it.hasNext(); )
+		{
+			PrimitiveNode np = (PrimitiveNode)it.next();
+			rules.nodeNames[j] = np.getProtoName();
+			rules.minNodeSize[j*2] = new Double(np.getMinWidth());
+			rules.minNodeSize[j*2+1] = new Double(np.getMinHeight());
+			rules.minNodeSizeRules[j] = np.getMinSizeRule();
+			j++;
+		}
+		return rules;
 	}
 
 	/****************************** MISCELANEOUS ******************************/

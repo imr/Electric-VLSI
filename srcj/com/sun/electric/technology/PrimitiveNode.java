@@ -52,6 +52,8 @@ public class PrimitiveNode extends NodeProto
 	/** special type of unusual primitives */		private int specialType;
 	/** special factors for unusual primitives */	private double[] specialValues;
 	/** default width and height */					private double defWidth, defHeight;
+	/** minimum width and height */					private double minWidth, minHeight;
+	/** minimum width and height rule */			private String minSizeRule;
 	/** offset from database to user */				private SizeOffset offset;
 	/** counter for enumerating primitive nodes */	private static int primNodeNumber = 0;
 
@@ -76,6 +78,8 @@ public class PrimitiveNode extends NodeProto
 		this.defHeight = defHeight;
 		if (offset == null) offset = new SizeOffset(0,0,0,0);
 		this.offset = offset;
+		this.minWidth = this.minHeight = -1;
+		this.minSizeRule = "";
 		primNodeIndex = primNodeNumber++;
 
 		// add to the nodes in this technology
@@ -164,6 +168,35 @@ public class PrimitiveNode extends NodeProto
 	 * @return the size offset of this PrimitiveNode.
 	 */
 	public SizeOffset getSizeOffset() { return offset; }
+
+	/**
+	 * Routine to return the minimum width of this PrimitiveNode.
+	 * @return the minimum width of this PrimitiveNode.
+	 */
+	public double getMinWidth() { return minWidth; }
+
+	/**
+	 * Routine to return the minimum height of this PrimitiveNode.
+	 * @return the minimum height of this PrimitiveNode.
+	 */
+	public double getMinHeight() { return minHeight; }
+
+	/**
+	 * Routine to return the minimum size rule for this PrimitiveNode.
+	 * @return the minimum size rule for this PrimitiveNode.
+	 */
+	public String getMinSizeRule() { return minSizeRule; }
+
+	/**
+	 * Routine to set the minimum height of this PrimitiveNode.
+	 * @param minHeight the minimum height of this PrimitiveNode.
+	 */
+	public void setMinSize(double minWidth, double minHeight, String minSizeRule)
+	{
+		this.minWidth = minWidth;
+		this.minHeight = minHeight;
+		this.minSizeRule = minSizeRule;
+	}
 
 	/**
 	 * Routine to set the size offset of this PrimitiveNode.

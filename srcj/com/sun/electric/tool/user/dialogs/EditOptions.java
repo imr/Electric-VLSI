@@ -37,6 +37,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.PaletteFrame;
+import com.sun.electric.tool.user.ui.StatusBar;
 import com.sun.electric.tool.user.CircuitChanges;
 
 import java.awt.Component;
@@ -891,7 +892,7 @@ public class EditOptions extends javax.swing.JDialog
 	private float initialGridXSpacing, initialGridYSpacing;
 	private float initialGridDefXSpacing, initialGridDefYSpacing;
 	private int initialGridDefXBoldFrequency, initialGridDefYBoldFrequency;
-	private boolean initialGridAlignWithCircuitry;
+	private boolean initialGridAlignWithCircuitry, initialShowCursorCoordinates;
 	private float initialGridAlignment, initialGridEdgeAlignment;
 
 	/**
@@ -922,6 +923,8 @@ public class EditOptions extends javax.swing.JDialog
 		gridBoldVert.setText(Double.toString(initialGridDefYBoldFrequency = User.getDefGridYBoldFrequency()));
 
 		gridAlign.setSelected(initialGridAlignWithCircuitry = User.isAlignGridWithCircuitry());
+		gridShowCursorCoords.setSelected(initialShowCursorCoordinates = User.isShowCursorCoordinates());
+
 		gridAlign.setEnabled(false);
 
 		gridAlignCursor.setText(Double.toString(initialGridAlignment = User.getAlignmentToGrid()));
@@ -966,6 +969,10 @@ public class EditOptions extends javax.swing.JDialog
 		boolean currentAlignWithCircuitry = gridAlign.isSelected();
 		if (currentAlignWithCircuitry != initialGridAlignWithCircuitry)
 			User.setAlignGridWithCircuitry(currentAlignWithCircuitry);
+
+		boolean currentShowCursorCoordinates = gridShowCursorCoords.isSelected();
+		if (currentShowCursorCoordinates != initialShowCursorCoordinates)
+			StatusBar.setShowCoordinates(currentShowCursorCoordinates);
 
 		float currentAlignment = (float)EMath.atof(gridAlignCursor.getText());
 		if (currentAlignment != initialGridAlignment)
@@ -1168,12 +1175,13 @@ public class EditOptions extends javax.swing.JDialog
 		public void doIt()
 		{
 			boolean redrawPalette = false;
+			boolean redrawWindows = false;
 
 			int currentNumMetals = dialog.techMOCMOSMetalLayers.getSelectedIndex() + 2;
 			if (currentNumMetals != dialog.initialTechNumMetalLayers)
 			{
 				MoCMOS.tech.setNumMetal(currentNumMetals);
-				redrawPalette = true;
+				redrawPalette = redrawWindows = true;
 			}
 
 			int currentRules = 0;
@@ -1182,7 +1190,7 @@ public class EditOptions extends javax.swing.JDialog
 			if (currentRules != dialog.initialTechRules)
 			{
 				MoCMOS.tech.setRuleSet(currentRules);
-				redrawPalette = true;
+				redrawPalette = redrawWindows = true;
 			}
 
 			int currentNumPolys = 1;
@@ -1190,7 +1198,7 @@ public class EditOptions extends javax.swing.JDialog
 			if (currentNumPolys != dialog.initialTechNumPolyLayers)
 			{
 				MoCMOS.tech.setNumPolysilicon(currentNumPolys);
-				redrawPalette = true;
+				redrawPalette = redrawWindows = true;
 			}
 
 			boolean currentStackedVias = dialog.techMOCMOSDisallowStackedVias.isSelected();
@@ -1201,7 +1209,7 @@ public class EditOptions extends javax.swing.JDialog
 			if (currentAlternateContact != dialog.initialTechAlternateContactRules)
 			{
 				MoCMOS.tech.setAlternateActivePolyRules(currentAlternateContact);
-				redrawPalette = true;
+				redrawPalette = redrawWindows = true;
 			}
 
 			boolean currentSpecialTransistors = dialog.techMOCMOSShowSpecialTrans.isSelected();
@@ -1215,13 +1223,17 @@ public class EditOptions extends javax.swing.JDialog
 			if (currentStickFigures != dialog.initialTechStickFigures)
 			{
 				MoCMOS.tech.setStickFigures(currentStickFigures);
-				redrawPalette = true;
+				redrawPalette = redrawWindows = true;
 			}
 
 			if (redrawPalette)
 			{
 				PaletteFrame pf = TopLevel.getPaletteFrame();
 				pf.loadForTechnology();
+			}
+			if (redrawWindows)
+			{
+				EditWindow.redrawAll();
 			}
 		}
 	}
@@ -1376,6 +1388,7 @@ public class EditOptions extends javax.swing.JDialog
         gridAlign = new javax.swing.JCheckBox();
         jLabel10 = new javax.swing.JLabel();
         jLabel13 = new javax.swing.JLabel();
+        gridShowCursorCoords = new javax.swing.JCheckBox();
         alignPart = new javax.swing.JPanel();
         jLabel37 = new javax.swing.JLabel();
         gridAlignCursor = new javax.swing.JTextField();
@@ -1386,6 +1399,7 @@ public class EditOptions extends javax.swing.JDialog
         jLabel40 = new javax.swing.JLabel();
         layerName = new javax.swing.JComboBox();
         colors = new javax.swing.JPanel();
+        jColorChooser1 = new javax.swing.JColorChooser();
         text = new javax.swing.JPanel();
         top = new javax.swing.JPanel();
         jLabel41 = new javax.swing.JLabel();
@@ -1444,7 +1458,7 @@ public class EditOptions extends javax.swing.JDialog
         jSeparator4 = new javax.swing.JSeparator();
         threeD = new javax.swing.JPanel();
         technology = new javax.swing.JPanel();
-        jLabel46 = new javax.swing.JLabel();
+        jPanel1 = new javax.swing.JPanel();
         jLabel49 = new javax.swing.JLabel();
         techMOCMOSMetalLayers = new javax.swing.JComboBox();
         techMOCMOSSCMOSRules = new javax.swing.JRadioButton();
@@ -1456,13 +1470,11 @@ public class EditOptions extends javax.swing.JDialog
         techMOCMOSShowSpecialTrans = new javax.swing.JCheckBox();
         techMOCMOSFullGeom = new javax.swing.JRadioButton();
         techMOCMOSStickFigures = new javax.swing.JRadioButton();
-        jSeparator6 = new javax.swing.JSeparator();
-        jLabel50 = new javax.swing.JLabel();
+        jPanel9 = new javax.swing.JPanel();
         techArtworkArrowsFilled = new javax.swing.JCheckBox();
-        jSeparator7 = new javax.swing.JSeparator();
-        jLabel51 = new javax.swing.JLabel();
-        jLabel52 = new javax.swing.JLabel();
+        jPanel10 = new javax.swing.JPanel();
         techSchematicsNegatingSize = new javax.swing.JTextField();
+        jLabel52 = new javax.swing.JLabel();
         cancel = new javax.swing.JButton();
         ok = new javax.swing.JButton();
 
@@ -1826,9 +1838,9 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         newArc.add(arcProtoList, gridBagConstraints);
 
         jLabel5.setText("For Arc:");
@@ -2570,6 +2582,13 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(0, 14, 8, 0);
         gridPart.add(jLabel13, gridBagConstraints);
 
+        gridShowCursorCoords.setText("Show cursor coordinates in the status bar");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 3;
+        gridPart.add(gridShowCursorCoords, gridBagConstraints);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -2653,6 +2672,11 @@ public class EditOptions extends javax.swing.JDialog
         tabPane.addTab("Layers", layers);
 
         colors.setLayout(new java.awt.GridBagLayout());
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        colors.add(jColorChooser1, gridBagConstraints);
 
         tabPane.addTab("Colors", colors);
 
@@ -3111,173 +3135,160 @@ public class EditOptions extends javax.swing.JDialog
 
         technology.setLayout(new java.awt.GridBagLayout());
 
-        jLabel46.setText("MOSIS CMOS:");
+        jPanel1.setLayout(new java.awt.GridBagLayout());
+
+        jPanel1.setBorder(new javax.swing.border.TitledBorder("MOSIS CMOS"));
+        jLabel49.setText("Metal layers:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        technology.add(jLabel46, gridBagConstraints);
-
-        jLabel49.setText("Metal layers:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        technology.add(jLabel49, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(jLabel49, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        technology.add(techMOCMOSMetalLayers, gridBagConstraints);
+        jPanel1.add(techMOCMOSMetalLayers, gridBagConstraints);
 
         techMOCMOSSCMOSRules.setText("SCMOS rules (4 metal or less)");
         techMOCMOSRules.add(techMOCMOSSCMOSRules);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        technology.add(techMOCMOSSCMOSRules, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        jPanel1.add(techMOCMOSSCMOSRules, gridBagConstraints);
 
         techMOCMOSSubmicronRules.setText("Submicron rules");
         techMOCMOSRules.add(techMOCMOSSubmicronRules);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        technology.add(techMOCMOSSubmicronRules, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        jPanel1.add(techMOCMOSSubmicronRules, gridBagConstraints);
 
         techMOCMOSDeepRules.setText("Deep rules (5 metal or more)");
         techMOCMOSRules.add(techMOCMOSDeepRules);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        jPanel1.add(techMOCMOSDeepRules, gridBagConstraints);
+
+        techMOCMOSSecondPoly.setText("Second Polysilicon Layer");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        technology.add(techMOCMOSDeepRules, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(techMOCMOSSecondPoly, gridBagConstraints);
 
-        techMOCMOSSecondPoly.setText("Second Polysilicon Layer");
+        techMOCMOSDisallowStackedVias.setText("Disallow stacked vias");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        technology.add(techMOCMOSSecondPoly, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(techMOCMOSDisallowStackedVias, gridBagConstraints);
 
-        techMOCMOSDisallowStackedVias.setText("Disallow stacked vias");
+        techMOCMOSAlternateContactRules.setText("Alternate Active and Poly contact rules");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        technology.add(techMOCMOSDisallowStackedVias, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(techMOCMOSAlternateContactRules, gridBagConstraints);
 
-        techMOCMOSAlternateContactRules.setText("Alternate Active and Poly contact rules");
+        techMOCMOSShowSpecialTrans.setText("Show Special transistors");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 7;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        technology.add(techMOCMOSAlternateContactRules, gridBagConstraints);
-
-        techMOCMOSShowSpecialTrans.setText("Show Special transistors");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        technology.add(techMOCMOSShowSpecialTrans, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(techMOCMOSShowSpecialTrans, gridBagConstraints);
 
         techMOCMOSFullGeom.setText("Full Geometry");
         techMOCMOSSticks.add(techMOCMOSFullGeom);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
-        technology.add(techMOCMOSFullGeom, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(techMOCMOSFullGeom, gridBagConstraints);
 
         techMOCMOSStickFigures.setText("Stick Figures");
         techMOCMOSSticks.add(techMOCMOSStickFigures);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        technology.add(techMOCMOSStickFigures, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel1.add(techMOCMOSStickFigures, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 10;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        technology.add(jSeparator6, gridBagConstraints);
+        gridBagConstraints.weightx = 1.0;
+        technology.add(jPanel1, gridBagConstraints);
 
-        jLabel50.setText("Artwork:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 11;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 0);
-        technology.add(jLabel50, gridBagConstraints);
+        jPanel9.setLayout(new java.awt.GridBagLayout());
 
+        jPanel9.setBorder(new javax.swing.border.TitledBorder("Artwork"));
         techArtworkArrowsFilled.setText("Arrows filled");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 12;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
-        technology.add(techArtworkArrowsFilled, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel9.add(techArtworkArrowsFilled, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 13;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        technology.add(jSeparator7, gridBagConstraints);
+        technology.add(jPanel9, gridBagConstraints);
 
-        jLabel51.setText("Schematics:");
+        jPanel10.setLayout(new java.awt.GridBagLayout());
+
+        jPanel10.setBorder(new javax.swing.border.TitledBorder("Schematics"));
+        techSchematicsNegatingSize.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 14;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 0);
-        technology.add(jLabel51, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel10.add(techSchematicsNegatingSize, gridBagConstraints);
 
         jLabel52.setText("Negating Bubble Size:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 15;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
-        technology.add(jLabel52, gridBagConstraints);
-
-        techSchematicsNegatingSize.setColumns(8);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 15;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        technology.add(techSchematicsNegatingSize, gridBagConstraints);
+        jPanel10.add(jLabel52, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        technology.add(jPanel10, gridBagConstraints);
 
         tabPane.addTab("Technology", technology);
 
@@ -3393,6 +3404,7 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JTextField gridNewHoriz;
     private javax.swing.JTextField gridNewVert;
     private javax.swing.JPanel gridPart;
+    private javax.swing.JCheckBox gridShowCursorCoords;
     private javax.swing.JPanel icon;
     private javax.swing.JComboBox iconBidirPos;
     private javax.swing.JComboBox iconClockPos;
@@ -3411,6 +3423,7 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JComboBox iconOutputPos;
     private javax.swing.JComboBox iconPowerPos;
     private javax.swing.JCheckBox iconReverseOrder;
+    private javax.swing.JColorChooser jColorChooser1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -3451,13 +3464,10 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JLabel jLabel43;
     private javax.swing.JLabel jLabel44;
     private javax.swing.JLabel jLabel45;
-    private javax.swing.JLabel jLabel46;
     private javax.swing.JLabel jLabel47;
     private javax.swing.JLabel jLabel48;
     private javax.swing.JLabel jLabel49;
     private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel50;
-    private javax.swing.JLabel jLabel51;
     private javax.swing.JLabel jLabel52;
     private javax.swing.JLabel jLabel54;
     private javax.swing.JLabel jLabel56;
@@ -3466,6 +3476,8 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel10;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
@@ -3473,13 +3485,12 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel jPanel7;
     private javax.swing.JPanel jPanel8;
+    private javax.swing.JPanel jPanel9;
     private javax.swing.JSeparator jSeparator11;
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JSeparator jSeparator3;
     private javax.swing.JSeparator jSeparator4;
     private javax.swing.JSeparator jSeparator5;
-    private javax.swing.JSeparator jSeparator6;
-    private javax.swing.JSeparator jSeparator7;
     private javax.swing.JSeparator jSeparator9;
     private javax.swing.JComboBox layerName;
     private javax.swing.JPanel layers;

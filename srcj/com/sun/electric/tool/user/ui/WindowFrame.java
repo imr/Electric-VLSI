@@ -65,8 +65,17 @@ import javax.swing.event.InternalFrameEvent;
  */
 public class WindowFrame
 {
+
+	/** This frame has a circuit editing window. */		public static final int DISPWINDOW = 0;
+	/** This frame has a text editing window */			public static final int TEXTWINDOW = 1;
+	/** This frame has a waveform editing window */		public static final int WAVEFORMWINDOW = 2;
+	/** This frame has a 3D display window */			public static final int DISP3DWINDOW = 3;
+
+	/** the circuit edit window part */					private int contents;
 	/** the circuit edit window part */					private EditWindow wnd;
 	/** the circuit edit window component. */			private JPanel circuitPanel;
+	/** the bottom scrollbar on the edit window. */		private JScrollBar bottomScrollBar;
+	/** the right scrollbar on the edit window. */		private JScrollBar rightScrollBar;
 	/** the text edit window part */					private JTextArea textWnd;
 	/** the text edit window component. */				private JScrollPane textPanel;
 	/** the split pane that shows explorer and edit. */	private JSplitPane js;
@@ -79,8 +88,6 @@ public class WindowFrame
 	/** the top-level frame (if SDI). */				private TopLevel jf;
 	/** the explorer part of a frame. */				private static DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Explorer");
 	/** the explorer part of a frame. */				private static DefaultTreeModel treeModel = null;
-	/** the bottom scrollbar on the edit window. */		private JScrollBar bottomScrollBar;
-	/** the right scrollbar on the edit window. */		private JScrollBar rightScrollBar;
 
 	// constructor
 	private WindowFrame() {}
@@ -105,7 +112,7 @@ public class WindowFrame
 			frame.jif.setAutoscrolls(true);
 		} else
 		{
-			frame.jf = new TopLevel("Electric - " + cellDescription, frameSize);
+			frame.jf = new TopLevel("Electric - " + cellDescription, frameSize, frame);
 			frame.jf.setSize(frameSize);
 			frame.jf.setLocation(windowOffset+150, windowOffset);
 		}
@@ -274,16 +281,21 @@ public class WindowFrame
 	 * Routine to control whether text editing or circuit editing is being shown.
 	 * @param on true if text editing is to be shown.
 	 */
-	public void showTextEdit(boolean on)
+	public void setContent(int contents)
 	{
-		if (on)
+		this.contents = contents;
+		switch (contents)
 		{
-			js.setRightComponent(textPanel);
-		} else
-		{
-			js.setRightComponent(circuitPanel);
+			case DISPWINDOW:
+				js.setRightComponent(circuitPanel);
+				break;
+			case TEXTWINDOW:
+				js.setRightComponent(textPanel);
+				break;
 		}
 	}
+
+	public int getContents() { return contents; }
 
 	/**
 	 * Routine to return the ExplorerTree associated with this frame.
@@ -299,11 +311,11 @@ public class WindowFrame
 	public JInternalFrame getInternalFrame() { return jif; }
 
 	/**
-	 * Routine to return the JFrame associated with this WindowFrame.
+	 * Routine to return the TopLevel associated with this WindowFrame.
 	 * This only makes sense in SDI mode, because in MDI mode, the WindowFrame is a JInternalFrame.
-	 * @return the JFrame associated with this WindowFrame.
+	 * @return the TopLevel associated with this WindowFrame.
 	 */
-	public JFrame getFrame() { return jf; }
+	public TopLevel getFrame() { return jf; }
 
 	/**
 	 * Routine to return an Iterator over all WindowFrames.

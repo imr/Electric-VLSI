@@ -206,10 +206,10 @@ public class EditWindow extends JPanel
 			} else
 			{
 				wf.setTitle(cell.describe());
-				wf.showTextEdit(cell.getView().isTextView());
-
 				if (cell.getView().isTextView())
 				{
+					wf.setContent(WindowFrame.TEXTWINDOW);
+
 					// reload with text information
 					JTextArea ta = wf.getTextEditWindow();
 					Variable var = cell.getVar("FACET_message");
@@ -226,6 +226,9 @@ public class EditWindow extends JPanel
 						ta.setCaretPosition(0);
 					}
 					return;
+				} else
+				{
+					wf.setContent(WindowFrame.DISPWINDOW);
 				}
 			}
 		}
@@ -1346,12 +1349,35 @@ public class EditWindow extends JPanel
 	}
 	public void mouseReleased(MouseEvent evt) { curMouseListener.mouseReleased(evt); }
 	public void mouseClicked(MouseEvent evt) { curMouseListener.mouseClicked(evt); }
-	public void mouseEntered(MouseEvent evt) { curMouseListener.mouseEntered(evt); }
+	public void mouseEntered(MouseEvent evt)
+	{
+		showCoordinates(evt);
+		curMouseListener.mouseEntered(evt);
+	}
 	public void mouseExited(MouseEvent evt) { curMouseListener.mouseExited(evt); }
 
 	// the MouseMotionListener events
-	public void mouseMoved(MouseEvent evt) { curMouseMotionListener.mouseMoved(evt); }
-	public void mouseDragged(MouseEvent evt) { curMouseMotionListener.mouseDragged(evt); }
+	public void mouseMoved(MouseEvent evt)
+	{
+		showCoordinates(evt);
+		curMouseMotionListener.mouseMoved(evt);
+	}
+	public void mouseDragged(MouseEvent evt)
+	{
+		showCoordinates(evt);
+		curMouseMotionListener.mouseDragged(evt);
+	}
+
+	private void showCoordinates(MouseEvent evt)
+	{
+		EditWindow wnd = (EditWindow)evt.getSource();
+		if (wnd.getCell() == null) StatusBar.setCoordinates(null, wnd.wf); else
+		{
+			Point2D pt = wnd.screenToDatabase(evt.getX(), evt.getY());
+			wnd.gridAlign(pt);
+			StatusBar.setCoordinates("(" + pt.getX() + "," + pt.getY() + ")", wnd.wf);
+		}
+	}
 
 	// the MouseWheelListener events
 	public void mouseWheelMoved(MouseWheelEvent evt) { curMouseWheelListener.mouseWheelMoved(evt); }

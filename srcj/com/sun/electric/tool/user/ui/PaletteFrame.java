@@ -103,7 +103,7 @@ public class PaletteFrame
 	private PaletteFrame() {}
 
 	/**
-	 * Routine to create a new window on the screen that displays the component menu.
+	 * Method to create a new window on the screen that displays the component menu.
 	 * @return the PaletteFrame that shows the component menu.
 	 */
 	public static PaletteFrame newInstance()
@@ -262,7 +262,7 @@ public class PaletteFrame
 				}
 			}
 			if (pinTotal + compTotal == 0) pinTotal = pureTotal;
-			menuY = arcTotal + pinTotal + compTotal + 1;
+			menuY = arcTotal + pinTotal + compTotal + 3;
 			menuX = 1;
 			if (menuY > 40)
 			{
@@ -347,15 +347,12 @@ public class PaletteFrame
 		PaletteFrame getFrame() { return frame; }
 
 		/**
-		 * Routine called when the user clicks over an entry in the component menu.
+		 * Method called when the user clicks over an entry in the component menu.
 		 */
-		public void mousePressed(java.awt.event.MouseEvent e)
+		public void mousePressed(MouseEvent e)
 		{
 			PalettePanel panel = (PalettePanel)e.getSource();
-			int x = e.getX() / (panel.frame.entrySize+1);
-			int y = panel.frame.menuY - (e.getY() / (panel.frame.entrySize+1)) - 1;
-			int index = x * frame.menuY + y;
-			Object obj = panel.frame.inPalette.get(index);
+			Object obj = getObjectUnderCursor(e);
 			if (obj instanceof NodeProto || obj instanceof NodeInst)
 			{
 				JMenuItem menuItem;
@@ -538,6 +535,7 @@ public class PaletteFrame
 					for(Iterator it = Technology.getCurrent().getNodes(); it.hasNext(); )
 					{
 						PrimitiveNode np = (PrimitiveNode)it.next();
+						if (np.isNotUsed()) continue;
 						if (np.getFunction() != NodeProto.Function.NODE) continue;
 						JMenuItem menuItem = new JMenuItem(np.describe());
 						menuItem.addActionListener(new PlacePopupListener(panel, np));
@@ -659,15 +657,57 @@ public class PaletteFrame
 			}
 		};
 
-		public void mouseClicked(java.awt.event.MouseEvent e) {}
-		public void mouseEntered(java.awt.event.MouseEvent e) {}
-		public void mouseExited(java.awt.event.MouseEvent e) {}
-		public void mouseReleased(java.awt.event.MouseEvent e) {}
+		public void mouseClicked(MouseEvent e) {}
+		public void mouseEntered(MouseEvent e) {}
+		public void mouseReleased(MouseEvent e) {}
 		public void keyPressed(KeyEvent e) {}
 		public void keyReleased(KeyEvent e) {}
 		public void keyTyped(KeyEvent e) {}
 		public void mouseDragged(MouseEvent e) {}
-		public void mouseMoved(MouseEvent e) {}
+
+		/**
+		 * Method to figure out which palette entry the cursor is over.
+		 * @return an Object that is in the selected palette entry.
+		 */
+		private Object getObjectUnderCursor(MouseEvent e)
+		{
+			PalettePanel panel = (PalettePanel)e.getSource();
+			int x = e.getX() / (panel.frame.entrySize+1);
+			int y = panel.frame.menuY - (e.getY() / (panel.frame.entrySize+1)) - 1;
+			if (y < 0) y = 0;
+			int index = x * frame.menuY + y;
+			if (index < 0 || index >= panel.frame.inPalette.size()) return null;
+			Object obj = panel.frame.inPalette.get(index);
+			return obj;
+		}
+
+		/**
+		 * Method called when the mouse hovers over a palette entry.
+		 * Updates the status area to indicate what the palette will do.
+		 */
+		public void mouseMoved(MouseEvent e)
+		{
+			Object obj = getObjectUnderCursor(e);
+			if (obj instanceof NodeProto || obj instanceof NodeInst)
+			{
+				NodeProto np = null;
+				if (obj instanceof NodeProto) np = (NodeProto)obj; else
+					np = ((NodeInst)obj).getProto();
+				StatusBar.setSelectionOverride("CREATE NODE: " + np.describe());
+			} else if (obj instanceof PrimitiveArc)
+			{
+				PrimitiveArc ap = (PrimitiveArc)obj;
+				StatusBar.setSelectionOverride("USE ARC: " + ap.describe());
+			} else if (obj instanceof String)
+			{
+				StatusBar.setSelectionOverride(null);
+			}
+		}
+		public void mouseExited(MouseEvent e)
+		{
+			StatusBar.setSelectionOverride(null);
+		}
+
 		public void mouseWheelMoved(MouseWheelEvent e) {}
 
 		public void paint(Graphics g)

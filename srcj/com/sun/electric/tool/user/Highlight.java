@@ -52,6 +52,7 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserMenuCommands;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.dialogs.GetInfoNode;
@@ -180,12 +181,7 @@ public class Highlight
 	 */
 	public static void finished()
 	{
-		GetInfoNode.load();
-		GetInfoArc.load();
-		GetInfoExport.load();
-		GetInfoText.load();
-		GetInfoMulti.load();
-		Attributes.load();
+		User.tool.updateInformationAreas();
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
@@ -823,7 +819,6 @@ public class Highlight
 				Poly poly = ni.getShapeOfPort(pp);
 				boolean opened = true;
 				if (poly.getStyle() == Poly.Type.FILLED || poly.getStyle() == Poly.Type.CLOSED) opened = false;
-				poly.transform(trans);
 				if (poly.getStyle() == Poly.Type.CIRCLE || poly.getStyle() == Poly.Type.THICKCIRCLE ||
 					poly.getStyle() == Poly.Type.DISC)
 				{

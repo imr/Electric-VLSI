@@ -989,7 +989,6 @@ public class Attributes extends javax.swing.JDialog
         isParameter = new javax.swing.JCheckBox();
         instancesInherit = new javax.swing.JCheckBox();
         textCornerPanel = new javax.swing.JPanel();
-        jLabel7 = new javax.swing.JLabel();
         center = new javax.swing.JRadioButton();
         bottom = new javax.swing.JRadioButton();
         top = new javax.swing.JRadioButton();
@@ -1408,15 +1407,7 @@ public class Attributes extends javax.swing.JDialog
 
         textCornerPanel.setLayout(new java.awt.GridBagLayout());
 
-        jLabel7.setText("Text corner:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        textCornerPanel.add(jLabel7, gridBagConstraints);
-
+        textCornerPanel.setBorder(new javax.swing.border.TitledBorder("Text corner"));
         center.setText("Center");
         corner.add(center);
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1530,7 +1521,6 @@ public class Attributes extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         textCornerPanel.add(textIconBottom, gridBagConstraints);
 
@@ -1601,7 +1591,6 @@ public class Attributes extends javax.swing.JDialog
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridheight = 9;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
         body.add(textCornerPanel, gridBagConstraints);
 
         evaluation.setText("Evaluation:");
@@ -1716,7 +1705,6 @@ public class Attributes extends javax.swing.JDialog
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JSeparator jSeparator1;

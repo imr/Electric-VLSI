@@ -77,6 +77,7 @@ public class TopLevel extends JFrame
 	/** True if in MDI mode, otherwise SDI. */				private static boolean mdi;
 	/** The desktop pane (if MDI). */						private static JDesktopPane desktop;
 	/** The main frame (if MDI). */							private static TopLevel topLevel;
+	/** The only status bar (if MDI). */					private StatusBar sb;
 	/** The EditWindow associated with this (if SDI). */	private EditWindow wnd;
 	/** The size of the screen. */							private static Dimension scrnSize;
 	/** The current operating system. */					private static OS os;
@@ -87,7 +88,7 @@ public class TopLevel extends JFrame
 	 * Constructor to build a window.
 	 * @param name the title of the window.
 	 */
-	public TopLevel(String name, Dimension screenSize)
+	public TopLevel(String name, Dimension screenSize, WindowFrame frame)
 	{
 		super(name);
 		setSize(screenSize);
@@ -105,8 +106,11 @@ public class TopLevel extends JFrame
 		ToolBar toolBar = ToolBar.createToolBar();
 		getContentPane().add(toolBar, BorderLayout.NORTH);
 
-		if (!isMDIMode())
-			setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		// create the status bar
+		sb = new StatusBar(frame);
+		getContentPane().add(sb, BorderLayout.SOUTH);
+
+		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
 		cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
 	}
@@ -156,7 +160,7 @@ public class TopLevel extends JFrame
 		// in MDI, create the top frame now
 		if (isMDIMode())
 		{
-			topLevel = new TopLevel("Electric", scrnSize);	
+			topLevel = new TopLevel("Electric", scrnSize, null);	
 
 			// make the desktop
 			desktop = new JDesktopPane();
@@ -186,6 +190,19 @@ public class TopLevel extends JFrame
 	 * @return the component palette window.
 	 */
 	public static PaletteFrame getPaletteFrame() { return palette; }
+
+	/**
+	 * Routine to return the only TopLevel frame.
+	 * This applies only in MDI mode.
+	 * @return the only TopLevel frame.
+	 */
+	public static TopLevel getTopLevel() { return topLevel; }
+
+	/**
+	 * Routine to return status bar associated with this TopLevel.
+	 * @return the status bar associated with this TopLevel.
+	 */
+	public StatusBar getStatusBar() { return sb; }
 
 	/**
 	 * Routine to return the size of the screen that Electric is on.
@@ -234,12 +251,14 @@ public class TopLevel extends JFrame
 
 	/**
 	 * Routine to return the EditWindow associated with this top-level window.
+	 * This only makes sense for SDI applications where a WindowFrame is inside of a TopLevel.
 	 * @return the EditWindow associated with this top-level window.
 	 */
 	public EditWindow getEditWindow() { return wnd; }
 
 	/**
 	 * Routine to set the edit window associated with this top-level window.
+	 * This only makes sense for SDI applications where a WindowFrame is inside of a TopLevel.
 	 * @param wnd the EditWindow to associatd with this.
 	 */
 	public void setEditWindow(EditWindow wnd) { this.wnd = wnd; }

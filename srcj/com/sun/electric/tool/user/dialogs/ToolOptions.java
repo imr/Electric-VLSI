@@ -28,13 +28,16 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.Prefs;
 import com.sun.electric.tool.simulation.Spice;
 import com.sun.electric.tool.logicaleffort.LETool;
+import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ui.DialogOpenFile;
 
 import java.util.Iterator;
@@ -214,7 +217,7 @@ public class ToolOptions extends javax.swing.JDialog
 	//******************************** DRC ********************************
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the DRC tab.
 	 */
 	private void initDRC()
@@ -229,7 +232,7 @@ public class ToolOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the DRC tab.
 	 */
 	private void termDRC()
@@ -238,39 +241,374 @@ public class ToolOptions extends javax.swing.JDialog
 
 	//******************************** DESIGN RULES ********************************
 
+	private JList designRulesFromList, designRulesToList;
+	private DefaultListModel designRulesFromModel, designRulesToModel;
+	private DRC.Rules drRules;
+	private boolean drUpdating = false;
+	private boolean [] drValidLayers;
+
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Design Rules tab.
 	 */
 	private void initDesignRules()
 	{
-		drLayers.setEnabled(false);
-		drNodes.setEnabled(false);
-		drFromList.setEnabled(false);
-		drToList.setEnabled(false);
-		drShowOnlyLinesWithRules.setEnabled(false);
-		drMinWidth.setEditable(false);
-		drMinWidthRule.setEditable(false);
-		drMinHeight.setEditable(false);
-		drNormalConnected.setEditable(false);
-		drNormalConnectedRule.setEditable(false);
-		drNormalUnconnected.setEditable(false);
-		drNormalUnconnectedRule.setEditable(false);
-		drNormalEdge.setEditable(false);
-		drNormalEdgeRule.setEditable(false);
-		drWideLimit.setEditable(false);
-		drWideConnected.setEditable(false);
-		drWideConnectedRule.setEditable(false);
-		drWideUnconnected.setEditable(false);
-		drWideUnconnectedRule.setEditable(false);
-		drMultiConnected.setEditable(false);
-		drMultiConnectedRule.setEditable(false);
-		drMultiUnconnected.setEditable(false);
-		drMultiUnconnectedRule.setEditable(false);
+		drRules = Technology.getCurrent().getDRCRules();
+
+		// build the "from" area
+		designRulesFromModel = new DefaultListModel();
+		designRulesFromList = new JList(designRulesFromModel);
+		designRulesFromList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		drFromList.setViewportView(designRulesFromList);
+		designRulesFromList.clearSelection();
+		designRulesFromList.addMouseListener(new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent evt) { designRulesFromListClick(); }
+		});
+
+		designRulesToModel = new DefaultListModel();
+		designRulesToList = new JList(designRulesToModel);
+		designRulesToList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		drToList.setViewportView(designRulesToList);
+		designRulesToList.clearSelection();
+		designRulesToList.addMouseListener(new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent evt) { designRulesToListClick(); }
+		});
+
+		// have the radio buttons trigger redisplay
+		drLayers.addMouseListener(new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent evt) { designRulesWhichSetChanged(); }
+		});
+		drNodes.addMouseListener(new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent evt) { designRulesWhichSetChanged(); }
+		});
+
+		// have changes to edit fields get detected immediately
+		drMinWidth.getDocument().addDocumentListener(new DRCDocumentListener(this));
+		drMinWidthRule.getDocument().addDocumentListener(new DRCDocumentListener(this));
+		drMinHeight.getDocument().addDocumentListener(new DRCDocumentListener(this));
+		drNormalConnected.getDocument().addDocumentListener(new DRCDocumentListener(this));
+		drNormalConnectedRule.getDocument().addDocumentListener(new DRCDocumentListener(this));
+		drNormalUnconnected.getDocument().addDocumentListener(new DRCDocumentListener(this));
+		drNormalUnconnectedRule.getDocument().addDocumentListener(new DRCDocumentListener(this));
+		drNormalEdge.getDocument().addDocumentListener(new DRCDocumentListener(this));
+		drNormalEdgeRule.getDocument().addDocumentListener(new DRCDocumentListener(this));
+		drWideConnected.getDocument().addDocumentListener(new DRCDocumentListener(this));
+		drWideConnectedRule.getDocument().addDocumentListener(new DRCDocumentListener(this));
+		drWideUnconnected.getDocument().addDocumentListener(new DRCDocumentListener(this));
+		drWideUnconnectedRule.getDocument().addDocumentListener(new DRCDocumentListener(this));
+		drMultiConnected.getDocument().addDocumentListener(new DRCDocumentListener(this));
+		drMultiConnectedRule.getDocument().addDocumentListener(new DRCDocumentListener(this));
+		drMultiUnconnected.getDocument().addDocumentListener(new DRCDocumentListener(this));
+		drMultiUnconnectedRule.getDocument().addDocumentListener(new DRCDocumentListener(this));
+
+		// make the layer list
+		drValidLayers = new boolean[drRules.numLayers];
+		for(int i=0; i<drRules.numLayers; i++) drValidLayers[i] = true;
+		drLayers.setSelected(true);
+		dr_loaddrcruleobjects();
+
+		drTechName.setText(drRules.techName);
+//		DiaSetText(dia, DDRR_WIDELIMIT, frtoa(rules->widelimit));
+
+		dr_loaddrcdialog();
+		dr_loaddrcdistance();
+//		changed = 0;
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "Layers" or "Nodes" radio buttons are selected
+	 */
+	private void designRulesWhichSetChanged()
+	{
+		dr_loaddrcruleobjects();
+		dr_loaddrcdialog();
+	}
+
+	/**
+	 * Method called when the user clicks in the top list (the "from layer" list).
+	 */
+	private void designRulesFromListClick()
+	{
+		dr_loaddrcdialog();
+		dr_loaddrcdistance();
+	}
+
+	/**
+	 * Method called when the user clicks in the bottom list (the "to layer" list).
+	 */
+	private void designRulesToListClick()
+	{
+		dr_loaddrcdistance();
+	}
+
+	/**
+	 * Class to handle special changes to changes to design rules.
+	 */
+	private static class DRCDocumentListener implements DocumentListener
+	{
+		ToolOptions dialog;
+
+		DRCDocumentListener(ToolOptions dialog) { this.dialog = dialog; }
+
+		public void changedUpdate(DocumentEvent e) { dialog.designRulesEditChanged(); }
+		public void insertUpdate(DocumentEvent e) { dialog.designRulesEditChanged(); }
+		public void removeUpdate(DocumentEvent e) { dialog.designRulesEditChanged(); }
+	}
+
+	/**
+	 * Method called when the user changes any edit field.
+	 */
+	private void designRulesEditChanged()
+	{
+		if (drUpdating) return;
+		if (drNodes.isSelected())
+		{
+			// show node information
+		} else
+		{
+			// get layer information
+			int layer1 = dr_rulesdialoggetlayer(designRulesFromList);
+			if (layer1 < 0) return;
+			int layer2 = dr_rulesdialoggetlayer(designRulesToList);
+			if (layer2 < 0) return;
+			if (layer1 > layer2) { int temp = layer1; layer1 = layer2;  layer2 = temp; }
+			int dindex = (layer1+1) * (layer1/2) + (layer1&1) * ((layer1+1)/2);
+			dindex = layer2 + drRules.numLayers * layer1 - dindex;
+
+			String a = drNormalConnected.getText();
+			if (a.length() == 0) drRules.conList[dindex] = new Double(-1); else
+				drRules.conList[dindex] = new Double(a);
+			drRules.conListRules[dindex] = drNormalConnectedRule.getText();
+			a = drNormalUnconnected.getText();
+			if (a.length() == 0) drRules.unConList[dindex] = new Double(-1); else
+				drRules.unConList[dindex] = new Double(a);
+			drRules.unConListRules[dindex] = drNormalUnconnectedRule.getText();
+
+			a = drWideConnected.getText();
+			if (a.length() == 0) drRules.conListWide[dindex] = new Double(-1); else
+				drRules.conListWide[dindex] = new Double(a);
+			drRules.conListWideRules[dindex] = drWideConnectedRule.getText();
+			a = drWideUnconnected.getText();
+			if (a.length() == 0) drRules.unConListWide[dindex] = new Double(-1); else
+				drRules.unConListWide[dindex] = new Double(a);
+			drRules.unConListWideRules[dindex] = drWideUnconnectedRule.getText();
+
+			a = drMultiConnected.getText();
+			if (a.length() == 0) drRules.conListMulti[dindex] = new Double(-1); else
+				drRules.conListMulti[dindex] = new Double(a);
+			drRules.conListMultiRules[dindex] = drMultiConnectedRule.getText();
+			a = drMultiUnconnected.getText();
+			if (a.length() == 0) drRules.unConListMulti[dindex] = new Double(-1); else
+				drRules.unConListMulti[dindex] = new Double(a);
+			drRules.unConListMultiRules[dindex] = drMultiUnconnectedRule.getText();
+
+			a = drNormalEdge.getText();
+			if (a.length() == 0) drRules.edgeList[dindex] = new Double(-1); else
+				drRules.edgeList[dindex] = new Double(a);
+			drRules.edgeListRules[dindex] = drNormalEdgeRule.getText();
+
+			int lineNo = designRulesToList.getSelectedIndex();
+			String line = dr_loadoptlistline(dindex, lineNo, false);
+			designRulesToModel.setElementAt(line, lineNo);
+		}
+	}
+
+	private void dr_loaddrcruleobjects()
+	{
+		designRulesFromModel.clear();
+		if (drNodes.isSelected())
+		{
+			// list the nodes
+			for(int i=0; i<drRules.numNodes; i++)
+				designRulesFromModel.addElement(drRules.nodeNames[i]);
+			drMinHeight.setEditable(true);
+
+			drNormalConnected.setEditable(false);
+			drNormalConnectedRule.setEditable(false);
+			drNormalUnconnected.setEditable(false);
+			drNormalUnconnectedRule.setEditable(false);
+			drNormalEdge.setEditable(false);
+			drNormalEdgeRule.setEditable(false);
+			drWideLimit.setEditable(false);
+			drWideConnected.setEditable(false);
+			drWideConnectedRule.setEditable(false);
+			drWideUnconnected.setEditable(false);
+			drWideUnconnectedRule.setEditable(false);
+			drMultiConnected.setEditable(false);
+			drMultiConnectedRule.setEditable(false);
+			drMultiUnconnected.setEditable(false);
+			drMultiUnconnectedRule.setEditable(false);
+			drShowOnlyLinesWithRules.setEnabled(false);
+			drToList.setEnabled(false);
+		} else
+		{
+			// list the layers
+			for(int i=0; i<drRules.numLayers; i++)
+				designRulesFromModel.addElement(drRules.layerNames[i]);
+			drMinHeight.setEditable(false);
+
+			drNormalConnected.setEditable(true);
+			drNormalConnectedRule.setEditable(true);
+			drNormalUnconnected.setEditable(true);
+			drNormalUnconnectedRule.setEditable(true);
+			drNormalEdge.setEditable(true);
+			drNormalEdgeRule.setEditable(true);
+			drWideLimit.setEditable(true);
+			drWideConnected.setEditable(true);
+			drWideConnectedRule.setEditable(true);
+			drWideUnconnected.setEditable(true);
+			drWideUnconnectedRule.setEditable(true);
+			drMultiConnected.setEditable(true);
+			drMultiConnectedRule.setEditable(true);
+			drMultiUnconnected.setEditable(true);
+			drMultiUnconnectedRule.setEditable(true);
+			drShowOnlyLinesWithRules.setEnabled(true);
+			drToList.setEnabled(true);
+		}
+		designRulesFromList.setSelectedIndex(0);
+	}
+
+	/*
+	 * Method to show the detail on the selected layer/node in the upper scroll area.
+	 */
+	private void dr_loaddrcdialog()
+	{
+		drUpdating = true;
+		if (drNodes.isSelected())
+		{
+			// show node information
+			int j = designRulesFromList.getSelectedIndex();
+			drMinWidth.setText(drRules.minNodeSize[j*2].toString());
+			drMinHeight.setText(drRules.minNodeSize[j*2+1].toString());
+			drMinWidthRule.setText(drRules.minNodeSizeRules[j]);
+		} else
+		{
+			// show layer information
+			boolean onlyvalid = drShowOnlyLinesWithRules.isSelected();
+			int j = dr_rulesdialoggetlayer(designRulesFromList);
+			if (j < 0) return;
+			if (drRules.minWidth[j].doubleValue() < 0) drMinWidth.setText(""); else
+				drMinWidth.setText(drRules.minWidth[j].toString());
+			drMinWidthRule.setText(drRules.minWidthRules[j]);
+			designRulesToModel.clear();
+			int count = 0;
+			for(int i=0; i<drRules.numLayers; i++)
+			{
+				if (!drValidLayers[i]) continue;
+				int layer1 = j;
+				int layer2 = i;
+				if (layer1 > layer2) { int temp = layer1; layer1 = layer2;  layer2 = temp; }
+				int dindex = (layer1+1) * (layer1/2) + (layer1&1) * ((layer1+1)/2);
+				dindex = layer2 + drRules.numLayers * layer1 - dindex;
+
+				String line = dr_loadoptlistline(dindex, i, onlyvalid);
+				if (line.length() == 0) continue;
+				designRulesToModel.addElement(line);
+				count++;
+			}
+			if (count > 0) designRulesToList.setSelectedIndex(0);
+		}
+		drUpdating = false;
+	}
+
+	private String dr_loadoptlistline(int dindex, int lindex, boolean onlyValid)
+	{
+		String conDist = "";
+		if (drRules.conList[dindex].doubleValue() >= 0) conDist = drRules.conList[dindex].toString();
+		String unConDist = "";
+		if (drRules.unConList[dindex].doubleValue() >= 0) unConDist = drRules.unConList[dindex].toString();
+		String conDistWide = "";
+		if (drRules.conListWide[dindex].doubleValue() >= 0) conDistWide = drRules.conListWide[dindex].toString();
+		String unConDistWide = "";
+		if (drRules.unConListWide[dindex].doubleValue() >= 0) unConDistWide = drRules.unConListWide[dindex].toString();
+		String conDistMulti = "";
+		if (drRules.conListMulti[dindex].doubleValue() >= 0) conDistMulti = drRules.conListMulti[dindex].toString();
+		String unConDistMulti = "";
+		if (drRules.unConListMulti[dindex].doubleValue() >= 0) unConDistMulti = drRules.unConListMulti[dindex].toString();
+		String edgeDist = "";
+		if (drRules.edgeList[dindex].doubleValue() >= 0) edgeDist = drRules.edgeList[dindex].toString();
+		if (onlyValid)
+		{
+			if (conDist.length() == 0 && unConDist.length() == 0 && conDistWide.length() == 0 &&
+				unConDistWide.length() == 0 && conDistMulti.length() == 0 && unConDistMulti.length() == 0 &&
+				edgeDist.length() == 0) return "";
+		}
+		String ret = drRules.layerNames[lindex] + " (" +
+			conDist + "/" + unConDist + "/" + conDistWide + "/" +  unConDistWide + "/" + conDistMulti + "/" +
+			unConDistMulti + "/" + edgeDist + ")";
+		return ret;
+	}
+
+	private int dr_rulesdialoggetlayer(JList theList)
+	{
+		int lineNo = theList.getSelectedIndex();
+		if (lineNo < 0) return -1;
+		String lName = (String)theList.getSelectedValue();
+		int termPos = lName.indexOf(" (");
+		if (termPos >= 0) lName = lName.substring(0, termPos);
+		for(int layer=0; layer<drRules.numLayers; layer++)
+			if (lName.equals(drRules.layerNames[layer])) return layer;
+		return -1;
+	}
+
+	private void dr_loaddrcdistance()
+	{
+		if (drNodes.isSelected())
+		{
+			// show node information
+		} else
+		{
+			// show layer information
+			drUpdating = true;
+			drNormalConnected.setText("");    drNormalConnectedRule.setText("");
+			drNormalUnconnected.setText("");  drNormalUnconnectedRule.setText("");
+			drWideConnected.setText("");      drWideConnectedRule.setText("");
+			drWideUnconnected.setText("");    drWideUnconnectedRule.setText("");
+			drMultiConnected.setText("");     drMultiConnectedRule.setText("");
+			drMultiUnconnected.setText("");   drMultiUnconnectedRule.setText("");
+			drNormalEdge.setText("");         drNormalEdgeRule.setText("");
+
+			int layer1 = dr_rulesdialoggetlayer(designRulesFromList);
+			if (layer1 < 0) return;
+			int layer2 = dr_rulesdialoggetlayer(designRulesToList);
+			if (layer2 < 0) return;
+
+			if (layer1 > layer2) { int temp = layer1; layer1 = layer2;  layer2 = temp; }
+			int dindex = (layer1+1) * (layer1/2) + (layer1&1) * ((layer1+1)/2);
+			dindex = layer2 + drRules.numLayers * layer1 - dindex;
+
+			if (drRules.conList[dindex].doubleValue() >= 0)
+				drNormalConnected.setText(drRules.conList[dindex].toString());
+			if (drRules.unConList[dindex].doubleValue() >= 0)
+				drNormalUnconnected.setText(drRules.unConList[dindex].toString());
+			if (drRules.conListWide[dindex].doubleValue() >= 0)
+				drWideConnected.setText(drRules.conListWide[dindex].toString());
+			if (drRules.unConListWide[dindex].doubleValue() >= 0)
+				drWideUnconnected.setText(drRules.unConListWide[dindex].toString());
+			if (drRules.conListMulti[dindex].doubleValue() >= 0)
+				drMultiConnected.setText(drRules.conListMulti[dindex].toString());
+			if (drRules.unConListMulti[dindex].doubleValue() >= 0)
+				drMultiUnconnected.setText(drRules.unConListMulti[dindex].toString());
+			if (drRules.edgeList[dindex].doubleValue() >= 0)
+				drNormalEdge.setText(drRules.edgeList[dindex].toString());
+
+			drNormalConnectedRule.setText(drRules.conListRules[dindex]);
+			drNormalUnconnectedRule.setText(drRules.unConListRules[dindex]);
+			drWideConnectedRule.setText(drRules.conListWideRules[dindex]);
+			drWideUnconnectedRule.setText(drRules.unConListWideRules[dindex]);
+			drMultiConnectedRule.setText(drRules.conListMultiRules[dindex]);
+			drMultiUnconnectedRule.setText(drRules.unConListMultiRules[dindex]);
+			drNormalEdgeRule.setText(drRules.edgeListRules[dindex]);
+			drUpdating = false;
+		}
+	}
+
+	/**
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Design Rules tab.
 	 */
 	private void termDesignRules()
@@ -292,7 +630,7 @@ public class ToolOptions extends javax.swing.JDialog
 	private HashMap spiceCellModelOptions;
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Spice tab.
 	 */
 	private void initSpice()
@@ -484,7 +822,7 @@ public class ToolOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Spice tab.
 	 */
 	private void termSpice()
@@ -622,7 +960,7 @@ public class ToolOptions extends javax.swing.JDialog
 	//******************************** VERILOG ********************************
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Verilog tab.
 	 */
 	private void initVerilog()
@@ -638,7 +976,7 @@ public class ToolOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Verilog tab.
 	 */
 	private void termVerilog()
@@ -648,7 +986,7 @@ public class ToolOptions extends javax.swing.JDialog
 	//******************************** FAST HENRY ********************************
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Fast Henry tab.
 	 */
 	private void initFastHenry()
@@ -669,7 +1007,7 @@ public class ToolOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Fast Henry tab.
 	 */
 	private void termFastHenry()
@@ -679,7 +1017,7 @@ public class ToolOptions extends javax.swing.JDialog
 	//******************************** WELL CHECK ********************************
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Well Check tab.
 	 */
 	private void initWellCheck()
@@ -696,7 +1034,7 @@ public class ToolOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Well Check tab.
 	 */
 	private void termWellCheck()
@@ -706,7 +1044,7 @@ public class ToolOptions extends javax.swing.JDialog
 	//******************************** ANTENNA RULES ********************************
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Antenna Rules tab.
 	 */
 	private void initAntennaRules()
@@ -717,7 +1055,7 @@ public class ToolOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Antenna Rules tab.
 	 */
 	private void termAntennaRules()
@@ -731,7 +1069,7 @@ public class ToolOptions extends javax.swing.JDialog
 	private boolean netBusBaseZeroInitial, netBusAscendingInitial;
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Network tab.
 	 */
 	private void initNetwork()
@@ -782,7 +1120,7 @@ public class ToolOptions extends javax.swing.JDialog
 	//******************************** NCC ********************************
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the NCC tab.
 	 */
 	private void initNCC()
@@ -826,7 +1164,7 @@ public class ToolOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the NCC tab.
 	 */
 	private void termNCC()
@@ -845,7 +1183,7 @@ public class ToolOptions extends javax.swing.JDialog
 	private float leKeeperSizeRatioInitial;
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Logical Effort tab.
 	 */
 	private void initLogicalEffort()
@@ -914,7 +1252,7 @@ public class ToolOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Logical Effort tab.
 	 */
 	private void termLogicalEffort()
@@ -1034,7 +1372,7 @@ public class ToolOptions extends javax.swing.JDialog
 	//******************************** ROUTING ********************************
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Routing tab.
 	 */
 	private void initRouting()
@@ -1050,7 +1388,7 @@ public class ToolOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Routing tab.
 	 */
 	private void termRouting()
@@ -1060,7 +1398,7 @@ public class ToolOptions extends javax.swing.JDialog
 	//******************************** COMPACTION ********************************
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Compaction tab.
 	 */
 	private void initCompaction()
@@ -1070,7 +1408,7 @@ public class ToolOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Compaction tab.
 	 */
 	private void termCompaction()
@@ -1091,6 +1429,7 @@ public class ToolOptions extends javax.swing.JDialog
         spiceModel = new javax.swing.ButtonGroup();
         netDefaultOrder = new javax.swing.ButtonGroup();
         verilogModel = new javax.swing.ButtonGroup();
+        drLayerOrNode = new javax.swing.ButtonGroup();
         tabPane = new javax.swing.JTabbedPane();
         drc = new javax.swing.JPanel();
         jLabel30 = new javax.swing.JLabel();
@@ -1110,7 +1449,7 @@ public class ToolOptions extends javax.swing.JDialog
         drcEditRulesDeck = new javax.swing.JButton();
         designRules = new javax.swing.JPanel();
         jLabel35 = new javax.swing.JLabel();
-        jLabel36 = new javax.swing.JLabel();
+        drTechName = new javax.swing.JLabel();
         drLayers = new javax.swing.JRadioButton();
         drNodes = new javax.swing.JRadioButton();
         drFromList = new javax.swing.JScrollPane();
@@ -1518,15 +1857,17 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         designRules.add(jLabel35, gridBagConstraints);
 
-        jLabel36.setText("mocmos");
+        drTechName.setText(" ");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        designRules.add(jLabel36, gridBagConstraints);
+        designRules.add(drTechName, gridBagConstraints);
 
         drLayers.setText("Layers:");
+        drLayerOrNode.add(drLayers);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -1535,6 +1876,7 @@ public class ToolOptions extends javax.swing.JDialog
         designRules.add(drLayers, gridBagConstraints);
 
         drNodes.setText("Nodes:");
+        drLayerOrNode.add(drNodes);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
@@ -1542,7 +1884,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         designRules.add(drNodes, gridBagConstraints);
 
-        drFromList.setPreferredSize(new java.awt.Dimension(100, 100));
+        drFromList.setPreferredSize(new java.awt.Dimension(75, 100));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
@@ -1562,10 +1904,12 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         designRules.add(drShowOnlyLinesWithRules, gridBagConstraints);
 
-        drToList.setPreferredSize(new java.awt.Dimension(200, 200));
+        drToList.setPreferredSize(new java.awt.Dimension(150, 200));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
@@ -1573,6 +1917,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridheight = 10;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 0.5;
         designRules.add(drToList, gridBagConstraints);
 
@@ -1581,6 +1926,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 0);
         designRules.add(jLabel38, gridBagConstraints);
 
         jLabel39.setText("Minimum Height:");
@@ -1588,6 +1934,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 0);
         designRules.add(jLabel39, gridBagConstraints);
 
         drMinWidth.setColumns(6);
@@ -1597,7 +1944,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         designRules.add(drMinWidth, gridBagConstraints);
 
-        drMinWidthRule.setColumns(6);
+        drMinWidthRule.setColumns(9);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 2;
@@ -1615,12 +1962,14 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         designRules.add(jLabel40, gridBagConstraints);
 
         jLabel41.setText("Rule");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         designRules.add(jLabel41, gridBagConstraints);
 
         jLabel42.setText("Normal:");
@@ -1628,7 +1977,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 0);
         designRules.add(jLabel42, gridBagConstraints);
 
         jLabel43.setText("Distance");
@@ -1650,7 +1999,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 10, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 14, 4, 0);
         designRules.add(jLabel45, gridBagConstraints);
 
         jLabel46.setText("Not connected:");
@@ -1658,7 +2007,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 7;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 10, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 14, 4, 0);
         designRules.add(jLabel46, gridBagConstraints);
 
         jLabel47.setText("Edge:");
@@ -1666,7 +2015,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 8;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 10, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 14, 4, 0);
         designRules.add(jLabel47, gridBagConstraints);
 
         jLabel48.setText("Wide (when bigger than this):");
@@ -1675,7 +2024,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 9;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 0);
         designRules.add(jLabel48, gridBagConstraints);
 
         jLabel49.setText("When connected:");
@@ -1683,7 +2032,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 10;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 10, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 14, 4, 0);
         designRules.add(jLabel49, gridBagConstraints);
 
         jLabel50.setText("Not connected:");
@@ -1691,7 +2040,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 11;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 10, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 14, 4, 0);
         designRules.add(jLabel50, gridBagConstraints);
 
         jLabel51.setText("Multiple cuts:");
@@ -1699,7 +2048,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 12;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 0);
         designRules.add(jLabel51, gridBagConstraints);
 
         jLabel52.setText("When connected:");
@@ -1707,7 +2056,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 13;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 10, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 14, 4, 0);
         designRules.add(jLabel52, gridBagConstraints);
 
         jLabel53.setText("Not connected:");
@@ -1715,7 +2064,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 14;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 10, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 14, 4, 0);
         designRules.add(jLabel53, gridBagConstraints);
 
         drNormalConnected.setColumns(6);
@@ -1723,13 +2072,15 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         designRules.add(drNormalConnected, gridBagConstraints);
 
-        drNormalConnectedRule.setColumns(6);
+        drNormalConnectedRule.setColumns(9);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         designRules.add(drNormalConnectedRule, gridBagConstraints);
 
         drNormalUnconnected.setColumns(6);
@@ -1737,13 +2088,15 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 7;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         designRules.add(drNormalUnconnected, gridBagConstraints);
 
-        drNormalUnconnectedRule.setColumns(6);
+        drNormalUnconnectedRule.setColumns(9);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 7;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         designRules.add(drNormalUnconnectedRule, gridBagConstraints);
 
         drNormalEdge.setColumns(6);
@@ -1751,13 +2104,15 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 8;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         designRules.add(drNormalEdge, gridBagConstraints);
 
-        drNormalEdgeRule.setColumns(6);
+        drNormalEdgeRule.setColumns(9);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 8;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         designRules.add(drNormalEdgeRule, gridBagConstraints);
 
         drWideLimit.setColumns(6);
@@ -1765,6 +2120,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 9;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         designRules.add(drWideLimit, gridBagConstraints);
 
         drWideConnected.setColumns(6);
@@ -1772,13 +2128,15 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 10;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         designRules.add(drWideConnected, gridBagConstraints);
 
-        drWideConnectedRule.setColumns(6);
+        drWideConnectedRule.setColumns(9);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 10;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         designRules.add(drWideConnectedRule, gridBagConstraints);
 
         drWideUnconnected.setColumns(6);
@@ -1786,13 +2144,15 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 11;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         designRules.add(drWideUnconnected, gridBagConstraints);
 
-        drWideUnconnectedRule.setColumns(6);
+        drWideUnconnectedRule.setColumns(9);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 11;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         designRules.add(drWideUnconnectedRule, gridBagConstraints);
 
         drMultiConnected.setColumns(6);
@@ -1800,13 +2160,15 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 13;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         designRules.add(drMultiConnected, gridBagConstraints);
 
-        drMultiConnectedRule.setColumns(6);
+        drMultiConnectedRule.setColumns(9);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 13;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         designRules.add(drMultiConnectedRule, gridBagConstraints);
 
         drMultiUnconnected.setColumns(6);
@@ -1814,13 +2176,15 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 14;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         designRules.add(drMultiUnconnected, gridBagConstraints);
 
-        drMultiUnconnectedRule.setColumns(6);
+        drMultiUnconnectedRule.setColumns(9);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 14;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
         designRules.add(drMultiUnconnectedRule, gridBagConstraints);
 
         tabPane.addTab("Design Rules", designRules);
@@ -3561,6 +3925,7 @@ public class ToolOptions extends javax.swing.JDialog
     private javax.swing.JPanel compaction;
     private javax.swing.JPanel designRules;
     private javax.swing.JScrollPane drFromList;
+    private javax.swing.ButtonGroup drLayerOrNode;
     private javax.swing.JRadioButton drLayers;
     private javax.swing.JTextField drMinHeight;
     private javax.swing.JTextField drMinWidth;
@@ -3577,6 +3942,7 @@ public class ToolOptions extends javax.swing.JDialog
     private javax.swing.JTextField drNormalUnconnected;
     private javax.swing.JTextField drNormalUnconnectedRule;
     private javax.swing.JCheckBox drShowOnlyLinesWithRules;
+    private javax.swing.JLabel drTechName;
     private javax.swing.JScrollPane drToList;
     private javax.swing.JTextField drWideConnected;
     private javax.swing.JTextField drWideConnectedRule;
@@ -3634,7 +4000,6 @@ public class ToolOptions extends javax.swing.JDialog
     private javax.swing.JLabel jLabel33;
     private javax.swing.JLabel jLabel34;
     private javax.swing.JLabel jLabel35;
-    private javax.swing.JLabel jLabel36;
     private javax.swing.JLabel jLabel37;
     private javax.swing.JLabel jLabel38;
     private javax.swing.JLabel jLabel39;

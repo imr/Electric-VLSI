@@ -40,6 +40,7 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.tool.drc.DRC;
 
 /**
  * This is the MOSIS CMOS technology.
@@ -47,6 +48,10 @@ import com.sun.electric.technology.SizeOffset;
 public class MoCMOS extends Technology
 {
 	/** the MOSIS CMOS Technology object. */	public static final MoCMOS tech = new MoCMOS();
+	/** the state of the MOCMOS technology */	private int state = 0;
+
+	/** key of Variable for saving technology state. */
+	public static final Variable.Key TECH_STATE = ElectricObject.newKey("TECH_state");
 
 	/** metal-1-pin */							private PrimitiveNode metal1Pin_node;
 	/** metal-2-pin */							private PrimitiveNode metal2Pin_node;
@@ -114,6 +119,12 @@ public class MoCMOS extends Technology
 	/** P-active arc */							private PrimitiveArc pActive_arc;
 	/** N-active arc */							private PrimitiveArc nActive_arc;
 	/** General active arc */					private PrimitiveArc active_arc;
+
+	// for dynamically modifying the transistor geometry
+	private Technology.NodeLayer pTransistorPolyLayer, nTransistorPolyLayer;
+	private Technology.NodeLayer pTransistorActiveLayer, nTransistorActiveLayer;
+	private Technology.NodeLayer pTransistorWellLayer, nTransistorWellLayer;
+	private Technology.NodeLayer pTransistorSelectLayer, nTransistorSelectLayer;
 
 	/** set if no stacked vias allowed */			private static final int MOCMOSNOSTACKEDVIAS =   01;
 	/** set for stick-figure display */				private static final int MOCMOSSTICKFIGURE =     02;
@@ -536,6 +547,7 @@ public class MoCMOS extends Technology
 	};
 
 	// -------------------- private and protected methods ------------------------
+
 	private MoCMOS()
 	{
 		setTechName("mocmos");
@@ -1804,6 +1816,7 @@ public class MoCMOS extends Technology
 		metal1PActiveContact_node.setFunction(NodeProto.Function.CONTACT);
 		metal1PActiveContact_node.setSpecialType(PrimitiveNode.MULTICUT);
 		metal1PActiveContact_node.setSpecialValues(new double [] {2, 2, 1.5, 3});
+		metal1PActiveContact_node.setMinSize(17, 17, "6.2, 7.3");
 
 		/** metal-1-N-active-contact */
 		metal1NActiveContact_node = PrimitiveNode.newInstance("Metal-1-N-Active-Con", this, 17.0, 17.0, new SizeOffset(6, 6, 6, 6),
@@ -1823,6 +1836,7 @@ public class MoCMOS extends Technology
 		metal1NActiveContact_node.setFunction(NodeProto.Function.CONTACT);
 		metal1NActiveContact_node.setSpecialType(PrimitiveNode.MULTICUT);
 		metal1NActiveContact_node.setSpecialValues(new double [] {2, 2, 1.5, 3});
+		metal1NActiveContact_node.setMinSize(17, 17, "6.2, 7.3");
 
 		/** metal-1-polysilicon-1-contact */
 		metal1Poly1Contact_node = PrimitiveNode.newInstance("Metal-1-Polysilicon-1-Con", this, 5.0, 5.0, null,
@@ -1840,6 +1854,7 @@ public class MoCMOS extends Technology
 		metal1Poly1Contact_node.setFunction(NodeProto.Function.CONTACT);
 		metal1Poly1Contact_node.setSpecialType(PrimitiveNode.MULTICUT);
 		metal1Poly1Contact_node.setSpecialValues(new double [] {2, 2, 1.5, 3});
+		metal1Poly1Contact_node.setMinSize(5, 5, "5.2, 7.3");
 
 		/** metal-1-polysilicon-2-contact */
 		metal1Poly2Contact_node = PrimitiveNode.newInstance("Metal-1-Polysilicon-2-Con", this, 10.0, 10.0, null,
@@ -1858,6 +1873,7 @@ public class MoCMOS extends Technology
 		metal1Poly2Contact_node.setSpecialType(PrimitiveNode.MULTICUT);
 		metal1Poly2Contact_node.setSpecialValues(new double [] {2, 2, 4, 3});
 		metal1Poly2Contact_node.setNotUsed();
+		metal1Poly2Contact_node.setMinSize(10, 10, "?");
 
 		/** metal-1-polysilicon-1-2-contact */
 		metal1Poly12Contact_node = PrimitiveNode.newInstance("Metal-1-Polysilicon-1-2-Con", this, 15.0, 15.0, null,
@@ -1877,23 +1893,23 @@ public class MoCMOS extends Technology
 		metal1Poly12Contact_node.setSpecialType(PrimitiveNode.MULTICUT);
 		metal1Poly12Contact_node.setSpecialValues(new double [] {2, 2, 6.5, 3});
 		metal1Poly12Contact_node.setNotUsed();
+		metal1Poly12Contact_node.setMinSize(15, 15, "?");
 
 		/** P-Transistor */
+		pTransistorPolyLayer = new Technology.NodeLayer(transistorPoly_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(10)),
+			new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(10))}, 1, 1, 2, 2);
+		pTransistorActiveLayer = new Technology.NodeLayer(pActive_lay, 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(7)),
+			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(7))}, 4, 4, 0, 0);
+		pTransistorWellLayer = new Technology.NodeLayer(nWell_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.fromBottom(1)),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.fromTop(1))}, 10, 10, 6, 6);
+		pTransistorSelectLayer = new Technology.NodeLayer(pSelect_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(5)),
+			new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(5))}, 6, 6, 2, 2);
 		pTransistor_node = PrimitiveNode.newInstance("P-Transistor", this, 15.0, 22.0, new SizeOffset(6, 6, 10, 10),
-			new Technology.NodeLayer [] {
-				new Technology.NodeLayer(pActive_lay, 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(7)),
-					new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(7))}, 4, 4, 0, 0),
-				new Technology.NodeLayer(transistorPoly_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(10)),
-					new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(10))}, 1, 1, 2, 2),
-				new Technology.NodeLayer(nWell_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.fromBottom(1)),
-					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.fromTop(1))}, 10, 10, 6, 6),
-				new Technology.NodeLayer(pSelect_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(5)),
-					new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(5))}, 6, 6, 2, 2)
-			});
+			new Technology.NodeLayer [] {pTransistorActiveLayer, pTransistorPolyLayer, pTransistorWellLayer, pTransistorSelectLayer});
 		pTransistor_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, pTransistor_node, new ArcProto[] {poly1_arc}, "p-trans-poly-left", 180,90, 0, PortProto.Characteristic.UNKNOWN,
@@ -1910,23 +1926,23 @@ public class MoCMOS extends Technology
 		pTransistor_node.setCanShrink();
 		pTransistor_node.setSpecialType(PrimitiveNode.SERPTRANS);
 		pTransistor_node.setSpecialValues(new double [] {7, 1.5, 2.5, 2, 1, 2});
+		pTransistor_node.setMinSize(15, 22, "2.1, 3.1");
 
 		/** N-Transistor */
+		nTransistorPolyLayer = new Technology.NodeLayer(transistorPoly_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(10)),
+			new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(10))}, 1, 1, 2, 2);
+		nTransistorActiveLayer = new Technology.NodeLayer(nActive_lay, 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(7)),
+			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(7))}, 4, 4, 0, 0);
+		nTransistorWellLayer = new Technology.NodeLayer(pWell_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.fromBottom(1)),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.fromTop(1))}, 10, 10, 6, 6);
+		nTransistorSelectLayer = new Technology.NodeLayer(nSelect_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(5)),
+			new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(5))}, 6, 6, 2, 2);
 		nTransistor_node = PrimitiveNode.newInstance("N-Transistor", this, 15.0, 22.0, new SizeOffset(6, 6, 10, 10),
-			new Technology.NodeLayer [] {
-				new Technology.NodeLayer(nActive_lay, 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(7)),
-					new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(7))}, 4, 4, 0, 0),
-				new Technology.NodeLayer(transistorPoly_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(10)),
-					new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(10))}, 1, 1, 2, 2),
-				new Technology.NodeLayer(pWell_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.fromBottom(1)),
-					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.fromTop(1))}, 10, 10, 6, 6),
-				new Technology.NodeLayer(nSelect_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(5)),
-					new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(5))}, 6, 6, 2, 2)
-			});
+			new Technology.NodeLayer [] {nTransistorActiveLayer, nTransistorPolyLayer, nTransistorWellLayer, nTransistorSelectLayer});
 		nTransistor_node.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, nTransistor_node, new ArcProto[] {poly1_arc}, "n-trans-poly-left", 180,90, 0, PortProto.Characteristic.UNKNOWN,
@@ -1943,6 +1959,7 @@ public class MoCMOS extends Technology
 		nTransistor_node.setCanShrink();
 		nTransistor_node.setSpecialType(PrimitiveNode.SERPTRANS);
 		nTransistor_node.setSpecialValues(new double [] {7, 1.5, 2.5, 2, 1, 2});
+		nTransistor_node.setMinSize(15, 22, "2.1, 3.1");
 
 		/** Scalable-P-Transistor */
 		scalablePTransistor_node = PrimitiveNode.newInstance("P-Transistor-Scalable", this, 17.0, 26.0, new SizeOffset(7, 7, 12, 12),
@@ -1989,6 +2006,7 @@ public class MoCMOS extends Technology
 		scalablePTransistor_node.setFunction(NodeProto.Function.TRAPMOS);
 		scalablePTransistor_node.setCanShrink();
 		scalablePTransistor_node.setNotUsed();
+		scalablePTransistor_node.setMinSize(17, 26, "2.1, 3.1");
 
 		/** Scalable-N-Transistor */
 		scalableNTransistor_node = PrimitiveNode.newInstance("N-Transistor-Scalable", this, 17.0, 26.0, new SizeOffset(7, 7, 12, 12),
@@ -2035,6 +2053,7 @@ public class MoCMOS extends Technology
 		scalableNTransistor_node.setFunction(NodeProto.Function.TRANMOS);
 		scalableNTransistor_node.setCanShrink();
 		scalableNTransistor_node.setNotUsed();
+		scalableNTransistor_node.setMinSize(17, 26, "2.1, 3.1");
 
 		/** metal-1-metal-2-contact */
 		metal1Metal2Contact_node = PrimitiveNode.newInstance("Metal-1-Metal-2-Con", this, 5.0, 5.0, new SizeOffset(0.5, 0.5, 0.5, 0.5),
@@ -2052,6 +2071,7 @@ public class MoCMOS extends Technology
 		metal1Metal2Contact_node.setFunction(NodeProto.Function.CONTACT);
 		metal1Metal2Contact_node.setSpecialType(PrimitiveNode.MULTICUT);
 		metal1Metal2Contact_node.setSpecialValues(new double [] {2, 2, 1, 3});
+		metal1Metal2Contact_node.setMinSize(5, 5, "8.3, 9.3");
 
 		/** metal-2-metal-3-contact */
 		metal2Metal3Contact_node = PrimitiveNode.newInstance("Metal-2-Metal-3-Con", this, 6.0, 6.0, new SizeOffset(1, 1, 1, 1),
@@ -2069,6 +2089,7 @@ public class MoCMOS extends Technology
 		metal2Metal3Contact_node.setFunction(NodeProto.Function.CONTACT);
 		metal2Metal3Contact_node.setSpecialType(PrimitiveNode.MULTICUT);
 		metal2Metal3Contact_node.setSpecialValues(new double [] {2, 2, 1, 3});
+		metal2Metal3Contact_node.setMinSize(6, 6, "14.3, 15.3");
 
 		/** metal-3-metal-4-contact */
 		metal3Metal4Contact_node = PrimitiveNode.newInstance("Metal-3-Metal-4-Con", this, 6.0, 6.0, null,
@@ -2086,6 +2107,7 @@ public class MoCMOS extends Technology
 		metal3Metal4Contact_node.setFunction(NodeProto.Function.CONTACT);
 		metal3Metal4Contact_node.setSpecialType(PrimitiveNode.MULTICUT);
 		metal3Metal4Contact_node.setSpecialValues(new double [] {2, 2, 2, 3});
+		metal3Metal4Contact_node.setMinSize(6, 6, "21.3, 22.3");
 
 		/** metal-4-metal-5-contact */
 		metal4Metal5Contact_node = PrimitiveNode.newInstance("Metal-4-Metal-5-Con", this, 7.0, 7.0, new SizeOffset(1.5, 1.5, 1.5, 1.5),
@@ -2104,6 +2126,7 @@ public class MoCMOS extends Technology
 		metal4Metal5Contact_node.setSpecialType(PrimitiveNode.MULTICUT);
 		metal4Metal5Contact_node.setSpecialValues(new double [] {2, 2, 1, 3});
 		metal4Metal5Contact_node.setNotUsed();
+		metal4Metal5Contact_node.setMinSize(7, 8, "25.3, 26.3");
 
 		/** metal-5-metal-6-contact */
 		metal5Metal6Contact_node = PrimitiveNode.newInstance("Metal-5-Metal-6-Con", this, 8.0, 8.0, new SizeOffset(1, 1, 1, 1),
@@ -2122,6 +2145,7 @@ public class MoCMOS extends Technology
 		metal5Metal6Contact_node.setSpecialType(PrimitiveNode.MULTICUT);
 		metal5Metal6Contact_node.setSpecialValues(new double [] {3, 3, 2, 4});
 		metal5Metal6Contact_node.setNotUsed();
+		metal5Metal6Contact_node.setMinSize(8, 8, "29.3, 30.3");
 
 		/** Metal-1-P-Well Contact */
 		metal1PWellContact_node = PrimitiveNode.newInstance("Metal-1-P-Well-Con", this, 17.0, 17.0, new SizeOffset(6, 6, 6, 6),
@@ -2141,6 +2165,7 @@ public class MoCMOS extends Technology
 		metal1PWellContact_node.setFunction(NodeProto.Function.WELL);
 		metal1PWellContact_node.setSpecialType(PrimitiveNode.MULTICUT);
 		metal1PWellContact_node.setSpecialValues(new double [] {2, 2, 1.5, 3});
+		metal1PWellContact_node.setMinSize(17, 17, "4.2, 6.2, 7.3");
 
 		/** Metal-1-N-Well Contact */
 		metal1NWellContact_node = PrimitiveNode.newInstance("Metal-1-N-Well-Con", this, 17.0, 17.0, new SizeOffset(6, 6, 6, 6),
@@ -2160,6 +2185,7 @@ public class MoCMOS extends Technology
 		metal1NWellContact_node.setFunction(NodeProto.Function.SUBSTRATE);
 		metal1NWellContact_node.setSpecialType(PrimitiveNode.MULTICUT);
 		metal1NWellContact_node.setSpecialValues(new double [] {2, 2, 1.5, 3});
+		metal1NWellContact_node.setMinSize(17, 17, "4.2, 6.2, 7.3");
 
 		/** Metal-1-Node */
 		metal1Node_node = PrimitiveNode.newInstance("Metal-1-Node", this, 3.0, 3.0, null,
@@ -2572,246 +2598,108 @@ public class MoCMOS extends Technology
 		silicideBlockNode_node.setSpecialType(PrimitiveNode.POLYGONAL);
 	}
 
-/* this tables must correspond with the above table (nodeprotos) */
-//static INTBIG node_minsize[NODEPROTOCOUNT*2] = {
-//	XX,XX, XX,XX, XX,XX,							/* metal 1/2/3 pin */
-//	XX,XX, XX,XX, XX,XX,							/* metal 4/5/6 pin */
-//	XX,XX, XX,XX,									/* polysilicon 1/2 pin */
-//	XX,XX, XX,XX,									/* P/N active pin */
-//	XX,XX,											/* active pin */
-//	K17,K17, K17,K17,								/* metal 1 to P/N active contact */
-//	K5,K5, K10,K10,									/* metal 1 to polysilicon 1/2 contact */
-//	K15,K15,										/* poly capacitor */
-//	K15,K22, K15,K22,								/* P/N transistor */
-//	K17,K26, K17,K26,								/* scalable P/N transistor */
-//	K5,K5, K6,K6, K6,K6,							/* via 1/2/3 */
-//	K7,K7, K8,K8,									/* via 4/5 */
-//	K17,K17, K17,K17,								/* p-well / n-well contact */
-//	XX,XX, XX,XX, XX,XX,							/* metal 1/2/3 node */
-//	XX,XX, XX,XX, XX,XX,							/* metal 4/5/6 node */
-//	XX,XX, XX,XX,									/* polysilicon 1/2 node */
-//	XX,XX, XX,XX,									/* active N-Active node */
-//	XX,XX, XX,XX,									/* P/N select node */
-//	XX,XX, XX,XX,									/* poly cut / active cut */
-//	XX,XX, XX,XX, XX,XX,							/* via 1/2/3 node */
-//	XX,XX, XX,XX,									/* via 4/5 node */
-//	XX,XX, XX,XX,									/* P/N well node */
-//	XX,XX,											/* overglass node */
-//	XX,XX,											/* pad frame node */
-//	XX,XX,											/* poly-cap node */
-//	XX,XX,											/* p-active-well node */
-//	XX,XX,											/* transistor poly node */
-//	XX,XX};											/* silicide-block node */
+	/******************** SIMULATION VARIABLES ********************/
 
-/* this tables must correspond with the above table (nodeprotos) */
-//static CHAR *node_minsize_rule[NODEPROTOCOUNT] = {
-//	""), ""), ""),							/* metal 1/2/3 pin */
-//	""), ""), ""),							/* metal 4/5/6 pin */
-//	""), ""),									/* polysilicon 1/2 pin */
-//	""), ""),									/* P/N active pin */
-//	""),											/* active pin */
-//	"6.2, 7.3"), "6.2, 7.3"),					/* metal 1 to P/N active contact */
-//	"5.2, 7.3"), "???"),						/* metal 1 to polysilicon 1/2 contact */
-//	"???"),										/* poly capacitor */
-//	"2.1, 3.1"), "2.1, 3.1"),					/* P/N transistor */
-//	"2.1, 3.1"), "2.1, 3.1"),					/* scalable P/N transistor */
-//	"8.3, 9.3"), "14.3, 15.3"), "21.3, 22.3"),	/* via 1/2/3 */
-//	"25.3, 26.3"), "29.3, 30.3"),				/* via 4/5 */
-//	"4.2, 6.2, 7.3"), "4.2, 6.2, 7.3"),		/* p-well / n-well contact */
-//	""), ""), ""),							/* metal 1/2/3 node */
-//	""), ""), ""),							/* metal 4/5/6 node */
-//	""), ""),									/* polysilicon 1/2 node */
-//	""), ""),									/* active N-Active node */
-//	""), ""),									/* P/N select node */
-//	""), ""),									/* poly cut / active cut */
-//	""), ""), ""),							/* via 1/2/3 node */
-//	""), ""),									/* via 4/5 node */
-//	""), ""),									/* P/N well node */
-//	""),											/* overglass node */
-//	""),											/* pad frame node */
-//	""),											/* poly-cap node */
-//	""),											/* p-active-well node */
-//	""),											/* transistor poly node */
-//	"")};										/* silicide-block node */
-
-/******************** SIMULATION VARIABLES ********************/
-
-/* for SPICE simulation */
-//#define MIN_RESIST	50.0f		/* minimum resistance consider */
-//#define MIN_CAPAC	 0.04f		/* minimum capacitance consider */
-//static float sim_spice_resistance[MAXLAYERS] = {  /* per square micron */
-//	0.06f, 0.06f, 0.06f,				/* metal 1/2/3 */
-//	0.03f, 0.03f, 0.03f,				/* metal 4/5/6 */
-//	2.5f, 50.0f,						/* poly 1/2 */
-//	2.5f, 3.0f,							/* P/N active */
-//	0.0, 0.0,							/* P/N select */
-//	0.0, 0.0,							/* P/N well */
-//	2.2f, 2.5f,							/* poly/act cut */
-//	1.0f, 0.9f, 0.8f, 0.8f, 0.8f,		/* via 1/2/3/4/5 */
-//	0.0,								/* overglass */
-//	2.5f,								/* transistor poly */
-//	0.0,								/* poly cap */
-//	0.0,								/* P active well */
-//	0.0, 0.0, 0.0, 0.0, 0.0, 0.0,		/* pseudo metal 1/2/3/4/5/6 */
-//	0.0, 0.0,							/* pseudo poly 1/2 */
-//	0.0, 0.0,							/* pseudo P/N active */
-//	0.0, 0.0,							/* pseudo P/N select */
-//	0.0, 0.0,							/* pseudo P/N well */
-//	0.0};								/* pad frame */
-//static float sim_spice_capacitance[MAXLAYERS] = { /* per square micron */
-//	0.07f, 0.04f, 0.04f,				/* metal 1/2/3 */
-//	0.04f, 0.04f, 0.04f,				/* metal 4/5/6 */
-//	0.09f, 1.0f,						/* poly 1/2 */
-//	0.9f, 0.9f,							/* P/N active */
-//	0.0, 0.0,							/* P/N select */
-//	0.0, 0.0,							/* P/N well */
-//	0.0, 0.0,							/* poly/act cut */
-//	0.0, 0.0, 0.0, 0.0, 0.0,			/* via 1/2/3/4/5 */
-//	0.0,								/* overglass */
-//	0.09f,								/* transistor poly */
-//	0.0,								/* poly cap */
-//	0.0,								/* P active well */
-//	0.0, 0.0, 0.0, 0.0, 0.0, 0.0,		/* pseudo metal 1/2/3/4/5/6 */
-//	0.0, 0.0,							/* pseudo poly 1/2 */
-//	0.0, 0.0,							/* pseudo P/N active */
-//	0.0, 0.0,							/* pseudo P/N select */
-//	0.0, 0.0,							/* pseudo P/N well */
-//	0.0};								/* pad frame */
-//static CHAR *sim_spice_header_level1[] = {
-//	"*CMOS/BULK-NWELL (PRELIMINARY PARAMETERS)"),
-//	".OPTIONS NOMOD DEFL=3UM DEFW=3UM DEFAD=70P DEFAS=70P LIMPTS=1000"),
-//	"+ITL5=0 RELTOL=0.01 ABSTOL=500PA VNTOL=500UV LVLTIM=2"),
-//	"+LVLCOD=1"),
-//	".MODEL N NMOS LEVEL=1"),
-//	"+KP=60E-6 VTO=0.7 GAMMA=0.3 LAMBDA=0.05 PHI=0.6"),
-//	"+LD=0.4E-6 TOX=40E-9 CGSO=2.0E-10 CGDO=2.0E-10 CJ=.2MF/M^2"),
-//	".MODEL P PMOS LEVEL=1"),
-//	"+KP=20E-6 VTO=0.7 GAMMA=0.4 LAMBDA=0.05 PHI=0.6"),
-//	"+LD=0.6E-6 TOX=40E-9 CGSO=3.0E-10 CGDO=3.0E-10 CJ=.2MF/M^2"),
-//	".MODEL DIFFCAP D CJO=.2MF/M^2"),
-//	NOSTRING};
-//static CHAR *sim_spice_header_level2[] = {
-//	"* MOSIS 3u CMOS PARAMS"),
-//	".OPTIONS NOMOD DEFL=2UM DEFW=6UM DEFAD=100P DEFAS=100P"),
-//	"+LIMPTS=1000 ITL5=0 ABSTOL=500PA VNTOL=500UV"),
-//	"* Note that ITL5=0 sets ITL5 to infinity"),
-//	".MODEL N NMOS LEVEL=2 LD=0.3943U TOX=502E-10"),
-//	"+NSUB=1.22416E+16 VTO=0.756 KP=4.224E-05 GAMMA=0.9241"),
-//	"+PHI=0.6 UO=623.661 UEXP=8.328627E-02 UCRIT=54015.0"),
-//	"+DELTA=5.218409E-03 VMAX=50072.2 XJ=0.4U LAMBDA=2.975321E-02"),
-//	"+NFS=4.909947E+12 NEFF=1.001E-02 NSS=0.0 TPG=1.0"),
-//	"+RSH=20.37 CGDO=3.1E-10 CGSO=3.1E-10"),
-//	"+CJ=3.205E-04 MJ=0.4579 CJSW=4.62E-10 MJSW=0.2955 PB=0.7"),
-//	".MODEL P PMOS LEVEL=2 LD=0.2875U TOX=502E-10"),
-//	"+NSUB=1.715148E+15 VTO=-0.7045 KP=1.686E-05 GAMMA=0.3459"),
-//	"+PHI=0.6 UO=248.933 UEXP=1.02652 UCRIT=182055.0"),
-//	"+DELTA=1.0E-06 VMAX=100000.0 XJ=0.4U LAMBDA=1.25919E-02"),
-//	"+NFS=1.0E+12 NEFF=1.001E-02 NSS=0.0 TPG=-1.0"),
-//	"+RSH=79.10 CGDO=2.89E-10 CGSO=2.89E-10"),
-//	"+CJ=1.319E-04 MJ=0.4125 CJSW=3.421E-10 MJSW=0.198 PB=0.66"),
-//	".TEMP 25.0"),
-//	NOSTRING};
-
-
-/******************** VARIABLE AGGREGATION ********************/
-
-//TECH_VARIABLES variables[] =
-//{
-//	// set general information about the technology
-//	{"TECH_layer_names"), (CHAR *)layer_names, 0.0,
-//		VSTRING|VDONTSAVE|VISARRAY|(MAXLAYERS<<VLENGTHSH)},
-//	{"TECH_layer_function"), (CHAR *)layer_function, 0.0,
-//		VINTEGER|VDONTSAVE|VISARRAY|(MAXLAYERS<<VLENGTHSH)},
-//	{"TECH_arc_width_offset"), (CHAR *)arc_widoff, 0.0,
-//		VFRACT|VDONTSAVE|VISARRAY|(ARCPROTOCOUNT<<VLENGTHSH)},
-//	{"TECH_node_width_offset"), (CHAR *)node_widoff, 0.0,
-//		VFRACT|VDONTSAVE|VISARRAY|((NODEPROTOCOUNT*4)<<VLENGTHSH)},
-//	{"TECH_layer_3dthickness"), (CHAR *)3dthick_layers, 0.0,
-//		VINTEGER|VDONTSAVE|VISARRAY|(MAXLAYERS<<VLENGTHSH)},
-//	{"TECH_layer_3dheight"), (CHAR *)3dheight_layers, 0.0,
-//		VINTEGER|VDONTSAVE|VISARRAY|(MAXLAYERS<<VLENGTHSH)},
+//	/* for SPICE simulation */
+//	#define MIN_RESIST	50.0f		/* minimum resistance consider */
+//	#define MIN_CAPAC	 0.04f		/* minimum capacitance consider */
+//	static float sim_spice_resistance[MAXLAYERS] = {  /* per square micron */
+//		0.06f, 0.06f, 0.06f,				/* metal 1/2/3 */
+//		0.03f, 0.03f, 0.03f,				/* metal 4/5/6 */
+//		2.5f, 50.0f,						/* poly 1/2 */
+//		2.5f, 3.0f,							/* P/N active */
+//		0.0, 0.0,							/* P/N select */
+//		0.0, 0.0,							/* P/N well */
+//		2.2f, 2.5f,							/* poly/act cut */
+//		1.0f, 0.9f, 0.8f, 0.8f, 0.8f,		/* via 1/2/3/4/5 */
+//		0.0,								/* overglass */
+//		2.5f,								/* transistor poly */
+//		0.0,								/* poly cap */
+//		0.0,								/* P active well */
+//		0.0, 0.0, 0.0, 0.0, 0.0, 0.0,		/* pseudo metal 1/2/3/4/5/6 */
+//		0.0, 0.0,							/* pseudo poly 1/2 */
+//		0.0, 0.0,							/* pseudo P/N active */
+//		0.0, 0.0,							/* pseudo P/N select */
+//		0.0, 0.0,							/* pseudo P/N well */
+//		0.0};								/* pad frame */
+//	static float sim_spice_capacitance[MAXLAYERS] = { /* per square micron */
+//		0.07f, 0.04f, 0.04f,				/* metal 1/2/3 */
+//		0.04f, 0.04f, 0.04f,				/* metal 4/5/6 */
+//		0.09f, 1.0f,						/* poly 1/2 */
+//		0.9f, 0.9f,							/* P/N active */
+//		0.0, 0.0,							/* P/N select */
+//		0.0, 0.0,							/* P/N well */
+//		0.0, 0.0,							/* poly/act cut */
+//		0.0, 0.0, 0.0, 0.0, 0.0,			/* via 1/2/3/4/5 */
+//		0.0,								/* overglass */
+//		0.09f,								/* transistor poly */
+//		0.0,								/* poly cap */
+//		0.0,								/* P active well */
+//		0.0, 0.0, 0.0, 0.0, 0.0, 0.0,		/* pseudo metal 1/2/3/4/5/6 */
+//		0.0, 0.0,							/* pseudo poly 1/2 */
+//		0.0, 0.0,							/* pseudo P/N active */
+//		0.0, 0.0,							/* pseudo P/N select */
+//		0.0, 0.0,							/* pseudo P/N well */
+//		0.0};								/* pad frame */
+//	static CHAR *sim_spice_header_level1[] = {
+//		"*CMOS/BULK-NWELL (PRELIMINARY PARAMETERS)"),
+//		".OPTIONS NOMOD DEFL=3UM DEFW=3UM DEFAD=70P DEFAS=70P LIMPTS=1000"),
+//		"+ITL5=0 RELTOL=0.01 ABSTOL=500PA VNTOL=500UV LVLTIM=2"),
+//		"+LVLCOD=1"),
+//		".MODEL N NMOS LEVEL=1"),
+//		"+KP=60E-6 VTO=0.7 GAMMA=0.3 LAMBDA=0.05 PHI=0.6"),
+//		"+LD=0.4E-6 TOX=40E-9 CGSO=2.0E-10 CGDO=2.0E-10 CJ=.2MF/M^2"),
+//		".MODEL P PMOS LEVEL=1"),
+//		"+KP=20E-6 VTO=0.7 GAMMA=0.4 LAMBDA=0.05 PHI=0.6"),
+//		"+LD=0.6E-6 TOX=40E-9 CGSO=3.0E-10 CGDO=3.0E-10 CJ=.2MF/M^2"),
+//		".MODEL DIFFCAP D CJO=.2MF/M^2"),
+//		NOSTRING};
+//	static CHAR *sim_spice_header_level2[] = {
+//		"* MOSIS 3u CMOS PARAMS"),
+//		".OPTIONS NOMOD DEFL=2UM DEFW=6UM DEFAD=100P DEFAS=100P"),
+//		"+LIMPTS=1000 ITL5=0 ABSTOL=500PA VNTOL=500UV"),
+//		"* Note that ITL5=0 sets ITL5 to infinity"),
+//		".MODEL N NMOS LEVEL=2 LD=0.3943U TOX=502E-10"),
+//		"+NSUB=1.22416E+16 VTO=0.756 KP=4.224E-05 GAMMA=0.9241"),
+//		"+PHI=0.6 UO=623.661 UEXP=8.328627E-02 UCRIT=54015.0"),
+//		"+DELTA=5.218409E-03 VMAX=50072.2 XJ=0.4U LAMBDA=2.975321E-02"),
+//		"+NFS=4.909947E+12 NEFF=1.001E-02 NSS=0.0 TPG=1.0"),
+//		"+RSH=20.37 CGDO=3.1E-10 CGSO=3.1E-10"),
+//		"+CJ=3.205E-04 MJ=0.4579 CJSW=4.62E-10 MJSW=0.2955 PB=0.7"),
+//		".MODEL P PMOS LEVEL=2 LD=0.2875U TOX=502E-10"),
+//		"+NSUB=1.715148E+15 VTO=-0.7045 KP=1.686E-05 GAMMA=0.3459"),
+//		"+PHI=0.6 UO=248.933 UEXP=1.02652 UCRIT=182055.0"),
+//		"+DELTA=1.0E-06 VMAX=100000.0 XJ=0.4U LAMBDA=1.25919E-02"),
+//		"+NFS=1.0E+12 NEFF=1.001E-02 NSS=0.0 TPG=-1.0"),
+//		"+RSH=79.10 CGDO=2.89E-10 CGSO=2.89E-10"),
+//		"+CJ=1.319E-04 MJ=0.4125 CJSW=3.421E-10 MJSW=0.198 PB=0.66"),
+//		".TEMP 25.0"),
+//		NOSTRING};
 //
-//	// set information for the USER tool
-//	{"USER_color_map"), (CHAR *)colmap, 0.0,
-//		VCHAR|VDONTSAVE|VISARRAY|((sizeof colmap)<<VLENGTHSH)},
-//	{"USER_layer_letters"), (CHAR *)layer_letters, 0.0,
-//		VSTRING|VDONTSAVE|VISARRAY|(MAXLAYERS<<VLENGTHSH)},
-//	{"USER_print_colors"), (CHAR *)printcolors_layers, 0.0,
-//		VINTEGER|VDONTSAVE|VISARRAY|((MAXLAYERS*5)<<VLENGTHSH)},
-//
-//	// set information for the DRC tool
-//	{"DRC_min_node_size"), (CHAR *)node_minsize, 0.0,
-//		VFRACT|VDONTSAVE|VISARRAY|((NODEPROTOCOUNT*2)<<VLENGTHSH)},
-//	{"DRC_min_node_size_rule"), (CHAR *)node_minsize_rule, 0.0,
-//		VSTRING|VDONTSAVE|VISARRAY|(NODEPROTOCOUNT<<VLENGTHSH)},
-//
-//	// set information for the I/O tool
-//	{"IO_cif_layer_names"), (CHAR *)cif_layers, 0.0,
-//		VSTRING|VDONTSAVE|VISARRAY|(MAXLAYERS<<VLENGTHSH)},
-//	{"IO_gds_layer_numbers"), (CHAR *)gds_layers, 0.0,
-//		VSTRING|VDONTSAVE|VISARRAY|(MAXLAYERS<<VLENGTHSH)},
-//	{"IO_skill_layer_names"), (CHAR *)skill_layers, 0.0,
-//		VSTRING|VDONTSAVE|VISARRAY|(MAXLAYERS<<VLENGTHSH)},
-//
-//	// set information for the SIM tool (SPICE)
-//	{"SIM_spice_min_resistance"), 0, MIN_RESIST, VFLOAT|VDONTSAVE},
-//	{"SIM_spice_min_capacitance"), 0, MIN_CAPAC, VFLOAT|VDONTSAVE},
-//	{"SIM_spice_resistance"), (CHAR *)sim_spice_resistance, 0.0,
-//		VFLOAT|VISARRAY|(MAXLAYERS<<VLENGTHSH)|VDONTSAVE},
-//	{"SIM_spice_capacitance"), (CHAR *)sim_spice_capacitance, 0.0,
-//		VFLOAT|VISARRAY|(MAXLAYERS<<VLENGTHSH)|VDONTSAVE},
-//	{"SIM_spice_header_level1"), (CHAR *)sim_spice_header_level1, 0.0,
-//		VSTRING|VDONTSAVE|VISARRAY},
-//	{"SIM_spice_header_level2"), (CHAR *)sim_spice_header_level2, 0.0,
-//		VSTRING|VDONTSAVE|VISARRAY},
-//	{NULL, NULL, 0.0, 0}
-//};
+//	TECH_VARIABLES variables[] =
+//	{
+//		// set information for the SIM tool (SPICE)
+//		{"SIM_spice_min_resistance"), 0, MIN_RESIST, VFLOAT|VDONTSAVE},
+//		{"SIM_spice_min_capacitance"), 0, MIN_CAPAC, VFLOAT|VDONTSAVE},
+//		{"SIM_spice_resistance"), (CHAR *)sim_spice_resistance, 0.0,
+//			VFLOAT|VISARRAY|(MAXLAYERS<<VLENGTHSH)|VDONTSAVE},
+//		{"SIM_spice_capacitance"), (CHAR *)sim_spice_capacitance, 0.0,
+//			VFLOAT|VISARRAY|(MAXLAYERS<<VLENGTHSH)|VDONTSAVE},
+//		{"SIM_spice_header_level1"), (CHAR *)sim_spice_header_level1, 0.0,
+//			VSTRING|VDONTSAVE|VISARRAY},
+//		{"SIM_spice_header_level2"), (CHAR *)sim_spice_header_level2, 0.0,
+//			VSTRING|VDONTSAVE|VISARRAY},
+//		{NULL, NULL, 0.0, 0}
+//	};
 
-	/******************** TECHNOLOGY INTERFACE ROUTINES ********************/
+	/******************** TECHNOLOGY INTERFACE METHODS ********************/
 
-	/** key of Variable for saving technology state. */
-	public static final Variable.Key TECH_STATE = ElectricObject.newKey("TECH_state");
-
-	/** key of Variable with width limit for wide rules. */
-	public static final Variable.Key DRC_WIDE_LIMIT = ElectricObject.newKey("DRC_wide_limit");
-	/** key of Variable for minimum separation when connected. */
-	public static final Variable.Key DRC_MIN_CONNECTED_DISTANCES = ElectricObject.newKey("DRC_min_connected_distances");
-	/** key of Variable for minimum separation rule when connected. */
-	public static final Variable.Key DRC_MIN_CONNECTED_DISTANCES_RULE = ElectricObject.newKey("DRC_min_connected_distances_rule");
-	/** key of Variable for minimum separation when unconnected. */
-	public static final Variable.Key DRC_MIN_UNCONNECTED_DISTANCES = ElectricObject.newKey("DRC_min_unconnected_distances");
-	/** key of Variable for minimum separation rule when unconnected. */
-	public static final Variable.Key DRC_MIN_UNCONNECTED_DISTANCES_RULE = ElectricObject.newKey("DRC_min_unconnected_distances_rule");
-	/** key of Variable for minimum separation when connected and wide. */
-	public static final Variable.Key DRC_MIN_CONNECTED_DISTANCES_WIDE = ElectricObject.newKey("DRC_min_connected_distances_wide");
-	/** key of Variable for minimum separation rule when connected and wide. */
-	public static final Variable.Key DRC_MIN_CONNECTED_DISTANCES_WIDE_RULE = ElectricObject.newKey("DRC_min_connected_distances_wide_rule");
-	/** key of Variable for minimum separation when unconnected and wide. */
-	public static final Variable.Key DRC_MIN_UNCONNECTED_DISTANCES_WIDE = ElectricObject.newKey("DRC_min_unconnected_distances_wide");
-	/** key of Variable for minimum separation rule when unconnected and wide. */
-	public static final Variable.Key DRC_MIN_UNCONNECTED_DISTANCES_WIDE_RULE = ElectricObject.newKey("DRC_min_unconnected_distances_wide_rule");
-	/** key of Variable for minimum separation when connected and multicut. */
-	public static final Variable.Key DRC_MIN_CONNECTED_DISTANCES_MULTI = ElectricObject.newKey("DRC_min_connected_distances_multi");
-	/** key of Variable for minimum separation rule when connected and multicut. */
-	public static final Variable.Key DRC_MIN_CONNECTED_DISTANCES_MULTI_RULE = ElectricObject.newKey("DRC_min_connected_distances_multi_rule");
-	/** key of Variable for minimum separation when unconnected and multicut. */
-	public static final Variable.Key DRC_MIN_UNCONNECTED_DISTANCES_MULTI = ElectricObject.newKey("DRC_min_unconnected_distances_multi");
-	/** key of Variable for minimum separation rule when unconnected and multicut. */
-	public static final Variable.Key DRC_MIN_UNCONNECTED_DISTANCES_MULTI_RULE = ElectricObject.newKey("DRC_min_unconnected_distances_multi_rule");
-	/** key of Variable for minimum edge distance. */
-	public static final Variable.Key DRC_MIN_EDGE_DISTANCES = ElectricObject.newKey("DRC_min_edge_distances");
-	/** key of Variable for minimum edge distance rule. */
-	public static final Variable.Key DRC_MIN_EDGE_DISTANCES_RULE = ElectricObject.newKey("DRC_min_edge_distances_rule");
-	/** key of Variable for minimum layer width. */
-	public static final Variable.Key DRC_MIN_WIDTH = ElectricObject.newKey("DRC_min_width");
-	/** key of Variable for minimum layer width rule. */
-	public static final Variable.Key DRC_MIN_WIDTH_RULE = ElectricObject.newKey("DRC_min_width_rule");
- 
-	/** the state of the MOCMOS technology */	private int state = 0;
-
+	/**
+	 * Method for initializing this technology.
+	 */
 	public void init()
 	{
-		// load these DRC tables
+		// load these DRC tables for a default: submicron, 4 metal, 1 poly
 		setstate(MOCMOSSUBMRULES|MOCMOS4METAL);
 
 		// remember this state
@@ -2819,13 +2707,13 @@ public class MoCMOS extends Technology
 	}
 
 	/**
-	 * Routine to determine whether this Technology is drawing stick figures.
+	 * Method to determine whether this Technology is drawing stick figures.
 	 * @return true if the MOCMOS technology is drawing stick figures.
 	 * Returns false if it is drawing full geometry (the default).
 	 */
 	public boolean isStickFigures() { return (state & MOCMOSSTICKFIGURE) != 0; }
 	/**
-	 * Routine to set whether this Technology is drawing stick figures.
+	 * Method to set whether this Technology is drawing stick figures.
 	 * @param on true if the MOCMOS technology is to draw stick figures.
 	 */
 	public void setStickFigures(boolean on)
@@ -2835,12 +2723,12 @@ public class MoCMOS extends Technology
 	}
 
 	/**
-	 * Routine to determine whether this Technology is using alternate Active and Poly contact rules.
+	 * Method to determine whether this Technology is using alternate Active and Poly contact rules.
 	 * @return true if the MOCMOS technology is using alternate Active and Poly contact rules.
 	 */
 	public boolean isAlternateActivePolyRules() { return (state & MOCMOSALTAPRULES) != 0; }
 	/**
-	 * Routine to set whether this Technology is using alternate Active and Poly contact rules.
+	 * Method to set whether this Technology is using alternate Active and Poly contact rules.
 	 * @param on true if the MOCMOS technology is to use alternate Active and Poly contact rules.
 	 */
 	public void setAlternateActivePolyRules(boolean on)
@@ -2850,12 +2738,12 @@ public class MoCMOS extends Technology
 	}
 
 	/**
-	 * Routine to determine whether this Technology allows stacked vias.
+	 * Method to determine whether this Technology allows stacked vias.
 	 * @return true if the MOCMOS technology allows stacked vias.
 	 */
 	public boolean isAllowStackedVias() { return (state & MOCMOSNOSTACKEDVIAS) != 0; }
 	/**
-	 * Routine to set whether this Technology allows stacked vias.
+	 * Method to set whether this Technology allows stacked vias.
 	 * @param on true if the MOCMOS technology will allow stacked vias.
 	 */
 	public void setAllowStackedVias(boolean on)
@@ -2865,13 +2753,13 @@ public class MoCMOS extends Technology
 	}
 
 	/**
-	 * Routine to determine whether this Technology includes special transistors.
+	 * Method to determine whether this Technology includes special transistors.
 	 * The special transistors include the scalable transistors with built-in contacts.
 	 * @return true if the MOCMOS technology includes special transistors.
 	 */
 	public boolean isSpecialTransistors() { return (state & MOCMOSSPECIALTRAN) != 0; }
 	/**
-	 * Routine to set whether this Technology includes special transistors.
+	 * Method to set whether this Technology includes special transistors.
 	 * The special transistors include the scalable transistors with built-in contacts.
 	 * @param on true if the MOCMOS technology will include special transistors.
 	 */
@@ -2882,7 +2770,7 @@ public class MoCMOS extends Technology
 	}
 
 	/**
-	 * Routine to tell the current rule set for this Technology.
+	 * Method to tell the current rule set for this Technology.
 	 * @return the current rule set for this Technology:<BR>
 	 * 0: SCMOS rules<BR>
 	 * 1: Submicron rules<BR>
@@ -2895,7 +2783,7 @@ public class MoCMOS extends Technology
 		return 2;
 	}
 	/**
-	 * Routine to set the rule set for this Technology.
+	 * Method to set the rule set for this Technology.
 	 * @param set the new rule set for this Technology:<BR>
 	 * 0: SCMOS rules<BR>
 	 * 1: Submicron rules<BR>
@@ -2912,7 +2800,7 @@ public class MoCMOS extends Technology
 	}
 
 	/**
-	 * Routine to tell the number of polysilicon layers in this Technology.
+	 * Method to tell the number of polysilicon layers in this Technology.
 	 * @return the number of polysilicon layers in this Technology (1 or 2).
 	 */
 	public int getNumPolysilicon()
@@ -2921,7 +2809,7 @@ public class MoCMOS extends Technology
 		return 1;
 	}
 	/**
-	 * Routine to set the number of polysilicon layers in this Technology.
+	 * Method to set the number of polysilicon layers in this Technology.
 	 * @param count the new number of polysilicon layers in this Technology.
 	 * The number of polysilicon layers must be 1 or 2.
 	 */
@@ -2932,7 +2820,7 @@ public class MoCMOS extends Technology
 	}
 
 	/**
-	 * Routine to tell the number of metal layers in this Technology.
+	 * Method to tell the number of metal layers in this Technology.
 	 * @return the number of metal layers in this Technology (from 2 to 6).
 	 */
 	public int getNumMetal()
@@ -2944,7 +2832,7 @@ public class MoCMOS extends Technology
 		return 6;
 	}
 	/**
-	 * Routine to set the number of metal layers in this Technology.
+	 * Method to set the number of metal layers in this Technology.
 	 * @param count the new number of metal layers in this Technology.
 	 * The number of metal layers must be between 2 and 6.
 	 */
@@ -2960,10 +2848,20 @@ public class MoCMOS extends Technology
 		}
 	}
 
-	/******************** SUPPORT ROUTINES ********************/
+	/**
+	 * Method to set the design rules back to the "factory" state for the given options.
+	 */
+	public void factoryReset()
+	{
+		int realstate = state;
+		state++;
+		setstate(realstate);
+	}
+
+	/******************** SUPPORT METHODS ********************/
 
 	/**
-	 * Routine to set the technology to state "newstate", which encodes the number of metal
+	 * Method to set the technology to state "newstate", which encodes the number of metal
 	 * layers, whether it is a deep process, and other rules.
 	 */
 	private void setstate(int newstate)
@@ -3108,7 +3006,7 @@ public class MoCMOS extends Technology
 	}
 
 	/**
-	 * Routine to describe the technology when it is in state "state".
+	 * Method to describe the technology when it is in state "state".
 	 */
 	private String describeState(int state)
 	{
@@ -3146,7 +3044,7 @@ public class MoCMOS extends Technology
 	}
 
 	/**
-	 * Routine to remove all information in the design rule tables.
+	 * Method to remove all information in the design rule tables.
 	 * Returns true on error.
 	 */
 	private boolean loadDRCtables()
@@ -3424,28 +3322,28 @@ public class MoCMOS extends Technology
 		if (!errorfound)
 		{
 			// clear the rules on the technology
-			newVar(DRC_MIN_CONNECTED_DISTANCES, conDist);
-			newVar(DRC_MIN_CONNECTED_DISTANCES_RULE, conDistRules);
-			newVar(DRC_MIN_UNCONNECTED_DISTANCES, unConDist);
-			newVar(DRC_MIN_UNCONNECTED_DISTANCES_RULE, unConDistRules);
+			newVar(DRC.MIN_CONNECTED_DISTANCES, conDist);
+			newVar(DRC.MIN_CONNECTED_DISTANCES_RULE, conDistRules);
+			newVar(DRC.MIN_UNCONNECTED_DISTANCES, unConDist);
+			newVar(DRC.MIN_UNCONNECTED_DISTANCES_RULE, unConDistRules);
 
-			newVar(DRC_MIN_CONNECTED_DISTANCES_WIDE, conDistWide);
-			newVar(DRC_MIN_CONNECTED_DISTANCES_WIDE_RULE, conDistWideRules);
-			newVar(DRC_MIN_UNCONNECTED_DISTANCES_WIDE, unConDistWide);
-			newVar(DRC_MIN_UNCONNECTED_DISTANCES_WIDE_RULE, unConDistWideRules);
+			newVar(DRC.MIN_CONNECTED_DISTANCES_WIDE, conDistWide);
+			newVar(DRC.MIN_CONNECTED_DISTANCES_WIDE_RULE, conDistWideRules);
+			newVar(DRC.MIN_UNCONNECTED_DISTANCES_WIDE, unConDistWide);
+			newVar(DRC.MIN_UNCONNECTED_DISTANCES_WIDE_RULE, unConDistWideRules);
 			
-			newVar(DRC_MIN_CONNECTED_DISTANCES_MULTI, conDistMulti);
-			newVar(DRC_MIN_CONNECTED_DISTANCES_MULTI_RULE, conDistMultiRules);
-			newVar(DRC_MIN_UNCONNECTED_DISTANCES_MULTI, unConDistMulti);
-			newVar(DRC_MIN_UNCONNECTED_DISTANCES_MULTI_RULE, unConDistMultiRules);
+			newVar(DRC.MIN_CONNECTED_DISTANCES_MULTI, conDistMulti);
+			newVar(DRC.MIN_CONNECTED_DISTANCES_MULTI_RULE, conDistMultiRules);
+			newVar(DRC.MIN_UNCONNECTED_DISTANCES_MULTI, unConDistMulti);
+			newVar(DRC.MIN_UNCONNECTED_DISTANCES_MULTI_RULE, unConDistMultiRules);
 
-			newVar(DRC_MIN_EDGE_DISTANCES, edgeDist);
-			newVar(DRC_MIN_EDGE_DISTANCES_RULE, edgeDistRules);
+			newVar(DRC.MIN_EDGE_DISTANCES, edgeDist);
+			newVar(DRC.MIN_EDGE_DISTANCES_RULE, edgeDistRules);
 
-			newVar(DRC_MIN_WIDTH, minSize);
-			newVar(DRC_MIN_WIDTH_RULE, minSizeRules);
+			newVar(DRC.MIN_WIDTH, minSize);
+			newVar(DRC.MIN_WIDTH_RULE, minSizeRules);
 
-			newVar(DRC_WIDE_LIMIT, new Double(WIDELIMIT));
+			newVar(DRC.WIDE_LIMIT, new Double(WIDELIMIT));
 
 			// reset valid DRC dates
 //			dr_reset_dates();
@@ -3455,49 +3353,89 @@ public class MoCMOS extends Technology
 	}
 
 	/**
-	 * Routine to implement rule 3.3 which specifies the amount of poly overhang
+	 * Method to implement rule 3.3 which specifies the amount of poly overhang
 	 * on a transistor.
 	 */
 	private void setTransistorPolyOverhang(double overhang)
 	{
-//		// define the poly box in terms of the central transistor box
-//		trpbox[1] = trp1box[1] = trpobox[1] - overhang;
-//		trpbox[5] = trp2box[5] = trpobox[5] + overhang;
-//
-//		// the serpentine poly overhang
-//		tpa_l[TRANSPOLYLAYER].extendt = tpa_l[TRANSPOLYLAYER].extendb = (INTSML)overhang;
+		// define the poly box in terms of the central transistor box
+		TechPoint [] pPolyPoints = pTransistorPolyLayer.getPoints();
+		EdgeH pPolyLeft = pPolyPoints[0].getX();
+		EdgeH pPolyRight = pPolyPoints[1].getX();
+		pPolyLeft.setAdder(6-overhang);
+		pPolyRight.setAdder(-6+overhang);
+		pTransistorPolyLayer.setSerpentineExtentT(overhang);
+		pTransistorPolyLayer.setSerpentineExtentB(overhang);
+
+		TechPoint [] nPolyPoints = nTransistorPolyLayer.getPoints();
+		EdgeH nPolyLeft = nPolyPoints[0].getX();
+		EdgeH nPolyRight = nPolyPoints[1].getX();
+		nPolyLeft.setAdder(6-overhang);
+		nPolyRight.setAdder(-6+overhang);
+		nTransistorPolyLayer.setSerpentineExtentT(overhang);
+		nTransistorPolyLayer.setSerpentineExtentB(overhang);
+
+		// for the electrical rule versions with split active
+//		trp1box[1] = trpbox[1];
+//		trp2box[5] = trpbox[5];
 //		tpaE_l[TRANSEPOLY1LAYER].extendb = (INTSML)overhang;
 //		tpaE_l[TRANSEPOLY2LAYER].extendt = (INTSML)overhang;
-//		tna_l[TRANSPOLYLAYER].extendt = tna_l[TRANSPOLYLAYER].extendb = (INTSML)overhang;
 //		tnaE_l[TRANSEPOLY1LAYER].extendb = (INTSML)overhang;
 //		tnaE_l[TRANSEPOLY2LAYER].extendt = (INTSML)overhang;
 	}
 
 	/**
-	 * Routine to implement rule 3.4 which specifies the amount of active overhang
+	 * Method to implement rule 3.4 which specifies the amount of active overhang
 	 * on a transistor.
 	 */
 	private void setTransistorActiveOverhang(double overhang)
 	{
-//		INTBIG polywidth, welloverhang;
-//
-//		// pickup extension of well about active (2.3)
-//		welloverhang = trabox[1] - trwbox[1];
-//
-//		// define the active box in terms of the central transistor box
-//		trabox[3] = trpobox[3] - overhang;
-//		trabox[7] = trpobox[7] + overhang;
+		TechPoint [] pActivePoints = pTransistorActiveLayer.getPoints();
+		TechPoint [] nActivePoints = nTransistorActiveLayer.getPoints();
+		TechPoint [] pWellPoints = pTransistorWellLayer.getPoints();
+		TechPoint [] nWellPoints = nTransistorWellLayer.getPoints();
+		TechPoint [] pSelectPoints = pTransistorSelectLayer.getPoints();
+		TechPoint [] nSelectPoints = nTransistorSelectLayer.getPoints();
+
+		// pickup extension of well about active (2.3)
+		EdgeH pActiveLeft = pActivePoints[0].getX();
+		EdgeH pWellLeft = pWellPoints[0].getX();
+		double wellOverhang = pActiveLeft.getAdder() - pWellLeft.getAdder();
+
+		// define the active box in terms of the central transistor box
+		EdgeV pActiveBottom = pActivePoints[0].getY();
+		EdgeV pActiveTop = pActivePoints[1].getY();
+		pActiveBottom.setAdder(10-overhang);
+		pActiveTop.setAdder(-10+overhang);
+		EdgeV nActiveBottom = nActivePoints[0].getY();
+		EdgeV nActiveTop = nActivePoints[1].getY();
+		nActiveBottom.setAdder(10-overhang);
+		nActiveTop.setAdder(-10+overhang);
+
+		// for the electrical rule versions with split active
 //		tra1box[7] = trpobox[7] + overhang;
 //		tra2box[3] = trpobox[3] - overhang;
-//
-//		// extension of well about active (2.3)
-//		trwbox[3] = trabox[3] - welloverhang;
-//		trwbox[7] = trabox[7] + welloverhang;
-//
-//		// extension of select about active = 2 (4.2)
-//		trsbox[3] = trabox[3] - K2;
-//		trsbox[7] = trabox[7] + K2;
-//
+
+		// extension of well about active (2.3)
+		EdgeV pWellBottom = pWellPoints[0].getY();
+		EdgeV pWellTop = pWellPoints[1].getY();
+		pWellBottom.setAdder(pActiveBottom.getAdder()-wellOverhang);
+		pWellTop.setAdder(pActiveTop.getAdder()+wellOverhang);
+		EdgeV nWellBottom = nWellPoints[0].getY();
+		EdgeV nWellTop = nWellPoints[1].getY();
+		nWellBottom.setAdder(nActiveBottom.getAdder()-wellOverhang);
+		nWellTop.setAdder(nActiveTop.getAdder()+wellOverhang);
+
+		// extension of select about active = 2 (4.2)
+		EdgeV pSelectBottom = pSelectPoints[0].getY();
+		EdgeV pSelectTop = pSelectPoints[1].getY();
+		pSelectBottom.setAdder(pActiveBottom.getAdder()-2);
+		pSelectTop.setAdder(pActiveTop.getAdder()+2);
+		EdgeV nSelectBottom = nSelectPoints[0].getY();
+		EdgeV nSelectTop = nSelectPoints[1].getY();
+		nSelectBottom.setAdder(nActiveBottom.getAdder()-2);
+		nSelectTop.setAdder(nActiveTop.getAdder()+2);
+
 //		// the serpentine active overhang
 //		polywidth = tpa.ysize/2 - trpobox[3];
 //		tpa_l[TRANSACTLAYER].lwidth = (INTSML)(polywidth + overhang);
@@ -3531,18 +3469,48 @@ public class MoCMOS extends Technology
 	}
 
 	/**
-	 * Routine to implement rule 2.3 which specifies the amount of well surround
+	 * Method to implement rule 2.3 which specifies the amount of well surround
 	 * about active on a transistor.
 	 */
 	private void setTransistorWellSurround(double overhang)
 	{
-//		// define the well box in terms of the active box
-//		trwbox[1] = trabox[1] - overhang;
-//		trwbox[3] = trabox[3] - overhang;
-//		trwbox[5] = trabox[5] + overhang;
-//		trwbox[7] = trabox[7] + overhang;
-//
-//		// the serpentine poly overhang
+		// define the well box in terms of the active box
+		TechPoint [] pActivePoints = pTransistorActiveLayer.getPoints();
+		TechPoint [] nActivePoints = nTransistorActiveLayer.getPoints();
+		TechPoint [] pWellPoints = pTransistorWellLayer.getPoints();
+		TechPoint [] nWellPoints = nTransistorWellLayer.getPoints();
+
+		EdgeH pWellLeft = pWellPoints[0].getX();
+		EdgeH pWellRight = pWellPoints[1].getX();
+		EdgeV pWellBottom = pWellPoints[0].getY();
+		EdgeV pWellTop = pWellPoints[1].getY();
+
+		EdgeH pActiveLeft = pActivePoints[0].getX();
+		EdgeH pActiveRight = pActivePoints[1].getX();
+		EdgeV pActiveBottom = pActivePoints[0].getY();
+		EdgeV pActiveTop = pActivePoints[1].getY();
+
+		EdgeH nWellLeft = nWellPoints[0].getX();
+		EdgeH nWellRight = nWellPoints[1].getX();
+		EdgeV nWellBottom = nWellPoints[0].getY();
+		EdgeV nWellTop = nWellPoints[1].getY();
+
+		EdgeH nActiveLeft = nActivePoints[0].getX();
+		EdgeH nActiveRight = nActivePoints[1].getX();
+		EdgeV nActiveBottom = nActivePoints[0].getY();
+		EdgeV nActiveTop = nActivePoints[1].getY();
+
+		pWellLeft.setAdder(pActiveLeft.getAdder()-overhang);
+		pWellRight.setAdder(pActiveRight.getAdder()+overhang);
+		pWellBottom.setAdder(pActiveBottom.getAdder()-overhang);
+		pWellTop.setAdder(pActiveTop.getAdder()+overhang);
+
+		nWellLeft.setAdder(nActiveLeft.getAdder()-overhang);
+		nWellRight.setAdder(nActiveRight.getAdder()+overhang);
+		nWellBottom.setAdder(nActiveBottom.getAdder()-overhang);
+		nWellTop.setAdder(nActiveTop.getAdder()+overhang);
+
+		// the serpentine poly overhang
 //		tpa_l[TRANSWELLLAYER].extendt = tpa_l[TRANSWELLLAYER].extendb = (INTSML)overhang;
 //		tpa_l[TRANSWELLLAYER].lwidth = tpa_l[TRANSWELLLAYER].rwidth = (INTSML)(overhang+K4);
 //		tpaE_l[TRANSEWELLLAYER].extendt = tpaE_l[TRANSEWELLLAYER].extendb = (INTSML)overhang;
@@ -3554,7 +3522,7 @@ public class MoCMOS extends Technology
 	}
 
 	/**
-	 * Routine to change the design rules for layer "layername" layers so that
+	 * Method to change the design rules for layer "layername" layers so that
 	 * the layers are at least "width" wide.  Affects the default arc width
 	 * and the default pin size.
 	 */
@@ -3588,7 +3556,7 @@ public class MoCMOS extends Technology
 	}
 
 	/**
-	 * Routine to set the surround distance of layer "layer" from the via in node "nodename" to "surround".
+	 * Method to set the surround distance of layer "layer" from the via in node "nodename" to "surround".
 	 */
 	private void setLayerSurroundVia(PrimitiveNode nty, Layer layer, double surround)
 	{
@@ -3614,7 +3582,7 @@ public class MoCMOS extends Technology
 	}
 
 	/**
-	 * Routine to set the surround distance of layer "outerlayer" from layer "innerlayer"
+	 * Method to set the surround distance of layer "outerlayer" from layer "innerlayer"
 	 * in node "nty" to "surround".  The array "minsize" is the minimum size of each layer.
 	 */
 	private void setLayerSurroundLayer(PrimitiveNode nty, Layer outerLayer, Layer innerLayer, double surround, Double [] minSize)
@@ -3666,7 +3634,7 @@ public class MoCMOS extends Technology
 	}
 
 	/**
-	 * Routine to set the surround distance of layer "outerlayer" from layer "innerlayer"
+	 * Method to set the surround distance of layer "outerlayer" from layer "innerlayer"
 	 * in arc "aty" to "surround".
 	 */
 	private void setArcLayerSurroundLayer(PrimitiveArc aty, Layer outerLayer, Layer innerLayer, double surround)
@@ -3693,7 +3661,7 @@ public class MoCMOS extends Technology
 	}
 
 	/**
-	 * Routine to set the true node size (the highlighted area) of node "nodename" to "wid" x "hei".
+	 * Method to set the true node size (the highlighted area) of node "nodename" to "wid" x "hei".
 	 */
 	private void setDefNodeSize(PrimitiveNode nty, int index, double wid, double hei)
 	{
@@ -3703,164 +3671,157 @@ public class MoCMOS extends Technology
 		nty.setSizeOffset(new SizeOffset(xindent, xindent, yindent, yindent));
 	}
 
-//INTBIG request(CHAR *command, va_list ap)
-//{
-//	REGISTER INTBIG realstate;
-//	static INTBIG equivtable[3] = {poly1_lay,transistorPoly_lay, -1};
+//	INTBIG request(CHAR *command, va_list ap)
+//	{
+//		REGISTER INTBIG realstate;
+//		static INTBIG equivtable[3] = {poly1_lay,transistorPoly_lay, -1};
 //
-//	if (namesame(command, "get-layer-equivalences")) == 0)
-//	{
-//		return((INTBIG)equivtable);
-//	}
-//	if (namesame(command, "switch-n-and-p")) == 0)
-//	{
-//		switchnp();
-//		return(0);
-//	}
-//	if (namesame(command, "factory-reset")) == 0)
-//	{
-//		realstate = state;
-//		state++;
-//		setstate(realstate);
-//		return(0);
-//	}
-//	return(0);
-//}
-
-///*
-// * Routine to switch N and P layers (not terribly useful)
-// */
-//void switchnp(void)
-//{
-//	REGISTER LIBRARY *lib;
-//	REGISTER NODEPROTO *np;
-//	REGISTER NODEINST *ni, *rni;
-//	REGISTER ARCINST *ai;
-//	REGISTER ARCPROTO *ap, *app, *apn;
-//	REGISTER PORTPROTO *pp, *rpp;
-//	REGISTER PORTARCINST *pi;
-//	REGISTER PORTEXPINST *pe;
-//	REGISTER INTBIG i, j, k;
-//
-//	// find the important node and arc prototypes
-//	setupprimswap(NPACTP, NNACTP, &primswap[0]);
-//	setupprimswap(NMETPACTC, NMETNACTC, &primswap[1]);
-//	setupprimswap(NTRANSP, NTRANSN, &primswap[2]);
-//	setupprimswap(NPWBUT, NNWBUT, &primswap[3]);
-//	setupprimswap(NPACTIVEN, NNACTIVEN, &primswap[4]);
-//	setupprimswap(NSELECTPN, NSELECTNN, &primswap[5]);
-//	setupprimswap(NWELLPN, NWELLNN, &primswap[6]);
-//	app = apn = NOARCPROTO;
-//	for(ap = tech->firstarcproto; ap != NOARCPROTO; ap = ap->nextarcproto)
-//	{
-//		if (namesame(ap->protoname, "P-Active")) == 0) app = ap;
-//		if (namesame(ap->protoname, "N-Active")) == 0) apn = ap;
-//	}
-//
-//	for(lib = el_curlib; lib != NOLIBRARY; lib = lib->nextlibrary)
-//	{
-//		for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
+//		if (namesame(command, "get-layer-equivalences")) == 0)
 //		{
-//			for(ni = np->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
+//			return((INTBIG)equivtable);
+//		}
+//		if (namesame(command, "switch-n-and-p")) == 0)
+//		{
+//			switchnp();
+//			return(0);
+//		}
+//		return(0);
+//	}
+//
+//	/*
+//	 * Method to switch N and P layers (not terribly useful)
+//	 */
+//	void switchnp(void)
+//	{
+//		REGISTER LIBRARY *lib;
+//		REGISTER NODEPROTO *np;
+//		REGISTER NODEINST *ni, *rni;
+//		REGISTER ARCINST *ai;
+//		REGISTER ARCPROTO *ap, *app, *apn;
+//		REGISTER PORTPROTO *pp, *rpp;
+//		REGISTER PORTARCINST *pi;
+//		REGISTER PORTEXPINST *pe;
+//		REGISTER INTBIG i, j, k;
+//
+//		// find the important node and arc prototypes
+//		setupprimswap(NPACTP, NNACTP, &primswap[0]);
+//		setupprimswap(NMETPACTC, NMETNACTC, &primswap[1]);
+//		setupprimswap(NTRANSP, NTRANSN, &primswap[2]);
+//		setupprimswap(NPWBUT, NNWBUT, &primswap[3]);
+//		setupprimswap(NPACTIVEN, NNACTIVEN, &primswap[4]);
+//		setupprimswap(NSELECTPN, NSELECTNN, &primswap[5]);
+//		setupprimswap(NWELLPN, NWELLNN, &primswap[6]);
+//		app = apn = NOARCPROTO;
+//		for(ap = tech->firstarcproto; ap != NOARCPROTO; ap = ap->nextarcproto)
+//		{
+//			if (namesame(ap->protoname, "P-Active")) == 0) app = ap;
+//			if (namesame(ap->protoname, "N-Active")) == 0) apn = ap;
+//		}
+//
+//		for(lib = el_curlib; lib != NOLIBRARY; lib = lib->nextlibrary)
+//		{
+//			for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
 //			{
-//				if (ni->proto->primindex == 0) continue;
-//				if (ni->proto->tech != tech) continue;
-//				for(i=0; i<7; i++)
+//				for(ni = np->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
 //				{
-//					for(k=0; k<2; k++)
+//					if (ni->proto->primindex == 0) continue;
+//					if (ni->proto->tech != tech) continue;
+//					for(i=0; i<7; i++)
 //					{
-//						if (ni->proto == primswap[i].np[k])
+//						for(k=0; k<2; k++)
 //						{
-//							ni->proto = primswap[i].np[1-k];
-//							for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
+//							if (ni->proto == primswap[i].np[k])
 //							{
-//								for(j=0; j<primswap[i].portcount; j++)
+//								ni->proto = primswap[i].np[1-k];
+//								for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
 //								{
-//									if (pi->proto == primswap[i].pp[k][j])
+//									for(j=0; j<primswap[i].portcount; j++)
 //									{
-//										pi->proto = primswap[i].pp[1-k][j];
-//										break;
+//										if (pi->proto == primswap[i].pp[k][j])
+//										{
+//											pi->proto = primswap[i].pp[1-k][j];
+//											break;
+//										}
 //									}
 //								}
-//							}
-//							for(pe = ni->firstportexpinst; pe != NOPORTEXPINST; pe = pe->nextportexpinst)
-//							{
-//								for(j=0; j<primswap[i].portcount; j++)
+//								for(pe = ni->firstportexpinst; pe != NOPORTEXPINST; pe = pe->nextportexpinst)
 //								{
-//									if (pe->proto == primswap[i].pp[k][j])
+//									for(j=0; j<primswap[i].portcount; j++)
 //									{
-//										pe->proto = primswap[i].pp[1-k][j];
-//										pe->exportproto->subportproto = pe->proto;
-//										break;
+//										if (pe->proto == primswap[i].pp[k][j])
+//										{
+//											pe->proto = primswap[i].pp[1-k][j];
+//											pe->exportproto->subportproto = pe->proto;
+//											break;
+//										}
 //									}
 //								}
+//								break;
 //							}
-//							break;
 //						}
 //					}
 //				}
+//				for(ai = np->firstarcinst; ai != NOARCINST; ai = ai->nextarcinst)
+//				{
+//					if (ai->proto->tech != tech) continue;
+//					if (ai->proto == app)
+//					{
+//						ai->proto = apn;
+//					} else if (ai->proto == apn)
+//					{
+//						ai->proto = app;
+//					}
+//				}
 //			}
-//			for(ai = np->firstarcinst; ai != NOARCINST; ai = ai->nextarcinst)
+//			for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
 //			{
-//				if (ai->proto->tech != tech) continue;
-//				if (ai->proto == app)
+//				for(pp = np->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
 //				{
-//					ai->proto = apn;
-//				} else if (ai->proto == apn)
-//				{
-//					ai->proto = app;
+//					// find the primitive at the bottom
+//					rpp = pp->subportproto;
+//					rni = pp->subnodeinst;
+//					while (rni->proto->primindex == 0)
+//					{
+//						rni = rpp->subnodeinst;
+//						rpp = rpp->subportproto;
+//					}
+//					pp->connects = rpp->connects;
 //				}
 //			}
 //		}
-//		for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
+//		for(i=0; i<7; i++)
 //		{
-//			for(pp = np->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
-//			{
-//				// find the primitive at the bottom
-//				rpp = pp->subportproto;
-//				rni = pp->subnodeinst;
-//				while (rni->proto->primindex == 0)
-//				{
-//					rni = rpp->subnodeinst;
-//					rpp = rpp->subportproto;
-//				}
-//				pp->connects = rpp->connects;
-//			}
+//			ni = primswap[i].np[0]->firstinst;
+//			primswap[i].np[0]->firstinst = primswap[i].np[1]->firstinst;
+//			primswap[i].np[1]->firstinst = ni;
 //		}
 //	}
-//	for(i=0; i<7; i++)
+//
+//	/*
+//	 * Helper method for "switchnp()".
+//	 */
+//	void setupprimswap(INTBIG index1, INTBIG index2, PRIMSWAP *swap)
 //	{
-//		ni = primswap[i].np[0]->firstinst;
-//		primswap[i].np[0]->firstinst = primswap[i].np[1]->firstinst;
-//		primswap[i].np[1]->firstinst = ni;
+//		REGISTER NODEPROTO *np;
+//		REGISTER PORTPROTO *pp;
+//
+//		swap->np[0] = swap->np[1] = NONODEPROTO;
+//		for(np = tech->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
+//		{
+//			if (np->primindex == index1) swap->np[0] = np;
+//			if (np->primindex == index2) swap->np[1] = np;
+//		}
+//		if (swap->np[0] == NONODEPROTO || swap->np[1] == NONODEPROTO) return;
+//		swap->portcount = 0;
+//		for(pp = swap->np[0]->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
+//			swap->pp[0][swap->portcount++] = pp;
+//		swap->portcount = 0;
+//		for(pp = swap->np[1]->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
+//			swap->pp[1][swap->portcount++] = pp;
 //	}
-//}
-//
-///*
-// * Helper routine for "switchnp()".
-// */
-//void setupprimswap(INTBIG index1, INTBIG index2, PRIMSWAP *swap)
-//{
-//	REGISTER NODEPROTO *np;
-//	REGISTER PORTPROTO *pp;
-//
-//	swap->np[0] = swap->np[1] = NONODEPROTO;
-//	for(np = tech->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//	{
-//		if (np->primindex == index1) swap->np[0] = np;
-//		if (np->primindex == index2) swap->np[1] = np;
-//	}
-//	if (swap->np[0] == NONODEPROTO || swap->np[1] == NONODEPROTO) return;
-//	swap->portcount = 0;
-//	for(pp = swap->np[0]->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
-//		swap->pp[0][swap->portcount++] = pp;
-//	swap->portcount = 0;
-//	for(pp = swap->np[1]->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
-//		swap->pp[1][swap->portcount++] = pp;
-//}
-//
-///******************** NODE DESCRIPTION (GRAPHICAL) ********************/
-//
+
+/******************** NODE DESCRIPTION (GRAPHICAL) ********************/
+
 //INTBIG intnodepolys(NODEINST *ni, INTBIG *reasonable, WINDOWPART *win, POLYLOOP *pl, MOCPOLYLOOP *mocpl)
 //{
 //	REGISTER INTBIG pindex, count;
@@ -4422,7 +4383,7 @@ public class MoCMOS extends Technology
 //}
 
 	/**
-	 * Routine to convert old primitive names to their proper NodeProtos.
+	 * Method to convert old primitive names to their proper NodeProtos.
 	 * @param name the name of the old primitive.
 	 * @return the proper PrimitiveNode to use (or null if none can be determined).
 	 */
@@ -4434,7 +4395,7 @@ public class MoCMOS extends Technology
 	}
 
     /**
-     * Routine to return a gate PortInst for this transistor NodeInst.
+     * Method to return a gate PortInst for this transistor NodeInst.
      * Implementation Note: May want to make this a more general
      * method, getPrimitivePort(PortType), if the number of port
      * types increases.  Note: You should be calling 
@@ -4453,7 +4414,7 @@ public class MoCMOS extends Technology
 //     }
     
     /**
-     * Routine to return a gate PortInst for this transistor NodeInst.
+     * Method to return a gate PortInst for this transistor NodeInst.
      * Implementation Note: May want to make this a more general
      * method, getPrimitivePort(PortType), if the number of port
      * types increases.  Note: You should be calling 
@@ -4472,7 +4433,7 @@ public class MoCMOS extends Technology
 //     }
 
     /**
-     * Routine to return a gate PortInst for this transistor NodeInst.
+     * Method to return a gate PortInst for this transistor NodeInst.
      * Implementation Note: May want to make this a more general
      * method, getPrimitivePort(PortType), if the number of port
      * types increases.  Note: You should be calling 

@@ -500,28 +500,6 @@ public class GetInfoExport extends javax.swing.JDialog
         cancel = new javax.swing.JButton();
         ok = new javax.swing.JButton();
         apply = new javax.swing.JButton();
-        rightSide = new javax.swing.JPanel();
-        jLabel2 = new javax.swing.JLabel();
-        center = new javax.swing.JRadioButton();
-        bottom = new javax.swing.JRadioButton();
-        top = new javax.swing.JRadioButton();
-        right = new javax.swing.JRadioButton();
-        left = new javax.swing.JRadioButton();
-        lowerRight = new javax.swing.JRadioButton();
-        lowerLeft = new javax.swing.JRadioButton();
-        upperRight = new javax.swing.JRadioButton();
-        upperLeft = new javax.swing.JRadioButton();
-        textIconCenter = new javax.swing.JLabel();
-        textIconBottom = new javax.swing.JLabel();
-        textIconTop = new javax.swing.JLabel();
-        textIconRight = new javax.swing.JLabel();
-        textIconLeft = new javax.swing.JLabel();
-        textIconLowerRight = new javax.swing.JLabel();
-        textIconLowerLeft = new javax.swing.JLabel();
-        textIconUpperRight = new javax.swing.JLabel();
-        textIconUpperLeft = new javax.swing.JLabel();
-        bodyOnly = new javax.swing.JCheckBox();
-        alwaysDrawn = new javax.swing.JCheckBox();
         leftSide = new javax.swing.JPanel();
         jLabel4 = new javax.swing.JLabel();
         pointsSize = new javax.swing.JTextField();
@@ -548,6 +526,28 @@ public class GetInfoExport extends javax.swing.JDialog
         theText = new javax.swing.JTextField();
         see = new javax.swing.JButton();
         attributes = new javax.swing.JButton();
+        jPanel1 = new javax.swing.JPanel();
+        textCorner = new javax.swing.JPanel();
+        center = new javax.swing.JRadioButton();
+        bottom = new javax.swing.JRadioButton();
+        top = new javax.swing.JRadioButton();
+        right = new javax.swing.JRadioButton();
+        left = new javax.swing.JRadioButton();
+        lowerRight = new javax.swing.JRadioButton();
+        lowerLeft = new javax.swing.JRadioButton();
+        upperRight = new javax.swing.JRadioButton();
+        upperLeft = new javax.swing.JRadioButton();
+        textIconCenter = new javax.swing.JLabel();
+        textIconBottom = new javax.swing.JLabel();
+        textIconTop = new javax.swing.JLabel();
+        textIconRight = new javax.swing.JLabel();
+        textIconLeft = new javax.swing.JLabel();
+        textIconLowerRight = new javax.swing.JLabel();
+        textIconLowerLeft = new javax.swing.JLabel();
+        textIconUpperRight = new javax.swing.JLabel();
+        textIconUpperLeft = new javax.swing.JLabel();
+        bodyOnly = new javax.swing.JCheckBox();
+        alwaysDrawn = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -607,222 +607,6 @@ public class GetInfoExport extends javax.swing.JDialog
         gridBagConstraints.gridy = 2;
         gridBagConstraints.weightx = 0.25;
         getContentPane().add(apply, gridBagConstraints);
-
-        rightSide.setLayout(new java.awt.GridBagLayout());
-
-        jLabel2.setText("Text corner:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        rightSide.add(jLabel2, gridBagConstraints);
-
-        center.setText("Center");
-        grab.add(center);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.ipady = -4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        rightSide.add(center, gridBagConstraints);
-
-        bottom.setText("Bottom");
-        grab.add(bottom);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.ipady = -4;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        rightSide.add(bottom, gridBagConstraints);
-
-        top.setText("Top");
-        grab.add(top);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.ipady = -4;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        rightSide.add(top, gridBagConstraints);
-
-        right.setText("Right");
-        grab.add(right);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.ipady = -4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        rightSide.add(right, gridBagConstraints);
-
-        left.setText("Left");
-        grab.add(left);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.ipady = -4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        rightSide.add(left, gridBagConstraints);
-
-        lowerRight.setText("Lower right");
-        grab.add(lowerRight);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.ipady = -4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        rightSide.add(lowerRight, gridBagConstraints);
-
-        lowerLeft.setText("Lower left");
-        grab.add(lowerLeft);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.ipady = -4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        rightSide.add(lowerLeft, gridBagConstraints);
-
-        upperRight.setText("Upper right");
-        grab.add(upperRight);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.ipady = -4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
-        rightSide.add(upperRight, gridBagConstraints);
-
-        upperLeft.setText("Upper left");
-        grab.add(upperLeft);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.ipady = -4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 0);
-        rightSide.add(upperLeft, gridBagConstraints);
-
-        textIconCenter.setMinimumSize(new java.awt.Dimension(25, 15));
-        textIconCenter.setPreferredSize(new java.awt.Dimension(25, 15));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        rightSide.add(textIconCenter, gridBagConstraints);
-
-        textIconBottom.setMinimumSize(new java.awt.Dimension(25, 15));
-        textIconBottom.setPreferredSize(new java.awt.Dimension(25, 15));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        rightSide.add(textIconBottom, gridBagConstraints);
-
-        textIconTop.setMinimumSize(new java.awt.Dimension(25, 15));
-        textIconTop.setPreferredSize(new java.awt.Dimension(25, 15));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        rightSide.add(textIconTop, gridBagConstraints);
-
-        textIconRight.setMinimumSize(new java.awt.Dimension(25, 15));
-        textIconRight.setPreferredSize(new java.awt.Dimension(25, 15));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        rightSide.add(textIconRight, gridBagConstraints);
-
-        textIconLeft.setMinimumSize(new java.awt.Dimension(25, 15));
-        textIconLeft.setPreferredSize(new java.awt.Dimension(25, 15));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        rightSide.add(textIconLeft, gridBagConstraints);
-
-        textIconLowerRight.setMinimumSize(new java.awt.Dimension(25, 15));
-        textIconLowerRight.setPreferredSize(new java.awt.Dimension(25, 15));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        rightSide.add(textIconLowerRight, gridBagConstraints);
-
-        textIconLowerLeft.setMinimumSize(new java.awt.Dimension(25, 15));
-        textIconLowerLeft.setPreferredSize(new java.awt.Dimension(25, 15));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        rightSide.add(textIconLowerLeft, gridBagConstraints);
-
-        textIconUpperRight.setMinimumSize(new java.awt.Dimension(25, 15));
-        textIconUpperRight.setPreferredSize(new java.awt.Dimension(25, 15));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        rightSide.add(textIconUpperRight, gridBagConstraints);
-
-        textIconUpperLeft.setMinimumSize(new java.awt.Dimension(25, 15));
-        textIconUpperLeft.setPreferredSize(new java.awt.Dimension(25, 15));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 9;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        rightSide.add(textIconUpperLeft, gridBagConstraints);
-
-        bodyOnly.setText("Body only");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 10;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        rightSide.add(bodyOnly, gridBagConstraints);
-
-        alwaysDrawn.setText("Always drawn");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 11;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        rightSide.add(alwaysDrawn, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
-        getContentPane().add(rightSide, gridBagConstraints);
 
         leftSide.setLayout(new java.awt.GridBagLayout());
 
@@ -884,16 +668,16 @@ public class GetInfoExport extends javax.swing.JDialog
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         leftSide.add(font, gridBagConstraints);
 
         italic.setText("Italic");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         leftSide.add(italic, gridBagConstraints);
 
         bold.setText("Bold");
@@ -915,8 +699,8 @@ public class GetInfoExport extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 8;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         leftSide.add(jLabel6, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -931,8 +715,8 @@ public class GetInfoExport extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         leftSide.add(jLabel8, gridBagConstraints);
 
         xOffset.setColumns(8);
@@ -947,8 +731,8 @@ public class GetInfoExport extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 6;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         leftSide.add(jLabel9, gridBagConstraints);
 
         yOffset.setColumns(8);
@@ -1067,6 +851,220 @@ public class GetInfoExport extends javax.swing.JDialog
         gridBagConstraints.weightx = 0.25;
         getContentPane().add(attributes, gridBagConstraints);
 
+        jPanel1.setLayout(new java.awt.GridBagLayout());
+
+        textCorner.setLayout(new java.awt.GridBagLayout());
+
+        textCorner.setBorder(new javax.swing.border.TitledBorder("Text Corner"));
+        center.setText("Center");
+        grab.add(center);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.ipady = -4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
+        textCorner.add(center, gridBagConstraints);
+
+        bottom.setText("Bottom");
+        grab.add(bottom);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.ipady = -4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
+        textCorner.add(bottom, gridBagConstraints);
+
+        top.setText("Top");
+        grab.add(top);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.ipady = -4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
+        textCorner.add(top, gridBagConstraints);
+
+        right.setText("Right");
+        grab.add(right);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.ipady = -4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
+        textCorner.add(right, gridBagConstraints);
+
+        left.setText("Left");
+        grab.add(left);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.ipady = -4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
+        textCorner.add(left, gridBagConstraints);
+
+        lowerRight.setText("Lower right");
+        grab.add(lowerRight);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.ipady = -4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
+        textCorner.add(lowerRight, gridBagConstraints);
+
+        lowerLeft.setText("Lower left");
+        grab.add(lowerLeft);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.ipady = -4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
+        textCorner.add(lowerLeft, gridBagConstraints);
+
+        upperRight.setText("Upper right");
+        grab.add(upperRight);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.ipady = -4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
+        textCorner.add(upperRight, gridBagConstraints);
+
+        upperLeft.setText("Upper left");
+        grab.add(upperLeft);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.ipady = -4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 0);
+        textCorner.add(upperLeft, gridBagConstraints);
+
+        textIconCenter.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconCenter.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        textCorner.add(textIconCenter, gridBagConstraints);
+
+        textIconBottom.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconBottom.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        textCorner.add(textIconBottom, gridBagConstraints);
+
+        textIconTop.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconTop.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        textCorner.add(textIconTop, gridBagConstraints);
+
+        textIconRight.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconRight.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        textCorner.add(textIconRight, gridBagConstraints);
+
+        textIconLeft.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconLeft.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        textCorner.add(textIconLeft, gridBagConstraints);
+
+        textIconLowerRight.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconLowerRight.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        textCorner.add(textIconLowerRight, gridBagConstraints);
+
+        textIconLowerLeft.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconLowerLeft.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        textCorner.add(textIconLowerLeft, gridBagConstraints);
+
+        textIconUpperRight.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconUpperRight.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        textCorner.add(textIconUpperRight, gridBagConstraints);
+
+        textIconUpperLeft.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconUpperLeft.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        textCorner.add(textIconUpperLeft, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+        jPanel1.add(textCorner, gridBagConstraints);
+
+        bodyOnly.setText("Body only");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(bodyOnly, gridBagConstraints);
+
+        alwaysDrawn.setText("Always drawn");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel1.add(alwaysDrawn, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        getContentPane().add(jPanel1, gridBagConstraints);
+
         pack();
     }//GEN-END:initComponents
 
@@ -1134,13 +1132,13 @@ public class GetInfoExport extends javax.swing.JDialog
     private javax.swing.JCheckBox italic;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JRadioButton left;
     private javax.swing.JPanel leftSide;
     private javax.swing.JRadioButton lowerLeft;
@@ -1150,10 +1148,10 @@ public class GetInfoExport extends javax.swing.JDialog
     private javax.swing.JTextField pointsSize;
     private javax.swing.JTextField refName;
     private javax.swing.JRadioButton right;
-    private javax.swing.JPanel rightSide;
     private javax.swing.JComboBox rotation;
     private javax.swing.JButton see;
     private javax.swing.ButtonGroup sizes;
+    private javax.swing.JPanel textCorner;
     private javax.swing.JLabel textIconBottom;
     private javax.swing.JLabel textIconCenter;
     private javax.swing.JLabel textIconLeft;
