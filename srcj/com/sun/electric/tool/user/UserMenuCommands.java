@@ -71,6 +71,7 @@ import com.sun.electric.tool.user.dialogs.GetInfoExport;
 import com.sun.electric.tool.user.dialogs.GetInfoText;
 import com.sun.electric.tool.user.dialogs.GetInfoMulti;
 import com.sun.electric.tool.user.dialogs.CellLists;
+import com.sun.electric.tool.user.dialogs.CellOptions;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.generator.PadGenerator;
@@ -202,6 +203,11 @@ public final class UserMenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { deleteCellCommand(); } });
 		cellMenu.addMenuItem("Cross-Library Copy...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { crossLibraryCopyCommand(); } });
+
+		cellMenu.addSeparator();
+ 
+		cellMenu.addMenuItem("Cell Options...", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { cellOptionsCommand(); }});
 
 		cellMenu.addSeparator();
  
@@ -841,6 +847,16 @@ public final class UserMenuCommands
 	{
 		JFrame jf = TopLevel.getCurrentJFrame();
  		CrossLibCopy dialog = new CrossLibCopy(jf, true);
+		dialog.show();
+	}
+
+	/**
+	 * This routine implements the command to do cell options.
+	 */
+	public static void cellOptionsCommand()
+	{
+		JFrame jf = TopLevel.getCurrentJFrame();
+ 		CellOptions dialog = new CellOptions(jf, true);
 		dialog.show();
 	}
 
