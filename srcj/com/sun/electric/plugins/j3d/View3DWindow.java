@@ -24,6 +24,8 @@
 package com.sun.electric.plugins.j3d;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.topology.ArcInst;
@@ -32,7 +34,9 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.tool.user.ui.*;
 import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.Job;
@@ -101,6 +105,7 @@ public class View3DWindow extends JPanel
 
     static {
 
+	    //** Data for cells
 		Color3f objColor = new Color3f(Color.GRAY);
 		ColoringAttributes ca = new ColoringAttributes();
 		ca.setColor(objColor);
@@ -114,8 +119,8 @@ public class View3DWindow extends JPanel
 			// Set up the polygon attributes
 		PolygonAttributes pa = new PolygonAttributes();
 		pa.setCullFace(PolygonAttributes.CULL_NONE);
-		//pa.setPolygonMode(PolygonAttributes.POLYGON_LINE);
-		//ap.setPolygonAttributes(pa);
+		pa.setPolygonMode(PolygonAttributes.POLYGON_LINE);
+		cellApp.setPolygonAttributes(pa);
 
 		TextureAttributes texAttr = new TextureAttributes();
 		texAttr.setTextureMode(TextureAttributes.MODULATE);
@@ -308,17 +313,20 @@ public class View3DWindow extends JPanel
 		bg.setApplicationBounds(infiniteBounds);
 		objRoot.addChild(bg);
 
-		// Drawing nodes
-		for(Iterator nodes = cell.getNodes(); nodes.hasNext(); )
-		{
-			addNode((NodeInst)nodes.next(), objTrans);
-		}
-
-		// Drawing arcs
-		for(Iterator arcs = cell.getArcs(); arcs.hasNext(); )
-		{
-			addArc((ArcInst)arcs.next(), objTrans);
-		}
+		//addCell(cell);
+		View3DEnumerator view3D = new View3DEnumerator();
+		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, view3D);
+//		// Drawing nodes
+//		for(Iterator nodes = cell.getNodes(); nodes.hasNext(); )
+//		{
+//			addNode((NodeInst)nodes.next(), objTrans);
+//		}
+//
+//		// Drawing arcs
+//		for(Iterator arcs = cell.getArcs(); arcs.hasNext(); )
+//		{
+//			addArc((ArcInst)arcs.next(), objTrans);
+//		}
 
 		// Lights
         Color3f alColor = new Color3f(0.6f, 0.6f, 0.6f);
@@ -437,13 +445,13 @@ public class View3DWindow extends JPanel
 	 * @param ai
 	 * @param objTrans
 	 */
-	public void addArc(ArcInst ai, TransformGroup objTrans)
+	public void addArc(ArcInst ai, AffineTransform transform, TransformGroup objTrans)
 	{
 		// add the arc
 		ArcProto ap = ai.getProto();
 		Technology tech = ap.getTechnology();
 
-		List list = addPolys(tech.getShapeOfArc(ai), null, objTrans);
+		List list = addPolys(tech.getShapeOfArc(ai), transform, objTrans);
 		electricObjectMap.put(ai, list);
 	}
 
@@ -452,7 +460,7 @@ public class View3DWindow extends JPanel
 	 * @param no
 	 * @param objTrans
 	 */
-	public void addNode(NodeInst no, TransformGroup objTrans)
+	public void addNode(NodeInst no, AffineTransform transform, TransformGroup objTrans)
 	{
 		// add the node
 		NodeProto nProto = no.getProto();
@@ -471,7 +479,12 @@ public class View3DWindow extends JPanel
 			values[0] = Double.MAX_VALUE;
 			values[1] = Double.MIN_VALUE;
 			cell.getZValues(values);
-			list = new ArrayList(1);
+			values[0] *= scale;
+			values[1] *= scale;
+			Poly pol = new Poly(rect);			list = new ArrayList(1);
+
+			pol.transform(transform);
+			rect = pol.getBounds2D();
 			list.add(addPolyhedron(rect, values[0], values[1] - values[0], cellApp, objTrans));
 		}
 		else
@@ -520,44 +533,87 @@ public class View3DWindow extends JPanel
                         polys[active[1]] = polys[last];
                     polys[last] = null;
                 }
-                if (gate != -1)
+                if (gate != -1 && poly != -1)
                 {
                     Rectangle2D rect1 = polys[gate].getBounds2D();
+	                boolean alongX = !(rect1.getX() == polys[poly].getBounds2D().getX());
+
+	                Poly gateP = new Poly(rect1);
+	                gateP.transform(transform);
+	                rect1 = gateP.getBounds2D();
                     Point3d [] pts = new Point3d[8];
-                    double maxX = rect1.getMaxX();
-                    double delta = rect1.getWidth()/10;
-                    double cutGate = (maxX - delta);
-                    double cutPoly = (maxX + delta);
+	                double max, delta;
+
+	                if (alongX)
+	                {
+						max = rect1.getMaxX();
+						delta = rect1.getWidth()/10;
+	                }
+	                else
+	                {
+		                max = rect1.getMaxY();
+						delta = rect1.getHeight()/10;
+	                }
+                    double cutGate = (max - delta);
+                    double cutPoly = (max + delta);
                     Layer layer = polys[gate].getLayer();
                     double dist = (layer.getDistance() + layer.getThickness()) * scale;
                     //double distPoly = (polys[poly].getLayer().getDistance() + (polys[poly].getLayer().getThickness()/10)) * scale;
                     double distPoly = (polys[poly].getLayer().getDistance()) * scale;
-                    pts[0] = new Point3d(cutGate, rect1.getMinY(), dist);
-                    pts[1] = new Point3d(maxX, rect1.getMinY(), dist);
-                    pts[2] = new Point3d(cutPoly, rect1.getMinY(), distPoly);
-                    pts[3] = new Point3d(maxX, rect1.getMinY(), distPoly);
-                    pts[4] = new Point3d(cutGate, rect1.getMaxY(), dist);
-                    pts[5] = new Point3d(maxX, rect1.getMaxY(), dist);
-                    pts[6] = new Point3d(cutPoly, rect1.getMaxY(), distPoly);
-                    pts[7] = new Point3d(maxX, rect1.getMaxY(), distPoly);
+	                if (alongX)
+	                {
+						pts[0] = new Point3d(cutGate, rect1.getMinY(), dist);
+						pts[1] = new Point3d(max, rect1.getMinY(), dist);
+						pts[2] = new Point3d(cutPoly, rect1.getMinY(), distPoly);
+						pts[3] = new Point3d(max, rect1.getMinY(), distPoly);
+						pts[4] = new Point3d(cutGate, rect1.getMaxY(), dist);
+						pts[5] = new Point3d(max, rect1.getMaxY(), dist);
+						pts[6] = new Point3d(cutPoly, rect1.getMaxY(), distPoly);
+						pts[7] = new Point3d(max, rect1.getMaxY(), distPoly);
+	                }
+	                else
+	                {
+						pts[0] = new Point3d(rect1.getMaxX(), cutGate, dist);
+		                pts[1] = new Point3d(rect1.getMinX(), cutGate, dist);
+						pts[2] = new Point3d(rect1.getMinX(), max, dist);
+						pts[3] = new Point3d(rect1.getMaxX(), max, dist);
+						pts[4] = new Point3d(rect1.getMaxX(), max, distPoly);
+						pts[5] = new Point3d(rect1.getMinX(), max, distPoly);
+						pts[6] = new Point3d(rect1.getMinX(), cutPoly, distPoly);
+						pts[7] = new Point3d(rect1.getMaxX(), cutPoly, distPoly);
+	                }
                     // First connection
                     boxList.add(addShape3D(pts, 4, getAppearance(layer)));
-                    maxX = rect1.getMinX();
-                    cutGate = (maxX + delta);
-                    cutPoly = (maxX - delta);
-                    pts[0] = new Point3d(maxX, rect1.getMinY(), dist);
-                    pts[1] = new Point3d(cutGate, rect1.getMinY(), dist);
-                    pts[2] = new Point3d(maxX, rect1.getMinY(), distPoly);
-                    pts[3] = new Point3d(cutPoly, rect1.getMinY(), distPoly);
-                    pts[4] = new Point3d(maxX, rect1.getMaxY(), dist);
-                    pts[5] = new Point3d(cutGate, rect1.getMaxY(), dist);
-                    pts[6] = new Point3d(maxX, rect1.getMaxY(), distPoly);
-                    pts[7] = new Point3d(cutPoly, rect1.getMaxY(), distPoly);
-                    // Second connection
+                    max = (alongX) ? rect1.getMinX() : rect1.getMinY();
+                    cutGate = (max + delta);
+                    cutPoly = (max - delta);
+	                if (alongX)
+	                {
+						pts[0] = new Point3d(max, rect1.getMinY(), dist);
+						pts[1] = new Point3d(cutGate, rect1.getMinY(), dist);
+						pts[2] = new Point3d(max, rect1.getMinY(), distPoly);
+						pts[3] = new Point3d(cutPoly, rect1.getMinY(), distPoly);
+						pts[4] = new Point3d(max, rect1.getMaxY(), dist);
+						pts[5] = new Point3d(cutGate, rect1.getMaxY(), dist);
+						pts[6] = new Point3d(max, rect1.getMaxY(), distPoly);
+						pts[7] = new Point3d(cutPoly, rect1.getMaxY(), distPoly);
+	                }
+	                else
+	                {
+						pts[0] = new Point3d(rect1.getMaxX(), max, dist);
+						pts[1] = new Point3d(rect1.getMinX(), max, dist);
+						pts[2] = new Point3d(rect1.getMinX(), cutGate, dist);
+						pts[3] = new Point3d(rect1.getMaxX(), cutGate, dist);
+						pts[4] = new Point3d(rect1.getMaxX(), cutPoly, distPoly);
+						pts[5] = new Point3d(rect1.getMinX(), cutPoly, distPoly);
+						pts[6] = new Point3d(rect1.getMinX(), max, distPoly);
+						pts[7] = new Point3d(rect1.getMaxX(), max, distPoly);
+	                }
+	                // Second connection
                     boxList.add(addShape3D(pts, 4, getAppearance(layer)));
                 }
             }
-			list = addPolys(polys, no.rotateOut(), objTrans);
+			list = addPolys(polys, transform /*no.rotateOut()*/, objTrans);
             if (boxList != null) list.addAll(boxList);
         }
 		electricObjectMap.put(no, list);
@@ -1044,8 +1100,14 @@ public class View3DWindow extends JPanel
 			}
 			else // back to normal
 			{
-				JAppearance origAp = (JAppearance)highligtAp.getGraphics().get3DAppearance();
-				obj.setAppearance(origAp);
+				EGraphics graphics = highligtAp.getGraphics();
+				if (graphics != null)
+				{
+					JAppearance origAp = (JAppearance)graphics.get3DAppearance();
+					obj.setAppearance(origAp);
+				}
+				else // its a cell
+					obj.setAppearance(cellApp);
 			}
 		}
 		if (!toSelect) highlighter.clear();
@@ -1323,4 +1385,57 @@ public class View3DWindow extends JPanel
 			}
 		}
 	}
+
+	//*** To navigate cells
+		// Extra functions to check area
+	private class View3DEnumerator extends HierarchyEnumerator.Visitor
+    {
+		public View3DEnumerator()
+		{
+		}
+
+		/**
+		 *
+		 * @param info
+		 * @return
+		 */
+		public boolean enterCell(HierarchyEnumerator.CellInfo info)
+		{
+            AffineTransform rTrans = info.getTransformToRoot();
+
+			for(Iterator it = info.getCell().getArcs(); it.hasNext(); )
+			{
+				addArc((ArcInst)it.next(), rTrans, objTrans);
+			}
+			return true;
+		}
+
+		/**
+		 *
+		 * @param info
+		 */
+		public void exitCell(HierarchyEnumerator.CellInfo info) {}
+
+		/**
+		 *
+		 * @param no
+		 * @param info
+		 * @return
+		 */
+		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
+		{
+			Cell cell = info.getCell();
+			NodeInst ni = no.getNodeInst();
+			AffineTransform trans = ni.rotateOut();
+			NodeProto np = ni.getProto();
+			AffineTransform root = info.getTransformToRoot();
+			if (root.getType() != AffineTransform.TYPE_IDENTITY)
+				trans.preConcatenate(root);
+
+			addNode(ni, trans, objTrans);
+
+			// For cells, it should go into the hierarchy
+            return ni.isExpanded();
+		}
+    }
 }
