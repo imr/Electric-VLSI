@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.AnalogSignal;
 
 import java.io.IOException;
 import java.net.URL;
@@ -69,7 +70,7 @@ public class SmartSpiceOut extends Simulate
 	{
 		boolean first = true;
 		int signalCount = -1;
-		Stimuli.AnalogSignal [] allSignals = null;
+		AnalogSignal [] allSignals = null;
 		int rowCount = -1;
 		Stimuli sd = null;
 		for(;;)
@@ -116,7 +117,7 @@ public class SmartSpiceOut extends Simulate
 				}
 				sd = new Stimuli();
 				sd.setCell(cell);
-				allSignals = new Stimuli.AnalogSignal[signalCount];
+				allSignals = new AnalogSignal[signalCount];
 				for(int i=0; i<=signalCount; i++)
 				{
 					if (i != 0)
@@ -144,7 +145,7 @@ public class SmartSpiceOut extends Simulate
 							System.out.println("Warning: the first variable should be time, is '" + name + "'");
 					} else
 					{
-						Stimuli.AnalogSignal as = new Stimuli.AnalogSignal(sd);
+						AnalogSignal as = new AnalogSignal(sd);
 						int lastDotPos = name.lastIndexOf('.');
 						if (lastDotPos >= 0)
 						{

@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.AnalogSignal;
 
 import java.io.IOException;
 import java.net.URL;
@@ -190,7 +191,7 @@ public class SpiceOut extends Simulate
 		}
 		for(int j=0; j<mostSignals; j++)
 		{
-			Stimuli.AnalogSignal as = new Stimuli.AnalogSignal(sd);
+			AnalogSignal as = new AnalogSignal(sd);
 			as.setSignalName("Signal " + (j+1));
 			as.buildValues(numEvents);
 			for(int i=0; i<numEvents; i++)

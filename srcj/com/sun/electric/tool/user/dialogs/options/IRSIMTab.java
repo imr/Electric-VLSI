@@ -122,7 +122,7 @@ public class IRSIMTab extends PreferencePanel
 			Simulation.setIRSIMAutoAdvance(currentAutoAdvance);
 
 		boolean currentShowCommands = showCommands.isSelected();
-		if (currentShowCommands != initialResimulateEach)
+		if (currentShowCommands != initialShowCommands)
 			Simulation.setIRSIMShowsCommands(currentShowCommands);
 
 		int currentParasiticsLevel = 0;

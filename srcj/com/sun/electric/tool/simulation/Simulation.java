@@ -35,6 +35,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
+import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -359,7 +360,7 @@ public class Simulation extends Tool
 							sigName = signalName.substring(start, tabPos);
 							start = tabPos+1;
 						}
-						Stimuli.Signal sSig = sd.findSignalForNetwork(sigName);
+						Signal sSig = sd.findSignalForNetwork(sigName);
 						if (sSig != null)
 						{
 							if (firstSignal)
@@ -387,7 +388,7 @@ public class Simulation extends Tool
 							for(Iterator sIt = signals.iterator(); sIt.hasNext(); )
 							{
 								WaveformWindow.WaveSignal ws = (WaveformWindow.WaveSignal)sIt.next();
-								Stimuli.Signal sSig = ws.getSignal();
+								Signal sSig = ws.getSignal();
 								Rectangle2D sigBounds = sSig.getBounds();
 								if (first)
 								{
@@ -421,7 +422,7 @@ public class Simulation extends Tool
 			List allSignals = sd.getSignals();
 			for(int i=0; i<allSignals.size(); i++)
 			{
-				Stimuli.DigitalSignal sDSig = (Stimuli.DigitalSignal)allSignals.get(i);
+				DigitalSignal sDSig = (DigitalSignal)allSignals.get(i);
 				if (sDSig.getSignalContext() != null) continue;
 				if (sDSig.isInBus()) continue;
 				if (sDSig.getSignalName().indexOf('@') >= 0) continue;
@@ -438,7 +439,7 @@ public class Simulation extends Tool
 		List signals = sd.getSignals();
 		for(int i=0; i<signals.size(); i++)
 		{
-			Stimuli.Signal sSig = (Stimuli.Signal)signals.get(i);
+			Signal sSig = (Signal)signals.get(i);
 			int thisBracketPos = sSig.getSignalName().indexOf('[');
 			if (thisBracketPos < 0) continue;
 			String prefix = sSig.getSignalName().substring(0, thisBracketPos);
@@ -447,7 +448,7 @@ public class Simulation extends Tool
 			int j = i+1;
 			for( ; j<signals.size(); j++)
 			{
-				Stimuli.Signal nextSig = (Stimuli.Signal)signals.get(j);
+				Signal nextSig = (Signal)signals.get(j);
 
 				// other signal must have the same root
 				int nextBracketPos = nextSig.getSignalName().indexOf('[');
@@ -468,13 +469,13 @@ public class Simulation extends Tool
 			if (numSignals <= 1) continue;
 
 			// found a bus of signals: create the bus for it
-			Stimuli.DigitalSignal busSig = new Stimuli.DigitalSignal(sd);
+			DigitalSignal busSig = new DigitalSignal(sd);
 			busSig.setSignalName(prefix);
 			busSig.setSignalContext(sSig.getSignalContext());
 			busSig.buildBussedSignalList();
 			for(int k=i; k<j; k++)
 			{
-				Stimuli.Signal subSig = (Stimuli.Signal)signals.get(k);
+				Signal subSig = (Signal)signals.get(k);
 				busSig.addToBussedSignalList(subSig);
 			}
 			i = j - 1;

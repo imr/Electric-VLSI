@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.AnalogSignal;
 
 import java.io.IOException;
 import java.net.URL;
@@ -347,7 +348,7 @@ public class HSpiceOut extends Simulate
 		sd.setCell(cell);
 		for(int k=0; k<numSignals; k++)
 		{
-			Stimuli.AnalogSignal as = new Stimuli.AnalogSignal(sd);
+			AnalogSignal as = new AnalogSignal(sd);
 			int lastDotPos = signalNames[k].lastIndexOf('.');
 			if (lastDotPos >= 0)
 			{
@@ -415,7 +416,7 @@ public class HSpiceOut extends Simulate
 			}
 			for(int j=0; j<numSignals; j++)
 			{
-				Stimuli.AnalogSignal as = (Stimuli.AnalogSignal)sd.getSignals().get(j);
+				AnalogSignal as = (AnalogSignal)sd.getSignals().get(j);
 				as.setNumSweeps(sweepcnt);
 				for(int k=0; k<sweepcnt; k++)
 				{
@@ -442,7 +443,7 @@ public class HSpiceOut extends Simulate
 			}
 			for(int j=0; j<numSignals; j++)
 			{
-				Stimuli.AnalogSignal as = (Stimuli.AnalogSignal)sd.getSignals().get(j);
+				AnalogSignal as = (AnalogSignal)sd.getSignals().get(j);
 				as.buildValues(numEvents);
 				for(int i=0; i<numEvents; i++)
 					as.setValue(i, dataRows[i][j+1]);

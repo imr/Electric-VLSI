@@ -43,6 +43,9 @@ import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.Signal;
+import com.sun.electric.tool.simulation.DigitalSignal;
+import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -575,7 +578,7 @@ public class WaveformWindow implements WindowContent
 			waveWindow.saveSignalOrder();
 		}
 
-		private WaveSignal addSignalToPanel(Stimuli.Signal sSig)
+		private WaveSignal addSignalToPanel(Signal sSig)
 		{
 			// see if the signal is already there
 			for(Iterator it = waveSignals.keySet().iterator(); it.hasNext(); )
@@ -629,10 +632,10 @@ public class WaveformWindow implements WindowContent
 
 			// the only signal must be digital
 			WaveSignal ws = (WaveSignal)theSignals.iterator().next();
-			if (!(ws.sSig instanceof Stimuli.DigitalSignal)) return;
+			if (!(ws.sSig instanceof DigitalSignal)) return;
 
 			// the digital signal must be a bus
-			Stimuli.DigitalSignal sDSig = (Stimuli.DigitalSignal)ws.sSig;
+			DigitalSignal sDSig = (DigitalSignal)ws.sSig;
 			List bussedSignals = sDSig.getBussedSignals();
 			if (bussedSignals == null) return;
 
@@ -640,7 +643,7 @@ public class WaveformWindow implements WindowContent
 			boolean opened = false;
 			for(Iterator bIt = bussedSignals.iterator(); bIt.hasNext(); )
 			{
-				Stimuli.DigitalSignal subDS = (Stimuli.DigitalSignal)bIt.next();
+				DigitalSignal subDS = (DigitalSignal)bIt.next();
 				WaveSignal subWs = waveWindow.findDisplayedSignal(subDS);
 				if (subWs != null)
 				{
@@ -659,7 +662,7 @@ public class WaveformWindow implements WindowContent
 
 				for(Iterator bIt = bussedSignals.iterator(); bIt.hasNext(); )
 				{
-					Stimuli.DigitalSignal subDS = (Stimuli.DigitalSignal)bIt.next();
+					DigitalSignal subDS = (DigitalSignal)bIt.next();
 					WaveSignal subWs = waveWindow.findDisplayedSignal(subDS);
 					if (subWs != null)
 					{
@@ -671,11 +674,26 @@ public class WaveformWindow implements WindowContent
 			} else
 			{
 				// closed: add all entries on the bus
+				int increment = 1;
 				for(Iterator bIt = bussedSignals.iterator(); bIt.hasNext(); )
 				{
-					Stimuli.DigitalSignal subDS = (Stimuli.DigitalSignal)bIt.next();
+					DigitalSignal subDS = (DigitalSignal)bIt.next();
 					Panel wp = new Panel(waveWindow, false);
 					WaveSignal wsig = new WaveSignal(wp, subDS);
+
+					// remove the panels and put them in the right place
+					waveWindow.left.remove(wsig.wavePanel.leftHalf);
+					waveWindow.right.remove(wsig.wavePanel.rightHalf);
+
+					int destIndex = 0;
+					Component [] lefts = waveWindow.left.getComponents();
+					for(destIndex=0; destIndex < lefts.length; destIndex++)
+					{
+						if (lefts[destIndex] == this.leftHalf) break;
+					}
+					waveWindow.left.add(wsig.wavePanel.leftHalf, destIndex+increment);
+					waveWindow.right.add(wsig.wavePanel.rightHalf, destIndex+increment);
+					increment++;
 				}
 			}
 			waveWindow.overall.validate();
@@ -811,7 +829,7 @@ public class WaveformWindow implements WindowContent
 				for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
 				{
 					WaveSignal ws = (WaveSignal)it.next();
-					if (ws.sSig instanceof Stimuli.AnalogSignal)
+					if (ws.sSig instanceof AnalogSignal)
 					{
 						// grid on analog trace
 						Rectangle2D bounds = ws.sSig.getBounds();
@@ -1058,10 +1076,10 @@ public class WaveformWindow implements WindowContent
 			{
 				WaveSignal ws = (WaveSignal)it.next();
 				if (g != null) g.setColor(ws.color);
-				if (ws.sSig instanceof Stimuli.AnalogSignal)
+				if (ws.sSig instanceof AnalogSignal)
 				{
 					// draw analog trace
-					Stimuli.AnalogSignal as = (Stimuli.AnalogSignal)ws.sSig;
+					AnalogSignal as = (AnalogSignal)ws.sSig;
 					int numEvents = as.getNumEvents();
 					if (as.isBasic())
 					{
@@ -1138,10 +1156,10 @@ public class WaveformWindow implements WindowContent
 					}
 					continue;
 				}
-				if (ws.sSig instanceof Stimuli.DigitalSignal)
+				if (ws.sSig instanceof DigitalSignal)
 				{
 					// draw digital traces
-					Stimuli.DigitalSignal ds = (Stimuli.DigitalSignal)ws.sSig;
+					DigitalSignal ds = (DigitalSignal)ws.sSig;
 					List bussedSignals = ds.getBussedSignals();
 					if (bussedSignals != null)
 					{
@@ -1157,7 +1175,7 @@ public class WaveformWindow implements WindowContent
 							boolean curDefined = true;
 							for(Iterator bIt = bussedSignals.iterator(); bIt.hasNext(); )
 							{
-								Stimuli.DigitalSignal subDS = (Stimuli.DigitalSignal)bIt.next();
+								DigitalSignal subDS = (DigitalSignal)bIt.next();
 								int numEvents = subDS.getNumEvents();
 								boolean undefined = false;
 								for(int i=0; i<numEvents; i++)
@@ -1688,10 +1706,10 @@ public class WaveformWindow implements WindowContent
 			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
 			{
 				WaveSignal ws = (WaveSignal)it.next();
-				if (!(ws.sSig instanceof Stimuli.AnalogSignal)) continue;
+				if (!(ws.sSig instanceof AnalogSignal)) continue;
 
 				// draw analog trace
-				Stimuli.AnalogSignal as = (Stimuli.AnalogSignal)ws.sSig;
+				AnalogSignal as = (AnalogSignal)ws.sSig;
 				int numEvents = as.getNumEvents();
 				if (as.isBasic())
 				{
@@ -2181,7 +2199,7 @@ public class WaveformWindow implements WindowContent
 				{
 					// moving a signal (analog only)
 					String signalName = sigName.substring(sigPos + 7);
-					Stimuli.Signal sSig = null;
+					Signal sSig = null;
 					Color oldColor = null;
 					for(Iterator it = sourcePanel.waveSignals.values().iterator(); it.hasNext(); )
 					{
@@ -2213,7 +2231,7 @@ public class WaveformWindow implements WindowContent
 			}
 
 			// not rearranging: dropped a signal onto a panel
-			Stimuli.Signal sSig = ww.findSignal(sigName);
+			Signal sSig = ww.findSignal(sigName);
 			if (sSig == null)
 			{
 				dtde.dropComplete(false);
@@ -2221,7 +2239,7 @@ public class WaveformWindow implements WindowContent
 			}
 
 			// digital signals are always added in new panels
-			if (sSig instanceof Stimuli.DigitalSignal) panel = null;
+			if (sSig instanceof DigitalSignal) panel = null;
 			if (panel != null)
 			{
 				// overlay this signal onto an existing panel
@@ -2234,11 +2252,11 @@ public class WaveformWindow implements WindowContent
 
 			// add this signal in a new panel
 			boolean isAnalog = false;
-			if (sSig instanceof Stimuli.AnalogSignal) isAnalog = true;
+			if (sSig instanceof AnalogSignal) isAnalog = true;
 			panel = new Panel(ww, isAnalog);
 			if (isAnalog)
 			{
-				Stimuli.AnalogSignal as = (Stimuli.AnalogSignal)sSig;
+				AnalogSignal as = (AnalogSignal)sSig;
 				Rectangle2D rangeBounds = as.getBounds();
 				double lowValue = rangeBounds.getMinY();
 				double highValue = rangeBounds.getMaxY();
@@ -2347,7 +2365,7 @@ public class WaveformWindow implements WindowContent
 	public static class WaveSignal
 	{
 		/** the panel that holds this signal */			private Panel wavePanel;
-		/** the data for this signal */					private Stimuli.Signal sSig;
+		/** the data for this signal */					private Signal sSig;
 		/** the color of this signal */					private Color color;
 		/** the times of selected control points */		private double [] controlPointsSelected;
 		/** true if this signal is highlighted */		private boolean highlighted;
@@ -2410,7 +2428,7 @@ public class WaveformWindow implements WindowContent
 			}
 		};
 
-		public WaveSignal(Panel wavePanel, Stimuli.Signal sSig)
+		public WaveSignal(Panel wavePanel, Signal sSig)
 		{
 			int sigNo = wavePanel.waveSignals.size();
 			this.wavePanel = wavePanel;
@@ -2446,7 +2464,7 @@ public class WaveformWindow implements WindowContent
 		 * Method to return the actual signal information associated with this line in the waveform window.
 		 * @return the actual signal information associated with this line in the waveform window.
 		 */
-		public Stimuli.Signal getSignal() { return sSig; }
+		public Signal getSignal() { return sSig; }
 
 		/**
 		 * Method to return the time of selected control points in this WaveSignal.
@@ -2698,7 +2716,7 @@ public class WaveformWindow implements WindowContent
 					Network net = (Network)highSet.iterator().next();
 					//String netName = loc.getContext() + net.describe();
                     String netName = WaveformWindow.getSpiceNetName(loc.getContext(), net);
-                    Stimuli.Signal sSig = ww.sd.findSignalForNetwork(netName);
+                    Signal sSig = ww.sd.findSignalForNetwork(netName);
 					if (sSig == null)
 					{
 						netName = netName.replace('@', '_');
@@ -3473,12 +3491,12 @@ public class WaveformWindow implements WindowContent
 			for(Iterator pIt = wp.waveSignals.values().iterator(); pIt.hasNext(); )
 			{
 				WaveSignal ws = (WaveSignal)pIt.next();
-				Stimuli.Signal ss = ws.sSig;
+				Signal ss = ws.sSig;
 				String oldSigName = ss.getFullName();
 				ws.sSig = null;
 				for(Iterator sIt = sd.getSignals().iterator(); sIt.hasNext(); )
 				{
-					Stimuli.Signal newSs = (Stimuli.Signal)sIt.next();
+					Signal newSs = (Signal)sIt.next();
 					String newSigName = newSs.getFullName();
 					if (!newSigName.equals(oldSigName)) continue;
 					ws.sSig = newSs;
@@ -3612,7 +3630,7 @@ public class WaveformWindow implements WindowContent
 		char separatorChar = sd.getSeparatorChar();
 		for(Iterator it = signals.iterator(); it.hasNext(); )
 		{
-			Stimuli.Signal sSig = (Stimuli.Signal)it.next();
+			Signal sSig = (Signal)it.next();
 			if (sSig.getSignalContext() != null)
 				makeContext(sSig.getSignalContext(), contextMap, separatorChar);
 		}
@@ -3620,7 +3638,7 @@ public class WaveformWindow implements WindowContent
 		// add all signals to the tree
 		for(Iterator it = signals.iterator(); it.hasNext(); )
 		{
-			Stimuli.Signal sSig = (Stimuli.Signal)it.next();
+			Signal sSig = (Signal)it.next();
 			DefaultMutableTreeNode thisTree = signalsExplorerTree;
 			if (sSig.getSignalContext() != null)
 				thisTree = makeContext(sSig.getSignalContext(), contextMap, separatorChar);
@@ -3665,8 +3683,8 @@ public class WaveformWindow implements WindowContent
 	{
 		public int compare(Object o1, Object o2)
 		{
-			Stimuli.Signal s1 = (Stimuli.Signal)o1;
-			Stimuli.Signal s2 = (Stimuli.Signal)o2;
+			Signal s1 = (Signal)o1;
+			Signal s2 = (Signal)o2;
 			return TextUtils.nameSameNumeric(s1.getFullName(), s2.getFullName());
 		}
 	}
@@ -3683,11 +3701,11 @@ public class WaveformWindow implements WindowContent
 		return sweepsExplorerTree;
 	}
 
-	private Stimuli.Signal findSignal(String name)
+	private Signal findSignal(String name)
 	{
 		for(Iterator it = sd.getSignals().iterator(); it.hasNext(); )
 		{
-			Stimuli.Signal sSig = (Stimuli.Signal)it.next();
+			Signal sSig = (Signal)it.next();
 			String sigName = sSig.getFullName();
 			if (sigName.equals(name)) return sSig;
 		}
@@ -3745,7 +3763,7 @@ public class WaveformWindow implements WindowContent
 		{
 			Network net = (Network)it.next();
             String netName = WaveformWindow.getSpiceNetName(context, net);
-            Stimuli.Signal sSig = sd.findSignalForNetwork(netName);
+            Signal sSig = sd.findSignalForNetwork(netName);
 			if (sSig == null)
 			{
 				netName = netName.replace('@', '_');
@@ -3761,11 +3779,11 @@ public class WaveformWindow implements WindowContent
 			if (newPanel)
 			{
 				boolean isAnalog = false;
-				if (sSig instanceof Stimuli.AnalogSignal) isAnalog = true;
+				if (sSig instanceof AnalogSignal) isAnalog = true;
 				wp = new Panel(this, isAnalog);
 				if (isAnalog)
 				{
-					Stimuli.AnalogSignal as = (Stimuli.AnalogSignal)sSig;
+					AnalogSignal as = (AnalogSignal)sSig;
 					Rectangle2D rangeBounds = as.getBounds();
 					double lowValue = rangeBounds.getMinY();
 					double highValue = rangeBounds.getMaxY();
@@ -3905,11 +3923,11 @@ public class WaveformWindow implements WindowContent
 
 	/**
 	 * Method to locate a simulation signal in the waveform.
-	 * @param sSig the Stimuli.Signal to locate.
+	 * @param sSig the Signal to locate.
 	 * @return the displayed WaveSignal where it is in the waveform window.
 	 * Returns null if the signal is not being displayed.
 	 */
-	public WaveSignal findDisplayedSignal(Stimuli.Signal sSig)
+	public WaveSignal findDisplayedSignal(Signal sSig)
 	{
 		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
 		{
@@ -4281,7 +4299,6 @@ public class WaveformWindow implements WindowContent
 		schemWnd.clearCrossProbeLevels();
 
 		Cell cell = getCell();
-//		Netlist netlist = cell.getUserNetlist();
 		Netlist netlist = cell.acquireUserNetlist();
 		if (netlist == null)
 		{
@@ -4300,7 +4317,7 @@ public class WaveformWindow implements WindowContent
 			for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
 			{
 				WaveSignal ws = (WaveSignal)sIt.next();
-				Stimuli.DigitalSignal ds = (Stimuli.DigitalSignal)ws.sSig;
+				DigitalSignal ds = (DigitalSignal)ws.sSig;
 				List bussedSignals = ds.getBussedSignals();
 				if (bussedSignals != null)
 				{
@@ -4308,7 +4325,7 @@ public class WaveformWindow implements WindowContent
 					int busWidth = bussedSignals.size();
 					for(Iterator bIt = bussedSignals.iterator(); bIt.hasNext(); )
 					{
-						Stimuli.DigitalSignal subDS = (Stimuli.DigitalSignal)bIt.next();
+						DigitalSignal subDS = (DigitalSignal)bIt.next();
 						putValueOnTrace(subDS, cell, netValues, netlist);
 					}
 				} else
@@ -4402,7 +4419,7 @@ public class WaveformWindow implements WindowContent
 		}
 	}
 
-	private void putValueOnTrace(Stimuli.DigitalSignal ds, Cell cell, HashMap netValues, Netlist netlist)
+	private void putValueOnTrace(DigitalSignal ds, Cell cell, HashMap netValues, Netlist netlist)
 	{
 		// set simulation value on the network in the associated layout/schematic window
 		Network net = findNetwork(netlist, ds.getSignalName());
@@ -4741,9 +4758,9 @@ public class WaveformWindow implements WindowContent
 		}
 	}
 
-	public void addSignal(Stimuli.Signal sig)
+	public void addSignal(Signal sig)
 	{
-		if (sig instanceof Stimuli.AnalogSignal)
+		if (sig instanceof AnalogSignal)
 		{
 			// add analog signal on top of current panel
 			for(Iterator it = wavePanels.iterator(); it.hasNext(); )

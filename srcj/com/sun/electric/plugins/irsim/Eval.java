@@ -82,7 +82,7 @@ public class Eval
 		theAnalyzer.hInputs.clear();
 		SetInputs(theAnalyzer.lIinputs, Sim.LOW);		// LOW inputs
 		theAnalyzer.lIinputs.clear();
-		SetInputs(theAnalyzer.uInputs, Sim.X);		// X inputs
+		SetInputs(theAnalyzer.uInputs, Sim.X);			// X inputs
 		theAnalyzer.uInputs.clear();
 
 		/*
@@ -91,7 +91,7 @@ public class Eval
 		 */
 		if (firstCall)
 		{
-			/**
+			/*
 			 * find transistors with gates of VDD or GND and calculate values for source
 			 * and drain nodes just in case event driven calculations don't get to them.
 			 */

@@ -21,6 +21,7 @@ package com.sun.electric.plugins.irsim;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.DigitalSignal;
 import com.sun.electric.tool.io.output.IRSIM;
 import com.sun.electric.tool.extract.TransistorPBucket;
 import com.sun.electric.tool.extract.ExtractedPBucket;
@@ -53,7 +54,7 @@ public class Sim
 		/** high logic threshold for node, normalized units */	float          vHigh;
 		/** low to high transition time in DELTA's */			short          tpLH;
 		/** high to low transition time in DELTA's */			short          tpHL;
-		/** signal in the waveform window (if displayed) */		Stimuli.DigitalSignal sig;
+		/** signal in the waveform window (if displayed) */		DigitalSignal  sig;
 		/** combines time, nindex, cap, and event */			private Object c;
 		/** combines cause, punts, and tranT */					private Object t;
 		/** combines thev, next, and tranN */					private Object n;
@@ -485,9 +486,11 @@ public class Sim
 
 	private Eval     theModel;
 	private Config   theConfig;
+	private Analyzer theAnalyzer;
 
 	public Sim(Analyzer analyzer)
 	{
+		theAnalyzer = analyzer;
 		irDebug = Simulation.getIRSIMDebugging();
     	theConfig = new Config();
     	String steppingModel = Simulation.getIRSIMStepModel();
@@ -502,6 +505,13 @@ public class Sim
 	public Config getConfig() { return theConfig; }
 
 	public Eval getModel() { return theModel; }
+
+	public void setModel(boolean rc)
+	{
+		if (rc) theModel = new NewRStep(theAnalyzer, this); else
+			theModel = new SStep(theAnalyzer, this);
+		theModel.initEvent();
+	}
 
 	private void badArgCount(String fileName, LineNumberReader lineReader, String [] strings)
 	{

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02j: *********************************
 
+IMP: (03/23/05, SMR) More improvements to IRSIM; refactored "Stimuli" and broke out subclasses.
+
 BUG: (03/23/04, GVG) ExportCommand crashed if cell is null (no Bugzilla #)
 FIX: return was added to the code
 

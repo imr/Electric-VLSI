@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.AnalogSignal;
 
 import java.io.IOException;
 import java.net.URL;
@@ -72,7 +73,7 @@ public class RawSpiceOut extends Simulate
 		int eventCount = -1;
 		Stimuli sd = new Stimuli();
 		sd.setCell(cell);
-		Stimuli.AnalogSignal [] signals = null;
+		AnalogSignal [] signals = null;
 		for(;;)
 		{
 			String line = getLineFromSimulator();
@@ -104,10 +105,10 @@ public class RawSpiceOut extends Simulate
 			if (preColon.equals("No. Variables"))
 			{
 				numSignals = TextUtils.atoi(postColon) - 1;
-				signals = new Stimuli.AnalogSignal[numSignals];
+				signals = new AnalogSignal[numSignals];
 				for(int i=0; i<numSignals; i++)
 				{
-					signals[i] = new Stimuli.AnalogSignal(sd);
+					signals[i] = new AnalogSignal(sd);
 				}
 				continue;
 			}
