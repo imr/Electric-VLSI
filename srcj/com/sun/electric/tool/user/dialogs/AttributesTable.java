@@ -19,6 +19,7 @@ import javax.swing.table.TableColumn;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Collections;
 import java.awt.*;
 import java.awt.geom.Point2D;
 import java.awt.event.*;
@@ -33,22 +34,16 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
      * */
     private static class VariableTableModel extends AbstractTableModel {
 
-        private List varInfos;                     // list of variables to display
+        private List vars;                     // list of variables to display
         private boolean DEBUG = false;                      // if true, displays database var names
         private static final String [] columnNames = { "Name", "Value", "Code", "Display", "Units" };
         private boolean showCode = true;
         private boolean showDispPos = false;
         private boolean showUnits = false;
 
-        // Class to hold var and owner pair
-        private static class VarInfo {
-            private Variable var;
-            private ElectricObject owner;
-        }
-
         // constructor
         private VariableTableModel(boolean showCode, boolean showDispPos, boolean showUnits) {
-            varInfos = new ArrayList();
+            vars = new ArrayList();
             this.showCode = showCode;
             this.showDispPos = showDispPos;
             this.showUnits = showUnits;
@@ -65,7 +60,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
 
         /** Get number of rows in table */
         public int getRowCount() {
-            return varInfos.size();
+            return vars.size();
         }
 
         private int getCodeColumn() {
@@ -91,17 +86,15 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
         /** Get the variable at the designated row number */
         private Variable getVarAtRow(int row) {
             if (row < 0) return null;
-            if (row > (varInfos.size()-1)) return null;
-            VarInfo vi = (VarInfo)varInfos.get(row);
-            return vi.var;
+            if (row > (vars.size()-1)) return null;
+            return (Variable)vars.get(row);
         }
 
         /** Get object at location in table */
         public Object getValueAt(int rowIndex, int columnIndex) {
 
             // order: name, value
-            VarInfo vc = (VarInfo)varInfos.get(rowIndex);
-            Variable var = vc.var;
+            Variable var = (Variable)vars.get(rowIndex);
 
             if (var == null) return null;
 
@@ -121,6 +114,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
 
             if (columnIndex == getDispColumn()) {
                 TextDescriptor td = var.getTextDescriptor();
+                if (!var.isDisplay()) return displaynone;
                 if (td == null) return null;
                 return td.getDispPart();
             }
@@ -152,9 +146,8 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
 
         /** Set a value */
         public void setValueAt(Object aValue, int row, int col) {
-            VarInfo vc = (VarInfo)varInfos.get(row);
-            Variable var = vc.var;
-            ElectricObject owner = vc.owner;
+            Variable var = (Variable)vars.get(row);
+            ElectricObject owner = var.getOwner();
             if (var == null) return;
             if (owner == null) return;
             TextDescriptor td = var.getTextDescriptor();
@@ -189,7 +182,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
                     }
                 } else {
                     TextDescriptor.DispPos newDispPos = (TextDescriptor.DispPos)aValue;
-                    if (newDispPos != td.getDispPart()) {
+                    if ((newDispPos != td.getDispPart()) || !var.isDisplay()) {
                         VarChange job = new VarChange(var, owner, var.getCode(), newDispPos, td.getUnit(),
                                 var.getObject(), true);
                         //fireTableCellUpdated(row, col);
@@ -209,23 +202,33 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
             }
         }
 
+        /**
+         * Set this to be the list of variables shown
+         * @param variables the list of Variables to show
+         */
+        private void setVars(List variables) {
+            vars.clear();
+            for (Iterator it = variables.iterator(); it.hasNext(); ) {
+                Variable var = (Variable)it.next();                 // do cast here to catch source of non-var in list
+                vars.add(var);
+            }
+            fireTableDataChanged();
+        }
+
         /** Add a variable to be displayed in the Table */
-        private void addVariable(Variable var, ElectricObject owner) {
-            VarInfo vi = new VarInfo();
-            vi.var = var;
-            vi.owner = owner;
-            varInfos.add(vi);
+        private void addVariable(Variable var) {
+            vars.add(var);
             fireTableDataChanged();
         }
 
         private void clearVariables() {
-            varInfos.clear();
+            vars.clear();
             fireTableDataChanged();
         }
 
         public Class getColumnClass(int col) {
             if (col == getCodeColumn()) return Variable.Code.class;
-            if (col == getDispColumn()) return TextDescriptor.DispPos.class;
+            if (col == getDispColumn()) return Object.class;
             if (col == getUnitsColumn()) return TextDescriptor.Unit.class;
             return String.class;
         }
@@ -256,6 +259,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
     private static JComboBox unitComboBox = null;
     private static final String displaynone = "None";
     private JPopupMenu popup;
+    private Point popupLocation;
     private ElectricObject owner;
     private boolean showAttrOnly;
 
@@ -298,6 +302,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
 
                 if (e.isMetaDown()) {
                     initPopupMenu();
+                    popupLocation = new Point(e.getX(), e.getY());
                     popup.show(e.getComponent(), e.getX(), e.getY());
                 }
             }
@@ -346,12 +351,12 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
         popup.add(m);*/
         m = new JMenuItem("Duplicate Attr");
         m.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) { duplicateVar(popup.getLocation()); }
+            public void actionPerformed(ActionEvent e) { duplicateVar(popupLocation); }
         });
         popup.add(m);
         m = new JMenuItem("Delete Attr");
         m.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) { deleteVar(popup.getLocation()); }
+            public void actionPerformed(ActionEvent e) { deleteVar(popupLocation); }
         });
         popup.add(m);
         JMenu showMenu = new JMenu("Show...");
@@ -452,28 +457,38 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
     private void toggleShowCode() {
         VariableTableModel model = (VariableTableModel)getModel();
         model.setShowCode(!model.showCode);
-        if (model.showCode) {
-            TableColumn codeColumn = getColumnModel().getColumn((model.getCodeColumn()));
-            if (codeColumn != null)
-                codeColumn.setCellEditor(new DefaultCellEditor(codeComboBox));
-        }
+        updateEditors();
     }
 
     private void toggleShowDisp() {
         VariableTableModel model = (VariableTableModel)getModel();
         model.setShowDisp(!model.showDispPos);
-        if (model.showDispPos) {
-            TableColumn codeColumn = getColumnModel().getColumn((model.getDispColumn()));
-            if (codeColumn != null)
-                codeColumn.setCellEditor(new DefaultCellEditor(dispComboBox));
-        }
+        updateEditors();
     }
 
     private void toggleShowUnits() {
         VariableTableModel model = (VariableTableModel)getModel();
         model.setShowUnits(!model.showUnits);
-        if (model.showUnits) {
-            TableColumn codeColumn = getColumnModel().getColumn((model.getUnitsColumn()));
+        updateEditors();
+    }
+
+    private void updateEditors() {
+        VariableTableModel model = (VariableTableModel)getModel();
+        int codeCol = model.getCodeColumn();
+        if (codeCol != -1) {
+            TableColumn codeColumn = getColumnModel().getColumn(codeCol);
+            if (codeColumn != null)
+                codeColumn.setCellEditor(new DefaultCellEditor(codeComboBox));
+        }
+        int dispCol = model.getDispColumn();
+        if (dispCol != -1) {
+            TableColumn codeColumn = getColumnModel().getColumn(dispCol);
+            if (codeColumn != null)
+                codeColumn.setCellEditor(new DefaultCellEditor(dispComboBox));
+        }
+        int unitsCol = model.getUnitsColumn();
+        if (unitsCol != -1) {
+            TableColumn codeColumn = getColumnModel().getColumn(unitsCol);
             if (codeColumn != null)
                 codeColumn.setCellEditor(new DefaultCellEditor(unitComboBox));
         }
@@ -489,12 +504,16 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
         clearVariables();
         // add new vars
         if (eobj != null) {
+            List vars = new ArrayList();
             for (Iterator it = eobj.getVariables(); it.hasNext(); ) {
                 // only add attributes
                 Variable var = (Variable)it.next();
-                if (var.getKey().getName().startsWith("ATTR_"))
-                    addVariable(var, eobj);
+                if (var.isAttribute())
+                    vars.add(var);
             }
+            // sort vars by name
+            Collections.sort(vars, new Attributes.VariableNameSort());
+            ((VariableTableModel)getModel()).setVars(vars);
         }
         owner = eobj;
     }
@@ -503,7 +522,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
      * Add a Variable to be displayed
      */
     private void addVariable(Variable var, ElectricObject owner) {
-        ((VariableTableModel)getModel()).addVariable(var, owner);
+        ((VariableTableModel)getModel()).addVariable(var);
     }
 
     /**
@@ -558,6 +577,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
                 td.setUnit(unit);
             }
             v.setDisplay(display);
+            System.out.println("Modified attribute "+v.getTrueName());
             return true;
         }
     }
@@ -615,6 +635,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
             TextDescriptor td = var.getTextDescriptor();
             td.setDispPart(dispPos);
             td.setUnit(units);
+            System.out.println("Created attribute "+var.getTrueName());
             return true;
         }
     }
@@ -639,6 +660,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
         {
             if (var == null) return false;
             owner.delVar(var.getKey());
+            System.out.println("Deleted attribute "+var.getTrueName());
             return true;
         }
     }
