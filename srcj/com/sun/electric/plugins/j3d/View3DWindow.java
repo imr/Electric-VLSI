@@ -732,21 +732,26 @@ public class View3DWindow extends JPanel
 	}
 
     /**
-     *
-     */
-    /**
      * Method to change Z values in elements
      * @param value
      */
     public static void setScaleFactor(Double value)
     {
+	    Transform3D vTrans = new Transform3D();
+	    Vector3d vCenter = new Vector3d(1, 1, value.doubleValue());
+
        	for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			WindowContent content = wf.getContent();
 			if (!(content instanceof View3DWindow)) continue;
 			View3DWindow wnd = (View3DWindow)content;
-			View view = wnd.u.getViewer().getView();
+		    TransformGroup grp = wnd.u.getViewingPlatform().getViewPlatformTransform();
+		       /*
+		    grp.getTransform(vTrans);
+		    vTrans.setScale(vCenter);
+		    grp.setTransform(vTrans);
+		    */
             System.out.println("implement setScaleFactor");
 			//view.setScaleFactor(value.doubleValue());
 		}
