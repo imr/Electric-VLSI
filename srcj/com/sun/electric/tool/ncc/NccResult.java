@@ -23,6 +23,8 @@
 */
 package com.sun.electric.tool.ncc;
 
+import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
+
 /** The result of running a netlist comparison */
 public class NccResult {
 	private boolean exportMatch;
@@ -60,7 +62,17 @@ public class NccResult {
 	public boolean match() {return exportMatch && topologyMatch && sizeMatch;}
 	
 	public NetEquivalence getNetEquivalence() {
-		return new NetEquivalence(globalData.getEquivalentNets());
+		NetNameProxy[][] equivNets;
+		if (globalData==null) {
+			// For severe netlist errors, NCC doesn't even construct globalData.
+			// Create a NetEquivalence that has no matching nets.
+			equivNets = new NetNameProxy[2][];
+			equivNets[0] = new NetNameProxy[0];
+			equivNets[1] = new NetNameProxy[0];
+		} else {
+			equivNets = globalData.getEquivalentNets();
+		}
+		return new NetEquivalence(equivNets);
 	}
 	
 	public String summary(boolean checkSizes) {

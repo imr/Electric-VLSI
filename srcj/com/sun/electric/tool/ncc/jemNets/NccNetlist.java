@@ -532,9 +532,10 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	private boolean exportAssertionFailures(NccCellInfo info) {
 		NccCellAnnotations ann = info.getAnnotations();
 		if (ann==null) return false;
-		for (Iterator it=ann.getExportsConnected(); it.hasNext();)
-			if (exportAssertionFailure((List)it.next(), info)) return true;
-		return false;	                                      	
+		boolean gotError = false;
+		for (Iterator it=ann.getExportsConnected(); it.hasNext();) 
+			gotError |= exportAssertionFailure((List)it.next(), info);
+		return gotError;	                                      	
 	}
 	
 	private void doSubcircuit(SubcircuitInfo subcktInfo, NccCellInfo info) {
