@@ -149,6 +149,7 @@ public abstract class NodeProto extends ElectricObject
 		/** node is a transmission line */
 			public static final Function TLINE=     new Function("transmission-line",			"transm",   "NPTLINE");
 	}
+
 	// ------------------------ private data --------------------------
 
 	/** set if nonmanhattan instances shrink */				private static final int NODESHRINK=           01;

@@ -82,7 +82,7 @@ public class PrimitiveNode extends NodeProto
 	public double getWidthOffset() { return widthOffset; }
 	public double getHeightOffset() { return heightOffset; }
 
-	public void AddPrimitivePorts(PrimitivePort [] ports)
+	public void addPrimitivePorts(PrimitivePort [] ports)
 	{
 		for(int i = 0; i < ports.length; i++)
 		{

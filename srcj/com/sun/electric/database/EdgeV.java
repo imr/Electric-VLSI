@@ -18,17 +18,17 @@ public class EdgeV
 	public double getMultiplier() { return multiplier; }
 	public double getAdder() { return adder; }
 
-	public static EdgeV FromTop(double amt)
+	public static EdgeV fromTop(double amt)
 	{
 		return new EdgeV(0.5, -amt);
 	}
 	
-	public static EdgeV FromBottom(double amt)
+	public static EdgeV fromBottom(double amt)
 	{
 		return new EdgeV(-0.5, amt);
 	}
 	
-	public static EdgeV FromCenter(double amt)
+	public static EdgeV fromCenter(double amt)
 	{
 		return new EdgeV(0.0, amt);
 	}

@@ -54,7 +54,8 @@ public class NodeInst extends Geometric
 	private NodeInst(NodeProto prototype, Point2D.Double center, double width, double height, double angle, Cell parent)
 	{
 		// initialize parent class (Geometric)
-		this.cX = center.x;   this.cY = center.y;
+		Point2D refPoint = parent.getReferencePoint();
+		this.cX = center.x + refPoint.getX();   this.cY = center.y + refPoint.getY();
 		this.sX = width;   this.sY = height;
 		this.angle = angle;
 		this.cos = Math.cos(angle);
@@ -335,7 +336,7 @@ public class NodeInst extends Geometric
 	public void setTechSpecific(int value) { userBits = (userBits & ~NTECHBITS) | (value << NTECHBITSSH); }
 	/** Get the Locked bit */
 	public int getTechSpecific() { return (userBits & NTECHBITS) >> NTECHBITSSH; }
-	
+
 	public AffineTransform transformOut()
 	{
 		// to transform out of this node instance, first translate inner coordinates to outer
@@ -348,7 +349,7 @@ public class NodeInst extends Geometric
 		transform.translate(dx, dy);
 		return transform;
 	}
-	
+
 	public AffineTransform transformOut(AffineTransform prevTransform)
 	{
 		AffineTransform transform = transformOut();
@@ -356,7 +357,7 @@ public class NodeInst extends Geometric
 		returnTransform.concatenate(transform);
 		return returnTransform;
 	}
-	
+
 	public AffineTransform translateOut()
 	{
 		// to transform out of this node instance, first translate inner coordinates to outer
@@ -368,7 +369,7 @@ public class NodeInst extends Geometric
 		transform.translate(dx, dy);
 		return transform;
 	}
-	
+
 	public AffineTransform translateOut(AffineTransform prevTransform)
 	{
 		AffineTransform transform = translateOut();
@@ -386,6 +387,8 @@ public class NodeInst extends Geometric
 	
 	public AffineTransform rotateOut(AffineTransform prevTransform)
 	{
+		if (angle == 0) return prevTransform;
+
 		AffineTransform transform = rotateOut();
 		AffineTransform returnTransform = new AffineTransform(prevTransform);
 		returnTransform.concatenate(transform);

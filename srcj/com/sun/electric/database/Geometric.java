@@ -106,7 +106,10 @@ public class Geometric extends ElectricObject
 	/** Cell containing this Geometric object */
 	public Cell getParent() { return parent; }
 
-	Point2D.Double getCenter() { return new Point2D.Double(cX, cY); }
+	Point2D.Double getCenter()
+	{
+		return new Point2D.Double(cX, cY);
+	}
 
 	/** Get X coordinate of this object's origin.  If this object is a
 	 * NodeInst then get the X coordinate of the NodeProto's

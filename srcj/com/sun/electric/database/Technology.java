@@ -29,45 +29,103 @@ public class Technology extends ElectricObject
 		public Poly.Type getStyle() { return style; }
 	}
 
+	public static class TechPoint
+	{
+		private EdgeH x;
+		private EdgeV y;
+		
+		public static final TechPoint [] ATCENTER = new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.AtCenter, EdgeV.AtCenter),
+					new Technology.TechPoint(EdgeH.AtCenter, EdgeV.AtCenter)};
+		public static final TechPoint [] FULLBOX = new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.LeftEdge, EdgeV.BottomEdge),
+					new Technology.TechPoint(EdgeH.RightEdge, EdgeV.TopEdge)};
+		public static final TechPoint [] IN0HBOX = new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromLeft(0.5), EdgeV.fromBottom(0.5)),
+					new Technology.TechPoint(EdgeH.fromRight(0.5), EdgeV.fromTop(0.5))};
+		public static final TechPoint [] IN1BOX = new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromLeft(1), EdgeV.fromBottom(1)),
+					new Technology.TechPoint(EdgeH.fromRight(1), EdgeV.fromTop(1))};
+		public static final TechPoint [] IN1HBOX = new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5)),
+					new Technology.TechPoint(EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))};
+		public static final TechPoint [] IN2BOX = new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.fromBottom(2)),
+					new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.fromTop(2))};
+		public static final TechPoint [] IN2HBOX = new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromLeft(2.5), EdgeV.fromBottom(2.5)),
+					new Technology.TechPoint(EdgeH.fromRight(2.5), EdgeV.fromTop(2.5))};
+		public static final TechPoint [] IN3BOX = new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.fromBottom(3)),
+					new Technology.TechPoint(EdgeH.fromRight(3), EdgeV.fromTop(3))};
+		public static final TechPoint [] IN3HBOX = new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromLeft(3.5), EdgeV.fromBottom(3.5)),
+					new Technology.TechPoint(EdgeH.fromRight(3.5), EdgeV.fromTop(3.5))};
+		public static final TechPoint [] IN4BOX = new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(4)),
+					new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(4))};
+		public static final TechPoint [] IN4HBOX = new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromLeft(4.5), EdgeV.fromBottom(4.5)),
+					new Technology.TechPoint(EdgeH.fromRight(4.5), EdgeV.fromTop(4.5))};
+		public static final TechPoint [] IN5BOX = new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromLeft(5), EdgeV.fromBottom(5)),
+					new Technology.TechPoint(EdgeH.fromRight(5), EdgeV.fromTop(5))};
+		public static final TechPoint [] IN5HBOX = new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromLeft(5.5), EdgeV.fromBottom(5.5)),
+					new Technology.TechPoint(EdgeH.fromRight(5.5), EdgeV.fromTop(5.5))};
+		public static final TechPoint [] IN6BOX = new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(6)),
+					new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(6))};
+		public static final TechPoint [] IN6HBOX = new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromLeft(6.5), EdgeV.fromBottom(6.5)),
+					new Technology.TechPoint(EdgeH.fromRight(6.5), EdgeV.fromTop(6.5))};
+		public static final TechPoint [] IN7BOX = new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromLeft(7), EdgeV.fromBottom(7)),
+					new Technology.TechPoint(EdgeH.fromRight(7), EdgeV.fromTop(7))};
+		public static final TechPoint [] IN7HBOX = new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromLeft(7.5), EdgeV.fromBottom(7.5)),
+					new Technology.TechPoint(EdgeH.fromRight(7.5), EdgeV.fromTop(7.5))};
+
+		public TechPoint(EdgeH x, EdgeV y)
+		{
+			this.x = x;
+			this.y = y;
+		}
+		public EdgeH getX() { return x; }
+		public EdgeV getY() { return y; }
+	}
+
 	public static class NodeLayer
 	{
 		private Layer layer;
 		private int portNum;
-		private int count;
 		private Poly.Type style;
 		private int representation;
-		private EdgeH leftEdge;
-		private EdgeV bottomEdge;
-		private EdgeH rightEdge;
-		private EdgeV topEdge;
+		private TechPoint [] points;
 
 		/** list of scalable points */		public static final int POINTS=     0;
 		/** a rectangle */					public static final int BOX=        1;
 		/** list of absolute points */		public static final int ABSPOINTS=  2;
 		/** minimum sized rectangle */		public static final int MINBOX=     3;
 
-		public NodeLayer(Layer layer, int portNum, int count, Poly.Type style, int representation,
-			EdgeH leftEdge, EdgeV bottomEdge, EdgeH rightEdge, EdgeV topEdge)
+		public NodeLayer(Layer layer, int portNum, Poly.Type style, int representation,
+			TechPoint [] points)
 		{
 			this.layer = layer;
 			this.portNum = portNum;
-			this.count = count;
 			this.style = style;
 			this.representation = representation;
-			this.leftEdge = leftEdge;
-			this.bottomEdge = bottomEdge;
-			this.rightEdge = rightEdge;
-			this.topEdge = topEdge;
+			this.points = points;
 		}
 		public Layer getLayer() { return layer; }
 		public int getPortNum() { return portNum; }
-		public int getCount() { return count; }
 		public Poly.Type getStyle() { return style; }
 		public int getRepresentation() { return representation; }
-		public EdgeH getLeftEdge() { return leftEdge; }
-		public EdgeV getBottomEdge() { return bottomEdge; }
-		public EdgeH getRightEdge() { return rightEdge; }
-		public EdgeV getTopEdge() { return topEdge; }
+		public TechPoint [] getPoints() { return points; }
+		public EdgeH getLeftEdge() { return points[0].getX(); }
+		public EdgeV getBottomEdge() { return points[0].getY(); }
+		public EdgeH getRightEdge() { return points[1].getX(); }
+		public EdgeV getTopEdge() { return points[1].getY(); }
 	}
 
 	/** name of the technology */						private String techName;
@@ -207,15 +265,27 @@ public class Technology extends ElectricObject
 //				{
 //				} else
 				{
-					double portLowX = ni.getCenterX() + primLayer.leftEdge.getMultiplier() * ni.getXSize() + primLayer.leftEdge.getAdder();
-					double portHighX = ni.getCenterX() + primLayer.rightEdge.getMultiplier() * ni.getXSize() + primLayer.rightEdge.getAdder();
-					double portLowY = ni.getCenterY() + primLayer.bottomEdge.getMultiplier() * ni.getYSize() + primLayer.bottomEdge.getAdder();
-					double portHighY = ni.getCenterY() + primLayer.topEdge.getMultiplier() * ni.getYSize() + primLayer.topEdge.getAdder();
+					double portLowX = ni.getCenterX() + primLayer.getLeftEdge().getMultiplier() * ni.getXSize() + primLayer.getLeftEdge().getAdder();
+					double portHighX = ni.getCenterX() + primLayer.getRightEdge().getMultiplier() * ni.getXSize() + primLayer.getRightEdge().getAdder();
+					double portLowY = ni.getCenterY() + primLayer.getBottomEdge().getMultiplier() * ni.getYSize() + primLayer.getBottomEdge().getAdder();
+					double portHighY = ni.getCenterY() + primLayer.getTopEdge().getMultiplier() * ni.getYSize() + primLayer.getTopEdge().getAdder();
 					double portX = (portLowX + portHighX) / 2;
 					double portY = (portLowY + portHighY) / 2;
 					polys[i] = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
 				}
+			} else if (representation == Technology.NodeLayer.POINTS)
+			{
+				TechPoint [] points = primLayer.getPoints();
+				Point2D.Double [] pointList = new Point2D.Double[points.length];
+				for(int j=0; j<points.length; j++)
+				{
+					double x = ni.getCenterX() + points[j].getX().getMultiplier() * ni.getXSize() + points[j].getX().getAdder();
+					double y = ni.getCenterY() + points[j].getY().getMultiplier() * ni.getYSize() + points[j].getY().getAdder();
+					pointList[j] = new Point2D.Double(x, y);
+				}
+				polys[i] = new Poly(pointList);
 			}
+			polys[i].setStyle(style);
 			polys[i].setLayer(primLayer.getLayer());
 		}
 		return polys;

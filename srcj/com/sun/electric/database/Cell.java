@@ -1,5 +1,7 @@
 package com.sun.electric.database;
 
+import com.sun.electric.technologies.*;
+
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
@@ -62,7 +64,8 @@ public class Cell extends NodeProto
 	/** when this cell was created */				private Date creationDate;
 	/** when this cell was last modified */			private Date revisionDate;
 	/** version of this cell */						private int version;
-	/** cell-Center */								private NodeInst referencePoint = null;
+	/** cell-Center */								private NodeInst referencePointNode = null;
+	/** cell-Center */								private Point2D.Double referencePointCoord;
 	/** essential-bounds */							private List essenBounds = new ArrayList();
 	/** NodeInsts that comprise this cell */		private List nodes;
 	/** ArcInsts that comprise this cell */			private List arcs;
@@ -88,6 +91,7 @@ public class Cell extends NodeProto
 		lib = cellLib;
 		view = cellView;
 		version = cellVersion;
+		referencePointCoord = new Point2D.Double(0, 0);
 		creationDate = new Date();
 		revisionDate = new Date();
 		userbits = 0;
@@ -256,9 +260,10 @@ public class Cell extends NodeProto
 
 		// make additional checks to keep circuit up-to-date
 		NodeProto np = ni.getProto();
-		if (np instanceof PrimitiveNode && np.getProtoName().equals("Cell-Center"))
+		if (np instanceof PrimitiveNode && np == TecGeneric.tech.cellCenter_node)
 		{
-			referencePoint = ni;
+			referencePointNode = ni;
+			setReferencePoint(ni.getCenterX(), ni.getCenterY());
 		}
 		if (np instanceof PrimitiveNode
 			&& np.getProtoName().equals("Essential-Bounds"))
@@ -278,8 +283,8 @@ public class Cell extends NodeProto
 		// must recompute the bounds of the cell
 		boundsDirty = true;
 
-		if (ni == referencePoint)
-			referencePoint = null;
+		if (ni == referencePointNode)
+			referencePointNode = null;
 		essenBounds.remove(ni);
 	}
 
@@ -959,9 +964,7 @@ public class Cell extends NodeProto
 	 */
 	public Point2D.Double getReferencePoint()
 	{
-//		Point2D.Double p = getRefPointBase();
-//		return new Point2D.Double(p.x, p.y);
-		return new Point2D.Double(0, 0);
+		return referencePointCoord;
 	}
 
 	/** If there is no instance of Cell-Center then create one.
@@ -970,22 +973,19 @@ public class Cell extends NodeProto
 	 * relative to the position of the Cell-Center. */
 	public void setReferencePoint(double x, double y)
 	{
-		if (referencePoint == null)
-		{
-			Technology generic = Technology.findTechnology("generic");
-			error(generic == null, "can't find generic technlogy?");
-			PrimitiveNode cellCenter = generic.findNodeProto("Cell-Center");
-			error(cellCenter == null,
-				"can't find PrimitiveNode: Cell-Center");
-			referencePoint = NodeInst.newInstance(cellCenter, new Point2D.Double(1, 1), 0, 0, 0, this);
-		}
+//		if (referencePointNode == null)
+//		{
+//			Technology generic = Technology.findTechnology("generic");
+//			error(generic == null, "can't find generic technlogy?");
+//			PrimitiveNode cellCenter = generic.findNodeProto("Cell-Center");
+//			error(cellCenter == null,
+//				"can't find PrimitiveNode: Cell-Center");
+//			referencePointNode = NodeInst.newInstance(cellCenter, new Point2D.Double(1, 1), 0, 0, 0, this);
+//		}
+//		referencePointNode.alterShape(0, 0, x - r.getX(), y - r.getY(), 0);
+//		referencePointNode.setHardSelect();
 
-		// Tricky because alterShape interprets its arguments relative to
-		// the CellCenter whereas p is absolute.
-		Point2D r = getReferencePoint();
-		// absolute coordinates of Cell-Center
-//		referencePoint.alterShape(0, 0, x - r.getX(), y - r.getY(), 0);
-		referencePoint.setHardSelect();
+		referencePointCoord.setLocation(x, y);
 	}
 
 	/** Create a copy of this Cell. Warning: this routine doesn't yet
