@@ -184,6 +184,7 @@ public class Quick
 	/** for tracking the time of good DRC. */					private boolean haveGoodDRCDate;
 	/** for logging errors */                                   private ErrorLogger errorLogger;
 	/** for logging incremental errors */                       private static ErrorLogger errorLoggerIncremental = null;
+	/** Top cell for DRC */                                     private Cell topCell;
 
 	/* for figuring out which layers are valid for DRC */
 	private Technology layersValidTech = null;
@@ -219,6 +220,7 @@ public class Quick
 		onlyFirstError = DRC.isOneErrorPerCell();
 		ignoreCenterCuts = DRC.isIgnoreCenterCuts();
 		numberOfThreads = DRC.getNumberOfThreads();
+	    topCell = cell; /* Especially important for minArea checking */
 
 		// if checking specific instances, adjust options and processor count
 		if (count > 0)
@@ -498,9 +500,9 @@ public class Quick
 		// announce progress
 		System.out.println("Checking cell " + cell.describe());
 
-
 		// Check the area first but only when is not incremental
-		if (!DRC.isIgnoreAreaChecking() && !onlyFirstError)
+		// Only for the most top cell
+		if (cell == topCell && !DRC.isIgnoreAreaChecking() && !onlyFirstError)
 			checkMinArea(cell);
 
 		// now look at every node and arc here
