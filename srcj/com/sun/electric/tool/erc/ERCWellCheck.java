@@ -34,6 +34,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -678,11 +679,15 @@ public class ERCWellCheck
 					{
 						boolean searchWell = (fun == NodeProto.Function.WELL);
 						// PWell: must be on ground or  NWell: must be on power
-						for (Iterator it = net.getExports(); it.hasNext();)
+						JNetwork parentNet = HierarchyEnumerator.getNetworkInParent(net, info.getParentInst());
+						if (parentNet != null)
 						{
-							Export exp = (Export)it.next();
-							if ((searchWell && exp.isGround()) || (!searchWell && exp.isPower()))
-								wc.onProperRail = true;
+							for (Iterator it = parentNet.getExports(); !wc.onProperRail && it.hasNext();)
+							{
+								Export exp = (Export)it.next();
+								if ((searchWell && exp.isGround()) || (!searchWell && exp.isPower()))
+									wc.onProperRail = true;
+							}
 						}
 					}
 					wellCons.add(wc);
