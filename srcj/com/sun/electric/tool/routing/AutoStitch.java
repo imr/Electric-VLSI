@@ -102,12 +102,14 @@ public class AutoStitch
 		List nodesToStitch;
 		FlagSet nodeMark;
 		boolean forced;
+        List allRoutes;                 // list of all routes to be created at end of analysis
 
 		protected AutoStitchJob(List nodesToStitch, boolean forced)
 		{
 			super("Auto-Stitch", Routing.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.nodesToStitch = nodesToStitch;
 			this.forced = forced;
+            this.allRoutes = new ArrayList();
 			startJob();
 		}
 
@@ -240,6 +242,14 @@ public class AutoStitch
 			}
 			cellMark.freeFlagSet();
 			nodeMark.freeFlagSet();
+
+            // create the routes
+            for (Iterator it = allRoutes.iterator(); it.hasNext(); ) {
+                Route route = (Route)it.next();
+                RouteElement re = (RouteElement)route.get(0);
+                Cell c = re.getCell();
+                Router.createRouteNoJob(route, c, false);            
+            }
 
 			return true;
 		}
@@ -533,7 +543,7 @@ public class AutoStitch
 		 * nodeinst "ni", port "pp" with an arc of type "ap".  Returns the number of
 		 * connections made (0 if none).
 		 */
-		private static boolean testPoly(NodeInst ni, PortProto pp, ArcProto ap, Poly poly, NodeInst oNi, Netlist netlist)
+		private boolean testPoly(NodeInst ni, PortProto pp, ArcProto ap, Poly poly, NodeInst oNi, Netlist netlist)
 		{
 			// get network associated with the node/port
 			PortInst pi = ni.findPortInstFromProto(pp);
@@ -725,7 +735,7 @@ public class AutoStitch
 		 * "ap".  If a connection is made, the method returns true, otherwise
 		 * it returns false.
 		 */
-		private static boolean comparePoly(NodeInst oNi, PortProto opp, Poly oPoly, NodeInst ni,
+		private boolean comparePoly(NodeInst oNi, PortProto opp, Poly oPoly, NodeInst ni,
 			PortProto pp, Poly poly, ArcProto ap, Netlist netlist)
 		{
 			// find the bounding boxes of the polygons
@@ -780,7 +790,8 @@ public class AutoStitch
             PortInst opi = oNi.findPortInstFromProto(opp);
             Route route = router.planRoute(ni.getParent(), pi, opi, new Point2D.Double(x,y));
             if (route.size() == 0) return false;
-            Router.createRouteNoJob(route, ni.getParent(), false);
+            allRoutes.add(route);
+            //Router.createRouteNoJob(route, ni.getParent(), false);
 			return true;
 		}
 

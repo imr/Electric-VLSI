@@ -228,7 +228,7 @@ public class KeyBindingManager {
      */
     public synchronized boolean processKeyEvent(KeyEvent e) {
 
-        if (DEBUG) System.out.println("got event (consumed="+e.isConsumed()+")"+e);
+        if (DEBUG) System.out.println("got event (consumed="+e.isConsumed()+") "+e);
 
         // only look at key pressed events
         if ((e.getID() != KeyEvent.KEY_PRESSED) && (e.getID() != KeyEvent.KEY_TYPED)) return false;

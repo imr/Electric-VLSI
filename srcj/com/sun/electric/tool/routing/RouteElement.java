@@ -300,6 +300,15 @@ public class RouteElement {
     }
 
     /**
+     * Return arc width if this is a newArc RouteElement, otherwise returns -1.
+     * This returns the arc width taking into account any offset
+     */
+    public double getOffsetArcWidth() {
+        if (action != RouteElementAction.newArc) return -1;
+        return arcWidth - ap.getWidthOffset();
+    }
+
+    /**
      * Set the arc width if this is a newArc RouteElement, otherwise does nothing.
      */
     public void setArcWidth(double width) {
@@ -431,6 +440,8 @@ public class RouteElement {
     /**
      * Get largest arc width of newArc RouteElements attached to this
      * RouteElement.  If none present returns -1.
+     * <p>Note that these width values should have been pre-adjusted for
+     * the arc width offset, so these values have had the offset subtracted away.
      */
     public double getWidestConnectingArc(ArcProto ap) {
         double width = -1;
@@ -441,7 +452,8 @@ public class RouteElement {
                 Connection conn = (Connection)it.next();
                 ArcInst arc = conn.getArc();
                 if (arc.getProto() == ap) {
-                    if (arc.getWidth() > width) width = arc.getWidth();
+                    double newWidth = arc.getWidth() - arc.getProto().getWidthOffset();
+                    if (newWidth > width) width = newWidth;
                 }
             }
         }
@@ -451,14 +463,14 @@ public class RouteElement {
             for (Iterator it = newArcs.iterator(); it.hasNext(); ) {
                 RouteElement re = (RouteElement)it.next();
                 if (re.getArcProto() == ap) {
-                    if (re.getArcWidth() > width) width = re.getArcWidth();
+                    if (re.getOffsetArcWidth() > width) width = re.getOffsetArcWidth();
                 }
             }
         }
 
         if (action == RouteElementAction.newArc) {
             if (getArcProto() == ap) {
-                if (getArcWidth() > width) return getArcWidth();
+                if (getOffsetArcWidth() > width) return getOffsetArcWidth();
             }
         }
         return width;

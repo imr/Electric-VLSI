@@ -331,7 +331,8 @@ public abstract class Router {
         double width = ap.getDefaultWidth();
         for (Iterator it = pi.getConnections(); it.hasNext(); ) {
             Connection c = (Connection)it.next();
-            if (width < c.getArc().getWidth()) width = c.getArc().getWidth();
+            double newWidth = c.getArc().getWidth() - c.getArc().getProto().getWidthOffset();
+            if (width < newWidth) width = newWidth;
         }
         // check any wires that connect to the export of this portinst in the
         // prototype, if this is a cell instance
@@ -387,10 +388,10 @@ public abstract class Router {
         // if RE is an arc, use its arc width
         if (re.getAction() == RouteElement.RouteElementAction.newArc) {
             if (re.isNewArcVertical()) {
-                if (re.getArcWidth() > width) width = re.getArcWidth();
+                if (re.getOffsetArcWidth() > width) width = re.getOffsetArcWidth();
             }
             if (re.isNewArcHorizontal()) {
-                if (re.getArcWidth() > height) height = re.getArcWidth();
+                if (re.getOffsetArcWidth() > height) height = re.getOffsetArcWidth();
             }
         }
 
@@ -414,11 +415,12 @@ public abstract class Router {
                 Point2D tail = arc.getTail().getLocation();
 
                 // use width of widest arc
+                double newWidth = arc.getWidth() - arc.getProto().getWidthOffset();
                 if (head.getX() == tail.getX()) {
-                    if (arc.getWidth() > width) width = arc.getWidth();
+                    if (newWidth > width) width = newWidth;
                 }
                 if (head.getY() == tail.getY()) {
-                    if (arc.getWidth() > height) height = arc.getWidth();
+                    if (newWidth > height) height = newWidth;
                 }
             }
         }
