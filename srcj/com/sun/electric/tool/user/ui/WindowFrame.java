@@ -645,6 +645,7 @@ public class WindowFrame
     /**
      * Method to request focus on this window
      */
+/*
     public void requestFocus() {
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(new Runnable() {
@@ -673,6 +674,7 @@ public class WindowFrame
         if (jf != null) return jf.isFocusOwner();
         return false;
     }
+*/
 
 	/**
 	 * Method to set the current WindowFrame.
@@ -698,7 +700,7 @@ public class WindowFrame
 	}
 
     private void currentCellChanged() {
-        if (!isFocusOwner()) return;
+        if (this != getCurrentWindowFrame(false)) return;
         Cell cell = getContent().getCell();
         if (cell != null)
         {
@@ -860,16 +862,33 @@ public class WindowFrame
 			title.append("***NONE***");
 		return (title.toString());
 	}
+
     /**
      * Method to set the description on the window frame
      */
     public void setTitle(String title)
     {
+        String curTitle = getTitle();
+        if (title.equals(curTitle)) return;
+
         if (TopLevel.isMDIMode()) {
             if (jif != null) jif.setTitle(title);
         } else {
             if (jf != null) jf.setTitle(title);
         }
+    }
+
+    /**
+     * Method to get the description on the window frame
+     */
+    public String getTitle()
+    {
+        if (TopLevel.isMDIMode()) {
+            if (jif != null) return jif.getTitle();
+        } else {
+            if (jf != null) return jf.getTitle();
+        }
+        return "";
     }
 
     private static void removeUIBinding(JComponent comp, KeyStroke key) {

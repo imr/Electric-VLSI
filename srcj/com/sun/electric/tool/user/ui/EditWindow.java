@@ -672,9 +672,6 @@ public class EditWindow extends JPanel
 		// start rendering thread
 		if (offscreen == null) return;
 
-		// do the redraw in the main thread
-        setScrollPosition();                        // redraw scroll bars
-
 		// do the redraw in a separate thread
 		synchronized(redrawThese)
 		{
@@ -687,6 +684,9 @@ public class EditWindow extends JPanel
 			runningNow = this;
 		}
 		RenderJob renderJob = new RenderJob(this, offscreen, bounds);
+
+        // do the redraw in the main thread
+        setScrollPosition();                        // redraw scroll bars
 	}
 
 	/**

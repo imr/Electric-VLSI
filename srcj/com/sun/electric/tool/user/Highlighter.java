@@ -1020,7 +1020,8 @@ public class Highlighter implements DatabaseChangeListener {
 			{
 				Point2D start = wnd.screenToDatabase((int)x, (int)y);
 				Poly poly = h.getElectricObject().computeTextPoly(wnd, h.getVar(), h.getName());
-				if (poly.isInside(start)) return true;
+                if (poly != null)
+				    if (poly.isInside(start)) return true;
 			} else if (style == Highlight.Type.EOBJ)
 			{
 				Point2D slop = wnd.deltaScreenToDatabase(EXACTSELECTDISTANCE*2, EXACTSELECTDISTANCE*2);

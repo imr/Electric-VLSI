@@ -242,7 +242,7 @@ public class FileMenu {
                 // close no name library
                 //mainLib.kill();
                 //WindowFrame.wantToRedoLibraryTree();
-                // the calls to repaint actually cause the 
+                // the calls to repaint actually cause the
                 // EditWindow to come up BLANK in Linux SDI mode
                 //EditWindow.repaintAll();
                 //EditWindow.repaintAllContents();
@@ -285,7 +285,7 @@ public class FileMenu {
                 if (content.getCell() == null)
                 {
                     wf.setCellWindow(cell);
-                    wf.requestFocus();
+                    //wf.requestFocus();
                     TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
                     return true;
                 }
