@@ -50,6 +50,7 @@ public class LibraryPalette extends JPanel implements DatabaseChangeListener, Mo
     private JList cellJList;
     private Map viewPortMap;    // key: library. Object: Integer
     private JPopupMenu cellPopup;
+    private PaletteFrame.PlaceNodeListener lastPlaceNodeListener = null;
 
     /**
      * The palette panel. This constructor is never used, use the Factory Method
@@ -130,13 +131,27 @@ public class LibraryPalette extends JPanel implements DatabaseChangeListener, Mo
             initCellPopup();
             int index = cellJList.locationToIndex(new Point(e.getX(), e.getY()));
             Object selected = cellJList.getModel().getElementAt(index);
+            if (selected == null) return;
+
             cellJList.setSelectedValue(selected, false);
             cellPopup.show(this, e.getX(), e.getY());
         } else {
-            // place cell at location
             Object selected = cellJList.getSelectedValue();
+            if (selected == null) return;
+
             Cell cell = (Cell)selected;
-            PaletteFrame.placeInstance(cell, this, false);
+            if (e.getClickCount() == 2) {
+                // edit cell at location
+                selectedCellEdit();
+                // cancel any placing of cells (double click is always preceeded with single click)
+                if (lastPlaceNodeListener != null) {
+                    lastPlaceNodeListener.finished(EditWindow.getCurrent(), true);
+                }
+            } else {
+                // single click
+                // place cell at location
+                lastPlaceNodeListener = PaletteFrame.placeInstance(cell, this, false);
+            }
         }
     }
 
@@ -144,6 +159,7 @@ public class LibraryPalette extends JPanel implements DatabaseChangeListener, Mo
     }
     public void placeNodeFinished(boolean cancelled) {
         cellJList.clearSelection();
+        lastPlaceNodeListener = null;
     }
 
     private void initCellPopup() {

@@ -98,6 +98,10 @@ public class Library extends ElectricObject
 	public static Library newInstance(String libName, URL libFile)
 	{
 		// make sure the name is legal
+        if (libName == null || libName.equals("")) {
+            System.out.println("Error: '"+libName+"' is not a valid name");
+            return null;
+        }
 		String legalName = libName.replace(' ', '-');
 		if (!legalName.equalsIgnoreCase(libName))
 			System.out.println("Warning: library renamed to '" + legalName + "'");
@@ -128,6 +132,8 @@ public class Library extends ElectricObject
         // always broadcast library changes
         Undo.setNextChangeQuiet(false);
         Undo.newObject(lib);
+
+        System.out.println("New Library '"+legalName+"' created");
 		return lib;
 	}
 

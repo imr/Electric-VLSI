@@ -145,12 +145,28 @@ public class FileMenu {
     {
         String newLibName = JOptionPane.showInputDialog("New Library Name", "");
         if (newLibName == null) return;
-        Library lib = Library.newInstance(newLibName, null);
-        if (lib == null) return;
-        lib.setCurrent();
-        WindowFrame.wantToRedoLibraryTree();
-        EditWindow.repaintAll();
-        TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
+        NewLibrary job = new NewLibrary(newLibName);
+    }
+
+    public static class NewLibrary extends Job {
+        private String newLibName;
+
+        public NewLibrary(String newLibName) {
+            super("New Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.newLibName = newLibName;
+            startJob();
+        }
+
+        public boolean doIt()
+        {
+            Library lib = Library.newInstance(newLibName, null);
+            if (lib == null) return false;
+            lib.setCurrent();
+            WindowFrame.wantToRedoLibraryTree();
+            EditWindow.repaintAll();
+            TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
+            return true;
+        }
     }
 
     /**

@@ -512,7 +512,7 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 	 * @param palette if not null, is notified of certain events during the placing of the node
 	 * If this is null, then the request did not come from the palette.
 	 */
-	public static void placeInstance(Object obj, PlaceNodeEventListener palette, boolean export)
+	public static PlaceNodeListener placeInstance(Object obj, PlaceNodeEventListener palette, boolean export)
 	{
 		NodeProto np = null;
 		NodeInst ni = null;
@@ -521,7 +521,7 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 
         // make sure current cell is not null
         Cell curCell = WindowFrame.needCurCell();
-        if (curCell == null) return;
+        if (curCell == null) return null;
 
 		if (obj instanceof String)
 		{
@@ -541,7 +541,7 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 				{
 					int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
 						"Don't you really want to place the icon " + iconCell.describe() + "?");
-					if (response == JOptionPane.CANCEL_OPTION) return;
+					if (response == JOptionPane.CANCEL_OPTION) return null;
 					if (response == JOptionPane.YES_OPTION) obj = np = iconCell;
 				}
 			}
@@ -581,10 +581,13 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 
 			// change the cursor
 			TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+            return (PlaceNodeListener)newListener;
 		}
+        return null;
 	}
 
-	private static class PlaceNodeListener
+	public static class PlaceNodeListener
 		implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 	{
 		private int oldx, oldy;
