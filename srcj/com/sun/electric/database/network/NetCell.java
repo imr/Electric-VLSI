@@ -716,6 +716,9 @@ class NetCell
 	{
 		if ((flags & VALID) != 0) return;
 
+        // clear errors for cell
+        Network.errorLogger.clearErrors(cell);
+
 		// redo descendents
 		for (Iterator it = cell.getUsagesIn(); it.hasNext();)
 		{

@@ -700,12 +700,7 @@ class NetSchem extends NetCell {
 				continue;
 			}
 			if (oldWidth != newWidth) {
-				String msg = "Network: Schematic cell " + cell.describe() + " has net with conflict name width <" +
-								   drawnNames[drawn] + "> and <" + name;
-                System.out.println(msg);
-                ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
-                // TODO: what to highlight?
-                //log.addGeom(ni, true, 0, null);
+                reportDrawnWidthError((Export)cell.getPort(i), null, drawnNames[drawn].toString(), name.toString());
             }
 		}
 		for (int i = 0; i < numArcs; i++) {
@@ -722,12 +717,7 @@ class NetSchem extends NetCell {
 				continue;
 			}
 			if (oldWidth != newWidth) {
-				String msg = "Network: Schematic cell " + cell.describe() + " has net with conflict width of names <" +
-								   drawnNames[drawn] + "> and <" + name + ">";
-                System.out.println(msg);
-                ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
-                // TODO: what to highlight?
-                //log.addGeom(ni, true, 0, null);
+                reportDrawnWidthError(null, ai, drawnNames[drawn].toString(), name.toString());
             }
 		}
 		ArcProto busArc = Schematics.tech.bus_arc;
@@ -786,6 +776,40 @@ class NetSchem extends NetCell {
 			if (Network.debug) System.out.println("Drawn "+i+" "+(drawnNames[i] != null ? drawnNames[i].toString() : "") +" has width " + drawnWidths[i]);
 		}
 	}
+
+    // this method will not be called often because user will fix error, so it's not
+    // very efficient.
+    void reportDrawnWidthError(Export pp, ArcInst ai, String firstname, String badname) {
+        // first occurrence is initial width which all subsequents are compared to
+        int numPorts = cell.getNumPorts();
+        int numArcs = cell.getNumArcs();
+
+        String msg = "Network: Schematic cell " + cell.describe() + " has net with conflict width of names <" +
+                           firstname + "> and <" + badname + ">";
+        System.out.println(msg);
+        ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
+
+        boolean originalFound = false;
+        for (int i = 0; i < numPorts; i++) {
+            String name = cell.getPort(i).getName();
+            if (name.equals(firstname)) {
+                log.addExport((Export)cell.getPort(i), true);
+                originalFound = true;
+                break;
+            }
+        }
+        if (!originalFound) {
+            for (int i = 0; i < numArcs; i++) {
+                String name = cell.getArc(i).getName();
+                if (name.equals(firstname)) {
+                    log.addGeom(cell.getArc(i), true, 0, null);
+                    break;
+                }
+            }
+        }
+        if (ai != null) log.addGeom(ai, true, 0, null);
+        if (pp != null) log.addExport(pp, true);
+    }
 
 	void addNetNames(Name name) {
  		for (int i = 0; i < name.busWidth(); i++)
