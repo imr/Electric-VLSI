@@ -29,6 +29,8 @@ import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -704,39 +706,97 @@ class FillCell {
 	}
 }
 
+class Router {
+	private HashMap portMap = new HashMap();
+	private String makeKey(PortInst pi) {
+		Rectangle2D bounds = pi.getBounds();
+		String x = ""+bounds.getCenterX();
+		String y = ""+bounds.getCenterY();
+		return x+"x"+y;
+	}
+	private boolean bothConnect(PrimitiveArc a, PortProto pp1, PortProto pp2) {
+		return pp1.connectsTo(a) && pp2.connectsTo(a);
+	}
+	private PrimitiveArc findCommonArc(PortInst p1, PortInst p2) {
+		PrimitiveArc[] metals = {Tech.m6, Tech.m5, Tech.m4, Tech.m3, Tech.m2, Tech.m1};
+		PortProto pp1 = p1.getPortProto();
+		PortProto pp2 = p2.getPortProto();
+		for (int i=0; i<metals.length; i++) {
+			if (pp1.connectsTo(metals[i]) && pp2.connectsTo(metals[i])) {
+				return metals[i];
+			}
+		}
+		return null;
+	}
+	private void connectPorts(List ports) {
+		for (Iterator it=ports.iterator(); it.hasNext(); ) {
+			PortInst first = (PortInst) it.next();
+			it.remove();
+			for (Iterator it2=ports.iterator(); it2.hasNext();) {
+				PortInst pi = (PortInst) it2.next();
+				PrimitiveArc a = findCommonArc(first, pi);
+				if (a!=null)  LayoutLib.newArcInst(a, G.DEF_SIZE, first, pi);
+			}
+		}
+	}
+	private Router(ArrayList ports) {
+		for (Iterator it=ports.iterator(); it.hasNext();) {
+			PortInst pi = (PortInst) it.next();
+			String key = makeKey(pi);
+			List l = (List) portMap.get(key);
+			if (l==null) {
+				l = new LinkedList();
+				portMap.put(key, l);
+			}
+			l.add(pi);
+		}
+		for (Iterator it=portMap.keySet().iterator(); it.hasNext();) {
+			connectPorts((List)portMap.get(it.next()));
+		}
+	}
+	public static void connectCoincident(ArrayList ports) {
+		new Router(ports);
+	}
+}
+
 /**
  * Generate fill cells.
  * Create a library called fillCells. 
  */
 public class FillLibGen extends Job {
+	private static final double width = 245; //245 80
+	private static final double height = 175; //175 100 
+	private static final boolean topHori = false;
+	// m1 via = 4x4, m1 space = 6
+	// m6 via = 5x5, m6 space = 8
+	private static final Floorplan[] plans = {
+		null,
+		new CapFloorplan(width, height, 			 !topHori),	// metal 1
+		new MetalFloorplan(width, height, 16, 16, 6,  topHori),	// metal 2
+		new MetalFloorplan(width, height, 16, 16, 6, !topHori),	// metal 3
+		new MetalFloorplan(width, height, 16, 16, 6,  topHori),	// metal 4
+		new MetalFloorplan(width, height, 16, 16, 6, !topHori),	// metal 5
+		new MetalFloorplan(width, height, 21, 21, 8,  topHori)	// metal 6
+	};
+	private static final Floorplan[] noGapPlans = {
+		null,
+		new CapFloorplan(width, height, 		   !topHori),	// metal 1
+		new MetalFloorplan(width, height, 0, 0, 6,  topHori),	// metal 2
+		new MetalFloorplan(width, height, 0, 0, 6, !topHori),	// metal 3
+		new MetalFloorplan(width, height, 0, 0, 6,  topHori),	// metal 4
+		new MetalFloorplan(width, height, 0, 0, 6, !topHori),	// metal 5
+		new MetalFloorplan(width, height, 0, 0, 8,  topHori)	// metal 6
+	};
 
-	private void genFillCells() {
-		Library lib = 
-			LayoutLib.openLibForWrite("fillLib", "fillLib.elib");
-		double width = 245; //245 80
-		double height = 175; //175 100 
-		boolean topHori = false;
-		// m1 via = 4x4, m1 space = 6
-		// m6 via = 5x5, m6 space = 8
-		Floorplan[] plans = {
-			null,
-			new CapFloorplan(width, height, 			 !topHori),	// metal 1
-			new MetalFloorplan(width, height, 16, 16, 6,  topHori),	// metal 2
-			new MetalFloorplan(width, height, 16, 16, 6, !topHori),	// metal 3
-			new MetalFloorplan(width, height, 16, 16, 6,  topHori),	// metal 4
-			new MetalFloorplan(width, height, 16, 16, 6, !topHori),	// metal 5
-			new MetalFloorplan(width, height, 21, 21, 8,  topHori)	// metal 6
-		};
-		Floorplan[] noGapPlans = {
-			null,
-			new CapFloorplan(width, height, 		   !topHori),	// metal 1
-			new MetalFloorplan(width, height, 0, 0, 6,  topHori),	// metal 2
-			new MetalFloorplan(width, height, 0, 0, 6, !topHori),	// metal 3
-			new MetalFloorplan(width, height, 0, 0, 6,  topHori),	// metal 4
-			new MetalFloorplan(width, height, 0, 0, 6, !topHori),	// metal 5
-			new MetalFloorplan(width, height, 0, 0, 8,  topHori)	// metal 6
-		};
-		FillCell.newFillCell(lib, plans, 1, 2, true);
+	private void fillCellTest() {
+		genFillCellFamily("fillLib", plans);
+		genFillCellFamily("noGapFillLib", noGapPlans);
+	}
+
+	private void genFillCellFamily(String libName, Floorplan[] plans) {
+		Library lib = LayoutLib.openLibForWrite(libName, libName+".elib");
+
+		//FillCell.newFillCell(lib, plans, 1, 2, true);
 		for (int i=1; i<=6; i++) {
 			for (int w=0; w<2; w++) {
 				boolean wireLowest = w==1;
@@ -745,12 +805,42 @@ public class FillLibGen extends Job {
 				}
 			}
 		}
-		Cell gallery = Gallery.makeGallery(lib);
+		genTestCell(lib);
+		Gallery.makeGallery(lib);
+	}
+
+	private ArrayList getAllPortInsts(Cell cell) {
+		// get all the ports
+		ArrayList ports = new ArrayList();
+		for (Iterator it=cell.getNodes(); it.hasNext();) {
+			NodeInst ni = (NodeInst) it.next();
+			for (Iterator pIt=ni.getPortInsts(); pIt.hasNext();) {
+				PortInst pi = (PortInst) pIt.next();
+				ports.add(pi);
+			}
+		}
+		return ports;
+	}
+
+	private void genTestCell(Library lib) {
+		Cell test = Cell.newInstance(lib, "test{lay}");
+		Cell fill = lib.findNodeProto("fill");
+		NodeInst[] insts = new NodeInst[4];
+		for (int i=0; i<4; i++) {
+			insts[i] = LayoutLib.newNodeInst(fill, 0, 0, G.DEF_SIZE, G.DEF_SIZE,
+			                                 0, test);
+		}
+		LayoutLib.abutBottomTop(insts[0], insts[2]);
+		LayoutLib.abutLeftRight(insts[0], insts[1]);
+		LayoutLib.abutLeftRight(insts[2], insts[3]);
+		
+		ArrayList portInsts = getAllPortInsts(test);
+		Router.connectCoincident(portInsts);
 	}
 	
 	public void doIt() {
 		System.out.println("Begin FillCell");
-		genFillCells();
+		fillCellTest();
 		System.out.println("Done FillCell");
 	}
 	
