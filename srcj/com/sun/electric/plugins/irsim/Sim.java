@@ -1161,10 +1161,7 @@ public class Sim
 							if (Config.irsim_CDA == 0.0 || Config.irsim_CDP == 0.0 ||
 								Config.irsim_CPDA == 0.0 || Config.irsim_CPDP == 0.0)
 							{
-								System.out.println("Warning: SU format and area/perim cap values are zero");
-							} else
-							{
-								System.out.println("info: SU format -> using S/D attrs to compute junction parasitics");
+								System.out.println("Warning: missing area/perim cap values are zero");
 							}
 						} 
 						break;
@@ -1203,14 +1200,14 @@ public class Sim
 					case 'R': 
 						if (! R_error)	// only warn about this 1 time
 						{
-							System.out.println(fileName + ": Ignoring lumped-resistance ('R' construct)");
+							System.out.println(fileName + "Ignoring lumped-resistance ('R' construct)");
 							R_error = true;
 						}
 						break;
 					case 'A':
 						if (! A_error)	// only warn about this 1 time
 						{
-							System.out.println(fileName + ": Ignoring attribute-line ('A' construct)");
+							System.out.println(fileName + "Ignoring attribute-line ('A' construct)");
 							A_error = true;
 						}
 						break;
@@ -1224,7 +1221,7 @@ public class Sim
 		{
 			System.out.println("Error reading file");
 		}
-		System.out.println("Loaded circuit, lambda=" + Config.irsim_LAMBDA + "u format=SU");
+		System.out.println("Loaded circuit, lambda=" + Config.irsim_LAMBDA + "u");
 	}
 	
 	static void init_counts()

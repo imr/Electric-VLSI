@@ -33,14 +33,14 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
-import com.sun.electric.tool.io.FileType;
+import static com.sun.electric.tool.simulation.Simulation.tool;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -88,7 +88,7 @@ public class Simulation extends Tool
 			// find the necessary methods on the IRSIM class
 			try
 			{
-				irsimSimulateMethod = irsimClass.getMethod("simulateCell", new Class[] {Cell.class});
+				irsimSimulateMethod = irsimClass.getMethod("simulateCell", new Class[] {Cell.class, String.class});
 				irsimDoCommand = irsimClass.getMethod("doIRSIMCommand", new Class[] {String.class});				
 			} catch (NoSuchMethodException e)
 			{
@@ -106,12 +106,12 @@ public class Simulation extends Tool
 	 * Method to invoke the IRSIM on a Cell via reflection.
 	 * @param cell the Cell to simulate.
 	 */
-	public static void simulateIRSIM(Cell cell)
+	public static void simulateIRSIM(Cell cell, String fileName)
 	{
 		if (!hasIRSIM()) return;
 		try
 		{
-			irsimSimulateMethod.invoke(irsimClass, new Object[] {cell});
+			irsimSimulateMethod.invoke(irsimClass, new Object[] {cell, fileName});
 		} catch (Exception e)
 		{
 			System.out.println("Unable to run the IRSIM simulator");
@@ -416,6 +416,7 @@ public class Simulation extends Tool
 		private double [] time;
 		private List bussedSignals;
 		public List tempList;		// used only in the Verilog reader
+		private boolean partOfBus;
 
 		/**
 		 * Constructor for a simulation signal.
@@ -426,6 +427,7 @@ public class Simulation extends Tool
 			this.sd = sd;
 			useCommonTime = true;
 			boundsCurrent = false;
+			partOfBus = false;
 			if (sd != null) sd.signals.add(this);
 		}
 
@@ -496,7 +498,17 @@ public class Simulation extends Tool
 		 * Method to add a signal to this bus signal.
 		 * @param ws a single-wire signal to be added to this bus signal.
 		 */
-		public void addToBussedSignalList(SimSignal ws) { bussedSignals.add(ws); }
+		public void addToBussedSignalList(SimSignal ws)
+		{
+			bussedSignals.add(ws);
+			ws.partOfBus = true;
+		}
+
+		/**
+		 * Method to tell whether this signal is part of a bus.
+		 * @return true if this signal is part of a bus.
+		 */
+		public boolean isInBus() { return partOfBus; }
 
 		/**
 		 * Method to build a time vector for this signal.
@@ -1273,16 +1285,67 @@ public class Simulation extends Tool
 		} else
 		{
 			// put all top-level signals in
+			makeBussedSignals(sd);
 			for(int i=0; i<sd.signals.size(); i++)
 			{
 				SimDigitalSignal sDSig = (SimDigitalSignal)sd.signals.get(i);
 				if (sDSig.getSignalContext() != null) continue;
+				if (sDSig.isInBus()) continue;
+				if (sDSig.getSignalName().indexOf('@') >= 0) continue;
 				WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, false);
 				wp.makeSelectedPanel();
 				new WaveformWindow.Signal(wp, sDSig);
 			}
 		}
 		ww.getPanel().validate();
+	}
+
+	private static void makeBussedSignals(SimData sd)
+	{
+		List signals = sd.getSignals();
+		for(int i=0; i<signals.size(); i++)
+		{
+			SimSignal sSig = (SimSignal)signals.get(i);
+			int thisBracketPos = sSig.signalName.indexOf('[');
+			if (thisBracketPos < 0) continue;
+			String prefix = sSig.signalName.substring(0, thisBracketPos);
+			
+			// see how many of the following signals are part of the bus
+			int j = i+1;
+			for( ; j<signals.size(); j++)
+			{
+				SimSignal nextSig = (SimSignal)signals.get(j);
+
+				// other signal must have the same root
+				int nextBracketPos = nextSig.signalName.indexOf('[');
+				if (nextBracketPos < 0) break;
+				if (thisBracketPos != nextBracketPos) break;
+				if (!prefix.equals(nextSig.signalName.substring(0, nextBracketPos))) break;
+
+				// other signal must have the same context
+				if (sSig.signalContext == null ^ nextSig.signalContext == null) break;
+				if (sSig.signalContext != null)
+				{
+					if (!sSig.signalContext.equals(nextSig.signalContext)) break;
+				}
+			}
+
+			// see how many signals are part of the bus
+			int numSignals = j - i;
+			if (numSignals <= 1) continue;
+
+			// found a bus of signals: create the bus for it
+			Simulation.SimDigitalSignal busSig = new Simulation.SimDigitalSignal(sd);
+			busSig.setSignalName(prefix);
+			busSig.setSignalContext(sSig.signalContext);
+			busSig.buildBussedSignalList();
+			for(int k=i; k<j; k++)
+			{
+				SimSignal subSig = (SimSignal)signals.get(k);
+				busSig.addToBussedSignalList(subSig);
+			}
+			i = j - 1;
+		}
 	}
 
 	/****************************** FAST HENRY OPTIONS ******************************/

@@ -653,28 +653,29 @@ public class Analyzer
 	/**
 	 * Main entry point to start simulating a cell.
 	 * @param cell the cell to simulate.
+	 * @param fileName the file with the input deck (null to generate one)
 	 */
-	public static void simulateCell(Cell cell)
+	public static void simulateCell(Cell cell, String fileName)
 	{	
 		// first write the deck
-		new StartIRSIM(cell);
+		new StartIRSIM(cell, fileName);
 	}
 
 	private static class StartIRSIM extends Job
     {
-        Cell cell;
+        private Cell cell;
+        private String fileName;
 
-        public StartIRSIM(Cell cell)
+        public StartIRSIM(Cell cell, String fileName)
         {
-            super("Simulate cell "+cell.describe(), User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+            super("Simulate cell", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
             this.cell = cell;
+            this.fileName = fileName;
             startJob();
         }
 
         public boolean doIt()
         {
-        	Output.writeCell(cell, null, "Electric.XXXXXX", FileType.IRSIM);
-        	
     		irsim_freememory();
 
     		/* now initialize the simulator */
@@ -684,7 +685,14 @@ public class Analyzer
     		}
     		System.out.println("IRSIM " + Sim.irsim_version);
 
-    		URL fileURL = TextUtils.makeURLToFile("Electric.XXXXXX");
+    		String fileToUse = fileName;
+    		if (fileName == null)
+    		{
+    			fileName = "Electric.XXXXXX";
+    			Output.writeCell(cell, null, fileName, FileType.IRSIM);
+    		}
+        	
+    		URL fileURL = TextUtils.makeURLToFile(fileName);
 
     		// read the configuration file
     		String parameterFile = Simulation.getIRSIMParameterFile().trim();
@@ -712,8 +720,11 @@ public class Analyzer
     		if (Sim.irsim_rd_network(fileURL)) return true;
 
     		// remove the temporary network file
-    		File f = new File("Electric.XXXXXX");
-    		if (f != null) f.delete();
+    		if (fileToUse == null)
+    		{
+	    		File f = new File(fileName);
+	    		if (f != null) f.delete();
+    		}
     	
     		Sim.irsim_ConnectNetwork();	// connect all txtors to corresponding nodes
     		if (first)

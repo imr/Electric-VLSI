@@ -146,9 +146,11 @@ public class ToolMenu {
 			MenuBar.Menu irsimSimulationSubMenu = new MenuBar.Menu("Simulation (IRSIM)", 'I');
 			toolMenu.add(irsimSimulationSubMenu);
 			irsimSimulationSubMenu.addMenuItem("Simulate Current Cell", null,
-				new ActionListener() { public void actionPerformed(ActionEvent e) { simulateCellWithIRSIM(); } });
+				new ActionListener() { public void actionPerformed(ActionEvent e) { simulateCellWithIRSIM(false); } });
 			irsimSimulationSubMenu.addMenuItem("Write IRSIM Deck...", null,
-				new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.IRSIM, true); }});
+					new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.IRSIM, true); }});
+			irsimSimulationSubMenu.addMenuItem("Simulate IRSIM Deck...", null,
+					new ActionListener() { public void actionPerformed(ActionEvent e) { simulateCellWithIRSIM(true); }});
 			irsimSimulationSubMenu.addSeparator();
 			irsimSimulationSubMenu.addMenuItem("Set Signal High at Main Time", KeyStroke.getKeyStroke('V', 0),
 				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("h"); } });
@@ -1068,11 +1070,21 @@ public class ToolMenu {
     /**
      * Method to simulate the current cell with IRSIM.
      */
-    public static void simulateCellWithIRSIM()
+    public static void simulateCellWithIRSIM(boolean forceDeck)
     {
-        Cell cell = WindowFrame.needCurCell();
-        if (cell == null) return;
-    	Simulation.simulateIRSIM(cell);
+    	Cell cell = null;
+    	String fileName = null;
+    	if (forceDeck)
+    	{
+    		fileName = OpenFile.chooseInputFile(FileType.IRSIM, "IRSIM deck to simulate");
+    		if (fileName == null) return;
+    		cell = WindowFrame.getCurrentCell();
+    	} else
+    	{
+	        cell = WindowFrame.needCurCell();
+	        if (cell == null) return;
+    	}
+    	Simulation.simulateIRSIM(cell, fileName);
     }
 
     /**
