@@ -84,6 +84,7 @@ import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.generator.PadGenerator;
+import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.simulation.Spice;
 import com.sun.electric.tool.simulation.IRSIMTool;
 import com.sun.electric.tool.io.Output;
@@ -443,6 +444,10 @@ public final class MenuCommands
 		toolMenu.add(logEffortSubMenu);
 
 		Menu routingSubMenu = Menu.createMenu("Routing", 'R');
+        routingSubMenu.addMenuItem("Auto-Stitch Now", null, 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { AutoStitch.autoStitch(false); }});
+        routingSubMenu.addMenuItem("Auto-Stitch Highlighted Now", KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { AutoStitch.autoStitch(true); }});
 		toolMenu.add(routingSubMenu);
 
 		Menu generationSubMenu = Menu.createMenu("Generation", 'G');
