@@ -29,6 +29,7 @@ public class LENetwork {
     protected void add(LENetwork net) { networks.add(net); }
 
     protected String getName() { return name; }
+    protected Iterator getSubNets() { return networks.iterator(); }
 
     protected List getAllPins() {
         List allpins = new ArrayList(pins);

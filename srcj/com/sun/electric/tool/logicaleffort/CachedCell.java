@@ -20,12 +20,14 @@ public class CachedCell {
 
     /** source cell */                  private Cell cell;
     /** map of Nodable to LENodable */  private Map lenodables;
-    /** map of CachedCell instances */  private Map cellnodables; // key: Nodable, Object: CachedCell
+    /** map of CachedCell instances */  private Map cellnodables; // key: Nodable, Object: CellNodable
     /** this cell or subcells contains le gates */  private boolean containsSizableGates;
     /** local networks */               private Map localNetworks; // key: JNetwork, Object: LENetwork
     /** if this cell's nodes and subcell's nodes can be fully evaluated as if this cell was the top level */
                                         private Boolean contextFree;
-    /** list of all cached nodables */  private List allCachedNodables;
+    /** list of all cached nodables */  //private List allCachedNodables;
+
+    private static final boolean DEBUG = false;
 
     protected static class CellNodable {
         Nodable no;
@@ -38,7 +40,7 @@ public class CachedCell {
         lenodables = new HashMap();
         localNetworks = new HashMap();
         cellnodables = new HashMap();
-        allCachedNodables = new ArrayList();
+        //allCachedNodables = new ArrayList();
         containsSizableGates = false;
         contextFree = null;
         if (netlist != null) {
@@ -61,7 +63,7 @@ public class CachedCell {
 
     protected Map getLocalNetworks() { return localNetworks; }
 
-    protected List getAllCachedNodables() { return allCachedNodables; }
+    //protected List getAllCachedNodables() { return allCachedNodables; }
 
     /**
      * Adds instance of LENodable to this cached cell.
@@ -75,15 +77,15 @@ public class CachedCell {
             LEPin pin = (LEPin)it.next();
             JNetwork jnet = pin.getJNetwork();
             LENetwork net = (LENetwork)localNetworks.get(jnet);
-            if (net == null) {
+ /*           if (net == null) {
                 net = new LENetwork(jnet.describe());
                 localNetworks.put(jnet, net);
-            }
+            }*/
             net.add(pin);
         }
 
         lenodables.put(no, leno);
-        allCachedNodables.add(leno);
+        //allCachedNodables.add(leno);
     }
 
     /**
@@ -138,11 +140,11 @@ public class CachedCell {
             //System.out.println("  Adding subnet "+ subnet.getName() + " to net "+ net.getName());
             net.add(subnet);
         }
-        for (Iterator it = subCell.allCachedNodables.iterator(); it.hasNext(); ) {
+/*        for (Iterator it = subCell.allCachedNodables.iterator(); it.hasNext(); ) {
             LENodable leno = (LENodable)it.next();
             //System.out.println("  Adding LENodable "+ leno.getName());
             allCachedNodables.add(leno);
-        }
+        }*/
     }
 
     protected boolean isContextFree(LENetlister2.NetlisterConstants constants) {
@@ -151,9 +153,11 @@ public class CachedCell {
             if (isContainsSizableGates()) {
                 contextFree = new Boolean(false);
             } else {
+                if (DEBUG) System.out.println("**** Checking if "+cell.describe()+" is context free");
                 boolean cf = isContextFreeRecurse(VarContext.globalContext, 1f, constants);
                 contextFree = new Boolean(cf);
             }
+            if (DEBUG) System.out.println(">>>> Cell "+cell.describe()+" set context free="+contextFree);
         }
         return contextFree.booleanValue();
     }
@@ -162,7 +166,9 @@ public class CachedCell {
         // check LENodables
         for (Iterator it = lenodables.values().iterator(); it.hasNext(); ) {
             LENodable leno = (LENodable)it.next();
-            if (!leno.setOnlyContext(context, null, mfactor, 0, constants)) return false;
+            boolean b = leno.setOnlyContext(context, null, mfactor, 0, constants);
+            if (DEBUG) System.out.println("  gate "+context.getInstPath(".")+"."+leno.getName()+" cached: "+b);
+            if (!b) return false;
         }
         // check cached cell instances
         for (Iterator it = cellnodables.entrySet().iterator(); it.hasNext(); ) {
@@ -173,24 +179,73 @@ public class CachedCell {
             float subCellMFactor = mfactor;
             if (ceno.mfactorVar != null) {
                 Object retVal = context.evalVar(ceno.mfactorVar);
-                if (retVal == null) return false;
+                if (retVal == null) {
+                    if (DEBUG) System.out.println("  subcell "+ceno.no.getName()+" has Mfactor that cannot be evaluated");
+                    return false;
+                }
                 subCellMFactor *= VarContext.objectToFloat(retVal, 1);
             }
-            if (ceno.subCell.isContextFree(constants)) continue;
-            if (!ceno.subCell.isContextFreeRecurse(context.push(no), subCellMFactor, constants))
+            boolean b = ceno.subCell.isContextFree(constants);
+            if (b) {
+                if (DEBUG) System.out.println("  subcell "+ceno.no.getName()+" is context free");
+                continue;
+            }
+            if (!ceno.subCell.isContextFreeRecurse(context.push(no), subCellMFactor, constants)) {
+                if (DEBUG) System.out.println("  subcell "+ceno.no.getName()+" is NOT recursively context free");
                 return false;
+            } else
+                if (DEBUG) System.out.println("  subcell "+ceno.no.getName()+" is recursively context free");
         }
         return true;
     }
 
     private CachedCell copy() {
         CachedCell copy = new CachedCell(cell, null);
-        copy.lenodables.putAll(lenodables);
-        copy.cellnodables.putAll(cellnodables);
-        copy.localNetworks.putAll(localNetworks);
+        // copy all subcell structures
+        Map origSubNetsToCopySubNets = new HashMap();
+        for (Iterator it = cellnodables.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry entry = (Map.Entry)it.next();
+            Nodable no = (Nodable)entry.getKey();
+            CellNodable ceno = (CellNodable)entry.getValue();
+            CellNodable cenoCopy = new CellNodable();
+            cenoCopy.no = ceno.no;
+            cenoCopy.mfactorVar = ceno.mfactorVar;
+            cenoCopy.subCell = ceno.subCell.copy();
+            copy.cellnodables.put(no, cenoCopy);
+            // build table of original subnets to copied subnets, so we
+            // can update subnet links when we copy local networks
+            for (Iterator nit = ceno.subCell.localNetworks.entrySet().iterator(); nit.hasNext(); ) {
+                Map.Entry netentry = (Map.Entry)nit.next();
+                JNetwork jnet = (JNetwork)netentry.getKey();
+                LENetwork origNet = (LENetwork)netentry.getValue();
+                LENetwork copyNet = (LENetwork)cenoCopy.subCell.localNetworks.get(jnet);
+                origSubNetsToCopySubNets.put(origNet, copyNet);
+            }
+        }
+        // create new networks
+        // add on subnets, because they are the connectivity to subcells.
+        for (Iterator it = localNetworks.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry entry = (Map.Entry)it.next();
+            JNetwork jnet = (JNetwork)entry.getKey();
+            LENetwork net = (LENetwork)entry.getValue();
+            LENetwork netCopy = new LENetwork(net.getName());
+            for (Iterator nit = net.getSubNets(); nit.hasNext(); ) {
+                LENetwork subnet = (LENetwork)nit.next();
+                // find copy of subnet in cellnodables copy
+                LENetwork copySubNet = (LENetwork)origSubNetsToCopySubNets.get(subnet);
+                netCopy.add(copySubNet);
+            }
+            copy.localNetworks.put(jnet, netCopy);
+        }
+        // copy all lenodables: this sets pins of local networks.
+        for (Iterator it = lenodables.values().iterator(); it.hasNext(); ) {
+            LENodable leno = (LENodable)it.next();
+            LENodable lenoCopy = leno.copy();
+            copy.add(leno.getNodable(), lenoCopy);
+        }
         copy.containsSizableGates = containsSizableGates;
         copy.contextFree = contextFree;
-        copy.allCachedNodables.addAll(allCachedNodables);
+        //copy.allCachedNodables.addAll(allCachedNodables);
         return copy;
     }
 }

@@ -72,6 +72,15 @@ public class LENodable {
         this.context = VarContext.globalContext;
     }
 
+    protected LENodable copy() {
+        LENodable copy = new LENodable(no, type, mfactorVar, suVar, parallelGroupVar);
+        for (Iterator it = pins.iterator(); it.hasNext(); ) {
+            LEPin pin = (LEPin)it.next();
+            copy.addPort(pin.getName(), pin.getDir(), pin.getLE(), pin.getJNetwork());
+        }
+        return copy;
+    }
+
     /**
      * Add a port to this LEInstance
      * @param name the name of the port
@@ -227,6 +236,7 @@ public class LENodable {
             }
             retVal = context.evalVar(var);
             if (retVal == null) return -1f;
+            //System.out.println("retVal: "+retVal);
             float width = VarContext.objectToFloat(retVal, (float)3.0);
 
             var = no.getVar(Schematics.ATTR_LENGTH);

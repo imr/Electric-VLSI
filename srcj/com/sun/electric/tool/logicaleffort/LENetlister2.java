@@ -224,7 +224,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
 
     // ======================= Hierarchy Enumerator ==============================
 
-
+    private static final boolean DEBUG_FIRSTPASS = false;
     /**
      * The first pass creates the definitions for all LENodables, and sees which
      * Cells can be cached (i.e. do not have parameters that need parent context
@@ -255,12 +255,14 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
             if (cachedCell == null) {
                 cachedCell = new CachedCell(info.getCell(), info.getNetlist());
                 netlister.cellMap.put(info.getCell(), cachedCell);
+                if (DEBUG_FIRSTPASS) System.out.println(" === entering cell "+info.getCell().describe());
                 return true;
             } else {
                 // because this cell is already cached, we will not be visiting nodeinsts,
                 // and we will not be calling exit cell. So link into parent here, because
                 // we won't be linking into parent from exit cell.
                 // add this to parent cached cell if any
+                if (DEBUG_FIRSTPASS) System.out.println(" === not entering, using cached version for cell "+info.getCell().describe());
                 HierarchyEnumerator.CellInfo parentInfo = info.getParentInfo();
                 if (parentInfo != null) {
                     Cell parent = info.getParentInfo().getCell();
@@ -275,6 +277,8 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
         public boolean visitNodeInst(Nodable ni, HierarchyEnumerator.CellInfo info) {
             CachedCell cachedCell = (CachedCell)netlister.cellMap.get(info.getCell());
 
+            if (!(ni.getNodeInst().getProto() instanceof PrimitiveNode))
+                if (DEBUG_FIRSTPASS) System.out.println(" === visiting "+ni.getName());
             // see if we can make an LENodable from the nodable
             LENodable.Type type = netlister.getType(ni, info);
             if (type == null) return true;                  // recurse
@@ -289,6 +293,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
         public void exitCell(HierarchyEnumerator.CellInfo info) {
             CachedCell cachedCell = (CachedCell)netlister.cellMap.get(info.getCell());
 
+            if (DEBUG_FIRSTPASS) System.out.println(" === exiting cell "+info.getCell().describe());
             // add this to parent cached cell if any
             HierarchyEnumerator.CellInfo parentInfo = info.getParentInfo();
             if (parentInfo != null) {
@@ -352,9 +357,9 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
                 if (net == null) continue;
                 net.add(subnet);
             }
-            for (Iterator it = cachedCell.getAllCachedNodables().iterator(); it.hasNext(); ) {
-                allLENodables.add(it.next());
-            }
+            //for (Iterator it = cachedCell.getAllCachedNodables().iterator(); it.hasNext(); ) {
+            //   allLENodables.add(it.next());
+            //}
             enter = false;
         }
 
