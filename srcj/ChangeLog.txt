@@ -4,7 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ar: *********************************
 
-IMP: (11/25/04, GVG) 3D View: automatic resizing in Z axis in any open 3D view if scale changes
+IMP/MAN: (11/25/04, GVG) 3D View: automatic resizing in Z axis in any open 3D view if scale changes. New location of
+scale factor in 3D dialog.
 
 BUG: (11/25/04, GVG) DRC badBoxArea not returning when error found and then wrong good date was stored (Bug #13)
 FIX: return inserted

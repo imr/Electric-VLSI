@@ -48,10 +48,7 @@ import java.util.Iterator;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.ListSelectionModel;
+import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -76,6 +73,7 @@ public class ThreeDTab extends PreferencePanel
 
 	private boolean initial3DTextChanging = false;
 	private JList threeDLayerList;
+    private JTextField scaleField;
 	private DefaultListModel threeDLayerModel;
 	private HashMap threeDThicknessMap, threeDDistanceMap;
 	private JPanel threeDSideView;
@@ -121,12 +119,29 @@ public class ThreeDTab extends PreferencePanel
 		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
 		threeD.add(threeDSideView, gbc);
 
+        JLabel scaleLabel = new javax.swing.JLabel("Scale:");
+        gbc = new java.awt.GridBagConstraints();
+        gbc.gridx = 2;
+        gbc.gridy = 5;
+        gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+        gbc.anchor = java.awt.GridBagConstraints.WEST;
+        threeD.add(scaleLabel, gbc);
+
+        scaleField = new javax.swing.JTextField();
+        scaleField.setColumns(6);
+        gbc = new java.awt.GridBagConstraints();
+        gbc.gridx = 3;
+        gbc.gridy = 5;
+        gbc.anchor = java.awt.GridBagConstraints.WEST;
+        threeD.add(scaleField, gbc);
+        scaleField.setText(TextUtils.formatDouble(User.get3DFactor()));
+
+
 		threeDClickedLayer();
 
 		threeDPerspective.setSelected(User.is3DPerspective());
         // to turn on antialising if available. No by default because of performance.
         threeDAntialiasing.setSelected(User.is3DAntialiasing());
-        scaleField.setText(TextUtils.formatDouble(User.get3DFactor()));
 	}
 
 	private class ThreeDSideView extends JPanel
@@ -384,8 +399,6 @@ public class ThreeDTab extends PreferencePanel
         threeDHeight = new javax.swing.JTextField();
         threeDPerspective = new javax.swing.JCheckBox();
         threeDAntialiasing = new javax.swing.JCheckBox();
-        scaleLabel = new javax.swing.JLabel();
-        scaleField = new javax.swing.JTextField();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -411,11 +424,11 @@ public class ThreeDTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 0.5;
         gridBagConstraints.weighty = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         threeD.add(threeDLayerPane, gridBagConstraints);
 
         jLabel45.setText("Thickness:");
@@ -466,22 +479,6 @@ public class ThreeDTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         threeD.add(threeDAntialiasing, gridBagConstraints);
 
-        scaleLabel.setText("Scale:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        threeD.add(scaleLabel, gridBagConstraints);
-
-        scaleField.setColumns(6);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        threeD.add(scaleField, gridBagConstraints);
-
         getContentPane().add(threeD, new java.awt.GridBagConstraints());
 
         pack();
@@ -497,8 +494,6 @@ public class ThreeDTab extends PreferencePanel
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel45;
     private javax.swing.JLabel jLabel47;
-    private javax.swing.JTextField scaleField;
-    private javax.swing.JLabel scaleLabel;
     private javax.swing.JPanel threeD;
     private javax.swing.JCheckBox threeDAntialiasing;
     private javax.swing.JTextField threeDHeight;
