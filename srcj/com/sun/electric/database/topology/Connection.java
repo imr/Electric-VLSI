@@ -42,6 +42,7 @@ public class Connection extends ElectricObject
 	/** the arc on one side of this connection */	private ArcInst arc;
 	/** the PortInst on the connected node */		private PortInst portInst;
 	/** the location of this connection */			private Point2D location;
+	/** shrinkage factor for this end */			private short endShrink;
 
 	/**
 	 * The constructor creates a new Connection from the given values.
@@ -54,6 +55,7 @@ public class Connection extends ElectricObject
 		this.arc = arc;
 		this.portInst = portInst;
 		this.location = (Point2D)pt.clone();
+		this.endShrink = 0;
 	}
 
 	// --------------------------- public methods --------------------------
@@ -81,6 +83,18 @@ public class Connection extends ElectricObject
 	 * @param pt the location on this Connection.
 	 */
 	public void setLocation(Point2D pt) { location.setLocation(pt.getX(), pt.getY()); }
+
+	/**
+	 * Routine to return the location on this Connection.
+	 * @return the location on this Connection.
+	 */
+	public short getEndShrink() { return endShrink; }
+
+	/**
+	 * Routine to set the location on this Connection.
+	 * @param pt the location on this Connection.
+	 */
+	public void setEndShrink(short endShrink) { this.endShrink = endShrink; }
 
 	/**
 	 * Routine to determine whether this Connection is on the head end of the ArcInst.

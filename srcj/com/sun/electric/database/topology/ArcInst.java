@@ -26,6 +26,7 @@ package com.sun.electric.database.topology;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.hierarchy.Cell;
@@ -39,6 +40,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.Iterator;
 
 /**
  * An ArcInst is an instance of an ArcProto (a wire type)
@@ -76,7 +78,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 //	/** arc is not in use */							private static final int DEADA =                    020;
 	/** angle of arc from end 0 to end 1 */				private static final int AANGLE =                037740;
 	/** bits of right shift for AANGLE field */			private static final int AANGLESH =                   5;
-	/** set if arc is to be drawn shortened */			private static final int ASHORT =                040000;
+//	/** set if arc is to be drawn shortened */			private static final int ASHORT =                040000;
 	/** set if ends do not extend by half width */		private static final int NOEXTEND =             0400000;
 	/** set if ends are negated */						private static final int ISNEGATED =           01000000;
 	/** set if arc aims from end 0 to end 1 */			private static final int ISDIRECTIONAL =       02000000;
@@ -103,9 +105,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	/**
 	 * The constructor is never called.  Use the factory "newInstance" instead.
 	 */
-	private ArcInst()
-	{
-	}
+	private ArcInst() {}
 
 	// -------------------------- public methods -----------------------------
 
@@ -189,6 +189,10 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		// add this arc to the cell
 		linkGeom(parent);
 		parent.addArc(this);
+
+		// update end shrinkage information
+		for(int k=0; k<2; k++)
+			updateShrinkage(ends[k].getPortInst().getNodeInst());
 		return false;
 	}
 
@@ -204,6 +208,10 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		// add this arc to the cell
 		unLinkGeom(parent);
 		parent.removeArc(this);
+
+		// update end shrinkage information
+		for(int k=0; k<2; k++)
+			updateShrinkage(ends[k].getPortInst().getNodeInst());
 	}
 
 	/**
@@ -232,6 +240,10 @@ public class ArcInst extends Geometric /*implements Networkable*/
 			ends[TAILEND].setLocation(new Point2D.Double(EMath.smooth(dTailX+pt.getX()), EMath.smooth(pt.getY()+dTailY)));
 		}
 		updateGeometric();
+
+		// update end shrinkage information
+		for(int k=0; k<2; k++)
+			updateShrinkage(ends[k].getPortInst().getNodeInst());
 
 		// reinsert in the R-Tree structure
 		linkGeom(parent);
@@ -298,7 +310,6 @@ public class ArcInst extends Geometric /*implements Networkable*/
 			// tell constraint system about new ArcInst
 //			(*el_curconstraint->newobject)((INTBIG)ni, VARCINST);
 		}
-		Undo.clearNextChangeQuiet();
 		return ai;
 	}
 
@@ -453,31 +464,6 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 * @return the arc angle (in degrees).
 	 */
 	public int lowLevelGetArcAngle() { return (userBits & AANGLE) >> AANGLESH; }
-
-	/**
-	 * Routine to set this ArcInst to be shortened.
-	 * Arcs that meet at angles which are not multiples of 90 degrees will have
-	 * extra tabs emerging from the connection site if they are not shortened.
-	 * Therefore, shortened arcs reduce the amount they extend their ends.
-	 */
-	public void setShortened() { userBits |= ASHORT; }
-
-	/**
-	 * Routine to set this ArcInst to be not shortened.
-	 * Arcs that meet at angles which are not multiples of 90 degrees will have
-	 * extra tabs emerging from the connection site if they are not shortened.
-	 * Therefore, shortened arcs reduce the amount they extend their ends.
-	 */
-	public void clearShortened() { userBits &= ~ASHORT; }
-
-	/**
-	 * Routine to tell whether this ArcInst is shortened.
-	 * Arcs that meet at angles which are not multiples of 90 degrees will have
-	 * extra tabs emerging from the connection site if they are not shortened.
-	 * Therefore, shortened arcs reduce the amount they extend their ends.
-	 * @return true if this ArcInst is shortened.
-	 */
-	public boolean isShortened() { return (userBits & ASHORT) != 0; }
 
 	/**
 	 * Routine to set this ArcInst to have its ends extended.
@@ -785,104 +771,36 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 */
 	public Poly makePoly(double length, double width, Poly.Type style)
 	{
-		Point2D end1 = ends[HEADEND].getLocation();
-		Point2D end2 = ends[TAILEND].getLocation();
+		Point2D endH = ends[HEADEND].getLocation();
+		Point2D endT = ends[TAILEND].getLocation();
 
 		// zero-width polygons are simply lines
 		if (width == 0)
 		{
-			Poly poly = new Poly(new Point2D.Double[]{new Point2D.Double(end1.getX(), end1.getY()), new Point2D.Double(end2.getX(), end2.getY())});
+			Poly poly = new Poly(new Point2D.Double[]{new Point2D.Double(endH.getX(), endH.getY()), new Point2D.Double(endT.getX(), endT.getY())});
 			if (style == Poly.Type.FILLED) style = Poly.Type.OPENED;
 			poly.setStyle(style);
 			return poly;
 		}
 
 		// determine the end extension on each end
-		double e1 = width/2;
-		double e2 = width/2;
+		double extendH = width/2;
+		if (getHead().getEndShrink() != 0)
+			extendH = getExtendFactor(width, getHead().getEndShrink());
+		double extendT = width/2;
+		if (getTail().getEndShrink() != 0)
+			extendT = getExtendFactor(width, getTail().getEndShrink());
 		if (!isExtended())
 		{
 			// nonextension arc: set extension to zero for all included ends
-			if (!isSkipTail()) e1 = 0;
-			if (!isSkipHead()) e2 = 0;
-//		} else if (isShortened())
-//		{
-//			// shortened arc: compute variable extension
-//			e1 = tech_getextendfactor(width, ai->endshrink&0xFFFF);
-//			e2 = tech_getextendfactor(width, (ai->endshrink>>16)&0xFFFF);
+			if (!isSkipTail()) extendH = 0;
+			if (!isSkipHead()) extendT = 0;
 		}
 
 		// make the polygon
-		Poly poly = makeEndPointPoly(length, width, getAngle(), end1, e1, end2, e2);
+		Poly poly = makeEndPointPoly(length, width, getAngle(), endH, extendH, endT, extendT);
 		if (poly != null) poly.setStyle(style);
 		return poly;
-	}
-
-	private Poly makeEndPointPoly(double len, double wid, int angle, Point2D end1, double e1,
-		Point2D end2, double e2)
-	{
-		double w2 = wid / 2;
-		double x1 = end1.getX();   double y1 = end1.getY();
-		double x2 = end2.getX();   double y2 = end2.getY();
-
-		/* somewhat simpler if rectangle is manhattan */
-		if (angle == 900 || angle == 2700)
-		{
-			if (y1 > y2)
-			{
-				double temp = y1;   y1 = y2;   y2 = temp;
-				temp = e1;   e1 = e2;   e2 = temp;
-			}
-			return new Poly(new Point2D.Double[] {
-				new Point2D.Double(EMath.smooth(x1 - w2), EMath.smooth(y1 - e1)),
-				new Point2D.Double(EMath.smooth(x1 + w2), EMath.smooth(y1 - e1)),
-				new Point2D.Double(EMath.smooth(x2 + w2), EMath.smooth(y2 + e2)),
-				new Point2D.Double(EMath.smooth(x2 - w2), EMath.smooth(y2 + e2))});
-		}
-		if (angle == 0 || angle == 1800)
-		{
-			if (x1 > x2)
-			{
-				double temp = x1;   x1 = x2;   x2 = temp;
-				temp = e1;   e1 = e2;   e2 = temp;
-			}
-			return new Poly(new Point2D.Double[] {
-				new Point2D.Double(EMath.smooth(x1 - e1), EMath.smooth(y1 - w2)),
-				new Point2D.Double(EMath.smooth(x1 - e1), EMath.smooth(y1 + w2)),
-				new Point2D.Double(EMath.smooth(x2 + e2), EMath.smooth(y2 + w2)),
-				new Point2D.Double(EMath.smooth(x2 + e2), EMath.smooth(y2 - w2))});
-		}
-
-		/* nonmanhattan arcs cannot have zero length so re-compute it */
-		if (len == 0) len = end1.distance(end2);
-		double xextra, yextra, xe1, ye1, xe2, ye2;
-		if (len == 0)
-		{
-			double sa = EMath.sin(angle);
-			double ca = EMath.cos(angle);
-			xe1 = x1 - ca * e1;
-			ye1 = y1 - sa * e1;
-			xe2 = x2 + ca * e2;
-			ye2 = y2 + sa * e2;
-			xextra = ca * w2;
-			yextra = sa * w2;
-		} else
-		{
-			/* work out all the math for nonmanhattan arcs */
-			xe1 = x1 - e1 * (x2-x1) / len;
-			ye1 = y1 - e1 * (y2-y1) / len;
-			xe2 = x2 + e2 * (x2-x1) / len;
-			ye2 = y2 + e2 * (y2-y1) / len;
-
-			/* now compute the corners */
-			xextra = w2 * (x2-x1) / len;
-			yextra = w2 * (y2-y1) / len;
-		}
-		return new Poly(new Point2D.Double[] {
-			new Point2D.Double(EMath.smooth(yextra + xe1), EMath.smooth(ye1 - xextra)),
-			new Point2D.Double(EMath.smooth(xe1 - yextra), EMath.smooth(xextra + ye1)),
-			new Point2D.Double(EMath.smooth(xe2 - yextra), EMath.smooth(xextra + ye2)),
-			new Point2D.Double(EMath.smooth(yextra + xe2), EMath.smooth(ye2 - xextra))});
 	}
 
 	/**
@@ -908,10 +826,189 @@ public class ArcInst extends Geometric /*implements Networkable*/
 
 	// -------------------- private and protected methods ------------------------
 
+	private Poly makeEndPointPoly(double len, double wid, int angle, Point2D endH, double extendH,
+		Point2D endT, double extendT)
+	{
+		double w2 = wid / 2;
+		double x1 = endH.getX();   double y1 = endH.getY();
+		double x2 = endT.getX();   double y2 = endT.getY();
+
+		// somewhat simpler if rectangle is manhattan
+		if (angle == 900 || angle == 2700)
+		{
+			if (y1 > y2)
+			{
+				double temp = y1;   y1 = y2;   y2 = temp;
+				temp = extendH;   extendH = extendT;   extendT = temp;
+			}
+			return new Poly(new Point2D.Double[] {
+				new Point2D.Double(EMath.smooth(x1 - w2), EMath.smooth(y1 - extendH)),
+				new Point2D.Double(EMath.smooth(x1 + w2), EMath.smooth(y1 - extendH)),
+				new Point2D.Double(EMath.smooth(x2 + w2), EMath.smooth(y2 + extendT)),
+				new Point2D.Double(EMath.smooth(x2 - w2), EMath.smooth(y2 + extendT))});
+		}
+		if (angle == 0 || angle == 1800)
+		{
+			if (x1 > x2)
+			{
+				double temp = x1;   x1 = x2;   x2 = temp;
+				temp = extendH;   extendH = extendT;   extendT = temp;
+			}
+			return new Poly(new Point2D.Double[] {
+				new Point2D.Double(EMath.smooth(x1 - extendH), EMath.smooth(y1 - w2)),
+				new Point2D.Double(EMath.smooth(x1 - extendH), EMath.smooth(y1 + w2)),
+				new Point2D.Double(EMath.smooth(x2 + extendT), EMath.smooth(y2 + w2)),
+				new Point2D.Double(EMath.smooth(x2 + extendT), EMath.smooth(y2 - w2))});
+		}
+
+		// nonmanhattan arcs cannot have zero length so re-compute it
+		if (len == 0) len = endH.distance(endT);
+		double xextra, yextra, xe1, ye1, xe2, ye2;
+		if (len == 0)
+		{
+			double sa = EMath.sin(angle);
+			double ca = EMath.cos(angle);
+			xe1 = x1 - ca * extendH;
+			ye1 = y1 - sa * extendH;
+			xe2 = x2 + ca * extendT;
+			ye2 = y2 + sa * extendT;
+			xextra = ca * w2;
+			yextra = sa * w2;
+		} else
+		{
+			// work out all the math for nonmanhattan arcs
+			xe1 = x1 - extendH * (x2-x1) / len;
+			ye1 = y1 - extendH * (y2-y1) / len;
+			xe2 = x2 + extendT * (x2-x1) / len;
+			ye2 = y2 + extendT * (y2-y1) / len;
+
+			// now compute the corners
+			xextra = w2 * (x2-x1) / len;
+			yextra = w2 * (y2-y1) / len;
+		}
+		return new Poly(new Point2D.Double[] {
+			new Point2D.Double(EMath.smooth(yextra + xe1), EMath.smooth(ye1 - xextra)),
+			new Point2D.Double(EMath.smooth(xe1 - yextra), EMath.smooth(xextra + ye1)),
+			new Point2D.Double(EMath.smooth(xe2 - yextra), EMath.smooth(xextra + ye2)),
+			new Point2D.Double(EMath.smooth(yextra + xe2), EMath.smooth(ye2 - xextra))});
+	}
+
+	private static int [] extendFactor = {0,
+		11459, 5729, 3819, 2864, 2290, 1908, 1635, 1430, 1271, 1143,
+		 1039,  951,  878,  814,  760,  712,  669,  631,  598,  567,
+		  540,  514,  492,  470,  451,  433,  417,  401,  387,  373,
+		  361,  349,  338,  327,  317,  308,  299,  290,  282,  275,
+		  267,  261,  254,  248,  241,  236,  230,  225,  219,  214,
+		  210,  205,  201,  196,  192,  188,  184,  180,  177,  173,
+		  170,  166,  163,  160,  157,  154,  151,  148,  146,  143,
+		  140,  138,  135,  133,  130,  128,  126,  123,  121,  119,
+		  117,  115,  113,  111,  109,  107,  105,  104,  102,  100};
+
+	/**
+	 * Routine to return the amount that an arc end should extend, given its width and extension factor.
+	 * @param width the width of the arc.
+	 * @param extend the extension factor (from 0 to 90).
+	 * @return the extension (from 0 to half of the width).
+	 */
+	private double getExtendFactor(double width, short extend)
+	{
+		// compute the amount of extension (from 0 to wid/2)
+		if (extend <= 0) return width/2;
+
+		// values should be from 0 to 90, but check anyway
+		if (extend > 90) return width/2;
+
+		// return correct extension
+		return width * 50 / extendFactor[extend];
+	}
+
+	/**
+	 * Routine to update the "end shrink" factors on all arcs on a NodeInst.
+	 * @param ni the node to update.
+	 */
+	private void updateShrinkage(NodeInst ni)
+	{
+		ni.clearShortened();
+		for(Iterator it = ni.getConnections(); it.hasNext(); )
+		{
+			Connection con = (Connection)it.next();
+			short shrink = checkShortening(ni, con.getPortInst().getPortProto());
+			if (shrink != 0) ni.setShortened();
+			con.setEndShrink(shrink);
+		}
+	}
+
+	private static final int MAXANGLES = 3;
+	private static int [] shortAngles = new int[MAXANGLES];
+
+	/**
+	 * Routine to return the shortening factor for the arc connected to a port on a node.
+	 * @param ni the node
+	 * @param pp the port.
+	 * @return the shortening factor.  This is a number from 0 to 90, where
+	 * 0 indicates no shortening (extend the arc by half its width) and greater values
+	 * indicate that the end should be shortened to account for this angle of connection.
+	 * Small values are shortened almost to nothing, whereas large values are shortened
+	 * very little (and a value of 90 indicates no shortening at all).
+	 */
+	private short checkShortening(NodeInst ni, PortProto pp)
+	{
+		// quit now if we don't have to worry about this kind of nodeinst
+		NodeProto np = ni.getProto();
+		if (!np.canShrink() && !np.isArcsShrink()) return 0;
+
+		// gather the angles of the nodes/arcs
+		int total = 0, off90 = 0;
+		for(Iterator it = ni.getConnections(); it.hasNext(); )
+		{
+			Connection con = (Connection)it.next();
+			ArcInst ai = con.getArc();
+
+			// ignore zero-size arcs
+			if (ai.getWidth() == 0) continue;
+
+			// ignore this arcinst if it is not on the desired port
+			if (!np.isArcsShrink() && con.getPortInst().getPortProto() != pp) continue;
+
+			// compute the angle
+			int ang = ai.getAngle() / 10;
+			if (ai.getHead().getPortInst().getPortProto() == con.getPortInst().getPortProto() &&
+				ai.getHead().getPortInst().getNodeInst() == ni) ang += 180;
+			ang %= 360;
+			if ((ang%90) != 0) off90++;
+			if (total < MAXANGLES) shortAngles[total++] = ang; else
+				break;
+		}
+
+		// throw in the nodeinst rotation factor if it is important
+		if (np.canShrink())
+		{
+			PrimitivePort pRp = (PrimitivePort)pp;
+			int ang = pRp.getAngle();
+			ang += (ni.getAngle()+5) / 10;
+//			if (ni->transpose != 0) { ang = 270 - ang; if (ang < 0) ang += 360; }
+			ang = (ang+180)%360;
+			if ((ang%90) != 0) off90++;
+			if (total < MAXANGLES) shortAngles[total++] = ang;
+		}
+
+		// all fine if all manhattan angles involved
+		if (off90 == 0) return 0;
+
+		// give up if too many arcinst angles
+		if (total != 2) return 0;
+
+		// compute and return factor
+		int ang = Math.abs(shortAngles[1]-shortAngles[0]);
+		if (ang > 180) ang = 360 - ang;
+		if (ang > 90) ang = 180 - ang;
+		return (short)ang;
+	}
+
 	/**
 	 * Routine to recompute the Geometric information on this ArcInst.
 	 */
-	void updateGeometric()
+	private void updateGeometric()
 	{
 		Point2D p1 = ends[HEADEND].getLocation();
 		Point2D p2 = ends[TAILEND].getLocation();
@@ -935,9 +1032,9 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 * @param c the Connection to remove.
 	 * @param onHead true if the Connection is on the head of this ArcInst.
 	 */
-	void removeConnection(Connection c, boolean onHead)
+	private void removeConnection(Connection c, boolean onHead)
 	{
-		/* safety check */
+		// safety check
 		if ((onHead ? ends[HEADEND] : ends[TAILEND]) != c)
 		{
 			System.out.println("Tried to remove the wrong connection from a wire end: "

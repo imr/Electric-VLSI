@@ -54,193 +54,155 @@ import javax.swing.ImageIcon;
  */
 public class TopLevel extends JFrame
 {
-	private static JDesktopPane desktop;
-	private static TopLevel topLevel;
-	
-	private static int mode;
-	private static List windowList = new ArrayList();
-	private static TopLevel current;
-	private boolean editWindow;
-	private EditWindow edwin;
-	
-	public final static int SDIMode = 1;
-	public final static int MDIMode = 2;
+	/** True if in MDI mode, otherwise SDI. */				private static boolean mdi;
+	/** The desktop pane (if MDI). */						private static JDesktopPane desktop;
+	/** The main frame (if MDI). */							private static TopLevel topLevel;
+	/** The current window frame (only 1 if MDI). */		private static TopLevel current;
+	/** A list of all frames (if SDI). */					private static List windowList = new ArrayList();
+	/** The EditWindow associated with this (if SDI). */	private EditWindow wnd;
+	/** The size of the screen. */							private static Dimension scrnSize;
 
-	private TopLevel(String s)
+	/**
+	 * Constructor to build a window.
+	 * @param name the title of the window.
+	 */
+	public TopLevel(String name, Dimension screenSize)
 	{
-		super(s);
-	}
+		super(name);
+		addWindowListener(new WindowsEvents(this));
+		addWindowFocusListener(new WindowsEvents(this));
+		setSize(screenSize);
+		getContentPane().setLayout(new BorderLayout());
+		setVisible(true);
 
-	public static void InitLookAndFeel()
-	{
-//		setup specific look-and-feel
-		 try{
-			 String os = System.getProperty("os.name").toLowerCase();
-			 if (os.startsWith("windows"))
-			 {
-				 UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-			 } else if (os.startsWith("linux") || os.startsWith("solaris") || os.startsWith("sunos"))
-			 {
-				 UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.MotifLookAndFeel");
-			 } else if (os.startsWith("mac"))
-			 {
-				 UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.MacLookAndFeel");
-			 }
-		 } catch(Exception e) {}
-	}
-
-	public static void Initialize()
-	{
-		// make the top-level window
-		topLevel = new TopLevel("Electric");	
-		topLevel.AddWindowExit();
-		Dimension scrnSize = (Toolkit.getDefaultToolkit()).getScreenSize();
-		scrnSize.height -= 30;
-		topLevel.setSize(scrnSize);
-
-		// make the desktop
-		desktop = new JDesktopPane();
-		topLevel.getContentPane().setLayout(new BorderLayout());
-		topLevel.getContentPane().add(desktop, BorderLayout.CENTER);
-		topLevel.setVisible(true);
-
-		// set an icon with the application
-		topLevel.setIconImage(new ImageIcon(topLevel.getClass().getResource("IconElectric.gif")).getImage());
+		// set an icon on the window
+		setIconImage(new ImageIcon(getClass().getResource("IconElectric.gif")).getImage());
 
 		// create the menu bar
 		JMenuBar menuBar = UserMenuCommands.createMenuBar();
-		topLevel.setJMenuBar(menuBar);
+		setJMenuBar(menuBar);
 
 		// create the tool bar
 		ToolBar toolBar = ToolBar.createToolBar();
-		topLevel.getContentPane().add(toolBar, BorderLayout.NORTH);
+		getContentPane().add(toolBar, BorderLayout.NORTH);
 
-		// create the messages window
-		MessagesWindow cl = new MessagesWindow(desktop.getSize());
-		desktop.add(cl.getFrame());
+		if (!mdi)
+			setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+
+		windowList.add(this);
+		current = this;
 	}
 
-	public static JDesktopPane getDesktop() { return desktop; }
+	/**
+	 * Routine to initialize the window system.
+	 */
+	public static void Initialize()
+	{
+		// setup the size of the screen
+		scrnSize = (Toolkit.getDefaultToolkit()).getScreenSize();
 
+		// setup specific look-and-feel
+		mdi = false;
+		try{
+			String os = System.getProperty("os.name").toLowerCase();
+			if (os.startsWith("windows"))
+			{
+				mdi = true;
+				scrnSize.height -= 30;
+				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+			} else if (os.startsWith("linux") || os.startsWith("solaris") || os.startsWith("sunos"))
+			{
+				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.MotifLookAndFeel");
+			} else if (os.startsWith("mac"))
+			{
+				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.MacLookAndFeel");
+			}
+		} catch(Exception e) {}
+
+		// in MDI, create the top frame now
+		if (mdi)
+		{
+			topLevel = new TopLevel("Electric", scrnSize);	
+
+			// make the desktop
+			desktop = new JDesktopPane();
+			topLevel.getContentPane().add(desktop, BorderLayout.CENTER);
+		}
+
+		// initialize the messages window
+		MessagesWindow cl = new MessagesWindow(scrnSize);
+	}
+
+	/**
+	 * Routine to tell whether Electric is running in SDI or MDI mode.
+	 * SDI is Single Document Interface, where each document appears in its own window.
+	 * This is used on UNIX/Linux and on Macintosh.
+	 * MDI is Multiple Document Interface, where the main window has all documents in it as subwindows.
+	 * This is used on Windows.
+	 * @return true if Electric is in MDI mode.
+	 */
+	public static boolean isMDIMode() { return mdi; }
+
+	/**
+	 * Routine to return an iterator over all top-level windows.
+	 * This only makes sense in SDI mode, where there are multiple top-level windows.
+	 * @return an iterator over all top-level windows.
+	 */
+	public static Iterator getWindows() { return windowList.iterator(); }
+
+	/**
+	 * Routine to remove a window from the list of top-level windows.
+	 * This only makes sense in SDI mode, where there are multiple top-level windows.
+	 * @param tl the top-level window to remove.
+	 */
+	public static void removeWindow(TopLevel tl) { windowList.remove(tl); }
+
+	/**
+	 * Routine to set the current top-level window.
+	 * This only makes sense in SDI mode, where there are multiple top-level windows.
+	 * @param tl the top-level window to make current.
+	 */
+	public static void setCurrentWindow(TopLevel tl) { current = tl; }
+
+	/**
+	 * Routine to add an internal frame to the desktop.
+	 * This only makes sense in MDI mode, where the desktop has multiple subframes.
+	 * @param jif the internal frame to add.
+	 */
+	public static void addToDesktop(JInternalFrame jif) { desktop.add(jif); }
+
+	/**
+	 * Routine to return the current EditWindow.
+	 * @return the current EditWindow.
+	 */
 	public static EditWindow getCurrentEditWindow()
 	{
-		if(mode==MDIMode)
+		if (mdi)
         {
         	JInternalFrame frame = desktop.getSelectedFrame();
-        	if (frame == null || !(frame instanceof WindowFrame))
-            	return null;
-			WindowFrame wf = (WindowFrame)frame;
-			return wf.getEditWindow();
-        }
-        else
+			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			{
+				WindowFrame wf = (WindowFrame)it.next();
+				if (wf.getInternalFrame() == frame) return wf.getEditWindow();
+			}
+			return null;
+        } else
         {
         	return current.getEditWindow();
         }
 	}
 
-	public void AddWindowExit()
-	{
-		this.addWindowListener(new WindowsEvents(this));
-		this.addWindowFocusListener(new WindowsEvents(this));
-	}
-	
-	public static void setMode(int newmode)
-	{
-		mode = newmode;
-	}
+	/**
+	 * Routine to return the EditWindow associated with this top-level window.
+	 * @return the EditWindow associated with this top-level window.
+	 */
+	public EditWindow getEditWindow() { return wnd; }
 
-	public static int getMode()
-	{
-		return mode;
-	}
-	public static void sdiInit()
-	{
-		TopLevel sdi = new TopLevel("Electric");
-		sdi.AddWindowExit(); 
-//			create the menu bar
-		sdi.getContentPane().setLayout(new BorderLayout());
-		JMenuBar menuBar = UserMenuCommands.createMenuBar();
-		sdi.setJMenuBar(menuBar);
-
-			 // create the tool bar
-		ToolBar toolBar = ToolBar.createToolBar();
-		sdi.getContentPane().add(toolBar, BorderLayout.NORTH);
-		sdi.setVisible(true);
-
-		sdi.setSize(new Dimension(640,480));
-		windowList.add(sdi);
-		sdi.setEditWindowOn(false);
-		current = sdi;
-	}
-	
-	public boolean isThereEditWindow()
-	{
-		return editWindow;
-	}
-	
-	public void setEditWindowOn(boolean bool)
-	{
-		editWindow=bool;
-	}
-	
-	public static void createEditWindow(Cell cell)
-	{
-		if(TopLevel.getMode()==TopLevel.SDIMode)
-		{
-			if(current.isThereEditWindow()==false)
-			{
-				EditWindow wnd = EditWindow.CreateElectricDoc(cell);
-			
-				// the left half: a cell explorer tree in a scroll pane
-				TreeView tree = TreeView.CreateTreeView(Library.getExplorerTree(), wnd);
-				JScrollPane scrolledTree = new JScrollPane(tree);
-				JSplitPane js = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-				js.setRightComponent(wnd);
-				js.setLeftComponent(scrolledTree);
-				js.setDividerLocation(180);
-				current.getContentPane().add(js);
-				current.setEditWindowOn(true);
-				String str = current.getTitle();
-				current.setTitle(str+" - "+cell.describe());
-				current.show();
-				current.setEditWindow(wnd);
-			}
-			else
-			{
-				TopLevel.sdiInit();
-				TopLevel.createEditWindow(cell);
-			}
-		}
-	}
-	
-	public void setEditWindow(EditWindow wnd)
-	{
-		edwin=wnd;
-	}
-	
-	public EditWindow getEditWindow()
-	{
-		return edwin;
-	}
-	public static Iterator getWindows()
-	{
-		return windowList.iterator();
-	}
-	
-	public static void removeWindow(TopLevel tl)
-	{
-		windowList.remove(tl);
-	}
-	
-	public static TopLevel getCurrentWindow()
-	{
-		return current;
-	}
-	
-	public static void setCurrentWindow(TopLevel tl)
-	{
-		current = tl;
-	}
+	/**
+	 * Routine to set the edit window associated with this top-level window.
+	 * @param wnd the EditWindow to associatd with this.
+	 */
+	public void setEditWindow(EditWindow wnd) { this.wnd = wnd; }
 }
 
 
@@ -256,33 +218,24 @@ class WindowsEvents extends WindowAdapter
 
 	public void windowGainedFocus(WindowEvent e)
 	{
-		if(TopLevel.getMode()==TopLevel.SDIMode)
-			TopLevel.setCurrentWindow(window);
+		if (TopLevel.isMDIMode()) return;
+		TopLevel.setCurrentWindow(window);
 	}
 	
 	public void windowClosing(WindowEvent e)
 	{
-		if(TopLevel.getMode()==TopLevel.MDIMode)
+		if (TopLevel.isMDIMode()) return;
+		for(Iterator it = TopLevel.getWindows(); it.hasNext(); )
 		{
-			System.exit(0);
-		}
-		else if(TopLevel.getMode()==TopLevel.SDIMode)
-		{
-			Iterator it = TopLevel.getWindows();
-			it.next();
-			if(it.hasNext())
+			TopLevel tl = (TopLevel)it.next();
+			if (tl != window)
 			{
 				TopLevel.removeWindow(window);
 				window.dispose();
-			}
-			else
-			{
-				System.exit(0);
+				TopLevel.setCurrentWindow(tl);
+				return;
 			}
 		}
-		else
-		{
-			System.exit(0);
-		}
+		System.out.println("Cannot delete the last window");
 	}		
 }

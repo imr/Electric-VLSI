@@ -302,7 +302,6 @@ public class NodeInst extends Geometric
 			// tell constraint system about new NodeInst
 			Constraint.getCurrent().newObject(ni);
 		}
-		Undo.clearNextChangeQuiet();
 		return ni;
 	}
 
@@ -399,9 +398,37 @@ public class NodeInst extends Geometric
 	 */
 	public static void modifyInstances(NodeInst [] nis, double [] dXs, double [] dYs, double [] dXSizes, double [] dYSizes, int [] dRots)
 	{
+		// make the change
+		if (Undo.recordChange())
+		{
+			Constraint.getCurrent().modifyNodeInsts(nis, dXs, dYs, dXSizes, dYSizes, dRots);
+		} else
+		{
+			for(int i=0; i<nis.length; i++)
+			{
+				nis[i].adjustInstance(dXs[i], dYs[i], dXSizes[i], dYSizes[i], dRots[i]);
+
+				// change the coordinates of every arc end connected to this
+				for(Iterator it = nis[i].getConnections(); it.hasNext(); )
+				{
+					Connection con = (Connection)it.next();
+					if (con.getPortInst().getNodeInst() == nis[i])
+					{
+						Point2D oldLocation = con.getLocation();
+						if (con.isHeadEnd()) con.getArc().modify(0, dXs[i], dYs[i], 0, 0); else
+							con.getArc().modify(0, 0, 0, dXs[i], dYs[i]);
+					}
+				}
+			}
+		}
+
+		// if the cell-center changed, notify the cell and fix lots of stuff
 		for(int i=0; i<nis.length; i++)
 		{
-			nis[i].modifyInstance(dXs[i], dYs[i], dXSizes[i], dYSizes[i], dRots[i]);
+			if (nis[i].getProto() instanceof PrimitiveNode && nis[i].getProto() == Generic.tech.cellCenter_node)
+			{
+				nis[i].getParent().adjustReferencePoint(nis[i]);
+			}
 		}
 	}
 

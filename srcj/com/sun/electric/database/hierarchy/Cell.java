@@ -364,7 +364,6 @@ public class Cell extends NodeProto
 			// tell constraint system about new Cell
 //			(*el_curconstraint->newobject)((INTBIG)cell, VNODEPROTO);
 		}
-		Undo.clearNextChangeQuiet();
 		return cell;
 	}
 
@@ -385,7 +384,6 @@ public class Cell extends NodeProto
 			// tell constraint system about killed Cell
 //			(*el_curconstraint->newobject)((INTBIG)this, VNODEPROTO);
 		}
-		Undo.clearNextChangeQuiet();
 	}
 
 	/**

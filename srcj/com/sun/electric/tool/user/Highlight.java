@@ -53,6 +53,7 @@ import com.sun.electric.tool.user.UserMenuCommands;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.util.Iterator;
 import java.util.List;
@@ -346,11 +347,8 @@ public class Highlight
 	 */
 	public static EditWindow getHighlightedWindow()
 	{
-		EditWindow curWind = null;
 		EditWindow undisplayedAlternate = null;
-		WindowFrame curWf = WindowFrame.getCurrent();
-		if (curWf != null && curWf.getEditWindow() != null)
-			curWind = curWf.getEditWindow();
+		EditWindow curWind = TopLevel.getCurrentEditWindow();
 		Library lib = Library.getCurrent();
 		Cell cell = lib.getCurCell();
 		if (cell != null)

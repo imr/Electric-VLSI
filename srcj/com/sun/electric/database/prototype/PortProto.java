@@ -277,6 +277,17 @@ public abstract class PortProto extends ElectricObject implements Networkable
 	}
 
 	/**
+	 * Routine to return the angle of this PortProto.
+	 * This is the primary angle that the PortProto faces on the NodeProto.
+	 * It is only used on PrimitivePorts, and is set during Technology creation.
+	 * @return the angle of this PortProto.
+	 */
+	public int getAngle()
+	{
+		return (userBits & PORTANGLE) >> PORTANGLESH;
+	}
+
+	/**
 	 * Routine to set the angle of this PortProto.
 	 * This is the primary angle that the PortProto faces on the NodeProto.
 	 * It is only used on PrimitivePorts, and is set during Technology creation.

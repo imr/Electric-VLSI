@@ -351,7 +351,6 @@ public class CircuitChanges
 			// if neither end can slide in its port, move the nodes
 			if (!headInPort && !tailInPort)
 			{
-//System.out.println("Moving arc: both ends must move");
 				for(int k=0; k<2; k++)
 				{
 					NodeInst ni;

@@ -32,6 +32,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.Dimension;
+import java.awt.Container;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
@@ -66,13 +67,24 @@ public class MessagesWindow
 	Thread ticker = null;
 	StringBuffer buffer = new StringBuffer();
 	Interpreter bi;
-	JInternalFrame jf;
+	Container jf;
 
 	// -------------------- private and protected methods ------------------------
 	public MessagesWindow(Dimension scrnSize)
 	{
-		jf = new JInternalFrame("Messages", true, false, true, true);
-		// jf.setDefaultCloseOperation(jf.DO_NOTHING_ON_CLOSE);
+		Container contentFrame;
+		if (TopLevel.isMDIMode())
+		{
+			JInternalFrame jInternalFrame = new JInternalFrame("Electric Messages", true, false, true, true);
+			jf = jInternalFrame;
+			contentFrame = jInternalFrame.getContentPane();
+		} else
+		{
+			JFrame jFrame = new JFrame("Electric Messages");
+			jf = jFrame;
+			jFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+			contentFrame = jFrame.getContentPane();
+		}
 		bi = new Interpreter();
 		history = new ArrayList();
 		entry = new JTextField();
@@ -85,46 +97,23 @@ public class MessagesWindow
 			JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		vertscroll = scroll.getVerticalScrollBar();
-		jf.getContentPane().setLayout(new BorderLayout());
-		jf.getContentPane().add(entry, BorderLayout.SOUTH);
-		jf.getContentPane().add(scroll, BorderLayout.CENTER);
-		jf.pack();
-		jf.setLocation(100, scrnSize.height/4*3);
-		jf.show();
+		contentFrame.setLayout(new BorderLayout());
+		contentFrame.add(entry, BorderLayout.SOUTH);
+		contentFrame.add(scroll, BorderLayout.CENTER);
+		jf.setLocation(100, scrnSize.height/3*2);
+		if (TopLevel.isMDIMode())
+		{
+			((JInternalFrame)jf).pack();
+			((JInternalFrame)jf).show();
+			TopLevel.addToDesktop((JInternalFrame)jf);
+		} else
+		{
+			((JFrame)jf).pack();
+			((JFrame)jf).show();
+		}
 
 		System.setOut(new java.io.PrintStream(this));
 	}
-	
-	public MessagesWindow(Dimension scrnSize, boolean sdi)
-	{
-		if(sdi==true)
-		{
-			JFrame jf = new JFrame("Messages");  
-		    jf.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-			bi = new Interpreter();
-			history = new ArrayList();
-			entry = new JTextField();
-			entry.addActionListener(this);
-			entry.addKeyListener(this);
-			info = new JTextArea(10, 80);
-			info.addCaretListener(this);
-			info.setLineWrap(false);
-			JScrollPane scroll = new JScrollPane(info,
-				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-			vertscroll = scroll.getVerticalScrollBar();
-			jf.getContentPane().setLayout(new BorderLayout());
-			jf.getContentPane().add(entry, BorderLayout.SOUTH);
-			jf.getContentPane().add(scroll, BorderLayout.CENTER);
-			jf.pack();
-			jf.setLocation(0, 500);
-			jf.show();
-	
-			System.setOut(new java.io.PrintStream(this));
-		}
-	}
-
-	public JInternalFrame getFrame() { return jf; }
 
 	public void interpret(String args[])
 	{

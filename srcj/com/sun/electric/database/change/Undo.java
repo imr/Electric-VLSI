@@ -1081,9 +1081,15 @@ public class Undo
 	/**
 	 * Routine to tell whether changes are currently "quiet".
 	 * Quiet changes are not passed to constraint satisfaction, not recorded for Undo and are not broadcast.
+	 * By calling this routine, the "next change quiet" state is reset.
 	 * @return true if changes are "quiet".
 	 */
-	public static boolean recordChange() { return !doNextChangeQuietly && !doChangesQuietly; }
+	public static boolean recordChange()
+	{
+		boolean returnValue = !doNextChangeQuietly && !doChangesQuietly;
+		clearNextChangeQuiet();
+		return returnValue;
+	}
 
 	/**
 	 * Routine to undo the last batch of changes.

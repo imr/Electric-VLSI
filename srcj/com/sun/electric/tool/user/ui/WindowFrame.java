@@ -31,7 +31,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import java.awt.Component;
+import java.awt.Dimension;
 import javax.swing.JInternalFrame;
+import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JDesktopPane;
@@ -42,95 +44,121 @@ import javax.swing.event.InternalFrameEvent;
 /**
  * This class defines an edit window, with a cell explorer on the left side.
  */
-public class WindowFrame extends JInternalFrame
+public class WindowFrame // extends JInternalFrame
 {
 	/** the edit window part */							private EditWindow wnd;
 	/** the tree view part */							private TreeView tree;
 	/** the offset of each new windows from the last */	private static int windowOffset = 0;
 	/** the list of all windows on the screen */		private static List windowList = new ArrayList();
+	/** the internal frame (if MDI). */					private JInternalFrame jif;
+	/** the top-level frame (if SDI). */				private TopLevel jf;
+	/** the explorer part of a frame. */				private static DefaultMutableTreeNode root = new DefaultMutableTreeNode("Explorer");
 
 	// constructor
-	private WindowFrame(Cell cell)
+	private WindowFrame() {}
+
+	/**
+	 * Routine to create a new window on the screen that displays a Cell.
+	 * @param cell the cell to display.
+	 * @return the WindowFrame that shows the Cell.
+	 */
+	public static WindowFrame createEditWindow(Cell cell)
 	{
+		final WindowFrame frame = new WindowFrame();
+
 		// initialize the frame
-		super(cell.describe(), true, true, true, true);
-		setSize(800, 500);
-		setLocation(windowOffset, windowOffset);
+		Dimension frameSize = new Dimension(800, 500);
+		if (TopLevel.isMDIMode())
+		{
+			frame.jif = new JInternalFrame(cell.describe(), true, true, true, true);
+			frame.jif.setSize(frameSize);
+			frame.jif.setLocation(windowOffset, windowOffset);
+			frame.jif.setAutoscrolls(true);
+		} else
+		{
+			frame.jf = new TopLevel("Electric - "+cell.describe(), frameSize);
+			frame.jf.setSize(frameSize);
+			frame.jf.setLocation(windowOffset, windowOffset);
+		}
 		windowOffset += 70;
 		if (windowOffset > 300) windowOffset = 0;
-		setAutoscrolls(true);
 
 		// the right half: an edit window
-		wnd = EditWindow.CreateElectricDoc(cell);
+		frame.wnd = EditWindow.CreateElectricDoc(cell);
 
-		// the left half: a cell explorer tree in a scroll pane
-		DefaultMutableTreeNode root = new DefaultMutableTreeNode("EXPLORER");
+		// the left half: an explorer tree in a scroll pane
+		root.removeAllChildren();
 		root.add(Library.getExplorerTree());
 		root.add(Job.getExplorerTree());
-		tree = TreeView.CreateTreeView(root, wnd);
+		frame.tree = TreeView.CreateTreeView(root, frame.wnd);
 		explorerTreeChanged();
-		JScrollPane scrolledTree = new JScrollPane(tree);
+		JScrollPane scrolledTree = new JScrollPane(frame.tree);
 
 		// put them together into the frame
 		JSplitPane js = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-		js.setRightComponent(wnd);
+		js.setRightComponent(frame.wnd);
 		js.setLeftComponent(scrolledTree);
 		js.setDividerLocation(220);
-		this.getContentPane().add(js);
-		show();
-		addInternalFrameListener(
-			new InternalFrameAdapter()
-			{
-				public void internalFrameClosing(InternalFrameEvent evt) { windowClosed(); }
-			}
-		);
+		if (TopLevel.isMDIMode())
+		{
+			frame.jif.getContentPane().add(js);
+			frame.jif.show();
+			frame.jif.addInternalFrameListener(
+				new InternalFrameAdapter()
+				{
+					public void internalFrameClosing(InternalFrameEvent evt) { frame.windowClosed(); }
+				}
+			);
+			TopLevel.addToDesktop(frame.jif);
+			frame.jif.moveToFront();
+		} else
+		{
+			frame.jf.getContentPane().add(js);
+			frame.jf.show();
+			frame.jf.setEditWindow(frame.wnd);
+		}
 
 		// accumulate a list of current windows
-		windowList.add(this);
-	}
+		windowList.add(frame);
 
-	// factory
-	public static WindowFrame createEditWindow(Cell cell)
-	{
-		WindowFrame frame = new WindowFrame(cell);
-
-		JDesktopPane desktop = TopLevel.getDesktop();
-		desktop.add(frame); 
-		frame.moveToFront();
 		return frame;
 	}
 
-	public static WindowFrame getCurrent()
-	{
-		for(Iterator it = windowList.iterator(); it.hasNext(); )
-		{
-			WindowFrame wf = (WindowFrame)it.next();
-			if (wf.isSelected()) return wf;
-//			Component comp = wf.getFocusOwner();
-//			if (comp != null) return wf;
-		}
-		return null;
-	}
+	/**
+	 * Routine to record that this WindowFrame has been closed.
+	 */
+	private void windowClosed() { windowList.remove(this); }
 
-	private void windowClosed()
-	{
-		windowList.remove(this);
-	}
-
+	/**
+	 * Routine to return the EditWindow associated with this frame.
+	 * @return the EditWindow associated with this frame.
+	 */
 	public EditWindow getEditWindow() { return wnd; }
 
+	/**
+	 * Routine to return the JInternalFrame associated with this WindowFrame.
+	 * This only makes sense in MDI mode, because in SDI mode, the WindowFrame is a JFrame.
+	 * @return the JInternalFrame associated with this WindowFrame.
+	 */
+	public JInternalFrame getInternalFrame() { return jif; }
+
+	/**
+	 * Routine to return an Iterator over all WindowFrames.
+	 * @return an Iterator over all WindowFrames.
+	 */
+	public static Iterator getWindows() { return windowList.iterator(); }
+
+	/**
+	 * Routine called when the explorer information changes.
+	 * It updates the display.
+	 */
 	public static synchronized void explorerTreeChanged()
 	{
 		for(Iterator it = getWindows(); it.hasNext(); )
 		{
-			WindowFrame uif = (WindowFrame)it.next();
-			uif.tree.updateUI();
+			WindowFrame wf = (WindowFrame)it.next();
+			wf.tree.updateUI();
 		}
 	}
 
-	public static Iterator getWindows()
-	{
-		return windowList.iterator();
-	}
-	
 }

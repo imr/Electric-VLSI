@@ -36,20 +36,30 @@ import javax.swing.JDesktopPane;
 /**
  * This class displays a progress dialog.
  */
-public class ProgressDialog extends JInternalFrame
+public class ProgressDialog
 {
     private JProgressBar progressBar;
     private JTextArea taskOutput;
 	private JFrame jf;
+	private JInternalFrame jif;
+
 	/**
 	 * The constructor displays the progress dialog.
 	 * @param title the title of the dialog.
 	 */
 	public ProgressDialog(String title)
 	{
-		super(title);
-		setSize(300, 80);
-		setLocation(300, 300);
+		if (TopLevel.isMDIMode())
+		{
+			jif = new JInternalFrame(title);
+			jif.setSize(300, 80);
+			jif.setLocation(300, 300);
+		} else
+		{
+			jf = new JFrame(title);
+			jf.setSize(300, 80);
+			jf.setLocation(300, 300);
+		}
 
 		progressBar = new JProgressBar(0, 100);
 		progressBar.setValue(0);
@@ -65,22 +75,17 @@ public class ProgressDialog extends JInternalFrame
 		panel.add(progressBar, BorderLayout.CENTER);
 		panel.add(taskOutput, BorderLayout.SOUTH);
 
-		if(TopLevel.getMode()==TopLevel.MDIMode)
+		if(TopLevel.isMDIMode())
 		{
-			this.getContentPane().add(panel);
-			show();
-			JDesktopPane desktop = TopLevel.getDesktop();
-			desktop.add(this);
-		}
-		else
+			jif.getContentPane().add(panel);
+			jif.show();
+			TopLevel.addToDesktop(jif);
+			jif.moveToFront();
+		} else
 		{	
-			jf = new JFrame();
-			jf.setSize(300,80);
 			jf.getContentPane().add(panel);
-			jf.setLocation(300,300);
 			jf.show();	
 		}
-		moveToFront();
 	}
 
 	/**
@@ -88,12 +93,10 @@ public class ProgressDialog extends JInternalFrame
 	 */
 	public void close()
 	{
-		if(TopLevel.getMode()==TopLevel.MDIMode)
+		if (TopLevel.isMDIMode())
 		{
-			JDesktopPane desktop = TopLevel.getDesktop();
-			dispose();
-		}
-		else
+			jif.dispose();
+		} else
 		{
 			jf.dispose();
 		}		

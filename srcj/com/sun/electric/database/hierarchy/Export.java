@@ -154,7 +154,6 @@ public class Export extends PortProto
 			// tell constraint system about new Export
 //			(*el_curconstraint->newobject)((INTBIG)pp, VPORTPROTO);
 		}
-		Undo.clearNextChangeQuiet();
 
 		return pp;
 	}	
@@ -175,7 +174,6 @@ public class Export extends PortProto
 			// tell constraint system about killed Export
 //			(*el_curconstraint->newobject)((INTBIG)this, VPORTPROTO);
 		}
-		Undo.clearNextChangeQuiet();
 	}
 
 	/**

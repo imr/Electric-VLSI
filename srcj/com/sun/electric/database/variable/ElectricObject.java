@@ -515,7 +515,6 @@ public class ElectricObject
 			// tell all tools about this change
 			Undo.Change ch = Undo.newChange(this, Undo.Type.OBJECTSTART);
 		}
-		Undo.clearNextChangeQuiet();
 	}
 
 	/**
@@ -529,7 +528,6 @@ public class ElectricObject
 			// tell all tools about this change
 			Undo.Change ch = Undo.newChange(this, Undo.Type.OBJECTEND);
 		}
-		Undo.clearNextChangeQuiet();
 	}
 
 	/**
