@@ -271,6 +271,8 @@ public class Network extends Tool
 			return null;
 		}
 		NetCell netCell = getNetCell(no.getParent());
+		if (no.getParent() != netCell.cell)
+			return null;
 		return netCell.getNetwork(no, arrayIndex, portProto, busIndex);
 	}
 

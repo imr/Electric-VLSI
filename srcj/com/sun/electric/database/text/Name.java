@@ -59,7 +59,7 @@ public class Name implements Comparable
 	 * @param ns given string
 	 * @return the name object for the string.
 	 */
-	public static synchronized Name findName(String ns) { return findTrimmedName(trim(ns)); }
+	public static synchronized final Name findName(String ns) { return findTrimmedName(trim(ns)); }
 
 	/**
 	 * Routine to check whether or not string is a valid name.
@@ -82,13 +82,13 @@ public class Name implements Comparable
 	 * Returns a printable version of this Name.
 	 * @return a printable version of this Name.
 	 */
-	public String toString() { return ns; }
+	public final String toString() { return ns; }
 
 	/**
 	 * Returns lowerCase equivalent of this Name.
 	 * @return lowerCase equivalent of this Name.
 	 */
-	public Name lowerCase() { return lowerCase; }
+	public final Name lowerCase() { return lowerCase; }
 
     /**
      * Compares this Name with the specified Name for order.  Returns a
@@ -150,64 +150,64 @@ public class Name implements Comparable
 	 * Tells whether or not this Name is a valid bus or signal name.
 	 * @return true if Name is a valid name.
 	 */
-	public boolean isValid() { return (flags & ERROR) == 0; }
+	public final boolean isValid() { return (flags & ERROR) == 0; }
 
 	/**
 	 * Tells whether or not this Name is a temporary name
 	 * @return true if Name is a temporary name.
 	 */
-	public boolean isTempname() { return (flags & TEMP) != 0; }
+	public final boolean isTempname() { return (flags & TEMP) != 0; }
 
 	/**
 	 * Tells whether Name has duplicate subnames.
 	 * @return true if Name has duplicate subnames.
 	 */
-	public boolean hasDuplicates() { return (flags & DUPLICATES) != 0; }
+	public final boolean hasDuplicates() { return (flags & DUPLICATES) != 0; }
 
 	/**
 	 * Tells whether Name has duplicate subnames.
 	 * @return true if Name has duplicate subnames.
 	 */
-	public boolean hasEmptySubnames() { return (flags & HAS_EMPTIES) != 0; }
+	public final boolean hasEmptySubnames() { return (flags & HAS_EMPTIES) != 0; }
 
 	/**
 	 * Tells whether or not this Name is a list of names separated by comma.
 	 * @return true if Name is a list of names separated by comma.
 	 */
-	public boolean isList() { return (flags & LIST) != 0; }
+	public final boolean isList() { return (flags & LIST) != 0; }
 
 	/**
 	 * Tells whether or not this Name is a bus name.
 	 * @return true if name is a bus name.
 	 */
-	public boolean isBus() { return subnames != null; }
+	public final boolean isBus() { return subnames != null; }
 
 	/**
 	 * Returns subname of a bus name.
 	 * @param i an index of subname.
 	 * @return the view part of a parsed Cell name.
 	 */
-	public Name subname(int i) { return subnames == null ? this : subnames[i]; }
+	public final Name subname(int i) { return subnames == null ? this : subnames[i]; }
 
 	/**
 	 * Returns number of subnames of a bus.
 	 * @return the number of subnames of a bus.
 	 */
-	public int busWidth() { return subnames == null ? 1 : subnames.length; }
+	public final int busWidth() { return subnames == null ? 1 : subnames.length; }
 
 	/**
 	 * Returns basename of simple Name.
 	 * Returns null if not simple Name.
 	 * @return base of name.
 	 */
-	public Name getBasename() { return basename; }
+	public final Name getBasename() { return basename; }
 
 	/**
 	 * Returns numerical suffix of simple Name.
 	 * Returns zero if numerical suffix is absent or name is not simple.
 	 * @return numerical suffix.
 	 */
-	public int getNumSuffix() { return numSuffix; }
+	public final int getNumSuffix() { return numSuffix; }
 
 	/**
 	 * Returns the name obtained from base of this simple name by adding numerical suffix.
@@ -215,7 +215,7 @@ public class Name implements Comparable
 	 * @param i numerical suffix
 	 * @return suffixed name.
 	 */
-	public Name findSuffixed(int i)
+	public final Name findSuffixed(int i)
 	{
 		if (i < 0 || basename == null) return null;
 		return findName(basename.toString()+i);

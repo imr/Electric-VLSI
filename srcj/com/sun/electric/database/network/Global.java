@@ -92,8 +92,8 @@ public class Global
 	public static class Set implements Comparable {
 
 		/** bitmap which defines set. */			private boolean[] elemMap;
-		/** indices of set elements. */				private int[] elemInds;
-		/** List of set elements. */				private final List elemList;
+		/** map localInd->globalInd. */				private Global[] elems;
+		/** map globalInd->localInd. */				private int[] indexOf;
 
 		/** Map Set->Set of all Global.Sets. */		private static Map allSets = new TreeMap();
 		/** A private set for search in allSets. */	private static Global.Set fakeSet = new Global.Set(new boolean[0]);
@@ -114,16 +114,19 @@ public class Global
 			}
 
 			this.elemMap = new boolean[maxElem + 1];
-			elemInds = new int[numElem];
+			elems = new Global[numElem];
+			indexOf = new int[maxElem + 1];
+			Arrays.fill(indexOf, -1);
 			List elemList = new ArrayList(numElem);
 
+			int local = 0;
 			for (int i = 0; i < elemMap.length; i++) {
 				if (!elemMap[i]) continue;
 				this.elemMap[i] = true;
-				elemInds[elemList.size()] = i;
-				elemList.add(allGlobals[i]);
+				elems[local] = allGlobals[i];
+				indexOf[i] = local;
+				local++;
 			}
-			this.elemList = Collections.unmodifiableList(elemList);
 		}
 
 		/**
@@ -131,24 +134,34 @@ public class Global
 		 * @param global The Global whose presence in this set is to be tested
 		 * @return <tt>true</tt> if this Global Set contains a specified Global.
 		 */
-		public boolean contains(Global global) { return global.index < elemMap.length && elemMap[global.index]; }
+		public final boolean contains(Global global) { return global.index < elemMap.length && elemMap[global.index]; }
 
 		/**
 		 * Returns the number of Globals in this Global.Set.
 		 * @return the number of Globals in this Global.Set.
 		 */
-		public int size() { return elemInds.length; }
+		public final int size() { return elems.length; }
+
+		/**
+		 * Returns a Global from this set by specified index.
+		 * @param i specified index of global.
+		 * @return a Global from this set by specified index.
+		 */
+		public final Global get(int i) { return elems[i]; }
+
+		/**
+		 * Returns an index of specified Global in this set.
+		 * Returns -1 if Global is not in set.
+		 * @param g specified global.
+		 * @return a Global from this set by specified index.
+		 */
+		public final int indexOf(Global g) { return g.index < indexOf.length ? indexOf[g.index] : -1; }
 
 		/**
 		 * Returns the maximal index of Globals in this Set.
 		 * @return the maximal index of Globals in this Set or (-1) for empty Set.
 		 */
-		public int maxElement() { return elemMap.length - 1; }
-
-		/** Return an iterator over the elements of this Global.Set.
-		 * Elements are returned in acsending order of their indices.
-		 */
-		public Iterator iterator() { return elemList.iterator(); }
+		public final int maxElement() { return elemMap.length - 1; }
 
 		/**
 		 * Compares this Global.Set with the specified Global.Set for order.  Returns a
@@ -191,8 +204,8 @@ public class Global
 
 		public String toString() {
 			String s = "Global.Set {";
-			for (Iterator it = iterator(); it.hasNext();)
-				s += " "+(String)it.next();
+			for (int i = 0; i < size(); i++)
+				s += " " + get(i);
 			s += "}";
 			return s;
 		}
@@ -235,8 +248,8 @@ public class Global
 	 * @param sey specified Global.Set.
 	 */
 	static void addToBuf(Global.Set set) {
-		for (int i = 0; i < set.elemInds.length; i++)
-			globalsBuf[set.elemInds[i]] = true;
+		for (int i = 0; i < set.elems.length; i++)
+			globalsBuf[set.elems[i].index] = true;
 	}
 
 	/**

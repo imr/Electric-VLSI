@@ -169,6 +169,27 @@ class NetCell
 		return networks[netMap[ind]];
 	}
 
+	/**
+	 * Check if cell has changed exports.
+	 * @return true if this cell has changed exports.
+	 */
+	boolean updateExports() {
+		boolean changed = false;
+		if (dbExports == null || dbExports.length != cell.getNumPorts()) {
+			changed = true;
+			dbExports = new Export[cell.getNumPorts()];
+			}
+		for (Iterator it = cell.getPorts(); it.hasNext();) {
+			Export e = (Export) it.next();
+			int portIndex = e.getIndex();
+			if (dbExports[portIndex] != e) {
+				changed = true;
+				dbExports[portIndex] = e;
+			}
+		}
+		return changed;
+	}
+
 	private int initNodables() {
 		if (nodeOffsets == null || nodeOffsets.length != cell.getNumNodes())
 			nodeOffsets = new int[cell.getNumNodes()];
@@ -340,27 +361,15 @@ class NetCell
 	 * @param currentTime time stamp of current network reevaluation
 	 * or will be kept untouched if not.
 	 */
-	void updateInterface(boolean changed) {
-		if (dbExports == null || dbExports.length != cell.getNumPorts()) {
-			changed = true;
-			dbExports = new Export[cell.getNumPorts()];
-			equivPorts = new int[cell.getNumPorts()];
-		}
-		for (Iterator it = cell.getPorts(); it.hasNext();) {
-			Export e = (Export) it.next();
-			int portIndex = e.getIndex();
-			if (dbExports[portIndex] != e) {
+	boolean updateInterface() {
+		boolean changed = false;
+		for (int i = 0; i < equivPorts.length; i++) {
+			if (equivPorts[i] != netMap[i]) {
 				changed = true;
-				dbExports[portIndex] = e;
-			}
-			if (equivPorts[portIndex] != netMap[portIndex]) {
-				changed = true;
-				equivPorts[portIndex] = netMap[portIndex];
+				equivPorts[i] = netMap[i];
 			}
 		}
-		if (changed)
-			invalidateUsagesOf(true);
-		//showEquivPorts();
+		return changed;
 	}
 
 	/**
@@ -421,6 +430,11 @@ class NetCell
 			return;
 		}
 
+		boolean changed = false;
+		if (updateExports()) changed = true;
+		if (equivPorts == null || equivPorts.length != dbExports.length)
+			equivPorts = new int[dbExports.length];
+
 		/* Set index of NodeInsts */
 		int netMapSize = initNodables();
 
@@ -435,7 +449,9 @@ class NetCell
 		addExportNamesToNets();
 		closureMap();
 		buildNetworkList();
-		updateInterface(false);
+		if (updateInterface()) changed = true;
+		if (changed)
+			invalidateUsagesOf(true);
 		flags |= (LOCALVALID|VALID);
 	}
 
@@ -503,7 +519,7 @@ class NetCell
 		return true;
 	}
 
-	boolean isSchem(NodeProto np) {
+	static boolean isSchem(NodeProto np) {
 		return np instanceof Cell && Network.getNetCell((Cell)np) instanceof NetSchem;
 	}
 }
