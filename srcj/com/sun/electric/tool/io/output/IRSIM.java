@@ -110,7 +110,7 @@ public class IRSIM extends Output
 	{
 		// gather all components
 		IRSIMNetlister netlister = new IRSIMNetlister();
-		Netlist netlist = cell.getNetlist(true);
+		Netlist netlist = cell.getNetlist(false);
         this.context = context;
        if (context == null) this.context = VarContext.globalContext;
         components = new ArrayList();
@@ -215,8 +215,8 @@ public class IRSIM extends Output
 		        printWriter.print(" " + TextUtils.formatDouble(ci.ni.getAnchorCenterY()));
 		        if (ci.type == 'n') printWriter.print(" g=S_gnd");
 		        if (ci.type == 'p') printWriter.print(" g=S_vdd");
-				printWriter.print(" s=A_" + ci.sourceArea + ",P_" + ci.sourcePerim);
-				printWriter.println(" d=A_" + ci.drainArea + ",P_" + ci.drainPerim);
+				printWriter.print(" s=A_" + (int)ci.sourceArea + ",P_" + (int)ci.sourcePerim);
+				printWriter.println(" d=A_" + (int)ci.drainArea + ",P_" + (int)ci.drainPerim);
 			}
 		}
 
@@ -280,6 +280,7 @@ public class IRSIM extends Output
         public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
         {
             IRSIMCellInfo iinfo = (IRSIMCellInfo)info;
+            int numRemoveParents = context.getNumLevels();
 
             NodeProto np = no.getProto();						// check if prototype is Primitive transistor
             if (!(np instanceof PrimitiveNode)) return true;	// descend and enumerate
@@ -330,8 +331,8 @@ public class IRSIM extends Output
 	            ComponentInfoOLD ci = new ComponentInfoOLD();
 	            ci.ni = ni;
 	            if (fun == PrimitiveNode.Function.RESIST) ci.type = 'r'; else ci.type = 'C';
-	            ci.netName1 = iinfo.getUniqueNetName(net1, "/").substring(len);
-	            ci.netName2 = iinfo.getUniqueNetName(net2, "/").substring(len);
+                ci.netName1 = iinfo.getUniqueNetNameProxy(net1, "/").toString(numRemoveParents);
+	            ci.netName2 = iinfo.getUniqueNetNameProxy(net2, "/").toString(numRemoveParents);
 	            ci.rcValue = TextUtils.atof(extra);
 	            components.add(ci);
 				return false;
@@ -363,12 +364,10 @@ public class IRSIM extends Output
             if (ni.getFunction() == PrimitiveNode.Function.TRANMOS || ni.getFunction() == PrimitiveNode.Function.TRA4NMOS)
             	ci.type = 'n'; else
             		ci.type = 'p';
-            String removeContext = context.getInstPath("/");
-            int len = removeContext.length();
-            if (len > 0) len++;
-            ci.netName1 = iinfo.getUniqueNetName(gnet, "/").substring(len);
-            ci.netName2 = iinfo.getUniqueNetName(snet, "/").substring(len);
-            ci.netName3 = iinfo.getUniqueNetName(dnet, "/").substring(len);
+            iinfo.getUniqueNetName(gnet, "/");
+            ci.netName1 = iinfo.getUniqueNetNameProxy(gnet, "/").toString(numRemoveParents);
+            ci.netName2 = iinfo.getUniqueNetNameProxy(snet, "/").toString(numRemoveParents);
+            ci.netName3 = iinfo.getUniqueNetNameProxy(dnet, "/").toString(numRemoveParents);
             TransistorSize dim = ni.getTransistorSize(iinfo.getContext());
             if (dim == null || dim.getDoubleLength() == 0 || dim.getDoubleWidth() == 0)
             {
