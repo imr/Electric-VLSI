@@ -23,7 +23,7 @@
  */
 package com.sun.electric.tool.routing;
 
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.NodeInst;
@@ -239,14 +239,14 @@ public class Routing extends Listener
 		highlighter.finished();
 		for(Iterator it = nets.iterator(); it.hasNext(); )
 		{
-			JNetwork net = (JNetwork)it.next();
+			Network net = (Network)it.next();
 
 			// now unroute the net
 			if (ro_unroutenet(net)) return;
 		}
 	}
 
-	public static boolean ro_unroutenet(JNetwork net)
+	public static boolean ro_unroutenet(Network net)
 	{
 //		// convert this net and mark arcs and nodes on it
 //		count = ro_findnetends(net, &nilist, &pplist, &xlist, &ylist);

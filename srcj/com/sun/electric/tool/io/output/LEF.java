@@ -30,7 +30,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -211,7 +211,7 @@ public class LEF extends Output
 				if (poly.getPort() != rpp) continue;
 				io_lefwritepoly(poly, trans, tech);
 			}
-			JNetwork net = netList.getNetwork(e, 0);
+			Network net = netList.getNetwork(e, 0);
 			io_lefoutspread(cell, net, e.getOriginalPort().getNodeInst(), netList);
 			printWriter.println("    END");
 			if (e.getCharacteristic() == PortProto.Characteristic.PWR)
@@ -275,7 +275,7 @@ public class LEF extends Output
 	 * Method to write all geometry in cell "cell" that is on network "net"
 	 * to file "out".  Does not write node "ignore".
 	 */
-	void io_lefoutspread(Cell cell, JNetwork net, NodeInst ignore, Netlist netList)
+	void io_lefoutspread(Cell cell, Network net, NodeInst ignore, Netlist netList)
 	{
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
@@ -289,7 +289,7 @@ public class LEF extends Output
 			for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
 			{
 				PortInst pi = (PortInst)pIt.next();
-				JNetwork pNet = netList.getNetwork(pi);
+				Network pNet = netList.getNetwork(pi);
 				if (pNet != net) { found = false;   break; }
 			}
 			if (!found) continue;
@@ -310,7 +310,7 @@ public class LEF extends Output
 		for(Iterator it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
-			JNetwork aNet = netList.getNetwork(ai, 0);
+			Network aNet = netList.getNetwork(ai, 0);
 			if (aNet != net) continue;
 			arcsSeen.add(ai);
 			Technology tech = ai.getProto().getTechnology();

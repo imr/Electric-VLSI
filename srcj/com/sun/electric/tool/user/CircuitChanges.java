@@ -33,7 +33,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
@@ -1114,7 +1114,7 @@ public class CircuitChanges
 				String [] localStrings = new String[busWidth];
 				for(int i=0; i<busWidth; i++)
 				{
-					JNetwork subNet = netList.getNetwork(ai, i);
+					Network subNet = netList.getNetwork(ai, i);
 					if (subNet.hasNames()) localStrings[i] = (String)subNet.getNames().next(); else
 						localStrings[i] = subNet.describe();
 				}

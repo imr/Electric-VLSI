@@ -28,7 +28,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
@@ -144,7 +144,7 @@ public class Sim extends Output
 			for(Iterator it = cell.getPorts(); it.hasNext(); )
 			{
 				Export e = (Export)it.next();
-				JNetwork net = netList.getNetwork(e, 0);
+				Network net = netList.getNetwork(e, 0);
 				int globalNetNum = ci.getNetID(net);
 				globalNetNames.put(new Integer(globalNetNum), e.getName());
 
@@ -171,7 +171,7 @@ public class Sim extends Output
 		for(Iterator it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
-			JNetwork net = netList.getNetwork(ai, 0);
+			Network net = netList.getNetwork(ai, 0);
 			if (netsSeen.contains(net)) continue;
 			netsSeen.add(net);
 			int globalNetNum = ci.getNetID(net);
@@ -181,7 +181,7 @@ public class Sim extends Output
 			for(Iterator oIt = cell.getArcs(); oIt.hasNext(); )
 			{
 				ArcInst oAi = (ArcInst)oIt.next();
-				JNetwork oNet = netList.getNetwork(oAi, 0);
+				Network oNet = netList.getNetwork(oAi, 0);
 				if (oNet != net) continue;
 		
 				// calculate true length and width of arc
@@ -241,7 +241,7 @@ public class Sim extends Output
 				Variable var = ai.getVar(COSMOS_ATTRIBUTE_KEY);
 				if (var != null)
 				{
-					JNetwork net = netList.getNetwork(ai, 0);
+					Network net = netList.getNetwork(ai, 0);
 					int globalNetNum = ci.getNetID(net);
 					printWriter.println("A " + makeNodeName(globalNetNum, format) + " Sim:" + var.getPureValue(-1, -1));
 				}
@@ -257,13 +257,13 @@ public class Sim extends Output
 			// if it is a transistor, write the information
 			if (fun == NodeProto.Function.TRANMOS || fun == NodeProto.Function.TRADMOS || fun == NodeProto.Function.TRAPMOS)
 			{
-				JNetwork gateNet = netList.getNetwork(ni.getTransistorGatePort());
+				Network gateNet = netList.getNetwork(ni.getTransistorGatePort());
 				int gate = ci.getNetID(gateNet);
 
-				JNetwork sourceNet = netList.getNetwork(ni.getTransistorSourcePort());
+				Network sourceNet = netList.getNetwork(ni.getTransistorSourcePort());
 				int source = ci.getNetID(sourceNet);
 
-				JNetwork drainNet = netList.getNetwork(ni.getTransistorDrainPort());
+				Network drainNet = netList.getNetwork(ni.getTransistorDrainPort());
 				int drain = ci.getNetID(drainNet);
 
 				String tType = "U";

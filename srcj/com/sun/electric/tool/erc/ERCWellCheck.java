@@ -28,7 +28,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
@@ -647,14 +647,14 @@ public class ERCWellCheck
 				wc.index = job.wellConIndex++;
 				PortInst pi = ni.getOnlyPortInst();
 				Netlist netList = info.getNetlist();
-				JNetwork net = netList.getNetwork(pi);
+				Network net = netList.getNetwork(pi);
 				wc.netNum = info.getNetID(net);
 				wc.onProperRail = false;
 				if (net != null)
 				{
 					boolean searchWell = (fun == NodeProto.Function.WELL);
 					// PWell: must be on ground or  NWell: must be on power
-					JNetwork parentNet = net;
+					Network parentNet = net;
 					HierarchyEnumerator.CellInfo cinfo = info;
 					while (cinfo.getParentInst() != null) {
 						parentNet = HierarchyEnumerator.getNetworkInParent(parentNet, cinfo.getParentInst());

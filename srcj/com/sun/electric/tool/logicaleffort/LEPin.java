@@ -29,7 +29,7 @@
 package com.sun.electric.tool.logicaleffort;
 
 import com.sun.electric.tool.logicaleffort.*;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +49,7 @@ public class LEPin {
     /** pin direction */                        private Dir dir;
     /** logical effort */                       private float le;
     /** name of pin */                          private String name;
-    /** Jnetwork this pin is attached to */     private JNetwork jnet;
+    /** Jnetwork this pin is attached to */     private Network net;
 
     // connectivity
     /** reference to instance pin belongs to */ private LENodable instance;
@@ -76,12 +76,12 @@ public class LEPin {
 	 * @param dir pin direction (Pin.INPUT, Pin.OUTPUT, Pin.INOUT, Pin.NODIR)
 	 * @param instance the instance this belongs to
 	 */
-	protected LEPin(String name, Dir dir, float le, JNetwork jnet, LENodable instance)
+	protected LEPin(String name, Dir dir, float le, Network net, LENodable instance)
 	{
 		this.name = name;
 		this.dir = dir;
         this.le = le;
-        this.jnet = jnet;
+        this.net = net;
         this.instance = instance;
 	}
     
@@ -97,8 +97,8 @@ public class LEPin {
     /** Return the instance that is attached to the pin. */
     protected LENodable getInstance() { return instance; }
 
-    /** Return the JNetwork this pin is on */
-    protected JNetwork getJNetwork() { return jnet; }
+    /** Return the Network this pin is on */
+    protected Network getNetwork() { return net; }
 
     //----------------------------------UTILITY FUNCTIONS---------------------------------
 

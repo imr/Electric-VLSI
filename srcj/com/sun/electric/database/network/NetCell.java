@@ -106,7 +106,7 @@ class NetCell
 	NetCell(Cell cell)
 	{
 		this.cell = cell;
-		Network.setCell(cell, this);
+		NetworkTool.setCell(cell, this);
 	}
 
 	final void setNetworksDirty()
@@ -141,7 +141,7 @@ class NetCell
 		for (Iterator it = cell.getUsagesOf(); it.hasNext();) {
 			NodeUsage nu = (NodeUsage)it.next();
 			if (nu.isIconOfParent()) continue;
-			NetCell netCell = Network.getNetCell(nu.getParent());
+			NetCell netCell = NetworkTool.getNetCell(nu.getParent());
 			if (netCell != null) netCell.setInvalid(strong);
 		}
 	}
@@ -160,7 +160,7 @@ class NetCell
 // 			NodeProto np = nu.getProto();
 // 			int npInd = np.getIndex();
 // 			if (npInd < 0) continue;
-// 			NetCell netCell = Network.cells[npInd];
+// 			NetCell netCell = NetworkTool.cells[npInd];
 // 			if ((netCell.flags & VALID) != 0)
 // 				netCell.redoNetworks();
 // 		}
@@ -217,7 +217,7 @@ class NetCell
 			if (ni.getNameKey().isBus()) {
 				String msg = "Network: Layout cell " + cell.describe() + " has arrayed node " + ni.describe();
                 System.out.println(msg);
-                ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNodes);
                 log.addGeom(ni, true, cell, null);
             }
 		}
@@ -226,11 +226,11 @@ class NetCell
 			NodeProto np = nu.getProto();
 			boolean err = false;
 			if (np instanceof Cell) {
-				if (Network.getNetCell((Cell)np) instanceof NetSchem) {
+				if (NetworkTool.getNetCell((Cell)np) instanceof NetSchem) {
 					String msg = "Network: Layout cell " + cell.describe() + " has " + nu.getNumInsts() +
 						" " + np.describe() + " nodes";
                     System.out.println(msg);
-                    ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                    ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNodes);
                     for (Iterator nit = nu.getInsts(); nit.hasNext(); ) {
                         NodeInst ni = (NodeInst)nit.next();
                         log.addGeom(ni, true, cell, null);
@@ -242,7 +242,7 @@ class NetCell
 				String msg = "Network: Layout cell " + cell.describe() + " has " + nu.getNumInsts() +
 					" " + np.describe() + " nodes";
                 System.out.println(msg);
-                ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNodes);
                 for (Iterator nit = nu.getInsts(); nit.hasNext(); ) {
                     NodeInst ni = (NodeInst)nit.next();
                     log.addGeom(ni, true, cell, null);
@@ -254,7 +254,7 @@ class NetCell
 					String msg = "Network: Layout cell " + cell.describe() + " has " + nu.getNumInsts() +
 						" " + np.describe() + " nodes";
                     System.out.println(msg);
-                    ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                    ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNodes);
                     for (Iterator nit = nu.getInsts(); nit.hasNext(); ) {
                         NodeInst ni = (NodeInst)nit.next();
                         log.addGeom(ni, true, cell, null);
@@ -339,7 +339,7 @@ class NetCell
 		PortProto pp = pi.getPortProto();
 		if (pp.isIsolated()) return;
 		drawns[piOffset] = numDrawns;
-		if (Network.debug) System.out.println(numDrawns + ": " + pi);
+		if (NetworkTool.debug) System.out.println(numDrawns + ": " + pi);
 
 		for (int k = piOffset; headConn[k] != piOffset; ) {
 			k = headConn[k];
@@ -347,7 +347,7 @@ class NetCell
 			if (k < arcsOffset) {
 				// This is port
 				drawns[k] = numDrawns;
-				if (Network.debug) System.out.println(numDrawns + ": " + cell.getPort(k));
+				if (NetworkTool.debug) System.out.println(numDrawns + ": " + cell.getPort(k));
 				continue;
 			}
 			ArcInst ai = cell.getArc(k - arcsOffset);
@@ -355,7 +355,7 @@ class NetCell
 			if (ap.getFunction() == ArcProto.Function.NONELEC) continue;
 			if (pp == busPinPort && ap != busArc) continue;
 			drawns[k] = numDrawns;
-			if (Network.debug) System.out.println(numDrawns + ": " + ai.describe());
+			if (NetworkTool.debug) System.out.println(numDrawns + ": " + ai.describe());
 			PortInst tpi = ai.getTail().getPortInst();
 			if (tpi.getPortProto() == busPinPort && ap != busArc) continue;
 			addToDrawn(tpi);
@@ -368,7 +368,7 @@ class NetCell
 			if (ap.getFunction() == ArcProto.Function.NONELEC) continue;
 			if (pp == busPinPort && ap != busArc) continue;
 			drawns[k] = numDrawns;
-			if (Network.debug) System.out.println(numDrawns + ": " + ai.describe());
+			if (NetworkTool.debug) System.out.println(numDrawns + ": " + ai.describe());
 			PortInst hpi = ai.getHead().getPortInst();
 			if (hpi.getPortProto() == busPinPort && ap != busArc) continue;
 			addToDrawn(hpi);
@@ -384,7 +384,7 @@ class NetCell
 			return;
 		}
 		NodeInst ni = pi.getNodeInst();
-		if (np == Schematics.tech.resistorNode && Network.shortResistors) {
+		if (np == Schematics.tech.resistorNode && NetworkTool.shortResistors) {
 			
 			addToDrawn1(ni.getPortInst(0));
 			addToDrawn1(ni.getPortInst(1));
@@ -417,7 +417,7 @@ class NetCell
 			ArcProto ap = ai.getProto();
 			if (ap.getFunction() == ArcProto.Function.NONELEC) continue;
 			drawns[arcsOffset + i] = numDrawns;
-			if (Network.debug) System.out.println(numDrawns + ": " + ai.describe());
+			if (NetworkTool.debug) System.out.println(numDrawns + ": " + ai.describe());
 			PortInst hpi = ai.getHead().getPortInst();
 			if (hpi.getPortProto() != busPinPort || ap == busArc)
 				addToDrawn(hpi);
@@ -440,7 +440,7 @@ class NetCell
 					if (drawns[piOffset] >= 0 && !cell.isIcon()) {
 						String msg = "Network: " + cell + " has connections on " + pi;
                         System.out.println(msg);
-                        ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                        ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNodes);
                         log.addPoly(pi.getPoly(), true, cell);
                     }
 					continue;
@@ -450,7 +450,7 @@ class NetCell
 				if (np.getFunction() == NodeProto.Function.PIN) {
 					String msg = "Network: " + cell + " has unconnected pin " + pi.describe();
                     System.out.println(msg);
-                    ErrorLogger.MessageLog log = Network.errorLogger.logWarning(msg, cell, Network.errorSortNodes);
+                    ErrorLogger.MessageLog log = NetworkTool.errorLogger.logWarning(msg, cell, NetworkTool.errorSortNodes);
                     log.addGeom(ni, true, cell, null);
                 }
 				addToDrawn(pi);
@@ -514,7 +514,7 @@ class NetCell
 			if (ai.getNameKey().isBus() && ai.getProto() != busArc) {
 				String msg = "Network: " + cell + " has bus name <"+ai.getNameKey()+"> on arc that is not a bus";
                 System.out.println(msg);
-                ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
+                ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNetworks);
                 log.addGeom(ai, true, cell, null);
             }
 			if (ai.isUsernamed())
@@ -524,7 +524,7 @@ class NetCell
 			NetName nn = (NetName)it.next();
 			if (nn.name == null)
 				it.remove();
-			else if (Network.debug)
+			else if (NetworkTool.debug)
 				System.out.println("NetName "+nn.name+" "+nn.index);
 		}
 		if (netNameCount != netNames.size())
@@ -555,7 +555,7 @@ class NetCell
 			NodeInst ni = (NodeInst)it.next();
 			NodeProto np = ni.getProto();
 			if (!(np instanceof Cell)) continue;
-			NetCell netCell = Network.getNetCell((Cell)np);
+			NetCell netCell = NetworkTool.getNetCell((Cell)np);
 			if (netCell instanceof NetSchem) continue;
 			int[] eq = netCell.equivPorts;
 			int nodeOffset = ni_pi[ni.getNodeIndex()];
@@ -578,7 +578,7 @@ class NetCell
 	private void buildNetworkList()
 	{
 		userNetlist.initNetworks();
-		JNetwork[] netNameToNet = new JNetwork[netNames.size()];
+		Network[] netNameToNet = new Network[netNames.size()];
 		int numPorts = cell.getNumPorts();
 		for (int i = 0; i < numPorts; i++) {
 			Export e = (Export)cell.getPort(i);
@@ -596,7 +596,7 @@ class NetCell
 			ArcInst ai = cell.getArc(i);
 			int drawn = drawns[arcsOffset + i];
 			if (drawn < 0) continue;
-			JNetwork network = userNetlist.getNetworkByMap(drawn);
+			Network network = userNetlist.getNetworkByMap(drawn);
 			if (network.hasNames()) continue;
 			network.addName(ai.getName(), false);
 		}
@@ -605,7 +605,7 @@ class NetCell
 			for (int j = 0; j < ni.getProto().getNumPorts(); j++) {
 				int drawn = drawns[ni_pi[i] + j];
 				if (drawn < 0) continue;
-				JNetwork network  = userNetlist.getNetworkByMap(drawn);
+				Network network  = userNetlist.getNetworkByMap(drawn);
 				if (network.hasNames()) continue;
 				network.addName(ni.getName() + "@" + ni.getProto().getPort(j).getName(), false);
 			}
@@ -616,7 +616,7 @@ class NetCell
 		int i = 0;
 		for (Iterator nit = getNetworks(); nit.hasNext(); )
 		{
-			JNetwork network = (JNetwork)nit.next();
+			Network network = (Network)nit.next();
 			String s = "";
 			for (Iterator sit = network.getNames(); sit.hasNext(); )
 			{
@@ -634,14 +634,14 @@ class NetCell
 		*/
 	}
 
-	private void setNetName(JNetwork[] netNamesToNet, int drawn, Name name, boolean exported) {
-		JNetwork network = userNetlist.getNetworkByMap(drawn);
+	private void setNetName(Network[] netNamesToNet, int drawn, Name name, boolean exported) {
+		Network network = userNetlist.getNetworkByMap(drawn);
 		NetName nn = (NetName)netNames.get(name);
 		if (netNamesToNet[nn.index] != null) {
 			if (netNamesToNet[nn.index] == network) return;
 			String msg = "Network: Layout cell " + cell.describe() + " has nets with same name " + name;
             System.out.println(msg);
-            ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
+            ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNetworks);
             // because this should be an infrequent event that the user will fix, let's
             // put all the work here
             int numPorts = cell.getNumPorts();
@@ -690,7 +690,7 @@ class NetCell
 
 	/**
 	 * Show map of equivalent ports newEquivPort.
-	 * @param userEquivMap HashMap (PortProto -> JNetwork) of user-specified equivalent ports
+	 * @param userEquivMap HashMap (PortProto -> Network) of user-specified equivalent ports
 	 * @param currentTime.time stamp of current network reevaluation
 	 */
 	private void showEquivPorts()
@@ -727,7 +727,7 @@ class NetCell
 		if ((flags & VALID) != 0) return;
 
         // clear errors for cell
-        Network.errorLogger.clearLogs(cell);
+        NetworkTool.errorLogger.clearLogs(cell);
 
 		// redo descendents
 		for (Iterator it = cell.getUsagesIn(); it.hasNext();)
@@ -737,7 +737,7 @@ class NetCell
 
 			NodeProto np = nu.getProto();
 			if (!(np instanceof Cell)) continue;
-			NetCell netCell = Network.getNetCell((Cell)np);
+			NetCell netCell = NetworkTool.getNetCell((Cell)np);
 			if ((netCell.flags & VALID) == 0)
 				netCell.redoNetworks();
 		}

@@ -7,7 +7,7 @@ import java.util.Iterator;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
@@ -28,7 +28,7 @@ public class Test extends Job {
 		int numNetIndices = nl.getNumNetworks();
 		System.out.println("num net indices: "+numNetIndices);
 		for (int i=0; i<numNetIndices; i++) {
-			JNetwork jn = nl.getNetwork(i);
+			Network jn = nl.getNetwork(i);
 			Iterator ni = jn.getNames();
 			if (ni.hasNext()) {
 				System.out.println("    net: "+((String)ni.next()));

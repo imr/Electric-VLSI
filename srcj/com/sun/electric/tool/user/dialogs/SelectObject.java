@@ -25,7 +25,7 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
@@ -173,7 +173,7 @@ public class SelectObject extends EDialog
 			Netlist netlist = cell.getUserNetlist();
 			for(Iterator it = netlist.getNetworks(); it.hasNext(); )
 			{
-				JNetwork net = (JNetwork)it.next();
+				Network net = (Network)it.next();
 				String netName = net.describe();
 				if (netName.length() == 0) continue;
 				if (s.equals(netName))
@@ -235,7 +235,7 @@ public class SelectObject extends EDialog
 			Netlist netlist = cell.getUserNetlist();
 			for(Iterator it = netlist.getNetworks(); it.hasNext(); )
 			{
-				JNetwork net = (JNetwork)it.next();
+				Network net = (Network)it.next();
 				String netName = net.describe();
 				if (netName.length() == 0) continue;
 				allNames.add(netName);

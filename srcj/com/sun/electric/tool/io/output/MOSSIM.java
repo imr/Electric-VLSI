@@ -28,7 +28,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Global;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -120,7 +120,7 @@ public class MOSSIM extends Topology
 			ArcInst ai = (ArcInst)it.next();
 			Variable var = ai.getVar(MOSSIM_STRENGTH_KEY);
 			if (var == null) continue;
-			JNetwork net = netList.getNetwork(ai, 0);
+			Network net = netList.getNetwork(ai, 0);
 			strengthMap.put(net, var.getPureValue(-1,-1));
 		}
 
@@ -179,7 +179,7 @@ public class MOSSIM extends Topology
 					CellSignal subCs = (CellSignal)sIt.next();
 					if (!subCs.isExported()) continue;
 					PortProto pp = subCs.getExport();
-					JNetwork net = netList.getNetwork(no, pp, subCs.getExportIndex());
+					Network net = netList.getNetwork(no, pp, subCs.getExportIndex());
 					CellSignal cs = cni.getCellSignal(net);
 					infstr.append(" " + cs.getName());
 				}

@@ -29,7 +29,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
@@ -319,7 +319,7 @@ public class Quick
 				// allocate net number lists for every net in the cell
 				for(Iterator nIt = subCP.netlist.getNetworks(); nIt.hasNext(); )
 				{
-					JNetwork net = (JNetwork)nIt.next();
+					Network net = (Network)nIt.next();
 					Integer [] netNumbers = new Integer[subCP.hierInstanceCount];
 					for(int i=0; i<subCP.hierInstanceCount; i++) netNumbers[i] = new Integer(0);
 					networkLists.put(net, netNumbers);
@@ -366,7 +366,7 @@ public class Quick
 		HashMap enumeratedNets = new HashMap();
 		for(Iterator nIt = cp.netlist.getNetworks(); nIt.hasNext(); )
 		{
-			JNetwork net = (JNetwork)nIt.next();
+			Network net = (Network)nIt.next();
 			enumeratedNets.put(net, new Integer(checkNetNumber));
 			checkNetNumber++;
 		}
@@ -685,7 +685,7 @@ public class Quick
 	private boolean checkArcInst(CheckProto cp, ArcInst ai, int globalIndex)
 	{
 		// ignore arcs with no topology
-		JNetwork net = cp.netlist.getNetwork(ai, 0);
+		Network net = cp.netlist.getNetwork(ai, 0);
 		if (net == null) return false;
 		Integer [] netNumbers = (Integer [])networkLists.get(net);
 
@@ -891,7 +891,7 @@ public class Quick
 					Layer layer = poly.getLayer();
 					if (layer == null) continue;
 					if (layer.isNonElectrical()) continue;
-					JNetwork jNet = netlist.getNetwork(ai, 0);
+					Network jNet = netlist.getNetwork(ai, 0);
 					int net = -1;
 					if (jNet != null)
 					{
@@ -1150,7 +1150,7 @@ public class Quick
 				boolean touch = Geometric.objectsTouch(nGeom, geom);
 
 				// see whether the two objects are electrically connected
-				JNetwork jNet = netlist.getNetwork(ai, 0);
+				Network jNet = netlist.getNetwork(ai, 0);
 				Integer [] netNumbers = (Integer [])networkLists.get(jNet);
 				int nNet = netNumbers[cellGlobalIndex].intValue();
 				boolean con = false;
@@ -1689,7 +1689,7 @@ public class Quick
 			} else
 			{
 				ArcInst oAi = (ArcInst)geom;
-				JNetwork jNet = netlist.getNetwork(oAi, 0);
+				Network jNet = netlist.getNetwork(oAi, 0);
 				Integer [] netNumbers = (Integer [])networkLists.get(jNet);
 				net = netNumbers[globalIndex].intValue();
 			}
@@ -1923,7 +1923,7 @@ public class Quick
 		// store all network information in the appropriate place
 		for(Iterator nIt = cp.netlist.getNetworks(); nIt.hasNext(); )
 		{
-			JNetwork net = (JNetwork)nIt.next();
+			Network net = (Network)nIt.next();
 			Integer netNumber = (Integer)enumeratedNets.get(net);
 			Integer [] netNumbers = (Integer [])networkLists.get(net);
 			netNumbers[globalIndex] = netNumber;
@@ -1951,15 +1951,15 @@ public class Quick
 			{
 				PortInst pi = (PortInst)pIt.next();
 				Export subPP = (Export)pi.getPortProto();
-				JNetwork net = cp.netlist.getNetwork(ni, subPP, 0);
+				Network net = cp.netlist.getNetwork(ni, subPP, 0);
 				if (net == null) continue;
 				Integer netNumber = (Integer)enumeratedNets.get(net);
-				JNetwork subNet = subCP.netlist.getNetwork(subPP, 0);
+				Network subNet = subCP.netlist.getNetwork(subPP, 0);
 				subEnumeratedNets.put(subNet, netNumber);
 			}
 			for(Iterator nIt = subCP.netlist.getNetworks(); nIt.hasNext(); )
 			{
-				JNetwork net = (JNetwork)nIt.next();
+				Network net = (Network)nIt.next();
 				if (subEnumeratedNets.get(net) == null)
 					subEnumeratedNets.put(net, new Integer(checkNetNumber++));
 			}
@@ -2144,7 +2144,7 @@ public class Quick
 		// Get merged areas
 		for(Iterator netIt = cp.netlist.getNetworks(); netIt.hasNext(); )
 		{
-			JNetwork net = (JNetwork)netIt.next();
+			Network net = (Network)netIt.next();
 			QuickAreaEnumerator quickArea = new QuickAreaEnumerator(net);
 			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
 
@@ -2693,7 +2693,7 @@ public class Quick
 
 			// determine the poly port  (MUST BE BETTER WAY!!!!)
 			PortProto badport = np.getPort(0);
-			JNetwork badNet = netlist.getNetwork(ni, badport, 0);
+			Network badNet = netlist.getNetwork(ni, badport, 0);
 
 			boolean on1 = false, on2 = false;
 			for(Iterator it = ni.getPortInsts(); it.hasNext(); )
@@ -2701,7 +2701,7 @@ public class Quick
 				PortInst pi = (PortInst)it.next();
 
 				// ignore connections on poly/gate
-				JNetwork piNet = netlist.getNetwork(pi);
+				Network piNet = netlist.getNetwork(pi);
 				if (piNet == badNet) continue;
 
 				Integer [] netNumbers = (Integer [])networkLists.get(piNet);
@@ -3161,7 +3161,7 @@ public class Quick
 		if (pp == null) return -1;
 
 		// see if there is an arc connected
-		JNetwork net = netlist.getNetwork(ni, pp, 0);
+		Network net = netlist.getNetwork(ni, pp, 0);
 		Integer [] nets = (Integer [])networkLists.get(net);
 		if (nets == null) return -1;
 		return nets[globalIndex].intValue();
@@ -3470,11 +3470,11 @@ public class Quick
 	// Extra functions to check area
 	private class QuickAreaEnumerator extends HierarchyEnumerator.Visitor
     {
-		private JNetwork jNet;
+		private Network jNet;
 		private GeometryHandler netMerge;
 		private Layer polyLayer;
 
-		public QuickAreaEnumerator(JNetwork jNet)
+		public QuickAreaEnumerator(Network jNet)
 		{
 			this.jNet = jNet;
 		}
@@ -3488,7 +3488,7 @@ public class Quick
 			{
 				ArcInst ai = (ArcInst)it.next();
 				Technology tech = ai.getProto().getTechnology();
-				JNetwork aNet = info.getNetlist().getNetwork(ai, 0);
+				Network aNet = info.getNetlist().getNetwork(ai, 0);
 
 				if (aNet != jNet) continue; // no same net
 
@@ -3532,7 +3532,7 @@ public class Quick
 			for(Iterator pIt = ni.getPortInsts(); !found && pIt.hasNext(); )
 			{
 				PortInst pi = (PortInst)pIt.next();
-				JNetwork net = info.getNetlist().getNetwork(pi);
+				Network net = info.getNetlist().getNetwork(pi);
 				if (jNet == net)
 					found = true;
 			}
@@ -3555,7 +3555,7 @@ public class Quick
 				// make sure this layer connects electrically to the desired port
 				PortProto pp = poly.getPort();
                 if (pp == null) continue;
-				JNetwork net = info.getNetlist().getNetwork(ni, pp, 0);
+				Network net = info.getNetlist().getNetwork(ni, pp, 0);
 				if (net != jNet)
 					continue;
 

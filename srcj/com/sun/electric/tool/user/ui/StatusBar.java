@@ -33,7 +33,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.technology.Technology;
@@ -370,7 +370,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
                 // TODO: remove try/catch when Netlist is thread safe
                 try {
                     Netlist netlist = theArc.getParent().getUserNetlist();
-                    JNetwork net = netlist.getNetwork(theArc, 0);
+                    Network net = netlist.getNetwork(theArc, 0);
                     String netMsg = (net != null) ? "NETWORK: "+net.describe()+ ", " : "";
                     return(netMsg + "ARC: " + theArc.describe());
                 } catch (Exception e) {

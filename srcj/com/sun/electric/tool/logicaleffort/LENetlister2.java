@@ -29,7 +29,7 @@ package com.sun.electric.tool.logicaleffort;
 import com.sun.electric.tool.logicaleffort.*;
 import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.topology.*;
 import com.sun.electric.database.prototype.*;
 import com.sun.electric.database.variable.*;
@@ -379,7 +379,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
         if ((cachedCell != null) && (leinfo.getMFactor() == 1f)) {
             for (Iterator it = cachedCell.getLocalNetworks().entrySet().iterator(); it.hasNext(); ) {
                 Map.Entry entry = (Map.Entry)it.next();
-                JNetwork jnet = (JNetwork)entry.getKey();
+                Network jnet = (Network)entry.getKey();
                 LENetwork subnet = (LENetwork)entry.getValue();
                 int globalID = info.getNetID(jnet);
                 LENetwork net = (LENetwork)getNetwork(globalID, info);
@@ -413,8 +413,8 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
             LENetwork outputNet = null;
             if (def.isLeGate()) {
                 // get global output network
-                JNetwork outJNet = def.getOutputJNet();
-                int globalID = info.getNetID(outJNet);
+                Network outNet = def.getOutputNet();
+                int globalID = info.getNetID(outNet);
                 outputNet = getNetwork(globalID, info);
             }
             float localsu = constants.su;
@@ -427,7 +427,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
             // add pins to global networks
             for (Iterator pit = uniqueLeno.getPins().iterator(); pit.hasNext(); ) {
                 LEPin pin = (LEPin)pit.next();
-                int globalID = info.getNetID(pin.getJNetwork());
+                int globalID = info.getNetID(pin.getNetwork());
                 LENetwork net = getNetwork(globalID, info);
                 net.add(pin);
             }
@@ -547,25 +547,25 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
 
         // Build an LENodable. M can be variable or parameter
         LENodable lenodable = new LENodable(ni, type, LETool.getMFactor(ni), ni.getParameter("ATTR_su"), ni.getParameter("ATTR_LEPARALLGRP"));
-        JNetwork outputJNet = null;
+        Network outputNet = null;
 
 		Netlist netlist = info.getNetlist();
 		for (Iterator ppIt = ni.getProto().getPorts(); ppIt.hasNext();) {
 			PortProto pp = (PortProto)ppIt.next();
             // Note: default 'le' value should be one
             float le = getLE(ni, type, pp, info);
-            JNetwork jnet = netlist.getNetwork(ni, pp, 0);
+            Network jnet = netlist.getNetwork(ni, pp, 0);
             LEPin.Dir dir = LEPin.Dir.INPUT;
             // if it's not an output, it doesn't really matter what it is.
             if (pp.getCharacteristic() == PortProto.Characteristic.OUT) {
                 dir = LEPin.Dir.OUTPUT;
                 // set output net
-                if ((type == LENodable.Type.LEGATE || type == LENodable.Type.LEKEEPER) && outputJNet != null) {
+                if ((type == LENodable.Type.LEGATE || type == LENodable.Type.LEKEEPER) && outputNet != null) {
                     System.out.println("Error: Sizable gate "+ni.getNodeInst().describe()+" has more than one output port!! Ignoring Gate");
                     return null;
                 }
-                outputJNet = jnet;
-                lenodable.setOutputJNet(jnet);
+                outputNet = jnet;
+                lenodable.setOutputNet(jnet);
             }
             if (type == LENodable.Type.TRANSISTOR) {
                 // primitive Electric Transistors have their source and drain set to BIDIR, we
@@ -573,7 +573,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
                 if (pp.getCharacteristic() == PortProto.Characteristic.BIDIR) dir = LEPin.Dir.OUTPUT;
             }
             lenodable.addPort(pp.getName(), dir, le, jnet);
-            if (DEBUG) System.out.println("    Added "+dir+" pin "+pp.getName()+", le: "+le+", JNetwork: "+jnet);
+            if (DEBUG) System.out.println("    Added "+dir+" pin "+pp.getName()+", le: "+le+", Network: "+jnet);
             if (type == LENodable.Type.WIRE) break;    // this is LEWIRE, only add one pin of it
         }
 

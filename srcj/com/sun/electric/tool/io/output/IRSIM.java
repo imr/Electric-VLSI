@@ -27,7 +27,7 @@ import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
@@ -135,9 +135,9 @@ public class IRSIM extends Output
                 return false;
             }
 			Netlist netlist = info.getNetlist();
-            JNetwork gnet = netlist.getNetwork(g);
-            JNetwork dnet = netlist.getNetwork(d);
-            JNetwork snet = netlist.getNetwork(s);
+            Network gnet = netlist.getNetwork(g);
+            Network dnet = netlist.getNetwork(d);
+            Network snet = netlist.getNetwork(s);
             if (gnet == null || dnet == null || snet == null)
             {
                 System.out.println("Warning, ignoring unconnected transistor " + ni + " in cell " + iinfo.getCell());

@@ -31,7 +31,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Global;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -432,7 +432,7 @@ public class EDIF extends Topology
 				EO_put_block("portRef", io_ediftoken(pt));
 			}
 
-			JNetwork net = cs.getNetwork();
+			Network net = cs.getNetwork();
 			for(Iterator nIt = netList.getNodables(); nIt.hasNext(); )
 			{
 				Nodable no = (Nodable)nIt.next();
@@ -450,7 +450,7 @@ public class EDIF extends Topology
 						if (subPp == null) continue;
 
 						// single signal
-						JNetwork subNet = netList.getNetwork(no, subPp, cs.getExportIndex());
+						Network subNet = netList.getNetwork(no, subPp, cs.getExportIndex());
 						if (cs != cni.getCellSignal(subNet)) continue;
 						EO_open_block("portRef");
 						EO_put_identifier(io_ediftoken(subCs.getName()));
@@ -468,7 +468,7 @@ public class EDIF extends Topology
 					{
 						Connection con = (Connection)cIt.next();
 						ArcInst ai = con.getArc();
-						JNetwork aNet = netList.getNetwork(ai, 0);
+						Network aNet = netList.getNetwork(ai, 0);
 						if (aNet != net) continue;
 						String pt = con.getPortInst().getPortProto().getName();
 						EO_open_block("portRef");
@@ -490,7 +490,7 @@ public class EDIF extends Topology
 					ArcInst ai = (ArcInst)aIt.next();
 					int aWidth = netList.getBusWidth(ai);
 					if (aWidth > 1) continue;
-					JNetwork aNet = netList.getNetwork(ai, 0);
+					Network aNet = netList.getNetwork(ai, 0);
 					if (aNet == net) io_edifsymbol_arcinst(ai, GenMath.MATID);
 				}
 				io_edifsetgraphic(EGUNKNOWN);

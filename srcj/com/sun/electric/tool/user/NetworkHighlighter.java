@@ -24,7 +24,7 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.database.hierarchy.*;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.topology.ArcInst;
@@ -48,14 +48,14 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
 
     private Cell cell;
     private Netlist netlist;
-    private JNetwork net;
+    private Network net;
     private int netID;
     private int startDepth;
     private int endDepth;
     private int currentDepth;
     private Highlighter highlighter;
 
-    private NetworkHighlighter(Cell cell, Netlist netlist, JNetwork net, int startDepth, int endDepth) {
+    private NetworkHighlighter(Cell cell, Netlist netlist, Network net, int startDepth, int endDepth) {
         this.cell = cell;
         this.netlist = netlist;
         this.net = net;
@@ -77,7 +77,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
      * @param startDepth to start depth of the hierarchical search
      * @return endDepth the end depth of the hierarchical search
      */
-    public static synchronized List getHighlights(Cell cell, Netlist netlist, JNetwork net, int startDepth, int endDepth) {
+    public static synchronized List getHighlights(Cell cell, Netlist netlist, Network net, int startDepth, int endDepth) {
         NetworkHighlighter networkHighlighter = new NetworkHighlighter(cell, netlist, net, startDepth, endDepth);
 
         HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, netlist, networkHighlighter);
@@ -134,7 +134,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
      * @param ports list of PortsInsts on network
      * @param exports list of Exports on network
      */
-    private static void getNetworkObjects(Cell cell, Netlist netlist, JNetwork net,
+    private static void getNetworkObjects(Cell cell, Netlist netlist, Network net,
                                        List arcs, List ports, List exports) {
         if (arcs != null) {
             List nodesAdded = new ArrayList();
@@ -146,7 +146,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
                 int width = netlist.getBusWidth(ai);
                 for(int i=0; i<width; i++)
                 {
-                    JNetwork oNet = netlist.getNetwork(ai, i);
+                    Network oNet = netlist.getNetwork(ai, i);
                     if (oNet == net)
                     {
                         arcs.add(ai);
@@ -186,7 +186,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
                 int width = netlist.getBusWidth(pp);
                 for(int i=0; i<width; i++)
                 {
-                    JNetwork oNet = netlist.getNetwork(pp, i);
+                    Network oNet = netlist.getNetwork(pp, i);
                     if (oNet == net)
                     {
                         exports.add(pp);
@@ -230,9 +230,9 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
         Netlist netlist = info.getNetlist();
 
         // find network in this cell that corresponds to global id
-        JNetwork localNet = null;
+        Network localNet = null;
         for (Iterator it = netlist.getNetworks(); it.hasNext(); ) {
-            JNetwork aNet = (JNetwork)it.next();
+            Network aNet = (Network)it.next();
             if (info.getNetID(aNet) == netID) {
                 localNet = aNet;
                 break;

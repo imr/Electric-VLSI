@@ -23,9 +23,7 @@
  */
 package com.sun.electric.database.hierarchy;
 
-//import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.prototype.NodeProto;
-//import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;

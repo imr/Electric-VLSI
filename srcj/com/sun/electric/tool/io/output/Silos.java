@@ -27,7 +27,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Global;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -271,7 +271,7 @@ public class Silos extends Topology
 					if (low > high)
 					{
 						// single signal
-						JNetwork net = netList.getNetwork(no, pp, cas.getExportIndex());
+						Network net = netList.getNetwork(no, pp, cas.getExportIndex());
 						CellSignal cs = cni.getCellSignal(net);
 						writeWidthLimited(" " + cs.getName());
 					} else
@@ -281,7 +281,7 @@ public class Silos extends Topology
 						for(int j=low; j<=high; j++)
 						{
 							CellSignal cInnerSig = cas.getSignal(j-low);
-							JNetwork net = netList.getNetwork(no, cas.getExport(), cInnerSig.getExportIndex());
+							Network net = netList.getNetwork(no, cas.getExport(), cInnerSig.getExportIndex());
 							outerSignalList[j-low] = cni.getCellSignal(net);
 						}
 						writeBus(outerSignalList, low, high, cas.isDescending(),
@@ -432,7 +432,7 @@ public class Silos extends Topology
 	 * "*unconnectednet".  The power and grounds nets are "pwrnet" and "gndnet".
 	 */
 	private void writeBus(CellSignal [] outerSignalList, int lowIndex, int highIndex, boolean descending,
-		String name, JNetwork pwrNet, JNetwork gndNet)
+		String name, Network pwrNet, Network gndNet)
 	{
 		// presume writing the bus as a whole
 		boolean breakBus = false;
@@ -654,7 +654,7 @@ public class Silos extends Topology
 		boolean negated = false;
 		if (con != null && con.isNegated() && pp.getCharacteristic() == PortProto.Characteristic.IN) negated = true;
 
-		JNetwork net = null;
+		Network net = null;
 		if (con != null)
 		{
 			net = netList.getNetwork(con.getArc(), 0);

@@ -53,7 +53,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.prototype.NodeProto;
@@ -418,7 +418,7 @@ public class ToolMenu {
         int total = 0;
         for(Iterator it = netlist.getNetworks(); it.hasNext(); )
         {
-            JNetwork net = (JNetwork)it.next();
+            Network net = (Network)it.next();
             String netName = net.describe();
             if (netName.length() == 0) continue;
             StringBuffer infstr = new StringBuffer();
@@ -471,7 +471,7 @@ public class ToolMenu {
         Netlist netlist = cell.getUserNetlist();
         for(Iterator it = nets.iterator(); it.hasNext(); )
         {
-            JNetwork net = (JNetwork)it.next();
+            Network net = (Network)it.next();
             System.out.println("Network '" + net.describe() + "':");
 
             int total = 0;
@@ -491,7 +491,7 @@ public class ToolMenu {
                         {
                             Connection con = (Connection)cIt.next();
                             ArcInst ai = con.getArc();
-                            JNetwork oNet = netlist.getNetwork(ai, 0);
+                            Network oNet = netlist.getNetwork(ai, 0);
                             portNets.put(oNet, pp);
                         }
                     } else
@@ -504,7 +504,7 @@ public class ToolMenu {
                         }
                         for(int i=0; i<width; i++)
                         {
-                            JNetwork oNet = netlist.getNetwork(no, pp, i);
+                            Network oNet = netlist.getNetwork(no, pp, i);
                             portNets.put(oNet, pp);
                         }
                     }
@@ -543,7 +543,7 @@ public class ToolMenu {
         Netlist netlist = cell.getUserNetlist();
         for(Iterator it = nets.iterator(); it.hasNext(); )
         {
-            JNetwork net = (JNetwork)it.next();
+            Network net = (Network)it.next();
             System.out.println("Network '" + net.describe() + "':");
 
             // find all exports on network "net"
@@ -584,7 +584,7 @@ public class ToolMenu {
         Netlist netlist = cell.getUserNetlist();
         for(Iterator it = nets.iterator(); it.hasNext(); )
         {
-            JNetwork net = (JNetwork)it.next();
+            Network net = (Network)it.next();
             System.out.println("Network '" + net.describe() + "':");
 
             // find all exports on network "net"
@@ -611,7 +611,7 @@ public class ToolMenu {
      * helper method for "telltool network list-hierarchical-ports" to print all
      * ports connected to net "net" in cell "cell", and recurse up the hierarchy
      */
-    private static void findPortsUp(Netlist netlist, JNetwork net, Cell cell, FlagSet fs)
+    private static void findPortsUp(Netlist netlist, Network net, Cell cell, FlagSet fs)
     {
         // look at every node in the cell
         for(Iterator it = cell.getPorts(); it.hasNext(); )
@@ -620,7 +620,7 @@ public class ToolMenu {
             int width = netlist.getBusWidth(pp);
             for(int i=0; i<width; i++)
             {
-                JNetwork ppNet = netlist.getNetwork(pp, i);
+                Network ppNet = netlist.getNetwork(pp, i);
                 if (ppNet != net) continue;
                 if (pp.isBit(fs)) continue;
                 pp.setBit(fs);
@@ -640,7 +640,7 @@ public class ToolMenu {
                     {
                         Nodable no = (Nodable)nIt.next();
                         if (no.getProto() != cell) continue;
-                        JNetwork superNet = superNetlist.getNetwork(no, pp, i);
+                        Network superNet = superNetlist.getNetwork(no, pp, i);
                         findPortsUp(superNetlist, superNet, superCell, fs);
                     }
                 }
@@ -652,7 +652,7 @@ public class ToolMenu {
      * helper method for "telltool network list-hierarchical-ports" to print all
      * ports connected to net "net" in cell "cell", and recurse down the hierarchy
      */
-    private static void findPortsDown(Netlist netlist, JNetwork net, Cell cell, FlagSet fs)
+    private static void findPortsDown(Netlist netlist, Network net, Cell cell, FlagSet fs)
     {
         // look at every node in the cell
         for(Iterator it = netlist.getNodables(); it.hasNext(); )
@@ -671,7 +671,7 @@ public class ToolMenu {
                 int width = netlist.getBusWidth(pp);
                 for(int i=0; i<width; i++)
                 {
-                    JNetwork oNet = netlist.getNetwork(no, pp, i);
+                    Network oNet = netlist.getNetwork(no, pp, i);
                     if (oNet != net) continue;
 
                     // found the net here: report it
@@ -679,7 +679,7 @@ public class ToolMenu {
                     pp.setBit(fs);
                     System.out.println("    Export " + pp.getName() + " in cell " + subCell.describe());
                     Netlist subNetlist = subCell.getUserNetlist();
-                    JNetwork subNet = subNetlist.getNetwork(pp, i);
+                    Network subNet = subNetlist.getNetwork(pp, i);
                     findPortsDown(subNetlist, subNet, subCell, fs);
                 }
             }
@@ -708,7 +708,7 @@ public class ToolMenu {
 
         for(Iterator it = nets.iterator(); it.hasNext(); )
         {
-	        JNetwork net = (JNetwork)it.next();
+	        Network net = (Network)it.next();
 	        System.out.println("For network '" + net.describe() + "' in cell '" + cell.describe() + "':");
         }
 	    long startTime = System.currentTimeMillis();
@@ -773,7 +773,7 @@ public class ToolMenu {
                 int width = netlist.getBusWidth(pp);
                 for(int i=0; i<width; i++)
                 {
-                    JNetwork net = netlist.getNetwork(pp, i);
+                    Network net = netlist.getNetwork(pp, i);
                     pAndG.add(net);
                 }
             }
@@ -791,7 +791,7 @@ public class ToolMenu {
                 int width = netlist.getBusWidth(ai);
                 for(int i=0; i<width; i++)
                 {
-                    JNetwork net = netlist.getNetwork(ai, i);
+                    Network net = netlist.getNetwork(ai, i);
                     pAndG.add(net);
                 }
             }
@@ -800,7 +800,7 @@ public class ToolMenu {
         highlighter.clear();
         for(Iterator it = pAndG.iterator(); it.hasNext(); )
         {
-            JNetwork net = (JNetwork)it.next();
+            Network net = (Network)it.next();
             highlighter.addNetwork(net, cell);
         }
         highlighter.finished();
@@ -1032,8 +1032,8 @@ public class ToolMenu {
 				boolean found = (netSet == null);
 				for (Iterator it = netlist.getNetworks(); !found && it.hasNext(); )
 				{
-					JNetwork aNet = (JNetwork)it.next();
-					JNetwork parentNet = aNet;
+					Network aNet = (Network)it.next();
+					Network parentNet = aNet;
 					HierarchyEnumerator.CellInfo cinfo = info;
 					boolean netFound = false;
 					while ((netFound = netSet.contains(parentNet)) == false && cinfo.getParentInst() != null) {
@@ -1053,7 +1053,7 @@ public class ToolMenu {
 
 					for (int i=0; !found && i<width; i++)
 					{
-						JNetwork parentNet = netlist.getNetwork(arc, i);
+						Network parentNet = netlist.getNetwork(arc, i);
 						HierarchyEnumerator.CellInfo cinfo = info;
 						boolean netFound = false;
 						while ((netFound = netSet.contains(parentNet)) == false && cinfo.getParentInst() != null) {
@@ -1117,8 +1117,8 @@ public class ToolMenu {
 					{
 						PortInst pi = (PortInst)pIt.next();
 						PortProto subPP = pi.getPortProto();
-						JNetwork oNet = info.getNetlist().getNetwork(node, subPP, 0);
-						JNetwork parentNet = oNet;
+						Network oNet = info.getNetlist().getNetwork(node, subPP, 0);
+						Network parentNet = oNet;
 						HierarchyEnumerator.CellInfo cinfo = info;
 						boolean netFound = false;
 						while ((netFound = netSet.contains(parentNet)) == false && cinfo.getParentInst() != null) {
@@ -1352,7 +1352,7 @@ public class ToolMenu {
         Set nets = highlighter.getHighlightedNetworks();
         for (Iterator it = nets.iterator(); it.hasNext();)
         {
-            JNetwork net = (JNetwork)it.next();
+            Network net = (Network)it.next();
             ParasiticTool.getParasiticTool().netwokParasitic(net, cell);
         }
     }

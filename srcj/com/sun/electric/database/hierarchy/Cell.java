@@ -30,7 +30,7 @@ import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.network.Network;
+import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.CellName;
@@ -2638,12 +2638,12 @@ public class Cell extends NodeProto implements Comparable
      * implemented in the method if @param shortResistors is set to true.
 	 * @return the Netlist structure for this cell.
      */
-	public Netlist getNetlist(boolean shortResistors) { return Network.getNetlist(this, shortResistors); }
+	public Netlist getNetlist(boolean shortResistors) { return NetworkTool.getNetlist(this, shortResistors); }
 
 	/** Recompute the Netlist structure for this Cell, using current network options.
 	 * @return the Netlist structure for this cell.
      */
-	public Netlist getUserNetlist() { return Network.getUserNetlist(this); }
+	public Netlist getUserNetlist() { return NetworkTool.getUserNetlist(this); }
 
 	/****************************** DATES ******************************/
 

@@ -30,7 +30,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -616,7 +616,7 @@ public class AutoStitch
 		{
 			// get network associated with the node/port
 			PortInst pi = ni.findPortInstFromProto(pp);
-			JNetwork net = netlist.getNetwork(pi);
+			Network net = netlist.getNetwork(pi);
 
 			// now look at every layer in this node
 			if (oNi.getProto() instanceof Cell)
@@ -644,7 +644,7 @@ public class AutoStitch
 					if (!mPp.getBasePort().connectsTo(ap)) continue;
 
 					// do not stitch where there is already an electrical connection
-					//JNetwork oNet = netlist.getNetwork(oNi.findPortInstFromProto(mPp));
+					//Network oNet = netlist.getNetwork(oNi.findPortInstFromProto(mPp));
 					//if (net != null && oNet == net) continue;
 
                     // do not stitch if there is already an arc connecting these two ports
@@ -777,7 +777,7 @@ public class AutoStitch
 
 						// do not stitch where there is already an electrical connection
 						PortInst oPi = oNi.findPortInstFromProto(oPoly.getPort());
-						JNetwork oNet = netlist.getNetwork(oPi);
+						Network oNet = netlist.getNetwork(oPi);
 						if (net != null && oNet == net) continue;
 
 						// search all ports for the closest connected to this layer

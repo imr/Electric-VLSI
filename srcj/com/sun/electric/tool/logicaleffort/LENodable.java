@@ -3,7 +3,7 @@ package com.sun.electric.tool.logicaleffort;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -40,7 +40,7 @@ public class LENodable {
     /** list of pins */                     private List pins; // do not point to networks
     /** nodable */                          private Nodable no;
     /** gate type */                        private Type type;
-    /** output JNetwork */                  private JNetwork outputJNet;
+    /** output Network */                   private Network outputNet;
     /** mfactor variable */                 private Variable mfactorVar;
     /** su variable */                      private Variable suVar;
     /** parallel group # variable */        private Variable parallelGroupVar;
@@ -65,7 +65,7 @@ public class LENodable {
         this.no = no;
         this.type = type;
         pins = new ArrayList();
-        this.outputJNet = null;
+        this.outputNet = null;
         this.mfactorVar = mfactorVar;
         this.suVar = suVar;
         this.parallelGroupVar = parallelGroupVar;
@@ -76,7 +76,7 @@ public class LENodable {
         LENodable copy = new LENodable(no, type, mfactorVar, suVar, parallelGroupVar);
         for (Iterator it = pins.iterator(); it.hasNext(); ) {
             LEPin pin = (LEPin)it.next();
-            copy.addPort(pin.getName(), pin.getDir(), pin.getLE(), pin.getJNetwork());
+            copy.addPort(pin.getName(), pin.getDir(), pin.getLE(), pin.getNetwork());
         }
         return copy;
     }
@@ -87,16 +87,16 @@ public class LENodable {
      * @param dir the direction of the port
      * @param le the logical effort of the port
      */
-    protected void addPort(String name, LEPin.Dir dir, float le, JNetwork jnet) {
+    protected void addPort(String name, LEPin.Dir dir, float le, Network jnet) {
         LEPin pin = new LEPin(name, dir, le, jnet, this);
         pins.add(pin);
     }
 
     /** Set the output network */
-    protected void setOutputJNet(JNetwork jnet) { outputJNet = jnet; }
+    protected void setOutputNet(Network jnet) { outputNet = jnet; }
 
     /** Get the output network */
-    protected JNetwork getOutputJNet() { return outputJNet; }
+    protected Network getOutputNet() { return outputNet; }
 
     /** Get the nodable */
     protected Nodable getNodable() { return no; }
@@ -148,7 +148,7 @@ public class LENodable {
         // copy pins
         for (Iterator it = pins.iterator(); it.hasNext(); ) {
             LEPin pin = (LEPin)it.next();
-            instance.addPort(pin.getName(), pin.getDir(), pin.getLE(), pin.getJNetwork());
+            instance.addPort(pin.getName(), pin.getDir(), pin.getLE(), pin.getNetwork());
         }
         instantiate(instance, context, outputNetwork, mfactor, su, constants);
         return instance;
@@ -297,7 +297,7 @@ public class LENodable {
     protected void printPins() {
         for (Iterator it = pins.iterator(); it.hasNext(); ) {
             LEPin pin = (LEPin)it.next();
-            System.out.println("Pin "+pin.getName()+", le="+pin.getLE()+", dir="+pin.getDir()+" on network "+pin.getJNetwork());
+            System.out.println("Pin "+pin.getName()+", le="+pin.getLE()+", dir="+pin.getDir()+" on network "+pin.getNetwork());
         }
     }
 

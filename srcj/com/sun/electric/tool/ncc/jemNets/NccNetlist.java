@@ -36,6 +36,7 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.CellInfo;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NameProxy;
 import com.sun.electric.database.network.Global;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -309,9 +310,9 @@ class ExportGlobalIter {
 				state=DONE;  break;
 			}
 			Global global = globals.get(globNdx);
-			int netIndex = info.getNetlist().getNetIndex(global);
+			Network net = info.getNetlist().getNetwork(global);
 			current = new ExportGlobal(global.getName(),
-									   info.getNetID(netIndex),
+									   info.getNetID(net),
 									   globals.getCharacteristic(global));
 			globNdx++;
 			state=CHECK_GLOBAL;  break;

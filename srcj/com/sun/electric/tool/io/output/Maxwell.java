@@ -27,7 +27,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Version;
@@ -128,7 +128,7 @@ public class Maxwell extends Output
 		}
 	}
 
-	private void writePolygon(Poly poly, int globalNetNum, JNetwork net)
+	private void writePolygon(Poly poly, int globalNetNum, Network net)
 	{
 		Layer layer = poly.getLayer();
 		if (layer.getTechnology() != Technology.getCurrent()) return;
@@ -195,7 +195,7 @@ public class Maxwell extends Output
 					poly.transform(info.getTransformToRoot());
 
 					PortInst pi = ni.findPortInstFromProto(poly.getPort());
-					JNetwork net = netList.getNetwork(pi);
+					Network net = netList.getNetwork(pi);
 					if (net == null) continue;
 					int globalNetNum = info.getNetID(net);
 					generator.writePolygon(poly, globalNetNum, net);
@@ -213,7 +213,7 @@ public class Maxwell extends Output
 				{
 					Poly poly = polyList[i];
 					poly.transform(info.getTransformToRoot());
-					JNetwork net = netList.getNetwork(ai, 0);
+					Network net = netList.getNetwork(ai, 0);
 					int globalNetNum = info.getNetID(net);
 					generator.writePolygon(poly, globalNetNum, net);
 				}

@@ -27,7 +27,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Global;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -336,7 +336,7 @@ public class Tegas extends Topology
 				if (e.getCharacteristic() == PortProto.Characteristic.IN) continue;
 
 				if (needComma) infstr.append(","); else needComma = true;
-				JNetwork net = netList.getNetwork(no, e, subCs.getExportIndex());
+				Network net = netList.getNetwork(no, e, subCs.getExportIndex());
 				CellSignal cs = cni.getCellSignal(net);
 				infstr.append(convertName(cs.getName()));
 			}
@@ -409,7 +409,7 @@ public class Tegas extends Topology
 				if (e.getCharacteristic() == PortProto.Characteristic.OUT) continue;
 
 				if (first) first = false; else infstr.append(",");
-				JNetwork net = netList.getNetwork(no, e, subCs.getExportIndex());
+				Network net = netList.getNetwork(no, e, subCs.getExportIndex());
 				CellSignal cs = cni.getCellSignal(net);
 				infstr.append(convertName(cs.getName()));
 			}
@@ -626,7 +626,7 @@ public class Tegas extends Topology
 			if (ni.getNumConnections() > 0)
 			{
 				Connection con = (Connection)ni.getConnections().next();
-				JNetwork net = netList.getNetwork(con.getArc(), 0);
+				Network net = netList.getNetwork(con.getArc(), 0);
 				String decl = net.describe() + " = ";
 				if (fun == NodeProto.Function.CONPOWER) decl += "PWR"; else
 					decl += "GRND";
@@ -644,7 +644,7 @@ public class Tegas extends Topology
 	 */
 	private String getConnectionName(Connection con)
 	{
-		JNetwork net = netList.getNetwork(con.getArc(), 0);
+		Network net = netList.getNetwork(con.getArc(), 0);
 		if (net != null) return convertName(net.describe());
 		return "???";
 	}

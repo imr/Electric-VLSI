@@ -27,7 +27,7 @@ import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
@@ -2208,7 +2208,7 @@ public class WaveformWindow implements WindowContent
 				{
 					Locator loc = new Locator(wnd, ww);
 					if (loc.getWaveformWindow() != ww) continue;
-					JNetwork net = (JNetwork)highSet.iterator().next();
+					Network net = (Network)highSet.iterator().next();
 					//String netName = loc.getContext() + net.describe();
                     String netName = WaveformWindow.getSpiceNetName(loc.getContext(), net);
 					Simulation.SimSignal sSig = ww.sd.findSignalForNetwork(netName);
@@ -2676,7 +2676,7 @@ public class WaveformWindow implements WindowContent
 					if (!ws.highlighted) continue;
 					String want = ws.sSig.getFullName();
                     Stack upNodables = new Stack();
-                    JNetwork net = null;
+                    Network net = null;
                     for (;;) {
                         String contextStr = getSpiceNetName(context, null);
                         if (contextStr.length() > 0) contextStr += ".";
@@ -3065,19 +3065,19 @@ public class WaveformWindow implements WindowContent
 		return null;
 	}
 
-	private static JNetwork findNetwork(Netlist netlist, String name)
+	private static Network findNetwork(Netlist netlist, String name)
 	{
 		// Should really use extended code, found in "simspicerun.cpp:sim_spice_signalname()"
 		for(Iterator nIt = netlist.getNetworks(); nIt.hasNext(); )
 		{
-			JNetwork net = (JNetwork)nIt.next();
+			Network net = (Network)nIt.next();
 			if (getSpiceNetName(net).equalsIgnoreCase(name)) return net;
 		}
 
 		// try converting "@" in network names
 		for(Iterator nIt = netlist.getNetworks(); nIt.hasNext(); )
 		{
-			JNetwork net = (JNetwork)nIt.next();
+			Network net = (Network)nIt.next();
 			String convertedName = getSpiceNetName(net).replace('@', '_');
 			if (convertedName.equalsIgnoreCase(name)) return net;
 		}
@@ -3085,8 +3085,8 @@ public class WaveformWindow implements WindowContent
 	}
 
 	/**
-	 * Method to add a set of JNetworks to the waveform display.
-	 * @param nets the Set of JNetworks to add.
+	 * Method to add a set of Networks to the waveform display.
+	 * @param nets the Set of Networks to add.
 	 * @param context the context of these networks
 	 * (a string to prepend to them to get the actual simulation signal name).
 	 * @param newPanel true to create new panels for each signal.
@@ -3114,7 +3114,7 @@ public class WaveformWindow implements WindowContent
 		boolean added = false;
 		for(Iterator it = nets.iterator(); it.hasNext(); )
 		{
-			JNetwork net = (JNetwork)it.next();
+			Network net = (Network)it.next();
             String netName = WaveformWindow.getSpiceNetName(context, net);
 			Simulation.SimSignal sSig = sd.findSignalForNetwork(netName);
 			if (sSig == null)
@@ -3176,7 +3176,7 @@ public class WaveformWindow implements WindowContent
      * @return a String describing the unique, global spice name for the network,
      * or a String describing the context if net is null
      */
-    public static String getSpiceNetName(VarContext context, JNetwork net) {
+    public static String getSpiceNetName(VarContext context, Network net) {
         if (net != null) {
             while (net.isExported() && (context != VarContext.globalContext)) {
                 // net is exported, find net in parent
@@ -3196,7 +3196,7 @@ public class WaveformWindow implements WindowContent
         }
     }
 
-    public static String getSpiceNetName(JNetwork net) {
+    public static String getSpiceNetName(Network net) {
         String name = "";
         if (net.hasNames())
         {
@@ -3258,7 +3258,7 @@ public class WaveformWindow implements WindowContent
 			for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
 			{
 				Signal ws = (Signal)sIt.next();
-				JNetwork net = findNetwork(netlist, ws.sSig.getSignalName());
+				Network net = findNetwork(netlist, ws.sSig.getSignalName());
 				if (net != null) nets.add(net);
 			}
 		}
@@ -3550,7 +3550,7 @@ public class WaveformWindow implements WindowContent
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() != Generic.tech.simProbeNode) continue;
-			JNetwork net = null;
+			Network net = null;
 			for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
 			{
 				Connection con = (Connection)cIt.next();
@@ -3574,7 +3574,7 @@ public class WaveformWindow implements WindowContent
 			int width = netlist.getBusWidth(ai);
 			for(int i=0; i<width; i++)
 			{
-				JNetwork net = netlist.getNetwork(ai, i);
+				Network net = netlist.getNetwork(ai, i);
 				Integer state = (Integer)netValues.get(net);
 				if (state == null) continue;
 				Color col = getHighlightColor(state.intValue());
@@ -3625,7 +3625,7 @@ public class WaveformWindow implements WindowContent
 	private void putValueOnTrace(Simulation.SimDigitalSignal ds, Cell cell, HashMap netValues, Netlist netlist)
 	{
 		// set simulation value on the network in the associated layout/schematic window
-		JNetwork net = findNetwork(netlist, ds.getSignalName());
+		Network net = findNetwork(netlist, ds.getSignalName());
 		if (net == null) return;
 
 		// find the proper data for the time of the main cursor

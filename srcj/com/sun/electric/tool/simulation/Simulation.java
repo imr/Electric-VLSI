@@ -24,7 +24,7 @@
 package com.sun.electric.tool.simulation;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -305,11 +305,11 @@ public class Simulation extends Tool
 		}
 
 		/**
-		 * Method to return the signal that corresponds to a given JNetwork.
-		 * @param net the JNetwork to find.
+		 * Method to return the signal that corresponds to a given Network.
+		 * @param net the Network to find.
 		 * @param context the context of these networks
 		 * (a string to prepend to them to get the actual simulation signal name).
-		 * @return the SimSignal that corresponds with the JNetwork.
+		 * @return the SimSignal that corresponds with the Network.
 		 * Returns null if none can be found.
 		 */
 		public SimSignal findSignalForNetwork(String netName)

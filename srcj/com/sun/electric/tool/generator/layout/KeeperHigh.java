@@ -28,7 +28,7 @@ import java.util.Iterator;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
@@ -58,7 +58,7 @@ public class KeeperHigh {
 			} else if (nm.equals("invK{ic}")) {
 				szK = StdCellParams.getSize(ni, context);
 			} else if (nm.equals("inv{ic}")) {
-				JNetwork net = netlist.getNetwork(ni.findPortInst("in"));
+				Network net = netlist.getNetwork(ni.findPortInst("in"));
 				if (net.hasName("mc")) {
 					szMc = StdCellParams.getSize(ni, context);
 				} else if (net.hasName("d")) {

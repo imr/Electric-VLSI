@@ -384,7 +384,7 @@ public class LENetlister1 extends HierarchyEnumerator.Visitor implements LENetli
                 if (pp.getCharacteristic() == PortProto.Characteristic.BIDIR) dir = Pin.Dir.OUTPUT;
             }
             pins.add(new Pin(pp.getName(), dir, le, netName));
-            if (DEBUG) System.out.println("    Added "+dir+" pin "+pp.getName()+", le: "+le+", netName: "+netName+", JNetwork: "+netlist.getNetwork(ni,pp,0));
+            if (DEBUG) System.out.println("    Added "+dir+" pin "+pp.getName()+", le: "+le+", netName: "+netName+", Network: "+netlist.getNetwork(ni,pp,0));
             if (type == Instance.Type.WIRE) break;    // this is LEWIRE, only add one pin of it
         }
 

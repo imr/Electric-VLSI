@@ -29,8 +29,8 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.network.Network;
+import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.network.Global;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -228,7 +228,7 @@ public abstract class Topology extends Output
 	protected static class CellSignal
 	{
 		/** name to use for this network. */		private String name;
-		/** JNetwork for this signal. */			private JNetwork net;
+		/** Network for this signal. */				private Network net;
 		/** CellAggregate that this is part of. */	private CellAggregateSignal aggregateSignal;
 		/** export that this is part of. */			private Export pp;
         /** if export is bussed, index of signal */ private int ppIndex;
@@ -238,7 +238,7 @@ public abstract class Topology extends Output
 		/** true if from a global signal */			private Global globalSignal;
 
 		protected String getName() { return name; }
-		protected JNetwork getNetwork() { return net; }
+		protected Network getNetwork() { return net; }
 		protected Export getExport() { return pp; }
         protected int getExportIndex() { return ppIndex; }
 		protected CellAggregateSignal getAggregateSignal() { return aggregateSignal; }
@@ -314,16 +314,16 @@ public abstract class Topology extends Output
 		private HashMap cellSignals;
 		private List cellSignalsSorted;
 		private List cellAggretateSignals;
-		private JNetwork pwrNet;
-		private JNetwork gndNet;
+		private Network pwrNet;
+		private Network gndNet;
 		private Netlist netList;
 
-		protected CellSignal getCellSignal(JNetwork net) { return (CellSignal)cellSignals.get(net); }
+		protected CellSignal getCellSignal(Network net) { return (CellSignal)cellSignals.get(net); }
 		protected Iterator getCellSignals() { return cellSignalsSorted.iterator(); }
 		protected Iterator getCellAggregateSignals() { return cellAggretateSignals.iterator(); }
 		protected String getParameterizedName() { return paramName; }
-		protected JNetwork getPowerNet() { return pwrNet; }
-		protected JNetwork getGroundNet() { return gndNet; }
+		protected Network getPowerNet() { return pwrNet; }
+		protected Network getGroundNet() { return gndNet; }
 		protected Netlist getNetList() { return netList; }
 	}
 
@@ -366,21 +366,20 @@ public abstract class Topology extends Output
 		int nullNameCount = 1;
 		for(Iterator it = cni.netList.getNetworks(); it.hasNext(); )
 		{
-			JNetwork net = (JNetwork)it.next();
+			Network net = (Network)it.next();
 			CellSignal cs = new CellSignal();
 			cs.pp = null;
-			cs.descending = !Network.isBusAscending();
+			cs.descending = !NetworkTool.isBusAscending();
 			cs.power = false;
 			cs.ground = false;
 			cs.net = net;
 
 			// see if it is global
-			int netIndex = net.getNetIndex();
 			cs.globalSignal = null;
 			for(int j=0; j<globalSize; j++)
 			{
-				Global global = (Global)globals.get(j);
-				if (cni.netList.getNetIndex(global) == netIndex) { cs.globalSignal = global;   break; }
+				Global global = globals.get(j);
+				if (cni.netList.getNetwork(global) == net) { cs.globalSignal = global;   break; }
 			}
 
 			// name the signal
@@ -419,7 +418,7 @@ public abstract class Topology extends Output
 			int portWidth = cni.netList.getBusWidth(pp);
 			for(int i=0; i<portWidth; i++)
 			{
-				JNetwork net = cni.netList.getNetwork(pp, i);
+				Network net = cni.netList.getNetwork(pp, i);
 				CellSignal cs = (CellSignal)cni.cellSignals.get(net);
 				if (cs == null) continue;
 				cs.pp = pp;
@@ -452,7 +451,7 @@ public abstract class Topology extends Output
 			int last = 0;
 			for(int i=0; i<portWidth; i++)
 			{
-				JNetwork subNet = cni.netList.getNetwork(pp, i);
+				Network subNet = cni.netList.getNetwork(pp, i);
 				if (subNet == null) continue;
 				if (!subNet.hasNames()) break;
 				String firstName = (String)subNet.getNames().next();
@@ -481,7 +480,7 @@ public abstract class Topology extends Output
 			if (!upDir && !downDir) continue;
 			for(int i=0; i<portWidth; i++)
 			{
-				JNetwork subNet = cni.netList.getNetwork(pp, i);
+				Network subNet = cni.netList.getNetwork(pp, i);
 				CellSignal cs = (CellSignal)cni.cellSignals.get(subNet);
 				cs.descending = downDir;
 			}
@@ -495,7 +494,7 @@ public abstract class Topology extends Output
 			Export pp = (Export)eIt.next();
 			int portWidth = cni.netList.getBusWidth(pp);
 			if (portWidth > 1) continue;
-			JNetwork subNet = cni.netList.getNetwork(pp, 0);
+			Network subNet = cni.netList.getNetwork(pp, 0);
 			if (pp.isPower())
 			{
 				if (cni.pwrNet != null && cni.pwrNet != subNet && !multiPwr)
@@ -519,7 +518,7 @@ public abstract class Topology extends Output
 		}
 		for(Iterator it = cni.netList.getNetworks(); it.hasNext(); )
 		{
-			JNetwork net = (JNetwork)it.next();
+			Network net = (Network)it.next();
 			CellSignal cs = (CellSignal)cni.cellSignals.get(net);
 			if (cs.globalSignal != null)
 			{
@@ -555,7 +554,7 @@ public abstract class Topology extends Output
 				{
 					Connection con = (Connection)cIt.next();
 					ArcInst ai = con.getArc();
-					JNetwork subNet = cni.netList.getNetwork(ai, 0);
+					Network subNet = cni.netList.getNetwork(ai, 0);
 					if (fun == NodeProto.Function.CONPOWER)
 					{
 						if (cni.pwrNet != null && cni.pwrNet != subNet && !multiPwr)
@@ -594,7 +593,7 @@ public abstract class Topology extends Output
 		// find the widest export associated with each network
 		for(Iterator it = cni.netList.getNetworks(); it.hasNext(); )
 		{
-			JNetwork net = (JNetwork)it.next();
+			Network net = (Network)it.next();
 			CellSignal cs = (CellSignal)cni.cellSignals.get(net);
 			if (cs.pp == null) continue;
 
@@ -608,7 +607,7 @@ public abstract class Topology extends Output
 				boolean found = false;
 				for(int j=0; j<portWidth; j++)
 				{
-					JNetwork subNet = cni.netList.getNetwork(pp, j);
+					Network subNet = cni.netList.getNetwork(pp, j);
 					if (subNet == net) found = true;
 				}
 				if (found)

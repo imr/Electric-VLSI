@@ -28,7 +28,7 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Global;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -253,7 +253,7 @@ public class Verilog extends Topology
 			int busWidth = netList.getBusWidth(ai);
 			for(int i=0; i<busWidth; i++)
 			{
-				JNetwork net = netList.getNetwork(ai, i);
+				Network net = netList.getNetwork(ai, i);
 				CellSignal cs = cni.getCellSignal(net);
 				if (cs == null) continue;
 				cs.getAggregateSignal().setFlags(overrideValue);
@@ -391,11 +391,11 @@ public class Verilog extends Topology
 				{
 					boolean allConnected = true;
 					PortInst firstPi = (PortInst)pIt.next();
-					JNetwork firstNet = netList.getNetwork(firstPi);
+					Network firstNet = netList.getNetwork(firstPi);
 					for( ; pIt.hasNext(); )
 					{
 						PortInst pi = (PortInst)pIt.next();
-						JNetwork thisNet = netList.getNetwork(pi);
+						Network thisNet = netList.getNetwork(pi);
 						if (thisNet != firstNet) { allConnected = false;   break; }
 					}
 					if (allConnected) continue;
@@ -453,7 +453,7 @@ public class Verilog extends Topology
 
 							// determine the network name at this port
 							ArcInst ai = con.getArc();
-							JNetwork net = netList.getNetwork(ai, 0);
+							Network net = netList.getNetwork(ai, 0);
 							CellSignal cs = cni.getCellSignal(net);
 							String sigName = cs.getName();
 
@@ -572,7 +572,7 @@ public class Verilog extends Topology
 						{
 							// single signal
 							infstr.append("." + cas.getName() + "(");
-							JNetwork net = netList.getNetwork(no, pp, cas.getExportIndex());
+							Network net = netList.getNetwork(no, pp, cas.getExportIndex());
 							CellSignal cs = cni.getCellSignal(net);
 							infstr.append(cs.getName());
 							infstr.append(")");
@@ -583,7 +583,7 @@ public class Verilog extends Topology
 							for(int j=low; j<=high; j++)
 							{
 								CellSignal cInnerSig = cas.getSignal(j-low);
-								JNetwork net = netList.getNetwork(no, cas.getExport(), cInnerSig.getExportIndex());
+								Network net = netList.getNetwork(no, cas.getExport(), cInnerSig.getExportIndex());
 								outerSignalList[j-low] = cni.getCellSignal(net);
 							}
 							writeBus(outerSignalList, low, high, cas.isDescending(),
@@ -609,7 +609,7 @@ public class Verilog extends Topology
 							}
 							if (first) first = false; else
 								infstr.append(", ");
-							JNetwork net = netList.getNetwork(pi);
+							Network net = netList.getNetwork(pi);
 							CellSignal cs = cni.getCellSignal(net);
 							if (cs == null) continue;
 							String sigName = cs.getName();
@@ -630,13 +630,13 @@ public class Verilog extends Topology
 				case 2:		// transistors: write ports in the proper order
 					// schem: g/s/d[/b]  mos: g/s/g/d
 					ni = (NodeInst)no;
-					JNetwork gateNet = netList.getNetwork(ni.getTransistorGatePort());
+					Network gateNet = netList.getNetwork(ni.getTransistorGatePort());
 					for(int i=0; i<2; i++)
 					{
 						for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
 						{
 							PortInst pi = (PortInst)pIt.next();
-							JNetwork net = netList.getNetwork(pi);
+							Network net = netList.getNetwork(pi);
 
 //							// see if it connects to an earlier portinst
 //							boolean connected = false;
@@ -644,7 +644,7 @@ public class Verilog extends Topology
 //							{
 //								PortInst ePi = (PortInst)ePIt.next();
 //								if (ePi == pi) break;
-//								JNetwork eNet = netList.getNetwork(ePi);
+//								Network eNet = netList.getNetwork(ePi);
 //								if (eNet == net) { connected = true;   break; }
 //							}
 //							if (connected) continue;
@@ -716,7 +716,7 @@ public class Verilog extends Topology
 			if (pp != null)
 			{
 				// port name found: use its verilog node
-				JNetwork net = netList.getNetwork(no, pp, 0);
+				Network net = netList.getNetwork(no, pp, 0);
 				CellSignal cs = cni.getCellSignal(net);
 				infstr.append(cs.getName());
 			} else if (paramName.equalsIgnoreCase("node_name"))
@@ -753,7 +753,7 @@ public class Verilog extends Topology
 	 * "*unconnectednet".  The power and grounds nets are "pwrnet" and "gndnet".
 	 */
 	private void writeBus(CellSignal [] outerSignalList, int lowIndex, int highIndex, boolean descending,
-		String name, JNetwork pwrNet, JNetwork gndNet, StringBuffer infstr)
+		String name, Network pwrNet, Network gndNet, StringBuffer infstr)
 	{
 		// array signal: see if it gets split out
 		boolean breakBus = false;

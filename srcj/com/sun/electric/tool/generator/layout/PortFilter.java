@@ -32,14 +32,14 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.PrimitiveNode;
 
 /** A PortFilter is useful for removing certain PortInsts from the
- * list of PortInsts on a JNetwork. It is built into Jose because
+ * list of PortInsts on a Network. It is built into Jose because
  * certain filters are commonly needed by Jose clients. */
 public abstract class PortFilter {
     // --------------------------- public types -----------------------------
     
     /** Skip uninteresting elements of a schematic.
      *
-     * <p> When most tools inspect a JNetwork they are interested in
+     * <p> When most tools inspect a Network they are interested in
      * extracting the connectivity of "real" schematic elements such
      * resistors, transistors, and user defined Facets. These tools are
      * usually uninterested in the schematic constructs: Wire_Pins,
@@ -67,11 +67,11 @@ public abstract class PortFilter {
     
     // -------------------------- public constants -------------------------
     /** This constant object can be invoked on the return value of
-     * JNetwork.getPorts() omit PortInsts of the schematic elements that
+     * Network.getPorts() omit PortInsts of the schematic elements that
      * are typically uninteresting to Jose clients reading
      * schematics. The following code describes a typical use:
      * <code>
-     * JNetwork net = // application initializes this variable
+     * Network net = // application initializes this variable
      * Iterator ports = PortFilter.SCHEMATIC.filter(net.getPorts());
      * while (ports.hasNext()) {
      *     // application only looks at "useful" schematics ports

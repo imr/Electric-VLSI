@@ -33,7 +33,7 @@ import java.util.Iterator;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -84,11 +84,11 @@ public class SchemToLay {
     // ------------------------ private types ---------------------------------
 	
 	// A RouteSeg is a list of layout ports that should be connected
-	// and a list of exports on that net.  JNetworks that connect to
+	// and a list of exports on that net.  Networks that connect to
 	// both NMOS stack and PMOS stack devices need to be divided into
 	// two RouteSeg's, one in the lower half of the cell and one in
 	// the upper half of the cell.  Otherwise there is a one to one
-	// relationship between a JNetwork and a RouteSeg
+	// relationship between a Network and a RouteSeg
 	private static class RouteSeg {
 		private static final Iterator NO_EXPORTS = new ArrayList().iterator();
 		
@@ -107,7 +107,7 @@ public class SchemToLay {
 		private boolean hasPmosExpTrk() {return hasExpTrk() && getExpTrk()>0;}
 		private boolean hasNmosExpTrk() {return hasExpTrk() && getExpTrk()<0;}
 		
-		private static ArrayList schemNetToLayPorts(JNetwork net,
+		private static ArrayList schemNetToLayPorts(Network net,
 													HashMap iconToLay) {
 			ArrayList layPorts = new ArrayList();
 			
@@ -127,7 +127,7 @@ public class SchemToLay {
 			}
 			return layPorts;
 		}
-		private static Integer findExportTrack(JNetwork net,
+		private static Integer findExportTrack(Network net,
 											   HashMap expTrkAsgn) {
 			Integer expTrk = null;
 			for (Iterator it=net.getExports(); it.hasNext();) {
@@ -162,7 +162,7 @@ public class SchemToLay {
 				else nonStkPorts.add(p);
 			}
 		}
-		public RouteSeg(JNetwork net, HashMap iconToLay, HashMap expTrkAsgn) {
+		public RouteSeg(Network net, HashMap iconToLay, HashMap expTrkAsgn) {
 			this(schemNetToLayPorts(net, iconToLay), net.getExports(),
 				 findExportTrack(net, expTrkAsgn));
 		}
@@ -506,8 +506,8 @@ public class SchemToLay {
 		
 		Comparator netNmComp = new Comparator() {
 				public int compare(Object o1, Object o2) {
-					Iterator nms1 = ((JNetwork)o1).getNames();
-					Iterator nms2 = ((JNetwork)o2).getNames();
+					Iterator nms1 = ((Network)o1).getNames();
+					Iterator nms2 = ((Network)o2).getNames();
 					
 					if (!nms1.hasNext() && !nms2.hasNext()) {
 						// neither net has a name
@@ -545,7 +545,7 @@ public class SchemToLay {
 		ArrayList sortedNets = sortNets(nets);
 		
 		for (int i=0; i<sortedNets.size(); i++) {
-			JNetwork net = (JNetwork) sortedNets.get(i);
+			Network net = (Network) sortedNets.get(i);
 			RouteSeg r = new RouteSeg(net, iconToLay, expTrkAsgn);
 			
 			if (r.getAllPorts().size()==0) {

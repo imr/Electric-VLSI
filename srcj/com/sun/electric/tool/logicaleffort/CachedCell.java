@@ -4,7 +4,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 
@@ -25,7 +25,7 @@ public class CachedCell {
     /** map of Nodable to LENodable */  private Map lenodables;
     /** map of CachedCell instances */  private Map cellnodables; // key: Nodable, Object: CellNodable
     /** this cell or subcells contains le gates */  private boolean containsSizableGates;
-    /** local networks */               private Map localNetworks; // key: JNetwork, Object: LENetwork
+    /** local networks */               private Map localNetworks; // key: Network, Object: LENetwork
     /** if this cell's nodes and subcell's nodes can be fully evaluated as if this cell was the top level */
                                         private Boolean contextFree;
     /** list of all cached nodables */  //private List allCachedNodables;
@@ -49,7 +49,7 @@ public class CachedCell {
         if (netlist != null) {
             // populate local networks
             for (Iterator it = netlist.getNetworks(); it.hasNext(); ) {
-                JNetwork jnet = (JNetwork)it.next();
+                Network jnet = (Network)it.next();
                 LENetwork net = new LENetwork(jnet.describe());
                 localNetworks.put(jnet, net);
             }
@@ -78,7 +78,7 @@ public class CachedCell {
         // hook up gate to local networks
         for (Iterator it = leno.getPins().iterator(); it.hasNext(); ) {
             LEPin pin = (LEPin)it.next();
-            JNetwork jnet = pin.getJNetwork();
+            Network jnet = pin.getNetwork();
             LENetwork net = (LENetwork)localNetworks.get(jnet);
  /*           if (net == null) {
                 net = new LENetwork(jnet.describe());
@@ -125,9 +125,9 @@ public class CachedCell {
         // map subCell networks to this cell's networks through global network id's
         for (Iterator it = subCell.getLocalNetworks().entrySet().iterator(); it.hasNext(); ) {
             Map.Entry entry = (Map.Entry)it.next();
-            JNetwork subJNet = (JNetwork)entry.getKey();
+            Network subJNet = (Network)entry.getKey();
             LENetwork subLENet = (LENetwork)entry.getValue();
-            JNetwork localJNet = subCellInfo.getNetworkInParent(subJNet);
+            Network localJNet = subCellInfo.getNetworkInParent(subJNet);
             if (localJNet == null) continue;
             LENetwork net = (LENetwork)localNetworks.get(localJNet);
             if (net == null) {
@@ -213,7 +213,7 @@ public class CachedCell {
             // can update subnet links when we copy local networks
             for (Iterator nit = ceno.subCell.localNetworks.entrySet().iterator(); nit.hasNext(); ) {
                 Map.Entry netentry = (Map.Entry)nit.next();
-                JNetwork jnet = (JNetwork)netentry.getKey();
+                Network jnet = (Network)netentry.getKey();
                 LENetwork origNet = (LENetwork)netentry.getValue();
                 LENetwork copyNet = (LENetwork)cenoCopy.subCell.localNetworks.get(jnet);
                 origSubNetsToCopySubNets.put(origNet, copyNet);
@@ -223,7 +223,7 @@ public class CachedCell {
         // add on subnets, because they are the connectivity to subcells.
         for (Iterator it = localNetworks.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry entry = (Map.Entry)it.next();
-            JNetwork jnet = (JNetwork)entry.getKey();
+            Network jnet = (Network)entry.getKey();
             LENetwork net = (LENetwork)entry.getValue();
             LENetwork netCopy = new LENetwork(net.getName());
             for (Iterator nit = net.getSubNets(); nit.hasNext(); ) {
@@ -258,7 +258,7 @@ public class CachedCell {
         }
         for (Iterator it = localNetworks.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry entry = (Map.Entry)it.next();
-            JNetwork jnet = (JNetwork)entry.getKey();
+            Network jnet = (Network)entry.getKey();
             LENetwork net = (LENetwork)entry.getValue();
             net.print(indent+"  ", out);
         }

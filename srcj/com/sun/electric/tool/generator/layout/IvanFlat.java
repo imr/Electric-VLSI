@@ -35,7 +35,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
@@ -88,7 +88,7 @@ class IvanFlater extends HierarchyEnumerator.Visitor {
 		Cell rootCell = info.getCell();
 		for (Iterator it=rootCell.getPorts(); it.hasNext();) {
 			Export e = (Export) it.next();
-			JNetwork net = info.getNetlist().getNetwork(e, 0);
+			Network net = info.getNetlist().getNetwork(e, 0);
 			int netId = info.getNetID(net);
 			String netNm = generateNetName(netId, info);
 			writeln("EXPORT "+e.getName()+" "+netNm);
@@ -135,8 +135,8 @@ class IvanFlater extends HierarchyEnumerator.Visitor {
 							HierarchyEnumerator.CellInfo info) {
 		PortInst port = ni.findPortInst(portNm);
 		error(port == null, "can't find port: " + portNm);
-		JNetwork net = info.getNetlist().getNetwork(port);
-		error(net == null, "missing JNetwork for port: " + portNm);
+		Network net = info.getNetlist().getNetwork(port);
+		error(net == null, "missing Network for port: " + portNm);
 		int id = info.getNetID(net);
 		error(id < 0, "missing net ID for port: " + portNm);
 		return generateNetName(id, info);

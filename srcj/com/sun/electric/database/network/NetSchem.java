@@ -56,17 +56,17 @@ class NetSchem extends NetCell {
 	static void updateCellGroup(Cell.CellGroup cellGroup) {
 		Cell mainSchematics = cellGroup.getMainSchematics();
 		NetSchem mainSchem = null;
-		if (mainSchematics != null) mainSchem = (NetSchem)Network.getNetCell(mainSchematics);
+		if (mainSchematics != null) mainSchem = (NetSchem)NetworkTool.getNetCell(mainSchematics);
 		for (Iterator it = cellGroup.getCells(); it.hasNext();) {
 			Cell cell = (Cell)it.next();
 			if (cell.isIcon()) {
-				NetSchem icon = (NetSchem)Network.getNetCell(cell);
+				NetSchem icon = (NetSchem)NetworkTool.getNetCell(cell);
 				if (icon == null) continue;
 				icon.setImplementation(mainSchem != null ? mainSchem : icon);
 				for (Iterator vit = cell.getVersions(); vit.hasNext();) {
 					Cell verCell = (Cell)vit.next();
 					if (verCell == cell) continue;
-					icon = (NetSchem)Network.getNetCell(verCell);
+					icon = (NetSchem)NetworkTool.getNetCell(verCell);
 					if (icon == null) continue;
 					icon.setImplementation(mainSchem != null ? mainSchem : icon);
 				}
@@ -124,7 +124,7 @@ class NetSchem extends NetCell {
 		 * @return the prototype of this Nodable.
 		 */
 		public NodeProto getProto() {
-			NetSchem schem = Network.getNetCell((Cell)nodeInst.getProto()).getSchem();
+			NetSchem schem = NetworkTool.getNetCell((Cell)nodeInst.getProto()).getSchem();
 			return schem.cell;
 		}
 
@@ -182,7 +182,7 @@ class NetSchem extends NetCell {
 					String msg = "Network: Cell " + cell.describe() + " has multipart icon <" + getName() +
 						"> with ambigouos definition of variable " + name;
                     System.out.println(msg);
-                    ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                    ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNodes);
                     log.addGeom(shared[i].nodeInst, true, cell, null);
 				}
 			}
@@ -207,7 +207,7 @@ class NetSchem extends NetCell {
 					String msg = "Network: Cell " + cell.describe() + " has multipart icon <" + getName() +
 						"> with ambigouos definition of variable " + key.getName();
                     System.out.println(msg);
-                    ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                    ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNodes);
                     log.addGeom(shared[i].nodeInst, true, cell, null);
 				}
 			}
@@ -235,7 +235,7 @@ class NetSchem extends NetCell {
                     String msg = "Network: Cell " + cell.describe() + " has multipart icon <" + getName() +
                         "> with ambigouos definition of parameter " + name;
                     System.out.println(msg);
-                    ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                    ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNodes);
                     log.addGeom(shared[i].nodeInst, true, cell, null);
                 }
             }
@@ -364,7 +364,7 @@ class NetSchem extends NetCell {
                     String msg = "Network: Cell " + cell.describe() + " has multipart icon <" + getName() +
                         "> with ambigouos definition of variable " + v.getKey().getName();
                     System.out.println(msg);
-                    ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                    ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNodes);
                     log.addGeom(shared[i].nodeInst, true, cell, null);
                 }
             }
@@ -439,7 +439,7 @@ class NetSchem extends NetCell {
 			if (equivIndex < 0) {
 				String msg = cell + ": Icon port <"+e.getNameKey()+"> has no equivalent port";
 				System.out.println(msg);
-				ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortPorts);
+				ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortPorts);
 				log.addExport(e, true, cell, null);
 			}
 		}
@@ -449,7 +449,7 @@ class NetSchem extends NetCell {
 				if (e.getEquivalentPort(cell) == null) {
 					String msg = c + ": Schematic port <"+e.getNameKey()+"> has no equivalent port in " + cell.describe();
 					System.out.println(msg);
-					ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, c, Network.errorSortPorts);
+					ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, c, NetworkTool.errorSortPorts);
 					log.addExport(e, true, c, null);
 				}
 			}
@@ -472,7 +472,7 @@ class NetSchem extends NetCell {
 		NodeProto np = pp.getParent();
 		if (!(np instanceof Cell))
 			return busIndex == 0 ? portIndex : -1;
-		NetCell netCell = Network.getNetCell((Cell)np);
+		NetCell netCell = NetworkTool.getNetCell((Cell)np);
 		return netCell.getPortOffset(portIndex, busIndex);
 	}
 
@@ -529,7 +529,7 @@ class NetSchem extends NetCell {
 			//	return -1;
 			//}
 // 			proxy = nodeProxies[~proxyOffset + arrayIndex];
-// 			NetCell netCell = Network.getNetCell((Cell)ni.getProto());
+// 			NetCell netCell = NetworkTool.getNetCell((Cell)ni.getProto());
 		} else {
 			proxy = (Proxy)no;
 		}
@@ -587,11 +587,11 @@ class NetSchem extends NetCell {
 		for (Iterator it = cell.getCellGroup().getCells(); it.hasNext();) {
 			Cell c = (Cell)it.next();
 			if (!c.isIcon()) continue;
-			Network.getNetCell(c).invalidateUsagesOf(strong);
+			NetworkTool.getNetCell(c).invalidateUsagesOf(strong);
 			for (Iterator vit = c.getVersions(); vit.hasNext();) {
 				Cell verCell = (Cell)vit.next();
 				if (verCell == c) continue;
-				Network.getNetCell(verCell).invalidateUsagesOf(strong);
+				NetworkTool.getNetCell(verCell).invalidateUsagesOf(strong);
 			}
 		}
 	}
@@ -607,12 +607,12 @@ class NetSchem extends NetCell {
 			NodeProto np = ni.getProto();
 			NetCell netCell = null;
 			if (np instanceof Cell)
-				netCell = Network.getNetCell((Cell)np);
+				netCell = NetworkTool.getNetCell((Cell)np);
 			if (netCell != null && netCell instanceof NetSchem) {
 				if (ni.getNameKey().hasDuplicates()) {
 					String msg = cell + ": Node name <"+ni.getNameKey()+"> has duplicate subnames";
                     System.out.println(msg);
-                    ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                    ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNodes);
                     log.addGeom(ni, true, cell, null);
                 }
 				nodeOffsets[i] = ~nodeProxiesOffset;
@@ -621,19 +621,19 @@ class NetSchem extends NetCell {
 				if (ni.getNameKey().isBus()) {
 					String msg = cell + ": Array name <"+ni.getNameKey()+"> can be assigned only to icon nodes";
                     System.out.println(msg);
-                    ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                    ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNodes);
                     log.addGeom(ni, true, cell, null);
                 }
 				nodeOffsets[i] = 0;
 			}
 			if (netCell != null) {
-				NetSchem sch = Network.getNetCell((Cell)np).getSchem();
+				NetSchem sch = NetworkTool.getNetCell((Cell)np).getSchem();
 				if (sch != null && sch != this) {
 					String errorMsg = Global.addToBuf(sch.globals);
 					if (errorMsg != null) {
 						String msg = "Network: Cell " + cell.describe() + " has globals with conflicting characteristic " + errorMsg;
                         System.out.println(msg);
-                        ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
+                        ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNetworks);
                         // TODO: what to highlight?
                         // log.addGeom(shared[i].nodeInst, true, 0, null);
                     }
@@ -652,7 +652,7 @@ class NetSchem extends NetCell {
 							String msg = "Network: Cell " + cell.describe() + " has global " + g.getName() +
 								" with unknown characteristic bits";
                             System.out.println(msg);
-                            ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
+                            ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNetworks);
                             log.addGeom(ni, true, cell, null);
 							characteristic = PortProto.Characteristic.UNKNOWN;
 						}
@@ -661,7 +661,7 @@ class NetSchem extends NetCell {
 					if (errorMsg != null) {
 						String msg = "Network: Cell " + cell.describe() + " has global with conflicting characteristic " + errorMsg;
                         System.out.println(msg);
-                        ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
+                        ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNetworks);
                         //log.addGeom(shared[i].nodeInst, true, 0, null);
                     }
 				}
@@ -672,13 +672,13 @@ class NetSchem extends NetCell {
 		if (globals != newGlobals) {
 			changed = true;
 			globals = newGlobals;
-			if (Network.debug) System.out.println(cell+" has "+globals);
+			if (NetworkTool.debug) System.out.println(cell+" has "+globals);
 		}
 		int mapOffset = portOffsets[0] = globals.size();
 		int numPorts = cell.getNumPorts();
 		for (int i = 1; i <= numPorts; i++) {
 			Export export = (Export)cell.getPort(i - 1);
-			if (Network.debug) System.out.println(export+" "+portOffsets[i-1]);
+			if (NetworkTool.debug) System.out.println(export+" "+portOffsets[i-1]);
 			mapOffset += export.getNameKey().busWidth();
 			if (portOffsets[i] != mapOffset) {
 				changed = true;
@@ -691,7 +691,7 @@ class NetSchem extends NetCell {
 		for (int i = 0; i < numDrawns; i++) {
 			drawnOffsets[i] = mapOffset;
 			mapOffset += drawnWidths[i];
-			if (Network.debug) System.out.println("Drawn " + i + " has offset " + drawnOffsets[i]);
+			if (NetworkTool.debug) System.out.println("Drawn " + i + " has offset " + drawnOffsets[i]);
 		}
 		if (nodeProxies == null || nodeProxies.length != nodeProxiesOffset)
 			nodeProxies = new Proxy[nodeProxiesOffset];
@@ -699,10 +699,10 @@ class NetSchem extends NetCell {
 		for (int n = 0; n < numNodes; n++) {
 			NodeInst ni = (NodeInst)cell.getNode(n);
 			int proxyOffset = nodeOffsets[n];
-			if (Network.debug) System.out.println(ni+" "+proxyOffset);
+			if (NetworkTool.debug) System.out.println(ni+" "+proxyOffset);
 			if (proxyOffset >= 0) continue;
 			Cell iconCell = (Cell)ni.getProto();
-			NetSchem netSchem = Network.getNetCell(iconCell).getSchem();
+			NetSchem netSchem = NetworkTool.getNetCell(iconCell).getSchem();
 			if (ni.isIconOfParent()) netSchem = null;
 			for (int i = 0; i < ni.getNameKey().busWidth(); i++) {
 				Proxy proxy = null;
@@ -716,14 +716,14 @@ class NetSchem extends NetCell {
 								String msg = "Network: Cell " + cell.describe() + " has instances of " + iconCell.describe() +
 									" with same name <" + name + ">";
                                 System.out.println(msg);
-                                ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                                ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNodes);
                                 log.addGeom(ni, true, cell, null);
 							} else if (!iconCell.isMultiPartIcon() || !namedIconCell.isMultiPartIcon() ||
-								Network.getNetCell(namedIconCell).getSchem() != netSchem) {
+								NetworkTool.getNetCell(namedIconCell).getSchem() != netSchem) {
 								String msg = "Network: Cell " + cell.describe() + " has instances of " + iconCell.describe() + " and " +
 									namedIconCell.describe() + " with same name <" + name + ">";
                                 System.out.println(msg);
-                                ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNodes);
+                                ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNodes);
                                 log.addGeom(ni, true, cell, null);
                                 log.addGeom(namedProxy.nodeInst, true, cell, null);
 							} else {
@@ -737,7 +737,7 @@ class NetSchem extends NetCell {
 						proxy = new Proxy(ni, i);
 						if (!name.isTempname())
 							name2proxy.put(name, proxy);
-						if (Network.debug) System.out.println(proxy+" "+mapOffset+" "+netSchem.equivPorts.length);
+						if (NetworkTool.debug) System.out.println(proxy+" "+mapOffset+" "+netSchem.equivPorts.length);
 						proxy.nodeOffset = mapOffset;
 						mapOffset += (netSchem.equivPorts.length - netSchem.globals.size());
 					}
@@ -746,13 +746,13 @@ class NetSchem extends NetCell {
 			}
 		}
 		netNamesOffset = mapOffset;
-		if (Network.debug) System.out.println("netNamesOffset="+netNamesOffset);
+		if (NetworkTool.debug) System.out.println("netNamesOffset="+netNamesOffset);
 		return changed;
 	}
 
 // 	private static int portsSize(NodeProto np) {
 // 		if (np instanceof PrimitiveNode) return np.getNumPorts();
-// 		NetCell netCell = (NetCell) Network.getNetCell((Cell)np);
+// 		NetCell netCell = (NetCell) NetworkTool.getNetCell((Cell)np);
 // 		NetSchem sch = netCell.getSchem();
 // 		if (sch == null) return np.getNumPorts();
 // 		return sch.equivPorts.length - sch.globals.size();
@@ -836,7 +836,7 @@ class NetSchem extends NetCell {
 				int oldWidth = drawnWidths[drawn];
 				int newWidth = 1;
 				if (np instanceof Cell) {
-					NetCell netCell = Network.getNetCell((Cell)np);
+					NetCell netCell = NetworkTool.getNetCell((Cell)np);
 					if (netCell instanceof NetSchem) {
 						int arraySize = np.isIcon() ? ni.getNameKey().busWidth() : 1;
 						int portWidth = pi.getPortProto().getNameKey().busWidth();
@@ -852,7 +852,7 @@ class NetSchem extends NetCell {
 					String msg = "Network: Schematic cell " + cell.describe() + " has net <" +
 						drawnNames[drawn] + "> with width conflict in connection " + pi.describe();
                     System.out.println(msg);
-                    ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
+                    ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNetworks);
                     log.addPoly(pi.getPoly(), true, cell);
                 }
 			}
@@ -860,7 +860,7 @@ class NetSchem extends NetCell {
 		for (int i = 0; i < drawnWidths.length; i++) {
 			if (drawnWidths[i] < 1)
 				drawnWidths[i] = 1;
-			if (Network.debug) System.out.println("Drawn "+i+" "+(drawnNames[i] != null ? drawnNames[i].toString() : "") +" has width " + drawnWidths[i]);
+			if (NetworkTool.debug) System.out.println("Drawn "+i+" "+(drawnNames[i] != null ? drawnNames[i].toString() : "") +" has width " + drawnWidths[i]);
 		}
 	}
 
@@ -874,7 +874,7 @@ class NetSchem extends NetCell {
         String msg = "Network: Schematic cell " + cell.describe() + " has net with conflict width of names <" +
                            firstname + "> and <" + badname + ">";
         System.out.println(msg);
-        ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
+        ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNetworks);
 
         boolean originalFound = false;
         for (int i = 0; i < numPorts; i++) {
@@ -940,7 +940,7 @@ class NetSchem extends NetCell {
 				continue;
 			}
 			if (nodeOffsets[k] >= 0) continue;
-			NetCell netCell = Network.getNetCell((Cell)np);
+			NetCell netCell = NetworkTool.getNetCell((Cell)np);
 			if (!(netCell instanceof NetSchem)) continue;
 			NetSchem icon = (NetSchem)netCell;
 			NetSchem schem = netCell.getSchem();
@@ -1004,7 +1004,7 @@ class NetSchem extends NetCell {
 				String msg = "Network: Schematic cell " + cell.describe() + " has connector " + ni.describe() +
 					" which merges more than two arcs";
                 System.out.println(msg);
-                ErrorLogger.MessageLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
+                ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNetworks);
                 log.addGeom(ni, true, cell, null);
 				return;
 			}
@@ -1030,11 +1030,11 @@ class NetSchem extends NetCell {
 			int nodeOffset = ni_pi[k];
 			NodeProto np = ni.getProto();
 			if (np instanceof PrimitiveNode) {
-				if (np == Schematics.tech.resistorNode && Network.shortResistors)
+				if (np == Schematics.tech.resistorNode && NetworkTool.shortResistors)
 					userNetlist.connectMap(drawns[nodeOffset], drawns[nodeOffset + 1]);
 				continue;
 			}
-			NetCell netCell = Network.getNetCell((Cell)np);
+			NetCell netCell = NetworkTool.getNetCell((Cell)np);
 			if (nodeOffsets[k] < 0) continue;
 			int[] eq = netCell.equivPorts;
 			for (int i = 0; i < eq.length; i++) {
@@ -1050,7 +1050,7 @@ class NetSchem extends NetCell {
 			Proxy proxy = nodeProxies[k];
 			if (proxy == null) continue;
 			NodeProto np = proxy.getProto();
-			NetSchem schem = (NetSchem)Network.getNetCell((Cell)np);
+			NetSchem schem = (NetSchem)NetworkTool.getNetCell((Cell)np);
 			int numGlobals = schem.portOffsets[0];
 			int nodeOffset = proxy.nodeOffset - numGlobals;
 			int[] eq = schem.equivPorts;
@@ -1090,7 +1090,7 @@ class NetSchem extends NetCell {
 			int drawn = drawns[arcsOffset + i];
 			if (drawn < 0) continue;
 			for (int j = 0; j < drawnWidths[drawn]; j++) {
-				JNetwork network = userNetlist.getNetwork(ai, j);
+				Network network = userNetlist.getNetwork(ai, j);
 				if (network == null || network.hasNames()) continue;
 				if (drawnNames[drawn] == null) continue;
 				String netName;
@@ -1109,7 +1109,7 @@ class NetSchem extends NetCell {
 		System.out.println("BuildNetworkList "+cell);
 		int i = 0;
 		for (int l = 0; l < userNetlist.networks.length; l++) {
-			JNetwork network = userNetlist.networks[l];
+			Network network = userNetlist.networks[l];
 			if (network == null) continue;
 			String s = "";
 			for (Iterator sit = network.getNames(); sit.hasNext(); )

@@ -30,7 +30,7 @@ import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Global;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
@@ -99,7 +99,7 @@ public class Spice extends Topology
 
 	private static class SpiceNet
 	{
-		/** network object associated with this */	JNetwork      network;
+		/** network object associated with this */	Network      network;
 		/** merged geometry for this network */		PolyMerge     merge;
 		/** area of diffusion */					double        diffArea;
 		/** perimeter of diffusion */				double        diffPerim;
@@ -378,7 +378,7 @@ public class Spice extends Topology
 		// create SpiceNet objects for all networks in the cell
 		for(Iterator it = netList.getNetworks(); it.hasNext(); )
 		{
-			JNetwork net = (JNetwork)it.next();
+			Network net = (Network)it.next();
 
 			// create a "SpiceNet" for the network
 			SpiceNet spNet = new SpiceNet();
@@ -418,7 +418,7 @@ public class Spice extends Topology
 
 			// ignore busses
 //			if (ai->network->buswidth > 1) continue;
-			JNetwork net = netList.getNetwork(ai, 0);
+			Network net = netList.getNetwork(ai, 0);
 			SpiceNet spNet = (SpiceNet)spiceNetMap.get(net);
 			if (spNet == null) continue;
 
@@ -428,7 +428,7 @@ public class Spice extends Topology
 		// get merged polygons so far
 		for(Iterator it = netList.getNetworks(); it.hasNext(); )
 		{
-			JNetwork net = (JNetwork)it.next();
+			Network net = (Network)it.next();
 			SpiceNet spNet = (SpiceNet)spiceNetMap.get(net);
 			for(Iterator lIt = spNet.merge.getKeyIterator(); lIt.hasNext(); )
 			{
@@ -460,8 +460,8 @@ public class Spice extends Topology
 		}
 
 		// make sure the ground net is number zero
-		JNetwork groundNet = cni.getGroundNet();
-		JNetwork powerNet = cni.getPowerNet();
+		Network groundNet = cni.getGroundNet();
+		Network powerNet = cni.getPowerNet();
 		if (pmosTrans != 0 && powerNet == null)
 		{
 			String message = "WARNING: no power connection for P-transistor wells in cell " + cell.describe();
@@ -525,8 +525,7 @@ public class Spice extends Topology
 				for(int i=0; i<globalSize; i++)
 				{
 					Global global = (Global)globals.get(i);
-					int netIndex = netList.getNetIndex(global);
-					JNetwork net = netList.getNetwork(netIndex);
+					Network net = netList.getNetwork(global);
 					CellSignal cs = cni.getCellSignal(net);
 					infstr.append(" " + cs.getName());
 				}
@@ -550,8 +549,7 @@ public class Spice extends Topology
 			for(int i=0; i<globalSize; i++)
 			{
 				Global global = (Global)globals.get(i);
-				int netIndex = netList.getNetIndex(global);
-				JNetwork net = netList.getNetwork(netIndex);
+				Network net = netList.getNetwork(global);
 				CellSignal cs = cni.getCellSignal(net);
 				multiLinePrint(true, "** GLOBAL " + cs.getName() + "\n");
 			}
@@ -606,7 +604,7 @@ public class Spice extends Topology
 						if (pp != null)
 						{
 							// port name found: use its spice node
-							JNetwork net = netList.getNetwork(no, pp, 0);
+							Network net = netList.getNetwork(no, pp, 0);
 							CellSignal cs = cni.getCellSignal(net);
 							infstr.append(cs.getName());
 						} else if (paramName.equalsIgnoreCase("node_name"))
@@ -650,7 +648,7 @@ public class Spice extends Topology
 					PortProto pp = subCS.getExport();
 					if (pp == null) continue;
 
-					JNetwork net = netList.getNetwork(no, pp, subCS.getExportIndex());
+					Network net = netList.getNetwork(no, pp, subCS.getExportIndex());
 					CellSignal cs = cni.getCellSignal(net);
 					infstr.append(" " + cs.getName());
 				}
@@ -755,11 +753,11 @@ public class Spice extends Topology
 			if (niProto.getGroupFunction() != NodeProto.Function.TRANS)
 				continue;
 
-			JNetwork gateNet = netList.getNetwork(ni.getTransistorGatePort());
+			Network gateNet = netList.getNetwork(ni.getTransistorGatePort());
 			CellSignal gateCs = cni.getCellSignal(gateNet);
-			JNetwork sourceNet = netList.getNetwork(ni.getTransistorSourcePort());
+			Network sourceNet = netList.getNetwork(ni.getTransistorSourcePort());
 			CellSignal sourceCs = cni.getCellSignal(sourceNet);
-			JNetwork drainNet = netList.getNetwork(ni.getTransistorDrainPort());
+			Network drainNet = netList.getNetwork(ni.getTransistorDrainPort());
 			CellSignal drainCs = cni.getCellSignal(drainNet);
 			CellSignal biasCs = null;
 			PortInst biasPort = ni.getTransistorBiasPort();
@@ -994,7 +992,7 @@ public class Spice extends Topology
 				for(Iterator sIt = cni.getCellSignals(); sIt.hasNext(); )
 				{
 					CellSignal cs = (CellSignal)sIt.next();
-					JNetwork net = cs.getNetwork();
+					Network net = cs.getNetwork();
 					if (net == cni.getGroundNet()) continue;
 
 					SpiceNet spNet = (SpiceNet)spiceNetMap.get(net);
@@ -1361,8 +1359,8 @@ public class Spice extends Topology
 	{
 		PortInst port0 = ni.getPortInst(0);
 		PortInst port1 = ni.getPortInst(1);
-		JNetwork net0 = netList.getNetwork(port0);
-		JNetwork net1 = netList.getNetwork(port1);
+		Network net0 = netList.getNetwork(port0);
+		Network net1 = netList.getNetwork(port1);
 		CellSignal cs0 = cni.getCellSignal(net0);
 		CellSignal cs1 = cni.getCellSignal(net1);
 
@@ -1438,7 +1436,7 @@ public class Spice extends Topology
 			// make sure this layer connects electrically to the desired port
 			PortProto pp = poly.getPort();
 			if (pp == null) continue;
-			JNetwork net = netList.getNetwork(ni, pp, 0);
+			Network net = netList.getNetwork(ni, pp, 0);
 
 			// don't bother with layers without capacity
 			Layer layer = poly.getLayer();

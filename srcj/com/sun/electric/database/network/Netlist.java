@@ -25,29 +25,17 @@ package com.sun.electric.database.network;
 
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Cell;
-// import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
-// import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
-// import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.NodeInst;
-// import com.sun.electric.database.variable.ElectricObject;
-// import com.sun.electric.database.variable.TextDescriptor;
-// import com.sun.electric.database.variable.Variable;
-// import com.sun.electric.technology.PrimitiveNode;
-// import com.sun.electric.technology.PrimitivePort;
-// import com.sun.electric.technology.Technology;
-// import com.sun.electric.technology.technologies.Schematics;
-// import com.sun.electric.tool.Tool;
 
 import java.util.Arrays;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
-// import java.util.Map;
 
 /**
  * This is the Netlist class. It contains information about electric
@@ -75,8 +63,8 @@ public class Netlist
 	int[] netMap;
 	int[] nm_net;
 
-	/** An array of JNetworks in this Cell. */
-	private JNetwork[] networks;
+	/** An array of Networks in this Cell. */
+	private Network[] networks;
 
 	// ---------------------- package methods -----------------
 
@@ -103,14 +91,14 @@ public class Netlist
 			if (netMap[i] == i) k++;
 		}
 		if (networks == null || networks.length != k) {
-			networks = new JNetwork[k];
+			networks = new Network[k];
 		}
 		Arrays.fill(networks, null);
 		
 		k = 0;
 		for (int i = 0; i < netMap.length; i++) {
 			if (netMap[i] == i) {
-				networks[k] = new JNetwork(this, k);
+				networks[k] = new Network(this, k);
 				nm_net[i] = k;
 				k++;
 			} else {
@@ -178,7 +166,7 @@ public class Netlist
 		return true;
 	}
 
-	JNetwork getNetworkByMap(int mapOffset) { return networks[nm_net[mapOffset]]; }
+	Network getNetworkByMap(int mapOffset) { return networks[nm_net[mapOffset]]; }
 
 	private final void checkForModification() {
 		if (expectedModCount != netCell.modCount)
@@ -198,7 +186,7 @@ public class Netlist
 	 */
     public static Nodable getNodableFor(NodeInst ni, int arrayIndex) {
         Cell parent = ni.getParent();
-        Netlist netlist = Network.getUserNetlist(parent);
+        Netlist netlist = NetworkTool.getUserNetlist(parent);
         for (Iterator it = netlist.getNodables(); it.hasNext(); ) {
             Nodable no = (Nodable)it.next();
             if (no.contains(ni, arrayIndex)) return no;
@@ -208,7 +196,7 @@ public class Netlist
 
 	/**
 	 * Get an iterator over all of the Nodables of this Cell.
-	 * <p> Warning: before getNodables() is called, JNetworks must be
+	 * <p> Warning: before getNodables() is called, Networks must be
 	 * build by calling Cell.rebuildNetworks()
 	 */
 	public Iterator getNodables() {
@@ -224,7 +212,7 @@ public class Netlist
 	public Netlist getNetlist(Nodable no) {
 		NodeProto np = no.getProto();
 		if (!(np instanceof Cell)) return null;
-		return Network.getUserNetlist((Cell)np);
+		return NetworkTool.getUserNetlist((Cell)np);
 	}
 
 	/**
@@ -246,17 +234,17 @@ public class Netlist
 	}
 
 	/**
-	 * Get JNetwork with specified index.
-	 * @param netIndex index of JNetwork
-	 * @return JNetwork with specified index.
+	 * Get Network with specified index.
+	 * @param netIndex index of Network
+	 * @return Network with specified index.
 	 */
-	public JNetwork getNetwork(int netIndex) {
+	public Network getNetwork(int netIndex) {
 		checkForModification();
 		return networks[netIndex];
 	}
 
 	/**
-	 * Get an iterator over all of the JNetworks of this Netlist.
+	 * Get an iterator over all of the Networks of this Netlist.
 	 */
 	public Iterator getNetworks() {
 		checkForModification();
@@ -268,7 +256,7 @@ public class Netlist
 	 * @param global global signal.
 	 * @return net index of a gloabal signal.
 	 */
-	public int getNetIndex(Global global) {
+	int getNetIndex(Global global) {
 		checkForModification();
 		int netMapIndex = netCell.getNetMapOffset(global);
 		if (netMapIndex < 0) return -1;
@@ -282,7 +270,7 @@ public class Netlist
 	 * @param busIndex index of signal in a bus or zero.
 	 * @return net index
 	 */
-	public int getNetIndex(Nodable no, PortProto portProto, int busIndex) {
+	int getNetIndex(Nodable no, PortProto portProto, int busIndex) {
 		checkForModification();
 		if (no.getParent() != netCell.cell)
 			return -1;
@@ -307,7 +295,7 @@ public class Netlist
 	 * @param busIndex index of signal in a bus or zero.
 	 * @return net index.
 	 */
-	public int getNetIndex(Export export, int busIndex) {
+	int getNetIndex(Export export, int busIndex) {
 		checkForModification();
 		if (export.getParent() != netCell.cell) return -1;
 		if (busIndex < 0 || busIndex >= export.getNameKey().busWidth())
@@ -326,12 +314,23 @@ public class Netlist
 	 * @param busIndex index of signal in a bus or zero.
 	 * @return net index.
 	 */
-	public int getNetIndex(ArcInst ai, int busIndex) {
+	int getNetIndex(ArcInst ai, int busIndex) {
 		checkForModification();
 		if (ai.getParent() != netCell.cell) return -1;
 		int netMapIndex = netCell.getNetMapOffset(ai, busIndex);
 		if (netMapIndex < 0) return -1;
 		return nm_net[netMapIndex];
+	}
+
+	/**
+	 * Get network of a global signal.
+	 * @param global global signal.
+	 * @return net index of a gloabal signal.
+	 */
+	public Network getNetwork(Global global) {
+		int netIndex = getNetIndex(global);
+		if (netIndex < 0) return null;
+		return networks[netIndex];
 	}
 
 	/**
@@ -341,7 +340,7 @@ public class Netlist
 	 * @param busIndex index of signal in a bus or zero.
 	 * @return network.
 	 */
-	public JNetwork getNetwork(Nodable no, PortProto portProto, int busIndex) {
+	public Network getNetwork(Nodable no, PortProto portProto, int busIndex) {
 		int netIndex = getNetIndex(no, portProto, busIndex);
 		if (netIndex < 0) return null;
 		return networks[netIndex];
@@ -370,7 +369,7 @@ public class Netlist
 	 * @param pi port instance.
 	 * @return signal on port index or null.
 	 */
-	public JNetwork getNetwork(PortInst pi) {
+	public Network getNetwork(PortInst pi) {
 		PortProto portProto = pi.getPortProto();
 		if (portProto.getNameKey().isBus())
 		{
@@ -386,7 +385,7 @@ public class Netlist
 	 * @param busIndex index of signal in a bus or zero.
 	 * @return network.
 	 */
-	public JNetwork getNetwork(Export export, int busIndex) {
+	public Network getNetwork(Export export, int busIndex) {
 		int netIndex = getNetIndex(export, busIndex);
 		if (netIndex < 0) return null;
 		return networks[netIndex];
@@ -398,7 +397,7 @@ public class Netlist
 	 * @param busIndex index of signal in a bus or zero.
 	 * @return network.
 	 */
-	public JNetwork getNetwork(ArcInst ai, int busIndex) {
+	public Network getNetwork(ArcInst ai, int busIndex) {
 		int netIndex = getNetIndex(ai, busIndex);
 		if (netIndex < 0) return null;
 		return networks[netIndex];
@@ -481,7 +480,7 @@ public class Netlist
 		if (busWidth > 1) {
 			return netCell.getBusName(ai).toString();
 		}
-		JNetwork network = getNetwork(ai, 0);
+		Network network = getNetwork(ai, 0);
 		if (network == null) return null;
 		return network.describe();
 	}

@@ -24,9 +24,9 @@
 package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.network.Global;
-import com.sun.electric.database.network.JNetwork;
-import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
+import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
@@ -116,7 +116,7 @@ public final class HierarchyEnumerator {
 		Global.Set globals = netlist.getGlobals();
 		for (int i = 0; i < globals.size(); i++) {
 			Global global = globals.get(i);
-			int netIndex = netlist.getNetIndex(global);
+			int netIndex = netlist.getNetwork(global).getNetIndex();
 			int globalIndex = rootGlobals.indexOf(global);
 			netNdxToNetID[netIndex] = globalToNetID[globalIndex];
 		}
@@ -124,12 +124,12 @@ public final class HierarchyEnumerator {
 			Export export = (Export) cell.getPort(i);
 			int[] ids = portNdxToNetIDs[i];
 			for (int j=0; j<ids.length; j++) {
-				int netIndex = netlist.getNetIndex(export, j);
+				int netIndex = netlist.getNetwork(export, j).getNetIndex();
 				netNdxToNetID[netIndex] = ids[j];
 			}
 		}
 		for (int i = 0; i < numNets; i++) {
-			JNetwork net = netlist.getNetwork(i);
+			Network net = netlist.getNetwork(i);
 			if (netNdxToNetID[i] >= 0) continue;
 
 			// No netID from export. Allocate a new netID.
@@ -145,7 +145,7 @@ public final class HierarchyEnumerator {
 		int busWidth = pp.getNameKey().busWidth();
 		int[] netIDs = new int[busWidth];
 		for (int j=0; j<busWidth; j++) {
-			int netIndex = netlist.getNetIndex(no, pp, j);
+			int netIndex = netlist.getNetwork(no, pp, j).getNetIndex();
 			int netID = netNdxToNetID[netIndex];
 			error(netID<0, "no netID for net");
 			netIDs[j] = netID;
@@ -171,10 +171,10 @@ public final class HierarchyEnumerator {
 		for (int i=0; i<rootGlobals.size(); i++) {	
 			Global global = rootGlobals.get(i);
 			error(rootGlobals.indexOf(global)!=i, "bad index?");
-			int netIndex = rootNetlist.getNetIndex(global);
+			Network net = rootNetlist.getNetwork(global);
+			int netIndex = net.getNetIndex();
 			globalToNetID[i] = netIndex;
 			if (netIndex == nextNetID()) {
-				JNetwork net = rootNetlist.getNetwork(netIndex);
 				netIdToNetDesc.add(new NetDescription(net, rootInfo));
 				//System.out.println(global + " added at " + netIndex);
 			} else {
@@ -324,19 +324,19 @@ public final class HierarchyEnumerator {
         //public abstract void visitNodeInstBottomUp(Nodable ni, CellInfo info);
 	}
 
-	/** The NetDescription object provides a JNetwork and the level of
-	 * hierarchy in which the JNetwork occurs. The visitor can use
+	/** The NetDescription object provides a Network and the level of
+	 * hierarchy in which the Network occurs. The visitor can use
 	 * NetDescription to formulate, for example, the name of
 	 * the net */
 	public static class NetDescription {
-		private JNetwork net;
+		private Network net;
 		private CellInfo info;
-		NetDescription(JNetwork net, CellInfo info) {
+		NetDescription(Network net, CellInfo info) {
 			this.net = net;
 			this.info = info;
 		}
 
-		public JNetwork getNet() {return net;}
+		public Network getNet() {return net;}
 		public CellInfo getCellInfo() {return info;}
 	}
 
@@ -569,7 +569,7 @@ public final class HierarchyEnumerator {
 				int width = netlist.getBusWidth(e);
 				int[] netIDs = new int[width];
 				for (int i=0; i<width; i++) {
-					netIDs[i] = netlist.getNetIndex(e, i);
+					netIDs[i] = netlist.getNetwork(e, i).getNetIndex();
 				}
 				return netIDs;
 			} else {
@@ -585,7 +585,7 @@ public final class HierarchyEnumerator {
 		 * <p>If you want to generate a unique name for the net use
 		 * getUniqueNetName().
 		 */
-		public final int getNetID(JNetwork net) {
+		public final int getNetID(Network net) {
 			return getNetID(net.getNetIndex());
 		}
 		/** Map a net index from the current cell to a net ID. 
@@ -595,7 +595,7 @@ public final class HierarchyEnumerator {
 		 * @param netIndex net index within current cell
 		 * @return net ID that is unique over entire net list.
 		 */
-		public final int getNetID(int netIndex) {
+		private int getNetID(int netIndex) {
 			return netNdxToNetID[netIndex];
 		}
 		
@@ -618,14 +618,14 @@ public final class HierarchyEnumerator {
          * VarContext.getInstPath() if it is not a top-level network.
          * @param sep the context separator to use if needed.
          * @return a unique String identifier for the network */
-        public final String getUniqueNetName(JNetwork net, String sep) {
+        public final String getUniqueNetName(Network net, String sep) {
         	NameProxy proxy = getUniqueNetNameProxy(net, sep);
         	return proxy.toString();
         }
         
         /** Same as getUniqueNetName except it returns a NameProxy instead of a
          * String name */
-		public final NameProxy getUniqueNetNameProxy(JNetwork net, String sep) {
+		public final NameProxy getUniqueNetNameProxy(Network net, String sep) {
 			return getUniqueNetNameProxy(getNetID(net), sep);
 		}
         
@@ -668,22 +668,22 @@ public final class HierarchyEnumerator {
 			return new NameProxy(getContext(), sep, no.getName());
 		}
         
-		/** Get the JNetwork that is closest to the root in the design
+		/** Get the Network that is closest to the root in the design
 		 * hierarchy that corresponds to netID. */
 		public final NetDescription netIdToNetDescription(int netID) {
 			return (NetDescription) netIdToNetDesc.get(netID);
 		}
 
         /**
-         * Get the JNetwork in the parent that connects to the specified
-         * JNetwork in this cell.  Returns null if no network in parent connects
+         * Get the Network in the parent that connects to the specified
+         * Network in this cell.  Returns null if no network in parent connects
          * to this network (i.e. network is not connected to export), or null
          * if no parent.
          * @param network the network in this cell
          * @return the network in the parent that connects to the
          * specified network, or null if no such network.
          */
-        public JNetwork getNetworkInParent(JNetwork network) {
+        public Network getNetworkInParent(Network network) {
             if (parentInfo == null) return null;
             // find export on network
             boolean found = false;
@@ -692,7 +692,7 @@ public final class HierarchyEnumerator {
             for (Iterator it = cell.getPorts(); it.hasNext(); ) {
                 export = (Export)it.next();
                 for (i=0; i<export.getNameKey().busWidth(); i++) {
-                    JNetwork net = netlist.getNetwork(export, i);
+                    Network net = netlist.getNetwork(export, i);
                     if (net == network) { found = true; break; }
                 }
                 if (found) break;
@@ -704,7 +704,7 @@ public final class HierarchyEnumerator {
             PortProto pp = no.getProto().findPortProto(export.getNameKey());
             //System.out.println("Found corresponding port proto "+pp.getName()+" on cell "+no.getProto().describe());
             // find corresponding network in parent
-            JNetwork parentNet = parentInfo.getNetlist().getNetwork(no, pp, i);
+            Network parentNet = parentInfo.getNetlist().getNetwork(no, pp, i);
             return parentNet;
         }
 
@@ -785,7 +785,7 @@ public final class HierarchyEnumerator {
 	public static void enumerateCell(Cell root, VarContext context, 
                                      Netlist netlist, Visitor visitor, 
 									 boolean caching) {
-		if (netlist == null) netlist = Network.getUserNetlist(root);
+		if (netlist == null) netlist = NetworkTool.getUserNetlist(root);
 		(new HierarchyEnumerator()).doIt(root, context, netlist, visitor, caching);
 	}
     /**
@@ -811,13 +811,13 @@ public final class HierarchyEnumerator {
     }
 
     /**
-     * Get the JNetwork in the childNodable's parent that corresponds to the JNetwork
+     * Get the Network in the childNodable's parent that corresponds to the Network
      * inside the childNodable.
      * @param childNetwork the network in the childNodable
      * @return the network in the parent that connects to the
      * specified network, or null if no such network.
      */
-    public static JNetwork getNetworkInParent(JNetwork childNetwork, Nodable childNodable) {
+    public static Network getNetworkInParent(Network childNetwork, Nodable childNodable) {
         if (childNodable == null || childNetwork == null) return null;
         if (!(childNodable.getProto() instanceof Cell)) return null;
         Cell childCell = (Cell)childNodable.getProto();
@@ -830,7 +830,7 @@ public final class HierarchyEnumerator {
         for (Iterator it = childCell.getPorts(); it.hasNext(); ) {
             export = (Export)it.next();
             for (i=0; i<export.getNameKey().busWidth(); i++) {
-                JNetwork net = Network.getUserNetlist(childCell).getNetwork(export, i);
+                Network net = NetworkTool.getUserNetlist(childCell).getNetwork(export, i);
                 if (net == childNetwork) { found = true; break; }
             }
             if (found) break;
@@ -843,19 +843,19 @@ public final class HierarchyEnumerator {
         // find corresponding network in parent
         Cell parentCell = childNodable.getParent();
         //if (childNodable instanceof NodeInst) childNodable = Netlist.getNodableFor((NodeInst)childNodable, 0);
-        JNetwork parentNet = Network.getUserNetlist(parentCell).getNetwork(childNodable, pp, i);
+        Network parentNet = NetworkTool.getUserNetlist(parentCell).getNetwork(childNodable, pp, i);
         return parentNet;
     }
 
     /**
-     * Get the JNetwork in the childNodable that corresponds to the JNetwork in the childNodable's
+     * Get the Network in the childNodable that corresponds to the Network in the childNodable's
      * parent cell.
      * @param parentNet the network in the parent
      * @param childNodable the child nodable.
      * @return the network in the child that connects to the network in the parent, or
      * null if no such network.
      */
-    public static JNetwork getNetworkInChild(JNetwork parentNet, Nodable childNodable) {
+    public static Network getNetworkInChild(Network parentNet, Nodable childNodable) {
         if (childNodable == null || parentNet == null) return null;
         if (!(childNodable.getProto() instanceof Cell)) return null;
         Cell childCell = (Cell)childNodable.getProto();
@@ -868,7 +868,7 @@ public final class HierarchyEnumerator {
             PortInst pi = (PortInst)it.next();
             pp = pi.getPortProto();
             for (i=0; i<pp.getNameKey().busWidth(); i++) {
-                JNetwork net = childNodable.getParent().getUserNetlist().getNetwork(childNodable, pp, i);
+                Network net = childNodable.getParent().getUserNetlist().getNetwork(childNodable, pp, i);
                 if (net == parentNet) { found = true; break; }
             }
             if (found) break;
@@ -878,7 +878,7 @@ public final class HierarchyEnumerator {
         if (childCell.contentsView() != null)
             childCell = childCell.contentsView();
         Export export = childCell.findExport(pp.getNameKey());
-        JNetwork childNet = childCell.getUserNetlist().getNetwork(export, i);
+        Network childNet = childCell.getUserNetlist().getNetwork(export, i);
         return childNet;
     }
 }

@@ -23,7 +23,7 @@
  */
 package com.sun.electric.tool;
 
-import com.sun.electric.database.network.Network;
+import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.drc.DRC;
@@ -102,7 +102,7 @@ public class Tool extends ElectricObject
 	{
 		// Because of lazy evaluation, tools aren't initialized unless they're referenced here
 		User.tool.init();
-		Network.tool.init();
+		NetworkTool.tool.init();
         LETool.tool.init();
         Simulation.tool.init();
         Routing.tool.init();

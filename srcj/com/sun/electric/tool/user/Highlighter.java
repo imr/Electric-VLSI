@@ -35,7 +35,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
@@ -266,7 +266,7 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param net the network to highlight.
 	 * @param cell the Cell in which this line resides.
 	 */
-	public void addNetwork(JNetwork net, Cell cell)
+	public void addNetwork(Network net, Cell cell)
 	{
 		Netlist netlist = cell.getUserNetlist();
         List highlights = NetworkHighlighter.getHighlights(cell, netlist, net, 0, 0);
@@ -281,14 +281,14 @@ public class Highlighter implements DatabaseChangeListener {
      * each time it is used without first clearing
      * the highlighter, it shows connections to the network another level down
      * in the hierarchy.
-     * @param nets list of JNetworks in current cell to show
+     * @param nets list of Networks in current cell to show
      * @param cell the cell in which to create the highlights
      */
     public void showNetworks(Set nets, Netlist netlist, Cell cell) {
         if (showNetworkLevel == 0) clear();
         int count = 0;
         for (Iterator netIt = nets.iterator(); netIt.hasNext(); ) {
-            JNetwork net = (JNetwork)netIt.next();
+            Network net = (Network)netIt.next();
             if (showNetworkLevel == 0) System.out.println("Highlighting network "+net.describe());
             List highlights = NetworkHighlighter.getHighlights(cell, netlist, net,
                     showNetworkLevel, showNetworkLevel);
@@ -690,7 +690,7 @@ public class Highlighter implements DatabaseChangeListener {
 					if (eObj instanceof PortInst)
 					{
 						PortInst pi = (PortInst)eObj;
-						JNetwork net = netlist.getNetwork(pi);
+						Network net = netlist.getNetwork(pi);
 						if (net != null)
 							nets.add(net);
 						else
@@ -714,7 +714,7 @@ public class Highlighter implements DatabaseChangeListener {
                             PortInst pi = ni.getOnlyPortInst();
                             if (pi != null)
                             {
-                                JNetwork net = netlist.getNetwork(pi);
+                                Network net = netlist.getNetwork(pi);
                                 if (net != null) nets.add(net);
                             }
                         }
@@ -724,7 +724,7 @@ public class Highlighter implements DatabaseChangeListener {
 						int width = netlist.getBusWidth(ai);
 						for(int i=0; i<width; i++)
 						{
-							JNetwork net = netlist.getNetwork((ArcInst)eObj, i);
+							Network net = netlist.getNetwork((ArcInst)eObj, i);
 							if (net != null) nets.add(net);
 						}
 					}
@@ -737,7 +737,7 @@ public class Highlighter implements DatabaseChangeListener {
 						int width = netlist.getBusWidth(pp);
 						for(int i=0; i<width; i++)
 						{
-							JNetwork net = netlist.getNetwork(pp, i);
+							Network net = netlist.getNetwork(pp, i);
 							if (net != null) nets.add(net);
 						}
 					}

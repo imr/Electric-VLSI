@@ -2,7 +2,7 @@ package com.sun.electric.tool.parasitic;
 
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.geometry.*;
@@ -50,7 +50,7 @@ public class ParasiticTool extends Tool{
      */
     public static ParasiticTool getParasiticTool() { return tool; }
 
-    public void netwokParasitic(JNetwork network, Cell cell)
+    public void netwokParasitic(Network network, Cell cell)
     {
         AnalyzeParasitic job = new AnalyzeParasitic(network, cell);
     }
@@ -180,9 +180,9 @@ public class ParasiticTool extends Tool{
     protected class AnalyzeParasitic extends Job
     {
         Cell cell;
-        JNetwork net;
+        Network net;
 
-        protected AnalyzeParasitic(JNetwork network, Cell cell)
+        protected AnalyzeParasitic(Network network, Cell cell)
         {
             super ("Analyze Network "+ network.describe(), tool, Job.Type.EXAMINE, null, cell, Job.Priority.USER);
             this.net = network;

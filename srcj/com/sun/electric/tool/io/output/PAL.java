@@ -26,7 +26,7 @@ package com.sun.electric.tool.io.output;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.Connection;
@@ -157,7 +157,7 @@ Netlist nl = info.getNetlist();
 System.out.println("Networks in cell "+ni.getParent().describe()+" around node "+ni.describe());
 for(Iterator it = nl.getNetworks(); it.hasNext(); )
 {
-	JNetwork net = (JNetwork)it.next();
+	Network net = (Network)it.next();
 	System.out.println(" Network "+net.toString()+" is uniquely named "+info.getUniqueNetName(net, "."));
 }
 if (fun != NodeProto.Function.PIN) return false;
@@ -184,7 +184,7 @@ if (fun != NodeProto.Function.PIN) return false;
 			Netlist netlist = info.getNetlist();
 			StringBuffer sb = new StringBuffer();
 			if (outputCon.isNegated()) sb.append("!");
-			JNetwork oNet = netlist.getNetwork(outputCon.getPortInst());
+			Network oNet = netlist.getNetwork(outputCon.getPortInst());
 			sb.append(getNetName(oNet, info) + " =");
 			int count = 0;
 			for(Iterator it = ni.getConnections(); it.hasNext(); )
@@ -196,7 +196,7 @@ if (fun != NodeProto.Function.PIN) return false;
 				count++;
 				sb.append(" ");
 				if (con.isNegated()) sb.append("!");
-				JNetwork net = netlist.getNetwork(con.getArc(), 0);
+				Network net = netlist.getNetwork(con.getArc(), 0);
 				if (net == null) continue;
 				sb.append(getNetName(net, info));
 			}
@@ -204,13 +204,13 @@ if (fun != NodeProto.Function.PIN) return false;
 			return false;
 		}
 
-		private String getNetName(JNetwork net, HierarchyEnumerator.CellInfo info)
+		private String getNetName(Network net, HierarchyEnumerator.CellInfo info)
 		{
-			JNetwork originalNet = net;
+			Network originalNet = net;
 			HierarchyEnumerator.CellInfo originalInfo = info;
 			for(;;)
 			{
-				JNetwork higher = info.getNetworkInParent(net);
+				Network higher = info.getNetworkInParent(net);
 				if (higher == null) break;
 				net = higher;
 				info = info.getParentInfo();

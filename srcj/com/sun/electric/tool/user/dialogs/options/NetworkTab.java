@@ -23,7 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.network.Network;
+import com.sun.electric.database.network.NetworkTool;
 
 import javax.swing.JPanel;
 
@@ -52,24 +52,24 @@ public class NetworkTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		netUnifyPwrGndInitial = Network.isUnifyPowerAndGround();
+		netUnifyPwrGndInitial = NetworkTool.isUnifyPowerAndGround();
 		netUnifyPwrGnd.setSelected(netUnifyPwrGndInitial);
 
-		netUnifyLikeNamedNetsInitial = Network.isUnifyLikeNamedNets();
+		netUnifyLikeNamedNetsInitial = NetworkTool.isUnifyLikeNamedNets();
 		netUnifyLikeNamedNets.setSelected(netUnifyLikeNamedNetsInitial);
 
-		netIgnoreResistorsInitial = Network.isIgnoreResistors();
+		netIgnoreResistorsInitial = NetworkTool.isIgnoreResistors();
 		netIgnoreResistors.setSelected(netIgnoreResistorsInitial);
 
-		netUnificationPrefixInitial = Network.getUnificationPrefix();
+		netUnificationPrefixInitial = NetworkTool.getUnificationPrefix();
 		netUnificationPrefix.setText(netUnificationPrefixInitial);
 
-		netBusBaseZeroInitial = Network.isBusBaseZero();
+		netBusBaseZeroInitial = NetworkTool.isBusBaseZero();
 		netStartingIndex.addItem("0");
 		netStartingIndex.addItem("1");
 		if (!netBusBaseZeroInitial) netStartingIndex.setSelectedIndex(1);
 
-		netBusAscendingInitial = Network.isBusAscending();
+		netBusAscendingInitial = NetworkTool.isBusAscending();
 		if (netBusAscendingInitial) netAscending.setSelected(true); else
 			netDescending.setSelected(true);
 	}
@@ -77,22 +77,22 @@ public class NetworkTab extends PreferencePanel
 	public void term()
 	{
 		boolean nowBoolean = netUnifyPwrGnd.isSelected();
-		if (netUnifyPwrGndInitial != nowBoolean) Network.setUnifyPowerAndGround(nowBoolean);
+		if (netUnifyPwrGndInitial != nowBoolean) NetworkTool.setUnifyPowerAndGround(nowBoolean);
 
 		nowBoolean = netUnifyLikeNamedNets.isSelected();
-		if (netUnifyLikeNamedNetsInitial != nowBoolean) Network.setUnifyLikeNamedNets(nowBoolean);
+		if (netUnifyLikeNamedNetsInitial != nowBoolean) NetworkTool.setUnifyLikeNamedNets(nowBoolean);
 
 		nowBoolean = netIgnoreResistors.isSelected();
-		if (netIgnoreResistorsInitial != nowBoolean) Network.setIgnoreResistors(nowBoolean);
+		if (netIgnoreResistorsInitial != nowBoolean) NetworkTool.setIgnoreResistors(nowBoolean);
 
 		String nowString = netUnificationPrefix.getText();
-		if (!netUnificationPrefixInitial.equals(nowString)) Network.setUnificationPrefix(nowString);
+		if (!netUnificationPrefixInitial.equals(nowString)) NetworkTool.setUnificationPrefix(nowString);
 
 		nowBoolean = netStartingIndex.getSelectedIndex() == 0;
-		if (netBusBaseZeroInitial != nowBoolean) Network.setBusBaseZero(nowBoolean);
+		if (netBusBaseZeroInitial != nowBoolean) NetworkTool.setBusBaseZero(nowBoolean);
 
 		nowBoolean = netAscending.isSelected();
-		if (netBusAscendingInitial != nowBoolean) Network.setBusAscending(nowBoolean);
+		if (netBusAscendingInitial != nowBoolean) NetworkTool.setBusAscending(nowBoolean);
 	}
 
 	/** This method is called from within the constructor to

@@ -27,7 +27,7 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.network.Network;
+import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Name;
@@ -137,7 +137,7 @@ public class Input // extends IOTool
 
 		Undo.changesQuiet(false);
 		Cell.setAllowCircularLibraryDependences(false);
-		Network.reload();
+		NetworkTool.reload();
 		if (lib != null)
 		{
 			long endTime = System.currentTimeMillis();

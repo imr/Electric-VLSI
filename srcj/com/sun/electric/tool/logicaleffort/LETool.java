@@ -42,7 +42,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.network.Network;
+//import com.sun.electric.database.network.Network;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.WindowFrame;
