@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01u: *********************************
 
+BUG: (9/20/04, GVG) ERC not properly detecting well contacts not connected to groud/power.
+FIX: Iterate over Export in JNetwork and check if isGround() or isPower().
+
 IMP: (9/19/04, SMR) Serpentine transistors now know port information.
 
 BUG: (9/19/04, SMR) Verilog output still gets busses wrong.

@@ -30,6 +30,7 @@ import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
@@ -646,7 +647,6 @@ public class ERCWellCheck
 					wc.np = ni.getProto();
 					wc.fun = fun;
 					wc.index = wellConIndex++;
-					wc.index = wellConIndex++;
 					PortInst pi = ni.getOnlyPortInst();
 					Netlist netList = info.getNetlist();
 					JNetwork net = netList.getNetwork(pi);
@@ -654,25 +654,12 @@ public class ERCWellCheck
 					wc.onProperRail = false;
 					if (net != null)
 					{
-						if (fun == NodeProto.Function.WELL)
+						boolean searchWell = (fun == NodeProto.Function.WELL);
+						// PWell: must be on ground or  NWell: must be on power
+						for (Iterator it = net.getExports(); it.hasNext();)
 						{
-							// PWell: must be on ground
-//							for(pp = np->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
-//							{
-//								if ((pp->userbits&STATEBITS) != GNDPORT) continue;
-//								if (pp->network == net) break;
-//							}
-//							if (pp != null)
-								wc.onProperRail = true;
-						} else
-						{
-							// NWell: must be on power
-//							for(pp = np->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
-//							{
-//								if ((pp->userbits&STATEBITS) != PWRPORT) continue;
-//								if (pp->network == net) break;
-//							}
-//							if (pp != null)
+							Export exp = (Export)it.next();
+							if ((searchWell && exp.isGround()) || (!searchWell && exp.isPower()))
 								wc.onProperRail = true;
 						}
 					}
