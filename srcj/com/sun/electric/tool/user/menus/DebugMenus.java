@@ -331,7 +331,11 @@ public class DebugMenus {
 			PortInst p1PortA = poly1PinA.getOnlyPortInst();
 			PortInst p1PortB = poly1PinB.getOnlyPortInst();
 			PortInst transPortR = transistor.findPortInst("poly-" + lateral);
+            // Old style
+            if (transPortR == null) transPortR = transistor.findPortInst("p-trans-poly-" + lateral);
 			PortInst transRPortR = rotTrans.findPortInst("poly-" + lateral);
+            // Old style
+            if (transRPortR == null) transRPortR = rotTrans.findPortInst("n-trans-poly-" + lateral);
 			ArcInst metal2Arc = ArcInst.makeInstance(m2Proto, m2Proto.getWidth(), m2Port, m1m2Port);
 			if (metal2Arc == null) return false;
 			metal2Arc.setRigid(true);
