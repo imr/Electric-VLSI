@@ -428,7 +428,7 @@ public class FileMenu {
 
         public SaveLibrary(Library lib, String newName, OpenFile.Type type, boolean compatibleWith6)
         {
-            super("Write Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Write Library", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
             this.lib = lib;
             this.newName = newName;
             this.type = type;
@@ -811,7 +811,7 @@ public class FileMenu {
     {
         public QuitJob()
         {
-            super("Quitting", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+            super("Quitting", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
             startJob();
         }
 
