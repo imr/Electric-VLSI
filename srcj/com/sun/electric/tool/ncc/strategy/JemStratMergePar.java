@@ -44,25 +44,15 @@ import java.util.Map;
  * identical to its target
 */
 public class JemStratMergePar extends JemStrat {
-
-    //statistics to gather
     private int numMerged = 0;
 
     private JemStratMergePar(NccGlobals globals) {super(globals);}
 
-	// ---------- to do the job -------------
-
-	public static boolean doYourJob(NccGlobals globals){
-		JemStratMergePar jsmp = new JemStratMergePar(globals);
-		return jsmp.doYourJob2(globals);
-	}
 	private boolean doYourJob2(NccGlobals globals){
-		JemEquivRecord pt = globals.getParts();
-        int befSz= pt.maxSize();
-		preamble(globals.getWiresWithGates());
-		doFor(globals.getWiresWithGates());
+		preamble(globals.getWires());
+		doFor(globals.getWires());
 		summary();
-		return pt.maxSize() < befSz;
+		return numMerged>0;
 	}
 	
     //do something before starting
@@ -76,12 +66,9 @@ public class JemStratMergePar extends JemStrat {
 		elapsedTime();
     }
 
-	//------------- for NetObject ------------
-
-    // Given a JemEquivRecord of Wires there won't be any Parts.
     public Integer doFor(NetObject n){
 		error(!(n instanceof Wire), "JemStratMergePar expects only Wires");
-		return doFor((Wire)n);
+		return doWire((Wire)n);
     }
 
 	/** processAllCandidatesInList attempts to parallel merge the Parts in
@@ -90,10 +77,9 @@ public class JemStratMergePar extends JemStrat {
 	 * parallel merges are performed.
 	 * @param parts Collection of Parts to merge in parallel
 	 * @return the count of Parts actually merged */
-	private static int processAllCandidatesInList(Collection parts){
+	private void processAllCandidatesInList(Collection parts){
 		// Clone the list so we don't surprise the caller by changing it
 		LinkedList pts = new LinkedList(parts);
-		int numMerged = 0;
 		while (true) {
 			Iterator it= pts.iterator();
 			if (!it.hasNext()) break;
@@ -107,34 +93,36 @@ public class JemStratMergePar extends JemStrat {
 				} 
 			}
 		}
-		return numMerged;
 	}
 	
-	private int processEachListInMap(Map map) {
-		int numDone= 0;
+	private void processEachListInMap(Map map) {
 		for(Iterator it=map.keySet().iterator(); it.hasNext();){
 			ArrayList j= (ArrayList) map.get(it.next());
-			numDone += processAllCandidatesInList(j);
+			processAllCandidatesInList(j);
 		}
-		return numDone;
 	}
 
-
-    //process candidate transistors from one Wire
-    private Integer doFor(Wire w){
+    // process candidate transistors from one Wire
+    private Integer doWire(Wire w){
 		HashMap  map = new HashMap();
 		
 		for (Iterator wi=w.getParts(); wi.hasNext();) {
 			Part p = (Part)wi.next();
 			Integer code = p.hashCodeForParallelMerge();
-			ArrayList list= (ArrayList) map.get(code);
+			ArrayList list = (ArrayList) map.get(code);
 			if (list==null) {
 				list= new ArrayList();
 				map.put(code,list);
 			}
 			list.add(p);
 		}
-		numMerged += processEachListInMap(map);
+		processEachListInMap(map);
 		return CODE_NO_CHANGE;
     }
+
+	// ------------------ intended interface -----------------------
+	public static boolean doYourJob(NccGlobals globals){
+		JemStratMergePar jsmp = new JemStratMergePar(globals);
+		return jsmp.doYourJob2(globals);
+	}
 }

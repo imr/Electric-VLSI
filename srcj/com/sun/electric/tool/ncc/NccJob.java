@@ -34,6 +34,7 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.technology.*;
 import com.sun.electric.tool.io.*;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.database.hierarchy.View;
 
@@ -72,7 +73,7 @@ class NccBotUp extends HierarchyEnumerator.Visitor {
                                " : "+
                                layout.getName());
 			NccOptions options = new NccOptions();
-			options.verbose = schematic.getName().equals("full_swing_exp");
+			options.verbose = false;
 			boolean ok = NccEngine.compare(schematic, null, layout, null, 
 			                               options);
 			LayoutLib.error(!ok, "NccJob finds mismatch");
@@ -86,6 +87,7 @@ class NccBotUp extends HierarchyEnumerator.Visitor {
 
 public class NccJob extends Job {
 	private Messenger messenger;
+	private boolean useCurrentCell;
 	
 	private String fullName(Cell cell) {
 		String name = cell.getName();
@@ -158,10 +160,25 @@ public class NccJob extends Job {
 	}
 	
 	private void bottomUp(String testDir, String libName) {
-		Library lib = LayoutLib.openLibForRead(libName, 
-											   testDir+libName+".elib");
-		Cell rootCell = lib.findNodeProto("loco_top{sch}");
-		LayoutLib.error(rootCell==null, "can't find root Cell");
+		Cell rootCell;
+		if (useCurrentCell) {
+			EditWindow wnd = EditWindow.getCurrent();
+			rootCell = wnd.getCell();
+			if (rootCell==null) {
+				System.out.println("Please open the schematic for which you " +
+								   "want to generate gate layouts.");
+			}
+
+		} else {
+			Library lib = LayoutLib.openLibForRead(libName, 
+												   testDir+libName+".elib");
+			rootCell = lib.findNodeProto("loco_top{sch}");
+			LayoutLib.error(rootCell==null, "can't find root Cell");
+		}
+		bottomUp(rootCell);
+	}
+	
+	public void bottomUp(Cell rootCell) {
 		Netlist rootNetlist = rootCell.getNetlist(true);
 		NccBotUp visitor = new NccBotUp();
 		HierarchyEnumerator.enumerateCell(rootCell, null, rootNetlist, visitor);											   
@@ -202,9 +219,10 @@ public class NccJob extends Job {
     }
 
 	// ------------------------- public method --------------------------------
-	public NccJob(){
+	public NccJob(boolean useCurrentCell) {
 		super("Run Jemini", User.tool, Job.Type.CHANGE, 
 			  null, null, Job.Priority.ANALYSIS);
+		this.useCurrentCell = useCurrentCell;
 		startJob();
 	}
 }

@@ -84,9 +84,14 @@ public class DebugMenus {
         });
         russMenu.addMenuItem("Jemini", null, new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                new com.sun.electric.tool.ncc.NccJob();
+                new com.sun.electric.tool.ncc.NccJob(false);
             }
         });
+		russMenu.addMenuItem("run Jemini on current cell", null, new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new com.sun.electric.tool.ncc.NccJob(true);
+			}
+		});
         russMenu.addMenuItem("create flat netlists for Ivan", null, new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 new com.sun.electric.tool.generator.layout.IvanFlat();

@@ -40,7 +40,7 @@ import com.sun.electric.tool.ncc.trees.JemCircuit;
 import com.sun.electric.tool.ncc.trees.JemEquivRecord;
 import com.sun.electric.tool.ncc.jemNets.NccNetlist;
 import com.sun.electric.tool.ncc.basicA.Messenger;
-import com.sun.electric.tool.ncc.strategy.JemStratFixed;
+import com.sun.electric.tool.ncc.strategy.JemStratLocal;
 import com.sun.electric.tool.ncc.strategy.JemStratVariable;
 import com.sun.electric.tool.ncc.strategy.JemStratDebug;
 import com.sun.electric.tool.ncc.strategy.JemStratResult;
@@ -78,30 +78,37 @@ public class NccEngine {
 		return nccLists;
 	}
 	
+	private boolean designsMatch() {
+		if (globals.getRoot()==null) {
+			globals.println("empty cell");
+			return true;
+		} else {
+			boolean checkExports = globals.getOptions().checkExports;
+			JemExportChecker expCheck = checkExports ? new JemExportChecker(globals) : null;
+
+			if (!JemStratLocal.doYourJob(globals)) return false;
+			JemStratVariable.doYourJob(globals);
+			boolean matched = true;
+			if (checkExports) 
+				matched &= expCheck.ensureExportsWithMatchingNamesAreOnEquivalentNets();
+			
+			matched &= JemStratResult.doYourJob(mismatchList, activeList, globals);
+
+			if (!matched) JemStratDebug.doYourJob(globals);
+			return matched;
+		}
+	}
+	
 	private NccEngine(List cells, List contexts, List netlists,
 					  NccOptions options) {
 		globals = new NccGlobals(options);
-				
+		
 		globals.print("****************************************");					  		
 		globals.println("****************************************");					  		
-		List nccNetlists = buildNccNetlists(cells, contexts, netlists);
 
+		List nccNetlists = buildNccNetlists(cells, contexts, netlists);
 		globals.setInitialNetlists(nccNetlists);
-		
-		if (globals.getRoot()==null) {
-			globals.println("empty cell");
-		} else {
-			JemExportChecker expCheck = null;
-			if (options.checkExports) expCheck = new JemExportChecker(globals);
-			JemStratFixed.doYourJob(globals);
-			JemStratVariable.doYourJob(globals);
-			if (options.checkExports) 
-			    matched &= expCheck.ensureExportsWithMatchingNamesAreOnEquivalentNets();
-			//JemStratDebug.doYourJob(globals);
-			
-			matched &= JemStratResult.doYourJob(mismatchList, activeList, globals);
-		    if (!matched) JemStratDebug.doYourJob(globals);
-		}
+		matched = designsMatch();
 
 		globals.print("****************************************");					  		
 		globals.println("****************************************");					  		

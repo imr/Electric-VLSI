@@ -22,14 +22,14 @@
  * Boston, Mass 02111-1307, USA.
 */
 
-/**
- * JemStratMergeSer merges series transistors
- * it starts with all wires, separating them into two groups:
- * 0) uninteresting wires and
- * 1) "short" Wires with exactly two diffusions
- * before releasing a short wire JemStratMergeSer attempts
- * to merge the transistors that it links.
- */
+/** JemStratMergeSer merges series transistors
+ * It first creates a list of wires with two parts attached.
+ * It then tries to perform a serial merge on the wires in that list.
+ * 
+ * <p>Subtle. I must do this in two passes. Series merge requires the
+ * deletion of a wire. However, I can't remove a wire from a list over
+ * which I'm currently Iterating. If I do I get a Concurrent Modification
+ * Exception.  */
 package com.sun.electric.tool.ncc.strategy;
 import com.sun.electric.tool.ncc.*;
 import com.sun.electric.tool.ncc.basicA.Messenger;
@@ -44,84 +44,53 @@ import java.util.Iterator;
 import java.util.ArrayList;
 
 public class JemStratMergeSer extends JemStrat {
-
-    private int numWires;
-    private int numShort;
-    private int numLeft;
-    private ArrayList toBeDeleted = new ArrayList();
-
-    private static final int NUM_CODES= 1;
+    private ArrayList candidates = new ArrayList();
 
     private JemStratMergeSer(NccGlobals globals) {super(globals);}
 
-	// ---------- to do the job -------------
-
-	public static boolean doYourJob(NccGlobals globals){
-		JemEquivRecord noGates= globals.getWiresWithoutGates();
-		if(noGates == null) return false;
-		JemEquivRecord pt= globals.getParts();
-		int nmPartsBefore = pt.maxSize();
-		JemStratMergeSer ms = new JemStratMergeSer(globals);
-		ms.preamble(noGates);
-		ms.doFor(noGates);
-		ms.summary();
-		return pt.maxSize() < nmPartsBefore;
+	private int processCandidates() {
+		int numMerged = 0;
+		for (Iterator it=candidates.iterator(); it.hasNext();) {
+			Wire w = (Wire) it.next();
+			if (Transistor.joinOnWire(w)) numMerged++;
+		}
+		return numMerged;
 	}
 	
-    //do something before starting
+	private boolean doYourJob() {
+		JemEquivRecord wires = globals.getWires();
+		preamble(wires);
+		doFor(wires);
+		int numMerged = processCandidates();
+		summary(numMerged);
+
+		return numMerged>0;
+	}
+	
     private void preamble(JemEquivRecord j){
 		startTime("JemStratMergeSer" , j.nameString());
     }
 
-    //summarize at the end
-    private void summary(){
-    	for (int i=0; i<toBeDeleted.size(); i++) {
-    		Wire w = (Wire) toBeDeleted.get(i); 
-    		w.killMe();
-    	}
+    private void summary(int numMerged){
 		globals.println("JemStratMergeSer performed " +
-					  toBeDeleted.size() + " series merges, processing " +
-					  numWires + " Wires = " +
-					  numShort + " two-diff Wires, of which " +
-					  numLeft + " remain.");
-		elapsedTime();
+					    numMerged + " series merges");		elapsedTime();
     }
-
-    //------------- for NetObject ------------
 
     public Integer doFor(NetObject n){
 		error(!(n instanceof Wire), "expecting only wires");
-		return doFor((Wire)n);
+		return doWire((Wire)n);
     }
 
-    private Integer doFor(Wire w){
-		//does it have exactly two diffusions?
-		numWires++;
-
-		// make sure there are no ports on wire
-		if (w.getPort()!=null)  return CODE_NO_CHANGE;
-		
-		// wires declared GLOBAL in Electric aren't internal nodes of MOS stacks
-		if (w.isGlobal()) return CODE_NO_CHANGE;
-		
-		int count= 0;
-		for(Iterator it=w.getParts(); it.hasNext();){
-			Part p= (Part)it.next();
-			if(!(p instanceof Transistor)) return CODE_NO_CHANGE;
-			Transistor t= (Transistor)p;
-			if(!t.touchesAtDiffusion(w)) return CODE_NO_CHANGE;
-			count++;
-			if(count > 2)return CODE_NO_CHANGE;
-		}
-		if(count != 2) return CODE_NO_CHANGE;
-		//we've got a candidate
-		numShort++;
-		if(Transistor.joinOnWire(w)){
-			toBeDeleted.add(w);
-			return CODE_NO_CHANGE;
-		}
-		numLeft++;
+    private Integer doWire(Wire w){
+		// this a quick and dirty test for candidacy. 
+		// Transistor.joinOnWire does the complete test.
+		if (w.numParts()==2) candidates.add(w);
 		return CODE_NO_CHANGE;
     }
 
+	// --------------- intended interface --------------------
+	public static boolean doYourJob(NccGlobals globals){
+		JemStratMergeSer ms = new JemStratMergeSer(globals);
+		return ms.doYourJob();
+	}
 }

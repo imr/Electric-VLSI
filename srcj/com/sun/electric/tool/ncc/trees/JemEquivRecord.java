@@ -357,7 +357,7 @@ public class JemEquivRecord {
 	 * describing what characteristic made this JemEquivRecord unique.
 	 * This information is useful for providing pre-analysis information
 	 * to the user. */
-	public void setPartionReason(String s) {partitionReason=s;}
+	public void setPartitionReason(String s) {partitionReason=s;}
 	public String getPartitionReason() {return partitionReason;}
 
 	/** 

@@ -27,8 +27,10 @@ import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.jemNets.Wire;
 import com.sun.electric.tool.ncc.trees.JemCircuit;
 import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.ncc.strategy.JemPinType;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Iterator;
 
@@ -37,8 +39,107 @@ import java.util.Iterator;
 public class Transistor extends Part {
 	public static class Type {
 		private String name;
-		private Type(String s){name=s;}
+		private Type(String s) {name=s;}
 	}
+	public static final Type NTYPE= new Type("NMOS");
+	public static final Type PTYPE= new Type("PMOS");
+
+	private static class GateType implements JemPinType {
+		private final int numSeries;
+		private final Type np;
+		private final int gateHeight;
+		private final boolean cap;
+
+		public int numConnectionsToPinOfThisType(Part p, Wire w) {
+			if (!(p instanceof Transistor)) return 0;
+			Transistor t = (Transistor) p;
+			if (t.getType()!=np) return 0;
+			if (t.numSeries()!=numSeries) return 0;
+			if (cap!=t.isCapacitor()) return 0;
+			
+			int loGate = gateHeight;
+			int hiGate = numSeries+1 - gateHeight;
+
+			int numPins = numSeries+2;
+			int count = 0;
+			if (t.pins[loGate]==w) count++;
+			if (loGate!=hiGate && t.pins[hiGate]==w) count++;
+			return count;
+		}
+		public String description() {
+			String t = np==NTYPE ? "NMOS" : "PMOS";
+			String c = cap ? "_CAP" : "";
+			String h = numSeries==1 ? "" : ("_"+numSeries+"stack");
+			int hiGate = numSeries+1 - gateHeight;
+			String g = "";
+			if (numSeries>2) {
+				g = gateHeight + (gateHeight==hiGate ? "" : ("/"+hiGate)); 
+			} 
+			return t+c+h+" gate"+g;
+		}
+		public GateType(Type np, int numSeries, int gateHeight, boolean cap) {
+			LayoutLib.error(np!=NTYPE && np!=PTYPE, "bad type");
+			LayoutLib.error(numSeries<1, "bad numSeries");
+			int highestGateInLowerHalfOfStack = (numSeries+1)/2;
+			LayoutLib.error(gateHeight>highestGateInLowerHalfOfStack, "bad gate Height");
+			this.np = np;
+			this.numSeries = numSeries;
+			this.gateHeight = gateHeight;
+			this.cap = cap;
+		}
+	}
+	private static class DiffType implements JemPinType {
+		private final int numSeries;
+		private final Type np;
+		private final boolean cap;
+
+		public int numConnectionsToPinOfThisType(Part p, Wire w) {
+			if (!(p instanceof Transistor)) return 0;
+			Transistor t = (Transistor) p;
+			if (t.getType()!=np) return 0;
+			if (t.numSeries()!=numSeries) return 0;
+			if (cap!=t.isCapacitor()) return 0;
+			
+			int count = 0;
+			if (t.pins[0]==w) count++;
+			if (t.pins[numSeries+1]==w) count++;
+			return count;
+		}
+		public String description() {
+			String t = np==NTYPE ? "NMOS" : "PMOS";
+			String c = cap ? "_CAP" : "";
+			String h = numSeries==1 ? "" : ("_"+numSeries+"stack");
+			return t+c+h+" diffusion";
+		}
+		public DiffType(Type np, int numSeries, boolean cap) {
+			LayoutLib.error(np!=NTYPE && np!=PTYPE, "bad type");
+			LayoutLib.error(numSeries<1, "bad numSeries");
+			int highestGateInLowerHalfOfStack = (numSeries+1)/2;
+			this.np = np;
+			this.numSeries = numSeries;
+			this.cap = cap;
+		}
+	}
+
+	public static final Collection PIN_TYPES = new ArrayList();
+	static {
+		Type[] types = {NTYPE, PTYPE};
+		for (int i=0; i<2; i++) {
+			Type type = types[i]; 
+			for (int j=0; j<2; j++) {
+				boolean cap = j==0 ? false : true;
+				for (int numSeries=1; numSeries<=5; numSeries++) {
+					PIN_TYPES.add(new DiffType(type, numSeries, cap));
+
+					int maxHeight = (numSeries+1) / 2;
+					for (int gateHeight=1; gateHeight<=maxHeight; gateHeight++) {
+						PIN_TYPES.add(new GateType(type, numSeries, gateHeight, cap));
+					}
+				}
+			}
+		}
+	}
+
 	/** Generate arrays of pin coefficients on demand. Share these arrays
 	 * between identically sized Transistors */
 	private static class CoeffGen {
@@ -81,6 +182,7 @@ public class Transistor extends Part {
 		type = np;
 		this.width = width;
 		this.length = length;
+		LayoutLib.error(type!=NTYPE && type!=PTYPE, "bad type");
 		
 		term_coeffs = CoeffGen.getCoeffArray(pins.length);
 	}
@@ -114,10 +216,8 @@ public class Transistor extends Part {
 	private Wire loDiff() {return pins[0];}
 
     // ---------- public methods ----------
-	public static final Type NTYPE= new Type("N-");
-	public static final Type PTYPE= new Type("P-");
 
-	/** Standard 3 terminal Transistor. */
+	/** The standard 3 terminal Transistor. */
 	public Transistor(Type np, String name, double width, double length,
 					  Wire src, Wire gate, Wire drn) {
 		this(np, name, width, length, new Wire[] {src, gate, drn});
@@ -129,6 +229,7 @@ public class Transistor extends Part {
     public boolean isNtype(){return (type== NTYPE);}
     public boolean isPtype(){return (type== PTYPE);}
 	public boolean isThisGate(int x){return x!=0 && x!=pins.length-1;}
+	public int numSeries() {return pins.length-2;}
 	public int[] getTermCoefs() {return term_coeffs;}
 
 	public boolean touchesAtGate(Wire w){
@@ -171,10 +272,24 @@ public class Transistor extends Part {
 		return true;		    	
 	}
 
+	public int typeCode() {
+		return Part.TRANSISTOR +
+			   (isCapacitor()?1:0) << 4 +
+			   (isNtype()?1:0) << 5 +
+			   numSeries() << 6;
+	}
+
 	// ---------- printing methods ----------
 
-	public String nameString(){
-		return (type.name + "Trans" + (pins.length-2) +" "+ getName());
+	public String typeString() {
+		String t = type.name;
+		String c = isCapacitor() ? "_CAP" : "";
+		String h = pins.length==3 ? "" : ("_"+(pins.length-2)+"stack");
+		return t+c+h;
+	}
+
+	public String nameString() {
+		return typeString()+" "+getName();
 	}
 
 	public String connectionString(int n) {
@@ -235,18 +350,26 @@ public class Transistor extends Part {
 	 * @return true if merge has taken place
 	 */
 	public static boolean joinOnWire(Wire w){
+		// make sure there are no Ports on wire
+		if (w.getPort()!=null)  return false;
+		
+		// wires declared GLOBAL in Electric can't be internal nodes 
+		// of MOS stacks
+		if (w.isGlobal()) return false;
+		
+		if (w.numParts()!=2)  return false;
+
 		Transistor ta= null;
 		Transistor tb= null;
-		error(w.numParts()!=2, "wire may only connect two Transistor diffusions");
 		for (Iterator it=w.getParts(); it.hasNext();) {
-			Object oo= it.next();
-			if(oo instanceof Transistor) {
-				Transistor t= (Transistor)oo;
-				if (ta==null)  ta= t;
-				else  tb= t;
-			}
+			Part p = (Part) it.next();
+			if (!(p instanceof Transistor)) return false;
+			Transistor t = (Transistor) p;
+			if (!t.touchesAtDiffusion(w)) return false;
+			if (t.touchesAtGate(w)) return false;
+			if (ta==null)  ta=t;  else  tb=t;
 		}
-		if (ta==null || tb==null)  return false;
+		error(ta==null || tb==null, "can't happen");
 		error(ta==tb, "part should only occur once on wire");
 		error(ta.getParent()!=tb.getParent(), "mismatched parents?");
 		if (!ta.isLike(tb))  return false;
@@ -274,6 +397,7 @@ public class Transistor extends Part {
 		ta.deleteMe();
 		tb.deleteMe();
 		error(w.numParts()!=0, "wire not empty?");
+		w.killMe();
 		return true;
 	}
 	// over ride the hash computation

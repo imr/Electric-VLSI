@@ -35,33 +35,28 @@ import com.sun.electric.tool.ncc.trees.*;
 import com.sun.electric.tool.ncc.lists.*;
 
 public class JemStratFrontier extends JemStrat {
-	private int numHistoryRecords;
-
     private JemStratFrontier(NccGlobals globals) {super(globals);}
 
-    // ---------- the tree walking code ---------
-
-    private void preamble(){
-//		startTime("JemStratFrontier", "JemLeafList");
-    }
-	
-    private void preamble(JemEquivRecord j){
-//		startTime("JemStratFrontier", j.nameString());
-    }
-	
-    //summarize at the end
     private void summary(JemLeafList x){
-//        globals.println(" JemStratFrontier done - used ");
-//        globals.println(numHistoryRecords + " HistoryRecords");
 		globals.println(" JemStratFrontier ");
 		globals.println(offspringStats(x));
-//        elapsedTime();
     }
 
+	public JemLeafList doFor(JemEquivRecord j){
+		JemLeafList frontier = new JemLeafList();
+		if(j.isLeaf()){
+			JemEquivRecord er= (JemEquivRecord)j;
+			if (!er.isRetired())  frontier.add(j);
+		} else {
+			frontier = super.doFor(j);
+		}
+		return frontier;
+	}
+
+	// ------------------- intended interface ------------------------
 	public static JemLeafList doYourJob(JemRecordList r,
 										NccGlobals globals) {
 		JemStratFrontier jsf = new JemStratFrontier(globals);
-        jsf.preamble();
 		JemLeafList el= jsf.doFor(r);
 		jsf.summary(el);
         return el;
@@ -72,23 +67,8 @@ public class JemStratFrontier extends JemStrat {
     	if (r==null)  return new JemLeafList();
     	
     	JemStratFrontier jsf = new JemStratFrontier(globals);
-    	jsf.preamble(r);
     	JemLeafList el = jsf.doFor(r);
     	jsf.summary(el);
     	return el;
-    }
-	
-    // ---------- for JemEquivRecord -------------
-
-    public JemLeafList doFor(JemEquivRecord j){
-		JemLeafList frontier = new JemLeafList();
-		if(j.isLeaf()){
-			JemEquivRecord er= (JemEquivRecord)j;
-			if (!er.isRetired())  frontier.add(j);
-		} else {
-			numHistoryRecords++;
-			frontier = super.doFor(j);
-		}
-		return frontier;
     }
 }

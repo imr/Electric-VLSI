@@ -39,10 +39,14 @@ public class JemWirePopularity extends JemStrat {
 
 	public static void doYourJob(NccGlobals globals) {
 		JemWirePopularity wp = new JemWirePopularity(globals);
-		wp.preamble();
+		wp.doYourJob2(globals);
+	}
+	
+	private void doYourJob2(NccGlobals globals) {
+		preamble();
 		JemLeafList front = JemStratFrontier.doYourJob(globals.getWires(), globals);
-		JemLeafList offspring = wp.doFor(front);
-		wp.summary(offspring);
+		JemLeafList offspring = doFor(front);
+		summary(offspring);
 	}
 
 	//do something before starting

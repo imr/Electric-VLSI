@@ -71,8 +71,6 @@ public class NccGlobals {
     /** subtree holding parts */              private JemEquivRecord parts;
     /** subtree holding wires */              private JemEquivRecord wires;
     /** subtree holding ports */              private JemEquivRecord ports;
-	/** subtree holding wires without gates */private JemEquivRecord withoutGates;
-	/** subtree holding wires with gates */   private JemEquivRecord withGates;
 	/** number of netlists we're comparing */ private int numNetlistsBeingCompared;
 	/** name of root Cell of each netlist */  private String[] rootCellNames;
 	/** pass number shared by strategies */   public int passNumber;
@@ -133,24 +131,11 @@ public class NccGlobals {
 			rootCellNames[i] = nl.getRootCellName();
 		}
 	}
-	public void setWithWithoutGates(JemEquivRecord withGates, 
-								 	JemEquivRecord withoutGates) {
-		this.withGates=withGates;  this.withoutGates=withoutGates;
-	}
-
-	/** Tricky: when each TransistorTwo is created a wire is
-	 * deleted. This may leave the JemEquivRecord: withoutGates with
-	 * empty JemCircuits. This is an invalid state.  Set withoutGates
-	 * to null if the referenced JemEquivRecord is invalid. */
-	public void deleteEmptyWires() {
-		if (withoutGates.maxSize()==0)  withoutGates = null;
-	}
+	
 	public JemEquivRecord getRoot() {return root;}
 	public JemEquivRecord getParts() {return parts;}
 	public JemEquivRecord getWires() {return wires;}
 	public JemEquivRecord getPorts() {return ports;}
-	public JemEquivRecord getWiresWithoutGates() {return withoutGates;}
-	public JemEquivRecord getWiresWithGates() {return withGates;}
 	public int getNumNetlistsBeingCompared() {return numNetlistsBeingCompared;}
 	public String[] getRootCellNames() {return rootCellNames;}
 	

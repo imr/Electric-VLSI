@@ -36,24 +36,10 @@ public class JemHashWires extends JemStrat {
 	
 	private JemHashWires(NccGlobals globals){super(globals);}
 	
-	public static JemLeafList doYourJob(JemRecordList l,
-										NccGlobals globals){
-		// if no Wires suppress all JemHashWires messages
-		if (l.size()==0) return new JemLeafList();											
-											
-		JemHashWires hwa = new JemHashWires(globals);
-		hwa.preamble(l.size());
-		JemLeafList el = hwa.doFor(l);
-		hwa.summary(el);
-		return el;
-	}
-	
-	//do something before starting
 	private void preamble(int nbWires){
 		startTime("JemHashWires", nbWires+" Wires");
 	}
 	
-	//summarize at the end
 	private void summary(JemLeafList offspring){
 		globals.println(" processed " +
 					   numWiresProcessed + " Wires from " +
@@ -62,8 +48,6 @@ public class JemHashWires extends JemStrat {
 		globals.println(offspring.sizeInfoString());
 		elapsedTime();
 	}
-	
-	// ---------- for JemEquivRecord -------------
 	
     public JemLeafList doFor(JemEquivRecord g){
 		JemLeafList out;
@@ -78,12 +62,23 @@ public class JemHashWires extends JemStrat {
 		return out;
     }
 	
-	//------------- for NetObject ------------
 	public Integer doFor(NetObject n){
 		error(!(n instanceof Wire), "JemHashWires expects wires only");
 		numWiresProcessed++;
 		Wire w= (Wire)n;
 		return w.computeHashCode();
 	}
-	
+
+	// --------------- intended interface ------------------	
+	public static JemLeafList doYourJob(JemRecordList l,
+										NccGlobals globals){
+		// if no Wires suppress all JemHashWires messages
+		if (l.size()==0) return new JemLeafList();											
+											
+		JemHashWires hwa = new JemHashWires(globals);
+		hwa.preamble(l.size());
+		JemLeafList el = hwa.doFor(l);
+		hwa.summary(el);
+		return el;
+	}
 }

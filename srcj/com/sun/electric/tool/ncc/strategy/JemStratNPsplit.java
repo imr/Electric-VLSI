@@ -95,7 +95,7 @@ public class JemStratNPsplit extends JemStrat {
 		nps.doYourJob2(globals);
 	}
 
-	public void doYourJob2(NccGlobals globals){
+	private void doYourJob2(NccGlobals globals){
 		JemEquivRecord parts = globals.getParts();
 
 		if (parts==null) return; // No cell has Parts

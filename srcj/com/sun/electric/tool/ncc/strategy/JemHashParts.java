@@ -36,19 +36,6 @@ public class JemHashParts extends JemStrat {
 
     private JemHashParts(NccGlobals globals){super(globals);}
 	
-	public static JemLeafList doYourJob(JemRecordList l,
-	                                     NccGlobals globals){
-		JemHashParts jhpa = new JemHashParts(globals);
-
-		// If no Parts suppress all JemHashParts messages
-		if (l.size()==0) return new JemLeafList();
-
-		jhpa.preamble(l.size());
-		JemLeafList offspring= jhpa.doFor(l);
-		jhpa.summary(offspring);
-		return offspring;
-	}
-	
     //do something before starting
     private void preamble(int nbParts){
 		startTime("JemHashParts", nbParts+" Parts");
@@ -64,14 +51,10 @@ public class JemHashParts extends JemStrat {
 		elapsedTime();
     }
 	
-	// ---------- for JemEquivRecord -------------
-	
     public JemLeafList doFor(JemEquivRecord g){
 		if (g.isLeaf())  numEquivProcessed++;
 		return super.doFor(g);
     }
-	
-    //------------- for NetObject ------------
 	
     public Integer doFor(NetObject n){
 		error(!(n instanceof Part), "JemHashPartAll expects only Parts");
@@ -80,4 +63,17 @@ public class JemHashParts extends JemStrat {
 		return p.computeHashCode();
     }
 	
+	// ------------------ intended interface -----------------
+	public static JemLeafList doYourJob(JemRecordList l,
+										NccGlobals globals){
+		JemHashParts jhpa = new JemHashParts(globals);
+
+		// If no Parts suppress all JemHashParts messages
+		if (l.size()==0) return new JemLeafList();
+
+		jhpa.preamble(l.size());
+		JemLeafList offspring= jhpa.doFor(l);
+		jhpa.summary(offspring);
+		return offspring;
+	}
 }

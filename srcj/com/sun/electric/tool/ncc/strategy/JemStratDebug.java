@@ -36,6 +36,10 @@ public class JemStratDebug extends JemStrat {
 		if (er.isLeaf()) {
 			if (er.isActive() || er.isMismatched()) {
 				globals.println(er.nameString());
+				for (JemEquivRecord r=er; r.getParent()!=null; r=r.getParent()) {
+					String reason = r.getPartitionReason();
+					if (reason!=null) globals.println("   "+reason);
+				}
 				super.doFor(er);
 			}
 		} else {

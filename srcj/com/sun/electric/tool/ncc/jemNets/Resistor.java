@@ -98,12 +98,11 @@ public class Resistor extends Part {
         return true; //return true if merged
     }
 
+	public int typeCode() {return Part.RESISTOR;}
 
     // ---------- printing methods ----------
 
-    public String nameString(){
-		return ("Resistor " + getName());
-    }
+    public String typeString() {return "Resistor";}
 
     public String connectionString(int n){
 		String s = pins[0].getName();

@@ -21,17 +21,6 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
 */
-//	Updated 16 October 2003 to use JemTree
-//  Annotated on 29 January 2004 by Ivan Sutherland
-
-/**
- * Part is an intermediate abstract sub-class of NetObject.
- * sub-classes of Part include Transistor, Resistor, (Capacitor), but
- * NOT Port.  Parts use the "content" List provided by NetObject to
- * hold pointers to the Wires attached to them.  Each class of Part
- * has a fixed number of connections, e.g. TransistorOne has three.
-*/
-
 package com.sun.electric.tool.ncc.jemNets;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.basicA.Messenger;
@@ -46,8 +35,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Set;
 
+/** Part is an intermediate abstract sub-class of NetObject.
+ * sub-classes of Part include Transistor, Resistor, (Capacitor), but
+ * NOT Port. */
 public abstract class Part extends NetObject {
+	protected static final int RESISTOR = 0;
+	protected static final int TRANSISTOR = 1;
+	
     // ---------- private data -------------
     protected Wire[] pins;
 
@@ -103,7 +99,7 @@ public abstract class Part extends NetObject {
 	 * Parts. 
 	 */
 	public abstract Integer hashCodeForParallelMerge();
-
+	
 	/** 
 	 * A method to disconnect a Wire from this Part
 	 * @param w the Wire to disconnect
@@ -135,6 +131,23 @@ public abstract class Part extends NetObject {
 		JemCircuit parent= (JemCircuit)getParent();
 		parent.remove(this);
     }
+    
+    public int numDistinctWires() {
+    	Set wires = new HashSet();
+    	for (int i=0; i<pins.length; i++)  wires.add(pins[i]);
+    	return wires.size();
+    }
+    
+	/** returns String describing Part's type */
+    public abstract String typeString();
+    
+	/** returns a unique int value for each distinct Part type */
+    public abstract int typeCode();
+    	
+    /** returns the part type followed by the instance name */
+    public String nameString() {
+    	return typeString()+" "+getName();
+    }
 	
 	/** 
 	 * A method to test if a Part touches a Wire.
@@ -165,47 +178,6 @@ public abstract class Part extends NetObject {
 	protected abstract boolean isThisGate(int x);
 	
 	public abstract String connectionString(Wire w);
-
-//	/** 
-//	 * A method to compute the hash code for this NetObject.
-//	 * @param type: 0 by part name, 1 omitting gate connections
-//	 * 2 by gate connections only, 3 using all connections.
-//	 * @return an Integer code for distinguishing the objects.
-//	 */
-//	public Integer computeCode(int type){
-//		if(type == 0) return computeNameCode();
-//		if(type == 1) return computeWithoutGate();
-//		if(type == 2) return computeGateOnly();
-//		if(type == 3) return computeHashCode();
-//		return null;
-//	} //end of computeCode
-
-//	public Integer computeWithoutGateCode(){
-//        int sum= 0;
-//		int hash= 0;
-//        int codes[]= getTermCoefs();
-//		for(int i=0; i<size(); i++){
-//			if(isThisGate(i))continue;
-//			hash= codes[i];
-//			Wire w= (Wire)content.get(i);
-//			if(w!=null)hash= w.getCode();
-//            sum= sum+hash*codes[i];
-//        }
-//        return new Integer(sum);
-//    }
-
-//	public Integer computeGateOnlyCode(){
-//        int sum= 0;
-//        int codes[]= getTermCoefs();
-//		for(int i=0; i<size(); i++){
-//			if( ! isThisGate(i))continue;
-//			int hash= codes[i];
-//			Wire w= (Wire)content.get(i);
-//			if(w!=null)hash= w.getCode();
-//            sum= sum+hash*codes[i];
-//        }
-//        return new Integer(sum);
-//    }
 
 	public Integer computeHashCode(){
         int sum= 0;
