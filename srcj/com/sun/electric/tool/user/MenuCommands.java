@@ -211,6 +211,8 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { copyCommand(); } });
 		editMenu.addMenuItem("Paste", KeyStroke.getKeyStroke('V', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { pasteCommand(); } });
+        editMenu.addMenuItem("Duplicate", KeyStroke.getKeyStroke('M', buckyBit),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { duplicateCommand(); } });
 
 		editMenu.addSeparator();
 
@@ -658,7 +660,10 @@ public final class MenuCommands
 		Menu logEffortSubMenu = new Menu("Logical Effort", 'L');
 		logEffortSubMenu.addMenuItem("Optimize for Equal Gate Delays", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { optimizeEqualGateDelaysCommand(); }});
+        logEffortSubMenu.addMenuItem("Print Info for Selected Node", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { printLEInfoCommand(); }});
 		toolMenu.add(logEffortSubMenu);
+
 
 		Menu routingSubMenu = new Menu("Routing", 'R');
 		routingSubMenu.addMenuItem("Mimic-Stitch Now", KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0),
@@ -1297,6 +1302,12 @@ public final class MenuCommands
 		Clipboard.paste();
 	}
 
+    public static void duplicateCommand()
+    {
+        Clipboard.copy();
+        Highlight.clear();
+        Clipboard.paste();
+    }
 	/**
 	 * This method sets the highlighted arcs to Rigid
 	 */
@@ -2247,6 +2258,30 @@ public final class MenuCommands
         // optimize cell for equal gate delays
 		letool.optimizeEqualGateDelays(curEdit.getCell(), curEdit.getVarContext(), curEdit);
 	}
+
+    /** Print Logical Effort info for highlighted nodes */
+    public static void printLEInfoCommand() {
+        if (Highlight.getNumHighlights() == 0) {
+            System.out.println("Nothing highlighted");
+            return;
+        }
+        for (Iterator it = Highlight.getHighlights(); it.hasNext();) {
+            Highlight h = (Highlight)it.next();
+            if (h.getType() != Highlight.Type.EOBJ) continue;
+
+            ElectricObject eobj = h.getElectricObject();
+            if (eobj instanceof PortInst) {
+                PortInst pi = (PortInst)eobj;
+                pi.getInfo();
+                eobj = pi.getNodeInst();
+            }
+            if (eobj instanceof NodeInst) {
+                NodeInst ni = (NodeInst)eobj;
+                LETool.printResults(ni);
+            }
+        }
+
+    }
 
 	public static void redoNetworkNumberingCommand()
 	{

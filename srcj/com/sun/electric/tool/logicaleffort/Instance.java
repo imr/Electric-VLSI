@@ -30,6 +30,8 @@ package com.sun.electric.tool.logicaleffort;
 
 import com.sun.electric.tool.logicaleffort.*;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.hierarchy.Nodable;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -47,13 +49,14 @@ public class Instance {
     /** type of LEGate */                           private Instance.Type type;
     /** step-up assigned to this gate */            private float leSU;
     /** size (drive strength) of this gate */       private float leX;
-    /** used for levelizing the design */           private int leLevel;
+    /** used for levelizing the design */           private int level;
     /** all other pins of Instance */               private ArrayList pins;
-    /** if an LEGate */                             private boolean leGate;
-    
+
     /** Context */                                  private VarContext context;
     /** parallel group number (0 is no group) */    private int parallelGroup;
     /** m-factor */                                 private double mfactor;
+
+    /** Nodable this instance derived from */       private Nodable no;
 
     /** Type is a typesafe enum class that describes the type of Instance this is */
     protected static class Type {
@@ -61,24 +64,24 @@ public class Instance {
         private Type(String name) { this.name = name; }
         public String toString() { return name; }
 
-        /** NotSizeable */  protected static final Type STATICGATE = new Type("staticGate");
-        /** NotSizeable */  protected static final Type LOAD = new Type("load");
-        /** LeGate */       protected static final Type LEGATE = new Type("leGate");
-        /** LeKeeper */     protected static final Type LEKEEPER = new Type("leKeeper");
+        /** NotSizeable */  protected static final Type STATICGATE = new Type("Static Gate");
+        /** NotSizeable */  protected static final Type LOAD = new Type("Load");
+        /** NotSizeable */  protected static final Type WIRE = new Type("Wire");
+        /** LeGate */       protected static final Type LEGATE = new Type("LE Gate");
+        /** LeKeeper */     protected static final Type LEKEEPER = new Type("LE Keeper");
     }
     
     /** Creates a new instance of Instance */
-    protected Instance(String name, Instance.Type type, float leSU, float leX) {
+    protected Instance(String name, Instance.Type type, float leSU, float leX, Nodable no) {
         this.name = name;
         this.type = type;
         this.leSU = leSU;
         this.leX = leX;
+        this.level = 0;
+        this.no = no;
         this.parallelGroup = 0;
         this.mfactor = 1;
         pins = new ArrayList();
-        leGate = false;
-        if (type == Type.LEGATE || type == Type.LEKEEPER)
-            leGate = true;
     }
         
     /** Return list of bidirectional pins; */
@@ -93,9 +96,20 @@ public class Instance {
     /** Get inout pins */
     protected ArrayList getInoutPins() { return Pin.getInoutPins(pins); }
     
-    /** Get optimization flag */
-    protected boolean getLeGate() { return leGate; }
-    
+    /** True if this is a sizable gate */
+    protected boolean isLeGate() {
+        if (type == Type.LEGATE || type == Type.LEKEEPER)
+            return true;
+        return false;
+    }
+
+    /** True if this is a gate */
+    protected boolean isGate() {
+        if (type == Type.LEGATE || type == Type.LEKEEPER || type == Type.STATICGATE)
+            return true;
+        return false;
+    }
+
     /** Get Type of leGate */
     protected Instance.Type getType() { return type; }
 
@@ -103,9 +117,9 @@ public class Instance {
 	protected String getName() { return name; }
 
     /** Get the level of the gate */
-    protected int getLeLevel() { return leLevel; }
+    protected int getLevel() { return level; }
     /** Set the level of the gate */
-    protected void setLeLevel(int leLevel) { this.leLevel = leLevel; }
+    protected void setLevel(int level) { this.level = level; }
 
     /** Get the step-up/delay */
     protected float getLeSU() { return leSU; }
@@ -122,6 +136,9 @@ public class Instance {
     /** Set VarContext */
     protected void setContext(VarContext context) { this.context = context; }
 
+    /** Get the Nodable */
+    protected Nodable getNodable() { return no; }
+
     /** Get parallelGroup */
     protected int getParallelGroup() { return parallelGroup; }
     /** Set parallelGroup */
@@ -135,7 +152,10 @@ public class Instance {
     /** Set the pin list */
     protected void setPins(ArrayList pins) { 
         this.pins = pins;
-        if (!leGate) return;
+
+        if (!isLeGate()) return;
+        // run some checks if this is an LEGATE
+
         // check that there is only one output pin for an leGate
         int outputPinCount = 0;
         StringBuffer err = new StringBuffer("LETool leGate '"+name+"' error: more than one output pin: ");
@@ -150,6 +170,23 @@ public class Instance {
             System.out.println("LETool leGate '"+name+"' error: no output pin, or no 'le' logical effort defined on output pin");
         if (outputPinCount > 1)
             System.out.println(err.substring(0, err.length()-2));
+    }
+
+    protected void print() {
+        System.out.println(type.toString()+": "+name);
+        System.out.println("    Size           = "+leX);
+        System.out.println("    Step-up        = "+leSU);
+        System.out.println("    Level          = "+level);
+        System.out.println("    Parallel Group = "+parallelGroup);
+        System.out.println("    M Factor       = "+mfactor);
+    }
+
+    protected void printShortInfo() {
+        if (mfactor > 1)
+            System.out.println(type.toString()+": Size="+TextUtils.formatDouble(leX*mfactor, 2)+" (M="+
+                    TextUtils.formatDouble(mfactor, 1)+"), "+name);
+        else
+            System.out.println(type.toString()+": Size="+TextUtils.formatDouble(leX, 2)+", "+name);
     }
 
 }

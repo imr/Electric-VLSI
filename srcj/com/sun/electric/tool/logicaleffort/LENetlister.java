@@ -34,8 +34,11 @@ import com.sun.electric.database.prototype.*;
 import com.sun.electric.database.variable.*;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.ui.MessagesWindow;
+import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.geom.AffineTransform;
+import java.awt.*;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.*;
@@ -136,12 +139,12 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
      */
     public void updateSizes() {
         // iterator over all LEGATEs
-        Set allEntries = instancesMap.entrySet();
+        Set allEntries = allInstances.entrySet();
         for (Iterator it = allEntries.iterator(); it.hasNext();) {
 
             Map.Entry entry = (Map.Entry)it.next();
-            Instance inst = (Instance)entry.getKey();
-            Nodable no = (Nodable)entry.getValue();
+            Instance inst = (Instance)entry.getValue();
+            Nodable no = inst.getNodable();
 
             String varName = "LEDRIVE_" + inst.getName();
             no.newVar(varName, new Float(inst.getLeX()));
@@ -176,14 +179,14 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
 	 * @return the new instance added, null if error
 	 */
 	protected Instance addInstance(String name, Instance.Type type, float leSU,
-		float leX, ArrayList pins)
+		float leX, ArrayList pins, Nodable no)
 	{
 		if (allInstances.containsKey(name)) {
 			out.println("Error: Instance "+name+" already exists.");
 			return null;
 		}
 		// create instance
-		Instance instance = new Instance(name, type, leSU, leX);
+		Instance instance = new Instance(name, type, leSU, leX, no);
 
 		// create each net if necessary, from pin.
 		Iterator iter = pins.iterator();
@@ -222,7 +225,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
 
     protected LESizer getSizer() { return sizer; }
 
-
+    protected float getKeeperRatio() { return keeperRatio; }
 
     // ======================= Hierarchy Enumerator ==============================
 
@@ -281,7 +284,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
                 type = Instance.Type.STATICGATE;
         }
         else if (ni.getVar("ATTR_LEWIRE") != null) {
-            type = Instance.Type.LOAD;
+            type = Instance.Type.WIRE;
             // Note that if inst is an LEWIRE, it will have no 'le' attributes.
             // we therefore assign pins to have default 'le' values of one.
             // This creates an instance which has Type LEWIRE, but has
@@ -315,20 +318,35 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
             if (pp.getCharacteristic() == PortProto.Characteristic.OUT) dir = Pin.Dir.OUTPUT;
             pins.add(new Pin(pp.getProtoName(), dir, le, netName));
             if (DEBUG) System.out.println("    Added "+dir+" pin "+pp.getProtoName()+", le: "+le+", netName: "+netName+", JNetwork: "+netlist.getNetwork(ni,pp,0));
-            if (type == Instance.Type.LOAD) break;    // this is LEWIRE, only add one pin of it
+            if (type == Instance.Type.WIRE) break;    // this is LEWIRE, only add one pin of it
+        }
+
+        // see if passed-down step-up exists
+        float localsu = su;
+        if (((LECellInfo)info).getSU() != -1f)
+            localsu = ((LECellInfo)info).getSU();
+        // check for step-up on gate
+        var = ni.getVar("ATTR_su");
+        if (var != null) {
+            float nisu = VarContext.objectToFloat(info.getContext().evalVar(var), -1f);
+            if (nisu != -1f)
+                localsu = nisu;
         }
 
         // create new leGate instance
         VarContext vc = info.getContext().push(ni);                   // to create unique flat name
-        Instance inst = addInstance(vc.getInstPath("."), type, su, leX, pins);
+        Instance inst = addInstance(vc.getInstPath("."), type, localsu, leX, pins, ni);
 
-        // set instance parameters
-        var = ni.getVar("ATTR_LEPARALLGRP");
-        if (var != null) {
-            // set parallel group number
-            int g = VarContext.objectToInt(info.getContext().evalVar(var), 0);
-            inst.setParallelGroup(g);
+        // set instance parameters for sizeable gates
+        if (type == Instance.Type.LEGATE) {
+            var = ni.getVar("ATTR_LEPARALLGRP");
+            if (var != null) {
+                // set parallel group number
+                int g = VarContext.objectToInt(info.getContext().evalVar(var), 0);
+                inst.setParallelGroup(g);
+            }
         }
+        // set mfactor
         var = ni.getVar("ATTR_M");
         if (var != null) {
             // set mfactor
@@ -340,7 +358,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
             if (wire) System.out.println("  Added LEWire "+vc.getInstPath(".")+", X="+leX);
             else System.out.println("  Added instance "+vc.getInstPath(".")+" of type "+type);
         }
-        instancesMap.put(inst, ni);
+        instancesMap.put(ni, inst);
         return false;
     }
             
@@ -357,24 +375,45 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
     public class LECellInfo extends HierarchyEnumerator.CellInfo {
 
         /** M-factor to be applied to size */       private float mFactor;
+        /** SU to be applied to gates in cell */    private float cellsu;
 
         /** initialize LECellInfo: assumes CellInfo.init() has been called */
         protected void leInit() {
+
             HierarchyEnumerator.CellInfo parent = getParentInfo();
+
+            // check for M-Factor from parent
             if (parent == null) mFactor = 1f;
             else mFactor = ((LECellInfo)parent).getMFactor();
-            // get mfactor from instance we pushed into
+
+            // check for su from parent
+            if (parent == null) cellsu = -1f;
+            else cellsu = ((LECellInfo)parent).getSU();
+
+            // get info from node we pushed into
             Nodable ni = getContext().getNodable();
             if (ni == null) return;
+
+            // get mfactor from instance we pushed into
             Variable mvar = ni.getVar("ATTR_M");
-            if (mvar == null) return;
-            Object mval = getContext().evalVar(mvar, null);
-            if (mval == null) return;
-            mFactor = mFactor * VarContext.objectToFloat(mval, 1f);
+            if (mvar != null) {
+                Object mval = getContext().evalVar(mvar, null);
+                if (mval != null)
+                    mFactor = mFactor * VarContext.objectToFloat(mval, 1f);
+            }
+
+            // get su from instance we pushed into
+            Variable suvar = ni.getVar("ATTR_su");
+            if (suvar != null) {
+                float su = VarContext.objectToFloat(getContext().evalVar(suvar, null), -1f);
+                if (su != -1f) cellsu = su;
+            }
         }
         
         /** get mFactor */
         protected float getMFactor() { return mFactor; }
+
+        protected float getSU() { return cellsu; }
     }
 
 
@@ -392,6 +431,64 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
             totalsize += inst.getLeX();
         }
         return totalsize;
+    }
+
+    public boolean printResults(Nodable no) {
+        // if this is a NodeInst, convert to Nodable
+        if (no instanceof NodeInst) {
+            no = Netlist.getNodableFor((NodeInst)no, 0);
+        }
+        Instance inst = (Instance)instancesMap.get(no);
+        if (inst == null) return false;                 // failed
+
+        MessagesWindow msgs = TopLevel.getMessagesWindow();
+        //Font oldFont = msgs.getFont();
+        //msgs.setFont(new Font("Courier", Font.BOLD, oldFont.getSize()));
+
+        // print instance info
+        inst.print();
+
+        // collect info about what is driven
+        Pin out = (Pin)inst.getOutputPins().get(0);
+        Net net = out.getNet();
+
+        ArrayList gatesDriven = new ArrayList();
+        ArrayList loadsDriven = new ArrayList();
+        ArrayList wiresDriven = new ArrayList();
+        ArrayList gatesFighting = new ArrayList();
+
+        for (Iterator it = net.getAllPins().iterator(); it.hasNext(); ) {
+            Pin pin = (Pin)it.next();
+            Instance in = pin.getInstance();
+            if (pin.getDir() == Pin.Dir.INPUT) {
+                if (in.isGate()) gatesDriven.add(in);
+                //if (in.getType() == Instance.Type.STATICGATE) staticGatesDriven.add(in);
+                if (in.getType() == Instance.Type.LOAD) loadsDriven.add(in);
+                if (in.getType() == Instance.Type.WIRE) wiresDriven.add(in);
+            }
+            if (pin.getDir() == Pin.Dir.OUTPUT) {
+                if (in.isGate()) gatesFighting.add(in);
+            }
+        }
+        System.out.println("  -------------------- Gates Driven ("+gatesDriven.size()+") --------------------");
+        for (Iterator it = gatesDriven.iterator(); it.hasNext(); ) {
+            Instance in = (Instance)it.next(); in.printShortInfo();
+        }
+        System.out.println("  -------------------- Loads Driven ("+loadsDriven.size()+") --------------------");
+        for (Iterator it = loadsDriven.iterator(); it.hasNext(); ) {
+            Instance in = (Instance)it.next(); in.printShortInfo();
+        }
+        System.out.println("  -------------------- Wires Driven ("+wiresDriven.size()+") --------------------");
+        for (Iterator it = wiresDriven.iterator(); it.hasNext(); ) {
+            Instance in = (Instance)it.next(); in.printShortInfo();
+        }
+        System.out.println("  -------------------- Gates Fighting ("+gatesFighting.size()+") --------------------");
+        for (Iterator it = gatesFighting.iterator(); it.hasNext(); ) {
+            Instance in = (Instance)it.next(); in.printShortInfo();
+        }
+
+        //msgs.setFont(oldFont);
+        return true;
     }
 
 

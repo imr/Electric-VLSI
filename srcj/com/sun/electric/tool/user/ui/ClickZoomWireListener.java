@@ -85,6 +85,8 @@ public class ClickZoomWireListener
     private ElectricObject startObj;            /* object routing from */
     private ElectricObject endObj;              /* object routing to */
 
+    private int mouseX, mouseY;                 /* last known location of mouse */
+
     // mac stuff
     private static final boolean isMac = System.getProperty("os.name").toLowerCase().startsWith("mac");
 
@@ -162,6 +164,13 @@ public class ClickZoomWireListener
     }
 
     /**
+     * Return the last known location of the mouse. Note that these are
+     * screen coords, and are in the coordinate system of the current container(?).
+     * @return a Point2D containing the last mouse coords.
+     */
+    public Point2D getLastMouse() { return new Point2D.Double(mouseX, mouseY); }
+
+    /**
      * See if event is a left mouse click.  Platform independent.
      */
     private boolean isLeftMouse(MouseEvent evt) {
@@ -203,10 +212,8 @@ public class ClickZoomWireListener
      * <p>CTRL + Left Mouse Click: Cycle through select
      * <p>SHIFT + Left Mouse Click: invert selection
      * <p>Right Mouse Click/Drag: Connect wire
-     * <p>CTRL + Right Mouse Click: zoom out
-     * <p>CTRL + Right Mouse Drag: zoom in
-     * <p>SHIFT + Right Mouse Click:
-     * <p>SHIFT + Right Mouse Drag:
+     * <p>SHIFT + Right Mouse Click: zoom out
+     * <p>SHIFT + Right Mouse Drag: zoom in
      * <p>CTRL + SHIFT + Right Mouse Click: draw box
      * @param evt the MouseEvent
      * */
@@ -709,6 +716,9 @@ public class ClickZoomWireListener
      */
     public void mouseMoved(MouseEvent evt) {
 
+        mouseX = evt.getX();
+        mouseY = evt.getY();
+
         //if (debug) System.out.println("  ["+modeLeft+","+modeRight+"] "+evt.paramString());
 		if (evt.getSource() instanceof EditWindow.CircuitPart)
 		{
@@ -716,9 +726,6 @@ public class ClickZoomWireListener
 			EditWindow wnd = dispPart.getEditWindow();
 			Cell cell = wnd.getCell();
 			if (cell == null) return;
-
-			int mouseX = evt.getX();
-			int mouseY = evt.getY();
 
 			boolean another = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
 			specialSelect = ToolBar.getSelectSpecial();

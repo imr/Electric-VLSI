@@ -65,16 +65,93 @@ public class Net {
         pins = new ArrayList();
 	}
 
-    protected boolean isDrivenByGate() {
+    /**
+     * Returns true if this net is driven by a sizeable gate.
+     */
+    protected boolean isDrivenBySizeableGate() {
         for (Iterator it = pins.iterator(); it.hasNext(); ) {
             Pin pin = (Pin)it.next();
             Instance inst = pin.getInstance();
-            if (inst.getType() == Instance.Type.LOAD) {
-                // has a load
+            if (pin.getDir() == Pin.Dir.OUTPUT) {
+                if (inst.getType() == Instance.Type.LEGATE) return true;
             }
         }
         return false;
     }
+
+    /**
+     * Returns true if this net is driven by a static gate (non-sizeable).
+     */
+    protected boolean isDrivenByStaticGate() {
+        for (Iterator it = pins.iterator(); it.hasNext(); ) {
+            Pin pin = (Pin)it.next();
+            Instance inst = pin.getInstance();
+            if (pin.getDir() == Pin.Dir.OUTPUT) {
+                if (inst.getType() == Instance.Type.STATICGATE) return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns true if this net is driven by a sizeable or
+     * fixed size gate.
+     */
+    protected boolean isDrivenByGate() {
+        for (Iterator it = pins.iterator(); it.hasNext(); ) {
+            Pin pin = (Pin)it.next();
+            Instance inst = pin.getInstance();
+            if (pin.getDir() == Pin.Dir.OUTPUT) {
+                if ((inst.getType() == Instance.Type.LEGATE) ||
+                    (inst.getType() == Instance.Type.STATICGATE)) return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns true if this net drives a sizeable gate.
+     */
+    protected boolean drivesSizableGate() {
+        for (Iterator it = pins.iterator(); it.hasNext(); ) {
+            Pin pin = (Pin)it.next();
+            Instance inst = pin.getInstance();
+            if (pin.getDir() == Pin.Dir.INPUT) {
+                if (inst.getType() == Instance.Type.LEGATE) return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns true if this net drives a static gate.
+     */
+    protected boolean drivesStaticGate() {
+        for (Iterator it = pins.iterator(); it.hasNext(); ) {
+            Pin pin = (Pin)it.next();
+            Instance inst = pin.getInstance();
+            if (pin.getDir() == Pin.Dir.INPUT) {
+                if (inst.getType() == Instance.Type.STATICGATE) return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns true if this net drives a load or a wire
+     */ 
+    protected boolean drivesLoad() {
+        for (Iterator it = pins.iterator(); it.hasNext(); ) {
+            Pin pin = (Pin)it.next();
+            Instance inst = pin.getInstance();
+            if (pin.getDir() == Pin.Dir.INPUT) {
+                if ((inst.getType() == Instance.Type.LOAD) ||
+                    (inst.getType() == Instance.Type.WIRE)) return true;
+            }
+        }
+        return false;
+    }
+
 
     /** Add a pin to the net */
     protected void addPin(Pin pin) { pins.add(pin); pin.setNet(this); }

@@ -395,8 +395,7 @@ public abstract class Job implements ActionListener, Runnable {
     public boolean getDisplay() { return display; }
     /** get deleteWhenDone status */
     public boolean getDeleteWhenDone() { return deleteWhenDone; }
-    
-    
+
     /** get all jobs iterator */
     public static Iterator getAllJobs() { return allJobs.iterator(); }
     

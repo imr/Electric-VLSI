@@ -166,6 +166,9 @@ public class Clipboard
 			// remove contents of clipboard
 			clear();
 
+            // get offset of highlighted objects from mouse
+            
+
 			// copy objects to clipboard
 			copyListToCell(wnd, geoms, parent, clipCell, false, 0, 0);
 		}

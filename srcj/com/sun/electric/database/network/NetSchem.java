@@ -254,6 +254,25 @@ class NetSchem extends NetCell {
             }
         }
 
+        /**
+         * Method to delete a Variable from this ElectricObject.
+         * @param key the key of the Variable to delete.
+         */
+        public void delVar(Variable.Key key) {
+            if (shared == null)
+                nodeInst.delVar(key);
+            else {
+                // find which one has var on it
+                for (int i=0; i < shared.length; i++) {
+                    if (shared[i].nodeInst.getVar(key) != null) {
+                        shared[i].nodeInst.delVar(key);
+                        return;
+                    }
+                }
+                // if none had var on them, nothing is done (conforms to ElectricObject.setVar())
+            }
+        }
+
 		/**
 		 * Method to return an iterator over all Variables on this Nodable.
 		 * @return an iterator over all Variables on this Nodable.

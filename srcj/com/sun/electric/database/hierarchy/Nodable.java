@@ -122,6 +122,12 @@ public interface Nodable
      */
     public void setVar(Variable.Key key, Object value, int index);
 
+    /**
+     * Method to delete a Variable from this ElectricObject.
+     * @param key the key of the Variable to delete.
+     */
+    public void delVar(Variable.Key key);
+
 	/**
 	 * Returns a printable version of this Nodable.
 	 * @return a printable version of this Nodable.
