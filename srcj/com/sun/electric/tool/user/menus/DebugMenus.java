@@ -81,8 +81,10 @@ public class DebugMenus {
 
 		helpMenu.addSeparator();
 
-		helpMenu.addMenuItem("Make fake circuitry", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand(); } });
+		helpMenu.addMenuItem("Make fake circuitry MoCMOS", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand("mocmos"); } });
+	    helpMenu.addMenuItem("Make fake circuitry TSMC90", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand("tsmc90"); } });
 		helpMenu.addMenuItem("Make fake analog simulation window", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeWaveformCommand(); }});
 //		helpMenu.addMenuItem("Whit Diffie's design...", null,
@@ -173,14 +175,14 @@ public class DebugMenus {
 
 	// ---------------------- Help Menu additions -----------------
 
-	public static void makeFakeCircuitryCommand()
+	public static void makeFakeCircuitryCommand(String tech)
 	{
 //		java.awt.Dimension foo = new java.awt.Dimension();
 //		foo.setSize(2.7, 3.2);
 //		System.out.println("wid="+foo.getWidth()+" hei="+foo.getHeight());
 
 		// test code to make and show something
-		MakeFakeCircuitry job = new MakeFakeCircuitry();
+		MakeFakeCircuitry job = new MakeFakeCircuitry(tech);
 	}
 
 	/**
@@ -188,33 +190,55 @@ public class DebugMenus {
 	 */
 	private static class MakeFakeCircuitry extends Job
 	{
-		protected MakeFakeCircuitry()
+		private String technology;
+
+		protected MakeFakeCircuitry(String tech)
 		{
 			super("Make fake circuitry", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			technology = tech;
 			startJob();
 		}
 
 		public boolean doIt()
 		{
 			// get information about the nodes
-			NodeProto m1m2Proto = NodeProto.findNodeProto("mocmos:Metal-1-Metal-2-Con");
-			NodeProto m2PinProto = NodeProto.findNodeProto("mocmos:Metal-2-Pin");
-			NodeProto p1PinProto = NodeProto.findNodeProto("mocmos:Polysilicon-1-Pin");
-			NodeProto m1PolyConProto = NodeProto.findNodeProto("mocmos:Metal-1-Polysilicon-1-Con");
-			NodeProto pTransProto = NodeProto.findNodeProto("mocmos:P-Transistor");
-			NodeProto nTransProto = NodeProto.findNodeProto("mocmos:N-Transistor");
+			Technology  tech = Technology.findTechnology(technology);
+
+			if (tech == null)
+			{
+				System.out.println("Technology not found in MakeFakeCircuitry");
+				return (false);
+			}
+			tech.setCurrent();
+			TopLevel.getPaletteFrame().loadForTechnology();
+
+			StringBuffer polyName = new StringBuffer("Polysilicon");
+			String lateral = "top";
+
+			if (technology.equals("mocmos"))
+			{
+				polyName.append("-1");
+				lateral = "right";
+			}
+
+			NodeProto m1m2Proto = NodeProto.findNodeProto(technology+":Metal-1-Metal-2-Con");
+			NodeProto m2PinProto = NodeProto.findNodeProto(technology+":Metal-2-Pin");
+			NodeProto p1PinProto = NodeProto.findNodeProto(technology+":" + polyName + "-Pin");
+			NodeProto m1PolyConProto = NodeProto.findNodeProto(technology+":Metal-1-" + polyName + "-Con");
+			NodeProto pTransProto = NodeProto.findNodeProto(technology+":P-Transistor");
+			NodeProto nTransProto = NodeProto.findNodeProto(technology+":N-Transistor");
 			NodeProto invisiblePinProto = NodeProto.findNodeProto("generic:Invisible-Pin");
 
 			// get information about the arcs
-			ArcProto m1Proto = ArcProto.findArcProto("mocmos:Metal-1");
-			ArcProto m2Proto = ArcProto.findArcProto("mocmos:Metal-2");
-			ArcProto p1Proto = ArcProto.findArcProto("mocmos:Polysilicon-1");
+			ArcProto m1Proto = ArcProto.findArcProto(technology+":Metal-1");
+			ArcProto m2Proto = ArcProto.findArcProto(technology+":Metal-2");
+			ArcProto p1Proto = ArcProto.findArcProto(technology+":"+polyName);
 
 			// get the current library
 			Library mainLib = Library.getCurrent();
 
 			// create a layout cell in the library
-			Cell myCell = Cell.makeInstance(mainLib, "test{lay}");
+			Cell myCell = Cell.makeInstance(mainLib, technology+"test{lay}");
 			NodeInst metal12Via = NodeInst.newInstance(m1m2Proto, new Point2D.Double(-20.0, 20.0), m1m2Proto.getDefWidth(), m1m2Proto.getDefHeight(), 0, myCell, null);
 			NodeInst contactNode = NodeInst.newInstance(m1PolyConProto, new Point2D.Double(20.0, 20.0), m1PolyConProto.getDefWidth(), m1PolyConProto.getDefHeight(), 0, myCell, null);
 			NodeInst metal2Pin = NodeInst.newInstance(m2PinProto, new Point2D.Double(-20.0, 10.0), m2PinProto.getDefWidth(), m2PinProto.getDefHeight(), 0, myCell, null);
@@ -231,8 +255,8 @@ public class DebugMenus {
 			PortInst m2Port = metal2Pin.getOnlyPortInst();
 			PortInst p1PortA = poly1PinA.getOnlyPortInst();
 			PortInst p1PortB = poly1PinB.getOnlyPortInst();
-			PortInst transPortR = transistor.findPortInst("p-trans-poly-right");
-			PortInst transRPortR = rotTrans.findPortInst("n-trans-poly-right");
+			PortInst transPortR = transistor.findPortInst("p-trans-poly-" + lateral);
+			PortInst transRPortR = rotTrans.findPortInst("n-trans-poly-" + lateral);
 			ArcInst metal2Arc = ArcInst.makeInstance(m2Proto, m2Proto.getWidth(), m2Port, m1m2Port, null);
 			if (metal2Arc == null) return false;
 			metal2Arc.setRigid(true);
