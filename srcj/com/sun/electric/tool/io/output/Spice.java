@@ -593,45 +593,7 @@ public class Spice extends Topology
 				if (varTemplate != null)
 				{
 					String line = varTemplate.getObject().toString();
-					StringBuffer infstr = new StringBuffer();
-					for(int pt = 0; pt < line.length(); pt++)
-					{
-						char chr = line.charAt(pt);
-						if (chr != '$' || pt+1 >= line.length() || line.charAt(pt+1) != '(')
-						{
-							infstr.append(chr);
-							continue;
-						}
-
-						int start = pt + 2;
-						for(pt = start; pt < line.length(); pt++)
-							if (line.charAt(pt) == ')') break;
-						String paramName = line.substring(start, pt);
-						PortProto pp = subCell.findPortProto(paramName);
-						if (pp != null)
-						{
-							// port name found: use its spice node
-							Network net = netList.getNetwork(no, pp, 0);
-							CellSignal cs = cni.getCellSignal(net);
-							infstr.append(cs.getName());
-						} else if (paramName.equalsIgnoreCase("node_name"))
-						{
-							infstr.append(getSafeNetName(no.getName()));
-						} else
-						{
-							// no port name found, look for variable name
-							String varName = "ATTR_" + paramName;
-							Variable attrVar = no.getVar(varName);
-                            if (attrVar == null) attrVar = no.getParameter(varName);
-							if (attrVar == null) infstr.append("??"); else
-							{
-                                //if (attrVar.getCode() != Variable.Code.NONE)
-                                    infstr.append(trimSingleQuotes(String.valueOf(context.evalVar(attrVar, no))));
-                                //else
-								//    infstr.append(trimSingleQuotes(attrVar.getPureValue(-1, -1)));
-							}
-						}
-					}
+					StringBuffer infstr = replacePortsAndVars(line, no, context, cni);
                     // Writing MFactor if available. Not sure here
 					writeMFactor(context, no, infstr);
 					
@@ -1042,12 +1004,15 @@ public class Spice extends Topology
 			if (!cardVar.isDisplay()) continue;
 			if (obj instanceof String)
 			{
-				multiLinePrint(false, (String)obj + "\n");
+                StringBuffer buf = replacePortsAndVars((String)obj, context.getNodable(), context.pop(), null);
+				multiLinePrint(false, buf.toString() + "\n");
 			} else
 			{
 				String [] strings = (String [])obj;
-				for(int i=0; i<strings.length; i++)
-					multiLinePrint(false, strings[i] + "\n");
+				for(int i=0; i<strings.length; i++) {
+                    StringBuffer buf = replacePortsAndVars(strings[i], context.getNodable(), context.pop(), null);
+					multiLinePrint(false, buf.toString() + "\n");
+                }
 			}
 		}
 
@@ -1141,6 +1106,62 @@ public class Spice extends Topology
         return getSafeCellName(uniqueCellName.toString());
     }
 
+    /**
+     * Replace ports and vars in 'line'.  Ports and Vars should be
+     * referenced via $(name)
+     * @param line the string to search and replace within
+     * @param no the nodable up the hierarchy that has the parameters on it
+     * @param context the context of the nodable
+     * @param cni the cell net info of cell in which the nodable exists (if cni is
+     * null, no port name replacement will be done)
+     * @return the modified line
+     */
+    private StringBuffer replacePortsAndVars(String line, Nodable no, VarContext context,
+                                       CellNetInfo cni) {
+        NodeProto niProto = no.getProto();
+        Cell subCell = (Cell)niProto;
+
+        StringBuffer infstr = new StringBuffer();
+        for(int pt = 0; pt < line.length(); pt++)
+        {
+            char chr = line.charAt(pt);
+            if (chr != '$' || pt+1 >= line.length() || line.charAt(pt+1) != '(')
+            {
+                infstr.append(chr);
+                continue;
+            }
+
+            int start = pt + 2;
+            for(pt = start; pt < line.length(); pt++)
+                if (line.charAt(pt) == ')') break;
+            String paramName = line.substring(start, pt);
+            PortProto pp = subCell.findPortProto(paramName);
+            if (cni != null && pp != null)
+            {
+                // port name found: use its spice node
+                Network net = cni.getNetList().getNetwork(no, pp, 0);
+                CellSignal cs = cni.getCellSignal(net);
+                infstr.append(cs.getName());
+            } else if (paramName.equalsIgnoreCase("node_name"))
+            {
+                infstr.append(getSafeNetName(no.getName()));
+            } else
+            {
+                // no port name found, look for variable name
+                String varName = "ATTR_" + paramName;
+                Variable attrVar = no.getVar(varName);
+                if (attrVar == null) attrVar = no.getParameter(varName);
+                if (attrVar == null) infstr.append("??"); else
+                {
+                    //if (attrVar.getCode() != Variable.Code.NONE)
+                        infstr.append(trimSingleQuotes(String.valueOf(context.evalVar(attrVar, no))));
+                    //else
+                    //    infstr.append(trimSingleQuotes(attrVar.getPureValue(-1, -1)));
+                }
+            }
+        }
+        return infstr;
+    }
 
 	/****************************** SUBCLASSED METHODS FOR THE TOPOLOGY ANALYZER ******************************/
 
