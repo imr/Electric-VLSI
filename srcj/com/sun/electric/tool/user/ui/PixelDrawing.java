@@ -511,6 +511,7 @@ public class PixelDrawing
 			techWithLayers = curTech = tech;
 		}
 		if (curTech == null) curTech = techWithLayers;
+        if (curTech == null) return;
 
 		numLayerBitMaps = curTech.getNumTransparentLayers();
 		layerBitMaps = new byte[numLayerBitMaps][][];
