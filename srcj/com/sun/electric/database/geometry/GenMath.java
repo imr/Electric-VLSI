@@ -188,9 +188,9 @@ public class GenMath
     }
 
     /**
-     * NOTE: If you are comparing Electric database units, DO NOT
-     * use this method. Use the corresponding method from DBMath.<p>
      * Method to tell whether a point is on a given line segment.
+     * <p>NOTE: If you are comparing Electric database units, DO NOT
+     * use this method. Use the corresponding method from DBMath.
      * @param end1 the first end of the line segment.
      * @param end2 the second end of the line segment.
      * @param pt the point in question.
@@ -358,9 +358,9 @@ public class GenMath
     }
 
     /**
-     * NOTE: If you are comparing Electric database units, DO NOT
-     * use this method. Use the corresponding method from DBMath.<p>
      * Method to tell whether a point is inside of a bounds.
+     * <p>NOTE: If you are comparing Electric database units, DO NOT
+     * use this method. Use the corresponding method from DBMath.
      * The reason that this is necessary is that Rectangle2D.contains requires that
      * the point be INSIDE of the bounds, whereas this method accepts a point that
      * is ON the bounds.
@@ -509,9 +509,9 @@ public class GenMath
     }
 
     /**
-     * NOTE: If you are comparing Electric database units, DO NOT
-     * use this method. Use the corresponding method from DBMath.<p>
      * Method to compare two double-precision numbers within an approximate epsilon.
+     * <p>NOTE: If you are comparing Electric database units, DO NOT
+     * use this method. Use the corresponding method from DBMath.
      * @param a the first number.
      * @param b the second number.
      * @return true if the numbers are approximately equal (to a few decimal places).
@@ -525,22 +525,12 @@ public class GenMath
         }
         if (Math.abs(a-b) < 0.001) return true;
         return false;
-
-//		if (a == 0 || b == 0)
-//		{
-//			if (Math.abs(a-b) < 0.001) return true;
-//		} else
-//		{
-//			double ratio = a / b;
-//			if (ratio < 1.00001 && ratio > 0.99999) return true;
-//		}
-//		return false;
     }
 
     /**
-     * NOTE: If you are comparing Electric database units, DO NOT
-     * use this method. Use the corresponding method from DBMath.<p>
      * Method to compare two double-precision coordinates within an approximate epsilon.
+     * <p>NOTE: If you are comparing Electric database units, DO NOT
+     * use this method. Use the corresponding method from DBMath.
      * @param a the first point.
      * @param b the second point.
      * @return true if the points are approximately equal (to a few decimal places).
