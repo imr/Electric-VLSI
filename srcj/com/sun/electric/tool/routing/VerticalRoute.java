@@ -71,7 +71,7 @@ public class VerticalRoute {
     /** if route specification succeeded */     private boolean specificationSucceeded;
 
     private int searchNumber;
-    private static final int SEARCHLIMIT = 100;
+    private static final int SEARCHLIMIT = 1000;
     private static final boolean DEBUG = false;
     private static final boolean DEBUGSEARCH = false;
 
