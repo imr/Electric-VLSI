@@ -474,6 +474,13 @@ public abstract class Job implements ActionListener, Runnable {
 	 */
 	public static Thread getChangingThread() { return changingJob != null ? databaseChangesThread : null; }
 
+    /**
+     * Returns the current Changing job (there can be only one)
+     * @return the current Changing job (there can be only one). Returns null if no changing job.
+     */
+    public static Job getChangingJob() { return changingJob; }
+
+
 	/**
 	 * Returns cell which is root of up-tree of current changes or null, if no changes or whole database changes.
 	 * @return cell which is root of up-tree of current changes or null, if no changes or whole database changes.
