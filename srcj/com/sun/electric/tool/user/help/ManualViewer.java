@@ -306,6 +306,13 @@ public class ManualViewer extends EDialog
 			}
 			menuMapCheck = null;
 		}
+		StringBuffer sb = new StringBuffer();
+		sb.append("<CENTER><H1>MENU BAR ENABLED</H1></CENTER>\n");
+		sb.append("The menu bar at the top of <I>this</I> window looks the same as the main menu bar in Electric.<BR>\n");
+		sb.append("Using any entry in this menu bar will take you to the manual page that explains the Electric operation.\n");
+		editorPane.setText(sb.toString());
+		editorPane.setCaretPosition(0);
+
 	}
 
 	private void addMenu(Menu menu, JMenu helpMenu, String cumulative)
