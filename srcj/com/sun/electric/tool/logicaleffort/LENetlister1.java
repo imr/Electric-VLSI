@@ -315,8 +315,14 @@ public class LENetlister1 extends HierarchyEnumerator.Visitor implements LENetli
             // This creates an instance which has Type LEWIRE, but has
             // boolean leGate set to false; it will not be sized
             var = ni.getVar("ATTR_L");
+            if (var == null) {
+                System.out.println("Error, no L attribute found on LEWIRE "+info.getContext().push(ni).getInstPath("."));
+            }
             float len = VarContext.objectToFloat(info.getContext().evalVar(var), 0.0f);
             var = ni.getVar("ATTR_width");
+            if (var == null) {
+                System.out.println("Warning, no width attribute found on LEWIRE "+info.getContext().push(ni).getInstPath("."));
+            }
             float width = VarContext.objectToFloat(info.getContext().evalVar(var), 3.0f);
             leX = (float)(0.95f*len + 0.05f*len*(width/3.0f))*wireRatio;  // equivalent lambda of gate
             leX = leX/9.0f;                         // drive strength X=1 is 9 lambda of gate

@@ -131,7 +131,7 @@ public class LENodable {
      * @param su the parent's step-up
      */
     protected boolean setOnlyContext(VarContext context, LENetwork outputNetwork, float mfactor, float su, LENetlister2.NetlisterConstants constants) {
-        boolean evalOk = instantiate(this, context, outputNetwork, mfactor, su, constants);
+        boolean evalOk = instantiate(this, context, outputNetwork, mfactor, su, constants, true);
         //print();
         return evalOk;
     }
@@ -151,7 +151,7 @@ public class LENodable {
             LEPin pin = (LEPin)it.next();
             instance.addPort(pin.getName(), pin.getDir(), pin.getLE(), pin.getNetwork());
         }
-        instantiate(instance, context, outputNetwork, mfactor, su, constants);
+        instantiate(instance, context, outputNetwork, mfactor, su, constants, false);
         return instance;
     }
 
@@ -164,17 +164,18 @@ public class LENodable {
      * @param mfactor the parent's mfactor
      * @param su the parent's step-up
      */
-    private boolean instantiate(LENodable instance, VarContext context, LENetwork outputNetwork, float mfactor, float su, LENetlister2.NetlisterConstants constants) {
+    private boolean instantiate(LENodable instance, VarContext context, LENetwork outputNetwork, float mfactor, float su,
+                                LENetlister2.NetlisterConstants constants, boolean testCachebility) {
         instance.outputNetwork = outputNetwork;
         boolean evalOk = true;
 
         // default values
-        instance.leX = getLeX(context, constants);
+        instance.context = context;
+        instance.leX = getLeX(context, constants, testCachebility);
         if (instance.leX == -1f) evalOk = false;
         instance.mfactor = mfactor;
         instance.su = su;
         instance.parallelGroup = 0;
-        instance.context = context;
 
         // evaluate variables in context, if any
         if (parallelGroupVar != null) {
@@ -204,7 +205,7 @@ public class LENodable {
      * @param context the VarContext
      * @return the leX size, or -1 if eval failed
      */
-    private float getLeX(VarContext context, LENetlister2.NetlisterConstants constants) {
+    private float getLeX(VarContext context, LENetlister2.NetlisterConstants constants, boolean testCachebility) {
         float leX = (float)0.0;
 
         Variable var = null;
@@ -215,13 +216,19 @@ public class LENodable {
             // This creates an instance which has Type LEWIRE, but has
             // boolean leGate set to false; it will not be sized
             var = no.getVar("ATTR_L");
+            if (var == null) {
+                System.out.println("Error, no L attribute found on LEWIRE "+no.getName()+" in Cell "+no.getParent());
+                if (testCachebility) return -1f;
+            }
             retVal = context.evalVar(var);
-            if (retVal == null) return -1f;
             float len = VarContext.objectToFloat(retVal, 0.0f);
 
             var = no.getVar(Schematics.ATTR_WIDTH);
+            if (var == null) {
+                System.out.println("Warning, no width attribute found on LEWIRE "+no.getName()+" in Cell "+no.getParent());
+                if (testCachebility) return -1f;
+            }
             retVal = context.evalVar(var);
-            if (retVal == null) return -1f;
             float width = VarContext.objectToFloat(retVal, 3.0f);
 
             leX = (float)(0.95f*len + 0.05f*len*(width/3.0f))*constants.wireRatio;  // equivalent lambda of gate
@@ -230,19 +237,18 @@ public class LENodable {
         else if (type == LENodable.Type.TRANSISTOR) {
             var = no.getVar(Schematics.ATTR_WIDTH);
             if (var == null) {
-                System.out.println("Error: transistor "+no+" has no width in Cell "+no.getParent());
+                System.out.println("Error: transistor "+no.getName()+" has no width in Cell "+no.getParent());
                 //ErrorLogger.ErrorLog log = errorLogger.logError("Error: transistor "+no+" has no width in Cell "+info.getCell(), info.getCell(), 0);
                 //log.addGeom(ni.getNodeInst(), true, no.getParent(), context);
                 return -1f;
             }
             retVal = context.evalVar(var);
-            if (retVal == null) return -1f;
             //System.out.println("retVal: "+retVal);
             float width = VarContext.objectToFloat(retVal, (float)3.0);
 
             var = no.getVar(Schematics.ATTR_LENGTH);
             if (var == null) {
-                System.out.println("Error: transistor "+no+" has no length in Cell "+no.getParent());
+                System.out.println("Error: transistor "+no.getName()+" has no length in Cell "+no.getParent());
                 //ErrorLogger.ErrorLog log = errorLogger.logError("Error: transistor "+ni+" has no length in Cell "+info.getCell(), info.getCell(), 0);
                 //log.addGeom(ni.getNodeInst(), true, info.getCell(), info.getContext());
                 return -1f;
@@ -257,7 +263,7 @@ public class LENodable {
         else if (type == Type.CAPACITOR) {
             var = no.getVar(Schematics.SCHEM_CAPACITANCE);
             if (var == null) {
-                System.out.println("Error: capacitor "+no+" has no capacitance in Cell "+no.getParent());
+                System.out.println("Error: capacitor "+no.getName()+" has no capacitance in Cell "+no.getParent());
                 //ErrorLogger.ErrorLog log = errorLogger.logError("Error: capacitor "+no+" has no capacitance in Cell "+info.getCell(), info.getCell(), 0);
                 //log.addGeom(ni.getNodeInst(), true, no.getParent(), context);
                 return -1f;
