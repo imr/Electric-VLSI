@@ -1795,7 +1795,7 @@ public final class UserMenuCommands
 //			instanceArc.getInfo();
 
 			// display a cell
-//			WindowFrame.createEditWindow(myCell);
+			WindowFrame.createEditWindow(myCell);
 		}
 	}
 
