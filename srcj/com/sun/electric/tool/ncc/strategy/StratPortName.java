@@ -85,7 +85,7 @@ public class StratPortName extends Strategy {
 	
 	/** 
 	 * printTheMap is a debug routine that exhibits the map.
-	 * @param the Map to exhibit
+	 * @param m the Map to exhibit
 	 */
 	private void printTheMap(Map m){
 		globals.status2("  printing an EquivRecord map of size= " + m.size());

@@ -278,7 +278,6 @@ public class Input
 	/**
 	 * Method to read a single library file.
 	 * @param fileURL the URL to the file.
-	 * @param stream the InputStream to the data.
 	 * @param lib the Library to read.
 	 * If the "lib" is null, this is an entry-level library read, and one is created.
 	 * If "lib" is not null, this is a recursive read caused by a cross-library

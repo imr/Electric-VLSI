@@ -317,10 +317,10 @@ public class Sim extends Output
 	}
 
 	/**
-	 * Method to generate the name of simulation node "node" and return the
-	 * string name (either a numeric node number if internal, an export
+	 * Method to generate the name of a simulation node.
+	 * Generates a string name (either a numeric node number if internal, an export
 	 * name if at the top level, or "power", "ground", etc. if special).  The
-	 * "format" is the particular simuator being used
+	 * "format" is the particular simuator being used.
 	 */
 	private String makeNodeName(int globalNetNum, FileType format)
 	{

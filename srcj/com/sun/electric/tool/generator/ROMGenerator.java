@@ -840,10 +840,6 @@ public class ROMGenerator
 	}
 
 	/**
-	 * 
-	 * @param lambda
-	 * @param romarray
-	 * @param rp
 	 */
 	private static void romplane(double lambda, int romarray[][], String rp)
 	{
@@ -1521,11 +1517,6 @@ public class ROMGenerator
 	}
 
 	/**
-	 * 
-	 * @param lambda
-	 * @param bits
-	 * @param cellname
-	 * @param top
 	 */
 	private static void decodernmos(double lambda, int bits, String cellname, boolean top)
 	{
@@ -1999,11 +1990,6 @@ public class ROMGenerator
 	
 
 	/**
-	 * 
-	 * @param lambda
-	 * @param bits
-	 * @param cellname
-	 * @param top
 	 */
 	private static void decoderpmos(double lambda, int bits, String cellname, boolean top)
 	{
@@ -2469,10 +2455,6 @@ public class ROMGenerator
 	}
 
 	/**
-	 * 
-	 * @param folds
-	 * @param romoutputs
-	 * @return
 	 */
 	private static int[][] generatemuxarray(int folds, int romoutputs)
 	{
@@ -2508,11 +2490,6 @@ public class ROMGenerator
 	
 	
 	/**
-	 * 
-	 * @param lambda
-	 * @param folds
-	 * @param romoutputs
-	 * @param mp
 	 */
 	private static void muxplane(double lambda, int folds, int romoutputs, String mp)
 	{
@@ -2839,11 +2816,6 @@ public class ROMGenerator
 	}
 		
 	/**
-	 * 
-	 * @param lambda
-	 * @param outs
-	 * @param folds
-	 * @param ip
 	 */
 	private static void inverterplane(double lambda, int outs, int folds, String ip)
 	{		
@@ -3504,12 +3476,6 @@ public class ROMGenerator
 	}
 
 	/**
-	 * 
-	 * @param lambda
-	 * @param outs
-	 * @param layoutname
-	 * @param top
-	 * @param lengthbits
 	 */
 	private static void ininverterplane(double lambda, int outs, String layoutname, boolean top,
 						   int lengthbits)
@@ -4127,9 +4093,6 @@ public class ROMGenerator
 	}
 
 	/**
-	 * 
-	 * @param romfile
-	 * @return
 	 */		
 	private static int[][] romarraygen(String romfile)
 	{
@@ -4197,9 +4160,6 @@ public class ROMGenerator
 	}
 
 	/**
-	 * 
-	 * @param bits
-	 * @return
 	 */
 	private static int[][] generateplane(int bits)
 	{
@@ -4257,8 +4217,6 @@ public class ROMGenerator
 
 	/**
 	 * Method to fold the ROM data.
-	 * @param romarray
-	 * @return
 	 */
 	private static int[][] romfold(int[][] romarray)
 	{
@@ -4281,15 +4239,6 @@ public class ROMGenerator
 
 	/**
 	 * Method to convert C-style node creation parameters into the real thing.
-	 * @param np
-	 * @param lX
-	 * @param hX
-	 * @param lY
-	 * @param hY
-	 * @param rot
-	 * @param trn
-	 * @param parent
-	 * @return
 	 */
 	private static NodeInst makeCStyleNodeInst(NodeProto np, double lX, double hX, double lY, double hY, int trn, int rot, Cell parent)
 	{
@@ -4315,16 +4264,6 @@ public class ROMGenerator
 
 	/**
 	 * Method to convert C-style Arc creation parameters into the real thing.
-	 * @param ap
-	 * @param wid
-	 * @param hNI
-	 * @param hPP
-	 * @param hX
-	 * @param hY
-	 * @param tNI
-	 * @param tPP
-	 * @param tX
-	 * @param tY
 	 */
 	private static void makeCStyleArcInst(ArcProto ap, double wid, NodeInst hNI, PortProto hPP, double hX, double hY,
 		NodeInst tNI, PortProto tPP, double tX, double tY)

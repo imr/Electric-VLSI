@@ -159,9 +159,9 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 	
 	/**
 	 * Construct a Visitor that will walk a schematic and generate layout for Cells.
-	 * @param libraryName the name of the library that contains the Cells for 
+	 * param libraryName the name of the library that contains the Cells for 
 	 * which we want to generate layout. For example: "redFour" or "purpleFour".
-	 * @param cellNames the names of the Cells for which we want to generate layout
+	 * param cellNames the names of the Cells for which we want to generate layout
 	 */
 	public GenerateLayoutForGatesInSchematic(StdCellParams stdCell) {
 		this.stdCell = stdCell;

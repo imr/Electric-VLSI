@@ -97,8 +97,8 @@ public class DRC extends Listener
 	}
 
     /**
-     * Method to retrieve singlenton associated to ERC tool
-     * @return
+     * Method to retrieve singleton associated to DRC tool
+     * @return the DRC tool.
      */
     public static DRC getDRCTool() { return tool; }
 

@@ -20,9 +20,6 @@
  * along with Electric(tm); see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
- */
-/*
- * ToolBarButton.java
  *
  * Created on March 22, 2004, 5:23 PM
  */
@@ -242,7 +239,7 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
      * @return the string "ButtonUI"
      * @see javax.swing.JComponent#getUIClassID
      * @see javax.swing.UIDefaults#getUI
-     * @beaninfo
+     * beaninfo
      *        expert: true
      *   description: A string that specifies the name of the L&F class.
      */
@@ -255,7 +252,8 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
 ////////////////
 
     /**
-     * -- This is a cut-and-paste copy of JButton's Accessible Interface -- <p>
+     * A cut-and-paste copy of JButton's Accessible Interface.
+     * <p>
      * Gets the <code>AccessibleContext</code> associated with this
      * <code>JButton</code>. For <code>JButton</code>s,
      * the <code>AccessibleContext</code> takes the form of an 
@@ -264,7 +262,7 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
      *
      * @return an <code>AccessibleJButton</code> that serves as the 
      *         <code>AccessibleContext</code> of this <code>JButton</code>
-     * @beaninfo
+     * beaninfo
      *       expert: true
      *  description: The AccessibleContext associated with this Button.
      */
@@ -276,7 +274,8 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
     }
 
     /**
-     * -- This is a cut-and-paste copy of JButton's Accessible Interface -- <p>
+     * A cut-and-paste copy of JButton's Accessible Interface.
+     * <p>
      * This class implements accessibility support for the 
      * <code>JButton</code> class.  It provides an implementation of the 
      * Java Accessibility API appropriate to button user-interface 

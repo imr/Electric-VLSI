@@ -4860,8 +4860,8 @@ public class CircuitChanges
 
         /**
          * Get an iterator over valid Variable Keys for the primitive node
-         * @param pn
-         * @return
+         * @param pn the PrimitiveNode to examine.
+         * @return an Iterator over the Variable Keys on the Primitive Node.
          */
         public Iterator getPossibleVarKeys(PrimitiveNode pn) {
             List varKeys = (List)posVarsMap.get(pn);
@@ -4871,9 +4871,10 @@ public class CircuitChanges
         }
 
         /**
-         * Returns True if a valid key for the primitive node
-         * @param pn
-         * @return
+         * Method to decide a PrimitiveNode has a Variable key.
+         * @param key the Variable key.
+         * @param pn the PrimitiveNode to examine.
+         * @return true if a Variable key exists on the primitive node.
          */
         public static boolean validKey(Variable.Key key, PrimitiveNode pn) {
             List varKeys = (List)posVarsMap.get(pn);

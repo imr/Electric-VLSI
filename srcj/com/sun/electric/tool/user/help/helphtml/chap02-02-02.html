@@ -31,27 +31,11 @@ use the <I><A HREF="chap01-08.html#chap01-08">right</A></I> button to wire them 
 Note that the highlighted ports on the selected nodes are important:
 arcs will run between them, so they must be compatible in their wiring capabilities.
 <P>
-<TABLE><TR><TD>
 Two-point wire creation first attempts to run a single arc.
 Generally, this can happen only if the ports are lined up accurately.
 Failing single arc placement,
-an attempt is made to connect with two or three arcs and intermediate nodes.
-The determination of arc location depends upon the position of the cursor when the right button is clicked.
-If the cursor is inside of the area defined by the two components,
-the connection will make a "Z" bend through the cursor.
-If the cursor is to one side of the components,
-the connection will make a "U" bend through the cursor location.
-Finally, if the cursor is in a corner outside of the components,
-the connection will make an "L" bend towards the cursor.
-</TD><TD><CENTER><IMG SRC="fig02-04.png" ALT="Figure 2.4"></CENTER></TD></TR></TABLE>
-<p>
-Please Note: Only "L" shaped connections are implemented at this time.
-<P>
-The nature of the connection can also be affected by the directionality of the ports,
-which, if it exists, will override cursor location to obtain a sensible connection.
-Note that for "Z" bends, there are two arcs in one direction, and a third that is perpendicular to them.
-If there are no other factors (such as directionality),
-the orientation of the "Z" is made so that the perpendicular arc is shortest.
+an attempt is made to connect with two arcs and an intermediate node.
+These two arcs can bend in one of two directions, determined by the location of the cursor.
 <P>
 <TABLE><TR><TD><CENTER><IMG SRC="fig02-05.png" ALT="Figure 2.5"></CENTER></TD><TD>
 In addition to running an arc between two nodes,

@@ -21,8 +21,6 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  *
- * LETool.java
- *
  * Created on November 17, 2003, 10:16 AM
  */
 
@@ -88,8 +86,8 @@ public class LETool extends Tool {
     // =========================== Java Parameter Evaluation ======================
 
     /**
-     * Grabs a logical effort calculated size from the instance
-     * @return
+     * Grabs a logical effort calculated size from the instance.
+     * @return the size.
      */
     public Object getdrive() throws VarContext.EvalException {
 
@@ -121,7 +119,7 @@ public class LETool extends Tool {
      * Grab a paramter 'parName' from a nodeInst 'nodeName' in a sub cell.
      * @param nodeName name of the nodeInst
      * @param parName name of parameter to evaluate
-     * @return
+     * @return the parameter.
      */
     public Object subdrive(String nodeName, String parName) throws VarContext.EvalException {
 

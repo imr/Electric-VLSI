@@ -54,8 +54,8 @@ public class ERC extends Tool
 	}
 
     /**
-     * Method to retrieve singlenton associated to ERC tool
-     * @return
+     * Method to retrieve singleton associated to ERC tool
+     * @return the ERC tool.
      */
     public static ERC getERCTool() { return tool; }
 

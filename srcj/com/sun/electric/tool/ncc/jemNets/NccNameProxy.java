@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: NccNetlist.java
+ * File: NccNameProxy.java
  *
  * Copyright (c) 2003 Sun Microsystems and Free Software
  *

@@ -1260,9 +1260,6 @@ public class StdCellParams {
     /**
      * Note that nwellX denotes the X coord of the nwell contact cut, which
      * goes in the Nwell (well that holds PMOS devices).
-     * @param selFill
-     * @param cell
-     * @return
      */
     public boolean addWellCon(SelectFill selFill, PortInst gndPort, PortInst vddPort, Cell cell) {
         // see if there is space

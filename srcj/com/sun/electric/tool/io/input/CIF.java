@@ -2410,8 +2410,9 @@ public class CIF extends Input
 	}
 
 	/**
-	 * lookupSymbol(sym), if none, make
-	 * a blank entry. return a pointer to whichever
+	 * Method to find a given symbol.
+	 * If none, make a blank entry.
+	 * @return a pointer to whichever.
 	 */
 	private FrontSymbol lookupSymbol(int sym)
 	{

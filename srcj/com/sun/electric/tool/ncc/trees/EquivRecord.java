@@ -73,7 +73,7 @@ public class EquivRecord {
 	}
 
 	/** Get all the keys of all the maps.
-	 * @param maps list of maps
+	 * @param mapPerCkt list of maps
 	 * @return the set of all keys from all the maps */
 	private Set getKeysFromAllMaps(ArrayList mapPerCkt) {
 		Set keys = new HashSet();

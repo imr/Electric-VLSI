@@ -231,9 +231,6 @@ public class Spread extends EDialog
 
 		/**
 		 * Method to implement the "spread" command.
-		 * @param direction the direction to spread: 'u' for up, 'd' for down,
-		 * 'l' for left, 'r' for right.
-		 * @param amount the distance to spread (negative values compact).
 		 */
 		public boolean doIt()
 		{

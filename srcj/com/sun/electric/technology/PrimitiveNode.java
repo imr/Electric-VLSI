@@ -818,7 +818,8 @@ public class PrimitiveNode implements NodeProto
 	 * The only nodes that have auto-growth factors are the AND, OR, XOR, SWITCH, and MUX
 	 * nodes of the Schematics technology.
 	 * These nodes have ports that can accomodate any number of arcs.
-	 * @param autoGrowth the amount to grow this PrimitiveNode when arcs don't fit.
+	 * @param dX the X amount to grow this PrimitiveNode when arcs don't fit.
+	 * @param dY the Y amount to grow this PrimitiveNode when arcs don't fit.
 	 */
 	public void setAutoGrowth(double dX, double dY) { autoGrowth = new Dimension2D.Double(dX, dY); }
 
@@ -1041,7 +1042,6 @@ public class PrimitiveNode implements NodeProto
 
 	/**
 	 * Method to tell if instaces of this PrimitiveNode are grouped.
-	 * @return
 	 */
 	public boolean isGroupNode() { return (userBits & NODEGROUP) != 0; }
 
@@ -1054,7 +1054,6 @@ public class PrimitiveNode implements NodeProto
 	/**
 	 * Method to tell if instaces of this PrimitiveNode are special (don't appear in menu).
 	 * Valid for menu display
-	 * @return
 	 */
 	public boolean isSpecialNode() { return (userBits & NODESPECIAL) != 0; }
 
@@ -1099,8 +1098,6 @@ public class PrimitiveNode implements NodeProto
 	 * appropriate arc prototypes connect to instances of these pins, they stop being drawn.
 	 * It is necessary for the arc prototype to enable wiping (with setWipable).
 	 * A NodeInst that becomes wiped out has "setWiped" called.
-	 * @see ArcProto#setWipable
-	 * @see NodeInst#setWiped
 	 */
 	public void setArcsWipe() { checkChanging(); userBits |= ARCSWIPE; }
 
@@ -1111,8 +1108,6 @@ public class PrimitiveNode implements NodeProto
 	 * appropriate arc prototypes connect to instances of these pins, they stop being drawn.
 	 * It is necessary for the arc prototype to enable wiping (with setWipable).
 	 * A NodeInst that becomes wiped out has "setWiped" called.
-	 * @see ArcProto#setWipable
-	 * @see NodeInst#setWiped
 	 */
 	public void clearArcsWipe() { checkChanging(); userBits &= ~ARCSWIPE; }
 
@@ -1124,8 +1119,6 @@ public class PrimitiveNode implements NodeProto
 	 * It is necessary for the arc prototype to enable wiping (with setWipable).
 	 * A NodeInst that becomes wiped out has "setWiped" called.
 	 * @return true if instances of this PrimitiveNode are "arc-wipable" by when created.
-	 * @see ArcProto#setWipable
-	 * @see NodeInst#setWiped
 	 */
 	public boolean isArcsWipe() { return (userBits & ARCSWIPE) != 0; }
 

@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: Network.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *

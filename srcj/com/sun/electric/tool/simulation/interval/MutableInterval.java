@@ -27,8 +27,8 @@ package com.sun.electric.tool.simulation.interval;
 import java.math.BigDecimal;
 
 /**
- * Mutable class for representation of intervals X = [a, b]. a and b are double 
- * precision floation point numbers with a <= b. 
+ * Mutable class for representation of intervals X = [a, b].
+ * a and b are double precision floation point numbers with a <= b. 
  * 
  * Closed ("extended") interval system is implemented, which is the extension
  * of regular interval system.
@@ -63,12 +63,14 @@ public class MutableInterval
     /* Constants */
 
     /**
-     * A constant holding 3/4*ulp(1.0). next(x) is round-to-nearest
+     * A constant holding 3/4*ulp(1).
+     * next(x) is round-to-nearest
 	 * of (x + x*ULP_EPS) for positive normalized doble numbers.
      */
     private static final double ULP_EPS = 1.5/(1L << 53); // 0x1.8p-53;
     /**
-     * A constant holding prev(1.0). prev(x) is round-to-nearest
+     * A constant holding prev(1).
+     * prev(x) is round-to-nearest
 	 * if (x*SCALE_DOWN) for positive normalized double numbers.
      */
     private static final double SCALE_DOWN = 1.0 - 1.0/(1L << 53); // 0x0.fffffffffffffp0;
@@ -317,7 +319,7 @@ public class MutableInterval
 	}
 
 	/**
-	 * Assigns interval same as x.:
+	 * Assigns interval same as x.
 	 */
 	public MutableInterval assign(MutableInterval x) {
 		this.inf = x.inf;
@@ -401,7 +403,8 @@ public class MutableInterval
 	// -----------------------------------------------------------------------
 
 	/**
-	 * Returns true iff this interval is a point interval, i.e. inf() == sup().
+	 * Returns true iff this interval is a point interval.
+	 * i.e. inf() == sup().
 	 *
 	 * Special cases in the extended system:
 	 * <UL>
@@ -434,8 +437,8 @@ public class MutableInterval
 	}
 
 	/**
-	 * Returns true iff this interval has an ulp accuracy of n, i.e. x.inf() 
-	 * and x.sup() have a distance of at most n machine numbers.  
+	 * Returns true iff this interval has an ulp accuracy of n.
+	 * I.e. x.inf() and x.sup() have a distance of at most n machine numbers.  
 	 *
 	 * Special cases in the extended system:
 	 * <UL>

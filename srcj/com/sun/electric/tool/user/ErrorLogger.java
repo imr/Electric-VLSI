@@ -48,6 +48,7 @@ import java.awt.event.ActionEvent;
 import java.io.*;
 
 /**
+ * Class for logging errors.
  * Holds a log of errors:
  * <p>ErrorLogger errorLogger = ErrorLogger.newInstance(String s): get new logger for s
  * <p>ErrorLog errorLog = errorLogger.logError(string msg, cell c, int k):
@@ -279,7 +280,6 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         /**
          * Returns true if this error log is still valid
          * (In a linked Cell, and all highlights are still valid)
-         * @return
          */
         public boolean isValid() {
         	if (logCell == null) return true;
@@ -542,11 +542,6 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 	/**
 	 * Method to determine if existing report was not looged already
 	 * as error or warning
-	 * @param cell
-	 * @param geom1
-	 * @param cell2
-	 * @param geom2
-	 * @return
 	 */
 	public synchronized boolean findMessage(Cell cell, Geometric geom1, Cell cell2, Geometric geom2)
 	{
@@ -801,10 +796,6 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 
     /**
      * Report an error
-     * @param logNumber
-     * @param showHigh
-     * @param gPair
-     * @return
      */
     private synchronized String reportLog(int logNumber, boolean showHigh, Geometric [] gPair) {
 

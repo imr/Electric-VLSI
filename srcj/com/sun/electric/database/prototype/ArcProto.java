@@ -539,8 +539,6 @@ public abstract class ArcProto
 	 * It is necessary for the pin node prototype to enable wiping (with setArcsWipe).
 	 * A NodeInst that becomes wiped out has "setWiped" called.
 	 * @return true if instances of this ArcProto can wipe nodes.
-	 * @see NodeProto#setArcsWipe
-	 * @see NodeInst#setWiped
 	 */
 	public boolean isWipable() { return (userBits & CANWIPE) != 0; }
 

@@ -10,18 +10,18 @@ this causes the two libraries to be linked together.
 It may be simpler to copy the cells from one library to another,
 thus allowing a single library to contain the entire design.
 <P>
+<TABLE><TR><TD>
 The <B>Cross-Library Copy...</B> command (in menu <B>Cell</B>) provides a dialog for copying cells between libraries.
 The left and right columns show the contents of two different libraries
 (and the pulldowns above each column let you select the two libraries that you want to use).
 <P>
-<TABLE><TR><TD>
 When there is a cell with the same name in both libraries,
-the system compares modification dates to determine which is newer, 
-The "Examine Contents"
-button compares the contents of cells whose dates are different and displays an indication of whether they are actually different or just out of date.
-The "Examine Contents Quietly" button does the same thing, but it does not explain which differences have been found.
-The "List differences" button shows all differences in the messages window.
+the system compares them to determine which is newer.
 </TD><TD><CENTER><IMG SRC="fig03-05.png" ALT="Figure 3.5"></CENTER></TD></TR></TABLE>
+<P>
+If you check "Date and content" (and then "Compare" to do comparison again)
+Electric will compare the actual contents of cells when determining their equality.
+Unchecking "Examine quietly" will cause the system to describe differences found during comparison.
 <P>
 By choosing a cell in the right-hand library and clicking "&lt;&lt; Copy", that cell is copied into the left-hand library.
 The "Copy &gt;&gt;" button does the reverse.

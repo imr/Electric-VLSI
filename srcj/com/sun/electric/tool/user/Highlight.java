@@ -478,7 +478,6 @@ public class Highlight
 
 	/**
 	 * Not to violate that equal objects must have equal hashcodes.
-	 * @return
 	 */
 	public int hasCode()
 	{

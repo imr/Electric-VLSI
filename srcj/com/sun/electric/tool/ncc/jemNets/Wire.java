@@ -55,7 +55,8 @@ public class Wire extends NetObject{
     }
     
 	/** add a Port to this Wire
-	 * @param p the Port to add */
+	 * @param portName the Port to add
+	 */
     public Port addExport(String portName, PortCharacteristic type) {
 		if (port==null)  port = new Port(portName, type, this);
 		else port.addExport(portName, type); 
@@ -130,7 +131,7 @@ public class Wire extends NetObject{
     public String valueDescription() {return "";}
 
     /** Get a String indicating up to N connections for this NetObject.
-	 * @param n the maximum number of connections to list
+	 * @param maxParts the maximum number of connections to list
 	 * @return a String of connections. */
     public String connectionDescription(int maxParts){
         if (parts.size()==0) return (" unconnected");

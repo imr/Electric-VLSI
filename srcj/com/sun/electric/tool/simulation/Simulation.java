@@ -129,7 +129,6 @@ public class Simulation extends Tool
 		 * If a signal wants to use its own time values, that can be done by placing the time
 		 * array in the signal.
 		 * @param numEvents the number of time events in the common time array.
-		 * @param numSweeps the number of sweeps in the simulation data.
 		 */
 		public void addCommonTime(int numEvents)
 		{
@@ -257,9 +256,7 @@ public class Simulation extends Tool
 
 		/**
 		 * Method to return the signal that corresponds to a given Network.
-		 * @param net the Network to find.
-		 * @param context the context of these networks
-		 * (a string to prepend to them to get the actual simulation signal name).
+		 * @param netName the Network name to find.
 		 * @return the SimSignal that corresponds with the Network.
 		 * Returns null if none can be found.
 		 */

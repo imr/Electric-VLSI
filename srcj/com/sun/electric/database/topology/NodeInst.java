@@ -106,8 +106,8 @@ public class NodeInst extends Geometric implements Nodable
 	 * Method to detect if np is not relevant for some tool calculation and therefore
 	 * could be skip. E.g. cellCenter, drcNodes, essential bounds and pins in DRC.
 	 * Similar for layer generation
-	 * @param ni
-	 * @return
+	 * @param ni the NodeInst in question.
+	 * @return true if it is a special node (cell center, etc.)
 	 */
 	public static boolean isSpecialNode(NodeInst ni)
 	{
@@ -1008,9 +1008,7 @@ public class NodeInst extends Geometric implements Nodable
 		/**
 		 * Constructor gives the new Java style parameters.
 		 * The C conversion can be obtained from the "get" methods.
-		 * @param jAngle the angle of rotation (in tenth-degrees)
-		 * @param jMirrorX if true, object is flipped over the vertical (mirror in X).
-		 * @param jMirrorY if true, object is flipped over the horizontal (mirror in Y).
+		 * @param ni the NodeInst to use.
 		 */
 		public OldStyleTransform(NodeInst ni)
 		{
@@ -2026,8 +2024,9 @@ public class NodeInst extends Geometric implements Nodable
 	public int getNumExports() { return exports.size(); }
 
 	/**
-	 * Method to associate the ports on this NodeInst with another.
-	 * @param niOther the other NodeInst to associate with this.
+	 * Method to associate the ports between two NodeInsts.
+	 * @param ni1 the first NodeInst to associate.
+	 * @param ni2 the second NodeInst to associate.
 	 * @param ignorePortNames true to ignore port names and use only positions.
 	 * @return an array of PortAssociation objects that associates ports on this NodeInst
 	 * with those on the other one.  returns null if there is an error.
@@ -2502,7 +2501,6 @@ public class NodeInst extends Geometric implements Nodable
 	/**
 	 * Method to return true if a PrimitiveNode is acting as implant.
 	 * This is used for coverage implant function.
-	 * @return
 	 */
 	public boolean isPrimtiveSubstrateNode()
 	{
@@ -2846,8 +2844,6 @@ public class NodeInst extends Geometric implements Nodable
 	 * This means that when an arc connects to the pin, it is no longer drawn.
 	 * In order for a NodeInst to be wiped, its prototype must have the "setArcsWipe" state,
 	 * and the arcs connected to it must have "setWipable" in their prototype.
-	 * @see NodeProto#setArcsWipe
-	 * @see ArcProto#setWipable
 	 */
 	public void setWiped() { userBits |= WIPED; }
 
@@ -2857,8 +2853,6 @@ public class NodeInst extends Geometric implements Nodable
 	 * This means that when an arc connects to the pin, it is no longer drawn.
 	 * In order for a NodeInst to be wiped, its prototype must have the "setArcsWipe" state,
 	 * and the arcs connected to it must have "setWipable" in their prototype.
-	 * @see NodeProto#setArcsWipe
-	 * @see ArcProto#setWipable
 	 */
 	public void clearWiped() { userBits &= ~WIPED; }
 
@@ -2869,8 +2863,6 @@ public class NodeInst extends Geometric implements Nodable
 	 * In order for a NodeInst to be wiped, its prototype must have the "setArcsWipe" state,
 	 * and the arcs connected to it must have "setWipable" in their prototype.
 	 * @return true if this NodeInst is wiped.
-	 * @see NodeProto#setArcsWipe
-	 * @see ArcProto#setWipable
 	 */
 	public boolean isWiped() { return (userBits & WIPED) != 0; }
 

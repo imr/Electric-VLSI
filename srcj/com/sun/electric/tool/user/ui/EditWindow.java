@@ -2536,6 +2536,9 @@ public class EditWindow extends JPanel
 	       	}
 	   		inPlaceDescent.add(ni);
 	    	inPlaceDisplay = true;
+	    } else
+	    {
+	    	inPlaceDisplay = false;
 	    }
 
 		// for stacked NodeInsts, must choose which one

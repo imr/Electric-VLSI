@@ -164,7 +164,6 @@ public class KeyBindings implements ActionListener {
 
     /**
      * Convert key bindings to a string
-     * @return
      */
     public String bindingsToString() {
         StringBuffer buf = new StringBuffer("");

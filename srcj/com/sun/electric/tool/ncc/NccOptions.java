@@ -41,7 +41,7 @@ public class NccOptions {
 	 * it has been modified since the last comparison. */
 	public boolean skipPassed = false;
 
-	/** How many progress messages to print. 0 means minimal. 10 means maximum. */
+	/** How many progress messages to print (0 means minimal, 10 means maximum). */
 	public int howMuchStatus = 0;
 	
 	/** for hierarchical comparisons try to continue comparing

@@ -2082,11 +2082,6 @@ public class Quick
 	 * technology "tech" meets minimum width rules.  If it is too narrow, other layers
 	 * in the vicinity are checked to be sure it is indeed an error.  Returns true
 	 * if an error is found.
-	 * @param geom
-	 * @param layer
-	 * @param poly
-	 * @param onlyOne
-     * @return
 	 */
 	private boolean checkMinWidth(Geometric geom, Layer layer, Poly poly, boolean onlyOne)
 	{
@@ -2285,8 +2280,6 @@ public class Quick
 	 * Method to ensure that polygon "poly" on layer "layer" from object "geom" in
 	 * technology "tech" meets minimum area rules. Returns true
 	 * if an error is found.
-	 * @param cell
-	 * @return
 	 */
 	private int checkMinArea(Cell cell)
 	{
@@ -2723,11 +2716,6 @@ public class Quick
     /****************************** Select Over Polysilicon Functions ***************************/
 	/**
 	 * Method to check if non-transistor polysilicons are completed covered by N++/P++ regions
-	 * @param geom
-	 * @param layer
-	 * @param poly
-	 * @param cell
-	 * @return
 	 */
 	private boolean checkSelectOverPolysilicon(Geometric geom, Layer layer, Poly poly, Cell cell)
 	{
@@ -2882,11 +2870,6 @@ public class Quick
 
     /**
      * Method to check if certain poly rectangle is fully covered by any select regoin
-     * @param cell
-     * @param ruleBnd
-     * @param points
-     * @param founds
-     * @return
      */
     private boolean allPointsContainedInLayer(Geometric geom, Cell cell, Rectangle2D ruleBnd, Point2D[] points, boolean[] founds)
     {
@@ -3695,9 +3678,6 @@ public class Quick
 
 		/**
 		 * Method to search if child network is connected to visitor network.
-		 * @param net
-		 * @param info
-		 * @return
 		 */
 		private boolean searchNetworkInParent(Network net, HierarchyEnumerator.CellInfo info)
 		{
@@ -3712,9 +3692,6 @@ public class Quick
 		}
 
 		/**
-		 *
-		 * @param info
-		 * @return
 		 */
 		public boolean enterCell(HierarchyEnumerator.CellInfo info)
 		{
@@ -3778,16 +3755,10 @@ public class Quick
 		}
 
 		/**
-		 *
-		 * @param info
 		 */
 		public void exitCell(HierarchyEnumerator.CellInfo info) {}
 
 		/**
-		 *
-		 * @param no
-		 * @param info
-		 * @return
 		 */
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
 		{

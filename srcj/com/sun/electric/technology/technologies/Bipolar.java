@@ -1,5 +1,3 @@
-// BE SURE TO INCLUDE THIS TECHNOLOGY IN Technology.initAllTechnologies()
-
 /* -*- tab-width: 4 -*-
  *
  * Electric(tm) VLSI Design System

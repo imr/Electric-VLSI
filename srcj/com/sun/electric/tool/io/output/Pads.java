@@ -47,20 +47,20 @@ import java.util.List;
 
 /**
  * Class to write Pads netlists.
- *
- * ----------------- FORMAT ----------------------
- *   !PADS-POWERPCB-V2
- *
- *   *PART*
- *   LED1 LED@LED
- *   R1 RES100@RES100
- *
- *   *NET*
- *   *SIGNAL* A0 12,00 0 0 0 -2
- *   LED1.1 R1.2
- *   *SIGNAL* A1 12.00 0 0 0 -2
- *   LED1.2 R1.1
- *
+ * <BR>
+ * Format:<BR>
+ *   !PADS-POWERPCB-V2<BR>
+ * <BR>
+ *   *PART*<BR>
+ *   LED1 LED@LED<BR>
+ *   R1 RES100@RES100<BR>
+ * <BR>
+ *   *NET*<BR>
+ *   *SIGNAL* A0 12,00 0 0 0 -2<BR>
+ *   LED1.1 R1.2<BR>
+ *   *SIGNAL* A1 12.00 0 0 0 -2<BR>
+ *   LED1.2 R1.1<BR>
+ * <BR>
  *   *END*
  */
 public class Pads extends Output

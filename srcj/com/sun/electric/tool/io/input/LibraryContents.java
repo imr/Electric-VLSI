@@ -89,22 +89,22 @@ public class LibraryContents
 				tempInt = reader.lineReader.getLineNumber();
 		}
 
-		/**
-		 * Returns a hash code for this <code>ObjectRef</code>.
-		 * @return  a hash code value for this ObjectRef.
-		 */
+//		/**
+//		 * Returns a hash code for this <code>ObjectRef</code>.
+//		 * @return  a hash code value for this ObjectRef.
+//		 */
 // 		public int hashCode() {	return name.hashCode(); }
 
-		/**
-		 * Compares this ObjectRef object to the specified object.  The result is
-		 * <code>true</code> if and only if the argument is not
-		 * <code>null</code> and is an <code>Object</code> object with
-		 * the same <code>name</code>, as this ObjectRef.
-		 *
-		 * @param   obj   the object to compare with.
-		 * @return  <code>true</code> if the objects are the same;
-		 *          <code>false</code> otherwise.
-		 */
+//		/**
+//		 * Compares this ObjectRef object to the specified object.  The result is
+//		 * <code>true</code> if and only if the argument is not
+//		 * <code>null</code> and is an <code>Object</code> object with
+//		 * the same <code>name</code>, as this ObjectRef.
+//		 *
+//		 * @param   obj   the object to compare with.
+//		 * @return  <code>true</code> if the objects are the same;
+//		 *          <code>false</code> otherwise.
+//		 */
 // 		public boolean equals(Object obj) {
 // 			if (obj instanceof ObjectRef) {
 // 				ObjectRef objRef = (ObjectRef)obj;
@@ -822,8 +822,8 @@ public class LibraryContents
 
 		/**
 		 * Method called after all libraries have been read to instantiate a single Cell.
-		 * @param cell the Cell to instantiate.
-		 * @param cc the contents of that cell (the strings from the file).
+		 * param cell the Cell to instantiate.
+		 * param cc the contents of that cell (the strings from the file).
 		 */
 		void instantiate()
 		{
@@ -1120,7 +1120,7 @@ public class LibraryContents
 		/**
 		 * Method to find the proper PortInst for a specified port on a node, at a given position.
 		 * @param cell the cell in which this all resides.
-		 * @param portName the name of the port (may be an empty string if there is only 1 port).
+		 * @param port the port.
 		 * @param xPos the X coordinate of the port on the node.
 		 * @param yPos the Y coordinate of the port on the node.
 		 * @return the PortInst specified (null if none can be found).
@@ -1553,7 +1553,6 @@ public class LibraryContents
 		/**
 		 * Method to add meaning preferences to an ElectricObject from a List of strings.
 		 * @param obj the Object to augment with meaning preferences.
-		 * @param vars the array of VariableContents objects that described the Object.
 		 */
 		void addMeaningPref(Object obj)
 		{
@@ -1586,12 +1585,7 @@ public class LibraryContents
 
 		/**
 		 * Method to convert a String to an Object so that it can be stored in a Variable.
-		 * @param piece the String to be converted.
-		 * @param objectPos the character number in the string to consider.
-		 * Note that the string may be larger than the object description, both by having characters
-		 * before it, and also by having characters after it.
-		 * Therefore, do not assume that the end of the string is the proper termination of the object specification.
-		 * @param varType the type of the object to convert (a letter from the file).
+		 * @param value the String to be converted.
 		 * @return the Object representation of the given String.
 		 */
 		private Object convertValue(Object value)

@@ -42,8 +42,8 @@ import java.util.Iterator;
 import java.awt.geom.Point2D;
 
 /**
- * VerticalRoute is used to route vertically (i.e. in Z direction) between
- * two RouteElements.  The class is used as following:
+ * Class to route vertically (in Z direction) between two RouteElements.
+ * The class is used as following:
  * <p>After creating the object, call specifyRoute() to find a way to connect
  * between startRE and endRE RouteElement objects.  At this point you may wish to
  * use the information about the specified route before actually building the route.

@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: WindowFrame.java
+ * File: View3DWindow.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -791,13 +791,6 @@ public class View3DWindow extends JPanel
     }
 
     /**
-     *
-     * @param pIt
-     * @param distance
-     * @param thickness
-     * @param ap
-     * @param objTrans
-     * @return
      */
 	private Shape3D addPolyhedron(PathIterator pIt, double distance, double thickness,
 	                          Appearance ap, TransformGroup objTrans)
@@ -1460,9 +1453,6 @@ public class View3DWindow extends JPanel
 		}
 
 		/**
-		 *
-		 * @param info
-		 * @return
 		 */
 		public boolean enterCell(HierarchyEnumerator.CellInfo info)
 		{
@@ -1476,16 +1466,10 @@ public class View3DWindow extends JPanel
 		}
 
 		/**
-		 *
-		 * @param info
 		 */
 		public void exitCell(HierarchyEnumerator.CellInfo info) {}
 
 		/**
-		 *
-		 * @param no
-		 * @param info
-		 * @return
 		 */
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
 		{

@@ -103,7 +103,8 @@ public abstract class Router {
     }
 
     /**
-     * Create the route, but does not wrap Job around it
+     * Method to create the route.
+     * Does not wrap Job around it
      * (useful if already being called from a Job).  This still
      * must be called from within a Job context, however.
      * @param route the route to create
@@ -112,7 +113,6 @@ public abstract class Router {
      * @param highlightRouteEnd highlights end of route (last object) if true, otherwise leaves
      * highlights alone.
      * @param highlighter the highlighter to use
-     * @return
      */
     public static boolean createRouteNoJob(Route route, Cell cell, boolean verbose,
                                            boolean highlightRouteEnd, Highlighter highlighter) {

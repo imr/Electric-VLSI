@@ -23,7 +23,7 @@ the dialog allows other settings.
 Note: It is highly recommended that the user is familiar with the concept of Logical Effort
 as described in the above book before using the Logical Effort Tool in Electric.
 <P>
-Two commands may be given to the Logical Effort tool:
+Two commands may be given to the Logical Effort tool (in menu <B>Tool / Logical Effort</B>):
 <UL>
 <LI><B>Optimize for Equal Gate Delays</B>
 <LI><B>Print Info for Selected Node</B>
@@ -90,7 +90,8 @@ the non-caching algorithm is also available.
 <P>
 <H3>Back Annotate Wire Loads for the Current Cell</H3>
 <P>
-This runs NCC on the current cell against it's matching layout or schematic cell.  Assuming they match, for each LEWIRE
+The <B>Back Annotate Wire Lengths for Current Cell</B> command
+runs NCC on the current cell against it's matching layout or schematic cell.  Assuming they match, for each LEWIRE
 in the schematic cell, it finds the half-perimeter of the matching wire in the layout cell (as if they layout were flattened),
 and then changes the "L" parameter on the LEWIRE to the value.  Note back-annotation is only performed on
 top level LEWIREs, and it takes into account the wire's length throughout the layout hierarhcy.
@@ -100,7 +101,8 @@ top level LEWIREs, and it takes into account the wire's length throughout the la
 <P>
 LE sizes are stored as parameters on the LEGATE.  Sometimes the sheer number of sizes can
 overwhelm the allocated process memory, and can also bloat file sizes when they are no longer needed.
-These commands provide ways to delete saved sizes on a per-node basis, or globally.
+The <B>Clear Sizes on Selected Node(s)</B> and <B>Clear Sizes in all Libraries</B>
+commands provide ways to delete saved sizes on a per-node basis, or globally.
 
 <P>
 <H3>Print Info for Selected Node</H3>

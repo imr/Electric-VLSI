@@ -69,7 +69,6 @@ public class ParasiticTool extends Tool{
 
     /**
      * Method to retrieve singlenton associated to parasitic tool
-     * @return
      */
     public static ParasiticTool getParasiticTool() { return tool; }
 
@@ -112,10 +111,7 @@ public class ParasiticTool extends Tool{
         }
 
         /**
-         * imilar to PolyBase.separationBox
-         * @param p1
-         * @param p2
-         * @return
+         * similar to PolyBase.separationBox
          */
         public static List initParasiticValues(Poly p1, Poly p2)
         {
@@ -286,7 +282,6 @@ public class ParasiticTool extends Tool{
 
         /**
          * Implementation of Job.doIt() abstract function
-         * @return
          */
         public boolean doIt()
         {

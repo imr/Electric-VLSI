@@ -1726,9 +1726,10 @@ public class Technology
 	}
 
 	/**
-	 * Multicut conditions depend upon technologies
-	 * @param ni
-	 * @return
+	 * Method to decide whether a NodeInst is a multi-cut contact.
+	 * The function is done by the Technologies so that it can be subclassed.
+	 * @param ni the NodeInst being tested.
+	 * @return true if it is a Multiple-cut contact.
 	 */
 	public boolean isMultiCutCase(NodeInst ni)
 	{

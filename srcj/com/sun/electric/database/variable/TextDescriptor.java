@@ -1094,7 +1094,7 @@ public class TextDescriptor
 	 * This general access to the bits is required because the ELIB
 	 * file format stores it as a full integer.
 	 * This should not normally be called by any other part of the system.
-	 * @param descriptor1 the bits of the new TextDescriptor.
+	 * @param descriptor the bits of the new TextDescriptor.
 	 */
 	public synchronized void lowLevelSet(long descriptor)
 	{

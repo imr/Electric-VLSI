@@ -394,8 +394,6 @@ public class MenuBar extends JMenuBar
     /**
      * Add a hidden menu to the MenuBar. It's key bindings will be active,
      * but it will not be shown in the MenuBar.
-     * @param c
-     * @return
      */
     public JMenu addHidden(JMenu c) {
         hiddenMenus.add(c);
@@ -466,7 +464,6 @@ public class MenuBar extends JMenuBar
      * @param e the KeyEvent
      * @param condition condition (focused/not etc)
      * @param pressed
-     * @return
      */
     protected boolean processKeyBinding(KeyStroke ks, KeyEvent e,
                                         int condition, boolean pressed) {
@@ -675,7 +672,8 @@ public class MenuBar extends JMenuBar
 
     //------------------------------ Utility Methods -------------------------------
 
-    /** Get a string description of the menu item of the form <p>
+    /** Get a string description of the menu item.
+     * Takes the form <p>
      * Menu | SubMenu | SubMenu | item
      * <p>
      * @param item The item to get a description for

@@ -2,7 +2,8 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: LENetlister.java
+ * File: LENetlister1.java
+ * Written by Jonathan Gainsley, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *

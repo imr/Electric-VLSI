@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: JELIB.java
+ * File: JELIB1.java
  * Input/output tool: JELIB Library input
  * Written by Steven M. Rubin, Sun Microsystems.
  *
@@ -112,8 +112,6 @@ public class JELIB1 extends LibraryFiles
 	 * Method to read a Library from disk.
 	 * This method is for reading full Electric libraries in ELIB, JELIB, and Readable Dump format.
 	 * @param fileURL the URL to the disk file.
-	 * @param type the type of library file (ELIB, JELIB, etc.)
-	 * @return the read Library, or null if an error occurred.
 	 */
 	public static synchronized void convertLibrary(URL fileURL, String outFilePath)
 	{
@@ -486,7 +484,6 @@ public class JELIB1 extends LibraryFiles
 
 	/**
 	 * Method called after all libraries have been read to instantiate a single Cell.
-	 * @param cell the Cell to instantiate.
 	 * @param cc the contents of that cell (the strings from the file).
 	 */
 	private void readCellContents(LibraryContents.CellContents cc)

@@ -140,10 +140,7 @@ class Flattener extends HierarchyEnumerator.Visitor {
 	}
 
 	/**
-	 * @TODO GVG Not finished yet
-	 * @param no
-	 * @param inf
-	 * @return
+	 * TODO GVG Not finished yet
 	 */
 	public boolean visitNodeInst(Nodable no,
 	                             HierarchyEnumerator.CellInfo inf) {

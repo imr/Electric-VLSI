@@ -548,9 +548,6 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
     /**
      * Method to compose item name depending on object class
-     * @param item
-     * @param getVarName
-     * @return
      */
     private static String getItemName(Object item, boolean getVarName)
     {

@@ -313,11 +313,11 @@ public class Tegas extends Topology
 	/****************************** MAIN BLOCKS ******************************/
 
 	/**
-	 * Method to write the output signals for a nodeinst.
-	 * @param ni the NodeInst to write.
+	 * Method to write the output signals for a Nodable.
+	 * @param no the Nodable to write.
 	 * @param context the NodeInst's context down the hierarchy.
 	 * @param cni the CellNetInfo for the node's parent cell.
-	 * @return the output signals for the NodeInst.
+	 * @return the output signals for the Nodable.
 	 */
 	private String getOutputSignals(Nodable no, VarContext context, CellNetInfo cni)
 	{
@@ -385,11 +385,11 @@ public class Tegas extends Topology
 	}
 
 	/**
-	 * Method to write the input signals for a nodeinst.
-	 * @param ni the NodeInst to write.
+	 * Method to write the input signals for a Nodable.
+	 * @param no the Nodable to write.
 	 * @param context the NodeInst's context down the hierarchy.
 	 * @param cni the CellNetInfo for the node's parent cell.
-	 * @return the input signals for the NodeInst.
+	 * @return the input signals for the Nodable.
 	 */
 	private String getInputSignals(Nodable no, VarContext context, CellNetInfo cni)
 	{
@@ -535,8 +535,8 @@ public class Tegas extends Topology
 	}
 
 	/**
-	 * Method to return the TDL delay on a NodeInst.
-	 * @param ni the NodeInst to get delay information on.
+	 * Method to return the TDL delay on a Nodable.
+	 * @param no the Nodable to get delay information on.
 	 * @return the node delay.  If no delay information is on the node,
 	 * returns the default: "/1,1/".
 	 */
@@ -688,9 +688,9 @@ public class Tegas extends Topology
 	}
 
 	/**
-	 * Method to return the TDL name of a nodeinst.
-	 * @param ni the NodeInst to report.
-	 * @return the name of that NodeInst.
+	 * Method to return the TDL name of a Nodable.
+	 * @param no the Nodable to report.
+	 * @return the name of that Nodable.
 	 */
 	private String getNodeProtoName(Nodable no)
 	{
@@ -763,8 +763,7 @@ public class Tegas extends Topology
 	private List reservedWords = null;
 
 	/**
-	 * Method that takes a string of max. length 12 and checks to see if it is a
-	 * reserved word.
+	 * Method that takes a string of max length 12 and checks to see if it is a reserved word.
 	 * @param str the name to check.
 	 * @return true if the word is reserved.
 	 * Returns false if the word is not reserved.

@@ -609,7 +609,8 @@ public class Compaction extends Listener
 		}
 
 		/**
-		 * find least low of the line. re-set first line low in the list
+		 * Method to find least low of the line.
+		 * re-set first line low in the list
 		 * finds the smallest low value (lowx for VERTICAL, lowy for HORIZ case)
 		 * stores it in line->low.
 		 */

@@ -114,7 +114,7 @@ public class NccGlobals {
 	/**
 	 * The constructor initializes global root, parts, wires, and ports from 
 	 * net lists. 
-	 * @param list of NccNetlists, one per Cell to be compared
+	 * param list of NccNetlists, one per Cell to be compared
 	 * @param options 
 	 */
 	public NccGlobals(NccOptions options) {
@@ -140,10 +140,12 @@ public class NccGlobals {
 			rootContexts[i] = nl.getRootContext();
 		}
 	}
-	/** Tricky! initLeafLists() must be called AFTER  
+	/** Initialization.
+	 * Tricky! initLeafLists() must be called AFTER  
 	 * series/parallel merging. Series/parallel merging can change an 
 	 * EquivRecord from mismatched to matched. This transition is normally 
-	 * impossible and it creates inconsistencies in LeafEquivRecords. */
+	 * impossible and it creates inconsistencies in LeafEquivRecords.
+	 */
 	public void initLeafLists() {
 		partLeafRecs = new LeafEquivRecords(parts, this);
 		wireLeafRecs = new LeafEquivRecords(wires, this);

@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: Instance.java
+ * Written by Jonathan Gainsley, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -20,8 +21,6 @@
  * along with Electric(tm); see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
- *
- * Instance.java
  *
  * Created on November 11, 2003, 4:00 PM
  */

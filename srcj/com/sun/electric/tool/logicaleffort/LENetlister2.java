@@ -2,7 +2,8 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: LENetlister.java
+ * File: LENetlister2.java
+ * Written by Jonathan Gainsley, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -255,6 +256,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
     // ======================= Hierarchy Enumerator ==============================
 
     /**
+     * Class to implement the first pass of definitions for all LENodables.
      * The first pass creates the definitions for all LENodables, and sees which
      * Cells can be cached (i.e. do not have parameters that need parent context
      * to evaluate, and do not have sizeable gates in them)

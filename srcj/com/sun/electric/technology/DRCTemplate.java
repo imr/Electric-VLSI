@@ -1,11 +1,34 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: DRCTemplate.java
+ *
+ * Copyright (c) 2004 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
 package com.sun.electric.technology;
 
 import java.util.List;
 import java.util.ArrayList;
 
 /**
-* Class to define rules from TSCM files...
-*/
+ * Class to define rules from TSCM files...
+ */
 public class DRCTemplate
 {
     // design rule constants
@@ -91,15 +114,7 @@ public class DRCTemplate
     }
 
 	/**
-	 * For different spacing depending on wire length and multi cuts
-	 * @param rule
-	 * @param when
-	 * @param ruleType
-	 * @param maxW
-	 * @param layer1
-	 * @param layer2
-	 * @param distance
-	 * @param multiCut
+	 * For different spacing depending on wire length and multi cuts.
 	 */
     public DRCTemplate(String rule, int when, int ruleType, double maxW, String layer1, String layer2, double distance, boolean multiCut)
     {
@@ -127,14 +142,7 @@ public class DRCTemplate
     }
 
 	/**
-	 * Method for spacing rules in single layers
-	 * @param name
-	 * @param when
-	 * @param type
-	 * @param maxW
-	 * @param value
-	 * @param arrayL
-	 * @return
+	 * Method for spacing rules in single layers.
 	 */
     public static List makeRuleTemplates(String name, int when, int type, double maxW, double value, String arrayL[])
 	{
@@ -151,15 +159,7 @@ public class DRCTemplate
 	}
 
 	/**
-	 * For multi cuts as well
-	 * @param name
-	 * @param when
-	 * @param type
-	 * @param maxW
-	 * @param value
-	 * @param arrayL
-	 * @param multiCut
-	 * @return
+	 * For multi cuts as well.
 	 */
     public static List makeRuleTemplates(String name, int when, int type, double maxW, double value, String arrayL[][], boolean multiCut)
 	{
@@ -177,7 +177,9 @@ public class DRCTemplate
 		return list;
 	}
 
-    // For primitive node rules
+    /**
+     * For primitive node rules.
+     */
 	public static List makeRuleTemplates(String name, int when, int type, double value, String arrayL[])
 	{
 		// Clone same rule for different layers

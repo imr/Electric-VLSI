@@ -1211,7 +1211,7 @@ public class FillGenerator {
 	 * that these two ground straps should abut to form a single large strap
 	 * instead of two smaller adjacent straps.
 	 * @param gndUnits LAMBDA or TRACKS
-	 * @param tiledSizes an array of sizes. The default value is null.  The
+	 * param tiledSizes an array of sizes. The default value is null.  The
 	 * value null means don't generate anything. */
 	public void reserveSpaceOnLayer(int layer, 
 									double vddReserved, Units vddUnits, 
@@ -1230,7 +1230,7 @@ public class FillGenerator {
 	 * build a capacitor using MOS transistors between Vdd and ground.
 	 * @param hiLayer the upper layer. This may be 2 through 6. Note that hiLayer
 	 * must be >= loLayer.
-	 * @param exportConfg may be PERIMETER in which case exports are 
+	 * @param exportConfig may be PERIMETER in which case exports are 
 	 * placed along the perimeter of the cell for the top two layers. Otherwise
 	 * exportConfig must be PERIMETER_AND_INTERNAL in which case exports are
 	 * placed inside the perimeter of the cell for the bottom layer. 

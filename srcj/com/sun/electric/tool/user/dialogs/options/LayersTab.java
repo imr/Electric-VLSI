@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: LayerTab.java
+ * File: LayersTab.java
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *

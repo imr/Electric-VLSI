@@ -476,7 +476,7 @@ public class L extends Output
 	/**
 	 * Method to determine the type of a NodeInst.
 	 * @param ni the NodeInst to analyze.
-	 * @return:<BR>
+	 * @return
 	 *    TRUEPIN    if a true pin (exactly two connections)<BR>
 	 *    TRANSISTOR if a transistor<BR>
 	 *    INSTANCE   if a cell instance<BR>

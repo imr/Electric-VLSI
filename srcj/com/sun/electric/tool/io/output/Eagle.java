@@ -46,19 +46,19 @@ import java.util.List;
 
 /**
  * Class to write Eagle netlists.
- *
- * ----------------- FORMAT ----------------------
- * ADD SO14 'IC1' R0 (0 0)
- * ADD SO16 'IC2' R0 (0 0)
- * ADD SO24L 'IC3' R0 (0 0)
- * ;
- * Signal 'A0'       'IC1'      '5' \
- *                   'IC2'      '10' \
- *                   'IC3'      '8' \
- * ;
- * Signal 'A1'       'IC1'      '6' \
- *                   'IC2'      '11' \
- *                   'IC3'      '5' \
+ * <BR>
+ * Format:<BR>
+ * ADD SO14 'IC1' R0 (0 0)<BR>
+ * ADD SO16 'IC2' R0 (0 0)<BR>
+ * ADD SO24L 'IC3' R0 (0 0)<BR>
+ * ;<BR>
+ * Signal 'A0'       'IC1'      '5' \<BR>
+ *                   'IC2'      '10' \<BR>
+ *                   'IC3'      '8' \<BR>
+ * ;<BR>
+ * Signal 'A1'       'IC1'      '6' \<BR>
+ *                   'IC2'      '11' \<BR>
+ *                   'IC3'      '5' \<BR>
  * ;
  */
 public class Eagle extends Output

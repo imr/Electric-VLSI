@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: WaveformWindow.java
+ * File: Resources.java
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *
@@ -37,10 +37,9 @@ public class Resources {
 	public static final String plugin3D = "com.sun.electric.plugins.j3d.View3DWindow";
 
 	/**
-	 * Method to load a valid icon stored in resources package under the given class
+	 * Method to load a valid icon stored in resources package under the given class.
 	 * @param theClass class path where the icon resource is stored under
 	 * @param iconName icon name
-	 * @return
 	 */
 	public static ImageIcon getResource(Class theClass, String iconName)
 	{
@@ -48,11 +47,10 @@ public class Resources {
 	}
 
 	/**
-	 * Method to get URL path for a resource stored in resources package
-	 * under the given class
+	 * Method to get URL path for a resource stored in resources package under the given class.
 	 * @param theClass class path where resource is stored under
 	 * @param resourceName resource name
-	 * @return
+	 * @return a URL for the requested resource.
 	 */
 	public static URL getURLResource(Class theClass, String resourceName)
 	{
@@ -60,8 +58,8 @@ public class Resources {
 	}
 
 	/**
-	 * Method to obtain main 3D class
-	 * @return
+	 * Method to obtain main 3D class.
+	 * @return the main 3D class.
 	 */
 	public static Class get3DMainClass()
 	{

@@ -636,8 +636,10 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	public ArrayList getWireList() {return wires.getWireArray();}
 	public ArrayList getPartList() {return parts;}
 	public ArrayList getPortList() {return ports;}
-	/** Do all subcircuits we instantiate have valid exportsConnectedByParent 
-	 * assertions? If not then this netlist isn't valid. */
+	/**
+	 * Ensure that all subcircuits we instantiate have valid exportsConnectedByParent assertions.
+	 * If not then this netlist isn't valid.
+	 */
 	public boolean exportAssertionFailures() {return exportAssertionFailures;}
 	
 	public Visitor(NccGlobals globals, 

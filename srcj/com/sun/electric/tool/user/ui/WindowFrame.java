@@ -866,10 +866,10 @@ public class WindowFrame
     }
 
 	/**
-	 * Centralized version of naming windows! Might move it to class
+	 * Centralized version of naming windows. Might move it to class
 	 * that would replace WindowContext
-	 * @param cell
-	 * @param prefix
+	 * @param cell the cell in the window.
+	 * @param prefix a prefix for the title.
 	 */
 	public String composeTitle(Cell cell, String prefix, int pageNo)
 	{

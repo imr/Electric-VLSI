@@ -46,18 +46,18 @@ import java.util.List;
 
 /**
  * Class to write ECAD netlists.
- *
- * ----------------- FORMAT ----------------------
- * .cmp (t=pkg_type) ref_des (x=0, y=0)
- *
- * .cmp (t=LED) LED1
- * .cmp (t=RES100) R1
- *
- * Net_name : ref_des pad; \
- *            ref_des pad;
- *
- * A0 : LED1 1; R1 2;
- * A1 : LED1 2; R1 1;
+ * <BR>
+ * Format:<BR>
+ * .cmp (t=pkg_type) ref_des (x=0, y=0)<BR>
+ * <BR>
+ * .cmp (t=LED) LED1<BR>
+ * .cmp (t=RES100) R1<BR>
+ * <BR>
+ * Net_name : ref_des pad; \<BR>
+ *            ref_des pad;<BR>
+ * <BR>
+ * A0 : LED1 1; R1 2;<BR>
+ * A1 : LED1 2; R1 1;<BR>
  */
 public class ECAD extends Output
 {

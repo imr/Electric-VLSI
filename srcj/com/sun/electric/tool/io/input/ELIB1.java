@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: ELIB.java
+ * File: ELIB1.java
  * Input/output tool: ELIB Library input
  * Written by Steven M. Rubin, Sun Microsystems.
  *
@@ -309,7 +309,6 @@ public class ELIB1 extends LibraryFiles
 	 * Method to read a Library from disk.
 	 * This method is for reading full Electric libraries in ELIB, JELIB, and Readable Dump format.
 	 * @param fileURL the URL to the disk file.
-	 * @param type the type of library file (ELIB, JELIB, etc.)
 	 * @return the read Library, or null if an error occurred.
 	 */
 	public static synchronized void convertLibrary(URL fileURL, String outFilePath)
@@ -343,7 +342,6 @@ public class ELIB1 extends LibraryFiles
 	 * Method to read a Library from disk.
 	 * This method is for reading full Electric libraries in ELIB, JELIB, and Readable Dump format.
 	 * @param fileURL the URL to the disk file.
-	 * @param type the type of library file (ELIB, JELIB, etc.)
 	 * @return the read Library, or null if an error occurred.
 	 */
 	public static synchronized Header readLibraryHeader(URL fileURL)
@@ -368,7 +366,6 @@ public class ELIB1 extends LibraryFiles
 	 * Method to read a Library from disk.
 	 * This method is for reading full Electric libraries in ELIB, JELIB, and Readable Dump format.
 	 * @param fileURL the URL to the disk file.
-	 * @param type the type of library file (ELIB, JELIB, etc.)
 	 * @return the read Library, or null if an error occurred.
 	 */
 	public static synchronized Version readLibraryVersion(URL fileURL)
@@ -400,8 +397,8 @@ public class ELIB1 extends LibraryFiles
 	/**
 	 * Method to read a Library from disk.
 	 * This method is for reading full Electric libraries in ELIB, JELIB, and Readable Dump format.
-	 * @param fileURL the URL to the disk file.
-	 * @param type the type of library file (ELIB, JELIB, etc.)
+	 * param fileURL the URL to the disk file.
+	 * param type the type of library file (ELIB, JELIB, etc.)
 	 * @return the read Library, or null if an error occurred.
 	 */
 	public static void readLibraryStat(LibraryStatistics.FileContents fc, LibraryStatistics stat)

@@ -45,20 +45,20 @@ public class TransistorSize {
     public Object getLength() { return length; }
 
     /**
-     * Gets the width *ONLY IF* the width can be converted to a double,
+     * Gets the width *ONLY IF* the width can be converted to a double.
      * i.e. it is a Number or a parsable String. If it is some other type,
      * this method returns zero.
-     * @return the width
+     * @return the width.
      */
     public double getDoubleWidth() {
         return VarContext.objectToDouble(width, 0);
     }
 
     /**
-     * Gets the length *ONLY IF* the length can be converted to a double,
+     * Gets the length *ONLY IF* the length can be converted to a double.
      * i.e. it is a Number or a parsable String. If it is some other type,
      * this method returns zero.
-     * @return the length
+     * @return the length.
      */
     public double getDoubleLength() {
         return VarContext.objectToDouble(length, 0);

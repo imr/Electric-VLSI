@@ -87,7 +87,7 @@ public class SimpleWirer extends InteractiveRouter {
                 pin1 = pin2;                // same quad as pin2, use pin2
             } else if (pin1Quad == clickedQuad)
             {
-                pin1 = pin1;                // same quad as pin1, use pin1
+                // pin1 = pin1;                // same quad as pin1, use pin1
             } else if (pin1Quad == oppositeQuad)
             {
                 pin1 = pin2;                // near to pin2 quad, use pin2
