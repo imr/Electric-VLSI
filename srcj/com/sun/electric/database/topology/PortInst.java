@@ -24,11 +24,18 @@
 package com.sun.electric.database.topology;
 
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.text.Name;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.Point2D;
 import java.util.*;
 
 /**
@@ -241,4 +248,23 @@ public class PortInst extends ElectricObject
 		return nodeInst != null && nodeInst.isActuallyLinked() &&
 			0 <= portIndex && portIndex < nodeInst.getNumPortInsts() && nodeInst.getPortInst(portIndex) == this;
 	}
+
+    public Poly computeTextPoly(EditWindow wnd, Variable var, Name name)
+    {
+        Poly poly = null;
+        if (var != null)
+        {
+            Rectangle2D bounds = getPoly().getBounds2D();
+            Poly [] polys = getPolyList(var, bounds.getCenterX(), bounds.getCenterY(), wnd, false);
+            if (polys.length > 0)
+            {
+                poly = polys[0];
+                poly.transform(getNodeInst().rotateOut());
+            }
+        }
+        if (poly != null)
+            poly.setExactTextBounds(wnd, this);
+        return poly;
+    }
+
 }
