@@ -693,7 +693,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		this.globals = globals;
 		this.hierarchicalCompareInfo = hierarchicalCompareInfo;
 		this.blackBox = blackBox;
-		this.pathPrefix = context.getInstPath("/");
+		this.pathPrefix = context==null ? "" : context.getInstPath("/");
 	}
 }
 //abstract class ExportGlobalEnumerator {

@@ -115,6 +115,12 @@ public class DebugMenus {
 				new com.sun.electric.tool.generator.layout.GateRegression();
 			}
 		});
+		russMenu.addMenuItem("Gate Generator MOCMOS Regression", null,
+				             new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new com.sun.electric.tool.generator.layout.GateRegressionMocmos();
+			}
+		});
         russMenu.addMenuItem("create flat netlists for Ivan", null, new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 new com.sun.electric.tool.generator.layout.IvanFlat();

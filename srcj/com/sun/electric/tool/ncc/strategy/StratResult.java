@@ -54,11 +54,9 @@ public class StratResult extends Strategy {
 	public Integer doFor(NetObject n) {return CODE_NO_CHANGE;}
 
 	// --------------------------- real public method -------------------------	
-	/**
-	 * Walk EquivRecord tree to find active and mismatched leaf records
+	/** Walk EquivRecord tree to find active and mismatched leaf records
 	 * @param globals NccGlobals
-	 * @return true if matched (all leaf records retired)
-	 */
+	 * @return true if matched (all leaf records matched) */
 	public static boolean doYourJob(NccGlobals globals) {
 		StratResult jsr = new StratResult(globals);
 		return jsr.match();		

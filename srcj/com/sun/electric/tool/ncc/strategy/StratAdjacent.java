@@ -77,7 +77,7 @@ public class StratAdjacent extends Strategy {
 	
 	/** add EquivRecords that are adjacent to the contents of er. A
 	 * EquivRecord is adjacent if it can be reached in one step
-	 * from any of er's circuits and it's live and not retired nor
+	 * from any of er's circuits and it's live and not matched nor
 	 * mismatched
 	 * @return Set of adjacent EquivRecords */
 	private void addAdjacentEquivRecs(EquivRecord er){

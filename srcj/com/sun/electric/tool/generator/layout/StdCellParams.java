@@ -39,7 +39,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.tool.ncc.NccEngine;
+import com.sun.electric.tool.ncc.Ncc;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.NccResult;
 
@@ -830,22 +830,9 @@ public class StdCellParams {
 
 		NccOptions options = new NccOptions();
 		options.howMuchStatus = 0;
-//		options.absTolerance = 200;
-//		options.checkExportNames = true;
-//		options.checkSizes = false;
-//		options.hierarchical = true;
-//		options.ignorePwrGnd = false;
-//		options.interactive = false;
-//		options.mergeParallel = true;
-//		options.mergeSeries = false;
-//		options.percentTolerance = 100;
-//		options.preAnalyze = false;
-//		options.recurse = false;
-//		options.verboseText = false;
-//		options.verboseGraphics = false;
 
 		NccResult result =
-			NccEngine.compare(schem, null, layout, null, null, options);
+			Ncc.compare(schem, null, layout, null, options);
 		error(!result.match(), "layout not topologically identical to schematic!");
 	}
 

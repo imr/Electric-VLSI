@@ -40,7 +40,11 @@ import com.sun.electric.tool.ncc.strategy.Strategy;
  * flat NCC of qFourP2 (no size checking) spends fully 80% of its time doing 
  * just this. Therefore I'm building a data structure to keep track of the 
  * leaves. Because this data structure updates itself incrementally it never 
- * has to scan the tree. */
+ * has to scan the tree. 
+ * <p>
+ * A separate list of matched EquivRecords is kept. Most records will be 
+ * matched. Most of the time we're interested in active records, not matched.
+ * Separating out the matched records speeds up the scan for active records. */
 public class LeafEquivRecords {
     private static final LeafList EMPTY_LIST = new LeafList();
 
@@ -60,7 +64,7 @@ public class LeafEquivRecords {
 				EquivRecord er = (EquivRecord)j;
 				// add to the front of notMatched since it's useless to 
 				// encounter and process it again.
-				if (er.isRetired()) matched.add(er); else unmatched.add(er);
+				if (er.isMatched()) matched.add(er); else unmatched.add(er);
 			} else {
 				super.doFor(j);
 			}
@@ -77,7 +81,7 @@ public class LeafEquivRecords {
 		}
 	}
 	
-	// Normally, notMatched should contain only leaf EquivRecords. However
+	// Normally, unmatched should contain only leaf EquivRecords. However
 	// partitioning might turn a leaf into an internal node. When that happens
 	// we need to remove that internal node and find the descendents that are
 	// leaves and add them to the appropriate lists.
@@ -87,7 +91,7 @@ public class LeafEquivRecords {
 		for (ListIterator it=unmatched.listIterator(); it.hasNext();) {
 			EquivRecord er = (EquivRecord) it.next();
 			if (er.isLeaf()) {
-				LayoutLib.error(er.isRetired(), "notMatched has retired");
+				LayoutLib.error(er.isMatched(), "unmatched list has matched");
 			} else {
 				// a leaf EquivRecord was partitioned and therefore isn't a 
 				// leaf anymore.  Find the descendents of this node that are
@@ -103,7 +107,7 @@ public class LeafEquivRecords {
 	public LeafEquivRecords(EquivRecord root, NccGlobals globals) {
 		this.globals = globals;
 		if (root==null) return; // sometimes there are no parts or no wires.
-		if (root.isLeaf() && root.isRetired()) {
+		if (root.isLeaf() && root.isMatched()) {
 			matched.add(root);
 		} else {
 			unmatched.add(root);

@@ -22,7 +22,7 @@
  * Boston, Mass 02111-1307, USA.
 */
 
-/** StratFrontier finds all non-retired EquivRecords */
+/** StratFrontier finds all non-matched EquivRecords */
 
 package com.sun.electric.tool.ncc.strategy;
 import java.util.ArrayList;
@@ -129,7 +129,7 @@ public class StratCheckSizes extends Strategy {
 
 	public LeafList doFor(EquivRecord j) {
 		if(j.isLeaf()) {
-			if (j.isRetired()) {
+			if (j.isMatched()) {
 				minWidth = minLength = Double.MAX_VALUE;
 				maxWidth = maxLength = Double.MIN_VALUE;
 				super.doFor(j);

@@ -69,29 +69,29 @@ public class HashCodePartitioning {
 	}
 
 	/** Takes a list of newly divided Part/Wire EquivRecords. If any
-	 * of them retire then find the retirees' neighbors and perform a
+	 * of them match then find the match's neighbors and perform a
 	 * hash step on them to get newly divided Wire/Part
 	 * EquivRecords. Repeat until the hash step yields no newly
 	 * divided EquivRecords.
 	 * @param newDivided newly divided EquivRecords */
-	private void chaseRetired(LeafList newDivided) {
-		// if nothing divided then suppress chaseRetired messages
+	private void chaseMatched(LeafList newDivided) {
+		// if nothing divided then suppress chaseMatched messages
 		if (newDivided.size()==0) return;
 		
-		globals.status2("------ starting chaseRetired");
+		globals.status2("------ starting chaseMatched");
 		int i=0;
 		while (newDivided.size()!=0) {
-			globals.status2("------ chaseRetired pass: " + i++);
-			LeafList newRetired = newDivided.selectRetired(globals);
-			if (newRetired.size()==0) break;
-			LeafList adjacent = StratAdjacent.doYourJob(newRetired, globals);
+			globals.status2("------ chaseMatched pass: " + i++);
+			LeafList newMatches = newDivided.selectMatched(globals);
+			if (newMatches.size()==0) break;
+			LeafList adjacent = StratAdjacent.doYourJob(newMatches, globals);
 			if (adjacent.size()==0)  break;
 			boolean doParts = isPartsList(adjacent);
 			newDivided = 
 				doParts ? StratHashParts.doYourJob(adjacent.iterator(), globals) :
 					      StratHashWires.doYourJob(adjacent.iterator(), globals);
 		}
-		globals.status2("------ done  chaseRetired after "+i+" passes");
+		globals.status2("------ done  chaseMatched after "+i+" passes");
 		//		StratCheck.doYourJob(globals.getRoot, globals);
 		globals.status2("");
 	}
@@ -126,10 +126,10 @@ public class HashCodePartitioning {
 		globals.status2("----- hash all NetObjects on frontier");
 		while (true) {
 			LeafList partOffspring = hashFrontierParts();
-			chaseRetired(partOffspring);
+			chaseMatched(partOffspring);
 		
 			LeafList wireOffspring = hashFrontierWires();
-			chaseRetired(wireOffspring);
+			chaseMatched(wireOffspring);
 			if (partOffspring.size()==0 && wireOffspring.size()==0) break;
 		}
 	}
@@ -148,7 +148,7 @@ public class HashCodePartitioning {
 			StratCount.doYourJob(globals);
 			LeafList offspring = StratPortName.doYourJob(globals);
 			if (offspring.size()==0) break;
-			chaseRetired(offspring);
+			chaseMatched(offspring);
 			hashFrontier();
 		}
 	}
@@ -157,7 +157,7 @@ public class HashCodePartitioning {
 		while (true) {
 			LeafList offspring = StratSizes.doYourJob(globals);
 			if (offspring.size()==0) break;
-			chaseRetired(offspring);
+			chaseMatched(offspring);
 			hashFrontier();
 		}
 	}
@@ -167,7 +167,7 @@ public class HashCodePartitioning {
 		while (true) {
 			LeafList offspring = StratRandomMatch.doYourJob(globals);
 			if (offspring.size()==0) break; 
-			chaseRetired(offspring);
+			chaseMatched(offspring);
 			hashFrontier();
 		}
 	}

@@ -61,11 +61,8 @@ public class LeafList extends RecordList {
 		if (matchOK) return (max.toString());
 		else return (max +"\n"+ diff + "\n WARNING: Mismatched sizes");
 	}
-	/** 
-	 * selectActive selects leaf EquivRecords that aren't retired or 
-	 * mismatched
-	 * @return a LeafList, possibly empty, of those that do retire.
-	 */
+	/** @return a LeafList, possibly empty, of EquivRecords that aren't
+	 * matched nor mismatched. */
 	public LeafList selectActive(NccGlobals globals) {
 		LeafList out = new LeafList();
 		for (Iterator it=iterator(); it.hasNext();) {
@@ -77,18 +74,15 @@ public class LeafList extends RecordList {
 		return out;
 	}
 
-	/** 
-	 * selectRetired selects EquivRecords that are retired
-	 * @return a LeafList, possibly empty, of those that do retire.
-	 */
-	public LeafList selectRetired(NccGlobals globals) {
+	/** @return a LeafList, possibly empty, of those that are matched. */
+	public LeafList selectMatched(NccGlobals globals) {
 		LeafList out= new LeafList();
 		for (Iterator it=iterator(); it.hasNext();) {
 			EquivRecord er = (EquivRecord) it.next();
-			if(er.isRetired())  out.add(er);
+			if(er.isMatched())  out.add(er);
 		}
-		globals.status2(" selectRetired found "+out.size()+
-					    " retired leaf records");
+		globals.status2(" selectMatched found "+out.size()+
+					    " matched leaf records");
 		return out;
 	}
 }

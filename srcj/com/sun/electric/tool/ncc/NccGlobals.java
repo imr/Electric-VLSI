@@ -123,9 +123,6 @@ public class NccGlobals {
 		if (parts!=null) el.add(parts); 
 		if (wires!=null) el.add(wires); 
 
-		partLeafRecs = new LeafEquivRecords(parts, this);
-		wireLeafRecs = new LeafEquivRecords(wires, this);
-		
 		if (ports!=null) el.add(ports);
 
 		root = EquivRecord.newRootRecord(el);
@@ -138,6 +135,14 @@ public class NccGlobals {
 			rootCells[i] = nl.getRootCell();
 			rootContexts[i] = nl.getRootContext();
 		}
+	}
+	/** Tricky! initLeafLists() must be called AFTER  
+	 * series/parallel merging. Series/parallel merging can change an 
+	 * EquivRecord from mismatched to matched. This transition is normally 
+	 * impossible and it creates inconsistencies in LeafEquivRecords. */
+	public void initLeafLists() {
+		partLeafRecs = new LeafEquivRecords(parts, this);
+		wireLeafRecs = new LeafEquivRecords(wires, this);
 	}
 	
 	public EquivRecord getRoot() {return root;}

@@ -141,14 +141,14 @@ public abstract class Strategy {
 	}
 
 	protected String offspringStats(LeafList el) {
-		int retired=0, mismatched=0, active=0;
+		int matched=0, mismatched=0, active=0;
 		for (Iterator it=el.iterator(); it.hasNext();) {
 			EquivRecord er = (EquivRecord) it.next();
 			if (er.isMismatched())  mismatched++;
-			else if (er.isRetired())  retired++;
+			else if (er.isMatched())  matched++;
 			else active++;
 		}
-		String msg = "  offspring counts: #retired="+retired+
+		String msg = "  offspring counts: #matched="+matched+
 			         " #mismatched="+mismatched+" #active="+active;
 //		if (mismatched!=0) {
 //			globals.println(msg);

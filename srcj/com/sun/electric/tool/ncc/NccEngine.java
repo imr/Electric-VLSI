@@ -128,7 +128,9 @@ public class NccEngine {
 			Date d2 = new Date();
 			globals.status1("  Serial/parallel merge took: "+
 					        NccUtils.hourMinSec(d1, d2));
-		
+
+			globals.initLeafLists();
+			
 			printWireComponentCounts();
 
 			boolean localOK = LocalPartitioning.doYourJob(globals);

@@ -131,7 +131,7 @@ public class ReportHashCodeFailure {
 			if (classNum > maxMatches) {
 				// do nothing because we've already printed too much
 			} else if (er.isLeaf()) {
-				if (er.isRetired()) {
+				if (er.isMatched()) {
 					pr("    "+netObjDescr+" match "+(classNum++)+" between: ");
 					int numDesigns = globals.getNumNetlistsBeingCompared();
 					for (int i=0; i<numDesigns; i++) {

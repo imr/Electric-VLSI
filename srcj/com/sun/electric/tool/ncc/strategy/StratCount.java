@@ -117,10 +117,10 @@ public class StratCount extends Strategy {
     private int maxDepth; //depth in the tree
     private int numInternalRecs;
 	private NetObjStats numMismatchedNetObjs = new NetObjStats(0);
-	private NetObjStats numRetiredNetObjs = new NetObjStats(0);
+	private NetObjStats numMatchedNetObjs = new NetObjStats(0);
 	private NetObjStats numActiveNetObjs = new NetObjStats(0);
 	private NetObjStats numMismatchedLeafRecs = new NetObjStats(0);
-	private NetObjStats numRetiredLeafRecs = new NetObjStats(0);
+	private NetObjStats numMatchedLeafRecs = new NetObjStats(0);
 	private NetObjStats numActiveLeafRecs = new NetObjStats(0);
 	private int numCircuits;
     private int totalEqGrpSize;
@@ -178,14 +178,14 @@ public class StratCount extends Strategy {
 		   	rightJustifyInField("Wires", FIELD_WIDTH) +
 		   	rightJustifyInField("Ports", FIELD_WIDTH));
 		printLine("# mismatched equiv classes", numMismatchedLeafRecs);
-		printLine("# matched equiv classes", numRetiredLeafRecs);
+		printLine("# matched equiv classes", numMatchedLeafRecs);
 		printLine("# active equiv classes", numActiveLeafRecs);
 		printLine("# mismatched net objects", numMismatchedNetObjs);
-		printLine("# matched net objects", numRetiredNetObjs);
+		printLine("# matched net objects", numMatchedNetObjs);
 		printLine("# active net objects", numActiveNetObjs);
 
     	int numEquivRecs = numMismatchedLeafRecs.getSumForAllTypes() +
-    					   numRetiredLeafRecs.getSumForAllTypes() +
+    					   numMatchedLeafRecs.getSumForAllTypes() +
     					   numActiveLeafRecs.getSumForAllTypes();
 		globals.status2("");
 		sizeHistogram.print();
@@ -219,8 +219,8 @@ public class StratCount extends Strategy {
 //        printLine("average wire pins", average);
 //        printLine("rms wire pins", rms);
         elapsedTime();
-        return new Counts(numRetiredLeafRecs.get(NetObject.Type.PART),
-        		          numRetiredLeafRecs.get(NetObject.Type.WIRE),
+        return new Counts(numMatchedLeafRecs.get(NetObject.Type.PART),
+        		          numMatchedLeafRecs.get(NetObject.Type.WIRE),
 						  numMismatchedLeafRecs.get(NetObject.Type.PART),
         		          numMismatchedLeafRecs.get(NetObject.Type.WIRE));
     }
@@ -245,9 +245,9 @@ public class StratCount extends Strategy {
 			numMismatchedLeafRecs.incr(netObjType, 1);
 			numMismatchedNetObjs.incr(netObjType, numNetObjs);
 			sizeHistogram.incr(netObjType, erSize);
-		} else if (er.isRetired()) {
-			numRetiredLeafRecs.incr(netObjType, 1);
-			numRetiredNetObjs.incr(netObjType, numNetObjs);
+		} else if (er.isMatched()) {
+			numMatchedLeafRecs.incr(netObjType, 1);
+			numMatchedNetObjs.incr(netObjType, numNetObjs);
 			sizeHistogram.incr(netObjType, erSize);
 		} else {
 			numActiveLeafRecs.incr(netObjType, 1);
