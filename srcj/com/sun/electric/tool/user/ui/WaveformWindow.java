@@ -97,6 +97,8 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -3250,7 +3252,9 @@ public class WaveformWindow implements WindowContent
 		DefaultMutableTreeNode signalsExplorerTree = new DefaultMutableTreeNode("SIGNALS");
 		HashMap contextMap = new HashMap();
 		contextMap.put("", signalsExplorerTree);
-		for(Iterator it = sd.getSignals().iterator(); it.hasNext(); )
+		List signals = sd.getSignals();
+		Collections.sort(signals, new SignalsByName());
+		for(Iterator it = signals.iterator(); it.hasNext(); )
 		{
 			Simulation.SimSignal sSig = (Simulation.SimSignal)it.next();
 			DefaultMutableTreeNode thisTree = signalsExplorerTree;
@@ -3262,6 +3266,19 @@ public class WaveformWindow implements WindowContent
 			thisTree.add(new DefaultMutableTreeNode(sSig));
 		}
 		return signalsExplorerTree;
+	}
+
+	/**
+	 * Class to sort signals by their name
+	 */
+	private static class SignalsByName implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Simulation.SimSignal s1 = (Simulation.SimSignal)o1;
+			Simulation.SimSignal s2 = (Simulation.SimSignal)o2;
+			return TextUtils.nameSameNumeric(s1.getFullName(), s2.getFullName());
+		}
 	}
 
 	/**

@@ -625,19 +625,6 @@ public class User extends Listener
 	 */
 	public static void setDefGridYBoldFrequency(int dist) { cacheDefGridYBoldFrequency.setInt(dist); }
 
-	private static Pref cacheShowCursorCoordinates = Pref.makeBooleanPref("ShowCursorCoordinates", User.tool.prefs, true);
-	/**
-	 * Method to tell whether to show the cursor coordinates as they move in the edit window.
-	 * The default is "false".
-	 * @return true to show the cursor coordinates as they move in the edit window
-	 */
-	public static boolean isShowCursorCoordinates() { return cacheShowCursorCoordinates.getBoolean(); }
-	/**
-	 * Method to set whether to show the cursor coordinates as they move in the edit window
-	 * @param on true to show the cursor coordinates as they move in the edit window
-	 */
-	public static void setShowCursorCoordinates(boolean on) { cacheShowCursorCoordinates.setBoolean(on); }
-
 	private static Pref cacheAlignmentToGrid = Pref.makeDoublePref("AlignmentToGrid", User.tool.prefs, 1);
 	/**
 	 * Method to return the default alignment of objects to the grid.
@@ -1286,22 +1273,24 @@ public class User extends Listener
 	 */
 	public static void setIncludeDateAndVersionInOutput(boolean on) { cacheIncludeDateAndVersionInOutput.setBoolean(on); }
 
-	private static Pref cacheShowCursorCoordinatesInStatus = Pref.makeBooleanPref("ShowCursorCoordinatesInStatus", User.tool.prefs, false);
+	private static Pref cacheShowHierarchicalCursorCoordinates = Pref.makeBooleanPref("ShowHierarchicalCursorCoordinates", User.tool.prefs, true);
 	/**
-	 * Method to tell whether to display the cursor coordinates in the status bar.
-	 * The default is "false".
-	 * @return true if the system should display the cursor coordinates in the status bar
+	 * Method to tell whether to show hierarchical cursor coordinates as they move in the edit window.
+	 * Hierarchical coordinates are those in higher-levels of the hierarchy.  They are only displayed when
+	 * the user has done a "Down Hierarchy" to descend the hierarchy.  The coordinates are displayed from
+	 * the topmost Cell that the user visited.
+	 * The default is "true".
+	 * @return true to show hierarchical cursor coordinates as they move in the edit window.
 	 */
-	public static boolean isShowCursorCoordinatesInStatus() { return cacheShowCursorCoordinatesInStatus.getBoolean(); }
+	public static boolean isShowHierarchicalCursorCoordinates() { return cacheShowHierarchicalCursorCoordinates.getBoolean(); }
 	/**
-	 * Method to set whether to display the cursor coordinates in the status bar
-	 * @param on true if the system should display the cursor coordinates in the status bar
+	 * Method to set whether to show hierarchical cursor coordinates as they move in the edit window.
+	 * Hierarchical coordinates are those in higher-levels of the hierarchy.  They are only displayed when
+	 * the user has done a "Down Hierarchy" to descend the hierarchy.  The coordinates are displayed from
+	 * the topmost Cell that the user visited.
+	 * @param on true to show hierarchical cursor coordinates as they move in the edit window.
 	 */
-	public static void setShowCursorCoordinatesInStatus(boolean on)
-	{
-		cacheShowCursorCoordinatesInStatus.setBoolean(on);
-		StatusBar.setShowCoordinates(on);
-	}
+	public static void setShowHierarchicalCursorCoordinates(boolean on) { cacheShowHierarchicalCursorCoordinates.setBoolean(on); }
 
 	private static Pref cacheShowFileSelectionForNetlists = Pref.makeBooleanPref("ShowFileSelectionForNetlists", User.tool.prefs, true);
 	/**

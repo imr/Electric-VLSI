@@ -158,7 +158,7 @@
         </Container>
         <Component class="javax.swing.JCheckBox" name="generalShowCursorCoordinates">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Show cursor coordinates in status bar"/>
+            <Property name="text" type="java.lang.String" value="Show hierarchical cursor coordinates in status bar"/>
           </Properties>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">

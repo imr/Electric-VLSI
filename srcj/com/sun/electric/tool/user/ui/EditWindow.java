@@ -368,6 +368,43 @@ public class EditWindow extends JPanel
 			Point2D pt = wnd.screenToDatabase(evt.getX(), evt.getY());
 			EditWindow.gridAlign(pt);
 
+			if (User.isShowHierarchicalCursorCoordinates())
+			{
+				// if the current VarContext is not the global one, user is "down hierarchy"
+				String path = null;
+				if (cellVarContext != VarContext.globalContext)
+				{
+					Point2D ptPath = new Point2D.Double(pt.getX(), pt.getY());
+					VarContext vc = cellVarContext;
+					boolean validPath = true;
+					boolean first = true;
+					NodeInst ni = null;
+					path = "";
+					while (vc != VarContext.globalContext)
+					{
+						Nodable no = vc.getNodable();
+						if (!(no instanceof NodeInst))
+						{
+							validPath = false;
+							break;
+						}
+						ni = (NodeInst)no;
+						if (first) first = false; else
+							path += " / ";
+						path = ni.describe() + path;
+						AffineTransform trans = ni.rotateOut(ni.translateOut());
+						trans.transform(ptPath, ptPath);
+						vc = vc.pop();
+					}
+					if (validPath)
+					{
+						path = "Location in " + ni.getParent().describe() + " / " + path + " is (" +
+							TextUtils.formatDouble(ptPath.getX(), 2) + ", " + TextUtils.formatDouble(ptPath.getY(), 2) + ")";
+					} else path = null;
+				}
+				StatusBar.setHierarchicalCoordinates(path, wnd.wf);
+			}
+
 			StatusBar.setCoordinates("(" + TextUtils.formatDouble(pt.getX(), 2) + ", " + TextUtils.formatDouble(pt.getY(), 2) + ")", wnd.wf);
 		}
 	}

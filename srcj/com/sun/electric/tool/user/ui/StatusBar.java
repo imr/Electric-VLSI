@@ -59,7 +59,8 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 {
 	private WindowFrame frame;
 	private String coords = null;
-	private JLabel fieldSelected, fieldSize, fieldTech, fieldCoords;
+	private String hierCoords = null;
+	private JLabel fieldSelected, fieldSize, fieldTech, fieldCoords, fieldHierCoords;
     private int fieldSizeNumChars, fieldTechNumChars, fieldCoordsNumChars;
 
 	private static String selectionOverride = null;
@@ -67,47 +68,36 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 	public StatusBar(WindowFrame frame)
 	{
 		super(new GridBagLayout());
-
 		setBorder(new BevelBorder(BevelBorder.LOWERED));
-
 		this.frame = frame;
-		addField(fieldSelected = new JLabel(), 0);
-        Dimension d = new Dimension(140, 16);
-		addField(fieldSize = new JLabel(), 1);
+
+		fieldSelected = new JLabel();
+		addField(fieldSelected, 0, 0, 1);
+
+		fieldSize = new JLabel();
+		Dimension d = new Dimension(140, 16);
         fieldSize.setMinimumSize(d);
         fieldSize.setMaximumSize(d);
         fieldSize.setPreferredSize(d);
-		addField(fieldTech = new JLabel(), 2);
+		addField(fieldSize, 1, 0, 1);
+
+        fieldTech = new JLabel();
         d = new Dimension (200, 16);
         fieldTech.setMinimumSize(d);
         fieldTech.setMaximumSize(d);
         fieldTech.setPreferredSize(d);
-		fieldCoords = new JLabel();
+        addField(fieldTech, 2, 0, 1);
+
+        fieldCoords = new JLabel();
         fieldCoords.setMinimumSize(new Dimension(100, 16));
         fieldCoords.setMaximumSize(new Dimension(500, 16));
         fieldCoords.setPreferredSize(new Dimension(140, 16));
         fieldCoords.setHorizontalAlignment(JLabel.RIGHT);
-		if (User.isShowCursorCoordinates()) addField(fieldCoords, 3);
+		addField(fieldCoords, 3, 0, 1);
 
-		/*
-		//layout.putConstraint(SpringLayout.NORTH, fieldCoords, 10, SpringLayout.NORTH, this);
-		layout.putConstraint(SpringLayout.NORTH, fieldSelected, 10, SpringLayout.NORTH, this);
-		layout.putConstraint(SpringLayout.NORTH, fieldSize, 10, SpringLayout.NORTH, this);
-		layout.putConstraint(SpringLayout.NORTH, fieldTech, 10, SpringLayout.NORTH, this);
-		//layout.putConstraint(SpringLayout.SOUTH, fieldCoords, 5, SpringLayout.SOUTH, this);
-		layout.putConstraint(SpringLayout.SOUTH, fieldSelected, 5, SpringLayout.SOUTH, this);
-		layout.putConstraint(SpringLayout.SOUTH, fieldSize, 5, SpringLayout.SOUTH, this);
-		layout.putConstraint(SpringLayout.SOUTH, fieldTech, 5, SpringLayout.SOUTH, this);
-
-		//layout.putConstraint(SpringLayout.EAST, this, 5, SpringLayout.EAST, fieldCoords);
-        layout.putConstraint(SpringLayout.WEST, fieldSelected, 5, SpringLayout.WEST, this);
-		layout.putConstraint(SpringLayout.WEST, fieldSize, 5, SpringLayout.EAST, fieldSelected);
-		layout.putConstraint(SpringLayout.WEST, fieldTech, 5, SpringLayout.EAST, fieldSize);
-		layout.putConstraint(SpringLayout.WEST, fieldCoords, 5, SpringLayout.EAST, fieldTech);
-		*/
-
-		//SpringUtilities.makeCompactGrid(this, 1, getComponentCount(), 5,5,5,5);
-
+		fieldHierCoords = new JLabel();
+		fieldHierCoords.setHorizontalAlignment(JLabel.RIGHT);
+		addField(fieldHierCoords, 0, 1, 4);
 
         // add myself as listener for highlight changes in SDI mode
         if (TopLevel.isMDIMode()) {
@@ -116,6 +106,17 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
             frame.getContent().getHighlighter().addHighlightListener(this);
         }
         Undo.addDatabaseChangeListener(this);
+	}
+
+	private void addField(JLabel field, int x, int y, int width)
+	{
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.gridx = x;   gbc.gridy = y;
+		gbc.gridwidth = width;
+        if (x == 0) { gbc.weightx = 1.0; gbc.fill = GridBagConstraints.HORIZONTAL; }
+        gbc.ipadx = 5;
+        gbc.anchor = GridBagConstraints.WEST;
+		add(field, gbc);
 	}
 
     /**
@@ -132,45 +133,30 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
         return frame.getContent().getHighlighter();
     }
 
-	private void addField(JLabel field, int index)
-	{
-//		JPanel frame = new JPanel();
-//		frame.setBorder(new LineBorder(Color.BLACK));
-//		frame.add(field);
-		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.gridx = index;   gbc.gridy = 0;
-		//gbc.weightx = 0.5;
-        if (index == 0) { gbc.weightx = 1.0; gbc.fill = GridBagConstraints.HORIZONTAL; }
-        gbc.ipadx = 5;
-        gbc.anchor = GridBagConstraints.WEST;
-		//gbc.fill = GridBagConstraints.HORIZONTAL;
-		add(field, gbc);
-	}
-
-	public static void setShowCoordinates(boolean show)
-	{
-		User.setShowCursorCoordinates(show);
-		if (TopLevel.isMDIMode())
-		{
-			StatusBar sb = TopLevel.getCurrentJFrame().getStatusBar();
-			if (show) sb.addField(sb.fieldCoords, 3); else
-			{
-				sb.remove(sb.fieldCoords);
-			}
-		} else
-		{
-			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-			{
-				WindowFrame wf = (WindowFrame)it.next();
-				StatusBar sb = wf.getFrame().getStatusBar();
-				if (show) sb.addField(sb.fieldCoords, 3); else
-				{
-					sb.remove(sb.fieldCoords);
-				}
-			}
-		}
-		updateStatusBar();
-	}
+//	public static void setShowCoordinates(boolean show)
+//	{
+//		User.setShowCursorCoordinates(show);
+//		if (TopLevel.isMDIMode())
+//		{
+//			StatusBar sb = TopLevel.getCurrentJFrame().getStatusBar();
+//			if (show) sb.addField(sb.fieldCoords, 3); else
+//			{
+//				sb.remove(sb.fieldCoords);
+//			}
+//		} else
+//		{
+//			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+//			{
+//				WindowFrame wf = (WindowFrame)it.next();
+//				StatusBar sb = wf.getFrame().getStatusBar();
+//				if (show) sb.addField(sb.fieldCoords, 3); else
+//				{
+//					sb.remove(sb.fieldCoords);
+//				}
+//			}
+//		}
+//		updateStatusBar();
+//	}
 
 	public static void setCoordinates(String coords, WindowFrame wf)
 	{
@@ -183,6 +169,20 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 			sb = wf.getFrame().getStatusBar();
 		}
 		sb.coords = coords;
+		sb.redoStatusBar();
+	}
+
+	public static void setHierarchicalCoordinates(String hierCoords, WindowFrame wf)
+	{
+		StatusBar sb = null;
+		if (TopLevel.isMDIMode())
+		{
+			sb = TopLevel.getCurrentJFrame().getStatusBar();
+		} else
+		{
+			sb = wf.getFrame().getStatusBar();
+		}
+		sb.hierCoords = hierCoords;
 		sb.redoStatusBar();
 	}
 
@@ -269,6 +269,9 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 
 		if (coords == null) fieldCoords.setText(""); else
 			fieldCoords.setText(coords);
+
+		if (hierCoords == null) fieldHierCoords.setText(""); else
+			fieldHierCoords.setText(hierCoords);
 	}
 
     private void updateSelectedText() {

@@ -312,12 +312,17 @@ public class Connectivity
 		extractTransistors(merge, originalMerge, newCell);
 		System.out.print("transistors, ");
 
+		// extend geometry that sticks out in space
+		extendGeometry(merge, originalMerge, newCell, true);
+		System.out.print("extensions, ");
+
 		// look for wires and pins
 		makeWires(merge, originalMerge, newCell);
 		System.out.print("wires, ");
 
-		// convert any geometry that touches different networks
-		extendGeometry(merge, originalMerge, newCell);
+		// convert any geometry that connects two networks
+		extendGeometry(merge, originalMerge, newCell, false);
+		System.out.print("connections, ");
 
 		// dump any remaining layers back in as extra pure layer nodes
 		convertAllGeometry(merge, originalMerge, newCell);
@@ -396,13 +401,33 @@ public class Connectivity
 					PortInst pi2 = locatePortOnCenterline(cl, loc2, layer, ap, false, newCell);
 
 					// make sure the wire fits
-					int ang = GenMath.figureAngle(loc1, loc2);
+					int ang = cl.angle;
+					if (!loc1.equals(loc2)) ang = GenMath.figureAngle(loc1, loc2);
 					double wid = cl.width - ap.getWidthOffset();
+					boolean noEndExtend = false;
 					Poly arcPoly = Poly.makeEndPointPoly(loc1.distance(loc2), wid, ang, loc1, wid/2, loc2, wid/2);
-					if (!originalMerge.contains(layer, arcPoly)) continue;
-
+					if (!originalMerge.contains(layer, arcPoly))
+					{
+						// arc does not fit, try reducing ends
+						arcPoly = Poly.makeEndPointPoly(loc1.distance(loc2), wid, ang, loc1, 0, loc2, 0);
+						if (originalMerge.contains(layer, arcPoly)) noEndExtend = true; else
+						{
+							// arc does not fit, try reducing width
+							wid = ap.getWidthOffset();
+							arcPoly = Poly.makeEndPointPoly(loc1.distance(loc2), wid, ang, loc1, wid/2, loc2, wid/2);
+							if (originalMerge.contains(layer, arcPoly)) cl.width = 0; else
+							{
+								// arc does not fit, try reducing ends and width
+								arcPoly = Poly.makeEndPointPoly(loc1.distance(loc2), wid, ang, loc1, wid/2, loc2, wid/2);
+								if (!originalMerge.contains(layer, arcPoly))continue;
+								noEndExtend = true;
+								cl.width = 0;
+							}
+						}
+					}
+//System.out.println("Making wire "+cl.width+" wide from ("+loc1.getX()+","+loc1.getY()+") to ("+loc2.getX()+","+loc2.getY()+") noextend="+noEndExtend);
 					// create the wire
-					realizeArc(ap, pi1, pi2, loc1, loc2, cl.width+ap.getWidthOffset(), false, merge);
+					realizeArc(ap, pi1, pi2, loc1, loc2, cl.width+ap.getWidthOffset(), noEndExtend, merge);
 				}
 			}
 		}
@@ -1330,7 +1355,7 @@ public class Connectivity
 	/**
 	 * Method to look for opportunities to place arcs that connect to existing geometry.
 	 */
-	private void extendGeometry(PolyMerge merge, PolyMerge originalMerge, Cell newCell)
+	private void extendGeometry(PolyMerge merge, PolyMerge originalMerge, Cell newCell, boolean justExtend)
 	{
 		for(Iterator lIt = merge.getKeyIterator(); lIt.hasNext(); )
 		{
@@ -1362,7 +1387,7 @@ public class Connectivity
 				}
 
 				// if two objects touch the polygon, see if an arc can connect them
-				if (objectsToConnect.size() == 2)
+				if (!justExtend && objectsToConnect.size() == 2)
 				{
 					ElectricObject obj1 = (ElectricObject)objectsToConnect.get(0);
 					ElectricObject obj2 = (ElectricObject)objectsToConnect.get(1);

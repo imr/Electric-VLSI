@@ -49,6 +49,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.routing.RouteElement.RouteElementAction;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -241,6 +242,10 @@ public class AutoStitch
 			ArcInst ai = (ArcInst)it.next();
 			if (!ai.isLinked()) continue;
 			if (cell.isAllLocked()) continue;
+
+			// only interested in arcs that are wider than their nodes (and have geometry that sticks out)
+			if (!arcTooWide(ai)) continue;
+
 			Netlist netlist = cell.acquireUserNetlist();
 			if (netlist == null)
 			{
@@ -315,26 +320,33 @@ public class AutoStitch
 	                if (obj instanceof RouteElementArc)
 	                {
 	                    RouteElementArc reArc = (RouteElementArc)obj;
-	                    Point2D head = reArc.getHeadConnPoint();
-	                    Point2D tail = reArc.getTailConnPoint();
-
-	                    // insist that minimum size arcs be used
-	                    ArcProto ap = reArc.getArcProto();
-		            	Layer arcLayer = ((PrimitiveArc)ap).getLayers()[0].getLayer();
-	                    double width = ap.getDefaultWidth();
-
-	                    // see if current arc fits
-	                    if (arcNotInMerge(head, tail, reArc.getArcWidth(), stayInside, arcLayer))
+	                    if (reArc.getAction() != RouteElementAction.deleteArc)
 	                    {
-		                    // current arc doesn't fit, try default-size arc
-		                    if (arcNotInMerge(head, tail, ap.getDefaultWidth(), stayInside, arcLayer))
+		                    Point2D head = reArc.getHeadConnPoint();
+		                    Point2D tail = reArc.getTailConnPoint();
+	
+		                    // insist that minimum size arcs be used
+		                    ArcProto ap = reArc.getArcProto();
+			            	Layer arcLayer = ((PrimitiveArc)ap).getLayers()[0].getLayer();
+		                    double width = ap.getDefaultWidth();
+
+		                    if (!arcInMerge(head, tail, reArc.getArcWidth(), stayInside, arcLayer))
 		                    {
-			                    // default size arc doesn't fit, make it zero-size
-	                    		reArc.setArcWidth(ap.getWidthOffset());
-		                    } else
-		                    {
-			                    // default size arc fits, use it
-		                    	reArc.setArcWidth(ap.getDefaultWidth());
+			                    // current arc doesn't fit, try reducing by a small amount
+		                    	double tinyAmountLess = reArc.getArcWidth() - DBMath.getEpsilon();
+			                    if (arcInMerge(head, tail, tinyAmountLess, stayInside, arcLayer))
+			                    {
+				                    // smaller width works: set it
+		                    		reArc.setArcWidth(tinyAmountLess);
+			                    } else if (arcInMerge(head, tail, ap.getDefaultWidth(), stayInside, arcLayer))
+			                    {
+				                    // default size arc fits, use it
+			                    	reArc.setArcWidth(ap.getDefaultWidth());
+			                    } else
+			                    {
+				                    // default size arc doesn't fit, make it zero-size
+		                    		reArc.setArcWidth(ap.getWidthOffset());
+			                    }
 		                    }
 	                    }
 	                }
@@ -363,27 +375,51 @@ public class AutoStitch
 	}
 
 	/**
+	 * Method to determine if an arc is too wide for its ends.
+	 * Arcs that are wider than their nodes stick out from those nodes,
+	 * and their geometry must be considered, even though the nodes have been checked.
+	 * @param ai the ArcInst to check.
+	 * @return true if the arc is wider than its end nodes
+	 */
+	private static boolean arcTooWide(ArcInst ai)
+	{
+		boolean headTooWide = true;
+		NodeInst hNi = ai.getHead().getPortInst().getNodeInst();
+		if (hNi.getProto() instanceof Cell) headTooWide = false; else
+			if (ai.getWidth() <= hNi.getXSize() && ai.getWidth() <= hNi.getYSize()) headTooWide = false;
+
+		boolean tailTooWide = true;
+		NodeInst tNi = ai.getTail().getPortInst().getNodeInst();
+		if (tNi.getProto() instanceof Cell) tailTooWide = false; else
+			if (ai.getWidth() <= tNi.getXSize() && ai.getWidth() <= tNi.getYSize()) tailTooWide = false;
+
+		return headTooWide || tailTooWide;
+	}
+
+	/**
 	 * Method to tell whether or not a proposed arc fits into a PolyMerge area.
 	 * @param head the coordinate of the head of the arc
 	 * @param tail the coordinate of the tail of the arc.
 	 * @param width the width of the arc.
 	 * @param stayInside the PolyMerge area to test.
 	 * @param layer the layer in the PolyMerge to test.
-	 * @return true if the proposed arc is NOT inside of the area.
-	 * False if the arc is completely contained in the merge.
+	 * @return true if the proposed arc is completely contained in the merge area.
+	 * False if any part of the arc is not in the merge area.
 	 */
-	private static boolean arcNotInMerge(Point2D head, Point2D tail, double width, PolyMerge stayInside, Layer layer)
+	private static boolean arcInMerge(Point2D head, Point2D tail, double width, PolyMerge stayInside, Layer layer)
 	{
-	    // if minimum size arc doesn't fit, make it zero-size
+	    // first see if the arc is zero-length
 	    if (head.equals(tail))
 	    {
+	    	// degenerate arc: make a square
 	    	Rectangle2D arcRect = new Rectangle2D.Double(head.getX()-width/2, head.getY()-width/2, width, width);
-	    	if (!stayInside.contains(layer, arcRect)) return true;
+	    	if (stayInside.contains(layer, arcRect)) return true;
 	    } else
 	    {
+	    	// normal arc: construct it
 			Poly arcPoly = Poly.makeEndPointPoly(head.distance(tail), width, GenMath.figureAngle(head, tail),
 				head, width/2, tail, width/2);
-	    	if (!stayInside.contains(layer, arcPoly)) return true;
+	    	if (stayInside.contains(layer, arcPoly)) return true;
 	    }
 	    return false;
 	}
@@ -399,7 +435,11 @@ public class AutoStitch
 
 		// make a list of other geometrics that touch or overlap this one (copy it because the main list will change)
 		List geomsInArea = new ArrayList();
-		for(Iterator it = cell.searchIterator(geom.getBounds()); it.hasNext(); )
+		Rectangle2D geomBounds = geom.getBounds();
+		double epsilon = DBMath.getEpsilon();
+		Rectangle2D searchBounds = new Rectangle2D.Double(geomBounds.getMinX()-epsilon, geomBounds.getMinY()-epsilon,
+			geomBounds.getWidth()+epsilon*2, geomBounds.getHeight()+epsilon*2);
+		for(Iterator it = cell.searchIterator(searchBounds); it.hasNext(); )
 			geomsInArea.add(it.next());
 		int count = 0;
 		for(Iterator it = geomsInArea.iterator(); it.hasNext(); )
@@ -410,6 +450,10 @@ public class AutoStitch
 			{
 				// other geometric is an ArcInst
 				ArcInst oAi = (ArcInst)oGeom;
+
+				// only interested in arcs that are wider than their nodes (and have geometry that sticks out)
+				if (!arcTooWide(oAi)) continue;
+
 				if (ni == null)
 				{
 					// compare arc "geom" against arc "oAi"
@@ -418,6 +462,7 @@ public class AutoStitch
 				} else
 				{
 					// compare node "ni" against arc "oAi"
+					count += compareNodeWithArc(ni, oAi, stayInside, netlist);
 				}
 			} else
 			{
@@ -427,6 +472,7 @@ public class AutoStitch
 				if (ni == null)
 				{
 					// compare arc "geom" against node "oNi"
+					count += compareNodeWithArc(oNi, (ArcInst)geom, stayInside, netlist);
 					continue;
 				}
 
@@ -756,6 +802,67 @@ public class AutoStitch
 
 				// run the wire
 				connectObjects(ai1, ai2, ai1.getParent(), new Point2D.Double(x,y), stayInside);
+				return 1;
+			}
+		}
+		return 0;
+	}
+
+	private static int compareNodeWithArc(NodeInst ni, ArcInst ai, PolyMerge stayInside, Netlist nl)
+	{
+		if (ni.getProto() instanceof Cell) return 0;
+		Network arcNet = nl.getNetwork(ai, 0);
+
+		// look at all polygons on the arcinst
+		Poly [] arcPolys = ai.getProto().getTechnology().getShapeOfArc(ai);
+		int aTot = arcPolys.length;
+		for(int i=0; i<aTot; i++)
+		{
+			Poly arcPoly = arcPolys[i];
+			Layer arcLayer = arcPoly.getLayer();
+			Rectangle2D arcBounds = arcPoly.getBounds2D();
+			double aCX = arcBounds.getCenterX();
+			double aCY = arcBounds.getCenterY();
+
+			// compare them against all of the polygons in the node
+			Poly [] nodePolys = shapeOfNode(ni);
+			int nTot = nodePolys.length;
+			for(int j=0; j<nTot; j++)
+			{
+				Poly nodePoly = nodePolys[j];
+
+				// they must be on the same layer and touch
+				if (nodePoly.getLayer() != arcLayer) continue;
+				if (arcPoly.separation(nodePoly) > 0) continue;
+
+				// only want electrically connected polygons
+				if (nodePoly.getPort() == null) continue;
+
+				// search all ports for the closest connected to this layer
+				PortProto bestPp = null;
+				double bestDist = 0;
+				for(Iterator pIt = ni.getProto().getPorts(); pIt.hasNext(); )
+				{
+					PortProto tPp = (PortProto)pIt.next();
+					if (!nl.portsConnected(ni, tPp, nodePoly.getPort())) continue;
+
+					// compute best distance to the other node
+					Poly portPoly = ni.getShapeOfPort(tPp);
+					double x = portPoly.getCenterX();
+					double y = portPoly.getCenterY();
+					double dist = Math.abs(x-aCX) + Math.abs(y-aCY);
+					if (bestPp == null) bestDist = dist;
+					if (dist > bestDist) continue;
+					bestPp = tPp;   bestDist = dist;
+				}
+				if (bestPp == null) continue;
+
+				// run the wire
+				PortInst pi = ni.findPortInstFromProto(bestPp);
+				Network nodeNet = nl.getNetwork(pi);
+				if (arcNet == nodeNet) continue;
+				connectObjects(ai, pi, ai.getParent(), new Point2D.Double(aCX, aCY), stayInside);
+				return 1;
 			}
 		}
 		return 0;

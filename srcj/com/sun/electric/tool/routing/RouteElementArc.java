@@ -374,10 +374,10 @@ public class RouteElementArc extends RouteElement {
     /** Return string decribing the RouteElement */
     public String toString() {
         if (getAction() == RouteElementAction.newArc) {
-            return "RouteElementArc newArc "+arcProto+",\nhead: "+headRE+"\ntail: "+tailRE;
+            return "RouteElementArc-new "+arcProto+" width="+arcWidth+",\n   head: "+headRE+"\n   tail: "+tailRE;
         }
         else if (getAction() == RouteElementAction.deleteArc) {
-            return "RouteElement deleteArc "+arcInst;
+            return "RouteElementArc-delete "+arcInst;
         }
         return "RouteElement bad action";
     }

@@ -102,7 +102,6 @@ public class ArcInst extends Geometric implements Comparable
 	/** reverse extension/negation/arrow ends */		private static final int REVERSEEND =         020000000;
 	/** set if arc can't slide around in ports */		private static final int CANTSLIDE =          040000000;
 	/** set if afixed arc was changed */				private static final int FIXEDMOD =          0100000000;
-//	/** if on, this arcinst is marked for death */		private static final int KILLA =             0200000000;
 //	/** arcinst re-drawing is scheduled */				private static final int REWANTA =           0400000000;
 //	/** only local arcinst re-drawing desired */		private static final int RELOCLA =          01000000000;
 //	/**transparent arcinst re-draw is done */			private static final int RETDONA =          02000000000;
@@ -1397,7 +1396,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * The arrow head is on the arc's head end, unless the arc is reversed.
 	 * It is only for documentation purposes and does not affect the circuit.
 	 * @see ArcInst#setReverseEnds
-     * @param state
+     * @param state true to set the arc to be directional.
      */
 	public void setDirectional(boolean state) {
         if (state)
