@@ -605,7 +605,7 @@ public class Quick
 				if (onlyFirstError) return true;
 				errorsFound = true;
 			}
-			ret = checkMinWidth(ni, layer, poly);
+			ret = checkMinWidth(ni, layer, poly, tot==1);
 			if (ret)
 			{
 				if (onlyFirstError) return true;
@@ -694,7 +694,7 @@ public class Quick
 				if (onlyFirstError) return true;
 				errorsFound = true;
 			}
-			ret = checkMinWidth(ai, layer, poly);
+			ret = checkMinWidth(ai, layer, poly, tot==1);
 			if (ret)
 			{
 				if (onlyFirstError) return true;
@@ -703,7 +703,7 @@ public class Quick
 			if (tech == layersValidTech && !layersValid[layerNum])
 			{
 				reportError(BADLAYERERROR, null, ai.getParent(), 0, 0, null,
-					poly, ai, layer, null, null, null);
+					(tot==1)?null:poly, ai, layer, null, null, null);
 				if (onlyFirstError) return true;
 				errorsFound = true;
 			}
@@ -1273,7 +1273,7 @@ public class Quick
 									Poly rebuild = new Poly((lxb+hxb)/2, (lyb+hyb)/2, hxb-lxb, hyb-lyb);
 									rebuild.setStyle(Poly.Type.FILLED);
 									reportError(MINWIDTHERROR, null, cell, minWidth,
-										actual, sizeRule, rebuild,
+                                            actual, sizeRule, rebuild,
 											geom1, layer1, null, null, null);
 									return true;
 								}
@@ -1291,7 +1291,7 @@ public class Quick
 									Poly rebuild = new Poly((lxb+hxb)/2, (lyb+hyb)/2, hxb-lxb, hyb-lyb);
 									rebuild.setStyle(Poly.Type.FILLED);
 									reportError(MINWIDTHERROR, null, cell, minWidth,
-										actual, sizeRule, rebuild,
+                                            actual, sizeRule, rebuild,
 											geom1, layer1, null, null, null);
 									return true;
 								}
@@ -1456,8 +1456,7 @@ public class Quick
 		}
 
 		reportError(errorType, msg, cell, dist, pd, rule,
-			origPoly1, geom1, layer1,
-		        origPoly2, geom2, layer2);
+                origPoly1, geom1, layer1, origPoly2, geom2, layer2);
 		return true;
 	}
 
@@ -1900,9 +1899,10 @@ public class Quick
 	 * @param geom
 	 * @param layer
 	 * @param poly
-	 * @return
+	 * @param onlyOne
+     * @return
 	 */
-	private boolean checkMinWidth(Geometric geom, Layer layer, Poly poly)
+	private boolean checkMinWidth(Geometric geom, Layer layer, Poly poly, boolean onlyOne)
 	{
 		Cell cell = geom.getParent();
 		DRCRules.DRCRule minWidthRule = DRC.getMinValue(layer, DRCTemplate.MINWID);
@@ -1964,7 +1964,7 @@ public class Quick
 			}
 
 			reportError(errorType, extraMsg, cell, minWidth, actual, rule,
-			        poly, geom, layer, null, null, null);
+			        (onlyOne) ? null : poly, geom, layer, null, null, null);
 			return !overlapLayer;
 		}
 
@@ -1980,7 +1980,7 @@ public class Quick
 		if (actual < minWidth)
 		{
 			reportError(MINWIDTHERROR, null, cell, minWidth, actual, minWidthRule.rule,
-				poly, geom, layer, null, null, null);
+				(onlyOne) ? null : poly, geom, layer, null, null, null);
 			return true;
 		}
 
@@ -2034,11 +2034,11 @@ public class Quick
 					if (poly.isInside(new Point2D.Double((center.getX()+inter.getX())/2, (center.getY()+inter.getY())/2)))
 					{
 						reportError(MINWIDTHERROR, null, cell, minWidth,
-							actual, minWidthRule.rule, poly, geom, layer, null, null, null);
+							actual, minWidthRule.rule, (onlyOne) ? null : poly, geom, layer, null, null, null);
 					} else
 					{
 						reportError(NOTCHERROR, null, cell, minWidth,
-							actual, minWidthRule.rule, poly, geom, layer, poly, geom, layer);
+							actual, minWidthRule.rule, (onlyOne) ? null : poly, geom, layer, poly, geom, layer);
 					}
 					return true;
 				}
@@ -2093,21 +2093,12 @@ public class Quick
 				for(Iterator pIt = set.iterator(); pIt.hasNext(); )
 				{
 					PolyQTree.PolyNode pn = (PolyQTree.PolyNode)pIt.next();
-					//Object obj = loopList.get(j);
-					//PolyQTree.PolyNode localPn = (PolyQTree.PolyNode)polyArray[j];
 					if (pn == null) throw new Error("wrong condition in Quick.checkMinArea()");
-					/*
-					List list = (List)obj;
-					if ( list.size() > 1) Collections.sort(list);
-					*/
-					//Object[] list = pn.getSimpleObjects(true).toArray();
 					List list = pn.getSortedLoops();
 					// Order depends on area comparison done. First element is the smallest.
 					// and depending on # polygons it could be minArea or encloseArea
 					DRCRules.DRCRule evenRule = (list.size()%2==0) ? encloseAreaRule : minAreaRule;
 					DRCRules.DRCRule oddRule = (evenRule == minAreaRule) ? encloseAreaRule : minAreaRule;
-					//int count = 0;
-					//for(Iterator localIt = list.iterator(); localIt.hasNext(); )
 					// Looping over simple polygons. Possible problems with disconnected elements
 					// polyArray.length = Maximum number of distintic loops
 					for (int i = 0; i < list.size(); i++)
@@ -3095,19 +3086,6 @@ public class Quick
 	                         Poly poly2, Geometric geom2, Layer layer2)
 	{
 		if (errorLogger == null) return;
-//		// if this error is being ignored, don't record it
-//		var = getvalkey((INTBIG)cell, VNODEPROTO, VGEOM|VISARRAY, dr_ignore_listkey);
-//		if (var != NOVARIABLE)
-//		{
-//			len = getlength(var);
-//			for(i=0; i<len; i += 2)
-//			{
-//				p1 = ((GEOM **)var->addr)[i];
-//				p2 = ((GEOM **)var->addr)[i+1];
-//				if (p1 == geom1 && p2 == geom2) return;
-//				if (p1 == geom2 && p2 == geom1) return;
-//			}
-//		}
 
 		// if this error is in an ignored area, don't record it
 		String DRCexclusionMsg = "";
@@ -3122,19 +3100,6 @@ public class Quick
 				polyList.add(poly2);
 				geomList.add(geom2);
 			}
-			/*
-			Rectangle2D polyBounds = poly1.getBounds2D();
-			double lX = polyBounds.getMinX();   double hX = polyBounds.getMaxX();
-			double lY = polyBounds.getMinY();   double hY = polyBounds.getMaxY();
-			if (poly2 != null)
-			{
-				polyBounds = poly2.getBounds2D();
-				if (polyBounds.getMinX() < lX) lX = polyBounds.getMinX();
-				if (polyBounds.getMaxX() > hX) hX = polyBounds.getMaxX();
-				if (polyBounds.getMinY() < lY) lY = polyBounds.getMinY();
-				if (polyBounds.getMaxY() > hY) hY = polyBounds.getMaxY();
-			}
-			*/
 			for(Iterator it = exclusionList.iterator(); it.hasNext(); )
 			{
 				DRCExclusion dex = (DRCExclusion)it.next();
@@ -3154,12 +3119,6 @@ public class Quick
 				// At least one DRC exclusion that contains both
 				if (count == polyList.size())
 					return;
-				/*
-				if (poly.isInside(new Point2D.Double(lX, lY)) &&
-					poly.isInside(new Point2D.Double(lX, hY)) &&
-					poly.isInside(new Point2D.Double(hX, lY)) &&
-					poly.isInside(new Point2D.Double(hX, hY))) return;
-					*/
 			}
 		}
 
@@ -3236,7 +3195,8 @@ public class Quick
 					errorMessage += "Minimum width error:";
 					errorMessagePart2 = ", layer " + layer1.getName();
 					errorMessagePart2 += " LESS THAN " + TextUtils.formatDouble(limit) + " WIDE (IS " + TextUtils.formatDouble(actual) + ")";
-					break;
+                    //showPoly = false;
+                    break;
 				case MINSIZEERROR:
 					errorMessage += "Minimum size error:";
 					errorMessagePart2 = " LESS THAN " + TextUtils.formatDouble(limit) + " IN SIZE (IS " + TextUtils.formatDouble(actual) + ")";
