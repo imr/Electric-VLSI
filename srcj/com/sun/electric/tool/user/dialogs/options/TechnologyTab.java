@@ -109,7 +109,7 @@ public class TechnologyTab extends PreferencePanel
 		technologyPopup.setSelectedItem(initialSchematicTechnology);
 
 		initialTechNegatingBubbleSize = Schematics.getNegatingBubbleSize();
-		techSchematicsNegatingSize.setText(Double.toString(initialTechNegatingBubbleSize));
+		techSchematicsNegatingSize.setText(TextUtils.formatDouble(initialTechNegatingBubbleSize));
 	}
 
 	/**

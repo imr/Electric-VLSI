@@ -96,8 +96,8 @@ public class AnnularRing extends EDialog
 		}
 		layerJList.setSelectedIndex(0);
 
-		innerRadius.setText(Double.toString(lastInner));
-		outerRadius.setText(Double.toString(lastOuter));
+		innerRadius.setText(TextUtils.formatDouble(lastInner));
+		outerRadius.setText(TextUtils.formatDouble(lastOuter));
 		numSegments.setText(Integer.toString(lastSegments));
 		numDegrees.setText(Integer.toString(lastDegrees));
     }

@@ -235,9 +235,9 @@ public class SizeListener
 					xS = ai.getWidth() - ai.getProto().getWidthOffset();
 				}
 			}
-			xSize.setText(Double.toString(xS));
+			xSize.setText(TextUtils.formatDouble(xS));
 			if (nodes)
-				ySize.setText(Double.toString(yS));
+				ySize.setText(TextUtils.formatDouble(yS));
 		}
 
 		private void cancel(java.awt.event.ActionEvent evt)

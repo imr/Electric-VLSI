@@ -255,7 +255,7 @@ public class ChangeText extends EDialog
 			if (lowUnitSize >= 0)
 			{
 				useUnits.setSelected(true);
-				unitSize.setText(Double.toString(highUnitSize));
+				unitSize.setText(TextUtils.formatDouble(highUnitSize));
 			} else
 			{
 				usePoints.setSelected(true);

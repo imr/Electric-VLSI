@@ -746,7 +746,8 @@ public abstract class Topology extends Output
 			{
 				Variable.Key key = (Variable.Key)it.next();
 				Variable var = no.getVar(key.getName());
-				Object eval = context.evalVar(var, no);
+                String eval = var.describe(context, no.getNodeInst());
+				//Object eval = context.evalVar(var, no);
 				if (eval == null) continue;
 				uniqueCellName += "-" + var.getTrueName() + "-" + eval.toString();
 			}

@@ -292,7 +292,7 @@ public class TextTab extends PreferencePanel
 		} else
 		{
 			textUnits.setSelected(true);
-			textUnitSize.setText(Double.toString(size.getSize()));
+			textUnitSize.setText(TextUtils.formatDouble(size.getSize()));
 			textPointSize.setText("");
 		}
 		textItalic.setSelected(currentTextDescriptor.isItalic());

@@ -2062,6 +2062,13 @@ public class NodeInst extends Geometric implements Nodable
         return false;
     }
 
+    /**
+     * Get the NodeInst associated with this Nodable
+     * For NodeInsts, this returns itself.
+     * @return the NodeInst associate with this Nodable
+     */
+    public NodeInst getNodeInst() { return this; }
+
 	/**
 	 * Method to return the function of this NodeProto.
 	 * The Function is a technology-independent description of the behavior of this NodeProto.

@@ -137,7 +137,7 @@ public class ScaleTab extends PreferencePanel
 		Technology tech = Technology.findTechnology(str);
 		if (tech == null) return;
 		Double shownValue = (Double)unitValues.get(tech);
-		unitsScaleValue.setText(Double.toString(shownValue.doubleValue()));
+		unitsScaleValue.setText(TextUtils.formatDouble(shownValue.doubleValue()));
 		unitsAlternateScale.setText("nanometers (" + (shownValue.doubleValue()/1000.0) + " microns)");
 	}
 

@@ -133,6 +133,15 @@ public class Variable
 	 */
 	public Variable(ElectricObject owner, Object addr, TextDescriptor descriptor, Key key)
 	{
+        // user input text may describe a number that is not parsable by the Java Bean Shell
+        // (such as 0.01p, which equals 0.01E-12). To prevent this being a problem, any String
+        // that is convertible to a Number via the above definition is done so here.
+        if (addr instanceof String) {
+            try {
+                Number n = TextUtils.parseUserInput((String)addr);
+                addr = n;
+            } catch (java.lang.NumberFormatException e) {}
+        }
 		this.addr = addr;
 		this.descriptor = new TextDescriptor(owner, descriptor);
 		this.key = key;
@@ -381,6 +390,17 @@ public class Variable
                  returnVal.append(makeStringVar(val, purpose, units));
         } else
 		{
+/*
+            // see if this is a number that has been stored as a string
+            // and convert it to the Number. This makes it consistent if the
+            // user sets it to Java code, which will then also convert it to a Number.
+            if (addr instanceof String) {
+                try {
+                    Number n = TextUtils.parseUserInput((String)addr);
+                    addr = n;
+                } catch (NumberFormatException e) {}
+            }
+*/
 			returnVal.append(getPureValue(aindex, purpose));
 			if (addr instanceof Object[] && aindex >= 0)
 			{

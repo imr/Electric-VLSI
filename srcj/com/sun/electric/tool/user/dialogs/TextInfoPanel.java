@@ -189,8 +189,8 @@ public class TextInfoPanel extends javax.swing.JPanel
             initialXOffset = td.getXOff();
             initialYOffset = td.getYOff();
         }
-        xOffset.setText(Double.toString(initialXOffset));
-        yOffset.setText(Double.toString(initialYOffset));
+        xOffset.setText(TextUtils.formatDouble(initialXOffset));
+        yOffset.setText(TextUtils.formatDouble(initialYOffset));
 
         // set the "invisible outside cell"
         initialInvisibleOutsideCell = td.isInterior();
@@ -202,17 +202,17 @@ public class TextInfoPanel extends javax.swing.JPanel
         if (initialSize.isAbsolute())
         {
             pointsButton.setSelected(true);
-            pointsSize.setText(TextUtils.formatDouble(initialSize.getSize(), 2));
+            pointsSize.setText(TextUtils.formatDouble(initialSize.getSize()));
             unitsSize.setText("");
             if (wnd != null)
             {
                 double unitSize = wnd.getTextUnitSize((int)initialSize.getSize());
-                unitsSize.setText(TextUtils.formatDouble(unitSize, 2));
+                unitsSize.setText(TextUtils.formatDouble(unitSize));
             }
         } else
         {
             unitsButton.setSelected(true);
-            unitsSize.setText(TextUtils.formatDouble(initialSize.getSize(), 2));
+            unitsSize.setText(TextUtils.formatDouble(initialSize.getSize()));
             pointsSize.setText("");
             if (wnd != null)
             {
@@ -246,8 +246,8 @@ public class TextInfoPanel extends javax.swing.JPanel
             NodeInst ni2 = (NodeInst)owner;
             initialBoxedWidth = ni2.getXSize();
             initialBoxedHeight = ni2.getYSize();
-            boxedWidth.setText(Double.toString(ni2.getXSize()));
-            boxedHeight.setText(Double.toString(ni2.getYSize()));
+            boxedWidth.setText(TextUtils.formatDouble(ni2.getXSize()));
+            boxedHeight.setText(TextUtils.formatDouble(ni2.getYSize()));
         }
         if (!ownerIsNodeInst) {
             // The TextDescriptor cannot be set to boxed, so remove it from the list

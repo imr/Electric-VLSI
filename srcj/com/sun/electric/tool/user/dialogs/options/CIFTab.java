@@ -83,7 +83,7 @@ public class CIFTab extends PreferencePanel
 		cifCheckResolution.setSelected(initialCIFOutputCheckResolution);
 
 		initialCIFOutputResolution = IOTool.getCIFOutResolution();
-		cifResolutionValue.setText(Double.toString(initialCIFOutputResolution));
+		cifResolutionValue.setText(TextUtils.formatDouble(initialCIFOutputResolution));
 
 		// build the layers list
 		cifTechnology.setText("Technology " + curTech.getTechName() + ":");

@@ -129,6 +129,23 @@ public class UnitsTab extends PreferencePanel
 		if (index < 0) index = 0;
 		if (index >= unitsDistance.getItemCount()) index = unitsDistance.getItemCount() - 1;
 		unitsTime.setSelectedIndex(index);
+
+        // Units no longer mean anything - all numbers are in real units, and are
+        // displayed scaled with appropriate post-fix.
+        index = TextUtils.UnitScale.NONE.getIndex();
+        unitsResistance.setSelectedIndex(-1);
+        unitsResistance.setEnabled(false);
+        unitsCapacitance.setSelectedIndex(-1);
+        unitsCapacitance.setEnabled(false);
+        unitsInductance.setSelectedIndex(-1);
+        unitsInductance.setEnabled(false);
+        unitsCurrent.setSelectedIndex(-1);
+        unitsCurrent.setEnabled(false);
+        unitsVoltage.setSelectedIndex(-1);
+        unitsVoltage.setEnabled(false);
+        unitsTime.setSelectedIndex(-1);
+        unitsTime.setEnabled(false);
+
 	}
 
 	/**

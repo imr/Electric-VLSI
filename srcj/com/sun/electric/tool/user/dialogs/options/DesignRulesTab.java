@@ -439,7 +439,7 @@ public class DesignRulesTab extends PreferencePanel
 			int j = designRulesFromList.getSelectedIndex();
 			double wid = drRules.minNodeSize[j*2].doubleValue();
 			if (wid < 0) drMinWidth.setText(""); else
-				drMinWidth.setText(Double.toString(wid));
+				drMinWidth.setText(TextUtils.formatDouble(wid));
 			double hei = drRules.minNodeSize[j*2+1].doubleValue();
 			if (hei < 0) drMinHeight.setText(""); else
 				drMinHeight.setText(Double.toString(hei));

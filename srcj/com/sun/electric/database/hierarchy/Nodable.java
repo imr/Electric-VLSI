@@ -145,4 +145,10 @@ public interface Nodable
      */
     public boolean contains(NodeInst ni, int arrayIndex);
 
+    /**
+     * Get the NodeInst associated with this Nodable
+     * @return the NodeInst associate with this Nodable
+     */
+    public NodeInst getNodeInst();
+
 }

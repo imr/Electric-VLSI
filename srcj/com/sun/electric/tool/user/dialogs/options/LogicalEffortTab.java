@@ -85,25 +85,25 @@ public class LogicalEffortTab extends PreferencePanel
 		leDisplayIntermediateCaps.setSelected(leDisplayIntermediateCapsInitial);
 
 		leGlobalFanOutInitial = LETool.getGlobalFanout();
-		leGlobalFanOut.setText(Double.toString(leGlobalFanOutInitial));
+		leGlobalFanOut.setText(TextUtils.formatDouble(leGlobalFanOutInitial));
 
 		leConvergenceInitial = LETool.getConvergenceEpsilon();
-		leConvergence.setText(Double.toString(leConvergenceInitial));
+		leConvergence.setText(TextUtils.formatDouble(leConvergenceInitial));
 
 		leMaxIterationsInitial = LETool.getMaxIterations();
 		leMaxIterations.setText(Integer.toString(leMaxIterationsInitial));
 
 		leGateCapacitanceInitial = LETool.getGateCapacitance();
-		leGateCapacitance.setText(Double.toString(leGateCapacitanceInitial));
+		leGateCapacitance.setText(TextUtils.formatDouble(leGateCapacitanceInitial));
 
 		leDefaultWireCapRatioInitial = LETool.getWireRatio();
-		leDefaultWireCapRatio.setText(Double.toString(leDefaultWireCapRatioInitial));
+		leDefaultWireCapRatio.setText(TextUtils.formatDouble(leDefaultWireCapRatioInitial));
 
 		leDiffToGateCapRatioInitial = LETool.getDiffAlpha();
-		leDiffToGateCapRatio.setText(Double.toString(leDiffToGateCapRatioInitial));
+		leDiffToGateCapRatio.setText(TextUtils.formatDouble(leDiffToGateCapRatioInitial));
 
 		leKeeperSizeRatioInitial = LETool.getKeeperRatio();
-		leKeeperSizeRatio.setText(Double.toString(leKeeperSizeRatioInitial));
+		leKeeperSizeRatio.setText(TextUtils.formatDouble(leKeeperSizeRatioInitial));
 
 		// make an empty list for the layer names
 		leArcOptions = new HashMap();
@@ -188,7 +188,7 @@ public class LogicalEffortTab extends PreferencePanel
 		ArcProto arc = curTech.findArcProto(arcName);
 		Pref pref = (Pref)leArcOptions.get(arc);
 		if (pref == null) return;
-		leWireRatio.setText(Double.toString(pref.getDouble()));
+		leWireRatio.setText(TextUtils.formatDouble(pref.getDouble()));
 	}
 
 	/**

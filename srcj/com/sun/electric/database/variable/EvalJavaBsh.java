@@ -27,6 +27,7 @@ package com.sun.electric.database.variable;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.database.text.TextUtils;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -232,7 +233,7 @@ public class EvalJavaBsh
         if (DEBUG) System.out.println(name + " ---> " + val + " ("+val.getClass()+")");
         try {
             // try to convert to a Number
-            Double d = new Double(val.toString());
+            Number d = TextUtils.parseUserInput(val.toString());
             val = d;
             if (DEBUG) System.out.println("   converted to ---> " + val + " ("+val.getClass()+")");
         } catch (java.lang.NumberFormatException e) {

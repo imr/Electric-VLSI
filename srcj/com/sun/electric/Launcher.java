@@ -27,6 +27,7 @@ import com.sun.electric.tool.user.User;
 
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Properties;
 import java.net.URL;
 
 /**

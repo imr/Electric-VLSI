@@ -309,6 +309,8 @@ class NetSchem extends NetCell {
             return false;
         }
 
+        public NodeInst getNodeInst() { return nodeInst; }
+
 	}
 
 	/* Implementation of this NetSchem. */							NetSchem implementation;

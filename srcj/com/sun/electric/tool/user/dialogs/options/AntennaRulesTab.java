@@ -104,7 +104,7 @@ public class AntennaRulesTab extends PreferencePanel
 			Pref pref = (Pref)antennaOptions.get(ap);
 			if (pref == null) return;
 			antennaRatioChanging = true;
-			antMaxRatio.setText(Double.toString(pref.getDouble()));
+			antMaxRatio.setText(TextUtils.formatDouble(pref.getDouble()));
 			antennaRatioChanging = false;
 		}
 	}

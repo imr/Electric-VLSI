@@ -224,9 +224,9 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 		String netName = netlist.getNetworkName(ai);
 		network.setText(netName);
 		name.setText(initialName);
-		width.setText(Double.toString(initialWidth - ai.getProto().getWidthOffset()));
+		width.setText(TextUtils.formatDouble(initialWidth - ai.getProto().getWidthOffset()));
 		busSize.setText(Integer.toString(busWidth));
-		angle.setText(Double.toString(ai.getAngle() / 10.0));
+		angle.setText(TextUtils.formatDouble(ai.getAngle() / 10.0));
 		easyToSelect.setSelected(initialEasyToSelect);
 		headNode.setText(ai.getHead().getPortInst().getNodeInst().describe());
 		Point2D headPt = ai.getHead().getLocation();

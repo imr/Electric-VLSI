@@ -141,8 +141,8 @@ public class IconTab extends PreferencePanel
 		iconDrawBody.setSelected(initialIconDrawBody = User.isIconGenDrawBody());
 		iconReverseOrder.setSelected(initialIconReverseExportOrder = User.isIconGenReverseExportOrder());
 
-		iconLeadLength.setText(Double.toString(initialIconLeadLength = User.getIconGenLeadLength()));
-		iconLeadSpacing.setText(Double.toString(initialIconLeadSpacing = User.getIconGenLeadSpacing()));
+		iconLeadLength.setText(TextUtils.formatDouble(initialIconLeadLength = User.getIconGenLeadLength()));
+		iconLeadSpacing.setText(TextUtils.formatDouble(initialIconLeadSpacing = User.getIconGenLeadSpacing()));
 	}
 
 	/**

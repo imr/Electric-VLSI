@@ -68,17 +68,17 @@ public class GridAndAlignmentTab extends PreferencePanel
 		} else
 		{
 			gridCurrentHoriz.setEditable(true);
-			gridCurrentHoriz.setText(Double.toString(initialGridXSpacing = wnd.getGridXSpacing()));
+			gridCurrentHoriz.setText(TextUtils.formatDouble(initialGridXSpacing = wnd.getGridXSpacing()));
 			gridCurrentVert.setEditable(true);
-			gridCurrentVert.setText(Double.toString(initialGridYSpacing = wnd.getGridYSpacing()));
+			gridCurrentVert.setText(TextUtils.formatDouble(initialGridYSpacing = wnd.getGridYSpacing()));
 		}
 
-		gridNewHoriz.setText(Double.toString(initialGridDefXSpacing = User.getDefGridXSpacing()));
-		gridNewVert.setText(Double.toString(initialGridDefYSpacing = User.getDefGridYSpacing()));
-		gridBoldHoriz.setText(Double.toString(initialGridDefXBoldFrequency = User.getDefGridXBoldFrequency()));
-		gridBoldVert.setText(Double.toString(initialGridDefYBoldFrequency = User.getDefGridYBoldFrequency()));
+		gridNewHoriz.setText(TextUtils.formatDouble(initialGridDefXSpacing = User.getDefGridXSpacing()));
+		gridNewVert.setText(TextUtils.formatDouble(initialGridDefYSpacing = User.getDefGridYSpacing()));
+		gridBoldHoriz.setText(TextUtils.formatDouble(initialGridDefXBoldFrequency = User.getDefGridXBoldFrequency()));
+		gridBoldVert.setText(TextUtils.formatDouble(initialGridDefYBoldFrequency = User.getDefGridYBoldFrequency()));
 
-		gridAlignCursor.setText(Double.toString(initialGridAlignment = User.getAlignmentToGrid()));
+		gridAlignCursor.setText(TextUtils.formatDouble(initialGridAlignment = User.getAlignmentToGrid()));
 	}
 
 	/**

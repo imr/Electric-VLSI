@@ -229,8 +229,8 @@ public class CellProperties extends EDialog
 		useTechEditor.setSelected(pcv.useTechEditor.getBoolean());
 		expandNewInstances.setSelected(pcv.defExpanded.getBoolean());
 		unexpandNewInstances.setSelected(!pcv.defExpanded.getBoolean());
-		charXSpacing.setText(Double.toString(pcv.charX.getDouble()));
-		charYSpacing.setText(Double.toString(pcv.charY.getDouble()));
+		charXSpacing.setText(TextUtils.formatDouble(pcv.charX.getDouble()));
+		charYSpacing.setText(TextUtils.formatDouble(pcv.charY.getDouble()));
 		frameDesigner.setText(pcv.designerName.getString());
 
 		frameSize.setSelectedIndex(0);

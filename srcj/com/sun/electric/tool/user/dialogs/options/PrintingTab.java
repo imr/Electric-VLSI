@@ -118,11 +118,11 @@ public class PrintingTab extends PreferencePanel
 			printUsePrinter.setSelected(true);
 
 		initialPrintWidth = IOTool.getPrintWidth();
-		printWidth.setText(Double.toString(initialPrintWidth));
+		printWidth.setText(TextUtils.formatDouble(initialPrintWidth));
 		initialPrintHeight = IOTool.getPrintHeight();
-		printHeight.setText(Double.toString(initialPrintHeight));
+		printHeight.setText(TextUtils.formatDouble(initialPrintHeight));
 		initialPrintMargin = IOTool.getPrintMargin();
-		printMargin.setText(Double.toString(initialPrintMargin));
+		printMargin.setText(TextUtils.formatDouble(initialPrintMargin));
 
 		printRotation.addItem("No Rotation");
 		printRotation.addItem("Rotate plot 90 degrees");
@@ -159,7 +159,7 @@ public class PrintingTab extends PreferencePanel
 			printSyncFileName.setEditable(false);
 			printSetEPSSync.setEnabled(false);
 		}
-		printEPSScale.setText(Double.toString(initialEPSScale));
+		printEPSScale.setText(TextUtils.formatDouble(initialEPSScale));
 
 		// not yet:
 		printResolution.setEditable(false);

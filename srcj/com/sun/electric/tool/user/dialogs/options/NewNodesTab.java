@@ -124,8 +124,8 @@ public class NewNodesTab extends PreferencePanel
 		PrimNodeInfo pni = (PrimNodeInfo)initialNewNodesPrimInfo.get(np);
 		if (pni == null) return;
 		newNodesDataChanging = true;
-		nodePrimitiveXSize.setText(Double.toString(pni.wid));
-		nodePrimitiveYSize.setText(Double.toString(pni.hei));
+		nodePrimitiveXSize.setText(TextUtils.formatDouble(pni.wid));
+		nodePrimitiveYSize.setText(TextUtils.formatDouble(pni.hei));
 		newNodesDataChanging = false;
 	}
 

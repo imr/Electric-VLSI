@@ -162,7 +162,7 @@ public class NewArcsTab extends PreferencePanel
 		arcDirectional.setSelected(pai.directional);
 		arcEndsExtend.setSelected(pai.endsExtend);
 
-		arcWidth.setText(Double.toString(pai.wid));
+		arcWidth.setText(TextUtils.formatDouble(pai.wid));
 		arcAngle.setText(Integer.toString(pai.angleIncrement));
 		arcPin.setSelectedItem(pai.pin.getName());
 		newArcsDataChanging = false;

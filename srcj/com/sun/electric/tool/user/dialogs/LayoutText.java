@@ -67,8 +67,8 @@ public class LayoutText extends EDialog
         getRootPane().setDefaultButton(ok);
 
 		textSize.setText(Integer.toString(lastSize));
-		textScale.setText(Double.toString(lastScale));
-		dotSeparation.setText(Double.toString(lastSeparation));
+		textScale.setText(TextUtils.formatDouble(lastScale));
+		dotSeparation.setText(TextUtils.formatDouble(lastSeparation));
 
 		textItalic.setSelected(lastItalic);
 		textBold.setSelected(lastBold);

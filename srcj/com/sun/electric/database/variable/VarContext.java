@@ -29,6 +29,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.text.TextUtils;
 
 /**
  * VarContext represents a hierarchical path of NodeInsts.  Its

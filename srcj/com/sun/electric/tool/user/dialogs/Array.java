@@ -199,8 +199,8 @@ public class Array extends EDialog
 		}
 
 		// load the spacing distances
-		xSpacing.setText(Double.toString(lastXDistance));
-		ySpacing.setText(Double.toString(lastYDistance));
+		xSpacing.setText(TextUtils.formatDouble(lastXDistance));
+		ySpacing.setText(TextUtils.formatDouble(lastYDistance));
 		switch (lastSpacingType)
 		{
 			case SPACING_EDGE:           spaceByEdgeOverlap.setSelected(true);             break;
@@ -304,8 +304,8 @@ public class Array extends EDialog
 			case SPACING_CHARACTERISTIC:  x = spacingCharacteristicX;   y = spacingCharacteristicY;   break;
 			case SPACING_MEASURED:        x = spacingMeasuredX;         y = spacingMeasuredY;         break;
 		}
-		xSpacing.setText(Double.toString(x));
-		ySpacing.setText(Double.toString(y));
+		xSpacing.setText(TextUtils.formatDouble(x));
+		ySpacing.setText(TextUtils.formatDouble(y));
 	}
 
 	private void rememberFields()

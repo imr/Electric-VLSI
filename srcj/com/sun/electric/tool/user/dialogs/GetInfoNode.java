@@ -324,8 +324,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 
 		type.setText(np.describe());
 		name.setText(initialName);
-		xPos.setText(Double.toString(initialXPos));
-		yPos.setText(Double.toString(initialYPos));
+		xPos.setText(TextUtils.formatDouble(initialXPos));
+		yPos.setText(TextUtils.formatDouble(initialYPos));
 		SizeOffset so = ni.getSizeOffset();
 		if (swapXY)
 		{
@@ -336,7 +336,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			xSize.setText(TextUtils.formatDouble(Math.abs(initialXSize) - so.getLowXOffset() - so.getHighXOffset()));
 			ySize.setText(TextUtils.formatDouble(Math.abs(initialYSize) - so.getLowYOffset() - so.getHighYOffset()));
 		}
-		rotation.setText(Double.toString(initialRotation / 10.0));
+		rotation.setText(TextUtils.formatDouble(initialRotation / 10.0));
 		mirrorX.setSelected(initialXSize < 0);
 		mirrorY.setSelected(initialYSize < 0);
 

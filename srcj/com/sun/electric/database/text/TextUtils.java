@@ -31,9 +31,11 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.text.DecimalFormat;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Date;
+import java.util.Iterator;
 
 /**
  * This class is a collection of text utilities.
@@ -196,14 +198,44 @@ public class TextUtils
 
 	/**
 	 * Method to convert a double to a string.
+     * Also scales number and appends appropriate postfix UnitScale string.
 	 * @param v the double value to format.
 	 * @return the string representation of the number.
 	 */
 	public static String formatDouble(double v)
 	{
-		if (numberFormat == null) numberFormat = NumberFormat.getInstance();
+		if (numberFormat == null) {
+            numberFormat = NumberFormat.getInstance();
+            try {
+                DecimalFormat d = (DecimalFormat)numberFormat;
+                d.setDecimalSeparatorAlwaysShown(false);
+            } catch (Exception e) {}
+        }
+        numberFormat.setMaximumFractionDigits(3);
+        int unitScaleIndex = 0;
+        if (v != 0) {
+            while ((Math.abs(v) > 1000000) && (unitScaleIndex > UnitScale.UNIT_BASE)) {
+                v /= 1000;
+                unitScaleIndex--;
+            }
+            while ((Math.abs(v) < 1) && (unitScaleIndex < UnitScale.UNIT_END)) {
+                v *= 1000;
+                unitScaleIndex++;
+            }
+            // if number still out of range, adjust decimal formatting
+            if (Math.abs(v) < 1) {
+                int maxDecimals = 3;
+                double v2 = Math.abs(v);
+                while (v2 < 1) {
+                    maxDecimals++;
+                    v2 *= 10;
+                }
+                numberFormat.setMaximumFractionDigits(maxDecimals);
+            }
+        }
+        UnitScale u = UnitScale.findFromIndex(unitScaleIndex);
 		String result = numberFormat.format(v);
-		return result;
+		return result + u.getPostFix();
 	}
 
 	private static NumberFormat numberFormatSpecific = null;
@@ -388,11 +420,15 @@ public class TextUtils
 	{
 		private final String name;
 		private final int index;
+        private final String postFix;
+        private final Number multiplier;
 
-		private UnitScale(String name, int index)
+		private UnitScale(String name, int index, String postFix, Number multiplier)
 		{
 			this.name = name;
 			this.index = index;
+            this.postFix = postFix;
+            this.multiplier = multiplier;
 		}
 
 		/**
@@ -401,6 +437,18 @@ public class TextUtils
 		 * @return the index of this UnitScale.
 		 */
 		public int getIndex() { return index; }
+
+        /**
+         * Get the string representing the postfix associated with this unit scale
+         * @return the post fix string
+         */
+        public String getPostFix() { return postFix; }
+
+        /**
+         * Get the multiplier value associated with this unit scale.
+         * @return the multiplier. May be an Integer (values >= 1) or a Double (values <= 1)
+         */
+        public Number getMultiplier() { return multiplier; }
 
 		/**
 		 * Method to convert the index value to a UnitScale.
@@ -416,16 +464,17 @@ public class TextUtils
 		 */
 		public String toString() { return name; }
 
-		/** The smallest unit value. */					private static final int UNIT_BASE =  -3;
-		/** Describes giga scale (1 billion). */		public static final UnitScale GIGA =  new UnitScale("giga:  x 1000000000",      -3);
-		/** Describes mega scale (1 million). */		public static final UnitScale MEGA =  new UnitScale("mega:  x 1000000",         -2);
-		/** Describes kilo scale (1 thousand). */		public static final UnitScale KILO =  new UnitScale("kilo:  x 1000",            -1);
-		/** Describes unit scale (1). */				public static final UnitScale NONE =  new UnitScale("-:     x 1",                0);
-		/** Describes milli scale (1 thousandth). */	public static final UnitScale MILLI = new UnitScale("milli: / 1000",             1);
-		/** Describes micro scale (1 millionth). */		public static final UnitScale MICRO = new UnitScale("micro: / 1000000",          2);
-		/** Describes nano scale (1 billionth). */		public static final UnitScale NANO =  new UnitScale("nano:  / 1000000000",       3);
-		/** Describes pico scale (1 quadrillionth). */	public static final UnitScale PICO =  new UnitScale("pico:  / 1000000000000",    4);
-		/** Describes femto scale (1 quintillionth). */	public static final UnitScale FEMTO = new UnitScale("femto: / 1000000000000000", 5);
+		/** The largest unit value. */					private static final int UNIT_BASE =  -3;
+        /** The smallest unit value. */                 private static final int UNIT_END = 5;
+		/** Describes giga scale (1 billion). */		public static final UnitScale GIGA =  new UnitScale("giga:  x 1000000000",      -3, "G", new Integer(1000000000));
+		/** Describes mega scale (1 million). */		public static final UnitScale MEGA =  new UnitScale("mega:  x 1000000",         -2, "meg", new Integer(1000000));
+		/** Describes kilo scale (1 thousand). */		public static final UnitScale KILO =  new UnitScale("kilo:  x 1000",            -1, "k", new Integer(1000));
+		/** Describes unit scale (1). */				public static final UnitScale NONE =  new UnitScale("-:     x 1",                0, "", new Integer(1));
+		/** Describes milli scale (1 thousandth). */	public static final UnitScale MILLI = new UnitScale("milli: / 1000",             1, "m", new Double(0.001));
+		/** Describes micro scale (1 millionth). */		public static final UnitScale MICRO = new UnitScale("micro: / 1000000",          2, "u", new Double(0.000001));
+		/** Describes nano scale (1 billionth). */		public static final UnitScale NANO =  new UnitScale("nano:  / 1000000000",       3, "n", new Double(0.000000001));
+		/** Describes pico scale (1 quadrillionth). */	public static final UnitScale PICO =  new UnitScale("pico:  / 1000000000000",    4, "p", new Double(0.000000000001));
+		/** Describes femto scale (1 quintillionth). */	public static final UnitScale FEMTO = new UnitScale("femto: / 1000000000000000", 5, "f", new Double(0.000000000000001));
 
 		private final static UnitScale [] allUnits =
 		{
@@ -439,7 +488,7 @@ public class TextUtils
 	 */
 	public static String displayedUnits(double value, TextDescriptor.Unit unitType, UnitScale unitScale)
 	{
-		String postFix = "";
+/*		String postFix = "";
 		if (unitScale == UnitScale.GIGA)
 		{
 			value /= 1000000000.0f;
@@ -447,7 +496,7 @@ public class TextUtils
 		} else if (unitScale == UnitScale.MEGA)
 		{
 			value /= 1000000.0f;
-			postFix = "meg";		/* SPICE wants "x" */
+			postFix = "meg";		// SPICE wants "x"
 		} else if (unitScale == UnitScale.KILO)
 		{
 			value /= 1000.0f;
@@ -474,6 +523,8 @@ public class TextUtils
 			postFix = "f";
 		}
 		return value + postFix;
+        */
+        return formatDouble(value);
 	}
 
 	/**
@@ -508,6 +559,92 @@ public class TextUtils
 		}
 		return formatDouble(value);
 	}
+
+    /**
+     * Try to parse the user input String s into a Number. Conversion into the following formats
+     * is tried in order. If a conversion is successful, that object is returned.
+     * If no conversions are successful, this throws a NumberFormatException.
+     * This method removes any UnitScale postfix, and scales the number accordingly.
+     * No characters in the string are ignored - the string in its entirety (sans removed postfix) must be
+     * able to be parsed into the Number by the usual Integer.parseInt(), Double.parseDouble() methods.
+     * <P>Formats: Integer, Long, Double
+     * @param s the string to parse
+     * @return a Number that represents the string in its entirety
+     * @throws NumberFormatException if the String is not a parsable Number.
+     */
+    public static Number parseUserInput(String s) throws NumberFormatException {
+        // remove character denoting multiplier at end, if any
+
+        Number n = null;                                    // the number
+        Number m = null;                                    // the multiplier
+        for (int i=0; i<UnitScale.allUnits.length; i++) {
+            UnitScale u = UnitScale.allUnits[i];
+
+            String postfix = u.getPostFix();
+            if (postfix.equals("")) continue;               // ignore the NONE suffix case
+            if (postfix.length() >= s.length()) continue;   // postfix is same length or longer than string
+
+            String sSuffix = s.substring(s.length()-postfix.length(), s.length());
+
+            if (sSuffix.equalsIgnoreCase(postfix)) {
+                m = u.getMultiplier();
+                String sub = s.substring(0, s.length()-postfix.length());
+                // try to converst substring to a number
+                try {
+                    n = parseNumber(sub);
+                    break;
+                } catch (NumberFormatException e) {
+                    m = null;                           // try again
+                }
+            }
+        }
+        // if no valid postfix found, just parse number
+        if (n == null) n = parseNumber(s);
+
+        if (m != null) {
+            if ((m instanceof Integer) && (m.intValue() == 1)) return n;
+
+            if ((n instanceof Integer) && (m instanceof Integer)) {
+                return new Integer(n.intValue() * m.intValue());
+            }
+            if ((n instanceof Long) && (m instanceof Integer)) {
+                return new Long(n.longValue() * m.longValue());
+            }
+            return new Double(n.doubleValue() * m.doubleValue());
+        }
+        return n;
+    }
+
+    /**
+     * Try to parse the user input String s into a Number. Conversion into the following formats
+     * is tried in order. If a conversion is successful, that object is returned.
+     * If no conversions are successful, this throws a NumberFormatException.
+     * No characters in the string are ignored - the string in its entirety must be
+     * able to be parsed into the Number by the usual Integer.parseInt(), Double.parseDouble() methods.
+     * <P>Formats: Integer, Long, Double
+     * @param s the string to parse
+     * @return a Number that represents the string in its entirety
+     * @throws NumberFormatException if the String is not a parsable Number.
+     */
+    private static Number parseNumber(String s) throws NumberFormatException {
+        // try to do the conversion
+        Number n = null;
+        try {
+            n = new Integer(s);
+        } catch (NumberFormatException e) {}
+        try {
+            n = new Long(s);
+        } catch (NumberFormatException e) {}
+        try {
+            n = new Double(s);
+        } catch (NumberFormatException e) {}
+
+        if (n == null) {
+            NumberFormatException e = new NumberFormatException(s + "cannot be parsed into a Number");
+            throw e;
+        }
+        return n;
+    }
 
 	/**
 	 * Method to print a very long string.
