@@ -39,7 +39,7 @@ import java.awt.image.BufferedImage;
  * @author  Gilda Garreton
  * @version 0.1
  */
-public final class Utils3D
+public final class J3DUtils
 {
     /**
      * Method to generate each individual frame key for the interporlation

@@ -35,10 +35,9 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Resources;
+import com.sun.electric.technology.Layer;
 
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Color;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -46,6 +45,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.Iterator;
 import java.lang.reflect.Method;
+import java.lang.reflect.Constructor;
 import javax.swing.JPanel;
 import javax.swing.ImageIcon;
 import javax.swing.JColorChooser;
@@ -60,8 +60,67 @@ import javax.swing.event.DocumentListener;
 public class ColorPatternPanel extends JPanel
 {
 	// 3D view. Static values to avoid unnecessary calls
-	private static final Class view3DClass = Resources.get3DMainClass();
+	private static final Class app3DClass = Resources.get3DClass("JAppearance");
+    private static final Class option3DClass = Resources.get3DClass("J3DColorOptions");
 	private static Method setColorMethod3DClass = null;
+    private static Method setAppearanceMethod3DClass = null;
+    private static Method updateAppearanceMethod3DClass = null;
+
+    /**
+     * Method to add 3D options if j3d plugin is available
+     * @param li if li is null, it will create panel
+     */
+    private void set3DComponents(Info li, boolean updateData)
+    {
+        if (option3DClass == null) return; // plugin is not available
+
+        // Setup JPanel
+        if (li == null)
+        {
+            options3D = null;
+
+            try
+            {
+                Constructor constructor = option3DClass.getDeclaredConstructor(new Class[] {});
+                Object option = constructor.newInstance(new Object[] {});
+                if (option != null)
+                    options3D = (JPanel)option;
+            } catch (Exception e) {
+                System.out.println("Cannot create instance of 3D plugin J3DColorOptions: " + e.getMessage());
+            }
+            if (options3D != null)
+            {
+                GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
+                gridBagConstraints.gridx = 0;
+                gridBagConstraints.gridy = 2;
+                gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+                gridBagConstraints.gridwidth = 10;
+                forDisplay.add(options3D, gridBagConstraints);
+            }
+        }
+        else // set transparency values after graphics is selected
+        {
+           try
+           {
+               if (updateData)
+               {
+                   if (updateAppearanceMethod3DClass == null)
+                       updateAppearanceMethod3DClass = option3DClass.getDeclaredMethod("update3DGraphicsData",
+                               new Class[] {JPanel.class, Info.class});
+                   updateAppearanceMethod3DClass.invoke(option3DClass, new Object[] {options3D, li});
+               }
+               else
+               {
+                   if (setAppearanceMethod3DClass == null)
+                        setAppearanceMethod3DClass = option3DClass.getDeclaredMethod("set3DGraphicsData",
+                           new Class[] {JPanel.class, Info.class});
+                   setAppearanceMethod3DClass.invoke(option3DClass, new Object[] {options3D, li});
+               }
+            } catch (Exception e) {
+                System.out.println("Cannot create instance of 3D plugin J3DColorOptions: " + e.getMessage());
+            }
+        }
+    }
 
 	public static class Info
 	{
@@ -74,6 +133,9 @@ public class ColorPatternPanel extends JPanel
 		public int transparentLayer;
 		public int red, green, blue;
 		public double opacity;
+        // 3D data
+        public float transFactor; // transparency factor
+        public int transMode; // transparency mode
 
 		/**
 		 * Constructor for class to edit an EGraphics object manage in a dialog panel.
@@ -148,8 +210,8 @@ public class ColorPatternPanel extends JPanel
 				{
 					try
 					{
-						if (setColorMethod3DClass == null) setColorMethod3DClass = view3DClass.getDeclaredMethod("set3DColor", new Class[] {Object.class, java.awt.Color.class});
-						setColorMethod3DClass.invoke(view3DClass, new Object[]{obj3D, colorObj});
+						if (setColorMethod3DClass == null) setColorMethod3DClass = app3DClass.getDeclaredMethod("set3DColor", new Class[] {Object.class, java.awt.Color.class});
+						setColorMethod3DClass.invoke(app3DClass, new Object[]{obj3D, colorObj});
 					} catch (Exception e) {
 						System.out.println("Cannot call 3D plugin method set3DColor: " + e.getMessage());
 					}
@@ -171,7 +233,7 @@ public class ColorPatternPanel extends JPanel
 
 	}
 
-	private JPanel patternView, patternIcon;
+	private JPanel patternView, patternIcon, options3D;
 	private Info currentLI;
 	private boolean dataChanging = false;
 	private boolean showPrinter;
@@ -182,6 +244,8 @@ public class ColorPatternPanel extends JPanel
     public ColorPatternPanel(boolean showPrinter)
 	{
         initComponents();
+        set3DComponents(null, false);
+
         this.showPrinter = showPrinter;
 
 		int [] colors = EGraphics.getTransparentColorIndices();
@@ -254,6 +318,7 @@ public class ColorPatternPanel extends JPanel
 	public void setColorPattern(Info li)
 	{
 		currentLI = li;
+        set3DComponents(li, false); // setting 3D if available
 		dataChanging = true;
 		useStipplePatternDisplay.setSelected(li.useStippleDisplay);
 		useOutlinePatternDisplay.setSelected(li.outlinePatternDisplay);
@@ -326,6 +391,7 @@ public class ColorPatternPanel extends JPanel
 		currentLI.green = TextUtils.atoi(layerGreen.getText());
 		currentLI.blue = TextUtils.atoi(layerBlue.getText());
 		currentLI.opacity = TextUtils.atof(opacity.getText());
+        set3DComponents(currentLI, true); // setting 3D if available
 	}
 
 	/**
@@ -830,8 +896,7 @@ public class ColorPatternPanel extends JPanel
      * WARNING: Do NOT modify this code. The content of this method is
      * always regenerated by the Form Editor.
      */
-    private void initComponents()//GEN-BEGIN:initComponents
-    {
+    private void initComponents() {//GEN-BEGIN:initComponents
         java.awt.GridBagConstraints gridBagConstraints;
 
         forDisplay = new javax.swing.JPanel();
@@ -881,18 +946,18 @@ public class ColorPatternPanel extends JPanel
         useStipplePatternDisplay.setText("Use Stipple Pattern");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 0, 4);
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         forDisplay.add(useStipplePatternDisplay, gridBagConstraints);
 
         useOutlinePatternDisplay.setText("Outline Pattern");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 0, 4);
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         forDisplay.add(useOutlinePatternDisplay, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -910,8 +975,8 @@ public class ColorPatternPanel extends JPanel
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 0, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 0, 4);
         forPrinter.add(useStipplePatternPrinter, gridBagConstraints);
 
         useOutlinePatternPrinter.setText("Outline Pattern");
@@ -934,8 +999,8 @@ public class ColorPatternPanel extends JPanel
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         forPrinter.add(opacity, gridBagConstraints);
 
         opacityExplanation.setText("(0 is Transparent; 1 is Opaque)");
@@ -961,16 +1026,16 @@ public class ColorPatternPanel extends JPanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 2, 4);
         appearance.add(layerGreenLabel, gridBagConstraints);
 
         layerBlueLabel.setText("Blue:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 5;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 2, 4);
         appearance.add(layerBlueLabel, gridBagConstraints);
 
         layerGreen.setColumns(5);
@@ -978,9 +1043,9 @@ public class ColorPatternPanel extends JPanel
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.3;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 2, 4);
         appearance.add(layerGreen, gridBagConstraints);
 
         layerRed.setColumns(5);
@@ -988,17 +1053,17 @@ public class ColorPatternPanel extends JPanel
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.3;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 2, 4);
         appearance.add(layerRed, gridBagConstraints);
 
         layerRedLabel.setText("Red:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 2, 4);
         appearance.add(layerRedLabel, gridBagConstraints);
 
         layerBlue.setColumns(5);
@@ -1006,9 +1071,9 @@ public class ColorPatternPanel extends JPanel
         gridBagConstraints.gridx = 6;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.3;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 2, 4);
         appearance.add(layerBlue, gridBagConstraints);
 
         jLabel50.setText("Click on a pattern below  to use it above::");
@@ -1016,8 +1081,8 @@ public class ColorPatternPanel extends JPanel
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 7;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         appearance.add(jLabel50, gridBagConstraints);
 
         pick.setText("Pick");

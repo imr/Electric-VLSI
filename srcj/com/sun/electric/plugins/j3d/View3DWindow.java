@@ -114,7 +114,7 @@ public class View3DWindow extends JPanel
 	private JMouseRotate rotateB;
 	private JMouseZoom zoomB;
 	private JMouseTranslate translateB;
-	private Utils3D.OffScreenCanvas3D offScreenCanvas3D;
+	private J3DUtils.OffScreenCanvas3D offScreenCanvas3D;
 
     // For demo cases
     KBRotPosScaleSplinePathInterpolator kbSplineInter;
@@ -130,8 +130,8 @@ public class View3DWindow extends JPanel
 	/** Lis with all Shape3D drawn per ElectricObject */    private HashMap electricObjectMap = new HashMap();
 
 	// Done only once.
-	/** cell has a unique appearance **/                    private static JAppearance cellApp = new JAppearance(null);
-	/** highligh appearance **/                             private static JAppearance highligtAp = new JAppearance(null);
+	/** cell has a unique appearance **/                    private static JAppearance cellApp = new JAppearance(null, TransparencyAttributes.SCREEN_DOOR, 0);
+	/** highligh appearance **/                             private static JAppearance highligtAp = new JAppearance(null, TransparencyAttributes.BLENDED, 0.5f);
     /** standard colors to be used by materials **/         private static Color3f black = new Color3f(0.0f, 0.0f, 0.0f);
 	/** standard colors to be used by materials **/         private static Color3f white = new Color3f(1.0f, 1.0f, 1.0f);
 
@@ -143,9 +143,7 @@ public class View3DWindow extends JPanel
 		ca.setColor(objColor);
 		cellApp.setColoringAttributes(ca);
 
-		TransparencyAttributes ta = new TransparencyAttributes();
-		ta.setTransparencyMode(TransparencyAttributes.SCREEN_DOOR);
-		ta.setTransparency(0.5f);
+		TransparencyAttributes ta = new TransparencyAttributes(cellApp.transparencyMode, cellApp.transparencyFactor);
 		cellApp.setTransparencyAttributes(ta);
 
 			// Set up the polygon attributes
@@ -165,25 +163,13 @@ public class View3DWindow extends JPanel
 
 	    // For highlighted objects
 	    highligtAp.setColoringAttributes(new ColoringAttributes(black, ColoringAttributes.SHADE_GOURAUD));
-	    TransparencyAttributes hTa = new TransparencyAttributes(TransparencyAttributes.BLENDED, 0.5f);
+	    TransparencyAttributes hTa = new TransparencyAttributes(highligtAp.transparencyMode, highligtAp.transparencyFactor);
 	    //PolygonAttributes hPa = new PolygonAttributes(PolygonAttributes.POLYGON_LINE, PolygonAttributes.CULL_NONE, 0);
 	    //highligtAp.setPolygonAttributes(hPa);
 	    highligtAp.setTransparencyAttributes(hTa);
 	}
 
-	private static class JAppearance extends Appearance
-	{
-		private EGraphics graphics; // reference to layer for fast access to appearance
-		public JAppearance(EGraphics graphics)
-		{
-			super();
-			this.graphics = graphics;
-		}
-		public void seGraphics(EGraphics graphics) {this.graphics = graphics;}
-		public EGraphics getGraphics() { return graphics;}
-	}
-
-	// constructor
+    // constructor
 	public View3DWindow(Cell cell, WindowFrame wf, WindowContent view2D)
 	{
 		this.cell = cell;
@@ -292,7 +278,7 @@ public class View3DWindow extends JPanel
 
         //translateB.setView(bnd.getWidth(), 0);
         rotateB.setRotation(User.get3DRotX(), User.get3DRotY());
-        zoomB.setZomm(User.get3DOrigZoom());
+        zoomB.setZoom(User.get3DOrigZoom());
 		proj.ortho(bnd.getMinX(), bnd.getMinX(), bnd.getMinY(), bnd.getMaxY(), (vDist+radius)/200.0, (vDist+radius)*2.0);
 
 		vTrans.set(vCenter);
@@ -366,15 +352,15 @@ public class View3DWindow extends JPanel
         setInterpolator(infiniteBounds);
 
         // Key
-        TransformGroup keyB = new TransformGroup( );
-		keyB.setCapability( TransformGroup.ALLOW_TRANSFORM_WRITE );
-		keyB.setCapability( TransformGroup.ALLOW_TRANSFORM_READ );
+//        TransformGroup keyB = new TransformGroup( );
+//		keyB.setCapability( TransformGroup.ALLOW_TRANSFORM_WRITE );
+//		keyB.setCapability( TransformGroup.ALLOW_TRANSFORM_READ );
 
 		// attach a navigation behavior to the position of the viewer
-		KeyNavigatorBehavior key = new KeyNavigatorBehavior( keyB );
-		key.setSchedulingBounds(infiniteBounds);
-		key.setEnable( true );
-		objRoot.addChild( key );
+//		KeyNavigatorBehavior key = new KeyNavigatorBehavior(objTrans);
+//		key.setSchedulingBounds(infiniteBounds);
+//		key.setEnable( true );
+//		objRoot.addChild( key );
 
 		// Have Java 3D perform optimizations on this scene graph.
 	    objRoot.compile();
@@ -643,7 +629,7 @@ public class View3DWindow extends JPanel
                 correctNormals(topList, bottomList);
                 System.arraycopy(topList.toArray(), 0, pts, 0, 4);
                 System.arraycopy(bottomList.toArray(), 0, pts, 4, 4);
-                boxList.add(addShape3D(pts, 4, getAppearance(layer)));
+                boxList.add(addShape3D(pts, 4, JAppearance.getAppearance(layer)));
 
                 // Second polyhedron
                 topList.clear();
@@ -659,7 +645,7 @@ public class View3DWindow extends JPanel
                 correctNormals(topList, bottomList);
                 System.arraycopy(topList.toArray(), 0, pts, 0, 4);
                 System.arraycopy(bottomList.toArray(), 0, pts, 4, 4);
-                boxList.add(addShape3D(pts, 4, getAppearance(layer)));
+                boxList.add(addShape3D(pts, 4, JAppearance.getAppearance(layer)));
             }
             if (boxList != null) list.addAll(boxList);
         }
@@ -795,78 +781,6 @@ public class View3DWindow extends JPanel
 		return(box);
 	}
 
-    private JAppearance getAppearance(Layer layer)
-    {
-        // Setting appearance
-        EGraphics graphics = layer.getGraphics();
-        JAppearance ap = (JAppearance)graphics.get3DAppearance();
-
-        if (ap == null)
-        {
-            ap = new JAppearance(graphics);
-            Color color = layer.getGraphics().getColor();
-            Color3f objColor = new Color3f(color);
-            /*
-            ColoringAttributes ca = new ColoringAttributes(objColor, ColoringAttributes.SHADE_GOURAUD);
-            ca.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
-            ap.setColoringAttributes(ca);
-            */
-
-            /*
-            TransparencyAttributes ta = new TransparencyAttributes();
-            ta.setTransparencyMode(TransparencyAttributes.BLENDED);
-            ta.setTransparency(0.5f);
-            //ap.setTransparencyAttributes(ta);
-            */
-
-            // Adding Rendering attributes to access visibility flag
-            RenderingAttributes ra = new RenderingAttributes();
-            ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_READ);
-            ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_WRITE);
-            ra.setVisible(layer.isVisible());
-            ap.setRenderingAttributes(ra);
-
-            // Set up the polygon attributes
-            //PolygonAttributes pa = new PolygonAttributes();
-            //pa.setCullFace(PolygonAttributes.CULL_NONE);
-            //pa.setPolygonMode(PolygonAttributes.POLYGON_LINE);
-            //ap.setPolygonAttributes(pa);
-
-            //TextureAttributes texAttr = new TextureAttributes();
-            //texAttr.setTextureMode(TextureAttributes.MODULATE);
-            //texAttr.setTextureColorTable(pattern);
-            //ap.setTextureAttributes(texAttr);
-
-            //LineAttributes lineAttr = new LineAttributes();
-            //lineAttr.setLineAntialiasingEnable(true);
-            //ap.setLineAttributes(lineAttr);
-
-            // Adding to internal material
-//				Material mat = new Material(objColor, black, objColor, white, 70.0f);
-            Material mat = new Material();
-            mat.setDiffuseColor(objColor);
-            mat.setSpecularColor(objColor);
-            mat.setAmbientColor(objColor);
-            mat.setLightingEnable(true);
-            mat.setCapability(Material.ALLOW_COMPONENT_READ);
-            mat.setCapability(Material.ALLOW_COMPONENT_WRITE);
-            ap.setMaterial(mat);
-
-            // For changing color
-            //ap.setCapability(Appearance.ALLOW_COLORING_ATTRIBUTES_WRITE);
-            //ap.setCapability(Appearance.ALLOW_COLORING_ATTRIBUTES_READ);
-            // For highlight
-            ap.setCapability(Appearance.ALLOW_MATERIAL_READ);
-            ap.setCapability(Appearance.ALLOW_MATERIAL_WRITE);
-            // For visibility
-            ap.setCapability(Appearance.ALLOW_RENDERING_ATTRIBUTES_READ);
-            ap.setCapability(Appearance.ALLOW_RENDERING_ATTRIBUTES_WRITE);
-
-            graphics.set3DAppearance(ap);
-        }
-        return (ap);
-    }
-
     /**
      */
 	private Shape3D addPolyhedron(PathIterator pIt, double distance, double thickness,
@@ -980,7 +894,7 @@ public class View3DWindow extends JPanel
 				poly.transform(transform);
 
 			// Setting appearance
-            JAppearance ap = getAppearance(layer);
+            JAppearance ap = JAppearance.getAppearance(layer);
 
 			if (poly.getBox() == null) // non-manhattan shape
 			{
@@ -995,32 +909,7 @@ public class View3DWindow extends JPanel
 		return (list);
 	}
 
-	/**
-	 * Method to set visibility in Appearance objects from external tools
-	 * @param obj Appearance object
-	 * @param visible true if visibility is on
-	 */
-	public static void set3DVisibility(Object obj, Boolean visible)
-	{
-		JAppearance app = (JAppearance)obj;
-		app.getRenderingAttributes().setVisible(visible.booleanValue());
-	}
-
-	/**
-	 * Method to set color in Appearance objects from external tools
-	 * @param obj Appearance object
-	 * @param color new color to setup
-	 */
-	public static void set3DColor(Object obj, java.awt.Color color)
-	{
-		JAppearance app = (JAppearance)obj;
-		Color3f color3D = new Color3f(color);
-		Material mat = app.getMaterial();
-		mat.setAmbientColor(color3D);
-		mat.setDiffuseColor(color3D);
-	}
-
-	/**
+    /**
 	 * Method to connect 2D and 3D highlights.
 	 * @param view2D
 	 */
@@ -1115,7 +1004,7 @@ public class View3DWindow extends JPanel
 			// Create the off-screen Canvas3D object
 			if (offScreenCanvas3D == null)
 			{
-				offScreenCanvas3D = new Utils3D.OffScreenCanvas3D(SimpleUniverse.getPreferredConfiguration(), true);
+				offScreenCanvas3D = new J3DUtils.OffScreenCanvas3D(SimpleUniverse.getPreferredConfiguration(), true);
 				// attach the offscreen canvas to the view
 				u.getViewer().getView().addCanvas3D(offScreenCanvas3D);
 				// Set the off-screen size based on a scale3D factor times the
@@ -1408,7 +1297,7 @@ public class View3DWindow extends JPanel
 	{
 		public JMouseZoom(Component c, int flags) {super(c, flags);}
 
-        void setZomm(double factor)
+        void setZoom(double factor)
         {
             // Remember old matrix
             transformGroup.getTransform(currXform);
@@ -1430,7 +1319,7 @@ public class View3DWindow extends JPanel
 			double z_factor = Math.abs(getFactor());
 			double factor = (out) ? (0.5/z_factor) : (2*z_factor);
 			double factor1 = (out) ? (1/z_factor) : (z_factor);
-            setZomm(factor1);
+            setZoom(factor1);
 //
 //			double dy = currXform.getScale() * factor1;
 //			currXform.setScale(dy);
@@ -1604,7 +1493,7 @@ public class View3DWindow extends JPanel
                 double rotY = (var == null) ? 0 : TextUtils.atof(var.getObject().toString());
                 var = (Variable)ni.getVar("3D_ROTZ_VALUE");
                 double rotZ = (var == null) ? 0 : TextUtils.atof(var.getObject().toString());
-                Utils3D.ThreeDDemoKnot knot = new Utils3D.ThreeDDemoKnot(rect.getCenterX(), rect.getCenterY(),
+                J3DUtils.ThreeDDemoKnot knot = new J3DUtils.ThreeDDemoKnot(rect.getCenterX(), rect.getCenterY(),
                         zValue, scale, heading, pitch, bank, rotX, rotY, rotZ);
                 polys.add(knot);
             }
@@ -1616,9 +1505,9 @@ public class View3DWindow extends JPanel
         TCBKeyFrame[] keyFrames = new TCBKeyFrame[polys.size()];
         for (int i = 0; i < polys.size(); i++)
         {
-            Utils3D.ThreeDDemoKnot knot = (Utils3D.ThreeDDemoKnot)polys.get(i);
-            splineKeyFrames[i] = Utils3D.getNextKBKeyFrame((float)((float)i/(polys.size()-1)), knot);
-            keyFrames[i] = Utils3D.getNextTCBKeyFrame((float)((float)i/(polys.size()-1)), knot);
+            J3DUtils.ThreeDDemoKnot knot = (J3DUtils.ThreeDDemoKnot)polys.get(i);
+            splineKeyFrames[i] = J3DUtils.getNextKBKeyFrame((float)((float)i/(polys.size()-1)), knot);
+            keyFrames[i] = J3DUtils.getNextTCBKeyFrame((float)((float)i/(polys.size()-1)), knot);
         }
 
         Alpha alpha = new Alpha (-1,

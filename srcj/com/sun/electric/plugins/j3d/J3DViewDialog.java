@@ -31,7 +31,7 @@ import com.sun.electric.tool.user.dialogs.EDialog;
 /**
  * Class to handle the "3D View Demo Dialog" dialog.
  */
-public class ThreeView extends EDialog
+public class J3DViewDialog extends EDialog
 {
     private View3DWindow view3D = null;
 
@@ -46,12 +46,12 @@ public class ThreeView extends EDialog
             System.out.println("Current Window Frame is not a 3D View");
             return;
         }
-        ThreeView dialog = new ThreeView(parent, view3D, true);
+        J3DViewDialog dialog = new J3DViewDialog(parent, view3D, true);
 		dialog.setVisible(true);
     }
 
 	/** Creates new form ThreeView */
-	public ThreeView(java.awt.Frame parent, View3DWindow view3d, boolean modal)
+	public J3DViewDialog(java.awt.Frame parent, View3DWindow view3d, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
