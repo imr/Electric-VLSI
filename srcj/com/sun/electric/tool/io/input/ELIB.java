@@ -1506,10 +1506,10 @@ public class ELIB extends LibraryFiles
 					" because ends are unknown");
 				continue;
 			}
-			ai.lowLevelSetUserbits(arcUserBits[i]);
-			int defAngle = ai.lowLevelGetArcAngle() * 10;
-			ai.lowLevelPopulate(ap, width, tailPortInst, new Point2D.Double(tailX, tailY), headPortInst, new Point2D.Double(headX, headY), defAngle, name, -1);
 			ELIBConstants.applyELIBArcBits(ai, arcUserBits[i]);
+			int defAngle = ai.lowLevelGetArcAngle() * 10;
+			ai.lowLevelPopulate(ap, width, headPortInst, new Point2D.Double(headX, headY), tailPortInst, new Point2D.Double(tailX, tailY), defAngle, name, -1);
+//			ai.lowLevelPopulate(ap, width, tailPortInst, new Point2D.Double(tailX, tailY), headPortInst, new Point2D.Double(headX, headY), defAngle, name, -1);
 			ai.lowLevelLink();
 		}
 	}
@@ -2308,8 +2308,10 @@ public class ELIB extends LibraryFiles
 			Object pp = convertPortProto(portIndex);
 			if (pp == null)
 				pp = new Integer(portIndex);
-			if ((k&1) == 0) arcHeadPortList[arcIndex] = pp; else
-				arcTailPortList[arcIndex] = pp;
+			if ((k&1) == 0) arcTailPortList[arcIndex] = pp; else
+				arcHeadPortList[arcIndex] = pp;
+// 			if ((k&1) == 0) arcHeadPortList[arcIndex] = pp; else
+// 				arcTailPortList[arcIndex] = pp;
 
 			// ignore variables on port instance
 			ignoreVariables();
@@ -2380,19 +2382,19 @@ public class ELIB extends LibraryFiles
 				arcNameList[arcIndex] = instName;
 		}
 
-		// read the head information
-		arcHeadXPosList[arcIndex] = readBigInteger();
-		arcHeadYPosList[arcIndex] = readBigInteger();
-		int nodeIndex = readBigInteger();
-		if (nodeIndex >= 0 && nodeIndex < nodeCount)
-			arcHeadNodeList[arcIndex] = nodeIndex;
-
 		// read the tail information
 		arcTailXPosList[arcIndex] = readBigInteger();
 		arcTailYPosList[arcIndex] = readBigInteger();
-		nodeIndex = readBigInteger();
-		if (nodeIndex >= 0 && nodeIndex < nodeCount)
-			arcTailNodeList[arcIndex] = nodeIndex;
+		int tailNodeIndex = readBigInteger();
+		if (tailNodeIndex >= 0 && tailNodeIndex < nodeCount)
+			arcTailNodeList[arcIndex] = tailNodeIndex;
+
+		// read the head information
+		arcHeadXPosList[arcIndex] = readBigInteger();
+		arcHeadYPosList[arcIndex] = readBigInteger();
+		int headNodeIndex = readBigInteger();
+		if (headNodeIndex >= 0 && headNodeIndex < nodeCount)
+			arcHeadNodeList[arcIndex] = headNodeIndex;
 
 		// ignore the geometry index (versions 4 or older)
 		if (magic > ELIBConstants.MAGIC5) readBigInteger();

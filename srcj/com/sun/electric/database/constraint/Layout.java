@@ -713,16 +713,16 @@ public class Layout extends Constraints
 			}
 
 			// figure where each end of the arcinst is
-			Connection thisEnd = ai.getHead();   int thisEndIndex = 0;
-			Connection thatEnd = ai.getTail();   int thatEndIndex = 1;
+			Connection thisEnd = ai.getHead();   int thisEndIndex = ArcInst.HEADEND;
+			Connection thatEnd = ai.getTail();   int thatEndIndex = ArcInst.TAILEND;
 			if (thatEnd.getPortInst().getNodeInst() == ni)
 			{
-				thisEnd = ai.getTail();   thisEndIndex = 1;
-				thatEnd = ai.getHead();   thatEndIndex = 0;
+				thisEnd = ai.getTail();   thisEndIndex = ArcInst.TAILEND;
+				thatEnd = ai.getHead();   thatEndIndex = ArcInst.HEADEND;
 			}
 
 			// if nodeinst motion stays within port area, ignore the arcinst
-			if (ai.isSlidable() && ai.stillInPort(thisEnd, thisEnd.getLocation(), true))
+			if (ai.isSlidable() && ai.stillInPort(thisEndIndex, thisEnd.getLocation(), true))
 				continue;
 
 			Undo.Change change = ni.getChange();
@@ -818,7 +818,7 @@ public class Layout extends Constraints
 						newPts[thatEndIndex].setLocation(newPts[thatEndIndex].getX() + dx-odx, newPts[thatEndIndex].getY());
 
 						// see if next nodeinst need not be moved
-						if (!DBMath.doublesEqual(dx, odx) && ai.isSlidable() && ai.stillInPort(thatEnd, newPts[thatEndIndex], true))
+						if (!DBMath.doublesEqual(dx, odx) && ai.isSlidable() && ai.stillInPort(thatEndIndex, newPts[thatEndIndex], true))
 							dx = odx = 0;
 
 						// if other node already moved, don't move it any more
@@ -849,7 +849,7 @@ public class Layout extends Constraints
 
 					// see if next nodeinst need not be moved
 					if (!DBMath.doublesEqual(dy, ody) && ai.isSlidable() &&
-						ai.stillInPort(thatEnd, newPts[thatEndIndex], true))
+						ai.stillInPort(thatEndIndex, newPts[thatEndIndex], true))
 							dy = ody = 0;
 
 					// if other node already moved, don't move it any more
@@ -962,10 +962,10 @@ public class Layout extends Constraints
 		// if nothing is outside port, quit
 		Connection head = ai.getHead();
 		Point2D headPoint = head.getLocation();
-		boolean inside0 = ai.stillInPort(head, headPoint, true);
+		boolean inside0 = ai.headStillInPort(headPoint, true);
 		Connection tail = ai.getTail();
 		Point2D tailPoint = tail.getLocation();
-		boolean inside1 = ai.stillInPort(tail, tailPoint, true);
+		boolean inside1 = ai.tailStillInPort(tailPoint, true);
 		if (inside0 && inside1) return;
 
 		// get area of the ports

@@ -201,10 +201,9 @@ public class Verilog extends Topology
 			ArcInst ai = (ArcInst)it.next();
 			for(int e=0; e<2; e++)
 			{
-				Connection con = ai.getConnection(e);
 				if (!ai.isNegated(e)) continue;
-				PortInst pi = con.getPortInst();
-				NodeInst ni = con.getPortInst().getNodeInst();
+				PortInst pi = ai.getPortInst(e);
+				NodeInst ni = pi.getNodeInst();
 				if (ni.getProto() == Schematics.tech.bufferNode || ni.getProto() == Schematics.tech.andNode ||
 					ni.getProto() == Schematics.tech.orNode || ni.getProto() == Schematics.tech.xorNode)
 				{
@@ -213,6 +212,7 @@ public class Verilog extends Topology
 				}
 
 				// must create implicit inverter here
+				Connection con = ai.getConnection(e);
 				implicitInverters.put(con, new Integer(impInvCount));
 				if (ai.getProto() != Schematics.tech.bus_arc) impInvCount++; else
 				{
@@ -610,7 +610,7 @@ public class Verilog extends Topology
 							if (cs == null) continue;
 							String sigName = cs.getName();
 							boolean negated = false;
-							if (i != 0 && ai.isNegated(con.getEndIndex()))
+							if (i != 0 && con.isNegated())
 							{
 								// this input is negated: write the implicit inverter
 								Integer invIndex = (Integer)implicitInverters.get(con);
@@ -687,7 +687,7 @@ public class Verilog extends Topology
 		for(Iterator aIt = ni.getConnections(); aIt.hasNext(); )
 		{
 			Connection con = (Connection)aIt.next();
-			if (con.getArc().isNegated(con.getEndIndex()) &&
+			if (con.isNegated() &&
 				con.getPortInst().getPortProto().getName().equals("y"))
 					return negative;
 		}

@@ -89,7 +89,7 @@ public class Connection
 	 * Method to set the location on this Connection.
 	 * @param pt the location on this Connection.
 	 */
-	public synchronized void setLocation(Point2D pt)
+	synchronized void setLocation(Point2D pt)
 	{
 		arc.checkChanging();
 		location.setLocation(pt.getX(), pt.getY());
@@ -99,28 +99,50 @@ public class Connection
 	 * Method to return the shrinkage happening because of angled arcs on this Connection.
 	 * @return the shrinkage for this Connection.
 	 */
-	public synchronized int getEndShrink() { return (int)(flags & SHRINKAGE); }
+	synchronized int getEndShrink() { return (int)(flags & SHRINKAGE); }
 
 	/**
 	 * Method to set the shrinkage happening because of angled arcs on this Connection.
 	 * @param endShrink the shrinkage for this Connection.
 	 */
-	public synchronized void setEndShrink(int endShrink)
+	synchronized void setEndShrink(int endShrink)
 	{
 		arc.checkChanging();
 		flags = (short)((flags & ~SHRINKAGE) | (endShrink & SHRINKAGE));
 	}
 
 	/**
+	 * Method to tell whether this connection is arrowed.
+	 * @return true if this connection is arrowed.
+	 */
+	public boolean isArrowed() { return arc.isArrowed(getEndIndex()); }
+
+	/**
+	 * Method to set whether this connection is arrowed.
+	 * @param state true to set that end of this arc to be arrowed.
+	 */
+	public void setArrowed(boolean state) { arc.setArrowed(getEndIndex(), state); }
+
+	/**
+	 * Method to tell whether this connection is extended.
+	 * @return true if this connection is negated.
+	 */
+	public boolean isExtended() { return arc.isExtended(getEndIndex()); }
+
+	/**
+	 * Method to set whether this connection is extended.
+	 * @param e true to set that end of this arc to be extended.
+	 */
+	public void setExtended(boolean e) { arc.setExtended(getEndIndex(), e); }
+
+	/**
 	 * Method to tell whether this connection is negated.
-	 * @deprecated use the ArcInst methods isNegated, isHeadNegated, and isTailNegated.
 	 * @return true if this connection is negated.
 	 */
 	public synchronized boolean isNegated() { return (flags & NEGATED) != 0; }
 
 	/**
 	 * Method to set whether this connection is negated.
-	 * @deprecated use the ArcInst methods setNegated, setHeadNegated, and setTailNegated.
 	 * @param negated true if this connection is negated.
 	 */
 	public void setNegated(boolean negated)
@@ -148,7 +170,7 @@ public class Connection
 		}
 	}
 
-    private synchronized void setNegatedSafe(boolean negated)
+	private synchronized void setNegatedSafe(boolean negated)
     {
 		arc.checkChanging();
         if (negated)
@@ -158,21 +180,12 @@ public class Connection
     }
 
 	/**
-	 * Method to determine whether this Connection is on the head end of the ArcInst.
-	 * @return true if this Connection is on the head of the ArcInst.
-	 */
-	public boolean isHeadEnd()
-	{
-		return arc.getHead() == this;
-	}
-
-	/**
 	 * Method to determine the index of this Connection on its ArcInst.
-	 * @return 0 if this Connection is on the tail; 1 if this Connection is on the head.
+	 * @return HEADEND if this Connection is on the head; TAILEND if this Connection is on the head.
 	 */
 	public int getEndIndex()
 	{
-		return arc.getHead() == this ? 1 : 0;
+		return arc.getHead() == this ? ArcInst.HEADEND : ArcInst.TAILEND;
 	}
 
 	/**

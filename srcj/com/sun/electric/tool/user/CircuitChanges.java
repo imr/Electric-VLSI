@@ -497,14 +497,14 @@ public class CircuitChanges
 				double tailYOff = arcTail.getY() - origTail.getY();
 				if (headXOff == 0 && tailXOff == 0 && headYOff == 0 && tailYOff == 0) continue;
 
-				if (!ai.stillInPort(ai.getHead(), arcHead, false))
+				if (!ai.headStillInPort(arcHead, false))
 				{
-					if (!ai.stillInPort(ai.getHead(), origHead, false)) continue;
+					if (!ai.headStillInPort(origHead, false)) continue;
 					headXOff = headYOff = 0;
 				}
-				if (!ai.stillInPort(ai.getTail(), arcTail, false))
+				if (!ai.tailStillInPort(arcTail, false))
 				{
-					if (!ai.stillInPort(ai.getTail(), origTail, false)) continue;
+					if (!ai.tailStillInPort(origTail, false)) continue;
 					tailXOff = tailYOff = 0;
 				}
 	
@@ -952,10 +952,8 @@ public class CircuitChanges
 							PrimitivePort pp = (PrimitivePort)pi.getPortProto();
 							if (pp.isNegatable())
 							{
-								ArcInst ai = con.getArc();
-								int index = con.getEndIndex();
-								boolean newNegated = !ai.isNegated(index);
-								ai.setNegated(index, newNegated);
+								boolean newNegated = !con.isNegated();
+								con.setNegated(newNegated);
 								numSet++;
 							}
 						}
@@ -3592,7 +3590,7 @@ public class CircuitChanges
 						Connection tail = ai.getTail();
 						Point2D newHead = new Point2D.Double(head.getLocation().getX()+dX, head.getLocation().getY()+dY);
 						Point2D newTail = new Point2D.Double(tail.getLocation().getX()+dX, tail.getLocation().getY()+dY);
-						if (ai.stillInPort(head, newHead, true) && ai.stillInPort(tail, newTail, true)) continue;
+						if (ai.headStillInPort(newHead, true) && ai.tailStillInPort(newTail, true)) continue;
 					}
 				}
 				onlySlidable = false;
@@ -3714,9 +3712,9 @@ public class CircuitChanges
 				boolean headInPort = false, tailInPort = false;
 				if (!ai.isRigid() && ai.isSlidable())
 				{
-					headInPort = ai.stillInPort(ai.getHead(),
+					headInPort = ai.headStillInPort(
 						new Point2D.Double(ai.getHead().getLocation().getX()+dX, ai.getHead().getLocation().getY()+dY), true);
-					tailInPort = ai.stillInPort(ai.getTail(),
+					tailInPort = ai.tailStillInPort(
 						new Point2D.Double(ai.getTail().getLocation().getX()+dX, ai.getTail().getLocation().getY()+dY), true);
 				}
 
@@ -3750,9 +3748,9 @@ public class CircuitChanges
 								Point2D aPt = (Point2D)arcLocation.get(oai);
 								if (aPt.getX() != oai.getTrueCenterX() ||
 									aPt.getY() != oai.getTrueCenterY()) continue;
-								if (oai.stillInPort(oai.getHead(),
+								if (oai.headStillInPort(
 										new Point2D.Double(ai.getHead().getLocation().getX()+dX, ai.getHead().getLocation().getY()+dY), true) ||
-									oai.stillInPort(oai.getTail(),
+									oai.tailStillInPort(
 										new Point2D.Double(ai.getTail().getLocation().getX()+dX, ai.getTail().getLocation().getY()+dY), true))
 											continue;
 								Layout.setTempRigid(oai, true);

@@ -374,8 +374,15 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 				if (con.getPortInst().getNodeInst() == this)
 				{
 					Point2D oldLocation = con.getLocation();
-					if (con.isHeadEnd()) con.getArc().modify(0, dX, dY, 0, 0); else
-						con.getArc().modify(0, 0, 0, dX, dY);
+					switch (con.getEndIndex())
+					{
+						case ArcInst.HEADEND:
+							con.getArc().modify(0, dX, dY, 0, 0);
+							break;
+						case ArcInst.TAILEND:
+							con.getArc().modify(0, 0, 0, dX, dY);
+							break;
+					}
 				}
 			}
 		}
@@ -415,8 +422,15 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 					if (con.getPortInst().getNodeInst() == nis[i])
 					{
 						Point2D oldLocation = con.getLocation();
-						if (con.isHeadEnd()) con.getArc().modify(0, dXs[i], dYs[i], 0, 0); else
-							con.getArc().modify(0, 0, 0, dXs[i], dYs[i]);
+						switch (con.getEndIndex())
+						{
+							case ArcInst.HEADEND:
+								con.getArc().modify(0, dXs[i], dYs[i], 0, 0);
+								break;
+							case ArcInst.TAILEND:
+								con.getArc().modify(0, 0, 0, dXs[i], dYs[i]);
+								break;
+						}
 					}
 				}
 			}

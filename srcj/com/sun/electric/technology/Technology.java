@@ -1085,8 +1085,8 @@ public class Technology implements Comparable
 			}
 		}
 		boolean negated = false;
-		Point2D headLoc = ai.getHead().getLocation();
-		Point2D tailLoc = ai.getTail().getLocation();
+		Point2D headLoc = ai.getHeadLocation();
+		Point2D tailLoc = ai.getTailLocation();
 		if (!tech.isNoNegatedArcs() && (ai.isHeadNegated() || ai.isTailNegated()))
 		{
 			negated = true;
@@ -1630,7 +1630,7 @@ public class Technology implements Comparable
 		for(Iterator it = ni.getConnections(); it.hasNext(); )
 		{
 			Connection con = (Connection)it.next();
-			if (con.getArc().isNegated(con.getEndIndex())) numNegatingBubbles++;
+			if (con.isNegated()) numNegatingBubbles++;
 		}
 
 		// construct the polygon array
@@ -1721,7 +1721,7 @@ public class Technology implements Comparable
 			for(Iterator it = ni.getConnections(); it.hasNext(); )
 			{
 				Connection con = (Connection)it.next();
-				if (!con.getArc().isNegated(con.getEndIndex())) continue;
+				if (!con.isNegated()) continue;
 
 				// add a negating bubble
 				AffineTransform trans = ni.rotateIn();

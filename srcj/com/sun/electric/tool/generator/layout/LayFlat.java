@@ -58,14 +58,12 @@ class Flattener extends HierarchyEnumerator.Visitor {
 	private void createArcs(FlatInfo info) {
 		for (Iterator it = info.getCell().getArcs(); it.hasNext();) {
 			ArcInst ai = (ArcInst) it.next();
-			Connection c0 = ai.getConnection(false);
-			Connection c1 = ai.getConnection(true);
 
 			// find flat PortInst and location
-			Point2D p0 = info.getPositionInRoot(c0.getLocation());
-			Point2D p1 = info.getPositionInRoot(c1.getLocation());
-			PortInst pi0 = info.getFlatPort(c0.getPortInst());
-			PortInst pi1 = info.getFlatPort(c1.getPortInst());
+			Point2D p0 = info.getPositionInRoot(ai.getHeadLocation());
+			Point2D p1 = info.getPositionInRoot(ai.getTailLocation());
+			PortInst pi0 = info.getFlatPort(ai.getHeadPortInst());
+			PortInst pi1 = info.getFlatPort(ai.getTailPortInst());
 			//System.out.println("Old ArcInst: "+ai+" width: "+ai.getWidth());
 			ArcInst ai2 = 
 				ArcInst.newInstance(ai.getProto(), ai.getWidth(),

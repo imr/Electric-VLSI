@@ -92,10 +92,7 @@ public class Output
 			if (cmp != 0) return cmp;
 			cmp = c1.getArc().getArcIndex() - c2.getArc().getArcIndex();
 			if (cmp != 0) return cmp;
-			boolean head1 = c1.isHeadEnd();
-			boolean head2 = c2.isHeadEnd();
-			if (head1 == head2) return 0;
-			return head1 ? -1 : 1;
+			return c1.getEndIndex() - c2.getEndIndex();
 		}
 	}
 

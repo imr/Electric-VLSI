@@ -227,6 +227,7 @@ public class ELIBConstants
 	 */
 	public static void applyELIBArcBits(ArcInst ai, int bits)
 	{
+		ai.lowLevelSetUserbits(bits & ARC_BITS);
 		if ((bits&ELIBConstants.ISNEGATED) != 0)
 		{
 			if ((bits&ELIBConstants.REVERSEEND) != 0) ai.setHeadNegated(true); else

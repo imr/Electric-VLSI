@@ -77,8 +77,8 @@ public abstract class TrackRouter {
 			it.hasNext();
 			) {
 			ArcInst ai = (ArcInst) it.next();
-			PortInst end0 = ai.getConnection(false).getPortInst();
-			PortInst end1 = ai.getConnection(true).getPortInst();
+			PortInst end0 = ai.getHeadPortInst();
+			PortInst end1 = ai.getTailPortInst();
 			if (end0 == nextPort || end1 == nextPort)
 				ai.kill();
 		}

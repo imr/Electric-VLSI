@@ -329,7 +329,8 @@ public class JELIB extends Output
 				if (ai.isHeadArrowed()) arcBits.append("X");
 				if (ai.isTailArrowed()) arcBits.append("Y");
 				printWriter.print("|" + arcBits.toString() + ai.getAngle());
-				for(int e=0; e<2; e++)
+				for(int e=1; e >= 0; e--)
+//				for(int e=0; e<2; e++)
 				{
 					Connection con = ai.getConnection(e);
 					NodeInst ni = con.getPortInst().getNodeInst();

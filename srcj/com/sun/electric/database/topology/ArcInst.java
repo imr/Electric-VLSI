@@ -76,8 +76,8 @@ import java.util.ArrayList;
  */
 public class ArcInst extends Geometric implements Comparable
 {
-	/** The index of the head of this ArcInst. */		public static final int HEADEND = 0;
-	/** The index of the tail of this ArcInst. */		public static final int TAILEND = 1;
+	/** The index of the tail of this ArcInst. */		public static final int TAILEND = 0;
+	/** The index of the head of this ArcInst. */		public static final int HEADEND = 1;
 
 	/** special name for text descriptor of arc name */	public static final String ARC_NAME_TD = new String("ARC_name");
 	/** Key of the obsolete variable holding arc name.*/public static final Variable.Key ARC_NAME = ElectricObject.newKey("ARC_name");
@@ -123,8 +123,8 @@ public class ArcInst extends Geometric implements Comparable
 	/** width of this ArcInst. */						private double width;
 	/** length of this ArcInst. */						private double length;
 	/** prototype of this arc instance */				private ArcProto protoType;
-	/** head connection of this arc instance */			private Connection headEnd;
 	/** tail connection of this arc instance */			private Connection tailEnd;
+	/** head connection of this arc instance */			private Connection headEnd;
 	/** 0-based index of this ArcInst in cell. */		private int arcIndex = -1;
 	/** angle of this ArcInst (in tenth-degrees). */	private int angle;
 
@@ -265,29 +265,23 @@ public class ArcInst extends Geometric implements Comparable
 
 		ArcInst ai = lowLevelAllocate();
 		if (ai.lowLevelPopulate(type, width, head, headPt, tail, tailPt, defAngle, name, -1)) return null;
-		if (!ai.stillInPort(ai.getHead(), headPt, false))
+		if (!ai.headStillInPort(headPt, false))
 		{
-			if (!ai.stillInPort(ai.getHead(), headPt, false))
-			{
-				Cell parent = head.getNodeInst().getParent();
-				Poly poly = ai.getHead().getPortInst().getPoly();
-				System.out.println("Error in cell " + parent.describe() + ": head of " + type.getName() +
-					" arc at (" + headPt.getX() + "," + headPt.getY() + ") does not fit in port " +
-					ai.getHead().getPortInst().describe() + " which is centered at (" + poly.getCenterX() + "," + poly.getCenterY() + ")");
-				return null;
-			}
+			Cell parent = head.getNodeInst().getParent();
+			Poly poly = ai.getHead().getPortInst().getPoly();
+			System.out.println("Error in cell " + parent.describe() + ": head of " + type.getName() +
+				" arc at (" + headPt.getX() + "," + headPt.getY() + ") does not fit in port " +
+				ai.getHead().getPortInst().describe() + " which is centered at (" + poly.getCenterX() + "," + poly.getCenterY() + ")");
+			return null;
 		}
-		if (!ai.stillInPort(ai.getTail(), tailPt, false))
+		if (!ai.tailStillInPort(tailPt, false))
 		{
-			if (!ai.stillInPort(ai.getTail(), tailPt, false))
-			{
-				Cell parent = tail.getNodeInst().getParent();
-				Poly poly = ai.getTail().getPortInst().getPoly();
-				System.out.println("Error in cell " + parent.describe() + ": tail of " + type.getName() +
-					" arc at (" + tailPt.getX() + "," + tailPt.getY() + ") does not fit in port " +
-					ai.getTail().getPortInst().describe() + " which is centered at (" + poly.getCenterX() + "," + poly.getCenterY() + ")");
-				return null;
-			}
+			Cell parent = tail.getNodeInst().getParent();
+			Poly poly = ai.getTail().getPortInst().getPoly();
+			System.out.println("Error in cell " + parent.describe() + ": tail of " + type.getName() +
+				" arc at (" + tailPt.getX() + "," + tailPt.getY() + ") does not fit in port " +
+				ai.getTail().getPortInst().describe() + " which is centered at (" + poly.getCenterX() + "," + poly.getCenterY() + ")");
+			return null;
 		}
 		if (ai.lowLevelLink()) return null;
 
@@ -776,7 +770,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * Method to update the "end shrink" factors on all arcs on a NodeInst.
 	 * @param ni the node to update.
 	 */
-	private void updateShrinkage(NodeInst ni)
+	private static void updateShrinkage(NodeInst ni)
 	{
 		ni.clearShortened();
 		for(Iterator it = ni.getConnections(); it.hasNext(); )
@@ -801,7 +795,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * Small values are shortened almost to nothing, whereas large values are shortened
 	 * very little (and a value of 90 indicates no shortening at all).
 	 */
-	private short checkShortening(NodeInst ni, PortProto pp)
+	private static short checkShortening(NodeInst ni, PortProto pp)
 	{
 		// quit now if we don't have to worry about this kind of nodeinst
 		NodeProto np = ni.getProto();
@@ -881,57 +875,108 @@ public class ArcInst extends Geometric implements Comparable
 	/****************************** CONNECTIONS ******************************/
 
 	/**
-	 * Method to return the Connection on the head end of this ArcInst.
-	 * @return the Connection on the head end of this ArcInst.
-	 */
-	public Connection getHead() { return headEnd; }
-
-	/**
 	 * Method to return the Connection on the tail end of this ArcInst.
 	 * @return the Connection on the tail end of this ArcInst.
 	 */
 	public Connection getTail() { return tailEnd; }
 
 	/**
-	 * Method to return the connection at an end of this ArcInst.
-	 * @param onHead true to get get the connection the head of this ArcInst.
-	 * false to get get the connection the tail of this ArcInst.
+	 * Method to return the Connection on the head end of this ArcInst.
+	 * @return the Connection on the head end of this ArcInst.
 	 */
-	public Connection getConnection(boolean onHead)
-	{
-		return onHead ? headEnd : tailEnd;
-	}
+	public Connection getHead() { return headEnd; }
 
 	/**
 	 * Method to return the connection at an end of this ArcInst.
-	 * @param index 0 for the head of this ArcInst, 1 for the tail.
+	 * @param connIndex TAILEND (0) for the tail of this ArcInst, HEADEND (1) for the head.
 	 */
-	public Connection getConnection(int index)
+	public Connection getConnection(int connIndex)
 	{
-		switch (index)
+		switch (connIndex)
 		{
-			case HEADEND: return headEnd;
 			case TAILEND: return tailEnd;
-			default: throw new IllegalArgumentException("Bad end " + index);
+			case HEADEND: return headEnd;
+			default: throw new IllegalArgumentException("Bad end " + connIndex);
 		}
 	}
 
 	/**
-	 * Method to tell whether a connection on this ArcInst contains a port location.
-	 * @param con the connection on this ArcInst.
+	 * Method to return the PortInst on tail of this ArcInst.
+	 * @return the PortInst on tail.
+	 */
+	public PortInst getTailPortInst() { return tailEnd.getPortInst(); }
+
+	/**
+	 * Method to return the PortInst on head of this ArcInst.
+	 * @return the PortInst on head.
+	 */
+	public PortInst getHeadPortInst() { return headEnd.getPortInst(); }
+
+	/**
+	 * Method to return the PortInst on an end of this ArcInst.
+	 * @param connIndex TAILEND (0) for the tail of this ArcInst, HEADEND (1) for the head.
+	 * @return the PortInst at an end.
+	 */
+	public PortInst getPortInst(int connIndex) { return getConnection(connIndex).getPortInst(); }
+
+	/**
+	 * Method to return the Location on tail of this ArcInst.
+	 * @return the Location on tail.
+	 */
+	public Point2D getTailLocation() { return tailEnd.getLocation(); }
+
+	/**
+	 * Method to return the Location on head of this ArcInst.
+	 * @return the Location on head.
+	 */
+	public Point2D getHeadLocation() { return headEnd.getLocation(); }
+
+	/**
+	 * Method to return the Location on an end of this ArcInst.
+	 * @param connIndex TAILEND (0) for the tail of this ArcInst, HEADEND (1) for the head.
+	 * @return the Location on an end.
+	 */
+	public Point2D getLocation(int connIndex) { return getConnection(connIndex).getLocation(); }
+
+	/**
+	 * Method to tell whether a tail connection on this ArcInst contains a port location.
 	 * @param pt the point in question.
+	 * @param reduceForArc if true reduce width by width offset of it proto.
 	 * @return true if the point is inside of the port.
 	 */
-	public boolean stillInPort(Connection con, Point2D pt, boolean reduceForArc)
+	public boolean tailStillInPort(Point2D pt, boolean reduceForArc)
+	{
+		return stillInPort(TAILEND, pt, reduceForArc);
+	}
+
+	/**
+	 * Method to tell whether a head connection on this ArcInst contains a port location.
+	 * @param pt the point in question.
+	 * @param reduceForArc if true reduce width by width offset of it proto.
+	 * @return true if the point is inside of the port.
+	 */
+	public boolean headStillInPort(Point2D pt, boolean reduceForArc)
+	{
+		return stillInPort(HEADEND, pt, reduceForArc);
+	}
+
+	/**
+	 * Method to tell whether a connection on this ArcInst contains a port location.
+	 * @param connIndex TAILEND (0) for the tail of this ArcInst, HEADEND (1) for the head.
+	 * @param pt the point in question.
+	 * @param reduceForArc if true reduce width by width offset of it proto.
+	 * @return true if the point is inside of the port.
+	 */
+	public boolean stillInPort(int connIndex, Point2D pt, boolean reduceForArc)
 	{
 		// determine the area of the nodeinst
+		Connection con = getConnection(connIndex);
 		PortInst pi = con.getPortInst();
 		Poly poly = pi.getPoly();
 		if (reduceForArc)
 		{
-			ArcInst ai = con.getArc();
-			double wid = ai.getWidth() - ai.getProto().getWidthOffset();
-			poly.reducePortPoly(pi, wid, ai.getAngle());
+			double wid = getWidth() - getProto().getWidthOffset();
+			poly.reducePortPoly(pi, wid, getAngle());
 		}
 		if (poly.isInside(pt)) return true;
 		if (poly.polyDistance(pt.getX(), pt.getY()) < MINPORTDISTANCE) return true;
@@ -1155,24 +1200,17 @@ public class ArcInst extends Geometric implements Comparable
 	 * Method to determine whether this ArcInst is directional, with an arrow on one end.
 	 * Directional arcs have an arrow drawn on them to indicate flow.
 	 * It is only for documentation purposes and does not affect the circuit.
-	 * @param index the end to query (0 for the tail, 1 for the head).
+	 * @param connIndex TAILEND (0) for the tail of this ArcInst, HEADEND (1) for the head.
 	 * @return true if that end has a directional arrow on it.
      */
-	public boolean isArrowed(int index)
+	public boolean isArrowed(int connIndex)
 	{
-		if (index == 0) return isTailArrowed();
-		return isHeadArrowed();
-	}
-
-	/**
-	 * Method to determine whether this ArcInst is directional, with an arrow on the head.
-	 * Directional arcs have an arrow drawn on them to indicate flow.
-	 * It is only for documentation purposes and does not affect the circuit.
-	 * @return true if the arc's head has a directional arrow on it.
-     */
-	public boolean isHeadArrowed()
-	{
-		return (userBits & HEADARROW) != 0;
+		switch (connIndex)
+		{
+			case TAILEND: return isTailArrowed();
+			case HEADEND: return isHeadArrowed();
+			default: throw new IllegalArgumentException("Bad end " + connIndex);
+		}
 	}
 
 	/**
@@ -1184,6 +1222,17 @@ public class ArcInst extends Geometric implements Comparable
 	public boolean isTailArrowed()
 	{
 		return (userBits & TAILARROW) != 0;
+	}
+
+	/**
+	 * Method to determine whether this ArcInst is directional, with an arrow on the head.
+	 * Directional arcs have an arrow drawn on them to indicate flow.
+	 * It is only for documentation purposes and does not affect the circuit.
+	 * @return true if the arc's head has a directional arrow on it.
+     */
+	public boolean isHeadArrowed()
+	{
+		return (userBits & HEADARROW) != 0;
 	}
 
 	/**
@@ -1203,25 +1252,17 @@ public class ArcInst extends Geometric implements Comparable
 	 * Method to set this ArcInst to be directional, with an arrow on one end.
 	 * Directional arcs have an arrow drawn on them to indicate flow.
 	 * It is only for documentation purposes and does not affect the circuit.
-	 * @param index the end to set (0 for the tail, 1 for the head).
+	 * @param connIndex TAILEND (0) for the tail of this ArcInst, HEADEND (1) for the head.
      * @param state true to show a directional arrow on the specified end.
      */
-	public void setArrowed(int index, boolean state)
+	public void setArrowed(int connIndex, boolean state)
 	{
-		if (index == 0) setTailArrowed(state); else
-			setHeadArrowed(state);
-	}
-
-	/**
-	 * Method to set this ArcInst to be directional, with an arrow on the head.
-	 * Directional arcs have an arrow drawn on them to indicate flow.
-	 * It is only for documentation purposes and does not affect the circuit.
-     * @param state true to show a directional arrow on the head.
-     */
-	public void setHeadArrowed(boolean state)
-	{
-        if (state) userBits |= HEADARROW; else
-            userBits &= ~HEADARROW;
+		switch (connIndex)
+		{
+			case TAILEND: setTailArrowed(state); break;
+			case HEADEND: setHeadArrowed(state); break;
+			default: throw new IllegalArgumentException("Bad end " + connIndex);
+		}
 	}
 
 	/**
@@ -1234,6 +1275,18 @@ public class ArcInst extends Geometric implements Comparable
 	{
         if (state) userBits |= TAILARROW; else
             userBits &= ~TAILARROW;
+	}
+
+	/**
+	 * Method to set this ArcInst to be directional, with an arrow on the head.
+	 * Directional arcs have an arrow drawn on them to indicate flow.
+	 * It is only for documentation purposes and does not affect the circuit.
+     * @param state true to show a directional arrow on the head.
+     */
+	public void setHeadArrowed(boolean state)
+	{
+        if (state) userBits |= HEADARROW; else
+            userBits &= ~HEADARROW;
 	}
 
 	/**
@@ -1254,24 +1307,17 @@ public class ArcInst extends Geometric implements Comparable
 	 * Method to tell whether an end of ArcInst has its ends extended.
 	 * Extended arcs continue past their endpoint by half of their width.
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
-	 * @param index the end of the arc to examine (0 for tail, 1 for head).
+	 * @param connIndex TAILEND (0) for the tail of this ArcInst, HEADEND (1) for the head.
 	 * @return true if that end of this ArcInst iss extended.
 	 */
-	public boolean isExtended(int index)
+	public boolean isExtended(int connIndex)
 	{
-		if (index == 0) return isTailExtended();
-		return isHeadExtended();
-	}
-
-	/**
-	 * Method to tell whether the head of this arc is extended.
-	 * Extended arcs continue past their endpoint by half of their width.
-	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
-	 * @return true if the head of this arc is extended.
-	 */
-	public boolean isHeadExtended()
-	{
-		return (userBits & HEADNOEXTEND) == 0;
+		switch (connIndex)
+		{
+			case TAILEND: return isTailExtended();
+			case HEADEND: return isHeadExtended();
+			default: throw new IllegalArgumentException("Bad end " + connIndex);
+		}
 	}
 
 	/**
@@ -1286,28 +1332,31 @@ public class ArcInst extends Geometric implements Comparable
 	}
 
 	/**
-	 * Method to set whether an end of this arc is extended.
+	 * Method to tell whether the head of this arc is extended.
 	 * Extended arcs continue past their endpoint by half of their width.
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
-	 * @param index the end of the arc to set (0 for tail, 1 for head).
-	 * @param e true to set that end of this arc to be extended.
+	 * @return true if the head of this arc is extended.
 	 */
-	public void setExtended(int index, boolean e)
+	public boolean isHeadExtended()
 	{
-		if (index == 0) setTailExtended(e); else
-			setHeadExtended(e);
+		return (userBits & HEADNOEXTEND) == 0;
 	}
 
 	/**
-	 * Method to set whether the head of this arc is extended.
+	 * Method to set whether an end of this arc is extended.
 	 * Extended arcs continue past their endpoint by half of their width.
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
-	 * @param e true to set the head of this arc to be extended.
+	 * @param connIndex TAILEND (0) for the tail of this ArcInst, HEADEND (1) for the head.
+	 * @param e true to set that end of this arc to be extended.
 	 */
-	public void setHeadExtended(boolean e)
+	public void setExtended(int connIndex, boolean e)
 	{
-		if (e) userBits &= ~HEADNOEXTEND; else
-			userBits |= HEADNOEXTEND;
+		switch (connIndex)
+		{
+			case TAILEND: setTailExtended(e); break;
+			case HEADEND: setHeadExtended(e); break;
+			default: throw new IllegalArgumentException("Bad end " + connIndex);
+		}
 	}
 
 	/**
@@ -1320,31 +1369,37 @@ public class ArcInst extends Geometric implements Comparable
 	{
 		if (e) userBits &= ~TAILNOEXTEND; else
 			userBits |= TAILNOEXTEND;
+		if (isLinked()) updateGeometric(getAngle());
 	}
 
+	/**
+	 * Method to set whether the head of this arc is extended.
+	 * Extended arcs continue past their endpoint by half of their width.
+	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
+	 * @param e true to set the head of this arc to be extended.
+	 */
+	public void setHeadExtended(boolean e)
+	{
+		if (e) userBits &= ~HEADNOEXTEND; else
+			userBits |= HEADNOEXTEND;
+		if (isLinked()) updateGeometric(getAngle());
+	}
 
 	/**
 	 * Method to tell whether an end of this arc is negated.
 	 * Negated arc have a negating bubble on them to indicate negation.
 	 * This is only valid in schematics technologies.
-	 * @param index the end of the arc to test (0 for tail, 1 for head).
+	 * @param connIndex TAILEND (0) for the tail of this ArcInst, HEADEND (1) for the head.
 	 * @return true if set that end of this arc is negated.
 	 */
-	public boolean isNegated(int index)
+	public boolean isNegated(int connIndex)
 	{
-		if (index == 0) return isTailNegated();
-		return isHeadNegated();
-	}
-
-	/**
-	 * Method to tell whether the head of this arc is negated.
-	 * Negated arc have a negating bubble on them to indicate negation.
-	 * This is only valid in schematics technologies.
-	 * @return true if set the head of this arc is negated.
-	 */
-	public boolean isHeadNegated()
-	{
-		return headEnd.isNegated();		// YES, I know this method is deprecated...it will be replaced soon...smr
+		switch (connIndex)
+		{
+			case TAILEND: return isTailNegated();
+			case HEADEND: return isHeadNegated();
+			default: throw new IllegalArgumentException("Bad end " + connIndex);
+		}
 	}
 
 	/**
@@ -1355,31 +1410,35 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public boolean isTailNegated()
 	{
-		return tailEnd.isNegated();		// YES, I know this method is deprecated...it will be replaced soon...smr
+		return tailEnd.isNegated();
+	}
+
+	/**
+	 * Method to tell whether the head of this arc is negated.
+	 * Negated arc have a negating bubble on them to indicate negation.
+	 * This is only valid in schematics technologies.
+	 * @return true if set the head of this arc is negated.
+	 */
+	public boolean isHeadNegated()
+	{
+		return headEnd.isNegated();
 	}
 
 	/**
 	 * Method to set whether an end of this arc is negated.
 	 * Negated arc have a negating bubble on them to indicate negation.
 	 * This is only valid in schematics technologies.
-	 * @param index the end of the arc to set (0 for tail, 1 for head).
+	 * @param connIndex TAILEND (0) for the tail of this ArcInst, HEADEND (1) for the head.
 	 * @param n true to set that end of this arc to be negated.
 	 */
-	public void setNegated(int index, boolean n)
+	public void setNegated(int connIndex, boolean n)
 	{
-		if (index == 0) setTailNegated(n); else
-			setHeadNegated(n);
-	}
-
-	/**
-	 * Method to set whether the head of this arc is negated.
-	 * Negated arc have a negating bubble on them to indicate negation.
-	 * This is only valid in schematics technologies.
-	 * @param n true to set the head of this arc to be negated.
-	 */
-	public void setHeadNegated(boolean n)
-	{
-		headEnd.setNegated(n);		// YES, I know this method is deprecated...it will be replaced soon...smr
+		switch (connIndex)
+		{
+			case TAILEND: setTailNegated(n); break;
+			case HEADEND: setHeadNegated(n); break;
+			default: throw new IllegalArgumentException("Bad end " + connIndex);
+		}
 	}
 
 	/**
@@ -1390,7 +1449,18 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public void setTailNegated(boolean n)
 	{
-		tailEnd.setNegated(n);		// YES, I know this method is deprecated...it will be replaced soon...smr
+		tailEnd.setNegated(n);
+	}
+
+	/**
+	 * Method to set whether the head of this arc is negated.
+	 * Negated arc have a negating bubble on them to indicate negation.
+	 * This is only valid in schematics technologies.
+	 * @param n true to set the head of this arc to be negated.
+	 */
+	public void setHeadNegated(boolean n)
+	{
+		headEnd.setNegated(n);
 	}
 
 	/****************************** MISCELLANEOUS ******************************/
@@ -1404,7 +1474,7 @@ public class ArcInst extends Geometric implements Comparable
 
 		// see if the ends are in their ports
 		Point2D headPt = getHead().getLocation();
-		if (!stillInPort(getHead(), headPt, false))
+		if (!headStillInPort(headPt, false))
 		{
 			Poly poly = getHead().getPortInst().getPoly();
 			String msg = "Cell " + parent.describe() + ", arc " + describe() +
@@ -1428,7 +1498,7 @@ public class ArcInst extends Geometric implements Comparable
 			errorCount++;
 		}
 		Point2D tailPt = getTail().getLocation();
-		if (!stillInPort(getTail(), tailPt, false))
+		if (!tailStillInPort(tailPt, false))
 		{
 			Poly poly = getTail().getPortInst().getPoly();
 			String msg = "Cell " + parent.describe() + ", arc " + describe() +

@@ -171,7 +171,7 @@ public class PAL extends Output
 
 			Netlist netlist = info.getNetlist();
 			StringBuffer sb = new StringBuffer();
-			if (outputCon.getArc().isNegated(outputCon.getEndIndex())) sb.append("!");
+			if (outputCon.isNegated()) sb.append("!");
 			Network oNet = netlist.getNetwork(outputCon.getPortInst());
 			sb.append(getNetName(oNet, info) + " =");
 			int count = 0;
@@ -184,7 +184,7 @@ public class PAL extends Output
 				count++;
 				sb.append(" ");
 				ArcInst ai = con.getArc();
-				if (ai.isNegated(con.getEndIndex())) sb.append("!");
+				if (con.isNegated()) sb.append("!");
 				Network net = netlist.getNetwork(ai, 0);
 				if (net == null) continue;
 				sb.append(getNetName(net, info));

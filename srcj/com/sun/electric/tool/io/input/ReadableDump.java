@@ -81,6 +81,7 @@ public class ReadableDump extends LibraryFiles
 		private String []    arcTailPort;
 		private int []       arcTailX;
 		private int []       arcTailY;
+		private int []       arcUserBits;
 	};
 	private static class ExportList
 	{
@@ -631,6 +632,7 @@ public class ReadableDump extends LibraryFiles
 			double tailY = (ail.arcTailY[j]-yoff) / lambda;
 			Point2D headPt = new Point2D.Double(headX, headY);
 			Point2D tailPt = new Point2D.Double(tailX, tailY);
+			int userBits = ail.arcUserBits[j];
 
 //			// make checks
 //			Poly poly = headPortInst.getPoly();
@@ -642,6 +644,7 @@ public class ReadableDump extends LibraryFiles
 //				System.out.println("Cell " + cell.describe() + ", arc " + ap.describe() + " tail at (" +
 //					ail.arcTailX[j] + "," + ail.arcTailY[j] + ") not in port");
 
+			ELIBConstants.applyELIBArcBits(ai, userBits);
 			int defAngle = ai.lowLevelGetArcAngle() * 10;
 			ai.lowLevelPopulate(ap, width, headPortInst, headPt, tailPortInst, tailPt, defAngle, name, -1);
 			ai.lowLevelLink();
@@ -1190,6 +1193,7 @@ public class ReadableDump extends LibraryFiles
 		ail.arcTailPort = new String[arcInstCount];
 		ail.arcTailX = new int[arcInstCount];
 		ail.arcTailY = new int[arcInstCount];
+		ail.arcUserBits = new int[arcInstCount];
 		for(int i=0; i<arcInstCount; i++)
 		{
 			ail.arcList[i] = ArcInst.lowLevelAllocate();
@@ -1439,7 +1443,7 @@ public class ReadableDump extends LibraryFiles
 	private void keywordEndNod()
 	{
 		int endIndex = TextUtils.atoi(keyWord);
-		if (curArcEnd == 0)
+		if (curArcEnd == ArcInst.HEADEND)
 		{
 			arcInstList[curCellNumber].arcHeadNode[curArcInstIndex] = nodeInstList[curCellNumber].theNode[endIndex];
 		} else
@@ -1453,7 +1457,7 @@ public class ReadableDump extends LibraryFiles
 	 */
 	private void keywordEndPt()
 	{
-		if (curArcEnd == 0)
+		if (curArcEnd == ArcInst.HEADEND)
 		{
 			arcInstList[curCellNumber].arcHeadPort[curArcInstIndex] = keyWord;
 		} else
@@ -1468,7 +1472,7 @@ public class ReadableDump extends LibraryFiles
 	private void keywordEndXP()
 	{
 		int x = TextUtils.atoi(keyWord);
-		if (curArcEnd == 0)
+		if (curArcEnd == ArcInst.HEADEND)
 		{
 			arcInstList[curCellNumber].arcHeadX[curArcInstIndex] = x;
 		} else
@@ -1480,7 +1484,7 @@ public class ReadableDump extends LibraryFiles
 	private void keywordEndYP()
 	{
 		int y = TextUtils.atoi(keyWord);
-		if (curArcEnd == 0)
+		if (curArcEnd == ArcInst.HEADEND)
 		{
 			arcInstList[curCellNumber].arcHeadY[curArcInstIndex] = y;
 		} else
@@ -1502,7 +1506,7 @@ public class ReadableDump extends LibraryFiles
 	 */
 	private void keywordArcBit()
 	{
-		if (bitCount == 0) arcInstList[curCellNumber].arcList[curArcInstIndex].lowLevelSetUserbits(TextUtils.atoi(keyWord));
+		if (bitCount == 0) arcInstList[curCellNumber].arcUserBits[curArcInstIndex] = TextUtils.atoi(keyWord);
 		bitCount++;
 	}
 
@@ -1511,7 +1515,7 @@ public class ReadableDump extends LibraryFiles
 	 */
 	private void keywordArcUsb()
 	{
-		arcInstList[curCellNumber].arcList[curArcInstIndex].lowLevelSetUserbits(TextUtils.atoi(keyWord));
+		arcInstList[curCellNumber].arcUserBits[curArcInstIndex] = TextUtils.atoi(keyWord);
 	}
 
 	// --------------------------------- PORT PROTOTYPE PARSING METHODS ---------------------------------
