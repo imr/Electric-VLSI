@@ -1505,7 +1505,7 @@ public class InputText extends Input
 				if (cat == '^' && j < len-1)
 				{
 					j++;
-					varName += cat;
+					varName += keyWord.charAt(j);
 					continue;
 				}
 				if (cat == '(' || cat == '[' || cat == ':') break;

@@ -1660,7 +1660,7 @@ public class Schematics extends Technology
 				case TRANDMES:  return NodeProto.Function.TRA4DMES;
 				case TRANEMES:  return NodeProto.Function.TRA4EMES;
 			}
-			return NodeProto.Function.TRANMOS;
+			return NodeProto.Function.TRA4NMOS;
 		}
 		if (np == twoportNode)
 		{
