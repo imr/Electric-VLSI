@@ -908,17 +908,30 @@ public class Spice extends Topology
 					  fun == NodeProto.Function.TRADMES || fun == NodeProto.Function.TRAEMES) &&
 					  spiceEngine == Simulation.SPICE_ENGINE_H))
 				{
-					infstr.append(" L=" + TextUtils.formatDouble(l, 2));
-					if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("U");
-					infstr.append(" W=" + TextUtils.formatDouble(w, 2));
-					if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("U");
+                    // schematic transistors may be text
+                    if ((size.getDoubleWidth() == 0) && (size.getWidth() instanceof String)) {
+                        infstr.append(" L="+size.getWidth());
+                    } else {
+                        infstr.append(" L=" + TextUtils.formatDouble(l, 2));
+                        if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("U");
+                    }
+                    if ((size.getDoubleLength() == 0) && (size.getLength() instanceof String)) {
+                        infstr.append(" W="+size.getLength());
+                    } else {
+                        infstr.append(" W=" + TextUtils.formatDouble(w, 2));
+                        if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("U");
+                    }
 				}
 				if (fun != NodeProto.Function.TRANMOS && fun != NodeProto.Function.TRA4NMOS &&
 					fun != NodeProto.Function.TRAPMOS && fun != NodeProto.Function.TRA4PMOS &&
 					fun != NodeProto.Function.TRADMOS && fun != NodeProto.Function.TRA4DMOS)
 				{
-					infstr.append(" AREA=" + TextUtils.formatDouble(l*w, 2));
-					if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("P");
+                    if ((size.getDoubleWidth() == 0) && (size.getWidth() instanceof String)) {
+                        infstr.append(" AREA="+size.getWidth());
+                    } else {
+                        infstr.append(" AREA=" + TextUtils.formatDouble(l*w, 2));
+                        if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("P");
+                    }
 				}
 			}
 
