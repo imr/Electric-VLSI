@@ -2264,17 +2264,37 @@ public class Schematics extends Technology
 	 */
 	public static void setNegatingBubbleSize(double s) { cacheBubbleSize.setDouble(s); }
 
-//static CHAR *sch_node_vhdlstring[NODEPROTOCOUNT] = {
-//	x_(""), x_(""), x_(""),										/* pins */
-//	x_("buffer/inverter"), x_("and%ld/nand%ld"), x_("or%ld/nor%ld"), x_("xor%ld/xnor%ld"),	/* gates */
-//	x_("ff"), x_("mux%ld"),										/* flipflop, mux */
-//	x_(""), x_(""),												/* box/switch */
-//	x_(""),														/* offpage */
-//	x_(""), x_(""), x_(""),										/* pwr/gnd/source */
-//	x_(""), x_(""), x_(""),										/* trans/resist/capac */
-//	x_(""), x_(""),												/* diode/inductor */
-//	x_(""),														/* meter */
-//	x_(""), x_(""),												/* well/substrate */
-//	x_(""), x_(""), x_("")										/* twoport/4-port/global */
-//};
+	private static HashMap primPrefs = new HashMap();
+	private static Pref getPrefForPrimitive(PrimitiveNode np)
+	{
+		Pref pref = (Pref)primPrefs.get(np);
+		if (pref == null)
+		{
+			String def = "";
+			if (np == Schematics.tech.bufferNode) def = "buffer/inverter"; else
+				if (np == Schematics.tech.andNode) def = "and/nand"; else
+					if (np == Schematics.tech.orNode) def = "or/nor"; else
+						if (np == Schematics.tech.xorNode) def = "xor/xnor"; else
+							if (np == Schematics.tech.muxNode) def = "mux";
+			pref = Pref.makeStringPref("SchematicVHDLStringFor"+np.getName(), getTechnologyPreferences(), def);
+			primPrefs.put(np, pref);
+		}
+		return pref;
+	}
+	/**
+	 * Method to tell the VHDL names for a primitive in this technology.
+	 * These names have the form REGULAR/NEGATED, where REGULAR is the name to use
+	 * for regular uses of the primitive, and NEGATED is the name to use for negated uses.
+	 * @param np the primitive to query.
+	 * @return the the VHDL names for the primitive.
+	 */
+	public static String getVHDLNames(PrimitiveNode np) { return getPrefForPrimitive(np).getString(); }
+	/**
+	 * Method to set the VHDL names for a primitive in this technology.
+	 * These names have the form REGULAR/NEGATED, where REGULAR is the name to use
+	 * for regular uses of the primitive, and NEGATED is the name to use for negated uses.
+	 * @param np the primitive to set.
+	 * @param v the VHDL names for the primitive.
+	 */
+	public static void setVHDLNames(PrimitiveNode np, String v) { getPrefForPrimitive(np).setString(v); }
 }

@@ -154,33 +154,60 @@ public class CompileVHDL
 	private static final int KEY_ALL			= 68;
 	private static final int KEY_LIBRARY		= 69;
 
+	/********** Miscellaneous Constants *********************************/
+
+	/** enternal entities flag */		private static final boolean EXTERNALENTITIES = true;
+	/** warning flag, TRUE warn */		private static final boolean WARNFLAG = false;
+	/** flag the entity as called */	private static final int     TOP_ENTITY_FLAG	= 0x0001;
+	/** flag the entity as written */	private static final int     ENTITY_WRITTEN		= 0x0002;
+
 	/********** Keyword Structures *****************************************/
 
-	private static class VKEYWORD
+	private static class VKeyword
 	{
-		String	name;							/* string defining keyword */
-		int		num;							/* number of keyword */
+		/** string defining keyword */	String	name;
+		/** number of keyword */		int		num;
 
-		VKEYWORD(String name, int num) { this.name = name;   this.num = num; }
+		VKeyword(String name, int num) { this.name = name;   this.num = num; }
 	};
 
 	/********** Token Structures *****************************************/
 
-	private static class TOKENLIST
+	private class TokenList
 	{
-		int	token;							/* token number */
-		Object	pointer;						/* NULL if delimiter, */
-												/* pointer to global name space if identifier, */
-												/* pointer to keyword table if keyword, */
-												/* pointer to string if decimal literal, */
-												/* pointer to string if based literal, */
-												/* value of character if character literal, */
-												/* pointer to string if string literal, */
-												/* pointer to string if bit string literal */
-		boolean	space;							/* TRUE if space before next token */
-		int	line_num;						/* line number token occurred */
-		TOKENLIST next;				/* next in list */
-		TOKENLIST last;				/* previous in list */
+		/** token number */								int	token;
+		/** NULL if delimiter,
+		 * pointer to global name space if identifier,
+		 * pointer to keyword table if keyword,
+		 * pointer to string if decimal literal,
+		 * pointer to string if based literal,
+		 * value of character if character literal,
+		 * pointer to string if string literal,
+		 * pointer to string if bit string literal */	Object	pointer;
+		 /** TRUE if space before next token */			boolean	space;
+		 /** line number token occurred */				int	lineNum;
+		 /** next in list */							TokenList next;
+		 /** previous in list */						TokenList last;
+
+		TokenList(int token, Object pointer, int lineNum, boolean space)
+		{
+			this.token = token;
+			this.pointer = pointer;
+			this.lineNum = lineNum;
+			this.space = true;
+			this.next = null;
+			this.last = tListEnd;
+			if (tListEnd == null)
+			{
+				tListStart = tListEnd = this;
+			} else
+			{
+				tListEnd.space = space;
+				tListEnd.next = this;
+				tListEnd = this;
+			}
+		}
+
 	};
 
 	/********** Symbol Trees **********************************************/
@@ -197,79 +224,53 @@ public class CompileVHDL
 	private static final int SYMBOL_PACKAGE		= 10;
 	private static final int SYMBOL_CONSTANT	= 11;
 
-	private static class SYMBOLTREE
+	private static class SymbolTree
 	{
-		String			value;			/* identifier */
-		int				type;			/* type of item */
-		Object			pointer;		/* pointer to item */
-		int             seen;			/* flag for deallocation */
+		/** identifier */				String			value;
+		/** type of item */				int				type;
+		/** pointer to item */			Object			pointer;
+		/** flag for deallocation */	int             seen;
 	};
 
-	private static class SYMBOLLIST
+	private static class SymbolList
 	{
-		HashMap         sym;
-		SYMBOLLIST		last;			/* previous in stack */
-		SYMBOLLIST		next;			/* next in list */
-	};
-
-	/********** Gate Entity Structures *************************************/
-
-	private static class GATE
-	{
-		String			name;			/* name of gate */
-		String			header;			/* header line */
-		GATELINE		lines;			/* lines of gate def'n */
-		SYMBOLTREE		flags;			/* flags for general use */
-		GATE			next;			/* next gate in list */
-	};
-
-	private static class GATELINE
-	{
-		SYMBOLLIST		line;			/* line of gate def'n */
-		GATELINE		next;			/* next line in def'n */
+		/** the symbol table map */		HashMap         sym;
+		/** previous in stack */		SymbolList		last;
+		/** next in list */				SymbolList		next;
 	};
 
 	/********** Unresolved Reference List **********************************/
 
-	private static class UNRESLIST
+	private static class UnResList
 	{
-		String			interfacef;	/* name of reference */
-		int				numref;			/* number of references */
-		UNRESLIST		next;			/* next in list */
+		/** name of reference */		String			interfacef;
+		/** number of references */		int				numRef;
+		/** next in list */				UnResList		next;
 	};
-
-	/********** ALS Generation Constants *********************************/
-
-	private static final int TOP_ENTITY_FLAG	= 0x0001;			/* flag the entity as called */
-	private static final int ENTITY_WRITTEN		= 0x0002;			/* flag the entity as written */
 
 	/***********************************************************************/
 
-	/*
-	 * Header file for VHDL compiler including data base structures and constants.
-	 */
-
-	private static class DBUNITS
+	private static class DBUnits
 	{
-		DBINTERFACE		interfaces;	/* list of interfaces */
-		DBBODY			bodies;		/* list of bodies */
+		/** list of interfaces */		DBInterface		interfaces;
+		/** list of bodies */			DBBody			bodies;
 	};
 
-	private static class DBPACKAGE
+	private static class DBPackage
 	{
-		String			name;			/* name of package */
-		SYMBOLLIST		root;			/* root of symbol tree */
+		/** name of package */			String			name;
+		/** root of symbol tree */		SymbolList		root;
 	};
 
-	private static class DBINTERFACE
+	private static class DBInterface
 	{
-		String			name;			/* name of interface */
-		DBPORTLIST		ports;			/* list of ports */
-		Object			interfacef;	/* interface declarations */
-		int				flags;			/* for later code gen */
-		DBBODY			bodies;		/* associated bodies */
-		SYMBOLLIST		symbols;		/* local symbols */
-		DBINTERFACE		next;			/* next interface */
+		/** name of interface */		String			name;
+		/** list of ports */			DBPortList		ports;
+		/** interface declarations */	Object			interfacef;
+		/** for later code gen */		int				flags;
+		/** associated bodies */		DBBody			bodies;
+		/** local symbols */			SymbolList		symbols;
+		/** next interface */			DBInterface		next;
 	};
 
 	private static final int DBMODE_IN			= 1;
@@ -277,82 +278,81 @@ public class CompileVHDL
 	private static final int DBMODE_DOTOUT		= 3;
 	private static final int DBMODE_INOUT		= 4;
 	private static final int DBMODE_LINKAGE		= 5;
-	private static class DBPORTLIST
+
+	private static class DBPortList
 	{
-		String			name;			/* name of port */
-		int				mode;			/* mode of port */
-		DBLTYPE			type;			/* type of port */
-		int				flags;			/* general flags */
-		DBPORTLIST		next;			/* next in port list */
+		/** name of port */				String			name;
+		/** mode of port */				int				mode;
+		/** type of port */				DBLType			type;
+		/** general flags */			int				flags;
+		/** next in port list */		DBPortList		next;
 	};
 
 	private static final int DBTYPE_SINGLE		= 1;
 	private static final int DBTYPE_ARRAY		= 2;
-	private static class DBLTYPE
+
+	private static class DBLType
 	{
-		String			name;			/* name of type */
-		int				type;			/* type of type */
-		Object			pointer;		/* pointer to info */
-		DBLTYPE			subtype;		/* possible subtype */
+		/** name of type */				String			name;
+		/** type of type */				int				type;
+		/** pointer to info */			Object			pointer;
+		/** possible subtype */			DBLType			subType;
 	};
 
 	/********** Bodies *****************************************************/
 
-	private static final int DBBODY_BEHAVIORAL		= 1;
-	private static final int DBBODY_ARCHITECTURAL	= 2;
-	private static class DBBODY
+	private static class DBBody
 	{
-		int				classnew;		/* class of body */
-		String			name;			/* name of body - identifier */
-		String			entity;		/* parent entity of body */
-		DBBODYDECLARE	declare;		/* declarations */
-		DBSTATEMENTS	statements;	/* statements in body */
-		DBINTERFACE		parent;		/* pointer to parent */
-		DBBODY			same_parent;	/* bodies of same parent */
-		DBBODY			next;			/* next body */
+		/** name of body: identifier */	String			name;
+		/** parent entity of body */	String			entity;
+		/** declarations */				DBBodyDelcare	declare;
+		/** statements in body */		DBStatements	statements;
+		/** pointer to parent */		DBInterface		parent;
+		/** bodies of same parent */	DBBody			sameParent;
+		/** next body */				DBBody			next;
 	};
 
-	private static class DBBODYDECLARE
+	private static class DBBodyDelcare
 	{
-		DBCOMPONENTS	components;	/* components */
-		DBSIGNALS		bodysignals;		/* signals */
+		/** components */				DBComponents	components;
+		/** signals */					DBSignals		bodySignals;
 	};
 
-	private static class DBCOMPONENTS
+	private static class DBComponents
 	{
-		String			name;			/* name of component */
-		DBPORTLIST		ports;			/* list of ports */
-		DBCOMPONENTS	next;			/* next component */
+		/** name of component */		String			name;
+		/** list of ports */			DBPortList		ports;
+		/** next component */			DBComponents	next;
 	};
 
-	private static class DBSIGNALS
+	private static class DBSignals
 	{
-		String			name;			/* name of signal */
-		DBLTYPE			type;			/* type of signal */
-		DBSIGNALS		next;			/* next signal */
+		/** name of signal */			String			name;
+		/** type of signal */			DBLType			type;
+		/** next signal */				DBSignals		next;
 	};
 
 	/********** Architectural Statements ***********************************/
 
-	private static class DBSTATEMENTS
+	private static class DBStatements
 	{
-		DBINSTANCE		instances;
+		DBInstance		instances;
 	};
 
-	private static class DBINSTANCE
+	private static class DBInstance
 	{
-		String			name;			/* identifier */
-		DBCOMPONENTS	compo;			/* component */
-		DBAPORTLIST		ports;			/* ports on instance */
-		DBINSTANCE		next;			/* next instance in list */
+		/** identifier */				String			name;
+		/** component */				DBComponents	compo;
+		/** ports on instance */		DBAPortList		ports;
+		/** next instance in list */	DBInstance		next;
 	};
 
-	private static class DBAPORTLIST
+	private static class DBAPortList
 	{
-		DBNAME			name;			/* name of port */
-		DBPORTLIST		port;			/* pointer to port on comp */
-		int				flags;			/* flags for processing */
-		DBAPORTLIST		next;			/* next in list */
+		/** name of port */				DBName			name;
+		/** pointer to port on comp */	DBPortList		port;
+		/** flags for processing */		int				flags;
+		/** next in list */				DBAPortList		next;
 	};
 
 	/********** Names ******************************************************/
@@ -360,45 +360,40 @@ public class CompileVHDL
 	private static final int DBNAME_IDENTIFIER		= 1;
 	private static final int DBNAME_INDEXED			= 2;
 	private static final int DBNAME_CONCATENATED	= 3;
-	private static class DBNAME
+
+	private static class DBName
 	{
-		String			name;			/* name of name */
-		int				type;			/* type of name */
-		Object			pointer;		/* NULL if identifier */
-									 			/* pointer to DBEXPRLIST if indexed */
-									 			/* pointer to DBNAMELIST if concatenated */
-		DBLTYPE			dbtype; 				/* pointer to type */
+		/** name of name */				String			name;
+		/** type of name */				int				type;
+		/** null if identifier
+		 * DBExprList if indexed
+		 * DBNameList if concatenated */Object			pointer;
+		/** pointer to type */			DBLType			dbType;
 	};
 
-	private static class DBEXPRLIST
+	private static class DBExprList
 	{
-		int				value;			/* value */
-		DBEXPRLIST		next;			/* next in list */
+		/** value */					int				value;
+		/** next in list */				DBExprList		next;
 	};
 
-	private static class DBDISCRETERANGE
+	private static class DBDiscreteRange
 	{
-		int				start;			/* start of range */
-		int				end;			/* end of range */
+		/** start of range */			int				start;
+		/** end of range */				int				end;
 	};
 
-	private static class DBINDEXRANGE
+	private static class DBIndexRange
 	{
-		DBDISCRETERANGE	drange;		/* discrete range */
-		DBINDEXRANGE	next;			/* next in list */
+		/** discrete range */			DBDiscreteRange	dRange;
+		/** next in list */				DBIndexRange	next;
 	};
 
-	private static class DBNAMELIST
+	private static class DBNameList
 	{
-		DBNAME			name;			/* name in list */
-		DBNAMELIST		next;			/* next in list */
+		/** name in list */				DBName			name;
+		/** next in list */				DBNameList		next;
 	};
-
-	/***********************************************************************/
-
-	/*
-	 * Header file for VHDL compiler including parse tree structures and constants.
-	 */
 
 	/******** Parser Constants and Structures ******************************/
 
@@ -408,40 +403,42 @@ public class CompileVHDL
 	private static final int UNIT_PACKAGE	= 3;
 	private static final int UNIT_BODY		= 4;
 	private static final int UNIT_USE		= 6;
-	private static class PTREE
+
+	private static class PTree
 	{
-		int				type;			/* type of entity */
-		Object			pointer;		/* pointer to design unit */
-		PTREE			next;			/* pointer to next */
+		/** type of entity */			int				type;
+		/** pointer to design unit */	Object			pointer;
+		/** pointer to next */			PTree			next;
 	};
 
 	/********** Packages ***************************************************/
 
-	private static class PACKAGE
+	private static class Package
 	{
-		TOKENLIST		name;			/* package name */
-		PACKAGEDPART	declare;		/* package declare part */
+		/** package name */				TokenList		name;
+		/** package declare part */		PackagedPart	declare;
+		/** package declare items */	List			packagedParts;
 	};
 
-	private static class PACKAGEDPART
+	private static class PackagedPart
 	{
-		BASICDECLARE	item;			/* package declare item */
-		PACKAGEDPART	next;			/* pointer to next */
+		/** package declare item */		BasicDeclare	item;
+		/** pointer to next */			PackagedPart	next;
 	};
 
-	private static class USE
+	private static class Use
 	{
-		TOKENLIST		unit;			/* unit */
-		USE				next;			/* next in list */
+		/** unit */						TokenList		unit;
+		/** next in list */				Use				next;
 	};
 
 	/********** Interfaces *************************************************/
 
-	private static class VINTERFACE
+	private static class VInterface
 	{
-		TOKENLIST		name;			/* name of entity */
-		FPORTLIST		ports;			/* list of ports */
-		Object			interfacef;	/* interface declarations */
+		/** name of entity */			TokenList		name;
+		/** list of ports */			FPortList		ports;
+		/** interface declarations */	Object			interfacef;
 	};
 
 	private static final int MODE_IN			= 1;
@@ -449,42 +446,44 @@ public class CompileVHDL
 	private static final int MODE_DOTOUT		= 3;
 	private static final int MODE_INOUT			= 4;
 	private static final int MODE_LINKAGE		= 5;
-	private static class FPORTLIST
+
+	private static class FPortList
 	{
-		IDENTLIST		names;			/* names of port */
-		int				mode;			/* mode of port */
-		VNAME			type;			/* type of port */
-		FPORTLIST		next;			/* next in port list */
+		/** names of port */			IdentList		names;
+		/** mode of port */				int				mode;
+		/** type of port */				VName			type;
+		/** next in port list */		FPortList		next;
 	};
 
-	private static class IDENTLIST
+	private static class IdentList
 	{
-		TOKENLIST		identifier;	/* identifier */
-		IDENTLIST		next;			/* next in list */
+		/** identifier */				TokenList		identifier;
+		/** next in list */				IdentList		next;
 	};
 
 	/********** Bodies *****************************************************/
 
 	private static final int BODY_BEHAVIORAL	= 1;
 	private static final int BODY_ARCHITECTURAL	= 2;
-	private static class BODY
+
+	private static class Body
 	{
-		int				classnew;		/* class of body */
-		TOKENLIST		name;			/* name of body - identifier */
-		SIMPLENAME		entity;		/* parent entity of body */
-		BODYDECLARE		body_declare;	/* body declarations */
-		STATEMENTS		statements;	/* statements in body */
+		/** name of body: identifier */	TokenList		name;
+		/** parent entity of body */	SimpleName		entity;
+		/** body declarations */		BodyDeclare		bodyDeclare;
+		/** statements in body */		Statements		statements;
 	};
 
 	private static final int BODYDECLARE_BASIC		= 1;
 	private static final int BODYDECLARE_COMPONENT	= 2;
 	private static final int BODYDECLARE_RESOLUTION	= 3;
 	private static final int BODYDECLARE_LOCAL		= 4;
-	private static class BODYDECLARE
+
+	private static class BodyDeclare
 	{
-		int				type;			/* type of declaration */
-		Object			pointer;		/* pointer to part tree */
-		BODYDECLARE		next;			/* next in list */
+		/** type of declaration */		int				type;
+		/** pointer to part tree */		Object			pointer;
+		/** next in list */				BodyDeclare		next;
 	};
 
 	/********** Basic Declarations *****************************************/
@@ -496,10 +495,11 @@ public class CompileVHDL
 	private static final int BASICDECLARE_CONVERSION	= 4;
 	private static final int BASICDECLARE_ATTRIBUTE		= 5;
 	private static final int BASICDECLARE_ATT_SPEC		= 6;
-	private static class BASICDECLARE
+
+	private static class BasicDeclare
 	{
-		int				type;			/* type of basic declare */
-		Object			pointer;		/* pointer to parse tree */
+		/** type of basic declare */	int				type;
+		/** pointer to parse tree */	Object			pointer;
 	};
 
 	private static final int NOOBJECTDECLARE			= 0;
@@ -507,83 +507,77 @@ public class CompileVHDL
 	private static final int OBJECTDECLARE_SIGNAL		= 2;
 	private static final int OBJECTDECLARE_VARIABLE		= 3;
 	private static final int OBJECTDECLARE_ALIAS		= 4;
-	private static class OBJECTDECLARE
+
+	private static class ObjectDeclare
 	{
-		int				type;			/* type of object declare */
-		Object			pointer;		/* pointer to parse tree */
+		/** type of object declare */	int				type;
+		/** pointer to parse tree */	Object			pointer;
 	};
 
-	private static class SIGNALDECLARE
+	private static class SignalDeclare
 	{
-		IDENTLIST		names;			/* list of identifiers */
-		SUBTYPEIND		subtype;		/* subtype indicator */
+		/** list of identifiers */		IdentList		names;
+		/** subtype indicator */		SubTypeInd		subType;
 	};
 
-	private static class VCOMPONENT
+	private static class VComponent
 	{
-		TOKENLIST		name;			/* name of component */
-		FPORTLIST		ports;			/* ports of component */
+		/** name of component */		TokenList		name;
+		/** ports of component */		FPortList		ports;
 	};
 
-	private static class CONSTANTDECLARE
+	private static class ConstantDeclare
 	{
-		TOKENLIST		identifier;	/* name of constant */
-		SUBTYPEIND		subtype;		/* subtype indicator */
-		EXPRESSION		expression;	/* expression */
+		/** name of constant */			TokenList		identifier;
+		/** subtype indicator */		SubTypeInd		subType;
+		/** expression */				Expression		expression;
 	};
 
 	/********** Types ******************************************************/
 
-	private static class SUBTYPEIND
+	private static class SubTypeInd
 	{
-		VNAME			type;			/* type of subtype */
-		CONSTAINT		constraint;	/* optional constaint */
-	};
-
-	private static final int CONSTAINT_RANGE		= 1;
-	private static final int CONSTAINT_FLOAT		= 2;
-	private static final int CONSTAINT_INDEX		= 3;
-	private static class CONSTAINT
-	{
-		int				type;			/* type of constaint */
-		Object			pointer;		/* pointer to parse tree */
+		/** type of subtype */			VName			type;
 	};
 
 	private static final int TYPE_SCALAR		= 1;
 	private static final int TYPE_COMPOSITE		= 2;
-	private static class TYPE
+
+	private static class Type
 	{
-		TOKENLIST		identifier;	/* name of type */
-		int				type;			/* type definition */
-		Object			pointer;		/* pointer to type */
+		/** name of type */				TokenList		identifier;
+		/** type definition */			int				type;
+		/** pointer to type */			Object			pointer;
 	};
 
 	private static final int COMPOSITE_ARRAY	= 1;
 	private static final int COMPOSITE_RECORD	= 2;
-	private static class COMPOSITE
+
+	private static class Composite
 	{
-		int				type;			/* type of composite */
-		Object			pointer;		/* pointer to composite */
+		/** type of composite */		int				type;
+		/** pointer to composite */		Object			pointer;
 	};
 
 	private static final int ARRAY_UNCONSTRAINED	= 1;
 	private static final int ARRAY_CONSTRAINED		= 2;
-	private static class ARRAY
+
+	private static class Array
 	{
-		int				type;			/* (un)constrained array */
-		Object			pointer;		/* pointer to array */
+		/** (un)constrained array */	int				type;
+		/** pointer to array */			Object			pointer;
 	};
 
-	private static class CONSTRAINED
+	private static class Constrained
 	{
-		INDEXCONSTRAINT	constraint;	/* index constraint */
-		SUBTYPEIND		subtype;		/* subtype indication */
+		/** index constraint */			IndexConstraint	constraint;
+		/** subtype indication */		SubTypeInd		subType;
 	};
 
-	private static class INDEXCONSTRAINT
+	private static class IndexConstraint
 	{
-		DISCRETERANGE	discrete;		/* discrete range */
-		INDEXCONSTRAINT	next;			/* possible more */
+		/** discrete range */			DiscreteRange	discrete;
+		/** possible more */			IndexConstraint	next;
 	};
 
 	/********** Architectural Statements ***********************************/
@@ -595,57 +589,48 @@ public class CompileVHDL
 	private static final int ARCHSTATE_CASE			= 4;
 	private static final int ARCHSTATE_INSTANCE		= 5;
 	private static final int ARCHSTATE_NULL			= 6;
-	private static class STATEMENTS
+
+	private static class Statements
 	{
-		int				type;			/* type of statement */
-		Object			pointer;		/* pointer to parse tree */
-		STATEMENTS		next;			/* pointer to next */
+		/** type of statement */		int				type;
+		/** pointer to parse tree */	Object			pointer;
+		/** pointer to next */			Statements		next;
 	};
 
-	private static class VINSTANCE
+	private static class VInstance
 	{
-		TOKENLIST		name;			/* optional identifier */
-		SIMPLENAME		entity;		/* entity of instance */
-		APORTLIST		ports;			/* ports on instance */
+		/** optional identifier */		TokenList		name;
+		/** entity of instance */		SimpleName		entity;
+		/** ports on instance */		APortList		ports;
 	};
 
 	private static final int APORTLIST_NAME			= 1;
 	private static final int APORTLIST_TYPE_NAME	= 2;
 	private static final int APORTLIST_EXPRESSION	= 3;
-	private static class APORTLIST
+
+	private static class APortList
 	{
-		int				type;			/* type of actual port */
-		Object			pointer;		/* pointer to parse tree */
-		APORTLIST		next;			/* next in list */
+		/** type of actual port */		int				type;
+		/** pointer to parse tree */	Object			pointer;
+		/** next in list */				APortList		next;
 	};
 
-	private static class GENERATE
+	private static class Generate
 	{
-		TOKENLIST		label;			/* optional label */
-		GENSCHEME		gen_scheme;	/* generate scheme */
-		STATEMENTS		statements;	/* statements */
+		/** optional label */			TokenList		label;
+		/** generate scheme */			GenScheme		genScheme;
+		/** statements */				Statements		statements;
 	};
 
 	private static final int GENSCHEME_FOR		= 0;
 	private static final int GENSCHEME_IF		= 1;
-	private static class GENSCHEME
-	{
-		int				scheme;			/* scheme (for or if) */
-		TOKENLIST		identifier;	/* if FOR scheme */
-		DISCRETERANGE	range;			/* if FOR scheme */
-		EXPRESSION		condition;		/* if IF scheme */
-	};
 
-	private static class WAVEFORMLIST
+	private static class GenScheme
 	{
-		WAVEFORM		waveform;		/* waveform element */
-		WAVEFORMLIST	next;			/* next waveform in list */
-	};
-
-	private static class WAVEFORM
-	{
-		EXPRESSION		expression;	/* expression */
-		EXPRESSION		time_expr;		/* time expression */
+		/** scheme (for or if) */		int				scheme;
+		/** if FOR scheme */			TokenList		identifier;
+		/** if FOR scheme */			DiscreteRange	range;
+		/** if IF scheme */				Expression		condition;
 	};
 
 	/********** Names ******************************************************/
@@ -654,10 +639,11 @@ public class CompileVHDL
 	private static final int NAME_SINGLE		= 1;
 	private static final int NAME_CONCATENATE	= 2;
 	private static final int NAME_ATTRIBUTE		= 3;
-	private static class VNAME
+
+	private static class VName
 	{
-		int				type;			/* type of name */
-		Object			pointer;		/* pointer to parse tree */
+		/** type of name */				int				type;
+		/** pointer to parse tree */	Object			pointer;
 	};
 
 	private static final int NOSINGLENAME			= 0;
@@ -665,91 +651,67 @@ public class CompileVHDL
 	private static final int SINGLENAME_SELECTED	= 2;
 	private static final int SINGLENAME_INDEXED		= 3;
 	private static final int SINGLENAME_SLICE		= 4;
-	private static class SINGLENAME
+
+	private static class SingleName
 	{
-		int				type;			/* type of simple name */
-		Object			pointer;		/* pointer to parse tree */
+		/** type of simple name */		int				type;
+		/** pointer to parse tree */	Object			pointer;
 	};
 
-	private static class SIMPLENAME
+	private static class SimpleName
 	{
-		TOKENLIST		identifier;	/* identifier */
-	};
-
-	private static class SELECTEDNAME
-	{
-		SELECTPREFIX	prefix;		/* prefix */
-		SELECTSUFFIX	suffix;		/* suffix */
-	};
-
-	private static final int SELECTPREFIX_PREFIX	= 1;
-	private static final int SELECTPREFIX_STANDARD	= 2;
-	private static class SELECTPREFIX
-	{
-		int				type;			/* type of prefix */
-		Object			pointer;		/* pointer to parse tree */
+		/** identifier */				TokenList		identifier;
 	};
 
 	private static final int PREFIX_NAME			= 1;
 	private static final int PREFIX_FUNCTION_CALL	= 2;
-	private static class PREFIX
+
+	private static class Prefix
 	{
-		int				type;			/* type of prefix */
-		Object			pointer;		/* pointer to parse tree */
+		/** type of prefix */			int				type;
+		/** pointer to parse tree */	Object			pointer;
 	};
 
-	private static final int SELECTSUFFIX_SIMPLENAME	= 1;
-	private static final int SELECTSUFFIX_CHAR_LIT		= 2;			/* character */
-	private static class SELECTSUFFIX
+	private static class IndexedName
 	{
-		int				type;			/* type of suffix */
-		Object			pointer;		/* pointer to parse tree */
+		/** prefix */					Prefix			prefix;
+		/** expression list */			ExprList		exprList;
 	};
 
-	private static class INDEXEDNAME
+	private static class ExprList
 	{
-		PREFIX			prefix;		/* prefix */
-		EXPRLIST		expr_list;		/* expression list */
-	};
-
-	private static class EXPRLIST
-	{
-		EXPRESSION		expression;	/* expression */
-		EXPRLIST		next;			/* next in list */
-	};
-
-	private static class SLICENAME
-	{
-		PREFIX			prefix;		/* prefix */
-		DISCRETERANGE	range;			/* discrete range */
+		/** expression */				Expression		expression;
+		/** next in list */				ExprList		next;
 	};
 
 	private static final int DISCRETERANGE_SUBTYPE	= 1;
 	private static final int DISCRETERANGE_RANGE	= 2;
-	private static class DISCRETERANGE
+
+	private static class DiscreteRange
 	{
-		int				type;			/* type of discrete range */
-		Object			pointer;		/* pointer to parse tree */
+		/** type of discrete range */	int				type;
+		/** pointer to parse tree */	Object			pointer;
 	};
 
 	private static final int RANGE_ATTRIBUTE	= 1;
 	private static final int RANGE_SIMPLE_EXPR	= 2;
-	private static class RANGE
+
+	private static class Range
 	{
-		int				type;			/* type of range */
-		Object			pointer;		/* pointer to parse tree */
+		/** type of range */			int				type;
+		/** pointer to parse tree */	Object			pointer;
 	};
 
-	private static class RANGESIMPLE
+	private static class RangeSimple
 	{
-		SIMPLEEXPR		start;			/* start of range */
-		SIMPLEEXPR		end;			/* end of range */
+		/** start of range */			SimpleExpr		start;
+		/** end of range */				SimpleExpr		end;
 	};
 
-	private static class CONCATENATEDNAME
+	private static class ConcatenatedName
 	{
-		SINGLENAME		name;			/* single name */
-		CONCATENATEDNAME next;		/* next in list */
+		/** single name */				SingleName		name;
+		/** next in list */				ConcatenatedName next;
 	};
 
 	/********** Expressions ************************************************/
@@ -760,10 +722,11 @@ public class CompileVHDL
 	private static final int LOGOP_NAND		= 3;
 	private static final int LOGOP_NOR		= 4;
 	private static final int LOGOP_XOR		= 5;
-	private static class EXPRESSION
+
+	private static class Expression
 	{
-		RELATION		relation;		/* first relation */
-		MRELATIONS		next;			/* more relations */
+		/** first relation */			Relation		relation;
+		/** more relations */			MRelations		next;
 	};
 
 	private static final int NORELOP		= 0;
@@ -773,28 +736,30 @@ public class CompileVHDL
 	private static final int RELOP_LE		= 4;
 	private static final int RELOP_GT		= 5;
 	private static final int RELOP_GE		= 6;
-	private static class RELATION
+
+	private static class Relation
 	{
-		SIMPLEEXPR		simple_expr;	/* simple expression */
-		int				rel_operator;	/* possible operator */
-		SIMPLEEXPR		simple_expr2;	/* possible expression */
+		/** simple expression */		SimpleExpr		simpleExpr;
+		/** possible operator */		int				relOperator;
+		/** possible expression */		SimpleExpr		simpleExpr2;
 	};
 
-	private static class MRELATIONS
+	private static class MRelations
 	{
-		int				log_operator;	/* logical operator */
-		RELATION		relation;		/* relation */
-		MRELATIONS		next;			/* more relations */
+		/** logical operator */			int				logOperator;
+		/** relation */					Relation		relation;
+		/** more relations */			MRelations		next;
 	};
 
 	private static final int NOADDOP			= 0;
 	private static final int ADDOP_ADD			= 1;
 	private static final int ADDOP_SUBTRACT		= 2;
-	private static class SIMPLEEXPR
+
+	private static class SimpleExpr
 	{
-		int				sign;			/* sign (1 or  -1) */
-		TERM			term;			/* first term */
-		MTERMS			next;			/* additional terms */
+		/** sign (1 or  -1) */			int				sign;
+		/** first term */				Term			term;
+		/** additional terms */			MTerms			next;
 	};
 
 	private static final int NOMULOP			= 0;
@@ -802,35 +767,37 @@ public class CompileVHDL
 	private static final int MULOP_DIVIDE		= 2;
 	private static final int MULOP_MOD			= 3;
 	private static final int MULOP_REM			= 4;
-	private static class TERM
+
+	private static class Term
 	{
-		FACTOR			factor;		/* first factor */
-		MFACTORS		next;			/* additional factors */
+		/** first factor */				Factor			factor;
+		/** additional factors */		MFactors		next;
 	};
 
-	private static class MTERMS
+	private static class MTerms
 	{
-		int				add_operator;	/* add operator */
-		TERM			term;			/* next term */
-		MTERMS			next;			/* any more terms */
+		/** add operator */				int				addOperator;
+		/** next term */				Term			term;
+		/** any more terms */			MTerms			next;
 	};
 
 	private static final int NOMISCOP			= 0;
 	private static final int MISCOP_POWER		= 1;
 	private static final int MISCOP_ABS			= 2;
 	private static final int MISCOP_NOT			= 3;
-	private static class FACTOR
+
+	private static class Factor
 	{
-		PRIMARY			primary;		/* first primary */
-		int				misc_operator;	/* possible operator */
-		PRIMARY			primary2;		/* possible primary */
+		/** first primary */			Primary			primary;
+		/** possible operator */		int				miscOperator;
+		/** possible primary */			Primary			primary2;
 	};
 
-	private static class MFACTORS
+	private static class MFactors
 	{
-		int				mul_operator;	/* operator */
-		FACTOR			factor;		/* next factor */
-		MFACTORS		next;			/* possible more factors */
+		/** operator */					int				mulOperator;
+		/** next factor */				Factor			factor;
+		/** possible more factors */	MFactors		next;
 	};
 
 	private static final int NOPRIMARY					= 0;
@@ -842,10 +809,11 @@ public class CompileVHDL
 	private static final int PRIMARY_TYPE_CONVERSION	= 6;
 	private static final int PRIMARY_QUALIFIED_EXPR		= 7;
 	private static final int PRIMARY_EXPRESSION			= 8;
-	private static class PRIMARY
+
+	private static class Primary
 	{
-		int				type;			/* type of primary */
-		Object			pointer;		/* pointer to primary */
+		/** type of primary */			int				type;
+		/** pointer to primary */		Object			pointer;
 	};
 
 	private static final int NOLITERAL				= 0;
@@ -853,113 +821,111 @@ public class CompileVHDL
 	private static final int LITERAL_ENUMERATION	= 2;
 	private static final int LITERAL_STRING			= 3;
 	private static final int LITERAL_BIT_STRING		= 4;
-	private static class LITERAL
+
+	private static class Literal
 	{
-		int				type;			/* type of literal */
-		Object			pointer;		/* pointer to parse tree */
+		/** type of literal */			int				type;
+		/** pointer to parse tree */	Object			pointer;
 	};
 
 	/* special codes during VHDL generation */
-	private static final int BLOCKNORMAL   =  0;		/* ordinary block */
-	private static final int BLOCKMOSTRAN  =  1;		/* a MOS transistor */
-	private static final int BLOCKBUFFER   =  2;		/* a buffer */
-	private static final int BLOCKPOSLOGIC =  3;		/* an and, or, xor */
-	private static final int BLOCKINVERTER =  4;		/* an inverter */
-	private static final int BLOCKNAND     =  5;		/* a nand */
-	private static final int BLOCKNOR      =  6;		/* a nor */
-	private static final int BLOCKXNOR     =  7;		/* an xnor */
-	private static final int BLOCKFLOPDS   =  8;		/* a settable D flip-flop */
-	private static final int BLOCKFLOPDR   =  9;		/* a resettable D flip-flop */
-	private static final int BLOCKFLOPTS   = 10;		/* a settable T flip-flop */
-	private static final int BLOCKFLOPTR   = 11;		/* a resettable T flip-flop */
-	private static final int BLOCKFLOP     = 12;		/* a general flip-flop */
-	
-	private static String	vhdl_delimiterstr = "&'()*+,-./:;<=>|";
-	private static String	vhdl_doubledelimiterstr = "=>..**:=/=>=<=<>";
-	
-	private static VKEYWORD [] vhdl_keywords =
+	/** ordinary block */				private static final int BLOCKNORMAL   =  0;
+	/** a MOS transistor */				private static final int BLOCKMOSTRAN  =  1;
+	/** a buffer */						private static final int BLOCKBUFFER   =  2;
+	/** an and, or, xor */				private static final int BLOCKPOSLOGIC =  3;
+	/** an inverter */					private static final int BLOCKINVERTER =  4;
+	/** a nand */						private static final int BLOCKNAND     =  5;
+	/** a nor */						private static final int BLOCKNOR      =  6;
+	/** an xnor */						private static final int BLOCKXNOR     =  7;
+	/** a settable D flip-flop */		private static final int BLOCKFLOPDS   =  8;
+	/** a resettable D flip-flop */		private static final int BLOCKFLOPDR   =  9;
+	/** a settable T flip-flop */		private static final int BLOCKFLOPTS   = 10;
+	/** a resettable T flip-flop */		private static final int BLOCKFLOPTR   = 11;
+	/** a general flip-flop */			private static final int BLOCKFLOP     = 12;
+
+	private static String	delimiterStr = "&'()*+,-./:;<=>|";
+	private static String	doubleDelimiterStr = "=>..**:=/=>=<=<>";
+
+	private static VKeyword [] theKeywords =
 	{
-		new VKEYWORD("abs",				KEY_ABS),
-		new VKEYWORD("after",			KEY_AFTER),
-		new VKEYWORD("alias",			KEY_ALIAS),
-		new VKEYWORD("all",				KEY_ALL),
-		new VKEYWORD("and",				KEY_AND),
-		new VKEYWORD("architecture",	KEY_ARCHITECTURE),
-		new VKEYWORD("array",			KEY_ARRAY),
-		new VKEYWORD("assertion",		KEY_ASSERTION),
-		new VKEYWORD("attribute",		KEY_ATTRIBUTE),
-		new VKEYWORD("begin",			KEY_BEGIN),
-		new VKEYWORD("behavioral",		KEY_BEHAVIORAL),
-		new VKEYWORD("body",			KEY_BODY),
-		new VKEYWORD("case",			KEY_CASE),
-		new VKEYWORD("component",		KEY_COMPONENT),
-		new VKEYWORD("connect",			KEY_CONNECT),
-		new VKEYWORD("constant",		KEY_CONSTANT),
-		new VKEYWORD("convert",			KEY_CONVERT),
-		new VKEYWORD("dot",				KEY_DOT),
-		new VKEYWORD("downto",			KEY_DOWNTO),
-		new VKEYWORD("else",			KEY_ELSE),
-		new VKEYWORD("elsif",			KEY_ELSIF),
-		new VKEYWORD("end",				KEY_END),
-		new VKEYWORD("entity",			KEY_ENTITY),
-		new VKEYWORD("exit",			KEY_EXIT),
-		new VKEYWORD("for",				KEY_FOR),
-		new VKEYWORD("function",		KEY_FUNCTION),
-		new VKEYWORD("generate",		KEY_GENERATE),
-		new VKEYWORD("generic",			KEY_GENERIC),
-		new VKEYWORD("if",				KEY_IF),
-		new VKEYWORD("in",				KEY_IN),
-		new VKEYWORD("inout",			KEY_INOUT),
-		new VKEYWORD("is",				KEY_IS),
-		new VKEYWORD("library",			KEY_LIBRARY),
-		new VKEYWORD("linkage",			KEY_LINKAGE),
-		new VKEYWORD("loop",			KEY_LOOP),
-		new VKEYWORD("map",				KEY_MAP),
-		new VKEYWORD("mod",				KEY_MOD),
-		new VKEYWORD("nand",			KEY_NAND),
-		new VKEYWORD("next",			KEY_NEXT),
-		new VKEYWORD("nor",				KEY_NOR),
-		new VKEYWORD("not",				KEY_NOT),
-		new VKEYWORD("null",			KEY_NULL),
-		new VKEYWORD("of",				KEY_OF),
-		new VKEYWORD("open",			KEY_OPEN),
-		new VKEYWORD("or",				KEY_OR),
-		new VKEYWORD("others",			KEY_OTHERS),
-		new VKEYWORD("out",				KEY_OUT),
-		new VKEYWORD("package",			KEY_PACKAGE),
-		new VKEYWORD("port",			KEY_PORT),
-		new VKEYWORD("range",			KEY_RANGE),
-		new VKEYWORD("record",			KEY_RECORD),
-		new VKEYWORD("rem",				KEY_REM),
-		new VKEYWORD("report",			KEY_REPORT),
-		new VKEYWORD("resolve",			KEY_RESOLVE),
-		new VKEYWORD("return",			KEY_RETURN),
-		new VKEYWORD("severity",		KEY_SEVERITY),
-		new VKEYWORD("signal",			KEY_SIGNAL),
-		new VKEYWORD("standard",		KEY_STANDARD),
-		new VKEYWORD("static",			KEY_STATIC),
-		new VKEYWORD("subtype",			KEY_SUBTYPE),
-		new VKEYWORD("then",			KEY_THEN),
-		new VKEYWORD("to",				KEY_TO),
-		new VKEYWORD("type",			KEY_TYPE),
-		new VKEYWORD("units",			KEY_UNITS),
-		new VKEYWORD("use",				KEY_USE),
-		new VKEYWORD("variable",		KEY_VARIABLE),
-		new VKEYWORD("when",			KEY_WHEN),
-		new VKEYWORD("while",			KEY_WHILE),
-		new VKEYWORD("with",			KEY_WITH),
-		new VKEYWORD("xor",				KEY_XOR)
+		new VKeyword("abs",				KEY_ABS),
+		new VKeyword("after",			KEY_AFTER),
+		new VKeyword("alias",			KEY_ALIAS),
+		new VKeyword("all",				KEY_ALL),
+		new VKeyword("and",				KEY_AND),
+		new VKeyword("architecture",	KEY_ARCHITECTURE),
+		new VKeyword("array",			KEY_ARRAY),
+		new VKeyword("assertion",		KEY_ASSERTION),
+		new VKeyword("attribute",		KEY_ATTRIBUTE),
+		new VKeyword("begin",			KEY_BEGIN),
+		new VKeyword("behavioral",		KEY_BEHAVIORAL),
+		new VKeyword("body",			KEY_BODY),
+		new VKeyword("case",			KEY_CASE),
+		new VKeyword("component",		KEY_COMPONENT),
+		new VKeyword("connect",			KEY_CONNECT),
+		new VKeyword("constant",		KEY_CONSTANT),
+		new VKeyword("convert",			KEY_CONVERT),
+		new VKeyword("dot",				KEY_DOT),
+		new VKeyword("downto",			KEY_DOWNTO),
+		new VKeyword("else",			KEY_ELSE),
+		new VKeyword("elsif",			KEY_ELSIF),
+		new VKeyword("end",				KEY_END),
+		new VKeyword("entity",			KEY_ENTITY),
+		new VKeyword("exit",			KEY_EXIT),
+		new VKeyword("for",				KEY_FOR),
+		new VKeyword("function",		KEY_FUNCTION),
+		new VKeyword("generate",		KEY_GENERATE),
+		new VKeyword("generic",			KEY_GENERIC),
+		new VKeyword("if",				KEY_IF),
+		new VKeyword("in",				KEY_IN),
+		new VKeyword("inout",			KEY_INOUT),
+		new VKeyword("is",				KEY_IS),
+		new VKeyword("library",			KEY_LIBRARY),
+		new VKeyword("linkage",			KEY_LINKAGE),
+		new VKeyword("loop",			KEY_LOOP),
+		new VKeyword("map",				KEY_MAP),
+		new VKeyword("mod",				KEY_MOD),
+		new VKeyword("nand",			KEY_NAND),
+		new VKeyword("next",			KEY_NEXT),
+		new VKeyword("nor",				KEY_NOR),
+		new VKeyword("not",				KEY_NOT),
+		new VKeyword("null",			KEY_NULL),
+		new VKeyword("of",				KEY_OF),
+		new VKeyword("open",			KEY_OPEN),
+		new VKeyword("or",				KEY_OR),
+		new VKeyword("others",			KEY_OTHERS),
+		new VKeyword("out",				KEY_OUT),
+		new VKeyword("package",			KEY_PACKAGE),
+		new VKeyword("port",			KEY_PORT),
+		new VKeyword("range",			KEY_RANGE),
+		new VKeyword("record",			KEY_RECORD),
+		new VKeyword("rem",				KEY_REM),
+		new VKeyword("report",			KEY_REPORT),
+		new VKeyword("resolve",			KEY_RESOLVE),
+		new VKeyword("return",			KEY_RETURN),
+		new VKeyword("severity",		KEY_SEVERITY),
+		new VKeyword("signal",			KEY_SIGNAL),
+		new VKeyword("standard",		KEY_STANDARD),
+		new VKeyword("static",			KEY_STATIC),
+		new VKeyword("subtype",			KEY_SUBTYPE),
+		new VKeyword("then",			KEY_THEN),
+		new VKeyword("to",				KEY_TO),
+		new VKeyword("type",			KEY_TYPE),
+		new VKeyword("units",			KEY_UNITS),
+		new VKeyword("use",				KEY_USE),
+		new VKeyword("variable",		KEY_VARIABLE),
+		new VKeyword("when",			KEY_WHEN),
+		new VKeyword("while",			KEY_WHILE),
+		new VKeyword("with",			KEY_WITH),
+		new VKeyword("xor",				KEY_XOR)
 	};
-	
-	private HashSet vhdl_identtable;
-	private TOKENLIST  vhdl_tliststart;
-	private TOKENLIST  vhdl_tlistend;
-	private boolean      vhdl_externentities;		/* enternal entities flag */
-	private boolean   vhdl_warnflag;			/* warning flag, TRUE warn */
-	private Library    vhdl_lib;				/* behavioral library */
-	private int vhdl_errorcount;
+
+	private HashSet identTable;
+	private TokenList  tListStart;
+	private TokenList  tListEnd;
+	private int errorCount;
 	private boolean hasErrors;
-	private UNRESLIST  vhdl_unresolved_list;
+	private UnResList  unResolvedList;
 
 
 	/**
@@ -976,18 +942,15 @@ public class CompileVHDL
 		}
 
 		// initialize
-		vhdl_externentities = true;
-		vhdl_warnflag = false;
-		vhdl_lib = null;
-		vhdl_unresolved_list = null;
+		unResolvedList = null;
 
-		// build and clear vhdl_identtable
-		vhdl_identtable = new HashSet();
+		// build and clear identTable
+		identTable = new HashSet();
 
-		vhdl_errorcount = 0;
-		vhdl_scanner(strings);
-		if (vhdl_parser(vhdl_tliststart)) return;
-		if (vhdl_semantic()) return;
+		errorCount = 0;
+		doScanner(strings);
+		if (doParser(tListStart)) return;
+		if (doSemantic()) return;
 		hasErrors = false;
 	}
 
@@ -1001,7 +964,7 @@ public class CompileVHDL
 	{
 		// now produce the netlist
 		if (hasErrors) return null;
-		List netlistStrings = vhdl_genquisc();
+		List netlistStrings = genQuisc();
 		return netlistStrings;
 	}
 
@@ -1010,18 +973,18 @@ public class CompileVHDL
 	/**
 	 * Method to do lexical scanning of input VHDL and create token list.
 	 */
-	private void vhdl_scanner(String [] strings)
+	private void doScanner(String [] strings)
 	{
 		String buf = "";
 		int bufPos = 0;
-		int line_num = 0;
+		int lineNum = 0;
 		boolean space = false;
 		for(;;)
 		{
 			if (bufPos >= buf.length())
 			{
-				if (line_num >= strings.length) return;
-				buf = strings[line_num++];
+				if (lineNum >= strings.length) return;
+				buf = strings[lineNum++];
 				bufPos = 0;
 				space = true;
 			} else
@@ -1035,35 +998,23 @@ public class CompileVHDL
 			if (Character.isLetter(c))
 			{
 				// could be identifier (keyword) or bit string literal
-				if (bufPos+1 < buf.length() && buf.charAt(bufPos+1) == '"')
-				{
-					char tchar = Character.toUpperCase(c);
-					if (tchar == 'B')
-					{
-						// EMPTY 
-					} else if (tchar == '0')
-					{
-						// EMPTY 
-					} else if (tchar == 'X')
-					{
-						// EMPTY 
-					}
-				}
 				int end = bufPos;
 				for(; end < buf.length(); end++)
 				{
 					char eChar = buf.charAt(end);
 					if (!Character.isLetterOrDigit(eChar) && eChar != '_') break;
 				}
-	
+
 				// got alphanumeric from c to end - 1
-				VKEYWORD key = vhdl_iskeyword(buf.substring(bufPos, end));
+				VKeyword key = isKeyword(buf.substring(bufPos, end));
 				if (key != null)
 				{
-					vhdl_makekeytoken(key, line_num, space);
+					new TokenList(TOKEN_KEYWORD, key, lineNum, space);
 				} else
 				{
-					vhdl_makeidenttoken(buf.substring(bufPos, end), line_num, space);
+					String ident = buf.substring(bufPos, end);
+					identTable.add(ident);
+					new TokenList(TOKEN_IDENTIFIER, ident, lineNum, space);
 				}
 				bufPos = end;
 			} else if (TextUtils.isDigit(c))
@@ -1075,9 +1026,9 @@ public class CompileVHDL
 					char eChar = buf.charAt(end);
 					if (!TextUtils.isDigit(eChar) && eChar != '_') break;
 				}
-	
+
 				// got numeric from c to end - 1
-				vhdl_makedecimaltoken(buf.substring(bufPos, end), line_num, space);
+				new TokenList(TOKEN_DECIMAL, buf.substring(bufPos, end), lineNum, space);
 				bufPos = end;
 			} else
 			{
@@ -1096,49 +1047,51 @@ public class CompileVHDL
 							end++;
 						}
 						// string from c + 1 to end - 1
-						vhdl_makestrtoken(buf.substring(bufPos + 1, end), line_num, space);
+						String newString = buf.substring(bufPos + 1, end);
+						newString.replaceAll("\"\"", "\"");
+						new TokenList(TOKEN_STRING, newString, lineNum, space);
 						if (buf.charAt(end) == '"') end++;
 						bufPos = end;
 						break;
 					case '&':
-						vhdl_maketoken(TOKEN_AMPERSAND, line_num, space);
+						new TokenList(TOKEN_AMPERSAND, null, lineNum, space);
 						bufPos++;
 						break;
 					case '\'':
 						// character literal
 						if (bufPos+2 < buf.length() && buf.charAt(bufPos+2) == '\'')
 						{
-							vhdl_makechartoken(buf.charAt(bufPos+1), line_num, space);
+							new TokenList(TOKEN_CHAR, new Character(buf.charAt(bufPos+1)), lineNum, space);
 							bufPos += 3;
 						} else
 							bufPos++;
 						break;
 					case '(':
-						vhdl_maketoken(TOKEN_LEFTBRACKET, line_num, space);
+						new TokenList(TOKEN_LEFTBRACKET, null, lineNum, space);
 						bufPos++;
 						break;
 					case ')':
-						vhdl_maketoken(TOKEN_RIGHTBRACKET, line_num, space);
+						new TokenList(TOKEN_RIGHTBRACKET, null, lineNum, space);
 						bufPos++;
 						break;
 					case '*':
 						// could be STAR or DOUBLESTAR
 						if (bufPos+1 < buf.length() && buf.charAt(bufPos+1) == '*')
 						{
-							vhdl_maketoken(TOKEN_DOUBLESTAR, line_num, space);
+							new TokenList(TOKEN_DOUBLESTAR, null, lineNum, space);
 							bufPos += 2;
 						} else
 						{
-							vhdl_maketoken(TOKEN_STAR, line_num, space);
+							new TokenList(TOKEN_STAR, null, lineNum, space);
 							bufPos++;
 						}
 						break;
 					case '+':
-						vhdl_maketoken(TOKEN_PLUS, line_num, space);
+						new TokenList(TOKEN_PLUS, null, lineNum, space);
 						bufPos++;
 						break;
 					case ',':
-						vhdl_maketoken(TOKEN_COMMA, line_num, space);
+						new TokenList(TOKEN_COMMA, null, lineNum, space);
 						bufPos++;
 						break;
 					case '-':
@@ -1149,7 +1102,7 @@ public class CompileVHDL
 						} else
 						{
 							// got a minus sign
-							vhdl_maketoken(TOKEN_MINUS, line_num, space);
+							new TokenList(TOKEN_MINUS, null, lineNum, space);
 							bufPos++;
 						}
 						break;
@@ -1157,11 +1110,11 @@ public class CompileVHDL
 						// could be PERIOD or DOUBLEDOT
 						if (bufPos+1 < buf.length() && buf.charAt(bufPos+1) == '.')
 						{
-							vhdl_maketoken(TOKEN_DOUBLEDOT, line_num, space);
+							new TokenList(TOKEN_DOUBLEDOT, null, lineNum, space);
 							bufPos += 2;
 						} else
 						{
-							vhdl_maketoken(TOKEN_PERIOD, line_num, space);
+							new TokenList(TOKEN_PERIOD, null, lineNum, space);
 							bufPos++;
 						}
 						break;
@@ -1169,11 +1122,11 @@ public class CompileVHDL
 						// could be SLASH or NE
 						if (bufPos+1 < buf.length() && buf.charAt(bufPos+1) == '=')
 						{
-							vhdl_maketoken(TOKEN_NE, line_num, space);
+							new TokenList(TOKEN_NE, null, lineNum, space);
 							bufPos += 2;
 						} else
 						{
-							vhdl_maketoken(TOKEN_SLASH, line_num, space);
+							new TokenList(TOKEN_SLASH, null, lineNum, space);
 							bufPos++;
 						}
 						break;
@@ -1181,16 +1134,16 @@ public class CompileVHDL
 						// could be COLON or VARASSIGN
 						if (bufPos+1 < buf.length() && buf.charAt(bufPos+1) == '=')
 						{
-							vhdl_maketoken(TOKEN_VARASSIGN, line_num, space);
+							new TokenList(TOKEN_VARASSIGN, null, lineNum, space);
 							bufPos += 2;
 						} else
 						{
-							vhdl_maketoken(TOKEN_COLON, line_num, space);
+							new TokenList(TOKEN_COLON, null, lineNum, space);
 							bufPos++;
 						}
 						break;
 					case ';':
-						vhdl_maketoken(TOKEN_SEMICOLON, line_num, space);
+						new TokenList(TOKEN_SEMICOLON, null, lineNum, space);
 						bufPos++;
 						break;
 					case '<':
@@ -1199,29 +1152,29 @@ public class CompileVHDL
 						{
 							if (buf.charAt(bufPos+1) == '=')
 							{
-								vhdl_maketoken(TOKEN_LE, line_num, space);
+								new TokenList(TOKEN_LE, null, lineNum, space);
 								bufPos += 2;
 								break;
 							}
 							if (buf.charAt(bufPos+1) == '>')
 							{
-								vhdl_maketoken(TOKEN_BOX, line_num, space);
+								new TokenList(TOKEN_BOX, null, lineNum, space);
 								bufPos += 2;
 								break;
 							}
 						}
-						vhdl_maketoken(TOKEN_LT, line_num, space);
+						new TokenList(TOKEN_LT, null, lineNum, space);
 						bufPos++;
 						break;
 					case '=':
 						// could be EQUAL or double delimiter ARROW
 						if (bufPos+1 < buf.length() && buf.charAt(bufPos+1) == '>')
 						{
-							vhdl_maketoken(TOKEN_ARROW, line_num, space);
+							new TokenList(TOKEN_ARROW, null, lineNum, space);
 							bufPos += 2;
 						} else
 						{
-							vhdl_maketoken(TOKEN_EQ, line_num, space);
+							new TokenList(TOKEN_EQ, null, lineNum, space);
 							bufPos++;
 						}
 						break;
@@ -1229,188 +1182,24 @@ public class CompileVHDL
 						// could be GT or GE
 						if (bufPos+1 < buf.length() && buf.charAt(bufPos+1) == '=')
 						{
-							vhdl_maketoken(TOKEN_GE, line_num, space);
+							new TokenList(TOKEN_GE, null, lineNum, space);
 							bufPos += 2;
 						} else
 						{
-							vhdl_maketoken(TOKEN_GT, line_num, space);
+							new TokenList(TOKEN_GT, null, lineNum, space);
 							bufPos++;
 						}
 						break;
 					case '|':
-						vhdl_maketoken(TOKEN_VERTICALBAR, line_num, space);
+						new TokenList(TOKEN_VERTICALBAR, null, lineNum, space);
 						bufPos++;
 						break;
 					default:
-						//	AJ	vhdl_makestrtoken(TOKEN_UNKNOWN, c, 1, line_num, space);
-						vhdl_maketoken(TOKEN_UNKNOWN, line_num, space);
+						new TokenList(TOKEN_UNKNOWN, null, lineNum, space);
 						bufPos++;
 						break;
 				}
 			}
-		}
-	}
-
-	/**
-	 * Method to add a token to the token list which has a key reference.
-	 * @param key pointer to keyword in table.
-	 * @param line_num line number of occurence.
-	 * @param space previous space flag.
-	 */
-	private void vhdl_makekeytoken(VKEYWORD key, int line_num, boolean space)
-	{
-		TOKENLIST newtoken = new TOKENLIST();
-		newtoken.token = TOKEN_KEYWORD;
-		newtoken.pointer = key;
-		newtoken.line_num = line_num;
-		newtoken.space = true;
-		newtoken.next = null;
-		newtoken.last = vhdl_tlistend;
-		if (vhdl_tlistend == null)
-		{
-			vhdl_tliststart = vhdl_tlistend = newtoken;
-		} else
-		{
-			vhdl_tlistend.space = space;
-			vhdl_tlistend.next = newtoken;
-			vhdl_tlistend = newtoken;
-		}
-	}
-	
-	/**
-	 * Method to add a identity token to the token list which has a string reference.
-	 * @param newstring start of string.
-	 * @param line_num line number of occurence.
-	 * @param space previous space flag.
-	 */
-	private void vhdl_makeidenttoken(String newstring, int line_num, boolean space)
-	{
-		TOKENLIST newtoken = new TOKENLIST();
-		newtoken.token = TOKEN_IDENTIFIER;
-	
-		// check if ident exits in the global name space
-		vhdl_identtable.add(newstring);
-		newtoken.pointer = newstring;
-		newtoken.line_num = line_num;
-		newtoken.space = true;
-		newtoken.next = null;
-		newtoken.last = vhdl_tlistend;
-		if (vhdl_tlistend == null)
-		{
-			vhdl_tliststart = vhdl_tlistend = newtoken;
-		} else
-		{
-			vhdl_tlistend.space = space;
-			vhdl_tlistend.next = newtoken;
-			vhdl_tlistend = newtoken;
-		}
-	}
-	
-	/**
-	 * Method to add a string token to the token list.
-	 * Note that two adjacent double quotes should be mergered into one.
-	 * @param newstring the string.
-	 * @param line_num line number of occurence.
-	 * @param space previous space flag.
-	 */
-	private void vhdl_makestrtoken(String newstring, int line_num, boolean space)
-	{
-		TOKENLIST newtoken = new TOKENLIST();
-		newtoken.token = TOKEN_STRING;
-	
-		// merge two adjacent double quotes
-		newstring.replaceAll("\"\"", "\"");
-		newtoken.pointer = newstring;
-		newtoken.line_num = line_num;
-		newtoken.space = true;
-		newtoken.next = null;
-		newtoken.last = vhdl_tlistend;
-		if (vhdl_tlistend == null)
-		{
-			vhdl_tliststart = vhdl_tlistend = newtoken;
-		} else
-		{
-			vhdl_tlistend.space = space;
-			vhdl_tlistend.next = newtoken;
-			vhdl_tlistend = newtoken;
-		}
-	}
-	
-	/**
-	 * Method to add a numeric token to the token list which has a string reference.
-	 * @param newstring the string.
-	 * @param line_num line number of occurence.
-	 * @param space previous space flag.
-	 */
-	private void vhdl_makedecimaltoken(String newstring, int line_num, boolean space)
-	{
-		TOKENLIST newtoken = new TOKENLIST();
-		newtoken.token = TOKEN_DECIMAL;
-		newtoken.pointer = newstring;
-		newtoken.line_num = line_num;
-		newtoken.space = true;
-		newtoken.next = null;
-		newtoken.last = vhdl_tlistend;
-		if (vhdl_tlistend == null)
-		{
-			vhdl_tliststart = vhdl_tlistend = newtoken;
-		} else
-		{
-			vhdl_tlistend.space = space;
-			vhdl_tlistend.next = newtoken;
-			vhdl_tlistend = newtoken;
-		}
-	}
-	
-	/**
-	 * Method to add a token to the token list which has no string reference.
-	 * @param token token number.
-	 * @param line_num line number of occurence.
-	 * @param space previous space flag.
-	 */
-	private void vhdl_maketoken(int token, int line_num, boolean space)
-	{
-		TOKENLIST newtoken = new TOKENLIST();
-		newtoken.token = token;
-		newtoken.pointer = null;
-		newtoken.line_num = line_num;
-		newtoken.space = true;
-		newtoken.next = null;
-		newtoken.last = vhdl_tlistend;
-		if (vhdl_tlistend == null)
-		{
-			vhdl_tliststart = vhdl_tlistend = newtoken;
-		} else
-		{
-			vhdl_tlistend.space = space;
-			vhdl_tlistend.next = newtoken;
-			vhdl_tlistend = newtoken;
-		}
-	}
-	
-	/**
-	 * Method to make a character literal token.
-	 * @param c character literal.
-	 * @param line_num number of source line.
-	 * @param space previous space flag.
-	 */
-	private void vhdl_makechartoken(char c, int line_num, boolean space)
-	{
-		TOKENLIST newtoken = new TOKENLIST();
-		newtoken.token = TOKEN_CHAR;
-		newtoken.pointer = new Character(c);
-		newtoken.line_num = line_num;
-		newtoken.space = true;
-		newtoken.next = null;
-		newtoken.last = vhdl_tlistend;
-		if (vhdl_tlistend == null)
-		{
-			vhdl_tliststart = vhdl_tlistend = newtoken;
-		} else
-		{
-			vhdl_tlistend.space = space;
-			vhdl_tlistend.next = newtoken;
-			vhdl_tlistend = newtoken;
 		}
 	}
 
@@ -1419,24 +1208,24 @@ public class CompileVHDL
 	 * @param tstring string to lookup.
 	 * @return entry in keywords table if keyword, else null.
 	 */
-	public static VKEYWORD vhdl_iskeyword(String tstring)
+	public static VKeyword isKeyword(String tString)
 	{
 		int base = 0;
-		int num = vhdl_keywords.length;
-		int aindex = num >> 1;
+		int num = theKeywords.length;
+		int aIndex = num >> 1;
 		while (num != 0)
 		{
-			int check = tstring.compareTo(vhdl_keywords[base + aindex].name);
-			if (check == 0) return vhdl_keywords[base + aindex];
+			int check = tString.compareTo(theKeywords[base + aIndex].name);
+			if (check == 0) return theKeywords[base + aIndex];
 			if (check < 0)
 			{
-				num = aindex;
-				aindex = num >> 1;
+				num = aIndex;
+				aIndex = num >> 1;
 			} else
 			{
-				base += aindex + 1;
-				num -= aindex + 1;
-				aindex = num >> 1;
+				base += aIndex + 1;
+				num -= aIndex + 1;
+				aIndex = num >> 1;
 			}
 		}
 		return null;
@@ -1444,176 +1233,174 @@ public class CompileVHDL
 
 	/******************************** THE VHDL PARSER ********************************/
 
-	private boolean			vhdl_err;
-	private TOKENLIST		vhdl_nexttoken;
-	private PTREE			vhdl_ptree;
+	private boolean			hasError;
+	private TokenList		nextToken;
+	private PTree			pTree;
 
-	private class ParseException extends Exception
-	{
-	}
+	private class ParseException extends Exception {}
 
 	/**
 	 * Method to parse the passed token list using the parse tables.
 	 * Reports on any syntax errors and create the required syntax trees.
 	 * @param tlist list of tokens.
 	 */
-	private boolean vhdl_parser(TOKENLIST tlist)
+	private boolean doParser(TokenList tList)
 	{
-		vhdl_err = false;
-		vhdl_ptree = null;
-		PTREE endunit = null;
-		vhdl_nexttoken = tlist;
+		hasError = false;
+		pTree = null;
+		PTree endunit = null;
+		nextToken = tList;
 		try
 		{
-			while (vhdl_nexttoken != null)
+			while (nextToken != null)
 			{
-				if (vhdl_nexttoken.token == TOKEN_KEYWORD)
+				if (nextToken.token == TOKEN_KEYWORD)
 				{
 					int type = NOUNIT;
-					VKEYWORD vk = (VKEYWORD)vhdl_nexttoken.pointer;
+					VKeyword vk = (VKeyword)nextToken.pointer;
 					Object pointer = null;
 					switch (vk.num)
 					{
 						case KEY_LIBRARY:
-							vhdl_parsetosemicolon();
+							parseToSemicolon();
 							break;
 						case KEY_ENTITY:
 							type = UNIT_INTERFACE;
-							pointer = vhdl_parseinterface();
+							pointer = parseInterface();
 							break;
 						case KEY_ARCHITECTURE:
 							type = UNIT_BODY;
-							pointer = vhdl_parsebody(BODY_ARCHITECTURAL);
+							pointer = parseBody();
 							break;
 						case KEY_PACKAGE:
 							type = UNIT_PACKAGE;
-							pointer = vhdl_parsepackage();
+							pointer = parsePackage();
 							break;
 						case KEY_USE:
 							type = UNIT_USE;
-							pointer = vhdl_parseuse();
+							pointer = parseUse();
 							break;
 						default:
-							vhdl_reporterrormsg(vhdl_nexttoken, "No entry keyword - entity, architectural, behavioral");
-							vhdl_nexttoken = vhdl_nexttoken.next;
+							reportErrorMsg(nextToken, "No entry keyword - entity, architectural, behavioral");
+							nextToken = nextToken.next;
 							break;
 					}
 					if (type != NOUNIT)
 					{
-						PTREE newunit = new PTREE();
-						newunit.type = type;
-						newunit.pointer = pointer;
-						newunit.next = null;
+						PTree newUnit = new PTree();
+						newUnit.type = type;
+						newUnit.pointer = pointer;
+						newUnit.next = null;
 						if (endunit == null)
 						{
-							vhdl_ptree = endunit = newunit;
+							pTree = endunit = newUnit;
 						} else
 						{
-							endunit.next = newunit;
-							endunit = newunit;
+							endunit.next = newUnit;
+							endunit = newUnit;
 						}
 					}
 				} else
 				{
-					vhdl_reporterrormsg(vhdl_nexttoken, "No entry keyword - entity, architectural, behavioral");
-					vhdl_nexttoken = vhdl_nexttoken.next;
+					reportErrorMsg(nextToken, "No entry keyword - entity, architectural, behavioral");
+					nextToken = nextToken.next;
 				}
 			}
 		} catch (ParseException e)
 		{
 		}
-		return vhdl_err;
+		return hasError;
 	}
-	
+
 	/**
 	 * Method to parse an interface description of the form:
 	 *    ENTITY identifier IS PORT (formal_port_list);
 	 *    END [identifier] ;
 	 */
-	private VINTERFACE vhdl_parseinterface()
+	private VInterface parseInterface()
 		throws ParseException
 	{
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// check for entity IDENTIFIER
-		TOKENLIST name = null;
-		if (vhdl_nexttoken.token != TOKEN_IDENTIFIER)
+		TokenList name = null;
+		if (nextToken.token != TOKEN_IDENTIFIER)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting an identifier");
+			reportErrorMsg(nextToken, "Expecting an identifier");
 		} else
 		{
-			name = vhdl_nexttoken;
+			name = nextToken;
 		}
-	
+
 		// check for keyword IS
-		vhdl_getnexttoken();
-		if (!vhdl_keysame(vhdl_nexttoken, KEY_IS))
+		getNextToken();
+		if (!isKeySame(nextToken, KEY_IS))
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword IS");
+			reportErrorMsg(nextToken, "Expecting keyword IS");
 		}
-	
+
 		// check for keyword PORT
-		vhdl_getnexttoken();
-		if (!vhdl_keysame(vhdl_nexttoken, KEY_PORT))
+		getNextToken();
+		if (!isKeySame(nextToken, KEY_PORT))
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword PORT");
+			reportErrorMsg(nextToken, "Expecting keyword PORT");
 		}
-	
+
 		// check for opening bracket of FORMAL_PORT_LIST
-		vhdl_getnexttoken();
-		if (vhdl_nexttoken.token != TOKEN_LEFTBRACKET)
+		getNextToken();
+		if (nextToken.token != TOKEN_LEFTBRACKET)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting a left bracket");
+			reportErrorMsg(nextToken, "Expecting a left bracket");
 		}
-	
+
 		// gather FORMAL_PORT_LIST
-		vhdl_getnexttoken();
-		FPORTLIST ports = vhdl_parseformal_port_list();
+		getNextToken();
+		FPortList ports = parseFormalPortList();
 		if (ports == null)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Interface must have ports");
+			reportErrorMsg(nextToken, "Interface must have ports");
 		}
-	
+
 		// check for closing bracket of FORMAL_PORT_LIST
-		if (vhdl_nexttoken.token != TOKEN_RIGHTBRACKET)
+		if (nextToken.token != TOKEN_RIGHTBRACKET)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting a right bracket");
+			reportErrorMsg(nextToken, "Expecting a right bracket");
 		}
-	
-		vhdl_getnexttoken();
+
+		getNextToken();
 		// check for SEMICOLON
-		if (vhdl_nexttoken.token != TOKEN_SEMICOLON)
+		if (nextToken.token != TOKEN_SEMICOLON)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting a semicolon");
+			reportErrorMsg(nextToken, "Expecting a semicolon");
 		}
-		else vhdl_getnexttoken();
-	
+		else getNextToken();
+
 		// check for keyword END
-		if (!vhdl_keysame(vhdl_nexttoken, KEY_END))
+		if (!isKeySame(nextToken, KEY_END))
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword END");
+			reportErrorMsg(nextToken, "Expecting keyword END");
 		}
-	
+
 		// check for optional entity IDENTIFIER
-		vhdl_getnexttoken();
-		if (vhdl_nexttoken.token == TOKEN_IDENTIFIER)
+		getNextToken();
+		if (nextToken.token == TOKEN_IDENTIFIER)
 		{
-			if (!vhdl_nexttoken.pointer.equals(name.pointer))
+			if (!nextToken.pointer.equals(name.pointer))
 			{
-				vhdl_reporterrormsg(vhdl_nexttoken, "Unmatched entity identifier names");
+				reportErrorMsg(nextToken, "Unmatched entity identifier names");
 			}
-			vhdl_getnexttoken();
+			getNextToken();
 		}
-	
+
 		// check for closing SEMICOLON
-		if (vhdl_nexttoken.token != TOKEN_SEMICOLON)
+		if (nextToken.token != TOKEN_SEMICOLON)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting a semicolon");
+			reportErrorMsg(nextToken, "Expecting a semicolon");
 		}
-		vhdl_nexttoken = vhdl_nexttoken.next;
-	
+		nextToken = nextToken.next;
+
 		// allocate an entity parse tree
-		VINTERFACE interfacef = new VINTERFACE();
+		VInterface interfacef = new VInterface();
 		interfacef.name = name;
 		interfacef.ports = ports;
 		interfacef.interfacef = null;
@@ -1627,101 +1414,87 @@ public class CompileVHDL
 	 *    BEGIN
 	 *      set_of_statements
 	 *    END [identifier] ;
-	 * @param vclass body class (ARCHITECTURAL or BEHAVIORAL).
 	 * @return the created body structure.
 	 */
-	private BODY vhdl_parsebody(int vclass)
+	private Body parseBody()
 		throws ParseException
 	{
-		vhdl_getnexttoken();
-	
-		// next is body_name (identifier)
-		TOKENLIST body_name = null;
-		if (vhdl_nexttoken.token != TOKEN_IDENTIFIER)
+		getNextToken();
+
+		// next is bodyName (identifier)
+		TokenList bodyName = null;
+		if (nextToken.token != TOKEN_IDENTIFIER)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting an identifier");
+			reportErrorMsg(nextToken, "Expecting an identifier");
 		} else
 		{
-			body_name = vhdl_nexttoken;
+			bodyName = nextToken;
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// check for keyword OF
-		if (!vhdl_keysame(vhdl_nexttoken, KEY_OF))
+		if (!isKeySame(nextToken, KEY_OF))
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword OF");
+			reportErrorMsg(nextToken, "Expecting keyword OF");
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// next is design entity reference for this body (simple_name)
-		SIMPLENAME entity_name = vhdl_parsesimplename();
-		if (entity_name == null)
-		{
-			// EMPTY 
-		}
-	
+		SimpleName entityName = parseSimpleName();
+
 		// check for keyword IS
-		if (!vhdl_keysame(vhdl_nexttoken, KEY_IS))
+		if (!isKeySame(nextToken, KEY_IS))
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword IS");
+			reportErrorMsg(nextToken, "Expecting keyword IS");
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// body declaration part
-		BODYDECLARE body_declare = vhdl_parsebody_declare();
-		if (body_declare == null)
-		{
-			// EMPTY 
-		}
-	
+		BodyDeclare bodyDeclare = parseBodyDeclare();
+
 		// should be at keyword BEGIN
-		if (!vhdl_keysame(vhdl_nexttoken, KEY_BEGIN))
+		if (!isKeySame(nextToken, KEY_BEGIN))
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword BEGIN");
+			reportErrorMsg(nextToken, "Expecting keyword BEGIN");
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// statements of body
-		STATEMENTS statements = vhdl_parseset_of_statements();
-		if (statements == null)
-		{
-			// EMPTY 
-		}
-	
+		Statements statements = parseSetOfStatements();
+
 		// should be at keyword END
-		if (!vhdl_keysame(vhdl_nexttoken, KEY_END))
+		if (!isKeySame(nextToken, KEY_END))
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword END");
+			reportErrorMsg(nextToken, "Expecting keyword END");
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// optional body name
-		if (vhdl_nexttoken.token == TOKEN_IDENTIFIER)
+		if (nextToken.token == TOKEN_IDENTIFIER)
 		{
-			if (!vhdl_nexttoken.pointer.equals(body_name.pointer))
+			if (!nextToken.pointer.equals(bodyName.pointer))
 			{
-				vhdl_reporterrormsg(vhdl_nexttoken, "Body name mismatch");
+				reportErrorMsg(nextToken, "Body name mismatch");
 			}
-			vhdl_getnexttoken();
+			getNextToken();
 		}
-	
+
 		// should be at final semicolon
-		if (vhdl_nexttoken.token != TOKEN_SEMICOLON)
+		if (nextToken.token != TOKEN_SEMICOLON)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting a semicolon");
+			reportErrorMsg(nextToken, "Expecting a semicolon");
 		}
-		vhdl_nexttoken = vhdl_nexttoken.next;
-	
+		nextToken = nextToken.next;
+
 		// create body parse tree
-		BODY body = new BODY();
-		body.classnew = vclass;
-		body.name = body_name;
-		body.entity = entity_name;
-		body.body_declare = body_declare;
+		Body body = new Body();
+		body.name = bodyName;
+		body.entity = entityName;
+		body.bodyDeclare = bodyDeclare;
 		body.statements = statements;
 		return body;
 	}
-	
+
 	/**
 	 * Method to parse a package declaration.
 	 * It has the form:
@@ -1730,80 +1503,80 @@ public class CompileVHDL
 	 *    END [simple_name] ;
 	 * @return the package declaration.
 	 */
-	private PACKAGE vhdl_parsepackage()
+	private Package parsePackage()
 		throws ParseException
 	{
-		PACKAGE vpackage = null;
-	
+		Package vPackage = null;
+
 		// should be at keyword package
-		if (!vhdl_keysame(vhdl_nexttoken, KEY_PACKAGE))
+		if (!isKeySame(nextToken, KEY_PACKAGE))
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword PACKAGE");
-			vhdl_getnexttoken();
-			return vpackage;
+			reportErrorMsg(nextToken, "Expecting keyword PACKAGE");
+			getNextToken();
+			return vPackage;
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// should be package identifier
-		if (vhdl_nexttoken.token != TOKEN_IDENTIFIER)
+		if (nextToken.token != TOKEN_IDENTIFIER)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting an identifier");
-			vhdl_getnexttoken();
-			return vpackage;
+			reportErrorMsg(nextToken, "Expecting an identifier");
+			getNextToken();
+			return vPackage;
 		}
-		TOKENLIST identifier = vhdl_nexttoken;
-		vhdl_getnexttoken();
-	
+		TokenList identifier = nextToken;
+		getNextToken();
+
 		// should be at keyword IS
-		if (!vhdl_keysame(vhdl_nexttoken, KEY_IS))
+		if (!isKeySame(nextToken, KEY_IS))
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword IS");
-			vhdl_getnexttoken();
-			return vpackage;
+			reportErrorMsg(nextToken, "Expecting keyword IS");
+			getNextToken();
+			return vPackage;
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// package declarative part
-		PACKAGEDPART declare_part = vhdl_parsepackage_declare_part();
-	
+		PackagedPart declarePart = parsePackageDeclarePart();
+
 		// should be at keyword END
-		if (!vhdl_keysame(vhdl_nexttoken, KEY_END))
+		if (!isKeySame(nextToken, KEY_END))
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword END");
-			vhdl_getnexttoken();
-			return vpackage;
+			reportErrorMsg(nextToken, "Expecting keyword END");
+			getNextToken();
+			return vPackage;
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// check for optional end identifier
-		if (vhdl_nexttoken.token == TOKEN_IDENTIFIER)
+		if (nextToken.token == TOKEN_IDENTIFIER)
 		{
-			if (!vhdl_nexttoken.pointer.equals(identifier.pointer))
+			if (!nextToken.pointer.equals(identifier.pointer))
 			{
-				vhdl_reporterrormsg(vhdl_nexttoken, "Name mismatch");
-				vhdl_getnexttoken();
-				return vpackage;
+				reportErrorMsg(nextToken, "Name mismatch");
+				getNextToken();
+				return vPackage;
 			}
-			vhdl_getnexttoken();
+			getNextToken();
 		}
-	
+
 		// should be at semicolon
-		if (vhdl_nexttoken.token != TOKEN_SEMICOLON)
+		if (nextToken.token != TOKEN_SEMICOLON)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting a semicolon");
-			vhdl_getnexttoken();
-			return vpackage;
+			reportErrorMsg(nextToken, "Expecting a semicolon");
+			getNextToken();
+			return vPackage;
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// create package structure
-		vpackage = new PACKAGE();
-		vpackage.name = identifier;
-		vpackage.declare = declare_part;
-	
-		return vpackage;
+		vPackage = new Package();
+		vPackage.name = identifier;
+		vPackage.declare = declarePart;
+
+		return vPackage;
 	}
-	
+
 	/**
 	 * Method to parse a use clause.
 	 * It has the form:
@@ -1811,89 +1584,89 @@ public class CompileVHDL
 	 *    unit ::= package_name.ALL
 	 * @return the use clause structure.
 	 */
-	private USE vhdl_parseuse()
+	private Use parseUse()
 		throws ParseException
 	{
-		USE use = null;
-	
+		Use use = null;
+
 		// should be at keyword USE
-		if (!vhdl_keysame(vhdl_nexttoken, KEY_USE))
+		if (!isKeySame(nextToken, KEY_USE))
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword USE");
-			vhdl_getnexttoken();
+			reportErrorMsg(nextToken, "Expecting keyword USE");
+			getNextToken();
 			return use;
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// must be at least one unit
-		if (vhdl_nexttoken.token != TOKEN_IDENTIFIER)
+		if (nextToken.token != TOKEN_IDENTIFIER)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Bad unit name for use clause");
-			vhdl_getnexttoken();
+			reportErrorMsg(nextToken, "Bad unit name for use clause");
+			getNextToken();
 			return use;
 		}
-		use = new USE();
-		use.unit = vhdl_nexttoken;
+		use = new Use();
+		use.unit = nextToken;
 		use.next = null;
-		USE enduse = use;
-		vhdl_getnexttoken();
+		Use endUse = use;
+		getNextToken();
 
 		// IEEE version uses form unit.ALL only
 		for(;;)
 		{
-			if (vhdl_nexttoken.token != TOKEN_PERIOD)
+			if (nextToken.token != TOKEN_PERIOD)
 			{
-				vhdl_reporterrormsg(vhdl_nexttoken, "Expecting period");
+				reportErrorMsg(nextToken, "Expecting period");
 				break;
 			}
-			vhdl_getnexttoken();
-	
-			if (vhdl_keysame(vhdl_nexttoken, KEY_ALL))
+			getNextToken();
+
+			if (isKeySame(nextToken, KEY_ALL))
 			{
-				vhdl_getnexttoken();
+				getNextToken();
 				break;
 			}
-			if (vhdl_nexttoken.token != TOKEN_IDENTIFIER)
+			if (nextToken.token != TOKEN_IDENTIFIER)
 			{
-				vhdl_reporterrormsg(vhdl_nexttoken, "Bad unit name for use clause");
+				reportErrorMsg(nextToken, "Bad unit name for use clause");
 				break;
 			}
-			vhdl_getnexttoken();
+			getNextToken();
 		}
-	
-		while (vhdl_nexttoken.token == TOKEN_COMMA)
+
+		while (nextToken.token == TOKEN_COMMA)
 		{
-			vhdl_getnexttoken();
-			if (vhdl_nexttoken.token != TOKEN_IDENTIFIER)
+			getNextToken();
+			if (nextToken.token != TOKEN_IDENTIFIER)
 			{
-				vhdl_reporterrormsg(vhdl_nexttoken, "Bad unit name for use clause");
-				vhdl_getnexttoken();
+				reportErrorMsg(nextToken, "Bad unit name for use clause");
+				getNextToken();
 				return use;
 			}
-			USE newuse = new USE();
-			newuse.unit = vhdl_nexttoken;
-			newuse.next = null;
-			enduse.next = newuse;
-			enduse = newuse;
-			vhdl_getnexttoken();
+			Use newUse = new Use();
+			newUse.unit = nextToken;
+			newUse.next = null;
+			endUse.next = newUse;
+			endUse = newUse;
+			getNextToken();
 
 			// IEEE version uses form unit.ALL only
-			if (vhdl_nexttoken.token == TOKEN_PERIOD)
-				vhdl_getnexttoken();
-			else vhdl_reporterrormsg(vhdl_nexttoken, "Expecting period");
-	
-			if (vhdl_keysame(vhdl_nexttoken, KEY_ALL))
-				vhdl_getnexttoken();
-			else vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword ALL");
+			if (nextToken.token == TOKEN_PERIOD)
+				getNextToken();
+			else reportErrorMsg(nextToken, "Expecting period");
+
+			if (isKeySame(nextToken, KEY_ALL))
+				getNextToken();
+			else reportErrorMsg(nextToken, "Expecting keyword ALL");
 		}
-	
+
 		// should be at semicolon
-		if (vhdl_nexttoken.token != TOKEN_SEMICOLON)
+		if (nextToken.token != TOKEN_SEMICOLON)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting a semicolon");
+			reportErrorMsg(nextToken, "Expecting a semicolon");
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		return use;
 	}
 
@@ -1905,34 +1678,34 @@ public class CompileVHDL
 	 * Note:  Currently only support basic declarations.
 	 * @return the package declarative part.
 	 */
-	private PACKAGEDPART vhdl_parsepackage_declare_part()
+	private PackagedPart parsePackageDeclarePart()
 		throws ParseException
 	{
-		PACKAGEDPART dpart = null;
-	
+		PackagedPart dPart = null;
+
 		// should be at least one
-		if (vhdl_keysame(vhdl_nexttoken, KEY_END))
+		if (isKeySame(nextToken, KEY_END))
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "No Package declarative part");
-			return dpart;
+			reportErrorMsg(nextToken, "No Package declarative part");
+			return dPart;
 		}
-		BASICDECLARE ditem = vhdl_parsebasic_declare();
-		dpart = new PACKAGEDPART();
-		dpart.item = ditem;
-		dpart.next = null;
-		PACKAGEDPART endpart = dpart;
-	
-		while (!vhdl_keysame(vhdl_nexttoken, KEY_END))
+		BasicDeclare dItem = parseBasicDeclare();
+		dPart = new PackagedPart();
+		dPart.item = dItem;
+		dPart.next = null;
+		PackagedPart endPart = dPart;
+
+		while (!isKeySame(nextToken, KEY_END))
 		{
-			ditem = vhdl_parsebasic_declare();
-			PACKAGEDPART newpart = new PACKAGEDPART();
-			newpart.item = ditem;
+			dItem = parseBasicDeclare();
+			PackagedPart newpart = new PackagedPart();
+			newpart.item = dItem;
 			newpart.next = null;
-			endpart.next = newpart;
-			endpart = newpart;
+			endPart.next = newpart;
+			endPart = newpart;
 		}
-	
-		return dpart;
+
+		return dPart;
 	}
 
 	/**
@@ -1942,92 +1715,88 @@ public class CompileVHDL
 	 *    architectural_statement :== generate_statement | signal_assignment_statement | architectural_if_statement | architectural_case_statement | component_instantiation_statement | null_statement
 	 * @return the statements parse tree.
 	 */
-	private STATEMENTS vhdl_parseset_of_statements()
+	private Statements parseSetOfStatements()
 		throws ParseException
 	{
-		STATEMENTS statements = null;
-		STATEMENTS endstate = null;
-		while (!vhdl_keysame(vhdl_nexttoken, KEY_END))
+		Statements statements = null;
+		Statements endState = null;
+		while (!isKeySame(nextToken, KEY_END))
 		{
 			int type = NOARCHSTATE;
 			Object pointer = null;
-	
+
 			// check for case statement
-			if (vhdl_keysame(vhdl_nexttoken, KEY_CASE))
+			if (isKeySame(nextToken, KEY_CASE))
 			{
-				// EMPTY 
+				// EMPTY
 			}
-	
+
 			// check for null statement
-			else if (vhdl_keysame(vhdl_nexttoken, KEY_NULL))
+			else if (isKeySame(nextToken, KEY_NULL))
 			{
 				type = ARCHSTATE_NULL;
 				pointer = null;
-				vhdl_getnexttoken();
+				getNextToken();
+
 				// should be a semicolon
-				if (vhdl_nexttoken.token != TOKEN_SEMICOLON)
+				if (nextToken.token != TOKEN_SEMICOLON)
 				{
-					vhdl_reporterrormsg(vhdl_nexttoken, "Expecting a semicolon");
+					reportErrorMsg(nextToken, "Expecting a semicolon");
 				}
-				vhdl_getnexttoken();
+				getNextToken();
 			}
-	
+
 			// check for label
-			else if (vhdl_nexttoken.token == TOKEN_IDENTIFIER && vhdl_nexttoken.next != null &&
-				vhdl_nexttoken.next.token == TOKEN_COLON)
+			else if (nextToken.token == TOKEN_IDENTIFIER && nextToken.next != null &&
+					nextToken.next.token == TOKEN_COLON)
 			{
-				TOKENLIST label = vhdl_nexttoken;
-				vhdl_getnexttoken();
-				vhdl_getnexttoken();
+				TokenList label = nextToken;
+				getNextToken();
+				getNextToken();
+
 				// check for generate statement
-				if (vhdl_keysame(vhdl_nexttoken, KEY_IF))
+				if (isKeySame(nextToken, KEY_IF))
 				{
 					type = ARCHSTATE_GENERATE;
-					pointer = vhdl_parsegenerate(label, GENSCHEME_IF);
+					pointer = parseGenerate(label, GENSCHEME_IF);
 				}
-				else if (vhdl_keysame(vhdl_nexttoken, KEY_FOR))
+				else if (isKeySame(nextToken, KEY_FOR))
 				{
 					type = ARCHSTATE_GENERATE;
-					pointer = vhdl_parsegenerate(label, GENSCHEME_FOR);
+					pointer = parseGenerate(label, GENSCHEME_FOR);
 				}
 				// should be component_instantiation_declaration
 				else
 				{
-					vhdl_nexttoken = label;
+					nextToken = label;
 					type = ARCHSTATE_INSTANCE;
-					pointer = vhdl_parseinstance();
+					pointer = parseInstance();
 				}
 			}
-	
-			// should have signal assignment
-			else
-			{
-				// EMPTY 
-			}
-	
+
 			// add statement if found
 			if (type != NOARCHSTATE)
 			{
-				STATEMENTS newstate = new STATEMENTS();
-				newstate.type = type;
-				newstate.pointer = pointer;
-				newstate.next = null;
-				if (endstate == null)
+				Statements newState = new Statements();
+				newState.type = type;
+				newState.pointer = pointer;
+				newState.next = null;
+				if (endState == null)
 				{
-					statements = endstate = newstate;
+					statements = endState = newState;
 				} else
 				{
-					endstate.next = newstate;
-					endstate = newstate;
+					endState.next = newState;
+					endState = newState;
 				}
 			} else
 			{
-				vhdl_reporterrormsg(vhdl_nexttoken, "Invalid ARCHITECTURAL statement");
-				vhdl_nexttoken = vhdl_nexttoken.next;
+				reportErrorMsg(nextToken, "Invalid ARCHITECTURAL statement");
+				nextToken = nextToken.next;
 				break;
 			}
 		}
-	
+
 		return statements;
 	}
 
@@ -2037,66 +1806,66 @@ public class CompileVHDL
 	 *    component_instantiation_statement :== label : simple_name PORT MAP(actual_port_list);
 	 * @return the instance parse tree.
 	 */
-	private VINSTANCE vhdl_parseinstance()
+	private VInstance parseInstance()
 		throws ParseException
 	{
-		VINSTANCE inst = null;
-	
+		VInstance inst = null;
+
 		// check for identifier
-		if (vhdl_nexttoken.token != TOKEN_IDENTIFIER)
+		if (nextToken.token != TOKEN_IDENTIFIER)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting an identifier");
-			vhdl_getnexttoken();
+			reportErrorMsg(nextToken, "Expecting an identifier");
+			getNextToken();
 			return inst;
 		}
-		TOKENLIST name = vhdl_nexttoken;
-		vhdl_getnexttoken();
-	
+		TokenList name = nextToken;
+		getNextToken();
+
 		// if colon, previous token was the label
-		if (vhdl_nexttoken.token == TOKEN_COLON)
+		if (nextToken.token == TOKEN_COLON)
 		{
-			vhdl_getnexttoken();
+			getNextToken();
 		} else
 		{
-			vhdl_nexttoken = name;
+			nextToken = name;
 			name = null;
 		}
-	
+
 		// should be at component reference
-		SIMPLENAME entity = vhdl_parsesimplename();
-	
+		SimpleName entity = parseSimpleName();
+
 		// Require PORT MAP
-		if (vhdl_keysame(vhdl_nexttoken, KEY_PORT))
-		   vhdl_getnexttoken();
-		else vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword PORT");
-	
-		if (vhdl_keysame(vhdl_nexttoken, KEY_MAP))
-		   vhdl_getnexttoken();
-		else vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword MAP");
-	
+		if (isKeySame(nextToken, KEY_PORT))
+			getNextToken();
+		else reportErrorMsg(nextToken, "Expecting keyword PORT");
+
+		if (isKeySame(nextToken, KEY_MAP))
+			getNextToken();
+		else reportErrorMsg(nextToken, "Expecting keyword MAP");
+
 		// should be at left bracket
-		if (vhdl_nexttoken.token != TOKEN_LEFTBRACKET)
+		if (nextToken.token != TOKEN_LEFTBRACKET)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting a left bracket");
+			reportErrorMsg(nextToken, "Expecting a left bracket");
 		}
-		vhdl_getnexttoken();
-		APORTLIST ports = vhdl_parseactual_port_list();
-	
+		getNextToken();
+		APortList ports = parseActualPortList();
+
 		// should be at right bracket
-		if (vhdl_nexttoken.token != TOKEN_RIGHTBRACKET)
+		if (nextToken.token != TOKEN_RIGHTBRACKET)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting a right bracket");
+			reportErrorMsg(nextToken, "Expecting a right bracket");
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// should be at semicolon
-		if (vhdl_nexttoken.token != TOKEN_SEMICOLON)
+		if (nextToken.token != TOKEN_SEMICOLON)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting a semicolon");
+			reportErrorMsg(nextToken, "Expecting a semicolon");
 		}
-		vhdl_getnexttoken();
-	
-		inst = new VINSTANCE();
+		getNextToken();
+
+		inst = new VInstance();
 		inst.name = name;
 		inst.entity = entity;
 		inst.ports = ports;
@@ -2110,65 +1879,63 @@ public class CompileVHDL
 	 *    port_association ::= name | OPEN
 	 * @return the actual port list structure.
 	 */
-	private APORTLIST vhdl_parseactual_port_list()
+	private APortList parseActualPortList()
 		throws ParseException
 	{
-		APORTLIST lastport = null;
-	
+		APortList lastPort = null;
+
 		// should be at least one port association
-		APORTLIST aplist = new APORTLIST();
-		aplist.type = APORTLIST_NAME;
-		if (vhdl_nexttoken.token != TOKEN_COMMA &&
-			vhdl_nexttoken.token != TOKEN_RIGHTBRACKET)
+		APortList apList = new APortList();
+		apList.type = APORTLIST_NAME;
+		if (nextToken.token != TOKEN_COMMA && nextToken.token != TOKEN_RIGHTBRACKET)
 		{
-			if (vhdl_keysame(vhdl_nexttoken, KEY_OPEN))
+			if (isKeySame(nextToken, KEY_OPEN))
 			{
-				aplist.pointer = null;
-				vhdl_getnexttoken();
+				apList.pointer = null;
+				getNextToken();
 			} else
 			{
-				aplist.pointer = vhdl_parsename();
-				if (vhdl_nexttoken.token == TOKEN_ARROW)
+				apList.pointer = parseName();
+				if (nextToken.token == TOKEN_ARROW)
 				{
-					vhdl_getnexttoken();
-					aplist.pointer = vhdl_parsename();
+					getNextToken();
+					apList.pointer = parseName();
 				}
 			}
-	
+
 		}
-		else vhdl_reporterrormsg(vhdl_nexttoken, "No identifier in port list");
-	
-		aplist.next = null;
-		lastport = aplist;
-		while (vhdl_nexttoken.token == TOKEN_COMMA)
+		else reportErrorMsg(nextToken, "No identifier in port list");
+
+		apList.next = null;
+		lastPort = apList;
+		while (nextToken.token == TOKEN_COMMA)
 		{
-			vhdl_getnexttoken();
-			APORTLIST newport = new APORTLIST();
-			newport.type = APORTLIST_NAME;
-			if (vhdl_nexttoken.token != TOKEN_COMMA &&
-				vhdl_nexttoken.token != TOKEN_RIGHTBRACKET)
+			getNextToken();
+			APortList newPort = new APortList();
+			newPort.type = APORTLIST_NAME;
+			if (nextToken.token != TOKEN_COMMA && nextToken.token != TOKEN_RIGHTBRACKET)
 			{
-				if (vhdl_keysame(vhdl_nexttoken, KEY_OPEN))
+				if (isKeySame(nextToken, KEY_OPEN))
 				{
-					newport.pointer = null;
-					vhdl_getnexttoken();
+					newPort.pointer = null;
+					getNextToken();
 				} else
 				{
-					newport.pointer = vhdl_parsename();
-					if (vhdl_nexttoken.token == TOKEN_ARROW)
+					newPort.pointer = parseName();
+					if (nextToken.token == TOKEN_ARROW)
 					{
-						vhdl_getnexttoken();
-						newport.pointer = vhdl_parsename();
+						getNextToken();
+						newPort.pointer = parseName();
 					}
 				}
 			}
-			else vhdl_reporterrormsg(vhdl_nexttoken, "No identifier in port list");
-	
-			newport.next = null;
-			lastport.next = newport;
-			lastport = newport;
+			else reportErrorMsg(nextToken, "No identifier in port list");
+
+			newPort.next = null;
+			lastPort.next = newPort;
+			lastPort = newPort;
 		}
-		return aplist;
+		return apList;
 	}
 
 	/**
@@ -2178,31 +1945,31 @@ public class CompileVHDL
 	 *    generate_scheme ::= FOR generate_parameter_specification | IF condition
 	 *    generate_parameter_specification ::= identifier IN discrete_range
 	 * @param label pointer to optional label.
-	 * @param gscheme generate scheme (FOR or IF).
+	 * @param gScheme generate scheme (FOR or IF).
 	 * @return generate statement structure.
 	 */
-	private GENERATE vhdl_parsegenerate(TOKENLIST label, int gscheme)
+	private Generate parseGenerate(TokenList label, int gScheme)
 		throws ParseException
 	{
-		GENERATE gen = null;
-	
-		if (gscheme == GENSCHEME_FOR)
+		Generate gen = null;
+
+		if (gScheme == GENSCHEME_FOR)
 		{
 			// should be past label and at keyword FOR
-			if (!vhdl_keysame(vhdl_nexttoken, KEY_FOR))
+			if (!isKeySame(nextToken, KEY_FOR))
 			{
-				vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword FOR");
+				reportErrorMsg(nextToken, "Expecting keyword FOR");
 			}
 		} else
 		{
 			// should be past label and at keyword IF
-			if (!vhdl_keysame(vhdl_nexttoken, KEY_IF))
+			if (!isKeySame(nextToken, KEY_IF))
 			{
-				vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword IF");
+				reportErrorMsg(nextToken, "Expecting keyword IF");
 			}
 		}
-		GENSCHEME scheme = new GENSCHEME();
-		if (gscheme == GENSCHEME_FOR)
+		GenScheme scheme = new GenScheme();
+		if (gScheme == GENSCHEME_FOR)
 		{
 			scheme.scheme = GENSCHEME_FOR;
 		} else
@@ -2212,87 +1979,87 @@ public class CompileVHDL
 		scheme.identifier = null;
 		scheme.range = null;
 		scheme.condition = null;		// for IF scheme only
-		vhdl_getnexttoken();
-	
-		if (gscheme == GENSCHEME_FOR)
+		getNextToken();
+
+		if (gScheme == GENSCHEME_FOR)
 		{
 			// should be generate parameter specification
-			if (vhdl_nexttoken.token != TOKEN_IDENTIFIER)
+			if (nextToken.token != TOKEN_IDENTIFIER)
 			{
-				vhdl_reporterrormsg(vhdl_nexttoken, "Expecting an identifier");
+				reportErrorMsg(nextToken, "Expecting an identifier");
 			} else
 			{
-				scheme.identifier = vhdl_nexttoken;
+				scheme.identifier = nextToken;
 			}
-			vhdl_getnexttoken();
-	
+			getNextToken();
+
 			// should be keyword IN
-			if (!vhdl_keysame(vhdl_nexttoken, KEY_IN))
+			if (!isKeySame(nextToken, KEY_IN))
 			{
-				vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword IN");
+				reportErrorMsg(nextToken, "Expecting keyword IN");
 			}
-			vhdl_getnexttoken();
-	
+			getNextToken();
+
 			// should be discrete range
-			scheme.range = vhdl_parsediscrete_range();
+			scheme.range = parseDiscreteRange();
 		} else
 		{
-			scheme.condition = vhdl_parseexpression();
+			scheme.condition = parseExpression();
 		}
-	
+
 		// should be keyword GENERATE
-		if (!vhdl_keysame(vhdl_nexttoken, KEY_GENERATE))
+		if (!isKeySame(nextToken, KEY_GENERATE))
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword GENERATE");
+			reportErrorMsg(nextToken, "Expecting keyword GENERATE");
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// set of statements
-		STATEMENTS states = vhdl_parseset_of_statements();
-	
+		Statements states = parseSetOfStatements();
+
 		// should be at keyword END
-		if (!vhdl_keysame(vhdl_nexttoken, KEY_END))
+		if (!isKeySame(nextToken, KEY_END))
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword END");
+			reportErrorMsg(nextToken, "Expecting keyword END");
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// should be at keyword GENERATE
-		if (!vhdl_keysame(vhdl_nexttoken, KEY_GENERATE))
+		if (!isKeySame(nextToken, KEY_GENERATE))
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword GENERATE");
+			reportErrorMsg(nextToken, "Expecting keyword GENERATE");
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// check if label should be present
 		if (label != null)
 		{
 			/* For correct IEEE syntax, label is always true, but trailing
 			 * label is optional.
 			 */
-			if (vhdl_nexttoken.token == TOKEN_IDENTIFIER)
+			if (nextToken.token == TOKEN_IDENTIFIER)
 			{
-				if (!label.pointer.equals(vhdl_nexttoken.pointer))
-					vhdl_reporterrormsg(vhdl_nexttoken, "Label mismatch");
-				vhdl_getnexttoken();
+				if (!label.pointer.equals(nextToken.pointer))
+					reportErrorMsg(nextToken, "Label mismatch");
+				getNextToken();
 			}
 		}
-	
+
 		// should be at semicolon
-		if (vhdl_nexttoken.token != TOKEN_SEMICOLON)
+		if (nextToken.token != TOKEN_SEMICOLON)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting a semicolon");
+			reportErrorMsg(nextToken, "Expecting a semicolon");
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// create generate statement structure
-		gen = new GENERATE();
+		gen = new Generate();
 		gen.label = label;
-		gen.gen_scheme = scheme;
+		gen.genScheme = scheme;
 		gen.statements = states;
 		return gen;
 	}
-	
+
 	/**
 	 * Method to parse the body declaration and return pointer to the parse tree.
 	 * The format is:
@@ -2300,60 +2067,52 @@ public class CompileVHDL
 	 *    body_delaration_item :== basic_declaration | component_declaration | resolution_mechanism_declaration | local_function_declaration
 	 * @return the parse tree, null if parsing error encountered.
 	 */
-	private BODYDECLARE vhdl_parsebody_declare()
+	private BodyDeclare parseBodyDeclare()
 		throws ParseException
 	{
-		BODYDECLARE body =null;
-		BODYDECLARE endbody = null;
+		BodyDeclare body =null;
+		BodyDeclare endBody = null;
 		Object pointer = null;
 		int type = 0;
-		while (!vhdl_keysame(vhdl_nexttoken, KEY_BEGIN))
+		while (!isKeySame(nextToken, KEY_BEGIN))
 		{
 			// check for component declaration
-			if (vhdl_keysame(vhdl_nexttoken, KEY_COMPONENT))
+			if (isKeySame(nextToken, KEY_COMPONENT))
 			{
 				type = BODYDECLARE_COMPONENT;
-				pointer = vhdl_parsecomponent();
-				if (pointer == null)
-				{
-					// EMPTY 
-				}
+				pointer = parseComponent();
 			}
 			// check for resolution declaration
-			else if (vhdl_keysame(vhdl_nexttoken, KEY_RESOLVE))
+			else if (isKeySame(nextToken, KEY_RESOLVE))
 			{
 				type = BODYDECLARE_RESOLUTION;
 				pointer = null;
-				vhdl_getnexttoken();
+				getNextToken();
 			}
 			// check for local function declaration
-			else if (vhdl_keysame(vhdl_nexttoken, KEY_FUNCTION))
+			else if (isKeySame(nextToken, KEY_FUNCTION))
 			{
 				type = BODYDECLARE_LOCAL;
 				pointer = null;
-				vhdl_getnexttoken();
+				getNextToken();
 			}
 			// should be basic declaration
 			else
 			{
 				type = BODYDECLARE_BASIC;
-				pointer = vhdl_parsebasic_declare();
-				if (pointer == null)
-				{
-					// EMPTY 
-				}
+				pointer = parseBasicDeclare();
 			}
-			BODYDECLARE newbody = new BODYDECLARE();
-			newbody.type = type;
-			newbody.pointer = pointer;
-			newbody.next = null;
-			if (endbody == null)
+			BodyDeclare newBody = new BodyDeclare();
+			newBody.type = type;
+			newBody.pointer = pointer;
+			newBody.next = null;
+			if (endBody == null)
 			{
-				body = endbody = newbody;
+				body = endBody = newBody;
 			} else
 			{
-				endbody.next = newbody;
-				endbody = newbody;
+				endBody.next = newBody;
+				endBody = newBody;
 			}
 		}
 		return body;
@@ -2365,40 +2124,27 @@ public class CompileVHDL
 	 * basic_declaration :== object_declaration | type_declaration | subtype_declaration | conversion_declaration | attribute_declaration | attribute_specification
 	 * @return pointer to basic_declaration parse tree, null if unrecoverable parsing error.
 	 */
-	private BASICDECLARE vhdl_parsebasic_declare()
+	private BasicDeclare parseBasicDeclare()
 		throws ParseException
 	{
-		BASICDECLARE basic = null;
+		BasicDeclare basic = null;
 		int type = NOBASICDECLARE;
 		Object pointer = null;
-		if (vhdl_keysame(vhdl_nexttoken, KEY_TYPE))
+		if (isKeySame(nextToken, KEY_TYPE))
 		{
 			type = BASICDECLARE_TYPE;
-			pointer = vhdl_parsetype();
-		}
-		else if (vhdl_keysame(vhdl_nexttoken, KEY_SUBTYPE))
-		{
-			// EMPTY 
-		} else if (vhdl_keysame(vhdl_nexttoken, KEY_CONVERT))
-		{
-			// EMPTY 
-		} else if (vhdl_keysame(vhdl_nexttoken, KEY_ATTRIBUTE))
-		{
-			// EMPTY 
-		} else if (vhdl_nexttoken.token == TOKEN_IDENTIFIER)
-		{
-			// EMPTY 
+			pointer = parseType();
 		} else
 		{
 			type = BASICDECLARE_OBJECT;
-			pointer = vhdl_parseobject_declare();
+			pointer = parseObjectDeclare();
 		}
 		if (type != NOBASICDECLARE)
 		{
-			basic = new BASICDECLARE();
+			basic = new BasicDeclare();
 			basic.type = type;
 			basic.pointer = pointer;
-		} else vhdl_getnexttoken();	// Bug fix , D.J.Yurach, June, 1988
+		} else getNextToken();	// Bug fix , D.J.Yurach, June, 1988
 		return basic;
 	}
 
@@ -2407,120 +2153,116 @@ public class CompileVHDL
 	 * It has the form: type_declaration ::= TYPE identifier IS type_definition ;
 	 * @return the type declaration structure.
 	 */
-	private TYPE vhdl_parsetype()
+	private Type parseType()
 		throws ParseException
 	{
-		TYPE type = null;
-	
+		Type type = null;
+
 		// should be at keyword TYPE
-		if (!vhdl_keysame(vhdl_nexttoken, KEY_TYPE))
+		if (!isKeySame(nextToken, KEY_TYPE))
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword TYPE");
-			vhdl_getnexttoken();
+			reportErrorMsg(nextToken, "Expecting keyword TYPE");
+			getNextToken();
 			return type;
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// should be at type identifier
-		if (vhdl_nexttoken.token != TOKEN_IDENTIFIER)
+		if (nextToken.token != TOKEN_IDENTIFIER)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting an identifier");
-			vhdl_getnexttoken();
+			reportErrorMsg(nextToken, "Expecting an identifier");
+			getNextToken();
 			return type;
 		}
-		TOKENLIST ident = vhdl_nexttoken;
-		vhdl_getnexttoken();
-	
+		TokenList ident = nextToken;
+		getNextToken();
+
 		// should be keyword IS
-		if (!vhdl_keysame(vhdl_nexttoken, KEY_IS))
+		if (!isKeySame(nextToken, KEY_IS))
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword IS");
-			vhdl_getnexttoken();
+			reportErrorMsg(nextToken, "Expecting keyword IS");
+			getNextToken();
 			return type;
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// parse type definition
 		Object pointer = null;
-		int type_define = 0;
-		if (vhdl_keysame(vhdl_nexttoken, KEY_ARRAY))
+		int typeDefine = 0;
+		if (isKeySame(nextToken, KEY_ARRAY))
 		{
-			type_define = TYPE_COMPOSITE;
-			pointer = vhdl_parsecomposite_type();
-		} else if (vhdl_keysame(vhdl_nexttoken, KEY_RECORD))
+			typeDefine = TYPE_COMPOSITE;
+			pointer = parseCompositeType();
+		} else if (isKeySame(nextToken, KEY_RECORD))
 		{
-			type_define = TYPE_COMPOSITE;
-			pointer = vhdl_parsecomposite_type();
-		} else if (vhdl_keysame(vhdl_nexttoken, KEY_RANGE))
+			typeDefine = TYPE_COMPOSITE;
+			pointer = parseCompositeType();
+		} else if (isKeySame(nextToken, KEY_RANGE))
 		{
-			type_define = TYPE_SCALAR;
-			pointer = vhdl_parsescalar_type();
-		} else if (vhdl_nexttoken.token == TOKEN_LEFTBRACKET)
+			typeDefine = TYPE_SCALAR;
+			pointer = null;
+		} else if (nextToken.token == TOKEN_LEFTBRACKET)
 		{
-			type_define = TYPE_SCALAR;
-			pointer = vhdl_parsescalar_type();
+			typeDefine = TYPE_SCALAR;
+			pointer = null;
 		} else
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Invalid type definition");
-			vhdl_getnexttoken();
+			reportErrorMsg(nextToken, "Invalid type definition");
+			getNextToken();
 			return type;
 		}
-	
+
 		// should be at semicolon
-		if (vhdl_nexttoken.token != TOKEN_SEMICOLON)
+		if (nextToken.token != TOKEN_SEMICOLON)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting a semicolon");
-			vhdl_getnexttoken();
+			reportErrorMsg(nextToken, "Expecting a semicolon");
+			getNextToken();
 			return type;
 		}
-		vhdl_getnexttoken();
-	
-		type = new TYPE();
+		getNextToken();
+
+		type = new Type();
 		type.identifier = ident;
-		type.type = type_define;
+		type.type = typeDefine;
 		type.pointer = pointer;
-	
+
 		return type;
 	}
-
-	private Object vhdl_parsescalar_type() { return null; }
 
 	/**
 	 * Method to parse a composite type definition.
 	 * It has the form:
 	 *    composite_type_definition ::= array_type_definition | record_type_definition
 	 */
-	private COMPOSITE vhdl_parsecomposite_type()
+	private Composite parseCompositeType()
 		throws ParseException
 	{
-		COMPOSITE compo = null;
-	
+		Composite compo = null;
+
 		// should be ARRAY or RECORD keyword
 		Object pointer = null;
 		int type = 0;
-		if (vhdl_keysame(vhdl_nexttoken, KEY_ARRAY))
+		if (isKeySame(nextToken, KEY_ARRAY))
 		{
 			type = COMPOSITE_ARRAY;
-			pointer = vhdl_parsearray_type();
-		} else if (vhdl_keysame(vhdl_nexttoken, KEY_RECORD))
+			pointer = parseArrayType();
+		} else if (isKeySame(nextToken, KEY_RECORD))
 		{
 			type = COMPOSITE_RECORD;
-			pointer = vhdl_parserecord_type();
+			pointer = null;
 		} else
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Invalid composite type");
-			vhdl_getnexttoken();
+			reportErrorMsg(nextToken, "Invalid composite type");
+			getNextToken();
 			return compo;
 		}
-	
-		compo = new COMPOSITE();
+
+		compo = new Composite();
 		compo.type = type;
 		compo.pointer = pointer;
-	
+
 		return compo;
 	}
-
-	private Object vhdl_parserecord_type() { return null; }
 
 	/**
 	 * Method to parse an array type definition.
@@ -2532,95 +2274,95 @@ public class CompileVHDL
 	 * NOTE:  Only currently supporting constrained array definitions.
 	 * @return the array type definition.
 	 */
-	private ARRAY vhdl_parsearray_type()
+	private Array parseArrayType()
 		throws ParseException
 	{
-		ARRAY array = null;
-	
+		Array array = null;
+
 		// should be keyword ARRAY
-		if (!vhdl_keysame(vhdl_nexttoken, KEY_ARRAY))
+		if (!isKeySame(nextToken, KEY_ARRAY))
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword ARRAY");
-			vhdl_getnexttoken();
+			reportErrorMsg(nextToken, "Expecting keyword ARRAY");
+			getNextToken();
 			return array;
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// index_constraint
 		// should be left bracket
-		if (vhdl_nexttoken.token != TOKEN_LEFTBRACKET)
+		if (nextToken.token != TOKEN_LEFTBRACKET)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting a left bracket");
-			vhdl_getnexttoken();
+			reportErrorMsg(nextToken, "Expecting a left bracket");
+			getNextToken();
 			return array;
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// should at least one discrete range
-		INDEXCONSTRAINT iconstraint = new INDEXCONSTRAINT();
-		iconstraint.discrete = vhdl_parsediscrete_range();
-		iconstraint.next = null;
-		INDEXCONSTRAINT endconstraint = iconstraint;
-	
+		IndexConstraint iConstraint = new IndexConstraint();
+		iConstraint.discrete = parseDiscreteRange();
+		iConstraint.next = null;
+		IndexConstraint endconstraint = iConstraint;
+
 		// continue while comma
-		while (vhdl_nexttoken.token == TOKEN_COMMA)
+		while (nextToken.token == TOKEN_COMMA)
 		{
-			vhdl_getnexttoken();
-			INDEXCONSTRAINT newconstraint = new INDEXCONSTRAINT();
-			newconstraint.discrete = vhdl_parsediscrete_range();
-			newconstraint.next = null;
-			endconstraint.next = newconstraint;
-			endconstraint = newconstraint;
+			getNextToken();
+			IndexConstraint newConstraint = new IndexConstraint();
+			newConstraint.discrete = parseDiscreteRange();
+			newConstraint.next = null;
+			endconstraint.next = newConstraint;
+			endconstraint = newConstraint;
 		}
-	
+
 		// should be at right bracket
-		if (vhdl_nexttoken.token != TOKEN_RIGHTBRACKET)
+		if (nextToken.token != TOKEN_RIGHTBRACKET)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting a right bracket");
-			vhdl_getnexttoken();
+			reportErrorMsg(nextToken, "Expecting a right bracket");
+			getNextToken();
 			return array;
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// should be at keyword OF
-		if (!vhdl_keysame(vhdl_nexttoken, KEY_OF))
+		if (!isKeySame(nextToken, KEY_OF))
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword OF");
-			vhdl_getnexttoken();
+			reportErrorMsg(nextToken, "Expecting keyword OF");
+			getNextToken();
 			return array;
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// subtype_indication
-		SUBTYPEIND subtype = vhdl_parsesubtype_indication();
-	
+		SubTypeInd subType = parseSubtypeIndication();
+
 		// create array type definition
-		array = new ARRAY();
+		array = new Array();
 		array.type = ARRAY_CONSTRAINED;
-		CONSTRAINED constr = new CONSTRAINED();
+		Constrained constr = new Constrained();
 		array.pointer = constr;
-		constr.constraint = iconstraint;
-		constr.subtype = subtype;
-	
+		constr.constraint = iConstraint;
+		constr.subType = subType;
+
 		return array;
 	}
-	
+
 	/**
 	 * Method to parse a discrete range.
 	 * The range has the form: discrete_range ::= subtype_indication | range
 	 * @return the discrete range structure.
 	 */
-	private DISCRETERANGE vhdl_parsediscrete_range()
+	private DiscreteRange parseDiscreteRange()
 		throws ParseException
 	{
-		DISCRETERANGE drange = new DISCRETERANGE();
+		DiscreteRange dRange = new DiscreteRange();
 
 		// currently only support range option
-		drange.type = DISCRETERANGE_RANGE;
-		drange.pointer = vhdl_parserange();
-		return drange;
+		dRange.type = DISCRETERANGE_RANGE;
+		dRange.pointer = parseRange();
+		return dRange;
 	}
-	
+
 	/**
 	 * Method to parse a range.
 	 * The range has the form:
@@ -2628,39 +2370,39 @@ public class CompileVHDL
 	 *    direction ::=  TO  |  DOWNTO
 	 * @return the range structure.
 	 */
-	private RANGE vhdl_parserange()
+	private Range parseRange()
 		throws ParseException
 	{
-		RANGE range = new RANGE();
+		Range range = new Range();
 
 		// currently support only simple expression range option
 		range.type = RANGE_SIMPLE_EXPR;
-		range.pointer = vhdl_parserange_simple();
+		range.pointer = parseRangeSimple();
 		return range;
 	}
-	
+
 	/**
 	 * Method to parse a simple expression range.
 	 * The range has the form: simple_expression .. simple_expression
 	 * @return the simple expression range.
 	 */
-	private RANGESIMPLE vhdl_parserange_simple()
+	private RangeSimple parseRangeSimple()
 		throws ParseException
 	{
-		RANGESIMPLE srange = new RANGESIMPLE();
-		srange.start = vhdl_parsesimpleexpression();
-	
+		RangeSimple sRange = new RangeSimple();
+		sRange.start = parseSimpleExpression();
+
 		// Need keyword TO or DOWNTO
-		if (vhdl_keysame(vhdl_nexttoken, KEY_TO) || vhdl_keysame(vhdl_nexttoken, KEY_DOWNTO))
-		   vhdl_getnexttoken();
+		if (isKeySame(nextToken, KEY_TO) || isKeySame(nextToken, KEY_DOWNTO))
+			getNextToken();
 		else
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword TO or DOWNTO");
-			vhdl_getnexttoken(); // absorb the token anyway (probably "..")
+			reportErrorMsg(nextToken, "Expecting keyword TO or DOWNTO");
+			getNextToken(); // absorb the token anyway (probably "..")
 		}
-	
-		srange.end = vhdl_parsesimpleexpression();
-		return srange;
+
+		sRange.end = parseSimpleExpression();
+		return sRange;
 	}
 
 	/**
@@ -2669,98 +2411,98 @@ public class CompileVHDL
 	 *    object_declaration :== constant_declaration | signal_declaration | variable_declaration | alias_declaration
 	 * @return the object declaration parse tree.
 	 */
-	private OBJECTDECLARE vhdl_parseobject_declare()
+	private ObjectDeclare parseObjectDeclare()
 		throws ParseException
 	{
-		OBJECTDECLARE object = null;
+		ObjectDeclare object = null;
 		int type = NOOBJECTDECLARE;
 		Object pointer = null;
-		if (vhdl_keysame(vhdl_nexttoken, KEY_CONSTANT))
+		if (isKeySame(nextToken, KEY_CONSTANT))
 		{
 			type = OBJECTDECLARE_CONSTANT;
-			pointer = vhdl_parseconstant_declare();
-		} else if (vhdl_keysame(vhdl_nexttoken, KEY_SIGNAL))
+			pointer = parseConstantDeclare();
+		} else if (isKeySame(nextToken, KEY_SIGNAL))
 		{
 			type = OBJECTDECLARE_SIGNAL;
-			pointer = vhdl_parsesignal_declare();
-		} else if (vhdl_keysame(vhdl_nexttoken, KEY_VARIABLE))
+			pointer = parseSignalDeclare();
+		} else if (isKeySame(nextToken, KEY_VARIABLE))
 		{
-			// EMPTY 
-		} else if (vhdl_keysame(vhdl_nexttoken, KEY_ALIAS))
+			// EMPTY
+		} else if (isKeySame(nextToken, KEY_ALIAS))
 		{
-			// EMPTY 
+			// EMPTY
 		} else
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Invalid object declaration");
+			reportErrorMsg(nextToken, "Invalid object declaration");
 		}
 		if (type != NOOBJECTDECLARE)
 		{
-			object = new OBJECTDECLARE();
+			object = new ObjectDeclare();
 			object.type = type;
 			object.pointer = pointer;
 		} else
 		{
-			vhdl_getnexttoken();
+			getNextToken();
 		}
 		return object;
 	}
-	
+
 	/**
 	 * Method to parse a constant declaration and return the pointer to the parse tree.
 	 * The form of a constant declaration is:
 	 *    constant_declaration :== CONSTANT identifier : subtype_indication := expression ;
 	 * @return the constant declaration parse tree.
 	 */
-	private CONSTANTDECLARE vhdl_parseconstant_declare()
+	private ConstantDeclare parseConstantDeclare()
 		throws ParseException
 	{
-		CONSTANTDECLARE constant = null;
-		vhdl_getnexttoken();
-	
-		// parse identifier 
+		ConstantDeclare constant = null;
+		getNextToken();
+
+		// parse identifier
 		// Note that the standard allows identifier_list here, but we don't support it!
-		TOKENLIST ident = null;
-		if (vhdl_nexttoken.token != TOKEN_IDENTIFIER)
+		TokenList ident = null;
+		if (nextToken.token != TOKEN_IDENTIFIER)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting an identifier");
+			reportErrorMsg(nextToken, "Expecting an identifier");
 		} else
 		{
-			ident = vhdl_nexttoken;
+			ident = nextToken;
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// should be at colon
-		if (vhdl_nexttoken.token != TOKEN_COLON)
+		if (nextToken.token != TOKEN_COLON)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting a colon");
+			reportErrorMsg(nextToken, "Expecting a colon");
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// parse subtype indication
-		SUBTYPEIND ind = vhdl_parsesubtype_indication();
-	
+		SubTypeInd ind = parseSubtypeIndication();
+
 		// should be at assignment symbol
-		if (vhdl_nexttoken.token != TOKEN_VARASSIGN)
+		if (nextToken.token != TOKEN_VARASSIGN)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting variable assignment symbol");
+			reportErrorMsg(nextToken, "Expecting variable assignment symbol");
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// should be at expression
-		EXPRESSION expr = vhdl_parseexpression();
-	
+		Expression expr = parseExpression();
+
 		// should be at semicolon
-		if (vhdl_nexttoken.token != TOKEN_SEMICOLON)
+		if (nextToken.token != TOKEN_SEMICOLON)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting a semicolon");
+			reportErrorMsg(nextToken, "Expecting a semicolon");
 		}
-		vhdl_getnexttoken();
-	
-		constant = new CONSTANTDECLARE();
+		getNextToken();
+
+		constant = new ConstantDeclare();
 		constant.identifier = ident;
-		constant.subtype = ind;
+		constant.subType = ind;
 		constant.expression = expr;
-	
+
 		return constant;
 	}
 
@@ -2770,49 +2512,48 @@ public class CompileVHDL
 	 *    signal_declaration :== SIGNAL identifier_list : subtype_indication;
 	 * @return the signal declaration parse tree.
 	 */
-	private SIGNALDECLARE vhdl_parsesignal_declare()
+	private SignalDeclare parseSignalDeclare()
 		throws ParseException
 	{
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// parse identifier list
-		IDENTLIST signal_list = vhdl_parseident_list();
-	
+		IdentList signalList = parseIdentList();
+
 		// should be at colon
-		if (vhdl_nexttoken.token != TOKEN_COLON)
+		if (nextToken.token != TOKEN_COLON)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting a colon");
+			reportErrorMsg(nextToken, "Expecting a colon");
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// parse subtype indication
-		SUBTYPEIND ind = vhdl_parsesubtype_indication();
-	
+		SubTypeInd ind = parseSubtypeIndication();
+
 		// should be at semicolon
-		if (vhdl_nexttoken.token != TOKEN_SEMICOLON)
+		if (nextToken.token != TOKEN_SEMICOLON)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting a semicolon");
+			reportErrorMsg(nextToken, "Expecting a semicolon");
 		}
-		vhdl_getnexttoken();
-	
-		SIGNALDECLARE signal = new SIGNALDECLARE();
-		signal.names = signal_list;
-		signal.subtype = ind;
+		getNextToken();
+
+		SignalDeclare signal = new SignalDeclare();
+		signal.names = signalList;
+		signal.subType = ind;
 		return signal;
 	}
-	
+
 	/**
 	 * Method to parse a subtype indicatio.
 	 * It has the form: subtype_indication :== type_mark [constraint]
 	 * @return subtype indication parse tree.
 	 */
-	private SUBTYPEIND vhdl_parsesubtype_indication()
+	private SubTypeInd parseSubtypeIndication()
 		throws ParseException
 	{
-		VNAME type = vhdl_parsename();
-		SUBTYPEIND ind = new SUBTYPEIND();
+		VName type = parseName();
+		SubTypeInd ind = new SubTypeInd();
 		ind.type = type;
-		ind.constraint = null;
 		return ind;
 	}
 
@@ -2824,72 +2565,68 @@ public class CompileVHDL
 	 * Note:  Treat local_port_list as a formal_port_list.
 	 * @return pointer to a component declaration, null if an error occurs.
 	 */
-	private VCOMPONENT vhdl_parsecomponent()
+	private VComponent parseComponent()
 		throws ParseException
 	{
-		VCOMPONENT compo =  null;
-		vhdl_getnexttoken();
-	
+		VComponent compo =  null;
+		getNextToken();
+
 		// should be component identifier
-		TOKENLIST entity = null;
-		if (vhdl_nexttoken.token != TOKEN_IDENTIFIER)
+		TokenList entity = null;
+		if (nextToken.token != TOKEN_IDENTIFIER)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting an identifier");
+			reportErrorMsg(nextToken, "Expecting an identifier");
 		} else
 		{
-			entity = vhdl_nexttoken;
+			entity = nextToken;
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// Need keyword PORT
-		if (!vhdl_keysame(vhdl_nexttoken,KEY_PORT))
-		   vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword PORT");
-		else vhdl_getnexttoken();
-	
+		if (!isKeySame(nextToken,KEY_PORT))
+			reportErrorMsg(nextToken, "Expecting keyword PORT");
+		else getNextToken();
+
 		// should be left bracket, start of port list
-		if (vhdl_nexttoken.token != TOKEN_LEFTBRACKET)
+		if (nextToken.token != TOKEN_LEFTBRACKET)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting a left bracket");
+			reportErrorMsg(nextToken, "Expecting a left bracket");
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// go through port list
-		FPORTLIST ports = vhdl_parseformal_port_list();
-		if (ports == null)
-		{
-			// EMPTY 
-		}
-	
+		FPortList ports = parseFormalPortList();
+
 		// should be pointing to RIGHTBRACKET
-		if (vhdl_nexttoken.token != TOKEN_RIGHTBRACKET)
+		if (nextToken.token != TOKEN_RIGHTBRACKET)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting a right bracket");
+			reportErrorMsg(nextToken, "Expecting a right bracket");
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// should be at semicolon
-		if (vhdl_nexttoken.token != TOKEN_SEMICOLON)
+		if (nextToken.token != TOKEN_SEMICOLON)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting a semicolon");
+			reportErrorMsg(nextToken, "Expecting a semicolon");
 		}
-		vhdl_getnexttoken();
-	
+		getNextToken();
+
 		// Need "END COMPONENT"
-		if (!vhdl_keysame(vhdl_nexttoken, KEY_END))
-		   vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword END");
-		vhdl_getnexttoken();
-	
-		if (!vhdl_keysame(vhdl_nexttoken, KEY_COMPONENT))
-		   vhdl_reporterrormsg(vhdl_nexttoken, "Expecting keyword COMPONENT");
-		vhdl_getnexttoken();
-	
+		if (!isKeySame(nextToken, KEY_END))
+			reportErrorMsg(nextToken, "Expecting keyword END");
+		getNextToken();
+
+		if (!isKeySame(nextToken, KEY_COMPONENT))
+			reportErrorMsg(nextToken, "Expecting keyword COMPONENT");
+		getNextToken();
+
 		// should be at terminating semicolon
-		if (vhdl_nexttoken.token != TOKEN_SEMICOLON)
+		if (nextToken.token != TOKEN_SEMICOLON)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting a semicolon");
+			reportErrorMsg(nextToken, "Expecting a semicolon");
 		}
-		vhdl_getnexttoken();
-		compo = new VCOMPONENT();
+		getNextToken();
+		compo = new VComponent();
 		compo.name = entity;
 		compo.ports = ports;
 		return compo;
@@ -2905,90 +2642,92 @@ public class CompileVHDL
 	 *    type_mark        ::= name
 	 * @return the formal port list parse tree (null on error).
 	 */
-	private FPORTLIST vhdl_parseformal_port_list()
+	private FPortList parseFormalPortList()
 		throws ParseException
 	{
 		// must be at least one port declaration
-		IDENTLIST ilist = vhdl_parseident_list();
-		if (ilist == null) return null;
-	
+		IdentList iList = parseIdentList();
+		if (iList == null) return null;
+
 		// should be at colon
-		if (vhdl_nexttoken.token != TOKEN_COLON)
+		if (nextToken.token != TOKEN_COLON)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting a colon");
+			reportErrorMsg(nextToken, "Expecting a colon");
 			return null;
 		}
-		vhdl_getnexttoken();
+		getNextToken();
 		// Get port mode
-		int mode = vhdl_parseport_mode();
+		int mode = parsePortMode();
 		// should be at type_mark
-		VNAME type = vhdl_parsename();
-	
+		VName type = parseName();
+
 		// create port declaration
-		FPORTLIST ports = new FPORTLIST();
-		ports.names = ilist;
+		FPortList ports = new FPortList();
+		ports.names = iList;
 		ports.mode = mode;
 		ports.type = type;
 		ports.next = null;
-		FPORTLIST endport = ports;
-	
-		while (vhdl_nexttoken.token == TOKEN_SEMICOLON)
+		FPortList endPort = ports;
+
+		while (nextToken.token == TOKEN_SEMICOLON)
 		{
-			vhdl_getnexttoken();
-			ilist = vhdl_parseident_list();
-			if (ilist == null) return null;
-	
+			getNextToken();
+			iList = parseIdentList();
+			if (iList == null) return null;
+
 			// should be at colon
-			if (vhdl_nexttoken.token != TOKEN_COLON)
+			if (nextToken.token != TOKEN_COLON)
 			{
-				vhdl_reporterrormsg(vhdl_nexttoken, "Expecting a colon");
+				reportErrorMsg(nextToken, "Expecting a colon");
 				return null;
 			}
-			vhdl_getnexttoken();
+			getNextToken();
+
 			// Get port mode
-			mode = vhdl_parseport_mode();
+			mode = parsePortMode();
+
 			// should be at type_mark
-			type = vhdl_parsename();
-			FPORTLIST newport = new FPORTLIST();
-			newport.names = ilist;
-			newport.mode = mode;
-			newport.type = type;
-			newport.next = null;
-			endport.next = newport;
-			endport = newport;
+			type = parseName();
+			FPortList newPort = new FPortList();
+			newPort.names = iList;
+			newPort.mode = mode;
+			newPort.type = type;
+			newPort.next = null;
+			endPort.next = newPort;
+			endPort = newPort;
 		}
-	
+
 		return ports;
 	}
-	
+
 	/**
 	 * Method to parse a port mode description.
 	 * The description has the form:
 	 *    port_mode :== [in] | [ dot ] out | inout | linkage
 	 * @return type of mode (default to in).
 	 */
-	private int vhdl_parseport_mode()
+	private int parsePortMode()
 		throws ParseException
 	{
 		int mode = MODE_IN;
-		if (vhdl_nexttoken.token == TOKEN_KEYWORD)
+		if (nextToken.token == TOKEN_KEYWORD)
 		{
-			switch (((VKEYWORD)(vhdl_nexttoken.pointer)).num)
+			switch (((VKeyword)(nextToken.pointer)).num)
 			{
 				case KEY_IN:
-					vhdl_getnexttoken();
+					getNextToken();
 					break;
 				case KEY_OUT:
 					mode = MODE_OUT;
-					vhdl_getnexttoken();
+					getNextToken();
 					break;
 				case KEY_INOUT:
 					mode = MODE_INOUT;
-					vhdl_getnexttoken();
+					getNextToken();
 					break;
 				case KEY_LINKAGE:
 					mode = MODE_LINKAGE;
-					vhdl_getnexttoken();
+					getNextToken();
 					break;
 				default:
 					break;
@@ -2996,32 +2735,32 @@ public class CompileVHDL
 		}
 		return mode;
 	}
-	
+
 	/**
 	 * Method to parse a name.
 	 * The form of a name is:
 	 *    name :== single_name | concatenated_name | attribute_name
 	 * @return the name parse tree.
 	 */
-	private VNAME vhdl_parsename()
+	private VName parseName()
 		throws ParseException
 	{
 		int type = NONAME;
-		Object pointer = vhdl_parsesinglename();
-	
-		switch (vhdl_nexttoken.token)
+		Object pointer = parseSingleName();
+
+		switch (nextToken.token)
 		{
 			case TOKEN_AMPERSAND:
 				type = NAME_CONCATENATE;
-				CONCATENATEDNAME concat = new CONCATENATEDNAME();
-				concat.name = (SINGLENAME)pointer;
+				ConcatenatedName concat = new ConcatenatedName();
+				concat.name = (SingleName)pointer;
 				concat.next = null;
 				pointer = concat;
-				while (vhdl_nexttoken.token == TOKEN_AMPERSAND)
+				while (nextToken.token == TOKEN_AMPERSAND)
 				{
-					vhdl_getnexttoken();
-					SINGLENAME pointer2 = vhdl_parsesinglename();
-					CONCATENATEDNAME concat2 = new CONCATENATEDNAME();
+					getNextToken();
+					SingleName pointer2 = parseSingleName();
+					ConcatenatedName concat2 = new ConcatenatedName();
 					concat.next = concat2;
 					concat2.name = pointer2;
 					concat2.next = null;
@@ -3034,16 +2773,16 @@ public class CompileVHDL
 				type = NAME_SINGLE;
 			break;
 		}
-	
-		VNAME name = null;
+
+		VName name = null;
 		if (type != NONAME)
 		{
-			name = new VNAME();
+			name = new VName();
 			name.type = type;
 			name.pointer = pointer;
 		} else
 		{
-			vhdl_getnexttoken();
+			getNextToken();
 		}
 		return name;
 	}
@@ -3054,163 +2793,163 @@ public class CompileVHDL
 	 *    single_name :== simple_name | selected_name | indexed_name | slice_name
 	 * @return the single name structure.
 	 */
-	private SINGLENAME vhdl_parsesinglename()
+	private SingleName parseSingleName()
 		throws ParseException
 	{
 		int type = NOSINGLENAME;
-		SINGLENAME sname = null;
-		Object pointer = vhdl_parsesimplename();
-	
-		if (vhdl_nexttoken.last.space)
+		SingleName sName = null;
+		Object pointer = parseSimpleName();
+
+		if (nextToken.last.space)
 		{
 			type = SINGLENAME_SIMPLE;
 		} else
 		{
-			switch (vhdl_nexttoken.token)
+			switch (nextToken.token)
 			{
 				case TOKEN_PERIOD:
 					break;
 				case TOKEN_LEFTBRACKET:
 					// could be a indexed_name or a slice_name
 					// but support only indexed names
-					vhdl_getnexttoken();
+					getNextToken();
 					type = SINGLENAME_INDEXED;
-					VNAME nptr = new VNAME();
-					nptr.type = NAME_SINGLE;
-					SINGLENAME sname2 = new SINGLENAME();
-					nptr.pointer = sname2;
-					sname2.type = SINGLENAME_SIMPLE;
-					sname2.pointer = pointer;
-					pointer = vhdl_parseindexedname(PREFIX_NAME, nptr);
+					VName nPtr = new VName();
+					nPtr.type = NAME_SINGLE;
+					SingleName sName2 = new SingleName();
+					nPtr.pointer = sName2;
+					sName2.type = SINGLENAME_SIMPLE;
+					sName2.pointer = pointer;
+					pointer = parseIndexedName(PREFIX_NAME, nPtr);
 					// should be at right bracket
-					if (vhdl_nexttoken.token != TOKEN_RIGHTBRACKET)
+					if (nextToken.token != TOKEN_RIGHTBRACKET)
 					{
-						vhdl_reporterrormsg(vhdl_nexttoken, "Expecting a right bracket");
+						reportErrorMsg(nextToken, "Expecting a right bracket");
 					}
-					vhdl_getnexttoken();
+					getNextToken();
 					break;
 				default:
 					type = SINGLENAME_SIMPLE;
 					break;
 			}
 		}
-	
+
 		if (type != NOSINGLENAME)
 		{
-			sname = new SINGLENAME();
-			sname.type = type;
-			sname.pointer = pointer;
+			sName = new SingleName();
+			sName.type = type;
+			sName.pointer = pointer;
 		} else
 		{
-			vhdl_getnexttoken();
+			getNextToken();
 		}
-		return sname;
+		return sName;
 	}
-	
+
 	/**
 	 * Method to parse a simple name.
 	 * The name has the form:
 	 *    simple_name ::= identifier
 	 * @return pointer to simple name structure.
 	 */
-	private SIMPLENAME vhdl_parsesimplename()
+	private SimpleName parseSimpleName()
 		throws ParseException
 	{
-		SIMPLENAME sname = null;
-		if (vhdl_nexttoken.token != TOKEN_IDENTIFIER)
+		SimpleName sName = null;
+		if (nextToken.token != TOKEN_IDENTIFIER)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting an identifier");
-			vhdl_getnexttoken();
-			return sname;
+			reportErrorMsg(nextToken, "Expecting an identifier");
+			getNextToken();
+			return sName;
 		}
-		sname = new SIMPLENAME();
-		sname.identifier = vhdl_nexttoken;
-		vhdl_getnexttoken();
-		return sname;
+		sName = new SimpleName();
+		sName.identifier = nextToken;
+		getNextToken();
+		return sName;
 	}
-	
+
 	/**
 	 * Method to parse an indexed name given its prefix and now at the index.
 	 * The form of an indexed name is: indexed_name ::= prefix(expression{, expression})
-	 * @param pre_type type of prefix (VNAME or FUNCTION CALL).
-	 * @param pre_ptr pointer to prefix structure.
+	 * @param preType type of prefix (VName or FUNCTION CALL).
+	 * @param prePtr pointer to prefix structure.
 	 * @return pointer to indexed name.
 	 */
-	private INDEXEDNAME vhdl_parseindexedname(int pre_type, VNAME pre_ptr)
+	private IndexedName parseIndexedName(int preType, VName prePtr)
 		throws ParseException
 	{
-		PREFIX prefix = new PREFIX();
-		prefix.type = pre_type;
-		prefix.pointer = pre_ptr;
-		INDEXEDNAME ind = new INDEXEDNAME();
+		Prefix prefix = new Prefix();
+		prefix.type = preType;
+		prefix.pointer = prePtr;
+		IndexedName ind = new IndexedName();
 		ind.prefix = prefix;
-		ind.expr_list = new EXPRLIST();
-		ind.expr_list.expression = vhdl_parseexpression();
-		ind.expr_list.next = null;
-		EXPRLIST elist = ind.expr_list;
-	
+		ind.exprList = new ExprList();
+		ind.exprList.expression = parseExpression();
+		ind.exprList.next = null;
+		ExprList eList = ind.exprList;
+
 		// continue while at a comma
-		while (vhdl_nexttoken.token == TOKEN_COMMA)
+		while (nextToken.token == TOKEN_COMMA)
 		{
-			vhdl_getnexttoken();
-			EXPRLIST newelist = new EXPRLIST();
-			newelist.expression = vhdl_parseexpression();
-			newelist.next = null;
-			elist.next = newelist;
-			elist = newelist;
+			getNextToken();
+			ExprList newEList = new ExprList();
+			newEList.expression = parseExpression();
+			newEList.next = null;
+			eList.next = newEList;
+			eList = newEList;
 		}
-	
+
 		return ind;
 	}
-	
+
 	/**
 	 * Method to parse an expression of the form:
 	 *    expression ::= relation {AND relation} | relation {OR relation} | relation {NAND relation} | relation {NOR relation} | relation {XOR relation}
 	 * @return the expression structure.
 	 */
-	private EXPRESSION vhdl_parseexpression()
+	private Expression parseExpression()
 		throws ParseException
 	{
-		EXPRESSION exp = new EXPRESSION();
-		exp.relation = vhdl_parserelation();
+		Expression exp = new Expression();
+		exp.relation = parseRelation();
 		exp.next = null;
-	
+
 		// check for more terms
 		int key = 0;
-		int logop = NOLOGOP;
-		if (vhdl_nexttoken.token == TOKEN_KEYWORD)
+		int logOp = NOLOGOP;
+		if (nextToken.token == TOKEN_KEYWORD)
 		{
-			key = ((VKEYWORD)(vhdl_nexttoken.pointer)).num;
+			key = ((VKeyword)(nextToken.pointer)).num;
 			switch (key)
 			{
 				case KEY_AND:
-					logop = LOGOP_AND;
+					logOp = LOGOP_AND;
 					break;
 				case KEY_OR:
-					logop = LOGOP_OR;
+					logOp = LOGOP_OR;
 					break;
 				case KEY_NAND:
-					logop = LOGOP_NAND;
+					logOp = LOGOP_NAND;
 					break;
 				case KEY_NOR:
-					logop = LOGOP_NOR;
+					logOp = LOGOP_NOR;
 					break;
 				case KEY_XOR:
-					logop = LOGOP_XOR;
+					logOp = LOGOP_XOR;
 					break;
 				default:
 					break;
 			}
 		}
-	
-		if (logop != NOLOGOP)
+
+		if (logOp != NOLOGOP)
 		{
-			exp.next = vhdl_parsemorerelations(key, logop);
+			exp.next = parseMoreRelations(key, logOp);
 		}
-	
+
 		return exp;
 	}
-	
+
 	/**
 	 * Method to parse a relation.
 	 * It has the form:
@@ -3218,49 +2957,35 @@ public class CompileVHDL
 	 * relational_operator ::=    =  |  /=  |  <  |  <=  |  >  |  >=
 	 * @return the relation structure.
 	 */
-	private RELATION vhdl_parserelation()
+	private Relation parseRelation()
 		throws ParseException
 	{
-		int relop = NORELOP;
-		RELATION relation = new RELATION();
-		relation.simple_expr = vhdl_parsesimpleexpression();
-		relation.rel_operator = NORELOP;
-		relation.simple_expr2 = null;
-	
-		switch (vhdl_nexttoken.token)
+		int relOp = NORELOP;
+		Relation relation = new Relation();
+		relation.simpleExpr = parseSimpleExpression();
+		relation.relOperator = NORELOP;
+		relation.simpleExpr2 = null;
+
+		switch (nextToken.token)
 		{
-			case TOKEN_EQ:
-				relop = RELOP_EQ;
-				break;
-			case TOKEN_NE:
-				relop = RELOP_NE;
-				break;
-			case TOKEN_LT:
-				relop = RELOP_LT;
-				break;
-			case TOKEN_LE:
-				relop = RELOP_LE;
-				break;
-			case TOKEN_GT:
-				relop = RELOP_GT;
-				break;
-			case TOKEN_GE:
-				relop = RELOP_GE;
-				break;
-			default:
-				break;
+			case TOKEN_EQ: relOp = RELOP_EQ;   break;
+			case TOKEN_NE: relOp = RELOP_NE;   break;
+			case TOKEN_LT: relOp = RELOP_LT;   break;
+			case TOKEN_LE: relOp = RELOP_LE;   break;
+			case TOKEN_GT: relOp = RELOP_GT;   break;
+			case TOKEN_GE: relOp = RELOP_GE;   break;
 		}
-	
-		if (relop != NORELOP)
+
+		if (relOp != NORELOP)
 		{
-			relation.rel_operator = relop;
-			vhdl_getnexttoken();
-			relation.simple_expr2 = vhdl_parsesimpleexpression();
+			relation.relOperator = relOp;
+			getNextToken();
+			relation.simpleExpr2 = parseSimpleExpression();
 		}
-	
+
 		return relation;
 	}
-	
+
 	/**
 	 * Method to parse more relations of an expression.
 	 * They have the form: AND | OR | NAND | NOR | XOR  relation
@@ -3269,18 +2994,18 @@ public class CompileVHDL
 	 * @param logop logical operator.
 	 * @return pointer to more relations, null if no more.
 	 */
-	private MRELATIONS vhdl_parsemorerelations(int key, int logop)
+	private MRelations parseMoreRelations(int key, int logOp)
 		throws ParseException
 	{
-		MRELATIONS more = null;
-	
-		if (vhdl_keysame(vhdl_nexttoken, key))
+		MRelations more = null;
+
+		if (isKeySame(nextToken, key))
 		{
-			vhdl_getnexttoken();
-			more = new MRELATIONS();
-			more.log_operator = logop;
-			more.relation = vhdl_parserelation();
-			more.next = vhdl_parsemorerelations(key, logop);
+			getNextToken();
+			more = new MRelations();
+			more.logOperator = logOp;
+			more.relation = parseRelation();
+			more.next = parseMoreRelations(key, logOp);
 		}
 		return more;
 	}
@@ -3290,190 +3015,190 @@ public class CompileVHDL
 	 * It has the form: simple_expression ::= [sign] term {adding_operator term}
 	 * @return the simple expression structure.
 	 */
-	private SIMPLEEXPR vhdl_parsesimpleexpression()
+	private SimpleExpr parseSimpleExpression()
 		throws ParseException
 	{
-		SIMPLEEXPR exp = new SIMPLEEXPR();
-	
+		SimpleExpr exp = new SimpleExpr();
+
 		// check for optional sign
-		if (vhdl_nexttoken.token == TOKEN_PLUS)
+		if (nextToken.token == TOKEN_PLUS)
 		{
 			exp.sign = 1;
-			vhdl_getnexttoken();
-		} else if (vhdl_nexttoken.token == TOKEN_MINUS)
+			getNextToken();
+		} else if (nextToken.token == TOKEN_MINUS)
 		{
 			exp.sign = -1;
-			vhdl_getnexttoken();
+			getNextToken();
 		} else
 		{
 			exp.sign = 1;			// default sign
 		}
-	
+
 		// next is a term
-		exp.term = vhdl_parseterm();
-	
+		exp.term = parseTerm();
+
 		// check for more terms
-		exp.next = vhdl_parsemoreterms();
+		exp.next = parseMoreTerms();
 		return exp;
 	}
-	
+
 	/**
 	 * Method to parse a term.
 	 * It has the form: term ::= factor {multiplying_operator factor}
 	 * @return the term structure.
 	 */
-	private TERM vhdl_parseterm()
+	private Term parseTerm()
 		throws ParseException
 	{
-		TERM term = new TERM();
-		term.factor = vhdl_parsefactor();
-		term.next = vhdl_parsemorefactors();
+		Term term = new Term();
+		term.factor = parseFactor();
+		term.next = parseMoreFactors();
 		return term;
 	}
-	
+
 	/**
 	 * Method to parse more factors of a term.
 	 * The factors have the form:
 	 *     multiplying_operator factor
 	 * @return pointer to more factors, null if no more.
 	 */
-	private MFACTORS vhdl_parsemorefactors()
+	private MFactors parseMoreFactors()
 		throws ParseException
 	{
-		MFACTORS more = null;
-		int mulop = NOMULOP;
-		if (vhdl_nexttoken.token == TOKEN_STAR)
+		MFactors more = null;
+		int mulOp = NOMULOP;
+		if (nextToken.token == TOKEN_STAR)
 		{
-			mulop = MULOP_MULTIPLY;
-		} else if (vhdl_nexttoken.token == TOKEN_SLASH)
+			mulOp = MULOP_MULTIPLY;
+		} else if (nextToken.token == TOKEN_SLASH)
 		{
-			mulop = MULOP_DIVIDE;
-		} else if (vhdl_keysame(vhdl_nexttoken, KEY_MOD))
+			mulOp = MULOP_DIVIDE;
+		} else if (isKeySame(nextToken, KEY_MOD))
 		{
-			mulop = MULOP_MOD;
-		} else if (vhdl_keysame(vhdl_nexttoken, KEY_REM))
+			mulOp = MULOP_MOD;
+		} else if (isKeySame(nextToken, KEY_REM))
 		{
-			mulop = MULOP_REM;
+			mulOp = MULOP_REM;
 		}
-		if (mulop != NOMULOP)
+		if (mulOp != NOMULOP)
 		{
-			vhdl_getnexttoken();
-			more = new MFACTORS();
-			more.mul_operator = mulop;
-			more.factor = vhdl_parsefactor();
-			more.next = vhdl_parsemorefactors();
+			getNextToken();
+			more = new MFactors();
+			more.mulOperator = mulOp;
+			more.factor = parseFactor();
+			more.next = parseMoreFactors();
 		}
 		return more;
 	}
-	
+
 	/**
 	 * Method to parse a factor of the form:
 	 *    factor :== primary [** primary] | ABS primary | NOT primary
 	 * @return the factor structure.
 	 */
-	private FACTOR vhdl_parsefactor()
+	private Factor parseFactor()
 		throws ParseException
 	{
-		FACTOR factor = null;
-		PRIMARY primary = null;
-		PRIMARY primary2 = null;
-		int miscop = NOMISCOP;
-		if (vhdl_keysame(vhdl_nexttoken, KEY_ABS))
+		Factor factor = null;
+		Primary primary = null;
+		Primary primary2 = null;
+		int miscOp = NOMISCOP;
+		if (isKeySame(nextToken, KEY_ABS))
 		{
-			miscop = MISCOP_ABS;
-			vhdl_getnexttoken();
-			primary = vhdl_parseprimary();
-		} else if (vhdl_keysame(vhdl_nexttoken, KEY_NOT))
+			miscOp = MISCOP_ABS;
+			getNextToken();
+			primary = parsePrimary();
+		} else if (isKeySame(nextToken, KEY_NOT))
 		{
-			miscop = MISCOP_NOT;
-			vhdl_getnexttoken();
-			primary = vhdl_parseprimary();
+			miscOp = MISCOP_NOT;
+			getNextToken();
+			primary = parsePrimary();
 		} else
 		{
-			primary = vhdl_parseprimary();
-			if (vhdl_nexttoken.token == TOKEN_DOUBLESTAR)
+			primary = parsePrimary();
+			if (nextToken.token == TOKEN_DOUBLESTAR)
 			{
-				miscop = MISCOP_POWER;
-				vhdl_getnexttoken();
-				primary2 = vhdl_parseprimary();
+				miscOp = MISCOP_POWER;
+				getNextToken();
+				primary2 = parsePrimary();
 			}
 		}
-		factor = new FACTOR();
+		factor = new Factor();
 		factor.primary = primary;
-		factor.misc_operator = miscop;
+		factor.miscOperator = miscOp;
 		factor.primary2 = primary2;
 		return factor;
 	}
-	
+
 	/**
 	 * Method to parse a primary of the form:
 	 *    primary ::= name | literal | aggregate | concatenation | function_call | type_conversion | qualified_expression | (expression)
 	 * @return the primary structure.
 	 */
-	private PRIMARY vhdl_parseprimary()
+	private Primary parsePrimary()
 		throws ParseException
 	{
 		int type = NOPRIMARY;
 		Object pointer = null;
-		PRIMARY primary = null;
-		switch (vhdl_nexttoken.token)
+		Primary primary = null;
+		switch (nextToken.token)
 		{
 			case TOKEN_DECIMAL:
 			case TOKEN_BASED:
 			case TOKEN_STRING:
 			case TOKEN_BIT_STRING:
 				type = PRIMARY_LITERAL;
-				pointer = vhdl_parseliteral();
+				pointer = parseLiteral();
 				break;
 			case TOKEN_IDENTIFIER:
 				type = PRIMARY_NAME;
-				pointer = vhdl_parsename();
+				pointer = parseName();
 				break;
 			case TOKEN_LEFTBRACKET:
 				// should be an expression in brackets
-				vhdl_getnexttoken();
+				getNextToken();
 				type = PRIMARY_EXPRESSION;
-				pointer = vhdl_parseexpression();
-	
+				pointer = parseExpression();
+
 				// should be at right bracket
-				if (vhdl_nexttoken.token != TOKEN_RIGHTBRACKET)
+				if (nextToken.token != TOKEN_RIGHTBRACKET)
 				{
-					vhdl_reporterrormsg(vhdl_nexttoken, "Expecting a right bracket");
+					reportErrorMsg(nextToken, "Expecting a right bracket");
 				}
-				vhdl_getnexttoken();
+				getNextToken();
 				break;
 			default:
 				break;
 		}
 		if (type != NOPRIMARY)
 		{
-			primary = new PRIMARY();
+			primary = new Primary();
 			primary.type = type;
 			primary.pointer = pointer;
 		}
 		return primary;
 	}
-	
+
 	/**
 	 * Method to parse a literal of the form:
 	 *    literal ::= numeric_literal | enumeration_literal | string_literal | bit_string_literal
 	 * @return pointer to returned literal structure.
 	 */
-	private LITERAL vhdl_parseliteral()
+	private Literal parseLiteral()
 		throws ParseException
 	{
-		LITERAL literal = null;
+		Literal literal = null;
 		Object pointer = null;
 		int type = NOLITERAL;
-		switch(vhdl_nexttoken.token)
+		switch(nextToken.token)
 		{
 			case TOKEN_DECIMAL:
 				type = LITERAL_NUMERIC;
-				pointer = vhdl_parsedecimal();
+				pointer = parseDecimal();
 				break;
 			case TOKEN_BASED:
 				// type = LITERAL_NUMERIC;
-				// pointer = vhdl_parsebased();
+				// pointer = parseBased();
 				break;
 			case TOKEN_STRING:
 				break;
@@ -3484,13 +3209,13 @@ public class CompileVHDL
 		}
 		if (type != NOLITERAL)
 		{
-			literal = new LITERAL();
+			literal = new Literal();
 			literal.type = type;
 			literal.pointer = pointer;
 		}
 		return literal;
 	}
-	
+
 	/**
 	 * Method to parse a decimal literal of the form:
 	 *    decimal_literal ::= integer [.integer] [exponent]
@@ -3499,11 +3224,11 @@ public class CompileVHDL
 	 * Currently only integer supported.
 	 * @return the value of decimal literal.
 	 */
-	private Integer vhdl_parsedecimal()
+	private Integer parseDecimal()
 		throws ParseException
 	{
-		int value = TextUtils.atoi((String)vhdl_nexttoken.pointer);
-		vhdl_getnexttoken();
+		int value = TextUtils.atoi((String)nextToken.pointer);
+		getNextToken();
 		return new Integer(value);
 	}
 
@@ -3513,25 +3238,25 @@ public class CompileVHDL
 	 *    adding_operator term
 	 * @return pointer to more terms, null if no more.
 	 */
-	private MTERMS vhdl_parsemoreterms()
+	private MTerms parseMoreTerms()
 		throws ParseException
 	{
-		MTERMS more = null;
-		int addop = NOADDOP;
-		if (vhdl_nexttoken.token == TOKEN_PLUS)
+		MTerms more = null;
+		int addOp = NOADDOP;
+		if (nextToken.token == TOKEN_PLUS)
 		{
-			addop = ADDOP_ADD;
-		} else if (vhdl_nexttoken.token == TOKEN_MINUS)
+			addOp = ADDOP_ADD;
+		} else if (nextToken.token == TOKEN_MINUS)
 		{
-			addop = ADDOP_SUBTRACT;
+			addOp = ADDOP_SUBTRACT;
 		}
-		if (addop != NOADDOP)
+		if (addOp != NOADDOP)
 		{
-			vhdl_getnexttoken();
-			more = new MTERMS();
-			more.add_operator = addop;
-			more.term = vhdl_parseterm();
-			more.next = vhdl_parsemoreterms();
+			getNextToken();
+			more = new MTerms();
+			more.addOperator = addOp;
+			more.term = parseTerm();
+			more.next = parseMoreTerms();
 		}
 		return more;
 	}
@@ -3542,154 +3267,151 @@ public class CompileVHDL
 	 *	  identifier_list :== identifier {, identifier}
 	 * @return a pointer to identifier list.
 	 */
-	private IDENTLIST vhdl_parseident_list()
+	private IdentList parseIdentList()
 		throws ParseException
 	{
 		// must be at least one identifier
-		if (vhdl_nexttoken.token != TOKEN_IDENTIFIER)
+		if (nextToken.token != TOKEN_IDENTIFIER)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Expecting an identifier");
-			vhdl_getnexttoken();
+			reportErrorMsg(nextToken, "Expecting an identifier");
+			getNextToken();
 			return null;
 		}
-		IDENTLIST newilist = new IDENTLIST();
-		newilist.identifier = vhdl_nexttoken;
-		newilist.next = null;
-		IDENTLIST ilist = newilist;
-		IDENTLIST ilistend = newilist;
-	
+		IdentList newIList = new IdentList();
+		newIList.identifier = nextToken;
+		newIList.next = null;
+		IdentList iList = newIList;
+		IdentList iListEnd = newIList;
+
 		// continue while a comma is next
-		vhdl_getnexttoken();
-		while (vhdl_nexttoken.token == TOKEN_COMMA)
+		getNextToken();
+		while (nextToken.token == TOKEN_COMMA)
 		{
-			vhdl_getnexttoken();
+			getNextToken();
 			// should be another identifier
-			if (vhdl_nexttoken.token != TOKEN_IDENTIFIER)
+			if (nextToken.token != TOKEN_IDENTIFIER)
 			{
-				vhdl_reporterrormsg(vhdl_nexttoken, "Expecting an identifier");
-				vhdl_getnexttoken();
+				reportErrorMsg(nextToken, "Expecting an identifier");
+				getNextToken();
 				return null;
 			}
-			newilist = new IDENTLIST();
-			newilist.identifier = vhdl_nexttoken;
-			newilist.next = null;
-			ilistend.next = newilist;
-			ilistend = newilist;
-			vhdl_getnexttoken();
+			newIList = new IdentList();
+			newIList.identifier = nextToken;
+			newIList.next = null;
+			iListEnd.next = newIList;
+			iListEnd = newIList;
+			getNextToken();
 		}
-		return ilist;
+		return iList;
 	}
 
 	/**
 	 * Method to ignore up to the next semicolon.
 	 */
-	private void vhdl_parsetosemicolon()
+	private void parseToSemicolon()
 		throws ParseException
 	{
 		for(;;)
 		{
-			vhdl_getnexttoken();
-			if (vhdl_nexttoken.token == TOKEN_SEMICOLON)
+			getNextToken();
+			if (nextToken.token == TOKEN_SEMICOLON)
 			{
-				vhdl_getnexttoken();
+				getNextToken();
 				break;
 			}
 		}
 	}
-	
+
 	/**
 	 * Method to get the next token if possible.
 	 */
-	private void vhdl_getnexttoken()
+	private void getNextToken()
 		throws ParseException
 	{
-		if (vhdl_nexttoken.next == null)
+		if (nextToken.next == null)
 		{
-			vhdl_reporterrormsg(vhdl_nexttoken, "Unexpected termination within block");
+			reportErrorMsg(nextToken, "Unexpected termination within block");
 			throw new ParseException();
 		}
-		vhdl_nexttoken = vhdl_nexttoken.next;
+		nextToken = nextToken.next;
 	}
-	
+
 	/**
 	 * Method to compare the two keywords, the first as part of a token.
-	 * @param tokenptr pointer to the token entity.
+	 * @param tokenPtr pointer to the token entity.
 	 * @param key value of key to be compared.
 	 * @return true if the same, false if not the same.
 	 */
-	private boolean vhdl_keysame(TOKENLIST tokenptr, int key)
+	private boolean isKeySame(TokenList tokenPtr, int key)
 	{
-		if (tokenptr.token != TOKEN_KEYWORD) return false;
-		if (((VKEYWORD)(tokenptr.pointer)).num == key)
-		{
-			return true;
-		}
+		if (tokenPtr.token != TOKEN_KEYWORD) return false;
+		if (((VKeyword)(tokenPtr.pointer)).num == key) return true;
 		return false;
 	}
 
-	private void vhdl_reporterrormsg(TOKENLIST tlist, String err_msg)
+	private void reportErrorMsg(TokenList tList, String errMsg)
 	{
-		vhdl_err = true;
-		vhdl_errorcount++;
-		if (vhdl_errorcount == 30)
+		hasError = true;
+		errorCount++;
+		if (errorCount == 30)
 			System.out.println("TOO MANY ERRORS...PRINTING NO MORE");
-		if (vhdl_errorcount >= 30) return;
-		if (tlist == null)
+		if (errorCount >= 30) return;
+		if (tList == null)
 		{
-			System.out.println("ERROR " + err_msg);
+			System.out.println("ERROR " + errMsg);
 			return;
 		}
-		System.out.println("ERROR on line " + tlist.line_num + ", " + err_msg + ":");
-	
+		System.out.println("ERROR on line " + tList.lineNum + ", " + errMsg + ":");
+
 		// back up to start of line
-		TOKENLIST tstart;
-		for (tstart = tlist; tstart.last != null; tstart = tstart.last)
+		TokenList tStart;
+		for (tStart = tList; tStart.last != null; tStart = tStart.last)
 		{
-			if (tstart.last.line_num != tlist.line_num) break;
+			if (tStart.last.lineNum != tList.lineNum) break;
 		}
-	
+
 		// form line in buffer
 		int pointer = 0;
 		StringBuffer buffer = new StringBuffer();
-		for ( ; tstart != null && tstart.line_num == tlist.line_num; tstart = tstart.next)
+		for ( ; tStart != null && tStart.lineNum == tList.lineNum; tStart = tStart.next)
 		{
 			int i = buffer.length();
-			if (tstart == tlist) pointer = i;
-			if (tstart.token < TOKEN_ARROW)
+			if (tStart == tList) pointer = i;
+			if (tStart.token < TOKEN_ARROW)
 			{
-				char chr = vhdl_delimiterstr.charAt(tstart.token);
+				char chr = delimiterStr.charAt(tStart.token);
 				buffer.append(chr);
-			} else if (tstart.token < TOKEN_UNKNOWN)
+			} else if (tStart.token < TOKEN_UNKNOWN)
 			{
-				int start = 2 * (tstart.token - TOKEN_ARROW);
-				buffer.append(vhdl_doubledelimiterstr.substring(start, start+2));
-			} else switch (tstart.token)
+				int start = 2 * (tStart.token - TOKEN_ARROW);
+				buffer.append(doubleDelimiterStr.substring(start, start+2));
+			} else switch (tStart.token)
 			{
 				case TOKEN_STRING:
-					buffer.append("\"" + tstart.pointer + "\" ");
+					buffer.append("\"" + tStart.pointer + "\" ");
 					break;
 				case TOKEN_KEYWORD:
-					buffer.append(((VKEYWORD)tstart.pointer).name);
+					buffer.append(((VKeyword)tStart.pointer).name);
 					break;
 				case TOKEN_IDENTIFIER:
-					buffer.append(tstart.pointer);
+					buffer.append(tStart.pointer);
 					break;
 				case TOKEN_CHAR:
-					buffer.append(((Character)tstart.pointer).charValue());
+					buffer.append(((Character)tStart.pointer).charValue());
 				case TOKEN_DECIMAL:
-					buffer.append(tstart.pointer);
+					buffer.append(tStart.pointer);
 					break;
 				default:
-					if (tstart.pointer != null)
-						buffer.append(tstart.pointer);
+					if (tStart.pointer != null)
+						buffer.append(tStart.pointer);
 					break;
 			}
-			if (tstart.space)buffer.append(" ");
+			if (tStart.space) buffer.append(" ");
 		}
-	
+
 		// print out line
 		System.out.println(buffer.toString());
-	
+
 		// print out pointer
 		buffer = new StringBuffer();
 		for (int i = 0; i < pointer; i++) buffer.append(" ");
@@ -3698,155 +3420,153 @@ public class CompileVHDL
 
 	/******************************** THE VHDL SEMANTICS ********************************/
 
-	private DBUNITS			vhdl_units;
-	private SYMBOLLIST		vhdl_symbols, vhdl_gsymbols;
-	private int              vhdl_for_level = 0;
-	private int []           vhdl_for_tags = new int[10];
-	private String           vhdl_default_name;
+	private DBUnits			theUnits;
+	private SymbolList		localSymbols, globalSymbols;
+	private int             forLoopLevel = 0;
+	private int []          forLoopTags = new int[10];
 
 	/**
 	 * Method to start semantic analysis of the generated parse tree.
 	 * @return the status of the analysis (errors).
 	 */
-	private boolean vhdl_semantic()
+	private boolean doSemantic()
 	{
-		vhdl_err = false;
-		vhdl_default_name = "default";
-		vhdl_units = new DBUNITS();
-		vhdl_units.interfaces = null;
-		DBINTERFACE endinterface = null;
-		vhdl_units.bodies = null;
-		DBBODY endbody = null;
-	
-		vhdl_symbols = vhdl_pushsymbols(null);
-		vhdl_gsymbols = vhdl_pushsymbols(null);
-	
+		hasError = false;
+		theUnits = new DBUnits();
+		theUnits.interfaces = null;
+		DBInterface endInterface = null;
+		theUnits.bodies = null;
+		DBBody endBody = null;
+
+		localSymbols = pushSymbols(null);
+		globalSymbols = pushSymbols(null);
+
 		// add defaults to symbol tree
-		vhdl_createdefaulttype(vhdl_symbols);
-		SYMBOLLIST ssymbols = vhdl_symbols;
-	
-		vhdl_symbols = vhdl_pushsymbols(vhdl_symbols);
-	
-		for (PTREE unit = vhdl_ptree; unit != null; unit = unit.next)
+		createDefaultType(localSymbols);
+		SymbolList sSymbols = localSymbols;
+
+		localSymbols = pushSymbols(localSymbols);
+
+		for (PTree unit = pTree; unit != null; unit = unit.next)
 		{
 			switch (unit.type)
 			{
 				case UNIT_INTERFACE:
-					DBINTERFACE interfacef = vhdl_seminterface((VINTERFACE)unit.pointer);
+					DBInterface interfacef = semInterface((VInterface)unit.pointer);
 					if (interfacef == null) break;
-					if (endinterface == null)
+					if (endInterface == null)
 					{
-						vhdl_units.interfaces = endinterface = interfacef;
+						theUnits.interfaces = endInterface = interfacef;
 					} else
 					{
-						endinterface.next = interfacef;
-						endinterface = interfacef;
+						endInterface.next = interfacef;
+						endInterface = interfacef;
 					}
-					vhdl_symbols = vhdl_pushsymbols(ssymbols);
+					localSymbols = pushSymbols(sSymbols);
 					break;
 				case UNIT_BODY:
-					DBBODY body = vhdl_sembody((BODY)unit.pointer);
-					if (endbody == null)
+					DBBody body = semBody((Body)unit.pointer);
+					if (endBody == null)
 					{
-						vhdl_units.bodies = endbody = body;
+						theUnits.bodies = endBody = body;
 					} else
 					{
-						endbody.next = body;
-						endbody = body;
+						endBody.next = body;
+						endBody = body;
 					}
-					vhdl_symbols = vhdl_pushsymbols(ssymbols);
+					localSymbols = pushSymbols(sSymbols);
 					break;
 				case UNIT_PACKAGE:
-					vhdl_sempackage((PACKAGE)unit.pointer);
+					semPackage((Package)unit.pointer);
 					break;
 				case UNIT_USE:
-					vhdl_semuse((USE)unit.pointer);
+					semUse((Use)unit.pointer);
 					break;
 				case UNIT_FUNCTION:
 				default:
 					break;
 			}
 		}
-	
-		return vhdl_err;
+
+		return hasError;
 	}
-	
+
 	/**
 	 * Method to do semantic analysis of a use statement.
 	 * Add package symbols to symbol list.
 	 * @param use pointer to use parse structure.
 	 */
-	private void vhdl_semuse(USE use)
+	private void semUse(Use use)
 	{
 		for ( ; use != null; use = use.next)
 		{
-			/* Note this code was lifted with minor mods from vhdl_semwith()
+			/* Note this code was lifted with minor mods from semWith()
 			 * which is not a distinct function in IEEE version.
 			 * It seems a little redundant as written, but I don't
 			 * really understand what Andy was doing here.....
 			 */
-			SYMBOLTREE symbol = vhdl_searchsymbol((String)use.unit.pointer, vhdl_gsymbols);
+			SymbolTree symbol = searchSymbol((String)use.unit.pointer, globalSymbols);
 			if (symbol == null)
 			{
 				continue;
 			}
 			if (symbol.type != SYMBOL_PACKAGE)
 			{
-				vhdl_reporterrormsg(use.unit, "Symbol is not a PACKAGE");
+				reportErrorMsg(use.unit, "Symbol is not a PACKAGE");
 			} else
 			{
-				vhdl_addsymbol(symbol.value, SYMBOL_PACKAGE, symbol.pointer, vhdl_symbols);
+				addSymbol(symbol.value, SYMBOL_PACKAGE, symbol.pointer, localSymbols);
 			}
-			symbol = vhdl_searchsymbol((String)use.unit.pointer, vhdl_gsymbols);
+			symbol = searchSymbol((String)use.unit.pointer, globalSymbols);
 			if (symbol == null)
 			{
-				vhdl_reporterrormsg(use.unit, "Symbol is undefined");
+				reportErrorMsg(use.unit, "Symbol is undefined");
 				continue;
 			}
 			if (symbol.type != SYMBOL_PACKAGE)
 			{
-				vhdl_reporterrormsg(use.unit, "Symbol is not a PACKAGE");
+				reportErrorMsg(use.unit, "Symbol is not a PACKAGE");
 			} else
 			{
-				SYMBOLLIST new_sym_list = ((DBPACKAGE)(symbol.pointer)).root;
-				new_sym_list.last = vhdl_symbols;
-				vhdl_symbols = new_sym_list;
+				SymbolList newSymList = ((DBPackage)(symbol.pointer)).root;
+				newSymList.last = localSymbols;
+				localSymbols = newSymList;
 			}
 		}
 	}
 
 	/**
 	 * Method to do semantic analysis of a package declaration.
-	 * @param vpackage pointer to a package.
+	 * @param vPackage pointer to a package.
 	 */
-	private void vhdl_sempackage(PACKAGE vpackage)
+	private void semPackage(Package vPackage)
 	{
-		if (vpackage == null) return;
-		DBPACKAGE dbpackage = null;
-	
+		if (vPackage == null) return;
+		DBPackage dbPackage = null;
+
 		// search to see if package name is unique
-		if (vhdl_searchsymbol((String)vpackage.name.pointer, vhdl_gsymbols) != null)
+		if (searchSymbol((String)vPackage.name.pointer, globalSymbols) != null)
 		{
-			vhdl_reporterrormsg(vpackage.name, "Symbol previously defined");
+			reportErrorMsg(vPackage.name, "Symbol previously defined");
 		} else
 		{
-			dbpackage = new DBPACKAGE();
-			dbpackage.name = (String)vpackage.name.pointer;
-			dbpackage.root = null;
-			vhdl_addsymbol(dbpackage.name, SYMBOL_PACKAGE, dbpackage, vhdl_gsymbols);
+			dbPackage = new DBPackage();
+			dbPackage.name = (String)vPackage.name.pointer;
+			dbPackage.root = null;
+			addSymbol(dbPackage.name, SYMBOL_PACKAGE, dbPackage, globalSymbols);
 		}
-	
+
 		// check package parts
-		vhdl_symbols = vhdl_pushsymbols(vhdl_symbols);
-		for (PACKAGEDPART part = vpackage.declare; part != null; part = part.next)
+		localSymbols = pushSymbols(localSymbols);
+		for (PackagedPart part = vPackage.declare; part != null; part = part.next)
 		{
-			vhdl_sembasic_declare(part.item);
+			semBasicDeclare(part.item);
 		}
-		if (dbpackage != null)
+		if (dbPackage != null)
 		{
-			dbpackage.root = vhdl_symbols;
+			dbPackage.root = localSymbols;
 		}
-		vhdl_symbols = vhdl_popsymbols(vhdl_symbols);
+		localSymbols = popSymbols(localSymbols);
 	}
 
 	/**
@@ -3854,116 +3574,115 @@ public class CompileVHDL
 	 * @param body pointer to body parse structure.
 	 * @return resultant database body.
 	 */
-	private DBBODY vhdl_sembody(BODY body)
+	private DBBody semBody(Body body)
 	{
-		DBBODY dbbody = null;
-		if (body == null) return dbbody;
-		if (vhdl_searchsymbol((String)body.name.pointer, vhdl_gsymbols) != null)
+		DBBody dbBody = null;
+		if (body == null) return dbBody;
+		if (searchSymbol((String)body.name.pointer, globalSymbols) != null)
 		{
-			vhdl_reporterrormsg(body.name, "Body previously defined");
-			return dbbody;
+			reportErrorMsg(body.name, "Body previously defined");
+			return dbBody;
 		}
-	
+
 		// create dbbody
-		dbbody = new DBBODY();
-		dbbody.classnew = body.classnew;
-		dbbody.name = (String)body.name.pointer;
-		dbbody.entity = null;
-		dbbody.declare = null;
-		dbbody.statements = null;
-		dbbody.parent = null;
-		dbbody.same_parent = null;
-		dbbody.next = null;
-		vhdl_addsymbol(dbbody.name, SYMBOL_BODY, dbbody, vhdl_gsymbols);
-	
+		dbBody = new DBBody();
+		dbBody.name = (String)body.name.pointer;
+		dbBody.entity = null;
+		dbBody.declare = null;
+		dbBody.statements = null;
+		dbBody.parent = null;
+		dbBody.sameParent = null;
+		dbBody.next = null;
+		addSymbol(dbBody.name, SYMBOL_BODY, dbBody, globalSymbols);
+
 		// check if interface declared
-		SYMBOLTREE symbol = vhdl_searchsymbol((String)body.entity.identifier.pointer, vhdl_gsymbols);
+		SymbolTree symbol = searchSymbol((String)body.entity.identifier.pointer, globalSymbols);
 		if (symbol == null)
 		{
-			vhdl_reporterrormsg((TOKENLIST)body.entity.identifier, "Reference to undefined entity");
-			return dbbody;
+			reportErrorMsg((TokenList)body.entity.identifier, "Reference to undefined entity");
+			return dbBody;
 		} else if (symbol.type != SYMBOL_ENTITY)
 		{
-			vhdl_reporterrormsg((TOKENLIST)body.entity.identifier, "Symbol is not an entity");
-			return dbbody;
+			reportErrorMsg((TokenList)body.entity.identifier, "Symbol is not an entity");
+			return dbBody;
 		} else
 		{
-			dbbody.entity = symbol.value;
-			dbbody.parent = (DBINTERFACE)symbol.pointer;
+			dbBody.entity = symbol.value;
+			dbBody.parent = (DBInterface)symbol.pointer;
 			if (symbol.pointer != null)
 			{
 				// add interfacef-body reference to list
-				dbbody.same_parent = ((DBINTERFACE)(symbol.pointer)).bodies;
-				((DBINTERFACE)(symbol.pointer)).bodies = dbbody;
+				dbBody.sameParent = ((DBInterface)(symbol.pointer)).bodies;
+				((DBInterface)(symbol.pointer)).bodies = dbBody;
 			}
 		}
-	
+
 		// create new symbol tree
-		SYMBOLLIST temp_symbols = vhdl_symbols;
-		SYMBOLLIST endsymbol = vhdl_symbols;
+		SymbolList tempSymbols = localSymbols;
+		SymbolList endSymbol = localSymbols;
 		if (symbol.pointer != null)
 		{
-			while (endsymbol.last != null)
+			while (endSymbol.last != null)
 			{
-				endsymbol = endsymbol.last;
+				endSymbol = endSymbol.last;
 			}
-			endsymbol.last = ((DBINTERFACE)(symbol.pointer)).symbols;
+			endSymbol.last = ((DBInterface)(symbol.pointer)).symbols;
 		}
-		vhdl_symbols = vhdl_pushsymbols(vhdl_symbols);
-	
+		localSymbols = pushSymbols(localSymbols);
+
 		// check body declaration
-		dbbody.declare = vhdl_sembody_declare(body.body_declare);
-	
+		dbBody.declare = semBodyDeclare(body.bodyDeclare);
+
 		// check statements
-		dbbody.statements = vhdl_semset_of_statements(body.statements);
-	
+		dbBody.statements = semSetOfStatements(body.statements);
+
 		// delete current symbol table
-		vhdl_symbols = temp_symbols;
-		endsymbol.last = null;
-	
-		return dbbody;
+		localSymbols = tempSymbols;
+		endSymbol.last = null;
+
+		return dbBody;
 	}
-	
+
 	/**
 	 * Method to do semantic analysis of architectural set of statements in a body.
 	 * @param state pointer to architectural statements.
 	 * @return pointer to created statements.
 	 */
-	private DBSTATEMENTS vhdl_semset_of_statements(STATEMENTS state)
+	private DBStatements semSetOfStatements(Statements state)
 	{
 		if (state == null) return null;
-		DBSTATEMENTS dbstates = new DBSTATEMENTS();
-		dbstates.instances = null;
-		DBINSTANCE endinstance = null;
+		DBStatements dbStates = new DBStatements();
+		dbStates.instances = null;
+		DBInstance endInstance = null;
 		for (; state != null; state = state.next)
 		{
 			switch (state.type)
 			{
 				case ARCHSTATE_INSTANCE:
-					DBINSTANCE newinstance = vhdl_seminstance((VINSTANCE)state.pointer);
-					if (endinstance == null)
+					DBInstance newInstance = semInstance((VInstance)state.pointer);
+					if (endInstance == null)
 					{
-						dbstates.instances = endinstance = newinstance;
+						dbStates.instances = endInstance = newInstance;
 					} else
 					{
-						endinstance.next = newinstance;
-						endinstance = newinstance;
+						endInstance.next = newInstance;
+						endInstance = newInstance;
 					}
 					break;
 				case ARCHSTATE_GENERATE:
-					DBSTATEMENTS newstate = vhdl_semgenerate((GENERATE)state.pointer);
-					if (newstate != null)
+					DBStatements newState = semGenerate((Generate)state.pointer);
+					if (newState != null)
 					{
-						for (newinstance = newstate.instances; newinstance != null;
-							newinstance = newinstance.next)
+						for (newInstance = newState.instances; newInstance != null;
+						newInstance = newInstance.next)
 						{
-							if (endinstance == null)
+							if (endInstance == null)
 							{
-								dbstates.instances = endinstance = newinstance;
+								dbStates.instances = endInstance = newInstance;
 							} else
 							{
-								endinstance.next = newinstance;
-								endinstance = newinstance;
+								endInstance.next = newInstance;
+								endInstance = newInstance;
 							}
 						}
 					}
@@ -3975,279 +3694,277 @@ public class CompileVHDL
 					break;
 			}
 		}
-		return dbstates;
+		return dbStates;
 	}
-	
+
 	/**
 	 * Method to do semantic analysis of generate statement.
 	 * @param gen pointer to generate statement.
 	 * @return pointer to generated statements.
 	 */
-	private DBSTATEMENTS vhdl_semgenerate(GENERATE gen)
+	private DBStatements semGenerate(Generate gen)
 	{
-		DBSTATEMENTS dbstates = null;
-		if (gen == null) return dbstates;
-	
+		DBStatements dbStates = null;
+		if (gen == null) return dbStates;
+
 		// check label
 		// For IEEE standard, check label only if not inside a for generate
 		// Not a perfect implementation, but label is not used for anything
-		// in this situation.  This is easier to check in the parser...    
-		if (gen.label != null && vhdl_for_level == 0)
+		// in this situation.  This is easier to check in the parser...
+		if (gen.label != null && forLoopLevel == 0)
 		{
 			// check label for uniqueness
-			if (vhdl_searchsymbol((String)gen.label.pointer, vhdl_symbols) != null)
+			if (searchSymbol((String)gen.label.pointer, localSymbols) != null)
 			{
-				vhdl_reporterrormsg(gen.label, "Symbol previously defined");
+				reportErrorMsg(gen.label, "Symbol previously defined");
 			} else
 			{
-				vhdl_addsymbol((String)gen.label.pointer, SYMBOL_LABEL, null, vhdl_symbols);
-				vhdl_default_name = (String)gen.label.pointer;
+				addSymbol((String)gen.label.pointer, SYMBOL_LABEL, null, localSymbols);
 			}
 		}
-	
+
 		// check generation scheme
-		GENSCHEME scheme = gen.gen_scheme;
-		if (scheme == null)
-			return dbstates;
+		GenScheme scheme = gen.genScheme;
+		if (scheme == null) return dbStates;
 		switch (scheme.scheme)
 		{
 			case GENSCHEME_FOR:
-	
-				// Increment vhdl_for_level and clear tag
-				vhdl_for_tags[++vhdl_for_level] = 0;
+
+				// Increment forLoopLevel and clear tag
+				forLoopTags[++forLoopLevel] = 0;
 
 				// create new local symbol table
-				vhdl_symbols = vhdl_pushsymbols(vhdl_symbols);
-	
+				localSymbols = pushSymbols(localSymbols);
+
 				// add identifier as a variable symbol
-				SYMBOLTREE symbol = vhdl_addsymbol((String)scheme.identifier.pointer, SYMBOL_VARIABLE,
-					null, vhdl_symbols);
-	
+				SymbolTree symbol = addSymbol((String)scheme.identifier.pointer, SYMBOL_VARIABLE,
+					null, localSymbols);
+
 				// determine direction of discrete range (ascending or descending)
-				DBDISCRETERANGE drange = vhdl_semdiscrete_range(scheme.range);
-				if (drange.start > drange.end)
+				DBDiscreteRange dRange = semDiscreteRange(scheme.range);
+				if (dRange.start > dRange.end)
 				{
-					int temp = drange.end;
-					drange.end = drange.start;
-					drange.start = temp;
+					int temp = dRange.end;
+					dRange.end = dRange.start;
+					dRange.start = temp;
 				}
-				DBSTATEMENTS oldstates = null;
-				DBINSTANCE endinst = null;
-				for (int temp = drange.start; temp <= drange.end; temp++)
+				DBStatements oldStates = null;
+				DBInstance endInst = null;
+				for (int temp = dRange.start; temp <= dRange.end; temp++)
 				{
 					symbol.pointer = new Integer(temp);
-					dbstates = vhdl_semset_of_statements(gen.statements);
-					++vhdl_for_tags[vhdl_for_level];
-					if (dbstates != null)
+					dbStates = semSetOfStatements(gen.statements);
+					++forLoopTags[forLoopLevel];
+					if (dbStates != null)
 					{
-						if (oldstates == null)
+						if (oldStates == null)
 						{
-							oldstates = dbstates;
-							endinst = dbstates.instances;
-							if (endinst != null)
+							oldStates = dbStates;
+							endInst = dbStates.instances;
+							if (endInst != null)
 							{
-								while (endinst.next != null)
+								while (endInst.next != null)
 								{
-									endinst = endinst.next;
+									endInst = endInst.next;
 								}
 							}
 						} else
 						{
-							for (DBINSTANCE inst = dbstates.instances; inst != null; inst = inst.next)
+							for (DBInstance inst = dbStates.instances; inst != null; inst = inst.next)
 							{
-								if (endinst == null)
+								if (endInst == null)
 								{
-									oldstates.instances = endinst = inst;
+									oldStates.instances = endInst = inst;
 								} else
 								{
-									endinst.next = inst;
-									endinst = inst;
+									endInst.next = inst;
+									endInst = inst;
 								}
 							}
 						}
 					}
 				}
-				dbstates = oldstates;
-	
+				dbStates = oldStates;
+
 				// restore old symbol table
-				vhdl_symbols = vhdl_popsymbols(vhdl_symbols);
-				--vhdl_for_level;
+				localSymbols = popSymbols(localSymbols);
+				--forLoopLevel;
 				break;
-	
+
 			case GENSCHEME_IF:
-				if (vhdl_evalexpression(scheme.condition) != 0)
+				if (evalExpression(scheme.condition) != 0)
 				{
-					dbstates = vhdl_semset_of_statements(gen.statements);
+					dbStates = semSetOfStatements(gen.statements);
 				}
 			default:
 				break;
 		}
-		return dbstates;
+		return dbStates;
 	}
-	
+
 	/**
 	 * Method to do demantic analysis of instance for an architectural body.
 	 * @param inst pointer to instance structure.
 	 * @return pointer to created instance.
 	 */
-	private DBINSTANCE vhdl_seminstance(VINSTANCE inst)
+	private DBInstance semInstance(VInstance inst)
 	{
-		DBINSTANCE dbinst = null;
-		if (inst == null) return dbinst;
+		DBInstance dbInst = null;
+		if (inst == null) return dbInst;
 		// If inside a "for generate" make unique instance name
-		// from instance label and vhdl_for_tags[]
-		
-		String ikey = null;
-		if (vhdl_for_level > 0)
+		// from instance label and forLoopTags[]
+
+		String iKey = null;
+		if (forLoopLevel > 0)
 		{
-			if (inst.name == null) ikey = "no_name"; else
-				ikey = (String)inst.name.pointer;
-			for (int i=1; i<=vhdl_for_level; ++i)
+			if (inst.name == null) iKey = "no_name"; else
+				iKey = (String)inst.name.pointer;
+			for (int i=1; i<=forLoopLevel; ++i)
 			{
-				ikey += "_" + vhdl_for_tags[i];
+				iKey += "_" + forLoopTags[i];
 			}
 		} else
 		{
-			ikey = (String)inst.name.pointer;
+			iKey = (String)inst.name.pointer;
 		}
-		dbinst = new DBINSTANCE();
-		dbinst.name = ikey;
-		dbinst.compo = null;
-		dbinst.ports = null;
-		DBAPORTLIST enddbaport = null;
-		dbinst.next = null;
-		if (vhdl_searchsymbol(dbinst.name, vhdl_symbols) != null)
+		dbInst = new DBInstance();
+		dbInst.name = iKey;
+		dbInst.compo = null;
+		dbInst.ports = null;
+		DBAPortList endDBAPort = null;
+		dbInst.next = null;
+		if (searchSymbol(dbInst.name, localSymbols) != null)
 		{
-			vhdl_reporterrormsg(inst.name, "Instance name previously defined");
+			reportErrorMsg(inst.name, "Instance name previously defined");
 		} else
 		{
-			vhdl_addsymbol(dbinst.name, SYMBOL_INSTANCE, dbinst, vhdl_symbols);
+			addSymbol(dbInst.name, SYMBOL_INSTANCE, dbInst, localSymbols);
 		}
-	
+
 		// check that instance entity is among component list
-		DBCOMPONENTS compo = null;
-		SYMBOLTREE symbol = vhdl_searchsymbol((String)inst.entity.identifier.pointer, vhdl_symbols);
+		DBComponents compo = null;
+		SymbolTree symbol = searchSymbol((String)inst.entity.identifier.pointer, localSymbols);
 		if (symbol == null)
 		{
-			vhdl_reporterrormsg(inst.entity.identifier, "Instance references undefined component");
+			reportErrorMsg(inst.entity.identifier, "Instance references undefined component");
 		} else if (symbol.type != SYMBOL_COMPONENT)
 		{
-			vhdl_reporterrormsg(inst.entity.identifier, "Symbol is not a component reference");
+			reportErrorMsg(inst.entity.identifier, "Symbol is not a component reference");
 		} else
 		{
-			compo = (DBCOMPONENTS)symbol.pointer;
-			dbinst.compo = compo;
-	
+			compo = (DBComponents)symbol.pointer;
+			dbInst.compo = compo;
+
 			// check that number of ports match
-			int iport_num = 0;
-			for (APORTLIST aplist = inst.ports; aplist != null; aplist = aplist.next)
+			int iPortNum = 0;
+			for (APortList apList = inst.ports; apList != null; apList = apList.next)
 			{
-				iport_num++;
+				iPortNum++;
 			}
-			int cport_num = 0;
-			for (DBPORTLIST plist = compo.ports; plist != null; plist = plist.next)
+			int cPortNum = 0;
+			for (DBPortList pList = compo.ports; pList != null; pList = pList.next)
 			{
-				cport_num++;
+				cPortNum++;
 			}
-			if (iport_num != cport_num)
+			if (iPortNum != cPortNum)
 			{
-				vhdl_reporterrormsg(vhdl_getnametoken((VNAME)inst.ports.pointer),
+				reportErrorMsg(getNameToken((VName)inst.ports.pointer),
 					"Instance has different number of ports that component");
 				return null;
 			}
 		}
-	
+
 		// check that ports of instance are either signals or entity port
 		// note 0 ports are allowed for position placement
-		DBPORTLIST plist = null;
+		DBPortList pList = null;
 		if (compo != null)
 		{
-			plist = compo.ports;
+			pList = compo.ports;
 		}
-		for (APORTLIST aplist = inst.ports; aplist != null; aplist = aplist.next)
+		for (APortList apList = inst.ports; apList != null; apList = apList.next)
 		{
-			DBAPORTLIST dbaport = new DBAPORTLIST();
-			dbaport.name = null;
-			dbaport.port = plist;
-			if (plist != null)
+			DBAPortList dbAPort = new DBAPortList();
+			dbAPort.name = null;
+			dbAPort.port = pList;
+			if (pList != null)
 			{
-				plist = plist.next;
+				pList = pList.next;
 			}
-			dbaport.flags = 0;
-			dbaport.next = null;
-			if (enddbaport == null)
+			dbAPort.flags = 0;
+			dbAPort.next = null;
+			if (endDBAPort == null)
 			{
-				dbinst.ports = enddbaport = dbaport;
+				dbInst.ports = endDBAPort = dbAPort;
 			} else
 			{
-				enddbaport.next = dbaport;
-				enddbaport = dbaport;
+				endDBAPort.next = dbAPort;
+				endDBAPort = dbAPort;
 			}
-			if (aplist.pointer == null) continue;
-			dbaport.name = vhdl_semname((VNAME)aplist.pointer);
-	
+			if (apList.pointer == null) continue;
+			dbAPort.name = semName((VName)apList.pointer);
+
 			// check that name is reference to a signal or formal port
-			vhdl_semaport_check((VNAME)aplist.pointer);
+			semAPortCheck((VName)apList.pointer);
 		}
-	
-		return dbinst;
+
+		return dbInst;
 	}
-	
+
 	/**
 	 * Method to do semantic analysis of a name.
 	 * @param name pointer to name structure.
 	 * @return pointer to created db name.
 	 */
-	private DBNAME vhdl_semname(VNAME name)
+	private DBName semName(VName name)
 	{
-		DBNAME dbname = null;
-		if (name == null) return dbname;
+		DBName dbName = null;
+		if (name == null) return dbName;
 		switch (name.type)
 		{
 			case NAME_SINGLE:
-				dbname = vhdl_semsinglename((SINGLENAME)name.pointer);
+				dbName = semSingleName((SingleName)name.pointer);
 				break;
 			case NAME_CONCATENATE:
-				dbname = vhdl_semconcatenatedname((CONCATENATEDNAME)name.pointer);
+				dbName = semConcatenatedName((ConcatenatedName)name.pointer);
 				break;
 			case NAME_ATTRIBUTE:
 			default:
 				break;
 		}
-		return dbname;
+		return dbName;
 	}
-	
+
 	/**
 	 * Method to do semantic analysis of a concatenated name.
 	 * @param name pointer to concatenated name structure.
 	 * @return pointer to generated db name.
 	 */
-	private DBNAME vhdl_semconcatenatedname(CONCATENATEDNAME name)
+	private DBName semConcatenatedName(ConcatenatedName name)
 	{
-		DBNAME dbname = null;
-		if (name == null) return dbname;
-		dbname = new DBNAME();
-		dbname.name = null;
-		dbname.type = DBNAME_CONCATENATED;
-		dbname.pointer = null;
-		dbname.dbtype = null;
-		DBNAMELIST end = null;
-		for (CONCATENATEDNAME cat = name; cat != null; cat = cat.next)
+		DBName dbName = null;
+		if (name == null) return dbName;
+		dbName = new DBName();
+		dbName.name = null;
+		dbName.type = DBNAME_CONCATENATED;
+		dbName.pointer = null;
+		dbName.dbType = null;
+		DBNameList end = null;
+		for (ConcatenatedName cat = name; cat != null; cat = cat.next)
 		{
-			DBNAMELIST newnl = new DBNAMELIST();
-			newnl.name = vhdl_semsinglename(cat.name);
-			newnl.next = null;
+			DBNameList newNL = new DBNameList();
+			newNL.name = semSingleName(cat.name);
+			newNL.next = null;
 			if (end != null)
 			{
-				end.next = newnl;
-				end = newnl;
+				end.next = newNL;
+				end = newNL;
 			} else
 			{
-				end = newnl;
-				dbname.pointer = newnl;
+				end = newNL;
+				dbName.pointer = newNL;
 			}
 		}
-		return dbname;
+		return dbName;
 	}
 
 	/**
@@ -4255,98 +3972,98 @@ public class CompileVHDL
 	 * @param name pointer to single name structure.
 	 * @return pointer to generated db name.
 	 */
-	private DBNAME vhdl_semsinglename(SINGLENAME name)
+	private DBName semSingleName(SingleName name)
 	{
-		DBNAME dbname = null;
-		if (name == null) return dbname;
+		DBName dbName = null;
+		if (name == null) return dbName;
 		switch (name.type)
 		{
 			case SINGLENAME_SIMPLE:
-				dbname = new DBNAME();
-				dbname.name = (String)((SIMPLENAME)(name.pointer)).identifier.pointer;
-				dbname.type = DBNAME_IDENTIFIER;
-				dbname.pointer = null;
-				dbname.dbtype = vhdl_gettype(dbname.name);
+				dbName = new DBName();
+				dbName.name = (String)((SimpleName)(name.pointer)).identifier.pointer;
+				dbName.type = DBNAME_IDENTIFIER;
+				dbName.pointer = null;
+				dbName.dbType = getType(dbName.name);
 				break;
 			case SINGLENAME_INDEXED:
-				dbname = vhdl_semindexedname((INDEXEDNAME)name.pointer);
+				dbName = semIndexedName((IndexedName)name.pointer);
 				break;
 			case SINGLENAME_SLICE:
 			case SINGLENAME_SELECTED:
 			default:
 				break;
 		}
-		return dbname;
+		return dbName;
 	}
-	
+
 	/**
 	 * Method to do semantic analysis of an indexed name.
 	 * @param name pointer to indexed name structure.
 	 * @return pointer to generated name.
 	 */
-	private DBNAME vhdl_semindexedname(INDEXEDNAME name)
+	private DBName semIndexedName(IndexedName name)
 	{
-		DBNAME dbname = null;
-		if (name == null) return dbname;
-	
+		DBName dbName = null;
+		if (name == null) return dbName;
+
 		// must be an array type
-		DBLTYPE type = vhdl_gettype(vhdl_getprefixident(name.prefix));
+		DBLType type = getType(getPrefixIdent(name.prefix));
 		if (type == null)
 		{
 
-			vhdl_reporterrormsg(vhdl_getprefixtoken(name.prefix), "No type specified");
-			return dbname;
+			reportErrorMsg(getPrefixToken(name.prefix), "No type specified");
+			return dbName;
 		}
 		if (type.type != DBTYPE_ARRAY)
 		{
-			vhdl_reporterrormsg(vhdl_getprefixtoken(name.prefix), "Must be of constrained array type");
-			return dbname;
+			reportErrorMsg(getPrefixToken(name.prefix), "Must be of constrained array type");
+			return dbName;
 		}
-		dbname = new DBNAME();
-		dbname.name = vhdl_getprefixident(name.prefix);
-		dbname.type = DBNAME_INDEXED;
-		dbname.pointer = null;
-		dbname.dbtype = type;
-	
+		dbName = new DBName();
+		dbName.name = getPrefixIdent(name.prefix);
+		dbName.type = DBNAME_INDEXED;
+		dbName.pointer = null;
+		dbName.dbType = type;
+
 		// evaluate any expressions
-		DBINDEXRANGE indexr = (DBINDEXRANGE)type.pointer;
-		DBEXPRLIST dbexpr = null, endexpr = null;
-		for (EXPRLIST expr = name.expr_list; expr != null && indexr != null; expr = expr.next)
+		DBIndexRange indexR = (DBIndexRange)type.pointer;
+		DBExprList dbExpr = null, endExpr = null;
+		for (ExprList expr = name.exprList; expr != null && indexR != null; expr = expr.next)
 		{
-			int value = vhdl_evalexpression(expr.expression);
-			if (!vhdl_indiscreterange(value, indexr.drange))
+			int value = evalExpression(expr.expression);
+			if (!isInDiscreteRange(value, indexR.dRange))
 			{
-				vhdl_reporterrormsg(vhdl_getprefixtoken(name.prefix), "Index is out of range");
-				return(dbname);
+				reportErrorMsg(getPrefixToken(name.prefix), "Index is out of range");
+				return dbName;
 			}
-			DBEXPRLIST nexpr = new DBEXPRLIST();
-			nexpr.value = value;
-			nexpr.next = null;
-			if (endexpr == null)
+			DBExprList nExpr = new DBExprList();
+			nExpr.value = value;
+			nExpr.next = null;
+			if (endExpr == null)
 			{
-				dbexpr = endexpr = nexpr;
+				dbExpr = endExpr = nExpr;
 			} else
 			{
-				endexpr.next = nexpr;
-				endexpr = nexpr;
+				endExpr.next = nExpr;
+				endExpr = nExpr;
 			}
-			indexr = indexr.next;
+			indexR = indexR.next;
 		}
-		dbname.pointer = dbexpr;
-		return dbname;
+		dbName.pointer = dbExpr;
+		return dbName;
 	}
-	
+
 	/**
 	 * Method to decide whether value is in discrete range.
 	 * @param value value to be checked.
 	 * @param discrete pointer to db discrete range structure.
 	 * @return true if value in discrete range, else false.
 	 */
-	private boolean vhdl_indiscreterange(int value, DBDISCRETERANGE discrete)
+	private boolean isInDiscreteRange(int value, DBDiscreteRange discrete)
 	{
-		boolean in_range = false;
+		boolean inRange = false;
 		if (discrete == null)
-			return in_range;
+			return inRange;
 		int start = discrete.start;
 		int end = discrete.end;
 		if (start > end)
@@ -4356,8 +4073,8 @@ public class CompileVHDL
 			start = temp;
 		}
 		if (value >= start && value <= end)
-			in_range = true;
-		return in_range;
+			inRange = true;
+		return inRange;
 	}
 
 	/**
@@ -4365,44 +4082,44 @@ public class CompileVHDL
 	 * @param ident pointer to identifier.
 	 * @return type, null if no type.
 	 */
-	private DBLTYPE vhdl_gettype(String ident)
+	private DBLType getType(String ident)
 	{
-		DBLTYPE type = null;
+		DBLType type = null;
 		if (ident != null)
 		{
-			SYMBOLTREE symbol = vhdl_searchsymbol(ident, vhdl_symbols);
+			SymbolTree symbol = searchSymbol(ident, localSymbols);
 			if (symbol != null)
 			{
-				type = vhdl_getsymboltype(symbol);
+				type = getSymbolType(symbol);
 			}
 		}
-	
+
 		return type;
 	}
-	
+
 	/**
 	 * Method to get a pointer to the type of a symbol.
 	 * @param symbol pointer to symbol.
 	 * @return pointer to returned type, null if no type exists.
 	 */
-	private DBLTYPE vhdl_getsymboltype(SYMBOLTREE symbol)
+	private DBLType getSymbolType(SymbolTree symbol)
 	{
-		DBLTYPE type = null;
+		DBLType type = null;
 		if (symbol == null) return type;
 		switch (symbol.type)
 		{
 			case SYMBOL_FPORT:
-				DBPORTLIST fport = (DBPORTLIST)symbol.pointer;
-				if (fport == null) break;
-				type = fport.type;
+				DBPortList fPort = (DBPortList)symbol.pointer;
+				if (fPort == null) break;
+				type = fPort.type;
 				break;
 			case SYMBOL_SIGNAL:
-				DBSIGNALS signal = (DBSIGNALS)symbol.pointer;
+				DBSignals signal = (DBSignals)symbol.pointer;
 				if (signal == null) break;
 				type = signal.type;
 				break;
 			case SYMBOL_TYPE:
-				type = (DBLTYPE)symbol.pointer;
+				type = (DBLType)symbol.pointer;
 				break;
 			default:
 				break;
@@ -4415,55 +4132,55 @@ public class CompileVHDL
 	 * list is a signal of formal port.
 	 * @param name pointer to name parse structure.
 	 */
-	private void vhdl_semaport_check(VNAME name)
+	private void semAPortCheck(VName name)
 	{
 		switch (name.type)
 		{
 			case NAME_SINGLE:
-				vhdl_semaport_check_single_name((SINGLENAME)name.pointer);
+				semAPortCheckSingleName((SingleName)name.pointer);
 				break;
 			case NAME_CONCATENATE:
-				for (CONCATENATEDNAME cat = (CONCATENATEDNAME)name.pointer; cat != null; cat = cat.next)
+				for (ConcatenatedName cat = (ConcatenatedName)name.pointer; cat != null; cat = cat.next)
 				{
-					vhdl_semaport_check_single_name(cat.name);
+					semAPortCheckSingleName(cat.name);
 				}
 				break;
 			default:
 				break;
 		}
 	}
-	
+
 	/**
 	 * Method to check that the passed single name references a signal or formal port.
-	 * @param sname pointer to single name structure.
+	 * @param sName pointer to single name structure.
 	 */
-	private void vhdl_semaport_check_single_name(SINGLENAME sname)
+	private void semAPortCheckSingleName(SingleName sName)
 	{
-		switch (sname.type)
+		switch (sName.type)
 		{
 			case SINGLENAME_SIMPLE:
-				SIMPLENAME simname = (SIMPLENAME)sname.pointer;
-				String ident = (String)simname.identifier.pointer;
-				SYMBOLTREE symbol = vhdl_searchsymbol(ident, vhdl_symbols);
+				SimpleName simName = (SimpleName)sName.pointer;
+				String ident = (String)simName.identifier.pointer;
+				SymbolTree symbol = searchSymbol(ident, localSymbols);
 				if (symbol == null ||
 					(symbol.type != SYMBOL_FPORT && symbol.type != SYMBOL_SIGNAL))
 				{
-					vhdl_reporterrormsg(simname.identifier,
+					reportErrorMsg(simName.identifier,
 						"Instance port has reference to unknown port");
 				}
 				break;
 			case SINGLENAME_INDEXED:
-				INDEXEDNAME iname = (INDEXEDNAME)sname.pointer;
-				ident = (String)vhdl_getprefixident(iname.prefix);
-				symbol = vhdl_searchsymbol(ident, vhdl_symbols);
+				IndexedName iName = (IndexedName)sName.pointer;
+				ident = getPrefixIdent(iName.prefix);
+				symbol = searchSymbol(ident, localSymbols);
 				if (symbol == null)
 				{
-					symbol = vhdl_searchsymbol(ident, vhdl_symbols);
+					symbol = searchSymbol(ident, localSymbols);
 				}
 				if (symbol == null ||
 					(symbol.type != SYMBOL_FPORT && symbol.type != SYMBOL_SIGNAL))
 				{
-					vhdl_reporterrormsg(vhdl_getprefixtoken(iname.prefix),
+					reportErrorMsg(getPrefixToken(iName.prefix),
 						"Instance port has reference to unknown port");
 				}
 				break;
@@ -4477,49 +4194,49 @@ public class CompileVHDL
 	 * @param ointer to body declare. pointer to body declare.
 	 * @return pointer to generated body declare.
 	 */
-	private DBBODYDECLARE vhdl_sembody_declare(BODYDECLARE declare)
+	private DBBodyDelcare semBodyDeclare(BodyDeclare declare)
 	{
-		DBBODYDECLARE dbdeclare = null;
-		if (declare == null) return dbdeclare;
-		dbdeclare = new DBBODYDECLARE();
-		dbdeclare.components = null;
-		DBCOMPONENTS endcomponent = null;
-		dbdeclare.bodysignals = null;
-		DBSIGNALS endsignal = null;
-	
+		DBBodyDelcare dbDeclare = null;
+		if (declare == null) return dbDeclare;
+		dbDeclare = new DBBodyDelcare();
+		dbDeclare.components = null;
+		DBComponents endComponent = null;
+		dbDeclare.bodySignals = null;
+		DBSignals endSignal = null;
+
 		for (; declare != null; declare = declare.next)
 		{
 			switch (declare.type)
 			{
 				case BODYDECLARE_BASIC:
-					DBSIGNALS newsignals = vhdl_sembasic_declare((BASICDECLARE)declare.pointer);
-					if (newsignals != null)
+					DBSignals newSignals = semBasicDeclare((BasicDeclare)declare.pointer);
+					if (newSignals != null)
 					{
-						if (endsignal == null)
+						if (endSignal == null)
 						{
-							dbdeclare.bodysignals = endsignal = newsignals;
+							dbDeclare.bodySignals = endSignal = newSignals;
 						} else
 						{
-							endsignal.next = newsignals;
-							endsignal = newsignals;
+							endSignal.next = newSignals;
+							endSignal = newSignals;
 						}
-						while (endsignal.next != null)
+						while (endSignal.next != null)
 						{
-							endsignal = endsignal.next;
+							endSignal = endSignal.next;
 						}
 					}
 					break;
 				case BODYDECLARE_COMPONENT:
-					DBCOMPONENTS newcomponent = vhdl_semcomponent((VCOMPONENT)declare.pointer);
-					if (newcomponent != null)
+					DBComponents newComponent = semComponent((VComponent)declare.pointer);
+					if (newComponent != null)
 					{
-						if (endcomponent == null)
+						if (endComponent == null)
 						{
-							dbdeclare.components = endcomponent = newcomponent;
+							dbDeclare.components = endComponent = newComponent;
 						} else
 						{
-							endcomponent.next = newcomponent;
-							endcomponent = newcomponent;
+							endComponent.next = newComponent;
+							endComponent = newComponent;
 						}
 					}
 					break;
@@ -4529,49 +4246,49 @@ public class CompileVHDL
 					break;
 			}
 		}
-	
-		return dbdeclare;
+
+		return dbDeclare;
 	}
-	
+
 	/**
 	 * Method to do semantic analysis of body's component.
 	 * @param compo pointer to component parse.
 	 * @return pointer to created component.
 	 */
-	private DBCOMPONENTS vhdl_semcomponent(VCOMPONENT compo)
+	private DBComponents semComponent(VComponent compo)
 	{
-		DBCOMPONENTS dbcomp = null;
-		if (compo == null) return dbcomp;
-		if (vhdl_searchfsymbol((String)compo.name.pointer, vhdl_symbols) != null)
+		DBComponents dbComp = null;
+		if (compo == null) return dbComp;
+		if (searchFSymbol((String)compo.name.pointer, localSymbols) != null)
 		{
-			vhdl_reporterrormsg(compo.name, "Identifier previously defined");
-			return dbcomp;
+			reportErrorMsg(compo.name, "Identifier previously defined");
+			return dbComp;
 		}
-		dbcomp = new DBCOMPONENTS();
-		dbcomp.name = (String)compo.name.pointer;
-		dbcomp.ports = null;
-		dbcomp.next = null;
-		vhdl_addsymbol(dbcomp.name, SYMBOL_COMPONENT, dbcomp, vhdl_symbols);
-		vhdl_symbols = vhdl_pushsymbols(vhdl_symbols);
-		dbcomp.ports = vhdl_semformal_port_list(compo.ports);
-		vhdl_symbols = vhdl_popsymbols(vhdl_symbols);
-		return dbcomp;
+		dbComp = new DBComponents();
+		dbComp.name = (String)compo.name.pointer;
+		dbComp.ports = null;
+		dbComp.next = null;
+		addSymbol(dbComp.name, SYMBOL_COMPONENT, dbComp, localSymbols);
+		localSymbols = pushSymbols(localSymbols);
+		dbComp.ports = semFormalPortList(compo.ports);
+		localSymbols = popSymbols(localSymbols);
+		return dbComp;
 	}
-	
+
 	/**
 	 * Method to top off the top most symbol list and return next symbol list.
-	 * @param old_sym_list pointer to old symbol list.
+	 * @param oldSymList pointer to old symbol list.
 	 * @return pointer to new symbol list.
 	 */
-	private SYMBOLLIST vhdl_popsymbols(SYMBOLLIST old_sym_list)
+	private SymbolList popSymbols(SymbolList oldSymList)
 	{
-		if (old_sym_list == null)
+		if (oldSymList == null)
 		{
 			System.out.println("ERROR - trying to pop nonexistant symbol list.");
 			return null;
 		}
-		SYMBOLLIST new_sym_list = old_sym_list.last;
-		return new_sym_list;
+		SymbolList newSymList = oldSymList.last;
+		return newSymList;
 	}
 
 	/**
@@ -4579,17 +4296,17 @@ public class CompileVHDL
 	 * @param declare pointer to basic declaration structure.
 	 * @return pointer to new signal, null if not.
 	 */
-	private DBSIGNALS vhdl_sembasic_declare(BASICDECLARE declare)
+	private DBSignals semBasicDeclare(BasicDeclare declare)
 	{
-		DBSIGNALS dbsignal = null;
-		if (declare == null) return dbsignal;
+		DBSignals dbSignal = null;
+		if (declare == null) return dbSignal;
 		switch (declare.type)
 		{
 			case BASICDECLARE_OBJECT:
-				dbsignal = vhdl_semobject_declare((OBJECTDECLARE)declare.pointer);
+				dbSignal = semObjectDeclare((ObjectDeclare)declare.pointer);
 				break;
 			case BASICDECLARE_TYPE:
-				vhdl_semtype_declare((TYPE)declare.pointer);
+				semTypeDeclare((Type)declare.pointer);
 				break;
 			case BASICDECLARE_SUBTYPE:
 			case BASICDECLARE_CONVERSION:
@@ -4598,159 +4315,159 @@ public class CompileVHDL
 			default:
 				break;
 		}
-		return dbsignal;
+		return dbSignal;
 	}
-	
+
 	/**
 	 * Method to do semantic analysis of a type declaration.
 	 * @param type pointer to type parse tree.
 	 */
-	private void vhdl_semtype_declare(TYPE type)
+	private void semTypeDeclare(Type type)
 	{
-		DBLTYPE dbtype = null;
+		DBLType dbType = null;
 		if (type == null) return;
-	
+
 		// check that type name is distict
-		if (vhdl_searchsymbol((String)type.identifier.pointer, vhdl_symbols) != null)
+		if (searchSymbol((String)type.identifier.pointer, localSymbols) != null)
 		{
-			vhdl_reporterrormsg(type.identifier, "Identifier previously defined");
+			reportErrorMsg(type.identifier, "Identifier previously defined");
 			return;
 		}
-	
+
 		// check type definition
 		switch (type.type)
 		{
 			case TYPE_SCALAR:
 				break;
 			case TYPE_COMPOSITE:
-				dbtype = vhdl_semcomposite_type((COMPOSITE)type.pointer);
+				dbType = semCompositeType((Composite)type.pointer);
 				break;
 			default:
 				break;
 		}
-	
+
 		// add symbol to list
-		if (dbtype != null)
+		if (dbType != null)
 		{
-			dbtype.name = (String)type.identifier.pointer;
-			vhdl_addsymbol(dbtype.name, SYMBOL_TYPE, dbtype, vhdl_symbols);
+			dbType.name = (String)type.identifier.pointer;
+			addSymbol(dbType.name, SYMBOL_TYPE, dbType, localSymbols);
 		}
 	}
-	
+
 	/**
 	 * Method to do semantic analysis of a composite type definition.
 	 * @param composite pointer to composite type structure.
 	 * @return generated db type.
 	 */
-	private DBLTYPE vhdl_semcomposite_type(COMPOSITE composite)
+	private DBLType semCompositeType(Composite composite)
 	{
-		DBLTYPE dbtype = null;
-		if (composite == null) return dbtype;
+		DBLType dbType = null;
+		if (composite == null) return dbType;
 		switch (composite.type)
 		{
 			case COMPOSITE_ARRAY:
-				dbtype = vhdl_semarray_type((ARRAY)composite.pointer);
+				dbType = semArrayType((Array)composite.pointer);
 				break;
 			case COMPOSITE_RECORD:
 				break;
 			default:
 				break;
 		}
-		return dbtype;
+		return dbType;
 	}
-	
+
 	/**
 	 * Method to do semantic analysis of an array composite type definition.
 	 * @param array pointer to composite array type structure.
 	 * @return pointer to generated type.
 	 */
-	private DBLTYPE vhdl_semarray_type(ARRAY array)
+	private DBLType semArrayType(Array array)
 	{
-		DBLTYPE dbtype = null;
-		if (array == null) return dbtype;
+		DBLType dbType = null;
+		if (array == null) return dbType;
 		switch (array.type)
 		{
 			case ARRAY_UNCONSTRAINED:
 				break;
 			case ARRAY_CONSTRAINED:
-				dbtype = vhdl_semconstrained_array((CONSTRAINED)array.pointer);
+				dbType = semConstrainedArray((Constrained)array.pointer);
 				break;
 			default:
 				break;
 		}
-		return dbtype;
+		return dbType;
 	}
-	
+
 	/**
 	 * Method to do semantic analysis of a composite constrained array type definition.
 	 * @param constr pointer to constrained array structure.
 	 * @return pointer to generated type.
 	 */
-	private DBLTYPE vhdl_semconstrained_array(CONSTRAINED constr)
+	private DBLType semConstrainedArray(Constrained constr)
 	{
-		DBLTYPE dbtype = null;
-		if (constr == null) return dbtype;
-		dbtype = new DBLTYPE();
-		dbtype.name = null;
-		dbtype.type = DBTYPE_ARRAY;
-		DBINDEXRANGE endrange = null;
-		dbtype.pointer = null;
-		dbtype.subtype = null;
-	
+		DBLType dbType = null;
+		if (constr == null) return dbType;
+		dbType = new DBLType();
+		dbType.name = null;
+		dbType.type = DBTYPE_ARRAY;
+		DBIndexRange endRange = null;
+		dbType.pointer = null;
+		dbType.subType = null;
+
 		// check index constraint
-		for (INDEXCONSTRAINT indexc = constr.constraint; indexc != null; indexc = indexc.next)
+		for (IndexConstraint indexC = constr.constraint; indexC != null; indexC = indexC.next)
 		{
-			DBINDEXRANGE newrange = new DBINDEXRANGE();
-			newrange.drange = vhdl_semdiscrete_range(indexc.discrete);
-			newrange.next = null;
-			if (endrange == null)
+			DBIndexRange newRange = new DBIndexRange();
+			newRange.dRange = semDiscreteRange(indexC.discrete);
+			newRange.next = null;
+			if (endRange == null)
 			{
-				endrange = newrange;
-				dbtype.pointer = newrange;
+				endRange = newRange;
+				dbType.pointer = newRange;
 			} else
 			{
-				endrange.next = newrange;
-				endrange = newrange;
+				endRange.next = newRange;
+				endRange = newRange;
 			}
 		}
 		// check subtype indication
-		dbtype.subtype = vhdl_semsubtype_indication(constr.subtype);
-	
-		return dbtype;
+		dbType.subType = semSubtypeIndication(constr.subType);
+
+		return dbType;
 	}
-	
+
 	/**
 	 * Method to do semantic analysis of a sybtype indication.
 	 * @param subtype pointer to subtype indication.
 	 * @return pointer to db type;
 	 */
-	private DBLTYPE vhdl_semsubtype_indication(SUBTYPEIND subtype)
+	private DBLType semSubtypeIndication(SubTypeInd subType)
 	{
-		DBLTYPE dbtype = null;
-		if (subtype == null) return dbtype;
-		dbtype = vhdl_semtype_mark(subtype.type);
-		return dbtype;
+		DBLType dbType = null;
+		if (subType == null) return dbType;
+		dbType = semTypeMark(subType.type);
+		return dbType;
 	}
-	
+
 	/**
 	 * Method to do semantic type mark.
 	 * @param name pointer to type name.
 	 * @return pointer to db type.
 	 */
-	private DBLTYPE vhdl_semtype_mark(VNAME name)
+	private DBLType semTypeMark(VName name)
 	{
-		DBLTYPE dbtype = null;
-		if (name == null) return dbtype;
-		SYMBOLTREE symbol = vhdl_searchsymbol(vhdl_getnameident(name), vhdl_symbols);
+		DBLType dbType = null;
+		if (name == null) return dbType;
+		SymbolTree symbol = searchSymbol(getNameIdent(name), localSymbols);
 		if (symbol == null ||
 			symbol.type != SYMBOL_TYPE)
 		{
-			vhdl_reporterrormsg(vhdl_getnametoken(name), "Bad type");
+			reportErrorMsg(getNameToken(name), "Bad type");
 		} else
 		{
-			dbtype = (DBLTYPE)symbol.pointer;
+			dbType = (DBLType)symbol.pointer;
 		}
-		return dbtype;
+		return dbType;
 	}
 
 	/**
@@ -4758,49 +4475,49 @@ public class CompileVHDL
 	 * @param discrete pointer to a discrete range structure.
 	 * @return pointer to generated range.
 	 */
-	private DBDISCRETERANGE vhdl_semdiscrete_range(DISCRETERANGE discrete)
+	private DBDiscreteRange semDiscreteRange(DiscreteRange discrete)
 	{
-		DBDISCRETERANGE dbrange = null;
-		if (discrete == null) return dbrange;
+		DBDiscreteRange dbRange = null;
+		if (discrete == null) return dbRange;
 		switch (discrete.type)
 		{
 			case DISCRETERANGE_SUBTYPE:
 				break;
 			case DISCRETERANGE_RANGE:
-				dbrange = vhdl_semrange((RANGE)discrete.pointer);
+				dbRange = semRange((Range)discrete.pointer);
 				break;
 			default:
 				break;
 		}
-		return dbrange;
+		return dbRange;
 	}
-	
+
 	/**
 	 * Method to do semantic analysis of a range.
 	 * @param range pointer to a range structure.
 	 * @return pointer to generated range.
 	 */
-	private DBDISCRETERANGE vhdl_semrange(RANGE range)
+	private DBDiscreteRange semRange(Range range)
 	{
-		DBDISCRETERANGE dbrange = null;
-		if (range == null) return dbrange;
+		DBDiscreteRange dbRange = null;
+		if (range == null) return dbRange;
 		switch (range.type)
 		{
 			case RANGE_ATTRIBUTE:
 				break;
 			case RANGE_SIMPLE_EXPR:
-				RANGESIMPLE rsimp = (RANGESIMPLE)range.pointer;
-				if (rsimp != null)
+				RangeSimple rSimp = (RangeSimple)range.pointer;
+				if (rSimp != null)
 				{
-					dbrange = new DBDISCRETERANGE();
-					dbrange.start = vhdl_evalsimpleexpr(rsimp.start);
-					dbrange.end = vhdl_evalsimpleexpr(rsimp.end);
+					dbRange = new DBDiscreteRange();
+					dbRange.start = evalSimpleExpr(rSimp.start);
+					dbRange.end = evalSimpleExpr(rSimp.end);
 				}
 				break;
 			default:
 				break;
 		}
-		return dbrange;
+		return dbRange;
 	}
 
 	/**
@@ -4808,17 +4525,17 @@ public class CompileVHDL
 	 * @param primary pointer to object declaration structure.
 	 * @return pointer to new signals, null if not.
 	 */
-	private DBSIGNALS vhdl_semobject_declare(OBJECTDECLARE declare)
+	private DBSignals semObjectDeclare(ObjectDeclare declare)
 	{
-		DBSIGNALS signals = null;
+		DBSignals signals = null;
 		if (declare == null) return signals;
 		switch (declare.type)
 		{
 			case OBJECTDECLARE_SIGNAL:
-				signals = vhdl_semsignal_declare((SIGNALDECLARE)declare.pointer);
+				signals = semSignalDeclare((SignalDeclare)declare.pointer);
 				break;
 			case OBJECTDECLARE_CONSTANT:
-				vhdl_semconstant_declare((CONSTANTDECLARE)declare.pointer);
+				semConstantDeclare((ConstantDeclare)declare.pointer);
 				break;
 			case OBJECTDECLARE_VARIABLE:
 			case OBJECTDECLARE_ALIAS:
@@ -4827,45 +4544,45 @@ public class CompileVHDL
 		}
 		return signals;
 	}
-	
+
 	/**
 	 * Method to do semantic analysis of constant declaration.
 	 * @param constant pointer to constant declare structure.
 	 */
-	private void vhdl_semconstant_declare(CONSTANTDECLARE constant)
+	private void semConstantDeclare(ConstantDeclare constant)
 	{
 		if (constant == null) return;
-	
+
 		// check if name exists in top level of symbol tree
-		if (vhdl_searchfsymbol((String)constant.identifier.pointer, vhdl_symbols) != null)
+		if (searchFSymbol((String)constant.identifier.pointer, localSymbols) != null)
 		{
-			vhdl_reporterrormsg(constant.identifier, "Symbol previously defined");
+			reportErrorMsg(constant.identifier, "Symbol previously defined");
 		} else
 		{
-			int value = vhdl_evalexpression(constant.expression);
-			vhdl_addsymbol((String)constant.identifier.pointer, SYMBOL_CONSTANT,
-				new Integer(value), vhdl_symbols);
+			int value = evalExpression(constant.expression);
+			addSymbol((String)constant.identifier.pointer, SYMBOL_CONSTANT,
+				new Integer(value), localSymbols);
 		}
 	}
-	
+
 	/**
 	 * Method to get the value of an expression.
 	 * @param expr pointer to expression structure.
 	 * @return value.
 	 */
-	private int vhdl_evalexpression(EXPRESSION expr)
+	private int evalExpression(Expression expr)
 	{
 		if (expr == null) return 0;
-		int value = vhdl_evalrelation(expr.relation);
+		int value = evalRelation(expr.relation);
 		if (expr.next != null)
 		{
 			if (value != 0) value = 1;
 		}
-		for (MRELATIONS more = expr.next; more != null; more = more.next)
+		for (MRelations more = expr.next; more != null; more = more.next)
 		{
-			int value2 = vhdl_evalrelation(more.relation);
+			int value2 = evalRelation(more.relation);
 			if (value2 != 0) value2 = 1;
-			switch (more.log_operator)
+			switch (more.logOperator)
 			{
 				case LOGOP_AND:
 					value &= value2;
@@ -4894,14 +4611,14 @@ public class CompileVHDL
 	 * @param relation pointer to relation structure.
 	 * @return evaluated value.
 	 */
-	private int vhdl_evalrelation(RELATION relation)
+	private int evalRelation(Relation relation)
 	{
 		if (relation == null) return 0;
-		int value = vhdl_evalsimpleexpr(relation.simple_expr);
-		if (relation.rel_operator != NORELOP)
+		int value = evalSimpleExpr(relation.simpleExpr);
+		if (relation.relOperator != NORELOP)
 		{
-			int value2 = vhdl_evalsimpleexpr(relation.simple_expr2);
-			switch (relation.rel_operator)
+			int value2 = evalSimpleExpr(relation.simpleExpr2);
+			switch (relation.relOperator)
 			{
 				case RELOP_EQ:
 					if (value == value2) value = 1; else
@@ -4933,20 +4650,20 @@ public class CompileVHDL
 		}
 		return value;
 	}
-	
+
 	/**
 	 * Method to get the value of a simple expression.
 	 * @param expr pointer to a simple expression.
 	 * @return value.
 	 */
-	private int vhdl_evalsimpleexpr(SIMPLEEXPR expr)
+	private int evalSimpleExpr(SimpleExpr expr)
 	{
 		if (expr == null) return 0;
-		int value = vhdl_evalterm(expr.term) * expr.sign;
-		for (MTERMS more = expr.next; more != null; more = more.next)
+		int value = evalTerm(expr.term) * expr.sign;
+		for (MTerms more = expr.next; more != null; more = more.next)
 		{
-			int value2 = vhdl_evalterm(more.term);
-			switch (more.add_operator)
+			int value2 = evalTerm(more.term);
+			switch (more.addOperator)
 			{
 				case ADDOP_ADD:
 					value += value2;
@@ -4960,20 +4677,20 @@ public class CompileVHDL
 		}
 		return value;
 	}
-	
+
 	/**
 	 * Method to get the value of a term.
 	 * @param term pointer to a term.
 	 * @return value.
 	 */
-	private int vhdl_evalterm(TERM term)
+	private int evalTerm(Term term)
 	{
 		if (term == null) return 0;
-		int value = vhdl_evalfactor(term.factor);
-		for (MFACTORS more = term.next; more != null; more = more.next)
+		int value = evalFactor(term.factor);
+		for (MFactors more = term.next; more != null; more = more.next)
 		{
-			int value2 = vhdl_evalfactor(more.factor);
-			switch (more.mul_operator)
+			int value2 = evalFactor(more.factor);
+			switch (more.mulOperator)
 			{
 				case MULOP_MULTIPLY:
 					value *= value2;
@@ -4993,20 +4710,20 @@ public class CompileVHDL
 		}
 		return value;
 	}
-	
+
 	/**
 	 * Method to get the value of a factor.
 	 * @param factor pointer to a factor.
 	 * @return value.
 	 */
-	private int vhdl_evalfactor(FACTOR factor)
+	private int evalFactor(Factor factor)
 	{
 		if (factor == null) return 0;
-		int value = vhdl_evalprimary(factor.primary);
-		switch (factor.misc_operator)
+		int value = evalPrimary(factor.primary);
+		switch (factor.miscOperator)
 		{
 			case MISCOP_POWER:
-				int value2 = vhdl_evalprimary(factor.primary2);
+				int value2 = evalPrimary(factor.primary2);
 				while (value2-- != 0)
 				{
 					value += value;
@@ -5024,20 +4741,20 @@ public class CompileVHDL
 		}
 		return value;
 	}
-	
+
 	/**
 	 * Method to evaluate the value of a primary and return.
 	 * @param primary pointer to primary structure.
 	 * @return evaluated value.
 	 */
-	private int vhdl_evalprimary(PRIMARY primary)
+	private int evalPrimary(Primary primary)
 	{
 		if (primary == null) return 0;
 		int value = 0;
 		switch (primary.type)
 		{
 			case PRIMARY_LITERAL:
-				LITERAL literal = (LITERAL)primary.pointer;
+				Literal literal = (Literal)primary.pointer;
 				if (literal == null) break;
 				switch (literal.type)
 				{
@@ -5052,10 +4769,10 @@ public class CompileVHDL
 				}
 				break;
 			case PRIMARY_NAME:
-				value = vhdl_evalname((VNAME)primary.pointer);
+				value = evalName((VName)primary.pointer);
 				break;
 			case PRIMARY_EXPRESSION:
-				value = vhdl_evalexpression((EXPRESSION)primary.pointer);
+				value = evalExpression((Expression)primary.pointer);
 				break;
 			case PRIMARY_AGGREGATE:
 			case PRIMARY_CONCATENATION:
@@ -5067,20 +4784,20 @@ public class CompileVHDL
 		}
 		return value;
 	}
-	
+
 	/**
 	 * Method to evaluate and return the value of a name.
 	 * @param name pointer to name.
 	 * @return value, 0 if no value.
 	 */
-	private int vhdl_evalname(VNAME name)
+	private int evalName(VName name)
 	{
 		if (name == null) return 0;
 		int value = 0;
-		SYMBOLTREE symbol = vhdl_searchsymbol(vhdl_getnameident(name), vhdl_symbols);
+		SymbolTree symbol = searchSymbol(getNameIdent(name), localSymbols);
 		if (symbol == null)
 		{
-			vhdl_reporterrormsg(vhdl_getnametoken(name), "Symbol is undefined");
+			reportErrorMsg(getNameToken(name), "Symbol is undefined");
 			return value;
 		}
 		if (symbol.type == SYMBOL_VARIABLE)
@@ -5091,7 +4808,7 @@ public class CompileVHDL
 			value = ((Integer)symbol.pointer).intValue();
 		} else
 		{
-			vhdl_reporterrormsg(vhdl_getnametoken(name), "Cannot evaluate value of symbol");
+			reportErrorMsg(getNameToken(name), "Cannot evaluate value of symbol");
 			return value;
 		}
 		return value;
@@ -5102,42 +4819,42 @@ public class CompileVHDL
 	 * @param signal pointer to signal declaration.
 	 * @return pointer to new signals.
 	 */
-	private DBSIGNALS vhdl_semsignal_declare(SIGNALDECLARE signal)
+	private DBSignals semSignalDeclare(SignalDeclare signal)
 	{
-		DBSIGNALS signals = null;
+		DBSignals signals = null;
 		if (signal == null) return signals;
-	
+
 		// check for valid type
-		String type = vhdl_getnameident(signal.subtype.type);
-		SYMBOLTREE symbol = vhdl_searchsymbol(type, vhdl_symbols);
+		String type = getNameIdent(signal.subType.type);
+		SymbolTree symbol = searchSymbol(type, localSymbols);
 		if (symbol == null || symbol.type != SYMBOL_TYPE)
 		{
-			vhdl_reporterrormsg(vhdl_getnametoken(signal.subtype.type), "Bad type");
+			reportErrorMsg(getNameToken(signal.subType.type), "Bad type");
 		}
-	
+
 		// check each signal in signal list for uniqueness
-		for (IDENTLIST sig = signal.names; sig != null; sig = sig.next)
+		for (IdentList sig = signal.names; sig != null; sig = sig.next)
 		{
-			if (vhdl_searchsymbol((String)sig.identifier.pointer, vhdl_symbols) != null)
+			if (searchSymbol((String)sig.identifier.pointer, localSymbols) != null)
 			{
-				vhdl_reporterrormsg(sig.identifier, "Signal previously defined");
+				reportErrorMsg(sig.identifier, "Signal previously defined");
 			} else
 			{
-				DBSIGNALS newsignal = new DBSIGNALS();
-				newsignal.name = (String)sig.identifier.pointer;
+				DBSignals newSignal = new DBSignals();
+				newSignal.name = (String)sig.identifier.pointer;
 				if (symbol != null)
 				{
-					newsignal.type = (DBLTYPE)symbol.pointer;
+					newSignal.type = (DBLType)symbol.pointer;
 				} else
 				{
-					newsignal.type = null;
+					newSignal.type = null;
 				}
-				newsignal.next = signals;
-				signals = newsignal;
-				vhdl_addsymbol(newsignal.name, SYMBOL_SIGNAL, newsignal, vhdl_symbols);
+				newSignal.next = signals;
+				signals = newSignal;
+				addSymbol(newSignal.name, SYMBOL_SIGNAL, newSignal, localSymbols);
 			}
 		}
-	
+
 		return signals;
 	}
 
@@ -5146,48 +4863,48 @@ public class CompileVHDL
 	 * @param interfacef pointer to interface parse structure.
 	 * @return resultant database interface.
 	 */
-	private DBINTERFACE vhdl_seminterface(VINTERFACE interfacef)
+	private DBInterface semInterface(VInterface interfacef)
 	{
-		DBINTERFACE dbinter = null;
-		if (interfacef == null) return dbinter;
-		if (vhdl_searchsymbol((String)interfacef.name.pointer, vhdl_gsymbols) != null)
+		DBInterface dbInter = null;
+		if (interfacef == null) return dbInter;
+		if (searchSymbol((String)interfacef.name.pointer, globalSymbols) != null)
 		{
-			vhdl_reporterrormsg(interfacef.name, "Entity previously defined");
+			reportErrorMsg(interfacef.name, "Entity previously defined");
 		} else
 		{
-			dbinter = new DBINTERFACE();
-			dbinter.name = (String)interfacef.name.pointer;
-			dbinter.ports = null;
-			dbinter.flags = 0;
-			dbinter.bodies = null;
-			dbinter.symbols = null;
-			dbinter.next = null;
-			vhdl_addsymbol(dbinter.name, SYMBOL_ENTITY, dbinter, vhdl_gsymbols);
-			vhdl_symbols = vhdl_pushsymbols(vhdl_symbols);
-			dbinter.ports = vhdl_semformal_port_list(interfacef.ports);
-	
+			dbInter = new DBInterface();
+			dbInter.name = (String)interfacef.name.pointer;
+			dbInter.ports = null;
+			dbInter.flags = 0;
+			dbInter.bodies = null;
+			dbInter.symbols = null;
+			dbInter.next = null;
+			addSymbol(dbInter.name, SYMBOL_ENTITY, dbInter, globalSymbols);
+			localSymbols = pushSymbols(localSymbols);
+			dbInter.ports = semFormalPortList(interfacef.ports);
+
 			// remove last symbol tree
-			SYMBOLLIST endsymbol = vhdl_symbols;
-			while (endsymbol.last.last != null)
+			SymbolList endSymbol = localSymbols;
+			while (endSymbol.last.last != null)
 			{
-				endsymbol = endsymbol.last;
+				endSymbol = endSymbol.last;
 			}
-			endsymbol.last = null;
-			dbinter.symbols = vhdl_symbols;
+			endSymbol.last = null;
+			dbInter.symbols = localSymbols;
 		}
-		return dbinter;
+		return dbInter;
 	}
-	
+
 	/**
 	 * Method to check the semantic of the passed formal port list.
 	 * @param port pointer to start of formal port list.
 	 * @return pointer to database port list.
 	 */
-	private DBPORTLIST vhdl_semformal_port_list(FPORTLIST port)
+	private DBPortList semFormalPortList(FPortList port)
 	{
-		DBPORTLIST dbports = null;
-		DBPORTLIST endport = null;
-	
+		DBPortList dbPorts = null;
+		DBPortList endPort = null;
+
 		for (; port != null; port = port.next)
 		{
 			// check the mode of the port
@@ -5200,77 +4917,77 @@ public class CompileVHDL
 				case MODE_LINKAGE:
 					break;
 				default:
-					vhdl_reporterrormsg(port.names.identifier, "Unknown port mode");
+					reportErrorMsg(port.names.identifier, "Unknown port mode");
 					break;
 			}
-	
+
 			// check the type
-			String symName = vhdl_getnameident(port.type);
-			SYMBOLTREE symbol = vhdl_searchsymbol(symName, vhdl_symbols);
+			String symName = getNameIdent(port.type);
+			SymbolTree symbol = searchSymbol(symName, localSymbols);
 			if (symbol == null || symbol.type != SYMBOL_TYPE)
 			{
-				vhdl_reporterrormsg(vhdl_getnametoken(port.type), "Unknown port name (" + symName + ")");
+				reportErrorMsg(getNameToken(port.type), "Unknown port name (" + symName + ")");
 			}
-	
+
 			// check for uniqueness of port names
-			for (IDENTLIST names = port.names; names != null; names = names.next)
+			for (IdentList names = port.names; names != null; names = names.next)
 			{
-				if (vhdl_searchfsymbol((String)names.identifier.pointer, vhdl_symbols) != null)
+				if (searchFSymbol((String)names.identifier.pointer, localSymbols) != null)
 				{
-					vhdl_reporterrormsg(names.identifier, "Duplicate port name in port list");
+					reportErrorMsg(names.identifier, "Duplicate port name in port list");
 				} else
 				{
 					// add to port list
-					DBPORTLIST newport = new DBPORTLIST();
-					newport.name = (String)names.identifier.pointer;
-					newport.mode = port.mode;
+					DBPortList newPort = new DBPortList();
+					newPort.name = (String)names.identifier.pointer;
+					newPort.mode = port.mode;
 					if (symbol != null)
 					{
-						newport.type = (DBLTYPE)symbol.pointer;
+						newPort.type = (DBLType)symbol.pointer;
 					} else
 					{
-						newport.type = null;
+						newPort.type = null;
 					}
-					newport.flags = 0;
-					newport.next = null;
-					if (endport == null)
+					newPort.flags = 0;
+					newPort.next = null;
+					if (endPort == null)
 					{
-						dbports = endport = newport;
+						dbPorts = endPort = newPort;
 					} else
 					{
-						endport.next = newport;
-						endport = newport;
+						endPort.next = newPort;
+						endPort = newPort;
 					}
-					vhdl_addsymbol(newport.name, SYMBOL_FPORT, newport, vhdl_symbols);
+					addSymbol(newPort.name, SYMBOL_FPORT, newPort, localSymbols);
 				}
 			}
 		}
-	
-		return dbports;
+
+		return dbPorts;
 	}
-	
+
 	/**
 	 * Method to find a reference to a token given a pointer to a name.
 	 * @param name pointer to name structure.
 	 * @return pointer to token, null if not found.
 	 */
-	private TOKENLIST vhdl_getnametoken(VNAME name)
+	private TokenList getNameToken(VName name)
 	{
-		TOKENLIST token = null;
+		TokenList token = null;
 		if (name == null) return token;
 		switch (name.type)
 		{
 			case NAME_SINGLE:
-				SINGLENAME singl = (SINGLENAME)(name.pointer);
+				SingleName singl = (SingleName)(name.pointer);
 				switch (singl.type)
 				{
 					case SINGLENAME_SIMPLE:
-						token = ((SIMPLENAME)singl.pointer).identifier;
+						token = ((SimpleName)singl.pointer).identifier;
 						break;
 					case SINGLENAME_SELECTED:
 						break;
 					case SINGLENAME_INDEXED:
-						token = vhdl_getprefixtoken(((INDEXEDNAME)(singl.pointer)).prefix);
+						token = getPrefixToken(((IndexedName)(singl.pointer)).prefix);
 						break;
 					case SINGLENAME_SLICE:
 					default:
@@ -5284,20 +5001,20 @@ public class CompileVHDL
 		}
 		return token;
 	}
-	
+
 	/**
 	 * Method to find a reference to a token given a pointer to a prefix.
 	 * @param prefix pointer to prefix structure.
 	 * @return pointer to token, null if not found.
 	 */
-	private TOKENLIST vhdl_getprefixtoken(PREFIX prefix)
+	private TokenList getPrefixToken(Prefix prefix)
 	{
-		TOKENLIST token = null;
+		TokenList token = null;
 		if (prefix == null) return token;
 		switch (prefix.type)
 		{
 			case PREFIX_NAME:
-				token = vhdl_getnametoken((VNAME)prefix.pointer);
+				token = getNameToken((VName)prefix.pointer);
 				break;
 			case PREFIX_FUNCTION_CALL:
 			default:
@@ -5310,15 +5027,15 @@ public class CompileVHDL
 	 * Method to search the symbol list for a symbol of the passed value.
 	 * Note that all symbol trees of the list are checked, from last to first.
 	 * @param ident global name.
-	 * @param sym_list pointer to last (current) symbol list.
+	 * @param symList pointer to last (current) symbol list.
 	 * @return a pointer to the node, if not found, return null.
 	 */
-	private SYMBOLTREE vhdl_searchsymbol(String ident, SYMBOLLIST sym_list)
+	private SymbolTree searchSymbol(String ident, SymbolList symList)
 	{
 		String lcIdent = ident.toLowerCase();
-		for ( ; sym_list != null; sym_list = sym_list.last)
+		for ( ; symList != null; symList = symList.last)
 		{
-			SYMBOLTREE node = (SYMBOLTREE)sym_list.sym.get(lcIdent);
+			SymbolTree node = (SymbolTree)symList.sym.get(lcIdent);
 			if (node != null) return node;
 		}
 		return null;
@@ -5328,14 +5045,14 @@ public class CompileVHDL
 	 * Method to search the symbol list for the first symbol of the passed value.
 	 * Note that only the first symbol tree of the list is checked.
 	 * @param ident global name.
-	 * @param sym_list pointer to last (current) symbol list.
+	 * @param symList pointer to last (current) symbol list.
 	 * @return a pointer to the node, if not found, return null.
 	 */
-	private SYMBOLTREE vhdl_searchfsymbol(String ident, SYMBOLLIST sym_list)
+	private SymbolTree searchFSymbol(String ident, SymbolList symList)
 	{
-		if (sym_list != null)
+		if (symList != null)
 		{
-			SYMBOLTREE node = (SYMBOLTREE)sym_list.sym.get(ident.toLowerCase());
+			SymbolTree node = (SymbolTree)symList.sym.get(ident.toLowerCase());
 			if (node != null) return node;
 		}
 		return null;
@@ -5346,21 +5063,21 @@ public class CompileVHDL
 	 * @param name pointer to name structure.
 	 * @return global name.
 	 */
-	private String vhdl_getnameident(VNAME name)
+	private String getNameIdent(VName name)
 	{
-		String itable = null;
-		if (name == null) return itable;
+		String iTable = null;
+		if (name == null) return iTable;
 		switch (name.type)
 		{
 			case NAME_SINGLE:
-				SINGLENAME singl = (SINGLENAME)name.pointer;
+				SingleName singl = (SingleName)name.pointer;
 				switch (singl.type)
 				{
 					case SINGLENAME_SIMPLE:
-						itable = (String)((SIMPLENAME)singl.pointer).identifier.pointer;
+						iTable = (String)((SimpleName)singl.pointer).identifier.pointer;
 						break;
 					case SINGLENAME_INDEXED:
-						itable = vhdl_getprefixident(((INDEXEDNAME)(singl.pointer)).prefix);
+						iTable = getPrefixIdent(((IndexedName)(singl.pointer)).prefix);
 						break;
 					case SINGLENAME_SELECTED:
 					case SINGLENAME_SLICE:
@@ -5373,80 +5090,80 @@ public class CompileVHDL
 			default:
 				break;
 		}
-		return itable;
+		return iTable;
 	}
-	
+
 	/**
 	 * Method to get a name given a pointer to a prefix.
 	 * @param prefix pointer to prefix structure.
 	 * @return string identifier.
 	 */
-	private String vhdl_getprefixident(PREFIX prefix)
+	private String getPrefixIdent(Prefix prefix)
 	{
-		String itable = null;
-		if (prefix == null) return itable;
+		String iTable = null;
+		if (prefix == null) return iTable;
 		switch (prefix.type)
 		{
 			case PREFIX_NAME:
-				itable = vhdl_getnameident((VNAME)prefix.pointer);
+				iTable = getNameIdent((VName)prefix.pointer);
 				break;
 			case PREFIX_FUNCTION_CALL:
 			default:
 				break;
 		}
-		return itable;
+		return iTable;
 	}
 
 	/**
 	 * Method to create the default type symbol tree.
 	 * @param symbols pointer to current symbol list.
 	 */
-	private void vhdl_createdefaulttype(SYMBOLLIST symbols)
+	private void createDefaultType(SymbolList symbols)
 	{
 		// type BIT
-		vhdl_identtable.add("BIT");
-		vhdl_addsymbol("BIT", SYMBOL_TYPE, null, symbols);
-	
+		identTable.add("BIT");
+		addSymbol("BIT", SYMBOL_TYPE, null, symbols);
+
 		// type "std_logic"
-		vhdl_identtable.add("std_logic");
-		vhdl_addsymbol("std_logic", SYMBOL_TYPE, null, symbols);
+		identTable.add("std_logic");
+		addSymbol("std_logic", SYMBOL_TYPE, null, symbols);
 	}
-	
+
 	/**
 	 * Method to add a symbol to the symbol tree at the current symbol list.
 	 * @param value pointer to identifier in namespace.
 	 * @param type type of symbol.
 	 * @param pointer generic pointer to symbol.
-	 * @param sym_list pointer to symbol list.
+	 * @param symList pointer to symbol list.
 	 * @return pointer to created symbol.
 	 */
-	private SYMBOLTREE vhdl_addsymbol(String value, int type, Object pointer, SYMBOLLIST sym_list)
+	private SymbolTree addSymbol(String value, int type, Object pointer, SymbolList symList)
 	{
-		SYMBOLTREE symbol = new SYMBOLTREE();
+		SymbolTree symbol = new SymbolTree();
 		symbol.value = value;
 		symbol.type = type;
 		symbol.pointer = pointer;
-		sym_list.sym.put(value.toLowerCase(), symbol);
+		symList.sym.put(value.toLowerCase(), symbol);
 		return symbol;
 	}
-	
+
 	/**
 	 * Method to add a new symbol tree to the symbol list.
-	 * @param old_sym_list pointer to old symbol list.
+	 * @param oldSymList pointer to old symbol list.
 	 * @return the new symbol list.
 	 */
-	private SYMBOLLIST vhdl_pushsymbols(SYMBOLLIST old_sym_list)
+	private SymbolList pushSymbols(SymbolList oldSymList)
 	{
-		SYMBOLLIST new_sym_list = new SYMBOLLIST();
-		new_sym_list.sym = new HashMap();
-		
-		new_sym_list.last = old_sym_list;
-	
-		return new_sym_list;
+		SymbolList newSymList = new SymbolList();
+		newSymList.sym = new HashMap();
+
+		newSymList.last = oldSymList;
+
+		return newSymList;
 	}
 
 	/******************************** THE QUISC NETLIST GENERATOR ********************************/
-	
+
 	private static final int QNODE_SNAME	= 0;
 	private static final int QNODE_INAME	= 1;
 	private static final int QNODE_EXPORT	= 0x0001;
@@ -5456,7 +5173,7 @@ public class CompileVHDL
 	private static class QNODE
 	{
 		String	name;
-		int		name_type;	/* type of name - simple or indexed */
+		int		nameType;	/* type of name - simple or indexed */
 		int		start, end;	/* range if array */
 		int		size;		/* size of array if indexed */
 		QPORT []table;		/* array of pointers if indexed */
@@ -5465,12 +5182,11 @@ public class CompileVHDL
 		QPORT	ports;		/* list of ports */
 		QNODE	next;		/* next in list of nodes */
 	};
-	
+
 	private static class QPORT
 	{
-		String	instname;	/* name of instance */
-		String	portname;	/* name of port */
-		boolean namealloc;	/* true if port name is allocated */
+		String	instName;	/* name of instance */
+		String	portName;	/* name of port */
 		QPORT	next;		/* next in port list */
 	};
 
@@ -5479,7 +5195,7 @@ public class CompileVHDL
 	 * Assume parse tree is semantically correct.
 	 * @return a list of strings that has the netlist.
 	 */
-	private List vhdl_genquisc()
+	private List genQuisc()
 	{
 		List netlist = new ArrayList();
 
@@ -5491,25 +5207,25 @@ public class CompileVHDL
 			netlist.add("!  File Creation:    " + TextUtils.formatDate(new Date()));
 		netlist.add("!-------------------------------------------------");
 		netlist.add("");
-	
+
 		// determine top level cell
-		DBINTERFACE top_interface = vhdl_findtopinterface(vhdl_units);
-		if (top_interface == null)
+		DBInterface topInterface = findTopInterface(theUnits);
+		if (topInterface == null)
 			System.out.println("ERROR - Cannot find top interface."); else
 		{
 			// clear written flag on all entities
-			for (DBINTERFACE interfacef = vhdl_units.interfaces; interfacef != null;
+			for (DBInterface interfacef = theUnits.interfaces; interfacef != null;
 				interfacef = interfacef.next) interfacef.flags &= ~ENTITY_WRITTEN;
-			vhdl_genquisc_interface(top_interface, netlist);
+			genQuiscInterface(topInterface, netlist);
 		}
-	
+
 		// print closing line of output file
 		netlist.add("!********* End of command file *******************");
-	
+
 		// scan unresolved references for reality inside of Electric
-		Library celllib = SilComp.getCellLib();
+		Library cellLib = SilComp.getCellLib();
 		int total = 0;
-		for (UNRESLIST ulist = vhdl_unresolved_list; ulist != null; ulist = ulist.next)
+		for (UnResList uList = unResolvedList; uList != null; uList = uList.next)
 		{
 			// see if this is a reference to a cell in the current library
 			boolean found = false;
@@ -5524,11 +5240,11 @@ public class CompileVHDL
 					if (Character.isLetterOrDigit(chr)) sb.append(chr); else
 						sb.append('_');
 				}
-				if (ulist.interfacef.equalsIgnoreCase(sb.toString())) { found = true;   break; }
+				if (uList.interfacef.equalsIgnoreCase(sb.toString())) { found = true;   break; }
 			}
-			if (!found && celllib != null)
+			if (!found && cellLib != null)
 			{
-				for(Iterator it = celllib.getCells(); it.hasNext(); )
+				for(Iterator it = cellLib.getCells(); it.hasNext(); )
 				{
 					Cell np = (Cell)it.next();
 					StringBuffer sb = new StringBuffer();
@@ -5539,24 +5255,24 @@ public class CompileVHDL
 						if (Character.isLetterOrDigit(chr)) sb.append(chr); else
 							sb.append('_');
 					}
-					if (ulist.interfacef.equalsIgnoreCase(sb.toString())) { found = true;   break; }
+					if (uList.interfacef.equalsIgnoreCase(sb.toString())) { found = true;   break; }
 				}
 			}
 			if (found)
 			{
-				ulist.numref = 0;
+				uList.numRef = 0;
 				continue;
 			}
 			total++;
 		}
-	
+
 		// print unresolved reference list
 		if (total > 0)
 		{
 			System.out.println("*****  UNRESOLVED REFERENCES *****");
-			for (UNRESLIST ulist = vhdl_unresolved_list; ulist != null; ulist = ulist.next)
-				if (ulist.numref > 0)
-					System.out.println(ulist.interfacef + ", " + ulist.numref + " time(s)");
+			for (UnResList uList = unResolvedList; uList != null; uList = uList.next)
+				if (uList.numRef > 0)
+					System.out.println(uList.interfacef + ", " + uList.numRef + " time(s)");
 		}
 		return netlist;
 	}
@@ -5567,29 +5283,29 @@ public class CompileVHDL
 	 * @param units pointer to database design units.
 	 * @return pointer to top interface.
 	 */
-	private DBINTERFACE vhdl_findtopinterface(DBUNITS units)
+	private DBInterface findTopInterface(DBUnits units)
 	{
 		/* clear flags of all interfaces in database */
-		for (DBINTERFACE interfacef = units.interfaces; interfacef != null; interfacef = interfacef.next)
+		for (DBInterface interfacef = units.interfaces; interfacef != null; interfacef = interfacef.next)
 			interfacef.flags &= ~TOP_ENTITY_FLAG;
 
 		/* go through the list of bodies and flag any interfaces */
-		for (DBBODY body = units.bodies; body != null; body = body.next)
+		for (DBBody body = units.bodies; body != null; body = body.next)
 		{
 			/* go through component list */
 			if (body.declare == null) continue;
-			for (DBCOMPONENTS compo = body.declare.components; compo != null; compo = compo.next)
+			for (DBComponents compo = body.declare.components; compo != null; compo = compo.next)
 			{
-				SYMBOLTREE symbol = vhdl_searchsymbol(compo.name, vhdl_gsymbols);
+				SymbolTree symbol = searchSymbol(compo.name, globalSymbols);
 				if (symbol != null && symbol.pointer != null)
 				{
-					((DBINTERFACE)(symbol.pointer)).flags |= TOP_ENTITY_FLAG;
+					((DBInterface)(symbol.pointer)).flags |= TOP_ENTITY_FLAG;
 				}
 			}
 		}
 
 		/* find interface with the flag bit not set */
-		DBINTERFACE interfacef;
+		DBInterface interfacef;
 		for (interfacef = units.interfaces; interfacef != null; interfacef = interfacef.next)
 		{
 			if ((interfacef.flags & TOP_ENTITY_FLAG) == 0) break;
@@ -5603,220 +5319,220 @@ public class CompileVHDL
 	 * @param interfacef pointer to interface.
 	 * @param netlist the List of strings to create.
 	 */
-	private void vhdl_genquisc_interface(DBINTERFACE interfacef, List netlist)
+	private void genQuiscInterface(DBInterface interfacef, List netlist)
 	{
 		// go through interface's architectural body and call generate interface
 		// for any interface called by an instance which has not been already
 		// generated
-	
+
 		// check written flag
 		if ((interfacef.flags & ENTITY_WRITTEN) != 0) return;
-	
+
 		// set written flag
 		interfacef.flags |= ENTITY_WRITTEN;
-	
+
 		// check all instants of corresponding architectural body
 		// and write if non-primitive interfaces
 		if (interfacef.bodies != null && interfacef.bodies.statements != null)
 		{
-			for (DBINSTANCE inst = interfacef.bodies.statements.instances; inst != null; inst = inst.next)
+			for (DBInstance inst = interfacef.bodies.statements.instances; inst != null; inst = inst.next)
 			{
-				SYMBOLTREE symbol = vhdl_searchsymbol(inst.compo.name, vhdl_gsymbols);
+				SymbolTree symbol = searchSymbol(inst.compo.name, globalSymbols);
 				if (symbol == null || symbol.pointer == null)
 				{
-					if (vhdl_externentities)
+					if (EXTERNALENTITIES)
 					{
-						if (vhdl_warnflag)
+						if (WARNFLAG)
 							System.out.println("WARNING - interface " + inst.compo.name + " not found, assumed external.");
 
 						// add to unresolved list
-						UNRESLIST ulist;
-						for (ulist = vhdl_unresolved_list; ulist != null; ulist = ulist.next)
+						UnResList uList;
+						for (uList = unResolvedList; uList != null; uList = uList.next)
 						{
-							if (ulist.interfacef == inst.compo.name) break;
+							if (uList.interfacef == inst.compo.name) break;
 						}
-						if (ulist != null) ulist.numref++; else
+						if (uList != null) uList.numRef++; else
 						{
-							ulist = new UNRESLIST();
-							ulist.interfacef = inst.compo.name;
-							ulist.numref = 1;
-							ulist.next = vhdl_unresolved_list;
-							vhdl_unresolved_list = ulist;
+							uList = new UnResList();
+							uList.interfacef = inst.compo.name;
+							uList.numRef = 1;
+							uList.next = unResolvedList;
+							unResolvedList = uList;
 						}
 					} else
 						System.out.println("ERROR - interface " + inst.compo.name + "not found.");
 					continue;
-				} else vhdl_genquisc_interface((DBINTERFACE)symbol.pointer, netlist);
+				} else genQuiscInterface((DBInterface)symbol.pointer, netlist);
 			}
 		}
-	
+
 		// write this entity
 		netlist.add("create cell " + interfacef.name);
-	
+
 		// write out instances as components
 		if (interfacef.bodies != null && interfacef.bodies.statements != null)
 		{
-			for (DBINSTANCE inst = interfacef.bodies.statements.instances; inst != null; inst = inst.next)
+			for (DBInstance inst = interfacef.bodies.statements.instances; inst != null; inst = inst.next)
 				netlist.add("create instance " + inst.name + " " + inst.compo.name);
 		}
-	
+
 		// create export list
-		QNODE qnodes = null;
-		QNODE lastnode = null;
-		for (DBPORTLIST fport = interfacef.ports; fport != null; fport = fport.next)
+		QNODE qNodes = null;
+		QNODE lastNode = null;
+		for (DBPortList fPort = interfacef.ports; fPort != null; fPort = fPort.next)
 		{
-			if (fport.type == null || fport.type.type == DBTYPE_SINGLE)
+			if (fPort.type == null || fPort.type.type == DBTYPE_SINGLE)
 			{
-				QNODE newnode = new QNODE();
-				newnode.name = fport.name;
-				newnode.name_type = QNODE_SNAME;
-				newnode.size = 0;
-				newnode.start = 0;
-				newnode.end = 0;
-				newnode.table = null;
-				newnode.flags = QNODE_EXPORT;
-				newnode.mode = fport.mode;
-				newnode.ports = null;
-				newnode.next = null;
-				if (lastnode == null) qnodes = lastnode = newnode; else
+				QNODE newQNode = new QNODE();
+				newQNode.name = fPort.name;
+				newQNode.nameType = QNODE_SNAME;
+				newQNode.size = 0;
+				newQNode.start = 0;
+				newQNode.end = 0;
+				newQNode.table = null;
+				newQNode.flags = QNODE_EXPORT;
+				newQNode.mode = fPort.mode;
+				newQNode.ports = null;
+				newQNode.next = null;
+				if (lastNode == null) qNodes = lastNode = newQNode; else
 				{
-					lastnode.next = newnode;
-					lastnode = newnode;
+					lastNode.next = newQNode;
+					lastNode = newQNode;
 				}
 			} else
 			{
-				QNODE newnode = new QNODE();
-				newnode.name = fport.name;
-				newnode.name_type = QNODE_INAME;
-				newnode.flags = QNODE_EXPORT;
-				newnode.mode = fport.mode;
-				newnode.ports = null;
-				newnode.next = null;
-				if (lastnode == null) qnodes = lastnode = newnode; else
+				QNODE newQNode = new QNODE();
+				newQNode.name = fPort.name;
+				newQNode.nameType = QNODE_INAME;
+				newQNode.flags = QNODE_EXPORT;
+				newQNode.mode = fPort.mode;
+				newQNode.ports = null;
+				newQNode.next = null;
+				if (lastNode == null) qNodes = lastNode = newQNode; else
 				{
-					lastnode.next = newnode;
-					lastnode = newnode;
+					lastNode.next = newQNode;
+					lastNode = newQNode;
 				}
-				DBINDEXRANGE irange = (DBINDEXRANGE)fport.type.pointer;
-				DBDISCRETERANGE drange = irange.drange;
-				newnode.start = drange.start;
-				newnode.end = drange.end;
+				DBIndexRange iRange = (DBIndexRange)fPort.type.pointer;
+				DBDiscreteRange dRange = iRange.dRange;
+				newQNode.start = dRange.start;
+				newQNode.end = dRange.end;
 				int size = 1;
-				if (drange.start > drange.end)
+				if (dRange.start > dRange.end)
 				{
-					size = drange.start - drange.end + 1;
-				} else if (drange.start < drange.end)
+					size = dRange.start - dRange.end + 1;
+				} else if (dRange.start < dRange.end)
 				{
-					size = drange.end - drange.start + 1;
+					size = dRange.end - dRange.start + 1;
 				}
-				newnode.size = size;
-				newnode.table = new QPORT[size];
-				for (int i = 0; i < size; i++) newnode.table[i] = null;
+				newQNode.size = size;
+				newQNode.table = new QPORT[size];
+				for (int i = 0; i < size; i++) newQNode.table[i] = null;
 			}
 		}
-	
+
 		// add local signals
 		if (interfacef.bodies != null && interfacef.bodies.declare != null)
 		{
-			for (DBSIGNALS signal = interfacef.bodies.declare.bodysignals; signal != null; signal = signal.next)
+			for (DBSignals signal = interfacef.bodies.declare.bodySignals; signal != null; signal = signal.next)
 			{
 				if (signal.type == null || signal.type.type == DBTYPE_SINGLE)
 				{
-					QNODE newnode = new QNODE();
-					newnode.name = signal.name;
-					newnode.name_type = QNODE_SNAME;
-					newnode.size = 0;
-					newnode.start = 0;
-					newnode.end = 0;
-					newnode.table = null;
+					QNODE newQNode = new QNODE();
+					newQNode.name = signal.name;
+					newQNode.nameType = QNODE_SNAME;
+					newQNode.size = 0;
+					newQNode.start = 0;
+					newQNode.end = 0;
+					newQNode.table = null;
 					if (signal.name.equalsIgnoreCase("power"))
 					{
-						newnode.flags = QNODE_POWER;
+						newQNode.flags = QNODE_POWER;
 					} else if (signal.name.equalsIgnoreCase("ground"))
 					{
-						newnode.flags = QNODE_GROUND;
+						newQNode.flags = QNODE_GROUND;
 					} else
 					{
-						newnode.flags = 0;
+						newQNode.flags = 0;
 					}
-					newnode.mode = 0;
-					newnode.ports = null;
-					newnode.next = null;
-					if (lastnode == null)
+					newQNode.mode = 0;
+					newQNode.ports = null;
+					newQNode.next = null;
+					if (lastNode == null)
 					{
-						qnodes = lastnode = newnode;
+						qNodes = lastNode = newQNode;
 					} else
 					{
-						lastnode.next = newnode;
-						lastnode = newnode;
+						lastNode.next = newQNode;
+						lastNode = newQNode;
 					}
 				} else
 				{
-					QNODE newnode = new QNODE();
-					newnode.name = signal.name;
-					newnode.name_type = QNODE_INAME;
-					newnode.flags = 0;
-					newnode.mode = 0;
-					newnode.ports = null;
-					newnode.next = null;
-					if (lastnode == null)
+					QNODE newQNode = new QNODE();
+					newQNode.name = signal.name;
+					newQNode.nameType = QNODE_INAME;
+					newQNode.flags = 0;
+					newQNode.mode = 0;
+					newQNode.ports = null;
+					newQNode.next = null;
+					if (lastNode == null)
 					{
-						qnodes = lastnode = newnode;
+						qNodes = lastNode = newQNode;
 					} else
 					{
-						lastnode.next = newnode;
-						lastnode = newnode;
+						lastNode.next = newQNode;
+						lastNode = newQNode;
 					}
-					DBINDEXRANGE irange = (DBINDEXRANGE)signal.type.pointer;
-					DBDISCRETERANGE drange = irange.drange;
-					newnode.start = drange.start;
-					newnode.end = drange.end;
+					DBIndexRange iRange = (DBIndexRange)signal.type.pointer;
+					DBDiscreteRange dRange = iRange.dRange;
+					newQNode.start = dRange.start;
+					newQNode.end = dRange.end;
 					int size = 1;
-					if (drange.start > drange.end)
+					if (dRange.start > dRange.end)
 					{
-						size = drange.start - drange.end + 1;
-					} else if (drange.start < drange.end)
+						size = dRange.start - dRange.end + 1;
+					} else if (dRange.start < dRange.end)
 					{
-						size = drange.end - drange.start + 1;
+						size = dRange.end - dRange.start + 1;
 					}
-					newnode.size = size;
-					newnode.table = new QPORT[size];
-					for (int i = 0; i < size; i++) newnode.table[i] = null;
+					newQNode.size = size;
+					newQNode.table = new QPORT[size];
+					for (int i = 0; i < size; i++) newQNode.table[i] = null;
 				}
 			}
 		}
-	
+
 		// write out connects
 		if (interfacef.bodies != null && interfacef.bodies.statements != null)
 		{
-			for (DBINSTANCE inst = interfacef.bodies.statements.instances; inst != null; inst = inst.next)
+			for (DBInstance inst = interfacef.bodies.statements.instances; inst != null; inst = inst.next)
 			{
 				// check all instance ports for connections
-				for (DBAPORTLIST aport = inst.ports; aport != null; aport = aport.next)
+				for (DBAPortList aPort = inst.ports; aPort != null; aPort = aPort.next)
 				{
-					if (aport.name == null) continue;
-	
+					if (aPort.name == null) continue;
+
 					// get names of all members of actual port
-					switch (aport.name.type)
+					switch (aPort.name.type)
 					{
 						case DBNAME_IDENTIFIER:
-							vhdl_addidentaport(aport.name, aport.port, 0, inst, qnodes);
+							addIdentAPort(aPort.name, aPort.port, 0, inst, qNodes);
 							break;
 						case DBNAME_INDEXED:
-							vhdl_addindexedaport(aport.name, aport.port, 0, inst, qnodes);
+							addIndexedAPort(aPort.name, aPort.port, 0, inst, qNodes);
 							break;
 						case DBNAME_CONCATENATED:
 							int offset = 0;
-							for (DBNAMELIST cat = (DBNAMELIST)aport.name.pointer; cat != null; cat = cat.next)
+							for (DBNameList cat = (DBNameList)aPort.name.pointer; cat != null; cat = cat.next)
 							{
 								if (cat.name.type == DBNAME_IDENTIFIER)
 								{
-									vhdl_addidentaport(cat.name, aport.port, offset, inst, qnodes);
+									addIdentAPort(cat.name, aPort.port, offset, inst, qNodes);
 								} else
 								{
-									vhdl_addindexedaport(cat.name, aport.port, offset, inst, qnodes);
+									addIndexedAPort(cat.name, aPort.port, offset, inst, qNodes);
 								}
-								offset += vhdl_querysize(cat.name);
+								offset += querySize(cat.name);
 							}
 							break;
 						default:
@@ -5826,142 +5542,142 @@ public class CompileVHDL
 				}
 			}
 		}
-	
+
 		// print out connections
-		for (QNODE newnode = qnodes; newnode != null; newnode = newnode.next)
+		for (QNODE newQNode = qNodes; newQNode != null; newQNode = newQNode.next)
 		{
-			if (newnode.name_type == QNODE_SNAME)
+			if (newQNode.nameType == QNODE_SNAME)
 			{
-				QPORT qport = newnode.ports;
-				if (qport != null)
+				QPORT qPort = newQNode.ports;
+				if (qPort != null)
 				{
-					for (QPORT qport2 = qport.next; qport2 != null; qport2 = qport2.next)
+					for (QPORT qPort2 = qPort.next; qPort2 != null; qPort2 = qPort2.next)
 					{
-						netlist.add("connect " + qport.instname + " " + qport.portname + " " + qport2.instname + " " + qport2.portname);
+						netlist.add("connect " + qPort.instName + " " + qPort.portName + " " + qPort2.instName + " " + qPort2.portName);
 					}
-					if ((newnode.flags & QNODE_POWER) != 0)
+					if ((newQNode.flags & QNODE_POWER) != 0)
 					{
-						netlist.add("connect " + qport.instname + " " + qport.portname + " power");
+						netlist.add("connect " + qPort.instName + " " + qPort.portName + " power");
 					}
-					if ((newnode.flags & QNODE_GROUND) != 0)
+					if ((newQNode.flags & QNODE_GROUND) != 0)
 					{
-						netlist.add("connect " + qport.instname + " " + qport.portname + " ground");
+						netlist.add("connect " + qPort.instName + " " + qPort.portName + " ground");
 					}
 				}
 			} else
 			{
-				for (int i = 0; i < newnode.size; i++)
+				for (int i = 0; i < newQNode.size; i++)
 				{
-					QPORT qport = newnode.table[i];
-					if (qport != null)
+					QPORT qPort = newQNode.table[i];
+					if (qPort != null)
 					{
-						for (QPORT qport2 = qport.next; qport2 != null; qport2 = qport2.next)
+						for (QPORT qPort2 = qPort.next; qPort2 != null; qPort2 = qPort2.next)
 						{
-							netlist.add("connect " + qport.instname + " " + qport.portname + " " + qport2.instname + " " + qport2.portname);
+							netlist.add("connect " + qPort.instName + " " + qPort.portName + " " + qPort2.instName + " " + qPort2.portName);
 						}
 					}
 				}
 			}
 		}
-	
+
 		// print out exports
-		for (QNODE newnode = qnodes; newnode != null; newnode = newnode.next)
+		for (QNODE newQNode = qNodes; newQNode != null; newQNode = newQNode.next)
 		{
-			if ((newnode.flags & QNODE_EXPORT) != 0)
+			if ((newQNode.flags & QNODE_EXPORT) != 0)
 			{
-				if (newnode.name_type == QNODE_SNAME)
+				if (newQNode.nameType == QNODE_SNAME)
 				{
-					QPORT qport = newnode.ports;
-					if (qport != null)
+					QPORT qPort = newQNode.ports;
+					if (qPort != null)
 					{
-						String inout = "";
-						switch (newnode.mode)
+						String inOut = "";
+						switch (newQNode.mode)
 						{
-							case DBMODE_IN:  inout = " input";    break;
-							case DBMODE_OUT: inout = " output";   break;
+							case DBMODE_IN:  inOut = " input";    break;
+							case DBMODE_OUT: inOut = " output";   break;
 						}
-						netlist.add("export " + qport.instname + " " + qport.portname + " " + newnode.name + inout);
+						netlist.add("export " + qPort.instName + " " + qPort.portName + " " + newQNode.name + inOut);
 					} else
 					{
-						System.out.println("ERROR - no export for " + newnode.name);
+						System.out.println("ERROR - no export for " + newQNode.name);
 					}
 				} else
 				{
-					for (int i = 0; i < newnode.size; i++)
+					for (int i = 0; i < newQNode.size; i++)
 					{
-						int indexc = 0;
-						if (newnode.start > newnode.end)
+						int indexC = 0;
+						if (newQNode.start > newQNode.end)
 						{
-							indexc = newnode.start - i;
+							indexC = newQNode.start - i;
 						} else
 						{
-							indexc = newnode.start + i;
+							indexC = newQNode.start + i;
 						}
-						QPORT qport = newnode.table[i];
-						if (qport != null)
+						QPORT qPort = newQNode.table[i];
+						if (qPort != null)
 						{
-							String inout = "";
-							switch (newnode.mode)
+							String inOut = "";
+							switch (newQNode.mode)
 							{
-								case DBMODE_IN:  inout = " input";    break;
-								case DBMODE_OUT: inout = " output";   break;
+								case DBMODE_IN:  inOut = " input";    break;
+								case DBMODE_OUT: inOut = " output";   break;
 							}
-							netlist.add("export " + qport.instname + " " + qport.portname + " " + newnode.name + "[" + indexc + "]" + inout);
+							netlist.add("export " + qPort.instName + " " + qPort.portName + " " + newQNode.name + "[" + indexC + "]" + inOut);
 						} else
 						{
-							System.out.println("ERROR - no export for " + newnode.name + "[" + indexc + "]");
+							System.out.println("ERROR - no export for " + newQNode.name + "[" + indexC + "]");
 						}
 					}
 				}
 			}
 		}
-	
+
 		// extract entity
 		netlist.add("extract");
-	
+
 		// print out non-exported node name assignments
-		for (QNODE newnode = qnodes; newnode != null; newnode = newnode.next)
+		for (QNODE newQNode = qNodes; newQNode != null; newQNode = newQNode.next)
 		{
-			if ((newnode.flags & QNODE_EXPORT) == 0)
+			if ((newQNode.flags & QNODE_EXPORT) == 0)
 			{
-				if (newnode.name_type == QNODE_SNAME)
+				if (newQNode.nameType == QNODE_SNAME)
 				{
-					QPORT qport = newnode.ports;
-					if (qport != null)
+					QPORT qPort = newQNode.ports;
+					if (qPort != null)
 					{
-						netlist.add("set node-name " + qport.instname + " " + qport.portname + " " + newnode.name);
+						netlist.add("set node-name " + qPort.instName + " " + qPort.portName + " " + newQNode.name);
 					}
 				} else
 				{
-					for (int i = 0; i < newnode.size; i++)
+					for (int i = 0; i < newQNode.size; i++)
 					{
-						int indexc = 0;
-						if (newnode.start > newnode.end)
+						int indexC = 0;
+						if (newQNode.start > newQNode.end)
 						{
-							indexc = newnode.start - i;
+							indexC = newQNode.start - i;
 						} else
 						{
-							indexc = newnode.start + i;
+							indexC = newQNode.start + i;
 						}
-						QPORT qport = newnode.table[i];
-						if (qport != null)
+						QPORT qPort = newQNode.table[i];
+						if (qPort != null)
 						{
-							netlist.add("set node-name " + qport.instname + " " + qport.portname + " " + newnode.name + "[" + indexc + "]");
+							netlist.add("set node-name " + qPort.instName + " " + qPort.portName + " " + newQNode.name + "[" + indexC + "]");
 						}
 					}
 				}
 			}
 		}
-	
+
 		netlist.add("");
 	}
-	
+
 	/**
 	 * Method to get the size (in number of elements) of the passed name.
 	 * @param name pointer to the name.
 	 * @return number of elements, 0 default.
 	 */
-	private int vhdl_querysize(DBNAME name)
+	private int querySize(DBName name)
 	{
 		int size = 0;
 		if (name != null)
@@ -5969,26 +5685,26 @@ public class CompileVHDL
 			switch (name.type)
 			{
 				case DBNAME_IDENTIFIER:
-					if (name.dbtype != null)
+					if (name.dbType != null)
 					{
-						switch (name.dbtype.type)
+						switch (name.dbType.type)
 						{
 							case DBTYPE_SINGLE:
 								size = 1;
 								break;
 							case DBTYPE_ARRAY:
-								DBINDEXRANGE irange = (DBINDEXRANGE)name.dbtype.pointer;
-								if (irange != null)
+								DBIndexRange iRange = (DBIndexRange)name.dbType.pointer;
+								if (iRange != null)
 								{
-									DBDISCRETERANGE drange = irange.drange;
-									if (drange != null)
+									DBDiscreteRange dRange = iRange.dRange;
+									if (dRange != null)
 									{
-										if (drange.start > drange.end)
+										if (dRange.start > dRange.end)
 										{
-											size = drange.start - drange.end;
+											size = dRange.start - dRange.end;
 										} else
 										{
-											size = drange.end - drange.start;
+											size = dRange.end - dRange.start;
 										}
 										size++;
 									}
@@ -6011,66 +5727,66 @@ public class CompileVHDL
 		}
 		return size;
 	}
-	
+
 	/**
 	 * Method to add the actual port of identifier name type to the node list.
 	 * @param name pointer to name.
 	 * @param port pointer to port on component.
 	 * @param offset offset in bits if of array type.
 	 * @param inst pointer to instance of component.
-	 * @param qnodes address of start of node list.
+	 * @param qNodes address of start of node list.
 	 */
-	private void vhdl_addidentaport(DBNAME name, DBPORTLIST port, int offset, DBINSTANCE inst, QNODE qnodes)
+	private void addIdentAPort(DBName name, DBPortList port, int offset, DBInstance inst, QNODE qNodes)
 	{
-		if (name.dbtype != null && name.dbtype.type == DBTYPE_ARRAY)
+		if (name.dbType != null && name.dbType.type == DBTYPE_ARRAY)
 		{
-			DBINDEXRANGE irange = (DBINDEXRANGE)name.dbtype.pointer;
-			if (irange != null)
+			DBIndexRange iRange = (DBIndexRange)name.dbType.pointer;
+			if (iRange != null)
 			{
-				DBDISCRETERANGE drange = irange.drange;
-				if (drange != null)
+				DBDiscreteRange dRange = iRange.dRange;
+				if (dRange != null)
 				{
 					int delta = 0;
-					if (drange.start > drange.end)
+					if (dRange.start > dRange.end)
 					{
 						delta = -1;
-					} else if (drange.start < drange.end)
+					} else if (dRange.start < dRange.end)
 					{
 						delta = 1;
 					}
-					int i = drange.start - delta;
+					int i = dRange.start - delta;
 					int offset2 = 0;
 					do
 					{
 						i += delta;
-						QPORT newport = vhdl_createqport(inst.name, port, offset + offset2);
-						vhdl_addporttonode(newport, name.name, QNODE_INAME, i, qnodes);
+						QPORT newPort = createQPort(inst.name, port, offset + offset2);
+						addQPortToQNode(newPort, name.name, QNODE_INAME, i, qNodes);
 						offset2++;
-					} while (i != drange.end);
+					} while (i != dRange.end);
 				}
 			}
 		} else
 		{
-			QPORT newport = vhdl_createqport(inst.name, port, offset);
-			vhdl_addporttonode(newport, name.name, QNODE_SNAME, 0, qnodes);
+			QPORT newPort = createQPort(inst.name, port, offset);
+			addQPortToQNode(newPort, name.name, QNODE_SNAME, 0, qNodes);
 		}
 	}
-	
+
 	/**
 	 * Method to add the actual port of indexed name type to the node list.
 	 * @param name pointer to name.
 	 * @param port pointer to port on component.
 	 * @param offset offset in bits if of array type.
 	 * @param inst pointer to instance of component.
-	 * @param qnodes address of start of node list.
+	 * @param qNodes address of start of node list.
 	 */
-	private void vhdl_addindexedaport(DBNAME name, DBPORTLIST port, int offset, DBINSTANCE inst, QNODE qnodes)
+	private void addIndexedAPort(DBName name, DBPortList port, int offset, DBInstance inst, QNODE qNodes)
 	{
-		QPORT newport = vhdl_createqport(inst.name, port, offset);
-		int indexc = ((DBEXPRLIST)name.pointer).value;
-		vhdl_addporttonode(newport, name.name, QNODE_INAME, indexc, qnodes);
+		QPORT newPort = createQPort(inst.name, port, offset);
+		int indexC = ((DBExprList)name.pointer).value;
+		addQPortToQNode(newPort, name.name, QNODE_INAME, indexC, qNodes);
 	}
-	
+
 
 	/**
 	 * Method to create a qport for the indicated port.
@@ -6079,39 +5795,37 @@ public class CompileVHDL
 	 * @param offset offset if array.
 	 * @return address of created QPORT.
 	 */
-	private QPORT vhdl_createqport(String iname, DBPORTLIST port, int offset)
+	private QPORT createQPort(String iname, DBPortList port, int offset)
 	{
-		QPORT newport = new QPORT();
-		newport.instname = iname;
-		newport.next = null;
+		QPORT newPort = new QPORT();
+		newPort.instName = iname;
+		newPort.next = null;
 		if (port.type != null && port.type.type == DBTYPE_ARRAY)
 		{
-			newport.portname = port.name + "[" + offset + "]";
-			newport.namealloc = true;
+			newPort.portName = port.name + "[" + offset + "]";
 		} else
 		{
-			newport.portname = port.name;
-			newport.namealloc = false;
+			newPort.portName = port.name;
 		}
-	
-		return newport;
+
+		return newPort;
 	}
-	
+
 	/**
 	 * Method to add the port to the node list.
 	 * @param port port to add.
 	 * @param ident name of node to add to.
 	 * @param type if simple or indexed.
-	 * @param indexc index if arrayed.
-	 * @param qnodes address of pointer to start of list.
+	 * @param indexC index if arrayed.
+	 * @param qNodes address of pointer to start of list.
 	 */
-	private void vhdl_addporttonode(QPORT port, String ident, int type, int indexc, QNODE qnodes)
+	private void addQPortToQNode(QPORT port, String ident, int type, int indexC, QNODE qNodes)
 	{
-		for (QNODE node = qnodes; node != null; node = node.next)
+		for (QNODE node = qNodes; node != null; node = node.next)
 		{
 			if (node.name.equalsIgnoreCase(ident))
 			{
-				if (node.name_type == type)
+				if (node.nameType == type)
 				{
 					if (type == QNODE_SNAME)
 					{
@@ -6123,10 +5837,10 @@ public class CompileVHDL
 						int tindex;
 						if (node.start > node.end)
 						{
-							tindex = node.start - indexc;
+							tindex = node.start - indexC;
 						} else
 						{
-							tindex = indexc - node.start;
+							tindex = indexC - node.start;
 						}
 						if (tindex >= 0 && tindex < node.size)
 						{

@@ -80,6 +80,7 @@ import com.sun.electric.tool.routing.Maze;
 import com.sun.electric.tool.routing.MimicStitch;
 import com.sun.electric.tool.routing.River;
 import com.sun.electric.tool.routing.Routing;
+import com.sun.electric.tool.sc.GetNetlist;
 import com.sun.electric.tool.sc.Maker;
 import com.sun.electric.tool.sc.Place;
 import com.sun.electric.tool.sc.Route;
@@ -356,7 +357,7 @@ public class ToolMenu {
 		MenuBar.Menu silCompSubMenu = new MenuBar.Menu("Silicon Compiler", 'M');
 		toolMenu.add(silCompSubMenu);
 		silCompSubMenu.addMenuItem("Convert Current Cell to Layout", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) {doSiliconCompilation();}});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { doSiliconCompilation(); }});
 
 		//------------------- Compaction
 
@@ -1102,7 +1103,7 @@ public class ToolMenu {
 	private static final String SCLIBNAME = "sclib";
 	private static final int READ_LIBRARY    =  1;
 	private static final int CONVERT_TO_VHDL =  2;
-	private static final int COMPILE_NETLIST =  4;
+	private static final int COMPILE_VHDL    =  4;
 	private static final int PLACE_AND_ROUTE =  8;
 	private static final int SHOW_CELL       = 16;
 
@@ -1121,8 +1122,25 @@ public class ToolMenu {
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 		int activities = PLACE_AND_ROUTE | SHOW_CELL;
-//		if (cell.getView() == View.SCHEMATIC) activities |= CONVERT_TO_VHDL | COMPILE_NETLIST;
-		if (cell.getView() == View.VHDL) activities |= COMPILE_NETLIST;
+
+		// see if the current cell needs to be compiled
+		if (cell.getView() != View.NETLISTQUISC)
+		{
+			if (cell.getView() == View.SCHEMATIC)
+			{
+				// current cell is Schematic.  See if there is a more recent netlist or VHDL
+				Cell vhdlCell = cell.otherView(View.VHDL);
+				if (vhdlCell != null && vhdlCell.getRevisionDate().after(cell.getRevisionDate())) cell = vhdlCell; else
+					activities |= CONVERT_TO_VHDL | COMPILE_VHDL;
+			}
+			if (cell.getView() == View.VHDL)
+			{
+				// current cell is VHDL.  See if there is a more recent netlist
+				Cell netListCell = cell.otherView(View.NETLISTQUISC);
+				if (netListCell != null && netListCell.getRevisionDate().after(cell.getRevisionDate())) cell = netListCell; else
+					activities |= COMPILE_VHDL;
+			}
+		}
 		if (SilComp.getCellLib() == null)
 		{
 			Library lib = Library.findLibrary(SCLIBNAME);
@@ -1145,7 +1163,7 @@ public class ToolMenu {
 			System.out.println("Must be editing a VHDL cell before compiling it");
 			return;
 		}
-	    DoNextActivity sJob = new DoNextActivity(cell, COMPILE_NETLIST | SHOW_CELL);
+	    DoNextActivity sJob = new DoNextActivity(cell, COMPILE_VHDL | SHOW_CELL);
 	}
 
 	/**
@@ -1199,7 +1217,7 @@ public class ToolMenu {
 			{
 				// convert Schematic to VHDL
 				System.out.print("Generating VHDL from '" + cell.describe() + "' ...");
-				List vhdlStrings = GenerateVHDL.vhdl_convertcell(cell, true);
+				List vhdlStrings = GenerateVHDL.convertCell(cell);
 				if (vhdlStrings == null)
 				{
 					System.out.println("No VHDL produced");
@@ -1216,7 +1234,7 @@ public class ToolMenu {
 			    return true;
 			}
 
-			if ((activities&COMPILE_NETLIST) != 0)
+			if ((activities&COMPILE_VHDL) != 0)
 			{
 				// compile the VHDL to a netlist
 				System.out.print("Compiling VHDL in '" + cell.describe() + "' ...");
@@ -1240,7 +1258,7 @@ public class ToolMenu {
 				for(int i=0; i<netlistStrings.size(); i++) array[i] = (String)netlistStrings.get(i);
 				netlistCell.setTextViewContents(array);
 				System.out.println(" Done, created '" + netlistCell.describe() + "'");
-			    DoNextActivity sJob = new DoNextActivity(netlistCell, activities & ~COMPILE_NETLIST);
+			    DoNextActivity sJob = new DoNextActivity(netlistCell, activities & ~COMPILE_VHDL);
 			    return true;
 			}
 
@@ -1248,12 +1266,14 @@ public class ToolMenu {
 			{
 				// first grab the information in the netlist
 				System.out.print("Reading netlist in '" + cell.describe() + "' ...");
-				if (SilComp.readNetCurCell(cell)) { System.out.println();   return false; }
+				GetNetlist gnl = new GetNetlist();
+				if (gnl.readNetCurCell(cell)) { System.out.println();   return false; }
 				System.out.println(" Done");
 
 				// do the placement
 				System.out.print("Placing cells ...");
-				String err = Place.placeCells();
+				Place place = new Place();
+				String err = place.placeCells(gnl);
 				if (err != null)
 				{
 					System.out.println("\n" + err);
@@ -1263,7 +1283,8 @@ public class ToolMenu {
 
 				// do the routing
 				System.out.print("Routing cells ...");
-				err = Route.routeCells();
+				Route route = new Route();
+				err = route.routeCells(gnl);
 				if (err != null)
 				{
 					System.out.println("\n" + err);
@@ -1273,7 +1294,8 @@ public class ToolMenu {
 
 				// generate the results
 				System.out.print("Generating layout ...");
-				Object result = Maker.makeLayout();
+				Maker maker = new Maker();
+				Object result = maker.makeLayout(gnl);
 				if (result instanceof String)
 				{
 					System.out.println("\n" + (String)result);

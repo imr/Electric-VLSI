@@ -29,138 +29,137 @@ package com.sun.electric.tool.sc;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.TextUtils;
 
 /**
- * This is the routing part of the Silicon Compiler tool.
+ * The routing part of the Silicon Compiler tool.
  */
 public class Route
 {
 	/** not verbose default */			private static final boolean DEBUG = false;
 
-	/** seen in processing */			private static final int SCROUTESEEN		= 0x00000001;
-	/** unusable in current track */	private static final int SCROUTEUNUSABLE	= 0x00000002;
-	/** temporary not use */			private static final int SCROUTETEMPNUSE	= 0x00000004;
+	/** seen in processing */			private static final int ROUTESEEN		= 0x00000001;
+	/** unusable in current track */	private static final int ROUTEUNUSABLE	= 0x00000002;
+	/** temporary not use */			private static final int ROUTETEMPNUSE	= 0x00000004;
 
 	/** fuzzy window for pass th. */	private static final double DEFAULT_FUZZY_WINDOW_LIMIT	= 6400;
 
-	/** global feed through number */	private static int		sc_feednumber;
+	/** global feed through number */	private int		feedNumber;
 
-	public static class SCROUTE
+	public static class SCRoute
 	{
-		/** list of channels */				SCROUTECHANNEL	channels;
-		/** exported ports */				SCROUTEEXPORT	exports;
-		/** route rows */					SCROUTEROW		rows;
+		/** list of channels */				RouteChannel	channels;
+		/** exported ports */				RouteExport		exports;
+		/** route rows */					RouteRow		rows;
 	};
 
-	private static class SCROUTEROW
+	private static class RouteRow
 	{
 		/** number, 0 = bottom */			int				number;
-		/** list of extracted nodes */		SCROUTENODE		nodes;
-		/** reference actual row */			Place.SCROWLIST	row;
-		/** last in row list */				SCROUTEROW		last;
-		/** next in row list */				SCROUTEROW		next;
+		/** list of extracted nodes */		RouteNode		nodes;
+		/** reference actual row */			Place.RowList	row;
+		/** last in row list */				RouteRow		last;
+		/** next in row list */				RouteRow		next;
 	};
 
-	private static class SCROUTENODE
+	private static class RouteNode
 	{
-		/** extracted node */				SilComp.SCEXTNODE ext_node;
-		/** reference row */				SCROUTEROW		row;
-		/** first port in row */			SCROUTEPORT		firstport;
-		/** last port in row */				SCROUTEPORT		lastport;
-		/** same nodes in above rows */		SCROUTENODE		same_next;
-		/** same nodes in below rows */		SCROUTENODE		same_last;
-		/** nodes in same row */			SCROUTENODE		next;
+		/** extracted node */				GetNetlist.ExtNode extNode;
+		/** reference row */				RouteRow		row;
+		/** first port in row */			RoutePort		firstPort;
+		/** last port in row */				RoutePort		lastPort;
+		/** same nodes in above rows */		RouteNode		sameNext;
+		/** same nodes in below rows */		RouteNode		sameLast;
+		/** nodes in same row */			RouteNode		next;
 	};
 
-	public static class SCROUTEPORT
+	public static class RoutePort
 	{
-		/** reference place */				Place.SCNBPLACE	place;
-		/** particular port */				SilComp.SCNIPORT port;
-		/** reference node */				SCROUTENODE		node;
+		/** reference place */				Place.NBPlace	place;
+		/** particular port */				GetNetlist.SCNiPort port;
+		/** reference node */				RouteNode		node;
 		/** flags for processing */			int				flags;
-		/** previous port in list */		SCROUTEPORT		last;
-		/** next port in list */			SCROUTEPORT		next;
+		/** previous port in list */		RoutePort		last;
+		/** next port in list */			RoutePort		next;
 	};
 
-	public static class SCROUTECHANNEL
+	public static class RouteChannel
 	{
 		/** number, 0 is bottom */			int				number;
-		/** list of nodes */				SCROUTECHNODE	nodes;
-		/** list of tracks */				SCROUTETRACK	tracks;
-		/** last in channel list */			SCROUTECHANNEL	last;
-		/** next in channel list */			SCROUTECHANNEL	next;
+		/** list of nodes */				RouteChNode		nodes;
+		/** list of tracks */				RouteTrack		tracks;
+		/** last in channel list */			RouteChannel	last;
+		/** next in channel list */			RouteChannel	next;
 	};
 
-	public static class SCROUTECHNODE
+	public static class RouteChNode
 	{
-		/** extracted node */				SilComp.SCEXTNODE ext_node;
+		/** extracted node */				GetNetlist.ExtNode extNode;
 		/** optional net number */			int				number;
-		/** first port in row */			SCROUTECHPORT	firstport;
-		/** last port in row */				SCROUTECHPORT	lastport;
-		/** reference channel */			SCROUTECHANNEL	channel;
+		/** first port in row */			RouteChPort		firstPort;
+		/** last port in row */				RouteChPort		lastPort;
+		/** reference channel */			RouteChannel	channel;
 		/** flags for processing */			int				flags;
-		/** same nodes in above rows */		SCROUTECHNODE	same_next;
-		/** same nodes in below rows */		SCROUTECHNODE	same_last;
-		/** nodes in same row */			SCROUTECHNODE	next;
+		/** same nodes in above rows */		RouteChNode		sameNext;
+		/** same nodes in below rows */		RouteChNode		sameLast;
+		/** nodes in same row */			RouteChNode		next;
 	};
 
-	public static class SCROUTECHPORT
+	public static class RouteChPort
 	{
-		/** reference port */				SCROUTEPORT		port;
-		/** reference channel node */		SCROUTECHNODE	node;
-		/** x position */					double			xpos;
+		/** reference port */				RoutePort		port;
+		/** reference channel node */		RouteChNode		node;
+		/** x position */					double			xPos;
 		/** flags for processing */			int				flags;
-		/** previous port in list */		SCROUTECHPORT	last;
-		/** next port in list */			SCROUTECHPORT	next;
+		/** previous port in list */		RouteChPort		last;
+		/** next port in list */			RouteChPort		next;
 	};
 
-	private static class SCROUTEVCG
+	private static class RouteVCG
 	{
-		/** channel node */					SCROUTECHNODE	chnode;
+		/** channel node */					RouteChNode		chNode;
 		/** flags for processing */			int				flags;
-		/** edges of graph */				SCROUTEVCGEDGE	edges;
+		/** edges of graph */				RouteVCGEdge	edges;
 	};
 
-	private static class SCROUTEVCGEDGE
+	private static class RouteVCGEdge
 	{
-		/** to which node */				SCROUTEVCG		node;
-		/** next in list */					SCROUTEVCGEDGE	next;
+		/** to which node */				RouteVCG		node;
+		/** next in list */					RouteVCGEdge	next;
 	};
 
-	private static class SCROUTEZRG
+	private static class RouteZRG
 	{
 		/** number of zone */				int				number;
-		/** list of channel nodes */		SCROUTEZRGMEM	chnodes;
-		/** last zone */					SCROUTEZRG		last;
-		/** next zone */					SCROUTEZRG		next;
+		/** list of channel nodes */		RouteZRGMem		chNodes;
+		/** last zone */					RouteZRG		last;
+		/** next zone */					RouteZRG		next;
 	};
 
-	private static class SCROUTEZRGMEM
+	private static class RouteZRGMem
 	{
-		/** channel node */					SCROUTECHNODE	chnode;
-		/** next in zone */					SCROUTEZRGMEM	next;
+		/** channel node */					RouteChNode		chNode;
+		/** next in zone */					RouteZRGMem		next;
 	};
 
-	public static class SCROUTETRACK
+	public static class RouteTrack
 	{
 		/** number of track, 0 = top */		int				number;
-		/** track member */					SCROUTETRACKMEM	nodes;
-		/** last track in list */			SCROUTETRACK	last;
-		/** next track in list */			SCROUTETRACK	next;
+		/** track member */					RouteTrackMem	nodes;
+		/** last track in list */			RouteTrack		last;
+		/** next track in list */			RouteTrack		next;
 	};
 
-	public static class SCROUTETRACKMEM
+	public static class RouteTrackMem
 	{
-		/** channel node */					SCROUTECHNODE	node;
-		/** next in same track */			SCROUTETRACKMEM	next;
+		/** channel node */					RouteChNode		node;
+		/** next in same track */			RouteTrackMem	next;
 	};
 
-	public static class SCROUTEEXPORT
+	public static class RouteExport
 	{
-		/** export port */					SilComp.SCPORT	xport;
-		/** channel port */					SCROUTECHPORT	chport;
-		/** next export port */				SCROUTEEXPORT	next;
+		/** export port */					GetNetlist.SCPort	xPort;
+		/** channel port */					RouteChPort		chPort;
+		/** next export port */				RouteExport		next;
 	};
 
 	/**
@@ -180,45 +179,44 @@ public class Route
 	 *    o  Create Zone Representation for channel
 	 *    o  Decrease height of VCG and maximize channel use
 	 */
-	public static String routeCells()
+	public String routeCells(GetNetlist gnl)
 	{
 		// check if working in a cell
-		if (SilComp.sc_curcell == null) return "No cell selected";
+		if (gnl.curSCCell == null) return "No cell selected";
 
 		// check if placement structure exists
-		if (SilComp.sc_curcell.placement == null)
-			return "No PLACEMENT structure for cell '" + SilComp.sc_curcell.name + "'";
+		if (gnl.curSCCell.placement == null)
+			return "No PLACEMENT structure for cell '" + gnl.curSCCell.name + "'";
 
 		// create route structure
-//		Sc_free_route(sc_curcell.route);
-		SCROUTE route = new SCROUTE();
-		SilComp.sc_curcell.route = route;
+		SCRoute route = new SCRoute();
+		gnl.curSCCell.route = route;
 		route.channels = null;
 		route.exports = null;
 		route.rows = null;
 
 		// first squeeze cell together
-		Sc_route_squeeze_cells(SilComp.sc_curcell.placement.rows);
+		squeezeCells(gnl.curSCCell.placement.rows);
 
 		// create list of rows and their usage of extracted nodes
-		SCROUTEROW row_list = Sc_route_create_row_list(SilComp.sc_curcell.placement.rows, SilComp.sc_curcell);
-		route.rows = row_list;
+		RouteRow rowList = createRowList(gnl.curSCCell.placement.rows, gnl.curSCCell);
+		route.rows = rowList;
 
 		// create Route Channel List
-		SCROUTECHANNEL channel_list = Sc_route_create_channel_list(SilComp.sc_curcell.placement.num_rows + 1);
-		route.channels = channel_list;
+		RouteChannel channelList = createChannelList(gnl.curSCCell.placement.numRows + 1);
+		route.channels = channelList;
 
 		// Do primary channel assignment
-		Sc_route_channel_assign(row_list, channel_list, SilComp.sc_curcell);
+		channelAssign(rowList, channelList, gnl.curSCCell);
 
 		// decide upon any pass through cells required
-		Sc_route_create_pass_throughs(channel_list, SilComp.sc_curcell.placement.rows);
+		createPassThroughs(channelList, gnl.curSCCell.placement.rows);
 
 		// decide upon export positions
-		route.exports = Sc_route_decide_exports(SilComp.sc_curcell);
+		route.exports = decideExports(gnl.curSCCell);
 
 		// route tracks in each channel
-		Sc_route_tracks_in_channels(channel_list, SilComp.sc_curcell);
+		tracksInChannels(channelList, gnl.curSCCell);
 
 		return null;
 	}
@@ -228,33 +226,33 @@ public class Route
 	 * Checks where their active areas start and uses the minimum active distance.
 	 * @param rows pointer to start of row list.
 	 */
-	private static void Sc_route_squeeze_cells(Place.SCROWLIST rows)
+	private void squeezeCells(Place.RowList rows)
 	{
-		for (Place.SCROWLIST row = rows; row != null; row = row.next)
+		for (Place.RowList row = rows; row != null; row = row.next)
 		{
-			for (Place.SCNBPLACE place = row.start; place != null; place = place.next)
+			for (Place.NBPlace place = row.start; place != null; place = place.next)
 			{
 				if (place.next == null) continue;
 
 				// determine allowable overlap
-				SilComp.SCCELLNUMS cell1_nums = SilComp.Sc_leaf_cell_get_nums((Cell)place.cell.np);
-				SilComp.SCCELLNUMS cell2_nums = SilComp.Sc_leaf_cell_get_nums((Cell)place.next.cell.np);
+				GetNetlist.SCCellNums cell1Nums = GetNetlist.getLeafCellNums((Cell)place.cell.np);
+				GetNetlist.SCCellNums cell2Nums = GetNetlist.getLeafCellNums((Cell)place.next.cell.np);
 				double overlap = 0;
-				if ((row.row_num % 2) != 0)
+				if ((row.rowNum % 2) != 0)
 				{
 					// odd row, cell are transposed
-					overlap = cell2_nums.right_active + cell1_nums.left_active
+					overlap = cell2Nums.rightActive + cell1Nums.leftActive
 						- SilComp.getMinActiveDistance();
 				} else
 				{
 					// even row
-					overlap = cell1_nums.right_active + cell2_nums.left_active
+					overlap = cell1Nums.rightActive + cell2Nums.leftActive
 						- SilComp.getMinActiveDistance();
 				}
 
 				// move rest of row
-				for (Place.SCNBPLACE place2 = place.next; place2 != null; place2 = place2.next)
-					place2.xpos -= overlap;
+				for (Place.NBPlace place2 = place.next; place2 != null; place2 = place2.next)
+					place2.xPos -= overlap;
 			}
 		}
 	}
@@ -266,93 +264,93 @@ public class Route
 	 * @param cell pointer to parent cell.
 	 * @return created list.
 	 */
-	private static SCROUTEROW Sc_route_create_row_list(Place.SCROWLIST rows, SilComp.SCCELL cell)
+	private RouteRow createRowList(Place.RowList rows, GetNetlist.SCCell cell)
 	{
 		// clear all reference pointers in extracted node list
-		for (SilComp.SCEXTNODE enode = cell.ex_nodes; enode != null; enode = enode.next)
-			enode.ptr = null;
+		for (GetNetlist.ExtNode eNode = cell.exNodes; eNode != null; eNode = eNode.next)
+			eNode.ptr = null;
 
 		// create a route row list for each placement row
-		SCROUTEROW first_rrow = null, last_rrow = null;
-		SCROUTENODE same_node = null;
-		for (Place.SCROWLIST row = rows; row != null; row = row.next)
+		RouteRow firstRRow = null, lastRRow = null;
+		RouteNode sameNode = null;
+		for (Place.RowList row = rows; row != null; row = row.next)
 		{
-			SCROUTEROW new_rrow = new SCROUTEROW();
-			new_rrow.number = row.row_num;
-			new_rrow.nodes = null;
-			new_rrow.row = row;
-			new_rrow.last = last_rrow;
-			new_rrow.next = null;
-			if (last_rrow != null)
+			RouteRow newRRow = new RouteRow();
+			newRRow.number = row.rowNum;
+			newRRow.nodes = null;
+			newRRow.row = row;
+			newRRow.last = lastRRow;
+			newRRow.next = null;
+			if (lastRRow != null)
 			{
-				last_rrow.next = new_rrow;
-				last_rrow = new_rrow;
+				lastRRow.next = newRRow;
+				lastRRow = newRRow;
 			} else
 			{
-				first_rrow = last_rrow = new_rrow;
+				firstRRow = lastRRow = newRRow;
 			}
 
 			// create an entry of every extracted node in each row
-			SCROUTENODE last_node = null;
-			for (SilComp.SCEXTNODE enode = cell.ex_nodes; enode != null; enode = enode.next)
+			RouteNode lastNode = null;
+			for (GetNetlist.ExtNode enode = cell.exNodes; enode != null; enode = enode.next)
 			{
-				SCROUTENODE new_node = new SCROUTENODE();
-				new_node.ext_node = enode;
-				new_node.row = new_rrow;
-				new_node.firstport = null;
-				new_node.lastport = null;
-				new_node.same_next = null;
-				new_node.same_last = same_node;
-				new_node.next = null;
-				if (last_node != null)
+				RouteNode newNode = new RouteNode();
+				newNode.extNode = enode;
+				newNode.row = newRRow;
+				newNode.firstPort = null;
+				newNode.lastPort = null;
+				newNode.sameNext = null;
+				newNode.sameLast = sameNode;
+				newNode.next = null;
+				if (lastNode != null)
 				{
-					last_node.next = new_node;
+					lastNode.next = newNode;
 				} else
 				{
-					new_rrow.nodes = new_node;
+					newRRow.nodes = newNode;
 				}
-				last_node = new_node;
-				if (same_node != null)
+				lastNode = newNode;
+				if (sameNode != null)
 				{
-					same_node.same_next = new_node;
-					same_node = same_node.next;
+					sameNode.sameNext = newNode;
+					sameNode = sameNode.next;
 				} else
 				{
-					enode.ptr = new_node;
+					enode.ptr = newNode;
 				}
 			}
-			same_node = new_rrow.nodes;
+			sameNode = newRRow.nodes;
 
 			// set reference to all ports on row
-			for (Place.SCNBPLACE place = row.start; place != null; place = place.next)
+			for (Place.NBPlace place = row.start; place != null; place = place.next)
 			{
-				for (SilComp.SCNIPORT port = place.cell.ports; port != null; port = port.next)
+				for (GetNetlist.SCNiPort port = place.cell.ports; port != null; port = port.next)
 				{
-					SCROUTENODE new_node = (SCROUTENODE)port.ext_node.ptr;
-					if (new_node != null)
+					RouteNode newNode = (RouteNode)port.extNode.ptr;
+					if (newNode != null)
 					{
-						for (int i = 0; i < row.row_num; i++)
-							new_node = new_node.same_next;
-						SCROUTEPORT new_port = new SCROUTEPORT();
-						new_port.place = place;
-						new_port.port = port;
-						new_port.node = new_node;
-						new_port.next = null;
-						new_port.last = new_node.lastport;
-						if (new_node.lastport != null)
+						for (int i = 0; i < row.rowNum; i++)
+							newNode = newNode.sameNext;
+						RoutePort newPort = new RoutePort();
+						newPort.place = place;
+						newPort.port = port;
+						newPort.node = newNode;
+						newPort.next = null;
+						newPort.last = newNode.lastPort;
+						if (newNode.lastPort != null)
 						{
-							new_node.lastport.next = new_port;
+							newNode.lastPort.next = newPort;
 						} else
 						{
-							new_node.firstport = new_port;
+							newNode.firstPort = newPort;
 						}
-						new_node.lastport = new_port;
+						newNode.lastPort = newPort;
 					}
 				}
 			}
 		}
 
-		return first_rrow;
+		return firstRRow;
 	}
 
 	/**
@@ -361,29 +359,29 @@ public class Route
 	 * @param number number of channels to create.
 	 * @return result list.
 	 */
-	private static SCROUTECHANNEL Sc_route_create_channel_list(int number)
+	private RouteChannel createChannelList(int number)
 	{
 		// create channel list
-		SCROUTECHANNEL first_chan = null, last_chan = null;
+		RouteChannel firstChan = null, lastChan = null;
 		for (int i = 0; i < number; i++)
 		{
-			SCROUTECHANNEL new_chan = new SCROUTECHANNEL();
-			new_chan.number = i;
-			new_chan.nodes = null;
-			new_chan.tracks = null;
-			new_chan.next = null;
-			new_chan.last = last_chan;
-			if (last_chan != null)
+			RouteChannel newChan = new RouteChannel();
+			newChan.number = i;
+			newChan.nodes = null;
+			newChan.tracks = null;
+			newChan.next = null;
+			newChan.last = lastChan;
+			if (lastChan != null)
 			{
-				last_chan.next = new_chan;
+				lastChan.next = newChan;
 			} else
 			{
-				first_chan = new_chan;
+				firstChan = newChan;
 			}
-			last_chan = new_chan;
+			lastChan = newChan;
 		}
 
-		return first_chan;
+		return firstChan;
 	}
 
 	/**
@@ -401,161 +399,160 @@ public class Route
 	 * @param channels list of channels.
 	 * @param cell pointer to parent cell.
 	 */
-	private static void Sc_route_channel_assign(SCROUTEROW rows, SCROUTECHANNEL channels, SilComp.SCCELL cell)
+	private void channelAssign(RouteRow rows, RouteChannel channels, GetNetlist.SCCell cell)
 	{
 		// clear flags
-		for (SCROUTEROW row = rows; row != null; row = row.next)
+		for (RouteRow row = rows; row != null; row = row.next)
 		{
-			for (SCROUTENODE node = row.nodes; node != null; node = node.next)
+			for (RouteNode node = row.nodes; node != null; node = node.next)
 			{
-				for (SCROUTEPORT port = node.firstport; port != null; port = port.next)
-					port.flags &= ~SCROUTESEEN;
+				for (RoutePort port = node.firstPort; port != null; port = port.next)
+					port.flags &= ~ROUTESEEN;
 			}
 		}
 
-		for (SCROUTEROW row = rows; row != null; row = row.next)
+		for (RouteRow row = rows; row != null; row = row.next)
 		{
-			for (SCROUTENODE node = row.nodes; node != null; node = node.next)
+			for (RouteNode node = row.nodes; node != null; node = node.next)
 			{
-				if (node.firstport == null)
+				if (node.firstPort == null)
 					continue;
 
 				// check for ports above
-				boolean ports_above = false;
-				for (SCROUTENODE node2 = node.same_next; node2 != null; node2 = node2.same_next)
+				boolean portsAbove = false;
+				for (RouteNode node2 = node.sameNext; node2 != null; node2 = node2.sameNext)
 				{
-					if (node2.firstport != null)
+					if (node2.firstPort != null)
 					{
-						ports_above = true;
+						portsAbove = true;
 						break;
 					}
 				}
 
 				// if none found above, any ports in this list only going up
-				if (!ports_above && node.firstport != node.lastport)
+				if (!portsAbove && node.firstPort != node.lastPort)
 				{
-					for (SCROUTEPORT port = node.firstport; port != null; port = port.next)
+					for (RoutePort port = node.firstPort; port != null; port = port.next)
 					{
-						int direct = SilComp.Sc_leaf_port_direction((PortProto)port.port.port);
-						if ((direct & SilComp.SCPORTDIRUP) != 0 && (direct & SilComp.SCPORTDIRDOWN) == 0)
+						int direct = GetNetlist.getLeafPortDirection((PortProto)port.port.port);
+						if ((direct & GetNetlist.PORTDIRUP) != 0 && (direct & GetNetlist.PORTDIRDOWN) == 0)
 						{
-							ports_above = true;
+							portsAbove = true;
 							break;
 						}
 					}
 				}
 
 				// check for ports below
-				boolean ports_below = false;
-				for (SCROUTENODE node2 = node.same_last; node2 != null; node2 = node2.same_last)
+				boolean portsBelow = false;
+				for (RouteNode node2 = node.sameLast; node2 != null; node2 = node2.sameLast)
 				{
-					if (node2.firstport != null)
+					if (node2.firstPort != null)
 					{
-						ports_below = true;
+						portsBelow = true;
 						break;
 					}
 				}
 
 				// if none found below, any ports in this row only going down
-				if (!ports_below && node.firstport != node.lastport)
+				if (!portsBelow && node.firstPort != node.lastPort)
 				{
-					for (SCROUTEPORT port = node.firstport; port != null; port = port.next)
+					for (RoutePort port = node.firstPort; port != null; port = port.next)
 					{
-						int direct = SilComp.Sc_leaf_port_direction((PortProto)port.port.port);
-						if ((direct & SilComp.SCPORTDIRDOWN) != 0 && (direct & SilComp.SCPORTDIRUP) == 0)
+						int direct = GetNetlist.getLeafPortDirection((PortProto)port.port.port);
+						if ((direct & GetNetlist.PORTDIRDOWN) != 0 && (direct & GetNetlist.PORTDIRUP) == 0)
 						{
-							ports_below = true;
+							portsBelow = true;
 							break;
 						}
 					}
 				}
 
 				// do not add if only one port unless an export
-				if (!ports_above && !ports_below)
+				if (!portsAbove && !portsBelow)
 				{
-					if (node.firstport == node.lastport)
+					if (node.firstPort == node.lastPort)
 					{
-						SilComp.SCPORT xport;
-						for (xport = cell.ports; xport != null; xport = xport.next)
+						GetNetlist.SCPort xPort;
+						for (xPort = cell.ports; xPort != null; xPort = xPort.next)
 						{
-							if (xport.node.ports.ext_node == node.ext_node)
+							if (xPort.node.ports.extNode == node.extNode)
 								break;
 						}
-						if (xport == null)
-							continue;
+						if (xPort == null) continue;
 
 						// if top row, put in above channel
 						if (row.number != 0 && row.next == null)
-							ports_above = true;
+							portsAbove = true;
 					}
 				}
 
 				// assign ports to channel
-				for (SCROUTEPORT port = node.firstport; port != null; port = port.next)
+				for (RoutePort port = node.firstPort; port != null; port = port.next)
 				{
-					if ((port.flags & SCROUTESEEN) != 0) continue;
+					if ((port.flags & ROUTESEEN) != 0) continue;
 
 					// check how ports can be connected to
-					int direct = SilComp.Sc_leaf_port_direction((PortProto)port.port.port);
+					int direct = GetNetlist.getLeafPortDirection((PortProto)port.port.port);
 
 					// for ports both up and down
-					if ((direct & SilComp.SCPORTDIRUP) != 0 && (direct & SilComp.SCPORTDIRDOWN) != 0)
+					if ((direct & GetNetlist.PORTDIRUP) != 0 && (direct & GetNetlist.PORTDIRDOWN) != 0)
 					{
-						if (!ports_above)
+						if (!portsAbove)
 						{
 							// add to channel below
-							Sc_route_add_port_to_channel(port, node.ext_node, channels, row.number);
+							addPortToChannel(port, node.extNode, channels, row.number);
 						} else
 						{
-							if (ports_below)
+							if (portsBelow)
 							{
 								// add to channel where closest
 								int offset = 0;
-								if (Sc_route_nearest_port(port, node, row.number, cell) > 0)
+								if (nearestPort(port, node, row.number, cell) > 0)
 								{
 									offset = 1;
 								}
-								Sc_route_add_port_to_channel(port, node.ext_node, channels, row.number + offset);
+								addPortToChannel(port, node.extNode, channels, row.number + offset);
 							} else
 							{
 								// add to channel above
-								Sc_route_add_port_to_channel(port, node.ext_node, channels, row.number + 1);
+								addPortToChannel(port, node.extNode, channels, row.number + 1);
 							}
 						}
-						port.flags |= SCROUTESEEN;
+						port.flags |= ROUTESEEN;
 					}
 
 					// for ports only up
-					else if ((direct & SilComp.SCPORTDIRUP) != 0)
+					else if ((direct & GetNetlist.PORTDIRUP) != 0)
 					{
 						// add to channel above
-						Sc_route_add_port_to_channel(port, node.ext_node, channels, row.number + 1);
-						port.flags |= SCROUTESEEN;
+						addPortToChannel(port, node.extNode, channels, row.number + 1);
+						port.flags |= ROUTESEEN;
 					}
 
 					// for ports only down
-					else if ((direct & SilComp.SCPORTDIRDOWN) != 0)
+					else if ((direct & GetNetlist.PORTDIRDOWN) != 0)
 					{
 						// add to channel below
-						Sc_route_add_port_to_channel(port, node.ext_node, channels, row.number);
-						port.flags |= SCROUTESEEN;
+						addPortToChannel(port, node.extNode, channels, row.number);
+						port.flags |= ROUTESEEN;
 					}
 
 					// ports left
-					else if ((direct & SilComp.SCPORTDIRLEFT) != 0)
+					else if ((direct & GetNetlist.PORTDIRLEFT) != 0)
 					{
-						Sc_route_add_lateral_feed(port, channels, ports_above, ports_below, cell);
+						addLateralFeed(port, channels, portsAbove, portsBelow, cell);
 					}
 
 					// ports right
-					else if ((direct & SilComp.SCPORTDIRRIGHT) != 0)
+					else if ((direct & GetNetlist.PORTDIRRIGHT) != 0)
 					{
-						Sc_route_add_lateral_feed(port, channels, ports_above, ports_below, cell);
+						addLateralFeed(port, channels, portsAbove, portsBelow, cell);
 					} else
 					{
 						System.out.println("ERROR - no direction for " + port.place.cell.name + " port " +
 							((PortProto)port.port.port).getName());
-						port.flags |= SCROUTESEEN;
+						port.flags |= ROUTESEEN;
 					}
 				}
 			}
@@ -567,165 +564,162 @@ public class Route
 	 * The offset is +1 for every row above, -1 for every row below.
 	 * @param port pointer to current port.
 	 * @param node pointer to reference node.
-	 * @param row_num row number of port.
+	 * @param rowNum row number of port.
 	 * @param cell pointer to parent cell.
 	 * @return offset of row of closest port.
 	 */
-	private static double Sc_route_nearest_port(SCROUTEPORT port, SCROUTENODE node, int row_num, SilComp.SCCELL cell)
+	private double nearestPort(RoutePort port, RouteNode node, int rowNum, GetNetlist.SCCell cell)
 	{
-		double min_dist = Double.MAX_VALUE;
-		double which_row = 0;
-		double xpos1;
-		if ((row_num % 2) != 0)
+		double minDist = Double.MAX_VALUE;
+		double whichRow = 0;
+		double xPos1;
+		if ((rowNum % 2) != 0)
 		{
-			xpos1 = port.place.xpos + port.place.cell.size -
-				port.port.xpos;
+			xPos1 = port.place.xPos + port.place.cell.size -
+				port.port.xPos;
 		} else
 		{
-			xpos1 = port.place.xpos + port.port.xpos;
+			xPos1 = port.place.xPos + port.port.xPos;
 		}
 
 		// find closest above
 		double offset = 0;
-		for (SCROUTENODE nnode = node.same_next; nnode != null; nnode = nnode.same_next)
+		for (RouteNode nNode = node.sameNext; nNode != null; nNode = nNode.sameNext)
 		{
 			offset++;
-			for (SCROUTEPORT nport = nnode.firstport; nport != null; nport = nport.next)
+			for (RoutePort nPort = nNode.firstPort; nPort != null; nPort = nPort.next)
 			{
-				double dist = Math.abs(offset) * cell.placement.avg_height * 2;
-				double xpos2;
-				if (((row_num + offset) % 2) != 0)
+				double dist = Math.abs(offset) * cell.placement.avgHeight * 2;
+				double xPos2;
+				if (((rowNum + offset) % 2) != 0)
 				{
-					xpos2 = nport.place.xpos + nport.place.cell.size -
-						nport.port.xpos;
+					xPos2 = nPort.place.xPos + nPort.place.cell.size - nPort.port.xPos;
 				} else
 				{
-					xpos2 = nport.place.xpos + nport.port.xpos;
+					xPos2 = nPort.place.xPos + nPort.port.xPos;
 				}
-				dist += Math.abs(xpos2 - xpos1);
-				if (dist < min_dist)
+				dist += Math.abs(xPos2 - xPos1);
+				if (dist < minDist)
 				{
-					min_dist = dist;
-					which_row = offset;
+					minDist = dist;
+					whichRow = offset;
 				}
 			}
 		}
 
 		// check below
 		offset = 0;
-		for (SCROUTENODE nnode = node.same_last; nnode != null; nnode = nnode.same_last)
+		for (RouteNode nNode = node.sameLast; nNode != null; nNode = nNode.sameLast)
 		{
 			offset--;
-			for (SCROUTEPORT nport = nnode.firstport; nport != null; nport = nport.next)
+			for (RoutePort nPort = nNode.firstPort; nPort != null; nPort = nPort.next)
 			{
-				double dist = Math.abs(offset) * cell.placement.avg_height * 2;
-				double xpos2;
-				if (((row_num + offset) % 2) != 0)
+				double dist = Math.abs(offset) * cell.placement.avgHeight * 2;
+				double xPos2;
+				if (((rowNum + offset) % 2) != 0)
 				{
-					xpos2 = nport.place.xpos + nport.place.cell.size -
-						nport.port.xpos;
+					xPos2 = nPort.place.xPos + nPort.place.cell.size - nPort.port.xPos;
 				} else
 				{
-					xpos2 = nport.place.xpos + nport.port.xpos;
+					xPos2 = nPort.place.xPos + nPort.port.xPos;
 				}
-				dist += Math.abs(xpos2 - xpos1);
-				if (dist < min_dist)
+				dist += Math.abs(xPos2 - xPos1);
+				if (dist < minDist)
 				{
-					min_dist = dist;
-					which_row = offset;
+					minDist = dist;
+					whichRow = offset;
 				}
 			}
 		}
 
-		return which_row;
+		return whichRow;
 	}
 
 	/**
 	 * Method to add the indicated port to the indicated channel.
 	 * Create node for that channel if it doesn't already exist.
 	 * @param port pointer to route port.
-	 * @param ext_node value of reference extracted node.
+	 * @param extNode value of reference extracted node.
 	 * @param channels start of channel list.
-	 * @param chan_num number of wanted channel.
+	 * @param chanNum number of wanted channel.
 	 */
-	private static void Sc_route_add_port_to_channel(SCROUTEPORT port, SilComp.SCEXTNODE ext_node,
-		SCROUTECHANNEL channels, int chan_num)
+	private void addPortToChannel(RoutePort port, GetNetlist.ExtNode extNode, RouteChannel channels, int chanNum)
 	{
 		// get correct channel
-		SCROUTECHANNEL channel = channels;
-		for (int i = 0; i < chan_num; i++)
+		RouteChannel channel = channels;
+		for (int i = 0; i < chanNum; i++)
 			channel = channel.next;
 
 		// check if node already exists for this channel
-		SCROUTECHNODE node;
+		RouteChNode node;
 		for (node = channel.nodes; node != null; node = node.next)
 		{
-			if (node.ext_node == ext_node) break;
+			if (node.extNode == extNode) break;
 		}
 		if (node == null)
 		{
-			node = new SCROUTECHNODE();
-			node.ext_node = ext_node;
+			node = new RouteChNode();
+			node.extNode = extNode;
 			node.number = 0;
-			node.firstport = null;
-			node.lastport = null;
+			node.firstPort = null;
+			node.lastPort = null;
 			node.channel = channel;
-			node.flags = SCROUTESEEN;
-			node.same_next = null;
-			node.same_last = null;
+			node.flags = ROUTESEEN;
+			node.sameNext = null;
+			node.sameLast = null;
 			node.next = channel.nodes;
 			channel.nodes = node;
 
 			// resolve any references to other channels
 			// check previous channels
-			for (SCROUTECHANNEL nchan = channel.last; nchan != null; nchan = nchan.last)
+			for (RouteChannel nchan = channel.last; nchan != null; nchan = nchan.last)
 			{
-				SCROUTECHNODE nnode;
-				for (nnode = nchan.nodes; nnode != null; nnode = nnode.next)
+				RouteChNode nNode;
+				for (nNode = nchan.nodes; nNode != null; nNode = nNode.next)
 				{
-					if (nnode.ext_node == ext_node)
+					if (nNode.extNode == extNode)
 					{
-						nnode.same_next = node;
-						node.same_last = nnode;
+						nNode.sameNext = node;
+						node.sameLast = nNode;
 						break;
 					}
 				}
-				if (nnode != null) break;
+				if (nNode != null) break;
 			}
 
 			// check later channels
-			for (SCROUTECHANNEL nchan = channel.next; nchan != null; nchan = nchan.next)
+			for (RouteChannel nchan = channel.next; nchan != null; nchan = nchan.next)
 			{
-				SCROUTECHNODE nnode;
-				for (nnode = nchan.nodes; nnode != null; nnode = nnode.next)
+				RouteChNode nNode;
+				for (nNode = nchan.nodes; nNode != null; nNode = nNode.next)
 				{
-					if (nnode.ext_node == ext_node)
+					if (nNode.extNode == extNode)
 					{
-						nnode.same_last = node;
-						node.same_next = nnode;
+						nNode.sameLast = node;
+						node.sameNext = nNode;
 						break;
 					}
 				}
-				if (nnode != null) break;
+				if (nNode != null) break;
 			}
 		}
 
 		// add port to node
-		SCROUTECHPORT nport = new SCROUTECHPORT();
-		nport.port = port;
-		nport.node = node;
-		nport.xpos = 0;
-		nport.flags = 0;
-		nport.next = null;
-		nport.last = node.lastport;
-		if (node.lastport != null)
+		RouteChPort nPort = new RouteChPort();
+		nPort.port = port;
+		nPort.node = node;
+		nPort.xPos = 0;
+		nPort.flags = 0;
+		nPort.next = null;
+		nPort.last = node.lastPort;
+		if (node.lastPort != null)
 		{
-			node.lastport.next = nport;
+			node.lastPort.next = nPort;
 		} else
 		{
-			node.firstport = nport;
+			node.firstPort = nPort;
 		}
-		node.lastport = nport;
+		node.lastPort = nPort;
 	}
 
 	/**
@@ -734,114 +728,111 @@ public class Route
 	 * Add to appropriate channel(s) if full feed.
 	 * @param port pointer to port in question.
 	 * @param channels list of channels.
-	 * @param ports_above true if ports above.
-	 * @param ports_below true if ports below.
+	 * @param portsAbove true if ports above.
+	 * @param portsBelow true if ports below.
 	 * @param cell pointer to parent cell.
 	 */
-	private static void Sc_route_add_lateral_feed(SCROUTEPORT port, SCROUTECHANNEL channels,
-		boolean ports_above, boolean ports_below, SilComp.SCCELL cell)
+	private void addLateralFeed(RoutePort port, RouteChannel channels,
+		boolean portsAbove, boolean portsBelow, GetNetlist.SCCell cell)
 	{
-		int direct = SilComp.Sc_leaf_port_direction((PortProto)port.port.port);
+		int direct = GetNetlist.getLeafPortDirection((PortProto)port.port.port);
 
 		// determine if stitch
-		Place.SCNBPLACE nplace = null;
-		int sdirect = 0;
-		if ((direct & SilComp.SCPORTDIRLEFT) != 0)
+		Place.NBPlace nPlace = null;
+		int sDirect = 0;
+		if ((direct & GetNetlist.PORTDIRLEFT) != 0)
 		{
 			if ((port.node.row.number % 2) != 0)
 			{
 				// odd row
-				for (nplace = port.place.next; nplace != null; nplace = nplace.next)
+				for (nPlace = port.place.next; nPlace != null; nPlace = nPlace.next)
 				{
-					if (nplace.cell.type == SilComp.SCLEAFCELL)
-						break;
+					if (nPlace.cell.type == GetNetlist.LEAFCELL) break;
 				}
 			} else
 			{
 				// even row
-				for (nplace = port.place.last; nplace != null; nplace = nplace.last)
+				for (nPlace = port.place.last; nPlace != null; nPlace = nPlace.last)
 				{
-					if (nplace.cell.type == SilComp.SCLEAFCELL)
-						break;
+					if (nPlace.cell.type == GetNetlist.LEAFCELL) break;
 				}
 			}
-			sdirect = SilComp.SCPORTDIRRIGHT;
+			sDirect = GetNetlist.PORTDIRRIGHT;
 		} else
 		{
 			if ((port.node.row.number % 2) != 0)
 			{
 				// odd row
-				for (nplace = port.place.last; nplace != null; nplace = nplace.last)
+				for (nPlace = port.place.last; nPlace != null; nPlace = nPlace.last)
 				{
-					if (nplace.cell.type == SilComp.SCLEAFCELL) break;
+					if (nPlace.cell.type == GetNetlist.LEAFCELL) break;
 				}
 			} else
 			{
 				// even row
-				for (nplace = port.place.next; nplace != null; nplace = nplace.next)
+				for (nPlace = port.place.next; nPlace != null; nPlace = nPlace.next)
 				{
-					if (nplace.cell.type == SilComp.SCLEAFCELL)
-						break;
+					if (nPlace.cell.type == GetNetlist.LEAFCELL) break;
 				}
 			}
-			sdirect =SilComp. SCPORTDIRLEFT;
+			sDirect = GetNetlist.PORTDIRLEFT;
 		}
-		if (nplace != null)
+		if (nPlace != null)
 		{
 			// search for same port with correct direction
-			SCROUTEPORT port2;
+			RoutePort port2;
 			for (port2 = port.next; port2 != null; port2 = port2.next)
 			{
-				if (port2.place == nplace &&
-					SilComp.Sc_leaf_port_direction((PortProto)port2.port.port) == sdirect)
+				if (port2.place == nPlace &&
+					GetNetlist.getLeafPortDirection((PortProto)port2.port.port) == sDirect)
 						break;
 			}
 			if (port2 != null)
 			{
 				// stitch feed
-				port.flags |= SCROUTESEEN;
-				port2.flags |= SCROUTESEEN;
-				Place.SCNBPLACE splace = new Place.SCNBPLACE();
-				splace.cell = null;
-				SilComp.SCNITREE sinst = SilComp.Sc_new_instance("Stitch", SilComp.SCSTITCH);
-				splace.cell = sinst;
+				port.flags |= ROUTESEEN;
+				port2.flags |= ROUTESEEN;
+				Place.NBPlace sPlace = new Place.NBPlace();
+				sPlace.cell = null;
+				GetNetlist.SCNiTree sInst = new GetNetlist.SCNiTree("Stitch", GetNetlist.STITCH);
+				sPlace.cell = sInst;
 
 				// save two ports
-				SilComp.SCNIPORT sport = SilComp.Sc_new_instance_port(sinst);
-				sport.port = port;
-				SilComp.SCNIPORT sport2 = SilComp.Sc_new_instance_port(sinst);
-				sport2.port = port2;
+				GetNetlist.SCNiPort sPort = new GetNetlist.SCNiPort(sInst);
+				sPort.port = port;
+				GetNetlist.SCNiPort sPort2 = new GetNetlist.SCNiPort(sInst);
+				sPort2.port = port2;
 
 				// insert in place
-				if ((direct & SilComp.SCPORTDIRLEFT) != 0)
+				if ((direct & GetNetlist.PORTDIRLEFT) != 0)
 				{
 					if ((port.node.row.number % 2) != 0)
 					{
-						splace.last = port.place;
-						splace.next = port.place.next;
-						if (splace.last != null) splace.last.next = splace;
-						if (splace.next != null) splace.next.last = splace;
+						sPlace.last = port.place;
+						sPlace.next = port.place.next;
+						if (sPlace.last != null) sPlace.last.next = sPlace;
+						if (sPlace.next != null) sPlace.next.last = sPlace;
 					} else
 					{
-						splace.last = port.place.last;
-						splace.next = port.place;
-						if (splace.last != null) splace.last.next = splace;
-						if (splace.next != null) splace.next.last = splace;
+						sPlace.last = port.place.last;
+						sPlace.next = port.place;
+						if (sPlace.last != null) sPlace.last.next = sPlace;
+						if (sPlace.next != null) sPlace.next.last = sPlace;
 					}
 				} else
 				{
 					if ((port.node.row.number % 2) != 0)
 					{
-						splace.last = port.place.last;
-						splace.next = port.place;
-						if (splace.last != null) splace.last.next = splace;
-						if (splace.next != null) splace.next.last = splace;
+						sPlace.last = port.place.last;
+						sPlace.next = port.place;
+						if (sPlace.last != null) sPlace.last.next = sPlace;
+						if (sPlace.next != null) sPlace.next.last = sPlace;
 					} else
 					{
-						splace.last = port.place;
-						splace.next = port.place.next;
-						if (splace.last != null) splace.last.next = splace;
-						if (splace.next != null) splace.next.last = splace;
+						sPlace.last = port.place;
+						sPlace.next = port.place.next;
+						if (sPlace.last != null) sPlace.last.next = sPlace;
+						if (sPlace.next != null) sPlace.next.last = sPlace;
 					}
 				}
 				return;
@@ -849,91 +840,91 @@ public class Route
 		}
 
 		// full lateral feed
-		port.flags |= SCROUTESEEN;
-		Place.SCNBPLACE splace = new Place.SCNBPLACE();
-		splace.cell = null;
-		SilComp.SCNITREE sinst = SilComp.Sc_new_instance("Lateral Feed", SilComp.SCLATERALFEED);
-		sinst.size = SilComp.getFeedThruSize();
-		splace.cell = sinst;
+		port.flags |= ROUTESEEN;
+		Place.NBPlace sPlace = new Place.NBPlace();
+		sPlace.cell = null;
+		GetNetlist.SCNiTree sInst = new GetNetlist.SCNiTree("Lateral Feed", GetNetlist.LATERALFEED);
+		sInst.size = SilComp.getFeedThruSize();
+		sPlace.cell = sInst;
 
 		// save port
-		SilComp.SCNIPORT sport = SilComp.Sc_new_instance_port(sinst);
-		sport.xpos = SilComp.getFeedThruSize() / 2;
+		GetNetlist.SCNiPort sPort = new GetNetlist.SCNiPort(sInst);
+		sPort.xPos = SilComp.getFeedThruSize() / 2;
 
 		// create new route port
-		SCROUTEPORT nport = new SCROUTEPORT();
-		nport.place = port.place;
-		nport.port = port.port;
-		nport.node = port.node;
-		nport.flags = 0;
-		nport.last = null;
-		nport.next = null;
-		sport.port = nport;
+		RoutePort nPort = new RoutePort();
+		nPort.place = port.place;
+		nPort.port = port.port;
+		nPort.node = port.node;
+		nPort.flags = 0;
+		nPort.last = null;
+		nPort.next = null;
+		sPort.port = nPort;
 
 		// insert in place
-		if ((direct & SilComp.SCPORTDIRLEFT) != 0)
+		if ((direct & GetNetlist.PORTDIRLEFT) != 0)
 		{
 			if ((port.node.row.number % 2) != 0)
 			{
-				splace.last = port.place;
-				splace.next = port.place.next;
+				sPlace.last = port.place;
+				sPlace.next = port.place.next;
 			} else
 			{
-				splace.last = port.place.last;
-				splace.next = port.place;
+				sPlace.last = port.place.last;
+				sPlace.next = port.place;
 			}
 		} else
 		{
 			if ((port.node.row.number % 2) != 0)
 			{
-				splace.last = port.place.last;
-				splace.next = port.place;
+				sPlace.last = port.place.last;
+				sPlace.next = port.place;
 			} else
 			{
-				splace.last = port.place;
-				splace.next = port.place.next;
+				sPlace.last = port.place;
+				sPlace.next = port.place.next;
 			}
 		}
-		if (splace.last != null)
+		if (sPlace.last != null)
 		{
-			splace.last.next = splace;
+			sPlace.last.next = sPlace;
 		} else
 		{
-			port.node.row.row.start = splace;
+			port.node.row.row.start = sPlace;
 		}
-		if (splace.next != null)
+		if (sPlace.next != null)
 		{
-			splace.next.last = splace;
+			sPlace.next.last = sPlace;
 		} else
 		{
-			port.node.row.row.end = splace;
+			port.node.row.row.end = sPlace;
 		}
-		Sc_route_resolve_new_xpos(splace, port.node.row.row);
+		resolveNewXPos(sPlace, port.node.row.row);
 
 		// change route port to lateral feed
-		port.place = splace;
-		port.port = sport;
+		port.place = sPlace;
+		port.port = sPort;
 
 		// channel assignment of lateral feed
-		if (!ports_above)
+		if (!portsAbove)
 		{
 			// add to channel below
-			Sc_route_add_port_to_channel(port, port.node.ext_node, channels, port.node.row.number);
+			addPortToChannel(port, port.node.extNode, channels, port.node.row.number);
 		} else
 		{
-			if (ports_below)
+			if (portsBelow)
 			{
 				// add to channel where closest
 				int offset = 0;
-				if (Sc_route_nearest_port(port, port.node, port.node.row.number, cell) > 0)
+				if (nearestPort(port, port.node, port.node.row.number, cell) > 0)
 				{
 					offset = 1;
 				}
-				Sc_route_add_port_to_channel(port, port.node.ext_node, channels, port.node.row.number + offset);
+				addPortToChannel(port, port.node.extNode, channels, port.node.row.number + offset);
 			} else
 			{
 				// add to channel above
-				Sc_route_add_port_to_channel(port, port.node.ext_node, channels, port.node.row.number + 1);
+				addPortToChannel(port, port.node.extNode, channels, port.node.row.number + 1);
 			}
 		}
 	}
@@ -944,31 +935,30 @@ public class Route
 	 * @param channels pointer to current channels.
 	 * @param rows pointer to placed rows.
 	 */
-	private static void Sc_route_create_pass_throughs(SCROUTECHANNEL channels, Place.SCROWLIST rows)
+	private void createPassThroughs(RouteChannel channels, Place.RowList rows)
 	{
-		sc_feednumber = 0;
+		feedNumber = 0;
 
 		// clear the flag on all channel nodes
-		for (SCROUTECHANNEL chan = channels; chan != null; chan = chan.next)
+		for (RouteChannel chan = channels; chan != null; chan = chan.next)
 		{
-			for (SCROUTECHNODE chnode = chan.nodes; chnode != null; chnode = chnode.next)
-				chnode.flags &= ~SCROUTESEEN;
+			for (RouteChNode chNode = chan.nodes; chNode != null; chNode = chNode.next)
+				chNode.flags &= ~ROUTESEEN;
 		}
 
 		// find all nodes which exist in more than one channel
-		for (SCROUTECHANNEL chan = channels; chan != null; chan = chan.next)
+		for (RouteChannel chan = channels; chan != null; chan = chan.next)
 		{
-			for (SCROUTECHNODE chnode = chan.nodes; chnode != null; chnode = chnode.next)
+			for (RouteChNode chNode = chan.nodes; chNode != null; chNode = chNode.next)
 			{
-				if ((chnode.flags & SCROUTESEEN) != 0) continue;
-				chnode.flags |= SCROUTESEEN;
-				SCROUTECHNODE old_chnode = chnode;
-				for (SCROUTECHNODE chnode2 = chnode.same_next; chnode2 != null;
-					chnode2 = chnode2.same_next)
+				if ((chNode.flags & ROUTESEEN) != 0) continue;
+				chNode.flags |= ROUTESEEN;
+				RouteChNode oldChNode = chNode;
+				for (RouteChNode chNode2 = chNode.sameNext; chNode2 != null; chNode2 = chNode2.sameNext)
 				{
-					chnode2.flags |= SCROUTESEEN;
-					Sc_route_between_ch_nodes(old_chnode, chnode2, channels, rows);
-					old_chnode = chnode2;
+					chNode2.flags |= ROUTESEEN;
+					betweenChNodes(oldChNode, chNode2, channels, rows);
+					oldChNode = chNode2;
 				}
 			}
 		}
@@ -983,148 +973,144 @@ public class Route
 	 * @param channels list of channels.
 	 * @param rows list of placed rows.
 	 */
-	private static void Sc_route_between_ch_nodes(SCROUTECHNODE node1, SCROUTECHNODE node2,
-		SCROUTECHANNEL channels, Place.SCROWLIST rows)
+	private void betweenChNodes(RouteChNode node1, RouteChNode node2, RouteChannel channels, Place.RowList rows)
 	{
-		SilComp.SCEXTNODE ext_node = node1.ext_node;
+		GetNetlist.ExtNode extNode = node1.extNode;
 
 		// determine limits of second channel
-		double minx2 = Sc_route_min_port_pos(node2);
-		double maxx2 = Sc_route_max_port_pos(node2);
+		double minX2 = minPortPos(node2);
+		double maxX2 = maxPortPos(node2);
 
 		// do for all intervening channels
-		for (SCROUTECHANNEL chan = node1.channel; chan != node2.channel; chan = chan.next,
-			node1 = node1.same_next)
+		for (RouteChannel chan = node1.channel; chan != node2.channel; chan = chan.next,
+			node1 = node1.sameNext)
 		{
 			// determine limits of first channel node
-			double minx1 = Sc_route_min_port_pos(node1);
-			double maxx1 = Sc_route_max_port_pos(node1);
+			double minX1 = minPortPos(node1);
+			double maxX1 = maxPortPos(node1);
 
 			// determine preferred region of pass through
-			double pminx, pmaxx;
-			if (maxx1 <= minx2)
+			double pMinX, pMaxX;
+			if (maxX1 <= minX2)
 			{
 				// no overlap with first node to left
-				pminx = maxx1;
-				pmaxx = minx2;
-			} else if (maxx2 <= minx1)
+				pMinX = maxX1;
+				pMaxX = minX2;
+			} else if (maxX2 <= minX1)
 			{
 				// no overlap with first node to right
-				pminx = maxx2;
-				pmaxx = minx1;
+				pMinX = maxX2;
+				pMaxX = minX1;
 			} else
 			{
 				// have some overlap
-				pminx = Math.max(minx1, minx2);
-				pmaxx = Math.min(minx1, minx2);
+				pMinX = Math.max(minX1, minX2);
+				pMaxX = Math.min(minX1, minX2);
 			}
 
 			// set window fuzzy limits
-			pminx -= DEFAULT_FUZZY_WINDOW_LIMIT;
-			pmaxx += DEFAULT_FUZZY_WINDOW_LIMIT;
+			pMinX -= DEFAULT_FUZZY_WINDOW_LIMIT;
+			pMaxX += DEFAULT_FUZZY_WINDOW_LIMIT;
 
 			// determine which row we are in
-			Place.SCROWLIST row;
+			Place.RowList row;
 			for (row = rows; row != null; row = row.next)
 			{
-				if (row.row_num == chan.number) break;
+				if (row.rowNum == chan.number) break;
 			}
 
 			// check for any possible ports which can be used
-			SCROUTENODE rnode;
-			for (rnode = (SCROUTENODE)ext_node.ptr; rnode != null; rnode = rnode.same_next)
+			RouteNode rNode;
+			for (rNode = (RouteNode)extNode.ptr; rNode != null; rNode = rNode.sameNext)
 			{
-				if (rnode.row.number == row.row_num) break;
+				if (rNode.row.number == row.rowNum) break;
 			}
-			if (rnode != null)
+			if (rNode != null)
 			{
 				// port of correct type exists somewhere in this row
-				SCROUTEPORT rport;
-				for (rport = rnode.firstport; rport != null; rport = rport.next)
+				RoutePort rPort;
+				for (rPort = rNode.firstPort; rPort != null; rPort = rPort.next)
 				{
-					double pos = Sc_route_port_position(rport);
-					int direct = SilComp.Sc_leaf_port_direction((PortProto)rport.port.port);
-					if ((direct & SilComp.SCPORTDIRUP) == 0 && (direct & SilComp.SCPORTDIRDOWN) != 0) continue;
-					if (pos >= pminx && pos <= pmaxx) break;
+					double pos = portPosition(rPort);
+					int direct = GetNetlist.getLeafPortDirection((PortProto)rPort.port.port);
+					if ((direct & GetNetlist.PORTDIRUP) == 0 && (direct & GetNetlist.PORTDIRDOWN) != 0) continue;
+					if (pos >= pMinX && pos <= pMaxX) break;
 				}
-				if (rport != null)
+				if (rPort != null)
 				{
 					// found suitable port, ensure it exists in both channels
-					SCROUTECHPORT chport = null;
-					for (SCROUTECHNODE node = chan.nodes; node != null; node = node.next)
+					RouteChPort chPort = null;
+					for (RouteChNode node = chan.nodes; node != null; node = node.next)
 					{
-						if (node.ext_node == node1.ext_node)
+						if (node.extNode == node1.extNode)
 						{
-							for (chport = node.firstport; chport != null;
-								chport = chport.next)
+							for (chPort = node.firstPort; chPort != null; chPort = chPort.next)
 							{
-								if (chport.port == rport) break;
+								if (chPort.port == rPort) break;
 							}
 						}
 					}
-					if (chport == null)
+					if (chPort == null)
 					{
 						// add port to this channel
-						Sc_route_add_port_to_channel(rport, ext_node, channels, chan.number);
+						addPortToChannel(rPort, extNode, channels, chan.number);
 					}
-					chport = null;
-					for (SCROUTECHNODE node = chan.next.nodes; node != null; node = node.next)
+					chPort = null;
+					for (RouteChNode node = chan.next.nodes; node != null; node = node.next)
 					{
-						if (node.ext_node == node1.ext_node)
+						if (node.extNode == node1.extNode)
 						{
-							for (chport = node.firstport; chport != null;
-								chport = chport.next)
+							for (chPort = node.firstPort; chPort != null; chPort = chPort.next)
 							{
-								if (chport.port == rport)
-									break;
+								if (chPort.port == rPort) break;
 							}
 						}
 					}
-					if (chport == null)
+					if (chPort == null)
 					{
 						// add port to next channel
-						Sc_route_add_port_to_channel(rport, ext_node, channels, chan.next.number);
+						addPortToChannel(rPort, extNode, channels, chan.next.number);
 					}
 					continue;
 				}
 			}
 
 			// if no port found, find best position for feed through
-			double bestpos = Double.MAX_VALUE;
-			Place.SCNBPLACE bestplace = null;
-			for (Place.SCNBPLACE place = row.start; place != null; place = place.next)
+			double bestPos = Double.MAX_VALUE;
+			Place.NBPlace bestPlace = null;
+			for (Place.NBPlace place = row.start; place != null; place = place.next)
 			{
 				// not allowed to feed at stitch
-				if (place.cell.type == SilComp.SCSTITCH ||
-					(place.last != null && place.last.cell.type == SilComp.SCSTITCH))
+				if (place.cell.type == GetNetlist.STITCH ||
+					(place.last != null && place.last.cell.type == GetNetlist.STITCH))
 						continue;
 
 				// not allowed to feed at lateral feed
-				if (place.cell.type == SilComp.SCLATERALFEED ||
-					(place.last != null && place.last.cell.type == SilComp.SCLATERALFEED))
+				if (place.cell.type == GetNetlist.LATERALFEED ||
+					(place.last != null && place.last.cell.type == GetNetlist.LATERALFEED))
 						continue;
-				if (place.xpos >= pminx && place.xpos <= pmaxx)
+				if (place.xPos >= pMinX && place.xPos <= pMaxX)
 				{
-					bestplace = place;
+					bestPlace = place;
 					break;
 				}
 				double pos;
-				if (place.xpos < pminx)
+				if (place.xPos < pMinX)
 				{
-					pos = Math.abs(pminx - place.xpos);
+					pos = Math.abs(pMinX - place.xPos);
 				} else
 				{
-					pos = Math.abs(pmaxx - place.xpos);
+					pos = Math.abs(pMaxX - place.xPos);
 				}
-				if (pos < bestpos)
+				if (pos < bestPos)
 				{
-					bestpos = pos;
-					bestplace = place;
+					bestPos = pos;
+					bestPlace = place;
 				}
 			}
 
 			// insert feed through at the indicated place
-			Sc_route_insert_feed_through(bestplace, row, channels, chan.number, node1);
+			insertFeedThrough(bestPlace, row, channels, chan.number, node1);
 		}
 	}
 
@@ -1133,20 +1119,19 @@ public class Route
 	 * @param node pointer to channel node.
 	 * @return leftmost port position.
 	 */
-	private static double Sc_route_min_port_pos(SCROUTECHNODE node)
+	private double minPortPos(RouteChNode node)
 	{
-		double minx = Double.MAX_VALUE;
-		for (SCROUTECHPORT chport = node.firstport; chport != null; chport = chport.next)
+		double minX = Double.MAX_VALUE;
+		for (RouteChPort chPort = node.firstPort; chPort != null; chPort = chPort.next)
 		{
 			// determine position
-			double pos = Sc_route_port_position(chport.port);
+			double pos = portPosition(chPort.port);
 
 			// check versus minimum
-			if (pos < minx)
-				minx = pos;
+			if (pos < minX) minX = pos;
 		}
 
-		return minx;
+		return minX;
 	}
 
 	/**
@@ -1154,19 +1139,19 @@ public class Route
 	 * @param node pointer to channel node.
 	 * @return rightmost port position.
 	 */
-	private static double Sc_route_max_port_pos(SCROUTECHNODE node)
+	private double maxPortPos(RouteChNode node)
 	{
-		double maxx = Double.MIN_VALUE;
-		for (SCROUTECHPORT chport = node.firstport; chport != null; chport = chport.next)
+		double maxX = Double.MIN_VALUE;
+		for (RouteChPort chPort = node.firstPort; chPort != null; chPort = chPort.next)
 		{
 			// determine position
-			double pos = Sc_route_port_position(chport.port);
+			double pos = portPosition(chPort.port);
 
 			// check versus maximum
-			if (pos > maxx) maxx = pos;
+			if (pos > maxX) maxX = pos;
 		}
 
-		return maxx;
+		return maxX;
 	}
 
 	/**
@@ -1174,15 +1159,15 @@ public class Route
 	 * @param port pointer to port in question.
 	 * @return x position.
 	 */
-	private static double Sc_route_port_position(SCROUTEPORT port)
+	private double portPosition(RoutePort port)
 	{
-		double pos = port.place.xpos;
+		double pos = port.place.xPos;
 		if ((port.node.row.number % 2) != 0)
 		{
-			pos += port.place.cell.size - port.port.xpos;
+			pos += port.place.cell.size - port.port.xPos;
 		} else
 		{
-			pos += port.port.xpos;
+			pos += port.port.xPos;
 		}
 
 		return pos;
@@ -1193,71 +1178,63 @@ public class Route
 	 * @param place place where to insert in front of.
 	 * @param row row of place.
 	 * @param channels channel list.
-	 * @param chan_num number of particular channel below.
+	 * @param chanNum number of particular channel below.
 	 * @param node channel node within the channel.
 	 */
-	private static void Sc_route_insert_feed_through(Place.SCNBPLACE place, Place.SCROWLIST row,
-		SCROUTECHANNEL channels, int chan_num, SCROUTECHNODE node)
+	private void insertFeedThrough(Place.NBPlace place, Place.RowList row,
+		RouteChannel channels, int chanNum, RouteChNode node)
 	{
 		// create a special instance
-		SilComp.SCNITREE inst = new SilComp.SCNITREE();
-		inst.name = "Feed_Through";
-		inst.number = 0;
-		inst.type = SilComp.SCFEEDCELL;
-		inst.np = null;
+		GetNetlist.SCNiTree inst = new GetNetlist.SCNiTree("Feed_Through", GetNetlist.FEEDCELL);
 		inst.size = SilComp.getFeedThruSize();
-		inst.connect = null;
-		inst.ports = null;
-		inst.flags = 0;
-		inst.tp = null;
 
 		// create instance port
-		SilComp.SCNIPORT port = new SilComp.SCNIPORT();
-		port.port = new Integer(sc_feednumber++);
-		port.ext_node = node.ext_node;
+		GetNetlist.SCNiPort port = new GetNetlist.SCNiPort();
+		port.port = new Integer(feedNumber++);
+		port.extNode = node.extNode;
 		port.bits = 0;
-		port.xpos = SilComp.getFeedThruSize() / 2;
+		port.xPos = SilComp.getFeedThruSize() / 2;
 		port.next = null;
 		inst.ports = port;
 
 		// create the appropriate place
-		Place.SCNBPLACE nplace = new Place.SCNBPLACE();
-		nplace.cell = inst;
-		nplace.last = place.last;
-		nplace.next = place;
-		if (nplace.last != null)
-			nplace.last.next = nplace;
-		place.last = nplace;
+		Place.NBPlace nPlace = new Place.NBPlace();
+		nPlace.cell = inst;
+		nPlace.last = place.last;
+		nPlace.next = place;
+		if (nPlace.last != null)
+			nPlace.last.next = nPlace;
+		place.last = nPlace;
 		if (place == row.start)
-			row.start = nplace;
+			row.start = nPlace;
 
-		Sc_route_resolve_new_xpos(nplace, row);
+		resolveNewXPos(nPlace, row);
 
 		// create a route port entry for this new port
-		SCROUTENODE rnode;
-		for (rnode = (SCROUTENODE)node.ext_node.ptr; rnode != null; rnode = rnode.same_next)
+		RouteNode rNode;
+		for (rNode = (RouteNode)node.extNode.ptr; rNode != null; rNode = rNode.sameNext)
 		{
-			if (rnode.row.number == row.row_num) break;
+			if (rNode.row.number == row.rowNum) break;
 		}
-		SCROUTEPORT rport = new SCROUTEPORT();
-		rport.place = nplace;
-		rport.port = port;
-		rport.node = rnode;
-		rport.flags = 0;
-		rport.next = null;
-		rport.last = rnode.lastport;
-		if (rnode.lastport != null)
+		RoutePort rPort = new RoutePort();
+		rPort.place = nPlace;
+		rPort.port = port;
+		rPort.node = rNode;
+		rPort.flags = 0;
+		rPort.next = null;
+		rPort.last = rNode.lastPort;
+		if (rNode.lastPort != null)
 		{
-			rnode.lastport.next = rport;
+			rNode.lastPort.next = rPort;
 		} else
 		{
-			rnode.firstport = rport;
+			rNode.firstPort = rPort;
 		}
-		rnode.lastport = rport;
+		rNode.lastPort = rPort;
 
 		// add to channels
-		Sc_route_add_port_to_channel(rport, node.ext_node, channels, chan_num);
-		Sc_route_add_port_to_channel(rport, node.ext_node, channels, chan_num + 1);
+		addPortToChannel(rPort, node.extNode, channels, chanNum);
+		addPortToChannel(rPort, node.extNode, channels, chanNum + 1);
 	}
 
 	/**
@@ -1265,71 +1242,71 @@ public class Route
 	 * @param place new place.
 	 * @param row pointer to existing row.
 	 */
-	private static void Sc_route_resolve_new_xpos(Place.SCNBPLACE place, Place.SCROWLIST row)
+	private void resolveNewXPos(Place.NBPlace place, Place.RowList row)
 	{
-		double xpos;
+		double xPos;
 		if (place.last != null)
 		{
-			if (place.last.cell.type == SilComp.SCLEAFCELL)
+			if (place.last.cell.type == GetNetlist.LEAFCELL)
 			{
-				SilComp.SCCELLNUMS cnums = SilComp.Sc_leaf_cell_get_nums((Cell)place.last.cell.np);
-				xpos = place.last.xpos + place.last.cell.size;
+				GetNetlist.SCCellNums cnums = GetNetlist.getLeafCellNums((Cell)place.last.cell.np);
+				xPos = place.last.xPos + place.last.cell.size;
 				double overlap = 0;
-				if ((row.row_num % 2) != 0)
+				if ((row.rowNum % 2) != 0)
 				{
 					// odd row, cells are transposed
-					overlap = cnums.left_active - SilComp.getMinActiveDistance();
+					overlap = cnums.leftActive - SilComp.getMinActiveDistance();
 				} else
 				{
 					// even row
-					overlap = cnums.right_active - SilComp.getMinActiveDistance();
+					overlap = cnums.rightActive - SilComp.getMinActiveDistance();
 				}
-				if (overlap < 0 && place.cell.type != SilComp.SCLATERALFEED)
+				if (overlap < 0 && place.cell.type != GetNetlist.LATERALFEED)
 					overlap = 0;
-				xpos -= overlap;
-				place.xpos = xpos;
-				xpos += place.cell.size;
+				xPos -= overlap;
+				place.xPos = xPos;
+				xPos += place.cell.size;
 			} else
 			{
-				xpos = place.last.xpos + place.last.cell.size;
-				place.xpos = xpos;
-				xpos += place.cell.size;
+				xPos = place.last.xPos + place.last.cell.size;
+				place.xPos = xPos;
+				xPos += place.cell.size;
 			}
 		} else
 		{
-			place.xpos = 0;
-			xpos = place.cell.size;
+			place.xPos = 0;
+			xPos = place.cell.size;
 		}
 
 		if (place.next != null)
 		{
-			double oldxpos = place.next.xpos;
-			double nxpos = 0;
-			if (place.next.cell.type == SilComp.SCLEAFCELL)
+			double oldXPos = place.next.xPos;
+			double nXPos = 0;
+			if (place.next.cell.type == GetNetlist.LEAFCELL)
 			{
-				SilComp.SCCELLNUMS cnums = SilComp.Sc_leaf_cell_get_nums((Cell)place.next.cell.np);
+				GetNetlist.SCCellNums cnums = GetNetlist.getLeafCellNums((Cell)place.next.cell.np);
 				double overlap = 0;
-				if ((row.row_num % 2) != 0)
+				if ((row.rowNum % 2) != 0)
 				{
 					// odd row, cells are transposed
-					overlap = cnums.right_active - SilComp.getMinActiveDistance();
+					overlap = cnums.rightActive - SilComp.getMinActiveDistance();
 				} else
 				{
 					// even row
-					overlap = cnums.left_active - SilComp.getMinActiveDistance();
+					overlap = cnums.leftActive - SilComp.getMinActiveDistance();
 				}
-				if (overlap < 0 && place.cell.type != SilComp.SCLATERALFEED)
+				if (overlap < 0 && place.cell.type != GetNetlist.LATERALFEED)
 					overlap = 0;
-				nxpos = xpos - overlap;
+				nXPos = xPos - overlap;
 			} else
 			{
-				nxpos = xpos;
+				nXPos = xPos;
 			}
 
 			// update rest of the row
 			for (place = place.next; place != null; place = place.next)
-				place.xpos += nxpos - oldxpos;
-			row.row_size += nxpos - oldxpos;
+				place.xPos += nXPos - oldXPos;
+			row.rowSize += nXPos - oldXPos;
 		}
 	}
 
@@ -1341,74 +1318,74 @@ public class Route
 	 * @param cell pointer to cell.
 	 * @return created data.
 	 */
-	private static SCROUTEEXPORT Sc_route_decide_exports(SilComp.SCCELL cell)
+	private RouteExport decideExports(GetNetlist.SCCell cell)
 	{
-		SCROUTEEXPORT lexport = null;
+		RouteExport lExport = null;
 
 		// check all exports
-		for (SilComp.SCPORT port = cell.ports; port != null; port = port.next)
+		for (GetNetlist.SCPort port = cell.ports; port != null; port = port.next)
 		{
 			// get extracted node
-			SilComp.SCEXTNODE enode = port.node.ports.ext_node;
+			GetNetlist.ExtNode eNode = port.node.ports.extNode;
 
-			SCROUTECHNODE chnode = null;
-			for (SCROUTECHANNEL chan = cell.route.channels; chan != null; chan = chan.next)
+			RouteChNode chNode = null;
+			for (RouteChannel chan = cell.route.channels; chan != null; chan = chan.next)
 			{
-				for (chnode = chan.nodes; chnode != null; chnode = chnode.next)
+				for (chNode = chan.nodes; chNode != null; chNode = chNode.next)
 				{
-					if (chnode.ext_node == enode) break;
+					if (chNode.extNode == eNode) break;
 				}
-				if (chnode != null) break;
+				if (chNode != null) break;
 			}
 
 			// find limits of channel node
 			boolean bottom = false, top = false, left = false, right = false;
-			double best_dist = Double.MAX_VALUE;
-			SCROUTECHPORT best_chport = null;
-			for (SCROUTECHNODE chnode2 = chnode; chnode2 != null; chnode2 = chnode2.same_next)
+			double bestDist = Double.MAX_VALUE;
+			RouteChPort bestChPort = null;
+			for (RouteChNode chNode2 = chNode; chNode2 != null; chNode2 = chNode2.sameNext)
 			{
-				SCROUTECHPORT chport;
-				for (chport = chnode2.firstport; chport != null; chport = chport.next)
+				RouteChPort chPort;
+				for (chPort = chNode2.firstPort; chPort != null; chPort = chPort.next)
 				{
 					// check for bottom channel
-					if (chport.node.channel.number == 0)
+					if (chPort.node.channel.number == 0)
 					{
 						bottom = true;
-						best_chport = chport;
+						bestChPort = chPort;
 						break;
 					}
 
 					// check for top channel
-					if (chport.node.channel.number == cell.placement.num_rows)
+					if (chPort.node.channel.number == cell.placement.numRows)
 					{
 						top = true;
-						best_chport = chport;
+						bestChPort = chPort;
 						break;
 					}
 
 					// check distance to left boundary
-					double dist = Sc_route_port_position(chport.port);
-					if (dist < best_dist)
+					double dist = portPosition(chPort.port);
+					if (dist < bestDist)
 					{
-						best_dist = dist;
+						bestDist = dist;
 						left = true;
 						right = false;
-						best_chport = chport;
+						bestChPort = chPort;
 					}
 
 					// check distance to right boundary
-					double maxx = chport.port.node.row.row.end.xpos +
-						chport.port.node.row.row.end.cell.size;
-					dist = maxx - Sc_route_port_position(chport.port);
-					if (dist < best_dist)
+					double maxX = chPort.port.node.row.row.end.xPos +
+					chPort.port.node.row.row.end.cell.size;
+					dist = maxX - portPosition(chPort.port);
+					if (dist < bestDist)
 					{
-						best_dist = dist;
+						bestDist = dist;
 						right = true;
 						left = false;
-						best_chport = chport;
+						bestChPort = chPort;
 					}
 				}
-				if (chport != null) break;
+				if (chPort != null) break;
 			}
 			if (top)
 			{
@@ -1419,101 +1396,100 @@ public class Route
 			} else if (right)
 			{
 				// create special place for export at end of row
-				best_chport = Sc_route_create_special(port.node, best_chport, false, cell);
+				bestChPort = createSpecial(port.node, bestChPort, false, cell);
 			} else if (left)
 			{
 				// create special place for export at start of row
-				best_chport = Sc_route_create_special(port.node, best_chport, true, cell);
+				bestChPort = createSpecial(port.node, bestChPort, true, cell);
 			}
 
 			// add port to export list
-			SCROUTEEXPORT nexport = new SCROUTEEXPORT();
-			nexport.xport = port;
-			nexport.chport = best_chport;
-			nexport.next = lexport;
-			lexport = nexport;
+			RouteExport nExport = new RouteExport();
+			nExport.xPort = port;
+			nExport.chPort = bestChPort;
+			nExport.next = lExport;
+			lExport = nExport;
 		}
 
-		return lexport;
+		return lExport;
 	}
 
 	/**
 	 * Method to create a special place on either the start or end of the row where
 	 * the passed channel port real port resides.
 	 * @param inst instance for place to point to.
-	 * @param chport channel port in question.
+	 * @param chPort channel port in question.
 	 * @param w true at start, false at end.
 	 * @param cell parent cell.
 	 * @return newly created channel port.
 	 */
-	private static SCROUTECHPORT Sc_route_create_special(SilComp.SCNITREE inst, SCROUTECHPORT chport, boolean where, SilComp.SCCELL cell)
+	private RouteChPort createSpecial(GetNetlist.SCNiTree inst, RouteChPort chPort, boolean where, GetNetlist.SCCell cell)
 	{
 		inst.size = SilComp.getFeedThruSize();
-		inst.ports.xpos = SilComp.getFeedThruSize() / 2;
+		inst.ports.xPos = SilComp.getFeedThruSize() / 2;
 
 		// find row
-		Place.SCROWLIST row = chport.port.node.row.row;
+		Place.RowList row = chPort.port.node.row.row;
 
 		// create appropriate place
-		Place.SCNBPLACE nplace = new Place.SCNBPLACE();
-		nplace.cell = inst;
+		Place.NBPlace nPlace = new Place.NBPlace();
+		nPlace.cell = inst;
 		if (where)
 		{
 			if (row.start != null)
 			{
-				double xpos = row.start.xpos - SilComp.getFeedThruSize();
-				nplace.xpos = xpos;
-				row.start.last = nplace;
+				double xpos = row.start.xPos - SilComp.getFeedThruSize();
+				nPlace.xPos = xpos;
+				row.start.last = nPlace;
 			} else
 			{
-				nplace.xpos = 0;
+				nPlace.xPos = 0;
 			}
-			nplace.last = null;
-			nplace.next = row.start;
-			row.start = nplace;
+			nPlace.last = null;
+			nPlace.next = row.start;
+			row.start = nPlace;
 		} else
 		{
 			if (row.end != null)
 			{
-				nplace.xpos = row.end.xpos + row.end.cell.size;
-				row.end.next = nplace;
+				nPlace.xPos = row.end.xPos + row.end.cell.size;
+				row.end.next = nPlace;
 			} else
 			{
-				nplace.xpos = 0;
+				nPlace.xPos = 0;
 			}
-			nplace.next = null;
-			nplace.last = row.end;
-			row.end = nplace;
+			nPlace.next = null;
+			nPlace.last = row.end;
+			row.end = nPlace;
 		}
 
 		// create a route port entry for this new port
-		SCROUTENODE rnode;
-		for (rnode = (SCROUTENODE)chport.node.ext_node.ptr; rnode != null;
-			rnode = rnode.same_next)
+		RouteNode rNode;
+		for (rNode = (RouteNode)chPort.node.extNode.ptr; rNode != null; rNode = rNode.sameNext)
 		{
-			if (rnode.row.number == row.row_num) break;
+			if (rNode.row.number == row.rowNum) break;
 		}
-		SCROUTEPORT rport = new SCROUTEPORT();
-		rport.place = nplace;
-		rport.port = inst.ports;
-		rport.node = rnode;
-		rport.flags = 0;
-		rport.next = null;
-		rport.last = rnode.lastport;
-		if (rnode.lastport != null)
+		RoutePort rPort = new RoutePort();
+		rPort.place = nPlace;
+		rPort.port = inst.ports;
+		rPort.node = rNode;
+		rPort.flags = 0;
+		rPort.next = null;
+		rPort.last = rNode.lastPort;
+		if (rNode.lastPort != null)
 		{
-			rnode.lastport.next = rport;
+			rNode.lastPort.next = rPort;
 		} else
 		{
-			rnode.firstport = rport;
+			rNode.firstPort = rPort;
 		}
-		rnode.lastport = rport;
+		rNode.lastPort = rPort;
 
 		// add to channel
-		Sc_route_add_port_to_channel(rport, chport.port.node.ext_node,
-			cell.route.channels, chport.node.channel.number);
+		addPortToChannel(rPort, chPort.port.node.extNode,
+			cell.route.channels, chPort.node.channel.number);
 
-		return chport.node.lastport;
+		return chPort.node.lastPort;
 	}
 
 	/**
@@ -1521,22 +1497,22 @@ public class Route
 	 * @param channels list of all channels.
 	 * @param cell pointer to parent cell.
 	 */
-	private static void Sc_route_tracks_in_channels(SCROUTECHANNEL channels, SilComp.SCCELL cell)
+	private void tracksInChannels(RouteChannel channels, GetNetlist.SCCell cell)
 	{
 		// do for each channel individually
-		for (SCROUTECHANNEL chan = channels; chan != null; chan = chan.next)
+		for (RouteChannel chan = channels; chan != null; chan = chan.next)
 		{
 			if (DEBUG)
 				System.out.println("**** Routing tracks for Channel " + chan.number+ " ****");
 
 			// create Vertical Constraint Graph (VCG)
-			SCROUTEVCG v_graph = Sc_route_create_VCG(chan, cell);
+			RouteVCG vGraph = createVCG(chan, cell);
 
 			// create Zone Representation Graph (ZRG)
-			SCROUTEZRG zr_graph = Sc_route_create_ZRG(chan);
+			RouteZRG zrGraph = createZRG(chan);
 
 			// do track assignment
-			SCROUTETRACK tracks = Sc_route_track_assignment(v_graph, zr_graph, chan.nodes);
+			RouteTrack tracks = trackAssignment(vGraph, zrGraph, chan.nodes);
 
 			chan.tracks = tracks;
 		}
@@ -1548,97 +1524,97 @@ public class Route
 	 * @param cell pointer to parent cell.
 	 * @return where to write created VCG.
 	 */
-	private static SCROUTEVCG Sc_route_create_VCG(SCROUTECHANNEL channel, SilComp.SCCELL cell)
+	private RouteVCG createVCG(RouteChannel channel, GetNetlist.SCCell cell)
 	{
 		// first number channel nodes to represent nets
-		int net_number = 0;
-		for (SCROUTECHNODE chnode = channel.nodes; chnode != null; chnode = chnode.next)
+		int netNumber = 0;
+		for (RouteChNode chNode = channel.nodes; chNode != null; chNode = chNode.next)
 		{
-			chnode.number = net_number++;
+			chNode.number = netNumber++;
 
 			// calculate actual port position
-			for (SCROUTECHPORT chport = chnode.firstport; chport != null; chport = chport.next)
-				chport.xpos = Sc_route_port_position(chport.port);
+			for (RouteChPort chPort = chNode.firstPort; chPort != null; chPort = chPort.next)
+				chPort.xPos = portPosition(chPort.port);
 
 			// sort all channel ports on node from leftmost to rightmost
-			for (SCROUTECHPORT chport = chnode.firstport; chport != null; chport = chport.next)
+			for (RouteChPort chPort = chNode.firstPort; chPort != null; chPort = chPort.next)
 			{
 				// bubble port left if necessay
-				for (SCROUTECHPORT port2 = chport.last; port2 != null; port2 = chport.last)
+				for (RouteChPort port2 = chPort.last; port2 != null; port2 = chPort.last)
 				{
-					if (port2.xpos <= chport.xpos) break;
+					if (port2.xPos <= chPort.xPos) break;
 
 					// move chport left
-					chport.last = port2.last;
-					port2.last = chport;
-					if (chport.last != null)
-						chport.last.next = chport;
-					port2.next = chport.next;
-					chport.next = port2;
+					chPort.last = port2.last;
+					port2.last = chPort;
+					if (chPort.last != null)
+						chPort.last.next = chPort;
+					port2.next = chPort.next;
+					chPort.next = port2;
 					if (port2.next != null)
 						port2.next.last = port2;
-					if (port2 == chnode.firstport)
-						chnode.firstport = chport;
-					if (chport == chnode.lastport)
-						chnode.lastport = port2;
+					if (port2 == chNode.firstPort)
+						chNode.firstPort = chPort;
+					if (chPort == chNode.lastPort)
+						chNode.lastPort = port2;
 				}
 			}
 		}
 
 		// create the VCG root node
-		SCROUTEVCG vcg_root = new SCROUTEVCG();
-		vcg_root.chnode = null;
-		vcg_root.edges = null;
+		RouteVCG vcgRoot = new RouteVCG();
+		vcgRoot.chNode = null;
+		vcgRoot.edges = null;
 
 		// create a VCG node for each channel node (or net)
-		for (SCROUTECHNODE chnode = channel.nodes; chnode != null; chnode = chnode.next)
+		for (RouteChNode chNode = channel.nodes; chNode != null; chNode = chNode.next)
 		{
-			SCROUTEVCG vcg_node = new SCROUTEVCG();
-			vcg_node.chnode = chnode;
-			vcg_node.edges = null;
-			SCROUTEVCGEDGE vcg_edge = new SCROUTEVCGEDGE();
-			vcg_edge.node = vcg_node;
-			vcg_edge.next = vcg_root.edges;
-			vcg_root.edges = vcg_edge;
+			RouteVCG vcgNode = new RouteVCG();
+			vcgNode.chNode = chNode;
+			vcgNode.edges = null;
+			RouteVCGEdge vcgEdge = new RouteVCGEdge();
+			vcgEdge.node = vcgNode;
+			vcgEdge.next = vcgRoot.edges;
+			vcgRoot.edges = vcgEdge;
 		}
 
-		Sc_route_VCG_create_dependents(vcg_root, channel);
+		vcgCreateDependents(vcgRoot, channel);
 
 		// add any ports in this channel tied to power
-		Sc_route_create_power_ties(channel, vcg_root, cell);
+		createPowerTies(channel, vcgRoot, cell);
 
 		// add any ports in this channel tied to ground
-		Sc_route_create_ground_ties(channel, vcg_root, cell);
+		createGroundTies(channel, vcgRoot, cell);
 
 		// remove all dependent nodes from root of constraint graph*/
 		// clear seen flag
-		for (SCROUTEVCGEDGE vcg_edge = vcg_root.edges; vcg_edge != null; vcg_edge = vcg_edge.next)
-			vcg_edge.node.flags &= ~SCROUTESEEN;
+		for (RouteVCGEdge vcgEdge = vcgRoot.edges; vcgEdge != null; vcgEdge = vcgEdge.next)
+			vcgEdge.node.flags &= ~ROUTESEEN;
 
 		// mark all VCG nodes that are called by others
-		for (SCROUTEVCGEDGE vcg_edge = vcg_root.edges; vcg_edge != null; vcg_edge = vcg_edge.next)
+		for (RouteVCGEdge vcgEdge = vcgRoot.edges; vcgEdge != null; vcgEdge = vcgEdge.next)
 		{
-			for (SCROUTEVCGEDGE edge1 = vcg_edge.node.edges; edge1 != null; edge1 = edge1.next)
-				edge1.node.flags |= SCROUTESEEN;
+			for (RouteVCGEdge edge1 = vcgEdge.node.edges; edge1 != null; edge1 = edge1.next)
+				edge1.node.flags |= ROUTESEEN;
 		}
 
 		// remove all edges from root which are marked
-		SCROUTEVCGEDGE edge1 = vcg_root.edges;
-		for (SCROUTEVCGEDGE vcg_edge = vcg_root.edges; vcg_edge != null; vcg_edge = vcg_edge.next)
+		RouteVCGEdge edge1 = vcgRoot.edges;
+		for (RouteVCGEdge vcgEdge = vcgRoot.edges; vcgEdge != null; vcgEdge = vcgEdge.next)
 		{
-			if ((vcg_edge.node.flags & SCROUTESEEN) != 0)
+			if ((vcgEdge.node.flags & ROUTESEEN) != 0)
 			{
-				if (vcg_edge == vcg_root.edges)
+				if (vcgEdge == vcgRoot.edges)
 				{
-					vcg_root.edges = vcg_edge.next;
-					edge1 = vcg_edge.next;
+					vcgRoot.edges = vcgEdge.next;
+					edge1 = vcgEdge.next;
 				} else
 				{
-					edge1.next = vcg_edge.next;
+					edge1.next = vcgEdge.next;
 				}
 			} else
 			{
-				edge1 = vcg_edge;
+				edge1 = vcgEdge;
 			}
 		}
 
@@ -1646,67 +1622,66 @@ public class Route
 		if (DEBUG)
 		{
 			System.out.println("************ VERTICAL CONSTRAINT GRAPH");
-			for (edge1 = vcg_root.edges; edge1 != null; edge1 = edge1.next)
+			for (edge1 = vcgRoot.edges; edge1 != null; edge1 = edge1.next)
 			{
-				System.out.println("Net " + edge1.node.chnode.number + ":");
-				Sc_route_print_VCG(edge1.node.edges, 1);
+				System.out.println("Net " + edge1.node.chNode.number + ":");
+				printVCG(edge1.node.edges, 1);
 			}
 		}
 
-		return vcg_root;
+		return vcgRoot;
 	}
 
 	/**
 	 * Method to resolve any cyclic dependencies in the Vertical Constraint Graph.
-	 * @param vcg_root pointer to root of VCG.
+	 * @param vcgRoot pointer to root of VCG.
 	 * @param channel pointer to particular channel.
 	 */
-	private static void Sc_route_VCG_create_dependents(SCROUTEVCG vcg_root, SCROUTECHANNEL channel)
+	private void vcgCreateDependents(RouteVCG vcgRoot, RouteChannel channel)
 	{
 		boolean check = true;
 		while (check)
 		{
 			check = false;
-			Sc_route_VCG_set_dependents(vcg_root);
+			vcgSetDependents(vcgRoot);
 			GenMath.MutableInteger found = new GenMath.MutableInteger(0);
 			GenMath.MutableDouble diff = new GenMath.MutableDouble(0);
-			Place.SCNBPLACE place = Sc_route_VCG_cyclic_check(vcg_root, diff, found);
+			Place.NBPlace place = vcgCyclicCheck(vcgRoot, diff, found);
 			if (found.intValue() != 0)
 			{
 				check = true;
 
 				// move place and update row
-				for (Place.SCNBPLACE place2 = place; place2 != null; place2 = place2.next)
-					place2.xpos += diff.doubleValue();
+				for (Place.NBPlace place2 = place; place2 != null; place2 = place2.next)
+					place2.xPos += diff.doubleValue();
 
 				// update channel port positions
-				for (SCROUTECHNODE chnode = channel.nodes; chnode != null; chnode = chnode.next)
+				for (RouteChNode chNode = channel.nodes; chNode != null; chNode = chNode.next)
 				{
 					// calculate actual port position
-					for (SCROUTECHPORT chport = chnode.firstport; chport != null; chport = chport.next)
-						chport.xpos = Sc_route_port_position(chport.port);
+					for (RouteChPort chPort = chNode.firstPort; chPort != null; chPort = chPort.next)
+						chPort.xPos = portPosition(chPort.port);
 
 					// reorder port positions from left to right
-					for (SCROUTECHPORT chport = chnode.firstport; chport != null; chport = chport.next)
+					for (RouteChPort chPort = chNode.firstPort; chPort != null; chPort = chPort.next)
 					{
-						for (SCROUTECHPORT port2 = chport.last; port2 != null; port2 = chport.last)
+						for (RouteChPort port2 = chPort.last; port2 != null; port2 = chPort.last)
 						{
-							if (port2.xpos <= chport.xpos)
-								break;
+							if (port2.xPos <= chPort.xPos) break;
 
-							// move chport left
-							chport.last = port2.last;
-							port2.last = chport;
-							if (chport.last != null)
-								chport.last.next = chport;
-							port2.next = chport.next;
-							chport.next = port2;
+							// move chPort left
+							chPort.last = port2.last;
+							port2.last = chPort;
+							if (chPort.last != null)
+								chPort.last.next = chPort;
+							port2.next = chPort.next;
+							chPort.next = port2;
 							if (port2.next != null)
 								port2.next.last = port2;
-							if (port2 == chnode.firstport)
-								chnode.firstport = chport;
-							if (chport == chnode.lastport)
-								chnode.lastport = port2;
+							if (port2 == chNode.firstPort)
+								chNode.firstPort = chPort;
+							if (chPort == chNode.lastPort)
+								chNode.lastPort = port2;
 						}
 					}
 				}
@@ -1716,27 +1691,27 @@ public class Route
 
 	/**
 	 * Method to create a directed edge if one channel node must be routed before another.
-	 * @param vcg_root root of Vertical Constraint Graph.
+	 * @param vcgRoot root of Vertical Constraint Graph.
 	 */
-	private static void Sc_route_VCG_set_dependents(SCROUTEVCG vcg_root)
+	private void vcgSetDependents(RouteVCG vcgRoot)
 	{
 		// clear all dependencies
-		for (SCROUTEVCGEDGE edge1 = vcg_root.edges; edge1 != null; edge1 = edge1.next)
+		for (RouteVCGEdge edge1 = vcgRoot.edges; edge1 != null; edge1 = edge1.next)
 			edge1.node.edges = null;
 
 		// set all dependencies
-		for (SCROUTEVCGEDGE edge1 = vcg_root.edges; edge1 != null; edge1 = edge1.next)
+		for (RouteVCGEdge edge1 = vcgRoot.edges; edge1 != null; edge1 = edge1.next)
 		{
-			for (SCROUTEVCGEDGE edge2 = edge1.next; edge2 != null; edge2 = edge2.next)
+			for (RouteVCGEdge edge2 = edge1.next; edge2 != null; edge2 = edge2.next)
 			{
 				// Given two channel nodes, create a directed edge if
 				// one must be routed before the other
 				boolean depend1 = false, depend2 = false;
-				for (SCROUTECHPORT port1 = edge1.node.chnode.firstport; port1 != null; port1 = port1.next)
+				for (RouteChPort port1 = edge1.node.chNode.firstPort; port1 != null; port1 = port1.next)
 				{
-					for (SCROUTECHPORT port2 = edge2.node.chnode.firstport; port2 != null; port2 = port2.next)
+					for (RouteChPort port2 = edge2.node.chNode.firstPort; port2 != null; port2 = port2.next)
 					{
-						if (Math.abs(port1.xpos - port2.xpos) < SilComp.getMinPortDistance())
+						if (Math.abs(port1.xPos - port2.xPos) < SilComp.getMinPortDistance())
 						{
 							// determine which one goes first
 							if (port1.port.node.row.number > port2.port.node.row.number)
@@ -1751,17 +1726,17 @@ public class Route
 				}
 				if (depend1)
 				{
-					SCROUTEVCGEDGE vcg_edge = new SCROUTEVCGEDGE();
-					vcg_edge.node = edge2.node;
-					vcg_edge.next = edge1.node.edges;
-					edge1.node.edges = vcg_edge;
+					RouteVCGEdge vcgEdge = new RouteVCGEdge();
+					vcgEdge.node = edge2.node;
+					vcgEdge.next = edge1.node.edges;
+					edge1.node.edges = vcgEdge;
 				}
 				if (depend2)
 				{
-					SCROUTEVCGEDGE vcg_edge = new SCROUTEVCGEDGE();
-					vcg_edge.node = edge1.node;
-					vcg_edge.next = edge2.node.edges;
-					edge2.node.edges = vcg_edge;
+					RouteVCGEdge vcgEdge = new RouteVCGEdge();
+					vcgEdge.node = edge1.node;
+					vcgEdge.next = edge2.node.edges;
+					edge2.node.edges = vcgEdge;
 				}
 			}
 		}
@@ -1772,61 +1747,60 @@ public class Route
 	 * Also set place and offset needed to resolve this conflict.
 	 * Note that only the top row may be moved around as the bottom row
 	 * may have already been used by another channel.
-	 * @param vcg_root root of Vertical Constraint Graph.
+	 * @param vcgRoot root of Vertical Constraint Graph.
 	 * @param diff offset required is stored here.
 	 * @return pointer to place.
 	 */
-	private static Place.SCNBPLACE Sc_route_VCG_cyclic_check(SCROUTEVCG vcg_root, GenMath.MutableDouble diff, GenMath.MutableInteger found)
+	private Place.NBPlace vcgCyclicCheck(RouteVCG vcgRoot, GenMath.MutableDouble diff, GenMath.MutableInteger found)
 	{
 		// check each VCG node
-		Place.SCNBPLACE place = null;
-		for (SCROUTEVCGEDGE edge = vcg_root.edges; edge != null; edge = edge.next)
+		Place.NBPlace place = null;
+		for (RouteVCGEdge edge = vcgRoot.edges; edge != null; edge = edge.next)
 		{
 			// clear all flags
-			for (SCROUTEVCGEDGE edge3 = vcg_root.edges; edge3 != null; edge3 = edge3.next)
+			for (RouteVCGEdge edge3 = vcgRoot.edges; edge3 != null; edge3 = edge3.next)
 			{
-				edge3.node.flags &= ~(SCROUTESEEN | SCROUTETEMPNUSE);
+				edge3.node.flags &= ~(ROUTESEEN | ROUTETEMPNUSE);
 			}
 
 			// mark this node
-			edge.node.flags |= SCROUTESEEN;
+			edge.node.flags |= ROUTESEEN;
 
 			// check single cycle
-			for (SCROUTEVCGEDGE edge2 = edge.node.edges; edge2 != null; edge2 = edge2.next)
+			for (RouteVCGEdge edge2 = edge.node.edges; edge2 != null; edge2 = edge2.next)
 			{
-				SCROUTEVCG last_node = edge.node;
+				RouteVCG lastNode = edge.node;
 				GenMath.MutableInteger subFound = new GenMath.MutableInteger(0);
-				last_node = Sc_route_VCG_single_cycle(edge2.node, last_node, subFound);
+				lastNode = vcgSingleCycle(edge2.node, lastNode, subFound);
 				if (subFound.intValue() != 0)
 				{
 					// find place of conflict
-					for (SCROUTECHPORT port1 = edge.node.chnode.firstport; port1 != null; port1 = port1.next)
+					for (RouteChPort port1 = edge.node.chNode.firstPort; port1 != null; port1 = port1.next)
 					{
-						for (SCROUTECHPORT port2 = last_node.chnode.firstport; port2 != null; port2 = port2.next)
+						for (RouteChPort port2 = lastNode.chNode.firstPort; port2 != null; port2 = port2.next)
 						{
-							if (Math.abs(port1.xpos - port2.xpos) < SilComp.getMinPortDistance())
+							if (Math.abs(port1.xPos - port2.xPos) < SilComp.getMinPortDistance())
 							{
 								// determine which one goes first
-								if (port1.port.node.row.number >
-									port2.port.node.row.number)
+								if (port1.port.node.row.number > port2.port.node.row.number)
 								{
 									place = port1.port.place;
-									if (port1.xpos < port2.xpos)
+									if (port1.xPos < port2.xPos)
 									{
-										diff.setValue((port2.xpos - port1.xpos) + SilComp.getMinPortDistance());
+										diff.setValue((port2.xPos - port1.xPos) + SilComp.getMinPortDistance());
 									} else
 									{
-										diff.setValue(SilComp.getMinPortDistance() - (port1.xpos - port2.xpos));
+										diff.setValue(SilComp.getMinPortDistance() - (port1.xPos - port2.xPos));
 									}
 								} else if (port2.port.node.row.number > port1.port.node.row.number)
 								{
 									place = port2.port.place;
-									if (port2.xpos < port1.xpos)
+									if (port2.xPos < port1.xPos)
 									{
-										diff.setValue((port1.xpos - port2.xpos) + SilComp.getMinPortDistance());
+										diff.setValue((port1.xPos - port2.xPos) + SilComp.getMinPortDistance());
 									} else
 									{
-										diff.setValue(SilComp.getMinPortDistance() - (port2.xpos - port1.xpos));
+										diff.setValue(SilComp.getMinPortDistance() - (port2.xPos - port1.xPos));
 									}
 								} else
 								{
@@ -1851,42 +1825,42 @@ public class Route
 	/**
 	 * Method to decide whether Breadth First Search encounters the marked node.
 	 * @param node node to start search.
-	 * @param last_node last node searched.
+	 * @param lastNode last node searched.
 	 * @param found MutableInteger to hold result: nonzero if marked node found.
 	 * @return the last node searched.
 	 */
-	private static SCROUTEVCG Sc_route_VCG_single_cycle(SCROUTEVCG node, SCROUTEVCG last_node, GenMath.MutableInteger found)
+	private RouteVCG vcgSingleCycle(RouteVCG node, RouteVCG lastNode, GenMath.MutableInteger found)
 	{
 		if (node == null)
 		{
 			found.setValue(0);
-			return last_node;
+			return lastNode;
 		}
-		if ((node.flags & SCROUTESEEN) != 0)
+		if ((node.flags & ROUTESEEN) != 0)
 		{
 			// marked node found
 			found.setValue(1);
-			return last_node;
+			return lastNode;
 		}
-		if ((node.flags & SCROUTETEMPNUSE) != 0)
+		if ((node.flags & ROUTETEMPNUSE) != 0)
 		{
 			// been here before
 			found.setValue(0);
-			return last_node;
+			return lastNode;
 		} else
 		{
 			// check others
-			node.flags |= SCROUTETEMPNUSE;
-			SCROUTEVCG save_node = last_node;
-			for (SCROUTEVCGEDGE edge = node.edges; edge != null; edge = edge.next)
+			node.flags |= ROUTETEMPNUSE;
+			RouteVCG saveNode = lastNode;
+			for (RouteVCGEdge edge = node.edges; edge != null; edge = edge.next)
 			{
-				last_node = node;
-				last_node = Sc_route_VCG_single_cycle(edge.node, last_node, found);
-				if (found.intValue() != 0) return last_node;
+				lastNode = node;
+				lastNode = vcgSingleCycle(edge.node, lastNode, found);
+				if (found.intValue() != 0) return lastNode;
 			}
-			last_node = save_node;
+			lastNode = saveNode;
 			found.setValue(0);
-			return last_node;
+			return lastNode;
 		}
 	}
 
@@ -1895,64 +1869,64 @@ public class Route
 	 * @param channel pointer to channel.
 	 * @return the created ZRG.
 	 */
-	private static SCROUTEZRG Sc_route_create_ZRG(SCROUTECHANNEL channel)
+	private RouteZRG createZRG(RouteChannel channel)
 	{
-		SCROUTEZRG first_zone = null, last_zone = null;
-		int z_number = 0;
+		RouteZRG firstZone = null, lastZone = null;
+		int zNumber = 0;
 
 		// create first zone
-		SCROUTEZRG zone = new SCROUTEZRG();
-		zone.number = z_number++;
-		zone.chnodes = null;
+		RouteZRG zone = new RouteZRG();
+		zone.number = zNumber++;
+		zone.chNodes = null;
 		zone.next = null;
 		zone.last = null;
-		first_zone = last_zone = zone;
+		firstZone = lastZone = zone;
 
 		// clear flag on all channel nodes
-		int num_chnodes = 0;
-		for (SCROUTECHNODE chnode = channel.nodes; chnode != null; chnode = chnode.next)
+		int numChNodes = 0;
+		for (RouteChNode chNode = channel.nodes; chNode != null; chNode = chNode.next)
 		{
-			chnode.flags &= ~SCROUTESEEN;
-			num_chnodes++;
+			chNode.flags &= ~ROUTESEEN;
+			numChNodes++;
 		}
 
 		// allocate enough space for channel node temporary list
-		SCROUTECHNODE [] chnode_list = new SCROUTECHNODE[num_chnodes+1];
+		RouteChNode [] chNodeList = new RouteChNode[numChNodes+1];
 
 		for(;;)
 		{
-			SCROUTECHNODE left_chnode = Sc_route_find_leftmost_chnode(channel.nodes);
-			if (left_chnode == null) break;
-			Sc_route_create_zrg_temp_list(channel.nodes, left_chnode.firstport.xpos, chnode_list);
-			if (Sc_route_zrg_list_compatible(chnode_list, zone))
+			RouteChNode leftChNode = findLeftmostChNode(channel.nodes);
+			if (leftChNode == null) break;
+			createZRGTempList(channel.nodes, leftChNode.firstPort.xPos, chNodeList);
+			if (zrgListCompatible(chNodeList, zone))
 			{
-				Sc_route_zrg_add_chnodes(chnode_list, zone);
+				zrgAddChNodes(chNodeList, zone);
 			} else
 			{
-				zone = new SCROUTEZRG();
-				zone.number = z_number++;
-				zone.chnodes = null;
+				zone = new RouteZRG();
+				zone.number = zNumber++;
+				zone.chNodes = null;
 				zone.next = null;
-				zone.last = last_zone;
-				last_zone.next = zone;
-				last_zone = zone;
-				Sc_route_zrg_add_chnodes(chnode_list, zone);
+				zone.last = lastZone;
+				lastZone.next = zone;
+				lastZone = zone;
+				zrgAddChNodes(chNodeList, zone);
 			}
-			left_chnode.flags |= SCROUTESEEN;
+			leftChNode.flags |= ROUTESEEN;
 		}
 
 		// print out zone representation if verbose flag set
 		if (DEBUG)
 		{
 			System.out.println("************ ZONE REPRESENTATION GRAPH");
-			for (zone = first_zone; zone != null; zone = zone.next)
+			for (zone = firstZone; zone != null; zone = zone.next)
 			{
 				System.out.println("Zone " + zone.number + ":");
-				for (SCROUTEZRGMEM mem = zone.chnodes; mem != null; mem = mem.next)
-					System.out.println("    Node " + mem.chnode.number);
+				for (RouteZRGMem mem = zone.chNodes; mem != null; mem = mem.next)
+					System.out.println("    Node " + mem.chNode.number);
 			}
 		}
-		return first_zone;
+		return firstZone;
 	}
 
 	/**
@@ -1962,37 +1936,37 @@ public class Route
 	 * @param nodes pointer to a list of channel nodes.
 	 * @return pointer to leftmost node, null if none unmarked found.
 	 */
-	private static SCROUTECHNODE Sc_route_find_leftmost_chnode(SCROUTECHNODE nodes)
+	private RouteChNode findLeftmostChNode(RouteChNode nodes)
 	{
-		SCROUTECHNODE left_chnode = null;
-		double left_xpos = Double.MAX_VALUE;
+		RouteChNode leftChNode = null;
+		double leftXPos = Double.MAX_VALUE;
 
-		for (SCROUTECHNODE node = nodes; node != null; node = node.next)
+		for (RouteChNode node = nodes; node != null; node = node.next)
 		{
-			if ((node.flags & SCROUTESEEN) != 0) continue;
-			if (node.firstport.xpos < left_xpos)
+			if ((node.flags & ROUTESEEN) != 0) continue;
+			if (node.firstPort.xPos < leftXPos)
 			{
-				left_xpos = node.firstport.xpos;
-				left_chnode = node;
+				leftXPos = node.firstPort.xPos;
+				leftChNode = node;
 			}
 		}
 
-		return left_chnode;
+		return leftChNode;
 	}
 
 	/**
 	 * Method to fill in the temporary list of all channel nodes which encompass the indicated x position.
 	 * @param nodes list of channel nodes.
-	 * @param xpos X position of interest.
+	 * @param xPos X position of interest.
 	 * @param list array of pointer to fill in, terminate with a null.
 	 */
-	private static void Sc_route_create_zrg_temp_list(SCROUTECHNODE nodes, double xpos, SCROUTECHNODE [] list)
+	private void createZRGTempList(RouteChNode nodes, double xPos, RouteChNode [] list)
 	{
 		int i = 0;
-		for (SCROUTECHNODE node = nodes; node != null; node = node.next)
+		for (RouteChNode node = nodes; node != null; node = node.next)
 		{
-			if (xpos > node.firstport.xpos - SilComp.getMinPortDistance()
-				&& xpos < node.lastport.xpos + SilComp.getMinPortDistance())
+			if (xPos > node.firstPort.xPos - SilComp.getMinPortDistance()
+				&& xPos < node.lastPort.xPos + SilComp.getMinPortDistance())
 					list[i++] = node;
 		}
 		list[i] = null;
@@ -2005,20 +1979,19 @@ public class Route
 	 * @param zone pointer to current zone.
 	 * @return true if compatible.
 	 */
-	private static boolean Sc_route_zrg_list_compatible(SCROUTECHNODE [] list, SCROUTEZRG zone)
+	private boolean zrgListCompatible(RouteChNode [] list, RouteZRG zone)
 	{
-		if (zone.chnodes != null)
+		if (zone.chNodes != null)
 		{
 			// check each member of current zone being in the list
-			for (SCROUTEZRGMEM mem = zone.chnodes; mem != null; mem = mem.next)
+			for (RouteZRGMem mem = zone.chNodes; mem != null; mem = mem.next)
 			{
 				int i;
 				for (i = 0; list[i] != null; i++)
 				{
-					if (mem.chnode == list[i]) break;
+					if (mem.chNode == list[i]) break;
 				}
-				if (list[i] == null)
-					return false;
+				if (list[i] == null) return false;
 			}
 			return true;
 		} else
@@ -2034,22 +2007,21 @@ public class Route
 	 * @param list list of channel nodes.
 	 * @param zone pointer to current zone.
 	 */
-	private static void Sc_route_zrg_add_chnodes(SCROUTECHNODE [] list, SCROUTEZRG zone)
+	private void zrgAddChNodes(RouteChNode [] list, RouteZRG zone)
 	{
 		for (int i = 0; list[i] != null; i++)
 		{
-			SCROUTEZRGMEM mem;
-			for (mem = zone.chnodes; mem != null; mem = mem.next)
+			RouteZRGMem mem;
+			for (mem = zone.chNodes; mem != null; mem = mem.next)
 			{
-				if (mem.chnode == list[i])
-					break;
+				if (mem.chNode == list[i]) break;
 			}
 			if (mem == null)
 			{
-				mem = new SCROUTEZRGMEM();
-				mem.chnode = list[i];
-				mem.next = zone.chnodes;
-				zone.chnodes = mem;
+				mem = new RouteZRGMem();
+				mem.chNode = list[i];
+				mem.next = zone.chNodes;
+				zone.chNodes = mem;
 			}
 		}
 	}
@@ -2062,63 +2034,63 @@ public class Route
 	 * @param nodes pointer to list of channel nodes.
 	 * @return created tracks.
 	 */
-	private static SCROUTETRACK Sc_route_track_assignment(SCROUTEVCG vcg, SCROUTEZRG zrg, SCROUTECHNODE nodes)
+	private RouteTrack trackAssignment(RouteVCG vcg, RouteZRG zrg, RouteChNode nodes)
 	{
-		SCROUTETRACK first_track = null, last_track = null;
-		int track_number = 0;
+		RouteTrack firstTrack = null, lastTrack = null;
+		int trackNumber = 0;
 
 		// create first track
-		SCROUTETRACK track = new SCROUTETRACK();
-		track.number = track_number++;
+		RouteTrack track = new RouteTrack();
+		track.number = trackNumber++;
 		track.nodes = null;
 		track.last = null;
 		track.next = null;
-		first_track = last_track = track;
+		firstTrack = lastTrack = track;
 
 		// clear flags on all channel nodes
-		int number_nodes = 0;
-		for (SCROUTECHNODE node = nodes; node != null; node = node.next)
+		int numberNodes = 0;
+		for (RouteChNode node = nodes; node != null; node = node.next)
 		{
 			node.flags = 0;
-			number_nodes++;
+			numberNodes++;
 		}
-		SCROUTECHNODE [] n_list = new SCROUTECHNODE[number_nodes+1];
+		RouteChNode [] nList = new RouteChNode[numberNodes+1];
 
 		// get channel node on longest path of VCG
 		for(;;)
 		{
-			SCROUTECHNODE node = Sc_route_longest_VCG(vcg);
+			RouteChNode node = longestVCG(vcg);
 			if (node == null) break;
 
 			// clear flags of all nodes
-			for (SCROUTECHNODE node2 = nodes; node2 != null; node2 = node2.next)
+			for (RouteChNode node2 = nodes; node2 != null; node2 = node2.next)
 				node2.flags = 0;
 
 			// add node to track
-			Sc_route_add_node_to_track(node, track);
+			addNodeToTrack(node, track);
 
 			// mark all other nodes in the same zones as not usable
-			Sc_route_mark_zones(node, zrg, SCROUTEUNUSABLE);
+			markZones(node, zrg, ROUTEUNUSABLE);
 
 			// find set of remaining nodes which can be added to track
-			Sc_route_find_best_nodes(vcg, zrg, n_list, number_nodes + 1);
+			findBestNodes(vcg, zrg, nList, numberNodes + 1);
 
 			// add to track
-			for (int i = 0; n_list[i] != null; i++)
+			for (int i = 0; nList[i] != null; i++)
 			{
-				Sc_route_add_node_to_track(n_list[i], track);
+				addNodeToTrack(nList[i], track);
 			}
 
 			// delete track entries from VCG
-			Sc_route_delete_from_VCG(track, vcg);
+			deleteFromVCG(track, vcg);
 
 			// create next track
-			track = new SCROUTETRACK();
-			track.number = track_number++;
+			track = new RouteTrack();
+			track.number = trackNumber++;
 			track.nodes = null;
-			track.last = last_track;
-			last_track.next = track;
-			last_track = track;
+			track.last = lastTrack;
+			lastTrack.next = track;
+			lastTrack = track;
 		}
 
 		// delete last track if empty
@@ -2129,7 +2101,7 @@ public class Route
 				track.last.next = null;
 			} else
 			{
-				first_track = null;
+				firstTrack = null;
 			}
 		}
 
@@ -2137,15 +2109,15 @@ public class Route
 		if (DEBUG)
 		{
 			System.out.println("************ TRACK ASSIGNMENT");
-			for (track = first_track; track != null; track = track.next)
+			for (track = firstTrack; track != null; track = track.next)
 			{
 				System.out.println("For Track #" + track.number + ":");
-				for (SCROUTETRACKMEM mem = track.nodes; mem != null; mem = mem.next)
-					System.out.println("    " + mem.node.number + "     " + mem.node.firstport.xpos + "  " + mem.node.lastport.xpos);
+				for (RouteTrackMem mem = track.nodes; mem != null; mem = mem.next)
+					System.out.println("    " + mem.node.number + "     " + mem.node.firstPort.xPos + "  " + mem.node.lastPort.xPos);
 			}
 		}
 
-		return first_track;
+		return firstTrack;
 	}
 
 	/**
@@ -2154,20 +2126,20 @@ public class Route
 	 * @param zrg zone representation graph.
 	 * @param bits bits to OR in to nodes flag field.
 	 */
-	private static void Sc_route_mark_zones(SCROUTECHNODE node, SCROUTEZRG zrg, int bits)
+	private void markZones(RouteChNode node, RouteZRG zrg, int bits)
 	{
 		// mark unusable nodes
-		for (SCROUTEZRG zone = zrg; zone != null; zone = zone.next)
+		for (RouteZRG zone = zrg; zone != null; zone = zone.next)
 		{
-			SCROUTEZRGMEM zmem;
-			for (zmem = zone.chnodes; zmem != null; zmem = zmem.next)
+			RouteZRGMem zMem;
+			for (zMem = zone.chNodes; zMem != null; zMem = zMem.next)
 			{
-				if (zmem.chnode == node) break;
+				if (zMem.chNode == node) break;
 			}
-			if (zmem != null)
+			if (zMem != null)
 			{
-				for (zmem = zone.chnodes; zmem != null; zmem = zmem.next)
-					zmem.chnode.flags |= bits;
+				for (zMem = zone.chNodes; zMem != null; zMem = zMem.next)
+					zMem.chNode.flags |= bits;
 			}
 		}
 	}
@@ -2180,19 +2152,19 @@ public class Route
 	 * @param vcg pointer to Vertical Constraint Graph.
 	 * @return channel node, null if node.
 	 */
-	private static SCROUTECHNODE Sc_route_longest_VCG(SCROUTEVCG vcg)
+	private RouteChNode longestVCG(RouteVCG vcg)
 	{
-		SCROUTECHNODE node = null;
-		double longest_path = 0;
+		RouteChNode node = null;
+		double longestPath = 0;
 
 		// check for all entries at the top level
-		for (SCROUTEVCGEDGE edge = vcg.edges; edge != null; edge = edge.next)
+		for (RouteVCGEdge edge = vcg.edges; edge != null; edge = edge.next)
 		{
-			double path = Sc_route_path_length(edge.node);
-			if (path > longest_path)
+			double path = pathLength(edge.node);
+			if (path > longestPath)
 			{
-				longest_path = path;
-				node = edge.node.chnode;
+				longestPath = path;
+				node = edge.node.chNode;
 			}
 		}
 
@@ -2202,20 +2174,19 @@ public class Route
 	/**
 	 * Method to return the length of the longest path starting at the indicated
 	 * Vertical Constraint Graph Node.
-	 * @param vcg_node vertical Constraint Graph node.
+	 * @param vcgNode vertical Constraint Graph node.
 	 * @return longest path length.
 	 */
-	private static double Sc_route_path_length(SCROUTEVCG vcg_node)
+	private double pathLength(RouteVCG vcgNode)
 	{
-		if (vcg_node.edges == null) return 1;
+		if (vcgNode.edges == null) return 1;
 
 		// check path for all edges
 		double longest = 0;
-		for (SCROUTEVCGEDGE edge = vcg_node.edges; edge != null; edge = edge.next)
+		for (RouteVCGEdge edge = vcgNode.edges; edge != null; edge = edge.next)
 		{
-			double path = Sc_route_path_length(edge.node);
-			if (path > longest)
-				longest = path;
+			double path = pathLength(edge.node);
+			if (path > longest) longest = path;
 		}
 
 		return longest + 1;
@@ -2227,9 +2198,9 @@ public class Route
 	 * @param node pointer to channel node to add.
 	 * @param track pointer to track to add to.
 	 */
-	private static void Sc_route_add_node_to_track(SCROUTECHNODE node, SCROUTETRACK track)
+	private void addNodeToTrack(RouteChNode node, RouteTrack track)
 	{
-		SCROUTETRACKMEM mem = new SCROUTETRACKMEM();
+		RouteTrackMem mem = new RouteTrackMem();
 		mem.node = node;
 		mem.next = null;
 		if (track.nodes == null)
@@ -2237,13 +2208,13 @@ public class Route
 			track.nodes = mem;
 		} else
 		{
-			SCROUTETRACKMEM oldmem = track.nodes;
-			SCROUTETRACKMEM mem2;
+			RouteTrackMem oldMem = track.nodes;
+			RouteTrackMem mem2;
 			for (mem2 = track.nodes; mem2 != null; mem2 = mem2.next)
 			{
-				if (mem.node.firstport.xpos > mem2.node.firstport.xpos)
+				if (mem.node.firstPort.xPos > mem2.node.firstPort.xPos)
 				{
-					oldmem = mem2;
+					oldMem = mem2;
 				} else
 				{
 					break;
@@ -2255,11 +2226,11 @@ public class Route
 				track.nodes = mem;
 			} else
 			{
-				oldmem.next = mem;
+				oldMem.next = mem;
 			}
 		}
 
-		node.flags |= SCROUTESEEN;
+		node.flags |= ROUTESEEN;
 	}
 
 	/**
@@ -2267,41 +2238,36 @@ public class Route
 	 * Constraint Graph which are available and are of maximum combined length.
 	 * @param vcg vertical Constraint Graph.
 	 * @param zrg zone Representation Graph.
-	 * @param n_list array to write list of selected nodes.
-	 * @param num maximum size of n_list.
+	 * @param nList array to write list of selected nodes.
+	 * @param num maximum size of nList.
 	 */
-	private static void Sc_route_find_best_nodes(SCROUTEVCG vcg, SCROUTEZRG zrg, SCROUTECHNODE [] n_list, int num)
+	private void findBestNodes(RouteVCG vcg, RouteZRG zrg, RouteChNode [] nList, int num)
 	{
 		int i = 0;
-		n_list[i] = null;
+		nList[i] = null;
 
 		// try all combinations
 		for(;;)
 		{
 			// find longest, usable edge
-			SCROUTEVCGEDGE edge2 = null;
-			double max_length = 0;
-			for (SCROUTEVCGEDGE edge = vcg.edges; edge != null; edge = edge.next)
+			RouteVCGEdge edge2 = null;
+			double maxLength = 0;
+			for (RouteVCGEdge edge = vcg.edges; edge != null; edge = edge.next)
 			{
-				if ((edge.node.chnode.flags & (SCROUTESEEN | SCROUTEUNUSABLE)) != 0)
-					continue;
-				double length = edge.node.chnode.lastport.xpos - edge.node.chnode.firstport.xpos;
-				if (length >= max_length)
+				if ((edge.node.chNode.flags & (ROUTESEEN | ROUTEUNUSABLE)) != 0) continue;
+				double length = edge.node.chNode.lastPort.xPos - edge.node.chNode.firstPort.xPos;
+				if (length >= maxLength)
 				{
-					max_length = length;
+					maxLength = length;
 					edge2 = edge;
 				}
 			}
-			if (edge2 == null)
-			{
-				break;
-			} else
-			{
-				// add to list
-				n_list[i++] = edge2.node.chnode;
-				n_list[i] = null;
-				Sc_route_mark_zones(edge2.node.chnode, zrg, SCROUTEUNUSABLE);
-			}
+			if (edge2 == null) break;
+
+			// add to list
+			nList[i++] = edge2.node.chNode;
+			nList[i] = null;
+			markZones(edge2.node.chNode, zrg, ROUTEUNUSABLE);
 		}
 	}
 
@@ -2311,15 +2277,15 @@ public class Route
 	 * @param track pointer to track.
 	 * @param vcg pointer to Vertical Constraint Graph.
 	 */
-	private static void Sc_route_delete_from_VCG(SCROUTETRACK track, SCROUTEVCG vcg)
+	private void deleteFromVCG(RouteTrack track, RouteVCG vcg)
 	{
 		// for all track entries in VCG
-		for (SCROUTETRACKMEM mem = track.nodes; mem != null; mem = mem.next)
+		for (RouteTrackMem mem = track.nodes; mem != null; mem = mem.next)
 		{
-			SCROUTEVCGEDGE edge2 = vcg.edges;
-			for (SCROUTEVCGEDGE edge = vcg.edges; edge != null; edge = edge.next)
+			RouteVCGEdge edge2 = vcg.edges;
+			for (RouteVCGEdge edge = vcg.edges; edge != null; edge = edge.next)
 			{
-				if (edge.node.chnode != mem.node)
+				if (edge.node.chNode != mem.node)
 				{
 					edge2 = edge;
 					continue;
@@ -2331,18 +2297,18 @@ public class Route
 
 				// check if its edges have nodes which should be added to VCG
 				for (edge2 = edge.node.edges; edge2 != null; edge2 = edge2.next)
-					edge2.node.flags &= ~SCROUTESEEN;
+					edge2.node.flags &= ~ROUTESEEN;
 
 				// mark any child edges
 				for (edge2 = edge.node.edges; edge2 != null; edge2 = edge2.next)
-					Sc_route_mark_VCG(edge2.node.edges);
+					markVCG(edge2.node.edges);
 
-				Sc_route_mark_VCG(vcg.edges);
-				SCROUTEVCGEDGE edge3 = null;
+				markVCG(vcg.edges);
+				RouteVCGEdge edge3 = null;
 				for (edge2 = edge.node.edges; edge2 != null; edge2 = edge3)
 				{
 					edge3 = edge2.next;
-					if ((edge2.node.flags & SCROUTESEEN) == 0)
+					if ((edge2.node.flags & ROUTESEEN) == 0)
 					{
 						// add to top level
 						edge2.next = vcg.edges;
@@ -2358,14 +2324,14 @@ public class Route
 	 * Method to recursively mark all nodes of Vertical Constraint Graph called by other nodes.
 	 * @param edges list of edges.
 	 */
-	private static void Sc_route_mark_VCG(SCROUTEVCGEDGE edges)
+	private void markVCG(RouteVCGEdge edges)
 	{
 		if (edges == null) return;
 
 		for ( ; edges != null; edges = edges.next)
 		{
-			edges.node.flags |= SCROUTESEEN;
-			Sc_route_mark_VCG(edges.node.edges);
+			edges.node.flags |= ROUTESEEN;
+			markVCG(edges.node.edges);
 		}
 	}
 
@@ -2378,31 +2344,31 @@ public class Route
 	 * @param vcg pointer to Vertical Constrant Graph.
 	 * @param cell pointer to parent cell.
 	 */
-	private static void Sc_route_create_power_ties(SCROUTECHANNEL chan, SCROUTEVCG vcg, SilComp.SCCELL cell)
+	private void createPowerTies(RouteChannel chan, RouteVCG vcg, GetNetlist.SCCell cell)
 	{
 		// check for bottom channel
 		if (chan.number == 0) return;
 
 		// get correct row
-		Place.SCROWLIST row = cell.placement.rows;
+		Place.RowList row = cell.placement.rows;
 		for (int num = 1; num < chan.number && row != null; num++)
 			row = row.next;
 		if (row == null) return;
 
 		// get correct route row
-		SCROUTEROW rrow = cell.route.rows;
+		RouteRow rRow = cell.route.rows;
 		for (int num = 1; num < chan.number; num++)
-			rrow = rrow.next;
+			rRow = rRow.next;
 
 		// check all places in row if Base Cell
-		for (Place.SCNBPLACE place = row.start; place != null; place = place.next)
+		for (Place.NBPlace place = row.start; place != null; place = place.next)
 		{
-			if (place.cell.type != SilComp.SCLEAFCELL) continue;
+			if (place.cell.type != GetNetlist.LEAFCELL) continue;
 
 			// check all ports of instance for reference to power
-			for (SilComp.SCNIPORT port = place.cell.ports; port != null; port = port.next)
+			for (GetNetlist.SCNiPort port = place.cell.ports; port != null; port = port.next)
 			{
-				if (port.ext_node == cell.power)
+				if (port.extNode == cell.power)
 				{
 					// found one
 					// should be a power port on this instance
@@ -2413,100 +2379,100 @@ public class Route
 					}
 
 					// create new route node
-					SCROUTENODE rnode = new SCROUTENODE();
-					rnode.ext_node = port.ext_node;
-					rnode.row = rrow;
-					rnode.firstport = null;
-					rnode.lastport = null;
-					rnode.same_next = null;
-					rnode.same_last = null;
-					rnode.next = rrow.nodes;
-					rrow.nodes = rnode;
+					RouteNode rNode = new RouteNode();
+					rNode.extNode = port.extNode;
+					rNode.row = rRow;
+					rNode.firstPort = null;
+					rNode.lastPort = null;
+					rNode.sameNext = null;
+					rNode.sameLast = null;
+					rNode.next = rRow.nodes;
+					rRow.nodes = rNode;
 
 					// create route ports to these ports
-					SCROUTEPORT rport1 = new SCROUTEPORT();
-					rport1.place = place;
-					rport1.port = port;
-					rport1.node = rnode;
-					rnode.firstport = rport1;
-					rport1.flags = 0;
-					rport1.last = null;
-					rport1.next = null;
-					SCROUTEPORT rport2 = new SCROUTEPORT();
-					rport2.place = place;
-					rport2.port = place.cell.power;
-					rport2.node = rnode;
-					rnode.lastport = rport2;
-					rport2.flags = 0;
-					rport2.last = rport1;
-					rport1.next = rport2;
-					rport2.next = null;
+					RoutePort rPort1 = new RoutePort();
+					rPort1.place = place;
+					rPort1.port = port;
+					rPort1.node = rNode;
+					rNode.firstPort = rPort1;
+					rPort1.flags = 0;
+					rPort1.last = null;
+					rPort1.next = null;
+					RoutePort rPort2 = new RoutePort();
+					rPort2.place = place;
+					rPort2.port = place.cell.power;
+					rPort2.node = rNode;
+					rNode.lastPort = rPort2;
+					rPort2.flags = 0;
+					rPort2.last = rPort1;
+					rPort1.next = rPort2;
+					rPort2.next = null;
 
 					// create channel node
-					SCROUTECHNODE chnode = new SCROUTECHNODE();
-					chnode.ext_node = port.ext_node;
-					chnode.number = 0;
-					chnode.firstport = null;
-					chnode.lastport = null;
-					chnode.channel = chan;
-					chnode.flags = 0;
-					chnode.same_next = null;
-					chnode.same_last = null;
-					chnode.next = chan.nodes;
-					chan.nodes = chnode;
+					RouteChNode chNode = new RouteChNode();
+					chNode.extNode = port.extNode;
+					chNode.number = 0;
+					chNode.firstPort = null;
+					chNode.lastPort = null;
+					chNode.channel = chan;
+					chNode.flags = 0;
+					chNode.sameNext = null;
+					chNode.sameLast = null;
+					chNode.next = chan.nodes;
+					chan.nodes = chNode;
 
 					// create channel ports
-					SCROUTECHPORT chport1 = new SCROUTECHPORT();
-					chport1.port = rport1;
-					chport1.node = chnode;
-					chport1.xpos = Sc_route_port_position(rport1);
-					chport1.flags = 0;
-					chport1.last = null;
-					chport1.next = null;
-					SCROUTECHPORT chport2 = new SCROUTECHPORT();
-					chport2.port = rport2;
-					chport2.node = chnode;
-					chport2.xpos = Sc_route_port_position(rport2);
-					chport2.flags = 0;
-					chport2.last = null;
-					chport2.next = null;
-					if (chport1.xpos <= chport2.xpos)
+					RouteChPort chPort1 = new RouteChPort();
+					chPort1.port = rPort1;
+					chPort1.node = chNode;
+					chPort1.xPos = portPosition(rPort1);
+					chPort1.flags = 0;
+					chPort1.last = null;
+					chPort1.next = null;
+					RouteChPort chPort2 = new RouteChPort();
+					chPort2.port = rPort2;
+					chPort2.node = chNode;
+					chPort2.xPos = portPosition(rPort2);
+					chPort2.flags = 0;
+					chPort2.last = null;
+					chPort2.next = null;
+					if (chPort1.xPos <= chPort2.xPos)
 					{
-						chnode.firstport = chport1;
-						chnode.lastport = chport2;
-						chport1.next = chport2;
-						chport2.last = chport1;
+						chNode.firstPort = chPort1;
+						chNode.lastPort = chPort2;
+						chPort1.next = chPort2;
+						chPort2.last = chPort1;
 					} else
 					{
-						chnode.firstport = chport2;
-						chnode.lastport = chport1;
-						chport2.next = chport1;
-						chport1.last = chport2;
+						chNode.firstPort = chPort2;
+						chNode.lastPort = chPort1;
+						chPort2.next = chPort1;
+						chPort1.last = chPort2;
 					}
 
 					// create a VCG node
-					SCROUTEVCG vnode = new SCROUTEVCG();
-					vnode.chnode = chnode;
-					vnode.flags = 0;
-					vnode.edges = null;
+					RouteVCG vNode = new RouteVCG();
+					vNode.chNode = chNode;
+					vNode.flags = 0;
+					vNode.edges = null;
 
 					// create a VCG edge
-					SCROUTEVCGEDGE vedge = new SCROUTEVCGEDGE();
-					vedge.node = vnode;
-					vedge.next = vcg.edges;
-					vcg.edges = vedge;
+					RouteVCGEdge vEdge = new RouteVCGEdge();
+					vEdge.node = vNode;
+					vEdge.next = vcg.edges;
+					vcg.edges = vEdge;
 
 					// make this port dependent on any others which are
 					// too close to the power port edge
-					for (SCROUTEVCGEDGE edge1 = vedge.next; edge1 != null; edge1 = edge1.next)
+					for (RouteVCGEdge edge1 = vEdge.next; edge1 != null; edge1 = edge1.next)
 					{
-						double minx = edge1.node.chnode.firstport.xpos - SilComp.getMinPortDistance();
-						double maxx = edge1.node.chnode.lastport.xpos + SilComp.getMinPortDistance();
-						if (chport2.xpos > minx && chport2.xpos < maxx)
+						double minX = edge1.node.chNode.firstPort.xPos - SilComp.getMinPortDistance();
+						double maxX = edge1.node.chNode.lastPort.xPos + SilComp.getMinPortDistance();
+						if (chPort2.xPos > minX && chPort2.xPos < maxX)
 						{
 							// create dependency
-							SCROUTEVCGEDGE edge2 = new SCROUTEVCGEDGE();
-							edge2.node = vnode;
+							RouteVCGEdge edge2 = new RouteVCGEdge();
+							edge2.node = vNode;
 							edge2.next = edge1.node.edges;
 							edge1.node.edges = edge2;
 						}
@@ -2524,31 +2490,31 @@ public class Route
 	 * @param vcg pointer to Vertical Constrant Graph.
 	 * @param cell pointer to parent cell.
 	 */
-	private static void Sc_route_create_ground_ties(SCROUTECHANNEL chan, SCROUTEVCG vcg, SilComp.SCCELL cell)
+	private void createGroundTies(RouteChannel chan, RouteVCG vcg, GetNetlist.SCCell cell)
 	{
 		// check for not top channel
-		if (chan.number == cell.placement.num_rows) return;
+		if (chan.number == cell.placement.numRows) return;
 
 		// get correct row (above)
-		Place.SCROWLIST row = cell.placement.rows;
+		Place.RowList row = cell.placement.rows;
 		for (int num = 0; num < chan.number && row != null; num++)
 			row = row.next;
 		if (row == null) return;
 
 		// get correct route row (above)
-		SCROUTEROW rrow = cell.route.rows;
+		RouteRow rRow = cell.route.rows;
 		for (int num = 0; num < chan.number; num++)
-			rrow = rrow.next;
+			rRow = rRow.next;
 
 		// check all places in row if Base Cell
-		for (Place.SCNBPLACE place = row.start; place != null; place = place.next)
+		for (Place.NBPlace place = row.start; place != null; place = place.next)
 		{
-			if (place.cell.type != SilComp.SCLEAFCELL) continue;
+			if (place.cell.type != GetNetlist.LEAFCELL) continue;
 
 			// check all ports of instance for reference to ground
-			for (SilComp.SCNIPORT port = place.cell.ports; port != null; port = port.next)
+			for (GetNetlist.SCNiPort port = place.cell.ports; port != null; port = port.next)
 			{
-				if (port.ext_node == cell.ground)
+				if (port.extNode == cell.ground)
 				{
 					// found one
 					// should be a ground port on this instance
@@ -2559,102 +2525,102 @@ public class Route
 					}
 
 					// create new route node
-					SCROUTENODE rnode = new SCROUTENODE();
-					rnode.ext_node = port.ext_node;
-					rnode.row = rrow;
-					rnode.firstport = null;
-					rnode.lastport = null;
-					rnode.same_next = null;
-					rnode.same_last = null;
-					rnode.next = rrow.nodes;
-					rrow.nodes = rnode;
+					RouteNode rNode = new RouteNode();
+					rNode.extNode = port.extNode;
+					rNode.row = rRow;
+					rNode.firstPort = null;
+					rNode.lastPort = null;
+					rNode.sameNext = null;
+					rNode.sameLast = null;
+					rNode.next = rRow.nodes;
+					rRow.nodes = rNode;
 
 					// create route ports to these ports
-					SCROUTEPORT rport1 = new SCROUTEPORT();
-					rport1.place = place;
-					rport1.port = port;
-					rport1.node = rnode;
-					rnode.firstport = rport1;
-					rport1.flags = 0;
-					rport1.last = null;
-					rport1.next = null;
-					SCROUTEPORT rport2 = new SCROUTEPORT();
-					rport2.place = place;
-					rport2.port = place.cell.ground;
-					rport2.node = rnode;
-					rnode.lastport = rport2;
-					rport2.flags = 0;
-					rport2.last = rport1;
-					rport1.next = rport2;
-					rport2.next = null;
+					RoutePort rPort1 = new RoutePort();
+					rPort1.place = place;
+					rPort1.port = port;
+					rPort1.node = rNode;
+					rNode.firstPort = rPort1;
+					rPort1.flags = 0;
+					rPort1.last = null;
+					rPort1.next = null;
+					RoutePort rPort2 = new RoutePort();
+					rPort2.place = place;
+					rPort2.port = place.cell.ground;
+					rPort2.node = rNode;
+					rNode.lastPort = rPort2;
+					rPort2.flags = 0;
+					rPort2.last = rPort1;
+					rPort1.next = rPort2;
+					rPort2.next = null;
 
 					// create channel node
-					SCROUTECHNODE chnode = new SCROUTECHNODE();
-					chnode.ext_node = port.ext_node;
-					chnode.number = 0;
-					chnode.firstport = null;
-					chnode.lastport = null;
-					chnode.channel = chan;
-					chnode.flags = 0;
-					chnode.same_next = null;
-					chnode.same_last = null;
-					chnode.next = chan.nodes;
-					chan.nodes = chnode;
+					RouteChNode chNode = new RouteChNode();
+					chNode.extNode = port.extNode;
+					chNode.number = 0;
+					chNode.firstPort = null;
+					chNode.lastPort = null;
+					chNode.channel = chan;
+					chNode.flags = 0;
+					chNode.sameNext = null;
+					chNode.sameLast = null;
+					chNode.next = chan.nodes;
+					chan.nodes = chNode;
 
 					// create channel ports
-					SCROUTECHPORT chport1 = new SCROUTECHPORT();
-					chport1.port = rport1;
-					chport1.node = chnode;
-					chport1.xpos = Sc_route_port_position(rport1);
-					chport1.flags = 0;
-					chport1.last = null;
-					chport1.next = null;
-					SCROUTECHPORT chport2 = new SCROUTECHPORT();
-					chport2.port = rport2;
-					chport2.node = chnode;
-					chport2.xpos = Sc_route_port_position(rport2);
-					chport2.flags = 0;
-					chport2.last = null;
-					chport2.next = null;
-					if (chport1.xpos <= chport2.xpos)
+					RouteChPort chPort1 = new RouteChPort();
+					chPort1.port = rPort1;
+					chPort1.node = chNode;
+					chPort1.xPos = portPosition(rPort1);
+					chPort1.flags = 0;
+					chPort1.last = null;
+					chPort1.next = null;
+					RouteChPort chPort2 = new RouteChPort();
+					chPort2.port = rPort2;
+					chPort2.node = chNode;
+					chPort2.xPos = portPosition(rPort2);
+					chPort2.flags = 0;
+					chPort2.last = null;
+					chPort2.next = null;
+					if (chPort1.xPos <= chPort2.xPos)
 					{
-						chnode.firstport = chport1;
-						chnode.lastport = chport2;
-						chport1.next = chport2;
-						chport2.last = chport1;
+						chNode.firstPort = chPort1;
+						chNode.lastPort = chPort2;
+						chPort1.next = chPort2;
+						chPort2.last = chPort1;
 					} else
 					{
-						chnode.firstport = chport2;
-						chnode.lastport = chport1;
-						chport2.next = chport1;
-						chport1.last = chport2;
+						chNode.firstPort = chPort2;
+						chNode.lastPort = chPort1;
+						chPort2.next = chPort1;
+						chPort1.last = chPort2;
 					}
 
 					// create a VCG node
-					SCROUTEVCG vnode = new SCROUTEVCG();
-					vnode.chnode = chnode;
-					vnode.flags = 0;
-					vnode.edges = null;
+					RouteVCG vNode = new RouteVCG();
+					vNode.chNode = chNode;
+					vNode.flags = 0;
+					vNode.edges = null;
 
 					// create a VCG edge
-					SCROUTEVCGEDGE vedge = new SCROUTEVCGEDGE();
-					vedge.node = vnode;
-					vedge.next = vcg.edges;
-					vcg.edges = vedge;
+					RouteVCGEdge vEdge = new RouteVCGEdge();
+					vEdge.node = vNode;
+					vEdge.next = vcg.edges;
+					vcg.edges = vEdge;
 
 					// make all others VCG nodes which are too close to
 					// the ground port edge dependent on this node
-					for (SCROUTEVCGEDGE edge1 = vedge.next; edge1 != null; edge1 = edge1.next)
+					for (RouteVCGEdge edge1 = vEdge.next; edge1 != null; edge1 = edge1.next)
 					{
-						double minx = edge1.node.chnode.firstport.xpos - SilComp.getMinPortDistance();
-						double maxx = edge1.node.chnode.lastport.xpos + SilComp.getMinPortDistance();
-						if (chport2.xpos > minx && chport2.xpos < maxx)
+						double minX = edge1.node.chNode.firstPort.xPos - SilComp.getMinPortDistance();
+						double maxX = edge1.node.chNode.lastPort.xPos + SilComp.getMinPortDistance();
+						if (chPort2.xPos > minX && chPort2.xPos < maxX)
 						{
 							// create dependency
-							SCROUTEVCGEDGE edge2 = new SCROUTEVCGEDGE();
+							RouteVCGEdge edge2 = new RouteVCGEdge();
 							edge2.node = edge1.node;
-							edge2.next = vnode.edges;
-							vnode.edges = edge2;
+							edge2.next = vNode.edges;
+							vNode.edges = edge2;
 						}
 					}
 				}
@@ -2667,7 +2633,7 @@ public class Route
 	 * @param edges list of VCG edges.
 	 * @param level level of indentation.
 	 */
-	private static void Sc_route_print_VCG(SCROUTEVCGEDGE edges, int level)
+	private void printVCG(RouteVCGEdge edges, int level)
 	{
 		if (edges == null) return;
 
@@ -2678,8 +2644,8 @@ public class Route
 
 		for (; edges != null; edges = edges.next)
 		{
-			System.out.println(sb.toString() + "before Net " + edges.node.chnode.number);
-			Sc_route_print_VCG(edges.node.edges, level + 1);
+			System.out.println(sb.toString() + "before Net " + edges.node.chNode.number);
+			printVCG(edges.node.edges, level + 1);
 		}
 	}
 

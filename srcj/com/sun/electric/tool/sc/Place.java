@@ -27,122 +27,106 @@
 package com.sun.electric.tool.sc;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.text.TextUtils;
 
 import java.util.Iterator;
 
 /**
- * This is the placement part of the Silicon Compiler tool.
+ * The placement part of the Silicon Compiler tool.
  */
 public class Place
 {
-	private static final boolean DEBUG = false;
+	/** for debugging output */				private static final boolean DEBUG = false;
+	/** TRUE = sort cluster tree */			private static final boolean SORTFLAG = true;
+	/** TRUE = do net balance */			private static final boolean BALANCEFLAG = false;
+	/** limit of movement */				private static final int     BALANCELIMIT = 2;
+	/** scaling factor */					private static final int     VERTICALCOST = 2;
 
 	/***** general placement information *****/
-	public static class SCPLACE
+	static class SCPlace
 	{
-		/** number of instances */					int				num_inst;
-		/** total size of instances */				int				size_inst;
-		/** average size of inst */					int				avg_size;
-		/** average height of inst */				int				avg_height;
-		/** number of rows */						int				num_rows;
-		/** target size of each row */				int				size_rows;
-		/** rows of placed cells */					SCROWLIST		rows;
-		/** start of cell list */					SCNBPLACE		plist;
-		/** end of cell list */						SCNBPLACE		endlist;
+		/** number of instances */					int				numInst;
+		/** total size of instances */				int				sizeInst;
+		/** average size of inst */					int				avgSize;
+		/** average height of inst */				int				avgHeight;
+		/** number of rows */						int				numRows;
+		/** target size of each row */				int				sizeRows;
+		/** rows of placed cells */					RowList			rows;
+		/** start of cell list */					NBPlace			plist;
+		/** end of cell list */						NBPlace			endList;
 	};
 
-	private static final int SCBITS_PLACED		= 0x01;
-	public static final int SCBITS_EXTRACT		= 0x02;
+	private static final int BITS_PLACED	= 0x01;
+	static final int BITS_EXTRACT			= 0x02;
 
-	private static class SCCLUSTER
+	private static class Cluster
 	{
-		/** instance of cluster */					SilComp.SCNITREE node;
+		/** instance of cluster */					GetNetlist.SCNiTree node;
 		/** number of cluster */					int				number;
 		/** total size of members */				double			size;
-		/** pointer to last cluster */				SCCLUSTER		last;
-		/** pointer to next cluster */				SCCLUSTER		next;
+		/** pointer to last cluster */				Cluster			last;
+		/** pointer to next cluster */				Cluster			next;
 	};
 
-	private static class SCCLUSTERTREE
+	private static class ClusterTree
 	{
-		/** cluster, null if intermediate node*/	SCCLUSTER		cluster;
+		/** cluster, null if intermediate node*/	Cluster			cluster;
 		/** working bits */							int				bits;
-		/** parent node */							SCCLUSTERTREE	parent;
-		/** pointer to nodes on same level */		SCCLUSTERTREE	next;
-		/** pointer to one group */					SCCLUSTERTREE	lptr;
-		/** pointer to second group */				SCCLUSTERTREE	rptr;
+		/** parent node */							ClusterTree		parent;
+		/** pointer to nodes on same level */		ClusterTree		next;
+		/** pointer to one group */					ClusterTree		lPtr;
+		/** pointer to second group */				ClusterTree		rPtr;
 	};
 
-	private static class SCCLCONNECT
+	private static class ClConnect
 	{
-		/** pointers to names of nodes */			SCCLUSTERTREE [] node;
+		/** pointers to names of nodes */			ClusterTree  [] node;
 		/** number of connections */				int				count;
-		/** pointer to next list element */			SCCLCONNECT		next;
-		/** pointer to previous list element*/		SCCLCONNECT		last;
+		/** pointer to next list element */			ClConnect		next;
+		/** pointer to previous list element*/		ClConnect		last;
 
-		private SCCLCONNECT() { node = new SCCLUSTERTREE[2]; }
+		private ClConnect() { node = new ClusterTree[2]; }
 	};
 
-	public static class SCROWLIST
+	static class RowList
 	{
-		/** start of row cells */					SCNBPLACE	start;
-		/** end of row cells */						SCNBPLACE	end;
-		/** row number (0 = bottom) */				int			row_num;
-		/** current row size */						int			row_size;
-		/** next in row list */						SCROWLIST	next;
-		/** last in row list */						SCROWLIST	last;
+		/** start of row cells */					NBPlace		start;
+		/** end of row cells */						NBPlace		end;
+		/** row number (0 = bottom) */				int			rowNum;
+		/** current row size */						int			rowSize;
+		/** next in row list */						RowList		next;
+		/** last in row list */						RowList		last;
 	};
 
-	public static class SCNBPLACE
+	static class NBPlace
 	{
-		/** pointer to cell */						SilComp.SCNITREE cell;
-		/** x position (0 at left) */				double		xpos;
-		/** pointer to last in list */				SCNBPLACE	last;
-		/** pointer to right in list */				SCNBPLACE	next;
+		/** pointer to cell */						GetNetlist.SCNiTree cell;
+		/** x position (0 at left) */				double		xPos;
+		/** pointer to last in list */				NBPlace		last;
+		/** pointer to right in list */				NBPlace		next;
 	};
 
-	private static class SCCHANNEL
+	private static class Channel
 	{
 		/** number of channel */					int			number;
-		/** list of trunks */						SCNBTRUNK	trunks;
-		/** last in list of channels */				SCCHANNEL	last;
-		/** next in list of channels */				SCCHANNEL	next;
+		/** list of trunks */						NBTrunk		trunks;
+		/** last in list of channels */				Channel		last;
+		/** next in list of channels */				Channel		next;
 	};
 
-	private static class SCNBTRUNK
+	private static class NBTrunk
 	{
-		/** pointer to extracted node */			SilComp.SCEXTNODE ext_node;
-		/** minimum trunk going left */				double		minx;
-		/** maximum trunk going right */			double		maxx;
-		/** same in next channel */					SCNBTRUNK	same;
-		/** pointer to next trunk */				SCNBTRUNK	next;
+		/** pointer to extracted node */			GetNetlist.ExtNode ext_node;
+		/** minimum trunk going left */				double		minX;
+		/** maximum trunk going right */			double		maxX;
+		/** same in next channel */					NBTrunk		same;
+		/** pointer to next trunk */				NBTrunk		next;
 	};
-
-	private static final int SC_PLACE_SORT_ALL_TREES	= 0x0000000F;
-	private static final int SC_PLACE_SORT_TREE_0	= 0x00000001;
-	private static final int SC_PLACE_SORT_TREE_1	= 0x00000002;
-	private static final int SC_PLACE_SORT_TREE_2	= 0x00000004;
-	private static final int SC_PLACE_SORT_TREE_3	= 0x00000008;
-	private static final int SC_PLACE_SORT_MASK_1	= 0x0000000D;
-	private static final int SC_PLACE_SORT_MASK_2	= 0x0000000B;
-	private static final int SC_PLACE_SORT_CASE_1	= 0x00000005;
-	private static final int SC_PLACE_SORT_CASE_2	= 0x0000000A;
-
-	private static final int SCEXTNODECLUSE	= 0x0003;
-	private static final int SCEXTNODEGROUP1	= 0x0001;
-	private static final int SCEXTNODEGROUP2	= 0x0002;
-
-	/** TRUE = sort cluster tree */			private static boolean	sort_flag = true;
-	/** TRUE = do net balance */			private static boolean	net_balance_flag = false;
-	/** limit of movement */				private static int		net_balance_limit = 2;
-	/** scaling factor */					private static int		vertical_cost = 2;
 
 	/************************* File variables *************************/
 
-	/** global list of cluster groups */	private static SCCLUSTER     sc_gcluster;
-	/** global root of cluster tree */		private static SCCLUSTERTREE sc_gcluster_tree;
-	/** cost of current cluster tree */		private static int           sc_currentcost;
+	/** global list of cluster groups */	private Cluster       gCluster;
+	/** global root of cluster tree */		private ClusterTree   gClusterTree;
+	/** cost of current cluster tree */		private int           currentCost;
 
 	/**
 	 * Method to place the nodes in the current cell in optimal position for routing
@@ -159,94 +143,93 @@ public class Place
 	 *    o  Cross refencing of trunks to improve speed
 	 *    o  Effective calculation of rows in costing
 	 */
-	public static String placeCells()
+	public String placeCells(GetNetlist gnl)
 	{
 		// check to see if currently working in a cell
-		if (SilComp.sc_curcell == null) return "No cell selected";
+		if (gnl.curSCCell == null) return "No cell selected";
 
 		// create placement structure
-//		Sc_free_placement(sc_curcell->placement);
-		SCPLACE place = new SCPLACE();
-		SilComp.sc_curcell.placement = place;
-		place.num_inst = 0;
-		place.size_inst = 0;
-		place.avg_size = 0;
-		place.avg_height = 0;
-		place.num_rows = SilComp.getNumberOfRows();
-		place.size_rows = 0;
+		SCPlace place = new SCPlace();
+		gnl.curSCCell.placement = place;
+		place.numInst = 0;
+		place.sizeInst = 0;
+		place.avgSize = 0;
+		place.avgHeight = 0;
+		place.numRows = SilComp.getNumberOfRows();
+		place.sizeRows = 0;
 		place.rows = null;
 		place.plist = null;
-		place.endlist = null;
+		place.endList = null;
 
 		// create clusters of cells
-		sc_gcluster = Sc_place_create_clusters(SilComp.sc_curcell);
-		if (sc_gcluster == null) return "WARNING - No leaf cells found for placement";
+		gCluster = createClusters(gnl.curSCCell);
+		if (gCluster == null) return "WARNING - No leaf cells found for placement";
 
-		if (sc_gcluster == null)
+		if (gCluster == null)
 		{
 			System.out.println("ERROR - No cells found to place.  Aborting.");
 			return null;
 		}
 
 		// place clusters in a binary group tree
-		int numcl = 0;
-		for (SCCLUSTER cl = sc_gcluster; cl != null; cl = cl.next) numcl++;
-		SCCLUSTER [] cllist = new SCCLUSTER[numcl];
+		int numCl = 0;
+		for (Cluster cl = gCluster; cl != null; cl = cl.next) numCl++;
+		Cluster [] cllist = new Cluster[numCl];
 		int i = 0;
-		for (SCCLUSTER cl = sc_gcluster; cl != null; cl = cl.next) cllist[i++] = cl;
-		sc_gcluster_tree = Sc_place_create_cluster_tree(cllist, numcl, SilComp.sc_curcell);
+		for (Cluster cl = gCluster; cl != null; cl = cl.next) cllist[i++] = cl;
+		gClusterTree = createClusterTree(cllist, numCl, gnl.curSCCell);
 		if (DEBUG)
 		{
 			System.out.println("************ Initial placement of Clusters");
-			Sc_place_print_cluster_tree(sc_gcluster_tree, 0);
+			printClusterTree(gClusterTree, 0);
 		}
-		place.size_rows = place.size_inst / place.num_rows;
+		place.sizeRows = place.sizeInst / place.numRows;
 
 		// place clusters in list by sorting groups
-		if (sort_flag)
+		if (SORTFLAG)
 		{
-			Sc_place_sort_cluster_tree(sc_gcluster_tree, SilComp.sc_curcell);
+			sortClusterTree(gClusterTree, gnl.curSCCell);
 			if (DEBUG)
 			{
 				System.out.println("************ Placement of Clusters after Sorting");
-				Sc_place_print_cluster_tree(sc_gcluster_tree, 0);
+				printClusterTree(gClusterTree, 0);
 			}
 		}
 
 		// create first row structure
-		SCROWLIST row = new SCROWLIST();
+		RowList row = new RowList();
 		row.start = null;
 		row.end = null;
-		row.row_num = 0;
-		row.row_size = 0;
+		row.rowNum = 0;
+		row.rowSize = 0;
 		row.next = null;
 		row.last = null;
-		SilComp.sc_curcell.placement.rows = row;
+		gnl.curSCCell.placement.rows = row;
 
 		// create cell placement list from sorted cluster list
-		Sc_place_create_placelist(sc_gcluster_tree, SilComp.sc_curcell);
+		createPlaceList(gClusterTree, gnl.curSCCell);
 
 		// number placement
-		Sc_place_number_placement(SilComp.sc_curcell.placement.rows);
+		numberPlacement(gnl.curSCCell.placement.rows);
 		if (DEBUG)
 		{
 			System.out.println("************ Placement before Net Balancing");
-			Sc_place_show_placement(SilComp.sc_curcell.placement.rows);
+			showPlacement(gnl.curSCCell.placement.rows);
 		}
 
 		// do net balance algorithm
-		if (net_balance_flag)
+		if (BALANCEFLAG)
 		{
-			Sc_place_net_balance(SilComp.sc_curcell.placement.rows, SilComp.sc_curcell);
+			netBalance(gnl.curSCCell.placement.rows, gnl.curSCCell);
 			if (DEBUG)
 			{
 				System.out.println("************ Placement after Net Balancing");
-				Sc_place_show_placement(SilComp.sc_curcell.placement.rows);
+				showPlacement(gnl.curSCCell.placement.rows);
 			}
 		}
 
 		// print process time for placement
-		Sc_place_reorder_rows(SilComp.sc_curcell.placement.rows);
+		reorderRows(gnl.curSCCell.placement.rows);
 
 		return null;
 	}
@@ -256,20 +239,20 @@ public class Place
 	 * @param cell pointer to complex cell.
 	 * @return start of list.
 	 */
-	private static SCCLUSTER Sc_place_create_clusters(SilComp.SCCELL cell)
+	private Cluster createClusters(GetNetlist.SCCell cell)
 	{
 		// find total 'size' and number of all the cells
 		int size = 0;
 		int num = 0;
 		int height = 0;
-		for (Iterator it = cell.nilist.iterator(); it.hasNext(); )
+		for (Iterator it = cell.niList.iterator(); it.hasNext(); )
 		{
-			SilComp.SCNITREE ilist = (SilComp.SCNITREE)it.next();
-			if (ilist.type == SilComp.SCLEAFCELL)
+			GetNetlist.SCNiTree iList = (GetNetlist.SCNiTree)it.next();
+			if (iList.type == GetNetlist.LEAFCELL)
 			{
 				num++;
-				size += ilist.size;
-				height += SilComp.Sc_leaf_cell_ysize((Cell)ilist.np);
+				size += iList.size;
+				height += SilComp.leafCellYSize((Cell)iList.np);
 			}
 		}
 
@@ -278,42 +261,42 @@ public class Place
 			System.out.println("WARNING - No leaf cells found for placement");
 			return null;
 		}
-		int avg_size = size / num;
-		int avg_height = height / num;
+		int avgSize = size / num;
+		int avgHeight = height / num;
 		if (DEBUG)
 		{
 			System.out.println("************ Cell Statistics");
 			System.out.println("    Number of cells         = " + num);
 			System.out.println("    Total length            = " + size);
-			System.out.println("    Average size of cells   = " + avg_size);
-			System.out.println("    Average height of cells = " + avg_height);
+			System.out.println("    Average size of cells   = " + avgSize);
+			System.out.println("    Average height of cells = " + avgHeight);
 		}
-		cell.placement.num_inst = num;
-		cell.placement.size_inst = size;
-		cell.placement.avg_size = avg_size;
-		cell.placement.avg_height = avg_height;
+		cell.placement.numInst = num;
+		cell.placement.sizeInst = size;
+		cell.placement.avgSize = avgSize;
+		cell.placement.avgHeight = avgHeight;
 
 		// create cluster list
 		int i = 0;
-		SCCLUSTER clusterlist = null;
+		Cluster clusterList = null;
 		boolean warn = false;
-		for (Iterator it = cell.nilist.iterator(); it.hasNext(); )
+		for (Iterator it = cell.niList.iterator(); it.hasNext(); )
 		{
-			SilComp.SCNITREE node = (SilComp.SCNITREE)it.next();
-			if (node.type != SilComp.SCLEAFCELL)
+			GetNetlist.SCNiTree node = (GetNetlist.SCNiTree)it.next();
+			if (node.type != GetNetlist.LEAFCELL)
 			{
-				if (node.type == SilComp.SCCOMPLEXCELL) warn = true;
+				if (node.type == GetNetlist.COMPLEXCELL) warn = true;
 				continue;
 			}
-			SCCLUSTER cluster = new SCCLUSTER();
+			Cluster cluster = new Cluster();
 			cluster.node = node;
 			cluster.size = node.size;
 			cluster.number = i++;
 			cluster.last = null;
-			cluster.next = clusterlist;
-			if (clusterlist != null)
-				clusterlist.last = cluster;
-			clusterlist = cluster;
+			cluster.next = clusterList;
+			if (clusterList != null)
+				clusterList.last = cluster;
+			clusterList = cluster;
 		}
 		if (warn)
 		{
@@ -321,7 +304,7 @@ public class Place
 			System.out.println("        - Probable cause:  Forgot to do 'PULL' command");
 		}
 
-		return clusterlist;
+		return clusterList;
 	}
 
 	/**
@@ -333,25 +316,25 @@ public class Place
 	 * @param cell pointer to cell being placed.
 	 * @return pointer to cluster tree node.
 	 */
-	private static SCCLUSTERTREE Sc_place_create_cluster_tree(SCCLUSTER [] clusters, int size, SilComp.SCCELL cell)
+	private ClusterTree createClusterTree(Cluster [] clusters, int size, GetNetlist.SCCell cell)
 	{
 		// create a cluster tree node for each cluster
-		SCCLUSTERTREE nstart = null;
+		ClusterTree nStart = null;
 		for(int i=0; i<size; i++)
 		{
-			SCCLUSTERTREE node = new SCCLUSTERTREE();
+			ClusterTree node = new ClusterTree();
 			node.cluster = clusters[i];
 			node.parent = null;
-			node.next = nstart;
-			nstart = node;
-			node.lptr = null;
-			node.rptr = null;
+			node.next = nStart;
+			nStart = node;
+			node.lPtr = null;
+			node.rPtr = null;
 		}
 
 		// recursively create cluster tree
-		SCCLUSTERTREE ctree = Sc_place_create_ctree_recurse(nstart, cell);
-		Sc_place_ctree_add_parents(ctree, null);
-		return ctree;
+		ClusterTree cTree = createCTreeRecurse(nStart, cell);
+		cTreeAddParents(cTree, null);
+		return cTree;
 	}
 
 	/**
@@ -362,7 +345,7 @@ public class Place
 	 * @param cell pointer to parent cell.
 	 * @return tree root.
 	 */
-	private static SCCLUSTERTREE Sc_place_create_ctree_recurse(SCCLUSTERTREE nodes, SilComp.SCCELL cell)
+	private ClusterTree createCTreeRecurse(ClusterTree nodes, GetNetlist.SCCell cell)
 	{
 		// if no node, end
 		if (nodes == null) return null;
@@ -375,16 +358,16 @@ public class Place
 
 		// pair nodes in groups
 		// create list of connections between nodes
-		SCCLCONNECT nconnects = Sc_place_ctree_num_connects(nodes, cell);
+		ClConnect nConnects = cTreeNumConnects(nodes, cell);
 
 		// sort number of connects from largest to smallest
-		nconnects = Sc_place_ctree_sort_connects(nconnects);
+		nConnects = cTreeSortConnects(nConnects);
 
 		// pair by number of connects
-		SCCLUSTERTREE nstart = Sc_place_ctree_pair(nodes, nconnects);
+		ClusterTree nStart = cTreePair(nodes, nConnects);
 
 		// recurse up a level
-		return Sc_place_create_ctree_recurse(nstart, cell);
+		return createCTreeRecurse(nStart, cell);
 	}
 
 	/**
@@ -392,12 +375,12 @@ public class Place
 	 * @param node pointer to current node in transversal.
 	 * @param parent pointer to parent node.
 	 */
-	private static void Sc_place_ctree_add_parents(SCCLUSTERTREE node, SCCLUSTERTREE parent)
+	private void cTreeAddParents(ClusterTree node, ClusterTree parent)
 	{
 		if (node == null) return;
 		node.parent = parent;
-		Sc_place_ctree_add_parents(node.lptr, node);
-		Sc_place_ctree_add_parents(node.rptr, node);
+		cTreeAddParents(node.lPtr, node);
+		cTreeAddParents(node.rPtr, node);
 	}
 
 	/**
@@ -405,57 +388,45 @@ public class Place
 	 * @param nodes List of current nodes.
 	 * @param cell Pointer to parent cell.
 	 */
-	private static SCCLCONNECT Sc_place_ctree_num_connects(SCCLUSTERTREE nodes, SilComp.SCCELL cell)
+	private ClConnect cTreeNumConnects(ClusterTree nodes, GetNetlist.SCCell cell)
 	{
-		SCCLCONNECT start = null, end = null;
-		int node_num = 0;
-
-		// clear flags on all extracted nodes
-		Sc_clear_ext_nodes(cell.ex_nodes);
+		ClConnect start = null, end = null;
+		int nodeNum = 0;
 
 		// go through list of nodes
 		for ( ; nodes != null; nodes = nodes.next)
 		{
 			// check all other node
-			for (SCCLUSTERTREE nextnode = nodes.next; nextnode != null; nextnode = nextnode.next)
+			for (ClusterTree nextnode = nodes.next; nextnode != null; nextnode = nextnode.next)
 			{
-				node_num += 2;
+				nodeNum += 2;
 
 				// mark all extracted nodes used by first node
-				Sc_set_ext_nodes_by_ctree(nodes, node_num);
+				setExtNodesByCTree(nodes, nodeNum);
 
 				// count number of common extracted nodes
-				int common = Sc_count_ext_nodes(nextnode, node_num);
+				int common = countExtNodes(nextnode, nodeNum);
 
 				if (common != 0)
 				{
-					SCCLCONNECT newcon = new SCCLCONNECT();
-					newcon.node[0] = nodes;
-					newcon.node[1] = nextnode;
-					newcon.count = common;
-					newcon.last = end;
-					newcon.next = null;
+					ClConnect newCon = new ClConnect();
+					newCon.node[0] = nodes;
+					newCon.node[1] = nextnode;
+					newCon.count = common;
+					newCon.last = end;
+					newCon.next = null;
 					if (end != null)
 					{
-						end.next = newcon;
+						end.next = newCon;
 					} else
 					{
-						start = newcon;
+						start = newCon;
 					}
-					end = newcon;
+					end = newCon;
 				}
 			}
 		}
 		return start;
-	}
-
-	/**
-	 * Method to set the flags field of all extracted nodes to clear.
-	 */
-	private static void Sc_clear_ext_nodes(SilComp.SCEXTNODE nodes)
-	{
-		for ( ; nodes != null; nodes = nodes.next)
-			nodes.flags &= ~SCEXTNODECLUSE;
 	}
 
 	/**
@@ -464,21 +435,21 @@ public class Place
 	 * @param node pointer to cluster tree node.
 	 * @param marker value to set flags field to.
 	 */
-	private static void Sc_set_ext_nodes_by_ctree(SCCLUSTERTREE node, int marker)
+	private void setExtNodesByCTree(ClusterTree node, int marker)
 	{
 		if (node == null) return;
 
-		Sc_set_ext_nodes_by_ctree(node.lptr, marker);
+		setExtNodesByCTree(node.lPtr, marker);
 
 		// process node if cluster
 		if (node.cluster != null)
 		{
 			// check every port of member
-			for (SilComp.SCNIPORT port = node.cluster.node.ports; port != null; port = port.next)
-				port.ext_node.flags = marker;
+			for (GetNetlist.SCNiPort port = node.cluster.node.ports; port != null; port = port.next)
+				port.extNode.flags = marker;
 		}
 
-		Sc_set_ext_nodes_by_ctree(node.rptr, marker);
+		setExtNodesByCTree(node.rPtr, marker);
 	}
 
 	/**
@@ -487,53 +458,49 @@ public class Place
 	 * @param node start of cluster tree node.
 	 * @param marker value to look for.
 	 */
-	private static int Sc_count_ext_nodes(SCCLUSTERTREE node, int marker)
+	private int countExtNodes(ClusterTree node, int marker)
 	{
 		if (node == null) return 0;
 
-		int count = Sc_count_ext_nodes(node.lptr, marker);
+		int count = countExtNodes(node.lPtr, marker);
 
 		// process node if cluster
 		if (node.cluster != null)
 		{
 			// check every port of member
-			for (SilComp.SCNIPORT port = node.cluster.node.ports; port != null; port = port.next)
+			for (GetNetlist.SCNiPort port = node.cluster.node.ports; port != null; port = port.next)
 			{
-				if (port.ext_node.flags == marker)
-				{
-					count++;
-					port.ext_node.flags |= SCEXTNODEGROUP1;
-				}
+				if (port.extNode.flags == marker) count++;
 			}
 		}
 
-		count += Sc_count_ext_nodes(node.rptr, marker);
+		count += countExtNodes(node.rPtr, marker);
 		return count;
 	}
 
 	/**
 	 * Method to sort the passed list on number of connections from largest to smallest.
 	 */
-	private static SCCLCONNECT Sc_place_ctree_sort_connects(SCCLCONNECT list)
+	private ClConnect cTreeSortConnects(ClConnect list)
 	{
 		// order placement list highest to lowest
 		if (list != null)
 		{
-			SCCLCONNECT pold = list;
-			for (SCCLCONNECT pp = list.next; pp != null;)
+			ClConnect pOld = list;
+			for (ClConnect pp = list.next; pp != null;)
 			{
-				if (pp.count > pold.count)
+				if (pp.count > pOld.count)
 				{
-					pold.next = pp.next;
+					pOld.next = pp.next;
 					if (pp.next != null)
-						pp.next.last = pold;
-					SCCLCONNECT plast;
-					for (plast = pold.last; plast != null; plast = plast.last)
+						pp.next.last = pOld;
+					ClConnect pLast;
+					for (pLast = pOld.last; pLast != null; pLast = pLast.last)
 					{
-						if (plast.count >= pp.count)
+						if (pLast.count >= pp.count)
 							break;
 					}
-					if (plast == null)
+					if (pLast == null)
 					{
 						pp.next = list;
 						list.last = pp;
@@ -541,15 +508,15 @@ public class Place
 						pp.last = null;
 					} else
 					{
-						pp.next = plast.next;
+						pp.next = pLast.next;
 						pp.next.last = pp;
-						pp.last = plast;
-						plast.next = pp;
+						pp.last = pLast;
+						pLast.next = pp;
 					}
-					pp = pold.next;
+					pp = pOld.next;
 				} else
 				{
-					pold = pp;
+					pOld = pp;
 					pp = pp.next;
 				}
 			}
@@ -560,100 +527,100 @@ public class Place
 	/**
 	 * Method to pair up the given nodes by using the information in the connection list.
 	 * @param nodes pointer to start of list of nodes.
-	 * @param nconnects pointer to start of list of connections.
+	 * @param nConnects pointer to start of list of connections.
 	 * @return new list.
 	 */
-	private static SCCLUSTERTREE Sc_place_ctree_pair(SCCLUSTERTREE nodes, SCCLCONNECT nconnects)
+	private ClusterTree cTreePair(ClusterTree nodes, ClConnect nConnects)
 	{
 		// clear the placed flag in all tree nodes
-		for (SCCLUSTERTREE tptr = nodes; tptr != null; tptr = tptr.next)
-			tptr.bits &= ~SCBITS_PLACED;
+		for (ClusterTree tPtr = nodes; tPtr != null; tPtr = tPtr.next)
+			tPtr.bits &= ~BITS_PLACED;
 
 		// go through connection list
-		SCCLUSTERTREE newstart = null;
-		for (SCCLCONNECT connect = nconnects; connect != null; )
+		ClusterTree newStart = null;
+		for (ClConnect connect = nConnects; connect != null; )
 		{
 			// if either placed, continue
-			if ((connect.node[0].bits & SCBITS_PLACED) != 0 ||
-				(connect.node[1].bits & SCBITS_PLACED) != 0)
+			if ((connect.node[0].bits & BITS_PLACED) != 0 ||
+				(connect.node[1].bits & BITS_PLACED) != 0)
 			{
 				connect = connect.next;
 				continue;
 			}
 
 			// get best choice
-			SCCLCONNECT bconnect = Sc_place_best_pair(connect);
+			ClConnect bConnect = bestPair(connect);
 
 			// create new cluster tree node
-			SCCLUSTERTREE newnode = new SCCLUSTERTREE();
-			newnode.cluster = null;
-			newnode.bits = 0;
-			newnode.parent = null;
-			newnode.lptr = bconnect.node[0];
-			newnode.lptr.parent = newnode;
-			bconnect.node[0].bits |= SCBITS_PLACED;
-			newnode.rptr = bconnect.node[1];
-			newnode.rptr.parent = newnode;
-			bconnect.node[1].bits |= SCBITS_PLACED;
-			newnode.next = newstart;
-			newstart = newnode;
+			ClusterTree newNode = new ClusterTree();
+			newNode.cluster = null;
+			newNode.bits = 0;
+			newNode.parent = null;
+			newNode.lPtr = bConnect.node[0];
+			newNode.lPtr.parent = newNode;
+			bConnect.node[0].bits |= BITS_PLACED;
+			newNode.rPtr = bConnect.node[1];
+			newNode.rPtr.parent = newNode;
+			bConnect.node[1].bits |= BITS_PLACED;
+			newNode.next = newStart;
+			newStart = newNode;
 
 			// remove from list
-			if (connect == bconnect)
+			if (connect == bConnect)
 			{
 				connect = connect.next;
 			} else
 			{
-				bconnect.last.next = bconnect.next;
-				if (bconnect.next != null)
-					bconnect.next.last = bconnect.last;
+				bConnect.last.next = bConnect.next;
+				if (bConnect.next != null)
+					bConnect.next.last = bConnect.last;
 			}
 		}
 
 		// if no connections, arbitrarily combine two clusters
-		if (nconnects == null)
+		if (nConnects == null)
 		{
 			// create new cluster tree node
-			SCCLUSTERTREE newnode = new SCCLUSTERTREE();
-			newnode.cluster = null;
-			newnode.bits = 0;
-			newnode.parent = null;
-			newnode.lptr = nodes;
-			newnode.lptr.parent = newnode;
-			nodes.bits |= SCBITS_PLACED;
-			newnode.rptr = nodes.next;
-			newnode.rptr.parent = newnode;
-			nodes.next.bits |= SCBITS_PLACED;
-			newnode.next = newstart;
-			newstart = newnode;
+			ClusterTree newNode = new ClusterTree();
+			newNode.cluster = null;
+			newNode.bits = 0;
+			newNode.parent = null;
+			newNode.lPtr = nodes;
+			newNode.lPtr.parent = newNode;
+			nodes.bits |= BITS_PLACED;
+			newNode.rPtr = nodes.next;
+			newNode.rPtr.parent = newNode;
+			nodes.next.bits |= BITS_PLACED;
+			newNode.next = newStart;
+			newStart = newNode;
 		}
 
 		// add any remaining tree nodes as singular nodes
-		for (SCCLUSTERTREE tptr = nodes; tptr != null; tptr = tptr.next)
+		for (ClusterTree tPtr = nodes; tPtr != null; tPtr = tPtr.next)
 		{
-			if ((tptr.bits & SCBITS_PLACED) == 0)
+			if ((tPtr.bits & BITS_PLACED) == 0)
 			{
 				// create new cluster tree node
-				SCCLUSTERTREE newnode = new SCCLUSTERTREE();
-				newnode.cluster = null;
-				newnode.bits = 0;
-				newnode.parent = null;
-				newnode.lptr = tptr;
-				newnode.lptr.parent = newnode;
-				tptr.bits |= SCBITS_PLACED;
-				newnode.rptr = null;
-				newnode.next = newstart;
-				newstart = newnode;
+				ClusterTree newNode = new ClusterTree();
+				newNode.cluster = null;
+				newNode.bits = 0;
+				newNode.parent = null;
+				newNode.lPtr = tPtr;
+				newNode.lPtr.parent = newNode;
+				tPtr.bits |= BITS_PLACED;
+				newNode.rPtr = null;
+				newNode.next = newStart;
+				newStart = newNode;
 			}
 		}
-		return newstart;
+		return newStart;
 	}
 
 	private static class Temp
 	{
-		SCCLUSTERTREE	node;		/* cluster tree node */
+		ClusterTree	node;		/* cluster tree node */
 		int			count;		/* number of times seen */
-		SCCLCONNECT	ref;		/* first reference */
+		ClConnect	ref;		/* first reference */
 		Temp		next;		/* next in list */
 	}
 
@@ -664,63 +631,63 @@ public class Place
 	 * @param connect start of sorted list.
 	 * @return pointer to best pair.
 	 */
-	private static SCCLCONNECT Sc_place_best_pair(SCCLCONNECT connect)
+	private ClConnect bestPair(ClConnect connect)
 	{
-		Temp slist = null;
-		for (SCCLCONNECT nconnect = connect; nconnect != null; nconnect = nconnect.next)
+		Temp sList = null;
+		for (ClConnect nConnect = connect; nConnect != null; nConnect = nConnect.next)
 		{
-			if (nconnect.count < connect.count) break;
-			if ((nconnect.node[0].bits & SCBITS_PLACED) != 0 ||
-				(nconnect.node[1].bits & SCBITS_PLACED) != 0) continue;
+			if (nConnect.count < connect.count) break;
+			if ((nConnect.node[0].bits & BITS_PLACED) != 0 ||
+				(nConnect.node[1].bits & BITS_PLACED) != 0) continue;
 
 			// check if nodes previously counted
-			Temp nlist;
-			for (nlist = slist; nlist != null; nlist = nlist.next)
+			Temp nList;
+			for (nList = sList; nList != null; nList = nList.next)
 			{
-				if (nlist.node == nconnect.node[0])
+				if (nList.node == nConnect.node[0])
 					break;
 			}
-			if (nlist != null)
+			if (nList != null)
 			{
-				nlist.count++;
+				nList.count++;
 			} else
 			{
-				nlist = new Temp();
-				nlist.node = nconnect.node[0];
-				nlist.count = 1;
-				nlist.ref = nconnect;
-				nlist.next = slist;
-				slist = nlist;
+				nList = new Temp();
+				nList.node = nConnect.node[0];
+				nList.count = 1;
+				nList.ref = nConnect;
+				nList.next = sList;
+				sList = nList;
 			}
 
-			for (nlist = slist; nlist != null; nlist = nlist.next)
+			for (nList = sList; nList != null; nList = nList.next)
 			{
-				if (nlist.node == nconnect.node[1])
+				if (nList.node == nConnect.node[1])
 					break;
 			}
-			if (nlist != null)
+			if (nList != null)
 			{
-				nlist.count++;
+				nList.count++;
 			} else
 			{
-				nlist = new Temp();
-				nlist.node = nconnect.node[1];
-				nlist.count = 1;
-				nlist.ref = nconnect;
-				nlist.next = slist;
-				slist = nlist;
+				nList = new Temp();
+				nList.node = nConnect.node[1];
+				nList.count = 1;
+				nList.ref = nConnect;
+				nList.next = sList;
+				sList = nList;
 			}
 		}
 
 		// find the minimum count
-		int minuse = slist.count;
-		Temp blist = slist;
-		for (Temp nlist = slist.next; nlist != null; nlist = nlist.next)
+		int minUse = sList.count;
+		Temp blist = sList;
+		for (Temp nList = sList.next; nList != null; nList = nList.next)
 		{
-			if (nlist.count < minuse)
+			if (nList.count < minUse)
 			{
-				minuse = nlist.count;
-				blist = nlist;
+				minUse = nList.count;
+				blist = nList;
 			}
 		}
 
@@ -732,104 +699,104 @@ public class Place
 	 * Sorting attempts to optimize the placement of groups by
 	 * minimizing length of connections between groups and locating groups
 	 * close to any specified ports.
-	 * @param ctree pointer to root of cluster tree.
+	 * @param cTree pointer to root of cluster tree.
 	 * @param cell pointer to parent cell.
 	 */
-	private static void Sc_place_sort_cluster_tree(SCCLUSTERTREE ctree, SilComp.SCCELL cell)
+	private void sortClusterTree(ClusterTree cTree, GetNetlist.SCCell cell)
 	{
-		SCNBTRUNK trunks = null;
+		NBTrunk trunks = null;
 
 		// create a list of trunks from the extracted nodes
-		for (SilComp.SCEXTNODE enode = cell.ex_nodes; enode != null; enode = enode.next)
+		for (GetNetlist.ExtNode enode = cell.exNodes; enode != null; enode = enode.next)
 		{
-			SCNBTRUNK newtrunk = new SCNBTRUNK();
-			newtrunk.ext_node = enode;
-			newtrunk.minx = 0;
-			newtrunk.maxx = 0;
-			newtrunk.next = trunks;
-			trunks = newtrunk;
-			enode.ptr = newtrunk;		// back reference pointer
+			NBTrunk newTrunk = new NBTrunk();
+			newTrunk.ext_node = enode;
+			newTrunk.minX = 0;
+			newTrunk.maxX = 0;
+			newTrunk.next = trunks;
+			trunks = newTrunk;
+			enode.ptr = newTrunk;		// back reference pointer
 		}
 
-		sc_currentcost = Sc_place_cost_cluster_tree(sc_gcluster_tree, trunks, cell);
+		currentCost = costClusterTree(gClusterTree, trunks, cell);
 		if (DEBUG)
-			System.out.println("***** Cost of placement before cluster sorting = " + sc_currentcost);
+			System.out.println("***** Cost of placement before cluster sorting = " + currentCost);
 
 		// call top-down swapper
-		Sc_place_sort_swapper_top_down(ctree, trunks, cell);
+		sortSwapperTopDown(cTree, trunks, cell);
 
 		// call bottom-up swapper
-		Sc_place_sort_swapper_bottom_up(ctree, trunks, cell);
+		sortSwapperBottomUp(cTree, trunks, cell);
 		if (DEBUG)
-			System.out.println("***** Cost of placement after cluster sorting = " + sc_currentcost);
+			System.out.println("***** Cost of placement after cluster sorting = " + currentCost);
 	}
 
 	/**
 	 * Method to do preorder transversal of cluster tree, swapping groups to try
 	 * and sort tree into a more efficient placement.
-	 * @param ctree root of cluster tree.
+	 * @param cTree root of cluster tree.
 	 * @param trunks list of trunks for costing.
 	 * @param cell pointer to parent cell.
 	 */
-	private static void Sc_place_sort_swapper_top_down(SCCLUSTERTREE ctree, SCNBTRUNK trunks, SilComp.SCCELL cell)
+	private void sortSwapperTopDown(ClusterTree cTree, NBTrunk trunks, GetNetlist.SCCell cell)
 	{
-		if (ctree == null) return;
+		if (cTree == null) return;
 
 		// process tree node if there are two subtrees
-		if (ctree.lptr != null && ctree.rptr != null)
+		if (cTree.lPtr != null && cTree.rPtr != null)
 		{
 			// swap groups
-			Sc_place_switch_subtrees(ctree);
+			switchSubtrees(cTree);
 
 			// check new cost
-			int cost2 = Sc_place_cost_cluster_tree(sc_gcluster_tree, trunks, cell);
+			int cost2 = costClusterTree(gClusterTree, trunks, cell);
 
 			// swap back if old cost is less than new
-			if (sc_currentcost < cost2)
+			if (currentCost < cost2)
 			{
-				Sc_place_switch_subtrees(ctree);
+				switchSubtrees(cTree);
 			} else
 			{
-				sc_currentcost = cost2;
+				currentCost = cost2;
 			}
 		}
 
-		Sc_place_sort_swapper_top_down(ctree.lptr, trunks, cell);
+		sortSwapperTopDown(cTree.lPtr, trunks, cell);
 
-		Sc_place_sort_swapper_top_down(ctree.rptr, trunks, cell);
+		sortSwapperTopDown(cTree.rPtr, trunks, cell);
 	}
 
 	/**
 	 * Method to do a postorder transversal of cluster tree, swapping groups to try
 	 * and sort tree into a more efficient placement.
-	 * @param ctree root of cluster tree.
+	 * @param cTree root of cluster tree.
 	 * @param trunks list of trunks for costing.
 	 * @param cell pointer to parent cell.
 	 */
-	private static void Sc_place_sort_swapper_bottom_up(SCCLUSTERTREE ctree, SCNBTRUNK trunks, SilComp.SCCELL cell)
+	private void sortSwapperBottomUp(ClusterTree cTree, NBTrunk trunks, GetNetlist.SCCell cell)
 	{
-		if (ctree == null) return;
+		if (cTree == null) return;
 
-		Sc_place_sort_swapper_bottom_up(ctree.lptr, trunks, cell);
+		sortSwapperBottomUp(cTree.lPtr, trunks, cell);
 
-		Sc_place_sort_swapper_bottom_up(ctree.rptr, trunks, cell);
+		sortSwapperBottomUp(cTree.rPtr, trunks, cell);
 
 		// process tree node if there are two subtrees
-		if (ctree.lptr != null && ctree.rptr != null)
+		if (cTree.lPtr != null && cTree.rPtr != null)
 		{
 			// swap groups
-			Sc_place_switch_subtrees(ctree);
+			switchSubtrees(cTree);
 
 			// check new cost
-			int cost2 = Sc_place_cost_cluster_tree(sc_gcluster_tree, trunks, cell);
+			int cost2 = costClusterTree(gClusterTree, trunks, cell);
 
 			// swap back if old cost is less than new
-			if (sc_currentcost < cost2)
+			if (currentCost < cost2)
 			{
-				Sc_place_switch_subtrees(ctree);
+				switchSubtrees(cTree);
 			} else
 			{
-				sc_currentcost = cost2;
+				currentCost = cost2;
 			}
 		}
 	}
@@ -838,76 +805,68 @@ public class Place
 	 * Method to switch the subtrees recursively to perform a mirror image operation along "main" axis.
 	 * @param node pointer to top tree node.
 	 */
-	private static void Sc_place_switch_subtrees(SCCLUSTERTREE node)
+	private void switchSubtrees(ClusterTree node)
 	{
 		if (node == null) return;
 
-		SCCLUSTERTREE temp = node.lptr;
-		node.lptr = node.rptr;
-		node.rptr = temp;
-		Sc_place_switch_subtrees(node.lptr);
-		Sc_place_switch_subtrees(node.rptr);
+		ClusterTree temp = node.lPtr;
+		node.lPtr = node.rPtr;
+		node.rPtr = temp;
+		switchSubtrees(node.lPtr);
+		switchSubtrees(node.rPtr);
 	}
 
 	/**
 	 * Method to return the "cost" of the indicated cluster tree sort.
 	 * Cost is a function of the length of connections between clusters and placement to ports.
-	 * @param ctree pointer to cluster tree node.
+	 * @param cTree pointer to cluster tree node.
 	 * @param trunks pointer to trunks to use to cost.
 	 * @param cell pointer to parent cell.
 	 * @return cost.
 	 */
-	private static int Sc_place_cost_cluster_tree(SCCLUSTERTREE ctree, SCNBTRUNK trunks, SilComp.SCCELL cell)
+	private int costClusterTree(ClusterTree cTree, NBTrunk trunks, GetNetlist.SCCell cell)
 	{
 		// clear trunks to record lengths
-		for (SCNBTRUNK ntrunk = trunks; ntrunk != null; ntrunk = ntrunk.next)
+		for (NBTrunk nTrunk = trunks; nTrunk != null; nTrunk = nTrunk.next)
 		{
-			ntrunk.minx = -1;
-			ntrunk.maxx = -1;
+			nTrunk.minX = -1;
+			nTrunk.maxX = -1;
 		}
 
 		// set trunks lengths
-		double pos = Sc_place_cost_cluster_tree_2(ctree, trunks, 0);
+		double pos = costClusterTree2(cTree, trunks, 0);
 
 		// calculate cost
 		int cost = 0;
-		for (SCNBTRUNK ntrunk = trunks; ntrunk != null; ntrunk = ntrunk.next)
+		for (NBTrunk nTrunk = trunks; nTrunk != null; nTrunk = nTrunk.next)
 		{
-			if (ntrunk.minx < 0) continue;
-			cost += ntrunk.maxx - ntrunk.minx;
+			if (nTrunk.minX < 0) continue;
+			cost += nTrunk.maxX - nTrunk.minX;
 		}
 
-		for (SilComp.SCPORT pport = cell.ports; pport != null; pport = pport.next)
+		for (GetNetlist.SCPort pport = cell.ports; pport != null; pport = pport.next)
 		{
-			if ((pport.bits & SilComp.SCPORTDIRMASK) == 0) continue;
-			SCNBTRUNK ntrunk = (SCNBTRUNK)pport.node.ports.ext_node.ptr;
-			if (ntrunk == null) continue;
-			if ((pport.bits & SilComp.SCPORTDIRUP) != 0)
+			if ((pport.bits & GetNetlist.PORTDIRMASK) == 0) continue;
+			NBTrunk nTrunk = (NBTrunk)pport.node.ports.extNode.ptr;
+			if (nTrunk == null) continue;
+			if ((pport.bits & GetNetlist.PORTDIRUP) != 0)
 			{
 				// add distance to top row
-				int row = (int)(ntrunk.maxx / cell.placement.size_rows);
-				if ((row + 1) < cell.placement.num_rows)
+				int row = (int)(nTrunk.maxX / cell.placement.sizeRows);
+				if ((row + 1) < cell.placement.numRows)
 				{
-					cost += (cell.placement.num_rows - row - 1) *
-						cell.placement.avg_height * vertical_cost;
+					cost += (cell.placement.numRows - row - 1) *
+						cell.placement.avgHeight * VERTICALCOST;
 				}
 			}
-			if ((pport.bits & SilComp.SCPORTDIRDOWN) != 0)
+			if ((pport.bits & GetNetlist.PORTDIRDOWN) != 0)
 			{
 				// add distance to bottom row
-				int row = (int)(ntrunk.minx / cell.placement.size_rows);
+				int row = (int)(nTrunk.minX / cell.placement.sizeRows);
 				if (row != 0)
 				{
-					cost += row * cell.placement.avg_height * vertical_cost;
+					cost += row * cell.placement.avgHeight * VERTICALCOST;
 				}
-			}
-			if ((pport.bits & SilComp.SCPORTDIRLEFT) != 0)
-			{
-				// EMPTY
-			}
-			if ((pport.bits & SilComp.SCPORTDIRRIGHT) != 0)
-			{
-				// EMPTY
 			}
 		}
 
@@ -916,58 +875,58 @@ public class Place
 
 	/**
 	 * Method to set the limits of the trunks by doing an inorder transversal of the cluster tree.
-	 * @param ctree pointer to cluster tree node.
+	 * @param cTree pointer to cluster tree node.
 	 * @param trunks pointer to trunks to use to cost.
 	 * @param pos current position.
 	 */
-	private static double Sc_place_cost_cluster_tree_2(SCCLUSTERTREE ctree, SCNBTRUNK trunks, double pos)
+	private double costClusterTree2(ClusterTree cTree, NBTrunk trunks, double pos)
 	{
-		if (ctree == null) return pos;
+		if (cTree == null) return pos;
 
 		// do all nodes left
-		pos = Sc_place_cost_cluster_tree_2(ctree.lptr, trunks, pos);
+		pos = costClusterTree2(cTree.lPtr, trunks, pos);
 
 		// process node
-		if (ctree.cluster != null)
+		if (cTree.cluster != null)
 		{
-			for (SilComp.SCNIPORT port = ctree.cluster.node.ports; port != null; port = port.next)
+			for (GetNetlist.SCNiPort port = cTree.cluster.node.ports; port != null; port = port.next)
 			{
-				SCNBTRUNK ntrunk = (SCNBTRUNK)port.ext_node.ptr;
-				if (ntrunk == null) continue;
-				if (ntrunk.minx < 0)
-					ntrunk.minx = pos + port.xpos;
-				ntrunk.maxx = pos + port.xpos;
+				NBTrunk nTrunk = (NBTrunk)port.extNode.ptr;
+				if (nTrunk == null) continue;
+				if (nTrunk.minX < 0)
+					nTrunk.minX = pos + port.xPos;
+				nTrunk.maxX = pos + port.xPos;
 			}
-			pos += ctree.cluster.size;
+			pos += cTree.cluster.size;
 		}
 
 		// do all nodes right
-		return Sc_place_cost_cluster_tree_2(ctree.rptr, trunks, pos);
+		return costClusterTree2(cTree.rPtr, trunks, pos);
 	}
 
 	/**
 	 * Module to create the placement list by simply taking the clusters from the
 	 * sorted cluster list and placing members in a snake pattern.
 	 * Do an inorder transversal to create placelist.
-	 * @param ctree pointer to start of cluster tree.
+	 * @param cTree pointer to start of cluster tree.
 	 * @param cell pointer to parent cell.
 	 */
-	private static void Sc_place_create_placelist(SCCLUSTERTREE ctree, SilComp.SCCELL cell)
+	private void createPlaceList(ClusterTree cTree, GetNetlist.SCCell cell)
 	{
-		if (ctree == null) return;
+		if (cTree == null) return;
 
-		Sc_place_create_placelist(ctree.lptr, cell);
+		createPlaceList(cTree.lPtr, cell);
 
 		// add clusters to placement list
-		if (ctree.cluster != null)
+		if (cTree.cluster != null)
 		{
-			SCROWLIST row = cell.placement.rows;
+			RowList row = cell.placement.rows;
 			while (row.next != null)
 				row = row.next;
-			Sc_place_add_cluster_to_row(ctree.cluster, row, cell.placement);
+			addClusterToRow(cTree.cluster, row, cell.placement);
 		}
 
-		Sc_place_create_placelist(ctree.rptr, cell);
+		createPlaceList(cTree.rPtr, cell);
 	}
 
 	/**
@@ -978,33 +937,33 @@ public class Place
 	 * @param row pointer to the current row.
 	 * @param place pointer to placement information.
 	 */
-	private static void Sc_place_add_cluster_to_row(SCCLUSTER cluster, SCROWLIST row, SCPLACE place)
+	private void addClusterToRow(Cluster cluster, RowList row, SCPlace place)
 	{
-		if (cluster.node.type != SilComp.SCLEAFCELL) return;
-		SCNBPLACE newplace = new SCNBPLACE();
-		newplace.cell = cluster.node;
-		newplace.xpos = 0;
-		cluster.node.tp = newplace;
-		newplace.next = null;
-		newplace.last = place.endlist;
-		if (place.endlist == null)
+		if (cluster.node.type != GetNetlist.LEAFCELL) return;
+		NBPlace newPlace = new NBPlace();
+		newPlace.cell = cluster.node;
+		newPlace.xPos = 0;
+		cluster.node.tp = newPlace;
+		newPlace.next = null;
+		newPlace.last = place.endList;
+		if (place.endList == null)
 		{
-			place.plist = place.endlist = newplace;
+			place.plist = place.endList = newPlace;
 		} else
 		{
-			place.endlist.next = newplace;
-			place.endlist = newplace;
+			place.endList.next = newPlace;
+			place.endList = newPlace;
 		}
-		double old_condition = place.size_rows - row.row_size;
-		double new_condition = place.size_rows - (row.row_size + cluster.node.size);
-		if ((row.row_num + 1) < place.num_rows &&
-			Math.abs(old_condition) < Math.abs(new_condition))
+		double oldCondition = place.sizeRows - row.rowSize;
+		double newCondition = place.sizeRows - (row.rowSize + cluster.node.size);
+		if ((row.rowNum + 1) < place.numRows &&
+			Math.abs(oldCondition) < Math.abs(newCondition))
 		{
-			SCROWLIST row2 = new SCROWLIST();
+			RowList row2 = new RowList();
 			row2.start = null;
 			row2.end = null;
-			row2.row_num = row.row_num + 1;
-			row2.row_size = 0;
+			row2.rowNum = row.rowNum + 1;
+			row2.rowSize = 0;
 			row2.next = null;
 			row2.last = row;
 			row.next = row2;
@@ -1012,20 +971,20 @@ public class Place
 		}
 
 		// add to row
-		if ((row.row_num % 2) != 0)
+		if ((row.rowNum % 2) != 0)
 		{
 			// odd row
 			if (row.end == null)
-				row.end = newplace;
-			row.start = newplace;
+				row.end = newPlace;
+			row.start = newPlace;
 		} else
 		{
 			// even row
 			if (row.start == null)
-				row.start = newplace;
-			row.end = newplace;
+				row.start = newPlace;
+			row.end = newPlace;
 		}
-		row.row_size += cluster.node.size;
+		row.rowSize += cluster.node.size;
 	}
 
 	/**
@@ -1033,91 +992,91 @@ public class Place
 	 * @param row pointer to start of row list.
 	 * @param cell pointer to parent cell.
 	 */
-	private static void Sc_place_net_balance(SCROWLIST row, SilComp.SCCELL cell)
+	private void netBalance(RowList row, GetNetlist.SCCell cell)
 	{
 		// create channel list
-		SCCHANNEL channel = null, endchan = null;
+		Channel channel = null, endchan = null;
 		int i = 0;
-		SCNBTRUNK sametrunk = null;
+		NBTrunk sameTrunk = null;
 		do
 		{
-			SCCHANNEL newchan = new SCCHANNEL();
-			newchan.number = i;
-			SCNBTRUNK trunks = null, oldtrunk = null;
+			Channel newChan = new Channel();
+			newChan.number = i;
+			NBTrunk trunks = null, oldTrunk = null;
 
 			// create trunk list for each channel
-			for (SilComp.SCEXTNODE nlist = cell.ex_nodes; nlist != null; nlist = nlist.next)
+			for (GetNetlist.ExtNode nList = cell.exNodes; nList != null; nList = nList.next)
 			{
-				SCNBTRUNK ntrunk = new SCNBTRUNK();
-				ntrunk.ext_node = nlist;
-				ntrunk.minx = 0;
-				ntrunk.maxx = 0;
-				ntrunk.same = null;
-				if (sametrunk == null)
+				NBTrunk nTrunk = new NBTrunk();
+				nTrunk.ext_node = nList;
+				nTrunk.minX = 0;
+				nTrunk.maxX = 0;
+				nTrunk.same = null;
+				if (sameTrunk == null)
 				{
-					nlist.ptr = ntrunk;
+					nList.ptr = nTrunk;
 				} else
 				{
-					sametrunk.same = ntrunk;
-					sametrunk = sametrunk.next;
+					sameTrunk.same = nTrunk;
+					sameTrunk = sameTrunk.next;
 				}
-				ntrunk.next = null;
-				if (oldtrunk == null)
+				nTrunk.next = null;
+				if (oldTrunk == null)
 				{
-					trunks = oldtrunk = ntrunk;
+					trunks = oldTrunk = nTrunk;
 				} else
 				{
-					oldtrunk.next = ntrunk;
-					oldtrunk = ntrunk;
+					oldTrunk.next = nTrunk;
+					oldTrunk = nTrunk;
 				}
 			}
-			newchan.trunks = trunks;
-			newchan.last = endchan;
-			newchan.next = null;
+			newChan.trunks = trunks;
+			newChan.last = endchan;
+			newChan.next = null;
 			if (endchan != null)
 			{
-				endchan.next = newchan;
-				endchan = newchan;
+				endchan.next = newChan;
+				endchan = newChan;
 			} else
 			{
-				channel = endchan = newchan;
+				channel = endchan = newChan;
 			}
-			sametrunk = trunks;
+			sameTrunk = trunks;
 			i++;
-		} while ((i + 1) < cell.placement.num_rows);
+		} while ((i + 1) < cell.placement.numRows);
 
 		// report current placement evaluation
 		if (DEBUG)
 			System.out.println("Evaluation before Net-Balancing  = " +
-				Sc_place_nb_cost(cell.placement.rows, channel, cell));
+				nBCost(cell.placement.rows, channel, cell));
 
 		// do the net balance for each cell
-		Sc_place_nb_all_cells(cell, channel);
+		nBAllCells(cell, channel);
 
 		// number placement
-		Sc_place_nb_rebalance_rows(cell.placement.rows, cell.placement);
-		Sc_place_number_placement(cell.placement.rows);
+		nBRebalanceRows(cell.placement.rows, cell.placement);
+		numberPlacement(cell.placement.rows);
 
 		// report new evaluation
 		if (DEBUG)
 			System.out.println("Evaluation after Net-Balancing   = %d" +
-				Sc_place_nb_cost(cell.placement.rows, channel, cell));
+				nBCost(cell.placement.rows, channel, cell));
 	}
 
 	/**
-	 * Method to do a net balance for each cell on at a time.  Use the SCNITREE to
+	 * Method to do a net balance for each cell on at a time.  Use the SCNiTree to
 	 * insure that each cell is processed.
 	 * @param cell pointer to parent cell.
 	 * @param channels pointer to start of channel list.
 	 */
-	private static void Sc_place_nb_all_cells(SilComp.SCCELL cell, SCCHANNEL channels)
+	private void nBAllCells(GetNetlist.SCCell cell, Channel channels)
 	{
 		// process cell
-		for (Iterator it = cell.nilist.iterator(); it.hasNext(); )
+		for (Iterator it = cell.niList.iterator(); it.hasNext(); )
 		{
-			SilComp.SCNITREE ilist = (SilComp.SCNITREE)it.next();
-			if (ilist.type == SilComp.SCLEAFCELL)
-				Sc_place_nb_do_cell((SCNBPLACE)ilist.tp, channels, cell);
+			GetNetlist.SCNiTree iList = (GetNetlist.SCNiTree)it.next();
+			if (iList.type == GetNetlist.LEAFCELL)
+				nBDoCell((NBPlace)iList.tp, channels, cell);
 		}
 	}
 
@@ -1127,70 +1086,70 @@ public class Place
 	 * @param channels pointer to channel list of trunks.
 	 * @param cell parent complex cell.
 	 */
-	private static void Sc_place_nb_do_cell(SCNBPLACE place, SCCHANNEL channels, SilComp.SCCELL cell)
+	private void nBDoCell(NBPlace place, Channel channels, GetNetlist.SCCell cell)
 	{
 		if (place == null) return;
 
 		// find cost at present location and set as current minimum
-		SCROWLIST rows = cell.placement.rows;
-		int min_cost = Sc_place_nb_cost(rows, channels, cell);
+		RowList rows = cell.placement.rows;
+		int minCost = nBCost(rows, channels, cell);
 		int pos = 0;
 
 		// temporarily remove from list
-		SCNBPLACE old_last = place.last;
-		SCNBPLACE old_next = place.next;
-		Sc_place_nb_remove(place, rows);
+		NBPlace oldLast = place.last;
+		NBPlace oldNext = place.next;
+		nBRemove(place, rows);
 
 		// check locations backwards for nb_limit
-		int npos = -1;
-		for (SCNBPLACE nplace = old_last; npos >= -net_balance_limit; nplace = nplace.last)
+		int nPos = -1;
+		for (NBPlace nPlace = oldLast; nPos >= -BALANCELIMIT; nPlace = nPlace.last)
 		{
-			if (nplace != null)
+			if (nPlace != null)
 			{
 				// temporarily insert in list
-				Sc_place_nb_insert_before(place, nplace, rows);
+				nBInsertBefore(place, nPlace, rows);
 
 				// check new cost
-				int cost = Sc_place_nb_cost(rows, channels, cell);
-				if (cost < min_cost)
+				int cost = nBCost(rows, channels, cell);
+				if (cost < minCost)
 				{
-					min_cost = cost;
-					pos = npos;
+					minCost = cost;
+					pos = nPos;
 				}
 
 				// remove place from list
-				Sc_place_nb_remove(place, rows);
+				nBRemove(place, rows);
 			} else
 			{
 				break;
 			}
-			npos--;
+			nPos--;
 		}
 
 		// check forward locations for nb_limit
-		npos = 1;
-		for (SCNBPLACE nplace = old_next; npos < net_balance_limit; nplace = nplace.next)
+		nPos = 1;
+		for (NBPlace nPlace = oldNext; nPos < BALANCELIMIT; nPlace = nPlace.next)
 		{
-			if (nplace != null)
+			if (nPlace != null)
 			{
 				// temporarily insert in list
-				Sc_place_nb_insert_after(place, nplace, rows);
+				nBInsertAfter(place, nPlace, rows);
 
 				// check new cost
-				int cost = Sc_place_nb_cost(rows, channels, cell);
-				if (cost < min_cost)
+				int cost = nBCost(rows, channels, cell);
+				if (cost < minCost)
 				{
-					min_cost = cost;
-					pos = npos;
+					minCost = cost;
+					pos = nPos;
 				}
 
 				// remove place from list
-				Sc_place_nb_remove(place, rows);
+				nBRemove(place, rows);
 			} else
 			{
 				break;
 			}
-			npos++;
+			nPos++;
 		}
 
 		// move if necessary
@@ -1198,24 +1157,24 @@ public class Place
 		{
 			while(pos-- > 1)
 			{
-				old_next = old_next.next;
+				oldNext = oldNext.next;
 			}
-			Sc_place_nb_insert_after(place, old_next, rows);
+			nBInsertAfter(place, oldNext, rows);
 		} else if (pos < 0)
 		{
 			while(pos++ < -1)
 			{
-				old_last = old_last.last;
+				oldLast = oldLast.last;
 			}
-			Sc_place_nb_insert_before(place, old_last, rows);
+			nBInsertBefore(place, oldLast, rows);
 		} else
 		{
-			if (old_last != null)
+			if (oldLast != null)
 			{
-				Sc_place_nb_insert_after(place, old_last, rows);
+				nBInsertAfter(place, oldLast, rows);
 			} else
 			{
-				Sc_place_nb_insert_before(place, old_next, rows);
+				nBInsertBefore(place, oldNext, rows);
 			}
 		}
 	}
@@ -1227,85 +1186,85 @@ public class Place
 	 * @param cell pointer to parent cell.
 	 * @return cost.
 	 */
-	private static int Sc_place_nb_cost(SCROWLIST rows, SCCHANNEL channels, SilComp.SCCELL cell)
+	private int nBCost(RowList rows, Channel channels, GetNetlist.SCCell cell)
 	{
 		// initialize all trunks
-		for (SCCHANNEL nchan = channels; nchan != null; nchan = nchan.next)
+		for (Channel nChan = channels; nChan != null; nChan = nChan.next)
 		{
-			for (SCNBTRUNK ntrunk = nchan.trunks; ntrunk != null; ntrunk = ntrunk.next)
+			for (NBTrunk nTrunk = nChan.trunks; nTrunk != null; nTrunk = nTrunk.next)
 			{
-				ntrunk.minx = Double.MAX_VALUE;
-				ntrunk.maxx = Double.MIN_VALUE;
+				nTrunk.minX = Double.MAX_VALUE;
+				nTrunk.maxX = Double.MIN_VALUE;
 			}
 		}
 
 		// check all rows
-		SCCHANNEL nchan = channels;
+		Channel nChan = channels;
 		boolean above = true;
 		int dis = 0;
-		int row_num = 0;
-		int max_rowsize = cell.placement.size_rows + (cell.placement.avg_size >>1);
-		for (SCNBPLACE nplace = rows.start; nplace != null; nplace = nplace.next)
+		int rowNum = 0;
+		int maxRowSize = cell.placement.sizeRows + (cell.placement.avgSize >>1);
+		for (NBPlace nPlace = rows.start; nPlace != null; nPlace = nPlace.next)
 		{
 			// check for room in current row
-			if ((row_num % 2) != 0)
+			if ((rowNum % 2) != 0)
 			{
 				// odd row
-				if ((dis - nplace.cell.size) < 0)
+				if ((dis - nPlace.cell.size) < 0)
 				{
-					if ((row_num + 1) < cell.placement.num_rows)
+					if ((rowNum + 1) < cell.placement.numRows)
 					{
-						row_num++;
+						rowNum++;
 						dis = 0;
 						if (above ^= true)
-							nchan = nchan.next;
+							nChan = nChan.next;
 					}
 				}
 			} else
 			{
 				// even row
-				if ((dis + nplace.cell.size) > max_rowsize)
+				if ((dis + nPlace.cell.size) > maxRowSize)
 				{
-					if ((row_num + 1) < cell.placement.num_rows)
+					if ((rowNum + 1) < cell.placement.numRows)
 					{
-						row_num++;
-						dis = max_rowsize;
+						rowNum++;
+						dis = maxRowSize;
 						if (above ^= true)
-							nchan = nchan.next;
+							nChan = nChan.next;
 					}
 				}
 			}
 
 			// check all ports on instance
-			for (SilComp.SCNIPORT port = nplace.cell.ports; port != null; port = port.next)
+			for (GetNetlist.SCNiPort port = nPlace.cell.ports; port != null; port = port.next)
 			{
 				// find the correct trunk
-				SCNBTRUNK ntrunk = (SCNBTRUNK)port.ext_node.ptr;
-				if (ntrunk == null) continue;
-				for (int i = nchan.number; i != 0; i--)
-					ntrunk = ntrunk.same;
-				if (ntrunk.minx == Double.MAX_VALUE)
+				NBTrunk nTrunk = (NBTrunk)port.extNode.ptr;
+				if (nTrunk == null) continue;
+				for (int i = nChan.number; i != 0; i--)
+					nTrunk = nTrunk.same;
+				if (nTrunk.minX == Double.MAX_VALUE)
 				{
-					if (!above && ntrunk.same != null)
-						ntrunk = ntrunk.same;
+					if (!above && nTrunk.same != null)
+						nTrunk = nTrunk.same;
 				}
 				double pos = 0;
-				if ((row_num % 2) != 2)
+				if ((rowNum % 2) != 2)
 				{
-					pos = dis - port.xpos;
+					pos = dis - port.xPos;
 				} else
 				{
-					pos = dis + port.xpos;
+					pos = dis + port.xPos;
 				}
-				ntrunk.minx = Math.min(ntrunk.minx, pos);
-				ntrunk.maxx = Math.max(ntrunk.maxx, pos);
+				nTrunk.minX = Math.min(nTrunk.minX, pos);
+				nTrunk.maxX = Math.max(nTrunk.maxX, pos);
 			}
-			if ((row_num % 2) != 2)
+			if ((rowNum % 2) != 2)
 			{
-				dis -= nplace.cell.size;
+				dis -= nPlace.cell.size;
 			} else
 			{
-				dis += nplace.cell.size;
+				dis += nPlace.cell.size;
 			}
 		}
 
@@ -1313,50 +1272,50 @@ public class Place
 		int cost = 0;
 
 		// calculate horizontal costs
-		for (nchan = channels; nchan != null; nchan = nchan.next)
+		for (nChan = channels; nChan != null; nChan = nChan.next)
 		{
-			for (SCNBTRUNK ntrunk = nchan.trunks; ntrunk != null; ntrunk = ntrunk.next)
+			for (NBTrunk nTrunk = nChan.trunks; nTrunk != null; nTrunk = nTrunk.next)
 			{
-				if (ntrunk.minx != Double.MAX_VALUE)
-					cost += Math.abs(ntrunk.maxx - ntrunk.minx);
+				if (nTrunk.minX != Double.MAX_VALUE)
+					cost += Math.abs(nTrunk.maxX - nTrunk.minX);
 			}
 		}
 
 		// calculate vertical cost
-		for (SCNBTRUNK ntrunk = channels.trunks; ntrunk != null; ntrunk = ntrunk.next)
+		for (NBTrunk nTrunk = channels.trunks; nTrunk != null; nTrunk = nTrunk.next)
 		{
-			SCNBTRUNK ftrunk = null;
-			int fcount = 0, count = 0;
-			for (SCNBTRUNK strunk = ntrunk; strunk != null; strunk = strunk.same)
+			NBTrunk fTrunk = null;
+			int fCount = 0, count = 0;
+			for (NBTrunk sTrunk = nTrunk; sTrunk != null; sTrunk = sTrunk.same)
 			{
-				if (strunk.minx != Double.MAX_VALUE)
+				if (sTrunk.minX != Double.MAX_VALUE)
 				{
-					double fminx = 0, fmaxx = 0;
-					if (ftrunk == null)
+					double fMinX = 0, fMaxX = 0;
+					if (fTrunk == null)
 					{
-						ftrunk = strunk;
-						fminx = strunk.minx;
-						fmaxx = strunk.maxx;
-						fcount = count;
+						fTrunk = sTrunk;
+						fMinX = sTrunk.minX;
+						fMaxX = sTrunk.maxX;
+						fCount = count;
 					} else
 					{
 						// add new vertical
-						cost += (count - fcount) * cell.placement.avg_height * vertical_cost;
-						fcount = count;
+						cost += (count - fCount) * cell.placement.avgHeight * VERTICALCOST;
+						fCount = count;
 
 						// additional horizontal
-						if (fmaxx < strunk.minx)
+						if (fMaxX < sTrunk.minX)
 						{
-							cost += Math.abs(strunk.minx - fmaxx);
-							fmaxx = strunk.maxx;
-						} else if (fminx > strunk.maxx)
+							cost += Math.abs(sTrunk.minX - fMaxX);
+							fMaxX = sTrunk.maxX;
+						} else if (fMinX > sTrunk.maxX)
 						{
-							cost += Math.abs(fminx - strunk.maxx);
-							fminx = strunk.minx;
+							cost += Math.abs(fMinX - sTrunk.maxX);
+							fMinX = sTrunk.minX;
 						} else
 						{
-							if (fminx > strunk.minx) fminx = strunk.minx;
-							if (fmaxx < strunk.maxx) fmaxx = strunk.maxx;
+							if (fMinX > sTrunk.minX) fMinX = sTrunk.minX;
+							if (fMaxX < sTrunk.maxX) fMaxX = sTrunk.maxX;
 						}
 
 					}
@@ -1373,36 +1332,36 @@ public class Place
 	 * @param place pointer to place to be removed.
 	 * @param rows pointer to start of row list.
 	 */
-	private static void Sc_place_nb_remove(SCNBPLACE place, SCROWLIST rows)
+	private void nBRemove(NBPlace place, RowList rows)
 	{
-		SCNBPLACE old_next = place.next;
-		SCNBPLACE old_last = place.last;
+		NBPlace oldNext = place.next;
+		NBPlace oldLast = place.last;
 		if (place.last != null)
-			place.last.next = old_next;
+			place.last.next = oldNext;
 		if (place.next != null)
-			place.next.last = old_last;
+			place.next.last = oldLast;
 
 		// check if row change
-		for (SCROWLIST row = rows; row != null; row = row.next)
+		for (RowList row = rows; row != null; row = row.next)
 		{
 			if (row.start == place)
 			{
-				if ((row.row_num % 2) != 0)
+				if ((row.rowNum % 2) != 0)
 				{
-					row.start = old_last;
+					row.start = oldLast;
 				} else
 				{
-					row.start = old_next;
+					row.start = oldNext;
 				}
 			}
 			if (row.end == place)
 			{
-				if ((row.row_num % 2) != 2)
+				if ((row.rowNum % 2) != 2)
 				{
-					row.end = old_next;
+					row.end = oldNext;
 				} else
 				{
-					row.end = old_last;
+					row.end = oldLast;
 				}
 			}
 		}
@@ -1412,29 +1371,29 @@ public class Place
 	 * Module to insert the indicated place before the indicated second place and
 	 * clear up the row markers if necessary.
 	 * @param place pointer to place to be inserted.
-	 * @param oldplace pointer to place to be inserted before.
+	 * @param oldPlace pointer to place to be inserted before.
 	 * @param rows start of list of row markers.
 	 */
-	private static void Sc_place_nb_insert_before(SCNBPLACE place, SCNBPLACE oldplace, SCROWLIST rows)
+	private void nBInsertBefore(NBPlace place, NBPlace oldPlace, RowList rows)
 	{
-		place.next = oldplace;
-		if (oldplace != null)
+		place.next = oldPlace;
+		if (oldPlace != null)
 		{
-			place.last = oldplace.last;
-			if (oldplace.last != null)
-				oldplace.last.next = place;
-			oldplace.last = place;
+			place.last = oldPlace.last;
+			if (oldPlace.last != null)
+				oldPlace.last.next = place;
+			oldPlace.last = place;
 		} else
 		{
 			place.last = null;
 		}
 
 		// check if row change
-		for (SCROWLIST row = rows; row != null; row = row.next)
+		for (RowList row = rows; row != null; row = row.next)
 		{
-			if (row.start == oldplace)
+			if (row.start == oldPlace)
 			{
-				if ((row.row_num % 2) != 0)
+				if ((row.rowNum % 2) != 0)
 				{
 					// EMPTY
 				} else
@@ -1442,9 +1401,9 @@ public class Place
 					row.start = place;
 				}
 			}
-			if (row.end == oldplace)
+			if (row.end == oldPlace)
 			{
-				if ((row.row_num % 2) != 0)
+				if ((row.rowNum % 2) != 0)
 					row.end = place;
 			}
 		}
@@ -1454,34 +1413,34 @@ public class Place
 	 * Method to insert the indicated place after the indicated second place and
 	 * clear up the row markers if necessary.
 	 * @param place pointer to place to be inserted.
-	 * @param oldplace pointer to place to be inserted after.
+	 * @param oldPlace pointer to place to be inserted after.
 	 * @param rows start of list of row markers.
 	 */
-	private static void Sc_place_nb_insert_after(SCNBPLACE place, SCNBPLACE oldplace, SCROWLIST rows)
+	private void nBInsertAfter(NBPlace place, NBPlace oldPlace, RowList rows)
 	{
-		place.last = oldplace;
-		if (oldplace != null)
+		place.last = oldPlace;
+		if (oldPlace != null)
 		{
-			place.next = oldplace.next;
-			if (oldplace.next != null)
-				oldplace.next.last = place;
-			oldplace.next = place;
+			place.next = oldPlace.next;
+			if (oldPlace.next != null)
+				oldPlace.next.last = place;
+			oldPlace.next = place;
 		} else
 		{
 			place.next = null;
 		}
 
 		// check if row change
-		for (SCROWLIST row = rows; row != null; row = row.next)
+		for (RowList row = rows; row != null; row = row.next)
 		{
-			if (row.start == oldplace)
+			if (row.start == oldPlace)
 			{
-				if ((row.row_num % 2) != 0)
+				if ((row.rowNum % 2) != 0)
 					row.start = place;
 			}
-			if (row.end == oldplace)
+			if (row.end == oldPlace)
 			{
-				if ((rows.row_num % 2) != 0)
+				if ((rows.rowNum % 2) != 0)
 				{
 					// EMPTY
 				} else
@@ -1497,32 +1456,32 @@ public class Place
 	 * @param rows pointer to start of row list.
 	 * @param place pointer to global placement structure.
 	 */
-	private static void Sc_place_nb_rebalance_rows(SCROWLIST rows, SCPLACE place)
+	private void nBRebalanceRows(RowList rows, SCPlace place)
 	{
-		int max_rowsize = place.size_rows + (place.avg_size >> 1);
-		rows.row_size = 0;
-		for (SCNBPLACE nplace = rows.start; nplace != null; nplace = nplace.next)
+		int maxRowSize = place.sizeRows + (place.avgSize >> 1);
+		rows.rowSize = 0;
+		for (NBPlace nPlace = rows.start; nPlace != null; nPlace = nPlace.next)
 		{
-			if ((rows.row_num + 1) < place.num_rows &&
-				(rows.row_size + nplace.cell.size) > max_rowsize)
+			if ((rows.rowNum + 1) < place.numRows &&
+				(rows.rowSize + nPlace.cell.size) > maxRowSize)
 			{
 				rows = rows.next;
-				rows.row_size = 0;
-				if ((rows.row_num % 2) != 0)
+				rows.rowSize = 0;
+				if ((rows.rowNum % 2) != 0)
 				{
-					rows.end = nplace;
+					rows.end = nPlace;
 				} else
 				{
-					rows.start = nplace;
+					rows.start = nPlace;
 				}
 			}
-			rows.row_size += nplace.cell.size;
-			if ((rows.row_num % 2) != 0)
+			rows.rowSize += nPlace.cell.size;
+			if ((rows.rowNum % 2) != 0)
 			{
-				rows.start = nplace;
+				rows.start = nPlace;
 			} else
 			{
-				rows.end = nplace;
+				rows.end = nPlace;
 			}
 		}
 	}
@@ -1531,26 +1490,23 @@ public class Place
 	 * Method to number the x position of all the cells in their rows.
 	 * @param rows pointer to the start of the rows.
 	 */
-	private static void Sc_place_number_placement(SCROWLIST rows)
+	private void numberPlacement(RowList rows)
 	{
-		for (SCROWLIST row = rows; row != null; row = row.next)
+		for (RowList row = rows; row != null; row = row.next)
 		{
-			int xpos = 0;
-			SCNBPLACE nplace = row.start;
-			while (nplace != null)
+			int xPos = 0;
+			NBPlace nPlace = row.start;
+			while (nPlace != null)
 			{
-				nplace.xpos = xpos;
-				xpos += nplace.cell.size;
-				if (nplace == row.end)
+				nPlace.xPos = xPos;
+				xPos += nPlace.cell.size;
+				if (nPlace == row.end) break;
+				if ((row.rowNum % 2) != 0)
 				{
-					break;
-				}
-				if ((row.row_num % 2) != 0)
-				{
-					nplace = nplace.last;
+					nPlace = nPlace.last;
 				} else
 				{
-					nplace = nplace.next;
+					nPlace = nPlace.next;
 				}
 			}
 		}
@@ -1561,18 +1517,18 @@ public class Place
 	 * of odd rows and breaking the snake pattern by row.
 	 * @param rows pointer to start of row list.
 	 */
-	private static void Sc_place_reorder_rows(SCROWLIST rows)
+	private void reorderRows(RowList rows)
 	{
-		for (SCROWLIST row = rows; row != null; row = row.next)
+		for (RowList row = rows; row != null; row = row.next)
 		{
-			if ((row.row_num % 2) != 0)
+			if ((row.rowNum % 2) != 0)
 			{
 				// odd row
-				for (SCNBPLACE place = row.start; place != null; place = place.next)
+				for (NBPlace place = row.start; place != null; place = place.next)
 				{
-					SCNBPLACE tplace = place.next;
+					NBPlace tPlace = place.next;
 					place.next = place.last;
-					place.last = tplace;
+					place.last = tPlace;
 					if (place == row.end) break;
 				}
 				row.start.last = null;
@@ -1590,16 +1546,16 @@ public class Place
 	 * Method to print the cells in their rows of placement.
 	 * @param rows pointer to the start of the rows.
 	 */
-	private static void Sc_place_show_placement(SCROWLIST rows)
+	private void showPlacement(RowList rows)
 	{
-		for (SCROWLIST row = rows; row != null; row = row.next)
+		for (RowList row = rows; row != null; row = row.next)
 		{
-			System.out.println("For Row #" + row.row_num + ", size " + row.row_size+ ":");
-			SCNBPLACE inst;
+			System.out.println("For Row #" + row.rowNum + ", size " + row.rowSize+ ":");
+			NBPlace inst;
 			for (inst = row.start; inst != row.end;)
 			{
-				System.out.println("    " + inst.xpos + "    " + inst.cell.name);
-				if ((row.row_num % 2) != 0)
+				System.out.println("    " + inst.xPos + "    " + inst.cell.name);
+				if ((row.rowNum % 2) != 0)
 				{
 					inst = inst.last;
 				} else
@@ -1607,7 +1563,7 @@ public class Place
 					inst = inst.next;
 				}
 			}
-			System.out.println("    " + inst.xpos + "    " + inst.cell.name);
+			System.out.println("    " + inst.xPos + "    " + inst.cell.name);
 		}
 	}
 
@@ -1616,11 +1572,11 @@ public class Place
 	 * @param node pointer to cluster tree node.
 	 * @param level current level of tree (0 = root).
 	 */
-	private static void Sc_place_print_cluster_tree(SCCLUSTERTREE node, int level)
+	private void printClusterTree(ClusterTree node, int level)
 	{
 		if (node == null) return;
 
-		Sc_place_print_cluster_tree(node.lptr, level + 1);
+		printClusterTree(node.lPtr, level + 1);
 
 		// process node
 		int i = level << 2;
@@ -1638,7 +1594,7 @@ public class Place
 		}
 		System.out.println(sb.toString());
 
-		Sc_place_print_cluster_tree(node.rptr, level + 1);
+		printClusterTree(node.rPtr, level + 1);
 	}
 
 }

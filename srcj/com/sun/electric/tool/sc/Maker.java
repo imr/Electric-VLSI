@@ -41,123 +41,122 @@ import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.sc.SilComp.SCCELLNUMS;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 
 /**
- * This is the generation part of the Silicon Compiler tool.
+ * The generation part of the Silicon Compiler tool.
  */
 public class Maker
 {
-	private static class SCMAKERDATA
+	private static class MakerData
 	{
-		/** cell being layed out */			SilComp.SCCELL	cell;
-		/** list of rows */					SCMAKERROW		rows;
-		/** list of channels */				SCMAKERCHANNEL	channels;
-		/** list of vdd ports */			SCMAKERPOWER	power;
-		/** list of ground ports */			SCMAKERPOWER	ground;
-		/** minimum x position */			double			minx;
-		/** maximum x position */			double			maxx;
-		/** minimum y position */			double			miny;
-		/** maximum y position */			double			maxy;
+		/** cell being layed out */			GetNetlist.SCCell	cell;
+		/** list of rows */					MakerRow		rows;
+		/** list of channels */				MakerChannel	channels;
+		/** list of vdd ports */			MakerPower		power;
+		/** list of ground ports */			MakerPower		ground;
+		/** minimum x position */			double			minX;
+		/** maximum x position */			double			maxX;
+		/** minimum y position */			double			minY;
+		/** maximum y position */			double			maxY;
 	};
 
-	private static class SCMAKERROW
+	private static class MakerRow
 	{
 		/** row number */					int				number;
-		/** instances in rows */			SCMAKERINST		members;
-		/** minimum X position */			double			minx;
-		/** maximum X position */			double			maxx;
-		/** minimum Y position */			double			miny;
-		/** maximum Y position */			double			maxy;
+		/** instances in rows */			MakerInst		members;
+		/** minimum X position */			double			minX;
+		/** maximum X position */			double			maxX;
+		/** minimum Y position */			double			minY;
+		/** maximum Y position */			double			maxY;
 		/** processing bits */				int				flags;
-		/** last row */						SCMAKERROW		last;
-		/** next row */						SCMAKERROW		next;
+		/** last row */						MakerRow		last;
+		/** next row */						MakerRow		next;
 	};
 
-	private static class SCMAKERINST
+	private static class MakerInst
 	{
-		/** reference place */				Place.SCNBPLACE	place;
-		/** reference row */				SCMAKERROW		row;
-		/** X position */					double			xpos;
-		/** Y position */					double			ypos;
-		/** size in X */					double			xsize;
-		/** size in Y */					double			ysize;
+		/** reference place */				Place.NBPlace	place;
+		/** reference row */				MakerRow		row;
+		/** X position */					double			xPos;
+		/** Y position */					double			yPos;
+		/** size in X */					double			xSize;
+		/** size in Y */					double			ySize;
 		/** processing flags */				int				flags;
 		/** leaf instance */				NodeInst		instance;
-		/** next in row */					SCMAKERINST		next;
+		/** next in row */					MakerInst		next;
 	};
 
-	private static class SCMAKERCHANNEL
+	private static class MakerChannel
 	{
 		/** number of channel */			int				number;
-		/** list of tracks */				SCMAKERTRACK	tracks;
-		/** number of tracks */				int				num_tracks;
-		/** minimum Y position */			double			miny;
-		/** Y size */						double			ysize;
+		/** list of tracks */				MakerTrack		tracks;
+		/** number of tracks */				int				numTracks;
+		/** minimum Y position */			double			minY;
+		/** Y size */						double			ySize;
 		/** processing bits */				int				flags;
-		/** last channel */					SCMAKERCHANNEL	last;
-		/** next channel */					SCMAKERCHANNEL	next;
+		/** last channel */					MakerChannel	last;
+		/** next channel */					MakerChannel	next;
 	};
 
-	private static class SCMAKERTRACK
+	private static class MakerTrack
 	{
 		/** track number */					int				number;
-		/** nodes in track */				SCMAKERNODE		nodes;
-		/** reference track */				Route.SCROUTETRACK	track;
-		/** Y position */					double			ypos;
+		/** nodes in track */				MakerNode		nodes;
+		/** reference track */				Route.RouteTrack	track;
+		/** Y position */					double			yPos;
 		/** processing bits */				int				flags;
-		/** previous track */				SCMAKERTRACK	last;
-		/** next track */					SCMAKERTRACK	next;
+		/** previous track */				MakerTrack		last;
+		/** next track */					MakerTrack		next;
 	};
 
-	private static class SCMAKERNODE
+	private static class MakerNode
 	{
-		/** list of vias */					SCMAKERVIA		vias;
-		/** next node in track */			SCMAKERNODE		next;
+		/** list of vias */					MakerVia		vias;
+		/** next node in track */			MakerNode		next;
 	};
 
-	private static final int SCVIASPECIAL	= 0x00000001;
-	private static final int SCVIAEXPORT	= 0x00000002;
-	private static final int SCVIAPOWER		= 0x00000004;
+	private static final int VIASPECIAL	= 0x00000001;
+	private static final int VIAEXPORT	= 0x00000002;
+	private static final int VIAPOWER	= 0x00000004;
 
-	private static class SCMAKERVIA
+	private static class MakerVia
 	{
-		/** X position */					double			xpos;
-		/** associated channel port */		Route.SCROUTECHPORT	chport;
+		/** X position */					double			xPos;
+		/** associated channel port */		Route.RouteChPort	chPort;
 		/** associated leaf instance */		NodeInst		instance;
 		/** flags for processing */			int				flags;
-		/** export port */					Route.SCROUTEEXPORT	xport;
-		/** next via */						SCMAKERVIA		next;
+		/** export port */					Route.RouteExport	xPort;
+		/** next via */						MakerVia		next;
 	};
 
-	private static class SCMAKERPOWER
+	private static class MakerPower
 	{
-		/** list of power ports */			SCMAKERPOWERPORT ports;
-		/** vertical position of row */		double			ypos;
-		/** next in row list */				SCMAKERPOWER	next;
-		/** last in row list */				SCMAKERPOWER	last;
+		/** list of power ports */			MakerPowerPort ports;
+		/** vertical position of row */		double			yPos;
+		/** next in row list */				MakerPower		next;
+		/** last in row list */				MakerPower		last;
 	};
 
-	private static class SCMAKERPOWERPORT
+	private static class MakerPowerPort
 	{
-		/** instance */						SCMAKERINST		inst;
-		/** port on instance */				SilComp.SCNIPORT port;
-		/** resultant x position */			double			xpos;
-		/** next in list */					SCMAKERPOWERPORT next;
-		/** last in list */					SCMAKERPOWERPORT last;
+		/** instance */						MakerInst		inst;
+		/** port on instance */				GetNetlist.SCNiPort port;
+		/** resultant x position */			double			xPos;
+		/** next in list */					MakerPowerPort	next;
+		/** last in list */					MakerPowerPort	last;
 	};
 
-	private static PrimitiveNode sc_layer1proto;
-	private static PrimitiveNode sc_layer2proto;
-	private static PrimitiveNode sc_viaproto;
-	private static PrimitiveNode sc_pwellproto;
-	private static PrimitiveNode sc_nwellproto;
-	private static ArcProto sc_layer1arc;
-	private static ArcProto sc_layer2arc;
+	private PrimitiveNode layer1Proto;
+	private PrimitiveNode layer2Proto;
+	private PrimitiveNode viaProto;
+	private PrimitiveNode pWellProto;
+	private PrimitiveNode nWellProto;
+	private ArcProto layer1Arc;
+	private ArcProto layer2Arc;
 
 	/**
 	 * Method to make Electric circuitry from the results of place-and-route.
@@ -169,27 +168,25 @@ public class Maker
 	 *   o  Routing Power and Ground buses
 	 *   o  Creation in Electric's database
 	 */
-	public static Object makeLayout()
+	public Object makeLayout(GetNetlist gnl)
 	{
 		// check if working in a cell
-		if (SilComp.sc_curcell == null) return "No cell selected";
+		if (gnl.curSCCell == null) return "No cell selected";
 
 		// check if placement structure exists
-		if (SilComp.sc_curcell.placement == null)
-			return "No PLACEMENT structure for cell '" + SilComp.sc_curcell.name + "'";
+		if (gnl.curSCCell.placement == null)
+			return "No PLACEMENT structure for cell '" + gnl.curSCCell.name + "'";
 
 		// check if route structure exists
-		if (SilComp.sc_curcell.route == null)
-			return "No ROUTE structure for cell '" + SilComp.sc_curcell.name + "'";
+		if (gnl.curSCCell.route == null)
+			return "No ROUTE structure for cell '" + gnl.curSCCell.name + "'";
 
 		// set up make structure
-		SCMAKERDATA make_data = Sc_maker_set_up(SilComp.sc_curcell);
+		MakerData makeData = setUp(gnl.curSCCell);
 
 		// create actual layout
-		Object result = Sc_maker_create_layout(make_data);
+		Object result = createLayout(makeData);
 		if (result instanceof String) return result;
-
-//		Sc_free_maker_data(make_data);
 
 		return result;
 	}
@@ -200,413 +197,410 @@ public class Maker
 	 * @param cell pointer to cell to layout.
 	 * @return created data.
 	 */
-	private static SCMAKERDATA Sc_maker_set_up(SilComp.SCCELL cell)
+	private MakerData setUp(GetNetlist.SCCell cell)
 	{
 		// create top level data structure
-		SCMAKERDATA data = new SCMAKERDATA();
+		MakerData data = new MakerData();
 		data.cell = cell;
 		data.rows = null;
 		data.channels = null;
 		data.power = null;
 		data.ground = null;
-		data.minx = Double.MAX_VALUE;
-		data.maxx = Double.MIN_VALUE;
-		data.miny = Double.MAX_VALUE;
-		data.maxy = Double.MIN_VALUE;
+		data.minX = Double.MAX_VALUE;
+		data.maxX = Double.MIN_VALUE;
+		data.minY = Double.MAX_VALUE;
+		data.maxY = Double.MIN_VALUE;
 
 		// create Maker Channel and Track data structures
-		double row_to_track = (SilComp.getViaSize() / 2) + SilComp.getMinMetalSpacing();
-		double min_track_to_track = (SilComp.getViaSize() / 2) +
+		double rowToTrack = (SilComp.getViaSize() / 2) + SilComp.getMinMetalSpacing();
+		double minTrackToTrack = (SilComp.getViaSize() / 2) +
 			SilComp.getMinMetalSpacing() + (SilComp.getHorizArcWidth() / 2);
-		double max_track_to_track = SilComp.getViaSize() + SilComp.getMinMetalSpacing();
-		SCMAKERCHANNEL last_mchan = null;
-		for (Route.SCROUTECHANNEL chan = cell.route.channels; chan != null; chan = chan.next)
+		double maxTrackToTrack = SilComp.getViaSize() + SilComp.getMinMetalSpacing();
+		MakerChannel lastMChan = null;
+		for (Route.RouteChannel chan = cell.route.channels; chan != null; chan = chan.next)
 		{
 			// create Maker Channel structute
-			SCMAKERCHANNEL mchan = new SCMAKERCHANNEL();
-			mchan.number = chan.number;
-			mchan.tracks = null;
-			mchan.num_tracks = 0;
-			mchan.ysize = 0;
-			mchan.flags = 0;
-			mchan.next = null;
-			mchan.last = last_mchan;
-			if (last_mchan != null)
+			MakerChannel mChan = new MakerChannel();
+			mChan.number = chan.number;
+			mChan.tracks = null;
+			mChan.numTracks = 0;
+			mChan.ySize = 0;
+			mChan.flags = 0;
+			mChan.next = null;
+			mChan.last = lastMChan;
+			if (lastMChan != null)
 			{
-				last_mchan.next = mchan;
+				lastMChan.next = mChan;
 			} else
 			{
-				data.channels = mchan;
+				data.channels = mChan;
 			}
-			last_mchan = mchan;
+			lastMChan = mChan;
 
 			// create Make Track structures
-			SCMAKERTRACK last_mtrack = null;
-			double ypos = 0;
-			for (Route.SCROUTETRACK track = chan.tracks; track != null; track = track.next)
+			MakerTrack lastMTrack = null;
+			double yPos = 0;
+			for (Route.RouteTrack track = chan.tracks; track != null; track = track.next)
 			{
-				SCMAKERTRACK mtrack = new SCMAKERTRACK();
-				mtrack.number = track.number;
-				mtrack.nodes = null;
-				mtrack.track = track;
-				mtrack.flags = 0;
-				mtrack.next = null;
-				mtrack.last = last_mtrack;
-				if (last_mtrack != null)
+				MakerTrack mTrack = new MakerTrack();
+				mTrack.number = track.number;
+				mTrack.nodes = null;
+				mTrack.track = track;
+				mTrack.flags = 0;
+				mTrack.next = null;
+				mTrack.last = lastMTrack;
+				if (lastMTrack != null)
 				{
-					last_mtrack.next = mtrack;
+					lastMTrack.next = mTrack;
 				} else
 				{
-					mchan.tracks = mtrack;
+					mChan.tracks = mTrack;
 				}
-				last_mtrack = mtrack;
-				mchan.num_tracks++;
-				if (mtrack.number == 0)
+				lastMTrack = mTrack;
+				mChan.numTracks++;
+				if (mTrack.number == 0)
 				{
-					ypos += row_to_track;
-					mtrack.ypos = ypos;
+					yPos += rowToTrack;
+					mTrack.yPos = yPos;
 				} else
 				{
 					// determine if min or max track to track spacing is used
-					double deltay = min_track_to_track;
-					Route.SCROUTETRACKMEM tr1_mem = track.nodes;
-					Route.SCROUTETRACKMEM tr2_mem = track.last.nodes;
-					Route.SCROUTECHPORT tr1_port = tr1_mem.node.firstport;
-					Route.SCROUTECHPORT tr2_port = tr2_mem.node.firstport;
-					while (tr1_port != null && tr2_port != null)
+					double deltaY = minTrackToTrack;
+					Route.RouteTrackMem tr1Mem = track.nodes;
+					Route.RouteTrackMem tr2Mem = track.last.nodes;
+					Route.RouteChPort tr1Port = tr1Mem.node.firstPort;
+					Route.RouteChPort tr2Port = tr2Mem.node.firstPort;
+					while (tr1Port != null && tr2Port != null)
 					{
-						if (Math.abs(tr1_port.xpos - tr2_port.xpos) < max_track_to_track)
+						if (Math.abs(tr1Port.xPos - tr2Port.xPos) < maxTrackToTrack)
 						{
-							deltay = max_track_to_track;
+							deltaY = maxTrackToTrack;
 							break;
 						}
-						if (tr1_port.xpos < tr2_port.xpos)
+						if (tr1Port.xPos < tr2Port.xPos)
 						{
-							tr1_port = tr1_port.next;
-							if (tr1_port == null)
+							tr1Port = tr1Port.next;
+							if (tr1Port == null)
 							{
-								tr1_mem = tr1_mem.next;
-								if (tr1_mem != null)
-									tr1_port = tr1_mem.node.firstport;
+								tr1Mem = tr1Mem.next;
+								if (tr1Mem != null)
+									tr1Port = tr1Mem.node.firstPort;
 							}
 						} else
 						{
-							tr2_port = tr2_port.next;
-							if (tr2_port == null)
+							tr2Port = tr2Port.next;
+							if (tr2Port == null)
 							{
-								tr2_mem = tr2_mem.next;
-								if (tr2_mem != null)
-									tr2_port = tr2_mem.node.firstport;
+								tr2Mem = tr2Mem.next;
+								if (tr2Mem != null)
+									tr2Port = tr2Mem.node.firstPort;
 							}
 						}
 					}
-					ypos += deltay;
-					mtrack.ypos = ypos;
+					yPos += deltaY;
+					mTrack.yPos = yPos;
 				}
 				if (track.next == null)
-					ypos += row_to_track;
+					yPos += rowToTrack;
 			}
-			mchan.ysize = ypos;
+			mChan.ySize = yPos;
 		}
 
 		// create Maker Rows and Instances data structures
-		SCMAKERCHANNEL mchan = data.channels;
-		mchan.miny = 0;
-		double ypos = mchan.ysize;
-		SCMAKERROW last_mrow = null;
-		for (Place.SCROWLIST row = cell.placement.rows; row != null; row = row.next)
+		MakerChannel mChan = data.channels;
+		mChan.minY = 0;
+		double yPos = mChan.ySize;
+		MakerRow lastMRow = null;
+		for (Place.RowList row = cell.placement.rows; row != null; row = row.next)
 		{
 			// create maker row data structure
-			SCMAKERROW mrow = new SCMAKERROW();
-			mrow.number = row.row_num;
-			mrow.members = null;
-			mrow.minx = Double.MAX_VALUE;
-			mrow.maxx = Double.MIN_VALUE;
-			mrow.miny = Double.MAX_VALUE;
-			mrow.maxy = Double.MIN_VALUE;
-			mrow.flags = 0;
-			mrow.next = null;
-			mrow.last = last_mrow;
-			if (last_mrow != null)
+			MakerRow mRow = new MakerRow();
+			mRow.number = row.rowNum;
+			mRow.members = null;
+			mRow.minX = Double.MAX_VALUE;
+			mRow.maxX = Double.MIN_VALUE;
+			mRow.minY = Double.MAX_VALUE;
+			mRow.maxY = Double.MIN_VALUE;
+			mRow.flags = 0;
+			mRow.next = null;
+			mRow.last = lastMRow;
+			if (lastMRow != null)
 			{
-				last_mrow.next = mrow;
+				lastMRow.next = mRow;
 			} else
 			{
-				data.rows = mrow;
+				data.rows = mRow;
 			}
-			last_mrow = mrow;
+			lastMRow = mRow;
 
 			// determine permissible top and bottom overlap
-			double toffset = Double.MIN_VALUE;
-			double boffset = Double.MAX_VALUE;
-			for (Place.SCNBPLACE place = row.start; place != null; place = place.next)
+			double tOffset = Double.MIN_VALUE;
+			double bOffset = Double.MAX_VALUE;
+			for (Place.NBPlace place = row.start; place != null; place = place.next)
 			{
-				if (place.cell.type != SilComp.SCLEAFCELL) continue;
-				SCCELLNUMS cNums = SilComp.Sc_leaf_cell_get_nums((Cell)place.cell.np);
-				toffset = Math.max(toffset, SilComp.Sc_leaf_cell_ysize((Cell)place.cell.np) - cNums.top_active);
-				boffset = Math.min(boffset, cNums.bottom_active);
+				if (place.cell.type != GetNetlist.LEAFCELL) continue;
+				GetNetlist.SCCellNums cNums = GetNetlist.getLeafCellNums((Cell)place.cell.np);
+				tOffset = Math.max(tOffset, SilComp.leafCellYSize((Cell)place.cell.np) - cNums.topActive);
+				bOffset = Math.min(bOffset, cNums.bottomActive);
 			}
-			ypos -= boffset;
+			yPos -= bOffset;
 
 			// create maker instance structure for each member in the row
-			SCMAKERINST last_minst = null;
-			for (Place.SCNBPLACE place = row.start; place != null; place = place.next)
+			MakerInst lastMInst = null;
+			for (Place.NBPlace place = row.start; place != null; place = place.next)
 			{
-				if (place.cell.type != SilComp.SCLEAFCELL &&
-					place.cell.type != SilComp.SCFEEDCELL &&
-					place.cell.type != SilComp.SCLATERALFEED) continue;
-				SCMAKERINST minst = new SCMAKERINST();
-				minst.place = place;
-				minst.row = mrow;
-				minst.xpos = place.xpos;
-				minst.ypos = ypos;
-				minst.xsize = place.cell.size;
-				if (place.cell.type == SilComp.SCLEAFCELL)
+				if (place.cell.type != GetNetlist.LEAFCELL &&
+					place.cell.type != GetNetlist.FEEDCELL &&
+					place.cell.type != GetNetlist.LATERALFEED) continue;
+				MakerInst mInst = new MakerInst();
+				mInst.place = place;
+				mInst.row = mRow;
+				mInst.xPos = place.xPos;
+				mInst.yPos = yPos;
+				mInst.xSize = place.cell.size;
+				if (place.cell.type == GetNetlist.LEAFCELL)
 				{
-					minst.ysize = SilComp.Sc_leaf_cell_ysize((Cell)place.cell.np);
+					mInst.ySize = SilComp.leafCellYSize((Cell)place.cell.np);
 
 					// add power ports
-					for (SilComp.SCNIPORT iport = place.cell.power; iport != null; iport = iport.next)
+					for (GetNetlist.SCNiPort iport = place.cell.power; iport != null; iport = iport.next)
 					{
-						SCMAKERPOWERPORT power_port = new SCMAKERPOWERPORT();
-						power_port.inst = minst;
-						power_port.port = iport;
-						if ((mrow.number % 2) != 0)
+						MakerPowerPort powerPort = new MakerPowerPort();
+						powerPort.inst = mInst;
+						powerPort.port = iport;
+						if ((mRow.number % 2) != 0)
 						{
-							power_port.xpos = minst.xpos + minst.xsize - iport.xpos;
+							powerPort.xPos = mInst.xPos + mInst.xSize - iport.xPos;
 						} else
 						{
-							power_port.xpos = minst.xpos + iport.xpos;
+							powerPort.xPos = mInst.xPos + iport.xPos;
 						}
-						power_port.next = null;
-						power_port.last = null;
-						double port_ypos = minst.ypos + SilComp.Sc_leaf_port_ypos((Export)iport.port);
-						SCMAKERPOWER plist;
-						for (plist = data.power; plist != null; plist = plist.next)
+						powerPort.next = null;
+						powerPort.last = null;
+						double portYPos = mInst.yPos + SilComp.leafPortYPos((Export)iport.port);
+						MakerPower pList;
+						for (pList = data.power; pList != null; pList = pList.next)
 						{
-							if (plist.ypos == port_ypos) break;
+							if (pList.yPos == portYPos) break;
 						}
-						if (plist == null)
+						if (pList == null)
 						{
-							plist = new SCMAKERPOWER();
-							plist.ports = null;
-							plist.ypos = port_ypos;
-							SCMAKERPOWER last_plist = null;
-							SCMAKERPOWER next_plist;
-							for (next_plist = data.power; next_plist != null;
-								next_plist = next_plist.next)
+							pList = new MakerPower();
+							pList.ports = null;
+							pList.yPos = portYPos;
+							MakerPower lastPList = null;
+							MakerPower nextPList;
+							for (nextPList = data.power; nextPList != null; nextPList = nextPList.next)
 							{
-								if (port_ypos < next_plist.ypos) break;
-								last_plist = next_plist;
+								if (portYPos < nextPList.yPos) break;
+								lastPList = nextPList;
 							}
-							plist.next = next_plist;
-							plist.last = last_plist;
-							if (last_plist != null)
+							pList.next = nextPList;
+							pList.last = lastPList;
+							if (lastPList != null)
 							{
-								last_plist.next = plist;
+								lastPList.next = pList;
 							} else
 							{
-								data.power = plist;
+								data.power = pList;
 							}
-							if (next_plist != null)
+							if (nextPList != null)
 							{
-								next_plist.last = plist;
+								nextPList.last = pList;
 							}
 						}
-						SCMAKERPOWERPORT last_port = null;
-						SCMAKERPOWERPORT next_port;
-						for (next_port = plist.ports; next_port != null;
-							next_port = next_port.next)
+						MakerPowerPort lastPort = null;
+						MakerPowerPort nextPort;
+						for (nextPort = pList.ports; nextPort != null; nextPort = nextPort.next)
 						{
-							if (power_port.xpos < next_port.xpos) break;
-							last_port = next_port;
+							if (powerPort.xPos < nextPort.xPos) break;
+							lastPort = nextPort;
 						}
-						power_port.next = next_port;
-						power_port.last = last_port;
-						if (last_port != null)
+						powerPort.next = nextPort;
+						powerPort.last = lastPort;
+						if (lastPort != null)
 						{
-							last_port.next = power_port;
+							lastPort.next = powerPort;
 						} else
 						{
-							plist.ports = power_port;
+							pList.ports = powerPort;
 						}
-						if (next_port != null)
+						if (nextPort != null)
 						{
-							next_port.last = power_port;
+							nextPort.last = powerPort;
 						}
 					}
 
 					// add ground ports
-					for (SilComp.SCNIPORT iport = place.cell.ground; iport != null; iport = iport.next)
+					for (GetNetlist.SCNiPort iPort = place.cell.ground; iPort != null; iPort = iPort.next)
 					{
-						SCMAKERPOWERPORT power_port = new SCMAKERPOWERPORT();
-						power_port.inst = minst;
-						power_port.port = iport;
-						if ((mrow.number % 2) != 0)
+						MakerPowerPort powerPort = new MakerPowerPort();
+						powerPort.inst = mInst;
+						powerPort.port = iPort;
+						if ((mRow.number % 2) != 0)
 						{
-							power_port.xpos = minst.xpos + minst.xsize -
-								iport.xpos;
+							powerPort.xPos = mInst.xPos + mInst.xSize - iPort.xPos;
 						} else
 						{
-							power_port.xpos = minst.xpos + iport.xpos;
+							powerPort.xPos = mInst.xPos + iPort.xPos;
 						}
-						power_port.next = null;
-						power_port.last = null;
-						double port_ypos = minst.ypos + SilComp.Sc_leaf_port_ypos((Export)iport.port);
-						SCMAKERPOWER plist;
-						for (plist = data.ground; plist != null; plist = plist.next)
+						powerPort.next = null;
+						powerPort.last = null;
+						double portYPos = mInst.yPos + SilComp.leafPortYPos((Export)iPort.port);
+						MakerPower pList;
+						for (pList = data.ground; pList != null; pList = pList.next)
 						{
-							if (plist.ypos == port_ypos) break;
+							if (pList.yPos == portYPos) break;
 						}
-						if (plist == null)
+						if (pList == null)
 						{
-							plist = new SCMAKERPOWER();
-							plist.ports = null;
-							plist.ypos = port_ypos;
-							SCMAKERPOWER last_plist = null;
-							SCMAKERPOWER next_plist;
-							for (next_plist = data.ground; next_plist != null; next_plist = next_plist.next)
+							pList = new MakerPower();
+							pList.ports = null;
+							pList.yPos = portYPos;
+							MakerPower lastPList = null;
+							MakerPower nextPList;
+							for (nextPList = data.ground; nextPList != null; nextPList = nextPList.next)
 							{
-								if (port_ypos < next_plist.ypos) break;
-								last_plist = next_plist;
+								if (portYPos < nextPList.yPos) break;
+								lastPList = nextPList;
 							}
-							plist.next = next_plist;
-							plist.last = last_plist;
-							if (last_plist != null)
+							pList.next = nextPList;
+							pList.last = lastPList;
+							if (lastPList != null)
 							{
-								last_plist.next = plist;
+								lastPList.next = pList;
 							} else
 							{
-								data.ground = plist;
+								data.ground = pList;
 							}
-							if (next_plist != null)
+							if (nextPList != null)
 							{
-								next_plist.last = plist;
+								nextPList.last = pList;
 							}
 						}
-						SCMAKERPOWERPORT last_port = null;
-						SCMAKERPOWERPORT next_port;
-						for (next_port = plist.ports; next_port != null; next_port = next_port.next)
+						MakerPowerPort lastPort = null;
+						MakerPowerPort nextPort;
+						for (nextPort = pList.ports; nextPort != null; nextPort = nextPort.next)
 						{
-							if (power_port.xpos < next_port.xpos) break;
-							last_port = next_port;
+							if (powerPort.xPos < nextPort.xPos) break;
+							lastPort = nextPort;
 						}
-						power_port.next = next_port;
-						power_port.last = last_port;
-						if (last_port != null)
+						powerPort.next = nextPort;
+						powerPort.last = lastPort;
+						if (lastPort != null)
 						{
-							last_port.next = power_port;
+							lastPort.next = powerPort;
 						} else
 						{
-							plist.ports = power_port;
+							pList.ports = powerPort;
 						}
-						if (next_port != null)
+						if (nextPort != null)
 						{
-							next_port.last = power_port;
+							nextPort.last = powerPort;
 						}
 					}
-				} else if (place.cell.type == SilComp.SCFEEDCELL)
+				} else if (place.cell.type == GetNetlist.FEEDCELL)
 				{
-					minst.ysize = boffset;
-				} else if (place.cell.type == SilComp.SCLATERALFEED)
+					mInst.ySize = bOffset;
+				} else if (place.cell.type == GetNetlist.LATERALFEED)
 				{
-					Route.SCROUTEPORT rport = (Route.SCROUTEPORT)place.cell.ports.port;
-					minst.ysize = SilComp.Sc_leaf_port_ypos((Export)rport.port.port);
+					Route.RoutePort rPort = (Route.RoutePort)place.cell.ports.port;
+					mInst.ySize = SilComp.leafPortYPos((Export)rPort.port.port);
 				} else
 				{
 					System.out.println("ERROR - unknown cell type in maker set up");
-					minst.ysize = 0;
+					mInst.ySize = 0;
 				}
-				minst.instance = null;
-				minst.flags = 0;
-				place.cell.tp = minst;
-				minst.next = null;
-				if (last_minst != null)
+				mInst.instance = null;
+				mInst.flags = 0;
+				place.cell.tp = mInst;
+				mInst.next = null;
+				if (lastMInst != null)
 				{
-					last_minst.next = minst;
+					lastMInst.next = mInst;
 				} else
 				{
-					mrow.members = minst;
+					mRow.members = mInst;
 				}
-				last_minst = minst;
+				lastMInst = mInst;
 
 				// set limits of row
-				mrow.minx = Math.min(mrow.minx, minst.xpos);
-				mrow.maxx = Math.max(mrow.maxx, minst.xpos + minst.xsize);
-				mrow.miny = Math.min(mrow.miny, minst.ypos);
-				mrow.maxy = Math.max(mrow.maxy, minst.ypos + minst.ysize);
+				mRow.minX = Math.min(mRow.minX, mInst.xPos);
+				mRow.maxX = Math.max(mRow.maxX, mInst.xPos + mInst.xSize);
+				mRow.minY = Math.min(mRow.minY, mInst.yPos);
+				mRow.maxY = Math.max(mRow.maxY, mInst.yPos + mInst.ySize);
 			}
-			data.minx = Math.min(data.minx, mrow.minx);
-			data.maxx = Math.max(data.maxx, mrow.maxx);
-			data.miny = Math.min(data.miny, mrow.miny);
-			data.maxy = Math.max(data.maxy, mrow.maxy);
-			ypos += toffset;
-			mchan = mchan.next;
-			mchan.miny = ypos;
-			ypos += mchan.ysize;
+			data.minX = Math.min(data.minX, mRow.minX);
+			data.maxX = Math.max(data.maxX, mRow.maxX);
+			data.minY = Math.min(data.minY, mRow.minY);
+			data.maxY = Math.max(data.maxY, mRow.maxY);
+			yPos += tOffset;
+			mChan = mChan.next;
+			mChan.minY = yPos;
+			yPos += mChan.ySize;
 		}
 
 		// create via list for all tracks
-		for (mchan = data.channels; mchan != null; mchan = mchan.next)
+		for (mChan = data.channels; mChan != null; mChan = mChan.next)
 		{
 			// get bottom track and work up
-			SCMAKERTRACK mtrack;
-			for (mtrack = mchan.tracks; mtrack != null; mtrack = mtrack.next)
+			MakerTrack mTrack;
+			for (mTrack = mChan.tracks; mTrack != null; mTrack = mTrack.next)
 			{
-				if (mtrack.next == null) break;
+				if (mTrack.next == null) break;
 			}
-			for ( ; mtrack != null; mtrack = mtrack.last)
+			for ( ; mTrack != null; mTrack = mTrack.last)
 			{
-				ypos = mchan.miny + (mchan.ysize - mtrack.ypos);
-				mtrack.ypos = ypos;
-				for (Route.SCROUTETRACKMEM mem = mtrack.track.nodes; mem != null; mem = mem.next)
+				yPos = mChan.minY + (mChan.ySize - mTrack.yPos);
+				mTrack.yPos = yPos;
+				for (Route.RouteTrackMem mem = mTrack.track.nodes; mem != null; mem = mem.next)
 				{
-					SCMAKERNODE mnode = new SCMAKERNODE();
-					mnode.vias = null;
-					mnode.next = mtrack.nodes;
-					mtrack.nodes = mnode;
-					SCMAKERVIA lastvia = null;
-					for (Route.SCROUTECHPORT chport = mem.node.firstport; chport != null; chport = chport.next)
+					MakerNode mNode = new MakerNode();
+					mNode.vias = null;
+					mNode.next = mTrack.nodes;
+					mTrack.nodes = mNode;
+					MakerVia lastVia = null;
+					for (Route.RouteChPort chPort = mem.node.firstPort; chPort != null; chPort = chPort.next)
 					{
-						SCMAKERVIA mvia = new SCMAKERVIA();
-						mvia.xpos = chport.xpos;
-						mvia.chport = chport;
-						mvia.instance = null;
-						mvia.flags = 0;
-						mvia.xport = null;
-						mvia.next = null;
-						if (lastvia != null)
+						MakerVia mVia = new MakerVia();
+						mVia.xPos = chPort.xPos;
+						mVia.chPort = chPort;
+						mVia.instance = null;
+						mVia.flags = 0;
+						mVia.xPort = null;
+						mVia.next = null;
+						if (lastVia != null)
 						{
-							lastvia.next = mvia;
+							lastVia.next = mVia;
 						} else
 						{
-							mnode.vias = mvia;
+							mNode.vias = mVia;
 						}
-						lastvia = mvia;
+						lastVia = mVia;
 
 						// check for power port
-						if (mvia.chport.port.place.cell.type == SilComp.SCLEAFCELL)
+						if (mVia.chPort.port.place.cell.type == GetNetlist.LEAFCELL)
 						{
-							int type = SilComp.Sc_leaf_port_type((Export)mvia.chport.port.port.port);
-							if (type == SilComp.SCPWRPORT || type == SilComp.SCGNDPORT)
-								mvia.flags |= SCVIAPOWER;
+							int type = GetNetlist.getLeafPortType((Export)mVia.chPort.port.port.port);
+							if (type == GetNetlist.PWRPORT || type == GetNetlist.GNDPORT)
+								mVia.flags |= VIAPOWER;
 						}
 
 						// check for export
-						for (Route.SCROUTEEXPORT xport = data.cell.route.exports; xport != null; xport = xport.next)
+						for (Route.RouteExport xPort = data.cell.route.exports; xPort != null; xPort = xPort.next)
 						{
-							if (xport.chport == mvia.chport)
+							if (xPort.chPort == mVia.chPort)
 							{
-								mvia.flags |= SCVIAEXPORT;
-								mvia.xport = xport;
+								mVia.flags |= VIAEXPORT;
+								mVia.xPort = xPort;
 								break;
 							}
 						}
 
-						data.minx = Math.min(data.minx, chport.xpos);
-						data.maxx = Math.max(data.maxx, chport.xpos);
-						data.miny = Math.min(data.miny, chport.xpos);
-						data.maxy = Math.max(data.maxy, chport.xpos);
+						data.minX = Math.min(data.minX, chPort.xPos);
+						data.maxX = Math.max(data.maxX, chPort.xPos);
+						data.minY = Math.min(data.minY, chPort.xPos);
+						data.maxY = Math.max(data.maxY, chPort.xPos);
 					}
 				}
 			}
@@ -620,53 +614,53 @@ public class Maker
 	 * the passed layout data.
 	 * @param data pointer to layout data.
 	 */
-	private static Object Sc_maker_create_layout(SCMAKERDATA data)
+	private Object createLayout(MakerData data)
 	{
-		double row_to_track = (SilComp.getViaSize() / 2) + SilComp.getMinMetalSpacing();
-		double track_to_track = SilComp.getViaSize() + SilComp.getMinMetalSpacing();
+		double rowToTrack = (SilComp.getViaSize() / 2) + SilComp.getMinMetalSpacing();
+		double trackToTtrack = SilComp.getViaSize() + SilComp.getMinMetalSpacing();
 
-		String err = Sc_setup_for_maker();
+		String err = setupForMaker();
 		if (err != null) return err;
 
 		// create new cell
-		Cell bcell = Cell.makeInstance(Library.getCurrent(), data.cell.name + "{lay}");
-		if (bcell == null) return "Cannot create leaf cell '" + data.cell.name + "{lay}' in MAKER";
+		Cell bCell = Cell.makeInstance(Library.getCurrent(), data.cell.name + "{lay}");
+		if (bCell == null) return "Cannot create leaf cell '" + data.cell.name + "{lay}' in MAKER";
 
 		// create instances for cell
-		for (SCMAKERROW row = data.rows; row != null; row = row.next)
+		for (MakerRow row = data.rows; row != null; row = row.next)
 		{
 			boolean flipX = false;
 			if ((row.number % 2) != 0) flipX = true;
-			for (SCMAKERINST inst = row.members; inst != null; inst = inst.next)
+			for (MakerInst inst = row.members; inst != null; inst = inst.next)
 			{
-				SilComp.SCNITREE node = inst.place.cell;
-				if (node.type == SilComp.SCLEAFCELL)
+				GetNetlist.SCNiTree node = inst.place.cell;
+				if (node.type == GetNetlist.LEAFCELL)
 				{
 					Cell subCell = (Cell)node.np;
 					Rectangle2D bounds = subCell.getBounds();
-					double wid = inst.xsize;
+					double wid = inst.xSize;
 					double hEdge = -bounds.getMinX();
 					if (flipX)
 					{
 						wid = -wid;
 						hEdge = bounds.getMaxX();
 					}
-					Point2D ctr = new Point2D.Double(inst.xpos + hEdge, inst.ypos - bounds.getMinY());
-					inst.instance = NodeInst.makeInstance(subCell, ctr, wid, inst.ysize, bcell, 0, node.name, 0);
+					Point2D ctr = new Point2D.Double(inst.xPos + hEdge, inst.yPos - bounds.getMinY());
+					inst.instance = NodeInst.makeInstance(subCell, ctr, wid, inst.ySize, bCell, 0, node.name, 0);
 					if (inst.instance == null)
 						return "Cannot create leaf instance '" + node.name+ "' in MAKER";
-				} else if (node.type == SilComp.SCFEEDCELL)
+				} else if (node.type == GetNetlist.FEEDCELL)
 				{
 					// feed through node
-					Point2D ctr = new Point2D.Double(inst.xpos + (inst.xsize / 2), inst.ypos + inst.ysize + SilComp.getVertArcWidth() / 2);
-					inst.instance = NodeInst.makeInstance(sc_layer2proto, ctr, SilComp.getVertArcWidth(), SilComp.getVertArcWidth(), bcell);
+					Point2D ctr = new Point2D.Double(inst.xPos + (inst.xSize / 2), inst.yPos + inst.ySize + SilComp.getVertArcWidth() / 2);
+					inst.instance = NodeInst.makeInstance(layer2Proto, ctr, SilComp.getVertArcWidth(), SilComp.getVertArcWidth(), bCell);
 					if (inst.instance == null)
 						return "Cannot create leaf feed in MAKER";
-				} else if (node.type == SilComp.SCLATERALFEED)
+				} else if (node.type == GetNetlist.LATERALFEED)
 				{
 					// lateral feed node
-					Point2D ctr = new Point2D.Double(inst.xpos + (inst.xsize / 2), inst.ypos + inst.ysize);
-					inst.instance = NodeInst.makeInstance(sc_viaproto, ctr, sc_viaproto.getDefWidth(), sc_viaproto.getDefHeight(), bcell);
+					Point2D ctr = new Point2D.Double(inst.xPos + (inst.xSize / 2), inst.yPos + inst.ySize);
+					inst.instance = NodeInst.makeInstance(viaProto, ctr, viaProto.getDefWidth(), viaProto.getDefHeight(), bCell);
 					if (inst.instance == null)
 						return "Cannot create via in MAKER";
 				}
@@ -674,25 +668,25 @@ public class Maker
 		}
 
 		// create vias and vertical tracks
-		for (SCMAKERCHANNEL chan = data.channels; chan != null; chan = chan.next)
+		for (MakerChannel chan = data.channels; chan != null; chan = chan.next)
 		{
-			for (SCMAKERTRACK track = chan.tracks; track != null; track = track.next)
+			for (MakerTrack track = chan.tracks; track != null; track = track.next)
 			{
-				for (SCMAKERNODE mnode = track.nodes; mnode != null; mnode = mnode.next)
+				for (MakerNode mNode = track.nodes; mNode != null; mNode = mNode.next)
 				{
-					for (SCMAKERVIA via = mnode.vias; via != null; via = via.next)
+					for (MakerVia via = mNode.vias; via != null; via = via.next)
 					{
-						if ((via.flags & SCVIAPOWER) != 0)
+						if ((via.flags & VIAPOWER) != 0)
 						{
-							via.instance = NodeInst.makeInstance(sc_layer1proto, new Point2D.Double(via.xpos, track.ypos),
-								SilComp.getHorizArcWidth(), SilComp.getHorizArcWidth(), bcell);
+							via.instance = NodeInst.makeInstance(layer1Proto, new Point2D.Double(via.xPos, track.yPos),
+								SilComp.getHorizArcWidth(), SilComp.getHorizArcWidth(), bCell);
 							if (via.instance == null)
 								return "Cannot create via in MAKER";
 
 							// create vertical power track
-							SCMAKERINST inst = (SCMAKERINST)via.chport.port.place.cell.tp;
-							if (Sc_create_track_layer1(inst.instance, (PortProto)via.chport.port.port.port,
-								via.instance, null, SilComp.getHorizArcWidth(), bcell) == null)
+							MakerInst inst = (MakerInst)via.chPort.port.place.cell.tp;
+							if (trackLayer1(inst.instance, (PortProto)via.chPort.port.port.port,
+								via.instance, null, SilComp.getHorizArcWidth(), bCell) == null)
 							{
 								return "Cannot create layer2 track in MAKER";
 							}
@@ -701,49 +695,49 @@ public class Maker
 
 						// create a via if next via (if it exists) is farther
 						// than the track to track spacing, else create a layer2 node
-						if (via.next != null && (via.next.flags & SCVIAPOWER) == 0)
+						if (via.next != null && (via.next.flags & VIAPOWER) == 0)
 						{
-							if (Math.abs(via.next.xpos - via.xpos) < track_to_track)
+							if (Math.abs(via.next.xPos - via.xPos) < trackToTtrack)
 							{
-								if ((via.flags & SCVIAEXPORT) != 0)
+								if ((via.flags & VIAEXPORT) != 0)
 								{
-									via.next.flags |= SCVIASPECIAL;
+									via.next.flags |= VIASPECIAL;
 								} else
 								{
-									via.flags |= SCVIASPECIAL;
+									via.flags |= VIASPECIAL;
 								}
 							}
 						}
-						if ((via.flags & SCVIASPECIAL) != 0)
+						if ((via.flags & VIASPECIAL) != 0)
 						{
-							via.instance = NodeInst.makeInstance(sc_layer2proto, new Point2D.Double(via.xpos, track.ypos),
-								SilComp.getVertArcWidth(), SilComp.getVertArcWidth(), bcell);
+							via.instance = NodeInst.makeInstance(layer2Proto, new Point2D.Double(via.xPos, track.yPos),
+								SilComp.getVertArcWidth(), SilComp.getVertArcWidth(), bCell);
 							if (via.instance == null)
 								return "Cannot create leaf feed in MAKER";
 						} else
 						{
-							via.instance = NodeInst.makeInstance(sc_viaproto, new Point2D.Double(via.xpos, track.ypos),
-								sc_viaproto.getDefWidth(), sc_viaproto.getDefHeight(), bcell);
+							via.instance = NodeInst.makeInstance(viaProto, new Point2D.Double(via.xPos, track.yPos),
+								viaProto.getDefWidth(), viaProto.getDefHeight(), bCell);
 							if (via.instance == null)
 								return "Cannot create via in MAKER";
 						}
 
 						// create vertical track
-						SilComp.SCNITREE node = via.chport.port.place.cell;
-						if (node.type == SilComp.SCLEAFCELL)
+						GetNetlist.SCNiTree node = via.chPort.port.place.cell;
+						if (node.type == GetNetlist.LEAFCELL)
 						{
-							SCMAKERINST inst = (SCMAKERINST)node.tp;
-							if (Sc_create_track_layer2(inst.instance, (PortProto)via.chport.port.port.port,
-								via.instance, null, SilComp.getVertArcWidth(), bcell) == null)
+							MakerInst inst = (MakerInst)node.tp;
+							if (trackLayer2(inst.instance, (PortProto)via.chPort.port.port.port,
+								via.instance, null, SilComp.getVertArcWidth(), bCell) == null)
 							{
 								return "Cannot create layer2 track in MAKER";
 							}
-						} else if (node.type == SilComp.SCFEEDCELL ||
-							node.type == SilComp.SCLATERALFEED)
+						} else if (node.type == GetNetlist.FEEDCELL ||
+							node.type == GetNetlist.LATERALFEED)
 						{
-							SCMAKERINST inst = (SCMAKERINST)node.tp;
-							if (Sc_create_track_layer2(inst.instance, null,
-								via.instance, null, SilComp.getVertArcWidth(), bcell) == null)
+							MakerInst inst = (MakerInst)node.tp;
+							if (trackLayer2(inst.instance, null,
+								via.instance, null, SilComp.getVertArcWidth(), bCell) == null)
 							{
 								return "Cannot create layer2 track in MAKER";
 							}
@@ -754,43 +748,43 @@ public class Maker
 		}
 
 		// create horizontal tracks
-		for (SCMAKERCHANNEL chan = data.channels; chan != null; chan = chan.next)
+		for (MakerChannel chan = data.channels; chan != null; chan = chan.next)
 		{
-			for (SCMAKERTRACK track = chan.tracks; track != null; track = track.next)
+			for (MakerTrack track = chan.tracks; track != null; track = track.next)
 			{
-				for (SCMAKERNODE mnode = track.nodes; mnode != null; mnode = mnode.next)
+				for (MakerNode mNode = track.nodes; mNode != null; mNode = mNode.next)
 				{
-					for (SCMAKERVIA via = mnode.vias; via != null; via = via.next)
+					for (MakerVia via = mNode.vias; via != null; via = via.next)
 					{
 						if (via.next != null)
 						{
-							if ((via.flags & SCVIASPECIAL) != 0)
+							if ((via.flags & VIASPECIAL) != 0)
 							{
-								if (Math.abs(via.next.xpos - via.xpos) < track_to_track)
+								if (Math.abs(via.next.xPos - via.xPos) < trackToTtrack)
 								{
-									if (Sc_create_track_layer2(via.instance, null,
-										via.next.instance, null, SilComp.getVertArcWidth(), bcell) == null)
+									if (trackLayer2(via.instance, null,
+										via.next.instance, null, SilComp.getVertArcWidth(), bCell) == null)
 									{
 										return "Cannot create layer1 track in MAKER";
 									}
 								}
 							} else
 							{
-								if ((via.flags & SCVIAPOWER) == 0 &&
-									(via.next.flags & SCVIAPOWER) == 0 &&
-									(via.next.xpos - via.xpos) < track_to_track)
+								if ((via.flags & VIAPOWER) == 0 &&
+									(via.next.flags & VIAPOWER) == 0 &&
+									(via.next.xPos - via.xPos) < trackToTtrack)
 								{
-									if (Sc_create_track_layer2(via.instance, null,
-										via.next.instance, null, SilComp.getVertArcWidth(), bcell) == null)
+									if (trackLayer2(via.instance, null,
+										via.next.instance, null, SilComp.getVertArcWidth(), bCell) == null)
 									{
 										return "Cannot create layer1 track in MAKER";
 									}
 								}
-								for (SCMAKERVIA via2 = via.next; via2 != null; via2 = via2.next)
+								for (MakerVia via2 = via.next; via2 != null; via2 = via2.next)
 								{
-									if ((via2.flags & SCVIASPECIAL) != 0) continue;
-									if (Sc_create_track_layer1(via.instance, null, via2.instance, null,
-										SilComp.getHorizArcWidth(), bcell) == null)
+									if ((via2.flags & VIASPECIAL) != 0) continue;
+									if (trackLayer1(via.instance, null, via2.instance, null,
+										SilComp.getHorizArcWidth(), bCell) == null)
 									{
 										return "Cannot create layer1 track in MAKER";
 									}
@@ -804,35 +798,35 @@ public class Maker
 		}
 
 		// create stitches and lateral feeds
-		for (Place.SCROWLIST rlist = data.cell.placement.rows; rlist != null; rlist = rlist.next)
+		for (Place.RowList rlist = data.cell.placement.rows; rlist != null; rlist = rlist.next)
 		{
-			for (Place.SCNBPLACE place = rlist.start; place != null; place = place.next)
+			for (Place.NBPlace place = rlist.start; place != null; place = place.next)
 			{
-				if (place.cell.type == SilComp.SCSTITCH)
+				if (place.cell.type == GetNetlist.STITCH)
 				{
-					Route.SCROUTEPORT rport = (Route.SCROUTEPORT)place.cell.ports.port;
-					SCMAKERINST inst = (SCMAKERINST)rport.place.cell.tp;
+					Route.RoutePort rPort = (Route.RoutePort)place.cell.ports.port;
+					MakerInst inst = (MakerInst)rPort.place.cell.tp;
 					NodeInst inst1 = inst.instance;
-					PortProto port1 = (PortProto)rport.port.port;
-					rport = (Route.SCROUTEPORT)place.cell.ports.next.port;
-					inst = (SCMAKERINST)rport.place.cell.tp;
+					PortProto port1 = (PortProto)rPort.port.port;
+					rPort = (Route.RoutePort)place.cell.ports.next.port;
+					inst = (MakerInst)rPort.place.cell.tp;
 					NodeInst inst2 = inst.instance;
-					PortProto port2 = (PortProto)rport.port.port;
-					if (Sc_create_track_layer1(inst1, port1, inst2, port2,
-						SilComp.getHorizArcWidth(), bcell) == null)
+					PortProto port2 = (PortProto)rPort.port.port;
+					if (trackLayer1(inst1, port1, inst2, port2,
+						SilComp.getHorizArcWidth(), bCell) == null)
 					{
 						return "Cannot create layer1 track in MAKER";
 					}
-				} else if (place.cell.type == SilComp.SCLATERALFEED)
+				} else if (place.cell.type == GetNetlist.LATERALFEED)
 				{
-					Route.SCROUTEPORT rport = (Route.SCROUTEPORT)place.cell.ports.port;
-					SCMAKERINST inst = (SCMAKERINST)rport.place.cell.tp;
+					Route.RoutePort rPort = (Route.RoutePort)place.cell.ports.port;
+					MakerInst inst = (MakerInst)rPort.place.cell.tp;
 					NodeInst inst1 = inst.instance;
-					PortProto port1 = (PortProto)rport.port.port;
-					inst = (SCMAKERINST)place.cell.tp;
+					PortProto port1 = (PortProto)rPort.port.port;
+					inst = (MakerInst)place.cell.tp;
 					NodeInst inst2 = inst.instance;
-					if (Sc_create_track_layer1(inst1, port1, inst2, null,
-						SilComp.getHorizArcWidth(), bcell) == null)
+					if (trackLayer1(inst1, port1, inst2, null,
+						SilComp.getHorizArcWidth(), bCell) == null)
 					{
 						return "Cannot create layer2 track in MAKER";
 					}
@@ -841,20 +835,20 @@ public class Maker
 		}
 
 		// export ports
-		for (SCMAKERCHANNEL chan = data.channels; chan != null; chan = chan.next)
+		for (MakerChannel chan = data.channels; chan != null; chan = chan.next)
 		{
-			for (SCMAKERTRACK track = chan.tracks; track != null; track = track.next)
+			for (MakerTrack track = chan.tracks; track != null; track = track.next)
 			{
-				for (SCMAKERNODE mnode = track.nodes; mnode != null; mnode = mnode.next)
+				for (MakerNode mNode = track.nodes; mNode != null; mNode = mNode.next)
 				{
-					for (SCMAKERVIA via = mnode.vias; via != null; via = via.next)
+					for (MakerVia via = mNode.vias; via != null; via = via.next)
 					{
-						if ((via.flags & SCVIAEXPORT) != 0)
+						if ((via.flags & VIAEXPORT) != 0)
 						{
-							if (Sc_create_export_port(via.instance, null,
-								via.xport.xport.name, via.xport.xport.bits & SilComp.SCPORTTYPE, bcell) == null)
+							if (exportPort(via.instance, null,
+								via.xPort.xPort.name, via.xPort.xPort.bits & GetNetlist.PORTTYPE, bCell) == null)
 							{
-								return "Cannot create export port '" + via.xport.xport.name + "' in MAKER";
+								return "Cannot create export port '" + via.xPort.xPort.name + "' in MAKER";
 							}
 						}
 					}
@@ -863,68 +857,68 @@ public class Maker
 		}
 
 		// create power buses
-		NodeInst lastpower = null;
-		double xpos = data.minx - row_to_track - (SilComp.getMainPowerWireWidth()/ 2);
+		NodeInst lastPower = null;
+		double xPos = data.minX - rowToTrack - (SilComp.getMainPowerWireWidth()/ 2);
 
-		int mainpwrrail = 0; // ScGetParameter(SC_PARAM_MAKE_MAIN_PWR_RAIL);
+		String mainPowerArc = SilComp.getMainPowerArc();
+		boolean mainPwrRailHoriz = mainPowerArc.equals("Horizontal Arc");
 
-		for (SCMAKERPOWER plist = data.power; plist != null; plist = plist.next)
+		for (MakerPower pList = data.power; pList != null; pList = pList.next)
 		{
-			double ypos = plist.ypos;
+			double yPos = pList.yPos;
 
 			// create main power bus node
-			NodeInst binst = null;
-			if (mainpwrrail == 0)
+			NodeInst bInst = null;
+			if (mainPwrRailHoriz)
 			{
-				binst = NodeInst.makeInstance(sc_layer1proto, new Point2D.Double(xpos, ypos),
-					SilComp.getMainPowerWireWidth(), SilComp.getMainPowerWireWidth(), bcell);
+				bInst = NodeInst.makeInstance(layer1Proto, new Point2D.Double(xPos, yPos),
+					SilComp.getMainPowerWireWidth(), SilComp.getMainPowerWireWidth(), bCell);
 			} else
 			{
-				binst = NodeInst.makeInstance(sc_layer2proto, new Point2D.Double(xpos, ypos),
-					SilComp.getMainPowerWireWidth(), SilComp.getMainPowerWireWidth(), bcell);
+				bInst = NodeInst.makeInstance(layer2Proto, new Point2D.Double(xPos, yPos),
+					SilComp.getMainPowerWireWidth(), SilComp.getMainPowerWireWidth(), bCell);
 			}
-			if (binst == null)
+			if (bInst == null)
 				return "Cannot create via in MAKER";
-			if (lastpower != null)
+			if (lastPower != null)
 			{
 				// join to previous
-				if (mainpwrrail == 0)
+				if (mainPwrRailHoriz)
 				{
-					if (Sc_create_track_layer1(binst, null, lastpower, null,
-						SilComp.getMainPowerWireWidth(), bcell) == null)
+					if (trackLayer1(bInst, null, lastPower, null,
+						SilComp.getMainPowerWireWidth(), bCell) == null)
 					{
 						return "Cannot create layer1 track in MAKER";
 					}
 				} else
 				{
-					if (Sc_create_track_layer2(binst, null, lastpower, null,
-						SilComp.getMainPowerWireWidth(), bcell) == null)
+					if (trackLayer2(bInst, null, lastPower, null,
+						SilComp.getMainPowerWireWidth(), bCell) == null)
 					{
 						return "Cannot create layer1 track in MAKER";
 					}
 				}
 			}
-			lastpower = binst;
+			lastPower = bInst;
 
-			for (SCMAKERPOWERPORT pport = plist.ports; pport != null; pport = pport.next)
+			for (MakerPowerPort pPort = pList.ports; pPort != null; pPort = pPort.next)
 			{
-				if (pport.last == null)
+				if (pPort.last == null)
 				{
 					// connect to main power node
-					if (Sc_create_track_layer1(lastpower, null,
-						pport.inst.instance, (PortProto)pport.port.port,
-						SilComp.getPowerWireWidth(), bcell) == null)
+					if (trackLayer1(lastPower, null, pPort.inst.instance, (PortProto)pPort.port.port,
+						SilComp.getPowerWireWidth(), bCell) == null)
 					{
 						return "Cannot create layer1 track in MAKER";
 					}
 				}
 
 				// connect to next if it exists
-				if (pport.next != null)
+				if (pPort.next != null)
 				{
-					if (Sc_create_track_layer1(pport.inst.instance, (PortProto)pport.port.port,
-						pport.next.inst.instance, (PortProto)pport.next.port.port,
-						SilComp.getPowerWireWidth(), bcell) == null)
+					if (trackLayer1(pPort.inst.instance, (PortProto)pPort.port.port,
+							pPort.next.inst.instance, (PortProto)pPort.next.port.port,
+							SilComp.getPowerWireWidth(), bCell) == null)
 					{
 						return "Cannot create layer1 track in MAKER";
 					}
@@ -933,60 +927,59 @@ public class Maker
 		}
 
 		// create ground buses
-		NodeInst lastground = null;
-		xpos = data.maxx + row_to_track + (SilComp.getMainPowerWireWidth() / 2);
+		NodeInst lastGround = null;
+		xPos = data.maxX + rowToTrack + (SilComp.getMainPowerWireWidth() / 2);
 
-		for (SCMAKERPOWER plist = data.ground; plist != null; plist = plist.next)
+		for (MakerPower pList = data.ground; pList != null; pList = pList.next)
 		{
-			double ypos = plist.ypos;
+			double yPos = pList.yPos;
 
 			// create main ground bus node
-			NodeInst binst = null;
-			if (mainpwrrail == 0)
+			NodeInst bInst = null;
+			if (mainPwrRailHoriz)
 			{
-				binst = NodeInst.makeInstance(sc_layer1proto, new Point2D.Double(xpos, ypos),
-					SilComp.getMainPowerWireWidth(), SilComp.getMainPowerWireWidth(), bcell);
+				bInst = NodeInst.makeInstance(layer1Proto, new Point2D.Double(xPos, yPos),
+					SilComp.getMainPowerWireWidth(), SilComp.getMainPowerWireWidth(), bCell);
 			} else
 			{
-				binst = NodeInst.makeInstance(sc_layer2proto, new Point2D.Double(xpos, ypos),
-					SilComp.getMainPowerWireWidth(), SilComp.getMainPowerWireWidth(), bcell);
+				bInst = NodeInst.makeInstance(layer2Proto, new Point2D.Double(xPos, yPos),
+					SilComp.getMainPowerWireWidth(), SilComp.getMainPowerWireWidth(), bCell);
 			}
-			if (binst == null) return "Cannot create via in MAKER";
-			if (lastground != null)
+			if (bInst == null) return "Cannot create via in MAKER";
+			if (lastGround != null)
 			{
 				// join to previous
-				if (mainpwrrail == 0)
+				if (mainPwrRailHoriz)
 				{
-					if (Sc_create_track_layer1(binst, null, lastground, null,
-						SilComp.getMainPowerWireWidth(), bcell) == null)
+					if (trackLayer1(bInst, null, lastGround, null,
+						SilComp.getMainPowerWireWidth(), bCell) == null)
 					{
 						return "Cannot create layer1 track in MAKER";
 					}
 				} else
 				{
-					if (Sc_create_track_layer2(binst, null, lastground, null,
-						SilComp.getMainPowerWireWidth(), bcell) == null)
+					if (trackLayer2(bInst, null, lastGround, null,
+						SilComp.getMainPowerWireWidth(), bCell) == null)
 					{
 						return "Cannot create layer1 track in MAKER";
 					}
 				}
 			} else
 			{
-				if (Sc_create_export_port(binst, null, "gnd", SilComp.SCGNDPORT, bcell) == null)
+				if (exportPort(bInst, null, "gnd", GetNetlist.GNDPORT, bCell) == null)
 				{
 					return "Cannot create export port 'gnd' in MAKER";
 				}
 			}
-			lastground = binst;
+			lastGround = bInst;
 
-			for (SCMAKERPOWERPORT pport = plist.ports; pport != null; pport = pport.next)
+			for (MakerPowerPort pPort = pList.ports; pPort != null; pPort = pPort.next)
 			{
-				if (pport.next == null)
+				if (pPort.next == null)
 				{
 					// connect to main ground node
-					if (Sc_create_track_layer1(lastground, null,
-						pport.inst.instance, (PortProto)pport.port.port,
-						SilComp.getPowerWireWidth(), bcell) == null)
+					if (trackLayer1(lastGround, null, pPort.inst.instance, (PortProto)pPort.port.port,
+						SilComp.getPowerWireWidth(), bCell) == null)
 					{
 						return "Cannot create layer1 track in MAKER";
 					}
@@ -994,19 +987,19 @@ public class Maker
 				// connect to next if it exists
 				else
 				{
-					if (Sc_create_track_layer1(pport.inst.instance, (PortProto)pport.port.port,
-						pport.next.inst.instance, (PortProto)pport.next.port.port,
-						SilComp.getPowerWireWidth(), bcell) == null)
+					if (trackLayer1(pPort.inst.instance, (PortProto)pPort.port.port,
+							pPort.next.inst.instance, (PortProto)pPort.next.port.port,
+							SilComp.getPowerWireWidth(), bCell) == null)
 					{
 						return "Cannot create layer1 track in MAKER";
 					}
 				}
 			}
 		}
-		if (lastpower != null)
+		if (lastPower != null)
 		{
 			// export as cell vdd
-			if (Sc_create_export_port(lastpower, null, "vdd", SilComp.SCPWRPORT, bcell) == null)
+			if (exportPort(lastPower, null, "vdd", GetNetlist.PWRPORT, bCell) == null)
 			{
 				return "Cannot create export port 'vdd' in MAKER";
 			}
@@ -1015,47 +1008,47 @@ public class Maker
 		// create overall P-wells if pwell size not zero
 		if (SilComp.getPWellHeight() != 0)
 		{
-			for (SCMAKERROW row = data.rows; row != null; row = row.next)
+			for (MakerRow row = data.rows; row != null; row = row.next)
 			{
-				SCMAKERINST firstinst = null;
-				SCMAKERINST previnst = null;
-				for (SCMAKERINST inst = row.members; inst != null; inst = inst.next)
+				MakerInst firstInst = null;
+				MakerInst prevInst = null;
+				for (MakerInst inst = row.members; inst != null; inst = inst.next)
 				{
-					if (inst.place.cell.type != SilComp.SCLEAFCELL) continue;
-					if (firstinst == null)
+					if (inst.place.cell.type != GetNetlist.LEAFCELL) continue;
+					if (firstInst == null)
 					{
-						firstinst = inst;
+						firstInst = inst;
 					} else
 					{
-						previnst = inst;
+						prevInst = inst;
 					}
 				}
-				if (previnst != null)
+				if (prevInst != null)
 				{
-					xpos = (firstinst.xpos + previnst.xpos + previnst.xsize) / 2;
-					double xsize = (previnst.xpos + previnst.xsize) - firstinst.xpos;
-					double ysize = SilComp.getPWellHeight();
-					if (ysize > 0)
+					xPos = (firstInst.xPos + prevInst.xPos + prevInst.xSize) / 2;
+					double xSize = (prevInst.xPos + prevInst.xSize) - firstInst.xPos;
+					double ySize = SilComp.getPWellHeight();
+					if (ySize > 0)
 					{
-						double ypos = firstinst.ypos + SilComp.getPWellOffset() +
+						double yPos = firstInst.yPos + SilComp.getPWellOffset() +
 							(SilComp.getPWellHeight() / 2);
-						if (sc_pwellproto != null)
+						if (pWellProto != null)
 						{
-							NodeInst binst = NodeInst.makeInstance(sc_pwellproto, new Point2D.Double(xpos, ypos), xsize, ysize, bcell);
-							if (binst == null)
+							NodeInst bInst = NodeInst.makeInstance(pWellProto, new Point2D.Double(xPos, yPos), xSize, ySize, bCell);
+							if (bInst == null)
 								return "Unable to create P-WELL in MAKER";
 						}
 					}
 
-					ysize = SilComp.getNWellHeight();
-					if (ysize > 0)
+					ySize = SilComp.getNWellHeight();
+					if (ySize > 0)
 					{
-						double ypos = firstinst.ypos + firstinst.ysize - SilComp.getNWellOffset() -
+						double yPos = firstInst.yPos + firstInst.ySize - SilComp.getNWellOffset() -
 							(SilComp.getNWellHeight() / 2);
-						if (sc_nwellproto != null)
+						if (nWellProto != null)
 						{
-							NodeInst binst = NodeInst.makeInstance(sc_nwellproto, new Point2D.Double(xpos, ypos), xsize, ysize, bcell);
-							if (binst == null)
+							NodeInst bInst = NodeInst.makeInstance(nWellProto, new Point2D.Double(xPos, yPos), xSize, ySize, bCell);
+							if (bInst == null)
 								return "Unable to create N-WELL in MAKER";
 						}
 					}
@@ -1063,7 +1056,7 @@ public class Maker
 			}
 		}
 
-		return bcell;
+		return bCell;
 	}
 
 	/**
@@ -1073,25 +1066,25 @@ public class Maker
 	 * @param port pointer to port on the instance.
 	 * @param name name of the Export.
 	 * @param type type of port (eg. input, output, etc.)
-	 * @param bcell cell in which to create.
+	 * @param bCell cell in which to create.
 	 * @return the new Export (null on error).
 	 */
-	private static Export Sc_create_export_port(NodeInst inst, PortProto port, String name, int type, Cell bcell)
+	private Export exportPort(NodeInst inst, PortProto port, String name, int type, Cell bCell)
 	{
 		// check if primative
 		if (port == null)
 			port = inst.getProto().getPort(0);
 
 		PortInst pi = inst.findPortInstFromProto(port);
-		Export xPort = Export.newInstance(bcell, pi, name);
+		Export xPort = Export.newInstance(bCell, pi, name);
 		if (xPort == null) return null;
 		switch (type)
 		{
-			case SilComp.SCINPORT:    xPort.setCharacteristic(PortCharacteristic.IN);     break;
-			case SilComp.SCOUTPORT:   xPort.setCharacteristic(PortCharacteristic.OUT);    break;
-			case SilComp.SCBIDIRPORT: xPort.setCharacteristic(PortCharacteristic.BIDIR);  break;
-			case SilComp.SCPWRPORT:   xPort.setCharacteristic(PortCharacteristic.PWR);    break;
-			default:                  xPort.setCharacteristic(PortCharacteristic.GND);    break;
+			case GetNetlist.INPORT:    xPort.setCharacteristic(PortCharacteristic.IN);     break;
+			case GetNetlist.OUTPORT:   xPort.setCharacteristic(PortCharacteristic.OUT);    break;
+			case GetNetlist.BIDIRPORT: xPort.setCharacteristic(PortCharacteristic.BIDIR);  break;
+			case GetNetlist.PWRPORT:   xPort.setCharacteristic(PortCharacteristic.PWR);    break;
+			default:                   xPort.setCharacteristic(PortCharacteristic.GND);    break;
 		}
 		return xPort;
 	}
@@ -1104,10 +1097,10 @@ public class Maker
 	 * @param instB pointer to second instance.
 	 * @param portB pointer to second port.
 	 * @param width width of track.
-	 * @param bcell cell in which to create.
+	 * @param bCell cell in which to create.
 	 * @return the created ArcInst.
 	 */
-	private static ArcInst Sc_create_track_layer1(NodeInst instA, PortProto portA, NodeInst instB, PortProto portB, double width, Cell bcell)
+	private ArcInst trackLayer1(NodeInst instA, PortProto portA, NodeInst instB, PortProto portB, double width, Cell bCell)
 	{
 		// copy into internal structures
 		if (portA == null) portA = instA.getProto().getPort(0);
@@ -1124,18 +1117,18 @@ public class Maker
 		double yB = polyB.getCenterY();
 
 		// make sure the arc can connect
-		if (!portA.getBasePort().connectsTo(sc_layer1arc))
+		if (!portA.getBasePort().connectsTo(layer1Arc))
 		{
 			// must place a via
-			piA = Sc_create_connection(piA, xA, yA, sc_layer1arc);
+			piA = createConnection(piA, xA, yA, layer1Arc);
 		}
-		if (!portB.getBasePort().connectsTo(sc_layer1arc))
+		if (!portB.getBasePort().connectsTo(layer1Arc))
 		{
 			// must place a via
-			piB = Sc_create_connection(piB, xB, yB, sc_layer1arc);
+			piB = createConnection(piB, xB, yB, layer1Arc);
 		}
 
-		ArcInst inst = ArcInst.makeInstance(sc_layer1arc, width, piA, piB);
+		ArcInst inst = ArcInst.makeInstance(layer1Arc, width, piA, piB);
 		return inst;
 	}
 
@@ -1147,10 +1140,10 @@ public class Maker
 	 * @param instB pointer to second instance.
 	 * @param portB pointer to second port.
 	 * @param width width of track.
-	 * @param bcell cell in which to create.
+	 * @param bCell cell in which to create.
 	 * @return the created ArcInst.
 	 */
-	private static ArcInst Sc_create_track_layer2(NodeInst instA, PortProto portA, NodeInst instB, PortProto portB, double width, Cell bcell)
+	private ArcInst trackLayer2(NodeInst instA, PortProto portA, NodeInst instB, PortProto portB, double width, Cell bCell)
 	{
 		// copy into internal structures
 		if (portA == null) portA = instA.getProto().getPort(0);
@@ -1167,34 +1160,34 @@ public class Maker
 		double yB = polyB.getCenterY();
 
 		// make sure the arc can connect
-		if (!portA.getBasePort().connectsTo(sc_layer2arc))
+		if (!portA.getBasePort().connectsTo(layer2Arc))
 		{
 			// must place a via
-			piA = Sc_create_connection(piA, xA, yA, sc_layer1arc);
+			piA = createConnection(piA, xA, yA, layer1Arc);
 		}
-		if (!portB.getBasePort().connectsTo(sc_layer2arc))
+		if (!portB.getBasePort().connectsTo(layer2Arc))
 		{
 			// must place a via
-			piB = Sc_create_connection(piB, xB, yB, sc_layer1arc);
+			piB = createConnection(piB, xB, yB, layer1Arc);
 		}
 
-		ArcInst inst = ArcInst.makeInstance(sc_layer2arc, width, piA, piB);
+		ArcInst inst = ArcInst.makeInstance(layer2Arc, width, piA, piB);
 		return inst;
 	}
 
-	private static PortInst Sc_create_connection(PortInst pi, double x, double y, ArcProto arc)
+	private PortInst createConnection(PortInst pi, double x, double y, ArcProto arc)
 	{
 		// always use the standard via (David Harris)
-		if (sc_viaproto == null) return null;
-		PrimitiveNode.Function fun = sc_viaproto.getFunction();
+		if (viaProto == null) return null;
+		PrimitiveNode.Function fun = viaProto.getFunction();
 		if (fun != PrimitiveNode.Function.CONTACT && fun != PrimitiveNode.Function.CONNECT) return null;
 
 		// make sure that this contact connects to the desired arc
-		if (!sc_viaproto.getPort(0).connectsTo(arc)) return null;
+		if (!viaProto.getPort(0).connectsTo(arc)) return null;
 
 		// use this via to make the connection
-		NodeInst viaNode = NodeInst.makeInstance(sc_viaproto, new Point2D.Double(x, y),
-			sc_viaproto.getDefWidth(), sc_viaproto.getDefHeight(), pi.getNodeInst().getParent());
+		NodeInst viaNode = NodeInst.makeInstance(viaProto, new Point2D.Double(x, y),
+			viaProto.getDefWidth(), viaProto.getDefHeight(), pi.getNodeInst().getParent());
 		if (viaNode == null) return null;
 		double wid = arc.getDefaultWidth();
 		PortInst newPi = viaNode.getOnlyPortInst();
@@ -1206,15 +1199,15 @@ public class Maker
 	/**
 	 * Method to locate the appropriate prototypes for circuit generation.
 	 */
-	private static String Sc_setup_for_maker()
+	private String setupForMaker()
 	{
 		Technology tech = Technology.getCurrent();
 		String layer1 = SilComp.getHorizRoutingArc();
 		String layer2 = SilComp.getVertRoutingArc();
-		sc_layer1arc = tech.findArcProto(layer1);
-		sc_layer2arc = tech.findArcProto(layer2);
-		if (sc_layer1arc == null) return "Unable to find Horizontal Arc " + layer1 + " for MAKER";
-		if (sc_layer2arc == null) return "Unable to find Vertical Arc " + layer2 + " for MAKER";
+		layer1Arc = tech.findArcProto(layer1);
+		layer2Arc = tech.findArcProto(layer2);
+		if (layer1Arc == null) return "Unable to find Horizontal Arc " + layer1 + " for MAKER";
+		if (layer2Arc == null) return "Unable to find Vertical Arc " + layer2 + " for MAKER";
 
 		// find the contact between the two layers
 		for(Iterator it = tech.getNodes(); it.hasNext(); )
@@ -1223,19 +1216,19 @@ public class Maker
 			PrimitiveNode.Function fun = via.getFunction();
 			if (fun != PrimitiveNode.Function.CONTACT && fun != PrimitiveNode.Function.CONNECT) continue;
 			PrimitivePort pp = (PrimitivePort)via.getPort(0);
-			if (!pp.connectsTo(sc_layer1arc)) continue;
-			if (!pp.connectsTo(sc_layer2arc)) continue;
-			sc_viaproto = via;
+			if (!pp.connectsTo(layer1Arc)) continue;
+			if (!pp.connectsTo(layer2Arc)) continue;
+			viaProto = via;
 			break;
 		}
-		if (sc_viaproto == null) return "Unable to get VIA for MAKER";
+		if (viaProto == null) return "Unable to get VIA for MAKER";
 
 		// find the pin nodes on the connecting layers
-		sc_layer1proto = ((PrimitiveArc)sc_layer1arc).findPinProto();
-		if (sc_layer1proto == null)
+		layer1Proto = ((PrimitiveArc)layer1Arc).findPinProto();
+		if (layer1Proto == null)
 			return "Unable to get LAYER1-NODE for MAKER";
-		sc_layer2proto = ((PrimitiveArc)sc_layer2arc).findPinProto();
-		if (sc_layer2proto == null)
+		layer2Proto = ((PrimitiveArc)layer2Arc).findPinProto();
+		if (layer2Proto == null)
 			return "Unable to get LAYER2-NODE for MAKER";
 
 		/*
@@ -1243,106 +1236,24 @@ public class Maker
 		 * if the p-well size is zero don't look for the node
 		 * allows technologies without p-wells to be routed (i.e. GaAs)
 		 */
-		if (SilComp.getPWellHeight() == 0) sc_pwellproto = null; else
+		if (SilComp.getPWellHeight() == 0) pWellProto = null; else
 		{
-			sc_pwellproto = null;
+			pWellProto = null;
 			Layer pWellLay = tech.findLayerFromFunction(Layer.Function.WELLP);
-			if (pWellLay != null) sc_pwellproto = pWellLay.getPureLayerNode();
-			if (sc_pwellproto == null)
+			if (pWellLay != null) pWellProto = pWellLay.getPureLayerNode();
+			if (pWellProto == null)
 				return "Unable to get LAYER P-WELL for MAKER";
 		}
-		if (SilComp.getNWellHeight() == 0) sc_nwellproto = null; else
+		if (SilComp.getNWellHeight() == 0) nWellProto = null; else
 		{
-			sc_nwellproto = null;
+			nWellProto = null;
 			Layer nWellLay = tech.findLayerFromFunction(Layer.Function.WELLP);
-			if (nWellLay != null) sc_nwellproto = nWellLay.getPureLayerNode();
-			if (sc_nwellproto == null)
+			if (nWellLay != null) nWellProto = nWellLay.getPureLayerNode();
+			if (nWellProto == null)
 				return "Unable to get LAYER P-WELL for MAKER";
 		}
 
 		return null;
 	}
-
-//
-//	/***********************************************************************
-//	Module:  Sc_free_maker_data
-//	------------------------------------------------------------------------
-//	Description:
-//		Free the memory structures used by the maker.
-//	------------------------------------------------------------------------
-//	Calling Sequence:  Sc_free_maker_data(data);
-//
-//	Name		Type			Description
-//	----		----			-----------
-//	data		*SCMAKERDATA	Pointer to maker data.
-//	------------------------------------------------------------------------
-//	*/
-//
-//	void Sc_free_maker_data(SCMAKERDATA *data)
-//	{
-//		SCMAKERROW			*row, *nextrow;
-//		SCMAKERINST			*inst, *nextinst;
-//		SCMAKERCHANNEL		*chan, *nextchan;
-//		SCMAKERTRACK		*track, *nexttrack;
-//		SCMAKERNODE			*node, *nextnode;
-//		SCMAKERVIA			*via, *nextvia;
-//		SCMAKERPOWER		*power, *nextpower;
-//		SCMAKERPOWERPORT	*pport, *nextpport;
-//
-//		if (data)
-//		{
-//			for (row = data.rows; row; row = nextrow)
-//			{
-//				nextrow = row.next;
-//				for (inst = row.members; inst; inst = nextinst)
-//				{
-//					nextinst = inst.next;
-//					efree((CHAR *)inst);
-//				}
-//				efree((CHAR *)row);
-//			}
-//			for (chan = data.channels; chan; chan = nextchan)
-//			{
-//				nextchan = chan.next;
-//				for (track = chan.tracks; track; track = nexttrack)
-//				{
-//					nexttrack = track.next;
-//					for (node = track.nodes; node; node = nextnode)
-//					{
-//						nextnode = node.next;
-//						for (via = node.vias; via; via = nextvia)
-//						{
-//							nextvia = via.next;
-//							efree((CHAR *)via);
-//						}
-//						efree((CHAR *)node);
-//					}
-//					efree((CHAR *)track);
-//				}
-//				efree((CHAR *)chan);
-//			}
-//			for (power = data.power; power; power = nextpower)
-//			{
-//				nextpower = power.next;
-//				for (pport = power.ports; pport; pport = nextpport)
-//				{
-//					nextpport = pport.next;
-//					efree((CHAR *)pport);
-//				}
-//				efree((CHAR *)power);
-//			}
-//			for (power = data.ground; power; power = nextpower)
-//			{
-//				nextpower = power.next;
-//				for (pport = power.ports; pport; pport = nextpport)
-//				{
-//					nextpport = pport.next;
-//					efree((CHAR *)pport);
-//				}
-//				efree((CHAR *)power);
-//			}
-//			efree((CHAR *)data);
-//		}
-//	}
 
 }

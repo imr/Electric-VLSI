@@ -543,7 +543,7 @@ public class Technology implements Comparable
 		this.scaleRelevant = true;
 		this.techIndex = techNumber++;
 		userBits = 0;
-		if (prefs == null) prefs = Preferences.userNodeForPackage(getClass());
+		if (prefs == null) prefs = Preferences.userNodeForPackage(Schematics.class);
 
 		// add the technology to the global list
 		assert findTechnology(techName) == null;
