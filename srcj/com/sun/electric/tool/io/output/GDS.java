@@ -271,6 +271,11 @@ public class GDS extends Geometry
 	{
 		return IOTool.isGDSOutMergesBoxes();
 	}
+	   
+    /**
+     * Method to determine whether or not to include the original Geometric with a Poly
+     */
+    protected boolean includeGeometric() { return false; }
 
 	protected boolean selectLayer(Layer layer)
 	{
@@ -425,7 +430,7 @@ public class GDS extends Geometry
 				}
 				poly.transform(trans);
 			}
-			cellGeom.addPolys(polys);
+			cellGeom.addPolys(polys, ni);
 		}
 
 		public void addArcInst(ArcInst ai)
@@ -433,7 +438,7 @@ public class GDS extends Geometry
 			ArcProto ap = ai.getProto();
 			Technology tech = ap.getTechnology();
 			Poly [] polys = tech.getShapeOfArc(ai);
-			cellGeom.addPolys(polys);
+			cellGeom.addPolys(polys, ai);
 		}
 	}
 

@@ -28,6 +28,7 @@ package com.sun.electric.tool.io.output;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -79,7 +80,7 @@ public class CIF extends Geometry
     /** illegal characters in names (not really illegal but can cause problems) */
     private static final String badNameChars = ":{}/\\";
 
-	/**
+    /**
 	 * Main entry point for CIF output.
 	 * @param cell the top-level cell to write.
 	 * @param filePath the name of the file to create.
@@ -194,8 +195,9 @@ public class CIF extends Geometry
 			List polyList = (List)cellGeom.polyMap.get(layer);
 			for (Iterator polyIt = polyList.iterator(); polyIt.hasNext(); )
 			{
-				Poly poly = (Poly)polyIt.next();
-				writePoly(poly, cellGeom.cell);
+				PolyWithGeom pg = (PolyWithGeom)polyIt.next();
+				Poly poly = pg.poly;
+				writePoly(poly, cellGeom.cell, pg.geom);
 			}
 		}
 		// write all instances
@@ -220,6 +222,11 @@ public class CIF extends Geometry
 	{
 		return IOTool.isCIFOutMergesBoxes();
 	}
+	   
+    /**
+     * Method to determine whether or not to include the original Geometric with a Poly
+     */
+    protected boolean includeGeometric() { return true; }
 
 	/**
 	 * Method to emit the current layer number.
@@ -233,11 +240,11 @@ public class CIF extends Geometry
 		return false;
 	}
 
-	protected void writePoly(Poly poly, Cell cell)
+	protected void writePoly(Poly poly, Cell cell, Geometric geom)
 	{
 		Point2D [] points = poly.getPoints();
 
-		checkResolution(poly, cell);
+		checkResolution(poly, cell, geom);
 
 		if (poly.getStyle() == Poly.Type.DISC)
 		{
@@ -361,7 +368,7 @@ public class CIF extends Geometry
 	/**
 	 * Check Poly for CIF Resolution Errors
 	 */
-	protected void checkResolution(Poly poly, Cell cell)
+	protected void checkResolution(Poly poly, Cell cell, Geometric geom)
 	{
 		if (minAllowedResolution == 0) return;
 		ArrayList badpoints = new ArrayList();
@@ -384,7 +391,8 @@ public class CIF extends Geometry
 			{
 				err = errorLogger.logError("Resolution < " + minAllowedResolution + " on layer " + layer.getName(), cell, layer.getIndex());
 			}
-			err.addPoly(poly, false, cell);
+			if (geom != null) err.addGeom(geom, true, cell, VarContext.globalContext); else
+				err.addPoly(poly, false, cell);
 		}
 	}
 

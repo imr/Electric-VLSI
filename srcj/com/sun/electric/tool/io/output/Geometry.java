@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.io.output;
 
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -55,6 +56,18 @@ public abstract class Geometry extends Output
     /** top-level cell being processed */				protected Cell topCell;
 
     /** HashMap of all CellGeoms */                     protected HashMap cellGeoms;
+
+    protected static class PolyWithGeom
+	{
+    	Poly poly;
+    	Geometric geom;
+
+    	PolyWithGeom(Poly poly, Geometric geom)
+		{
+    		this.poly = poly;
+    		this.geom = geom;
+		}
+	}
 
     /** Creates a new instance of Geometry */
     Geometry() 
@@ -102,6 +115,9 @@ public abstract class Geometry extends Output
     
     /** Overridable method to determine whether or not to merge geometry */
     protected boolean mergeGeom(int hierLevelsFromBottom) { return false; }
+    
+    /** Overridable method to determine whether or not to include the original Geometric with a Poly */
+    protected boolean includeGeometric() { return false; }
     
     
     /**
@@ -156,15 +172,24 @@ public abstract class Geometry extends Output
 		}
         
         /** add polys to cell geometry */
-        protected void addPolys(Poly[] polys)
+        protected void addPolys(Poly[] polys, Geometric geom)
         {
-            for (int i=0; i<polys.length; i++) {
+            for (int i=0; i<polys.length; i++)
+            {
                 ArrayList list = (ArrayList)polyMap.get(polys[i].getLayer());
-                if (list == null) {
-                    list = new ArrayList(); 
-                    polyMap.put(polys[i].getLayer(), list);
+                if (list == null)
+                {
+                    list = new ArrayList();
+                   	polyMap.put(polys[i].getLayer(), list);
                 }
-                list.add(polys[i]);
+                if (includeGeometric())
+                {
+                	PolyWithGeom pg = new PolyWithGeom(polys[i], geom);
+                    list.add(pg);
+                } else
+                {
+                    list.add(polys[i]);
+                }
             }
         }
     }    
@@ -266,7 +291,7 @@ public abstract class Geometry extends Output
 			Poly [] polys = tech.getShapeOfNode(ni);
 			for (int i=0; i<polys.length; i++)
 				polys[i].transform(trans);
-			cellGeom.addPolys(polys);
+			cellGeom.addPolys(polys, ni);
 		}
 
 		public void addArcInst(ArcInst ai)
@@ -274,7 +299,7 @@ public abstract class Geometry extends Output
 			ArcProto ap = ai.getProto();
 			Technology tech = ap.getTechnology();
 			Poly [] polys = tech.getShapeOfArc(ai);
-			cellGeom.addPolys(polys);
+			cellGeom.addPolys(polys, ai);
 		}
     }
 

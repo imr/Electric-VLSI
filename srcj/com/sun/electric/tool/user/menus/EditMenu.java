@@ -231,14 +231,14 @@ public class EditMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.clickZoomWireCommand(); } });
         ToolBar.CursorMode cm = ToolBar.getCursorMode();
         if (cm == ToolBar.CursorMode.CLICKZOOMWIRE) cursorClickZoomWire.setSelected(true);
-        if (ToolBar.secondaryInputModes) {
-			cursorSelect = modeSubMenuEdit.addRadioButton(ToolBar.cursorSelectName, false, editGroup, KeyStroke.getKeyStroke('M', 0),
-				new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.selectCommand(); } });
-			cursorWiring = modeSubMenuEdit.addRadioButton(ToolBar.cursorWiringName, false, editGroup, KeyStroke.getKeyStroke('W', 0),
-				new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.wiringCommand(); } });
-            if (cm == ToolBar.CursorMode.SELECT) cursorSelect.setSelected(true);
-            if (cm == ToolBar.CursorMode.WIRE) cursorWiring.setSelected(true);
-        }
+//        if (ToolBar.secondaryInputModes) {
+//			cursorSelect = modeSubMenuEdit.addRadioButton(ToolBar.cursorSelectName, false, editGroup, KeyStroke.getKeyStroke('M', 0),
+//				new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.selectCommand(); } });
+//			cursorWiring = modeSubMenuEdit.addRadioButton(ToolBar.cursorWiringName, false, editGroup, KeyStroke.getKeyStroke('W', 0),
+//				new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.wiringCommand(); } });
+//            if (cm == ToolBar.CursorMode.SELECT) cursorSelect.setSelected(true);
+//            if (cm == ToolBar.CursorMode.WIRE) cursorWiring.setSelected(true);
+//        }
 
 		cursorPan = modeSubMenuEdit.addRadioButton(ToolBar.cursorPanName, false, editGroup, KeyStroke.getKeyStroke('P', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.panCommand(); } });

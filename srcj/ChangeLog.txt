@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02a: *********************************
 
+IMP: (11/3/04, SMR) CIF resolution errors now select the object.
+
+IMP: (11/3/04, SMR) Removed unused listeners: ClickAndDragListener and WiringListener.
+
 IMP: (11/3/04, GVG) Fix in network evaluation during hierarchical min area checking
 
 IMP/MAN: (11/3/04, SMR) Printing resolution is now higher and can be set in the Preferences panel.

@@ -170,9 +170,6 @@ public class EDIF extends Input
 	private static class EDVENDOR {}
 	private static final EDVENDOR EVUNKNOWN    = new EDVENDOR();
 	private static final EDVENDOR EVCADENCE    = new EDVENDOR();
-	private static final EDVENDOR EVVALID      = new EDVENDOR();
-	private static final EDVENDOR EVSYNOPSYS   = new EDVENDOR();
-	private static final EDVENDOR EVMENTOR     = new EDVENDOR();
 	private static final EDVENDOR EVVIEWLOGIC  = new EDVENDOR();
 
 	private static class EDPROPERTY

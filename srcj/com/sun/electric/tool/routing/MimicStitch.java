@@ -42,7 +42,6 @@ import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WiringListener;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
