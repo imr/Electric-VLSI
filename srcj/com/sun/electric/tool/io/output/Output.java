@@ -170,6 +170,13 @@ public class Output
 		URL libFile = lib.getLibFile();
 		if (libFile == null)
 			libFile = TextUtils.makeURLToFile(lib.getName());
+
+		// make the proper output file name
+		String properOutputNameWithoutExtension = TextUtils.getFilePath(libFile) + TextUtils.getFileNameWithoutExtension(libFile);
+		String properOutputName = properOutputNameWithoutExtension;
+		if (type == OpenFile.Type.ELIB) properOutputName += ".elib";
+		if (type == OpenFile.Type.JELIB) properOutputName += ".jelib";
+		if (type == OpenFile.Type.READABLEDUMP) properOutputName += ".txt";
 		if (type == OpenFile.Type.ELIB || type == OpenFile.Type.JELIB)
 		{
 			// backup previous files if requested
@@ -177,23 +184,32 @@ public class Output
 			if (backupScheme == 1)
 			{
 				// one-level backup
-				String backupFileName = libFile.getPath() + "~";
-				File oldFile = new File(backupFileName);
-				if (oldFile.exists())
-				{
-					oldFile.delete();
-				}
-				File newFile = new File(libFile.getPath());
+				File newFile = new File(properOutputName);
 				if (newFile.exists())
 				{
-					if (!newFile.renameTo(oldFile)) {
-                        System.out.println("Rename Failed: "+newFile.getAbsoluteFile()+" to "+oldFile.getAbsoluteFile());                        
-                    }
+					String backupFileName = properOutputName + "~";
+					File oldFile = new File(backupFileName);
+					boolean canRename = true;
+					if (oldFile.exists())
+					{
+						if (!oldFile.delete())
+						{
+							System.out.println("Unable to delete former library file " + oldFile);
+							canRename = false;
+						}
+					}
+					if (canRename)
+					{
+						if (!newFile.renameTo(oldFile))
+						{
+							System.out.println("Unable to rename " + newFile + " to " + oldFile);
+						}
+					}
 				}
 			} else if (backupScheme == 2)
 			{
 				// full-history backup
-				File newFile = new File(libFile.getPath());
+				File newFile = new File(properOutputName);
 				if (newFile.exists())
 				{
 					long modified = newFile.lastModified();
@@ -201,15 +217,16 @@ public class Output
 					SimpleDateFormat sdf = new SimpleDateFormat("-yyyy-MM-dd");
 					for(int i=0; i<1000; i++)
 					{
-						String backupFileName = TextUtils.getFileNameWithoutExtension(libFile) + sdf.format(modifiedDate);
+						String backupFileName = properOutputNameWithoutExtension + sdf.format(modifiedDate);
 						if (i != 0)
 							backupFileName += "--" + i;
-						backupFileName += "." + TextUtils.getExtension(libFile);
+						backupFileName += "." + type.getExtensions()[0];
 						File oldFile = new File(backupFileName);
 						if (oldFile.exists()) continue;
-						if (!newFile.renameTo(oldFile)) {
-                            System.out.println("Rename Failed: "+newFile.getAbsoluteFile()+" to "+oldFile.getAbsoluteFile());
-                        }
+						if (!newFile.renameTo(oldFile))
+						{
+							System.out.println("Unable to rename " + newFile + " to " + oldFile);
+						}
 						break;
 					}
 				}
@@ -219,7 +236,6 @@ public class Output
 				ELIB elib = new ELIB();
 				if (compatibleWith6) elib.write6Compatible();
 				out = (Output)elib;
-				String properOutputName = TextUtils.getFilePath(libFile) + TextUtils.getFileNameWithoutExtension(libFile) + ".elib";
 				if (out.openBinaryOutputStream(properOutputName)) return true;
 				if (out.writeLib(lib)) return true;
 				if (out.closeBinaryOutputStream()) return true;
@@ -227,7 +243,6 @@ public class Output
 			{
 				JELIB jelib = new JELIB();
 				out = (Output)jelib;
-				String properOutputName = TextUtils.getFilePath(libFile) + TextUtils.getFileNameWithoutExtension(libFile) + ".jelib";
 				if (out.openTextOutputStream(properOutputName)) return true;
 				if (out.writeLib(lib)) return true;
 				if (out.closeTextOutputStream()) return true;
@@ -235,7 +250,6 @@ public class Output
  		} else if (type == OpenFile.Type.READABLEDUMP)
 		{
 			out = (Output)new ReadableDump();
-			String properOutputName = TextUtils.getFilePath(libFile) + TextUtils.getFileNameWithoutExtension(libFile) + ".txt";
 			if (out.openTextOutputStream(properOutputName)) return true;
 			if (out.writeLib(lib)) return true;
 			if (out.closeTextOutputStream()) return true;

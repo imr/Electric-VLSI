@@ -216,7 +216,7 @@ public class Export extends ElectricObject implements PortProto
 		lowLevelRename(newName);
 
 		// handle change control, constraint, and broadcast
-		Undo.renameObject(this, oldName);
+		Undo.renameObject(this, oldName, 0);
 
         // rename associated export in icon, if any
         Cell iconCell = cell.iconView();

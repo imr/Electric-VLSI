@@ -772,7 +772,7 @@ public class Library extends ElectricObject
 
 		Name oldName = Name.findName(this.libName);
 		lowLevelRename(libName);
-		Undo.renameObject(this, oldName);
+		Undo.renameObject(this, oldName, 0);
 		return false;
 	}
 

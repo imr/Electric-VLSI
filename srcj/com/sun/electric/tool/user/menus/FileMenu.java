@@ -419,7 +419,7 @@ public class FileMenu {
      * This method implements the command to save a library.
      * It is interactive, and pops up a dialog box.
      * @param lib the Library to save.
-     * @param type the format of the library (OpenFile.Type.ELIB for binary; OpenFile.Type.READABLEDUMP for text).
+     * @param type the format of the library (OpenFile.Type.ELIB, OpenFile.Type.READABLEDUMP, or OpenFile.Type.JELIB).
      * @param compatibleWith6 true to write a library that is compatible with version 6 Electric.
      * @return true if library saved, false otherwise.
      */

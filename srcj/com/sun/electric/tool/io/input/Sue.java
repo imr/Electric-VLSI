@@ -85,14 +85,14 @@ public class Sue extends Input
 		}
 	};
 
-	private SueExtraWire [] io_suetransistorwires =
+	private SueExtraWire [] transistorWires =
 	{
 		new SueExtraWire("d",  3, 0),
 		new SueExtraWire("s", -3, 0),
 		new SueExtraWire("g",  0, 4.5)
 	};
 
-	private SueExtraWire [] io_suetransistor4wires =
+	private SueExtraWire [] transistor4Wires =
 	{
 		new SueExtraWire("d",  3,     0),
 		new SueExtraWire("s", -3,     0),
@@ -100,25 +100,19 @@ public class Sue extends Input
 		new SueExtraWire("g",  0,     4.5)
 	};
 
-	private SueExtraWire [] io_sueresistorwires =
+	private SueExtraWire [] resistorWires =
 	{
 		new SueExtraWire("a", -3, 0),
 		new SueExtraWire("b",  3, 0)
 	};
 
-	private SueExtraWire [] io_suecapacitorwires =
+	private SueExtraWire [] capacitorWires =
 	{
 		new SueExtraWire("a",  0,  1.75),
 		new SueExtraWire("b",  0, -1.75)
 	};
 
-	private SueExtraWire [] io_suesourcewires =
-	{
-		new SueExtraWire("minus", 0, -1.25),
-		new SueExtraWire("plus",  0,  1.5)
-	};
-
-	private SueExtraWire [] io_suetwoportwires =
+	private SueExtraWire [] twoPortWires =
 	{
 		new SueExtraWire("a", -11.25,  3.625),
 		new SueExtraWire("b", -11.25, -3.625),
@@ -153,39 +147,39 @@ public class Sue extends Input
 		}
 	};
 
-	private SueEquiv [] io_sueequivs =
+	private SueEquiv [] sueEquivs =
 	{
 		//            name         primitive                        NEG     ANG       X     Y      FUNCTION                        EXTRA-WIRES
-		new SueEquiv("pmos10",     Schematics.tech.transistorNode, false, 900,false, -2,    0,     PrimitiveNode.Function.TRAPMOS, io_suetransistorwires),
-		new SueEquiv("nmos10",     Schematics.tech.transistorNode, false, 900,false, -2,    0,     PrimitiveNode.Function.TRANMOS, io_suetransistorwires),
-		new SueEquiv("pmos4",      Schematics.tech.transistorNode, false, 900,false, -2,    0,     PrimitiveNode.Function.TRAPMOS, io_suetransistorwires),
-		new SueEquiv("nmos4",      Schematics.tech.transistorNode, false, 900,false, -2,    0,     PrimitiveNode.Function.TRANMOS, io_suetransistorwires),
-		new SueEquiv("pmos",       Schematics.tech.transistorNode, false, 900,false, -2,    0,     PrimitiveNode.Function.TRAPMOS, io_suetransistorwires),
-		new SueEquiv("nmos",       Schematics.tech.transistorNode, false, 900,false, -2,    0,     PrimitiveNode.Function.TRANMOS, io_suetransistorwires),
-		new SueEquiv("capacitor",  Schematics.tech.capacitorNode,  false,   0,false,  0,    0,     null,                           io_suecapacitorwires),
-		new SueEquiv("resistor",   Schematics.tech.resistorNode,   false, 900,false,  0,    0,     null,                           io_sueresistorwires),
+		new SueEquiv("pmos10",     Schematics.tech.transistorNode, false, 900,false, -2,    0,     PrimitiveNode.Function.TRAPMOS, transistorWires),
+		new SueEquiv("nmos10",     Schematics.tech.transistorNode, false, 900,false, -2,    0,     PrimitiveNode.Function.TRANMOS, transistorWires),
+		new SueEquiv("pmos4",      Schematics.tech.transistorNode, false, 900,false, -2,    0,     PrimitiveNode.Function.TRAPMOS, transistorWires),
+		new SueEquiv("nmos4",      Schematics.tech.transistorNode, false, 900,false, -2,    0,     PrimitiveNode.Function.TRANMOS, transistorWires),
+		new SueEquiv("pmos",       Schematics.tech.transistorNode, false, 900,false, -2,    0,     PrimitiveNode.Function.TRAPMOS, transistorWires),
+		new SueEquiv("nmos",       Schematics.tech.transistorNode, false, 900,false, -2,    0,     PrimitiveNode.Function.TRANMOS, transistorWires),
+		new SueEquiv("capacitor",  Schematics.tech.capacitorNode,  false,   0,false,  0,    0,     null,                           capacitorWires),
+		new SueEquiv("resistor",   Schematics.tech.resistorNode,   false, 900,false,  0,    0,     null,                           resistorWires),
 		new SueEquiv("inductor",   Schematics.tech.inductorNode,   false,   0,false,  0,    0,     null,                           null),
-		new SueEquiv("cccs",       Schematics.tech.twoportNode,    false,   0,false,  1.25,-6.875, PrimitiveNode.Function.CCCS,    io_suetwoportwires),
-		new SueEquiv("ccvs",       Schematics.tech.twoportNode,    false,   0,false,  1.25,-6.875, PrimitiveNode.Function.CCVS,    io_suetwoportwires),
-		new SueEquiv("vcvs",       Schematics.tech.twoportNode,    false,   0,false,  1.25,-6.875, PrimitiveNode.Function.VCVS,    io_suetwoportwires),
+		new SueEquiv("cccs",       Schematics.tech.twoportNode,    false,   0,false,  1.25,-6.875, PrimitiveNode.Function.CCCS,    twoPortWires),
+		new SueEquiv("ccvs",       Schematics.tech.twoportNode,    false,   0,false,  1.25,-6.875, PrimitiveNode.Function.CCVS,    twoPortWires),
+		new SueEquiv("vcvs",       Schematics.tech.twoportNode,    false,   0,false,  1.25,-6.875, PrimitiveNode.Function.VCVS,    twoPortWires),
 		new SueEquiv("vccs",       Schematics.tech.twoportNode,    false,   0,false, -1.875,-5,    PrimitiveNode.Function.VCCS,    null)
 	};
 
-	private SueEquiv [] io_sueequivs4 =
+	private SueEquiv [] sueEquivs4 =
 	{
 		//            name         primitive                         NEG     ANG       X     Y      FUNCTION                        EXTRA-WIRES
-		new SueEquiv("pmos10",     Schematics.tech.transistor4Node, false,   0,true,  -2,    0,     PrimitiveNode.Function.TRAPMOS, io_suetransistor4wires),
-		new SueEquiv("nmos10",     Schematics.tech.transistor4Node, false, 900,false, -2,    0,     PrimitiveNode.Function.TRANMOS, io_suetransistor4wires),
-		new SueEquiv("pmos4",      Schematics.tech.transistor4Node, false,   0,true,  -2,    0,     PrimitiveNode.Function.TRAPMOS, io_suetransistor4wires),
-		new SueEquiv("nmos4",      Schematics.tech.transistor4Node, false, 900,false, -2,    0,     PrimitiveNode.Function.TRANMOS, io_suetransistor4wires),
-		new SueEquiv("pmos",       Schematics.tech.transistor4Node, false,   0,true,  -2,    0,     PrimitiveNode.Function.TRAPMOS, io_suetransistor4wires),
-		new SueEquiv("nmos",       Schematics.tech.transistor4Node, false, 900,false, -2,    0,     PrimitiveNode.Function.TRANMOS, io_suetransistor4wires),
-		new SueEquiv("capacitor",  Schematics.tech.capacitorNode,   false,   0,false,  0,    0,     null,                           io_suecapacitorwires),
-		new SueEquiv("resistor",   Schematics.tech.resistorNode,    false, 900,false,  0,    0,     null,                           io_sueresistorwires),
+		new SueEquiv("pmos10",     Schematics.tech.transistor4Node, false,   0,true,  -2,    0,     PrimitiveNode.Function.TRAPMOS, transistor4Wires),
+		new SueEquiv("nmos10",     Schematics.tech.transistor4Node, false, 900,false, -2,    0,     PrimitiveNode.Function.TRANMOS, transistor4Wires),
+		new SueEquiv("pmos4",      Schematics.tech.transistor4Node, false,   0,true,  -2,    0,     PrimitiveNode.Function.TRAPMOS, transistor4Wires),
+		new SueEquiv("nmos4",      Schematics.tech.transistor4Node, false, 900,false, -2,    0,     PrimitiveNode.Function.TRANMOS, transistor4Wires),
+		new SueEquiv("pmos",       Schematics.tech.transistor4Node, false,   0,true,  -2,    0,     PrimitiveNode.Function.TRAPMOS, transistor4Wires),
+		new SueEquiv("nmos",       Schematics.tech.transistor4Node, false, 900,false, -2,    0,     PrimitiveNode.Function.TRANMOS, transistor4Wires),
+		new SueEquiv("capacitor",  Schematics.tech.capacitorNode,   false,   0,false,  0,    0,     null,                           capacitorWires),
+		new SueEquiv("resistor",   Schematics.tech.resistorNode,    false, 900,false,  0,    0,     null,                           resistorWires),
 		new SueEquiv("inductor",   Schematics.tech.inductorNode,    false,   0,false,  0,    0,     null,                           null),
-		new SueEquiv("cccs",       Schematics.tech.twoportNode,     false,   0,false,  1.25,-6.875, PrimitiveNode.Function.CCCS,    io_suetwoportwires),
-		new SueEquiv("ccvs",       Schematics.tech.twoportNode,     false,   0,false,  1.25,-6.875, PrimitiveNode.Function.CCVS,    io_suetwoportwires),
-		new SueEquiv("vcvs",       Schematics.tech.twoportNode,     false,   0,false,  1.25,-6.875, PrimitiveNode.Function.VCVS,    io_suetwoportwires),
+		new SueEquiv("cccs",       Schematics.tech.twoportNode,     false,   0,false,  1.25,-6.875, PrimitiveNode.Function.CCCS,    twoPortWires),
+		new SueEquiv("ccvs",       Schematics.tech.twoportNode,     false,   0,false,  1.25,-6.875, PrimitiveNode.Function.CCVS,    twoPortWires),
+		new SueEquiv("vcvs",       Schematics.tech.twoportNode,     false,   0,false,  1.25,-6.875, PrimitiveNode.Function.VCVS,    twoPortWires),
 		new SueEquiv("vccs",       Schematics.tech.twoportNode,     false,   0,false, -1.875,-5,    PrimitiveNode.Function.VCCS,    null)
 	};
 
@@ -212,9 +206,9 @@ public class Sue extends Input
 		private String   label;
 	};
 
-	private String io_suelastline;
+	private String sueLastLine;
 	private String lastLineRead;
-	private List   io_suedirectories;
+	private List   sueDirectories;
 
 	/**
 	 * Method to import a library from disk.
@@ -227,11 +221,11 @@ public class Sue extends Input
 		String cellName = lib.getName();
 
 		// initialize the number of directories that need to be searched
-		io_suedirectories = new ArrayList();
+		sueDirectories = new ArrayList();
 
 		// determine the current directory
 		String topDirName = TextUtils.getFilePath(lib.getLibFile());
-		io_suedirectories.add(topDirName);
+		sueDirectories.add(topDirName);
 
 		// find all subdirectories that start with "suelib_" and include them in the search
 		File topDir = new File(topDirName);
@@ -242,7 +236,7 @@ public class Sue extends Input
 			String dirName = topDirName + fileList[i];
 			if (!dirName.endsWith("/")) dirName += "/";
 			File subDir = new File(dirName);
-			if (subDir.isDirectory()) io_suedirectories.add(dirName);
+			if (subDir.isDirectory()) sueDirectories.add(dirName);
 		}
 
 		// see if the current directory is inside of a SUELIB
@@ -257,14 +251,14 @@ public class Sue extends Input
 				if (!upFileList[i].startsWith("suelib_")) continue;
 				String dirName = upDirName + upFileList[i];
 				File subDir = new File(dirName);
-				if (subDir.isDirectory()) io_suedirectories.add(dirName);
+				if (subDir.isDirectory()) sueDirectories.add(dirName);
 			}
 		}
 
 		// read the file
 		try
 		{
-			Cell topCell = io_suereadfile(lib, cellName, lineReader);
+			Cell topCell = readFile(lib, cellName, lineReader);
 			if (topCell != null)
 				lib.setCurCell(topCell);
 		} catch (IOException e)
@@ -278,7 +272,7 @@ public class Sue extends Input
 	/**
 	 * Method to read the SUE file.
 	 */
-	private Cell io_suereadfile(Library lib, String cellName, LineNumberReader lr)
+	private Cell readFile(Library lib, String cellName, LineNumberReader lr)
 		throws IOException
 	{
 		boolean placeIcon = false;
@@ -287,7 +281,7 @@ public class Sue extends Input
 		Cell cell = null;
 		Cell schemCell = null;
 		Cell iconCell = null;
-		io_suelastline = null;
+		lastLineRead = null;
 		Point2D iconPt = null;
 		List argumentKey = new ArrayList();
 		List argumentValue = new ArrayList();
@@ -295,7 +289,7 @@ public class Sue extends Input
 		for(;;)
 		{
 			// get the next line of text
-			List keywords = io_suegetnextline(lr);
+			List keywords = getNextLine(lr);
 			if (keywords == null) break;
 			int count = keywords.size();
 			if (count == 0) continue;
@@ -307,8 +301,8 @@ public class Sue extends Input
 				// write any wires from the last proc
 				if (cell != null)
 				{
-					io_sueplacewires(sueWires, sueNets, cell, invertNodeOutput);
-					io_sueplacenets(sueNets, cell);
+					placeWires(sueWires, sueNets, cell, invertNodeOutput);
+					placeNets(sueNets, cell);
 					sueWires = new ArrayList();
 					sueNets = new ArrayList();
 				}
@@ -459,8 +453,8 @@ public class Sue extends Input
 				// now check for internal associations to known primitives
 				if (proto == null)
 				{
-					SueEquiv [] curEquivs = io_sueequivs;
-					if (IOTool.isSueUses4PortTransistors()) curEquivs = io_sueequivs4;
+					SueEquiv [] curEquivs = sueEquivs;
+					if (IOTool.isSueUses4PortTransistors()) curEquivs = sueEquivs4;
 					int i = 0;
 					for( ; i < curEquivs.length; i++)
 						if (keyword1.equalsIgnoreCase(curEquivs[i].sueName)) break;
@@ -494,9 +488,9 @@ public class Sue extends Input
 				if (proto == null)
 				{
 					// find node or read it from disk
-					proto = io_suegetnodeproto(lib, keyword1);
+					proto = getNodeProto(lib, keyword1);
 					if (proto == null)
-						proto = io_suereadfromdisk(lib, keyword1);
+						proto = readFromDisk(lib, keyword1);
 
 					// set proper offsets for the cell
 					if (proto != null)
@@ -562,7 +556,7 @@ public class Sue extends Input
 						PrimitiveNode wirePin = Schematics.tech.wirePinNode;
 						double pinx = x + dPt.getX();
 						double piny = y + dPt.getY();
-						PortInst ppi = io_suefindpinnode(pinx, piny, cell);
+						PortInst ppi = findPinNode(pinx, piny, cell);
 						if (ppi == null)
 						{
 							NodeInst nni = NodeInst.makeInstance(Schematics.tech.wirePinNode, new Point2D.Double(pinx, piny),
@@ -590,7 +584,7 @@ public class Sue extends Input
 						Iterator it = ni.getPortInsts();
 						PortInst pi = (PortInst)it.next();
 						if (keyword1.equalsIgnoreCase("output")) pi = (PortInst)it.next();
-						Export ppt = io_suenewexport(cell, pi, parP.theName);
+						Export ppt = newExport(cell, pi, parP.theName);
 						if (ppt == null)
 						{
 							System.out.println("Cell " + cellName + ", line " + lr.getLineNumber() +
@@ -663,7 +657,7 @@ public class Sue extends Input
 					String pt = (String)keywords.get(i+1);
 					if (keyword.charAt(1) == 'W' && keyword.length() > 2)
 					{
-						newObject = keyword.substring(2) + ":" + io_sueparseexpression(pt);
+						newObject = keyword.substring(2) + ":" + parseExpression(pt);
 					} else
 					{
 						int len = pt.length() - 1;
@@ -686,7 +680,7 @@ public class Sue extends Input
 						}
 						if (newObject == null)
 						{
-							newObject = io_sueparseexpression(pt);
+							newObject = parseExpression(pt);
 						}
 					}
 
@@ -744,11 +738,11 @@ public class Sue extends Input
 			if (keyword0.equalsIgnoreCase("make_wire"))
 			{
 				SueWire sw = new SueWire();
-				double fx = io_suemakex(TextUtils.atof((String)keywords.get(1)));
-				double fy = io_suemakey(TextUtils.atof((String)keywords.get(2)));
+				double fx = convertXCoord(TextUtils.atof((String)keywords.get(1)));
+				double fy = convertYCoord(TextUtils.atof((String)keywords.get(2)));
 				sw.pt[0] = new Point2D.Double(fx, fy);
-				double tx = io_suemakex(TextUtils.atof((String)keywords.get(3)));
-				double ty = io_suemakey(TextUtils.atof((String)keywords.get(4)));
+				double tx = convertXCoord(TextUtils.atof((String)keywords.get(3)));
+				double ty = convertYCoord(TextUtils.atof((String)keywords.get(4)));
 				sw.pt[1] = new Point2D.Double(tx, ty);
 				sueWires.add(sw);
 				continue;
@@ -787,10 +781,10 @@ public class Sue extends Input
 					continue;
 				}
 				int start = 0;   int extent = 359;
-				double p1X = io_suemakex(TextUtils.atof((String)keywords.get(1)));
-				double p1Y = io_suemakey(TextUtils.atof((String)keywords.get(2)));
-				double p2X = io_suemakex(TextUtils.atof((String)keywords.get(3)));
-				double p2Y = io_suemakey(TextUtils.atof((String)keywords.get(4)));
+				double p1X = convertXCoord(TextUtils.atof((String)keywords.get(1)));
+				double p1Y = convertYCoord(TextUtils.atof((String)keywords.get(2)));
+				double p2X = convertXCoord(TextUtils.atof((String)keywords.get(3)));
+				double p2Y = convertYCoord(TextUtils.atof((String)keywords.get(4)));
 				if (((String)keywords.get(5)).equals("-start")) start = TextUtils.atoi((String)keywords.get(6));
 				if (((String)keywords.get(7)).equals("-extent")) extent = TextUtils.atoi((String)keywords.get(8));
 
@@ -825,10 +819,10 @@ public class Sue extends Input
 					if (((String)keywords.get(i)).equals("-tags")) break;
 					if ((i%2) != 0)
 					{
-						x = io_suemakex(TextUtils.atof((String)keywords.get(i)));
+						x = convertXCoord(TextUtils.atof((String)keywords.get(i)));
 					} else
 					{
-						double y = io_suemakey(TextUtils.atof((String)keywords.get(i)));
+						double y = convertYCoord(TextUtils.atof((String)keywords.get(i)));
 						pointList.add(new Point2D.Double(x, y));
 					}
 				}
@@ -990,8 +984,7 @@ public class Sue extends Input
 		}
 
 		// place an icon instance in the schematic if requested
-		if (placeIcon && schemCell != null &&
-			iconCell != null)
+		if (placeIcon && schemCell != null && iconCell != null)
 		{
 			Rectangle2D bounds = iconCell.getBounds();
 			double wid = bounds.getWidth();
@@ -1003,8 +996,8 @@ public class Sue extends Input
 		// cleanup the current cell
 		if (cell != null)
 		{
-			io_sueplacewires(sueWires, sueNets, cell, invertNodeOutput);
-			io_sueplacenets(sueNets, cell);
+			placeWires(sueWires, sueNets, cell, invertNodeOutput);
+			placeNets(sueNets, cell);
 		}
 
 		// return the cell
@@ -1016,7 +1009,7 @@ public class Sue extends Input
 	 * Method to create a port called "thename" on port "pp" of node "ni" in cell "cell".
 	 * The name is modified if it already exists.
 	 */
-	private Export io_suenewexport(Cell cell, PortInst pi, String theName)
+	private Export newExport(Cell cell, PortInst pi, String theName)
 	{
 		String portName = theName;
 		for(int i=0; ; i++)
@@ -1039,7 +1032,7 @@ public class Sue extends Input
 	/**
 	 * Method to find the pin at (x, y) and return it.
 	 */
-	private PortInst io_suefindpinnode(double x, double y, Cell cell)
+	private PortInst findPinNode(double x, double y, Cell cell)
 	{
 		Rectangle2D searchBounds = new Rectangle2D.Double(x, y, 0, 0);
 		for(Geometric.Search sea = new Geometric.Search(searchBounds, cell); sea.hasNext(); )
@@ -1063,10 +1056,10 @@ public class Sue extends Input
 	 * Method to find the SUE file "name" on disk, and read it into library "lib".
 	 * Returns NONODEPROTO if the file is not found or not read properly.
 	 */
-	private NodeProto io_suereadfromdisk(Library lib, String name)
+	private NodeProto readFromDisk(Library lib, String name)
 	{
 		// look for another "sue" file that describes this cell
-		for(Iterator it = io_suedirectories.iterator(); it.hasNext(); )
+		for(Iterator it = sueDirectories.iterator(); it.hasNext(); )
 		{
 			// get the directory
 			String directory = (String)it.next();
@@ -1088,10 +1081,10 @@ public class Sue extends Input
 			// read the file
 			try
 			{
-				String saveLastLine = io_suelastline;
-				io_suelastline = null;
-				io_suereadfile(lib, name, lr);
-				io_suelastline = saveLastLine;
+				String saveLastLine = sueLastLine;
+				sueLastLine = null;
+				readFile(lib, name, lr);
+				sueLastLine = saveLastLine;
 				Cell cell = lib.findNodeProto(name);
 				if (cell != null) return cell;
 			} catch (IOException e)
@@ -1105,7 +1098,7 @@ public class Sue extends Input
 	/**
 	 * Method to find cell "protoname" in library "lib".
 	 */
-	private NodeProto io_suegetnodeproto(Library lib, String protoname)
+	private NodeProto getNodeProto(Library lib, String protoname)
 	{
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
@@ -1163,7 +1156,7 @@ public class Sue extends Input
 					while (j < param.length()-1 && !Character.isWhitespace(param.charAt(j))) j++;
 					while (j < param.length()-1 && Character.isWhitespace(param.charAt(j))) j++;
 					double y = TextUtils.atof(param.substring(j));
-					pt = new Point2D.Double(io_suemakex(x), io_suemakey(y));
+					pt = new Point2D.Double(convertXCoord(x), convertYCoord(y));
 				}
 				if (keyword.equalsIgnoreCase("-orient"))
 				{
@@ -1203,7 +1196,7 @@ public class Sue extends Input
 	/**
 	 * Method to place all SUE wires into the cell.
 	 */
-	private void io_sueplacewires(List sueWires, List sueNets, Cell cell, HashSet invertNodeOutput)
+	private void placeWires(List sueWires, List sueNets, Cell cell, HashSet invertNodeOutput)
 	{
 		// mark all wire ends as "unassigned", all wire types as unknown
 		for(Iterator wIt = sueWires.iterator(); wIt.hasNext(); )
@@ -1242,28 +1235,28 @@ public class Sue extends Input
 				for(Iterator it = cell.getNodes(); it.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)it.next();
-					PortInst pi = io_suewiredport(ni, sw.pt[i], sw.pt[1-i]);
+					PortInst pi = wiredPort(ni, sw.pt[i], sw.pt[1-i]);
 					if (pi == null) continue;
 					sw.pi[i] = pi;
 
 					// determine whether this port is a bus
-					boolean isbus = false;
+					boolean isBus = false;
 					PortOriginal fp = new PortOriginal(pi);
 					PortInst bottomPort = fp.getBottomPort();
 					NodeInst bottomNi = bottomPort.getNodeInst();
 					if (bottomNi.getProto() == Schematics.tech.wireConNode) continue;
-					if (!isbus && ni.getProto() == Schematics.tech.offpageNode)
+					if (!isBus && ni.getProto() == Schematics.tech.offpageNode)
 					{
 						// see if there is a bus port on this primitive
 						for(Iterator eIt = ni.getExports(); eIt.hasNext(); )
 						{
 							Export e = (Export)eIt.next();
 							Name eName = Name.findName(e.getName());
-							if (eName.busWidth() > 1) isbus = true;
+							if (eName.busWidth() > 1) isBus = true;
 						}
 					}
 
-					if (isbus)
+					if (isBus)
 					{
 						sw.proto = Schematics.tech.bus_arc;
 					} else
@@ -1276,10 +1269,10 @@ public class Sue extends Input
 		}
 
 		// now iteratively extend bus wires to connections with others
-		boolean propagatedbus = true;
-		while (propagatedbus)
+		boolean propagatedBus = true;
+		while (propagatedBus)
 		{
-			propagatedbus = false;
+			propagatedBus = false;
 			for(Iterator wIt = sueWires.iterator(); wIt.hasNext(); )
 			{
 				SueWire sw = (SueWire)wIt.next();
@@ -1296,7 +1289,7 @@ public class Sue extends Input
 							{
 								// common point found: continue the bus request
 								oSw.proto = Schematics.tech.bus_arc;
-								propagatedbus = true;
+								propagatedBus = true;
 							}
 						}
 					}
@@ -1362,7 +1355,7 @@ public class Sue extends Input
 			for(int i=0; i<2; i++)
 			{
 				if (sw.pi[i] != null) continue;
-				sw.pi[i] = io_suefindnode(sw.pt[i], sw.pt[1-i], cell, sw.pi[1-i]);
+				sw.pi[i] = findNode(sw.pt[i], sw.pt[1-i], cell, sw.pi[1-i]);
 				if (sw.pi[i] == null)
 				{
 					NodeProto proto = Schematics.tech.wirePinNode;
@@ -1439,16 +1432,16 @@ public class Sue extends Input
 			{
 				Geometric geom = (Geometric)sea.next();
 				if (!(geom instanceof NodeInst)) continue;
-				NodeInst oni = (NodeInst)geom;
-				if (oni == ni) continue;
+				NodeInst oNi = (NodeInst)geom;
+				if (oNi == ni) continue;
 				boolean wired = false;
-				for(Iterator oIt = oni.getPortInsts(); oIt.hasNext(); )
+				for(Iterator oIt = oNi.getPortInsts(); oIt.hasNext(); )
 				{
 					PortInst oPi = (PortInst)oIt.next();
 					Poly oPiPoly = oPi.getPoly();
-					double ox = oPiPoly.getCenterX();
-					double oy = oPiPoly.getCenterY();
-					if (ox != x || oy != y) continue;
+					double oX = oPiPoly.getCenterX();
+					double oY = oPiPoly.getCenterY();
+					if (oX != x || oY != y) continue;
 					ArcProto ap = null;
 					for(int i=0; i<3; i++)
 					{
@@ -1476,7 +1469,7 @@ public class Sue extends Input
 	/**
 	 * Method to find the node at (x, y) and return it.
 	 */
-	private PortInst io_suefindnode(Point2D pt, Point2D oPt, Cell cell, PortInst notThisPort)
+	private PortInst findNode(Point2D pt, Point2D oPt, Cell cell, PortInst notThisPort)
 	{
 		double slop = 10;
 		PortInst bestPi = null;
@@ -1536,7 +1529,7 @@ public class Sue extends Input
 	 * Method to find the port on node "ni" that attaches to the wire from (x,y) to (ox,oy).
 	 * Returns NOPORTPROTO if not found.
 	 */
-	private PortInst io_suewiredport(NodeInst ni, Point2D pt, Point2D oPt)
+	private PortInst wiredPort(NodeInst ni, Point2D pt, Point2D oPt)
 	{
 		for(Iterator it = ni.getPortInsts(); it.hasNext(); )
 		{
@@ -1548,28 +1541,28 @@ public class Sue extends Input
 			ni.getTrueCenterY() != pt.getY()) return null;
 
 		// find port that is closest to OTHER end
-		double bestdist = Double.MAX_VALUE;
-		PortInst bestpi = null;
+		double bestDist = Double.MAX_VALUE;
+		PortInst bestPi = null;
 		for(Iterator it = ni.getPortInsts(); it.hasNext(); )
 		{
 			PortInst pi = (PortInst)it.next();
 			Poly poly = pi.getPoly();
 			Point2D ctr = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
 			double dist = ctr.distance(oPt);
-			if (dist > bestdist) continue;
-			bestdist = dist;
-			bestpi = pi;
+			if (dist > bestDist) continue;
+			bestDist = dist;
+			bestPi = pi;
 		}
-		Poly poly = bestpi.getPoly();
+		Poly poly = bestPi.getPoly();
 		pt.setLocation(poly.getCenterX(), poly.getCenterY());
-		return bestpi;
+		return bestPi;
 	}
 
 	/**
 	 * Method to place all SUE nets into the cell (they are in a linked
 	 * list headed by "sueNets").
 	 */
-	private void io_sueplacenets(List sueNets, Cell cell)
+	private void placeNets(List sueNets, Cell cell)
 	{
 		// 3 passes: qualified labels, unqualified busses, unqualified wires
 		for(int pass=0; pass<3; pass++)
@@ -1591,10 +1584,10 @@ public class Sue extends Input
 
 				// see if this is a bus
 				Name lableName = Name.findName(sn.label);
-				boolean isbus = false;
-				if (lableName.busWidth() > 1) isbus = true;
+				boolean isBus = false;
+				if (lableName.busWidth() > 1) isBus = true;
 
-				ArcInst bestai = null;
+				ArcInst bestAi = null;
 				double bestDist = Double.MAX_VALUE;
 				Rectangle2D searchBounds = new Rectangle2D.Double(sn.pt.getX(), sn.pt.getY(), 0, 0);
 				for(Geometric.Search sea = new Geometric.Search(searchBounds, cell); sea.hasNext(); )
@@ -1602,7 +1595,7 @@ public class Sue extends Input
 					Geometric geom = (Geometric)sea.next();
 					if (geom instanceof NodeInst) continue;
 					ArcInst ai = (ArcInst)geom;
-					if (isbus)
+					if (isBus)
 					{
 						if (ai.getProto() != Schematics.tech.bus_arc) continue;
 					} else
@@ -1615,34 +1608,34 @@ public class Sue extends Input
 					double dist = ctr.distance(sn.pt);
 
 					// LINTED "bestdist" used in proper order
-					if (bestai == null || dist < bestDist)
+					if (bestAi == null || dist < bestDist)
 					{
-						bestai = ai;
+						bestAi = ai;
 						bestDist = dist;
 					}
 				}
-				if (bestai != null)
+				if (bestAi != null)
 				{
 					if (pass == 1)
 					{
 						// only allow busses
-						if (bestai.getProto() != Schematics.tech.bus_arc) continue;
+						if (bestAi.getProto() != Schematics.tech.bus_arc) continue;
 					} else if (pass == 2)
 					{
 						// disallow busses
-						if (bestai.getProto() == Schematics.tech.bus_arc) continue;
+						if (bestAi.getProto() == Schematics.tech.bus_arc) continue;
 					}
-					String netname = sn.label;
-					if (netname.startsWith("["))
+					String netName = sn.label;
+					if (netName.startsWith("["))
 					{
 						// find the proper name of the network
-						String busname = io_suefindbusname(bestai);
-						if (busname != null)
+						String busName = findBusName(bestAi);
+						if (busName != null)
 						{
-							netname = busname + netname;
+							netName = busName + netName;
 						}
 					}
-					bestai.setName(netname);
+					bestAi.setName(netName);
 				}
 			}
 		}
@@ -1652,31 +1645,31 @@ public class Sue extends Input
 	 * Method to start at "ai" and search all wires until it finds a named bus.
 	 * Returns zero if no bus name is found.
 	 */
-	private String io_suefindbusname(ArcInst ai)
+	private String findBusName(ArcInst ai)
 	{
 		HashSet arcsSeen = new HashSet();
-		String busname = io_suesearchbusname(ai, arcsSeen);
-		if (busname == null)
+		String busName = searchBusName(ai, arcsSeen);
+		if (busName == null)
 		{
 			for(int index=1; ; index++)
 			{
-				String pseudobusname = "NET" + index;
-				int len = pseudobusname.length();
+				String pseudoBusName = "NET" + index;
+				int len = pseudoBusName.length();
 				boolean found = false;
 				for(Iterator it = ai.getParent().getArcs(); it.hasNext(); )
 				{
 					ArcInst oAi = (ArcInst)it.next();
 					String arcName = oAi.getName();
-					if (arcName.equalsIgnoreCase(pseudobusname)) { found = true;   break; }
-					if (arcName.startsWith(pseudobusname) && arcName.charAt(len) == '[') { found = true;   break; }
+					if (arcName.equalsIgnoreCase(pseudoBusName)) { found = true;   break; }
+					if (arcName.startsWith(pseudoBusName) && arcName.charAt(len) == '[') { found = true;   break; }
 				}
-				if (!found) return pseudobusname;
+				if (!found) return pseudoBusName;
 			}
 		}
-		return busname;
+		return busName;
 	}
 
-	private String io_suesearchbusname(ArcInst ai, HashSet arcsSeen)
+	private String searchBusName(ArcInst ai, HashSet arcsSeen)
 	{
 		arcsSeen.add(ai);
 		if (ai.getProto() == Schematics.tech.bus_arc)
@@ -1707,8 +1700,8 @@ public class Sue extends Input
 				Connection con = (Connection)it.next();
 				ArcInst oAi = con.getArc();
 				if (arcsSeen.contains(oAi)) continue;
-				String busname = io_suesearchbusname(oAi, arcsSeen);
-				if (busname != null) return busname;
+				String busName = searchBusName(oAi, arcsSeen);
+				if (busName != null) return busName;
 			}
 		}
 		return null;
@@ -1719,32 +1712,32 @@ public class Sue extends Input
 	 * it up into space-separated keywords.  Returns the number
 	 * of keywords (-1 on EOF)
 	 */
-	private List io_suegetnextline(LineNumberReader lr)
+	private List getNextLine(LineNumberReader lr)
 		throws IOException
 	{
 		lastLineRead = null;
-		for(int lineno=0; ; lineno++)
+		for(int lineNo=0; ; lineNo++)
 		{
-			if (io_suelastline == null)
+			if (sueLastLine == null)
 			{
-				io_suelastline = lr.readLine();
-				if (io_suelastline == null) return null;
+				sueLastLine = lr.readLine();
+				if (sueLastLine == null) return null;
 			}
-			if (lineno == 0)
+			if (lineNo == 0)
 			{
 				// first line: use it
-				lastLineRead = io_suelastline;
+				lastLineRead = sueLastLine;
 			} else
 			{
 				// subsequent line: use it only if a continuation
-				if (io_suelastline.length() == 0 || io_suelastline.charAt(0) != '+') break;
-				lastLineRead += io_suelastline.substring(1);
+				if (sueLastLine.length() == 0 || sueLastLine.charAt(0) != '+') break;
+				lastLineRead += sueLastLine.substring(1);
 			}
-			io_suelastline = null;
+			sueLastLine = null;
 		}
 
 		// parse the line
-		boolean inblank = true;
+		boolean inBlank = true;
 		List keywords = new ArrayList();
 		int startIndex = 0;
 		int len = lastLineRead.length();
@@ -1756,20 +1749,20 @@ public class Sue extends Input
 			if (pt == '}') curlyDepth--;
 			if ((pt == ' ' || pt == '\t') && curlyDepth == 0)
 			{
-				if (!inblank)
+				if (!inBlank)
 				{
 					String keyword = lastLineRead.substring(startIndex, i).trim();
 					keywords.add(keyword);
 					startIndex = i;
 				}
-				inblank = true;
+				inBlank = true;
 			} else
 			{
-				if (inblank)
+				if (inBlank)
 				{
 					startIndex = i;
 				}
-				inblank = false;
+				inBlank = false;
 			}
 		}
 		String keyword = lastLineRead.substring(startIndex, len).trim();
@@ -1781,7 +1774,7 @@ public class Sue extends Input
 	/**
 	 * Method to examine a SUE expression and add "@" in front of variable names.
 	 */
-	private String io_sueparseexpression(String expression)
+	private String parseExpression(String expression)
 	{
 		StringBuffer infstr = new StringBuffer();
 		for(int i=0; i<expression.length(); i++)
@@ -1817,7 +1810,7 @@ public class Sue extends Input
 	/**
 	 * Method to convert SUE X coordinate "x" to Electric coordinates
 	 */
-	private static double io_suemakex(double x)
+	private static double convertXCoord(double x)
 	{
 		return x / 8;
 	}
@@ -1825,7 +1818,7 @@ public class Sue extends Input
 	/**
 	 * Method to convert SUE Y coordinate "y" to Electric coordinates
 	 */
-	private static double io_suemakey(double y)
+	private static double convertYCoord(double y)
 	{
 		return -y / 8;
 	}

@@ -811,6 +811,8 @@ public class TextUtils
 	 */
 	public static URL makeURLToFile(String fileName)
 	{
+		if (fileName.startsWith("file://")) fileName = fileName.substring(6);
+		if (fileName.startsWith("file:/")) fileName = fileName.substring(5);
 		File file = new File(fileName);
 		try
 		{

@@ -238,7 +238,7 @@ public class Undo
 				for(Iterator it = Tool.getListeners(); it.hasNext(); )
 				{
 					Listener listener = (Listener)it.next();
-					listener.renameObject(obj, (Name)o1);
+					listener.renameObject(obj, (Name)o1, i1);
 				}
 			} else if (type == Type.OBJECTREDRAW)
 			{
@@ -514,7 +514,9 @@ public class Undo
 					Cell cell = (Cell)obj;
 					Name oldName = (Name)o1;
 					o1 = Name.findName(cell.getName());
-					cell.lowLevelRename(oldName.toString());
+					int oldVersion = i1;
+					i1 = cell.getVersion();
+					cell.lowLevelRename(oldName.toString(), i1);
 				} else if (obj instanceof Export)
 				{
 					Export pp = (Export)obj;
@@ -1484,17 +1486,19 @@ public class Undo
 	 * Method to store the renaming of an ElectricObject in the change-control system.
 	 * @param obj the ElectricObject that was renamed.
 	 * @param oldName the former name of the ElectricObject.
+	 * @param oldVersion the former version of the ElectricObject (if it is a Cell).
 	 */
-	public static void renameObject(ElectricObject obj, Name oldName)
+	public static void renameObject(ElectricObject obj, Name oldName, int oldVersion)
 	{
 		if (!recordChange()) return;
 		Type type = Type.OBJECTRENAME;
 		Change ch = newChange(obj, type, oldName);
 		if (ch == null) return;
+		ch.i1 = oldVersion;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
 		fireChangeEvent(ch);
-		Constraints.getCurrent().renameObject(obj, oldName);
+		Constraints.getCurrent().renameObject(obj, oldName, oldVersion);
 	}
 
 	/**

@@ -155,8 +155,9 @@ public class Listener extends Tool implements Changes
 	 * Method to handle the renaming of an ElectricObject.
 	 * @param obj the ElectricObject that was renamed.
 	 * @param oldName the former name of that ElectricObject.
+	 * @param oldVersion the former version of that ElectricObject (if a Cell).
 	 */
-	public void renameObject(ElectricObject obj, Name oldName) {}
+	public void renameObject(ElectricObject obj, Name oldName, int oldVersion) {}
 	/**
 	 * Method to request that an object be redrawn.
 	 * @param obj the ElectricObject to be redrawn.

@@ -452,7 +452,7 @@ public class Variable
 		{
 			returnVal.append(getPureValue(aindex));
 		}
-        if (dispPos == TextDescriptor.DispPos.NAMEVALUE && aindex < 0)
+        if (dispPos == TextDescriptor.DispPos.NAMEVALUE && (aindex < 0 || getLength() == 1))
 		{
 			return this.getTrueName() + "=" + returnVal.toString();
 		}

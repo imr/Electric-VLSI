@@ -188,7 +188,9 @@ public class LibraryFiles extends Input
 	protected Library readExternalLibraryFromFilename(String theFileName, OpenFile.Type defaultType)
 	{
 		// get the path to the library file
-		File libFile = new File(theFileName);
+		URL url = TextUtils.makeURLToFile(theFileName);
+		String fileName = url.getFile();
+		File libFile = new File(fileName);
 
 		// see if this library is already read in
 		String libFileName = libFile.getName();

@@ -743,20 +743,24 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
         if (newName == null || newName.equals("")) return;
 
         // check for same name already in library
-        for (Iterator it = getLibrary().getCells(); it.hasNext(); ) {
+        for (Iterator it = getLibrary().getCells(); it.hasNext(); )
+        {
             Cell c = (Cell)it.next();
-            if (newName.equals(c.getName()) && (getView() == c.getView())) {
-                System.out.println("Already a Cell named " + noLibDescribe() + " in Library " + getLibrary().getName());
-                return;
+            if (newName.equals(c.getName()) && (getView() == c.getView()))
+            {
+                System.out.println("Already a Cell named " + noLibDescribe() + " in Library " + getLibrary().getName() +
+                	"...making this a new version");
+                break;
             }
         }
 
 		// do the rename
 		Name oldName = basename;
-		lowLevelRename(newName);
+		int oldVersion = version;
+		lowLevelRename(newName, version);
 
 		// handle change control, constraint, and broadcast
-		Undo.renameObject(this, oldName);
+		Undo.renameObject(this, oldName, oldVersion);
 	}
 
 	/****************************** LOW-LEVEL IMPLEMENTATION ******************************/
@@ -765,9 +769,40 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * Low-level access method to rename a Cell.
 	 * Unless you know what you are doing, do not use this method...use "rename()" instead.
 	 * @param newName the new name of this cell.
+	 * @param newVersion the new version number of this cell (if reassignment is necessary).
 	 */
-	public void lowLevelRename(String newName)
+	public void lowLevelRename(String newName, int newVersion)
 	{
+		// if the current cell has other versions, separate it from them
+		if (versionGroup.size() > 1)
+		{
+			versionGroup.remove(this);
+			versionGroup = new VersionGroup();
+			versionGroup.add(this);
+		}
+
+		// if the new name exists, make this a new version
+		for(Iterator it = this.getLibrary().getCells(); it.hasNext(); )
+		{
+			Cell oCell = (Cell)it.next();
+			if (oCell.getView() == this.getView() && oCell.getName().equalsIgnoreCase(newName))
+			{
+				int greatestVersion = 0;
+				for(Iterator vIt = oCell.versionGroup.iterator(); vIt.hasNext(); )
+				{
+					Cell vCell = (Cell)vIt.next();
+					if (vCell.getVersion() == newVersion) newVersion = -1;
+					if (vCell.getVersion() > greatestVersion)
+						greatestVersion = vCell.getVersion();
+				}
+				if (newVersion < 0) newVersion = greatestVersion + 1;
+				this.version = newVersion;
+				versionGroup.remove(this);
+				oCell.versionGroup.add(this);
+				this.versionGroup = oCell.versionGroup;
+				break;
+			}
+		}
 		setProtoName(newName);
 	}
 
