@@ -311,6 +311,7 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
             // see if we can make an LENodable from the nodable
             LENodable.Type type = netlister.getType(ni, info);
             if (type == null) return true;                  // recurse
+            if (type == LENodable.Type.IGNORE) return false;    // ignore
             LENodable leno = netlister.createLENodable(type, ni, info);
             // if no lenodable, recurse
             if (leno == null) return true;
@@ -529,6 +530,12 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
         else if ((ni.getProto() != null) && (ni.getProto().getFunction() == PrimitiveNode.Function.CAPAC)) {
             return LENodable.Type.CAPACITOR;
         }
+        else if ((var = ni.getParameter("ATTR_LEIGNORE")) != null) {
+            int ignore = VarContext.objectToInt(info.getContext().evalVar(var), 1);
+            if (ignore == 1)
+                return LENodable.Type.IGNORE;
+        }
+
         return null;
     }
 

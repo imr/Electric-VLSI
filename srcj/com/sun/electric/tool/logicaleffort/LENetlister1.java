@@ -360,6 +360,8 @@ public class LENetlister1 extends HierarchyEnumerator.Visitor implements LENetli
         }
         else if (ni.getVar("ATTR_LESETTINGS") != null)
             return false;
+        else if (ni.getVar("ATTR_LEIGNORE") != null)
+            return false;
 
 
         if (type == null) return true;              // descend into and process

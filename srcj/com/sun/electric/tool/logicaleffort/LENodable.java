@@ -34,6 +34,7 @@ public class LENodable {
         /** NotSizeable */  protected static final Type TRANSISTOR = new Type("Transistor");
         /** NotSizeable */  protected static final Type CAPACITOR = new Type("Capacitor");
         /** Cached cell */  protected static final Type CACHEDCELL = new Type("Cached Cell");
+        /** Ingore */       protected static final Type IGNORE = new Type("LE Ingore");
     }
 
     // --------- Definition fields ----------
