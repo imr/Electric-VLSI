@@ -149,6 +149,7 @@ public abstract class PortProto extends ElectricObject implements Networkable
 	/** The parent NodeProto of this PortProto. */				protected NodeProto parent;
 	/** The text descriptor of this PortProto. */				private TextDescriptor descriptor;
 	/** A temporary integer value of this PortProto. */			private int tempInt;
+	/** The temporary Object. */								private Object tempObj;
 
 	/** Network that this port belongs to (in case two ports are permanently
 	 * connected, like the two ends of the gate in a MOS transistor.
@@ -170,6 +171,7 @@ public abstract class PortProto extends ElectricObject implements Networkable
 		this.network = null;
 		this.userBits = 0;
 		this.descriptor = TextDescriptor.newExportDescriptor();
+		this.tempObj = null;
 		//if (network!=null)  network.addPart(this);
 	}
 
@@ -452,6 +454,18 @@ public abstract class PortProto extends ElectricObject implements Networkable
 	 * @return the temporary integer on this PortProto.
 	 */
 	public int getTempInt() { return tempInt; }
+
+	/**
+	 * Routine to set an arbitrary Object in a temporary location on this PortProto.
+	 * @param tempObj the Object to be set on this PortProto.
+	 */
+	public void setTempObj(Object tempObj) { this.tempObj = tempObj; }
+
+	/**
+	 * Routine to get the temporary Object on this PortProto.
+	 * @return the temporary Object on this PortProto.
+	 */
+	public Object getTempObj() { return tempObj; }
 
 	/**
 	 * Routine to return the PortProto that is equivalent to this in the

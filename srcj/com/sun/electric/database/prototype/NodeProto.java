@@ -351,7 +351,8 @@ public abstract class NodeProto extends ElectricObject
 	/** set if primitive is lockable (cannot move) */		private static final int LOCKEDPRIM =       040000;
 	/** set if primitive is selectable by edge, not area */	private static final int NEDGESELECT =     0100000;
 	/** set if nonmanhattan arcs on this shrink */			private static final int ARCSHRINK =       0200000;
-	//  used by database:                                                                             01400000
+//	/** set if cell is changed */							private static final int CELLMOD =         0400000;
+//	/** set if cell is not changed */						private static final int CELLNOMOD =      01000000;
 	/** set if not used (don't put in menu) */				private static final int NNOTUSED =       02000000;
 	/** set if everything in cell is locked */				private static final int NPLOCKED =       04000000;
 	/** set if instances in cell are locked */				private static final int NPILOCKED =     010000000;
@@ -1345,19 +1346,13 @@ public abstract class NodeProto extends ElectricObject
 	 * any view or version information.
 	 * @return the prototype name of this NodeProto.
 	 */
-	public String getProtoName()
-	{
-		return protoName;
-	}
+	public String getProtoName() { return protoName; }
 
 	/** Get an iterator over all of the JNetworks of this NodeProto.
 	 * 
 	 * <p> Warning: before getNetworks() is called, JNetworks must be
 	 * build by calling Cell.rebuildNetworks() */
-	public Iterator getNetworks()
-	{
-		return networks.iterator();
-	}
+	public Iterator getNetworks() { return networks.iterator(); }
 
 	/**
 	 * Routine to determine whether a variable name on NodeProtos is deprecated.

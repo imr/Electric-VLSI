@@ -1026,7 +1026,7 @@ public class InputBinary extends Input
 		int xoff = 0, yoff = 0;
 		for(int i=startNode; i<endNode; i++)
 		{
-			if (nodeTypeList[i] == Generic.tech.cellCenter_node)
+			if (nodeTypeList[i] == Generic.tech.cellCenterNode)
 			{
 				buildNodeInst(i, xoff, yoff, lambda, cell);
 				xoff = (nodeLowXList[i] + nodeHighXList[i]) / 2;
@@ -1038,7 +1038,7 @@ public class InputBinary extends Input
 		// finish creating the rest of the NodeInsts
 		for(int i=startNode; i<endNode; i++)
 		{
-			if (nodeTypeList[i] != Generic.tech.cellCenter_node)
+			if (nodeTypeList[i] != Generic.tech.cellCenterNode)
 				buildNodeInst(i, xoff, yoff, lambda, cell);
 		}
 
@@ -1565,8 +1565,8 @@ public class InputBinary extends Input
 			double width = (highX - lowX) / lambda;
 			double height = (highY - lowY) / lambda;
 			Point2D center = new Point2D.Double(cX / lambda, cY / lambda);
-			NodeInst.newInstance(Generic.tech.drc_node, center, width, height, 0, c);
-			fakeNodeInst = NodeInst.newInstance(Generic.tech.universalPin_node, center, width, height, 0, c);
+			NodeInst.newInstance(Generic.tech.drcNode, center, width, height, 0, c);
+			fakeNodeInst = NodeInst.newInstance(Generic.tech.universalPinNode, center, width, height, 0, c);
 
 			newCell = true;
 			System.out.println("...Creating dummy version of cell in library " + lib.getLibName());

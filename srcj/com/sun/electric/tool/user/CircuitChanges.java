@@ -221,7 +221,7 @@ public class CircuitChanges
 					Connection tail = ai.getTail();
 					Point2D newHead = new Point2D.Double(head.getLocation().getX()+dx, head.getLocation().getY()+dy);
 					Point2D newTail = new Point2D.Double(tail.getLocation().getX()+dx, tail.getLocation().getY()+dy);
-					if (ai.stillInPort(head, newHead) && ai.stillInPort(tail, newTail)) continue;
+					if (ai.stillInPort(head, newHead, true) && ai.stillInPort(tail, newTail, true)) continue;
 				}
 			}
 			onlySlidable = false;
@@ -334,9 +334,9 @@ public class CircuitChanges
 			if (!ai.isRigid() && ai.isSlidable())
 			{
 				headInPort = ai.stillInPort(ai.getHead(),
-					new Point2D.Double(ai.getHead().getLocation().getX()+dx, ai.getHead().getLocation().getY()+dy));
+					new Point2D.Double(ai.getHead().getLocation().getX()+dx, ai.getHead().getLocation().getY()+dy), true);
 				tailInPort = ai.stillInPort(ai.getTail(),
-					new Point2D.Double(ai.getTail().getLocation().getX()+dx, ai.getTail().getLocation().getY()+dy));
+					new Point2D.Double(ai.getTail().getLocation().getX()+dx, ai.getTail().getLocation().getY()+dy), true);
 			}
 
 			// if both ends slide in their port, move the arc
@@ -372,9 +372,9 @@ public class CircuitChanges
 							if (aPt.getX() != oai.getCenterX() ||
 								aPt.getY() != oai.getCenterY()) continue;
 							if (oai.stillInPort(oai.getHead(),
-									new Point2D.Double(ai.getHead().getLocation().getX()+dx, ai.getHead().getLocation().getY()+dy)) ||
+									new Point2D.Double(ai.getHead().getLocation().getX()+dx, ai.getHead().getLocation().getY()+dy), true) ||
 								oai.stillInPort(oai.getTail(),
-									new Point2D.Double(ai.getTail().getLocation().getX()+dx, ai.getTail().getLocation().getY()+dy)))
+									new Point2D.Double(ai.getTail().getLocation().getX()+dx, ai.getTail().getLocation().getY()+dy), true))
 										continue;
 							Layout.setTempRigid(oai, true);
 						}

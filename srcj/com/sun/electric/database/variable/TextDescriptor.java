@@ -633,7 +633,7 @@ public class TextDescriptor
 	 * Routine to return true if the text in the TextDescriptor is italic.
 	 * @return true if the text in the TextDescriptor is italic.
 	 */
-	public boolean getItalic() { return (descriptor0 & VTITALIC) != 0; }
+	public boolean isItalic() { return (descriptor0 & VTITALIC) != 0; }
 
 	/**
 	 * Routine to set the text in the TextDescriptor to be italic.
@@ -649,7 +649,7 @@ public class TextDescriptor
 	 * Routine to return true if the text in the TextDescriptor is bold.
 	 * @return true if the text in the TextDescriptor is bold.
 	 */
-	public boolean getBold() { return (descriptor0 & VTBOLD) != 0; }
+	public boolean isBold() { return (descriptor0 & VTBOLD) != 0; }
 
 	/**
 	 * Routine to set the text in the TextDescriptor to be bold.
@@ -665,7 +665,7 @@ public class TextDescriptor
 	 * Routine to return true if the text in the TextDescriptor is underlined.
 	 * @return true if the text in the TextDescriptor is underlined.
 	 */
-	public boolean getUnderline() { return (descriptor0 & VTUNDERLINE) != 0; }
+	public boolean isUnderline() { return (descriptor0 & VTUNDERLINE) != 0; }
 
 	/**
 	 * Routine to set the text in the TextDescriptor to be underlined.
@@ -682,7 +682,7 @@ public class TextDescriptor
 	 * Interior text is not seen at higher levels of the hierarchy.
 	 * @return true if the text in the TextDescriptor is interior.
 	 */
-	public boolean getInterior() { return (descriptor0 & VTINTERIOR) != 0; }
+	public boolean isInterior() { return (descriptor0 & VTINTERIOR) != 0; }
 
 	/**
 	 * Routine to set the text in the TextDescriptor to be interior.
@@ -704,7 +704,7 @@ public class TextDescriptor
 	 * created on that NodeInst.
 	 * @return true if the text in the TextDescriptor is inheritable.
 	 */
-	public boolean getInherit() { return (descriptor0 & VTINHERIT) != 0; }
+	public boolean isInherit() { return (descriptor0 & VTINHERIT) != 0; }
 
 	/**
 	 * Routine to set the text in the TextDescriptor to be inheritable.
@@ -731,7 +731,7 @@ public class TextDescriptor
 	 * Parameters can only exist on NodeInst objects.
 	 * @return true if the text in the TextDescriptor is a parameter.
 	 */
-	public boolean getIsParam() { return (descriptor0 & VTISPARAMETER) != 0; }
+	public boolean isParam() { return (descriptor0 & VTISPARAMETER) != 0; }
 
 	/**
 	 * Routine to set the text in the TextDescriptor to be a parameter.
@@ -739,7 +739,7 @@ public class TextDescriptor
 	 * passed down the hierarchy into the contents.
 	 * Parameters can only exist on NodeInst objects.
 	 */
-	public void setIsParam() { descriptor0 |= VTISPARAMETER; }
+	public void setParam() { descriptor0 |= VTISPARAMETER; }
 
 	/**
 	 * Routine to set the text in the TextDescriptor to be not a parameter.
@@ -747,7 +747,7 @@ public class TextDescriptor
 	 * passed down the hierarchy into the contents.
 	 * Parameters can only exist on NodeInst objects.
 	 */
-	public void clearIsParam() { descriptor0 &= ~VTISPARAMETER; }
+	public void clearParam() { descriptor0 &= ~VTISPARAMETER; }
 
 	/**
 	 * Routine to return the X offset of the text in the TextDescriptor.

@@ -30,6 +30,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Poly;
@@ -40,6 +41,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.AffineTransform;
 import java.util.Iterator;
 
 /**
@@ -107,7 +109,163 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 */
 	private ArcInst() {}
 
-	// -------------------------- public methods -----------------------------
+	/****************************** CREATE, DELETE, MODIFY ******************************/
+
+	/**
+	 * Routine to create a new ArcInst connecting two PortInsts.
+	 * Since no coordinates are given, the ArcInst connects to the center of the PortInsts.
+	 * @param type the prototype of the new ArcInst.
+	 * @param width the width of the new ArcInst.  The width must be > 0.
+	 * @param head the head end PortInst.
+	 * @param tail the tail end PortInst.
+	 * @return the newly created ArcInst, or null if there is an error.
+	 */
+	public static ArcInst newInstance(ArcProto type, double width, PortInst head, PortInst tail)
+	{
+		Rectangle2D headBounds = head.getBounds();
+		double headX = headBounds.getCenterX();
+		double headY = headBounds.getCenterY();
+		Rectangle2D tailBounds = tail.getBounds();
+		double tailX = tailBounds.getCenterX();
+		double tailY = tailBounds.getCenterY();
+		return newInstance(type, width, head, new Point2D.Double(headX, headY), tail, new Point2D.Double(tailX, tailY));
+	}
+
+	/**
+	 * Routine to create a new ArcInst connecting two PortInsts at specified locations.
+	 * This is more general than the version that does not take coordinates.
+	 * @param type the prototype of the new ArcInst.
+	 * @param width the width of the new ArcInst.  The width must be > 0.
+	 * @param head the head end PortInst.
+	 * @param headPt the coordinate of the head end PortInst.
+	 * @param tail the tail end PortInst.
+	 * @param tailPt the coordinate of the tail end PortInst.
+	 * @return the newly created ArcInst, or null if there is an error.
+	 */
+	public static ArcInst newInstance(ArcProto type, double width,
+		PortInst head, Point2D headPt, PortInst tail, Point2D tailPt)
+	{
+		ArcInst ai = lowLevelAllocate();
+		if (ai.lowLevelPopulate(type, width, head, headPt, tail, tailPt)) return null;
+		if (!ai.stillInPort(ai.getHead(), headPt, false))
+		{
+			Cell parent = head.getNodeInst().getParent();
+			System.out.println("Error in cell " + parent.describe() + ": head of " + type.getProtoName() +
+				" arc at (" + headPt.getX() + "," + headPt.getY() + ") does not fit in port");
+			return null;
+		}
+		if (!ai.stillInPort(ai.getTail(), tailPt, false))
+		{
+			Cell parent = tail.getNodeInst().getParent();
+			System.out.println("Error in cell " + parent.describe() + ": tail of " + type.getProtoName() +
+				" arc at (" + tailPt.getX() + "," + tailPt.getY() + ") does not fit in port");
+			return null;
+		}
+		if (ai.lowLevelLink()) return null;
+
+		// handle change control, constraint, and broadcast
+		if (Undo.recordChange())
+		{
+			// tell all tools about this ArcInst
+			Undo.Change ch = Undo.newChange(ai, Undo.Type.ARCINSTNEW);
+
+			// tell constraint system about new ArcInst
+//			(*el_curconstraint->newobject)((INTBIG)ni, VARCINST);
+		}
+		return ai;
+	}
+
+	/**
+	 * Routine to delete this ArcInst.
+	 */
+	public void kill()
+	{
+		// remove the arc
+		lowLevelUnlink();
+
+		// handle change control, constraint, and broadcast
+		if (Undo.recordChange())
+		{
+			// tell all tools about this ArcInst
+			Undo.Change ch = Undo.newChange(this, Undo.Type.ARCINSTKILL);
+
+			// tell constraint system about killed ArcInst
+//			(*el_curconstraint->killobject)((INTBIG)ni, VARCINST);
+		}
+	}
+
+	/**
+	 * Routine to change the width and end locations of this ArcInst.
+	 * @param dWidth the change to the ArcInst width.
+	 * @param dHeadX the change to the X coordinate of the head of this ArcInst.
+	 * @param dHeadY the change to the Y coordinate of the head of this ArcInst.
+	 * @param dTailX the change to the X coordinate of the tail of this ArcInst.
+	 * @param dTailY the change to the Y coordinate of the tail of this ArcInst.
+	 */
+	public void modify(double dWidth, double dHeadX, double dHeadY, double dTailX, double dTailY)
+	{
+		// save old arc state
+		double oldxA = ends[HEADEND].getLocation().getX();
+		double oldyA = ends[HEADEND].getLocation().getY();
+		double oldxB = ends[TAILEND].getLocation().getX();
+		double oldyB = ends[TAILEND].getLocation().getY();
+		double oldWidth = getWidth();
+
+		// change the arc
+		lowLevelModify(dWidth, dHeadX, dHeadY, dTailX, dTailY);
+
+		// track the change
+		if (Undo.recordChange())
+		{
+			Undo.Change change = Undo.newChange(this, Undo.Type.ARCINSTMOD);
+			change.setDoubles(oldxA, oldyA, oldxB, oldyB, oldWidth);
+			setChange(change);
+		}
+		parent.setDirty();
+	}
+
+	/**
+	 * Routine to replace this ArcInst with one of another type.
+	 * @param ap the new type of arc.
+	 * @return the new ArcInst (null on error).
+	 */
+	public ArcInst replace(ArcProto ap)
+	{
+		// check for connection allowance
+		Connection head = getHead();
+		Connection tail = getTail();
+		PortInst piH = head.getPortInst();
+		PortInst piT = tail.getPortInst();
+		if (!piH.getPortProto().connectsTo(ap) || !piT.getPortProto().connectsTo(ap))
+		{
+			System.out.println("Cannot replace arc " + describe() + " with one of type " + ap.getProtoName() +
+				" because the nodes cannot connect to it");
+			return null;
+		}
+
+		// compute the new width
+		double newwid = getWidth() - getProto().getWidthOffset() + ap.getWidthOffset();
+
+		// first create the new nodeinst in place
+		ArcInst newar = ArcInst.newInstance(ap, newwid, piH, head.getLocation(), piT, tail.getLocation());
+		if (newar == null)
+		{
+			System.out.println("Cannot replace arc " + describe() + " with one of type " + ap.getProtoName() +
+				" because the new arc failed to create");
+			return null;
+		}
+
+		// copy all variables on the arcinst
+		copyVars(newar, false);
+		newar.endChange();
+
+		// now delete the original nodeinst
+		startChange();
+		kill();
+		return newar;
+	}
+
+	/****************************** LOW-LEVEL IMPLEMENTATION ******************************/
 
 	/**
 	 * Low-level access routine to create a ArcInst.
@@ -222,7 +380,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 * @param dTailX the change to the X coordinate of the tail of this ArcInst.
 	 * @param dTailY the change to the Y coordinate of the tail of this ArcInst.
 	 */
-	public void lowLevelMove(double dWidth, double dHeadX, double dHeadY, double dTailX, double dTailY)
+	public void lowLevelModify(double dWidth, double dHeadX, double dHeadY, double dTailX, double dTailY)
 	{
 		// first remove from the R-Tree structure
 		unLinkGeom(parent);
@@ -249,118 +407,416 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		linkGeom(parent);
 	}
 
+	/****************************** GRAPHICS ******************************/
+
 	/**
-	 * Routine to create a new ArcInst connecting two PortInsts.
-	 * Since no coordinates are given, the ArcInst connects to the center of the PortInsts.
-	 * @param type the prototype of the new ArcInst.
-	 * @param width the width of the new ArcInst.  The width must be > 0.
-	 * @param head the head end PortInst.
-	 * @param tail the tail end PortInst.
-	 * @return the newly created ArcInst, or null if there is an error.
+	 * Routine to return the width of this ArcInst.
+	 * @return the width of this ArcInst.
 	 */
-	public static ArcInst newInstance(ArcProto type, double width, PortInst head, PortInst tail)
+	public double getWidth() { return arcWidth; }
+
+	/**
+	 * Routine to create a Poly object that describes an ArcInst.
+	 * The ArcInst is described by its length, width and style.
+	 * @param length the length of the ArcInst.
+	 * @param width the width of the ArcInst.
+	 * @param style the style of the ArcInst.
+	 * @return a Poly that describes the ArcInst.
+	 */
+	public Poly makePoly(double length, double width, Poly.Type style)
 	{
-		Rectangle2D headBounds = head.getBounds();
-		double headX = headBounds.getCenterX();
-		double headY = headBounds.getCenterY();
-		Rectangle2D tailBounds = tail.getBounds();
-		double tailX = tailBounds.getCenterX();
-		double tailY = tailBounds.getCenterY();
-		return newInstance(type, width, head, new Point2D.Double(headX, headY), tail, new Point2D.Double(tailX, tailY));
+		Point2D endH = ends[HEADEND].getLocation();
+		Point2D endT = ends[TAILEND].getLocation();
+
+		// zero-width polygons are simply lines
+		if (width == 0)
+		{
+			Poly poly = new Poly(new Point2D.Double[]{new Point2D.Double(endH.getX(), endH.getY()), new Point2D.Double(endT.getX(), endT.getY())});
+			if (style == Poly.Type.FILLED) style = Poly.Type.OPENED;
+			poly.setStyle(style);
+			return poly;
+		}
+
+		// determine the end extension on each end
+		double extendH = width/2;
+		if (getHead().getEndShrink() != 0)
+			extendH = getExtendFactor(width, getHead().getEndShrink());
+		double extendT = width/2;
+		if (getTail().getEndShrink() != 0)
+			extendT = getExtendFactor(width, getTail().getEndShrink());
+		if (!isExtended())
+		{
+			// nonextension arc: set extension to zero for all included ends
+			if (!isSkipTail()) extendH = 0;
+			if (!isSkipHead()) extendT = 0;
+		}
+
+		// make the polygon
+		Poly poly = makeEndPointPoly(length, width, getAngle(), endH, extendH, endT, extendT);
+		if (poly != null) poly.setStyle(style);
+		return poly;
 	}
 
 	/**
-	 * Routine to create a new ArcInst connecting two PortInsts at specified locations.
-	 * This is more general than the version that does not take coordinates.
-	 * @param type the prototype of the new ArcInst.
-	 * @param width the width of the new ArcInst.  The width must be > 0.
-	 * @param head the head end PortInst.
-	 * @param headPt the coordinate of the head end PortInst.
-	 * @param tail the tail end PortInst.
-	 * @param tailPt the coordinate of the tail end PortInst.
-	 * @return the newly created ArcInst, or null if there is an error.
+	 * Routine to return a list of Polys that describes all text on this ArcInst.
+	 * @param hardToSelect is true if considering hard-to-select text.
+	 * @param wnd the window in which the text will be drawn.
+	 * @return an array of Polys that describes the text.
 	 */
-	public static ArcInst newInstance(ArcProto type, double width,
-		PortInst head, Point2D headPt, PortInst tail, Point2D tailPt)
+	public Poly [] getAllText(boolean hardToSelect, EditWindow wnd)
 	{
-		ArcInst ai = lowLevelAllocate();
-		if (ai.lowLevelPopulate(type, width, head, headPt, tail, tailPt)) return null;
-		if (!ai.stillInPort(ai.getHead(), headPt))
-		{
-			Cell parent = head.getNodeInst().getParent();
-			System.out.println("Error in cell " + parent.describe() + ": head of " + type.getProtoName() +
-				" arc at (" + headPt.getX() + "," + headPt.getY() + ") does not fit in port");
-			return null;
-		}
-		if (!ai.stillInPort(ai.getTail(), tailPt))
-		{
-			Cell parent = tail.getNodeInst().getParent();
-			System.out.println("Error in cell " + parent.describe() + ": tail of " + type.getProtoName() +
-				" arc at (" + tailPt.getX() + "," + tailPt.getY() + ") does not fit in port");
-			return null;
-		}
-		if (ai.lowLevelLink()) return null;
+		int dispVars = numDisplayableVariables(false);
+		int totalText = dispVars;
+		if (totalText == 0) return null;
+		Poly [] polys = new Poly[totalText];
+		addDisplayableVariables(getBounds(), polys, 0, wnd, false);
+		return polys;
+	}
 
-		// handle change control, constraint, and broadcast
-		if (Undo.recordChange())
-		{
-			// tell all tools about this ArcInst
-			Undo.Change ch = Undo.newChange(ai, Undo.Type.ARCINSTNEW);
+	private Poly makeEndPointPoly(double len, double wid, int angle, Point2D endH, double extendH,
+		Point2D endT, double extendT)
+	{
+		double w2 = wid / 2;
+		double x1 = endH.getX();   double y1 = endH.getY();
+		double x2 = endT.getX();   double y2 = endT.getY();
 
-			// tell constraint system about new ArcInst
-//			(*el_curconstraint->newobject)((INTBIG)ni, VARCINST);
+		// somewhat simpler if rectangle is manhattan
+		if (angle == 900 || angle == 2700)
+		{
+			if (y1 > y2)
+			{
+				double temp = y1;   y1 = y2;   y2 = temp;
+				temp = extendH;   extendH = extendT;   extendT = temp;
+			}
+			return new Poly(new Point2D.Double[] {
+				new Point2D.Double(EMath.smooth(x1 - w2), EMath.smooth(y1 - extendH)),
+				new Point2D.Double(EMath.smooth(x1 + w2), EMath.smooth(y1 - extendH)),
+				new Point2D.Double(EMath.smooth(x2 + w2), EMath.smooth(y2 + extendT)),
+				new Point2D.Double(EMath.smooth(x2 - w2), EMath.smooth(y2 + extendT))});
 		}
-		return ai;
+		if (angle == 0 || angle == 1800)
+		{
+			if (x1 > x2)
+			{
+				double temp = x1;   x1 = x2;   x2 = temp;
+				temp = extendH;   extendH = extendT;   extendT = temp;
+			}
+			return new Poly(new Point2D.Double[] {
+				new Point2D.Double(EMath.smooth(x1 - extendH), EMath.smooth(y1 - w2)),
+				new Point2D.Double(EMath.smooth(x1 - extendH), EMath.smooth(y1 + w2)),
+				new Point2D.Double(EMath.smooth(x2 + extendT), EMath.smooth(y2 + w2)),
+				new Point2D.Double(EMath.smooth(x2 + extendT), EMath.smooth(y2 - w2))});
+		}
+
+		// nonmanhattan arcs cannot have zero length so re-compute it
+		if (len == 0) len = endH.distance(endT);
+		double xextra, yextra, xe1, ye1, xe2, ye2;
+		if (len == 0)
+		{
+			double sa = EMath.sin(angle);
+			double ca = EMath.cos(angle);
+			xe1 = x1 - ca * extendH;
+			ye1 = y1 - sa * extendH;
+			xe2 = x2 + ca * extendT;
+			ye2 = y2 + sa * extendT;
+			xextra = ca * w2;
+			yextra = sa * w2;
+		} else
+		{
+			// work out all the math for nonmanhattan arcs
+			xe1 = x1 - extendH * (x2-x1) / len;
+			ye1 = y1 - extendH * (y2-y1) / len;
+			xe2 = x2 + extendT * (x2-x1) / len;
+			ye2 = y2 + extendT * (y2-y1) / len;
+
+			// now compute the corners
+			xextra = w2 * (x2-x1) / len;
+			yextra = w2 * (y2-y1) / len;
+		}
+		return new Poly(new Point2D.Double[] {
+			new Point2D.Double(EMath.smooth(yextra + xe1), EMath.smooth(ye1 - xextra)),
+			new Point2D.Double(EMath.smooth(xe1 - yextra), EMath.smooth(xextra + ye1)),
+			new Point2D.Double(EMath.smooth(xe2 - yextra), EMath.smooth(xextra + ye2)),
+			new Point2D.Double(EMath.smooth(yextra + xe2), EMath.smooth(ye2 - xextra))});
+	}
+
+	private static int [] extendFactor = {0,
+		11459, 5729, 3819, 2864, 2290, 1908, 1635, 1430, 1271, 1143,
+		 1039,  951,  878,  814,  760,  712,  669,  631,  598,  567,
+		  540,  514,  492,  470,  451,  433,  417,  401,  387,  373,
+		  361,  349,  338,  327,  317,  308,  299,  290,  282,  275,
+		  267,  261,  254,  248,  241,  236,  230,  225,  219,  214,
+		  210,  205,  201,  196,  192,  188,  184,  180,  177,  173,
+		  170,  166,  163,  160,  157,  154,  151,  148,  146,  143,
+		  140,  138,  135,  133,  130,  128,  126,  123,  121,  119,
+		  117,  115,  113,  111,  109,  107,  105,  104,  102,  100};
+
+	/**
+	 * Routine to return the amount that an arc end should extend, given its width and extension factor.
+	 * @param width the width of the arc.
+	 * @param extend the extension factor (from 0 to 90).
+	 * @return the extension (from 0 to half of the width).
+	 */
+	private double getExtendFactor(double width, short extend)
+	{
+		// compute the amount of extension (from 0 to wid/2)
+		if (extend <= 0) return width/2;
+
+		// values should be from 0 to 90, but check anyway
+		if (extend > 90) return width/2;
+
+		// return correct extension
+		return width * 50 / extendFactor[extend];
 	}
 
 	/**
-	 * Routine to delete this ArcInst.
+	 * Routine to update the "end shrink" factors on all arcs on a NodeInst.
+	 * @param ni the node to update.
 	 */
-	public void kill()
+	private void updateShrinkage(NodeInst ni)
 	{
-		// remove the arc
-		lowLevelUnlink();
-
-		// handle change control, constraint, and broadcast
-		if (Undo.recordChange())
+		ni.clearShortened();
+		for(Iterator it = ni.getConnections(); it.hasNext(); )
 		{
-			// tell all tools about this ArcInst
-			Undo.Change ch = Undo.newChange(this, Undo.Type.ARCINSTKILL);
-
-			// tell constraint system about killed ArcInst
-//			(*el_curconstraint->killobject)((INTBIG)ni, VARCINST);
+			Connection con = (Connection)it.next();
+			short shrink = checkShortening(ni, con.getPortInst().getPortProto());
+			if (shrink != 0) ni.setShortened();
+			con.setEndShrink(shrink);
 		}
+	}
+
+	private static final int MAXANGLES = 3;
+	private static int [] shortAngles = new int[MAXANGLES];
+
+	/**
+	 * Routine to return the shortening factor for the arc connected to a port on a node.
+	 * @param ni the node
+	 * @param pp the port.
+	 * @return the shortening factor.  This is a number from 0 to 90, where
+	 * 0 indicates no shortening (extend the arc by half its width) and greater values
+	 * indicate that the end should be shortened to account for this angle of connection.
+	 * Small values are shortened almost to nothing, whereas large values are shortened
+	 * very little (and a value of 90 indicates no shortening at all).
+	 */
+	private short checkShortening(NodeInst ni, PortProto pp)
+	{
+		// quit now if we don't have to worry about this kind of nodeinst
+		NodeProto np = ni.getProto();
+		if (!np.canShrink() && !np.isArcsShrink()) return 0;
+
+		// gather the angles of the nodes/arcs
+		int total = 0, off90 = 0;
+		for(Iterator it = ni.getConnections(); it.hasNext(); )
+		{
+			Connection con = (Connection)it.next();
+			ArcInst ai = con.getArc();
+
+			// ignore zero-size arcs
+			if (ai.getWidth() == 0) continue;
+
+			// ignore this arcinst if it is not on the desired port
+			if (!np.isArcsShrink() && con.getPortInst().getPortProto() != pp) continue;
+
+			// compute the angle
+			int ang = ai.getAngle() / 10;
+			if (ai.getHead().getPortInst().getPortProto() == con.getPortInst().getPortProto() &&
+				ai.getHead().getPortInst().getNodeInst() == ni) ang += 180;
+			ang %= 360;
+			if ((ang%90) != 0) off90++;
+			if (total < MAXANGLES) shortAngles[total++] = ang; else
+				break;
+		}
+
+		// throw in the nodeinst rotation factor if it is important
+		if (np.canShrink())
+		{
+			PrimitivePort pRp = (PrimitivePort)pp;
+			int ang = pRp.getAngle();
+			ang += (ni.getAngle()+5) / 10;
+//			if (ni->transpose != 0) { ang = 270 - ang; if (ang < 0) ang += 360; }
+			ang = (ang+180)%360;
+			if ((ang%90) != 0) off90++;
+			if (total < MAXANGLES) shortAngles[total++] = ang;
+		}
+
+		// all fine if all manhattan angles involved
+		if (off90 == 0) return 0;
+
+		// give up if too many arcinst angles
+		if (total != 2) return 0;
+
+		// compute and return factor
+		int ang = Math.abs(shortAngles[1]-shortAngles[0]);
+		if (ang > 180) ang = 360 - ang;
+		if (ang > 90) ang = 180 - ang;
+		return (short)ang;
 	}
 
 	/**
-	 * Routine to change the width and end locations of this ArcInst.
-	 * @param dWidth the change to the ArcInst width.
-	 * @param dHeadX the change to the X coordinate of the head of this ArcInst.
-	 * @param dHeadY the change to the Y coordinate of the head of this ArcInst.
-	 * @param dTailX the change to the X coordinate of the tail of this ArcInst.
-	 * @param dTailY the change to the Y coordinate of the tail of this ArcInst.
+	 * Routine to recompute the Geometric information on this ArcInst.
 	 */
-	public void modify(double dWidth, double dHeadX, double dHeadY, double dTailX, double dTailY)
+	private void updateGeometric()
 	{
-		// save old arc state
-		double oldxA = ends[HEADEND].getLocation().getX();
-		double oldyA = ends[HEADEND].getLocation().getY();
-		double oldxB = ends[TAILEND].getLocation().getX();
-		double oldyB = ends[TAILEND].getLocation().getY();
-		double oldWidth = getWidth();
+		Point2D p1 = ends[HEADEND].getLocation();
+		Point2D p2 = ends[TAILEND].getLocation();
+		double dx = p2.getX() - p1.getX();
+		double dy = p2.getY() - p1.getY();
+		this.sX = Math.sqrt(dx * dx + dy * dy);
+		this.sY = arcWidth;
+		this.center.setLocation(EMath.smooth((p1.getX() + p2.getX()) / 2), EMath.smooth((p1.getY() + p2.getY()) / 2));
+		if (p1.equals(p2)) this.angle = 0; else
+			this.angle = EMath.figureAngle(p1, p2);
 
-		// change the arc
-		lowLevelMove(dWidth, dHeadX, dHeadY, dTailX, dTailY);
-
-		// track the change
-		if (Undo.recordChange())
-		{
-			Undo.Change change = Undo.newChange(this, Undo.Type.ARCINSTMOD);
-			change.setDoubles(oldxA, oldyA, oldxB, oldyB, oldWidth);
-			setChange(change);
-		}
-		parent.setDirty();
+		// compute the bounds
+		Poly poly = makePoly(this.sX, arcWidth, Poly.Type.FILLED);
+		visBounds.setRect(poly.getBounds2D());
 	}
+
+	/****************************** CONNECTIONS ******************************/
+
+	/**
+	 * Routine to return the Connection on the head end of this ArcInst.
+	 * @return the Connection on the head end of this ArcInst.
+	 */
+	public Connection getHead() { return ends[HEADEND]; }
+
+	/**
+	 * Routine to return the Connection on the tail end of this ArcInst.
+	 * @return the Connection on the tail end of this ArcInst.
+	 */
+	public Connection getTail() { return ends[TAILEND]; }
+
+	/**
+	 * Routine to return the connection at an end of this ArcInst.
+	 * @param onHead true to get get the connection the head of this ArcInst.
+	 * false to get get the connection the tail of this ArcInst.
+	 */
+	public Connection getConnection(boolean onHead)
+	{
+		return onHead ? ends[HEADEND] : ends[TAILEND];
+	}
+
+	/**
+	 * Routine to return the connection at an end of this ArcInst.
+	 * @param index 0 for the head of this ArcInst, 1 for the tail.
+	 */
+	public Connection getConnection(int index)
+	{
+		return ends[index];
+	}
+
+	/**
+	 * Routine to tell whether a connection on this ArcInst contains a point.
+	 * @param con the connection on this ArcInst.
+	 * @param pt the point in question.
+	 * @return true if the point is inside of the port.
+	 */
+	public boolean stillInPort(Connection con, Point2D pt, boolean reduceForArc)
+	{
+		// determine the area of the nodeinst
+		PortInst pi = con.getPortInst();
+		Poly poly = pi.getPoly();
+		if (reduceForArc)
+		{
+			ArcInst ai = con.getArc();
+			double wid = ai.getWidth() - ai.getProto().getWidthOffset();
+			poly.reducePortPoly(pi, wid, ai.getAngle());
+		}
+		if (poly.isInside(pt)) return true;
+
+		// no good
+		return false;
+	}
+
+//	/**
+//	 * Routine to remove the Connection from an end of this ArcInst.
+//	 * @param c the Connection to remove.
+//	 * @param onHead true if the Connection is on the head of this ArcInst.
+//	 */
+//	private void removeConnection(Connection c, boolean onHead)
+//	{
+//		// safety check
+//		if ((onHead ? ends[HEADEND] : ends[TAILEND]) != c)
+//		{
+//			System.out.println("Tried to remove the wrong connection from a wire end: "
+//				+ c + " on " + this);
+//		}
+//		if (onHead) ends[HEADEND] = null; else
+//			ends[TAILEND] = null;
+//	}
+
+	/****************************** TEXT ******************************/
+
+	/**
+	 * Routine to set the name of this ArcInst.
+	 * The name is a local string that can be set by the user.
+	 * @param name the new name of this ArcInst.
+	 */
+	public Variable setName(String name)
+	{
+		Variable var = setVal(VAR_ARC_NAME, name);
+		if (var != null) var.setDisplay();
+		return var;
+	}
+
+	/**
+	 * Routine to return the name of this ArcInst.
+	 * The name is a local string that can be set by the user.
+	 * @return the name of this ArcInst, null if there is no name.
+	 */
+	public String getName()
+	{
+		Variable var = getVar(VAR_ARC_NAME, String.class);
+		if (var == null) return null;
+		return (String) var.getObject();
+	}
+
+	/*
+	 * Routine to write a description of this ArcInst.
+	 * Displays the description in the Messages Window.
+	 */
+	public void getInfo()
+	{
+		System.out.println("-------------- ARC INSTANCE " + describe() + ": --------------");
+		Point2D loc = ends[HEADEND].getLocation();
+		System.out.println(" Head on " + ends[HEADEND].getPortInst().getNodeInst().describe() +
+			" at (" + loc.getX() + "," + loc.getY() + ")");
+
+		loc = ends[TAILEND].getLocation();
+		System.out.println(" Tail on " + ends[TAILEND].getPortInst().getNodeInst().describe() +
+			" at (" + loc.getX() + "," + loc.getY() + ")");
+		System.out.println(" Center: (" + getCenterX() + "," + getCenterY() + "), width: " + getXSize() + ", length:" + getYSize() + ", angle " + angle/10.0);
+		super.getInfo();
+	}
+
+	/**
+	 * Routine to describe this ArcInst as a string.
+	 * @return a description of this ArcInst.
+	 */
+	public String describe()
+	{
+		String description = protoType.describe();
+		String name = getName();
+		if (name != null) description += "[" + name + "]";
+		return description;
+	}
+
+	/**
+	 * Returns a printable version of this ArcInst.
+	 * @return a printable version of this ArcInst.
+	 */
+	public String toString()
+	{
+		return "ArcInst " + protoType.getProtoName();
+	}
+
+	/****************************** MISCELLANEOUS ******************************/
+
+	/**
+	 * Routine to return the prototype of this ArcInst.
+	 * @return the prototype of this ArcInst.
+	 */
+	public ArcProto getProto() { return protoType; }
 
 	/**
 	 * Routine to set this ArcInst to be rigid.
@@ -636,412 +1092,5 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 * @return true if this ArcInst is hard-to-select.
 	 */
 	public boolean isHardSelect() { return (userBits & HARDSELECTA) != 0; }
-
-	/**
-	 * Routine to return a list of Polys that describes all text on this ArcInst.
-	 * @param hardToSelect is true if considering hard-to-select text.
-	 * @param wnd the window in which the text will be drawn.
-	 * @return an array of Polys that describes the text.
-	 */
-	public Poly [] getAllText(boolean hardToSelect, EditWindow wnd)
-	{
-		int dispVars = numDisplayableVariables(false);
-		int totalText = dispVars;
-		if (totalText == 0) return null;
-		Poly [] polys = new Poly[totalText];
-		addDisplayableVariables(getBounds(), polys, 0, wnd, false);
-		return polys;
-	}
-
-	/**
-	 * Routine to return the width of this ArcInst.
-	 * @return the width of this ArcInst.
-	 */
-	public double getWidth()
-	{
-		return arcWidth;
-	}
-
-	/**
-	 * Routine to return the prototype of this ArcInst.
-	 * @return the prototype of this ArcInst.
-	 */
-	public ArcProto getProto()
-	{
-		return protoType;
-	}
-
-	/**
-	 * Routine to set the name of this ArcInst.
-	 * The name is a local string that can be set by the user.
-	 * @param name the new name of this ArcInst.
-	 */
-	public Variable setName(String name)
-	{
-		Variable var = setVal(VAR_ARC_NAME, name);
-		if (var != null) var.setDisplay();
-		return var;
-	}
-
-	/**
-	 * Routine to return the name of this ArcInst.
-	 * The name is a local string that can be set by the user.
-	 * @return the name of this ArcInst, null if there is no name.
-	 */
-	public String getName()
-	{
-		Variable var = getVar(VAR_ARC_NAME, String.class);
-		if (var == null) return null;
-		return (String) var.getObject();
-	}
-
-	/**
-	 * Routine to return the connection at an end of this ArcInst.
-	 * @param onHead true to get get the connection the head of this ArcInst.
-	 * false to get get the connection the tail of this ArcInst.
-	 */
-	public Connection getConnection(boolean onHead)
-	{
-		return onHead ? ends[HEADEND] : ends[TAILEND];
-	}
-
-	/**
-	 * Routine to return the connection at an end of this ArcInst.
-	 * @param index 0 for the head of this ArcInst, 1 for the tail.
-	 */
-	public Connection getConnection(int index)
-	{
-		return ends[index];
-	}
-
-	/**
-	 * Routine to return the Connection on the head end of this ArcInst.
-	 * @return the Connection on the head end of this ArcInst.
-	 */
-	public Connection getHead() { return ends[HEADEND]; }
-
-	/**
-	 * Routine to return the Connection on the tail end of this ArcInst.
-	 * @return the Connection on the tail end of this ArcInst.
-	 */
-	public Connection getTail() { return ends[TAILEND]; }
-
-	/**
-	 * Routine to tell whether a connection on this ArcInst contains a point.
-	 * @param con the connection on this ArcInst.
-	 * @param pt the point in question.
-	 * @return true if the point is inside of the port.
-	 */
-	public boolean stillInPort(Connection con, Point2D pt)
-	{
-		// determine the area of the nodeinst
-		PortInst pi = con.getPortInst();
-		Poly poly = pi.getPoly();
-		if (poly.isInside(pt)) return true;
-
-		// no good
-		return false;
-	}
-
-	/*
-	 * Routine to write a description of this ArcInst.
-	 * Displays the description in the Messages Window.
-	 */
-	public void getInfo()
-	{
-		System.out.println("-------------- ARC INSTANCE " + describe() + ": --------------");
-		Point2D loc = ends[HEADEND].getLocation();
-		System.out.println(" Head on " + ends[HEADEND].getPortInst().getNodeInst().describe() +
-			" at (" + loc.getX() + "," + loc.getY() + ")");
-
-		loc = ends[TAILEND].getLocation();
-		System.out.println(" Tail on " + ends[TAILEND].getPortInst().getNodeInst().describe() +
-			" at (" + loc.getX() + "," + loc.getY() + ")");
-		System.out.println(" Center: (" + cX + "," + cY + "), width: " + getXSize() + ", length:" + getYSize() + ", angle " + angle/10.0);
-		super.getInfo();
-	}
-
-	/**
-	 * Routine to create a Poly object that describes an ArcInst.
-	 * The ArcInst is described by its length, width and style.
-	 * @param length the length of the ArcInst.
-	 * @param width the width of the ArcInst.
-	 * @param style the style of the ArcInst.
-	 * @return a Poly that describes the ArcInst.
-	 */
-	public Poly makePoly(double length, double width, Poly.Type style)
-	{
-		Point2D endH = ends[HEADEND].getLocation();
-		Point2D endT = ends[TAILEND].getLocation();
-
-		// zero-width polygons are simply lines
-		if (width == 0)
-		{
-			Poly poly = new Poly(new Point2D.Double[]{new Point2D.Double(endH.getX(), endH.getY()), new Point2D.Double(endT.getX(), endT.getY())});
-			if (style == Poly.Type.FILLED) style = Poly.Type.OPENED;
-			poly.setStyle(style);
-			return poly;
-		}
-
-		// determine the end extension on each end
-		double extendH = width/2;
-		if (getHead().getEndShrink() != 0)
-			extendH = getExtendFactor(width, getHead().getEndShrink());
-		double extendT = width/2;
-		if (getTail().getEndShrink() != 0)
-			extendT = getExtendFactor(width, getTail().getEndShrink());
-		if (!isExtended())
-		{
-			// nonextension arc: set extension to zero for all included ends
-			if (!isSkipTail()) extendH = 0;
-			if (!isSkipHead()) extendT = 0;
-		}
-
-		// make the polygon
-		Poly poly = makeEndPointPoly(length, width, getAngle(), endH, extendH, endT, extendT);
-		if (poly != null) poly.setStyle(style);
-		return poly;
-	}
-
-	/**
-	 * Routine to describe this ArcInst as a string.
-	 * @return a description of this ArcInst.
-	 */
-	public String describe()
-	{
-		String description = protoType.describe();
-		String name = getName();
-		if (name != null) description += "[" + name + "]";
-		return description;
-	}
-
-	/**
-	 * Returns a printable version of this ArcInst.
-	 * @return a printable version of this ArcInst.
-	 */
-	public String toString()
-	{
-		return "ArcInst " + protoType.getProtoName();
-	}
-
-	// -------------------- private and protected methods ------------------------
-
-	private Poly makeEndPointPoly(double len, double wid, int angle, Point2D endH, double extendH,
-		Point2D endT, double extendT)
-	{
-		double w2 = wid / 2;
-		double x1 = endH.getX();   double y1 = endH.getY();
-		double x2 = endT.getX();   double y2 = endT.getY();
-
-		// somewhat simpler if rectangle is manhattan
-		if (angle == 900 || angle == 2700)
-		{
-			if (y1 > y2)
-			{
-				double temp = y1;   y1 = y2;   y2 = temp;
-				temp = extendH;   extendH = extendT;   extendT = temp;
-			}
-			return new Poly(new Point2D.Double[] {
-				new Point2D.Double(EMath.smooth(x1 - w2), EMath.smooth(y1 - extendH)),
-				new Point2D.Double(EMath.smooth(x1 + w2), EMath.smooth(y1 - extendH)),
-				new Point2D.Double(EMath.smooth(x2 + w2), EMath.smooth(y2 + extendT)),
-				new Point2D.Double(EMath.smooth(x2 - w2), EMath.smooth(y2 + extendT))});
-		}
-		if (angle == 0 || angle == 1800)
-		{
-			if (x1 > x2)
-			{
-				double temp = x1;   x1 = x2;   x2 = temp;
-				temp = extendH;   extendH = extendT;   extendT = temp;
-			}
-			return new Poly(new Point2D.Double[] {
-				new Point2D.Double(EMath.smooth(x1 - extendH), EMath.smooth(y1 - w2)),
-				new Point2D.Double(EMath.smooth(x1 - extendH), EMath.smooth(y1 + w2)),
-				new Point2D.Double(EMath.smooth(x2 + extendT), EMath.smooth(y2 + w2)),
-				new Point2D.Double(EMath.smooth(x2 + extendT), EMath.smooth(y2 - w2))});
-		}
-
-		// nonmanhattan arcs cannot have zero length so re-compute it
-		if (len == 0) len = endH.distance(endT);
-		double xextra, yextra, xe1, ye1, xe2, ye2;
-		if (len == 0)
-		{
-			double sa = EMath.sin(angle);
-			double ca = EMath.cos(angle);
-			xe1 = x1 - ca * extendH;
-			ye1 = y1 - sa * extendH;
-			xe2 = x2 + ca * extendT;
-			ye2 = y2 + sa * extendT;
-			xextra = ca * w2;
-			yextra = sa * w2;
-		} else
-		{
-			// work out all the math for nonmanhattan arcs
-			xe1 = x1 - extendH * (x2-x1) / len;
-			ye1 = y1 - extendH * (y2-y1) / len;
-			xe2 = x2 + extendT * (x2-x1) / len;
-			ye2 = y2 + extendT * (y2-y1) / len;
-
-			// now compute the corners
-			xextra = w2 * (x2-x1) / len;
-			yextra = w2 * (y2-y1) / len;
-		}
-		return new Poly(new Point2D.Double[] {
-			new Point2D.Double(EMath.smooth(yextra + xe1), EMath.smooth(ye1 - xextra)),
-			new Point2D.Double(EMath.smooth(xe1 - yextra), EMath.smooth(xextra + ye1)),
-			new Point2D.Double(EMath.smooth(xe2 - yextra), EMath.smooth(xextra + ye2)),
-			new Point2D.Double(EMath.smooth(yextra + xe2), EMath.smooth(ye2 - xextra))});
-	}
-
-	private static int [] extendFactor = {0,
-		11459, 5729, 3819, 2864, 2290, 1908, 1635, 1430, 1271, 1143,
-		 1039,  951,  878,  814,  760,  712,  669,  631,  598,  567,
-		  540,  514,  492,  470,  451,  433,  417,  401,  387,  373,
-		  361,  349,  338,  327,  317,  308,  299,  290,  282,  275,
-		  267,  261,  254,  248,  241,  236,  230,  225,  219,  214,
-		  210,  205,  201,  196,  192,  188,  184,  180,  177,  173,
-		  170,  166,  163,  160,  157,  154,  151,  148,  146,  143,
-		  140,  138,  135,  133,  130,  128,  126,  123,  121,  119,
-		  117,  115,  113,  111,  109,  107,  105,  104,  102,  100};
-
-	/**
-	 * Routine to return the amount that an arc end should extend, given its width and extension factor.
-	 * @param width the width of the arc.
-	 * @param extend the extension factor (from 0 to 90).
-	 * @return the extension (from 0 to half of the width).
-	 */
-	private double getExtendFactor(double width, short extend)
-	{
-		// compute the amount of extension (from 0 to wid/2)
-		if (extend <= 0) return width/2;
-
-		// values should be from 0 to 90, but check anyway
-		if (extend > 90) return width/2;
-
-		// return correct extension
-		return width * 50 / extendFactor[extend];
-	}
-
-	/**
-	 * Routine to update the "end shrink" factors on all arcs on a NodeInst.
-	 * @param ni the node to update.
-	 */
-	private void updateShrinkage(NodeInst ni)
-	{
-		ni.clearShortened();
-		for(Iterator it = ni.getConnections(); it.hasNext(); )
-		{
-			Connection con = (Connection)it.next();
-			short shrink = checkShortening(ni, con.getPortInst().getPortProto());
-			if (shrink != 0) ni.setShortened();
-			con.setEndShrink(shrink);
-		}
-	}
-
-	private static final int MAXANGLES = 3;
-	private static int [] shortAngles = new int[MAXANGLES];
-
-	/**
-	 * Routine to return the shortening factor for the arc connected to a port on a node.
-	 * @param ni the node
-	 * @param pp the port.
-	 * @return the shortening factor.  This is a number from 0 to 90, where
-	 * 0 indicates no shortening (extend the arc by half its width) and greater values
-	 * indicate that the end should be shortened to account for this angle of connection.
-	 * Small values are shortened almost to nothing, whereas large values are shortened
-	 * very little (and a value of 90 indicates no shortening at all).
-	 */
-	private short checkShortening(NodeInst ni, PortProto pp)
-	{
-		// quit now if we don't have to worry about this kind of nodeinst
-		NodeProto np = ni.getProto();
-		if (!np.canShrink() && !np.isArcsShrink()) return 0;
-
-		// gather the angles of the nodes/arcs
-		int total = 0, off90 = 0;
-		for(Iterator it = ni.getConnections(); it.hasNext(); )
-		{
-			Connection con = (Connection)it.next();
-			ArcInst ai = con.getArc();
-
-			// ignore zero-size arcs
-			if (ai.getWidth() == 0) continue;
-
-			// ignore this arcinst if it is not on the desired port
-			if (!np.isArcsShrink() && con.getPortInst().getPortProto() != pp) continue;
-
-			// compute the angle
-			int ang = ai.getAngle() / 10;
-			if (ai.getHead().getPortInst().getPortProto() == con.getPortInst().getPortProto() &&
-				ai.getHead().getPortInst().getNodeInst() == ni) ang += 180;
-			ang %= 360;
-			if ((ang%90) != 0) off90++;
-			if (total < MAXANGLES) shortAngles[total++] = ang; else
-				break;
-		}
-
-		// throw in the nodeinst rotation factor if it is important
-		if (np.canShrink())
-		{
-			PrimitivePort pRp = (PrimitivePort)pp;
-			int ang = pRp.getAngle();
-			ang += (ni.getAngle()+5) / 10;
-//			if (ni->transpose != 0) { ang = 270 - ang; if (ang < 0) ang += 360; }
-			ang = (ang+180)%360;
-			if ((ang%90) != 0) off90++;
-			if (total < MAXANGLES) shortAngles[total++] = ang;
-		}
-
-		// all fine if all manhattan angles involved
-		if (off90 == 0) return 0;
-
-		// give up if too many arcinst angles
-		if (total != 2) return 0;
-
-		// compute and return factor
-		int ang = Math.abs(shortAngles[1]-shortAngles[0]);
-		if (ang > 180) ang = 360 - ang;
-		if (ang > 90) ang = 180 - ang;
-		return (short)ang;
-	}
-
-	/**
-	 * Routine to recompute the Geometric information on this ArcInst.
-	 */
-	private void updateGeometric()
-	{
-		Point2D p1 = ends[HEADEND].getLocation();
-		Point2D p2 = ends[TAILEND].getLocation();
-		double dx = p2.getX() - p1.getX();
-		double dy = p2.getY() - p1.getY();
-		this.sX = Math.sqrt(dx * dx + dy * dy);
-		this.sY = arcWidth;
-		this.cX = EMath.smooth((p1.getX() + p2.getX()) / 2);
-		this.cY = EMath.smooth((p1.getY() + p2.getY()) / 2);
-		if (p1.equals(p2)) this.angle = 0; else
-			this.angle = EMath.figureAngle(p1, p2);
-
-		// compute the bounds
-		Poly poly = makePoly(this.sX, arcWidth, Poly.Type.FILLED);
-		visBounds.setRect(poly.getBounds2D());
-	}
-
-
-	/**
-	 * Routine to remove the Connection from an end of this ArcInst.
-	 * @param c the Connection to remove.
-	 * @param onHead true if the Connection is on the head of this ArcInst.
-	 */
-	private void removeConnection(Connection c, boolean onHead)
-	{
-		// safety check
-		if ((onHead ? ends[HEADEND] : ends[TAILEND]) != c)
-		{
-			System.out.println("Tried to remove the wrong connection from a wire end: "
-				+ c + " on " + this);
-		}
-		if (onHead) ends[HEADEND] = null; else
-			ends[TAILEND] = null;
-	}
 
 }

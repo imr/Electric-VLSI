@@ -75,7 +75,24 @@ public class Layout extends Constraint
 	
 	public static Layout getConstraint() { return layoutConstraint; }
 
-	/*
+	/**
+	 * Routine to start a batch of changes.
+	 */
+	public void startBatch(Tool tool, boolean undoRedo)
+	{
+		// force every cell to remember its current bounds
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = (Cell)cIt.next();
+				cell.rememberBounds();
+			}
+		}
+	}
+
+	/**
 	 * routine to do hierarchical update on any cells that changed
 	 */
 	public void endBatch()
@@ -110,11 +127,13 @@ public class Layout extends Constraint
 			} else if (c.getType() == Undo.Type.EXPORTNEW || c.getType() == Undo.Type.EXPORTKILL ||
 				c.getType() == Undo.Type.EXPORTMOD)
 			{
-//				((PORTPROTO *)c->entryaddr)->changeaddr = null;
+				Export pp = (Export)c.getObject();
+				pp.setChange(null);
 			} else if (c.getType() == Undo.Type.CELLNEW || c.getType() == Undo.Type.CELLKILL ||
 				c.getType() == Undo.Type.CELLMOD)
 			{
-//				((NODEPROTO *)c->entryaddr)->changeaddr = null;
+				Cell cell = (Cell)c.getObject();
+				cell.setChange(null);
 			}
 		}
 	}
@@ -127,14 +146,14 @@ public class Layout extends Constraint
 		if (obj instanceof Export)
 		{
 			Export pp = (Export)obj;
-			Cell np = (Cell)pp.getParent();
-//			for(ni = np->firstinst; ni != NONODEINST; ni = ni->nextinst)
-//				(void)db_change((int)ni, OBJECTSTART, VNODEINST, 0, 0, 0, 0, 0);
-//			for(ni = np->firstinst; ni != NONODEINST; ni = ni->nextinst)
-//				(void)db_change((int)ni, NODEINSTMOD, ni->lowx, ni->lowy,
-//					ni->highx, ni->highy, ni->rotation, ni->transpose);
-//			for(ni = np->firstinst; ni != NONODEINST; ni = ni->nextinst)
-//				(void)db_change((int)ni, OBJECTEND, VNODEINST, 0, 0, 0, 0, 0);
+			Cell cell = (Cell)pp.getParent();
+			for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				ni.startChange();
+				ni.modifyInstance(0, 0, 0, 0, 0);
+				ni.endChange();
+			}
 		}
 	}
 
@@ -146,21 +165,21 @@ public class Layout extends Constraint
 		if (obj instanceof Export)
 		{
 			Export pp = (Export)obj;
-			Cell np = (Cell)pp.getParent();
-//			for(ni = np->firstinst; ni != NONODEINST; ni = ni->nextinst)
-//			{
-//				(void)db_change((int)ni, OBJECTSTART, VNODEINST, 0, 0, 0, 0, 0);
-//				(void)db_change((int)ni, NODEINSTMOD, ni->lowx, ni->lowy,
-//					ni->highx, ni->highy, ni->rotation, ni->transpose);
-//				(void)db_change((int)ni, OBJECTEND, VNODEINST, 0, 0, 0, 0, 0);
-//			}
+			Cell cell = (Cell)pp.getParent();
+			for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				ni.startChange();
+				ni.modifyInstance(0, 0, 0, 0, 0);
+				ni.endChange();
+			}
 		}
 	}
 
 	/*
 	 * If an export is renamed, touch all instances of the cell
 	 */
-	public void newVariable(ElectricObject obj, Variable.Name key, int type)
+	public void newVariable(ElectricObject obj, Variable.Key key, int type)
 	{
 //		if (type == VPORTPROTO)
 //		{
@@ -173,10 +192,10 @@ public class Layout extends Constraint
 //					np = pp->parent;
 //					for(ni = np->firstinst; ni != NONODEINST; ni = ni->nextinst)
 //					{
-//						(void)db_change((int)ni, OBJECTSTART, VNODEINST, 0, 0, 0, 0, 0);
+//						ni.startChange();
 //						(void)db_change((int)ni, NODEINSTMOD, ni->lowx, ni->lowy,
 //							ni->highx, ni->highy, ni->rotation, ni->transpose);
-//						(void)db_change((int)ni, OBJECTEND, VNODEINST, 0, 0, 0, 0, 0);
+//						ni.endChange();
 //					}
 //				}
 //			}
@@ -274,7 +293,7 @@ public class Layout extends Constraint
 		double oldCY = ni.getCenterY();
 		double oldSX = ni.getXSize();
 		double oldSY = ni.getYSize();
-		ni.adjustInstance(deltaCX, deltaCY, deltaSX, deltaSY, dAngle);
+		ni.lowLevelModify(deltaCX, deltaCY, deltaSX, deltaSY, dAngle);
 
 		// mark that this nodeinst has changed
 		if (ni.getChangeClock() < changeClock-1)
@@ -602,7 +621,7 @@ public class Layout extends Constraint
 			}
 
 			// if nodeinst motion stays within port area, ignore the arcinst
-			if (ai.isSlidable() && ai.stillInPort(thisEnd, thisEnd.getLocation()))
+			if (ai.isSlidable() && ai.stillInPort(thisEnd, thisEnd.getLocation(), true))
 				continue;
 
 			Undo.Change change = ni.getChange();
@@ -696,7 +715,7 @@ public class Layout extends Constraint
 						newPts[thatEndIndex].setLocation(newPts[thatEndIndex].getX() + dx-odx, newPts[thatEndIndex].getY());
 
 						// see if next nodeinst need not be moved
-						if (!EMath.doublesEqual(dx, odx) && ai.isSlidable() && ai.stillInPort(thatEnd, newPts[thatEndIndex]))
+						if (!EMath.doublesEqual(dx, odx) && ai.isSlidable() && ai.stillInPort(thatEnd, newPts[thatEndIndex], true))
 							dx = odx = 0;
 
 						// if other node already moved, don't move it any more
@@ -723,7 +742,7 @@ public class Layout extends Constraint
 
 					// see if next nodeinst need not be moved
 					if (!EMath.doublesEqual(dy, ody) && ai.isSlidable() &&
-						ai.stillInPort(thatEnd, newPts[thatEndIndex]))
+						ai.stillInPort(thatEnd, newPts[thatEndIndex], true))
 							dy = ody = 0;
 
 					// if other node already moved, don't move it any more
@@ -830,10 +849,10 @@ public class Layout extends Constraint
 		// if nothing is outside port, quit
 		Connection head = ai.getHead();
 		Point2D headPoint = head.getLocation();
-		boolean inside0 = ai.stillInPort(head, headPoint);
+		boolean inside0 = ai.stillInPort(head, headPoint, true);
 		Connection tail = ai.getHead();
 		Point2D tailPoint = tail.getLocation();
-		boolean inside1 = ai.stillInPort(tail, tailPoint);
+		boolean inside1 = ai.stillInPort(tail, tailPoint, true);
 		if (inside0 && inside1) return;
 
 		// get area of the ports
@@ -906,7 +925,7 @@ public class Layout extends Constraint
 		double oldTailX = oldTailPt.getX();   double oldTailY = oldTailPt.getY();
 //System.out.println("modify arc "+ai.describe()+" was ("+oldHeadX+","+oldHeadY+")-("+oldTailPt.getX()+","+oldTailPt.getY()+
 //	") is ("+headPt.getX()+","+headPt.getY()+")-("+tailPt.getX()+","+tailPt.getY()+")");
-		ai.lowLevelMove(0, headPt.getX() - oldHeadX, headPt.getY() - oldHeadY, tailPt.getX() - oldTailX, tailPt.getY() - oldTailY);
+		ai.lowLevelModify(0, headPt.getX() - oldHeadX, headPt.getY() - oldHeadY, tailPt.getX() - oldTailX, tailPt.getY() - oldTailY);
 
 		// if the arc hasn't changed yet, record this change
 		if (ai.getChange() == null)
@@ -1092,12 +1111,13 @@ public class Layout extends Constraint
 			AffineTransform localtran = makeOldTrans(bottomNi);
 			subrot.concatenate(localtran);
 
-//			Undo.Change change = pp.getChange();
-//			if (change != null && change.getType() == Undo.Type.PORTPROTOMOD)
-//			{
-//				bottomNi = (NODEINST *)((CHANGE *)pp->changeaddr)->p1;
-//				bottomPP = (PORTPROTO *)((CHANGE *)pp->changeaddr)->p2;
-//			} else
+			Undo.Change change = ((Export)pp).getChange();
+			if (change != null && change.getType() == Undo.Type.EXPORTMOD)
+			{
+				PortInst bottomPi = (PortInst)change.getO1();
+				bottomNi = bottomPi.getNodeInst();
+				bottomPP = bottomPi.getPortProto();
+			} else
 			{
 				bottomNi = ((Export)bottomPP).getOriginalPort().getNodeInst();
 				bottomPP = ((Export)bottomPP).getOriginalPort().getPortProto();
@@ -1191,32 +1211,24 @@ public class Layout extends Constraint
 	 * If "forcedlook" is true, the cell is re-examined regardless of
 	 * whether its size changed.
 	 */
-//	void cla_computecell(NODEPROTO *cell, BOOLEAN forcedlook)
-//	{
-//		REGISTER NODEINST *ni, *lni;
-//		REGISTER NODEPROTO *np, *oneparent;
-//		INTBIG nlx, nhx, nly, nhy, offx, offy;
-//		XARRAY trans;
-//		REGISTER INTBIG dlx, dly, dhx, dhy, flx, fhx, fly, fhy;
-//		REGISTER BOOLEAN mixed;
-//		REGISTER CHANGE *c;
-//		REGISTER LIBRARY *lib;
-//
-//		// get current boundary of cell
+	void cla_computecell(Cell cell, boolean forcedlook)
+	{
+		// get current boundary of cell
 //		db_boundcell(cell, &nlx,&nhx, &nly,&nhy);
-//
-//		// quit if it has not changed
-//		if (cell->lowx == nlx && cell->highx == nhx && cell->lowy == nly &&
-//			cell->highy == nhy && !forcedlook) return;
-//
-//		// advance the change clock
-//		changeClock += 4;
+		Rectangle2D oldCellBounds = cell.getRememberedBounds();
+		Rectangle2D cellBounds = cell.getBounds();
+
+		// quit if it has not changed
+		if (oldCellBounds.equals(cellBounds)) return;
+
+		// advance the change clock
+		changeClock += 4;
 //
 //		// get former size of cell from change information
 //		flx = cell->lowx;   fhx = cell->highx;
 //		fly = cell->lowy;   fhy = cell->highy;
 //		c = (CHANGE *)cell->changeaddr;
-//		if (c != NOCHANGE && c->changetype == NODEPROTOMOD)
+//		if (c != NOCHANGE && c->changetype == CELLMOD)
 //		{
 //			// modification changes carry original size
 //			flx = c->p1;   fhx = c->p2;
@@ -1226,7 +1238,7 @@ public class Layout extends Constraint
 //		// update the cell size
 //		cell->lowx = nlx;   cell->highx = nhx;
 //		cell->lowy = nly;   cell->highy = nhy;
-//		cell->changeaddr = (CHAR *)db_change((INTBIG)cell, NODEPROTOMOD, flx, fhx, fly, fhy, 0, 0);
+//		cell->changeaddr = (CHAR *)db_change((INTBIG)cell, CELLMOD, flx, fhx, fly, fhy, 0, 0);
 //
 //		// see if all instances of this cell are in the same location
 //		mixed = FALSE;
@@ -1278,7 +1290,7 @@ public class Layout extends Constraint
 //			// now look recursively at the nodes in this cell
 //			(void)cla_lookdown(np);
 //		}
-//	}
+	}
 
 //	BOOLEAN cla_lookdown(NODEPROTO *start)
 //	{

@@ -85,9 +85,18 @@ public final class UserMenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(); } });
 		fileMenu.addMenuItem("Save as...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAsLibraryCommand(); } });
-		fileMenu.addSeparator();
-		fileMenu.addMenuItem("Quit", KeyStroke.getKeyStroke('Q', InputEvent.CTRL_MASK),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { quitCommand(); } });
+		if (TopLevel.getOperatingSystem() == TopLevel.OS.MACINTOSH)
+		{
+//			MRJApplicationUtils.registerQuitHandler(new MRJQuitHandler()
+//			{
+//				public void handleQuit() { quitCommand(); }
+//			});
+		} else
+		{
+			fileMenu.addSeparator();
+			fileMenu.addMenuItem("Quit", KeyStroke.getKeyStroke('Q', InputEvent.CTRL_MASK),
+				new ActionListener() { public void actionPerformed(ActionEvent e) { quitCommand(); } });
+		}
 
 		// setup the Edit menu
 		Menu editMenu = Menu.createMenu("Edit", 'E');
@@ -591,9 +600,9 @@ public final class UserMenuCommands
 								if (h.getGeom() instanceof NodeInst)
 								{
 									NodeInst ni = (NodeInst)h.getGeom();
-									if (ni.getProto() == Generic.tech.invisiblePin_node)
+									if (ni.getProto() == Generic.tech.invisiblePinNode)
 									{
-										String varName = h.getVar().getName().getName();
+										String varName = h.getVar().getKey().getName();
 										if (varName.equals("ART_message"))
 										{
 											System.out.println("TEXT: Nonlayout text");
@@ -723,7 +732,7 @@ public final class UserMenuCommands
             while(itVar.hasNext()) {
                 Variable var = (Variable)itVar.next();
                 Object obj = curEdit.getVarContext().evalVar(var);
-                System.out.print(var.getName().getName() + ": ");
+                System.out.print(var.getKey().getName() + ": ");
                 System.out.println(obj);
             }
         }

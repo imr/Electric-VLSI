@@ -45,9 +45,7 @@ public class PortInst
 
 	// -------------------protected or private methods ---------------
 
-	private PortInst()
-	{
-	}
+	private PortInst() {}
 
 	// ------------------------ public methods -------------------------
 
@@ -132,5 +130,14 @@ public class PortInst
 	public Poly getPoly()
 	{
 		return nodeInst.getShapeOfPort(portProto);
+	}
+
+	/**
+	 * Returns a printable version of this PortInst.
+	 * @return a printable version of this PortInst.
+	 */
+	public String toString()
+	{
+		return "PortInst " + portProto.getProtoName();
 	}
 }

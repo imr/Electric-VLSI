@@ -34,39 +34,39 @@ import com.sun.electric.database.topology.ArcInst;
 public class Variable
 {
 	/**
-	 * The Name class caches Variable names.
+	 * The Key class caches Variable names.
 	 */
-	public static class Name
+	public static class Key
 	{
 		private String name;
 		private int    index;
 		private static int currentIndex = 0;
 		
 		/**
-		 * Routine to create a new Name object with the specified name.
+		 * Routine to create a new Key object with the specified name.
 		 * @param name the name of the Variable.
 		 */
-		public Name(String name)
+		public Key(String name)
 		{
 			this.name = name;
 			this.index = currentIndex++;
 		}
 
 		/**
-		 * Routine to return the index of this Name object.
-		 * @return the index of this Name object.
+		 * Routine to return the index of this Key object.
+		 * @return the index of this Key object.
 		 */
 		public int getIndex() { return index; }
 
 		/**
-		 * Routine to return the name of this Name object.
-		 * @return the name of this Name object.
+		 * Routine to return the name of this Key object.
+		 * @return the name of this Key object.
 		 */
 		public String getName() { return name; }
 	}
 
 	private Object addr;
-	private Name vn;
+	private Key key;
 	private int flags;
 	private TextDescriptor descriptor;
 
@@ -84,13 +84,13 @@ public class Variable
 	 * The constructor builds a Variable from the given parameters.
 	 * @param addr the object that will be stored in the Variable.
 	 * @param descriptor a TextDescriptor to control how the Variable will be displayed.
-	 * @param vn a Name object that identifies this Variable.
+	 * @param key a Key object that identifies this Variable.
 	 */
-	public Variable(Object addr, TextDescriptor descriptor, Name vn)
+	public Variable(Object addr, TextDescriptor descriptor, Key key)
 	{
 		this.addr = addr;
 		this.descriptor = descriptor;
-		this.vn = vn;
+		this.key = key;
 	}
     
     /**
@@ -124,10 +124,10 @@ public class Variable
     }
         
 	/**
-	 * Routine to return the Variable Name associated with this Variable.
-	 * @return the Variable Name associated with this variable.
+	 * Routine to return the Variable Key associated with this Variable.
+	 * @return the Variable Key associated with this variable.
 	 */
-	public Name getName() { return vn; }
+	public Key getKey() { return key; }
 
 	/**
 	 * Routine to return a more readable name for this Variable.
@@ -138,10 +138,10 @@ public class Variable
 	public String getReadableName()
 	{
 		String trueName = "";
-		String name = vn.getName();
+		String name = key.getName();
 		if (name.startsWith("ATTR_"))
 		{
-			if (getTextDescriptor().getIsParam())
+			if (getTextDescriptor().isParam())
 				trueName +=  "Parameter '" + name.substring(5) + "'"; else
 					trueName +=  "Attribute '" + name.substring(5) + "'";
 		} else
@@ -186,7 +186,7 @@ public class Variable
 	 */
 	public String getTrueName()
 	{
-		String name = vn.getName();
+		String name = key.getName();
 		if (name.startsWith("ATTR_"))
 			return name.substring(5);
 		if (name.startsWith("ATTRP_"))
@@ -298,20 +298,6 @@ public class Variable
 		return "?";
 	}
 
-//	String trueVariableName()
-//	{
-//		name = makename(var->key);
-//		if (estrncmp(name, x_("ATTR_"), 5) == 0)
-//			return(name + 5);
-//		if (estrncmp(name, x_("ATTRP_"), 6) == 0)
-//		{
-//			len = estrlen(name);
-//			for(i=len-1; i>=0; i--) if (name[i] == '_') break;
-//			return(name + i);
-//		}
-//		return(name);
-//	}
-
 	/**
 	 * Routine to return the TextDescriptor on this Variable.
 	 * The TextDescriptor gives information for displaying the Variable.
@@ -412,6 +398,12 @@ public class Variable
 	 * @return true if this Variable is TCL.
 	 */
 	public boolean isTCL() { return (flags & (VCODE1|VCODE2)) == VTCL; }
+
+	/**
+	 * Routine to tell whether this Variable is any code.
+	 * @return true if this Variable is any code.
+	 */
+	public boolean isCode() { return (flags & (VCODE1|VCODE2)) != 0; }
 
 	/**
 	 * Routine to set this Variable to be not-code.

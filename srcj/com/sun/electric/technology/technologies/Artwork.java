@@ -426,7 +426,7 @@ public class Artwork extends Technology
 			if (ni.getXSize() != ni.getYSize())
 			{
 				// handle ellipses
-				Point2D [] pointList = fillEllipse(ni.getCenterX(), ni.getCenterY(), ni.getXSize(), ni.getYSize(),
+				Point2D [] pointList = fillEllipse(ni.getCenter(), ni.getXSize(), ni.getYSize(),
 					angles[0], angles[1]);
 				Poly [] polys = new Poly[1];
 				polys[0] = new Poly(pointList);
@@ -512,8 +512,7 @@ public class Artwork extends Technology
 
 	/**
 	 * Routine to return an array of Point2D that describe an ellipse.
-	 * @param cX the center X coordinate of the ellipse.
-	 * @param cY the center Y coordinate of the ellipse.
+	 * @param center the center coordinate of the ellipse.
 	 * @param sX the X size of the ellipse.
 	 * @param sY the Y size of the ellipse.
 	 * @param startoffset the starting angle of the ellipse, in radians.
@@ -521,7 +520,7 @@ public class Artwork extends Technology
 	 * If both startoffset and endangle are zero, draw the full ellipse.
 	 * @return an array of points that describes the ellipse.
 	 */
-	public static Point2D [] fillEllipse(double cX, double cY, double sX, double sY, double startoffset, double endangle)
+	public static Point2D [] fillEllipse(Point2D center, double sX, double sY, double startoffset, double endangle)
 	{
 		// ensure that the polygon can hold the vectors
 		boolean closed = true;
@@ -551,7 +550,7 @@ public class Artwork extends Technology
 			double c3 = 1.0;            double s3 = 0.0;
 			for(int m=0; m<ELLIPSEPOINTS; m++)
 			{
-				points[m] = new Point2D.Double(cX + a * c3, cY + b * s3);
+				points[m] = new Point2D.Double(center.getX() + a * c3, center.getY() + b * s3);
 				double t1 = c3*c2 - s3*s2;
 				s3 = s3*c2 + c3*s2;
 				c3 = t1;
@@ -563,7 +562,7 @@ public class Artwork extends Technology
 			{
 				double p = startoffset + m * endangle / (pts-1);
 				double c2 = Math.cos(p);   double s2 = Math.sin(p);
-				points[m] = new Point2D.Double(cX + a * c2, cY + b * s2);
+				points[m] = new Point2D.Double(center.getX() + a * c2, center.getY() + b * s2);
 			}
 		}
 		return points;

@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.Tool;
@@ -52,17 +53,17 @@ public interface Change
 	void modifyNodeInst(NodeInst ni, double oCX, double oCY, double oSX, double oSY, int oRot);
 	void modifyNodeInsts(NodeInst [] nis, double [] oCX, double [] oCY, double [] oSX, double [] oSY, int [] oRot);
 	void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, double oWid);
-	void modifyExport(Export pp);
+	void modifyExport(Export pp, PortInst oldPi);
 	void modifyCell(Cell cell);
 	void modifyTextDescript(ElectricObject obj, int key, Object oldValue);
 
 	void newObject(ElectricObject obj);
 	void killObject(ElectricObject obj);
-	void newVariable(ElectricObject obj, Variable.Name key, int type);
-	void killVariable(ElectricObject obj, Variable.Name key, Object oldValue, TextDescriptor oldDescript);
-	void modifyVariable(ElectricObject obj, Variable.Name key, int type, int index, Object oldValue);
-	void insertVariable(ElectricObject obj, Variable.Name key, int type, int index);
-	void deleteVariable(ElectricObject obj, Variable.Name key, int type, int index, Object oldValue);
+	void newVariable(ElectricObject obj, Variable.Key key, int type);
+	void killVariable(ElectricObject obj, Variable.Key key, Object oldValue, TextDescriptor oldDescript);
+	void modifyVariable(ElectricObject obj, Variable.Key key, int type, int index, Object oldValue);
+	void insertVariable(ElectricObject obj, Variable.Key key, int type, int index);
+	void deleteVariable(ElectricObject obj, Variable.Key key, int type, int index, Object oldValue);
 
 	void readLibrary(Library lib);
 	void eraseLibrary(Library lib);

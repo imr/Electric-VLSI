@@ -237,22 +237,38 @@ public class ToolBar extends JToolBar
 	/**
 	 * Routine called when the "select" button is pressed.
 	 */
-	public static void selectCommand() { curMode = CursorMode.SELECT; }
+	public static void selectCommand()
+	{
+		EditWindow.setListener(ClickAndDragListener.theOne);
+		curMode = CursorMode.SELECT;
+	}
 
 	/**
 	 * Routine called when the "select special" button is pressed.
 	 */
-	public static void selectSpecialCommand() { curMode = CursorMode.SELECTSPECIAL; }
+	public static void selectSpecialCommand()
+	{
+		EditWindow.setListener(ClickAndDragListener.theOne);
+		curMode = CursorMode.SELECTSPECIAL;
+	}
 
 	/**
 	 * Routine called when the "pan" button is pressed.
 	 */
-	public static void panCommand() { curMode = CursorMode.PAN; }
+	public static void panCommand()
+	{
+		EditWindow.setListener(ZoomAndPanListener.theOne);
+		curMode = CursorMode.PAN;
+	}
 
 	/**
 	 * Routine called when the "zoom" button is pressed.
 	 */
-	public static void zoomCommand() { curMode = CursorMode.ZOOM; }
+	public static void zoomCommand()
+	{
+		EditWindow.setListener(ZoomAndPanListener.theOne);
+		curMode = CursorMode.ZOOM;
+	}
 
 	/**
 	 * Routine to tell which cursor mode is in effect.

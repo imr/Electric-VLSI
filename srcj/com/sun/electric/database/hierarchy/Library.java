@@ -401,6 +401,7 @@ public class Library extends ElectricObject
 		for(Iterator it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
+			if (lib.isHidden()) continue;
 			String nodeName = lib.getLibName();
 			if (lib == curLib) nodeName = "[Current] " + nodeName;
 			DefaultMutableTreeNode libTree = new DefaultMutableTreeNode(nodeName);

@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.user.User;
@@ -277,20 +278,20 @@ public class Tool extends ElectricObject implements Change
 	public void modifyNodeInst(NodeInst ni, double oCX, double oCY, double oSX, double oSY, int oRot) {}
 	public void modifyNodeInsts(NodeInst [] nis, double [] oCX, double [] oCY, double [] oSX, double [] oSY, int [] oRot) {}
 	public void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, double oWid) {}
-	public void modifyExport(Export pp) {}
+	public void modifyExport(Export pp, PortInst oldPi) {}
 	public void modifyCell(Cell cell) {}
 	public void modifyTextDescript(ElectricObject obj, int key, Object oldValue) {}
 
 	public void newObject(ElectricObject obj) {}
 	public void killObject(ElectricObject obj) {}
-	public void newVariable(ElectricObject obj, Variable.Name key, int type) {}
-	public void killVariable(ElectricObject obj, Variable.Name key, Object oldValue, TextDescriptor oldDescript) {}
-	public void modifyVariable(ElectricObject obj, Variable.Name key, int type, int index, Object oldValue) {}
-	public void insertVariable(ElectricObject obj, Variable.Name key, int type, int index) {}
-	public void deleteVariable(ElectricObject obj, Variable.Name key, int type, int index, Object oldValue) {}
+	public void newVariable(ElectricObject obj, Variable.Key key, int type) {}
+	public void killVariable(ElectricObject obj, Variable.Key key, Object oldValue, TextDescriptor oldDescript) {}
+	public void modifyVariable(ElectricObject obj, Variable.Key key, int type, int index, Object oldValue) {}
+	public void insertVariable(ElectricObject obj, Variable.Key key, int type, int index) {}
+	public void deleteVariable(ElectricObject obj, Variable.Key key, int type, int index, Object oldValue) {}
 
 	public void readLibrary(Library lib) {}
 	public void eraseLibrary(Library lib) {}
 	public void writeLibrary(Library lib, boolean pass2) {}
-
+	
 }

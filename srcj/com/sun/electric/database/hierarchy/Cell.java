@@ -42,7 +42,9 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
 import java.util.ArrayList;
@@ -220,7 +222,7 @@ public class Cell extends NodeProto
 	/** A list of ArcInsts in this Cell. */							private List arcs;
 	/** The current timestamp value. */								private static int currentTime = 0;
 	/** The timestamp of last network renumbering of this Cell */	private int networksTime;
-	/** The bounds of the Cell. */									private Rectangle2D elecBounds;
+	/** The bounds of the Cell. */									private Rectangle2D cellBounds;
 	/** Whether the bounds need to be recomputed. */				private boolean boundsDirty;
 	/** Whether the bounds have anything in them. */				private boolean boundsEmpty;
 	/** The geometric data structure. */							private Geometric.RTNode rTree;
@@ -256,7 +258,7 @@ public class Cell extends NodeProto
 		c.revisionDate = new Date();
 		c.userBits = 0;
 		c.networksTime = 0;
-		c.elecBounds = new Rectangle2D.Double();
+		c.cellBounds = new Rectangle2D.Double();
 		c.boundsEmpty = true;
 		c.boundsDirty = false;
 		c.rTree = Geometric.RTNode.makeTopLevel();
@@ -611,13 +613,20 @@ public class Cell extends NodeProto
 		referencePointNode.modifyInstance(-cX, -cY, 0, 0, 0);
 
 		// must adjust all nodes by (dx,dy)
-		for(int i = 0; i < nodes.size(); i++)
+		for(Iterator it = getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)nodes.get(i);
+			NodeInst ni = (NodeInst)it.next();
 			if (ni == referencePointNode) continue;
 
 			// move NodeInst "ni" by (dx,dy)
-			ni.modifyInstance(-cX, -cY, 0, 0, 0);
+			ni.lowLevelModify(-cX, -cY, 0, 0, 0);
+		}
+		for(Iterator it = getArcs(); it.hasNext(); )
+		{
+			ArcInst ai = (ArcInst)it.next();
+
+			// move NodeInst "ni" by (dx,dy)
+			ai.lowLevelModify(0, -cX, -cY, -cX, -cY);
 		}
 
 		// adjust all instances of this cell
@@ -625,6 +634,17 @@ public class Cell extends NodeProto
 		{
 			NodeInst ni = (NodeInst)it.next();
 			ni.modifyInstance(0, 0, 0, 0, 0);
+		}
+
+		// adjust all windows showing this cell
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			EditWindow wnd = wf.getEditWindow();
+			if (wnd.getCell() != this) continue;
+			Point2D off = wnd.getOffset();
+			off.setLocation(off.getX()-cX, off.getY()-cY);
+			wnd.setOffset(off);
 		}
 	}
 
@@ -653,7 +673,7 @@ public class Cell extends NodeProto
 
 		// make additional checks to keep circuit up-to-date
 		NodeProto np = ni.getProto();
-		if (np instanceof PrimitiveNode && np == Generic.tech.cellCenter_node)
+		if (np instanceof PrimitiveNode && np == Generic.tech.cellCenterNode)
 		{
 			adjustReferencePoint(ni);
 		}
@@ -725,6 +745,34 @@ public class Cell extends NodeProto
 		boundsDirty = true;
 	}
 
+	private boolean boundLock = false;
+	private Rectangle2D lastBounds = new Rectangle2D.Double();
+
+	/**
+	 * Routine to request that the current bounds of this Cell be remembered.
+	 * After this, you may call "getRememberedBounds()" to retrieve these bounds.
+	 */
+	public void rememberBounds()
+	{
+		if (boundsDirty)
+		{
+			getBounds();
+		}
+		boundLock = true;
+	}
+
+	/**
+	 * Routine to get the bounds of this Cell that were saved earlier by a call to "rememberBounds()".
+	 * @return a Rectangle2D with the bounds at the time of the call to "rememberBounds()".
+	 */
+	public Rectangle2D getRememberedBounds()
+	{
+		Rectangle2D retBounds = lastBounds;
+		if (boundLock) retBounds = cellBounds;
+		boundLock = false;
+		return retBounds;
+	}
+
 	/**
 	 * Routine to return the bounds of this Cell.
 	 * @return a Rectangle2D with the bounds of this cell's contents
@@ -733,6 +781,8 @@ public class Cell extends NodeProto
 	{
 		if (boundsDirty)
 		{
+			if (boundLock) { boundLock = false;   lastBounds.setRect(cellBounds); }
+
 			// recompute bounds
 			double cellLowX, cellHighX, cellLowY, cellHighY;
 			boundsEmpty = true;
@@ -741,7 +791,7 @@ public class Cell extends NodeProto
 			for(int i = 0; i < nodes.size(); i++ )
 			{
 				NodeInst ni = (NodeInst) nodes.get(i);
-				if (ni.getProto() == Generic.tech.cellCenter_node) continue;
+				if (ni.getProto() == Generic.tech.cellCenterNode) continue;
 				Rectangle2D bounds = ni.getBounds();
 				double lowx = bounds.getMinX();
 				double highx = bounds.getMaxX();
@@ -773,12 +823,12 @@ public class Cell extends NodeProto
 				if (lowy < cellLowY) cellLowY = lowy;
 				if (highy > cellHighY) cellHighY = highy;
 			}
-			elecBounds.setRect(EMath.smooth(cellLowX), EMath.smooth(cellLowY),
+			cellBounds.setRect(EMath.smooth(cellLowX), EMath.smooth(cellLowY),
 				EMath.smooth(cellHighX - cellLowX), EMath.smooth(cellHighY - cellLowY));
 			boundsDirty = false;
 		}
 
-		return elecBounds;
+		return cellBounds;
 	}
 
 	/**

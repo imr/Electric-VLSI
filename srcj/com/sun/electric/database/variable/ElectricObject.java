@@ -48,18 +48,16 @@ public class ElectricObject
 {
 	// ------------------------ private data ------------------------------------
 
-	/** a list of all variable names */						private static HashMap varNames = new HashMap();
-
 	/** extra variables (null if no variables yet) */		private HashMap vars;
+
+	/** a list of all variable keys */						private static HashMap varKeys = new HashMap();
 
 	// ------------------------ private and protected methods -------------------
 
 	/**
 	 * The constructor is not used.
 	 */
-	protected ElectricObject()
-	{
-	}
+	protected ElectricObject() {}
 
 	// ------------------------ public methods -------------------
 
@@ -89,22 +87,21 @@ public class ElectricObject
 		return var;
 	}
 
-	/**
-	 * Routine to return an entry in an arrayed Variable on this ElectricObject.
-	 * @param name the name of the Variable.
-	 * @param index the required entry in the Variable array.
-	 * @return the Object in that entry of the Variable, or null if there is no such Variable.
-	 */
-/*
-    public Object getVal(String name, int index)
-	{
-		Variable v = getVar(name);
-		if (v == null) return null;
-		Object addr = v.getObject();
-		if (!(addr instanceof Object[])) return null;
-		return ((Object[]) addr)[index];
-	}
-*/
+//	/**
+//	 * Routine to return an entry in an arrayed Variable on this ElectricObject.
+//	 * @param name the name of the Variable.
+//	 * @param index the required entry in the Variable array.
+//	 * @return the Object in that entry of the Variable, or null if there is no such Variable.
+//	 */
+//    public Object getVal(String name, int index)
+//	{
+//		Variable v = getVar(name);
+//		if (v == null) return null;
+//		Object addr = v.getObject();
+//		if (!(addr instanceof Object[])) return null;
+//		return ((Object[]) addr)[index];
+//	}
+
 	/**
 	 * Routine to return the number of displayable Variables on this ElectricObject.
 	 * A displayable Variable is one that will be shown with its object.
@@ -201,18 +198,18 @@ public class ElectricObject
 	 */
 	public Variable setVal(String name, Object value)
 	{
-		Variable.Name vn = findName(name);
-		if (vn == null)
+		Variable.Key key = findKey(name);
+		if (key == null)
 		{
-			vn = new Variable.Name(name);
-			varNames.put(name, vn);
+			key = new Variable.Key(name);
+			varKeys.put(name, key);
 		}
 
 		if (vars == null)
 		{
 			vars = new HashMap();
 		}
-		Variable v = new Variable(value, TextDescriptor.newNodeArcDescriptor(), vn);
+		Variable v = new Variable(value, TextDescriptor.newNodeArcDescriptor(), key);
 		vars.put(name, v);
 		return v;
 	}
@@ -254,13 +251,13 @@ public class ElectricObject
 		for(Iterator it = other.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
-			Variable.Name vn = var.getName();
+			Variable.Key key = var.getKey();
 			Object obj = var.getObject();
 			int flags = var.lowLevelGetFlags();
 			TextDescriptor td = var.getTextDescriptor();
 			if (uniqueNames)
 			{
-				if (this instanceof NodeInst && vn.getName().equals("NODE_name"))
+				if (this instanceof NodeInst && key.getName().equals("NODE_name"))
 				{
 					// if the node name wasn't displayable, do not copy
 					if (!var.isDisplay()) continue;
@@ -270,7 +267,7 @@ public class ElectricObject
 					String objName = (String)obj;
 					String newName = uniqueObjectName(objName, ni.getParent(), NodeInst.class, ni);
 					if (!newName.equals(objName)) obj = newName;
-				} else if (this instanceof ArcInst && vn.getName().equals("ARC_name"))
+				} else if (this instanceof ArcInst && key.getName().equals("ARC_name"))
 				{
 					// if the arc name wasn't displayable, do not copy
 					if (!var.isDisplay()) continue;
@@ -283,7 +280,7 @@ public class ElectricObject
 				}
 			}
 
-			Variable newVar = this.setVal(vn.getName(), obj);
+			Variable newVar = this.setVal(key.getName(), obj);
 			if (newVar != null)
 			{
 				newVar.lowLevelSetFlags(flags);
@@ -490,18 +487,18 @@ public class ElectricObject
 	 * Routine to return an Iterator over all Variable names on this ElectricObject.
 	 * @return an Iterator over all Variable names on this ElectricObject.
 	 */
-	public static Iterator getVariableNames()
+	public static Iterator getVariableKeys()
 	{
-		return varNames.keySet().iterator();
+		return varKeys.keySet().iterator();
 	}
 
 	/**
 	 * Routine to return the total number of different Variable names on all ElectricObjects.
 	 * @return the total number of different Variable names on all ElectricObjects.
 	 */
-	public static int getNumVariableNames()
+	public static int getNumVariableKeys()
 	{
-		return varNames.keySet().size();
+		return varKeys.keySet().size();
 	}
 
 	/**
@@ -531,14 +528,14 @@ public class ElectricObject
 	}
 
 	/**
-	 * Routine to return the Name object for a given Variable name.
-	 * Variable Name objects are caches of the actual string name of the Variable.
-	 * @return the Name object for a given Variable name.
+	 * Routine to return the Key object for a given Variable name.
+	 * Variable Key objects are caches of the actual string name of the Variable.
+	 * @return the Key object for a given Variable name.
 	 */
-	public static Variable.Name findName(String name)
+	public static Variable.Key findKey(String name)
 	{
-		Variable.Name vn = (Variable.Name)varNames.get(name);
-		return vn;
+		Variable.Key key = (Variable.Key)varKeys.get(name);
+		return key;
 	}
 
 	/*

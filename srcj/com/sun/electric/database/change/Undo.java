@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.Tool;
@@ -92,6 +93,7 @@ public class Undo
 		private Type type;
 		private double a1, a2, a3, a4, a5;
 		private int i1, i2;
+		private Object o1;
 
 		Change(ElectricObject obj, Type type)
 		{
@@ -111,6 +113,10 @@ public class Undo
 			this.i1 = i1;
 			this.i2 = i2;
 		}
+		public void setObject(Object o1)
+		{
+			this.o1 = o1;
+		}
 		
 		public ElectricObject getObject() { return obj; }
 		public Type getType() { return type; }
@@ -122,6 +128,7 @@ public class Undo
 		public double getA5() { return a5; }
 		public int getI1() { return i1; }
 		public int getI2() { return i2; }
+		public Object getO1() { return o1; }
 
 		/**
 		 * Routine to broadcast a change to all tools that are on.
@@ -176,7 +183,7 @@ public class Undo
 				for(Iterator it = Tool.getTools(); it.hasNext(); )
 				{
 					Tool tool = (Tool)it.next();
-//					if (tool.isOn()) (*el_tools[i].modifyportproto)((PORTPROTO *)c->entryaddr, (NODEINST *)c->p1, (PORTPROTO *)c->p2);
+					if (tool.isOn()) tool.modifyExport((Export)obj, (PortInst)o1);
 				}
 			} else if (type == Type.CELLMOD)
 			{
@@ -282,7 +289,7 @@ public class Undo
 				int oldRot = ni.getAngle();
 
 				// change the node information
-				ni.adjustInstance(a1 - oldCX, a2 - oldCY, a3 - oldSX, a4 - oldSY, i1 - oldRot);
+				ni.lowLevelModify(a1 - oldCX, a2 - oldCY, a3 - oldSX, a4 - oldSY, i1 - oldRot);
 
 				// update the change to its reversed state
 				a1 = oldCX;   a2 = oldCY;
@@ -315,7 +322,7 @@ public class Undo
 				double oldWid = ai.getWidth();
 
 				// change the arc information
-				ai.lowLevelMove(a5 - oldWid, a1-oldHeadPt.getX(), a2-oldHeadPt.getY(), a3-oldTailPt.getX(), a4-oldTailPt.getY());
+				ai.lowLevelModify(a5 - oldWid, a1-oldHeadPt.getX(), a2-oldHeadPt.getY(), a3-oldTailPt.getX(), a4-oldTailPt.getY());
 
 				// update the change to its reversed state
 				a1 = oldHeadPt.getX();   a2 = oldHeadPt.getY();
@@ -339,11 +346,11 @@ public class Undo
 			}
 			if (type == Type.EXPORTMOD)
 			{
-//				Export pp = (Export)obj;
-//				oldsubni = pp->subnodeinst;
-//				oldsubpp = pp->subportproto;
-//				db_changeport(pp, (NODEINST *)c->p1, (PORTPROTO *)c->p2);
-//				c->p1 = (INTBIG)oldsubni;   c->p2 = (INTBIG)oldsubpp;
+				Export pp = (Export)obj;
+				PortInst oldPi = (PortInst)o1;
+				PortInst currentPi = pp.getOriginalPort();
+				pp.lowLevelModify(oldPi);
+				o1 = currentPi;
 				return;
 			}
 			if (type == Type.CELLNEW)
@@ -706,10 +713,9 @@ public class Undo
 			if (type == Type.EXPORTMOD)
 			{
 				Export pp = (Export)obj;
-				return "Export " + pp.getProtoName() + " modified in cell " + pp.getParent().describe();
-//				formatinfstr(infstr, M_(" Port '%s' moved in cell %s [was on node %s, subport %s]"),
-//					pp->protoname, describenodeproto(pp->parent), describenodeinst((NODEINST *)p1),
-//					((PORTPROTO *)p2)->protoname);
+				PortInst pi = (PortInst)o1;
+				return "Export " + pp.getProtoName() + " moved in cell " + pp.getParent().describe() +
+					"[was on node " + pi.getNodeInst().describe() + " port " + pi.getPortProto().getProtoName() + "]";
 			}
 			if (type == Type.CELLNEW)
 			{
@@ -973,6 +979,9 @@ public class Undo
 		{
 			doneList.remove(0);
 		}
+
+		// start the batch of changes
+		Constraint.getCurrent().startBatch(tool, false);
 	}
 
 	/**
@@ -1008,7 +1017,7 @@ public class Undo
 	 * <LI>ARCINSTMOD takes a1=oldHeadX a2=oldHeadY a3=oldTailX a4=oldTailY a5=oldWidth.
 	 * <LI>EXPORTNEW takes nothing.
 	 * <LI>EXPORTKILL takes nothing.
-	 * <LI>EXPORTMOD takes a1=oldNodeInst a2=oldPortProto.
+	 * <LI>EXPORTMOD takes o1=oldPortInst.
 	 * <LI>CELLNEW takes nothing.
 	 * <LI>CELLKILL takes nothing.
 	 * <LI>CELLMOD takes a1=oldLowX a2=oldHighX a3=oldLowY a4=oldHighY.

@@ -50,6 +50,7 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.UserMenuCommands;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight;
@@ -68,18 +69,22 @@ import java.awt.geom.Rectangle2D;
  */
 public class Clipboard
 {
-	/** The style of highlighted text. */						private static Clipboard theClipboard = new Clipboard();
-	/** The style of highlighted text. */						private static Library clipLib;
-	/** The style of highlighted text. */						private static Cell clipCell;
+	/** The only Clipboard object. */					private static Clipboard theClipboard = new Clipboard();
+	/** The Clipboard Library. */						private static Library clipLib;
+	/** The Clipboard Cell. */							private static Cell clipCell;
 
+	/**
+	 * The constructor gets called only once.
+	 * It creates the clipboard Library and Cell.
+	 */
 	private Clipboard()
 	{
 		clipLib = Library.newInstance("Clipboard!!", null);
-		clipLib.isHidden();
+		clipLib.setHidden();
 		clipCell = Cell.newInstance(clipLib, "Clipboard!!");
 	}
 
-	/*
+	/**
 	 * Routine to clear the contents of the clipboard.
 	 */
 	public static void clear()
@@ -149,7 +154,7 @@ public class Clipboard
 		Undo.startChanges(User.tool, "Copy");
 //		saveview = us_clipboardcell->cellview;
 //		us_clipboardcell->cellview = parent->cellview;
-		us_copylisttocell(wnd, geoms, parent, clipCell, false, false, false);
+		copyListToCell(wnd, geoms, parent, clipCell, false, false, false);
 //		us_clipboardcell->cellview = saveview;
 		Undo.endChanges();
 	}
@@ -176,7 +181,7 @@ public class Clipboard
 		Undo.startChanges(User.tool, "Cut");
 //		saveview = us_clipboardcell->cellview;
 //		us_clipboardcell->cellview = parent->cellview;
-		us_copylisttocell(wnd, geoms, parent, clipCell, false, false, false);
+		copyListToCell(wnd, geoms, parent, clipCell, false, false, false);
 //		us_clipboardcell->cellview = saveview;
 		Undo.endChanges();
 
@@ -200,25 +205,23 @@ public class Clipboard
 		EditWindow wnd = Highlight.getHighlightedWindow();
 		if (wnd == null) return;
 		Cell parent = wnd.getCell();
-
 		// special case of pasting on top of selected objects
 		List geoms = Highlight.getHighlighted(true, true);
 		if (geoms.size() > 0)
 		{
 			// can only paste a single object onto selection
-//			if (ntotal == 2 && atotal == 1)
-//			{
-//				ai = us_clipboardcell->firstarcinst;
-//				ni = us_clipboardcell->firstnodeinst;
-//				if (ni == ai->end[0].nodeinst)
-//				{
-//					if (ni->nextnodeinst == ai->end[1].nodeinst) ntotal = 0;
-//				} else if (ni == ai->end[1].nodeinst)
-//				{
-//					if (ni->nextnodeinst == ai->end[0].nodeinst) ntotal = 0;
-//				}
-//				total = ntotal + atotal;
-//			}
+			if (ntotal == 2 && atotal == 1)
+			{
+				ArcInst ai = (ArcInst)clipCell.getArcs().next();
+				NodeInst niHead = ai.getHead().getPortInst().getNodeInst();
+				NodeInst niTail = ai.getTail().getPortInst().getNodeInst();
+				Iterator nIt = clipCell.getNodes();
+				NodeInst ni1 = (NodeInst)nIt.next();
+				NodeInst ni2 = (NodeInst)nIt.next();
+				if ((ni1 == niHead && ni2 == niTail) ||
+					(ni1 == niTail && ni2 == niHead)) ntotal = 0;
+				total = ntotal + atotal;
+			}
 			if (total > 1)
 			{
 				System.out.println("Can only paste a single object on top of selected objects");
@@ -233,18 +236,17 @@ public class Clipboard
 				{
 					NodeInst ni = (NodeInst)geom;
 					NodeInst firstInClip = (NodeInst)clipCell.getNodes().next();
-					ni = us_pastnodetonode(ni, firstInClip);
+					Undo.startChanges(User.tool, "Paste");
+					ni = pasteNodeToNode(ni, firstInClip);
+					Undo.endChanges();
 					if (ni != null) overlaid = true;
 				} else if (geom instanceof ArcInst && atotal == 1)
 				{
 					ArcInst ai = (ArcInst)geom;
-//					highlist[i] = 0;
-//					ai = us_pastarctoarc(ai, us_clipboardcell->firstarcinst);
-//					if (ai != NOARCINST)
-//					{
-//						highlist[i] = ai->geom;
-//						overlaid = 1;
-//					}
+					Undo.startChanges(User.tool, "Paste");
+					ai = pasteArcToArc(ai, (ArcInst)clipCell.getArcs().next());
+					Undo.endChanges();
+					if (ai != null) overlaid = true;
 				}
 			}
 			if (!overlaid)
@@ -267,7 +269,7 @@ public class Clipboard
 		// paste them into the current cell
 		boolean interactiveplace = true;
 		Undo.startChanges(User.tool, "Paste");
-		us_copylisttocell(wnd, pasteList, clipCell, wnd.getCell(), true, interactiveplace, false);
+		copyListToCell(wnd, pasteList, clipCell, wnd.getCell(), true, interactiveplace, false);
 		Undo.endChanges();
 	}
 
@@ -276,7 +278,7 @@ public class Clipboard
 	 * @return a printable version of this Clipboard.
 	 */
 	public String toString() { return "Clipboard"; }
-	
+
 	private static boolean dupDistSet = false;
 	private static double dupX, dupY;
 
@@ -327,7 +329,7 @@ public class Clipboard
 	 * to "tocell".  If "highlight" is true, highlight the objects in the new cell.
 	 * If "interactiveplace" is true, interactively select the location in the new cell.
 	 */
-	private static void us_copylisttocell(EditWindow wnd, List list, Cell fromcell, Cell tocell, boolean highlight,
+	private static void copyListToCell(EditWindow wnd, List list, Cell fromcell, Cell tocell, boolean highlight,
 		boolean interactiveplace, boolean showoffset)
 	{
 		// make sure the destination cell can be modified
@@ -643,11 +645,9 @@ public class Clipboard
 			PortProto pp = pi.getPortProto();
 			PortInst newPi = ni.getPortInstFromProto(pp);
 
-
 			Cell cell = ni.getParent();
 			String portname = ElectricObject.uniqueObjectName(origpp.getProtoName(), cell, PortProto.class, null);
 			Export newpp =  Export.newInstance(cell, newPi, portname);
-//			newpp = us_makenewportproto(np, ni, pp, portname, -1, origpp->userbits, origpp->textdescript);
 			if (newpp == null) return;
 			newpp.setTextDescriptor(origpp.getTextDescriptor());
 			newpp.copyVars(origpp, true);
@@ -659,18 +659,18 @@ public class Clipboard
 	 * Routine to "paste" node "srcnode" onto node "destnode", making them the same.
 	 * Returns the address of the destination node (NONODEINST on error).
 	 */
-	public static NodeInst us_pastnodetonode(NodeInst destNode, NodeInst srcNode)
+	private static NodeInst pasteNodeToNode(NodeInst destNode, NodeInst srcNode)
 	{
-		// make sure they have the same type
+		// if they do not have the same type, replace one with the other
 		if (destNode.getProto() != srcNode.getProto())
 		{
-//			destNode = us_replacenodeinst(destNode, srcNode->proto, TRUE, TRUE);
-//			if (destNode == NONODEINST) return(NONODEINST);
+			destNode = replaceNodeInst(destNode, srcNode.getProto(), true, false);
+			return destNode;
 		}
 
 		// make the sizes the same if they are primitives
 		destNode.startChange();
-		if (destNode.getProto() instanceof Cell)
+		if (destNode.getProto() instanceof PrimitiveNode)
 		{
 			double dx = srcNode.getXSize() - destNode.getXSize();
 			double dy = srcNode.getYSize() - destNode.getYSize();
@@ -683,18 +683,18 @@ public class Clipboard
 		}
 
 		// remove variables that are not on the pasted object
-		boolean checkagain = true;
-		while (checkagain)
+		boolean checkAgain = true;
+		while (checkAgain)
 		{
-			checkagain = false;
+			checkAgain = false;
 			for(Iterator it = destNode.getVariables(); it.hasNext(); )
 			{
 				Variable destvar = (Variable)it.next();
-				Variable.Name vn = destvar.getName();
-				Variable srcVar = srcNode.getVar(vn.getName());
+				Variable.Key key = destvar.getKey();
+				Variable srcVar = srcNode.getVar(key.getName());
 				if (srcVar != null) continue;
-				srcNode.delVal(vn.getName());
-				checkagain = true;
+				srcNode.delVal(key.getName());
+				checkAgain = true;
 				break;
 			}
 		}
@@ -713,57 +713,447 @@ public class Clipboard
 		return(destNode);
 	}
 
-	/*
-	 * Routine to "paste" arc "srcarc" onto arc "destarc", making them the same.
-	 * Returns the address of the destination arc (NOARCINST on error).
-	 */
-	ArcInst us_pastarctoarc(ArcInst destarc, ArcInst srcarc)
+	static class PossibleVariables
 	{
-//		// make sure they have the same type
-//		startobjectchange((INTBIG)destarc, VARCINST);
-//		if (destarc->proto != srcarc->proto)
-//		{
-//			destarc = replacearcinst(destarc, srcarc->proto);
-//			if (destarc == NOARCINST) return(NOARCINST);
-//		}
-//
-//		// make the widths the same
-//		dw = srcarc->width - destarc->width;
-//		if (dw != 0)
-//			(void)modifyarcinst(destarc, dw, 0, 0, 0, 0);
-//
-//		// remove variables that are not on the pasted object
-//		checkagain = TRUE;
-//		while (checkagain)
-//		{
-//			checkagain = FALSE;
-//			for(i=0; i<destarc->numvar; i++)
-//			{
-//				destvar = &destarc->firstvar[i];
-//				srcvar = getvalkey((INTBIG)srcarc, VARCINST, -1, destvar->key);
-//				if (srcvar != NOVARIABLE) continue;
-//				delvalkey((INTBIG)destarc, VARCINST, destvar->key);
-//				checkagain = TRUE;
-//				break;
-//			}
-//		}
-//
-//		// make sure all variables are on the arc
-//		for(i=0; i<srcarc->numvar; i++)
-//		{
-//			srcvar = &srcarc->firstvar[i];
-//			destvar = setvalkey((INTBIG)destarc, VARCINST, srcvar->key, srcvar->addr, srcvar->type);
-//			TDCOPY(destvar->textdescript, srcvar->textdescript);
-//		}
-//
-//		// make sure the constraints and other userbits are the same
-//		movebits = FIXED | FIXANG | NOEXTEND | ISNEGATED | ISDIRECTIONAL |
-//			NOTEND0 | NOTEND1 | REVERSEEND | CANTSLIDE | HARDSELECTA;
-//		newbits = (destarc->userbits & ~movebits) | (srcarc->userbits & movebits);
-//		setval((INTBIG)destarc, VARCINST, x_("userbits"), newbits, VINTEGER);
-//
-//		endobjectchange((INTBIG)destarc, VARCINST);
-		return(destarc);
+		String varName;
+		PrimitiveNode pn;
+
+		private PossibleVariables(String varName, PrimitiveNode pn)
+		{
+			this.varName = varName;
+			this.pn = pn;
+		}
+		public static final PossibleVariables [] list = new PossibleVariables []
+		{
+			new PossibleVariables("ATTR_length",       Schematics.tech.transistorNode),
+			new PossibleVariables("ATTR_length",       Schematics.tech.transistor4Node),
+			new PossibleVariables("ATTR_width",        Schematics.tech.transistorNode),
+			new PossibleVariables("ATTR_width",        Schematics.tech.transistor4Node),
+			new PossibleVariables("ATTR_area",         Schematics.tech.transistorNode),
+			new PossibleVariables("ATTR_area",         Schematics.tech.transistor4Node),
+			new PossibleVariables("SIM_spice_model",   Schematics.tech.sourceNode),
+			new PossibleVariables("SIM_spice_model",   Schematics.tech.transistorNode),
+			new PossibleVariables("SIM_spice_model",   Schematics.tech.transistor4Node),
+			new PossibleVariables("SCHEM_meter_type",  Schematics.tech.meterNode),
+			new PossibleVariables("SCHEM_diode",       Schematics.tech.diodeNode),
+			new PossibleVariables("SCHEM_capacitance", Schematics.tech.capacitorNode),
+			new PossibleVariables("SCHEM_resistance",  Schematics.tech.resistorNode),
+			new PossibleVariables("SCHEM_inductance",  Schematics.tech.inductorNode),
+			new PossibleVariables("SCHEM_function",    Schematics.tech.bboxNode)
+		};
+	}
+
+	/**
+	 * routine to replace node "oldNi" with a new one of type "newNp"
+	 * and return the new node.  Also removes any node-specific variables.
+	 */
+	private static NodeInst replaceNodeInst(NodeInst oldNi, NodeProto newNp, boolean ignorePortNames,
+		boolean allowMissingPorts)
+	{
+		// replace the node
+		NodeInst newNi = oldNi.replace(newNp, ignorePortNames, allowMissingPorts);
+		if (newNi != null)
+		{
+			if (newNp instanceof PrimitiveNode)
+			{
+				// remove variables that make no sense
+				for(int i=0; i<PossibleVariables.list.length; i++)
+				{
+					if (newNi.getProto() == PossibleVariables.list[i].pn) continue;
+					Variable var = newNi.getVar(PossibleVariables.list[i].varName);
+					if (var != null)
+						newNi.delVal(PossibleVariables.list[i].varName);
+				}
+			} else
+			{
+				// remove parameters that don't exist on the new object
+				Cell newCell = (Cell)newNp;
+				List varList = new ArrayList();
+				for(Iterator it = newNi.getVariables(); it.hasNext(); )
+					varList.add(it.next());
+				for(Iterator it = varList.iterator(); it.hasNext(); )
+				{
+					Variable var = (Variable)it.next();
+					if (!var.getTextDescriptor().isParam()) continue;
+
+					// see if this parameter exists on the new prototype
+					Cell cNp = newCell.contentsView();
+					if (cNp == null) cNp = newCell;
+					for(Iterator cIt = cNp.getVariables(); it.hasNext(); )
+					{
+						Variable cVar = (Variable)cIt.next();
+						if (var.getKey() != cVar.getKey()) continue;
+						if (cVar.getTextDescriptor().isParam())
+						{
+							newNi.delVal(var.getKey().getName());
+							break;
+						}
+					}
+				}
+			}
+
+			// now inherit parameters that now do exist
+			inheritAttributes(newNi);
+
+			// remove node name if it is not visible
+			Variable var = newNi.getVar(NodeInst.NODE_NAME, String.class);
+			if (var != null && !var.isDisplay())
+				newNi.delVal(NodeInst.NODE_NAME);
+
+			// end changes to node and all arcs touching this node
+			newNi.endChange();
+			for(Iterator it = newNi.getConnections(); it.hasNext(); )
+			{
+				Connection con = (Connection)it.next();
+				con.getArc().endChange();
+			}
+		}
+		return newNi;
+	}
+
+	/**
+	 * Routine to inherit all prototype attributes down to instance "ni".
+	 */
+	private static void inheritAttributes(NodeInst ni)
+	{
+		// ignore primitives
+		NodeProto np = ni.getProto();
+		if (np instanceof PrimitiveNode) return;
+		Cell cell = (Cell)np;
+
+		// first inherit directly from this node's prototype
+		for(Iterator it = cell.getVariables(); it.hasNext(); )
+		{
+			Variable var = (Variable)it.next();
+			if (!var.getTextDescriptor().isInherit()) continue;
+			inheritCellAttribute(var, ni, cell, null);
+		}
+
+		// inherit directly from each port's prototype
+		for(Iterator it = cell.getPorts(); it.hasNext(); )
+		{
+			Export pp = (Export)it.next();
+			inheritExportAttributes(pp, ni, cell);
+		}
+
+		// if this node is an icon, also inherit from the contents prototype
+		Cell cNp = cell.contentsView();
+		if (cNp != null)
+		{
+			// look for an example of the icon in the contents
+			NodeInst icon = null;
+			for(Iterator it = cNp.getNodes(); it.hasNext(); )
+			{
+				icon = (NodeInst)it.next();
+				if (icon.getProto() == cell) break;
+				icon = null;
+			}
+
+			for(Iterator it = cNp.getVariables(); it.hasNext(); )
+			{
+				Variable var = (Variable)it.next();
+				if (!var.getTextDescriptor().isInherit()) continue;
+				inheritCellAttribute(var, ni, cNp, icon);
+			}
+			for(Iterator it = cNp.getPorts(); it.hasNext(); )
+			{
+				Export cpp = (Export)it.next();
+				inheritExportAttributes(cpp, ni, cNp);
+			}
+		}
+
+		// now delete parameters that are not in the prototype
+		if (cNp == null) cNp = cell;
+		boolean found = true;
+		boolean first = true;
+		while (found)
+		{
+			found = false;
+			for(Iterator it = ni.getVariables(); it.hasNext(); )
+			{
+				Variable var = (Variable)it.next();
+				if (!var.getTextDescriptor().isParam()) continue;
+				Variable oVar = null;
+				for(Iterator oIt = cNp.getVariables(); oIt.hasNext(); )
+				{
+					oVar = (Variable)oIt.next();
+					if (!oVar.getTextDescriptor().isParam()) continue;
+					if (oVar.getKey() == var.getKey()) break;
+					oVar = null;
+				}
+				if (oVar != null)
+				{
+					if (first) ni.startChange();
+					first = false;
+					ni.delVal(var.getKey().getName());
+					found = true;
+					break;
+				}
+			}
+		}
+		if (!first) ni.endChange();
+	}
+
+	/**
+	 * Routine to add all inheritable export variables from export "pp" on cell "np"
+	 * to instance "ni".
+	 */
+	private static void inheritExportAttributes(PortProto pp, NodeInst ni, Cell np)
+	{
+		for(Iterator it = pp.getVariables(); it.hasNext(); )
+		{
+			Variable var = (Variable)it.next();
+			if (!var.getTextDescriptor().isInherit()) continue;
+
+			String attrName = "ATTRP_" + pp.getProtoName() + "_" + var.getKey().getName().substring(5);
+
+			// see if the attribute is already there
+			Variable newVar = ni.getVar(attrName);
+			if (newVar != null) continue;
+
+			// set the attribute
+			ni.startChange();
+			newVar = ni.setVal(attrName, inheritAddress(pp, var));
+			if (newVar != null)
+			{
+				double lambda = 1;
+				TextDescriptor descript = TextDescriptor.newBlankDescriptor();
+				var.getTextDescriptor().copy(descript);
+				int dx = descript.getXOff() / 4;
+				int dy = descript.getYOff() / 4;
+
+//				saverot = pp->subnodeinst->rotation;
+//				savetrn = pp->subnodeinst->transpose;
+//				pp->subnodeinst->rotation = pp->subnodeinst->transpose = 0;
+//				portposition(pp->subnodeinst, pp->subportproto, &x, &y);
+//				pp->subnodeinst->rotation = saverot;
+//				pp->subnodeinst->transpose = savetrn;
+//				x += dx;   y += dy;
+//				makerot(pp->subnodeinst, trans);
+//				xform(x, y, &x, &y, trans);
+//				maketrans(ni, trans);
+//				xform(x, y, &x, &y, trans);
+//				makerot(ni, trans);
+//				xform(x, y, &x, &y, trans);
+//				x = x - (ni->lowx + ni->highx) / 2;
+//				y = y - (ni->lowy + ni->highy) / 2;
+//				switch (TDGETPOS(descript))
+//				{
+//					case VTPOSCENT:      style = TEXTCENT;      break;
+//					case VTPOSBOXED:     style = TEXTBOX;       break;
+//					case VTPOSUP:        style = TEXTBOT;       break;
+//					case VTPOSDOWN:      style = TEXTTOP;       break;
+//					case VTPOSLEFT:      style = TEXTRIGHT;     break;
+//					case VTPOSRIGHT:     style = TEXTLEFT;      break;
+//					case VTPOSUPLEFT:    style = TEXTBOTRIGHT;  break;
+//					case VTPOSUPRIGHT:   style = TEXTBOTLEFT;   break;
+//					case VTPOSDOWNLEFT:  style = TEXTTOPRIGHT;  break;
+//					case VTPOSDOWNRIGHT: style = TEXTTOPLEFT;   break;
+//				}
+//				makerot(pp->subnodeinst, trans);
+//				style = rotatelabel(style, TDGETROTATION(descript), trans);
+//				switch (style)
+//				{
+//					case TEXTCENT:     TDSETPOS(descript, VTPOSCENT);      break;
+//					case TEXTBOX:      TDSETPOS(descript, VTPOSBOXED);     break;
+//					case TEXTBOT:      TDSETPOS(descript, VTPOSUP);        break;
+//					case TEXTTOP:      TDSETPOS(descript, VTPOSDOWN);      break;
+//					case TEXTRIGHT:    TDSETPOS(descript, VTPOSLEFT);      break;
+//					case TEXTLEFT:     TDSETPOS(descript, VTPOSRIGHT);     break;
+//					case TEXTBOTRIGHT: TDSETPOS(descript, VTPOSUPLEFT);    break;
+//					case TEXTBOTLEFT:  TDSETPOS(descript, VTPOSUPRIGHT);   break;
+//					case TEXTTOPRIGHT: TDSETPOS(descript, VTPOSDOWNLEFT);  break;
+//					case TEXTTOPLEFT:  TDSETPOS(descript, VTPOSDOWNRIGHT); break;
+//				}
+//				x = x * 4 / lambda;
+//				y = y * 4 / lambda;
+//				TDSETOFF(descript, x, y);
+//				TDSETINHERIT(descript, 0);
+//				TDCOPY(newVar->textdescript, descript);
+			}
+			ni.endChange();
+		}
+	}
+
+	/*
+	 * Routine to add inheritable variable "var" from cell "np" to instance "ni".
+	 * If "icon" is not NONODEINST, use the position of the variable from it.
+	 */
+	private static void inheritCellAttribute(Variable var, NodeInst ni, Cell np, NodeInst icon)
+	{
+		// see if the attribute is already there
+		Variable.Key key = var.getKey();
+		Variable newVar = ni.getVar(key.getName());
+		if (newVar != null)
+		{
+			// make sure visibility is OK
+			if (!var.getTextDescriptor().isInterior())
+			{
+				// parameter should be visible: make it so
+				if (!newVar.isDisplay())
+				{
+					ni.startChange();
+					newVar.setDisplay();
+					ni.endChange();
+				}
+			} else
+			{
+				// parameter not normally visible: make it invisible if it has the default value
+				if (newVar.isDisplay())
+				{
+					if (var.describe(-1, -1).equals(newVar.describe(-1, -1)))
+					{
+						ni.startChange();
+						newVar.clearDisplay();
+						ni.endChange();
+					}
+				}
+			}
+			return;
+		}
+
+		// determine offset of the attribute on the instance
+		Variable posVar = var;
+		if (icon != null)
+		{
+			for(Iterator it = icon.getVariables(); it.hasNext(); )
+			{
+				Variable ivar = (Variable)it.next();
+				if (ivar.getKey() == var.getKey())
+				{
+					posVar = ivar;
+					break;
+				}
+			}
+		}
+
+		int xc = posVar.getTextDescriptor().getXOff();
+		if (posVar == var) xc -= np.getBounds().getCenterX();
+		int yc = posVar.getTextDescriptor().getYOff();
+		if (posVar == var) yc -= np.getBounds().getCenterY();
+
+		// set the attribute
+		ni.startChange();
+		newVar = ni.setVal(var.getKey().getName(), inheritAddress(np, posVar));
+		if (newVar != null)
+		{
+			if (var.isDisplay()) newVar.setDisplay(); else newVar.clearDisplay();
+			if (var.getTextDescriptor().isInterior()) newVar.clearDisplay();
+			TextDescriptor newDescript = TextDescriptor.newNodeArcDescriptor();
+			newDescript.clearInherit();
+			newDescript.setOff(xc, yc);
+			if (var.getTextDescriptor().isParam())
+			{
+				newDescript.clearInterior();
+				TextDescriptor.DispPos i = newDescript.getDispPart();
+				if (i == TextDescriptor.DispPos.NAMEVALINH || i == TextDescriptor.DispPos.NAMEVALINHALL)
+					newDescript.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
+			}
+			newVar.setDescriptor(newDescript);
+		}
+		ni.endChange();
+	}
+
+	/**
+	 * Helper routine to determine the proper value of an inherited Variable.
+	 * Normally, it is simply "var.getObject()", but if it is a string with the "++" or "--"
+	 * sequence in it, then it indicates an auto-increments/decrements of that numeric value.
+	 * The returned object has the "++"/"--" removed, and the original variable is modified.
+	 * @param addr the ElectricObject on which this Variable resides.
+	 * @param var the Variable being examined.
+	 * @return the Object in the Variable.
+	 */
+	private static Object inheritAddress(ElectricObject addr, Variable var)
+	{
+		// if it isn't a string, just return its address
+		Object obj = var.getObject();
+		if (obj instanceof Object[]) return obj;
+		if (!var.isCode() && !(obj instanceof String)) return obj;
+
+		String str = (String)obj;
+		int plusPlusPos = str.indexOf("++");
+		int minusMinusPos = str.indexOf("--");
+		if (plusPlusPos < 0 && minusMinusPos < 0) return obj;
+
+		// construct the proper inherited string and increment the variable
+		int incrPoint = Math.max(plusPlusPos, minusMinusPos);
+		String retVal = str.substring(0, incrPoint) + str.substring(incrPoint+2);
+
+		// increment the variable
+		int i;
+		for(i = incrPoint-1; i>0; i--)
+			if (!Character.isDigit(str.charAt(i))) break;
+		i++;
+		int curVal = EMath.atoi(str.substring(i));
+		if (str.charAt(incrPoint) == '+') curVal++; else curVal--;
+		String newIncrString = str.substring(0, i) + curVal + str.substring(incrPoint+2);
+		addr.setVal(var.getKey().getName(), newIncrString);
+
+		return retVal;
+	}
+
+	/**
+	 * Routine to paste one arc onto another.
+	 * @param destArc the destination arc that will be replaced.
+	 * @param srcArc the source arc that will replace it.
+	 * @return the replaced arc (null on error).
+	 */
+	private static ArcInst pasteArcToArc(ArcInst destArc, ArcInst srcArc)
+	{
+		// make sure they have the same type
+		if (destArc.getProto() != srcArc.getProto())
+		{
+			destArc = destArc.replace(srcArc.getProto());
+			if (destArc == null) return null;
+		}
+
+		// make the widths the same
+		destArc.startChange();
+		double dw = srcArc.getWidth() - destArc.getWidth();
+		if (dw != 0)
+			destArc.modify(dw, 0, 0, 0, 0);
+
+		// remove variables that are not on the pasted object
+		boolean checkAgain = true;
+		while (checkAgain)
+		{
+			checkAgain = false;
+			for(Iterator it = destArc.getVariables(); it.hasNext(); )
+			{
+				Variable destvar = (Variable)it.next();
+				Variable.Key key = destvar.getKey();
+				Variable srcVar = srcArc.getVar(key.getName());
+				if (srcVar != null) continue;
+				destArc.delVal(key.getName());
+				checkAgain = true;
+				break;
+			}
+		}
+
+		// make sure all variables are on the arc
+		for(Iterator it = srcArc.getVariables(); it.hasNext(); )
+		{
+			Variable srcvar = (Variable)it.next();
+			Variable.Key key = srcvar.getKey();
+			Variable destVar = destArc.setVal(key.getName(), srcvar.getObject());
+			if (destVar != null)
+				destVar.setDescriptor(srcvar.getTextDescriptor());
+		}
+
+		// make sure the constraints and other userbits are the same
+		if (srcArc.isRigid()) destArc.setRigid(); else destArc.clearRigid();
+		if (srcArc.isFixedAngle()) destArc.setFixedAngle(); else destArc.clearFixedAngle();
+		if (srcArc.isSlidable()) destArc.setSlidable(); else destArc.clearSlidable();
+		if (srcArc.isExtended()) destArc.setExtended(); else destArc.clearExtended();
+		if (srcArc.isNegated()) destArc.setNegated(); else destArc.clearNegated();
+		if (srcArc.isDirectional()) destArc.setDirectional(); else destArc.clearDirectional();
+		if (srcArc.isSkipHead()) destArc.setSkipHead(); else destArc.clearSkipHead();
+		if (srcArc.isSkipTail()) destArc.setSkipTail(); else destArc.clearSkipTail();
+		if (srcArc.isReverseEnds()) destArc.setReverseEnds(); else destArc.clearReverseEnds();
+		if (srcArc.isHardSelect()) destArc.setHardSelect(); else destArc.clearHardSelect();
+
+		destArc.endChange();
+		return destArc;
 	}
 
 }

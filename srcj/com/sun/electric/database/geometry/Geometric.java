@@ -766,7 +766,7 @@ public class Geometric extends ElectricObject
 
 	/** Cell containing this Geometric object */			protected Cell parent;
 	/** bounds after transformation */						protected Rectangle2D visBounds;
-	/** center coordinate of this geometric */				protected double cX, cY;
+	/** center coordinate of this geometric */				protected Point2D center;
 	/** size of this geometric */							protected double sX, sY;
 	/** angle of this geometric (in tenth-degrees). */		protected int angle;
 	/** The temporary Object for the node or arc. */		private Object tempObj;
@@ -785,6 +785,7 @@ public class Geometric extends ElectricObject
 	protected Geometric()
 	{
 		this.userBits = 0;
+		center = new Point2D.Double();
 		visBounds = new Rectangle2D.Double(0, 0, 0, 0);
 	}
 
@@ -825,22 +826,19 @@ public class Geometric extends ElectricObject
 	 * Routine to return the center point of this Geometric object.
 	 * @return the center point of this Geometric object.
 	 */
-	Point2D getCenter()
-	{
-		return new Point2D.Double(cX, cY);
-	}
+	public Point2D getCenter() { return center; }
 
 	/**
 	 * Routine to return the center X coordinate of this Geometric.
 	 * @return the center X coordinate of this Geometric.
 	 */
-	public double getCenterX() { return cX; }
+	public double getCenterX() { return center.getX(); }
 
 	/**
 	 * Routine to return the center Y coordinate of this Geometric.
 	 * @return the center Y coordinate of this Geometric.
 	 */
-	public double getCenterY() { return cY; }
+	public double getCenterY() { return center.getY(); }
 
 	/**
 	 * Routine to return the rotation angle of this Geometric.

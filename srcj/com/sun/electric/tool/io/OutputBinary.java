@@ -756,21 +756,21 @@ System.out.println("Writing "+cell.getProtoName()+" which has "+cell.getNumArcs(
 	private boolean writeNameSpace()
 		throws IOException
 	{
-		int numVariableNames = ElectricObject.getNumVariableNames();
+		int numVariableNames = ElectricObject.getNumVariableKeys();
 		writeBigInteger(numVariableNames);
 
-		Variable.Name [] nameList = new Variable.Name[numVariableNames];
-		for(Iterator it = ElectricObject.getVariableNames(); it.hasNext(); )
+		Variable.Key [] nameList = new Variable.Key[numVariableNames];
+		for(Iterator it = ElectricObject.getVariableKeys(); it.hasNext(); )
 		{
 			String name = (String)it.next();
-			Variable.Name vn = ElectricObject.findName(name);
-			nameList[vn.getIndex()] = vn;
+			Variable.Key key = ElectricObject.findKey(name);
+			nameList[key.getIndex()] = key;
 		}
 		for(int i=0; i<numVariableNames; i++)
 		{
-			Variable.Name vn = nameList[i];
-			if (vn == null) writeString(""); else
-				writeString(vn.getName());
+			Variable.Key key = nameList[i];
+			if (key == null) writeString(""); else
+				writeString(key.getName());
 		}
 		return false;
 	}
@@ -802,14 +802,14 @@ System.out.println("Writing "+cell.getProtoName()+" which has "+cell.getNumArcs(
 		{
 			Variable var = (Variable)it.next();
 			if (var.isDontSave()) continue;
-			Variable.Name vn = var.getName();
-			short index = (short)vn.getIndex();
+			Variable.Key key = var.getKey();
+			short index = (short)key.getIndex();
 			writeSmallInteger(index);
 
 			// create the "type" field
 			Object varObj = var.getObject();
 			boolean convertTrace = false;
-			if (varObj instanceof Object[] && vn.getName().equals("trace")) convertTrace = true;
+			if (varObj instanceof Object[] && key.getName().equals("trace")) convertTrace = true;
 			int type = var.lowLevelGetFlags() & ~(BinaryConstants.VTYPE|BinaryConstants.VISARRAY|BinaryConstants.VLENGTH);
 			if (varObj instanceof Object[])
 			{

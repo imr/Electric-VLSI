@@ -25,9 +25,14 @@ package com.sun.electric.database.geometry;
 
 import com.sun.electric.technology.Layer;
 import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Rectangle;
@@ -410,6 +415,34 @@ public class Poly implements Shape
 	}
 
 	/**
+	 * Routine to compare this Poly to another.
+	 * @param polyOther the other Poly to compare.
+	 * @return true if the Polys are the same.
+	 */
+	public boolean polySame(Poly polyOther)
+	{
+		// polygons must have the same number of points
+		Point2D [] points = getPoints();
+		Point2D [] pointsO = polyOther.getPoints();
+		if (points.length != pointsO.length) return false;
+
+		// if both are boxes, compare their extents
+		Rectangle2D box = getBox();
+		Rectangle2D boxO = polyOther.getBox();
+		if (box != null && boxO != null)
+		{
+			// compare box extents
+			return box.equals(boxO);
+		}
+		if (box != null || boxO != null) return false;
+
+		// compare these boxes the hard way
+		for(int i=0; i<points.length; i++)
+			if (!points[i].equals(pointsO[i])) return false;
+		return true;
+	}
+
+	/**
 	 * Routine to tell whether a coordinate is inside of this Poly.
 	 * @param pt the point in question.
 	 * @return true if the point is inside of this Poly.
@@ -527,6 +560,115 @@ public class Poly implements Shape
 
 		// I give up
 		return false;
+	}
+
+	/**
+	 * Routine to reduce this Poly by the proper amount presuming that it describes a port connected to an arc.
+	 * This Poly is modified in place to reduce its size.
+	 * @param pi the PortInst that describes this Poly.
+	 * @param wid the width of the arc connected to this port-poly.
+	 * This should be the offset width, not the actual width stored in memory.
+	 * @param angle the angle of the arc connected to this port-poly.
+	 * If negative, do not consider arc angle.
+	 */
+	public void reducePortPoly(PortInst pi, double wid, int angle)
+	{
+		// look down to the bottom level node/port
+		NodeInst ni = pi.getNodeInst();
+		PortProto pp = pi.getPortProto();
+		AffineTransform trans = ni.rotateOut();
+		while (ni.getProto() instanceof Cell)
+		{
+			trans = ni.translateOut(trans);
+			ni = ((Export)pp).getOriginalPort().getNodeInst();
+			pp = ((Export)pp).getOriginalPort().getPortProto();
+			trans = ni.rotateOut(trans);
+		}
+
+		// do not reduce port if not filled
+		if (getStyle() != Type.FILLED && getStyle() != Type.CROSSED &&
+			getStyle() != Type.DISC) return;
+
+		// do not reduce port areas on polygonally defined nodes
+		if (ni.getTrace() != null) return;
+
+		// determine amount to reduce port
+		double realWid = wid / 2;
+
+		// get bounding box of port polygon
+		Rectangle2D portBounds = getBox();
+		if (portBounds == null)
+		{
+			// special case: nonrectangular port
+			if (getStyle() == Type.DISC)
+			{
+				// shrink discs
+				double dist = points[0].distance(points[1]);
+				dist = Math.max(0, dist-realWid);
+				points[1].setLocation(points[0].getX() + dist, points[0].getY());
+				return;
+			}
+
+			// cannot handle other forms of polygon yet
+			return;
+		}
+
+		// determine the edge and center of the port polygon
+		double bx = portBounds.getMinX();     double ux = portBounds.getMaxX();
+		double by = portBounds.getMinY();     double uy = portBounds.getMaxY();
+		double cx = portBounds.getCenterX();  double cy = portBounds.getCenterY();
+
+		// compute the area of the nodeinst
+		SizeOffset so = ni.getProto().getSizeOffset();
+		Rectangle2D nodeBounds = ni.getBounds();
+		Point2D lowerLeft = new Point2D.Double(nodeBounds.getMinX()+so.getLowXOffset(), nodeBounds.getMinY()+so.getLowYOffset());
+		trans.transform(lowerLeft, lowerLeft);
+		Point2D upperRight = new Point2D.Double(nodeBounds.getMaxX()-so.getHighXOffset(), nodeBounds.getMaxY()-so.getHighYOffset());
+		trans.transform(upperRight, upperRight);
+		double lx = lowerLeft.getX();   double hx = upperRight.getX();
+		double ly = lowerLeft.getY();   double hy = upperRight.getY();
+		if (lx > hx) { double swap = lx; lx = hx;  hx = swap; }
+		if (ly > hy) { double swap = ly; ly = hy;  hy = swap; }
+
+		// do not reduce in X if arc is horizontal
+		if (angle != 0 && angle != 1800)
+		{
+			// determine reduced port area
+			lx = Math.max(bx, lx + realWid);   hx = Math.min(ux, hx - realWid);
+			if (hx < lx) hx = lx = (hx + lx) / 2;
+
+			// only clip in X if the port area is within of the reduced node X area
+			if (ux >= lx && bx <= hx)
+			{
+				for(int j=0; j<points.length; j++)
+				{
+					double x = points[j].getX();
+					if (x < lx)x = lx;
+					if (x > hx) x = hx;
+					points[j].setLocation(x, points[j].getY());
+				}
+			}
+		}
+
+		// do not reduce in Y if arc is vertical
+		if (angle != 900 && angle != 2700)
+		{
+			// determine reduced port area
+			ly = Math.max(by, ly + realWid);   hy = Math.min(uy, hy - realWid);
+			if (hy < ly) hy = ly = (hy + ly) / 2;
+
+			// only clip in Y if the port area is inside of the reduced node Y area
+			if (uy >= ly && by <= hy)
+			{
+				for(int j=0; j<points.length; j++)
+				{
+					double y = points[j].getY();
+					if (y < ly) y = ly;
+					if (y > hy) y = hy;
+					points[j].setLocation(points[j].getX(), y);
+				}
+			}
+		}
 	}
 
 	/**

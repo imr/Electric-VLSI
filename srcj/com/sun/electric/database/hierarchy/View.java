@@ -285,19 +285,13 @@ public class View extends ElectricObject
 	 * Routine to return an iterator over the views.
 	 * @return an iterator over the views.
 	 */
-	public static Iterator getViews()
-	{
-		return views.iterator();
-	}
+	public static Iterator getViews() { return views.iterator(); }
 
 	/**
 	 * Routine to return the number of views.
 	 * @return the number of views.
 	 */
-	public static int getNumViews()
-	{
-		return views.size();
-	}
+	public static int getNumViews() { return views.size(); }
 
 	/**
 	 * Returns a printable version of this View.

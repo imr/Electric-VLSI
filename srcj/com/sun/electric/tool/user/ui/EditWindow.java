@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Stack;
+import java.util.EventListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseWheelListener;
@@ -100,27 +101,30 @@ public class EditWindow extends JPanel
     /** the offscreen image of the window */				private Image img = null;
 	/** true if the window needs to be rerendered */		private boolean needsUpdate = false;
 	/** true to track the time for redraw */				private boolean trackTime = false;
+	/** true if showing grid in this window */				private boolean showGrid = false;
+	/** true if doing object-selection drag */				private boolean doingAreaDrag = false;
 	/** starting screen point for drags in this window */	private Point startDrag = new Point();
 	/** ending screen point for drags in this window */		private Point endDrag = new Point();
-	/** true if doing object-selection drag */				private boolean doingAreaDrag = false;
-	/** true if doing object-motion drag */					private boolean doingMotionDrag = false;
-	/** true if showing grid in this window */				private boolean showGrid = false;
-    
-    
+	/** current mouse listener */							private static MouseListener curMouseListener = ClickAndDragListener.theOne;
+	/** current mouse motion listener */					private static MouseMotionListener curMouseMotionListener = ClickAndDragListener.theOne;
+	/** current mouse wheel listener */						private static MouseWheelListener curMouseWheelListener = ClickAndDragListener.theOne;
+	/** current key listener */								private static KeyListener curKeyListener = ClickAndDragListener.theOne;
+
     /** an identity transformation */						private static final AffineTransform IDENTITY = new AffineTransform();
     /** the offset of each new window on the screen */		private static int windowOffset = 0;
-    
+
     /** for drawing solid lines */		private static final BasicStroke solidLine = new BasicStroke(0);
     /** for drawing thick lines */		private static final BasicStroke thickLine = new BasicStroke(1);
     /** for drawing dotted lines */		private static final BasicStroke dottedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {1}, 0);
     /** for drawing dashed lines */		private static final BasicStroke dashedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[] {10}, 0);
     /** for drawing selection boxes */	private static final BasicStroke selectionLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {2}, 3);
-    
-    
+
+
     // ************************************* CONTROL *************************************
-    
+
     // constructor
-    private EditWindow(Cell cell) {
+    private EditWindow(Cell cell)
+	{
         //super(cell.describe(), true, true, true, true);
         this.cell = cell;
         this.cellVarContext = VarContext.globalContext;
@@ -130,9 +134,9 @@ public class EditWindow extends JPanel
 		setPreferredSize(sz);
 		//setAutoscrolls(true);
 		addKeyListener(this);
+		addMouseListener(this);
 		addMouseMotionListener(this);
 		addMouseWheelListener(this);
-		addMouseListener(this);
 	}
 
 	// factory
@@ -152,6 +156,8 @@ public class EditWindow extends JPanel
 		}
 		return null;
 	}
+
+    // ************************************* RENDERING A WINDOW *************************************
 
 	public void redraw()
 	{
@@ -204,164 +210,6 @@ public class EditWindow extends JPanel
 		if (doingAreaDrag)
 			showDragBox(g);
 	}
- 
-	public void setTimeTracking(boolean trackTime)
-	{
-		this.trackTime = trackTime;
-	}
-
-	/**
-	 * Routine to return the cell that is shown in this window.
-	 * @return the cell that is shown in this window.
-	 */
-	public Cell getCell() { return cell; }
-
-	/**
-	 * Routine to return the scale factor for this window.
-	 * @return the scale factor for this window.
-	 */
-	public double getScale() { return scale; }
-
-	/**
-	 * Routine to set the cell that is shown in the window to "cell".
-	 */
-	public void setCell(Cell cell, VarContext context)
-	{
-		this.cell = cell;
-        this.cellVarContext = context;
-		Library curLib = Library.getCurrent();
-		curLib.setCurCell(cell);
-		Highlight.clear();
-//        if (lastPushed != null) Highlight.addGeometric(lastPushed);
-		fillScreen();
-		redraw();
-	}
-  
-    public void fillScreen() {
-        if (cell == null) return;
-        sz = getSize();
-        Rectangle2D cellBounds = cell.getBounds();
-        double scalex = sz.width/cellBounds.getWidth() * 0.9;
-        double scaley = sz.height/cellBounds.getHeight() * 0.9;
-        scale = Math.min(scalex, scaley);
-        offx = cellBounds.getCenterX();
-        offy = cellBounds.getCenterY();
-        needsUpdate = true;
-    }
-    
-    // ************************************* HIERARCHY TRAVERSAL *************************************
-
-    /**
-     * Get the window's VarContext
-     * @return the current VarContext
-     */
-    public VarContext getVarContext() { return cellVarContext; }
-    
-    /** 
-     * Push into an instance (go down the hierarchy)
-     */
-    public void downHierarchy() {
-        if (Highlight.getNumHighlights() <= 0) {
-            System.out.println("Nothing highlighted, cannot descend");
-            return;
-        }
-        if (Highlight.getNumHighlights() > 1) {
-            System.out.println("More than one thing highlighted, cannot descend");
-            return;
-        }
-        Iterator it = Highlight.getHighlights();
-        Highlight h = (Highlight)it.next();
-		if (h.getType() != Highlight.Type.GEOM) {
-            System.out.println("Must select a node");
-            return;
-        }
-        Geometric geom = h.getGeom();
-        if (!(geom instanceof NodeInst)) {
-            System.out.println("Cannot descend into that object");
-            return;
-        }
-        NodeInst ni = (NodeInst)geom;
-        NodeProto np = ni.getProto();
-        if (!(np instanceof Cell)) {
-            System.out.println("Cannot descend into that object");
-            return;
-        }
-        Cell cell = (Cell)np;
-        Cell schCell = cell.getEquivalent();
-        // special case: if cell is icon of current cell, descend into icon
-        if (this.cell == schCell) schCell = cell;
-        if (schCell == null) return;                // nothing to descend into
-        setCell(schCell, cellVarContext.push(ni));
-    }
-       
-    /**
-     * Pop out of an instance (go up the hierarchy)
-     */
-    public void upHierarchy() {
-        try {
-            NodeInst ni = cellVarContext.getNodeInst();
-            Cell parent = ni.getParent();
-            VarContext context = cellVarContext.pop();
-            setCell(parent, context);
-            Highlight.addGeometric(ni);
-            needsUpdate = true;
-        } catch (NullPointerException e) {
-            // no parent - if icon, go to sch view
-            // - otherwise, ask user where to go if necessary
-            if (cell.getView() == View.ICON) {
-                Cell schCell = cell.getEquivalent();
-                if (schCell == null) return;        // nothing to do
-                setCell(schCell, VarContext.globalContext);
-                return;
-            }            
-            JPopupMenu parents = new JPopupMenu("parents");
-            // find all possible parents in all libraries
-            HashSet found = new HashSet();
-            for (Iterator libIt = Library.getLibraries(); libIt.hasNext();) {
-                Library lib = (Library)libIt.next();
-                System.out.println("checking library "+lib);
-                for (Iterator cellIt = lib.getCells(); cellIt.hasNext();) {
-                    Cell cel = (Cell)cellIt.next();
-                    if (cel == this.cell) continue; // don't add myself
-                    for (Iterator instIt = cel.getNodes(); instIt.hasNext();) {
-                        NodeInst inst = (NodeInst)instIt.next();  // get all instances in this cell
-                        NodeProto np = inst.getProto(); // get prototype
-                        if (!(np instanceof Cell)) continue;
-                        Cell npCell = (Cell)np;
-                        // see if same cell group (but alternate view)
-                        String libcellname = cel.describe();
-                        if (this.cell.getCellGroup().containsCell(npCell) &&
-                            !found.contains(libcellname)) {
-                            found.add(libcellname); // for multiple instances in same cell
-                            JMenuItem menuItem = new JMenuItem(libcellname);
-                            menuItem.addActionListener(this);
-                            parents.add(menuItem);
-                        }
-                    }
-                }
-            }
-            if (parents.getComponentCount() > 0)
-                parents.show(this, 0, 0);
-            else {
-                parents.add(new JMenuItem("not instantiated anywhere"));
-                parents.show(this, 0, 0);
-            }
-        }
-    }
-    
-    /** 
-     * Respond to an action performed, in this case change the current cell
-     * when the user clicks on an entry in the upHierarchy popup menu.
-     */
-    public void actionPerformed(ActionEvent e) {
-        JMenuItem source = (JMenuItem)e.getSource();
-        // extract library and cell from string
-        Cell cell = Cell.getCellFromDescription(source.getText());
-        if (cell == null) return;
-        setCell(cell, VarContext.globalContext);
-    }
-    
-    // ************************************* RENDERING A WINDOW *************************************
 
 	/**
 	 * Routine to draw the current window.
@@ -433,7 +281,7 @@ public class EditWindow extends JPanel
 	void drawNode(Graphics2D g2, NodeInst ni, AffineTransform trans, boolean topLevel)
 	{
 		NodeProto np = ni.getProto();
-		
+
 		// see if the node is completely clipped from the screen
 //		Rectangle2D clipBound = ni.getBounds();
 //		Poly clipPoly = new Poly(clipBound.getCenterX(), clipBound.getCenterY(), clipBound.getWidth(), clipBound.getHeight());
@@ -763,8 +611,8 @@ public class EditWindow extends JPanel
 		if (descript != null)
 		{
 			size = descript.getTrueSize(this);
-			if (descript.getItalic()) fontStyle |= Font.ITALIC;
-			if (descript.getBold()) fontStyle |= Font.BOLD;
+			if (descript.isItalic()) fontStyle |= Font.ITALIC;
+			if (descript.isBold()) fontStyle |= Font.BOLD;
 		}
 		Font font = new Font("SansSerif", fontStyle, size);
 		FontRenderContext frc = new FontRenderContext(null, false, false);
@@ -890,7 +738,7 @@ public class EditWindow extends JPanel
 		g2.translate(-cX, -cY);
 		g2.setColor(color);
 		g2.drawGlyphVector(gv, (float)cX, (float)cY);
-		if (descript != null && descript.getUnderline())
+		if (descript != null && descript.isUnderline())
 		{
 			GeneralPath gp = new GeneralPath();
 			gp.moveTo((float)cX, (float)cY);
@@ -898,6 +746,21 @@ public class EditWindow extends JPanel
 			g2.draw(gp);
 		}
 		g2.setTransform(saveAT);
+	}
+
+	private void showDragBox(Graphics g)
+	{
+		int lX = (int)Math.min(startDrag.getX(), endDrag.getX());
+		int hX = (int)Math.max(startDrag.getX(), endDrag.getX());
+		int lY = (int)Math.min(startDrag.getY(), endDrag.getY());
+		int hY = (int)Math.max(startDrag.getY(), endDrag.getY());
+		Graphics2D g2 = (Graphics2D)g;
+		g2.setStroke(selectionLine);
+		g.setColor(Color.white);
+		g.drawLine(lX, lY, lX, hY);
+		g.drawLine(lX, hY, hX, hY);
+		g.drawLine(hX, hY, hX, lY);
+		g.drawLine(hX, lY, lX, lY);
 	}
 
 	// ************************************* GRID *************************************
@@ -992,10 +855,158 @@ public class EditWindow extends JPanel
 		}
 	}
 
-	// ************************************* WINDOW INTERACTION *************************************
+	// ************************************* WINDOW ZOOM AND PAN *************************************
 
-	private int oldx, oldy;
-	private ToolBar.CursorMode mode;
+	/**
+	 * Routine to return the scale factor for this window.
+	 * @return the scale factor for this window.
+	 */
+	public double getScale() { return scale; }
+
+	/**
+	 * Routine to set the scale factor for this window.
+	 * @param scale the scale factor for this window.
+	 */
+	public void setScale(double scale) { this.scale = scale; }
+
+	/**
+	 * Routine to return the offset factor for this window.
+	 * @return the offset factor for this window.
+	 */
+	public Point2D getOffset() { return new Point2D.Double(offx, offy); }
+
+	/**
+	 * Routine to set the offset factor for this window.
+	 * @param off the offset factor for this window.
+	 */
+	public void setOffset(Point2D off) { offx = off.getX();   offy = off.getY(); }
+
+    public void fillScreen()
+	{
+        if (cell == null) return;
+        sz = getSize();
+        Rectangle2D cellBounds = cell.getBounds();
+        double scalex = sz.width/cellBounds.getWidth() * 0.9;
+        double scaley = sz.height/cellBounds.getHeight() * 0.9;
+        scale = Math.min(scalex, scaley);
+        offx = cellBounds.getCenterX();
+        offy = cellBounds.getCenterY();
+        needsUpdate = true;
+    }
+
+    // ************************************* HIERARCHY TRAVERSAL *************************************
+
+    /**
+     * Get the window's VarContext
+     * @return the current VarContext
+     */
+    public VarContext getVarContext() { return cellVarContext; }
+
+    /** 
+     * Push into an instance (go down the hierarchy)
+     */
+    public void downHierarchy() {
+        if (Highlight.getNumHighlights() <= 0) {
+            System.out.println("Nothing highlighted, cannot descend");
+            return;
+        }
+        if (Highlight.getNumHighlights() > 1) {
+            System.out.println("More than one thing highlighted, cannot descend");
+            return;
+        }
+        Iterator it = Highlight.getHighlights();
+        Highlight h = (Highlight)it.next();
+		if (h.getType() != Highlight.Type.GEOM) {
+            System.out.println("Must select a node");
+            return;
+        }
+        Geometric geom = h.getGeom();
+        if (!(geom instanceof NodeInst)) {
+            System.out.println("Cannot descend into that object");
+            return;
+        }
+        NodeInst ni = (NodeInst)geom;
+        NodeProto np = ni.getProto();
+        if (!(np instanceof Cell)) {
+            System.out.println("Cannot descend into that object");
+            return;
+        }
+        Cell cell = (Cell)np;
+        Cell schCell = cell.getEquivalent();
+        // special case: if cell is icon of current cell, descend into icon
+        if (this.cell == schCell) schCell = cell;
+        if (schCell == null) return;                // nothing to descend into
+        setCell(schCell, cellVarContext.push(ni));
+    }
+
+    /**
+     * Pop out of an instance (go up the hierarchy)
+     */
+    public void upHierarchy() {
+        try {
+            NodeInst ni = cellVarContext.getNodeInst();
+            Cell parent = ni.getParent();
+            VarContext context = cellVarContext.pop();
+            setCell(parent, context);
+            Highlight.addGeometric(ni);
+            needsUpdate = true;
+        } catch (NullPointerException e) {
+            // no parent - if icon, go to sch view
+            // - otherwise, ask user where to go if necessary
+            if (cell.getView() == View.ICON) {
+                Cell schCell = cell.getEquivalent();
+                if (schCell == null) return;        // nothing to do
+                setCell(schCell, VarContext.globalContext);
+                return;
+            }            
+            JPopupMenu parents = new JPopupMenu("parents");
+            // find all possible parents in all libraries
+            HashSet found = new HashSet();
+            for (Iterator libIt = Library.getLibraries(); libIt.hasNext();) {
+                Library lib = (Library)libIt.next();
+                System.out.println("checking library "+lib);
+                for (Iterator cellIt = lib.getCells(); cellIt.hasNext();) {
+                    Cell cel = (Cell)cellIt.next();
+                    if (cel == this.cell) continue; // don't add myself
+                    for (Iterator instIt = cel.getNodes(); instIt.hasNext();) {
+                        NodeInst inst = (NodeInst)instIt.next();  // get all instances in this cell
+                        NodeProto np = inst.getProto(); // get prototype
+                        if (!(np instanceof Cell)) continue;
+                        Cell npCell = (Cell)np;
+                        // see if same cell group (but alternate view)
+                        String libcellname = cel.describe();
+                        if (this.cell.getCellGroup().containsCell(npCell) &&
+                            !found.contains(libcellname)) {
+                            found.add(libcellname); // for multiple instances in same cell
+                            JMenuItem menuItem = new JMenuItem(libcellname);
+                            menuItem.addActionListener(this);
+                            parents.add(menuItem);
+                        }
+                    }
+                }
+            }
+            if (parents.getComponentCount() > 0)
+                parents.show(this, 0, 0);
+            else {
+                parents.add(new JMenuItem("not instantiated anywhere"));
+                parents.show(this, 0, 0);
+            }
+        }
+    }
+
+    /** 
+     * Respond to an action performed, in this case change the current cell
+     * when the user clicks on an entry in the upHierarchy popup menu.
+     */
+    public void actionPerformed(ActionEvent e) {
+        JMenuItem source = (JMenuItem)e.getSource();
+        // extract library and cell from string
+        Cell cell = Cell.getCellFromDescription(source.getText());
+        if (cell == null) return;
+        setCell(cell, VarContext.globalContext);
+    }
+
+	// ************************************* COORDINATES *************************************
 
 	public Point2D screenToDatabase(int screenX, int screenY)
 	{
@@ -1025,104 +1036,6 @@ public class EditWindow extends JPanel
 		return new Point(screenDX, screenDY);
 	}
 
-	private void showDragBox(Graphics g)
-	{
-		int lX = (int)Math.min(startDrag.getX(), endDrag.getX());
-		int hX = (int)Math.max(startDrag.getX(), endDrag.getX());
-		int lY = (int)Math.min(startDrag.getY(), endDrag.getY());
-		int hY = (int)Math.max(startDrag.getY(), endDrag.getY());
-		Graphics2D g2 = (Graphics2D)g;
-		g2.setStroke(selectionLine);
-		g.setColor(Color.white);
-		g.drawLine(lX, lY, lX, hY);
-		g.drawLine(lX, hY, hX, hY);
-		g.drawLine(hX, hY, hX, lY);
-		g.drawLine(hX, lY, lX, lY);
-	}
-
-	public void mousePressed(MouseEvent evt)
-	{
-		oldx = evt.getX();
-		oldy = evt.getY();
-
-		mode = ToolBar.getCursorMode();
-		if (mode == ToolBar.CursorMode.ZOOM)
-		{
-			if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) != 0) mode = ToolBar.CursorMode.PAN;
-		} else if (mode == ToolBar.CursorMode.PAN)
-		{
-			if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) != 0) mode = ToolBar.CursorMode.ZOOM;
-		}
-		if (mode == ToolBar.CursorMode.SELECT || mode == ToolBar.CursorMode.SELECTSPECIAL)
-		{
-			// selection: if over selected things, move them
-			boolean special = (mode == ToolBar.CursorMode.SELECTSPECIAL);
-			boolean another = false;
-			if ((evt.getModifiers()&MouseEvent.CTRL_MASK) != 0) another = true;
-			if (ToolBar.getSelectMode() == ToolBar.SelectMode.OBJECTS)
-			{
-				if (!another && Highlight.overHighlighted(this, oldx, oldy))
-				{
-					doingMotionDrag = true;
-					return;
-				}
-
-				// standard selection: drag out a selection box
-				Point2D pt = screenToDatabase(oldx, oldy);
-				Highlight.findObject(pt, this, false, another, true, special);
-				if (Highlight.getNumHighlights() == 0)
-				{
-					startDrag.setLocation(oldx, oldy);
-					endDrag.setLocation(oldx, oldy);
-					doingAreaDrag = true;
-				}
-			} else
-			{
-				startDrag.setLocation(oldx, oldy);
-				endDrag.setLocation(oldx, oldy);
-				doingAreaDrag = true;
-			}
-			repaint();
-		}
-	}
-
-	public void mouseReleased(MouseEvent evt)
-	{
-		// handle dragging out a selection rectangle
-		if (doingAreaDrag)
-		{
-			Point2D start = screenToDatabase((int)startDrag.getX(), (int)startDrag.getY());
-			Point2D end = screenToDatabase((int)endDrag.getX(), (int)endDrag.getY());
-			double minSelX = Math.min(start.getX(), end.getX());
-			double maxSelX = Math.max(start.getX(), end.getX());
-			double minSelY = Math.min(start.getY(), end.getY());
-			double maxSelY = Math.max(start.getY(), end.getY());
-			if (ToolBar.getSelectMode() == ToolBar.SelectMode.OBJECTS)
-			{
-				Highlight.selectArea(this, minSelX, maxSelX, minSelY, maxSelY, mode == ToolBar.CursorMode.SELECTSPECIAL);
-			} else
-			{
-				Highlight.clear();
-				Highlight h = Highlight.addArea(new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY), cell);
-			}
-			doingAreaDrag = false;
-			repaint();
-		}
-
-		// handle dragging the selected objects
-		if (doingMotionDrag)
-		{
-			doingMotionDrag = false;
-			int newX = evt.getX();
-			int newY = evt.getY();
-			Point2D delta = deltaScreenToDatabase(newX - oldx, newY - oldy);
-			gridAlign(delta, 1);
-			Highlight.setHighlightOffset(0, 0);
-			CircuitChanges.manyMove(delta.getX(), delta.getY());
-			redraw();
-		}
-	}
-
 	/**
 	 * Routine to snap a point to the nearest database-space grid unit.
 	 * @param pt the point to be snapped.
@@ -1135,96 +1048,75 @@ public class EditWindow extends JPanel
 		pt.setLocation(x * alignment, y * alignment);
 	}
 
-	public void mouseClicked(MouseEvent evt) {}
-	public void mouseEntered(MouseEvent evt) {}
-	public void mouseExited(MouseEvent evt) {}
-	public void mouseMoved(MouseEvent evt) {}
-
-	public void mouseDragged(MouseEvent evt)
+	// ************************************* EVENT LISTENERS *************************************
+	
+	public static void setListener(EventListener listener)
 	{
-		int newX = evt.getX();
-		int newY = evt.getY();
+		curMouseListener = (MouseListener)listener;
+		curMouseMotionListener = (MouseMotionListener)listener;
+		curMouseWheelListener = (MouseWheelListener)listener;
+		curKeyListener = (KeyListener)listener;
+	}
 
-		// handle dragging the selected objects
-		if (doingMotionDrag)
-		{
-			Highlight.setHighlightOffset(newX - oldx, newY - oldy);
-			redraw();
-			return;
-		}
+	// the MouseListener events
+	public void mousePressed(MouseEvent evt) { curMouseListener.mousePressed(evt); }
+	public void mouseReleased(MouseEvent evt) { curMouseListener.mouseReleased(evt); }
+	public void mouseClicked(MouseEvent evt) { curMouseListener.mouseClicked(evt); }
+	public void mouseEntered(MouseEvent evt) { curMouseListener.mouseEntered(evt); }
+	public void mouseExited(MouseEvent evt) { curMouseListener.mouseExited(evt); }
 
-		// handle dragging out a selection rectangle
-		if (doingAreaDrag)
-		{
-			endDrag.setLocation(newX, newY);
-			repaint();
-			return;
-		}
-		if (mode == ToolBar.CursorMode.ZOOM)
-		{
-			// control key held: zoom
-			scale = scale * Math.exp((oldy-newY) / 100.0f);
-		} else if (mode == ToolBar.CursorMode.PAN)
-		{
-			// shift key held: pan
-			offx -= (newX - oldx) / scale;
-			offy += (newY - oldy) / scale;
-		}
-		oldx = newX;
-		oldy = newY;
+	// the MouseMotionListener events
+	public void mouseMoved(MouseEvent evt) { curMouseMotionListener.mouseMoved(evt); }
+	public void mouseDragged(MouseEvent evt) { curMouseMotionListener.mouseDragged(evt); }
+
+	// the MouseWheelListener events
+	public void mouseWheelMoved(MouseWheelEvent evt) { curMouseWheelListener.mouseWheelMoved(evt); }
+
+	// the KeyListener events
+	public void keyPressed(KeyEvent evt) { curKeyListener.keyPressed(evt); }
+	public void keyReleased(KeyEvent evt) { curKeyListener.keyReleased(evt); }
+	public void keyTyped(KeyEvent evt) { curKeyListener.keyTyped(evt); }
+
+	// ************************************* MISCELLANEOUS *************************************
+
+	public void setTimeTracking(boolean trackTime)
+	{
+		this.trackTime = trackTime;
+	}
+
+	/**
+	 * Routine to return the cell that is shown in this window.
+	 * @return the cell that is shown in this window.
+	 */
+	public Cell getCell() { return cell; }
+
+	/**
+	 * Routine to set the cell that is shown in the window to "cell".
+	 */
+	public void setCell(Cell cell, VarContext context)
+	{
+		this.cell = cell;
+        this.cellVarContext = context;
+		Library curLib = Library.getCurrent();
+		curLib.setCurCell(cell);
+		Highlight.clear();
+//        if (lastPushed != null) Highlight.addGeometric(lastPushed);
+		fillScreen();
 		redraw();
 	}
+	
+	public boolean isDoingAreaDrag() { return doingAreaDrag; }
 
-	public void keyPressed(KeyEvent e)
-	{
-		int chr = e.getKeyCode();
-		if (chr == KeyEvent.VK_F)
-		{
-			System.out.println("doing full display...");
-			UserMenuCommands.fullDisplayCommand();
-			System.out.println("...did full display");
-		} else if (chr == KeyEvent.VK_DELETE || chr == KeyEvent.VK_BACK_SPACE)
-		{
-			CircuitChanges.deleteSelected();
-		} else if (chr == KeyEvent.VK_LEFT)
-		{
-			moveSelected(-1, 0);
-		} else if (chr == KeyEvent.VK_RIGHT)
-		{
-			moveSelected(1, 0);
-		} else if (chr == KeyEvent.VK_UP)
-		{
-			moveSelected(0, 1);
-		} else if (chr == KeyEvent.VK_DOWN)
-		{
-			moveSelected(0, -1);
-		}
-	}
+	public void setDoingAreaDrag() { doingAreaDrag = true; }
 
-	public void moveSelected(double dX, double dY)
-	{
-		// scale distance according to arrow motion
-		double arrowDistance = ToolBar.getArrowDistance();
-		dX *= arrowDistance;
-		dY *= arrowDistance;
-		Highlight.setHighlightOffset(0, 0);
-		CircuitChanges.manyMove(dX, dY);
-		redraw();
-	}
+	public void clearDoingAreaDrag() { doingAreaDrag = false; }
 
-	public void keyReleased(KeyEvent e)
-	{
-	}
+	public Point getStartDrag() { return startDrag; }
 
-	public void keyTyped(KeyEvent e)
-	{
-	}
+	public void setStartDrag(int x, int y) { startDrag.setLocation(x, y); }
 
-	public void mouseWheelMoved(MouseWheelEvent e)
-	{
-		int clicks = e.getWheelRotation();
-		System.out.println("Mouse wheel rolled by " + clicks);
-	}
+	public Point getEndDrag() { return endDrag; }
+
+	public void setEndDrag(int x, int y) { endDrag.setLocation(x, y); }
 
 }
-

@@ -54,6 +54,26 @@ import javax.swing.ImageIcon;
  */
 public class TopLevel extends JFrame
 {
+	/**
+	 * OS is a typesafe enum class that describes the current operating system.
+	 */
+	public static class OS
+	{
+		private final String name;
+
+		private OS(String name) { this.name = name; }
+
+		/**
+		 * Returns a printable version of this OS.
+		 * @return a printable version of this OS.
+		 */
+		public String toString() { return name; }
+
+		/** Describes Windows. */							public static final OS WINDOWS   = new OS("unknown");
+		/** Describes UNIX/Linux. */						public static final OS UNIX      = new OS("metal-1");
+		/** Describes Macintosh. */							public static final OS MACINTOSH = new OS("metal-2");
+	}
+
 	/** True if in MDI mode, otherwise SDI. */				private static boolean mdi;
 	/** The desktop pane (if MDI). */						private static JDesktopPane desktop;
 	/** The main frame (if MDI). */							private static TopLevel topLevel;
@@ -61,6 +81,7 @@ public class TopLevel extends JFrame
 	/** A list of all frames (if SDI). */					private static List windowList = new ArrayList();
 	/** The EditWindow associated with this (if SDI). */	private EditWindow wnd;
 	/** The size of the screen. */							private static Dimension scrnSize;
+	/** The current operating system. */					private static OS os;
 
 	/**
 	 * Constructor to build a window.
@@ -104,17 +125,23 @@ public class TopLevel extends JFrame
 		// setup specific look-and-feel
 		mdi = false;
 		try{
-			String os = System.getProperty("os.name").toLowerCase();
-			if (os.startsWith("windows"))
+			String osName = System.getProperty("os.name").toLowerCase();
+			if (osName.startsWith("windows"))
 			{
+				os = OS.WINDOWS;
 				mdi = true;
 				scrnSize.height -= 30;
 				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-			} else if (os.startsWith("linux") || os.startsWith("solaris") || os.startsWith("sunos"))
+			} else if (osName.startsWith("linux") || osName.startsWith("solaris") || osName.startsWith("sunos"))
 			{
+				os = OS.UNIX;
 				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.MotifLookAndFeel");
-			} else if (os.startsWith("mac"))
+			} else if (osName.startsWith("mac"))
 			{
+				os = OS.MACINTOSH;
+				System.setProperty("com.apple.macos.useScreenMenuBar", "true");
+				System.setProperty("apple.laf.useScreenMenuBar", "true");
+				System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Electric");
 				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.MacLookAndFeel");
 			}
 		} catch(Exception e) {}
@@ -132,6 +159,12 @@ public class TopLevel extends JFrame
 		// initialize the messages window
 		MessagesWindow cl = new MessagesWindow(scrnSize);
 	}
+
+	/**
+	 * Routine to tell which operating system Electric is running on.
+	 * @return the operating system Electric is running on.
+	 */
+	public static OS getOperatingSystem() { return os; }
 
 	/**
 	 * Routine to tell whether Electric is running in SDI or MDI mode.

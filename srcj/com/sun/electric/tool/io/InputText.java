@@ -432,7 +432,7 @@ public class InputText extends Input
 		{
 			// convert to new style
 			NodeProto np = nil.nodeProto[j];
-			if (np == Generic.tech.cellCenter_node)
+			if (np == Generic.tech.cellCenterNode)
 			{
 				NodeInst ni = nil.nodeList[j];
 				int lowX = nil.nodeInstLowX[j];
@@ -455,7 +455,7 @@ public class InputText extends Input
 		{
 			NodeProto np = nil.nodeProto[j];
 			if (np == null) continue;
-			if (np == Generic.tech.cellCenter_node) continue;
+			if (np == Generic.tech.cellCenterNode) continue;
 			NodeInst ni = nil.nodeList[j];
 			int lowX = nil.nodeInstLowX[j];
 			int lowY = nil.nodeInstLowY[j];

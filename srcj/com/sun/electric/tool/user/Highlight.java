@@ -479,7 +479,6 @@ public class Highlight
 			points[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
 			points[4] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
 			drawOutlineFromPoints(wnd, g,  points, highOffX, highOffY, false);
-			System.out.println("Highlight BBOX "+bounds);
 			return;
 		}
 		if (type == Type.LINE)
