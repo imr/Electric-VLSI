@@ -685,7 +685,7 @@ public class TextDescriptor implements Serializable
 		DescriptorPref(String purpose, int initialSize)
 		{
 			cacheDescriptor = Pref.makeLongPref("TextDescriptorFor" + purpose, prefs, (initialSize << Size.TXTQGRIDSH) << VTSIZESH);
-			cacheColor = Pref.makeIntPref("TextDescriptorColorFor" + purpose, prefs, EGraphics.BLACK);
+			cacheColor = Pref.makeIntPref("TextDescriptorColorFor" + purpose, prefs, 0);
 			cacheFont = Pref.makeStringPref("TextDescriptorFontFor" + purpose, prefs, "");
 		}
 
@@ -724,7 +724,7 @@ public class TextDescriptor implements Serializable
 	}
 
 	/** the words of the text descriptor */		/*package*/ int descriptor0, descriptor1;
-	/** the color of the text descriptor */		/*package*/ int colorIndex = EGraphics.BLACK;
+	/** the color of the text descriptor */		/*package*/ int colorIndex;
 	/** the owner of the text descriptor */		/*package*/ final ElectricObject owner;
 
 	/** preferences for all descriptors */	private static final Preferences prefs = Preferences.userNodeForPackage(TextDescriptor.class);
