@@ -29,8 +29,10 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ZoomAndPanListener;
+import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.dialogs.ExecDialog;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.geometry.PolyQTree;
@@ -58,6 +60,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
 import java.util.*;
+import java.io.File;
 
 /**
  * Created by IntelliJ IDEA.
@@ -124,6 +127,8 @@ public class DebugMenus {
             new ActionListener() { public void actionPerformed(ActionEvent e) { LENetlister.test1(); }});
         jongMenu.addMenuItem("Display shaker", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { shakeDisplay(); }});
+        jongMenu.addMenuItem("Run command", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { runCommand(); }});
 
         /****************************** Gilda's TEST MENU ******************************/
         // Only active in debug mode. Doesn't work
@@ -621,6 +626,11 @@ public class DebugMenus {
         }
     }
 
+    public static void runCommand() {
+        ExecDialog d = new ExecDialog(TopLevel.getCurrentJFrame(), false);
+        File dir = new File("/home/gainsley");
+        d.startProcess("/bin/tcsh", null, dir);
+    }
 
     public static void whitDiffieCommand()
     {

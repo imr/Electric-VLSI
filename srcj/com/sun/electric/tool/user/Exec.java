@@ -23,8 +23,13 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.tool.user.dialogs.EDialog;
+
 import javax.swing.*;
 import java.io.*;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * Runtime.exec() has many pitfalls to it's proper use.  This class
@@ -32,6 +37,13 @@ import java.io.*;
  */
 public class Exec extends Thread {
 
+    /**
+     * This class is used to read data from an external process.
+     * If something does not consume the data, it will fill up the default
+     * buffer and deadlock.  This class also redirects data read
+     * from the process (the process' output) to another stream,
+     * if specified.
+     */
     public static class ExecProcessReader extends Thread {
 
         private InputStream in;
@@ -42,8 +54,7 @@ public class Exec extends Thread {
          * @param in the input stream
          */
         public ExecProcessReader(InputStream in) {
-            this.in = in;
-            redirect = null;
+            this(in, null);
         }
 
         /**
@@ -55,6 +66,7 @@ public class Exec extends Thread {
         public ExecProcessReader(InputStream in, OutputStream redirect) {
             this.in = in;
             this.redirect = redirect;
+            setName("ExecProcessReader");
         }
 
         public void run() {
@@ -67,9 +79,14 @@ public class Exec extends Thread {
                 BufferedReader reader = new BufferedReader(input);
                 String line = null;
                 while ((line = reader.readLine()) != null) {
-                    if (pw != null) pw.println(line);
+                    if (pw != null) {
+                        pw.println(line);
+                        pw.flush();
+                    }
                 }
-                if (pw != null) pw.flush();
+
+                reader.close();
+                input.close();
 
             } catch (java.io.IOException e) {
                 e.printStackTrace(System.out);
@@ -77,78 +94,199 @@ public class Exec extends Thread {
         }
     }
 
+    /**
+     * Objects that want to be notified of the process finishing should
+     * implement this interface, and add themselves as a listener to the
+     * process.
+     */
+    public interface FinishedListener {
+        public void processFinished(FinishedEvent e);
+    }
+
+    /**
+     * The event passed to listeners when the process finishes
+     */
+    public static class FinishedEvent {
+        private Object source;
+        private String exec;
+        private int exitValue;
+        private File dir;                   // working directory
+
+        public FinishedEvent(Object source, String exec, File dir, int exitValue) {
+            this.source = source;
+            this.exec = exec;
+            this.exitValue = exitValue;
+            this.dir = dir;
+        }
+
+        public Object getSource() { return source; }
+        public String getExec() { return exec; }
+        public int getExitValue() { return exitValue; }
+        public File getWorkingDir() { return dir; }
+    }
+
     private String command;
     private String [] exec;
     private String [] envVars;
+    private File dir;                       // working directory
     private OutputStream outStreamRedir;    // output of process redirected to this stream
     private OutputStream errStreamRedir;    // error messages of process redirected to this stream
-    private OutputStream outStream;         // stream to send messages to input of process.
-    private Process p;
+    private PrintWriter processWriter;      // connect to input of process
+    private ExecProcessReader outReader;
+    private ExecProcessReader errReader;
+    private Process p = null;
+    private ArrayList finishedListeners;    // list of listeners waiting for process to finish
 
     /**
+     * Execute an external process.
      * Note: command is not a shell command line command, it is a single program and arguments.
      * Therefore, <code>/bin/sh -c /bin/ls > file.txt</code> will NOT work.
      * <p>
      * Instead, use String[] exec = {"/bin/sh", "-c", "/bin/ls > file.txt"};
      * and use the other constructor.
      * @param command the command to run.
-     * @param envVars of the form name=value.
+     * @param envVars environment variables of the form name=value. If null, inherits vars from current process.
+     * @param dir the working directory. If null, uses the working dir from the current process
+     * @param outStreamRedir stdout of the process will be redirected to this stream if not null
+     * @param errStreamRedir stderr of the process will be redirected to this stream if not null
      */
-    public Exec(String command, String [] envVars, OutputStream outStreamRedir, OutputStream errStreamRedir) {
+    public Exec(String command, String [] envVars, File dir, OutputStream outStreamRedir, OutputStream errStreamRedir) {
         this.command = command;
         this.exec = null;
         this.envVars = envVars;
+        this.dir = dir;
         this.outStreamRedir = outStreamRedir;
         this.errStreamRedir = errStreamRedir;
-        this.outStream = null;
+        this.processWriter = null;
+        this.finishedListeners = new ArrayList();
+        setName(command);
     }
 
-    public Exec(String [] exec, String [] envVars, OutputStream outStreamRedir, OutputStream errStreamRedir) {
+    /**
+     * Execute an external process.
+     * Note: this is not a command-line command, it is a single program and arguments.
+     * @param exec the executable and arguments of the process
+     * @param envVars environment variables of the form name=value. If null, inherits vars from current process.
+     * @param dir the working directory. If null, uses the working dir from the current process
+     * @param outStreamRedir stdout of the process will be redirected to this stream if not null
+     * @param errStreamRedir stderr of the process will be redirected to this stream if not null
+     */
+    public Exec(String [] exec, String [] envVars, File dir, OutputStream outStreamRedir, OutputStream errStreamRedir) {
         this.command = null;
         this.exec = exec;
         this.envVars = envVars;
+        this.dir = dir;
         this.outStreamRedir = outStreamRedir;
         this.errStreamRedir = errStreamRedir;
-        this.outStream = null;
-    }
-
-    private void startProcess() {
-        try {
-            Runtime rt = Runtime.getRuntime();
-
-            // run program
-            if (command != null)
-                p = rt.exec(command, envVars);
-            else
-                p = rt.exec(exec, envVars);
-
-            // eat output (stdout) and stderr from program so it doesn't block
-            ExecProcessReader outReader = new ExecProcessReader(p.getInputStream(), outStreamRedir);
-            ExecProcessReader errReader = new ExecProcessReader(p.getErrorStream(), errStreamRedir);
-            outReader.start();
-            errReader.start();
-
-            // attach to input of process
-            outStream = p.getOutputStream();
-
-
-        } catch (Exception e) {
-            e.printStackTrace(System.out);
-        }
+        this.processWriter = null;
+        this.finishedListeners = new ArrayList();
+        setName(exec[0]);
     }
 
     public void run() {
         try {
-            startProcess();
+            Runtime rt = Runtime.getRuntime();
+
+            // run program
+            synchronized(this) {
+                if (command != null)
+                    p = rt.exec(command, envVars, dir);
+                else
+                    p = rt.exec(exec, envVars, dir);
+
+                // eat output (stdout) and stderr from program so it doesn't block
+                outReader = new ExecProcessReader(p.getInputStream(), outStreamRedir);
+                errReader = new ExecProcessReader(p.getErrorStream(), errStreamRedir);
+                outReader.start();
+                errReader.start();
+
+                // attach to input of process
+                processWriter = new PrintWriter(p.getOutputStream());
+            }
 
             // wait for exit status
             int exitVal = p.waitFor();
-            if (exitVal != 0) {
-                JOptionPane.showMessageDialog(null, exec, "Exec failed: return value: "+exitVal, JOptionPane.ERROR_MESSAGE);
+
+            // also wait for redir threads to die, if doing redir
+            if (outStreamRedir != null) outReader.join();
+            if (errStreamRedir != null) errReader.join();
+
+            StringBuffer com = new StringBuffer();
+            if (command != null)
+                com.append(command);
+            else {
+                for (int i=0; i<exec.length; i++)
+                    com.append(exec[i]+" ");
             }
+
+            System.out.println("Process finished [exit: "+exitVal+"]: "+com.toString());
+            synchronized(finishedListeners) {
+                FinishedEvent e = new FinishedEvent(this, com.toString(), dir, exitVal);
+                ArrayList copy = new ArrayList();
+                // make copy cause listeners may want to remove themselves if process finished
+                for (Iterator it = finishedListeners.iterator(); it.hasNext(); ) {
+                    copy.add(it.next());
+                }
+                for (Iterator it = copy.iterator(); it.hasNext(); ) {
+                    FinishedListener l = (FinishedListener)it.next();
+                    l.processFinished(e);
+                }
+            }
+
+            synchronized(this) {
+                if (processWriter != null) {
+                    processWriter.close();
+                    processWriter = null;
+                }
+            }
+
         } catch (Exception e) {
             e.printStackTrace(System.out);
         }
     }
 
+    /**
+     * Send a line of text to the process. This is not useful
+     * if the process is not expecting any input.
+     * @param line a line of text to send to the process
+     */
+    public void writeln(String line) {
+        synchronized(this) {
+            if (processWriter == null) {
+                System.out.println("Can't write to process: No valid process running.");
+                return;
+            }
+            processWriter.println(line);
+            processWriter.flush();
+        }
+    }
+
+    /**
+     * Add a Exec.FinishedListener
+     * @param a the listener
+     */
+    public void addFinishedListener(FinishedListener a) {
+        synchronized(finishedListeners) {
+            finishedListeners.add(a);
+        }
+    }
+
+    /**
+     * Remove a Exec.FinishedListener
+     * @param a the listener
+     */
+    public void removeFinishedListener(FinishedListener a) {
+        synchronized(finishedListeners) {
+            finishedListeners.remove(a);
+        }
+    }
+
+    /**
+     * End this process, if it is running. Otherwise, does nothing
+     */
+    public synchronized void destroy() {
+        if (p != null) {
+            p.destroy();
+        }
+    }
 }

@@ -290,11 +290,22 @@ public class ClickZoomWireListener
 	                    Highlight h1 = (Highlight)hIt.next();
 	                    if (h1.getType() == Highlight.Type.EOBJ) {
 	                        modeRight = Mode.wiringFind;
+                            endObj = null;
 	                        wiringTarget = null;
 	                        startObj = h1.getElectricObject();
-	                        endObj = null;
+                            router.startInteractiveRoute();
+                            // look for stuff under the mouse
+                            int numFound = Highlight.findObject(dbClick, wnd, false, false, false, true, false, specialSelect, false);
+                            if (numFound == 0) {
+                                // not over anything, nothing to connect to
+                                endObj = null;
+                                wiringTarget = null;
+                            } else {
+                                Highlight h2 = (Highlight)Highlight.getHighlights().next();
+                                endObj = h2.getElectricObject();
+                            }
 	                        EditWindow.gridAlign(dbClick);
-	                        router.highlightRoute(wnd, h1.getElectricObject(), null, dbClick);
+	                        router.highlightRoute(wnd, h1.getElectricObject(), endObj, dbClick);
 	                        return;
 	                    }
 	                }

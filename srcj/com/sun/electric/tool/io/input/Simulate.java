@@ -410,7 +410,7 @@ if (cell != null) System.out.println("presuming cell "+cell.describe());
 		return null;
 	}
 
-	private static OpenFile.Type getCurrentSpiceOutputType()
+	public static OpenFile.Type getCurrentSpiceOutputType()
 	{
 		String format = Simulation.getSpiceOutputFormat();
 		int engine = Simulation.getSpiceEngine();

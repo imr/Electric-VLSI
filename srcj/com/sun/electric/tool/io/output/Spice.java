@@ -48,6 +48,11 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.Exec;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.dialogs.ExecDialog;
+import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.io.input.Simulate;
 
 import java.awt.Dimension;
 import java.awt.geom.AffineTransform;
@@ -96,6 +101,18 @@ public class Spice extends Topology
 		/** amount of capacitance in non-diff */	float         nonDiffCapacitance;
 		/** number of transistors on the net */		int           transistorCount;
 	}
+
+    private static class SpiceFinishedListener implements Exec.FinishedListener {
+        private Cell cell;
+        private OpenFile.Type type;
+        private SpiceFinishedListener(Cell cell, OpenFile.Type type) {
+            this.cell = cell;
+            this.type = type;
+        }
+        public void processFinished(Exec.FinishedEvent e) {
+            Simulate.plotSimulationResults(type, cell, null, null);
+        }
+    }
 
 	/**
 	 * The main entry point for Spice deck writing.
@@ -153,6 +170,51 @@ public class Spice extends Topology
 //			ttyputmsg(x_("Now type: exec nino CDLIN %s &"), templatefile);
 		}
 
+        String runSpice = Simulation.getSpiceRunChoice();
+        if (!runSpice.equals(Simulation.spiceRunChoiceDontRun)) {
+            String command = Simulation.getSpiceRunProgram() + " " + Simulation.getSpiceRunProgramArgs();
+
+            // see if user specified custom dir to run process in
+            String workdir = User.getWorkingDirectory();
+            String rundir = workdir;
+            if (Simulation.getSpiceUseRunDir()) {
+                rundir = Simulation.getSpiceRunDir();
+            }
+            File dir = new File(rundir);
+
+            int start = filePath.lastIndexOf(File.separator);
+            if (start == -1) start = 0; else {
+                start++;
+                if (start > filePath.length()) start = filePath.length();
+            }
+            int end = filePath.lastIndexOf(".");
+            if (end == -1) end = filePath.length();
+            String filename_noext = filePath.substring(start, end);
+            String filename = filePath.substring(start, filePath.length());
+
+            // replace vars in command and args
+            command = command.replaceAll("\\$\\{WORKING_DIR}", workdir);
+            command = command.replaceAll("\\$\\{USE_DIR}", rundir);
+            command = command.replaceAll("\\$\\{FILENAME}", filename);
+            command = command.replaceAll("\\$\\{FILENAME_NO_EXT}", filename_noext);
+
+            // set up run probe
+            Exec.FinishedListener l = new SpiceFinishedListener(cell,
+                    Simulate.getCurrentSpiceOutputType());
+
+            if (runSpice.equals(Simulation.spiceRunChoiceRunIgnoreOutput)) {
+                Exec e = new Exec(command, null, dir, null, null);
+                if (Simulation.getSpiceRunProbe()) e.addFinishedListener(l);
+                e.start();
+            }
+            if (runSpice.equals(Simulation.spiceRunChoiceRunReportOutput)) {
+                ExecDialog dialog = new ExecDialog(TopLevel.getCurrentJFrame(), false);
+                if (Simulation.getSpiceRunProbe()) dialog.addFinishedListener(l);
+                dialog.startProcess(command, null, dir);
+            }
+            System.out.println("Running spice command: "+command);
+
+        }
 //		// run spice (if requested)
 //		var = getvalkey((INTBIG)sim_tool, VTOOL, VINTEGER, sim_dontrunkey);
 //		if (var != NOVARIABLE && var->addr != SIMRUNNO)
@@ -1094,7 +1156,9 @@ public class Spice extends Topology
 			{
 				// extension specified: look for a file with the cell name and that extension
 				String headerPath = TextUtils.getFilePath(cell.getLibrary().getLibFile());
-				String filePart = cell.getName() + "." + headerFile.substring(SPICE_EXTENSION_PREFIX.length());
+                String ext = headerFile.substring(SPICE_EXTENSION_PREFIX.length());
+                if (ext.startsWith(".")) ext = ext.substring(1);
+				String filePart = cell.getName() + "." + ext;
 				String fileName = headerPath + filePart;
 				File test = new File(fileName);
 				if (test.exists())

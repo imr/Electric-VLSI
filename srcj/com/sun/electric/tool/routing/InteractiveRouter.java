@@ -68,9 +68,13 @@ public abstract class InteractiveRouter extends Router {
     /** for highlighting the start of the route */  private List startRouteHighlights = new ArrayList();
     /** if start has been called */                 private boolean started;
 
+    /** last bad object routed from: prevent too many error messages */ private ElectricObject badStartObject;
+    /** last bad object routing to: prevent too many error messages */  private ElectricObject badEndObject;
+
     public InteractiveRouter() {
         verbose = true;
         started = false;
+        badStartObject = badEndObject = null;
     }
 
     // --------------------- Abstract Router Classes ------------------------------
@@ -86,7 +90,7 @@ public abstract class InteractiveRouter extends Router {
      * in addition to route highlighting.  If routing it cancelled,
      * it also restores the original highlighting.
      */
-    private void startInteractiveRoute() {
+    public void startInteractiveRoute() {
         // copy current highlights
         startRouteHighlights.clear();
         for (Iterator it = Highlight.getHighlights(); it.hasNext(); ) {
@@ -248,7 +252,7 @@ public abstract class InteractiveRouter extends Router {
         // plan start of route
         if (startObj instanceof PortInst) {
             // portinst: just wrap in RouteElement
-            Point2D point = getExistingPortEndPoint((PortInst)startObj, null);
+            Point2D point = getExistingPortEndPoint((PortInst)startObj, clicked);
             startRE = RouteElement.existingPortInst((PortInst)startObj, point);
         }
         if (startObj instanceof ArcInst) {
@@ -266,7 +270,9 @@ public abstract class InteractiveRouter extends Router {
             }
         }
         if (startRE == null) {
-            System.out.println("  Can't route from "+startObj);
+            if (startObj != badStartObject)
+                System.out.println("  Can't route from "+startObj+", no ports");
+            badStartObject = startObj;
             return route;
         }
 
@@ -287,10 +293,13 @@ public abstract class InteractiveRouter extends Router {
                 reverseRoute = false;
             }
             if (endRE == null) {
-                System.out.println("  Can't route to "+endObj);
-                return route;
+                if (endObj != badEndObject)
+                    System.out.println("  Can't route to "+endObj+", no ports");
+                badEndObject = endObj;
+                endObj = null;
             }
-        } else {
+        }
+        if (endObj == null) {
             // nowhere to route to, must make new pin to route to
             // first we need to determine what pin to make based on
             // start object

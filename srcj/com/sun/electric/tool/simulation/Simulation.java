@@ -354,16 +354,20 @@ public class Simulation extends Tool
 	 */
 	public static void setSpiceOutputFormat(String format) { cacheSpiceOutputFormat.setString(format); }
 
+    public static final String spiceRunChoiceDontRun = "Don't Run";
+    public static final String spiceRunChoiceRunIgnoreOutput = "Run, Ingore Output";
+    public static final String spiceRunChoiceRunReportOutput = "Run, Report Output";
+    private static final String [] spiceRunChoices = {spiceRunChoiceDontRun, spiceRunChoiceRunIgnoreOutput, spiceRunChoiceRunReportOutput};
+
     private static Pref cacheSpiceRunChoice = Pref.makeIntPref("SpiceRunChoice", Simulation.tool.prefs, 0);
-    static
-    {
-        Pref.Meaning m = cacheSpiceRunChoice.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice Run Choice");
-        m.setTrueMeaning(new String[] {"Don't Run", "Run, Ignore Output", "Run, Report Output"});
-    }
+//    static {
+//        Pref.Meaning m = cacheSpiceRunChoice.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice Run Choice");
+//        m.setTrueMeaning(new String[] {spiceRunChoiceDontRun, spiceRunChoiceRunIgnoreOutput, spiceRunChoiceRunReportOutput});
+//    }
     /** Determines possible settings for the Spice Run Choice */
-    public static String [] getSpiceRunChoiceValues() { return cacheSpiceRunChoice.getMeaning().getTrueMeaning(); }
+    public static String [] getSpiceRunChoiceValues() { return spiceRunChoices; }
     /** Get the current setting for the Spice Run Choice preference */
-    public static String getSpiceRunChoice() { return cacheSpiceRunChoice.getMeaning().getTrueMeaning()[cacheSpiceRunChoice.getInt()]; }
+    public static String getSpiceRunChoice() { return spiceRunChoices[cacheSpiceRunChoice.getInt()]; }
     /** Set the setting for the Spice Run Choice preference. Ignored if invalid */
     public static void setSpiceRunChoice(String choice) {
         String [] values = getSpiceRunChoiceValues();
@@ -373,35 +377,41 @@ public class Simulation extends Tool
     }
 
     private static Pref cacheSpiceRunDir = Pref.makeStringPref("SpiceRunDir", Simulation.tool.prefs, "");
-    static { cacheSpiceRunDir.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice Run Dir"); }
+//    static { cacheSpiceRunDir.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice Run Dir"); }
     /** Get the spice run directory */
     public static String getSpiceRunDir() { return cacheSpiceRunDir.getString(); }
     /** Set the spice run directory */
     public static void setSpiceRunDir(String dir) { cacheSpiceRunDir.setString(dir); }
 
     private static Pref cacheSpiceUseRunDir = Pref.makeBooleanPref("SpiceUseRunDir", Simulation.tool.prefs, false);
-    static { cacheSpiceUseRunDir.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Use Run Dir"); }
+//    static { cacheSpiceUseRunDir.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Use Run Dir"); }
     /** Get whether or not to use the user-specified spice run dir */
     public static boolean getSpiceUseRunDir() { return cacheSpiceUseRunDir.getBoolean(); }
     /** Set whether or not to use the user-specified spice run dir */
     public static void setSpiceUseRunDir(boolean b) { cacheSpiceUseRunDir.setBoolean(b); }
 
     private static Pref cacheSpiceOutputOverwrite = Pref.makeBooleanPref("SpiceOverwriteOutputFile", Simulation.tool.prefs, false);
-    static { cacheSpiceOutputOverwrite.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Overwrite Output Spice File"); }
+//    static { cacheSpiceOutputOverwrite.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Overwrite Output Spice File"); }
     /** Get whether or not we automatically overwrite the spice output file */
     public static boolean getSpiceOutputOverwrite() { return cacheSpiceOutputOverwrite.getBoolean(); }
     /** Set whether or not we automatically overwrite the spice output file */
     public static void setSpiceOutputOverwrite(boolean b) { cacheSpiceOutputOverwrite.setBoolean(b); }
 
+    private static Pref cacheSpiceRunProbe = Pref.makeBooleanPref("SpiceRunProbe", Simulation.tool.prefs, false);
+    /** Get whether or not to run the spice probe after running spice */
+    public static boolean getSpiceRunProbe() { return cacheSpiceRunProbe.getBoolean(); }
+    /** Set whether or not to run the spice probe after running spice */
+    public static void setSpiceRunProbe(boolean b) { cacheSpiceRunProbe.setBoolean(b); }
+
     private static Pref cacheSpiceRunProgram = Pref.makeStringPref("SpiceRunProgram", Simulation.tool.prefs, "");
-    static { cacheSpiceRunProgram.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice Run Program"); }
+//    static { cacheSpiceRunProgram.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice Run Program"); }
     /** Get the spice run program */
     public static String getSpiceRunProgram() { return cacheSpiceRunProgram.getString(); }
     /** Set the spice run program */
     public static void setSpiceRunProgram(String c) { cacheSpiceRunProgram.setString(c); }
 
     private static Pref cacheSpiceRunProgramArgs = Pref.makeStringPref("SpiceRunProgramArgs", Simulation.tool.prefs, "");
-    static { cacheSpiceRunProgramArgs.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice Run Program Args"); }
+//    static { cacheSpiceRunProgramArgs.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice Run Program Args"); }
     /** Get the spice run program args */
     public static String getSpiceRunProgramArgs() { return cacheSpiceRunProgramArgs.getString(); }
     /** Set the spice run program args */

@@ -89,6 +89,7 @@ public class SpiceTab extends PreferencePanel
     private boolean spiceUseRunDirInitial;
     private String spiceRunDirInitial;
     private boolean overwriteOutputFileInitial;
+    private boolean spiceRunProbeInitial;
     private String spiceRunProgramInitial;
     private String spiceRunProgramArgsInitial;
     private String spiceRunPopupInitial;
@@ -145,6 +146,9 @@ public class SpiceTab extends PreferencePanel
 
         overwriteOutputFileInitial = Simulation.getSpiceOutputOverwrite();
         overwriteOutputFile.setSelected(overwriteOutputFileInitial);
+
+        spiceRunProbeInitial = Simulation.getSpiceRunProbe();
+        spiceRunProbe.setSelected(spiceRunProbeInitial);
 
         spiceRunProgramInitial = Simulation.getSpiceRunProgram();
         spiceRunProgram.setText(spiceRunProgramInitial);
@@ -421,6 +425,9 @@ public class SpiceTab extends PreferencePanel
         booleanNow = overwriteOutputFile.isSelected();
         if (overwriteOutputFileInitial != booleanNow) Simulation.setSpiceOutputOverwrite(booleanNow);
 
+        booleanNow = spiceRunProbe.isSelected();
+        if (spiceRunProbeInitial != booleanNow) Simulation.setSpiceRunProbe(booleanNow);
+
         stringNow = spiceRunProgram.getText();
         if (!spiceRunProgramInitial.equals(stringNow)) Simulation.setSpiceRunProgram(stringNow);
 
@@ -599,6 +606,7 @@ public class SpiceTab extends PreferencePanel
         spiceRunHelp = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
         spiceRunProgramArgs = new javax.swing.JTextField();
+        spiceRunProbe = new javax.swing.JCheckBox();
         spice3 = new javax.swing.JPanel();
         jLabel13 = new javax.swing.JLabel();
         spicePrimitivesetPopup = new javax.swing.JComboBox();
@@ -763,10 +771,10 @@ public class SpiceTab extends PreferencePanel
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 5);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.2;
         gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 5);
         spice2.add(spiceRunProgram, gridBagConstraints);
 
         jLabel17.setText("Run Program:");
@@ -792,13 +800,13 @@ public class SpiceTab extends PreferencePanel
         useDir.setColumns(8);
         useDir.setText("jTextField1");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridwidth = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         spice2.add(useDir, gridBagConstraints);
 
-        overwriteOutputFile.setText("overwrite existing output file (no prompts)");
+        overwriteOutputFile.setText("Overwrite existing output file (no prompts)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -815,10 +823,10 @@ public class SpiceTab extends PreferencePanel
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 5);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 5);
         spice2.add(spiceRunHelp, gridBagConstraints);
 
         jLabel3.setText("with args:");
@@ -831,10 +839,17 @@ public class SpiceTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 5);
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 5);
         spice2.add(spiceRunProgramArgs, gridBagConstraints);
+
+        spiceRunProbe.setText("Run probe");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 1;
+        spice2.add(spiceRunProbe, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1206,11 +1221,12 @@ public class SpiceTab extends PreferencePanel
         String [] message = { "IMPORTANT: This executes a single program with the given args.  It does NOT run a command-line command.",
                               "For example, 'echo blah > file' will NOT work. Encapsulate it in a script if you want to do such things.",
                               "-----------------",
-                              "The following variables are available to use (and are also exported as environment variables:",
+                              "The following variables are available to use in the program name and arguments:",
                               "   ${WORKING_DIR}:  The current working directory",
                               "   ${USE_DIR}:  The Use Dir field, if specified (otherwise defaults to WORKING_DIR)",
-                              "   ${FILENAME}:  The output file name (without extension)",
-                              "Example: Program: hspice; Args: ${FILENAME}.spi" };
+                              "   ${FILENAME}:  The output file name (with extension)",
+                              "   ${FILENAME_NO_EXT}:  The output file name (without extension)",
+                              "Example: Program: \"hspice\".  Args: \"${FILENAME}\"" };
         JOptionPane.showMessageDialog(this, message, "Spice Run Help", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_spiceRunHelpActionPerformed
 
@@ -1285,6 +1301,7 @@ public class SpiceTab extends PreferencePanel
     private javax.swing.JTextField spiceResistance;
     private javax.swing.JButton spiceRunHelp;
     private javax.swing.JComboBox spiceRunPopup;
+    private javax.swing.JCheckBox spiceRunProbe;
     private javax.swing.JTextField spiceRunProgram;
     private javax.swing.JTextField spiceRunProgramArgs;
     private javax.swing.JLabel spiceTechnology;

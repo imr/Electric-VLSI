@@ -30,6 +30,7 @@ import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.io.output.PostScript;
@@ -451,6 +452,28 @@ public class FileMenu {
 
         String [] extensions = type.getExtensions();
         String filePath = cell.getName() + "." + extensions[0];
+
+        // special case for spice
+        if (type == OpenFile.Type.SPICE &&
+                !Simulation.getSpiceRunChoice().equals(Simulation.spiceRunChoiceDontRun)) {
+
+            // check if user specified working dir
+            if (Simulation.getSpiceUseRunDir())
+                filePath = Simulation.getSpiceRunDir() + File.separator + filePath;
+            else
+                filePath = User.getWorkingDirectory() + File.separator + filePath;
+            // check for automatic overwrite
+            if (User.isShowFileSelectionForNetlists() && !Simulation.getSpiceOutputOverwrite()) {
+                String saveDir = User.getWorkingDirectory();
+                filePath = OpenFile.chooseOutputFile(type, null, filePath);
+                User.setWorkingDirectory(saveDir);
+                if (filePath == null) return;
+            }
+
+            exportCellCommand(cell, context, filePath, type);
+            return;
+        }
+
         if (User.isShowFileSelectionForNetlists() || !isNetlist)
         {
             filePath = OpenFile.chooseOutputFile(type, null, filePath);
