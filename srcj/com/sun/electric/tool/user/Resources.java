@@ -35,6 +35,7 @@ public class Resources {
 
 	// Location of valid 3D plugin
 	private static final String plugin3D = "com.sun.electric.plugins.j3d";
+    private static final String pluginJMF = "com.sun.electric.plugins.jmf";
 	/**
 	 * Method to load a valid icon stored in resources package under the given class.
 	 * @param theClass class path where the icon resource is stored under
@@ -56,23 +57,46 @@ public class Resources {
 		return (theClass.getResource(resourceLocation+resourceName));
 	}
 
+    public static Class getJMFClass(String name)
+    {
+		return (getClass(name, pluginJMF));
+    }
+
     public static Class get3DClass(String name)
     {
-        Class threeDClass = null;
+        return (getClass(name, plugin3D));
+//        Class threeDClass = null;
+//		try
+//        {
+//            threeDClass = Class.forName(plugin3D+"."+name);
+//
+//        } catch (ClassNotFoundException e)
+//        {
+//            if (Main.getDebug()) System.out.println("Can't find class '" + name +
+//                    "' from 3D plugin: " + e.getMessage());
+//        } catch (Error e)
+//        {
+//            if (Main.getDebug()) System.out.println("Java3D not installed: " + e.getMessage());
+//        }
+//		return (threeDClass);
+    }
+
+    private static Class getClass(String name, String plugin)
+    {
+        Class jmfClass = null;
 		try
         {
-            threeDClass = Class.forName(plugin3D+"."+name);
+            jmfClass = Class.forName(plugin+"."+name);
 
         } catch (ClassNotFoundException e)
         {
             if (Main.getDebug()) System.out.println("Can't find class '" + name +
-                    "' from 3D plugin: " + e.getMessage());
+                    "' from " + plugin + " plugin: " + e.getMessage());
         } catch (Error e)
         {
-            if (Main.getDebug()) System.out.println("Java3D not installed: " + e.getMessage());
+            if (Main.getDebug()) System.out.println(plugin + " not installed: " + e.getMessage());
         }
-		return (threeDClass);
-
+		return (jmfClass);
     }
 
     private static Class view3DClass = null;
