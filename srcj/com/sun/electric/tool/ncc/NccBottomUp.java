@@ -93,8 +93,8 @@ public class NccBottomUp {
 	}
 
 	private NccResult compareTwo(Cell schematic, Cell layout, 
-	                           HierarchyInfo hierInfo,
-	                           NccOptions options) {
+	                             HierarchyInfo hierInfo,
+	                             NccOptions options) {
 	    if (NccUtils.hasSkipAnnotation(schematic) ||
 		    NccUtils.hasSkipAnnotation(layout)) 
 		    return new NccResult(true, true, true);

@@ -1,5 +1,6 @@
 			Java Electric change log
 
+FIX/IMP (8/19/04, RK) NCC check's assertions: exportsConnectedByParent. It turns out that assertion checking is needed to avoid a bug in netlist construction.
 
 ************************* Version 8.01h: *********************************
 

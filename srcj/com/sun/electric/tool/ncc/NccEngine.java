@@ -116,7 +116,7 @@ public class NccEngine {
 			globals.println("empty cell");
 			return new NccResult(true, true, true);
 		} else {
-			ExportChecker expCheck =  new ExportChecker(globals);
+			ExportChecker expCheck = new ExportChecker(globals);
 			expCheck.markPortsForRenaming();
 			
 			boolean expNamesOK = expCheck.matchByName();
@@ -157,7 +157,14 @@ public class NccEngine {
 			return new NccResult(exportsOK, topologyOK, sizesOK);
 		}
 	}
-	
+	private boolean exportAssertionsOK(List nccNets) {
+		boolean exportAssertionsOK = true;
+		for (Iterator it=nccNets.iterator(); it.hasNext();) {
+			NccNetlist nets = (NccNetlist) it.next();
+			exportAssertionsOK &= nets.exportAssertionsOK();
+		}
+		return exportAssertionsOK;
+	}
 	private NccResult areEquivalent(List cells, List contexts, 
 					  		        List netlists, HierarchyInfo hierInfo, 
 					  		        NccOptions options) {
@@ -168,6 +175,12 @@ public class NccEngine {
 
 		List nccNetlists = 
 			buildNccNetlists(cells, contexts, netlists, hierInfo);
+
+		/** If export assertions aren't OK then some netlist is invalid */
+		if (!exportAssertionsOK(nccNetlists)) {
+			return new NccResult(false, false, true);
+		}
+
 		globals.setInitialNetlists(nccNetlists);
 		NccResult result = designsMatch(hierInfo);
 

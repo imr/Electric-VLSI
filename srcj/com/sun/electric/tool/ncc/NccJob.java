@@ -155,7 +155,7 @@ public class NccJob extends Job {
 		LayoutLib.error(numWindows!=1 && numWindows!=2, 
                         "numWindows must be 1 or 2");
 		LayoutLib.error(bottomUpFlat && hierarchical,
-				     "I can't do bottomUpFlat or hierarchical simultaneously");
+				        "I can't do bottomUpFlat and hierarchical simultaneously");
 		this.numWindows = numWindows;
 		this.bottomUpFlat = bottomUpFlat;
 		this.hierarchical = hierarchical;
