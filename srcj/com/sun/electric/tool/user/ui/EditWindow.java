@@ -1008,9 +1008,10 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 		{
 			if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) != 0) mode = ToolBar.Mode.ZOOM;
 		}
-		if (mode == ToolBar.Mode.SELECT)
+		if (mode == ToolBar.Mode.SELECT || mode == ToolBar.Mode.SELECTSPECIAL)
 		{
 			// selection: if over selected things, move them
+			boolean special = (mode == ToolBar.Mode.SELECTSPECIAL);
 			boolean another = false;
 			if ((evt.getModifiers()&MouseEvent.CTRL_MASK) != 0) another = true;
 			if (!another && Highlight.overHighlighted(this, oldx, oldy))
@@ -1021,7 +1022,7 @@ implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
 
 			// standard selection: drag out a selection box
 			Point2D.Double pt = screenToDatabase(oldx, oldy);
-			Highlight.findObject(pt, this, false, another, true, false, false);
+			Highlight.findObject(pt, this, false, another, true, false, special);
 			if (Highlight.getNumHighlights() == 0)
 			{
 				startDrag.setLocation(oldx, oldy);

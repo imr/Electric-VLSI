@@ -55,11 +55,13 @@ public class ToolBar extends JToolBar
 		public String toString() { return "Mode="+name; }
 
 		/** Describes Selection mode (click and drag). */		public static final Mode SELECT = new Mode("select");
+		/** Describes Selection mode (click and drag). */		public static final Mode SELECTSPECIAL = new Mode("select");
 		/** Describes Panning mode (move window contents). */	public static final Mode PAN = new Mode("pan");
 		/** Describes Zoom mode (scale window contents). */		public static final Mode ZOOM = new Mode("zoom");
 	}
 
 	private static JToggleButton selectButton;
+	private static JToggleButton selectSpecialButton;
 	private static JToggleButton panButton;
 	private static JToggleButton zoomButton;
 	private static ButtonGroup modeGroup;
@@ -95,6 +97,15 @@ public class ToolBar extends JToolBar
 		selectButton.setSelected(true);
 		toolbar.add(selectButton);
 		modeGroup.add(selectButton);
+
+		// the "Special select mode" button
+		selectSpecialButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonSelectSpecial.gif")));
+		selectSpecialButton.addActionListener(
+			new ActionListener() { public void actionPerformed(ActionEvent e) { selectSpecialCommand(); } });
+		selectSpecialButton.setToolTipText("Special Select");
+		selectSpecialButton.setBorderPainted(false);
+		toolbar.add(selectSpecialButton);
+		modeGroup.add(selectSpecialButton);
 
 		// the "Pan mode" button
 		panButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonPan.gif")));
@@ -141,6 +152,14 @@ public class ToolBar extends JToolBar
 	public static void selectCommand()
 	{
 		curMode = Mode.SELECT;
+	}
+
+	/**
+	 * Routine called when the "select special" button is pressed.
+	 */
+	public static void selectSpecialCommand()
+	{
+		curMode = Mode.SELECTSPECIAL;
 	}
 
 	/**

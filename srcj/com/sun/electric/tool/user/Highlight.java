@@ -302,7 +302,8 @@ public class Highlight
 		{
 			Geometric nextGeom = sea.nextObject();
 			if (nextGeom == null) break;
-			Highlight h = addGeometric(nextGeom);
+			Highlight h = checkOutObject(nextGeom, false, false, searchArea, wnd);
+			if (h != null) highlightList.add(h);
 		}
 	}
 
@@ -321,12 +322,19 @@ public class Highlight
 		{
 			Geometric nextGeom = sea.nextObject();
 			if (nextGeom == null) break;
+			Highlight h = checkOutObject(nextGeom, true, false, searchArea, wnd);
+			if (h == null) continue;
 			for(Iterator it = getHighlights(); it.hasNext(); )
 			{
-				Highlight h = (Highlight)it.next();
-				if (h.getType() != Highlight.Type.GEOM) continue;
-				Geometric highGeom = h.getGeom();
-				if (highGeom == nextGeom) return true;
+				Highlight alreadyHighlighted = (Highlight)it.next();
+				if (alreadyHighlighted.getType() != h.getType()) continue;
+				if (alreadyHighlighted.getGeom() == h.getGeom())
+				{
+					// found it: adjust the port/point
+					alreadyHighlighted.setPort(h.getPort());
+					alreadyHighlighted.setPoint(h.getPoint());
+					return true;
+				}
 			}
 		}
 		return false;	
@@ -689,6 +697,14 @@ public class Highlight
 //	}
 
 	/**
+	 * Returns a printable version of this Highlight.
+	 * @return a printable version of this Highlight.
+	 */
+	public String toString() { return "Highlight "+type; }
+
+	// ************************************* SUPPORT *************************************
+
+	/**
 	 * routine to search a Cell for objects that are close to (wantx, wanty).
 	 * Those that are found are passed to "us_checkoutobject"
 	 * for proximity evaluation, along with the evaluation parameters "curhigh",
@@ -701,6 +717,8 @@ public class Highlight
 	{
 		// make a list of things under the cursor
 		List list = new ArrayList();
+
+		Rectangle2D.Double bounds = new Rectangle2D.Double(pt.getX(), pt.getY(), 0, 0);
 
 		// determine proper area to search
 		double slop = FARTEXTLIMIT;
@@ -742,7 +760,7 @@ public class Highlight
 						{
 							Poly poly = polys[i];
 							poly.setExactTextBounds(wnd);
-							double dist = poly.polyDistance(pt);
+							double dist = poly.polyDistance(bounds);
 							if (dist >= directHitDist) continue;
 							h = new Highlight(Type.TEXT);
 							if (h != null)
@@ -756,18 +774,18 @@ public class Highlight
 					case 1:			// check Cell instances
 						if (geom instanceof ArcInst) break;
 						if (((NodeInst)geom).getProto() instanceof PrimitiveNode) break;
-						h = checkOutObject(geom, findPort, findSpecial, pt, wnd);
+						h = checkOutObject(geom, findPort, findSpecial, bounds, wnd);
 						if (h != null) list.add(h);
 						break;
 					case 2:			// check arcs
 						if (geom instanceof NodeInst) break;
-						h = checkOutObject(geom, findPort, findSpecial, pt, wnd);
+						h = checkOutObject(geom, findPort, findSpecial, bounds, wnd);
 						if (h != null) list.add(h);
 						break;
 					case 3:			// check primitive nodes
 						if (geom instanceof ArcInst) break;
 						if (((NodeInst)geom).getProto() instanceof Cell) break;
-						h = checkOutObject(geom, findPort, findSpecial, pt, wnd);
+						h = checkOutObject(geom, findPort, findSpecial, bounds, wnd);
 						if (h != null) list.add(h);
 						break;
 				}
@@ -781,11 +799,11 @@ public class Highlight
 	 * @param geom the Geometric being tested for selection.
 	 * @param findPort true if a port should be selected with a NodeInst.
 	 * @param findSpecial true if hard-to-select and other special selection is being done.
-	 * @param pt the cursor location.
+	 * @param bounds the selected area or point.
 	 * @param wnd the window being examined
 	 * @return a Highlight that defines the object, or null if the point is not over any part of this object.
 	 */
-	private static Highlight checkOutObject(Geometric geom, boolean findPort, boolean findSpecial, Point2D.Double pt, EditWindow wnd)
+	private static Highlight checkOutObject(Geometric geom, boolean findPort, boolean findSpecial, Rectangle2D.Double bounds, EditWindow wnd)
 	{
 		// compute threshold for direct hits
 		Point2D.Double extra = wnd.deltaScreenToDatabase(EXACTSELECTDISTANCE, EXACTSELECTDISTANCE);
@@ -810,7 +828,7 @@ public class Highlight
 			}
 
 			// get the distance to the object
-			double dist = distToObject(pt, geom, wnd);
+			double dist = distToNode(bounds, ni, wnd);
 
 			// direct hit
 			if (dist < directHitDist)
@@ -831,7 +849,7 @@ public class Highlight
 						Technology tech = pp.getParent().getTechnology();
 						Poly poly = tech.getShapeOfPort(ni, pp);
 						poly.transform(trans);
-						dist = poly.polyDistance(pt);
+						dist = poly.polyDistance(bounds);
 						if (dist < bestDist)
 						{
 							bestDist = dist;
@@ -853,59 +871,8 @@ public class Highlight
 			// do not include arcs that have all layers invisible
 //			if ((ai->proto->userbits&AINVISIBLE) != 0) return;
 
-			// try text on the arc (if not searching for "another")
-//			us_initarctext(ai, findspecial, win);
-//			for(;;)
-//			{
-//				if (us_getarctext(ai, win, poly, &var, &varnoeval)) break;
-//
-//				// get distance of desired point to polygon
-//				dist = polydistance(poly, wantx, wanty);
-//
-//				// direct hit
-//				if (dist < directHitDist)
-//				{
-//					if (curhigh->fromgeom == geom && (curhigh->status&HIGHTYPE) == HIGHTEXT &&
-//						curhigh->fromvar == var)
-//					{
-//						*looping = 1;
-//						prevdirect->status = lastdirect->status;
-//						prevdirect->fromgeom = lastdirect->fromgeom;
-//						prevdirect->fromvar = lastdirect->fromvar;
-//						prevdirect->fromvarnoeval = lastdirect->fromvarnoeval;
-//						prevdirect->fromport = lastdirect->fromport;
-//					}
-//					lastdirect->status = HIGHTEXT;
-//					lastdirect->fromgeom = geom;
-//					lastdirect->fromvar = var;
-//					lastdirect->fromvarnoeval = varnoeval;
-//					lastdirect->fromport = NOPORTPROTO;
-//					if (dist < *bestdist)
-//					{
-//						bestdirect->status = HIGHTEXT;
-//						bestdirect->fromgeom = geom;
-//						bestdirect->fromvar = var;
-//						bestdirect->fromvarnoeval = varnoeval;
-//						us_selectsnap(bestdirect, wantx, wanty);
-//						bestdirect->fromport = NOPORTPROTO;
-//					}
-//				}
-//
-//				// see if it is closer than others
-//				if (dist < *bestdist)
-//				{
-//					best->status = HIGHTEXT;
-//					best->fromgeom = geom;
-//					best->fromvar = var;
-//					best->fromvarnoeval = varnoeval;
-//					best->fromport = NOPORTPROTO;
-//					us_selectsnap(best, wantx, wanty);
-//					*bestdist = dist;
-//				}
-//			}
-
 			// get distance to arc
-			double dist = distToObject(pt, geom, wnd);
+			double dist = distToArc(bounds, ai, wnd);
 
 			// direct hit
 			if (dist < directHitDist)
@@ -919,76 +886,80 @@ public class Highlight
 	}
 
 	/**
-	 * Routine to return the distance from a point to a Geometric.
-	 * @param pt the point in question.
-	 * @param geom the Geometric.
-	 * @return the distance from the point to the Geometric.
+	 * Routine to return the distance from a bound to a NodeInst.
+	 * @param bounds the bounds in question.
+	 * @param ni the NodeInst.
+	 * @return the distance from the bounds to the NodeInst.
 	 * Negative values are direct hits.
 	 */
-	private static double distToObject(Point2D.Double pt, Geometric geom, EditWindow wnd)
+	private static double distToNode(Rectangle2D.Double bounds, NodeInst ni, EditWindow wnd)
 	{
-		if (geom instanceof NodeInst)
+		AffineTransform trans = ni.rotateOut();
+
+		NodeProto np = ni.getProto();
+		if (np instanceof PrimitiveNode)
 		{
-			NodeInst ni = (NodeInst)geom;
-			AffineTransform trans = ni.rotateOut();
-
-			NodeProto np = ni.getProto();
-			if (np instanceof PrimitiveNode)
+			// special case for MOS transistors: examine the gate/active tabs
+			NodeProto.Function fun = np.getFunction();
+			if (fun == NodeProto.Function.TRANMOS || fun == NodeProto.Function.TRAPMOS || fun == NodeProto.Function.TRADMOS)
 			{
-				// special case for MOS transistors: examine the gate/active tabs
-				NodeProto.Function fun = np.getFunction();
-				if (fun == NodeProto.Function.TRANMOS || fun == NodeProto.Function.TRAPMOS || fun == NodeProto.Function.TRADMOS)
+				Technology tech = np.getTechnology();
+				Poly [] polys = tech.getShapeOfNode(ni, wnd);
+				double bestDist = Double.MAX_VALUE;
+				for(int box=0; box<polys.length; box++)
 				{
-					Technology tech = np.getTechnology();
-					Poly [] polys = tech.getShapeOfNode(ni, wnd);
-					double bestDist = Double.MAX_VALUE;
-					for(int box=0; box<polys.length; box++)
-					{
-						Poly poly = polys[box];
-						Layer layer = poly.getLayer();
-						if (layer == null) continue;
-						Layer.Function lf = layer.getFunction();
-						if (!lf.isPoly() && !lf.isDiff()) continue;
-						poly.transform(trans);
-						double dist = poly.polyDistance(pt);
-						if (dist < bestDist) bestDist = dist;
-					}
-					return bestDist;
+					Poly poly = polys[box];
+					Layer layer = poly.getLayer();
+					if (layer == null) continue;
+					Layer.Function lf = layer.getFunction();
+					if (!lf.isPoly() && !lf.isDiff()) continue;
+					poly.transform(trans);
+					double dist = poly.polyDistance(bounds);
+					if (dist < bestDist) bestDist = dist;
 				}
-
-				// special case for 1-polygon primitives: check precise distance to cursor
-				if (np.isEdgeSelect())
-				{
-					Technology tech = np.getTechnology();
-					Poly [] polys = tech.getShapeOfNode(ni, wnd);
-					double bestDist = Double.MAX_VALUE;
-					for(int box=0; box<polys.length; box++)
-					{
-						Poly poly = polys[box];
-						poly.transform(trans);
-						double dist = poly.polyDistance(pt);
-						if (dist < bestDist) bestDist = dist;
-					}
-					return bestDist;
-				}
+				return bestDist;
 			}
 
-			// get the bounds of the node in a polygon
-			SizeOffset so = ni.getProto().getSizeOffset();
-			Rectangle2D.Double niBounds = ni.getBounds();
-			double lX = niBounds.getMinX() + so.getLowXOffset();
-			double hX = niBounds.getMaxX() + so.getHighXOffset();
-			double lY = niBounds.getMinY() + so.getLowYOffset();
-			double hY = niBounds.getMaxY() + so.getHighYOffset();
-			Poly nodePoly = new Poly((lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY);
-			nodePoly.setStyle(Poly.Type.FILLED);
-			nodePoly.transform(trans);
-			double dist = nodePoly.polyDistance(pt);
-			return dist;
+			// special case for 1-polygon primitives: check precise distance to cursor
+			if (np.isEdgeSelect())
+			{
+				Technology tech = np.getTechnology();
+				Poly [] polys = tech.getShapeOfNode(ni, wnd);
+				double bestDist = Double.MAX_VALUE;
+				for(int box=0; box<polys.length; box++)
+				{
+					Poly poly = polys[box];
+					poly.transform(trans);
+					double dist = poly.polyDistance(bounds);
+					if (dist < bestDist) bestDist = dist;
+				}
+				return bestDist;
+			}
 		}
 
-		// determine distance to arc
-		ArcInst ai = (ArcInst)geom;
+		// get the bounds of the node in a polygon
+		SizeOffset so = ni.getProto().getSizeOffset();
+		Rectangle2D.Double niBounds = ni.getBounds();
+		double lX = niBounds.getMinX() + so.getLowXOffset();
+		double hX = niBounds.getMaxX() + so.getHighXOffset();
+		double lY = niBounds.getMinY() + so.getLowYOffset();
+		double hY = niBounds.getMaxY() + so.getHighYOffset();
+		Poly nodePoly = new Poly((lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY);
+		nodePoly.setStyle(Poly.Type.FILLED);
+		nodePoly.transform(trans);
+		double dist = nodePoly.polyDistance(bounds);
+		return dist;
+	}
+
+	/**
+	 * Routine to return the distance from a bounds to an ArcInst.
+	 * @param bounds the bounds in question.
+	 * @param ai the ArcInst.
+	 * @return the distance from the bounds to the ArcInst.
+	 * Negative values are direct hits or intersections.
+	 */
+	private static double distToArc(Rectangle2D.Double bounds, ArcInst ai, EditWindow wnd)
+	{
 		ArcProto ap = ai.getProto();
 
 		// if arc is selectable precisely, check distance to cursor
@@ -1000,7 +971,7 @@ public class Highlight
 			for(int box=0; box<polys.length; box++)
 			{
 				Poly poly = polys[box];
-				double dist = poly.polyDistance(pt);
+				double dist = poly.polyDistance(bounds);
 				if (dist < bestDist) bestDist = dist;
 			}
 			return bestDist;
@@ -1011,19 +982,29 @@ public class Highlight
 		if (EMath.doublesEqual(wid, 0)) wid = 1;
 //		if (curvedarcoutline(ai, poly, FILLED, wid))
 			Poly poly = ai.makePoly(ai.getXSize(), wid, Poly.Type.FILLED);
-		return poly.polyDistance(pt);
+		return poly.polyDistance(bounds);
 	}
 
-	/**
-	 * Returns a printable version of this Highlight.
-	 * @return a printable version of this Highlight.
-	 */
-	public String toString() { return "Highlight "+type; }
-
-	// ************************************* SUPPORT *************************************
+	private static final int CROSSSIZE = 3;
 
 	private static void drawOutlineFromPoints(EditWindow wnd, Graphics g, Point2D.Double [] points, int offX, int offY)
 	{
+		boolean onePoint = true;
+		Point firstP = wnd.databaseToScreen(points[0].getX(), points[0].getY());
+		for(int i=1; i<points.length; i++)
+		{
+			Point p = wnd.databaseToScreen(points[i].getX(), points[i].getY());
+			if (EMath.doublesEqual(p.getX(), firstP.getX()) &&
+				EMath.doublesEqual(p.getY(), firstP.getY())) continue;
+			onePoint = false;
+			break;
+		}
+		if (onePoint)
+		{
+			g.drawLine(firstP.x + offX-CROSSSIZE, firstP.y + offY, firstP.x + offX+CROSSSIZE, firstP.y + offY);
+			g.drawLine(firstP.x + offX, firstP.y + offY-CROSSSIZE, firstP.x + offX, firstP.y + offY+CROSSSIZE);
+			return;
+		}
 		for(int i=0; i<points.length; i++)
 		{
 			int lastI = i-1;

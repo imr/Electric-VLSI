@@ -96,6 +96,7 @@ public final class UserInitial
 		Cell myCell = Cell.newInstance(mainLib, "test{lay}");
 		NodeInst cellCenter = NodeInst.newInstance(cellCenterProto, new Point2D.Double(30.0, 30.0), cellCenterProto.getDefWidth(), cellCenterProto.getDefHeight(), 0, myCell);
 		cellCenter.setVisInside();
+		cellCenter.setHardSelect();
 		NodeInst metal12Via = NodeInst.newInstance(m1m2Proto, new Point2D.Double(-20.0, 20.0), m1m2Proto.getDefWidth(), m1m2Proto.getDefHeight(), 0, myCell);
 		NodeInst contactNode = NodeInst.newInstance(m1PolyConProto, new Point2D.Double(20.0, 20.0), m1PolyConProto.getDefWidth(), m1PolyConProto.getDefHeight(), 0, myCell);
 		NodeInst metal2Pin = NodeInst.newInstance(m2PinProto, new Point2D.Double(-20.0, 10.0), m2PinProto.getDefWidth(), m2PinProto.getDefHeight(), 0, myCell);
@@ -136,6 +137,9 @@ public final class UserInitial
 		// now up the hierarchy
 		Undo.startChanges(User.tool, "Build higher{lay}");
 		Cell higherCell = Cell.newInstance(mainLib, "higher{lay}");
+		NodeInst higherCellCenter = NodeInst.newInstance(cellCenterProto, new Point2D.Double(0.0, 0.0), cellCenterProto.getDefWidth(), cellCenterProto.getDefHeight(), 0, higherCell);
+		higherCellCenter.setVisInside();
+		higherCellCenter.setHardSelect();
 		Rectangle2D bounds = myCell.getBounds();
 		NodeInst instance1Node = NodeInst.newInstance(myCell, new Point2D.Double(0, 0),
 			myCell.getDefWidth(), myCell.getDefHeight(), 0, higherCell);
@@ -197,6 +201,9 @@ public final class UserInitial
 		// now up the hierarchy even farther
 		Undo.startChanges(User.tool, "Build big{lay}");
 		Cell bigCell = Cell.newInstance(mainLib, "big{lay}");
+		NodeInst bigCellCenter = NodeInst.newInstance(cellCenterProto, new Point2D.Double(0.0, 0.0), cellCenterProto.getDefWidth(), cellCenterProto.getDefHeight(), 0, bigCell);
+		bigCellCenter.setVisInside();
+		bigCellCenter.setHardSelect();
 		int arraySize = 20;
 		double cellWidth = myCell.getDefWidth();
 		double cellHeight = myCell.getDefHeight();

@@ -571,26 +571,38 @@ public class Poly implements Shape
 	}
 
 	/**
-	 * Routine to report the distance of a point to this Poly.
-	 * @param pt the point to test for distance to the Poly.
-	 * @return the distance of the point to the Poly.
-	 * The routine returns a negative amount if the point is a direct hit on or inside
+	 * Routine to report the distance of a rectangle or point to this Poly.
+	 * @param otherBounds the area to test for distance to the Poly.
+	 * @return the distance of the area to the Poly.
+	 * The routine returns a negative amount if the point/area is a direct hit on or inside
 	 * the polygon (the more negative, the closer to the center).
 	 */
-	public double polyDistance(Point2D.Double pt)
+	public double polyDistance(Rectangle2D.Double otherBounds)
 	{
-		// determine the center of this polygon
-		Rectangle2D.Double bounds = getBounds2DDouble();
-		double cX = bounds.getCenterX();
-		double cY = bounds.getCenterY();
-		Point2D.Double center = new Point2D.Double(cX, cY);
+		// get information about this Poly
+		Rectangle2D.Double polyBounds = getBounds2DDouble();
+		double polyCX = polyBounds.getCenterX();
+		double polyCY = polyBounds.getCenterY();
+		Point2D.Double polyCenter = new Point2D.Double(polyCX, polyCY);
+		Type localStyle = style;
+
+		// get information about the other area being tested
+		boolean otherIsPoint = (otherBounds.width == 0 && otherBounds.height == 0);
+		double otherCX = otherBounds.getCenterX();
+		double otherCY = otherBounds.getCenterY();
+		Point2D.Double otherPt = new Point2D.Double(otherCX, otherCY);
 
 		// handle single point polygons
-		Type localStyle = style;
 		if (localStyle == Type.CROSS || localStyle == Type.BIGCROSS || points.length == 1)
 		{
-			if (cX == pt.getX() && cY == pt.getY()) return(Double.MIN_VALUE);
-			return pt.distance(center);
+			if (otherIsPoint)
+			{
+				if (polyCX == otherCX && polyCY == otherCY) return Double.MIN_VALUE;
+			} else
+			{
+				if (otherBounds.contains(polyCenter)) return Double.MIN_VALUE;
+			}
+			return otherPt.distance(polyCenter);
 		}
 
 		// handle polygons that are filled in
@@ -601,46 +613,60 @@ public class Poly implements Shape
 			localStyle == Type.TEXTBOTLEFT || localStyle == Type.TEXTTOPRIGHT ||
 			localStyle == Type.TEXTBOTRIGHT || localStyle == Type.TEXTBOX)
 		{
-			// give special returned value if point is a direct hit
-			if (isInside(pt))
+			if (otherIsPoint)
 			{
-				return pt.distance(center) - Double.MAX_VALUE;
-			}
+				// give special returned value if point is a direct hit
+				if (isInside(otherPt))
+				{
+					return otherPt.distance(polyCenter) - Double.MAX_VALUE;
+				}
 
-			// if polygon is a box, use M.B.R. information
-			Rectangle2D.Double box = getBox();
-			if (box != null)
+				// if polygon is a box, use M.B.R. information
+				Rectangle2D.Double box = getBox();
+				if (box != null)
+				{
+					if (otherCX > box.getMaxX()) polyCX = otherCX - box.getMaxX(); else
+						if (otherCX < box.getMinX()) polyCX = box.getMinX() - otherCX; else
+							polyCX = 0;
+					if (otherCY > box.getMaxY()) polyCY = otherCY - box.getMaxY(); else
+						if (otherCY < box.getMinY()) polyCY = box.getMinY() - otherCY; else
+							polyCY = 0;
+					if (polyCX == 0 || polyCY == 0) return polyCX + polyCY;
+					polyCenter.setLocation(polyCX, polyCY);
+					return polyCenter.distance(new Point2D.Double(0,0));
+				}
+
+				// point is outside of irregular polygon: fall into to next case
+				localStyle = Type.CLOSED;
+			} else
 			{
-				if (pt.getX() > box.getMaxX()) cX = pt.getX() - box.getMaxX(); else
-					if (pt.getX() < box.getMinX()) cX = box.getMinX() - pt.getX(); else
-						cX = 0;
-				if (pt.getY() > box.getMaxY()) cY = pt.getY() - box.getMaxY(); else
-					if (pt.getY() < box.getMinY()) cY = box.getMinY() - pt.getY(); else
-						cY = 0;
-				if (cX == 0 || cY == 0) return cX + cY;
-				center.setLocation(cX, cY);
-				return center.distance(new Point2D.Double(0,0));
+				if (otherBounds.intersects(polyBounds)) return Double.MIN_VALUE;
+				return otherPt.distance(polyCenter);
 			}
-
-			// point is outside of irregular polygon: fall into to next case
-			localStyle = Type.CLOSED;
 		}
 
 		// handle closed outline figures
 		if (localStyle == Type.CLOSED)
 		{
-			double bestDist = Double.MAX_VALUE;
-			Point2D.Double lastPt = points[points.length-1];
-			for(int i=0; i<points.length; i++)
+			if (otherIsPoint)
 			{
-				if (i != 0) lastPt = points[i-1];
-				Point2D.Double thisPt = points[i];
+				double bestDist = Double.MAX_VALUE;
+				Point2D.Double lastPt = points[points.length-1];
+				for(int i=0; i<points.length; i++)
+				{
+					if (i != 0) lastPt = points[i-1];
+					Point2D.Double thisPt = points[i];
 
-				// compute distance of close point to "pt"
-				double dist = EMath.distToLine(lastPt, thisPt, pt);
-				if (dist < bestDist) bestDist = dist;
+					// compute distance of close point to "otherPt"
+					double dist = EMath.distToLine(lastPt, thisPt, otherPt);
+					if (dist < bestDist) bestDist = dist;
+				}
+				return bestDist;
+			} else
+			{
+				if (otherBounds.intersects(polyBounds)) return Double.MIN_VALUE;
+				return otherPt.distance(polyCenter);
 			}
-			return bestDist;
 		}
 
 		// handle opened outline figures
@@ -648,70 +674,90 @@ public class Poly implements Shape
 			localStyle == Type.OPENEDT2 || localStyle == Type.OPENEDT3 ||
 			localStyle == Type.OPENEDO1)
 		{
-			double bestDist = Double.MAX_VALUE;
-			for(int i=1; i<points.length; i++)
+			if (otherIsPoint)
 			{
-				Point2D.Double lastPt = points[i-1];
-				Point2D.Double thisPt = points[i];
+				double bestDist = Double.MAX_VALUE;
+				for(int i=1; i<points.length; i++)
+				{
+					Point2D.Double lastPt = points[i-1];
+					Point2D.Double thisPt = points[i];
 
-				// compute distance of close point to "pt"
-				double dist = EMath.distToLine(lastPt, thisPt, pt);
-				if (dist < bestDist) bestDist = dist;
+					// compute distance of close point to "otherPt"
+					double dist = EMath.distToLine(lastPt, thisPt, otherPt);
+					if (dist < bestDist) bestDist = dist;
+				}
+				return bestDist;
+			} else
+			{
+				if (otherBounds.intersects(polyBounds)) return Double.MIN_VALUE;
+				return otherPt.distance(polyCenter);
 			}
-			return bestDist;
 		}
 
 		// handle outline vector lists
 		if (localStyle == Type.VECTORS)
 		{
-			double bestDist = Double.MAX_VALUE;
-			for(int i=0; i<points.length; i += 2)
+			if (otherIsPoint)
 			{
-				Point2D.Double lastPt = points[i];
-				Point2D.Double thisPt = points[i+1];
+				double bestDist = Double.MAX_VALUE;
+				for(int i=0; i<points.length; i += 2)
+				{
+					Point2D.Double lastPt = points[i];
+					Point2D.Double thisPt = points[i+1];
 
-				// compute distance of close point to "pt"
-				double dist = EMath.distToLine(lastPt, thisPt, pt);
-				if (dist < bestDist) bestDist = dist;
+					// compute distance of close point to "otherPt"
+					double dist = EMath.distToLine(lastPt, thisPt, otherPt);
+					if (dist < bestDist) bestDist = dist;
+				}
+				return bestDist;
+			} else
+			{
+				if (otherBounds.intersects(polyBounds)) return Double.MIN_VALUE;
+				return otherPt.distance(polyCenter);
 			}
-			return bestDist;
 		}
 
 		// handle circular objects
 		if (localStyle == Type.CIRCLE || localStyle == Type.THICKCIRCLE || localStyle == Type.DISC)
 		{
-			double odist = points[0].distance(points[1]);
-			double dist = points[0].distance(pt);
-			if (localStyle == Type.DISC && dist < odist) return dist-Double.MAX_VALUE;
-			return Math.abs(dist-odist);
+			if (otherIsPoint)
+			{
+				double odist = points[0].distance(points[1]);
+				double dist = points[0].distance(otherPt);
+				if (localStyle == Type.DISC && dist < odist) return dist-Double.MAX_VALUE;
+				return Math.abs(dist-odist);
+			}
 		}
 		if (localStyle == Type.CIRCLEARC || localStyle == Type.THICKCIRCLEARC)
 		{
-			// determine closest point to ends of arc
-			double sdist = pt.distance(points[1]);
-			double edist = pt.distance(points[2]);
-			double dist = Math.min(sdist, edist);
+			if (otherIsPoint)
+			{
+				// determine closest point to ends of arc
+				double sdist = otherPt.distance(points[1]);
+				double edist = otherPt.distance(points[2]);
+				double dist = Math.min(sdist, edist);
 
-			// see if the point is in the segment of the arc
-			int pang = EMath.figureAngle(points[0], pt);
-			int sang = EMath.figureAngle(points[0], points[1]);
-			int eang = EMath.figureAngle(points[0], points[2]);
-			if (eang > sang)
-			{
-				if (pang < eang && pang > sang) return dist;
-			} else
-			{
-				if (pang < eang || pang > sang) return dist;
+				// see if the point is in the segment of the arc
+				int pang = EMath.figureAngle(points[0], otherPt);
+				int sang = EMath.figureAngle(points[0], points[1]);
+				int eang = EMath.figureAngle(points[0], points[2]);
+				if (eang > sang)
+				{
+					if (pang < eang && pang > sang) return dist;
+				} else
+				{
+					if (pang < eang || pang > sang) return dist;
+				}
+
+				// point in arc: determine distance
+				double odist = points[0].distance(points[1]);
+				dist = points[0].distance(otherPt);
+				return Math.abs(dist-odist);
 			}
-
-			// point in arc: determine distance
-			double odist = points[0].distance(points[1]);
-			dist = points[0].distance(pt);
-			return Math.abs(dist-odist);
 		}
 
 		// can't figure out others: use distance to polygon center
-		return pt.distance(center);
+		return otherPt.distance(polyCenter);
 	}
 
 	/**
