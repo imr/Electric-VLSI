@@ -32,6 +32,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.user.ui.UIEdit;
 import com.sun.electric.tool.user.ui.UIEditFrame;
 import com.sun.electric.tool.user.ui.UIDialogOpenFile;
@@ -313,5 +314,23 @@ public final class UserMenuCommands
             geom.getInfo();
         }
     }
-
+    
+    public static void evalVarsOnObject() {
+        UIEditFrame curFrame = UITopLevel.getCurrent();
+        UIEdit curEdit = curFrame.getEdit();
+        if (UIEdit.getNumHighlights() == 0) {
+            System.out.println("Nothing highlighted");
+            return;
+        }
+        for (Iterator it = UIEdit.getHighlights(); it.hasNext();) {
+            ElectricObject eobj = (ElectricObject)it.next();
+            Iterator itVar = eobj.getVariables();
+            while(itVar.hasNext()) {
+                Variable var = (Variable)itVar.next();
+                Object obj = curEdit.getVarContext().evalVar(var);
+                System.out.print(var.getName().getName() + ": ");
+                System.out.println(obj);
+            }
+        }
+    }
 }

@@ -273,7 +273,7 @@ public class Input
 		if (!np.isHoldsOutline()) return;
 
 		// see if there really is outline information
-		Variable var = ni.getVal("trace", Integer[].class);
+		Variable var = ni.getVar("trace", Integer[].class);
 		if (var == null) return;
 
 		// scale the outline information

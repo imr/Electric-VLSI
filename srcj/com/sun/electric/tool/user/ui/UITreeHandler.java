@@ -24,7 +24,7 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.VarContext;
+import com.sun.electric.database.variable.VarContext;
 
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;

@@ -111,6 +111,8 @@ public final class UserInitial
             new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.upHierCommand(); }});
         jongMenu.addMenuItem("Describe Vars", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.listVarsOnObject(); }});
+        jongMenu.addMenuItem("Eval Vars", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.evalVarsOnObject(); }});
 
             
 		// create the menu bar

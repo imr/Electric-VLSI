@@ -1095,7 +1095,7 @@ public class Technology extends ElectricObject
 					points[i/2] = new Point2D.Double(outline[i].intValue(), outline[i+1].intValue());
 
 				extraScale = 0;
-				Variable varw = ni.getVal("transistor_width", Integer.class);
+				Variable varw = ni.getVar("transistor_width", Integer.class);
 				if (varw != null)
 				{
 					Object obj = varw.getObject();

@@ -8,6 +8,7 @@ import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.variable.VarContext;
 
 /** The purpose of the HierarchyEnumerator is to provide an shared
  * infrastructure for programs that wish to "flatten" the design

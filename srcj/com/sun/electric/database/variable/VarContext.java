@@ -21,10 +21,11 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.database.hierarchy;
+package com.sun.electric.database.variable;
 
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.prototype.NodeProto;
 
 /**
  * VarContext represents a hierarchical path of NodeInsts.  Its
@@ -45,12 +46,18 @@ import com.sun.electric.database.variable.Variable;
  * immutable:  you get new ones by calling push and pop;  push and pop
  * do not edit their own VarContexts.
  * 
- * <p>Use a VarContext by calling getVar(String name, VarContext context)
- * on any Electric object.
+ * <p>Retrieve a Variable by calling getVar(String name) on any 
+ * ElectricObject.
+ *
+ * <p>If the one knows that the Variable contains an object that
+ * does not need to be evaluated, that object can be retrieved using
+ * Variable.getObject().
+ *
+ * <p>On the other hand, if the object may need to be evaluated because
+ * it is type Java, TCL, or Lisp, then such evaluation may be hierarchy
+ * dependent and one must call context.evalVar(variable).
  * 
  * <p>Extra variables defined in the interpreter:<br>
- *
- * LE -- instance of com.sun.dbmirror.JoseLogicalEffort.
  * 
  * <p>Extra functions defined in the interpreter:<br>
  *
@@ -65,9 +72,9 @@ import com.sun.electric.database.variable.Variable;
  */
 public class VarContext
 {
-	VarContext prev;
-	NodeInst ni;
-
+	private VarContext prev;
+	private NodeInst ni;
+    
 	/**
 	 * The blank VarContext that is the parent of all VarContext chains.
 	 */
@@ -104,46 +111,82 @@ public class VarContext
 		return prev;
 	}
 
-	/**
-	 * get the value of a variable on the most recent NodeInst on this
-	 * stack.  If the variable isn't present, return the default object,
-	 * def.
-	 * @param name the name of the variable
-	 * @param def the default object to return if the variable isn't
-	 * present on the most recent NodeInst of this stack.
-	 */
-	public Object getVal(String name, Object def)
-	{
-		// look only at stack[stack.size()-1] (end of stack)
-		if (ni == null)
-			return def;
-
-		Variable val = ni.getVal(name);
-		return val == null ? def : val.getObject();
-	}
-
-	/**
-	 * get the value of a variable on any NodeInst on this stack, starting
-	 * with the most recent.  If the variable isn't present on any
-	 * NodeInst, return the default object, def.
-	 * @param name the name of the variable
-	 * @param def the default object to return if the variable isn't
-	 * present on ANY NodeInst of this stack.
-	 */
-	public Object getArVal(String name, Object def)
-	{
+    /**
+     * Gets the value of Variable @param var.
+     * If variable is Java, uses EvalJavaBsh to evaluate
+     * If variable is TCL, uses ... to evaluate
+     * If variable is Lisp, uses ... to evaluate
+     * otherwise, just returns the Variable's object
+     * @return the evlauated Object
+     */
+    public Object evalVar(Variable var)
+    {
+        return evalVar(var, null);
+    }
+    /** Same as evalVar, except an additional object 'info'
+     * is passed to the evaluator.  'info' may be or contain 
+     * additional information necessary for proper evaluation.
+     */
+    public Object evalVar(Variable var, Object info)
+    {
+        if (var.isJava()) return(EvalJavaBsh.eval(var.getObject(), this, info));
+        // TODO: if(var.isTCL()) { }
+        // TODO: if(var.isLisp()) { }
+        return var.getObject();
+    }
+        
+    /**
+     * Lookup Variable one level up the hierarchy and evaluate. 
+     * Looks for the var on the most recent NodeInst on the
+     * hierarchy stack.  If not found, look for the default
+     * Variable of the same name on the NodeProto.
+     * @param name the name of the variable
+     * @return an object representing the evaluated variable,
+     * or null if no var or default var found.
+     */
+    public Object lookupVarEval(String name)
+    {
+        if (ni == null) return null;
+        Variable var = ni.getVar(name);
+        if (var == null) {
+            NodeProto np = ni.getProto();
+            var = np.getVar(name);
+        }
+        if (var == null) return null;
+        // evaluate var in it's context
+        return this.pop().evalVar(var);
+    }
+    
+    /** 
+     * Lookup Variable on all levels up the hierarchy and evaluate.
+     * Looks for var on all NodeInsts on the stack, starting
+     * with the most recent.  At each NodeInst, if no Variable
+     * found, looks for default Variable on NodeProto.
+     * @param name the name of the variable
+     * @return evaluated Object, or null if not found
+     */
+    public Object lookupVarFarEval(String name)
+    {
 		// look up the entire stack, starting with end
 		VarContext scan = this;
-		while (scan != null && ni != null)
+        
+        while (scan != null && ni != null)
 		{
-			Variable val = ni.getVal(name);
-			if (val != null)
-				return val.getObject();
+            NodeInst ni = scan.getNodeInst();
+            if (ni == null) return null;
+            
+            Variable var = ni.getVar(name);             // look up var
+			if (var != null)
+				return scan.pop().evalVar(var);
+            NodeProto np = ni.getProto();               // look up default var
+            var = np.getVar(name);
+            if (var != null)
+                return scan.pop().evalVar(var);
 			scan = scan.prev;
 		}
-		return def;
+		return null;
 	}
-
+    
 	/**
 	 * Return the Node Instance that provides the context for the
 	 * variable evaluation for this level.
@@ -157,7 +200,7 @@ public class VarContext
 	 * from the root to the leaf. Begin with the string with a separator
 	 * and place a separator between adjacent instance names.
 	 * @param sep the separator string.
-	 * <p> Is this too application specific? RKao */
+	 */
 	public String getInstPath(String sep) 
 	{
 	  if (this==globalContext) return sep;

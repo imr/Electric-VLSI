@@ -65,11 +65,11 @@ public class ElectricObject
 	 * @param name the name of the Variable.
 	 * @return the Variable with that name, or null if there is no such Variable.
 	 */
-	public Variable getVal(String name)
+	public Variable getVar(String name)
 	{
 		if (vars == null) return null;
-		Variable val = (Variable)vars.get(name);
-		return val;
+		Variable var = (Variable)vars.get(name);
+		return var;
 	}
 
 	/**
@@ -78,12 +78,12 @@ public class ElectricObject
 	 * @param type the required type of the Variable.
 	 * @return the Variable with that name and type, or null if there is no such Variable.
 	 */
-	public Variable getVal(String name, Class type)
+	public Variable getVar(String name, Class type)
 	{
-		Variable val = getVal(name);
-		if (val == null) return null;
-		if (!type.isInstance(val.getObject())) return null;
-		return val;
+		Variable var = getVar(name);
+		if (var == null) return null;
+		if (!type.isInstance(var.getObject())) return null;
+		return var;
 	}
 
 	/**
@@ -92,15 +92,16 @@ public class ElectricObject
 	 * @param index the required entry in the Variable array.
 	 * @return the Object in that entry of the Variable, or null if there is no such Variable.
 	 */
-	public Object getVal(String name, int index)
+/*
+    public Object getVal(String name, int index)
 	{
-		Variable v = getVal(name);
+		Variable v = getVar(name);
 		if (v == null) return null;
 		Object addr = v.getObject();
 		if (!(addr instanceof Object[])) return null;
 		return ((Object[]) addr)[index];
 	}
-
+*/
 	/**
 	 * Routine to return the number of displayable Variables on this ElectricObject.
 	 * A displayable Variable is one that will be shown with its object.
@@ -182,7 +183,7 @@ public class ElectricObject
 	 */
 	public void setVal(String name, Object value, int index)
 	{
-		Variable v = getVal(name);
+		Variable v = getVar(name);
 		if (v == null) return;
 		Object addr = v.getObject();
 		if (addr instanceof Object[])

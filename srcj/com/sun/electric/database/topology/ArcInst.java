@@ -662,7 +662,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 */
 	public String getName()
 	{
-		Variable var = getVal(VAR_ARC_NAME, String.class);
+		Variable var = getVar(VAR_ARC_NAME, String.class);
 		if (var == null) return null;
 		return (String) var.getObject();
 	}

@@ -1,5 +1,6 @@
 package com.sun.electric.database.variable;
 
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -68,19 +69,31 @@ public class Variable
 		this.descriptor = descriptor;
 		this.vn = vn;
 	}
-	
-	/**
-	 * Routine to return the actual object stored in this variable.
-	 * @return the actual object stored in this variable.
-	 */
-	public Object getObject() { return addr; }
-	
+    
+    /**
+     * Get the actual object stored in this Variable
+     * @return the object stored in this Variable
+     */
+    public Object getObject() { return addr; }
+    
+    /** 
+     * Treat the stored Object as an array of Objects and
+     * get the object at index @param index.
+     * @param index index into the array of objects.
+     * @return the objects stored in this Variable at the index.
+     */
+    public Object getObject(int index)
+    {
+		if (!(addr instanceof Object[])) return null;
+		return ((Object[]) addr)[index];
+    }
+        
 	/**
 	 * Routine to return the Variable Name associated with this variable.
 	 * @return the Variable Name associated with this variable.
 	 */
 	public Name getName() { return vn; }
-	
+    
 	/**
 	 * Routine to return a description of this Variable.
 	 * @return a description of this Variable.
@@ -102,7 +115,7 @@ public class Variable
 	private String describe(int aindex, int purpose)
 	{
 		TextDescriptor.Units units = descriptor.getUnits();
-		String returnVal = "";
+		StringBuffer returnVal = new StringBuffer();
 
 //		if ((flags & (VCODE1|VCODE2)) != 0)
 //		{
@@ -121,22 +134,22 @@ public class Variable
 				{
 					/* normal array indexing */
 					if (aindex < len)
-						returnVal += makeStringVar(addrArray[aindex], purpose, units);
+						returnVal.append(makeStringVar(addrArray[aindex], purpose, units));
 				} else
 				{
 					/* in an array, quote strings */
 					if (purpose < 0) purpose = 0;
-					if (len > 1) returnVal += "[";
+					if (len > 1) returnVal.append("[");
 					for(int i=0; i<len; i++)
 					{
-						if (i != 0) returnVal += ",";
-						returnVal += makeStringVar(addrArray[i], purpose, units);
+						if (i != 0) returnVal.append(",");
+						returnVal.append(makeStringVar(addrArray[i], purpose, units));
 					}
-					if (len > 1) returnVal += "]";
+					if (len > 1) returnVal.append("]");
 				}
-			} else returnVal += makeStringVar(addr, purpose, units);
+			} else returnVal.append(makeStringVar(addr, purpose, units));
 		}
-		return returnVal;
+		return returnVal.toString();
 	}
 
 	/**

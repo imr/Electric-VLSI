@@ -26,7 +26,6 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.VarContext;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -40,6 +39,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Layer;
@@ -210,7 +210,13 @@ public class UIEdit extends JPanel
 		offy = cellBounds.getCenterY();
 		needsUpdate = true;
 	}
-
+    
+    /** 
+     * Get the window's VarContext
+     * @return the current VarContext
+     */
+    public VarContext getVarContext() { return cellVarContext; }
+    
     public void downHierarchy() {
         if (getNumHighlights() <= 0) {
             System.out.println("Nothing highlighted, cannot descend");

@@ -491,7 +491,7 @@ public class NodeInst extends Geometric
 		if (!(protoType instanceof PrimitiveNode)) return returnValues;
 		if (protoType != Artwork.tech.circleNode && protoType != Artwork.tech.thickCircleNode) return returnValues;
 
-		Variable var = getVal("ART_degrees");
+		Variable var = getVar("ART_degrees");
 		if (var != null)
 		{
 			Object addr = var.getObject();
@@ -920,7 +920,7 @@ public class NodeInst extends Geometric
 	 */
 	public Float [] getTrace()
 	{
-		Variable var = this.getVal("trace", Float[].class);
+		Variable var = this.getVar("trace", Float[].class);
 		if (var == null) return null;
 		Object obj = var.getObject();
 		if (obj instanceof Object[]) return (Float []) obj;
@@ -1061,7 +1061,7 @@ public class NodeInst extends Geometric
 	 */
 	public String getName()
 	{
-		Variable var = getVal(VAR_INST_NAME, String.class);
+		Variable var = getVar(VAR_INST_NAME, String.class);
 		if (var == null) return null;
 		return (String) var.getObject();
 	}

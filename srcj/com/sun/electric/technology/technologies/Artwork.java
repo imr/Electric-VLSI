@@ -638,7 +638,7 @@ public class Artwork extends Technology
 	private void getGraphics(ElectricObject obj)
 	{
 		// get the color information
-		Variable var = obj.getVal("ART_color", Integer.class);
+		Variable var = obj.getVar("ART_color", Integer.class);
 		EGraphics graphics = G_lay.getGraphics();
 		if (var == null)
 		{
