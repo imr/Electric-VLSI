@@ -25,6 +25,7 @@ package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -258,10 +259,16 @@ public class CIF extends Geometry
 				int height = scale(box.getHeight());
 				int x = scale(box.getCenterX());
 				int y = scale(box.getCenterY());
-				String line = " B " + width + " " + height + " " +
-					x + " " + y + ";";
-				writeLine(line);
-				return;
+                // make sure center coordinates are not below min resolution
+                double x2 = unscale(x);
+                double y2 = unscale(y);
+                if (GenMath.doublesEqual(box.getCenterX(), x2) && GenMath.doublesEqual(box.getCenterY(), y2)) {
+                    String line = " B " + width + " " + height + " " +
+                        x + " " + y + ";";
+                    writeLine(line);
+			    	return;
+                }
+                //System.out.println(box.getCenterX()+" != "+x2+" or "+box.getCenterY()+" != "+y2);
 			}
 
 			// not a box
@@ -343,6 +350,11 @@ public class CIF extends Geometry
 	{
 		return (int)(scaleFactor * n);
 	}
+
+    protected double unscale(int n)
+    {
+        return (double)(n / scaleFactor);
+    }
 
 	/**
 	 * Check Poly for CIF Resolution Errors

@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01n: *********************************
 
+BUG: (9/9/04, JKG) CIF output of "Boxes" could have center coords off minimum CIF grid, causing
+     Boxes to shift when CIF was read back in.
+FIX: If "Boxes" have center off-grid, they are written out as Polygons.
+
 IMP: (9/9/04, GVG) Main: not attempt to read set of libraries if set is empty. Side effect: avoid unnecessary endBatch call
 
 IMP: (9/9/04, GVG) ErrorLogger: For a given sortKey, sort messages lexicographically
