@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02c: *********************************
 
+IMP: (01/18/05, SMR) Improved GDS floating point output.  Code from Tom Valine <tomv@transmeta.com>.
+
 IMP/MAN: (01/18/05, SMR) Removed "Update" button from "Attributes" dialog, have only "Done".
      All actions happen instantantly (Bug #78).
 
