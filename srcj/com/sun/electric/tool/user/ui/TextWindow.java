@@ -207,9 +207,9 @@ public class TextWindow
 	 */
 	private static class SaveCellText extends Job
 	{
-		TextWindow tw;
+		private TextWindow tw;
 
-		protected SaveCellText(TextWindow tw)
+		private SaveCellText(TextWindow tw)
 		{
 			super("Save Cell Text", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.tw = tw;
@@ -220,8 +220,7 @@ public class TextWindow
 		{
 			Cell cell = tw.getCell();
 			if (cell == null) return false;
-			String [] strings = tw.convertToStrings();
-			cell.setTextViewContents(strings);
+			cell.setTextViewContents(tw.convertToStrings());
 			tw.dirty = false;
 			return true;
 		}

@@ -180,7 +180,7 @@ public class Route
 	 *    o  Create Zone Representation for channel
 	 *    o  Decrease height of VCG and maximize channel use
 	 */
-	public static String Sc_route()
+	public static String routeCells()
 	{
 		// check if working in a cell
 		if (SilComp.sc_curcell == null) return "No cell selected";
@@ -196,9 +196,6 @@ public class Route
 		route.channels = null;
 		route.exports = null;
 		route.rows = null;
-
-		long startTime = System.currentTimeMillis();
-		System.out.println("Starting ROUTER...");
 
 		// first squeeze cell together
 		Sc_route_squeeze_cells(SilComp.sc_curcell.placement.rows);
@@ -222,9 +219,6 @@ public class Route
 
 		// route tracks in each channel
 		Sc_route_tracks_in_channels(channel_list, SilComp.sc_curcell);
-
-        long endTime = System.currentTimeMillis();
-        System.out.println("Done (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 
 		return null;
 	}

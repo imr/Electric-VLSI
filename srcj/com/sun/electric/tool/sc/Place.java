@@ -159,7 +159,7 @@ public class Place
 	 *    o  Cross refencing of trunks to improve speed
 	 *    o  Effective calculation of rows in costing
 	 */
-	public static String Sc_place()
+	public static String placeCells()
 	{
 		// check to see if currently working in a cell
 		if (SilComp.sc_curcell == null) return "No cell selected";
@@ -177,9 +177,6 @@ public class Place
 		place.rows = null;
 		place.plist = null;
 		place.endlist = null;
-
-		System.out.println("Starting PLACEMENT...");
-		long startTime = System.currentTimeMillis();
 
 		// create clusters of cells
 		sc_gcluster = Sc_place_create_clusters(SilComp.sc_curcell);
@@ -250,8 +247,6 @@ public class Place
 
 		// print process time for placement
 		Sc_place_reorder_rows(SilComp.sc_curcell.placement.rows);
-        long endTime = System.currentTimeMillis();
-        System.out.println("Done (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 
 		return null;
 	}

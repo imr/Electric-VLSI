@@ -84,6 +84,10 @@ public class ViewMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ViewChanges.makeLayoutView(); } });
 		viewMenu.addMenuItem("Make Skeleton View", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ViewChanges.makeSkeletonViewCommand(); } });
+		viewMenu.addMenuItem("Make VHDL View", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.makeVHDL();}});
+		viewMenu.addMenuItem("Compile VHDL to Netlist View", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.compileVHDL();}});
 
     }
 

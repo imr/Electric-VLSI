@@ -24,6 +24,7 @@
 
 package com.sun.electric.tool.user.menus;
 
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -47,6 +48,7 @@ import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
@@ -61,6 +63,7 @@ import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.generator.PadGenerator;
 import com.sun.electric.tool.generator.ROMGenerator;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
@@ -77,8 +80,13 @@ import com.sun.electric.tool.routing.Maze;
 import com.sun.electric.tool.routing.MimicStitch;
 import com.sun.electric.tool.routing.River;
 import com.sun.electric.tool.routing.Routing;
+import com.sun.electric.tool.sc.Maker;
+import com.sun.electric.tool.sc.Place;
+import com.sun.electric.tool.sc.Route;
 import com.sun.electric.tool.sc.SilComp;
 import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.user.CompileVHDL;
+import com.sun.electric.tool.user.GenerateVHDL;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
@@ -91,11 +99,13 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import javax.swing.KeyStroke;
@@ -345,11 +355,8 @@ public class ToolMenu {
 
 		MenuBar.Menu silCompSubMenu = new MenuBar.Menu("Silicon Compiler", 'M');
 		toolMenu.add(silCompSubMenu);
-//		silCompSubMenu.addMenuItem("Read MOSIS CMOS Library", null,
-//			new ActionListener() { public void actionPerformed(ActionEvent e) {SilComp.readCellLibrary("sclib");}});
-//		silCompSubMenu.addSeparator();
-		silCompSubMenu.addMenuItem("Convert Netlist to Layout", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) {SilComp.doSiliconCompilation();}});
+		silCompSubMenu.addMenuItem("Convert Current Cell to Layout", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) {doSiliconCompilation();}});
 
 		//------------------- Compaction
 
@@ -1093,6 +1100,206 @@ public class ToolMenu {
             EvalJavaBsh.runScript(fileName);
         }
     }
+
+	private static final String SCLIBNAME = "sclib";
+	private static final int READ_LIBRARY    =  1;
+	private static final int CONVERT_TO_VHDL =  2;
+	private static final int COMPILE_NETLIST =  4;
+	private static final int PLACE_AND_ROUTE =  8;
+	private static final int SHOW_CELL       = 16;
+
+	/**
+	 * Method to handle the menu command to convert the current cell to layout.
+	 * Reads the cell library if necessary;
+	 * Converts a schematic to VHDL if necessary;
+	 * Compiles a VHDL cell to a netlist if necessary;
+	 * Reads the netlist from the cell;
+	 * does placement and routing;
+	 * Generates Electric layout;
+	 * Displays the resulting layout.
+	 */
+	public static void doSiliconCompilation()
+	{
+		Cell cell = WindowFrame.needCurCell();
+		if (cell == null) return;
+		int activities = PLACE_AND_ROUTE | SHOW_CELL;
+//		if (cell.getView() == View.SCHEMATIC) activities |= CONVERT_TO_VHDL | COMPILE_NETLIST;
+		if (cell.getView() == View.VHDL) activities |= COMPILE_NETLIST;
+		if (SilComp.getCellLib() == null)
+		{
+			Library lib = Library.findLibrary(SCLIBNAME);
+			if (lib != null) SilComp.setCellLib(lib); else
+				activities |= READ_LIBRARY;
+		}
+	    DoNextActivity sJob = new DoNextActivity(cell, activities);
+	}
+
+	/**
+	 * Method to handle the menu command to compile a VHDL cell.
+	 * Compiles the VHDL in the current cell and displays the netlist.
+	 */
+	public static void compileVHDL()
+	{
+		Cell cell = WindowFrame.needCurCell();
+		if (cell == null) return;
+		if (cell.getView() != View.VHDL)
+		{
+			System.out.println("Must be editing a VHDL cell before compiling it");
+			return;
+		}
+	    DoNextActivity sJob = new DoNextActivity(cell, COMPILE_NETLIST | SHOW_CELL);
+	}
+
+	/**
+	 * Method to handle the menu command to make a VHDL cell.
+	 * Converts the schematic in the current cell to VHDL and displays it.
+	 */
+	public static void makeVHDL()
+	{
+		Cell cell = WindowFrame.needCurCell();
+		if (cell == null) return;
+		if (cell.getView() != View.SCHEMATIC)
+		{
+			System.out.println("Must be editing a Schematic cell before converting it to VHDL");
+			return;
+		}
+	    DoNextActivity sJob = new DoNextActivity(cell, CONVERT_TO_VHDL | SHOW_CELL);
+	}
+
+	/**
+	 * Class to do the next silicon-compilation activity in a new thread.
+	 */
+	private static class DoNextActivity extends Job
+	{
+		private Cell cell;
+		private int activities;
+
+		private DoNextActivity(Cell cell, int activities)
+		{
+			super("Silicon-Compiler activity", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cell = cell;
+			this.activities = activities;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			if ((activities&READ_LIBRARY) != 0)
+			{
+				// read standard cell library
+				System.out.println("Reading Standard Cell Library '" + SCLIBNAME + "' ...");
+				URL fileURL = LibFile.getLibFile(SCLIBNAME + ".jelib");
+				Library lib = Input.readLibrary(fileURL, FileType.JELIB);
+		        Undo.noUndoAllowed();
+				if (lib != null) SilComp.setCellLib(lib);
+				System.out.println(" Done");
+			    DoNextActivity sJob = new DoNextActivity(cell, activities & ~READ_LIBRARY);
+			    return true;
+			}
+
+			if ((activities&CONVERT_TO_VHDL) != 0)
+			{
+				// convert Schematic to VHDL
+				System.out.print("Generating VHDL from '" + cell.describe() + "' ...");
+				List vhdlStrings = GenerateVHDL.vhdl_convertcell(cell, true);
+				if (vhdlStrings == null)
+				{
+					System.out.println("No VHDL produced");
+					return false;
+				}
+
+				Cell vhdlCell = Cell.makeInstance(cell.getLibrary(), cell.getName() + "{vhdl}");
+				if (vhdlCell == null) return false;
+				String [] array = new String[vhdlStrings.size()];
+				for(int i=0; i<vhdlStrings.size(); i++) array[i] = (String)vhdlStrings.get(i);
+				vhdlCell.setTextViewContents(array);
+				System.out.println(" Done, created '" + vhdlCell.describe() + "'");
+			    DoNextActivity sJob = new DoNextActivity(vhdlCell, activities & ~CONVERT_TO_VHDL);
+			    return true;
+			}
+
+			if ((activities&COMPILE_NETLIST) != 0)
+			{
+				// compile the VHDL to a netlist
+				System.out.print("Compiling VHDL in '" + cell.describe() + "' ...");
+				CompileVHDL c = new CompileVHDL(cell);
+				if (c.hasErrors())
+				{
+					System.out.println("ERRORS during compilation, no netlist produced");
+					return false;
+				}
+				List netlistStrings = c.getQUISCNetlist();
+				if (netlistStrings == null)
+				{
+					System.out.println("No netlist produced");
+					return false;
+				}
+
+				// store the QUISC netlist
+				Cell netlistCell = Cell.makeInstance(cell.getLibrary(), cell.getName() + "{net.quisc}");
+				if (netlistCell == null) return false;
+				String [] array = new String[netlistStrings.size()];
+				for(int i=0; i<netlistStrings.size(); i++) array[i] = (String)netlistStrings.get(i);
+				netlistCell.setTextViewContents(array);
+				System.out.println(" Done, created '" + netlistCell.describe() + "'");
+			    DoNextActivity sJob = new DoNextActivity(netlistCell, activities & ~COMPILE_NETLIST);
+			    return true;
+			}
+
+			if ((activities&PLACE_AND_ROUTE) != 0)
+			{
+				// first grab the information in the netlist
+				System.out.print("Reading netlist in '" + cell.describe() + "' ...");
+				if (SilComp.readNetCurCell(cell)) { System.out.println();   return false; }
+				System.out.println(" Done");
+
+				// do the placement
+				System.out.print("Placing cells ...");
+				String err = Place.placeCells();
+				if (err != null)
+				{
+					System.out.println("\n" + err);
+					return false;
+				}
+				System.out.println(" Done");
+
+				// do the routing
+				System.out.print("Routing cells ...");
+				err = Route.routeCells();
+				if (err != null)
+				{
+					System.out.println("\n" + err);
+					return false;
+				}
+				System.out.println(" Done");
+
+				// generate the results
+				System.out.print("Generating layout ...");
+				Object result = Maker.makeLayout();
+				if (result instanceof String)
+				{
+					System.out.println("\n" + (String)result);
+					return false;
+				}
+				if (result instanceof Cell)
+				{
+					Cell newCell = (Cell)result;
+					System.out.println(" Done, created '" + newCell.describe() + "'");
+				    DoNextActivity sJob = new DoNextActivity(newCell, activities & ~PLACE_AND_ROUTE);
+				}
+				System.out.println();
+			    return true;
+			}
+
+			if ((activities&SHOW_CELL) != 0)
+			{
+				// show the cell
+				WindowFrame.createEditWindow(cell);
+			    DoNextActivity sJob = new DoNextActivity(cell, activities & ~SHOW_CELL);
+			}
+			return false;
+		}
+	}
 
     /****************** Parasitic Tool ********************/
     public static void parasiticCommand()

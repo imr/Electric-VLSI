@@ -26,7 +26,6 @@
  */
 package com.sun.electric.tool.sc;
 
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -36,16 +35,9 @@ import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.lib.LibFile;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
-import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.io.input.Input;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.Rectangle2D;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -205,107 +197,19 @@ public class SilComp extends Listener
 		sc_curcell = null;
 	}
 
-	/**************************************** CONTROL OF COMPILER ****************************************/
+	/**
+	 * Method to return the cell library that will be used for silicon compilation.
+	 * @return the cell library that will be used for silicon compilation (null if none).
+	 */
+	public static Library getCellLib() { return sc_celllibrary; }
 
 	/**
-	 * Method to handle the menu command to convert a netlist to layout.
-	 * Reads the cell library if necessary;
-	 * Reads the netlist from the cell;
-	 * does placement and routing;
-	 * Generates Electric layout
+	 * Method to set the cell library that will be used for silicon compilation.
+	 * @param lib the cell library that will be used for silicon compilation).
 	 */
-	public static void doSiliconCompilation()
-	{
-		if (sc_celllibrary == null)
-		{
-			String libName = "sclib";
-			sc_celllibrary = Library.findLibrary(libName);
-			if (sc_celllibrary == null)
-			{
-				URL url = LibFile.getLibFile(libName + ".jelib");
-				ReadCellLibrary job = new ReadCellLibrary(url, FileType.JELIB);
-				return;
-			}
-		}
-	    ReadAndPrepareJob sJob = new ReadAndPrepareJob();
-	}
+	public static void setCellLib(Library lib) { sc_celllibrary = lib; }
 
-	/**
-	 * Class to read a cell library in a new thread.
-	 */
-	private static class ReadCellLibrary extends Job
-	{
-		private URL fileURL;
-		private FileType type;
-
-		private ReadCellLibrary(URL fileURL, FileType type)
-		{
-			super("Read Cell Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.fileURL = fileURL;
-			this.type = type;
-			startJob();
-		}
-
-		public boolean doIt()
-		{
-			sc_celllibrary = Input.readLibrary(fileURL, type);
-	        Undo.noUndoAllowed();
-
-		    ReadAndPrepareJob sJob = new ReadAndPrepareJob();
-			return true;
-		}
-	}
-
-	public static class ReadAndPrepareJob extends Job
-	{
-		private ReadAndPrepareJob()
-		{
-			super("Read Cell Library", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
-			startJob();
-		}
-
-		public boolean doIt()
-		{
-			// first grab the information in the netlist
-			if (readNetCurCell()) return false;
-
-			// do the "pull" (extract)
-			String err = Sc_pull();
-			if (err != null)
-			{
-				System.out.println(err);
-				return false;
-			}
-
-			// do the placement
-			err = Place.Sc_place();
-			if (err != null)
-			{
-				System.out.println(err);
-				return false;
-			}
-
-			// do the routing
-			err = Route.Sc_route();
-			if (err != null)
-			{
-				System.out.println(err);
-				return false;
-			}
-
-			// generate the results
-			err = Maker.Sc_maker();
-			if (err != null)
-			{
-				System.out.println(err);
-				return false;
-			}
-
-			return true;
-		}
-	}
-
-    /****************************** OPTIONS ******************************/
+	/****************************** OPTIONS ******************************/
 
 	private static Pref cacheNumberOfRows = Pref.makeIntPref("NumberOfRows", SilComp.tool.prefs, 4);
 	/**
@@ -539,16 +443,8 @@ public class SilComp extends Listener
 	 * Read the netlist associated with the current cell.
 	 * @return true on error.
 	 */
-	private static boolean readNetCurCell()
+	public static boolean readNetCurCell(Cell cell)
 	{
-		// demand a QUISC netlist
-		Cell cell = WindowFrame.needCurCell();
-		if (cell == null) return true;
-//if (cell.getView() == View.VHDL)
-//{
-//	com.sun.electric.tool.vhdl.VHDLTool.vhdl_compile(cell);
-//	return false;
-//}
 		if (cell.getView() != View.NETLISTQUISC)
 		{
 			System.out.println("Current cell must have QUISC Netlist view");
@@ -611,7 +507,14 @@ public class SilComp extends Listener
 				break;
 			}
 		}
-		if (!errors) System.out.println("Done reading netlist");
+
+		// do the "pull" (extract)
+		String err = Sc_pull();
+		if (err != null)
+		{
+			System.out.println(err);
+			errors = true;
+		}
 		return errors;
 	}
 
@@ -628,9 +531,6 @@ public class SilComp extends Listener
 		if (mainKeyword.equalsIgnoreCase("export")) return Sc_export(keywords);
 		if (mainKeyword.equalsIgnoreCase("extract")) return Sc_extract(keywords);
 		if (mainKeyword.equalsIgnoreCase("set")) return Sc_xset(keywords);
-
-		// not used:
-//		if (mainKeyword.equalsIgnoreCase("delete")) return Sc_delete();						// in this module
 		return "Unknown keyword: " + mainKeyword;
 	}
 

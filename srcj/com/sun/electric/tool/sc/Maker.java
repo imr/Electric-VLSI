@@ -33,7 +33,6 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -42,9 +41,7 @@ import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.sc.SilComp.SCCELLNUMS;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -172,7 +169,7 @@ public class Maker
 	 *   o  Routing Power and Ground buses
 	 *   o  Creation in Electric's database
 	 */
-	public static String Sc_maker()
+	public static Object makeLayout()
 	{
 		// check if working in a cell
 		if (SilComp.sc_curcell == null) return "No cell selected";
@@ -185,41 +182,16 @@ public class Maker
 		if (SilComp.sc_curcell.route == null)
 			return "No ROUTE structure for cell '" + SilComp.sc_curcell.name + "'";
 
-		MakeCircuitry job = new MakeCircuitry();
-		return null;
-	}
+		// set up make structure
+		SCMAKERDATA make_data = Sc_maker_set_up(SilComp.sc_curcell);
 
-	private static class MakeCircuitry extends Job
-	{
-		private MakeCircuitry()
-		{
-			super("Generate Silicon Compilation circuit", SilComp.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			startJob();
-		}
+		// create actual layout
+		Object result = Sc_maker_create_layout(make_data);
+		if (result instanceof String) return result;
 
-		public boolean doIt()
-		{
-			long startTime = System.currentTimeMillis();
-			System.out.println("Starting MAKER...");
+//		Sc_free_maker_data(make_data);
 
-			// set up make structure
-			SCMAKERDATA make_data = Sc_maker_set_up(SilComp.sc_curcell);
-
-			// create actual layout
-			System.out.println("Creating cell " + make_data.cell.name);
-			String err = Sc_maker_create_layout(make_data);
-			if (err != null)
-			{
-				System.out.println("ERROR: " + err);
-				return false;
-			}
-
-//			Sc_free_maker_data(make_data);
-
-			long endTime = System.currentTimeMillis();
-			System.out.println("Done (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
-			return true;
-		}
+		return result;
 	}
 
 	/**
@@ -648,7 +620,7 @@ public class Maker
 	 * the passed layout data.
 	 * @param data pointer to layout data.
 	 */
-	private static String Sc_maker_create_layout(SCMAKERDATA data)
+	private static Object Sc_maker_create_layout(SCMAKERDATA data)
 	{
 		double row_to_track = (SilComp.getViaSize() / 2) + SilComp.getMinMetalSpacing();
 		double track_to_track = SilComp.getViaSize() + SilComp.getMinMetalSpacing();
@@ -1091,10 +1063,7 @@ public class Maker
 			}
 		}
 
-		// show the cell
-		WindowFrame.createEditWindow(bcell);
-
-		return null;
+		return bcell;
 	}
 
 	/**
