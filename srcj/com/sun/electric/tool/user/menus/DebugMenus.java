@@ -74,6 +74,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.PrintWriter;
+import java.io.FileOutputStream;
 import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
 import java.net.URL;
@@ -170,6 +171,8 @@ public class DebugMenus {
 
         MenuBar.Menu gildaMenu = new MenuBar.Menu("Gilda", 'G');
         menuBar.add(gildaMenu);
+        gildaMenu.addMenuItem("Test Bash", null,
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {testBash();}});
         gildaMenu.addMenuItem("3D View", null,
                         new ActionListener() { public void actionPerformed(ActionEvent e) {threeViewCommand();}});
         gildaMenu.addMenuItem("Parasitic", null,
@@ -763,11 +766,29 @@ String logname = "output/"+regressionname+"IO-"+Version.getVersion()+".log";
 try {
   TopLevel.getMessagesWindow().save(logname);
 
-  LayoutLib.openLibForRead("../../data/"+testpath+"/"+testlib+".jelib");
-  Library rootLib = Library.findLibrary(testlib);
-  Cell lay = rootLib.findNodeProto(testname+"{lay}");
 
-  FileMenu.SaveLibrary job = new FileMenu.SaveLibrary(rootLib, "output"+testlib, FileType.JELIB, false);
+            // Running diff
+            File dir = new File("./");
+            FileOutputStream outputStream = new FileOutputStream("tmpSport.log");
+            FileOutputStream errStream = new FileOutputStream("errSport.log");
+
+        for(Iterator it = Library.getLibraries(); it.hasNext(); )
+        {
+            Library lib = (Library)it.next();
+            String libName = lib.getName();
+            if (lib.getLibFile() == null) continue; // Clipboard
+            String fullName = lib.getLibFile().getFile();
+            String oldName = "../../data/"+testpath+"/"+libName;
+            String newName = "tmp/sport/"+libName;
+            FileMenu.SaveLibrary job = new FileMenu.SaveLibrary(lib, "tmp/sport/"+libName, FileType.JELIB, false, true);
+    job.performTask();
+            Exec e = new Exec("diff " + oldName + " " + newName, null, dir, outputStream, errStream);
+            e.start();
+    outputStream.flush();
+            errStream.flush();
+        }
+            outputStream.close();
+    errStream.close();
 
 } catch (Exception e) {
   System.out.println("exception: "+e);

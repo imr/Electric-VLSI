@@ -513,16 +513,6 @@ public class FileMenu {
 	            if (forceToType)
 	            {
 		            type = OpenFile.getOpenFileType(fileName, FileType.DEFAULTLIB);
-		            if (Main.getDebug())
-		            {
-			            // old code Gilda Nov 9
-						FileType oldtype = type;
-						if (fileName.endsWith(".elib")) oldtype = FileType.ELIB; else
-						if (fileName.endsWith(".jelib")) oldtype = FileType.JELIB; else
-						if (fileName.endsWith(".txt")) oldtype = FileType.READABLEDUMP;
-			            if (type != oldtype)
-				            System.out.println("Wrong type determined by OpenFile.getOpenFileType");
-		            }
 	            }
 	        }
             // check to see that file is writable
@@ -557,7 +547,7 @@ public class FileMenu {
                     oLib.setChangedMajor();
             }
         }
-        SaveLibrary job = new SaveLibrary(lib, fileName, type, compatibleWith6);
+        SaveLibrary job = new SaveLibrary(lib, fileName, type, compatibleWith6, false);
         return true;
     }
 
@@ -573,21 +563,22 @@ public class FileMenu {
         FileType type;
         boolean compatibleWith6;
 
-        public SaveLibrary(Library lib, String newName, FileType type, boolean compatibleWith6)
+        public SaveLibrary(Library lib, String newName, FileType type, boolean compatibleWith6, boolean batchJob)
         {
             super("Write Library "+lib.getName(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.lib = lib;
             this.newName = newName;
             this.type = type;
             this.compatibleWith6 = compatibleWith6;
-            startJob();
+            if (!batchJob)
+                startJob();
         }
 
         public boolean doIt()
         {
             boolean retVal = false;
             try {
-                retVal = _doIt();
+                retVal = performTask();
                 if (!retVal) {
                     JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String [] {"Error saving files",
                          "Please check your disk libraries"}, "Saving Failed", JOptionPane.ERROR_MESSAGE);
@@ -601,7 +592,7 @@ public class FileMenu {
             return retVal;
         }
 
-        private boolean _doIt() {
+        public boolean performTask() {
             // rename the library if requested
             if (newName != null)
             {
