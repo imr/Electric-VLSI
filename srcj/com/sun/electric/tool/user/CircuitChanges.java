@@ -44,10 +44,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.FlagSet;
-import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.*;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.SizeOffset;
@@ -653,6 +650,15 @@ public class CircuitChanges
 				"Are you sure you want to delete cell " + cell.describe() + "?");
 			if (response != JOptionPane.YES_OPTION) return;
 		}
+
+        // update any windows that used the cell
+        for (Iterator it = WindowFrame.getWindows(); it.hasNext(); ) {
+            WindowFrame frame = (WindowFrame)it.next();
+            EditWindow wnd = frame.getEditWindow();
+            if (cell == wnd.getCell()) {
+                wnd.setCell(null, VarContext.globalContext);
+            }
+        }
 
 		// delete the cell
 		DeleteCell job = new DeleteCell(cell);
@@ -1797,7 +1803,7 @@ public class CircuitChanges
 				WindowFrame wf = (WindowFrame)it.next();
 				EditWindow wnd = wf.getEditWindow();
 				if (wnd.getCell() == cell)
-					wnd.setCell(dupCell, null);
+					wnd.setCell(dupCell, VarContext.globalContext);
 			}
 			EditWindow.repaintAll();
 		}

@@ -230,6 +230,7 @@ public class EditWindow extends JPanel
 			}
 		}
 		fillScreen();
+        repaintContents();
 
         if (addToHistory) {
             addToHistory(cell, context);
@@ -1161,7 +1162,7 @@ public class EditWindow extends JPanel
             cellHistoryLocation--;
         }
 
-        System.out.println("Adding to History at location="+cellHistoryLocation+", cellHistory.size()="+cellHistory.size());
+        //System.out.println("Adding to History at location="+cellHistoryLocation+", cellHistory.size()="+cellHistory.size());
     }
 
     /** Records current cell state into history
@@ -1174,7 +1175,7 @@ public class EditWindow extends JPanel
 
         CellHistory current = (CellHistory)cellHistory.get(cellHistoryLocation);
 
-        System.out.println("Updating cell history state of location="+cellHistoryLocation+", cell "+cell);
+        //System.out.println("Updating cell history state of location="+cellHistoryLocation+", cell "+cell);
 
         current.offset = new Point2D.Double(offx, offy);
         current.scale = scale;
@@ -1188,6 +1189,8 @@ public class EditWindow extends JPanel
 
     /** Restores cell state from history record */
     private void setCellByHistory(int location) {
+
+        // TODO: remove cells that have been deleted from the database
 
         // fire property changes if back/forward buttons should change state
         if (cellHistoryLocation == (cellHistory.size()-1)) {
@@ -1209,7 +1212,7 @@ public class EditWindow extends JPanel
                 firePropertyChange(propGoBackEnabled, true, false);
         }
 
-        System.out.println("Setting cell to location="+location+", cellHistory.size()="+cellHistory.size());
+        //System.out.println("Setting cell to location="+location+", cellHistory.size()="+cellHistory.size());
 
         // get cell history to go to
         CellHistory history = (CellHistory)cellHistory.get(location);

@@ -55,27 +55,7 @@ import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.routing.MimicStitch;
 import com.sun.electric.tool.simulation.Spice;
 import com.sun.electric.tool.simulation.IRSIMTool;
-import com.sun.electric.tool.user.dialogs.About;
-import com.sun.electric.tool.user.dialogs.Array;
-import com.sun.electric.tool.user.dialogs.Attributes;
-import com.sun.electric.tool.user.dialogs.CellLists;
-import com.sun.electric.tool.user.dialogs.CellOptions;
-import com.sun.electric.tool.user.dialogs.CellParameters;
-import com.sun.electric.tool.user.dialogs.Change;
-import com.sun.electric.tool.user.dialogs.CrossLibCopy;
-import com.sun.electric.tool.user.dialogs.EditOptions;
-import com.sun.electric.tool.user.dialogs.EditKeyBindings;
-import com.sun.electric.tool.user.dialogs.GetInfoArc;
-import com.sun.electric.tool.user.dialogs.GetInfoExport;
-import com.sun.electric.tool.user.dialogs.GetInfoMulti;
-import com.sun.electric.tool.user.dialogs.GetInfoNode;
-import com.sun.electric.tool.user.dialogs.GetInfoText;
-import com.sun.electric.tool.user.dialogs.IOOptions;
-import com.sun.electric.tool.user.dialogs.LayerVisibility;
-import com.sun.electric.tool.user.dialogs.NewCell;
-import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.dialogs.ToolOptions;
-import com.sun.electric.tool.user.dialogs.ViewControl;
+import com.sun.electric.tool.user.dialogs.*;
 import com.sun.electric.tool.user.ui.MenuManager;
 import com.sun.electric.tool.user.ui.MenuManager.MenuItem;
 import com.sun.electric.tool.user.ui.MenuManager.Menu;
@@ -375,12 +355,25 @@ public final class MenuCommands
 		Menu cellMenu = new Menu("Cell", 'C');
 		menuBar.add(cellMenu);
 
-		cellMenu.addMenuItem("Cell Control...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { cellControlCommand(); }});
-		cellMenu.addMenuItem("New Cell...", KeyStroke.getKeyStroke('N', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { newCellCommand(); } });
+        cellMenu.addMenuItem("Edit Cell...", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { cellBrowserCommand(CellBrowser.DoAction.editCell); }});
+        cellMenu.addMenuItem("Place Cell Instance...", KeyStroke.getKeyStroke('N', 0),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { cellBrowserCommand(CellBrowser.DoAction.newInstance); }});
+        cellMenu.addMenuItem("New Cell...", KeyStroke.getKeyStroke('N', buckyBit),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { newCellCommand(); } });
+        cellMenu.addMenuItem("Rename Cell...", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { cellBrowserCommand(CellBrowser.DoAction.renameCell); }});
+        cellMenu.addMenuItem("Duplicate Cell...", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { cellBrowserCommand(CellBrowser.DoAction.duplicateCell); }});
+        cellMenu.addMenuItem("Delete Cell...", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { cellBrowserCommand(CellBrowser.DoAction.deleteCell); }});
+
+        cellMenu.addSeparator();
+
 		cellMenu.addMenuItem("Delete Current Cell", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { deleteCellCommand(); } });
+        cellMenu.addMenuItem("Cell Control...", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { cellControlCommand(); }});
 		cellMenu.addMenuItem("Cross-Library Copy...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { crossLibraryCopyCommand(); } });
 
@@ -1690,6 +1683,12 @@ public final class MenuCommands
  		NewCell dialog = new NewCell(TopLevel.getCurrentJFrame(), true);
 		dialog.show();
 	}
+
+    public static void cellBrowserCommand(CellBrowser.DoAction action)
+    {
+        CellBrowser dialog = new CellBrowser(TopLevel.getCurrentJFrame(), true, action);
+        dialog.show();
+    }
 
 	/**
 	 * This method implements the command to delete the current Cell.

@@ -60,7 +60,7 @@ import javax.swing.plaf.basic.BasicMenuItemUI;
 
 public class MenuManager
 {
-    /** Preferences for User Bindings */                            private static Preferences prefs = Preferences.userNodeForPackage(Menu.class);
+    /** Preferences for User Bindings */                            private static Preferences prefs = Preferences.userNodeForPackage(MenuManager.class);
     /** All menu items created, stores as ArrayLists in HashMap */  private static HashMap menuItems = new HashMap(40);
     /** global object to be used as listener */                     public static MenuUpdater updater = new MenuUpdater();
     /** Key Binding Manager for menu items */                       public static KeyBindingManager keyBindingManager = new KeyBindingManager("MenuKeyBinding-", prefs);

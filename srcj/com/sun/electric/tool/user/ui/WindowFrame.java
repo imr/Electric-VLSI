@@ -167,6 +167,7 @@ public class WindowFrame
             windowList.add(this);
         }
 		setCurrentWindowFrame(this);
+        wnd.fillScreen();
 	}
 
     
@@ -435,10 +436,11 @@ public class WindowFrame
      */
     public void setTitle(String title)
     {
-        if (TopLevel.isMDIMode())
+        if (TopLevel.isMDIMode()) {
             if (jif != null) jif.setTitle(title);
-        else
+        } else {
             if (jf != null) jf.setTitle(title);
+        }
     }
 
 	/**
