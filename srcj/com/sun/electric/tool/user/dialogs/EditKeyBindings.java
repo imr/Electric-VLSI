@@ -311,11 +311,17 @@ public class EditKeyBindings extends PreferencePanel implements TreeSelectionLis
     private void removeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeActionPerformed
         // get currently selected node
         JMenuItem item = getSelectedMenuItem();
-        if (item == null) return;
+        if (item == null) {
+            JOptionPane.showMessageDialog(this, "Please select a menu item first", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
         // get selected key binding
         KeyStrokePair pair = getListBoxSelected();
-        if (pair == null) return;
+        if (pair == null) {
+            JOptionPane.showMessageDialog(this, "Please select the shortcut from the list to remove", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
         // remove it and update view
         menuBar.removeKeyBinding(((MenuBar.MenuItemInterface)item).getDescription(), pair);
@@ -441,7 +447,9 @@ public class EditKeyBindings extends PreferencePanel implements TreeSelectionLis
     }
 
     private KeyStrokePair getListBoxSelected() {
-        return (KeyStrokePair)bindingsJList.getSelectedValue();
+        Object value = bindingsJList.getSelectedValue();
+        if (value == null) return null;
+        return (KeyStrokePair)value;
     }
 
     // ------------------------------ Confirm Dialogs ------------------------------
