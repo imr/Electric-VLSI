@@ -24,12 +24,17 @@
 package com.sun.electric.database.prototype;
 
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.PrimitivePort;
 
 import java.awt.Color;
+import java.awt.geom.AffineTransform;
 import java.util.Iterator;
 import java.util.HashMap;
 import java.util.List;
@@ -233,6 +238,143 @@ public abstract class PortProto extends ElectricObject
 			public static final Characteristic REFIN   = new Characteristic("Reference Input", "refin", REFINPORT);
 		/** Describes a bias-level reference base port. */
 			public static final Characteristic REFBASE = new Characteristic("Reference Base", "refbase", REFBASEPORT);
+	}
+
+	/**
+	 * Class to descend the hierarchy from an Export to the bottommost PortProto
+	 * on a primitive NodeInst.
+	 * <P>
+	 * Many parts of the system need to know what is "under" an Export.
+	 * For example, assume that cell BOT has a contact node that is exported.
+	 * Further assume that cell MID has an instance of cell BOT, and that the
+	 * port on BOT is further exported.
+	 * Finally, assume that cell TOP has an instance of cell MID.
+	 * To find out information about the port on MID, it is necessary to descend
+	 * the hierarchy into MID and into BOT.
+	 * <P>
+	 * This class takes a PortInst or a NodeInst/PortProto pair (such as the port on MID in cell TOP).
+	 * It then provides these pieces of information:
+	 * <UL>
+	 * <LI>The bottommost PortInst (in this case, the port on the contact node in cell BOT).</LI>
+	 * <LI>The bottommost NodeInst (in this case, the contact node in cell BOT).</LI>
+	 * <LI>The bottommost PortProto (in this case, the port on the contact node in cell BOT).</LI>
+	 * <LI>The transformation to the top.  In this case, a transformation that:
+	 *     (1) accounts for rotation of the contact node;
+	 *     (2) accounts for translation between cell BOT and cell MID;
+	 *     (3) accounts for rotation on the instance of cell BOT in cell MID;
+	 *     (4) accounts for translation between cell MID and cell TOP; and
+	 *     (5) accounts for rotation of the instance of cell MID in cell TOP.
+	 * Thus, it transforms from coordinates on the contact node to the coordinate space of cell TOP.</LI>
+	 * <LI>The apparent angle of the lowest node when viewed from the top.
+	 * In this case, it is a combination of the contact, BOT cell instance, and MID cell instance rotations.</LI>
+	 */
+	public static class FindPrimitive
+	{
+		private AffineTransform subrot;
+		private int angle;
+		private PortInst bottomPort;
+		private NodeInst bottomNi;
+		private PortProto bottomPp;
+
+		/**
+		 * Constructor takes a PortInst and traverses it down to the bottom of the hierarchy.
+		 * @param startPort the initial PortInst.
+		 */
+		public FindPrimitive(PortInst startPort)
+		{
+			bottomPort = startPort;
+			bottomNi = bottomPort.getNodeInst();
+			bottomPp = bottomPort.getPortProto();
+			subrot = bottomNi.rotateOut();
+			traverse();
+		}
+
+		/**
+		 * Constructor takes a PortInst and traverses it down to the bottom of the hierarchy.
+		 * Also takes a transformation matrix to include in the final computation.
+		 * @param startPort the initial PortInst.
+		 * @param pre the transformation matrix to add to the final transformation.
+		 */
+		public FindPrimitive(PortInst startPort, AffineTransform pre)
+		{
+			bottomPort = startPort;
+			bottomNi = bottomPort.getNodeInst();
+			bottomPp = bottomPort.getPortProto();
+			subrot = bottomNi.rotateOut(pre);
+			traverse();
+		}
+
+		/**
+		 * Constructor takes a NodeInst/PortProto combination and traverses it down to the bottom of the hierarchy.
+		 * @param ni the initial NodeInst.
+		 * @param pp the initial PortProto.
+		 */
+		public FindPrimitive(NodeInst ni, PortProto pp)
+		{
+			bottomPort = null;
+			bottomNi = ni;
+			bottomPp = pp;
+			subrot = bottomNi.rotateOut();
+			traverse();
+		}
+
+		private void traverse()
+		{
+			angle = bottomNi.getAngle();
+			while (bottomNi.getProto() instanceof Cell)
+			{
+				subrot = bottomNi.translateOut(subrot);
+				bottomPort = ((Export)bottomPp).getOriginalPort();
+				bottomNi = bottomPort.getNodeInst();
+				bottomPp = bottomPort.getPortProto();
+				subrot = bottomNi.rotateOut(subrot);
+				angle += bottomNi.getAngle();
+				if (bottomNi.isMirroredAboutXAxis() != bottomNi.isMirroredAboutYAxis()) angle += 1800;
+			}
+		}
+
+		/**
+		 * Method to return the bottommost NodeInst (a primitive)
+		 * from the initial port information given to the constructor.
+		 * @return the NodeInst at the bottom of the hierarchy (a primitive).
+		 */
+		public NodeInst getBottomNodeInst() { return bottomNi; }
+
+		/**
+		 * Method to return the bottommost PortProto (a PrimitivePort)
+		 * from the initial port information given to the constructor.
+		 * @return the PortProto at the bottom of the hierarchy (a PrimitivePort).
+		 */
+		public PortProto getBottomPortProto() { return bottomPp; }
+
+		/**
+		 * Method to return the bottommost PortInst (on a primitive NodeInst)
+		 * from the initial port information given to the constructor.
+		 * @return the PortInst at the bottom of the hierarchy (on a primitive NodeInst).
+		 */
+		public PortInst getBottomPort()
+		{
+			if (bottomPort == null) bottomPort = bottomNi.findPortInstFromProto(bottomPp);			
+			return bottomPort;
+		}
+
+		/**
+		 * Method to return the transformation matrix from the bottommost NodeInst
+		 * to the Cell containing the topmost PortInst.
+		 * The transformation includes any rotation on the node with the topmost PortInst.
+		 * @return the the transformation matrix from the bottommost NodeInst
+		 * to the Cell containing the topmost PortInst.
+		 */
+		public AffineTransform getTransformToTop() { return subrot; }
+
+		/**
+		 * Method to return the apparent angle of the lowest node when viewed from the top.
+		 * The angle can be used to replicate a node at the top level that is in the same
+		 * orientation of the node at the bottom.
+		 * It does not include any mirroring information.
+		 * @return the apparent angle of the lowest node when viewed from the top.
+		 */
+		public int getAngleToTop() { return angle; }
 	}
 
 	// ------------------------ private data --------------------------

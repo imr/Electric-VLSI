@@ -440,11 +440,9 @@ public class Array extends EDialog
 
 				// first replicate the nodes
 				boolean firstNode = true;
-				for(Iterator it = dialog.selected.keySet().iterator(); it.hasNext(); )
+				for(Iterator it = nodeList.iterator(); it.hasNext(); )
 				{
-					Geometric geom = (Geometric)it.next();
-					if (!(geom instanceof NodeInst)) continue;
-					NodeInst ni = (NodeInst)geom;
+					NodeInst ni = (NodeInst)it.next();
 					double xPos = cX + xOverlap * xIndex;
 					if (Array.lastLinearDiagonal && Array.lastXRepeat == 1) xPos = cX + xOverlap * yIndex;
 					double yPos = cY + yOverlap * yIndex;
@@ -512,11 +510,9 @@ public class Array extends EDialog
 				}
 
 				// next replicate the arcs
-				for(Iterator it = dialog.selected.keySet().iterator(); it.hasNext(); )
+				for(Iterator it = arcList.iterator(); it.hasNext(); )
 				{
-					Geometric geom = (Geometric)it.next();
-					if (!(geom instanceof ArcInst)) continue;
-					ArcInst ai = (ArcInst)geom;
+					ArcInst ai = (ArcInst)it.next();
 					double cX0 = ai.getHead().getPortInst().getNodeInst().getAnchorCenterX();
 					double cY0 = ai.getHead().getPortInst().getNodeInst().getAnchorCenterY();
 					double xOff0 = ai.getHead().getLocation().getX() - cX0;

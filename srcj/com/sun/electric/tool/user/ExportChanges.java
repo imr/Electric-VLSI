@@ -589,6 +589,15 @@ public final class ExportChanges
             for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); ) {
                 PortInst pi = (PortInst)pIt.next();
 
+				// ignore if already exported
+				boolean found = false;
+				for(Iterator eIt = ni.getExports(); eIt.hasNext(); )
+				{
+					Export pp = (Export)eIt.next();
+					if (pp.getOriginalPort() == pi) { found = true;   break; }
+				}
+				if (found) continue;
+
                 // add pi to list of ports to export
                 portInstsToExport.add(pi);
             }

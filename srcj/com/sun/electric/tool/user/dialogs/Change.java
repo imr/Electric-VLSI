@@ -24,51 +24,51 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.FlagSet;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
-import javax.swing.JComboBox;
-import javax.swing.JRadioButton;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
+import java.util.regex.Pattern;
+
 import javax.swing.DefaultListModel;
+import javax.swing.JList;
+import javax.swing.JFrame;
+import javax.swing.JRadioButton;
 import javax.swing.ListSelectionModel;
 
 /**
  * Class to handle the "Change" dialog.
  */
-public class Change extends EDialog
+public class Change extends EDialog implements HighlightListener
 {
 	/** Change selected only. */				private static final int CHANGE_SELECTED = 1;
 	/** Change all connected to this. */		private static final int CHANGE_CONNECTED = 2;
@@ -76,6 +76,7 @@ public class Change extends EDialog
 	/** Change all in this Library. */			private static final int CHANGE_LIBRARY = 4;
 	/** Change all in all Libraries. */			private static final int CHANGE_EVERYWHERE = 5;
 
+	private static Change theDialog = null;
 	private static boolean nodesAndArcs = false;
 	private static int whatToChange = CHANGE_SELECTED;
 	private List geomsToChange;                  // List of Geometrics to change
@@ -87,29 +88,22 @@ public class Change extends EDialog
 
 	public static void showChangeDialog()
 	{
-		// first make sure something is selected
-        EditWindow wnd = EditWindow.getCurrent();
-		List highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
-		List geomsToChange = new ArrayList();
-        for (Iterator it = highs.iterator(); it.hasNext(); ) {
-            geomsToChange.add(it.next());
-        }
-        if (geomsToChange.size() == 0)
+		if (theDialog == null)
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-				"Select an object before changing it.");
-			return;
+			JFrame jf = null;
+			if (TopLevel.isMDIMode())
+				jf = TopLevel.getCurrentJFrame();
+			theDialog = new Change(jf, false);
 		}
-		Change dialog = new Change(TopLevel.getCurrentJFrame(), true, geomsToChange, wnd);
-		dialog.setVisible(true);
+		theDialog.loadInfo();
+		theDialog.setVisible(true);
 	}
 
 	/** Creates new form Change */
-	private Change(java.awt.Frame parent, boolean modal, List geomsToChange, EditWindow wnd)
+	private Change(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
-        getRootPane().setDefaultButton(ok);
 
 		// build the change list
 		changeListModel = new DefaultListModel();
@@ -121,7 +115,7 @@ public class Change extends EDialog
 		{
 			public void mouseClicked(MouseEvent e)
 			{
-				if (e.getClickCount() == 2) ok(null);
+				if (e.getClickCount() == 2) apply(null);
 			}
 		});
 
@@ -143,37 +137,6 @@ public class Change extends EDialog
 			public void actionPerformed(ActionEvent evt) { reload(); }
 		});
 
-		// find out what is going to be changed
-		this.geomsToChange = geomsToChange;
-        Geometric geomToChange = (Geometric)geomsToChange.get(0);
-		if (geomToChange instanceof NodeInst)
-		{
-			librariesPopup.setEnabled(true);
-			ignorePortNames.setEnabled(true);
-			allowMissingPorts.setEnabled(true);
-			showPrimitives.setEnabled(true);
-			showCells.setEnabled(true);
-			NodeInst ni = (NodeInst)geomToChange;
-			if (ni.getProto() instanceof Cell)
-			{
-				showCells.setSelected(true);
-//				us_curlib = ni->proto->lib;
-			} else
-			{
-				showPrimitives.setSelected(true);
-			}
-			changeNodesWithArcs.setSelected(false);
-			changeNodesWithArcs.setEnabled(false);
-		} else
-		{
-			librariesPopup.setEnabled(false);
-			ignorePortNames.setEnabled(false);
-			allowMissingPorts.setEnabled(false);
-			showPrimitives.setEnabled(false);
-			showCells.setEnabled(false);
-			changeNodesWithArcs.setEnabled(true);
-			changeNodesWithArcs.setSelected(nodesAndArcs);
-		}
 		showPrimitives.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { reload(); }
@@ -216,10 +179,29 @@ public class Change extends EDialog
 			case CHANGE_LIBRARY:    changeInLibrary.setSelected(true);    break;
 			case CHANGE_EVERYWHERE: changeEverywhere.setSelected(true);   break;
 		}
-		reload();
 	}
 
-	protected void escapePressed() { cancel(null); }
+	/**
+	 * Reloads the dialog when Highlights change
+	 */
+	public void highlightChanged()
+	{
+		if (!isVisible()) return;
+		loadInfo();
+	}
+
+	/**
+	 * Called when by a Highlighter when it loses focus. The argument
+	 * is the Highlighter that has gained focus (may be null).
+	 * @param highlighterGainedFocus the highlighter for the current window (may be null).
+	 */
+	public void highlighterLostFocus(Highlighter highlighterGainedFocus)
+	{
+		if (!isVisible()) return;
+		loadInfo();        
+	}
+
+	protected void escapePressed() { done(null); }
 
 	private void whatToChangeChanged(ActionEvent evt)
 	{
@@ -250,10 +232,95 @@ public class Change extends EDialog
 
     private static final Pattern dummyName = Pattern.compile("(.*?)FROM(.*?)\\{(.*)");
 
+	/**
+	 * Method called when the current selection has changed.
+	 * Makes sure displayed options are correct.
+	 */
+	private void loadInfo()
+	{
+		// update current window
+		EditWindow curWnd = EditWindow.getCurrent();
+		if (wnd != curWnd && curWnd != null)
+		{
+			if (wnd != null) wnd.getHighlighter().removeHighlightListener(this);
+			curWnd.getHighlighter().addHighlightListener(this);
+			wnd = curWnd;
+		}
+
+		// find out what is going to be changed
+		geomsToChange = new ArrayList();
+		if (wnd != null)
+		{
+			List highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
+			for (Iterator it = highs.iterator(); it.hasNext(); )
+			{
+				geomsToChange.add(it.next());
+			}
+		}
+		if (geomsToChange.size() == 0)
+		{
+			librariesPopup.setEnabled(false);
+			ignorePortNames.setEnabled(false);
+			allowMissingPorts.setEnabled(false);
+			showPrimitives.setEnabled(false);
+			showCells.setEnabled(false);
+			changeNodesWithArcs.setEnabled(false);
+			apply.setEnabled(false);
+			changeSelected.setEnabled(false);
+			changeConnected.setEnabled(false);
+			changeInCell.setEnabled(false);
+			changeInLibrary.setEnabled(false);
+			changeEverywhere.setEnabled(false);
+			return;
+		}
+
+		apply.setEnabled(true);
+		changeSelected.setEnabled(true);
+		changeConnected.setEnabled(true);
+		changeInCell.setEnabled(true);
+		changeInLibrary.setEnabled(true);
+		changeEverywhere.setEnabled(true);
+		Geometric geomToChange = (Geometric)geomsToChange.get(0);
+		if (geomToChange instanceof NodeInst)
+		{
+			librariesPopup.setEnabled(true);
+			ignorePortNames.setEnabled(true);
+			allowMissingPorts.setEnabled(true);
+			showPrimitives.setEnabled(true);
+			showCells.setEnabled(true);
+			NodeInst ni = (NodeInst)geomToChange;
+			if (ni.getProto() instanceof Cell)
+			{
+				showCells.setSelected(true);
+			} else
+			{
+				showPrimitives.setSelected(true);
+			}
+			changeNodesWithArcs.setSelected(false);
+			changeNodesWithArcs.setEnabled(false);
+		} else
+		{
+			librariesPopup.setEnabled(false);
+			ignorePortNames.setEnabled(false);
+			allowMissingPorts.setEnabled(false);
+			showPrimitives.setEnabled(false);
+			showCells.setEnabled(false);
+			changeNodesWithArcs.setEnabled(true);
+			changeNodesWithArcs.setSelected(nodesAndArcs);
+		}
+
+		reload();
+	}
+
+	/**
+	 * Method called when dialog controls have changed.
+	 * Makes sure the displayed lists and options are correct.
+	 */
 	private void reload()
 	{
 		changeListModel.clear();
 		changeNodeProtoList.clear();
+		if (geomsToChange.size() == 0) return;
 		Technology curTech = Technology.getCurrent();
         Geometric geomToChange = (Geometric)geomsToChange.get(0);
 		if (geomToChange instanceof NodeInst)
@@ -270,19 +337,6 @@ public class Change extends EDialog
 					changeListModel.addElement(cell.noLibDescribe());
 					changeNodeProtoList.add(cell);
 				}
-//				(void)us_setscrolltocurrentcell(DCHG_ALTLIST, TRUE, FALSE, FALSE, FALSE, dia);
-                changeList.setSelectedIndex(0);
-                String geomName = ((NodeInst)geomToChange).getProto().describe();
-                // if replacing dummy facet, name will be [cellname]FROM[libname][{view}]
-                Matcher mat = dummyName.matcher(geomName);
-                if (mat.matches()) {
-                    // try to select items.  Nothing will happen if they are not in list.
-                    changeList.setSelectedValue(mat.group(1)+"{"+mat.group(3), true);
-                    librariesPopup.setSelectedItem(mat.group(2));
-                } else {
-                    // otherwise, try to match name
-                    changeList.setSelectedValue(geomName, true);
-                }
 			}
 			if (showPrimitives.isSelected())
 			{
@@ -302,7 +356,24 @@ public class Change extends EDialog
 					changeListModel.addElement("Generic:Unrouted-Pin");
 					changeNodeProtoList.add(Generic.tech.unroutedPinNode);
 				}
-                changeList.setSelectedIndex(0);
+			}
+			changeList.setSelectedIndex(0);
+			if (showCells.isSelected())
+			{
+				String geomName = ((NodeInst)geomToChange).getProto().describe();
+
+				// if replacing dummy facet, name will be [cellname]FROM[libname][{view}]
+				Matcher mat = dummyName.matcher(geomName);
+				if (mat.matches())
+				{
+					// try to select items.  Nothing will happen if they are not in list.
+					changeList.setSelectedValue(mat.group(1) + "{" + mat.group(3), true);
+					librariesPopup.setSelectedItem(mat.group(2));
+				} else
+				{
+					// otherwise, try to match name
+					changeList.setSelectedValue(geomName, true);
+				}
 			}
 		} else
 		{
@@ -347,8 +418,9 @@ public class Change extends EDialog
 					changeListModel.addElement(ap.describe());
 				}
 			}
-            changeList.setSelectedIndex(0);
-		}
+			changeList.setSelectedIndex(0);
+ 		}
+		centerSelection(changeList);
 	}
 
 	private void doTheChange()
@@ -373,65 +445,99 @@ public class Change extends EDialog
 
 		public boolean doIt()
 		{
-            for (Iterator geomit = dialog.geomsToChange.iterator(); geomit.hasNext(); ) {
-                Geometric geomToChange = (Geometric)geomit.next();
-			// handle node replacement
-			if (geomToChange instanceof NodeInst)
+            for (Iterator geomit = dialog.geomsToChange.iterator(); geomit.hasNext(); )
 			{
-				// get node to be replaced
-				NodeInst ni = (NodeInst)geomToChange;
-
-				// disallow replacing if lock is on
-				if (CircuitChanges.cantEdit(ni.getParent(), ni, true)) return false;
-
-				// get nodeproto to replace it with
-                String line = dialog.getLibSelected();
-                Library library = Library.findLibrary(line);
-                if (library == null) return false;
-                int index = dialog.changeList.getSelectedIndex();
-                NodeProto np = (NodeProto)dialog.changeNodeProtoList.get(index);
-//				line = (String)dialog.changeList.getSelectedValue();
-//                NodeProto np = NodeProto.findNodeProto(line);
-				if (np == null) return false;
-
-				// sanity check
-				NodeProto oldNType = ni.getProto();
-				if (oldNType == np)
+                Geometric geomToChange = (Geometric)geomit.next();
+				// handle node replacement
+				if (geomToChange instanceof NodeInst)
 				{
-					System.out.println("Node already of type " + np.describe());
-					return false;
-				}
+					// get node to be replaced
+					NodeInst ni = (NodeInst)geomToChange;
 
-				// get any arguments to the replace
-				boolean ignorePortNames = dialog.ignorePortNames.isSelected();
-				boolean allowMissingPorts = dialog.allowMissingPorts.isSelected();
+					// disallow replacing if lock is on
+					if (CircuitChanges.cantEdit(ni.getParent(), ni, true)) return false;
 
-                // clear highlighting
-                //Highlighter.global.clear();
+					// get nodeproto to replace it with
+	                String line = dialog.getLibSelected();
+	                Library library = Library.findLibrary(line);
+	                if (library == null) return false;
+	                int index = dialog.changeList.getSelectedIndex();
+	                NodeProto np = (NodeProto)dialog.changeNodeProtoList.get(index);
+//					line = (String)dialog.changeList.getSelectedValue();
+//             		NodeProto np = NodeProto.findNodeProto(line);
+					if (np == null) return false;
 
-				// replace the nodeinsts
-				NodeInst onlyNewNi = CircuitChanges.replaceNodeInst(ni, np, ignorePortNames, allowMissingPorts);
-				if (onlyNewNi == null)
-				{
-					System.out.println(np.describe() + " does not fit in the place of " + oldNType.describe());
-					return false;
-				}
-
-				// do additional replacements if requested
-				int total = 1;
-				if (dialog.changeEverywhere.isSelected())
-				{
-                    // clear highlighting
-                    //Highlighter.global.clear();
-
-					// replace in all cells of library if requested
-					for(Iterator it = Library.getLibraries(); it.hasNext(); )
+					// sanity check
+					NodeProto oldNType = ni.getProto();
+					if (oldNType == np)
 					{
-						Library lib = (Library)it.next();
+						System.out.println("Node already of type " + np.describe());
+						return false;
+					}
+
+					// get any arguments to the replace
+					boolean ignorePortNames = dialog.ignorePortNames.isSelected();
+					boolean allowMissingPorts = dialog.allowMissingPorts.isSelected();
+
+					// replace the nodeinsts
+					NodeInst onlyNewNi = CircuitChanges.replaceNodeInst(ni, np, ignorePortNames, allowMissingPorts);
+					if (onlyNewNi == null)
+					{
+						System.out.println(np.describe() + " does not fit in the place of " + oldNType.describe());
+						return false;
+					}
+
+					// do additional replacements if requested
+					int total = 1;
+					if (dialog.changeEverywhere.isSelected())
+					{
+						// replace in all cells of library if requested
+						for(Iterator it = Library.getLibraries(); it.hasNext(); )
+						{
+							Library lib = (Library)it.next();
+							for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+							{
+								Cell cell = (Cell)cIt.next();
+
+								boolean found = true;
+								while (found)
+								{
+									found = false;
+									for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+									{
+										NodeInst lNi = (NodeInst)nIt.next();
+										if (lNi.getProto() != oldNType) continue;
+
+										// do not replace the example icon
+										if (lNi.isIconOfParent())
+										{
+											System.out.println("Example icon in cell " + cell.describe() + " not replaced");
+											continue;
+										}
+
+										// disallow replacing if lock is on
+										if (CircuitChanges.cantEdit(cell, lNi, true)) continue;
+
+										NodeInst newNi = CircuitChanges.replaceNodeInst(lNi, np, ignorePortNames, allowMissingPorts);
+										if (newNi != null)
+										{
+											total++;
+											found = true;
+											break;
+										}
+									}
+								}
+							}
+						}
+						System.out.println("All " + total + " " + oldNType.describe() +
+							" nodes in all libraries replaced with " + np.describe());
+					} else if (dialog.changeInLibrary.isSelected())
+					{
+						// replace throughout this library if requested
+						Library lib = Library.getCurrent();
 						for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 						{
 							Cell cell = (Cell)cIt.next();
-
 							boolean found = true;
 							while (found)
 							{
@@ -440,13 +546,6 @@ public class Change extends EDialog
 								{
 									NodeInst lNi = (NodeInst)nIt.next();
 									if (lNi.getProto() != oldNType) continue;
-
-									// do not replace the example icon
-									if (lNi.isIconOfParent())
-									{
-										System.out.println("Example icon in cell " + cell.describe() + " not replaced");
-										continue;
-									}
 
 									// disallow replacing if lock is on
 									if (CircuitChanges.cantEdit(cell, lNi, true)) continue;
@@ -461,19 +560,12 @@ public class Change extends EDialog
 								}
 							}
 						}
-					}
-					System.out.println("All " + total + " " + oldNType.describe() +
-						" nodes in all libraries replaced with " + np.describe());
-				} else if (dialog.changeInLibrary.isSelected())
-				{
-                    // clear highlighting
-                    //Highlighter.global.clear();
-
-					// replace throughout this library if requested
-					Library lib = Library.getCurrent();
-					for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+						System.out.println("All " + total + " " + oldNType.describe() +
+							" nodes in library " + lib.getName() + " replaced with " + np.describe());
+					} else if (dialog.changeInCell.isSelected())
 					{
-						Cell cell = (Cell)cIt.next();
+						// replace throughout this cell if "requested
+						Cell cell = WindowFrame.getCurrentCell();
 						boolean found = true;
 						while (found)
 						{
@@ -495,144 +587,145 @@ public class Change extends EDialog
 								}
 							}
 						}
-					}
-					System.out.println("All " + total + " " + oldNType.describe() +
-						" nodes in library " + lib.getName() + " replaced with " + np.describe());
-				} else if (dialog.changeInCell.isSelected())
-				{
-					// replace throughout this cell if "requested
-					Cell cell = WindowFrame.getCurrentCell();
-					boolean found = true;
-					while (found)
+						System.out.println("All " + total + " " + oldNType.describe() + " nodes in cell " +
+							cell.describe() + " replaced with " + np.describe());
+					} else if (dialog.changeConnected.isSelected())
 					{
-						found = false;
-						for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+						// replace all connected to this in the cell if requested
+						Cell curCell = WindowFrame.getCurrentCell();
+						Netlist netlist = curCell.getUserNetlist();
+						List others = new ArrayList();
+						for(Iterator it = curCell.getNodes(); it.hasNext(); )
 						{
-							NodeInst lNi = (NodeInst)nIt.next();
+							NodeInst lNi = (NodeInst)it.next();
 							if (lNi.getProto() != oldNType) continue;
+							if (lNi == onlyNewNi) continue;
 
+							boolean found = false;
+							for(Iterator pIt = onlyNewNi.getPortInsts(); pIt.hasNext(); )
+							{
+								PortInst pi = (PortInst)pIt.next();
+								for(Iterator lPIt = lNi.getPortInsts(); lPIt.hasNext(); )
+								{
+									PortInst lPi = (PortInst)lPIt.next();
+									if (netlist.sameNetwork(pi.getNodeInst(), pi.getPortProto(), lPi.getNodeInst(), lPi.getPortProto()))
+									{
+										found = true;
+										break;
+									}
+								}
+								if (found) break;
+							}
+							if (found) others.add(lNi);
+						}
+
+						// make the changes
+						for(Iterator it = others.iterator(); it.hasNext(); )
+						{
+							NodeInst lNi = (NodeInst)it.next();
+	
 							// disallow replacing if lock is on
-							if (CircuitChanges.cantEdit(cell, lNi, true)) continue;
-
+							if (CircuitChanges.cantEdit(curCell, lNi, true)) continue;
+	
 							NodeInst newNi = CircuitChanges.replaceNodeInst(lNi, np, ignorePortNames, allowMissingPorts);
 							if (newNi != null)
 							{
 								total++;
-								found = true;
-								break;
 							}
 						}
-					}
-					System.out.println("All " + total + " " + oldNType.describe() + " nodes in cell " +
-						cell.describe() + " replaced with " + np.describe());
-				} else if (dialog.changeConnected.isSelected())
+						System.out.println("All " + total + " " + oldNType.describe() +
+							" nodes connected to this replaced with " + np.describe());
+					} else System.out.println("Node " + oldNType.describe() + " replaced with " + np.describe());
+				} else
 				{
-					// replace all connected to this in the cell if requested
-					Cell curCell = WindowFrame.getCurrentCell();
-					Netlist netlist = curCell.getUserNetlist();
-					List others = new ArrayList();
-					for(Iterator it = curCell.getNodes(); it.hasNext(); )
-					{
-						NodeInst lNi = (NodeInst)it.next();
-						if (lNi.getProto() != oldNType) continue;
-						if (lNi == onlyNewNi) continue;
+					// get arc to be replaced
+					ArcInst ai = (ArcInst)geomToChange;
 
-						boolean found = false;
-						for(Iterator pIt = onlyNewNi.getPortInsts(); pIt.hasNext(); )
+					// disallow replacement if lock is on
+					if (CircuitChanges.cantEdit(ai.getParent(), null, true)) return false;
+
+					String line = (String)dialog.changeList.getSelectedValue();
+					ArcProto ap = ArcProto.findArcProto(line);
+					if (ap == null)
+					{
+						System.out.println("Nothing called '" + line + "'");
+						return false;
+					}
+
+					// sanity check
+					ArcProto oldAType = ai.getProto();
+					if (oldAType == ap)
+					{
+						System.out.println("Arc already of type " + ap.describe());
+						return false;
+					}
+
+					// special case when replacing nodes, too
+					if (dialog.changeNodesWithArcs.isSelected())
+					{
+						if (dialog.changeInLibrary.isSelected())
 						{
-							PortInst pi = (PortInst)pIt.next();
-							for(Iterator lPIt = lNi.getPortInsts(); lPIt.hasNext(); )
+							for(Iterator it = Library.getCurrent().getCells(); it.hasNext(); )
 							{
-								PortInst lPi = (PortInst)lPIt.next();
-								if (netlist.sameNetwork(pi.getNodeInst(), pi.getPortProto(), lPi.getNodeInst(), lPi.getPortProto()))
+								Cell cell = (Cell)it.next();
+								replaceAllArcs(cell, ai, ap, false, true);
+							}
+						} else
+						{
+							replaceAllArcs(ai.getParent(), ai, ap, dialog.changeConnected.isSelected(),
+								dialog.changeInCell.isSelected());
+						}
+						return true;
+					}
+
+					// replace the arcinst
+					ArcInst onlyNewAi = ai.replace(ap);
+					if (onlyNewAi == null)
+					{
+						System.out.println(ap.describe() + " does not fit in the place of " + oldAType.describe());
+						return false;
+					}
+
+					// do additional replacements if requested
+					int total = 1;
+					if (dialog.changeEverywhere.isSelected())
+					{
+						// replace in all cells of library if requested
+						for(Iterator it = Library.getLibraries(); it.hasNext(); )
+						{
+							Library lib = (Library)it.next();
+							for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+							{
+								Cell cell = (Cell)cIt.next();
+								boolean found = true;
+								while (found)
 								{
-									found = true;
-									break;
+									found = false;
+									for(Iterator nIt = cell.getArcs(); nIt.hasNext(); )
+									{
+										ArcInst lAi = (ArcInst)nIt.next();
+										if (lAi.getProto() != oldAType) continue;
+	
+										// disallow replacing if lock is on
+										if (CircuitChanges.cantEdit(cell, null, true)) continue;
+	
+										ArcInst newAi = lAi.replace(ap);
+										if (newAi != null)
+										{
+											total++;
+											found = true;
+											break;
+										}
+									}
 								}
 							}
-							if (found) break;
 						}
-						if (found) others.add(lNi);
-					}
-
-					// make the changes
-					for(Iterator it = others.iterator(); it.hasNext(); )
+						System.out.println("All " + total + " " + oldAType.describe() +
+							" arcs in the library replaced with " + ap.describe());
+					} else if (dialog.changeInLibrary.isSelected())
 					{
-						NodeInst lNi = (NodeInst)it.next();
-
-						// disallow replacing if lock is on
-						if (CircuitChanges.cantEdit(curCell, lNi, true)) continue;
-
-						NodeInst newNi = CircuitChanges.replaceNodeInst(lNi, np, ignorePortNames, allowMissingPorts);
-						if (newNi != null)
-						{
-							total++;
-						}
-					}
-					System.out.println("All " + total + " " + oldNType.describe() +
-						" nodes connected to this replaced with " + np.describe());
-				} else System.out.println("Node " + oldNType.describe() + " replaced with " + np.describe());
-			} else
-			{
-				// get arc to be replaced
-				ArcInst ai = (ArcInst)geomToChange;
-
-				// disallow replacement if lock is on
-				if (CircuitChanges.cantEdit(ai.getParent(), null, true)) return false;
-
-				String line = (String)dialog.changeList.getSelectedValue();
-				ArcProto ap = ArcProto.findArcProto(line);
-				if (ap == null)
-				{
-					System.out.println("Nothing called '" + line + "'");
-					return false;
-				}
-
-                // clear highlighting
-                //Highlighter.global.clear();
-
-				// sanity check
-				ArcProto oldAType = ai.getProto();
-				if (oldAType == ap)
-				{
-					System.out.println("Arc already of type " + ap.describe());
-					return false;
-				}
-
-				// special case when replacing nodes, too
-				if (dialog.changeNodesWithArcs.isSelected())
-				{
-					if (dialog.changeInLibrary.isSelected())
-					{
-						for(Iterator it = Library.getCurrent().getCells(); it.hasNext(); )
-						{
-							Cell cell = (Cell)it.next();
-							replaceAllArcs(cell, ai, ap, false, true);
-						}
-					} else
-					{
-						replaceAllArcs(ai.getParent(), ai, ap, dialog.changeConnected.isSelected(),
-							dialog.changeInCell.isSelected());
-					}
-					return true;
-				}
-
-				// replace the arcinst
-				ArcInst onlyNewAi = ai.replace(ap);
-				if (onlyNewAi == null)
-				{
-					System.out.println(ap.describe() + " does not fit in the place of " + oldAType.describe());
-					return false;
-				}
-
-				// do additional replacements if requested
-				int total = 1;
-				if (dialog.changeEverywhere.isSelected())
-				{
-					// replace in all cells of library if requested
-					for(Iterator it = Library.getLibraries(); it.hasNext(); )
-					{
-						Library lib = (Library)it.next();
+						// replace throughout this library if requested
+						Library lib = Library.getCurrent();
 						for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 						{
 							Cell cell = (Cell)cIt.next();
@@ -658,16 +751,12 @@ public class Change extends EDialog
 								}
 							}
 						}
-					}
-					System.out.println("All " + total + " " + oldAType.describe() +
-						" arcs in the library replaced with " + ap.describe());
-				} else if (dialog.changeInLibrary.isSelected())
-				{
-					// replace throughout this library if requested
-					Library lib = Library.getCurrent();
-					for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+						System.out.println("All " + total + " " + oldAType.describe() +
+							" arcs in library " + lib.getName() + " replaced with " + ap.describe());
+					} else if (dialog.changeInCell.isSelected())
 					{
-						Cell cell = (Cell)cIt.next();
+						// replace throughout this cell if requested
+						Cell cell = WindowFrame.getCurrentCell();
 						boolean found = true;
 						while (found)
 						{
@@ -689,64 +778,35 @@ public class Change extends EDialog
 								}
 							}
 						}
-					}
-					System.out.println("All " + total + " " + oldAType.describe() +
-						" arcs in library " + lib.getName() + " replaced with " + ap.describe());
-				} else if (dialog.changeInCell.isSelected())
-				{
-					// replace throughout this cell if requested
-					Cell cell = WindowFrame.getCurrentCell();
-					boolean found = true;
-					while (found)
+						System.out.println("All " + total + " " + oldAType.describe() +
+							" arcs in cell " + cell.describe() + " replaced with " + ap.describe());
+					} else if (dialog.changeConnected.isSelected())
 					{
-						found = false;
-						for(Iterator nIt = cell.getArcs(); nIt.hasNext(); )
+						// replace all connected to this if requested
+						List others = new ArrayList();
+						Cell cell = WindowFrame.getCurrentCell();
+						Netlist netlist = cell.getUserNetlist();
+						for(Iterator it = cell.getArcs(); it.hasNext(); )
 						{
-							ArcInst lAi = (ArcInst)nIt.next();
-							if (lAi.getProto() != oldAType) continue;
+							ArcInst lAi = (ArcInst)it.next();
+							if (lAi == onlyNewAi) continue;
+							if (netlist.sameNetwork(onlyNewAi, lAi)) others.add(lAi);
+						}
 
-							// disallow replacing if lock is on
-							if (CircuitChanges.cantEdit(cell, null, true)) continue;
-
+						for(Iterator it = others.iterator(); it.hasNext(); )
+						{
+							ArcInst lAi = (ArcInst)it.next();
 							ArcInst newAi = lAi.replace(ap);
 							if (newAi != null)
 							{
 								total++;
-								found = true;
-								break;
 							}
 						}
-					}
-					System.out.println("All " + total + " " + oldAType.describe() +
-						" arcs in cell " + cell.describe() + " replaced with " + ap.describe());
-				} else if (dialog.changeConnected.isSelected())
-				{
-					// replace all connected to this if requested
-					List others = new ArrayList();
-					Cell cell = WindowFrame.getCurrentCell();
-					Netlist netlist = cell.getUserNetlist();
-					for(Iterator it = cell.getArcs(); it.hasNext(); )
-					{
-						ArcInst lAi = (ArcInst)it.next();
-						if (lAi == onlyNewAi) continue;
-						if (netlist.sameNetwork(onlyNewAi, lAi)) others.add(lAi);
-					}
-
-					for(Iterator it = others.iterator(); it.hasNext(); )
-					{
-						ArcInst lAi = (ArcInst)it.next();
-						ArcInst newAi = lAi.replace(ap);
-						if (newAi != null)
-						{
-							total++;
-						}
-					}
-					System.out.println("All " + total + " " + oldAType.describe() +
-						" arcs connected to this replaced with " + ap.describe());
-				} else System.out.println("Arc " + oldAType.describe() + " replaced with " +ap.describe());
-			}
+						System.out.println("All " + total + " " + oldAType.describe() +
+							" arcs connected to this replaced with " + ap.describe());
+					} else System.out.println("Arc " + oldAType.describe() + " replaced with " +ap.describe());
+				}
             }
-            //Highlighter.global.finished();
             WindowFrame.wantToRedoLibraryTree();
 			return true;
 		}
@@ -1027,8 +1087,8 @@ public class Change extends EDialog
         java.awt.GridBagConstraints gridBagConstraints;
 
         changeOption = new javax.swing.ButtonGroup();
-        cancel = new javax.swing.JButton();
-        ok = new javax.swing.JButton();
+        done = new javax.swing.JButton();
+        apply = new javax.swing.JButton();
         listPane = new javax.swing.JScrollPane();
         changeSelected = new javax.swing.JRadioButton();
         changeConnected = new javax.swing.JRadioButton();
@@ -1055,12 +1115,12 @@ public class Change extends EDialog
             }
         });
 
-        cancel.setText("Cancel");
-        cancel.addActionListener(new java.awt.event.ActionListener()
+        done.setText("Done");
+        done.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                cancel(evt);
+                done(evt);
             }
         });
 
@@ -1069,14 +1129,14 @@ public class Change extends EDialog
         gridBagConstraints.gridy = 10;
         gridBagConstraints.weightx = 0.5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(cancel, gridBagConstraints);
+        getContentPane().add(done, gridBagConstraints);
 
-        ok.setText("OK");
-        ok.addActionListener(new java.awt.event.ActionListener()
+        apply.setText("Apply");
+        apply.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                ok(evt);
+                apply(evt);
             }
         });
 
@@ -1085,7 +1145,7 @@ public class Change extends EDialog
         gridBagConstraints.gridy = 10;
         gridBagConstraints.weightx = 0.5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(ok, gridBagConstraints);
+        getContentPane().add(apply, gridBagConstraints);
 
         listPane.setMinimumSize(new java.awt.Dimension(150, 22));
         listPane.setPreferredSize(new java.awt.Dimension(150, 22));
@@ -1211,17 +1271,16 @@ public class Change extends EDialog
         pack();
     }//GEN-END:initComponents
 
-	private void cancel(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cancel
-	{//GEN-HEADEREND:event_cancel
+	private void done(java.awt.event.ActionEvent evt)//GEN-FIRST:event_done
+	{//GEN-HEADEREND:event_done
 		closeDialog(null);
-	}//GEN-LAST:event_cancel
+	}//GEN-LAST:event_done
 
-	private void ok(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ok
-	{//GEN-HEADEREND:event_ok
+	private void apply(java.awt.event.ActionEvent evt)//GEN-FIRST:event_apply
+	{//GEN-HEADEREND:event_apply
 		doTheChange();
         libSelected = (String)librariesPopup.getSelectedItem();
-		closeDialog(null);
-	}//GEN-LAST:event_ok
+	}//GEN-LAST:event_apply
 
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
@@ -1232,7 +1291,7 @@ public class Change extends EDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox allowMissingPorts;
-    private javax.swing.JButton cancel;
+    private javax.swing.JButton apply;
     private javax.swing.JRadioButton changeConnected;
     private javax.swing.JRadioButton changeEverywhere;
     private javax.swing.JRadioButton changeInCell;
@@ -1240,11 +1299,11 @@ public class Change extends EDialog
     private javax.swing.JCheckBox changeNodesWithArcs;
     private javax.swing.ButtonGroup changeOption;
     private javax.swing.JRadioButton changeSelected;
+    private javax.swing.JButton done;
     private javax.swing.JCheckBox ignorePortNames;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JComboBox librariesPopup;
     private javax.swing.JScrollPane listPane;
-    private javax.swing.JButton ok;
     private javax.swing.JCheckBox showCells;
     private javax.swing.JCheckBox showPrimitives;
     // End of variables declaration//GEN-END:variables

@@ -1977,6 +1977,12 @@ public class PixelDrawing
 				if (af != null) fontName = af.getName();
 			}
 			rotation = descript.getRotation().getIndex();
+			int colorIndex = descript.getColorIndex();
+			if (colorIndex != 0)
+			{
+				Color full = EGraphics.getColorFromIndex(colorIndex);
+				if (full != null) col = full.getRGB() & 0xFFFFFF;
+			}
 		}
 
 		// get box information for limiting text size

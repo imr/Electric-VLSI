@@ -720,10 +720,10 @@ public class NodeInst extends Geometric implements Nodable
 		// make the change
 		center.setLocation(DBMath.round(getAnchorCenterX() + dX), DBMath.round(getAnchorCenterY() + dY));
 
-		sX = DBMath.round(this.sX + dXSize);
-		sY = DBMath.round(this.sY + dYSize);
+		sX = DBMath.round(sX + dXSize);
+		sY = DBMath.round(sY + dYSize);
 
-		angle = (angle +dRot) % 3600;
+		angle = (angle + dRot) % 3600;
 
 		// fill in the Geometric fields
 		redoGeometric();
@@ -1421,18 +1421,23 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public Poly getShapeOfPort(PortProto thePort, Point2D selectPt, boolean forWiringTool, double arcWidth)
 	{
-		NodeInst ni = this;
-		PortProto pp = thePort;
-
 		// look down to the bottom level node/port
-		AffineTransform trans = ni.rotateOut();
-		while (ni.getProto() instanceof Cell)
-		{
-			trans = ni.translateOut(trans);
-			ni = ((Export)pp).getOriginalPort().getNodeInst();
-			pp = ((Export)pp).getOriginalPort().getPortProto();
-			trans = ni.rotateOut(trans);
-		}
+		PortProto.FindPrimitive fp = new PortProto.FindPrimitive(this, thePort);
+		AffineTransform trans = fp.getTransformToTop();
+		NodeInst ni = fp.getBottomNodeInst();
+		PortProto pp = fp.getBottomPortProto();
+
+		// the above 4 lines replace the loop below
+//		NodeInst ni = this;
+//		PortProto pp = thePort;
+//		AffineTransform trans = ni.rotateOut();
+//		while (ni.getProto() instanceof Cell)
+//		{
+//			trans = ni.translateOut(trans);
+//			ni = ((Export)pp).getOriginalPort().getNodeInst();
+//			pp = ((Export)pp).getOriginalPort().getPortProto();
+//			trans = ni.rotateOut(trans);
+//		}
 
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		Technology tech = np.getTechnology();

@@ -448,6 +448,67 @@ public class EGraphics
 	}
 
 	/**
+	 * Method to convert a color index into a Color.
+	 * Color indices are more general than colors, because they can handle
+	 * transparent layers, C-Electric-style opaque layers, and full color values.
+	 * @param colorIndex the color index to convert.
+	 * @return a Color that describes the index
+	 * Returns null if the index is a transparent layer.
+	 */
+	public static Color getColorFromIndex(int colorIndex)
+	{
+		if ((colorIndex&OPAQUEBIT) != 0)
+		{
+			// an opaque color
+			switch (colorIndex)
+			{
+				case WHITE:   return new Color(255, 255, 255);
+				case BLACK:   return new Color(  0,   0,   0);
+				case RED:     return new Color(255,   0,   0);
+				case BLUE:    return new Color(  0,   0, 255);
+				case GREEN:   return new Color(  0, 255,   0);
+				case CYAN:    return new Color(  0, 255, 255);
+				case MAGENTA: return new Color(255,   0, 255);
+				case YELLOW:  return new Color(255, 255,   0);
+				case CELLTXT: return new Color(  0,   0,   0);
+				case CELLOUT: return new Color(  0,   0,   0);
+				case WINBOR:  return new Color(  0,   0,   0);
+				case HWINBOR: return new Color(  0, 255,   0);
+				case MENBOR:  return new Color(  0,   0,   0);
+				case HMENBOR: return new Color(255, 255, 255);
+				case MENTXT:  return new Color(  0,   0,   0);
+				case MENGLY:  return new Color(  0,   0,   0);
+				case CURSOR:  return new Color(  0,   0,   0);
+				case GRAY:    return new Color(180, 180, 180);
+				case ORANGE:  return new Color(255, 190,   6);
+				case PURPLE:  return new Color(186,   0, 255);
+				case BROWN:   return new Color(139,  99,  46);
+				case LGRAY:   return new Color(230, 230, 230);
+				case DGRAY:   return new Color(100, 100, 100);
+				case LRED:    return new Color(255, 150, 150);
+				case DRED:    return new Color(159,  80,  80);
+				case LGREEN:  return new Color(175, 255, 175);
+				case DGREEN:  return new Color( 89, 159,  85);
+				case LBLUE:   return new Color(150, 150, 255);
+				case DBLUE:   return new Color(  2,  15, 159);
+			}
+			return null;
+		}
+		if ((colorIndex&FULLRGBBIT) != 0)
+		{
+			// a full RGB color (opaque)
+			return new Color((colorIndex >> 24) & 0xFF, (colorIndex >> 16) & 0xFF, (colorIndex >> 8) & 0xFF);
+		}
+
+		// handle transparent colors
+		Color [] colorMap = Technology.getCurrent().getColorMap();
+		if (colorMap == null) return null;
+		int trueIndex = colorIndex >> 2;
+		if (trueIndex < colorMap.length) return colorMap[trueIndex];
+		return null;
+	}
+
+	/**
 	 * Method to set the color of this EGraphics from a "color index".
 	 * Color indices are more general than colors, because they can handle
 	 * transparent layers, C-Electric-style opaque layers, and full color values.
@@ -456,49 +517,11 @@ public class EGraphics
 	 */
 	public void setColorIndex(int colorIndex)
 	{
-		if ((colorIndex&OPAQUEBIT) != 0)
+		if ((colorIndex&(OPAQUEBIT|FULLRGBBIT)) != 0)
 		{
-			// an opaque color
+			// an opaque or full RGB color
 			transparentLayer = 0;
-			switch (colorIndex)
-			{
-				case WHITE:   setColor(new Color(255, 255, 255));   break;
-				case BLACK:   setColor(new Color(  0,   0,   0));   break;
-				case RED:     setColor(new Color(255,   0,   0));   break;
-				case BLUE:    setColor(new Color(  0,   0, 255));   break;
-				case GREEN:   setColor(new Color(  0, 255,   0));   break;
-				case CYAN:    setColor(new Color(  0, 255, 255));   break;
-				case MAGENTA: setColor(new Color(255,   0, 255));   break;
-				case YELLOW:  setColor(new Color(255, 255,   0));   break;
-				case CELLTXT: setColor(new Color(  0,   0,   0));   break;
-				case CELLOUT: setColor(new Color(  0,   0,   0));   break;
-				case WINBOR:  setColor(new Color(  0,   0,   0));   break;
-				case HWINBOR: setColor(new Color(  0, 255,   0));   break;
-				case MENBOR:  setColor(new Color(  0,   0,   0));   break;
-				case HMENBOR: setColor(new Color(255, 255, 255));   break;
-				case MENTXT:  setColor(new Color(  0,   0,   0));   break;
-				case MENGLY:  setColor(new Color(  0,   0,   0));   break;
-				case CURSOR:  setColor(new Color(  0,   0,   0));   break;
-				case GRAY:    setColor(new Color(180, 180, 180));   break;
-				case ORANGE:  setColor(new Color(255, 190,   6));   break;
-				case PURPLE:  setColor(new Color(186,   0, 255));   break;
-				case BROWN:   setColor(new Color(139,  99,  46));   break;
-				case LGRAY:   setColor(new Color(230, 230, 230));   break;
-				case DGRAY:   setColor(new Color(100, 100, 100));   break;
-				case LRED:    setColor(new Color(255, 150, 150));   break;
-				case DRED:    setColor(new Color(159,  80,  80));   break;
-				case LGREEN:  setColor(new Color(175, 255, 175));   break;
-				case DGREEN:  setColor(new Color( 89, 159,  85));   break;
-				case LBLUE:   setColor(new Color(150, 150, 255));   break;
-				case DBLUE:   setColor(new Color(  2,  15, 159));   break;
-			}
-			return;
-		}
-		if ((colorIndex&FULLRGBBIT) != 0)
-		{
-			// a full RGB color (opaque)
-			transparentLayer = 0;
-			setColor(new Color((colorIndex >> 24) & 0xFF, (colorIndex >> 16) & 0xFF, (colorIndex >> 8) & 0xFF));
+			setColor(getColorFromIndex(colorIndex));
 			return;
 		}
 
@@ -527,9 +550,9 @@ public class EGraphics
 	 */
 	public static int makeIndex(Color color)
 	{
-		int red =   color.getRed();
+		int red   = color.getRed();
 		int green = color.getGreen();
-		int blue =  color.getBlue();
+		int blue  = color.getBlue();
 		int index = (red << 24) | (green << 16) | (blue << 8) | FULLRGBBIT;
 		return index;
 	}

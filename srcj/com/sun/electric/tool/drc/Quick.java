@@ -2630,22 +2630,30 @@ public class Quick
 			// find the primitive nodeinst at the true end of the portinst
 			Connection con = ai.getConnection(i);
 			PortInst pi = con.getPortInst();
-			NodeInst ni = pi.getNodeInst();
+
+			PortProto.FindPrimitive fp = new PortProto.FindPrimitive(pi, inTrans);
+			NodeInst ni = fp.getBottomNodeInst();
 			NodeProto np = ni.getProto();
-			PortProto pp = pi.getPortProto();
-			AffineTransform trans = ni.rotateOut();
-			trans.concatenate(inTrans);
-			while (np instanceof Cell)
-			{
-				AffineTransform xTrans = ni.translateOut();
-				trans.preConcatenate(xTrans);
-				PortInst subPi = ((Export)pp).getOriginalPort();
-				ni = subPi.getNodeInst();
-				np = ni.getProto();
-				pp = subPi.getPortProto();
-				AffineTransform rTrans = ni.rotateOut();
-				trans.preConcatenate(rTrans);
-			}
+			AffineTransform trans = fp.getTransformToTop();
+
+			// the above 4 lines replace the loop below
+//			NodeInst ni = pi.getNodeInst();
+//			NodeProto np = ni.getProto();
+//			PortProto pp = pi.getPortProto();
+//			AffineTransform trans = ni.rotateOut();
+//			trans.concatenate(inTrans);
+//			while (np instanceof Cell)
+//			{
+//				AffineTransform xTrans = ni.translateOut();
+//				trans.preConcatenate(xTrans);
+//				PortInst subPi = ((Export)pp).getOriginalPort();
+//				ni = subPi.getNodeInst();
+//				np = ni.getProto();
+//				pp = subPi.getPortProto();
+//				AffineTransform rTrans = ni.rotateOut();
+//				trans.preConcatenate(rTrans);
+//			}
+
 			Technology tech = np.getTechnology();
 			Poly [] cropArcPolyList = tech.getShapeOfNode(ni, null, false, ignoreCenterCuts);
 			int tot = cropArcPolyList.length;

@@ -196,19 +196,25 @@ public class GDS extends Geometry
 				Export pp = (Export)it.next();
 
 				// find the node at the bottom of this export
-				NodeInst bottomNi = pp.getOriginalPort().getNodeInst();
-				PortProto bottomPp = pp.getOriginalPort().getPortProto();
-				AffineTransform trans = bottomNi.rotateOut();
-				while (bottomNi.getProto() instanceof Cell)
-				{
-					AffineTransform tempTrans = bottomNi.translateOut();
-					tempTrans.preConcatenate(trans);
-					PortInst pi = ((Export)bottomPp).getOriginalPort();
-					bottomNi = pi.getNodeInst();
-					bottomPp = pi.getPortProto();
-					trans = bottomNi.rotateOut();
-					trans.preConcatenate(tempTrans);
-				}
+				PortProto.FindPrimitive fp = new PortProto.FindPrimitive(pp.getOriginalPort());
+				PortInst bottomPort = fp.getBottomPort();
+				NodeInst bottomNi = bottomPort.getNodeInst();
+				AffineTransform trans = fp.getTransformToTop();
+
+				// the above 4 lines replace the loop below
+//				NodeInst bottomNi = pp.getOriginalPort().getNodeInst();
+//				PortProto bottomPp = pp.getOriginalPort().getPortProto();
+//				AffineTransform trans = bottomNi.rotateOut();
+//				while (bottomNi.getProto() instanceof Cell)
+//				{
+//					AffineTransform tempTrans = bottomNi.translateOut();
+//					tempTrans.preConcatenate(trans);
+//					PortInst pi = ((Export)bottomPp).getOriginalPort();
+//					bottomNi = pi.getNodeInst();
+//					bottomPp = pi.getPortProto();
+//					trans = bottomNi.rotateOut();
+//					trans.preConcatenate(tempTrans);
+//				}
 
 				// find the layer associated with this node
 				boolean wasWiped = bottomNi.isWiped();

@@ -157,19 +157,26 @@ public class AutoStitch
 					for(Iterator pIt = ni.getProto().getPorts(); pIt.hasNext(); )
 					{
 						PortProto pp = (PortProto)pIt.next();
-						AffineTransform trans = ni.rotateOut();
-						NodeInst rNi = ni;
-						PortProto rPp = pp;
-						while (rNi.getProto() instanceof Cell)
-						{
-							AffineTransform temp = rNi.translateOut();
-							temp.preConcatenate(trans);
-							PortInst subPi = ((Export)rPp).getOriginalPort();
-							rPp = subPi.getPortProto();
-							rNi = subPi.getNodeInst();
-							trans = rNi.rotateOut();
-							trans.preConcatenate(temp);
-						}
+
+						PortProto.FindPrimitive fp = new PortProto.FindPrimitive(ni, pp);
+						AffineTransform trans = fp.getTransformToTop();
+						NodeInst rNi = fp.getBottomNodeInst();
+
+						// the above 3 lines replace the loop below
+//						AffineTransform trans = ni.rotateOut();
+//						NodeInst rNi = ni;
+//						PortProto rPp = pp;
+//						while (rNi.getProto() instanceof Cell)
+//						{
+//							AffineTransform temp = rNi.translateOut();
+//							temp.preConcatenate(trans);
+//							PortInst subPi = ((Export)rPp).getOriginalPort();
+//							rPp = subPi.getPortProto();
+//							rNi = subPi.getNodeInst();
+//							trans = rNi.rotateOut();
+//							trans.preConcatenate(temp);
+//						}
+
 						Rectangle2D bounds = new Rectangle2D.Double(rNi.getAnchorCenterX() - rNi.getXSize()/2, 
 							rNi.getAnchorCenterY() - rNi.getYSize()/2, rNi.getXSize(), rNi.getYSize());
 						DBMath.transformRect(bounds, trans);

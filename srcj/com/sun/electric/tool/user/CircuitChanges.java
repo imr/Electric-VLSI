@@ -2647,7 +2647,7 @@ public class CircuitChanges
 	{
 		// look for unused pins that can be deleted
 		List pinsToRemove = new ArrayList();
-		List pinsToPassThrough = new ArrayList();
+		List pinsToPassThrough = getPinsToPassThrough(cell);
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
@@ -2674,16 +2674,6 @@ public class CircuitChanges
 				// no displayable variables: delete it
 				pinsToRemove.add(ni);
 				continue;
-			}
-
-			// if the pin is connected to two arcs along the same slope, delete it
-			if (ni.isInlinePin())
-			{
-				Reconnect re = Reconnect.erasePassThru(ni, false);
-				if (re != null)
-				{
-					pinsToPassThrough.add(re);
-				}
 			}
 		}
 
@@ -2866,7 +2856,31 @@ public class CircuitChanges
         job.startJob();
 		return true;
 	}
+
+	private static List getPinsToPassThrough(Cell cell)
+	{
+		List pinsToPassThrough = new ArrayList();
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (ni.getFunction() != NodeProto.Function.PIN) continue;
 	
+			// if the pin is an export, save it
+			if (ni.getNumExports() > 0) continue;
+	
+			// if the pin is connected to two arcs along the same slope, delete it
+			if (ni.isInlinePin())
+			{
+				Reconnect re = Reconnect.erasePassThru(ni, false);
+				if (re != null)
+				{
+					pinsToPassThrough.add(re);
+				}
+			}
+		}
+		return pinsToPassThrough;
+	}
+
 	/**
 	 * This class implements the changes needed to cleanup pins in a Cell.
 	 */
@@ -2909,16 +2923,24 @@ public class CircuitChanges
 				ni.kill();
 			}
             int pinsPassedThrough = 0;
-			for(Iterator it = pinsToPassThrough.iterator(); it.hasNext(); )
-			{
-				Reconnect re = (Reconnect)it.next();
-				if (!re.ni.isLinked()) continue;
-				List created = re.reconnectArcs();
-				if (created.size() > 0) {
-					re.ni.kill();
-                    pinsPassedThrough++;
-                }
-			}
+            for(;;)
+            {
+            	boolean found = false;
+				for(Iterator it = pinsToPassThrough.iterator(); it.hasNext(); )
+				{
+					Reconnect re = (Reconnect)it.next();
+					if (!re.ni.isLinked()) continue;
+					List created = re.reconnectArcs();
+					if (created.size() > 0)
+					{
+						re.ni.kill();
+	                    pinsPassedThrough++;
+	                    found = true;
+	                }
+				}
+				if (!found) break;
+				pinsToPassThrough = getPinsToPassThrough(cell);
+            }
 			for(Iterator it = pinsToScale.keySet().iterator(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
@@ -3300,7 +3322,7 @@ public class CircuitChanges
 
 		protected MakeMultiPageView(Cell cell, int pageNo)
 		{
-			super("Make Icon View", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Make Multipage Schematic View", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.pageNo = pageNo;
 			startJob();
@@ -3319,6 +3341,157 @@ public class CircuitChanges
 				otherView = Cell.makeInstance(cell.getLibrary(), cell.getName() + "{p" + pageNo + "}");
 			}
 			WindowFrame.createEditWindow(otherView);
+			return true;
+		}
+	}
+
+	/****************************** MAKE A SKELETON FOR A CELL ******************************/
+
+	public static void makeSkeletonViewCommand()
+	{
+		Cell curCell = WindowFrame.needCurCell();
+		if (curCell == null) return;
+
+		// cannot skeletonize text-only views
+		if (curCell.getView().isTextView())
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				"Cannot skeletonize textual views: only layout",
+					"Skeleton creation failed", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		// warn if skeletonizing nonlayout views
+		if (curCell.getView() != View.UNKNOWN && curCell.getView() != View.LAYOUT)
+			System.out.println("Warning: skeletonization only makes sense for layout cells, not " +
+				curCell.getView().getFullName());
+
+		MakeSkeletonView job = new MakeSkeletonView(curCell);
+	}
+
+	private static class MakeSkeletonView extends Job
+	{
+		private Cell curCell;
+
+		protected MakeSkeletonView(Cell curCell)
+		{
+			super("Make Skeleton View", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.curCell = curCell;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			// create the new icon cell
+			String skeletonCellName = curCell.getName() + "{lay.sk}";
+			Cell skeletonCell = Cell.makeInstance(curCell.getLibrary(), skeletonCellName);
+			if (skeletonCell == null)
+			{
+				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+					"Cannot create Skeleton cell " + skeletonCellName,
+						"Skeleton creation failed", JOptionPane.ERROR_MESSAGE);
+				return false;
+			}
+
+			HashMap newPortMap = new HashMap();
+			ArcProto univ = Generic.tech.universal_arc;
+
+			// place all exports in the new cell
+			for(Iterator it = curCell.getPorts(); it.hasNext(); )
+			{
+				Export pp = (Export)it.next();
+
+				// traverse to the bottom of the hierarchy for this Export
+				PortProto.FindPrimitive fp = new PortProto.FindPrimitive(pp.getOriginalPort());
+				PortInst bottomPort = fp.getBottomPort();
+				NodeInst bottomNi = bottomPort.getNodeInst();
+				PortProto bottomPp = bottomPort.getPortProto();
+				AffineTransform subRot = fp.getTransformToTop();
+				int newAng = fp.getAngleToTop();
+
+				// create this node
+				Point2D center = new Point2D.Double(bottomNi.getAnchorCenterX(), bottomNi.getAnchorCenterY());
+				subRot.transform(center, center);
+				NodeInst newNi = NodeInst.makeInstance(bottomNi.getProto(), center, bottomNi.getXSize(), bottomNi.getYSize(),
+					newAng, skeletonCell, null);
+				if (newNi == null)
+				{
+					System.out.println("Cannot create node in this cell");
+					return false;
+				}
+
+				// export the port from the node
+				PortInst newPi = newNi.findPortInstFromProto(bottomPp);
+				Export npp = Export.newInstance(skeletonCell, newPi, pp.getName());
+				if (npp == null)
+				{
+					System.out.println("Could not create port " + pp.getName());
+					return false;
+				}
+				npp.setTextDescriptor(pp.getTextDescriptor());
+				npp.copyVars(pp);
+				npp.setCharacteristic(pp.getCharacteristic());
+				newPortMap.put(pp, npp);
+			}
+
+			// connect electrically-equivalent ports
+			Netlist netlist = curCell.getUserNetlist();
+			int numPorts = curCell.getNumPorts();
+			for(int i=0; i<numPorts; i++)
+			{
+				Export pp = (Export)curCell.getPort(i);
+				for(int j=i+1; j<numPorts; j++)
+				{
+					Export oPp = (Export)curCell.getPort(j);
+					if (!netlist.sameNetwork(pp.getOriginalPort().getNodeInst(), pp.getOriginalPort().getPortProto(),
+						oPp.getOriginalPort().getNodeInst(), oPp.getOriginalPort().getPortProto())) continue;
+
+					Export newPp = (Export)newPortMap.get(pp);
+					Export newOPp = (Export)newPortMap.get(oPp);
+					if (newPp == null || newOPp == null) continue;
+					ArcInst newAI = ArcInst.makeInstance(univ, univ.getDefaultWidth(), newPp.getOriginalPort(), newOPp.getOriginalPort(), null);
+					if (newAI == null)
+					{
+						System.out.println("Could not create connecting arc");
+						return false;
+					}
+					newAI.setFixedAngle(false);
+				}
+			}
+
+			// copy the cell center and essential-bounds nodes if they exist
+			for(Iterator it = curCell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				NodeProto np = ni.getProto();
+				if (np != Generic.tech.cellCenterNode && np != Generic.tech.essentialBoundsNode) continue;
+				NodeInst newNi = NodeInst.makeInstance(np, ni.getAnchorCenter(),
+					ni.getXSizeWithMirror(), ni.getYSizeWithMirror(), ni.getAngle(), skeletonCell, null);
+				if (newNi == null)
+				{
+					System.out.println("Cannot create node in this cell");
+					return false;
+				}
+				newNi.setHardSelect();
+				if (np == Generic.tech.cellCenterNode) newNi.setVisInside();
+			}
+
+			// place an outline around the skeleton
+			Rectangle2D bounds = curCell.getBounds();
+			NodeInst boundNi = NodeInst.makeInstance(Generic.tech.invisiblePinNode,
+				new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()), bounds.getWidth(),
+					bounds.getHeight(), 0, skeletonCell, null);
+			if (boundNi == null)
+			{
+				System.out.println("Cannot create boundary node");
+				return false;
+			}
+			boundNi.setHardSelect();
+
+			System.out.println("Cell " + skeletonCell.describe() + " created with a skeletal representation of " +
+				curCell.describe());
+			WindowFrame.createEditWindow(skeletonCell);
+
 			return true;
 		}
 	}

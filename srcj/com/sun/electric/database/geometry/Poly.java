@@ -746,16 +746,21 @@ public class Poly implements Shape
 	public void reducePortPoly(PortInst pi, double wid, int angle)
 	{
 		// look down to the bottom level node/port
-		NodeInst ni = pi.getNodeInst();
-		PortProto pp = pi.getPortProto();
-		AffineTransform trans = ni.rotateOut();
-		while (ni.getProto() instanceof Cell)
-		{
-			trans = ni.translateOut(trans);
-			ni = ((Export)pp).getOriginalPort().getNodeInst();
-			pp = ((Export)pp).getOriginalPort().getPortProto();
-			trans = ni.rotateOut(trans);
-		}
+		PortProto.FindPrimitive fp = new PortProto.FindPrimitive(pi);
+		AffineTransform trans = fp.getTransformToTop();
+		NodeInst ni = fp.getBottomNodeInst();
+
+		// the above 3 lines replace the loop below
+//		NodeInst ni = pi.getNodeInst();
+//		PortProto pp = pi.getPortProto();
+//		AffineTransform trans = ni.rotateOut();
+//		while (ni.getProto() instanceof Cell)
+//		{
+//			trans = ni.translateOut(trans);
+//			ni = ((Export)pp).getOriginalPort().getNodeInst();
+//			pp = ((Export)pp).getOriginalPort().getPortProto();
+//			trans = ni.rotateOut(trans);
+//		}
 
 		// do not reduce port if not filled
 		if (getStyle() != Type.FILLED && getStyle() != Type.CROSSED &&
@@ -937,8 +942,14 @@ public class Poly implements Shape
 			if ((nodeAngle%900) == 0 && origType != Type.TEXTCENT && origType != Type.TEXTBOX)
 			{
 				int angle = origType.getTextAngle();
-				if (ni.isMirroredAboutXAxis() != ni.isMirroredAboutYAxis()) nodeAngle = 3600 - nodeAngle;
-				angle = (angle + nodeAngle) % 3600; 
+				AffineTransform trans = NodeInst.pureRotate(nodeAngle, ni.isMirroredAboutXAxis(), ni.isMirroredAboutYAxis());
+				Point2D pt = new Point2D.Double(100, 0);
+				trans.transform(pt, pt);
+				int xAngle = GenMath.figureAngle(new Point2D.Double(0, 0), pt);
+				if (ni.isMirroredAboutXAxis() != ni.isMirroredAboutYAxis() &&
+					((angle%1800) == 0 || (angle%1800) == 1350)) angle += 1800;
+				angle = (angle + xAngle) % 3600;
+
 				Type style = Type.getTextTypeFromAngle(angle);
 				return style;
 			}

@@ -95,6 +95,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 	private boolean swapXY;
     private AttributesTable attributesTable;
     private EditWindow wnd;
+    private boolean changingValues = false;;
 
     private static Preferences prefs = Preferences.userNodeForPackage(GetInfoNode.class);
 
@@ -824,6 +825,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			boolean changed = false;
 			NodeProto np = ni.getProto();
 
+			dialog.changingValues = true;
 			String currentName = dialog.name.getText().trim();
 			if (!currentName.equals(dialog.initialName))
 			{
@@ -1016,23 +1018,25 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
             // Figure out change in X and Y size
             if (dialog.swapXY)
             {
-                currentXSize = TextUtils.atof(dialog.ySize.getText(), new Double(ni.getYSize() - so.getLowXOffset() - so.getHighXOffset()));
-                currentYSize = TextUtils.atof(dialog.xSize.getText(), new Double(ni.getXSize() - so.getLowYOffset() - so.getHighYOffset()));
-                initXSize = TextUtils.atof(dialog.initialYSize, new Double(currentXSize));
-                initYSize = TextUtils.atof(dialog.initialXSize, new Double(currentYSize));
-                if (dialog.mirrorX.isSelected()) currentYSize = -currentYSize;
-                if (dialog.mirrorY.isSelected()) currentXSize = -currentXSize;
+                currentXSize = TextUtils.atof(dialog.ySize.getText(), new Double(ni.getYSize())) + so.getLowYOffset() + so.getHighYOffset();
+                currentYSize = TextUtils.atof(dialog.xSize.getText(), new Double(ni.getXSize())) + so.getLowXOffset() + so.getHighXOffset();
+				if (dialog.mirrorX.isSelected()) currentYSize = -currentYSize;
+				if (dialog.mirrorY.isSelected()) currentXSize = -currentXSize;
+                initXSize = TextUtils.atof(dialog.initialYSize, new Double(currentYSize)) + so.getLowYOffset() + so.getHighYOffset();
+                initYSize = TextUtils.atof(dialog.initialXSize, new Double(currentXSize)) + so.getLowXOffset() + so.getHighXOffset();
+				if (dialog.initialMirrorX) initYSize = -initYSize;
+				if (dialog.initialMirrorY) initXSize = -initXSize;
             } else
             {
-                currentXSize = TextUtils.atof(dialog.xSize.getText(), new Double(ni.getXSize() - so.getLowXOffset() - so.getHighXOffset()));
-                currentYSize = TextUtils.atof(dialog.ySize.getText(), new Double(ni.getYSize() - so.getLowYOffset() - so.getHighYOffset()));
-                initXSize = TextUtils.atof(dialog.initialXSize, new Double(currentXSize));
-                initYSize = TextUtils.atof(dialog.initialYSize, new Double(currentYSize));
+                currentXSize = TextUtils.atof(dialog.xSize.getText(), new Double(ni.getXSize())) + so.getLowXOffset() + so.getHighXOffset();
+                currentYSize = TextUtils.atof(dialog.ySize.getText(), new Double(ni.getYSize())) + so.getLowYOffset() + so.getHighYOffset();
                 if (dialog.mirrorX.isSelected()) currentXSize = -currentXSize;
                 if (dialog.mirrorY.isSelected()) currentYSize = -currentYSize;
+				initXSize = TextUtils.atof(dialog.initialXSize, new Double(currentXSize)) + so.getLowXOffset() + so.getHighXOffset();
+				initYSize = TextUtils.atof(dialog.initialYSize, new Double(currentYSize)) + so.getLowYOffset() + so.getHighYOffset();
+				if (dialog.initialMirrorX) initXSize = -initXSize;
+				if (dialog.initialMirrorY) initYSize = -initYSize;
             }
-            if (dialog.initialMirrorX) initXSize = -initXSize;
-            if (dialog.initialMirrorY) initYSize = -initYSize;
 
             // The following code is specific for transistors, and uses the X/Y size fields for
             // Width and Length, and therefore may override the values such that the node size does not
@@ -1067,7 +1071,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
                             changed = true;
                         }
                     }*/
-                    if (ni.isFET()) {
+                    if (ni.isFET())
+					{
                         Object width, length;
                         // see if we can convert width and length to a Number
                         double w = TextUtils.atof(dialog.xSize.getText(), null);
@@ -1086,21 +1091,23 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
                             length = new Double(l);
                         }
                         ni.setTransistorSize(width, length);
+						currentXSize = initXSize;
+						currentYSize = initYSize;
                     }
-                } else {
+                } else
+                {
                     // this is a layout transistor
-                    if (!DBMath.doublesEqual(currentXSize, initXSize) ||
-                        !DBMath.doublesEqual(currentYSize, initYSize)) {
+                    if (!DBMath.doublesEqual(Math.abs(currentXSize), Math.abs(initXSize)) ||
+                        !DBMath.doublesEqual(Math.abs(currentYSize), Math.abs(initYSize)))
+                    {
                         // set transistor size
-                        ni.setTransistorSize(currentXSize, currentYSize);
+                        ni.setTransistorSize(Math.abs(currentXSize) - so.getLowXOffset() - so.getHighXOffset(),
+							Math.abs(currentYSize) - so.getLowYOffset() - so.getHighYOffset());
+						currentXSize = initXSize;
+						currentYSize = initYSize;
                     }
                 }
-
-                // negate nodeinst size change
-                currentXSize = initXSize;
-                currentYSize = initYSize;
             }
-System.out.println("Initial size is "+initXSize+"x"+initYSize+" current is "+currentXSize+"x"+currentYSize);
 
 			int currentRotation = (int)(TextUtils.atof(dialog.rotation.getText(), new Double(dialog.initialRotation)) * 10);
 			if (!DBMath.doublesEqual(currentXPos, dialog.initialXPos) ||
@@ -1116,8 +1123,13 @@ System.out.println("Initial size is "+initXSize+"x"+initYSize+" current is "+cur
 				dialog.initialYPos = currentYPos;
 				dialog.initialXSize = dialog.xSize.getText();
 				dialog.initialYSize = dialog.ySize.getText();
+				dialog.initialMirrorX = dialog.mirrorX.isSelected();
+				dialog.initialMirrorY = dialog.mirrorY.isSelected();
 				dialog.initialRotation = currentRotation;
 			}
+
+			dialog.changingValues = false;
+
 			return true;
 		}
 	}

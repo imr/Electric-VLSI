@@ -17,26 +17,51 @@ IMP: (8/22/04, JKG) Created ActivityLogger to log user's activities. Also
 
 FIX: (8/22/04, JKG) fixes to some GUI classes to try to make them Swing-thread safer
 
-BUG: ERC reporting wrong floating well contacts (Justin reported).
+BUG: (8/22/04, GVG) ERC reporting wrong floating well contacts (Justin reported).
 FIX: Non-connected contacts get netNum = -1 in Java
+
+BUG: (8/22/04, SMR) "Cleanup Pins" doesn't get two inline pins in a row.
+FIX: Made inline pin cleanup iterative to keep finding more.
+
+IMP/MAN: (8/22/04, SMR) Added context menu in Messages Window to cut/copy/paste its contents.
+
+IMP/MAN: (8/22/04, SMR) Added "View / Make Skeleton View".
+
+IMP: (8/21/04, SMR) "Array" now places objects in proper name order.
+
+IMP: (8/21/04, SMR) "Change" dialog centers the selected item better.
+     (implemented EDialog.centerSelection).
+
+IMP: (8/21/04, SMR) Text can now be colored.
+
+BUG: (8/21/04, SMR) Re-exporting creates duplicate exports.
+FIX: In "tool.user.menus.ExportChanges.reExportNodes()" check for existing exports.
+
+IMP/MAN: (8/21/04, SMR) "Change" dialog is now modeless.
+
+BUG: (8/20/04, SMR) Text anchor does not rotate properly when nodes are mirrored.
+FIX: Fixed database.geometry.Poly.rotateType().
+
+BUG: (8/20/04, SMR) Node "Properties" dialog doesn't update size properly when mirrored.
+FIX: Fixed to remember proper original size.
 
 ************************* Version 8.01i: *********************************
 
 IMP/MAN: (8/19/04, JKG) new command line options: -mdi (force MDI mode) and
     -sdi (force SDI mode). -m no longer works.
 
-BUG: In DRC, wrong condition for wide wire rule (<= instead of <)
+BUG: (8/19/04, GVG)In DRC, wrong condition for wide wire rule (<= instead of <)
 FIX: Change <= by <
 
 IMP: -version and -help as command options
 
-FIX (8/19/04, GVG): Rounding error while creating a new Poly (width/height were not rounded). It was observed in new tech only.
-IMP (8/19/04, GVG): More area rules (DO.A.1)
-MAN (8/19/04, GVG): -m out? if yes, check documentation.
+FIX: (8/19/04, GVG): Rounding error while creating a new Poly (width/height were not rounded). It was observed in new tech only.
+IMP: (8/19/04, GVG): More area rules (DO.A.1)
+MAN: (8/19/04, GVG): -m out? if yes, check documentation.
 
 ************************* Version 8.01h: *********************************
 
-FIX/IMP (8/19/04, RK) NCC check's assertions: exportsConnectedByParent. It turns out that assertion checking is needed to avoid a bug in netlist construction.
+FIX/IMP: (8/19/04, RK) NCC check's assertions: exportsConnectedByParent. It turns out that assertion checking is needed to avoid a bug in netlist construction.
 
 BUG: (8/18/04, SMR) DRC crashes when run on icons.
 FIX: Use Schematic DRC for Icons, not layout DRC.
@@ -60,7 +85,7 @@ IMP (8/18/04, GVG): Extra sizing rules for metals (another level) and area
 
 ************************* Version 8.01g: *********************************
 
-FIX (8/17/04, RK) exportsConnectedByParent works on "implicit" expots created for global signals
+FIX: (8/17/04, RK) exportsConnectedByParent works on "implicit" expots created for global signals
 
 IMP/MAN: (8/17/04, GVG) More rules for new technology. Important changes in DRC code so previous version was tagged as version-8-01g just in case
 

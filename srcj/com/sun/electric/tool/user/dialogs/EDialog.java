@@ -111,6 +111,29 @@ public class EDialog extends JDialog
     }
 
 
+	/**
+	 * Method to ensure that the selected item in a list is
+	 * shown in the center of the list.
+	 * The Java method "ensureIndexIsVisible" only makes sure it is visible,
+	 * but it may be at the bottom of the list.
+	 * This method centers the selected item nicely.
+	 * @param list the JList with a selected item to center.
+	 */
+	protected void centerSelection(JList list)
+	{
+		int curIndex = list.getSelectedIndex();
+		int listSize = list.getLastVisibleIndex() - list.getFirstVisibleIndex();
+
+		int lowIndexToEnsure = curIndex - listSize/2 + 1;
+		if (lowIndexToEnsure < 0) lowIndexToEnsure = 0;
+		list.ensureIndexIsVisible(lowIndexToEnsure);
+
+		int highIndexToEnsure = curIndex + listSize/2 - 1;
+		if (highIndexToEnsure >= list.getModel().getSize())
+			highIndexToEnsure = list.getModel().getSize() - 1;
+		list.ensureIndexIsVisible(highIndexToEnsure);
+	}
+
 	private static class MoveComponentListener implements ComponentListener
 	{
 		public void componentHidden(ComponentEvent e) {}

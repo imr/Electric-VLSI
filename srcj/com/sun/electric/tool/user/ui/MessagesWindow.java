@@ -23,28 +23,41 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.io.FileWriter;
-import java.io.BufferedWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
+
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.ImageIcon;
 import javax.swing.SwingUtilities;
 
 /**
@@ -57,7 +70,7 @@ import javax.swing.SwingUtilities;
  */
 public class MessagesWindow
 	extends OutputStream
-	implements ActionListener, KeyListener, Runnable
+	implements ActionListener, MouseListener, KeyListener, Runnable, ClipboardOwner
 {
 	private ArrayList history;
 	private JTextField entry;
@@ -87,20 +100,24 @@ public class MessagesWindow
 			jFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 			contentFrame = jFrame.getContentPane();
 		}
+		contentFrame.setLayout(new BorderLayout());
 		history = new ArrayList();
+
 		entry = new JTextField();
 		entry.addActionListener(this);
 		entry.addKeyListener(this);
+		contentFrame.add(entry, BorderLayout.SOUTH);
+
 		info = new JTextArea(20, 110);
 		info.setLineWrap(false);
+		info.addMouseListener(this);
 		JScrollPane scrollPane = new JScrollPane(info,
 			JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setPreferredSize(msgSize);
 		JScrollBar vertscroll = scrollPane.getVerticalScrollBar();
-		contentFrame.setLayout(new BorderLayout());
-		contentFrame.add(entry, BorderLayout.SOUTH);
 		contentFrame.add(scrollPane, BorderLayout.CENTER);
+
 		jf.setLocation(150, scrnSize.height/100*80);
 		if (TopLevel.isMDIMode())
 		{
@@ -272,12 +289,82 @@ public class MessagesWindow
 		}
 	}
 
-	public void keyReleased(KeyEvent evt)
+	public void keyReleased(KeyEvent evt) {}
+
+	public void keyTyped(KeyEvent evt) {}
+
+	public void mouseClicked(MouseEvent e) {}
+
+	public void mouseEntered(MouseEvent e) {}
+
+	public void mouseExited(MouseEvent e) {}
+
+	public void mousePressed(MouseEvent e)
 	{
+		// popup menu event (right click)
+		if (e.isPopupTrigger()) doContext(e);
 	}
 
-	public void keyTyped(KeyEvent evt)
+	public void mouseReleased(MouseEvent e)
 	{
+		// popup menu event (right click)
+		if (e.isPopupTrigger()) doContext(e);
+	}
+
+	public void lostOwnership (Clipboard parClipboard, Transferable parTransferable) {}
+
+	private void doContext(MouseEvent e)
+	{
+		JPopupMenu menu = new JPopupMenu("Messages Window");
+
+		JMenuItem menuItem = new JMenuItem("Cut");
+		menu.add(menuItem);
+		menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { copyText(false, true); } });
+		menuItem = new JMenuItem("Copy");
+		menu.add(menuItem);
+		menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { copyText(false, false); } });
+		menuItem = new JMenuItem("Paste");
+		menu.add(menuItem);
+		menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { pasteText(); } });
+
+		menu.addSeparator();
+
+		menuItem = new JMenuItem("Cut All");
+		menu.add(menuItem);
+		menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { copyText(true, true); } });
+		menuItem = new JMenuItem("Copy All");
+		menu.add(menuItem);
+		menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { copyText(true, false); } });
+		menuItem = new JMenuItem("Clear");
+		menu.add(menuItem);
+		menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { clear(); } });
+
+		menu.show((Component)e.getSource(), e.getX(), e.getY());
+	}
+
+	private void pasteText()
+	{
+		info.paste();
+	}
+
+	private void copyText(boolean all, boolean cut)
+	{
+		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		if (all)
+		{
+			if (cut)
+			{
+				info.selectAll();
+				info.cut();
+			} else
+			{
+				clipboard.setContents(new StringSelection(info.getText()), this);
+			}
+		} else
+		{
+			if (cut) info.cut(); else
+				info.copy();
+		}
 	}
 
 	public void actionPerformed(ActionEvent evt)

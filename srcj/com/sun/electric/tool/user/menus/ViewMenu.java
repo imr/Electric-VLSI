@@ -79,8 +79,10 @@ public class ViewMenu {
 
         viewMenu.addMenuItem("Make Icon View", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.makeIconViewCommand(); } });
-        viewMenu.addMenuItem("Make Multi-Page Schematic View...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.makeMultiPageSchematicViewCommand(); } });
+		viewMenu.addMenuItem("Make Multi-Page Schematic View...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.makeMultiPageSchematicViewCommand(); } });
+		viewMenu.addMenuItem("Make Skeleton View", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.makeSkeletonViewCommand(); } });
 
     }
 
