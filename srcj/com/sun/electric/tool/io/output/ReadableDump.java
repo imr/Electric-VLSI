@@ -434,21 +434,7 @@ public class ReadableDump extends Output
 
 				int arcAngle = ai.getAngle() / 10;
 				ai.lowLevelSetArcAngle(arcAngle);
-				int userBits = ai.lowLevelGetUserbits() & ELIBConstants.ARC_BITS;
-//				int userBits = ai.lowLevelGetUserbits();
-
-				// add a negated bit if the tail is negated
-				userBits &= ~(ELIBConstants.ISNEGATED | ELIBConstants.ISHEADNEGATED);
-				if (ai.getTail().isNegated())
-				{
-					if (ai.isReverseEnds()) userBits |= ELIBConstants.ISHEADNEGATED; else
-						userBits |= ELIBConstants.ISNEGATED;
-				}
-				if (ai.getHead().isNegated())
-				{
-					if (ai.isReverseEnds()) userBits |= ELIBConstants.ISNEGATED; else
-						userBits |= ELIBConstants.ISHEADNEGATED;
-				}
+				int userBits = ELIBConstants.makeELIBArcBits(ai);
 				printWriter.println("userbits: " + userBits);
 				for(int e=0; e<2; e++)
 				{

@@ -94,15 +94,16 @@ public class ArcInst extends Geometric implements Comparable
 	/** angle of arc from end 0 to end 1 */				private static final int AANGLE =                037740;
 	/** bits of right shift for AANGLE field */			private static final int AANGLESH =                   5;
 //	/** set if arc is to be drawn shortened */			private static final int ASHORT =                040000;
-	/** set if ends do not extend by half width */		private static final int NOEXTEND =             0400000;
+//	/** set if ends do not extend by half width */		private static final int NOEXTEND =             0400000;
 //	/** set if ends are negated */						private static final int ISNEGATED =           01000000;
-	/** set if arc aims from end 0 to end 1 */			private static final int ISDIRECTIONAL =       02000000;
-	/** no extension/negation/arrows on end 0 */		private static final int NOTEND0 =             04000000;
-	/** no extension/negation/arrows on end 1 */		private static final int NOTEND1 =            010000000;
+	/** set if arc has arrow on head end */				private static final int HEADARROW =           02000000;
+	/** no extension on tail */							private static final int TAILNOEXTEND =        04000000;
+	/** no extension on head */							private static final int HEADNOEXTEND =       010000000;
 	/** reverse extension/negation/arrow ends */		private static final int REVERSEEND =         020000000;
 	/** set if arc can't slide around in ports */		private static final int CANTSLIDE =          040000000;
 	/** set if afixed arc was changed */				private static final int FIXEDMOD =          0100000000;
-//	/** arcinst re-drawing is scheduled */				private static final int REWANTA =           0400000000;
+	/** set if arc has arrow on tail end */				private static final int TAILARROW =         0200000000;
+	/** set if arc has arrow line along body */			private static final int BODYARROW =         0400000000;
 //	/** only local arcinst re-drawing desired */		private static final int RELOCLA =          01000000000;
 //	/**transparent arcinst re-draw is done */			private static final int RETDONA =          02000000000;
 //	/** opaque arcinst re-draw is done */				private static final int REODONA =          04000000000;
@@ -607,19 +608,21 @@ public class ArcInst extends Geometric implements Comparable
 		}
 
 		// determine the end extension on each end
-		double extendH = width/2;
-		int headShrink = getHead().getEndShrink();
-		if (headShrink != 0)
-			extendH = getExtendFactor(width, headShrink);
-		double extendT = width/2;
-		int tailShrink = getTail().getEndShrink();
-		if (tailShrink != 0)
-			extendT = getExtendFactor(width, tailShrink);
-		if (!isExtended())
+		double extendH = 0;
+		if (isHeadExtended())
 		{
-			// nonextension arc: set extension to zero for all included ends
-			if (!isSkipTail()) extendH = 0;
-			if (!isSkipHead()) extendT = 0;
+			extendH = width/2;
+			int headShrink = getHead().getEndShrink();
+			if (headShrink != 0)
+				extendH = getExtendFactor(width, headShrink);
+		}
+		double extendT = 0;
+		if (isTailExtended())
+		{
+			extendT = width/2;
+			int tailShrink = getTail().getEndShrink();
+			if (tailShrink != 0)
+				extendT = getExtendFactor(width, tailShrink);
 		}
 
 		// make the polygon
@@ -696,12 +699,6 @@ public class ArcInst extends Geometric implements Comparable
 		// determine the base and range of angles
 		int angleBase = DBMath.figureAngle(centerPt, headPt);
 		int angleRange = DBMath.figureAngle(centerPt, tailPt);
-		if (isReverseEnds())
-		{
-			int i = angleBase;
-			angleBase = angleRange;
-			angleRange = i;
-		}
 		angleRange -= angleBase;
 		if (angleRange < 0) angleRange += 3600;
 
@@ -1068,6 +1065,334 @@ public class ArcInst extends Geometric implements Comparable
 		return "ArcInst " + protoType.getName();
 	}
 
+	/****************************** CONSTRAINTS ******************************/
+
+	/**
+	 * Method to set this ArcInst to be rigid.
+	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
+     * @param state
+     */
+	public void setRigid(boolean state) {
+        if (state)
+            userBits |= FIXED;
+        else
+            userBits &= ~FIXED;
+   }
+
+	/**
+	 * Method to tell whether this ArcInst is rigid.
+	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
+	 * @return true if this ArcInst is rigid.
+	 */
+	public boolean isRigid() { return (userBits & FIXED) != 0; }
+
+	/**
+	 * Method to set this ArcInst to be fixed-angle.
+	 * Fixed-angle arcs cannot change their angle, so if one end moves,
+	 * the other may also adjust to keep the arc angle constant.
+     * @param state
+     */
+	public void setFixedAngle(boolean state) {
+        if (state)
+            userBits |= FIXANG;
+        else
+            userBits &= ~FIXANG;
+    }
+
+	/**
+	 * Method to tell whether this ArcInst is fixed-angle.
+	 * Fixed-angle arcs cannot change their angle, so if one end moves,
+	 * the other may also adjust to keep the arc angle constant.
+	 * @return true if this ArcInst is fixed-angle.
+	 */
+	public boolean isFixedAngle() { return (userBits & FIXANG) != 0; }
+
+	/**
+	 * Method to set this ArcInst to be slidable.
+	 * Arcs that slide will not move their connected NodeInsts if the arc's end is still within the port area.
+	 * Arcs that cannot slide will force their NodeInsts to move by the same amount as the arc.
+	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
+     * @param state
+     */
+	public void setSlidable(boolean state) {
+        if (state)
+            userBits &= ~CANTSLIDE;
+        else
+            userBits |= CANTSLIDE;
+    }
+
+	/**
+	 * Method to tell whether this ArcInst is slidable.
+	 * Arcs that slide will not move their connected NodeInsts if the arc's end is still within the port area.
+	 * Arcs that cannot slide will force their NodeInsts to move by the same amount as the arc.
+	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
+	 * @return true if this ArcInst is slidable.
+	 */
+	public boolean isSlidable() { return (userBits & CANTSLIDE) == 0; }
+
+	/**
+	 * Method to set that this rigid ArcInst was modified.
+	 * This is used during constraint processing only and should not be used elsewhere.
+	 */
+	public void setRigidModified() { userBits &= ~FIXEDMOD; }
+
+	/**
+	 * Method to set that this rigid ArcInst was not modified.
+	 * This is used during constraint processing only and should not be used elsewhere.
+	 */
+	public void clearRigidModified() { userBits |= FIXEDMOD; }
+
+	/**
+	 * Method to tell whether this rigid ArcInst was modified.
+	 * This is used during constraint processing only and should not be used elsewhere.
+	 * @return true if this rigid ArcInst was modified.
+	 */
+	public boolean isRigidModified() { return (userBits & FIXEDMOD) == 0; }
+
+	/****************************** PROPERTIES ******************************/
+
+	/**
+	 * Method to determine whether this ArcInst is directional, with an arrow on one end.
+	 * Directional arcs have an arrow drawn on them to indicate flow.
+	 * It is only for documentation purposes and does not affect the circuit.
+	 * @param index the end to query (0 for the tail, 1 for the head).
+	 * @return true if that end has a directional arrow on it.
+     */
+	public boolean isArrowed(int index)
+	{
+		if (index == 0) return isTailArrowed();
+		return isHeadArrowed();
+	}
+
+	/**
+	 * Method to determine whether this ArcInst is directional, with an arrow on the head.
+	 * Directional arcs have an arrow drawn on them to indicate flow.
+	 * It is only for documentation purposes and does not affect the circuit.
+	 * @return true if the arc's head has a directional arrow on it.
+     */
+	public boolean isHeadArrowed()
+	{
+		return (userBits & HEADARROW) != 0;
+	}
+
+	/**
+	 * Method to determine whether this ArcInst is directional, with an arrow on the tail.
+	 * Directional arcs have an arrow drawn on them to indicate flow.
+	 * It is only for documentation purposes and does not affect the circuit.
+	 * @return true if the arc's tail has a directional arrow on it.
+     */
+	public boolean isTailArrowed()
+	{
+		return (userBits & TAILARROW) != 0;
+	}
+
+	/**
+	 * Method to determine whether this ArcInst is directional, with an arrow line drawn down the center.
+	 * Directional arcs have an arrow drawn on them to indicate flow.
+	 * It is only for documentation purposes and does not affect the circuit.
+	 * The body is typically drawn when one of the ends has an arrow on it, but it may be
+	 * drawin without an arrow head in order to continue an attached arc that has an arrow.
+	 * @return true if the arc's tail has an arrow line on it.
+     */
+	public boolean isBodyArrowed()
+	{
+		return (userBits & BODYARROW) != 0;
+	}
+	
+	/**
+	 * Method to set this ArcInst to be directional, with an arrow on one end.
+	 * Directional arcs have an arrow drawn on them to indicate flow.
+	 * It is only for documentation purposes and does not affect the circuit.
+	 * @param index the end to set (0 for the tail, 1 for the head).
+     * @param state true to show a directional arrow on the specified end.
+     */
+	public void setArrowed(int index, boolean state)
+	{
+		if (index == 0) setTailArrowed(state); else
+			setHeadArrowed(state);
+	}
+
+	/**
+	 * Method to set this ArcInst to be directional, with an arrow on the head.
+	 * Directional arcs have an arrow drawn on them to indicate flow.
+	 * It is only for documentation purposes and does not affect the circuit.
+     * @param state true to show a directional arrow on the head.
+     */
+	public void setHeadArrowed(boolean state)
+	{
+        if (state) userBits |= HEADARROW; else
+            userBits &= ~HEADARROW;
+	}
+
+	/**
+	 * Method to set this ArcInst to be directional, with an arrow on the tail.
+	 * Directional arcs have an arrow drawn on them to indicate flow.
+	 * It is only for documentation purposes and does not affect the circuit.
+     * @param state true to show a directional arrow on the tail.
+     */
+	public void setTailArrowed(boolean state)
+	{
+        if (state) userBits |= TAILARROW; else
+            userBits &= ~TAILARROW;
+	}
+
+	/**
+	 * Method to set this ArcInst to be directional, with an arrow line drawn down the center.
+	 * Directional arcs have an arrow drawn on them to indicate flow.
+	 * It is only for documentation purposes and does not affect the circuit.
+	 * The body is typically drawn when one of the ends has an arrow on it, but it may be
+	 * drawin without an arrow head in order to continue an attached arc that has an arrow.
+     * @param state true to show a directional line on this arc.
+     */
+	public void setBodyArrowed(boolean state)
+	{
+        if (state) userBits |= BODYARROW; else
+            userBits &= ~BODYARROW;
+	}
+
+	/**
+	 * Method to tell whether an end of ArcInst has its ends extended.
+	 * Extended arcs continue past their endpoint by half of their width.
+	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
+	 * @param index the end of the arc to examine (0 for tail, 1 for head).
+	 * @return true if that end of this ArcInst iss extended.
+	 */
+	public boolean isExtended(int index)
+	{
+		if (index == 0) return isTailExtended();
+		return isHeadExtended();
+	}
+
+	/**
+	 * Method to tell whether the head of this arc is extended.
+	 * Extended arcs continue past their endpoint by half of their width.
+	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
+	 * @return true if the head of this arc is extended.
+	 */
+	public boolean isHeadExtended()
+	{
+		return (userBits & HEADNOEXTEND) == 0;
+	}
+
+	/**
+	 * Method to tell whether the tail of this arc is extended.
+	 * Extended arcs continue past their endpoint by half of their width.
+	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
+	 * @return true if the tail of this arc is extended.
+	 */
+	public boolean isTailExtended()
+	{
+		return (userBits & TAILNOEXTEND) == 0;
+	}
+
+	/**
+	 * Method to set whether an end of this arc is extended.
+	 * Extended arcs continue past their endpoint by half of their width.
+	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
+	 * @param index the end of the arc to set (0 for tail, 1 for head).
+	 * @param e true to set that end of this arc to be extended.
+	 */
+	public void setExtended(int index, boolean e)
+	{
+		if (index == 0) setTailExtended(e); else
+			setHeadExtended(e);
+	}
+
+	/**
+	 * Method to set whether the head of this arc is extended.
+	 * Extended arcs continue past their endpoint by half of their width.
+	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
+	 * @param e true to set the head of this arc to be extended.
+	 */
+	public void setHeadExtended(boolean e)
+	{
+		if (e) userBits &= ~HEADNOEXTEND; else
+			userBits |= HEADNOEXTEND;
+	}
+
+	/**
+	 * Method to set whether the tail of this arc is extended.
+	 * Extended arcs continue past their endpoint by half of their width.
+	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
+	 * @param e true to set the tail of this arc to be extended.
+	 */
+	public void setTailExtended(boolean e)
+	{
+		if (e) userBits &= ~TAILNOEXTEND; else
+			userBits |= TAILNOEXTEND;
+	}
+
+
+	/**
+	 * Method to tell whether an end of this arc is negated.
+	 * Negated arc have a negating bubble on them to indicate negation.
+	 * This is only valid in schematics technologies.
+	 * @param index the end of the arc to test (0 for tail, 1 for head).
+	 * @return true if set that end of this arc is negated.
+	 */
+	public boolean isNegated(int index)
+	{
+		if (index == 0) return isTailNegated();
+		return isHeadNegated();
+	}
+
+	/**
+	 * Method to tell whether the head of this arc is negated.
+	 * Negated arc have a negating bubble on them to indicate negation.
+	 * This is only valid in schematics technologies.
+	 * @return true if set the head of this arc is negated.
+	 */
+	public boolean isHeadNegated()
+	{
+		return headEnd.isNegated();		// YES, I know this method is deprecated...it will be replaced soon...smr
+	}
+
+	/**
+	 * Method to tell whether the tail of this arc is negated.
+	 * Negated arc have a negating bubble on them to indicate negation.
+	 * This is only valid in schematics technologies.
+	 * @return true if set the tail of this arc is negated.
+	 */
+	public boolean isTailNegated()
+	{
+		return tailEnd.isNegated();		// YES, I know this method is deprecated...it will be replaced soon...smr
+	}
+
+	/**
+	 * Method to set whether an end of this arc is negated.
+	 * Negated arc have a negating bubble on them to indicate negation.
+	 * This is only valid in schematics technologies.
+	 * @param index the end of the arc to set (0 for tail, 1 for head).
+	 * @param n true to set that end of this arc to be negated.
+	 */
+	public void setNegated(int index, boolean n)
+	{
+		if (index == 0) setTailNegated(n); else
+			setHeadNegated(n);
+	}
+
+	/**
+	 * Method to set whether the head of this arc is negated.
+	 * Negated arc have a negating bubble on them to indicate negation.
+	 * This is only valid in schematics technologies.
+	 * @param n true to set the head of this arc to be negated.
+	 */
+	public void setHeadNegated(boolean n)
+	{
+		headEnd.setNegated(n);		// YES, I know this method is deprecated...it will be replaced soon...smr
+	}
+
+	/**
+	 * Method to set whether the tail of this arc is negated.
+	 * Negated arc have a negating bubble on them to indicate negation.
+	 * This is only valid in schematics technologies.
+	 * @param n true to set the tail of this arc to be negated.
+	 */
+	public void setTailNegated(boolean n)
+	{
+		tailEnd.setNegated(n);		// YES, I know this method is deprecated...it will be replaced soon...smr
+	}
+
 	/****************************** MISCELLANEOUS ******************************/
 
 	/**
@@ -1222,8 +1547,8 @@ public class ArcInst extends Geometric implements Comparable
     public void copyConstraintsFrom(ArcInst fromAi) {
         if (fromAi == null) return;
         lowLevelSetUserbits(fromAi.lowLevelGetUserbits());
-		getHead().setNegated(fromAi.getHead().isNegated());
-		getTail().setNegated(fromAi.getTail().isNegated());
+		setHeadNegated(fromAi.isHeadNegated());
+		setTailNegated(fromAi.isTailNegated());
     }
 
 	/**
@@ -1255,88 +1580,6 @@ public class ArcInst extends Geometric implements Comparable
 	public void copyStateBits(ArcInst ai) { this.userBits = ai.userBits; }
 
 	/**
-	 * Method to set this ArcInst to be rigid.
-	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
-     * @param state
-     */
-	public void setRigid(boolean state) {
-        if (state)
-            userBits |= FIXED;
-        else
-            userBits &= ~FIXED;
-   }
-
-	/**
-	 * Method to tell whether this ArcInst is rigid.
-	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
-	 * @return true if this ArcInst is rigid.
-	 */
-	public boolean isRigid() { return (userBits & FIXED) != 0; }
-
-	/**
-	 * Method to set this ArcInst to be fixed-angle.
-	 * Fixed-angle arcs cannot change their angle, so if one end moves,
-	 * the other may also adjust to keep the arc angle constant.
-     * @param state
-     */
-	public void setFixedAngle(boolean state) {
-        if (state)
-            userBits |= FIXANG;
-        else
-            userBits &= ~FIXANG;
-    }
-
-	/**
-	 * Method to tell whether this ArcInst is fixed-angle.
-	 * Fixed-angle arcs cannot change their angle, so if one end moves,
-	 * the other may also adjust to keep the arc angle constant.
-	 * @return true if this ArcInst is fixed-angle.
-	 */
-	public boolean isFixedAngle() { return (userBits & FIXANG) != 0; }
-
-	/**
-	 * Method to set this ArcInst to be slidable.
-	 * Arcs that slide will not move their connected NodeInsts if the arc's end is still within the port area.
-	 * Arcs that cannot slide will force their NodeInsts to move by the same amount as the arc.
-	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
-     * @param state
-     */
-	public void setSlidable(boolean state) {
-        if (state)
-            userBits &= ~CANTSLIDE;
-        else
-            userBits |= CANTSLIDE;
-    }
-
-	/**
-	 * Method to tell whether this ArcInst is slidable.
-	 * Arcs that slide will not move their connected NodeInsts if the arc's end is still within the port area.
-	 * Arcs that cannot slide will force their NodeInsts to move by the same amount as the arc.
-	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
-	 * @return true if this ArcInst is slidable.
-	 */
-	public boolean isSlidable() { return (userBits & CANTSLIDE) == 0; }
-
-	/**
-	 * Method to set that this rigid ArcInst was modified.
-	 * This is used during constraint processing only and should not be used elsewhere.
-	 */
-	public void setRigidModified() { userBits &= ~FIXEDMOD; }
-
-	/**
-	 * Method to set that this rigid ArcInst was not modified.
-	 * This is used during constraint processing only and should not be used elsewhere.
-	 */
-	public void clearRigidModified() { userBits |= FIXEDMOD; }
-
-	/**
-	 * Method to tell whether this rigid ArcInst was modified.
-	 * This is used during constraint processing only and should not be used elsewhere.
-	 * @return true if this rigid ArcInst was modified.
-	 */
-	public boolean isRigidModified() { return (userBits & FIXEDMOD) == 0; }
-
-	/**
 	 * Method to set default constraint information on this ArcInst.
 	 */
 	private void setDefaultConstraints()
@@ -1344,8 +1587,10 @@ public class ArcInst extends Geometric implements Comparable
         setRigid(protoType.isRigid());
         setFixedAngle(protoType.isFixedAngle());
         setSlidable(protoType.isSlidable());
-        setExtended(protoType.isExtended());
-        setDirectional(protoType.isDirectional());
+        setHeadExtended(protoType.isExtended());
+        setTailExtended(protoType.isExtended());
+        setHeadArrowed(protoType.isDirectional());
+        setBodyArrowed(protoType.isDirectional());
 	}
 
 	/**
@@ -1366,127 +1611,6 @@ public class ArcInst extends Geometric implements Comparable
 	 * @return the arc angle (in degrees).
 	 */
 	public int lowLevelGetArcAngle() { return (userBits & AANGLE) >> AANGLESH; }
-
-	/**
-	 * Method to set this ArcInst to have its ends extended.
-	 * End-extension causes an arc to extend past its endpoint by half of its width.
-	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
-     * @param state
-     */
-	public void setExtended(boolean state)
-	{
-		if (state)
-            userBits &= ~NOEXTEND;
-        else
-            userBits |= NOEXTEND;
-		updateGeometric(getAngle());
-	}
-
-	/**
-	 * Method to tell whether this ArcInst has its ends extended.
-	 * End-extension causes an arc to extend past its endpoint by half of its width.
-	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
-	 * @return true if this ArcInst has its ends extended.
-	 */
-	public boolean isExtended() { return (userBits & NOEXTEND) == 0; }
-
-	/**
-	 * Method to set this ArcInst to be directional.
-	 * Directional arcs have an arrow drawn on them to indicate flow.
-	 * The arrow head is on the arc's head end, unless the arc is reversed.
-	 * It is only for documentation purposes and does not affect the circuit.
-	 * @see ArcInst#setReverseEnds
-     * @param state true to set the arc to be directional.
-     */
-	public void setDirectional(boolean state) {
-        if (state)
-            userBits |= ISDIRECTIONAL;
-        else
-            userBits &= ~ISDIRECTIONAL;
-    }
-
-	/**
-	 * Method to tell whether this ArcInst is directional.
-	 * Directional arcs have an arrow drawn on them to indicate flow.
-	 * The arrow head is on the arc's head end, unless the arc is reversed.
-	 * It is only for documentation purposes and does not affect the circuit.
-	 * @return true if this ArcInst is directional.
-	 * @see ArcInst#setReverseEnds
-	 */
-	public boolean isDirectional() { return (userBits & ISDIRECTIONAL) != 0; }
-
-	/**
-	 * Method to set this ArcInst to have its head skipped.
-	 * Skipping the head causes any special actions that are normally applied to the
-	 * head to be ignored.  For example, the directional arrow is on the arc head,
-	 * so skipping the head will remove the arrow-head, but not the body of the arrow.
-     * @param state
-     */
-	public void setSkipHead(boolean state)
-	{
-		if (state)
-            userBits |= NOTEND0;
-        else
-            userBits &= ~NOTEND0;
-		updateGeometric(getAngle());
-	}
-
-	/**
-	 * Method to tell whether this ArcInst has its head skipped.
-	 * Skipping the head causes any special actions that are normally applied to the
-	 * head to be ignored.  For example, the directional arrow is on the arc head,
-	 * so skipping the head will remove the arrow-head, but not the body of the arrow.
-	 * @return true if this ArcInst has its head skipped.
-	 */
-	public boolean isSkipHead() { return (userBits & NOTEND0) != 0; }
-
-	/**
-	 * Method to set this ArcInst to have its tail skipped.
-	 * Skipping the tail causes any special actions that are normally applied to the
-	 * tail to be ignored.  For example, the negating bubble is on the arc tail,
-	 * so skipping the tail will remove the bubble.
-     * @param state
-     */
-	public void setSkipTail(boolean state)
-	{
-		if (state)
-            userBits |= NOTEND1;
-        else
-            userBits &= ~NOTEND1;
-		updateGeometric(getAngle());
-	}
-
-	/**
-	 * Method to tell whether this ArcInst has its tail skipped.
-	 * Skipping the tail causes any special actions that are normally applied to the
-	 * tail to be ignored.  For example, the negating bubble is on the arc tail,
-	 * so skipping the tail will remove the bubble.
-	 * @return true if this ArcInst has its tail skipped.
-	 */
-	public boolean isSkipTail() { return (userBits & NOTEND1) != 0; }
-
-	/**
-	 * Method to reverse the ends of this ArcInst.
-	 * A reversed arc switches its head and tail.
-	 * This is useful if the negating bubble appears on the wrong end.
-     * @param state
-     */
-	public void setReverseEnds(boolean state)
-	{
-		if (state)
-            userBits |= REVERSEEND;
-        else
-            userBits &= ~REVERSEEND;
-		updateGeometric(getAngle());
-	}
-
-	/**
-	 * Method to tell whether this ArcInst has been reversed.
-	 * A reversed arc switches its head and tail.
-	 * This is useful if the negating bubble appears on the wrong end.
-	 * @return true if this ArcInst has been reversed.
-	 */
-	public boolean isReverseEnds() { return (userBits & REVERSEEND) != 0; }
 
 	/**
 	 * Method to set this ArcInst to be hard-to-select.

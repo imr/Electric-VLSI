@@ -188,11 +188,8 @@ public class Sim extends Output
 				// calculate true length and width of arc
 				double width = oAi.getWidth() - oAi.getProto().getWidthOffset();
 				double length = oAi.getLength();
-				if (oAi.isExtended()) length += width;
-				{
-					if (!oAi.isSkipHead()) length += width/2;
-					if (!oAi.isSkipTail()) length += width/2;
-				}
+				if (oAi.isHeadExtended()) length += width/2;
+				if (oAi.isTailExtended()) length += width/2;
 				if (format != FileType.COSMOS)
 				{
 					width = TextUtils.convertDistance(width, tech, TextUtils.UnitScale.MICRO);

@@ -812,7 +812,7 @@ public class CIF extends Input
 	{
 		if (numNullLayerErrors)
 		{
-			errorReport("output on null layer", FATALSEMANTIC);
+			System.out.println("Warning: some CIF objects were not read");
 		}
 	}
 

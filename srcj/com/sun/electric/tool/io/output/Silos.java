@@ -366,7 +366,7 @@ public class Silos extends Topology
 							}
 
 							boolean negated = false;
-							if (con != null && con.isNegated()) negated = true;
+							if (con != null && con.getArc().isNegated(con.getEndIndex())) negated = true;
 							writeWidthLimited(" " + getPrimitiveName(ni, negated));
 							break;
 						}
@@ -655,7 +655,7 @@ public class Silos extends Topology
 			}
 		}
 		boolean negated = false;
-		if (con != null && con.isNegated() && pp.getCharacteristic() == PortCharacteristic.IN) negated = true;
+		if (con != null && con.getArc().isNegated(con.getEndIndex()) && pp.getCharacteristic() == PortCharacteristic.IN) negated = true;
 
 		Network net = null;
 		if (con != null)

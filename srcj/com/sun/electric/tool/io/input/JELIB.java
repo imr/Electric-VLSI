@@ -1003,7 +1003,9 @@ public class JELIB extends LibraryFiles
 			boolean rigid = false, fixedAngle = true, slidable = false,
 				extended = true, directional = false, reverseEnds = false,
 				hardSelect = false, skipHead = false, skipTail = false,
-				tailNegated = false, headNegated = false;
+				tailNegated = false, headNegated = false,
+				tailNotExtended = false, headNotExtended = false,
+				tailArrowed = false, headArrowed = false, bodyArrowed = false;
 			int angle = 0;
 			for(int i=0; i<stateInfo.length(); i++)
 			{
@@ -1011,21 +1013,27 @@ public class JELIB extends LibraryFiles
 				if (chr == 'R') rigid = true; else
 				if (chr == 'F') fixedAngle = false; else
 				if (chr == 'S') slidable = true; else
+				if (chr == 'A') hardSelect = true; else
+				if (chr == 'N') tailNegated = true; else
+				if (chr == 'G') headNegated = true; else
+				if (chr == 'X') headArrowed = true; else
+				if (chr == 'Y') tailArrowed = true; else
+				if (chr == 'B') bodyArrowed = true; else
+				if (chr == 'I') headNotExtended = true; else
+				if (chr == 'J') tailNotExtended = true; else
+
+				// deprecated
 				if (chr == 'E') extended = false; else
 				if (chr == 'D') directional = true; else
 				if (chr == 'V') reverseEnds = true; else
-				if (chr == 'A') hardSelect = true; else
 				if (chr == 'H') skipHead = true; else
 				if (chr == 'T') skipTail = true; else
-				if (chr == 'N') tailNegated = true; else
-				if (chr == 'G') headNegated = true; else
 				if (TextUtils.isDigit(chr))
 				{
 					angle = TextUtils.atoi(stateInfo.substring(i));
 					break;
 				}
 			}
-
 			ArcInst ai = ArcInst.newInstance(ap, wid, headPI, tailPI, new Point2D.Double(headX, headY),
 				new Point2D.Double(tailX, tailY), arcName, angle);
 			if (ai == null)
@@ -1041,18 +1049,32 @@ public class JELIB extends LibraryFiles
 			String nameTextDescriptorInfo = (String)pieces.get(2);
 			ai.setTextDescriptor(ArcInst.ARC_NAME_TD, loadTextDescriptor(null, nameTextDescriptorInfo, cc.fileName, cc.lineNumber + line));
 
-			// add state bits
+			// if old bits were used, convert them
+			if (!extended || directional)
+			{
+				if (!extended) headNotExtended = tailNotExtended = true;
+				if (directional)
+				{
+					if (reverseEnds) tailArrowed = true; else
+						headArrowed = true;
+					bodyArrowed = true;
+				}
+				if (skipHead) headArrowed = headNotExtended = false;
+				if (skipTail) tailArrowed = tailNotExtended = false;
+			}
+
+			// set the bits
 			ai.setRigid(rigid);
 			ai.setFixedAngle(fixedAngle);
 			ai.setSlidable(slidable);
-			ai.setExtended(extended);
-			ai.setDirectional(directional);
-			ai.setReverseEnds(reverseEnds);
+			ai.setHeadExtended(!headNotExtended);
+			ai.setTailExtended(!tailNotExtended);
+			ai.setHeadArrowed(headArrowed);
+			ai.setTailArrowed(tailArrowed);
+			ai.setBodyArrowed(bodyArrowed);
+			ai.setHeadNegated(headNegated);
+			ai.setTailNegated(tailNegated);
 			ai.setHardSelect(hardSelect);
-			ai.setSkipHead(skipHead);
-			ai.setSkipTail(skipTail);
-			ai.getHead().setNegated(headNegated);
-			ai.getTail().setNegated(tailNegated);
 
 			// add variables in fields 13 and up
 			addVariables(ai, pieces, 13, cc.fileName, cc.lineNumber + line);

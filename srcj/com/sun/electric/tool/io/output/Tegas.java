@@ -244,7 +244,7 @@ public class Tegas extends Topology
 			for(int i=0; i<2; i++)
 			{
 				Connection con = ai.getConnection(i);
-				if (!con.isNegated()) continue;
+				if (!ai.isNegated(i)) continue;
 				if (con.getPortInst().getPortProto().getCharacteristic() == PortCharacteristic.OUT)
 				{
 					PrimitiveNode.Function fun = con.getPortInst().getNodeInst().getFunction();
@@ -370,7 +370,7 @@ public class Tegas extends Topology
 
 					// if arc on port not negated or a description for an inverter for a negated
 					// arc already exists simply write the source name of this port/arc inst.
-					if (con.isNegated() && implicitInverters.get(ai) != null)
+					if (ai.isNegated(con.getEndIndex()) && implicitInverters.get(ai) != null)
 					{
 						// if the negation is at this end (ie nearest this node) write an inverter
 						// with the port name of the output as inverter input and the net name of the
@@ -529,7 +529,7 @@ public class Tegas extends Topology
 			PortInst pi = con.getPortInst();
 			PortProto pp = pi.getPortProto();
 			if (pp.getCharacteristic() != PortCharacteristic.OUT) continue;
-			if (con.isNegated()) return true;
+			if (con.getArc().isNegated(con.getEndIndex())) return true;
 		}
 		return false;
 	}
@@ -662,11 +662,12 @@ public class Tegas extends Topology
 	private String getInvertedConnectionName(Connection con)
 	{
 		String conName = getConnectionName(con);
-		if (!con.isNegated()) return conName;
+		ArcInst ai = con.getArc();
+		if (!ai.isNegated(con.getEndIndex())) return conName;
 
 		// insert an inverter description if a negated arc attached to primitive
 		// other than AND,OR,XOR
-		Integer index = (Integer)implicitInverters.get(con.getArc());
+		Integer index = (Integer)implicitInverters.get(ai);
 		if (index != null)
 		{
 			String str = "I" + index + ".O";

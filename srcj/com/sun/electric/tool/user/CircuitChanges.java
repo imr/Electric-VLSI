@@ -770,35 +770,19 @@ public class CircuitChanges
 	}
 
 	/**
-	 * This method sets the highlighted arcs to be End-Extended.
+	 * This method sets the highlighted arcs to have their head end extended.
 	 */
-	public static void arcEndsExtendCommand()
+	public static void arcHeadExtendCommand()
 	{
 		ChangeArcProperties job = new ChangeArcProperties(6, MenuCommands.getHighlighted());
 	}
 
 	/**
-	 * This method sets the highlighted arcs to be Reversed.
+	 * This method sets the highlighted arcs to have their tail end extended.
 	 */
-	public static void arcReverseCommand()
+	public static void arcTailExtendCommand()
 	{
 		ChangeArcProperties job = new ChangeArcProperties(7, MenuCommands.getHighlighted());
-	}
-
-	/**
-	 * This method sets the highlighted arcs to have their head skipped.
-	 */
-	public static void arcSkipHeadCommand()
-	{
-		ChangeArcProperties job = new ChangeArcProperties(8, MenuCommands.getHighlighted());
-	}
-
-	/**
-	 * This method sets the highlighted arcs to have their tail skipped.
-	 */
-	public static void arcSkipTailCommand()
-	{
-		ChangeArcProperties job = new ChangeArcProperties(9, MenuCommands.getHighlighted());
 	}
 
 	private static class ChangeArcProperties extends Job
@@ -861,57 +845,37 @@ public class CircuitChanges
 							}
 							break;
 						case 5:		// toggle directionality
-							if (ai.isDirectional())
+							if (ai.isHeadArrowed())
 							{
-								ai.setDirectional(false);
+								ai.setHeadArrowed(false);
+								ai.setBodyArrowed(false);
 								numUnset++;
 							} else
 							{
-								ai.setDirectional(true);
+								ai.setHeadArrowed(true);
+								ai.setBodyArrowed(true);
 								numSet++;
 							}
 							break;
-						case 6:		// end-extended
-							if (ai.isExtended())
+						case 6:		// end-extend the head
+							if (ai.isHeadExtended())
 							{
-								ai.setExtended(false);
+								ai.setHeadExtended(false);
 								numUnset++;
 							} else
 							{
-								ai.setExtended(true);
+								ai.setHeadExtended(true);
 								numSet++;
 							}
 							break;
-						case 7:		// reverse end
-							if (ai.isReverseEnds())
+						case 7:		// end-extend the tail
+							if (ai.isTailExtended())
 							{
-								ai.setReverseEnds(false);
+								ai.setTailExtended(false);
 								numUnset++;
 							} else
 							{
-								ai.setReverseEnds(true);
-								numSet++;
-							}
-							break;
-						case 8:		// skip head
-							if (ai.isSkipHead())
-							{
-								ai.setSkipHead(false);
-								numUnset++;
-							} else
-							{
-								ai.setSkipHead(true);
-								numSet++;
-							}
-							break;
-						case 9:		// skip tail
-							if (ai.isSkipTail())
-							{
-								ai.setSkipTail(false);
-								numUnset++;
-							} else
-							{
-								ai.setSkipTail(true);
+								ai.setTailExtended(true);
 								numSet++;
 							}
 							break;
@@ -930,10 +894,8 @@ public class CircuitChanges
 					case 3: action = "Fixed-Angle";   break;
 					case 4: action = "Not-Fixed-Angle";   break;
 					case 5: action = "Directional";   repaintContents = true;   break;
-					case 6: action = "have ends extended";   repaintContents = true;   break;
-					case 7: action = "reversed";   repaintContents = true;   break;
-					case 8: action = "skip head";   repaintContents = true;   break;
-					case 9: action = "skip tail";   repaintContents = true;   break;
+					case 6: action = "extend the head end";   repaintContents = true;   break;
+					case 7: action = "extend the head end";   repaintContents = true;   break;
 				}
 				if (numUnset == 0) System.out.println("Made " + numSet + " arcs " + action); else
 					if (numSet == 0) System.out.println("Made " + numUnset + " arcs not " + action); else
@@ -990,8 +952,10 @@ public class CircuitChanges
 							PrimitivePort pp = (PrimitivePort)pi.getPortProto();
 							if (pp.isNegatable())
 							{
-								boolean newNegated = !con.isNegated();
-								con.setNegated(newNegated);
+								ArcInst ai = con.getArc();
+								int index = con.getEndIndex();
+								boolean newNegated = !ai.isNegated(index);
+								ai.setNegated(index, newNegated);
 								numSet++;
 							}
 						}
@@ -1002,15 +966,14 @@ public class CircuitChanges
 					ArcInst ai = (ArcInst)eobj;
 					for(int i=0; i<2; i++)
 					{
-						Connection con = ai.getConnection(i);
-						PortInst pi = con.getPortInst();
+						PortInst pi = ai.getConnection(i).getPortInst();
 						if (pi.getNodeInst().getProto() instanceof PrimitiveNode)
 						{
 							PrimitivePort pp = (PrimitivePort)pi.getPortProto();
 							if (pp.isNegatable())
 							{
-								boolean newNegated = !con.isNegated();
-								con.setNegated(newNegated);
+								boolean newNegated = !ai.isNegated(i);
+								ai.setNegated(i, newNegated);
 								numSet++;
 							}
 						}
@@ -3952,12 +3915,13 @@ public class CircuitChanges
         /** old arc insts that will be deleted */           private ArcInst [] reconAr;
         /** prototype of new arc */							private ArcProto ap;
         /** width of new arc */								private double wid;
-        /** true to make new arc directional */				private boolean directional;
-        /** true to ignore the head of the new arc */		private boolean ignoreHead;
-        /** true to ignore the tail of the new arc */		private boolean ignoreTail;
+        /** true to make new arc have arrow on head */		private boolean directionalHead;
+        /** true to make new arc have arrow on tail */		private boolean directionalTail;
+        /** true to make new arc have arrow on body */		private boolean directionalBody;
+        /** true to extend the head of the new arc */		private boolean extendHead;
+        /** true to extend the tail of the new arc */		private boolean extendTail;
         /** true to negate the head of the new arc */		private boolean negateHead;
         /** true to negate the tail of the new arc */		private boolean negateTail;
-        /** true to reverse the head/tail on new arc */		private boolean reverseEnd;
         /** the name to use on the reconnected arc */		private String arcName;
         /** TextDescriptor for the reconnected arc name */	private TextDescriptor arcNameTD;
     }
@@ -4083,12 +4047,13 @@ public class CircuitChanges
             // ok to connect arcs
             ra.wid = ai1.getWidth();
 
-            ra.directional = ai1.isDirectional() || ai2.isDirectional();
-            ra.ignoreHead = ai1.isSkipHead() || ai2.isSkipHead();
-            ra.ignoreTail = ai1.isSkipTail() || ai2.isSkipTail();
-            ra.negateHead = ai1.getHead().isNegated() || ai2.getHead().isNegated();
-            ra.negateTail = ai1.getTail().isNegated() || ai2.getTail().isNegated();
-            ra.reverseEnd = ai1.isReverseEnds() || ai2.isReverseEnds();
+            ra.directionalHead = ai1.isHeadArrowed();
+            ra.directionalTail = ai1.isTailArrowed();
+            ra.directionalBody = ai1.isBodyArrowed();
+            ra.extendHead = ai1.isHeadExtended() || ai2.isHeadExtended();
+            ra.extendTail = ai1.isTailExtended() || ai2.isTailExtended();
+            ra.negateHead = ai1.isHeadNegated() || ai2.isHeadNegated();
+            ra.negateTail = ai1.isTailNegated() || ai2.isTailNegated();
             ra.arcName = null;
             if (ai1.getName() != null && !ai1.getNameKey().isTempname())
             {
@@ -4099,20 +4064,6 @@ public class CircuitChanges
             {
                 ra.arcName = ai2.getName();
                 ra.arcNameTD = ai2.getTextDescriptor(ArcInst.ARC_NAME_TD);
-            }
-
-            // special code to handle directionality
-            if (ra.directional || ra.negateHead || ra.negateTail || ra.ignoreHead || ra.ignoreTail || ra.reverseEnd)
-            {
-                // reverse ends if the arcs point the wrong way
-                for(int i=0; i<2; i++)
-                {
-                    if (ra.reconAr[i].getConnection(i).getPortInst() == pi)
-                    {
-                        if (ra.reconAr[i].isReverseEnds()) ra.reverseEnd = false; else
-                            ra.reverseEnd = true;
-                    }
-                }
             }
 
             return ra;
@@ -4137,12 +4088,14 @@ public class CircuitChanges
                 if (!ra.reconPi[0].getNodeInst().isLinked() || !ra.reconPi[1].getNodeInst().isLinked()) continue;
                 ArcInst newAi = ArcInst.makeInstance(ra.ap, ra.wid, ra.reconPi[0], ra.reconPi[1], ra.recon[0], ra.recon[1], null);
                 if (newAi == null) continue;
-                newAi.setDirectional(ra.directional);
-                newAi.setSkipHead(ra.ignoreHead);
-                newAi.setSkipTail(ra.ignoreTail);
-                newAi.getHead().setNegated(ra.negateHead);
-                newAi.getTail().setNegated(ra.negateTail);
-                if (ra.reverseEnd) newAi.setReverseEnds(true);
+
+                newAi.setHeadArrowed(ra.directionalHead);
+                newAi.setTailArrowed(ra.directionalTail);
+                newAi.setBodyArrowed(ra.directionalBody);
+                newAi.setHeadExtended(ra.extendHead);
+                newAi.setTailExtended(ra.extendTail);
+                newAi.setHeadNegated(ra.negateHead);
+                newAi.setTailNegated(ra.negateTail);
                 if (ra.arcName != null)
                 {
                     newAi.setName(ra.arcName);

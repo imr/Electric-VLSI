@@ -88,7 +88,8 @@ public abstract class TrackRouter {
 		PortInst p1 = v1.getPort1();
 		PortInst p2 = v2.getPort1();
 		ArcInst ai = LayoutLib.newArcInst(layer, width, p1, p2);
-        ai.setExtended(endsExtend);
+        ai.setHeadExtended(endsExtend);
+        ai.setTailExtended(endsExtend);
 	}
 
 	private void addArcs(ViaStack prev, ViaStack via, ViaStack next) {

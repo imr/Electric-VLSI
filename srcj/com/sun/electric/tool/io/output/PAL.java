@@ -32,6 +32,7 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
@@ -170,7 +171,7 @@ public class PAL extends Output
 
 			Netlist netlist = info.getNetlist();
 			StringBuffer sb = new StringBuffer();
-			if (outputCon.isNegated()) sb.append("!");
+			if (outputCon.getArc().isNegated(outputCon.getEndIndex())) sb.append("!");
 			Network oNet = netlist.getNetwork(outputCon.getPortInst());
 			sb.append(getNetName(oNet, info) + " =");
 			int count = 0;
@@ -182,8 +183,9 @@ public class PAL extends Output
 				if (count == 1) sb.append(" " + funName);
 				count++;
 				sb.append(" ");
-				if (con.isNegated()) sb.append("!");
-				Network net = netlist.getNetwork(con.getArc(), 0);
+				ArcInst ai = con.getArc();
+				if (ai.isNegated(con.getEndIndex())) sb.append("!");
+				Network net = netlist.getNetwork(ai, 0);
 				if (net == null) continue;
 				sb.append(getNetName(net, info));
 			}

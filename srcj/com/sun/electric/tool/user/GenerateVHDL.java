@@ -144,7 +144,7 @@ public class GenerateVHDL
 			for(int i=0; i<2; i++)
 			{
 				Connection con = ai.getConnection(i);
-				if (con.isNegated()) negatedConnections.put(con, new Integer(instNum++));
+				if (ai.isNegated(i)) negatedConnections.put(con, new Integer(instNum++));
 			}
 		}
 
@@ -446,7 +446,7 @@ public class GenerateVHDL
 						Network net = nl.getNetwork(ai, 0);
 						if (net != null)
 							sigName = addString(net.describe(), no.getParent());
-						if (con.isNegated())
+						if (ai.isNegated(con.getEndIndex()))
 						{
 							Integer index = (Integer)negatedConnections.get(con);
 							if (index != null) sigName = "PINV" + index.intValue();
@@ -471,7 +471,7 @@ public class GenerateVHDL
 						if (ai.getProto().getFunction() != ArcProto.Function.NONELEC)
 						{
 							if (first) infstr.append(", ");   first = true;
-							if (con.isNegated())
+							if (ai.isNegated(con.getEndIndex()))
 							{
 								Integer index = (Integer)negatedConnections.get(con);
 								if (index != null)
@@ -637,7 +637,7 @@ public class GenerateVHDL
 				{
 					Connection con = (Connection)it.next();
 					if (!con.getPortInst().getPortProto().getName().equals("y")) continue;
-					if (con.isNegated())
+					if (con.getArc().isNegated(con.getEndIndex()))
 					{
 						if (slashPos >= 0) primName = primName.substring(slashPos+1);
 						special = BLOCKINVERTER;
@@ -660,7 +660,7 @@ public class GenerateVHDL
 					Connection con = (Connection)it.next();
 					if (con.getPortInst().getPortProto().getName().equals("a")) inPort++;
 					if (!con.getPortInst().getPortProto().getName().equals("y")) continue;
-					if (con.isNegated()) isNeg = con;
+					if (con.getArc().isNegated(con.getEndIndex())) isNeg = con;
 				}
 				if (isNeg != null)
 				{
@@ -684,7 +684,7 @@ public class GenerateVHDL
 					Connection con = (Connection)it.next();
 					if (con.getPortInst().getPortProto().getName().equals("a")) inPort++;
 					if (!con.getPortInst().getPortProto().getName().equals("y")) continue;
-					if (con.isNegated()) isNeg = con;
+					if (con.getArc().isNegated(con.getEndIndex())) isNeg = con;
 				}
 				if (isNeg != null)
 				{
@@ -708,7 +708,7 @@ public class GenerateVHDL
 					Connection con = (Connection)it.next();
 					if (con.getPortInst().getPortProto().getName().equals("a")) inPort++;
 					if (!con.getPortInst().getPortProto().getName().equals("y")) continue;
-					if (con.isNegated()) isNeg = con;
+					if (con.getArc().isNegated(con.getEndIndex())) isNeg = con;
 				}
 				if (isNeg != null)
 				{

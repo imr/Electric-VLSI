@@ -648,13 +648,13 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 				        new Point2D.Double(cX, cY), null, 0);
 				if (newAi == null) return null;
 				newAi.lowLevelSetUserbits(ai.lowLevelGetUserbits());
-				newAi.getHead().setNegated(ai.getHead().isNegated());
+				newAi.setHeadNegated(ai.isHeadNegated());
 
 				ArcInst newAi2 = ArcInst.newInstance(ai.getProto(), ai.getWidth(), pinPi, newPortInst[1], new Point2D.Double(cX, cY),
 				        newPoint[1], null, 0);
 				if (newAi2 == null) return null;
 				newAi2.lowLevelSetUserbits(ai.lowLevelGetUserbits());
-				newAi2.getTail().setNegated(ai.getTail().isNegated());
+				newAi2.setTailNegated(ai.isTailNegated());
 				if (newPortInst[1].getNodeInst() == this)
 				{
 					ArcInst aiSwap = newAi;   newAi = newAi2;   newAi2 = aiSwap;
@@ -669,8 +669,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 					return null;
 				}
 				newAi.lowLevelSetUserbits(ai.lowLevelGetUserbits());
-				newAi.getHead().setNegated(ai.getHead().isNegated());
-				newAi.getTail().setNegated(ai.getTail().isNegated());
+				newAi.setHeadNegated(ai.isHeadNegated());
+				newAi.setTailNegated(ai.isTailNegated());
 			}
 			newAi.copyVarsFrom(ai);
 			newAi.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);

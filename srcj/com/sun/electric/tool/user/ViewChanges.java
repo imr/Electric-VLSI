@@ -711,7 +711,10 @@ public class ViewChanges
 					head, tail, new Point2D.Double(xBBPos, yBBPos),
 						new Point2D.Double(xPos, yPos), null);
 				if (ai != null && wireType == Schematics.tech.bus_arc)
-					ai.setExtended(false);
+				{
+					ai.setHeadExtended(false);
+					ai.setTailExtended(false);
+				}
 			}
 		}
 		return true;

@@ -1409,9 +1409,9 @@ public class Sue extends Input
 
 			// negate the wire if requested
 			if (invertNodeOutput.contains(sw.pi[0].getNodeInst()) && sw.pi[0].getPortProto().getName().equals("y"))
-				ai.getHead().setNegated(true);
+				ai.setHeadNegated(true);
 			if (invertNodeOutput.contains(sw.pi[1].getNodeInst()) && sw.pi[1].getPortProto().getName().equals("y"))
-				ai.getTail().setNegated(true);
+				ai.setTailNegated(true);
 		}
 
 		// now look for implicit connections where "offpage" connectors touch

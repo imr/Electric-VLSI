@@ -1060,22 +1060,34 @@ public class Technology implements Comparable
 		}
 		if (primLayers.length == 0)
 			return new Poly[0];
+
 		// see how many polygons describe this arc
 		int numDisplayable = ai.numDisplayableVariables(true);
 		if (wnd == null) numDisplayable = 0;
 		int maxPolys = primLayers.length + numDisplayable;
 		boolean addArrow = false;
-		if (!tech.isNoDirectionalArcs() && ai.isDirectional() && !ai.isSkipHead())
+		if (!tech.isNoDirectionalArcs())
 		{
-			addArrow = true;
-			maxPolys++;
+			if (ai.isBodyArrowed())
+			{
+				addArrow = true;
+				maxPolys++;
+			}
+			if (ai.isHeadArrowed())
+			{
+				addArrow = true;
+				maxPolys++;
+			}
+			if (ai.isTailArrowed())
+			{
+				addArrow = true;
+				maxPolys++;
+			}
 		}
 		boolean negated = false;
-		Connection head = ai.getHead();
-		Connection tail = ai.getTail();
-		Point2D headLoc = head.getLocation();
-		Point2D tailLoc = tail.getLocation();
-		if (!tech.isNoNegatedArcs() && (head.isNegated() || tail.isNegated()))
+		Point2D headLoc = ai.getHead().getLocation();
+		Point2D tailLoc = ai.getTail().getLocation();
+		if (!tech.isNoNegatedArcs() && (ai.isHeadNegated() || ai.isTailNegated()))
 		{
 			negated = true;
 		}
@@ -1095,12 +1107,12 @@ public class Technology implements Comparable
 				double bubbleSize = Schematics.getNegatingBubbleSize();
 				double cosDist = DBMath.cos(angle) * bubbleSize;
 				double sinDist = DBMath.sin(angle) * bubbleSize;
-				if (head.isNegated())
+				if (ai.isHeadNegated())
 				{
 					headX -= cosDist;
 					headY -= sinDist;
 				}
-				if (tail.isNegated())
+				if (ai.isTailNegated())
 				{
 					tailX += cosDist;
 					tailY += sinDist;
@@ -1140,26 +1152,47 @@ public class Technology implements Comparable
 			double headX = headLoc.getX();   double headY = headLoc.getY();
 			double tailX = tailLoc.getX();   double tailY = tailLoc.getY();
 			int angle = ai.getAngle();
-			if (ai.isReverseEnds())
+			if (ai.isBodyArrowed())
 			{
-				double swap = headX;   headX = tailX;   tailX = swap;
-				swap = headY;   headY = tailY;   tailY = swap;
-			} else
-			{
-				angle += 1800;
+				Point2D [] points = new Point2D.Double[2];
+				points[0] = new Point2D.Double(headX, headY);
+				points[1] = new Point2D.Double(tailX, tailY);
+				polys[polyNum] = new Poly(points);
+				polys[polyNum].setStyle(Poly.Type.VECTORS);
+//				polys[polyNum].setLayer(lastLayer);
+				polyNum++;
 			}
-			Point2D [] points = new Point2D.Double[4];
-			int angleOfArrow = 300;		// 30 degrees
-			int backAngle1 = angle - angleOfArrow;
-			int backAngle2 = angle + angleOfArrow;
-			points[0] = new Point2D.Double(headX, headY);
-			points[1] = new Point2D.Double(headX + DBMath.cos(backAngle1), headY + DBMath.sin(backAngle1));
-			points[2] = points[0];
-			points[3] = new Point2D.Double(headX + DBMath.cos(backAngle2), headY + DBMath.sin(backAngle2));
-			polys[polyNum] = new Poly(points);
-			polys[polyNum].setStyle(Poly.Type.VECTORS);
-			polys[polyNum].setLayer(lastLayer);
-			polyNum++;
+			if (ai.isTailArrowed())
+			{
+				int angleOfArrow = 3300;		// -30 degrees
+				int backAngle1 = angle - angleOfArrow;
+				int backAngle2 = angle + angleOfArrow;
+				Point2D [] points = new Point2D.Double[4];
+				points[0] = new Point2D.Double(tailX, tailY);
+				points[1] = new Point2D.Double(tailX + DBMath.cos(backAngle1), tailY + DBMath.sin(backAngle1));
+				points[2] = points[0];
+				points[3] = new Point2D.Double(tailX + DBMath.cos(backAngle2), tailY + DBMath.sin(backAngle2));
+				polys[polyNum] = new Poly(points);
+				polys[polyNum].setStyle(Poly.Type.VECTORS);
+//				polys[polyNum].setLayer(lastLayer);
+				polyNum++;
+			}
+			if (ai.isHeadArrowed())
+			{
+				angle = (angle + 1800) % 3600;
+				int angleOfArrow = 300;		// 30 degrees
+				int backAngle1 = angle - angleOfArrow;
+				int backAngle2 = angle + angleOfArrow;
+				Point2D [] points = new Point2D.Double[4];
+				points[0] = new Point2D.Double(headX, headY);
+				points[1] = new Point2D.Double(headX + DBMath.cos(backAngle1), headY + DBMath.sin(backAngle1));
+				points[2] = points[0];
+				points[3] = new Point2D.Double(headX + DBMath.cos(backAngle2), headY + DBMath.sin(backAngle2));
+				polys[polyNum] = new Poly(points);
+				polys[polyNum].setStyle(Poly.Type.VECTORS);
+//				polys[polyNum].setLayer(lastLayer);
+				polyNum++;
+			}
 		}
 		
 		// add in the displayable variables
@@ -1597,7 +1630,7 @@ public class Technology implements Comparable
 		for(Iterator it = ni.getConnections(); it.hasNext(); )
 		{
 			Connection con = (Connection)it.next();
-			if (con.isNegated()) numNegatingBubbles++;
+			if (con.getArc().isNegated(con.getEndIndex())) numNegatingBubbles++;
 		}
 
 		// construct the polygon array
@@ -1688,7 +1721,7 @@ public class Technology implements Comparable
 			for(Iterator it = ni.getConnections(); it.hasNext(); )
 			{
 				Connection con = (Connection)it.next();
-				if (!con.isNegated()) continue;
+				if (!con.getArc().isNegated(con.getEndIndex())) continue;
 
 				// add a negating bubble
 				AffineTransform trans = ni.rotateIn();

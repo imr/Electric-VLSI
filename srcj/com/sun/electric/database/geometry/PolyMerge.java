@@ -205,6 +205,31 @@ public class PolyMerge
 	}
 
 	/**
+	 * Method to subtract one layer from another and produce a third.
+	 * @param sourceA the first Layer.
+	 * @param sourceB the second Layer, which gets subtracted from the first.
+	 * @param dest the destination layer to place the sourceA - sourceB.
+	 * If there is nothing left, all geometry on the layer is cleared.
+	 */
+	public void subtractLayers(Layer sourceA, Layer sourceB, Layer dest)
+	{
+		Area destArea = null;
+		Area sourceAreaA = (Area)layers.get(sourceA);
+		if (sourceAreaA != null)
+		{
+			Area sourceAreaB = (Area)layers.get(sourceB);
+			if (sourceAreaB != null)
+			{
+				destArea = new Area(sourceAreaA);
+				destArea.subtract(sourceAreaB);
+				if (destArea.isEmpty()) destArea = null;
+			}
+		}
+		if (destArea == null) layers.remove(dest); else
+			layers.put(dest, destArea);
+	}
+
+	/**
 	 * Method to inset one layer by a given amount and create a second layer.
 	 * @param source the Layer to inset.
 	 * @param dest the destination layer to place the inset geometry.

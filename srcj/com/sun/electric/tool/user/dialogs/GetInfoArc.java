@@ -70,8 +70,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 	private double initialWidth;
 	private boolean initialEasyToSelect;
 	private boolean initialRigid, initialFixedAngle, initialSlidable;
-	private boolean initialDirectional, initialEndsExtend;
-	private boolean initialSkipHead, initialSkipTail, initialReverseEnds;
+	private int initialExtension, initialDirectional, initialNegated;
     private String initialColor;
     private EditWindow wnd;
     private AttributesTable attributesTable;
@@ -206,7 +205,24 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
             arcColorComboBox.addItem(str);
         }
 
-		// make the attributes list
+        // initialize the state bit popups
+        negation.addItem("None");
+        negation.addItem("Head");
+        negation.addItem("Tail");
+        negation.addItem("Both");
+
+        extension.addItem("Both ends");
+        extension.addItem("Neither end");
+        extension.addItem("Head only");
+        extension.addItem("Tail only");
+
+        directionality.addItem("None");
+        directionality.addItem("Head and Body");
+        directionality.addItem("Tail and Body");
+        directionality.addItem("Body only");
+        directionality.addItem("Head/Tail/Body");
+
+        // make the attributes list
 		allAttributes = new ArrayList();
         attributesTable = new AttributesTable(null, true, false, false);
 		attributesPane.setViewportView(attributesTable);
@@ -274,11 +290,9 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
             rigid.setEnabled(true);
             fixedAngle.setEnabled(true);
             slidable.setEnabled(true);
-            directional.setEnabled(true);
-            endsExtend.setEnabled(true);
-            skipHead.setEnabled(true);
-            skipTail.setEnabled(true);
-            reverseEnds.setEnabled(true);
+            directionality.setEnabled(true);
+            extension.setEnabled(true);
+            negation.setEnabled(true);
             headSee.setEnabled(true);
             tailSee.setEnabled(true);
             apply.setEnabled(true);
@@ -292,11 +306,26 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
             initialRigid = ai.isRigid();
             initialFixedAngle = ai.isFixedAngle();
             initialSlidable = ai.isSlidable();
-            initialDirectional = ai.isDirectional();
-            initialEndsExtend = ai.isExtended();
-            initialSkipHead = ai.isSkipHead();
-            initialSkipTail = ai.isSkipTail();
-            initialReverseEnds = ai.isReverseEnds();
+
+            initialNegated = 0;
+            if (ai.isHeadNegated())
+            {
+            	if (ai.isTailNegated()) initialNegated = 3; else
+            		initialNegated = 1;
+            } else if (ai.isTailNegated()) initialNegated = 2;
+
+            initialExtension = 0;
+            if (!ai.isHeadExtended())
+            {
+            	if (!ai.isTailExtended()) initialExtension = 1; else
+            		initialExtension = 3;
+            } else if (!ai.isTailExtended()) initialExtension = 2;
+
+            initialDirectional = 0;
+            if (ai.isBodyArrowed() && ai.isHeadArrowed() && !ai.isTailArrowed()) initialDirectional = 1;
+            if (ai.isBodyArrowed() && !ai.isHeadArrowed() && ai.isTailArrowed()) initialDirectional = 2;
+            if (ai.isBodyArrowed() && !ai.isHeadArrowed() && !ai.isTailArrowed()) initialDirectional = 3;
+            if (ai.isBodyArrowed() && ai.isHeadArrowed() && ai.isTailArrowed()) initialDirectional = 4;
 
             // load the dialog
             type.setText(ai.getProto().describe());
@@ -326,11 +355,9 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
             rigid.setSelected(initialRigid);
             fixedAngle.setSelected(initialFixedAngle);
             slidable.setSelected(initialSlidable);
-            directional.setSelected(initialDirectional);
-            endsExtend.setSelected(initialEndsExtend);
-            skipHead.setSelected(initialSkipHead);
-            skipTail.setSelected(initialSkipTail);
-            reverseEnds.setSelected(initialReverseEnds);
+            negation.setSelectedIndex(initialNegated);
+            extension.setSelectedIndex(initialExtension);
+            directionality.setSelectedIndex(initialDirectional);
 
             // arc color
             initialColor = "";
@@ -396,16 +423,9 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
         fixedAngle.setSelected(false);
         slidable.setEnabled(false);
         slidable.setSelected(false);
-        directional.setEnabled(false);
-        directional.setSelected(false);
-        endsExtend.setEnabled(false);
-        endsExtend.setSelected(false);
-        skipHead.setEnabled(false);
-        skipHead.setSelected(false);
-        skipTail.setEnabled(false);
-        skipTail.setSelected(false);
-        reverseEnds.setEnabled(false);
-        reverseEnds.setSelected(false);
+        negation.setEnabled(false);
+        extension.setEnabled(false);
+        directionality.setEnabled(false);
         apply.setEnabled(false);
         attributes.setEnabled(false);
         arcColorComboBox.setEnabled(false);
@@ -451,13 +471,14 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
         nameProperties = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         rigid = new javax.swing.JCheckBox();
-        reverseEnds = new javax.swing.JCheckBox();
-        endsExtend = new javax.swing.JCheckBox();
         slidable = new javax.swing.JCheckBox();
-        skipTail = new javax.swing.JCheckBox();
-        directional = new javax.swing.JCheckBox();
         fixedAngle = new javax.swing.JCheckBox();
-        skipHead = new javax.swing.JCheckBox();
+        jLabel4 = new javax.swing.JLabel();
+        extension = new javax.swing.JComboBox();
+        jLabel8 = new javax.swing.JLabel();
+        directionality = new javax.swing.JComboBox();
+        jLabel10 = new javax.swing.JLabel();
+        negation = new javax.swing.JComboBox();
         jPanel3 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         arcColorComboBox = new javax.swing.JComboBox();
@@ -532,9 +553,9 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(name, gridBagConstraints);
 
         jLabel6.setText("Width:");
@@ -633,8 +654,6 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
         jPanel1.add(headLoc, gridBagConstraints);
 
         headSee.setText("See");
-        headSee.setMinimumSize(new java.awt.Dimension(56, 26));
-        headSee.setPreferredSize(new java.awt.Dimension(56, 26));
         headSee.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -687,8 +706,6 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
         jPanel1.add(tailLoc, gridBagConstraints);
 
         tailSee.setText("See");
-        tailSee.setMinimumSize(new java.awt.Dimension(56, 26));
-        tailSee.setPreferredSize(new java.awt.Dimension(56, 26));
         tailSee.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -732,74 +749,70 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanel2.add(rigid, gridBagConstraints);
-
-        reverseEnds.setText("Reverse head and tail");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
-        jPanel2.add(reverseEnds, gridBagConstraints);
-
-        endsExtend.setText("Ends extend");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        jPanel2.add(endsExtend, gridBagConstraints);
 
         slidable.setText("Slidable");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanel2.add(slidable, gridBagConstraints);
-
-        skipTail.setText("Ignore tail");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        jPanel2.add(skipTail, gridBagConstraints);
-
-        directional.setText("Directional");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
-        jPanel2.add(directional, gridBagConstraints);
 
         fixedAngle.setText("Fixed-angle");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanel2.add(fixedAngle, gridBagConstraints);
 
-        skipHead.setText("Ignore head");
+        jLabel4.setText("End Extension:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
-        jPanel2.add(skipHead, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        jPanel2.add(jLabel4, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel2.add(extension, gridBagConstraints);
+
+        jLabel8.setText("Directionality:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        jPanel2.add(jLabel8, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel2.add(directionality, gridBagConstraints);
+
+        jLabel10.setText("Negation:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        jPanel2.add(jLabel10, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel2.add(negation, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1100,40 +1113,44 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 				changed = true;
 			}
 
-			boolean currentDirectional = dialog.directional.isSelected();
+			int currentDirectional = dialog.directionality.getSelectedIndex();
 			if (currentDirectional != dialog.initialDirectional)
 			{
-                ai.setDirectional(currentDirectional);
+				switch (currentDirectional)
+				{
+					case 0: ai.setBodyArrowed(false);  ai.setHeadArrowed(false);   ai.setTailArrowed(false);   break;
+					case 1: ai.setBodyArrowed(true);   ai.setHeadArrowed(true);    ai.setTailArrowed(false);   break;
+					case 2: ai.setBodyArrowed(true);   ai.setHeadArrowed(false);   ai.setTailArrowed(true);    break;
+					case 3: ai.setBodyArrowed(true);   ai.setHeadArrowed(false);   ai.setTailArrowed(false);   break;
+					case 4: ai.setBodyArrowed(true);   ai.setHeadArrowed(true);    ai.setTailArrowed(true);    break;
+				}
 				dialog.initialDirectional = currentDirectional;
 				changed = true;
 			}
-			boolean currentEndsExtend = dialog.endsExtend.isSelected();
-			if (currentEndsExtend != dialog.initialEndsExtend)
+			int currentExtend = dialog.extension.getSelectedIndex();
+			if (currentExtend != dialog.initialExtension)
 			{
-                ai.setExtended(currentEndsExtend);
-				dialog.initialEndsExtend = currentEndsExtend;
+				switch (currentExtend)
+				{
+					case 0: ai.setHeadExtended(true);     ai.setTailExtended(true);    break;
+					case 1: ai.setHeadExtended(false);    ai.setTailExtended(false);   break;
+					case 2: ai.setHeadExtended(true);     ai.setTailExtended(false);   break;
+					case 3: ai.setHeadExtended(false);    ai.setTailExtended(true);    break;
+				}
+				dialog.initialExtension = currentExtend;
 				changed = true;
 			}
-
-			boolean currentSkipHead = dialog.skipHead.isSelected();
-			if (currentSkipHead != dialog.initialSkipHead)
+			int currentNegated = dialog.negation.getSelectedIndex();
+			if (currentNegated != dialog.initialNegated)
 			{
-                ai.setSkipHead(currentSkipHead);
-				dialog.initialSkipHead = currentSkipHead;
-				changed = true;
-			}
-			boolean currentSkipTail = dialog.skipTail.isSelected();
-			if (currentSkipTail != dialog.initialSkipTail)
-			{
-                ai.setSkipTail(currentSkipTail);
-				dialog.initialSkipTail = currentSkipTail;
-				changed = true;
-			}
-			boolean currentReverseEnds = dialog.reverseEnds.isSelected();
-			if (currentReverseEnds != dialog.initialReverseEnds)
-			{
-                ai.setReverseEnds(currentReverseEnds);
-				dialog.initialReverseEnds = currentReverseEnds;
+				switch (currentNegated)
+				{
+					case 0: ai.setHeadNegated(false);    ai.setTailNegated(false);    break;
+					case 1: ai.setHeadNegated(true);     ai.setTailNegated(false);    break;
+					case 2: ai.setHeadNegated(false);    ai.setTailNegated(true);     break;
+					case 3: ai.setHeadNegated(true);     ai.setTailNegated(true);     break;
+				}
+				dialog.initialNegated = currentNegated;
 				changed = true;
 			}
 
@@ -1163,23 +1180,26 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
     private javax.swing.JScrollPane attributesPane;
     private javax.swing.JLabel busSize;
     private javax.swing.JButton cancel;
-    private javax.swing.JCheckBox directional;
+    private javax.swing.JComboBox directionality;
     private javax.swing.JCheckBox easyToSelect;
-    private javax.swing.JCheckBox endsExtend;
+    private javax.swing.JComboBox extension;
     private javax.swing.JCheckBox fixedAngle;
     private javax.swing.JLabel headLoc;
     private javax.swing.JLabel headNode;
     private javax.swing.JButton headSee;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel15;
     private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
@@ -1188,12 +1208,10 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
     private javax.swing.JButton moreLess;
     private javax.swing.JTextField name;
     private javax.swing.JButton nameProperties;
+    private javax.swing.JComboBox negation;
     private javax.swing.JLabel network;
     private javax.swing.JButton ok;
-    private javax.swing.JCheckBox reverseEnds;
     private javax.swing.JCheckBox rigid;
-    private javax.swing.JCheckBox skipHead;
-    private javax.swing.JCheckBox skipTail;
     private javax.swing.JCheckBox slidable;
     private javax.swing.JLabel tailLoc;
     private javax.swing.JLabel tailNode;

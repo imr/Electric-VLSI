@@ -72,6 +72,9 @@ import java.util.List;
  * Still to do:
  *    Nonmanhattan contacts
  *    Explicit connection where two cells overlap?
+ *    In new CIF input test,
+ *        Lower left and right contact areas not converted
+ *        Metal-1-2 contacts along top overlap
  */
 public class Connectivity
 {
@@ -720,7 +723,10 @@ public class Connectivity
 		HashMap possibleAreas = new HashMap();
 
 		// look at all via layers and see if contacts can be extracted
+		List layers = new ArrayList();
 		for(Iterator lIt = merge.getKeyIterator(); lIt.hasNext(); )
+			layers.add(lIt.next());
+		for(Iterator lIt = layers.iterator(); lIt.hasNext(); )
 		{
 			Layer layer = (Layer)lIt.next();
 			Layer.Function fun = layer.getFunction();
@@ -774,13 +780,25 @@ public class Connectivity
 					if (contactArea == null)
 					{
 						// merge all other layers and see how big the contact can be
-						originalMerge.insetLayer(pv.layers[0], tempLayer1, (pv.largestShrink-pv.shrink[0])/2);
-						for(int i=1; i<pv.layers.length; i++)
+						boolean subtractPoly = false;
+						PolyMerge areaToUse = originalMerge;
+						for(int i=0; i<pv.layers.length; i++)
 						{
-							originalMerge.insetLayer(pv.layers[i], tempLayer2, (pv.largestShrink-pv.shrink[i])/2);
-							originalMerge.intersectLayers(tempLayer1, tempLayer2, tempLayer1);
+							if (pv.layers[i] == activeLayer) subtractPoly = true;
+							double shrinkage = (pv.largestShrink-pv.shrink[i]) / 2;
+							if (i == 0) areaToUse.insetLayer(pv.layers[i], tempLayer1, shrinkage); else
+							{
+								areaToUse.insetLayer(pv.layers[i], tempLayer2, shrinkage);
+								areaToUse.intersectLayers(tempLayer1, tempLayer2, tempLayer1);
+							}
 						}
-						contactArea = originalMerge.getMergedPoints(tempLayer1, true);
+						if (subtractPoly)
+						{
+							// subtract areas of poly because the cuts cannot follow across a transistor
+							areaToUse.subtractLayers(tempLayer1, polyLayer, tempLayer1);
+						}
+						contactArea = areaToUse.getMergedPoints(tempLayer1, true);
+						areaToUse.deleteLayer(tempLayer1);
 						if (contactArea == null) contactArea = new ArrayList();
 						possibleAreas.put(pNp, contactArea);
 					}
@@ -2133,7 +2151,13 @@ public class Connectivity
 				double centerX = poly.getCenterX();
 				double centerY = poly.getCenterY();
 				Point2D center = new Point2D.Double(centerX, centerY);
-				NodeInst ni = NodeInst.makeInstance(poly.getLayer().getPureLayerNode(), center,
+				PrimitiveNode pNp = poly.getLayer().getPureLayerNode();
+				if (pNp == null)
+				{
+					System.out.println("CANNOT FIND PURE LAYER NODE FOR LAYER "+poly.getLayer().getName());
+					continue;
+				}
+				NodeInst ni = NodeInst.makeInstance(pNp, center,
 					poly.getBounds2D().getWidth(), poly.getBounds2D().getHeight(), newCell);
 
 				// add on trace information if the shape is nonmanhattan
@@ -2198,7 +2222,11 @@ public class Connectivity
 	{
 		ArcInst ai = ArcInst.makeInstance(ap, width, pi1, pi2, pt1, pt2, null);
 		if (ai == null) return null;
-		if (noEndExtend) ai.setExtended(false);
+		if (noEndExtend)
+		{
+			ai.setHeadExtended(false);
+			ai.setTailExtended(false);
+		}
 
 		// now remove the generated layers from the Merge
 		Poly [] polys = tech.getShapeOfArc(ai);

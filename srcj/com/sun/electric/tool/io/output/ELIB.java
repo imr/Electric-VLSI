@@ -722,21 +722,7 @@ public class ELIB extends Output
 		// write the arcinst's tool information
 		int arcAngle = ai.getAngle() / 10;
 		ai.lowLevelSetArcAngle(arcAngle);
-		int userBits = ai.lowLevelGetUserbits() & ELIBConstants.ARC_BITS;
-//		int userBits = ai.lowLevelGetUserbits();
-
-		// add a negated bit if the tail is negated
-		userBits &= ~(ELIBConstants.ISNEGATED | ELIBConstants.ISHEADNEGATED);
-		if (ai.getTail().isNegated())
-		{
-			if (ai.isReverseEnds()) userBits |= ELIBConstants.ISHEADNEGATED; else
-				userBits |= ELIBConstants.ISNEGATED;
-		}
-		if (ai.getHead().isNegated())
-		{
-			if (ai.isReverseEnds()) userBits |= ELIBConstants.ISNEGATED; else
-				userBits |= ELIBConstants.ISHEADNEGATED;
-		}
+		int userBits = ELIBConstants.makeELIBArcBits(ai);
 		writeBigInteger(userBits);
 
 		// write variable information and arc name

@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02g: *********************************
 
+IMP/MAN: (02/04/05, SMR) Directional arcs can now have arrow heads on either end. (Bug #150)
+     Modified Arc Properties dialog to control directional, negated, and end extension.
+     Modified commands in Edit / Arc menu.
+     Modified internal way of storing these properties.
+
+IMP: (02/03/05, SMR) Improvements in node extraction.  Added PolyMerge.subtractLayers().
+
 IMP/MAN: (02/04/05, GVG) Reorganizing tech palette including Bug#31
 - Added "n"/"p" to well, active and transistors. Added "Mos" to transistors.
 Added "Act" to actives. On Y axis, 3-node row (arc, pin, contact) sorted per layer

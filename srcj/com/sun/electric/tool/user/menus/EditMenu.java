@@ -241,14 +241,10 @@ public class EditMenu {
 		arcSubMenu.addSeparator();
 		arcSubMenu.addMenuItem("Toggle Directionality", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcDirectionalCommand(); }});
-		arcSubMenu.addMenuItem("Toggle End Extension", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcEndsExtendCommand(); }});
-		arcSubMenu.addMenuItem("Reverse", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcReverseCommand(); }});
-		arcSubMenu.addMenuItem("Toggle Head-Skip", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcSkipHeadCommand(); }});
-		arcSubMenu.addMenuItem("Toggle Tail-Skip", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcSkipTailCommand(); }});
+		arcSubMenu.addMenuItem("Toggle End Extension of Head", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcHeadExtendCommand(); }});
+		arcSubMenu.addMenuItem("Toggle End Extension of Tail", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcTailExtendCommand(); }});
 		arcSubMenu.addSeparator();
 		arcSubMenu.addMenuItem("Insert Jog In Arc", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { insertJogInArcCommand(); } });
@@ -1201,25 +1197,21 @@ public class EditMenu {
                 Point2D headPt = ai.getHead().getLocation();
                 Point2D tailPt = ai.getTail().getLocation();
                 double width = ai.getWidth();
-                boolean headNegated = ai.getHead().isNegated();
-                boolean tailNegated = ai.getTail().isNegated();
-                if (ai.isReverseEnds())
-                {
-                    boolean swap = headNegated;   headNegated = tailNegated;   tailNegated = swap;
-                }
+                boolean headNegated = ai.isHeadNegated();
+                boolean tailNegated = ai.isTailNegated();
                 String arcName = ai.getName();
                 int angle = (ai.getAngle() + 900) % 3600;
 
                 // create the new arcs
                 ArcInst newAi1 = ArcInst.makeInstance(ap, width, headPort, pi, headPt, insert, null);
-                if (headNegated) newAi1.getHead().setNegated(true);
+                if (headNegated) newAi1.setHeadNegated(true);
                 ArcInst newAi2 = ArcInst.makeInstance(ap, width, pi, pi2, insert, insert, null);
                 ArcInst newAi3 = ArcInst.makeInstance(ap, width, pi2, tailPort, insert, tailPt, null);
-                if (tailNegated) newAi3.getTail().setNegated(true);
+                if (tailNegated) newAi3.setTailNegated(true);
 				newAi1.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
 				newAi3.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
-				newAi1.getHead().setNegated(ai.getHead().isNegated());
-				newAi3.getTail().setNegated(ai.getTail().isNegated());
+				newAi1.setHeadNegated(ai.isHeadNegated());
+				newAi3.setTailNegated(ai.isTailNegated());
 				ai.kill();
                 if (arcName != null)
                 {

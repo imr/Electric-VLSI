@@ -1509,18 +1509,7 @@ public class ELIB extends LibraryFiles
 			ai.lowLevelSetUserbits(arcUserBits[i]);
 			int defAngle = ai.lowLevelGetArcAngle() * 10;
 			ai.lowLevelPopulate(ap, width, tailPortInst, new Point2D.Double(tailX, tailY), headPortInst, new Point2D.Double(headX, headY), defAngle, name, -1);
-			if ((arcUserBits[i]&ELIBConstants.ISNEGATED) != 0)
-			{
-				Connection con = ai.getTail();
-				if (ai.isReverseEnds()) con = ai.getHead();
-				con.setNegated(true);
-			}
-			if ((arcUserBits[i]&ELIBConstants.ISHEADNEGATED) != 0)
-			{
-				Connection con = ai.getHead();
-				if (ai.isReverseEnds()) con = ai.getTail();
-				con.setNegated(true);
-			}
+			ELIBConstants.applyELIBArcBits(ai, arcUserBits[i]);
 			ai.lowLevelLink();
 		}
 	}

@@ -318,16 +318,16 @@ public class JELIB extends Output
 				StringBuffer arcBits = new StringBuffer();
 
 				if (ai.isHardSelect()) arcBits.append("A");
-				if (ai.isDirectional()) arcBits.append("D");
-				if (!ai.isExtended()) arcBits.append("E");
+				if (ai.isBodyArrowed()) arcBits.append("B");
 				if (!ai.isFixedAngle()) arcBits.append("F");
-				if (ai.getHead().isNegated()) arcBits.append("G");
-				if (ai.isSkipHead()) arcBits.append("H");
-				if (ai.getTail().isNegated()) arcBits.append("N");
+				if (ai.isHeadNegated()) arcBits.append("G");
+				if (!ai.isHeadExtended()) arcBits.append("I");
+				if (!ai.isTailExtended()) arcBits.append("J");
+				if (ai.isTailNegated()) arcBits.append("N");
 				if (ai.isRigid()) arcBits.append("R");
 				if (ai.isSlidable()) arcBits.append("S");
-				if (ai.isSkipTail()) arcBits.append("T");
-				if (ai.isReverseEnds()) arcBits.append("V");
+				if (ai.isHeadArrowed()) arcBits.append("X");
+				if (ai.isTailArrowed()) arcBits.append("Y");
 				printWriter.print("|" + arcBits.toString() + ai.getAngle());
 				for(int e=0; e<2; e++)
 				{

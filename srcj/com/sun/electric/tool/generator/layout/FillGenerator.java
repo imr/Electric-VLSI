@@ -49,7 +49,8 @@ class G {
 	public static ArcInst noExtendArc(PrimitiveArc pa, double w, 
 									   PortInst p1, PortInst p2) {
 		ArcInst ai = LayoutLib.newArcInst(pa, w, p1, p2);
-		ai.setExtended(false);
+		ai.setHeadExtended(false);
+		ai.setTailExtended(false);
 		return ai;		
 	}
 	public static ArcInst newArc(PrimitiveArc pa, double w, 

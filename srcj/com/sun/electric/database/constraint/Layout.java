@@ -1126,14 +1126,14 @@ public class Layout extends Constraints
 		ArcInst ar1 = ArcInst.newInstance(ap, wid, fpi, no2pi, headPt, no2Pt, null, 0);
 		if (ar1 == null) return;
 		ar1.copyStateBits(ai);
-		if (ai.getHead().isNegated()) ar1.getHead().setNegated(true);
+		if (ai.isHeadNegated()) ar1.setHeadNegated(true);
 		ArcInst ar2 = ArcInst.newInstance(ap, wid, no2pi, no1pi, no2Pt, no1Pt, null, 0);
 		if (ar2 == null) return;
 		ar2.copyStateBits(ai);
 		ArcInst ar3 = ArcInst.newInstance(ap, wid, no1pi, tpi, no1Pt, tailPt, null, 0);
 		if (ar3 == null) return;
 		ar3.copyStateBits(ai);
-		if (ai.getTail().isNegated()) ar3.getTail().setNegated(true);
+		if (ai.isTailNegated()) ar3.setTailNegated(true);
 		if (ar1 == null || ar2 == null || ar3 == null)
 		{
 			System.out.println("Problem creating jog arcs");

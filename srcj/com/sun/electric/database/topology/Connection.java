@@ -113,12 +113,14 @@ public class Connection
 
 	/**
 	 * Method to tell whether this connection is negated.
+	 * @deprecated use the ArcInst methods isNegated, isHeadNegated, and isTailNegated.
 	 * @return true if this connection is negated.
 	 */
 	public synchronized boolean isNegated() { return (flags & NEGATED) != 0; }
 
 	/**
 	 * Method to set whether this connection is negated.
+	 * @deprecated use the ArcInst methods setNegated, setHeadNegated, and setTailNegated.
 	 * @param negated true if this connection is negated.
 	 */
 	public void setNegated(boolean negated)
@@ -162,6 +164,15 @@ public class Connection
 	public boolean isHeadEnd()
 	{
 		return arc.getHead() == this;
+	}
+
+	/**
+	 * Method to determine the index of this Connection on its ArcInst.
+	 * @return 0 if this Connection is on the tail; 1 if this Connection is on the head.
+	 */
+	public int getEndIndex()
+	{
+		return arc.getHead() == this ? 1 : 0;
 	}
 
 	/**

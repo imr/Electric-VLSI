@@ -1208,7 +1208,7 @@ public class AutoStitch
 			{
 				Connection con = (Connection)it.next();
 				ArcInst ai = con.getArc();
-				if (ai.getWidth() >= ni.getXSize() && ai.getWidth() >= ni.getYSize() && ai.isExtended())
+				if (ai.getWidth() >= ni.getXSize() && ai.getWidth() >= ni.getYSize() && ai.isHeadExtended() && ai.isTailExtended())
 				{
 					gotOne = true;
 					break;

@@ -1141,8 +1141,8 @@ public class EDIF extends Input
 				return ports;
 			}
 			ar1.copyPropertiesFrom(ai);
-			if (ai.getHead().isNegated()) ar1.getHead().setNegated(true);
-			if (ai.getTail().isNegated()) ar2.getTail().setNegated(true);
+			if (ai.isHeadNegated()) ar1.setHeadNegated(true);
+			if (ai.isTailNegated()) ar2.setTailNegated(true);
 
 			// delete the old arcinst
 			ai.kill();

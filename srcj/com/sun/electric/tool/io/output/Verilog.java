@@ -202,7 +202,7 @@ public class Verilog extends Topology
 			for(int e=0; e<2; e++)
 			{
 				Connection con = ai.getConnection(e);
-				if (!con.isNegated()) continue;
+				if (!ai.isNegated(e)) continue;
 				PortInst pi = con.getPortInst();
 				NodeInst ni = con.getPortInst().getNodeInst();
 				if (ni.getProto() == Schematics.tech.bufferNode || ni.getProto() == Schematics.tech.andNode ||
@@ -459,7 +459,7 @@ public class Verilog extends Topology
 
 							// see if this end is negated
 							boolean isNegated = false;
-							if (ai.getTail().isNegated() || ai.getHead().isNegated()) isNegated = true;
+							if (ai.isTailNegated() || ai.isHeadNegated()) isNegated = true;
 
 							// write the port name
 							if (i == 0)
@@ -610,7 +610,7 @@ public class Verilog extends Topology
 							if (cs == null) continue;
 							String sigName = cs.getName();
 							boolean negated = false;
-							if (i != 0 && con.isNegated())
+							if (i != 0 && ai.isNegated(con.getEndIndex()))
 							{
 								// this input is negated: write the implicit inverter
 								Integer invIndex = (Integer)implicitInverters.get(con);
@@ -687,7 +687,7 @@ public class Verilog extends Topology
 		for(Iterator aIt = ni.getConnections(); aIt.hasNext(); )
 		{
 			Connection con = (Connection)aIt.next();
-			if (con.isNegated() &&
+			if (con.getArc().isNegated(con.getEndIndex()) &&
 				con.getPortInst().getPortProto().getName().equals("y"))
 					return negative;
 		}
