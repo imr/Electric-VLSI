@@ -1201,6 +1201,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 for(Iterator it = np.getTechnology().getArcs(); it.hasNext(); )
                 {
                     PrimitiveArc otherAp = (PrimitiveArc)it.next();
+                    if (otherAp.isSpecialArc()) continue; // ignore arc for sizing
                     double wid = otherAp.getDefaultWidth();
                     if (wid+8 > largest) largest = wid+8;
                 }
