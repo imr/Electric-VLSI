@@ -1057,38 +1057,9 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
             // get set by them.
             if (ni.getTransistorSize(null) != null) {
 
-                // ignore and calculated size change: it's not applicable
-                currentXSize = initXSize;
-                currentYSize = initYSize;
-
                 // see if this is a schematic transistor
                 if (np == Schematics.tech.transistorNode || np == Schematics.tech.transistor4Node)
                 {
-                    /*
-                    String currentTextField = dialog.textField.getText();
-                    if (!currentTextField.equals(dialog.initialTextField))
-                    {
-                        if (ni.isFET())
-                        {
-                            double width = TextUtils.atof(currentTextField);
-                            int slashPos = currentTextField.indexOf('/');
-                            double length = 2;
-                            if (slashPos >= 0)
-                                length = TextUtils.atof(currentTextField.substring(slashPos+1).trim());
-                            Variable var = ni.updateVar(Schematics.ATTR_WIDTH, new Double(width));
-                            if (var != null) var.setDisplay(true);
-                            var = ni.updateVar(Schematics.ATTR_LENGTH, new Double(length));
-                            if (var != null) var.setDisplay(true);
-                            dialog.initialTextField = currentTextField;
-                            changed = true;
-                        } else
-                        {
-                            Variable var = ni.updateVar(Schematics.ATTR_AREA, new Double(TextUtils.atof(currentTextField)));
-                            if (var != null) var.setDisplay(true);
-                            dialog.initialTextField = currentTextField;
-                            changed = true;
-                        }
-                    }*/
                     if (ni.isFET())
 					{
                         Object width, length;
@@ -1121,6 +1092,11 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 							Math.abs(currentYSize) - so.getLowYOffset() - so.getHighYOffset());
                     }
                 }
+                // ignore size change (values), but retain mirroring change (sign)
+                if (initXSize < 0) initXSize = -Math.abs(currentXSize);
+                else initXSize = Math.abs(currentXSize);
+                if (initYSize < 0) initYSize = -Math.abs(currentYSize);
+                else initYSize = Math.abs(currentYSize);
             }
 
 			int currentRotation = (int)(TextUtils.atof(dialog.rotation.getText(), new Double(dialog.initialRotation)) * 10);
