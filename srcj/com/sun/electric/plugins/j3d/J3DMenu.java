@@ -71,7 +71,7 @@ public class J3DMenu {
 
     public static void readDemoDataFromSocket()
     {
-        J3DViewDialog.createThreeViewDialog(TopLevel.getCurrentJFrame(), "mudd2");
+        J3DViewDialog.createThreeViewDialog(TopLevel.getCurrentJFrame(), "localhost");
 //        View3DWindow view3D = null;
 //        WindowContent content = WindowFrame.getCurrentWindowFrame().getContent();
 //        if (content instanceof View3DWindow)

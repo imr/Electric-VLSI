@@ -29,6 +29,9 @@ import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.Job;
 
+import java.util.List;
+import java.util.ArrayList;
+
 /**
  * Class to handle the "3D View Demo Dialog" dialog.
  * @author  Gilda Garreton
@@ -39,6 +42,7 @@ public class J3DViewDialog extends EDialog
     private View3DWindow view3D = null;
     private Job socketJob = null;
     private String hostname;
+    private List knots = new ArrayList();
 
     public static void createThreeViewDialog(java.awt.Frame parent, String hostname)
     {
@@ -70,6 +74,39 @@ public class J3DViewDialog extends EDialog
             slider.addChangeListener(view3d.jAlpha);
             auto.setSelected(view3d.jAlpha.getAutoMode());
         }
+
+        // Motion button
+        javax.swing.JButton motion = new javax.swing.JButton();
+        motion.setText("Demo");
+        motion.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                createDemoActionPerformed(evt);
+            }
+        });
+
+        java.awt.GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 40, 4, 4);
+        getContentPane().add(motion, gridBagConstraints);
+
+        // Motion button
+        javax.swing.JButton enter = new javax.swing.JButton();
+        enter.setText("Enter");
+        enter.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                enterDataActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 13;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 40, 4, 4);
+        getContentPane().add(enter, gridBagConstraints);
+
 		finishInitialization();
 	}
 
@@ -87,7 +124,7 @@ public class J3DViewDialog extends EDialog
         xRotPosField.setText(Double.toString(values[6]));
         yRotPosField.setText(Double.toString(values[7]));
         zRotPosField.setText(Double.toString(values[8]));
-        view3D.moveAndRotate(values);
+        knots.add(view3D.moveAndRotate(values));
     }
 
 	protected void escapePressed() { cancelActionPerformed(null); }
@@ -167,7 +204,7 @@ public class J3DViewDialog extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         getContentPane().add(slider, gridBagConstraints);
 
@@ -179,6 +216,8 @@ public class J3DViewDialog extends EDialog
             }
         });
 
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 0;
         getContentPane().add(auto, new java.awt.GridBagConstraints());
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -313,6 +352,27 @@ public class J3DViewDialog extends EDialog
     private void autoStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_autoStateChanged
         view3D.jAlpha.setAutoMode(auto.isSelected());
     }//GEN-LAST:event_autoStateChanged
+
+    private void createDemoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startActionPerformed
+        view3D.addInterpolator(knots);
+        //view3D.set3DCamera(spline.getSelectedIndex());
+    }//GEN-LAST:event_startActionPerformed
+
+    //enterDataActionPerformed
+    private void enterDataActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startActionPerformed
+        double[] values = new double[9];
+
+        values[0] = TextUtils.atof(xField.getText());
+        values[1] = TextUtils.atof(yField.getText());
+        values[2] = TextUtils.atof(zField.getText());
+        values[3] = TextUtils.atof(xRotField.getText());
+        values[4] = TextUtils.atof(yRotField.getText());
+        values[5] = TextUtils.atof(zRotField.getText());
+        values[6] = TextUtils.atof(xRotPosField.getText());
+        values[7] = TextUtils.atof(yRotPosField.getText());
+        values[8] = TextUtils.atof(zRotPosField.getText());
+        knots.add(view3D.moveAndRotate(values));
+    }//GEN-LAST:event_startActionPerformed
 
     private void startActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startActionPerformed
         if (start.getText().equals("Connect"))

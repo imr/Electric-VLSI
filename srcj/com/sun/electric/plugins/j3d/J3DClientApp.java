@@ -8,6 +8,8 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.DatagramPacket;
 import java.util.StringTokenizer;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Created by IntelliJ IDEA.
@@ -51,8 +53,8 @@ public class J3DClientApp extends Job
         }
     }
 
-    private J3DViewDialog dialog;
-    private String hostname;
+    /** dialog box which owns this job */   private J3DViewDialog dialog;
+    /** hostname to connect to */           private String hostname;
 
     public J3DClientApp(J3DViewDialog dialog, String hostname)
     {
@@ -71,6 +73,7 @@ public class J3DClientApp extends Job
         {
             DatagramSocket socket = new DatagramSocket();
             InetAddress address = InetAddress.getByName(hostname);
+            address = InetAddress.getLocalHost();
             String localHost = address.getHostName();
             int bufferLenght = 256;
             byte outBuffer[];
