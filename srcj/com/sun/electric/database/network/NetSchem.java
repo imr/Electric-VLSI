@@ -289,8 +289,9 @@ class NetSchem extends NetCell {
 			NetCell netCell = Network.getNetCell((Cell)ni.getProto());
 			if (netCell != this && netCell.cell != null) {
 				Proxy proxy = new Proxy(ni, 0);
+				nodeProxies[~proxyOffset] = proxy;
 				proxy.nodeOffset = nodeOffset;
-				nodeOffset += proxy.getParent().getNumPorts();
+				nodeOffset += proxy.getProto().getNumPorts();
 			} else {
 				nodeProxies[~proxyOffset] = null;
 			}
