@@ -4748,6 +4748,11 @@ public class WaveformWindow implements WindowContent
 			double range = wp.maxTime - wp.minTime;
 			wp.minTime -= range/2;
 			wp.maxTime += range/2;
+			if (wp.minTime < 0)
+			{
+				wp.maxTime -= wp.minTime;
+				wp.minTime = 0;
+			}
 			wp.repaintWithTime();
 		}
 	}

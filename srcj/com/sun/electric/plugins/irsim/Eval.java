@@ -25,14 +25,39 @@ public class Eval
 {
 	private static final boolean DEBUG = false;
 
-	private boolean	firstcall;	    /* reset when calling init_vdd_gnd */
+	private boolean	firstCall;	    /* reset when calling init_vdd_gnd */
 	protected Analyzer theAnalyzer;
 	protected Sim theSim;
-	private  int      irsim_npending;         /* number of pending events */
+	private  int      nPending;         /* number of pending events */
+
+	public static class Event
+	{
+		/** pointers in doubly-linked list */			Event    fLink, bLink;
+		/** link for list of events for this node */	Event    nLink;
+		/** node this event is all about */				Sim.Node eNode;
+														Sim.Node cause;
+		/** time, in DELTAs, of this event */			long     nTime;
+		/** delay associated with this event */			long     delay;
+		/** rise/fall time, in DELTAs */				short    rTime;
+		/** new value */								byte     eval;
+		/** type of event */							byte     type;
+	};
+
+	/**
+	 * table to convert transistor type and gate node value into switch state
+	 * indexed by [transistor-type][gate-node-value].
+	 */
+	private static int [][] switchState = new int[][]
+	{
+		/** NCHAH */	new int[] {Sim.OFF,  Sim.UNKNOWN, Sim.UNKNOWN, Sim.ON},
+		/** PCHAN */	new int[] {Sim.ON,   Sim.UNKNOWN, Sim.UNKNOWN, Sim.OFF},
+		/** RESIST */	new int[] {Sim.WEAK, Sim.WEAK,    Sim.WEAK,    Sim.WEAK},
+		/** DEP */		new int[] {Sim.WEAK, Sim.WEAK,    Sim.WEAK,    Sim.WEAK}
+	};
 
 	public Eval(Analyzer analyzer, Sim sim)
 	{
-		firstcall = true;
+		firstCall = true;
 		theAnalyzer = analyzer;
 		theSim = sim;
 	}
@@ -40,39 +65,39 @@ public class Eval
 	protected void modelEvaluate(Sim.Node node) {}
 
 	/**
-	 * Set the firstcall flags.  Used when moving back to time 0.
+	 * Set the firstCall flags.  Used when moving back to time 0.
 	 */
-	public void irsim_ReInit()
+	public void reInit()
 	{
-		firstcall = true;
+		firstCall = true;
 	}
 
-	public boolean irsim_step(long stop_time)
+	public boolean step(long stopTime)
 	{
-		boolean ret_code = false;
+		boolean retCode = false;
 
 		// look through input lists updating any nodes which just become inputs
 		MarkNOinputs();			// nodes no longer inputs
-		SetInputs(theAnalyzer.irsim_hinputs, Sim.HIGH);		// HIGH inputs
-		theAnalyzer.irsim_hinputs.clear();
-		SetInputs(theAnalyzer.irsim_linputs, Sim.LOW);		// LOW inputs
-		theAnalyzer.irsim_linputs.clear();
-		SetInputs(theAnalyzer.irsim_uinputs, Sim.X);		// X inputs
-		theAnalyzer.irsim_uinputs.clear();
+		SetInputs(theAnalyzer.hInputs, Sim.HIGH);		// HIGH inputs
+		theAnalyzer.hInputs.clear();
+		SetInputs(theAnalyzer.lIinputs, Sim.LOW);		// LOW inputs
+		theAnalyzer.lIinputs.clear();
+		SetInputs(theAnalyzer.uInputs, Sim.X);		// X inputs
+		theAnalyzer.uInputs.clear();
 
 		/*
 		 * On the first call to step, make sure transistors with gates
 		 * of vdd and gnd are set up correctly.  Mark initial inputs first!
 		 */
-		if (firstcall)
+		if (firstCall)
 		{
 			/**
 			 * find transistors with gates of VDD or GND and calculate values for source
 			 * and drain nodes just in case event driven calculations don't get to them.
 			 */
-			irsim_enqueue_input(theSim.irsim_VDD_node, Sim.HIGH);
-			irsim_enqueue_input(theSim.irsim_GND_node, Sim.LOW);
-			firstcall = false;
+			enqueueInput(theSim.powerNode, Sim.HIGH);
+			enqueueInput(theSim.groundNode, Sim.LOW);
+			firstCall = false;
 		}
 
 		for(;;)
@@ -80,33 +105,33 @@ public class Eval
 			// process events until we reach specified stop time or events run out.
 			for(;;)
 			{
-				Sim.Event evlist = irsim_get_next_event(stop_time);
-				if (evlist == null) break;
-				MarkNodes(evlist);
-				if (theAnalyzer.irsim_xinputs.size() > 0) EvalNOinputs();
+				Event evList = getNextEvent(stopTime);
+				if (evList == null) break;
+				MarkNodes(evList);
+				if (theAnalyzer.xInputs.size() > 0) EvalNOinputs();
 
-				long brk_flag = EvalNodes(evlist);
+				long brkFlag = EvalNodes(evList);
 
 //				if (stopping(STOPREASONSIMULATE))
 //				{
-//					if (RSim.irsim_analyzerON)
-//						Analyzer.irsim_UpdateWindow(Sched.irsim_cur_delta);
-//					return ret_code;
+//					if (RSim.analyzerON)
+//						Analyzer.updateWindow(Sched.curDelta);
+//					return retCode;
 //				}
-				if ((brk_flag & (Sim.WATCHVECTOR | Sim.STOPONCHANGE | Sim.STOPVECCHANGE)) != 0)
+				if ((brkFlag & (Sim.WATCHVECTOR | Sim.STOPONCHANGE | Sim.STOPVECCHANGE)) != 0)
 				{
-					if ((brk_flag & (Sim.WATCHVECTOR | Sim.STOPVECCHANGE)) != 0)
-						theAnalyzer.irsim_disp_watch_vec(brk_flag);
-					if ((brk_flag & (Sim.STOPONCHANGE | Sim.STOPVECCHANGE)) != 0)
+					if ((brkFlag & (Sim.WATCHVECTOR | Sim.STOPVECCHANGE)) != 0)
+						theAnalyzer.dispWatchVec(brkFlag);
+					if ((brkFlag & (Sim.STOPONCHANGE | Sim.STOPVECCHANGE)) != 0)
 					{
-						if (theAnalyzer.irsim_analyzerON)
-							theAnalyzer.irsim_UpdateWindow(theSim.irsim_cur_delta);
+						if (theAnalyzer.analyzerON)
+							theAnalyzer.updateWindow(theSim.curDelta);
 						return true;
 					}
 				}
 			}
 
-			if (theAnalyzer.irsim_xinputs.size() > 0)
+			if (theAnalyzer.xInputs.size() > 0)
 			{
 				EvalNOinputs();
 				continue;
@@ -114,49 +139,36 @@ public class Eval
 			break;
 		}
 
-		theSim.irsim_cur_delta = stop_time;
-		if (theAnalyzer.irsim_analyzerON)
-			theAnalyzer.irsim_UpdateWindow(theSim.irsim_cur_delta);
-		return ret_code;
-	}
-
-	/**
-	 * compute state of transistor.  If gate is a simple node, state is determined
-	 * by type of implant and value of node.  If gate is a list of nodes, then
-	 * this transistor represents a stack of transistors in the original network,
-	 * and we perform the logical AND of all the gate node values to see if
-	 * transistor is on.
-	 */
-	public int compute_trans_state(Sim.Trans t)
-	{
-	    if ((t.ttype & Sim.GATELIST) != 0) return irsim_ComputeTransState(t);
-		return Sim.irsim_switch_state[Sim.BASETYPE(t.ttype)][((Sim.Node)t.gate).npot];
+		theSim.curDelta = stopTime;
+		if (theAnalyzer.analyzerON)
+			theAnalyzer.updateWindow(theSim.curDelta);
+		return retCode;
 	}
 
 	/**
 	 * Print watched node event.
 	 */
-	private void pr_watched(Sim.Event e, Sim.Node n)
+	private void pr_watched(Event e, Sim.Node n)
 	{
-		if ((n.nflags & Sim.INPUT) != 0)
+		if ((n.nFlags & Sim.INPUT) != 0)
 		{
-			System.out.println(" @ " + Sim.d2ns(e.ntime) + "ns input " + n.nname + ": . " + Sim.irsim_vchars.charAt(e.eval));
+			System.out.println(" @ " + Sim.deltaToNS(e.nTime) + "ns input " + n.nName + ": . " + Sim.vChars.charAt(e.eval));
 			return;
 		}
-		System.out.print(" @ " + Sim.d2ns(e.ntime) + "ns " + n.nname + ": " +
-			Sim.irsim_vchars.charAt(n.npot) + " . " + Sim.irsim_vchars.charAt(e.eval));
+		System.out.print(" @ " + Sim.deltaToNS(e.nTime) + "ns " + n.nName + ": " +
+			Sim.vChars.charAt(n.nPot) + " . " + Sim.vChars.charAt(e.eval));
 
-		int tmp = (theSim.irsim_debug & Sim.DEBUG_EV) != 0 ? (Sim.REPORT_TAU | Sim.REPORT_DELAY) : theSim.irsim_treport;
+		int tmp = (theSim.irDebug & Sim.DEBUG_EV) != 0 ? (Sim.REPORT_TAU | Sim.REPORT_DELAY) : theSim.tReport;
 		switch (tmp & (Sim.REPORT_TAU | Sim.REPORT_DELAY))
 		{
 			case Sim.REPORT_TAU:
-				System.out.println(" (tau=" + Sim.d2ns(e.rtime));
+				System.out.println(" (tau=" + Sim.deltaToNS(e.rTime));
 				break;
 			case Sim.REPORT_DELAY:
-				System.out.println(" (delay=" + Sim.d2ns(e.delay) + "ns)");
+				System.out.println(" (delay=" + Sim.deltaToNS(e.delay) + "ns)");
 				break;
 			default:
-				System.out.println(" (tau=" + Sim.d2ns(e.rtime) + "ns, delay=" + Sim.d2ns(e.delay) + "ns)");
+				System.out.println(" (tau=" + Sim.deltaToNS(e.rTime) + "ns, delay=" + Sim.deltaToNS(e.delay) + "ns)");
 				break;
 		}
 	}
@@ -164,32 +176,32 @@ public class Eval
 	/**
 	 * Run through the event list, marking all nodes that need to be evaluated.
 	 */
-	private void MarkNodes(Sim.Event evlist)
+	private void MarkNodes(Event evList)
 	{
-		Sim.Event e = evlist;
-		long all_flags = 0;
+		Event e = evList;
+		long allFlags = 0;
 		do
 		{
-			Sim.Node n = e.enode;
+			Sim.Node n = e.eNode;
 
-			all_flags |= n.nflags;
+			allFlags |= n.nFlags;
 
-			if (e.type == Sim.DECAY_EV && ((theSim.irsim_treport & Sim.REPORT_DECAY) != 0 ||
-				(n.nflags & (Sim.WATCHED | Sim.STOPONCHANGE)) != 0))
+			if (e.type == Sim.DECAY_EV && ((theSim.tReport & Sim.REPORT_DECAY) != 0 ||
+				(n.nFlags & (Sim.WATCHED | Sim.STOPONCHANGE)) != 0))
 			{
-				System.out.println(" @ " + Sim.d2ns(e.ntime) + "ns " + n.nname+ ": decay " +
-					Sim.irsim_vchars.charAt(n.npot) + " . X");
-			} else if ((n.nflags & (Sim.WATCHED | Sim.STOPONCHANGE)) != 0)
+				System.out.println(" @ " + Sim.deltaToNS(e.nTime) + "ns " + n.nName+ ": decay " +
+					Sim.vChars.charAt(n.nPot) + " . X");
+			} else if ((n.nFlags & (Sim.WATCHED | Sim.STOPONCHANGE)) != 0)
 				pr_watched(e, n);
 
-			n.npot = e.eval;
+			n.nPot = e.eval;
 
 			// Add the new value to the history list (if they differ)
-			if ((n.nflags & Sim.INPUT) == 0 && ((short)n.curr.val != n.npot))
-				theSim.irsim_AddHist(n, n.npot, false, e.ntime, e.delay, e.rtime);
+			if ((n.nFlags & Sim.INPUT) == 0 && ((short)n.curr.val != n.nPot))
+				theSim.addHist(n, n.nPot, false, e.nTime, e.delay, e.rTime);
 
-			if (n.awpending != null && n.awpot == n.npot)
-				theAnalyzer.irsim_evalAssertWhen(n);
+			if (n.awPending != null && n.awPot == n.nPot)
+				theAnalyzer.evalAssertWhen(n);
 
 			/* for each transistor controlled by event node, mark
 			 * source and drain nodes as needing recomputation.
@@ -200,91 +212,91 @@ public class Eval
 			 * Fixed it so nodes with pending events also get
 			 * re_evaluated. Kevin Karplus
 			 */
-			for(Iterator it = n.ngateList.iterator(); it.hasNext(); )
+			for(Iterator it = n.nGateList.iterator(); it.hasNext(); )
 			{
 				Sim.Trans t = (Sim.Trans)it.next();
-				t.state = (byte)compute_trans_state(t);
-				if ((t.source.nflags & Sim.INPUT) == 0)
-					t.source.nflags |= Sim.VISITED;
-				if ((t.drain.nflags & Sim.INPUT) == 0)
-					t.drain.nflags |= Sim.VISITED;
+				t.state = (byte)computeTransState(t);
+				if ((t.source.nFlags & Sim.INPUT) == 0)
+					t.source.nFlags |= Sim.VISITED;
+				if ((t.drain.nFlags & Sim.INPUT) == 0)
+					t.drain.nFlags |= Sim.VISITED;
 			}
-			free_from_node(e, n);    // remove to avoid punting this event
-			e = (Sim.Event)e.flink;
+			freeFromNode(e, n);    // remove to avoid punting this event
+			e = (Event)e.fLink;
 		}
 		while(e != null);
 
 		// run thorugh event list again, marking src/drn of input nodes
-		if ((all_flags & Sim.INPUT) != 0)
+		if ((allFlags & Sim.INPUT) != 0)
 		{
-			for(e = evlist; e != null; e = (Sim.Event)e.flink)
+			for(e = evList; e != null; e = (Event)e.fLink)
 			{
-				Sim.Node n = e.enode;
+				Sim.Node n = e.eNode;
 
-				if ((n.nflags & (Sim.INPUT | Sim.POWER_RAIL)) != Sim.INPUT)
+				if ((n.nFlags & (Sim.INPUT | Sim.POWER_RAIL)) != Sim.INPUT)
 					continue;
 
-				for(Iterator it = n.ntermList.iterator(); it.hasNext(); )
+				for(Iterator it = n.nTermList.iterator(); it.hasNext(); )
 				{
 					Sim.Trans t = (Sim.Trans)it.next();
 					if (t.state != Sim.OFF)
 					{
-						Sim.Node other = Sim.other_node(t, n);
-						if ((other.nflags & (Sim.INPUT | Sim.VISITED)) == 0)
-							other.nflags |= Sim.VISITED;
+						Sim.Node other = Sim.otherNode(t, n);
+						if ((other.nFlags & (Sim.INPUT | Sim.VISITED)) == 0)
+							other.nFlags |= Sim.VISITED;
 					}
 				}
 			}
 		}
 	}
 
-	private long EvalNodes(Sim.Event evlist)
+	private long EvalNodes(Event evList)
 	{
-		long brk_flag = 0;
-		Sim.Event event = evlist;
+		long brkFlag = 0;
+		Event event = evList;
 
 		do
 		{
-			theSim.irsim_nevent += 1;		// advance counter to that of this event
-			Sim.Node n = theSim.irsim_cur_node = event.enode;
-			n.setTime(event.ntime);	// set up the cause stuff
+			theSim.nEvent += 1;		// advance counter to that of this event
+			Sim.Node n = theSim.curNode = event.eNode;
+			n.setTime(event.nTime);	// set up the cause stuff
 			n.setCause(event.cause);
-if (DEBUG) System.out.println("Removing event at " + event.ntime + " in EvalNodes");
-			irsim_npending--;
+if (DEBUG) System.out.println("Removing event at " + event.nTime + " in EvalNodes");
+			nPending--;
 
 			/*
 			 * now calculate new value for each marked node.  Some nodes marked
 			 * above may become unmarked by earlier calculations before we get
 			 * to them in this loop...
 			 */
-			for(Iterator it = n.ngateList.iterator(); it.hasNext(); )
+			for(Iterator it = n.nGateList.iterator(); it.hasNext(); )
 			{
 				Sim.Trans t = (Sim.Trans)it.next();
-				if ((t.source.nflags & Sim.VISITED) != 0)
+				if ((t.source.nFlags & Sim.VISITED) != 0)
 					modelEvaluate(t.source);
-				if ((t.drain.nflags & Sim.VISITED) != 0)
+				if ((t.drain.nFlags & Sim.VISITED) != 0)
 					modelEvaluate(t.drain);
 			}
 
-			if ((n.nflags & (Sim.INPUT | Sim.POWER_RAIL)) == Sim.INPUT)
+			if ((n.nFlags & (Sim.INPUT | Sim.POWER_RAIL)) == Sim.INPUT)
 			{
-				for(Iterator it = n.ntermList.iterator(); it.hasNext(); )
+				for(Iterator it = n.nTermList.iterator(); it.hasNext(); )
 				{
 					Sim.Trans t = (Sim.Trans)it.next();
-					Sim.Node other = Sim.other_node(t, n);
-					if ((other.nflags & Sim.VISITED) != 0)
+					Sim.Node other = Sim.otherNode(t, n);
+					if ((other.nFlags & Sim.VISITED) != 0)
 						modelEvaluate(other);
 				}
 			}
 
 			// see if we want to halt if this node changes value
-			brk_flag |= n.nflags;
+			brkFlag |= n.nFlags;
 
-			event = (Sim.Event)event.flink;
+			event = (Event)event.fLink;
 		}
 		while(event != null);
 
-		return brk_flag;
+		return brkFlag;
 	}
 
 	/**
@@ -297,25 +309,25 @@ if (DEBUG) System.out.println("Removing event at " + event.ntime + " in EvalNode
 		{
 			Sim.Node n = (Sim.Node)it.next();
 
-			n.npot = (short)val;
-			n.nflags &= ~Sim.INPUT_MASK;
-			n.nflags |= Sim.INPUT;
+			n.nPot = (short)val;
+			n.nFlags &= ~Sim.INPUT_MASK;
+			n.nFlags |= Sim.INPUT;
 
 			// enqueue event so consequences are computed.
-			irsim_enqueue_input(n, val);
+			enqueueInput(n, val);
 
 			if (n.curr.val != val || !n.curr.inp)
-				theSim.irsim_AddHist(n, val, true, theSim.irsim_cur_delta, 0L, 0L);
+				theSim.addHist(n, val, true, theSim.curDelta, 0L, 0L);
 		}
 	}
 
 	private void MarkNOinputs()
 	{
-		for(Iterator it = theAnalyzer.irsim_xinputs.iterator(); it.hasNext(); )
+		for(Iterator it = theAnalyzer.xInputs.iterator(); it.hasNext(); )
 		{
 			Sim.Node n = (Sim.Node)it.next();
-			n.nflags &= ~(Sim.INPUT_MASK | Sim.INPUT);
-			n.nflags |= Sim.VISITED;
+			n.nFlags &= ~(Sim.INPUT_MASK | Sim.INPUT);
+			n.nFlags |= Sim.VISITED;
 		}
 	}
 
@@ -324,29 +336,38 @@ if (DEBUG) System.out.println("Removing event at " + event.ntime + " in EvalNode
 	 */
 	private void EvalNOinputs()
 	{
-		for(Iterator it = theAnalyzer.irsim_xinputs.iterator(); it.hasNext(); )
+		for(Iterator it = theAnalyzer.xInputs.iterator(); it.hasNext(); )
 		{
 			Sim.Node n = (Sim.Node)it.next();
-			theSim.irsim_cur_node = n;
-			theSim.irsim_AddHist(n, n.curr.val, false, theSim.irsim_cur_delta, 0L, 0L);
-			if ((n.nflags & Sim.VISITED) != 0)
+			theSim.curNode = n;
+			theSim.addHist(n, n.curr.val, false, theSim.curDelta, 0L, 0L);
+			if ((n.nFlags & Sim.VISITED) != 0)
 				modelEvaluate(n);
 		}
-		theAnalyzer.irsim_xinputs.clear();
+		theAnalyzer.xInputs.clear();
 	}
 
-	private int irsim_ComputeTransState(Sim.Trans t)
+	/**
+	 * compute state of transistor.  If gate is a simple node, state is determined
+	 * by type of implant and value of node.  If gate is a list of nodes, then
+	 * this transistor represents a stack of transistors in the original network,
+	 * and we perform the logical AND of all the gate node values to see if
+	 * transistor is on.
+	 */
+	public int computeTransState(Sim.Trans t)
 	{
-		switch(Sim.BASETYPE(t.ttype))
+	    if ((t.tType & Sim.GATELIST) == 0)
+	    	return switchState[Sim.baseType(t.tType)][((Sim.Node)t.gate).nPot];
+		switch(Sim.baseType(t.tType))
 		{
 			case Sim.NCHAN:
 				int result = Sim.ON;
 				for(Sim.Trans l = (Sim.Trans) t.gate; l != null; l = l.getSTrans())
 				{
 					Sim.Node n = (Sim.Node)l.gate;
-					if (n.npot == Sim.LOW)
+					if (n.nPot == Sim.LOW)
 						return Sim.OFF;
-					else if (n.npot == Sim.X)
+					else if (n.nPot == Sim.X)
 						result = Sim.UNKNOWN;
 				}
 				return result;
@@ -356,9 +377,9 @@ if (DEBUG) System.out.println("Removing event at " + event.ntime + " in EvalNode
 				for(Sim.Trans l = (Sim.Trans) t.gate; l != null; l = l.getSTrans())
 				{
 					Sim.Node n = (Sim.Node)l.gate;
-					if (n.npot == Sim.HIGH)
+					if (n.nPot == Sim.HIGH)
 						return Sim.OFF;
-					else if (n.npot == Sim.X)
+					else if (n.nPot == Sim.X)
 						result = Sim.UNKNOWN;
 				}
 				return result;
@@ -367,7 +388,7 @@ if (DEBUG) System.out.println("Removing event at " + event.ntime + " in EvalNode
 			case Sim.RESIST:
 				return Sim.WEAK;
 		}
-		System.out.println("**** internal error: unrecongized transistor type (" + Sim.BASETYPE(t.ttype) + ")");
+		System.out.println("**** internal error: unrecongized transistor type (" + Sim.baseType(t.tType) + ")");
 		return Sim.UNKNOWN;
 	}
 
@@ -376,263 +397,263 @@ if (DEBUG) System.out.println("Removing event at " + event.ntime + " in EvalNode
 	private static final int TSIZE		= 1024;	/* size of event array, must be power of 2 */
 	private static final int TMASK		= (TSIZE - 1);
 
-	private Sim.Event [] ev_array = new Sim.Event[TSIZE];	    /* used as head of doubly-linked lists */
+	private Event [] evArray = new Event[TSIZE];	    /* used as head of doubly-linked lists */
 
-	private Sim.Event EV_LIST(long t) { return ev_array[(int)(t & TMASK)]; }
+	private Event getEVArray(long t) { return evArray[(int)(t & TMASK)]; }
 
 	/**
 	 * find the next event to be processed by scanning event wheel.  Return
 	 * the list of events to be processed at this time, removing it first
 	 * from the time wheel.
 	 */
-	private Sim.Event irsim_get_next_event(long stop_time)
+	private Event getNextEvent(long stopTime)
 	{
-		if (irsim_npending == 0) return null;
+		if (nPending == 0) return null;
 
-if (DEBUG) System.out.println("Find events up to " + stop_time);
-		Sim.Event event = null;
+if (DEBUG) System.out.println("Find events up to " + stopTime);
+		Event event = null;
 		boolean eventValid = false;
-		long time = theSim.irsim_max_time;
-		for(long i = theSim.irsim_cur_delta, limit = i + TSIZE; i < limit; i++)
+		long time = theSim.maxTime;
+		for(long i = theSim.curDelta, limit = i + TSIZE; i < limit; i++)
 		{
-			event = EV_LIST(i);
-			if (event != event.flink)
+			event = getEVArray(i);
+			if (event != event.fLink)
 			{
-				if (event.flink.ntime < limit)		// common case
+				if (event.fLink.nTime < limit)		// common case
 				{
 					eventValid = true;
 					break;
 				}
-				if (event.flink.ntime < time)
-					time = (event.flink).ntime;
+				if (event.fLink.nTime < time)
+					time = (event.fLink).nTime;
 			}
 		}
 		if (!eventValid)
 		{
-			if (time == theSim.irsim_max_time)
+			if (time == theSim.maxTime)
 			{
 				System.out.println("*** internal error: no events but npending set");
 				return null;
 			}
 
-			event = EV_LIST(time);
+			event = getEVArray(time);
 		}
 
-		Sim.Event evlist = event.flink;
+		Event evList = event.fLink;
 
-		time = evlist.ntime;
+		time = evList.nTime;
 
-		if (time >= stop_time)
+		if (time >= stopTime)
 		{
-if (DEBUG) System.out.println("Time="+time+" which is beyond stop time="+stop_time);
+if (DEBUG) System.out.println("Time="+time+" which is beyond stop time="+stopTime);
 			return null;
 		}
 
-		theSim.irsim_cur_delta = time;			// advance simulation time
+		theSim.curDelta = time;			// advance simulation time
 
-		if (event.blink.ntime != time)	// check tail of list
+		if (event.bLink.nTime != time)	// check tail of list
 		{
 			do
-				event = event.flink;
-			while(event.ntime == time);
+				event = event.fLink;
+			while(event.nTime == time);
 
-			event = event.blink;		// grab part of the list
-			evlist.blink.flink = event.flink;
-			event.flink.blink = evlist.blink;
-			evlist.blink = event;
-			event.flink = null;
+			event = event.bLink;		// grab part of the list
+			evList.bLink.fLink = event.fLink;
+			event.fLink.bLink = evList.bLink;
+			evList.bLink = event;
+			event.fLink = null;
 		} else
 		{
-			event = evlist.blink;		// grab the entire list
-			event.blink.flink = null;
-			evlist.blink = event.blink;
-			event.flink = event.blink = event;
+			event = evList.bLink;		// grab the entire list
+			event.bLink.fLink = null;
+			evList.bLink = event.bLink;
+			event.fLink = event.bLink = event;
 		}
 if (DEBUG)
 {
 	System.out.print("FOUND EVENTS:");
-	Sim.Event xx = evlist;
+	Event xx = evList;
 	do
 	{
-		System.out.print(" time="+xx.ntime);
-		xx = (Sim.Event)xx.flink;
+		System.out.print(" time="+xx.nTime);
+		xx = (Event)xx.fLink;
 	}
 	while(xx != null);
 	System.out.println();
 }
-		return evlist;
+		return evList;
 	}
 
 	/**
 	 * remove event from all structures it belongs to and return it to free pool
 	 */
-	private void irsim_free_event(Sim.Event event)
+	private void freeEvent(Event event)
 	{
 		// unhook from doubly-linked event list
-		event.blink.flink = event.flink;
-		event.flink.blink = event.blink;
-		irsim_npending--;
+		event.bLink.fLink = event.fLink;
+		event.fLink.bLink = event.bLink;
+		nPending--;
 
-		free_from_node(event, event.enode);
+		freeFromNode(event, event.eNode);
 	}
 
 	/**
 	 * Add an event to event list, specifying transition delay and new value.
 	 * 0 delay transitions are converted into unit delay transitions (0.01 ns).
 	 */
-	public void irsim_enqueue_event(Sim.Node n, int newvalue, long delta, long rtime)
+	public void enqueueEvent(Sim.Node n, int newValue, long delta, long rTime)
 	{
-		Sim.Event newev = new Sim.Event();
+		Event newEV = new Event();
 
 		// remember facts about this event
-		long etime = theSim.irsim_cur_delta + delta;
-		newev.ntime = etime;
-		newev.rtime = (short)rtime;
-		newev.enode = n;
-		newev.cause = theSim.irsim_cur_node;
-		newev.delay = delta;
-		if (newvalue == Sim.DECAY)		// change value to X here
+		long eTime = theSim.curDelta + delta;
+		newEV.nTime = eTime;
+		newEV.rTime = (short)rTime;
+		newEV.eNode = n;
+		newEV.cause = theSim.curNode;
+		newEV.delay = delta;
+		if (newValue == Sim.DECAY)		// change value to X here
 		{
-			newev.eval = Sim.X;
-			newev.type = Sim.DECAY_EV;
+			newEV.eval = Sim.X;
+			newEV.type = Sim.DECAY_EV;
 		} else
 		{
-			newev.eval = (byte)newvalue;
-			newev.type = Sim.REVAL;		// for incremental simulation
+			newEV.eval = (byte)newValue;
+			newEV.type = Sim.REVAL;		// for incremental simulation
 		}
 
 		/* add the new event to the event list at the appropriate entry
 		 * in event wheel.  Event lists are kept sorted by increasing
 		 * event time.
 		 */
-		Sim.Event marker = EV_LIST(etime);
+		Event marker = getEVArray(eTime);
 
 		// Check whether we need to insert-sort in the list
-		if ((marker.blink != marker) && (((Sim.Event)marker.blink).ntime > etime))
+		if ((marker.bLink != marker) && (((Event)marker.bLink).nTime > eTime))
 		{
-			do { marker = (Sim.Event)marker.flink; } while (marker.ntime <= etime);
+			do { marker = (Event)marker.fLink; } while (marker.nTime <= eTime);
 		}
 
 		// insert event right before event pointed to by marker
-		newev.flink = marker;
-		newev.blink = marker.blink;
-		marker.blink.flink = newev;
-		marker.blink = newev;
-		irsim_npending++;
-if (DEBUG) System.out.println("Adding event at " + newev.ntime + " in irsim_enqueue_event (cur="+theSim.irsim_cur_delta+" delta="+delta);
+		newEV.fLink = marker;
+		newEV.bLink = marker.bLink;
+		marker.bLink.fLink = newEV;
+		marker.bLink = newEV;
+		nPending++;
+if (DEBUG) System.out.println("Adding event at " + newEV.nTime + " in enqueueEvent (cur="+theSim.curDelta+" delta="+delta);
 		/*
 		 * thread event onto list of events for this node, keeping it
 		 * in sorted order
 		 */
-		if ((n.events != null) && (n.events.ntime > etime))
+		if ((n.events != null) && (n.events.nTime > eTime))
 		{
-			for(marker = n.events; (marker.nlink != null) &&
-				(marker.nlink.ntime > etime); marker = marker.nlink);
-			newev.nlink = marker.nlink;
-			marker.nlink = newev;
+			for(marker = n.events; (marker.nLink != null) &&
+				(marker.nLink.nTime > eTime); marker = marker.nLink);
+			newEV.nLink = marker.nLink;
+			marker.nLink = newEV;
 		} else
 		{
-			newev.nlink = n.events;
-			n.events = newev;
+			newEV.nLink = n.events;
+			n.events = newEV;
 		}
 	}
 
 	/**
-	 * same as irsim_enqueue_event, but assumes 0 delay and rtise/fall time
+	 * same as enqueueEvent, but assumes 0 delay and rtise/fall time
 	 */
-	private void irsim_enqueue_input(Sim.Node n, int newvalue)
+	private void enqueueInput(Sim.Node n, int newValue)
 	{
 		// Punt any pending events for this node.
 		while(n.events != null)
-			irsim_free_event(n.events);
+			freeEvent(n.events);
 
-		Sim.Event newev = new Sim.Event();
+		Event newEV = new Event();
 
 		// remember facts about this event
-		long etime = theSim.irsim_cur_delta;
-		newev.ntime = etime;
-		newev.rtime = 0;   newev.delay = 0;
-		newev.enode = n;
-		newev.cause = n;
-		newev.eval = (byte)newvalue;
-		newev.type = Sim.REVAL;			// anything, doesn't matter
+		long eTime = theSim.curDelta;
+		newEV.nTime = eTime;
+		newEV.rTime = 0;   newEV.delay = 0;
+		newEV.eNode = n;
+		newEV.cause = n;
+		newEV.eval = (byte)newValue;
+		newEV.type = Sim.REVAL;			// anything, doesn't matter
 
 		// Add new event to HEAD of list at appropriate entry in event wheel
-		Sim.Event marker = EV_LIST(etime);
-		newev.flink = marker.flink;
-		newev.blink = marker;
-		marker.flink.blink = newev;
-		marker.flink = newev;
-		irsim_npending++;
-if (DEBUG) System.out.println("Adding event at " + newev.ntime + " in irsim_enqueue_input");
+		Event marker = getEVArray(eTime);
+		newEV.fLink = marker.fLink;
+		newEV.bLink = marker;
+		marker.fLink.bLink = newEV;
+		marker.fLink = newEV;
+		nPending++;
+if (DEBUG) System.out.println("Adding event at " + newEV.nTime + " in enqueueInput");
 		// thread event onto (now empty) list of events for this node
-		newev.nlink = null;
-		n.events = newev;
+		newEV.nLink = null;
+		n.events = newEV;
 	}
 
 	/**
 	 * Initialize event structures
 	 */
-	public void irsim_init_event()
+	public void initEvent()
 	{
 		for(int i = 0; i < TSIZE; i++)
 		{
-			Sim.Event event = new Sim.Event();
-			ev_array[i] = event;
-			event.flink = event.blink = event;
+			Event event = new Event();
+			evArray[i] = event;
+			event.fLink = event.bLink = event;
 		}
-		irsim_npending = 0;
-		theSim.irsim_nevent = 0;
+		nPending = 0;
+		theSim.nEvent = 0;
 	}
 
-	protected void irsim_PuntEvent(Sim.Node node, Sim.Event ev)
+	protected void puntEvent(Sim.Node node, Event ev)
 	{
-		if ((node.nflags & Sim.WATCHED) != 0)
-			System.out.println("    punting transition of " + node.nname + " . " +
-				Sim.irsim_vchars.charAt(ev.eval) + " scheduled for " + Sim.d2ns(ev.ntime) + "ns");
+		if ((node.nFlags & Sim.WATCHED) != 0)
+			System.out.println("    punting transition of " + node.nName + " . " +
+				Sim.vChars.charAt(ev.eval) + " scheduled for " + Sim.deltaToNS(ev.nTime) + "ns");
 
 		if (ev.type != Sim.DECAY_EV)		// don't save punted decay events
-			theSim.irsim_AddPunted(ev.enode, ev, theSim.irsim_cur_delta);
-		irsim_free_event(ev);
+			theSim.addPunted(ev.eNode, ev, theSim.curDelta);
+		freeEvent(ev);
 	}
 
-	private void irsim_requeue_events(Sim.Event evlist, boolean thread)
+	private void requeueEvents(Event evList, boolean thread)
 	{
-		irsim_npending = 0;
-		Sim.Event next = null;
-		for(Sim.Event ev = evlist; ev != null; ev = next)
+		nPending = 0;
+		Event next = null;
+		for(Event ev = evList; ev != null; ev = next)
 		{
-			next = (Sim.Event)ev.flink;
+			next = (Event)ev.fLink;
 
-			irsim_npending++;
-			long etime = ev.ntime;
-if (DEBUG) System.out.println("Adding of event at time "+etime + " in irsim_requeue_events");
-			Sim.Event target = EV_LIST(etime);
+			nPending++;
+			long eTime = ev.nTime;
+if (DEBUG) System.out.println("Adding of event at time "+eTime + " in requeueEvents");
+			Event target = getEVArray(eTime);
 
-			if ((target.blink != target) && (((Sim.Event)target.blink).ntime > etime))
+			if ((target.bLink != target) && (((Event)target.bLink).nTime > eTime))
 			{
-				do { target = (Sim.Event)target.flink; } while(target.ntime <= etime);
+				do { target = (Event)target.fLink; } while(target.nTime <= eTime);
 			}
 
-			ev.flink = target;
-			ev.blink = target.blink;
-			target.blink.flink = ev;
-			target.blink = ev;
+			ev.fLink = target;
+			ev.bLink = target.bLink;
+			target.bLink.fLink = ev;
+			target.bLink = ev;
 
 			if (thread)
 			{
-				Sim.Node   n = ev.enode;
-				Sim.Event  marker;
+				Sim.Node n = ev.eNode;
+				Event marker;
 
-				if ((n.events != null) && (n.events.ntime > etime))
+				if ((n.events != null) && (n.events.nTime > eTime))
 				{
-					for(marker = n.events; (marker.nlink != null) &&
-						(marker.nlink.ntime > etime); marker = marker.nlink);
-					ev.nlink = marker.nlink;
-					marker.nlink = ev;
+					for(marker = n.events; (marker.nLink != null) &&
+						(marker.nLink.nTime > eTime); marker = marker.nLink);
+					ev.nLink = marker.nLink;
+					marker.nLink = ev;
 				} else
 				{
-					ev.nlink = n.events;
+					ev.nLink = n.events;
 					n.events = ev;
 				}
 			}
@@ -641,107 +662,107 @@ if (DEBUG) System.out.println("Adding of event at time "+etime + " in irsim_requ
 
 	public void printPendingEvents()
 	{
-		if (irsim_npending == 0) return;
-		System.out.println("Warning: there are " + irsim_npending + " pending events:");
+		if (nPending == 0) return;
+		System.out.println("Warning: there are " + nPending + " pending events:");
 
 		for(int i=0; i<TSIZE; i++)
 		{
-			Sim.Event hdr = ev_array[i];
-			for(Sim.Event evhdr = hdr.flink; evhdr != hdr; evhdr = evhdr.flink)
+			Event hdr = evArray[i];
+			for(Event evhdr = hdr.fLink; evhdr != hdr; evhdr = evhdr.fLink)
 			{
-				if (!(evhdr instanceof Sim.Event)) continue;
-				Sim.Event ev = (Sim.Event)evhdr;
-				System.out.println("   Event at time " + Sim.d2ns(ev.ntime) + " caused by node " + ev.cause.nname);
+				if (!(evhdr instanceof Event)) continue;
+				Event ev = (Event)evhdr;
+				System.out.println("   Event at time " + Sim.deltaToNS(ev.nTime) + " caused by node " + ev.cause.nName);
 			}
 		}
 	}
 
 	/**
-	 * Back the event queues up to time 'btime'.  This is the opposite of
+	 * Back the event queues up to time 'bTime'.  This is the opposite of
 	 * advancing the simulation time.  Mark all pending events as PENDING,
-	 * and re-enqueue them according to their creation-time (ntime - delay).
+	 * and re-enqueue them according to their creation-time (nTime - delay).
 	 */
-	public Sim.Event irsim_back_sim_time(long btime, int is_inc)
+	public Event backSimTime(long bTime, int isInc)
 	{
-		int nevents = 0;
-		Sim.Event tmplist = null;
+		int nEvents = 0;
+		Event tmpList = null;
 
 		// first empty out the time wheel onto the temporary list
 		for(int i=0; i<TSIZE; i++)
 		{
-			Sim.Event hdr = ev_array[i];
-			Sim.Event next = null;
-			for(Sim.Event evhdr = hdr.flink; evhdr != hdr; evhdr = next)
+			Event hdr = evArray[i];
+			Event next = null;
+			for(Event evhdr = hdr.fLink; evhdr != hdr; evhdr = next)
 			{
-				next = evhdr.flink;
-				if (!(evhdr instanceof Sim.Event)) continue;
-				Sim.Event ev = (Sim.Event)evhdr;
+				next = evhdr.fLink;
+				if (!(evhdr instanceof Event)) continue;
+				Event ev = (Event)evhdr;
 
-				ev.blink.flink = ev.flink;	// remove event
-				ev.flink.blink = ev.blink;
-				if (is_inc != 0)
-					free_from_node(ev, ev.enode);
+				ev.bLink.fLink = ev.fLink;	// remove event
+				ev.fLink.bLink = ev.bLink;
+				if (isInc != 0)
+					freeFromNode(ev, ev.eNode);
 
-				if (is_inc == 0 && ev.ntime - ev.delay >= btime)
+				if (isInc == 0 && ev.nTime - ev.delay >= bTime)
 				{
-					free_from_node(ev, ev.enode);
+					freeFromNode(ev, ev.eNode);
 				} else
 				{
-					ev.flink = tmplist;		// move it to tmp list
-					tmplist = ev;
+					ev.fLink = tmpList;		// move it to tmp list
+					tmpList = ev;
 
-					nevents++;
+					nEvents++;
 				}
 			}
 		}
 
-		if (is_inc == 0)
+		if (isInc == 0)
 		{
-			irsim_requeue_events(tmplist, false);
+			requeueEvents(tmpList, false);
 			return null;
 		}
 
-		if (is_inc != 1)	// only for fault simulation (is_inc == 2)
+		if (isInc != 1)	// only for fault simulation (isInc == 2)
 		{
-			irsim_npending = 0;
-			return tmplist;
+			nPending = 0;
+			return tmpList;
 		}
 
 		// now move the temporary list to the time wheel
-		Sim.Event next = null;
-		for(Sim.Event ev = tmplist; ev != null; ev = next)
+		Event next = null;
+		for(Event ev = tmpList; ev != null; ev = next)
 		{
-			next = (Sim.Event)ev.flink;
+			next = (Event)ev.fLink;
 
-			ev.ntime -= ev.delay;
+			ev.nTime -= ev.delay;
 			ev.type = Sim.PENDING;
-			long etime = ev.ntime;
-			Sim.Event target = EV_LIST(etime);
+			long eTime = ev.nTime;
+			Event target = getEVArray(eTime);
 
-			if ((target.blink != target) && (((Sim.Event)target.blink).ntime > etime))
+			if ((target.bLink != target) && (((Event)target.bLink).nTime > eTime))
 			{
-				do { target = (Sim.Event)target.flink; } while(target.ntime <= etime);
+				do { target = (Event)target.fLink; } while(target.nTime <= eTime);
 			}
 
-			ev.flink = target;
-			ev.blink = target.blink;
-			target.blink.flink = ev;
-			target.blink = ev;
+			ev.fLink = target;
+			ev.bLink = target.bLink;
+			target.bLink.fLink = ev;
+			target.bLink = ev;
 		}
 
-		irsim_npending = nevents;
+		nPending = nEvents;
 		return null;
 	}
 
-	private void free_from_node(Sim.Event ev, Sim.Node nd)
+	private void freeFromNode(Event ev, Sim.Node nd)
 	{
 		if (nd.events == ev)
-			nd.events = ev.nlink;
+			nd.events = ev.nLink;
 		else
 		{
-			Sim.Event evp = null;
-			for(evp = nd.events; evp.nlink != ev; evp = evp.nlink);
-			evp.nlink = ev.nlink;
+			Event evp = null;
+			for(evp = nd.events; evp.nLink != ev; evp = evp.nLink);
+			evp.nLink = ev.nLink;
 		}
 	}
 

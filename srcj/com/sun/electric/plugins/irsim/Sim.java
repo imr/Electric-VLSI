@@ -41,46 +41,40 @@ public class Sim
 {
 	public static class Node
 	{
-		/** sundries list */									Node     nlink;
-		/** charge sharing event */								Event    events;
-		/** list of xtors w/ gates connected to this node */	List     ngateList;
-		/** list of xtors w/ src/drn connected to this node */	List     ntermList;
-		/** link in hash bucket */								Node     hnext;
-		/** capacitance of node in pf */						float    ncap;
-		/** low logic threshold for node, normalized units */	float    vlow;
-		/** high logic threshold for node, normalized units */	float    vhigh;
-		/** low to high transition time in DELTA's */			short    tplh;
-		/** high to low transition time in DELTA's */			short    tphl;
+		/** sundries list */									Node           nLink;
+		/** charge sharing event */								Eval.Event     events;
+		/** list of xtors w/ gates connected to this node */	List           nGateList;
+		/** list of xtors w/ src/drn connected to this node */	List           nTermList;
+		/** capacitance of node in pf */						float          nCap;
+		/** low logic threshold for node, normalized units */	float          vLow;
+		/** high logic threshold for node, normalized units */	float          vHigh;
+		/** low to high transition time in DELTA's */			short          tpLH;
+		/** high to low transition time in DELTA's */			short          tpHL;
 		/** signal in the waveform window (if displayed) */		Stimuli.DigitalSignal sig;
-		/** combines time, nindex, cap, and event */			private Object   c;
+		/** combines time, nindex, cap, and event */			private Object c;
+		/** combines cause, punts, and tranT */					private Object t;
+		/** combines thev, next, and tranN */					private Object n;
 
-		/** combines cause, punts, and tranT */					private Object   t;
+		/** current potential */								short          nPot;
+		/** flag word (see defs below) */						long           nFlags;
+		/** ascii name of node */								String         nName;
 
-		/** current potential */								short    npot;
-		/** old potential (for incremental simulation). */		short    oldpot;
-		/** flag word (see defs below) */						long     nflags;
-		/** ascii name of node */								String   nname;
-
-		/** combines thev, next, and tranN */					private Object   n;
-
-		/** first entry in transition history */				HistEnt  head;
-		/** ptr. to current history entry */					HistEnt  curr;
-		/** special entry to avoid changing the history */		HistEnt  hchange;
-		/** potential for pending AssertWhen */					short    awpot;
-		/** pending asswertWhen list */							Analyzer.AssertWhen awpending;
-		/** index of this node (a unique value) */				int index;
+		/** first entry in transition history */				HistEnt        head;
+		/** ptr. to current history entry */					HistEnt        curr;
+		/** potential for pending AssertWhen */					short          awPot;
+		/** pending asswertWhen list */							Analyzer.AssertWhen awPending;
+		/** index of this node (a unique value) */				int            index;
 
 		Node(Sim theSim)
 		{
 			head = new HistEnt();
-			hchange = new HistEnt();
 			index = theSim.nodeIndexCounter++;
 		}
 
 		void setTime(long time) { c = new Long(time); }
 		void setNIndex(long nIndex) { c = new Long(nIndex); }
 		void setCap(float cap) { c = new Float(cap); }
-		void setEvent(Event event) { c = event; }
+		void setEvent(Eval.Event event) { c = event; }
 
 		void setCause(Node cause) { t = cause; }
 		void setPunts(HistEnt punts) { t = punts; }
@@ -92,7 +86,7 @@ public class Sim
 		long getTime() { return ((Long)c).longValue(); }
 		long getNIndex() { return ((Long)c).longValue(); }
 		float getCap() { return ((Float)c).floatValue(); }
-		Event getEvent() { return (Event)c; }
+		Eval.Event getEvent() { return (Eval.Event)c; }
 
 		Node getCause() { return (Node)t; }
 		HistEnt getPunts() { return (HistEnt)t; }
@@ -105,7 +99,7 @@ public class Sim
 	/**
 	 * find node in network
 	 */
-	public Node irsim_find(String name)
+	public Node findNode(String name)
 	{
 		return (Node)nodeHash.get(name.toLowerCase());
 	}
@@ -114,12 +108,12 @@ public class Sim
 	 * Get node structure.  If not found, create a new one.
 	 * If create is TRUE a new node is created and NOT entered into the table.
 	 */
-	public Node irsim_GetNode(String name)
+	private Node getNode(String name)
 	{
-		Node n = irsim_find(name);
+		Node n = findNode(name);
 		if (n != null)
 		{
-			if (!name.equals(n.nname))
+			if (!name.equals(n.nName))
 			{
 				boolean skip = false;
 				if (name.equalsIgnoreCase("vdd"))
@@ -131,46 +125,46 @@ public class Sim
 					skip = warnGnd; warnGnd = true;
 				}
 				if (!skip)
-					System.out.println("Warning: Aliasing nodes '" + name + "' and '" + n.nname + "'");
+					System.out.println("Warning: Aliasing nodes '" + name + "' and '" + n.nName + "'");
 			}
-			while ((n.nflags & ALIAS) != 0)
-				n = n.nlink;
+			while ((n.nFlags & ALIAS) != 0)
+				n = n.nLink;
 			return n;
 		}
 
 		// allocate new node from free storage
 		n = new Node(this);
 
-		irsim_nnodes++;
+		numNodes++;
 
 		// insert node into hash table and list
 		nodeHash.put(name.toLowerCase(), n);
 		nodeList.add(n);
 
 		// initialize node entries
-		n.nname = name;
-		n.ngateList = new ArrayList();
-		n.ntermList = new ArrayList();
-		n.nflags = 0;
-		n.ncap = (float)MIN_CAP;
-		n.vlow = (float)theConfig.irsim_LOWTHRESH;
-		n.vhigh = (float)theConfig.irsim_HIGHTHRESH;
+		n.nName = name;
+		n.nGateList = new ArrayList();
+		n.nTermList = new ArrayList();
+		n.nFlags = 0;
+		n.nCap = (float)MIN_CAP;
+		n.vLow = (float)theConfig.lowThresh;
+		n.vHigh = (float)theConfig.highThresh;
 		n.setTime(0);
-		n.tplh = 0;
-		n.tphl = 0;
+		n.tpLH = 0;
+		n.tpHL = 0;
 		n.setCause(null);
-		n.nlink = null;
+		n.nLink = null;
 		n.events = null;
-		n.npot = X;
-		n.awpending = null;
+		n.nPot = X;
+		n.awPending = null;
 
 		n.head = new HistEnt();
-		n.head.next = irsim_last_hist;
-		n.head.htime = 0;
+		n.head.next = lastHist;
+		n.head.hTime = 0;
 		n.head.val = X;
 		n.head.inp = false;
 		n.head.punt = false;
-		n.head.rtime = n.head.delay = 0;
+		n.head.rTime = n.head.delay = 0;
 		n.curr = n.head;
 
 		return n;
@@ -179,7 +173,7 @@ public class Sim
 	/**
 	 * Return a list of all nodes in the network.
 	 */
-	public List irsim_GetNodeList()
+	public List getNodeList()
 	{
 		return nodeList;
 	}
@@ -189,12 +183,12 @@ public class Sim
 		/** nodes to which trans is connected */	Object   gate;
 		/** nodes to which trans is connected */	Node     source, drain;
 		/** caches to remember src/drn values */	Object   sCache, dCache;
-		/** type of transistor */					byte     ttype;
+		/** type of transistor */					byte     tType;
 		/** cache to remember current state */		byte     state;
-		/** transistor flags */						byte     tflags;
-		/** index into parallel list */				byte     n_par;
+		/** transistor flags */						byte     tFlags;
+		/** index into parallel list */				byte     nPar;
 		/** transistor resistances */				Resists  r;
-		/** next txtor in position hash table */	Trans    tlink;
+		/** next txtor in position hash table */	Trans    tLink;
 		/** position in the layout */				int      x, y;
 
 		void setSThev(Thev r) { sCache = r; }
@@ -214,10 +208,10 @@ public class Sim
 
 	private static class TranResist
 	{
-		/** dynamic resistances [R_LOW - R_MAX] */	float  [] dynres;
-		/** static resistance of transistor */		float  rstatic;
+		/** dynamic resistances [R_LOW - R_MAX] */	float  [] dynRes;
+		/** static resistance of transistor */		float  rStatic;
 
-		TranResist() { dynres = new float[2]; }
+		TranResist() { dynRes = new float[2]; }
 	};
 
 	public static class Resists extends TranResist
@@ -229,9 +223,9 @@ public class Sim
 	{
 		/** next transition in history */			HistEnt  next;
 		/** delay from input */						short    delay;
-		/** rise/fall time */						short    rtime;
-		/** punt time */							short    ptime;
-		/** time of transition */					long     htime;
+		/** rise/fall time */						short    rTime;
+		/** punt time */							short    pTime;
+		/** time of transition */					long     hTime;
 		/** 1 if node became an input */			boolean  inp;
 		/** 1 if this event was punted */			boolean  punt;
 		/** value: HIGH, LOW, or X */				byte     val;
@@ -242,77 +236,77 @@ public class Sim
 	{
 														Object   link;
 		/** flags defined above */						int      flags;
-		/** capacitance charged low */					Range    Clow;
-		/** capacitance charged high */					Range    Chigh;
-		/** resistance pulling up to Vdd */				Range    Rup;
-		/** resistance pulling down to GND */			Range    Rdown;
-		/** resist. of present (parallel) xtor(s) */	Range    Req;
-		/** normalized voltage range (0-1) */			Range    V;
-		/** minimum resistance to any driver */			double   Rmin;
-		/** minimum resistance to dominant driver */	double   Rdom;
-		/** maximum resistance to dominant driver */	double   Rmax;
-		/** Adjusted non-switching capacitance */		double   Ca;
-		/** Adjusted total capacitance */				double   Cd;
+		/** capacitance charged low */					Range    cLow;
+		/** capacitance charged high */					Range    cHigh;
+		/** resistance pulling up to Vdd */				Range    rUp;
+		/** resistance pulling down to GND */			Range    rDown;
+		/** resist. of present (parallel) xtor(s) */	Range    req;
+		/** normalized voltage range (0-1) */			Range    v;
+		/** minimum resistance to any driver */			double   rMin;
+		/** minimum resistance to dominant driver */	double   rDom;
+		/** maximum resistance to dominant driver */	double   rMax;
+		/** Adjusted non-switching capacitance */		double   cA;
+		/** Adjusted total capacitance */				double   cD;
 		/** Elmore delay (psec) */						double   tauD;
 		/** 1st order time-constant (psec) */			double   tauA;
 		/** 2nd order time-constant (psec) */			double   tauP;
-		/** input transition = (input_tau) * Rin */		double   Tin;
-		/** user specified low->high delay (DELTA) */	short    tplh;
-		/** user specified high->low delay (DELTA) */	short    tphl;
+		/** input transition = (input_tau) * Rin */		double   tIn;
+		/** user specified low->high delay (DELTA) */	short    tpLH;
+		/** user specified high->low delay (DELTA) */	short    tpHL;
 		/** steady-state value calculated (H, L, X) */	char     finall;
-		/** if tau calculated, == dominant voltage */	char     tau_done;
-		/** if tauP calculated, == dominant voltage */	char     taup_done;
+		/** if tau calculated, == dominant voltage */	char     tauDone;
+		/** if tauP calculated, == dominant voltage */	char     tauPDone;
 
 		Thev()
 		{
-			Clow = new Range(0, 0);
-			Chigh = new Range(0, 0);
-			Rup = new Range(Sim.LARGE, Sim.LARGE);
-			Rdown = new Range(Sim.LARGE, Sim.LARGE);
-			Req = new Range(Sim.LARGE, Sim.LARGE);
-			V = new Range(1, 0);
+			cLow = new Range(0, 0);
+			cHigh = new Range(0, 0);
+			rUp = new Range(Sim.LARGE, Sim.LARGE);
+			rDown = new Range(Sim.LARGE, Sim.LARGE);
+			req = new Range(Sim.LARGE, Sim.LARGE);
+			v = new Range(1, 0);
 			setN(null);
 			flags		= 0;
-			Rmin		= Sim.LARGE;
-			Rdom		= Sim.LARGE;
-			Rmax		= Sim.LARGE;
-			Ca			= 0.0;
-			Cd			= 0.0;
+			rMin		= Sim.LARGE;
+			rDom		= Sim.LARGE;
+			rMax		= Sim.LARGE;
+			cA			= 0.0;
+			cD			= 0.0;
 			tauD		= 0.0;
 			tauA		= 0.0;
 			tauP		= 0.0;
-			Tin			= Sim.SMALL;
-			tplh		= 0;
-			tphl		= 0;
+			tIn			= Sim.SMALL;
+			tpLH		= 0;
+			tpHL		= 0;
 			finall		= Sim.X;
-			tau_done	= Sim.N_POTS;
-			taup_done	= Sim.N_POTS;
+			tauDone		= Sim.N_POTS;
+			tauPDone	= Sim.N_POTS;
 		}
 
 		Thev(Thev old)
 		{
 			link = old.link;
 			flags = old.flags;
-			Clow = new Range(old.Clow);
-			Chigh = new Range(old.Chigh);
-			Rup = new Range(old.Rup);
-			Rdown = new Range(old.Rdown);
-			Req = new Range(old.Req);
-			V = new Range(old.V);
-			Rmin = old.Rmin;
-			Rdom = old.Rdom;
-			Rmax = old.Rmax;
-			Ca = old.Ca;
-			Cd = old.Cd;
+			cLow = new Range(old.cLow);
+			cHigh = new Range(old.cHigh);
+			rUp = new Range(old.rUp);
+			rDown = new Range(old.rDown);
+			req = new Range(old.req);
+			v = new Range(old.v);
+			rMin = old.rMin;
+			rDom = old.rDom;
+			rMax = old.rMax;
+			cA = old.cA;
+			cD = old.cD;
 			tauD = old.tauD;
 			tauA = old.tauA;
 			tauP = old.tauP;
-			Tin = old.Tin;
-			tplh = old.tplh;
-			tphl = old.tphl;
+			tIn = old.tIn;
+			tpLH = old.tpLH;
+			tpHL = old.tpHL;
 			finall = old.finall;
-			tau_done = old.tau_done;
-			taup_done = old.taup_done;
+			tauDone = old.tauDone;
+			tauPDone = old.tauPDone;
 		}
 
 		void setT(Thev t) { link = t; }
@@ -342,20 +336,7 @@ public class Sim
 		}
 	};
 
-	public static class Event
-	{
-		/** pointers in doubly-linked list */			Event    flink, blink;
-		/** link for list of events for this node */	Event    nlink;
-		/** node this event is all about */				Node     enode;
-														Node     cause;
-		/** time, in DELTAs, of this event */			long     ntime;
-		/** delay associated with this event */			long     delay;
-		/** rise/fall time, in DELTAs */				short    rtime;
-		/** new value */								byte     eval;
-		/** type of event */							byte     type;
-	};
-
-	/* transistor types (ttype) */
+	// transistor types (tType)
 	/** n-channel enhancement */					public static final int	NCHAN       = 0;
 	/** p-channel enhancement */					public static final int	PCHAN       = 1;
 	/** depletion */								public static final int	DEP         = 2;
@@ -368,19 +349,19 @@ public class Sim
 	/** part of an or'ed transistor */				public static final int	ORLIST		= 0x40;
 	/** transistor capacitor (source == drain) */	public static final int	TCAP		= 0x80;
 
-	/* transistor states (state)*/
+	// transistor states (state
 	/** non-conducting */							public static final int	OFF         = 0;
 	/** conducting */								public static final int	ON          = 1;
 	/** unknown */									public static final int	UNKNOWN     = 2;
 	/** weak */										public static final int	WEAK        = 3;
 
-	/* transistor temporary flags (tflags) */
+	// transistor temporary flags (tFlags)
 	/** Mark for crossing a transistor */			public static final int	CROSSED		= 0x01;
 	/** Mark a broken transistor to avoid loop */	public static final int BROKEN		= 0x02;
 	/** Mark as broken a parallel transistor */		public static final int	PBROKEN		= 0x04;
 	/** Mark as being a parallel transistor */		public static final int	PARALLEL	= 0x08;
 
-	/* node potentials */
+	// node potentials
 	/** low low */									public static final int	LOW         = 0;
 	/** unknown, intermediate, ... value */			public static final int	X           = 1;
 													public static final int	X_X         = 2;
@@ -389,7 +370,7 @@ public class Sim
 
 	/** waiting to decay to X (only in events) */	public static final int	DECAY       = 4;
 
-	/* possible values for nflags */
+	// possible values for nFlags
 	public static final int	POWER_RAIL     = 0x000002;
 	public static final int	ALIAS          = 0x000004;
 	public static final int	USERDELAY      = 0x000008;
@@ -422,7 +403,7 @@ public class Sim
 	public static final int	REPORT_TCOORD	= 0x08;
 	public static final int REPORT_CAP      = 0x10;
 
-	/* resistance types */
+	// resistance types
 	/** static resistance */						public static final int	STATIC		= 0;
 	/** dynamic-high resistance */					public static final int	DYNHIGH 	= 1;
 	/** dynamic-low resistance */					public static final int	DYNLOW  	= 2;
@@ -446,7 +427,7 @@ public class Sim
 	/** R > LIMIT are considered infinite */		public static final double LIMIT	= 1E8;
 
 	/** number of transistor types defined */		public static final int NTTYPES     = 4;
-	static String [] irsim_ttype =
+	static String [] transistorType =
 	{
 		"n-channel",
 		"p-channel",
@@ -454,90 +435,78 @@ public class Sim
 		"resistor"
 	};
 
-	/**
-	 * table to convert transistor type and gate node value into switch state
-	 * indexed by [transistor-type][gate-node-value].
-	 */
-	static int [][] irsim_switch_state = new int[][]
-	{
-		/** NCHAH */	new int[] {OFF,  UNKNOWN, UNKNOWN, ON},
-		/** PCHAN */	new int[] {ON,   UNKNOWN, UNKNOWN, OFF},
-		/** RESIST */	new int[] {WEAK, WEAK,    WEAK,    WEAK},
-		/** DEP */		new int[] {WEAK, WEAK,    WEAK,    WEAK}
-	};
-
-	public static String    irsim_vchars = "0XX1";
+	public static String    vChars = "0XX1";
 	public static String [] states = { "OFF", "ON", "UKNOWN", "WEAK" };
 
 	public static final int	MAX_ERRS	= 20;
 
 	/** this is probably sufficient per stage */							private static final int	MAX_PARALLEL	= 30;
 
-	/** power supply node */												public  Node    irsim_VDD_node;
-	/** ground supply node */												public  Node    irsim_GND_node;
+	/** power supply node */												public  Node    powerNode;
+	/** ground supply node */												public  Node    groundNode;
 
-	/** number of actual nodes */											public  int     irsim_nnodes;
-	/** number of aliased nodes */											public  int     irsim_naliases;
-	/** number of txtors indexed by type */									private int []  irsim_ntrans = new int[NTTYPES];
-	/** number of transistors "or"ed */										private int []  nored = new int[NTTYPES];
+	/** number of actual nodes */											public  int     numNodes;
+	/** number of aliased nodes */											public  int     numAliases;
+	/** number of txtors indexed by type */									private int []  numTrans = new int[NTTYPES];
+	/** number of transistors "or"ed */										private int []  numOred = new int[NTTYPES];
 
-	/** list of capacitor-transistors */									public  Trans   irsim_tcap = null;
+	/** list of capacitor-transistors */									public  Trans   tCap = null;
 
-	/** # of erros found in sim file */										private int     nerrs = 0;
+	/** # of erros found in sim file */										private int     numErrors = 0;
 
-	/** list of transistors just read */									private List    rd_tlist;
-	public  Trans [] irsim_parallel_xtors = new Trans[MAX_PARALLEL];
+	/** list of transistors just read */									private List    readTransistorList;
+	public  Trans [] parallelTransistors = new Trans[MAX_PARALLEL];
 
-	/** pointer to dummy hist-entry that serves as tail for all nodes */	private HistEnt irsim_last_hist;
-	public  int      irsim_num_edges;
-	public  int      irsim_num_punted;
-	public  int      irsim_num_cons_punted;
-	public  long     irsim_max_time;
+	/** pointer to dummy hist-entry that serves as tail for all nodes */	private HistEnt lastHist;
+	public  int      numEdges;
+	public  int      numPunted;
+	public  int      numConsPunted;
+	public  long     maxTime;
 
-	/** current simulated time */											public  long    irsim_cur_delta;
-	/** node that belongs to current event */								public  Node    irsim_cur_node;
-	/** number of current event */											public  long    irsim_nevent;
+	/** current simulated time */											public  long    curDelta;
+	/** node that belongs to current event */								public  Node    curNode;
+	/** number of current event */											public  long    nEvent;
 
-	/** if nonzero, all transactions take this DELAY-units */				public  int     irsim_tunitdelay = 0;
-	/** number of DELAY-units after which undriven nodes decay to X */		public  long    irsim_tdecay = 0;
+	/** if nonzero, all transactions take this DELAY-units */				public  int     tUnitDelay = 0;
+	/** number of DELAY-units after which undriven nodes decay to X */		public  long    tDecay = 0;
 
 	private boolean  parallelWarning = false;
 	private HashMap  nodeHash;
 	private List     nodeList;
 	private int      nodeIndexCounter;
 	private boolean  warnVdd, warnGnd;
-	public  int      irsim_debug;
-	public  int      irsim_treport = 0;
+	public  int      irDebug;
+	public  int      tReport = 0;
 
-	private Eval     irsim_model;
+	private Eval     theModel;
 	private Config   theConfig;
 
 	public Sim(Analyzer analyzer)
 	{
-		irsim_debug = Simulation.getIRSIMDebugging();
+		irDebug = Simulation.getIRSIMDebugging();
     	theConfig = new Config();
     	String steppingModel = Simulation.getIRSIMStepModel();
-    	if (steppingModel.equals("Linear")) irsim_model = new SStep(analyzer, this); else
+    	if (steppingModel.equals("Linear")) theModel = new SStep(analyzer, this); else
     	{
     		if (!steppingModel.equals("RC"))
     			System.out.println("Unknown stepping model: " + steppingModel + " using RC");
-    		irsim_model = new NewRStep(analyzer, this);
+    		theModel = new NewRStep(analyzer, this);
     	}
 	}
 
 	public Config getConfig() { return theConfig; }
 
-	public Eval getModel() { return irsim_model; }
+	public Eval getModel() { return theModel; }
 
-	private void BAD_ARGC(String fileName, LineNumberReader lineReader, String [] strings)
+	private void badArgCount(String fileName, LineNumberReader lineReader, String [] strings)
 	{
-		irsim_error(fileName, lineReader.getLineNumber(), "Wrong number of args for '" + strings[0] + "'");
+		reportError(fileName, lineReader.getLineNumber(), "Wrong number of args for '" + strings[0] + "'");
 		for(int i=0; i<strings.length; i++) System.out.print(" " + strings[i]);
 		System.out.println();
-		CheckErrs(fileName);
+		checkErrs(fileName);
 	}
 
-	public static void irsim_error(String filename, int lineno, String msg)
+	public static void reportError(String filename, int lineno, String msg)
 	{
 		System.out.println("(" + filename + "," + lineno + "): " + msg);
 	}
@@ -545,10 +514,10 @@ public class Sim
 	/**
 	 * Returns TRUE if there have been too many errors and the activity should be stopped.
 	 */
-	private boolean CheckErrs(String fileName)
+	private boolean checkErrs(String fileName)
 	{
-		nerrs++;
-		if (nerrs > MAX_ERRS)
+		numErrors++;
+		if (numErrors > MAX_ERRS)
 		{
 			System.out.println("Too many errors in sim file <" + fileName + ">");
 			return true;
@@ -556,57 +525,74 @@ public class Sim
 		return false;
 	}
 
-	/* Conversion macros between various time units */
-	static double d2ns(long d) { return d * 0.01; }	/* deltas to ns */
-	static double d2ps(long d) { return d * 10.0; }	/* deltas to ps */
+	/**
+	 * Convert deltas to ns.
+	 */
+	static double deltaToNS(long d) { return d * 0.01; }
 
-	static long ns2d(double d) { return Math.round(d * 100); }	/* ns to deltas */
-	static long ps2d(double d) { return Math.round(d * 0.1); }	/* ps to deltas */
+	/**
+	 * Convert deltas to ps.
+	 */
+	static double deltaToPS(long d) { return d * 10.0; }
 
-	static double ps2ns(double d) { return d * 0.001; }	/* ps to ns */
+	/**
+	 * Convert ns to deltas.
+	 */
+	static long nsToDelta(double d) { return Math.round(d * 100); }
 
-	/* figure what's on the *other* terminal node of a transistor */
-	static Node other_node(Trans t, Node n) { return t.drain == n ? t.source : t.drain; }
+	/**
+	 * Convert ps to deltas.
+	 */
+	static long psToDelta(double d) { return Math.round(d * 0.1); }
 
-	static int BASETYPE(int t) { return t & 0x07; }
+	/**
+	 * Convert ps to ns
+	 */
+	static double psToNS(double d) { return d * 0.001; }
 
-	private int hash_terms(Trans t) { return t.source.index ^ t.drain.index; }
+	/**
+	 * figure what's on the *other* terminal node of a transistor
+	 */
+	static Node otherNode(Trans t, Node n) { return t.drain == n ? t.source : t.drain; }
 
-	static int INPUT_NUM(int flg) { return ((flg & INPUT_MASK) >> 12); }
+	static int baseType(int t) { return t & 0x07; }
 
-	/* combine 2 resistors in parallel */
-	static double COMBINE(double r1, double r2) { return (r1 * r2) / (r1 + r2); }
+	private int hashTerms(Trans t) { return t.source.index ^ t.drain.index; }
 
-	/* combine 2 resistors in parallel, watch out for zero resistance */
-	static double COMBINE_R(double a, double b) { return ((a + b <= SMALL) ? 0 : COMBINE(a, b)); }
+	static int inputNumber(int flg) { return ((flg & INPUT_MASK) >> 12); }
+
+	/**
+	 * combine 2 resistors in parallel
+	 */
+	static double combine(double r1, double r2) { return (r1 * r2) / (r1 + r2); }
 
 	/**
 	 * Traverse the transistor list and add the node connection-list.  We have
 	 * to be careful with ALIASed nodes.  Note that transistors with source/drain
 	 * connected VDD and GND nodes are not linked.
 	 */
-	private Node connect_txtors()
+	private Node connectTransistors()
 	{
-		Node nd_list = null;
+		Node ndList = null;
 
-		for(Iterator it = rd_tlist.iterator(); it.hasNext(); )
+		for(Iterator it = readTransistorList.iterator(); it.hasNext(); )
 		{
 			Trans t = (Trans)it.next();
 			Node gate = null, src = null, drn = null;
-			for(gate = (Node)t.gate; (gate.nflags & ALIAS) != 0; gate = gate.nlink) ;
-			for(src = t.source; (src.nflags & ALIAS) != 0; src = src.nlink) ;
-			for(drn = t.drain; (drn.nflags & ALIAS) != 0; drn = drn.nlink) ;
+			for(gate = (Node)t.gate; (gate.nFlags & ALIAS) != 0; gate = gate.nLink) ;
+			for(src = t.source; (src.nFlags & ALIAS) != 0; src = src.nLink) ;
+			for(drn = t.drain; (drn.nFlags & ALIAS) != 0; drn = drn.nLink) ;
 
 			t.gate = gate;
 			t.source = src;
 			t.drain = drn;
 
-			int type = t.ttype;
+			int type = t.tType;
 			t.state = (byte)((type & ALWAYSON) != 0 ? WEAK : UNKNOWN);
-			t.tflags = 0;
+			t.tFlags = 0;
 
-			irsim_ntrans[type]++;
-			if (src == drn || (src.nflags & drn.nflags & POWER_RAIL) != 0)
+			numTrans[type]++;
+			if (src == drn || (src.nFlags & drn.nFlags & POWER_RAIL) != 0)
 			{
 				/*
 				 * transistor is just a capacitor.
@@ -614,46 +600,46 @@ public class Sim
 				 * to the network, they are instead linked as a doubly linked list
 				 * using the scache/dcache fields.
 				 */
-				t.ttype |= TCAP;
-				t.setDTrans(irsim_tcap);
-				t.setSTrans(irsim_tcap.getSTrans());
-				irsim_tcap.getSTrans().setDTrans(t);
-				irsim_tcap.setSTrans(t);
-				irsim_tcap.x++;
+				t.tType |= TCAP;
+				t.setDTrans(tCap);
+				t.setSTrans(tCap.getSTrans());
+				tCap.getSTrans().setDTrans(t);
+				tCap.setSTrans(t);
+				tCap.x++;
 			} else
 			{
 				// do not connect gate if ALWAYSON since they do not matter
-				if ((t.ttype & ALWAYSON) == 0)
+				if ((t.tType & ALWAYSON) == 0)
 				{
-					((Node)t.gate).ngateList.add(t);
+					((Node)t.gate).nGateList.add(t);
 				}
 
-				if ((src.nflags & POWER_RAIL) == 0)
+				if ((src.nFlags & POWER_RAIL) == 0)
 				{
-					src.ntermList.add(t);
-					nd_list = LINK_TO_LIST(src, nd_list);
+					src.nTermList.add(t);
+					ndList = linkToList(src, ndList);
 				}
-				if ((drn.nflags & POWER_RAIL) == 0)
+				if ((drn.nFlags & POWER_RAIL) == 0)
 				{
-					drn.ntermList.add(t);
-					nd_list = LINK_TO_LIST(drn, nd_list);
+					drn.nTermList.add(t);
+					ndList = linkToList(drn, ndList);
 				}
 			}
 		}
 
-		return nd_list;
+		return ndList;
 	}
 
 	/**
-	 * if VISITED is not set in in n.nflags, Link n to the head of list
+	 * if VISITED is not set in in n.nFlags, Link n to the head of list
 	 * using the temporary entry in the node structure.  This is
 	 * used during net read-in/change to build lists of affected nodes.
 	 */
-	private Node LINK_TO_LIST(Node n, Node list)
+	private Node linkToList(Node n, Node list)
 	{
-		if ((n.nflags & VISITED) == 0)
+		if ((n.nFlags & VISITED) == 0)
 		{
-			n.nflags |= VISITED;
+			n.nFlags |= VISITED;
 			n.setNext(list);
 			list = n;
 		}
@@ -663,88 +649,94 @@ public class Sim
 	/**
 	 * node area and perimeter info (N sim command).
 	 */
-	private void node_info(String [] targ, String fileName, LineNumberReader lineReader)
+	private void nodeInfo(String [] targ, String fileName, LineNumberReader lineReader)
 	{
 		if (targ.length != 8)
-			BAD_ARGC(fileName, lineReader, targ);
+		{
+			badArgCount(fileName, lineReader, targ);
+			return;
+		}
 
-		Node n = irsim_GetNode(targ[1]);
+		Node n = getNode(targ[1]);
 
-		n.ncap += TextUtils.atof(targ[4]) * (theConfig.irsim_CMA * theConfig.irsim_LAMBDA2) +
-			TextUtils.atof(targ[5]) * (theConfig.irsim_CPA * theConfig.irsim_LAMBDA2) +
-			TextUtils.atof(targ[6]) * (theConfig.irsim_CDA * theConfig.irsim_LAMBDA2) +
-			TextUtils.atof(targ[7]) * 2.0f * (theConfig.irsim_CDP * theConfig.irsim_LAMBDA);
+		n.nCap += TextUtils.atof(targ[4]) * (theConfig.CMA * theConfig.lambdaSquared) +
+			TextUtils.atof(targ[5]) * (theConfig.CPA * theConfig.lambdaSquared) +
+			TextUtils.atof(targ[6]) * (theConfig.CDA * theConfig.lambdaSquared) +
+			TextUtils.atof(targ[7]) * 2.0f * (theConfig.CDP * theConfig.lambda);
 	}
 
 	/**
 	 * new format node area and perimeter info (M sim command).
 	 */
-	private void nnode_info(String [] targ, String fileName, LineNumberReader lineReader)
+	private void nNodeInfo(String [] targ, String fileName, LineNumberReader lineReader)
 	{
 		if (targ.length != 14)
-			BAD_ARGC(fileName, lineReader, targ);
+		{
+			badArgCount(fileName, lineReader, targ);
+			return;
+		}
 
-		Node n = irsim_GetNode(targ[1]);
+		Node n = getNode(targ[1]);
 
-		n.ncap += TextUtils.atof(targ[4]) * (theConfig.irsim_CM2A * theConfig.irsim_LAMBDA2) +
-			TextUtils.atof(targ[5]) * 2.0 * (theConfig.irsim_CM2P * theConfig.irsim_LAMBDA) +
-			TextUtils.atof(targ[6]) * (theConfig.irsim_CMA * theConfig.irsim_LAMBDA2) +
-			TextUtils.atof(targ[7]) * 2.0 * (theConfig.irsim_CMP * theConfig.irsim_LAMBDA) +
-			TextUtils.atof(targ[8]) * (theConfig.irsim_CPA * theConfig.irsim_LAMBDA2) +
-			TextUtils.atof(targ[9]) * 2.0 * (theConfig.irsim_CPP * theConfig.irsim_LAMBDA) +
-			TextUtils.atof(targ[10]) * (theConfig.irsim_CDA * theConfig.irsim_LAMBDA) +
-			TextUtils.atof(targ[11]) * 2.0 * (theConfig.irsim_CDP * theConfig.irsim_LAMBDA) +
-			TextUtils.atof(targ[12]) * (theConfig.irsim_CPDA * theConfig.irsim_LAMBDA2) +
-			TextUtils.atof(targ[13]) * 2.0 * (theConfig.irsim_CPDP * theConfig.irsim_LAMBDA);
+		n.nCap += TextUtils.atof(targ[4]) * (theConfig.CM2A * theConfig.lambdaSquared) +
+			TextUtils.atof(targ[5]) * 2.0 * (theConfig.CM2P * theConfig.lambda) +
+			TextUtils.atof(targ[6]) * (theConfig.CMA * theConfig.lambdaSquared) +
+			TextUtils.atof(targ[7]) * 2.0 * (theConfig.CMP * theConfig.lambda) +
+			TextUtils.atof(targ[8]) * (theConfig.CPA * theConfig.lambdaSquared) +
+			TextUtils.atof(targ[9]) * 2.0 * (theConfig.CPP * theConfig.lambda) +
+			TextUtils.atof(targ[10]) * (theConfig.CDA * theConfig.lambda) +
+			TextUtils.atof(targ[11]) * 2.0 * (theConfig.CDP * theConfig.lambda) +
+			TextUtils.atof(targ[12]) * (theConfig.CPDA * theConfig.lambdaSquared) +
+			TextUtils.atof(targ[13]) * 2.0 * (theConfig.CPDP * theConfig.lambda);
 	}
 
 	/**
 	 * new transistor.  Implant specifies type.
 	 * AreaPos specifies the argument number that contains the area (if any).
 	 */
-	private void newtrans(int implant, String [] targ, String fileName, LineNumberReader lineReader)
+	private void newTrans(int implant, String [] targ, String fileName, LineNumberReader lineReader)
 	{
 		// create new transistor
 		Trans t = new Trans();
-		t.ttype = (byte)implant;
+		t.tType = (byte)implant;
 
 		if (implant == RESIST)
 		{
 			if (targ.length != 4)
 			{
-				BAD_ARGC(fileName, lineReader, targ);
+				badArgCount(fileName, lineReader, targ);
 				return;
 			}
 
-			t.gate = irsim_VDD_node;
-			t.source = irsim_GetNode(targ[1]);
-			t.drain = irsim_GetNode(targ[2]);
+			t.gate = powerNode;
+			t.source = getNode(targ[1]);
+			t.drain = getNode(targ[2]);
 
-			long length = (long)(TextUtils.atof(targ[3]) * theConfig.irsim_LAMBDACM);
-			t.r = theConfig.irsim_requiv(implant, 0, length);
+			long length = (long)(TextUtils.atof(targ[3]) * theConfig.lambdaCM);
+			t.r = theConfig.rEquiv(implant, 0, length);
 
 		} else
 		{
 			if (targ.length != 11)
 			{
-				BAD_ARGC(fileName, lineReader, targ);
+				badArgCount(fileName, lineReader, targ);
 				return;
 			}
 
-			t.gate = irsim_GetNode(targ[1]);
-			t.source = irsim_GetNode(targ[2]);
-			t.drain = irsim_GetNode(targ[3]);
+			t.gate = getNode(targ[1]);
+			t.source = getNode(targ[2]);
+			t.drain = getNode(targ[3]);
 
-			long length = (long)(TextUtils.atof(targ[4]) * theConfig.irsim_LAMBDACM);
-			long width = (long)(TextUtils.atof(targ[5]) * theConfig.irsim_LAMBDACM);
+			long length = (long)(TextUtils.atof(targ[4]) * theConfig.lambdaCM);
+			long width = (long)(TextUtils.atof(targ[5]) * theConfig.lambdaCM);
 			if (width <= 0 || length <= 0)
 			{
-				irsim_error(fileName, lineReader.getLineNumber(),
+				reportError(fileName, lineReader.getLineNumber(),
 					"Bad transistor width=" + width + " or length=" + length);
 				return;
 			}
-			((Node)t.gate).ncap += length * width * theConfig.irsim_CTGA;
-			t.r = theConfig.irsim_requiv(implant, width, length);
+			((Node)t.gate).nCap += length * width * theConfig.CTGA;
+			t.r = theConfig.rEquiv(implant, width, length);
 
 			t.x = TextUtils.atoi(targ[6]);
 			t.y = TextUtils.atoi(targ[7]);
@@ -771,23 +763,23 @@ public class Sim
 					}
 					if (implant == PCHAN)
 					{
-						t.source.ncap += asrc * theConfig.irsim_LAMBDA * theConfig.irsim_LAMBDA * theConfig.irsim_CPDA +
-							psrc * theConfig.irsim_LAMBDA * theConfig.irsim_CPDP;
-						t.drain.ncap += adrn * theConfig.irsim_LAMBDA * theConfig.irsim_LAMBDA * theConfig.irsim_CPDA +
-							pdrn * theConfig.irsim_LAMBDA * theConfig.irsim_CPDP;
+						t.source.nCap += asrc * theConfig.lambda * theConfig.lambda * theConfig.CPDA +
+							psrc * theConfig.lambda * theConfig.CPDP;
+						t.drain.nCap += adrn * theConfig.lambda * theConfig.lambda * theConfig.CPDA +
+							pdrn * theConfig.lambda * theConfig.CPDP;
 					} else if (implant == NCHAN || implant == DEP)
 					{
-						t.source.ncap += asrc * theConfig.irsim_LAMBDA * theConfig.irsim_LAMBDA * theConfig.irsim_CDA +
-							psrc * theConfig.irsim_LAMBDA * theConfig.irsim_CDP;
-						t.drain.ncap += adrn * theConfig.irsim_LAMBDA * theConfig.irsim_LAMBDA * theConfig.irsim_CDA +
-							pdrn * theConfig.irsim_LAMBDA * theConfig.irsim_CDP;
+						t.source.nCap += asrc * theConfig.lambda * theConfig.lambda * theConfig.CDA +
+							psrc * theConfig.lambda * theConfig.CDP;
+						t.drain.nCap += adrn * theConfig.lambda * theConfig.lambda * theConfig.CDA +
+							pdrn * theConfig.lambda * theConfig.CDP;
 					}
 				}
 			}
 		}
 
 		// link it to the list
-		rd_tlist.add(t);
+		readTransistorList.add(t);
 	}
 
 	/**
@@ -797,98 +789,98 @@ public class Sim
 	{
 		if (targ.length < 3)
 		{
-			BAD_ARGC(fileName, lineReader, targ);
+			badArgCount(fileName, lineReader, targ);
 			return;
 		}
 
-		Node n = irsim_GetNode(targ[1]);
+		Node n = getNode(targ[1]);
 
 		for(int i = 2; i < targ.length; i++)
 		{
-			Node m = irsim_GetNode(targ[i]);
+			Node m = getNode(targ[i]);
 			if (m == n) continue;
 
-			if ((m.nflags & POWER_RAIL) != 0)
+			if ((m.nFlags & POWER_RAIL) != 0)
 			{
 				Node swap = m;   m = n;   n = swap;
 			}
 
-			if ((m.nflags & POWER_RAIL) != 0)
+			if ((m.nFlags & POWER_RAIL) != 0)
 			{
-				irsim_error(fileName, lineReader.getLineNumber(), "Can't alias the power supplies");
+				reportError(fileName, lineReader.getLineNumber(), "Can't alias the power supplies");
 				continue;
 			}
 
-			n.ncap += m.ncap;
-			m.nlink = n;
-			m.nflags |= ALIAS;
-			m.ncap = 0;
-			irsim_nnodes--;
-			irsim_naliases++;
+			n.nCap += m.nCap;
+			m.nLink = n;
+			m.nFlags |= ALIAS;
+			m.nCap = 0;
+			numNodes--;
+			numAliases++;
 		}
 	}
 
 	/**
 	 * node threshold voltages (t sim command).
 	 */
-	private void nthresh(String [] targ, String fileName, LineNumberReader lineReader)
+	private void nThresh(String [] targ, String fileName, LineNumberReader lineReader)
 	{
 		if (targ.length != 4)
 		{
-			BAD_ARGC(fileName, lineReader, targ);
+			badArgCount(fileName, lineReader, targ);
 			return;
 		}
 
-		Node n = irsim_GetNode(targ[1]);
-		n.vlow = (float)TextUtils.atof(targ[2]);
-		n.vhigh = (float)TextUtils.atof(targ[3]);
+		Node n = getNode(targ[1]);
+		n.vLow = (float)TextUtils.atof(targ[2]);
+		n.vHigh = (float)TextUtils.atof(targ[3]);
 	}
 
 	/**
 	 * User delay for a node (D sim command).
 	 */
-	private void ndelay(String [] targ, String fileName, LineNumberReader lineReader)
+	private void nDelay(String [] targ, String fileName, LineNumberReader lineReader)
 	{
 		if (targ.length != 4)
 		{
-			BAD_ARGC(fileName, lineReader, targ);
+			badArgCount(fileName, lineReader, targ);
 			return;
 		}
 
-		Node n = irsim_GetNode(targ[1]);
-		n.nflags |= USERDELAY;
-		n.tplh = (short)ns2d(TextUtils.atof(targ[2]));
-		n.tphl = (short)ns2d(TextUtils.atof(targ[3]));
+		Node n = getNode(targ[1]);
+		n.nFlags |= USERDELAY;
+		n.tpLH = (short)nsToDelta(TextUtils.atof(targ[2]));
+		n.tpHL = (short)nsToDelta(TextUtils.atof(targ[3]));
 	}
 
 	/**
 	 * add capacitance to a node (c sim command).
 	 */
-	private void ncap(String [] targ, String fileName, LineNumberReader lineReader)
+	private void nCap(String [] targ, String fileName, LineNumberReader lineReader)
 	{
 		if (targ.length == 3)
 		{
-			Node n = irsim_GetNode(targ[1]);
-			n.ncap += (float)TextUtils.atof(targ[2]);
+			Node n = getNode(targ[1]);
+			n.nCap += (float)TextUtils.atof(targ[2]);
 		} else if (targ.length == 4)
 		{
 			// two terminal caps
 			float cap = (float)(TextUtils.atof(targ[3]) / 1000);		// ff to pf conversion
-			Node n = irsim_GetNode(targ[1]);
-			Node m = irsim_GetNode(targ[2]);
+			Node n = getNode(targ[1]);
+			Node m = getNode(targ[2]);
 			if (n != m)
 			{
 				// add cap to both nodes
-				if (m != irsim_GND_node)	m.ncap += cap;
-				if (n != irsim_GND_node)	n.ncap += cap;
-			} else if (n == irsim_GND_node)
+				if (m != groundNode)	m.nCap += cap;
+				if (n != groundNode)	n.nCap += cap;
+			} else if (n == groundNode)
 			{
 				// same node, only GND makes sense
-				n.ncap += cap;
+				n.nCap += cap;
 			}
 		} else
 		{
-			BAD_ARGC(fileName, lineReader, targ);
+			badArgCount(fileName, lineReader, targ);
 		}
 	}
 
@@ -899,7 +891,7 @@ public class Sim
 	 * The string can contain multiple iterators which will be expanded
 	 * independently, e.g., "out{1:10}{1:20:2}" expands into 100 arguments.
 	 */
-	public static String [] parse_line(String line, boolean expand)
+	public static String [] parseLine(String line, boolean expand)
 	{
 		StringTokenizer st = new StringTokenizer(line, " \t");
 		int total = st.countTokens();
@@ -971,7 +963,58 @@ public class Sim
 		return false;
 	}
 
-	private void input_sim(URL simFileURL, List components)
+	/**
+	 * Load a .sim file into memory.
+	 *
+	 * A .sim file consists of a series of lines, each of which begins with a key letter.
+	 * The key letter beginning a line determines how the remainder of the line is interpreted.
+	 * The following are the list of key letters understood.
+	 *
+	 *   | units: s tech: tech format: MIT|LBL|SU
+	 *     If present, this must be the first line in the .sim file.
+	 *     It identifies the technology of this circuit as tech and gives a scale factor for units of linear dimension as s.
+	 *     All linear dimensions appearing in the .sim file are multiplied by s to give centimicrons.
+	 *     The format field signifies the sim variant. Electric only recognizes SU format. 
+	 *   type g s d l w x y g=gattrs s=sattrs d=dattrs
+	 *     Defines a transistor of type type. Currently, type may be e or d for NMOS, or p or n for CMOS.
+	 *     The name of the node to which the gate, source, and drain of the transistor are connected are given by g, s, and d respectively.
+	 *     The length and width of the transistor are l and w. The next two tokens, x and y, are optional.
+	 *     If present, they give the location of a point inside the gate region of the transistor.
+	 *     The last three tokens are the attribute lists for the transistor gate, source, and drain.
+	 *     If no attributes are present for a particular terminal, the corresponding attribute list may be absent
+	 *     (i.e, there may be no g= field at all).
+	 *     The attribute lists gattrs, etc. are comma-separated lists of labels.
+	 *     The label names should not include any spaces, although some tools can accept label names with
+	 *     spaces if they are enclosed in double quotes. In version 6.4.5 and later the default format
+	 *     produced by ext2sim is SU. In this format the attribute of the gate starting with S_ is the substrate node of the fet.
+	 *     The attributes of the gate, and source and substrate starting with A_, P_ are the area and perimeter
+	 *     (summed for that node only once) of the source and drain respectively. This addition to the format is backwards compatible. 
+	 *   C n1 n2 cap
+	 *     Defines a capacitor between nodes n1 and n2. The value of the capacitor is cap femtofarads.
+	 *     NOTE: since many analysis tools compute transistor gate capacitance themselves from the
+	 *     transistor's area and perimeter, the capacitance between a node and substrate (GND!)
+	 *     normally does not include the capacitance from transistor gates connected to that node.
+	 *     If the .sim file was produced by ext2sim(1), check the technology file that was used to
+	 *     produce the original .ext files to see whether transistor gate capacitance is included or excluded;
+	 *     see "Magic Maintainer's Manual 2 - The Technology File for details. 
+	 *   R node res
+	 *     Defines the lumped resistance of node node to be res ohms.
+	 *   r node1 node2 res
+	 *     Defines an explicit resistor between nodes node1 and node2 of resistance res ohms.
+	 *   N node darea dperim parea pperim marea mperim
+	 *     As an alternative to computed capacitances, some tools expect the total perimeter and area
+	 *     of the polysilicon, diffusion, and metal in each node to be reported in the .sim file.
+	 *     The N construct associates diffusion area darea (in square centimicrons) and diffusion
+	 *     perimeter dperim (in centimicrons) with node node, polysilicon area parea and perimeter pperim,
+	 *     and metal area marea and perimeter mperim. This construct is technology dependent and obsolete. 
+	 *   = node1 node2
+	 *     Each node in a .sim file is named implicitly by having it appear in a transistor definition.
+	 *     All node names appearing in a .sim file are assumed to be distinct.
+	 *     Some tools, such as esim(1), recognize aliases for node names.
+	 *     The = construct allows the name node2 to be defined as an alias for the name node1.
+	 *     Aliases defined by means of this construct may not appear anywhere else in the .sim file.
+	 */
+	private void inputSim(URL simFileURL, List components)
 	{
 		if (components != null)
 		{
@@ -983,84 +1026,84 @@ public class Sim
 				{
 					case 'n':
 						Trans t = new Trans();
-						t.ttype = NCHAN;
+						t.tType = NCHAN;
 
-						t.gate = irsim_GetNode(ci.netName1);
-						t.source = irsim_GetNode(ci.netName2);
-						t.drain = irsim_GetNode(ci.netName3);
+						t.gate = getNode(ci.netName1);
+						t.source = getNode(ci.netName2);
+						t.drain = getNode(ci.netName3);
 
-						long length = (long)(ci.length * theConfig.irsim_LAMBDACM);
-						long width = (long)(ci.width * theConfig.irsim_LAMBDACM);
+						long length = (long)(ci.length * theConfig.lambdaCM);
+						long width = (long)(ci.width * theConfig.lambdaCM);
 						if (width <= 0 || length <= 0)
 						{
 							System.out.println("Bad transistor width=" + width + " or length=" + length);
 							return;
 						}
-						((Node)t.gate).ncap += length * width * theConfig.irsim_CTGA;
+						((Node)t.gate).nCap += length * width * theConfig.CTGA;
 
 						t.x = (int)ci.ni.getAnchorCenterX();
 						t.y = (int)ci.ni.getAnchorCenterY();
-						t.source.ncap += ci.sourceArea * theConfig.irsim_LAMBDA * theConfig.irsim_LAMBDA * theConfig.irsim_CDA +
-							ci.sourcePerim * theConfig.irsim_LAMBDA * theConfig.irsim_CDP;
-						t.drain.ncap += ci.drainArea * theConfig.irsim_LAMBDA * theConfig.irsim_LAMBDA * theConfig.irsim_CDA +
-							ci.drainPerim * theConfig.irsim_LAMBDA * theConfig.irsim_CDP;
-						t.r = theConfig.irsim_requiv(NCHAN, width, length);
+						t.source.nCap += ci.sourceArea * theConfig.lambda * theConfig.lambda * theConfig.CDA +
+							ci.sourcePerim * theConfig.lambda * theConfig.CDP;
+						t.drain.nCap += ci.drainArea * theConfig.lambda * theConfig.lambda * theConfig.CDA +
+							ci.drainPerim * theConfig.lambda * theConfig.CDP;
+						t.r = theConfig.rEquiv(NCHAN, width, length);
 
 						// link it to the list
-						rd_tlist.add(t);
+						readTransistorList.add(t);
 						break;
 					case 'p':
 						t = new Trans();
-						t.ttype = PCHAN;
+						t.tType = PCHAN;
 
-						t.gate = irsim_GetNode(ci.netName1);
-						t.source = irsim_GetNode(ci.netName2);
-						t.drain = irsim_GetNode(ci.netName3);
+						t.gate = getNode(ci.netName1);
+						t.source = getNode(ci.netName2);
+						t.drain = getNode(ci.netName3);
 
-						length = (long)(ci.length * theConfig.irsim_LAMBDACM);
-						width = (long)(ci.width * theConfig.irsim_LAMBDACM);
+						length = (long)(ci.length * theConfig.lambdaCM);
+						width = (long)(ci.width * theConfig.lambdaCM);
 						if (width <= 0 || length <= 0)
 						{
 							System.out.println("Bad transistor width=" + width + " or length=" + length);
 							return;
 						}
-						((Node)t.gate).ncap += length * width * theConfig.irsim_CTGA;
+						((Node)t.gate).nCap += length * width * theConfig.CTGA;
 
 						t.x = (int)ci.ni.getAnchorCenterX();
 						t.y = (int)ci.ni.getAnchorCenterY();
-						t.source.ncap += ci.sourceArea * theConfig.irsim_LAMBDA * theConfig.irsim_LAMBDA * theConfig.irsim_CPDA +
-							ci.sourcePerim * theConfig.irsim_LAMBDA * theConfig.irsim_CPDP;
-						t.drain.ncap += ci.drainArea * theConfig.irsim_LAMBDA * theConfig.irsim_LAMBDA * theConfig.irsim_CPDA +
-							ci.drainPerim * theConfig.irsim_LAMBDA * theConfig.irsim_CPDP;
-						t.r = theConfig.irsim_requiv(PCHAN, width, length);
+						t.source.nCap += ci.sourceArea * theConfig.lambda * theConfig.lambda * theConfig.CPDA +
+							ci.sourcePerim * theConfig.lambda * theConfig.CPDP;
+						t.drain.nCap += ci.drainArea * theConfig.lambda * theConfig.lambda * theConfig.CPDA +
+							ci.drainPerim * theConfig.lambda * theConfig.CPDP;
+						t.r = theConfig.rEquiv(PCHAN, width, length);
 
 						// link it to the list
-						rd_tlist.add(t);
+						readTransistorList.add(t);
 						break;
 					case 'r':
 						t = new Trans();
-						t.ttype = RESIST;
-						t.gate = irsim_VDD_node;
-						t.source = irsim_GetNode(ci.netName1);
-						t.drain = irsim_GetNode(ci.netName2);
-						t.r = theConfig.irsim_requiv(RESIST, 0, (long)(ci.rcValue * theConfig.irsim_LAMBDACM));
+						t.tType = RESIST;
+						t.gate = powerNode;
+						t.source = getNode(ci.netName1);
+						t.drain = getNode(ci.netName2);
+						t.r = theConfig.rEquiv(RESIST, 0, (long)(ci.rcValue * theConfig.lambdaCM));
 
 						// link it to the list
-						rd_tlist.add(t);
+						readTransistorList.add(t);
 						break;
 					case 'C':
 						float cap = (float)(ci.rcValue / 1000);		// ff to pf conversion
-						Node n = irsim_GetNode(ci.netName1);
-						Node m = irsim_GetNode(ci.netName2);
+						Node n = getNode(ci.netName1);
+						Node m = getNode(ci.netName2);
 						if (n != m)
 						{
 							// add cap to both nodes
-							if (m != irsim_GND_node)	m.ncap += cap;
-							if (n != irsim_GND_node)	n.ncap += cap;
-						} else if (n == irsim_GND_node)
+							if (m != groundNode)	m.nCap += cap;
+							if (n != groundNode)	n.nCap += cap;
+						} else if (n == groundNode)
 						{
 							// same node, only GND makes sense
-							n.ncap += cap;
+							n.nCap += cap;
 						}
 						break;
 				}
@@ -1069,8 +1112,8 @@ public class Sim
 		}
 
 		// read the file
-		boolean R_error = false;
-		boolean A_error = false;
+		boolean rError = false;
+		boolean aError = false;
 		String fileName = simFileURL.getFile();
 		try
 		{
@@ -1082,7 +1125,7 @@ public class Sim
 			{
 				String line = lineReader.readLine();
 				if (line == null) break;
-				String [] targ = parse_line(line, false);
+				String [] targ = parseLine(line, false);
 				if (targ.length == 0) continue;
 				char firstCh = targ[0].charAt(0);
 				switch (firstCh)
@@ -1092,16 +1135,16 @@ public class Sim
 						if (targ.length >= 2)
 						{
 							double lmbd = TextUtils.atof(targ[2]) / 100.0;
-							if (lmbd != theConfig.irsim_LAMBDA)
+							if (lmbd != theConfig.lambda)
 							{
 								System.out.println("WARNING: sim file lambda (" + lmbd + "u) != config lambda (" +
-									theConfig.irsim_LAMBDA + "u), using config lambda");
+									theConfig.lambda + "u), using config lambda");
 							}
 						}
 						if (targ.length >= 6)
 						{
-							if (theConfig.irsim_CDA == 0.0 || theConfig.irsim_CDP == 0.0 ||
-								theConfig.irsim_CPDA == 0.0 || theConfig.irsim_CPDP == 0.0)
+							if (theConfig.CDA == 0.0 || theConfig.CDP == 0.0 ||
+								theConfig.CPDA == 0.0 || theConfig.CPDP == 0.0)
 							{
 								System.out.println("Warning: missing area/perim cap values are zero");
 							}
@@ -1109,53 +1152,53 @@ public class Sim
 						break;
 					case 'e':
 					case 'n':
-						newtrans(NCHAN, targ, fileName, lineReader);
+						newTrans(NCHAN, targ, fileName, lineReader);
 						break;
 					case 'p':
-						newtrans(PCHAN, targ, fileName, lineReader);
+						newTrans(PCHAN, targ, fileName, lineReader);
 						break;
 					case 'd':
-						newtrans(DEP, targ, fileName, lineReader);
+						newTrans(DEP, targ, fileName, lineReader);
 						break;
 					case 'r':
-						newtrans(RESIST, targ, fileName, lineReader);
+						newTrans(RESIST, targ, fileName, lineReader);
 						break;
 					case 'N':
-						node_info(targ, fileName, lineReader);
+						nodeInfo(targ, fileName, lineReader);
 						break;
 					case 'M':
-						nnode_info(targ, fileName, lineReader);
+						nNodeInfo(targ, fileName, lineReader);
 						break;
 					case 'c':
 					case 'C':
-						ncap(targ, fileName, lineReader);
+						nCap(targ, fileName, lineReader);
 						break;
 					case '=':
 						alias(targ, fileName, lineReader);
 						break;
 					case 't':
-						nthresh(targ, fileName, lineReader);
+						nThresh(targ, fileName, lineReader);
 						break;
 					case 'D':
-						ndelay(targ, fileName, lineReader);
+						nDelay(targ, fileName, lineReader);
 						break;
 					case 'R':
-						if (!R_error)	// only warn about this 1 time
+						if (!rError)	// only warn about this 1 time
 						{
 							System.out.println(fileName + "Ignoring lumped-resistance ('R' construct)");
-							R_error = true;
+							rError = true;
 						}
 						break;
 					case 'A':
-						if (!A_error)	// only warn about this 1 time
+						if (!aError)	// only warn about this 1 time
 						{
 							System.out.println(fileName + "Ignoring attribute-line ('A' construct)");
-							A_error = true;
+							aError = true;
 						}
 						break;
 					default:
-						irsim_error(fileName, lineReader.getLineNumber(), "Unrecognized input line (" + targ[0] + ")");
-						if (CheckErrs(fileName)) return;
+						reportError(fileName, lineReader.getLineNumber(), "Unrecognized input line (" + targ[0] + ")");
+						if (checkErrs(fileName)) return;
 				}
 			}
 			inputStream.close();
@@ -1163,69 +1206,69 @@ public class Sim
 		{
 			System.out.println("Error reading file");
 		}
-		System.out.println("Loaded circuit, lambda=" + theConfig.irsim_LAMBDA + "u");
+		System.out.println("Loaded circuit, lambda=" + theConfig.lambda + "u");
 	}
 
-	public boolean irsim_rd_network(URL simFileURL, List components)
+	public boolean readNetwork(URL simFileURL, List components)
 	{
-		rd_tlist = new ArrayList();
+		readTransistorList = new ArrayList();
 		nodeHash = new HashMap();
 		nodeList = new ArrayList();
 		nodeIndexCounter = 1;
 		warnVdd = warnGnd = false;
-		irsim_max_time = MAX_TIME;
+		maxTime = MAX_TIME;
 
 		// initialize counts
 		for(int i = 0; i < NTTYPES; i++)
-			irsim_ntrans[i] = 0;
-		irsim_nnodes = irsim_naliases = 0;
-		irsim_init_hist();
+			numTrans[i] = 0;
+		numNodes = numAliases = 0;
+		initHist();
 
 		// initialize globals
-		irsim_num_edges = 0;
-		irsim_num_punted = 0;
-		irsim_num_cons_punted = 0;
+		numEdges = 0;
+		numPunted = 0;
+		numConsPunted = 0;
 
-		irsim_VDD_node = irsim_GetNode("Vdd");
-		irsim_VDD_node.npot = HIGH;
-		irsim_VDD_node.nflags |= (INPUT | POWER_RAIL);
-		irsim_VDD_node.head.inp = true;
-		irsim_VDD_node.head.val = HIGH;
-		irsim_VDD_node.head.punt = false;
-		irsim_VDD_node.head.htime = 0;
-		irsim_VDD_node.head.rtime = irsim_VDD_node.head.delay = 0;
-		irsim_VDD_node.head.next = irsim_last_hist;
-		irsim_VDD_node.curr = irsim_VDD_node.head;
+		powerNode = getNode("Vdd");
+		powerNode.nPot = HIGH;
+		powerNode.nFlags |= (INPUT | POWER_RAIL);
+		powerNode.head.inp = true;
+		powerNode.head.val = HIGH;
+		powerNode.head.punt = false;
+		powerNode.head.hTime = 0;
+		powerNode.head.rTime = powerNode.head.delay = 0;
+		powerNode.head.next = lastHist;
+		powerNode.curr = powerNode.head;
 
-		irsim_GND_node = irsim_GetNode("Gnd");
-		irsim_GND_node.npot = LOW;
-		irsim_GND_node.nflags |= (INPUT | POWER_RAIL);
-		irsim_GND_node.head.inp = true;
-		irsim_GND_node.head.val = LOW;
-		irsim_GND_node.head.punt = false;
-		irsim_GND_node.head.htime = 0;
-		irsim_GND_node.head.rtime = irsim_GND_node.head.delay = 0;
-		irsim_GND_node.head.next = irsim_last_hist;
-		irsim_GND_node.curr = irsim_GND_node.head;
+		groundNode = getNode("Gnd");
+		groundNode.nPot = LOW;
+		groundNode.nFlags |= (INPUT | POWER_RAIL);
+		groundNode.head.inp = true;
+		groundNode.head.val = LOW;
+		groundNode.head.punt = false;
+		groundNode.head.hTime = 0;
+		groundNode.head.rTime = groundNode.head.delay = 0;
+		groundNode.head.next = lastHist;
+		groundNode.curr = groundNode.head;
 
-		irsim_tcap = new Trans();
-		irsim_tcap.source = null;
-		irsim_tcap.drain = null;
-		irsim_tcap.setSTrans(irsim_tcap);
-		irsim_tcap.setDTrans(irsim_tcap);
-		irsim_tcap.x = 0;
+		tCap = new Trans();
+		tCap.source = null;
+		tCap.drain = null;
+		tCap.setSTrans(tCap);
+		tCap.setDTrans(tCap);
+		tCap.x = 0;
 
-		nerrs = 0;
-		input_sim(simFileURL, components);
-		if (nerrs > 0) return true;
+		numErrors = 0;
+		inputSim(simFileURL, components);
+		if (numErrors > 0) return true;
 
 		// connect all txtors to corresponding nodes
-		irsim_ConnectNetwork();
+		connectNetwork();
 
 		// sort the signal names
-		Collections.sort(irsim_GetNodeList(), new NodesByName());
+		Collections.sort(getNodeList(), new NodesByName());
 
-		irsim_model.irsim_init_event();
+		theModel.initEvent();
 		return false;
 	}
 
@@ -1235,93 +1278,93 @@ public class Sim
 		{
 			Node n1 = (Node)o1;
 			Node n2 = (Node)o2;
-			return n1.nname.compareToIgnoreCase(n2.nname);
+			return n1.nName.compareToIgnoreCase(n2.nName);
 		}
 	}
 
-	private void irsim_ConnectNetwork()
+	private void connectNetwork()
 	{
-		Node ndlist = connect_txtors();
-		irsim_make_parallel(ndlist);
+		Node ndList = connectTransistors();
+		makeParallel(ndList);
 
 		// display information about circuit
-		String infstr = irsim_nnodes + " nodes";
-		if (irsim_naliases != 0)
-			infstr += ", " + irsim_naliases + " aliases";
+		String infstr = numNodes + " nodes";
+		if (numAliases != 0)
+			infstr += ", " + numAliases + " aliases";
 		for(int i = 0; i < NTTYPES; i++)
 		{
-			if (irsim_ntrans[i] == 0) continue;
-			infstr += ", " + irsim_ntrans[i] + " " + irsim_ttype[i] + " transistors";
-			if (nored[i] != 0)
+			if (numTrans[i] == 0) continue;
+			infstr += ", " + numTrans[i] + " " + transistorType[i] + " transistors";
+			if (numOred[i] != 0)
 			{
-				infstr += " (" + nored[i] + " parallel)";
+				infstr += " (" + numOred[i] + " parallel)";
 			}
 		}
-		if (irsim_tcap.x != 0)
-			infstr += " (" + irsim_tcap.x + " shorted)";
+		if (tCap.x != 0)
+			infstr += " (" + tCap.x + " shorted)";
 		System.out.println(infstr);
 	}
 
-	public boolean      irsim_withdriven;		/* TRUE if stage is driven by some input */
+	public boolean      withDriven;		/* TRUE if stage is driven by some input */
 
 	/**
-	 * Build a linked-list of nodes (using nlink entry in Node structure)
+	 * Build a linked-list of nodes (using nLink entry in Node structure)
 	 * which are electrically connected to node 'n'.  No special order
 	 * is required so tree walk is performed non-recursively by doing a
 	 * breath-first traversal.  The value caches for each transistor we
 	 * come across are reset here.  Loops are broken at an arbitrary point
 	 * and parallel transistors are identified.
 	 */
-	public void irsim_BuildConnList(Node n)
+	public void buildConnList(Node n)
 	{
-		int n_par = 0;
+		int nPar = 0;
 
-		n.nflags &= ~VISITED;
-		irsim_withdriven = false;
+		n.nFlags &= ~VISITED;
+		withDriven = false;
 
 		Node next = n;
-		Node thisone = n.nlink = n;
+		Node thisOne = n.nLink = n;
 		do
 		{
-			for(Iterator it = thisone.ntermList.iterator(); it.hasNext(); )
+			for(Iterator it = thisOne.nTermList.iterator(); it.hasNext(); )
 			{
 				Trans t = (Trans)it.next();
 				if (t.state == OFF) continue;
-				if ((t.tflags & CROSSED) != 0)	// Each transistor is crossed twice
+				if ((t.tFlags & CROSSED) != 0)	// Each transistor is crossed twice
 				{
-					t.tflags &= ~CROSSED;
+					t.tFlags &= ~CROSSED;
 					continue;
 				}
 				t.setSThev(null);
 				t.setDThev(null);
 
-				Node other = other_node(t, thisone);
-				if ((other.nflags & INPUT) != 0)
+				Node other = otherNode(t, thisOne);
+				if ((other.nFlags & INPUT) != 0)
 				{
-					irsim_withdriven = true;
+					withDriven = true;
 					continue;
 				}
 
-				t.tflags |= CROSSED;		// Crossing trans 1st time
+				t.tFlags |= CROSSED;		// Crossing trans 1st time
 
-				if (other.nlink == null)		// New node in this stage
+				if (other.nLink == null)		// New node in this stage
 				{
-					other.nflags &= ~VISITED;
-					other.nlink = n;
-					next.nlink = other;
+					other.nFlags &= ~VISITED;
+					other.nLink = n;
+					next.nLink = other;
 					next = other;
 					other.setTrans(t);		// we reach other through t
 				}
-				else if (!(irsim_model instanceof NewRStep))
+				else if (!(theModel instanceof NewRStep))
 					continue;
-				else if (hash_terms(other.getTrans()) == hash_terms(t))
+				else if (hashTerms(other.getTrans()) == hashTerms(t))
 				{					    // parallel transistors
 					Trans tran = other.getTrans();
-					if ((tran.tflags & PARALLEL) != 0)
-						t.setDTrans(irsim_parallel_xtors[tran.n_par]);
+					if ((tran.tFlags & PARALLEL) != 0)
+						t.setDTrans(parallelTransistors[tran.nPar]);
 					else
 					{
-						if (n_par >= MAX_PARALLEL)
+						if (nPar >= MAX_PARALLEL)
 						{
 							if (!parallelWarning)
 							{
@@ -1329,150 +1372,150 @@ public class Sim
 								System.out.println("Simulation results may be inaccurate, to fix this you may have to");
 								System.out.println("increase 'MAX_PARALLEL' in 'Sim.java'.");
 								System.out.println("Note: This condition often occurs when Vdd or Gnd are not connected to all cells.");
-								if (thisone.nname != null && other.nname != null)
-									System.out.println("      Check the vicinity of the following 2 nodes: " + thisone.nname + " " + other.nname);
+								if (thisOne.nName != null && other.nName != null)
+									System.out.println("      Check the vicinity of the following 2 nodes: " + thisOne.nName + " " + other.nName);
 								parallelWarning = true;
 							}
-							t.tflags |= PBROKEN;		// simply ignore it
+							t.tFlags |= PBROKEN;		// simply ignore it
 							continue;
 						}
-						tran.n_par = (byte)(n_par++);
-						tran.tflags |= PARALLEL;
+						tran.nPar = (byte)(nPar++);
+						tran.tFlags |= PARALLEL;
 					}
-					irsim_parallel_xtors[tran.n_par] = t;
-					t.tflags |= PBROKEN;
+					parallelTransistors[tran.nPar] = t;
+					t.tFlags |= PBROKEN;
 				} else
 				{					// we have a loop, break it
-					t.tflags |= BROKEN;
+					t.tFlags |= BROKEN;
 				}
 			}
 		}
-		while((thisone = thisone.nlink) != n);
+		while((thisOne = thisOne.nLink) != n);
 
-		next.nlink = null;			// terminate connection list
+		next.nLink = null;			// terminate connection list
 	}
 
 	/********************************************** HISTORY *******************************************/
 
-	private void irsim_init_hist()
+	private void initHist()
 	{
 		HistEnt dummy = new HistEnt();
-		irsim_last_hist = dummy;
-		dummy.next = irsim_last_hist;
-		dummy.htime = irsim_max_time;
+		lastHist = dummy;
+		dummy.next = lastHist;
+		dummy.hTime = maxTime;
 		dummy.val = X;
 		dummy.inp = true;
 		dummy.punt = false;
-		dummy.delay = dummy.rtime = 0;
+		dummy.delay = dummy.rTime = 0;
 	}
 
 	/**
 	 * Add a new entry to the history list.  Update curr to point to this change.
 	 */
-	public void irsim_AddHist(Node node, int value, boolean inp, long time, long delay, long rtime)
+	public void addHist(Node node, int value, boolean inp, long time, long delay, long rTime)
 	{
-		irsim_num_edges++;
+		numEdges++;
 		HistEnt curr = node.curr;
 
 		while(curr.next.punt)		// skip past any punted events
 			curr = curr.next;
 
-		HistEnt newh = new HistEnt();
-		if (newh == null) return;
+		HistEnt newH = new HistEnt();
+		if (newH == null) return;
 
-		newh.next = curr.next;
-		newh.htime = time;
-		newh.val = (byte)value;
-		newh.inp = inp;
-		newh.punt = false;
-		newh.delay = (short)delay;
-		newh.rtime = (short)rtime;
-		node.curr = curr.next = newh;
+		newH.next = curr.next;
+		newH.hTime = time;
+		newH.val = (byte)value;
+		newH.inp = inp;
+		newH.punt = false;
+		newH.delay = (short)delay;
+		newH.rTime = (short)rTime;
+		node.curr = curr.next = newH;
 	}
 
 	/**
 	 * Add a punted event to the history list for the node.  Consecutive punted
-	 * events are kept in punted-order, so that h.ptime < h.next.ptime.
+	 * events are kept in punted-order, so that h.pTime < h.next.pTime.
 	 * Adding a punted event does not change the current pointer, which always
 	 * points to the last "effective" node change.
 	 */
-	public void irsim_AddPunted(Node node, Event ev, long tim)
+	public void addPunted(Node node, Eval.Event ev, long tim)
 	{
 		HistEnt h = node.curr;
 
-		irsim_num_punted++;
+		numPunted++;
 
-		HistEnt newp = new HistEnt();
+		HistEnt newP = new HistEnt();
 
-		newp.htime = ev.ntime;
-		newp.val = ev.eval;
-		newp.inp = false;
-		newp.punt = true;
-		newp.delay = (short)ev.delay;
-		newp.rtime = ev.rtime;
-		newp.ptime = (short)(newp.htime - tim);
+		newP.hTime = ev.nTime;
+		newP.val = ev.eval;
+		newP.inp = false;
+		newP.punt = true;
+		newP.delay = (short)ev.delay;
+		newP.rTime = ev.rTime;
+		newP.pTime = (short)(newP.hTime - tim);
 
 		if (h.next.punt)		// there are some punted events already
 		{
-			irsim_num_cons_punted++;
+			numConsPunted++;
 			do { h = h.next; } while(h.next.punt);
 		}
 
-		newp.next = h.next;
-		h.next = newp;
+		newP.next = h.next;
+		h.next = newP;
 	}
 
-	public static HistEnt NEXTH(HistEnt p)
+	public static HistEnt getNextHist(HistEnt p)
 	{
 		HistEnt h;
 		for(h = p.next; h.punt; h = h.next) ;
 		return h;
 	}
 
-	public void irsim_backToTime(Node nd)
+	public void backToTime(Node nd)
 	{
-		if ((nd.nflags & (ALIAS | MERGED)) != 0) return;
+		if ((nd.nFlags & (ALIAS | MERGED)) != 0) return;
 
 		HistEnt h = nd.head;
-		HistEnt p = NEXTH(h);
-		while(p.htime < irsim_cur_delta)
+		HistEnt p = getNextHist(h);
+		while(p.hTime < curDelta)
 		{
 			h = p;
-			p = NEXTH(p);
+			p = getNextHist(p);
 		}
 		nd.curr = h;
 
 		// queue pending events
 		for(p = h, h = p.next; ; p = h, h = h.next)
 		{
-			long  qtime;
+			long qTime;
 
 			if (h.punt)
 			{
 				// if already punted, skip it
-				long puntTime = h.htime - h.ptime;
-				if (puntTime < irsim_cur_delta) continue;
+				long puntTime = h.hTime - h.pTime;
+				if (puntTime < curDelta) continue;
 
-				qtime = h.htime - h.delay;	// pending, enqueue it
-				if (qtime < irsim_cur_delta)
+				qTime = h.hTime - h.delay;	// pending, enqueue it
+				if (qTime < curDelta)
 				{
-					long tmp = irsim_cur_delta;
-					irsim_cur_delta = qtime;
-					irsim_model.irsim_enqueue_event(nd, h.val, h.delay, h.rtime);
-					irsim_cur_delta = tmp;
+					long tmp = curDelta;
+					curDelta = qTime;
+					theModel.enqueueEvent(nd, h.val, h.delay, h.rTime);
+					curDelta = tmp;
 				}
 				p.next = h.next;
 				h = p;
 			} else
 			{
 				// time at which history entry was enqueued
-				qtime = h.htime - h.delay;
-				if (qtime < irsim_cur_delta)		// pending, enqueue it
+				qTime = h.hTime - h.delay;
+				if (qTime < curDelta)		// pending, enqueue it
 				{
-					long tmp = irsim_cur_delta;
-					irsim_cur_delta = qtime;
-					irsim_model.irsim_enqueue_event(nd, h.val, h.delay, h.rtime);
-					irsim_cur_delta = tmp;
+					long tmp = curDelta;
+					curDelta = qTime;
+					theModel.enqueueEvent(nd, h.val, h.delay, h.rTime);
+					curDelta = tmp;
 
 					p.next = h.next;		// and free it
 					h = p;
@@ -1482,27 +1525,27 @@ public class Sim
 			}
 		}
 
-		p.next = irsim_last_hist;
+		p.next = lastHist;
 		p = h;
 		// p now points to the 1st event in the future (to be deleted)
-		if (p != irsim_last_hist)
+		if (p != lastHist)
 		{
-			while(h.next != irsim_last_hist)
+			while(h.next != lastHist)
 				h = h.next;
 		}
 
 		h = nd.curr;
-		nd.npot = h.val;
-		nd.setTime(h.htime);
+		nd.nPot = h.val;
+		nd.setTime(h.hTime);
 		if (h.inp)
-			nd.nflags |= INPUT;
+			nd.nFlags |= INPUT;
 
-		if (nd.ngateList.size() != 0)		// recompute transistor states
+		if (nd.nGateList.size() != 0)		// recompute transistor states
 		{
-			for(Iterator it = nd.ngateList.iterator(); it.hasNext(); )
+			for(Iterator it = nd.nGateList.iterator(); it.hasNext(); )
 			{
 				Trans t = (Trans)it.next();
-				t.state = (byte)irsim_model.compute_trans_state(t);
+				t.state = (byte)theModel.computeTransState(t);
 			}
 		}
 	}
@@ -1513,84 +1556,84 @@ public class Sim
 	 * Run through the list of nodes, collapsing all transistors with the same
 	 * gate/source/drain into a compound transistor.
 	 */
-	public void irsim_make_parallel(Node nlist)
+	private void makeParallel(Node nList)
 	{
-		for( ; nlist != null; nlist.nflags &= ~VISITED, nlist = nlist.getNext())
+		for( ; nList != null; nList.nFlags &= ~VISITED, nList = nList.getNext())
 		{
-			for(int l1 = 0; l1 < nlist.ntermList.size(); l1++)
+			for(int l1 = 0; l1 < nList.nTermList.size(); l1++)
 			{
-				Trans t1 = (Trans)nlist.ntermList.get(l1);
-				int type = t1.ttype;
+				Trans t1 = (Trans)nList.nTermList.get(l1);
+				int type = t1.tType;
 				if ((type & (GATELIST | ORED)) != 0)
 					continue;	// ORED implies processed, so skip as well
 
-				long hval = hash_terms(t1);
-				for(int l2 = l1+1; l2 < nlist.ntermList.size(); l2++)
+				long hval = hashTerms(t1);
+				for(int l2 = l1+1; l2 < nList.nTermList.size(); l2++)
 				{
-					Trans t2 = (Trans)nlist.ntermList.get(l2);
-					if (t1.gate != t2.gate || hash_terms(t2) != hval ||
-						type != (t2.ttype & ~ORED))
+					Trans t2 = (Trans)nList.nTermList.get(l2);
+					if (t1.gate != t2.gate || hashTerms(t2) != hval ||
+						type != (t2.tType & ~ORED))
 							continue;
 
-					if ((t1.ttype & ORED) == 0)
+					if ((t1.tType & ORED) == 0)
 					{
 						Trans t3 = new Trans();
 						t3.r = new Resists();
-						t3.r.dynres[R_LOW] = t1.r.dynres[R_LOW];
-						t3.r.dynres[R_HIGH] = t1.r.dynres[R_HIGH];
-						t3.r.rstatic = t1.r.rstatic;
+						t3.r.dynRes[R_LOW] = t1.r.dynRes[R_LOW];
+						t3.r.dynRes[R_HIGH] = t1.r.dynRes[R_HIGH];
+						t3.r.rStatic = t1.r.rStatic;
 						t3.gate = t1.gate;
 						t3.source = t1.source;
 						t3.drain = t1.drain;
-						t3.ttype = (byte)((t1.ttype & ~ORLIST) | ORED);
+						t3.tType = (byte)((t1.tType & ~ORLIST) | ORED);
 						t3.state = t1.state;
-						t3.tflags = t1.tflags;
-						t3.tlink = t1;
+						t3.tFlags = t1.tFlags;
+						t3.tLink = t1;
 						t1.setSTrans(null);
 						t1.setDTrans(t3);
-						int oldGateI = ((Node)t1.gate).ngateList.indexOf(t1);
-						if (oldGateI >= 0) ((Node)t1.gate).ngateList.set(oldGateI, t3);
-						int oldSourceI = t1.source.ntermList.indexOf(t1);
-						if (oldSourceI >= 0) t1.source.ntermList.set(oldSourceI, t3);
-						int oldDrainI = t1.drain.ntermList.indexOf(t1);
-						if (oldDrainI >= 0) t1.drain.ntermList.set(oldDrainI, t3);
-						t1.ttype |= ORLIST;
+						int oldGateI = ((Node)t1.gate).nGateList.indexOf(t1);
+						if (oldGateI >= 0) ((Node)t1.gate).nGateList.set(oldGateI, t3);
+						int oldSourceI = t1.source.nTermList.indexOf(t1);
+						if (oldSourceI >= 0) t1.source.nTermList.set(oldSourceI, t3);
+						int oldDrainI = t1.drain.nTermList.indexOf(t1);
+						if (oldDrainI >= 0) t1.drain.nTermList.set(oldDrainI, t3);
+						t1.tType |= ORLIST;
 						t1 = t3;
-						nored[BASETYPE(t1.ttype)]++;
+						numOred[baseType(t1.tType)]++;
 					}
 
-					Resists  r1 = t1.r, r2 = t2.r;
-					r1.rstatic = (float)COMBINE(r1.rstatic, r2.rstatic);
-					r1.dynres[R_LOW] = (float)COMBINE(r1.dynres[R_LOW], r2.dynres[R_LOW]);
-					r1.dynres[R_HIGH] = (float)COMBINE(r1.dynres[R_HIGH], r2.dynres[R_HIGH]);
+					Resists r1 = t1.r, r2 = t2.r;
+					r1.rStatic = (float)combine(r1.rStatic, r2.rStatic);
+					r1.dynRes[R_LOW] = (float)combine(r1.dynRes[R_LOW], r2.dynRes[R_LOW]);
+					r1.dynRes[R_HIGH] = (float)combine(r1.dynRes[R_HIGH], r2.dynRes[R_HIGH]);
 
-					((Node)t2.gate).ngateList.remove(t2);	// disconnect gate
-					if (t2.source == nlist)		// disconnect term1
+					((Node)t2.gate).nGateList.remove(t2);	// disconnect gate
+					if (t2.source == nList)		// disconnect term1
 					{
-						t2.drain.ntermList.remove(t2);
+						t2.drain.nTermList.remove(t2);
 					} else
 					{
-						t2.source.ntermList.remove(t2);
+						t2.source.nTermList.remove(t2);
 					}
 
 					// disconnect term2
-					nlist.ntermList.remove(t2);
+					nList.nTermList.remove(t2);
 
-					if ((t2.ttype & ORED) != 0)
+					if ((t2.tType & ORED) != 0)
 					{
 						Trans  t;
 
-						for(t = t2.tlink; t.getSTrans() != null; t = t.getSTrans())
+						for(t = t2.tLink; t.getSTrans() != null; t = t.getSTrans())
 							t.setDTrans(t1);
-						t.setSTrans(t1.tlink);
-						t1.tlink = t2.tlink;
+						t.setSTrans(t1.tLink);
+						t1.tLink = t2.tLink;
 					} else
 					{
-						t2.ttype |= ORLIST;	// mark as part of or
+						t2.tType |= ORLIST;		// mark as part of or
 						t2.setDTrans(t1);		// this is the real txtor
-						t2.setSTrans(t1.tlink);	// link unto t1 list
-						t1.tlink = t2;
-						nored[BASETYPE(t1.ttype)]++;
+						t2.setSTrans(t1.tLink);	// link unto t1 list
+						t1.tLink = t2;
+						numOred[baseType(t1.tType)]++;
 					}
 				}
 			}

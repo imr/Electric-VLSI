@@ -30,11 +30,11 @@ public class SStep extends Eval
 
 	/* event-driven switch-level simulation step Chris Terman 7/84 */
 
-	/* the following file contains most of the declarations, conversion
+	/* the following contains most of the declarations, conversion
 	 * tables, etc, that depend on the particular representation chosen
 	 * for node values.  This info is automatically created for interval
 	 * value sets (see Chapter 5 of my thesis) by gentbl.c.  Except
-	 * for the charged_state and thev_value arrays and their associated
+	 * for the chargedState and thevValue arrays and their associated
 	 * code, the rest of the code is independent of the value set details...
 	 */
 
@@ -86,7 +86,7 @@ public class SStep extends Eval
 	private static final int WLDL	= 44;
 	private static final int DL		= 45;
 
-	private static String [] node_values = new String[]
+	private static String [] nodeValues = new String[]
 	{
 		"EMPTY",
 		"DH",
@@ -137,7 +137,7 @@ public class SStep extends Eval
 	};
 
 	/* conversion between interval and logic value */
-	private static byte [] logic_state = new byte[]
+	private static byte [] logicState = new byte[]
 	{
 		0,			/* EMPTY state */
 		Sim.HIGH,	/* DH */
@@ -239,14 +239,14 @@ public class SStep extends Eval
 	};
 
 	/* tables for converting node value to corresponding charged state */
-	private static	byte [] charged_state = new byte[] {CL, CHCL, CHCL, CH};
-	private static	byte [] xcharged_state = new byte[] {cL, cHcL, cHcL, cH};
+	private static	byte [] chargedState = new byte[] {CL, CHCL, CHCL, CH};
+	private static	byte [] xChargedState = new byte[] {cL, cHcL, cHcL, cH};
 
 	/* table for converting node value to corresponding value state */
-	private static	byte [] thev_value = new byte[] {DL, DHDL, DHDL, DH};
+	private static	byte [] thevValue = new byte[] {DL, DHDL, DHDL, DH};
 
 	/* result of shorting two intervals */
-	private static byte [][] smerge = new byte[][]
+	private static byte [][] sMerge = new byte[][]
 	{
 	/* EMPTY state */
 	  new byte[] {0,  0,  0,  0,  0,  0,  0,  0,
@@ -575,10 +575,10 @@ public class SStep extends Eval
 	/**
 	 * calculate new value for node and its electrical neighbor
 	 */
-	public void modelEvaluate(Sim.Node n)		// irsim_switch_model
+	public void modelEvaluate(Sim.Node n)
 	{
-		if ((n.nflags & Sim.VISITED) != 0)
-			theSim.irsim_BuildConnList(n);
+		if ((n.nFlags & Sim.VISITED) != 0)
+			theSim.buildConnList(n);
 
 		/* for each node on list we just built, recompute its value using a
 		 * recursive tree walk.  If logic state of new value differs from
@@ -587,25 +587,25 @@ public class SStep extends Eval
 		 * states do not differ, node's value is updated on the spot and any
 		 * pending events removed.
 		 */
-		for(Sim.Node thisone = n; thisone != null; thisone = thisone.nlink)
+		for(Sim.Node thisOne = n; thisOne != null; thisOne = thisOne.nLink)
 		{
-			int newval = 0;
+			int newVal = 0;
 			long tau = 0, delta = 0;
-			if ((thisone.nflags & Sim.INPUT) != 0)
-				newval = thisone.npot;
+			if ((thisOne.nFlags & Sim.INPUT) != 0)
+				newVal = thisOne.nPot;
 			else
 			{
-				newval = logic_state[sc_thev(thisone, (thisone.nflags & Sim.WATCHED) != 0 ? 1 : 0)];
-				switch(newval)
+				newVal = logicState[scThev(thisOne, (thisOne.nFlags & Sim.WATCHED) != 0 ? 1 : 0)];
+				switch(newVal)
 				{
 					case Sim.LOW:
-						delta = thisone.tphl;
+						delta = thisOne.tpHL;
 						break;
 					case Sim.X:
 						delta = 0;
 						break;
 					case Sim.HIGH:
-						delta = thisone.tplh;
+						delta = thisOne.tpLH;
 						break;
 				}
 				tau = delta;
@@ -613,20 +613,20 @@ public class SStep extends Eval
 					delta = 1;
 			}
 
-			if ((thisone.nflags & Sim.INPUT) == 0)
+			if ((thisOne.nFlags & Sim.INPUT) == 0)
 			{
 				/*
 				 * Check to see if this new value invalidates other events.
 				 * Since this event has newer info about the state of the network,
 				 * delete transitions scheduled to come after it.
 				 */
-				Sim.Event e;
-				while((e = thisone.events) != null && e.ntime >= theSim.irsim_cur_delta + delta)
+				Event e;
+				while((e = thisOne.events) != null && e.nTime >= theSim.curDelta + delta)
 				{
 					/*
-					 * Do not try to kick the event scheduled at Sched.irsim_cur_delta if
-					 * newval is equal to this.npot because that event sets
-					 * this.npot, but its consequences has not been handled yet.
+					 * Do not try to kick the event scheduled at Sched.curDelta if
+					 * newVal is equal to this.nPot because that event sets
+					 * this.nPot, but its consequences has not been handled yet.
 					 * Besides, this event will not be queued.
 					 *
 					 * However, if there is event scheduled now but driving to a
@@ -635,10 +635,10 @@ public class SStep extends Eval
 					 * node will be re-evaluated. At worst, some extra computation
 					 * will be carried out due to VISITED flags set previously.
 					 */
-					/*		if (e.ntime == Sched.irsim_cur_delta and newval == thisone.npot) */
-					if (e.ntime == (theSim.irsim_cur_delta + delta) && e.eval == newval)
+					/*		if (e.nTime == Sched.curDelta and newVal == thisOne.nPot) */
+					if (e.nTime == (theSim.curDelta + delta) && e.eval == newVal)
 						break;
-					irsim_PuntEvent(thisone, e);
+					puntEvent(thisOne, e);
 				}
 
 				/*
@@ -647,31 +647,31 @@ public class SStep extends Eval
 				 * just use the current value.
 				 */
 				boolean queued = false;
-				if (newval != ((e == null) ? thisone.npot : e.eval))
+				if (newVal != ((e == null) ? thisOne.nPot : e.eval))
 				{
 					queued = true;
-					irsim_enqueue_event(thisone, newval, delta, tau);
+					enqueueEvent(thisOne, newVal, delta, tau);
 				}
 
-				if ((thisone.nflags & Sim.WATCHED) != 0 && (theSim.irsim_debug & (Sim.DEBUG_DC | Sim.DEBUG_EV)) != 0)
+				if ((thisOne.nFlags & Sim.WATCHED) != 0 && (theSim.irDebug & (Sim.DEBUG_DC | Sim.DEBUG_EV)) != 0)
 				{
-					System.out.println(" [event " + theSim.irsim_cur_node.nname + "->" +
-						Sim.irsim_vchars.charAt(theSim.irsim_cur_node.npot) + " @ " +
-						Sim.d2ns(theSim.irsim_cur_delta) + "] ");
+					System.out.println(" [event " + theSim.curNode.nName + "->" +
+						Sim.vChars.charAt(theSim.curNode.nPot) + " @ " +
+						Sim.deltaToNS(theSim.curDelta) + "] ");
 
 					System.out.println(queued ? "causes transition for" : "sets");
-					System.out.println(" " + thisone.nname + ": " + Sim.irsim_vchars.charAt(thisone.npot) + " -> " +
-						Sim.irsim_vchars.charAt(newval) + " (delay = " + Sim.d2ns(delta) + "ns)");
+					System.out.println(" " + thisOne.nName + ": " + Sim.vChars.charAt(thisOne.nPot) + " -> " +
+						Sim.vChars.charAt(newVal) + " (delay = " + Sim.deltaToNS(delta) + "ns)");
 				}
 			}
 		}
 
 		// undo connection list
 		Sim.Node next = null;
-		for(Sim.Node thisone = n; thisone != null; thisone = next)
+		for(Sim.Node thisOne = n; thisOne != null; thisOne = next)
 		{
-			next = thisone.nlink;
-			thisone.nlink = null;
+			next = thisOne.nLink;
+			thisOne.nLink = null;
 		}
 	}
 
@@ -697,19 +697,19 @@ public class SStep extends Eval
 	 *	  new-value computation from O(n**2) to O(n) where n is the number of
 	 *	  nodes in the connection list built in the new_value routine.
 	 */
-	private int sc_thev(Sim.Node n, int level)
+	private int scThev(Sim.Node n, int level)
 	{
 		int result = 0;
-		if ((n.nflags & Sim.INPUT) != 0)
+		if ((n.nFlags & Sim.INPUT) != 0)
 		{
-			result = thev_value[n.npot];
+			result = thevValue[n.nPot];
 		} else
 		{
 			// initial values and stuff...
-			n.nflags |= Sim.VISITED;
-			result = (n.ngateList.size() == 0) ? xcharged_state[n.npot] : charged_state[n.npot];
+			n.nFlags |= Sim.VISITED;
+			result = (n.nGateList.size() == 0) ? xChargedState[n.nPot] : chargedState[n.nPot];
 	
-			for(Iterator it = n.ntermList.iterator(); it.hasNext(); )
+			for(Iterator it = n.nTermList.iterator(); it.hasNext(); )
 			{
 				Sim.Trans t = (Sim.Trans)it.next();
 	
@@ -725,31 +725,31 @@ public class SStep extends Eval
 				 */
 				if (n == t.source)
 				{
-					if ((t.drain.nflags & Sim.VISITED) == 0)
+					if ((t.drain.nFlags & Sim.VISITED) == 0)
 					{
 						if (t.getDI() == EMPTY)
-							t.setDI(transmit[sc_thev(t.drain, level != 0 ? level + 1 : 0)][t.state]);
-						result = smerge[result][t.getDI()];
+							t.setDI(transmit[scThev(t.drain, level != 0 ? level + 1 : 0)][t.state]);
+						result = sMerge[result][t.getDI()];
 					}
 				} else
 				{
-					if ((t.source.nflags & Sim.VISITED) == 0)
+					if ((t.source.nFlags & Sim.VISITED) == 0)
 					{
 						if (t.getSI() == EMPTY)
-							t.setSI( transmit[sc_thev(t.source, level != 0 ? level + 1 : 0)][t.state]);
-						result = smerge[result][t.getSI()];
+							t.setSI( transmit[scThev(t.source, level != 0 ? level + 1 : 0)][t.state]);
+						result = sMerge[result][t.getSI()];
 					}
 				}
 			}
 	
-			n.nflags &= ~Sim.VISITED;
+			n.nFlags &= ~Sim.VISITED;
 		}
-		if ((theSim.irsim_debug & (Sim.DEBUG_DC | Sim.DEBUG_TW)) != 0 && level > 0)
+		if ((theSim.irDebug & (Sim.DEBUG_DC | Sim.DEBUG_TW)) != 0 && level > 0)
 		{
 			System.out.print("  ");
 			for(int i = level; --i > 0; )
 				System.out.print(" ");
-			System.out.println("sc_thev(" + n.nname + ") = " + node_values[result]);
+			System.out.println("scThev(" + n.nName + ") = " + nodeValues[result]);
 		}
 
 		return result;
