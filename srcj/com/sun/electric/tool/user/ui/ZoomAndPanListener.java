@@ -190,7 +190,7 @@ public class ZoomAndPanListener
      * Pan in X direction.  if ticks is positive, pan right. If ticks is
      * negative, pan left. A ticks value of 1 is a short pan (10% of screen).
      * Make ticks a higher value to pan more.
-     * @param wnd the edit window to pan
+     * @param wf the WindowFrame
      * @param ticks the amount and direction of pan
      */
     public static void panX(WindowFrame wf, int ticks) {
@@ -199,9 +199,8 @@ public class ZoomAndPanListener
 		{
 			Cell cell = wf.getContent().getCell();
 			if (cell == null) return;
-			EditWindow.CircuitPart cp = (EditWindow.CircuitPart)wf.getContent();
-			EditWindow wnd = cp.getEditWindow();
-	
+            EditWindow wnd = (EditWindow)wf.getContent();
+
 	        // heuristic: factor in multiplier
 	        int mult = (int)(80/wnd.getScale());
 	        if (mult <= 0) mult = 2;
@@ -218,7 +217,7 @@ public class ZoomAndPanListener
      * Pan in Y direction.  if ticks is positive, pan up. If ticks is
      * negative, pan down. A ticks value of 1 is a short pan (10% of screen).
      * Make ticks a higher value to pan more.
-     * @param wnd the edit window to pan
+     * @param wf the WindowFrame
      * @param ticks the amount and direction of pan
      */
     public static void panY(WindowFrame wf, int ticks) {
@@ -227,8 +226,7 @@ public class ZoomAndPanListener
 		{
 	        Cell cell = wf.getContent().getCell();
 	        if (cell == null) return;
-			EditWindow.CircuitPart cp = (EditWindow.CircuitPart)wf.getContent();
-			EditWindow wnd = cp.getEditWindow();
+			EditWindow wnd = (EditWindow)wf.getContent();
 
 	        // heuristic: factor in multiplier
 	        int mult = (int)(80/wnd.getScale());

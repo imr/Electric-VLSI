@@ -511,7 +511,7 @@ public class WindowFrame
         //System.out.println(this.getClass()+" being disposed of");
         // remove references to this
         synchronized(windowList) {
-            if (windowList.size() <= 1)
+            if ((windowList.size() <= 1) && !TopLevel.isMDIMode())
             {
                 JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
                     "Cannot close the last window");

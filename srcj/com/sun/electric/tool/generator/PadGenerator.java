@@ -24,6 +24,7 @@
 package com.sun.electric.tool.generator;
 
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -34,19 +35,25 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.lib.LibFile;
 
+import javax.swing.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
@@ -59,7 +66,7 @@ import java.util.*;
 
 /**
  * @author Willy Chung
- *         <p/>
+ *         <p>
  *         To change the template for this generated type comment go to
  *         Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
@@ -770,6 +777,7 @@ public class PadGenerator {
             } else {
                 for (Iterator it=views.iterator(); it.hasNext(); ) {
                     View view = (View)it.next();
+                    if (view == View.SCHEMATIC) view = View.ICON;
                     createPadFrame(padframename, view);
                 }
             }
@@ -777,13 +785,23 @@ public class PadGenerator {
 
         private void createPadFrame(String name, View view) {
             // first, try to create cell
-            if (view != null) name = name + "{" + view.getAbbreviation() + "}";
+            if (view != null) {
+                if (view == View.ICON) {
+                    // create a schematic, place icons of pads in it
+                    name = name + "{sch}";
+                } else {
+                    name = name + "{" + view.getAbbreviation() + "}";
+                }
+            }
 
             Cell framecell = Cell.makeInstance(Library.getCurrent(), name);
             if (framecell == null) {
                 System.out.println("Could not create pad frame Cell: "+name);
                 return;
             }
+
+            List padPorts = new ArrayList();
+            List corePorts = new ArrayList();
 
             NodeInst lastni = null;
             String lastpadname = null;
@@ -890,6 +908,11 @@ public class PadGenerator {
                         pppad = Export.newInstance(framecell, ni.findPortInstFromProto(pppad), pad.exportsname);
                         if (pppad == null)
                             err("Creating export "+pad.exportsname);
+                        else {
+                            TextDescriptor td = pppad.getTextDescriptor();
+                            td.setAbsSize(14);
+                            padPorts.add(pppad);
+                        }
                         // core export
                         PortProto ppcore = cell.findPortProto(pe.corename);
                         if (ppcore == null) {
@@ -899,6 +922,11 @@ public class PadGenerator {
                         ppcore = Export.newInstance(framecell, ni.findPortInstFromProto(ppcore), "core_"+pad.exportsname);
                         if (ppcore == null)
                             err("Creating export core_"+pad.exportsname);
+                        else {
+                            TextDescriptor td = ppcore.getTextDescriptor();
+                            td.setAbsSize(14);
+                            corePorts.add(ppcore);
+                        }
                     }
                 }
 
@@ -906,12 +934,140 @@ public class PadGenerator {
                 lastpadname = pad.cellname;
                 pad.ni = ni;
             }
+
             WindowFrame frame = WindowFrame.createEditWindow(framecell);
             frame.getContent().fillScreen();
+
+
+            if (view == View.ICON) {
+                // create an icon of our schematic
+                //CircuitChanges.makeIconViewCommand();
+
+                // This is a crock until the functionality here can be folded
+                // into CircuitChanges.makeIconViewCommand()
+
+                // get icon style controls
+                double leadLength = User.getIconGenLeadLength();
+                double leadSpacing = User.getIconGenLeadSpacing();
+
+                // create the new icon cell
+                String iconCellName = framecell.getProtoName() + "{ic}";
+                Cell iconCell = Cell.makeInstance(Library.getCurrent(), iconCellName);
+                if (iconCell == null)
+                {
+                    JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+                        "Cannot create Icon cell " + iconCellName,
+                            "Icon creation failed", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                iconCell.setWantExpanded();
+
+                // determine the size of the "black box" core
+                double ySize = Math.max(Math.max(padPorts.size(), corePorts.size()), 5) * leadSpacing;
+                double xSize = 3 * leadSpacing;
+
+                // create the "black box"
+                NodeInst bbNi = null;
+                if (User.isIconGenDrawBody())
+                {
+                    //bbNi = NodeInst.newInstance(Artwork.tech.boxNode, new Point2D.Double(0,0), xSize, ySize, 0, iconCell, null);
+                    bbNi = NodeInst.newInstance(Artwork.tech.openedThickerPolygonNode, new Point2D.Double(0,0), xSize, ySize, 0, iconCell, null);
+                    if (bbNi == null) return;
+                    bbNi.newVar(Artwork.ART_COLOR, new Integer(EGraphics.RED));
+
+                    Point2D [] points = new Point2D.Double[5];
+                    points[0] = new Point2D.Double(-0.5*xSize, -0.5*ySize);
+                    points[1] = new Point2D.Double(-0.5*xSize,  0.5*ySize);
+                    points[2] = new Point2D.Double( 0.5*xSize,  0.5*ySize);
+                    points[3] = new Point2D.Double( 0.5*xSize, -0.5*ySize);
+                    points[4] = new Point2D.Double(-0.5*xSize, -0.5*ySize);
+                    bbNi.newVar(NodeInst.TRACE, points);
+
+                    // put the original cell name on it
+                    Variable var = bbNi.newVar(Schematics.SCHEM_FUNCTION, framecell.getProtoName());
+                    if (var != null)
+                    {
+                        var.setDisplay();
+                    }
+                }
+
+                // place pins around the Black Box
+                int total = 0;
+                int leftSide = padPorts.size();
+                int rightSide = corePorts.size();
+                for(Iterator it = padPorts.iterator(); it.hasNext(); )
+                {
+                    Export pp = (Export)it.next();
+                    if (pp.isBodyOnly()) continue;
+
+                    // determine location of the port
+                    double spacing = leadSpacing;
+                    double xPos = 0, yPos = 0;
+                    double xBBPos = 0, yBBPos = 0;
+                    xBBPos = -xSize/2;
+                    xPos = xBBPos - leadLength;
+                    if (leftSide*2 < rightSide) spacing = leadSpacing * 2;
+                    yBBPos = yPos = ySize/2 - ((ySize - (leftSide-1)*spacing) / 2 + total * spacing);
+                    if (CircuitChanges.makeIconExport(pp, 0, xPos, yPos, xBBPos, yBBPos, iconCell))
+                        total++;
+                }
+
+                total = 0;
+                for(Iterator it = corePorts.iterator(); it.hasNext(); )
+                {
+                    Export pp = (Export)it.next();
+                    if (pp.isBodyOnly()) continue;
+
+                    // determine location of the port
+                    double spacing = leadSpacing;
+                    double xPos = 0, yPos = 0;
+                    double xBBPos = 0, yBBPos = 0;
+                    xBBPos = xSize/2;
+                    xPos = xBBPos + leadLength;
+                    if (rightSide*2 < leftSide) spacing = leadSpacing * 2;
+                    yBBPos = yPos = ySize/2 - ((ySize - (rightSide-1)*spacing) / 2 + total * spacing);
+                    if (CircuitChanges.makeIconExport(pp, 1, xPos, yPos, xBBPos, yBBPos, iconCell))
+                        total++;
+                }
+
+                // if no body, leads, or cell center is drawn, and there is only 1 export, add more
+                if (!User.isIconGenDrawBody() &&
+                    !User.isIconGenDrawLeads() &&
+                    User.isPlaceCellCenter() &&
+                    total <= 1)
+                {
+                    NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(0,0), xSize, ySize, 0, iconCell, null);
+                }
+
+                // place an icon in the schematic
+                int exampleLocation = User.getIconGenInstanceLocation();
+                Point2D iconPos = new Point2D.Double(0,0);
+                Rectangle2D cellBounds = framecell.getBounds();
+                Rectangle2D iconBounds = iconCell.getBounds();
+                double halfWidth = iconBounds.getWidth() / 2;
+                double halfHeight = iconBounds.getHeight() / 2;
+                switch (exampleLocation)
+                {
+                    case 0:		// upper-right
+                        iconPos.setLocation(cellBounds.getMaxX()+halfWidth, cellBounds.getMaxY()+halfHeight);
+                        break;
+                    case 1:		// upper-left
+                        iconPos.setLocation(cellBounds.getMinX()-halfWidth, cellBounds.getMaxY()+halfHeight);
+                        break;
+                    case 2:		// lower-right
+                        iconPos.setLocation(cellBounds.getMaxX()+halfWidth, cellBounds.getMinY()-halfHeight);
+                        break;
+                    case 3:		// lower-left
+                        iconPos.setLocation(cellBounds.getMinX()-halfWidth, cellBounds.getMinY()-halfHeight);
+                        break;
+                }
+                EditWindow.gridAlign(iconPos);
+                double px = iconCell.getBounds().getWidth();
+                double py = iconCell.getBounds().getHeight();
+                NodeInst ni = NodeInst.makeInstance(iconCell, iconPos, px, py, 0, framecell, null);
+            }
         }
-
     }
-
 
     public void ArrayFromFile() {
         String fileName = OpenFile.chooseInputFile(OpenFile.Type.PADARR, null);

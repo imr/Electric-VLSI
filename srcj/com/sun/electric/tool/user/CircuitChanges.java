@@ -1729,7 +1729,7 @@ public class CircuitChanges
 			NodeInst bbNi = null;
 			if (User.isIconGenDrawBody())
 			{
-				bbNi = NodeInst.newInstance(Artwork.tech.boxNode, new Point2D.Double(0,0), xSize, ySize, 0, iconCell, null);
+                bbNi = NodeInst.newInstance(Artwork.tech.boxNode, new Point2D.Double(0,0), xSize, ySize, 0, iconCell, null);
 				if (bbNi == null) return;
 				bbNi.newVar(Artwork.ART_COLOR, new Integer(EGraphics.RED));
 
@@ -1857,7 +1857,7 @@ public class CircuitChanges
 	 * connects to the central box at (xBBPos,yBBPos).  Returns TRUE if the export is created.
 	 * It uses icon style "style".
 	 */
-	private static boolean makeIconExport(Export pp, int index,
+	public static boolean makeIconExport(Export pp, int index,
 		double xPos, double yPos, double xBBPos, double yBBPos, Cell np)
 	{
 		// presume "universal" exports (Generic technology)
