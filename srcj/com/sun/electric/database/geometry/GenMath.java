@@ -889,20 +889,20 @@ public class GenMath
         return false;
     }
 
-    /**
-     * Method to compare two double-precision coordinates within an approximate epsilon.
-     * <p>NOTE: If you are comparing Electric database units, DO NOT
-     * use this method. Use the corresponding method from DBMath.
-     * @param a the first point.
-     * @param b the second point.
-     * @return true if the points are approximately equal (to a few decimal places).
-     */
-    public static boolean pointsClose(Point2D a, Point2D b)
-    {
-        if (doublesClose(a.getX(), b.getX()) &&
-                doublesClose(a.getY(), b.getY())) return true;
-        return false;
-    }
+//    /**
+//     * Method to compare two double-precision coordinates within an approximate epsilon.
+//     * <p>NOTE: If you are comparing Electric database units, DO NOT
+//     * use this method. Use the corresponding method from DBMath.
+//     * @param a the first point.
+//     * @param b the second point.
+//     * @return true if the points are approximately equal (to a few decimal places).
+//     */
+//    public static boolean pointsClose(Point2D a, Point2D b)
+//    {
+//        if (doublesClose(a.getX(), b.getX()) &&
+//                doublesClose(a.getY(), b.getY())) return true;
+//        return false;
+//    }
 
 //    /**
 //     * Method to round floating-point values to sensible quantities.
