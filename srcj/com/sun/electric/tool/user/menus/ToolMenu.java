@@ -181,9 +181,38 @@ public class ToolMenu {
         ercSubMenu.addMenuItem("Antenna Check", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { new ERCAntenna(); } });
 
+		// ------------------- NCC
+		MenuBar.Menu nccSubMenu = new MenuBar.Menu("NCC", 'N');
+		toolMenu.add(nccSubMenu);
+		nccSubMenu.addMenuItem("flat NCC schematic and layout of current cell", null, 33, new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new com.sun.electric.tool.ncc.NccJob(1, false, false);
+			}
+		});
+		nccSubMenu.addMenuItem("flat NCC two cells from open windows", null, 9, new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new com.sun.electric.tool.ncc.NccJob(2, false, false);
+			}
+		});
+		nccSubMenu.addMenuItem("flat NCC each cell in the design, current cell is root", null, 9, new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new com.sun.electric.tool.ncc.NccJob(1, true, false);
+			}
+		});
+		nccSubMenu.addMenuItem("hierarchical NCC each cell in the design, current cell is root", null, 0, new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new com.sun.electric.tool.ncc.NccJob(1, false, true);
+			}
+		});
+		nccSubMenu.addMenuItem("list annotations of each cell in the design, current cell is root", null, 0, new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new com.sun.electric.tool.ncc.ListNccAnnotations();
+			}
+		});
+
         //------------------- Network
 
-        MenuBar.Menu networkSubMenu = new MenuBar.Menu("Network", 'N');
+        MenuBar.Menu networkSubMenu = new MenuBar.Menu("Network", 'e');
         toolMenu.add(networkSubMenu);
         networkSubMenu.addMenuItem("Show Network", KeyStroke.getKeyStroke('K', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { showNetworkCommand(); } });

@@ -95,29 +95,9 @@ public class DebugMenus {
 
         MenuBar.Menu russMenu = new MenuBar.Menu("Russell", 'R');
         menuBar.add(russMenu);
-        russMenu.addMenuItem("NCC schematic and layout views of current cell", null, new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                new com.sun.electric.tool.ncc.NccJob(1, false, false);
-            }
-        });
-		russMenu.addMenuItem("NCC all Cells in hierarchy rooted at current cell", null, new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				new com.sun.electric.tool.ncc.NccJob(1, true, false);
-			}
-		});
-		russMenu.addMenuItem("NCC two cells from open windows", null, new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				new com.sun.electric.tool.ncc.NccJob(2, false, false);
-			}
-		});
 		russMenu.addMenuItem("hierarchical NCC schematic and layout views of current cell", null, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				new com.sun.electric.tool.ncc.NccJob(1, false, true);
-			}
-		});
-		russMenu.addMenuItem("List NCC annotations in current Cell and its descendents", null, new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				new com.sun.electric.tool.ncc.ListNccAnnotations();
 			}
 		});
 		russMenu.addMenuItem("Gate Generator Regression", null,

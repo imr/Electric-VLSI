@@ -249,6 +249,23 @@ public class MenuBar extends JMenuBar
             return item;
         }
 
+		/**
+		 * Add a JMenuItem to the JMenu.
+		 * @param s the menu item's displayed text.
+		 * @param accelerator the shortcut key, or null if none specified.
+		 * @param mnemonic the index in s of the char that gets underlined. 
+		 * @param action the action to be taken when menu is activated.
+		 */
+		public MenuItem addMenuItem(String s, KeyStroke accelerator, int mnemonicIndex, ActionListener action)
+		{
+			char c = s.charAt(mnemonicIndex);
+			MenuItem item = new MenuItem(s);
+			item.setMnemonic(c);
+			item.setDisplayedMnemonicIndex(mnemonicIndex);
+			addItem(item, accelerator, action);
+			return item;
+		}
+
         /**
          * Add a JCheckBoxMenuItem to the JMenu.
          * @param s the menu item's displayed text.
