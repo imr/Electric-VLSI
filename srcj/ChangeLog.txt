@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02h: *********************************
 
-IMP: (02/10/05, GVG) New coverage tab under Tool section in preferences. Second version of new layer coverage tool
+IMP/MAN: (02/10/05, GVG) New coverage tab under Tool section in preferences. Second version of new layer coverage tool
 
 IMP: (02/10/05, GVG) Rollback of "Made all pure-layer nodes have ports that run to their edges" changes
 in MoCMOS.
