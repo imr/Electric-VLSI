@@ -227,6 +227,8 @@ public class ArcInst extends Geometric implements Comparable
 		// create the arc that connects them
 		ArcInst ai = ArcInst.lowLevelAllocate();
 		ai.lowLevelPopulate(ap, ap.getDefaultWidth(), piH, new EPoint(xH, yH), piT, new EPoint(xT, yT), null, -1);
+
+        ai.updateGeometric(0);
 		return ai;
 	}
 
