@@ -131,13 +131,13 @@ public class J3DKeyBehavior extends Behavior
 	private void standardMove( int keycode )
 	{
 		if(keycode == forwardKey)
-			moveForward( );
+			moveAlongZ(1);
 		else if(keycode == backKey)
-			moveBackward( );
+			moveAlongZ(-1);
 		else if(keycode == leftKey)
-			rotLeft( );
+			rotAlongY(1);
 		else if(keycode == rightKey)
-			rotRight( );
+			rotAlongY(-1);
 	}
 
 
@@ -145,90 +145,56 @@ public class J3DKeyBehavior extends Behavior
 	protected void altMove( int keycode )
 	{
 		if(keycode == forwardKey)
-			rotUp( );
+			rotAlongX(1);
 		else if(keycode == backKey)
-			rotDown( );
+			rotAlongX(-1);
 		else if(keycode == leftKey)
-			rotLeft( );
+			moveAlongX(-1);
 		else if(keycode == rightKey)
-			rotRight( );		
-		else if(keycode == leftKey)
-			moveLeft( );
-		else if(keycode == rightKey)
-			moveRight( );
+			moveAlongX(1);
 	}
 
 	//move up down, rot left right
 	protected void controlMove( int keycode )
 	{
 		if(keycode == forwardKey)	
-			moveUp( );
+			moveAlongY(1);
 		else if(keycode == backKey)
-			moveDown( );
+			moveAlongY(-1);
 		else if(keycode == leftKey)
-			rollLeft( );
+			rotAlongZ(1);
 		else if(keycode == rightKey)
-			rollRight( );
+			rotAlongZ(-1);
 	}
 
-	private void moveForward( )
+	private void moveAlongZ(int dir)
 	{
-		doMove( new Vector3d( 0.0,0.0, kMoveForwardScale * speed ) );
+		doMove( new Vector3d( 0.0,0.0, dir * kMoveForwardScale * speed ) );
 	}
 
-	private void moveBackward( )
+    private void moveAlongX(int dir)
 	{
-		doMove( new Vector3d( 0.0,0.0, -kMoveBackwardScale * speed ) );
+		doMove( new Vector3d( dir * getMovementRate( ) ,0.0,0.0 ) );
 	}
 
-	private void moveLeft( )
+    private void moveAlongY(int dir)
 	{
-		doMove( new Vector3d( -getMovementRate( ) ,0.0,0.0 ) );
+		doMove( new Vector3d( 0.0, dir * getMovementRate( ) ,0.0 ) );
 	}
 
-	private void moveRight( )
+	protected void rotAlongX(int dir)
 	{
-		doMove( new Vector3d( getMovementRate( ),0.0,0.0 ) );
+		doRotateX(dir * rotateXAmount * speed);
 	}
 
-	private void moveUp( )
+	protected void rotAlongY(int dir)
 	{
-		doMove( new Vector3d( 0.0, getMovementRate( ) ,0.0 ) );
+		doRotateY(dir * rotateYAmount * speed);
 	}
 
-	private void moveDown( )
+	protected void rotAlongZ(int dir)
 	{
-		doMove( new Vector3d( 0.0, -getMovementRate( ) ,0.0 ) );
-	}
-
-	protected void rotRight( )
-	{
-		doRotateY( getRotateRightAmount( ) );
-	}
-
-	protected void rotUp( )
-	{
-		doRotateX( getRotateUpAmount( ) );
-	}
-
-	protected void rotLeft( )
-	{
-		doRotateY( getRotateLeftAmount( ) );
-	}
-
-	protected void rotDown( )
-	{
-		doRotateX( getRotateDownAmount( ) );
-	}
-
-	protected void rollLeft( )
-	{
-		doRotateZ( getRollLeftAmount( ) );
-	}
-
-	protected void rollRight( )
-	{
-		doRotateZ( getRollRightAmount( ) );
+		doRotateZ(dir * rotateZAmount * speed);
 	}
 
 	protected void updateTransform( )
@@ -263,7 +229,6 @@ public class J3DKeyBehavior extends Behavior
 		updateTransform( );
 	}
 
-
 	protected void doMove( Vector3d theMove )
 	{
 		transformGroup.getTransform( transform3D );
@@ -273,91 +238,35 @@ public class J3DKeyBehavior extends Behavior
 		updateTransform( );
 	}
 
-
-
 	protected double getMovementRate( )
 	{
 		return moveRate * speed;
 	}
-
-
-
-	protected double getRollLeftAmount( )
-	{
-		return rotateZAmount * speed;
-	}
-
-
-
-	protected double getRollRightAmount( )
-	{
-		return -rotateZAmount * speed;
-	}
-
-
-
-	protected double getRotateUpAmount( )
-	{
-		return rotateYAmount * speed;
-	}
-
-
-
-	protected double getRotateDownAmount( )
-	{
-		return -rotateYAmount * speed;
-	}
-
-
-
-	protected double getRotateLeftAmount( )
-	{
-		return rotateYAmount * speed;
-	}
-
-
-
-	protected double getRotateRightAmount( )
-	{
-		return -rotateYAmount * speed;
-	}
-
-
 
 	public void setRotateXAmount( double radians )
 	{
 		rotateXAmount = radians;
 	}
 
-
-
 	public void setRotateYAmount( double radians )
 	{
 		rotateYAmount = radians;
 	}
-
-
 
 	public void setRotateZAmount( double radians )
 	{
 		rotateZAmount = radians;
 	}
 
-
-
 	public void setMovementRate( double meters )
 	{
 		moveRate = meters; // Travel rate in meters/frame
 	}
 
-
-
 	public void setForwardKey( int key )
 	{
 		forwardKey = key;
 	}
-
-
 
 	public void setBackKey( int key )
 	{
