@@ -25,7 +25,7 @@ package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.io.IOTool;
 
 import java.awt.event.MouseAdapter;
@@ -44,7 +44,6 @@ import javax.swing.event.DocumentListener;
  */
 public class DXFTab extends PreferencePanel
 {
-	private Technology tech;
 	private JList dxfLayersList;
 	private DefaultListModel dxfLayersModel;
 	private boolean initialInputFlattensHierarchy;
@@ -69,8 +68,7 @@ public class DXFTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		tech = Technology.getCurrent();
-		dxfTechnology.setText("DXF layers for technology: " + tech.getTechName());
+		dxfTechnology.setText("DXF layers for Artwork Technology");
 
 		// build the layers list
 		dxfLayersModel = new DefaultListModel();
@@ -83,7 +81,7 @@ public class DXFTab extends PreferencePanel
 			public void mouseClicked(MouseEvent evt) { dxfClickLayer(); }
 		});
 		dxfLayersModel.clear();
-		for(Iterator it = curTech.getLayers(); it.hasNext(); )
+		for(Iterator it = Artwork.tech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			String str = layer.getName();
@@ -109,10 +107,6 @@ public class DXFTab extends PreferencePanel
 		dxfInputFlattensHierarchy.setSelected(initialInputFlattensHierarchy);
 		initialInputReadsAllLayers = IOTool.isDXFInputReadsAllLayers();
 		dxfInputReadsAllLayers.setSelected(initialInputReadsAllLayers);
-
-		// not yet
-		dxfInputFlattensHierarchy.setEnabled(false);
-		dxfInputReadsAllLayers.setEnabled(false);
 	}
 
 	/**
@@ -148,7 +142,7 @@ public class DXFTab extends PreferencePanel
 		int openParen = str.indexOf('(');
 		if (openParen < 0) openParen = str.length()+1;
 		String layerName = str.substring(0, openParen-1);
-		Layer layer = curTech.findLayer(layerName);
+		Layer layer = Artwork.tech.findLayer(layerName);
 		return layer;
 	}
 

@@ -65,7 +65,7 @@ import javax.swing.JOptionPane;
  * This class manages reading files in different formats.
  * The class is subclassed by the different file readers.
  */
-public class Input // extends IOTool
+public class Input
 {
 	protected static final int READ_BUFFER_SIZE = 65536;
 
@@ -226,6 +226,10 @@ public class Input // extends IOTool
 			{
 				in = (Input)new DEF();
 				if (in.openTextInput(fileURL)) return null;
+			} else if (type == OpenFile.Type.DXF)
+			{
+				in = (Input)new DXF();
+				if (in.openTextInput(fileURL)) return null;
 			} else if (type == OpenFile.Type.EDIF)
 			{
 				in = (Input)new EDIF();
@@ -234,6 +238,10 @@ public class Input // extends IOTool
 			{
 				in = (Input)new GDS();
 				if (in.openBinaryInput(fileURL)) return null;
+			} else if (type == OpenFile.Type.LEF)
+			{
+				in = (Input)new LEF();
+				if (in.openTextInput(fileURL)) return null;
 			} else if (type == OpenFile.Type.SUE)
 			{
 				in = (Input)new Sue();

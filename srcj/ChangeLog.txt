@@ -28,6 +28,11 @@ BUG: (11/14/04, RK) MoCMOS Gate generators were producing CIF resolution errors
 
 IMP: (11/14/04, RK) Improve NCC size mismatch error messages
 
+IMP: (11/14/04, SMR) Added LEF and DEF input.
+
+BUG: (11/14/04, SMR) Verilog netlister breaks wide names.
+FIX: In "Output.writeWidthLimited()", be more forgiving about splitting wide lines.
+
 BUG: (11/13/04, RK) Reduce storage utilization of net equivalence feature
 
 ************************* Version 8.01an: *********************************

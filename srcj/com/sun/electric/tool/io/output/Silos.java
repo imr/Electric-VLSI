@@ -92,7 +92,7 @@ public class Silos extends Topology
 	protected void start()
 	{
 		// parameters to the output-line-length limit and how to break long lines
-		setOutputWidth(MAXSTR);
+		setOutputWidth(MAXSTR, true);
 		setCommentChar('$');
 		setContinuationString("+");
 

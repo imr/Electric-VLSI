@@ -86,8 +86,12 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.GDS); } });
 		importSubMenu.addMenuItem("EDIF (Electronic Design Interchange Format)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.EDIF); } });
+		importSubMenu.addMenuItem("LEF (Library Exchange Format)...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.LEF); } });
 		importSubMenu.addMenuItem("DEF (Design Exchange Format)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.DEF); } });
+		importSubMenu.addMenuItem("DXF (AutoCAD)...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.DXF); } });
 		importSubMenu.addMenuItem("SUE (Schematic User Environment)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.SUE); } });
 		importSubMenu.addSeparator();

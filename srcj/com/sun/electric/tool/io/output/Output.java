@@ -543,10 +543,11 @@ public class Output
 
 	/** number of characters written on a line */	private int lineCharCount = 0;
 	private int maxWidth = 80;
+	private boolean strictWidthLimit = false;
 	private char commentChar = 0;
 	private String continuationString = "";
 
-	protected void setOutputWidth(int width) { maxWidth = width; }
+	protected void setOutputWidth(int width, boolean strict) { maxWidth = width;   strictWidthLimit = strict; }
 	protected void setCommentChar(char ch) { commentChar = ch; }
 	protected void setContinuationString(String str) { continuationString = str; }
 
@@ -560,7 +561,7 @@ public class Output
 	}
 
 	/**
-	 * Write to the .sil file, but break into printable lines
+	 * Write to the file, but break into printable lines
 	 */
 	protected void writeWidthLimited(String str)
 	{
@@ -587,8 +588,38 @@ public class Output
 			String exact = str.substring(0, left);
 			int splitPos = exact.lastIndexOf(' ');
 			if (splitPos < 0)
+			{
 				splitPos = exact.lastIndexOf(',');
-			if (splitPos > 0) exact = exact.substring(0, splitPos+1);
+				if (splitPos < 0)
+				{
+					splitPos = exact.lastIndexOf('(');
+					if (splitPos < 0)
+					{
+						splitPos = exact.lastIndexOf(')');
+					}
+				}
+			}
+			if (splitPos > 0) exact = exact.substring(0, splitPos+1); else
+			{
+				if (!strictWidthLimit)
+				{
+					// allow a wider line
+					splitPos = str.indexOf(' ', left);
+					if (splitPos < 0)
+					{
+						splitPos = str.indexOf(',', left);
+						if (splitPos < 0)
+						{
+							splitPos = str.indexOf('(', left);
+							if (splitPos < 0)
+							{
+								splitPos = str.indexOf(')', left);
+							}
+						}
+					}
+					if (splitPos > 0) exact = str.substring(0, splitPos+1);
+				}
+			}
 
 			writeChunk(exact);
 			writeChunk("\n");
