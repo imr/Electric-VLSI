@@ -72,6 +72,7 @@ public interface WindowContent
 	public abstract void zoomOutContents();
 	public abstract void zoomInContents();
 	public abstract void focusOnHighlighted();
+	public abstract void panXOrY(int direction, double[] panningAmounts, int ticks);
 
 	public abstract void setCell(Cell cell, VarContext context);
 	public abstract Cell getCell();

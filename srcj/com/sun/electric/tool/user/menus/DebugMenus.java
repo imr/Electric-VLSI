@@ -1012,10 +1012,10 @@ public class DebugMenus {
                 //int next = rand.nextInt(4);
                 int next = i % 4;
                 switch(next) {
-                    case 0: { ZoomAndPanListener.panX(wf, 1); break; }
-                    case 1: { ZoomAndPanListener.panY(wf, 1); break; }
-                    case 2: { ZoomAndPanListener.panX(wf, -1); break; }
-                    case 3: { ZoomAndPanListener.panY(wf, -1); break; }
+                    case 0: { ZoomAndPanListener.panXOrY(0, wf, 1); break; }
+                    case 1: { ZoomAndPanListener.panXOrY(1, wf, 1); break; }
+                    case 2: { ZoomAndPanListener.panXOrY(0, wf, -1); break; }
+                    case 3: { ZoomAndPanListener.panXOrY(1, wf, -1); break; }
                 }
                 doWait();
             }

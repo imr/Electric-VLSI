@@ -663,4 +663,15 @@ public class TextWindow
 	{
 		return null;
 	}
+
+	/**
+	 * Method to pan along X or Y according to fixed amount of ticks
+	 * @param direction
+	 * @param panningAmounts
+	 * @param ticks
+	 */
+	public void panXOrY(int direction, double[] panningAmounts, int ticks)
+	{
+		// Nothing in this case
+	}
 }
