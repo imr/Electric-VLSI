@@ -66,7 +66,7 @@ public class ThreeDTab extends PreferencePanel
     {
         ThreeDTab tab = null;
 
-        Class plugin = Resources.get3DClass("ui.JThreeDTab");
+        Class plugin = Resources.get3DClass("ui.JThdreeDTab");
         if (plugin != null)
         {
             try
@@ -147,12 +147,6 @@ public class ThreeDTab extends PreferencePanel
 		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
 		threeD.add(threeDSideView, gbc);
 		threeDValuesChanged(false);
-
-		threeDPerspective.setSelected(User.is3DPerspective());
-        // to turn on antialising if available. No by default because of performance.
-        threeDAntialiasing.setSelected(User.is3DAntialiasing());
-
-        threeDZoom.setText(TextUtils.formatDouble(User.get3DOrigZoom()));
 	}
 
 	private class ThreeDSideView extends JPanel
@@ -208,7 +202,7 @@ public class ThreeDTab extends PreferencePanel
 			{
 				Layer layer = (Layer)it.next();
 				if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
-				if (!layer.isVisible()) continue;
+				//if (!layer.isVisible()) continue;
 				if (layer == selectedLayer) g.setColor(Color.RED); else
 					g.setColor(Color.BLACK);
 				GenMath.MutableDouble thickness = (GenMath.MutableDouble)dialog.threeDThicknessMap.get(layer);
@@ -348,28 +342,6 @@ public class ThreeDTab extends PreferencePanel
 			if (height.doubleValue() != layer.getDistance())
 				layer.setDistance(height.doubleValue());
 		}
-
-		boolean currentPerspective = threeDPerspective.isSelected();
-		if (currentPerspective != User.is3DPerspective())
-			User.set3DPerspective(currentPerspective);
-
-        boolean currentAntialiasing = threeDAntialiasing.isSelected();
-		if (currentAntialiasing != User.is3DAntialiasing())
-		{
-			// Using reflection to call 3D function
-			if (view3DClass != null)
-
-			try
-			{
-				if (set3DClass == null)
-					set3DClass = view3DClass.getDeclaredMethod("setAntialiasing", new Class[] {Boolean.class});
-				Boolean value = new Boolean(currentAntialiasing);
-				set3DClass.invoke(view3DClass, new Object[]{value});
-			} catch (Exception e) {
-				System.out.println("Cannot call 3D setAntialiasing plugin method: " + e.getMessage());
-			}
-			User.set3DAntialiasing(currentAntialiasing);
-		}
 	}
 
 	/** This method is called from within the constructor to
@@ -387,10 +359,6 @@ public class ThreeDTab extends PreferencePanel
         jLabel47 = new javax.swing.JLabel();
         threeDThickness = new javax.swing.JTextField();
         threeDHeight = new javax.swing.JTextField();
-        threeDPerspective = new javax.swing.JCheckBox();
-        threeDAntialiasing = new javax.swing.JCheckBox();
-        jLabel48 = new javax.swing.JLabel();
-        threeDZoom = new javax.swing.JTextField();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -455,38 +423,6 @@ public class ThreeDTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         threeD.add(threeDHeight, gridBagConstraints);
 
-        threeDPerspective.setText("Use Perspective");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        threeD.add(threeDPerspective, gridBagConstraints);
-
-        threeDAntialiasing.setText("Use Antialiasing");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        threeD.add(threeDAntialiasing, gridBagConstraints);
-
-        jLabel48.setText("Orig. Zoom::");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        threeD.add(jLabel48, gridBagConstraints);
-
-        threeDZoom.setColumns(6);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        threeD.add(threeDZoom, gridBagConstraints);
-
         getContentPane().add(threeD, new java.awt.GridBagConstraints());
 
         pack();
@@ -502,15 +438,11 @@ public class ThreeDTab extends PreferencePanel
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel45;
     private javax.swing.JLabel jLabel47;
-    private javax.swing.JLabel jLabel48;
     private javax.swing.JPanel threeD;
-    private javax.swing.JCheckBox threeDAntialiasing;
     private javax.swing.JTextField threeDHeight;
     private javax.swing.JScrollPane threeDLayerPane;
-    private javax.swing.JCheckBox threeDPerspective;
     private javax.swing.JLabel threeDTechnology;
     private javax.swing.JTextField threeDThickness;
-    private javax.swing.JTextField threeDZoom;
     // End of variables declaration//GEN-END:variables
 
 }
