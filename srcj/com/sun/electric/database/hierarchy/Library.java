@@ -125,6 +125,9 @@ public class Library extends ElectricObject
 			libraries.add(lib);
 		}
 
+        // always broadcast library changes
+        Undo.setNextChangeQuiet(false);
+        Undo.newObject(lib);
 		return lib;
 	}
 
@@ -173,6 +176,10 @@ public class Library extends ElectricObject
 		// set the new current library if appropriate
 		if (newCurLib != null) newCurLib.setCurrent();
         setLinked(false);
+
+        // always broadcast library changes
+        Undo.setNextChangeQuiet(false);
+        Undo.killObject(this);
 		return true;
 	}
 
@@ -182,6 +189,10 @@ public class Library extends ElectricObject
 	public void erase()
 	{
 		// remove all cells in the library
+        for (Iterator it = getCells(); it.hasNext(); ) {
+            Cell c = (Cell)it.next();
+            c.kill();
+        }
 		cells.clear();
 	}
 

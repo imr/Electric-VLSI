@@ -345,7 +345,8 @@ public class Highlight
      */
     public boolean isValid() {
 
-        if (!cell.isLinked()) return false;
+        if (cell != null)
+            if (!cell.isLinked()) return false;
 
         if (type == Type.EOBJ) {
             return eobj.isLinked();

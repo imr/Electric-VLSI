@@ -485,7 +485,7 @@ public class ELIB extends Output
 							sb.append(ch);
 						}
 						String newVarName = "ATTRP_" + sb.toString() + "_" + var.getKey().getName();
-						Undo.setNextChangeQuiet();
+						Undo.setNextChangeQuiet(true);
 						Variable newVar = ni.newVar(newVarName, var.getObject());
 						if (var.isDisplay()) newVar.setDisplay(true);
 						newVar.setCode(var.getCode());
@@ -636,7 +636,7 @@ public class ELIB extends Output
 						String varName = var.getKey().getName();
 						if (varName.startsWith("ATTRP_"))
 						{
-							Undo.setNextChangeQuiet();
+							Undo.setNextChangeQuiet(true);
 							ni.delVar(var.getKey());
 							found = true;
 							break;

@@ -5413,14 +5413,6 @@ public class CircuitChanges
 	/**
 	 * Method to implement the "Rename Library" command.
 	 */
-	public static void renameLibraryCommand()
-	{
-		renameLibrary(Library.getCurrent());
-	}
-
-	/**
-	 * Method to implement the "Rename Library" command.
-	 */
 	public static void renameLibrary(Library lib)
 	{
 		String val = JOptionPane.showInputDialog("New Name of Library:", lib.getName());

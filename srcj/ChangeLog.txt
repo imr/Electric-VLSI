@@ -1,5 +1,11 @@
 			Java Electric change log
 
+************************* Version 8.01g: *********************************
+
+FIX (8/15/04, JKG) Closing a library now actually closes all Cells in library as well.
+
+IMP/MAN (8/15/04, JKG) Added library palette to Components palette.
+
 ************************* Version 8.01f: *********************************
 
 FIX: (8/13/04, JKG) Round doubles before truncating to int in ELIB writer, fixes

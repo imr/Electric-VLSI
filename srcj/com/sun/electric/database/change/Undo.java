@@ -97,6 +97,8 @@ public class Undo
 		/** Describes the insertion of an entry in an arrayed Variable. */	public static final Type VARIABLEINSERT = new Type("VariableInsert");
 		/** Describes the deletion of an entry in an arrayed Variable. */	public static final Type VARIABLEDELETE = new Type("VariableDelete");
 		/** Describes the change to a TextDescriptor. */					public static final Type DESCRIPTORMOD = new Type("DescriptMod");
+        /** Describes a new library change */                               public static final Type LIBRARYNEW = new Type("LibraryNew");
+        /** Describes a delete library change */                            public static final Type LIBRARYKILL = new Type("LibraryKill");
 	}
 
 	/**
@@ -1091,9 +1093,11 @@ public class Undo
     private static synchronized void fireChangeEvent(Change change) {
         for (Iterator it = changeListeners.iterator(); it.hasNext(); ) {
             DatabaseChangeListener l = (DatabaseChangeListener)it.next();
-            if (l.isGUIListener())
-                SwingUtilities.invokeLater(new DatabaseChangeThread(l, change));
-            else
+            if (l.isGUIListener()) {
+                //SwingUtilities.invokeLater(new DatabaseChangeThread(l, change));
+                // do nothing: if it's delayed by invoke later, it may as well come from
+                // databaseEndChangeBatch
+            } else
                 l.databaseChanged(change);
         }
     }
@@ -1340,6 +1344,7 @@ public class Undo
 		else if (obj instanceof NodeInst) type = Type.NODEINSTNEW;
 		else if (obj instanceof ArcInst) type = Type.ARCINSTNEW;
 		else if (obj instanceof Export) type = Type.EXPORTNEW;
+        else if (obj instanceof Library) type = Type.LIBRARYNEW;
 		Change ch = newChange(obj, type, null);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
@@ -1361,6 +1366,7 @@ public class Undo
 		if (obj instanceof Cell) type = Type.CELLKILL;
 		else if (obj instanceof NodeInst) type = Type.NODEINSTKILL;
 		else if (obj instanceof ArcInst) type = Type.ARCINSTKILL;
+        else if (obj instanceof Library) type = Type.LIBRARYKILL;
 		Change ch = newChange(obj, type, null);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
@@ -1528,22 +1534,19 @@ public class Undo
 	public static ChangeBatch getCurrentBatch() { return currentBatch; }
 
 	/**
-	 * Method to request that the next change be made "quietly".
+	 * Method to request that the next change be "quiet".
 	 * Quiet changes are not passed to constraint satisfaction, not recorded for Undo and are not broadcast.
 	 */
-	public static void setNextChangeQuiet() { doNextChangeQuietly = true; }
-
-	/**
-	 * Method to request that the next change not be made "quietly".
-	 * Quiet changes are not passed to constraint satisfaction, not recorded for Undo and are not broadcast.
-	 */
-	public static void clearNextChangeQuiet() { doNextChangeQuietly = false; }
+	public static void setNextChangeQuiet(boolean quiet) { doNextChangeQuietly = quiet; }
 
 	/**
 	 * Method to set the subsequent changes to be "quiet".
 	 * Quiet changes are not passed to constraint satisfaction, not recorded for Undo and are not broadcast.
 	 */
-	public static void changesQuiet(boolean quiet) { doChangesQuietly = quiet; }
+	public static void changesQuiet(boolean quiet) {
+        doChangesQuietly = quiet;
+        setNextChangeQuiet(quiet);
+    }
 
 	/**
 	 * Method to tell whether changes are currently "quiet".
@@ -1553,9 +1556,14 @@ public class Undo
 	 */
 	public static boolean recordChange()
 	{
-		boolean returnValue = !doNextChangeQuietly && !doChangesQuietly;
-		clearNextChangeQuiet();
-		return returnValue;
+        boolean recordChange = !doChangesQuietly;
+        if (doNextChangeQuietly != doChangesQuietly) {
+            // the next change state overrides the changesquietly state
+            recordChange = !doNextChangeQuietly;
+            // reset the next change quiet state
+            setNextChangeQuiet(doChangesQuietly);
+        }
+		return recordChange;
 	}
 
 	/**

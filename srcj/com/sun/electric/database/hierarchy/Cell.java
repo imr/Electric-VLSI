@@ -679,6 +679,17 @@ public class Cell extends NodeProto implements Comparable
 	{
 		checkChanging();
 
+        if (newName == null || newName.equals("")) return;
+
+        // check for same name already in library
+        for (Iterator it = getLibrary().getCells(); it.hasNext(); ) {
+            Cell c = (Cell)it.next();
+            if (newName.equals(c.getName())) {
+                System.out.println("Already a Cell named "+newName+" in Library "+getLibrary().getName());
+                return;
+            }
+        }
+
 		// do the rename
 		Name oldName = basename;
 		lowLevelRename(newName);
@@ -1947,6 +1958,7 @@ public class Cell extends NodeProto implements Comparable
         // check both icon and content views
         // Note that contentView and iconView are the same for every recursion
         Cell contentView = contentsView();
+        if (contentView == null) contentView = this;
         Cell iconView = iconView();
 
         for (Iterator it = parent.getNodes(); it.hasNext(); ) {

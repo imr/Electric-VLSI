@@ -90,7 +90,7 @@ public class FileMenu {
 		fileMenu.addMenuItem("Save Library", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB, false); } });
 		fileMenu.addMenuItem("Save Library as...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAsLibraryCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAsLibraryCommand(Library.getCurrent()); } });
 		fileMenu.addMenuItem("Save All Libraries", KeyStroke.getKeyStroke('S', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAllLibrariesCommand(); } });
 
@@ -116,7 +116,7 @@ public class FileMenu {
 		fileMenu.addMenuItem("List Libraries", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.listLibrariesCommand(); } });
 		fileMenu.addMenuItem("Rename Library...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.renameLibraryCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.renameLibrary(Library.getCurrent()); } });
 		fileMenu.addMenuItem("Mark All Libraries for Saving", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.markAllLibrariesForSavingCommand(); } });
 		fileMenu.addMenuItem("Repair Libraries", null,
@@ -226,6 +226,15 @@ public class FileMenu {
     /** Opens a library */
     private static boolean openALibrary(URL fileURL) {
         Library lib = Input.readLibrary(fileURL, OpenFile.Type.ELIB);
+        if (lib != null) {
+            // new library open: check for default "noname" library and close if empty
+            Library noname = Library.findLibrary("noname");
+            if (noname != null) {
+                if (!noname.getCells().hasNext()) {
+                    noname.kill();
+                }
+            }
+        }
         Undo.noUndoAllowed();
         if (lib == null) return false;
         lib.setCurrent();
@@ -335,14 +344,28 @@ public class FileMenu {
         if (response != JOptionPane.YES_OPTION) return;
         String libName = lib.getName();
         WindowFrame.removeLibraryReferences(lib);
+        CloseLibrary job = new CloseLibrary(lib);
+    }
 
-        if (lib.kill())
-            System.out.println("Library " + libName + " closed");
-        WindowFrame.wantToRedoTitleNames();
-        WindowFrame.wantToRedoLibraryTree();
-        EditWindow.repaintAll();
-        // Disable save icon if no more libraries are open
-        TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
+    public static class CloseLibrary extends Job {
+        Library lib;
+
+        public CloseLibrary(Library lib) {
+            super("Close Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.lib = lib;
+            startJob();
+        }
+
+        public boolean doIt() {
+            if (lib.kill())
+                System.out.println("Library " + lib.getName() + " closed");
+            WindowFrame.wantToRedoTitleNames();
+            WindowFrame.wantToRedoLibraryTree();
+            EditWindow.repaintAll();
+            // Disable save icon if no more libraries are open
+            TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
+            return true;
+        }
     }
 
     /**
@@ -424,9 +447,8 @@ public class FileMenu {
      * This method implements the command to save a library to a different file.
      * It is interactive, and pops up a dialog box.
      */
-    public static void saveAsLibraryCommand()
+    public static void saveAsLibraryCommand(Library lib)
     {
-        Library lib = Library.getCurrent();
         lib.clearFromDisk();
         saveLibraryCommand(lib, OpenFile.Type.ELIB, false);
         WindowFrame.wantToRedoTitleNames();

@@ -49,7 +49,11 @@ public interface DatabaseChangeListener {
     /**
      * Called every time a change is made. It is not recommened you
      * use this method unless (a) you need fine-grained change notification,
-     * and (b) you know what you're doing.
+     * and (b) you know what you're doing.  Also, currently if your
+     * isGUIListener() returns true, you will not be notified of these
+     * events.  This is because you will be notified via SwingUtils.invokeLater,
+     * which means you probably won't get the event until after everything has
+     * finished.
      * @param evt the change event.
      */
     public void databaseChanged(Undo.Change evt);
