@@ -51,15 +51,21 @@ public class JemStratPrint extends JemStrat {
 
 	public static JemLeafList doYourJob(JemEquivRecord j,
 	                                     NccGlobals globals){
+		NccOptions options = globals.getOptions();
+		boolean savedVerbose = options.verbose;
+		options.verbose = true;
+
 		JemStratPrint jsp = new JemStratPrint(globals);
 		jsp.preamble(j);
 		JemLeafList el= jsp.doFor(j); //prints content and offspring if any
 		jsp.summary();
+
+		options.verbose = savedVerbose;
 		return el;
 	}
 
     // ---------- the tree walking code ---------
-    private void preamble(JemEquivRecord j){
+    private void preamble(JemEquivRecord j) {
     	startTime("JemStratPrint", j.nameString());
     }
 
@@ -77,9 +83,7 @@ public class JemStratPrint extends JemStrat {
 	// has extra stuff to limit the amount of printing
 	public HashMap doFor(JemCircuit j){
 		globals.print("**  Depth= " + getDepth() +
-					 " " + j.nameString() +
-					 " of " + j.numNetObjs() +
-					 " and code " + j.getCode());
+					 " " + j.nameString());
 
 		globals.println(j.numNetObjs()<MAX_LINES ? "" : " starts with");
 

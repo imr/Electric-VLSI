@@ -72,7 +72,7 @@ class NccBotUp extends HierarchyEnumerator.Visitor {
                                " : "+
                                layout.getName());
 			NccOptions options = new NccOptions();
-			options.verbose = false;
+			options.verbose = schematic.getName().equals("full_swing_exp");
 			boolean ok = NccEngine.compare(schematic, null, layout, null, 
 			                               options);
 			LayoutLib.error(!ok, "NccJob finds mismatch");

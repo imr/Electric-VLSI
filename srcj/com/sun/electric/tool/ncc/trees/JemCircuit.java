@@ -101,7 +101,10 @@ public class JemCircuit {
 		return out;
 	}
 	
-    public String nameString(){return "JemCircuit";}
+    public String nameString(){
+    	return "JemCircuit code=" + getCode() +
+			   " size=" + numNetObjs();
+    }
 	
     public int getCode(){
     	return myParent!=null ? myParent.getCode() : 0;
@@ -144,11 +147,4 @@ public class JemCircuit {
 			}
 		}
 	}
-	
-	public void printMe(NccGlobals globals){
-		globals.println(nameString() + 		
-				" and code " + getCode() +
-				" size= " + numNetObjs());
-	}
-	
 }

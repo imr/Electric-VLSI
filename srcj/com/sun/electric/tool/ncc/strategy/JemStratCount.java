@@ -241,9 +241,11 @@ public class JemStratCount extends JemStrat {
 			numMismatchedLeafRecs.incr(netObjType, 1);
 			numMismatchedNetObjs.incr(netObjType, numNetObjs);
 			numMismatchedNetObjs.incr(netObjType, numNetObjs);
+			sizeHistogram.incr(netObjType, erSize);
 		} else if (er.isRetired()) {
 			numRetiredLeafRecs.incr(netObjType, 1);
 			numRetiredNetObjs.incr(netObjType, numNetObjs);
+			sizeHistogram.incr(netObjType, erSize);
 		} else {
 			numActiveLeafRecs.incr(netObjType, 1);
 			numActiveNetObjs.incr(netObjType, numNetObjs);

@@ -48,6 +48,9 @@ public class JemEquivRecord {
 	/** points toward root */ 	             private JemEquivRecord parent;
 	/** the immutable random code */         private int randCode;
 	/** int that distinguished this Record */private int value;
+	/** comment describing the metric used to
+	 * partition my parent into my siblings 
+	 * and me */							 private String partitionReason;
 
 	// At any given time only one of this lists is non-null
 	private JemRecordList offspring;
@@ -333,7 +336,12 @@ public class JemEquivRecord {
  	 */
 	public String nameString() {
 		String name = "";
-		name += isLeaf() ? "Leaf" : "Internal";
+		if (isLeaf()) {
+			name = isRetired() ? "Retired" : isMismatched() ? "Mismatched" : "Active";
+			name += " leaf";
+		} else {
+			name = "Internal";
+		}
 		name += " Record randCode="+randCode+" value="+value;
 		name += isLeaf() ? (
 			" maxSize="+maxSize()
@@ -344,6 +352,13 @@ public class JemEquivRecord {
 	}
 
 	public boolean isLeaf() {return offspring==null;} 
+
+	/** The fixed strategies annotate JemEquivRecords with comments
+	 * describing what characteristic made this JemEquivRecord unique.
+	 * This information is useful for providing pre-analysis information
+	 * to the user. */
+	public void setPartionReason(String s) {partitionReason=s;}
+	public String getPartitionReason() {return partitionReason;}
 
 	/** 
 	 * printMe prints this JemEquivRecord
@@ -383,5 +398,5 @@ public class JemEquivRecord {
 		}
 		return r;		
 	}
-
+	
 }

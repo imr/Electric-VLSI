@@ -145,12 +145,12 @@ public abstract class JemStrat {
 		}
 		String msg = "  offspring counts: #retired="+retired+
 			         " #mismatched="+mismatched+" #active="+active;
-		if (mismatched!=0) {
-			globals.println(msg);
-			JemStratPrint.doYourJob(globals.getRoot(), globals);
-			//JemStratDebug.doYourJob(globals);
-			globals.error("mismatched!");
-			return null;		        				}
+//		if (mismatched!=0) {
+//			globals.println(msg);
+//			//JemStratPrint.doYourJob(globals.getRoot(), globals);
+//			JemStratDebug.doYourJob(globals);
+//			globals.error("mismatched!");
+//			return null;		        		//		}
 		return msg;
 	}
 	

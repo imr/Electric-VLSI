@@ -62,10 +62,8 @@ public class JemStratFixed {
         JemStratCheck.doYourJob(root, globals);
 		JemStratCount.doYourJob(root, globals);
 
-		// JemStratPopularWires uses myJemSets.wires as input,
-		// and puts its output in the Lists myJemSets.parallel and myJemSets.series
-		JemStratWireSplit.doYourJob(globals);
-
+		JemStratWiresWithWithoutGates.doYourJob(globals);
+		
 		JemStratCheck.doYourJob(root, globals);
         JemStratCount.doYourJob(root, globals);
 
@@ -74,8 +72,6 @@ public class JemStratFixed {
 		JemStratCheck.doYourJob(root, globals);
         JemStratCount.doYourJob(root, globals);
 		
-		//JemStratNPsplit starts with parts and splits into
-		// N-type, P-type and Not transistor
 		JemStratNPsplit.doYourJob(globals);
 		
 		root= globals.getRoot();
