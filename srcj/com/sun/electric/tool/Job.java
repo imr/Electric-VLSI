@@ -176,6 +176,7 @@ public abstract class Job implements ActionListener, Runnable {
                                 }
                             }
                             if (started) {
+                                assert(false);
                                 numStarted++;
                                 numExamine++;                                
                             }
@@ -183,6 +184,7 @@ public abstract class Job implements ActionListener, Runnable {
                         }
                         numStarted++;
                         numExamine++;
+                        //System.out.println("Started Job "+job+", numStarted="+numStarted+", numExamine="+numExamine+", allJobs="+allJobs.size());
 						Thread t = new Thread(job, job.jobName);
                         job.thread = t;
 						t.start();
@@ -198,7 +200,7 @@ public abstract class Job implements ActionListener, Runnable {
 					}
 				}
 				try {
-                    //System.out.println("Waiting, numStarted="+numStarted+", numExamine="+numExamine);
+                    //System.out.println("Waiting, numStarted="+numStarted+", numExamine="+numExamine+", allJobs="+allJobs.size());
 					wait();
 				} catch (InterruptedException e) {}
 			}
@@ -244,6 +246,7 @@ public abstract class Job implements ActionListener, Runnable {
                     allJobs.add(j);
                     numExamine++;
                     numStarted++;
+                    //System.out.println("Granted Examine Lock for Job "+j+", numStarted="+numStarted+", numExamine="+numExamine+", allJobs="+allJobs.size());
                     j.incrementLockCount();
                     return true;
                 }
@@ -270,6 +273,7 @@ public abstract class Job implements ActionListener, Runnable {
 					notify();
 				if (index < numStarted) numStarted--;
 			}
+            //System.out.println("Removed Job "+j+", index was "+index+", numStarted now="+numStarted+", allJobs="+allJobs.size());
             if (j.getDisplay()) {
                 WindowFrame.wantToRedoJobTree();        
             }
@@ -297,6 +301,7 @@ public abstract class Job implements ActionListener, Runnable {
     
 		private synchronized void endExamine(Job j) {
 			numExamine--;
+            //System.out.println("EndExamine Job "+j+", numExamine now="+numExamine+", allJobs="+allJobs.size());
 			if (numExamine == 0)
 				notify();
 		}

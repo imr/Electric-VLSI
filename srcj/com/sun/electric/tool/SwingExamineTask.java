@@ -76,6 +76,8 @@ public abstract class SwingExamineTask implements Runnable {
      * lock not acquired and nothing done.
      */
     public final boolean runImmediately() {
+
+/*
         if (Job.acquireExamineLock(false)) {
             try {
                 doIt(immediate);
@@ -87,6 +89,10 @@ public abstract class SwingExamineTask implements Runnable {
             return true;
         }
         return false;
+*/
+        // locking not working right now, just run it
+        doIt(immediate);
+        return true;
     }
 
     /**
