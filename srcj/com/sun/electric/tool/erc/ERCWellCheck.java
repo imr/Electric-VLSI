@@ -255,7 +255,9 @@ public class ERCWellCheck
 						}
 					}
 				}
-				for(Iterator oIt = wellCons.iterator(); oIt.hasNext(); )
+                // NCC will detect if a ground or power network is incorrectly split into
+                // two or more pieces. So this check is not needed here.
+/*				for(Iterator oIt = wellCons.iterator(); oIt.hasNext(); )
 				{
 					WellCon oWc = (WellCon)oIt.next();
 					if (oWc.index <= wc.index) continue;
@@ -271,7 +273,7 @@ public class ERCWellCheck
 					err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
 					err.addPoint(oWc.ctr.getX(), oWc.ctr.getY(), cell);
 					break;
-				}
+				}*/
 			}
 
 			// if just 1 N-Well contact is needed, see if it is there
