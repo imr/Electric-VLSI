@@ -142,7 +142,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
     public void exitCell(HierarchyEnumerator.CellInfo info) {
     }
     
-    public boolean visitNodeInst(NodeInst ni, HierarchyEnumerator.CellInfo info) {
+    public boolean visitNodeInst(Nodable ni, HierarchyEnumerator.CellInfo info) {
         float leX = (float)0.0;
 
         // check if leGate
@@ -167,14 +167,17 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
         // build leGate instance
         //out.println("------------------------------------");
         ArrayList pins = new ArrayList();
-        Cell schCell = ni.getProtoEquivalent();
-        for (Iterator piIt = ni.getPortInsts(); piIt.hasNext();) {
-            PortInst pi = (PortInst)piIt.next();
-            PortProto pp = pi.getProtoEquivalent();
+        //Cell schCell = ni.getProtoEquivalent();
+		for (Iterator ppIt = ni.getParent().getPorts(); ppIt.hasNext();) {
+			PortProto pp = (PortProto)ppIt.next();
+//      for (Iterator piIt = ni.getPortInsts(); piIt.hasNext();) {
+//          PortInst pi = (PortInst)piIt.next();
+//          PortProto pp = pi.getProtoEquivalent();
             Variable var = pp.getVar("ATTR_le");
             // Note default 'le' value should be one
             float le = VarContext.objectToFloat(info.getContext().evalVar(var), (float)1.0);
-            String netName = info.getUniqueNetName(pi.getNetwork(), ".");
+            String netName = info.getUniqueNetName(ni.getNetwork(pp,0), ".");
+//            String netName = info.getUniqueNetName(pi.getNetwork(), ".");
             Pin.Dir dir = Pin.Dir.INPUT;
             //if (pp.getCharacteristic() == PortProto.Characteristic.IN) dir = Pin.Dir.INPUT;
             // if it's not an output, it doesn't really matter what it is.
@@ -202,7 +205,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
             if (parent == null) mFactor = 1f;
             else mFactor = ((LECellInfo)parent).getMFactor();
             // get mfactor from instance we pushed into
-            NodeInst ni = getContext().getNodeInst();
+            Nodable ni = getContext().getNodable();
             if (ni == null) return;
             Variable mvar = ni.getVar("ATTR_M");
             if (mvar == null) return;

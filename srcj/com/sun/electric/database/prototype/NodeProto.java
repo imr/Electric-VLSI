@@ -26,7 +26,6 @@ package com.sun.electric.database.prototype;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.NodeUsage;
-import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
@@ -376,7 +375,6 @@ public abstract class NodeProto extends ElectricObject
 	/** The name of the NodeProto. */						protected String protoName;
 	/** This NodeProto's Technology. */						protected Technology tech;
 	/** A list of exports on the NodeProto. */				private List ports;
-	/** A list of JNetworks in this NodeProto. */			private List networks;
 	/** A list of NodeUsages of this NodeProto. */			private List usagesOf;
 	/** Internal flag bits. */								protected int userBits;
 	/** The function of this NodeProto. */					private Function function;
@@ -403,7 +401,6 @@ public abstract class NodeProto extends ElectricObject
 	{
 		ports = new ArrayList();
 		usagesOf = new ArrayList();
-		networks = new ArrayList();
 		function = Function.UNKNOWN;
 		equivPortsUpdateTime = equivPortsCheckTime = 0;
 		tempObj = null;
@@ -417,6 +414,7 @@ public abstract class NodeProto extends ElectricObject
 	public void addPort(PortProto port)
 	{
 		checkChanging();
+		port.setIndex(ports.size());
 		ports.add(port);
 		notifyCellsNetworks();
 	}
@@ -428,42 +426,13 @@ public abstract class NodeProto extends ElectricObject
 	public void removePort(PortProto port)
 	{
 		checkChanging();
-		ports.remove(port);
+		int ind = ports.indexOf(port);
+		ports.remove(ind);
+		for (; ind < ports.size(); )
+		{
+			((PortProto)ports.get(ind)).setIndex(ind);
+		}
 		notifyCellsNetworks();
-	}
-
-	/**
-	 * Add a Network to this NodeProto.
-	 * @param n the JNetwork to add to this NodeProto.
-	 */
-	public void addNetwork(JNetwork n)
-	{
-		if (networks.contains(n))
-		{
-			System.out.println("Cell " + this +" already contains network " + n);
-		}
-		networks.add(n);
-	}
-
-	/**
-	 * Removes a Network from this NodeProto.
-	 * @param n the Network to remove from this NodeProto.
-	 */
-	void removeNetwork(JNetwork n)
-	{
-		if (!networks.contains(n))
-		{
-			System.out.println("Cell " + this +" doesn't contain network " + n);
-		}
-		networks.remove(n);
-	}
-
-	/**
-	 * Removes all Networks from this NodeProto.
-	 */
-	public void removeAllNetworks()
-	{
-		networks.clear();
 	}
 
 	/**
@@ -529,12 +498,6 @@ public abstract class NodeProto extends ElectricObject
 		checkChanging();
 		// kill ports
 //		removeAll(ports);
-
-		// unhook from networks
-		while (networks.size() > 0)
-		{
-			removeNetwork((JNetwork) networks.get(networks.size() - 1));
-		}
 	}
 
 	/**
@@ -591,7 +554,7 @@ public abstract class NodeProto extends ElectricObject
 	/**
 	 * Obtain canonical representation of equivalence map.
 	 */
-	private static void closureMap(int[] map)
+	protected static void closureMap(int[] map)
 	{
 		for (int i = 0; i < map.length; i++)
 		{
@@ -1325,20 +1288,6 @@ public abstract class NodeProto extends ElectricObject
 	}
 
 	/**
-	 * Routine to set tempInt of every PortProto of this NodeProto to
-	 * sequential index of PortProto.
-	 */
-	public void numeratePorts()
-	{
-		int i = 0;
-		for (Iterator it = ports.iterator(); it.hasNext();)
-		{
-			PortProto pp = (PortProto)it.next();
-			pp.setTempInt(i++);
-		}
-	}
-
-	/**
 	 * Routine to return an iterator over all instances of this NodeProto.
 	 * @return an iterator over all instances of this NodeProto.
 	 */
@@ -1424,12 +1373,6 @@ public abstract class NodeProto extends ElectricObject
 	 * @return the prototype name of this NodeProto.
 	 */
 	public String getProtoName() { return protoName; }
-
-	/** Get an iterator over all of the JNetworks of this NodeProto.
-	 * 
-	 * <p> Warning: before getNetworks() is called, JNetworks must be
-	 * build by calling Cell.rebuildNetworks() */
-	public Iterator getNetworks() { return networks.iterator(); }
 
 	/**
 	 * Routine to determine whether a variable name on NodeProtos is deprecated.

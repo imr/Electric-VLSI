@@ -27,6 +27,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.NodeInstProxy;
 
 import java.awt.geom.Rectangle2D;
 
@@ -41,7 +42,6 @@ public class PortInst
 	private NodeInst nodeInst;
 	private PortProto portProto;
 	private int index;
-	private JNetwork network;
 
 	// -------------------protected or private methods ---------------
 
@@ -92,13 +92,23 @@ public class PortInst
 	 * Routine to return the JNetwork connected to this PortInst.
 	 * @return the JNetwork connected to this PortInst.
 	 */
-	public JNetwork getNetwork() { return network; }
-
-	/**
-	 * Routine to set the JNetwork connected to this PortInst.
-	 * @param net the JNetwork connected to this PortInst.
-	 */
-	public void setNetwork(JNetwork net) { network = net; }
+	public JNetwork getNetwork()
+	{
+		if (portProto.getProtoNameLow().isBus())
+		{
+			System.out.println("NodeInst.getNetwork() was called for instance of bus port"+portProto.getProtoName());
+			return null;
+		}
+		if (nodeInst.getProto().isIcon())
+		{
+			NodeInst.Subinst sub = nodeInst.getSubinst(0);
+			NodeInstProxy nip = sub.getProxy();
+			if (nip == null) System.out.println("No proxy for "+this);
+			PortProto pp = portProto.getEquivalent();
+			if (nip != null && pp != null) return nip.getNetwork(pp, 0);
+		}
+		return nodeInst.getNetwork(portProto, 0);
+	}
 
 	/**
 	 * Routine to return the index value on this PortInst.

@@ -1,3 +1,5 @@
+/* -*- tab-width: 4 -*-
+ */
 package com.sun.electric.tool.generator.layout;
 
 import java.awt.geom.AffineTransform;
@@ -17,6 +19,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.PrimitiveNode;
@@ -58,7 +61,7 @@ class Flattener extends HierarchyEnumerator.Visitor {
 	// Add PortInst to PortInst mappings for the NodeInst that
 	// instantiated this Cell.
 	private void addPortMappingsToParentCell(FlatInfo info) {
-		NodeInst parentInst = info.getParentInst();
+		NodeInst parentInst = (NodeInst)info.getParentInst(); // In layout all Nodables are NodeInsts
 
 		if (parentInst == null) return; // root Cell has no parent
 
@@ -119,12 +122,13 @@ class Flattener extends HierarchyEnumerator.Visitor {
 		}
 	}
 
-	public boolean visitNodeInst(NodeInst ni, 
+	public boolean visitNodeInst(Nodable no,
 	                             HierarchyEnumerator.CellInfo inf) {
 		FlatInfo info = (FlatInfo) inf;
 		//System.out.println("Visit inst of: "+ni.getProto().getName());
-		NodeProto np = ni.getProto();
+		NodeProto np = no.getProto();
 		if (np instanceof PrimitiveNode) {
+			NodeInst ni = (NodeInst)no;
 			// don't copy Facet-Centers
 			if (!np.getProtoName().equals("Facet-Center")) {
 				AffineTransform at = info.getPositionInRoot(ni);

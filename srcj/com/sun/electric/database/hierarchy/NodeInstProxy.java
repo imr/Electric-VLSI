@@ -23,10 +23,13 @@
  */
 package com.sun.electric.database.hierarchy;
 
-import com.sun.electric.database.text.Name;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.Variable;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -40,6 +43,7 @@ public class NodeInstProxy implements Nodable
 	// ---------------------- private data ----------------------------------
 	/** node usage */										private NodeUsage nodeUsage;
 	/** Icon subinstances NodeInst.Subinst */				private NodeInst.Subinst[] subinsts;
+	/** Index of this NodeInstProxy in a cell */			private int index;
 
 	// --------------------- private and protected methods ---------------------
 
@@ -50,6 +54,7 @@ public class NodeInstProxy implements Nodable
 	{
 		// initialize this object
 		this.nodeUsage = nodeUsage;
+		index = -1;
 	}
 
 	/**
@@ -86,6 +91,18 @@ public class NodeInstProxy implements Nodable
 			newSubinsts[i] = subinsts[i+1];
 		subinsts = newSubinsts;
 	}
+
+	/**
+	 * Routine to set an index of this NodeInstProxy in a cell.
+	 * @param index an index of this NodeInstProxy in a cell.
+	 */
+	public void setIndex(int index) { this.index = index; }
+
+	/**
+	 * Routine to get the index of this NodeInstProxy in a cell.
+	 * @return index of this NodeInstProxy in a cell.
+	 */
+	public int getIndex() { return index; }
 
 	// ------------------------ public methods -------------------------------
 
@@ -143,6 +160,34 @@ public class NodeInstProxy implements Nodable
 	 * @return the name of this NodeInstProxy.
 	 */
 	public Name getNameLow() { return subinsts[0].getName(); }
+
+	/**
+	 * Routine to return the Variable on this Nodable with a given name.
+	 * @param name the name of the Variable.
+	 * @return the Variable with that name, or null if there is no such Variable.
+	 */
+	public Variable getVar(String name) { return subinsts[0].getInst().getVar(name); }
+
+	/**
+	 * Routine to get network by PortProto and bus index.
+	 * @param portProto PortProto in protoType.
+	 * @param busIndex index in bus.
+	 */
+	public JNetwork getNetwork(PortProto portProto, int busIndex)
+	{
+		if (getIndex() < 0) return null; // Nonelectric node
+		if (portProto.getParent() != nodeUsage.getProto())
+		{
+			System.out.println("Invalid portProto argument in NodeInstProxy.getNetwork");
+			return null;
+		}
+		if (busIndex < 0 || busIndex >= portProto.getProtoNameLow().busWidth())
+		{
+			System.out.println("NodeInstProxy.getNetwork: invalid arguments busIndex="+busIndex+" portProto="+portProto);
+			return null;
+		}
+		return nodeUsage.getParent().getNetwork(getIndex() + portProto.getIndex() + busIndex);
+	}
 
 	/**
 	 * Returns a printable version of this NodeInstProxy.

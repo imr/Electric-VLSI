@@ -43,6 +43,7 @@ public class NodeUsage
 	/** prototype of this node usage */						private NodeProto protoType;
 	/** Cell using this prototype */						private Cell parent;
 	/** List of NodeInsts of protoType in parent */			private List insts;
+	/** List of NodeInstProxies of protoType in parent */	private List proxies;
 	/** Usage of mainSchematics for icons */				private NodeUsage sch;
 	/** Number of icon NodeUsages for schematics */			private List icons;
 
@@ -57,6 +58,7 @@ public class NodeUsage
 		this.protoType = protoType;
 		this.parent = parent;
 		insts = new ArrayList();
+		proxies = new ArrayList();
 		sch = null;
 		if (protoType instanceof Cell && ((Cell)protoType).getView() == View.SCHEMATIC)
 		{
@@ -80,6 +82,24 @@ public class NodeUsage
 	void removeInst(NodeInst ni)
 	{
 		insts.remove(ni);
+	}
+
+	/**
+	 * Routine to add an NodeInst to this NodeUsage.
+	 * @param nip the NodeInstProxy to add.
+	 */
+	void addProxy(NodeInstProxy nip)
+	{
+		proxies.add(nip);
+	}
+
+	/**
+	 * Routine to remove an NodeInstProxy from this NodeUsage.
+	 * @param ni the NodeInstProxy to remove.
+	 */
+	void removeProxy(NodeInstProxy nip)
+	{
+		proxies.remove(nip);
 	}
 
 	/**
@@ -246,6 +266,34 @@ public class NodeUsage
 	}
 
 	/**
+	 * Routine to return by index a NodeInstProxies of this NodeIsage.
+	 * @param i index
+	 * @return specified NodeInstProxy.
+	 */
+	public final NodeInstProxy getProxy(int i)
+	{
+		return (NodeInstProxy)proxies.get(i);
+	}
+
+	/**
+	 * Routine to return an Iterator for all NodeInstProxies of this NodeIsage .
+	 * @return an Iterator for all NodeInstProxies of this NodeUsage.
+	 */
+	public Iterator getProxies()
+	{
+		return proxies.iterator();
+	}
+
+	/**
+	 * Routine to return the number of NodeInsts of this NodeUsage.
+	 * @return the number of NodeInsts of this NodeUsage.
+	 */
+	public int getNumProxies()
+	{
+		return insts.size();
+	}
+
+	/**
 	 * Routine to check if NodeUsages contains NodeInst.
 	 * @param ni NodeInst to check
 	 * @return true if NodeInst is contained
@@ -272,6 +320,12 @@ public class NodeUsage
 	 * @return true if this NodeUsage is an icon of its parent.
 	 */
 	public boolean isIconOfParent() { return protoType.isIconOf(parent); };
+
+	/**
+	 * Routine to determine whether this NodeUsage is an icon Cell.
+	 * @return true if this NodeUsage is an icon  Cell.
+	 */
+	public boolean isIcon() { return protoType.isIcon(); }
 
 	/**
 	 * Returns a printable version of this NodeInst.

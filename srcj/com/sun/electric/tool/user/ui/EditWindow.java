@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -958,11 +959,12 @@ public class EditWindow extends JPanel
      */
     public void upHierarchy() {
         try {
-            NodeInst ni = cellVarContext.getNodeInst();
+            Nodable ni = cellVarContext.getNodable();
             Cell parent = ni.getParent();
             VarContext context = cellVarContext.pop();
             setCell(parent, context);
-            Highlight.addGeometric(ni);
+			if (ni instanceof NodeInst)
+				Highlight.addGeometric((NodeInst)ni);
             needsUpdate = true;
         } catch (NullPointerException e) {
             // no parent - if icon, go to sch view

@@ -750,7 +750,7 @@ public class SchemToLay {
 	}
 	
 	private static void instPath1(StringBuffer path, VarContext context) {
-		NodeInst ni = context.getNodeInst();
+		Nodable ni = context.getNodable();
 		if (ni==null) return;
 		
 		instPath1(path, context.pop());

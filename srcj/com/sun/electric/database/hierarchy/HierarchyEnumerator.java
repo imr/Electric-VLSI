@@ -1,3 +1,26 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: HierarchyEnumerator.java
+ *
+ * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
 package com.sun.electric.database.hierarchy;
 
 import java.util.*;
@@ -8,6 +31,7 @@ import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.variable.VarContext;
 
 /** The purpose of the HierarchyEnumerator is to provide an shared
@@ -77,8 +101,8 @@ public final class HierarchyEnumerator {
 		return netToNetID;
 	}
 
-	private Integer[] getNetIDs(PortInst pi, Map netToNetID) {
-		JNetwork net = pi.getNetwork();
+	private Integer[] getNetIDs(Nodable ni, PortProto pp, Map netToNetID) {
+		JNetwork net = ni.getNetwork(pp, 0);
 		error(net == null,
 			  "Network=null! Did you call Cell.rebuildNetworks()?");
 		Integer netID = (Integer) netToNetID.get(net);
@@ -88,19 +112,40 @@ public final class HierarchyEnumerator {
 		return new Integer[] { netID };
 	}
 
-	private Map buildPortMap(NodeInst ni, Map netToNetID) {
+	private Map buildPortMap(Nodable ni, Map netToNetID) {
 		Map portNmToNetIDs = new HashMap();
-		for (Iterator it = ni.getPortInsts(); it.hasNext();) {
-			PortInst pi = (PortInst) it.next();
-			Integer[] netIDs = getNetIDs(pi, netToNetID);
-			portNmToNetIDs.put(pi.getPortProto().getProtoName(), netIDs);
+		for (Iterator it = ni.getProto().getPorts(); it.hasNext();) {
+			PortProto pp = (PortProto) it.next();
+			Integer[] netIDs = getNetIDs(ni, pp, netToNetID);
+			portNmToNetIDs.put(pp.getProtoName(), netIDs);
 		}
 		return portNmToNetIDs;
 	}
 
+// 	private Integer[] getNetIDs(PortInst pi, Map netToNetID) {
+// 		JNetwork net = pi.getNetwork();
+// 		error(net == null,
+// 			  "Network=null! Did you call Cell.rebuildNetworks()?");
+// 		Integer netID = (Integer) netToNetID.get(net);
+// 		error(netID == null, "no netID for net");
+
+// 		// only works in absence of busses
+// 		return new Integer[] { netID };
+// 	}
+
+// 	private Map buildPortMap(NodeInst ni, Map netToNetID) {
+// 		Map portNmToNetIDs = new HashMap();
+// 		for (Iterator it = ni.getPortInsts(); it.hasNext();) {
+// 			PortInst pi = (PortInst) it.next();
+// 			Integer[] netIDs = getNetIDs(pi, netToNetID);
+// 			portNmToNetIDs.put(pi.getPortProto().getProtoName(), netIDs);
+// 		}
+// 		return portNmToNetIDs;
+// 	}
+
 	// portNmToNetIDs is a map from an Export name to an array of
 	// NetIDs.
-	private void enumerateCell(NodeInst parentInst,	Cell cell,
+	private void enumerateCell(Nodable parentInst,	Cell cell,
 	                           VarContext context, Map portNmToNetIDs,
 		                       AffineTransform xformToRoot,
 		                       CellInfo parent) {
@@ -115,28 +160,59 @@ public final class HierarchyEnumerator {
 		boolean enumInsts = visitor.enterCell(info);
 		if (!enumInsts) return;
 
-		for (Iterator it = cell.getNodes(); it.hasNext();) {
-			NodeInst ni = (NodeInst) it.next();
-                
-			instCnt++;
-			boolean descend = visitor.visitNodeInst(ni, info);
-            NodeProto np = ni.getProto();
-            Cell eq = ni.getProtoEquivalent();
-            if (cell == eq) descend = false;  // do not descend into own icon
-            if (descend && np instanceof Cell) {
-				if (eq == null) {
-					System.out.println("Warning: missing schematic: " 
-					                   + np.getProtoName());
-				} else {
-					Map portNmToNetIDs2 = buildPortMap(ni, netToNetID);
-					AffineTransform xformToRoot2 =
-						new AffineTransform(xformToRoot);
-					xformToRoot2.concatenate(ni.rkTransformOut());
-					enumerateCell(ni, eq, context.push(ni), portNmToNetIDs2,
-						          xformToRoot2, info);
-				}
+		for (Iterator uit = cell.getUsagesIn(); uit.hasNext();)
+		{
+			NodeUsage nu = (NodeUsage) uit.next();
+			if (nu.isIcon()) continue;
+			if (nu.getProto().getFunction() == NodeProto.Function.ART) continue;
+
+			NodeProto np = nu.getProto();
+			for (Iterator iit = nu.getInsts(); iit.hasNext();)
+			{
+				NodeInst ni = (NodeInst)iit.next();
+				instCnt++;
+				if (!visitor.visitNodeInst(ni, info)) continue;
+				if (!(nu.getProto() instanceof Cell)) continue;
+				Map portNmToNetIDs2 = buildPortMap(ni, netToNetID);
+				AffineTransform xformToRoot2 =
+					new AffineTransform(xformToRoot);
+				xformToRoot2.concatenate(ni.rkTransformOut());
+				enumerateCell(ni, (Cell)ni.getProto(), context.push(ni), portNmToNetIDs2,
+					xformToRoot2, info);
+			}
+			for (Iterator iit = nu.getProxies(); iit.hasNext();)
+			{
+				NodeInstProxy nip = (NodeInstProxy)iit.next();
+				if (!visitor.visitNodeInst(nip, info)) continue;
+				if (!(nu.getProto() instanceof Cell)) continue;
+				Map portNmToNetIDs2 = buildPortMap(nip, netToNetID);
+				enumerateCell(nip, (Cell)nip.getProto(), context.push(nip), portNmToNetIDs2,
+					xformToRoot, info);
 			}
 		}
+
+// 		for (Iterator it = cell.getNodes(); it.hasNext();) {
+// 			NodeInst ni = (NodeInst) it.next();
+                
+// 			instCnt++;
+// 			boolean descend = visitor.visitNodeInst(ni, info);
+//             NodeProto np = ni.getProto();
+//             Cell eq = ni.getProtoEquivalent();
+//             if (cell == eq) descend = false;  // do not descend into own icon
+//             if (descend && np instanceof Cell) {
+// 				if (eq == null) {
+// 					System.out.println("Warning: missing schematic: " 
+// 					                   + np.getProtoName());
+// 				} else {
+// 					Map portNmToNetIDs2 = buildPortMap(ni, netToNetID);
+// 					AffineTransform xformToRoot2 =
+// 						new AffineTransform(xformToRoot);
+// 					xformToRoot2.concatenate(ni.rkTransformOut());
+// 					enumerateCell(ni, eq, context.push(ni), portNmToNetIDs2,
+// 						          xformToRoot2, info);
+// 				}
+// 			}
+// 		}
 		visitor.exitCell(info);
 
 		// remove entries in netIdToNetDesc that we'll never use again
@@ -209,12 +285,12 @@ public final class HierarchyEnumerator {
 		public abstract void exitCell(CellInfo info);
 
 		/** The HierarchyEnumerator is visiting NodeInst ni.
-		 * @param ni The NodeInst that HierarchyEnumerator is visiting.
+		 * @param ni The Nodable that HierarchyEnumerator is visiting.
 		 * @return The visitor should return true if this is an instance
 		 * of a cell and the visitor wishes to descend into this
 		 * instance. If this instance is of a PrimitiveNode then the
 		 * return value is ignored by the HierarchyEnumerator. */
-		public abstract boolean visitNodeInst(NodeInst ni, CellInfo info);
+		public abstract boolean visitNodeInst(Nodable ni, CellInfo info);
 	}
 
 	/** The NetDescription object provides a JNetwork and the level of
@@ -261,12 +337,12 @@ public final class HierarchyEnumerator {
 		private Map netToNetID;
 		private Map exportNmToNetIDs;
 		private AffineTransform xformToRoot;
-		private NodeInst parentInst;
+		private Nodable parentInst;
 		private CellInfo parentInfo;
 		private Map netIdToNetDesc;
 
 		// package private
-		void init(NodeInst parentInst, Cell cell, VarContext context, 
+		void init(Nodable parentInst, Cell cell, VarContext context, 
 		          Map netToNetID, Map exportNmToNetIDs, 
 				  AffineTransform xformToRoot, Map netIdToNetDesc,	
 				  CellInfo parentInfo) {
@@ -296,7 +372,7 @@ public final class HierarchyEnumerator {
 
 		/** Get the NodeInst in the parent Cell that instantiates this
 		 * Cell instance. If this Cell is the root then return null. */
-		public final NodeInst getParentInst() {return parentInst;}
+		public final Nodable getParentInst() {return parentInst;}
 
 		/** Get the CellInfo for the root Cell */
 		public final CellInfo getRootInfo() {

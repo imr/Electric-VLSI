@@ -164,7 +164,7 @@ public class Maxwell
 				sim_maxwell_netnumber =0;
 				
 				Cell.rebuildAllNetworks(null);
-				Iterator it = np.getNetworks();
+				Iterator it = ((Cell)np).getNetworks();
 				
 				while(it.hasNext())
 				{
@@ -239,7 +239,7 @@ public class Maxwell
 					subrot = ni.transformOut(subrot);
 					
 					Cell.rebuildAllNetworks(null);		
-					Iterator it = ni.getProto().getNetworks();
+					Iterator it = ((Cell)ni.getProto()).getNetworks();
 				
 					while(it.hasNext())
 					{
@@ -259,7 +259,7 @@ public class Maxwell
 						//pe->proto->network->temp1 = pe->exportproto->network->temp1;
 					}
 					Cell.rebuildAllNetworks(null);
-					it = ni.getProto().getNetworks();
+					it = ((Cell)ni.getProto()).getNetworks();
 					while(it.hasNext())
 					{
 						net=(JNetwork)it.next();

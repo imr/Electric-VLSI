@@ -144,7 +144,7 @@ public class Name implements Comparable
      * <code>TextDescriptor</code> object is computed as sum of its fields.
      * @return  a hash code value for this object.
      */
-    public int hashCode() { return lowerCase.ns.hashCode(); }
+    public int hashCode() { return lowerCase == this ? super.hashCode() : lowerCase.hashCode(); }
 
 	/**
 	 * Tells whether or not this Name is a valid bus or signal name.
@@ -352,7 +352,7 @@ public class Name implements Comparable
 			int end = ns.indexOf(',', beg);
 			if (end < 0) end = ns.length() - 1; /* index of ']' */
 			int colon = ns.indexOf(':', beg);
-			if (colon < 0)
+			if (colon < 0 || colon >= end)
 			{
 				Name nm = findTrimmedName("["+ns.substring(beg,end)+"]");
 				subs.add(nm);

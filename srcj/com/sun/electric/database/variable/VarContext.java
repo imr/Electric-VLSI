@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.variable;
 
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.prototype.NodeProto;
@@ -77,7 +78,7 @@ import java.lang.Exception;
 public class VarContext
 {
 	private VarContext prev;
-	private NodeInst ni;
+	private Nodable ni;
     
 	/**
 	 * The blank VarContext that is the parent of all VarContext chains.
@@ -88,12 +89,12 @@ public class VarContext
 	 * get a new VarContext that consists of the current VarContext with
 	 * the given NodeInst pushd onto the stack
 	 */
-	public VarContext push(NodeInst ni)
+	public VarContext push(Nodable ni)
 	{
 		return new VarContext(ni, this);
 	}
 
-	private VarContext(NodeInst ni, VarContext prev)
+	private VarContext(Nodable ni, VarContext prev)
 	{
 		this.ni = ni;
 		this.prev = prev;
@@ -177,16 +178,16 @@ public class VarContext
         
         while (scan != null && ni != null)
 		{
-            NodeInst ni = scan.getNodeInst();
+            Nodable ni = scan.getNodable();
             if (ni == null) return null;
             
             Variable var = ni.getVar(name);             // look up var
 			if (var != null)
-				return scan.pop().evalVar(var, scan.getNodeInst());
+				return scan.pop().evalVar(var, ni);
             NodeProto np = ni.getProto();               // look up default var
             var = np.getVar(name);
             if (var != null)
-                return scan.pop().evalVar(var, scan.getNodeInst());
+                return scan.pop().evalVar(var, ni);
 			scan = scan.prev;
 		}
 		return null;
@@ -196,7 +197,7 @@ public class VarContext
 	 * Return the Node Instance that provides the context for the
 	 * variable evaluation for this level.
 	 */
-	public NodeInst getNodeInst()
+	public Nodable getNodable()
 	{
 		return ni;
 	}
@@ -211,15 +212,15 @@ public class VarContext
         if (this==globalContext) return "";
 
         String prefix = pop()==globalContext ? "" : pop().getInstPath(sep);
-        NodeInst ni = getNodeInst();
+        Nodable ni = getNodable();
         if (ni==null) {
             System.out.println("VarContext.getInstPath: context with null NodeInst?");
         }
         String me = ni.getName();
-        if (me==null) {
-            //System.out.println("VarContext.getInstPath: NodeInst in VarContext with no name!!!");
-            me = ni.describe();
-        }
+//         if (me==null) {
+//             //System.out.println("VarContext.getInstPath: NodeInst in VarContext with no name!!!");
+//             me = ni.describe();
+//         }
         if (prefix.equals("")) return me;
         return prefix + sep + me;
     }

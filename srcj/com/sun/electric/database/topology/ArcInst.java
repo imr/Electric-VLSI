@@ -26,14 +26,14 @@ package com.sun.electric.database.topology;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.geometry.EMath;
-import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitivePort;
@@ -67,7 +67,7 @@ import java.util.Iterator;
  * <P>
  * <CENTER><IMG SRC="doc-files/ArcInst-4.gif"></CENTER>
  */
-public class ArcInst extends Geometric /*implements Networkable*/
+public class ArcInst extends Geometric
 {
 	/** The index of the head of this ArcInst. */		public static final int HEADEND = 0;
 	/** The index of the tail of this ArcInst. */		public static final int TAILEND = 1;
@@ -103,6 +103,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	/** width of this arc instance */					private double arcWidth;
 	/** prototype of this arc instance */				private ArcProto protoType;
 	/** end connections of this arc instance */			private Connection [] ends;
+	/** true if this ArcInst is linked to parent */		private boolean linked;
 
 	/**
 	 * The constructor is never called.  Use the factory "newInstance" instead.
@@ -398,6 +399,12 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 */
 	public boolean lowLevelLink()
 	{
+		if (!isUsernamed())
+		{
+			if (getName() == null || !parent.isUniqueName(name, getClass(), this))
+				if (setNameLow(parent.getAutoname(Name.findName("net@")))) return true;
+		}
+
 		// attach this arc to the two nodes it connects
 		ends[HEADEND].getPortInst().getNodeInst().addConnection(ends[HEADEND]);
 		ends[TAILEND].getPortInst().getNodeInst().addConnection(ends[TAILEND]);
@@ -405,6 +412,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		// add this arc to the cell
 		linkGeom(parent);
 		parent.addArc(this);
+		linked = true;
 
 		// update end shrinkage information
 		for(int k=0; k<2; k++)
@@ -428,6 +436,8 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		// update end shrinkage information
 		for(int k=0; k<2; k++)
 			updateShrinkage(ends[k].getPortInst().getNodeInst());
+
+		linked = false;
 	}
 
 	/**
@@ -829,6 +839,62 @@ public class ArcInst extends Geometric /*implements Networkable*/
 			" at (" + loc.getX() + "," + loc.getY() + ")");
 		System.out.println(" Center: (" + getCenterX() + "," + getCenterY() + "), width: " + getXSize() + ", length:" + getYSize() + ", angle " + angle/10.0);
 		super.getInfo();
+	}
+
+	/**
+	 * Routine to set the name of this ArcInst.
+	 * The name is a local string that can be set by the user.
+	 * @param name the new name of this ArcInst.
+	 */
+	public boolean setNameLow(Name name)
+	{
+		if (name == getNameLow()) return false;
+		if (checkArcName(name)) return true;
+
+		if (linked && getNameLow() != null)
+		{
+			parent.removeArcName(this);
+		}
+		super.setNameLow(name);
+		if (linked)
+		{
+			parent.addArcName(this);
+		}
+		return false;
+	}
+
+	/**
+	 * Routine to check the name of this NodeInst.
+	 * @param name the new name of this NodeInst.
+	 */
+	private boolean checkArcName(Name name)
+	{
+		if (!name.isValid())
+		{
+			System.out.println("Invalid arc name <"+name+"> :"+Name.checkName(name.toString()));
+			return true;
+		}
+		if (name.isTempname() && name.isBus())
+		{
+			System.out.println("Temporary bus name <"+name+">");
+			return true;
+		}
+		if (name.hasEmptySubnames())
+		{
+			System.out.println("Name <"+name+"> has empty subnames");
+			return true;
+		}
+		if (name.isBus() && protoType.getFunction() != ArcProto.Function.BUS)
+		{
+			System.out.println("Bus name <"+name+"> can be assigned only to bus arcs");
+			return true;
+		}
+		if (name.isTempname() && linked && !parent.isUniqueName(name, NodeInst.class, this))
+		{
+			System.out.println("Arc name <"+name+"> is duplicated in "+parent);
+			return true;
+		}
+		return false;
 	}
 
 	/**

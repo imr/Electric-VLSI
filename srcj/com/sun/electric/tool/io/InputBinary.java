@@ -1529,6 +1529,11 @@ public class InputBinary extends Input
 				{
 					System.out.println("Error: cell " + c.noLibDescribe() + " in library " + elib.getLibName() +
 						" is missing export " + localPortNames[j]);
+// 					for (Iterator it = c.getPorts(); it.hasNext(); )
+// 					{
+// 						PortProto pp = (PortProto)it.next();
+// 						System.out.println("\t"+pp.getProtoName());
+// 					}
 					c = null;
 					break;
 				}
@@ -1886,8 +1891,8 @@ public class InputBinary extends Input
 				switch (newtype&BinaryConstants.VTYPE)
 				{
 					case BinaryConstants.VADDRESS:
-					case BinaryConstants.VINTEGER:
-					case BinaryConstants.VFRACT:      newAddrArray = new Integer[cou];     break;
+					case BinaryConstants.VINTEGER:    newAddrArray = new Integer[cou];     break;
+					case BinaryConstants.VFRACT:      
 					case BinaryConstants.VFLOAT:      newAddrArray = new Float[cou];       break;
 					case BinaryConstants.VDOUBLE:     newAddrArray = new Double[cou];      break;
 					case BinaryConstants.VSHORT:      newAddrArray = new Short[cou];       break;

@@ -24,8 +24,6 @@
 package com.sun.electric.database.prototype;
 
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.network.Networkable;
-import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -54,7 +52,7 @@ import java.util.HashMap;
  * at a higher level in the schematic or layout hierarchy.
  * The PortProto also has a parent cell, characteristics, and more.
  */
-public abstract class PortProto extends ElectricObject implements Networkable
+public abstract class PortProto extends ElectricObject
 {
 	/** angle of this port from node center */			private static final int PORTANGLE =               0777;
 	/** right shift of PORTANGLE field */				private static final int PORTANGLESH =                0;
@@ -180,14 +178,9 @@ public abstract class PortProto extends ElectricObject implements Networkable
 	/** Internal flag bits of this PortProto. */				protected int userBits;
 	/** The parent NodeProto of this PortProto. */				protected NodeProto parent;
 	/** The text descriptor of this PortProto. */				private TextDescriptor descriptor;
+	/** Index of this PortProto in NodeProto ports */			private int index;
 	/** A temporary integer value of this PortProto. */			private int tempInt;
 	/** The temporary Object. */								private Object tempObj;
-
-	/** Network that this port belongs to (in case two ports are permanently
-	 * connected, like the two ends of the gate in a MOS transistor.
-	 * The Network node pointed to here does not have any connections itself;
-	 * it just serves as a common marker. */
-	private JNetwork network;
 
 	// ----------------------- public constants -----------------------
 
@@ -200,18 +193,10 @@ public abstract class PortProto extends ElectricObject implements Networkable
 	protected PortProto()
 	{
 		this.parent = null;
-		this.network = null;
 		this.userBits = 0;
 		this.descriptor = TextDescriptor.newExportDescriptor();
 		this.tempObj = null;
-		//if (network!=null)  network.addPart(this);
 	}
-
-	/**
-	 * Set the network associated with this PortProto.
-	 * @param net the network to associate with this PortProto.
-	 */
-	void setNetwork(JNetwork net) { this.network = net; }
 
 	/**
 	 * Routine to set the parent NodeProto that this PortProto belongs to.
@@ -247,7 +232,6 @@ public abstract class PortProto extends ElectricObject implements Networkable
 	{
 		System.out.println(" Parent: " + parent);
 		System.out.println(" Name: " + protoName);
-		System.out.println(" Network: " + network);
 		super.getInfo();
 	}
 
@@ -270,12 +254,6 @@ public abstract class PortProto extends ElectricObject implements Networkable
 	 * @return the parent NodeProto of this PortProto.
 	 */
 	public NodeProto getParent() { return parent; }
-
-	/**
-	 * Routine to return the network of this PortProto.
-	 * @return the network of this PortProto.
-	 */
-	public JNetwork getNetwork() { return network; }
 
 	/**
 	 * Routine to return the Text Descriptor of this PortProto.
@@ -474,6 +452,18 @@ public abstract class PortProto extends ElectricObject implements Networkable
 	 * @param userBits the new "user bits".
 	 */
 	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
+
+	/**
+	 * Routine to set an index of this PortProto in NodeProto ports.
+	 * @param index an index of this PortProto in NodeProto ports.
+	 */
+	public void setIndex(int index) { this.index = index; }
+
+	/**
+	 * Routine to get the index of this PortProto in NodeProto ports.
+	 * @return index of this PortProto in NodeProto ports.
+	 */
+	public int getIndex() { return index; }
 
 	/**
 	 * Routine to set an arbitrary integer in a temporary location on this PortProto.

@@ -23,10 +23,13 @@
  */
 package com.sun.electric.database.hierarchy;
 
-import com.sun.electric.database.text.Name;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.Variable;
 
 /**
  * This interface defines real or virtual instance of NodeProto in a Cell..
@@ -64,6 +67,20 @@ public interface Nodable
 	 * @return the name of this Nodable.
 	 */
 	public Name getNameLow();
+
+	/**
+	 * Routine to return the Variable on this Nodable with a given name.
+	 * @param name the name of the Variable.
+	 * @return the Variable with that name, or null if there is no such Variable.
+	 */
+	public Variable getVar(String name);
+
+	/**
+	 * Routine to get network by PortProto and bus index.
+	 * @param portProto PortProto in protoType.
+	 * @param busIndex index in bus.
+	 */
+	public JNetwork getNetwork(PortProto portProto, int busIndex);
 
 	/**
 	 * Returns a printable version of this Nodable.

@@ -1,3 +1,5 @@
+/* -*- tab-width: 4 -*-
+ */
 package com.sun.electric.tool.generator.layout;
 
 import java.awt.event.ActionListener;
@@ -17,6 +19,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
@@ -139,19 +142,20 @@ class IvanFlater extends HierarchyEnumerator.Visitor {
 		}
 	}
 
-	public boolean visitNodeInst(NodeInst ni,
+	public boolean visitNodeInst(Nodable no,
 								 HierarchyEnumerator.CellInfo info) {
 		//System.out.println("Visit inst of: "+ni.getProto().getName());
-		NodeProto np = ni.getProto();
-		if (np instanceof Cell) {
-			String nm = ni.getName();
-			if (nm == null) {
-				// NodeInst without a name
-				ni.setName("ivanFlat" + nameNumber);
-			}
-		}
+		NodeProto np = no.getProto();
+// 		if (np instanceof Cell) {
+// 			String nm = ni.getName();
+// 			if (nm == null) {
+// 				// NodeInst without a name
+// 				ni.setName("ivanFlat" + nameNumber);
+// 			}
+// 		}
 		String msg = null;
 		if (np instanceof PrimitiveNode) {
+		    NodeInst ni = (NodeInst)no;
 			String protNm = np.getProtoName();
 			if (protNm.equals("N-Transistor")) {
 				msg =

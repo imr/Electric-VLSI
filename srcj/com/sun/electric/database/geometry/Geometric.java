@@ -775,6 +775,7 @@ public class Geometric extends ElectricObject
 	/** size of this geometric */							protected double sX, sY;
 	/** angle of this geometric (in tenth-degrees). */		protected int angle;
 	/** The temporary Object for the node or arc. */		private Object tempObj;
+	/** Index of this Geometric in a cell */				private int index;
 	/** temporary integer value for the node or arc */		private int tempInt;
 	/** Flag bits for this Geometric. */					protected int userBits;
 	/** The temporary flag bits. */							private int flagBits;
@@ -793,6 +794,7 @@ public class Geometric extends ElectricObject
 		center = new Point2D.Double();
 		nameDescriptor = TextDescriptor.newNodeArcDescriptor();
 		visBounds = new Rectangle2D.Double(0, 0, 0, 0);
+		index = -1;
 	}
 
 	/**
@@ -1014,6 +1016,18 @@ public class Geometric extends ElectricObject
 	 * @return true if the flag bits are set.
 	 */
 	public boolean isBit(FlagSet set) { return (flagBits & set.getMask()) != 0; }
+
+	/**
+	 * Routine to set an index of this Geometric in a cell.
+	 * @param index an index of this Geometric in a cell.
+	 */
+	public void setIndex(int index) { this.index = index; }
+
+	/**
+	 * Routine to get the index of this Geometric in a cell.
+	 * @return index of this Geoemetric in a cell.
+	 */
+	public int getIndex() { return index; }
 
 	/**
 	 * Routine to get the temporary integer on this Geometric.

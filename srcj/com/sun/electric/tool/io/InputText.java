@@ -1618,8 +1618,8 @@ public class InputText extends Input
 				switch (type&BinaryConstants.VTYPE)
 				{
 					case BinaryConstants.VADDRESS:
-					case BinaryConstants.VINTEGER:
-					case BinaryConstants.VFRACT:      value = new Integer[arrayLen];     break;
+					case BinaryConstants.VINTEGER:    value = new Integer[arrayLen];     break;
+					case BinaryConstants.VFRACT:      
 					case BinaryConstants.VFLOAT:      value = new Float[arrayLen];       break;
 					case BinaryConstants.VDOUBLE:     value = new Double[arrayLen];      break;
 					case BinaryConstants.VSHORT:      value = new Short[arrayLen];       break;
@@ -1685,9 +1685,10 @@ public class InputText extends Input
 			case BinaryConstants.VINTEGER:
 			case BinaryConstants.VSHORT:
 			case BinaryConstants.VBOOLEAN:
-			case BinaryConstants.VFRACT:
 			case BinaryConstants.VADDRESS:
 				return new Integer(EMath.atoi(name));
+			case BinaryConstants.VFRACT:
+				return new Float(EMath.atoi(name) / 120.0f);
 			case BinaryConstants.VCHAR:
 				return new Character(name.charAt(0));
 			case BinaryConstants.VSTRING:

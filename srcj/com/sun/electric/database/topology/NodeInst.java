@@ -30,6 +30,7 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.NodeInstProxy;
 import com.sun.electric.database.hierarchy.NodeUsage;
@@ -112,14 +113,20 @@ public class NodeInst extends Geometric implements Nodable
 	/**
 	 * the Subinst class is used when icon node has arrayed name.
 	 */
-	public class Subinst
+	public static class Subinst
 	{
+		/** parent NodeInst. */									NodeInst inst;
 		/** index in icon NodeInst. */							int index;
 		/** NodeInstProxy of this subinstance */				NodeInstProxy proxy;
 
-		Subinst(int index) { this.index = index; }
+		Subinst(NodeInst inst, int index) { this.inst = inst; this.index = index; }
 
-		public Name getName() { return name != null ? name.subname(index) : null; }
+		public NodeInst getInst() { return inst; }
+		public Name getName()
+		{
+			return inst.name;
+			//return inst.name != null ? inst.name.subname(index) : null;
+		}
 		public NodeInstProxy getProxy() { return proxy; }
 		public void setProxy(NodeInstProxy proxy) { this.proxy = proxy; }
 	}
@@ -615,7 +622,7 @@ public class NodeInst extends Geometric implements Nodable
 			if (protoCell.getView() == View.ICON)
 			{
 				subs = new Subinst[1];
-				subs[0] = new Subinst(0);
+				subs[0] = new Subinst(this, 0);
 			}
 		}
 
@@ -657,7 +664,8 @@ public class NodeInst extends Geometric implements Nodable
 			if (!parent.isUniqueName(name, getClass(), this))
 			{
 				System.out.println("NodeInst "+name+" already exists in "+parent);
-				return true;
+				if (setNameLow(parent.getAutoname(getBasename()))) return true;
+				System.out.println("\tRenamed to "+name);
 			}
 		} else
 		{
@@ -668,7 +676,7 @@ public class NodeInst extends Geometric implements Nodable
 		// add to linked lists
 		linkGeom(parent);
 		nodeUsage = parent.addNode(this);
-		parent.addNodables(this, null);
+		parent.addNodables(this, subs);
 		return false;
 	}
 
@@ -681,7 +689,7 @@ public class NodeInst extends Geometric implements Nodable
 		unLinkGeom(parent);
 		parent.removeNode(this);
 		nodeUsage = null;
-		parent.removeNodables(this, null);
+		parent.removeNodables(this, subs);
 	}
 
 	/**
@@ -728,6 +736,12 @@ public class NodeInst extends Geometric implements Nodable
 
 		return getParent().getCellGroup() == ((Cell) np).getCellGroup();
 	}
+
+	/**
+	 * Routine to return i-th subinstance of NodeInst.
+	 * @return subinstance.
+	 */
+	public Subinst getSubinst(int i) { return subs[i]; }
 
 	/****************************** GRAPHICS ******************************/
 
@@ -1302,6 +1316,27 @@ public class NodeInst extends Geometric implements Nodable
     }
 
 	/**
+	 * Routine to get network by PortProto and bus index.
+	 * @param portProto PortProto in protoType.
+	 * @param busIndex index in bus.
+	 */
+	public JNetwork getNetwork(PortProto portProto, int busIndex)
+	{
+		if (getIndex() < 0) return null; // Nonelectric node
+		if (portProto.getParent() != protoType)
+		{
+			System.out.println("Invalid portProto argument in NodeInst.getNetwork");
+			return null;
+		}
+		if (busIndex < 0 || busIndex >= portProto.getProtoNameLow().busWidth())
+		{
+			System.out.println("NodeInst.getNetwork: invalid arguments busIndex="+busIndex+" portProto="+portProto);
+			return null;
+		}
+		return parent.getNetwork(getIndex() + portProto.getIndex() + busIndex);
+	}
+
+	/**
 	 * Routine to add an Export to this NodeInst.
 	 * @param e the Export to add.
 	 */
@@ -1619,21 +1654,22 @@ public class NodeInst extends Geometric implements Nodable
 
 		if (nodeUsage != null && getNameLow() != null)
 		{
-			parent.removeNodables(this, null);
+			parent.removeNodables(this, subs);
 		}
 		super.setNameLow(name);
 		if (nodeUsage != null)
 		{
-			if (name != null) parent.addNodables(this, null);
-			parent.updateMaxSuffix(this);
+			parent.addNodables(this, subs);
 		}
 
 		// create subs
 		if (subs == null) return false;
+		/*
 		int width = name.busWidth();
 		if (width != subs.length) subs = new Subinst[width];
 		for (int i = 0; i < width; i++)
-			subs[i] = new Subinst(i);
+			subs[i] = new Subinst(this, i);
+		*/
 		return false;
 	}
 
@@ -1641,11 +1677,16 @@ public class NodeInst extends Geometric implements Nodable
 	 * Routine to check the name of this NodeInst.
 	 * @param name the new name of this NodeInst.
 	 */
-	public boolean checkNodeName(Name name)
+	private boolean checkNodeName(Name name)
 	{
 		if (!name.isValid())
 		{
 			System.out.println("Invalid node name <"+name+"> :"+Name.checkName(name.toString()));
+			return true;
+		}
+		if (name.isTempname() && name.isBus())
+		{
+			System.out.println("Temporary bus name <"+name+">");
 			return true;
 		}
 		if (name.hasEmptySubnames())
@@ -1669,36 +1710,6 @@ public class NodeInst extends Geometric implements Nodable
 			return true;
 		}
 		return false;
-	}
-
-	/**
-	 * Routine is called when node name is updated.
-	 */
-	private void updateName()
-	{
-		Variable var = getVar(NODE_NAME, String.class);
-		/*
-		if (var != null)
-		{
-			System.out.println((var.isDisplay()?"":"Invisible ")+"nodename "+(String) var.getObject()+" parent="+parent+" proto="+protoType);
-		}
-		*/
-		Name newName = var != null ? Name.findName( (String) var.getObject() ) : null;
-		if (newName == name) return;
-		name = newName;
-
-		// If linked, update max suffix
-		if (nodeUsage != null)
-		{
-			parent.updateMaxSuffix(this);
-		}
-
-		// create subs
-		if (subs == null) return;
-		int width = newName != null ? newName.busWidth() : 1;
-		if (width != subs.length) subs = new Subinst[width];
-		for (int i = 0; i < width; i++)
-			subs[i] = new Subinst(i);
 	}
 
 	/**

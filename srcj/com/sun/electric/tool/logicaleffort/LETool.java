@@ -30,6 +30,7 @@ package com.sun.electric.tool.logicaleffort;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.*;
@@ -100,9 +101,9 @@ public class LETool extends Tool {
 
     public Object getdrive() {
         Object info = EvalJavaBsh.tool.getCurrentInfo();
-        if (!(info instanceof NodeInst)) return "?";
+        if (!(info instanceof Nodable)) return "?";
         VarContext context = EvalJavaBsh.tool.getCurrentContext();
-        NodeInst ni = (NodeInst)info;
+        Nodable ni = (Nodable)info;
         String ledrive = LETool.makeDriveStr(context.push(ni));
         if (ledrive == null) return "?";
         Variable var = ni.getVar(ledrive);

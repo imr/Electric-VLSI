@@ -32,6 +32,7 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.prototype.NodeProto;
@@ -123,13 +124,14 @@ public class IRSIMTool extends Tool {
         public void exitCell(HierarchyEnumerator.CellInfo info) {
         }        
         
-        public boolean visitNodeInst(NodeInst ni, HierarchyEnumerator.CellInfo info) {
+        public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) {
 
             IRSIMCellInfo iinfo = (IRSIMCellInfo)info;
             
-            NodeProto np = ni.getProto();               // check if prototype is Primitive transistor
+            NodeProto np = no.getProto();               // check if prototype is Primitive transistor
             if (!(np instanceof PrimitiveNode)) return true;  // descend and enumerate
             PrimitiveNode pn = (PrimitiveNode)np;
+			NodeInst ni = (NodeInst)no; // Nodable is NodeInst because it is primitnive node
             if (!(ni.isPrimitiveTransistor())) return false;   // not transistor, ignore
             boolean isNMOS = false;
             if (ni.getFunction() == NodeProto.Function.TRANMOS ||
@@ -193,7 +195,7 @@ public class IRSIMTool extends Tool {
             if (parent == null) mFactor = 1f;
             else mFactor = ((IRSIMCellInfo)parent).getMFactor();
             // get mfactor from instance we pushed into
-            NodeInst ni = getContext().getNodeInst();
+            Nodable ni = getContext().getNodable();
             if (ni == null) return;
             Variable mvar = ni.getVar("ATTR_M");
             if (mvar == null) return;
