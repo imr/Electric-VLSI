@@ -6,6 +6,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01aw: *********************************
 
+IMP: (12/17/04, RK) NCC: remove useless options. update documentation
+
 IMP: (12/17/04, GVG) 3D View: panning implemented (Bug #24). ZoomAndPanListener.panX and panY replaced by one function
 and new one was added to WindowContent to deal with different window types.
 

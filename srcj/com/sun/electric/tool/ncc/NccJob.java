@@ -130,32 +130,8 @@ public class NccJob extends Job {
 		
 		return options;
 	}
-	private void testProbing() {
-		EditWindow wnd = EditWindow.getCurrent();
-		Cell cell = wnd.getCell();
-		VarContext context = wnd.getVarContext();
-		Highlighter hiLite = wnd.getHighlighter();
-		Set nets = hiLite.getHighlightedNetworks();
-		Network net = (Network) nets.iterator().next();
-		NetEquivalence ne = lastResult.getNetEquivalence();
-		int numErrs = ne.regressionTest();
-//		NetNameProxy prox = ne.findEquivalent(context, net);
-//		if (prox==null) {
-//			System.out.println("Not found: "+context.getInstPath("/")+" "+
-//					(String)net.getNames().next());
-//			return;
-//		}
-//		VarContext eCtxt = prox.getContext();
-//		String eNet = prox.leafName();
-//		System.out.println("Equiv net: "+prox.toString());
-	}
 
     public boolean doIt() {
-    	if (numWindows==-1) {
-    		// tests probing
-    		testProbing();
-    		return true;
-    	}
     	lastResult = null;
     	
 		LayoutLib.error(numWindows!=1 && numWindows!=2, 

@@ -239,11 +239,6 @@ public class ToolMenu {
 				new com.sun.electric.tool.ncc.NccJob(2);
 			}
 		});
-		nccSubMenu.addMenuItem("Test Probing", null, 0, new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				new com.sun.electric.tool.ncc.NccJob(-1);
-			}
-		});
 
 		//------------------- Network
 

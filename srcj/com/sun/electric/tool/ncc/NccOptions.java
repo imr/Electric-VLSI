@@ -26,7 +26,7 @@ package com.sun.electric.tool.ncc;
 public class NccOptions {
 	/** what NCC operation to perform */
 	public static final int HIER_EACH_CELL = 0;
-	public static final int FLAT_EACH_CELL = 1;
+	public static final int FLAT_EACH_CELL = 1;		// for regression testing
 	public static final int FLAT_TOP_CELL = 2;
 	public static final int LIST_ANNOTATIONS = 3;
 	public int operation = HIER_EACH_CELL;

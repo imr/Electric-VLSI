@@ -58,7 +58,6 @@ public class NCCTab extends PreferencePanel
 	private void setOperation(int op) {
         switch (op) {
             case NccOptions.HIER_EACH_CELL: hierAll.setSelected(true); break;
-            case NccOptions.FLAT_EACH_CELL: flatAll.setSelected(true); break;
             case NccOptions.FLAT_TOP_CELL: flatTop.setSelected(true); break;
             case NccOptions.LIST_ANNOTATIONS: listAnn.setSelected(true); break;
             default: hierAll.setSelected(true); break;
@@ -66,7 +65,6 @@ public class NCCTab extends PreferencePanel
     }
     private int getOperation() {
         if (hierAll.isSelected()) return NccOptions.HIER_EACH_CELL;
-        if (flatAll.isSelected()) return NccOptions.FLAT_EACH_CELL;
         if (flatTop.isSelected()) return NccOptions.FLAT_TOP_CELL;
         if (listAnn.isSelected()) return NccOptions.LIST_ANNOTATIONS;
         return NccOptions.HIER_EACH_CELL;
@@ -175,7 +173,6 @@ public class NCCTab extends PreferencePanel
         ncc = new javax.swing.JPanel();
         operation = new javax.swing.JPanel();
         hierAll = new javax.swing.JRadioButton();
-        flatAll = new javax.swing.JRadioButton();
         flatTop = new javax.swing.JRadioButton();
         listAnn = new javax.swing.JRadioButton();
         sizeChecking = new javax.swing.JPanel();
@@ -213,32 +210,31 @@ public class NCCTab extends PreferencePanel
         operation.setLayout(new java.awt.GridBagLayout());
 
         operation.setBorder(new javax.swing.border.TitledBorder("Operation"));
-        hierAll.setText("Hierarchical NCC each cell in the design");
         operationGroup.add(hierAll);
+        hierAll.setText("Hierarchical Comparison");
+        hierAll.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                hierAllActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         operation.add(hierAll, gridBagConstraints);
 
-        flatAll.setText("Flat NCC each cell in the design");
-        operationGroup.add(flatAll);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        operation.add(flatAll, gridBagConstraints);
-
-        flatTop.setText("Flat NCC top cell in the design");
         operationGroup.add(flatTop);
+        flatTop.setText("Flat Comparison");
+        flatTop.setActionCommand("Flat NCC");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         operation.add(flatTop, gridBagConstraints);
 
-        listAnn.setText("List NCC annotations");
         operationGroup.add(listAnn);
+        listAnn.setText("List NCC annotations");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
@@ -411,6 +407,10 @@ public class NCCTab extends PreferencePanel
         pack();
     }//GEN-END:initComponents
 
+    private void hierAllActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_hierAllActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_hierAllActionPerformed
+
     private void skipPassedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_skipPassedActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_skipPassedActionPerformed
@@ -427,7 +427,6 @@ public class NCCTab extends PreferencePanel
     private javax.swing.JPanel checkingAllCells;
     private javax.swing.JCheckBox enableSizeChecking;
     private javax.swing.JPanel errorReport;
-    private javax.swing.JRadioButton flatAll;
     private javax.swing.JRadioButton flatTop;
     private javax.swing.JCheckBox haltAfterFindingFirstMismatchedCell;
     private javax.swing.JRadioButton hierAll;
