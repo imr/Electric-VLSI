@@ -305,7 +305,7 @@ public abstract class InteractiveRouter extends Router {
         // arc(s) should connect
         Point2D startPoint = new Point2D.Double(0, 0);
         Point2D endPoint = new Point2D.Double(0,0);
-        getConnectingPoints(startObj, endObj, clicked, startPoint, endPoint, startPoly, endPoly);
+        getConnectingPoints(startObj, endObj, clicked, startPoint, endPoint, startPoly, endPoly, startArc, endArc);
 
 
         PortInst existingStartPort = null;
@@ -461,7 +461,8 @@ public abstract class InteractiveRouter extends Router {
      * @param endPoly valid port site on endObj
      */
     protected static void getConnectingPoints(ElectricObject startObj, ElectricObject endObj, Point2D clicked,
-                                              Point2D startPoint, Point2D endPoint, Poly startPoly, Poly endPoly) {
+                                              Point2D startPoint, Point2D endPoint, Poly startPoly, Poly endPoly,
+                                              ArcProto startArc, ArcProto endArc) {
 
         // just go by bounds for now
         Rectangle2D startBounds = startPoly.getBounds2D();
@@ -481,7 +482,7 @@ public abstract class InteractiveRouter extends Router {
             // if arc, find place to connect to. Otherwise use the center point (default)
             endPoint.setLocation(getClosestOrthogonalPoint(startPoint, clicked));
             // however, if this is an Artwork technology, just put end point at mouse
-            if (Technology.getCurrent() == Artwork.tech)
+            if (startArc.getTechnology() == Artwork.tech)
                 endPoint.setLocation(clicked);
             return;
         }

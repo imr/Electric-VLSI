@@ -125,7 +125,7 @@ public class SimpleWirer extends InteractiveRouter {
         double width2 = getArcWidthToUse(endRE, useArc);
         if (width2 > width) width = width2;
 
-        if (Technology.getCurrent() == Artwork.tech) {
+        if (useArc.getTechnology() == Artwork.tech) {
             // draw arbitrary angle arcs
             RouteElement arcRE = RouteElementArc.newArc(cell, useArc, width, startRE, endRE, startLoc, endLoc, null, null, null);
             route.add(arcRE);
