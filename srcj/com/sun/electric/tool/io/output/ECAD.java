@@ -146,15 +146,15 @@ public class ECAD extends Output
 		}
 	}
 
-    /** ECAD Netlister */
+	/** ECAD Netlister */
 	private class ECADNetlister extends HierarchyEnumerator.Visitor
-    {
-        public boolean enterCell(HierarchyEnumerator.CellInfo info) { return true; }
+	{
+		public boolean enterCell(HierarchyEnumerator.CellInfo info) { return true; }
 
-        public void exitCell(HierarchyEnumerator.CellInfo info) {}        
+		public void exitCell(HierarchyEnumerator.CellInfo info) {}
 
-        public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
-        {
+		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
+		{
 			NodeProto np = no.getProto();
 			if (np instanceof PrimitiveNode) return false;
 
@@ -196,7 +196,7 @@ public class ECAD extends Output
 					networks.add(nn);
 				}
 			}
-            return false;
-        }
-    }
+			return false;
+		}
+	}
 }

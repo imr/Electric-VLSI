@@ -26,10 +26,12 @@ package com.sun.electric.tool.io;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.TextUtils.UnitScale;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Tool;
 
+import java.lang.reflect.Method;
 import java.util.Date;
 
 import javax.print.PrintServiceLookup;
@@ -53,6 +55,65 @@ public class IOTool extends Tool
 	protected IOTool()
 	{
 		super("io");
+	}
+
+	private static boolean skillChecked = false;
+	private static Class skillClass = null;
+	private static Method skillOutputMethod;
+
+	/**
+	 * Method to tell whether Skill output is available.
+	 * Skill is a proprietary format of Cadence, and only valid licensees are given this module.
+	 * This method dynamically figures out whether the Skill module is present by using reflection.
+	 * @return true if the Skill output module is available.
+	 */
+	public static boolean hasSkill()
+	{
+		if (!skillChecked)
+		{
+			skillChecked = true;
+
+			// find the Skill class
+			try
+			{
+				skillClass = Class.forName("com.sun.electric.plugins.skill.Skill");
+			} catch (ClassNotFoundException e)
+			{
+				skillClass = null;
+				return false;
+			}
+
+			// find the necessary method on the Skill class
+			try
+			{
+				skillOutputMethod = skillClass.getMethod("writeSkillFile", new Class[] {Cell.class, String.class});
+			} catch (NoSuchMethodException e)
+			{
+				skillClass = null;
+				return false;
+			}
+		}
+
+		// if already initialized, return
+		if (skillClass == null) return false;
+	 	return true;
+	}
+
+	/**
+	 * Method to invoke the Skill output module via reflection.
+	 * @param cell the Cell to write in Skill.
+	 * @param fileName the name of the file to write.
+	 */
+	public static void writeSkill(Cell cell, String fileName)
+	{
+		if (!hasSkill()) return;
+		try
+		{
+			skillOutputMethod.invoke(skillClass, new Object[] {cell, fileName});
+		} catch (Exception e)
+		{
+			System.out.println("Unable to run the Skill output module");
+		}
 	}
 
 	/****************************** GENERAL IO PREFERENCES ******************************/
@@ -525,4 +586,135 @@ public class IOTool extends Tool
 		dateArray[1] = new Integer((int)(iVal & 0xFFFFFFFF));
 		tool.setVarInJob(cell, POSTSCRIPT_FILEDATE, dateArray);
 	}
+
+	/****************************** EDIF PREFERENCES ******************************/
+
+	private static Pref cacheEDIFUseSchematicView = Pref.makeBooleanPref("EDIFUseSchematicView", IOTool.tool.prefs, false);
+	/**
+	 * Method to tell whether EDIF uses the schematic view.
+	 * The default is "false".
+	 * @return true if EDIF uses the schematic view.
+	 */
+	public static boolean isEDIFUseSchematicView() { return cacheEDIFUseSchematicView.getBoolean(); }
+	/**
+	 * Method to set whether EDIF uses the schematic view.
+	 * @param f true if EDIF uses the schematic view.
+	 */
+	public static void setEDIFUseSchematicView(boolean f) { cacheEDIFUseSchematicView.setBoolean(f); }
+
+	private static Pref cacheEDIFInputScale = Pref.makeDoublePref("EDIFInputScale", IOTool.tool.prefs, 1);
+	/**
+	 * Method to return the EDIF input scale.
+	 * The default is "1".
+	 * @return the EDIF input scale.
+	 */
+	public static double getEDIFInputScale() { return cacheEDIFInputScale.getDouble(); }
+	/**
+	 * Method to set the EDIF input scale.
+	 * @param f the EDIF input scale.
+	 */
+	public static void setEDIFInputScale(double f) { cacheEDIFInputScale.setDouble(f); }
+
+	/****************************** DXF PREFERENCES ******************************/
+
+	private static Pref cacheDXFInputFlattensHierarchy = Pref.makeBooleanPref("DXFInputFlattensHierarchy", IOTool.tool.prefs, true);
+	/**
+	 * Method to tell whether DXF Input flattens the hierarchy.
+	 * Flattened DXF appears in a single cell.
+	 * The default is "true".
+	 * @return true if DXF Input flattens the hierarchy.
+	 */
+	public static boolean isDXFInputFlattensHierarchy() { return cacheDXFInputFlattensHierarchy.getBoolean(); }
+	/**
+	 * Method to set whether DXF Input flattens the hierarchy.
+	 * Flattened DXF appears in a single cell.
+	 * @param f true if DXF Input flattens the hierarchy.
+	 */
+	public static void setDXFInputFlattensHierarchy(boolean f) { cacheDXFInputFlattensHierarchy.setBoolean(f); }
+
+	private static Pref cacheDXFInputReadsAllLayers = Pref.makeBooleanPref("DXFInputReadsAllLayers", IOTool.tool.prefs, false);
+	/**
+	 * Method to tell whether DXF input reads all layers.
+	 * When a DXF layer in the file is unknown, it is ignored if all layers are NOT being read;
+	 * it is converted to another layer if all layers ARE being read.
+	 * The default is "false".
+	 * @return true if DXF input reads all layers.
+	 */
+	public static boolean isDXFInputReadsAllLayers() { return cacheDXFInputReadsAllLayers.getBoolean(); }
+	/**
+	 * Method to set whether DXF input reads all layers.
+	 * When a DXF layer in the file is unknown, it is ignored if all layers are NOT being read;
+	 * it is converted to another layer if all layers ARE being read.
+	 * @param a true if DXF input reads all layers.
+	 */
+	public static void setDXFInputReadsAllLayers(boolean a) { cacheDXFInputReadsAllLayers.setBoolean(a); }
+
+	private static Pref cacheDXFScale = Pref.makeIntPref("DXFScale", IOTool.tool.prefs, 2);
+	/**
+	 * Method to tell the DXF scale.
+	 * The DXF scale is:
+	 * <UL>
+	 * <LI>-3: GigaMeters
+	 * <LI>-2: MegaMeters
+	 * <LI>-1: KiloMeters
+	 * <LI>0: Meters
+	 * <LI>1: MilliMeters
+	 * <LI>2: MicroMeters
+	 * <LI>3: NanoMeters
+	 * <LI>4: PicoMeters
+	 * <LI>5: FemtoMeters
+	 * </UL>
+	 * The default is "2" (MicroMeters).
+	 * @return the DXF scale.
+	 */
+	public static int getDXFScale() { return cacheDXFScale.getInt(); }
+	/**
+	 * Method to set the DXF scale.
+	 * The DXF scale is:
+	 * <UL>
+	 * <LI>-3: GigaMeters
+	 * <LI>-2: MegaMeters
+	 * <LI>-1: KiloMeters
+	 * <LI>0: Meters
+	 * <LI>1: MilliMeters
+	 * <LI>2: MicroMeters
+	 * <LI>3: NanoMeters
+	 * <LI>4: PicoMeters
+	 * <LI>5: FemtoMeters
+	 * </UL>
+	 * @param s the DXF scale.
+	 */
+	public static void setDXFScale(int s) { cacheDXFScale.setInt(s); }
+
+	/****************************** SKILL OUTPUT PREFERENCES ******************************/
+
+	private static Pref cacheSkillExcludesSubcells = Pref.makeBooleanPref("SkillExcludesSubcells", IOTool.tool.prefs, false);
+	/**
+	 * Method to tell whether Skill Output excludes subcells.
+	 * If subcells are included, a Skill output files have multiple cell definitions in them.
+	 * The default is "false".
+	 * @return true if Skill Output excludes subcells.
+	 */
+	public static boolean isSkillExcludesSubcells() { return cacheSkillExcludesSubcells.getBoolean(); }
+	/**
+	 * Method to set whether Skill Output excludes subcells.
+	 * If subcells are included, a Skill output files have multiple cell definitions in them.
+	 * @param on true if Skill Output excludes subcells.
+	 */
+	public static void setSkillExcludesSubcells(boolean on) { cacheSkillExcludesSubcells.setBoolean(on); }
+
+	private static Pref cacheSkillFlattensHierarchy = Pref.makeBooleanPref("SkillFlattensHierarchy", IOTool.tool.prefs, false);
+	/**
+	 * Method to tell whether Skill Output flattens the hierarchy.
+	 * Flattened files are larger, but have no hierarchical structure.
+	 * The default is "false".
+	 * @return true if Skill Output flattens the hierarchy.
+	 */
+	public static boolean isSkillFlattensHierarchy() { return cacheSkillFlattensHierarchy.getBoolean(); }
+	/**
+	 * Method to set whether Skill Output flattens the hierarchy.
+	 * Flattened files are larger, but have no hierarchical structure.
+	 * @param on true if Skill Output flattens the hierarchy.
+	 */
+	public static void setSkillFlattensHierarchy(boolean on) { cacheSkillFlattensHierarchy.setBoolean(on); }
 }

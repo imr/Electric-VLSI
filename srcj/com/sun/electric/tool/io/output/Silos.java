@@ -43,8 +43,12 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.simulation.Simulation;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Date;
 import java.util.Iterator;
 
@@ -57,18 +61,14 @@ public class Silos extends Topology
 	/** Maximum macro name length. */				private static final int MAXNAME =  12;
 
 	/** key of Variable holding node name. */		public static final Variable.Key SILOS_NODE_NAME_KEY = ElectricObject.newKey("SIM_silos_node_name");
-	/** key of Variable holding rise time. */		public static final Variable.Key SILOS_RISE_DELAY_KEY = ElectricObject.newKey("SIM_rise_delay");
-	/** key of Variable holding fall time. */		public static final Variable.Key SILOS_FALL_DELAY_KEY = ElectricObject.newKey("SIM_fall_delay");
 	/** key of Variable holding global names. */	public static final Variable.Key SILOS_GLOBAL_NAME_KEY = ElectricObject.newKey("SIM_silos_global_name");
 	/** key of Variable holding behavior file. */	public static final Variable.Key SILOS_BEHAVIOR_FILE_KEY = ElectricObject.newKey("SIM_silos_behavior_file");
 	/** key of Variable holding model. */			public static final Variable.Key SILOS_MODEL_KEY = ElectricObject.newKey("SC_silos");
 
-	/** number of characters written on a line */	private int lineCharCount;
-
 	/**
 	 * The main entry point for Silos deck writing.
 	 * @param cell the top-level cell to write.
-	 * @param filePath the disk file to create with Verilog.
+	 * @param filePath the disk file to create with Silos.
 	 */
 	public static void writeSilosFile(Cell cell, VarContext context, String filePath)
 	{
@@ -80,7 +80,7 @@ public class Silos extends Topology
 	}
 
 	/**
-	 * Creates a new instance of Silos
+	 * Creates a new instance of the Silos netlister.
 	 */
 	Silos()
 	{
@@ -88,21 +88,25 @@ public class Silos extends Topology
 
 	protected void start()
 	{
+		// parameters to the output-line-length limit and how to break long lines
+		setOutputWidth(MAXSTR);
+		setCommentChar('$');
+		setContinuationString("+");
+
 		// write header information
-		lineCharCount = 0;
-		sendToSilos("\n$ CELL " + topCell.describe() +
+		writeWidthLimited("\n$ CELL " + topCell.describe() +
 			" FROM LIBRARY " + topCell.getLibrary().getName() + "\n");
 		emitCopyright("$ ", "");
 		if (User.isIncludeDateAndVersionInOutput())
 		{
-			sendToSilos("$ CELL CREATED ON " + TextUtils.formatDate(topCell.getCreationDate()) + "\n");
-			sendToSilos("$ VERSION " + topCell.getVersion() + "\n");
-			sendToSilos("$ LAST REVISED " + TextUtils.formatDate(topCell.getRevisionDate()) + "\n");
-			sendToSilos("$ SILOS netlist written by Electric VLSI Design System, version " + Version.getVersion() + "\n");
-			sendToSilos("$ WRITTEN ON " + TextUtils.formatDate(new Date()) + "\n");
+			writeWidthLimited("$ CELL CREATED ON " + TextUtils.formatDate(topCell.getCreationDate()) + "\n");
+			writeWidthLimited("$ VERSION " + topCell.getVersion() + "\n");
+			writeWidthLimited("$ LAST REVISED " + TextUtils.formatDate(topCell.getRevisionDate()) + "\n");
+			writeWidthLimited("$ SILOS netlist written by Electric VLSI Design System, version " + Version.getVersion() + "\n");
+			writeWidthLimited("$ WRITTEN ON " + TextUtils.formatDate(new Date()) + "\n");
 		} else
 		{
-			sendToSilos("$ SILOS netlist written by Electric VLSI Design System\n");
+			writeWidthLimited("$ SILOS netlist written by Electric VLSI Design System\n");
 		}
 
 		// First look for any global sources
@@ -119,7 +123,7 @@ public class Silos extends Topology
 			if (var != null)	// is this a global source ?
 			{
 				name = var.getObject().toString();
-				sendToSilos(".GLOBAL " + convertSpecialNames(name) + "\n");
+				writeWidthLimited(".GLOBAL " + convertSpecialNames(name) + "\n");
 			}
 
 			// Get the source type
@@ -127,7 +131,7 @@ public class Silos extends Topology
 			if (var == null)
 			{
 				System.out.println("Unspecified source:");
-				sendToSilos("$$$$$ Unspecified source: \n");
+				writeWidthLimited("$$$$$ Unspecified source: \n");
 			} else	// There is more
 			{
 				boolean clktype = false;	// Extra data required if variable there
@@ -153,7 +157,7 @@ public class Silos extends Topology
 					}
 				}
 				if (lastChr == '/' && clktype) line += msg.substring(msg.indexOf('/')+1);
-				sendToSilos(line + "\n");
+				writeWidthLimited(line + "\n");
 			}
 		}
 	}
@@ -182,16 +186,19 @@ public class Silos extends Topology
 					System.out.println("Cannot find SILOS behavior file " + fileName + " on cell " + cell.describe());
 				} else
 				{
-//					// copy the file
-//					for(;;)
-//					{
-//						count = xfread(buf, 1, 256, f);
-//						if (count <= 0) break;
-//						if (xfwrite(buf, 1, count, sim_silfile) != count)
-//							ttyputerr(_("Error copying file"));
-//					}
-//					xclose(f);
-//					sendToSilos(x_("\n"));
+					try
+					{
+						FileReader fr = new FileReader(test);
+						BufferedReader br = new BufferedReader(fr);
+						for(;;)
+						{
+							String line = br.readLine();
+							if (line == null) break;
+							writeWidthLimited(line + "\n");
+						}
+						br.close();
+						fr.close();
+					} catch (IOException e) {}
 					return;
 				}
 			}
@@ -209,8 +216,8 @@ public class Silos extends Topology
 			{
 				String [] model = (String [])var.getObject();
 				for(int i = 0; i < model.length; i++)
-					sendToSilos(model[i] + "\n");
-				sendToSilos("\n");
+					writeWidthLimited(model[i] + "\n");
+				writeWidthLimited("\n");
 				return;
 			}
 		}
@@ -221,7 +228,7 @@ public class Silos extends Topology
 		// write the module header
 		if (cell != topCell)
 		{
-			sendToSilos("\n");
+			writeWidthLimited("\n");
 			StringBuffer sb = new StringBuffer();
 			String name = cni.getParameterizedName();
 			if (name.length() > MAXNAME)
@@ -230,15 +237,16 @@ public class Silos extends Topology
 				name = name.substring(0, MAXNAME);
 				System.out.println(" truncated to " + name);
 			}
-			sendToSilos(".MACRO " + convertName(name));
+			writeWidthLimited(".MACRO " + convertName(name));
 			for(Iterator it = cni.getCellAggregateSignals(); it.hasNext(); )
 			{
 				CellAggregateSignal cas = (CellAggregateSignal)it.next();
 				if (cas.getExport() == null) continue;
-				sendToSilos(" " + convertName(convertSubscripts(cas.getName())));
+				if (cas.isSupply()) continue;
+				writeWidthLimited(" " + convertSubscripts(cas.getNameWithIndices()));
 			}
-			sendToSilos("\n");
-		} else sendToSilos("\n");
+			writeWidthLimited("\n");
+		} else writeWidthLimited("\n");
 
 		// write the cell instances
 		for(Iterator nIt = netList.getNodables(); nIt.hasNext(); )
@@ -249,10 +257,11 @@ public class Silos extends Topology
 			{
 				String nodeName = parameterizedName(no, context);
 				CellNetInfo subCni = getCellNetInfo(nodeName);
-				sendToSilos("(" + no.getName() + " " + convertName(nodeName));
+				writeWidthLimited("(" + no.getName() + " " + convertName(nodeName));
 				for(Iterator sIt = subCni.getCellAggregateSignals(); sIt.hasNext(); )
 				{
 					CellAggregateSignal cas = (CellAggregateSignal)sIt.next();
+					if (cas.isSupply()) continue;
 
 					// ignore networks that aren't exported
 					PortProto pp = cas.getExport();
@@ -264,7 +273,7 @@ public class Silos extends Topology
 						// single signal
 						JNetwork net = netList.getNetwork(no, pp, cas.getExportIndex());
 						CellSignal cs = cni.getCellSignal(net);
-						sendToSilos(" " + cs.getName());
+						writeWidthLimited(" " + cs.getName());
 					} else
 					{
 						int total = high - low + 1;
@@ -279,7 +288,7 @@ public class Silos extends Topology
 							cas.getName(), cni.getPowerNet(), cni.getGroundNet());
 					}
 				}
-				sendToSilos("\n");
+				writeWidthLimited("\n");
 			}
 		}
 
@@ -298,37 +307,37 @@ public class Silos extends Topology
 				if (nodeType == NodeProto.Function.TRANMOS || nodeType == NodeProto.Function.TRAPMOS)
 				{
 					// Transistors need a part number
-					sendToSilos(getNodeInstName(ni));
-					sendToSilos(" ");
-					sendToSilos(getPrimitiveName(ni, false));
-	
+					writeWidthLimited(getNodeInstName(ni));
+					writeWidthLimited(" ");
+					writeWidthLimited(getPrimitiveName(ni, false));
+
 					// write the names of the port(s)
 					for(Iterator pIt = ni.getProto().getPorts(); pIt.hasNext(); )
 					{
 						PortProto pp = (PortProto)pIt.next();
-						sendToSilos(getPortProtoName(cell == topCell, ni, pp, cell, netList, cni));
+						writeWidthLimited(getPortProtoName(cell == topCell, null, ni, pp, cell, netList, cni));
 					}
-					sendToSilos("\n");
+					writeWidthLimited("\n");
 					continue;
 				}
 				if (nodeType.isFlipFlop())
 				{
 					// flip-flops need a part number
-					sendToSilos(getNodeInstName(ni));
-					sendToSilos(" ");
-					sendToSilos(getPrimitiveName(ni, false));
-	
+					writeWidthLimited(getNodeInstName(ni));
+					writeWidthLimited(" ");
+					writeWidthLimited(getPrimitiveName(ni, false));
+
 					// write the names of the port(s)
 					writeFlipFlop(cell == topCell, ni, cell, nodeType, netList, cni);
 					continue;
 				}
-	
+
 				if (nodeType == NodeProto.Function.METER || nodeType == NodeProto.Function.SOURCE)
 				{
 					if (cell != topCell) System.out.println("WARNING: Global Clock in a sub-cell");
 					continue;
 				}
-	
+
 				if (nodeType == NodeProto.Function.GATEAND || nodeType == NodeProto.Function.GATEOR ||
 					nodeType == NodeProto.Function.GATEXOR || nodeType == NodeProto.Function.BUFFER)
 				{
@@ -337,91 +346,73 @@ public class Silos extends Topology
 					for(Iterator pIt = ni.getProto().getPorts(); pIt.hasNext(); )
 					{
 						PortProto pp = (PortProto)pIt.next();
-						// write the output signal as the name
 						if (pp.getCharacteristic() == PortProto.Characteristic.OUT)
 						{
-							// Find the name of the output port
-							sendToSilos(getPortProtoName(cell == topCell, ni, pp, cell, netList, cni));
-	
-							// Record that we used it
+							// find the name of the output port
+							writeWidthLimited(getPortProtoName(cell == topCell, null, ni, pp, cell, netList, cni));
+
+							// record that we used it
 							outPP = pp;
-							sendToSilos(" ");
-	
-							/*
-							 * determine if this proto is negated...
-							 * find a pi that is connected to this pp
-							 */
+
+							// determine if this proto is negated
 							Connection con = null;
 							for(Iterator aIt = ni.getConnections(); aIt.hasNext(); )
 							{
 								Connection c = (Connection)aIt.next();
 								if (c.getPortInst().getPortProto() == pp) { con = c;   break; }
 							}
-	
-							// sim_silnegated handles NOPORTARCINST
+
 							boolean negated = false;
 							if (con != null && con.isNegated()) negated = true;
-							sendToSilos(getPrimitiveName(ni, negated));
+							writeWidthLimited(" " + getPrimitiveName(ni, negated));
 							break;
 						}
 					}
 					if (outPP == null)
 						System.out.println("Could not find an output connection on " + ni.getProto().getName());
-	
+
 					// get the fall and rise times
-					sendToSilos(getRiseTime(ni));
-					sendToSilos(getFallTime(ni));
-	
-					// write the rest of the port(s) iff they're connected
-					for(Iterator pIt = ni.getProto().getPorts(); pIt.hasNext(); )
+					writeWidthLimited(getRiseTime(ni));
+					writeWidthLimited(getFallTime(ni));
+
+					// write the rest of the ports only if they're connected
+					for(Iterator aIt = ni.getConnections(); aIt.hasNext(); )
 					{
-						PortProto pp = (PortProto)pIt.next();
-						if (pp == outPP) continue;	// already used this port
-	
-						// search for a connection
-						Connection con = null;
-						for(Iterator aIt = ni.getConnections(); aIt.hasNext(); )
-						{
-							con = (Connection)aIt.next();
-							break;
-						}
-						if (con != null)	// ... port is connected
-							sendToSilos(getPortProtoName(cell == topCell, ni, pp, cell, netList, cni));
+						Connection con = (Connection)aIt.next();
+						PortProto pp = con.getPortInst().getPortProto(); 
+						if (pp == outPP) continue;
+						writeWidthLimited(getPortProtoName(cell == topCell, con, ni, pp, cell, netList, cni));
 					}
+					writeWidthLimited("\n");
 					continue;
 				}
-	
+
 				if (nodeType == NodeProto.Function.CAPAC)
 				{
 					// find a connected port for the node name
-					Connection con = null;
 					for(Iterator aIt = ni.getConnections(); aIt.hasNext(); )
 					{
-						con = (Connection)aIt.next();
-						break;
-					}
-	
-					if (con != null)	// ...there is a connection
-					{
+						Connection con = (Connection)aIt.next();
+
 						// write port name as output
 						PortProto pp = con.getPortInst().getPortProto();
-						sendToSilos(getPortProtoName(cell == topCell, ni, pp, cell, netList, cni));
+						writeWidthLimited(getPortProtoName(cell == topCell, null, ni, pp, cell, netList, cni));
+						writeWidthLimited(" " + getPrimitiveName(ni, false));
 	
-						sendToSilos(" ");
-						sendToSilos(getPrimitiveName(ni, false));
-	
-						double j = getCapacitance(ni);
+						double j = getCapacitanceInMicroFarads(ni, context);
 						if (j >= 0)
 						{
-							sendToSilos(" " + TextUtils.formatDouble(j));
+							writeWidthLimited(" " + TextUtils.formatDouble(j, 0));
 						} else
 						{
 							System.out.println("Warning: capacitor with no value on node " + ni.describe());
 						}
+						writeWidthLimited("\n");
+						break;
 					}
 					continue;
 				}
-	
+
 				if (nodeType == NodeProto.Function.RESIST)
 				{
 					// sorry! can't handle the resistive gate yet
@@ -430,7 +421,7 @@ public class Silos extends Topology
 			}
 		}
 		if (cell != topCell)
-			sendToSilos(".EOM\n");
+			writeWidthLimited(".EOM\n");
 	}
 
 	/**
@@ -462,7 +453,6 @@ public class Silos extends Topology
 		if (j <= highIndex)
 		{
 			breakBus = true;
-//			System.out.println("Bus broken because it has duplicates");
 		} else
 		{
 			// bus entries must have the same root name and go in order
@@ -475,27 +465,15 @@ public class Silos extends Topology
 				{
 					if (wl.isDescending())
 					{
-						if (!descending)
-						{
-//							System.out.println("Bus broken because it ascends but signals don't");
-							break;
-						}
+						if (!descending) break;
 					} else
 					{
-						if (descending)
-						{
-//							System.out.println("Bus broken because it descends but signals don't");
-							break;
-						}
+						if (descending) break;
 					}
 				}
 
 				int openSquare = thisnetname.indexOf('[');
-				if (openSquare < 0)
-				{
-//					System.out.println("Bus broken because parts aren't indexed");
-					break;
-				}
+				if (openSquare < 0) break;
 				if (j > lowIndex)
 				{
 					int li = 0;
@@ -504,25 +482,17 @@ public class Silos extends Topology
 						if (thisnetname.charAt(li) != lastnetname.charAt(li)) break;
 						if (lastnetname.charAt(li) == '[') break;
 					}
-					if (lastnetname.charAt(li) != '[' || thisnetname.charAt(li) != '[')
-					{
-//						System.out.println("Bus broken because base names don't match");
-						break;
-					}
+					if (lastnetname.charAt(li) != '[' || thisnetname.charAt(li) != '[') break;
 					int thisIndex = TextUtils.atoi(thisnetname.substring(li+1));
 					int lastIndex = TextUtils.atoi(lastnetname.substring(li+1));
-					if (thisIndex != lastIndex + 1)
-					{
-//						System.out.println("Bus broken because indexes aren't in order ("+lastIndex+" and "+thisIndex+")");
-						break;
-					}
+					if (thisIndex != lastIndex + 1) break;
 				}
 				lastnetname = thisnetname;
 			}
 			if (j <= highIndex) breakBus = true;
 		}
 
-		sendToSilos(" ");
+		writeWidthLimited(" ");
 		if (breakBus)
 		{
 			int start = lowIndex, end = highIndex;
@@ -536,9 +506,9 @@ public class Silos extends Topology
 			for(int k=start; ; k += order)
 			{
 				if (k != start)
-					sendToSilos("-");
+					writeWidthLimited("-");
 				CellSignal cs = outerSignalList[k-lowIndex];
-				sendToSilos(cs.getName());
+				writeWidthLimited(cs.getName());
 				if (k == end) break;
 			}
 		} else
@@ -549,24 +519,24 @@ public class Silos extends Topology
 			CellSignal cs = outerSignalList[highIndex-lowIndex];
 			String netName = cs.getName();
 			int i = netName.indexOf('[');
-			if (i < 0) sendToSilos(netName); else
+			if (i < 0) writeWidthLimited(netName); else
 			{
-				sendToSilos(netName.substring(0, i));
+				writeWidthLimited(netName.substring(0, i));
 				if (descending)
 				{
 					int first = TextUtils.atoi(netName.substring(i+1));
 					int second = TextUtils.atoi(lastNetName.substring(openSquare+1));
-					sendToSilos("[" + first + ":" + second + "]");
+					writeWidthLimited("[" + first + ":" + second + "]");
 				} else
 				{
 					int first = TextUtils.atoi(netName.substring(i+1));
 					int second = TextUtils.atoi(lastNetName.substring(openSquare+1));
-					sendToSilos("[" + second + ":" + first + "]");
+					writeWidthLimited("[" + second + ":" + first + "]");
 				}
 			}
 		}
 	}
-	
+
 	/**
 	 * Method to return a string describing the SILOS type of nodeinst "ni"
 	 * if 'neg' is true, then the negated version is needed
@@ -603,12 +573,12 @@ public class Silos extends Topology
 
 		if (f == NodeProto.Function.FLIPFLOPRSMS || f == NodeProto.Function.FLIPFLOPRSP) return ".SRPEFF";
 		if (f == NodeProto.Function.FLIPFLOPRSN) return ".SRNEFF";
-		if (f == NodeProto.Function.FLIPFLOPJKMS || f == NodeProto.Function.FLIPFLOPJKP) return ".JKNEFF";
-		if (f == NodeProto.Function.FLIPFLOPJKN) return ".JKPEFF";
-		if (f == NodeProto.Function.FLIPFLOPDMS || f == NodeProto.Function.FLIPFLOPDP) return ".DNEFF";
-		if (f == NodeProto.Function.FLIPFLOPDN) return ".DPEFF";
-		if (f == NodeProto.Function.FLIPFLOPTMS || f == NodeProto.Function.FLIPFLOPTP) return ".TNEFF";
-		if (f == NodeProto.Function.FLIPFLOPTN) return ".TPEFF";
+		if (f == NodeProto.Function.FLIPFLOPJKMS || f == NodeProto.Function.FLIPFLOPJKP) return ".JKPEFF";
+		if (f == NodeProto.Function.FLIPFLOPJKN) return ".JKNEFF";
+		if (f == NodeProto.Function.FLIPFLOPDMS || f == NodeProto.Function.FLIPFLOPDP) return ".DPEFF";
+		if (f == NodeProto.Function.FLIPFLOPDN) return ".DNEFF";
+		if (f == NodeProto.Function.FLIPFLOPTMS || f == NodeProto.Function.FLIPFLOPTP) return ".TPEFF";
+		if (f == NodeProto.Function.FLIPFLOPTN) return ".TNEFF";
 
 		return convertName(ni.getProto().getName());
 	}
@@ -621,7 +591,7 @@ public class Silos extends Topology
 	private NodeProto.Function getPrimitiveType(NodeInst ni)
 	{
 		if (ni.getProto() instanceof Cell) return null;
-	
+
 		NodeProto.Function func = ni.getFunction();
 		if (func == NodeProto.Function.TRAPMOS || func == NodeProto.Function.TRA4PMOS)
 			return NodeProto.Function.TRAPMOS;
@@ -656,7 +626,7 @@ public class Silos extends Topology
 		}
 		return "U" + name;
 	}
-	
+
 	/**
 	 * Find a name to write for the port prototype, pp, on the node instance, ni
 	 * The node instance is located within the prototype, np
@@ -667,39 +637,46 @@ public class Silos extends Topology
 	 * If the port is a power or ground port, ignore it
 	 * If this is not the top level cell (ie. a .macro) remove [] notation.
 	 */
-	private String getPortProtoName(boolean top, NodeInst ni, PortProto pp, Cell np, Netlist netList, CellNetInfo cni)
+	private String getPortProtoName(boolean top, Connection con, NodeInst ni, PortProto pp, Cell np, Netlist netList, CellNetInfo cni)
 	{
 		if (pp.isPower() || pp.isGround()) return "";
-	
-		StringBuffer infstr = new StringBuffer();
-	
-		boolean negated = false;
-		for(Iterator it = ni.getConnections(); it.hasNext(); )
-		{
-			Connection con = (Connection)it.next();
-			PortInst pi = con.getPortInst();
-			if (pi.getPortProto() != pp) continue;
-			if (con.isNegated() && pp.getCharacteristic() == PortProto.Characteristic.IN) negated = true;
-		}
 
-		PortInst pi = ni.findPortInstFromProto(pp);
-		JNetwork net = netList.getNetwork(pi);
-		if (net.hasNames())
+		if (con == null)
+		{
+			for(Iterator it = ni.getConnections(); it.hasNext(); )
+			{
+				Connection c = (Connection)it.next();
+				PortInst pi = c.getPortInst();
+				if (pi.getPortProto() != pp) continue;
+				con = c;
+			}
+		}
+		boolean negated = false;
+		if (con != null && con.isNegated() && pp.getCharacteristic() == PortProto.Characteristic.IN) negated = true;
+
+		JNetwork net = null;
+		if (con != null)
+		{
+			net = netList.getNetwork(con.getArc(), 0);
+		} else
+		{
+			PortInst pi = ni.findPortInstFromProto(pp);
+			net = netList.getNetwork(pi);
+		}
+		if (net != null && net.hasNames())
 		{
 			CellSignal cs = cni.getCellSignal(net);
+			StringBuffer infstr = new StringBuffer();
 			infstr.append(" ");
 			if (negated) infstr.append("-");
 			infstr.append(cs.getName());
-		} else
-		{
-			infstr.append(".SKIP");
+			return infstr.toString();
 		}
-	
-//		// nothing connected to this port...leave a position
-//		if (infstr.length() == 0) return " .SKIP";
-		return infstr.toString();
+
+		// nothing connected to this port...leave a position
+		return " .SKIP";
 	}
-	
+
 	/**
 	 * Method to check if a port of an instance is connected to one of
 	 * the ports of the containing instance. If so, get rid of the '[]' format;
@@ -723,11 +700,11 @@ public class Silos extends Topology
 	 */
 	private String getRiseTime(NodeInst ni)
 	{
-		Variable var = ni.getVar(SILOS_RISE_DELAY_KEY);
+		Variable var = ni.getVar(Simulation.RISE_DELAY_KEY);
 		if (var != null) return var.describe(-1, -1);
 		return "";
 	}
-	
+
 	/**
 	 * Method returns a string containing the fall time, as stored in
 	 * the variable SIM_fall_delay on node instance ni.
@@ -739,30 +716,34 @@ public class Silos extends Topology
 	 */
 	private String getFallTime(NodeInst ni)
 	{
-		Variable var = ni.getVar(SILOS_FALL_DELAY_KEY);
+		Variable var = ni.getVar(Simulation.FALL_DELAY_KEY);
 		if (var != null) return var.describe(-1, -1);
 		return "";
 	}
-	
+
 	/**
 	 * Method to return an integer as the capacitance defined
 	 * by "SCHEM_capacitance" variable on an instance of a capacitor.
 	 * The returned units are in microfarads (is this right?).
 	 * Return -1 if nothing found.
 	 */
-	private double getCapacitance(NodeInst ni)
+	private double getCapacitanceInMicroFarads(NodeInst ni, VarContext context)
 	{
 		Variable var = ni.getVar(Schematics.SCHEM_CAPACITANCE);
 		if (var != null)
 		{
-			double farads = TextUtils.atof(var.describe(-1, -1));
-			double microFarads = farads / 1000000.0;
-//			microFarads = eatoi(displayedunits(farads, VTUNITSCAP, INTCAPUNITUFARAD));
+			String cap = context.evalVar(var).toString();
+			char lastChar = 0;
+			int len = cap.length();
+			if (len > 0) lastChar = cap.charAt(len-1);
+			if (lastChar == 'f' || lastChar == 'F') cap = cap.substring(0, len-1);
+			double farads = VarContext.objectToDouble(cap, 0.0);
+			double microFarads = farads * 1000000.0;
 			return microFarads;
 		}
 		return -1;
 	}
-	
+
 	/**
 	 * Method to write the ports of a flip-flop;
 	 * get them in the Electric order, then rewrite them
@@ -784,7 +765,7 @@ public class Silos extends Topology
 		{
 			if (!it.hasNext()) break;
 			PortProto pp = (PortProto)it.next();
-			portNames[i] = getPortProtoName(top, ni, pp, np, netList, cni);
+			portNames[i] = getPortProtoName(top, null, ni, pp, np, netList, cni);
 		}
 		if (portNames[PRE].equals(" .SKIP") && portNames[CLR].equals(" .SKIP"))
 		{
@@ -793,10 +774,10 @@ public class Silos extends Topology
 		}
 		if (type == NodeProto.Function.FLIPFLOPDMS)
 		{
-			sendToSilos(portNames[CK] + portNames[JORD] + portNames[PRE] + portNames[CLR] + " /" + portNames[Q]+ portNames[QB]);
+			writeWidthLimited(portNames[CK] + portNames[JORD] + portNames[PRE] + portNames[CLR] + " /" + portNames[Q]+ portNames[QB]);
 		} else
 		{
-			sendToSilos(portNames[CK] + portNames[JORD] + portNames[K] + portNames[PRE] + portNames[CLR] + " /" + portNames[Q] + portNames[QB]);
+			writeWidthLimited(portNames[CK] + portNames[JORD] + portNames[K] + portNames[PRE] + portNames[CLR] + " /" + portNames[Q] + portNames[QB]);
 		}
 	}
 
@@ -843,7 +824,7 @@ public class Silos extends Topology
 		boolean defined = true;
 		for(int i=0; i<len; i++) if (!Character.isDefined(p.charAt(i))) { defined = false;   break; }
 		if (defined && !Character.isDigit(p.charAt(0))) return p;
-	
+
 		StringBuffer sb = new StringBuffer();
 		if (Character.isDigit(p.charAt(0))) sb.append("_");
 		for(int i=0; i<len; i++)
@@ -855,41 +836,14 @@ public class Silos extends Topology
 		return sb.toString();
 	}
 
-	/**
-	 * Write to the .sil file, but break into printable lines
-	 */
-	private void sendToSilos(String str)
-	{
-		int i = str.length();
-		if (i <= 0) return;
-		if (lineCharCount + i > MAXSTR)
-		{
-			if (str.charAt(0) == '$')
-			{
-				printWriter.print("\n");
-				lineCharCount = 0;
-			} else
-			{
-				printWriter.print("\n+");
-				lineCharCount = 1;
-			}
-		}
-		printWriter.print(str);
-		lineCharCount += i;
-		if (str.charAt(i-1) == '\n') lineCharCount = 0;
-	}
-
 	/****************************** SUBCLASSED METHODS FOR THE TOPOLOGY ANALYZER ******************************/
 
 	/**
-	 * Method to adjust a cell name to be safe for Verilog output.
+	 * Method to adjust a cell name to be safe for Silos output.
 	 * @param name the cell name.
-	 * @return the name, adjusted for Verilog output.
+	 * @return the name, adjusted for Silos output.
 	 */
-	protected String getSafeCellName(String name)
-	{
-		return getSafeNetName(name);
-	}
+	protected String getSafeCellName(String name) { return name; }
 
 	/** Method to return the proper name of Power */
 	protected String getPowerName() { return ".VDD"; }
@@ -900,9 +854,9 @@ public class Silos extends Topology
 	/** Method to return the proper name of a Global signal */
 	protected String getGlobalName(Global glob) { return glob.getName(); }
 
-    /** Method to report that export names DO take precedence over
-     * arc names when determining the name of the network. */
-    protected boolean isNetworksUseExportedNames() { return true; }
+	/** Method to report that export names DO take precedence over
+	 * arc names when determining the name of the network. */
+	protected boolean isNetworksUseExportedNames() { return true; }
 
 	/** Method to report that library names ARE always prepended to cell names. */
 	protected boolean isLibraryNameAlwaysAddedToCellName() { return false; }
@@ -911,22 +865,14 @@ public class Silos extends Topology
 	protected boolean isAggregateNamesSupported() { return true; }
 
 	/**
-	 * Method to adjust a network name to be safe for Verilog output.
-	 * Verilog does permit a digit in the first location; prepend a "_" if found.
-	 * Verilog only permits the "_" and "$" characters: all others are converted to "_".
-	 * Verilog does not permit nonnumeric indices, so "P[A]" is converted to "P_A_"
-	 * Verilog does not permit multidimensional arrays, so "P[1][2]" is converted to "P_1_[2]"
-	 *   and "P[1][T]" is converted to "P_1_T_"
+	 * Method to adjust a network name to be safe for Silos output.
 	 */
-	protected String getSafeNetName(String name)
-	{
-		return name;
-	}
+	protected String getSafeNetName(String name) { return name; }
 
 	/**
 	 * Method to obtain Netlist information for a cell.
 	 * This is pushed to the writer because each writer may have different requirements for resistor inclusion.
-	 * Verilog ignores resistors.
+	 * Silos ignores resistors.
 	 */
 	protected Netlist getNetlistForCell(Cell cell)
 	{

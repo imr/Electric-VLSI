@@ -88,6 +88,10 @@ public class Verilog extends Topology
 
 	protected void start()
 	{
+		// parameters to the output-line-length limit and how to break long lines
+		setOutputWidth(MAXDECLARATIONWIDTH);
+		setContinuationString("      ");
+
 		// write header information
 		printWriter.print("/* Verilog for cell " + topCell.describe() +
 			" from Library " + topCell.getLibrary().getName() + " */\n");
@@ -233,8 +237,8 @@ public class Verilog extends Topology
 			sb.append(cas.getName());
 			first = false;
 		}
-		sb.append(");");
-		writeLongLine(sb.toString());
+		sb.append(");\n");
+		writeWidthLimited(sb.toString());
 
 		// look for "wire/trireg" overrides
 		for(Iterator it = cell.getArcs(); it.hasNext(); )
@@ -485,8 +489,8 @@ public class Verilog extends Topology
 					}
 					if (wholeNegated)
 						infstr.append(")");
-					infstr.append(";");
-					writeLongLine(infstr.toString());
+					infstr.append(";\n");
+					writeWidthLimited(infstr.toString());
 					continue;
 				}
 			}
@@ -607,6 +611,7 @@ public class Verilog extends Topology
 								infstr.append(", ");
 							JNetwork net = netList.getNetwork(pi);
 							CellSignal cs = cni.getCellSignal(net);
+							if (cs == null) continue;
 							String sigName = cs.getName();
 //							if (i != 0 && pi->conarcinst->temp1 != 0)
 //							{
@@ -670,7 +675,8 @@ public class Verilog extends Topology
 					infstr.append(");");
 					break;
 			}
-			writeLongLine(infstr.toString());
+			infstr.append("\n");
+			writeWidthLimited(infstr.toString());
 		}
 		printWriter.print("endmodule   /* " + cni.getParameterizedName() + " */\n");
 	}
@@ -735,7 +741,8 @@ public class Verilog extends Topology
 				}
 			}
 		}
-		writeLongLine(infstr.toString());
+		infstr.append("\n");
+		writeWidthLimited(infstr.toString());
 	}
 
 	/**
@@ -902,23 +909,6 @@ public class Verilog extends Topology
 		}
 		if (!first) printWriter.print("\n");
 		return first;
-	}
-
-	/**
-	 * Method to write a long line to the Verilog file, breaking it where sensible.
-	 */
-	private void writeLongLine(String s)
-	{
-		while (s.length() > MAXDECLARATIONWIDTH)
-		{
-			int lastSpace = s.lastIndexOf(' ', MAXDECLARATIONWIDTH);
-            //if (lastSpace < 0) lastSpace = MAXDECLARATIONWIDTH;
-            if (lastSpace < 0) lastSpace = s.length();
-			printWriter.print(s.substring(0, lastSpace) + "\n      ");
-			while (lastSpace+1 < s.length() && s.charAt(lastSpace) == ' ') lastSpace++;
-			s = s.substring(lastSpace);
-		}
-		printWriter.print(s + "\n");
 	}
 
 	private StringBuffer sim_verDeclarationLine;

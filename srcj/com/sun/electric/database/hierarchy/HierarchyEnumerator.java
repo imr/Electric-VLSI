@@ -641,6 +641,7 @@ public final class HierarchyEnumerator {
 		public final NameProxy getUniqueNetNameProxy(int netID, String sep) {
 			NetDescription ns = (NetDescription) netIdToNetDesc.get(netID);
 			VarContext netContext = ns.getCellInfo().getContext();
+			/* SMR thinks the above line should just be: VarContext netContext = getContext(); */
 			String leafName;
 
 			Iterator it = ns.getNet().getNames();

@@ -23,6 +23,9 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.io.IOTool;
+
 import javax.swing.JPanel;
 
 
@@ -31,6 +34,9 @@ import javax.swing.JPanel;
  */
 public class EDIFTab extends PreferencePanel
 {
+	private boolean initialUseSchematicView;
+	private double initialInputScale;
+
 	/** Creates new form EDIFTab */
 	public EDIFTab(java.awt.Frame parent, boolean modal)
 	{
@@ -47,7 +53,13 @@ public class EDIFTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		edifUseSchematicView.setEnabled(false);
+		initialUseSchematicView = IOTool.isEDIFUseSchematicView();
+		edifUseSchematicView.setSelected(initialUseSchematicView);
+
+		initialInputScale = IOTool.getEDIFInputScale();
+		edifInputScale.setText(TextUtils.formatDouble(initialInputScale));
+
+		// not yet
 		edifInputScale.setEditable(false);
 	}
 
@@ -57,6 +69,13 @@ public class EDIFTab extends PreferencePanel
 	 */
 	public void term()
 	{
+		boolean currentUseSchematicView = edifUseSchematicView.isSelected();
+		if (currentUseSchematicView != initialUseSchematicView)
+			IOTool.setEDIFUseSchematicView(currentUseSchematicView);
+
+		double currentInputScale = TextUtils.atof(edifInputScale.getText());
+		if (currentInputScale != initialInputScale)
+			IOTool.setEDIFInputScale(currentInputScale);
 	}
 
 	/** This method is called from within the constructor to
@@ -72,7 +91,6 @@ public class EDIFTab extends PreferencePanel
         edifUseSchematicView = new javax.swing.JCheckBox();
         jLabel13 = new javax.swing.JLabel();
         edifInputScale = new javax.swing.JTextField();
-        jLabel12 = new javax.swing.JLabel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -113,13 +131,6 @@ public class EDIFTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         edif.add(edifInputScale, gridBagConstraints);
 
-        jLabel12.setText("EDIF I/O IS NOT YET AVAILABLE");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
-        edif.add(jLabel12, gridBagConstraints);
-
         getContentPane().add(edif, new java.awt.GridBagConstraints());
 
         pack();
@@ -136,7 +147,6 @@ public class EDIFTab extends PreferencePanel
     private javax.swing.JPanel edif;
     private javax.swing.JTextField edifInputScale;
     private javax.swing.JCheckBox edifUseSchematicView;
-    private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
     // End of variables declaration//GEN-END:variables
 	

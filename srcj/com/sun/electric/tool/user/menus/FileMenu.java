@@ -103,22 +103,36 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.CIF, false); } });
 		exportSubMenu.addMenuItem("GDS II (Stream)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.GDS, false); } });
+		exportSubMenu.addMenuItem("EDIF...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.EDIF, false); } });
+		exportSubMenu.addMenuItem("LEF...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.LEF, false); } });
+		if (IOTool.hasSkill())
+			exportSubMenu.addMenuItem("Skill...", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.SKILL, false); } });
+		exportSubMenu.addSeparator();
 		exportSubMenu.addMenuItem("Eagle...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.EAGLE, false); } });
-		exportSubMenu.addMenuItem("Pads...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.PADS, false); } });
 		exportSubMenu.addMenuItem("ECAD...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.ECAD, false); } });
-		exportSubMenu.addMenuItem("PostScript...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.POSTSCRIPT, false); } });
+		exportSubMenu.addMenuItem("Pads...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.PADS, false); } });
+		exportSubMenu.addSeparator();
 		exportSubMenu.addMenuItem("Text Cell Contents...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.writeTextCell(); }});
+		exportSubMenu.addMenuItem("PostScript...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.POSTSCRIPT, false); } });
+		exportSubMenu.addMenuItem("DXF...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.DXF, false); } });
+		exportSubMenu.addMenuItem("L...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.L, false); } });
+		exportSubMenu.addSeparator();
+		exportSubMenu.addMenuItem("ELIB (Version 6)...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB, true, false); } });
+		exportSubMenu.addMenuItem("JELIB (Version 8)...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.JELIB, true, false); } });
 		exportSubMenu.addMenuItem("Readable Dump...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.READABLEDUMP, false, false); } });
-		exportSubMenu.addMenuItem("Version 8 JELIB...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.JELIB, true, false); } });
-		exportSubMenu.addMenuItem("Version 6 ELIB...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB, true, false); } });
 
 		fileMenu.addSeparator();
 

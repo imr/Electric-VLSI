@@ -54,6 +54,12 @@ import java.util.List;
  */
 public class Simulation extends Tool
 {
+	/** the Simulation tool. */		public static Simulation tool = new Simulation();
+
+	/** key of Variable holding rise time. */				public static final Variable.Key RISE_DELAY_KEY = ElectricObject.newKey("SIM_rise_delay");
+	/** key of Variable holding fall time. */				public static final Variable.Key FALL_DELAY_KEY = ElectricObject.newKey("SIM_fall_delay");
+	/** key of Variable holding flag for weak nodes. */		public static final Variable.Key WEAK_NODE_KEY = ElectricObject.newKey("SIM_weak_node");
+
 	/**
 	 * Class to define a set of simulation data.
 	 * This class encapsulates all of the simulation data that is displayed in a waveform window.
@@ -835,10 +841,6 @@ public class Simulation extends Tool
 		public int getNumEvents() { return state.length; }
 	}
 
-	/** the Simulation tool. */		public static Simulation tool = new Simulation();
-
-	/** key of Variable holding flag for weak nodes. */		public static final Variable.Key WEAK_NODE_KEY = ElectricObject.newKey("SIM_weak_node");
-
 	/**
 	 * The constructor sets up the Simulation tool.
 	 */
@@ -1101,6 +1103,138 @@ public class Simulation extends Tool
 		}
 		ww.getPanel().validate();
 	}
+
+	/****************************** FAST HENRY OPTIONS ******************************/
+
+	private static Pref cacheFastHenryUseSingleFrequency = Pref.makeBooleanPref("FastHenryUseSingleFrequency", Simulation.tool.prefs, false);
+	/**
+	 * Method to tell whether FastHenry deck generation should use a single frequency.
+	 * The default is false.
+	 * @return true if FastHenry deck generation should use a single frequency.
+	 */
+	public static boolean isFastHenryUseSingleFrequency() { return cacheFastHenryUseSingleFrequency.getBoolean(); }
+	/**
+	 * Method to set whether FastHenry deck generation should use a single frequency.
+	 * @param s true if FastHenry deck generation should use a single frequency.
+	 */
+	public static void setFastHenryUseSingleFrequency(boolean s) { cacheFastHenryUseSingleFrequency.setBoolean(s); }
+
+	private static Pref cacheFastHenryStartFrequency = Pref.makeDoublePref("FastHenryStartFrequency", Simulation.tool.prefs, 0);
+	/**
+	 * Method to return the FastHenry starting frequency (or only if using a single frequency).
+	 * The default is 0.
+	 * @return the FastHenry starting frequency (or only if using a single frequency).
+	 */
+	public static double getFastHenryStartFrequency() { return cacheFastHenryStartFrequency.getDouble(); }
+	/**
+	 * Method to set the FastHenry starting frequency (or only if using a single frequency).
+	 * @param s the FastHenry starting frequency (or only if using a single frequency).
+	 */
+	public static void setFastHenryStartFrequency(double s) { cacheFastHenryStartFrequency.setDouble(s); }
+
+	private static Pref cacheFastHenryEndFrequency = Pref.makeDoublePref("FastHenryEndFrequency", Simulation.tool.prefs, 0);
+	/**
+	 * Method to return the FastHenry ending frequency.
+	 * The default is 0.
+	 * @return the FastHenry ending frequency.
+	 */
+	public static double getFastHenryEndFrequency() { return cacheFastHenryEndFrequency.getDouble(); }
+	/**
+	 * Method to set the FastHenry ending frequency.
+	 * @param e the FastHenry ending frequency.
+	 */
+	public static void setFastHenryEndFrequency(double e) { cacheFastHenryEndFrequency.setDouble(e); }
+
+	private static Pref cacheFastHenryRunsPerDecade = Pref.makeIntPref("FastHenryRunsPerDecade", Simulation.tool.prefs, 1);
+	/**
+	 * Method to return the number of runs per decade for FastHenry deck generation.
+	 * The default is 1.
+	 * @return the number of runs per decade for FastHenry deck generation.
+	 */
+	public static int getFastHenryRunsPerDecade() { return cacheFastHenryRunsPerDecade.getInt(); }
+	/**
+	 * Method to set the number of runs per decade for FastHenry deck generation.
+	 * @param r the number of runs per decade for FastHenry deck generation.
+	 */
+	public static void setFastHenryRunsPerDecade(int r) { cacheFastHenryRunsPerDecade.setInt(r); }
+	
+	private static Pref cacheFastHenryMultiPole = Pref.makeBooleanPref("FastHenryMultiPole", Simulation.tool.prefs, false);
+	/**
+	 * Method to tell whether FastHenry deck generation should make a multipole subcircuit.
+	 * The default is false.
+	 * @return true if FastHenry deck generation should make a multipole subcircuit.
+	 */
+	public static boolean isFastHenryMultiPole() { return cacheFastHenryMultiPole.getBoolean(); }
+	/**
+	 * Method to set whether FastHenry deck generation should make a multipole subcircuit.
+	 * @param mp true if FastHenry deck generation should make a multipole subcircuit.
+	 */
+	public static void setFastHenryMultiPole(boolean mp) { cacheFastHenryMultiPole.setBoolean(mp); }
+
+	private static Pref cacheFastHenryNumPoles = Pref.makeIntPref("FastHenryNumPoles", Simulation.tool.prefs, 20);
+	/**
+	 * Method to return the number of poles for FastHenry deck generation.
+	 * The default is 20.
+	 * @return the number of poles for FastHenry deck generation.
+	 */
+	public static int getFastHenryNumPoles() { return cacheFastHenryNumPoles.getInt(); }
+	/**
+	 * Method to set the number of poles for FastHenry deck generation.
+	 * @param p the number of poles for FastHenry deck generation.
+	 */
+	public static void setFastHenryNumPoles(int p) { cacheFastHenryNumPoles.setInt(p); }
+
+	private static Pref cacheFastHenryDefThickness = Pref.makeDoublePref("FastHenryDefThickness", Simulation.tool.prefs, 2);
+	/**
+	 * Method to return the FastHenry default wire thickness.
+	 * The default is 2.
+	 * @return the FastHenry default wire thickness.
+	 */
+	public static double getFastHenryDefThickness() { return cacheFastHenryDefThickness.getDouble(); }
+	/**
+	 * Method to set the FastHenry default wire thickness.
+	 * @param t the FastHenry default wire thickness.
+	 */
+	public static void setFastHenryDefThickness(double t) { cacheFastHenryDefThickness.setDouble(t); }
+
+	private static Pref cacheFastHenryWidthSubdivisions = Pref.makeIntPref("FastHenryWidthSubdivisions", Simulation.tool.prefs, 1);
+	/**
+	 * Method to return the default number of width subdivisions for FastHenry deck generation.
+	 * The default is 1.
+	 * @return the default number of width subdivisions for FastHenry deck generation.
+	 */
+	public static int getFastHenryWidthSubdivisions() { return cacheFastHenryWidthSubdivisions.getInt(); }
+	/**
+	 * Method to set the default number of width subdivisions for FastHenry deck generation.
+	 * @param w the default number of width subdivisions for FastHenry deck generation.
+	 */
+	public static void setFastHenryWidthSubdivisions(int w) { cacheFastHenryWidthSubdivisions.setInt(w); }
+
+	private static Pref cacheFastHenryHeightSubdivisions = Pref.makeIntPref("FastHenryHeightSubdivisions", Simulation.tool.prefs, 1);
+	/**
+	 * Method to return the default number of height subdivisions for FastHenry deck generation.
+	 * The default is 1.
+	 * @return the default number of height subdivisions for FastHenry deck generation.
+	 */
+	public static int getFastHenryHeightSubdivisions() { return cacheFastHenryHeightSubdivisions.getInt(); }
+	/**
+	 * Method to set the default number of height subdivisions for FastHenry deck generation.
+	 * @param h the default number of height subdivisions for FastHenry deck generation.
+	 */
+	public static void setFastHenryHeightSubdivisions(int h) { cacheFastHenryHeightSubdivisions.setInt(h); }
+
+	private static Pref cacheFastHenryMaxSegLength = Pref.makeDoublePref("FastHenryMaxSegLength", Simulation.tool.prefs, 0);
+	/**
+	 * Method to return the maximum segment length for FastHenry deck generation.
+	 * The default is 0.
+	 * @return the maximum segment length for FastHenry deck generation.
+	 */
+	public static double getFastHenryMaxSegLength() { return cacheFastHenryMaxSegLength.getDouble(); }
+	/**
+	 * Method to set the maximum segment length for FastHenry deck generation.
+	 * @param s the maximum segment length for FastHenry deck generation.
+	 */
+	public static void setFastHenryMaxSegLength(double s) { cacheFastHenryMaxSegLength.setDouble(s); }
 
 	/****************************** VERILOG OPTIONS ******************************/
 

@@ -47,6 +47,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Dimension;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -388,13 +389,13 @@ public class Schematics extends Technology
 					})
 			});
 		PrimitivePort bufferInPort = PrimitivePort.newInstance(this, bufferNode, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0,
-			PortProto.Characteristic.UNKNOWN, EdgeH.makeLeftEdge(), EdgeV.makeCenter(), EdgeH.makeLeftEdge(), EdgeV.makeCenter());
+			PortProto.Characteristic.IN, EdgeH.makeLeftEdge(), EdgeV.makeCenter(), EdgeH.makeLeftEdge(), EdgeV.makeCenter());
 		bufferInPort.setNegatable(true);
 		PrimitivePort bufferOutPort = PrimitivePort.newInstance(this, bufferNode, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 2,
-			PortProto.Characteristic.UNKNOWN, EdgeH.fromRight(1), EdgeV.makeCenter(), EdgeH.fromRight(1), EdgeV.makeCenter());
+			PortProto.Characteristic.OUT, EdgeH.fromRight(1), EdgeV.makeCenter(), EdgeH.fromRight(1), EdgeV.makeCenter());
 		bufferOutPort.setNegatable(true);
 		PrimitivePort bufferSidePort = PrimitivePort.newInstance(this, bufferNode, new ArcProto[] {wire_arc}, "c", 270,0, 1,
-			PortProto.Characteristic.UNKNOWN, EdgeH.makeCenter(), EdgeV.fromBottom(2), EdgeH.makeCenter(), EdgeV.fromBottom(2));
+			PortProto.Characteristic.IN, EdgeH.makeCenter(), EdgeV.fromBottom(2), EdgeH.makeCenter(), EdgeV.fromBottom(2));
 		bufferSidePort.setNegatable(true);
 		bufferNode.addPrimitivePorts(new PrimitivePort [] { bufferInPort, bufferSidePort, bufferOutPort});
 		bufferNode.setFunction(NodeProto.Function.BUFFER);
@@ -1678,61 +1679,6 @@ public class Schematics extends Technology
 			}
 		}
 		return super.getShapeOfNode(ni, wnd, electrical, reasonable, primLayers, layerOverride);
-	}
-
-	/**
-	 * Method to return a list of Polys that describe a given ArcInst.
-	 * This method overrides the general one in the Technology object
-	 * because of the unusual primitives in this Technology.
-	 * @param ai the ArcInst to describe.
-	 * @param wnd the window in which this arc will be drawn.
-	 * @return an array of Poly objects.
-	 */
-	public Poly [] getShapeOfArc(ArcInst ai, EditWindow wnd, Layer layerOverride)
-	{
-		// Bus arcs are handled in a standard way
-		PrimitiveArc ap = (PrimitiveArc)ai.getProto();
-		if (ap == bus_arc)
-			return super.getShapeOfArc(ai, wnd, layerOverride);
-
-		// Wire arc: if not negated, handle in a standard way
-		if (!ai.getHead().isNegated() && !ai.getTail().isNegated())
-			return super.getShapeOfArc(ai, wnd, layerOverride);
-
-		// remove a gap for the negating bubble
-		Point2D headLoc = ai.getHead().getLocation();
-		Point2D tailLoc = ai.getTail().getLocation();
-		double headX = headLoc.getX();   double headY = headLoc.getY();
-		double tailX = tailLoc.getX();   double tailY = tailLoc.getY();
-		int angle = ai.getAngle();
-		double bubbleSize = getNegatingBubbleSize();
-		double cosDist = DBMath.cos(angle) * bubbleSize;
-		double sinDist = DBMath.sin(angle) * bubbleSize;
-		Point2D bubbleEdge;
-		if (ai.getHead().isNegated())
-		{
-			headX -= cosDist;
-			headY -= sinDist;
-		}
-		if (ai.getTail().isNegated())
-		{
-			tailX += cosDist;
-			tailY += sinDist;
-		}
-
-		Poly [] polys = new Poly[1];
-		Point2D newHead = new Point2D.Double(headX, headY);
-		Point2D newTail = new Point2D.Double(tailX, tailY);
-
-		Point2D [] points = new Point2D.Double[2];
-		points[0] = newHead;
-		points[1] = newTail;
-		polys[0] = new Poly(points);
-		polys[0].setStyle(Poly.Type.OPENED);
-		polys[0].setLayer(arc_lay);
-
-		// construct the polygons
-		return polys;
 	}
 
 	/**

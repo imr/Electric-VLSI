@@ -25,6 +25,7 @@
 package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.dialogs.FastHenryArc;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.Highlight;
@@ -165,16 +166,34 @@ public class ToolMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setTransistorStrengthCommand(false); }});
         verilogSimulationSubMenu.add(transistorStrengthSubMenu);
 
-        //------------------- Simulation (others)
+		//------------------- Simulation (others)
 
-        MenuBar.Menu netlisters = new MenuBar.Menu("Simulation (Others)");
-        toolMenu.add(netlisters);
-        netlisters.addMenuItem("Write IRSIM Deck...", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.IRSIM, true); }});
-        netlisters.addMenuItem("Write SILOS Deck...", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.SILOS, true); }});
-        netlisters.addMenuItem("Write Maxwell Deck...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.MAXWELL, true); } });
+		MenuBar.Menu netlisters = new MenuBar.Menu("Simulation (Others)");
+		toolMenu.add(netlisters);
+		netlisters.addMenuItem("Write Maxwell Deck...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.MAXWELL, true); } });
+		netlisters.addMenuItem("Write Tegas Deck...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.TEGAS, true); } });
+		netlisters.addMenuItem("Write SILOS Deck...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.SILOS, true); }});
+		netlisters.addMenuItem("Write PAL Deck...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.PAL, true); } });
+		netlisters.addSeparator();
+		netlisters.addMenuItem("Write IRSIM Deck...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.IRSIM, true); }});
+		netlisters.addMenuItem("Write ESIM/RNL Deck...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.ESIM, true); }});
+		netlisters.addMenuItem("Write RSIM Deck...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.RSIM, true); }});
+		netlisters.addMenuItem("Write COSMOS Deck...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.COSMOS, true); }});
+		netlisters.addMenuItem("Write MOSSIM Deck...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.MOSSIM, true); }});
+		netlisters.addSeparator();
+		netlisters.addMenuItem("Write FastHenry Deck...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.FASTHENRY, true); }});
+		netlisters.addMenuItem("FastHenry Arc Properties...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FastHenryArc.showFastHenryArcDialog(); }});
 
         //------------------- ERC
 

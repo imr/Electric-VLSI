@@ -926,35 +926,83 @@ public class Technology extends ElectricObject
 		Technology.ArcLayer [] primLayers = ap.getLayers();
 
 		// see how many polygons describe this arc
-		boolean addArrow = false;
-		if (!tech.isNoDirectionalArcs() && ai.isDirectional()) addArrow = true;
 		int numDisplayable = ai.numDisplayableVariables(true);
 		if (wnd == null) numDisplayable = 0;
 		int maxPolys = primLayers.length + numDisplayable;
-		if (addArrow) maxPolys++;
+		boolean addArrow = false;
+		if (!tech.isNoDirectionalArcs() && ai.isDirectional() && !ai.isSkipHead())
+		{
+			addArrow = true;
+			maxPolys++;
+		}
+		boolean negated = false;
+		Connection head = ai.getHead();
+		Connection tail = ai.getTail();
+		Point2D headLoc = head.getLocation();
+		Point2D tailLoc = tail.getLocation();
+		if (!tech.isNoNegatedArcs() && (head.isNegated() || tail.isNegated()))
+		{
+			negated = true;
+		}
 		Poly [] polys = new Poly[maxPolys];
 		int polyNum = 0;
 
 		// construct the polygons that describe the basic arc
 		Layer lastLayer = null;
-		for(int i = 0; i < primLayers.length; i++)
+		if (negated)
 		{
-			Technology.ArcLayer primLayer = primLayers[i];
-			polys[polyNum] = ai.makePoly(ai.getLength(), ai.getWidth() - primLayer.getOffset(), primLayer.getStyle());
-			if (polys[polyNum] == null) return null;
-			if (layerOverride != null) polys[polyNum].setLayer(layerOverride); else
+			for(int i = 0; i < primLayers.length; i++)
 			{
-				lastLayer = primLayer.getLayer();
+				// remove a gap for the negating bubble
+				double headX = headLoc.getX();   double headY = headLoc.getY();
+				double tailX = tailLoc.getX();   double tailY = tailLoc.getY();
+				int angle = ai.getAngle();
+				double bubbleSize = Schematics.getNegatingBubbleSize();
+				double cosDist = DBMath.cos(angle) * bubbleSize;
+				double sinDist = DBMath.sin(angle) * bubbleSize;
+				Point2D bubbleEdge;
+				if (head.isNegated())
+				{
+					headX -= cosDist;
+					headY -= sinDist;
+				}
+				if (tail.isNegated())
+				{
+					tailX += cosDist;
+					tailY += sinDist;
+				}
+
+				Point2D [] points = new Point2D.Double[2];
+				points[0] = headLoc = new Point2D.Double(headX, headY);
+				points[1] = tailLoc = new Point2D.Double(tailX, tailY);
+				polys[polyNum] = new Poly(points);
+				polys[polyNum].setStyle(Poly.Type.OPENED);
+				lastLayer = layerOverride;
+				if (lastLayer == null)
+				{
+					Technology.ArcLayer primLayer = primLayers[i];
+					lastLayer = primLayer.getLayer();
+				}
 				polys[polyNum].setLayer(lastLayer);
+				polyNum++;
 			}
-			polyNum++;
+		} else
+		{
+			for(int i = 0; i < primLayers.length; i++)
+			{
+				Technology.ArcLayer primLayer = primLayers[i];
+				polys[polyNum] = ai.makePoly(ai.getLength(), ai.getWidth() - primLayer.getOffset(), primLayer.getStyle());
+				if (polys[polyNum] == null) return null;
+				lastLayer = layerOverride;
+				if (lastLayer == null) lastLayer = primLayer.getLayer();
+				polys[polyNum].setLayer(lastLayer);
+				polyNum++;
+			}
 		}
 
 		// add an arrow to the arc description
 		if (addArrow)
 		{
-			Point2D headLoc = ai.getHead().getLocation();
-			Point2D tailLoc = ai.getTail().getLocation();
 			double headX = headLoc.getX();   double headY = headLoc.getY();
 			double tailX = tailLoc.getX();   double tailY = tailLoc.getY();
 			int angle = ai.getAngle();
@@ -966,29 +1014,17 @@ public class Technology extends ElectricObject
 			{
 				angle += 1800;
 			}
-			Point2D [] points = null;
-			
-			if (ai.isSkipHead())
-			{
-				points = new Point2D.Double[2];
-				points[0] = new Point2D.Double(headX, headY);
-				points[1] = new Point2D.Double(tailX, tailY);
-			} else
-			{
-				points = new Point2D.Double[6];
-				int angleOfArrow = 300;		// 30 degrees
-				int backAngle1 = angle - angleOfArrow;
-				int backAngle2 = angle + angleOfArrow;
-				points[0] = new Point2D.Double(headX, headY);
-				points[1] = new Point2D.Double(tailX, tailY);
-				points[2] = new Point2D.Double(headX, headY);
-				points[3] = new Point2D.Double(headX + DBMath.cos(backAngle1), headY + DBMath.sin(backAngle1));
-				points[4] = points[0];
-				points[5] = new Point2D.Double(headX + DBMath.cos(backAngle2), headY + DBMath.sin(backAngle2));
-			}
+			Point2D [] points = new Point2D.Double[4];
+			int angleOfArrow = 300;		// 30 degrees
+			int backAngle1 = angle - angleOfArrow;
+			int backAngle2 = angle + angleOfArrow;
+			points[0] = new Point2D.Double(headX, headY);
+			points[1] = new Point2D.Double(headX + DBMath.cos(backAngle1), headY + DBMath.sin(backAngle1));
+			points[2] = points[0];
+			points[3] = new Point2D.Double(headX + DBMath.cos(backAngle2), headY + DBMath.sin(backAngle2));
 			polys[polyNum] = new Poly(points);
 			polys[polyNum].setStyle(Poly.Type.VECTORS);
-			polys[polyNum].setLayer(Generic.tech.universal_lay);
+			polys[polyNum].setLayer(lastLayer);
 			polyNum++;
 		}
 		

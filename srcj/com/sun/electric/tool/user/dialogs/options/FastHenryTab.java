@@ -23,6 +23,12 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.simulation.Simulation;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 import javax.swing.JPanel;
 
 
@@ -31,6 +37,15 @@ import javax.swing.JPanel;
  */
 public class FastHenryTab extends PreferencePanel
 {
+	private boolean initialUseSingleFrequency;
+	private double initialFreqStart, initialFreqEnd;
+	private int initialRunsPerDecade;
+	private boolean initialMultiPole;
+	private int initialNumPoles;
+	private double initialDefThickness;
+	private int initialWidthSubdivisions, initialHeightSubdivisions;
+	private double initialMaxSegLength;
+	
 	/** Creates new form FastHenryTab */
 	public FastHenryTab(java.awt.Frame parent, boolean modal)
 	{
@@ -47,19 +62,55 @@ public class FastHenryTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		fhUseSingleFrequency.setEnabled(false);
-		fhMakeMultipole.setEnabled(false);
-		fhFrequencyStart.setEditable(false);
-		fhFrequencyEnd.setEditable(false);
-		fhRunsPerDecade.setEditable(false);
-		fhNumberOfPoles.setEditable(false);
-		fhDefaultThickness.setEditable(false);
-		fhDefaultWidthSubs.setEditable(false);
-		fhDefaultHeightSubs.setEditable(false);
-		fhMaxSegmentLength.setEditable(false);
-		fhMakePostScript.setEnabled(false);
-		fhMakeSpice.setEnabled(false);
-		fhAfterAction.setEnabled(false);
+		initialUseSingleFrequency = Simulation.isFastHenryUseSingleFrequency();
+		fhUseSingleFrequency.setSelected(initialUseSingleFrequency);
+		fhUseSingleFrequency.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { updateWhatIsEnabled(); }
+		});
+
+		initialFreqStart = Simulation.getFastHenryStartFrequency();
+		fhFrequencyStart.setText(TextUtils.formatDouble(initialFreqStart));
+
+		initialFreqEnd = Simulation.getFastHenryEndFrequency();
+		fhFrequencyEnd.setText(TextUtils.formatDouble(initialFreqEnd));
+
+		initialRunsPerDecade = Simulation.getFastHenryRunsPerDecade();
+		fhRunsPerDecade.setText(Integer.toString(initialRunsPerDecade));
+
+		initialMultiPole = Simulation.isFastHenryMultiPole();
+		fhMakeMultipole.setSelected(initialMultiPole);
+		fhMakeMultipole.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { updateWhatIsEnabled(); }
+		});
+
+		initialNumPoles = Simulation.getFastHenryNumPoles();
+		fhNumberOfPoles.setText(Integer.toString(initialNumPoles));
+
+		initialDefThickness = Simulation.getFastHenryDefThickness();
+		fhDefaultThickness.setText(TextUtils.formatDouble(initialDefThickness));
+
+		initialWidthSubdivisions = Simulation.getFastHenryWidthSubdivisions();
+		fhDefaultWidthSubs.setText(Integer.toString(initialWidthSubdivisions));
+
+		initialHeightSubdivisions = Simulation.getFastHenryHeightSubdivisions();
+		fhDefaultHeightSubs.setText(Integer.toString(initialHeightSubdivisions));
+
+		initialMaxSegLength = Simulation.getFastHenryMaxSegLength();
+		fhMaxSegmentLength.setText(TextUtils.formatDouble(initialMaxSegLength));
+
+		updateWhatIsEnabled();
+	}
+
+	private void updateWhatIsEnabled()
+	{
+		fhFrequencyEnd.setEnabled(!fhUseSingleFrequency.isSelected());
+		fhFreqEndLabel.setEnabled(!fhUseSingleFrequency.isSelected());
+		fhRunsPerDecade.setEnabled(!fhUseSingleFrequency.isSelected());
+		fhRunsPerDecadeLabel.setEnabled(!fhUseSingleFrequency.isSelected());
+		fhNumberOfPoles.setEnabled(fhMakeMultipole.isSelected());
+		fhNumPolesLabel.setEnabled(fhMakeMultipole.isSelected());
 	}
 
 	/**
@@ -68,6 +119,45 @@ public class FastHenryTab extends PreferencePanel
 	 */
 	public void term()
 	{
+		boolean currentUseSingleFrequency = fhUseSingleFrequency.isSelected();
+		if (currentUseSingleFrequency != initialUseSingleFrequency)
+			Simulation.setFastHenryUseSingleFrequency(currentUseSingleFrequency);
+
+		double currentFreqStart = TextUtils.atof(fhFrequencyStart.getText());
+		if (currentFreqStart != initialFreqStart)
+			Simulation.setFastHenryStartFrequency(currentFreqStart);
+
+		double currentFreqEnd = TextUtils.atof(fhFrequencyEnd.getText());
+		if (currentFreqEnd != initialFreqEnd)
+			Simulation.setFastHenryEndFrequency(currentFreqEnd);
+
+		int currentRunsPerDecade = TextUtils.atoi(fhRunsPerDecade.getText());
+		if (currentRunsPerDecade != initialRunsPerDecade)
+			Simulation.setFastHenryRunsPerDecade(currentRunsPerDecade);
+
+		boolean currentMultiPole = fhMakeMultipole.isSelected();
+		if (currentMultiPole != initialMultiPole)
+			Simulation.setFastHenryMultiPole(currentMultiPole);
+
+		int currentNumPoles = TextUtils.atoi(fhNumberOfPoles.getText());
+		if (currentNumPoles != initialNumPoles)
+			Simulation.setFastHenryNumPoles(currentNumPoles);
+
+		double currentDefThickness = TextUtils.atof(fhDefaultThickness.getText());
+		if (currentDefThickness != initialDefThickness)
+			Simulation.setFastHenryDefThickness(currentDefThickness);
+
+		int currentWidthSubdivisions = TextUtils.atoi(fhDefaultWidthSubs.getText());
+		if (currentWidthSubdivisions != initialWidthSubdivisions)
+			Simulation.setFastHenryWidthSubdivisions(currentWidthSubdivisions);
+
+		int currentHeightSubdivisions = TextUtils.atoi(fhDefaultHeightSubs.getText());
+		if (currentHeightSubdivisions != initialHeightSubdivisions)
+			Simulation.setFastHenryHeightSubdivisions(currentHeightSubdivisions);
+
+		double currentMaxSegLength = TextUtils.atof(fhMaxSegmentLength.getText());
+		if (currentMaxSegLength != initialMaxSegLength)
+			Simulation.setFastHenryMaxSegLength(currentMaxSegLength);
 	}
 
 	/** This method is called from within the constructor to
@@ -82,10 +172,10 @@ public class FastHenryTab extends PreferencePanel
         fastHenry = new javax.swing.JPanel();
         fhUseSingleFrequency = new javax.swing.JCheckBox();
         jLabel55 = new javax.swing.JLabel();
-        jLabel56 = new javax.swing.JLabel();
-        jLabel57 = new javax.swing.JLabel();
+        fhFreqEndLabel = new javax.swing.JLabel();
+        fhRunsPerDecadeLabel = new javax.swing.JLabel();
         fhMakeMultipole = new javax.swing.JCheckBox();
-        jLabel58 = new javax.swing.JLabel();
+        fhNumPolesLabel = new javax.swing.JLabel();
         fhFrequencyStart = new javax.swing.JTextField();
         fhFrequencyEnd = new javax.swing.JTextField();
         fhRunsPerDecade = new javax.swing.JTextField();
@@ -98,11 +188,6 @@ public class FastHenryTab extends PreferencePanel
         fhDefaultWidthSubs = new javax.swing.JTextField();
         fhDefaultHeightSubs = new javax.swing.JTextField();
         fhMaxSegmentLength = new javax.swing.JTextField();
-        fhMakePostScript = new javax.swing.JCheckBox();
-        fhMakeSpice = new javax.swing.JCheckBox();
-        jLabel63 = new javax.swing.JLabel();
-        fhAfterAction = new javax.swing.JComboBox();
-        jLabel30 = new javax.swing.JLabel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -135,21 +220,21 @@ public class FastHenryTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         fastHenry.add(jLabel55, gridBagConstraints);
 
-        jLabel56.setText("Frequency end:");
+        fhFreqEndLabel.setText("Frequency end:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
-        fastHenry.add(jLabel56, gridBagConstraints);
+        fastHenry.add(fhFreqEndLabel, gridBagConstraints);
 
-        jLabel57.setText("Runs per decade:");
+        fhRunsPerDecadeLabel.setText("Runs per decade:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
-        fastHenry.add(jLabel57, gridBagConstraints);
+        fastHenry.add(fhRunsPerDecadeLabel, gridBagConstraints);
 
         fhMakeMultipole.setText("Make multipole subcircuit");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -160,13 +245,13 @@ public class FastHenryTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         fastHenry.add(fhMakeMultipole, gridBagConstraints);
 
-        jLabel58.setText("Number of poles:");
+        fhNumPolesLabel.setText("Number of poles:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
-        fastHenry.add(jLabel58, gridBagConstraints);
+        fastHenry.add(fhNumPolesLabel, gridBagConstraints);
 
         fhFrequencyStart.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -264,50 +349,6 @@ public class FastHenryTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         fastHenry.add(fhMaxSegmentLength, gridBagConstraints);
 
-        fhMakePostScript.setText("Make PostScript view");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        fastHenry.add(fhMakePostScript, gridBagConstraints);
-
-        fhMakeSpice.setText("Make SPICE subcircuit");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        fastHenry.add(fhMakeSpice, gridBagConstraints);
-
-        jLabel63.setText("After writing deck:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        fastHenry.add(jLabel63, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        fastHenry.add(fhAfterAction, gridBagConstraints);
-
-        jLabel30.setText("FASTHENRY OUTPUT IS NOT YET SUPPORTED");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        fastHenry.add(jLabel30, gridBagConstraints);
-
         getContentPane().add(fastHenry, new java.awt.GridBagConstraints());
 
         pack();
@@ -322,29 +363,24 @@ public class FastHenryTab extends PreferencePanel
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel fastHenry;
-    private javax.swing.JComboBox fhAfterAction;
     private javax.swing.JTextField fhDefaultHeightSubs;
     private javax.swing.JTextField fhDefaultThickness;
     private javax.swing.JTextField fhDefaultWidthSubs;
+    private javax.swing.JLabel fhFreqEndLabel;
     private javax.swing.JTextField fhFrequencyEnd;
     private javax.swing.JTextField fhFrequencyStart;
     private javax.swing.JCheckBox fhMakeMultipole;
-    private javax.swing.JCheckBox fhMakePostScript;
-    private javax.swing.JCheckBox fhMakeSpice;
     private javax.swing.JTextField fhMaxSegmentLength;
+    private javax.swing.JLabel fhNumPolesLabel;
     private javax.swing.JTextField fhNumberOfPoles;
     private javax.swing.JTextField fhRunsPerDecade;
+    private javax.swing.JLabel fhRunsPerDecadeLabel;
     private javax.swing.JCheckBox fhUseSingleFrequency;
-    private javax.swing.JLabel jLabel30;
     private javax.swing.JLabel jLabel55;
-    private javax.swing.JLabel jLabel56;
-    private javax.swing.JLabel jLabel57;
-    private javax.swing.JLabel jLabel58;
     private javax.swing.JLabel jLabel59;
     private javax.swing.JLabel jLabel60;
     private javax.swing.JLabel jLabel61;
     private javax.swing.JLabel jLabel62;
-    private javax.swing.JLabel jLabel63;
     // End of variables declaration//GEN-END:variables
 	
 }

@@ -50,6 +50,7 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.io.ELIBConstants;
 
 import javax.swing.*;
+import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
@@ -820,21 +821,9 @@ public class ELIB extends Output
 		int rotation = ni.getAngle();
 		if (compatibleWith6)
 		{
-			if (ni.isXMirrored())
-			{
-				if (ni.isYMirrored())
-				{
-					rotation = (rotation + 1800) % 3600;
-				} else
-				{
-					rotation = (rotation + 900) % 3600;
-					transpose = 1;
-				}
-			} else if (ni.isYMirrored())
-			{
-				rotation = (rotation + 2700) % 3600;
-				transpose = 1;
-			}
+			Point oldStyle = ni.getOldStyleRotationAndTranspose();
+			rotation = oldStyle.x;
+			transpose = oldStyle.y;
 		} else
 		{
 			if (ni.isXMirrored()) transpose |= 2;

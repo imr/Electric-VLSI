@@ -49,6 +49,8 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
+import com.sun.electric.plugins.skill.Skill;
+
 import java.awt.Dimension;
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedOutputStream;
@@ -60,6 +62,7 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -80,7 +83,7 @@ public class Output
 	/** for writing text files */               protected PrintWriter printWriter;
 	/** for writing binary files */             protected DataOutputStream dataOutputStream;
 
-	Output()
+	public Output()
 	{
 	}
 
@@ -258,36 +261,72 @@ public class Output
 		} else if (type == OpenFile.Type.CIF)
 		{
 			CIF.writeCIFFile(cell, context, filePath);
+		} else if (type == OpenFile.Type.COSMOS)
+		{
+			Sim.writeSimFile(cell, context, filePath, type);
+		} else if (type == OpenFile.Type.DXF)
+		{
+			DXF.writeDXFFile(cell, context, filePath);
 		} else if (type == OpenFile.Type.EAGLE)
 		{
 			Eagle.writeEagleFile(cell, context, filePath);
 		} else if (type == OpenFile.Type.ECAD)
 		{
 			ECAD.writeECADFile(cell, context, filePath);
-		} else if (type == OpenFile.Type.PADS)
+		} else if (type == OpenFile.Type.EDIF)
 		{
-			Pads.writePadsFile(cell, context, filePath);
+			EDIF.writeEDIFFile(cell, context, filePath);
+		} else if (type == OpenFile.Type.ESIM)
+		{
+			Sim.writeSimFile(cell, context, filePath, type);
+		} else if (type == OpenFile.Type.FASTHENRY)
+		{
+			FastHenry.writeFastHenryFile(cell, context, filePath);
 		} else if (type == OpenFile.Type.GDS)
 		{
 			GDS.writeGDSFile(cell, context, filePath);
-		} else if (type == OpenFile.Type.MAXWELL)
-		{
-			Maxwell.writeMaxwellFile(cell, context, filePath);
-		} else if (type == OpenFile.Type.POSTSCRIPT)
-		{
-			PostScript.writePostScriptFile(cell, context, filePath);
-		} else if (type == OpenFile.Type.SILOS)
-		{
-			Silos.writeSilosFile(cell, context, filePath);
-		} else if (type == OpenFile.Type.SPICE)
-		{
-			Spice.writeSpiceFile(cell, context, filePath, false);
-		} else if (type == OpenFile.Type.VERILOG)
-		{
-			Verilog.writeVerilogFile(cell, context, filePath);
 		} else if (type == OpenFile.Type.IRSIM)
 		{
 			IRSIM.writeIRSIMFile(cell, context, filePath);
+		} else if (type == OpenFile.Type.L)
+		{
+			L.writeLFile(cell, context, filePath);
+		} else if (type == OpenFile.Type.LEF)
+		{
+			LEF.writeLEFFile(cell, context, filePath);
+		} else if (type == OpenFile.Type.MAXWELL)
+		{
+			Maxwell.writeMaxwellFile(cell, context, filePath);
+		} else if (type == OpenFile.Type.MOSSIM)
+		{
+			MOSSIM.writeMOSSIMFile(cell, context, filePath);
+		} else if (type == OpenFile.Type.PADS)
+		{
+			Pads.writePadsFile(cell, context, filePath);
+		} else if (type == OpenFile.Type.PAL)
+		{
+			PAL.writePALFile(cell, context, filePath);
+		} else if (type == OpenFile.Type.POSTSCRIPT)
+		{
+			PostScript.writePostScriptFile(cell, context, filePath);
+		} else if (type == OpenFile.Type.RSIM)
+		{
+			Sim.writeSimFile(cell, context, filePath, type);
+		} else if (type == OpenFile.Type.SILOS)
+		{
+			Silos.writeSilosFile(cell, context, filePath);
+		} else if (type == OpenFile.Type.SKILL)
+		{
+			IOTool.writeSkill(cell, filePath);
+		} else if (type == OpenFile.Type.SPICE)
+		{
+			Spice.writeSpiceFile(cell, context, filePath, false);
+		} else if (type == OpenFile.Type.TEGAS)
+		{
+			Tegas.writeTegasFile(cell, context, filePath);
+		} else if (type == OpenFile.Type.VERILOG)
+		{
+			Verilog.writeVerilogFile(cell, context, filePath);
 		}
         
 //		if (error)
@@ -481,6 +520,62 @@ public class Output
 			String oneLine = str.substring(start, endPos);
 			printWriter.println(prefix + oneLine + postfix);
 			start = endPos+1;
+		}
+	}
+
+	/** number of characters written on a line */	private int lineCharCount = 0;
+	private int maxWidth = 80;
+	private char commentChar = 0;
+	private String continuationString = "";
+
+	protected void setOutputWidth(int width) { maxWidth = width; }
+	protected void setCommentChar(char ch) { commentChar = ch; }
+	protected void setContinuationString(String str) { continuationString = str; }
+
+	private void writeChunk(String str)
+	{
+		int len = str.length();
+		if (len <= 0) return;
+		printWriter.print(str);
+		lineCharCount += len;
+		if (str.charAt(len-1) == '\n') lineCharCount = 0;
+	}
+
+	/**
+	 * Write to the .sil file, but break into printable lines
+	 */
+	protected void writeWidthLimited(String str)
+	{
+		for(;;)
+		{
+			int len = str.length();
+			if (len <= 0) break;
+			int i = str.indexOf('\n');
+			if (i < 0) i = len; else i++;
+			if (lineCharCount + i < maxWidth)
+			{
+				// the next chunk fits: write it
+				String chunk = str;
+				if (i < len) chunk = str.substring(0, i);
+				writeChunk(chunk);
+
+				str = str.substring(i);
+				if (str.length() == 0) break;
+				continue;
+			}
+
+			// find place to break the line
+			int left = maxWidth - lineCharCount;
+			String exact = str.substring(0, left);
+			int splitPos = exact.lastIndexOf(' ');
+			if (splitPos < 0)
+				splitPos = exact.lastIndexOf(',');
+			if (splitPos > 0) exact = exact.substring(0, splitPos+1);
+
+			writeChunk(exact);
+			writeChunk("\n");
+			if (continuationString.length() > 0) writeChunk(continuationString);
+			str = str.substring(exact.length());
 		}
 	}
 

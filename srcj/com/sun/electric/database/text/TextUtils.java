@@ -280,6 +280,7 @@ public class TextUtils
 	{
 		if (numberFormatSpecific == null) {
             numberFormatSpecific = NumberFormat.getInstance(Locale.US);
+            if (numberFormatSpecific != null) numberFormatSpecific.setGroupingUsed(false);
             try {
                 DecimalFormat d = (DecimalFormat)numberFormatPostFix;
                 d.setDecimalSeparatorAlwaysShown(false);
@@ -458,17 +459,26 @@ public class TextUtils
 	public static class UnitScale
 	{
 		private final String name;
+		private final String description;
 		private final int index;
         private final String postFix;
         private final Number multiplier;
 
-		private UnitScale(String name, int index, String postFix, Number multiplier)
+		private UnitScale(String name, String description, int index, String postFix, Number multiplier)
 		{
 			this.name = name;
+			this.description = description;
 			this.index = index;
             this.postFix = postFix;
             this.multiplier = multiplier;
 		}
+
+		/**
+		 * Method to return the name of this UnitScale.
+		 * The name can be prepended to a type, for example the name "Milli" can be put in front of "Meter".
+		 * @return the name of this UnitScale.
+		 */
+		public String getName() { return name; }
 
 		/**
 		 * Method to convert this UnitScale to an integer.
@@ -498,6 +508,12 @@ public class TextUtils
 		public static UnitScale findFromIndex(int index) { return allUnits[index - UNIT_BASE]; }
 
 		/**
+		 * Method to return a list of all scales.
+		 * @return an array of all scales.
+		 */
+		public static UnitScale [] getUnitScales() { return allUnits; }
+
+		/**
 		 * Returns a printable version of this Unit.
 		 * @return a printable version of this Unit.
 		 */
@@ -505,20 +521,37 @@ public class TextUtils
 
 		/** The largest unit value. */					private static final int UNIT_BASE =  -3;
         /** The smallest unit value. */                 private static final int UNIT_END = 5;
-		/** Describes giga scale (1 billion). */		public static final UnitScale GIGA =  new UnitScale("giga:  x 1000000000",      -3, "G", new Integer(1000000000));
-		/** Describes mega scale (1 million). */		public static final UnitScale MEGA =  new UnitScale("mega:  x 1000000",         -2, "meg", new Integer(1000000));
-		/** Describes kilo scale (1 thousand). */		public static final UnitScale KILO =  new UnitScale("kilo:  x 1000",            -1, "k", new Integer(1000));
-		/** Describes unit scale (1). */				public static final UnitScale NONE =  new UnitScale("-:     x 1",                0, "", new Integer(1));
-		/** Describes milli scale (1 thousandth). */	public static final UnitScale MILLI = new UnitScale("milli: / 1000",             1, "m", new Double(0.001));
-		/** Describes micro scale (1 millionth). */		public static final UnitScale MICRO = new UnitScale("micro: / 1000000",          2, "u", new Double(0.000001));
-		/** Describes nano scale (1 billionth). */		public static final UnitScale NANO =  new UnitScale("nano:  / 1000000000",       3, "n", new Double(0.000000001));
-		/** Describes pico scale (1 quadrillionth). */	public static final UnitScale PICO =  new UnitScale("pico:  / 1000000000000",    4, "p", new Double(0.000000000001));
-		/** Describes femto scale (1 quintillionth). */	public static final UnitScale FEMTO = new UnitScale("femto: / 1000000000000000", 5, "f", new Double(0.000000000000001));
+		/** Describes giga scale (1 billion). */		public static final UnitScale GIGA =  new UnitScale("Giga",  "giga:  x 1000000000",      -3, "G", new Integer(1000000000));
+		/** Describes mega scale (1 million). */		public static final UnitScale MEGA =  new UnitScale("Mega",  "mega:  x 1000000",         -2, "meg", new Integer(1000000));
+		/** Describes kilo scale (1 thousand). */		public static final UnitScale KILO =  new UnitScale("Kilo",  "kilo:  x 1000",            -1, "k", new Integer(1000));
+		/** Describes unit scale (1). */				public static final UnitScale NONE =  new UnitScale("",      "-:     x 1",                0, "", new Integer(1));
+		/** Describes milli scale (1 thousandth). */	public static final UnitScale MILLI = new UnitScale("Milli", "milli: / 1000",             1, "m", new Double(0.001));
+		/** Describes micro scale (1 millionth). */		public static final UnitScale MICRO = new UnitScale("Micro", "micro: / 1000000",          2, "u", new Double(0.000001));
+		/** Describes nano scale (1 billionth). */		public static final UnitScale NANO =  new UnitScale("Nano",  "nano:  / 1000000000",       3, "n", new Double(0.000000001));
+		/** Describes pico scale (1 quadrillionth). */	public static final UnitScale PICO =  new UnitScale("Pico",  "pico:  / 1000000000000",    4, "p", new Double(0.000000000001));
+		/** Describes femto scale (1 quintillionth). */	public static final UnitScale FEMTO = new UnitScale("Femto", "femto: / 1000000000000000", 5, "f", new Double(0.000000000000001));
 
 		private final static UnitScale [] allUnits =
 		{
 			GIGA, MEGA, KILO, NONE, MILLI, MICRO, NANO, PICO, FEMTO
 		};
+	}
+
+	/**
+	 * Method to convert a database coordinate into real spacing.
+	 * @param value the database coordinate to convert.
+	 * @param tech the technology to use for conversion (provides a real scaling).
+	 * @param unitScale the type of unit desired.
+	 * @return the database coordinate in the desired units.
+	 * For example, if the given technology has a scale of 200 nanometers per unit,
+	 * and the value 7 is given, then that is 1.4 microns (1400 nanometers).
+	 * If the desired units are UnitScale.MICRO, then the returned value will be 1.4.
+	 */
+	public static double convertDistance(double value, Technology tech, UnitScale unitScale)
+	{
+		double scale = tech.getScale();
+		double distanceScale = 0.000000001 / unitScale.getMultiplier().doubleValue() * scale;
+		return value * distanceScale;
 	}
 
 	/**
@@ -895,6 +928,16 @@ public class TextUtils
 	}
 
 	/****************************** FOR SORTING OBJECTS ******************************/
+
+	public static class StringsCaseInsensitive implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			String s1 = (String)o1;
+			String s2 = (String)o2;
+			return s1.compareToIgnoreCase(s2);
+		}
+	}
 
 	public static class StringsWithNumbers implements Comparator
 	{

@@ -60,7 +60,7 @@ public abstract class Topology extends Output
 	/** HashMap of all Cell names */					private HashMap cellNameMap;
 
 	/** Creates a new instance of Topology */
-	Topology() 
+	public Topology() 
 	{
 	}
 
@@ -272,6 +272,16 @@ public abstract class Topology extends Output
 		/** scratch word for the subclass */	private int flags;
 
 		protected String getName() { return name; }
+		protected String getNameWithIndices()
+		{
+			if (low > high) return name;
+			int lowIndex = low, highIndex = high;
+			if (descending)
+			{
+				lowIndex = high;   highIndex = low;
+			}
+			return name + "[" + lowIndex + ":" + highIndex + "]";
+		}
 		protected CellSignal getSignal(int index) { return signals[index]; }
 		protected boolean isDescending() { return descending; }
 		protected boolean isSupply() { return supply; }

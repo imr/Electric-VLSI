@@ -4,6 +4,20 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01x: *********************************
 
+IMP/MAN: (10/2/04, SMR) Added "LEF" and "DXF" output.
+
+IMP/MAN: (10/2/04, SMR) Added "MOSSIM" netlisting.
+
+IMP/MAN: (10/2/04, SMR) Added "L" output.
+
+IMP/MAN: (10/1/04, SMR) Added "ESIM/RSIM/RNL/COSMOS" netlisting.
+
+IMP/MAN: (10/1/04, SMR) Added "FastHenry" netlisting, Preferences panel, and arc properties.
+
+IMP/MAN: (9/29/04, SMR) Added "Skill" netlisting and a "Skill" panel in Preferences.
+
+IMP/MAN: (9/28/04, SMR) Added "Tegas" netlisting.
+
 IMP: (9/27/04, GVG) ERC profiling: removal of 3 fields in WellArea/WellCon (15% reduction in WellArea, 20% in WellCon).
 
 IMP: (9/25/04, GVG) Adding ambiental light to 3D view. Antialiasing option added and
