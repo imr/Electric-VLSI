@@ -612,17 +612,40 @@ public class View3DWindow extends JPanel
             {
 				Point3d [] pts = new Point3d[8];
 				double max, delta;
-				Rectangle2D rect1 = polys[gate].getBounds2D();
 	            Point2D[] points = polys[gate].getPoints();
 	            double dist1 = points[0].distance(points[1]);
 	            double dist2 = points[0].distance(points[2]);
+				Layer layer = polys[gate].getLayer();
+				double dist = (layer.getDistance() + layer.getThickness()) * scale;
+				//double distPoly = (polys[poly].getLayer().getDistance() + (polys[poly].getLayer().getThickness()/10)) * scale;
+				double distPoly = (polys[poly].getLayer().getDistance()) * scale;
+                Point2D pointDist, pointClose;
+
 	            if (dist1 > dist2)
 	            {
-		            delta = dist1/10;
+	                pointDist = points[1];
+		            pointClose = points[2];
 	            }
 	            else
-	                delta = dist2/10;
-	            
+	            {
+	                pointDist = points[2];
+		            pointClose = points[1];
+	            }
+	            {
+		            delta = (points[0].getX() + pointDist.getX())/10;
+
+		            pts[0] = new Point3d(points[0].getX()+delta, points[0].getY(), dist);
+					pts[1] = new Point3d(points[0].getX(), points[0].getY(), distPoly);
+					pts[2] = new Point3d(points[0].getX()-delta, points[0].getY(), distPoly);
+					pts[3] = new Point3d(points[0].getX(), points[0].getY(), dist);
+		            pts[4] = new Point3d(points[0].getX()+delta, pointClose.getY(), dist);
+					pts[5] = new Point3d(points[0].getX(), pointClose.getY(), distPoly);
+					pts[6] = new Point3d(points[0].getX()-delta, pointClose.getY(), distPoly);
+					pts[7] = new Point3d(points[0].getX(), pointClose.getY(), dist);
+		            //boxList.add(addShape3D(pts, 4, getAppearance(layer)));
+	            }
+
+				Rectangle2D rect1 = polys[gate].getBounds2D();
 				boolean alongX = !(rect1.getX() == polys[poly].getBounds2D().getX());
 
 				Poly gateP = new Poly(rect1);
@@ -640,10 +663,6 @@ public class View3DWindow extends JPanel
 				}
 				double cutGate = (max - delta);
 				double cutPoly = (max + delta);
-				Layer layer = polys[gate].getLayer();
-				double dist = (layer.getDistance() + layer.getThickness()) * scale;
-				//double distPoly = (polys[poly].getLayer().getDistance() + (polys[poly].getLayer().getThickness()/10)) * scale;
-				double distPoly = (polys[poly].getLayer().getDistance()) * scale;
 				if (alongX)
 				{
 					pts[0] = new Point3d(cutGate, rect1.getMinY(), dist);
