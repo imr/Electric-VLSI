@@ -609,12 +609,14 @@ public class Undo
 				if (cell != null) lib = cell.getLibrary();
             } else if (type == Type.OBJECTRENAME) {
                 cell = obj.whichCell();
-                if (cell != null) lib = cell.getLibrary();
-                // also mark libraries that reference this cell as dirty
-                for (Iterator it = cell.getUsagesOf(); it.hasNext(); ) {
-                    NodeUsage nu = (NodeUsage)it.next();
-                    Cell parent = nu.getParent();
-                    parent.getLibrary().setChangedMinor();
+                if (cell != null) {
+                    lib = cell.getLibrary();
+                    // also mark libraries that reference this cell as dirty
+                    for (Iterator it = cell.getUsagesOf(); it.hasNext(); ) {
+                        NodeUsage nu = (NodeUsage)it.next();
+                        Cell parent = nu.getParent();
+                        parent.getLibrary().setChangedMinor();
+                    }
                 }
 			} else if (type == Type.VARIABLENEW || type == Type.VARIABLEKILL || type == Type.VARIABLEMOD ||
 				type == Type.VARIABLEINSERT || type == Type.VARIABLEDELETE)
