@@ -225,7 +225,6 @@ public class PolyBase implements Shape
 	 */
 	public Rectangle2D getBox()
 	{
-		// closed boxes must have exactly four points
 		if (points.length == 4)
 		{
 			// only closed polygons and text can be boxes
@@ -1437,7 +1436,21 @@ public class PolyBase implements Shape
 
 	private void calcBounds()
 	{
-		bounds = new Rectangle.Double();
+		bounds = null;
+		if (style == Poly.Type.CIRCLE || style == Poly.Type.THICKCIRCLE || style == Poly.Type.DISC)
+		{
+			double cX = points[0].getX();
+			double cY = points[0].getY();
+			double radius = points[0].distance(points[1]);
+			double diameter = radius * 2;
+			bounds = new Rectangle2D.Double(cX - radius, cY - radius, diameter, diameter);
+			return;
+		}
+		if (style == Poly.Type.CIRCLEARC || style == Poly.Type.THICKCIRCLEARC)
+		{
+			bounds = GenMath.arcBBox(points[1], points[2], points[0]);
+			return;
+		}
 		if (points.length > 0)
 		{
 			double lX = points[0].getX();
@@ -1453,9 +1466,10 @@ public class PolyBase implements Shape
 				if (y < lY) lY = y;
 				if (y > hY) hY = y;
 			}
-			bounds.setRect(lX, lY, hX-lX, hY-lY); // Back on Oct 1
-			//bounds.setRect(DBMath.round(lX), DBMath.round(lY), DBMath.round(hX-lX), DBMath.round(hY-lY));
+			bounds = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY); // Back on Oct 1
+			//bounds = new Rectangle2D.Double(DBMath.round(lX), DBMath.round(lY), DBMath.round(hX-lX), DBMath.round(hY-lY));
 		}
+		if (bounds == null) bounds = new Rectangle2D.Double();
 	}
 
 	/**

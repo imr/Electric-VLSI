@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.geometry;
 
+import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
@@ -665,40 +666,38 @@ public class GenMath
         return new Point2D.Double(fy, (-fb1 * fy - fc1) / fa1);
     }
 
-
-
 	/**
 	 * Method to compute the bounding box of the arc that runs clockwise from
 	 * "s" to "e" and is centered at "c".  The bounding box is returned.
 	 */
 	public static Rectangle2D arcBBox(Point2D s, Point2D e, Point2D c)
 	{
-		/* determine radius and compute bounds of full circle */
+		// determine radius and compute bounds of full circle
 		double radius = c.distance(s);
 		double lx = c.getX() - radius;
 		double ly = c.getY() - radius;
 		double hx = c.getX() + radius;
 		double hy = c.getY() + radius;
 
-		/* compute quadrant of two endpoints */
+		// compute quadrant of two endpoints
 		double x1 = s.getX() - c.getX();    double x2 = e.getX() - c.getX();
 		double y1 = s.getY() - c.getY();    double y2 = e.getY() - c.getY();
 		int q1 = db_quadrant(x1, y1);
 		int q2 = db_quadrant(x2, y2);
 
-		/* see if the two endpoints are in the same quadrant */
+		// see if the two endpoints are in the same quadrant
 		if (q1 == q2)
 		{
-			/* if the arc runs a full circle, use the MBR of the circle */
+			// if the arc runs a full circle, use the MBR of the circle
 			if (q1 == 1 || q1 == 2)
 			{
-				if (x1 > x2) return null;
+				if (x1 > x2) return new Rectangle2D.Double(lx, ly, hx-lx, hy-ly);;
 			} else
 			{
-				if (x1 < x2) return null;
+				if (x1 < x2) return new Rectangle2D.Double(lx, ly, hx-lx, hy-ly);;
 			}
 
-			/* use the MBR of the two arc points */
+			// use the MBR of the two arc points
 			lx = Math.min(s.getX(), e.getX());
 			hx = Math.max(s.getX(), e.getX());
 			ly = Math.min(s.getY(), e.getY());
@@ -710,16 +709,16 @@ public class GenMath
 		{
 			case 1: switch (q2)
 			{
-				case 2:	/* 3 quadrants clockwise from Q1 to Q2 */
+				case 2:	// 3 quadrants clockwise from Q1 to Q2
 				hy = Math.max(y1,y2) + c.getY();
 				break;
 
-				case 3:	/* 2 quadrants clockwise from Q1 to Q3 */
+				case 3:	// 2 quadrants clockwise from Q1 to Q3
 				lx = x2 + c.getX();
 				hy = y1 + c.getY();
 				break;
 
-				case 4:	/* 1 quadrant clockwise from Q1 to Q4 */
+				case 4:	// 1 quadrant clockwise from Q1 to Q4
 				lx = Math.min(x1,x2) + c.getX();
 				ly = y2 + c.getY();
 				hy = y1 + c.getY();
@@ -729,17 +728,17 @@ public class GenMath
 
 			case 2: switch (q2)
 			{
-				case 1:	/* 1 quadrant clockwise from Q2 to Q1 */
+				case 1:	// 1 quadrant clockwise from Q2 to Q1
 				lx = x1 + c.getX();
 				ly = Math.min(y1,y2) + c.getY();
 				hx = x2 + c.getX();
 				break;
 
-				case 3:	/* 3 quadrants clockwise from Q2 to Q3 */
+				case 3:	// 3 quadrants clockwise from Q2 to Q3
 				lx = Math.min(x1,x2) + c.getX();
 				break;
 
-				case 4:	/* 2 quadrants clockwise from Q2 to Q4 */
+				case 4:	// 2 quadrants clockwise from Q2 to Q4
 				lx = x1 + c.getX();
 				ly = y2 + c.getY();
 				break;
@@ -748,18 +747,18 @@ public class GenMath
 
 			case 3: switch (q2)
 			{
-				case 1:	/* 2 quadrants clockwise from Q3 to Q1 */
+				case 1:	// 2 quadrants clockwise from Q3 to Q1
 				ly = y1 + c.getY();
 				hx = x2 + c.getX();
 				break;
 
-				case 2:	/* 1 quadrant clockwise from Q3 to Q2 */
+				case 2:	// 1 quadrant clockwise from Q3 to Q2
 				ly = y1 + c.getY();
 				hx = Math.max(x1,x2) + c.getX();
 				hy = y2 + c.getY();
 				break;
 
-				case 4:	/* 3 quadrants clockwise from Q3 to Q4 */
+				case 4:	// 3 quadrants clockwise from Q3 to Q4
 				ly = Math.min(y1,y2) + c.getY();
 				break;
 			}
@@ -767,16 +766,16 @@ public class GenMath
 
 			case 4: switch (q2)
 			{
-				case 1:	/* 3 quadrants clockwise from Q4 to Q1 */
+				case 1:	// 3 quadrants clockwise from Q4 to Q1
 				hx = Math.max(x1,x2) + c.getX();
 				break;
 
-				case 2:	/* 2 quadrants clockwise from Q4 to Q2 */
+				case 2:	// 2 quadrants clockwise from Q4 to Q2
 				hx = x1 + c.getX();
 				hy = y2 + c.getY();
 				break;
 
-				case 3:	/* 1 quadrant clockwise from Q4 to Q3 */
+				case 3:	// 1 quadrant clockwise from Q4 to Q3
 				lx = x2 + c.getX();
 				hx = x1 + c.getX();
 				hy = Math.max(y1,y2) + c.getY();
@@ -915,13 +914,15 @@ public class GenMath
     }
     */
 
+	// ************************************* CLIPPING *************************************
+
     private static final int LEFT    = 1;
     private static final int RIGHT   = 2;
     private static final int BOTTOM  = 4;
     private static final int TOP     = 8;
 
     /**
-     * Method to clip a line against a rectangle.
+     * Method to clip a line against a rectangle (in double-precision).
      * @param from one end of the line.
      * @param to the other end of the line.
      * @param lX the low X bound of the clip.
@@ -989,6 +990,244 @@ public class GenMath
             }
         }
     }
+
+
+    /**
+     * Method to clip a line against a rectangle (in integer).
+     * @param from one end of the line.
+     * @param to the other end of the line.
+     * @param lX the low X bound of the clip.
+     * @param hX the high X bound of the clip.
+     * @param lY the low Y bound of the clip.
+     * @param hY the high Y bound of the clip.
+     * The points are modified to fit inside of the clip area.
+     * @return true if the line is not visible.
+     */
+	public static boolean clipLine(Point from, Point to, int lx, int hx, int ly, int hy)
+	{
+		for(;;)
+		{
+			// compute code bits for "from" point
+			int fc = 0;
+			if (from.x < lx) fc |= LEFT; else
+				if (from.x > hx) fc |= RIGHT;
+			if (from.y < ly) fc |= BOTTOM; else
+				if (from.y > hy) fc |= TOP;
+
+			// compute code bits for "to" point
+			int tc = 0;
+			if (to.x < lx) tc |= LEFT; else
+				if (to.x > hx) tc |= RIGHT;
+			if (to.y < ly) tc |= BOTTOM; else
+				if (to.y > hy) tc |= TOP;
+
+			// look for trivial acceptance or rejection
+			if (fc == 0 && tc == 0) return false;
+			if (fc == tc || (fc & tc) != 0) return true;
+
+			// make sure the "from" side needs clipping
+			if (fc == 0)
+			{
+				int t = from.x;   from.x = to.x;   to.x = t;
+				t = from.y;   from.y = to.y;   to.y = t;
+				t = fc;       fc = tc;         tc = t;
+			}
+
+			if ((fc&LEFT) != 0)
+			{
+				if (to.x == from.x) return true;
+				int t = (to.y - from.y) * (lx - from.x) / (to.x - from.x);
+				from.y += t;
+				from.x = lx;
+			}
+			if ((fc&RIGHT) != 0)
+			{
+				if (to.x == from.x) return true;
+				int t = (to.y - from.y) * (hx - from.x) / (to.x - from.x);
+				from.y += t;
+				from.x = hx;
+			}
+			if ((fc&BOTTOM) != 0)
+			{
+				if (to.y == from.y) return true;
+				int t = (to.x - from.x) * (ly - from.y) / (to.y - from.y);
+				from.x += t;
+				from.y = ly;
+			}
+			if ((fc&TOP) != 0)
+			{
+				if (to.y == from.y) return true;
+				int t = (to.x - from.x) * (hy - from.y) / (to.y - from.y);
+				from.x += t;
+				from.y = hy;
+			}
+		}
+	}
+
+	public static Point [] clipPoly(Point [] points, int lx, int hx, int ly, int hy)
+	{
+		// see if any points are outside
+		int count = points.length;
+		int pre = 0;
+		for(int i=0; i<count; i++)
+		{
+			if (points[i].x < lx) pre |= LEFT; else
+				if (points[i].x > hx) pre |= RIGHT;
+			if (points[i].y < ly) pre |= BOTTOM; else
+				if (points[i].y > hy) pre |= TOP;
+		}
+		if (pre == 0) return points;
+
+		// get polygon
+		Point [] in = new Point[count*2];
+		for(int i=0; i<count*2; i++)
+		{
+			in[i] = new Point();
+			if (i < count) in[i].setLocation(points[i]);
+		}
+		Point [] out = new Point[count*2];
+		for(int i=0; i<count*2; i++)
+			out[i] = new Point();
+
+		// clip on all four sides
+		Point [] a = in;
+		Point [] b = out;
+
+		if ((pre & LEFT) != 0)
+		{
+			count = clipEdge(a, count, b, LEFT, lx);
+			Point [] swap = a;   a = b;   b = swap;
+		}
+		if ((pre & RIGHT) != 0)
+		{
+			count = clipEdge(a, count, b, RIGHT, hx);
+			Point [] swap = a;   a = b;   b = swap;
+		}
+		if ((pre & TOP) != 0)
+		{
+			count = clipEdge(a, count, b, TOP, hy);
+			Point [] swap = a;   a = b;   b = swap;
+		}
+		if ((pre & BOTTOM) != 0)
+		{
+			count = clipEdge(a, count, b, BOTTOM, ly);
+			Point [] swap = a;   a = b;   b = swap;
+		}
+
+		// remove redundant points from polygon
+		pre = 0;
+		for(int i=0; i<count; i++)
+		{
+			if (i > 0 && a[i-1].x == a[i].x && a[i-1].y == a[i].y) continue;
+			b[pre].x = a[i].x;   b[pre].y = a[i].y;
+			pre++;
+		}
+
+		// closed polygon: remove redundancy on wrap-around
+		while (pre != 0 && b[0].x == b[pre-1].x && b[0].y == b[pre-1].y) pre--;
+		count = pre;
+
+		// copy the polygon back if it in the wrong place
+		Point [] retArr = new Point[count];
+		for(int i=0; i<count; i++)
+			retArr[i] = b[i];
+		return retArr;
+	}
+
+	/**
+	 * Method to clip polygon "in" against line "edge" (1:left, 2:right,
+	 * 4:bottom, 8:top) and place clipped result in "out".
+	 */
+	private static int clipEdge(Point [] in, int inCount, Point [] out, int edge, int value)
+	{
+		// look at all the lines
+		Point first = new Point();
+		Point second = new Point();
+		int firstx = 0, firsty = 0;
+		int outcount = 0;
+		for(int i=0; i<inCount; i++)
+		{
+			int pre = i - 1;
+			if (i == 0) pre = inCount-1;
+			first.setLocation(in[pre]);
+			second.setLocation(in[i]);
+			if (clipSegment(first, second, edge, value)) continue;
+			int x1 = first.x;     int y1 = first.y;
+			int x2 = second.x;    int y2 = second.y;
+			if (outcount != 0)
+			{
+				if (x1 != out[outcount-1].x || y1 != out[outcount-1].y)
+				{
+					out[outcount].x = x1;  out[outcount++].y = y1;
+				}
+			} else { firstx = x1;  firsty = y1; }
+			out[outcount].x = x2;  out[outcount++].y = y2;
+		}
+		if (outcount != 0 && (out[outcount-1].x != firstx || out[outcount-1].y != firsty))
+		{
+			out[outcount].x = firstx;   out[outcount++].y = firsty;
+		}
+		return outcount;
+	}
+
+	/**
+	 * Method to do clipping on the vector from (x1,y1) to (x2,y2).
+	 * If the vector is completely invisible, true is returned.
+	 */
+	private static boolean clipSegment(Point p1, Point p2, int codebit, int value)
+	{
+		int x1 = p1.x;   int y1 = p1.y;
+		int x2 = p2.x;   int y2 = p2.y;
+
+		int c1 = 0, c2 = 0;
+		if (codebit == LEFT)
+		{
+			if (x1 < value) c1 = codebit;
+			if (x2 < value) c2 = codebit;
+		} else if (codebit == BOTTOM)
+		{
+			if (y1 < value) c1 = codebit;
+			if (y2 < value) c2 = codebit;
+		} else if (codebit == RIGHT)
+		{
+			if (x1 > value) c1 = codebit;
+			if (x2 > value) c2 = codebit;
+		} else if (codebit == TOP)
+		{
+			if (y1 > value) c1 = codebit;
+			if (y2 > value) c2 = codebit;
+		}
+
+		if (c1 == c2) return c1 != 0;
+		boolean flip = false;
+		if (c1 == 0)
+		{
+			int t = x1;   x1 = x2;   x2 = t;
+			t = y1;   y1 = y2;   y2 = t;
+			flip = true;
+		}
+		if (codebit == LEFT || codebit == RIGHT)
+		{
+			int t = (y2-y1) * (value-x1) / (x2-x1);
+			y1 += t;
+			x1 = value;
+		} else if (codebit == BOTTOM || codebit == TOP)
+		{
+			int t = (x2-x1) * (value-y1) / (y2-y1);
+			x1 += t;
+			y1 = value;
+		}
+		if (flip)
+		{
+			p1.x = x2;   p1.y = y2;
+			p2.x = x1;   p2.y = y1;
+		} else
+		{
+			p1.x = x1;   p1.y = y1;
+			p2.x = x2;   p2.y = y2;
+		}
+		return false;
+	}
 
     private static final double [] sineTable = {
         0.0,0.0017453283658983088,0.003490651415223732,0.00523596383141958,0.0069812602979615525,0.008726535498373935,

@@ -740,7 +740,7 @@ if (oFlipY != ono.isYMirrored()) changeSY = -ono.getYSizeWithMirror() * 2;
 			Poly poly = thisEnd.getPortInst().getPoly();
 			if (poly.isInside(newPts[thisEndIndex]))
 			{
-				Rectangle2D bbox = poly.getBox();
+				Rectangle2D bbox = poly.getBounds2D();
 				if (newPts[thisEndIndex].getY() >= bbox.getMinY() && newPts[thisEndIndex].getY() <= bbox.getMaxY())
 				{
 					// extend arc horizontally to fit in port

@@ -280,7 +280,8 @@ public class RouteElementArc extends RouteElement {
             if (!headPoly.isInside(headPoint)) {
                 // can't connect
                 System.out.println("Arc head point ("+headPoint.getX()+","+headPoint.getY()+") not inside port "+headPi+": "+headPi.getBounds());
-                return null;
+               headPoly = headPi.getPoly();
+               return null;
             }
 			Poly tailPoly = tailPi.getPoly();
 			if (!tailPoly.isInside(tailPoint))

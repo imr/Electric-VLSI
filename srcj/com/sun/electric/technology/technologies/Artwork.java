@@ -548,7 +548,7 @@ public class Artwork extends Technology
 	public Poly getShapeOfPort(NodeInst ni, PrimitivePort pp, Point2D selectPt)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
-		if (np == pinNode || np == arrowNode)
+		if (np == pinNode || np == arrowNode || np == circleNode || np == thickCircleNode || np == filledCircleNode)
 		{
 			return super.getShapeOfPort(ni, pp, selectPt);
 		}

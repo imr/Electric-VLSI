@@ -9,6 +9,13 @@ IMP: (12/6/04, DN) "TextUtils.getFileNameWithoutExtension()" returns legal
      "LibraryFiles.readExternalLibraryFromFileName()" uses this name
      for library creation.
 
+IMP: (12/5/04, SMR) Sped up drawing of highlights by doing proper clipping in Highlight.java.
+
+IMP: (12/3/04, SMR) Made Artwork Circles work properly, including problems with constraints (Layout.modFlex()),
+     selection, better highlighting.
+
+IMP/MAN: (12/3/04, SMR) Redid Layer Visibility once more; can select range of layers.
+
 IMP: (12/3/04, GVG) TSMC90: New default size in pure p/n select nodes (Bug #54)
 
 BUG: (12/3/04, RK) NCC: more intuitive Cell selection for cell groups having multiple layout cells (Bug #45)

@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -980,8 +981,10 @@ public class Highlight
         Poly poly = null;
         if (np instanceof PrimitiveNode)
         {
-            // special case for outline nodes
-            if (((PrimitiveNode)np).isHoldsOutline())
+        	PrimitiveNode pn = (PrimitiveNode)np;
+
+        	// special case for outline nodes
+            if (pn.isHoldsOutline())
             {
                 Point2D [] outline = ni.getTrace();
                 if (outline != null)
@@ -994,7 +997,6 @@ public class Highlight
                             ni.getTrueCenterY() + outline[i].getY());
                     }
                     trans.transform(pointList, 0, pointList, 0, numPoints);
-                    //drawOutlineFromPoints(wnd, g, pointList, 0, 0, true, null);
                     poly = new Poly(pointList);
     				if (ni.getFunction() == PrimitiveNode.Function.NODE)
     				{
@@ -1005,6 +1007,20 @@ public class Highlight
     				}
                 }
             }
+
+            // special case for circular nodes
+    		if (pn == Artwork.tech.circleNode || pn == Artwork.tech.thickCircleNode)
+    		{
+    			// see if this circle is only a partial one
+    			double [] angles = ni.getArcDegrees();
+    			if (angles[0] != 0.0 || angles[1] != 0.0)
+    			{
+    				Point2D [] pointList = Artwork.fillEllipse(ni.getAnchorCenter(), ni.getXSize(), ni.getYSize(), angles[0], angles[1]);
+    				poly = new Poly(pointList);
+    				poly.setStyle(Poly.Type.OPENED);
+    				poly.transform(ni.rotateOut());
+    			}
+    		}
         }
 
         // setup outline of node with standard offset
@@ -1106,10 +1122,15 @@ public class Highlight
     private static void drawLine(Graphics g, EditWindow wnd, int x1, int y1, int x2, int y2)
     {
         Dimension size = wnd.getScreenSize();
-        if (((x1 >= 0) && (x1 <= size.getWidth())) || ((x2 >= 0) && (x2 <= size.getWidth())) ||
-            ((y1 >= 0) && (y1 <= size.getHeight())) || ((y2 >= 0) && (y2 <= size.getHeight()))) {
-                g.drawLine(x1, y1, x2, y2);
-        }
+		// first clip the line
+        Point pt1 = new Point(x1, y1);
+        Point pt2 = new Point(x2, y2);
+		if (GenMath.clipLine(pt1, pt2, 0, size.width-1, 0, size.height-1)) return;
+		g.drawLine(pt1.x, pt1.y, pt2.x, pt2.y);
+//        if (((x1 >= 0) && (x1 <= size.getWidth())) || ((x2 >= 0) && (x2 <= size.getWidth())) ||
+//            ((y1 >= 0) && (y1 <= size.getHeight())) || ((y2 >= 0) && (y2 <= size.getHeight()))) {
+//                g.drawLine(x1, y1, x2, y2);
+//        }
     }
 
 	/**

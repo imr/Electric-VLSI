@@ -124,7 +124,8 @@ public class PortInst extends ElectricObject
 	 */
 	public Rectangle2D getBounds()
 	{
-		Rectangle2D r = nodeInst.getShapeOfPort(portProto).getBounds2D();
+		Poly poly = nodeInst.getShapeOfPort(portProto);
+		Rectangle2D r = poly.getBounds2D();
 		return r;
 	}
 

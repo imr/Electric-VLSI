@@ -1084,35 +1084,6 @@ public class NodeInst extends Geometric implements Nodable
 		public boolean isJMirrorY() { return jMirrorY; }
 		
 	}
-//	/**
-//	 * Method to return the old (C) style rotation/transpose for this NodeInst.
-//	 * In the C version of Electric, transformation was represented as an angle
-//	 * (just like this: in tenths of a degree) and a "transpose" factor.  The
-//	 * transpose is either 0 or 1.  If 1, the object is transposed about the diagonal
-//	 * after rotation.
-//	 * @return a Point with the rotation in the X coordinate and the transpose in the Y coordinate.
-//	 */
-//	public Point getOldStyleRotationAndTransposeX()
-//	{
-//		int rotation = getAngle();
-//		int transpose = 0;
-//		if (isXMirrored())
-//		{
-//			if (isYMirrored())
-//			{
-//				rotation = (rotation + 1800) % 3600;
-//			} else
-//			{
-//				rotation = (rotation + 900) % 3600;
-//				transpose = 1;
-//			}
-//		} else if (isYMirrored())
-//		{
-//			rotation = (rotation + 2700) % 3600;
-//			transpose = 1;
-//		}
-//		return new Point(rotation, transpose);
-//	}
 
 	/**
 	 * Method to return the starting and ending angle of an arc described by this NodeInst.
@@ -1169,7 +1140,7 @@ public class NodeInst extends Geometric implements Nodable
 			fAddr[1] = new Float(curvature);
 			newVar(Artwork.ART_DEGREES, fAddr);
 		}
-		redoGeometric();
+//		redoGeometric();
 	}
 
 	/**
@@ -1220,7 +1191,7 @@ public class NodeInst extends Geometric implements Nodable
 		// special case for arcs of circles
 		if (pn == Artwork.tech.circleNode || pn == Artwork.tech.thickCircleNode)
 		{
-			// see if there this circle is only a partial one
+			// see if this circle is only a partial one
 			double [] angles = getArcDegrees();
 			if (angles[0] != 0.0 || angles[1] != 0.0)
 			{
@@ -2363,7 +2334,7 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public void checkPossibleVariableEffects(Variable.Key key)
 	{
-		if (key == Artwork.ART_DEGREES)
+		if (key == Artwork.ART_DEGREES || key == TRACE)
 			lowLevelModify(0, 0, 0, 0, 0);
 	}
 
