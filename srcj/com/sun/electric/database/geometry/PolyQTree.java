@@ -38,10 +38,12 @@ public class PolyQTree {
 	private static Rectangle2D testBox = new Rectangle2D.Double();
     private HashMap layers = new HashMap();
 
+	//--------------------------PUBLIC METHODS--------------------------
 	public PolyQTree()
 	{
 		;
 	}
+
 	/**
 	 * Print all nodes in the tree. Debugging purpose only!.
 	 */
@@ -72,6 +74,7 @@ public class PolyQTree {
 	{
 		return (layers.values().iterator());
 	}
+
 	/**
 	 * Retrieves list of leaf elements in the tree give a layer
 	 * @param layer
@@ -105,10 +108,13 @@ public class PolyQTree {
 		};
 		// Check whether original got changed! shouldn't happen because they are by value
 		testBox.setRect(obj);
-		testBox = root.removeObjects(box, testBox);
-		root.insert(box, testBox);
+		//testBox = root.removeObjects(box, testBox);
+		// Only if no other identical element was found, element is inserted
+		if (!root.findAndRemoveObjects(box, testBox))
+			root.insert(box, testBox);
 	}
 
+	//--------------------------PRIVATE METHODS--------------------------
 	private static class PolyQNode
     {
 		private Set nodes; // If Set, no need to check whether they are duplicated or not. Java will do it for you
@@ -241,7 +247,7 @@ public class PolyQTree {
 		 * @param obj
 		 * @return
 		 */
-		protected Rectangle2D removeObjects(Rectangle2D box, Rectangle2D obj)
+		protected boolean findAndRemoveObjects(Rectangle2D box, Rectangle2D obj)
 		{
 			double centerX = box.getCenterX();
             double centerY = box.getCenterY();
@@ -255,8 +261,17 @@ public class PolyQTree {
 					if (((loc >> i) & 1) == 0)
 					{
 						Rectangle2D bb = getBox(box, centerX, centerY, i);
+						/*
+                            Object test = obj.clone();
+						Rectangle2D test1 = children[i].removeObjects(bb, obj);
+						if ( !test1.equals(obj))
+						          System.out.println("Parar");
+						          */
+						// if identical element was found, no need of re-insertion
+						// No need of reviewing other quadrants?
+						if (children[i].findAndRemoveObjects(bb, obj))
+							return (true);
 
-						obj = children[i].removeObjects(bb, obj);
 						if (children[i].compact())
 							children[i] = null;
 					}
@@ -271,7 +286,9 @@ public class PolyQTree {
 					Rectangle2D node = (Rectangle2D)it.next();
 
 					// I should test equals first?
-					if (!node.equals(obj) && node.intersects(obj))
+					if (node.equals(obj))
+						return (true);
+					if (node.intersects(obj))
 					//if (!node.equals(obj) && intersects(node, obj))
 					{
 						obj.add(node);
@@ -286,7 +303,8 @@ public class PolyQTree {
 					nodes = null;
 				}
 			}
-			return (obj);
+			// No identical element found
+			return (false);
 		}
 
 		/**
