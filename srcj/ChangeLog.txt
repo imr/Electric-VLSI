@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ae: *********************************
 
+BUG: (10/27/04, GVG) Miscellaneous: another attempt to remove out of bound exception and fix the group naming (it was removing last character due to <= condition)
+Removing TSMC90 PP/NP.S.7 rule in DRC.
+
 BUG: (10/26/04, SMR) Moving a cell to a different cell group fails if there are multiple versions.
 FIX: In "Cell.setCellGroup()", move all versions at once.
 
