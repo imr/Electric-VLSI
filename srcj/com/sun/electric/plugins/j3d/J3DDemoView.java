@@ -33,7 +33,7 @@ public class J3DDemoView extends View3DWindow
         BranchGroup scene = super.createSceneGraph(cell, infiniteBounds);
 
         // create the KeyBehavior and attach
-		J3DKeyCollision keyBehavior = new J3DKeyCollision(objTrans, this);
+		J3DKeyCollision keyBehavior = new J3DKeyCollision(objTrans, null, this);
 		keyBehavior.setSchedulingBounds(infiniteBounds);
 		//keyBehavior.setMovementRate( 0.7 );
 //        BranchGroup behaviorBranch = new BranchGroup();

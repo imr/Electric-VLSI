@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02i: *********************************
 
+IMP: (03/05/05, GVG) Axes in 3D View including rotation according to keybehavior and color.
+
 IMP: (03/04/05, RK) Added qLite and sport to NCC regression suite
 
 IMP/MAN: (03/04/05, SMR) Initial implementation of IRSIM simulator.

@@ -196,6 +196,11 @@ public class ColorsTab extends PreferencePanel
 		colorLayerModel.addElement(name);
 		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
 
+        color = User.get3DColorAxis();
+		name = "Special: 3D AXIS";
+		colorLayerModel.addElement(name);
+		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
+
 		// finish initialization
 		colorLayerList.setSelectedIndex(0);
 		colorChooser.getSelectionModel().addChangeListener(new ChangeListener()
@@ -367,6 +372,13 @@ public class ColorsTab extends PreferencePanel
 					if (color.intValue() != User.get3DColorDirectionalLight())
 					{
 						User.set3DColorDirectionalLight(color.intValue());
+						colorChanged = true;
+					}
+                } else if (layerName.equals("Special: 3D AXIS"))
+				{
+					if (color.intValue() != User.get3DColorAxis())
+					{
+						User.set3DColorAxis(color.intValue());
 						colorChanged = true;
 					}
 				}

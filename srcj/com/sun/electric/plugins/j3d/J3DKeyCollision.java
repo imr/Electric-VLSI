@@ -41,9 +41,9 @@ public class J3DKeyCollision extends J3DKeyBehavior // KeyNavigatorBehavior
 //    protected Transform3D transform3D;
 
 
-	public J3DKeyCollision( TransformGroup tg, J3DCollisionDetector collisionDetector )
+	public J3DKeyCollision(TransformGroup tg, BranchGroup axes, J3DCollisionDetector collisionDetector)
 	{
-		super( tg );
+		super(tg, axes);
 
         transformGroup = tg;
         transform3D = new Transform3D( );

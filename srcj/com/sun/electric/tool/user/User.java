@@ -1034,20 +1034,20 @@ public class User extends Listener
         }
     }
 
-    private static Pref cache3DColorLight = Pref.makeIntPref("3DColorAmbient", User.tool.prefs, Color.GRAY.getRGB());
+    private static Pref cache3DColorDirectionalLight = Pref.makeIntPref("3DColorDirectionalLight", User.tool.prefs, Color.GRAY.getRGB());
 	/**
 	 * Method to get the color of directional light on the 3D display.
 	 * The default is "gray".
 	 * @return the color of directional light on the 3D display.
 	 */
-	public static int get3DColorDirectionalLight() { return cache3DColorLight.getInt(); }
+	public static int get3DColorDirectionalLight() { return cache3DColorDirectionalLight.getInt(); }
 	/**
 	 * Method to set the color of directional light on the 3D display.
 	 * @param c the color of directional light on the 3D display.
 	 */
 	public static void set3DColorDirectionalLight(int c)
     {
-        cache3DColorLight.setInt(c);
+        cache3DColorDirectionalLight.setInt(c);
 
         try
         {
@@ -1082,6 +1082,31 @@ public class User extends Listener
             setMethod.invoke(j3DUtilsClass, new Object[]{null});
         } catch (Exception e) {
             System.out.println("Cannot call 3D plugin method setDirection: " + e.getMessage());
+        }
+    }
+
+    private static Pref cache3DColorAxis = Pref.makeIntPref("3DColorAxis", User.tool.prefs, Color.BLACK.getRGB());
+	/**
+	 * Method to get the color of the axes on the 3D display.
+	 * The default is "gray".
+	 * @return the color of the axes on the 3D display.
+	 */
+	public static int get3DColorAxis() { return cache3DColorAxis.getInt(); }
+	/**
+	 * Method to set the color of the axes on the 3D display.
+	 * @param c the color of the axes on the 3D display.
+	 */
+	public static void set3DColorAxis(int c)
+    {
+        cache3DColorAxis.setInt(c);
+
+        try
+        {
+            Class j3DUtilsClass = Resources.get3DClass("utils.J3DAppearance");
+            Method setMethod = j3DUtilsClass.getDeclaredMethod("setAxisAppearanceValues", new Class[] {Object.class});
+            setMethod.invoke(j3DUtilsClass, new Object[]{null});
+        } catch (Exception e) {
+            System.out.println("Cannot call 3D plugin method setAxisAppearanceValues: " + e.getMessage());
         }
     }
 

@@ -34,7 +34,8 @@ public class J3DAppearance extends Appearance
     private EGraphics graphics; // reference to layer for fast access to appearance
 
 	/** cell has a unique appearance **/    public static J3DAppearance cellApp;
-    /** highligh appearance **/             public static J3DAppearance highligtAp;
+    /** highligh appearance **/             public static J3DAppearance highligtApp;
+    /** Appearance for axes */              public static J3DAppearance axisApp;
 
     public J3DAppearance(J3DAppearance app)
     {
@@ -189,6 +190,20 @@ public class J3DAppearance extends Appearance
     }
 
     /**
+     * Method to access appearance of axes in 3D
+     * @param initValue false if appearance has to be changed according to user value
+     */
+    public static void setAxisAppearanceValues(Object initValue)
+    {
+        Color userColor = new Color(User.get3DColorAxis());
+
+        if (axisApp == null)
+            axisApp = new J3DAppearance(null, TransparencyAttributes.NONE, 0.5f, userColor);
+        else if (initValue == null) // redoing color only when it was changed in GUI
+            axisApp.set3DColor(null, userColor);
+    }
+
+    /**
      * Method to access appearance of highlighted nodes in 3D
      * @param initValue false if appearance has to be changed according to user value
      */
@@ -196,10 +211,10 @@ public class J3DAppearance extends Appearance
     {
         Color userColor = new Color(User.get3DColorHighlighted());
 
-        if (highligtAp == null)
-            highligtAp = new J3DAppearance(null, TransparencyAttributes.BLENDED, 0.5f, userColor);
+        if (highligtApp == null)
+            highligtApp = new J3DAppearance(null, TransparencyAttributes.BLENDED, 0.5f, userColor);
         else if (initValue == null) // redoing color only when it was changed in GUI
-            highligtAp.set3DColor(null, userColor);
+            highligtApp.set3DColor(null, userColor);
     }
 
     /**

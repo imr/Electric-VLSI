@@ -195,7 +195,7 @@ public class JThreeDSideView extends JPanel
                 shape.setAppearance((J3DAppearance)parentDialog.transparencyMap.get(currentLayerSelected));
         }
         shape = (Shape3D)layerPolyhedra.get(layer);
-        shape.setAppearance(J3DAppearance.highligtAp);
+        shape.setAppearance(J3DAppearance.highligtApp);
         currentLayerSelected = layer;
     }
 
@@ -227,7 +227,7 @@ public class JThreeDSideView extends JPanel
             if (s != null)
             {
                 J3DAppearance app = (J3DAppearance)s.getAppearance();
-                if (app != J3DAppearance.highligtAp)
+                if (app != J3DAppearance.highligtApp)
                 {
                     Layer layer = app.getGraphics().getLayer();
                     parentDialog.threeDLayerList.setSelectedValue(layer.getName(), false);

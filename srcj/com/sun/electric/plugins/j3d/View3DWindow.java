@@ -53,12 +53,7 @@ import com.sun.electric.plugins.j3d.utils.J3DAlpha;
 import com.sun.electric.plugins.j3d.utils.J3DAppearance;
 import com.sun.electric.plugins.j3d.utils.J3DSerialization;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
-import java.awt.Point;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -74,6 +69,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 import java.util.*;
+import java.util.List;
 import java.io.*;
 
 import com.sun.j3d.utils.behaviors.mouse.*;
@@ -87,6 +83,9 @@ import com.sun.j3d.utils.picking.PickIntersection;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.Viewer;
 import com.sun.j3d.utils.universe.ViewingPlatform;
+import com.sun.j3d.utils.geometry.Cone;
+import com.sun.j3d.utils.geometry.Primitive;
+import com.sun.j3d.utils.geometry.Cylinder;
 
 import javax.media.j3d.*;
 import javax.swing.*;
@@ -109,6 +108,7 @@ public class View3DWindow extends JPanel
 	private SimpleUniverse u;
 	private Canvas3D canvas;
 	protected TransformGroup objTrans;
+    private BranchGroup axes;
 	private JMouseRotate rotateB;
 	private JMouseZoom zoomB;
 	private JMouseTranslate translateB;
@@ -195,6 +195,7 @@ public class View3DWindow extends JPanel
         // Set global appearances before create the elements
         J3DAppearance.setCellAppearanceValues(this);
         J3DAppearance.setHighlightedAppearanceValues(this);
+        J3DAppearance.setAxisAppearanceValues(this);
 
 
 		// Create a simple scene and attach it to the virtual universe
@@ -215,7 +216,7 @@ public class View3DWindow extends JPanel
 		ViewingPlatform viewingPlatform = u.getViewingPlatform();
 
         JMouseTranslate translate = new JMouseTranslate(canvas, MouseTranslate.INVERT_INPUT);
-        translate.setTransformGroup(viewingPlatform.getMultiTransformGroup().getTransformGroup(2));
+        translate.setTransformGroup(objTrans); //viewingPlatform.getMultiTransformGroup().getTransformGroup(2));
         translate.setSchedulingBounds(infiniteBounds);
 		double scale = (cell.getDefWidth() < cell.getDefHeight()) ? cell.getDefWidth() : cell.getDefHeight();
         translate.setFactor(0.01 * scale); // default 0.02
@@ -225,7 +226,7 @@ public class View3DWindow extends JPanel
 		translateB = translate;
 
         JMouseZoom zoom = new JMouseZoom(canvas, MouseZoom.INVERT_INPUT);
-        zoom.setTransformGroup(viewingPlatform.getMultiTransformGroup().getTransformGroup(1));
+        zoom.setTransformGroup(objTrans); //viewingPlatform.getMultiTransformGroup().getTransformGroup(1));
         zoom.setSchedulingBounds(infiniteBounds);
         zoom.setFactor(0.7);    // default 0.4
         BranchGroup zoomBG = new BranchGroup();
@@ -287,12 +288,12 @@ public class View3DWindow extends JPanel
 		vCenter.z += vDist;
 		Transform3D vTrans = new Transform3D();
 		Transform3D proj = new Transform3D();
-        Rectangle2D bnd = cell.getBounds();
 
-        //translateB.setView(bnd.getWidth(), 0);
+        //translateB.setView(cellBnd.getWidth(), 0);
+        Rectangle2D cellBnd = cell.getBounds();
         rotateB.setRotation(User.get3DRotX(), User.get3DRotY());
         zoomB.setZoom(User.get3DOrigZoom());
-		proj.ortho(bnd.getMinX(), bnd.getMinX(), bnd.getMinY(), bnd.getMaxY(), (vDist+radius)/200.0, (vDist+radius)*2.0);
+		proj.ortho(cellBnd.getMinX(), cellBnd.getMinX(), cellBnd.getMinY(), cellBnd.getMaxY(), (vDist+radius)/200.0, (vDist+radius)*2.0);
 
 		vTrans.set(vCenter);
 
@@ -312,6 +313,71 @@ public class View3DWindow extends JPanel
 		setWindowTitle();
 	}
 
+    /** Font for 3D axis labels */ private static Font3D font3D;
+
+    /**
+     * Method to create axes for reference
+     * @return
+     */
+    private BranchGroup createAxis(BranchGroup main, Vector3d dir, Vector3d center, String label)
+    {
+        // Create Axes;
+        TransformGroup branch = new TransformGroup(); // This transform will control all movements
+        branch.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+        branch.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+        main.addChild(branch);
+        Transform3D axisTrans = new Transform3D();
+
+        if (dir == J3DUtils.axisX)
+            axisTrans.rotZ(-Math.PI/2);
+        else if (dir == J3DUtils.axisZ)
+           axisTrans.rotX(Math.PI/2);
+        //center.y += 10;
+        axisTrans.setTranslation(center);
+        TransformGroup axes = new TransformGroup(axisTrans);
+        axes.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+        axes.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+
+        Transform3D cylinderTrans = new Transform3D();
+        Vector3d cylinderLocation = new Vector3d(0, 10, 0); // Cylinder and cone are along Y
+        cylinderTrans.setTranslation(cylinderLocation);
+        TransformGroup cylinderG = new TransformGroup(cylinderTrans);
+        Primitive axis = new Cylinder(1, 20);
+        axis.setAppearance(J3DAppearance.axisApp);
+        cylinderG.addChild(axis);
+        axes.addChild(cylinderG);
+
+        // Text
+        if (font3D == null)
+            font3D = new Font3D(new Font(User.getDefaultFont(), Font.PLAIN, 8),
+                     new FontExtrusion());
+        Text3D txt = new Text3D(font3D, label,
+             new Point3f( -label.length()/2.0f, 22, 0));
+        Shape3D sh = new Shape3D();
+        sh.setGeometry(txt);
+        sh.setAppearance(J3DAppearance.axisApp);
+        axes.addChild(sh);
+
+        // Arrow
+        Transform3D arrowTrans = new Transform3D();
+        Vector3d arrowLocation = new Vector3d(0, 20, 0); // Cylinder and cone are along Y
+        arrowTrans.set(arrowLocation);
+        TransformGroup arrowG = new TransformGroup(arrowTrans);
+        Primitive arrow = new Cone(1.5f, 4);
+        arrow.setAppearance(J3DAppearance.axisApp);
+        arrowG.addChild(arrow);
+
+        axes.addChild(arrowG);
+        branch.addChild(axes);
+        return main;
+    }
+
+    /**
+     * Method to create main transformation group
+     * @param cell
+     * @param infiniteBounds
+     * @return
+     */
     protected BranchGroup createSceneGraph(Cell cell, BoundingSphere infiniteBounds)
 	{
 		// Create the root of the branch graph
@@ -367,6 +433,16 @@ public class View3DWindow extends JPanel
 //		objTrans.addChild(light1);
 //        //objTrans.addChild(light2);
 
+        // Create Axes
+        Rectangle2D cellBnd = cell.getBounds();
+        Vector3d center = new Vector3d(cellBnd.getMinX(), cellBnd.getMinY(), 0);
+        axes = new BranchGroup();
+        axes.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+        createAxis(axes, J3DUtils.axisX, center, "X");
+        createAxis(axes, J3DUtils.axisY, center, "Y");
+        createAxis(axes, J3DUtils.axisZ, center, "Z");
+        objRoot.addChild(axes);
+
 		// Picking tools
         //PickZoomBehavior behavior2 = new PickZoomBehavior(objRoot, canvas, infiniteBounds);
         //objRoot.addChild(behavior2);
@@ -389,7 +465,7 @@ public class View3DWindow extends JPanel
 //		objRoot.addChild( key );
 
         // create the KeyBehavior and attach
-		keyBehavior = new J3DKeyCollision(objTrans, this);
+		keyBehavior = new J3DKeyCollision(objTrans, axes, this);
 		keyBehavior.setSchedulingBounds(infiniteBounds);
 		//keyBehavior.setMovementRate( 0.7 );
 		objTrans.addChild(keyBehavior);
@@ -754,9 +830,9 @@ public class View3DWindow extends JPanel
 			if (toSelect) // highlight cell, set transparency
 			{
 				J3DAppearance app = (J3DAppearance)obj.getAppearance();
-				obj.setAppearance(J3DAppearance.highligtAp);
+				obj.setAppearance(J3DAppearance.highligtApp);
 				//app.getRenderingAttributes().setVisible(false);
-				J3DAppearance.highligtAp.setGraphics(app.getGraphics());
+				J3DAppearance.highligtApp.setGraphics(app.getGraphics());
 				if (view2D != null && do2D)
 				{
 					//Geometry geo = obj.getGeometry();
@@ -775,7 +851,7 @@ public class View3DWindow extends JPanel
 			}
 			else // back to normal
 			{
-				EGraphics graphics = J3DAppearance.highligtAp.getGraphics();
+				EGraphics graphics = J3DAppearance.highligtApp.getGraphics();
 				if (graphics != null)
 				{
 					J3DAppearance origAp = (J3DAppearance)graphics.get3DAppearance();

@@ -46,7 +46,8 @@ public class J3DKeyBehavior extends Behavior
 	protected static final double NORMAL_SPEED = 1.0;
 	protected static final double SLOW_SPEED = 0.5;
 
-	protected TransformGroup transformGroup;
+	protected TransformGroup transformGroup; /* Contains main scene*/
+    private BranchGroup axes; /* Contains the 3 axes, they should only be rotated */
 	protected Transform3D transform3D;
 	protected WakeupCondition keyCriterion;
 
@@ -66,11 +67,12 @@ public class J3DKeyBehavior extends Behavior
 	private int leftKey = KeyEvent.VK_LEFT;
 	private int rightKey = KeyEvent.VK_RIGHT;
 
-	public J3DKeyBehavior( TransformGroup tg )
+	public J3DKeyBehavior(TransformGroup tg, BranchGroup axes)
 	{
-		super( );
+		super();
 
 		transformGroup = tg;
+        this.axes = axes;
 		transform3D = new Transform3D( );
 	}
 
@@ -202,6 +204,21 @@ public class J3DKeyBehavior extends Behavior
 		transformGroup.setTransform( transform3D );
 	}
 
+    /**
+     * Method to rotate always the axes
+     */
+    private void rotateAxes(Transform3D toMove)
+    {
+        for (Enumeration e = axes.getAllChildren(); e.hasMoreElements(); )
+        {
+            TransformGroup axisTrans = (TransformGroup)e.nextElement();
+            Transform3D tmp = new Transform3D( );
+            axisTrans.getTransform(tmp);
+            tmp.mul(toMove);
+            axisTrans.setTransform(tmp);
+        }
+    }
+
 	protected void doRotateY( double radians )
 	{
 		transformGroup.getTransform( transform3D );
@@ -209,6 +226,7 @@ public class J3DKeyBehavior extends Behavior
 		toMove.rotY( radians );
 		transform3D.mul( toMove );
 		updateTransform( );
+        rotateAxes(toMove);
 	}
 
 	protected void doRotateX( double radians )
@@ -218,6 +236,7 @@ public class J3DKeyBehavior extends Behavior
 		toMove.rotX( radians );
 		transform3D.mul( toMove );
 		updateTransform( );
+        rotateAxes(toMove);
 	}
 
 	protected void doRotateZ( double radians )
@@ -227,6 +246,7 @@ public class J3DKeyBehavior extends Behavior
 		toMove.rotZ( radians );
 		transform3D.mul( toMove );
 		updateTransform( );
+        rotateAxes(toMove);
 	}
 
 	protected void doMove( Vector3d theMove )

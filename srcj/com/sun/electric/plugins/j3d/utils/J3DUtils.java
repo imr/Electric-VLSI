@@ -39,7 +39,6 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.PathIterator;
 import java.awt.image.BufferedImage;
 import java.util.*;
-import java.util.List;
 import java.io.*;
 
 /**
@@ -221,6 +220,12 @@ public final class J3DUtils
             directionalColor.setValue(userColor);
     }
 
+    /**
+     * Create the lights (directional and ambiental) for the given scene graph
+     * based on User's data
+     * @param scene
+     * @param objTrans
+     */
     public static void createLights(BranchGroup scene, TransformGroup objTrans)
     {
         // Checking if light colors are available
@@ -737,6 +742,10 @@ public final class J3DUtils
 		return new Quat4f( q );
 	}
 
+    public static final Vector3d axisX = new Vector3d(1,0,0);
+    public static final Vector3d axisY = new Vector3d(0,1,0);
+    public static final Vector3d axisZ = new Vector3d(0,0,1);
+
     /**
      * Convert three rotations about the Euler axes to a Quaternion.
      * From Selman's book
@@ -749,9 +758,9 @@ public final class J3DUtils
 	{
 		// simply call createQuaternionFromAxisAndAngle
 		// for each axis and multiply the results
-		Quat4f qx = createQuaternionFromAxisAndAngle( new Vector3d( 1,0,0 ), angleX );
-		Quat4f qy = createQuaternionFromAxisAndAngle( new Vector3d( 0,1,0 ), angleY );
-		Quat4f qz = createQuaternionFromAxisAndAngle( new Vector3d( 0,0,1 ), angleZ );
+		Quat4f qx = createQuaternionFromAxisAndAngle(axisX, angleX);
+		Quat4f qy = createQuaternionFromAxisAndAngle(axisY, angleY);
+		Quat4f qz = createQuaternionFromAxisAndAngle(axisZ, angleZ);
 
 		// qx = qx * qy
 		qx.mul( qy );
