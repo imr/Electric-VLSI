@@ -63,11 +63,7 @@ import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.prefs.Preferences;
 
 /**
@@ -659,10 +655,61 @@ public class Technology
 	}
 
 	/**
-	 * Method to initialize a technology.
+	 * Method to set state of a technology.
 	 * It gets overridden by individual technologies.
 	 */
-	public void init() {}
+	public void setState() {;}
+
+	/**
+	 * Method to initialize a technology. This will check and restore
+	 * default values stored as preferences
+	 */
+	//public void init() {}
+	public void init()
+	{
+		// remember the arc widths as specified by previous defaults
+		HashMap arcWidths = new HashMap();
+		for(Iterator it = getArcs(); it.hasNext(); )
+		{
+			PrimitiveArc ap = (PrimitiveArc)it.next();
+			double width = ap.getDefaultWidth();
+			arcWidths.put(ap, new Double(width));
+		}
+
+		// remember the node sizes as specified by previous defaults
+		HashMap nodeSizes = new HashMap();
+		for(Iterator it = getNodes(); it.hasNext(); )
+		{
+			PrimitiveNode np = (PrimitiveNode)it.next();
+			double width = np.getDefWidth();
+			double height = np.getDefHeight();
+			nodeSizes.put(np, new Point2D.Double(width, height));
+		}
+
+		// initialize all design rules in the technology (overwrites arc widths)
+		setState();
+
+		// now restore arc width defaults if they are wider than what is set
+		for(Iterator it = getArcs(); it.hasNext(); )
+		{
+			PrimitiveArc ap = (PrimitiveArc)it.next();
+			Double origWidth = (Double)arcWidths.get(ap);
+			if (origWidth == null) continue;
+			double width = ap.getDefaultWidth();
+			if (origWidth.doubleValue() > width) ap.setDefaultWidth(origWidth.doubleValue());
+		}
+
+		// now restore node size defaults if they are larger than what is set
+		for(Iterator it = getNodes(); it.hasNext(); )
+		{
+			PrimitiveNode np = (PrimitiveNode)it.next();
+			Point2D size = (Point2D)nodeSizes.get(np);
+			if (size == null) continue;
+			double width = np.getDefWidth();
+			double height = np.getDefHeight();
+			if (size.getX() > width || size.getY() > height) np.setDefSize(size.getX(), size.getY());
+		}
+	}
 
 	/**
 	 * Returns the current Technology.

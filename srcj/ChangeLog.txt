@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01am: *********************************
 
+IMP: (11/8/04, GVG) Default sizes for new arcs/nodes in TSMC90 now correctly stored and retrieved from preferences
+(moved MoCMOS.init() to Technology.init())
+
 IMP: (11/8/04, GVG) Avoid to run DRC on Artwork or in case technology doesn't have rules associated
 
 ************************* Version 8.01al: *********************************

@@ -2684,7 +2684,7 @@ public class MoCMOS extends Technology
 	/**
 	 * Method for initializing this technology.
 	 */
-	public void init()
+	public void initOld()
 	{
 		// remember the arc widths as specified by previous defaults
 		HashMap arcWidths = new HashMap();
@@ -2734,7 +2734,7 @@ public class MoCMOS extends Technology
 	 * Method to set the technology to state "newstate", which encodes the number of metal
 	 * layers, whether it is a deep process, and other rules.
 	 */
-	private void setState()
+	public void setState()
 	{
 		// set rules
 		DRCRules rules = getFactoryDesignRules();
