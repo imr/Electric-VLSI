@@ -36,6 +36,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
@@ -64,6 +65,7 @@ import java.util.Collections;
 import java.util.EventListener;
 import java.util.Iterator;
 import java.util.List;
+import java.util.HashMap;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -154,25 +156,24 @@ public class Clipboard
 
 	public static void copy()
 	{
-        CopyObjects job = new CopyObjects(MenuCommands.getSelectedObjects(true, true));
+        CopyObjects job = new CopyObjects(MenuCommands.getHighlighted());
 	}
 
 	private static class CopyObjects extends Job
 	{
-        private List highlightedObjs;
+        private List highlights;
 
-		protected CopyObjects(List highlightedObjs)
+		protected CopyObjects(List highlights)
 		{
 			super("Copy", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.highlightedObjs = highlightedObjs;
+            this.highlights = highlights;
 			startJob();
 		}
 
 		public boolean doIt()
 		{
-			// get objects to copy
-			List geoms = highlightedObjs;
-			if (geoms.size() == 0)
+			// get highlights to copy
+			if (highlights.size() == 0)
 			{
 				System.out.println("First select objects to copy");
 				return false;
@@ -192,32 +193,31 @@ public class Clipboard
             EditWindow.gridAlign(mouseDB);
 
 			// copy objects to clipboard
-			copyListToCell(wnd, geoms, parent, clipCell, false, new Point2D.Double(0,0));
+			copyListToCell(wnd, highlights, parent, clipCell, false, new Point2D.Double(0,0));
 			return true;
 		}
 	}
 
 	public static void cut()
 	{
-        CutObjects job = new CutObjects(MenuCommands.getSelectedObjects(true, true));
+        CutObjects job = new CutObjects(MenuCommands.getHighlighted());
 	}
 
 	private static class CutObjects extends Job
 	{
-        private List highlightedObjs;
+        private List highlights;
 
-		protected CutObjects(List highlightedObjs)
+		protected CutObjects(List highlights)
 		{
 			super("Cut", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.highlightedObjs = highlightedObjs;
+            this.highlights = highlights;
 			startJob();
 		}
 
 		public boolean doIt()
 		{
 			// get objects to cut
-			List geoms = highlightedObjs;
-			if (geoms.size() == 0)
+			if (highlights.size() == 0)
 			{
 				System.out.println("First select objects to cut");
 				return false;
@@ -237,49 +237,55 @@ public class Clipboard
             EditWindow.gridAlign(mouseDB);
 
 			// make sure deletion is allowed
-			if (CircuitChanges.cantEdit(parent, null, true)) return false;
+			if (CircuitChanges.cantEdit(parent, null, true) != 0) return false;
 			List deleteList = new ArrayList();
-			for(Iterator it = geoms.iterator(); it.hasNext(); )
+			for(Iterator it = highlights.iterator(); it.hasNext(); )
 			{
-				Geometric g = (Geometric)it.next();
-				if (g instanceof NodeInst)
+				Highlight h = (Highlight)it.next();
+				if (h.getType() == Highlight.Type.EOBJ)
 				{
-					if (CircuitChanges.cantEdit(parent, (NodeInst)g, true)) continue;
+					ElectricObject eObj = h.getElectricObject();
+					if (eObj instanceof PortInst) eObj = ((PortInst)eObj).getNodeInst();
+					if (eObj instanceof NodeInst)
+					{
+						int errorCode = CircuitChanges.cantEdit(parent, (NodeInst)eObj, true);
+						if (errorCode < 0) return false;
+						if (errorCode > 0) continue;
+					}
 				}
-				deleteList.add(g);
+				deleteList.add(h);
 			}
-			geoms = deleteList;
+			highlights = deleteList;
 
 			// copy objects to clipboard
-			copyListToCell(wnd, geoms, parent, clipCell, false, new Point2D.Double(mouseDB.getX(), mouseDB.getY()));
+			copyListToCell(wnd, highlights, parent, clipCell, false, new Point2D.Double(mouseDB.getX(), mouseDB.getY()));
 
 			// and delete the original objects
-			CircuitChanges.eraseObjectsInList(parent, geoms);
+			CircuitChanges.eraseObjectsInList(parent, highlights);
 			return true;
 		}
 	}
 
     public static void duplicate()
     {
-        DuplicateObjects job = new DuplicateObjects(MenuCommands.getSelectedObjects(true, true));
+        DuplicateObjects job = new DuplicateObjects(MenuCommands.getHighlighted());
     }
 
 	private static class DuplicateObjects extends Job
     {
-        private List highlightedObjs;
+        private List highlights;
 
-        protected DuplicateObjects(List highlightedObjs)
+        protected DuplicateObjects(List highlights)
         {
             super("Duplicate", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.highlightedObjs = highlightedObjs;
+            this.highlights = highlights;
             startJob();
         }
 
         public boolean doIt()
         {
             // get objects to copy
-            List geoms = highlightedObjs;
-            if (geoms.size() == 0)
+             if (highlights.size() == 0)
             {
                 System.out.println("First select objects to copy");
                 return false;
@@ -299,7 +305,7 @@ public class Clipboard
             EditWindow.gridAlign(mouseDB);
 
             // copy objects to clipboard
-            copyListToCell(wnd, geoms, parent, clipCell, false, new Point2D.Double(0, 0));
+            copyListToCell(wnd, highlights, parent, clipCell, false, new Point2D.Double(0, 0));
 
             Highlighter highlighter = wnd.getHighlighter();
             if (highlighter != null) highlighter.clear();
@@ -419,7 +425,7 @@ public class Clipboard
 		public boolean doIt()
 		{
 			// make sure pasting is allowed
-			if (CircuitChanges.cantEdit(dst.getParent(), null, true)) return false;
+			if (CircuitChanges.cantEdit(dst.getParent(), null, true) != 0) return false;
 
 			ArcInst ai = pasteArcToArc(dst, src);
 			if (ai == null) System.out.println("Nothing was pasted");
@@ -449,7 +455,7 @@ public class Clipboard
 		public boolean doIt()
 		{
 			// make sure pasting is allowed
-			if (CircuitChanges.cantEdit(dst.getParent(), null, true)) return false;
+			if (CircuitChanges.cantEdit(dst.getParent(), null, true) != 0) return false;
 
 			NodeInst ni = pasteNodeToNode(dst, src);
 			if (ni == null) System.out.println("Nothing was pasted");
@@ -483,10 +489,27 @@ public class Clipboard
 			Cell parent = wnd.getCell();
 
 			// make sure pasting is allowed
-			if (CircuitChanges.cantEdit(parent, null, true)) return false;
+			if (CircuitChanges.cantEdit(parent, null, true) != 0) return false;
 
 			// paste them into the current cell
 			copyListToCell(wnd, pasteList, clipCell, parent, true, new Point2D.Double(dX, dY));
+
+			// also copy any variables on the clipboard cell
+			for(Iterator it = clipCell.getVariables(); it.hasNext(); )
+			{
+				Variable var = (Variable)it.next();
+				if (!var.isDisplay()) continue;
+				Variable cellVar = parent.newVar(var.getKey().getName(), var.getObject());
+				if (cellVar != null)
+				{
+					cellVar.setTextDescriptor(var.getTextDescriptor());
+					TextDescriptor td = cellVar.getTextDescriptor();
+					td.setOff(td.getXOff() + dX, td.getYOff() + dY);
+					cellVar.setCode(var.getCode());
+					cellVar.setDisplay(true);
+					if (var.isDontSave()) cellVar.setDontSave();
+				}
+			}
 			return true;
 		}
 	}
@@ -496,64 +519,6 @@ public class Clipboard
 	 * @return a printable version of this Clipboard.
 	 */
 	public String toString() { return "Clipboard"; }
-
-//    private static class NameComparator implements Comparator
-//    {
-//        /** These should be String objects */
-//        public int compare(Object o1, Object o2)
-//        {
-//            if ((o1 == null) && (o2 == null)) return 0;
-//            if (o1 == null) return 1;
-//            if (o2 == null) return -1;
-//            String s1 = (String)o1;
-//            String s2 = (String)o2;
-//            Name n1 = Name.findName(s1);
-//            Name n2 = Name.findName(s2);
-//            return n1.compareTo(n2);
-//        }
-//    }
-
-//	private static class NodeNameCaseInsensitive extends NameComparator
-//	{
-//		public int compare(Object o1, Object o2)
-//		{
-//			NodeInst n1 = (NodeInst)o1;
-//			NodeInst n2 = (NodeInst)o2;
-//			String s1 = n1.getName();
-//			String s2 = n2.getName();
-//			if (s1 == null) s1 = "";
-//			if (s2 == null) s2 = "";
-//            return super.compare(s1, s2);
-//		}
-//	}
-
-//	private static class ArcNameCaseInsensitive extends NameComparator
-//	{
-//		public int compare(Object o1, Object o2)
-//		{
-//			ArcInst a1 = (ArcInst)o1;
-//			ArcInst a2 = (ArcInst)o2;
-//			String s1 = a1.getName();
-//			String s2 = a2.getName();
-//			if (s1 == null) s1 = "";
-//			if (s2 == null) s2 = "";
-//			return super.compare(s1, s2);
-//		}
-//	}
-
-//	private static class ExportNameCaseInsensitive extends NameComparator
-//	{
-//		public int compare(Object o1, Object o2)
-//		{
-//			Export e1 = (Export)o1;
-//			Export e2 = (Export)o2;
-//			String s1 = e1.getName();
-//			String s2 = e2.getName();
-//			if (s1 == null) s1 = "";
-//			if (s2 == null) s2 = "";
-//			return super.compare(s1, s2);
-//		}
-//	}
 
 	/**
 	 * Method to copy the list of Geometrics in "list" (NOGEOM terminated) from "fromCell"
@@ -567,8 +532,10 @@ public class Clipboard
 		for(Iterator it = list.iterator(); it.hasNext(); )
 		{
 			Object obj = it.next();
-			if (!(obj instanceof Geometric)) continue; // Temporary fix?
+			if (obj instanceof Highlight) obj = ((Highlight)obj).getGeometric();
+			if (!(obj instanceof Geometric)) continue;
 			Geometric geom = (Geometric)obj;
+
 			if (fromCell != geom.getParent())
 			{
 				System.out.println("All duplicated objects must be in the same cell");
@@ -576,16 +543,20 @@ public class Clipboard
 			}
 		}
 
-        // make a list of all objects to be pasted (includes end points of arcs)
+        // make a list of all objects to be copied (includes end points of arcs)
         List theNodes = new ArrayList();
         List theArcs = new ArrayList();
-        for (Iterator it = list.iterator(); it.hasNext(); ) {
+        for (Iterator it = list.iterator(); it.hasNext(); )
+        {
 	        Object obj = it.next();
-			if (!(obj instanceof Geometric)) continue; // Temporary fix?
+			if (obj instanceof Highlight) obj = ((Highlight)obj).getGeometric();
+			if (!(obj instanceof Geometric)) continue;
             Geometric geom = (Geometric)obj;
+
             if (geom instanceof NodeInst)
                 theNodes.add(geom);
-            if (geom instanceof ArcInst) {
+            if (geom instanceof ArcInst)
+            {
                 ArcInst ai = (ArcInst)geom;
                 theArcs.add(ai);
                 NodeInst head = ai.getHead().getPortInst().getNodeInst();
@@ -603,7 +574,6 @@ public class Clipboard
 			if (ni.getProto() instanceof PrimitiveNode) continue;
 			Cell niCell = (Cell)ni.getProto();
             if (Cell.isInstantiationRecursive(niCell, toCell))
-			//if (niCell.isAChildOf(toCell))
 			{
 				System.out.println("Cannot: that would be recursive (cell " +
 					toCell.describe() + " is beneath cell " + ni.getProto().describe() + ")");
@@ -611,27 +581,15 @@ public class Clipboard
 			}
 		}
 
-        // get center from bounds of all objects to be pasted
-/*
-        List pasteList = new ArrayList(theNodes);
-        pasteList.addAll(theArcs);
-        Rectangle2D pasteBounds = getPasteBounds(pasteList);
-        Point2D objectsCenter = new Point2D.Double(pasteBounds.getX() + 0.5*pasteBounds.getWidth(),
-                pasteBounds.getY() + 0.5*pasteBounds.getHeight());
-        EditWindow.gridAlign(objectsCenter);
-        EditWindow.gridAlign(centerPoint);
-*/
         EditWindow.gridAlign(delta);
-        // get translation to paste center point of objects at centerPoint.
-        //double dX = centerPoint.getX() - objectsCenter.getX();
-        //double dY = centerPoint.getY() - objectsCenter.getY();
         double dX = delta.getX();
         double dY = delta.getY();
 
 		// sort the nodes by name
 		Collections.sort(theNodes, new TextUtils.NodesByName());
 
-		// create the new objects
+		// create the new nodes
+		HashMap newNodes = new HashMap();
 		for(Iterator it = theNodes.iterator(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
@@ -657,39 +615,41 @@ public class Clipboard
 			newNi.setProtoTextDescriptor(ni.getProtoTextDescriptor());
 			newNi.setNameTextDescriptor(ni.getNameTextDescriptor());
 			newNi.copyVarsFrom(ni);
-			ni.setTempObj(newNi);
+			newNodes.put(ni, newNi);
 //			us_dupnode = newNi;
 
 			// copy the ports, too
             List portInstsToExport = new ArrayList();
-            List referenceExports = new ArrayList();
+            HashMap originalExports = new HashMap();
 			if (User.isDupCopiesExports())
 			{
 				for(Iterator eit = ni.getExports(); eit.hasNext(); )
 				{
 					Export pp = (Export)eit.next();
-                    referenceExports.add(pp);
                     PortInst pi = ExportChanges.getNewPortFromReferenceExport(newNi, pp);
                     portInstsToExport.add(pi);
+					originalExports.put(pi, pp);
 				}
 			}
-            ExportChanges.reExportPorts(portInstsToExport, true, true, false, referenceExports);
+            ExportChanges.reExportPorts(portInstsToExport, true, true, false, originalExports);
 		}
 
+		HashMap newArcs = new HashMap();
 		if (theArcs.size() > 0)
 		{
 			// sort the arcs by name
 			Collections.sort(theArcs, new TextUtils.ArcsByName());
 
+			// create the new arcs
 			for(Iterator it = theArcs.iterator(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				PortInst oldHeadPi = ai.getHead().getPortInst();
-				NodeInst headNi = (NodeInst)oldHeadPi.getNodeInst().getTempObj();
+				NodeInst headNi = (NodeInst)newNodes.get(oldHeadPi.getNodeInst());
 				PortInst headPi = headNi.findPortInstFromProto(oldHeadPi.getPortProto());
 
 				PortInst oldTailPi = ai.getTail().getPortInst();
-				NodeInst tailNi = (NodeInst)oldTailPi.getNodeInst().getTempObj();
+				NodeInst tailNi = (NodeInst)newNodes.get(oldTailPi.getNodeInst());
 				PortInst tailPi = tailNi.findPortInstFromProto(oldTailPi.getPortProto());
 
 				String name = null;
@@ -706,7 +666,28 @@ public class Clipboard
 				newAr.copyStateBits(ai);
 				newAr.copyVarsFrom(ai);
 				newAr.setNameTextDescriptor(ai.getNameTextDescriptor());
-				ai.setTempObj(newAr);
+				newArcs.put(ai, newAr);
+			}
+		}
+
+		// copy variables on cells
+		for(Iterator it = list.iterator(); it.hasNext(); )
+		{
+			Object obj = it.next();
+			if (!(obj instanceof Highlight)) continue;
+			Highlight h = (Highlight)obj;
+			if (h.getType() != Highlight.Type.TEXT) continue;
+			Variable var = h.getVar();
+			if (var == null) continue;
+			if (!(h.getElectricObject() instanceof Cell)) continue;
+
+			Variable cellVar = toCell.newVar(var.getKey().getName(), var.getObject());
+			if (cellVar != null)
+			{
+				cellVar.setDisplay(var.isDisplay());
+				if (var.isDontSave()) cellVar.setDontSave();
+				cellVar.setCode(var.getCode());
+				cellVar.setTextDescriptor(var.getTextDescriptor());
 			}
 		}
 
@@ -718,7 +699,7 @@ public class Clipboard
 			for(Iterator it = theNodes.iterator(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
-				ni = (NodeInst)ni.getTempObj();
+				ni = (NodeInst)newNodes.get(ni);
 				if (ni == null) continue;
 
 				// special case for displayable text on invisible pins
@@ -743,27 +724,12 @@ public class Clipboard
                 Geometric geom = (Geometric)obj;
 				if (geom instanceof NodeInst) continue;
 				ArcInst ai = (ArcInst)geom;
-				ai = (ArcInst)ai.getTempObj();
+				ai = (ArcInst)newArcs.get(ai);
 				Highlight h = highlighter.addElectricObject(ai, toCell);
 			}
 			highlighter.finished();
 		}
-
-		// cleanup temp object pointers that correspond from old cell to new
-		for(Iterator it = list.iterator(); it.hasNext(); )
-		{
-			Object obj = it.next();
-			if (!(obj instanceof Geometric)) continue; // Temporary fix?
-            Geometric geom = (Geometric)obj;
-			geom.setTempObj(null);
-		}
-		for(Iterator it = theNodes.iterator(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-			ni.setTempObj(null);
-		}
 	}
-
 
     /**
      * Gets a boundary representing the paste bounds of the list of objects.

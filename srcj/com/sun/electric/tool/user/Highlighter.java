@@ -615,18 +615,15 @@ public class Highlighter implements DatabaseChangeListener {
 		{
 			Highlight h = (Highlight)it.next();
 
-			if (h.getType() == Highlight.Type.EOBJ)
+			if (h.getType() == Highlight.Type.EOBJ || h.getType() == Highlight.Type.TEXT)
 			{
-				ElectricObject eobj = h.getElectricObject();
-				if (!wantNodes)
-				{
-					if (eobj instanceof NodeInst || eobj instanceof PortInst) continue;
-				}
-				if (!wantArcs && eobj instanceof ArcInst) continue;
-				if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
+				Geometric geom = h.getGeometric();
+				if (geom == null) continue;
+				if (!wantNodes && geom instanceof NodeInst) continue;
+				if (!wantArcs && geom instanceof ArcInst) continue;
 
-				if (highlightedGeoms.contains(eobj)) continue;
-				highlightedGeoms.add(eobj);
+				if (highlightedGeoms.contains(geom)) continue;
+				highlightedGeoms.add(geom);
 			}
 			if (h.getType() == Highlight.Type.BBOX)
 			{
@@ -642,15 +639,6 @@ public class Highlighter implements DatabaseChangeListener {
 					}
 					if (!wantArcs && eobj instanceof ArcInst) continue;
 					if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
-					highlightedGeoms.add(eobj);
-				}
-			}
-			if (h.getType() == Highlight.Type.TEXT)
-			{
-				if (h.nodeMovesWithText())
-				{
-					ElectricObject eobj = h.getElectricObject();
-					if (eobj instanceof Export) eobj = ((Export)eobj).getOriginalPort().getNodeInst();
 					highlightedGeoms.add(eobj);
 				}
 			}

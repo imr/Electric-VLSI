@@ -405,7 +405,7 @@ public final class ExportChanges
 		if (cell == null) return;
 
         // disallow port action if lock is on
-        if (CircuitChanges.cantEdit(cell, null, true)) return;
+        if (CircuitChanges.cantEdit(cell, null, true) != 0) return;
 
         List allNodes = new ArrayList();
         for (Iterator it = cell.getNodes(); it.hasNext(); ) {
@@ -426,7 +426,7 @@ public final class ExportChanges
 		if (cell == null) return;
 
 		// disallow port action if lock is on
-		if (CircuitChanges.cantEdit(cell, null, true)) return;
+		if (CircuitChanges.cantEdit(cell, null, true) != 0) return;
 
         EditWindow wnd = EditWindow.getCurrent();
 		Rectangle2D bounds = wnd.getHighlighter().getHighlightedArea(null);
@@ -472,7 +472,7 @@ public final class ExportChanges
         if (cell == null) return;
 
         // disallow port action if lock is on
-        if (CircuitChanges.cantEdit(cell, null, true)) return;
+        if (CircuitChanges.cantEdit(cell, null, true) != 0) return;
 
         List nodeInsts = MenuCommands.getSelectedObjects(true, false);
 
@@ -497,7 +497,7 @@ public final class ExportChanges
 		if (cell == null) return;
 
 		// disallow port action if lock is on
-		if (CircuitChanges.cantEdit(cell, null, true)) return;
+		if (CircuitChanges.cantEdit(cell, null, true) != 0) return;
 
         List allNodes = new ArrayList();
         for (Iterator it = cell.getNodes(); it.hasNext(); ) {
@@ -538,24 +538,24 @@ public final class ExportChanges
         private boolean sort;
         private boolean includeWiredPorts;
         private boolean onlyPowerGround;
-        private List referenceExports;
+        private HashMap originalExports;
 
         /**
-         * @see ExportChanges#reExportPorts(java.util.List, boolean, boolean, boolean, java.util.List)
+         * @see ExportChanges#reExportPorts(java.util.List, boolean, boolean, boolean, java.util.HashMap)
          */
         public ReExportPorts(List portInsts, boolean sort, boolean includeWiredPorts,
-                             boolean onlyPowerGround, List referenceExports) {
+                             boolean onlyPowerGround, HashMap originalExports) {
             super("Re-export ports", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.portInsts = portInsts;
             this.includeWiredPorts = includeWiredPorts;
             this.onlyPowerGround = onlyPowerGround;
             this.sort = sort;
-            this.referenceExports = referenceExports;
+            this.originalExports = originalExports;
             startJob();
         }
 
         public boolean doIt() {
-            int num = reExportPorts(portInsts, sort, includeWiredPorts, onlyPowerGround, referenceExports);
+            int num = reExportPorts(portInsts, sort, includeWiredPorts, onlyPowerGround, originalExports);
             System.out.println(num+" ports exported.");
             return true;
         }
@@ -614,13 +614,13 @@ public final class ExportChanges
      * @param sort true to re-sort the portInsts list
      * @param includeWiredPorts true to export ports that are already wired
      * @param onlyPowerGround true to only export ports that are power and ground
-     * @param referenceExports a list of reference exports which will be used to set the properties of the new exports
-     * They are matched by having the same port proto. This is used when re-exporting ports on a copy that were
-     * exported on the original. The list is then a list of the exports on the original. Ignored if null.
+     * @param originalExports a map from the entries in portInsts to original Exports.
+     * This is used when re-exporting ports on a copy that were exported on the original.
+     * Ignored if null.
      * @return the number of ports exported
      */
     public static int reExportPorts(List portInsts, boolean sort, boolean includeWiredPorts, boolean onlyPowerGround,
-                                    List referenceExports) {
+                                    HashMap originalExports) {
         Job.checkChanging();
 
         List portInstsFiltered = new ArrayList();
@@ -654,31 +654,26 @@ public final class ExportChanges
             Collections.sort(portInstsFiltered, new PortInstsSortedByBusIndex());
 
         // export the ports
-        for (Iterator it = portInstsFiltered.iterator(); it.hasNext(); ) {
+        for (Iterator it = portInstsFiltered.iterator(); it.hasNext(); )
+        {
             PortInst pi = (PortInst)it.next();
 
             // disallow port action if lock is on
             Cell cell = pi.getNodeInst().getParent();
-            if (CircuitChanges.cantEdit(cell, null, true)) continue;
+			int errorCode = CircuitChanges.cantEdit(cell, null, true);
+			if (errorCode < 0) return total;
+			if (errorCode > 0) continue;
 
-            // get match ref export, if any
-            Export refExport = null;
-            if (referenceExports != null) {
-                for (Iterator refIt = referenceExports.iterator(); refIt.hasNext(); ) {
-                    Export export = (Export)refIt.next();
-                    if (export.getOriginalPort().getPortProto() == pi.getPortProto()) {
-                        refExport = export;
-                        break;
-                    }
-                }
-            }
-
+			// presume the name of the new Export
             String protoName = pi.getPortProto().getName();
+
             // or use export name if there is a reference export
+			Export refExport = (Export)originalExports.get(pi);
             if (refExport != null) protoName = refExport.getName();
 
             // get unique name here so Export.newInstance doesn't print message
             protoName = ElectricObject.uniqueObjectName(protoName, cell, PortProto.class);
+
             // create export
             Export newPp = Export.newInstance(cell, pi, protoName);
             if (newPp != null)
@@ -726,7 +721,7 @@ public final class ExportChanges
 		if (cell == null) return;
 
 		// disallow port action if lock is on
-		if (CircuitChanges.cantEdit(cell, null, true)) return;
+		if (CircuitChanges.cantEdit(cell, null, true) != 0) return;
 
 		List exportsToDelete = new ArrayList();
         EditWindow wnd = EditWindow.getCurrent();
@@ -760,7 +755,7 @@ public final class ExportChanges
 		if (cell == null) return;
 
 		// disallow port action if lock is on
-		if (CircuitChanges.cantEdit(cell, null, true)) return;
+		if (CircuitChanges.cantEdit(cell, null, true) != 0) return;
 
 		List exportsToDelete = new ArrayList();
         EditWindow wnd = EditWindow.getCurrent();
@@ -793,7 +788,7 @@ public final class ExportChanges
 		if (cell == null) return;
 
 		// disallow port action if lock is on
-		if (CircuitChanges.cantEdit(cell, null, true)) return;
+		if (CircuitChanges.cantEdit(cell, null, true) != 0) return;
 
 		List exportsToDelete = new ArrayList();
         EditWindow wnd = EditWindow.getCurrent();

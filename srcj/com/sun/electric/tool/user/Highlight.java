@@ -173,6 +173,31 @@ public class Highlight
 	protected void setElectricObject(ElectricObject eobj) { this.eobj = eobj; }
 
 	/**
+	 * Method to return the Geometric object that is in this Highlight.
+	 * If the highlight is a PortInst, an Export, or annotation text, its base NodeInst is returned.
+	 * @return the Geometric object that is in this Highlight.
+	 * Returns null if this Highlight is not on a Geometric.
+	 */
+	public Geometric getGeometric()
+	{
+		if (getType() == Highlight.Type.EOBJ)
+		{
+			ElectricObject eobj = getElectricObject();
+			if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
+			if (eobj instanceof Geometric) return (Geometric)eobj;
+		} else if (getType() == Highlight.Type.TEXT)
+		{
+			if (nodeMovesWithText())
+			{
+				ElectricObject eobj = getElectricObject();
+				if (eobj instanceof Export) eobj = ((Export)eobj).getOriginalPort().getNodeInst();
+				if (eobj instanceof Geometric) return (Geometric)eobj;
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Method to return the Cell associated with this Highlight object.
 	 * @return the Cell associated with this Highlight object.
 	 */

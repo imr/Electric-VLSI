@@ -106,7 +106,7 @@ public class CircuitChanges
 		if (cell == null) return;
 
 		// disallow rotating if lock is on
-		if (cantEdit(cell, null, true)) return;
+		if (cantEdit(cell, null, true) != 0) return;
 
 		// if zero rotation, prompt for amount
 		if (amount == 0)
@@ -140,7 +140,7 @@ public class CircuitChanges
 		if (cell == null) return;
 
 		// disallow rotating if lock is on
-		if (cantEdit(cell, null, true)) return;
+		if (cantEdit(cell, null, true) != 0) return;
 
 		RotateSelected job = new RotateSelected(cell, MenuCommands.getSelectedObjects(true, true), 0, true, horizontally);
 	}
@@ -189,7 +189,7 @@ public class CircuitChanges
 				Geometric geom = (Geometric)it.next();
 				if (!(geom instanceof NodeInst)) continue;
 				NodeInst ni = (NodeInst)geom;
-				if (cantEdit(cell, ni, true))
+				if (cantEdit(cell, ni, true) != 0)
 				{
 					markObj.freeFlagSet();
 					return false;
@@ -599,7 +599,7 @@ public class CircuitChanges
 			Geometric geom = (Geometric)it.next();
 			if (geom instanceof NodeInst)
 			{
-				if (cantEdit(np, (NodeInst)geom, true)) return;
+				if (cantEdit(np, (NodeInst)geom, true) != 0) return;
 				nodes.add(geom);
 			}
 		}
@@ -801,7 +801,7 @@ public class CircuitChanges
 			// make sure changing arcs is allowed
 			Cell cell = WindowFrame.needCurCell();
 			if (cell == null) return false;
-			if (CircuitChanges.cantEdit(cell, null, true)) return false;
+			if (CircuitChanges.cantEdit(cell, null, true) != 0) return false;
 
 			int numSet = 0, numUnset = 0;
 			for(Iterator it = highlighted.iterator(); it.hasNext(); )
@@ -951,7 +951,7 @@ public class CircuitChanges
 			// make sure negation is allowed
 			Cell cell = WindowFrame.needCurCell();
 			if (cell == null) return false;
-			if (CircuitChanges.cantEdit(cell, null, true)) return false;
+			if (CircuitChanges.cantEdit(cell, null, true) != 0) return false;
 
 			int numSet = 0;
 			for(Iterator it = highlighted.iterator(); it.hasNext(); )
@@ -1038,7 +1038,7 @@ public class CircuitChanges
 			// make sure ripping arcs is allowed
 			Cell cell = WindowFrame.needCurCell();
 			if (cell == null) return false;
-			if (CircuitChanges.cantEdit(cell, null, true)) return false;
+			if (CircuitChanges.cantEdit(cell, null, true) != 0) return false;
 
 			for(Iterator it = list.iterator(); it.hasNext(); )
 			{
@@ -1234,7 +1234,7 @@ public class CircuitChanges
 			Cell cell = WindowFrame.needCurCell();
 			if (cell != null)
 			{
-				if (cantEdit(cell, null, true)) return false;
+				if (cantEdit(cell, null, true) != 0) return false;
 			}
 
 			List deleteList = new ArrayList();
@@ -1242,11 +1242,8 @@ public class CircuitChanges
 			for(Iterator it = highlighted.iterator(); it.hasNext(); )
 			{
 				Highlight h = (Highlight)it.next();
-				if (h.getType() != Highlight.Type.EOBJ) continue;
-				ElectricObject eobj = h.getElectricObject();
-				if (eobj instanceof PortInst)
-					eobj = ((PortInst)eobj).getNodeInst();
-				if (!(eobj instanceof Geometric)) continue;
+				Geometric geom = h.getGeometric();
+				if (geom == null) continue;
 				if (cell != h.getCell())
 				{
 					JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
@@ -1254,12 +1251,13 @@ public class CircuitChanges
 							"Delete failed", JOptionPane.ERROR_MESSAGE);
 					return false;
 				}
-				if (eobj instanceof NodeInst)
+				if (geom instanceof NodeInst)
 				{
-					if (cantEdit(cell, (NodeInst)eobj, true)) continue;
+					int errCode = cantEdit(cell, (NodeInst)geom, true);
+					if (errCode < 0) return false;
+					if (errCode > 0) continue;
 				}
-				oneGeom = (Geometric)eobj;
-				deleteList.add(eobj);
+				deleteList.add(geom);
 			}
 
 			// clear the highlighting
@@ -1363,7 +1361,7 @@ public class CircuitChanges
             }
 
 			// disallow erasing if lock is on
-			if (cantEdit(cell, null, true)) return false;
+			if (cantEdit(cell, null, true) != 0) return false;
 
 			if (bounds == null)
 			{
@@ -1469,7 +1467,9 @@ public class CircuitChanges
 				if (cX >= hX || cX <= lX || cY >= hY || cY <= lY) continue;
 
 				// if it cannot be modified, stop
-				if (cantEdit(cell, ni, true)) continue;
+				int errorCode = cantEdit(cell, ni, true);
+				if (errorCode < 0) return false;
+				if (errorCode > 0) continue;
 				nodesToDelete.add(ni);
 			}
 
@@ -1488,7 +1488,7 @@ public class CircuitChanges
 	/**
 	 * Method to delete all of the Geometrics in a list.
 	 * @param cell the cell with the objects to be deleted.
-	 * @param list a List of Geometric objects to be deleted.
+	 * @param list a List of Geometric or Highlight objects to be deleted.
 	 */
 	public static void eraseObjectsInList(Cell cell, List list)
 	{
@@ -1500,9 +1500,13 @@ public class CircuitChanges
 			NodeInst ni = (NodeInst)it.next();
 			ni.setFlagValue(deleteFlag, 0);
 		}
-		for(Iterator it=list.iterator(); it.hasNext(); )
+		for(Iterator it = list.iterator(); it.hasNext(); )
 		{
-			Geometric geom = (Geometric)it.next();
+			Object obj = it.next();
+			if (obj instanceof Highlight) obj = ((Highlight)obj).getGeometric();
+			if (!(obj instanceof Geometric)) continue;
+			Geometric geom = (Geometric)obj;
+
 			if (geom instanceof ArcInst)
 			{
 				ArcInst ai = (ArcInst)geom;
@@ -1512,61 +1516,60 @@ public class CircuitChanges
 		}
 
 		// also mark all nodes on arcs that will be erased
-		for(Iterator it=list.iterator(); it.hasNext(); )
+		for(Iterator it = list.iterator(); it.hasNext(); )
 		{
-			Geometric geom = (Geometric)it.next();
-			if (geom instanceof NodeInst)
-			{
-				NodeInst ni = (NodeInst)geom;
-				if (ni.getFlagValue(deleteFlag) != 0)
-					ni.setFlagValue(deleteFlag, 2);
-			}
+			Object obj = it.next();
+			if (obj instanceof Highlight) obj = ((Highlight)obj).getGeometric();
+			if (!(obj instanceof NodeInst)) continue;
+			NodeInst ni = (NodeInst)obj;
+
+			if (ni.getFlagValue(deleteFlag) != 0)
+				ni.setFlagValue(deleteFlag, 2);
 		}
 
 		// also mark all nodes on the other end of arcs connected to erased nodes
-		for(Iterator it=list.iterator(); it.hasNext(); )
+		for(Iterator it = list.iterator(); it.hasNext(); )
 		{
-			Geometric geom = (Geometric)it.next();
-			if (geom instanceof NodeInst)
+			Object obj = it.next();
+			if (obj instanceof Highlight) obj = ((Highlight)obj).getGeometric();
+			if (!(obj instanceof NodeInst)) continue;
+			NodeInst ni = (NodeInst)obj;
+
+			for(Iterator sit = ni.getConnections(); sit.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)geom;
-				for(Iterator sit = ni.getConnections(); sit.hasNext(); )
-				{
-					Connection con = (Connection)sit.next();
-					ArcInst ai = con.getArc();
-					Connection otherEnd = ai.getHead();
-					if (ai.getHead() == con) otherEnd = ai.getTail();
-					if (otherEnd.getPortInst().getNodeInst().getFlagValue(deleteFlag) == 0)
-						otherEnd.getPortInst().getNodeInst().setFlagValue(deleteFlag, 1);
-				}
+				Connection con = (Connection)sit.next();
+				ArcInst ai = con.getArc();
+				Connection otherEnd = ai.getHead();
+				if (ai.getHead() == con) otherEnd = ai.getTail();
+				if (otherEnd.getPortInst().getNodeInst().getFlagValue(deleteFlag) == 0)
+					otherEnd.getPortInst().getNodeInst().setFlagValue(deleteFlag, 1);
 			}
 		}
 
 		// now kill all of the arcs
-		for(Iterator it=list.iterator(); it.hasNext(); )
+		for(Iterator it = list.iterator(); it.hasNext(); )
 		{
-			Geometric geom = (Geometric)it.next();
-			if (geom instanceof ArcInst)
-			{
-				ArcInst ai = (ArcInst)geom;
-				ai.kill();
-			}
+			Object obj = it.next();
+			if (obj instanceof Highlight) obj = ((Highlight)obj).getGeometric();
+			if (!(obj instanceof ArcInst)) continue;
+			ArcInst ai = (ArcInst)obj;
+
+			ai.kill();
 		}
 
 		// next kill all of the nodes
-		for(Iterator it=list.iterator(); it.hasNext(); )
+		for(Iterator it = list.iterator(); it.hasNext(); )
 		{
-			Geometric geom = (Geometric)it.next();
-			if (geom instanceof NodeInst)
-			{
-				NodeInst ni = (NodeInst)geom;
+			Object obj = it.next();
+			if (obj instanceof Highlight) obj = ((Highlight)obj).getGeometric();
+			if (!(obj instanceof NodeInst)) continue;
+			NodeInst ni = (NodeInst)obj;
 
-                // see if any arcs can be reconnected as a result of this kill
-                Reconnect re = Reconnect.erasePassThru(ni, false);
-                if (re != null) re.reconnectArcs();
+            // see if any arcs can be reconnected as a result of this kill
+            Reconnect re = Reconnect.erasePassThru(ni, false);
+            if (re != null) re.reconnectArcs();
 
-                eraseNodeInst(ni);
-			}
+            eraseNodeInst(ni);
 		}
 
 		// kill all pin nodes that touched an arc and no longer do
@@ -1606,10 +1609,26 @@ public class CircuitChanges
 		{
             NodeInst ni = (NodeInst)it.next();
             Reconnect re = Reconnect.erasePassThru(ni, false);
-			if (re != null) {
+			if (re != null)
+			{
                 re.reconnectArcs();
 			    eraseNodeInst(ni);
             }
+		}
+
+		// kill variables on cells
+		for(Iterator it = list.iterator(); it.hasNext(); )
+		{
+			Object obj = it.next();
+			if (!(obj instanceof Highlight)) continue;
+			Highlight h = (Highlight)obj;
+			if (h.getType() != Highlight.Type.TEXT) continue;
+			Variable var = h.getVar();
+			if (var == null) continue;
+			ElectricObject owner = h.getElectricObject();
+			if (!(owner instanceof Cell)) continue;
+
+			owner.delVar(var.getKey());
 		}
 
 		deleteFlag.freeFlagSet();
@@ -2680,7 +2699,9 @@ public class CircuitChanges
 				if (hasDisplayable) continue;
 
 				// disallow erasing if lock is on
-				if (cantEdit(cell, ni, true)) continue;
+				int errorCode = cantEdit(cell, ni, true);
+				if (errorCode < 0) return false;
+				if (errorCode > 0) continue;
 
 				// no displayable variables: delete it
 				pinsToRemove.add(ni);
@@ -2921,7 +2942,7 @@ public class CircuitChanges
 		public boolean doIt()
 		{
 			// make sure moving the node is allowed
-			if (CircuitChanges.cantEdit(cell, null, true)) return false;
+			if (CircuitChanges.cantEdit(cell, null, true) != 0) return false;
 
 			// do the queued operations
 			for(Iterator it = pinsToRemove.iterator(); it.hasNext(); )
@@ -3180,7 +3201,7 @@ public class CircuitChanges
 			// make sure shortening is allowed
 			Cell cell = WindowFrame.needCurCell();
 			if (cell == null) return false;
-			if (CircuitChanges.cantEdit(cell, null, true)) return false;
+			if (CircuitChanges.cantEdit(cell, null, true) != 0) return false;
 
 			int l = 0;
 			double [] dX = new double[2];
@@ -3983,7 +4004,7 @@ public class CircuitChanges
 			Cell cell = firstH.getCell();
 
 			// make sure moving is allowed
-			if (CircuitChanges.cantEdit(cell, null, true)) return false;
+			if (CircuitChanges.cantEdit(cell, null, true) != 0) return false;
 
 			// special case if moving only one node
 			if (total == 1 && firstH.getType() == Highlight.Type.EOBJ &&
@@ -3997,7 +4018,7 @@ public class CircuitChanges
                 }
 
 				// make sure moving the node is allowed
-				if (CircuitChanges.cantEdit(cell, ni, true)) return false;
+				if (CircuitChanges.cantEdit(cell, ni, true) != 0) return false;
 
 				ni.modifyInstance(dX, dY, 0, 0, 0);
                 if (verbose) System.out.println("Moved "+ni.describe()+": delta(X,Y) = ("+dX+","+dY+")");
@@ -4169,7 +4190,9 @@ public class CircuitChanges
 					ni.setBit(flag);
 
 					// make sure moving the node is allowed
-					if (CircuitChanges.cantEdit(cell, ni, true)) continue;
+					int errorCode = cantEdit(cell, ni, true);
+					if (errorCode < 0) return false;
+					if (errorCode > 0) continue;
 				} else if (eobj instanceof ArcInst)
 				{
 					ArcInst ai = (ArcInst)eobj;
@@ -4344,7 +4367,9 @@ public class CircuitChanges
 				Cell np = high.getCell();
 				if (np != null)
 				{
-					if (cantEdit(np, null, true)) continue;
+					int errorCode = cantEdit(np, null, true);
+					if (errorCode < 0) return;
+					if (errorCode > 0) continue;
 				}
 
 				// handle nodes that move with text
@@ -4459,7 +4484,7 @@ public class CircuitChanges
 		{
 			// disallow erasing if lock is on
 			Cell cell = ni.getParent();
-			if (cantEdit(cell, ni, true)) return null;
+			if (cantEdit(cell, ni, true) != 0) return null;
 			// Netlist netlist = cell.getUserNetlist(); Commented 07.01.04 by DN to avoid Netlist recalculation
 
             Reconnect recon = new Reconnect();
@@ -5719,23 +5744,26 @@ public class CircuitChanges
 	 * @param cell the Cell in which the NodeInst resides.
 	 * @param item the NodeInst (may be null).
 	 * @param giveError true to print an error message if the modification is disallowed.
-	 * @return true if the edit CANNOT be done.
+	 * @return positive if the edit CANNOT be done.
+	 * Return negative if the edit CANNOT be done and the overall operation should be cancelled.
+	 * Return zero if the operation CAN be done.
 	 */
-	public static boolean cantEdit(Cell cell, NodeInst item, boolean giveError)
+	public static int cantEdit(Cell cell, NodeInst item, boolean giveError)
 	{
+		String [] options = {"Yes", "No", "Always", "Cancel"};
 		// if an instance is specified, check it
 		if (item != null)
 		{
 			if (item.isLocked())
 			{
-				if (!giveError) return true;
-				String [] options = {"Yes", "No", "Always"};
+				if (!giveError) return 1;
 				int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
 					"Changes to locked node " + item.describe() + " are disallowed.  Change anyway?",
 					"Allow changes", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
 					null, options, options[1]);
-				if (ret == 1) return true;
+				if (ret == 1) return 1;
 				if (ret == 2) item.clearLocked();
+				if (ret == 3) return -1;
 			}
 			if (item.getProto() instanceof PrimitiveNode)
 			{
@@ -5743,29 +5771,29 @@ public class CircuitChanges
 				if (item.getProto().isLockedPrim() &&
 					User.isDisallowModificationLockedPrims())
 				{
-					if (!giveError) return true;
-					String [] options = {"Yes", "No", "Always"};
+					if (!giveError) return 1;
 					int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
 						"Changes to locked primitives (such as " + item.describe() + ") are disallowed.  Change anyway?",
 						"Allow changes", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
 						null, options, options[1]);
-					if (ret == 1) return true;
+					if (ret == 1) return 1;
 					if (ret == 2) User.setDisallowModificationLockedPrims(false);
+					if (ret == 3) return -1;
 				}
 			} else
 			{
 				// see if this type of cell is locked
 				if (cell.isInstancesLocked())
 				{
-					if (!giveError) return true;
-					String [] options = {"Yes", "No", "Always"};
+					if (!giveError) return 1;
 					int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
 						"Modification of instances in cell " + cell.describe() + " is disallowed.  You cannot move " + item.describe() +
 						".  Change anyway?",
 						"Allow changes", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
 						null, options, options[1]);
-					if (ret == 1) return true;
+					if (ret == 1) return 1;
 					if (ret == 2) cell.clearInstancesLocked();
+					if (ret == 3) return -1;
 				}
 			}
 		}
@@ -5773,16 +5801,16 @@ public class CircuitChanges
 		// check for general changes to the cell
 		if (cell.isAllLocked())
 		{
-			if (!giveError) return true;
-			String [] options = {"Yes", "No", "Always"};
+			if (!giveError) return 1;
 			int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
 				"Modification of cell " + cell.describe() + " is disallowed.  Change "+((item == null)? "" : item.describe())+" anyway?",
 				"Allow changes", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
 				null, options, options[1]);
-			if (ret == 1) return true;
+			if (ret == 1) return 1;
 			if (ret == 2) cell.clearAllLocked();
+			if (ret == 3) return -1;
 		}
-		return false;
+		return 0;
 	}
 
 }

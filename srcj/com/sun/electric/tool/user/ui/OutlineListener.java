@@ -136,7 +136,7 @@ class OutlineListener
 		if (ClickZoomWireListener.isRightMouse(evt))
 		{
 			// make sure outline adjustment is allowed
-			if (CircuitChanges.cantEdit(cell, null, true)) return;
+			if (CircuitChanges.cantEdit(cell, null, true) != 0) return;
 
 			// add a point
 			AffineTransform trans = outlineNode.rotateOutAboutTrueCenter();
@@ -250,7 +250,7 @@ class OutlineListener
 			doingMotionDrag = false;
 
 			// make sure outline adjustment is allowed
-			if (CircuitChanges.cantEdit(cell, null, true)) return;
+			if (CircuitChanges.cantEdit(cell, null, true) != 0) return;
 
 			int newX = evt.getX();
 			int newY = evt.getY();

@@ -287,7 +287,7 @@ public class SizeListener
 			// make sure moving the node is allowed
 			Cell cell = WindowFrame.needCurCell();
 			if (cell == null) return false;
-			if (CircuitChanges.cantEdit(cell, null, true)) return false;
+			if (CircuitChanges.cantEdit(cell, null, true) != 0) return false;
 
             EditWindow wnd = EditWindow.needCurrent();
             if (wnd == null) return false;
@@ -617,7 +617,7 @@ public class SizeListener
 		public boolean doIt()
 		{
 			// make sure scaling the node is allowed
-			if (CircuitChanges.cantEdit(stretchNode.getParent(), null, true)) return false;
+			if (CircuitChanges.cantEdit(stretchNode.getParent(), null, true) != 0) return false;
 
 //			if (newCenter.getX() != stretchNode.getAnchorCenterX() ||
 //				newCenter.getY() != stretchNode.getAnchorCenterY())
@@ -653,7 +653,7 @@ public class SizeListener
 		public boolean doIt()
 		{
 			// make sure scaling the arc is allowed
-			if (CircuitChanges.cantEdit(stretchArc.getParent(), null, true)) return false;
+			if (CircuitChanges.cantEdit(stretchArc.getParent(), null, true) != 0) return false;
 
 			stretchArc.modify(newWidth - stretchArc.getWidth(), 0, 0, 0, 0);
 			return true;

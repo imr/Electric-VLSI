@@ -357,10 +357,10 @@ public class Array extends EDialog
 				cell = geom.getParent();
 				if (geom instanceof NodeInst)
 				{
-					if (CircuitChanges.cantEdit(cell, (NodeInst)geom, true)) return false;
+					if (CircuitChanges.cantEdit(cell, (NodeInst)geom, true) != 0) return false;
 				} else
 				{
-					if (CircuitChanges.cantEdit(cell, null, true)) return false;
+					if (CircuitChanges.cantEdit(cell, null, true) != 0) return false;
 				}
 			}
 
@@ -567,6 +567,7 @@ public class Array extends EDialog
 
 				// copy the exports, too
 				List portInstsToExport = new ArrayList();
+				HashMap originalExports = new HashMap();
 				for(Iterator eit = exportList.iterator(); eit.hasNext(); )
 				{
 					Export pp = (Export)eit.next();
@@ -575,8 +576,9 @@ public class Array extends EDialog
 					if (newNI == null) continue;
 					PortInst pi = newNI.findPortInstFromProto(oldPI.getPortProto());
 					portInstsToExport.add(pi);
+					originalExports.put(pi, pp);
 				}
-				ExportChanges.reExportPorts(portInstsToExport, false, true, false, exportList);
+				ExportChanges.reExportPorts(portInstsToExport, false, true, false, originalExports);
 			}
 
 			// rename the replicated objects

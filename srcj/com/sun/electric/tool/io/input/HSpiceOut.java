@@ -114,25 +114,36 @@ public class HSpiceOut extends Simulate
 				// save it in a PA0Line object
 				PA0Line pl = new PA0Line();
 				pl.number = TextUtils.atoi(trimLine, 0, 10);
-				pl.string = trimLine.substring(spacePos+1).trim();
-
-				// remove all of the "x" characters at the start of every instance name
-				int dotPos = -1;
-				for(;;)
-				{
-					int xPos = dotPos + 1;
-					if (pl.string.length() > xPos && pl.string.charAt(xPos) == 'x')
-					{
-						pl.string = pl.string.substring(0, xPos) + pl.string.substring(xPos+1);
-					}
-					dotPos = pl.string.indexOf('.', xPos);
-					if (dotPos < 0) break;
-				}
+				pl.string = removeLeadingX(trimLine.substring(spacePos+1).trim());
 				pa0List.add(pl);
 			}
 		}
 		closeInput();
 		return pa0List;
+	}
+
+	/**
+	 * Method to remove the leading "x" character in each dotted part of a string.
+	 * HSpice decides to add "x" in front of every cell name, so the path "me.you"
+	 * appears as "xme.xyou".
+	 * @param name the string from HSpice.
+	 * @return the string without leading "X"s.
+	 */
+	private String removeLeadingX(String name)
+	{
+		// remove all of the "x" characters at the start of every instance name
+		int dotPos = -1;
+		for(;;)
+		{
+			int xPos = dotPos + 1;
+			if (name.length() > xPos && name.charAt(xPos) == 'x')
+			{
+				name = name.substring(0, xPos) + name.substring(xPos+1);
+			}
+			dotPos = name.indexOf('.', xPos);
+			if (dotPos < 0) break;
+		}
+		return name;
 	}
 
 	private Simulation.SimData readTR0File(URL fileURL, List pa0List, Cell cell)
@@ -265,6 +276,14 @@ public class HSpiceOut extends Simulate
 					line = new StringBuffer();
 					line.append(newSB.toString());
 				}
+			} else
+			{
+				if (line.indexOf(".") >= 0)
+				{
+					String fixedLine = removeLeadingX(line.toString());
+					line = new StringBuffer();
+					line.append(fixedLine);
+				}
 			}
 
 			if (k < nodcnt) l = k + numnoi - 1; else l = k - nodcnt;
@@ -350,6 +369,20 @@ public class HSpiceOut extends Simulate
 			for(int i=0; i<numEvents; i++)
 				as.setValue(i, ((float [])allTheData.get(i))[j]);
 		}
+
+//		// postprocess and add exports in cells
+//		java.util.HashSet contexts = new java.util.HashSet();
+//		for(int j=0; j<numSignals; j++)
+//		{
+//			Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sd.getSignals().get(j);
+//			String context = as.getSignalContext();
+//			if (context != null) contexts.add(context);
+//		}
+//		for(Iterator it = contexts.iterator(); it.hasNext(); )
+//		{
+//			System.out.println("Context: "+(String)it.next());
+//		}
+
 		return sd;
 	}
 

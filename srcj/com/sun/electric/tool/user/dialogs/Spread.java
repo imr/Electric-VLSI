@@ -263,7 +263,7 @@ public class Spread extends EDialog
 
 			// disallow spreading if lock is on
 			cell = ni.getParent();
-			if (CircuitChanges.cantEdit(cell, null, true)) return false;
+			if (CircuitChanges.cantEdit(cell, null, true) != 0) return false;
 
 			SizeOffset so = ni.getSizeOffset();
 			double sLx = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();

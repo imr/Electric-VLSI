@@ -80,7 +80,7 @@ import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 
 /**
- * Class to handle the "Text Get-Info" dialog.
+ * Class to handle the Text "Properties" dialog.
  */
 public class GetInfoText extends EDialog implements HighlightListener, DatabaseChangeListener {
     private static GetInfoText theDialog = null;
@@ -190,7 +190,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 	}
 
     /**
-     * Method to show the Text Get-Info dialog.
+     * Method to show the Text Properties dialog.
      */
     public static void showDialog() {
         if (theDialog == null) {
@@ -306,6 +306,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
         header.setText(cti.description);
         theText.setText(cti.initialText);
         theText.setEditable(true);
+ 
         // if multiline text, make it a TextArea, otherwise it's a TextField
         if (cti.initialText.indexOf('\n') != -1) {
             // if this is the name of an object it should not be multiline
@@ -325,6 +326,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
             }
             multiLine.setSelected(false);
         }
+
         // if the var is code, evaluate it
         evaluation.setText(" ");
         if (cti.var != null) {
@@ -332,14 +334,26 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
                 evaluation.setText("Evaluation: " + cti.var.describe(-1, -1));
             }
         }
+
+		boolean cellInstanceName = false;
+		if (cti.var == null && cti.shownText.getName() == null && cti.owner instanceof NodeInst) cellInstanceName = true;
+
         // set the text edit panel
         textPanel.setTextDescriptor(cti.td, null, cti.owner);
-        attrPanel.setVariable(cti.var, cti.td, null, cti.owner);
+        attrPanel.setVariable(cti.var, cellInstanceName ? null : cti.td, null, cti.owner);
 
         // do this last so everything gets packed right
         changeTextComponent(cti.initialText, multiLine.isSelected());
 
         focusOnTextField(theText);
+
+		// if this is a cell instance name, disable editing
+		if (cellInstanceName)
+		{
+			theText.setEditable(false);
+			theText.setEnabled(false);
+			multiLine.setEnabled(false);
+		}
     }
 
     /**

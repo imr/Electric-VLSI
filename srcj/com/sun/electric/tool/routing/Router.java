@@ -120,7 +120,7 @@ public abstract class Router {
         Job.checkChanging();
 
         // check if we can edit this cell
-        if (CircuitChanges.cantEdit(cell, null, true)) {
+        if (CircuitChanges.cantEdit(cell, null, true) != 0) {
             //Highlight.clear();
             //Highlight.finished();
             return false;
@@ -194,7 +194,7 @@ public abstract class Router {
 
         /** Implemented doIt() method to perform Job */
         public boolean doIt() {
-            if (CircuitChanges.cantEdit(cell, null, true)) return false;
+            if (CircuitChanges.cantEdit(cell, null, true) != 0) return false;
 
             EditWindow wnd = EditWindow.getCurrent();
             Highlighter highlighter = (wnd == null) ? null : wnd.getHighlighter();

@@ -312,12 +312,15 @@ public class Change extends EDialog implements HighlightListener
 		reload();
 	}
 
+	private boolean dontReload = false;
+
 	/**
 	 * Method called when dialog controls have changed.
 	 * Makes sure the displayed lists and options are correct.
 	 */
 	private void reload()
 	{
+		if (dontReload) return;
 		changeListModel.clear();
 		changeNodeProtoList.clear();
 		if (geomsToChange.size() == 0) return;
@@ -325,9 +328,19 @@ public class Change extends EDialog implements HighlightListener
         Geometric geomToChange = (Geometric)geomsToChange.get(0);
 		if (geomToChange instanceof NodeInst)
 		{
+			NodeInst ni = (NodeInst)geomToChange;
 			if (showCells.isSelected())
 			{
 				// cell: only list other cells as replacements
+				if (ni.getProto() instanceof Cell)
+				{
+					Cell parent = (Cell)ni.getProto();
+					Library lib = parent.getLibrary();
+					dontReload = true;
+					librariesPopup.setSelectedItem(lib.getName());
+					dontReload = false;
+				}
+
 				String libName = (String)librariesPopup.getSelectedItem();
 				Library lib = Library.findLibrary(libName);
 				List cells = lib.getCellsSortedByName();
@@ -455,7 +468,7 @@ public class Change extends EDialog implements HighlightListener
 					NodeInst ni = (NodeInst)geomToChange;
 
 					// disallow replacing if lock is on
-					if (CircuitChanges.cantEdit(ni.getParent(), ni, true)) return false;
+					if (CircuitChanges.cantEdit(ni.getParent(), ni, true) != 0) return false;
 
 					// get nodeproto to replace it with
 	                String line = dialog.getLibSelected();
@@ -516,7 +529,9 @@ public class Change extends EDialog implements HighlightListener
 										}
 
 										// disallow replacing if lock is on
-										if (CircuitChanges.cantEdit(cell, lNi, true)) continue;
+										int errorCode = CircuitChanges.cantEdit(cell, lNi, true);
+										if (errorCode < 0) return false;
+										if (errorCode > 0) continue;
 
 										NodeInst newNi = CircuitChanges.replaceNodeInst(lNi, np, ignorePortNames, allowMissingPorts);
 										if (newNi != null)
@@ -548,7 +563,9 @@ public class Change extends EDialog implements HighlightListener
 									if (lNi.getProto() != oldNType) continue;
 
 									// disallow replacing if lock is on
-									if (CircuitChanges.cantEdit(cell, lNi, true)) continue;
+									int errorCode = CircuitChanges.cantEdit(cell, lNi, true);
+									if (errorCode < 0) return false;
+									if (errorCode > 0) continue;
 
 									NodeInst newNi = CircuitChanges.replaceNodeInst(lNi, np, ignorePortNames, allowMissingPorts);
 									if (newNi != null)
@@ -576,7 +593,9 @@ public class Change extends EDialog implements HighlightListener
 								if (lNi.getProto() != oldNType) continue;
 
 								// disallow replacing if lock is on
-								if (CircuitChanges.cantEdit(cell, lNi, true)) continue;
+								int errorCode = CircuitChanges.cantEdit(cell, lNi, true);
+								if (errorCode < 0) return false;
+								if (errorCode > 0) continue;
 
 								NodeInst newNi = CircuitChanges.replaceNodeInst(lNi, np, ignorePortNames, allowMissingPorts);
 								if (newNi != null)
@@ -625,8 +644,10 @@ public class Change extends EDialog implements HighlightListener
 							NodeInst lNi = (NodeInst)it.next();
 	
 							// disallow replacing if lock is on
-							if (CircuitChanges.cantEdit(curCell, lNi, true)) continue;
-	
+							int errorCode = CircuitChanges.cantEdit(curCell, lNi, true);
+							if (errorCode < 0) return false;
+							if (errorCode > 0) continue;
+
 							NodeInst newNi = CircuitChanges.replaceNodeInst(lNi, np, ignorePortNames, allowMissingPorts);
 							if (newNi != null)
 							{
@@ -642,7 +663,7 @@ public class Change extends EDialog implements HighlightListener
 					ArcInst ai = (ArcInst)geomToChange;
 
 					// disallow replacement if lock is on
-					if (CircuitChanges.cantEdit(ai.getParent(), null, true)) return false;
+					if (CircuitChanges.cantEdit(ai.getParent(), null, true) != 0) return false;
 
 					String line = (String)dialog.changeList.getSelectedValue();
 					ArcProto ap = ArcProto.findArcProto(line);
@@ -707,8 +728,10 @@ public class Change extends EDialog implements HighlightListener
 										if (lAi.getProto() != oldAType) continue;
 	
 										// disallow replacing if lock is on
-										if (CircuitChanges.cantEdit(cell, null, true)) continue;
-	
+										int errorCode = CircuitChanges.cantEdit(cell, null, true);
+										if (errorCode < 0) return false;
+										if (errorCode > 0) continue;
+
 										ArcInst newAi = lAi.replace(ap);
 										if (newAi != null)
 										{
@@ -739,7 +762,9 @@ public class Change extends EDialog implements HighlightListener
 									if (lAi.getProto() != oldAType) continue;
 
 									// disallow replacing if lock is on
-									if (CircuitChanges.cantEdit(cell, null, true)) continue;
+									int errorCode = CircuitChanges.cantEdit(cell, null, true);
+									if (errorCode < 0) return false;
+									if (errorCode > 0) continue;
 
 									ArcInst newAi = lAi.replace(ap);
 									if (newAi != null)
@@ -767,7 +792,9 @@ public class Change extends EDialog implements HighlightListener
 								if (lAi.getProto() != oldAType) continue;
 
 								// disallow replacing if lock is on
-								if (CircuitChanges.cantEdit(cell, null, true)) continue;
+								int errorCode = CircuitChanges.cantEdit(cell, null, true);
+								if (errorCode < 0) return false;
+								if (errorCode > 0) continue;
 
 								ArcInst newAi = lAi.replace(ap);
 								if (newAi != null)
@@ -1287,6 +1314,7 @@ public class Change extends EDialog implements HighlightListener
 	{
 		setVisible(false);
 		dispose();
+		theDialog = null;		
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

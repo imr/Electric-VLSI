@@ -209,7 +209,7 @@ public class ChangeText extends EDialog
 			{
 				Cell cell = WindowFrame.needCurCell();
 				if (cell == null) return;
-				if (CircuitChanges.cantEdit(cell, null, true)) return;
+				if (CircuitChanges.cantEdit(cell, null, true) != 0) return;
 			}
 
             EditWindow wnd = EditWindow.getCurrent();
@@ -281,7 +281,7 @@ public class ChangeText extends EDialog
 		// make sure text adjustment is allowed
 		if (change)
 		{
-			if (CircuitChanges.cantEdit(cell, null, true)) return;
+			if (CircuitChanges.cantEdit(cell, null, true) != 0) return;
 		}
 
 		// text on nodes

@@ -113,7 +113,6 @@ public class Input // extends IOTool
         errorLogger = ErrorLogger.newInstance("Library Read");
 
 		LibDirs.readLibDirs();
-		//Undo.noUndoAllowed();
 		LibraryFiles.initializeLibraryInput();
 		Undo.changesQuiet(true);
 		Pref.initMeaningVariableGathering();
@@ -197,17 +196,26 @@ public class Input // extends IOTool
 
 		if (lib == null)
 		{
+			Library deleteThis = null;
 			lib = Library.findLibrary(libName);
 			if (lib != null)
 			{
 				// library already exists, prompt for save
 				if (FileMenu.preventLoss(lib, 2)) return null;
 				WindowFrame.removeLibraryReferences(lib);
-				lib.erase();
-			} else
-			{
-				lib = Library.newInstance(libName, fileURL);
+
+				// delete this later (cannot delete last library)
+				deleteThis = lib;
+
+				// mangle the name so that the new one can be created
+				lib.setName(lib.getName()+lib.getName());
 			}
+
+			// create a new library
+			lib = Library.newInstance(libName, fileURL);
+
+			// delete former library with the same name
+			if (deleteThis != null) deleteThis.kill();
 		}
 
 		in.lib = lib;

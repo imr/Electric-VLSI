@@ -4,6 +4,21 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01o: *********************************
 
+IMP: (9/15/04, SMR) "Change" dialog always goes to currently selected cell, even
+     if it is in a different library.
+
+IMP: (9/15/04, SMR) Reading HSpice output now handles "x" in names better.
+
+IMP: (9/15/04, SMR) When changes are disallowed, "Cancel" option is offered.
+
+BUG: (9/15/04, SMR) Export names STILL don't array in the right order.
+FIX: ExportChanges.reExportPorts must take a map to the original Exports, not a List.
+
+BUG: (9/15/04, SMR) Copying and pasting cell text doesn't work.
+FIX: Clipboard updated to handle Highlights instead of Geometrics.
+
+IMP: (9/15/04, SMR) "Text Properties" dialog on cell instance names doesn't allow changes.
+
 IMP/MAN: (9/15/04, JKG) Added "File->Force Quit (and Save) " to kill Electric
 
 IMP: (9/14/04, SMR) Can now print waveform windows.

@@ -1001,7 +1001,7 @@ public class EditMenu {
         if (wnd == null) return;
         ArcInst ai = (ArcInst)wnd.getHighlighter().getOneElectricObject(ArcInst.class);
         if (ai == null) return;
-        if (CircuitChanges.cantEdit(ai.getParent(), null, true)) return;
+        if (CircuitChanges.cantEdit(ai.getParent(), null, true) != 0) return;
 
         System.out.println("Select the position in the arc to place the jog");
         EventListener currentListener = WindowFrame.getListener();
