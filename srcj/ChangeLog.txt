@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ap: *********************************
 
+IMP: (11/18/04, GVG) Technology name in new Arc/Node tabs in preferences
+
 IMP: (11/18/04, GVG) Allow to keep min sizes stored in preferences (not applying Technoloogy.setLayerMinWidth().
 Send a warning with debugging option.
 

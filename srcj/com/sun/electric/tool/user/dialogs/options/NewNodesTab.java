@@ -81,6 +81,7 @@ public class NewNodesTab extends PreferencePanel
 	public void init()
 	{
 		// gather information about the PrimitiveNodes in the current Technology
+        jPanel2.setBorder(new javax.swing.border.TitledBorder("For Primitive Nodes in '" + curTech.getTechName()+"'"));
 		initialNewNodesPrimInfo = new HashMap();
 		for(Iterator it = curTech.getNodes(); it.hasNext(); )
 		{
