@@ -72,10 +72,10 @@ public class DBMath extends GenMath {
 
 	/**
 	 * Method to determine if point is completely inside a bound and not
-	 * along its boundary
-	 * @param pt
-	 * @param bounds
-	 * @return
+	 * along its boundary.
+	 * @param pt the Point in question.
+	 * @param bounds the bounds to test.
+	 * @return true if the point is inside the bounds.
 	 */
 	public static boolean pointInsideRect(Point2D pt, Rectangle2D bounds) {
 		return (bounds.getMinX() < pt.getX() && pt.getX() < bounds.getMaxX() &&

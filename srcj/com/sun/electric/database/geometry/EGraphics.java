@@ -737,8 +737,8 @@ public class EGraphics
 	public void set3DAppearance(Object obj) {appearance3D = obj;}
 
 	/**
-	 * Method to retrieve current 3D appearance
-	 * @return
+	 * Method to retrieve current 3D appearance.
+	 * @return the current 3D appearance.
 	 */
 	public Object get3DAppearance() {return appearance3D;}
 }

@@ -391,7 +391,8 @@ class NetSchem extends NetCell {
 	/* Mapping from ports of this to ports of implementation. */	int[] portImplementation;
 
 	/**
-     * Equivalence of ports. equivPorts.size == ports.size.
+     * Equivalence of ports.
+     * equivPorts.size == ports.size.
 	 * equivPorts[i] contains minimal index among ports of its group.
      */																private int[] equivPortsF, equivPortsT;
 	/** Node offsets. */											int[] nodeOffsets;

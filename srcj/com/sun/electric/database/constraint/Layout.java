@@ -252,11 +252,11 @@ public class Layout extends Constraints
 	/**
 	 * Method to handle a change to a NodeInst.
 	 * @param ni the NodeInst that was changed.
-	 * @param oCX the old X center of the NodeInst.
-	 * @param oCY the old Y center of the NodeInst.
-	 * @param oSX the old X size of the NodeInst.
-	 * @param oSY the old Y size of the NodeInst.
-	 * @param oRot the old rotation of the NodeInst.
+	 * @param dCX the change in X center of the NodeInst.
+	 * @param dCY the change in Y center of the NodeInst.
+	 * @param dSX the ochange inld X size of the NodeInst.
+	 * @param dSY the change in Y size of the NodeInst.
+	 * @param dRot the change in rotation of the NodeInst.
 	 */
 	public void modifyNodeInst(NodeInst ni, double dCX, double dCY, double dSX, double dSY, int dRot)
 	{
@@ -284,11 +284,11 @@ public class Layout extends Constraints
 	/**
 	 * Method to handle a change to many NodeInsts at once.
 	 * @param nis the NodeInsts that were changed.
-	 * @param oCX the old X centers of the NodeInsts.
-	 * @param oCY the old Y centers of the NodeInsts.
-	 * @param oSX the old X sizes of the NodeInsts.
-	 * @param oSY the old Y sizes of the NodeInsts.
-	 * @param oRot the old rotations of the NodeInsts.
+	 * @param dCX the change in X centers of the NodeInsts.
+	 * @param dCY the change in Y centers of the NodeInsts.
+	 * @param dSX the change in X sizes of the NodeInsts.
+	 * @param dSY the change in Y sizes of the NodeInsts.
+	 * @param dRot the change in rotations of the NodeInsts.
 	 */
 	public void modifyNodeInsts(NodeInst [] nis, double [] dCX, double [] dCY, double [] dSX, double [] dSY, int [] dRot)
 	{

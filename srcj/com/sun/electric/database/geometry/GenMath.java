@@ -105,7 +105,7 @@ public class GenMath
 	 * If object was not in a bag, it will be added.
      * @param bag Map implementing Bag.
      * @param key object in a bag.
-	 * @param count count to add to bag.
+	 * @param c count to add to bag.
      */
 	public static void addToBag(Map/*<Object,MutableInteger>*/ bag, Object key, int c)
 	{
@@ -837,7 +837,10 @@ public class GenMath
 		return points;
 	}
 
-    /** smallest such that 1.0+DBL_EPSILON != 1.0 */	private static double DBL_EPSILON = 2.2204460492503131e-016;
+    /**
+     * Small epsilon value.
+     * set so that 1+DBL_EPSILON != 1
+     */	private static double DBL_EPSILON = 2.2204460492503131e-016;
 
     /**
      * Method to round a value to the nearest increment.
@@ -900,19 +903,17 @@ public class GenMath
         return false;
     }
 
-    /**
-     * Method to round floating-point values to sensible quantities.
-     * Rounds these numbers to the nearest thousandth.
-     * @param a the value to round.
-     * @return the rounded value.
-     */
-    /*
-    public static double smooth(double a)
-    {
-        long i = Math.round(a * 1000.0);
-        return i / 1000.0;
-    }
-    */
+//    /**
+//     * Method to round floating-point values to sensible quantities.
+//     * Rounds these numbers to the nearest thousandth.
+//     * @param a the value to round.
+//     * @return the rounded value.
+//     */
+//    public static double smooth(double a)
+//    {
+//        long i = Math.round(a * 1000.0);
+//        return i / 1000.0;
+//    }
 
 	// ************************************* CLIPPING *************************************
 
@@ -996,10 +997,10 @@ public class GenMath
      * Method to clip a line against a rectangle (in integer).
      * @param from one end of the line.
      * @param to the other end of the line.
-     * @param lX the low X bound of the clip.
-     * @param hX the high X bound of the clip.
-     * @param lY the low Y bound of the clip.
-     * @param hY the high Y bound of the clip.
+     * @param lx the low X bound of the clip.
+     * @param hx the high X bound of the clip.
+     * @param ly the low Y bound of the clip.
+     * @param hy the high Y bound of the clip.
      * The points are modified to fit inside of the clip area.
      * @return true if the line is not visible.
      */

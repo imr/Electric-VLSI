@@ -265,7 +265,6 @@ public class PolyBase implements Shape
 	/**
 	 * Method to compute the maximum size of this Polygon.
 	 * Only works with manhattan geometry.
-	 * @return
 	 */
 	public double getMaxSize()
 	{
@@ -1633,9 +1632,8 @@ public class PolyBase implements Shape
 	}
 
     /**
-     * Initiative CrossLibCopy. It should be equals
-     * @param obj
-     * @return
+     * Initiative CrossLibCopy.
+     * It should be equals
      */
     public boolean compare(Object obj, StringBuffer buffer)
     {

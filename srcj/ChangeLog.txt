@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01aw: *********************************
 
+<BUG: (12/16/04, SMR) Going "Down Hierarchy" after a "Down Hierarchy In Place" remains
+     in "in place" mode (Bug #107).
+FIX: In EditWindow.downHierarchy(), turn off "in place" mode if not going down in place.
+
 IMP: (12/16/04, GVG) New transistor sizes of OD18 and Native to comply with missing DRC rules
 
 BUG: (12/16/04, SMR) PostScript export of waveform windows crashes (Bug #119).

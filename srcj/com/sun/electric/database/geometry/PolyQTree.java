@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: CellBrowser.java
+ * File: PolyQTree.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -49,7 +49,8 @@ public class PolyQTree implements GeometryHandler
 	}
 
 	/**
-	 * Print all nodes in the tree. Debugging purpose only!.
+	 * Print all nodes in the tree.
+	 * Debugging purpose only!.
 	 */
 	public void print()
 	{
@@ -62,8 +63,7 @@ public class PolyQTree implements GeometryHandler
 	}
 
 	/**
-	 * Access to keySet to create a collection for example
-	 * @return
+	 * Access to keySet to create a collection for example.
 	 */
 	public Collection getKeySet()
 	{
@@ -80,8 +80,8 @@ public class PolyQTree implements GeometryHandler
 	}
 
 	/**
-	 * Iterator among all layers inserted
-	 * @return
+	 * Iterator among all layers inserted.
+	 * @return an iterator over all layers inserted.
 	 */
 	public Iterator getIterator()
 	{
@@ -133,8 +133,6 @@ public class PolyQTree implements GeometryHandler
 	/**
 	 * Given a layer, insert the object obj into the qTree associated.
 	 * @param layer Given layer to work with
-	 * @param newObj
-	 * @param fasterAlgorithm
 	 */
 	public void add(Object layer, Object newObj, boolean fasterAlgorithm)
 	{
@@ -165,9 +163,7 @@ public class PolyQTree implements GeometryHandler
 	}
 
 	/**
-	 *  Merge two PolyQTree
-	 * @param subMerge
-	 * @param trans
+	 *  Merge two PolyQTree.
 	 */
 	public void addAll(GeometryHandler subMerge, AffineTransform trans)
 	{
@@ -203,7 +199,6 @@ public class PolyQTree implements GeometryHandler
 		 * Compare objects based on area.
 		 * This method doesn't guarantee (compare(x, y)==0) == (x.equals(y))
 		 * because x.equals relies on Area.equals()
-		 * @param o1
 		 * @return Returns a negative integer, zero, or a positive integer as the
 		 * first object has smaller than, equal to, or greater area than the second.
 		 */
@@ -230,7 +225,6 @@ public class PolyQTree implements GeometryHandler
 
 		/**
 		 * Not to violate that equal objects must have equal hashcodes.
-		 * @return
 		 */
 		public int hasCode()
 		{
@@ -238,8 +232,6 @@ public class PolyQTree implements GeometryHandler
 		}
 
 		/**
-		 *
-		 * @return
 		 */
 		public Point2D[] getPoints()
 		{
@@ -439,8 +431,6 @@ public class PolyQTree implements GeometryHandler
 
 		/**
 		 * Overwriting original for Area to consider touching polygons
-		 * @param a
-		 * @return
 		 */
 		public boolean intersects (Area a)
 		{
@@ -545,7 +535,6 @@ public class PolyQTree implements GeometryHandler
 
         /**
          * Sort list of objects based on area
-         * @return
          */
 		public List getSortedLoops()
 		{
@@ -598,7 +587,6 @@ public class PolyQTree implements GeometryHandler
 		 * @param centerX Parent center x value
 		 * @param centerY Parent center y value
 		 * @param loc Location in qtree
-		 * @return
 		 */
 		private Rectangle2D getBox(double x, double y, double w, double h, double centerX, double centerY, int loc)
 		{
@@ -616,7 +604,6 @@ public class PolyQTree implements GeometryHandler
 		/**
 		 * Collects recursive leaf elements in a list. Uses set to avoid
 		 * duplicate elements (qtree could sort same element in all quadrants
-		 * @param set
 		 * @param modified True if no original elements should be considered
 		 * @param simple True if simple elements should be retrieved
 		 */
@@ -684,9 +671,6 @@ public class PolyQTree implements GeometryHandler
 
 		/**
 		 * Original Rectangle2D:intersects doesn't detect when two elements are touching
-		 * @param a
-		 * @param b
-		 * @return
 		 */
 		private static boolean intersects(Rectangle2D a, Rectangle2D b)
 		{
@@ -708,10 +692,6 @@ public class PolyQTree implements GeometryHandler
 
 		/**
 		 * Removes from tree all objects overlapping with obj. Returns the overlapping region.
-		 * @param box
-		 * @param obj
-		 * @param fasterAlgorithm
-		 * @return
 		 */
 		protected boolean findAndRemoveObjects(Rectangle2D box, PolyNode obj, Rectangle2D areaBB,
 		                                       boolean fasterAlgorithm, Set removedElems)
@@ -818,7 +798,7 @@ public class PolyQTree implements GeometryHandler
 		}
 
 		/**
-		 *
+		 * Method.
 		 * @param box Bounding box of the current PolyQNode
 		 * @param obj Object to insert
 		 * @param areaBB Bounding box of object to insert

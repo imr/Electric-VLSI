@@ -2076,8 +2076,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
 	/**
 	 * Method to determine if a given PortProto is considered as export
-	 * @param port
-	 * @return
+	 * @param port the PortProto in question.
+	 * @return true if the PortProto is an export.
 	 */
 	public boolean findPortProto(PortProto port)
 	{
@@ -3904,8 +3904,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
     /**
      * Compares revision dates of Cells.
-     * @param obj
-     * @return
+     * @param obj the other Cell.
+     * @return a comparison between the dates of the two cells.
      */
 	public int compareTo(Object obj)
 	{

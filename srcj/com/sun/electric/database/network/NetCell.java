@@ -81,7 +81,8 @@ class NetCell
      */																int modCount = 0;
 
 	/**
-     * Equivalence of ports. equivPorts.size == ports.size.
+     * Equivalence of ports.
+     * equivPorts.size == ports.size.
 	 * equivPorts[i] contains minimal index among ports of its group.
      */																private int[] equivPorts;
 	/** Node offsets. */											int[] ni_pi;

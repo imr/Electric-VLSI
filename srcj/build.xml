@@ -7,7 +7,6 @@
 	    <property name="JUnit" value="packaging/junit.jar"/>
     </target>
 
-	<!-- Use -DpluginD=true to include 3D plugin -->
 	<!-- Use -DGNU=true for GNU release -->
 	<!-- Use -Dsource=true to release the source  -->
     <target name="compile" depends="init" description="Compile">
@@ -16,8 +15,6 @@
             <classpath><pathelement location="${beanshell}"/></classpath>
             <classpath><pathelement location="${AppleJava}"/></classpath>
             <exclude name="intervalsimulation/"/>
-	        <exclude name="com/sun/electric/tests/"/>
-	        <exclude name="com/sun/electric/plugins/j3d/*.*" unless="plugin3D"/>
         </javac>
     </target>
 
@@ -118,28 +115,6 @@
         </delete>
     </target>
 
-    <target name="jarTSMC90" depends="init" description="Make binary Jar plugin for TSMC 90">
-        <javac debug="true" deprecation="true" destdir="." srcdir="." source="1.4">
-            <include name="com/sun/electric/plugins/tsmc90/TSMC90.java"/>
-            <classpath><pathelement location="${AppleJava}"/></classpath>
-        </javac>
-        <jar basedir="." compress="true" jarfile="TSMC90.jar">
-            <include name="com/sun/electric/plugins/tsmc90/TSMC90.class"/>
-        </jar>
-        <delete file="com/sun/electric/plugins/tsmc90/TSMC90.class"/>
-    </target>
-
-	<target name="jar3D" depends="init" description="Make binary Jar plugin for 3D View">
-        <javac debug="true" deprecation="true" destdir="." srcdir="." source="1.4">
-            <include name="com/sun/electric/plugins/j3d/View3DWindow.java"/>
-            <classpath><pathelement location="${AppleJava}"/></classpath>
-        </javac>
-        <jar basedir="." compress="true" jarfile="electric3d.jar">
-            <include name="com/sun/electric/plugins/j3d/View3DWindow.class"/>
-        </jar>
-        <delete file="com/sun/electric/plugins/j3d/View3DWindow.class"/>
-    </target>
-
     <target name="testJar" depends="init,jar" description="Run Jar file">
         <java classname="com.sun.electric.Launcher" failonerror="true" fork="true">
             <classpath>
@@ -167,12 +142,12 @@
 
     <target name="javadoc" depends="init" description="Create Javadoc">
         <mkdir dir="apidoc"/>
-        <javadoc destdir="apidoc" private="true" use="true" packagenames="com.sun.electric.*" source="1.4">
+        <javadoc destdir="apidoc" private="true" use="true" packagenames="com.sun.electric.*" source="1.4" maxmemory="200m">
             <classpath>
                 <pathelement location="${beanshell}"/>
                 <pathelement location="${AppleJava}"/>
-           </classpath>
-           <sourcepath>
+            </classpath>
+            <sourcepath>
                 <pathelement location="."/>
             </sourcepath>
         </javadoc>
