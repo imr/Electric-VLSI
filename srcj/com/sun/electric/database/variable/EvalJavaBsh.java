@@ -43,6 +43,10 @@ import java.util.Iterator;
  * It is meant to be invoked from the Variable context;
  * these methods should not be used from other contexts, and
  * thus are declared protected.
+ * <P>
+ * This class is thread-safe, but be warned: if multiple threads are hammering
+ * the bean shell for evaluations, it will slow down a lot due to
+ * contested locks.
  *
  * @author  gainsley
  */
@@ -216,14 +220,14 @@ public class EvalJavaBsh
     /** Lookup variable for evaluation
      * @return an evaluated object
      */
-    public Object P(String name) throws VarContext.EvalException {
+    public synchronized Object P(String name) throws VarContext.EvalException {
         VarContext context = (VarContext)contextStack.peek();
         Object val = context.lookupVarEval(name);
         if (DEBUG) System.out.println(name + " ---> " + val + " ("+val.getClass()+")");
         return val;
     }
 
-    public Object PAR(String name) throws VarContext.EvalException {
+    public synchronized Object PAR(String name) throws VarContext.EvalException {
         VarContext context = (VarContext)contextStack.peek();
         Object val = context.lookupVarFarEval(name);
         if (DEBUG) System.out.println(name + " ---> " + val + " ("+val.getClass()+")");
