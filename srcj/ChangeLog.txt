@@ -4,10 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02e: *********************************
 
-IMP/MAN: (01/27/04, JKG) Added option under GDS preferences to have brackets in
+IMP: (01/27/05, GVG) Side effects of ordered database in DRC. Speed improvements
+to avoid checking two node instances multiple time. Some statistics:
+qFourP2:qFourP1top:qFourP1top: v8.01=22 min, v8.02d=37min, v8.02e=8min.
+
+IMP/MAN: (01/27/05, JKG) Added option under GDS preferences to have brackets in
     export names converted to underscores.
 
-IMP: (01/26/05, GVG) TSMC90nm: thick active contacts including thick active arcs
+IMP/MAN: (01/26/05, GVG) TSMC90nm: thick active contacts including thick active arcs
 
 IMP/MAN: (01/26/05, SMR) Removed the command "Windows / Special Zoom / Zoom Box" because
      it duplicates the shift-right drag function and, more importantly, doesn't work.

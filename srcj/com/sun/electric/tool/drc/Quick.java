@@ -824,6 +824,7 @@ public class Quick
 			nodeBounds.getMinY()-worstInteractionDistance,
 			nodeBounds.getWidth() + worstInteractionDistance*2,
 			nodeBounds.getHeight() + worstInteractionDistance*2);
+
 		for(Iterator it = ni.getParent().searchIterator(searchBounds); it.hasNext(); )
 		{
 			Geometric geom = (Geometric)it.next();
@@ -877,7 +878,6 @@ public class Quick
 		Rectangle2D bb = (Rectangle2D)bounds.clone();
 		AffineTransform downTrans = thisNi.transformIn();
 		DBMath.transformRect(bb, downTrans);
-        long startTime = System.currentTimeMillis();
 
 		for(Iterator it = cell.searchIterator(bb); it.hasNext(); )
 		{
@@ -893,10 +893,13 @@ public class Quick
 				NodeInst ni = (NodeInst)geom;
 				NodeProto np = ni.getProto();
 
-                if (NodeInst.isSpecialNode(ni)) continue; // Oct 5;
+                if (NodeInst.isSpecialNode(ni)) continue; // Oct 5'04
 
 				if (np instanceof Cell)
 				{
+                    // see if this configuration of instances has already been done
+                    if (checkInteraction(ni, oNi)) continue;  // Jan 27'05
+
 					AffineTransform subUpTrans = ni.translateOut(ni.rotateOut());
 					subUpTrans.preConcatenate(upTrans);
 
@@ -981,13 +984,6 @@ public class Quick
 				}
 			}
 		}
-
-        if (Main.getDebug())
-        {
-            long endTime = System.currentTimeMillis();
-            System.out.println("Node " + thisNi.getName() + " " + oNi.getName() + " " + globalIndex + " " +
-                    topGlobalIndex + " (" + TextUtils.getElapsedTime(endTime - startTime) + ")");
-        }
 		return logsFound;
 	}
 
@@ -1737,8 +1733,6 @@ public class Quick
 
 		// get transformation out of this instance
 		AffineTransform upTrans = ni.translateOut(ni.rotateOut());
-		//AffineTransform rTrans = ni.rotateOut();
-		//upTrans.preConcatenate(rTrans);
 
 		// get network numbering information for this instance
 		CheckInst ci = (CheckInst)checkInsts.get(ni);
@@ -1756,11 +1750,7 @@ public class Quick
 		{
 			Geometric geom = (Geometric)it.next();
 
-			if ( geom == ni )
-			{
-				//System.out.println("Should I skip it?");
-				continue;
-			}
+			if ( geom == ni ) continue;
 
 			if (geom instanceof ArcInst)
 			{
