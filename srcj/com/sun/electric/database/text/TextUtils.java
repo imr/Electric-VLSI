@@ -705,7 +705,7 @@ public class TextUtils
 		{
 			return displayedUnits(value, units, User.getTimeUnits());
 		}
-		return formatDouble(value);
+		return formatDouble(value, 0);
 	}
 
     /**

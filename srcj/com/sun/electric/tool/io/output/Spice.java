@@ -1118,9 +1118,11 @@ public class Spice extends Topology
     private StringBuffer replacePortsAndVars(String line, Nodable no, VarContext context,
                                        CellNetInfo cni) {
         StringBuffer infstr = new StringBuffer();
-    	if (no == null) return infstr;
-        NodeProto niProto = no.getProto();
-        Cell subCell = (Cell)niProto;
+        Cell subCell = null;
+    	if (no != null)
+    	{
+    		subCell = (Cell)no.getProto();
+    	}
 
         for(int pt = 0; pt < line.length(); pt++)
         {
@@ -1134,6 +1136,9 @@ public class Spice extends Topology
             int start = pt + 2;
             for(pt = start; pt < line.length(); pt++)
                 if (line.charAt(pt) == ')') break;
+            if (subCell == null) continue;
+
+            // do the parameter substitution
             String paramName = line.substring(start, pt);
             PortProto pp = subCell.findPortProto(paramName);
             if (cni != null && pp != null)

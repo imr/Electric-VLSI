@@ -21,7 +21,7 @@ public class FileType {
 	 */
 	/** all types */                        private static final ArrayList allTypes = new ArrayList();
 
-	/** Describes any file.*/				public static final FileType ANY          = new FileType("All", new String[] {""}, "All Files");
+	/** Describes any file.*/				public static final FileType ANY          = new FileType("All", new String[] {}, "All Files");
 	/** Describes CDL decks.*/				public static final FileType CDL          = new FileType("CDL", new String[] {"cdl"}, "CDL Deck (cdl)");
 	/** Describes CIF files. */				public static final FileType CIF          = new FileType("CIF", new String[] {"cif"}, "CIF File (cif)");
 	/** Describes COSMOS output. */			public static final FileType COSMOS       = new FileType("COSMOS", new String[] {"sim"}, "COSMOS File (sim)");

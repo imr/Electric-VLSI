@@ -4,9 +4,18 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01av: *********************************
 
+BUG: (12/13/04, SMR) Spice cards do not get emitted to the deck (Bug #93).
+FIX: In Spice.replacePortsAndVars(), allow unconnected nodes.
+
+BUG: (12/13/04, SMR) Selection of header files in the Spice Preferences dialog excludes all files (Bug #91).
+FIX: In FileType.java, change the extension string of ANY from {""} to {}.
+
+BUG: (12/13/04, SMR) Small values get turned into zeros (Bug #90).
+FIX: In TextUtils.makeUnits(), call "formatDouble()" with a second argument of 0.
+
 IMP: (12/13/04, DN) Revision of JELIB format. JELIB writer will change
-format when the Electric version becomes "8.01aw". JELIB reader will
-read files after "8.01aw" in a new format.
+     format when the Electric version becomes "8.01aw". JELIB reader will
+     read files after "8.01aw" in a new format.
 
 BUG: (12/10/04, GVG) No reporting min errors for negative notches (Bug #85)
 FIX: Put code back (decomissioned long time ago) and amended.
