@@ -24,77 +24,100 @@
 package com.sun.electric.tool.ncc.processing;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.ncc.basic.CellContext;
+import com.sun.electric.tool.ncc.basic.CompareLists;
 
 /** Information needed to perform hierarchical netlist comparison */
 public class HierarchyInfo {
-	/** name of the current CellGroup */ 
+	/** name of the current CompareList (usually CellGroup name) */ 
 	private String subcktName;
-	/** unique int assigned to the current CellGroup */
-	private int cellGroupID=0;
-	/** the Cells we've added to the current CellGroup */
-	private List cellsInCellGroup = new ArrayList();
+	/** unique int assigned to the current compareList */
+	private int compareListID=0;
+	/** the Cells we've added to the current compareList */
+	private List cellsInCompareList = new ArrayList();
 	/** flag indicating that we must remove SubcircuitInfo for all Cells in the 
 	 * current Cell Group. */
-	private boolean purgeCurrentCellGroup;
-	/** information for all Cells in all the CellGroups we've encountered 
+	private boolean purgeCurrentCompareList;
+	/** information for all Cells in all the compareLists we've encountered 
 	 * so far */
 	private Map cellToSubcktInfo = new HashMap();
+	private Set cellsInSharedCellGroups;
 
-	/** You must call this before you begin comparing Cells in a new CellGroup.
-	 * Then for each Cell in the CellGroup you must call addSubcircuitInfo().
-	 * However, if a comparison reveals an Export name mismatch then you must
-	 * call purgeCurrentCellGroup() after which it doesn't matter what 
-	 * you do for the rest of the CellGroup. */
-	public void beginNextCellGroup(String subcktName) {
+	// ----------------------------- public methods ---------------------------
+	/** You must call this before you begin comparing Cells in a new 
+	 * compareList. Then for each Cell in the compareList you must call 
+	 * addSubcircuitInfo(). However, if a comparison reveals an Export name 
+	 * mismatch then you must call purgeCompareList() after which it 
+	 * doesn't matter what you do for the rest of the compareList. */
+	public void beginNextCompareList(String subcktName) {
 		this.subcktName = subcktName;
-		cellGroupID++;
-		purgeCurrentCellGroup = false;
-		cellsInCellGroup.clear();
+		compareListID++;
+		purgeCurrentCompareList = false;
+		cellsInCompareList.clear();
+		cellsInSharedCellGroups = null;
 	}
-	/** Add new subcircuit information for each Cell in the CellGroup so the
-	 * CellGroup can be treated as a subcircuit primitive in a future 
+	/** Restrict subcircuit detection. We only want to detect a subcircuit if
+	 * its corresponding CellGroup is instantiated by both Cells begin compared.
+	 * When we perform a hierarchical comparison we need to rescan the 
+	 * sub-hierarchies for each pair of Cells being compared. */
+	public void restrictSubcktDetection(Cell c1, Cell c2) {
+		List compareLists = CompareLists.getCompareLists(c1, c2);
+		cellsInSharedCellGroups = new HashSet();
+		for (Iterator it=compareLists.iterator(); it.hasNext();) {
+			List compareList = (List) it.next();
+			for (Iterator it2=compareList.iterator(); it2.hasNext();) {
+				Cell c = ((CellContext)it2.next()).cell;
+				cellsInSharedCellGroups.add(c);
+			}
+		}
+	}
+	/** Add new subcircuit information for each Cell in the compareList so it
+	 * can be treated as a subcircuit primitive in a future 
 	 * hierarchical comparison at a higher level. This method must be called
-	 * for each Cell in the Cell group. 
+	 * for each Cell in the compareList. 
 	 * <p>However, if a comparison reveals an Export name mismatch then you must
-	 * call purgeCurrentCellGroup() after which it doesn't matter what 
+	 * call purgeCurrentCompareList() after which it doesn't matter what 
 	 * you do. */
 	public void addSubcircuitInfo(Cell c, SubcircuitInfo subcktInfo) {
-		if (purgeCurrentCellGroup) return;
+		if (purgeCurrentCompareList) return;
 		LayoutLib.error(cellToSubcktInfo.containsKey(c),
 						"SubcircuitInfo already exists for Cell");
-		cellsInCellGroup.add(c);
+		cellsInCompareList.add(c);
 		cellToSubcktInfo.put(c, subcktInfo);
 	}
 	/** You must call this method if a Cell comparison reveals an Export name 
-	 * mismatch. In that case we can no longer treat the CellGroup as a 
-	 * subcircuit primitive at higher levels. Instead we must purge all 
-	 * information related to Cells in this CellGroup so that we will flatten 
-	 * through this Cell group when comparing from higher levels in the 
-	 * hierarchy. */
-	public void purgeCurrentCellGroup() {
-		purgeCurrentCellGroup = true;
-		for (Iterator it=cellsInCellGroup.iterator(); it.hasNext();) {
+	 * mismatch. In that case we can no longer treat cells in compareList as a 
+	 * subcircuit primitives at higher levels. Instead we must purge all 
+	 * information related to Cells in this compareList so that we will flatten 
+	 * through them when comparing from higher levels in the hierarchy. */
+	public void purgeCurrentCompareList() {
+		purgeCurrentCompareList = true;
+		for (Iterator it=cellsInCompareList.iterator(); it.hasNext();) {
 			Cell c = (Cell) it.next();
 			LayoutLib.error(!cellToSubcktInfo.containsKey(c), "Cell not in map?");
 			cellToSubcktInfo.remove(c);
 		}
-		cellsInCellGroup.clear();
+		cellsInCompareList.clear();
 	}
 
 	/** name of the subcircuit being compared */
 	public String currentSubcircuitName() {return subcktName;}
 	/** unique int ID of subcircuit being compared */
-	public int currentSubcircuitID() {return cellGroupID;}
+	public int currentSubcircuitID() {return compareListID;}
 	/** should I treat an instance of this cell as a subcircuit primitive 
 	 * in the current comparison? */
 	public boolean treatAsPrimitive(Cell c) {
-		return cellToSubcktInfo.containsKey(c);
+		return cellToSubcktInfo.containsKey(c) &&
+		       (cellsInSharedCellGroups==null || 
+		       	cellsInSharedCellGroups.contains(c));
 	}
 	/** get me information I need to treat an instance of this Cell as a
 	 * subcircuit primitive */ 

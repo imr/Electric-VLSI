@@ -593,7 +593,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			boolean exportAssertFail = exportAssertionFailures(info);
 			exportAssertionFailures |= exportAssertFail;
 			// Subtle! Suppose mux21{sch}, mux21{lay}, and mux21_r{lay} are in 
-			// the same (simulated) CellGroup. Then we will first compare 
+			// the same compareList. Then we will first compare 
 			// mux21{sch} with mux21{lay}, and then with mux21_r{lay}. For the 
 			// second comparison hierarchicalCompareInfo will tell us to treat 
 			// mux21{sch} as a primitive. Ignore it. We NEVER want to treat

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02c: *********************************
 
+IMP: (01/14/05, RK) NCC: I eliminated the annoying "false sharing" behavior during hierarchical NCC. This allows NCC regressions to pass once again.
+
 IMP: (01/14/05, SMR) Added special properties dialog for nodes with outline information
      (shown when doing a "Properties" command on such a node).
 
