@@ -151,8 +151,7 @@ class IvanFlater extends HierarchyEnumerator.Visitor {
 	}
 
 	private String getMosWidthLength(NodeInst ni) {
-		NodeProto np = ni.getProto();
-		SizeOffset so = np.getSizeOffset();
+		SizeOffset so = ni.getSizeOffset();
 		double w = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
 		double l = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 		return w + " " + l;

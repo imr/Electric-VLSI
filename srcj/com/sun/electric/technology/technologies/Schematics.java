@@ -1447,6 +1447,92 @@ public class Schematics extends Technology
 					new Technology.TechPoint(EdgeH.makeCenter(), new EdgeV(wireDiscSize, 0))});
 			}
 			primLayers = busPinLayers;
+		} else if (np == andNode)
+		{
+			double lambda = ni.getXSize() / 8;
+			if (ni.getYSize() < lambda * 6) lambda = ni.getYSize() / 6;
+			if (lambda != 1)
+			{
+				Technology.NodeLayer [] andLayers = new Technology.NodeLayer[2];
+				andLayers[0] = new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromCenter(0.5 * lambda), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.fromCenter(0.5 * lambda), EdgeV.fromCenter(3 * lambda)),
+					new Technology.TechPoint(EdgeH.fromCenter(0.5 * lambda), EdgeV.fromCenter(-3 * lambda))});
+				andLayers[1] = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS,
+					new Technology.TechPoint [] {
+						new Technology.TechPoint(EdgeH.fromCenter(0.5 * lambda), EdgeV.fromCenter(3 * lambda)),
+						new Technology.TechPoint(EdgeH.fromCenter(-4 * lambda), EdgeV.fromCenter(3 * lambda)),
+						new Technology.TechPoint(EdgeH.fromCenter(-4 * lambda), EdgeV.makeTopEdge()),
+						new Technology.TechPoint(EdgeH.fromCenter(-4 * lambda), EdgeV.makeBottomEdge()),
+						new Technology.TechPoint(EdgeH.fromCenter(-4 * lambda), EdgeV.fromCenter(-3 * lambda)),
+						new Technology.TechPoint(EdgeH.fromCenter(0.5 * lambda), EdgeV.fromCenter(-3 * lambda))
+					});
+				primLayers = andLayers;
+			}
+		} else if (np == orNode)
+		{
+			double lambda = ni.getXSize() / 10;
+			if (ni.getYSize() < lambda * 6) lambda = ni.getYSize() / 6;
+			if (lambda != 1)
+			{
+				Technology.NodeLayer [] orLayers = new Technology.NodeLayer[4];
+				orLayers[0] = new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromCenter(-9 * lambda), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.fromCenter(-4 * lambda), EdgeV.fromCenter(3 * lambda)),
+					new Technology.TechPoint(EdgeH.fromCenter(-4 * lambda), EdgeV.fromCenter(-3 * lambda))});
+				orLayers[1] = new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromCenter(-0.75 * lambda), EdgeV.fromCenter(-3 * lambda)),
+					new Technology.TechPoint(EdgeH.fromCenter(-0.75 * lambda), EdgeV.fromCenter(3 * lambda)),
+					new Technology.TechPoint(EdgeH.fromCenter(4.5 * lambda), EdgeV.makeCenter())});
+				orLayers[2] = new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromCenter(-0.75 * lambda), EdgeV.fromCenter(3 * lambda)),
+					new Technology.TechPoint(EdgeH.fromCenter(4.5 * lambda), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.fromCenter(-0.75 * lambda), EdgeV.fromCenter(-3 * lambda))});
+				orLayers[3] = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromCenter(-4 * lambda), EdgeV.makeTopEdge()),
+					new Technology.TechPoint(EdgeH.fromCenter(-4 * lambda), EdgeV.fromCenter(3 * lambda)),
+					new Technology.TechPoint(EdgeH.fromCenter(-4 * lambda), EdgeV.fromCenter(3 * lambda)),
+					new Technology.TechPoint(EdgeH.fromCenter(-0.75 * lambda), EdgeV.fromCenter(3 * lambda)),
+					new Technology.TechPoint(EdgeH.fromCenter(-4 * lambda), EdgeV.makeBottomEdge()),
+					new Technology.TechPoint(EdgeH.fromCenter(-4 * lambda), EdgeV.fromCenter(-3 * lambda)),
+					new Technology.TechPoint(EdgeH.fromCenter(-4 * lambda), EdgeV.fromCenter(-3 * lambda)),
+					new Technology.TechPoint(EdgeH.fromCenter(-0.75 * lambda), EdgeV.fromCenter(-3 * lambda))});
+				primLayers = orLayers;
+			}
+		} else if (np == xorNode)
+		{
+			double lambda = ni.getXSize() / 10;
+			if (ni.getYSize() < lambda * 6) lambda = ni.getYSize() / 6;
+			if (lambda != 1)
+			{
+				Technology.NodeLayer [] xorLayers = new Technology.NodeLayer[5];
+				xorLayers[0] = new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromCenter(-9 * lambda), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.fromCenter(-4 * lambda), EdgeV.fromCenter(3 * lambda)),
+					new Technology.TechPoint(EdgeH.fromCenter(-4 * lambda), EdgeV.fromCenter(-3 * lambda))});
+				xorLayers[1] = new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromCenter(-0.75 * lambda), EdgeV.fromCenter(-3 * lambda)),
+					new Technology.TechPoint(EdgeH.fromCenter(-0.75 * lambda), EdgeV.fromCenter(3 * lambda)),
+					new Technology.TechPoint(EdgeH.fromCenter(4.5 * lambda), EdgeV.makeCenter())});
+				xorLayers[2] = new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromCenter(-0.75 * lambda), EdgeV.fromCenter(3 * lambda)),
+					new Technology.TechPoint(EdgeH.fromCenter(4.5 * lambda), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.fromCenter(-0.75 * lambda), EdgeV.fromCenter(-3 * lambda))});
+				xorLayers[3] = new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromCenter(-10 * lambda), EdgeV.makeCenter()),
+					new Technology.TechPoint(EdgeH.fromCenter(-5 * lambda), EdgeV.fromCenter(3 * lambda)),
+					new Technology.TechPoint(EdgeH.fromCenter(-5 * lambda), EdgeV.fromCenter(-3 * lambda))});
+				xorLayers[4] = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromCenter(-4 * lambda), EdgeV.makeTopEdge()),
+					new Technology.TechPoint(EdgeH.fromCenter(-4 * lambda), EdgeV.fromCenter(3 * lambda)),
+					new Technology.TechPoint(EdgeH.fromCenter(-4 * lambda), EdgeV.fromCenter(3 * lambda)),
+					new Technology.TechPoint(EdgeH.fromCenter(-0.75 * lambda), EdgeV.fromCenter(3 * lambda)),
+					new Technology.TechPoint(EdgeH.fromCenter(-4 * lambda), EdgeV.makeBottomEdge()),
+					new Technology.TechPoint(EdgeH.fromCenter(-4 * lambda), EdgeV.fromCenter(-3 * lambda)),
+					new Technology.TechPoint(EdgeH.fromCenter(-4 * lambda), EdgeV.fromCenter(-3 * lambda)),
+					new Technology.TechPoint(EdgeH.fromCenter(-0.75 * lambda), EdgeV.fromCenter(-3 * lambda))});
+				primLayers = xorLayers;
+			}
 		} else if (np == flipflopNode)
 		{
 			int ffBits = ni.getTechSpecific();
@@ -1663,30 +1749,30 @@ public class Schematics extends Technology
 	 */
 	public Poly getShapeOfPort(NodeInst ni, PrimitivePort pp, Point2D selectPt)
 	{
+		// determine the grid size
+		double width = ni.getXSize();
+		double height = ni.getYSize();
+		double lambda = 1;
+		NodeProto np = ni.getProto();
+		if (np == andNode)
+		{
+			lambda = width / 8;
+			if (height < lambda * 6) lambda = height / 6;
+		} else if (np == orNode || np == xorNode)
+		{
+			lambda = width / 10;
+			if (height < lambda * 6) lambda = height / 6;
+		}
+
 		// only care if special selection is requested
 		if (selectPt != null)
 		{
 			// special selection only works for AND, OR, XOR, MUX, SWITCH
-			NodeProto np = ni.getProto();
 			if (np == andNode || np == orNode || np == xorNode || np == muxNode || np == switchNode)
 			{
 				// special selection only works for the input port (the first port, 0)
 				if (ni.findPortInstFromProto(pp) == ni.getPortInst(0))
 				{
-					// determine the grid size
-					double width = ni.getXSize();
-					double height = ni.getXSize();
-					double lambda = 1.0;
-					if (np == andNode)
-					{
-						lambda = width / 8;
-						if (height < lambda * 6) lambda = height / 6;
-					} else if (np == orNode || np == xorNode)
-					{
-						lambda = width / 10;
-						if (height < lambda * 6) lambda = height / 6;
-					}
-
 					// initialize
 					PortInst pi = ni.findPortInstFromProto(pp);
 					double wantX = selectPt.getX();
@@ -1781,9 +1867,57 @@ public class Schematics extends Technology
 				}
 			}
 		}
+		if (lambda != 1)
+		{
+			// standard port computation
+			double portLowX = ni.getTrueCenterX() + pp.getLeft().getMultiplier() * width + pp.getLeft().getAdder() * lambda;
+			double portHighX = ni.getTrueCenterX() + pp.getRight().getMultiplier() * width + pp.getRight().getAdder() * lambda;
+			double portLowY = ni.getTrueCenterY() + pp.getBottom().getMultiplier() * height + pp.getBottom().getAdder() * lambda;
+			double portHighY = ni.getTrueCenterY() + pp.getTop().getMultiplier() * height + pp.getTop().getAdder() * lambda;
+			double portX = (portLowX + portHighX) / 2;
+			double portY = (portLowY + portHighY) / 2;
+			Poly portPoly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
+			portPoly.setStyle(Poly.Type.FILLED);
+			portPoly.setTextDescriptor(pp.getTextDescriptor());
+			return portPoly;
+		}
 
 		// special selection did not apply: do normal port computation
 		return super.getShapeOfPort(ni, pp, selectPt);
+	}
+
+	/**
+	 * Method to get the SizeOffset associated with a NodeInst in this Technology.
+	 * The schematics override of this function is needed for AND, OR, and XOR gates.
+	 * @param ni the NodeInst to query.
+	 * @return the SizeOffset object for the NodeInst.
+	 */
+	public SizeOffset getNodeInstSizeOffset(NodeInst ni)
+	{
+		NodeProto np = ni.getProto();
+		if (np == andNode)
+		{
+			double width = ni.getXSize();
+			double height = ni.getYSize();
+			double unitSize = width / 8;
+			if (height < unitSize * 6) unitSize = height / 6;
+			return new SizeOffset(0, unitSize/2, 0, 0);
+		} else if (np == orNode)
+		{
+			double width = ni.getXSize();
+			double height = ni.getYSize();
+			double unitSize = width / 10;
+			if (height < unitSize * 6) unitSize = height / 6;
+			return new SizeOffset(unitSize, unitSize/2, 0, 0);
+		} else if (np == xorNode)
+		{
+			double width = ni.getXSize();
+			double height = ni.getYSize();
+			double unitSize = width / 10;
+			if (height < unitSize * 6) unitSize = height / 6;
+			return new SizeOffset(0, unitSize/2, 0, 0);
+		}
+		return super.getNodeInstSizeOffset(ni);
 	}
 
 	/**
@@ -2113,44 +2247,4 @@ public class Schematics extends Technology
 //	x_(""), x_(""),												/* well/substrate */
 //	x_(""), x_(""), x_("")										/* twoport/4-port/global */
 //};
-
-//void sch_nodesizeoffset(NODEINST *ni, INTBIG *lx, INTBIG *ly, INTBIG *hx, INTBIG *hy)
-//{
-//	REGISTER INTBIG index, width, height, unitsize;
-//
-//	index = ni->proto->primindex;
-//	switch (index)
-//	{
-//		case NAND:
-//			width = ni->highx - ni->lowx;
-//			height = ni->highy - ni->lowy;
-//			unitsize = width / 8;
-//			if (height < unitsize * 6) unitsize = height / 6;
-//			*lx = 0;
-//			*hx = unitsize/2;
-//			*ly = *hy = 0;
-//			break;
-//		case NOR:
-//			width = ni->highx - ni->lowx;
-//			height = ni->highy - ni->lowy;
-//			unitsize = width / 10;
-//			if (height < unitsize * 6) unitsize = height / 6;
-//			*lx = unitsize;
-//			*hx = unitsize/2;
-//			*ly = *hy = 0;
-//			break;
-//		case NXOR:
-//			width = ni->highx - ni->lowx;
-//			height = ni->highy - ni->lowy;
-//			unitsize = width / 10;
-//			if (height < unitsize * 6) unitsize = height / 6;
-//			*lx = 0;
-//			*hx = unitsize/2;
-//			*ly = *hy = 0;
-//			break;
-//		default:
-//			tech_nodeprotosizeoffset(ni->proto, lx, ly, hx, hy, lambdaofnode(ni));
-//			break;
-//	}
-//}
 }

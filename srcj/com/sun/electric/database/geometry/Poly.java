@@ -775,7 +775,7 @@ public class Poly implements Shape
 		double cx = portBounds.getCenterX();  double cy = portBounds.getCenterY();
 
 		// compute the area of the nodeinst
-		SizeOffset so = ni.getProto().getSizeOffset();
+		SizeOffset so = ni.getSizeOffset();
 		Rectangle2D nodeBounds = ni.getBounds();
 		Point2D lowerLeft = new Point2D.Double(nodeBounds.getMinX()+so.getLowXOffset(), nodeBounds.getMinY()+so.getLowYOffset());
 		trans.transform(lowerLeft, lowerLeft);

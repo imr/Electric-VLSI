@@ -334,7 +334,7 @@ public class PaletteFrame
 	private static NodeInst makeNodeInst(NodeProto np, NodeProto.Function func, int angle)
 	{
 		NodeInst ni = NodeInst.lowLevelAllocate();
-		SizeOffset so = np.getSizeOffset();
+		SizeOffset so = np.getProtoSizeOffset();
 		Point2D pt = new Point2D.Double((so.getHighXOffset() - so.getLowXOffset()) / 2,
 			(so.getHighYOffset() - so.getLowYOffset()) / 2);
 		AffineTransform trans = NodeInst.pureRotate(angle, false, false);
@@ -1076,7 +1076,7 @@ public class PaletteFrame
 				{
 					Cell placeCell = (Cell)np;
 					Rectangle2D cellBounds = placeCell.getBounds();
-					SizeOffset so = np.getSizeOffset();
+					SizeOffset so = np.getProtoSizeOffset();
 					poly = new Poly(cellBounds);
 					AffineTransform rotate = NodeInst.pureRotate(defAngle%3600,
 						(defAngle >= 3600 ? true : false), false);
@@ -1086,7 +1086,7 @@ public class PaletteFrame
 					poly.transform(rotate);
 				} else
 				{
-					SizeOffset so = np.getSizeOffset();
+					SizeOffset so = np.getProtoSizeOffset();
 					double trueSizeX = np.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
 					double trueSizeY = np.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
 					poly = new Poly(drawnLoc.getX(), drawnLoc.getY(), trueSizeX, trueSizeY);

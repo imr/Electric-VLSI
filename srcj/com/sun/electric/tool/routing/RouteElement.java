@@ -502,7 +502,7 @@ public class RouteElement {
      */
     public void setNodeSize(Dimension2D size) {
         if (action == RouteElementAction.newNode) {
-            SizeOffset so = np.getSizeOffset();
+            SizeOffset so = np.getProtoSizeOffset();
             double widthoffset = so.getLowXOffset() + so.getHighXOffset();
             double heightoffset = so.getLowYOffset() + so.getHighYOffset();
 
@@ -553,7 +553,7 @@ public class RouteElement {
 
         if (action == RouteElementAction.newNode) {
             // create new Node
-            SizeOffset so = np.getSizeOffset();
+            SizeOffset so = np.getProtoSizeOffset();
             double widthso = width +  so.getLowXOffset() + so.getHighXOffset();
             double heightso = height + so.getLowYOffset() + so.getHighYOffset();
             newNodeInst = NodeInst.makeInstance(np, location, widthso, heightso, 0, cell, null);

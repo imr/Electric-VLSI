@@ -3430,7 +3430,7 @@ public class MoCMOS extends Technology
 		nWellTop.setAdder(nActiveTop.getAdder()+wellOverhang);
 
 		// the serpentine active overhang
-		SizeOffset so = pTransistor_node.getSizeOffset();
+		SizeOffset so = pTransistor_node.getProtoSizeOffset();
 		double halfPolyWidth = (pTransistor_node.getDefHeight() - so.getHighYOffset() - so.getLowYOffset()) / 2;
 		pTransistorActiveLayer.setSerpentineLWidth(halfPolyWidth+overhang);
 		pTransistorActiveLayer.setSerpentineRWidth(halfPolyWidth+overhang);
@@ -3522,7 +3522,7 @@ public class MoCMOS extends Technology
 		PrimitiveNode np = ap.findPinProto();
 		if (np != null)
 		{
-			SizeOffset so = np.getSizeOffset();
+			SizeOffset so = np.getProtoSizeOffset();
 			double newWidth = width + so.getLowXOffset() + so.getHighXOffset();
 			double newHeight = width + so.getLowYOffset() + so.getHighYOffset();
 			np.setDefSize(newWidth, newHeight);
@@ -3652,7 +3652,7 @@ public class MoCMOS extends Technology
 	 */
 	private void setDefNodeSize(PrimitiveNode nty, double wid, double hei, DRC.Rules rules)
 	{
-		SizeOffset so = nty.getSizeOffset();
+		SizeOffset so = nty.getProtoSizeOffset();
 		double xindent = (nty.getDefWidth() - wid) / 2;
 		double yindent = (nty.getDefHeight() - hei) / 2;
 		nty.setSizeOffset(new SizeOffset(xindent, xindent, yindent, yindent));

@@ -194,7 +194,7 @@ public class WiringListener
 		/* show the end node */
 		if (wpEnd != null)
 		{
-			SizeOffset so = wpEnd.getNodeType().getSizeOffset();
+			SizeOffset so = wpEnd.getNodeType().getProtoSizeOffset();
 			double cx = wpEnd.getNodeLocation().getX();
 			double cy = wpEnd.getNodeLocation().getY();
 			double sx = wpEnd.getNodeWidth();

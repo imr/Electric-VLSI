@@ -427,11 +427,11 @@ public class MimicStitch
 				double end0offx = pt0.getX() - port0Poly.getCenterX();
 				double end0offy = pt0.getY() - port0Poly.getCenterY();
 
-				SizeOffset so0 = node0.getProto().getSizeOffset();
+				SizeOffset so0 = node0.getSizeOffset();
 				double node0Wid = node0.getXSize() - so0.getLowXOffset() - so0.getHighXOffset();
 				double node0Hei = node0.getYSize() - so0.getLowYOffset() - so0.getHighYOffset();
 
-				SizeOffset so1 = node1.getProto().getSizeOffset();
+				SizeOffset so1 = node1.getSizeOffset();
 				double node1Wid = node1.getXSize() - so1.getLowXOffset() - so1.getHighXOffset();
 				double node1Hei = node1.getYSize() - so1.getLowYOffset() - so1.getHighYOffset();
 
@@ -604,11 +604,11 @@ public class MimicStitch
 								if (ni.getProto() != node0.getProto() || oNi.getProto() != node1.getProto())
 									situation |= LIKELYDIFFNODETYPE;
 
-								SizeOffset so = ni.getProto().getSizeOffset();
+								SizeOffset so = ni.getSizeOffset();
 								double wid = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
 								double hei = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 								if (wid != node0Wid || hei != node0Hei) situation |= LIKELYDIFFNODESIZE;
-								so = oNi.getProto().getSizeOffset();
+								so = oNi.getSizeOffset();
 								wid = oNi.getXSize() - so.getLowXOffset() - so.getHighXOffset();
 								hei = oNi.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 								if (wid != node1Wid || hei != node1Hei) situation |= LIKELYDIFFNODESIZE;

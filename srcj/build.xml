@@ -82,6 +82,7 @@
             <exclude name="electric${version}.jar"/>
             <exclude name="electric${version}.mf"/>
             <exclude name="Hack_stack.txt"/>
+            <exclude name="com/sun/electric/technology/technologies/TSMC90.*"/>
             <exclude name="**/*.java"/>
             <exclude name="**/*.form"/>
         </jar>
@@ -107,6 +108,7 @@
             <exclude name="electric${version}.jar"/>
             <exclude name="electric${version}.mf"/>
             <exclude name="Hack_stack.txt"/>
+            <exclude name="com/sun/electric/technology/technologies/TSMC90.*"/>
         </jar>
         <delete file="electric${version}.mf"/>
         <delete dir="com/apple"/>

@@ -43,6 +43,7 @@ import com.sun.electric.tool.user.ErrorLogger;
 import java.io.InputStream;
 import java.io.File;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -221,30 +222,30 @@ public class LibraryFiles extends Input
 			// library does not exist: see if file is in the same directory as the main file
 			URL externalURL = TextUtils.makeURLToFile(mainLibDirectory + libFileName);
 			StringBuffer errmsg = new StringBuffer();
-			InputStream externalStream = TextUtils.getURLStream(externalURL, errmsg);
-			if (externalStream == null)
+			boolean exists = TextUtils.URLExists(externalURL, errmsg);
+			if (!exists)
 			{
 				// try secondary library file locations
 				for (Iterator libIt = LibDirs.getLibDirs(); libIt.hasNext(); )
 				{
 					externalURL = TextUtils.makeURLToFile((String)libIt.next() + File.separator + libFileName);
-					externalStream = TextUtils.getURLStream(externalURL, errmsg);
-					if (externalStream != null) break;
+					exists = TextUtils.URLExists(externalURL, errmsg);
+					if (exists) break;
 				}
-				if (externalStream == null)
+				if (!exists)
 				{
 					// try the exact path specified in the reference
 					externalURL = TextUtils.makeURLToFile(libFile.getPath());
-					externalStream = TextUtils.getURLStream(externalURL, errmsg);
-					if (externalStream == null)
+					exists = TextUtils.URLExists(externalURL, errmsg);
+					if (!exists)
 					{
 						// try the Electric library area
 						externalURL = LibFile.getLibFile(libFileName);
-						externalStream = TextUtils.getURLStream(externalURL, errmsg);
+						exists = TextUtils.URLExists(externalURL, errmsg);
 					}
 				}
 			}
-			if (externalStream == null)
+			if (!exists)
 			{
 				System.out.println("Error: cannot find referenced library " + libFile.getPath()+":");
 				System.out.print(errmsg.toString());
@@ -260,16 +261,17 @@ public class LibraryFiles extends Input
 					// see if user chose a file we can read
 					externalURL = TextUtils.makeURLToFile(pt);
 					if (externalURL != null) {
-						externalStream = TextUtils.getURLStream(externalURL, null);
-						if (externalStream != null) {
+						exists = TextUtils.URLExists(externalURL, null);
+						if (exists) {
 							// good pt, opened it, get out of here
 							break;
 						}
 					}
 				}
 			}
+
             // last option: let user pick library location
-			if (externalStream != null)
+			if (exists)
 			{
 				System.out.println("Reading referenced library " + externalURL.getFile());
 				elib = Library.newInstance(libName, externalURL);
@@ -284,7 +286,7 @@ public class LibraryFiles extends Input
                     progress.setNote("Reading referenced library " + libName + "...");
                 }
 
-                elib = readALibrary(externalURL, externalStream, elib, importType);
+                elib = readALibrary(externalURL, elib, importType);
                 progress.setProgress((int)(byteCount * 100 / fileLength));
                 progress.setNote(oldNote);
             }

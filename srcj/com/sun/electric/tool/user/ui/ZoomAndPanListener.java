@@ -23,19 +23,20 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.User;
 
 import java.awt.Dimension;
 import java.awt.Point;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseWheelListener;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.KeyEvent;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
@@ -187,7 +188,7 @@ public class ZoomAndPanListener
 
     // --------------------------- Pan Commands -------------------------------
 
-	private static double panningAmount = 0.3;
+	private static double [] panningAmounts = {0.15, 0.3, 0.6};
 
     /**
      * Pan in X direction.
@@ -203,6 +204,7 @@ public class ZoomAndPanListener
 			if (cell == null) return;
             EditWindow wnd = (EditWindow)wf.getContent();
             Dimension dim = wnd.getSize();
+			double panningAmount = panningAmounts[User.getPanningDistance()];
             int mult = (int)((double)dim.width * panningAmount / wnd.getScale());
 	
 	        Point2D wndOffset = wnd.getOffset();
@@ -226,6 +228,7 @@ public class ZoomAndPanListener
 	        if (cell == null) return;
 			EditWindow wnd = (EditWindow)wf.getContent();
 			Dimension dim = wnd.getSize();
+			double panningAmount = panningAmounts[User.getPanningDistance()];
 			int mult = (int)((double)dim.height * panningAmount / wnd.getScale());
 	
 	        Point2D wndOffset = wnd.getOffset();
@@ -234,17 +237,6 @@ public class ZoomAndPanListener
 	        wnd.repaintContents(null);
 		}
     }
-
-	/**
-	 * This method implements the command to set the panning distance.
-	 * @param amount the amount to pan a window.
-	 * A value of 1 will pan by an entire window width or height;
-	 * smaller values pan by less.
-	 */
-	public static void panningDistanceCommand(double amount)
-	{
-		panningAmount = amount;
-	}
 
 	/**
 	 * This method implements the command to center the selected objects.

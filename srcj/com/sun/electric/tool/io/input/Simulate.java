@@ -466,6 +466,7 @@ if (cell != null) System.out.println("presuming cell "+cell.describe());
 			{
 				WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, isAnalog);
 				wp.setValueRange(lowValue, highValue);
+				wp.makeSelectedPanel();
 			}
 		}
 		ww.getPanel().validate();

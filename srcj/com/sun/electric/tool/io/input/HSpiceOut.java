@@ -95,9 +95,8 @@ public class HSpiceOut extends Simulate
 		{
 		}
 		if (pa0URL == null) return null;
-		InputStream pa0Stream = TextUtils.getURLStream(pa0URL);
-        if (pa0Stream == null) return null;
-		if (openTextInput(fileURL, pa0Stream)) return null;
+        if (!TextUtils.URLExists(pa0URL)) return null;
+		if (openTextInput(fileURL)) return null;
 
 		List pa0List = new ArrayList();
 		for(;;)
@@ -125,9 +124,7 @@ public class HSpiceOut extends Simulate
 	private SimData readTR0File(URL fileURL, List pa0List, Cell cell)
 		throws IOException
 	{
-		InputStream tr0Stream = TextUtils.getURLStream(fileURL);
-		if (tr0Stream == null) return null;
-		if (openBinaryInput(fileURL, tr0Stream)) return null;
+		if (openBinaryInput(fileURL)) return null;
 
 		// get number of nodes
 		StringBuffer line = new StringBuffer();

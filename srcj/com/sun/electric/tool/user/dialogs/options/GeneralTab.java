@@ -49,6 +49,7 @@ public class GeneralTab extends PreferencePanel
 	private boolean initialShowFileSelectionForNetlists;
 	private boolean initialShowCursorCoordinates;
 	private boolean initialIncludeDateAndVersion;
+	private int initialPanningDistance;
 	private int initialErrorLimit;
 	private long initialMaxMem;
 
@@ -61,9 +62,6 @@ public class GeneralTab extends PreferencePanel
 		initialBeepAfterLongJobs = User.isBeepAfterLongJobs();
 		generalBeepAfterLongJobs.setSelected(initialBeepAfterLongJobs);
 
-		initialClickSounds = User.isPlayClickSoundsWhenCreatingArcs();
-		generalPlayClickSounds.setSelected(initialClickSounds);
-
 		initialShowFileSelectionForNetlists = User.isShowFileSelectionForNetlists();
 		generalShowFileDialog.setSelected(initialShowFileSelectionForNetlists);
 
@@ -72,6 +70,12 @@ public class GeneralTab extends PreferencePanel
 
 		initialIncludeDateAndVersion = User.isIncludeDateAndVersionInOutput();
 		generalIncludeDateAndVersion.setSelected(initialIncludeDateAndVersion);
+
+		generalPanningDistance.addItem("Small");
+		generalPanningDistance.addItem("Medium");
+		generalPanningDistance.addItem("Large");
+		initialPanningDistance = User.getPanningDistance();
+		generalPanningDistance.setSelectedIndex(initialPanningDistance);
 
 		initialErrorLimit = User.getErrorLimit();
 		generalErrorLimit.setText(Integer.toString(initialErrorLimit));
@@ -93,10 +97,6 @@ public class GeneralTab extends PreferencePanel
 		if (curentBeepAfterLongJobs != initialBeepAfterLongJobs)
 			User.setBeepAfterLongJobs(curentBeepAfterLongJobs);
 
-		boolean curentClickSounds = generalPlayClickSounds.isSelected();
-		if (curentClickSounds != initialClickSounds)
-			User.setPlayClickSoundsWhenCreatingArcs(curentClickSounds);
-
 		boolean curentShowFileSelectionForNetlists = generalShowFileDialog.isSelected();
 		if (curentShowFileSelectionForNetlists != initialShowFileSelectionForNetlists)
 			User.setShowFileSelectionForNetlists(curentShowFileSelectionForNetlists);
@@ -108,6 +108,10 @@ public class GeneralTab extends PreferencePanel
 		boolean curentIncludeDateAndVersion = generalIncludeDateAndVersion.isSelected();
 		if (curentIncludeDateAndVersion != initialIncludeDateAndVersion)
 			User.setIncludeDateAndVersionInOutput(curentIncludeDateAndVersion);
+
+		int currentPanningDistance = generalPanningDistance.getSelectedIndex();
+		if (currentPanningDistance != initialPanningDistance)
+			User.setPanningDistance(currentPanningDistance);
 
 		int curentErrorLimit = TextUtils.atoi(generalErrorLimit.getText());
 		if (curentErrorLimit != initialErrorLimit)
@@ -129,7 +133,6 @@ public class GeneralTab extends PreferencePanel
 
         general = new javax.swing.JPanel();
         generalBeepAfterLongJobs = new javax.swing.JCheckBox();
-        generalPlayClickSounds = new javax.swing.JCheckBox();
         generalIncludeDateAndVersion = new javax.swing.JCheckBox();
         generalShowFileDialog = new javax.swing.JCheckBox();
         jLabel46 = new javax.swing.JLabel();
@@ -142,6 +145,8 @@ public class GeneralTab extends PreferencePanel
         generalMemoryUsage = new javax.swing.JLabel();
         jLabel62 = new javax.swing.JLabel();
         generalShowCursorCoordinates = new javax.swing.JCheckBox();
+        generalPanningDistance = new javax.swing.JComboBox();
+        jLabel1 = new javax.swing.JLabel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -166,15 +171,6 @@ public class GeneralTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         general.add(generalBeepAfterLongJobs, gridBagConstraints);
 
-        generalPlayClickSounds.setText("Click sounds when arcs are created");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        general.add(generalPlayClickSounds, gridBagConstraints);
-
         generalIncludeDateAndVersion.setText("Include date and version in output files");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -187,10 +183,10 @@ public class GeneralTab extends PreferencePanel
         generalShowFileDialog.setText("Show file-selection dialog before writing netlists");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         general.add(generalShowFileDialog, gridBagConstraints);
 
         jLabel46.setText("Maximum errors to report:");
@@ -271,11 +267,27 @@ public class GeneralTab extends PreferencePanel
         generalShowCursorCoordinates.setText("Show cursor coordinates in status bar");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         general.add(generalShowCursorCoordinates, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        general.add(generalPanningDistance, gridBagConstraints);
+
+        jLabel1.setText("Panning distance:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        general.add(jLabel1, gridBagConstraints);
 
         getContentPane().add(general, new java.awt.GridBagConstraints());
 
@@ -296,9 +308,10 @@ public class GeneralTab extends PreferencePanel
     private javax.swing.JCheckBox generalIncludeDateAndVersion;
     private javax.swing.JTextField generalMaxMem;
     private javax.swing.JLabel generalMemoryUsage;
-    private javax.swing.JCheckBox generalPlayClickSounds;
+    private javax.swing.JComboBox generalPanningDistance;
     private javax.swing.JCheckBox generalShowCursorCoordinates;
     private javax.swing.JCheckBox generalShowFileDialog;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel46;
     private javax.swing.JLabel jLabel53;
     private javax.swing.JLabel jLabel60;

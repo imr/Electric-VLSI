@@ -28,6 +28,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.event.ActionEvent;
@@ -68,6 +69,7 @@ public class NewArcsTab extends PreferencePanel
 		PrimitiveNode initialPin, pin;
 	}
 	private HashMap initialNewArcsPrimInfo;
+	private boolean initialClickSounds;
 	private boolean newArcsDataChanging = false;
 
 	/**
@@ -138,6 +140,9 @@ public class NewArcsTab extends PreferencePanel
         {
             public void actionPerformed(ActionEvent evt) { newArcsPrimDataChanged(); }
         });
+
+		initialClickSounds = User.isPlayClickSoundsWhenCreatingArcs();
+		playClickSounds.setSelected(initialClickSounds);
 	}
 
 	/**
@@ -237,6 +242,10 @@ public class NewArcsTab extends PreferencePanel
 				ap.setPinProto(pai.pin);
 			}
 		}
+
+		boolean curentClickSounds = playClickSounds.isSelected();
+		if (curentClickSounds != initialClickSounds)
+			User.setPlayClickSoundsWhenCreatingArcs(curentClickSounds);
 	}
 
 	/** This method is called from within the constructor to
@@ -264,6 +273,7 @@ public class NewArcsTab extends PreferencePanel
         arcPin = new javax.swing.JComboBox();
         arcProtoList = new javax.swing.JComboBox();
         jLabel5 = new javax.swing.JLabel();
+        playClickSounds = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -405,6 +415,15 @@ public class NewArcsTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         newArc.add(jLabel5, gridBagConstraints);
 
+        playClickSounds.setText("Play \"click\" sounds when arcs are created");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        newArc.add(playClickSounds, gridBagConstraints);
+
         getContentPane().add(newArc, new java.awt.GridBagConstraints());
 
         pack();
@@ -434,6 +453,7 @@ public class NewArcsTab extends PreferencePanel
     private javax.swing.JPanel jPanel7;
     private javax.swing.JPanel jPanel8;
     private javax.swing.JPanel newArc;
+    private javax.swing.JCheckBox playClickSounds;
     // End of variables declaration//GEN-END:variables
 	
 }

@@ -1180,7 +1180,7 @@ public class Highlight
 			int offY = highOffY;
 			if (!drewOutline)
 			{
-				SizeOffset so = np.getSizeOffset();
+				SizeOffset so = ni.getSizeOffset();
 				double nodeLowX = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
 				double nodeHighX = ni.getTrueCenterX() + ni.getXSize()/2 - so.getHighXOffset();
 				double nodeLowY = ni.getTrueCenterY() - ni.getYSize()/2 + so.getLowYOffset();
@@ -2034,7 +2034,7 @@ public class Highlight
 			}
 
 			// get the bounds of the node in a polygon
-			SizeOffset so = Technology.getSizeOffset(ni);
+			SizeOffset so = ni.getSizeOffset();
 			double lX = ni.getAnchorCenterX() - ni.getXSize()/2 + so.getLowXOffset();
 			double hX = ni.getAnchorCenterX() + ni.getXSize()/2 - so.getHighXOffset();
 			double lY = ni.getAnchorCenterY() - ni.getYSize()/2 + so.getLowYOffset();

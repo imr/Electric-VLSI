@@ -339,19 +339,23 @@ public class Schematic
 				NodeInst ni = pi.getNodeInst();
 				if (!(ni.getProto() instanceof Cell)) continue;
 				Cell subNp = (Cell)ni.getProto();
-				Cell np = subNp.contentsView();
-				if (np == null) np = subNp;
+				PortProto pp = pi.getPortProto();
 
-				PortProto pp = pi.getPortProto().getEquivalent();
-				if (pp == null || pp == pi.getPortProto())
+				Cell np = subNp.contentsView();
+				if (np != null)
 				{
-					ErrorLogger.ErrorLog err = errorLogger.logError("Arc " + ai.describe() + " connects to port " +
-						pi.getPortProto().getName() + " of node " + ni.describe() +
-						", but there is no equivalent port in cell " + np.describe(), cell, 0);
-					err.addGeom(geom, true, 0, null);
-					err.addGeom(ni, true, 0, null);
-					continue;
+					pp = pi.getPortProto().getEquivalent();
+					if (pp == null || pp == pi.getPortProto())
+					{
+						ErrorLogger.ErrorLog err = errorLogger.logError("Arc " + ai.describe() + " connects to port " +
+							pi.getPortProto().getName() + " of node " + ni.describe() +
+							", but there is no equivalent port in cell " + np.describe(), cell, 0);
+						err.addGeom(geom, true, 0, null);
+						err.addGeom(ni, true, 0, null);
+						continue;
+					}
 				}
+
 				int portWidth = netlist.getBusWidth((Export)pp);
 				if (portWidth < 1) portWidth = 1;
 				int nodeSize = ni.getNameKey().busWidth();

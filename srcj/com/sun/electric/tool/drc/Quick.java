@@ -614,7 +614,7 @@ public class Quick
 		{
 			if (ni.getXSize() < sizeRule.sizeX || ni.getYSize() < sizeRule.sizeY)
 			{
-				SizeOffset so = Technology.getSizeOffset(ni);
+				SizeOffset so = ni.getSizeOffset();
 				double minSize = 0, actual = 0;
 				if (sizeRule.sizeX - ni.getXSize() > sizeRule.sizeY - ni.getYSize())
 				{

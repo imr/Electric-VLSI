@@ -86,7 +86,7 @@ public class NewNodesTab extends PreferencePanel
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
 			PrimNodeInfo pni = new PrimNodeInfo();
-			SizeOffset so = np.getSizeOffset();
+			SizeOffset so = np.getProtoSizeOffset();
 			pni.initialWid = pni.wid = np.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
 			pni.initialHei = pni.hei = np.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
 			initialNewNodesPrimInfo.put(np, pni);
@@ -170,7 +170,7 @@ public class NewNodesTab extends PreferencePanel
 			PrimNodeInfo pni = (PrimNodeInfo)initialNewNodesPrimInfo.get(np);
 			if (pni.wid != pni.initialWid || pni.hei != pni.initialHei)
 			{
-				SizeOffset so = np.getSizeOffset();
+				SizeOffset so = np.getProtoSizeOffset();
 				pni.wid += so.getLowXOffset() + so.getHighXOffset();
 				pni.hei += so.getLowYOffset() + so.getHighYOffset();
 				np.setDefSize(pni.wid, pni.hei);

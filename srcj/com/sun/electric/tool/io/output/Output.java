@@ -261,6 +261,9 @@ public class Output extends IOTool
 		} else if (type == OpenFile.Type.VERILOG)
 		{
 			Verilog.writeVerilogFile(cell, context, filePath);
+		} else if (type == OpenFile.Type.IRSIM)
+		{
+			IRSIM.writeIRSIMFile(cell, context, filePath);
 		}
         
 //		if (error)

@@ -51,10 +51,19 @@ public class PSpiceOut extends Simulate
 	protected SimData readSimulationOutput(URL fileURL, Cell cell)
 		throws IOException
 	{
+		// this test code locks the file:
+//		InputStream stream = TextUtils.getURLStream(fileURL);
+//		if (stream == null) return null;
+//		try
+//		{
+//			java.net.URLConnection urlCon = fileURL.openConnection();
+//			fileLength = urlCon.getContentLength();
+//			stream.close();
+//		} catch (IOException e) {}
+//		return null;
+
 		// open the file
-		InputStream stream = TextUtils.getURLStream(fileURL);
-		if (stream == null) return null;
-		if (openBinaryInput(fileURL, stream)) return null;
+		if (openBinaryInput(fileURL)) return null;
 
 		// show progress reading .tr0 file
 		startProgressDialog("PSpice output", fileURL.getFile());

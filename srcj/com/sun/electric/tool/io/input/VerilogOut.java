@@ -63,9 +63,7 @@ public class VerilogOut extends Simulate
 		throws IOException
 	{
 		// open the file
-		InputStream stream = TextUtils.getURLStream(fileURL);
-		if (stream == null) return null;
-		if (openTextInput(fileURL, stream)) return null;
+		if (openTextInput(fileURL)) return null;
 
 		// show progress reading .tr0 file
 		startProgressDialog("Verilog output", fileURL.getFile());

@@ -1079,7 +1079,7 @@ public class Technology extends ElectricObject
 	public Dimension getTransistorSize(NodeInst ni, VarContext context)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
-		SizeOffset so = np.getSizeOffset();
+		SizeOffset so = ni.getSizeOffset();
 		double width = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
 		double height = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 		Dimension dim = new Dimension();
@@ -1182,10 +1182,10 @@ public class Technology extends ElectricObject
 	 * @param ni the NodeInst to query.
 	 * @return the SizeOffset object for the NodeInst.
 	 */
-	public static SizeOffset getSizeOffset(NodeInst ni)
+	public SizeOffset getNodeInstSizeOffset(NodeInst ni)
 	{
 		NodeProto np = ni.getProto();
-		return np.getSizeOffset();
+		return np.getProtoSizeOffset();
 	}
 
 	private static final Technology.NodeLayer [] nullPrimLayers = new Technology.NodeLayer [0];
@@ -1499,7 +1499,7 @@ public class Technology extends ElectricObject
 
 			// determine the actual node size
 			PrimitiveNode np = (PrimitiveNode)ni.getProto();
-			SizeOffset so = Technology.getSizeOffset(ni);
+			SizeOffset so = ni.getSizeOffset();
 			double cutLX = so.getLowXOffset();
 			double cutHX = so.getHighXOffset();
 			double cutLY = so.getLowYOffset();
@@ -2000,12 +2000,10 @@ public class Technology extends ElectricObject
 		}
 
 		// standard port computation
-		double halfWidth = ni.getXSize() / 2;
-
 		double portLowX = ni.getTrueCenterX() + pp.getLeft().getMultiplier() * ni.getXSize() + pp.getLeft().getAdder();
 		double portHighX = ni.getTrueCenterX() + pp.getRight().getMultiplier() * ni.getXSize() + pp.getRight().getAdder();
 		double portLowY = ni.getTrueCenterY() + pp.getBottom().getMultiplier() * ni.getYSize() + pp.getBottom().getAdder();
-		double portHighY = ni.getTrueCenterY() +pp.getTop().getMultiplier() * ni.getYSize() + pp.getTop().getAdder();
+		double portHighY = ni.getTrueCenterY() + pp.getTop().getMultiplier() * ni.getYSize() + pp.getTop().getAdder();
 		double portX = (portLowX + portHighX) / 2;
 		double portY = (portLowY + portHighY) / 2;
 		Poly portPoly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);

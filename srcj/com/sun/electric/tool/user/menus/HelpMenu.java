@@ -87,14 +87,13 @@ public class HelpMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { WaveformWindow.makeFakeWaveformCommand(); }});
 //		helpMenu.addMenuItem("Whit Diffie's design...", null,
 //			new ActionListener() { public void actionPerformed(ActionEvent e) { whitDiffieCommand(); } });
-
     }
 
     // ---------------------- THE HELP MENU -----------------
 
     public static void aboutCommand()
     {
-        About dialog = new About(TopLevel.getCurrentJFrame(), true);
+		About dialog = new About(TopLevel.getCurrentJFrame(), true);
         dialog.setVisible(true);
     }
 

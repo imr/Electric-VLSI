@@ -975,7 +975,7 @@ public class Clipboard
 						}
 						continue;
 					}
-					SizeOffset so = Technology.getSizeOffset(ni);
+					SizeOffset so = ni.getSizeOffset();
 					AffineTransform trans = ni.rotateOutAboutTrueCenter();
 					double nodeLowX = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
 					double nodeHighX = ni.getTrueCenterX() + ni.getXSize()/2 - so.getHighXOffset();

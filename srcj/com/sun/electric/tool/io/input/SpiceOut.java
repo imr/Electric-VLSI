@@ -52,9 +52,7 @@ public class SpiceOut extends Simulate
 		throws IOException
 	{
 		// open the file
-		InputStream stream = TextUtils.getURLStream(fileURL);
-		if (stream == null) return null;
-		if (openTextInput(fileURL, stream)) return null;
+		if (openTextInput(fileURL)) return null;
 
 		// show progress reading .tr0 file
 		startProgressDialog("Spice output", fileURL.getFile());

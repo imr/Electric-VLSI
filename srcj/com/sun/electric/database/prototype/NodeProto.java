@@ -1137,7 +1137,7 @@ public abstract class NodeProto extends ElectricObject
 	 * Method to size offset of this Cell.
 	 * @return the size offset of this Cell.  It is always zero for cells.
 	 */
-	public abstract SizeOffset getSizeOffset();
+	public abstract SizeOffset getProtoSizeOffset();
 
 	/**
 	 * Abstract method to return the Technology to which this NodeProto belongs.

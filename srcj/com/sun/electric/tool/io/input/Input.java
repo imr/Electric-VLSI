@@ -71,7 +71,6 @@ public class Input extends IOTool
 	/** Name of the file being input. */					protected String filePath;
 	/** The Library being input. */							protected Library lib;
 	/** The raw input stream. */							protected InputStream inputStream;
-	/** The URL connection. */								protected URLConnection urlCon;
 	/** The line number reader (text only). */				protected LineNumberReader lineReader;
 	/** The input stream. */								protected DataInputStream dataInputStream;
 	/** The length of the file. */							protected long fileLength;
@@ -119,10 +118,10 @@ public class Input extends IOTool
 		startProgressDialog("library", fileURL.getFile());
 
         StringBuffer errmsg = new StringBuffer();
-		InputStream stream = TextUtils.getURLStream(fileURL, errmsg);
+		boolean exists = TextUtils.URLExists(fileURL, errmsg);
         Library lib = null;
-        if (stream == null) System.out.print(errmsg.toString()); else
-		    lib = readALibrary(fileURL, stream, null, type);
+        if (!exists) System.out.print(errmsg.toString()); else
+		    lib = readALibrary(fileURL, null, type);
 		if (LibraryFiles.VERBOSE)
 			System.out.println("Done reading data for all libraries");
 
@@ -158,7 +157,7 @@ public class Input extends IOTool
 	 * @param type the type of library file (ELIB, CIF, GDS, etc.)
 	 * @return the read Library, or null if an error occurred.
 	 */
-	protected static Library readALibrary(URL fileURL, InputStream stream, Library lib, OpenFile.Type type)
+	protected static Library readALibrary(URL fileURL, Library lib, OpenFile.Type type)
 	{
 		// get the library file name and path
 		String libName = TextUtils.getFileNameWithoutExtension(fileURL);
@@ -169,11 +168,11 @@ public class Input extends IOTool
 		if (type == OpenFile.Type.ELIB)
 		{
 			in = (LibraryFiles)new ELIB();
-			if (in.openBinaryInput(fileURL, stream)) return null;
+			if (in.openBinaryInput(fileURL)) return null;
 		} else if (type == OpenFile.Type.READABLEDUMP)
 		{
 			in = (LibraryFiles)new ReadableDump();
-			if (in.openTextInput(fileURL, stream)) return null;
+			if (in.openTextInput(fileURL)) return null;
 		} else
 		{
 			System.out.println("Unknown import type: " + type);
@@ -275,20 +274,20 @@ public class Input extends IOTool
 
 	javax.swing.ProgressMonitorInputStream is = null;
 	
-	protected boolean openBinaryInput(URL fileURL, InputStream stream)
+	protected boolean openBinaryInput(URL fileURL)
 	{
 		filePath = fileURL.getFile();
-		inputStream = stream;
-		urlCon = null;
+		URLConnection urlCon = null;
 		try
 		{
 			urlCon = fileURL.openConnection();
+			fileLength = urlCon.getContentLength();
+			inputStream = urlCon.getInputStream();
 		} catch (IOException e)
 		{
-			System.out.println("Could not find file: " + fileURL.getFile());
+			System.out.println("Could not find file: " + filePath);
 			return true;
 		}
-		fileLength = urlCon.getContentLength();
 		byteCount = 0;
 
 		BufferedInputStream bufStrm = new BufferedInputStream(inputStream, READ_BUFFER_SIZE);
@@ -296,9 +295,9 @@ public class Input extends IOTool
 		return false;
 	}
 
-	protected boolean openTextInput(URL fileURL, InputStream stream)
+	protected boolean openTextInput(URL fileURL)
 	{
-		if (openBinaryInput(fileURL, stream)) return true;
+		if (openBinaryInput(fileURL)) return true;
 		InputStreamReader is = new InputStreamReader(inputStream);
 		lineReader = new LineNumberReader(is);
 		return false;

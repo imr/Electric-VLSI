@@ -34,7 +34,6 @@ import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.simulation.IRSIMTool;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.erc.ERCAntenna;
 import com.sun.electric.tool.routing.Routing;
@@ -172,7 +171,7 @@ public class ToolMenu {
         MenuBar.Menu netlisters = new MenuBar.Menu("Simulation (others)");
         toolMenu.add(netlisters);
         netlisters.addMenuItem("Write IRSIM Deck...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { irsimNetlistCommand(); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.IRSIM, true); }});
         netlisters.addMenuItem("Write Maxwell Deck...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.MAXWELL, true); } });
 
@@ -764,13 +763,6 @@ public class ToolMenu {
         long endTime = System.currentTimeMillis();
         float finalTime = (endTime - startTime) / 1000F;
         System.out.println("**** Renumber networks of "+ncell+" cells took " + finalTime + " seconds");
-    }
-
-    public static void irsimNetlistCommand()
-    {
-        EditWindow curEdit = EditWindow.needCurrent();
-        if (curEdit == null) return;
-        IRSIMTool.tool.netlistCell(curEdit.getCell(), curEdit.getVarContext(), curEdit);
     }
 
     /**

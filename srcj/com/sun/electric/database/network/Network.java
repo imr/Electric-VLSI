@@ -151,7 +151,7 @@ public class Network extends Listener
                     if (netCell != null) netCell.setInvalid(true);
                 }
                 Network.shortResistors = shortResistors;
-                System.out.println("shortResistors="+shortResistors);
+//                System.out.println("shortResistors="+shortResistors);
             }
 		    return getNetCell(cell).getUserNetlist();
 		//}

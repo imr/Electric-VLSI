@@ -277,9 +277,11 @@ public class PrimitiveNode extends NodeProto
 
 	/**
 	 * Method to get the size offset of this PrimitiveNode.
+	 * To get the SizeOffset for a specific NodeInst, use Technology.getSizeOffset(ni).
+	 * Use this method only to get the SizeOffset of a PrimitiveNode.
 	 * @return the size offset of this PrimitiveNode.
 	 */
-	public SizeOffset getSizeOffset() { return offset; }
+	public SizeOffset getProtoSizeOffset() { return offset; }
 
 	/**
 	 * Method to return the minimum width of this PrimitiveNode.

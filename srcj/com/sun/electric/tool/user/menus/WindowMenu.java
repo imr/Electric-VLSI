@@ -94,18 +94,6 @@ public class WindowMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panY(WindowFrame.getCurrentWindowFrame(), 1); }});
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD2, buckyBit), null);
 
-        MenuBar.Menu panningDistanceSubMenu = new MenuBar.Menu("Panning Distance");
-        windowMenu.add(panningDistanceSubMenu);
-        ButtonGroup windowPanGroup = new ButtonGroup();
-        JMenuItem panSmall, panMedium, panLarge;
-        panSmall = panningDistanceSubMenu.addRadioButton("Small", true, windowPanGroup, null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panningDistanceCommand(0.15); } });
-        panMedium = panningDistanceSubMenu.addRadioButton("Medium", true, windowPanGroup, null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panningDistanceCommand(0.3); } });
-        panLarge = panningDistanceSubMenu.addRadioButton("Large", true, windowPanGroup, null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panningDistanceCommand(0.6); } });
-        panMedium.setSelected(true);
-
         MenuBar.Menu centerSubMenu = new MenuBar.Menu("Center");
         windowMenu.add(centerSubMenu);
         centerSubMenu.addMenuItem("Selection", null,

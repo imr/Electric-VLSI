@@ -226,7 +226,7 @@ public class SizeListener
 				if (geom instanceof NodeInst && nodes)
 				{
 					NodeInst ni = (NodeInst)geom;
-					SizeOffset so = ni.getProto().getSizeOffset();					
+					SizeOffset so = ni.getSizeOffset();					
 					xS = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
 					yS = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 				} else if (geom instanceof ArcInst && !nodes)
@@ -291,7 +291,7 @@ public class SizeListener
 				if (geom instanceof NodeInst && dialog.nodes)
 				{
 					NodeInst ni = (NodeInst)geom;
-					SizeOffset so = ni.getProto().getSizeOffset();					
+					SizeOffset so = ni.getSizeOffset();					
 					double x = xS + so.getLowXOffset() + so.getHighXOffset();
 					double y = yS + so.getLowYOffset() + so.getHighYOffset();
 					ni.modifyInstance(0, 0, x - ni.getXSize(), y - ni.getYSize(), 0);
@@ -379,7 +379,7 @@ public class SizeListener
 			if (stretchGeom instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)stretchGeom;
-				SizeOffset so = Technology.getSizeOffset(ni);
+				SizeOffset so = ni.getSizeOffset();
 				AffineTransform trans = ni.rotateOutAboutTrueCenter();
 
 				double stretchedLowX = ni.getTrueCenterX() - newSize.getX()/2 + so.getLowXOffset();
@@ -433,7 +433,7 @@ public class SizeListener
 			NodeInst ni = (NodeInst)stretchGeom;
 			NodeProto np = ni.getProto();
 			AffineTransform trans = ni.rotateOutAboutTrueCenter();
-			SizeOffset so = Technology.getSizeOffset(ni);
+			SizeOffset so = ni.getSizeOffset();
 
 			// setup outline of node with standard offset
 			double nodeLowX = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();

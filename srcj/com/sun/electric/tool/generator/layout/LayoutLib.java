@@ -175,7 +175,7 @@ public class LayoutLib {
 	 * @return the width of the NodeProto. 
 	 */
 	public static double getNodeProtoWidth(NodeProto np) {
-		SizeOffset so = np.getSizeOffset();
+		SizeOffset so = np.getProtoSizeOffset();
 		return np.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
 	}
 	/**
@@ -188,7 +188,7 @@ public class LayoutLib {
 	 * @return the height of the NodeProto
 	 */
 	public static double getNodeProtoHeight(NodeProto np) {
-		SizeOffset so = np.getSizeOffset();
+		SizeOffset so = np.getProtoSizeOffset();
 		return np.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
 	}
 	/**
@@ -289,7 +289,7 @@ public class LayoutLib {
 			width = (width<0 ? -1 : 1) * np.getDefWidth();
 			height = (height<0 ? -1 : 1) * np.getDefHeight();
 		} else {
-			SizeOffset so = np.getSizeOffset();
+			SizeOffset so = np.getProtoSizeOffset();
 			// Take the default width or height if that's what the user wants.
 			// Otherwise adjust the user-specified width or height by the 
 			// SizeOffset.

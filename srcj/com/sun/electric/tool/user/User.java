@@ -1146,6 +1146,21 @@ public class User extends Listener
 	 */
 	public static void setShowFileSelectionForNetlists(boolean on) { cacheShowFileSelectionForNetlists.setBoolean(on); }
 
+	private static Pref cachePanningDistance = Pref.makeIntPref("PanningDistance", User.tool.prefs, 1);
+	/**
+	 * Method to tell the distance to pan when shifting the screen or rolling the mouse wheel.
+	 * The values are: 0=small, 1=medium, 2=large.
+	 * The default is 1.
+	 * @return the distance to pan when shifting the screen or rolling the mouse wheel.
+	 */
+	public static int getPanningDistance() { return cachePanningDistance.getInt(); }
+	/**
+	 * Method to set the distance to pan when shifting the screen or rolling the mouse wheel.
+	 * @param d the distance to pan when shifting the screen or rolling the mouse wheel.
+	 * The values are: 0=small, 1=medium, 2=large.
+	 */
+	public static void setPanningDistance(int d) { cachePanningDistance.setInt(d); }
+
 	private static Pref cacheErrorLimit = Pref.makeIntPref("ErrorLimit", User.tool.prefs, 0);
 	/**
 	 * Method to tell the maximum number of errors to log.

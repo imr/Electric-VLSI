@@ -136,17 +136,18 @@ public class Spice extends Topology
 		if (out.useCDL)
 		{
 			// write the control files
-			String templateFile = cell.getName() + ".cdltemplate";
-			if (out.openTextOutputStream(templateFile)) return;
-
 			String deckFile = filePath;
 			String deckPath = "";
-			int lastDirSep = deckFile.lastIndexOf(File.pathSeparatorChar);
+			int lastDirSep = deckFile.lastIndexOf(File.separatorChar);
 			if (lastDirSep > 0)
 			{
 				deckPath = deckFile.substring(0, lastDirSep);
 				deckFile = deckFile.substring(lastDirSep+1);
 			}
+
+			String templateFile = deckPath + File.separator + cell.getName() + ".cdltemplate";
+			if (out.openTextOutputStream(templateFile)) return;
+
 			String libName = Simulation.getCDLLibName();
 			String libPath = Simulation.getCDLLibPath();
 			out.printWriter.print("cdlInKeys = list(nil\n");
@@ -322,6 +323,7 @@ public class Spice extends Topology
 
         if (mVar != null) infstr.append(" M=" + mVar.getObject().toString());
     }
+
 	/**
 	 * Method to write cellGeom
 	 */
@@ -1059,7 +1061,7 @@ public class Spice extends Topology
      * arc names when determining the name of the network. */
     protected boolean isNetworksUseExportedNames() { return false; }
 
-	/*
+	/**
 	 * Method to adjust a network name to be safe for Spice output.
 	 * Spice has a list of legal punctuation characters that it allows.
 	 */
@@ -1123,7 +1125,7 @@ public class Spice extends Topology
 
 	/******************** DECK GENERATION SUPPORT ********************/
 
-	/*
+	/**
 	 * write a header for "cell" to spice deck "sim_spice_file"
 	 * The model cards come from a file specified by tech:~.SIM_spice_model_file
 	 * or else tech:~.SIM_spice_header_level%ld
@@ -1208,7 +1210,7 @@ public class Spice extends Topology
 			" in " + layoutTechnology.getTechName() + " technology");
 	}
 
-	/*
+	/**
 	 * Write a trailer from an external file, defined as a variable on
 	 * the current technology in this library: tech:~.SIM_spice_trailer_file
 	 * if it is available.
@@ -1240,7 +1242,7 @@ public class Spice extends Topology
 		}
 	}
 
-	/*
+	/**
 	 * Function to write a two port device to the file. Complain about any missing connections.
 	 * Determine the port connections from the portprotos in the instance
 	 * prototype. Get the part number from the 'part' number value;
@@ -1278,7 +1280,7 @@ public class Spice extends Topology
 
 	/******************** PARASITIC CALCULATIONS ********************/
 
-	/*
+	/**
 	 * Method to recursively determine the area of diffusion and capacitance
 	 * associated with port "pp" of nodeinst "ni".  If the node is mult_layer, then
 	 * determine the dominant capacitance layer, and add its area; all other
@@ -1329,7 +1331,7 @@ public class Spice extends Topology
 		}
 	}
 
-	/*
+	/**
 	 * Method to recursively determine the area of diffusion, capacitance, (NOT
 	 * resistance) on arc "ai". If the arc contains active device diffusion, then
 	 * it will contribute to the area of sources and drains, and the other layers
@@ -1365,7 +1367,7 @@ public class Spice extends Topology
 
 	/******************** TEXT METHODS ********************/
 
-	/*
+	/**
 	 * Method to insert an "include" of file "filename" into the stream "io".
 	 */
 	private void addIncludeFile(String fileName)
@@ -1385,7 +1387,7 @@ public class Spice extends Topology
 
 	/******************** SUPPORT ********************/
 
-	/*
+	/**
 	 * Method to return nonzero if layer "layer" is on diffusion
 	 * Return the type of the diffusion
 	 */
@@ -1399,7 +1401,7 @@ public class Spice extends Topology
 		return false;
 	}
 
-	/*
+	/**
 	 * Method to return value if arc contains device active diffusion
 	 */
 	private boolean arcIsDiff(ArcInst ai)
@@ -1412,7 +1414,7 @@ public class Spice extends Topology
 
 	/******************** LOW-LEVEL OUTPUT METHODS ********************/
 
-	/*
+	/**
 	 * Method to report an error that is built in the infinite string.
 	 * The error is sent to the messages window and also to the SPICE deck "f".
 	 */
@@ -1422,7 +1424,7 @@ public class Spice extends Topology
 		System.out.println(message);
 	}
 
-	/*
+	/**
 	 * Formatted output to file "stream".  All spice output is in upper case.
 	 * The buffer can contain no more than 1024 chars including the newlinelastMoveTo
 	 * and null characters.

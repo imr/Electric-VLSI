@@ -257,7 +257,7 @@ public class Spread extends EDialog
 			Cell cell = ni.getParent();
 			if (CircuitChanges.cantEdit(cell, null, true)) return false;
 
-			SizeOffset so = ni.getProto().getSizeOffset();
+			SizeOffset so = ni.getSizeOffset();
 			double sLx = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
 			double sHx = ni.getTrueCenterX() + ni.getXSize()/2 - so.getHighXOffset();
 			double sLy = ni.getTrueCenterY() - ni.getYSize()/2 + so.getLowYOffset();
@@ -285,7 +285,7 @@ public class Spread extends EDialog
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst oNi = (NodeInst)it.next();
-				SizeOffset oSo = oNi.getProto().getSizeOffset();
+				SizeOffset oSo = oNi.getSizeOffset();
 				if (direction == 'l' || direction == 'r')
 				{
 					if (oNi.getTrueCenterX() - oNi.getXSize()/2 + oSo.getLowXOffset() < sLx &&

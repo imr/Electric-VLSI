@@ -184,7 +184,7 @@ public class ERCAntenna
 
 		// initialize error logging
 		long startTime = System.currentTimeMillis();
-		ErrorLogger.newInstance("ERC Antella Rules Check");
+		errorLogger = ErrorLogger.newInstance("ERC Antella Rules Check");
 
 		// now check each layer of the cell
 		int lasterrorcount = 0;

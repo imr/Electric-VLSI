@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.Date;
 
 /**
@@ -645,12 +646,46 @@ public class TextUtils
 			{
 				return url.openStream();
 			} catch (IOException e) {
-                if (errorMsg != null)
-                    errorMsg.append("Error: cannot open " + e.getMessage() + "\n");
-                else
-                    System.out.println("Error: cannot open " + e.getMessage());
-            }
+				if (errorMsg != null)
+					errorMsg.append("Error: cannot open " + e.getMessage() + "\n");
+				else
+					System.out.println("Error: cannot open " + e.getMessage());
+			}
 		}
 		return null;
+	}
+
+	/**
+	 * Method to tell whether a given URL exists.
+	 * @param url the URL in question.
+	 * @return true if the file exists.
+	 */
+	public static boolean URLExists(URL url)
+	{
+		return URLExists(url, null);
+	}
+
+	/**
+	 * Method to tell whether a given URL exists.
+	 * @param url the URL in question.
+	 * @param errorMsg a string buffer in which to print any error message.
+	 * If null, errors are not printed.
+	 * @return true if the file exists.
+	 */
+	public static boolean URLExists(URL url, StringBuffer errorMsg)
+	{
+		if (url == null) return false;
+
+		try
+		{
+			InputStream stream = url.openStream();
+			stream.close();
+		} catch (IOException e)
+		{
+			if (errorMsg != null)
+				errorMsg.append("Error: cannot open " + e.getMessage() + "\n");
+			return false;
+		}
+		return true;
 	}
 }

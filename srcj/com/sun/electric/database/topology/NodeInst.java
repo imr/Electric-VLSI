@@ -375,8 +375,8 @@ public class NodeInst extends Geometric implements Nodable
 		if (np instanceof PrimitiveNode && getProto() instanceof PrimitiveNode)
 		{
 			// replacing one primitive with another: adjust sizes accordingly
-			SizeOffset oldSO = getProto().getSizeOffset();
-			SizeOffset newSO = np.getSizeOffset();
+			SizeOffset oldSO = getProto().getProtoSizeOffset();
+			SizeOffset newSO = np.getProtoSizeOffset();
 			newXS = getXSize() - oldSO.getLowXOffset() - oldSO.getHighXOffset() + newSO.getLowXOffset() + newSO.getHighXOffset();
 			newYS = getYSize() - oldSO.getLowYOffset() - oldSO.getHighYOffset() + newSO.getLowYOffset() + newSO.getHighYOffset();
 		}
@@ -887,6 +887,18 @@ public class NodeInst extends Geometric implements Nodable
 		fAddr[0] = new Float(start);
 		fAddr[1] = new Float(curvature);
 		this.newVar(Artwork.ART_DEGREES, fAddr);
+	}
+
+	/**
+	 * Method to get the SizeOffset associated with this NodeInst.
+	 * By invoking a method in the node's technology,
+	 * the determination of SizeOffset can be overriden by specific technologies.
+	 * @return the SizeOffset object for the NodeInst.
+	 */
+	public SizeOffset getSizeOffset()
+	{
+		Technology tech = protoType.getTechnology();
+		return tech.getNodeInstSizeOffset(this);
 	}
 
 	/**

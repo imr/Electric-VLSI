@@ -144,8 +144,8 @@ public class ERCWellCheck
 				for(Iterator pIt = set.iterator(); pIt.hasNext(); )
 				{
 					WellArea wa = new WellArea();
-					Rectangle2D rect = (Rectangle2D)pIt.next();
-					wa.poly = new Poly(rect);
+					PolyQTree.PolyNode pn = (PolyQTree.PolyNode)pIt.next();
+					wa.poly = new Poly(pn.getPoints());
 					wa.poly.setLayer(layer);
 					wa.poly.setStyle(Poly.Type.FILLED);
 					wa.bounds = wa.poly.getBounds2D();

@@ -508,12 +508,15 @@ public class PadGenerator {
                     StringBuffer errmsg = new StringBuffer();
                     String fileDir = TextUtils.getFilePath(TextUtils.makeURLToFile(filename));
                     fileURL = TextUtils.makeURLToFile(fileDir + keyWord);
-                    if (TextUtils.getURLStream(fileURL, errmsg) == null) {
+                    if (!TextUtils.URLExists(fileURL, errmsg))
+                    {
                         // library does not exist: see if file can be found locally
-                        if (TextUtils.getURLStream(fileURL, errmsg) == null) {
+                        if (!TextUtils.URLExists(fileURL, errmsg))
+                        {
                             // try the Electric library area
                             fileURL = LibFile.getLibFile(keyWord);
-                            if (TextUtils.getURLStream(fileURL, errmsg) == null) {
+                            if (!TextUtils.URLExists(fileURL, errmsg))
+                            {
                                 //System.out.println("Cannot find cell library " + fileURL.getPath());
                                 System.out.println(errmsg.toString());
                                 return false;
@@ -992,7 +995,7 @@ public class PadGenerator {
                     Point2D center = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
                     EditWindow.gridAlign(center);
 
-                    SizeOffset so = corenp.getSizeOffset();
+                    SizeOffset so = corenp.getProtoSizeOffset();
                     NodeInst ni = NodeInst.makeInstance(corenp, center, corenp.getDefWidth(), corenp.getDefHeight(), 0, framecell, null);
 
                     for (Iterator ocit = orderedCommands.iterator(); ocit.hasNext();) {

@@ -310,7 +310,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		name.setText(initialName);
 		xPos.setText(Double.toString(initialXPos));
 		yPos.setText(Double.toString(initialYPos));
-		SizeOffset so = Technology.getSizeOffset(ni);
+		SizeOffset so = ni.getSizeOffset();
 		xSize.setText(Double.toString(Math.abs(initialXSize) - so.getLowXOffset() - so.getHighXOffset()));
 		ySize.setText(Double.toString(Math.abs(initialYSize) - so.getLowYOffset() - so.getHighYOffset()));
 		rotation.setText(Double.toString(initialRotation / 10.0));
@@ -971,7 +971,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				}
 			}
 
-			SizeOffset so = Technology.getSizeOffset(ni);
+			SizeOffset so = ni.getSizeOffset();
 			double currentXPos = Double.parseDouble(dialog.xPos.getText());
 			double currentYPos = Double.parseDouble(dialog.yPos.getText());
 			double currentXSize = Double.parseDouble(dialog.xSize.getText()) + so.getLowXOffset() + so.getHighXOffset();

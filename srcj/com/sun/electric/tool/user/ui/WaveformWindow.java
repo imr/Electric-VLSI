@@ -975,7 +975,10 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			this.repaint();
 		}
 
-		private void makeSelectedPanel()
+		/**
+		 * Method to make this the highlighted Panel.
+		 */
+		public void makeSelectedPanel()
 		{
 			for(Iterator it = waveWindow.wavePanels.iterator(); it.hasNext(); )
 			{
@@ -2390,6 +2393,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			double lowValue = bounds.getMinY();
 			double highValue = bounds.getMaxY();
 			wp.setValueRange(lowValue, highValue);
+			wp.makeSelectedPanel();
 		}
 		getPanel().validate();
 	}

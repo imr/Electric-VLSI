@@ -884,10 +884,10 @@ public class Cell extends NodeProto implements Comparable
 	public double getDefHeight() { return getBounds().getHeight(); }
 
 	/**
-	 * Method to size offset of this Cell.
+	 * Method to get the size offset of this Cell.
 	 * @return the size offset of this Cell.  It is always zero for cells.
 	 */
-	public SizeOffset getSizeOffset() { return new SizeOffset(0, 0, 0, 0); }
+	public SizeOffset getProtoSizeOffset() { return new SizeOffset(0, 0, 0, 0); }
 
 	/**
 	 * Method to get the characteristic spacing for this Cell.
