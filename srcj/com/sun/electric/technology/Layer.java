@@ -249,11 +249,17 @@ public class Layer
 
 	public static class LayerSort implements Comparator
 	{
-		public int compare(Object o1, Object o2)
-		{
+        public static int compareStatic(Object o1, Object o2)
+        {
 			String s1 = ((Layer)o1).getName();
 			String s2 = ((Layer)o2).getName();;
 			return s1.compareToIgnoreCase(s2);
+
+        }
+
+		public int compare(Object o1, Object o2)
+		{
+			return compareStatic(o1, o2);
 		}
 	}
 
