@@ -48,6 +48,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -1276,7 +1277,12 @@ public class Cell extends NodeProto implements Comparable
 			return null;
 		}
 
-/*
+        // grandfather code: allow circular dependencies on library read-in
+        Job changingJob = Job.getChangingJob();
+        boolean disallowCirDep = true;
+        if ((changingJob instanceof FileMenu.ReadELIB) || (changingJob instanceof FileMenu.ReadInitialELIBs))
+            disallowCirDep = false;
+
         // check to see if this instantiation would create a circular library dependency
         NodeProto protoType = ni.getProto();
         if (protoType instanceof Cell) {
@@ -1286,16 +1292,22 @@ public class Cell extends NodeProto implements Comparable
                 Library.LibraryDependency libDep = getLibrary().addReferencedLib(instProto.getLibrary());
                 if (libDep != null) {
                     // addition would create circular dependency
-                    System.out.println("ERROR: "+ getLibrary().getName()+":"+noLibDescribe() + " cannot instantiate " +
-                            instProto.getLibrary().getName()+":"+instProto.noLibDescribe() +
-                            " because it would create a circular library dependence: ");
-                    System.out.println(libDep.toString());
-                    return null;
+                    if (disallowCirDep) {
+                        System.out.println("ERROR: "+ getLibrary().getName()+":"+noLibDescribe() + " cannot instantiate " +
+                                instProto.getLibrary().getName()+":"+instProto.noLibDescribe() +
+                                " because it would create a circular library dependence: ");
+                        System.out.println(libDep.toString());
+                        return null;
+                    } else {
+                        System.out.println("WARNING: "+ getLibrary().getName()+":"+noLibDescribe() + " instantiates " +
+                                instProto.getLibrary().getName()+":"+instProto.noLibDescribe() +
+                                " which causes a circular library dependence: ");
+                        System.out.println(libDep.toString());
+                    }
                 }
-
             }
         }
-*/
+
 		// add the node
 		ni.setNodeIndex(nodes.size());
 		nodes.add(ni);
