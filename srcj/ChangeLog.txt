@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02j: *********************************
 
+IMP/MAN: (03/29/05, GVG) Icons in technology palette are arranged per layer Z position from bottom of the wafer.
+"Pure/Misc/Cell" menus are on the top and transistors on the bottom. Metal contacts are sorted by lower metal.
+
+IMP/MAN: (03/29/05, GVG) Tabs on Mac are aligned on the left (Bug# 226)
+
 BUG: (03/29/05, SMR) Saving new JELIB files doesn't mark the library as "from disk", causing
      subsequent saves to prompt for a file name (Bug #227).
 FIX: In output.JELIB.writeTheLibrary(), set "from disk" after saving library.

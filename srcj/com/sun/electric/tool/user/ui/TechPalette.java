@@ -261,145 +261,17 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             inPalette.add(Technology.makeNodeInst(Artwork.tech.splineNode, PrimitiveNode.Function.ART, 0, false, null, 4.5));
         } else
         {
-            int pinTotal = 0, pureTotal = 0, compTotal = 0, arcTotal = 0;
-            ArcProto firstHighlightedArc = null;
-            highlightedNode = null;
-            List arcList = new ArrayList();
-            List contactList = new ArrayList();
-            List groupContactList = new ArrayList();
-            List pinList = new ArrayList();
-            List transList = new ArrayList();
-            List wellList = new ArrayList();
-
-            for(Iterator it = tech.getArcs(); it.hasNext(); )
-            {
-                PrimitiveArc ap = (PrimitiveArc)it.next();
-                if (ap.isNotUsed()) continue;
-                PrimitiveNode np = ap.findPinProto();
-                if (np != null && np.isNotUsed()) continue;
-                if (firstHighlightedArc == null) firstHighlightedArc = ap;
-                arcTotal++;
-                arcList.add(ap);
-                inPalette.add(ap);
-            }
-
-            inPalette.add("Cell");
-            inPalette.add("Misc.");
-            inPalette.add("Pure");
-
-            for(Iterator it = tech.getNodes(); it.hasNext(); )
-            {
-                PrimitiveNode np = (PrimitiveNode)it.next();
-                if (np.isNotUsed()) continue;
-                PrimitiveNode.Function fun = np.getFunction();
-
-                if (fun == PrimitiveNode.Function.PIN)
-                {
-                    pinTotal++;
-                    inPalette.add(np);
-                    pinList.add(np);
-                } else if (fun == PrimitiveNode.Function.NODE)
-	                pureTotal++;
-                else
-                {
-                    boolean found = false;
-	                Object toAdd = np;
-                    List list = null;
-                    Object map = null;
-	                if (fun == PrimitiveNode.Function.TRANMOS || fun == PrimitiveNode.Function.TRAPMOS)
-                    {
-                        map = fun;
-                        transList.add(map);
-                    } else if (fun == PrimitiveNode.Function.CONTACT)
-                    {
-                        if (np.isGroupNode())
-                        {
-                            map = np.getLayers()[2].getLayer(); // vias as mapping
-                            if (!np.isSpecialNode()) groupContactList.add(map);
-                        } else
-                            contactList.add(np);
-	                // Trick to get "well" in well contacts
-                    } else if (fun == PrimitiveNode.Function.SUBSTRATE || fun == PrimitiveNode.Function.WELL)
-                    {
-	                    toAdd = Technology.makeNodeInst(np, fun, 0, true, "Well", 4.5);
-                        if (np.isGroupNode())
-                        {
-                            map = fun;
-                            if (!np.isSpecialNode())
-                                wellList.add(map);
-                        } else
-                           wellList.add(toAdd);
-                    }
-                    if (map != null)
-                    {
-                        list = (List)elementsMap.get(map);
-                        if (list == null)
-                        {
-                            list = new ArrayList();
-                            elementsMap.put(map, list);
-                            inPalette.add(list);
-                        }
-                        list.add(toAdd);
-                        found = true;
-                    }
-	                // Leaving standard transistors or contact
-	                if (!np.isSpecialNode())
-	                {
-                        compTotal++;
-                        if (!found) inPalette.add(toAdd);
-	                }
-                }
-            }
-            // Sorting list elements and leaving !isSpecialNode() as default
-            for (Iterator it = elementsMap.keySet().iterator(); it.hasNext(); )
-            {
-                Object map = it.next();
-                List list = (List)elementsMap.get(map);
-                // Only for more than 1
-                if (list.size() > 1)
-                {
-                    Object obj = list.get(0);
-                    PrimitiveNode np = null;
-
-                    // Contact and transistor cases
-                    if (obj instanceof PrimitiveNode)
-                        np = (PrimitiveNode)obj;
-                    else if (obj instanceof NodeInst)
-                        np = (PrimitiveNode)((NodeInst)obj).getProto();
-                   // Not default -> swap
-                   if (np != null && np.isSpecialNode()) Collections.swap(list, 0, 1);
-                }
-            }
-            if (pinTotal + compTotal == 0) pinTotal = pureTotal;
-            menuY = arcTotal + pinTotal + compTotal + 3;
-            menuX = 1;
-            if (menuY > 36)
-            {
-                menuY = (menuY+3) / 4;
-                menuX = 4;
-            } else if (menuY > 24)
-            {
-                menuY = (menuY+2) / 3;
-                menuX = 3;
-            } else if (menuY > 12)
-            {
-                menuY = (menuY+1) / 2;
-                menuX = 2;
-            }
-
             Object[][] paletteMatrix = tech.getNodesGrouped();
-            if (paletteMatrix != null)
+
+            menuX = paletteMatrix[0].length;
+            menuY = paletteMatrix.length;
+            inPalette.clear();
+            for (int i = 0; i < menuX; i++)
             {
-                menuX = paletteMatrix[0].length;
-                menuY = paletteMatrix.length;
-                inPalette.clear();
-                for (int i = 0; i < menuX; i++)
+                for (int j = 0; j < menuY; j++)
                 {
-                    for (int j = 0; j < menuY; j++)
-                    {
-                        Object item = (paletteMatrix[j] == null) ? null : paletteMatrix[j][i];
-                        inPalette.add(item);
-                    }
+                    Object item = (paletteMatrix[j] == null) ? null : paletteMatrix[j][i];
+                    inPalette.add(item);
                 }
             }
         }
@@ -438,6 +310,11 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                return (ni.getProto().getName());
             }
         }
+        else if (item instanceof PrimitiveArc)
+        {
+            PrimitiveArc ap = (PrimitiveArc)item;
+            return (ap.getName());
+        }
         return ("");
     }
 
@@ -453,7 +330,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         Object obj = getObjectUnderCursor(e.getX(), e.getY());
         JMenuItem menuItem;
 
-        if (obj instanceof NodeProto || obj instanceof NodeInst || obj instanceof List)
+        if (obj instanceof NodeProto || obj instanceof NodeInst || obj instanceof PrimitiveArc || obj instanceof List)
         {
             if (obj instanceof List)
             {
@@ -491,11 +368,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 					return;
 				}
             }
-            PaletteFrame.placeInstance(obj, panel, false);
-        } else if (obj instanceof PrimitiveArc)
-        {
-            PrimitiveArc ap = (PrimitiveArc)obj;
-            User.tool.setCurrentArcProto(ap);
+            if (obj instanceof PrimitiveArc)
+                User.tool.setCurrentArcProto((PrimitiveArc)obj);
+            else
+                PaletteFrame.placeInstance(obj, panel, false);
         } else if (obj instanceof String)
         {
             String msg = (String)obj;
@@ -649,7 +525,6 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         highlightedNode = null;
         repaint();
     }
-
     
     // ************************************************ DRAG-AND-DROP CODE ************************************************
 
@@ -720,7 +595,6 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
         public void actionPerformed(ActionEvent evt)
         {
-            JMenuItem mi = (JMenuItem)evt.getSource();
             PaletteFrame.placeInstance(obj, panel, false);
         }
     };
@@ -740,7 +614,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
         public void actionPerformed(ActionEvent evt)
         {
-            PaletteFrame.placeInstance(obj, panel, false);
+            if (obj instanceof PrimitiveArc)
+                User.tool.setCurrentArcProto((PrimitiveArc)obj);
+            else
+                PaletteFrame.placeInstance(obj, panel, false);
             // No first element -> make it default
 	        if (subList == null)
 		        Collections.swap(list, 0, list.indexOf(obj));
@@ -879,7 +756,21 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         }
 
         // highlight current arc
-        int index = inPalette.indexOf(User.tool.getCurrentArcProto());
+        Object arcObj = User.tool.getCurrentArcProto();
+        int index = -1;
+        for (int i = 0; i < inPalette.size(); i++)
+        {
+            Object obj = inPalette.get(i);
+            if (obj == null) continue;
+            if (obj instanceof List) obj = ((List)obj).get(0);
+            if (obj == arcObj)
+            {
+                index = i;
+                break;
+            }
+        }
+        //int index = inPalette.indexOf(User.tool.getCurrentArcProto());
+
         if (index >= 0) {
             int x = (int)(index/menuY);
             int y = index % menuY;
@@ -982,19 +873,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     if (toDraw instanceof String)
                     {
                         String str = (String)toDraw;
-//                        g.setColor(new Color(User.getColorBackground()));
-//                        g.fillRect(imgX, imgY, entrySize, entrySize);
-//                        g.setColor(new Color(User.getColorText()));
-//                        g.setFont(new Font("Helvetica", Font.PLAIN, 20));
-//                        FontMetrics fm = g.getFontMetrics();
-//                        int strWid = fm.stringWidth(str);
-//                        int strHeight = fm.getMaxAscent() + fm.getMaxDescent();
-//                        int xpos = imgX+entrySize/2 - strWid/2;
-//                        int ypos = imgY+entrySize/2 + strHeight/2 - fm.getMaxDescent();
-//                        g.drawString(str, xpos, ypos);
                         if (str.equals("Cell") || str.equals("Spice") || str.equals("Misc.") || str.equals("Pure"))
-                            drawArrow(g, x, y);
+                            drawArrow = true;
                     }
+                    if (drawArrow) drawArrow(g, x, y);
                 }
             }
 

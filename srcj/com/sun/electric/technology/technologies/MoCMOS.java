@@ -2764,11 +2764,41 @@ public class MoCMOS extends Technology
 		padFrame_lay.setPureLayerNode(padFrameNode_node);				// Pad-Frame
 
         // Information for palette
-        int maxY = metalArcs.length + activeArcs.length + 1 /* poly*/;
-        nodeGroups = new Object[maxY][4];
-        int count = -1;
+        int maxY = metalArcs.length + activeArcs.length + 1 /* poly*/ + 1 /* trans */ + 1 /*misc*/ + 1 /* well */;
+        nodeGroups = new Object[maxY][3];
+        int count = 0;
+        String[] shortNames = {"p", "n"};
 
-        // Poly layer first (metal zero)
+        // Transistor nodes first
+        for (int i = 0; i < transistorNodes.length; i++)
+        {
+            List tmp = new ArrayList(2);
+            String tmpVar = shortNames[i]+"Mos";
+            tmp.add(makeNodeInst(transistorNodes[i], transistorNodes[i].getFunction(), 0, true, tmpVar, 9));
+            tmp.add(makeNodeInst(thickTransistorNodes[i], thickTransistorNodes[i].getFunction(), 0, true, tmpVar, 9));
+            nodeGroups[count][i+1] = tmp;
+        }
+
+        // Well second
+        count++;
+        for (int i = 0; i < metalWellContactNodes.length; i++)
+        {
+            String tmpVar = shortNames[i]+"Well";
+            nodeGroups[count][i+1] = makeNodeInst(metalWellContactNodes[i], metalWellContactNodes[i].getFunction(),
+                    0, true, tmpVar, 5.5);
+        }
+
+        // Active/Well first
+        for (int i = 0; i < activeArcs.length; i++)
+        {
+            nodeGroups[++count][0] = activeArcs[i];
+            nodeGroups[count][1] = activePinNodes[i];
+            String tmpVar = shortNames[i]+"Act";
+            nodeGroups[count][2] = makeNodeInst(metalActiveContactNodes[i], metalActiveContactNodes[i].getFunction(),
+                    0, true, tmpVar, 5.55);
+        }
+
+        // Poly-related node insts
         nodeGroups[++count][0] = poly1_arc;
         nodeGroups[count][1] = poly1Pin_node;
         nodeGroups[count][2] = metal1Poly1Contact_node;
@@ -2778,42 +2808,13 @@ public class MoCMOS extends Technology
         {
             nodeGroups[++count][0] = metalArcs[i];
             nodeGroups[count][1] = metalPinNodes[i];
-            nodeGroups[count][2] = (i > 0) ? metalContactNodes[i-1] : null;
+            nodeGroups[count][2] = (i < metalArcs.length - 1) ? metalContactNodes[i] : null;
         }
 
-        String[] shortNames = {"p", "n"};
-        for (int i = 0; i < activeArcs.length; i++)
-        {
-            nodeGroups[++count][0] = activeArcs[i];
-            nodeGroups[count][1] = activePinNodes[i];
-            String tmpVar = shortNames[i]+"Act";
-            nodeGroups[count][2] = makeNodeInst(metalActiveContactNodes[i], metalActiveContactNodes[i].getFunction(),
-                    0, true, tmpVar, 5.55);
-        }
-        // Well Contacts
-        for (int i = 0; i < metalWellContactNodes.length; i++)
-        {
-            // Taking reverse order to get N type on top of P type. Due to
-            // y = 0 being on the bottom
-            int j = (i+1)%metalWellContactNodes.length;
-            String tmpVar = shortNames[j]+"Well";
-            nodeGroups[maxY-i-1][3] = makeNodeInst(metalWellContactNodes[j], metalWellContactNodes[j].getFunction(),
-                    0, true, tmpVar, 5.5);
-        }
         // On the side
-        nodeGroups[maxY-1-transistorNodes.length][3] = "Pure";
-        nodeGroups[maxY-2-transistorNodes.length][3] = "Misc.";
-        nodeGroups[maxY-3-transistorNodes.length][3] = "Cell";
-        // Transistors
-        for (int i = 0; i < transistorNodes.length; i++)
-        {
-            List tmp = new ArrayList(2);
-            int j = (i+1)%transistorNodes.length;
-            String tmpVar = shortNames[j]+"Mos";
-            tmp.add(makeNodeInst(transistorNodes[j], transistorNodes[j].getFunction(), 0, true, tmpVar, 9));
-            tmp.add(makeNodeInst(thickTransistorNodes[j], thickTransistorNodes[j].getFunction(), 0, true, tmpVar, 9));
-            nodeGroups[maxY-4-metalWellContactNodes.length-i][3] = tmp;
-        }
+        nodeGroups[++count][0] = "Pure";
+        nodeGroups[count][1] = "Misc.";
+        nodeGroups[count][2] = "Cell";
 	}
 
 	/******************** SUPPORT METHODS ********************/
