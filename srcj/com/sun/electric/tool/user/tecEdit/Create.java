@@ -43,9 +43,11 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.tecEdit.Generate.LayerInfo;
 import com.sun.electric.tool.user.tecEdit.Generate.LibFromTechJob;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -53,6 +55,7 @@ import com.sun.electric.tool.user.dialogs.PromptAt;
 import com.sun.electric.tool.user.Highlighter;
 
 import java.util.List;
+import java.util.StringTokenizer;
 import java.util.Iterator;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
@@ -142,8 +145,8 @@ public class Create
 //		{0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,
 //		0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF}, NOVARIABLE, 0};
 //	
-//	/*
-//	 * the entry routine for all technology editing
+//	/**
+//	 * the entry Method for all technology editing
 //	 */
 //	void us_tecedentry(INTBIG count, CHAR *par[])
 //	{
@@ -485,8 +488,8 @@ public class Create
 //		ttyputbadusage(x_("technology edit"));
 //	}
 //	
-//	/*
-//	 * Routine to compact the current technology-edit cell
+//	/**
+//	 * Method to compact the current technology-edit cell
 //	 */
 //	void us_tecedcompact(NODEPROTO *cell)
 //	{
@@ -1999,8 +2002,8 @@ public class Create
 //		return(0);
 //	}
 	
-	/*
-	 * routine for modifying the selected object.  If two are selected, connect them.
+	/**
+	 * Method for modifying the selected object.  If two are selected, connect them.
 	 */
 	public static void us_teceditmodobject(EditWindow wnd, NodeInst ni, int opt)
 	{
@@ -2033,48 +2036,46 @@ public class Create
 		// handle other cases
 		switch (opt)
 		{
-			case Generate.ARCFIXANG:      us_tecedarcfixang(wnd, ni);      break;
-			case Generate.ARCFUNCTION:    us_tecedarcfunction(wnd, ni);    break;
-			case Generate.ARCINC:         us_tecedarcinc(wnd, ni);         break;
-			case Generate.ARCNOEXTEND:    us_tecedarcnoextend(wnd, ni);    break;
-			case Generate.ARCWIPESPINS:   us_tecedarcwipes(wnd, ni);       break;
-			case Generate.LAYER3DHEIGHT:  us_tecedlayer3dheight(wnd, ni);  break;
-			case Generate.LAYER3DTHICK:   us_tecedlayer3dthick(wnd, ni);   break;
-//			case Generate.LAYERPRINTCOL:  us_tecedlayerprintcol(wnd, ni);  break;
-			case Generate.LAYERCIF:       us_tecedlayercif(wnd, ni);       break;
-//			case Generate.LAYERCOLOR:     us_tecedlayercolor(wnd, ni);     break;
-			case Generate.LAYERDXF:       us_tecedlayerdxf(wnd, ni);       break;
-			case Generate.LAYERDRCMINWID: us_tecedlayerdrcminwid(wnd, ni); break;
-			case Generate.LAYERFUNCTION:  us_tecedlayerfunction(wnd, ni);  break;
-			case Generate.LAYERGDS:       us_tecedlayergds(wnd, ni);       break;
-//			case Generate.LAYERLETTERS:   us_tecedlayerletters(wnd, ni);   break;
-			case Generate.LAYERPATTERN:   us_tecedlayerpattern(wnd, ni);   break;
-			case Generate.LAYERPATCONT:   us_tecedlayerpatterncontrol(wnd, ni);   break;
-//			case Generate.LAYERPATCH:     us_tecedlayertype(wnd, ni);      break;
-			case Generate.LAYERSPICAP:    us_tecedlayerspicap(wnd, ni);    break;
-			case Generate.LAYERSPIECAP:   us_tecedlayerspiecap(wnd, ni);   break;
-			case Generate.LAYERSPIRES:    us_tecedlayerspires(wnd, ni);    break;
-			case Generate.LAYERSTYLE:     us_tecedlayerstyle(wnd, ni);     break;
-			case Generate.NODEFUNCTION:   us_tecednodefunction(wnd, ni);   break;
-			case Generate.NODELOCKABLE:   us_tecednodelockable(wnd, ni);   break;
-			case Generate.NODEMULTICUT:   us_tecednodemulticut(wnd, ni);   break;
-			case Generate.NODESERPENTINE: us_tecednodeserpentine(wnd, ni); break;
-			case Generate.NODESQUARE:     us_tecednodesquare(wnd, ni);     break;
-			case Generate.NODEWIPES:      us_tecednodewipes(wnd, ni);      break;
-			case Generate.TECHDESCRIPT:   us_tecedinfodescript(wnd, ni);   break;
-			case Generate.TECHLAMBDA:     us_tecedinfolambda(wnd, ni);     break;
+			case Generate.LAYERFUNCTION:     us_tecedlayerfunction(wnd, ni);  break;
+			case Generate.LAYERCOLOR:        us_tecedlayercolor(wnd, ni);     break;
+			case Generate.LAYERTRANSPARENCY: us_tecedlayertransparency(wnd, ni);  break;
+			case Generate.LAYERSTYLE:        us_tecedlayerstyle(wnd, ni);     break;
+			case Generate.LAYERCIF:          us_tecedlayercif(wnd, ni);       break;
+			case Generate.LAYERGDS:          us_tecedlayergds(wnd, ni);       break;
+			case Generate.LAYERDXF:          us_tecedlayerdxf(wnd, ni);       break;
+			case Generate.LAYERSPIRES:       us_tecedlayerspires(wnd, ni);    break;
+			case Generate.LAYERSPICAP:       us_tecedlayerspicap(wnd, ni);    break;
+			case Generate.LAYERSPIECAP:      us_tecedlayerspiecap(wnd, ni);   break;
+			case Generate.LAYER3DHEIGHT:     us_tecedlayer3dheight(wnd, ni);  break;
+			case Generate.LAYER3DTHICK:      us_tecedlayer3dthick(wnd, ni);   break;
+			case Generate.LAYERPATTERN:      us_tecedlayerpattern(wnd, ni);   break;
+			case Generate.LAYERPATCONT:      us_tecedlayerpatterncontrol(wnd, ni);   break;
+//			case Generate.LAYERPATCH:        us_tecedlayertype(wnd, ni);      break;
+			case Generate.ARCFIXANG:         us_tecedarcfixang(wnd, ni);      break;
+			case Generate.ARCFUNCTION:       us_tecedarcfunction(wnd, ni);    break;
+			case Generate.ARCINC:            us_tecedarcinc(wnd, ni);         break;
+			case Generate.ARCNOEXTEND:       us_tecedarcnoextend(wnd, ni);    break;
+			case Generate.ARCWIPESPINS:      us_tecedarcwipes(wnd, ni);       break;
+			case Generate.NODEFUNCTION:      us_tecednodefunction(wnd, ni);   break;
+			case Generate.NODELOCKABLE:      us_tecednodelockable(wnd, ni);   break;
+			case Generate.NODEMULTICUT:      us_tecednodemulticut(wnd, ni);   break;
+			case Generate.NODESERPENTINE:    us_tecednodeserpentine(wnd, ni); break;
+			case Generate.NODESQUARE:        us_tecednodesquare(wnd, ni);     break;
+			case Generate.NODEWIPES:         us_tecednodewipes(wnd, ni);      break;
+			case Generate.TECHDESCRIPT:      us_tecedinfodescript(wnd, ni);   break;
+			case Generate.TECHLAMBDA:        us_tecedinfolambda(wnd, ni);     break;
 			default:             System.out.println("Cannot modify this object");   break;
 		}
 	}
 	
 	/***************************** OBJECT MODIFICATION *****************************/
-	
+
 	private static void us_tecedlayer3dheight(EditWindow wnd, NodeInst ni)
 	{
 		String initialMsg = getValueOnNode(ni);
 		String newHei = PromptAt.showPromptAt(wnd, ni, "Change 3D Height",
 			"New 3D height (depth) for this layer:", initialMsg);
-		if (newHei != null) us_tecedsetnode(ni, Generate.TECEDNODETEXT3DHEIGHT + newHei);
+		if (newHei != null) us_tecedsetnode(ni, "3D Height: " + newHei);
 	}
 	
 	private static void us_tecedlayer3dthick(EditWindow wnd, NodeInst ni)
@@ -2082,69 +2083,64 @@ public class Create
 		String initialMsg = getValueOnNode(ni);
 		String newThk = PromptAt.showPromptAt(wnd, ni, "Change 3D Thickness",
 			"New 3D thickness for this layer:", initialMsg);
-		if (newThk != null) us_tecedsetnode(ni, Generate.TECEDNODETEXT3DTHICK + newThk);
+		if (newThk != null) us_tecedsetnode(ni, "3D Thickness: " + newThk);
 	}
 	
-//	private static void us_tecedlayerprintcol(EditWindow wnd, NodeInst ni)
-//	{
-//		REGISTER void *infstr;
-//		INTBIG len, r, g, b, o, f;
-//		REGISTER VARIABLE *var;
-//	
-//		if (count < 2)
-//		{
-//			ttyputverbose(_("Enter the print colors of the layer"));
-//			return;
-//		}
-//		var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, art_messagekey);
-//		us_teceditgetprintcol(var, &r, &g, &b, &o, &f);
-//		len = estrlen(par[0]);
-//		if (namesamen(par[0], x_("red"), len) == 0) r = myatoi(par[1]); else
-//		if (namesamen(par[0], x_("green"), len) == 0) g = myatoi(par[1]); else
-//		if (namesamen(par[0], x_("blue"), len) == 0) b = myatoi(par[1]); else
-//		if (namesamen(par[0], x_("opacity"), len) == 0) o = myatoi(par[1]); else
-//		if (namesamen(par[0], x_("foreground"), len) == 0)
-//		{
-//			if (namesame(par[1], x_("on")) == 0) f = 1; else
-//				if (namesame(par[1], x_("off")) == 0) f = 0; else
-//					f = myatoi(par[1]);
-//		}
-//		infstr = initinfstr();
-//		addstringtoinfstr(infstr, TECEDNODETEXTPRINTCOL);
-//		formatinfstr(infstr, x_("%ld,%ld,%ld, %ld,%s"), r, g, b, o, (f==0 ? x_("off") : x_("on")));
-//		us_tecedsetnode(ni, returninfstr(infstr));
-//	}
-	
-	private static void us_tecedlayerdrcminwid(EditWindow wnd, NodeInst ni)
+	private static void us_tecedlayercolor(EditWindow wnd, NodeInst ni)
 	{
-		String initialMsg = getValueOnNode(ni);
-		String newInc = PromptAt.showPromptAt(wnd, ni, "Change Minimum DRC Width",
-			"New minimum DRC width for this layer:", initialMsg);
-		us_tecedsetnode(ni, Generate.TECEDNODETEXTDRCMINWID + newInc);
+		String initialString = getValueOnNode(ni);
+		StringTokenizer st = new StringTokenizer(initialString, ",");
+		if (st.countTokens() != 5)
+		{
+			System.out.println("Color information must have 5 fields, separated by commas");
+			return;
+		}
+		PromptAt.Field [] fields = new PromptAt.Field[5];
+		fields[0] = new PromptAt.Field("Red (0-255):", TextUtils.atoi(st.nextToken()));
+		fields[1] = new PromptAt.Field("Green (0-255):", TextUtils.atoi(st.nextToken()));
+		fields[2] = new PromptAt.Field("Blue (0-255):", TextUtils.atoi(st.nextToken()));
+		fields[3] = new PromptAt.Field("Opacity (0-1):", TextUtils.atof(st.nextToken()));
+		fields[4] = new PromptAt.Field("Foreground:", new String [] {"on", "off"}, st.nextToken());
+		String choice = PromptAt.showPromptAt(wnd, ni, "Change Color", fields);
+		if (choice == null) return;
+		int r = ((Integer)fields[0].getFinal()).intValue();
+		int g = ((Integer)fields[1].getFinal()).intValue();
+		int b = ((Integer)fields[2].getFinal()).intValue();
+		double o = ((Double)fields[3].getFinal()).doubleValue();
+		String oo = (String)fields[4].getFinal();
+		us_tecedsetnode(ni, "Color: " + r + "," + g + "," + b + ", " + o + "," + oo);
+
+		// redraw the demo layer in this cell
+		us_tecedredolayergraphics(ni.getParent());
 	}
 	
-//	private static void us_tecedlayercolor(EditWindow wnd, NodeInst ni)
-//	{
-//		REGISTER void *infstr;
-//	
-//		if (par[0][0] == 0)
-//		{
-//			us_abortcommand(_("New color required"));
-//			return;
-//		}
-//		infstr = initinfstr();
-//		addstringtoinfstr(infstr, TECEDNODETEXTCOLOR);
-//		addstringtoinfstr(infstr, par[0]);
-//		us_tecedsetnode(ni, returninfstr(infstr));
-//	
-//		// redraw the demo layer in this cell
-//		us_tecedredolayergraphics(ni.parent);
-//	}
-	
+	private static void us_tecedlayertransparency(EditWindow wnd, NodeInst ni)
+	{
+		String initialTransLayer = getValueOnNode(ni);
+		String [] transNames = new String[11];
+		transNames[0] = "none";
+		transNames[1] = "layer 1";
+		transNames[2] = "layer 2";
+		transNames[3] = "layer 3";
+		transNames[4] = "layer 4";
+		transNames[5] = "layer 5";
+		transNames[6] = "layer 6";
+		transNames[7] = "layer 7";
+		transNames[8] = "layer 8";
+		transNames[9] = "layer 9";
+		transNames[10] = "layer 10";
+		String choice = PromptAt.showPromptAt(wnd, ni, "Change Transparent Layer",
+			"New transparent layer number for this layer:", initialTransLayer, transNames);
+		if (choice == null) return;
+		us_tecedsetnode(ni, "Transparency: " + choice);
+
+		// redraw the demo layer in this cell
+		us_tecedredolayergraphics(ni.getParent());
+	}
+
 	private static void us_tecedlayerstyle(EditWindow wnd, NodeInst ni)
 	{
 		String initialStyleName = getValueOnNode(ni);
-		List funs = ArcProto.Function.getFunctions();
 		String [] styleNames = new String[3];
 		styleNames[0] = "Solid";
 		styleNames[1] = "Patterned";
@@ -2152,7 +2148,7 @@ public class Create
 		String choice = PromptAt.showPromptAt(wnd, ni, "Change Layer Drawing Style",
 			"New drawing style for this layer:", initialStyleName, styleNames);
 		if (choice == null) return;
-		us_tecedsetnode(ni, Generate.TECEDNODETEXTSTYLE + choice);
+		us_tecedsetnode(ni, "Style: " + choice);
 
 		// redraw the demo layer in this cell
 		us_tecedredolayergraphics(ni.getParent());
@@ -2162,21 +2158,21 @@ public class Create
 	{
 		String initialMsg = getValueOnNode(ni);
 		String newCIF = PromptAt.showPromptAt(wnd, ni, "Change CIF layer name", "New CIF symbol for this layer:", initialMsg);
-		if (newCIF != null) us_tecedsetnode(ni, Generate.TECEDNODETEXTCIF + newCIF);
+		if (newCIF != null) us_tecedsetnode(ni, "CIF Layer: " + newCIF);
 	}
 	
 	private static void us_tecedlayerdxf(EditWindow wnd, NodeInst ni)
 	{
 		String initialMsg = getValueOnNode(ni);
 		String newDXF = PromptAt.showPromptAt(wnd, ni, "Change DXF layer name", "New DXF symbol for this layer:", initialMsg);
-		if (newDXF != null) us_tecedsetnode(ni, Generate.TECEDNODETEXTDXF + newDXF);
+		if (newDXF != null) us_tecedsetnode(ni, "DXF Layer(s): " + newDXF);
 	}
 	
 	private static void us_tecedlayergds(EditWindow wnd, NodeInst ni)
 	{
 		String initialMsg = getValueOnNode(ni);
 		String newGDS = PromptAt.showPromptAt(wnd, ni, "Change GDS layer name", "New GDS symbol for this layer:", initialMsg);
-		if (newGDS != null) us_tecedsetnode(ni, Generate.TECEDNODETEXTGDS + newGDS);
+		if (newGDS != null) us_tecedsetnode(ni, "GDS-II Layer: " + newGDS);
 	}
 	
 	private static void us_tecedlayerspires(EditWindow wnd, NodeInst ni)
@@ -2184,7 +2180,7 @@ public class Create
 		String initialMsg = getValueOnNode(ni);
 		String newRes = PromptAt.showPromptAt(wnd, ni, "Change SPICE Layer Resistance",
 			"New SPICE resistance for this layer:", initialMsg);
-		if (newRes != null) us_tecedsetnode(ni, Generate.TECEDNODETEXTSPICERES + newRes);
+		if (newRes != null) us_tecedsetnode(ni, "SPICE Resistance: " + newRes);
 	}
 	
 	private static void us_tecedlayerspicap(EditWindow wnd, NodeInst ni)
@@ -2192,7 +2188,7 @@ public class Create
 		String initialMsg = getValueOnNode(ni);
 		String newCap = PromptAt.showPromptAt(wnd, ni, "Change SPICE Layer Capacitance",
 			"New SPICE capacitance for this layer:", initialMsg);
-		if (newCap != null) us_tecedsetnode(ni, Generate.TECEDNODETEXTSPICECAP + newCap);
+		if (newCap != null) us_tecedsetnode(ni, "SPICE Capacitance: " + newCap);
 	}
 	
 	private static void us_tecedlayerspiecap(EditWindow wnd, NodeInst ni)
@@ -2200,24 +2196,62 @@ public class Create
 		String initialMsg = getValueOnNode(ni);
 		String newCap = PromptAt.showPromptAt(wnd, ni, "Change SPICE Layer Edge Capacitance",
 			"New SPICE edge capacitance for this layer:", initialMsg);
-		if (newCap != null) us_tecedsetnode(ni, Generate.TECEDNODETEXTSPICEECAP + newCap);
+		if (newCap != null) us_tecedsetnode(ni, "SPICE Edge Capacitance: " + newCap);
 	}
-	
+
 	private static void us_tecedlayerfunction(EditWindow wnd, NodeInst ni)
 	{
 		String initialFuncName = getValueOnNode(ni);
+		int commaPos = initialFuncName.indexOf(',');
+		if (commaPos >= 0) initialFuncName = initialFuncName.substring(0, commaPos);
+
+		// make a list of all layer functions and extras
 		List funs = Layer.Function.getFunctions();
-		String [] functionNames = new String[funs.size()];
-		for(int i=0; i<funs.size(); i++)
+		int [] extraBits = Layer.Function.getFunctionExtras();
+		String [] functionNames = new String[funs.size() + extraBits.length];
+		int j = 0;
+		for(Iterator it = funs.iterator(); it.hasNext(); )
 		{
-			Layer.Function fun = (Layer.Function)funs.get(i);
-			functionNames[i] = fun.toString();
+			Layer.Function fun = (Layer.Function)it.next();
+			functionNames[j++] = fun.toString();
 		}
+		for(int i=0; i<extraBits.length; i++)
+			functionNames[j++] = Layer.Function.getExtraName(extraBits[i]);
+
+		// prompt for a new layer function
 		String choice = PromptAt.showPromptAt(wnd, ni, "Change Layer Function", "New function for this layer:", initialFuncName, functionNames);
 		if (choice == null) return;
-		us_tecedsetnode(ni, Generate.TECEDNODETEXTFUNCTION + choice);
+
+		// see if the choice is an extra
+		int thisExtraBit = -1;
+		for(int i=0; i<extraBits.length; i++)
+		{
+			if (choice.equals(Layer.Function.getExtraName(extraBits[i]))) { thisExtraBit = extraBits[i];   break; }
+		}
+
+		LayerInfo li = Generate.LayerInfo.us_teceditgetlayerinfo(ni.getParent());
+		if (li == null) return;
+		if (thisExtraBit > 0)
+		{
+			// adding (or removing) an extra bit
+			if ((li.funExtra & thisExtraBit) != 0) li.funExtra &= ~thisExtraBit; else
+				li.funExtra |= thisExtraBit;
+		} else
+		{
+			li.funExtra = 0;
+			for(Iterator it = funs.iterator(); it.hasNext(); )
+			{
+				Layer.Function fun = (Layer.Function)it.next();
+				if (fun.toString().equalsIgnoreCase(choice))
+				{
+					li.fun = fun;
+					break;
+				}
+			}
+		}
+		us_tecedsetnode(ni, "Function: " + Generate.makeLayerFunctionName(li.fun, li.funExtra));
 	}
-	
+
 //	private static void us_tecedlayerletters(EditWindow wnd, NodeInst ni)
 //	{
 //		REGISTER NODEPROTO *np;
@@ -2382,8 +2416,8 @@ public class Create
 		}
 	}
 
-	/*
-	 * Routine to toggle the color of layer-pattern node "ni" (called when the user does a
+	/**
+	 * Method to toggle the color of layer-pattern node "ni" (called when the user does a
 	 * "technology edit" click on the node).
 	 */
 	private static void us_tecedlayerpattern(EditWindow wnd, NodeInst ni)
@@ -2399,8 +2433,8 @@ public class Create
 		us_tecedredolayergraphics(ni.getParent());
 	}
 	
-//	/*
-//	 * routine to modify the layer information in node "ni".
+//	/**
+//	 * Method to modify the layer information in node "ni".
 //	 */
 //	void us_tecedlayertype(NODEINST *ni, INTBIG count, CHAR *par[])
 //	{
@@ -2474,8 +2508,8 @@ public class Create
 //		endobjectchange((INTBIG)ni, VNODEINST);
 //	}
 //	
-//	/*
-//	 * routine to modify port characteristics
+//	/**
+//	 * Method to modify port characteristics
 //	 */
 //	void us_tecedmodport(NODEINST *ni, INTBIG count, CHAR *par[])
 //	{
@@ -2573,7 +2607,7 @@ public class Create
 		}
 		String choice = PromptAt.showPromptAt(wnd, ni, "Change Arc Function", "New function for this arc:", initialFuncName, functionNames);
 		if (choice == null) return;
-		us_tecedsetnode(ni, Generate.TECEDNODETEXTFUNCTION + choice);
+		us_tecedsetnode(ni, "Function: " + choice);
 	}
 
 	private static String getValueOnNode(NodeInst ni)
@@ -2644,7 +2678,7 @@ public class Create
 		}
 		String choice = PromptAt.showPromptAt(wnd, ni, "Change Node Function", "New function for this node:", initialFuncName, functionNames);
 		if (choice == null) return;
-		us_tecedsetnode(ni, Generate.TECEDNODETEXTFUNCTION + choice);
+		us_tecedsetnode(ni, "Function: " + choice);
 	}
 	
 	private static void us_tecednodeserpentine(EditWindow wnd, NodeInst ni)
@@ -2751,8 +2785,8 @@ public class Create
 		}
 	}
 
-//	/*
-//	 * routine to call up the cell "cellname" (either create it or reedit it)
+//	/**
+//	 * Method to call up the cell "cellname" (either create it or reedit it)
 //	 * returns NONODEPROTO if there is an error or the cell exists
 //	 */
 //	NODEPROTO *us_tecedentercell(CHAR *cellname)
@@ -2779,64 +2813,61 @@ public class Create
 //		telltool(us_tool, 2, newpar);
 //		return(np);
 //	}
-	
-	/*
-	 * routine to redraw the demo layer in "layer" cell "np"
+
+	/**
+	 * Method to redraw the demo layer in "layer" cell "np"
 	 */
 	private static void us_tecedredolayergraphics(Cell np)
 	{
-//		REGISTER VARIABLE *var;
-//		REGISTER NODEINST *ni;
-//		GRAPHICS desc;
-//		REGISTER NODEPROTO *onp;
-//		CHAR *cif, *layerletters, *dxf, *gds;
-//		INTBIG func, drcminwid, height3d, thick3d, printcol[5];
-//		float spires, spicap, spiecap;
-	
-		// find the demo patch in this cell
-		for(Iterator it = np.getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-			Variable var = ni.getVar(Generate.EDTEC_OPTION);
-			if (var == null) continue;
-			if (!(var.getObject() instanceof Integer)) continue;
-			if (((Integer)var.getObject()).intValue() != Generate.LAYERCOLOR) continue;
-			
-		}
-//		var = getval((INTBIG)np, VNODEPROTO, VNODEINST, x_("EDTEC_colornode"));
-//		if (var == NOVARIABLE) return;
-//		ni = (NODEINST *)var.addr;
-//	
-//		// get the current description of this layer
-//		cif = layerletters = gds = 0;
-//		if (us_teceditgetlayerinfo(np, &desc, &cif, &func, &layerletters,
-//			&dxf, &gds, &spires, &spicap, &spiecap, &drcminwid, &height3d,
-//				&thick3d, printcol)) return;
-//		if (gds != 0) efree(gds);
-//		if (cif != 0) efree(cif);
-//		if (layerletters != 0) efree(layerletters);
-//	
-//		// modify the demo patch to reflect the color and pattern
-//		startobjectchange((INTBIG)ni, VNODEINST);
-//		us_teceditsetpatch(ni, &desc);
-//		endobjectchange((INTBIG)ni, VNODEINST);
-//	
-//		// now do this to all layers in all cells!
-//		for(onp = el_curlib.firstnodeproto; onp != NONODEPROTO; onp = onp.nextnodeproto)
-//		{
-//			if (namesamen(onp.protoname, x_("arc-"), 4) != 0 &&
-//				namesamen(onp.protoname, x_("node-"), 5) != 0) continue;
-//			for(ni = onp.firstnodeinst; ni != NONODEINST; ni = ni.nextnodeinst)
-//			{
-//				if (us_tecedgetoption(ni) != LAYERPATCH) continue;
-//				var = getval((INTBIG)ni, VNODEINST, VNODEPROTO, x_("EDTEC_layer"));
-//				if (var == NOVARIABLE) continue;
-//				if ((NODEPROTO *)var.addr != np) continue;
-//				us_teceditsetpatch(ni, &desc);
-//			}
-//		}
+		RedoLayerGraphicsJob job = new RedoLayerGraphicsJob(np);
 	}
-	
+
+    /**
+     * Class to create a technology-library from a technology.
+     */
+    public static class RedoLayerGraphicsJob extends Job
+	{
+		private Cell cell;
+
+		public RedoLayerGraphicsJob(Cell cell)
+		{
+			super("Redo Layer Graphics", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cell = cell;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			Variable var = cell.getVar("EDTEC_colornode");
+			if (var == null) return false;
+			NodeInst ni = (NodeInst)var.getObject();
+		
+			// get the current description of this layer
+			Generate.LayerInfo li = Generate.LayerInfo.us_teceditgetlayerinfo(cell);
+			if (li == null) return false;
+		
+			// modify the demo patch to reflect the color and pattern
+			us_teceditsetpatch(ni, li.desc);
+		
+			// now do this to all layers in all cells!
+			for(Iterator cIt = cell.getLibrary().getCells(); cIt.hasNext(); )
+			{
+				Cell onp = (Cell)cIt.next();
+				if (!onp.getName().startsWith("arc-") && !onp.getName().startsWith("node-")) continue;
+				for(Iterator nIt = onp.getNodes(); nIt.hasNext(); )
+				{
+					NodeInst cNi = (NodeInst)nIt.next();
+					if (us_tecedgetoption(cNi) != Generate.LAYERPATCH) continue;
+					Variable varLay = cNi.getVar("EDTEC_layer");
+					if (varLay == null) continue;
+					if ((Cell)varLay.getObject() != cell) continue;
+					us_teceditsetpatch(cNi, li.desc);
+				}
+			}
+			return true;
+		}
+	}
+
 	static void us_teceditsetpatch(NodeInst ni, EGraphics desc)
 	{
 		if (desc.getTransparentLayer() > 0)
@@ -2867,8 +2898,8 @@ public class Create
 		}
 	}
 	
-//	/*
-//	 * routine to load the color map associated with library "lib"
+//	/**
+//	 * Method to load the color map associated with library "lib"
 //	 */
 //	void us_tecedloadlibmap(LIBRARY *lib)
 //	{
@@ -2952,8 +2983,8 @@ public class Create
 //				*f = myatoi(pt);
 //	}
 //	
-//	/*
-//	 * Routine to set the layer-pattern squares of cell "np" to the bits in "desc".
+//	/**
+//	 * Method to set the layer-pattern squares of cell "np" to the bits in "desc".
 //	 */
 //	void us_teceditsetlayerpattern(NODEPROTO *np, GRAPHICS *desc)
 //	{
@@ -3012,38 +3043,35 @@ public class Create
 //				us_tecedlayersetpattern(ni, wantcolor);
 //		}
 //	}
-//	
-//	/*
-//	 * routine to return the option index of node "ni"
-//	 */
-//	INTBIG us_tecedgetoption(NODEINST *ni)
-//	{
-//		REGISTER VARIABLE *var, *var2;
-//		REGISTER NODEPROTO *np;
-//	
-//		// port objects are readily identifiable
-//		if (ni.proto == gen_portprim) return(PORTOBJ);
-//	
-//		// center objects are also readily identifiable
-//		if (ni.proto == gen_cellcenterprim) return(CENTEROBJ);
-//	
-//		var = getvalkey((INTBIG)ni, VNODEINST, VINTEGER, us_edtec_option_key);
-//		if (var == NOVARIABLE) return(-1);
-//		if (var.addr == LAYERPATCH)
-//		{
-//			// may be a highlight object
-//			var2 = getval((INTBIG)ni, VNODEINST, VNODEPROTO, x_("EDTEC_layer"));
-//			if (var2 != NOVARIABLE)
-//			{
-//				np = (NODEPROTO *)var2.addr;
-//				if (np == NONODEPROTO) return(HIGHLIGHTOBJ);
-//			}
-//		}
-//		return(var.addr);
-//	}
-//	
-//	/*
-//	 * Routine called when cell "np" has been deleted (and it may be a layer cell because its name
+	
+	/**
+	 * Method to return the option index of node "ni"
+	 */
+	static int us_tecedgetoption(NodeInst ni)
+	{
+		// port objects are readily identifiable
+		if (ni.getProto() == Generic.tech.portNode) return Generate.PORTOBJ;
+	
+		// center objects are also readily identifiable
+		if (ni.getProto() == Generic.tech.cellCenterNode) return Generate.CENTEROBJ;
+	
+		Variable var = ni.getVar(Generate.EDTEC_OPTION);
+		if (var == null) return -1;
+		int option = ((Integer)var.getObject()).intValue();
+		if (option == Generate.LAYERPATCH)
+		{
+			// may be a highlight object
+			Variable var2 = ni.getVar("EDTEC_layer");
+			if (var2 != null)
+			{
+				if (var2.getObject() == null) return Generate.HIGHLIGHTOBJ;
+			}
+		}
+		return option;
+	}
+	
+//	/**
+//	 * Method called when cell "np" has been deleted (and it may be a layer cell because its name
 //	 * started with "layer-").
 //	 */
 //	void us_teceddeletelayercell(NODEPROTO *np)
@@ -3090,8 +3118,8 @@ public class Create
 //		us_tecedrenamecell(np.protoname, x_(""));
 //	}
 //	
-//	/*
-//	 * Routine called when cell "np" has been deleted (and it may be a node cell because its name
+//	/**
+//	 * Method called when cell "np" has been deleted (and it may be a node cell because its name
 //	 * started with "node-").
 //	 */
 //	void us_teceddeletenodecell(NODEPROTO *np)
@@ -3102,8 +3130,8 @@ public class Create
 //	
 //	/******************** SUPPORT FOR "usredtecp.c" ROUTINES ********************/
 //	
-//	/*
-//	 * routine to return the actual bounding box of layer node "ni" in the
+//	/**
+//	 * Method to return the actual bounding box of layer node "ni" in the
 //	 * reference variables "lx", "hx", "ly", and "hy"
 //	 */
 //	void us_tecedgetbbox(NODEINST *ni, INTBIG *lx, INTBIG *hx, INTBIG *ly, INTBIG *hy)
@@ -3139,8 +3167,8 @@ public class Create
 //		}
 //	}
 //	
-//	/*
-//	 * routine to swap entries "p1" and "p2" of the port list in "tlist"
+//	/**
+//	 * Method to swap entries "p1" and "p2" of the port list in "tlist"
 //	 */
 //	void us_tecedswapports(INTBIG *p1, INTBIG *p2, TECH_NODES *tlist)
 //	{

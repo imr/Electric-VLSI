@@ -30,6 +30,8 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * The ArcProto class defines a type of ArcInst.
@@ -56,15 +58,23 @@ public abstract class ArcProto
 		private int level;
 		private static HashMap metalLayers = new HashMap();
 		private static HashMap polyLayers = new HashMap();
+		private static List allFunctions = new ArrayList();
 
 		private Function(String name, int metalLevel, int polyLevel)
 		{
 			this.name = name;   this.level = 0;
 			if (metalLevel != 0) metalLayers.put(new Integer(this.level = metalLevel), this);
 			if (polyLevel != 0) polyLayers.put(new Integer(this.level = polyLevel), this);
+			allFunctions.add(this);
 		}
 
 		public String toString() { return name; }
+
+		/**
+		 * Method to return a List of all ArcProto functions.
+		 * @return a List of all ArcProto functions.
+		 */
+		public static List getFunctions() { return allFunctions; }
 
 		/** Describes an arc with unknown type. */
 		public static final Function UNKNOWN = new Function("unknown", 0, 0);

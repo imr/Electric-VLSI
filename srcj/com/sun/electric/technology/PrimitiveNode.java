@@ -39,6 +39,8 @@ import com.sun.electric.tool.user.User;
 import java.awt.Dimension;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.TreeMap;
@@ -61,6 +63,7 @@ public class PrimitiveNode implements NodeProto, Comparable
 		private final String shortName;
 		private final Name basename;
 		private final String constantName; // Used only by Technology editor?
+		private static List allFunctions = new ArrayList();
 
 		private Function(String name, String shortName, String constantName)
 		{
@@ -68,7 +71,14 @@ public class PrimitiveNode implements NodeProto, Comparable
 			this.shortName = shortName;
 			this.constantName = constantName;
 			this.basename = Name.findName(shortName+'@').getBasename();
+			allFunctions.add(this);
 		}
+
+		/**
+		 * Method to return a List of all Functions that exist.
+		 * @return a List of all Functions that exist.
+		 */
+		public static List getFunctions() { return allFunctions; }
 
 		/**
 		 * Returns a name of this Function.

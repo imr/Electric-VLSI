@@ -44,6 +44,8 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.tecEdit.Generate;
+import com.sun.electric.tool.user.tecEdit.Create;
 import com.sun.electric.tool.user.menus.MenuBar;
 
 import java.awt.Component;

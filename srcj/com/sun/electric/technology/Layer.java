@@ -28,6 +28,8 @@ import com.sun.electric.database.prototype.ArcProto.Function;
 import com.sun.electric.database.text.Pref;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Comparator;
 
 /**
@@ -43,30 +45,6 @@ public class Layer
 	 */
 	public static class Function
 	{
-		private final String name;
-		//private final String constantName;
-		private int level;
-		private final int height;
-		private final int extraBits;
-		private static HashMap metalLayers = new HashMap();
-		private static HashMap polyLayers = new HashMap();
-
-		private Function(String name, String constantName, int metalLevel, int polyLevel, int height, int extraBits)
-		{
-			this.name = name;
-			//this.constantName = constantName;
-			this.height = height;
-			this.extraBits = extraBits;
-			if (metalLevel != 0) metalLayers.put(new Integer(this.level = metalLevel), this);
-			if (polyLevel != 0) polyLayers.put(new Integer(this.level = polyLevel), this);
-		}
-
-		/**
-		 * Returns a printable version of this Layer.
-		 * @return a printable version of this Layer.
-		 */
-		public String toString() { return name; }
-
 		/** Describes a P-type layer. */												public static final int PTYPE =          0100;
 		/** Describes a N-type layer. */												public static final int NTYPE =          0200;
 		/** Describes a depletion layer. */												public static final int DEPLETION =      0400;
@@ -81,6 +59,91 @@ public class Layer
 		/** Describes a layer that is inside transistor. */								public static final int INTRANS =   020000000;
 		/** Describes a thick layer. */								                    public static final int THICK =     040000000;
 
+		private final String name;
+		//private final String constantName;
+		private int level;
+		private final int height;
+		private final int extraBits;
+		private static HashMap metalLayers = new HashMap();
+		private static HashMap polyLayers = new HashMap();
+		private static List allFunctions = new ArrayList();
+		private static final int [] extras = {PTYPE, NTYPE, DEPLETION, ENHANCEMENT, LIGHT, HEAVY, PSEUDO, NONELEC, CONMETAL, CONPOLY, CONDIFF, INTRANS, THICK};
+
+		private Function(String name, String constantName, int metalLevel, int polyLevel, int height, int extraBits)
+		{
+			this.name = name;
+			//this.constantName = constantName;
+			this.height = height;
+			this.extraBits = extraBits;
+			if (metalLevel != 0) metalLayers.put(new Integer(this.level = metalLevel), this);
+			if (polyLevel != 0) polyLayers.put(new Integer(this.level = polyLevel), this);
+			allFunctions.add(this);
+		}
+
+		/**
+		 * Returns a printable version of this Layer.
+		 * @return a printable version of this Layer.
+		 */
+		public String toString() { return name; }
+
+		/**
+		 * Method to return a list of all Layer Functions.
+		 * @return a list of all Layer Functions.
+		 */
+		public static List getFunctions() { return allFunctions; }
+
+		/**
+		 * Method to return an array of the Layer Function "extra bits".
+		 * @return an array of the Layer Function "extra bits".
+		 * Each entry in the array is a single "extra bit", but they can be ORed together to combine them.
+		 */
+		public static int [] getFunctionExtras() { return extras; }
+
+		/**
+		 * Method to convert an "extra bits" value to a name.
+		 * @param extra the extra bits value (must be a single bit, not an ORed combination).
+		 * @return the name of that extra bit.
+		 */
+		public static String getExtraName(int extra)
+		{
+			if (extra == PTYPE) return "p-type";
+			if (extra == NTYPE) return "n-type";
+			if (extra == DEPLETION) return "depletion";
+			if (extra == ENHANCEMENT) return "enhancement";
+			if (extra == LIGHT) return "light";
+			if (extra == HEAVY) return "heavy";
+			if (extra == PSEUDO) return "pseudo";
+			if (extra == NONELEC) return "nonelectrical";
+			if (extra == CONMETAL) return "connects-metal";
+			if (extra == CONPOLY) return "connects-poly";
+			if (extra == CONDIFF) return "connects-diff";
+			if (extra == INTRANS) return "inside-transistor";
+			if (extra == THICK) return "thick";
+			return "";
+		}
+
+		/**
+		 * Method to convert an "extra bits" name to its numeric value.
+		 * @param name the name of the bit.
+		 * @return the numeric equivalent of that bit.
+		 */
+		public static int parseExtraName(String name)
+		{
+			if (name.equalsIgnoreCase("p-type")) return PTYPE;
+			if (name.equalsIgnoreCase("n-type")) return NTYPE;
+			if (name.equalsIgnoreCase("depletion")) return DEPLETION;
+			if (name.equalsIgnoreCase("enhancement")) return ENHANCEMENT;
+			if (name.equalsIgnoreCase("light")) return LIGHT;
+			if (name.equalsIgnoreCase("heavy")) return HEAVY;
+			if (name.equalsIgnoreCase("pseudo")) return PSEUDO;
+			if (name.equalsIgnoreCase("nonelectrical")) return NONELEC;
+			if (name.equalsIgnoreCase("connects-metal")) return CONMETAL;
+			if (name.equalsIgnoreCase("connects-poly")) return CONPOLY;
+			if (name.equalsIgnoreCase("connects-diff")) return CONDIFF;
+			if (name.equalsIgnoreCase("inside-transistor")) return INTRANS;
+			if (name.equalsIgnoreCase("thick")) return THICK;
+			return 0;
+		}
 		/** Describes an unknown layer. */						public static final Function UNKNOWN    = new Function("unknown",    "LFUNKNOWN",    0, 0, 35, 0);
 		/** Describes a metal layer 1. */						public static final Function METAL1     = new Function("metal-1",    "LFMETAL1",     1, 0, 17, 0);
 		/** Describes a metal layer 2. */						public static final Function METAL2     = new Function("metal-2",    "LFMETAL2",     2, 0, 19, 0);

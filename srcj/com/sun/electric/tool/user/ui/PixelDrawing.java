@@ -1770,6 +1770,17 @@ public class PixelDrawing
 					}
 				}
 			}
+			if (desc.isOutlinedOnDisplay())
+			{
+				Point p1 = new Point(lX, lY);
+				Point p2 = new Point(lX, hY);
+				Point p3 = new Point(hX, hY);
+				Point p4 = new Point(hX, lY);
+				drawLine(p1, p2, layerBitMap, desc, 0, dimmed);
+				drawLine(p2, p3, layerBitMap, desc, 0, dimmed);
+				drawLine(p3, p4, layerBitMap, desc, 0, dimmed);
+				drawLine(p4, p1, layerBitMap, desc, 0, dimmed);
+			}
 		}
 	}
 
@@ -2227,6 +2238,17 @@ public class PixelDrawing
 					edge.fx += edge.increment;
 					lastedge = edge;
 				}
+			}
+		}
+
+		// if outlined pattern, draw the outline
+		if (pattern != null && desc.isOutlinedOnDisplay())
+		{
+			for(int i=0; i<points.length; i++)
+			{
+				int last = i-1;
+				if (last < 0) last = points.length - 1;
+				drawLine(points[last], points[i], layerBitMap, desc, 0, dimmed);
 			}
 		}
 	}

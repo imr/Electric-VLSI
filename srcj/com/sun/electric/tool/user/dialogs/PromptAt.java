@@ -70,67 +70,135 @@ import java.util.prefs.Preferences;
  */
 public class PromptAt extends EDialog
 {
-	private static final int INPUT = 1;
-	private static final int YESNO = 2;
+	private static final int INPUT     = 1;
+	private static final int YESNO     = 2;
 	private static final int SELECTION = 3;
+	private static final int CUSTOM    = 4;
 
 	private int type;
 	private String value;
-    private boolean goodClicked;
-    private JTextField dX;
-    private JComboBox combo;
-    private boolean closed;
+	private boolean goodClicked;
+	private JTextField dX;
+	private JComboBox combo;
+	private boolean closed;
+	private Field [] fields;
 
-    /**
-     * Method to invoke a "yes/no" dialog centered at a point in the circuit.
-     * @param wnd the window displaying the circuit.
-     * @param ni the NodeInst about which to display the dialog.
-     * @param title the dialog title.
-     * @param label the message inside of the dialog, before the text area.
-     * @param choices an array of strings to present as choices.
-     * @return the returned choice (null if cancelled).
-     */
-    public static String showPromptAt(EditWindow wnd, NodeInst ni, String title, String label, String initial, String [] choices)
+	public static class Field
 	{
-    	PromptAt dialog = new PromptAt(SELECTION);
-    	dialog.initComponents(wnd, ni, title, label, initial, false, choices);
-    	dialog.goodClicked = false;
+		private String label;
+		private Object initial;
+		private Object finalValue;
+		private int type;
+		private JTextField dX;
+		private JComboBox combo;
+
+		private static final int FIELD_BOOL   = 1;
+		private static final int FIELD_INT    = 2;
+		private static final int FIELD_DOUBLE = 3;
+		private static final int FIELD_SELECT = 4;
+
+		public Field(String label, boolean initial)
+		{
+			this.label = label;
+			this.initial = new Boolean(initial);
+			this.finalValue = this.initial;
+			this.type = FIELD_BOOL;
+		}
+
+		public Field(String label, int initial)
+		{
+			this.label = label;
+			this.initial = new Integer(initial);
+			this.finalValue = this.initial;
+			this.type = FIELD_INT;
+		}
+
+		public Field(String label, double initial)
+		{
+			this.label = label;
+			this.initial = new Double(initial);
+			this.finalValue = this.initial;
+			this.type = FIELD_DOUBLE;
+		}
+
+		public Field(String label, String [] choices, String initial)
+		{
+			this.label = label;
+			this.initial = choices;
+			this.finalValue = initial;
+			this.type = FIELD_SELECT;
+		}
+
+		public Object getFinal() { return finalValue; }
+	}
+
+	/**
+	 * Method to invoke a "yes/no" dialog centered at a point in the circuit.
+	 * @param wnd the window displaying the circuit.
+	 * @param ni the NodeInst about which to display the dialog.
+	 * @param title the dialog title.
+	 * @param fields an array of Field objects that describe each field in the dialog.
+	 * @return the returned choice (null if cancelled).
+	 */
+	public static String showPromptAt(EditWindow wnd, NodeInst ni, String title, Field [] fields)
+	{
+		PromptAt dialog = new PromptAt(CUSTOM);
+		dialog.initComponents(wnd, ni, title, null, null, false, null, fields);
+		dialog.goodClicked = false;
 		dialog.setVisible(true);
 		return dialog.value;
 	}
 
-    /**
-     * Method to invoke a "yes/no" dialog centered at a point in the circuit.
-     * @param wnd the window displaying the circuit.
-     * @param ni the NodeInst about which to display the dialog.
-     * @param title the dialog title.
-     * @param label the message inside of the dialog, before the text area.
-     * @param initial the default button (true for yes, false for no).
-     * @return the returned value.
-     */
-    public static boolean showPromptAt(EditWindow wnd, NodeInst ni, String title, String label, boolean initial)
+	/**
+	 * Method to invoke a "yes/no" dialog centered at a point in the circuit.
+	 * @param wnd the window displaying the circuit.
+	 * @param ni the NodeInst about which to display the dialog.
+	 * @param title the dialog title.
+	 * @param label the message inside of the dialog, before the text area.
+	 * @param choices an array of strings to present as choices.
+	 * @return the returned choice (null if cancelled).
+	 */
+	public static String showPromptAt(EditWindow wnd, NodeInst ni, String title, String label, String initial, String [] choices)
 	{
-    	PromptAt dialog = new PromptAt(YESNO);
-    	dialog.initComponents(wnd, ni, title, label, null, initial, null);
-    	dialog.goodClicked = false;
+		PromptAt dialog = new PromptAt(SELECTION);
+		dialog.initComponents(wnd, ni, title, label, initial, false, choices, null);
+		dialog.goodClicked = false;
 		dialog.setVisible(true);
-    	if (dialog.closed) return initial;
+		return dialog.value;
+	}
+
+	/**
+	 * Method to invoke a "yes/no" dialog centered at a point in the circuit.
+	 * @param wnd the window displaying the circuit.
+	 * @param ni the NodeInst about which to display the dialog.
+	 * @param title the dialog title.
+	 * @param label the message inside of the dialog, before the text area.
+	 * @param initial the default button (true for yes, false for no).
+	 * @return the returned value.
+	 */
+	public static boolean showPromptAt(EditWindow wnd, NodeInst ni, String title, String label, boolean initial)
+	{
+		PromptAt dialog = new PromptAt(YESNO);
+		dialog.initComponents(wnd, ni, title, label, null, initial, null, null);
+		dialog.goodClicked = false;
+		dialog.setVisible(true);
+		if (dialog.closed) return initial;
 		return dialog.goodClicked;
 	}
 
-    /**
-     * Method to invoke an input dialog centered at a point in the circuit.
-     * @param wnd the window displaying the circuit.
-     * @param ni the NodeInst about which to display the dialog.
-     * @param title the dialog title.
-     * @param label the message inside of the dialog, before the text area.
-     * @param initial the initial value of the text area.
-     * @return the returned value (null if cancelled).
-     */
-    public static String showPromptAt(EditWindow wnd, NodeInst ni, String title, String label, String initial)
+	/**
+	 * Method to invoke an input dialog centered at a point in the circuit.
+	 * @param wnd the window displaying the circuit.
+	 * @param ni the NodeInst about which to display the dialog.
+	 * @param title the dialog title.
+	 * @param label the message inside of the dialog, before the text area.
+	 * @param initial the initial value of the text area.
+	 * @return the returned value (null if cancelled).
+	 */
+	public static String showPromptAt(EditWindow wnd, NodeInst ni, String title, String label, String initial)
 	{
-    	PromptAt dialog = new PromptAt(INPUT);
-    	dialog.initComponents(wnd, ni, title, label, initial, false, null);
+		PromptAt dialog = new PromptAt(INPUT);
+		dialog.initComponents(wnd, ni, title, label, initial, false, null, null);
 		dialog.setVisible(true);
 		return dialog.value;
 	}
@@ -147,104 +215,169 @@ public class PromptAt extends EDialog
 	
 	protected void escapePressed() { closed = true;   exit(false); }
 	 
-    // Call this method when the user clicks the OK button
-    private void exit(boolean goodButton)
-    {
-    	goodClicked = goodButton;
-    	if (goodClicked)
-    	{
-    		if (type == INPUT) value = dX.getText();
-    		if (type == SELECTION) value = (String)combo.getSelectedItem();
-    	}
-        dispose();
-    }
+	// Call this method when the user clicks the OK button
+	private void exit(boolean goodButton)
+	{
+		goodClicked = goodButton;
+		if (goodClicked)
+		{
+			if (type == INPUT) value = dX.getText();
+			if (type == SELECTION) value = (String)combo.getSelectedItem();
+			if (type == CUSTOM)
+			{
+				for(int i=0; i<fields.length; i++)
+				{
+					switch (fields[i].type)
+					{
+						case Field.FIELD_INT:
+							fields[i].finalValue = new Integer(TextUtils.atoi(fields[i].dX.getText()));
+							break;
+						case Field.FIELD_DOUBLE:
+							fields[i].finalValue = new Double(TextUtils.atof(fields[i].dX.getText()));
+							break;
+						case Field.FIELD_SELECT:
+							fields[i].finalValue = fields[i].combo.getSelectedItem();
+							break;
+					}
+				}
+				value = "";
+			}
+		}
+		dispose();
+	}
 
-    private void initComponents(EditWindow wnd, NodeInst ni, String title, String label, String initialInput,
-    	boolean initialYesNo, String [] choices)
-    {
-        getContentPane().setLayout(new GridBagLayout());
+	private void initComponents(EditWindow wnd, NodeInst ni, String title, String label, String initialInput,
+		boolean initialYesNo, String [] choices, Field [] fields)
+	{
+		getContentPane().setLayout(new GridBagLayout());
 
-        JComponent centerIt = null;
-        setTitle(title);
-        setName("");
-        addWindowListener(new WindowAdapter()
-        {
-            public void windowClosing(WindowEvent evt) { closed = true;   exit(false); }
-        });
+		JComponent centerIt = null;
+		setTitle(title);
+		setName("");
+		addWindowListener(new WindowAdapter()
+		{
+			public void windowClosing(WindowEvent evt) { closed = true;   exit(false); }
+		});
 
-        String badButton = (type == YESNO ? "No" : "Cancel");
-        JButton cancel = new JButton(badButton);
-        cancel.addActionListener(new ActionListener()
-        {
-            public void actionPerformed(ActionEvent evt) { exit(false); }
-        });
-        GridBagConstraints gridBagConstraints = new GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.weightx = 0.5;
-        getContentPane().add(cancel, gridBagConstraints);
+		int buttonRow = 1;
+		if (type == CUSTOM)
+		{
+			this.fields = fields;
+			for(int i=0; i<fields.length; i++)
+			{
+				JLabel jLabel1 = new JLabel(fields[i].label);
+				GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
+				gridBagConstraints.gridx = 0;
+				gridBagConstraints.gridy = i;
+				gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+				gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+				getContentPane().add(jLabel1, gridBagConstraints);
+				if (fields[i].type == Field.FIELD_INT || fields[i].type == Field.FIELD_DOUBLE)
+				{
+					fields[i].dX = new JTextField();
+					fields[i].dX.setColumns(8);
+					fields[i].dX.setText(fields[i].initial.toString());
+					gridBagConstraints = new java.awt.GridBagConstraints();
+					gridBagConstraints.gridx = 1;
+					gridBagConstraints.gridy = i;
+					gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+					gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+					getContentPane().add(fields[i].dX, gridBagConstraints);
+					if (centerIt == null)
+					{
+						fields[i].dX.selectAll();
+						centerIt = fields[i].dX;
+					}
+				} else if (fields[i].type == Field.FIELD_SELECT)
+				{
+					fields[i].combo = new JComboBox();
+					String [] poss = (String [])fields[i].initial;
+					for(int j=0; j<poss.length; j++)
+						fields[i].combo.addItem(poss[j]);
+					fields[i].combo.setSelectedItem(fields[i].finalValue);
+					gridBagConstraints = new java.awt.GridBagConstraints();
+					gridBagConstraints.gridx = 1;
+					gridBagConstraints.gridy = i;
+					gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+					gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+					getContentPane().add(fields[i].combo, gridBagConstraints);
+					if (centerIt == null) centerIt = fields[i].combo;
+				}
+			}
+			buttonRow = fields.length + 1;
+		} else
+		{
+			JLabel jLabel1 = new JLabel(label);
+			GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
+			gridBagConstraints.gridx = 0;
+			gridBagConstraints.gridy = 0;
+			gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+			gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+			getContentPane().add(jLabel1, gridBagConstraints);
+			if (type == YESNO) centerIt = jLabel1;
+			if (type == INPUT)
+			{
+				dX = new JTextField();
+				dX.setColumns(8);
+				dX.setText(initialInput);
+				gridBagConstraints = new java.awt.GridBagConstraints();
+				gridBagConstraints.gridx = 1;
+				gridBagConstraints.gridy = 0;
+				gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+				gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+				getContentPane().add(dX, gridBagConstraints);
+				dX.selectAll();
+				centerIt = dX;
+			}
+			if (type == SELECTION)
+			{
+				combo = new JComboBox();
+				for(int i=0; i<choices.length; i++)
+					combo.addItem(choices[i]);
+				combo.setSelectedItem(initialInput);
+				gridBagConstraints = new java.awt.GridBagConstraints();
+				gridBagConstraints.gridx = 1;
+				gridBagConstraints.gridy = 0;
+				gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+				gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+				getContentPane().add(combo, gridBagConstraints);
+				centerIt = combo;
+			}
+		}
 
-        String goodButton = (type == YESNO ? "Yes" : "OK");
-        JButton ok = new JButton(goodButton);
-        ok.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt) { exit(true); }
-        });
-        getRootPane().setDefaultButton(ok);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.weightx = 0.5;
-        getContentPane().add(ok, gridBagConstraints);
+		String badButton = (type == YESNO ? "No" : "Cancel");
+		JButton cancel = new JButton(badButton);
+		GridBagConstraints gridBagConstraints = new GridBagConstraints();
+		gridBagConstraints.gridx = 0;
+		gridBagConstraints.gridy = buttonRow;
+		gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+		gridBagConstraints.weightx = 0.5;
+		getContentPane().add(cancel, gridBagConstraints);
+		cancel.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { exit(false); }
+		});
 
-    	JLabel jLabel1 = new JLabel(label);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        getContentPane().add(jLabel1, gridBagConstraints);
-        if (type == YESNO) centerIt = jLabel1;
-        if (type == INPUT)
-        {
-	    	dX = new JTextField();
-	        dX.setColumns(8);
-	        dX.setText(initialInput);
-	        gridBagConstraints = new java.awt.GridBagConstraints();
-	        gridBagConstraints.gridx = 1;
-	        gridBagConstraints.gridy = 0;
-	        gridBagConstraints.gridwidth = 2;
-	        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-	        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-	        getContentPane().add(dX, gridBagConstraints);
-	        dX.selectAll();
-	        centerIt = dX;
-        }
-        if (type == SELECTION)
-        {
-        	combo = new JComboBox();
-        	for(int i=0; i<choices.length; i++)
-        		combo.addItem(choices[i]);
-        	combo.setSelectedItem(initialInput);
-	        gridBagConstraints = new java.awt.GridBagConstraints();
-	        gridBagConstraints.gridx = 1;
-	        gridBagConstraints.gridy = 0;
-	        gridBagConstraints.gridwidth = 2;
-	        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-	        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-	        getContentPane().add(combo, gridBagConstraints);
-	        centerIt = combo;
-        }
+		String goodButton = (type == YESNO ? "Yes" : "OK");
+		JButton ok = new JButton(goodButton);
+		getRootPane().setDefaultButton(ok);
+		gridBagConstraints = new java.awt.GridBagConstraints();
+		gridBagConstraints.gridx = 2;
+		gridBagConstraints.gridy = buttonRow;
+		gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+		gridBagConstraints.weightx = 0.5;
+		getContentPane().add(ok, gridBagConstraints);
+		ok.addActionListener(new java.awt.event.ActionListener()
+		{
+			public void actionPerformed(java.awt.event.ActionEvent evt) { exit(true); }
+		});
 
-        pack();
+		pack();
 
-        Point ew = wnd.getLocationOnScreen();
-    	Point locInWnd = wnd.databaseToScreen(ni.getAnchorCenterX(), ni.getAnchorCenterY());
-    	Point textfield = centerIt.getLocation();
-    	Dimension textSize = centerIt.getSize();
-    	this.setLocation(locInWnd.x+ew.x-(textfield.x+textSize.width/2), locInWnd.y+ew.y-(textfield.y+textSize.height/2+20));
-    }
+		Point ew = wnd.getLocationOnScreen();
+		Point locInWnd = wnd.databaseToScreen(ni.getAnchorCenterX(), ni.getAnchorCenterY());
+		Point textfield = centerIt.getLocation();
+		Dimension textSize = centerIt.getSize();
+		this.setLocation(locInWnd.x+ew.x-(textfield.x+textSize.width/2), locInWnd.y+ew.y-(textfield.y+textSize.height/2+20));
+	}
 }
