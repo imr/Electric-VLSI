@@ -520,14 +520,14 @@ class NetSchem extends NetCell {
 			NodeInst ni = (NodeInst)no;
 			int nodeIndex = ni.getNodeIndex();
 			int proxyOffset = nodeOffsets[nodeIndex];
-			if (proxyOffset >= 0) {
+			//if (proxyOffset >= 0) {
 				int drawn = drawns[ni_pi[nodeIndex] + portProto.getPortIndex()];
 				if (drawn < 0) return -1;
 				if (busIndex < 0 || busIndex >= drawnWidths[drawn]) return -1;
 				return drawnOffsets[drawn] + busIndex;
-			} else {
-				return -1;
-			}
+			//} else {
+			//	return -1;
+			//}
 // 			proxy = nodeProxies[~proxyOffset + arrayIndex];
 // 			NetCell netCell = Network.getNetCell((Cell)ni.getProto());
 		} else {
