@@ -171,6 +171,19 @@ public class KeyBindingManager implements KeyEventPostProcessor {
         public void actionPerformed(ActionEvent e) {
             action.actionPerformed(e);
         }
+
+        /**
+         * Compare two KeyStrokes for equality (deep)
+         */
+        public static boolean isEqual(KeyStroke key1, KeyStroke key2) {
+            if (key1 == null && key2 != null) return false;
+            if (key1 != null && key2 == null) return false;
+            if (key1 == null && key2 == null) return true;
+            if (key1.getKeyChar() != key2.getKeyChar()) return false;
+            if (key1.getKeyCode() != key2.getKeyCode()) return false;
+            if (key1.getModifiers()  != key2.getModifiers()) return false;
+            return true;
+        }
     }
 
     /**
@@ -608,8 +621,39 @@ public class KeyBindingManager implements KeyEventPostProcessor {
         // get all KeyBindings from ActionMap
         for (Iterator it = conflictsStrings.iterator(); it.hasNext(); ) {
             List list2 = (List)actionMap.get((String)it.next());
-            if (list2 != null && list2.size() > 0)
-                conflicts.add(list2.get(0));            // only first "action" is valid
+            if (list2 == null) continue;
+            for (Iterator it2 = list2.iterator(); it2.hasNext(); ) {
+                // Unfortunately, any keyBinding can map to this action, including
+                // ones that don't actually conflict.  So we need to double check
+                // if binding really conflicts.
+                Object obj = it2.next();
+                if (obj instanceof PrefixAction) continue;
+                KeyBinding k = (KeyBinding)obj;
+                if (prefixStroke != null) {
+                    // check prefix conflict
+                    if (k.prefixStroke != null) {
+                        // only conflict is if both prefix and stroke match
+                        if (KeyBinding.isEqual(prefixStroke, k.prefixStroke) &&
+                            KeyBinding.isEqual(stroke, k.stroke))
+                            conflicts.add(k);
+                    } else {
+                        // conflict if prefixStroke matches k.stroke
+                        if (KeyBinding.isEqual(prefixStroke, k.stroke))
+                            conflicts.add(k);
+                    }
+                } else {
+                    // no prefixStroke
+                    if (k.prefixStroke != null) {
+                        // conflict if stroke matches k.prefixStroke
+                        if (KeyBinding.isEqual(stroke, k.prefixStroke))
+                            conflicts.add(k);
+                    } else {
+                        // no prefixStroke, both only have stroke
+                        if (KeyBinding.isEqual(stroke, k.stroke))
+                            conflicts.add(k);
+                    }
+                }
+            }
         }
 
         return conflicts;
@@ -627,9 +671,11 @@ public class KeyBindingManager implements KeyEventPostProcessor {
     public static String keyStrokeToString(KeyStroke key) {
         if (key == null) return "";
         String mods = KeyEvent.getKeyModifiersText(key.getModifiers());
+        String id = KeyEvent.getKeyText(key.getKeyCode());
+        if (mods.equals("")) return id;
+
         mods = mods.replace('+', ' ');
         mods = mods.toLowerCase();
-        String id = KeyEvent.getKeyText(key.getKeyCode());
         return mods + " " + id;
     }
 
@@ -692,6 +738,7 @@ public class KeyBindingManager implements KeyEventPostProcessor {
         if (keys.equals("")) return list;               // empty str, empty result
 
         // special case for now: conform to old style
+        // TODO: get rid of this later XXX
         if (keys.indexOf(keyBindingSeparator) == -1) {
             KeyStroke k = stringToKeyStroke(keys);
             if (k != null) {
@@ -724,6 +771,7 @@ public class KeyBindingManager implements KeyEventPostProcessor {
      */
     public static String keyBindingsToString(List keyBindings) {
         StringBuffer keys = new StringBuffer();
+        if (keyBindings == null) return "";
         for (Iterator it = keyBindings.iterator(); it.hasNext(); ) {
             KeyBinding binding = (KeyBinding)it.next();
             keys.append(keyStrokeToString(binding.prefixStroke) + keyEventSeparator +

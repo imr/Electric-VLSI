@@ -18,6 +18,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.InputMethodListener;
 import java.awt.event.InputMethodEvent;
 import java.util.List;
+import java.util.Iterator;
 import javax.swing.*;
 import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionListener;
@@ -59,10 +60,19 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
         public String toString() {
             if (menuItem != null) {
                 StringBuffer buf = new StringBuffer(menuItem.getText());
-                KeyStroke key = menuItem.getAccelerator();
-                if (key != null) {
-                    buf.append("   [ "+KeyBindingManager.keyStrokeToString(key)+" ]");
+//                KeyStroke key = menuItem.getAccelerator();
+//                if (key != null) {
+//                    buf.append("   [ "+KeyBindingManager.keyStrokeToString(key)+" ]");
+//                }
+                List bindings = MenuManager.getKeyBindingsFor(menuItem);
+                if (bindings == null || bindings.size() == 0) return buf.toString();
+                buf.append("   [ ");
+                for (Iterator it = bindings.iterator(); it.hasNext(); ) {
+                    KeyBinding k = (KeyBinding)it.next();
+                    buf.append(k.toString());
+                    if (it.hasNext()) buf.append("; ");
                 }
+                buf.append(" ]");
                 return buf.toString();
             }
             return "---------------";               // separator
