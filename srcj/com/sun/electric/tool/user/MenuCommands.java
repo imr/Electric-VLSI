@@ -689,10 +689,10 @@ public final class MenuCommands
 
 		Menu generationSubMenu = new Menu("Generation", 'G');
 		toolMenu.add(generationSubMenu);
-		generationSubMenu.addMenuItem("Pad Frame Generator", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
 		generationSubMenu.addMenuItem("Coverage Implants Generator", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { implantGeneratorCommand(); }});
+		generationSubMenu.addMenuItem("Pad Frame Generator", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
 
 		Menu compactionSubMenu = new Menu("Compaction", 'C');
 		toolMenu.add(compactionSubMenu);
