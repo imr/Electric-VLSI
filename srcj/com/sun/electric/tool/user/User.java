@@ -45,6 +45,7 @@ import com.sun.electric.tool.user.ui.StatusBar;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.PixelDrawing;
+import com.sun.electric.Main;
 
 import java.awt.Color;
 import java.util.Iterator;
@@ -85,8 +86,8 @@ public class User extends Listener
 		setIncremental();
 
 		// initialize the display
-		TopLevel.Initialize();
-		TopLevel.getPaletteFrame().loadForTechnology();
+        TopLevel.Initialize(null);
+        TopLevel.getPaletteFrame().loadForTechnology();
 	}
 
 	/**

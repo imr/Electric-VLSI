@@ -52,11 +52,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.prefs.Preferences;
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.ImageIcon;
-import javax.swing.BorderFactory;
-import javax.swing.JLabel;
+import javax.swing.*;
 
 // these may not exist on non-Macintosh platforms, and are stubbed-out in "AppleJavaExtensions.jar"
 import com.apple.eawt.Application;
@@ -69,7 +65,7 @@ import com.apple.eawt.ApplicationEvent;
 public final class Main
 {
     private static boolean DEBUG;   // global debug flag
-    public static final boolean NOTHREADING = false;             // to turn off threading
+    public static final boolean NOTHREADING = false;             // to turn off Job threading
 
 	private Main() {}
 
@@ -91,7 +87,7 @@ public final class Main
 		// -debug for debugging
 		if (hasCommandLineOption(argsList, "-debug")) DEBUG = true;
 
-		TopLevel.OSInitialize(!hasCommandLineOption(argsList, "-m"));
+		TopLevel.OSInitialize(null);
 
 		// initialize database
 		new InitDatabase(argsList, sw);
@@ -244,10 +240,19 @@ public final class Main
 			Constraints.setCurrent(con);
 
             // do processing of arguments
+/*
+            boolean mdiMode = hasCommandLineOption(argsList, "-mdi");
+            boolean sdiMode = hasCommandLineOption(argsList, "-sdi");
+            TopLevel.Mode tmpMode = null;
+            if (mdiMode) tmpMode = TopLevel.Mode.MDI;
+            if (sdiMode) tmpMode = TopLevel.Mode.SDI;
+            final TopLevel.Mode mode = tmpMode;
+*/
+
             if (hasCommandLineOption(argsList, "-NOMINMEM")) {
                 // do nothing, just consume option: handled in Launcher
             }
-			String beanShellScript = getCommandLineOption(argsList, "-s");
+			final String beanShellScript = getCommandLineOption(argsList, "-s");
 			openCommandLineLibs(argsList);
 
 			// run script
@@ -257,6 +262,19 @@ public final class Main
 			sw.removeNotify();
 
             Undo.changesQuiet(false);
+
+/*
+            // initialize GUI
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    // remove the splash screen
+                    sw.removeNotify();
+                    TopLevel.Initialize(mode);
+                    // run script
+                    if (beanShellScript != null) EvalJavaBsh.runScript(beanShellScript);
+                }
+            });
+*/
             return true;
 		}
 	}

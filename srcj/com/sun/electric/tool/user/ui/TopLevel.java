@@ -32,6 +32,7 @@ import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.tool.user.menus.FileMenu;
+import com.sun.electric.Main;
 
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
@@ -70,7 +71,20 @@ public class TopLevel extends JFrame
 		/** Describes Macintosh. */							public static final OS MACINTOSH = new OS("Macintosh");
 	}
 
-	/** True if in MDI mode, otherwise SDI. */				private static boolean mdi;
+    /**
+     * Describe the windowing mode.  The current modes are MDI and SDI.
+     */
+    public static class Mode
+    {
+        private final String name;
+        private Mode(String name) { this.name = name; }
+
+        public String toString() { return name; }
+        public static final Mode MDI = new Mode("MDI");
+        public static final Mode SDI = new Mode("SDI");
+    }
+
+	/** True if in MDI mode, otherwise SDI. */				private static Mode mode;
 	/** The desktop pane (if MDI). */						private static JDesktopPane desktop = null;
 	/** The main frame (if MDI). */							private static TopLevel topLevel = null;
 	/** The only status bar (if MDI). */					private StatusBar sb = null;
@@ -137,13 +151,16 @@ public class TopLevel extends JFrame
 	}
 
 	/**
-	 * Method to initialize the window system.
+	 * Method to initialize the window system with the specified mode.
+     * If mode is null, the mode is implied by the operating system.
 	 */
-	public static void Initialize()
+	public static void Initialize(Mode mode)
 	{
 		// initialize the messages window and palette
+        //OSInitialize(mode);
 		messages = new MessagesWindow();
 		palette = PaletteFrame.newInstance();
+        //palette.loadForTechnology();
     }
 
 	private static Pref cacheWindowLoc = Pref.makeStringPref("WindowLocation", User.tool.prefs, "");
@@ -151,32 +168,41 @@ public class TopLevel extends JFrame
 	/**
 	 * Method to initialize the window system.
 	 */
-	public static void OSInitialize(boolean mdiMode)
+	public static void OSInitialize(Mode mode)
 	{
 		// setup the size of the screen
 		scrnSize = (Toolkit.getDefaultToolkit()).getScreenSize();
 
 		// setup specific look-and-feel
-        mdi = false;            // default
+        Mode osMode = null;
 		try{
 			String osName = System.getProperty("os.name").toLowerCase();
 			if (osName.startsWith("windows"))
 			{
 				os = OS.WINDOWS;
-				mdi = mdiMode;     // default
+				osMode = Mode.MDI;
 				scrnSize.height -= 30;
 				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 			} else if (osName.startsWith("linux") || osName.startsWith("solaris") || osName.startsWith("sunos"))
 			{
 				os = OS.UNIX;
+                osMode = Mode.SDI;
                 //UIManager.setLookAndFeel("com.sun.java.swing.plaf.motif.MotifLookAndFeel");
                 UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 			} else if (osName.startsWith("mac"))
 			{
 				os = OS.MACINTOSH;
+                osMode = Mode.SDI;
 				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.MacLookAndFeel");
 			}
 		} catch(Exception e) {}
+
+        // set the windowing mode
+        if (mode == null)
+            TopLevel.mode = osMode;
+        else
+            TopLevel.mode = mode;
+        TopLevel.mode = Mode.MDI;
 
         // set current working directory
         String setting = User.getInitialWorkingDirectorySetting();
@@ -235,7 +261,7 @@ public class TopLevel extends JFrame
 	 * This is used on Windows.
 	 * @return true if Electric is in MDI mode.
 	 */
-	public static boolean isMDIMode() { return mdi; }
+	public static boolean isMDIMode() { return (mode == Mode.MDI); }
 
 	/**
 	 * Method to return component palette window.

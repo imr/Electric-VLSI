@@ -50,7 +50,7 @@ public class Version
 	/**
 	 * This is the current version of Electric
 	 */
-	private static final String CURRENT = "8.01g";
+	private static final String CURRENT = "8.01h";
     private static final String MAINJARNAME = "electric.jar";
 
 	private int major;

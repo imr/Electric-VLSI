@@ -1,8 +1,12 @@
 			Java Electric change log
 
-FIX/IMP (8/19/04, RK) NCC check's assertions: exportsConnectedByParent. It turns out that assertion checking is needed to avoid a bug in netlist construction.
+
+************************* Version 8.01i: *********************************
+
 
 ************************* Version 8.01h: *********************************
+
+FIX/IMP (8/19/04, RK) NCC check's assertions: exportsConnectedByParent. It turns out that assertion checking is needed to avoid a bug in netlist construction.
 
 BUG: (8/18/04, SMR) DRC crashes when run on icons.
 FIX: Use Schematic DRC for Icons, not layout DRC.
