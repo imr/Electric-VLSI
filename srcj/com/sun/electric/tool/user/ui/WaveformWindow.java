@@ -120,7 +120,18 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	private static int panelSizeDigital = 25;
 	private static int panelSizeAnalog = 150;
 	private static Color [] colorArray = new Color [] {
-		Color.RED, Color.GREEN, Color.BLUE, Color.PINK, Color.CYAN, Color.ORANGE, Color.MAGENTA, Color.YELLOW};
+		new Color(255,   0,   0),		// red
+		new Color(255, 127,   0),
+		new Color(255, 255,   0),		// yellow
+		new Color(127, 255,   0),
+		new Color(0,   235,   0),		// green
+		new Color(0,   255, 102),
+		new Color(0,   255, 255),		// cyan
+		new Color(0,   127, 255),
+		new Color(80,   80, 255),		// blue
+		new Color(127,   0, 255),
+		new Color(255,   0, 255),		// magenta
+		new Color(255,   0, 127)};
 
 	/** the window that this lives in */					private WindowFrame wf;
 	/** the cell being simulated */							private Simulation.SimData sd;
@@ -223,7 +234,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			// setup this panel window
 			int height = panelSizeDigital;
 			if (isAnalog) height = panelSizeAnalog;
-			sz = new Dimension(500, height);
+			sz = new Dimension(50, height);
 			setSize(sz.width, sz.height);
 			setPreferredSize(sz);
 			setLayout(new FlowLayout());
@@ -696,150 +707,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			waveWindowFont = new Font(User.getDefaultFont(), Font.PLAIN, 12);
 
 			// look at all traces in this panel
-			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
-			{
-				Signal ws = (Signal)it.next();
-				g.setColor(ws.color);
-				if (ws.sSig instanceof Simulation.SimAnalogSignal)
-				{
-					// draw analog trace
-					Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)ws.sSig;
-					int lx = 0, ly = 0;
-					int numEvents = as.getNumEvents();
-					for(int i=0; i<numEvents; i++)
-					{
-						double time = ws.sSig.getTime(i);
-						int x = scaleTimeToX(time);
-						int y = scaleValueToY(as.getValue(i));
-						if (i != 0)
-						{
-							drawALine(g, lx, ly, x, y, ws.highlighted);
-						}
-						lx = x;   ly = y;
-					}
-					continue;
-				}
-				if (ws.sSig instanceof Simulation.SimDigitalSignal)
-				{
-					// draw digital traces
-					Simulation.SimDigitalSignal ds = (Simulation.SimDigitalSignal)ws.sSig;
-					List bussedSignals = ds.getBussedSignals();
-					if (bussedSignals != null)
-					{
-						// a digital bus trace
-						int busWidth = bussedSignals.size();
-						long curValue = 0;
-						double curTime = 0;
-						int lastX = VERTLABELWIDTH;
-						for(;;)
-						{
-							double nextTime = Double.MAX_VALUE;
-							int bit = 0;
-							boolean curDefined = true;
-							for(Iterator bIt = bussedSignals.iterator(); bIt.hasNext(); )
-							{
-								Simulation.SimDigitalSignal subDS = (Simulation.SimDigitalSignal)bIt.next();
-								int numEvents = subDS.getNumEvents();
-								boolean undefined = false;
-								for(int i=0; i<numEvents; i++)
-								{
-									double time = subDS.getTime(i);
-									if (time <= curTime)
-									{
-										switch (subDS.getState(i) & Simulation.SimData.LOGIC)
-										{
-											case Simulation.SimData.LOGIC_LOW:  curValue &= ~(1<<bit);   undefined = false;   break;
-											case Simulation.SimData.LOGIC_HIGH: curValue |= (1<<bit);    undefined = false;   break;
-											case Simulation.SimData.LOGIC_X:
-											case Simulation.SimData.LOGIC_Z: undefined = true;    break;
-										}
-									} else
-									{
-										if (time < nextTime) nextTime = time;
-										break;
-									}
-								}
-								if (undefined) { curDefined = false;   break; }
-								bit++;
-							}
-							int x = scaleTimeToX(curTime);
-							if (x >= VERTLABELWIDTH)
-							{
-								if (x < VERTLABELWIDTH+5)
-								{
-									// on the left edge: just draw the "<"
-									drawALine(g, x, hei/2, x+5, hei-5, ws.highlighted);
-									drawALine(g, x, hei/2, x+5, 5, ws.highlighted);
-								} else
-								{
-									// bus change point: draw the "X"
-									drawALine(g, x-5, 5, x+5, hei-5, ws.highlighted);
-									drawALine(g, x+5, 5, x-5, hei-5, ws.highlighted);
-								}
-								if (lastX+5 < x-5)
-								{
-									// previous bus change point: draw horizontal bars to connect
-									drawALine(g, lastX+5, 5, x-5, 5, ws.highlighted);
-									drawALine(g, lastX+5, hei-5, x-5, hei-5, ws.highlighted);
-								}
-								String valString = "XX";
-								if (curDefined) valString = Long.toString(curValue);
-								g.setFont(waveWindowFont);
-								GlyphVector gv = waveWindowFont.createGlyphVector(waveWindowFRC, valString);
-								Rectangle2D glyphBounds = gv.getVisualBounds();
-								int textHei = (int)glyphBounds.getHeight();
-								g.drawString(valString, x+2, hei/2+textHei/2);
-							}
-							curTime = nextTime;
-							lastX = x;
-							if (nextTime == Double.MAX_VALUE) break;
-						}
-						if (lastX+5 < wid)
-						{
-							// run horizontal bars to the end
-							drawALine(g, lastX+5, 5, wid, 5, ws.highlighted);
-							drawALine(g, lastX+5, hei-5, wid, hei-5, ws.highlighted);
-						}
-						continue;
-					}
-
-					// a simple digital signal
-					int lastx = VERTLABELWIDTH;
-					int lastState = 0;
-					if (ds.getStateVector() == null) continue;
-					int numEvents = ds.getNumEvents();
-					for(int i=0; i<numEvents; i++)
-					{
-						double time = ds.getTime(i);
-						int x = scaleTimeToX(time);
-						int lowy = 0, highy = 0;
-						int state = ds.getState(i) & Simulation.SimData.LOGIC;
-						switch (state)
-						{
-							case Simulation.SimData.LOGIC_LOW:  lowy = highy = 5;            break;
-							case Simulation.SimData.LOGIC_HIGH: lowy = highy = hei-5;        break;
-							case Simulation.SimData.LOGIC_X:    lowy = 5;   highy = hei-5;   break;
-							case Simulation.SimData.LOGIC_Z:    lowy = 5;   highy = hei-5;   break;
-						}
-						if (i != 0)
-						{
-							if (state != lastState)
-							{
-								drawALine(g, x, 5, x, hei-5, ws.highlighted);
-							}
-						}
-						if (lowy == highy)
-						{
-							drawALine(g, lastx, lowy, x, lowy, ws.highlighted);
-						} else
-						{
-							g.fillRect(lastx, lowy, x-lastx, highy-lowy);
-						}
-						lastx = x;
-						lastState = state;
-					}
-				}
-			}
+			processSignals(g, null);
 
 			// draw the vertical label
 			g.setColor(Color.WHITE);
@@ -965,16 +833,204 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				}
 			}
 		}
-
-		private void drawALine(Graphics g, int fX, int fY, int tX, int tY, boolean highlighted)
+		
+		private List processSignals(Graphics g, Rectangle2D bounds)
 		{
+			List result = null;
+			if (bounds != null) result = new ArrayList();
+
+			sz = getSize();
+			int wid = sz.width;
+			int hei = sz.height;
+
+			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
+			{
+				Signal ws = (Signal)it.next();
+				if (g != null) g.setColor(ws.color);
+				if (ws.sSig instanceof Simulation.SimAnalogSignal)
+				{
+					// draw analog trace
+					Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)ws.sSig;
+					int lx = 0, ly = 0;
+					int numEvents = as.getNumEvents();
+					for(int i=0; i<numEvents; i++)
+					{
+						double time = ws.sSig.getTime(i);
+						int x = scaleTimeToX(time);
+						int y = scaleValueToY(as.getValue(i));
+						if (i != 0)
+						{
+							if (processALine(g, lx, ly, x, y, bounds, result, ws)) break;
+						}
+						lx = x;   ly = y;
+					}
+					continue;
+				}
+				if (ws.sSig instanceof Simulation.SimDigitalSignal)
+				{
+					// draw digital traces
+					Simulation.SimDigitalSignal ds = (Simulation.SimDigitalSignal)ws.sSig;
+					List bussedSignals = ds.getBussedSignals();
+					if (bussedSignals != null)
+					{
+						// a digital bus trace
+						int busWidth = bussedSignals.size();
+						long curValue = 0;
+						double curTime = 0;
+						int lastX = VERTLABELWIDTH;
+						for(;;)
+						{
+							double nextTime = Double.MAX_VALUE;
+							int bit = 0;
+							boolean curDefined = true;
+							for(Iterator bIt = bussedSignals.iterator(); bIt.hasNext(); )
+							{
+								Simulation.SimDigitalSignal subDS = (Simulation.SimDigitalSignal)bIt.next();
+								int numEvents = subDS.getNumEvents();
+								boolean undefined = false;
+								for(int i=0; i<numEvents; i++)
+								{
+									double time = subDS.getTime(i);
+									if (time <= curTime)
+									{
+										switch (subDS.getState(i) & Simulation.SimData.LOGIC)
+										{
+											case Simulation.SimData.LOGIC_LOW:  curValue &= ~(1<<bit);   undefined = false;   break;
+											case Simulation.SimData.LOGIC_HIGH: curValue |= (1<<bit);    undefined = false;   break;
+											case Simulation.SimData.LOGIC_X:
+											case Simulation.SimData.LOGIC_Z: undefined = true;    break;
+										}
+									} else
+									{
+										if (time < nextTime) nextTime = time;
+										break;
+									}
+								}
+								if (undefined) { curDefined = false;   break; }
+								bit++;
+							}
+							int x = scaleTimeToX(curTime);
+							if (x >= VERTLABELWIDTH)
+							{
+								if (x < VERTLABELWIDTH+5)
+								{
+									// on the left edge: just draw the "<"
+									if (processALine(g, x, hei/2, x+5, hei-5, bounds, result, ws)) return result;
+									if (processALine(g, x, hei/2, x+5, 5, bounds, result, ws)) return result;
+								} else
+								{
+									// bus change point: draw the "X"
+									if (processALine(g, x-5, 5, x+5, hei-5, bounds, result, ws)) return result;
+									if (processALine(g, x+5, 5, x-5, hei-5, bounds, result, ws)) return result;
+								}
+								if (lastX+5 < x-5)
+								{
+									// previous bus change point: draw horizontal bars to connect
+									if (processALine(g, lastX+5, 5, x-5, 5, bounds, result, ws)) return result;
+									if (processALine(g, lastX+5, hei-5, x-5, hei-5, bounds, result, ws)) return result;
+								}
+								if (g != null)
+								{
+									String valString = "XX";
+									if (curDefined) valString = Long.toString(curValue);
+									g.setFont(waveWindowFont);
+									GlyphVector gv = waveWindowFont.createGlyphVector(waveWindowFRC, valString);
+									Rectangle2D glyphBounds = gv.getVisualBounds();
+									int textHei = (int)glyphBounds.getHeight();
+									g.drawString(valString, x+2, hei/2+textHei/2);
+								}
+							}
+							curTime = nextTime;
+							lastX = x;
+							if (nextTime == Double.MAX_VALUE) break;
+						}
+						if (lastX+5 < wid)
+						{
+							// run horizontal bars to the end
+							if (processALine(g, lastX+5, 5, wid, 5, bounds, result, ws)) return result;
+							if (processALine(g, lastX+5, hei-5, wid, hei-5, bounds, result, ws)) return result;
+						}
+						continue;
+					}
+
+					// a simple digital signal
+					int lastx = VERTLABELWIDTH;
+					int lastState = 0;
+					if (ds.getStateVector() == null) continue;
+					int numEvents = ds.getNumEvents();
+					for(int i=0; i<numEvents; i++)
+					{
+						double time = ds.getTime(i);
+						int x = scaleTimeToX(time);
+						int lowy = 0, highy = 0;
+						int state = ds.getState(i) & Simulation.SimData.LOGIC;
+						switch (state)
+						{
+							case Simulation.SimData.LOGIC_LOW:  lowy = highy = 5;            break;
+							case Simulation.SimData.LOGIC_HIGH: lowy = highy = hei-5;        break;
+							case Simulation.SimData.LOGIC_X:    lowy = 5;   highy = hei-5;   break;
+							case Simulation.SimData.LOGIC_Z:    lowy = 5;   highy = hei-5;   break;
+						}
+						if (i != 0)
+						{
+							if (state != lastState)
+							{
+								if (processALine(g, x, 5, x, hei-5, bounds, result, ws)) return result;
+							}
+						}
+						if (lowy == highy)
+						{
+							if (processALine(g, lastx, lowy, x, lowy, bounds, result, ws)) return result;
+						} else
+						{
+							if (processABox(g, lastx, lowy, x, highy, bounds, result, ws)) return result;
+						}
+						lastx = x;
+						lastState = state;
+					}
+				}
+			}
+			return result;
+		}
+
+		private boolean processABox(Graphics g, int lX, int lY, int hX, int hY, Rectangle2D bounds, List result, Signal ws)
+		{
+			if (bounds != null)
+			{
+				// do bounds checking for hit testing
+				if (hX > bounds.getMinX() && lX < bounds.getMaxX() && hY > bounds.getMinY() && lY < bounds.getMaxY())
+				{
+					result.add(ws);
+					return true;
+				}
+				return false;
+			}
+			g.fillRect(lX, lY, hX-lX, hY-lY);
+			return false;
+		}
+
+		private boolean processALine(Graphics g, int fX, int fY, int tX, int tY, Rectangle2D bounds, List result, Signal ws)
+		{
+			if (bounds != null)
+			{
+				// do bounds checking for hit testing
+				Point2D from = new Point2D.Double(fX, fY);
+				Point2D to = new Point2D.Double(tX, tY);
+				if (!GenMath.clipLine(from, to, bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(), bounds.getMaxY()))
+				{
+					result.add(ws);
+					return true;
+				}
+				return false;
+			}
+
 			// clip to left edge
 			if (fX < VERTLABELWIDTH || tX < VERTLABELWIDTH)
 			{
 				Point2D from = new Point2D.Double(fX, fY);
 				Point2D to = new Point2D.Double(tX, tY);
 				sz = getSize();
-				if (GenMath.clipLine(from, to, VERTLABELWIDTH, sz.width, 0, sz.height)) return;
+				if (GenMath.clipLine(from, to, VERTLABELWIDTH, sz.width, 0, sz.height)) return false;
 				fX = (int)from.getX();
 				fY = (int)from.getY();
 				tX = (int)to.getX();
@@ -985,7 +1041,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			g.drawLine(fX, fY, tX, tY);
 
 			// highlight the line if requested
-			if (highlighted)
+			if (ws.highlighted)
 			{
 				if (fX == tX)
 				{
@@ -1008,6 +1064,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 					g.drawLine(tX-xDelta, tY-yDelta, fX-xDelta, fY-yDelta);
 				}
 			}
+			return false;
 		}
 
 		/**
@@ -1092,36 +1149,8 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			double lYd = Math.max(lY, hY)+2;
 			if (lXd > hXd) { double swap = lXd;   lXd = hXd;   hXd = swap; }
 			if (lYd > hYd) { double swap = lYd;   lYd = hYd;   hYd = swap; }
-			List foundList = new ArrayList();
-			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
-			{
-				Signal ws = (Signal)it.next();
-				if (ws.sSig instanceof Simulation.SimAnalogSignal)
-				{
-					// search analog trace
-					Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)ws.sSig;
-					double lastXd = 0, lastYd = 0;
-					int numEvents = as.getNumEvents();
-					for(int i=0; i<numEvents; i++)
-					{
-						double time = ws.sSig.getTime(i);
-						double x = scaleTimeToX(time);
-						double y = scaleValueToY(as.getValue(i));
-						if (i != 0)
-						{
-							// should see if the line is in the area
-							Point2D from = new Point2D.Double(lastXd, lastYd);
-							Point2D to = new Point2D.Double(x, y);
-							if (!GenMath.clipLine(from, to, lXd, hXd, lYd, hYd))
-							{
-								foundList.add(ws);
-								break;
-							}
-						}
-						lastXd = x;   lastYd = y;
-					}
-				}
-			}
+			Rectangle2D bounds = new Rectangle2D.Double(lXd, lYd, hXd-lXd, hYd-lYd);
+			List foundList = processSignals(null, bounds);
 			return foundList;
 		}
 		
@@ -1593,21 +1622,25 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			WaveformWindow ww = op.getWaveformWindow();
 			Panel panel = op.getPanel();
 
+			// see if rearranging the waveform window
 			if (sigName.startsWith("PANEL "))
 			{
 				// rearranging signals and panels
 				int panelNumber = TextUtils.atoi(sigName.substring(6));
+				Panel sourcePanel = ww.getPanelFromNumber(panelNumber);
+				if (sourcePanel == panel)
+				{
+					// moved to same panel
+					dtde.dropComplete(false);
+					return;
+				}
+
+				// see if a signal button was grabbed
 				int sigPos = sigName.indexOf("BUTTON ");
 				if (!panel.isAnalog) sigPos = -1;
 				if (sigPos < 0)
 				{
-//					System.out.println("Moved panel "+panelNumber+" to panel "+panel.panelNumber);
-					Panel sourcePanel = ww.getPanelFromNumber(panelNumber);
-					if (sourcePanel == panel)
-					{
-						dtde.dropComplete(false);
-						return;
-					}
+					// moving the entire panel
 					ww.left.remove(sourcePanel.leftHalf);
 					ww.right.remove(sourcePanel.rightHalf);
 
@@ -1626,8 +1659,8 @@ public class WaveformWindow implements WindowContent, HighlightListener
 					return;
 				} else
 				{
+					// moving a signal (analog only)
 					String signalName = sigName.substring(sigPos + 7);
-					Panel sourcePanel = ww.getPanelFromNumber(panelNumber);
 					Simulation.SimSignal sSig = null;
 					Color oldColor = null;
 					for(Iterator it = sourcePanel.waveSignals.values().iterator(); it.hasNext(); )
@@ -1659,7 +1692,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				}
 			}
 
-			// dropped onto an existing panel
+			// not rearranging: dropped a signal onto a panel
 			Simulation.SimSignal sSig = ww.findSignal(sigName);
 			if (sSig == null)
 			{
@@ -1868,8 +1901,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			this.wavePanel = wavePanel;
 			this.sSig = sSig;
 			highlighted = false;
-			String sigName = sSig.getSignalName();
-			if (sSig.getSignalContext() != null) sigName = sSig.getSignalContext() + "." + sigName;
+			String sigName = sSig.getFullName();
 			if (wavePanel.isAnalog)
 			{
 				color = colorArray[sigNo % colorArray.length];
@@ -2495,18 +2527,13 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			{
 				Signal ws = (Signal)pIt.next();
 				Simulation.SimSignal ss = ws.sSig;
-				String oldSigName = "";
-				if (ss.getSignalContext() != null) oldSigName = ss.getSignalContext();
-				oldSigName += ss.getSignalName();
+				String oldSigName = ss.getFullName();
 				ws.sSig = null;
 				for(Iterator sIt = sd.getSignals().iterator(); sIt.hasNext(); )
 				{
 					Simulation.SimSignal newSs = (Simulation.SimSignal)sIt.next();
-					String newSigName = "";
-					if (newSs.getSignalContext() != null) newSigName = newSs.getSignalContext();
-					newSigName += newSs.getSignalName();
+					String newSigName = newSs.getFullName();
 					if (!newSigName.equals(oldSigName)) continue;
-//					newSs.setSignalColor(ss.getSignalColor());
 					ws.sSig = newSs;
 					break;
 				}
@@ -2643,9 +2670,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		for(Iterator it = sd.getSignals().iterator(); it.hasNext(); )
 		{
 			Simulation.SimSignal sSig = (Simulation.SimSignal)it.next();
-			String sigName = sSig.getSignalContext();
-			if (sigName == null) sigName = sSig.getSignalName(); else
-				sigName += sSig.getSignalName();
+			String sigName = sSig.getFullName();
 			if (sigName.equals(name)) return sSig;
 		}
 		return null;
@@ -2728,7 +2753,11 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				wp.repaint();
 			}
 		}
-		if (added) overall.validate();
+		if (added)
+		{
+			overall.validate();
+			saveSignalOrder();
+		}
 	}
 
 	/**
@@ -3386,8 +3415,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
 				{
 					Signal ws = (Signal)sIt.next();
-					String sigName = ws.sSig.getSignalName();
-					if (ws.sSig.getSignalContext() != null) sigName = ws.sSig.getSignalContext() + "." + sigName;
+					String sigName = ws.sSig.getFullName();
 					if (first) first = false; else
 						sb.append("\t");
 					sb.append(sigName);
@@ -3404,7 +3432,10 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				String [] strings = new String[signalList.size()];
 				int i = 0;
 				for(Iterator it = signalList.iterator(); it.hasNext(); )
-					strings[i++] = (String)it.next();
+				{
+					strings[i] = (String)it.next();
+					i++;
+				}
 				cell.newVar(WINDOW_SIGNAL_ORDER, strings);
 			}
 			return true;

@@ -36,7 +36,7 @@ import java.util.List;
 
 /**
  * Class for reading and displaying waveforms from Verilog output.
- * Thease are contained in .spo files.
+ * Thease are contained in .dump files.
  */
 public class VerilogOut extends Simulate
 {
@@ -63,10 +63,10 @@ public class VerilogOut extends Simulate
 		// open the file
 		if (openTextInput(fileURL)) return null;
 
-		// show progress reading .tr0 file
+		// show progress reading .dump file
 		startProgressDialog("Verilog output", fileURL.getFile());
 
-		// read the actual signal data from the .tr0 file
+		// read the actual signal data from the .dump file
 		Simulation.SimData sd = readVerilogFile(cell);
 
 		// stop progress dialog, close the file

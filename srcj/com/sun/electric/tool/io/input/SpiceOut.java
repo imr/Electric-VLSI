@@ -51,10 +51,10 @@ public class SpiceOut extends Simulate
 		// open the file
 		if (openTextInput(fileURL)) return null;
 
-		// show progress reading .tr0 file
+		// show progress reading .spo file
 		startProgressDialog("Spice output", fileURL.getFile());
 
-		// read the actual signal data from the .tr0 file
+		// read the actual signal data from the .spo file
 		Simulation.SimData sd = readSpiceFile(cell);
 
 		// stop progress dialog, close the file
@@ -70,24 +70,25 @@ public class SpiceOut extends Simulate
 	private Simulation.SimData readSpiceFile(Cell cell)
 		throws IOException
 	{
-		boolean datamode = false;
+		boolean dataMode = false;
 		boolean first = true;
-		boolean past_end = false;
-		String sim_spice_cellname = null;
+		boolean pastEnd = false;
+		String cellName = null;
 		int mostSignals = 0;
 		List allNumbers = new ArrayList();
 		for(;;)
 		{
 			String line = getLine();
 			if (line == null) break;
+
+			// make sure this isn't an HSPICE deck (check first line)
 			if (first)
 			{
-				// check the first line for HSPICE format possibility
 				first = false;
 				if (line.length() >= 20 && line.substring(16,20).equals("9007"))
 				{
 					System.out.println("This is an HSPICE file, not a SPICE2 file");
-					System.out.println("Change the SPICE format and reread");
+					System.out.println("Change the SPICE format (in Preferences) and reread");
 					return null;
 				}
 			}
@@ -95,11 +96,11 @@ public class SpiceOut extends Simulate
 			if (len < 2) continue;
 
 			// look for a cell name
-			if (sim_spice_cellname == null && line.startsWith(CELLNAME_HEADER))
-				sim_spice_cellname = line.substring(CELLNAME_HEADER.length());
+			if (cellName == null && line.startsWith(CELLNAME_HEADER))
+				cellName = line.substring(CELLNAME_HEADER.length());
 			if (line.startsWith(".END") && !line.startsWith(".ENDS"))
 			{
-				past_end = true;
+				pastEnd = true;
 				continue;
 			}
 			if (line.startsWith("#Time"))
@@ -132,23 +133,23 @@ public class SpiceOut extends Simulate
 //						(void)allocstring(&sim_spice_signames[i], sim_spice_printlist[i], sim_tool->cluster);
 //					}
 //				}
-				past_end = true;
+				pastEnd = true;
 				continue;
 			}
-			if (past_end && !datamode)
+			if (pastEnd && !dataMode)
 			{
 				if ((Character.isWhitespace(line.charAt(0)) || line.charAt(0) == '-') && Character.isDigit(line.charAt(1)))
-					datamode = true;
+					dataMode = true;
 			}
-			if (past_end && datamode)
+			if (pastEnd && dataMode)
 			{
 				if (!((Character.isWhitespace(line.charAt(0)) || line.charAt(0) == '-') && Character.isDigit(line.charAt(1))))
 				{
-					datamode = false;
-					past_end = false;
+					dataMode = false;
+					pastEnd = false;
 				}
 			}
-			if (datamode)
+			if (dataMode)
 			{
 				List numbers = new ArrayList();
 				int ptr = 0;

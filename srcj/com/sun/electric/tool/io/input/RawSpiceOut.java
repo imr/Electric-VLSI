@@ -47,10 +47,10 @@ public class RawSpiceOut extends Simulate
 		// open the file
 		if (openTextInput(fileURL)) return null;
 
-		// show progress reading .tr0 file
+		// show progress reading .raw file
 		startProgressDialog("Raw Spice output", fileURL.getFile());
 
-		// read the actual signal data from the .tr0 file
+		// read the actual signal data from the .raw file
 		Simulation.SimData sd = readRawFile(cell);
 
 		// stop progress dialog, close the file
@@ -65,7 +65,6 @@ public class RawSpiceOut extends Simulate
 		throws IOException
 	{
 		boolean first = true;
-//		List events = new ArrayList();
 		int numSignals = -1;
 		int eventCount = -1;
 		Simulation.SimData sd = new Simulation.SimData();
@@ -75,14 +74,15 @@ public class RawSpiceOut extends Simulate
 		{
 			String line = getLineFromSimulator();
 			if (line == null) break;
+
+			// make sure this isn't an HSPICE deck (check first line)
 			if (first)
 			{
-				// check the first line for HSPICE format possibility
 				first = false;
 				if (line.length() >= 20 && line.substring(16, 20).equals("9007"))
 				{
 					System.out.println("This is an HSPICE file, not a RAWFILE file");
-					System.out.println("Change the SPICE format and reread");
+					System.out.println("Change the SPICE format (in Preferences) and reread");
 					return null;
 				}
 			}
@@ -93,12 +93,10 @@ public class RawSpiceOut extends Simulate
 			String preColon = line.substring(0, colonPos);
 			String postColon = line.substring(colonPos+1).trim();
 
-			if (preColon.equals("Plotname"))
-			{
-//				if (sim_spice_cellname[0] == '\0')
-//					estrcpy(sim_spice_cellname, ptr);
-				continue;
-			}
+//			if (preColon.equals("Plotname"))
+//			{
+//				continue;
+//			}
 
 			if (preColon.equals("No. Variables"))
 			{

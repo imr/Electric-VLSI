@@ -261,6 +261,12 @@ public class Simulation extends Tool
 
 		public String getSignalContext() { return signalContext; }
 
+		public String getFullName()
+		{
+			if (signalContext != null) return signalContext + "." + signalName;
+			return signalName;
+		}
+
 		public int getNumEvents() { return 0; }
 
 		public void buildBussedSignalList() { bussedSignals = new ArrayList(); }
@@ -521,7 +527,7 @@ public class Simulation extends Tool
 						}
 						for(int j=0; j<sd.signals.size(); j++)
 						{
-							Simulation.SimSignal sSig= (Simulation.SimSignal)sd.signals.get(j);
+							Simulation.SimSignal sSig = (Simulation.SimSignal)sd.signals.get(j);
 							String aSigName = sSig.getSignalName();
 							if (sSig.getSignalContext() != null) aSigName = sSig.getSignalContext() + aSigName;
 							if (sigName.equals(aSigName))

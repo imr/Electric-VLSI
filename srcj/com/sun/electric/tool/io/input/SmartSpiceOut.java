@@ -36,8 +36,6 @@ import java.net.URL;
  */
 public class SmartSpiceOut extends Simulate
 {
-	private boolean eofReached;
-
 	SmartSpiceOut() {}
 
 	/**
@@ -49,10 +47,10 @@ public class SmartSpiceOut extends Simulate
 		// open the file
 		if (openBinaryInput(fileURL)) return null;
 
-		// show progress reading .tr0 file
+		// show progress reading .dump file
 		startProgressDialog("SmartSpice output", fileURL.getFile());
 
-		// read the actual signal data from the .tr0 file
+		// read the actual signal data from the .dump file
 		Simulation.SimData sd = readRawSmartSpiceFile(cell);
 
 		// stop progress dialog, close the file
@@ -67,23 +65,23 @@ public class SmartSpiceOut extends Simulate
 		throws IOException
 	{
 		boolean first = true;
-		String sim_spice_cellname = null;
-//		numend = NONUMBERS;
-		int sim_spice_signals = -1;
-		String [] sim_spice_signames;
-		int rowcount = -1;
+		int signalCount = -1;
+		Simulation.SimAnalogSignal [] allSignals = null;
+		int rowCount = -1;
+		Simulation.SimData sd = null;
 		for(;;)
 		{
 			String line = getLineFromBinary();
 			if (line == null) break;
+
+			// make sure this isn't an HSPICE deck (check first line)
 			if (first)
 			{
-				// check the first line for HSPICE format possibility
 				first = false;
 				if (line.length() >= 20 && line.substring(16,20).equals("9007"))
 				{
-					System.out.println("This is an HSPICE file, not a SPICE2 file");
-					System.out.println("Change the SPICE format and reread");
+					System.out.println("This is an HSPICE file, not a SMARTSPICE file");
+					System.out.println("Change the SPICE format (in Preferences) and reread");
 					return null;
 				}
 			}
@@ -94,33 +92,29 @@ public class SmartSpiceOut extends Simulate
 			String keyWord = line.substring(0, colonPos);
 			String restOfLine = line.substring(colonPos+1).trim();
 
-			if (keyWord.equals("Plotname"))
-			{
-				if (sim_spice_cellname == null) sim_spice_cellname = restOfLine;
-				continue;
-			}
-
 			if (keyWord.equals("No. Variables"))
 			{
-				sim_spice_signals = TextUtils.atoi(restOfLine) - 1;
+				signalCount = TextUtils.atoi(restOfLine) - 1;
 				continue;
 			}
 
 			if (keyWord.equals("No. Points"))
 			{
-				rowcount = TextUtils.atoi(restOfLine);
+				rowCount = TextUtils.atoi(restOfLine);
 				continue;
 			}
 
 			if (keyWord.equals("Variables"))
 			{
-				if (sim_spice_signals < 0)
+				if (signalCount < 0)
 				{
 					System.out.println("Missing variable count in file");
 					return null;
 				}
-				sim_spice_signames = new String[sim_spice_signals];
-				for(int i=0; i<=sim_spice_signals; i++)
+				sd = new Simulation.SimData();
+				sd.setCell(cell);
+				allSignals = new Simulation.SimAnalogSignal[signalCount];
+				for(int i=0; i<=signalCount; i++)
 				{
 					if (i != 0)
 					{
@@ -137,137 +131,102 @@ public class SmartSpiceOut extends Simulate
 					int nameEnd = nameStart;
 					while (nameEnd < restOfLine.length() && !Character.isWhitespace(restOfLine.charAt(nameEnd))) nameEnd++;
 					String name = restOfLine.substring(nameStart, nameEnd);
+					if (name.startsWith("v(") && name.endsWith(")"))
+					{
+						name = name.substring(2, name.length()-1);
+					}
 					if (i == 0)
 					{
 						if (!name.equals("time"))
 							System.out.println("Warning: the first variable should be time, is '" + name + "'");
 					} else
 					{
-						sim_spice_signames[i-1] = name;
+						Simulation.SimAnalogSignal as = new Simulation.SimAnalogSignal(sd);
+						as.setCommonTimeUse(true);
+						int lastDotPos = name.lastIndexOf('.');
+						if (lastDotPos >= 0)
+						{
+							as.setSignalContext(name.substring(0, lastDotPos));
+							as.setSignalName(name.substring(lastDotPos+1));
+						} else
+						{
+							as.setSignalName(name);
+						}
+						allSignals[i-1] = as;
 					}
 				}
 				continue;
 			}
-//			if (keyWord.equals("Values"))
-//			{
-//				if (sim_spice_signals < 0)
-//				{
-//					ttyputerr(_("Missing variable count in file"));
-//					return(-1);
-//				}
-//				if (rowcount < 0)
-//				{
-//					ttyputerr(_("Missing point count in file"));
-//					return(-1);
-//				}
-//				for(j=0; j<rowcount; j++)
-//				{
-//					num = sim_spice_allocnumbers(sim_spice_signals);
-//					if (num == NONUMBERS) return(-1);
-//					if (numend == NONUMBERS) sim_spice_numbers = num; else
-//						numend->nextnumbers = num;
-//					num->nextnumbers = NONUMBERS;
-//					numend = num;
-//
-//					if (sim_spice_filelen > 0)
-//						DiaSetProgress(dia, sim_spice_filepos, sim_spice_filelen);
-//
-//					for(i=0; i<=sim_spice_signals; i++)
-//					{
-//						if (stopping(STOPREASONSPICE)) return(-1);
-//						if (sim_spice_getlinefromsimulator(line))
-//						{
-//							ttyputerr(_("Error: end of file during data points (read %ld out of %ld)"),
-//								j, rowcount);
-//							return(-1);
-//						}
-//						ptr = line;
-//						if (i == 0)
-//						{
-//							if (myatoi(line) != j)
-//								ttyputerr(_("Warning: data point %ld has number %ld"),
-//									j, myatoi(line));
-//							while(*ptr != 0 && *ptr != ' ' && *ptr != '\t') ptr++;
-//						}
-//						while (*ptr == ' ' || *ptr == '\t') ptr++;
-//						if (i == 0) num->time = eatof(ptr); else
-//							num->list[i-1] = (float)eatof(ptr);
-//					}
-//				}
-//			}
-//			if (keyWord.equals("Binary"))
-//			{
-//				if (sim_spice_signals < 0)
-//				{
-//					System.out.println("Missing variable count in file");
-//					return null;
-//				}
-//				if (rowcount < 0)
-//				{
-//					System.out.println("Missing point count in file");
-//					return null;
-//				}
-//				double [] inputbuffer = new double[sim_spice_signals];
-//
-//				// read the data
-//				for(int j=0; j<rowcount; j++)
-//				{
-//					num = sim_spice_allocnumbers(sim_spice_signals);
-//					if (num == NONUMBERS) return(-1);
-//					if (numend == NONUMBERS) sim_spice_numbers = num; else
-//						numend->nextnumbers = num;
-//					num->nextnumbers = NONUMBERS;
-//					numend = num;
-//
-//					i = xfread((UCHAR1 *)(&num->time), sizeof(double), 1, sim_spice_streamfromsim);
-//					if (i != 1)
-//					{
-//						System.out.println("Error: end of file during data points (read %ld out of %ld)"),
-//							j, rowcount);
-//						return(-1);
-//					}
-//#ifdef WIN32
-//					num->time = sim_spice_swapendian(num->time);
-//					if (_finite(num->time) == 0) num->time = 0.0;
-//#endif
-//					i = xfread((UCHAR1 *)inputbuffer, sizeof(double), sim_spice_signals, sim_spice_streamfromsim);
-//					if (i != sim_spice_signals)
-//					{
-//						System.out.println("Error: end of file during data points (read only %ld of %ld signals on row %ld out of %ld)"),
-//							i, sim_spice_signals, j, rowcount);
-//						return(-1);
-//					}
-//					for(i=0; i<sim_spice_signals; i++)
-//					{
-//#if defined(_BSD_SOURCE) || defined(_GNU_SOURCE)
-//						if (isinf(inputbuffer[i]) != 0) inputbuffer[i] = 0.0; else
-//							if (isnan(inputbuffer[i]) != 0) inputbuffer[i] = 0.0;
-//#endif
-//#ifdef WIN32
-//						// convert to little-endian
-//						inputbuffer[i] = sim_spice_swapendian(inputbuffer[i]);
-//						if (_finite(inputbuffer[i]) == 0) inputbuffer[i] = 0.0;
-//#endif
-//						num->list[i] = (float)inputbuffer[i];
-//					}
-//				}
-//				efree((CHAR *)inputbuffer);
-//			}
+			if (keyWord.equals("Values"))
+			{
+				if (signalCount < 0)
+				{
+					System.out.println("Missing variable count in file");
+					return null;
+				}
+				if (rowCount < 0)
+				{
+					System.out.println("Missing point count in file");
+					return null;
+				}
+				sd.buildCommonTime(rowCount);
+				for(int i=0; i<signalCount; i++)
+					allSignals[i].buildValues(rowCount);
+				double [] timeValues = new double[rowCount];
+
+				// read the data
+				for(int j=0; j<rowCount; j++)
+				{
+					line = getLineFromBinary();
+					if (line == null) break;
+					if (TextUtils.atoi(line) != j)
+					{
+						System.out.println("Warning: data point " + j + " has number " + TextUtils.atoi(line));
+					}
+					int spacePos = line.indexOf(' ');
+					if (spacePos >= 0) line = line.substring(spacePos+1);
+					double time = TextUtils.atof(line.trim());
+					sd.setCommonTime(j, time);
+
+					for(int i=0; i<signalCount; i++)
+					{
+						line = getLineFromBinary();
+						if (line == null) break;
+						double value = TextUtils.atof(line.trim());
+						allSignals[i].setValue(j, value);
+					}
+				}
+			}
+			if (keyWord.equals("Binary"))
+			{
+				if (signalCount < 0)
+				{
+					System.out.println("Missing variable count in file");
+					return null;
+				}
+				if (rowCount < 0)
+				{
+					System.out.println("Missing point count in file");
+					return null;
+				}
+				sd.buildCommonTime(rowCount);
+				for(int i=0; i<signalCount; i++)
+					allSignals[i].buildValues(rowCount);
+				double [] timeValues = new double[rowCount];
+
+				// read the data
+				for(int j=0; j<rowCount; j++)
+				{
+					double time = dataInputStream.readDouble();
+					sd.setCommonTime(j, time);
+					for(int i=0; i<signalCount; i++)
+					{
+						double value = dataInputStream.readDouble();
+						allSignals[i].setValue(j, value);
+					}
+				}
+			}
 		}
-//
-//		if (sim_spice_signals > 0)
-//		{
-//			sim_spice_sigtypes = (INTSML *)emalloc(sim_spice_signals * SIZEOFINTSML, sim_tool->cluster);
-//			if (sim_spice_sigtypes == 0) return(-1);
-//		}
-//		return(sim_spice_signals);
-
-//		SimData sd = new SimData();
-//		sd.setCell(cell);
-//		sd.signalNames = sim_spice_signames;
-//		sd.events = sim_spice_numbers;
-		System.out.println("CANNOT READ SMARTSPICE RAW OUTPUT YET");
-		return null;
+		return sd;
 	}
-
 }

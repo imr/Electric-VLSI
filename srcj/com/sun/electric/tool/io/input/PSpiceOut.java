@@ -31,7 +31,7 @@ import java.net.URL;
 
 /**
  * Class for reading and displaying waveforms from PSpice and Spice3 output.
- * Thease are contained in .tr0 and .pa0 files.
+ * Thease are contained in .spo files.
  */
 public class PSpiceOut extends Simulate
 {
@@ -45,24 +45,13 @@ public class PSpiceOut extends Simulate
 	protected Simulation.SimData readSimulationOutput(URL fileURL, Cell cell)
 		throws IOException
 	{
-		// this test code locks the file:
-//		InputStream stream = TextUtils.getURLStream(fileURL);
-//		if (stream == null) return null;
-//		try
-//		{
-//			java.net.URLConnection urlCon = fileURL.openConnection();
-//			fileLength = urlCon.getContentLength();
-//			stream.close();
-//		} catch (IOException e) {}
-//		return null;
-
 		// open the file
 		if (openBinaryInput(fileURL)) return null;
 
-		// show progress reading .tr0 file
+		// show progress reading .spo file
 		startProgressDialog("PSpice output", fileURL.getFile());
 
-		// read the actual signal data from the .tr0 file
+		// read the actual signal data from the .spo file
 		Simulation.SimData sd = readPSpiceFile(cell);
 
 		// stop progress dialog, close the file

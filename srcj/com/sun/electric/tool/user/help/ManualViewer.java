@@ -24,9 +24,11 @@
 
 package com.sun.electric.tool.user.help;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -36,13 +38,18 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowAdapter;
 import java.io.PrintWriter;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -52,6 +59,7 @@ import javax.swing.JPanel;
 import javax.swing.JButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTextArea;
 import javax.swing.JTree;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
@@ -67,8 +75,6 @@ import javax.swing.tree.TreeSelectionModel;
  */
 public class ManualViewer extends EDialog
 {
-	private static final boolean ADVANCED = false;
-
 	private static class PageInfo
 	{
 		String title;
@@ -271,6 +277,7 @@ public class ManualViewer extends EDialog
 		if (index >= pageSequence.size()) index = 0;
 		loadPage(index);
 	}
+
 	/**
 	 * Method to generate a single HTML file with the entire manual.
 	 * This is an advanced function that is not available to users.
@@ -380,9 +387,103 @@ public class ManualViewer extends EDialog
 	 */
 	private void edit()
 	{
-		System.out.println("Cannot");
+		PageInfo pi = (PageInfo)pageSequence.get(currentIndex);
+		EditHTML dialog = new EditHTML(TopLevel.getCurrentJFrame(), pi.url, this);
+		dialog.setVisible(true);
 	}
 
+	private static class EditHTML extends EDialog
+	{
+		private JTextArea textArea;
+		private URL file;
+		private ManualViewer world;
+
+		private EditHTML(java.awt.Frame parent, URL file, ManualViewer world)
+		{
+			super(parent, true);
+			this.file = file;
+			this.world = world;
+			getContentPane().setLayout(new GridBagLayout());
+
+			setTitle("Edit HTML");
+			setName("");
+			addWindowListener(new WindowAdapter()
+			{
+				public void windowClosing(WindowEvent evt) { closeDialog(evt); }
+			});
+
+			textArea = new JTextArea();
+			JScrollPane scrollPane = new JScrollPane(textArea);
+			GridBagConstraints gridBagConstraints = new GridBagConstraints();
+			gridBagConstraints.gridx = 0;
+			gridBagConstraints.gridy = 0;
+			gridBagConstraints.weightx = 1;
+			gridBagConstraints.weighty = 1;
+			gridBagConstraints.anchor = GridBagConstraints.CENTER;
+			gridBagConstraints.fill = GridBagConstraints.BOTH;
+			gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(scrollPane, gridBagConstraints);
+
+			try
+			{
+				URLConnection con = file.openConnection();
+				int length = con.getContentLength();
+				InputStream stream = con.getInputStream();
+				InputStreamReader is = new InputStreamReader(stream);
+				char [] buf = new char[length];
+				is.read(buf, 0, length);
+				stream.close();
+				textArea.setText(new String(buf));
+			} catch (IOException e)
+			{
+				System.out.println("Could not find file: " + file.getFile());
+				return;
+			}
+
+			pack();
+		}
+
+		private void closeDialog(WindowEvent evt)
+		{
+			String fileName = file.getFile();
+			try
+			{
+				PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
+				printWriter.print(textArea.getText());
+				printWriter.close();
+			} catch (IOException e)
+			{
+				System.out.println("Could not save file: " + fileName);
+				return;
+			}
+
+			/*
+			 * Because Eclipse keeps class files in a separate directory,
+			 * the file that is being displayed is only a cache of the real one.
+			 * The real one is missing the "/bin/" part.
+			 */
+			int binPos = fileName.indexOf("/bin/");
+			if (binPos >= 0)
+			{
+				fileName = fileName.substring(0, binPos) + fileName.substring(binPos+4);
+				try
+				{
+					PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
+					printWriter.print(textArea.getText());
+					printWriter.close();
+					System.out.println("Also saved to "+fileName);
+				} catch (IOException e)
+				{
+					System.out.println("Could not also save file: " + fileName);
+					return;
+				}
+			}
+
+			setVisible(false);
+			dispose();
+			world.loadPage(currentIndex);
+		}
+	}
 	private static class Hyperactive implements HyperlinkListener
 	{
 		private ManualViewer dialog;
@@ -447,52 +548,55 @@ public class ManualViewer extends EDialog
 		
 		// the left side of the options dialog: a tree
 		JPanel leftHalf = new JPanel();
-		leftHalf.setLayout(new java.awt.GridBagLayout());
-		gbc = new java.awt.GridBagConstraints();
+		leftHalf.setLayout(new GridBagLayout());
+		gbc = new GridBagConstraints();
 		gbc.gridx = 0;      gbc.gridy = 0;
 		gbc.gridwidth = 2;  gbc.gridheight = 1;
-		gbc.fill = java.awt.GridBagConstraints.BOTH;
+		gbc.fill = GridBagConstraints.BOTH;
 		gbc.weightx = 1.0;  gbc.weighty = 1.0;
 		gbc.insets = new java.awt.Insets(0, 4, 4, 4);
 		leftHalf.add(scrolledTree, gbc);
 		 
 		// forward and backward buttons at the bottom of the left side
 		JButton backButton = new JButton("Prev");
-		gbc = new java.awt.GridBagConstraints();
+		gbc = new GridBagConstraints();
 		gbc.gridx = 0;      gbc.gridy = 1;
 		gbc.gridwidth = 1;  gbc.gridheight = 1;
 		gbc.insets = new java.awt.Insets(0, 4, 4, 4);
+		gbc.anchor = GridBagConstraints.CENTER;
 		leftHalf.add(backButton, gbc);
 		backButton.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { prev(); }
 		});
 		JButton foreButton = new JButton("Next");
-		gbc = new java.awt.GridBagConstraints();
+		gbc = new GridBagConstraints();
 		gbc.gridx = 1;      gbc.gridy = 1;
 		gbc.gridwidth = 1;  gbc.gridheight = 1;
 		gbc.insets = new java.awt.Insets(0, 4, 4, 4);
+		gbc.anchor = GridBagConstraints.CENTER;
 		leftHalf.add(foreButton, gbc);
 		foreButton.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { next(); }
 		});
 
-		if (ADVANCED)
+		if (Main.getDebug())
 		{
 			// manual and edit buttons at the bottom of the left side
 			JButton manualButton = new JButton("Manual");
-			gbc = new java.awt.GridBagConstraints();
+			gbc = new GridBagConstraints();
 			gbc.gridx = 0;      gbc.gridy = 2;
 			gbc.gridwidth = 1;  gbc.gridheight = 1;
 			gbc.insets = new java.awt.Insets(0, 4, 4, 4);
+			gbc.anchor = GridBagConstraints.CENTER;
 			leftHalf.add(manualButton, gbc);
 			manualButton.addActionListener(new ActionListener()
 			{
 				public void actionPerformed(ActionEvent evt) { manual(); }
 			});
 			JButton editButton = new JButton("Edit");
-			gbc = new java.awt.GridBagConstraints();
+			gbc = new GridBagConstraints();
 			gbc.gridx = 1;      gbc.gridy = 2;
 			gbc.gridwidth = 1;  gbc.gridheight = 1;
 			gbc.insets = new java.awt.Insets(0, 4, 4, 4);
@@ -518,17 +622,17 @@ public class ManualViewer extends EDialog
 		splitPane.setLeftComponent(leftHalf);
 		splitPane.setRightComponent(rightHalf);
 		splitPane.setDividerLocation(200);
-		gbc = new java.awt.GridBagConstraints();
+		gbc = new GridBagConstraints();
 		gbc.gridx = 0;      gbc.gridy = 0;
 		gbc.gridwidth = 1;  gbc.gridheight = 1;
-		gbc.fill = java.awt.GridBagConstraints.BOTH;
+		gbc.fill = GridBagConstraints.BOTH;
 		gbc.weightx = 1.0;  gbc.weighty = 1.0;
 		getContentPane().add(splitPane, gbc);
 		
 		// close of dialog event
-		addWindowListener(new java.awt.event.WindowAdapter()
+		addWindowListener(new WindowAdapter()
 		{
-		    public void windowClosing(java.awt.event.WindowEvent evt) { closeDialog(evt); }
+		    public void windowClosing(WindowEvent evt) { closeDialog(evt); }
 		});
 		
 		pack();
@@ -595,7 +699,7 @@ public class ManualViewer extends EDialog
 		}
 	}
 
-    private void closeDialog(java.awt.event.WindowEvent evt)
+    private void closeDialog(WindowEvent evt)
     {
         setVisible(false);
         dispose();
