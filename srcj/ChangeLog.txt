@@ -2,7 +2,13 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.01w: *********************************
+
+
 ************************* Version 8.01v: *********************************
+
+FIX (9/21/04, JKG+GVG) Fix for checking export type on ERC well network.
+     Don't check if well networks are not connected together; NCC will check that
 
 IMP/MAN: (9/21/04, SMR) Added "Down Hierarchy In Place".
 
