@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01aw: *********************************
 
+BUG: (12/14/04, SMR) Duplicating a PMOS schematic transistor creates one named "nmos@xx" (Bug #115)
+FIX: In Clipboard.copyListToCell(), create nodes with the proper "tech specific" value.
+
 BUG: (12/14/04, SMR) Spice netlister does not use "vdd" or "gnd" when power and ground nodes are present (Bug #112).
 FIX: In Spice.getPowerName and getGroundName(), favor "vdd" and "gnd" if the names exist.
 

@@ -287,7 +287,7 @@ public class Clipboard
         public boolean doIt()
         {
             // get objects to copy
-             if (highlights.size() == 0)
+            if (highlights.size() == 0)
             {
                 System.out.println("First select objects to copy");
                 return false;
@@ -614,7 +614,7 @@ public class Clipboard
 				name = ElectricObject.uniqueObjectName(ni.getName(), toCell, NodeInst.class);
 			NodeInst newNi = NodeInst.newInstance(ni.getProto(),
 				new Point2D.Double(ni.getAnchorCenterX()+dX, ni.getAnchorCenterY()+dY),
-					width, height, toCell, ni.getAngle(), name, 0);
+					width, height, toCell, ni.getAngle(), name, ni.getTechSpecific());
 			if (newNi == null)
 			{
 				System.out.println("Cannot create node");

@@ -143,7 +143,7 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.writeTextCell(); }});
 		exportSubMenu.addMenuItem("PostScript...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.POSTSCRIPT, false); } });
-	    exportSubMenu.addMenuItem("PNG (Portable Network Graphics)", null,
+	    exportSubMenu.addMenuItem("PNG (Portable Network Graphics)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.PNG, false); } });
 		exportSubMenu.addMenuItem("DXF (AutoCAD)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.DXF, false); } });
