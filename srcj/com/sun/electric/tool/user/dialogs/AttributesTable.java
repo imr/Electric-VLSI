@@ -16,10 +16,9 @@ import com.sun.electric.Main;
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableCellEditor;
+import java.util.*;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Collections;
 import java.awt.*;
 import java.awt.geom.Point2D;
 import java.awt.event.*;
@@ -40,10 +39,66 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
         private boolean showCode = true;
         private boolean showDispPos = false;
         private boolean showUnits = false;
+        private List varsToDelete;
+
+        private static class VarEntry {
+            private String varTrueName;
+            private Variable.Key varKey;
+            private Object value;
+            private Variable.Code code;
+            private TextDescriptor.DispPos dispPos;
+            private TextDescriptor.Unit units;
+            private boolean display;
+            private ElectricObject owner;
+            // if var is null, this means create a new var
+            // if any of the above values are different from the original (below) var's value, modify
+            // if this is in the varsToDelete list, delete it
+            private Variable var;
+
+            private VarEntry(Variable var) {
+                this.var = var;
+                if (var == null) return;
+
+                varTrueName = var.getTrueName();
+                varKey = var.getKey();
+                value = var.getObject();
+                code = var.getCode();
+                TextDescriptor td = var.getTextDescriptor();
+                dispPos = td.getDispPart();
+                units = td.getUnit();
+                display = var.isDisplay();
+                owner = var.getOwner();
+            }
+
+            private String getName() { return varTrueName; }
+            private Object getObject() { return value; }
+            private Variable.Code getCode() { return code; }
+            private TextDescriptor.DispPos getDispPos() { return dispPos; }
+            private TextDescriptor.Unit getUnits() { return units; }
+            private boolean isDisplay() { return display; }
+            private ElectricObject getOwner() { return owner; }
+            private Variable.Key getKey() { return varKey; }
+        }
+
+        /**
+         * Class to sort Variables by name.
+         */
+        public static class VarEntrySort implements Comparator
+        {
+            public int compare(Object o1, Object o2)
+            {
+                VarEntry v1 = (VarEntry)o1;
+                VarEntry v2 = (VarEntry)o2;
+                String s1 = v1.getName();
+                String s2 = v2.getName();
+                return s1.compareToIgnoreCase(s2);
+            }
+        }
 
         // constructor
         private VariableTableModel(boolean showCode, boolean showDispPos, boolean showUnits) {
             vars = new ArrayList();
+            varsToDelete = new ArrayList();
             this.showCode = showCode;
             this.showDispPos = showDispPos;
             this.showUnits = showUnits;
@@ -83,48 +138,32 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
             return c;
         }
 
-        /** Get the variable at the designated row number */
-        private Variable getVarAtRow(int row) {
-            if (row < 0) return null;
-            if (row > (vars.size()-1)) return null;
-            return (Variable)vars.get(row);
-        }
-
         /** Get object at location in table */
         public Object getValueAt(int rowIndex, int columnIndex) {
 
             // order: name, value
-            Variable var = (Variable)vars.get(rowIndex);
+            VarEntry ve = (VarEntry)vars.get(rowIndex);
 
-            if (var == null) return null;
+            if (ve == null) return null;
 
             if (columnIndex == 0) {
                 // name
-                if (DEBUG) return var.getKey().getName();
-                return var.getTrueName();
+                return ve.getName();
             }
             if (columnIndex == 1) {
                 // value
-                return var.getObject().toString();
+                return ve.getObject().toString();
             }
-
             if (columnIndex == getCodeColumn()) {
-                return var.getCode();
+                return ve.getCode();
             }
-
             if (columnIndex == getDispColumn()) {
-                TextDescriptor td = var.getTextDescriptor();
-                if (!var.isDisplay()) return displaynone;
-                if (td == null) return null;
-                return td.getDispPart();
+                if (!ve.isDisplay()) return displaynone;
+                return ve.getDispPos();
             }
-
             if (columnIndex == getUnitsColumn()) {
-                TextDescriptor td = var.getTextDescriptor();
-                if (td == null) return null;
-                return td.getUnit();
+                return ve.getUnits();
             }
-
             return null;
         }
 
@@ -146,46 +185,42 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
 
         /** Set a value */
         public void setValueAt(Object aValue, int row, int col) {
-            Variable var = (Variable)vars.get(row);
-            ElectricObject owner = var.getOwner();
-            if (var == null) return;
+            VarEntry ve = (VarEntry)vars.get(row);
+            ElectricObject owner = ve.getOwner();
+            if (ve == null) return;
             if (owner == null) return;
-            TextDescriptor td = var.getTextDescriptor();
 
             if (col == 0) return;                   // can't change var name
 
             if (col == 1) {
-                if (!aValue.toString().equals(var.getObject().toString())) {
-                    VarChange job = new VarChange(var, owner, var.getCode(), td.getDispPart(), td.getUnit(),
-                            aValue, var.isDisplay());
-                    //fireTableCellUpdated(row, col);
+                if (!aValue.toString().equals(ve.getObject().toString())) {
+                    ve.value = aValue;
+                    fireTableCellUpdated(row, col);
                 }
                 return;
             }
 
             if (col == getCodeColumn()) {
                 Variable.Code newCode = (Variable.Code)aValue;
-                if (newCode != var.getCode()) {
-                    VarChange job = new VarChange(var, owner, newCode, td.getDispPart(), td.getUnit(),
-                            var.getObject(), var.isDisplay());
-                    //fireTableCellUpdated(row, col);
+                if (newCode != ve.getCode()) {
+                    ve.code = newCode;
+                    fireTableCellUpdated(row, col);
                 }
                 return;
             }
 
             if (col == getDispColumn()) {
                 if (aValue == displaynone) {
-                    if (var.isDisplay()) {
-                        VarChange job = new VarChange(var, owner, var.getCode(), td.getDispPart(), td.getUnit(),
-                                var.getObject(), false);
-                        //fireTableCellUpdated(row, col);
+                    if (ve.isDisplay()) {
+                        ve.display = false;
+                        fireTableCellUpdated(row, col);
                     }
                 } else {
                     TextDescriptor.DispPos newDispPos = (TextDescriptor.DispPos)aValue;
-                    if ((newDispPos != td.getDispPart()) || !var.isDisplay()) {
-                        VarChange job = new VarChange(var, owner, var.getCode(), newDispPos, td.getUnit(),
-                                var.getObject(), true);
-                        //fireTableCellUpdated(row, col);
+                    if ((newDispPos != ve.getDispPos()) || !ve.isDisplay()) {
+                        ve.dispPos = newDispPos;
+                        ve.display = true;
+                        fireTableCellUpdated(row, col);
                     }
                 }
                 return;
@@ -193,10 +228,9 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
 
             if (col == getUnitsColumn()) {
                 TextDescriptor.Unit newUnit = (TextDescriptor.Unit)aValue;
-                if (newUnit != td.getUnit()) {
-                    VarChange job = new VarChange(var, owner, var.getCode(), td.getDispPart(), newUnit,
-                            var.getObject(), var.isDisplay());
-                    //fireTableCellUpdated(row, col);
+                if (newUnit != ve.getUnits()) {
+                    ve.units = newUnit;
+                    fireTableCellUpdated(row, col);
                 }
                 return;
             }
@@ -208,21 +242,26 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
          */
         private void setVars(List variables) {
             vars.clear();
+            varsToDelete.clear();
+            // sort by name
             for (Iterator it = variables.iterator(); it.hasNext(); ) {
                 Variable var = (Variable)it.next();                 // do cast here to catch source of non-var in list
-                vars.add(var);
+                vars.add(new VarEntry(var));
             }
+            Collections.sort(vars, new VarEntrySort());
             fireTableDataChanged();
         }
 
         /** Add a variable to be displayed in the Table */
         private void addVariable(Variable var) {
-            vars.add(var);
+            vars.add(new VarEntry(var));
+            Collections.sort(vars, new VarEntrySort());
             fireTableDataChanged();
         }
 
         private void clearVariables() {
             vars.clear();
+            varsToDelete.clear();
             fireTableDataChanged();
         }
 
@@ -250,7 +289,175 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
             this.showUnits = showUnits;
             fireTableStructureChanged();
         }
-    }
+
+        /**
+         * Create a new var with default properties
+         */
+        public void newVar(ElectricObject owner) {
+            VarEntry ve = new VarEntry(null);
+            ve.var = null;
+            ve.varKey = null;
+            ve.varTrueName = getUniqueName("newVar");
+            ve.value = "?";
+            ve.code = Variable.Code.NONE;
+            ve.dispPos = TextDescriptor.DispPos.NAMEVALUE;
+            ve.units = TextDescriptor.Unit.NONE;
+            ve.display = true;
+            ve.owner = owner;
+
+            vars.add(ve);
+            Collections.sort(vars, new VarEntrySort());
+            fireTableDataChanged();
+        }
+
+        /**
+         * Duplicate the variable in the specified row
+         * @param row the row containing the var to duplicate
+         */
+        public void duplicateVar(int row) {
+            if (row >= vars.size()) {
+                JOptionPane.showMessageDialog(null, "Please select an attribute to duplicate",
+                        "Invalid Action", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            VarEntry srcVe = (VarEntry)vars.get(row);
+
+            VarEntry ve = new VarEntry(null);
+            ve.var = null;
+            ve.varKey = null;
+            ve.varTrueName = getUniqueName(srcVe.getName());
+            ve.value = srcVe.getObject();
+            ve.code = srcVe.getCode();
+            ve.dispPos = srcVe.getDispPos();
+            ve.units = srcVe.getUnits();
+            ve.display = srcVe.isDisplay();
+            ve.owner = srcVe.getOwner();
+
+            vars.add(ve);
+            Collections.sort(vars, new VarEntrySort());
+            fireTableDataChanged();
+        }
+
+        /**
+         * Delete the var in the specified row
+         * @param row the row containing the var to delete
+         */
+        public void deleteVar(int row) {
+            if (row >= vars.size()) {
+                JOptionPane.showMessageDialog(null, "Please select an attribute to delete",
+                        "Invalid Action", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            VarEntry ve = (VarEntry)vars.remove(row);
+            varsToDelete.add(ve);
+            fireTableDataChanged();
+        }
+
+        /**
+         * Apply all new/delete/duplicate/modify changes
+         */
+        public void applyChanges() {
+            ApplyChanges job = new ApplyChanges(new ArrayList(vars), new ArrayList(varsToDelete));
+        }
+
+        /**
+         * Cancel all changes
+         */
+        public void cancelChanges() {
+
+        }
+
+        private String getUniqueName(String name) {
+            boolean nameConflict = true;
+            String newName = name;
+            int i = 0;
+            while (nameConflict) {
+                nameConflict = false;
+                i++;
+                for (Iterator it = vars.iterator(); it.hasNext(); ) {
+                    VarEntry ve = (VarEntry)it.next();
+                    if (newName.equals(ve.getName())) {
+                        nameConflict = true;
+                        newName = name + "_" + i;
+                        break;
+                    }
+                }
+            }
+            return newName;
+        }
+
+        private static class ApplyChanges extends Job {
+            private List varEntries;
+            private List varEntriesToDelete;
+
+            private ApplyChanges(List varEntries, List varEntriesToDelete) {
+                super("Apply Attribute Changes", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+                this.varEntries = varEntries;
+                this.varEntriesToDelete = varEntriesToDelete;
+                startJob();
+            }
+
+            public boolean doIt() {
+                // delete vars first
+                for (Iterator it = varEntriesToDelete.iterator(); it.hasNext(); ) {
+                    VarEntry ve = (VarEntry)it.next();
+                    Variable var = ve.var;
+                    if (var == null) continue;
+                    ElectricObject owner = var.getOwner();
+                    owner.delVar(var.getKey());
+                }
+
+                for (Iterator it = varEntries.iterator(); it.hasNext(); ) {
+                    VarEntry ve = (VarEntry)it.next();
+                    Variable var = ve.var;
+                    ElectricObject owner = ve.getOwner();
+                    Variable newVar = null;
+
+                    if (var == null) {
+                        // this is a new var
+                        String name = ve.getName();
+                        if (!name.startsWith("ATTR_") && !name.startsWith("ATTRP_")) {
+                            name = "ATTR_"+name;
+                        }
+
+                        newVar = owner.newVar(name, ve.getObject());
+                        ve.var = newVar;
+                    } else {
+                        if (!varChanged(ve)) continue;
+                        // update var
+                        newVar = owner.updateVar(ve.getKey(), ve.getObject());
+                        ve.var = newVar;
+                    }
+
+                    if (newVar != null) {
+                        // set/update properties
+                        newVar.setCode(ve.getCode());
+                        TextDescriptor td = newVar.getTextDescriptor();
+                        td.setDispPart(ve.getDispPos());
+                        td.setUnit(ve.getUnits());
+                        newVar.setDisplay(ve.isDisplay());
+                    }
+                }
+                return true;
+            }
+
+            private boolean varChanged(VarEntry ve) {
+                Variable var = ve.var;
+                if (var == null) return true;
+
+                if (!ve.varTrueName.equals(var.getKey().getName())) return true;
+                if (ve.getObject() != var.getObject()) return true;
+                if (ve.getCode() != var.getCode()) return true;
+                if (ve.isDisplay() != var.isDisplay()) return true;
+                TextDescriptor td = var.getTextDescriptor();
+                if (td == null) return false;
+                if (ve.getDispPos() != td.getDispPart()) return true;
+                if (ve.getUnits() != td.getUnit()) return true;
+                return false;
+            }
+        } // end class ApplyChanges
+
+    } // end class VariableTableModel
 
     // ----------------------------------------------------------------
 
@@ -277,7 +484,6 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
         setModel(model);
 
         initComboBoxes();
-        //initPopupMenu();
 
         // set up combo box editors
         if (showCode) {
@@ -384,36 +590,8 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
      * Create a new Variable
      */
     private void newVar() {
-        // create the new var with basic defaults
-        newVar("newVar", "?", Variable.Code.NONE, TextDescriptor.DispPos.NAMEVALUE, TextDescriptor.Unit.NONE);
-    }
-
-    /**
-     * Create a new Variable
-     * @param name
-     * @param value
-     * @param code
-     * @param dispPos
-     * @param units
-     */
-    private void newVar(String name, Object value, Variable.Code code,
-                        TextDescriptor.DispPos dispPos, TextDescriptor.Unit units) {
-        if (owner == null) {
-            System.out.println("No object specified on which to create Variable");
-            return;
-        }
-        if (!name.startsWith("ATTR_")) name = "ATTR_" + name;
-        CreateAttribute job = new CreateAttribute(name, value, owner, code, dispPos, units);
-    }
-
-    /**
-     * Edit the cell at location location
-     * @param location
-     */
-    private void editCell(Point location) {
-        int row = rowAtPoint(location);
-        int col = columnAtPoint(location);
-        editCellAt(row, col);
+        VariableTableModel model = (VariableTableModel)getModel();
+        model.newVar(owner);
     }
 
     /**
@@ -423,14 +601,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
     private void duplicateVar(Point location) {
         int row = rowAtPoint(location);
         VariableTableModel model = (VariableTableModel)getModel();
-        Variable var = model.getVarAtRow(row);
-        if (var == null) {
-            JOptionPane.showMessageDialog(null, "Please select an attribute to duplicate",
-                    "Invalid Action", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        TextDescriptor td = var.getTextDescriptor();
-        newVar(var.getTrueName(), var.getObject(), var.getCode(), td.getDispPart(), td.getUnit());
+        model.duplicateVar(row);
     }
 
     /**
@@ -440,19 +611,37 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
     private void deleteVar(Point location) {
         int row = rowAtPoint(location);
         VariableTableModel model = (VariableTableModel)getModel();
-        Variable var = model.getVarAtRow(row);
-        if (var == null) {
-            JOptionPane.showMessageDialog(null, "Please select an attribute to delete",
-                    "Invalid Action", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        int ret = JOptionPane.showConfirmDialog(null, "Are you sure you really want to delete "+var.getTrueName()+"?",
-                "Confirm Attribute Delete", JOptionPane.YES_NO_OPTION);
-        if (ret == JOptionPane.YES_OPTION) {
-            // delete the var
-            DeleteAttribute job = new DeleteAttribute(var, owner);
-        }
+        model.deleteVar(row);
     }
+
+    /**
+     * Applies all changes made to attributes to database
+     */
+    public void applyChanges() {
+        VariableTableModel model = (VariableTableModel)getModel();
+        // clean up if a cell is currently being edited
+        if (isEditing()) {
+            int row = getEditingRow();
+            int col = getEditingColumn();
+            TableCellEditor editor = getCellEditor(row, col);
+            editor.stopCellEditing();
+        }
+        model.applyChanges();
+    }
+
+    public void cancelChanges() {
+        VariableTableModel model = (VariableTableModel)getModel();
+        // clean up if a cell is currently being edited
+        if (isEditing()) {
+            int row = getEditingRow();
+            int col = getEditingColumn();
+            TableCellEditor editor = getCellEditor(row, col);
+            editor.cancelCellEditing();
+        }
+        // revert back to database values
+        setElectricObject(owner);
+    }
+
 
     private void toggleShowCode() {
         VariableTableModel model = (VariableTableModel)getModel();
@@ -512,17 +701,10 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
                     vars.add(var);
             }
             // sort vars by name
-            Collections.sort(vars, new Attributes.VariableNameSort());
+            //Collections.sort(vars, new Attributes.VariableNameSort());
             ((VariableTableModel)getModel()).setVars(vars);
         }
         owner = eobj;
-    }
-
-    /**
-     * Add a Variable to be displayed
-     */
-    private void addVariable(Variable var, ElectricObject owner) {
-        ((VariableTableModel)getModel()).addVariable(var);
     }
 
     /**
@@ -532,137 +714,13 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
         ((VariableTableModel)getModel()).clearVariables();
     }
 
+    public void databaseChanged(Undo.Change evt) {}
+    public boolean isGUIListener() { return true; }
     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
         // reload vars
         ElectricObject eobj = owner;
         setElectricObject(null);
         setElectricObject(eobj);
-    }
-
-    public void databaseChanged(Undo.Change evt) {}
-
-    public boolean isGUIListener() { return true; }
-
-    // -------------------------------- JOBS ------------------------------
-
-    /** Job to change a variable's value and code type */
-    private static class VarChange extends Job {
-        private Variable var;
-        private ElectricObject owner;
-        private Variable.Code code;
-        private TextDescriptor.DispPos dispPos;
-        private TextDescriptor.Unit unit;
-        private Object newValue;
-        private boolean display;
-
-        private VarChange(Variable var, ElectricObject owner, Variable.Code code,
-                          TextDescriptor.DispPos dispPos, TextDescriptor.Unit unit, Object newValue, boolean display) {
-            super("Modify Attribute", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.var = var;
-            this.owner = owner;
-            this.code = code;
-            this.dispPos = dispPos;
-            this.unit = unit;
-            this.newValue = newValue;
-            this.display = display;
-            startJob();
-        }
-
-        public boolean doIt() {
-            Variable v = owner.updateVar(var.getKey(), newValue);
-            v.setCode(code);
-            TextDescriptor td = v.getTextDescriptor();
-            if (td != null) {
-                td.setDispPart(dispPos);
-                td.setUnit(unit);
-            }
-            v.setDisplay(display);
-            System.out.println("Modified attribute "+v.getTrueName());
-            return true;
-        }
-    }
-
-    /** Job to create a new attribute */
-    private static class CreateAttribute extends Job {
-
-        private String newName;
-        private Object newValue;
-        private ElectricObject owner;
-        private Variable.Code code;
-        private TextDescriptor.DispPos dispPos;
-        private TextDescriptor.Unit units;
-
-        private CreateAttribute(String newName, Object newValue, ElectricObject owner, Variable.Code code,
-                                TextDescriptor.DispPos dispPos, TextDescriptor.Unit units) {
-            super("Create Attribute", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.newName = newName;
-            this.newValue = newValue;
-            this.owner = owner;
-            this.code = code;
-            this.dispPos = dispPos;
-            this.units = units;
-            startJob();
-        }
-
-        public boolean doIt() {
-            // get a unique name for the new Var if it already exists
-            Variable var = owner.getVar(newName);
-            int i = 0;
-            boolean rename = false;
-            while (var != null) {
-                i++;
-                var = owner.getVar(newName + "_" + i);
-                rename = true;
-            }
-            if (rename) {
-                String oldName = newName;
-                newName = newName + "_" + i;
-                System.out.println("Already an Attribute named "+oldName+", setting name to "+newName);
-            }
-
-            // create the attribute
-            var = owner.newVar(newName, newValue);
-            // if created on a cell, set the parameter and inherits properties
-            if (owner instanceof Cell) {
-                if (var == null) return false;
-                TextDescriptor td = var.getTextDescriptor();
-                td.setParam(true);
-                td.setInherit(true);
-            }
-
-            // set other settings
-            var.setCode(code);
-            TextDescriptor td = var.getTextDescriptor();
-            td.setDispPart(dispPos);
-            td.setUnit(units);
-            System.out.println("Created attribute "+var.getTrueName());
-            return true;
-        }
-    }
-
-    /**
-     * Class to delete an attribute in a new thread.
-     */
-    private static class DeleteAttribute extends Job
-	{
-        Variable var;
-        ElectricObject owner;
-
-        private DeleteAttribute(Variable var, ElectricObject owner)
-        {
-            super("Delete Attribute", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.var = var;
-            this.owner = owner;
-            startJob();
-        }
-
-        public boolean doIt()
-        {
-            if (var == null) return false;
-            owner.delVar(var.getKey());
-            System.out.println("Deleted attribute "+var.getTrueName());
-            return true;
-        }
     }
 
 }

@@ -777,15 +777,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		}
 		if (attributes.isSelected())
 		{
-			// show attributes
-/*
-            attributesTable.clearVariables();
-            for (Iterator it = allAttributes.iterator(); it.hasNext(); ) {
-                AttValPair avp = (AttValPair)it.next();
-                Variable.Key key = avp.key;
-                attributesTable.addVariable(shownNode.getVar(key), shownNode);
-            }
-*/
             listPane.setViewportView(attributesTable);
 		}
 	}
@@ -1673,6 +1664,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 	{//GEN-HEADEREND:event_applyActionPerformed
 		if (shownNode == null) return;
 		ChangeNode job = new ChangeNode(shownNode, this);
+        attributesTable.applyChanges();
 	}//GEN-LAST:event_applyActionPerformed
 
 	private void okActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_okActionPerformed
