@@ -783,7 +783,9 @@ public class NodeInst extends Geometric implements Nodable
             Cell proto = (Cell)getProto();
             if (proto.getView() == View.ICON) {
                 // schematic has default vars
-                return proto.getCellGroup().getMainSchematics();
+                Cell sch = proto.getCellGroup().getMainSchematics();
+                if (sch != null) return sch;
+                return proto;
             } else
                 return proto;
         }
