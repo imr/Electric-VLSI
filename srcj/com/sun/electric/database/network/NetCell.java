@@ -632,8 +632,19 @@ class NetCell
 			String msg = "Network: Layout cell " + cell.describe() + " has nets with same name " + name;
             System.out.println(msg);
             ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortNetworks);
-            // TODO: add to log: what should be highlighted?
-            // log.addGeom(??, true, 0, null);
+            // because this should be an infrequent event that the user will fix, let's
+            // put all the work here
+            int numPorts = cell.getNumPorts();
+            for (int i = 0; i < numPorts; i++) {
+                Export e = (Export)cell.getPort(i);
+                if (e.getName().equals(name.toString())) log.addExport(e, true);
+            }
+            int numArcs = cell.getNumArcs();
+            for (int i = 0; i < numArcs; i++) {
+                ArcInst ai = cell.getArc(i);
+                if (!ai.isUsernamed()) continue;
+                if (ai.getName().equals(name.toString())) log.addGeom(ai, true, 0, null);
+            }
         }
 		else
 			netNamesToNet[nn.index] = network;

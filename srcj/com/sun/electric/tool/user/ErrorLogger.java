@@ -300,7 +300,7 @@ public class ErrorLogger implements ActionListener {
                             Highlight.addElectricObject(eh.geom, cell);
                             break;
                         case ERRORTYPEEXPORT:
-//						Highlight.addElectricObject(eh.pp, cell);
+    						Highlight.addText(eh.pp, cell, null, null);
 //						if (havegeoms == 0) infstr = initinfstr(); else
 //							addtoinfstr(infstr, '\n');
 //						havegeoms++;
