@@ -476,8 +476,6 @@ public class ERCWellCheck
         {
 			// make an object for merging all of the wells in this cell
 			Cell cell = info.getCell();
-	        /*GeometryHandler merge = (GeometryHandler)cellMerges.get(cell);
-            */
 	        GeometryHandler thisMerge = (GeometryHandler)cellMerges.get(info.getCell());
 			if (thisMerge == null) throw new Error("wrong condition in ERCWellCheck.enterCell()");
 

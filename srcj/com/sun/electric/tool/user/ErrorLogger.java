@@ -101,7 +101,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
     /**
      * Create a Log of a single Error
      */
-    public static class ErrorLog {
+    public static class ErrorLog implements Comparable {
         private String message;
         private int    sortKey;
         private int    index;
@@ -114,6 +114,19 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
             index = 0;
             highlights = new ArrayList();
         }
+
+	    /**
+		 * Compare objects lexicographically based on string comparator CASE_INSENSITIVE_ORDER
+		 * This method doesn't guarantee (compare(x, y)==0) == (x.equals(y))
+		 * @param o1
+		 * @return Returns a negative integer, zero, or a positive integer as the
+		 * first message has smaller than, equal to, or greater than the second lexicographically
+		 */
+	    public int compareTo(Object o1)
+	    {
+		    ErrorLog log1 = (ErrorLog)o1;
+		    return (String.CASE_INSENSITIVE_ORDER.compare(message, log1.message));
+	    }
 
         /**
          * Method to add "geom" to the error in "errorlist".  Also adds a
@@ -382,7 +395,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
                     }
                 }
 
-                if (highlighter != null) highlighter.finished();
+                highlighter.finished();
             }
 
             // return the error message
@@ -628,7 +641,10 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         {
             ErrorLog el1 = (ErrorLog)o1;
             ErrorLog el2 = (ErrorLog)o2;
-            return el1.sortKey - el2.sortKey;
+	        int sortedKey = el1.sortKey - el2.sortKey;
+	        if (sortedKey == 0) // Identical, compare lexicographically
+	            sortedKey = el1.compareTo(el2);
+            return sortedKey; //el1.sortKey - el2.sortKey;
         }
     }
 
@@ -730,6 +746,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         for (Iterator it = allErrors.iterator(); it.hasNext(); ) {
             copy.add(it.next());
         }
+	    //Collections.sort(copy);
         return copy.iterator();
     }
 

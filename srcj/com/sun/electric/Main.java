@@ -256,8 +256,11 @@ public final class Main
             if (url == null) continue;
             fileURLs.add(url);
         }
-        // open any libraries
-        FileMenu.ReadInitialELIBs job = new FileMenu.ReadInitialELIBs(fileURLs);
+        // open any libraries but only when there is at least one
+	    if (fileURLs.size() > 0)
+	    {
+            FileMenu.ReadInitialELIBs job = new FileMenu.ReadInitialELIBs(fileURLs);
+	    }
     }
 
 	/**

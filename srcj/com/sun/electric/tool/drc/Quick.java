@@ -3152,7 +3152,7 @@ public class Quick
 		// describe the error
 		String errorMessage = "";
 		Cell np1 = geom1.getParent();
-		int sortLayer = 0;
+		int sortLayer = np1.hashCode(); // 0;
 		if (errorType == SPACINGERROR || errorType == NOTCHERROR)
 		{
 			// describe spacing width error
@@ -3197,7 +3197,7 @@ public class Quick
 				errorMessage += ", layer " + layer2.getName();
 			if (msg != null)
 				errorMessage += "; " + msg;
-			sortLayer = Math.min(layer1.getIndex(), layer2.getIndex());
+			//sortLayer = Math.min(layer1.getIndex(), layer2.getIndex());
 		} else
 		{
 			// describe minimum width/size or layer error

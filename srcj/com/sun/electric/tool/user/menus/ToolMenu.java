@@ -94,9 +94,9 @@ public class ToolMenu {
         MenuBar.Menu drcSubMenu = new MenuBar.Menu("DRC", 'D');
         toolMenu.add(drcSubMenu);
         drcSubMenu.addMenuItem("Check Hierarchically", KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(false); }});
         drcSubMenu.addMenuItem("Check Selection Area Hierarchically", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkAreaHierarchically(); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(true); }});
 
         //------------------- Simulation (SPICE)
 

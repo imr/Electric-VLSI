@@ -147,8 +147,15 @@ public class DRC extends Listener
 				cellsToCheck.remove(cellToCheck);
 		}
 
-        // don't check if cell not in database anymore
-        if (cellToCheck != null && !cellToCheck.isLinked()) return;
+        if (cellToCheck != null)
+        {
+            // don't check if cell not in database anymore
+	        if (!cellToCheck.isLinked()) return;
+	        // Handling clipboard case (one type of hidden libraries
+	        if (cellToCheck.getLibrary().isHidden()) return;
+        }
+
+		if (cellToCheck == null && cellSet != null) System.out.println("Check this condition in DRC.doIncrementalDRCTask");
 
 		// if there is a cell to check, do it
 		if (cellSet != null)
@@ -268,36 +275,23 @@ public class DRC extends Listener
 	/****************************** DRC INTERFACE ******************************/
 
 	/**
-	 * Method to check the current cell hierarchically.
+	 * Method to check the current cell hierarchically or
+	 * the selected area of the current cell hierarchically if areaCheck is true
 	 */
-	public static void checkHierarchically()
+	public static void checkHierarchically(boolean areaCheck)
 	{
-		Cell curCell = WindowFrame.needCurCell();
-
-		if (curCell == null) return;
-		if (curCell.getView() == View.SCHEMATIC || curCell.getTechnology() == Schematics.tech ||
-			curCell.getView() == View.ICON || curCell.getTechnology() == Artwork.tech)
+		Cell curCell = null;
+		Rectangle2D bounds = null;
+		if (!areaCheck) curCell = WindowFrame.needCurCell();
+		else
 		{
-			// hierarchical check of schematics
-			CheckSchematicHierarchically job = new CheckSchematicHierarchically(curCell, null);
-		} else
-		{
-			// hierarchical check of layout
-			CheckLayoutHierarchically job = new CheckLayoutHierarchically(curCell, null);
+			EditWindow wnd = EditWindow.getCurrent();
+			if (wnd == null) return;
+			Highlighter h = wnd.getHighlighter();
+			bounds = h.getHighlightedArea(wnd);
+			curCell = wnd.getCell();
 		}
-	}
 
-	/**
-	 * Method to check the selected area of the current cell hierarchically.
-	 */
-	public static void checkAreaHierarchically()
-	{
-        EditWindow wnd = EditWindow.getCurrent();
-        if (wnd == null) return;
-        Highlighter h = wnd.getHighlighter();
-        Rectangle2D bounds = h.getHighlightedArea(wnd);
-
-        Cell curCell = wnd.getCell();
 		if (curCell == null) return;
 		if (curCell.getView() == View.SCHEMATIC || curCell.getTechnology() == Schematics.tech ||
 			curCell.getView() == View.ICON || curCell.getTechnology() == Artwork.tech)
