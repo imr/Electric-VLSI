@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02j: *********************************
 
+BUG: (03/29/05, SMR) GDS input doesn't handle orientation of instance arrays (AREF)
+FIX: Use same method as single instances (SREF).
+
 BUG (03/29/05, RK) NCC: Obtain VarContext from Current Window.
 
 IMP: (03/29/05, RK) NCC: Superficial changes to names, etc.

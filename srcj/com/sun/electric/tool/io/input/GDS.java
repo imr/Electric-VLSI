@@ -565,6 +565,14 @@ public class GDS extends Input
 			makeTransform(rowInterval, angle, trans);
 		}
 
+		boolean mY = false;
+		boolean mX = false;
+		if (trans)
+		{
+			mY = true;
+			angle = (angle + 900) % 3600;
+		}
+
 		// now generate the array
 		double ptcX = theVertices[0].getX();
 		double ptcY = theVertices[0].getY();
@@ -580,11 +588,6 @@ public class GDS extends Input
 						(ir == (nRows-1) && ic == (nCols-1)))
 				{
 					Point2D loc = new Point2D.Double(ptX, ptY);
-					NodeInst.OldStyleTransform ost = new NodeInst.OldStyleTransform(angle, trans);
-					angle = ost.getJAngle();
-					boolean mX = ost.isJMirrorX();
-					boolean mY = ost.isJMirrorY();
-
 					new MakeInstance(theCell, (Cell)theNodeProto, loc, mX, mY, angle);
 				}
 
@@ -671,7 +674,6 @@ public class GDS extends Input
 			mY = true;
 			angle = (angle + 900) % 3600;
 		}
-
 		new MakeInstance(theCell, (Cell)theNodeProto, loc, false, mY, angle);
 	}
 
