@@ -834,7 +834,11 @@ public class Quick
 					{
 						Poly poly = primPolyList[j];
 						Layer layer = poly.getLayer();
-						if (layer == null) continue;
+						if (layer == null)
+                        {
+                            if (Main.LOCALDEBUGFLAG) System.out.println("When is this case?");
+                            continue;
+                        }
 
 						poly.transform(rTrans);
 
