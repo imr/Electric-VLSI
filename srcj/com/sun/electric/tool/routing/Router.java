@@ -215,7 +215,7 @@ public abstract class Router {
      * @param port2 other end point of arc (ignored if null)
      * @return the arc type (an ArcProto). null if none or error.
      */
-    protected static ArcProto getArcToUse(PortProto port1, PortProto port2) {
+    public static ArcProto getArcToUse(PortProto port1, PortProto port2) {
         // current user selected arc
         ArcProto curAp = User.tool.getCurrentArcProto();
         ArcProto uni = Generic.tech.universal_arc;

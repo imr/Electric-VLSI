@@ -1276,7 +1276,7 @@ public class Cell extends NodeProto implements Comparable
 			return null;
 		}
 
-        /*
+/*
         // check to see if this instantiation would create a circular library dependency
         NodeProto protoType = ni.getProto();
         if (protoType instanceof Cell) {

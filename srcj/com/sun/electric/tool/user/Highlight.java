@@ -821,11 +821,14 @@ public class Highlight
 
 		if (type == Type.EOBJ)
 		{
+/*
 			ElectricObject realEObj = eobj;
 			if (realEObj instanceof PortInst) realEObj = ((PortInst)realEObj).getNodeInst();
 			ElectricObject realOtherEObj = other.getElectricObject();
 			if (realOtherEObj instanceof PortInst) realOtherEObj = ((PortInst)realOtherEObj).getNodeInst();
 			if (realEObj != realOtherEObj) return false;
+*/
+            if (eobj != other.getElectricObject()) return false;
 		} else if (type == Type.TEXT)
 		{
 			if (eobj != other.getElectricObject()) return false;

@@ -50,6 +50,7 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowContent;
+import com.sun.electric.tool.routing.Router;
 
 import java.util.*;
 import java.util.List;
@@ -75,6 +76,7 @@ public class Highlighter implements DatabaseChangeListener {
     /** the stack of highlights. */								private List highlightStack;
     /** true if highlights have changed recently */             private boolean changed;
     /** List of HighlightListeners */                           private List highlightListeners;
+    /** last object selected before last clear() */             private Highlight lastHighlightListEndObj;
     private static final int EXACTSELECTDISTANCE = 5;
 
     /**
@@ -88,6 +90,7 @@ public class Highlighter implements DatabaseChangeListener {
         changed = false;
         Undo.addDatabaseChangeListener(this);
         if (currentHighlighter == null) currentHighlighter = this;
+        lastHighlightListEndObj = null;
     }
 
     /**
@@ -269,6 +272,7 @@ public class Highlighter implements DatabaseChangeListener {
      * Add a Highlight
      */
     private synchronized void addHighlight(Highlight h) {
+        if (h == null) return;
         highlightList.add(h);
         changed = true;
     }
@@ -278,10 +282,14 @@ public class Highlighter implements DatabaseChangeListener {
 	 */
 	public synchronized void clear()
 	{
+        highOffX = highOffY = 0;
+
         if (highlightList.size() == 0) return;
 
+        // save last selected
+        lastHighlightListEndObj = (Highlight)highlightList.get(highlightList.size()-1);
+        // clear
         highlightList.clear();
-        highOffX = highOffY = 0;
         changed = true;
 	}
 
@@ -332,6 +340,34 @@ public class Highlighter implements DatabaseChangeListener {
         // notify all listeners that highlights have changed (changes committed).
         fireHighlightChanged();
 	}
+
+    /**
+     * Get the last object that was selected
+     * @param ignore a list of Highlights to ignore
+     * @return the last object that was selected
+     */
+    private synchronized Highlight getLastSelected(List ignore) {
+        List currentHighlights = getHighlights();               // not that this is a copy
+
+        // remove stuff from ignore list
+        for (Iterator igIt = ignore.iterator(); igIt.hasNext(); ) {
+            Highlight h = (Highlight)igIt.next();
+            // remove it from current highlights if it is there
+            for (Iterator it = currentHighlights.iterator(); it.hasNext(); ) {
+                Highlight curHigh = (Highlight)it.next();
+                if (h.sameThing(curHigh)) {
+                    currentHighlights.remove(curHigh);
+                    break;
+                }
+            }
+        }
+
+        if (currentHighlights.size() > 0) {
+            return (Highlight)currentHighlights.get(currentHighlights.size()-1);
+        } else {
+            return lastHighlightListEndObj;
+        }
+    }
 
     /**
      * Shows highlights for the current EditWindow
@@ -1135,7 +1171,21 @@ public class Highlighter implements DatabaseChangeListener {
 			return 0;
 		}
 
-		// multiple objects under the cursor: see if looping through them
+        // get last selected object. Next selected object should be related
+        Highlight lastSelected = getLastSelected(underCursor);
+
+        if (lastSelected != null) {
+            // sort under cursor by relevance to lastSelected. first object is most relevant.
+            List newUnderCursor = new ArrayList();
+            while (!underCursor.isEmpty()) {
+                Highlight h = getSimiliarHighlight(underCursor, lastSelected);
+                newUnderCursor.add(h);
+                underCursor.remove(h);
+            }
+            underCursor = newUnderCursor;
+        }
+
+		// multiple objects under the cursor
 		if (underCursor.size() > 1 && another)
 		{
 			for(int j=0; j<getNumHighlights(); j++)
@@ -1516,6 +1566,110 @@ public class Highlighter implements DatabaseChangeListener {
 		}
 		return null;
 	}
+
+    /**
+     * Chooses a single Highlight from the list of Highlights 'highlights' that is most
+     * similar to Highlight 'exampleHigh'.
+     * @param highlights a list of Highlight Objects
+     * @param exampleHigh the Highlight that serves as an example of what type
+     * of Highlight should be retrieved from the highlights list.
+     */
+    public static Highlight getSimiliarHighlight(List highlights, Highlight exampleHigh) {
+        if (highlights.size() == 0) return null;
+        if (exampleHigh == null) return (Highlight)highlights.get(0);
+
+        // get Highlights of the same type
+        List sameTypes = new ArrayList();
+        for (Iterator it = highlights.iterator(); it.hasNext(); ) {
+            Highlight h = (Highlight)it.next();
+            if (h.getType() == exampleHigh.getType()) {
+                sameTypes.add(h);
+            }
+        }
+        // if only one, just return it
+        if (sameTypes.size() == 1) return (Highlight)sameTypes.get(0);
+        // if none of same type, just return first in list of all highlights
+        if (sameTypes.size() == 0) return (Highlight)highlights.get(0);
+
+        // we have different rules depending on the type
+        if (exampleHigh.getType() == Highlight.Type.EOBJ) {
+
+            // get Highlights of the same electric object
+            List sameEObj = new ArrayList();
+            for (Iterator it = sameTypes.iterator(); it.hasNext(); ) {
+                Highlight h = (Highlight)it.next();
+                if (h.getElectricObject().getClass() == exampleHigh.getElectricObject().getClass())
+                    sameEObj.add(h);
+            }
+            // if only one of same object, return it
+            if (sameEObj.size() == 1) return (Highlight)sameEObj.get(0);
+
+            // if more than one of the same ElectricObject, make decisions
+            // for some of the common choices
+            if (sameEObj.size() > 0) {
+                // for PortInsts (Mouse GUI always sets "findPort", so we don't care about NodeInsts, only PortInsts)
+                if (exampleHigh.getElectricObject().getClass() == PortInst.class) {
+                    // see if we can find a port on the same NodeProto
+                    PortInst exPi = (PortInst)exampleHigh.getElectricObject();
+                    NodeProto exNp = exPi.getNodeInst().getProto();
+                    for (Iterator it = sameEObj.iterator(); it.hasNext(); ) {
+                        Highlight h = (Highlight)it.next();
+                        PortInst pi = (PortInst)h.getElectricObject();
+                        NodeProto np = pi.getNodeInst().getProto();
+                        if (np == exNp) return h;
+                    }
+                    // nothing with the same prototype, see if we can find a port that can connect to it
+                    for (Iterator it = sameEObj.iterator(); it.hasNext(); ) {
+                        Highlight h = (Highlight)it.next();
+                        PortInst pi = (PortInst)h.getElectricObject();
+                        if (Router.getArcToUse(exPi.getPortProto(), pi.getPortProto()) != null) {
+                            return h;
+                        }
+                    }
+                }
+                // for ArcInsts, see if we can find an arc with the same ArcProto
+                if (exampleHigh.getElectricObject().getClass() == ArcInst.class) {
+                    ArcInst exAi = (ArcInst)exampleHigh.getElectricObject();
+                    ArcProto exAp = exAi.getProto();
+                    for (Iterator it = sameEObj.iterator(); it.hasNext(); ) {
+                        Highlight h = (Highlight)it.next();
+                        ArcInst ai = (ArcInst)h.getElectricObject();
+                        ArcProto ap = ai.getProto();
+                        if (exAp == ap) return h;
+                    }
+                }
+            } else { // (sameEObj.size() == 0)
+                // no Highlights of same object. See if we can find another object that will connect
+                // one must be an ArcInst and one must be a PortInst. Other combos already handled above.
+                ArcInst exAi = null;
+                PortInst exPi = null;
+                if (exampleHigh.getElectricObject().getClass() == ArcInst.class)
+                    exAi = (ArcInst)exampleHigh.getElectricObject();
+                if (exampleHigh.getElectricObject().getClass() == PortInst.class)
+                    exPi = (PortInst)exampleHigh.getElectricObject();
+                for (Iterator it = sameTypes.iterator(); it.hasNext(); ) {
+                    Highlight h = (Highlight)it.next();
+                    // reset ai and pi
+                    ArcInst ai = exAi;
+                    PortInst pi = exPi;
+                    if (h.getElectricObject().getClass() == ArcInst.class)
+                        ai = (ArcInst)h.getElectricObject();
+                    if (h.getElectricObject().getClass() == PortInst.class)
+                        pi = (PortInst)h.getElectricObject();
+                    // if either null, can't connect these two EObjs
+                    if ((ai == null) || (pi == null)) continue;
+                    if (pi.getPortProto().connectsTo(ai.getProto())) return h;
+                }
+            }
+            // couldn't find a highlight based on connectivity or same object class
+            // return first in list if possible
+            if (sameEObj.size() > 0) return (Highlight)sameEObj.get(0);
+        }
+        // return first in list (list empty case handled above)
+        return (Highlight)sameTypes.get(0);
+    }
+
+
 
     /**
 	 * Method to return the distance from a bound to a NodeInst.
