@@ -236,6 +236,7 @@ public class J3DDemoDialog extends EDialog
 
     private void enterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_enterActionPerformed
         knots.add(view3D.addFrame());
+        view3D.saveImage(true);
 
     }//GEN-LAST:event_enterActionPerformed
 
