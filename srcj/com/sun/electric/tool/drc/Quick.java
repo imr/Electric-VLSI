@@ -3231,7 +3231,7 @@ public class Quick
 					errorMessagePart2 += " LESS THAN " + TextUtils.formatDouble(limit) + " IN AREA (IS " + TextUtils.formatDouble(actual) + ")";
 					break;
 				case ZEROLENGTHARCWARN:
-					errorMessage += "Zero wide warning:";
+					errorMessage += "Zero width warning:";
 					errorMessagePart2 = msg;
 					break;
 				case MINWIDTHERROR:
