@@ -561,6 +561,7 @@ public class Quick
 		}
 
 		// announce progress
+        long startTime = System.currentTimeMillis();
 		System.out.println("Checking cell " + cell.describe());
 
 		// now look at every node and arc here
@@ -622,6 +623,7 @@ public class Quick
 		{
 			int localErrors = errorLogger.getNumErrors() - prevErrors;
 			int localWarnings = errorLogger.getNumWarnings() - prevWarns;
+            long endTime = System.currentTimeMillis();
 			if (localErrors == 0 &&  localWarnings == 0)
 			{
 				System.out.println("   No errors/warnings found");
@@ -632,6 +634,8 @@ public class Quick
 				if (localWarnings > 0)
 					System.out.println("   FOUND " + localWarnings + " WARNINGS");
 			}
+            if (Main.getDebug())
+                System.out.println("\t(took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 		}
 
 		return totalMsgFound;
