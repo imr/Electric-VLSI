@@ -103,16 +103,60 @@ public class Cell extends NodeProto
 		 */
 		private void updateMainSchematics()
 		{
-			mainSchematics = null;
+			Cell newMainSchematics = null;
 			for (Iterator it = getCells(); it.hasNext();)
 			{
-				Cell f = (Cell) it.next();
-				if (f.getView() == View.SCHEMATIC)
+				Cell sch = (Cell) it.next();
+				if (sch.getView() == View.SCHEMATIC)
 				{
-					mainSchematics = f.getNewestVersion();
+					newMainSchematics = sch;
 					break;
 				}
 			}
+			if (mainSchematics == newMainSchematics) return;
+			if (mainSchematics == null)
+			{
+				for (Iterator itc = getCells(); itc.hasNext();)
+				{
+					Cell icon = (Cell) itc.next();
+					if (icon.getView() == View.ICON)
+					{
+						for (Iterator it = icon.getUsagesOf(); it.hasNext();)
+						{
+							NodeUsage nu = (NodeUsage)it.next();
+							if (nu.isIconOfParent()) continue;
+							nu.getParent().addUsage(newMainSchematics).addIcon(nu);
+						}
+					}
+				}
+			} else
+			{
+				for (Iterator itc = mainSchematics.getUsagesOf(); itc.hasNext();)
+				{
+					NodeUsage oldNu = (NodeUsage)itc.next();
+					if (oldNu.getNumIcons() == 0) continue;
+					Cell parent = oldNu.getParent();
+					NodeUsage newNu = newMainSchematics != null
+						? parent.addUsage(newMainSchematics)
+						: null;
+					for (Iterator it = oldNu.getIcons(); it.hasNext();)
+					{
+						NodeUsage nuIcon = (NodeUsage)it.next();
+						// oldNu.removeIcon(nuIcon)
+						it.remove();
+						nuIcon.clearSch();
+						if (newNu != null)
+							newNu.addIcon(nuIcon);
+					}
+					if (oldNu.isEmpty())
+					{
+						// parent.removeUsage(oldNu) - we should do it by iterator
+						itc.remove();
+						parent.usagesIn.remove(mainSchematics);
+					}
+				}
+			}
+			mainSchematics = newMainSchematics;
 		}
 
 		// ------------------------- public methods -----------------------------
@@ -769,7 +813,7 @@ public class Cell extends NodeProto
 			return;
 		}
 		nu.removeInst(ni);
-		if (nu.getNumInsts() == 0)
+		if (nu.isEmpty())
 			removeUsage(nu);
 		nodes.remove(ni);
 
@@ -792,6 +836,16 @@ public class Cell extends NodeProto
 			nu = new NodeUsage(protoType, this);
 			usagesIn.put(protoType, nu);
 			protoType.addUsageOf(nu);
+			if (protoType instanceof Cell)
+			{
+				Cell cell = (Cell)protoType;
+				Cell mainSch = cell.cellGroup.getMainSchematics();
+				if (cell.view == View.ICON && !nu.isIconOfParent() && mainSch != null)
+				{
+					NodeUsage nuSch = addUsage(mainSch);
+					nuSch.addIcon(nu);
+				}
+			}
 		}
 		return nu;
 	}
@@ -805,6 +859,18 @@ public class Cell extends NodeProto
 		NodeProto protoType = nu.getProto();
 		protoType.removeUsageOf(nu);
 		usagesIn.remove(protoType);
+		if (protoType instanceof Cell)
+		{
+			Cell cell = (Cell)protoType;
+			Cell mainSch = cell.cellGroup.getMainSchematics();
+			if (cell.view == View.ICON && !nu.isIconOfParent() && mainSch != null)
+			{
+				NodeUsage nuSch = (NodeUsage)usagesIn.get(mainSch);
+				nuSch.removeIcon(nu);
+				if (nuSch.isEmpty())
+					removeUsage(nuSch);
+			}
+		}
 	}
 
 	/**
@@ -1106,7 +1172,10 @@ public class Cell extends NodeProto
 		for (Iterator it = getUsagesIn(); it.hasNext();)
 		{
 			NodeUsage nu = (NodeUsage)it.next();
-			System.out.println("     " + nu + " ("+nu.getNumInsts()+")");
+			if (nu.getNumIcons() == 0)
+				System.out.println("     " + nu + " ("+nu.getNumInsts()+")");
+			else
+				System.out.println("     " + nu + " ("+nu.getNumInsts()+" instances,"+nu.getNumIcons()+" icons)");
 		}
 		System.out.println("  arcs (" + arcs.size() + "):");
 		for (int i = 0; i < arcs.size(); i++)
@@ -1117,6 +1186,16 @@ public class Cell extends NodeProto
 				break;
 			}
 			System.out.println("     " + arcs.get(i));
+		}
+		if (getUsagesOf().hasNext())
+			System.out.println("  instances:");
+		for (Iterator it = getUsagesOf(); it.hasNext();)
+		{
+			NodeUsage nu = (NodeUsage)it.next();
+			if (nu.getNumIcons() == 0)
+				System.out.println("     " + nu + " ("+nu.getNumInsts()+")");
+			else
+				System.out.println("     " + nu + " ("+nu.getNumInsts()+" instances,"+nu.getNumIcons()+" icons)");
 		}
 		super.getInfo();
 	}

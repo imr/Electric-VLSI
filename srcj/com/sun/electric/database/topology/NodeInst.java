@@ -32,8 +32,10 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
@@ -102,6 +104,18 @@ public class NodeInst extends Geometric
 		/** the associated PortInst on the new NodeInst. */		PortInst assn;
 	}
 
+	/**
+	 * the Subinst class is used when icon node has arrayed name.
+	 */
+	public class Subinst
+	{
+		/** index in icon NodeInst. */							int index;
+
+		Subinst(int index) { this.index = index; }
+
+		public Name getName() { return name != null ? name.subname(index) : null; }
+	}
+
 	// ---------------------- private data ----------------------------------
 	/** prototype of this node instance */					private NodeProto protoType;
 	/** node usage of this node instance */					private NodeUsage nodeUsage;
@@ -110,6 +124,8 @@ public class NodeInst extends Geometric
 	/** List of connections belonging to this instance */	private List connections;
 	/** List of Exports belonging to this node instance */	private List exports;
 	/** Text descriptor */									private TextDescriptor descriptor;
+	/** Name of this node instance */						private Name name;
+	/** array of subinstances of icon node instance */		private Subinst[] subs;
 
 	// --------------------- private and protected methods ---------------------
 
@@ -594,6 +610,15 @@ public class NodeInst extends Geometric
 	{
 		setParent(parent);
 		this.protoType = protoType;
+		if (protoType instanceof Cell)
+		{
+			Cell protoCell = (Cell)protoType;
+			if (protoCell.getView() == View.ICON)
+			{
+				subs = new Subinst[1];
+				subs[0] = new Subinst(0);
+			}
+		}
 
 		// create all of the portInsts on this node inst
 		for (Iterator it = protoType.getPorts(); it.hasNext();)
@@ -1524,9 +1549,7 @@ public class NodeInst extends Geometric
 	 */
 	public String getName()
 	{
-		Variable var = getVar(NODE_NAME, String.class);
-		if (var == null) return null;
-		return (String) var.getObject();
+		return name != null ? name.toString() : null;
 	}
 
 	/**
@@ -1539,6 +1562,56 @@ public class NodeInst extends Geometric
 		Variable var = setVar(NODE_NAME, name);
 		if (var != null) var.setDisplay();
 		return var;
+	}
+
+	/**
+	 * Routine to create a Variable on this ElectricObject with the specified values.
+	 * @param name the name of the Variable.
+	 * @param value the object to store in the Variable.
+	 * @return the Variable that has been created.
+	 */
+	public Variable setVar(String name, Object value)
+	{
+		Variable v = super.setVar(name,value);
+		if (name.equals(NODE_NAME))
+			updateName();
+		return v;
+	}
+
+	/**
+	 * Routine to put an Object into an entry in an arrayed Variable on this ElectricObject.
+	 * @param name the name of the arrayed Variable.
+	 * @param value the object to store in an entry of the arrayed Variable.
+	 * @param index the location in the arrayed Variable to store the value.
+	 */
+	public void setVar(String name, Object value, int index)
+	{
+		super.setVar(name,value,index);
+		if (name.equals(NODE_NAME))
+			updateName();
+	}
+
+	/**
+	 * Routine to delete a Variable from this ElectricObject.
+	 * @param name the name of the Variable to delete.
+	 */
+	public void delVar(String name)
+	{
+		super.delVar(name);
+		if (name.equals(NODE_NAME))
+			updateName();
+	}
+
+	private void updateName()
+	{
+		Variable var = getVar(NODE_NAME, String.class);
+		Name newName = var != null ? Name.findName( (String) var.getObject() ) : null;
+		if (newName == name) return;
+		if (subs == null) return;
+		int width = newName != null ? newName.busWidth() : 1;
+		if (width != subs.length) subs = new Subinst[width];
+		for (int i = 0; i < width; i++)
+			subs[i] = new Subinst(i);
 	}
 
 	/**

@@ -43,6 +43,8 @@ public class NodeUsage
 	/** prototype of this node usage */						private NodeProto protoType;
 	/** Cell using this prototype */						private Cell parent;
 	/** List of NodeInsts of protoType in parent */			private List insts;
+	/** Usage of mainSchematics for icons */				private NodeUsage sch;
+	/** Number of icon NodeUsages for schematics */			private List icons;
 
 	// --------------------- private and protected methods ---------------------
 
@@ -55,6 +57,112 @@ public class NodeUsage
 		this.protoType = protoType;
 		this.parent = parent;
 		insts = new ArrayList();
+		sch = null;
+		if (protoType instanceof Cell && ((Cell)protoType).getView() == View.SCHEMATIC)
+		{
+			icons = new ArrayList();
+		}
+	}
+
+	/**
+	 * Routine to add an NodeInst to this NodeUsage.
+	 * @param ni the NodeInsy to add.
+	 */
+	void addInst(NodeInst ni)
+	{
+		insts.add(ni);
+	}
+
+	/**
+	 * Routine to remove an NodeInst from this NodeUsage.
+	 * @param ni the NodeInst to remove.
+	 */
+	void removeInst(NodeInst ni)
+	{
+		insts.remove(ni);
+	}
+
+	/**
+	 * Routine to return the number of icon NodeUsages for this schematics.
+	 * Returns zero if protoType is non-schematic.
+	 * @return the number of NodeInsts of this NodeUsage.
+	 */
+	int getNumIcons()
+	{
+		return icons != null ? icons.size() : 0;
+	}
+
+	/**
+	 * Routine to return an Iterator for all NodeUsages of icon of this schematics.
+	 * @return an Iterator for all icon NodeUsages of this schematic NodeUsage.
+	 */
+	Iterator getIcons()
+	{
+		return icons.iterator();
+	}
+
+	/**
+	 * Routine to increment the number of icon NodeUsages for this schematics.
+	 */
+	void addIcon(NodeUsage nu)
+	{
+		icons.add(nu);
+		nu.sch = this;
+	}
+
+	/**
+	 * Routine to decrement the number of icon NodeUsages for this schematics.
+	 */
+	void removeIcon(NodeUsage nu)
+	{
+		icons.remove(nu);
+		nu.clearSch();
+	}
+
+	/**
+	 * Routine to clear schematic NodeUsage of this icon NodeUsage
+	 */
+	void clearSch()
+	{
+		sch = null;
+	}
+
+	/**
+	 * Routine to self-check
+	 */
+	public void check()
+	{
+		if (protoType instanceof Cell && ((Cell)protoType).getView() == View.ICON)
+		{
+			Cell mainSch = ((Cell)protoType).getCellGroup().getMainSchematics();
+			if (mainSch == null || isIconOfParent())
+			{
+				if (sch != null) System.out.println(this+" is icon without mainSchematics, sch="+sch);
+			} else
+			{
+				if (sch == null) System.out.println(this+" is icon with mainScjematics "+mainSch+", sch=null");
+				if (mainSch != sch.protoType) System.out.println(this+" is icon with mainSchematics "+mainSch+", sch="+sch);
+				if (!sch.icons.contains(this)) System.out.println(this+" is not contained in icons of "+sch);
+			}
+		} else
+		{
+			if (sch != null) System.out.println(this+" is not icon, sch="+sch);
+		}
+		if (protoType instanceof Cell && ((Cell)protoType).getView() == View.SCHEMATIC)
+		{
+			if (icons == null) System.out.println(this+" is schematics, icons == null");
+			for (int i = 0; i < icons.size(); i++)
+			{
+				NodeUsage icon = (NodeUsage)icons.get(i);
+				if (icon.sch != this) System.out.println(this+" is schematics, contain "+icon);
+				for (int j = 0; j < i; j++)
+					if (icons.get(j) == icon)
+						System.out.println(this+" contains icon "+icon+" twice");
+			}
+		} else
+		{
+			if (icons != null) System.out.println(this+" is not schematics, icons!=null");
+		}
 	}
 
 	// ------------------------ public methods -------------------------------
@@ -109,21 +217,12 @@ public class NodeUsage
 	}
 
 	/**
-	 * Routine to add an NodeInst to this NodeUsage.
-	 * @param ni the NodeInsy to add.
+	 * Routine to return whether this NodeUsage has instances or related icon NodeUsages.
+	 * @return true if this NodeUsage has instances or related icon NodeUsages.
 	 */
-	void addInst(NodeInst ni)
+	public boolean isEmpty()
 	{
-		insts.add(ni);
-	}
-
-	/**
-	 * Routine to remove an NodeInst from this NodeUsage.
-	 * @param ni the NodeInst to remove.
-	 */
-	void removeInst(NodeInst ni)
-	{
-		insts.remove(ni);
+		return insts.size() == 0 && (icons == null || icons.size() == 0);
 	}
 
 	/**
