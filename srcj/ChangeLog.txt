@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02h: *********************************
 
+IMP: (02/08/05, RK) Make gate layout generator use VarContext from current window
+
 BUG: (02/08/05, SMR) Moving nodes may cause arcs to become disconnected (Bug #195).
 FIX: In Layout.java, make consistent use of head/tail arc ends.
 
