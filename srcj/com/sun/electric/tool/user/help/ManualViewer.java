@@ -88,6 +88,7 @@ public class ManualViewer extends EDialog
 		String title;
 		String fileName;
 		String chapterName;
+		String fullChapterNumber;
 		int chapterNumber;
 		int sectionNumber;
 		URL url;
@@ -106,6 +107,7 @@ public class ManualViewer extends EDialog
 	private static int lastPageVisited = 0;
 	private static HashMap menuMap = null;
 	private HashMap menuMapCheck;
+	private List history = new ArrayList();
 
     /**
      * Create a new user's manual dialog.
@@ -168,6 +170,12 @@ public class ManualViewer extends EDialog
 				pi.chapterName = chapterName;
 				pi.chapterNumber = chapterNumber;
 				pi.sectionNumber = ++sectionNumbers[indent];
+				pi.fullChapterNumber = "";
+				for(int i=0; i<indent; i++)
+				{
+					pi.fullChapterNumber += sectionNumbers[i] + "-";
+				}
+				pi.fullChapterNumber += sectionNumbers[indent];
 				pi.level = indent;
 				pi.newAtLevel = newAtLevel;
 				pi.url = ManualViewer.class.getResource("helphtml/" + fileName + ".html");
@@ -363,7 +371,6 @@ public class ManualViewer extends EDialog
 					return;
 				}
 			}
-
 		}
 	}
 
@@ -386,6 +393,9 @@ public class ManualViewer extends EDialog
 
     private void loadPage(int index)
 	{
+		// add to browsing history
+		history.add(new Integer(index));
+
 		currentIndex = index;
 		lastPageVisited = index;
 		PageInfo pi = (PageInfo)pageSequence.get(index);
@@ -450,6 +460,29 @@ public class ManualViewer extends EDialog
     }
 
 	/**
+	 * Method to go to the previous page that was viewed.
+	 */
+	private void back()
+	{
+		int len = history.size();
+		if (len <= 1) return;
+		Object lastPage = history.get(len-2);
+		history.remove(len-1);
+		if (lastPage instanceof Integer)
+		{
+			history.remove(len-2);
+			Integer lpi = (Integer)lastPage;
+			loadPage(lpi.intValue());
+			return;
+		}
+		if (lastPage instanceof String)
+		{
+			editorPane.setText((String)lastPage);
+			editorPane.setCaretPosition(0);
+		}
+	}
+
+	/**
 	 * Method to go to the previous page in the manual.
 	 */
 	private void prev()
@@ -479,6 +512,7 @@ public class ManualViewer extends EDialog
 		StringBuffer sbResult = new StringBuffer();
 
 		sbResult.append("<CENTER><H1>Search Results for " + ret + "</H1></CENTER>\n");
+		int numFound = 0;
 		for(int index=0; index < pageSequence.size(); index++)
 		{
 			PageInfo pi = (PageInfo)pageSequence.get(index);
@@ -497,9 +531,13 @@ public class ManualViewer extends EDialog
 			}
 			Matcher matcher = pattern.matcher(sb.toString());
 			if (!matcher.find()) continue;
-			sbResult.append("<H2><A HREF=\"" + pi.fileName + ".html\">" + pi.title + "</A></H2>\n");
+			sbResult.append("<B><A HREF=\"" + pi.fileName + ".html\">" + pi.fullChapterNumber + ": " + pi.title + "</A></B<BR>\n");
+			numFound++;
 		}
-		editorPane.setText(sbResult.toString());
+		sbResult.append("<P><B>Found " + numFound + " entries</B>\n");
+		String wholePage = sbResult.toString();
+		history.add(wholePage);
+		editorPane.setText(wholePage);
 		editorPane.setCaretPosition(0);
 	}
 
@@ -775,33 +813,57 @@ public class ManualViewer extends EDialog
 		JPanel leftHalf = new JPanel();
 		leftHalf.setLayout(new GridBagLayout());
 		gbc = new GridBagConstraints();
-		gbc.gridx = 0;      gbc.gridy = 1;
+		gbc.gridx = 0;      gbc.gridy = 2;
 		gbc.gridwidth = 2;  gbc.gridheight = 1;
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.weightx = 1.0;  gbc.weighty = 1.0;
 		gbc.insets = new java.awt.Insets(0, 4, 4, 4);
 		leftHalf.add(scrolledTree, gbc);
 		 
-		// forward and backward buttons at the bottom of the left side
-		JButton backButton = new JButton("Prev");
+		// forward and backward buttons
+		JButton backButton = new JButton("Back");
 		gbc = new GridBagConstraints();
 		gbc.gridx = 0;      gbc.gridy = 0;
-		gbc.gridwidth = 1;  gbc.gridheight = 1;
+		gbc.gridwidth = 2;  gbc.gridheight = 1;
 		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
 		gbc.anchor = GridBagConstraints.CENTER;
 		leftHalf.add(backButton, gbc);
 		backButton.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { prev(); }
+			public void actionPerformed(ActionEvent evt) { back(); }
 		});
-		JButton foreButton = new JButton("Next");
+//		JButton foreButton = new JButton("Forward");
+//		gbc = new GridBagConstraints();
+//		gbc.gridx = 1;      gbc.gridy = 0;
+//		gbc.gridwidth = 1;  gbc.gridheight = 1;
+//		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+//		gbc.anchor = GridBagConstraints.CENTER;
+//		leftHalf.add(foreButton, gbc);
+//		foreButton.addActionListener(new ActionListener()
+//		{
+//			public void actionPerformed(ActionEvent evt) { next(); }
+//		});
+
+		// Previous and Next buttons
+		JButton prevButton = new JButton("Prev");
 		gbc = new GridBagConstraints();
-		gbc.gridx = 1;      gbc.gridy = 0;
+		gbc.gridx = 0;      gbc.gridy = 1;
 		gbc.gridwidth = 1;  gbc.gridheight = 1;
 		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
 		gbc.anchor = GridBagConstraints.CENTER;
-		leftHalf.add(foreButton, gbc);
-		foreButton.addActionListener(new ActionListener()
+		leftHalf.add(prevButton, gbc);
+		prevButton.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { prev(); }
+		});
+		JButton nextButton = new JButton("Next");
+		gbc = new GridBagConstraints();
+		gbc.gridx = 1;      gbc.gridy = 1;
+		gbc.gridwidth = 1;  gbc.gridheight = 1;
+		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+		gbc.anchor = GridBagConstraints.CENTER;
+		leftHalf.add(nextButton, gbc);
+		nextButton.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { next(); }
 		});
@@ -809,7 +871,7 @@ public class ManualViewer extends EDialog
 		// forward and backward buttons at the bottom of the left side
 		JButton menuButton = new JButton("Menu Help");
 		gbc = new GridBagConstraints();
-		gbc.gridx = 0;      gbc.gridy = 2;
+		gbc.gridx = 0;      gbc.gridy = 3;
 		gbc.gridwidth = 1;  gbc.gridheight = 1;
 		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
 		gbc.anchor = GridBagConstraints.CENTER;
@@ -820,7 +882,7 @@ public class ManualViewer extends EDialog
 		});
 		JButton searchButton = new JButton("Search...");
 		gbc = new GridBagConstraints();
-		gbc.gridx = 1;      gbc.gridy = 2;
+		gbc.gridx = 1;      gbc.gridy = 3;
 		gbc.gridwidth = 1;  gbc.gridheight = 1;
 		gbc.insets = new java.awt.Insets(0, 4, 4, 4);
 		gbc.anchor = GridBagConstraints.CENTER;
@@ -835,7 +897,7 @@ public class ManualViewer extends EDialog
 			// manual and edit buttons at the bottom of the left side
 			JButton manualButton = new JButton("Make Manual");
 			gbc = new GridBagConstraints();
-			gbc.gridx = 0;      gbc.gridy = 3;
+			gbc.gridx = 0;      gbc.gridy = 4;
 			gbc.gridwidth = 1;  gbc.gridheight = 1;
 			gbc.insets = new java.awt.Insets(0, 4, 4, 4);
 			gbc.anchor = GridBagConstraints.CENTER;
@@ -846,7 +908,7 @@ public class ManualViewer extends EDialog
 			});
 			JButton editButton = new JButton("Edit Page");
 			gbc = new GridBagConstraints();
-			gbc.gridx = 1;      gbc.gridy = 3;
+			gbc.gridx = 1;      gbc.gridy = 4;
 			gbc.gridwidth = 1;  gbc.gridheight = 1;
 			gbc.insets = new java.awt.Insets(0, 4, 4, 4);
 			leftHalf.add(editButton, gbc);

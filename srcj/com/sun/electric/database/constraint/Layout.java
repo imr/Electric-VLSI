@@ -1173,7 +1173,7 @@ public class Layout extends Constraints
 			AffineTransform localtran = makeOldTrans(bottomNi);
 			subrot.concatenate(localtran);
 
-			Undo.Change change = ((Export)pp).getChange();
+			Undo.Change change = ((Export)bottomPP).getChange();
 			if (change != null && change.getType() == Undo.Type.EXPORTMOD)
 			{
 				PortInst bottomPi = (PortInst)change.getO1();

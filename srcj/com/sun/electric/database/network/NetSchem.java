@@ -361,7 +361,7 @@ class NetSchem extends NetCell {
 				portImplementation[i] = equivIndex;
 			}
 			if (equivIndex < 0) {
-				String msg = cell + ": Icon port <"+e.getNameKey()+"> has not equivalent port";
+				String msg = cell + ": Icon port <"+e.getNameKey()+"> has no equivalent port";
 				System.out.println(msg);
 				ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, cell, Network.errorSortPorts);
 				log.addExport(e, true, cell, null);

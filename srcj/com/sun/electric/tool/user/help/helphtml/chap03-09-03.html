@@ -10,10 +10,10 @@
 <!-- COMMAND File/Export/Version 6 ELIB... -->
 <!-- COMMAND File/Mark All Libraries for Saving -->
 
-Writing libraries to disk is done with the <B>Save Library</B> command of the <B>File</B> menu.
+Writing libraries to disk is done with the <B>Save Library</B> command (in menu <B>File</B>).
 <P>
 <TABLE><TR><TD>
-The <B>Save All Libraries</B> command of the <B>File</B> menu writes all libraries that have changed.
+The <B>Save All Libraries</B> command (in menu <B>File</B>) writes all libraries that have changed.
 You can also use the save-libraries icon from the tool bar.
 To force all libraries to be saved, use the <B>Mark All Libraries for Saving</B> command.
 </TD><TD><CENTER><IMG SRC="fig03-24.png" ALT="Figure 3.24"></CENTER></TD></TR></TABLE>
@@ -23,9 +23,8 @@ If, however, you wish to write the library to a new file
 (thus preserving the original) then use the <B>Save Library As...</B> command.
 <P>
 <TABLE><TR><TD VALIGN=TOP>
-The <B>Preferences...</B> command of the <B>File</B>
-,
-in the "Library" tab of the "I/O" section, offers options for writing libraries to disk.
+The "Library" preferences (in menu <B>File / Preferences...</B>, "I/O" section, "Library" tab)
+offers options for writing libraries to disk.
 By default, saved libraries overwrite the previous libraries and no backup is created.
 If you choose "Backup of last library file",
 then the former library is renamed so that it has a "~" at the end.
@@ -34,23 +33,25 @@ then the former library is renamed so that it has its creation date as part of i
 </TD><TD><CENTER><IMG SRC="fig03-19.png" ALT="Figure 3.19"></CENTER></TD></TR></TABLE>
 <P>
 <!-- NEED 2in -->
-Electric can also write external format files with the <B>Export</B> command of the <B>File</B> menu.
+Electric can also write external format files with the <B>Export</B> command (in menu <B>File</B>).
 These formats can be written:
 <UL>
 <LI><B>Caltech Intermediate Format (CIF)</B> is used to describe integrated circuit layout.
 The output file contains only the current cell and any circuitry below that in the hierarchy.
-Use "CIF" tab of the "I/O" section of the <B>Preferences...</B> command to affect how CIF is written.
+Use "CIF" preferences (in menu <B>File / Preferences...</B>, "I/O" section, "CIF" tab)
+to affect how CIF is written.
 See <A HREF="chap07-03-02.html#chap07-03-02">Section 7-3-2</A> for more on CIF.
 </LI>
 <LI><B>GDS II (Stream)</B> is also used to describe integrated circuit layout.
 The output file contains only the current cell and any circuitry below that in the hierarchy.
-Use "GDS" tab of the "I/O" section of the <B>Preferences...</B> command to affect how GDS is written.
+Use "GDS" preferences (in menu <B>File / Preferences...</B>, "I/O" section, "GDS" tab)
+to affect how GDS is written.
 See <A HREF="chap07-03-03.html#chap07-03-03">Section 7-3-3</A> for more on GDS.</LI>
 <LI><B>PostScript</B> is the Adobe printing language.
 The output file contains only a visual representation of the current cell
 (or part of that cell).
 PostScript options can be controlled with the
-"Printing" tab of the "General" section of the <B>Preferences...</B> command.</LI>
+"Printing" preferences (in menu <B>File / Preferences...</B>, "General" section, "Printing" tab).</LI>
 <LI><B>Text Cell Contents</B> is used to write a text file from a text cell.
 The current window must be a textual view (such as VHDL, Verilog, documentation, etc.)</LI>
 <LI><B>Readable Dump</B> is an Electric-specific format that captures the entire database,
@@ -65,8 +66,9 @@ These files can be read by version 6 of Electric.
 <P>
 The exported files from Electric are often considered to be proprietary information, and must be marked appropriately.
 <TABLE><TR><TD><CENTER><IMG SRC="fig03-13.png" ALT="Figure 3.13"></CENTER></TD><TD VALIGN=TOP>
-"Copyright" tab of the "General" section of the <B>Preferences...</B> command,
-copyright information can be inserted into exported files.
+<P>
+Copyright information can be inserted into exported files with the
+"Copyright" preferences (in menu <B>File / Preferences...</B>, "General" section, "Copyright" tab).
 Since each export file has a different format for comments, the copyright text should not contain any such characters.
 Instead, the system will insert the proper comment characters for the particular export format.
 </TD></TR></TABLE>

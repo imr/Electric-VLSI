@@ -1678,8 +1678,14 @@ public class CircuitChanges
 			if (content == null) continue;
 			if (content.getCell() == cell)
 			{
-				content.setCell(null, null);
-				content.fullRepaint();
+				if (!(content instanceof EditWindow))
+				{
+					wf.setCellWindow(null);
+				} else
+				{
+					content.setCell(null, null);
+					content.fullRepaint();
+				}
 			}
 		}
 
@@ -2632,7 +2638,9 @@ public class CircuitChanges
 			{
 				Reconnect re = Reconnect.erasePassThru(ni, false);
 				if (re != null)
+				{
 					pinsToPassThrough.add(re);
+				}
 			}
 		}
 
@@ -2861,6 +2869,7 @@ public class CircuitChanges
 			{
 				Reconnect re = (Reconnect)it.next();
 				re.reconnectArcs();
+				re.ni.kill();
 			}
 			for(Iterator it = pinsToScale.keySet().iterator(); it.hasNext(); )
 			{
@@ -4313,7 +4322,6 @@ public class CircuitChanges
                 ArcInst newAi = ArcInst.makeInstance(ra.ap, ra.wid, ra.reconPi[0], ra.recon[0], ra.reconPi[1], ra.recon[1], null);
                 if (newAi == null) continue;
                 if (ra.directional) newAi.setDirectional();
-    //			if (negated) newAi.setNegated();
                 if (ra.ignoreHead) newAi.setSkipHead();
                 if (ra.ignoreTail) newAi.setSkipTail();
                 if (ra.reverseEnd) newAi.setReverseEnds();

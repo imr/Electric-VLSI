@@ -180,7 +180,7 @@ public class EditMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { seeAllParametersCommand(); } });
 		editPropertiesSubMenu.addMenuItem("Hide All Attributes on Node", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { hideAllParametersCommand(); } });
-		editPropertiesSubMenu.addMenuItem("Default Attributes Visibility", null,
+		editPropertiesSubMenu.addMenuItem("Default Attribute Visibility", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { defaultParamVisibilityCommand(); } });
         editPropertiesSubMenu.addMenuItem("Update Attributes Inheritance on Node", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { updateInheritance(false); } });

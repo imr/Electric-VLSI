@@ -999,28 +999,27 @@ public abstract class Geometric extends ElectricObject
 		}
 		if (!name.isValid())
 		{
-			System.out.println(parent + ": Invalid name "+name+" wasn't assigned to " +
+			System.out.println(parent + ": Invalid name \""+name+"\" wasn't assigned to " +
 				(this instanceof NodeInst ? "node" : "arc") + " :" + Name.checkName(name.toString()));
 			return true;
 		}
 		if (name.isTempname() && name.isBus())
 		{
-			System.out.println(parent + ": Temporary name <"+name+"> can't be bus");
+			System.out.println(parent + ": Temporary name \""+name+"\" can't be bus");
 			return true;
 		}
 		if (name.hasEmptySubnames())
 		{
 			if (name.isBus())
-				System.out.println(parent + ": Name <"+name+"> with empty subnames wasn't assigned to " +
+				System.out.println(parent + ": Name \""+name+"\" with empty subnames wasn't assigned to " +
 					(this instanceof NodeInst ? "node" : "arc"));
 			else
-				System.out.println(parent + ": Empty name <"+name+"> wasn't assigned to " +
-					(this instanceof NodeInst ? "node" : "arc"));
+				System.out.println(parent + ": Cannot assign empty name \""+name+"\" to " + describe());
 			return true;
 		}
 		if (isLinked() && parent.hasTempName(name))
 		{
-			System.out.println(parent + " already has Geometric with temporary name <"+name+">");
+			System.out.println(parent + " already has Geometric with temporary name \""+name+"\"");
 			return true;
 		}
 		if (isLinked())

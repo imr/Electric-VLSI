@@ -1,8 +1,10 @@
 <!-- HEADER 6-8-6: Cell Parameters -->
 
-<!-- COMMAND Edit/Properties/See All Parameters on Node -->
-<!-- COMMAND Edit/Properties/Hide All Parameters on Node -->
-<!-- COMMAND Edit/Properties/Default Parameter Visibility -->
+<!-- COMMAND Edit/Properties/See All Attributes on Node -->
+<!-- COMMAND Edit/Properties/Hide All Attributes on Node -->
+<!-- COMMAND Edit/Properties/Default Attribute Visibility -->
+<!-- COMMAND Edit/Properties/Update Attributes Inheritance on Node -->
+<!-- COMMAND Edit/Properties/Update Attributes Inheritance all Libraries -->
 
 When attributes are created on cells, they become parameters to that cell.
 Each instance of the cell has a copy of the attribute placed on the node, and the node's attribute
@@ -29,12 +31,16 @@ If an instance is created and its "Strength" attribute is set to 7, then descend
 In schematics, the location of a parameter on an icon is determined by the location of that parameter on the sample icon,
 inside of the schematic cell.
 <P>
-If you do not wish to see a parameter's text on any instance, select the parameter text inside of the cell,
-use the <B>Object Properties...</B> subcommand of the <B>Properties</B> command of the <B>Edit</B> menu, and check "Invisible outside cell".
+If a parameter is changed on a cell, you may wish the change to affect all instances of that cell.
+To do this, use the <B>Update Attributes Inheritance on Node</B> command (in menu <B>Edit / Properties</B>).
+To do this everywhere, use the <B>Update Attributes Inheritance all Libraries</B> command.
 <P>
-You can disable the display of parameters on cell instances by selecting them and using the <B>Hide All Parameters on Node</B> command
+If you do not wish to see a parameter's text on any instance, select the parameter text inside of the cell,
+use the <B>Object Properties...</B> command (in menu <B>Edit / Properties</B>), and check "Invisible outside cell".
+<P>
+You can disable the display of parameters on cell instances by selecting them and using the <B>Hide All Attributes on Node</B> command
 (in menu <B>Edit / Properties</B>).
-You can force all parameters to be displayed on a cell instance by using the <B>Hide All Parameters on Node</B> command.
-To restore default parameter visibility on a cell instance, use the <B>Default Parameters Visibility</B> command.
+You can force all parameters to be displayed on a cell instance by using the <B>Hide All Attributes on Node</B> command.
+To restore default parameter visibility on a cell instance, use the <B>Default Attribute Visibility</B> command.
 
 <!-- TRAILER -->

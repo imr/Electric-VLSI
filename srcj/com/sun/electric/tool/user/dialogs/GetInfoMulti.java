@@ -262,7 +262,8 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 			if (firstGeom instanceof NodeInst) firstPt = ((NodeInst)firstGeom).getAnchorCenter();
 			Point2D secondPt = secondGeom.getTrueCenter();
 			if (secondGeom instanceof NodeInst) secondPt = ((NodeInst)secondGeom).getAnchorCenter();
-			listModel.addElement("Distance between centers is " + firstPt.distance(secondPt));
+			listModel.addElement("Distance between centers: X=" + Math.abs(firstPt.getX() - secondPt.getX()) +
+			   " Y=" + Math.abs(firstPt.getY() - secondPt.getY()));
 		}
 		if (numNodes != 0)
 		{

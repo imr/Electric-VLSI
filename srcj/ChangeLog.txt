@@ -2,6 +2,11 @@
 
 ************************* Version 8.00: Released  *************************
 
+BUG: (7/15/04, SMR) Cross-library moving may loop infinitely.
+FIX: In "database.constraint.Layout.oldPortPosition()", must use local copy of "pp" which is "bottomPP".
+
+IMP: (7/15/04, SMR) Can now delete any type of cell (text, 3D, etc.) and it works.
+
 IMP: (7/14/04, SMR) Added command to show samples library.
 
 IMP: (7/14/04, SMR) Fixed "Describe This Cell" results to line up properly, get state bits right.
