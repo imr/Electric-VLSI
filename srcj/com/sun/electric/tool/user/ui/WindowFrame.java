@@ -232,6 +232,10 @@ public class WindowFrame extends Observable
 
 		// make a tabbed list of panes on the left
 		JTabbedPane tp = new JTabbedPane();
+        // Only Mac version will align tabs on the left. The text orientation is vertical
+        // by default on Mac
+        if (TopLevel.getOperatingSystem() == TopLevel.OS.MACINTOSH)
+            tp.setTabPlacement(JTabbedPane.LEFT);
 		paletteTab = PaletteFrame.newInstance();
 		loadComponentMenuForTechnology();
 		tp.add("Components", paletteTab.getTechPalette());
