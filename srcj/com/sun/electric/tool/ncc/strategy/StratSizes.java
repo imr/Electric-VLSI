@@ -85,33 +85,52 @@ public class StratSizes extends Strategy {
 		return NccUtils.sizesMatch(o1.outlier.getWidth(), o2.outlier.getWidth(), 
 								   globals.getOptions());
 	}
-	/** Find the smallest and largest Transistors in this Circuit  
-	 * @return array of 2 OutlierTrans or null if Parts not Transistors */
-	private OutlierTrans[] findSmallLargeOutliers(Circuit c) {
-		double minSz = Double.MAX_VALUE;
-		double maxSz = Double.MIN_VALUE;
-		double sumSz = 0;
+	/** Find the Transistors with extreme width and length in this Circuit  
+	 * @return array of 4 OutlierTrans or null if Parts not Transistors */
+	private OutlierTrans[] findThinestWidestShortestLongest(Circuit c) {
+		double minWid = Double.MAX_VALUE;
+		double maxWid = Double.MIN_VALUE;
+		double minLen = Double.MAX_VALUE;
+		double maxLen = Double.MIN_VALUE;
+		double sumWid = 0;
+		double sumLen = 0;
 		int numTrans = 0;
-		Mos minT = null;
-		Mos maxT = null;
+		Mos thinnest = null;
+		Mos widest = null;
+		Mos shortest = null;
+		Mos longest = null;
 		for (Iterator it=c.getNetObjs(); it.hasNext();) {
 			NetObject no = (NetObject) it.next();
 			if (!(no instanceof Mos)) return null;
-			Mos t = (Mos) no;
-			double sz = t.getWidth();
-			if (sz<minSz) {minT=t; minSz=sz;}
-			if (sz>maxSz) {maxT=t; maxSz=sz;}
-			sumSz += sz;
+			Mos m = (Mos) no;
+
+			double w = m.getWidth();
+			if (w<minWid) {thinnest=m; minWid=w;}
+			if (w>maxWid) {widest=m; maxWid=w;}
+			sumWid += w;
+
+			double l = m.getLength();
+			if (l<minLen) {shortest=m; minLen=l;}
+			if (l>maxLen) {longest=m; maxLen=l;}
+			sumLen += l;
+			
 			numTrans++;
 		}
 		LayoutLib.error(numTrans==0, "Empty circuit?");
-		if (sumSz==0) return null; // all zero width, avoid divide by zero
-		double avgSz = sumSz / numTrans;
-		double smallDev = (avgSz-minSz) / avgSz;
-		double largeDev = (maxSz-avgSz) / avgSz;
+		if (sumWid==0) return null; // all zero width, avoid divide by zero
+		double avgWid = sumWid / numTrans;
+		double thinDev = (avgWid-minWid) / avgWid;
+		double wideDev = (maxWid-avgWid) / avgWid;
+
+		double avgLen = sumLen / numTrans;
+		double shortDev = (avgLen-minLen) / avgLen;
+		double longDev = (maxWid-avgLen) / avgLen;
+		
 		return new OutlierTrans[] {
-			new OutlierTrans(minT, smallDev),
-			new OutlierTrans(maxT, largeDev)
+			new OutlierTrans(thinnest, thinDev),
+			new OutlierTrans(widest, wideDev),
+			new OutlierTrans(shortest, shortDev),
+			new OutlierTrans(longest, longDev)
 		};
 	}
 	private OutlierRecord maxDeviation(OutlierRecord o1, OutlierRecord o2) {
@@ -122,22 +141,36 @@ public class StratSizes extends Strategy {
 	 * Return null if no outliers */
 	private OutlierRecord buildOutlierRecord(EquivRecord r) {
 		OutlierTrans first = null;
-		ArrayList small = new ArrayList();
-		ArrayList big = new ArrayList();
+		ArrayList thins = new ArrayList();
+		ArrayList wides = new ArrayList();
+		ArrayList shorts = new ArrayList();
+		ArrayList longs = new ArrayList();
 		for (Iterator it=r.getCircuits(); it.hasNext();) {
 			Circuit c = (Circuit) it.next();
-			OutlierTrans[] o = findSmallLargeOutliers(c);
+			OutlierTrans[] o = findThinestWidestShortestLongest(c);
 			// no Outlier found
 			if (o==null) return null;
-			small.add(o[0]);
-			big.add(o[1]);
+			thins.add(o[0]);
+			wides.add(o[1]);
+			shorts.add(o[2]);
+			longs.add(o[3]);
 		}
-		return maxDeviation(new OutlierRecord(small), new OutlierRecord(big));
+		// Thinnest MOS of each circuit
+		OutlierRecord thinestMOSs = new OutlierRecord(thins);
+		// Widest MOS of each circuit
+		OutlierRecord widestMOSs = new OutlierRecord(wides);
+		// Shortest MOS of each circuit
+		OutlierRecord shortestMOSs = new OutlierRecord(shorts);
+		// Longest MOS of each circuit
+		OutlierRecord longestMOSs = new OutlierRecord(longs);
+		OutlierRecord outlier = maxDeviation(thinestMOSs, widestMOSs);;
+		outlier = maxDeviation(outlier, shortestMOSs);
+		outlier = maxDeviation(outlier, longestMOSs);
+		return outlier;
 	}
 	/** Find the OutlierRecord with the largest deviation */
 	private OutlierRecord findOutlierRecordWithLargestDeviation() {
 		OutlierRecord furthestOut = null;
-		//LeafList frontier = StratFrontier.doYourJob(globals.getParts(), globals);
 		Iterator frontier = globals.getPartLeafEquivRecs().getUnmatched();
 		while (frontier.hasNext()) {
 			EquivRecord r = (EquivRecord) frontier.next();

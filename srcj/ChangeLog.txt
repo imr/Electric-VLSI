@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02j: *********************************
 
+IMP: (03/16/05, RK) NCC: disambiguate based on MOS lengths in addition to widths
+
+IMP: (03/16/05, RK) NCC qLite regression: remove spurious sizes from /data/qLite/modified.
+
 IMP: (03/16/05, GVG) IRSIM will ignore non-fet transistors in schematic (not supported by IRSIM sim)
 
 BUG: (03/16/05, GVG) Exception in GetInfo for non FET transistors in schematic. Function getTransistorSize() can't
