@@ -432,8 +432,8 @@ public class View3DWindow extends JPanel
 		NodeProto nProto = no.getProto();
 		Technology tech = nProto.getTechnology();
 
-		// Skipping Gyph node
-		 if (nProto == Tech.facetCenter) return;
+		// Skipping Special nodes
+        if (NodeInst.isSpecialNode(no)) return;
 
 		List list = null;
 		if (!(nProto instanceof PrimitiveNode))
@@ -450,16 +450,149 @@ public class View3DWindow extends JPanel
 		}
 		else
         {
-			list = addPolys(tech.getShapeOfNode(no, null, true, true), no.rotateOut(), objTrans);
+            Poly[] polys = tech.getShapeOfNode(no, null, true, true);
+            List boxList = null;
+
+            // Special case for transistors
+            if (nProto.getFunction().isTransistor())
+            {
+                int[] active = new int[2];
+                int gate = -1;
+                int count = 0;
+                int poly = -1;
+                boxList = new ArrayList(4);
+
+                // Merge active regions
+                for (int i = 0; i < polys.length; i++)
+                {
+                    Layer.Function fun = polys[i].getLayer().getFunction();
+                    if (fun.isDiff())
+                    {
+                        active[count++] = i;
+                    }
+                    else if (fun.isGatePoly())
+                    {
+                        gate = i;
+                    }
+                    else if (fun.isPoly())
+                        poly = i;
+                }
+                if (count == 2)
+                {
+                    Rectangle2D rect1 = polys[active[0]].getBounds2D();
+                    Rectangle2D rect2 = polys[active[1]].getBounds2D();
+                    double minX = Math.min(rect1.getMinX(), rect2.getMinX());
+                    double minY = Math.min(rect1.getMinY(), rect2.getMinY());
+                    double maxX = Math.max(rect1.getMaxX(), rect2.getMaxX());
+                    double maxY = Math.max(rect1.getMaxY(), rect2.getMaxY());
+                    Rectangle2D newRect = new Rectangle2D.Double(minX, minY, (maxX-minX), (maxY-minY));
+                    Poly tmp = new Poly(newRect);
+                    tmp.setLayer(polys[active[0]].getLayer());
+                    polys[active[0]] = tmp; // new active with whole area beneath poly gate
+                    int last = polys.length - 1;
+                    if (active[1] != last)
+                        polys[active[1]] = polys[last];
+                    polys[last] = null;
+                }
+                if (gate != -1)
+                {
+                    Rectangle2D rect1 = polys[gate].getBounds2D();
+                    Point3d [] pts = new Point3d[8];
+                    double maxX = rect1.getMaxX();
+                    double delta = rect1.getWidth()/10;
+                    double cutGate = (maxX - delta);
+                    double cutPoly = (maxX + delta);
+                    Layer layer = polys[gate].getLayer();
+                    double dist = (layer.getDistance() + layer.getThickness()) * scale;
+                    //double distPoly = (polys[poly].getLayer().getDistance() + (polys[poly].getLayer().getThickness()/10)) * scale;
+                    double distPoly = (polys[poly].getLayer().getDistance()) * scale;
+                    pts[0] = new Point3d(cutGate, rect1.getMinY(), dist);
+                    pts[1] = new Point3d(maxX, rect1.getMinY(), dist);
+                    pts[2] = new Point3d(cutPoly, rect1.getMinY(), distPoly);
+                    pts[3] = new Point3d(maxX, rect1.getMinY(), distPoly);
+                    pts[4] = new Point3d(cutGate, rect1.getMaxY(), dist);
+                    pts[5] = new Point3d(maxX, rect1.getMaxY(), dist);
+                    pts[6] = new Point3d(cutPoly, rect1.getMaxY(), distPoly);
+                    pts[7] = new Point3d(maxX, rect1.getMaxY(), distPoly);
+                    // First connection
+                    boxList.add(addShape3D(pts, 4, getAppearance(layer)));
+                    maxX = rect1.getMinX();
+                    cutGate = (maxX + delta);
+                    cutPoly = (maxX - delta);
+                    pts[0] = new Point3d(maxX, rect1.getMinY(), dist);
+                    pts[1] = new Point3d(cutGate, rect1.getMinY(), dist);
+                    pts[2] = new Point3d(maxX, rect1.getMinY(), distPoly);
+                    pts[3] = new Point3d(cutPoly, rect1.getMinY(), distPoly);
+                    pts[4] = new Point3d(maxX, rect1.getMaxY(), dist);
+                    pts[5] = new Point3d(cutGate, rect1.getMaxY(), dist);
+                    pts[6] = new Point3d(maxX, rect1.getMaxY(), distPoly);
+                    pts[7] = new Point3d(cutPoly, rect1.getMaxY(), distPoly);
+                    // Second connection
+                    boxList.add(addShape3D(pts, 4, getAppearance(layer)));
+                }
+            }
+			list = addPolys(polys, no.rotateOut(), objTrans);
+            if (boxList != null) list.addAll(boxList);
         }
 		electricObjectMap.put(no, list);
 	}
+
+    private Shape3D addShape3D(Point3d[] pts, int listLen, Appearance ap)
+    {
+
+        int numFaces = listLen + 2; // contour + top + bottom
+        int[] indices = new int[listLen*6];
+        int[] stripCounts = new int[numFaces];
+        int[] contourCount = new int[numFaces];
+        Arrays.fill(contourCount, 1);
+        Arrays.fill(stripCounts, 4);
+        stripCounts[0] = listLen; // top
+        stripCounts[numFaces-1] = listLen; // bottom
+
+        int count = 0;
+        // Top face
+        for (int i = 0; i < listLen; i++)
+            indices[count++] = i;
+        // Contour
+        for (int i = 0; i < listLen; i++)
+        {
+            indices[count++] = i;
+            indices[count++] = i + listLen;
+            indices[count++] = (i+1)%listLen + listLen;
+            indices[count++] = (i+1)%listLen;
+        }
+        // Bottom face
+        for (int i = 0; i < listLen; i++)
+            indices[count++] = (listLen-i)%listLen + listLen;
+
+        GeometryInfo gi = new GeometryInfo(GeometryInfo.POLYGON_ARRAY);
+        gi.setCoordinates(pts);
+        gi.setCoordinateIndices(indices);
+        gi.setStripCounts(stripCounts);
+        gi.setContourCounts(contourCount);
+        NormalGenerator ng = new NormalGenerator();
+        ng.setCreaseAngle ((float) Math.toRadians(30));
+        ng.generateNormals(gi);
+        GeometryArray c = gi.getGeometryArray();
+        c.setCapability(GeometryArray.ALLOW_INTERSECT);
+
+        Shape3D box = new Shape3D(c, ap);
+        box.setCapability(Shape3D.ENABLE_PICK_REPORTING);
+        box.setCapability(Node.ALLOW_LOCAL_TO_VWORLD_READ);
+        box.setCapability(Shape3D.ALLOW_PICKABLE_READ);
+        box.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
+        box.setCapability(Shape3D.ALLOW_APPEARANCE_WRITE);
+        box.setCapability(Shape3D.ALLOW_BOUNDS_READ);
+        PickTool.setCapabilities(box, PickTool.INTERSECT_FULL);
+        objTrans.addChild(box);
+        return (box);
+    }
 
 	/**
 	 * Method to add a polyhedron to the transformation group
 	 * @param objTrans
 	 */
-	public Shape3D addPolyhedron(Rectangle2D bounds, double distance, double thickness,
+	private Shape3D addPolyhedron(Rectangle2D bounds, double distance, double thickness,
 	                          Appearance ap, TransformGroup objTrans)
 	{
         GeometryInfo gi = new GeometryInfo(GeometryInfo.QUAD_ARRAY);
@@ -499,8 +632,88 @@ public class View3DWindow extends JPanel
 		return(box);
 	}
 
+    private JAppearance getAppearance(Layer layer)
+    {
+        // Setting appearance
+        EGraphics graphics = layer.getGraphics();
+        JAppearance ap = (JAppearance)graphics.get3DAppearance();
 
-	public Shape3D addPolyhedron(PathIterator pIt, double distance, double thickness,
+        if (ap == null)
+        {
+            ap = new JAppearance(graphics);
+            Color color = layer.getGraphics().getColor();
+            Color3f objColor = new Color3f(color);
+            /*
+            ColoringAttributes ca = new ColoringAttributes(objColor, ColoringAttributes.SHADE_GOURAUD);
+            ca.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
+            ap.setColoringAttributes(ca);
+            */
+
+            /*
+            TransparencyAttributes ta = new TransparencyAttributes();
+            ta.setTransparencyMode(TransparencyAttributes.BLENDED);
+            ta.setTransparency(0.5f);
+            //ap.setTransparencyAttributes(ta);
+            */
+
+            // Adding Rendering attributes to access visibility flag
+            RenderingAttributes ra = new RenderingAttributes();
+            ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_READ);
+            ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_WRITE);
+            ra.setVisible(layer.isVisible());
+            ap.setRenderingAttributes(ra);
+
+            // Set up the polygon attributes
+            //PolygonAttributes pa = new PolygonAttributes();
+            //pa.setCullFace(PolygonAttributes.CULL_NONE);
+            //pa.setPolygonMode(PolygonAttributes.POLYGON_LINE);
+            //ap.setPolygonAttributes(pa);
+
+            //TextureAttributes texAttr = new TextureAttributes();
+            //texAttr.setTextureMode(TextureAttributes.MODULATE);
+            //texAttr.setTextureColorTable(pattern);
+            //ap.setTextureAttributes(texAttr);
+
+            //LineAttributes lineAttr = new LineAttributes();
+            //lineAttr.setLineAntialiasingEnable(true);
+            //ap.setLineAttributes(lineAttr);
+
+            // Adding to internal material
+//				Material mat = new Material(objColor, black, objColor, white, 70.0f);
+            Material mat = new Material();
+            mat.setDiffuseColor(objColor);
+            mat.setSpecularColor(objColor);
+            mat.setAmbientColor(objColor);
+            mat.setLightingEnable(true);
+            mat.setCapability(Material.ALLOW_COMPONENT_READ);
+            mat.setCapability(Material.ALLOW_COMPONENT_WRITE);
+            ap.setMaterial(mat);
+
+            // For changing color
+            //ap.setCapability(Appearance.ALLOW_COLORING_ATTRIBUTES_WRITE);
+            //ap.setCapability(Appearance.ALLOW_COLORING_ATTRIBUTES_READ);
+            // For highlight
+            ap.setCapability(Appearance.ALLOW_MATERIAL_READ);
+            ap.setCapability(Appearance.ALLOW_MATERIAL_WRITE);
+            // For visibility
+            ap.setCapability(Appearance.ALLOW_RENDERING_ATTRIBUTES_READ);
+            ap.setCapability(Appearance.ALLOW_RENDERING_ATTRIBUTES_WRITE);
+
+            graphics.set3DAppearance(ap);
+        }
+        return (ap);
+    }
+
+    /**
+     *
+     * @param pIt
+     * @param distance
+     * @param thickness
+     * @param ap
+     * @param objTrans
+     * @return
+     */
+	private Shape3D addPolyhedron(PathIterator pIt, double distance, double thickness,
 	                          Appearance ap, TransformGroup objTrans)
 	{
         double height = thickness + distance;
@@ -523,7 +736,6 @@ public class View3DWindow extends JPanel
 				int[] stripCounts = new int[numFaces];
                 int[] contourCount = new int[numFaces];
 				Arrays.fill(contourCount, 1);
-
 				Arrays.fill(stripCounts, 4);
 				stripCounts[0] = listLen; // top
 				stripCounts[numFaces-1] = listLen; // bottom
@@ -588,7 +800,7 @@ public class View3DWindow extends JPanel
 	 * @param transform
 	 * @param objTrans
 	 */
-	public List addPolys(Poly [] polys, AffineTransform transform, TransformGroup objTrans)
+	private List addPolys(Poly [] polys, AffineTransform transform, TransformGroup objTrans)
 	{
 		if (polys == null) return (null);
 
@@ -596,6 +808,7 @@ public class View3DWindow extends JPanel
 		for(int i = 0; i < polys.length; i++)
 		{
 			Poly poly = polys[i];
+            if (poly == null) continue; // Case for transistors and active regions.
 			Layer layer = poly.getLayer();
 
 			if (!layer.isVisible()) continue; // Doesn't generate the graph
@@ -609,72 +822,73 @@ public class View3DWindow extends JPanel
 				poly.transform(transform);
 
 			// Setting appearance
-			EGraphics graphics = layer.getGraphics();
-			JAppearance ap = (JAppearance)graphics.get3DAppearance();
-
-			if (ap == null)
-			{
-				ap = new JAppearance(graphics);
-				Color color = layer.getGraphics().getColor();
-				Color3f objColor = new Color3f(color);
-				/*
-				ColoringAttributes ca = new ColoringAttributes(objColor, ColoringAttributes.SHADE_GOURAUD);
-				ca.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
-				ap.setColoringAttributes(ca);
-                */
-
-				/*
-				TransparencyAttributes ta = new TransparencyAttributes();
-				ta.setTransparencyMode(TransparencyAttributes.BLENDED);
-				ta.setTransparency(0.5f);
-				//ap.setTransparencyAttributes(ta);
-                */
-
-				// Adding Rendering attributes to access visibility flag
-				RenderingAttributes ra = new RenderingAttributes();
-				ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_READ);
-                ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_WRITE);
-				ra.setVisible(layer.isVisible());
-				ap.setRenderingAttributes(ra);
-
-				// Set up the polygon attributes
-				//PolygonAttributes pa = new PolygonAttributes();
-				//pa.setCullFace(PolygonAttributes.CULL_NONE);
-				//pa.setPolygonMode(PolygonAttributes.POLYGON_LINE);
-				//ap.setPolygonAttributes(pa);
-
-				//TextureAttributes texAttr = new TextureAttributes();
-				//texAttr.setTextureMode(TextureAttributes.MODULATE);
-				//texAttr.setTextureColorTable(pattern);
-				//ap.setTextureAttributes(texAttr);
-
-				//LineAttributes lineAttr = new LineAttributes();
-				//lineAttr.setLineAntialiasingEnable(true);
-				//ap.setLineAttributes(lineAttr);
-
-				// Adding to internal material
-//				Material mat = new Material(objColor, black, objColor, white, 70.0f);
-				Material mat = new Material();
-				mat.setDiffuseColor(objColor);
-				mat.setSpecularColor(objColor);
-				mat.setAmbientColor(objColor);
-                mat.setLightingEnable(true);
-				mat.setCapability(Material.ALLOW_COMPONENT_READ);
-				mat.setCapability(Material.ALLOW_COMPONENT_WRITE);
-                ap.setMaterial(mat);
-
-				// For changing color
-				//ap.setCapability(Appearance.ALLOW_COLORING_ATTRIBUTES_WRITE);
-				//ap.setCapability(Appearance.ALLOW_COLORING_ATTRIBUTES_READ);
-				// For highlight
-				ap.setCapability(Appearance.ALLOW_MATERIAL_READ);
-				ap.setCapability(Appearance.ALLOW_MATERIAL_WRITE);
-				// For visibility
-				ap.setCapability(Appearance.ALLOW_RENDERING_ATTRIBUTES_READ);
-                ap.setCapability(Appearance.ALLOW_RENDERING_ATTRIBUTES_WRITE);
-
-				graphics.set3DAppearance(ap);
-			}
+            JAppearance ap = getAppearance(layer);
+//			EGraphics graphics = layer.getGraphics();
+//			JAppearance ap = (JAppearance)graphics.get3DAppearance();
+//
+//			if (ap == null)
+//			{
+//				ap = new JAppearance(graphics);
+//				Color color = layer.getGraphics().getColor();
+//				Color3f objColor = new Color3f(color);
+//				/*
+//				ColoringAttributes ca = new ColoringAttributes(objColor, ColoringAttributes.SHADE_GOURAUD);
+//				ca.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
+//				ap.setColoringAttributes(ca);
+//                */
+//
+//				/*
+//				TransparencyAttributes ta = new TransparencyAttributes();
+//				ta.setTransparencyMode(TransparencyAttributes.BLENDED);
+//				ta.setTransparency(0.5f);
+//				//ap.setTransparencyAttributes(ta);
+//                */
+//
+//				// Adding Rendering attributes to access visibility flag
+//				RenderingAttributes ra = new RenderingAttributes();
+//				ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_READ);
+//                ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_WRITE);
+//				ra.setVisible(layer.isVisible());
+//				ap.setRenderingAttributes(ra);
+//
+//				// Set up the polygon attributes
+//				//PolygonAttributes pa = new PolygonAttributes();
+//				//pa.setCullFace(PolygonAttributes.CULL_NONE);
+//				//pa.setPolygonMode(PolygonAttributes.POLYGON_LINE);
+//				//ap.setPolygonAttributes(pa);
+//
+//				//TextureAttributes texAttr = new TextureAttributes();
+//				//texAttr.setTextureMode(TextureAttributes.MODULATE);
+//				//texAttr.setTextureColorTable(pattern);
+//				//ap.setTextureAttributes(texAttr);
+//
+//				//LineAttributes lineAttr = new LineAttributes();
+//				//lineAttr.setLineAntialiasingEnable(true);
+//				//ap.setLineAttributes(lineAttr);
+//
+//				// Adding to internal material
+////				Material mat = new Material(objColor, black, objColor, white, 70.0f);
+//				Material mat = new Material();
+//				mat.setDiffuseColor(objColor);
+//				mat.setSpecularColor(objColor);
+//				mat.setAmbientColor(objColor);
+//                mat.setLightingEnable(true);
+//				mat.setCapability(Material.ALLOW_COMPONENT_READ);
+//				mat.setCapability(Material.ALLOW_COMPONENT_WRITE);
+//                ap.setMaterial(mat);
+//
+//				// For changing color
+//				//ap.setCapability(Appearance.ALLOW_COLORING_ATTRIBUTES_WRITE);
+//				//ap.setCapability(Appearance.ALLOW_COLORING_ATTRIBUTES_READ);
+//				// For highlight
+//				ap.setCapability(Appearance.ALLOW_MATERIAL_READ);
+//				ap.setCapability(Appearance.ALLOW_MATERIAL_WRITE);
+//				// For visibility
+//				ap.setCapability(Appearance.ALLOW_RENDERING_ATTRIBUTES_READ);
+//                ap.setCapability(Appearance.ALLOW_RENDERING_ATTRIBUTES_WRITE);
+//
+//				graphics.set3DAppearance(ap);
+//			}
 
 
 			if (poly.getBox() == null) // non-manhattan shape
