@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02j: *********************************
 
+BUG: (03/30/05, GVG) if tech is set to 4 or less metal layers, TechPalette still draws them.
+FIX: getNodesGrouped() check notUsed nodes and arc and remove them from original matrix.
+
 BUG: (03/29/05, SMR) GDS input doesn't handle orientation of instance arrays (AREF)
 FIX: Use same method as single instances (SREF).
 

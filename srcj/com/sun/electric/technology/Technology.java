@@ -60,14 +60,7 @@ import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.prefs.Preferences;
 
 /**
@@ -3485,7 +3478,41 @@ public class Technology implements Comparable
      * Method to retrieve correct group of elements for the palette
      * @return
      */
-    public Object[][] getNodesGrouped() { return nodeGroups; }
+    public Object[][] getNodesGrouped()
+    {
+        // Check if some metal layers are not used
+        List list = new ArrayList(nodeGroups.length);
+        for (int i = 0; i < nodeGroups.length; i++)
+        {
+            Object[] objs = nodeGroups[i];
+            if (objs != null)
+            {
+                Object obj = objs[0];
+                boolean valid = true;
+                if (obj instanceof PrimitiveArc)
+                {
+                    PrimitiveArc ap = (PrimitiveArc)obj;
+                    valid = !ap.isNotUsed();
+                }
+                if (valid)
+                    list.add(objs);
+            }
+        }
+        Object[][] newMatrix = new Object[list.size()][nodeGroups[0].length];
+        for (int i = 0; i < list.size(); i++)
+        {
+            Object[] objs = (Object[])list.get(i);
+            for (int j = 0; j < objs.length; j++)
+            {
+                Object obj = objs[j];
+                if (obj instanceof PrimitiveNode && ((PrimitiveNode)obj).isNotUsed())
+                    obj = null;
+                newMatrix[i][j] = obj;
+            }
+        }
+        return newMatrix;
+        //return nodeGroups;
+    }
 
     /**
      * Method to create temporary nodes for the palette
