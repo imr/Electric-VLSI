@@ -34,6 +34,8 @@ import java.awt.geom.Point2D;
  */
 final public class EPoint extends Point2D {
 
+	public static final EPoint ORIGIN = new EPoint(0, 0);
+
     /**
      * The X coordinate of this <code>EPoint</code>.
      */
@@ -104,5 +106,14 @@ final public class EPoint extends Point2D {
      */
 	public Point2D.Double mutable() {
 		return new Point2D.Double(x, y);
+	}
+
+	/**
+	 * Returns a <code>String</code> that represents the value 
+	 * of this <code>EPoint</code>.
+	 * @return a string representation of this <code>EPoint</code>.
+	 */
+	public String toString() {
+	    return "EPoint2D["+x+", "+y+"]";
 	}
 }

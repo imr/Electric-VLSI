@@ -1487,8 +1487,8 @@ public class ArcInst extends Geometric implements Comparable
 		if (n)
 		{
 			// only allow if negation is supported on this port
-			PortProto pp = headPortInst.getPortProto();
-			if (pp instanceof PrimitivePort && ((PrimitivePort)pp).isNegatable())
+// 			PortProto pp = headPortInst.getPortProto();
+// 			if (pp instanceof PrimitivePort && ((PrimitivePort)pp).isNegatable())
 				userBits |= ISHEADNEGATED;
 		} else
 		{
