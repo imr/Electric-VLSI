@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01at: *********************************
 
+BUG: (12/3/04, GVG) TSMC90: Active ports got wrong active arcs attached (Bug #52)
+FIX: Switched to N type
+
 BUG: (12/3/04, DN) In ELIB input technology and scale calculation is undeterministic(Bug #20).
 FIX: LibraryFiles.computeTech() ensures that subcells have computed technology.
 
