@@ -272,6 +272,7 @@ public abstract class Topology extends Output
 		/** scratch word for the subclass */	private int flags;
 
 		protected String getName() { return name; }
+		protected CellSignal getSignal(int index) { return signals[index]; }
 		protected boolean isDescending() { return descending; }
 		protected boolean isSupply() { return supply; }
 		protected Export getExport() { return pp; }
@@ -324,7 +325,7 @@ public abstract class Topology extends Output
 //for(Iterator it = cni.getCellSignals(); it.hasNext(); )
 //{
 //	CellSignal cs = (CellSignal)it.next();
-//	printWriter.print("**   Name="+cs.name+" export="+cs.pp+" index="+cs.ppIndex+" descending="+cs.descending+" power="+cs.power+" ground="+cs.ground+" global="+cs.globalSignal+"\n");
+//	printWriter.print("**   Name="+cs.name+" export="+cs.pp.getName()+" index="+cs.ppIndex+" descending="+cs.descending+" power="+cs.power+" ground="+cs.ground+" global="+cs.globalSignal+"\n");
 //}
 //if (isAggregateNamesSupported())
 //{
@@ -332,7 +333,7 @@ public abstract class Topology extends Output
 //	for(Iterator it = cni.cellAggretateSignals.iterator(); it.hasNext(); )
 //	{
 //		CellAggregateSignal cas = (CellAggregateSignal)it.next();
-//		printWriter.print("**   Name="+cas.name+", export="+cas.pp+" descending="+cas.descending+", low="+cas.low+", high="+cas.high+"\n");
+//		printWriter.print("**   Name="+cas.name+", export="+cas.pp.getName()+" descending="+cas.descending+", low="+cas.low+", high="+cas.high+"\n");
 //	}
 //}
 //printWriter.print("********DONE WITH CELL " + cell.describe() + "\n");

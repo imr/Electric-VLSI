@@ -576,13 +576,10 @@ public class Verilog extends Topology
 						{
 							int total = high - low + 1;
 							CellSignal [] outerSignalList = new CellSignal[total];
-							int totalBusWidth = netList.getBusWidth(cas.getExport());
 							for(int j=low; j<=high; j++)
 							{
-								JNetwork net = netList.getNetwork(no, cas.getExport(), j-low);
-								if (cas.isDescending()) net = netList.getNetwork(no, cas.getExport(), totalBusWidth-1-(j-low)); else
-									net = netList.getNetwork(no, cas.getExport(), j-low);
-//								if (cas.isDescending()) outerSignalList[total-1-(j-low)] = cni.getCellSignal(net); else
+								CellSignal cInnerSig = cas.getSignal(j-low);
+								JNetwork net = netList.getNetwork(no, cas.getExport(), cInnerSig.getExportIndex());
 								outerSignalList[j-low] = cni.getCellSignal(net);
 							}
 							writeBus(outerSignalList, low, high, cas.isDescending(),
