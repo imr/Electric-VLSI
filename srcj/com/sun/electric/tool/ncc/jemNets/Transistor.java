@@ -24,11 +24,10 @@
 
 package com.sun.electric.tool.ncc.jemNets;
 import java.util.ArrayList;
- 
-import java.util.HashSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.sun.electric.tool.generator.layout.LayoutLib;
@@ -163,40 +162,75 @@ public class Transistor extends Part {
 			this.cap = cap;
 		}
 	}
-
-	private static final List PIN_TYPES = new ArrayList();
-	static {
-		for (Iterator it=TYPES.iterator(); it.hasNext();) {
-			Type type = (Type) it.next(); 
-			List tList = new ArrayList();
-			PIN_TYPES.add(tList);
-			for (int j=0; j<2; j++) {
-				List cList = new ArrayList();
-				tList.add(cList);
-				boolean cap = j==0 ? false : true;
-				for (int numSeries=1; numSeries<=5; numSeries++) {
-					Set pinTypes = new HashSet();
-					cList.add(pinTypes);
-					
-					pinTypes.add(new DiffType(type, numSeries, cap));
-
-					int maxHeight = (numSeries+1) / 2;
-					for (int gateHeight=1; gateHeight<=maxHeight; gateHeight++) {
-						pinTypes.add(new GateType(type, numSeries, gateHeight, cap));
-					}
-				}
-			}
+	/** Set of all the pins for a particular Transistor */ 
+	private static class PinTypeSetKey {
+		private Type type;
+		private boolean isCapacitor;
+		private int numSeries;
+		public PinTypeSetKey(Type type, boolean isCapacitor, int numSeries) {
+			this.type = type;
+			this.isCapacitor = isCapacitor;
+			this.numSeries = numSeries;
+		}
+		public boolean equals(Object o) {
+			if (!(o instanceof PinTypeSetKey)) return false;
+			PinTypeSetKey p = (PinTypeSetKey) o;
+			return type==p.type && isCapacitor==p.isCapacitor && numSeries==p.numSeries;
+		}
+		public int hashCode() {
+			return type.hashCode() + (isCapacitor?1:0) + (numSeries<<1);
 		}
 	}
-	public Set getPinTypes() {
-		int t = type.getOrdinal();
-		ArrayList l1 = (ArrayList) PIN_TYPES.get(t);
-		int c = isCapacitor() ? 1 : 0;
-		ArrayList l2 = (ArrayList) l1.get(c);
-		int s = numSeries()-1;
-		Set pinTypes = (Set) l2.get(s); 
+	private static final Map PIN_TYPE_SETS = new HashMap();
+	
+	public synchronized Set getPinTypes() {
+		PinTypeSetKey key = new PinTypeSetKey(type, isCapacitor(), numSeries());
+		Set pinTypes = (Set) PIN_TYPE_SETS.get(key);
+		if (pinTypes==null) {
+			pinTypes = new HashSet();
+			pinTypes.add(new DiffType(type, numSeries(), isCapacitor()));
+			int maxHeight = (numSeries()+1) / 2;
+			for (int gateHeight=1; gateHeight<=maxHeight; gateHeight++) {
+				pinTypes.add(new GateType(type, numSeries(), gateHeight, isCapacitor()));
+			}
+			PIN_TYPE_SETS.put(key, pinTypes);
+		}
 		return pinTypes;
 	}
+	
+//	private static final List PIN_TYPES = new ArrayList();
+//	static {
+//		for (Iterator it=TYPES.iterator(); it.hasNext();) {
+//			Type type = (Type) it.next(); 
+//			List tList = new ArrayList();
+//			PIN_TYPES.add(tList);
+//			for (int j=0; j<2; j++) {
+//				List cList = new ArrayList();
+//				tList.add(cList);
+//				boolean cap = j==0 ? false : true;
+//				for (int numSeries=1; numSeries<=12; numSeries++) {
+//					Set pinTypes = new HashSet();
+//					cList.add(pinTypes);
+//					
+//					pinTypes.add(new DiffType(type, numSeries, cap));
+//
+//					int maxHeight = (numSeries+1) / 2;
+//					for (int gateHeight=1; gateHeight<=maxHeight; gateHeight++) {
+//						pinTypes.add(new GateType(type, numSeries, gateHeight, cap));
+//					}
+//				}
+//			}
+//		}
+//	}
+//	public Set getPinTypes() {
+//		int t = type.getOrdinal();
+//		ArrayList l1 = (ArrayList) PIN_TYPES.get(t);
+//		int c = isCapacitor() ? 1 : 0;
+//		ArrayList l2 = (ArrayList) l1.get(c);
+//		int s = numSeries()-1;
+//		Set pinTypes = (Set) l2.get(s); 
+//		return pinTypes;
+//	}
 
 
 	/** Generate arrays of pin coefficients on demand. Share these arrays
