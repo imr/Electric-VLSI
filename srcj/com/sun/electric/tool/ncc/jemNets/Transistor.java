@@ -69,14 +69,14 @@ public class Transistor extends Part {
 		}
 		private TypeTable() {
 			add("NMOS",      "N-Transistor");
-			add("NMOS-VTH",  "VTH-N--Transistor");
-			add("NMOS-VTL",  "VTL-N--Transistor");
-			add("NMOS-NT",   "NT_N-Transistor");
-			add("NMOS-OD18", "OD18-N--Transistor");
+			add("NMOS-VTH",  "VTH-N-Transistor");
+			add("NMOS-VTL",  "VTL-N-Transistor");
+			add("NMOS-NT",   "NT-N-Transistor");
+			add("NMOS-OD18", "OD18-N-Transistor");
 			add("PMOS",      "P-Transistor");
-			add("PMOS-VTH",  "VTH-P--Transistor");
-			add("PMOS-VTL",  "VTL-P--Transistor");
-			add("PMOS-OD18", "OD18-P--Transistor");
+			add("PMOS-VTH",  "VTH-P-Transistor");
+			add("PMOS-VTL",  "VTL-P-Transistor");
+			add("PMOS-OD18", "OD18-P-Transistor");
 		}
 		public int log2NumTypes() {return log2NumTypes;}
 		public Iterator iterator() {return types.iterator();}
