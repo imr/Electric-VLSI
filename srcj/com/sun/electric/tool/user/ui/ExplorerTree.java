@@ -824,9 +824,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { renameLibraryAction(); } });
 
-				menuItem = new JMenuItem("Delete Library");
+				menuItem = new JMenuItem("Close Library");
 				menu.add(menuItem);
-				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { deleteLibraryAction(); } });
+				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { closeLibraryAction(); } });
 
 				menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 				return;
@@ -963,7 +963,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			CircuitChanges.renameLibrary(lib);
 		}
 
-		private void deleteLibraryAction()
+		private void closeLibraryAction()
 		{
 			Library lib = (Library)currentSelectedObject;
 			FileMenu.closeLibraryCommand(lib);
