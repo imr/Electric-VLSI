@@ -713,10 +713,18 @@ public class PixelDrawing
         // see if the arc is completely clipped from the screen
 		Rectangle2D arcBounds = ai.getBounds();
         Rectangle2D dbBounds = new Rectangle2D.Double(arcBounds.getX(), arcBounds.getY(), arcBounds.getWidth(), arcBounds.getHeight());
-        // java doesn't think they intersect if they contain no area, so don't use that method
         Poly p = new Poly(dbBounds);
         p.transform(trans);
         dbBounds = p.getBounds2D();
+        // java doesn't think they intersect if they contain no area, so bloat width or height if zero
+        if (dbBounds.getWidth() == 0 || dbBounds.getHeight() == 0) {
+            dbBounds = new Rectangle2D.Double(dbBounds.getX(), dbBounds.getY(),
+                    dbBounds.getWidth() + 0.001, dbBounds.getHeight() + 0.001);
+        }
+        if (!drawBounds.intersects(dbBounds)) {
+            return;
+        }
+/*
         if (drawBounds != null) {
             if (!drawBounds.contains(dbBounds.getX(), dbBounds.getY()) &&
                 !drawBounds.contains(dbBounds.getX(), dbBounds.getY()+dbBounds.getHeight()) &&
@@ -724,6 +732,7 @@ public class PixelDrawing
                 !drawBounds.contains(dbBounds.getX()+dbBounds.getWidth(), dbBounds.getY()+dbBounds.getHeight()))
                 return;
         }
+*/
 
         double arcSize = Math.max(arcBounds.getWidth(), arcBounds.getHeight());
 		// if the arc it tiny, just approximate it with a single dot
