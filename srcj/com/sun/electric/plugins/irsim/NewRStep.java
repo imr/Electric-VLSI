@@ -19,51 +19,32 @@
 package com.sun.electric.plugins.irsim;
 
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.text.TextUtils;
 
 import java.util.Iterator;
 
+/**
+ * Event-driven timing simulation step for irsim.
+ *
+ * Use diamond shape region in R-V plane for dc voltage computation.
+ * Use 2-pole 1-zero model for pure charge sharing delay calculations.
+ * Use 2-pole zero-at-origin model for driven spike analysis.
+ * Details of the models can be found in Chorng-Yeong Chu's thesis:
+ * "Improved Models for Switch-Level Simulation" also available as a
+ * Stanford Technical Report CSL-TR-88-368.
+ */
 public class NewRStep extends Eval
 {
-	/*
-	 * Event-driven timing simulation step for irsim.
-	 *
-	 * Use diamond shape region in R-V plane for dc voltage computation.
-	 * Use 2-pole 1-zero model for pure charge sharing delay calculations.
-	 * Use 2-pole zero-at-origin model for driven spike analysis.
-	 * Details of the models can be found in Chorng-Yeong Chu's thesis:
-	 * "Improved Models for Switch-Level Simulation" also available as a
-	 * Stanford Technical Report CSL-TR-88-368.
-	 */
-
 	/* flags used in thevenin structure */
-	private static final int	T_DEFINITE	= 0x01;	/* set for a definite rooted path	    */
-	private static final int	T_UDELAY	= 0x02;	/* set if user specified delay encountered  */
-	private static final int	T_SPIKE		= 0x04;	/* set if charge-sharing spike possible	    */
-	private static final int	T_DRIVEN	= 0x08;	/* set if this branch is driven		    */
-	private static final int	T_REFNODE	= 0x10;	/* set for the reference node in pure c-s   */
-	private static final int	T_XTRAN		= 0x20;	/* set if connecting through an X trans.    */
-	private static final int	T_INT		= 0x40;	/* set if we should consider input slope    */
-	private static final int	T_DOMDRIVEN	= 0x80;	/* set if branch driven to dominant voltage */
-	private static final double	NP_RATIO	= 0.7;	    /* nmos-pmos ratio for spike analysis */
-
-	private static class Dominant			/* one for each possible dominant voltage */
-	{
-		Sim.Node  nd;			/* list of nodes driven to this potential */
-		boolean   spike;		/* TRUE if this pot needs spike analysis */
-	};
-
-	private static class SpikeRec
-	{
-		double  ch_delay;		/* charging delay */
-		double  dr_delay;		/* driven delay */
-		float   peak;		/* spike peak */
-		int     charge;		/* spike charge */
-	}
-
-	private static	Dominant  [] dom_pot;	/* dominant voltage structure */
-
-	private static	Sim.Thev  init_thev;		/* pre-initialized thevenin structs */
-	private static	Sim.Thev  [] input_thev;
+	/** set for a definite rooted path */			private static final int	T_DEFINITE	= 0x01;
+	/** set if user specified delay encountered */	private static final int	T_UDELAY	= 0x02;
+	/** set if charge-sharing spike possible */		private static final int	T_SPIKE		= 0x04;
+	/** set if this branch is driven */				private static final int	T_DRIVEN	= 0x08;
+	/** set for the reference node in pure c-s */	private static final int	T_REFNODE	= 0x10;
+	/** set if connecting through an X trans. */	private static final int	T_XTRAN		= 0x20;
+	/** set if we should consider input slope */	private static final int	T_INT		= 0x40;
+	/** set if branch driven to dominant voltage */	private static final int	T_DOMDRIVEN	= 0x80;
+	/** nmos-pmos ratio for spike analysis */		private static final double	NP_RATIO	= 0.7;
 
 	private static final int SPIKETBLSIZE    = 10;
 
@@ -71,51 +52,73 @@ public class NewRStep extends Eval
 	private static final int NLSPKMAX        = 1;
 	private static final int LINEARSPK       = 2;
 
+	/**
+	 * one for each possible dominant voltage
+	 */
+	private static class Dominant
+	{
+		/** list of nodes driven to this potential */	Sim.Node  nd;
+		/** TRUE if this pot needs spike analysis */	boolean   spike;
+	};
+
+	private static class SpikeRec
+	{
+		/** charging delay */	double  ch_delay;
+		/** driven delay */		double  dr_delay;
+		/** spike peak */		float   peak;
+		/** spike charge */		int     charge;
+	}
+
+	/** dominant voltage structure */		private Dominant  [] dom_pot;
+	/** 1 if debug and node is watched */	private int          inc_level;
+
+	private Sim.Thev  [] input_thev;
+
 	private static float spikeTable[][][] =
 	{
 		/* non-linear nmos driven low / pmos driven high */
 		new float[][] {
-	/* .01 */  new float[] {0.005f,  0.051f,  0.106f,  0.163f, 0.225f,  0.293f,  0.367f,  0.452f, 0.552f,  0.683f,  0.899f},
-	/* 0.1 */  new float[] {0.005f,  0.051f,  0.105f,  0.162f, 0.223f,  0.288f,  0.360f,  0.441f, 0.537f,  0.661f,  0.852f},
-	/* 0.2 */  new float[] {0.005f,  0.051f,  0.104f,  0.159f, 0.217f,  0.278f,  0.345f,  0.419f, 0.505f,  0.614f,  0.768f},
-	/* 0.3 */  new float[] {0.005f,  0.051f,  0.102f,  0.154f, 0.208f,  0.265f,  0.325f,  0.390f, 0.464f,  0.555f,  0.676f},
-	/* 0.4 */  new float[] {0.005f,  0.050f,  0.099f,  0.148f, 0.197f,  0.248f,  0.300f,  0.355f, 0.417f,  0.490f,  0.583f},
-	/* 0.5 */  new float[] {0.005f,  0.049f,  0.096f,  0.140f, 0.184f,  0.226f,  0.270f,  0.315f, 0.363f,  0.419f,  0.487f},
-	/* 0.6 */  new float[] {0.005f,  0.048f,  0.090f,  0.129f, 0.166f,  0.200f,  0.234f,  0.269f, 0.304f,  0.344f,  0.392f},
-	/* 0.7 */  new float[] {0.005f,  0.046f,  0.083f,  0.114f, 0.142f,  0.168f,  0.192f,  0.216f, 0.240f,  0.266f,  0.295f},
-	/* 0.8 */  new float[] {0.005f,  0.042f,  0.071f,  0.093f, 0.112f,  0.128f,  0.142f,  0.156f, 0.169f,  0.182f,  0.198f},
-	/* 0.9 */  new float[] {0.005f,  0.033f,  0.050f,  0.061f, 0.069f,  0.076f,  0.081f,  0.086f, 0.090f,  0.093f,  0.099f},
-	/* .99 */  new float[] {0.003f,  0.008f,  0.009f,  0.009f, 0.009f,  0.010f,  0.010f,  0.010f, 0.010f,  0.010f,  0.010f},
+		/* .01 */  new float[] {0.005f,  0.051f,  0.106f,  0.163f, 0.225f,  0.293f,  0.367f,  0.452f, 0.552f,  0.683f,  0.899f},
+		/* 0.1 */  new float[] {0.005f,  0.051f,  0.105f,  0.162f, 0.223f,  0.288f,  0.360f,  0.441f, 0.537f,  0.661f,  0.852f},
+		/* 0.2 */  new float[] {0.005f,  0.051f,  0.104f,  0.159f, 0.217f,  0.278f,  0.345f,  0.419f, 0.505f,  0.614f,  0.768f},
+		/* 0.3 */  new float[] {0.005f,  0.051f,  0.102f,  0.154f, 0.208f,  0.265f,  0.325f,  0.390f, 0.464f,  0.555f,  0.676f},
+		/* 0.4 */  new float[] {0.005f,  0.050f,  0.099f,  0.148f, 0.197f,  0.248f,  0.300f,  0.355f, 0.417f,  0.490f,  0.583f},
+		/* 0.5 */  new float[] {0.005f,  0.049f,  0.096f,  0.140f, 0.184f,  0.226f,  0.270f,  0.315f, 0.363f,  0.419f,  0.487f},
+		/* 0.6 */  new float[] {0.005f,  0.048f,  0.090f,  0.129f, 0.166f,  0.200f,  0.234f,  0.269f, 0.304f,  0.344f,  0.392f},
+		/* 0.7 */  new float[] {0.005f,  0.046f,  0.083f,  0.114f, 0.142f,  0.168f,  0.192f,  0.216f, 0.240f,  0.266f,  0.295f},
+		/* 0.8 */  new float[] {0.005f,  0.042f,  0.071f,  0.093f, 0.112f,  0.128f,  0.142f,  0.156f, 0.169f,  0.182f,  0.198f},
+		/* 0.9 */  new float[] {0.005f,  0.033f,  0.050f,  0.061f, 0.069f,  0.076f,  0.081f,  0.086f, 0.090f,  0.093f,  0.099f},
+		/* .99 */  new float[] {0.003f,  0.008f,  0.009f,  0.009f, 0.009f,  0.010f,  0.010f,  0.010f, 0.010f,  0.010f,  0.010f},
 		},
 
 		/* non-linear nmos driven high / pmos driven low */
 		new float[][] {
-	/* .01 */  new float[] {0.100f,  0.313f,  0.441f,  0.540f, 0.623f,  0.696f,  0.762f,  0.824f, 0.882f,  0.937f,  0.984f},
-	/* 0.1 */  new float[] {0.097f,  0.292f,  0.404f,  0.489f, 0.560f,  0.624f,  0.682f,  0.736f, 0.789f,  0.830f,  0.893f},
-	/* 0.2 */  new float[] {0.094f,  0.272f,  0.370f,  0.443f, 0.503f,  0.557f,  0.606f,  0.652f, 0.698f,  0.745f,  0.793f},
-	/* 0.3 */  new float[] {0.091f,  0.252f,  0.337f,  0.398f, 0.449f,  0.494f,  0.534f,  0.573f, 0.612f,  0.652f,  0.694f},
-	/* 0.4 */  new float[] {0.087f,  0.232f,  0.304f,  0.355f, 0.396f,  0.432f,  0.465f,  0.496f, 0.527f,  0.560f,  0.594f},
-	/* 0.5 */  new float[] {0.083f,  0.209f,  0.269f,  0.310f, 0.342f,  0.370f,  0.396f,  0.420f, 0.444f,  0.468f,  0.496f},
-	/* 0.6 */  new float[] {0.078f,  0.184f,  0.231f,  0.262f, 0.286f,  0.307f,  0.325f,  0.343f, 0.360f,  0.377f,  0.397f},
-	/* 0.7 */  new float[] {0.071f,  0.155f,  0.189f,  0.210f, 0.227f,  0.241f,  0.253f,  0.264f, 0.275f,  0.286f,  0.298f},
-	/* 0.8 */  new float[] {0.061f,  0.120f,  0.140f,  0.153f, 0.162f,  0.169f,  0.176f,  0.182f, 0.187f,  0.193f,  0.199f},
-	/* 0.9 */  new float[] {0.045f,  0.073f,  0.081f,  0.085f, 0.088f,  0.091f,  0.093f,  0.095f, 0.096f,  0.098f,  0.100f},
-	/* .99 */  new float[] {0.009f,  0.010f,  0.010f,  0.010f, 0.010f,  0.010f,  0.010f,  0.010f, 0.010f,  0.010f,  0.010f},
+		/* .01 */  new float[] {0.100f,  0.313f,  0.441f,  0.540f, 0.623f,  0.696f,  0.762f,  0.824f, 0.882f,  0.937f,  0.984f},
+		/* 0.1 */  new float[] {0.097f,  0.292f,  0.404f,  0.489f, 0.560f,  0.624f,  0.682f,  0.736f, 0.789f,  0.830f,  0.893f},
+		/* 0.2 */  new float[] {0.094f,  0.272f,  0.370f,  0.443f, 0.503f,  0.557f,  0.606f,  0.652f, 0.698f,  0.745f,  0.793f},
+		/* 0.3 */  new float[] {0.091f,  0.252f,  0.337f,  0.398f, 0.449f,  0.494f,  0.534f,  0.573f, 0.612f,  0.652f,  0.694f},
+		/* 0.4 */  new float[] {0.087f,  0.232f,  0.304f,  0.355f, 0.396f,  0.432f,  0.465f,  0.496f, 0.527f,  0.560f,  0.594f},
+		/* 0.5 */  new float[] {0.083f,  0.209f,  0.269f,  0.310f, 0.342f,  0.370f,  0.396f,  0.420f, 0.444f,  0.468f,  0.496f},
+		/* 0.6 */  new float[] {0.078f,  0.184f,  0.231f,  0.262f, 0.286f,  0.307f,  0.325f,  0.343f, 0.360f,  0.377f,  0.397f},
+		/* 0.7 */  new float[] {0.071f,  0.155f,  0.189f,  0.210f, 0.227f,  0.241f,  0.253f,  0.264f, 0.275f,  0.286f,  0.298f},
+		/* 0.8 */  new float[] {0.061f,  0.120f,  0.140f,  0.153f, 0.162f,  0.169f,  0.176f,  0.182f, 0.187f,  0.193f,  0.199f},
+		/* 0.9 */  new float[] {0.045f,  0.073f,  0.081f,  0.085f, 0.088f,  0.091f,  0.093f,  0.095f, 0.096f,  0.098f,  0.100f},
+		/* .99 */  new float[] {0.009f,  0.010f,  0.010f,  0.010f, 0.010f,  0.010f,  0.010f,  0.010f, 0.010f,  0.010f,  0.010f},
 		},
 
 		/* linear RC (nmos-pmos mix)*/
 		new float[][] {
-	/* .01 */  new float[] {0.010f,  0.099f,  0.198f,  0.296f, 0.394f,  0.491f,  0.589f,  0.688f, 0.787f,  0.887f,  0.979f},
-	/* 0.1 */  new float[] {0.010f,  0.095f,  0.185f,  0.272f, 0.357f,  0.441f,  0.525f,  0.610f, 0.699f,  0.792f,  0.887f},
-	/* 0.2 */  new float[] {0.010f,  0.091f,  0.173f,  0.250f, 0.324f,  0.396f,  0.468f,  0.541f, 0.617f,  0.699f,  0.787f},
-	/* 0.3 */  new float[] {0.010f,  0.087f,  0.162f,  0.230f, 0.294f,  0.355f,  0.416f,  0.477f, 0.541f,  0.610f,  0.688f},
-	/* 0.4 */  new float[] {0.010f,  0.083f,  0.150f,  0.209f, 0.264f,  0.315f,  0.365f,  0.416f, 0.468f,  0.525f,  0.589f},
-	/* 0.5 */  new float[] {0.010f,  0.078f,  0.137f,  0.188f, 0.233f,  0.275f,  0.315f,  0.355f, 0.396f,  0.441f,  0.491f},
-	/* 0.6 */  new float[] {0.009f,  0.072f,  0.123f,  0.164f, 0.200f,  0.233f,  0.264f,  0.294f, 0.324f,  0.357f,  0.394f},
-	/* 0.7 */  new float[] {0.009f,  0.065f,  0.106f,  0.138f, 0.164f,  0.188f,  0.209f,  0.230f, 0.250f,  0.272f,  0.296f},
-	/* 0.8 */  new float[] {0.009f,  0.055f,  0.085f,  0.106f, 0.123f,  0.137f,  0.150f,  0.162f, 0.173f,  0.185f,  0.198f},
-	/* 0.9 */  new float[] {0.008f,  0.039f,  0.055f,  0.065f, 0.072f,  0.078f,  0.083f,  0.087f, 0.091f,  0.095f,  0.099f},
-	/* .99 */  new float[] {0.004f,  0.008f,  0.009f,  0.009f, 0.009f,  0.010f,  0.010f,  0.010f, 0.010f,  0.010f,  0.010f},
+		/* .01 */  new float[] {0.010f,  0.099f,  0.198f,  0.296f, 0.394f,  0.491f,  0.589f,  0.688f, 0.787f,  0.887f,  0.979f},
+		/* 0.1 */  new float[] {0.010f,  0.095f,  0.185f,  0.272f, 0.357f,  0.441f,  0.525f,  0.610f, 0.699f,  0.792f,  0.887f},
+		/* 0.2 */  new float[] {0.010f,  0.091f,  0.173f,  0.250f, 0.324f,  0.396f,  0.468f,  0.541f, 0.617f,  0.699f,  0.787f},
+		/* 0.3 */  new float[] {0.010f,  0.087f,  0.162f,  0.230f, 0.294f,  0.355f,  0.416f,  0.477f, 0.541f,  0.610f,  0.688f},
+		/* 0.4 */  new float[] {0.010f,  0.083f,  0.150f,  0.209f, 0.264f,  0.315f,  0.365f,  0.416f, 0.468f,  0.525f,  0.589f},
+		/* 0.5 */  new float[] {0.010f,  0.078f,  0.137f,  0.188f, 0.233f,  0.275f,  0.315f,  0.355f, 0.396f,  0.441f,  0.491f},
+		/* 0.6 */  new float[] {0.009f,  0.072f,  0.123f,  0.164f, 0.200f,  0.233f,  0.264f,  0.294f, 0.324f,  0.357f,  0.394f},
+		/* 0.7 */  new float[] {0.009f,  0.065f,  0.106f,  0.138f, 0.164f,  0.188f,  0.209f,  0.230f, 0.250f,  0.272f,  0.296f},
+		/* 0.8 */  new float[] {0.009f,  0.055f,  0.085f,  0.106f, 0.123f,  0.137f,  0.150f,  0.162f, 0.173f,  0.185f,  0.198f},
+		/* 0.9 */  new float[] {0.008f,  0.039f,  0.055f,  0.065f, 0.072f,  0.078f,  0.083f,  0.087f, 0.091f,  0.095f,  0.099f},
+		/* .99 */  new float[] {0.004f,  0.008f,  0.009f,  0.009f, 0.009f,  0.010f,  0.010f,  0.010f, 0.010f,  0.010f,  0.010f},
 		}
 	};
 
@@ -213,6 +216,9 @@ public class NewRStep extends Eval
 			Sim.Event ev = n.events;
 			if (((ev == null) ? n.npot : ev.eval) != Sim.X)
 			{
+				if ((theSim.irsim_debug & Sim.DEBUG_EV) != 0 && (n.nflags & Sim.WATCHED) != 0)
+					System.out.println("  decay transition for " + n.nname + " @ " +
+						Sim.d2ns(theSim.irsim_cur_delta + theSim.irsim_tdecay)+ "ns");
 				irsim_enqueue_event(n, Sim.DECAY, theSim.irsim_tdecay, theSim.irsim_tdecay);
 			}
 			n = n.nlink;
@@ -233,21 +239,15 @@ public class NewRStep extends Eval
 			for(Iterator it = n.ntermList.iterator(); it.hasNext(); )
 			{
 				Sim.Trans t = (Sim.Trans)it.next();
-				if (t.state == Sim.OFF)
-					continue;
+				if (t.state == Sim.OFF) continue;
 
 				if ((t.tflags & (Sim.PBROKEN | Sim.BROKEN)) == 0)
 				{
 					Sim.Thev  r = t.getSThev();
+					if (r != null) r.setT(null);
 
-					if (r != null)
-					{
-						r.setT(null);
-					}
-					if ((r = t.getDThev()) != null)
-					{
-						r.setT(null);
-					}
+					r = t.getDThev();
+					if (r != null) r.setT(null);
 				}
 				t.setSThev(null);
 				t.setDThev(null);
@@ -271,8 +271,9 @@ public class NewRStep extends Eval
 	{
 		boolean queued = false;
 		long delta = theSim.irsim_cur_delta + Sim.ps2d(delay);
-		if (delta == theSim.irsim_cur_delta)			// avoid zero delay
-			delta++;
+
+		// avoid zero delay
+		if (delta == theSim.irsim_cur_delta) delta++;
 
 		Sim.Event ev = null;
 		for(;;)
@@ -290,6 +291,8 @@ public class NewRStep extends Eval
 			irsim_enqueue_event(nd, fval, delta, Sim.ps2d(tau));
 			queued = true;
 		}
+		if ((theSim.irsim_debug & Sim.DEBUG_EV) != 0 && (nd.nflags & Sim.WATCHED) != 0)
+			print_finall(nd, queued, tau, delta);
 	}
 
 	private void QueueSpike(Sim.Node nd, SpikeRec spk)
@@ -301,23 +304,20 @@ public class NewRStep extends Eval
 			irsim_PuntEvent(nd, ev);
 		}
 
-		if (spk == null)		// no spike, just punt events
-		{
-			return;
-		}
+		// no spike, just punt events
+		if (spk == null) return;
 
 		long ch_delta = Sim.ps2d(spk.ch_delay);
 		long dr_delta = Sim.ps2d(spk.dr_delay);
 
-		if (ch_delta == 0)
-			ch_delta = 1;
-		if (dr_delta == 0)
-			dr_delta = 1;
+		if (ch_delta == 0) ch_delta = 1;
+		if (dr_delta == 0) dr_delta = 1;
 
-		if (dr_delta <= ch_delta)		// no zero delay spikes, done
-		{
-			return;
-		}
+		if ((theSim.irsim_debug & Sim.DEBUG_EV) != 0 && (nd.nflags & Sim.WATCHED) != 0)
+			print_spike(nd, spk, ch_delta, dr_delta);
+
+		// no zero delay spikes, done
+		if (dr_delta <= ch_delta) return;
 
 		// enqueue spike and final value events
 		irsim_enqueue_event(nd, spk.charge, ch_delta, ch_delta);
@@ -331,7 +331,13 @@ public class NewRStep extends Eval
 			Sim.Thev r = null;
 			for(Sim.Node nd = dom_pot[dom].nd; nd != null; nd = r.getN())
 			{
-				r = get_tau(nd, (Sim.Trans) null, dom);
+				inc_level = ((theSim.irsim_debug & (Sim.DEBUG_TAU | Sim.DEBUG_TW)) == (Sim.DEBUG_TAU | Sim.DEBUG_TW) &&
+					(nd.nflags & Sim.WATCHED) != 0) ? 1 : 0;
+				if (inc_level == 0 && ((theSim.irsim_debug & Sim.DEBUG_TAU) == Sim.DEBUG_TAU &&
+					(nd.nflags & Sim.WATCHED) != 0))
+						print_tau(nd, r, -1);
+
+				r = get_tau(nd, (Sim.Trans) null, dom, inc_level);
 
 				r.tauA = r.Rdom * r.Ca;
 				r.tauD = r.Rdom * r.Cd;
@@ -353,7 +359,7 @@ public class NewRStep extends Eval
 					tau = 0.0;
 				} else if ((r.flags & T_UDELAY) != 0)
 				{
-					switch(r.finall)
+					switch (r.finall)
 					{
 						case Sim.LOW:  tau = Sim.d2ps(r.tphl);			break;
 						case Sim.HIGH: tau = Sim.d2ps(r.tplh);			break;
@@ -390,10 +396,12 @@ public class NewRStep extends Eval
 				for(Sim.Node nd = dom_pot[dom].nd; nd != null; nd = nd.getThev().getN())
 				{
 					r = nd.getThev();
-					if ((r.flags & T_SPIKE) == 0)
-						continue;
+					if ((r.flags & T_SPIKE) == 0) continue;
 
-					r.tauP = get_tauP(nd, (Sim.Trans) null, dom);
+					inc_level = ((theSim.irsim_debug & (Sim.DEBUG_TAUP | Sim.DEBUG_TW)) == (Sim.DEBUG_TAUP | Sim.DEBUG_TW) &&
+						(nd.nflags & Sim.WATCHED) != 0) ? 1 : 0;
+
+					r.tauP = get_tauP(nd, (Sim.Trans) null, dom, inc_level);
 
 					r.tauP *= r.Rdom / r.tauA;
 
@@ -413,7 +421,10 @@ public class NewRStep extends Eval
 		double taup = 0.0;
 		for(Sim.Node nd = nlist; nd != null; nd = nd.nlink)
 		{
-			r = get_tau(nd, (Sim.Trans) null, dom);
+			inc_level = ((theSim.irsim_debug & (Sim.DEBUG_TAU | Sim.DEBUG_TW)) == (Sim.DEBUG_TAU | Sim.DEBUG_TW) &&
+				(nd.nflags & Sim.WATCHED) != 0) ? 1 : 0;
+
+			r = get_tau(nd, (Sim.Trans) null, dom, inc_level);
 
 			r.tauD = r.Rdom * r.Ca;
 
@@ -441,14 +452,13 @@ public class NewRStep extends Eval
 			double delay = 0, tau = 0;
 			if (r.finall != nd.npot)
 			{
-				switch(r.finall)
+				switch (r.finall)
 				{
-					case Sim.LOW:  tau = (r.tauA - taup) / (1.0 - r.V.max);	break;
-					case Sim.HIGH: tau = (taup - r.tauA) / r.V.min;		break;
-					case Sim.X:    tau = (r.tauA - taup) * 2.0;		break;
+					case Sim.LOW:  tau = (r.tauA - taup) / (1.0 - r.V.max);	 break;
+					case Sim.HIGH: tau = (taup - r.tauA) / r.V.min;		     break;
+					case Sim.X:    tau = (r.tauA - taup) * 2.0;		         break;
 				}
-				if (tau < 0.0)
-					tau = 0.0;
+				if (tau < 0.0) tau = 0.0;
 				if (theSim.irsim_tunitdelay != 0)
 				{
 					delay = theSim.irsim_tunitdelay;   tau = 0.0;
@@ -470,6 +480,9 @@ public class NewRStep extends Eval
 		boolean anyChange = false;
 		for(Sim.Node thisone = nlist; thisone != null; thisone = thisone.nlink)
 		{
+			inc_level = ((theSim.irsim_debug & (Sim.DEBUG_DC | Sim.DEBUG_TW)) == (Sim.DEBUG_DC | Sim.DEBUG_TW) &&
+				(thisone.nflags & Sim.WATCHED) != 0) ? 1 : 0;
+
 			Sim.Thev r = get_dc_val(thisone, null);
 			thisone.setThev(r);
 
@@ -504,14 +517,11 @@ public class NewRStep extends Eval
 				 */
 				if (r.finall != Sim.X && (r.flags & T_DEFINITE) == 0)
 				{
-					char  cs_val;
-
+					char cs_val = Sim.X;// always X
 					if (r.Chigh.min >= thisone.vhigh * (r.Chigh.min + r.Clow.max))
 						cs_val = Sim.HIGH;
 					else if (r.Chigh.max <= thisone.vlow * (r.Chigh.max + r.Clow.min))
 						cs_val = Sim.LOW;
-					else
-						cs_val = Sim.X;			// always X
 
 					if (cs_val != r.finall)
 						r.finall = Sim.X;
@@ -533,6 +543,10 @@ public class NewRStep extends Eval
 
 			if (r.finall != thisone.npot)
 				anyChange = true;
+
+			if (((theSim.irsim_debug & Sim.DEBUG_DC) == Sim.DEBUG_DC &&
+				(thisone.nflags & Sim.WATCHED) != 0))
+					print_fval(thisone, r);
 		}
 		return anyChange;
 	}
@@ -558,8 +572,8 @@ public class NewRStep extends Eval
 			return r;
 		}
 
-		Sim.Thev r = new Sim.Thev(init_thev);
-		switch(n.npot)
+		Sim.Thev r = new Sim.Thev();
+		switch (n.npot)
 		{
 			case Sim.LOW:   r.Clow.min = r.Clow.max = n.ncap;	break;
 			case Sim.X:     r.Clow.max = r.Chigh.max = n.ncap;	break;
@@ -627,7 +641,9 @@ public class NewRStep extends Eval
 			{
 				r.flags |= T_XTRAN;
 			} else
+			{
 				r.Req.max = t.r.dynres[type];
+			}
 		}
 	}
 
@@ -642,7 +658,9 @@ public class NewRStep extends Eval
 			{
 				r.flags |= T_XTRAN;
 			} else
+			{
 				r.Req.max = r.Req.min;
+			}
 		}
 	}
 
@@ -667,7 +685,9 @@ public class NewRStep extends Eval
 		{
 			r.flags |= T_XTRAN;
 		} else
-		r.Req.max = 1.0 / gmax;
+		{
+			r.Req.max = 1.0 / gmax;
+		}
 	}
 
 	/**
@@ -692,7 +712,9 @@ public class NewRStep extends Eval
 		{
 			r.flags |= T_XTRAN;
 		} else
+		{
 			r.Req.max = 1.0 / gmax;
+		}
 	}
 
 	/**
@@ -822,11 +844,6 @@ public class NewRStep extends Eval
 		return h.htime == theSim.irsim_cur_delta && (h.inp || h.delay != 0);
 	}
 
-	private boolean InputTau(Sim.Trans t, GenMath.MutableDouble pr)
-	{
-		return (t.tflags & Sim.PARALLEL) != 0 ? parallel_GetTin(t, pr) : GetTin(t, pr);
-	}
-
 	/**
 	 * Return TRUE if we should consider the input slope of this transistor.  As
 	 * a side-effect, return the input time constant in 'ptin'.
@@ -902,7 +919,7 @@ public class NewRStep extends Eval
 	 * value and the current dominant potential do not match, we go ahead and
 	 * recompute the values.
 	 */
-	private Sim.Thev get_tau(Sim.Node n, Sim.Trans tran, int dom)
+	private Sim.Thev get_tau(Sim.Node n, Sim.Trans tran, int dom, int level)
 	{
 		Sim.Thev r;
 		if (tran == null)
@@ -966,14 +983,19 @@ public class NewRStep extends Eval
 			}
 			if (cache.tau_done != dom)
 			{
-				GenMath.MutableDouble  oldr = new GenMath.MutableDouble(0);
+				GenMath.MutableDouble oldr = new GenMath.MutableDouble(0);
 
-				cache = get_tau(other, t, dom);
+				cache = get_tau(other, t, dom, level + inc_level);
+
 				// Only use input slope for xtors on the dominant (driven) path
-				if ((cache.flags & T_DOMDRIVEN) != 0 && InputTau(t, oldr))
+				if ((cache.flags & T_DOMDRIVEN) != 0)
 				{
-					cache.flags |= T_INT;
-					cache.Tin += oldr.doubleValue();
+					boolean inputTau = (t.tflags & Sim.PARALLEL) != 0 ? parallel_GetTin(t, oldr) : GetTin(t, oldr);
+					if (inputTau)
+					{
+						cache.flags |= T_INT;
+						cache.Tin += oldr.doubleValue();
+					}
 				}
 
 				oldr.setValue(cache.Rdom);
@@ -990,10 +1012,12 @@ public class NewRStep extends Eval
 
 				// Exclude capacitors if the other side of X transistor == dom
 				if ((cache.flags & T_XTRAN) != 0 && other.npot == dom)
+				{
 					cache.tauP = cache.Ca = cache.Cd = 0.0;
-				else if (oldr.doubleValue() > Sim.LIMIT)
+				} else if (oldr.doubleValue() > Sim.LIMIT)
+				{
 					cache.tauP = 1.0;
-				else
+				} else
 				{
 					cache.tauP = oldr.doubleValue() / cache.Rdom;
 					cache.Ca *= cache.tauP;
@@ -1008,8 +1032,7 @@ public class NewRStep extends Eval
 			{
 				r.Rdom = cache.Rdom;
 				r.Rmax = cache.Rmax;
-			}
-			else if (cache.Rdom < Sim.LIMIT)
+			} else if (cache.Rdom < Sim.LIMIT)
 			{
 				r.Rdom = Sim.COMBINE(r.Rdom, cache.Rdom);
 				r.Rmax = Sim.COMBINE(r.Rmax, cache.Rmax);
@@ -1029,6 +1052,9 @@ public class NewRStep extends Eval
 			}
 		}
 
+		if (level > 0)
+			print_tau(n, r, level);
+
 		return r;
 	}
 
@@ -1040,15 +1066,14 @@ public class NewRStep extends Eval
 	 * compute those by first calling get_tau.  This routine will update the tauP
 	 * entry as well as the taup_done flag.
 	 */
-	private double get_tauP(Sim.Node n, Sim.Trans tran, int dom)
+	private double get_tauP(Sim.Node n, Sim.Trans tran, int dom, int level)
 	{
-		if ((n.nflags & Sim.INPUT) != 0)
-			return 0.0;
+		if ((n.nflags & Sim.INPUT) != 0) return 0.0;
 
 		Sim.Thev r = n.getThev();
 		if (r.tau_done != dom)		// compute tauA for the node
 		{
-			r = get_tau(n, (Sim.Trans) null, dom);
+			r = get_tau(n, (Sim.Trans) null, dom, 0);
 			r.tauA = r.Rdom * r.Ca;
 			r.tauD = r.Rdom * r.Cd;
 		}
@@ -1072,11 +1097,13 @@ public class NewRStep extends Eval
 
 			if (r.taup_done != dom)
 			{
-				r.tauP *= get_tauP(other, t, dom);
+				r.tauP *= get_tauP(other, t, dom, level + inc_level);
 				r.taup_done = (char)dom;
 			}
 			taup += r.tauP;
 		}
+		if (level > 0)
+			print_taup(n, level, taup);
 
 		return taup;
 	}
@@ -1093,6 +1120,8 @@ public class NewRStep extends Eval
 	{
 		if (r.tauP <= Sim.SMALL)		// no capacitance, no spike
 		{
+			if ((theSim.irsim_debug & Sim.DEBUG_SPK) != 0 && (nd.nflags & Sim.WATCHED) != 0)
+				System.out.println(" spike(" + nd.nname + ") ignored (taup=0)");
 			return null;
 		}
 
@@ -1117,16 +1146,12 @@ public class NewRStep extends Eval
 			tab_indx = LINEARSPK;
 
 		int alpha = (int) (SPIKETBLSIZE * r.tauA / (r.tauA + r.tauP - r.tauD));
-		if (alpha < 0)
-			alpha = 0;
-		else if (alpha > SPIKETBLSIZE)
-			alpha = SPIKETBLSIZE;
+		if (alpha < 0) alpha = 0; else
+			if (alpha > SPIKETBLSIZE) alpha = SPIKETBLSIZE;
 
 		int beta = (int) (SPIKETBLSIZE * (r.tauD - r.tauA) / r.tauD);
-		if (beta < 0)
-			beta = 0;
-		else if (beta > SPIKETBLSIZE)
-			beta = SPIKETBLSIZE;
+		if (beta < 0) beta = 0; else
+			if (beta > SPIKETBLSIZE) beta = SPIKETBLSIZE;
 
 		SpikeRec spk = new SpikeRec();
 		spk.peak = spikeTable[tab_indx][beta][alpha];
@@ -1136,13 +1161,19 @@ public class NewRStep extends Eval
 		{
 			if (spk.peak <= nd.vlow)		// spike is too small
 			{
+				if ((theSim.irsim_debug & Sim.DEBUG_SPK) != 0 && (nd.nflags & Sim.WATCHED) != 0)
+					print_spk(nd, r, tab_indx, dom, alpha, beta, spk, false);
 				return null;
 			}
 			spk.charge = (spk.peak >= nd.vhigh) ? Sim.HIGH : Sim.X;
-		}
-		else	// dom == HIGH
+		} else	// dom == HIGH
 		{
-			if (spk.peak <= 1.0 - nd.vhigh) return null;
+			if (spk.peak <= 1.0 - nd.vhigh)
+			{
+				if ((theSim.irsim_debug & Sim.DEBUG_SPK) != 0 && (nd.nflags & Sim.WATCHED) != 0)
+					print_spk(nd, r, tab_indx, dom, alpha, beta, spk, false);
+				return null;
+			}
 			spk.charge = (spk.peak >= 1.0 - nd.vlow) ? Sim.LOW : Sim.X;
 		}
 
@@ -1153,138 +1184,126 @@ public class NewRStep extends Eval
 		else
 			spk.dr_delay = r.Rdom * r.Ca;
 
+		if ((theSim.irsim_debug & Sim.DEBUG_SPK) != 0 && (nd.nflags & Sim.WATCHED) != 0)
+			print_spk(nd, r, tab_indx, dom, alpha, beta, spk, true);
 		return spk;
 	}
 
+	private void print_fval(Sim.Node n, Sim.Thev r)
+	{
+		System.out.print(" final_value(" + n.nname + ")  V=[" + r.V.min + ", " + r.V.max + "]  => " +
+			Sim.irsim_vchars.charAt(r.finall));
+		System.out.println((r.flags & T_SPIKE) != 0 ? "  (spk)" : "");
+	}
+
+	private void print_finall(Sim.Node nd, boolean queued, double tau, long delay)
+	{
+		Sim.Thev r = nd.getThev();
+		long dtau = Sim.ps2d(tau);
+
+		System.out.print(" [event " + theSim.irsim_cur_node.nname + "->" +
+		Sim.irsim_vchars.charAt(theSim.irsim_cur_node.npot) + "@ " + Sim.d2ns(theSim.irsim_cur_delta) + "] ");
+
+		System.out.print((queued ? "causes %stransition for" : (theSim.irsim_withdriven ? "" : "CS ") + "evaluates"));
+
+		System.out.print(" " + nd.nname + ": " + Sim.irsim_vchars.charAt(nd.npot) + " -> " + Sim.irsim_vchars.charAt(r.finall));
+		System.out.println(" (tau=" + Sim.d2ns(dtau) + "ns, delay=" + Sim.d2ns(delay) + "ns)");
+	}
+
+	private void print_spike(Sim.Node nd, SpikeRec spk, long ch_delay, long dr_delay)
+	{
+		System.out.print("  [event " + theSim.irsim_cur_node.nname + "->" +
+				Sim.irsim_vchars.charAt(theSim.irsim_cur_node.npot) + "@ " + Sim.d2ns(theSim.irsim_cur_delta) + "] causes ");
+		if (dr_delay <= ch_delay)
+			System.out.print("suppressed ");
+
+		System.out.print("spike for " + nd.nname + ": " + Sim.irsim_vchars.charAt(nd.npot) + " -> " +
+			Sim.irsim_vchars.charAt(spk.charge) + " -> " + Sim.irsim_vchars.charAt(nd.npot));
+		System.out.println(" (peak=" + spk.peak + " delay: ch=" + Sim.d2ns(ch_delay) + "ns, dr=" + Sim.d2ns(dr_delay) + "ns)");
+	}
+
+	private void print_taup(Sim.Node n, int level, double taup)
+	{
+		System.out.println("tauP(" + n.nname + ") = " + Sim.ps2ns(taup) + " ns");
+	}
+
+	private void print_tau(Sim.Node n, Sim.Thev r, int level)
+	{
+		System.out.print("compute_tau(" + n.nname + ")");
+		System.out.print("{Rmin=" + r2ascii(r.Rmin) + "  Rdom=" + r2ascii(r.Rdom) + "  Rmax=" + r2ascii(r.Rmax) + "}");
+		System.out.println("  {Ca=" + r.Ca + "  Cd=" + r.Cd + "}");
+
+		System.out.print("tauA=" + Sim.ps2ns(r.Rdom * r.Ca) + "  tauD=" + Sim.ps2ns(r.Rdom * r.Cd) + " ns, RTin=");
+		if ((r.flags & T_INT) != 0)
+			System.out.println(Sim.d2ns((long)r.Tin) + " ohm*ns");
+		else
+			System.out.println("-");
+	}
+
+	private String r2ascii(double r)
+	{
+		if (r >= Sim.LIMIT) return " - ";
+		if (r > 1.0)
+		{
+			int exp = 0;
+			for( ; r >= 1000.0; exp++, r *= 0.001) ;
+			return TextUtils.formatDouble(r) + " KMG".charAt(exp);
+		}
+		return TextUtils.formatDouble(r);
+	}
+
+
+	private void print_spk(Sim.Node nd, Sim.Thev r, int tab, int dom, int alpha,
+		int beta, SpikeRec spk, boolean is_spk)
+	{
+		System.out.print(" spike_analysis(" + nd.nname + "):");
+		String net_type = "";
+		if (tab == LINEARSPK)
+			net_type = "n-p mix";
+		else if (tab == NLSPKMIN)
+			net_type = (dom == Sim.LOW) ? "nmos" : "pmos";
+		else
+			net_type = (dom == Sim.LOW) ? "pmos" : "nmos";
+
+		System.out.print(" " + net_type + " driven " + ((dom == Sim.LOW) ? "low" : "high"));
+		System.out.print("{tauA=" + Sim.ps2ns(r.tauA) + "  tauD=" + Sim.ps2ns(r.tauD) + "  tauP=" + Sim.ps2ns(r.tauP) + "} ns  ");
+		System.out.print("alpha=" + alpha + "  beta=" + beta + " => peak=" + spk.peak);
+		if (is_spk)
+			System.out.println(" v=" + Sim.irsim_vchars.charAt(spk.charge));
+		else
+			System.out.println(" (too small)");
+	}
+
 	/**
-	 * Initialize pre-initialized thevenin structs.  I want to get it right
-	 * and this is much safer than letting the compiler initialize it.
+	 * Initialize pre-initialized thevenin structs.
 	 */
 	private void irsim_InitThevs()
 	{
-		init_thev = new Sim.Thev();		/* pre-initialized thevenin structs */
 		input_thev = new Sim.Thev[Sim.N_POTS];
 		for(int i=0; i<Sim.N_POTS; i++) input_thev[i] = new Sim.Thev();
 
-		init_thev.setN(null);
-		init_thev.flags		= 0;
-		init_thev.Clow.min	= 0.0;
-		init_thev.Clow.max	= 0.0;
-		init_thev.Chigh.min	= 0.0;
-		init_thev.Chigh.max	= 0.0;
-		init_thev.Rup.min	= Sim.LARGE;
-		init_thev.Rup.max	= Sim.LARGE;
-		init_thev.Rdown.min	= Sim.LARGE;
-		init_thev.Rdown.max	= Sim.LARGE;
-		init_thev.Req.min	= Sim.LARGE;
-		init_thev.Req.max	= Sim.LARGE;
-		init_thev.V.min		= 1.0;
-		init_thev.V.max		= 0.0;
-		init_thev.Rmin		= Sim.LARGE;
-		init_thev.Rdom		= Sim.LARGE;
-		init_thev.Rmax		= Sim.LARGE;
-		init_thev.Ca		= 0.0;
-		init_thev.Cd		= 0.0;
-		init_thev.tauD		= 0.0;
-		init_thev.tauA		= 0.0;
-		init_thev.tauP		= 0.0;
-		init_thev.Tin		= Sim.SMALL;
-		init_thev.tplh		= 0;
-		init_thev.tphl		= 0;
-		init_thev.finall	= Sim.X;
-		init_thev.tau_done	= Sim.N_POTS;
-		init_thev.taup_done	= Sim.N_POTS;
-
-		Sim.Thev t =	input_thev[Sim.LOW];
-		t.setN(null);
+		Sim.Thev t = input_thev[Sim.LOW];
 		t.flags		= T_DEFINITE | T_DRIVEN;
-		t.Clow.min	= 0.0;
-		t.Clow.max	= 0.0;
-		t.Chigh.min	= 0.0;
-		t.Chigh.max	= 0.0;
-		t.Rup.min	= Sim.LARGE;
-		t.Rup.max	= Sim.LARGE;
 		t.Rdown.min	= Sim.SMALL;
 		t.Rdown.max	= Sim.SMALL;
-		t.Req.min	= Sim.LARGE;
-		t.Req.max	= Sim.LARGE;
 		t.V.min		= 0.0;
-		t.V.max		= 0.0;
 		t.Rmin		= Sim.SMALL;
-		t.Rdom		= Sim.LARGE;
-		t.Rmax		= Sim.LARGE;
-		t.Ca		= 0.0;
-		t.Cd		= 0.0;
-		t.tauD		= 0.0;
-		t.tauA		= 0.0;
-		t.tauP		= 0.0;
-		t.Tin		= Sim.SMALL;
-		t.tplh		= 0;
-		t.tphl		= 0;
 		t.finall	= Sim.LOW;
-		t.tau_done	= Sim.N_POTS;
-		t.taup_done	= Sim.N_POTS;
 
 		t = input_thev[Sim.HIGH];
-		t.setN(null);
 		t.flags		= T_DEFINITE | T_DRIVEN;
-		t.Clow.min	= 0.0;
-		t.Clow.max	= 0.0;
-		t.Chigh.min	= 0.0;
-		t.Chigh.max	= 0.0;
 		t.Rup.min	= Sim.SMALL;
 		t.Rup.max	= Sim.SMALL;
-		t.Rdown.min	= Sim.LARGE;
-		t.Rdown.max	= Sim.LARGE;
-		t.Req.min	= Sim.LARGE;
-		t.Req.max	= Sim.LARGE;
 		t.V.min		= 1.0;
-		t.V.max		= 1.0;
 		t.Rmin		= Sim.SMALL;
-		t.Rdom		= Sim.LARGE;
-		t.Rmax		= Sim.LARGE;
-		t.Ca		= 0.0;
-		t.Cd		= 0.0;
-		t.tauD		= 0.0;
-		t.tauA		= 0.0;
-		t.tauP		= 0.0;
-		t.Tin		= Sim.SMALL;
-		t.tplh		= 0;
-		t.tphl		= 0;
 		t.finall	= Sim.HIGH;
-		t.tau_done	= Sim.N_POTS;
-		t.taup_done	= Sim.N_POTS;
 
 		t = input_thev[Sim.X];
-		t.setN(null);
 		t.flags		= T_DEFINITE | T_DRIVEN;
-		t.Clow.min	= 0.0;
-		t.Clow.max	= 0.0;
-		t.Chigh.min	= 0.0;
-		t.Chigh.max	= 0.0;
 		t.Rup.min	= Sim.SMALL;
-		t.Rup.max	= Sim.LARGE;
 		t.Rdown.min	= Sim.SMALL;
-		t.Rdown.max	= Sim.LARGE;
-		t.Req.min	= Sim.LARGE;
-		t.Req.max	= Sim.LARGE;
-		t.V.min		= 1.0;
-		t.V.max		= 0.0;
 		t.Rmin		= Sim.SMALL;
-		t.Rdom		= Sim.LARGE;
-		t.Rmax		= Sim.LARGE;
-		t.Ca		= 0.0;
-		t.Cd		= 0.0;
-		t.tauD		= 0.0;
-		t.tauA		= 0.0;
-		t.tauP		= 0.0;
-		t.Tin		= Sim.SMALL;
-		t.tplh		= 0;
-		t.tphl		= 0;
-		t.finall	= Sim.X;
-		t.tau_done	= Sim.N_POTS;
-		t.taup_done	= Sim.N_POTS;
 	
-		input_thev[Sim.X+1] = input_thev[Sim.X];
+		input_thev[Sim.X_X] = input_thev[Sim.X];
 	}
 }

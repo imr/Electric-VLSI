@@ -40,18 +40,6 @@ public class Eval
 	protected void modelEvaluate(Sim.Node node) {}
 
 	/**
-	 * find transistors with gates of VDD or GND and calculate values for source
-	 * and drain nodes just in case event driven calculations don't get to them.
-	 */
-	private void init_vdd_gnd()
-	{
-		irsim_enqueue_input(theSim.irsim_VDD_node, Sim.HIGH);
-		irsim_enqueue_input(theSim.irsim_GND_node, Sim.LOW);
-
-		firstcall = false;		// initialization now taken care of
-	}
-
-	/**
 	 * Set the firstcall flags.  Used when moving back to time 0.
 	 */
 	public void irsim_ReInit()
@@ -61,7 +49,7 @@ public class Eval
 
 	public boolean irsim_step(long stop_time)
 	{
-		boolean    ret_code = false;
+		boolean ret_code = false;
 
 		// look through input lists updating any nodes which just become inputs
 		MarkNOinputs();			// nodes no longer inputs
@@ -77,7 +65,15 @@ public class Eval
 		 * of vdd and gnd are set up correctly.  Mark initial inputs first!
 		 */
 		if (firstcall)
-			init_vdd_gnd();
+		{
+			/**
+			 * find transistors with gates of VDD or GND and calculate values for source
+			 * and drain nodes just in case event driven calculations don't get to them.
+			 */
+			irsim_enqueue_input(theSim.irsim_VDD_node, Sim.HIGH);
+			irsim_enqueue_input(theSim.irsim_GND_node, Sim.LOW);
+			firstcall = false;
+		}
 
 		for(;;)
 		{
@@ -138,16 +134,6 @@ public class Eval
 	}
 
 	/**
-	 * Print decay event.
-	 */
-	private void pr_decay(Sim.Event e)
-	{
-		Sim.Node n = e.enode;
-		System.out.println(" @ " + Sim.d2ns(e.ntime) + "ns " + n.nname+ ": decay " +
-			Sim.irsim_vchars.charAt(n.npot) + " . X");
-	}
-
-	/**
 	 * Print watched node event.
 	 */
 	private void pr_watched(Sim.Event e, Sim.Node n)
@@ -157,9 +143,22 @@ public class Eval
 			System.out.println(" @ " + Sim.d2ns(e.ntime) + "ns input " + n.nname + ": . " + Sim.irsim_vchars.charAt(e.eval));
 			return;
 		}
-		String buf = " (tau=" + Sim.d2ns(e.rtime) + "ns, delay=" + Sim.d2ns(e.delay) + "ns)";
-		System.out.println(" @ " + Sim.d2ns(e.ntime) + "ns " + n.nname + ": " +
-			Sim.irsim_vchars.charAt(n.npot) + " . " + Sim.irsim_vchars.charAt(e.eval) + buf);
+		System.out.print(" @ " + Sim.d2ns(e.ntime) + "ns " + n.nname + ": " +
+			Sim.irsim_vchars.charAt(n.npot) + " . " + Sim.irsim_vchars.charAt(e.eval));
+
+		int tmp = (theSim.irsim_debug & Sim.DEBUG_EV) != 0 ? (Sim.REPORT_TAU | Sim.REPORT_DELAY) : theSim.irsim_treport;
+		switch (tmp & (Sim.REPORT_TAU | Sim.REPORT_DELAY))
+		{
+			case Sim.REPORT_TAU:
+				System.out.println(" (tau=" + Sim.d2ns(e.rtime));
+				break;
+			case Sim.REPORT_DELAY:
+				System.out.println(" (delay=" + Sim.d2ns(e.delay) + "ns)");
+				break;
+			default:
+				System.out.println(" (tau=" + Sim.d2ns(e.rtime) + "ns, delay=" + Sim.d2ns(e.delay) + "ns)");
+				break;
+		}
 	}
 
 	/**
@@ -175,9 +174,12 @@ public class Eval
 
 			all_flags |= n.nflags;
 
-			if ((n.nflags & (Sim.WATCHED | Sim.STOPONCHANGE)) != 0)
-				pr_decay(e);
-			else if ((n.nflags & (Sim.WATCHED | Sim.STOPONCHANGE)) != 0)
+			if (e.type == Sim.DECAY_EV && ((theSim.irsim_treport & Sim.REPORT_DECAY) != 0 ||
+				(n.nflags & (Sim.WATCHED | Sim.STOPONCHANGE)) != 0))
+			{
+				System.out.println(" @ " + Sim.d2ns(e.ntime) + "ns " + n.nname+ ": decay " +
+					Sim.irsim_vchars.charAt(n.npot) + " . X");
+			} else if ((n.nflags & (Sim.WATCHED | Sim.STOPONCHANGE)) != 0)
 				pr_watched(e, n);
 
 			n.npot = e.eval;
@@ -186,7 +188,7 @@ public class Eval
 			if ((n.nflags & Sim.INPUT) == 0 && ((short)n.curr.val != n.npot))
 				theSim.irsim_AddHist(n, n.npot, false, e.ntime, e.delay, e.rtime);
 
-			if (n.awpending != null  && n.awpot == n.npot)
+			if (n.awpending != null && n.awpot == n.npot)
 				theAnalyzer.irsim_evalAssertWhen(n);
 
 			/* for each transistor controlled by event node, mark
@@ -364,8 +366,6 @@ if (DEBUG) System.out.println("Removing event at " + event.ntime + " in EvalNode
 			case Sim.DEP:
 			case Sim.RESIST:
 				return Sim.WEAK;
-
-			default:
 		}
 		System.out.println("**** internal error: unrecongized transistor type (" + Sim.BASETYPE(t.ttype) + ")");
 		return Sim.UNKNOWN;
@@ -558,7 +558,6 @@ if (DEBUG) System.out.println("Adding event at " + newev.ntime + " in irsim_enqu
 		newev.type = Sim.REVAL;			// anything, doesn't matter
 
 		// Add new event to HEAD of list at appropriate entry in event wheel
-
 		Sim.Event marker = EV_LIST(etime);
 		newev.flink = marker.flink;
 		newev.blink = marker;

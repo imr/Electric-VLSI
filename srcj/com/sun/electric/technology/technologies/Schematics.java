@@ -138,6 +138,7 @@ public class Schematics extends Technology
 	/** twoport */						public PrimitiveNode twoportNode;
 	/** transistor-4 */					public PrimitiveNode transistor4Node;
 	/** global */						public PrimitiveNode globalNode;
+	/** global partition */				public PrimitiveNode globaPartitionNode;
 
 	private Layer arc_lay, bus_lay, text_lay;
 	private Technology.NodeLayer [] ffLayersRSMS, ffLayersRSP, ffLayersRSN;
@@ -1344,6 +1345,32 @@ public class Schematics extends Technology
 					EdgeH.makeCenter(), EdgeV.makeBottomEdge(), EdgeH.makeCenter(), EdgeV.makeBottomEdge())
 			});
 		globalNode.setFunction(PrimitiveNode.Function.CONNECT);
+
+		/** global partition */
+		Technology.NodeLayer letterGP = new Technology.NodeLayer(text_lay, 0, Poly.Type.TEXTCENT, Technology.NodeLayer.POINTS,
+				Technology.TechPoint.makeCenterBox());
+		letterGP.setMessage("GP");
+		letterGP.setDescriptor(tdBig);
+		globaPartitionNode = PrimitiveNode.newInstance("Global-Partition", this, 4.0, 2.0, null,
+			new Technology.NodeLayer []
+			{
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeCenter()),
+					new Technology.TechPoint(LEFTBYP5, EdgeV.makeTopEdge()),
+					new Technology.TechPoint(RIGHTBYP5, EdgeV.makeTopEdge()),
+					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
+					new Technology.TechPoint(RIGHTBYP5, EdgeV.makeBottomEdge()),
+					new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge())}),
+				letterGP
+			});
+		globaPartitionNode.addPrimitivePorts(new PrimitivePort []
+			{
+				PrimitivePort.newInstance(this, globaPartitionNode, new ArcProto[] {wire_arc, bus_arc}, "top", 90,90, 0, PortCharacteristic.UNKNOWN,
+					EdgeH.makeCenter(), EdgeV.makeTopEdge(), EdgeH.makeCenter(), EdgeV.makeTopEdge()),
+				PrimitivePort.newInstance(this, globaPartitionNode, new ArcProto[] {wire_arc, bus_arc}, "bottom", 270,90, 0, PortCharacteristic.UNKNOWN,
+					EdgeH.makeCenter(), EdgeV.makeBottomEdge(), EdgeH.makeCenter(), EdgeV.makeBottomEdge())
+			});
+		globaPartitionNode.setFunction(PrimitiveNode.Function.CONNECT);
 	}
 
 	//**************************************** METHODS ****************************************

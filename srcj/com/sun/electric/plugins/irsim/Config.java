@@ -32,7 +32,7 @@ import java.util.List;
 
 public class Config
 {
-	/*
+	/**
 	 * info on resistance vs. width and length are stored first sorted by
 	 * width, then by length.
 	 */
@@ -199,7 +199,7 @@ public class Config
 			case 0:
 				irsim_CTDE = irsim_CTDW = 0.0; irsim_CPTDE = irsim_CPTDW = 0.0;
 				break;
-				case DIFFPERIM:
+			case DIFFPERIM:
 				irsim_config_flags |= TDIFFCAP;
 				irsim_CTDE = irsim_CPTDE = 0.0;
 				irsim_CTDW = -(irsim_CDP / CM_M);
@@ -394,15 +394,10 @@ public class Config
 		}
 
 		int c = 0;
-		if (context.equalsIgnoreCase("static"))
-			c = Sim.STATIC;
-		else if (context.equalsIgnoreCase("dynamic-high"))
-			c = Sim.DYNHIGH;
-		else if (context.equalsIgnoreCase("dynamic-low"))
-			c = Sim.DYNLOW;
-		else if (context.equalsIgnoreCase("power"))
-			c = Sim.POWER;
-		else
+		if (context.equalsIgnoreCase("static")) c = Sim.STATIC; else
+		if (context.equalsIgnoreCase("dynamic-high")) c = Sim.DYNHIGH; else
+		if (context.equalsIgnoreCase("dynamic-low")) c = Sim.DYNLOW; else
+		if (context.equalsIgnoreCase("power")) c = Sim.POWER; else
 		{
 			Sim.irsim_error(fileName, lineNo, "bad resistance context in config file");
 			return;
@@ -412,13 +407,11 @@ public class Config
 		{
 			if (Sim.irsim_ttype[t].equalsIgnoreCase(type))
 			{
-				if (c == Sim.POWER)
-					return;
-				winsert(c, t, width, length, resist*width/length);
+				if (c != Sim.POWER)
+					winsert(c, t, width, length, resist*width/length);
 				return;
 			}
-			else if (ttype_drop[t].equalsIgnoreCase(type))
-				return;
+			if (ttype_drop[t].equalsIgnoreCase(type)) return;
 		}
 
 		Sim.irsim_error(fileName, lineNo, "bad resistance transistor type");

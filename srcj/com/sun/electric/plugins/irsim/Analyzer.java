@@ -77,6 +77,7 @@ public class Analyzer extends Engine
 	private static final int VECTOREXCL       = 13;		/* the "!" command to print gate info */
 	private static final int VECTORQUESTION   = 14;		/* the "?" command to print source/drain info */
 	private static final int VECTORTRACE      = 15;		/* the "t" command to trace */
+	private static final int VECTORDEBUG      = 16;		/* the "debug" command */
 
 	private static final int    DEF_STEPS         = 4;			/* default simulation steps per screen */
 	private static final double DEFIRSIMTIMERANGE = 10.0E-9f;	/* initial size of simulation window: 10ns */
@@ -176,16 +177,15 @@ public class Analyzer extends Engine
     		/* now initialize the simulator */
     		System.out.println("IRSIM, version " + irsim_version);
 
-//    		String fileToUse = fileName;
     		List components = null;
     		URL fileURL = null;
     		if (fileName == null)
     		{
+    			// generate the components directly
     			components = IRSIM.getIRSIMComponents(cell, context);
-//    			fileName = "Electric.XXXXXX";
-//    			Output.writeCell(cell, context, fileName, FileType.IRSIM);
     		} else
     		{
+    			// get a pointer to to the file with the network (.sim file)
     			fileURL = TextUtils.makeURLToFile(fileName);
     		}
 
@@ -211,22 +211,9 @@ public class Analyzer extends Engine
 	    		}
     		}
 
-    		// Read network (.sim file)
+    		// Load network
     		analyzer.irsim_init_rsim();
     		if (sim.irsim_rd_network(fileURL, components)) return true;
-
-//    		// remove the temporary network file
-//    		if (fileToUse == null)
-//    		{
-//	    		File f = new File(fileName);
-//	    		if (f != null) f.delete();
-//    		}
-
-    		sim.irsim_ConnectNetwork();	// connect all txtors to corresponding nodes
-    		sim.getModel().irsim_init_event();
-
-    		// sort the signal names
-			Collections.sort(sim.irsim_GetNodeList(), new NodesByName());
 
     		// convert the stimuli
 			Stimuli sd = new Stimuli();
@@ -288,16 +275,6 @@ public class Analyzer extends Engine
             return true;
         }
     }
-
-	private static class NodesByName implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			Sim.Node n1 = (Sim.Node)o1;
-			Sim.Node n2 = (Sim.Node)o2;
-			return n1.nname.compareToIgnoreCase(n2.nname);
-		}
-	}
 
 	/**
 	 * Main entry point to run an arbitrary IRSIM command.
@@ -858,6 +835,7 @@ public class Analyzer extends Engine
 			case VECTOREXCL:     return "!";
 			case VECTORQUESTION: return "?";
 			case VECTORTRACE:    return "t";
+			case VECTORDEBUG:    return "debug";
 		}
 		return "";
 	}
@@ -956,7 +934,8 @@ public class Analyzer extends Engine
 				if (targ[0].equals("s")) command = VECTORS; else
 				if (targ[0].equals("!")) command = VECTOREXCL; else
 				if (targ[0].equals("?")) command = VECTORQUESTION; else
-				if (targ[0].equals("t")) command = VECTORTRACE; else		
+				if (targ[0].equals("t")) command = VECTORTRACE; else
+				if (targ[0].equals("debug")) command = VECTORDEBUG; else	
 				if (targ[0].equals("set")) command = VECTORSET; else
 				{
 					System.out.println("Unknown IRSIM command on line " + lineReader.getLineNumber() + ": " + buf);

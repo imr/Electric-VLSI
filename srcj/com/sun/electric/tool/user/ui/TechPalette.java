@@ -136,11 +136,16 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             inPalette.add(Schematics.tech.wirePinNode);
             inPalette.add("Spice");
             inPalette.add(Schematics.tech.offpageNode);
-            inPalette.add(Schematics.tech.globalNode);
+
+//          inPalette.add(Schematics.tech.globalNode);
+            list = new ArrayList();
+	        list.add(Technology.makeNodeInst(Schematics.tech.globalNode, PrimitiveNode.Function.CONNECT, 0, false, "Global Signal", 4.5));
+	        list.add(Technology.makeNodeInst(Schematics.tech.globaPartitionNode, PrimitiveNode.Function.CONNECT, 0, false, "Global Partition", 4.5));
+            inPalette.add(list);
+
             inPalette.add(Schematics.tech.powerNode);
             inPalette.add(Schematics.tech.resistorNode);
 
-            //inPalette.add(Schematics.tech.capacitorNode);
 	        // Capacitor nodes
 	        list = new ArrayList();
 	        list.add(Technology.makeNodeInst(Schematics.tech.capacitorNode, PrimitiveNode.Function.CAPAC, 0, false, "Normal Capacitor", 4.5));

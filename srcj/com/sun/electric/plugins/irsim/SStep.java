@@ -86,6 +86,56 @@ public class SStep extends Eval
 	private static final int WLDL	= 44;
 	private static final int DL		= 45;
 
+	private static String [] node_values = new String[]
+	{
+		"EMPTY",
+		"DH",
+		"DHWH",
+		"DHCH",
+		"DHcH",
+		"DHZ",
+		"DHcL",
+		"DHCL",
+		"DHWL",
+		"DHDL",
+		"WH",
+		"WHCH",
+		"WHcH",
+		"WHZ",
+		"WHcL",
+		"WHCL",
+		"WHWL",
+		"WHDL",
+		"CH",
+		"CHcH",
+		"CHZ",
+		"CHcL",
+		"CHCL",
+		"CHWL",
+		"CHDL",
+		"cH",
+		"cHZ",
+		"cHcL",
+		"cHCL",
+		"cHWL",
+		"cHDL",
+		"Z",
+		"ZcL",
+		"ZCL",
+		"ZWL",
+		"ZDL",
+		"cL",
+		"cLCL",
+		"cLWL",
+		"cLDL",
+		"CL",
+		"CLWL",
+		"CLDL",
+		"WL",
+		"WLDL",
+		"DL"
+	};
+
 	/* conversion between interval and logic value */
 	private static byte [] logic_state = new byte[]
 	{
@@ -602,6 +652,17 @@ public class SStep extends Eval
 					queued = true;
 					irsim_enqueue_event(thisone, newval, delta, tau);
 				}
+
+				if ((thisone.nflags & Sim.WATCHED) != 0 && (theSim.irsim_debug & (Sim.DEBUG_DC | Sim.DEBUG_EV)) != 0)
+				{
+					System.out.println(" [event " + theSim.irsim_cur_node.nname + "->" +
+						Sim.irsim_vchars.charAt(theSim.irsim_cur_node.npot) + " @ " +
+						Sim.d2ns(theSim.irsim_cur_delta) + "] ");
+
+					System.out.println(queued ? "causes transition for" : "sets");
+					System.out.println(" " + thisone.nname + ": " + Sim.irsim_vchars.charAt(thisone.npot) + " -> " +
+						Sim.irsim_vchars.charAt(newval) + " (delay = " + Sim.d2ns(delta) + "ns)");
+				}
 			}
 		}
 
@@ -638,47 +699,59 @@ public class SStep extends Eval
 	 */
 	private int sc_thev(Sim.Node n, int level)
 	{
-		if ((n.nflags & Sim.INPUT) != 0) return thev_value[n.npot];
-
-		// initial values and stuff...
-		n.nflags |= Sim.VISITED;
-		int result = (n.ngateList.size() == 0) ? xcharged_state[n.npot] : charged_state[n.npot];
-
-		for(Iterator it = n.ntermList.iterator(); it.hasNext(); )
+		int result = 0;
+		if ((n.nflags & Sim.INPUT) != 0)
 		{
-			Sim.Trans t = (Sim.Trans)it.next();
-
-			// don't bother with off transistors
-			if (t.state == Sim.OFF) continue;
-
-			/* for each non-off transistor, do nothing if node on other side has
-			 * its visited flag set (this is how cycles are detected).  Otherwise
-			 * check cache and use value found there, if any.  As a last resort,
-			 * actually compute value for network on other side of transistor,
-			 * transmit the value through the transistor, and save that result
-			 * for later use.
-			 */
-			if (n == t.source)
+			result = thev_value[n.npot];
+		} else
+		{
+			// initial values and stuff...
+			n.nflags |= Sim.VISITED;
+			result = (n.ngateList.size() == 0) ? xcharged_state[n.npot] : charged_state[n.npot];
+	
+			for(Iterator it = n.ntermList.iterator(); it.hasNext(); )
 			{
-				if ((t.drain.nflags & Sim.VISITED) == 0)
+				Sim.Trans t = (Sim.Trans)it.next();
+	
+				// don't bother with off transistors
+				if (t.state == Sim.OFF) continue;
+	
+				/* for each non-off transistor, do nothing if node on other side has
+				 * its visited flag set (this is how cycles are detected).  Otherwise
+				 * check cache and use value found there, if any.  As a last resort,
+				 * actually compute value for network on other side of transistor,
+				 * transmit the value through the transistor, and save that result
+				 * for later use.
+				 */
+				if (n == t.source)
 				{
-					if (t.getDI() == EMPTY)
-						t.setDI(transmit[sc_thev(t.drain, level != 0 ? level + 1 : 0)][t.state]);
-					result = smerge[result][t.getDI()];
-				}
-			} else
-			{
-				if ((t.source.nflags & Sim.VISITED) == 0)
+					if ((t.drain.nflags & Sim.VISITED) == 0)
+					{
+						if (t.getDI() == EMPTY)
+							t.setDI(transmit[sc_thev(t.drain, level != 0 ? level + 1 : 0)][t.state]);
+						result = smerge[result][t.getDI()];
+					}
+				} else
 				{
-					if (t.getSI() == EMPTY)
-						t.setSI( transmit[sc_thev(t.source, level != 0 ? level + 1 : 0)][t.state]);
-					result = smerge[result][t.getSI()];
+					if ((t.source.nflags & Sim.VISITED) == 0)
+					{
+						if (t.getSI() == EMPTY)
+							t.setSI( transmit[sc_thev(t.source, level != 0 ? level + 1 : 0)][t.state]);
+						result = smerge[result][t.getSI()];
+					}
 				}
 			}
+	
+			n.nflags &= ~Sim.VISITED;
+		}
+		if ((theSim.irsim_debug & (Sim.DEBUG_DC | Sim.DEBUG_TW)) != 0 && level > 0)
+		{
+			System.out.print("  ");
+			for(int i = level; --i > 0; )
+				System.out.print(" ");
+			System.out.println("sc_thev(" + n.nname + ") = " + node_values[result]);
 		}
 
-		n.nflags &= ~Sim.VISITED;
-	
 		return result;
 	}
 }

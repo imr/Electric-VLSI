@@ -147,7 +147,7 @@ public class IRSIM extends Output
 		for(Iterator it = components.iterator(); it.hasNext(); )
 		{
 			ComponentInfo ci = (ComponentInfo)it.next();
-			if (ci.type == 'R' || ci.type == 'C')
+			if (ci.type == 'r' || ci.type == 'C')
 			{
 	            printWriter.print(ci.type);
 				printWriter.print(" " + ci.netName1);

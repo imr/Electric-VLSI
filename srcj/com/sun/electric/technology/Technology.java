@@ -3409,10 +3409,11 @@ public class Technology implements Comparable
      */
     public Object[][] getNodesGrouped() { return nodeGroups; }
 
-    /** To create temporary nodes for the palette
-     * @param np
-     * @param func
-     * @param angle
+    /**
+     * Method to create temporary nodes for the palette
+     * @param np prototype of the node to place in the palette.
+     * @param func function of the node (helps parameterize the node).
+     * @param angle initial placement angle of the node.
      * @param display
      * @param varName
      * @param fontSize
