@@ -188,7 +188,7 @@ public class CIF extends Geometry
 		cellNumber++;
 		writeLine("DS " + cellNumber + " 1 1;");
         String cellName = (cellGeom.nonUniqueName ? (cellGeom.cell.getLibrary().getName() + ":") : "") +
-			cellGeom.cell.noLibDescribe() + ";";
+			cellGeom.cell.getName() + ";";
         // remove bad chars from cell name
         StringBuffer sb = new StringBuffer();
         for (int i=0; i<cellName.length(); i++) {
