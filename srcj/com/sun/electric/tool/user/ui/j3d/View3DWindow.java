@@ -88,6 +88,7 @@ public class View3DWindow extends JPanel
 	private SimpleUniverse u;
 	private Canvas3D canvas;
 	private TransformGroup objTrans;
+    private OrbitBehavior orbit;
 	/** the window frame containing this editwindow */      private WindowFrame wf;
 	/** the cell that is in the window */					private Cell cell;
 	/** the overall panel with disp area and sliders */		private JPanel overall;
@@ -125,7 +126,7 @@ public class View3DWindow extends JPanel
         // objects in the scene can be viewed.
 		ViewingPlatform viewingPlatform = u.getViewingPlatform();
 
-		OrbitBehavior orbit = new OrbitBehavior(canvas, OrbitBehavior.REVERSE_ALL);
+		orbit = new OrbitBehavior(canvas, OrbitBehavior.REVERSE_ALL);
 		BoundingSphere boun = new BoundingSphere(new Point3d(0.0, 0.0/*cell.getBounds().getCenterX(),cell.getBounds().getCenterY()*/,0.0), 100.0);;
 		orbit.setSchedulingBounds(infiniteBounds);
 
@@ -137,6 +138,7 @@ public class View3DWindow extends JPanel
 		orbit.setMinRadius(0);
 		orbit.setZoomFactor(10);
 		orbit.setTransFactors(10, 10);
+        orbit.setProportionalZoom(true);
 		//Transform3D t1 = new Transform3D();
 		//orbit.setHomeTransform(t1);
 
@@ -172,6 +174,7 @@ public class View3DWindow extends JPanel
 		// Create the root of the branch graph
 		BranchGroup objRoot = new BranchGroup();
 		objRoot.setCapability(BranchGroup.ALLOW_BOUNDS_READ);
+        objRoot.setCapability(BranchGroup.ENABLE_PICK_REPORTING);
         //objRoot.setCapability(BranchGroup.ALLOW_BOUNDS_WRITE);
 
 		// Create the TransformGroup node and initialize it to the
@@ -226,7 +229,9 @@ public class View3DWindow extends JPanel
 	    objRoot.compile();
 
 		pickCanvas = new PickCanvas(canvas, objRoot);
-		pickCanvas.setMode(PickCanvas.BOUNDS);
+		//pickCanvas.setMode(PickCanvas.BOUNDS);
+        pickCanvas.setMode(PickCanvas.GEOMETRY_INTERSECT_INFO);
+        pickCanvas.setTolerance(4.0f);
 		return objRoot;
 	}
 
@@ -428,6 +433,7 @@ public class View3DWindow extends JPanel
 			gi.setCoordinates(pts);
 			gi.setCoordinateIndices(indices);
 			GeometryArray c = gi.getGeometryArray();
+            c.setCapability(GeometryArray.ALLOW_INTERSECT);
 			if (thickness == 0)
 				System.out.println("Layer has zero thickness: " + layer.getName());
 
@@ -435,6 +441,7 @@ public class View3DWindow extends JPanel
 			Shape3D box = new Shape3D(c, ap);
 			box.setCapability(Shape3D.ENABLE_PICK_REPORTING);
 			box.setCapability(Node.ALLOW_LOCAL_TO_VWORLD_READ);
+            box.setCapability(Shape3D.ALLOW_PICKABLE_READ);
 			PickTool.setCapabilities(box, PickTool.INTERSECT_FULL);
 			objTrans.addChild(box);
 		}
@@ -489,19 +496,22 @@ public class View3DWindow extends JPanel
 		canvas.getVworldToImagePlate(t1);
 
 		PickResult result = pickCanvas.pickClosest();
+        PickResult[] results = pickCanvas.pickAllSorted();
 
 		if (result == null) {
 			System.out.println("Nothing picked");
 		} else {
-
 		   Primitive p = (Primitive)result.getNode(PickResult.PRIMITIVE);
 		   Shape3D s = (Shape3D)result.getNode(PickResult.SHAPE3D);
-           PickIntersection pi = result.getClosestIntersection(eyePos);
+           //PickIntersection pi = result.getClosestIntersection(eyePos);
+
+            PickIntersection pi =
+		    results[0].getClosestIntersection(eyePos);
 
 		   if (pi != null) {
 			   Point3d point = pi.getPointCoordinates();
 			   Point3d point1 = pi.getPointCoordinatesVW();
-			   point1.sub(eyePos);
+			   //point1.sub(eyePos);
 
 			   Point3d p11 = new Point3d();
 			   Point3d pp = new Point3d();
@@ -509,7 +519,7 @@ public class View3DWindow extends JPanel
 			   t1.transform(point1, p11);
 			   t.transform(point, pp);
                Transform3D vTrans = new Transform3D();
-			   point1.negate();
+			   //point1.negate();
 			   Vector3d vCenter = new Vector3d(point1);
 			   vTrans.set(vCenter);
 			   //u.getViewingPlatform().getViewPlatformTransform().setTransform(vTrans);
@@ -518,9 +528,12 @@ public class View3DWindow extends JPanel
 			   canvas.getCenterEyeInImagePlate(position);
 
 			   Transform3D trans = new Transform3D();
-			   objTrans.getTransform(trans);
-			    trans.setTranslation(vCenter);
-			   objTrans.setTransform(trans);
+			   //objTrans.getTransform(trans);
+			   //trans.transform(vCenter);
+               //trans.setTranslation (vCenter);
+			   //objTrans.setTransform(trans);
+               //u.getViewingPlatform().getViewPlatformTransform().setTransform(vTrans);
+               orbit.setRotationCenter(point1);
 		   } else{
 			  System.out.println("null");
 		   }
