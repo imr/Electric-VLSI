@@ -131,8 +131,8 @@ public class JELIB extends Output
 			{
 				Library eLib = (Library)it.next();
 				String libFile = eLib.getLibFile().toString();
-				if (libFile.endsWith(".elib")) libFile = libFile.substring(0, libFile.length()-5) + ".jelib"; else
-				if (libFile.endsWith(".txt")) libFile = libFile.substring(0, libFile.length()-4) + ".jelib";
+//				if (libFile.endsWith(".elib")) libFile = libFile.substring(0, libFile.length()-5) + ".jelib"; else
+//				if (libFile.endsWith(".txt")) libFile = libFile.substring(0, libFile.length()-4) + ".jelib";
 				printWriter.print("L" + convertString(eLib.getName()) + "|" + convertString(libFile) + "\n");
 				List sortedExternalCells = new ArrayList();
 				for(Iterator cIt = externalCells.iterator(); cIt.hasNext(); )

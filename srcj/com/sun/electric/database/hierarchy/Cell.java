@@ -740,13 +740,14 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	{
 		checkChanging();
 
-        if (newName == null || newName.equals("")) return;
+		CellName n = CellName.parseName(newName + ";" + version + "{" + view.getAbbreviation() + "}");
+		if (n == null) return;
 
         // check for same name already in library
         for (Iterator it = getLibrary().getCells(); it.hasNext(); )
         {
             Cell c = (Cell)it.next();
-            if (newName.equals(c.getName()) && (getView() == c.getView()))
+            if (newName.equalsIgnoreCase(c.getName()) && (getView() == c.getView()))
             {
                 System.out.println("Already a Cell named " + noLibDescribe() + " in Library " + getLibrary().getName() +
                 	"...making this a new version");
@@ -757,7 +758,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		// do the rename
 		Name oldName = basename;
 		int oldVersion = version;
-		lowLevelRename(newName, version);
+		lowLevelRename(n.getName(), version);
+//		lowLevelRename(newName, version);
 
 		// handle change control, constraint, and broadcast
 		Undo.renameObject(this, oldName, oldVersion);

@@ -68,6 +68,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -97,13 +98,13 @@ public class JELIB extends LibraryFiles
 		"8.01az"
 	};
 
-	private static HashMap allCells;
+	private LinkedHashMap allCells = new LinkedHashMap();
 	private HashMap externalCells;
 	private Version version;
 	private int revision;
 	private String curLibName;
-	/** The number of lines that have been "processed" so far. */	private int numProcessed;
-	/** The number of lines that must be "processed". */			private int numToProcess;
+//	/** The number of lines that have been "processed" so far. */	private int numProcessed;
+//	/** The number of lines that must be "processed". */			private int numToProcess;
 
 	JELIB()
 	{
@@ -113,17 +114,17 @@ public class JELIB extends LibraryFiles
 	 * Ugly hack.
 	 * Overrides LibraryFiles so that recursive library reads get to the proper place.
 	 */
-	public boolean readInputLibrary()
-	{
-		if (topLevelLibrary) allCells = new HashMap();
-		boolean error = readLib();
-		if (topLevelLibrary)
-		{
-			if (!error) instantiateCellContents();
-			allCells = null;
-		}
-		return error;
-	}
+// 	public boolean readInputLibrary()
+// 	{
+// 		if (topLevelLibrary) allCells = new HashMap();
+// 		boolean error = readLib();
+// 		if (topLevelLibrary)
+// 		{
+// 			if (!error) instantiateCellContents();
+// 			allCells = null;
+// 		}
+// 		return error;
+// 	}
 
 	/**
 	 * Method to read a Library in new library file (.jelib) format.
@@ -133,7 +134,14 @@ public class JELIB extends LibraryFiles
 	{
 		try
 		{
-			return readTheLibrary();
+			if (readTheLibrary()) return true;
+			nodeProtoCount = allCells.size();
+			nodeProtoList = new Cell[nodeProtoCount];
+			cellLambda = new double[nodeProtoCount];
+			int i = 0;
+			for (Iterator it = allCells.keySet().iterator(); it.hasNext();)
+				nodeProtoList[i++] = (Cell)it.next();
+			return false;
 		} catch (IOException e)
 		{
 			Input.errorLogger.logError("End of file reached while reading " + filePath, null, -1);
@@ -519,29 +527,44 @@ public class JELIB extends LibraryFiles
 	 * Method called after all libraries have been read.
 	 * Instantiates all of the Cell contents that were saved in "allCells".
 	 */
-	private void instantiateCellContents()
+// 	private void instantiateCellContents()
+// 	{
+// 		System.out.println("Creating the circuitry...");
+// 		progress.setNote("Creating the circuitry");
+
+// 		// count the number of lines that need to be processed
+// 		numToProcess = 0;
+// 		for(Iterator it = allCells.values().iterator(); it.hasNext(); )
+// 		{
+// 			CellContents cc = (CellContents)it.next();
+// 			numToProcess += cc.cellStrings.size();
+// 		}
+
+// 		// instantiate all cells recursively
+// 		numProcessed = 0;
+// 		for(Iterator it = allCells.keySet().iterator(); it.hasNext(); )
+// 		{
+// 			Cell cell = (Cell)it.next();
+// 			CellContents cc = (CellContents)allCells.get(cell);
+// 			if (cc.filledIn) continue;
+
+// 			instantiateCellContent(cell, cc);
+// 		}
+// 	}
+
+	/**
+	 * Method to recursively create the contents of each cell in the library.
+	 */
+	protected void realizeCellsRecursively(Cell cell, FlagSet recursiveSetupFlag, String scaledCellName, double scaleX, double scaleY)
 	{
-		System.out.println("Creating the circuitry...");
-		progress.setNote("Creating the circuitry");
-
-		// count the number of lines that need to be processed
-		numToProcess = 0;
-		for(Iterator it = allCells.values().iterator(); it.hasNext(); )
-		{
-			CellContents cc = (CellContents)it.next();
-			numToProcess += cc.cellStrings.size();
-		}
-
-		// instantiate all cells recursively
-		numProcessed = 0;
-		for(Iterator it = allCells.keySet().iterator(); it.hasNext(); )
-		{
-			Cell cell = (Cell)it.next();
-			CellContents cc = (CellContents)allCells.get(cell);
-			if (cc.filledIn) continue;
-
-			instantiateCellContent(cell, cc);
-		}
+		if (scaledCellName != null) return;
+		CellContents cc = (CellContents)allCells.get(cell);
+		if (cc.filledIn) return;
+		instantiateCellContent(cell, cc, recursiveSetupFlag);
+		cellsConstructed++;
+		progress.setProgress(cellsConstructed * 100 / totalCells);
+//		libraryContents.instantiateCellContent(cc);
+		cell.setBit(recursiveSetupFlag);
 	}
 
 	/**
@@ -549,7 +572,7 @@ public class JELIB extends LibraryFiles
 	 * @param cell the Cell to instantiate.
 	 * @param cc the contents of that cell (the strings from the file).
 	 */
-	private void instantiateCellContent(Cell cell, CellContents cc)
+	private void instantiateCellContent(Cell cell, CellContents cc, FlagSet recursiveSetupFlag)
 	{
 		int numStrings = cc.cellStrings.size();
 
@@ -562,8 +585,8 @@ public class JELIB extends LibraryFiles
 			String cellString = (String)cc.cellStrings.get(line);
 			char firstChar = cellString.charAt(0);
 			if (firstChar != 'N' && firstChar != 'I') continue;
-			numProcessed++;
-			if ((numProcessed%100) == 0) progress.setProgress(numProcessed * 100 / numToProcess);
+//			numProcessed++;
+//			if ((numProcessed%100) == 0) progress.setProgress(numProcessed * 100 / numToProcess);
 
 			// parse the node line
 			List pieces = parseLine(cellString);
@@ -617,6 +640,23 @@ public class JELIB extends LibraryFiles
 						if (cellLib != null)
 							np = cellLib.findNodeProto(protoName);
 					}
+				}
+			}
+
+			// make sure the subcell has been instantiated
+			if (np != null && np instanceof Cell)
+			{
+				Cell subCell = (Cell)np;
+				// subcell: make sure that cell is setup
+				if (!subCell.isBit(recursiveSetupFlag))
+				{
+					LibraryFiles reader = this;
+					if (subCell.getLibrary() != cell.getLibrary())
+						reader = getReaderForLib(subCell.getLibrary());
+
+					// subcell: make sure that cell is setup
+					if (reader != null)
+						reader.realizeCellsRecursively(subCell, recursiveSetupFlag, null, 0, 0);
 				}
 			}
 
@@ -703,16 +743,16 @@ public class JELIB extends LibraryFiles
 			}
 
 			// make sure the subcell has been instantiated
-			if (np instanceof Cell)
-			{
-				Cell subCell = (Cell)np;
-				CellContents subCC = (CellContents)allCells.get(subCell);
-				if (subCC != null)
-				{
-					if (!subCC.filledIn)
-						instantiateCellContent(subCell, subCC);
-				}
-			}
+// 			if (np instanceof Cell)
+// 			{
+// 				Cell subCell = (Cell)np;
+// 				CellContents subCC = (CellContents)allCells.get(subCell);
+// 				if (subCC != null)
+// 				{
+// 					if (!subCC.filledIn)
+// 						instantiateCellContent(subCell, subCC);
+// 				}
+// 			}
 
 			// parse state information in stateInfo field 
 			boolean expanded = false, locked = false, shortened = false,
@@ -770,8 +810,8 @@ public class JELIB extends LibraryFiles
 		{
 			String cellString = (String)cc.cellStrings.get(line);
 			if (cellString.charAt(0) != 'E') continue;
-			numProcessed++;
-			if ((numProcessed%100) == 0) progress.setProgress(numProcessed * 100 / numToProcess);
+//			numProcessed++;
+//			if ((numProcessed%100) == 0) progress.setProgress(numProcessed * 100 / numToProcess);
 
 			// parse the export line
 			List pieces = parseLine(cellString);
@@ -829,8 +869,8 @@ public class JELIB extends LibraryFiles
 		{
 			String cellString = (String)cc.cellStrings.get(line);
 			if (cellString.charAt(0) != 'A') continue;
-			numProcessed++;
-			if ((numProcessed%100) == 0) progress.setProgress(numProcessed * 100 / numToProcess);
+//			numProcessed++;
+//			if ((numProcessed%100) == 0) progress.setProgress(numProcessed * 100 / numToProcess);
 
 			// parse the arc line
 			List pieces = parseLine(cellString);

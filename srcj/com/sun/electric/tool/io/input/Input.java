@@ -578,6 +578,9 @@ public class Input // extends IOTool
 		{
 			System.out.println("Error closing file");
 		}
+		inputStream = null;
+		dataInputStream = null;
+		lineReader = null;
 	}
 
 	/**

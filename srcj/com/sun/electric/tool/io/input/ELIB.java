@@ -56,8 +56,9 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.io.ELIBConstants;
+import com.sun.electric.tool.ncc.basic.TransitiveRelation;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.awt.geom.Point2D;
@@ -873,7 +874,7 @@ public class ELIB extends LibraryFiles
 				String thecellname = readString();
 				ignoreVariables();
 
-				fakeCellList[i].cellName = thecellname;
+				fakeCellList[i].cellName = convertCellName(thecellname);
 			}
 		}
 
@@ -891,41 +892,80 @@ public class ELIB extends LibraryFiles
 			}
 		}
 
-		// initialize for processing cell groups
-		FlagSet cellFlag = Cell.getFlagSet(1);
+		// collect the cells by common protoName and by "nextInCellGroup" relation
+		TransitiveRelation transitive = new TransitiveRelation();
+		HashMap/*<String,String>*/ protoNames = new HashMap();
 		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
 		{
 			Cell cell = nodeProtoList[cellIndex];
-			if (cell == null) continue;
-			cell.clearBit(cellFlag);
-		}
-
-		// process the cell groups
-		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
-		{
-			if (magic <= ELIBConstants.MAGIC9 && magic >= ELIBConstants.MAGIC11) continue;
-			Cell cell = nodeProtoList[cellIndex];
-			if (cell == null) continue;
-			if (cell.isBit(cellFlag)) continue;
-
-			// follow cell group links, give them a cell group
-			Cell.CellGroup cg = new Cell.CellGroup();
-			for(;;)
+			if (cell == null || cell.getLibrary() != lib) continue;
+			String protoName = (String)protoNames.get(cell.getName());
+			if (protoName == null)
 			{
-				cell.setBit(cellFlag);
-				cell.setCellGroup(cg);
-
-				// move to the next in the group
-				Object other = nextInCellGroup.get(cell);
-				if (other == null) break;
-				if (!(other instanceof Cell)) break;
-				Cell otherCell = (Cell)other;
-				if (otherCell == null) break;
-				if (otherCell.isBit(cellFlag)) break;
-				cell = otherCell;
+				protoName = cell.getName();
+				protoNames.put(protoName, protoName);
+			}
+			transitive.theseAreRelated(cell, protoName);
+			Cell otherCell = (Cell)nextInCellGroup.get(cell);
+			if (otherCell != null && cell.getLibrary() == lib)
+				transitive.theseAreRelated(cell, otherCell);
+		}
+		// create the cell groups
+		HashMap/*<Cell,CellGroup>*/ cellGroups = new HashMap();
+		for (Iterator git = transitive.getSetsOfRelatives(); git.hasNext();)
+		{
+			Set group = (Set)git.next();
+			Cell.CellGroup cg = new Cell.CellGroup();
+			for (Iterator it = group.iterator(); it.hasNext();)
+			{
+				Object o = it.next();
+				if (o instanceof Cell)
+					cellGroups.put(o, cg);
 			}
 		}
-		cellFlag.freeFlagSet();
+		// put cells into the cell groups
+		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
+		{
+			Cell cell = nodeProtoList[cellIndex];
+			if (cell == null || cell.getLibrary() != lib) continue;
+			cell.setCellGroup((Cell.CellGroup)cellGroups.get(cell));
+		}
+
+// 		// initialize for processing cell groups
+// 		FlagSet cellFlag = Cell.getFlagSet(1);
+// 		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
+// 		{
+// 			Cell cell = nodeProtoList[cellIndex];
+// 			if (cell == null) continue;
+// 			cell.clearBit(cellFlag);
+// 		}
+
+// 		// process the cell groups
+// 		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
+// 		{
+// 			if (magic <= ELIBConstants.MAGIC9 && magic >= ELIBConstants.MAGIC11) continue;
+// 			Cell cell = nodeProtoList[cellIndex];
+// 			if (cell == null) continue;
+// 			if (cell.isBit(cellFlag)) continue;
+
+// 			// follow cell group links, give them a cell group
+// 			Cell.CellGroup cg = new Cell.CellGroup();
+// 			for(;;)
+// 			{
+// 				cell.setBit(cellFlag);
+// 				cell.setCellGroup(cg);
+
+// 				// move to the next in the group
+// 				Object other = nextInCellGroup.get(cell);
+// 				if (other == null) break;
+// 				if (!(other instanceof Cell)) break;
+// 				Cell otherCell = (Cell)other;
+// 				if (otherCell == null) break;
+// 				if (otherCell.isBit(cellFlag)) break;
+// 				cell = otherCell;
+// 			}
+// 		}
+// 		cellFlag.freeFlagSet();
 
 		// cleanup cellgroup processing, link the cells
 		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
@@ -1269,6 +1309,8 @@ public class ELIB extends LibraryFiles
 		return lambda;
 	}
 
+	protected boolean canScale() { return true; }
+
 	private void realizeExports(Cell cell, int cellIndex, String scaledCellName)
 	{
 		// finish initializing the Exports in the cell
@@ -1527,9 +1569,15 @@ public class ELIB extends LibraryFiles
 		if (np instanceof Cell)
 		{
 			Cell subCell = (Cell)np;
+			LibraryFiles reader = this;
+			if (subCell.getLibrary() != lib)
+			{
+				reader = getReaderForLib(subCell.getLibrary());
+			}
 			Rectangle2D bounds = subCell.getBounds();
             //if (false)
-			if (bounds.getWidth() != width || bounds.getHeight() != height)
+			if ((bounds.getWidth() != width || bounds.getHeight() != height)
+				&& reader != null && reader.canScale())
 			{
 				if (Math.abs(bounds.getWidth() - width) > 0.5 ||
 					Math.abs(bounds.getHeight() - height) > 0.5)
@@ -1551,11 +1599,6 @@ public class ELIB extends LibraryFiles
 					if (scaledCell == null)
 					{
 						// create a scaled version of the cell
-						LibraryFiles reader = this;
-						if (subCell.getLibrary() != lib)
-						{
-							reader = getReaderForLib(subCell.getLibrary());
-						}
 						if (reader != null)
 							reader.realizeCellsRecursively(subCell, recursiveSetupFlag, scaledCellName, scaleX, scaleY);
 						scaledCell = subCell.getLibrary().findNodeProto(scaledCellName);
@@ -1875,7 +1918,7 @@ public class ELIB extends LibraryFiles
 			} else
 			{
 				// version 12 or later
-				theProtoName = readString();
+				theProtoName = convertCellName(readString());
 				int k = readBigInteger();
 
                 // fix for new cell version library corruption bug
@@ -2053,7 +2096,7 @@ public class ELIB extends LibraryFiles
 		} else
 		{
 			// version 12 or later
-			theProtoName = readString();
+			theProtoName = convertCellName(readString());
 			int k = readBigInteger();
 //			cell->nextcellgrp = nodeProtoList[k];
 			k = readBigInteger();

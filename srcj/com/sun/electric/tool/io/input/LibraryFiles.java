@@ -478,11 +478,42 @@ public class LibraryFiles extends Input
         return null;
     }
 
+	String convertCellName(String s)
+	{
+		StringBuffer buf = null;
+		for (int i = 0; i < s.length(); i++)
+		{
+			char ch = s.charAt(i);
+			if (ch == '\n' || ch == '|' || ch == ':')
+			{
+				if (buf == null)
+				{
+					buf = new StringBuffer();
+					buf.append(s.substring(0, i));
+				}
+				buf.append('_');
+				continue;
+			} else if (buf != null)
+			{
+				buf.append(ch);
+			}
+		}
+		if (buf != null)
+		{
+			String newS = buf.toString();
+			System.out.println("Cell name " + s + " was converted to " + newS);
+			return newS;
+		}
+		return s;
+	}
+
 	// *************************** THE CELL CLEANUP INTERFACE ***************************
 
 	protected double computeLambda(Cell cell, int cellIndex) { return 1; }
 
 	protected boolean spreadLambda(Cell cell, int cellIndex) { return false; }
+
+	protected boolean canScale() { return false; }
 
 	/**
 	 * Method to recursively create the contents of each cell in the library.

@@ -907,7 +907,7 @@ public class ReadableDump extends LibraryFiles
 	 */
 	private void keywordCelNam()
 	{
-		curCellName = CellName.parseName(keyWord);
+		curCellName = CellName.parseName(convertCellName(keyWord));
 	}
 
 	/**

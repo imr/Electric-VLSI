@@ -733,12 +733,34 @@ public class Pref
 		}
 
 		if (meaningsToReconcile.size() == 0) return;
- 		OptionReconcile dialog = new OptionReconcile(TopLevel.getCurrentJFrame(), true, meaningsToReconcile, libName);
-
 		if (Main.BATCHMODE)
-			dialog.termDialog();
-		else
-			dialog.setVisible(true);
+		{
+			for(Iterator it = meaningsToReconcile.iterator(); it.hasNext(); )
+			{
+				Pref.Meaning meaning = (Pref.Meaning)it.next();
+				Pref pref = meaning.getPref();
+
+//				Variable var = meaning.getElectricObject().getVar(pref.getPrefName());
+				Object obj = meaning.getDesiredValue();
+
+				// set the option
+				switch (pref.getType())
+				{
+					case Pref.BOOLEAN: pref.setBoolean(((Integer)obj).intValue() != 0);   break;
+					case Pref.INTEGER: pref.setInt(((Integer)obj).intValue());            break;
+					case Pref.DOUBLE:
+						if (obj instanceof Double) pref.setDouble(((Double)obj).doubleValue()); else
+							if (obj instanceof Float) pref.setDouble((double)((Float)obj).floatValue());
+						break;
+					case Pref.STRING:  pref.setString((String)obj);                       break;
+					default: continue;
+				}
+				System.out.println("Meaning variable "+meaning.pref.name+" on " + meaning.ownerObj+" changed to "+obj);
+			}
+			return;
+		}
+ 		OptionReconcile dialog = new OptionReconcile(TopLevel.getCurrentJFrame(), true, meaningsToReconcile, libName);
+		dialog.setVisible(true);
 	}
 
 	/****************************** private methods ******************************/
