@@ -35,4 +35,5 @@ public class Engine
 	 */
 	public void doCommand(String command) {}
 
+	public void refresh() {}
 }

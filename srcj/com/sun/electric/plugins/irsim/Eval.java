@@ -356,8 +356,8 @@ if (DEBUG) System.out.println("Removing event at " + event.nTime + " in EvalNode
 	 */
 	public int computeTransState(Sim.Trans t)
 	{
-	    if ((t.tType & Sim.GATELIST) == 0)
-	    	return switchState[Sim.baseType(t.tType)][((Sim.Node)t.gate).nPot];
+		if ((t.tType & Sim.GATELIST) == 0)
+			return switchState[Sim.baseType(t.tType)][((Sim.Node)t.gate).nPot];
 		switch(Sim.baseType(t.tType))
 		{
 			case Sim.NCHAN:
@@ -394,10 +394,10 @@ if (DEBUG) System.out.println("Removing event at " + event.nTime + " in EvalNode
 
 	/***************************************** SCHED *****************************************/
 
-	private static final int TSIZE		= 1024;	/* size of event array, must be power of 2 */
+	/** size of event array, must be power of 2 */		private static final int TSIZE		= 1024;
 	private static final int TMASK		= (TSIZE - 1);
 
-	private Event [] evArray = new Event[TSIZE];	    /* used as head of doubly-linked lists */
+	/** used as head of doubly-linked lists */			private Event [] evArray = new Event[TSIZE];
 
 	private Event getEVArray(long t) { return evArray[(int)(t & TMASK)]; }
 

@@ -19,6 +19,7 @@
 package com.sun.electric.plugins.irsim;
 
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.DigitalSignal;
@@ -27,6 +28,7 @@ import com.sun.electric.tool.extract.TransistorPBucket;
 import com.sun.electric.tool.extract.ExtractedPBucket;
 import com.sun.electric.tool.extract.RCPBucket;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -210,6 +212,8 @@ public class Sim
 		Trans getDTrans() { return (Trans)dCache; }
 		int getSI() { return ((Integer)sCache).intValue(); }
 		int getDI() { return ((Integer)dCache).intValue(); }
+
+		int hashTerms() { return source.index ^ drain.index; }
 	};
 
 	private static class TranResist
@@ -235,6 +239,14 @@ public class Sim
 		/** 1 if node became an input */			boolean  inp;
 		/** 1 if this event was punted */			boolean  punt;
 		/** value: HIGH, LOW, or X */				byte     val;
+
+		public HistEnt getNextHist()
+		{
+			HistEnt h;
+			HistEnt p = this;
+			for(h = p.next; h.punt; h = h.next) ;
+			return h;
+		}
 	};
 
 	/* resists are in ohms, caps in pf */
@@ -492,14 +504,38 @@ public class Sim
 	{
 		theAnalyzer = analyzer;
 		irDebug = Simulation.getIRSIMDebugging();
-    	theConfig = new Config();
-    	String steppingModel = Simulation.getIRSIMStepModel();
-    	if (steppingModel.equals("Linear")) theModel = new SStep(analyzer, this); else
-    	{
-    		if (!steppingModel.equals("RC"))
-    			System.out.println("Unknown stepping model: " + steppingModel + " using RC");
-    		theModel = new NewRStep(analyzer, this);
-    	}
+
+		// initialize the model
+		String steppingModel = Simulation.getIRSIMStepModel();
+		if (steppingModel.equals("Linear")) theModel = new SStep(analyzer, this); else
+		{
+			if (!steppingModel.equals("RC"))
+				System.out.println("Unknown stepping model: " + steppingModel + " using RC");
+			theModel = new NewRStep(analyzer, this);
+		}
+
+		// read the configuration file
+		theConfig = new Config();
+		String parameterFile = Simulation.getIRSIMParameterFile().trim();
+		if (parameterFile.length() > 0)
+		{
+			File pf = new File(parameterFile);
+			URL url;
+			if (pf != null && pf.exists())
+			{
+				url = TextUtils.makeURLToFile(parameterFile);
+			} else
+			{
+				url = LibFile.getLibFile(parameterFile);
+			}
+			if (url == null)
+			{
+				System.out.println("Cannot find parameter file: " + parameterFile);
+			} else
+			{
+				theConfig.loadConfig(url);
+			}
+		}
 	}
 
 	public Config getConfig() { return theConfig; }
@@ -571,8 +607,6 @@ public class Sim
 	static Node otherNode(Trans t, Node n) { return t.drain == n ? t.source : t.drain; }
 
 	static int baseType(int t) { return t & 0x07; }
-
-	private int hashTerms(Trans t) { return t.source.index ^ t.drain.index; }
 
 	static int inputNumber(int flg) { return ((flg & INPUT_MASK) >> 12); }
 
@@ -1038,89 +1072,89 @@ public class Sim
 			{
 				ExtractedPBucket pb = (ExtractedPBucket)it.next();
 
-                if (pb instanceof TransistorPBucket)
-                {
-                    TransistorPBucket tb = (TransistorPBucket)pb;
-                    Trans t = new Trans();
+				if (pb instanceof TransistorPBucket)
+				{
+					TransistorPBucket tb = (TransistorPBucket)pb;
+					Trans t = new Trans();
 
-                    t.gate = getNode(tb.gateName);
-                    t.source = getNode(tb.sourceName);
-                    t.drain = getNode(tb.drainName);
-                    long length = (long)(tb.getTransistorLength() * theConfig.lambdaCM);
-                    long width = (long)(tb.getTransistorWidth() * theConfig.lambdaCM);
-                    if (width <= 0 || length <= 0)
-                    {
-                        System.out.println("Bad transistor width=" + width + " or length=" + length);
-                        return;
-                    }
-                    double activeArea = tb.getActiveArea();
-                    double activePerim = tb.getActivePerim();
-                    t.x = (int)tb.ni.getAnchorCenterX();
-                    t.y = (int)tb.ni.getAnchorCenterY();
+					t.gate = getNode(tb.gateName);
+					t.source = getNode(tb.sourceName);
+					t.drain = getNode(tb.drainName);
+					long length = (long)(tb.getTransistorLength() * theConfig.lambdaCM);
+					long width = (long)(tb.getTransistorWidth() * theConfig.lambdaCM);
+					if (width <= 0 || length <= 0)
+					{
+						System.out.println("Bad transistor width=" + width + " or length=" + length);
+						return;
+					}
+					double activeArea = tb.getActiveArea();
+					double activePerim = tb.getActivePerim();
+					t.x = (int)tb.ni.getAnchorCenterX();
+					t.y = (int)tb.ni.getAnchorCenterY();
 
-                    ((Node)t.gate).nCap += length * width * theConfig.CTGA;
+					((Node)t.gate).nCap += length * width * theConfig.CTGA;
 
-                    switch (tb.getType())
-                    {
-                        case 'n':
-                            t.tType = NCHAN;
+					switch (tb.getType())
+					{
+						case 'n':
+							t.tType = NCHAN;
 
-                            t.source.nCap += activeArea * theConfig.lambda * theConfig.lambda * theConfig.CDA +
-                                activePerim * theConfig.lambda * theConfig.CDP;
-                            t.drain.nCap += activeArea * theConfig.lambda * theConfig.lambda * theConfig.CDA +
-                                activePerim * theConfig.lambda * theConfig.CDP;
-                            t.r = theConfig.rEquiv(NCHAN, width, length);
+							t.source.nCap += activeArea * theConfig.lambda * theConfig.lambda * theConfig.CDA +
+								activePerim * theConfig.lambda * theConfig.CDP;
+							t.drain.nCap += activeArea * theConfig.lambda * theConfig.lambda * theConfig.CDA +
+								activePerim * theConfig.lambda * theConfig.CDP;
+							t.r = theConfig.rEquiv(NCHAN, width, length);
 
-                            // link it to the list
-                            readTransistorList.add(t);
-                            break;
-                        case 'p':
-                            t.tType = PCHAN;
+							// link it to the list
+							readTransistorList.add(t);
+							break;
+						case 'p':
+							t.tType = PCHAN;
 
-                            t.source.nCap += activeArea * theConfig.lambda * theConfig.lambda * theConfig.CPDA +
-                                activePerim * theConfig.lambda * theConfig.CPDP;
-                            t.drain.nCap += activeArea * theConfig.lambda * theConfig.lambda * theConfig.CPDA +
-                                activePerim * theConfig.lambda * theConfig.CPDP;
-                            t.r = theConfig.rEquiv(PCHAN, width, length);
+							t.source.nCap += activeArea * theConfig.lambda * theConfig.lambda * theConfig.CPDA +
+								activePerim * theConfig.lambda * theConfig.CPDP;
+							t.drain.nCap += activeArea * theConfig.lambda * theConfig.lambda * theConfig.CPDA +
+								activePerim * theConfig.lambda * theConfig.CPDP;
+							t.r = theConfig.rEquiv(PCHAN, width, length);
 
-                            // link it to the list
-                            break;
-                    }
-                    readTransistorList.add(t);
-                }
-                else if (pb instanceof RCPBucket)
-                {
-                    RCPBucket rcb = (RCPBucket)pb;
-                    switch (rcb.getType())
-                    {
-                        case 'r':
-                            Trans t = new Trans();
-                            t.tType = RESIST;
-                            t.gate = powerNode;
-                            t.source = getNode(rcb.net1);
-                            t.drain = getNode(rcb.net2);
-                            t.r = theConfig.rEquiv(RESIST, 0, (long)(rcb.rcValue * theConfig.lambdaCM));
+							// link it to the list
+							break;
+					}
+					readTransistorList.add(t);
+				}
+				else if (pb instanceof RCPBucket)
+				{
+					RCPBucket rcb = (RCPBucket)pb;
+					switch (rcb.getType())
+					{
+						case 'r':
+							Trans t = new Trans();
+							t.tType = RESIST;
+							t.gate = powerNode;
+							t.source = getNode(rcb.net1);
+							t.drain = getNode(rcb.net2);
+							t.r = theConfig.rEquiv(RESIST, 0, (long)(rcb.rcValue * theConfig.lambdaCM));
 
-                            // link it to the list
-                            readTransistorList.add(t);
-                            break;
-                        case 'C':
-                            float cap = (float)(rcb.rcValue / 1000);		// ff to pf conversion
-                            Node n = getNode(rcb.net1);
-                            Node m = getNode(rcb.net2);
-                            if (n != m)
-                            {
-                                // add cap to both nodes
-                                if (m != groundNode)	m.nCap += cap;
-                                if (n != groundNode)	n.nCap += cap;
-                            } else if (n == groundNode)
-                            {
-                                // same node, only GND makes sense
-                                n.nCap += cap;
-                            }
-                            break;
-                    }
-                }
+							// link it to the list
+							readTransistorList.add(t);
+							break;
+						case 'C':
+							float cap = (float)(rcb.rcValue / 1000);		// ff to pf conversion
+							Node n = getNode(rcb.net1);
+							Node m = getNode(rcb.net2);
+							if (n != m)
+							{
+								// add cap to both nodes
+								if (m != groundNode)	m.nCap += cap;
+								if (n != groundNode)	n.nCap += cap;
+							} else if (n == groundNode)
+							{
+								// same node, only GND makes sense
+								n.nCap += cap;
+							}
+							break;
+					}
+				}
 			}
 			return;
 		}
@@ -1371,7 +1405,7 @@ public class Sim
 				}
 				else if (!(theModel instanceof NewRStep))
 					continue;
-				else if (hashTerms(other.getTrans()) == hashTerms(t))
+				else if (other.getTrans().hashTerms() == t.hashTerms())
 				{					    // parallel transistors
 					Trans tran = other.getTrans();
 					if ((tran.tFlags & PARALLEL) != 0)
@@ -1479,23 +1513,16 @@ public class Sim
 		h.next = newP;
 	}
 
-	public static HistEnt getNextHist(HistEnt p)
-	{
-		HistEnt h;
-		for(h = p.next; h.punt; h = h.next) ;
-		return h;
-	}
-
 	public void backToTime(Node nd)
 	{
 		if ((nd.nFlags & (ALIAS | MERGED)) != 0) return;
 
 		HistEnt h = nd.head;
-		HistEnt p = getNextHist(h);
+		HistEnt p = h.getNextHist();
 		while(p.hTime < curDelta)
 		{
 			h = p;
-			p = getNextHist(p);
+			p = p.getNextHist();
 		}
 		nd.curr = h;
 
@@ -1581,11 +1608,11 @@ public class Sim
 				if ((type & (GATELIST | ORED)) != 0)
 					continue;	// ORED implies processed, so skip as well
 
-				long hval = hashTerms(t1);
+				long hval = t1.hashTerms();
 				for(int l2 = l1+1; l2 < nList.nTermList.size(); l2++)
 				{
 					Trans t2 = (Trans)nList.nTermList.get(l2);
-					if (t1.gate != t2.gate || hashTerms(t2) != hval ||
+					if (t1.gate != t2.gate || t2.hashTerms() != hval ||
 						type != (t2.tType & ~ORED))
 							continue;
 

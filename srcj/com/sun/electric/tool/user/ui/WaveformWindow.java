@@ -3492,20 +3492,50 @@ public class WaveformWindow implements WindowContent
 			{
 				WaveSignal ws = (WaveSignal)pIt.next();
 				Signal ss = ws.sSig;
-				String oldSigName = ss.getFullName();
-				ws.sSig = null;
-				for(Iterator sIt = sd.getSignals().iterator(); sIt.hasNext(); )
+				if (ss.getBussedSignals() != null)
 				{
-					Signal newSs = (Signal)sIt.next();
-					String newSigName = newSs.getFullName();
-					if (!newSigName.equals(oldSigName)) continue;
-					ws.sSig = newSs;
-					break;
-				}
-				if (ws.sSig == null)
+					List inBus = ss.getBussedSignals();
+					for(int b=0; b<inBus.size(); b++)
+					{
+						Signal subDS = (Signal)inBus.get(b);
+						String oldSigName = subDS.getFullName();
+						Signal newBus = null;
+						for(Iterator sIt = sd.getSignals().iterator(); sIt.hasNext(); )
+						{
+							Signal newSs = (Signal)sIt.next();
+							String newSigName = newSs.getFullName();
+							if (!newSigName.equals(oldSigName)) continue;
+							newBus = newSs;
+							break;
+						}
+						if (newBus == null)
+						{
+							inBus.remove(b);
+							b--;
+							System.out.println("Could not find signal " + oldSigName + " in the new data");
+							redoPanel = true;
+							continue;
+						}
+						inBus.set(b, newBus);
+					}
+				} else
 				{
-					System.out.println("Could not find signal " + oldSigName + " in the new data");
-					redoPanel = true;
+					// single signal: find the name in the new list
+					String oldSigName = ss.getFullName();
+					ws.sSig = null;
+					for(Iterator sIt = sd.getSignals().iterator(); sIt.hasNext(); )
+					{
+						Signal newSs = (Signal)sIt.next();
+						String newSigName = newSs.getFullName();
+						if (!newSigName.equals(oldSigName)) continue;
+						ws.sSig = newSs;
+						break;
+					}
+					if (ws.sSig == null)
+					{
+						System.out.println("Could not find signal " + oldSigName + " in the new data");
+						redoPanel = true;
+					}
 				}
 			}
 			while (redoPanel)
@@ -3514,9 +3544,11 @@ public class WaveformWindow implements WindowContent
 				for(Iterator pIt = wp.waveSignals.values().iterator(); pIt.hasNext(); )
 				{
 					WaveSignal ws = (WaveSignal)pIt.next();
-					if (ws.sSig == null)
+					if (ws.sSig == null ||
+						(ws.sSig.getBussedSignals() != null && ws.sSig.getBussedSignals().size() == 0))
 					{
 						redoPanel = true;
+if (wp.signalButtons != null)
 						wp.signalButtons.remove(ws.sigButton);
 						wp.waveSignals.remove(ws.sigButton);
 						break;
@@ -4618,6 +4650,12 @@ public class WaveformWindow implements WindowContent
 	 */
 	public void refreshData()
 	{
+		if (se != null)
+		{
+			se.refresh();
+			return;
+		}
+
 		if (sd.getDataType() == null)
 		{
 			System.out.println("This simulation data did not come from disk...cannot refresh");

@@ -163,6 +163,10 @@ public class Analyzer extends Engine
 
 	/** the simulation engine */					private Sim            theSim;
 	/** the waveform window */						private WaveformWindow ww;
+    /** the cell being simulated */					private Cell           cell;
+    /** the context for the cell being simulated */	private VarContext     context;
+    /** the name of the file being simulated */		private String         fileName;
+    /** the name of the last vector file read */	private String         vectorFileName;
 
 	/************************** ELECTRIC INTERFACE **************************/
 
@@ -178,145 +182,118 @@ public class Analyzer extends Engine
 	 */
 	public static void simulateCell(Cell cell, VarContext context, String fileName)
 	{
-    	Analyzer theAnalyzer = new Analyzer();
-		new StartIRSIM(cell, context, fileName, theAnalyzer);
+		Analyzer theAnalyzer = new Analyzer();
+		theAnalyzer.cell = cell;
+		theAnalyzer.context = context;
+		theAnalyzer.fileName = fileName;
+		new StartIRSIM(theAnalyzer);
 	}
 
 	private static class StartIRSIM extends Job
-    {
-        private Cell cell;
-        private VarContext context;
-        private String fileName;
-        private Analyzer analyzer;
+	{
+		private Analyzer analyzer;
 
-        public StartIRSIM(Cell cell, VarContext context, String fileName, Analyzer analyzer)
-        {
-            super("Simulate cell", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
-            this.cell = cell;
-            this.context = context;
-            this.fileName = fileName;
-            this.analyzer = analyzer;
-            startJob();
-        }
+		public StartIRSIM(Analyzer analyzer)
+		{
+			super("Simulate cell", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			this.analyzer = analyzer;
+			startJob();
+		}
 
-        public boolean doIt()
-        {
-        	Sim sim = analyzer.theSim;
+		public boolean doIt()
+		{
+			System.out.println("IRSIM, version " + simVersion);
 
-        	analyzer.firstVector = null;
+			// now initialize the simulator
+			Sim sim = analyzer.theSim;
+			analyzer.initRSim();
 
-    		// now initialize the simulator
-    		System.out.println("IRSIM, version " + simVersion);
+			// Load network
+			Stimuli sd = analyzer.getCircuit();
+ 			Simulation.showSimulationData(sd, null);
 
-    		List components = null;
-    		URL fileURL = null;
-    		if (fileName == null)
-    		{
-    			// generate the components directly
-    			components = IRSIM.getIRSIMComponents(cell, context);
-    		} else
-    		{
-    			// get a pointer to to the file with the network (.sim file)
-    			fileURL = TextUtils.makeURLToFile(fileName);
-    		}
-
-    		// read the configuration file
-    		String parameterFile = Simulation.getIRSIMParameterFile().trim();
-    		if (parameterFile.length() > 0)
-    		{
-	    		File pf = new File(parameterFile);
-	    		URL url;
-	    		if (pf != null && pf.exists())
-	    		{
-	    			url = TextUtils.makeURLToFile(parameterFile);
-	    		} else
-	    		{
-	        		url = LibFile.getLibFile(parameterFile);
-	    		}
-	    		if (url == null)
-	    		{
-	    			System.out.println("Cannot find parameter file: " + parameterFile);
-	    		} else
-	    		{
-	    			if (sim.getConfig().loadConfig(url)) return true;
-	    		}
-    		}
-
-    		// Load network
-    		analyzer.initRSim();
-    		if (sim.readNetwork(fileURL, components)) return true;
-
-    		// convert the stimuli
-			Stimuli sd = new Stimuli();
-    		sd.setSeparatorChar('/');
-    		sd.setCell(cell);
-    		for(Iterator it = sim.getNodeList().iterator(); it.hasNext(); )
-    		{
-    			Sim.Node n = (Sim.Node)it.next();
-    			if (n.nName.equalsIgnoreCase("vdd") || n.nName.equalsIgnoreCase("gnd")) continue;
-
-    			// make a signal for it
-				DigitalSignal sig = new DigitalSignal(sd);
-				n.sig = sig;
-				int slashPos = n.nName.lastIndexOf('/');
-				if (slashPos >= 0)
-				{
-					sig.setSignalName(n.nName.substring(slashPos+1));
-					sig.setSignalContext(n.nName.substring(0, slashPos));
-				} else
-				{
-					sig.setSignalName(n.nName);
-				}
-				sig.setAppObject(n);
-
-				sig.buildTime(2);
-    			sig.buildState(2);
-				sig.setTime(0, 0);
-				sig.setTime(1, 0.00000001);
-				sig.setState(0, 0);
-				sig.setState(1, 0);
-    		}
-			Simulation.showSimulationData(sd, null);
-			analyzer.ww = sd.getWaveformWindow();
+ 			// make a waveform window
+ 			analyzer.ww = sd.getWaveformWindow();
 			analyzer.ww.setSimEngine(analyzer);
-
-			analyzer.ww.clearHighlighting();
-
 			analyzer.ww.setDefaultTimeRange(0.0, DEFIRSIMTIMERANGE);
 			analyzer.ww.setMainTimeCursor(DEFIRSIMTIMERANGE/5.0*2.0);
 			analyzer.ww.setExtensionTimeCursor(DEFIRSIMTIMERANGE/5.0*3.0);
+			analyzer.init();
+			return true;
+		}
+	}
 
-    		// tell the simulator to watch all signals
-    		if (!analyzer.analyzerON)
-    		{
-    			analyzer.initTimes(0, 50000, sim.curDelta);
-    		}
+	private void init()
+	{
+		// tell the simulator to watch all signals
+		initTimes(0, 50000, theSim.curDelta);
 
-    		for(Iterator it = sim.getNodeList().iterator(); it.hasNext(); )
-    		{
-    			Sim.Node n = (Sim.Node)it.next();
-    			while ((n.nFlags & Sim.ALIAS) != 0)
-    				n = n.nLink;
+		for(Iterator it = theSim.getNodeList().iterator(); it.hasNext(); )
+		{
+			Sim.Node n = (Sim.Node)it.next();
+			while ((n.nFlags & Sim.ALIAS) != 0)
+				n = n.nLink;
 
-    			if ((n.nFlags & Sim.MERGED) != 0)
-    				System.out.println("can't watch node " + n.nName);
-    			n.wind = n.cursor = n.head;
-    		}
-    		analyzer.updateWindow(0);
-    		if (!analyzer.analyzerON)				// only the first time
-    		{
-    			analyzer.lastStart = sim.maxTime;
-    		} else
-    		{
-    			analyzer.drawTraces(startTime, endTime);
-    		}
-    		analyzer.analyzerON = true;
+			if ((n.nFlags & Sim.MERGED) != 0)
+				System.out.println("can't watch node " + n.nName);
+			n.wind = n.cursor = n.head;
+		}
+		updateWindow(0);
+		lastStart = theSim.maxTime;
+		analyzerON = true;
 
-    		// read signal values
-    		analyzer.updateWindow(sim.curDelta);
-            return true;
-        }
-    }
+		// read signal values
+		updateWindow(theSim.curDelta);
+	}
+
+	private Stimuli getCircuit()
+	{
+		// Load network
+		List components = null;
+		URL fileURL = null;
+		if (fileName == null)
+		{
+			// generate the components directly
+			components = IRSIM.getIRSIMComponents(cell, context);
+		} else
+		{
+			// get a pointer to to the file with the network (.sim file)
+			fileURL = TextUtils.makeURLToFile(fileName);
+		}
+		if (theSim.readNetwork(fileURL, components)) return null;
+
+		// convert the stimuli
+		Stimuli sd = new Stimuli();
+		sd.setSeparatorChar('/');
+		sd.setCell(cell);
+		for(Iterator it = theSim.getNodeList().iterator(); it.hasNext(); )
+		{
+			Sim.Node n = (Sim.Node)it.next();
+			if (n.nName.equalsIgnoreCase("vdd") || n.nName.equalsIgnoreCase("gnd")) continue;
+
+			// make a signal for it
+			DigitalSignal sig = new DigitalSignal(sd);
+			n.sig = sig;
+			int slashPos = n.nName.lastIndexOf('/');
+			if (slashPos >= 0)
+			{
+				sig.setSignalName(n.nName.substring(slashPos+1));
+				sig.setSignalContext(n.nName.substring(0, slashPos));
+			} else
+			{
+				sig.setSignalName(n.nName);
+			}
+			sig.setAppObject(n);
+
+			sig.buildTime(2);
+			sig.buildState(2);
+			sig.setTime(0, 0);
+			sig.setTime(1, 0.00000001);
+			sig.setState(0, 0);
+			sig.setState(1, 0);
+		}
+		return sd;
+	}
 
 	/**
 	 * Main entry point to run an arbitrary IRSIM command.
@@ -455,9 +432,29 @@ public class Analyzer extends Engine
 
 		if (com.equals("restore"))
 		{
+			vectorFileName = OpenFile.chooseInputFile(FileType.IRSIMVECTOR, "IRSIM Vector file");
+			if (vectorFileName == null) return;
 			loadVectorFile();
 			return;
 		}
+	}
+
+	public void refresh()
+	{
+		// make a new simulation object
+		theSim = new Sim(this);
+
+		// now initialize the simulator
+		initRSim();
+
+		// Load network
+		Stimuli sd = getCircuit();
+		Simulation.showSimulationData(sd, ww);
+
+		if (vectorFileName != null) loadVectorFile();
+		init();
+
+		playVectors();
 	}
 
 	/************************** SIMULATION VECTORS **************************/
@@ -507,12 +504,9 @@ public class Analyzer extends Engine
 	 */
 	private void loadVectorFile()
 	{
-        String fileName = OpenFile.chooseInputFile(FileType.IRSIMVECTOR, "IRSIM Vector file");
-        if (fileName == null) return;
-
-        URL url = TextUtils.makeURLToFile(fileName);
-        try
-        {
+		URL url = TextUtils.makeURLToFile(vectorFileName);
+		try
+		{
 			URLConnection urlCon = url.openConnection();
 			InputStreamReader is = new InputStreamReader(urlCon.getInputStream());
 			LineNumberReader lineReader = new LineNumberReader(is);
@@ -529,7 +523,7 @@ public class Analyzer extends Engine
 					ws.getSignal().clearControlPoints();
 				}
 			}
-			System.out.println("Reading " + fileName);
+			System.out.println("Reading " + vectorFileName);
 			double currentTime = 0;
 			boolean anyAnalyzerCommands = false;
 			for(;;)
@@ -676,10 +670,10 @@ public class Analyzer extends Engine
 
 			lineReader.close();
 		} catch (IOException e)
-        {
-        	System.out.println("Error reading " + fileName);
-        	return;
-        }
+		{
+			System.out.println("Error reading " + vectorFileName);
+			return;
+		}
 	}
 
 	/**
@@ -687,26 +681,26 @@ public class Analyzer extends Engine
 	 */
 	private void saveVectorFile()
 	{
-        String fileName = OpenFile.chooseOutputFile(FileType.IRSIMVECTOR, "IRSIM Vector file", Library.getCurrent().getName() + ".cmd");
-        try
+		String fileName = OpenFile.chooseOutputFile(FileType.IRSIMVECTOR, "IRSIM Vector file", Library.getCurrent().getName() + ".cmd");
+		try
 		{
-        	PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
+			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
 
-    		for(SimVector sv = firstVector; sv != null; sv = sv.next)
-    		{
-    			String infstr = commandName(sv.command);
-    			for(int i=0; i<sv.parameters.length; i++)
-    				infstr += " " + sv.parameters[i];
-    			printWriter.println(infstr);
-    		}
+			for(SimVector sv = firstVector; sv != null; sv = sv.next)
+			{
+				String infstr = commandName(sv.command);
+				for(int i=0; i<sv.parameters.length; i++)
+					infstr += " " + sv.parameters[i];
+				printWriter.println(infstr);
+			}
 
-    		printWriter.close();
-    		System.out.println("Wrote " + fileName);
-        } catch (IOException e)
+			printWriter.close();
+			System.out.println("Wrote " + fileName);
+		} catch (IOException e)
 		{
-            System.out.println("Error writing " + fileName);
-            return;
-        }
+			System.out.println("Error writing " + fileName);
+			return;
+		}
 	}
 
 	private void issueCommand(SimVector sv)
@@ -1680,6 +1674,8 @@ public class Analyzer extends Engine
 		}
 	}
 
+	private int tranCntNSD = 0, tranCntNG = 0;
+
 	/**
 	 * Print event statistics.
 	 */
@@ -2120,6 +2116,7 @@ public class Analyzer extends Engine
 		maxClock = 0;
 		column = 0;
 		analyzerON = false;
+		firstVector = null;
 		for(int i = 0; i < 5; i++) listTbl[i] = null;
 		listTbl[Sim.inputNumber(Sim.H_INPUT)] = hInputs;
 		listTbl[Sim.inputNumber(Sim.L_INPUT)] = lIinputs;
@@ -2184,7 +2181,7 @@ public class Analyzer extends Engine
 
 			Sim.HistEnt p = nd.wind;
 			Sim.HistEnt h = nd.cursor;
-			Sim.HistEnt nextH = Sim.getNextHist(h);
+			Sim.HistEnt nextH = h.getNextHist();
 			if (h.hTime > cursT || nextH.hTime <= cursT)
 			{
 				if (p.hTime <= cursT)
@@ -2196,20 +2193,20 @@ public class Analyzer extends Engine
 			if (startT <= p.hTime)
 				p = nd.head;
 
-			h = Sim.getNextHist(p);
+			h = p.getNextHist();
 			while (h.hTime < startT)
 			{
 				p = h;
-				h = Sim.getNextHist(h);
+				h = h.getNextHist();
 			}
 			nd.wind = p;
 
 			p = nd.cursor;
-			h = Sim.getNextHist(p);
+			h = p.getNextHist();
 			while (h.hTime <= cursT)
 			{
 				p = h;
-				h = Sim.getNextHist(h);
+				h = h.getNextHist();
 			}
 			nd.cursor = p;
 		}
@@ -2228,11 +2225,11 @@ public class Analyzer extends Engine
 			{
 				Sim.Node nd = (Sim.Node)it.next();
 				Sim.HistEnt p = begin ? nd.head : nd.wind;
-				Sim.HistEnt h = Sim.getNextHist(p);
+				Sim.HistEnt h = p.getNextHist();
 				while (h.hTime < startT)
 				{
 					p = h;
-					h = Sim.getNextHist(h);
+					h = h.getNextHist();
 				}
 				nd.wind = p;
 			}
@@ -2253,7 +2250,7 @@ public class Analyzer extends Engine
 			{
 				int val = h.val;
 				while (h.hTime < endT && h.val == val)
-					h = Sim.getNextHist(h);
+					h = h.getNextHist();
 
 				// advance time
 				long nextT;
@@ -2404,7 +2401,7 @@ public class Analyzer extends Engine
 			case 2: pot = 'X';   break;
 			case 3: pot = '1';   break;
 		}
-	    return node_name + "=" + pot + " ";
+		return node_name + "=" + pot + " ";
 	}
 
 	private String pGValue(Sim.Trans t)
@@ -2869,7 +2866,4 @@ public class Analyzer extends Engine
 				n.nFlags &= ~Sim.INPUT;
 		}
 	}
-
-	private int tranCntNSD = 0, tranCntNG = 0;
-
 }
