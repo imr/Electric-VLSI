@@ -2826,6 +2826,7 @@ public class CircuitChanges
 
 		CleanupChanges job = new CleanupChanges(cell, justThis, pinsToRemove, pinsToPassThrough, pinsToScale, textToMove, arcsToKill,
 			zeroSize, negSize, overSizePins);
+        job.startJob();
 		return true;
 	}
 	
@@ -2857,7 +2858,6 @@ public class CircuitChanges
 			this.zeroSize = zeroSize;
 			this.negSize = negSize;
 			this.overSizePins = overSizePins;
-			startJob();
 		}
 
 		public boolean doIt()
@@ -2871,13 +2871,16 @@ public class CircuitChanges
 				NodeInst ni = (NodeInst)it.next();
 				ni.kill();
 			}
+            int pinsPassedThrough = 0;
 			for(Iterator it = pinsToPassThrough.iterator(); it.hasNext(); )
 			{
 				Reconnect re = (Reconnect)it.next();
 				if (!re.ni.isLinked()) continue;
 				List created = re.reconnectArcs();
-				if (created.size() > 0)
+				if (created.size() > 0) {
 					re.ni.kill();
+                    pinsPassedThrough++;
+                }
 			}
 			for(Iterator it = pinsToScale.keySet().iterator(); it.hasNext(); )
 			{
@@ -2901,9 +2904,9 @@ public class CircuitChanges
 			StringBuffer infstr = new StringBuffer();
 			if (!justThis) infstr.append("Cell " + cell.describe() + ":");
 			boolean spoke = false;
-			if ((pinsToRemove.size()+pinsToPassThrough.size()) != 0)
+			if ((pinsToRemove.size()+pinsPassedThrough) != 0)
 			{
-                int removed = pinsToRemove.size() + pinsToPassThrough.size();
+                int removed = pinsToRemove.size() + pinsPassedThrough;
 				infstr.append("Removed " + removed + " pins");
 				spoke = true;
 			}

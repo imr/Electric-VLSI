@@ -269,6 +269,7 @@ public class AutoStitch
             }
 
             // check for any inline pins due to created wires
+
             List pinsToPassThrough = new ArrayList();
             Cell cell = null;
             for (Iterator it = possibleInlinePins.iterator(); it.hasNext(); ) {
@@ -284,7 +285,12 @@ public class AutoStitch
             if ((pinsToPassThrough.size() > 0) && (cell != null)) {
                 CircuitChanges.CleanupChanges job = new CircuitChanges.CleanupChanges(cell, true, new ArrayList(),
                         pinsToPassThrough, new HashMap(), new ArrayList(), new HashMap(), 0, 0, 0);
+                job.doIt();
             }
+
+            // until we de-staticize highlighting, just clear highlights
+            Highlight.clear();
+            Highlight.finished();
 
 			return true;
 		}
@@ -487,9 +493,12 @@ public class AutoStitch
 								double x = portPoly.getCenterX();
 								double y = portPoly.getCenterY();
 								double dist = Math.abs(x-oX) + Math.abs(y-oY);
-								if (bestPp == null) bestDist = dist;
+								if (bestPp == null) {
+                                    bestDist = dist;
+                                    bestPp = tPp;
+                                }
 								if (dist > bestDist) continue;
-								bestPp = rPp;   bestDist = dist;
+								bestPp = tPp;   bestDist = dist;
 							}
 							if (bestPp == null) continue;
 							rPp = bestPp;
@@ -693,7 +702,7 @@ public class AutoStitch
 				double ox = poly.getCenterX();
 				double oy = poly.getCenterY();
 
-				// look at all polygons on this nodeinst
+				// look at all polygons on nodeinst oNi
 				Technology tech = oNi.getProto().getTechnology();
 				Poly [] polys = tech.getShapeOfNode(oNi, null, true, true);
 				int tot = polys.length;
@@ -709,7 +718,10 @@ public class AutoStitch
 						
 						Poly portPoly = oNi.getShapeOfPort(rPp);
 						double dist = Math.abs(portPoly.getCenterX()-ox) + Math.abs(portPoly.getCenterY()-oy);
-						if (bestPp == null) bestDist = dist;
+						if (bestPp == null) {
+                            bestDist = dist;
+                            bestPp = rPp;
+                        }
 						if (dist > bestDist) continue;
 						bestPp = rPp;   bestDist = dist;
 					}
@@ -843,6 +855,17 @@ public class AutoStitch
             if (route.size() == 0) return false;
             allRoutes.add(route);
             //Router.createRouteNoJob(route, ni.getParent(), false);
+
+            // if either ni or oNi is a pin primitive, see if it is a candidate for clean-up
+            if (ni.getFunction() == NodeProto.Function.PIN) {
+                if (!possibleInlinePins.contains(ni))
+                    possibleInlinePins.add(ni);
+            }
+            if (oNi.getFunction() == NodeProto.Function.PIN) {
+                if (!possibleInlinePins.contains(oNi))
+                    possibleInlinePins.add(oNi);
+            }
+
 			return true;
 		}
 
