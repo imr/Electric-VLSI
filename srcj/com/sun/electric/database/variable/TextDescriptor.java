@@ -26,17 +26,15 @@ package com.sun.electric.database.variable;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 
-import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -687,7 +685,7 @@ public class TextDescriptor implements Serializable
 		DescriptorPref(String purpose, int initialSize)
 		{
 			cacheDescriptor = Pref.makeLongPref("TextDescriptorFor" + purpose, prefs, (initialSize << Size.TXTQGRIDSH) << VTSIZESH);
-			cacheColor = Pref.makeIntPref("TextDescriptorColorFor" + purpose, prefs, 0);
+			cacheColor = Pref.makeIntPref("TextDescriptorColorFor" + purpose, prefs, EGraphics.BLACK);
 			cacheFont = Pref.makeStringPref("TextDescriptorFontFor" + purpose, prefs, "");
 		}
 
@@ -726,7 +724,7 @@ public class TextDescriptor implements Serializable
 	}
 
 	/** the words of the text descriptor */		/*package*/ int descriptor0, descriptor1;
-	/** the color of the text descriptor */		/*package*/ int colorIndex;
+	/** the color of the text descriptor */		/*package*/ int colorIndex = EGraphics.BLACK;
 	/** the owner of the text descriptor */		/*package*/ final ElectricObject owner;
 
 	/** preferences for all descriptors */	private static final Preferences prefs = Preferences.userNodeForPackage(TextDescriptor.class);
