@@ -46,6 +46,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.menus.FileMenu;
@@ -568,6 +569,7 @@ public class Cell extends NodeProto implements Comparable
 			toNi.setProtoTextDescriptor(ni.getProtoTextDescriptor());
 			toNi.setNameTextDescriptor(ni.getNameTextDescriptor());
 			toNi.lowLevelSetUserbits(ni.lowLevelGetUserbits());
+
 		}
 
 		// now copy the variables on the nodes
@@ -576,6 +578,18 @@ public class Cell extends NodeProto implements Comparable
 			NodeInst ni = (NodeInst)it.next();
 			NodeInst toNi = (NodeInst)ni.getTempObj();
 			toNi.copyVars(ni);
+
+            // if this is an icon, and this nodeinst is the box with the name of the cell on it,
+            // then change the name from the old to the new
+            if (newCell.getView() == View.ICON) {
+                Variable var = toNi.getVar(Schematics.SCHEM_FUNCTION);
+                if (var != null) {
+                    String name = (String)var.getObject();
+                    if (name.equals(fromCell.getName())) {
+                        toNi.updateVar(var.getKey(), newCell.getName());
+                    }
+                }
+            }
 		}
 
 		// copy arcs

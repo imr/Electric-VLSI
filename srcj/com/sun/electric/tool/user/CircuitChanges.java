@@ -3735,9 +3735,12 @@ public class CircuitChanges
                     for (Iterator it2 = dupCell.getNodes(); it2.hasNext(); ) {
                         NodeInst ni2 = (NodeInst)it2.next();
                         if (ni2.getProto() == icon) {
-                            ni2.replace(dupIcon, true, true);
+                            NodeInst newNi2 = ni2.replace(dupIcon, true, true);
+                            // replace name on old self-icon
+                            newNi2.setName(null);
                         }
                     }
+
                     break;
                 }
             }

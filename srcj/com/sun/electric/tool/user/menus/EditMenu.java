@@ -787,6 +787,7 @@ public class EditMenu {
 			highlighter.addElectricObject(ai, curCell);
 		}
 		highlighter.finished();
+        System.out.println("Selected "+highlighter.getNumHighlights()+ "objects");
 	}
 
 	/**
