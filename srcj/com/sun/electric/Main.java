@@ -257,7 +257,7 @@ public final class Main
             fileURLs.add(url);
         }
         // open any libraries but only when there is at least one
-	    if (fileURLs.size() > 0)
+	    //if (fileURLs.size() > 0)
 	    {
             FileMenu.ReadInitialELIBs job = new FileMenu.ReadInitialELIBs(fileURLs);
 	    }
