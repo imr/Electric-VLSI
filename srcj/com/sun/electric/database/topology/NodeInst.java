@@ -214,7 +214,8 @@ public class NodeInst extends Geometric implements Nodable
         
 		if (protoType instanceof Cell)
 		{
-			if (((Cell)protoType).isAChildOf(parent))
+            if (Cell.isInstantiationRecursive((Cell)protoType, parent))
+			//if (((Cell)protoType).isAChildOf(parent))
 			{
 				System.out.println("Cannot create instance of " + protoType.describe() + " in cell " + parent.describe() +
 					" because it is recursive");
@@ -358,7 +359,8 @@ public class NodeInst extends Geometric implements Nodable
 		// check for recursion
 		if (np instanceof Cell)
 		{
-			if (getParent().isAChildOf((Cell)np)) {
+            if (Cell.isInstantiationRecursive((Cell)np, getParent())) {
+			//if (getParent().isAChildOf((Cell)np)) {
                 System.out.println("Cannot replace because it would be recursive");
                 return null;
             }

@@ -1819,37 +1819,91 @@ public class Cell extends NodeProto implements Comparable
 	 */
 	public boolean isLinked() { return linked; }
 
+    /**
+     * Determines whether an instantiation of cell <code>toInstantiate</code>
+     * into <code>parent</code> would be a rescursive operation.
+     * @param toInstantiate the cell to instantiate
+     * @param parent the cell in which to create the instance
+     * @return true if the operation would be recursive, false otherwise
+     */
+    public static boolean isInstantiationRecursive(Cell toInstantiate, Cell parent) {
+        // if they are equal, this is recursive
+        if (toInstantiate == parent) return true;
+
+        // special case: allow instance of icon inside of the contents for illustration
+        if (toInstantiate.isIconOf(parent)) {
+            if (toInstantiate.getView() == View.ICON && parent.getView() != View.ICON)
+                return false;
+        }
+
+        // if the parent is a child of the cell to instantiate, that would be a
+        // recursive operation
+        if (parent.isAChildOf(toInstantiate)) return true;
+
+        return false;
+    }
+
 	/**
-	 * Method to recursively determine whether this Cell is a child of a given parent Cell.
-	 * If so, the relationship would be recursive.
+	 * Method to determine whether this Cell is a child of a given parent Cell.
+	 * DO NOT use this method to determine whether an instantiation should be allowed
+     * (i.e. it is not a recursive instantation).  Use <code>isInstantiationRecursive</code>
+     * instead.  This method *only* does what is it says it does: it checks if this cell
+     * is currently instantiated as a child of 'parent' cell.
 	 * @param parent the parent cell being examined.
 	 * @return true if, somewhere above the hierarchy of this Cell is the parent Cell.
 	 */
 	public boolean isAChildOf(Cell parent)
 	{
-		// special case: allow an icon to be inside of the contents for illustration
-		if (isIconOf(parent))
-		{
-			if (getView() == View.ICON && parent.getView() != View.ICON)
-				return false;
-		}
-
-		// make sure the child is not an icon
-		Cell child = this;
-		Cell np = contentsView();
-		if (np != null) child = np;
-
-		return child.getIsAChildOf(parent);
+		return getIsAChildOf(parent, new HashMap());
 	}
 
-	private boolean getIsAChildOf(Cell parent)
+	private boolean getIsAChildOf(Cell parent, Map checkedParents)
 	{
-		/* if they are the same, that is recursion */
-		if (this == parent) return true;
+        // if parent is an icon view, also check contents view
+        if (parent.getView() == View.ICON) {
+            Cell c = parent.contentsView();
+            if (c != null && c != parent) {
+                if (getIsAChildOf(c, checkedParents)) return true;
+            }
+        }
 
-		/* look through every instance of the parent cell */
+        // see if parent checked already
+        if (checkedParents.get(parent) != null) return false;
+        // mark this parent as being checked so we don't recurse into it again
+        checkedParents.put(parent, parent);
+
+        //System.out.println("Checking if this "+describe()+" is a child of "+parent.describe());
+
+        // see if any instances of this have parent 'parent'
+        // check both icon and content views
+        // Note that contentView and iconView are the same for every recursion
+        Cell contentView = contentsView();
+        Cell iconView = iconView();
+
+        for (Iterator it = parent.getNodes(); it.hasNext(); ) {
+            NodeInst ni = (NodeInst)it.next();
+            NodeProto np = ni.getProto();
+            if (np instanceof Cell) {
+                Cell c = (Cell)np;
+                // ignore instances of icon view inside content view
+                if (c.isIconOf(parent)) continue;
+                if (c == contentView) return true;
+                if (c == iconView) return true;
+                // recurse
+                if (getIsAChildOf(c, checkedParents)) return true;
+            }
+        }
+        return false;
+    }
+
+
+    private boolean getIsAParentOf(Cell child) {
+
+        if (this == child) return true;
+
+		/* look through every instance of the child cell */
 		Cell lastParent = null;
-		for(Iterator it = parent.getInstancesOf(); it.hasNext(); )
+		for(Iterator it = child.getInstancesOf(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 
@@ -1858,11 +1912,11 @@ public class Cell extends NodeProto implements Comparable
 			lastParent = ni.getParent();
 
 			/* recurse to see if the grandparent belongs to the child */
-			if (getIsAChildOf(ni.getParent())) return true;
+			if (getIsAParentOf(ni.getParent())) return true;
 		}
 
 		/* if this has an icon, look at it's instances */
-		Cell np = parent.iconView();
+		Cell np = child.iconView();
 		if (np != null)
 		{
 			lastParent = null;
@@ -1878,14 +1932,14 @@ public class Cell extends NodeProto implements Comparable
 				NodeProto niProto = ni.getProto();
 				if (niProto instanceof Cell)
 				{
-					if (((Cell)niProto).isIconOf(parent))
+					if (((Cell)niProto).isIconOf(child))
 					{
-						if (parent.getView() != View.ICON) continue;
+						if (child.getView() != View.ICON) continue;
 					}
 				}
 
 				/* recurse to see if the grandparent belongs to the child */
-				if (getIsAChildOf(ni.getParent())) return true;
+				if (getIsAParentOf(ni.getParent())) return true;
 			}
 		}
 		return false;

@@ -316,8 +316,6 @@ public class Clipboard
 				System.out.println("Can only paste a single object on top of selected objects");
 				return;
 			}
-			Highlight.clear();
-			Highlight.finished();
 			for(Iterator it = geoms.iterator(); it.hasNext(); )
 			{
 				Geometric geom = (Geometric)it.next();
@@ -385,6 +383,11 @@ public class Clipboard
 
 			ArcInst ai = pasteArcToArc(dst, src);
 			if (ai == null) System.out.println("Nothing was pasted");
+            if (ai != null) {
+                Highlight.clear();
+                Highlight.addElectricObject(ai, ai.getParent());
+                Highlight.finished();
+            }
 			return true;
 		}
 	}
@@ -393,7 +396,7 @@ public class Clipboard
 	{
 		NodeInst src, dst;
 
-		protected PasteNodeToNode(NodeInst src, NodeInst dst)
+		protected PasteNodeToNode(NodeInst dst, NodeInst src)
 		{
 			super("Paste Node to Node", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.src = src;
@@ -408,6 +411,11 @@ public class Clipboard
 
 			NodeInst ni = pasteNodeToNode(dst, src);
 			if (ni == null) System.out.println("Nothing was pasted");
+            if (ni != null) {
+                Highlight.clear();
+                Highlight.addElectricObject(ni, ni.getParent());
+                Highlight.finished();
+            }
 			return true;
 		}
 	}
@@ -559,7 +567,8 @@ public class Clipboard
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() instanceof PrimitiveNode) continue;
 			Cell niCell = (Cell)ni.getProto();
-			if (niCell.isAChildOf(toCell))
+            if (Cell.isInstantiationRecursive(niCell, toCell))
+			//if (niCell.isAChildOf(toCell))
 			{
 				System.out.println("Cannot: that would be recursive (cell " +
 					toCell.describe() + " is beneath cell " + ni.getProto().describe() + ")");
@@ -764,7 +773,7 @@ public class Clipboard
 
 	/**
 	 * Method to "paste" node "srcnode" onto node "destnode", making them the same.
-	 * Returns the address of the destination node (NONODEINST on error).
+	 * Returns the address of the destination node (null on error).
 	 */
 	private static NodeInst pasteNodeToNode(NodeInst destNode, NodeInst srcNode)
 	{
@@ -799,7 +808,7 @@ public class Clipboard
 				Variable.Key key = destVar.getKey();
 				Variable srcVar = srcNode.getVar(key.getName());
 				if (srcVar != null) continue;
-				srcNode.delVar(key);
+				destNode.delVar(key);
 				checkAgain = true;
 				break;
 			}
@@ -811,6 +820,7 @@ public class Clipboard
 		// copy any special user bits
 		destNode.lowLevelSetUserbits(srcNode.lowLevelGetUserbits());
 		destNode.clearExpanded();
+        if (srcNode.isExpanded()) destNode.setExpanded();
 		destNode.clearShortened();
 		destNode.clearWiped();
 		destNode.clearLocked();
@@ -920,6 +930,7 @@ public class Clipboard
             oX = mouseDB.getX();
             oY = mouseDB.getY();
 
+            Highlight.pushHighlight();
 			showList();
 		}
 
@@ -1017,7 +1028,7 @@ public class Clipboard
             showList();
 
             WindowFrame.setListener(currentListener);
-            Highlight.clear();
+            Highlight.popHighlight();
             PasteObjects job = new PasteObjects(pasteList, -oX, -oY);
 		}
 
