@@ -1122,7 +1122,7 @@ public class LibraryContents
 	private static List/*<LibraryContents>*/ allLibraryContents;
 	private static HashMap/*<String,CellContents>*/ allCells;
 
-	private JELIB reader;
+	private JELIB1 reader;
 	private List/*<String>*/ variableNames;
 	private LinkedHashMap toolRefs/*<String,ToolRef>*/ = new LinkedHashMap();
 	private LinkedHashMap viewRefs/*<String,ViewRef>*/ = new LinkedHashMap();
@@ -1140,7 +1140,7 @@ public class LibraryContents
 	private boolean needLocalDeclarations = false; // ELIB; Dump
 	private CellContents currentCellContents;
 
-	LibraryContents(JELIB reader)
+	LibraryContents(JELIB1 reader)
 	{
 		this.reader = reader;
 	}
