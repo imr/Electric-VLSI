@@ -1,0 +1,69 @@
+fsm_def [event: TYPE+, state_opt: TYPE+, Reject: state_opt]: THEORY
+BEGIN
+  IMPORTING traces
+
+  state: TYPE = { s: state_opt | s /= Reject }
+
+  fsm: TYPE = [#
+	event?: pred[event],
+	initial: state,
+	nextstate: [state,(event?)->state_opt]
+	#]
+
+  fs: VAR fsm
+
+  trace: TYPE = trace[event]
+
+  so: VAR state_opt
+  s, s1: VAR state
+  e: VAR event
+  A: VAR pred[event]
+  t: VAR trace
+  i, k, n: VAR nat
+
+  nextstate(fs)(so, e): state_opt = IF so /= Reject & fs`event?(e) THEN fs`nextstate(so,e) ELSE so ENDIF
+
+  nextstate_reject: LEMMA nextstate(fs)(Reject, e) = Reject
+
+  nextstate_other: LEMMA NOT fs`event?(e) IMPLIES nextstate(fs)(so, e) = so
+
+  goto(fs, t, (i: upto(t`length))): RECURSIVE state_opt =
+    IF i = 0 THEN fs`initial ELSE nextstate(fs)(goto(fs, t, i - 1), t`seq(i - 1)) ENDIF
+    MEASURE i
+
+  goto_next: LEMMA i < t`length IMPLIES goto(fs, t, i + 1) = nextstate(fs)(goto(fs, t, i), t`seq(i))
+
+  goto_next_reject: LEMMA i < t`length & goto(fs, t, i) = Reject IMPLIES goto(fs, t, i + 1) = Reject
+
+  goto_next_other: LEMMA i < t`length & NOT fs`event?(t`seq(i)) IMPLIES goto(fs, t, i + 1) = goto(fs, t, i)
+
+  goto(fs, t): state_opt = goto(fs, t, t`length)
+
+  goto_prefix: LEMMA i <= t`length IMPLIES goto(fs, prefix(t, i)) = goto(fs, t, i)
+
+  goto_add: LEMMA goto(fs, add(t,e)) = nextstate(fs)(goto(fs, t), e)
+
+  goto_add_reject: LEMMA goto(fs, t) = Reject IMPLIES goto(fs, add(t,e)) = Reject
+
+  goto_add_other: LEMMA NOT fs`event?(e) IMPLIES goto(fs, add(t,e)) = goto(fs, t)
+
+  goto_proj: LEMMA goto(fs, t) = goto(fs, proj(t, fs`event?))
+
+  valid_trace(fs)(t): bool = goto(fs, t) /= Reject
+
+  valid_trace_prefix: LEMMA valid_trace(fs)(t) & i <= t`length IMPLIES valid_trace(fs)(prefix(t, i))
+
+  valid_trace_proj: LEMMA valid_trace(fs)(t) = valid_trace(fs)(proj(t, fs`event?))
+
+  Q: VAR pred[[trace, state]]
+
+  fsm_induction: PROPOSITION
+    Q(empty_trace, fs`initial) AND
+    (FORALL t, s, (e: (fs`event?)):
+       Q(t, s) AND fs`nextstate(s, e) /= Reject IMPLIES Q(add(t, e), fs`nextstate(s, e)))
+    IMPLIES
+      FORALL t: valid_trace(fs)(t) IMPLIES Q(proj(t, fs`event?), goto(fs, t)) 
+
+
+END fsm_def
+

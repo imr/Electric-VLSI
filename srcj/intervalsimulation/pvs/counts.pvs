@@ -1,0 +1,71 @@
+counts: THEORY
+BEGIN
+  i, k, l, n: VAR nat
+  S, S1: VAR set[nat]
+
+  count(k, S): RECURSIVE nat =
+    IF k = 0 THEN 0 ELSE count(k - 1, S) + b2n(S(k - 1)) ENDIF
+  MEASURE k
+
+  count_card_finite: LEMMA is_finite({i | i < k & S(i) })
+  count_card: LEMMA count(k, S) = card({ i | i < k & S(i) })
+
+  count_bound: LEMMA count(k, S) <= k
+
+  JUDGEMENT count(k, S) HAS_TYPE upto(k)
+
+  equal_prefix(k, S, S1): bool = FORALL (i: below(k)): S(i) = S1(i)
+
+  equal_prefix_nonincrease: LEMMA k <= l IMPLIES (equal_prefix(l, S, S1) IMPLIES equal_prefix(k, S, S1))
+
+  count_eq: LEMMA equal_prefix(k, S, S1) IMPLIES count(k, S) = count(k, S1)
+
+  count_next: LEMMA count(k + 1, S) = count(k, S) + b2n(S(k))
+
+  count_next_true: LEMMA S(k) IMPLIES count(k + 1, S) = count(k, S) + 1
+
+  count_next_false: LEMMA NOT S(k) IMPLIES count(k + 1, S) = count(k, S)
+
+  count_range_false: LEMMA k <= l & (FORALL (i: subrange(k, l-1)): NOT S(i)) IMPLIES count(l, S) = count(k, S)
+
+  count_tail_false: LEMMA (FORALL (i: upfrom(k)): NOT S(i)) IMPLIES (FORALL (i: upfrom(k)): count(i, S) = count(k, S))
+
+  count_nondecreasing: LEMMA k <= l IMPLIES count(k, S) <= count(l, S)
+
+  count_increasing: LEMMA k < l & S(k) IMPLIES count(k, S) < count(l, S)
+
+  count_injective: LEMMA S(k) & S(l) & count(k, S) = count(l, S) IMPLIES k = l
+
+  count_complement: LEMMA count(k, S) + count(k, complement(S)) = k
+
+  count_exists: LEMMA (count(k, S) > 0) = EXISTS i: i < k & S(i)
+
+  count_forall: LEMMA (count(k, S) = k) = FORALL i: i < k IMPLIES S(i)
+
+  nth_helper_set(S, n): set[nat] = { k | count(k+1, S) > n }
+
+  below_card?(S)(n): bool = nonempty?(nth_helper_set(S, n))
+
+  below_card(S): TYPE = (below_card?(S))
+
+  nth(S)(n: below_card(S)): nat = min(nth_helper_set(S, n))
+
+  nth_lemma: LEMMA FORALL (n: below_card(S)): S(nth(S)(n)) & count(nth(S)(n), S) = n
+
+  JUDGEMENT nth(S)(n: below_card(S)) HAS_TYPE (S)
+
+  count_nth_prop: LEMMA FORALL (n: below_card(S)): count(nth(S)(n), S) = n
+
+  nth_count: LEMMA FORALL (k: (S)): nth(S)(count(k, S)) = k
+
+  below_card_def: LEMMA (FORALL (k: upfrom(l)): NOT S(k)) IMPLIES below_card?(S)(i) = i < count(l, S)
+
+  nth_def: LEMMA n < count(l, S) IMPLIES below_card?(S)(n)
+
+  count_nth: LEMMA n < count(l, S) IMPLIES count(nth(S)(n), S) = n
+
+  nth_below: LEMMA n < count(l, S) IMPLIES nth(S)(n) < l
+
+  nth_eq: LEMMA equal_prefix(l, S, S1) IMPLIES FORALL (n: below(count(l, S))): nth(S)(n) = nth(S1)(n)
+
+END counts

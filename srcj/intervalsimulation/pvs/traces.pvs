@@ -1,0 +1,211 @@
+traces [ T : TYPE ] : THEORY
+BEGIN
+
+  IMPORTING counts
+
+  trace : TYPE = finite_sequence[T]
+
+  a, b, c : VAR T
+
+  A, B, C : VAR setof[T]
+
+  t, t1, t2, t3 : VAR trace
+
+  u, u1, u2 : VAR trace
+
+  i, k, n, n1: VAR nat
+
+  P: VAR pred[trace]
+
+  %-----------
+  %  Empty and signleton
+  %----------
+
+  empty_trace: { t | t`length = 0 } = empty_seq
+
+  nonempty_trace: TYPE = { t | t`length > 0 }
+
+  nt: VAR nonempty_trace
+
+  o_empty: LEMMA t o empty_trace = t
+
+  empty_o: LEMMA empty_trace o t = t
+
+  trace1(a): { t | t`length = 1 & t(0) = a } = (# length := 1, seq := LAMBDA (i: below(1)): a #)
+
+  CONVERSION trace1
+
+  length_zero: LEMMA t`length = 0 IMPLIES t = empty_trace
+
+  length_one: LEMMA t`length = 1 IMPLIES t = trace1(t(0))
+
+  injective_trace1: LEMMA trace1(a) = trace1(b) IMPLIES a = b
+
+  add(t, a): { t1 | t1`length = t`length + 1 } =
+    (# length := t`length + 1, seq := LAMBDA (i: below(t`length + 1)): IF i < t`length THEN t`seq(i) ELSE a ENDIF #)
+
+  add_elem: LEMMA FORALL (i: below(t`length)): add(t, a)(i) = t(i)
+  add_elem_length: LEMMA add(t, a)(t`length) = a
+
+  add_o: LEMMA add(t, a) = t o a
+  o_add: LEMMA t o add(t1, a) = add(t o t1, a)
+
+  prefix(t, (n: upto(t`length))): { t1 | t1`length = n } = (# length := n, seq := LAMBDA (i: below(n)): t`seq(i) #)
+
+  prefix_elem: LEMMA FORALL (n: upto(t`length), i: below(n)): prefix(t, n)(i) = t(i)
+
+%  prefix(t, n): { t1 | t1`length <= t`length & t1`length <= n } = LET len: upto(t`length) = min(t`length, n) IN
+%    (# length := len, seq := LAMBDA (i: below(len)): t`seq(i) #)
+
+  prefix_zero: LEMMA prefix(t, 0) = empty_trace
+  prefix_full: LEMMA prefix(t, t`length) = t
+  prefix_next: LEMMA FORALL (i: below(t`length)): prefix(t, i + 1) = add(prefix(t, i), t`seq(i))
+
+%  prefix_twice: LEMMA prefix(prefix(t, n), n1) = prefix(t, min(n, n1))
+
+  last(nt: nonempty_trace): T = nt`seq(nt`length - 1)
+
+  prefix(nt): { t | t`length = nt`length - 1 } = (# length := nt`length - 1, seq := LAMBDA (i: below(nt`length - 1)): nt`seq(i) #)
+
+  prefix_add: LEMMA prefix(add(t, a)) = t
+  last_add: LEMMA last(add(t, a)) = a
+  add_prefix_last: LEMMA add(prefix(nt), last(nt)) = nt
+
+  add_induction : PROPOSITION
+     P(empty_trace) AND (FORALL t, a : P(t) IMPLIES P(add(t, a)))
+	IMPLIES (FORALL t : P(t))
+
+  %-----------
+  %  Prefix
+  %-----------
+
+%  prefix?(t): TYPE = {t1 | t1`length <= t`length & t1 = prefix(t, t1`length) }
+
+%   empty_prefix: LEMMA  prefix(empty_trace, t)
+
+%   prefix_empty: LEMMA  prefix(t, empty_trace) IFF t = empty_trace
+
+%   cons_prefix: LEMMA
+%      prefix(a o t1, b o t2) IFF a = b AND prefix(t1, t2)
+
+
+%   prefix_concat1: LEMMA
+%      prefix(t1, t2) IMPLIES prefix(t1, t2 o t3)
+
+%   prefix_concat2: LEMMA
+%      prefix(t1, t2) IMPLIES prefix(t o t1, t o t2)
+
+% %   prefix_add1 : LEMMA  prefix(t, add(t, a))
+
+% %   prefix_add2 : LEMMA  prefix(t1, t2) IMPLIES prefix(t1, add(t2, a))
+
+
+%   length_prefix: LEMMA
+%      prefix(t1, t2) IMPLIES length(t1) <= length(t2)
+
+
+%   prefix_reflexive: LEMMA prefix(t, t)
+
+%   prefix_transitive: LEMMA
+%      prefix(t1, t2) AND prefix(t2, t3) IMPLIES prefix(t1, t3)
+
+%   prefix_antisymmetric: LEMMA
+%      prefix(t1, t2) AND prefix(t2, t1) IMPLIES t1 = t2
+
+  %--------------
+  %  Count
+  %--------------
+
+  indices_set(t, A)(i: nat): bool = i < t`length & A(t`seq(i))
+
+  indices_set_empty: LEMMA indices_set(empty_trace, A) = LAMBDA i: FALSE
+
+  indices_set_prefix: LEMMA FORALL (k: upto(t`length)): equal_prefix(k, indices_set(prefix(t, k), A), indices_set(t, A))
+
+  indices_set_add_equal_prefix: LEMMA equal_prefix(t`length, indices_set(add(t, a), A), indices_set(t, A))
+
+  indices_set_add_last: LEMMA indices_set(add(t, a), A)(t`length) = A(a)
+
+  count(t, A): upto(t`length) = count(t`length, indices_set(t, A))
+
+  count_add: LEMMA count(add(t, a), A) = count(t, A) + b2n(A(a))
+
+  count_add_true: LEMMA A(a) IMPLIES count(add(t, a), A) = count(t, A) + 1
+
+  count_add_false: LEMMA NOT A(a) IMPLIES count(add(t, a), A) = count(t, A)
+
+  count_exists: LEMMA (count(t, A) > 0) = EXISTS (i: below(t`length)): A(t`seq(i))
+
+  count_forall: LEMMA count(t, A) = t`length = FORALL (i: below(t`length)): A(t`seq(i))
+
+  nth_index(t, A)(n: below(count(t, A))): below(t`length) = nth(indices_set(t, A))(n)
+
+  count_prefix(t, A)(k: upto(t`length)): upto(count(t, A)) = count(prefix(t, k), A)
+
+  count_prefix_next: LEMMA k < t`length IMPLIES count_prefix(t, A)(k+1) = count_prefix(t, A)(k) + b2n(A(t`seq(k)))
+
+  count_prefix_next_true: LEMMA k < t`length & A(t`seq(k)) IMPLIES count_prefix(t, A)(k+1) = count_prefix(t, A)(k) + 1
+
+  count_prefix_next_false: LEMMA k < t`length & NOT A(t`seq(k)) IMPLIES count_prefix(t, A)(k+1) = count_prefix(t, A)(k)
+
+  nth(t, A)(n: below(count(t, A))): T = t`seq(nth_index(t, A)(n))
+
+  nth_add: LEMMA n < count(t, A) IMPLIES nth(add(t, a), A)(n) = nth(t, A)(n)
+
+  nth_add_true: LEMMA A(a) IMPLIES nth(add(t, a), A)(count(t, A)) = a
+
+  nth_A: LEMMA FORALL (n: below(count(t, A))): A(nth(t, A)(n))
+
+  %--------------
+  %  Projection 
+  %--------------
+
+  proj(t, A): trace = (# length := count(t, A), seq := nth(t, A) #)
+
+  proj_empty: LEMMA proj(empty_trace, A) = empty_trace
+
+  proj_add_true: LEMMA A(a) IMPLIES proj(add(t, a), A) = add(proj(t, A), a)
+
+  proj_add_false: LEMMA NOT A(a) IMPLIES proj(add(t, a), A) = proj(t, A)
+
+  proj_add: LEMMA proj(add(t, a), A) = IF A(a) THEN add(proj(t, A), a) ELSE proj(t, A) ENDIF
+
+  proj_type: LEMMA LET t1 = proj(t, A) IN FORALL (i: below(t1`length)): A(t1(i))
+
+%  proj_concat : LEMMA
+%    proj(t1 o t2, A) = proj(t1, A) o proj(t2, A)
+
+%   proj_prefix : LEMMA
+%     prefix(t1, t2) IMPLIES prefix(proj(t1, A), proj(t2, A))    
+
+%   proj_reverse : LEMMA
+%     proj(reverse(t), A) = reverse(proj(t, A))
+
+
+%   prefix_of_proj : LEMMA  prefix(t1, proj(t, A)) IMPLIES
+% 	EXISTS t2 : prefix(t2, t) AND t1 = proj(t2, A)
+
+%   prefix_of_proj2 : LEMMA  prefix(t1, proj(t, A)) IFF
+% 	EXISTS t2 : prefix(t2, t) AND t1 = proj(t2, A)
+
+  proj_twice: LEMMA  proj(proj(t, A), B) = proj(t, intersection(A, B))
+
+  proj_twice_subset: LEMMA subset?(B, A) IMPLIES proj(proj(t, A), B) = proj(t, B)
+
+END traces
+
+traces_set[T: TYPE]: THEORY
+BEGIN
+  IMPORTING traces
+
+  t: VAR trace[T]
+  S, S1: VAR setof[T]
+
+  JUDGEMENT proj(t, S) HAS_TYPE trace[(S)]
+
+  extend_proj(S, (P: pred[trace[(S)]])): pred[trace[T]] = LAMBDA t: P(proj(t, S))
+
+  extend_proj_subset: LEMMA FORALL (P: pred[trace[(S)]]):
+    subset?(S, S1) IMPLIES extend_proj(S, P)(t) = extend_proj(S, P)(proj(t, S1))
+
+END traces_set
