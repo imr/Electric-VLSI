@@ -43,6 +43,22 @@ import java.awt.geom.Rectangle2D;
  * instantiated, and the connection at either end of the wire.
  * The geometry of the wire (width and length) is captured in the
  * bounds of the Geometric portion of this object.
+ * <P>
+ * ArcInst objects have properties that constrain them.  Here is the notion of "Fixed angle":
+ * <P>
+ * <CENTER><IMG SRC="doc-files/ArcInst-1.gif"></CENTER>
+ * <P>
+ * Here is the notion of rigid arcs:
+ * <P>
+ * <CENTER><IMG SRC="doc-files/ArcInst-2.gif"></CENTER>
+ * <P>
+ * Here is the notion of slidable arcs:
+ * <P>
+ * <CENTER><IMG SRC="doc-files/ArcInst-3.gif"></CENTER>
+ * <P>
+ * Constraints propagate hierarchically:
+ * <P>
+ * <CENTER><IMG SRC="doc-files/ArcInst-4.gif"></CENTER>
  */
 public class ArcInst extends Geometric /*implements Networkable*/
 {

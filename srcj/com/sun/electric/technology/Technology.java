@@ -64,7 +64,10 @@ import java.awt.geom.Rectangle2D;
  * Each layer that can exist as a wire must have a pin node (in this case, metal, polysilicon, and two flavors of diffusion.
  * Note that there are pure-layer nodes at the bottom which allow arbitrary geometry to be constructed.
  * <CENTER><IMG SRC="doc-files/Technology-1.gif"></CENTER>
- *<P>
+ * <P>
+ * The Schematic technology has some unusual features.
+ * <CENTER><IMG SRC="doc-files/Technology-2.gif"></CENTER>
+ * <P>
  * Conceptually, a Technology has 3 types of information:
  * <UL><LI><I>Geometry</I>.  Each node and arc can be described in terms of polygons on differnt Layers.
  * The ArcLayer and NodeLayer subclasses help define those polygons.

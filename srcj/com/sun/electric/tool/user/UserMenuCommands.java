@@ -51,32 +51,24 @@ public final class UserMenuCommands
 	}
 
 	// ---------------------- THE FILE MENU -----------------
+
+	/**
+	 * Class to read a library in a new thread.
+	 */
 	private static class OpenLibraryThread extends Thread
 	{
-		String fileName;
+		private String fileName;
 
-		OpenLibraryThread(String fileName)
-		{
-			this.fileName = fileName;
-		}
+		OpenLibraryThread(String fileName) { this.fileName = fileName; }
 
 		public void run()
 		{
-			long startTime = System.currentTimeMillis();
 			Library lib = Input.readLibrary(fileName, Input.ImportType.BINARY);
 			if (lib == null) return;
-			long endTime = System.currentTimeMillis();
-			float finalTime = (endTime - startTime) / 1000F;
-			System.out.println("Library " + fileName + " read, took " + finalTime + " seconds");
 			Library.setCurrent(lib);
 			Cell cell = lib.getCurCell();
-			if (cell == null)
-			{
-				System.out.println("No current cell in this library");
-			} else
-			{
+			if (cell == null) System.out.println("No current cell in this library"); else
 				UIEditFrame.CreateEditWindow(cell);
-			}
 		}
 	}
 

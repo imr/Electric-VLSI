@@ -62,6 +62,14 @@ import java.text.DateFormat;
  * A Cell knows about the most recent version of itself, which may be itself.
  * <P>
  * Cells also belong to CellGroup objects, which gather related cells together.
+ * <P>
+ * <CENTER><IMG SRC="doc-files/Cell-2.gif"></CENTER>
+ * <P>
+ * A Cell can have different views and versions, each of which is a cell.
+ * The library shown here has two cells (“gate” and “twogate”), each of which has many
+ * views (layout, schematics, icon, vhdl) and versions:
+ * <P>
+ * <CENTER><IMG SRC="doc-files/Cell-1.gif"></CENTER>
  */
 public class Cell extends NodeProto
 {

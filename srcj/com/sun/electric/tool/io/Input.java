@@ -94,7 +94,14 @@ public class Input
 	 */
 	public static Library readLibrary(String fileName, ImportType type)
 	{
+		long startTime = System.currentTimeMillis();
 		Library lib = readALibrary(fileName, null, type);
+		if (lib != null)
+		{
+			long endTime = System.currentTimeMillis();
+			float finalTime = (endTime - startTime) / 1000F;
+			System.out.println("Library " + fileName + " read, took " + finalTime + " seconds");
+		}
 		return lib;
 	}
 
