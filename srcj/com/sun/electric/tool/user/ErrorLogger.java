@@ -24,9 +24,7 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -37,6 +35,7 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.Main;
 
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -45,6 +44,7 @@ import java.util.*;
 import java.awt.geom.Point2D;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.io.*;
 
 /**
  * Holds a log of errors:
@@ -622,6 +622,30 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         WindowFrame.wantToRedoErrorTree();
     }
 
+    public void save() {
+	    PrintStream buffWriter = null;
+	    String filePath = null;
+	    try {
+		    filePath = OpenFile.chooseOutputFile(OpenFile.Type.TEXT, null, "ErrorLoggerSave.txt");
+		    buffWriter = new PrintStream(new FileOutputStream(filePath));
+
+	    } catch (IOException e)
+		{
+			System.out.println("Error creating " + filePath);
+			return;
+		}
+
+	    for (Iterator it = allErrors.iterator(); it.hasNext(); ) {
+            MessageLog log = (MessageLog)it.next();
+		    buffWriter.println(log.getMessage());
+        }
+        // Warnings
+        for (Iterator it = allWarnings.iterator(); it.hasNext(); ) {
+            MessageLog log = (MessageLog)it.next();
+		    buffWriter.println(log.getMessage());
+        }
+    }
+
     public String describe() {
         synchronized(allLoggers) {
             if (currentLogger == this) return errorSystem + " [Current]";
@@ -879,6 +903,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         JPopupMenu p = new JPopupMenu();
         JMenuItem m;
         m = new JMenuItem("Delete"); m.addActionListener(this); p.add(m);
+	    m = new JMenuItem("Save"); m.addActionListener(this); p.add(m);
         m = new JMenuItem("Set Current"); m.addActionListener(this); p.add(m);
         return p;
     }
@@ -887,7 +912,8 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         if (e.getSource() instanceof JMenuItem) {
             JMenuItem m = (JMenuItem)e.getSource();
             if (m.getText().equals("Delete")) delete();
-            if (m.getText().equals("Set Current")) {
+            else if (m.getText().equals("Save")) save();
+            else if (m.getText().equals("Set Current")) {
                 synchronized(allLoggers) { currentLogger = this; }
                 WindowFrame.wantToRedoErrorTree();
             }
