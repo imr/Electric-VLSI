@@ -51,7 +51,7 @@ public class SpiceOut extends Simulate
 		throws IOException
 	{
 		// open the file
-		InputStream stream = TextUtils.getURLStream(fileURL);
+		InputStream stream = TextUtils.getURLStream(fileURL, null);
 		if (stream == null) return null;
 		if (openBinaryInput(fileURL, stream)) return null;
 

@@ -114,7 +114,7 @@ public class TextDescriptor
 			this.name = name;
 			this.index = index;
 			this.pt = pt;
-            positions.add(this);
+            positions.add(index, this);
 		}
 
 		/**
@@ -224,7 +224,7 @@ public class TextDescriptor
 		{
 			this.name = name;
 			this.index = index;
-			positions.add(this);
+			positions.add(index, this);
 		}
 
 		/**
@@ -389,7 +389,7 @@ public class TextDescriptor
 			this.angle = angle;
 			this.index = index;
 			this.name = name;
-			rotations.add(this);
+			rotations.add(index, this);
 		}
 
 		/**
@@ -475,7 +475,7 @@ public class TextDescriptor
 		{
 			this.name = name;
 			this.index = index;
-			units.add(this);
+			units.add(index, this);
 		}
 
 		/**

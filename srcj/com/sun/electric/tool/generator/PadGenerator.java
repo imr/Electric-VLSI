@@ -144,13 +144,15 @@ public class PadGenerator
 										if (cellLib == null)
 										{
 											// library does not exist: see if file can be found locally
-											if (TextUtils.getURLStream(fileURL) == null)
+                                            StringBuffer errmsg = new StringBuffer();
+											if (TextUtils.getURLStream(fileURL, errmsg) == null)
 											{
 												// try the Electric library area
 												fileURL = LibFile.getLibFile(keyWord);
-												if (TextUtils.getURLStream(fileURL) == null)
+												if (TextUtils.getURLStream(fileURL, null) == null)
 												{
-													System.out.println("Cannot find cell library " + fileURL.getPath());
+													//System.out.println("Cannot find cell library " + fileURL.getPath());
+                                                    System.out.println(errmsg.toString());
 													return;
 												}
 											}

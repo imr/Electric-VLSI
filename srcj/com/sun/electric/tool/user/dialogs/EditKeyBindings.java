@@ -78,7 +78,7 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
          */
         public String toString() {
             if (menuItem != null) {
-                StringBuffer buf = new StringBuffer(menuItem.getText());
+                StringBuffer buf = new StringBuffer(((MenuBar.MenuItemInterface)menuItem).getDescription());
                 KeyBindings bindings = menuBar.getKeyBindings(menuItem);
                 if (bindings == null) return buf.toString();
                 Iterator it = bindings.getKeyStrokePairs();
@@ -310,7 +310,7 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
         if (pair == null) return;
 
         // remove it and update view
-        menuBar.removeKeyBinding(item.getText(), pair);
+        menuBar.removeKeyBinding(((MenuBar.MenuItemInterface)item).getDescription(), pair);
         DefaultTreeModel model = (DefaultTreeModel)commandsTree.getModel();
         model.reload(getSelectedTreeNode());
         updateListBox(item);

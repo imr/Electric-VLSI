@@ -1831,35 +1831,53 @@ public class ELIB extends LibraryFiles
 		{
 			// library does not exist: see if file is in the same directory as the main file
 			URL externalURL = TextUtils.makeURLToFile(mainLibDirectory + libFileName);
-			InputStream externalStream = TextUtils.getURLStream(externalURL);
+            StringBuffer errmsg = new StringBuffer();
+			InputStream externalStream = TextUtils.getURLStream(externalURL, errmsg);
 			if (externalStream == null)
 			{
 				// try secondary library file locations
 				for (Iterator libIt = LibDirs.getLibDirs(); libIt.hasNext(); )
 				{
 					externalURL = TextUtils.makeURLToFile((String)libIt.next() + File.separator + libFileName);
-					externalStream = TextUtils.getURLStream(externalURL);
+					externalStream = TextUtils.getURLStream(externalURL, errmsg);
 					if (externalStream != null) break;
 				}
 				if (externalStream == null)
 				{
 					// try the exact path specified in the reference
 					externalURL = TextUtils.makeURLToFile(libFile.getPath());
-					externalStream = TextUtils.getURLStream(externalURL);
+					externalStream = TextUtils.getURLStream(externalURL, errmsg);
 					if (externalStream == null)
 					{
 						// try the Electric library area
 						externalURL = LibFile.getLibFile(libFileName);
-						externalStream = TextUtils.getURLStream(externalURL);
+						externalStream = TextUtils.getURLStream(externalURL, errmsg);
 					}
 				}
 			}
 			if (externalStream == null)
 			{
-				System.out.println("CANNOT FIND referenced library " + libFile.getPath());
-				String description = "Reference library '" + libFileName + "'";
-				String pt = OpenFile.chooseInputFile(OpenFile.Type.ELIB, description);
-				if (pt != null) externalURL = TextUtils.makeURLToFile(pt);
+				System.out.println("CANNOT FIND OR OPEN referenced library " + libFile.getPath()+":");
+                System.out.print(errmsg.toString());
+                String pt = null;
+                while (true) {
+                    // continue to ask the user where the library is until they hit "cancel"
+				    String description = "Reference library '" + libFileName + "'";
+				    pt = OpenFile.chooseInputFile(OpenFile.Type.ELIB, description);
+                    if (pt == null) {
+                        // user cancelled, break
+                        break;
+                    }
+                    // see if user chose a file we can read
+                    externalURL = TextUtils.makeURLToFile(pt);
+                    if (externalURL != null) {
+                        externalStream = TextUtils.getURLStream(externalURL, null);
+                        if (externalStream != null) {
+                            // good pt, opened it, get out of here
+                            break;
+                        }
+                    }
+                }
 			}
 			if (externalStream != null)
 			{
@@ -1870,7 +1888,8 @@ public class ELIB extends LibraryFiles
 				System.out.println("CANNOT FIND referenced library " + libFile.getPath());
 				elib = null;
 			}
-			if (elib == null) return true;
+			if (elib == null)
+                return true;
 
 			// read the external library
 			String oldNote = progress.getNote();
@@ -1881,6 +1900,9 @@ public class ELIB extends LibraryFiles
 			}
 
 			elib = readALibrary(externalURL, externalStream, elib, importType);
+            // JKG TODO: when referenced library returns null, how to abort cleanly?
+            //if (elib == null)
+            //    return true;
 //			if (failed) elib->userbits |= UNWANTEDLIB; else
 //			{
 //				// queue this library for announcement through change control

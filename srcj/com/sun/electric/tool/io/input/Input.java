@@ -106,8 +106,11 @@ public class Input extends IOTool
 		// show progress
 		startProgressDialog("library", fileURL.getFile());
 
-		InputStream stream = TextUtils.getURLStream(fileURL);
-		Library lib = readALibrary(fileURL, stream, null, type);
+        StringBuffer errmsg = new StringBuffer();
+		InputStream stream = TextUtils.getURLStream(fileURL, errmsg);
+        Library lib = null;
+        if (stream == null) System.out.print(errmsg.toString()); else
+		    lib = readALibrary(fileURL, stream, null, type);
 		if (LibraryFiles.VERBOSE)
 			System.out.println("Done reading data for all libraries");
 

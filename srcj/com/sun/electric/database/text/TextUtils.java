@@ -510,16 +510,23 @@ public class TextUtils
 	/**
 	 * Method to open an input stream to a URL.
 	 * @param url the URL to the file.
+     * @param errorMsg a string buffer in which to print any error message. If null,
+     * any error message is printed to System.out
 	 * @return the InputStream, or null if the file cannot be found.
 	 */
-	public static InputStream getURLStream(URL url)
+	public static InputStream getURLStream(URL url, StringBuffer errorMsg)
 	{
 		if (url != null)
 		{
 			try
 			{
 				return url.openStream();
-			} catch (IOException e) {}
+			} catch (IOException e) {
+                if (errorMsg != null)
+                    errorMsg.append("Error: cannot open URL: "+e.getMessage()+"\n");
+                else
+                    System.out.println("Error: cannot open URL: "+e.getMessage());
+            }
 		}
 		return null;
 	}

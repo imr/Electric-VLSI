@@ -44,7 +44,7 @@ public class RawSpiceOut extends Simulate
 		throws IOException
 	{
 		// open the file
-		InputStream stream = TextUtils.getURLStream(fileURL);
+		InputStream stream = TextUtils.getURLStream(fileURL, null);
 		if (stream == null) return null;
 		if (openTextInput(fileURL, stream)) return null;
 

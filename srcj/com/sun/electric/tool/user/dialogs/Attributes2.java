@@ -41,8 +41,8 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.Font;
-import java.awt.GraphicsEnvironment;
+import java.awt.*;
+import java.awt.geom.Point2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Iterator;
@@ -74,6 +74,8 @@ public class Attributes2 extends javax.swing.JDialog
 
     private TextAttributesPanel attrPanel;
     private TextInfoPanel textPanel;
+
+    private Point2D lastLocation;
 
     /**
      * Method to show the Attributes dialog.
@@ -938,6 +940,7 @@ public class Attributes2 extends javax.swing.JDialog
     /** Closes the dialog */
     private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
     {
+        lastLocation = getLocation();
         setVisible(false);
 //		dispose();
     }//GEN-LAST:event_closeDialog
