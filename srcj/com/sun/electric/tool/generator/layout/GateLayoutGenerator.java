@@ -64,7 +64,8 @@ public class GateLayoutGenerator extends Job {
 		return c;
 	}
 	
-	private Library generateLayout(Library outLib, Cell cell, Technology technology) {
+	private Library generateLayout(Library outLib, Cell cell, 
+			                       VarContext context, Technology technology) {
         StdCellParams stdCell;
         Technology tsmc90 = Technology.getTSMC90Technology();
         if (tsmc90 != null && technology == tsmc90) {
@@ -77,7 +78,7 @@ public class GateLayoutGenerator extends Job {
 
 		GenerateLayoutForGatesInSchematic visitor =
 			new GenerateLayoutForGatesInSchematic(stdCell);
-		HierarchyEnumerator.enumerateCell(cell, null, null, visitor);
+		HierarchyEnumerator.enumerateCell(cell, context, null, visitor);
 
         Cell gallery = Gallery.makeGallery(outLib);
         DrcRings.addDrcRings(gallery, FILTER, stdCell);
@@ -117,6 +118,7 @@ public class GateLayoutGenerator extends Job {
 
 		EditWindow wnd = EditWindow.getCurrent();
 		Cell cell = wnd.getCell();
+		VarContext context = wnd.getVarContext();
 		if (cell==null) {
 			System.out.println("Please open the schematic for which you " +
 				               "want to generate gate layouts.");
@@ -132,7 +134,7 @@ public class GateLayoutGenerator extends Job {
 		System.out.println("Output goes to library: autoGenLib");
 		//Library outLib = cell.getLibrary();
 
-		generateLayout(outLib, cell, technology);
+		generateLayout(outLib, cell, context, technology);
 
 		System.out.println("done.");
 		return true;
