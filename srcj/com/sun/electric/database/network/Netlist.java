@@ -357,6 +357,9 @@ public class Netlist
 	 * @return network.
 	 */
 	public Network getNetwork(Nodable no, PortProto portProto, int busIndex) {
+		if (no == null || portProto == null) return null;
+		if (no instanceof NodeInst && !((NodeInst)no).isActuallyLinked()) return null;
+		if (portProto instanceof Export && !((Export)portProto).isActuallyLinked()) return null;
 		int netIndex = getNetIndex(no, portProto, busIndex);
 		if (netIndex < 0) return null;
 		return networks[netIndex];
@@ -371,6 +374,10 @@ public class Netlist
 	 */
 	public boolean portsConnected(Nodable no, PortProto port1, PortProto port2)
 	{
+		if (no == null || port1 == null || port2 == null) return false;
+		if (no instanceof NodeInst && !((NodeInst)no).isActuallyLinked()) return false;
+		if (port1 instanceof Export && !((Export)port1).isActuallyLinked()) return false;
+		if (port2 instanceof Export && !((Export)port2).isActuallyLinked()) return false;
 		int busWidth = port1.getNameKey().busWidth();
 		if (port2.getNameKey().busWidth() != busWidth) return false;
 		for (int i = 0; i < busWidth; i++) {
@@ -457,6 +464,9 @@ public class Netlist
 	public boolean sameNetwork(Nodable no, PortProto pp, ArcInst ai)
 	{
 		if (no == null || pp == null || ai == null) return false;
+		if (no instanceof NodeInst && !((NodeInst)no).isActuallyLinked()) return false;
+		if (pp instanceof Export && !((Export)pp).isActuallyLinked()) return false;
+		if (!ai.isActuallyLinked()) return false;
 		int busWidth1 = pp.getNameKey().busWidth();
 		int busWidth2 = netCell.getBusWidth(ai);
 		if (busWidth1 != busWidth2) return false;
@@ -480,6 +490,10 @@ public class Netlist
 	public boolean sameNetwork(Nodable no1, PortProto pp1, Nodable no2, PortProto pp2)
 	{
 		if (no1 == null || pp1 == null || no2 == null || pp2 == null) return false;
+		if (no1 instanceof NodeInst && !((NodeInst)no1).isActuallyLinked()) return false;
+		if (pp1 instanceof Export && !((Export)pp1).isActuallyLinked()) return false;
+		if (no2 instanceof NodeInst && !((NodeInst)no2).isActuallyLinked()) return false;
+		if (pp2 instanceof Export && !((Export)pp2).isActuallyLinked()) return false;
 		int busWidth1 = pp1.getNameKey().busWidth();
 		int busWidth2 = pp2.getNameKey().busWidth();
 		if (busWidth1 != busWidth2) return false;
@@ -496,7 +510,7 @@ public class Netlist
 	 * @return the either the network name or the bus name on this ArcInst.
 	 */
 	public String getNetworkName(ArcInst ai) {
-		if (!ai.isActuallyLinked()) return null;
+		if (ai == null || !ai.isActuallyLinked()) return null;
 		checkForModification();
 		if (ai.getParent() != netCell.cell) return null;
 		int busWidth = netCell.getBusWidth(ai);
@@ -513,7 +527,7 @@ public class Netlist
 	 * @return the name of the bus on this ArcInst.
 	 */
 	public Name getBusName(ArcInst ai) {
-		if (!ai.isActuallyLinked()) return null;
+		if (ai == null || !ai.isActuallyLinked()) return null;
 		checkForModification();
 		if (ai.getParent() != netCell.cell) return null;
 		int busWidth = netCell.getBusWidth(ai);
@@ -528,6 +542,7 @@ public class Netlist
 	 */
 	public int getBusWidth(Export e)
 	{
+		if (e == null || !e.isActuallyLinked()) return 0;
 		return e.getNameKey().busWidth();
 	}
 
@@ -536,7 +551,7 @@ public class Netlist
 	 * @return the either the bus width on this ArcInst.
 	 */
 	public int getBusWidth(ArcInst ai) {
-		if (!ai.isActuallyLinked()) return 0;
+		if (ai == null || !ai.isActuallyLinked()) return 0;
 		checkForModification();
 		if (ai.getParent() != netCell.cell) return 0;
 		return netCell.getBusWidth(ai);

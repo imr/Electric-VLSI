@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01au: *********************************
 
+BUG: (12/9/04, DN) Thousands of ArrayIndexOutOfBoundsException drawing Highlights(Bug #79).
+FIX: Addition check isActuallyLinked() in Netlist class.y
+
+BUG: (12/9/04, DN) Network tool crashes if cell contains cell from it's own cellgroup (Bug #75).
+FIX: NodeInst.isIconOfParent() uses NodeUsage.isIconOfParent() to.
+
 IMP: (12/8/04, GVG) DRC good dates work with min area and coverage bits (Bug #?)
 
 IMP: (12/8/04, GVG) Save Library in ExplorerTree to avoid the setup as current library previous to the saving action.

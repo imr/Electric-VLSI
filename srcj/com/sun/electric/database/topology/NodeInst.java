@@ -822,11 +822,12 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public boolean isIconOfParent()
 	{
-		NodeProto np = getProto();
-		if (!(np instanceof Cell))
-			return false;
+		return nodeUsage.isIconOfParent();
+// 		NodeProto np = getProto();
+// 		if (!(np instanceof Cell))
+// 			return false;
 
-		return getParent().getCellGroup() == ((Cell) np).getCellGroup();
+// 		return getParent().getCellGroup() == ((Cell) np).getCellGroup();
 	}
 
 	/**
