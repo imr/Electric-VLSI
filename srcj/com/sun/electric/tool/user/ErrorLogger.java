@@ -301,8 +301,13 @@ public class ErrorLogger implements ActionListener {
                             wnd = (EditWindow)wf.getContent();
                             wnd.setCell(eh.cell, eh.context);
                         }
-                        highlighter = wnd.getHighlighter();
+                        if (highlighter == null) {
+                            highlighter = wnd.getHighlighter();
+                            highlighter.clear();
+                        }
                     }
+
+                    if (highlighter == null) continue;
 
                     switch (eh.type)
                     {
