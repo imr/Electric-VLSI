@@ -193,17 +193,17 @@ public abstract class Part extends NetObject {
 */
 	/** 
 	 * isThisGate returns true if the terminal number is a gate.
-	 * @param the terminal number to test
+	 * @param x the terminal number to test
 	 * @return true if the terminal is a gate, false otherwise
 	 */
 	protected abstract boolean isThisGate(int x);
 
-	/** 
-	 * A method to compute the hash code for this NetObject.
-	 * @param type: 0 by part name, 1 omitting gate connections
-	 * 2 by gate connections only, 3 using all connections.
-	 * @return an Integer code for distinguishing the objects.
-	 */
+//	/** 
+//	 * A method to compute the hash code for this NetObject.
+//	 * @param type: 0 by part name, 1 omitting gate connections
+//	 * 2 by gate connections only, 3 using all connections.
+//	 * @return an Integer code for distinguishing the objects.
+//	 */
 //	public Integer computeCode(int type){
 //		if(type == 0) return computeNameCode();
 //		if(type == 1) return computeWithoutGate();

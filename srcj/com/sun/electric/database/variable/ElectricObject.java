@@ -205,8 +205,8 @@ public class ElectricObject
 					cY += height * (varLength-1) / 2;
 				if (style == Poly.Type.TEXTBOT || style == Poly.Type.TEXTBOTLEFT || style == Poly.Type.TEXTBOTRIGHT)
 					cY += height * (varLength-1);
-				if (style == Poly.Type.TEXTTOP || style == Poly.Type.TEXTTOPLEFT || style == Poly.Type.TEXTTOPRIGHT)
-					cY -= height*2;
+//				if (style == Poly.Type.TEXTTOP || style == Poly.Type.TEXTTOPLEFT || style == Poly.Type.TEXTTOPRIGHT)
+//					cY -= height*2;
 			} else
 			{
 				if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT)
@@ -552,7 +552,7 @@ public class ElectricObject
 	 * Method to determine whether a Variable key on this object is deprecated.
 	 * Deprecated Variable keys are those that were used in old versions of Electric,
 	 * but are no longer valid.
-	 * @param name the key of the Variable.
+	 * @param key the key of the Variable.
 	 * @return true if the Variable key is deprecated.
 	 */
 	public boolean isDeprecatedVariable(Variable.Key key)

@@ -714,14 +714,25 @@ public class OutputBinary extends Output
 		throws IOException
 	{
 		// write the nodeproto pointer
-		writeBigInteger(ni.getProto().getTempInt());
+		NodeProto np = ni.getProto();
+		writeBigInteger(np.getTempInt());
 
 		// write descriptive information
 		Technology tech = ni.getParent().getTechnology();
-		int lowX = (int)((ni.getTrueCenterX() - ni.getXSize()/2) * tech.getScale()*2);
-		int highX = (int)((ni.getTrueCenterX() + ni.getXSize()/2) * tech.getScale()*2);
-		int lowY = (int)((ni.getTrueCenterY() - ni.getYSize()/2) * tech.getScale()*2);
-		int highY = (int)((ni.getTrueCenterY() + ni.getYSize()/2) * tech.getScale()*2);
+			int lowX, highX, lowY, highY;
+		if (np instanceof Cell)
+		{
+			lowX = (int)((ni.getTrueCenterX() - ni.getXSize()/2) * tech.getScale()*2);
+			highX = (int)((ni.getTrueCenterX() + ni.getXSize()/2) * tech.getScale()*2);
+			lowY = (int)((ni.getTrueCenterY() - ni.getYSize()/2) * tech.getScale()*2);
+			highY = (int)((ni.getTrueCenterY() + ni.getYSize()/2) * tech.getScale()*2);
+		} else
+		{
+			lowX = (int)((ni.getGrabCenterX() - ni.getXSize()/2) * tech.getScale()*2);
+			highX = (int)((ni.getGrabCenterX() + ni.getXSize()/2) * tech.getScale()*2);
+			lowY = (int)((ni.getGrabCenterY() - ni.getYSize()/2) * tech.getScale()*2);
+			highY = (int)((ni.getGrabCenterY() + ni.getYSize()/2) * tech.getScale()*2);
+		}
 		writeBigInteger(lowX);
 		writeBigInteger(lowY);
 		writeBigInteger(highX);

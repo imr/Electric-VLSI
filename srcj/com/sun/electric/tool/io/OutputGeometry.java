@@ -216,7 +216,7 @@ public abstract class OutputGeometry extends Output {
 		{
 			PrimitiveNode prim = (PrimitiveNode)ni.getProto();
 			Technology tech = prim.getTechnology();
-			Poly [] polys = tech.getShapeOfNode(ni, null);
+			Poly [] polys = tech.getShapeOfNode(ni);
 			for (int i=0; i<polys.length; i++)
 				polys[i].transform(trans);
 			cellGeom.addPolys(polys);
@@ -226,7 +226,7 @@ public abstract class OutputGeometry extends Output {
 		{
 			ArcProto ap = ai.getProto();
 			Technology tech = ap.getTechnology();
-			Poly [] polys = tech.getShapeOfArc(ai, null);
+			Poly [] polys = tech.getShapeOfArc(ai);
 			cellGeom.addPolys(polys);
 		}
     }

@@ -621,7 +621,7 @@ public class Quick
 
 		// get all of the polygons on this arc
 		Technology tech = ai.getProto().getTechnology();
-		Poly [] arcInstPolyList = tech.getShapeOfArc(ai, null);
+		Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
 		cropActiveArc(ai, arcInstPolyList);
 		int tot = arcInstPolyList.length;
 
@@ -796,7 +796,7 @@ public class Quick
 			{
 				ArcInst ai = (ArcInst)geom;
 				Technology tech = ai.getProto().getTechnology();
-				Poly [] arcPolyList = tech.getShapeOfArc(ai, null);
+				Poly [] arcPolyList = tech.getShapeOfArc(ai);
 				int tot = arcPolyList.length;
 				for(int j=0; j<tot; j++)
 					arcPolyList[j].transform(upTrans);
@@ -1076,7 +1076,7 @@ public class Quick
 				if (con && touch) continue;
 
 				// get the shape of each arcinst layer
-				Poly [] subPolyList = tech.getShapeOfArc(ai, null);
+				Poly [] subPolyList = tech.getShapeOfArc(ai);
 				int tot = subPolyList.length;
 				for(int i=0; i<tot; i++)
 					subPolyList[i].transform(topTrans);
@@ -1512,7 +1512,7 @@ public class Quick
 		{
 			ArcInst oAi = (ArcInst)geom;
 			tech = oAi.getProto().getTechnology();
-			nodeInstPolyList = tech.getShapeOfArc(oAi, null);
+			nodeInstPolyList = tech.getShapeOfArc(oAi);
 		}
 		int tot = nodeInstPolyList.length;
 
@@ -2201,7 +2201,7 @@ public class Quick
 			{
 				ArcInst ai = (ArcInst)g;
 				Technology tech = ai.getProto().getTechnology();
-				Poly [] layerLookPolyList = tech.getShapeOfArc(ai, null);
+				Poly [] layerLookPolyList = tech.getShapeOfArc(ai);
 				int tot = layerLookPolyList.length;
 				for(int i=0; i<tot; i++)
 				{

@@ -1370,7 +1370,7 @@ public class InputBinary extends InputLibrary
 			Cell subCell = (Cell)np;
 			Rectangle2D bounds = subCell.getBounds();
 			Point2D shift = new Point2D.Double(-bounds.getCenterX(), -bounds.getCenterY());
-			AffineTransform trans = NodeInst.pureRotate(rotation, width, height);
+			AffineTransform trans = NodeInst.pureRotate(rotation, width < 0, height < 0);
 			trans.transform(shift, shift);
 			center.setLocation(center.getX() + shift.getX(), center.getY() + shift.getY());
 		}
@@ -1684,6 +1684,10 @@ public class InputBinary extends InputLibrary
 		{
 			libName = libName.substring(0, libName.length()-4);
 			importType = ImportType.TEXT;
+		} else
+		{
+			// no recognizable extension, add one to the file name
+			libFileName += ".elib";
 		}
 		Library elib = Library.findLibrary(libName);
 		if (elib == null)

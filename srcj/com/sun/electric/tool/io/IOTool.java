@@ -83,7 +83,6 @@ public class IOTool extends Tool
 	 * Method to set name of Geometric object.
 	 * @param geom the Geometric object.
 	 * @param value name of object
-	 * @param td text descriptor.
 	 * @param type type mask.
 	 */
 	protected Name makeGeomName(Geometric geom, Object value, int type)

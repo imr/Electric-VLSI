@@ -32,6 +32,7 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
@@ -137,7 +138,7 @@ public class LETool extends Tool {
             LENetlister netlister = new LENetlister(lesizer, (OutputStream)System.out);
             netlister.netlist(cell, context);
             long equationsDone = System.currentTimeMillis();
-            String elapsed = Job.getElapsedTime(equationsDone-startTime);
+            String elapsed = TextUtils.getElapsedTime(equationsDone-startTime);
             System.out.println("done ("+elapsed+")");
             if (getScheduledToAbort()) { setAborted(); return; }                  // abort job
             System.out.println("Starting iterations: ");

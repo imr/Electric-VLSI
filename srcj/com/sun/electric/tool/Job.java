@@ -31,6 +31,7 @@ package com.sun.electric.tool;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.ui.ExplorerTree;
 import com.sun.electric.tool.user.User;
 
@@ -446,32 +447,8 @@ public abstract class Job implements ActionListener, Runnable {
             Date end = new Date(endTime);
             buf.append("  end time: "+end+"\n");
             long time = endTime - startTime;
-            buf.append("  time taken: "+Job.getElapsedTime(time)+"\n");
+            buf.append("  time taken: "+TextUtils.getElapsedTime(time)+"\n");
         }
-        return buf.toString();
-    }
-    
-    /** Get a string representing elapsed time.
-     * format: days : hours : minutes : seconds */
-    public static String getElapsedTime(long milliseconds) {
-		if (milliseconds < 60000)
-		{
-			// less than a minute: show fractions of a second
-			return (milliseconds / 1000.0) + " secs";
-		}
-        StringBuffer buf = new StringBuffer();
-		int seconds = (int)milliseconds/1000;
-		if (seconds < 0) seconds = 0;
-		int days = seconds/86400;
-		if (days > 0) buf.append(days+" days : ");
-		seconds = seconds - (days*86400);
-		int hours = seconds/3600;
-		if (hours > 0) buf.append(hours+" hrs : ");
-		seconds = seconds - (hours*3600);
-		int minutes = seconds/60;
-		if (minutes > 0) buf.append(minutes+" mins : ");
-		seconds = seconds - (minutes*60);
-		buf.append(seconds+" secs");
         return buf.toString();
     }
         

@@ -152,6 +152,7 @@ public class Generic extends Technology
 		universalPinNode.setFunction(NodeProto.Function.PIN);
 		universalPinNode.setWipeOn1or2();
 		universalPinNode.setHoldsOutline();
+		universalPinNode.setCanBeZeroSize();
 
 		/** Invisible pin */
 		invisiblePinNode = PrimitiveNode.newInstance("Invisible-Pin", this, 1.0, 1.0, null,
@@ -159,11 +160,12 @@ public class Generic extends Technology
 			{
 				new Technology.NodeLayer(invisible_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
-		invisPinPort = PrimitivePort.newInstance(this, invisiblePinNode, new ArcProto[] {invisible_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+		invisPinPort = PrimitivePort.newInstance(this, invisiblePinNode, new ArcProto[] {invisible_arc,universal_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter());
 		invisiblePinNode.addPrimitivePorts(new PrimitivePort [] {invisPinPort});
 		invisiblePinNode.setFunction(NodeProto.Function.PIN);
 		invisiblePinNode.setWipeOn1or2();
+		invisiblePinNode.setCanBeZeroSize();
 
 		/** Unrouted pin */
 		unroutedPinNode = PrimitiveNode.newInstance("Unrouted-Pin", this, 1.0, 1.0, null,
@@ -175,11 +177,12 @@ public class Generic extends Technology
 			});
 		unroutedPinNode.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, unroutedPinNode, new ArcProto[] {unrouted_arc}, "unrouted", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, unroutedPinNode, new ArcProto[] {unrouted_arc,invisible_arc,universal_arc}, "unrouted", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		unroutedPinNode.setFunction(NodeProto.Function.PIN);
 		unroutedPinNode.setWipeOn1or2();
+		unroutedPinNode.setCanBeZeroSize();
 
 		/** Cell Center */
 		cellCenterNode = PrimitiveNode.newInstance("Facet-Center", this, 0.0, 0.0, null,
@@ -190,10 +193,11 @@ public class Generic extends Technology
 			});
 		cellCenterNode.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, cellCenterNode, new ArcProto[] {invisible_arc, universal_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, cellCenterNode, new ArcProto[] {invisible_arc,universal_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		cellCenterNode.setFunction(NodeProto.Function.ART);
+		cellCenterNode.setCanBeZeroSize();
 
 		/** Port */
 		portNode = PrimitiveNode.newInstance("Port", this, 6.0, 6.0, new SizeOffset(2, 2, 2, 2),
@@ -204,10 +208,11 @@ public class Generic extends Technology
 			});
 		portNode.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, portNode, new ArcProto[] {invisible_arc, universal_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, portNode, new ArcProto[] {invisible_arc,universal_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		portNode.setFunction(NodeProto.Function.ART);
+		portNode.setCanBeZeroSize();
 
 		/** DRC Node */
 		drcNode = PrimitiveNode.newInstance("DRC-Node", this, 2.0, 2.0, null,
@@ -217,7 +222,7 @@ public class Generic extends Technology
 			});
 		drcNode.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, drcNode, new ArcProto[] {invisible_arc, universal_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, drcNode, new ArcProto[] {invisible_arc,universal_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		drcNode.setFunction(NodeProto.Function.NODE);
@@ -234,10 +239,11 @@ public class Generic extends Technology
 			});
 		essentialBoundsNode.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, essentialBoundsNode, new ArcProto[] {invisible_arc, universal_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, essentialBoundsNode, new ArcProto[] {invisible_arc,universal_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		essentialBoundsNode.setFunction(NodeProto.Function.ART);
+		essentialBoundsNode.setCanBeZeroSize();
 
 		/** Simulation Probe Node */
 		simProbeNode = PrimitiveNode.newInstance("Simulation-Probe", this, 10.0, 10.0, null,
@@ -247,10 +253,11 @@ public class Generic extends Technology
 			});
 		simProbeNode.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, simProbeNode, new ArcProto[] {invisible_arc, universal_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, simProbeNode, new ArcProto[] {unrouted_arc,invisible_arc,universal_arc}, "center", 0,180, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
 			});
 		simProbeNode.setFunction(NodeProto.Function.ART);
+		simProbeNode.setCanBeZeroSize();
 	}
 
 	/**

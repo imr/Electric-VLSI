@@ -90,7 +90,8 @@ public class TopLevel extends JFrame
 	/** The EditWindow associated with this (if SDI). */	private EditWindow wnd;
 	/** The size of the screen. */							private static Dimension scrnSize;
 	/** The current operating system. */					private static OS os;
-	/** The palette object system. */						private static PaletteFrame palette;
+	/** The palette object. */								private static PaletteFrame palette;
+	/** The messages window. */								private static MessagesWindow messages;
 	/** The cursor being displayed. */						private static Cursor cursor;
 
 	/**
@@ -137,8 +138,8 @@ public class TopLevel extends JFrame
 	 */
 	public static void Initialize()
 	{
-		// initialize the messages window
-		MessagesWindow cl = new MessagesWindow(scrnSize);
+		// initialize the messages window and palette
+		messages = new MessagesWindow();
 		palette = PaletteFrame.newInstance();
 	}
 
@@ -180,7 +181,6 @@ public class TopLevel extends JFrame
 			Rectangle bound = parseBound(loc);
 			if (bound == null)
 				bound = new Rectangle(scrnSize);
-//			System.out.println("prevloc="+loc);
 			topLevel = new TopLevel("Electric", bound, null);
 
 			// make the desktop
@@ -228,6 +228,13 @@ public class TopLevel extends JFrame
 	public static PaletteFrame getPaletteFrame() { return palette; }
 
 	/**
+	 * Method to return messages window.
+	 * The messages window runs along the bottom.
+	 * @return the messages window.
+	 */
+	public static MessagesWindow getMessagesWindow() { return messages; }
+
+	/**
 	 * Method to return the only TopLevel frame.
 	 * This applies only in MDI mode.
 	 * @return the only TopLevel frame.
@@ -249,7 +256,13 @@ public class TopLevel extends JFrame
 		if (isMDIMode())
 		{
 			Rectangle bounds = topLevel.getBounds();
-			return new Dimension(bounds.width, bounds.height);
+			Rectangle dBounds = desktop.getBounds();
+//			System.out.println("Toplevel is "+bounds+" desktop is "+dBounds);
+			if (dBounds.width != 0 && dBounds.height != 0)
+			{
+				return new Dimension(dBounds.width, dBounds.height);
+			}
+			return new Dimension(bounds.width-8, bounds.height-96);
 		}
 		return new Dimension(scrnSize);
 	}

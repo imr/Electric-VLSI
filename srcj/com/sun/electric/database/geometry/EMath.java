@@ -35,6 +35,15 @@ import java.util.GregorianCalendar;
  */
 public class EMath
 {
+	public static class MutableInteger
+	{
+		int value;
+		public MutableInteger(int value) { this.value = value; }
+		public void setValue(int value) { this.value = value; }
+		public int intValue() { return value; }
+		public String toString() { return Integer.toString(value); }
+	}
+
 	public static final AffineTransform MATID = new AffineTransform();
 
 	/**
@@ -284,11 +293,7 @@ public class EMath
 	 */
 	public static void transformRect(Rectangle2D bounds, AffineTransform xform)
 	{
-		Point2D [] corners = new Point2D.Double[4];
-		corners[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-		corners[1] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
-		corners[2] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-		corners[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+		Point2D [] corners = Poly.makePoints(bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(), bounds.getMaxY());
 		xform.transform(corners, 0, corners, 0, 4);
 		double lX = corners[0].getX();
 		double lY = corners[0].getY();

@@ -219,7 +219,7 @@ public class OutputGDS extends OutputGeometry
 				boolean wasWiped = bottomNi.isWiped();
 				bottomNi.clearWiped();
 				Technology tech = bottomNi.getProto().getTechnology();
-				Poly [] polys = tech.getShapeOfNode(bottomNi, null);
+				Poly [] polys = tech.getShapeOfNode(bottomNi);
 				Poly poly = polys[0];
 				if (wasWiped) bottomNi.setWiped();
 				Layer layer = poly.getLayer().getNonPseudoLayer();
@@ -440,7 +440,7 @@ public class OutputGDS extends OutputGeometry
 		{
 			ArcProto ap = ai.getProto();
 			Technology tech = ap.getTechnology();
-			Poly [] polys = tech.getShapeOfArc(ai, null);
+			Poly [] polys = tech.getShapeOfArc(ai);
 			cellGeom.addPolys(polys);
 		}
 	}

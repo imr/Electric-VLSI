@@ -474,7 +474,8 @@ public class GetInfoText extends javax.swing.JDialog
 			if (dialog.lowerRight.isSelected()) currentPos = TextDescriptor.Position.UPLEFT; else
 			if (dialog.lowerLeft.isSelected()) currentPos = TextDescriptor.Position.UPRIGHT; else
 			if (dialog.upperRight.isSelected()) currentPos = TextDescriptor.Position.DOWNLEFT; else
-			if (dialog.upperLeft.isSelected()) currentPos = TextDescriptor.Position.DOWNRIGHT;
+			if (dialog.upperLeft.isSelected()) currentPos = TextDescriptor.Position.DOWNRIGHT; else
+			if (dialog.boxed.isSelected()) currentPos = TextDescriptor.Position.BOXED;
 			if (currentPos != dialog.initialPos)
 			{
 				changed = true;

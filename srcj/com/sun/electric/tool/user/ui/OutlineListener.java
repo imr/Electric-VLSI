@@ -144,12 +144,12 @@ class OutlineListener
 		if (doingMotionDrag)
 		{
 			Highlight.setHighlightOffset(newX - oldx, newY - oldy);
-			wnd.repaintContents();
+			wnd.repaint();
 			return;
 		}
 		oldx = newX;
 		oldy = newY;
-		wnd.repaintContents();
+		wnd.repaint();
 	}
 
 	public void mouseWheelMoved(MouseWheelEvent evt)

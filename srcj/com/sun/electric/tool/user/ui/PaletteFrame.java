@@ -56,10 +56,12 @@ import java.awt.Image;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.BorderLayout;
+import java.awt.Rectangle;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Font;
+import java.awt.Container;
 import java.awt.FontMetrics;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -93,9 +95,8 @@ import javax.swing.event.PopupMenuListener;
  */
 public class PaletteFrame
 {
+	/** the palette window frame. */					private Container container;
 	/** the edit window part */							private PalettePanel panel;
-	/** the internal frame (if MDI). */					private JInternalFrame jif;
-	/** the top-level frame (if SDI). */				private JFrame jf;
 	/** the number of palette entries. */				private int menuX = -1, menuY = -1;
 	/** the size of a palette entry. */					private int entrySize;
 	/** the list of objects in the palette. */			private List inPalette;
@@ -115,20 +116,22 @@ public class PaletteFrame
 		// initialize the frame
 		Dimension screenSize = TopLevel.getScreenSize();
 		int screenHeight = (int)screenSize.getHeight();
-		Dimension frameSize = new Dimension(100, screenHeight-100);
+		Dimension frameSize = new Dimension(100, screenHeight);
 		if (TopLevel.isMDIMode())
 		{
-			palette.jif = new JInternalFrame("Components", true, false, false, false);
-			palette.jif.setSize(frameSize);
-			palette.jif.setLocation(0, 0);
-			palette.jif.setAutoscrolls(true);
-			palette.jif.setFrameIcon(new ImageIcon(palette.getClass().getResource("IconElectric.gif")));
+			JInternalFrame jInternalFrame = new JInternalFrame("Components", true, false, false, false);
+			palette.container = jInternalFrame;
+			jInternalFrame.setSize(frameSize);
+			jInternalFrame.setLocation(0, 0);
+			jInternalFrame.setAutoscrolls(true);
+			jInternalFrame.setFrameIcon(new ImageIcon(palette.getClass().getResource("IconElectric.gif")));
 		} else
 		{
-			palette.jf = new JFrame("Components");
-			palette.jf.setSize(frameSize);
-			palette.jf.setLocation(0, 0);
-			palette.jf.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+			JFrame jFrame = new JFrame("Components");
+			palette.container = jFrame;
+			jFrame.setSize(frameSize);
+			jFrame.setLocation(0, 0);
+			jFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		}
 
 		// create a paletteWindow and a selector combobox
@@ -146,23 +149,28 @@ public class PaletteFrame
 
 		if (TopLevel.isMDIMode())
 		{
-			palette.jif.getContentPane().setLayout(new java.awt.BorderLayout());
-			palette.jif.getContentPane().add(palette.panel, BorderLayout.CENTER);
-			palette.jif.getContentPane().add(selector, BorderLayout.SOUTH);
-			palette.jif.show();
-			TopLevel.addToDesktop(palette.jif);
-			palette.jif.moveToFront();
+			((JInternalFrame)palette.container).getContentPane().setLayout(new java.awt.BorderLayout());
+			((JInternalFrame)palette.container).getContentPane().add(palette.panel, BorderLayout.CENTER);
+			((JInternalFrame)palette.container).getContentPane().add(selector, BorderLayout.SOUTH);
+			((JInternalFrame)palette.container).show();
+			TopLevel.addToDesktop((JInternalFrame)palette.container);
+			((JInternalFrame)palette.container).moveToFront();
 		} else
 		{
-			palette.jf.getContentPane().setLayout(new java.awt.BorderLayout());
-			palette.jf.getContentPane().add(palette.panel, BorderLayout.CENTER);
-			palette.jf.getContentPane().add(selector, BorderLayout.SOUTH);
-			palette.jf.show();
+			((JFrame)palette.container).getContentPane().setLayout(new java.awt.BorderLayout());
+			((JFrame)palette.container).getContentPane().add(palette.panel, BorderLayout.CENTER);
+			((JFrame)palette.container).getContentPane().add(selector, BorderLayout.SOUTH);
+			((JFrame)palette.container).show();
 		}
 		return palette;
 	}
 
 	public PalettePanel getPanel() { return panel; }
+
+	public Rectangle getPaletteLocation()
+	{
+		return container.getBounds();
+	}
 
 	public void arcProtoChanged()
 	{
@@ -303,16 +311,17 @@ public class PaletteFrame
 		}
 		Dimension size = TopLevel.getScreenSize();
 		entrySize = (int)size.getWidth() / menuX;
-		int ysize = (int)(size.getHeight()-100) / menuY;
+		int ysize = (int)(size.getHeight()) / menuY;
 		if (ysize < entrySize) entrySize = ysize;
 		size.setSize(entrySize*menuX+1, entrySize*menuY+1);
-		if (TopLevel.isMDIMode())
-		{
-			jif.setSize(size);
-		} else
-		{
-			jf.setSize(size);
-		}
+		container.setSize(size);
+//		if (TopLevel.isMDIMode())
+//		{
+//			((JInternalFrame)container).setSize(size);
+//		} else
+//		{
+//			((JFrame)container).setSize(size);
+//		}
 		panel.repaint();
 	}
 
@@ -323,7 +332,7 @@ public class PaletteFrame
 		SizeOffset so = np.getSizeOffset();
 		Point2D pt = new Point2D.Double((so.getHighXOffset() - so.getLowXOffset()) / 2,
 			(so.getHighYOffset() - so.getLowYOffset()) / 2);
-		AffineTransform trans = NodeInst.pureRotate(angle, 1, 1);
+		AffineTransform trans = NodeInst.pureRotate(angle, false, false);
 		trans.transform(pt, pt);
 		//Undo.changesQuiet(false);
 		ni.lowLevelPopulate(np, pt, np.getDefWidth(), np.getDefHeight(), angle, null);
@@ -691,7 +700,7 @@ public class PaletteFrame
 
 			// create an EditWindow for rendering nodes and arcs
 			EditWindow w = EditWindow.CreateElectricDoc(null, null);
-			w.setSize(new Dimension(frame.entrySize, frame.entrySize));
+			w.setScreenSize(new Dimension(frame.entrySize, frame.entrySize));
 
 			// draw the menu entries
 			for(int x=0; x<frame.menuX; x++)

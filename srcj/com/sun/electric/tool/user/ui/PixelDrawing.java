@@ -28,9 +28,11 @@ import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
@@ -39,6 +41,7 @@ import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
@@ -62,10 +65,100 @@ import java.awt.image.WritableRaster;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferInt;
 import java.awt.image.DataBufferByte;
+import java.util.HashMap;
 import java.util.Iterator;
 import javax.swing.JPanel;
 
 
+/**
+ * This class manages an offscreen display for an associated EditWindow.
+ * It renders an Image for copying to the display.
+ * <P>
+ * Every offscreen display consists of two parts: the transparent layers and the opaque image.
+ * To tell how a layer is displayed, look at the "transparentLayer" field of its "EGraphics" object.
+ * When this is nonzero, the layer is drawn transparent.
+ * When this is zero, use the "red, green, blue" fields for the opaque color.
+ * <P>
+ * The opaque image is a full-color Image that is the size of the EditWindow.
+ * Any layers that are marked "opaque" are drawin in full color in the image.
+ * Colors are not combined in the opaque image: every color placed in it overwrites the previous color.
+ * For this reason, opaque colors are often stipple patterns, so that they won't completely obscure other
+ * opaque layers.
+ * <P>
+ * The transparent layers are able to combine with each other.
+ * Typically, the more popular layers are made transparent (metal, poly, active, etc.)
+ * For every transparent layer, there is a 1-bit deep bitmap that is the size of the EditWindow.
+ * The bitmap is an array of "byte []" pointers, one for every Y coordinate in the EditWindow.
+ * Each array contains the bits for that row, packed 8 per byte.
+ * All of this information is in the "layerBitMaps" field, which is triply indexed.
+ * <P>
+ * Thus, to find bit (x,y) of transparent layer T, first lookup the appropriate transparent layer,
+ * ("layerBitMaps[T]").
+ * Then, for that layer, find the array of bytes for the appropriate row
+ * (by indexing the the Y coordinate into the rowstart array, "layerBitMaps[T][y]").
+ * Next, figure out which byte has the bit (by dividing the X coordinate by 8: "layerBitMaps[T][y][x>>3]").
+ * Finally, determine which bit to use (by using the low 3 bits of the X coordinate,
+ * layerBitMaps[T][y][x>>3] & (1 << (x&7)) ).
+ * <P>
+ * Transparent layers are not allocated until needed.  Thus, if there are 5 possible transparent layers,
+ * but only 2 are used, then only two bitplanes will be created.
+ * <P>
+ * Each technology declares the number of possible transparent layers that it can generate.
+ * In addition, it must provide a color map for describing every combination of transparent layer.
+ * This map is, of course, 2-to-the-number-of-possible-transparent-layers long.
+ * <P>
+ * When all rendering is done, the full-color image is composited with the transparent layers to produce
+ * the final image.
+ * This is done by scanning the full-color image for any entries that were not filled-in.
+ * These are then replaced by the transparent color at that point.
+ * The transparent color is computed by looking at the bits in every transparent bitmap and
+ * constructing an index.  This is looked-up in the color table and the appropriate color is used.
+ * If no transparent layers are set, the background color is used.
+ * <P>
+ * There are a number of efficiencies implemented here.
+ * <UL>
+ * <LI><B>This offscreen technique is being used</B>.
+ * Although Java's Swing package has a rendering model, it was found to be 3 times slower than
+ * using this offscreen method, without any other optimizations.</LI>
+ * <LI><B>Tiny nodes and arcs are approximated</B>.
+ * When a node or arc will be only 1 or 2 pixels in size on the screen, it is not necessary
+ * to actually compute the edges of all of its parts.  Instead, a single pixel of color is placed.
+ * The color is taken from all of the layers that compose the node or arc.
+ * This optimization adds another factor of 2 to the speed of display.</LI>
+ * <LI><B>Expanded cell contents are cached</B>.
+ * When a cell is expanded, and its contents is drawn, the contents are preserved so that they
+ * need be rendered only once.  Subsequent instances of that expanded cell are able to be instantly drawn.
+ * There are a number of extra considerations here:
+ *   <UL>
+ *   <LI>Cell instances can appear in any orientation.  Therefore, the cache of drawn cells must
+ *   include the orientation.</LI>
+ *   <LI>Cell instances may appear at different levels of the hierarchy.  Therefore, it is not
+ *   sufficient to merely remember their location on the screen and copy them.  An instance may have been
+ *   rendered at one level of hierarchy, and other items at that same level then rendered over it.
+ *   It is then no longer possible to copy those bits when the instance appears again at another place
+ *   in the hierarchy because it has been altered by neighboring circuitry.  The same problem happens
+ *   when cell instances overlap.  Therefore, it is necessary to render each expanded cell instance
+ *   into its own offscreen map.  To do this, a new "EditWindow" with associated "PixelDrawing"
+ *   object are created for each cached cell.</LI>
+ *   <LI>Subpixel alignment may not be the same for each cached instance.  This turns out not to be
+ *   a problem, because at such zoomed-out scales, it is impossible to see individual objects anyway.</LI>
+ *   <LI>Large cell instances should not be cached.  When zoomed-in, an expanded cell instance could
+ *   be many megabytes in size, and only a portion of it appears on the screen.  Therefore, large cell
+ *   instances are not cached, but drawn directly.  It is assumed that there will be few such instances.
+ *   The rule currently is that any cell whose width is greater than half of the display size AND whose
+ *   height is greater than half of the display size is too large to cache.</LI>
+ *   <LI>If an instance only appears once, it is not cached.  This requires a preprocessing step to scan
+ *   the hierarchy and count the number of times that a particular cell-transformation is used.  During
+ *   rendering, if the count is only 1, it is not cached.</LI>
+ *   <LI>Texture patterns don't line-up.  When determining how to align a texture pattern, it is easy
+ *   to use the absolute screen coordinates to index the pattern map.  Any two adjoining objects that use
+ *   the same pattern will have their patterns line-up smoothly.  However, when caching cell instances,
+ *   it is not possible to know where the contents will be placed on the screen, and so the texture patterns
+ *   rendered into the cache cannot be aligned globally.  This is an unsolved problem.</LI>
+ *   </UL>
+ * </UL>
+ * 
+ */
 public class PixelDrawing
 {
 	static class PolySeg
@@ -73,6 +166,24 @@ public class PixelDrawing
 		int fx,fy, tx,ty, direction, increment;
 		PolySeg nextedge;
 		PolySeg nextactive;
+	}
+
+	// statistics stuff
+	private static final boolean TAKE_STATS = false;
+	private static int tinyCells, tinyPrims, totalCells, totalPrims, tinyArcs, totalArcs, offscreensCreated, offscreensUsed;
+
+	/**
+	 * This class holds information about expanded cell instances.
+	 * For efficiency, Electric remembers the bits in an expanded cell instance
+	 * and uses them when another expanded instance appears elsewhere.
+	 * Of course, the orientation of the instance matters, so each combination of
+	 * cell and orientation forms a "cell cache".  The Cell Cache is stored in the
+	 * "wnd" field (which has its own PixelDrawing object).
+	 */
+	static class ExpandedCellInfo
+	{
+		int instanceCount;
+		EditWindow wnd;
 	}
 
 	/** the EditWindow being drawn */						private EditWindow wnd;
@@ -97,6 +208,10 @@ public class PixelDrawing
 	/** whether to occasionally update the display. */		private boolean periodicRefresh;
 	/** keeps track of when to update the display. */		private int objectCount;
 	/** keeps track of when to update the display. */		private long lastRefreshTime;
+
+	/** the size of the top-level EditWindow */				private static Dimension topSz;
+	/** the last Technology that had transparent layers */	private static Technology techWithLayers = null;
+	/** list of cell expansions. */							private static HashMap expandedCells = null;
 	/** TextDescriptor for empty window text. */			private static TextDescriptor noCellTextDescriptor = null;
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
 	private static EGraphics blackGraphics = new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,0,0, 1.0,1,
@@ -104,10 +219,16 @@ public class PixelDrawing
 	private static EGraphics portGraphics = new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 255,0,0, 1.0,1,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 
-	public PixelDrawing(Dimension sz, EditWindow wnd)
+    // ************************************* TOP LEVEL *************************************
+
+	/**
+	 * Constructor creates an offscreen PixelDrawing object for a given EditWindow.
+	 * @param wnd the EditWindow associated with this PixelDrawing.
+	 */
+	public PixelDrawing(EditWindow wnd)
 	{
 		this.wnd = wnd;
-		this.sz = sz;
+		this.sz = wnd.getScreenSize();
 
 		// allocate pointer to the opaque image
 		img = new BufferedImage(sz.width, sz.height, BufferedImage.TYPE_INT_RGB);
@@ -126,29 +247,94 @@ public class PixelDrawing
 		clearImage(false);
 	}
 
-	private void initForTechnology()
-	{
-		// allocate pointers to the overlappable layers
-		Technology tech = Technology.getCurrent();
-		if (tech == null) return;
-		if (tech == curTech) return;
-		int transLayers = tech.getNumTransparentLayers();
-		if (transLayers == 0) return;
-
-		// use this technology's transparency information
-		curTech = tech;
-		numLayerBitMaps = transLayers;
-		layerBitMaps = new byte[numLayerBitMaps][][];
-		compositeRows = new byte[numLayerBitMaps][];
-		for(int i=0; i<numLayerBitMaps; i++) layerBitMaps[i] = null;
-		numLayerBitMapsCreated = 0;
-		colorMap = tech.getColorMap();
-		backgroundColor = colorMap[0].getRGB();
-		backgroundValue = backgroundColor | 0xFF000000;
-	}
-
+	/**
+	 * Method for obtaining the rendered image after "drawImage" has finished.
+	 * @return an Image for this edit window.
+	 */
 	public Image getImage() { return img; }
 
+	/**
+	 * This is the entrypoint for rendering.
+	 * It displays a cell in this offscreen window.
+	 * The rendered Image can then be obtained with "getImage()".
+	 */
+	public void drawImage()
+	{
+		Cell cell = wnd.getCell();
+		long startTime = 0;
+		if (TAKE_STATS)
+		{
+			startTime = System.currentTimeMillis();
+			tinyCells = tinyPrims = totalCells = totalPrims = tinyArcs = totalArcs = offscreensCreated = offscreensUsed = 0;
+		}
+
+		// initialize the cache of expanded cell displays
+		expandedCells = new HashMap();
+
+		// remember the true window size (since recursive calls may cache individual cells that are smaller)
+		topSz = sz;
+
+		// initialize rendering into the offscreen image
+		clearImage(true);
+
+		if (cell == null)
+		{
+			if (noCellTextDescriptor == null)
+			{
+				noCellTextDescriptor = new TextDescriptor(null);
+				noCellTextDescriptor.setAbsSize(18);
+				noCellTextDescriptor.setBold();
+			}
+			Rectangle rect = new Rectangle(sz);
+			drawText(rect, Poly.Type.TEXTBOX, noCellTextDescriptor, "No cell in this window", null, blackGraphics);
+		} else
+		{
+			// determine which cells should be cached (must have at least 2 instances)
+			countCell(cell, EMath.MATID);
+
+			// now render it all
+			drawCell(cell, EMath.MATID, true);
+		}
+
+		// merge transparent image into opaque one
+		synchronized(img) { composite(); };
+
+		if (TAKE_STATS)
+		{
+			long endTime = System.currentTimeMillis();
+			System.out.println("Took "+TextUtils.getElapsedTime(endTime-startTime));
+			System.out.println("   "+tinyCells+" out of "+totalCells+" cells are tiny; "+tinyPrims+" out of "+totalPrims+
+				" primitives are tiny; "+tinyArcs+" out of "+totalArcs+" arcs are tiny");
+			int numExpandedCells = 0;
+			int numCellsExpandedOnce = 0;
+			for(Iterator it = expandedCells.keySet().iterator(); it.hasNext(); )
+			{
+				String c = (String)it.next();
+				ExpandedCellInfo count = (ExpandedCellInfo)expandedCells.get(c);
+				if (count != null)
+				{
+					numExpandedCells++;
+					if (count.instanceCount == 1) numCellsExpandedOnce++;
+				}
+			}
+			System.out.println("   Of "+numExpandedCells+" cell cache possibilities, "+numCellsExpandedOnce+
+				" were used only once and not cached");
+			if (offscreensCreated > 0)
+				System.out.println("   Remaining "+offscreensCreated+" cell caches were used an average of "+
+					((double)offscreensUsed/offscreensCreated)+" times");
+		}
+
+		// stop accumulating expanded cell images
+		expandedCells = null;
+	}
+
+	// ************************************* INTERMEDIATE CONTROL LEVEL *************************************
+
+	/**
+	 * Method to erase the offscreen data in this PixelDrawing.
+	 * This is called before any rendering is done.
+	 * @param periodicRefresh true to periodically refresh the display if it takes too long.
+	 */
 	public void clearImage(boolean periodicRefresh)
 	{
 		// pickup new technology if it changed
@@ -178,6 +364,11 @@ public class PixelDrawing
 		}
 	}
 
+	/**
+	 * Method to complete rendering by combining the transparent and opaque imagery.
+	 * This is called after all rendering is done.
+	 * @return the offscreen Image with the final display.
+	 */
 	public Image composite()
 	{
 		// merge in the transparent layers
@@ -230,33 +421,30 @@ public class PixelDrawing
 		return img;
 	}
 
-	/**
-	 * Method to draw a Cell in the current window.
-	 */
-	public void drawImage(Cell cell)
+	private void initForTechnology()
 	{
-		// initialize rendering into the offscreen image
-		clearImage(true);
-
-		if (cell == null)
+		// allocate pointers to the overlappable layers
+		Technology tech = Technology.getCurrent();
+		if (tech == null) return;
+		if (tech == curTech) return;
+		int transLayers = tech.getNumTransparentLayers();
+		if (transLayers != 0)
 		{
-			if (noCellTextDescriptor == null)
-			{
-				noCellTextDescriptor = new TextDescriptor(null);
-				noCellTextDescriptor.setAbsSize(18);
-				noCellTextDescriptor.setBold();
-			}
-			Rectangle rect = new Rectangle(sz);
-			drawText(rect, Poly.Type.TEXTBOX, noCellTextDescriptor, "No cell in this window", null, blackGraphics);
-		} else
-		{
-			// draw everything
-			drawCell(cell, EMath.MATID, true);
+			techWithLayers = curTech = tech;
 		}
+		if (curTech == null) curTech = techWithLayers;
 
-		// merge transparent image into opaque one
-		composite();
+		numLayerBitMaps = curTech.getNumTransparentLayers();
+		layerBitMaps = new byte[numLayerBitMaps][][];
+		compositeRows = new byte[numLayerBitMaps][];
+		for(int i=0; i<numLayerBitMaps; i++) layerBitMaps[i] = null;
+		numLayerBitMapsCreated = 0;
+		colorMap = curTech.getColorMap();
+		backgroundColor = colorMap[0].getRGB();
+		backgroundValue = backgroundColor | 0xFF000000;
 	}
+
+	// ************************************* HIERARCHY TRAVERSAL *************************************
 
 	/**
 	 * Method to draw the contents of a cell, transformed through "prevTrans".
@@ -287,7 +475,10 @@ public class PixelDrawing
 	}
 
 	/**
-	 * Method to draw node "ni", transformed through "trans".
+	 * Method to draw a NodeInst into the offscreen image.
+	 * @param ni the NodeInst to draw.
+	 * @param trans the transformation of the NodeInst to the display.
+	 * @param topLevel true if this is the top-level of display (not in a subcell).
 	 */
 	public void drawNode(NodeInst ni, AffineTransform trans, boolean topLevel)
 	{
@@ -299,11 +490,33 @@ public class PixelDrawing
 		trans.transform(ctr, ctr);
 		double halfWidth = Math.max(ni.getXSize(), ni.getYSize()) / 2;
 		Rectangle2D databaseBounds = wnd.getDisplayedBounds();
-		if (ctr.getX() + halfWidth < databaseBounds.getMinX()) return;
-		if (ctr.getX() - halfWidth > databaseBounds.getMaxX()) return;
-		if (ctr.getY() + halfWidth < databaseBounds.getMinY()) return;
-		if (ctr.getY() - halfWidth > databaseBounds.getMaxY()) return;
+		double ctrX = ctr.getX();
+		double ctrY = ctr.getY();
+		if (ctrX + halfWidth < databaseBounds.getMinX()) return;
+		if (ctrX - halfWidth > databaseBounds.getMaxX()) return;
+		if (ctrY + halfWidth < databaseBounds.getMinY()) return;
+		if (ctrY - halfWidth > databaseBounds.getMaxY()) return;
 
+		// if the node is tiny, just approximate it with a single dot
+		if (np instanceof Cell) totalCells++; else totalPrims++;
+		if (!np.isCanBeZeroSize() && halfWidth * wnd.getScale() < 1)
+		{
+			if (np instanceof Cell) tinyCells++; else
+			{
+				tinyPrims++;
+
+				// draw a tiny primitive by setting a single dot from each layer
+				int x = wnd.databaseToScreenX(ctrX);
+				int y = wnd.databaseToScreenY(ctrY);
+				if (x >= 0 && x < sz.width && y >= 0 && y < sz.height)
+				{
+					drawTinyLayers(((PrimitiveNode)np).layerIterator(), x, y);
+				}
+			}
+			return;
+		}
+
+		// draw the node
 		if (np instanceof Cell)
 		{
 			// cell instance
@@ -312,89 +525,17 @@ public class PixelDrawing
 			// two ways to draw a cell instance
 			if (ni.isExpanded())
 			{
-				// show the contents
+				// show the contents of the cell
 				AffineTransform subTrans = ni.translateOut(localTrans);
+
+				if (expandedCellCached(subCell, subTrans)) return;
+
+				// just draw it directly
 				drawCell(subCell, subTrans, false);
 			} else
 			{
-				// draw the instance outline
-				Rectangle2D bounds = ni.getBounds();
-				Poly poly = new Poly(bounds.getCenterX(), bounds.getCenterY(), ni.getXSize(), ni.getYSize());
-				AffineTransform localPureTrans = ni.rotateOutAboutTrueCenter(trans);
-				poly.transform(localPureTrans);
-				Point2D [] points = poly.getPoints();
-				for(int i=0; i<points.length; i++)
-				{
-					int lastI = i - 1;
-					if (lastI < 0) lastI = points.length - 1;
-					Point from = wnd.databaseToScreen(points[lastI]);
-					Point to = wnd.databaseToScreen(points[i]);
-					drawLine(from, to, null, blackGraphics, 0);
-				}
-
-				// draw the instance name
-				if (User.isTextVisibilityOnInstance())
-				{
-					bounds = poly.getBounds2D();
-					Rectangle rect = wnd.databaseToScreen(bounds);
-					TextDescriptor descript = ni.getProtoTextDescriptor();
-					drawText(rect, Poly.Type.TEXTBOX, descript, np.describe(), null, blackGraphics);
-				}
-
-				// show the ports that are not further exported or connected
-				FlagSet fs = PortProto.getFlagSet(1);
-				for(Iterator it = ni.getProto().getPorts(); it.hasNext(); )
-				{
-					PortProto pp = (PortProto)it.next();
-					pp.clearBit(fs);
-				}
-				for(Iterator it = ni.getConnections(); it.hasNext();)
-				{
-					Connection con = (Connection) it.next();
-					PortInst pi = con.getPortInst();
-					pi.getPortProto().setBit(fs);
-				}
-				for(Iterator it = ni.getExports(); it.hasNext();)
-				{
-					Export exp = (Export) it.next();
-					PortInst pi = exp.getOriginalPort();
-					pi.getPortProto().setBit(fs);
-				}
-				int portDisplayLevel = User.getPortDisplayLevel();
-				for(Iterator it = ni.getProto().getPorts(); it.hasNext(); )
-				{
-					PortProto pp = (PortProto)it.next();
-					if (pp.isBit(fs)) continue;
-
-					Poly portPoly = ni.getShapeOfPort(pp);
-					if (portPoly == null) continue;
-					portPoly.transform(trans);
-					Color col = pp.colorOfPort();
-					portGraphics.setColor(col);
-					if (portDisplayLevel == 2)
-					{
-						// draw port as a cross
-						drawCross(portPoly, portGraphics);
-					} else
-					{
-						// draw port as text
-						if (User.isTextVisibilityOnPort())
-						{
-							TextDescriptor descript = portPoly.getTextDescriptor();
-							Poly.Type type = descript.getPos().getPolyType();
-							String portName = pp.getProtoName();
-							if (portDisplayLevel == 1)
-							{
-								// use shorter port name
-								portName = pp.getShortProtoName();
-							}
-							Point pt = wnd.databaseToScreen(portPoly.getCenterX(), portPoly.getCenterY());
-							Rectangle rect = new Rectangle(pt);
-							drawText(rect, type, descript, portName, null, portGraphics);
-						}
-					}
-				}
-				fs.freeFlagSet();
+				// draw the black box of the instance
+				drawUnexpandedCell(ni, trans);
 			}
 
 			// draw any displayable variables on the instance
@@ -467,10 +608,36 @@ public class PixelDrawing
 	}
 
 	/**
-	 * Method to draw arc "ai", transformed through "trans".
+	 * Method to render an ArcInst into the offscreen image.
+	 * @param ai the ArcInst to draw.
+	 * @param trans the transformation of the ArcInst to the display.
 	 */
 	public void drawArc(ArcInst ai, AffineTransform trans)
 	{
+		// see if the arc is completely clipped from the screen
+		Rectangle2D arcBounds = ai.getBounds();
+		double arcSize = Math.max(arcBounds.getWidth(), arcBounds.getHeight());
+
+		// if the arc it tiny, just approximate it with a single dot
+		totalArcs++;
+		if (arcSize * wnd.getScale() < 2)
+		{
+			tinyArcs++;
+
+			// draw a tiny arc by setting a single dot from each layer
+			Point2D ctr = ai.getTrueCenter();
+			trans.transform(ctr, ctr);
+			int x = wnd.databaseToScreenX(ctr.getX());
+			int y = wnd.databaseToScreenY(ctr.getY());
+			if (x >= 0 && x < sz.width && y >= 0 && y < sz.height)
+			{
+				PrimitiveArc prim = (PrimitiveArc)ai.getProto();
+				drawTinyLayers(prim.layerIterator(), x, y);
+			}
+			return;
+		}
+
+		// draw the arc
 		ArcProto ap = ai.getProto();
 		Technology tech = ap.getTechnology();
 		EditWindow arcWnd = wnd;
@@ -478,6 +645,325 @@ public class PixelDrawing
 		Poly [] polys = tech.getShapeOfArc(ai, arcWnd);
 		drawPolys(polys, trans);
 	}
+
+	private void drawUnexpandedCell(NodeInst ni, AffineTransform trans)
+	{
+		NodeProto np = ni.getProto();
+
+		// draw the instance outline
+		Poly poly = new Poly(ni.getTrueCenterX(), ni.getTrueCenterY(), ni.getXSize(), ni.getYSize());
+		AffineTransform localPureTrans = ni.rotateOutAboutTrueCenter(trans);
+		poly.transform(localPureTrans);
+		Point2D [] points = poly.getPoints();
+		for(int i=0; i<points.length; i++)
+		{
+			int lastI = i - 1;
+			if (lastI < 0) lastI = points.length - 1;
+			Point from = wnd.databaseToScreen(points[lastI]);
+			Point to = wnd.databaseToScreen(points[i]);
+			drawLine(from, to, null, blackGraphics, 0);
+		}
+
+		// draw the instance name
+		if (User.isTextVisibilityOnInstance())
+		{
+			Rectangle2D bounds = poly.getBounds2D();
+			Rectangle rect = wnd.databaseToScreen(bounds);
+			TextDescriptor descript = ni.getProtoTextDescriptor();
+			drawText(rect, Poly.Type.TEXTBOX, descript, np.describe(), null, blackGraphics);
+		}
+
+		// show the ports that are not further exported or connected
+		FlagSet fs = PortProto.getFlagSet(1);
+		for(Iterator it = ni.getProto().getPorts(); it.hasNext(); )
+		{
+			PortProto pp = (PortProto)it.next();
+			pp.clearBit(fs);
+		}
+		for(Iterator it = ni.getConnections(); it.hasNext();)
+		{
+			Connection con = (Connection) it.next();
+			PortInst pi = con.getPortInst();
+			pi.getPortProto().setBit(fs);
+		}
+		for(Iterator it = ni.getExports(); it.hasNext();)
+		{
+			Export exp = (Export) it.next();
+			PortInst pi = exp.getOriginalPort();
+			pi.getPortProto().setBit(fs);
+		}
+		int portDisplayLevel = User.getPortDisplayLevel();
+		for(Iterator it = ni.getProto().getPorts(); it.hasNext(); )
+		{
+			PortProto pp = (PortProto)it.next();
+			if (pp.isBit(fs)) continue;
+
+			Poly portPoly = ni.getShapeOfPort(pp);
+			if (portPoly == null) continue;
+			portPoly.transform(trans);
+			Color col = pp.colorOfPort();
+			portGraphics.setColor(col);
+			if (portDisplayLevel == 2)
+			{
+				// draw port as a cross
+				drawCross(portPoly, portGraphics);
+			} else
+			{
+				// draw port as text
+				if (User.isTextVisibilityOnPort())
+				{
+					TextDescriptor descript = portPoly.getTextDescriptor();
+					Poly.Type type = descript.getPos().getPolyType();
+					String portName = pp.getProtoName();
+					if (portDisplayLevel == 1)
+					{
+						// use shorter port name
+						portName = pp.getShortProtoName();
+					}
+					Point pt = wnd.databaseToScreen(portPoly.getCenterX(), portPoly.getCenterY());
+					Rectangle rect = new Rectangle(pt);
+					drawText(rect, type, descript, portName, null, portGraphics);
+				}
+			}
+		}
+		fs.freeFlagSet();
+	}
+
+	private void drawTinyLayers(Iterator layerIterator, int x, int y)
+	{
+		for(Iterator it = layerIterator; it.hasNext(); )
+		{
+			Layer layer = (Layer)it.next();
+			if (layer == null) continue;
+			int layerNum = -1;
+			Color col = Color.BLACK;
+			EGraphics graphics = layer.getGraphics();
+			if (graphics != null)
+			{
+				if (graphics.isPatternedOnDisplay())
+				{
+					int [] pattern = graphics.getPattern();
+					if (pattern != null)
+					{
+						int pat = pattern[y&15];
+						if (pat == 0 || (pat & (0x8000 >> (x&15))) == 0) continue;
+					}
+				}
+				layerNum = graphics.getTransparentLayer() - 1;
+				col = graphics.getColor();
+			}
+			if (layerNum >= numLayerBitMaps) continue;
+			byte [][] layerBitMap = getLayerBitMap(layerNum);
+
+			// set the bit
+			if (layerBitMap == null)
+			{
+				opaqueData[y * sz.width + x] = col.getRGB();
+			} else
+			{
+				layerBitMap[y][x>>3] |= (1 << (x&7));
+			}
+		}
+	}
+
+	// ************************************* CELL CACHING *************************************
+
+	/**
+	 * @return true if the cell is properly handled and need no further processing.
+	 * False to render the contents recursively.
+	 */
+	private boolean expandedCellCached(Cell subCell, AffineTransform subTrans)
+	{
+		// if there is no global for remembering cached cells, do not cache
+		if (expandedCells == null) return false;
+
+		// do not cache icons: they can be redrawn each time
+		if (subCell.getView() == View.ICON) return false;
+
+		// find this cell-transformation combination in the global list of cached cells
+		String expandedName = makeExpandedName(subCell, subTrans);
+		ExpandedCellInfo expandedCellCount = (ExpandedCellInfo)expandedCells.get(expandedName);
+		if (expandedCellCount != null)
+		{
+			// if this combination is not used multiple times, do not cache it
+			if (expandedCellCount.instanceCount < 2) return false;
+		}
+
+		// compute where this cell lands on the screen
+		Rectangle2D cellBounds = new Rectangle2D.Double();
+		cellBounds.setRect(subCell.getBounds());
+		Poly poly = new Poly(cellBounds);
+		poly.transform(subTrans);
+		Rectangle screenBounds = new Rectangle(wnd.databaseToScreen(poly.getBounds2D()));
+		if (screenBounds.width <= 0 || screenBounds.height <= 0) return true;
+
+		// do not cache if the cell is too large (creates immense offscreen buffers)
+		if (screenBounds.width >= topSz.width/2 && screenBounds.height >= topSz.height/2)
+			return false;
+
+		// if this is the first use, create the offscreen buffer
+		if (expandedCellCount == null)
+		{
+			expandedCellCount = new ExpandedCellInfo();
+			expandedCellCount.instanceCount = 0;
+			expandedCellCount.wnd = null;
+			expandedCells.put(expandedName, expandedCellCount);
+		}
+
+		// render into the offscreen buffer (on the first time)
+		EditWindow renderedCell = expandedCellCount.wnd;
+		if (renderedCell == null)
+		{
+			renderedCell = EditWindow.CreateElectricDoc(subCell, null);
+			expandedCellCount.wnd = renderedCell;
+			renderedCell.setScreenSize(new Dimension(screenBounds.width, screenBounds.height));
+			renderedCell.setScale(wnd.getScale());
+
+			renderedCell.getOffscreen().clearImage(true);
+			Point2D cellCtr = new Point2D.Double(cellBounds.getCenterX(), cellBounds.getCenterY());
+			subTrans.transform(cellCtr, cellCtr);
+			renderedCell.setOffset(cellCtr);
+
+			// render the contents of the expanded cell into its own offscreen cache
+			renderedCell.getOffscreen().drawCell(subCell, subTrans, true);
+			offscreensCreated++;
+		}
+
+		// copy out of the offscreen buffer into the main buffer
+		copyBits(renderedCell, screenBounds);
+		offscreensUsed++;
+		return true;
+	}
+
+	/**
+	 * Recursive method to count the number of times that a cell-transformation is used
+	 */
+	private void countCell(Cell cell, AffineTransform prevTrans)
+	{
+		// look for subcells
+		for(Iterator nodes = cell.getNodes(); nodes.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)nodes.next();
+			if (!(ni.getProto() instanceof Cell)) continue;
+			countNode(ni, prevTrans);
+		}
+	}
+
+	/**
+	 * Recursive method to count the number of times that a cell-transformation is used
+	 */
+	private void countNode(NodeInst ni, AffineTransform trans)
+	{
+		NodeProto np = ni.getProto();
+		Cell subCell = (Cell)np;
+
+		// if the node is tiny, it will be approximated
+		double halfWidth = Math.max(ni.getXSize(), ni.getYSize()) / 2;
+		if (halfWidth * wnd.getScale() < 1) return;
+
+		// see if the node is completely clipped from the screen
+		Point2D ctr = ni.getTrueCenter();
+		trans.transform(ctr, ctr);
+		Rectangle2D databaseBounds = wnd.getDisplayedBounds();
+		double ctrX = ctr.getX();
+		double ctrY = ctr.getY();
+		if (ctrX + halfWidth < databaseBounds.getMinX()) return;
+		if (ctrX - halfWidth > databaseBounds.getMaxX()) return;
+		if (ctrY + halfWidth < databaseBounds.getMinY()) return;
+		if (ctrY - halfWidth > databaseBounds.getMaxY()) return;
+
+		// only interested in expanded instances
+		if (!ni.isExpanded()) return;
+
+		// transform into the subcell
+		AffineTransform localTrans = ni.rotateOut(trans);
+		AffineTransform subTrans = ni.translateOut(localTrans);
+
+		// compute where this cell lands on the screen
+		Rectangle2D cellBounds = subCell.getBounds();
+		Poly poly = new Poly(cellBounds);
+		poly.transform(subTrans);
+		Rectangle screenBounds = wnd.databaseToScreen(poly.getBounds2D());
+		if (screenBounds.width <= 0 || screenBounds.height <= 0) return;
+		if (screenBounds.width < sz.width/2 || screenBounds.height <= sz.height/2)
+		{
+			// construct the cell name that combines with the transformation
+			String expandedName = makeExpandedName(subCell, subTrans);
+			ExpandedCellInfo expansionCount = (ExpandedCellInfo)expandedCells.get(expandedName);
+			if (expansionCount == null)
+			{
+				expansionCount = new ExpandedCellInfo();
+				expansionCount.instanceCount = 1;
+				expandedCells.put(expandedName, expansionCount);
+			} else
+			{
+				expansionCount.instanceCount++;
+				return;
+			}
+		}
+
+		// now recurse
+		countCell(subCell, subTrans);
+	}
+
+	/**
+	 * Method to construct a string that describes a transformation of a cell.
+	 * Appends the upper-left 2x2 part of the transformation matrix to the cell name.
+	 * Scaling by 100 and making it an integer ensures that similar transformation
+	 * matrices get merged into one name.
+	 */
+	private String makeExpandedName(Cell subCell, AffineTransform subTrans)
+	{
+		int t00 = (int)(subTrans.getScaleX() * 100);
+		int t01 = (int)(subTrans.getShearX() * 100);
+		int t10 = (int)(subTrans.getShearY() * 100);
+		int t11 = (int)(subTrans.getScaleY() * 100);
+		String expandedName = subCell.describe() + " " + t00 + " " + t01 + " " + t10 + " " + t11;
+		return expandedName;
+	}
+
+	/**
+	 * Method to copy the offscreen bits for a cell into the offscreen bits for the entire screen.
+	 */
+	private void copyBits(EditWindow renderedCell, Rectangle screenBounds)
+	{
+		PixelDrawing srcOffscreen = renderedCell.getOffscreen();
+//		if (srcOffscreen.layerBitMaps == null)
+//		{
+//			System.out.println("Null bitmaps, at "+screenBounds);
+//			return;
+//		}
+		Dimension dim = srcOffscreen.sz;
+		for(int srcY=0; srcY<dim.height; srcY++)
+		{
+			int destY = srcY + screenBounds.y;
+			if (destY < 0 || destY >= sz.height) continue;
+			int srcBase = srcY * dim.width;
+			int destBase = destY * sz.width;
+
+			for(int srcX=0; srcX<dim.width; srcX++)
+			{
+				int destX = srcX + screenBounds.x;
+				if (destX < 0 || destX >= sz.width) continue;
+				int srcColor = srcOffscreen.opaqueData[srcBase + srcX];
+				if (srcColor != backgroundValue)
+					opaqueData[destBase + destX] = srcColor;
+				for(int i=0; i<numLayerBitMaps; i++)
+				{
+					byte [][] srcLayerBitMap = srcOffscreen.layerBitMaps[i];
+					if (srcLayerBitMap == null) continue;
+					byte [] srcRow = srcLayerBitMap[srcY];
+
+					byte [][] destLayerBitMap = getLayerBitMap(i);
+					byte [] destRow = destLayerBitMap[destY];
+					if ((srcRow[srcX>>3] & (1<<(srcX&7))) != 0)
+						destRow[destX>>3] |= (1 << (destX&7));
+				}
+			}
+		}
+	}
+
+	// ************************************* RENDERING POLY SHAPES *************************************
 
 	/**
 	 * Method to draw polygon "poly", transformed through "trans".
@@ -526,6 +1012,27 @@ public class PixelDrawing
 		}
 	}
 
+	private byte [][] getLayerBitMap(int layerNum)
+	{
+		if (layerNum < 0) return null;
+
+		byte [][] layerBitMap = layerBitMaps[layerNum];
+		if (layerBitMap == null)
+		{
+			 // allocate this bitplane dynamically
+			layerBitMap = new byte[sz.height][];
+			for(int y=0; y<sz.height; y++)
+			{
+				byte [] row = new byte[numBytesPerRow];
+				for(int x=0; x<numBytesPerRow; x++) row[x] = 0;
+				layerBitMap[y] = row;
+			}
+			layerBitMaps[layerNum] = layerBitMap;
+			numLayerBitMapsCreated++;
+		}
+		return layerBitMap;
+	}
+
 	/**
 	 * Render a Poly to the offscreen buffer.
 	 */
@@ -534,25 +1041,7 @@ public class PixelDrawing
 		int layerNum = -1;
 		if (graphics != null) layerNum = graphics.getTransparentLayer() - 1;
 		if (layerNum >= numLayerBitMaps) return;
-
-		byte [][] layerBitMap = null;
-		if (layerNum >= 0)
-		{
-			layerBitMap = layerBitMaps[layerNum];
-			if (layerBitMap == null)
-			{
-				 // allocate this bitplane dynamically
-				layerBitMap = new byte[sz.height][];
-				for(int y=0; y<sz.height; y++)
-				{
-					byte [] row = new byte[numBytesPerRow];
-					for(int x=0; x<numBytesPerRow; x++) row[x] = 0;
-					layerBitMap[y] = row;
-				}
-				layerBitMaps[layerNum] = layerBitMap;
-				numLayerBitMapsCreated++;
-			}
-		}
+		byte [][] layerBitMap = getLayerBitMap(layerNum);
 
 		// now draw it
 		Poly.Type style = poly.getStyle();
@@ -691,7 +1180,88 @@ public class PixelDrawing
 		}
 	}
 
-	/****************************** LINE DRAWING ******************************/
+	// ************************************* BOX DRAWING *************************************
+
+	/*
+	 * Method to draw a box on the off-screen buffer.
+	 */
+	private void drawBox(int lX, int hX, int lY, int hY, byte [][] layerBitMap, EGraphics desc)
+	{
+		// get color and pattern information
+		Color col = Color.BLACK;
+		int [] pattern = null;
+		if (desc != null)
+		{
+			col = desc.getColor();
+			if (desc.isPatternedOnDisplay())
+				pattern = desc.getPattern();
+		}
+
+		// different code for patterned and solid
+		if (pattern == null)
+		{
+			// solid fill
+			if (layerBitMap == null)
+			{
+				// solid fill in opaque area
+				int colorValue = col.getRGB();
+				for(int y=lY; y<=hY; y++)
+				{
+					int baseIndex = y * sz.width + lX;
+					for(int x=lX; x<=hX; x++)
+						opaqueData[baseIndex++] = colorValue;
+				}
+			} else
+			{
+				// solid fill in transparent layers
+				for(int y=lY; y<=hY; y++)
+				{
+					byte [] row = layerBitMap[y];
+					for(int x=lX; x<=hX; x++)
+						row[x>>3] |= (1 << (x&7));
+				}
+			}
+		} else
+		{
+			// patterned fill
+			if (layerBitMap == null)
+			{
+				// patterned fill in opaque area
+				int colorValue = col.getRGB();
+				for(int y=lY; y<=hY; y++)
+				{
+					// setup pattern for this row
+					int pat = pattern[y&15];
+					if (pat == 0) continue;
+
+					int baseIndex = y * sz.width;
+					for(int x=lX; x<=hX; x++)
+					{
+						if ((pat & (0x8000 >> (x&15))) != 0)
+							opaqueData[baseIndex + x] = colorValue;
+					}
+				}
+			} else
+			{
+				// patterned fill in transparent layers
+				for(int y=lY; y<=hY; y++)
+				{
+					// setup pattern for this row
+					int pat = pattern[y&15];
+					if (pat == 0) continue;
+
+					byte [] row = layerBitMap[y];
+					for(int x=lX; x<=hX; x++)
+					{
+						if ((pat & (0x8000 >> (x&15))) != 0)
+							row[x>>3] |= (1 << (x&7));
+					}
+				}
+			}
+		}
+	}
+
+	// ************************************* LINE DRAWING *************************************
 
 	/*
 	 * Method to draw a line on the off-screen buffer.
@@ -941,7 +1511,7 @@ public class PixelDrawing
 		}
 	}
 
-	/****************************** POLYGON DRAWING ******************************/
+	// ************************************* POLYGON DRAWING *************************************
 
 	/*
 	 * Method to draw a polygon on the off-screen buffer.
@@ -1146,54 +1716,7 @@ public class PixelDrawing
 		}
 	}
 
-	/****************************** BOX DRAWING ******************************/
-
-	/*
-	 * Method to draw a box on the off-screen buffer.
-	 */
-	private void drawBox(int lX, int hX, int lY, int hY, byte [][] layerBitMap, EGraphics desc)
-	{
-		// get color and pattern information
-		Color col = Color.BLACK;
-		int [] pattern = null;
-		if (desc != null)
-		{
-			col = desc.getColor();
-			if (desc.isPatternedOnDisplay())
-				pattern = desc.getPattern();
-		}
-
-		// run through each row
-		for(int y=lY; y<=hY; y++)
-		{
-			// setup pattern for this row
-			int pat = 0;
-			if (pattern != null)
-			{
-				pat = pattern[y&15];
-				if (pat == 0) continue;
-			}
-
-			// setup pointers for filling this row
-			byte [] row = null;
-			int baseIndex = 0;
-			if (layerBitMap == null) baseIndex = y * sz.width; else
-				row = layerBitMap[y];
-
-			// process the row
-			for(int x=lX; x<= hX; x++)
-			{
-				// ignore if not in the pattern
-				if (pattern != null && (pat & (0x8000 >> (x&15))) == 0) continue;
-
-				// render the pixel
-				if (layerBitMap == null) opaqueData[baseIndex + x] = col.getRGB();  else
-					row[x>>3] |= (1 << (x&7));
-			}
-		}
-	}
-
-	/****************************** TEXT DRAWING ******************************/
+	// ************************************* TEXT DRAWING *************************************
 
 	/*
 	 * Method to draw a text on the off-screen buffer
@@ -1229,10 +1752,17 @@ public class PixelDrawing
 				if (af != null) fontName = af.getName();
 			}
 		}
-		Raster ras = renderText(s, fontName, size, italic, bold);
+		int boxedWidth = -1, boxedHeight = -1;
+		if (style == Poly.Type.TEXTBOX)
+		{
+			boxedWidth = (int)rect.getWidth();
+			boxedHeight = (int)rect.getHeight();
+		}
+		Raster ras = renderText(s, fontName, size, italic, bold, boxedWidth, boxedHeight);
+		if (ras == null) return;
 		Point pt = getTextCorner(ras, style, rect);
 		int atX = pt.x;
-		int atY = pt.y - ras.getHeight();
+		int atY = pt.y;
 		DataBufferByte dbb = (DataBufferByte)ras.getDataBuffer();
 		byte [] samples = dbb.getData();
 
@@ -1341,33 +1871,33 @@ public class PixelDrawing
 		if (style == Poly.Type.TEXTCENT)
 		{
 			cX -= textWidth/2;
-			cY += textHeight/2;
+			cY -= textHeight/2;
 		} else if (style == Poly.Type.TEXTTOP)
 		{
 			cX -= textWidth/2;
-			cY -= textHeight;
 		} else if (style == Poly.Type.TEXTBOT)
 		{
 			cX -= textWidth/2;
+			cY -= textHeight;
 		} else if (style == Poly.Type.TEXTLEFT)
 		{
-			cY += textHeight/2;
+			cY -= textHeight/2;
 		} else if (style == Poly.Type.TEXTRIGHT)
 		{
 			cX -= textWidth;
-			cY += textHeight/2;
+			cY -= textHeight/2;
 		} else if (style == Poly.Type.TEXTTOPLEFT)
 		{
-			cY -= textHeight;
 		} else if (style == Poly.Type.TEXTBOTLEFT)
 		{
+			cY -= textHeight;
 		} else if (style == Poly.Type.TEXTTOPRIGHT)
 		{
 			cX -= textWidth;
-			cY -= textHeight;
 		} else if (style == Poly.Type.TEXTBOTRIGHT)
 		{
 			cX -= textWidth;
+			cY -= textHeight;
 		} if (style == Poly.Type.TEXTBOX)
 		{
 //			if (textWidth > rect.getWidth())
@@ -1381,13 +1911,25 @@ public class PixelDrawing
 		return new Point(cX, cY);
 	}
 
-	public static Raster renderText(String msg, String font, int tsize, boolean italic, boolean bold)
+	/**
+	 * Method to convert text to an array of pixels.
+	 * This is used for text rendering, as well as for creating "layout text" which is placed as geometry in the circuit.
+	 * @param msg the string of text to be converted.
+	 * @param font the name of the font to use.
+	 * @param tSize the size of the font to use.
+	 * @param italic true to make the text italic.
+	 * @param bold true to make the text bold.
+	 * @param boxedWidth the maximum width of the text (it is scaled down to fit).
+	 * @param boxedHeight the maximum height of the text (it is scaled down to fit).
+	 * @return a Raster with the text bits.
+	 */
+	public static Raster renderText(String msg, String font, int tSize, boolean italic, boolean bold, int boxedWidth, int boxedHeight)
 	{
 		// get the font
 		int fontStyle = Font.PLAIN;
 		if (italic) fontStyle |= Font.ITALIC;
 		if (bold) fontStyle |= Font.BOLD;
-		Font theFont = new Font(font, fontStyle, tsize);
+		Font theFont = new Font(font, fontStyle, tSize);
 		if (theFont == null)
 		{
 			System.out.println("Could not find the proper font");
@@ -1397,22 +1939,50 @@ public class PixelDrawing
 		// convert the text to a GlyphVector
 		FontRenderContext frc = new FontRenderContext(null, false, false);
 		GlyphVector gv = theFont.createGlyphVector(frc, msg);
+		java.awt.font.LineMetrics lm = theFont.getLineMetrics(msg, frc);
+		double lmHeight = lm.getHeight();
+		double lmAscent = lm.getAscent();
+		double lmDescent = lm.getDescent();
+		double lmLeading = lm.getLeading();
 
 		// allocate space for the rendered text
 		Rectangle rect = gv.getPixelBounds(frc, 0, 0);
-		int height = theFont.getSize();
+		int height = (int)(lmHeight+0.5);
+		if (rect.width <= 0 || height <= 0) return null;
+
+		// if text is to be "boxed", make sure it fits
+		if (boxedWidth > 0 && boxedHeight > 0)
+		{
+			if (rect.width > boxedWidth || height > boxedHeight)
+			{
+				double scale = Math.min((double)boxedWidth / rect.width, (double)boxedHeight / height);
+				theFont = new Font(font, fontStyle, (int)(tSize*scale));
+				if (theFont != null)
+				{
+					// convert the text to a GlyphVector
+					frc = new FontRenderContext(null, false, false);
+					gv = theFont.createGlyphVector(frc, msg);
+
+					// allocate space for the rendered text
+					rect = gv.getPixelBounds(frc, 0, 0);
+					height = theFont.getSize();
+					if (height <= 0) return null;
+				}
+			}
+		}
 		BufferedImage textImage = new BufferedImage(rect.width, height, BufferedImage.TYPE_BYTE_GRAY);
 
 		// now render it
 		Graphics2D g2 = (Graphics2D)textImage.getGraphics();
 		g2.setColor(new Color(128,128,128));
-		g2.drawGlyphVector(gv, (float)-rect.x, (float)-rect.y);
+//System.out.println("Text has overall height="+height+" but descent="+lm.getDescent()+", ascent="+lm.getAscent()+", leading="+lm.getLeading()+", height="+lm.getHeight());
+		g2.drawGlyphVector(gv, (float)-rect.x, (float)(lmAscent-lmLeading));
 
 		// return the bits
 		return textImage.getData();
 	}
 
-	/****************************** CIRCLE DRAWING ******************************/
+	// ************************************* CIRCLE DRAWING *************************************
 
 	/*
 	 * Method to draw a circle on the off-screen buffer
@@ -1691,7 +2261,7 @@ public class PixelDrawing
 		}
 	}
 
-	/****************************** DISC DRAWING ******************************/
+	// ************************************* DISC DRAWING *************************************
 
 	/*
 	 * Method to draw a scan line of the filled-in circle of radius "radius"
@@ -1798,7 +2368,7 @@ public class PixelDrawing
 		}
 	}
 
-	/****************************** ARC DRAWING ******************************/
+	// ************************************* ARC DRAWING *************************************
 
 	private boolean [] arcOctTable = new boolean[9];
 	private Point      arcCenter;
@@ -2026,7 +2596,7 @@ public class PixelDrawing
 	private int MODM(int x) { return (x<1) ? x+8 : x; }
 	private int MODP(int x) { return (x>8) ? x-8 : x; }
 
-	/****************************** SUPPORT ******************************/
+	// ************************************* RENDERING SUPPORT *************************************
 
 	private void drawPoint(int x, int y, byte [][] layerBitMap, Color col)
 	{
@@ -2066,7 +2636,7 @@ public class PixelDrawing
 		}
 	}
 
-	/****************************** CLIPPING ******************************/
+	// ************************************* CLIPPING *************************************
 
 	// clipping directions
 	private static final int LEFT   = 1;

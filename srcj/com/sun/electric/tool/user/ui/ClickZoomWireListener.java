@@ -41,14 +41,14 @@ import java.util.List;
 import java.util.Iterator;
 
 /**
- * User: gainsley
- * Date: Feb 19, 2004
- * Time: 2:53:33 PM
- *
- * <p>Handles Selection, Zooming, and Wiring
+ * Handles Selection, Zooming, and Wiring.
  * <p>The Left Mouse Button handles Selection and Moving
  * <p>The Right Mouse Button handles Zooming and Wiring
  * <p>The Mouse Wheel handles panning
+ *
+ * User: gainsley
+ * Date: Feb 19, 2004
+ * Time: 2:53:33 PM
  */
 public class ClickZoomWireListener
     implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
@@ -148,7 +148,7 @@ public class ClickZoomWireListener
         return true;
     }
 
-    /** Handle mouse press events
+    /** Handle mouse press events.
      * <p>Left Mouse Click: Select
      * <p>Left Mouse Drag: Move Objects (or select area if not on object)
      * <p>Left Mouse Double-Click: Get Info
@@ -318,7 +318,7 @@ public class ClickZoomWireListener
 
     }
 
-    /** Handle mouse dragged event
+    /** Handle mouse dragged event.
      * <p>Left Mouse Drag: Move Objects (or select area if not on object)
      * <p>Right Mouse Click/Drag: Connect wire
      * <p>Right Mouse Drag + (later) CTRL: Connect wire in space (ignore objects)

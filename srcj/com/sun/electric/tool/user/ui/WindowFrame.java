@@ -106,8 +106,8 @@ public class WindowFrame
 
 		// initialize the frame
 		Dimension scrnSize = TopLevel.getScreenSize();
-		Dimension frameSize = new Dimension(scrnSize.width * 4 / 5, scrnSize.height * 5 / 8);
-        String cellDescription = (cell == null) ? "no cell" : cell.describe();
+		Dimension frameSize = new Dimension(scrnSize.width * 4 / 5, scrnSize.height * 6 / 8);
+		String cellDescription = (cell == null) ? "no cell" : cell.describe();
 		if (TopLevel.isMDIMode())
 		{
 			frame.jif = new JInternalFrame(cellDescription, true, true, true, true);
@@ -240,6 +240,20 @@ public class WindowFrame
 		}
 	}
 
+	public void setWindowSize(Rectangle frameRect)
+	{
+		Dimension frameSize = new Dimension(frameRect.width, frameRect.height);
+		if (TopLevel.isMDIMode())
+		{
+			jif.setSize(frameSize);
+			jif.setLocation(frameRect.x, frameRect.y);
+		} else
+		{
+			jf.setSize(frameSize);
+			jf.setLocation(frameRect.x, frameRect.y);
+		}
+	}
+
 	/**
 	 * Method to record that this WindowFrame has been closed.
 	 * This method is called from the event handlers on the windows.
@@ -282,8 +296,8 @@ public class WindowFrame
 	public JTextArea getTextEditWindow() { return textWnd; }
 
 	/**
-	 * Method to control whether text editing or circuit editing is being shown.
-	 * @param on true if text editing is to be shown.
+	 * Method to control the contents of this WindowFrame (text editing or circuit editing).
+	 * @param contents TEXTWINDOW if text editing is to be shown; DISPWINDOW for circuit editing.
 	 */
 	public void setContent(int contents)
 	{
@@ -320,6 +334,12 @@ public class WindowFrame
 	 * @return the TopLevel associated with this WindowFrame.
 	 */
 	public TopLevel getFrame() { return jf; }
+
+	/**
+	 * Method to return the number of WindowFrames.
+	 * @return the number of WindowFrames.
+	 */
+	public static int getNumWindows() { return windowList.size(); }
 
 	/**
 	 * Method to return an Iterator over all WindowFrames.

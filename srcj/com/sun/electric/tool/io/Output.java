@@ -500,7 +500,7 @@ public class Output extends IOTool
 	public static boolean isUseCopyrightMessage() { return cacheUseCopyrightMessage.getBoolean(); }
 	/**
 	 * Method to set whether to add the copyright message to output decks.
-	 * @param m true to add the copyright message to output decks.
+	 * @param u true to add the copyright message to output decks.
 	 */
 	public static void setUseCopyrightMessage(boolean u) { cacheUseCopyrightMessage.setBoolean(u); }
 

@@ -120,7 +120,7 @@ public abstract class JemStrat {
 
     /** 
 	 * doFor(NetObject) tests the NetObject to decide its catagory.
-	 * @param  n the NetObject to catagorize
+	 * @param n The NetObject to catagorize
 	 * @return an Integer for the choice, or null to drop this NetObject.
 	 */
     public abstract Integer doFor(NetObject n);

@@ -95,8 +95,12 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.ExplorerTree;
+import com.sun.electric.tool.user.ui.PaletteFrame;
+import com.sun.electric.tool.user.ui.MessagesWindow;
 
 import java.awt.Toolkit;
+import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
@@ -321,6 +325,20 @@ public final class MenuCommands
 		editMenu.add(selListSubMenu);
 		selListSubMenu.addMenuItem("Select All", KeyStroke.getKeyStroke('A', buckyBit), 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectAllCommand(); }});
+		selListSubMenu.addMenuItem("Select All Like This", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { selectAllLikeThisCommand(); }});
+		selListSubMenu.addMenuItem("Select Easy", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { selectEasyCommand(); }});
+		selListSubMenu.addMenuItem("Select Hard", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { selectHardCommand(); }});
+		selListSubMenu.addMenuItem("Select Nothing", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { selectNothingCommand(); }});
+		selListSubMenu.addSeparator();
+		selListSubMenu.addMenuItem("Make Selected Easy", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { selectMakeEasyCommand(); }});
+		selListSubMenu.addMenuItem("Make Selected Hard", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { selectMakeHardCommand(); }});
+		selListSubMenu.addSeparator();
 		selListSubMenu.addMenuItem("Show Next Error", KeyStroke.getKeyStroke('>'), 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showNextErrorCommand(); }});
 		selListSubMenu.addMenuItem("Show Previous Error", KeyStroke.getKeyStroke('<'), 
@@ -478,6 +496,17 @@ public final class MenuCommands
 
 		windowMenu.addMenuItem("Toggle Grid", KeyStroke.getKeyStroke('G', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { toggleGridCommand(); } });
+
+		windowMenu.addSeparator();
+
+		Menu windowPartitionSubMenu = Menu.createMenu("Adjust Position");
+		windowMenu.add(windowPartitionSubMenu);
+		windowPartitionSubMenu.addMenuItem("Tile Horizontally", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { tileHorizontallyCommand(); }});
+		windowPartitionSubMenu.addMenuItem("Tile Vertically", KeyStroke.getKeyStroke(KeyEvent.VK_F9, 0), 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { tileVerticallyCommand(); }});
+		windowPartitionSubMenu.addMenuItem("Cascade", null, 
+			new ActionListener() { public void actionPerformed(ActionEvent e) { cascadeWindowsCommand(); }});
 
 		windowMenu.addSeparator();
 
@@ -1188,15 +1217,41 @@ public final class MenuCommands
 	 */
 	public static void selectAllCommand()
 	{
+		doSelection(false, false);
+	}
+
+	/**
+	 * This method implements the command to highlight all objects in the current Cell
+	 * that are easy to select.
+	 */
+	public static void selectEasyCommand()
+	{
+		doSelection(true, false);
+	}
+
+	/**
+	 * This method implements the command to highlight all objects in the current Cell
+	 * that are hard to select.
+	 */
+	public static void selectHardCommand()
+	{
+		doSelection(false, true);
+	}
+
+	private static void doSelection(boolean mustBeEasy, boolean mustBeHard)
+	{
 		Cell curCell = Library.needCurCell();
 		if (curCell == null) return;
 
-		boolean ignoreCells = !User.isEasySelectionOfCellInstances();
+		boolean cellsAreHard = !User.isEasySelectionOfCellInstances();
 		Highlight.clear();
 		for(Iterator it = curCell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			if ((ni.getProto() instanceof Cell) && ignoreCells) continue;
+			boolean hard = ni.isHardSelect();
+			if ((ni.getProto() instanceof Cell) && cellsAreHard) hard = true;
+			if (mustBeEasy && hard) continue;
+			if (mustBeHard && !hard) continue;
 			if (ni.isInvisiblePinWithText())
 			{
 				for(Iterator vIt = ni.getVariables(); vIt.hasNext(); )
@@ -1216,9 +1271,120 @@ public final class MenuCommands
 		for(Iterator it = curCell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
+			boolean hard = ai.isHardSelect();
+			if (mustBeEasy && hard) continue;
+			if (mustBeHard && !hard) continue;
 			Highlight.addElectricObject(ai, curCell);
 		}
 		Highlight.finished();
+	}
+
+	/**
+	 * This method implements the command to highlight all objects in the current Cell
+	 * that are like the currently selected object.
+	 */
+	public static void selectAllLikeThisCommand()
+	{
+		Cell curCell = Library.needCurCell();
+		if (curCell == null) return;
+
+		HashMap likeThis = new HashMap();
+		List highlighted = Highlight.getHighlighted(true, true);
+		for(Iterator it = highlighted.iterator(); it.hasNext(); )
+		{
+			Geometric geom = (Geometric)it.next();
+			if (geom instanceof NodeInst)
+			{
+				NodeInst ni = (NodeInst)geom;
+				likeThis.put(ni.getProto(), ni);
+			} else
+			{
+				ArcInst ai = (ArcInst)geom;
+				likeThis.put(ai.getProto(), ai);
+			}
+		}
+
+		Highlight.clear();
+		for(Iterator it = curCell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			Object isLikeThis = likeThis.get(ni.getProto());
+			if (isLikeThis == null) continue;
+			if (ni.isInvisiblePinWithText())
+			{
+				for(Iterator vIt = ni.getVariables(); vIt.hasNext(); )
+				{
+					Variable var = (Variable)vIt.next();
+					if (var.isDisplay())
+					{
+						Highlight.addText(ni, curCell, var, null);
+						break;
+					}
+				}
+			} else
+			{
+				Highlight.addElectricObject(ni, curCell);
+			}
+		}
+		for(Iterator it = curCell.getArcs(); it.hasNext(); )
+		{
+			ArcInst ai = (ArcInst)it.next();
+			Object isLikeThis = likeThis.get(ai.getProto());
+			if (isLikeThis == null) continue;
+			Highlight.addElectricObject(ai, curCell);
+		}
+		Highlight.finished();
+	}
+
+	/**
+	 * This method implements the command to highlight nothing in the current Cell.
+	 */
+	public static void selectNothingCommand()
+	{
+		Highlight.clear();
+		Highlight.finished();
+	}
+
+	/**
+	 * This method implements the command to make all selected objects be easy-to-select.
+	 */
+	public static void selectMakeEasyCommand()
+	{
+		List highlighted = Highlight.getHighlighted(true, true);
+		for(Iterator it = highlighted.iterator(); it.hasNext(); )
+		{
+			Geometric geom = (Geometric)it.next();
+			if (geom instanceof NodeInst)
+			{
+				NodeInst ni = (NodeInst)geom;
+				ni.clearHardSelect();
+			} else
+			{
+				ArcInst ai = (ArcInst)geom;
+				ai.clearHardSelect();
+			}
+		}
+	}
+
+	/**
+	 * This method implements the command to make all selected objects be hard-to-select.
+	 */
+	public static void selectMakeHardCommand()
+	{
+		List highlighted = Highlight.getHighlighted(true, true);
+		for(Iterator it = highlighted.iterator(); it.hasNext(); )
+		{
+			Geometric geom = (Geometric)it.next();
+			if (geom instanceof NodeInst)
+			{
+				NodeInst ni = (NodeInst)geom;
+				ni.setHardSelect();
+			} else
+			{
+				ArcInst ai = (ArcInst)geom;
+				ai.setHardSelect();
+			}
+		}
 	}
 
 	/**
@@ -1491,7 +1657,6 @@ public final class MenuCommands
 
 		// make the circuit fill the window
 		wnd.fillScreen();
-		wnd.repaintContents();
 	}
 
 	public static void zoomOutDisplayCommand()
@@ -1527,7 +1692,6 @@ public final class MenuCommands
 		// focus on highlighting
 		Rectangle2D bounds = Highlight.getHighlightedArea(wnd);
 		wnd.focusScreen(bounds);
-		wnd.repaintContents();
 	}
 
 	/**
@@ -1540,6 +1704,139 @@ public final class MenuCommands
 		{
 			wnd.setGrid(!wnd.isGrid());
 		}
+	}
+
+	/**
+	 * This method implements the command to tile the windows horizontally.
+	 */
+	public static void tileHorizontallyCommand()
+	{
+		// get the overall area in which to work
+		Rectangle tileArea = getWindowArea();
+
+		// tile the windows in this area
+		int numWindows = WindowFrame.getNumWindows();
+		int windowHeight = tileArea.height / numWindows;
+		int i=0;
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			Rectangle windowArea = new Rectangle(tileArea.x, tileArea.y + i*windowHeight, tileArea.width, windowHeight);
+			i++;
+			wf.setWindowSize(windowArea);
+		}
+	}
+
+	/**
+	 * This method implements the command to tile the windows vertically.
+	 */
+	public static void tileVerticallyCommand()
+	{
+		// get the overall area in which to work
+		Rectangle tileArea = getWindowArea();
+
+		// tile the windows in this area
+		int numWindows = WindowFrame.getNumWindows();
+		int windowWidth = tileArea.width / numWindows;
+		int i=0;
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			Rectangle windowArea = new Rectangle(tileArea.x + i*windowWidth, tileArea.y, windowWidth, tileArea.height);
+			i++;
+			wf.setWindowSize(windowArea);
+		}
+	}
+
+	/**
+	 * This method implements the command to tile the windows cascaded.
+	 */
+	public static void cascadeWindowsCommand()
+	{
+		// cascade the windows in this area
+		int numWindows = WindowFrame.getNumWindows();
+		if (numWindows <= 1)
+		{
+			tileVerticallyCommand();
+			return;
+		}
+
+		// get the overall area in which to work
+		Rectangle tileArea = getWindowArea();
+		int windowWidth = tileArea.width * 3 / 4;
+		int windowHeight = tileArea.height * 3 / 4;
+		int windowSpacing = Math.min(tileArea.width - windowWidth, tileArea.height - windowHeight) / (numWindows-1);
+		int numRuns = 1;
+		if (windowSpacing < 70)
+		{
+			numRuns = 70 / windowSpacing;
+			if (70 % windowSpacing != 0) numRuns++;
+			windowSpacing *= numRuns;
+		}
+		int windowXSpacing = (tileArea.width - windowWidth) / (numWindows-1) * numRuns;
+		int windowYSpacing = (tileArea.height - windowHeight) / (numWindows-1) * numRuns;
+		int i=0;
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			int index = i / numRuns;
+			Rectangle windowArea = new Rectangle(tileArea.x + index*windowXSpacing,
+				tileArea.y + index*windowYSpacing, windowWidth, windowHeight);
+			i++;
+			wf.setWindowSize(windowArea);
+		}
+	}
+
+	private static Rectangle getWindowArea()
+	{
+		// get the overall area in which to work
+		Dimension sz = TopLevel.getScreenSize();
+		Rectangle tileArea = new Rectangle(sz);
+
+		// remove the tool palette
+		PaletteFrame pf = TopLevel.getPaletteFrame();
+		Rectangle pb = pf.getPaletteLocation();
+		removeOccludingRectangle(tileArea, pb);
+
+		// remove the messages window
+		MessagesWindow mw = TopLevel.getMessagesWindow();
+		Rectangle mb = mw.getMessagesLocation();
+		removeOccludingRectangle(tileArea, mb);
+		return tileArea;
+	}
+
+	private static void removeOccludingRectangle(Rectangle screen, Rectangle occluding)
+	{
+		int lX = (int)screen.getMinX();
+		int hX = (int)screen.getMaxX();
+		int lY = (int)screen.getMinY();
+		int hY = (int)screen.getMaxY();
+		if (occluding.width > occluding.height)
+		{
+			// horizontally occluding window
+			if (occluding.getMaxY() - lY < hY - occluding.getMinY())
+			{
+				// occluding window on top
+				lY = (int)occluding.getMaxY();
+			} else
+			{
+				// occluding window on bottom
+				hY = (int)occluding.getMinY();
+			}
+		} else
+		{
+			if (occluding.getMaxX() - lX < hX - occluding.getMinX())
+			{
+				// occluding window on left
+				lX = (int)occluding.getMaxX();
+			} else
+			{
+				// occluding window on right
+				hX = (int)occluding.getMinX();
+			}
+		}
+		screen.width = hX - lX;   screen.height = hY - lY;
+		screen.x = lX;            screen.y = lY;
 	}
 
 	/**

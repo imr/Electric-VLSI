@@ -196,8 +196,9 @@ public class Highlight
 	}
 
 	/**
-	 * Method to add a Geometric to the list of highlighted objects.
-	 * @param geom the Geometric to add to the list of highlighted objects.
+	 * Method to add an ElectricObject to the list of highlighted objects.
+	 * @param eobj the ElectricObject to add to the list of highlighted objects.
+	 * @param cell the Cell in which the ElectricObject resides.
 	 * @return the newly created Highlight object.
 	 */
 	public static Highlight addElectricObject(ElectricObject eobj, Cell cell)
@@ -1199,6 +1200,38 @@ public class Highlight
 			points[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
 			return points;
 		}
+		if (style == Poly.Type.TEXTBOX)
+		{
+			Point2D [] points = new Point2D.Double[12];
+			double lX = bounds.getMinX();
+			double hX = bounds.getMaxX();
+			double lY = bounds.getMinY();
+			double hY = bounds.getMaxY();
+			points[0] = new Point2D.Double(lX, lY);
+			points[1] = new Point2D.Double(hX, hY);
+			points[2] = new Point2D.Double(lX, hY);
+			points[3] = new Point2D.Double(hX, lY);
+
+			if (eobj instanceof Geometric)
+			{
+				bounds = ((Geometric)eobj).getBounds();
+			}
+			lX = bounds.getMinX();
+			hX = bounds.getMaxX();
+			lY = bounds.getMinY();
+			hY = bounds.getMaxY();
+			double shrinkX = (hX - lX) / 5;
+			double shrinkY = (hY - lY) / 5;
+			points[4] = new Point2D.Double(lX+shrinkX, lY);
+			points[5] = new Point2D.Double(hX-shrinkX, lY);
+			points[6] = new Point2D.Double(lX+shrinkX, hY);
+			points[7] = new Point2D.Double(hX-shrinkX, hY);
+			points[8] = new Point2D.Double(lX, lY+shrinkY);
+			points[9] = new Point2D.Double(lX, hY-shrinkY);
+			points[10] = new Point2D.Double(hX, lY+shrinkY);
+			points[11] = new Point2D.Double(hX, hY-shrinkY);
+			return points;
+		}
 		return null;
 	}
 
@@ -1259,10 +1292,18 @@ public class Highlight
 				if (!(eobj instanceof Geometric)) return null;
 				Geometric geom = (Geometric)eobj;
 				TextDescriptor td = geom.getNameTextDescriptor();
-				Point2D [] pointList = new Point2D.Double[1];
-				pointList[0] = new Point2D.Double(geom.getTrueCenterX()+td.getXOff(), geom.getTrueCenterY()+td.getYOff());
+				Poly.Type style = td.getPos().getPolyType();
+				Point2D [] pointList = null;
+				if (style == Poly.Type.TEXTBOX)
+				{
+					pointList = Poly.makePoints(geom.getBounds());
+				} else
+				{
+					pointList = new Point2D.Double[1];
+					pointList[0] = new Point2D.Double(geom.getTrueCenterX()+td.getXOff(), geom.getTrueCenterY()+td.getYOff());
+				}
 				poly = new Poly(pointList);
-				poly.setStyle(td.getPos().getPolyType());
+				poly.setStyle(style);
 				if (geom instanceof NodeInst)
 				{
 					poly.transform(((NodeInst)geom).rotateOut());
@@ -1277,10 +1318,11 @@ public class Highlight
 					Export pp = (Export)eobj;
 					Rectangle2D bounds = pp.getOriginalPort().getBounds();
 					TextDescriptor td = pp.getTextDescriptor();
+					Poly.Type style = td.getPos().getPolyType();
 					Point2D [] pointList = new Point2D.Double[1];
 					pointList[0] = new Point2D.Double(bounds.getCenterX()+td.getXOff(), bounds.getCenterY()+td.getYOff());
 					poly = new Poly(pointList);
-					poly.setStyle(td.getPos().getPolyType());
+					poly.setStyle(style);
 					poly.setTextDescriptor(td);
 					poly.setString(pp.getProtoName());
 					poly.setExactTextBounds(wnd);
@@ -1290,10 +1332,18 @@ public class Highlight
 					if (!(eobj instanceof NodeInst)) return null;
 					NodeInst ni = (NodeInst)eobj;
 					TextDescriptor td = ni.getProtoTextDescriptor();
-					Point2D [] pointList = new Point2D.Double[1];
-					pointList[0] = new Point2D.Double(ni.getTrueCenterX()+td.getXOff(), ni.getTrueCenterY()+td.getYOff());
+					Poly.Type style = td.getPos().getPolyType();
+					Point2D [] pointList = null;
+					if (style == Poly.Type.TEXTBOX)
+					{
+						pointList = Poly.makePoints(ni.getBounds());
+					} else
+					{
+						pointList = new Point2D.Double[1];
+						pointList[0] = new Point2D.Double(ni.getTrueCenterX()+td.getXOff(), ni.getTrueCenterY()+td.getYOff());
+					}
 					poly = new Poly(pointList);
-					poly.setStyle(td.getPos().getPolyType());
+					poly.setStyle(style);
 					poly.setTextDescriptor(td);
 					poly.setString(ni.getProto().describe());
 					poly.setExactTextBounds(wnd);

@@ -19,16 +19,16 @@ import java.util.ArrayList;
 import java.awt.geom.Point2D;
 
 /**
- * User: gainsley
- * Date: Mar 1, 2004
- * Time: 2:48:46 PM
- * <p>
  * Parent Class for all Routers.  I really have no idea what this
  * should look like because I've never written a real router,
  * but I've started it off with a few basics.
  * <p>
  * A Route is a List of RouteElements.  See RouteElement for details
  * of the elements.
+ * <p>
+ * User: gainsley
+ * Date: Mar 1, 2004
+ * Time: 2:48:46 PM
  */
 public abstract class Router {
 

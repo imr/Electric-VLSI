@@ -77,7 +77,7 @@ public class JemEquivList extends JemRecordList {
     }
 
 	/** 
-	 * selectActive selects JemEquivRecords that aren't retired or mismatched
+	 * selectActive selects JemEquivRecords that aren't retired or mismatched.
 	 * @return a JemEquivList, possibly empty, of those that do retire.
 	 */
 	public JemEquivList selectActive(){
@@ -92,7 +92,7 @@ public class JemEquivList extends JemRecordList {
 	}
 
 	/** 
-	 * selectRetired selects JemEquivRecords that are retired
+	 * selectRetired selects JemEquivRecords that are retired.
 	 * @return a JemEquivList, possibly empty, of those that do retire.
 	 */
 	public JemEquivList selectRetired(){

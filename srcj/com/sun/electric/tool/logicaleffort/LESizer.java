@@ -28,9 +28,10 @@
 
 package com.sun.electric.tool.logicaleffort;
 
-import com.sun.electric.tool.logicaleffort.*;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.logicaleffort.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -99,7 +100,7 @@ public class LESizer {
     /** 
 	 * Add new instance to design
 	 * @param name name of the instance
-	 * @param leGate true if this is an LEGate
+	 * param leGate true if this is an LEGate
 	 * @param leX size
 	 * @param pins list of pins on instance
 	 *
@@ -216,7 +217,7 @@ public class LESizer {
                 } // if (leGate)
 
 			} // while (instancesIter)
-            String elapsed = Job.getElapsedTime(System.currentTimeMillis()-startTime);
+            String elapsed = TextUtils.getElapsedTime(System.currentTimeMillis()-startTime);
             System.out.println("  ...done ("+elapsed+"), delta: "+currentLoopDeltaX);            
             if (verbose) System.out.println("-----------------------------------");
 			loopcount++;

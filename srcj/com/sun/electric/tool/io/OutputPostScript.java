@@ -1741,7 +1741,7 @@ public class OutputPostScript extends Output
 	 * recently than the date on this file will cause that file to be generated
 	 * from the Cell.
 	 * @param cell the cell to modify.
-	 * @param syncFile the EPS synchronization file to associate with that Cell.
+	 * @param date the EPS synchronization date to associate with that Cell.
 	 */
 	public static void setEPSSavedDate(Cell cell, Date date)
 	{

@@ -35,6 +35,7 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
@@ -108,7 +109,7 @@ import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 
 /*
- * This class defines an editing window for circuitry.
+ * This class defines an editing window for displaying circuitry.
  */
 
 public class EditWindow extends JPanel
@@ -120,28 +121,27 @@ public class EditWindow extends JPanel
     /** the size of the window (in pixels) */				private Dimension sz;
     /** the cell that is in the window */					private Cell cell;
     /** Cell's VarContext */                                private VarContext cellVarContext;
-
-	/** the offscreen data for rendering */					private PixelDrawing offscreen = null;
     /** the window frame containing this editwindow */      private WindowFrame wf;
+	/** the offscreen data for rendering */					private PixelDrawing offscreen = null;
+
 	/** true if showing grid in this window */				private boolean showGrid = false;
 	/** X spacing of grid dots in this window */			private double gridXSpacing;
 	/** Y spacing of grid dots in this window */			private double gridYSpacing;
+
 	/** true if doing object-selection drag */				private boolean doingAreaDrag = false;
 	/** starting screen point for drags in this window */	private Point startDrag = new Point();
 	/** ending screen point for drags in this window */		private Point endDrag = new Point();
-    /** current mouse listener */							private static MouseListener curMouseListener = ClickZoomWireListener.theOne;
+
+	/** current mouse listener */							private static MouseListener curMouseListener = ClickZoomWireListener.theOne;
     /** current mouse motion listener */					private static MouseMotionListener curMouseMotionListener = ClickZoomWireListener.theOne;
     /** current mouse wheel listener */						private static MouseWheelListener curMouseWheelListener = ClickZoomWireListener.theOne;
     /** current key listener */								private static KeyListener curKeyListener = ClickZoomWireListener.theOne;
 
-    /** the offset of each new window on the screen */		private static int windowOffset = 0;
-//	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
-//	/** TextDescriptor for empty window text. */			private static TextDescriptor noCellTextDescriptor = null;
+	/** list of windows to redraw (gets synchronized) */	private static List redrawThese = new ArrayList();
+	/** true if rendering a window now (synchronized) */	private static boolean runningNow = false;
 
-    /** for drawing solid lines */		private static final BasicStroke solidLine = new BasicStroke(0);
-    /** for drawing thick lines */		private static final BasicStroke thickLine = new BasicStroke(1);
-    /** for drawing dotted lines */		private static final BasicStroke dottedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {1}, 0);
-    /** for drawing dashed lines */		private static final BasicStroke dashedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[] {10}, 0);
+    /** the offset of each new window on the screen */		private static int windowOffset = 0;
+
     /** for drawing selection boxes */	private static final BasicStroke selectionLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {2}, 3);
 
 
@@ -151,6 +151,7 @@ public class EditWindow extends JPanel
     private EditWindow(Cell cell, WindowFrame wf)
 	{
         //super(cell.describe(), true, true, true, true);
+        this.cell = cell;
         this.wf = wf;
 		this.gridXSpacing = User.getDefGridXSpacing();
 		this.gridYSpacing = User.getDefGridYSpacing();
@@ -168,30 +169,21 @@ public class EditWindow extends JPanel
 		if (wf != null) setCell(cell, VarContext.globalContext);
 	}
 
-	public void setSize(Dimension sz)
-	{
-		this.sz = sz;
-		offscreen = new PixelDrawing(sz, this);
-	}
-
-	// factory
+	/**
+	 * Factory method to create a new EditWindow with a given cell, in a given WindowFrame.
+	 * @param cell the cell in this EditWindow.
+	 * @param wf the WindowFrame that this EditWindow lives in.
+	 * @return the new EditWindow.
+	 */
 	public static EditWindow CreateElectricDoc(Cell cell, WindowFrame wf)
 	{
 		EditWindow ui = new EditWindow(cell, wf);
 		return ui;
 	}
 
-	public static EditWindow findWindow(Cell cell)
-	{
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = (WindowFrame)it.next();
-			EditWindow wnd = wf.getEditWindow();
-			if (wnd.getCell() == cell) return wnd;
-		}
-		return null;
-	}
-
+	/**
+	 * Method to return the current EditWindow.
+	 */
 	public static EditWindow getCurrent()
 	{
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
@@ -217,13 +209,6 @@ public class EditWindow extends JPanel
 		Highlight.clear();
 		Highlight.finished();
 
-		// seed the offset values
-//		if (cell != null)
-//		{
-//			Rectangle2D bounds = cell.getBounds();
-//			offx = bounds.getCenterX();   offy = bounds.getCenterY();
-//		}
-		fillScreen();
 		if (wf != null)
 		{
 			if (cell == null)
@@ -263,13 +248,39 @@ public class EditWindow extends JPanel
 				}
 			}
 		}
-		repaintContents();
+		fillScreen();
 
 		if (cell != null && User.isCheckCellDates()) cell.checkCellDates();
 	}
 
+	/**
+	 * Method to find an EditWindow that is displaying a given cell.
+	 * @param cell the Cell to find.
+	 * @return the EditWindow showing that cell, or null if none found.
+	 */
+	public static EditWindow findWindow(Cell cell)
+	{
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			EditWindow wnd = wf.getEditWindow();
+			if (wnd.getCell() == cell) return wnd;
+		}
+		return null;
+	}
+
+	/**
+	 * Method to return the PixelDrawing object that represents the offscreen image
+	 * of the Cell in this EditWindow.
+	 * @return the offscreen object for this window.
+	 */
+	public PixelDrawing getOffscreen() { return offscreen; }
+
 	// ************************************* RENDERING A WINDOW *************************************
 
+	/**
+	 * Method requests that every EditWindow be redrawn, including a rerendering of its contents.
+	 */
 	public static void repaintAllContents()
 	{
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
@@ -280,6 +291,9 @@ public class EditWindow extends JPanel
 		}
 	}
 
+	/**
+	 * Method requests that every EditWindow be redrawn, without rerendering the offscreen contents.
+	 */
 	public static void repaintAll()
 	{
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
@@ -290,6 +304,38 @@ public class EditWindow extends JPanel
 		}
 	}
 
+	/**
+	 * Method requests that this EditWindow be redrawn, including a rerendering of the contents.
+	 */
+	public void repaintContents()
+	{
+		// start rendering thread
+		if (offscreen == null) return;
+
+		// do the redraw in the main thread
+//		offscreen.drawImage();
+//		repaint();
+
+		// do the redraw in a separate thread
+		synchronized(redrawThese)
+		{
+			if (runningNow)
+			{
+				if (!redrawThese.contains(this))
+					redrawThese.add(this);
+				return;
+			}
+			runningNow = true;
+		}
+		RenderJob renderJob = new RenderJob(this, offscreen);
+		renderJob.start();
+	}
+
+	/**
+	 * Method to repaint this EditWindow.
+	 * Composites the image (taken from the PixelDrawing object)
+	 * with the grid, highlight, and any dragging rectangle.
+	 */
 	public void paint(Graphics g)
 	{
 		// to enable keys to be received
@@ -301,13 +347,14 @@ public class EditWindow extends JPanel
 
 		if (offscreen == null || !getSize().equals(sz))
 		{
-			setSize(getSize());
+			setScreenSize(getSize());
 			repaintContents();
 			return;
 		}
 
 		// show the image
-		g.drawImage(offscreen.getImage(), 0, 0, this);
+		Image img = offscreen.getImage();
+		synchronized(img) { g.drawImage(img, 0, 0, this); };
 
 		// overlay other things if there is a valid cell
 		if (cell != null)
@@ -329,20 +376,9 @@ public class EditWindow extends JPanel
 		}
 	}
 
-	public void repaintContents()
-	{
-		// start rendering thread
-		if (offscreen == null) return;
-
-		// do the redraw in the main thread
-		offscreen.drawImage(getCell());
-		repaint();
-
-		// do the redraw in a separate thread
-//		RenderJob renderJob = new RenderJob(this, offscreen);
-//		renderJob.start();
-	}
-
+	/**
+	 * This class queues requests to rerender a window.
+	 */
 	class RenderJob extends Thread
 	{
 		private EditWindow wnd;
@@ -356,11 +392,27 @@ public class EditWindow extends JPanel
 
 		public void run()
 		{
-			offscreen.drawImage(wnd.getCell());
+			offscreen.drawImage();
 			wnd.repaint();
+			synchronized(redrawThese)
+			{
+				if (redrawThese.size() > 0)
+				{
+					EditWindow nextWnd = (EditWindow)redrawThese.get(0);
+					redrawThese.remove(0);
+					RenderJob nextJob = new RenderJob(nextWnd, nextWnd.getOffscreen());
+					nextJob.start();
+					return;
+				}
+				runningNow = false;
+			}
 		}
 	}
 
+	/**
+	 * Special "hook" to render a single node.
+	 * This is used by the PaletteWindow to draw nodes that aren't really in the database.
+	 */
 	public Image renderNode(NodeInst ni, double scale)
 	{
 		offscreen.clearImage(false);
@@ -369,6 +421,10 @@ public class EditWindow extends JPanel
 		return offscreen.composite();
 	}
 
+	/**
+	 * Special "hook" to render a single arc.
+	 * This is used by the PaletteWindow to draw arcs that aren't really in the database.
+	 */
 	public Image renderArc(ArcInst ai, double scale)
 	{
 		offscreen.clearImage(false);
@@ -377,45 +433,21 @@ public class EditWindow extends JPanel
 		return offscreen.composite();
 	}
 
-	public Font getFont(TextDescriptor descript)
-	{
-		int size = 14;
-		int fontStyle = Font.PLAIN;
-		String fontName = "SansSerif";
-		if (descript != null)
-		{
-			size = descript.getTrueSize(this);
-			if (size <= 0) size = 1;
-			if (descript.isItalic()) fontStyle |= Font.ITALIC;
-			if (descript.isBold()) fontStyle |= Font.BOLD;
-			int fontIndex = descript.getFace();
-			if (fontIndex != 0)
-			{
-				TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(fontIndex);
-				if (af != null) fontName = af.getName();
-			}
-		}
-		Font font = new Font(fontName, fontStyle, size);
-		return font;
-	}
+	// ************************************* DRAG BOX *************************************
 
-	/**
-	 * Method to convert a string and descriptor to a GlyphVector.
-	 * @param text the string to convert.
-	 * @param font the Font to use.
-	 * @return a GlyphVector describing the text.
-	 */
-	public GlyphVector getGlyphs(String text, Font font)
-	{
-		// make a glyph vector for the desired text
-		FontRenderContext frc = new FontRenderContext(null, false, false);
-		GlyphVector gv = font.createGlyphVector(frc, text);
-//		java.awt.font.LineMetrics lm = font.getLineMetrics(text, frc);
-//		int baselineIndex = lm.getBaselineIndex();
-//		float [] manyBLI = lm.getBaselineOffsets();
-//System.out.println("Text '"+text+"' has BLI="+baselineIndex+" and baseline="+manyBLI[baselineIndex]);
-		return gv;
-	}
+	public boolean isDoingAreaDrag() { return doingAreaDrag; }
+
+	public void setDoingAreaDrag() { doingAreaDrag = true; }
+
+	public void clearDoingAreaDrag() { doingAreaDrag = false; }
+
+	public Point getStartDrag() { return startDrag; }
+
+	public void setStartDrag(int x, int y) { startDrag.setLocation(x, y); }
+
+	public Point getEndDrag() { return endDrag; }
+
+	public void setEndDrag(int x, int y) { endDrag.setLocation(x, y); }
 
 	private void showDragBox(Graphics g)
 	{
@@ -563,6 +595,22 @@ public class EditWindow extends JPanel
 	// ************************************* WINDOW ZOOM AND PAN *************************************
 
 	/**
+	 * Method to return the size of this EditWindow.
+	 * @return a Dimension with the size of this EditWindow.
+	 */
+	public Dimension getScreenSize() { return sz; }
+
+	/**
+	 * Method to change the size of this EditWindow.
+	 * Also reallocates the offscreen data.
+	 */
+	public void setScreenSize(Dimension sz)
+	{
+		this.sz = sz;
+		offscreen = new PixelDrawing(this);
+	}
+
+	/**
 	 * Method to return the scale factor for this window.
 	 * @return the scale factor for this window.
 	 */
@@ -689,7 +737,8 @@ public class EditWindow extends JPanel
 	{
 		double width = bounds.getWidth();
 		double height = bounds.getHeight();
-		if (width == 0 && height == 0) width = height = 2;
+		if (width == 0) width = 2;
+		if (height == 0) height = 2;
 		double scalex = sz.width/width * 0.9;
 		double scaley = sz.height/height * 0.9;
 		scale = Math.min(scalex, scaley);
@@ -712,9 +761,10 @@ public class EditWindow extends JPanel
 				if (cellBounds.getWidth() == 0 && cellBounds.getHeight() == 0)
 					cellBounds = new Rectangle2D.Double(0, 0, 60, 60);
 				focusScreen(cellBounds);
+				return;
 			}
 		}
- 		repaintContents();
+ 		repaint();
    }
 
     // ************************************* HIERARCHY TRAVERSAL *************************************
@@ -906,10 +956,18 @@ public class EditWindow extends JPanel
 	 */
 	public Rectangle databaseToScreen(Rectangle2D db)
 	{
-		int screenLX = (int)(sz.width/2 + (db.getMinX() - offx) * scale);
-		int screenHX = (int)(sz.width/2 + (db.getMaxX() - offx) * scale);
-		int screenLY = (int)(sz.height/2 - (db.getMinY() - offy) * scale);
-		int screenHY = (int)(sz.height/2 - (db.getMaxY() - offy) * scale);
+		double sLX = sz.width/2 + (db.getMinX() - offx) * scale;
+		double sHX = sz.width/2 + (db.getMaxX() - offx) * scale;
+		double sLY = sz.height/2 - (db.getMinY() - offy) * scale;
+		double sHY = sz.height/2 - (db.getMaxY() - offy) * scale;
+		if (sLX < 0) sLX -= 0.5; else sLX += 0.5;
+		if (sHX < 0) sHX -= 0.5; else sHX += 0.5;
+		if (sLY < 0) sLY -= 0.5; else sLY += 0.5;
+		if (sHY < 0) sHY -= 0.5; else sHY += 0.5;
+		int screenLX = (int)sLX;
+		int screenHX = (int)sHX;
+		int screenLY = (int)sLY;
+		int screenHY = (int)sHY;
 		if (screenHX < screenLX) { int swap = screenHX;   screenHX = screenLX; screenLX = swap; }
 		if (screenHY < screenLY) { int swap = screenHY;   screenHY = screenLY; screenLY = swap; }
 		return new Rectangle(screenLX, screenLY, screenHX-screenLX, screenHY-screenLY);
@@ -917,8 +975,8 @@ public class EditWindow extends JPanel
 
 	/**
 	 * Method to convert a database distance to a screen distance.
-	 * @param dbX the X change (in database units).
-	 * @param dbY the Y change (in database units).
+	 * @param dbDX the X change (in database units).
+	 * @param dbDY the Y change (in database units).
 	 * @return the distance on the screen.
 	 */
 	public Point deltaDatabaseToScreen(double dbDX, double dbDY)
@@ -927,6 +985,20 @@ public class EditWindow extends JPanel
 		int screenDY = (int)Math.round(-dbDY * scale);
 		return new Point(screenDX, screenDY);
 	}
+
+	/**
+	 * Method to snap a point to the nearest database-space grid unit.
+	 * @param pt the point to be snapped.
+	 */
+	public static void gridAlign(Point2D pt)
+	{
+		double alignment = User.getAlignmentToGrid();
+		long x = Math.round(pt.getX() / alignment);
+		long y = Math.round(pt.getY() / alignment);
+		pt.setLocation(x * alignment, y * alignment);
+	}
+
+	// ************************************* TEXT *************************************
 
 	/**
 	 * Method to find the size in database units for text of a given point size in this EditWindow.
@@ -946,23 +1018,46 @@ public class EditWindow extends JPanel
 	 * @param pointSize the size of the text in points.
 	 * @return the relative size (in units) of the text.
 	 */
-	public int getTextPointSize(double unitSize)
+	public int getTextPointSize(double pointSize)
 	{
-		Point pt = deltaDatabaseToScreen(unitSize, unitSize);
+		Point pt = deltaDatabaseToScreen(pointSize, pointSize);
 		return pt.x;
 	}
 
-	/**
-	 * Method to snap a point to the nearest database-space grid unit.
-	 * @param pt the point to be snapped.
-	 * @param alignment the size of the snap grid (1 to round to whole numbers)
-	 */
-	public static void gridAlign(Point2D pt)
+	public Font getFont(TextDescriptor descript)
 	{
-		double alignment = User.getAlignmentToGrid();
-		long x = Math.round(pt.getX() / alignment);
-		long y = Math.round(pt.getY() / alignment);
-		pt.setLocation(x * alignment, y * alignment);
+		int size = 14;
+		int fontStyle = Font.PLAIN;
+		String fontName = "SansSerif";
+		if (descript != null)
+		{
+			size = descript.getTrueSize(this);
+			if (size <= 0) size = 1;
+			if (descript.isItalic()) fontStyle |= Font.ITALIC;
+			if (descript.isBold()) fontStyle |= Font.BOLD;
+			int fontIndex = descript.getFace();
+			if (fontIndex != 0)
+			{
+				TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(fontIndex);
+				if (af != null) fontName = af.getName();
+			}
+		}
+		Font font = new Font(fontName, fontStyle, size);
+		return font;
+	}
+
+	/**
+	 * Method to convert a string and descriptor to a GlyphVector.
+	 * @param text the string to convert.
+	 * @param font the Font to use.
+	 * @return a GlyphVector describing the text.
+	 */
+	public GlyphVector getGlyphs(String text, Font font)
+	{
+		// make a glyph vector for the desired text
+		FontRenderContext frc = new FontRenderContext(null, false, false);
+		GlyphVector gv = font.createGlyphVector(frc, text);
+		return gv;
 	}
 
 	// ************************************* EVENT LISTENERS *************************************
@@ -1024,20 +1119,4 @@ public class EditWindow extends JPanel
 	public void keyPressed(KeyEvent evt) { curKeyListener.keyPressed(evt); }
 	public void keyReleased(KeyEvent evt) { curKeyListener.keyReleased(evt); }
 	public void keyTyped(KeyEvent evt) { curKeyListener.keyTyped(evt); }
-
-	// ************************************* MISCELLANEOUS *************************************
-
-	public boolean isDoingAreaDrag() { return doingAreaDrag; }
-
-	public void setDoingAreaDrag() { doingAreaDrag = true; }
-
-	public void clearDoingAreaDrag() { doingAreaDrag = false; }
-
-	public Point getStartDrag() { return startDrag; }
-
-	public void setStartDrag(int x, int y) { startDrag.setLocation(x, y); }
-
-	public Point getEndDrag() { return endDrag; }
-
-	public void setEndDrag(int x, int y) { endDrag.setLocation(x, y); }
 }

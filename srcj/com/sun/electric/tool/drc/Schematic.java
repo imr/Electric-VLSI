@@ -403,7 +403,7 @@ public class Schematic
 			{
 				// primitive
 				Technology tech = np.getTechnology();
-				Poly [] polyList = tech.getShapeOfNode(ni, null);
+				Poly [] polyList = tech.getShapeOfNode(ni);
 				int total = polyList.length;
 				for(int i=0; i<total; i++)
 				{
@@ -416,7 +416,7 @@ public class Schematic
 		{
 			ArcInst ai = (ArcInst)geom;
 			Technology tech = ai.getProto().getTechnology();
-			Poly [] polyList = tech.getShapeOfArc(ai, null);
+			Poly [] polyList = tech.getShapeOfArc(ai);
 			int total = polyList.length;
 			for(int i=0; i<total; i++)
 			{
@@ -597,7 +597,7 @@ public class Schematic
 			} else
 			{
 				Technology tech = np.getTechnology();
-				Poly [] polyList = tech.getShapeOfNode(ni, null);
+				Poly [] polyList = tech.getShapeOfNode(ni);
 				int total = polyList.length;
 				for(int i=0; i<total; i++)
 				{
@@ -611,7 +611,7 @@ public class Schematic
 		{
 			ArcInst ai = (ArcInst)oGeom;
 			Technology tech = ai.getProto().getTechnology();
-			Poly [] polyList = tech.getShapeOfArc(ai, null);
+			Poly [] polyList = tech.getShapeOfArc(ai);
 			int total = polyList.length;
 			for(int i=0; i<total; i++)
 			{

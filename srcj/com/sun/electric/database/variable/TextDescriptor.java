@@ -200,7 +200,8 @@ public class TextDescriptor
 		 * Describes text centered and limited to the object size.
 		 * This means that the text may shrink in size or clip letters if necessary.
 		 */
-		public static final Position BOXED = new Position("boxed", VTPOSBOXED, Poly.Type.TEXTCENT);
+		public static final Position BOXED = new Position("boxed", VTPOSBOXED, Poly.Type.TEXTBOX);
+
 		private static final Position [] thePositions = new Position[] {CENT, UP, DOWN,
 			LEFT, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT, BOXED};
 	}
@@ -724,7 +725,6 @@ public class TextDescriptor
 	 * file format stores it as a full integer.
 	 * This should not normally be called by any other part of the system.
 	 * @param descriptor other TextDescriptor.
-	 * @param descriptor1 the second word of the new TextDescriptor.
 	 */
 	public void copy(TextDescriptor descriptor)
 	{
@@ -1088,8 +1088,8 @@ public class TextDescriptor
 	/**
 	 * Method to set the X and Y offsets of the text in the TextDescriptor.
 	 * The values are scaled by 4, so a value of 3 indicates a shift of 0.75 and a value of 4 shifts by 1.
-	 * @param x the X offset of the text in the TextDescriptor.
-	 * @param y the Y offset of the text in the TextDescriptor.
+	 * @param xd the X offset of the text in the TextDescriptor.
+	 * @param yd the Y offset of the text in the TextDescriptor.
 	 */
 	public void setOff(double xd, double yd)
 	{

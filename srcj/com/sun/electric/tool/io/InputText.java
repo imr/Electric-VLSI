@@ -532,7 +532,7 @@ public class InputText extends InputLibrary
 				Cell subCell = (Cell)np;
 				Rectangle2D bounds = subCell.getBounds();
 				Point2D shift = new Point2D.Double(-bounds.getCenterX(), -bounds.getCenterY());
-				AffineTransform trans = NodeInst.pureRotate(rotation, width, height);
+				AffineTransform trans = NodeInst.pureRotate(rotation, width < 0, height < 0);
 				trans.transform(shift, shift);
 				center.setLocation(center.getX() + shift.getX(), center.getY() + shift.getY());
 			}

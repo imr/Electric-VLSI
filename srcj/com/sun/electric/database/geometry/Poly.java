@@ -251,24 +251,42 @@ public class Poly implements Shape
 	{
 		double halfWidth = width / 2;
 		double halfHeight = height / 2;
-//		Point2D [] points = new Point2D.Double[] {
-//			new Point2D.Double(EMath.smooth(cX-halfWidth), EMath.smooth(cY-halfHeight)),
-//			new Point2D.Double(EMath.smooth(cX+halfWidth), EMath.smooth(cY-halfHeight)),
-//			new Point2D.Double(EMath.smooth(cX+halfWidth), EMath.smooth(cY+halfHeight)),
-//			new Point2D.Double(EMath.smooth(cX-halfWidth), EMath.smooth(cY+halfHeight))};
-		Point2D [] points = new Point2D.Double[] {
-			new Point2D.Double(cX-halfWidth, cY-halfHeight),
-			new Point2D.Double(cX+halfWidth, cY-halfHeight),
-			new Point2D.Double(cX+halfWidth, cY+halfHeight),
-			new Point2D.Double(cX-halfWidth, cY+halfHeight)};
-		initialize(points);
+		initialize(makePoints(cX-halfWidth, cX+halfWidth, cY-halfHeight, cY+halfHeight));
 	}
 
 	/**
 	 * The constructor creates a new Poly that describes a rectangle.
-	 * @param crect the Rectangle2D of the rectangle.
+	 * @param rect the Rectangle2D of the rectangle.
 	 */
 	public Poly(Rectangle2D rect)
+	{
+		initialize(makePoints(rect));
+	}
+
+	/**
+	 * Method to create an array of Points that describes a Rectangle.
+	 * @param lX the low X coordinate of the rectangle.
+	 * @param hX the high X coordinate of the rectangle.
+	 * @param lY the low Y coordinate of the rectangle.
+	 * @param hY the high Y coordinate of the rectangle.
+	 * @return an array of 4 Points that describes the Rectangle.
+	 */
+	public static Point2D [] makePoints(double lX, double hX, double lY, double hY)
+	{
+		Point2D [] points = new Point2D.Double[] {
+			new Point2D.Double(lX, lY),
+			new Point2D.Double(hX, lY),
+			new Point2D.Double(hX, hY),
+			new Point2D.Double(lX, hY)};
+		return points;
+	}
+
+	/**
+	 * Method to create an array of Points that describes a Rectangle.
+	 * @param rect the Rectangle.
+	 * @return an array of 4 Points that describes the Rectangle.
+	 */
+	public static Point2D [] makePoints(Rectangle2D rect)
 	{
 		double lX = rect.getMinX();
 		double hX = rect.getMaxX();
@@ -279,7 +297,7 @@ public class Poly implements Shape
 			new Point2D.Double(hX, lY),
 			new Point2D.Double(hX, hY),
 			new Point2D.Double(lX, hY)};
-		initialize(points);
+		return points;
 	}
 
 	/**
@@ -354,7 +372,7 @@ public class Poly implements Shape
 	/**
 	 * Method to set the String associated with this Poly.
 	 * This only applies to text Polys which come from Named objects (Node and Arc names).
-	 * @param string the Name associated with this Poly.
+	 * @param name the Name associated with this Poly.
 	 */
 	public void setName(Name name) { this.name = name; }
 
@@ -824,13 +842,12 @@ public class Poly implements Shape
 		Font font = wnd.getFont(getTextDescriptor());
 		GlyphVector gv = wnd.getGlyphs(getString(), font);
 		Rectangle2D glyphBounds = gv.getVisualBounds();
-		Point2D corner = getTextCorner(wnd, font, gv, getStyle(), numLines, lX, hX, lY, hY);
+		Point2D corner = getTextCorner(wnd, font, gv, getStyle(), lX, hX, lY, hY);
 		double cX = corner.getX();
 		double cY = corner.getY();
 
 		double textScale = getTextScale(wnd, gv, getStyle(), lX, hX, lY, hY);
 		double width = glyphBounds.getWidth() * textScale;
-//		double height = glyphBounds.getHeight() * textScale * numLines;
 		double height = font.getSize() * textScale * numLines;
 		points = new Point2D.Double[] {
 			new Point2D.Double(cX, cY),
@@ -878,45 +895,47 @@ public class Poly implements Shape
 	 * @param hY the high Y bound of the polygon containing the text.
 	 * @return the coordinates of the lower-left corner of the text.
 	 */
-	private Point2D getTextCorner(EditWindow wnd, Font font, GlyphVector gv, Poly.Type style, int numLines, double lX, double hX, double lY, double hY)
+	private Point2D getTextCorner(EditWindow wnd, Font font, GlyphVector gv, Poly.Type style, double lX, double hX, double lY, double hY)
 	{
 		// adjust to place text in the center
 		Rectangle2D glyphBounds = gv.getVisualBounds();
-		double textScale = 1.0/wnd.getScale();
+		double textScale = getTextScale(wnd, gv, style, lX, hX, lY, hY);
 		double cX = (lX + hX) / 2;
 		double cY = (lY + hY) / 2;
-		double textWidth = glyphBounds.getWidth() * textScale;
-		double textHeight = font.getSize() * textScale;
+		double textWidth = glyphBounds.getWidth();
+		double textHeight = font.getSize();
+		double scaledWidth = textWidth * textScale;
+		double scaledHeight = textHeight * textScale;
 		if (style == Poly.Type.TEXTCENT)
 		{
-			cX -= glyphBounds.getCenterX() * textScale;
-			cY += glyphBounds.getCenterY() * textScale;
+			cX -= scaledWidth/2;
+			cY -= scaledHeight/2;
 		} else if (style == Poly.Type.TEXTTOP)
 		{
-			cX -= glyphBounds.getCenterX() * textScale;
-			cY -= textHeight;
+			cX -= scaledWidth/2;
+			cY -= scaledHeight;
 		} else if (style == Poly.Type.TEXTBOT)
 		{
-			cX -= glyphBounds.getCenterX() * textScale;
+			cX -= scaledWidth/2;
 		} else if (style == Poly.Type.TEXTLEFT)
 		{
-			cY += glyphBounds.getCenterY() * textScale;
+			cY -= scaledHeight/2;
 		} else if (style == Poly.Type.TEXTRIGHT)
 		{
-			cX -= textWidth;
-			cY += glyphBounds.getCenterY() * textScale;
+			cX -= scaledWidth;
+			cY -= scaledHeight/2;
 		} else if (style == Poly.Type.TEXTTOPLEFT)
 		{
-			cY -= textHeight;
+			cY -= scaledHeight;
 		} else if (style == Poly.Type.TEXTBOTLEFT)
 		{
 		} else if (style == Poly.Type.TEXTTOPRIGHT)
 		{
-			cX -= textWidth;
-			cY -= textHeight;
+			cX -= scaledWidth;
+			cY -= scaledHeight;
 		} else if (style == Poly.Type.TEXTBOTRIGHT)
 		{
-			cX -= textWidth;
+			cX -= scaledWidth;
 		} if (style == Poly.Type.TEXTBOX)
 		{
 			if (textWidth > hX - lX)
@@ -924,8 +943,8 @@ public class Poly implements Shape
 				// text too big for box: scale it down
 				textScale *= (hX - lX) / textWidth;
 			}
-			cX -= glyphBounds.getCenterX() * textScale;
-			cY += glyphBounds.getCenterY() * textScale;
+			cX -= (textWidth * textScale) / 2;
+			cY += (textHeight * textScale) / 2;
 		}
 		return new Point2D.Double(cX, cY);
 	}
@@ -1563,20 +1582,24 @@ public class Poly implements Shape
 
 	private void calcBounds()
 	{
-		double lX = points[0].getX();
-		double hX = lX;
-		double lY = points[0].getY();
-		double hY = lY;
-		for (int i = 1; i < points.length; i++)
+		bounds = new Rectangle.Double();
+		if (points.length > 0)
 		{
-			double x = points[i].getX();
-			double y = points[i].getY();
-			if (x < lX) lX = x;
-			if (x > hX) hX = x;
-			if (y < lY) lY = y;
-			if (y > hY) hY = y;
+			double lX = points[0].getX();
+			double hX = lX;
+			double lY = points[0].getY();
+			double hY = lY;
+			for (int i = 1; i < points.length; i++)
+			{
+				double x = points[i].getX();
+				double y = points[i].getY();
+				if (x < lX) lX = x;
+				if (x > hX) hX = x;
+				if (y < lY) lY = y;
+				if (y > hY) hY = y;
+			}
+			bounds.setRect(lX, lY, hX-lX, hY-lY);
 		}
-		bounds = new Rectangle.Double(lX, lY, hX-lX, hY-lY);
 	}
 
 	class PolyPathIterator implements PathIterator

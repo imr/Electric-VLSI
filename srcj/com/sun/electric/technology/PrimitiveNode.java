@@ -30,6 +30,7 @@ import com.sun.electric.database.variable.*;
 import com.sun.electric.technology.Technology;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * A PrimitiveNode represents information about a NodeProto that lives in a
@@ -125,6 +126,47 @@ public class PrimitiveNode extends NodeProto
 	 * @return the list of Layers that comprise this PrimitiveNode.
 	 */
 	public Technology.NodeLayer [] getLayers() { return layers; }
+
+	/**
+	 * Method to return an iterator over the layers in this PrimitiveNode.
+	 * @return an iterator over the layers in this PrimitiveNode.
+	 */
+	public Iterator layerIterator()
+	{
+		return new NodeLayerIterator(layers);
+	}
+
+	/** 
+	 * Iterator for Layers on this ArcProto
+	 */ 
+	private static class NodeLayerIterator implements Iterator 
+	{ 
+		Technology.NodeLayer [] array; 
+		int pos; 
+
+		public NodeLayerIterator(Technology.NodeLayer [] a) 
+		{ 
+			array = a; 
+			pos = 0; 
+		} 
+
+		public boolean hasNext() 
+		{ 
+			return pos < array.length; 
+		} 
+
+		public Object next() throws NoSuchElementException 
+		{ 
+			if (pos >= array.length) 
+				throw new NoSuchElementException(); 
+			return array[pos++].getLayer(); 
+		} 
+
+		public void remove() throws UnsupportedOperationException, IllegalStateException 
+		{ 
+			throw new UnsupportedOperationException(); 
+		}
+	}
 
 	/**
 	 * Method to return the list of electrical Layers that comprise this PrimitiveNode.

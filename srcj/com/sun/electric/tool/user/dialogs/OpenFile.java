@@ -23,6 +23,8 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.tool.user.User;
+
 import java.io.File;
 import java.util.List;
 import java.util.ArrayList;
@@ -89,7 +91,6 @@ public class OpenFile extends JFileChooser
 	public static final EFileFilter POSTSCRIPT = new EFileFilter(new String[] {"ps"}, "PostScript (ps)");
 
 	/** True if this is a file save dialog */						private boolean saveDialog;
-	/** Remember last directory used */								private static File fileChooserDir = initDir();
 	/** single dialog box...cause it takes so long to pop up */		private static OpenFile dialog = new OpenFile();
 
 	/** Private constructor, use factory methods chooseInputFile or
@@ -101,24 +102,10 @@ public class OpenFile extends JFileChooser
 		for (Iterator it = EFileFilter.getAllFilters().iterator(); it.hasNext(); )
 			addChoosableFileFilter((EFileFilter)it.next());
 	}
-	
-	/**
-	 * Method to set the default directory to browse.  The default is the
-	 * System property "user.dir", which is the current working directory.
-	 * If that is unavailable, null is returned (which makes the JFileChooser
-	 * use the user's home dir (unix) or My Documents (windows).
-	 */
-	private static File initDir()
-	{
-		String cwd = java.lang.System.getProperty("user.dir");
-		if (cwd == null) return null;
-		return new File(cwd);
-	}
 		
 	/**
-	 * Factory method to create a new open dialog box using the
-	 * default EFileFilter @param filter.
-	 * @param Used to filter file types. Defaults to ANY if null.
+	 * Factory method to create a new open dialog box using the default EFileFilter.
+	 * @param filter used to filter file types. Defaults to ANY if null.
 	 * @param title dialog title to use; if null uses "Open 'filetype'".
 	 */
 	public static String chooseInputFile(FileFilter filter, String title)
@@ -130,7 +117,7 @@ public class OpenFile extends JFileChooser
 		// note that if filter is null it defaults to the built in filter "All Files"
 		dialog.setFileFilter(filter);
 		
-		dialog.setCurrentDirectory(fileChooserDir);
+		dialog.setCurrentDirectory(new File(User.getWorkingDirectory()));
 		int returnVal = dialog.showOpenDialog(null);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
@@ -143,8 +130,8 @@ public class OpenFile extends JFileChooser
 
 	/**
 	 * Factory method to create a new save dialog box using the
-	 * default EFileFilter @param filter.
-	 * @param Used to filter file types. Defaults to ANY if null.
+	 * default EFileFilter.
+	 * @param filter used to filter file types. Defaults to ANY if null.
 	 * @param title dialog title to use; if null uses "Write 'filetype'".
 	 * @param defaultFile default file name to write.
 	 */
@@ -160,11 +147,9 @@ public class OpenFile extends JFileChooser
 		// note that if filter is null it defaults to the built in filter "All Files"
 		dialog.setFileFilter(filter);
 		
-		dialog.setCurrentDirectory(fileChooserDir);
-
 		dialog.setFileFilter(filter);
 		dialog.setSelectedFile(new File(defaultFile));
-		dialog.setCurrentDirectory(fileChooserDir);
+		dialog.setCurrentDirectory(new File(User.getWorkingDirectory()));
 		int returnVal = dialog.showSaveDialog(null);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
@@ -192,7 +177,7 @@ public class OpenFile extends JFileChooser
 			}
 		}
 		setSelectedFile(f);
-		fileChooserDir = getCurrentDirectory();
+		User.setWorkingDirectory(getCurrentDirectory().getPath());
 		super.approveSelection();
 	}
 }

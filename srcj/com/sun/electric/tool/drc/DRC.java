@@ -28,6 +28,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
@@ -215,7 +216,7 @@ public class DRC extends Tool
 			}
 			long endTime = System.currentTimeMillis();
 			int errorcount = ErrorLog.numErrors();
-			System.out.println(errorcount + " errors found (took " + Job.getElapsedTime(endTime - startTime) + ")");
+			System.out.println(errorcount + " errors found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 		}
 	}
 

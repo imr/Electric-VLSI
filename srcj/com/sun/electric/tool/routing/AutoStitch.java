@@ -805,7 +805,7 @@ public class AutoStitch
 			boolean bestFound = false;
 			double bestArea = 0;
 			Technology tech = ap.getTechnology();
-			Poly [] polys = tech.getShapeOfArc(ai, null);
+			Poly [] polys = tech.getShapeOfArc(ai);
 			int tot = polys.length;
 			for(int i=0; i<tot; i++)
 			{

@@ -31,6 +31,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * The PrimitiveArc class defines a type of ArcInst.
@@ -101,6 +102,47 @@ public class PrimitiveArc extends ArcProto
 	 * @return the array of layers that comprise this PrimitiveArc.
 	 */
 	public Technology.ArcLayer [] getLayers() { return layers; }
+
+	/**
+	 * Method to return an iterator over the layers in this PrimitiveArc.
+	 * @return an iterator over the layers in this PrimitiveArc.
+	 */
+	public Iterator layerIterator()
+	{
+		return new LayerIterator(layers);
+	}
+
+	/** 
+	 * Iterator for Layers on this ArcProto
+	 */ 
+	public static class LayerIterator implements Iterator 
+	{ 
+		Technology.ArcLayer [] array; 
+		int pos; 
+
+		public LayerIterator(Technology.ArcLayer [] a) 
+		{ 
+			array = a; 
+			pos = 0; 
+		} 
+
+		public boolean hasNext() 
+		{ 
+			return pos < array.length; 
+		} 
+
+		public Object next() throws NoSuchElementException 
+		{ 
+			if (pos >= array.length) 
+				throw new NoSuchElementException(); 
+			return array[pos++].getLayer(); 
+		} 
+
+		public void remove() throws UnsupportedOperationException, IllegalStateException 
+		{ 
+			throw new UnsupportedOperationException(); 
+		}
+	}
 
 	/**
 	 * Method to find the ArcLayer on this PrimitiveArc with a given Layer.

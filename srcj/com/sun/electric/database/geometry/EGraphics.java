@@ -190,9 +190,7 @@ public class EGraphics
 	
 	/**
 	 * Method to set the color associated with this EGraphics.
-	 * @param red the red color to set.
-	 * @param green the green color to set.
-	 * @param blue the blue color to set.
+	 * @param color the color to set.
 	 */
 	public void setColor(Color color)
 	{
@@ -310,7 +308,7 @@ public class EGraphics
 
 	/**
 	 * Method to tell the name of the color with a given index.
-	 * @param index the color number.
+	 * @param color the color number.
 	 * @return the name of that color.
 	 */
 	public static String getColorName(int color)

@@ -78,7 +78,7 @@ public class Pin {
 	 * Create new pin.
 	 * @param name name of pin
 	 * @param dir pin direction (Pin.INPUT, Pin.OUTPUT, Pin.INOUT, Pin.NODIR)
-	 * @param net net pin is on
+	 * @param netName net pin is on
 	 */
 	protected Pin(String name, Dir dir, float le, String netName)
 	{

@@ -42,6 +42,7 @@ import com.sun.electric.technology.EdgeV;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Point2D;
+import java.util.HashMap;
 
 /**
  * This is the general purpose sketching technology.
@@ -422,12 +423,13 @@ public class Artwork extends Technology
 	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
 	 * This makes no sense for Artwork primitives.
 	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
+	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers)
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
-		getGraphics(ni);
+		layerOverride = getGraphics(ni);
 
 		if (np == circleNode || np == thickCircleNode)
 		{
@@ -442,7 +444,7 @@ public class Artwork extends Technology
 				if (np == circleNode) polys[0].setStyle(Poly.Type.OPENED); else
 					polys[0].setStyle(Poly.Type.OPENEDT3);
 				Technology.NodeLayer primLayer = primLayers[0];
-				polys[0].setLayer(primLayer.getLayer());
+				polys[0].setLayer(layerOverride);
 				return polys;
 			}
 
@@ -462,7 +464,7 @@ public class Artwork extends Technology
 				if (np == circleNode) polys[0].setStyle(Poly.Type.CIRCLEARC); else
 					polys[0].setStyle(Poly.Type.THICKCIRCLEARC);
 				Technology.NodeLayer primLayer = primLayers[0];
-				polys[0].setLayer(primLayer.getLayer());
+				polys[0].setLayer(layerOverride);
 				return polys;
 			}
 		} else if (np == splineNode)
@@ -477,11 +479,11 @@ public class Artwork extends Technology
 				polys[0] = new Poly(pointList);
 				polys[0].setStyle(Poly.Type.OPENED);
 				Technology.NodeLayer primLayer = primLayers[0];
-				polys[0].setLayer(primLayer.getLayer());
+				polys[0].setLayer(layerOverride);
 				return polys;
 			}
 		}
-		return super.getShapeOfNode(ni, wnd, electrical, reasonable, primLayers);
+		return super.getShapeOfNode(ni, wnd, electrical, reasonable, primLayers, layerOverride);
 	}
 
 	/**
@@ -498,7 +500,7 @@ public class Artwork extends Technology
 		{
 			return super.getShapeOfPort(ni, pp);
 		}
-		Poly [] polys = getShapeOfNode(ni, null);
+		Poly [] polys = getShapeOfNode(ni);
 		return polys[0];
 	}
 
@@ -510,10 +512,10 @@ public class Artwork extends Technology
 	 * @param wnd the window in which this arc will be drawn.
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeOfArc(ArcInst ai, EditWindow wnd)
+	public Poly [] getShapeOfArc(ArcInst ai, EditWindow wnd, Layer layerOverride)
 	{
-		getGraphics(ai);
-		return super.getShapeOfArc(ai, wnd);
+		layerOverride = getGraphics(ai);
+		return super.getShapeOfArc(ai, wnd, layerOverride);
 	}
 
 	/**
@@ -689,11 +691,13 @@ public class Artwork extends Technology
 		return points;
 	}
 
+	private static HashMap allLayers = new HashMap();
+
 	/**
 	 * Method to find examine the ElectricObject and prepare for any Graphics found there.
 	 * @param obj the object with graphics specifications.
 	 */
-	private void getGraphics(ElectricObject obj)
+	private Layer getGraphics(ElectricObject obj)
 	{
 		// get the color information
 		Variable var = obj.getVar(ART_COLOR, Integer.class);
@@ -701,11 +705,20 @@ public class Artwork extends Technology
 		if (var == null)
 		{
 			graphics.setColor(EGraphics.BLACK);
-		} else
-		{
-			int color = ((Integer)var.getObject()).intValue();
-			graphics.setColor(color);
+			return G_lay;
 		}
+
+		Integer color = (Integer)var.getObject();
+		Layer thisLayer = (Layer)allLayers.get(color);
+		if (thisLayer != null) return thisLayer;
+
+		graphics = new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 0, 0,0,0, 0.8,1,
+			new int[] {0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
+				0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff});
+		graphics.setColor(color.intValue());
+		thisLayer = Layer.newInstance(this, "Graphics", graphics);
+		allLayers.put(color, thisLayer);
+		return thisLayer;
 
 //		// get the stipple pattern information
 //		artpl->patternvar = getvalkey(addr, type, -1, art_patternkey);

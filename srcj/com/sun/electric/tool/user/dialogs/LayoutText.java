@@ -154,7 +154,7 @@ public class LayoutText extends javax.swing.JDialog
 		if (curCell == null) return;
 
 		// get the raster
-		Raster ras = PixelDrawing.renderText(msg, font, tsize, italic, bold);
+		Raster ras = PixelDrawing.renderText(msg, font, tsize, italic, bold, -1, -1);
 		if (ras == null) return;
 
 		/* determine the primitive to use for the layout */

@@ -64,7 +64,7 @@ public class InputLibDirs {
     
     /** 
      * Read in LibDirs file.
-     * @returns true on error.
+     * @return true on error.
      */
     public static boolean readLibDirs()
     {

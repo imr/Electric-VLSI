@@ -452,7 +452,7 @@ public class OutputCIF extends OutputGeometry
 	public static boolean isCheckResolution() { return cacheCheckResolution.getBoolean(); }
 	/**
 	 * Method to set whether to report CIF resolution errors.
-	 * @param s whether to report CIF resolution errors.
+	 * @param c whether to report CIF resolution errors.
 	 */
 	public static void setCheckResolution(boolean c) { cacheCheckResolution.setBoolean(c); }
 

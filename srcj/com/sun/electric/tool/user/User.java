@@ -105,7 +105,7 @@ public class User extends Listener
 	/**
 	 * Method to set the "current" ArcProto, as maintained by the user interface.
 	 * The current ArcProto is highlighted with a bolder red border in the component menu on the left.
-	 * @param np the new "current" ArcProto.
+	 * @param ap the new "current" ArcProto.
 	 */
 	public void setCurrentArcProto(ArcProto ap) { currentArcProto = ap;   TopLevel.getPaletteFrame().arcProtoChanged(); }
 
@@ -695,6 +695,19 @@ public class User extends Listener
 	public static void setTextVisibilityOnCell(boolean on) { cacheTextVisibilityCell.setBoolean(on); }
 
 	/****************************** MISCELLANEOUS PREFERENCES ******************************/
+
+	private static Tool.Pref cacheWorkingDirectory = User.tool.makeStringPref("WorkingDirectory", java.lang.System.getProperty("user.dir"));
+	/**
+	 * Method to get the path of the current working directory.
+	 * The default is the Java "user directory".
+	 * @return the path of the current working directory.
+	 */
+	public static String getWorkingDirectory() { return cacheWorkingDirectory.getString(); }
+	/**
+	 * Method to set the path of the current working directory.
+	 * @param dir the path of the current working directory.
+	 */
+	public static void setWorkingDirectory(String dir) { cacheWorkingDirectory.setString(dir); }
 
 	private static Tool.Pref cacheBeepAfterLongJobs = User.tool.makeBooleanPref("BeepAfterLongJobs", false);
 	/**

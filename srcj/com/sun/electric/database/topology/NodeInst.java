@@ -297,7 +297,6 @@ public class NodeInst extends Geometric implements Nodable
 				}
 			}
 		}
-		parent.setDirty();
 
 		// if the cell-center changed, notify the cell and fix lots of stuff
 		if (protoType instanceof PrimitiveNode && protoType == Generic.tech.cellCenterNode)
@@ -344,7 +343,6 @@ public class NodeInst extends Geometric implements Nodable
 		// if the cell-center changed, notify the cell and fix lots of stuff
 		for(int i=0; i<nis.length; i++)
 		{
-			nis[i].getParent().setDirty();
 			if (nis[i].getProto() instanceof PrimitiveNode && nis[i].getProto() == Generic.tech.cellCenterNode)
 			{
 				nis[i].getParent().adjustReferencePoint(nis[i]);
@@ -720,6 +718,8 @@ public class NodeInst extends Geometric implements Nodable
 
 		// link back into the R-Tree
 		linkGeom(parent);
+
+		parent.setDirty();
 	}
 
 	/**
@@ -923,7 +923,7 @@ public class NodeInst extends Geometric implements Nodable
 				Cell subCell = (Cell)protoType;
 				Rectangle2D bounds = subCell.getBounds();
 				Point2D shift = new Point2D.Double(-bounds.getCenterX(), -bounds.getCenterY());
-				AffineTransform trans = pureRotate(angle, sX, sY);
+				AffineTransform trans = pureRotate(angle, sX < 0, sY < 0);
 				trans.transform(shift, shift);
 				cX -= shift.getX();
 				cY -= shift.getY();
@@ -1139,8 +1139,8 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	private static AffineTransform rotateTranspose = new AffineTransform();
-	private static AffineTransform mirrorX = new AffineTransform(-1, 0, 0, 1, 0, 0);
-	private static AffineTransform mirrorY = new AffineTransform(1, 0, 0, -1, 0, 0);
+	private static AffineTransform mirrorXcoord = new AffineTransform(-1, 0, 0, 1, 0, 0);
+	private static AffineTransform mirrorYcoord = new AffineTransform(1, 0, 0, -1, 0, 0);
 
 	/**
 	 * Method to return a transformation that rotates an object about a point.
@@ -1159,8 +1159,8 @@ public class NodeInst extends Geometric implements Nodable
 			// must do mirroring, so it is trickier
 			rotateTranspose.setToRotation(angle * Math.PI / 1800.0);
 			transform.setToTranslation(cX, cY);
-			if (sX < 0) transform.concatenate(mirrorX);
-			if (sY < 0) transform.concatenate(mirrorY);
+			if (sX < 0) transform.concatenate(mirrorXcoord);
+			if (sY < 0) transform.concatenate(mirrorYcoord);
 			transform.concatenate(rotateTranspose);
 			transform.translate(-cX, -cY);
 		} else
@@ -1173,20 +1173,18 @@ public class NodeInst extends Geometric implements Nodable
 	/**
 	 * Method to return a transformation that rotates an object.
 	 * @param angle the amount to rotate (in tenth-degrees).
-	 * @param sX the scale in X (negative to flip the X coordinate, or
-	 * flip ABOUT the Y axis).
-	 * @param sY the scale in Y (negative to flip the Y coordinate, or
-	 * flip ABOUT the X axis).
+	 * @param mirrorX true to flip the X coordinate, or flip ABOUT the Y axis).
+	 * @param mirrorY true to flip the Y coordinate, or flip ABOUT the X axis).
 	 * @return a transformation that rotates by this amount.
 	 */
-	public static AffineTransform pureRotate(int angle, double sX, double sY)
+	public static AffineTransform pureRotate(int angle, boolean mirrorX, boolean mirrorY)
 	{
 		AffineTransform transform = new AffineTransform();
 		transform.setToRotation(angle * Math.PI / 1800.0);
 
 		// add mirroring
-		if (sX < 0) transform.preConcatenate(mirrorX);
-		if (sY < 0) transform.preConcatenate(mirrorY);
+		if (mirrorX) transform.preConcatenate(mirrorXcoord);
+		if (mirrorY) transform.preConcatenate(mirrorYcoord);
 		return transform;
 	}
 
@@ -1927,7 +1925,7 @@ public class NodeInst extends Geometric implements Nodable
 		if (protoType != Generic.tech.invisiblePinNode)
 		{
 			Technology tech = protoType.getTechnology();
-			Poly [] polyList = tech.getShapeOfNode(this, null);
+			Poly [] polyList = tech.getShapeOfNode(this);
 			if (polyList.length > 0)
 			{
 				Poly.Type style = polyList[0].getStyle();

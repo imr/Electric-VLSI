@@ -1136,8 +1136,15 @@ public abstract class Geometric extends ElectricObject
 			TextDescriptor.Position pos = nameDescriptor.getPos();
 			Poly.Type style = pos.getPolyType();
 
-			Point2D [] pointList = new Point2D.Double[1];
-			pointList[0] = new Point2D.Double(cX+offX, cY+offY);
+			Point2D [] pointList = null;
+			if (style == Poly.Type.TEXTBOX)
+			{
+				pointList = Poly.makePoints(rect);
+			} else
+			{
+				pointList = new Point2D.Double[1];
+				pointList[0] = new Point2D.Double(cX+offX, cY+offY);
+			}
 			polys[start] = new Poly(pointList);
 			polys[start].setStyle(style);
 			polys[start].setString(name.toString());

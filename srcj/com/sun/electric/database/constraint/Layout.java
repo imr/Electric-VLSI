@@ -363,7 +363,7 @@ public class Layout extends Constraints
 //			if ((ai->userbits&DEADA) != 0) continue;
 
 			// prepare transformation matrix
-			AffineTransform trans = NodeInst.pureRotate(dAngle, dSX, dSY);
+			AffineTransform trans = NodeInst.pureRotate(dAngle, dSX < 0, dSY < 0);
 
 			// compute old center of nodeinst
 			double ox = change.getA1();
@@ -422,7 +422,7 @@ public class Layout extends Constraints
 //				nextAngle = (3600 - dAngle) % 3600;
 
 		// prepare transformation matrix and angle/transposition information
-		AffineTransform trans = NodeInst.pureRotate(nextAngle, dSX, dSY);
+		AffineTransform trans = NodeInst.pureRotate(nextAngle, dSX < 0, dSY < 0);
 
 		// look for rigid arcs on this nodeinst
 		boolean examineCell = false;
@@ -590,7 +590,7 @@ public class Layout extends Constraints
 //				nextAngle = (3600 - dAngle) % 3600;
 
 		// prepare transformation matrix and angle/transposition information
-		AffineTransform trans = NodeInst.pureRotate(nextAngle, dSX, dSY);
+		AffineTransform trans = NodeInst.pureRotate(nextAngle, dSX < 0, dSY < 0);
 
 		// look at all of the flexible arcs on this nodeinst
 		boolean examineCell = false;
@@ -1272,9 +1272,7 @@ public class Layout extends Constraints
 //				if (sX != cellBounds.getWidth() || sY != cellBounds.getHeight())
 				{
 //System.out.println("   so updating instance");
-					if (ni.isXMirrored()) sX = -sX;
-					if (ni.isYMirrored()) sY = -sY;
-					AffineTransform trans = NodeInst.pureRotate(ni.getAngle(), sX, sY);
+					AffineTransform trans = NodeInst.pureRotate(ni.getAngle(), ni.isXMirrored(), ni.isYMirrored());
 					Point2D off = new Point2D.Double(cellBounds.getCenterX() - oldCellBounds.getCenterX(),
 						cellBounds.getCenterY() - oldCellBounds.getCenterY());
 					trans.transform(off, off);
@@ -1282,7 +1280,8 @@ public class Layout extends Constraints
 //					double dSY = EMath.smooth(cellBounds.getHeight() - oldCellBounds.getHeight());
 					double dSX = EMath.smooth(cellBounds.getWidth() - ni.getXSize());
 					double dSY = EMath.smooth(cellBounds.getHeight() - ni.getYSize());
-					if (alterNodeInst(ni, EMath.smooth(off.getX()), EMath.smooth(off.getY()), dSX, dSY, 0, true)) forcedLook = true;
+					if (alterNodeInst(ni, 0, 0, dSX, dSY, 0, true)) forcedLook = true;
+//					if (alterNodeInst(ni, EMath.smooth(off.getX()), EMath.smooth(off.getY()), dSX, dSY, 0, true)) forcedLook = true;
 				}
 			}
 			for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
@@ -1429,9 +1428,7 @@ public class Layout extends Constraints
 //				if (sX != cellBounds.getWidth() || sY != cellBounds.getHeight())
 				{
 //System.out.println("   so updating instance");
-					if (ni.isXMirrored()) sX = -sX;
-					if (ni.isYMirrored()) sY = -sY;
-					AffineTransform trans = NodeInst.pureRotate(ni.getAngle(), sX, sY);
+					AffineTransform trans = NodeInst.pureRotate(ni.getAngle(), ni.isXMirrored(), ni.isYMirrored());
 					Point2D off = new Point2D.Double(cellBounds.getCenterX() - (flx+fhx)/2,
 						cellBounds.getCenterY() - (fly+fhy)/2);
 					trans.transform(off, off);
@@ -1439,7 +1436,8 @@ public class Layout extends Constraints
 //					double dSY = EMath.smooth(cellBounds.getHeight() - (fhy-fly));
 					double dSX = EMath.smooth(cellBounds.getWidth() - ni.getXSize());
 					double dSY = EMath.smooth(cellBounds.getHeight() - ni.getYSize());
-					if (alterNodeInst(ni, EMath.smooth(off.getX()), EMath.smooth(off.getY()), dSX, dSY, 0, true)) forcedLook = true;
+//					if (alterNodeInst(ni, EMath.smooth(off.getX()), EMath.smooth(off.getY()), dSX, dSY, 0, true)) forcedLook = true;
+					if (alterNodeInst(ni, 0, 0, dSX, dSY, 0, true)) forcedLook = true;
 					foundone = true;
 				}
 			}

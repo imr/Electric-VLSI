@@ -84,7 +84,7 @@ class ZoomAndPanListener
 		}
 		oldx = newX;
 		oldy = newY;
-		wnd.repaint();
+		wnd.repaintContents();
 	}
 
 	public void mouseWheelMoved(MouseWheelEvent evt)

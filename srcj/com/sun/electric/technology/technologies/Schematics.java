@@ -1331,9 +1331,10 @@ public class Schematics extends Technology
 	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
 	 * This makes no sense for Schematics primitives.
 	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
+	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers)
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		NodeProto prototype = ni.getProto();
 		if (!(prototype instanceof PrimitiveNode)) return null;
@@ -1515,7 +1516,7 @@ public class Schematics extends Technology
 				case TRANEMES:  primLayers = tran4LayersEMES;   break;
 			}
 		}
-		return super.getShapeOfNode(ni, wnd, electrical, reasonable, primLayers);
+		return super.getShapeOfNode(ni, wnd, electrical, reasonable, primLayers, layerOverride);
 	}
 
 	/**
@@ -1526,16 +1527,16 @@ public class Schematics extends Technology
 	 * @param wnd the window in which this arc will be drawn.
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeOfArc(ArcInst ai, EditWindow wnd)
+	public Poly [] getShapeOfArc(ArcInst ai, EditWindow wnd, Layer layerOverride)
 	{
 		// Bus arcs are handled in a standard way
 		PrimitiveArc ap = (PrimitiveArc)ai.getProto();
 		if (ap == bus_arc)
-			return super.getShapeOfArc(ai, wnd);
+			return super.getShapeOfArc(ai, wnd, layerOverride);
 
 		// Wire arc: if not negated, handle in a standard way
 		if (!ai.isNegated() || ai.isSkipTail())
-			return super.getShapeOfArc(ai, wnd);
+			return super.getShapeOfArc(ai, wnd, layerOverride);
 
 		// draw a negated Wire arc
 		Point2D headLoc = ai.getHead().getLocation();

@@ -40,10 +40,6 @@ import java.util.Iterator;
 import java.util.ArrayList;
 
 /**
- * User: gainsley
- * Date: Feb 24, 2004
- * Time: 4:58:24 PM
- * <p>
  * An Interactive Router has several methods that build on Router
  * methods to provide interactive control to user.  It also
  * provides methods for highlighting routes to provide visual
@@ -56,6 +52,10 @@ import java.util.ArrayList;
  * reality, it is expected that the route simply be rebuilt whenever
  * the user input changes, until the user decides that the route is acceptable,
  * at which point the route can be made.
+ * <p>
+ * User: gainsley
+ * Date: Feb 24, 2004
+ * Time: 4:58:24 PM
  */
 public abstract class InteractiveRouter extends Router {
 

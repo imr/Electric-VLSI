@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Rectangle;
+import java.awt.Point;
 import java.awt.Dimension;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
@@ -61,20 +62,21 @@ public class MessagesWindow
 	extends OutputStream
 	implements ActionListener, KeyListener, CaretListener, Runnable
 {
-	ArrayList history;
-	JTextField entry;
-	JTextArea info;
-	JScrollBar vertscroll;
-	int histidx = 0;
-	Thread ticker = null;
-	StringBuffer buffer = new StringBuffer();
-	Interpreter bi;
-	Container jf;
+	private ArrayList history;
+	private JTextField entry;
+	private JTextArea info;
+	private Container contentFrame;
+	private int histidx = 0;
+	private Thread ticker = null;
+	private StringBuffer buffer = new StringBuffer();
+	private Interpreter bi;
+	private Container jf;
 
 	// -------------------- private and protected methods ------------------------
-	public MessagesWindow(Dimension scrnSize)
+	public MessagesWindow()
 	{
-		Container contentFrame;
+		Dimension scrnSize = TopLevel.getScreenSize();
+		Dimension msgSize = new Dimension(scrnSize.width/3*2, scrnSize.height/100*15);
 		if (TopLevel.isMDIMode())
 		{
 			JInternalFrame jInternalFrame = new JInternalFrame("Electric Messages", true, false, true, true);
@@ -93,17 +95,18 @@ public class MessagesWindow
 		entry = new JTextField();
 		entry.addActionListener(this);
 		entry.addKeyListener(this);
-		info = new JTextArea(10, 80);
+		info = new JTextArea(20, 110);
 		info.addCaretListener(this);
 		info.setLineWrap(false);
-		JScrollPane scroll = new JScrollPane(info,
+		JScrollPane scrollPane = new JScrollPane(info,
 			JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		vertscroll = scroll.getVerticalScrollBar();
+		scrollPane.setPreferredSize(msgSize);
+		JScrollBar vertscroll = scrollPane.getVerticalScrollBar();
 		contentFrame.setLayout(new BorderLayout());
 		contentFrame.add(entry, BorderLayout.SOUTH);
-		contentFrame.add(scroll, BorderLayout.CENTER);
-		jf.setLocation(150, scrnSize.height/3*2);
+		contentFrame.add(scrollPane, BorderLayout.CENTER);
+		jf.setLocation(150, scrnSize.height/100*80);
 		if (TopLevel.isMDIMode())
 		{
 			((JInternalFrame)jf).pack();
@@ -116,6 +119,11 @@ public class MessagesWindow
 		}
 
 		System.setOut(new java.io.PrintStream(this));
+	}
+
+	public Rectangle getMessagesLocation()
+	{
+		return jf.getBounds();
 	}
 
 	public void interpret(String args[])

@@ -369,7 +369,7 @@ public abstract class NodeProto extends ElectricObject
 	/** set if instances can be wiped */					private static final int ARCSWIPE =          01000;
 	/** set if node is to be kept square in size */			private static final int NSQUARE =           02000;
 	/** primitive can hold trace information */				private static final int HOLDSTRACE =        04000;
-//	/** set if this cell is open in the explorer tree */	private static final int OPENINEXPLORER =   010000;
+	/** set if this primitive can be zero-sized */			private static final int CANBEZEROSIZE =    010000;
 	/** set to erase if connected to 1 or 2 arcs */			private static final int WIPEON1OR2 =       020000;
 	/** set if primitive is lockable (cannot move) */		private static final int LOCKEDPRIM =       040000;
 	/** set if primitive is selectable by edge, not area */	private static final int NEDGESELECT =     0100000;
@@ -741,9 +741,29 @@ public abstract class NodeProto extends ElectricObject
 	 * Outline information is an array of coordinates that define the node.
 	 * It can be as simple as an opened-polygon that connects the points,
 	 * or a serpentine transistor that lays down polysilicon to follow the points.
-	 * @return true if nstances of this NodeProto can hold an outline.
+	 * @return true if instances of this NodeProto can hold an outline.
 	 */
 	public boolean isHoldsOutline() { return (userBits & HOLDSTRACE) != 0; }
+
+	
+	/**
+	 * Method to set this NodeProto so that it can be zero in size.
+	 * The display system uses this to eliminate zero-size nodes that cannot be that way.
+	 */
+	public void setCanBeZeroSize() { checkChanging(); userBits |= CANBEZEROSIZE; }
+
+	/**
+	 * Method to set this NodeProto so that it cannot be zero in size.
+	 * The display system uses this to eliminate zero-size nodes that cannot be that way.
+	 */
+	public void clearCanBeZeroSize() { checkChanging(); userBits &= ~CANBEZEROSIZE; }
+
+	/**
+	 * Method to tell if instances of this NodeProto can be zero in size.
+	 * The display system uses this to eliminate zero-size nodes that cannot be that way.
+	 * @return true if instances of this NodeProto can be zero in size.
+	 */
+	public boolean isCanBeZeroSize() { return (userBits & CANBEZEROSIZE) != 0; }
 
 	/**
 	 * Method to set this NodeProto so that instances of it are wiped when 1 or 2 arcs connect.

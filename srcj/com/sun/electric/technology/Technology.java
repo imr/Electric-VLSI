@@ -830,11 +830,35 @@ public class Technology extends ElectricObject
 	/**
 	 * Returns the polygons that describe arc "ai".
 	 * @param ai the ArcInst that is being described.
+	 * @return an array of Poly objects that describes this ArcInst graphically.
+	 * This array includes displayable variables on the ArcInst.
+	 */
+	public Poly [] getShapeOfArc(ArcInst ai)
+	{
+		return getShapeOfArc(ai, null, null);
+	}
+
+	/**
+	 * Returns the polygons that describe arc "ai".
+	 * @param ai the ArcInst that is being described.
 	 * @param wnd the window in which this arc is being displayed.
 	 * @return an array of Poly objects that describes this ArcInst graphically.
 	 * This array includes displayable variables on the ArcInst.
 	 */
 	public Poly [] getShapeOfArc(ArcInst ai, EditWindow wnd)
+	{
+		return getShapeOfArc(ai, wnd, null);
+	}
+
+	/**
+	 * Returns the polygons that describe arc "ai".
+	 * @param ai the ArcInst that is being described.
+	 * @param wnd the window in which this arc is being displayed.
+	 * @param layerOverride the layer to use for all generated polygons (if not null).
+	 * @return an array of Poly objects that describes this ArcInst graphically.
+	 * This array includes displayable variables on the ArcInst.
+	 */
+	public Poly [] getShapeOfArc(ArcInst ai, EditWindow wnd, Layer layerOverride)
 	{
 		// get information about the arc
 		PrimitiveArc ap = (PrimitiveArc)ai.getProto();
@@ -857,7 +881,8 @@ public class Technology extends ElectricObject
 			Technology.ArcLayer primLayer = primLayers[i];
 			polys[polyNum] = ai.makePoly(ai.getLength(), ai.getWidth() - primLayer.getOffset(), primLayer.getStyle());
 			if (polys[polyNum] == null) return null;
-			polys[polyNum].setLayer(primLayer.getLayer());
+			if (layerOverride != null) polys[polyNum].setLayer(layerOverride); else
+				polys[polyNum].setLayer(primLayer.getLayer());
 			polyNum++;
 		}
 
@@ -1097,6 +1122,18 @@ public class Technology extends ElectricObject
 	 * Returns the polygons that describe node "ni".
 	 * @param ni the NodeInst that is being described.
 	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
+	 * @return an array of Poly objects that describes this NodeInst graphically.
+	 * This array includes displayable variables on the NodeInst.
+	 */
+	public Poly [] getShapeOfNode(NodeInst ni)
+	{
+		return getShapeOfNode(ni, null, false, false);
+	}
+
+	/**
+	 * Returns the polygons that describe node "ni".
+	 * @param ni the NodeInst that is being described.
+	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
 	 * @param wnd the window in which this node will be drawn (null if no window scaling should be done).
 	 * @return an array of Poly objects that describes this NodeInst graphically.
 	 * This array includes displayable variables on the NodeInst.
@@ -1144,7 +1181,7 @@ public class Technology extends ElectricObject
 				if (ni.pinUseCount()) primLayers = nullPrimLayers;
 			}
 		}
-		return getShapeOfNode(ni, wnd, electrical, reasonable, primLayers);
+		return getShapeOfNode(ni, wnd, electrical, reasonable, primLayers, null);
 	}
 
 	/**
@@ -1164,11 +1201,12 @@ public class Technology extends ElectricObject
 	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
 	 * The minimal set covers all edge contacts, but ignores the inner cuts in large contacts.
 	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
+	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
 	 * @return an array of Poly objects that describes this NodeInst graphically.
 	 * This array includes displayable variables on the NodeInst (if wnd != null).
 	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers)
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		int specialType = np.getSpecialType();
@@ -1189,7 +1227,8 @@ public class Technology extends ElectricObject
 				polys[0] = new Poly(pointList);
 				Technology.NodeLayer primLayer = primLayers[0];
 				polys[0].setStyle(primLayer.getStyle());
-				polys[0].setLayer(primLayer.getLayer());
+				if (layerOverride != null) polys[0].setLayer(layerOverride); else
+					polys[0].setLayer(primLayer.getLayer());
 				Rectangle2D rect = ni.getBounds();
 				if (wnd != null) ni.addDisplayableVariables(rect, polys, 1, wnd, true);
 				return polys;
@@ -1243,11 +1282,7 @@ public class Technology extends ElectricObject
 				double portHighX = xCenter + rightEdge.getMultiplier() * xSize + rightEdge.getAdder();
 				double portLowY = yCenter + bottomEdge.getMultiplier() * ySize + bottomEdge.getAdder();
 				double portHighY = yCenter + topEdge.getMultiplier() * ySize + topEdge.getAdder();
-				Point2D [] pointList = new Point2D.Double[] {
-					new Point2D.Double(portLowX, portLowY),
-					new Point2D.Double(portHighX, portLowY),
-					new Point2D.Double(portHighX, portHighY),
-					new Point2D.Double(portLowX, portHighY)};
+				Point2D [] pointList = Poly.makePoints(portLowX, portHighX, portLowY, portHighY);
 				polys[i] = new Poly(pointList);
 			} else if (representation == Technology.NodeLayer.POINTS)
 			{
@@ -1274,7 +1309,8 @@ public class Technology extends ElectricObject
 				polys[i].setTextDescriptor(primLayer.getDescriptor());
 			}
 			polys[i].setStyle(style);
-			polys[i].setLayer(primLayer.getLayer());
+			if (layerOverride != null) polys[i].setLayer(layerOverride); else
+				polys[i].setLayer(primLayer.getLayer());
 			if (electrical)
 			{
 				int portIndex = primLayer.getPortNum();
