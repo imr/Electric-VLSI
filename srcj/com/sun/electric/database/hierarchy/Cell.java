@@ -1529,7 +1529,6 @@ public class Cell extends NodeProto implements Comparable
 	 * Method to get the strings in this Cell.
 	 * It is only valid for cells with "text" views (documentation, vhdl, netlist, etc.)
 	 * The call needs to be wrapped inside of a Job.
-	 * @return strings the strings in this Cell.
 	 * Returns null if there are no strings.
 	 */
 	public void setTextViewContents(String [] strings)
@@ -2489,6 +2488,7 @@ public class Cell extends NodeProto implements Comparable
 	 */
 	public int getNumVersions()
 	{
+        if (versionGroup == null) return 1;
 		return versionGroup.size();
 	}
 
