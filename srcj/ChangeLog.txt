@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ao: *********************************
 
+BUG: (11/13/04, RK) Reduce storage utilization of net equivalence feature
+
 ************************* Version 8.01an: *********************************
 
 IMP: (11/12/04, GVG) LayerCoverageJob class moved to new misc directory to decouple code

@@ -157,6 +157,8 @@ public class NccJob extends Job {
     		testProbing();
     		return true;
     	}
+    	lastResult = null;
+    	
 		LayoutLib.error(numWindows!=1 && numWindows!=2, 
                         "numWindows must be 1 or 2");
 		CellContext[] cellCtxts = getCellsFromWindows(numWindows);

@@ -207,7 +207,7 @@ public class NccBottomUp {
 				NccResult r = NccUtils.compareAndPrintStatus(refCC.cell, refCC.context,
 						                                     thisCC.cell, thisCC.context, 
 															 hierInfo, options); 
-				result.and(r);
+				result.andEquals(r, true);
 				if (r.match())  passed.setPassed(refCC.cell, thisCC.cell);
 			}
 		}
@@ -308,8 +308,8 @@ public class NccBottomUp {
 				);
 				return result;
 			}
-
-			result.and(r);
+			boolean saveEquivDataOfTopCell = !it.hasNext();
+			result.andEquals(r, saveEquivDataOfTopCell);
 
 			if (!result.match() && options.haltAfterFirstMismatch) {
 				System.out.println( 

@@ -38,11 +38,11 @@ public class NccResult {
 		this.globalData = globalData;
 	}
 	/** aggregate the result of multiple comparisons */
-	public void and(NccResult result) {
+	public void andEquals(NccResult result, boolean copyGlobalData) {
 		exportMatch &= result.exportMatch;
 		topologyMatch &= result.topologyMatch;
 		sizeMatch &= result.sizeMatch;
-		globalData = result.globalData;
+		if (copyGlobalData)  globalData = result.globalData;
 	}
 	/** No problem was found with Exports */ 
 	public boolean exportMatch() {return exportMatch;}

@@ -95,7 +95,6 @@ class NccNameIndex {
 	public NccNameIndex(NameProxy[] objects) {
 		int numObj = objects.length;
 		for (int i=0; i<numObj; i++) {
-//			System.out.println("Adding object: "+objects[i].toString());
 			addObjectIndex(objects[i], i);
 		}
 	}
@@ -106,7 +105,6 @@ class NccNameIndex {
 			String instNm = (String) it.next();
 			NccContext child = nc.findChild(instNm);
 			if (child==null) {
-//				NodeProto np = nc.getProto();
 				System.out.println(
 					"Can't find instance named: "+instNm+
 //					" in NodeProto: "+np.getName()+
