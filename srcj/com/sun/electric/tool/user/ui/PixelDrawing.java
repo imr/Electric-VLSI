@@ -2135,7 +2135,8 @@ public class PixelDrawing
 					// convert the text to a GlyphVector
 					gv = theFont.createGlyphVector(frc, msg);
 					lm = theFont.getLineMetrics(msg, frc);
-					rect = gv.getPixelBounds(frc, 0, 0);
+					rect = gv.getOutline(0, (float)(lm.getAscent()-lm.getLeading())).getBounds();
+//					rect = gv.getPixelBounds(frc, 0, 0);
 					height = (int)(lm.getHeight()+0.5);
 					if (height <= 0) return null;
 				}

@@ -656,7 +656,7 @@ public class EditOptions extends EDialog
 	private String initialFrameCompanyName;
 	private String initialFrameDesignerName;
 	private String initialFrameProjectName;
-
+	private String initialFrameSize;
 	private static class LibraryFrameInfo
 	{
 		String initialCompanyName, currentCompanyName;
@@ -679,11 +679,11 @@ public class EditOptions extends EDialog
 			Library lib = (Library)it.next();
 			LibraryFrameInfo lfi = new LibraryFrameInfo();
 			lfi.initialCompanyName = lfi.initialDesignerName = lfi.initialProjectName = "";
-			Variable var = lib.getVar("USER_drawing_company_name", String.class);
+			Variable var = lib.getVar(User.FRAME_COMPANY_NAME, String.class);
 			if (var != null) lfi.initialCompanyName = (String)var.getObject();
-			var = lib.getVar("USER_drawing_designer_name", String.class);
+			var = lib.getVar(User.FRAME_DESIGNER_NAME, String.class);
 			if (var != null) lfi.initialDesignerName = (String)var.getObject();
-			var = lib.getVar("USER_drawing_project_name", String.class);
+			var = lib.getVar(User.FRAME_PROJECT_NAME, String.class);
 			if (var != null) lfi.initialProjectName = (String)var.getObject();
 			lfi.currentCompanyName = lfi.initialCompanyName;
 			lfi.currentDesignerName = lfi.initialDesignerName;
@@ -691,6 +691,14 @@ public class EditOptions extends EDialog
 			frameLibInfo.put(lib, lfi);
 			frameLibrary.addItem(lib.getLibName());
 		}
+
+		frameSize.addItem("None");
+		frameSize.addItem("Half-A-Size");
+		frameSize.addItem("A-Size");
+		frameSize.addItem("B-Size");
+		frameSize.addItem("C-Size");
+		frameSize.addItem("D-Size");
+		frameSize.addItem("E-Size");
 		frameLibrary.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { loadFrameLibInfo(); }
@@ -711,12 +719,30 @@ public class EditOptions extends EDialog
 		} else
 		{
 			frameCellName.setText("For cell " + cell.describe());
+			initialFrameSize = "";
+			Variable var = cell.getVar(User.FRAME_SIZE, String.class);
+			if (var != null) initialFrameSize = (String)var.getObject();
 
-			// not yet
-			frameSize.setEnabled(false);
-			frameLandscape.setEnabled(false);
-			framePortrait.setEnabled(false);
-			frameTitleBox.setEnabled(false);
+			frameSize.setSelectedIndex(0);
+			frameLandscape.setSelected(true);
+			frameTitleBox.setSelected(false);
+			if (initialFrameSize.length() > 0)
+			{
+				char chr = initialFrameSize.charAt(0);
+				if (chr == 'h') frameSize.setSelectedIndex(1); else
+				if (chr == 'a') frameSize.setSelectedIndex(2); else
+				if (chr == 'b') frameSize.setSelectedIndex(3); else
+				if (chr == 'c') frameSize.setSelectedIndex(4); else
+				if (chr == 'd') frameSize.setSelectedIndex(5); else
+				if (chr == 'e') frameSize.setSelectedIndex(6);
+				frameTitleBox.setSelected(true);
+				for(int i=1; i< initialFrameSize.length(); i++)
+				{
+					chr = initialFrameSize.charAt(i);
+					if (chr == 'v') framePortrait.setSelected(true); else
+						if (chr == 'n') frameTitleBox.setSelected(false);
+				}
+			}
 		}
 
 		initialFrameCompanyName = User.getFrameCompanyName();
@@ -788,11 +814,38 @@ public class EditOptions extends EDialog
 			LibraryFrameInfo lfi = (LibraryFrameInfo)frameLibInfo.get(lib);
 			if (lfi == null) continue;
 			if (!lfi.currentCompanyName.equals(lfi.initialCompanyName))
-				lib.newVar("USER_drawing_company_name", lfi.currentCompanyName);
+				lib.newVar(User.FRAME_COMPANY_NAME, lfi.currentCompanyName);
 			if (!lfi.currentDesignerName.equals(lfi.initialDesignerName))
-				lib.newVar("USER_drawing_designer_name", lfi.currentDesignerName);
+				lib.newVar(User.FRAME_DESIGNER_NAME, lfi.currentDesignerName);
 			if (!lfi.currentProjectName.equals(lfi.initialProjectName))
-				lib.newVar("USER_drawing_project_name", lfi.currentProjectName);
+				lib.newVar(User.FRAME_PROJECT_NAME, lfi.currentProjectName);
+		}
+
+		// set cell frame information
+		Cell cell = WindowFrame.getCurrentCell();
+		if (cell != null)
+		{
+			String currentFrameSize = "";
+			int index = frameSize.getSelectedIndex();
+			if (index > 0)
+			{
+				switch (index)
+				{
+					case 1: currentFrameSize = "h";   break;
+					case 2: currentFrameSize = "a";   break;
+					case 3: currentFrameSize = "b";   break;
+					case 4: currentFrameSize = "c";   break;
+					case 5: currentFrameSize = "d";   break;
+					case 6: currentFrameSize = "e";   break;
+				}
+				if (framePortrait.isSelected()) currentFrameSize += "v";
+				if (!frameTitleBox.isSelected()) currentFrameSize += "n";
+			} else
+			{
+				if (frameTitleBox.isSelected()) currentFrameSize = "x";
+			}
+			if (!currentFrameSize.equals(initialFrameSize))
+				cell.newVar(User.FRAME_SIZE, currentFrameSize);
 		}
 	}
 

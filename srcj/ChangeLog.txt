@@ -1,15 +1,20 @@
 			Java Electric change log
 
-************************* Version 8.00a: Released  *************************
+************************* Version 8.00: Released  *************************
+
+IMP: (5/26/04, SMR) Implemented schematic frames.
+
+IMP: (5/26/04, SMR) Implemented Spice cell model overrides in the Spice tab of the Tool Options dialog.
+
 IMP: (5/25/04, RK) Add fill123, fill123w, and fill34.
 
 IMP: (5/25/04, GVG) First draft for qTree to replace PolyMerge.
 
 IMP: (5/25/04, RK) Modify "Justin" command so it scans LoCo schematics and generates layout for all
-gates it knows how to.
+     gates it knows how to.
 
 IMP: (5/25/04, GVG) Disable doAction button in CellBrowser when no cells are available.
-getSelectedCell returns null if index is -1. Rename functionaly enabled in CellBrowser.
+     getSelectedCell returns null if index is -1. Rename functionaly enabled in CellBrowser.
 
 IMP: (5/25/04, GVG) Coverage implants: more robust functions. Option added under Tool->Generation->Coverage Implants Generator
 

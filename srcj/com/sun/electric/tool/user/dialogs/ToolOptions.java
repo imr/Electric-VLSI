@@ -37,6 +37,7 @@ import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.erc.ERC;
+import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.routing.Routing;
@@ -898,7 +899,7 @@ public class ToolOptions extends EDialog
 		spiceResistance.getDocument().addDocumentListener(new LayerDocumentListener(spiceLayerResistanceOptions, spiceLayerList, curTech));
 		spiceCapacitance.getDocument().addDocumentListener(new LayerDocumentListener(spiceLayerCapacitanceOptions, spiceLayerList, curTech));
 		spiceEdgeCapacitance.getDocument().addDocumentListener(new LayerDocumentListener(spiceLayerEdgeCapacitanceOptions, spiceLayerList, curTech));
-
+		
 		spiceTechMinResistanceInitial = curTech.getMinResistance();
 		spiceMinResistance.setText(Double.toString(spiceTechMinResistanceInitial));
 
@@ -943,11 +944,6 @@ public class ToolOptions extends EDialog
 
 		// the last section has cell overrides
 		spiceCellModelOptions = new HashMap();
-		for(Iterator it = curLib.getCells(); it.hasNext(); )
-		{
-			Cell cell = (Cell)it.next();
-			spiceCellModelOptions.put(cell, Option.newStringOption(""));
-		}
 		spiceCellListModel = new DefaultListModel();
 		spiceCellList = new JList(spiceCellListModel);
 		spiceCellList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -956,6 +952,10 @@ public class ToolOptions extends EDialog
 		{
 			Cell cell = (Cell)it.next();
 			spiceCellListModel.addElement(cell.noLibDescribe());
+			String modelFile = "";
+			Variable var = cell.getVar(Spice.SPICE_MODEL_FILE_KEY, String.class);
+			if (var != null) modelFile = (String)var.getObject();
+			spiceCellModelOptions.put(cell, Option.newStringOption(modelFile));
 		}
 		spiceCellList.setSelectedIndex(0);
 		spiceCellList.addMouseListener(new MouseAdapter()
@@ -966,10 +966,31 @@ public class ToolOptions extends EDialog
 		{
 			public void actionPerformed(ActionEvent evt) { spiceModelFileBrowseActionPerformed(); }
 		});
-//		spiceCellListClick();
-//		spiceCell.getDocument().addDocumentListener(new CellDocumentListener(spiceCellModelOptions, spiceCellList, curLib));
+		spiceDeriveModelFromCircuit.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { spiceCellModelButtonClick(); }
+		});
+		spiceUseModelFromFile.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { spiceCellModelButtonClick(); }
+		});
+		spiceModelCell.getDocument().addDocumentListener(new SpiceModelDocumentListener(this));
+		spiceCellListClick();
 	}
 
+	private boolean spiceModelFileChanging = false;
+
+	/**
+	 * Method called when the user clicks on a model file radio button at in the bottom of the Spice Options dialog.
+	 */
+	private void spiceCellModelButtonClick()
+	{
+		if (spiceDeriveModelFromCircuit.isSelected()) spiceModelCell.setText("");
+	}
+
+	/**
+	 * Method called when the user clicks on a cell name at in the bottom of the Spice Options dialog.
+	 */
 	private void spiceCellListClick()
 	{
 		String cellName = (String)spiceCellList.getSelectedValue();
@@ -977,16 +998,58 @@ public class ToolOptions extends EDialog
 		if (cell != null)
 		{
 			Option option = (Option)spiceCellModelOptions.get(cell);
-			spiceModelCell.setText(option.getStringValue());
+			String modelFile = option.getStringValue();
+			spiceModelFileChanging = true;
+			spiceModelCell.setText(modelFile);
+			if (modelFile.length() == 0) spiceDeriveModelFromCircuit.setSelected(true); else
+				spiceUseModelFromFile.setSelected(true);
+			spiceModelFileChanging = false;
 		}
 	}
 
+	/**
+	 * Method called when the user clicks on the "Browse" button in the bottom of the Spice Options dialog.
+	 */
 	private void spiceModelFileBrowseActionPerformed()
 	{
 		String fileName = OpenFile.chooseInputFile(OpenFile.Type.ANY, null);
 		if (fileName == null) return;
-		spiceModelCell.setText(fileName);
 		spiceUseModelFromFile.setSelected(true);
+		spiceModelCell.setText(fileName);
+	}
+
+	/**
+	 * Method called when the user changes the model file name at the bottom of the Spice Options dialog.
+	 */
+	private void spiceModelFileChanged()
+	{
+		if (spiceModelFileChanging) return;
+		String cellName = (String)spiceCellList.getSelectedValue();
+		Cell cell = curLib.findNodeProto(cellName);
+		if (cell != null)
+		{
+			Option option = (Option)spiceCellModelOptions.get(cell);
+			String typedString = spiceModelCell.getText();
+			if (spiceDeriveModelFromCircuit.isSelected()) typedString = "";
+			option.setStringValue(typedString);
+		}
+	}
+
+	/**
+	 * Class to handle changes to per-cell model file names.
+	 */
+	private static class SpiceModelDocumentListener implements DocumentListener
+	{
+		ToolOptions dialog;
+
+		SpiceModelDocumentListener(ToolOptions dialog)
+		{
+			this.dialog = dialog;
+		}
+
+		public void changedUpdate(DocumentEvent e) { dialog.spiceModelFileChanged(); }
+		public void insertUpdate(DocumentEvent e) { dialog.spiceModelFileChanged(); }
+		public void removeUpdate(DocumentEvent e) { dialog.spiceModelFileChanged(); }
 	}
 
 	private void spiceBrowseTrailerFileActionPerformed()
@@ -1079,6 +1142,20 @@ public class ToolOptions extends EDialog
 			trailer = spiceTrailerCardFile.getText();
 		}
 		if (spiceTrailerCardInitial.equals(trailer)) Simulation.setSpiceTrailerCardInfo(trailer);
+
+		// bottom section: model file overrides for cells
+		for(Iterator it = curLib.getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			Option opt = (Option)spiceCellModelOptions.get(cell);
+			if (opt == null) continue;
+			if (opt.isChanged())
+			{
+				String fileName = opt.getStringValue().trim();
+				if (fileName.length() == 0) cell.delVar(Spice.SPICE_MODEL_FILE_KEY); else
+					cell.newVar(Spice.SPICE_MODEL_FILE_KEY, fileName);
+			}
+		}
 	}
 
 	private void spiceLayerListClick()

@@ -74,6 +74,7 @@ public class Spice extends Topology
 	/** key of Variable holding SPICE code. */					public static final Variable.Key SPICE_CARD_KEY = ElectricObject.newKey("SIM_spice_card");
 //	/** key of Variable holding SPICE code. */					public static final Variable.Key SPICE_CARD_KEY = ElectricObject.newKey("SPICE_Code");
 	/** key of Variable holding SPICE model. */					public static final Variable.Key SPICE_MODEL_KEY = ElectricObject.newKey("SIM_spice_model");
+	/** key of Variable holding SPICE model file. */			public static final Variable.Key SPICE_MODEL_FILE_KEY = ElectricObject.newKey("SIM_spice_behave_file");
 
 	/** maximum subcircuit name length */						private static final int SPICEMAXLENSUBCKTNAME     = 70;
 	/** legal characters in a spice deck */						private static final String SPICELEGALCHARS        = "!#$%*+-/<>[]_";
@@ -245,7 +246,7 @@ public class Spice extends Topology
 	protected void writeCellTopology(Cell cell, CellNetInfo cni, VarContext context)
 	{
 		// look for a model file on the current cell
-		Variable var = cell.getVar("SIM_spice_behave_file");
+		Variable var = cell.getVar(SPICE_MODEL_FILE_KEY);
 		if (var != null)
 		{
 			multiLinePrint(true, "* Cell " + cell.describe() + " is described in this file:\n");
