@@ -64,7 +64,11 @@ public class J3DAppearance extends Appearance
     private void setOtherAppearanceValues(int mode, float factor, Color color)
     {
         // Transparency values
-        TransparencyAttributes ta = new TransparencyAttributes(mode, factor);
+        //TransparencyAttributes ta = new TransparencyAttributes(mode, factor);
+        TransparencyAttributes ta = new TransparencyAttributes(
+          mode, factor,
+          TransparencyAttributes.BLEND_SRC_ALPHA,
+          TransparencyAttributes.BLEND_ONE);
         ta.setCapability(TransparencyAttributes.ALLOW_VALUE_READ);
         ta.setCapability(TransparencyAttributes.ALLOW_VALUE_WRITE);
         ta.setCapability(TransparencyAttributes.ALLOW_MODE_READ);
