@@ -122,7 +122,7 @@ public class View3DWindow extends JPanel
 	/** Highlighter for this window */                      private Highlighter highlighter;
 	private PickCanvas pickCanvas;
 	/** Lis with all Shape3D drawn per ElectricObject */    private HashMap electricObjectMap = new HashMap();
-    private boolean oneTransformPerNode = false;
+    private boolean oneTransformPerNode = true;
     /** Map with object transformation for individual moves */ private HashMap transformGroupMap = new HashMap();
 
 	// Done only once.
@@ -865,13 +865,17 @@ public class View3DWindow extends JPanel
      * @param posX
      * @param posY
      * @param posZ
+     * @param rotPosX
+     * @param rotPosY
+     * @param rotPosZ
      */
     public void moveAndRotate(double posX, double posY, double posZ,
-                              double rotX, double rotY, double rotZ)
+                              double rotX, double rotY, double rotZ,
+                              double rotPosX, double rotPosY, double rotPosZ)
     {
         Vector3d extraTrans = new Vector3d(posX, posY, posZ);
         Vector3d rotation = new Vector3d(rotX, rotY, rotZ);
-        Transform3D transformX = new Transform3D();
+        Transform3D tmpTrans = new Transform3D();
         Transform3D currXform = new Transform3D();
 
         for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext();)
@@ -881,15 +885,39 @@ public class View3DWindow extends JPanel
             TransformGroup grp = (TransformGroup)transformGroupMap.get(obj);
 
             grp.getTransform(currXform);
-            transformX.set(extraTrans);
+            tmpTrans.set(extraTrans);
             boolean invert = false;
             if (invert) {
-                currXform.mul(currXform, transformX);
+                currXform.mul(currXform, tmpTrans);
             } else {
-                currXform.mul(transformX, currXform);
+                currXform.mul(tmpTrans, currXform);
             }
-            currXform.setEuler(rotation);
             grp.setTransform(currXform);
+            //grp.setTransform(currXform);
+
+        grp.getTransform(currXform);
+
+        Matrix4d mat = new Matrix4d();
+        // Remember old matrix
+        currXform.get(mat);
+
+            tmpTrans.setEuler(rotation);
+
+        // Translate to rotation point
+        currXform.setTranslation(new Vector3d(rotPosX, rotPosY, rotPosZ));
+        if (invert) {
+        currXform.mul(currXform, tmpTrans);
+        } else {
+        currXform.mul(tmpTrans, currXform);
+        }
+
+        // Set old translation back
+        Vector3d translation = new
+        Vector3d(mat.m03, mat.m13, mat.m23);
+        currXform.setTranslation(translation);
+
+        // Update xform
+        grp.setTransform(currXform);
         }
     }
 

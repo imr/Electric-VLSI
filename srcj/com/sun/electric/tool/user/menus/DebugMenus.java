@@ -782,7 +782,7 @@ try {
             String newName = "tmp/sport/"+libName+".jelib";
             FileMenu.SaveLibrary job = new FileMenu.SaveLibrary(lib, "tmp/sport/"+libName, FileType.JELIB, false, true);
     job.performTask();
-            Exec e = new Exec("cmd . /usr/bin/diff " + oldName + " " + newName, null, dir, outputStream, errStream);
+            Exec e = new Exec("/usr/bin/diff " + oldName + " " + newName, null, dir, outputStream, errStream);
             e.start();
     outputStream.flush();
             errStream.flush();

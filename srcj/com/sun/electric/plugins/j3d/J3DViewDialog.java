@@ -261,7 +261,7 @@ public class J3DViewDialog extends EDialog
         view3D.moveAndRotate(TextUtils.atof(xField.getText()),
                 TextUtils.atof(yField.getText()), TextUtils.atof(zField.getText()),
                         TextUtils.atof(xRotField.getText()),
-                TextUtils.atof(yRotField.getText()), TextUtils.atof(zRotField.getText()));
+                TextUtils.atof(yRotField.getText()), TextUtils.atof(zRotField.getText()), 500, 500, 0);
     }//GEN-LAST:event_startActionPerformed
 
 	private void cancelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cancelActionPerformed
