@@ -674,7 +674,7 @@ public class Schematic
 		}
 
 		// report the error
-		ErrorLogger.MessageLog err = errorLogger.logError("Objects touch", geom.getParent(), 0);
+		ErrorLogger.MessageLog err = errorLogger.logError("Objects '" + geom.getName() + "' '" + oGeom.getName() + "' touch", geom.getParent(), 0);
 		err.addGeom(geom, true, geom.getParent(), null);
 		err.addGeom(oGeom, true, geom.getParent(), null);
 		return true;
