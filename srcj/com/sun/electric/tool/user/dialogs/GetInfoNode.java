@@ -201,7 +201,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		allAttributes = new ArrayList();
 		portObjects = new ArrayList();
 
-        attributesTable = new AttributesTable(true, false, false);
+        attributesTable = new AttributesTable(null, true, false, false);
 
         // add variable code types
         for (Iterator it = Variable.Code.getCodes(); it.hasNext(); ) {
@@ -300,7 +300,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				popup.setEnabled(false);
 				ports.setEnabled(false);
 				attributes.setEnabled(false);
-                attributesTable.clearVariables();
+                attributesTable.setElectricObject(null);
                 attributesTable.setEnabled(false);
 				listPane.setEnabled(false);
 				listModel.clear();
@@ -422,7 +422,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		}
 		attributes.setEnabled(allAttributes.size() != 0);
         attributesTable.setEnabled(allAttributes.size() != 0);
-        attributesTable.clearVariables();
+        attributesTable.setElectricObject(ni);
 		//if (attributes.isSelected() && allAttributes.size() == 0) ports.setSelected(true);
 		showProperList();
 
@@ -778,12 +778,14 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		if (attributes.isSelected())
 		{
 			// show attributes
+/*
             attributesTable.clearVariables();
             for (Iterator it = allAttributes.iterator(); it.hasNext(); ) {
                 AttValPair avp = (AttValPair)it.next();
                 Variable.Key key = avp.key;
                 attributesTable.addVariable(shownNode.getVar(key), shownNode);
             }
+*/
             listPane.setViewportView(attributesTable);
 		}
 	}

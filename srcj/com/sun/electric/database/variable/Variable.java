@@ -113,7 +113,6 @@ public class Variable
 	private Key key;
 	private int flags;
 	private TextDescriptor descriptor;
-    private ElectricObject owner;
 
     /** true if var is attached to valid electric object */ private boolean linked;
 
@@ -155,7 +154,6 @@ public class Variable
 		this.addr = addr;
 		this.descriptor = new TextDescriptor(owner, descriptor);
 		this.key = key;
-        this.owner = owner;
 	}
 
 	/**
@@ -247,7 +245,13 @@ public class Variable
      * Returns true if variable is linked to a linked database object, false otherwise.
      * @return true if variable is linked to a linked database object, false otherwise.
      */
-    public boolean isLinked() { return (linked && owner.isLinked()); }
+    public boolean isLinked() { return (linked && descriptor.owner.isLinked()); }
+
+    /**
+     * Get the Electric object that stores this Variable
+     * @return the Owner of this Variable
+     */
+    public ElectricObject getOwner() { return descriptor.owner; }
 
 	/**
 	 * Method to return a more readable name for this Variable.
