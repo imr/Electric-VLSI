@@ -42,6 +42,8 @@ public class EditKeyBinding extends EDialog {
 
     /** The MenuItem we are adding a key binding to */  private JMenuItem menuItem;
     /** The MenuBar that item is a part of */           private MenuBar menuBar;
+    /** Last stroke1 input */                           private KeyStroke key1;
+    /** Last stroke2 input */                           private KeyStroke key2;
 
     /**
      * Creates new form EditKeyBinding.
@@ -53,6 +55,8 @@ public class EditKeyBinding extends EDialog {
         super(parent, modal);
         menuItem = item;
         this.menuBar = menuBar;
+        key1 = null;
+        key2 = null;
         initComponents();                   // prebuilt by netbeans
         initDialog();
     }
@@ -273,8 +277,8 @@ public class EditKeyBinding extends EDialog {
      * @param evt the KeyEvent
      */
     private void stroke2InputKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_stroke2InputKeyPressed
-        KeyStroke key = KeyStroke.getKeyStrokeForEvent(evt);
-        stroke2Input.setText(KeyStrokePair.keyStrokeToString(key));
+        key2 = KeyStroke.getKeyStrokeForEvent(evt);
+        stroke2Input.setText(KeyStrokePair.keyStrokeToString(key2));
         updateConflicts();
         evt.consume();
     }//GEN-LAST:event_stroke2InputKeyPressed
@@ -295,8 +299,8 @@ public class EditKeyBinding extends EDialog {
      * @param evt the KeyEvent
      */
     private void stroke1InputKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_stroke1InputKeyPressed
-        KeyStroke key = KeyStroke.getKeyStrokeForEvent(evt);
-        stroke1Input.setText(KeyStrokePair.keyStrokeToString(key));
+        key1 = KeyStroke.getKeyStrokeForEvent(evt);
+        stroke1Input.setText(KeyStrokePair.keyStrokeToString(key1));
         updateConflicts();
         evt.consume();
     }//GEN-LAST:event_stroke1InputKeyPressed
@@ -403,8 +407,18 @@ public class EditKeyBinding extends EDialog {
      * @return the KeyStroke, or null if invalid text in field.
      */
     private KeyStroke getStroke(JTextField field) {
-        String str = field.getText();
-        return KeyStrokePair.stringToKeyStroke(str);
+
+        // sanity check: if text is empty, shouldn't use this key cause user can't see it
+        if (field.getText() == null || field.getText().equals("")) {
+            return null;
+        }
+        // return last saved key press associated with field
+        if (field == stroke1Input) {
+            return key1;
+        }
+        else return key2;
+        //String str = field.getText();
+        //return KeyStrokePair.stringToKeyStroke(str);
     }
 
     // ------------------------------ Helper Dialogs ------------------------------
