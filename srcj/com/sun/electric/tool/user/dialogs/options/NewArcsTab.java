@@ -80,7 +80,7 @@ public class NewArcsTab extends PreferencePanel
 	public void init()
 	{
 		// setup popup of possible pins
-        jPanel8.setBorder(new javax.swing.border.TitledBorder("For Arcs in Technology: " + curTech.getTechName()));
+        jPanel8.setBorder(new javax.swing.border.TitledBorder("For Arcs in Technology: '" + curTech.getTechName() + "'"));
 		for(Iterator it = curTech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
