@@ -1061,7 +1061,7 @@ public class EDIF extends Input
 		Point2D pt = new Point2D.Double(x, y);
 		double bestDist = Double.MAX_VALUE;
 		ArcInst ai = null;
-		for(Geometric.Search sea = new Geometric.Search(new Rectangle2D.Double(x, y, 0, 0), cell); sea.hasNext(); )
+		for(Iterator sea = cell.searchIterator(new Rectangle2D.Double(x, y, 0, 0)); sea.hasNext(); )
 		{
 			Geometric geom = (Geometric)sea.next();
 

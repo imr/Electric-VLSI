@@ -2523,9 +2523,6 @@ public class CircuitChanges
 		for(Iterator it = subCell.getNodes(); it.hasNext(); )
 			nodes.add(it.next());
 
-		// sort the nodes by name
-		Collections.sort(nodes, new TextUtils.NodesByName());
-
 		// copy the nodes
 		HashMap newNodes = new HashMap();
 		for(Iterator it = nodes.iterator(); it.hasNext(); )
@@ -2565,9 +2562,6 @@ public class CircuitChanges
 		List arcs = new ArrayList();
 		for(Iterator it = subCell.getArcs(); it.hasNext(); )
 			arcs.add(it.next());
-
-		// sort the arcs by name
-		Collections.sort(arcs, new TextUtils.ArcsByName());
 
 		// extract the arcs
 		for(Iterator it = arcs.iterator(); it.hasNext(); )

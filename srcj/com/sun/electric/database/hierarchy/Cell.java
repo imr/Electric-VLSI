@@ -378,7 +378,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	/** The bounds of the Cell. */									private Rectangle2D cellBounds;
 	/** Whether the bounds need to be recomputed. */				private boolean boundsDirty;
 	/** Whether the bounds have anything in them. */				private boolean boundsEmpty;
-	/** The geometric data structure. */							private Geometric.RTNode rTree;
+	/** The geometric data structure. */							private RTNode rTree = RTNode.makeTopLevel();
 	/** The Change object. */										private Undo.Change change;
 	/** 0-based index of this Cell. */								private int cellIndex;
 	/** This Cell's Technology. */									private Technology tech;
@@ -409,7 +409,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		cellBounds = new Rectangle2D.Double();
 		boundsEmpty = true;
 		boundsDirty = false;
-		rTree = Geometric.RTNode.makeTopLevel();
         setLinked(false);
 	}
 
@@ -1009,7 +1008,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * @param bounds the specified area to search.
 	 * @return an iterator over all of the Geometric objects in that area.
 	 */
-	public Iterator searchIterator(Rectangle2D bounds) { return new Geometric.Search(bounds, this); }
+	public Iterator searchIterator(Rectangle2D bounds) { return new RTNode.Search(bounds, this); }
 
 	private boolean boundLock = false;
 	private Rectangle2D lastBounds = new Rectangle2D.Double();
@@ -1125,13 +1124,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * The R-Tree organizes all of the Geometric objects spatially for quick search.
 	 * @return R-Tree of this Cell.
 	 */
-	public Geometric.RTNode getRTree() { return rTree; }
+	RTNode getRTree() { return rTree; }
 
 	/**
 	 * Method to set the R-Tree of this Cell.
 	 * @param rTree the head of the new R-Tree for this Cell.
 	 */
-	public void setRTree(Geometric.RTNode rTree) { checkChanging(); this.rTree = rTree; }
+	void setRTree(RTNode rTree) { checkChanging(); this.rTree = rTree; }
 
 	/**
 	 * Method to compute the "essential bounds" of this Cell.
@@ -1623,13 +1622,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public NodeInst findNode(String name)
 	{
-		int n = nodes.size();
-		for (int i = 0; i < n; i++)
+		int nodeIndex = searchNode(name, 0);
+		if (nodeIndex >= 0) return (NodeInst)nodes.get(nodeIndex);
+		nodeIndex = - nodeIndex - 1;
+		if (nodeIndex < nodes.size())
 		{
-			NodeInst ni = (NodeInst) nodes.get(i);
-			String nodeNm = ni.getName();
-			if (nodeNm != null && nodeNm.equals(name))
-				return ni;
+			NodeInst ni = (NodeInst)nodes.get(nodeIndex);
+			if (ni.getName().equals(name)) return ni;
 		}
 		return null;
 	}
@@ -1649,64 +1648,89 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
 	/**
 	 * Method to add a new NodeInst to the cell.
-	 * @param ni the NodeInst to be included in the cell.
+	 * @param ai the NodeInst to be included in the cell.
+	 * @return unique diplicate index for this node.
 	 */
-	public NodeUsage addNode(NodeInst ni)
+	public int addNode(NodeInst ni)
 	{
 		checkChanging();
-		NodeUsage nu = addUsage(ni.getProto());
-
+		String name = ni.getName();
+		int duplicate = ni.getDuplicate();
 		// error check
+		NodeUsage nu = ni.getNodeUsage();
 		if (nu.contains(ni))
 		{
 			System.out.println("Cell " + this +" already contains node inst " + ni);
-			return null;
+			return duplicate;
 		}
 
-        // check to see if this instantiation would create a circular library dependency
-        NodeProto protoType = ni.getProto();
-        if (protoType instanceof Cell) {
-            Cell instProto = (Cell)protoType;
-            if (instProto.getLibrary() != getLibrary()) {
-                // a reference will be created, check it
-                Library.LibraryDependency libDep = getLibrary().addReferencedLib(instProto.getLibrary());
-                if (libDep != null) {
-                    // addition would create circular dependency
-                    if (!allowCirDep) {
-                        System.out.println("ERROR: "+ libDescribe() + " cannot instantiate " +
-                             instProto.libDescribe() + " because it would create a circular library dependence: ");
-                        System.out.println(libDep.toString());
-                        return null;
-                    } else {
-                        System.out.println("WARNING: "+ libDescribe() + " instantiates " +
-                            instProto.libDescribe() + " which causes a circular library dependence: ");
-                        System.out.println(libDep.toString());
-                    }
-                }
-            }
-        }
+		// check to see if this instantiation would create a circular library dependency
+		NodeProto protoType = nu.getProto();
+		if (protoType instanceof Cell) {
+			Cell instProto = (Cell)protoType;
+			if (instProto.getLibrary() != getLibrary()) {
+				// a reference will be created, check it
+				Library.LibraryDependency libDep = getLibrary().addReferencedLib(instProto.getLibrary());
+				if (libDep != null) {
+					// addition would create circular dependency
+					if (!allowCirDep) {
+						System.out.println("ERROR: "+ libDescribe() + " cannot instantiate " +
+							instProto.libDescribe() + " because it would create a circular library dependence: ");
+						System.out.println(libDep.toString());
+						return duplicate;
+					} else {
+						System.out.println("WARNING: "+ libDescribe() + " instantiates " +
+							instProto.libDescribe() + " which causes a circular library dependence: ");
+						System.out.println(libDep.toString());
+					}
+				}
+			}
+		}
 
-		// add the node
-		ni.setNodeIndex(nodes.size());
-		nodes.add(ni);
+		int nodeIndex = 0;
+		if (duplicate >= 0)
+		{
+			nodeIndex = searchNode(name, duplicate);
+			if (nodeIndex >= 0)
+			{
+				if (nodes.get(nodeIndex) == ni)
+				{
+					System.out.println("Cell " + this +" already contains node " + ni);
+					return duplicate;
+				}
+				duplicate = -1;
+			}
+		}
+		if (duplicate < 0)
+		{
+			nodeIndex = searchNode(name, Integer.MAX_VALUE);
+			if (nodeIndex < 0)
+			{
+				duplicate = 0;
+				if (nodeIndex != -1)
+				{
+					NodeInst n = (NodeInst)nodes.get(- nodeIndex - 2);
+					if (n.getName().equals(name))
+						duplicate = n.getDuplicate() + 1;
+				}
+			} else
+			{
+				// This may happen if n.getDuplicate() == Integer.MAX_VALUE.
+				// Scan all possible duplicates starting from zero.
+				for (duplicate = 0; (nodeIndex = searchNode(name, duplicate)) >= 0; duplicate++) ;
+			}
+		}
+		assert nodeIndex < 0;
+		nodeIndex = - nodeIndex - 1;
+		nodes.add(nodeIndex, ni);
+		for (; nodeIndex < nodes.size(); nodeIndex++)
+		{
+			NodeInst n = (NodeInst)nodes.get(nodeIndex);
+			n.setNodeIndex(nodeIndex);
+		}
 		addTempName(ni);
 		nu.addInst(ni);
-
-		// must recompute the bounds of the cell
-		boundsDirty = true;
-
-		// make additional checks to keep circuit up-to-date
-		NodeProto np = ni.getProto();
-		if (np instanceof PrimitiveNode && np == Generic.tech.cellCenterNode)
-		{
-			adjustReferencePoint(ni);
-		}
-		if (np instanceof PrimitiveNode
-			&& np.getName().equals("Essential-Bounds"))
-		{
-			essenBounds.add(ni);
-		}
-		return nu;
+		return duplicate;
 	}
 
 	/**
@@ -1716,6 +1740,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	public void removeNode(NodeInst ni)
 	{
 		checkChanging();
+		if (!ni.isActuallyLinked())
+		{
+			System.out.println("Cell " + this +" doesn't contain node " + ni);
+			return;
+		}
 		NodeUsage nu = ni.getNodeUsage();
 		if (nu == null || !nu.contains(ni))
 		{
@@ -1726,37 +1755,25 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		if (nu.isEmpty())
 			removeUsage(nu);
 
-		removeTempName(ni);
 		int nodeIndex = ni.getNodeIndex();
-		int lastNode = nodes.size() - 1;
-		if (nodeIndex == lastNode)
+		NodeInst removedNi = (NodeInst) nodes.remove(nodeIndex);
+		assert removedNi == ni;
+		for (int i = nodeIndex; i < nodes.size(); i++)
 		{
-			nodes.remove(nodeIndex);
-		} else
-		{
-			NodeInst lastNi = (NodeInst) nodes.remove(lastNode);
-			nodes.set(nodeIndex, lastNi);
-			lastNi.setNodeIndex(nodeIndex);
+			NodeInst n = (NodeInst)nodes.get(i);
+			n.setNodeIndex(i);
 		}
 		ni.setNodeIndex(-1);
-
-        // remove library dependency, if possible
-        if (ni.getProto() instanceof Cell) {
-            getLibrary().removeReferencedLib(((Cell)ni.getProto()).getLibrary());
-        }
-
-		// must recompute the bounds of the cell
-		boundsDirty = true;
-
-		essenBounds.remove(ni);
+		removeTempName(ni);
 	}
 
 	/**
 	 * Method to find or to to add a new NodeUsage to the cell.
 	 * @param protoType is a NodeProto of node usage
 	 */
-	private NodeUsage addUsage(NodeProto protoType)
+	public NodeUsage addUsage(NodeProto protoType)
 	{
+		checkChanging();
 		if (!isLinked()) System.out.println("addUsage of "+protoType+" to unlinked "+this);
 		NodeUsage nu = (NodeUsage)usagesIn.get(protoType);
 		if (nu == null)
@@ -1778,8 +1795,76 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		if (!isLinked()) System.out.println("removeUsage of "+nu.getProto()+" to unliked "+this);
 		NodeProto protoType = nu.getProto();
 		if (protoType instanceof Cell)
+		{
 			((Cell)protoType).usagesOf.remove(nu);
+			// remove library dependency, if possible
+            getLibrary().removeReferencedLib(((Cell)protoType).getLibrary());
+        }
+
 		usagesIn.remove(protoType);
+	}
+
+    /**
+     * Searches the nodes for the specified (name,duplicate) pair using the binary
+     * search algorithm.
+     * @param name the name to be searched.
+	 * @param duplicate the duplicate index to be searched.
+     * @return index of the search name, if it is contained in the nodes;
+     *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
+     *	       <i>insertion point</i> is defined as the point at which the
+     *	       NodeInst would be inserted into the list: the index of the first
+     *	       element greater than the name, or <tt>nodes.size()</tt>, if all
+     *	       elements in the list are less than the specified name.  Note
+     *	       that this guarantees that the return value will be &gt;= 0 if
+     *	       and only if the NodeInst is found.
+     */
+	private int searchNode(String name, int duplicate)
+	{
+		int low = 0;
+		int high = nodes.size()-1;
+
+		while (low <= high) {
+			int mid = (low + high) >> 1;
+			NodeInst ni = (NodeInst)nodes.get(mid);
+			int cmp = TextUtils.nameSameNumeric(ni.getName(), name);
+			if (cmp == 0) cmp = ni.getDuplicate() - duplicate;
+
+			if (cmp < 0)
+				low = mid + 1;
+			else if (cmp > 0)
+				high = mid - 1;
+			else
+				return mid; // NodeInst found
+		}
+		return -(low + 1);  // NodeInst not found.
+    }
+
+	/**
+	 * Method to link a NodeInst object into the R-tree of this Cell.
+	 * @param ni a NodeInst object.
+	 */
+	public void linkNode(NodeInst ni)
+	{
+		boundsDirty = true;
+		RTNode.linkGeom(this, ni);
+
+		// make additional checks to keep circuit up-to-date
+		NodeProto np = ni.getProto();
+		if (np == Generic.tech.cellCenterNode)
+				adjustReferencePoint(ni);
+		if (np == Generic.tech.essentialBoundsNode)
+			essenBounds.add(ni);
+	}
+
+	/**
+	 * Method to unlink a Geometric object from the R-tree of this Cell.
+	 * @param geom a Geometric object.
+	 */
+	public void unLinkNode(NodeInst ni)
+	{
+		boundsDirty = true;
+		RTNode.unLinkGeom(this, ni);
+		essenBounds.remove(ni);
 	}
 
 	/****************************** ARCS ******************************/
@@ -1820,13 +1905,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public ArcInst findArc(String name)
 	{
-		int a = arcs.size();
-		for (int i = 0; i < a; i++)
+		int arcIndex = searchArc(name, 0);
+		if (arcIndex >= 0) return (ArcInst)arcs.get(arcIndex);
+		arcIndex = - arcIndex - 1;
+		if (arcIndex < arcs.size())
 		{
-			ArcInst ai = (ArcInst)arcs.get(i);
-			String arcNm = ai.getName();
-			if (arcNm != null && arcNm.equals(name))
-				return ai;
+			ArcInst ai = (ArcInst)arcs.get(arcIndex);
+			if (ai.getName().equals(name)) return ai;
 		}
 		return null;
 	}
@@ -1834,21 +1919,56 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	/**
 	 * Method to add a new ArcInst to the cell.
 	 * @param ai the ArcInst to be included in the cell.
+	 * @return unique diplicate index for this arc.
 	 */
-	public void addArc(ArcInst ai)
+	public int addArc(ArcInst ai)
 	{
 		checkChanging();
-		if (arcs.contains(ai))
+		String name = ai.getName();
+		int duplicate = ai.getDuplicate();
+		int arcIndex = 0;
+		if (duplicate >= 0)
 		{
-			System.out.println("Cell " + this +" already contains arc " + ai);
-			return;
+			arcIndex = searchArc(name, duplicate);
+			if (arcIndex >= 0)
+			{
+				if (arcs.get(arcIndex) == ai)
+				{
+					System.out.println("Cell " + this +" already contains arc " + ai);
+					return duplicate;
+				}
+				duplicate = -1;
+			}
 		}
-		ai.setArcIndex(arcs.size());
-		arcs.add(ai);
+		if (duplicate < 0)
+		{
+			arcIndex = searchArc(name, Integer.MAX_VALUE);
+			if (arcIndex < 0)
+			{
+				duplicate = 0;
+				if (arcIndex != -1)
+				{
+					ArcInst a = (ArcInst)arcs.get(- arcIndex - 2);
+					if (a.getName().equals(name))
+						duplicate = a.getDuplicate() + 1;
+				}
+			} else
+			{
+				// This may happen if a.getDuplicate() == Integer.MAX_VALUE.
+				// Scan all possible duplicates starting from zero.
+				for (duplicate = 0; (arcIndex = searchArc(name, duplicate)) >= 0; duplicate++) ;
+			}
+		}
+		assert arcIndex < 0;
+		arcIndex = - arcIndex - 1;
+		arcs.add(arcIndex, ai);
+		for (; arcIndex < arcs.size(); arcIndex++)
+		{
+			ArcInst a = (ArcInst)arcs.get(arcIndex);
+			a.setArcIndex(arcIndex);
+		}
 		addTempName(ai);
-
-		// must recompute the bounds of the cell
-		boundsDirty = true;
+		return duplicate;
 	}
 
 	/**
@@ -1858,28 +1978,76 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	public void removeArc(ArcInst ai)
 	{
 		checkChanging();
-		if (!arcs.contains(ai))
+		if (!ai.isActuallyLinked())
 		{
 			System.out.println("Cell " + this +" doesn't contain arc " + ai);
 			return;
 		}
-
-		removeTempName(ai);
 		int arcIndex = ai.getArcIndex();
-		int lastArc = arcs.size() - 1;
-		if (arcIndex == lastArc)
+		ArcInst removedAi = (ArcInst) arcs.remove(arcIndex);
+		assert removedAi == ai;
+		for (int i = arcIndex; i < arcs.size(); i++)
 		{
-			arcs.remove(arcIndex);
-		} else
-		{
-			ArcInst lastAi = (ArcInst) arcs.remove(lastArc);
-			arcs.set(arcIndex, lastAi);
-			lastAi.setArcIndex(arcIndex);
+			ArcInst a = (ArcInst)arcs.get(i);
+			a.setArcIndex(i);
 		}
 		ai.setArcIndex(-1);
+		removeTempName(ai);
+	}
 
-		// must recompute the bounds of the cell
+    /**
+     * Searches the arcs for the specified (name,duplicate) pair using the binary
+     * search algorithm.
+     * @param name the name to be searched.
+	 * @param duplicate the duplicate index to be searched.
+     * @return index of the search name, if it is contained in the arcs;
+     *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
+     *	       <i>insertion point</i> is defined as the point at which the
+     *	       ArcInst would be inserted into the list: the index of the first
+     *	       element greater than the name, or <tt>arcs.size()</tt>, if all
+     *	       elements in the list are less than the specified name.  Note
+     *	       that this guarantees that the return value will be &gt;= 0 if
+     *	       and only if the ArcInst is found.
+     */
+	private int searchArc(String name, int duplicate)
+	{
+		int low = 0;
+		int high = arcs.size()-1;
+
+		while (low <= high) {
+			int mid = (low + high) >> 1;
+			ArcInst ai = (ArcInst)arcs.get(mid);
+			int cmp = TextUtils.nameSameNumeric(ai.getName(), name);
+			if (cmp == 0) cmp = ai.getDuplicate() - duplicate;
+
+			if (cmp < 0)
+				low = mid + 1;
+			else if (cmp > 0)
+				high = mid - 1;
+			else
+				return mid; // ArcInst found
+		}
+		return -(low + 1);  // ArcInst not found.
+    }
+
+	/**
+	 * Method to link an ArcInst object into the R-tree of this Cell.
+	 * @param ai an ArcInst object.
+	 */
+	public void linkArc(ArcInst ai)
+	{
 		boundsDirty = true;
+		RTNode.linkGeom(this, ai);
+	}
+
+	/**
+	 * Method to unlink an ArcInst object from the R-tree of this Cell.
+	 * @param ai an ArcInst object.
+	 */
+	public void unLinkArc(ArcInst ai)
+	{
+		boundsDirty = true;
+		RTNode.unLinkGeom(this, ai);
 	}
 
 	/****************************** EXPORTS ******************************/
@@ -2086,18 +2254,17 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	}
 
     /**
-     * Searches the exports for the specified name key using the binary
+     * Searches the exports for the specified name using the binary
      * search algorithm.
-     * @param name the name key array to be searched.
-     * @param key the value to be searched for.
-     * @return index of the search name key, if it is contained in the exports;
+     * @param name the name to be searched.
+     * @return index of the search name, if it is contained in the exports;
      *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
      *	       <i>insertion point</i> is defined as the point at which the
-     *	       key would be inserted into the list: the index of the first
-     *	       element greater than the key, or <tt>exports.length()</tt>, if all
-     *	       elements in the list are less than the specified key.  Note
+     *	       Export would be inserted into the list: the index of the first
+     *	       element greater than the name, or <tt>exports.length()</tt>, if all
+     *	       elements in the list are less than the specified name.  Note
      *	       that this guarantees that the return value will be &gt;= 0 if
-     *	       and only if the key is found.
+     *	       and only if the Export is found.
      */
 	private int searchExport(String name)
 	{
@@ -3376,21 +3543,34 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
 		for (int i = 0; i < exports.length; i++)
 		{
-			assert exports[i].getPortIndex() == i : exports[i];
+			Export e = exports[i];
+			assert e.getParent() == this;
+			assert e.getPortIndex() == i : e;
 			if (i > 0)
-				assert(TextUtils.nameSameNumeric(exports[i].getName(), exports[i - 1].getName()) > 0) : i;
+				assert(TextUtils.nameSameNumeric(e.getName(), exports[i - 1].getName()) > 0) : i;
 		}
 
 		// make sure that every connection is on an arc and a node
 		HashSet connections = new HashSet();
-		for(Iterator it = getArcs(); it.hasNext(); )
+		ArcInst prevAi = null;
+		for(int i = 0; i < arcs.size(); i++)
 		{
-			ArcInst ai = (ArcInst)it.next();
+			ArcInst ai = (ArcInst)arcs.get(i);
+			assert ai.getParent() == this;
+			assert ai.getArcIndex() == i;
+			if (prevAi != null)
+			{
+				int cmp = TextUtils.nameSameNumeric(ai.getName(), prevAi.getName());
+				assert cmp >= 0;
+				if (cmp == 0)
+					assert ai.getDuplicate() > prevAi.getDuplicate();
+			}
 			ai.check();
 			assert !connections.contains(ai.getHead()) : ai;
 			connections.add(ai.getHead());
 			assert !connections.contains(ai.getTail()) : ai;
 			connections.add(ai.getTail());
+			prevAi = ai;
 		}
 		// now make sure that all nodes reference them
 		for(Iterator it = getNodes(); it.hasNext(); )
@@ -3774,12 +3954,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	public int compareTo(Object obj)
 	{
 		Cell that = (Cell)obj;
-		if (lib != that.lib)
+		if (this.lib != that.lib)
 		{
-			int cmp = lib.compareTo(that.lib);
+			int cmp = this.lib.compareTo(that.lib);
 			if (cmp != 0) return cmp;
 		}
-		return getCellName().compareTo(that.getCellName());
+		return this.getCellName().compareTo(that.getCellName());
 	}
 
 	/**

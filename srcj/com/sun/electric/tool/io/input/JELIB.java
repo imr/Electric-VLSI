@@ -971,7 +971,17 @@ public class JELIB extends LibraryFiles
 					" (cell " + cell.describe() + ") cannot find arc " + protoName, cell, -1);
 				continue;
 			}
-			String arcName = unQuote((String)pieces.get(1));
+			String diskArcName = revision >= 1 ? (String)pieces.get(1) : unQuote((String)pieces.get(1));
+			String arcName = diskArcName;
+			if (arcName.charAt(0) == '"')
+			{
+				int lastQuote = arcName.lastIndexOf('"');
+				if (lastQuote > 1)
+				{
+					arcName = arcName.substring(1, lastQuote);
+					if (revision >= 1) arcName = unQuote(arcName);
+				}
+			}
 			double wid = TextUtils.atof((String)pieces.get(3));
 
 			String headNodeName = revision >= 1 ? (String)pieces.get(5) : unQuote((String)pieces.get(5));

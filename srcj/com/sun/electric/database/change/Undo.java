@@ -509,8 +509,10 @@ public class Undo
 				{
 					Geometric geom = (Geometric)obj;
 					Name oldName = (Name)o1;
+					int oldDuplicate = i1;
 					o1 = geom.getNameKey();
-					geom.lowLevelSetNameKey(oldName);
+					i1 = geom.getDuplicate();
+					geom.lowLevelSetNameKey(oldName, oldDuplicate);
 				} else if (obj instanceof Cell)
 				{
 					Cell cell = (Cell)obj;
@@ -1492,6 +1494,25 @@ public class Undo
 		Type type = Type.OBJECTRENAME;
 		Change ch = newChange(obj, type, oldName);
 		if (ch == null) return;
+
+		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+		fireChangeEvent(ch);
+		Constraints.getCurrent().renameObject(obj, oldName);
+	}
+
+	/**
+	 * Method to store the renaming of an Geometric in the change-control system.
+	 * @param obj the Geometric that was renamed.
+	 * @param oldName the former name of the Geometric.
+	 * @param oldDuplicate the former duplicate index of the Geometric.
+	 */
+	public static void renameGeometric(Geometric obj, Object oldName, int oldDuplicate)
+	{
+		if (!recordChange()) return;
+		Type type = Type.OBJECTRENAME;
+		Change ch = newChange(obj, type, oldName);
+		if (ch == null) return;
+		ch.i1 = oldDuplicate;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
 		fireChangeEvent(ch);

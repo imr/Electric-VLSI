@@ -596,7 +596,7 @@ public class Clipboard
         double dY = delta.getY();
 
 		// sort the nodes by name
-		Collections.sort(theNodes, new TextUtils.NodesByName());
+		Collections.sort(theNodes);
 
 		// create the new nodes
 		HashMap newNodes = new HashMap();
@@ -648,7 +648,7 @@ public class Clipboard
 		if (theArcs.size() > 0)
 		{
 			// sort the arcs by name
-			Collections.sort(theArcs, new TextUtils.ArcsByName());
+			Collections.sort(theArcs);
 
 			// create the new arcs
 			for(Iterator it = theArcs.iterator(); it.hasNext(); )

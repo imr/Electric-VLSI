@@ -749,7 +749,7 @@ public class LEF extends LEFDEF
 			{
 				if (lp.ni[i] != null) continue;
 				Rectangle2D bounds = new Rectangle2D.Double(lp.pt[i].getX(), lp.pt[i].getY(), 0, 0);
-				for(Geometric.Search sea = new Geometric.Search(bounds, cell); sea.hasNext(); )
+				for(Iterator sea = cell.searchIterator(bounds); sea.hasNext(); )
 				{
 					Geometric geom = (Geometric)sea.next();
 					if (!(geom instanceof NodeInst)) continue;

@@ -1032,7 +1032,7 @@ public class Sue extends Input
 	private PortInst findPinNode(double x, double y, Cell cell)
 	{
 		Rectangle2D searchBounds = new Rectangle2D.Double(x, y, 0, 0);
-		for(Geometric.Search sea = new Geometric.Search(searchBounds, cell); sea.hasNext(); )
+		for(Iterator sea = cell.searchIterator(searchBounds); sea.hasNext(); )
 		{
 			Geometric geom = (Geometric)sea.next();
 			if (!(geom instanceof NodeInst)) continue;
@@ -1425,7 +1425,7 @@ public class Sue extends Input
 			double x = piPoly.getCenterX();
 			double y = piPoly.getCenterY();
 			Rectangle2D searchBounds = new Rectangle2D.Double(x, y, 0, 0);
-			for(Geometric.Search sea = new Geometric.Search(searchBounds, cell); sea.hasNext(); )
+			for(Iterator sea = cell.searchIterator(searchBounds); sea.hasNext(); )
 			{
 				Geometric geom = (Geometric)sea.next();
 				if (!(geom instanceof NodeInst)) continue;
@@ -1472,7 +1472,7 @@ public class Sue extends Input
 		PortInst bestPi = null;
 		double bestDist = Double.MAX_VALUE;
 		Rectangle2D searchBounds = new Rectangle2D.Double(pt.getX()-slop, pt.getY()-slop, slop*2, slop*2);
-		for(Geometric.Search sea = new Geometric.Search(searchBounds, cell); sea.hasNext(); )
+		for(Iterator sea = cell.searchIterator(searchBounds); sea.hasNext(); )
 		{
 			Geometric geom = (Geometric)sea.next();
 			if (!(geom instanceof NodeInst)) continue;
@@ -1587,7 +1587,7 @@ public class Sue extends Input
 				ArcInst bestAi = null;
 				double bestDist = Double.MAX_VALUE;
 				Rectangle2D searchBounds = new Rectangle2D.Double(sn.pt.getX(), sn.pt.getY(), 0, 0);
-				for(Geometric.Search sea = new Geometric.Search(searchBounds, cell); sea.hasNext(); )
+				for(Iterator sea = cell.searchIterator(searchBounds); sea.hasNext(); )
 				{
 					Geometric geom = (Geometric)sea.next();
 					if (geom instanceof NodeInst) continue;

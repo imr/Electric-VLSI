@@ -26,6 +26,7 @@
 package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -60,6 +61,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -71,8 +73,6 @@ public class JELIB extends Output
 {
 	private HashMap abbreviationMap;
 	private HashSet externalObjs;
-	private static Comparator nodesComparator = new TextUtils.NodesByName();
-	private static Comparator arcsComparator = new TextUtils.ArcsByName();
 
 	JELIB()
 	{
@@ -223,7 +223,7 @@ public class JELIB extends Output
 		}
 
 		// write the cells of the database
-		List groups = new ArrayList();
+		LinkedHashSet groups = new LinkedHashSet();
 		for (Iterator cIt = lib.getCells(); cIt.hasNext(); )
 		{
 			Cell cell = (Cell)cIt.next();
@@ -247,42 +247,8 @@ public class JELIB extends Output
 			printlnVars(cell, cell);
 
 			// write the nodes in this cell (sorted by node name)
-			List sortedNodes = new ArrayList();
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
-				sortedNodes.add(it.next());
-			Collections.sort(sortedNodes, nodesComparator);
-
-			// look for duplicate node names
-			HashMap sortedNodeIndices = null;
-			for(int i=1; i<sortedNodes.size(); i++)
-			{
-				NodeInst ni = (NodeInst)sortedNodes.get(i);
-				NodeInst lastNi = (NodeInst)sortedNodes.get(i-1);
-				if (ni.getName().equals(lastNi.getName()))
-				{
-					// found duplicate names: make an array of sorted node indices
-					sortedNodeIndices = new HashMap();
-					for(int j=0; j<sortedNodes.size(); j++)
-					{
-						ni = (NodeInst)sortedNodes.get(j);
-						int start = j;
-						for(int k=j+1; k<sortedNodes.size(); k++)
-						{
-							NodeInst otherNi = (NodeInst)sortedNodes.get(k);
-							if (ni.getName().equals(otherNi.getName()))
-							{
-								if (k == start+1) sortedNodeIndices.put(ni, new Integer(1));
-								sortedNodeIndices.put(otherNi, new Integer(k-start+1));
-								j++;
-							}
-						}
-					}
-					break;
-				}
-			}
-
 			// write the nodes in this cell
-			for(Iterator it = sortedNodes.iterator(); it.hasNext(); )
+			for(Iterator it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
 				NodeProto np = ni.getProto();
@@ -296,7 +262,7 @@ public class JELIB extends Output
 					else
 						printWriter.print("N" + convertString(prim.getFullName()));
 				}
-				printWriter.print("|" + getNodeName(ni, sortedNodeIndices) + "|");
+				printWriter.print("|" + getGeomName(ni) + "|");
 				if (!ni.getNameKey().isTempname())
 					printWriter.print(describeDescriptor(null, ni.getTextDescriptor(NodeInst.NODE_NAME_TD)));
 				printWriter.print("|" + TextUtils.formatDouble(ni.getAnchorCenterX(), 0));
@@ -333,11 +299,7 @@ public class JELIB extends Output
 			}
 
 			// write the arcs in this cell
-			List sortedArcs = new ArrayList();
 			for(Iterator it = cell.getArcs(); it.hasNext(); )
-				sortedArcs.add(it.next());
-			Collections.sort(sortedArcs, arcsComparator);
-			for(Iterator it = sortedArcs.iterator(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				PrimitiveArc ap = (PrimitiveArc)ai.getProto();
@@ -345,7 +307,8 @@ public class JELIB extends Output
 					printWriter.print("A" + convertString(ap.getName()));
 				else
 					printWriter.print("A" + convertString(ap.getFullName()));
-				printWriter.print("|" + convertString(ai.getName()) + "|");
+				printWriter.print("|" + getGeomName(ai) + "|");
+				//printWriter.print("|" + convertString(ai.getName()) + "|");
 				if (!ai.getNameKey().isTempname())
 					printWriter.print(describeDescriptor(null, ai.getTextDescriptor(ArcInst.ARC_NAME_TD)));
 				printWriter.print("|" + TextUtils.formatDouble(ai.getWidth(), 0));
@@ -367,7 +330,7 @@ public class JELIB extends Output
 				{
 					Connection con = ai.getConnection(e);
 					NodeInst ni = con.getPortInst().getNodeInst();
-					printWriter.print("|" + getNodeName(ni, sortedNodeIndices) + "|");
+					printWriter.print("|" + getGeomName(ni) + "|");
 					PortProto pp = con.getPortInst().getPortProto();
 					if (ni.getProto().getNumPorts() > 1)
 						printWriter.print(convertString(pp.getName()));
@@ -387,7 +350,7 @@ public class JELIB extends Output
 				PortInst subPI = pp.getOriginalPort();
 				NodeInst subNI = subPI.getNodeInst();
 				PortProto subPP = subPI.getPortProto();
-				printWriter.print("|" + getNodeName(subNI, sortedNodeIndices) + "|");
+				printWriter.print("|" + getGeomName(subNI) + "|");
 				if (subNI.getProto().getNumPorts() > 1)
 					printWriter.print(convertString(subPP.getName()));
 				printWriter.print("|" + pp.getCharacteristic().getShortName());
@@ -404,7 +367,6 @@ public class JELIB extends Output
 		// write groups in alphabetical order
 		printWriter.println();
 		printWriter.println("# Groups:");
-		Collections.sort(groups, new GroupsByName());
 		for(Iterator it = groups.iterator(); it.hasNext(); )
 		{
 			Cell.CellGroup group = (Cell.CellGroup)it.next();
@@ -439,25 +401,13 @@ public class JELIB extends Output
 		return false;
 	}
 
-	public static class GroupsByName implements Comparator
+	private String getGeomName(Geometric geom)
 	{
-		public int compare(Object o1, Object o2)
-		{
-			Cell.CellGroup g1 = (Cell.CellGroup)o1;
-			Cell.CellGroup g2 = (Cell.CellGroup)o2;
-			String s1 = g1.getName();
-			String s2 = g2.getName();
-			return TextUtils.nameSameNumeric(s1, s2);
-		}
-	}
-
-	private String getNodeName(NodeInst ni, HashMap indices)
-	{
-		if (indices == null) return convertString(ni.getName());
-		Integer index = (Integer)indices.get(ni);
-		if (index != null)
-			return "\"" + convertQuotedString(ni.getName()) + "\"" + index;
-		return convertString(ni.getName());
+		int duplicate = geom.getDuplicate();
+		if (duplicate == 0)
+			return convertString(geom.getName());
+		else
+			return "\"" + convertQuotedString(geom.getName()) + "\"" + duplicate;
 	}
 
 	/**

@@ -74,7 +74,7 @@ import java.util.ArrayList;
  * <P>
  * <CENTER><IMG SRC="doc-files/ArcInst-4.gif"></CENTER>
  */
-public class ArcInst extends Geometric
+public class ArcInst extends Geometric implements Comparable
 {
 	/** The index of the head of this ArcInst. */		public static final int HEADEND = 0;
 	/** The index of the tail of this ArcInst. */		public static final int TAILEND = 1;
@@ -112,12 +112,20 @@ public class ArcInst extends Geometric
 
 	/** prefix for autonameing. */						private static final Name BASENAME = Name.findName("net@");
 
+	/** name of this ArcInst. */						private Name name;
+	/** duplicate index of this ArcInst in the Cell */  private int duplicate = -1;
+	/** The text descriptor of name of ArcInst. */		private TextDescriptor nameDescriptor;
+	/** bounds after transformation. */					private Rectangle2D visBounds;
+	/** Flag bits for this ArcInst. */					private int userBits;
+	/** The timestamp for changes. */					private int changeClock;
+	/** The Change object. */							private Undo.Change change;
+
 	/** width of this ArcInst. */						private double width;
 	/** length of this ArcInst. */						private double length;
 	/** prototype of this arc instance */				private ArcProto protoType;
 	/** head connection of this arc instance */			private Connection headEnd;
 	/** tail connection of this arc instance */			private Connection tailEnd;
-	/** 0-based index of this ArcInst in cell. */		private int arcIndex;
+	/** 0-based index of this ArcInst in cell. */		private int arcIndex = -1;
 	/** angle of this ArcInst (in tenth-degrees). */	private int angle;
 
 	/**
@@ -125,7 +133,8 @@ public class ArcInst extends Geometric
 	 */
 	private ArcInst()
 	{
-		arcIndex = -1;
+		nameDescriptor = TextDescriptor.getArcTextDescriptor(this);
+		this.visBounds = new Rectangle2D.Double(0, 0, 0, 0);
 	}
 
 	/****************************** CREATE, DELETE, MODIFY ******************************/
@@ -453,8 +462,8 @@ public class ArcInst extends Geometric
 		if (tailEnd != null) tailEnd.getPortInst().getNodeInst().addConnection(tailEnd);
 
 		// add this arc to the cell
-		linkGeom(parent);
-		parent.addArc(this);
+		this.duplicate = parent.addArc(this);
+		parent.linkArc(this);
 
 		// update end shrinkage information
 		updateShrinkage(headEnd.getPortInst().getNodeInst());
@@ -471,9 +480,9 @@ public class ArcInst extends Geometric
 		headEnd.getPortInst().getNodeInst().removeConnection(headEnd);
 		tailEnd.getPortInst().getNodeInst().removeConnection(tailEnd);
 
-		// add this arc to the cell
-		unLinkGeom(parent);
+		// remove this arc from the cell
 		parent.removeArc(this);
+		parent.unLinkArc(this);
 
 		// update end shrinkage information
 		updateShrinkage(headEnd.getPortInst().getNodeInst());
@@ -491,7 +500,7 @@ public class ArcInst extends Geometric
 	public void lowLevelModify(double dWidth, double dHeadX, double dHeadY, double dTailX, double dTailY)
 	{
 		// first remove from the R-Tree structure
-		unLinkGeom(parent);
+		parent.unLinkArc(this);
 
 		// now make the change
 		width = DBMath.round(width + dWidth);
@@ -513,7 +522,7 @@ public class ArcInst extends Geometric
 		updateShrinkage(tailEnd.getPortInst().getNodeInst());
 
 		// reinsert in the R-Tree structure
-		linkGeom(parent);
+		parent.linkArc(this);
 	}
 
 	/****************************** GRAPHICS ******************************/
@@ -545,6 +554,13 @@ public class ArcInst extends Geometric
 	 * its angle, then use this method.
 	 */
 	public void setAngle(int angle) { this.angle = angle; }
+
+	/**
+	 * Method to return the bounds of this ArcInst.
+	 * TODO: dangerous to give a pointer to our internal field; should make a copy of visBounds
+	 * @return the bounds of this ArcInst.
+	 */
+	public Rectangle2D getBounds() { return visBounds; }
 
 	/**
 	 * Method to create a Poly object that describes an ArcInst.
@@ -914,6 +930,44 @@ public class ArcInst extends Geometric
 	/****************************** TEXT ******************************/
 
 	/**
+	 * Method to return the name key of this ArcInst.
+	 * @return the name key of this ArcInst, null if there is no name.
+	 */
+	public Name getNameKey()
+	{
+		return name;
+	}
+
+	/**
+	 * Low-level access method to change name of this ArcInst.
+	 * @param name new name of this ArcInst.
+	 * @param duplicate new duplicate number of this Geometric or negative value.
+	 */
+	public void lowLevelSetNameKey(Name name, int duplicate)
+	{
+		if (isLinked() && !isUsernamed())
+		{
+			parent.removeArc(this);
+			this.name = name;
+			this.duplicate = duplicate;
+			this.duplicate = parent.addArc(this);
+		} else
+		{
+			this.name = name;
+			this.duplicate = duplicate;
+		}
+	}
+
+	/**
+	 * Method to return the duplicate index of this ArcInst.
+	 * @return the duplicate index of this ArcInst.
+	 */
+	public int getDuplicate()
+	{
+		return duplicate;
+	}
+
+	/**
 	 * Returns the TextDescriptor on this ArcInst selected by name.
 	 * This name may be a name of variable on this ArcInst or
 	 * the special name <code>ArcInst.ARC_NAME_TD</code>.
@@ -973,6 +1027,25 @@ public class ArcInst extends Geometric
 		String name = getName();
 		if (name != null) description += "[" + name + "]";
 		return description;
+	}
+
+    /**
+     * Compares ArcInsts by their Cells and names.
+     * @param obj the other ArcInst.
+     * @return a comparison between the ArcInsts.
+     */
+	public int compareTo(Object obj)
+	{
+		ArcInst that = (ArcInst)obj;
+		int cmp;
+		if (this.parent != that.parent)
+		{
+			cmp = this.parent.compareTo(that.parent);
+			if (cmp != 0) return cmp;
+		}
+		cmp = this.getName().compareTo(that.getName());
+		if (cmp != 0) return cmp;
+		return this.duplicate - that.duplicate;
 	}
 
 	/**
@@ -1071,6 +1144,8 @@ public class ArcInst extends Geometric
 	 */
 	public void check()
 	{
+		assert name != null;
+		assert duplicate >= 0;
 		assert headEnd != null && tailEnd != null;
 	}
 
@@ -1141,6 +1216,34 @@ public class ArcInst extends Geometric
 		getHead().setNegated(fromAi.getHead().isNegated());
 		getTail().setNegated(fromAi.getTail().isNegated());
     }
+
+	/**
+	 * Low-level method to get the user bits.
+	 * The "user bits" are a collection of flags that are more sensibly accessed
+	 * through special methods.
+	 * This general access to the bits is required because the ELIB
+	 * file format stores it as a full integer.
+	 * This should not normally be called by any other part of the system.
+	 * @return the "user bits".
+	 */
+	public int lowLevelGetUserbits() { return userBits; }
+
+	/**
+	 * Low-level method to set the user bits.
+	 * The "user bits" are a collection of flags that are more sensibly accessed
+	 * through special methods.
+	 * This general access to the bits is required because the ELIB
+	 * file format stores it as a full integer.
+	 * This should not normally be called by any other part of the system.
+	 * @param userBits the new "user bits".
+	 */
+	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
+
+	/**
+	 * Method to copy the various state bits from another ArcInst to this ArcInst.
+	 * @param ai the other ArcInst to copy.
+	 */
+	public void copyStateBits(ArcInst ai) { this.userBits = ai.userBits; }
 
 	/**
 	 * Method to set this ArcInst to be rigid.
@@ -1396,6 +1499,34 @@ public class ArcInst extends Geometric
 	 * @return true if this ArcInst is hard-to-select.
 	 */
 	public boolean isHardSelect() { return (userBits & HARDSELECTA) != 0; }
+
+	/**
+	 * Method to set a timestamp for constraint propagation on this ArcInst.
+	 * This is used by the Layout constraint system.
+	 * @param changeClock the timestamp for constraint propagation.
+	 */
+	public void setChangeClock(int changeClock) { this.changeClock = changeClock; }
+
+	/**
+	 * Method to get the timestamp for constraint propagation on this ArcInst.
+	 * This is used by the Layout constraint system.
+	 * @return the timestamp for constraint propagation on this ArcInst.
+	 */
+	public int getChangeClock() { return changeClock; }
+
+	/**
+	 * Method to set a Change object on this ArcInst.
+	 * This is used during constraint propagation to tell whether this object has already been changed and by how much.
+	 * @param change the Change object to be set on this ArcInst.
+	 */
+	public void setChange(Undo.Change change) { this.change = change; }
+
+	/**
+	 * Method to get the Change object on this ArcInst.
+	 * This is used during constraint propagation to tell whether this object has already been changed and by how much.
+	 * @return the Change object on this ArcInst.
+	 */
+	public Undo.Change getChange() { return change; }
 
     /**
      * This function is to compare NodeInst elements. Initiative CrossLibCopy

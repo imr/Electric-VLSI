@@ -1218,51 +1218,6 @@ public class TextUtils
 		}
 	}
 
-	public static class GeometricsByName implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			Geometric g1 = (Geometric)o1;
-			Geometric g2 = (Geometric)o2;
-			String name1 = g1.getName();
-			String name2 = g2.getName();
-			if (name1 == null || name2 == null) return 0;
-			return name1.compareToIgnoreCase(name2);
-		}
-	}
-
-	public static class NodesByName implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			NodeInst n1 = (NodeInst)o1;
-			NodeInst n2 = (NodeInst)o2;
-			String s1 = n1.getName();
-			String s2 = n2.getName();
-			if (s1 == null) s1 = "";
-			if (s2 == null) s2 = "";
-			int cmp = TextUtils.nameSameNumeric(s1, s2);
-			if (cmp != 0) return cmp;
-			return n1.getNodeIndex() - n2.getNodeIndex();
-		}
-	}
-
-	public static class ArcsByName implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			ArcInst a1 = (ArcInst)o1;
-			ArcInst a2 = (ArcInst)o2;
-			String s1 = a1.getName();
-			String s2 = a2.getName();
-			if (s1 == null) s1 = "";
-			if (s2 == null) s2 = "";
-			int cmp = nameSameNumeric(s1, s2);
-			if (cmp != 0) return cmp;
-			return a1.getArcIndex() - a2.getArcIndex();
-		}
-	}
-
 	public static class PrefsByName implements Comparator
 	{
 		public int compare(Object o1, Object o2)

@@ -404,8 +404,8 @@ public class Array extends EDialog
 					arcList.add(geom);
 				}
 			}
-			Collections.sort(nodeList, new TextUtils.GeometricsByName());
-			Collections.sort(arcList, new TextUtils.GeometricsByName());
+			Collections.sort(nodeList);
+			Collections.sort(arcList);
 			Collections.sort(exportList);
 
 			// determine the distance between arrayed entries

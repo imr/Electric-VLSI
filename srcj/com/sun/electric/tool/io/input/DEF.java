@@ -365,7 +365,7 @@ public class DEF extends LEFDEF
 	{
 		Rectangle2D bound = new Rectangle2D.Double(x, y, 0, 0);
 		Point2D pt = new Point2D.Double(x, y);
-		for(Geometric.Search sea = new Geometric.Search(bound, cell); sea.hasNext(); )
+		for(Iterator sea = cell.searchIterator(bound); sea.hasNext(); )
 		{
 			Geometric geom = (Geometric)sea.next();
 			if (!(geom instanceof NodeInst)) continue;

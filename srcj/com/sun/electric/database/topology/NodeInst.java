@@ -76,7 +76,7 @@ import java.util.List;
  * <P>
  * <CENTER><IMG SRC="doc-files/NodeInst-1.gif"></CENTER>
  */
-public class NodeInst extends Geometric implements Nodable
+public class NodeInst extends Geometric implements Nodable, Comparable
 {
 	/** special name for text descriptor of prototype name */	public static final String NODE_PROTO_TD = new String("NODE_proto");
 	/** special name for text descriptor of instance name */	public static final String NODE_NAME_TD = new String("NODE_name");
@@ -135,10 +135,17 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	// ---------------------- private data ----------------------------------
+	/** name of this NodeInst. */							private Name name;
+	/** duplicate index of this ArcInst in the Cell */  private int duplicate = -1;
+	/** The text descriptor of name of NodeInst. */			private TextDescriptor nameDescriptor;
+	/** bounds after transformation. */						private Rectangle2D visBounds;
+	/** Flag bits for this NodeInst. */						private int userBits;
+	/** The timestamp for changes. */						private int changeClock;
+	/** The Change object. */								private Undo.Change change;
+
 	/** prototype of this NodeInst. */						private NodeProto protoType;
 	/** node usage of this NodeInst. */						private NodeUsage nodeUsage;
 	/** 0-based index of this NodeInst in Cell. */			private int nodeIndex = -1;
-	/** labling information for this NodeInst. */			private int textbits;
 	/** Array of PortInsts on this NodeInst. */				private PortInst[] portInsts = NULL_PORT_INST_ARRAY;
 	/** List of connections belonging to this NodeInst. */	private List connections = new ArrayList(2);
 	/** Array of Exports belonging to this NodeInst. */		private Export[] exports = NULL_EXPORT_ARRAY;
@@ -162,7 +169,8 @@ public class NodeInst extends Geometric implements Nodable
 	private NodeInst()
 	{
 		// initialize this object
-		this.textbits = 0;
+		this.nameDescriptor = TextDescriptor.getNodeTextDescriptor(this);
+		this.visBounds = new Rectangle2D.Double(0, 0, 0, 0);
 		this.protoDescriptor = TextDescriptor.getInstanceTextDescriptor(this);
         setLinked(false);
 	}
@@ -764,12 +772,10 @@ public class NodeInst extends Geometric implements Nodable
 		if (checkAndRepair(true, null) > 0) return true;
 
 		// add to linked lists
-        linkGeom(parent);
-        nodeUsage = parent.addNode(this);
-        if (nodeUsage == null) {
-            unLinkGeom(parent);
-            return true;
-        }
+		nodeUsage = parent.addUsage(getProto());
+        if (nodeUsage == null) return true;
+		this.duplicate = parent.addNode(this);
+		parent.linkNode(this);
         setLinked(true);
 		return false;
 	}
@@ -780,9 +786,8 @@ public class NodeInst extends Geometric implements Nodable
 	public void lowLevelUnlink()
 	{
 		// remove this node from the cell
-		unLinkGeom(parent);
 		parent.removeNode(this);
-		nodeUsage = null;
+		parent.unLinkNode(this);
         setLinked(false);
 	}
 
@@ -799,7 +804,7 @@ public class NodeInst extends Geometric implements Nodable
 	{
 		// remove from the R-Tree structure
 		if (parent == null) return;
-		unLinkGeom(parent);
+		parent.unLinkNode(this);
 
 		// make the change
 		center.setLocation(DBMath.round(getAnchorCenterX() + dX), DBMath.round(getAnchorCenterY() + dY));
@@ -811,7 +816,7 @@ public class NodeInst extends Geometric implements Nodable
 		redoGeometric();
 
 		// link back into the R-Tree
-		linkGeom(parent);
+		parent.linkNode(this);
 
 		parent.setDirty();
 	}
@@ -1081,6 +1086,13 @@ public class NodeInst extends Geometric implements Nodable
 		public boolean isJMirrorY() { return jMirrorY; }
 		
 	}
+
+	/**
+	 * Method to return the bounds of this NodeInst.
+	 * TODO: dangerous to give a pointer to our internal field; should make a copy of visBounds
+	 * @return the bounds of this NodeInst.
+	 */
+	public Rectangle2D getBounds() { return visBounds; }
 
 	/**
 	 * Method to return the starting and ending angle of an arc described by this NodeInst.
@@ -2290,22 +2302,38 @@ public class NodeInst extends Geometric implements Nodable
 	/****************************** TEXT ******************************/
 
 	/**
-	 * Method to return the Text Descriptor associated with this NodeInst.
-	 * The only NodeInsts that need Text Descriptors are instances of Cells that are unexpanded.
-	 * In this situation, the Cell instance is drawn as a box with a name.
-	 * The Text Descriptor applies to the display of that name.
-	 * @return the Text Descriptor for this NodeInst.
+	 * Method to return the name key of this NodeInst.
+	 * @return the name key of this NodeInst, null if there is no name.
 	 */
-//	public TextDescriptor getProtoTextDescriptor() { return protoDescriptor; }
+	public Name getNameKey()
+	{
+		return name;
+	}
 
 	/**
-	 * Method to set the Text Descriptor associated with this NodeInst.
-	 * The only NodeInsts that need Text Descriptors are instances of Cells that are unexpanded.
-	 * In this situation, the Cell instance is drawn as a box with a name.
-	 * The Text Descriptor applies to the display of that name.
-	 * @param descriptor the Text Descriptor for this NodeInst.
+	 * Low-level access method to change name of this NodeInst.
+	 * @param name new name of this NodeInst.
 	 */
-//	public void setProtoTextDescriptor(TextDescriptor descriptor) { this.protoDescriptor.copy(descriptor); }
+	public void lowLevelSetNameKey(Name name, int duplicate)
+	{
+		if (isLinked() && !isUsernamed())
+		{
+			parent.removeNode(this);
+			this.name = name;
+			this.duplicate = duplicate;
+			this.duplicate = parent.addNode(this);
+		} else
+		{
+			this.name = name;
+			this.duplicate = duplicate;
+		}
+	}
+
+	/**
+	 * Method to return the duplicate index of this NodeInst.
+	 * @return the duplicate index of this NodeInst.
+	 */
+	public int getDuplicate() { return 0; }
 
 	/**
 	 * Returns the TextDescriptor on this NodeInst selected by name.
@@ -2448,6 +2476,25 @@ public class NodeInst extends Geometric implements Nodable
 		String name = getName();
 		if (name != null) description += "[" + name + "]";
 		return description;
+	}
+
+    /**
+     * Compares NodeInsts by their Cells and names.
+     * @param obj the other NodeInst.
+     * @return a comparison between the NodeInsts.
+     */
+	public int compareTo(Object obj)
+	{
+		NodeInst that = (NodeInst)obj;
+		int cmp;
+		if (this.parent != that.parent)
+		{
+			cmp = this.parent.compareTo(that.parent);
+			if (cmp != 0) return cmp;
+		}
+		cmp = this.getName().compareTo(that.getName());
+		if (cmp != 0) return cmp;
+		return this.duplicate - that.duplicate;
 	}
 
 	/**
@@ -2806,6 +2853,34 @@ public class NodeInst extends Geometric implements Nodable
 	public NodeUsage getNodeUsage() { return nodeUsage; }
 
 	/**
+	 * Low-level method to get the user bits.
+	 * The "user bits" are a collection of flags that are more sensibly accessed
+	 * through special methods.
+	 * This general access to the bits is required because the ELIB
+	 * file format stores it as a full integer.
+	 * This should not normally be called by any other part of the system.
+	 * @return the "user bits".
+	 */
+	public int lowLevelGetUserbits() { return userBits; }
+
+	/**
+	 * Low-level method to set the user bits.
+	 * The "user bits" are a collection of flags that are more sensibly accessed
+	 * through special methods.
+	 * This general access to the bits is required because the ELIB
+	 * file format stores it as a full integer.
+	 * This should not normally be called by any other part of the system.
+	 * @param userBits the new "user bits".
+	 */
+	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
+
+	/**
+	 * Method to copy the various state bits from another NodeInst to this NodeInst.
+	 * @param ni the other NodeInst to copy.
+	 */
+	public void copyStateBits(NodeInst ni) { this.userBits = ni.userBits; }
+
+	/**
 	 * Method to set this NodeInst to be expanded.
 	 * Expanded NodeInsts are instances of Cells that show their contents.
 	 * Unexpanded Cell instances are shown as boxes with the node prototype names in them.
@@ -2992,6 +3067,34 @@ public class NodeInst extends Geometric implements Nodable
 		double maxY = Math.max(ll.getY(), ur.getY());
 		return new Rectangle2D.Double(minX, minY, maxX-minX, maxY-minY);
 	}
+
+	/**
+	 * Method to set a timestamp for constraint propagation on this NodeInst.
+	 * This is used by the Layout constraint system.
+	 * @param changeClock the timestamp for constraint propagation.
+	 */
+	public void setChangeClock(int changeClock) { this.changeClock = changeClock; }
+
+	/**
+	 * Method to get the timestamp for constraint propagation on this NodeInst.
+	 * This is used by the Layout constraint system.
+	 * @return the timestamp for constraint propagation on this NodeInst.
+	 */
+	public int getChangeClock() { return changeClock; }
+
+	/**
+	 * Method to set a Change object on this NodeInst.
+	 * This is used during constraint propagation to tell whether this object has already been changed and by how much.
+	 * @param change the Change object to be set on this NodeInst.
+	 */
+	public void setChange(Undo.Change change) { this.change = change; }
+
+	/**
+	 * Method to get the Change object on this NodeInst.
+	 * This is used during constraint propagation to tell whether this object has already been changed and by how much.
+	 * @return the Change object on this NodeInst.
+	 */
+	public Undo.Change getChange() { return change; }
 
     /**
      * This function is to compare NodeInst elements. Initiative CrossLibCopy

@@ -1477,7 +1477,7 @@ public class Maze
 
 		// search region for nodes/arcs to add to database
 		Rectangle2D searchBounds = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
-		for(Geometric.Search sea = new Geometric.Search(searchBounds, cell); sea.hasNext(); )
+		for(Iterator sea = cell.searchIterator(searchBounds); sea.hasNext(); )
 		{
 			Geometric geom = (Geometric)sea.next();
 			if (geom instanceof NodeInst)
@@ -2249,7 +2249,7 @@ public class Maze
 		double bestDist = 0;
 		PortInst closestPi = null;
 		Rectangle2D searchBounds = new Rectangle2D.Double(x-0.5, y-0.5, 1, 1);
-		for(Geometric.Search sea = new Geometric.Search(searchBounds, cell); sea.hasNext(); )
+		for(Iterator sea = cell.searchIterator(searchBounds); sea.hasNext(); )
 		{
 			Geometric geom = (Geometric)sea.next();
 
