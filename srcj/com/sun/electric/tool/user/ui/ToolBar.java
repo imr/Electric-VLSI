@@ -42,8 +42,12 @@ import java.awt.Insets;
 import java.awt.Cursor;
 import java.awt.Toolkit;
 import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.awt.Point;
 import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Color;
 
 
 /**
@@ -118,6 +122,7 @@ public class ToolBar extends JToolBar
 	private static Cursor panCursor = null;
 	private static Cursor specialSelectCursor = null;
 	private static Cursor wiringCursor = null;
+	private static ToolBar toolbar;
 
 	private ToolBar() {}
 
@@ -127,7 +132,7 @@ public class ToolBar extends JToolBar
 	public static ToolBar createToolBar()
 	{
 		// create the toolbar
-		ToolBar toolbar = new ToolBar();
+		toolbar = new ToolBar();
 		toolbar.setFloatable(true);
 		toolbar.setRollover(true);
 
@@ -259,6 +264,49 @@ public class ToolBar extends JToolBar
 		return toolbar;
 	}
 
+	private static void makeCursors()
+	{
+		if (wiringCursor == null) wiringCursor = readCursor("CursorWiring.gif", 0, 0);
+		if (specialSelectCursor == null) specialSelectCursor = readCursor("CursorSelectSpecial.gif", 0, 1);
+		if (panCursor == null) panCursor = readCursor("CursorPan.gif", 8, 8);
+		if (zoomCursor == null) zoomCursor = readCursor("CursorZoom.gif", 6, 6);
+	}
+
+	private static Cursor readCursor(String cursorName, int hotX, int hotY)
+	{
+		ImageIcon imageIcon = new ImageIcon(ToolBar.class.getResource(cursorName));
+		Image image = imageIcon.getImage();
+		int width = image.getWidth(null);
+		int height = image.getHeight(null);
+		Dimension bestSize = Toolkit.getDefaultToolkit().getBestCursorSize(width, height);
+		int bestWidth = (int)bestSize.getWidth();
+		int bestHeight = (int)bestSize.getHeight();
+		if (bestWidth != 0 && bestHeight != 0)
+		{
+			if (bestWidth != width || bestHeight != height)
+			{
+				if (bestWidth > width && bestHeight > height)
+				{
+					// want a larger cursor, so just pad this one
+					Image newImage = new BufferedImage(bestWidth, bestHeight, BufferedImage.TYPE_INT_ARGB);
+					Graphics g = newImage.getGraphics();
+					g.drawImage(image, (bestWidth-width)/2, (bestHeight-height)/2, null);
+					image = newImage;
+					hotX += (bestWidth-width)/2;
+					hotY += (bestHeight-height)/2;
+				} else
+				{
+					// want a smaller cursor, so scale this one
+					image = image.getScaledInstance(bestWidth, bestHeight, 0);
+					hotX = hotX * bestWidth / width;
+					hotY = hotY * bestHeight / height;
+				}
+			}
+		}
+		Cursor cursor = Toolkit.getDefaultToolkit().createCustomCursor(image, new Point(hotX, hotY), cursorName);
+		return cursor;
+	}
+
 	/**
 	 * Routine called when the "select" button is pressed.
 	 */
@@ -277,7 +325,7 @@ public class ToolBar extends JToolBar
 	public static void wiringCommand()
 	{
 		EditWindow.setListener(WiringListener.theOne);
-		if (wiringCursor == null) wiringCursor = readCursor("CursorWiring.gif", 8, 8);
+		makeCursors();
 		TopLevel.setCurrentCursor(wiringCursor);
 		curMode = CursorMode.WIRE;
 		wireButton.setSelected(true);
@@ -290,7 +338,7 @@ public class ToolBar extends JToolBar
 	public static void selectSpecialCommand()
 	{
 		EditWindow.setListener(ClickAndDragListener.theOne);
-		if (specialSelectCursor == null) specialSelectCursor = readCursor("CursorSelectSpecial.gif", 8, 9);
+		makeCursors();
 		TopLevel.setCurrentCursor(specialSelectCursor);
 		curMode = CursorMode.SELECTSPECIAL;
 		selectSpecialButton.setSelected(true);
@@ -303,7 +351,7 @@ public class ToolBar extends JToolBar
 	public static void panCommand()
 	{
 		EditWindow.setListener(ZoomAndPanListener.theOne);
-		if (panCursor == null) panCursor = readCursor("CursorPan.gif", 16, 16);
+		makeCursors();
 		TopLevel.setCurrentCursor(panCursor);
 		curMode = CursorMode.PAN;
 		panButton.setSelected(true);
@@ -316,7 +364,7 @@ public class ToolBar extends JToolBar
 	public static void zoomCommand()
 	{
 		EditWindow.setListener(ZoomAndPanListener.theOne);
-		if (zoomCursor == null) zoomCursor = readCursor("CursorZoom.gif", 13, 13);
+		TopLevel.setCurrentCursor(panCursor);
 		TopLevel.setCurrentCursor(zoomCursor);
 		curMode = CursorMode.ZOOM;
 		zoomButton.setSelected(true);
@@ -390,19 +438,5 @@ public class ToolBar extends JToolBar
 	 * @return the current selection mode (objects or area).
 	 */
 	public static SelectMode getSelectMode() { return curSelectMode; }
-
-	private static Cursor readCursor(String cursorName, int hotX, int hotY)
-	{
-		ImageIcon imageIcon = new ImageIcon(ToolBar.class.getResource(cursorName));
-		Image image = imageIcon.getImage();
-//		int width = image.getWidth(null);
-//		int height = image.getHeight(null);
-//		Dimension bestSize = Toolkit.getDefaultToolkit().getBestCursorSize(width, height);
-//		width = (int)bestSize.getWidth();
-//		height = (int)bestSize.getHeight();
-//		image = image.getScaledInstance(width, height, 0);
-		Cursor cursor = Toolkit.getDefaultToolkit().createCustomCursor(image, new Point(hotX, hotY), cursorName);
-		return cursor;
-	}
 
 }

@@ -181,13 +181,13 @@ public class EditWindow extends JPanel
 	}
 
 	/**
-	 * Routine to return the cell that is shown in this window.
+	 * Method to return the cell that is shown in this window.
 	 * @return the cell that is shown in this window.
 	 */
 	public Cell getCell() { return cell; }
 
 	/**
-	 * Routine to set the cell that is shown in the window to "cell".
+	 * Method to set the cell that is shown in the window to "cell".
 	 */
 	public void setCell(Cell cell, VarContext context)
 	{
@@ -197,8 +197,14 @@ public class EditWindow extends JPanel
 		curLib.setCurCell(cell);
 		Highlight.clear();
 		Highlight.finished();
+
+		// seed the offset values
+//		if (cell != null)
+//		{
+//			Rectangle2D bounds = cell.getBounds();
+//			offx = bounds.getCenterX();   offy = bounds.getCenterY();
+//		}
 		fillScreen();
-//if (cell != null) System.out.println("Filled screen, off=("+offx+","+offy+"), bounds="+cell.getBounds());
 		if (wf != null)
 		{
 			if (cell == null)
@@ -301,11 +307,10 @@ public class EditWindow extends JPanel
 	}
 
 	/**
-	 * Routine to draw the current window.
+	 * Method to draw the current window.
 	 */
 	void drawImage()
 	{
-//if (cell != null) System.out.println("Drawing cell, off=("+offx+","+offy+"), bounds="+cell.getBounds());
 		// set background color
 		Graphics2D g2 = (Graphics2D)img.getGraphics();
 		g2.setColor(Color.lightGray);
@@ -340,7 +345,7 @@ public class EditWindow extends JPanel
 	}
 
 	/**
-	 * Routine to draw the contents of cell "c", transformed through "prevTrans".
+	 * Method to draw the contents of cell "c", transformed through "prevTrans".
 	 */
 	void drawCell(Graphics2D g2, Cell cell, AffineTransform prevTrans, boolean topLevel)
 	{
@@ -371,7 +376,7 @@ public class EditWindow extends JPanel
 	}
 
 	/**
-	 * Routine to draw node "ni", transformed through "trans".
+	 * Method to draw node "ni", transformed through "trans".
 	 */
 	public void drawNode(Graphics2D g2, NodeInst ni, AffineTransform trans, boolean topLevel)
 	{
@@ -525,7 +530,7 @@ public class EditWindow extends JPanel
 	}
 
 	/**
-	 * Routine to draw arc "ai", transformed through "trans".
+	 * Method to draw arc "ai", transformed through "trans".
 	 */
 	public void drawArc(Graphics2D g2, ArcInst ai, AffineTransform trans, boolean topLevel)
 	{
@@ -537,7 +542,7 @@ public class EditWindow extends JPanel
 	}
 
 	/**
-	 * Routine to draw polygon "poly", transformed through "trans".
+	 * Method to draw polygon "poly", transformed through "trans".
 	 * Returns true on error.
 	 */
 	boolean drawPolys(Graphics2D g2, Poly [] polys, AffineTransform trans)
@@ -643,7 +648,7 @@ public class EditWindow extends JPanel
 	// ************************************* SPECIAL SHAPE DRAWING *************************************
 
 	/**
-	 * Routine to draw a large or small cross, as described in "poly".
+	 * Method to draw a large or small cross, as described in "poly".
 	 */
 	void drawCross(Graphics2D g2, Poly poly, Color color)
 	{
@@ -660,7 +665,7 @@ public class EditWindow extends JPanel
 	}
 
 	/**
-	 * Routine to draw lines, as described in "poly".
+	 * Method to draw lines, as described in "poly".
 	 */
 	void drawOutline(Graphics2D g2, Poly poly)
 	{
@@ -698,7 +703,7 @@ public class EditWindow extends JPanel
 	}
 
 	/**
-	 * Routine to draw a circle or a disc, as described in "poly".
+	 * Method to draw a circle or a disc, as described in "poly".
 	 */
 	void drawCircular(Graphics2D g2, Poly poly)
 	{
@@ -737,7 +742,7 @@ public class EditWindow extends JPanel
 	}
 
 	/**
-	 * Routine to convert a string and descriptor to a GlyphVector.
+	 * Method to convert a string and descriptor to a GlyphVector.
 	 * @param text the string to convert.
 	 * @param descript the Text Descriptor, with size, style, etc.
 	 * @return a GlyphVector describing the text.
@@ -768,7 +773,7 @@ public class EditWindow extends JPanel
 	}
 
 	/**
-	 * Routine to return the coordinates of the lower-left corner of text in this window.
+	 * Method to return the coordinates of the lower-left corner of text in this window.
 	 * @param gv the GlyphVector describing the text.
 	 * @param style the grab-point information about where the text is anchored.
 	 * @param lX the low X bound of the polygon containing the text.
@@ -830,7 +835,7 @@ public class EditWindow extends JPanel
 	}
 
 	/**
-	 * Routine to return the scaling factor between database and screen for the given text.
+	 * Method to return the scaling factor between database and screen for the given text.
 	 * @param gv the GlyphVector describing the text.
 	 * @param style the grab-point information about where the text is anchored.
 	 * @param lX the low X bound of the polygon containing the text.
@@ -856,7 +861,7 @@ public class EditWindow extends JPanel
 	}
 
 	/**
-	 * Routine to draw text on the window.
+	 * Method to draw text on the window.
 	 * @param g2 the Graphics object for drawing.
 	 * @param lX the low X bound of the polygon containing the text.
 	 * @param hX the high X bound of the polygon containing the text.
@@ -913,7 +918,7 @@ public class EditWindow extends JPanel
 	// ************************************* GRID *************************************
 
 	/**
-	 * Routine to set the display of a grid in this window.
+	 * Method to set the display of a grid in this window.
 	 * @param showGrid true to show the grid.
 	 */
 	public void setGrid(boolean showGrid)
@@ -923,35 +928,35 @@ public class EditWindow extends JPanel
 	}
 
 	/**
-	 * Routine to return the state of grid display in this window.
+	 * Method to return the state of grid display in this window.
 	 * @return true if the grid is displayed in this window.
 	 */
 	public boolean getGrid() { return showGrid; }
 
 	/**
-	 * Routine to return the distance between grid dots in the X direction.
+	 * Method to return the distance between grid dots in the X direction.
 	 * @return the distance between grid dots in the X direction.
 	 */
 	public float getGridXSpacing() { return gridXSpacing; }
 	/**
-	 * Routine to set the distance between grid dots in the X direction.
+	 * Method to set the distance between grid dots in the X direction.
 	 * @param spacing the distance between grid dots in the X direction.
 	 */
 	public void setGridXSpacing(float spacing) { gridXSpacing = spacing; }
 
 	/**
-	 * Routine to return the distance between grid dots in the Y direction.
+	 * Method to return the distance between grid dots in the Y direction.
 	 * @return the distance between grid dots in the Y direction.
 	 */
 	public float getGridYSpacing() { return gridYSpacing; }
 	/**
-	 * Routine to set the distance between grid dots in the Y direction.
+	 * Method to set the distance between grid dots in the Y direction.
 	 * @param spacing the distance between grid dots in the Y direction.
 	 */
 	public void setGridYSpacing(float spacing) { gridYSpacing = spacing; }
 
 	/**
-	 * Routine to display the grid.
+	 * Method to display the grid.
 	 */
 	private void drawGrid(Graphics g)
 	{
@@ -1029,25 +1034,25 @@ public class EditWindow extends JPanel
 	// ************************************* WINDOW ZOOM AND PAN *************************************
 
 	/**
-	 * Routine to return the scale factor for this window.
+	 * Method to return the scale factor for this window.
 	 * @return the scale factor for this window.
 	 */
 	public double getScale() { return scale; }
 
 	/**
-	 * Routine to set the scale factor for this window.
+	 * Method to set the scale factor for this window.
 	 * @param scale the scale factor for this window.
 	 */
 	public void setScale(double scale) { this.scale = scale; }
 
 	/**
-	 * Routine to return the offset factor for this window.
+	 * Method to return the offset factor for this window.
 	 * @return the offset factor for this window.
 	 */
 	public Point2D getOffset() { return new Point2D.Double(offx, offy); }
 
 	/**
-	 * Routine to set the offset factor for this window.
+	 * Method to set the offset factor for this window.
 	 * @param off the offset factor for this window.
 	 */
 	public void setOffset(Point2D off) { offx = off.getX();   offy = off.getY(); }
@@ -1055,7 +1060,7 @@ public class EditWindow extends JPanel
 	private static final double SCALEFACTOR = 50;
 
 	/**
-	 * Routine called when the bottom scrollbar changes.
+	 * Method called when the bottom scrollbar changes.
 	 */
 	public void bottomScrollChanged()
 	{
@@ -1076,15 +1081,15 @@ public class EditWindow extends JPanel
 	}
 
 	/**
-	 * Routine called when the right scrollbar changes.
+	 * Method called when the right scrollbar changes.
 	 */
 	public void rightScrollChanged()
 	{
 		if (cell == null) return;
 
 		Rectangle2D bounds = cell.getBounds();
-		double yHeight = bounds.getWidth();
-		double yCenter = bounds.getCenterX();
+		double yHeight = bounds.getHeight();
+		double yCenter = bounds.getCenterY();
 
 		JScrollBar right = this.wf.getRightScrollBar();
 		int yThumbPos = right.getValue();
@@ -1097,7 +1102,7 @@ public class EditWindow extends JPanel
 	}
 
 	/**
-	 * Routine to update the scrollbars on the sides of the edit window
+	 * Method to update the scrollbars on the sides of the edit window
 	 * so they reflect the true offset of the circuit.
 	 */
 	public void setScrollPosition()
@@ -1114,15 +1119,15 @@ public class EditWindow extends JPanel
 			int xThumbPos = (int)((offx - xCenter) / xWidth * SCALEFACTOR) + 100;
 			bottom.setValue(xThumbPos);
 
-			double yHeight = bounds.getWidth();
-			double yCenter = bounds.getCenterX();
+			double yHeight = bounds.getHeight();
+			double yCenter = bounds.getCenterY();
 			int yThumbPos = (int)((yCenter - offy) / yHeight * SCALEFACTOR) + 100;
 			right.setValue(yThumbPos);
 		}
 	}
 
 	/**
-	 * Routine to focus the screen so that an area fills it.
+	 * Method to focus the screen so that an area fills it.
 	 * @param bounds the area to make fill the screen.
 	 */
 	public void focusScreen(Rectangle2D bounds)
@@ -1140,7 +1145,7 @@ public class EditWindow extends JPanel
 	}
 
 	/**
-	 * Routine to pan and zoom the screen so that the entire cell is displayed.
+	 * Method to pan and zoom the screen so that the entire cell is displayed.
 	 */
 	public void fillScreen()
 	{
@@ -1294,7 +1299,7 @@ public class EditWindow extends JPanel
 	}
 
 	/**
-	 * Routine to find the size in database units for text of a given point size in this EditWindow.
+	 * Method to find the size in database units for text of a given point size in this EditWindow.
 	 * The scale of this EditWindow is used to determine the acutal unit size.
 	 * @param pointSize the size of the text in points.
 	 * @return the relative size (in units) of the text.
@@ -1306,7 +1311,7 @@ public class EditWindow extends JPanel
 	}
 
 	/**
-	 * Routine to find the size in database units for text of a given point size in this EditWindow.
+	 * Method to find the size in database units for text of a given point size in this EditWindow.
 	 * The scale of this EditWindow is used to determine the acutal unit size.
 	 * @param pointSize the size of the text in points.
 	 * @return the relative size (in units) of the text.
@@ -1318,7 +1323,7 @@ public class EditWindow extends JPanel
 	}
 
 	/**
-	 * Routine to snap a point to the nearest database-space grid unit.
+	 * Method to snap a point to the nearest database-space grid unit.
 	 * @param pt the point to be snapped.
 	 * @param alignment the size of the snap grid (1 to round to whole numbers)
 	 */

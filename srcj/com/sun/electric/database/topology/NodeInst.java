@@ -121,6 +121,13 @@ public class NodeInst extends Geometric implements Nodable
 	/** List of connections belonging to this NodeInst. */	private List connections;
 	/** List of Exports belonging to this NodeInst. */		private List exports;
 	/** Text descriptor of prototype name. */				private TextDescriptor protoDescriptor;
+
+	// The internal representation of position and orientation is the 2D transformation matrix:
+	// -----------------------------------------
+	// |   sX cos(angle)    sY sin(angle)   0  |
+	// |  -sX sin(angle)    sY cos(angle)   0  |
+	// |    center.x         center.y       1  |
+	// -----------------------------------------
 	/** center coordinate of this NodeInst. */				private Point2D center;
 	/** size of this NodeInst (negative to mirror). */		private double sX, sY;
 	/** angle of this NodeInst (in tenth-degrees). */		private int angle;
@@ -145,7 +152,7 @@ public class NodeInst extends Geometric implements Nodable
 	/****************************** CREATE, DELETE, MODIFY ******************************/
 
 	/**
-	 * Routine to create a NodeInst and do extra things necessary for it.
+	 * Method to create a NodeInst and do extra things necessary for it.
 	 * @param protoType the NodeProto of which this is an instance.
 	 * @param center the center location of this NodeInst.
 	 * @param width the width of this NodeInst.
@@ -178,7 +185,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to create a NodeInst.
+	 * Method to create a NodeInst.
 	 * @param protoType the NodeProto of which this is an instance.
 	 * @param center the center location of this NodeInst.
 	 * @param width the width of this NodeInst.
@@ -215,7 +222,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to delete this NodeInst.
+	 * Method to delete this NodeInst.
 	 */
 	public void kill()
 	{
@@ -241,7 +248,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to change this NodeInst.
+	 * Method to change this NodeInst.
 	 * @param dX the amount to move the NodeInst in X.
 	 * @param dY the amount to move the NodeInst in Y.
 	 * @param dXSize the amount to scale the NodeInst in X.
@@ -288,7 +295,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to change many NodeInsts.
+	 * Method to change many NodeInsts.
 	 * @param nis the NodeInsts to change.
 	 * @param dXs the amount to move the NodeInsts in X.
 	 * @param dYs the amount to move the NodeInsts in Y.
@@ -334,7 +341,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/*
-	 * Routine to replace this NodeInst with one of another type.
+	 * Method to replace this NodeInst with one of another type.
 	 * All arcs and exports on this NodeInst are moved to the new one.
 	 * @param np the new type to put in place of this NodeInst.
 	 * @param ignorePortNames true to not use port names when determining association between old and new prototype.
@@ -597,7 +604,7 @@ public class NodeInst extends Geometric implements Nodable
 	/****************************** LOW-LEVEL IMPLEMENTATION ******************************/
 
 	/**
-	 * Low-level access routine to create a NodeInst.
+	 * Low-level access method to create a NodeInst.
 	 * @return the newly created NodeInst.
 	 */
 	public static NodeInst lowLevelAllocate()
@@ -608,7 +615,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Low-level routine to fill-in the NodeInst information.
+	 * Low-level method to fill-in the NodeInst information.
 	 * @param protoType the NodeProto of which this is an instance.
 	 * @param center the center location of this NodeInst.
 	 * @param width the width of this NodeInst.
@@ -642,7 +649,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Low-level access routine to link the NodeInst into its Cell.
+	 * Low-level access method to link the NodeInst into its Cell.
 	 * @return true on error.
 	 */
 	public boolean lowLevelLink()
@@ -665,7 +672,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Low-level routine to unlink the NodeInst from its Cell.
+	 * Low-level method to unlink the NodeInst from its Cell.
 	 */
 	public void lowLevelUnlink()
 	{
@@ -676,8 +683,8 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to adjust this NodeInst by the specified deltas.
-	 * This routine does not go through change control, and so should not be used unless you know what you are doing.
+	 * Method to adjust this NodeInst by the specified deltas.
+	 * This method does not go through change control, and so should not be used unless you know what you are doing.
 	 * @param dX the change to the center X coordinate.
 	 * @param dY the change to the center Y coordinate.
 	 * @param dXSize the change to the X size.
@@ -705,10 +712,10 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to tell whether this NodeInst is an icon of its parent.
+	 * Method to tell whether this NodeInst is an icon of its parent.
 	 * Electric does not allow recursive circuit hierarchies (instances of Cells inside of themselves).
 	 * However, it does allow one exception: a schematic may contain its own icon for documentation purposes.
-	 * This routine determines whether this NodeInst is such an icon.
+	 * This method determines whether this NodeInst is such an icon.
 	 * @return true if this NodeInst is an icon of its parent.
 	 */
 	public boolean isIconOfParent()
@@ -721,21 +728,21 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to set an index of this NodeInst in Cell nodes.
+	 * Method to set an index of this NodeInst in Cell nodes.
 	 * This is a zero-based index of nodes on the Cell.
 	 * @param nodeIndex an index of this NodeInst in Cell nodes.
 	 */
 	public void setNodeIndex(int nodeIndex) { this.nodeIndex = nodeIndex; }
 
 	/**
-	 * Routine to get the index of this NodeInst.
+	 * Method to get the index of this NodeInst.
 	 * This is a zero-based index of nodes on the Cell.
 	 * @return the index of this NodeInst.
 	 */
 	public final int getNodeIndex() { return nodeIndex; }
 
 	/**
-	 * Routine tells if this NodeInst is linked to parent Cell.
+	 * Method tells if this NodeInst is linked to parent Cell.
 	 * @return true if this NodeInst is linked to parent Cell.
 	 */
 	public boolean isLinked() { return nodeIndex >= 0; }
@@ -743,57 +750,57 @@ public class NodeInst extends Geometric implements Nodable
 	/****************************** GRAPHICS ******************************/
 
 	/**
-	 * Routine to return the rotation angle of this NodeInst.
+	 * Method to return the rotation angle of this NodeInst.
 	 * @return the rotation angle of this NodeInst (in tenth-degrees).
 	 */
 	public int getAngle() { return angle; }
 
 	/**
-	 * Routine to return the center point of this NodeInst object.
+	 * Method to return the center point of this NodeInst object.
 	 * @return the center point of this NodeInst object.
 	 */
 	public Point2D getGrabCenter() { return center; }
 
 	/**
-	 * Routine to return the center X coordinate of this NodeInst.
+	 * Method to return the center X coordinate of this NodeInst.
 	 * @return the center X coordinate of this NodeInst.
 	 */
 	public double getGrabCenterX() { return center.getX(); }
 
 	/**
-	 * Routine to return the center Y coordinate of this NodeInst.
+	 * Method to return the center Y coordinate of this NodeInst.
 	 * @return the center Y coordinate of this NodeInst.
 	 */
 	public double getGrabCenterY() { return center.getY(); }
 
 	/**
-	 * Routine to return the X size of this NodeInst.
+	 * Method to return the X size of this NodeInst.
 	 * @return the X size of this NodeInst.
 	 */
 	public double getXSize() { return Math.abs(sX); }
 
 	/**
-	 * Routine to return the Y size of this NodeInst.
+	 * Method to return the Y size of this NodeInst.
 	 * @return the Y size of this NodeInst.
 	 */
 	public double getYSize() { return Math.abs(sY); }
 	
 	/**
-	 * Routine to return whether NodeInst is mirrored about a 
+	 * Method to return whether NodeInst is mirrored about a 
 	 * horizontal line running through its center.
 	 * @return true if mirrored 
 	 */
-	public boolean getMirroredAboutXAxis(){ return sY<0;}
+	public boolean isMirroredAboutXAxis() { return sY<0;}
 	
 	/** 
-	 * Routine to return whether NodeInst is mirrored about a
+	 * Method to return whether NodeInst is mirrored about a
 	 * vertical line running through its center.
 	 * @return true if mirrored
 	 */
-	public boolean getMirroredAboutYAxis() { return sX<0; }
+	public boolean isMirroredAboutYAxis() { return sX<0; }
 
 	/**
-	 * Routine to return the true center of this NodeInst.
+	 * Method to return the true center of this NodeInst.
 	 * For primitives, this is the same as the geometric center.
 	 * For cell instances, this is the location of the cell-center inside of the cell definition.
 	 * @return the true center of this NodeInst.
@@ -811,7 +818,7 @@ public class NodeInst extends Geometric implements Nodable
 //	}
 
 	/**
-	 * Routine to return the starting and ending angle of an arc described by this NodeInst.
+	 * Method to return the starting and ending angle of an arc described by this NodeInst.
 	 * These values can be found in the "ART_degrees" variable on the NodeInst.
 	 * @return a 2-long double array with the starting offset in the first entry (a value in radians)
 	 * and the amount of curvature in the second entry (in radians).
@@ -845,7 +852,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to set the starting and ending angle of an arc described by this NodeInst.
+	 * Method to set the starting and ending angle of an arc described by this NodeInst.
 	 * These values are stored in the "ART_degrees" variable on the NodeInst.
 	 * @param start the starting offset of the angle (typically 0)
 	 * @param curvature the the amount of curvature
@@ -859,7 +866,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to recalculate the Geometric bounds for this NodeInst.
+	 * Method to recalculate the Geometric bounds for this NodeInst.
 	 */
 	void redoGeometric()
 	{
@@ -944,7 +951,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to return a list of Polys that describes all text on this NodeInst.
+	 * Method to return a list of Polys that describes all text on this NodeInst.
 	 * @param hardToSelect is true if considering hard-to-select text.
 	 * @param wnd the window in which the text will be drawn.
 	 * @return an array of Polys that describes the text.
@@ -1008,7 +1015,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to return the number of displayable Variables on this NodeInst and all of its PortInsts.
+	 * Method to return the number of displayable Variables on this NodeInst and all of its PortInsts.
 	 * A displayable Variable is one that will be shown with its object.
 	 * Displayable Variables can only sensibly exist on NodeInst, ArcInst, and PortInst objects.
 	 * @return the number of displayable Variables on this NodeInst and all of its PortInsts.
@@ -1026,7 +1033,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to add all displayable Variables on this NodeInst and its PortInsts to an array of Poly objects.
+	 * Method to add all displayable Variables on this NodeInst and its PortInsts to an array of Poly objects.
 	 * @param rect a rectangle describing the bounds of the NodeInst on which the Variables will be displayed.
 	 * @param polys an array of Poly objects that will be filled with the displayable Variables.
 	 * @param start the starting index in the array of Poly objects to fill with displayable Variables.
@@ -1050,7 +1057,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to return a transformation that moves up the hierarchy.
+	 * Method to return a transformation that moves up the hierarchy.
 	 * Presuming that this NodeInst is a Cell instance, the
 	 * transformation goes from the space of that Cell to the space of
 	 * this NodeInst's parent Cell.  The transformation includes the
@@ -1109,7 +1116,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to return a transformation that moves up the hierarchy,
+	 * Method to return a transformation that moves up the hierarchy,
 	 * combined with a previous transformation.  Presuming that this
 	 * NodeInst is a Cell instance, the transformation goes from the
 	 * space of that Cell to the space of this NodeInst's parent Cell.
@@ -1128,7 +1135,7 @@ public class NodeInst extends Geometric implements Nodable
 //	}
 
 	/**
-	 * Routine to return a transformation that translates up the hierarchy.
+	 * Method to return a transformation that translates up the hierarchy.
 	 * Presuming that this NodeInst is a Cell instance, the transformation goes
 	 * from the space of that Cell to the space of this NodeInst's parent Cell.
 	 * However, it does not account for the rotation of this NodeInst...it only
@@ -1147,7 +1154,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to return a transformation that translates up the
+	 * Method to return a transformation that translates up the
 	 * hierarchy, combined with a previous transformation.  Presuming
 	 * that this NodeInst is a Cell instance, the transformation goes
 	 * from the space of that Cell to the space of this NodeInst's
@@ -1170,7 +1177,7 @@ public class NodeInst extends Geometric implements Nodable
 	private static AffineTransform mirrorY = new AffineTransform(1, 0, 0, -1, 0, 0);
 
 	/**
-	 * Routine to return a transformation that rotates an object about a point.
+	 * Method to return a transformation that rotates an object about a point.
 	 * @param angle the amount to rotate (in tenth-degrees).
 	 * @param cX the center X coordinate about which to rotate.
 	 * @param cY the center Y coordinate about which to rotate.
@@ -1200,7 +1207,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to return a transformation that rotates an object.
+	 * Method to return a transformation that rotates an object.
 	 * @param angle the amount to rotate (in tenth-degrees).
 	 * @param sX the scale in X (negative to flip the X coordinate, or
 	 * flip ABOUT the Y axis).
@@ -1220,7 +1227,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to return a transformation that rotates this NodeInst.
+	 * Method to return a transformation that rotates this NodeInst.
 	 * It transforms points on this NodeInst to account for the NodeInst's rotation.
 	 * The rotation happens about the node's Grab Point (the location of the cell-center inside of cell definitions).
 	 * @return a transformation that rotates this NodeInst.
@@ -1232,7 +1239,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to return a transformation that rotates this NodeInst.
+	 * Method to return a transformation that rotates this NodeInst.
 	 * It transforms points on this NodeInst to account for the NodeInst's rotation.
 	 * The rotation happens about the node's true geometric center.
 	 * @return a transformation that rotates this NodeInst.
@@ -1244,7 +1251,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to return a transformation that rotates this NodeInst,
+	 * Method to return a transformation that rotates this NodeInst,
 	 * combined with a previous transformation.  It transforms points
 	 * on this NodeInst to account for the NodeInst's rotation.
 	 * The rotation happens about the node's Grab Point (the location of the cell-center inside of cell definitions).
@@ -1265,7 +1272,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to return a transformation that rotates this NodeInst,
+	 * Method to return a transformation that rotates this NodeInst,
 	 * combined with a previous transformation.  It transforms points
 	 * on this NodeInst to account for the NodeInst's rotation.
 	 * The rotation happens about the node's true geometric center.
@@ -1286,7 +1293,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to return the lower-left corner of this NodeInst.  The
+	 * Method to return the lower-left corner of this NodeInst.  The
 	 * corner considers both the highlight offset and the rotation, so
 	 * the coordinate is that of the lower-left valid part, as placed
 	 * in the database.
@@ -1314,7 +1321,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to return a Poly that describes the location of a port
+	 * Method to return a Poly that describes the location of a port
 	 * on this NodeInst.
 	 * @param thePort the port on this NodeInst.
 	 * @return a Poly that describes the location of the Export.
@@ -1343,7 +1350,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to return the "outline" information on this NodeInst.
+	 * Method to return the "outline" information on this NodeInst.
 	 * Outline information is a set of coordinate points that further
 	 * refines the NodeInst description.  It is typically used in
 	 * Artwork primitives to give them a precise shape.  It is also
@@ -1364,7 +1371,7 @@ public class NodeInst extends Geometric implements Nodable
 	/****************************** PORTS ******************************/
 
 	/**
-	 * Routine to return an Iterator for all PortInsts on this NodeInst.
+	 * Method to return an Iterator for all PortInsts on this NodeInst.
 	 * @return an Iterator for all PortInsts on this NodeInst.
 	 */
 	public Iterator getPortInsts()
@@ -1373,7 +1380,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to return the number of PortInsts on this NodeInst.
+	 * Method to return the number of PortInsts on this NodeInst.
 	 * @return the number of PortInsts on this NodeInst.
 	 */
 	public int getNumPortInsts()
@@ -1382,7 +1389,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to return the PortInst at specified position.
+	 * Method to return the PortInst at specified position.
 	 * @param portIndex specified position of PortInst.
 	 * @return the PortProto at specified position..
 	 */
@@ -1392,7 +1399,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to return the only PortInst on this NodeInst.
+	 * Method to return the only PortInst on this NodeInst.
 	 * This is quite useful for vias and pins which have only one PortInst.
 	 * @return the only PortInst on this NodeInst.
 	 * If there are more than 1 PortInst, then return null.
@@ -1409,7 +1416,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to return the named PortInst on this NodeInst.
+	 * Method to return the named PortInst on this NodeInst.
 	 * @param name the name of the PortInst.
 	 * @return the selected PortInst.  If the name is not found, return null.
 	 */
@@ -1421,7 +1428,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to return the PortInst on this NodeInst that is closest to a point.
+	 * Method to return the PortInst on this NodeInst that is closest to a point.
 	 * @param w the point of interest.
 	 * @return the closest PortInst to that point.
 	 */
@@ -1445,7 +1452,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to return the Portinst on this NodeInst with a given prototype.
+	 * Method to return the Portinst on this NodeInst with a given prototype.
 	 * @param pp the PortProto to find.
 	 * @return the selected PortInst.  If the PortProto is not found,
 	 * return null.
@@ -1456,7 +1463,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to create a new PortInst on this NodeInst.
+	 * Method to create a new PortInst on this NodeInst.
 	 * @param pp the prototype of the new PortInst.
 	 */
 	public void addPortInst(PortProto pp)
@@ -1466,7 +1473,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to delete a new PortInst from this NodeInst.
+	 * Method to delete a new PortInst from this NodeInst.
 	 * @param pp the prototype of the PortInst to remove.
 	 */
 	public void removePortInst(PortProto pp)
@@ -1475,7 +1482,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
     /** 
-     * Routine to get the Schematic Cell from a NodeInst icon
+     * Method to get the Schematic Cell from a NodeInst icon
      * @return the equivalent view of the prototype, or null if none
      * (such as for primitive)
      */
@@ -1486,7 +1493,7 @@ public class NodeInst extends Geometric implements Nodable
     }
 
 	/**
-	 * Routine to get network by PortProto and bus index.
+	 * Method to get network by PortProto and bus index.
 	 * @param portProto PortProto in protoType.
 	 * @param busIndex index in bus.
 	 */
@@ -1501,7 +1508,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to get network by PortProto and bus index.
+	 * Method to get network by PortProto and bus index.
 	 * @param arrayIndex PortProto in protoType.
 	 * @param portProto PortProto in protoType.
 	 * @param busIndex index in bus.
@@ -1509,7 +1516,7 @@ public class NodeInst extends Geometric implements Nodable
 	public JNetwork getNetwork(int arrayIndex, PortProto portProto, int busIndex) { return Network.getNetwork(this, arrayIndex, portProto, busIndex); }
 
 	/**
-	 * Routine to add an Export to this NodeInst.
+	 * Method to add an Export to this NodeInst.
 	 * @param e the Export to add.
 	 */
 	public void addExport(Export e)
@@ -1519,7 +1526,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to remove an Export from this NodeInst.
+	 * Method to remove an Export from this NodeInst.
 	 * @param e the Export to remove.
 	 */
 	public void removeExport(Export e)
@@ -1533,7 +1540,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to return an Iterator over all Exports on this NodeInst.
+	 * Method to return an Iterator over all Exports on this NodeInst.
 	 * @return an Iterator over all Exports on this NodeInst.
 	 */
 	public Iterator getExports()
@@ -1542,13 +1549,13 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to return the number of Exports on this NodeInst.
+	 * Method to return the number of Exports on this NodeInst.
 	 * @return the number of Exports on this NodeInst.
 	 */
 	public int getNumExports() { return exports.size(); }
 
 	/**
-	 * Routine to associate the ports on this NodeInst with another.
+	 * Method to associate the ports on this NodeInst with another.
 	 * @param niOther the other NodeInst to associate with this.
 	 * @param ignorePortNames true to ignore port names and use only positions.
 	 * @return an array of PortAssociation objects that associates ports on this NodeInst
@@ -1663,7 +1670,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to recomputes the "Wiped" flag bit on this NodeInst.
+	 * Method to recomputes the "Wiped" flag bit on this NodeInst.
 	 * The Wiped flag is set if the NodeInst is "wipable" and if it is connected to
 	 * ArcInsts that wipe.  Wiping means erasing.  Typically, pin NodeInsts can be wiped.
 	 * This means that when an arc connects to the pin, it is no longer drawn.
@@ -1687,7 +1694,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to determine whether the display of this pin NodeInst should be supressed.
+	 * Method to determine whether the display of this pin NodeInst should be supressed.
 	 * In Schematics technologies, pins are not displayed if there are 1 or 2 connections,
 	 * but are shown for 0 or 3 or more connections (called "Steiner points").
 	 * @return true if this pin NodeInst should be supressed.
@@ -1701,7 +1708,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to tell whether this NodeInst can connect to a given ArcProto.
+	 * Method to tell whether this NodeInst can connect to a given ArcProto.
 	 * @param arc the type of arc to test for.
 	 * @return the first port that can connect to this node, or
 	 * null, if no such port on this node exists.
@@ -1712,7 +1719,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to add an Connection to this NodeInst.
+	 * Method to add an Connection to this NodeInst.
 	 * @param c the Connection to add.
 	 */
 	void addConnection(Connection c)
@@ -1724,7 +1731,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to remove an Connection from this NodeInst.
+	 * Method to remove an Connection from this NodeInst.
 	 * @param c the Connection to remove.
 	 */
 	void removeConnection(Connection c)
@@ -1736,7 +1743,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to return an Iterator over all Connections on this NodeInst.
+	 * Method to return an Iterator over all Connections on this NodeInst.
 	 * @return an Iterator over all Connections on this NodeInst.
 	 */
 	public Iterator getConnections()
@@ -1745,7 +1752,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to return the number of Connections on this NodeInst.
+	 * Method to return the number of Connections on this NodeInst.
 	 * @return the number of Connections on this NodeInst.
 	 */
 	public int getNumConnections() { return connections.size(); }
@@ -1753,7 +1760,7 @@ public class NodeInst extends Geometric implements Nodable
 	/****************************** TEXT ******************************/
 
 	/**
-	 * Routine to return the Text Descriptor associated with this NodeInst.
+	 * Method to return the Text Descriptor associated with this NodeInst.
 	 * The only NodeInsts that need Text Descriptors are instances of Cells that are unexpanded.
 	 * In this situation, the Cell instance is drawn as a box with a name.
 	 * The Text Descriptor applies to the display of that name.
@@ -1762,7 +1769,7 @@ public class NodeInst extends Geometric implements Nodable
 	public TextDescriptor getProtoTextDescriptor() { return protoDescriptor; }
 
 	/**
-	 * Routine to set the Text Descriptor associated with this NodeInst.
+	 * Method to set the Text Descriptor associated with this NodeInst.
 	 * The only NodeInsts that need Text Descriptors are instances of Cells that are unexpanded.
 	 * In this situation, the Cell instance is drawn as a box with a name.
 	 * The Text Descriptor applies to the display of that name.
@@ -1771,7 +1778,7 @@ public class NodeInst extends Geometric implements Nodable
 	public void setProtoTextDescriptor(TextDescriptor descriptor) { this.protoDescriptor.copy(descriptor); }
 
 	/*
-	 * Routine to write a description of this NodeInst.
+	 * Method to write a description of this NodeInst.
 	 * Displays the description in the Messages Window.
 	 */
 //	public void getInfo()
@@ -1815,7 +1822,7 @@ public class NodeInst extends Geometric implements Nodable
 //	}
 
 	/**
-	 * Routine to determine whether a variable key on NodeInst is deprecated.
+	 * Method to determine whether a variable key on NodeInst is deprecated.
 	 * Deprecated variable keys are those that were used in old versions of Electric,
 	 * but are no longer valid.
 	 * @param key the key of the variable.
@@ -1824,7 +1831,7 @@ public class NodeInst extends Geometric implements Nodable
 	public boolean isDeprecatedVariable(Variable.Key key) { return key == NODE_NAME; }
 
 	/**
-	 * Routine to determine whether this is an Invisible Pin with text.
+	 * Method to determine whether this is an Invisible Pin with text.
 	 * If so, it should not be selected, but its text should be instead.
 	 * @return true if this is an Invisible Pin with text.
 	 */
@@ -1837,7 +1844,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to describe this NodeInst as a string.
+	 * Method to describe this NodeInst as a string.
 	 * @return a description of this NodeInst as a string.
 	 */
 	public String describe()
@@ -1860,13 +1867,13 @@ public class NodeInst extends Geometric implements Nodable
 	/****************************** MISCELLANEOUS ******************************/
 
 	/**
-	 * Routine to return the prototype of this NodeInst.
+	 * Method to return the prototype of this NodeInst.
 	 * @return the prototype of this NodeInst.
 	 */
 	public NodeProto getProto() { return protoType; }
 
 	/**
-	 * Routine to return the function of this NodeProto.
+	 * Method to return the function of this NodeProto.
 	 * The Function is a technology-independent description of the behavior of this NodeProto.
 	 * @return function the function of this NodeProto.
 	 */
@@ -1879,7 +1886,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
     /** 
-     * Routine to see if this NodeInst is a Primitive Transistor.
+     * Method to see if this NodeInst is a Primitive Transistor.
      * Use getFunction() to determine what specific transitor type it is,
      * if any.
      * @return true if NodeInst represents Primitive Transistor
@@ -1897,7 +1904,7 @@ public class NodeInst extends Geometric implements Nodable
     }
     
 	/**
-	 * Routine to return the size of this transistor NodeInst.
+	 * Method to return the size of this transistor NodeInst.
      * @param context the VarContext in which any evaluations take place,
      * pass in VarContext.globalContext if no context needed.
 	 * @return the size of the NodeInst.
@@ -1909,7 +1916,7 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
     /**
-     * Routine to return a gate PortInst for this transistor NodeInst.
+     * Method to return a gate PortInst for this transistor NodeInst.
      * Implementation Note: May want to make this a more general
      * method, getPrimitivePort(PortType), if the number of port
      * types increases.
@@ -1923,7 +1930,7 @@ public class NodeInst extends Geometric implements Nodable
     }
     
     /**
-     * Routine to return a gate PortInst for this transistor NodeInst.
+     * Method to return a gate PortInst for this transistor NodeInst.
      * Implementation Note: May want to make this a more general
      * method, getPrimitivePort(PortType), if the number of port
      * types increases.
@@ -1937,7 +1944,7 @@ public class NodeInst extends Geometric implements Nodable
     }
     
     /**
-     * Routine to return a gate PortInst for this transistor NodeInst.
+     * Method to return a gate PortInst for this transistor NodeInst.
      * Implementation Note: May want to make this a more general
      * method, getPrimitivePort(PortType), if the number of port
      * types increases.
@@ -1951,7 +1958,7 @@ public class NodeInst extends Geometric implements Nodable
     }
 
 	/**
-	 * Routine to check and repair data structure errors in this NodeInst.
+	 * Method to check and repair data structure errors in this NodeInst.
 	 */
 	public int checkAndRepair()
 	{
@@ -2027,13 +2034,13 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
-	 * Routine to return the NodeUsage of this NodeInst.
+	 * Method to return the NodeUsage of this NodeInst.
 	 * @return the NodeUsage of this NodeInst.
 	 */
 	public NodeUsage getNodeUsage() { return nodeUsage; }
 
 	/**
-	 * Routine to set this NodeInst to be expanded.
+	 * Method to set this NodeInst to be expanded.
 	 * Expanded NodeInsts are instances of Cells that show their contents.
 	 * Unexpanded Cell instances are shown as boxes with the node prototype names in them.
 	 * The state has no meaning for instances of primitive node prototypes.
@@ -2041,7 +2048,7 @@ public class NodeInst extends Geometric implements Nodable
 	public void setExpanded() { userBits |= NEXPAND; }
 
 	/**
-	 * Routine to set this NodeInst to be unexpanded.
+	 * Method to set this NodeInst to be unexpanded.
 	 * Expanded NodeInsts are instances of Cells that show their contents.
 	 * Unexpanded Cell instances are shown as boxes with the node prototype names in them.
 	 * The state has no meaning for instances of primitive node prototypes.
@@ -2049,7 +2056,7 @@ public class NodeInst extends Geometric implements Nodable
 	public void clearExpanded() { userBits &= ~NEXPAND; }
 
 	/**
-	 * Routine to tell whether this NodeInst is expanded.
+	 * Method to tell whether this NodeInst is expanded.
 	 * Expanded NodeInsts are instances of Cells that show their contents.
 	 * Unexpanded Cell instances are shown as boxes with the node prototype names in them.
 	 * The state has no meaning for instances of primitive node prototypes.
@@ -2058,7 +2065,7 @@ public class NodeInst extends Geometric implements Nodable
 	public boolean isExpanded() { return (userBits & NEXPAND) != 0; }
 
 	/**
-	 * Routine to set this NodeInst to be wiped.
+	 * Method to set this NodeInst to be wiped.
 	 * Wiped NodeInsts are erased.  Typically, pin NodeInsts can be wiped.
 	 * This means that when an arc connects to the pin, it is no longer drawn.
 	 * In order for a NodeInst to be wiped, its prototype must have the "setArcsWipe" state,
@@ -2069,7 +2076,7 @@ public class NodeInst extends Geometric implements Nodable
 	public void setWiped() { userBits |= WIPED; }
 
 	/**
-	 * Routine to set this NodeInst to be not wiped.
+	 * Method to set this NodeInst to be not wiped.
 	 * Wiped NodeInsts are erased.  Typically, pin NodeInsts can be wiped.
 	 * This means that when an arc connects to the pin, it is no longer drawn.
 	 * In order for a NodeInst to be wiped, its prototype must have the "setArcsWipe" state,
@@ -2080,7 +2087,7 @@ public class NodeInst extends Geometric implements Nodable
 	public void clearWiped() { userBits &= ~WIPED; }
 
 	/**
-	 * Routine to tell whether this NodeInst is wiped.
+	 * Method to tell whether this NodeInst is wiped.
 	 * Wiped NodeInsts are erased.  Typically, pin NodeInsts can be wiped.
 	 * This means that when an arc connects to the pin, it is no longer drawn.
 	 * In order for a NodeInst to be wiped, its prototype must have the "setArcsWipe" state,
@@ -2092,7 +2099,7 @@ public class NodeInst extends Geometric implements Nodable
 	public boolean isWiped() { return (userBits & WIPED) != 0; }
 
 	/**
-	 * Routine to set this NodeInst to be shortened.
+	 * Method to set this NodeInst to be shortened.
 	 * Shortened NodeInst have been reduced in size to account for the fact that
 	 * they are connected at nonManhattan angles and must connect smoothly.
 	 * This state can only get set if the node's prototype has the "setCanShrink" state.
@@ -2100,7 +2107,7 @@ public class NodeInst extends Geometric implements Nodable
 	public void setShortened() { userBits |= NSHORT; }
 
 	/**
-	 * Routine to set this NodeInst to be not shortened.
+	 * Method to set this NodeInst to be not shortened.
 	 * Shortened NodeInst have been reduced in size to account for the fact that
 	 * they are connected at nonManhattan angles and must connect smoothly.
 	 * This state can only get set if the node's prototype has the "setCanShrink" state.
@@ -2108,7 +2115,7 @@ public class NodeInst extends Geometric implements Nodable
 	public void clearShortened() { userBits &= ~NSHORT; }
 
 	/**
-	 * Routine to tell whether this NodeInst is shortened.
+	 * Method to tell whether this NodeInst is shortened.
 	 * Shortened NodeInst have been reduced in size to account for the fact that
 	 * they are connected at nonManhattan angles and must connect smoothly.
 	 * This state can only get set if the node's prototype has the "setCanShrink" state.
@@ -2117,21 +2124,21 @@ public class NodeInst extends Geometric implements Nodable
 	public boolean isShortened() { return (userBits & NSHORT) != 0; }
 
 	/**
-	 * Routine to set this NodeInst to be hard-to-select.
+	 * Method to set this NodeInst to be hard-to-select.
 	 * Hard-to-select NodeInsts cannot be selected by clicking on them.
 	 * Instead, the "special select" command must be given.
 	 */
 	public void setHardSelect() { userBits |= HARDSELECTN; }
 
 	/**
-	 * Routine to set this NodeInst to be easy-to-select.
+	 * Method to set this NodeInst to be easy-to-select.
 	 * Hard-to-select NodeInsts cannot be selected by clicking on them.
 	 * Instead, the "special select" command must be given.
 	 */
 	public void clearHardSelect() { userBits &= ~HARDSELECTN; }
 
 	/**
-	 * Routine to tell whether this NodeInst is hard-to-select.
+	 * Method to tell whether this NodeInst is hard-to-select.
 	 * Hard-to-select NodeInsts cannot be selected by clicking on them.
 	 * Instead, the "special select" command must be given.
 	 * @return true if this NodeInst is hard-to-select.
@@ -2139,21 +2146,21 @@ public class NodeInst extends Geometric implements Nodable
 	public boolean isHardSelect() { return (userBits & HARDSELECTN) != 0; }
 
 	/**
-	 * Routine to set this NodeInst to be visible-inside.
+	 * Method to set this NodeInst to be visible-inside.
 	 * A NodeInst that is "visible inside" is only drawn when viewing inside of the Cell.
 	 * It is not visible from outside (meaning from higher-up the hierarchy).
 	 */
 	public void setVisInside() { userBits |= NVISIBLEINSIDE; }
 
 	/**
-	 * Routine to set this NodeInst to be not visible-inside.
+	 * Method to set this NodeInst to be not visible-inside.
 	 * A NodeInst that is "visible inside" is only drawn when viewing inside of the Cell.
 	 * It is not visible from outside (meaning from higher-up the hierarchy).
 	 */
 	public void clearVisInside() { userBits &= ~NVISIBLEINSIDE; }
 
 	/**
-	 * Routine to tell whether this NodeInst is visible-inside.
+	 * Method to tell whether this NodeInst is visible-inside.
 	 * A NodeInst that is "visible inside" is only drawn when viewing inside of the Cell.
 	 * It is not visible from outside (meaning from higher-up the hierarchy).
 	 * @return true if this NodeInst is visible-inside.
@@ -2161,26 +2168,26 @@ public class NodeInst extends Geometric implements Nodable
 	public boolean isVisInside() { return (userBits & NVISIBLEINSIDE) != 0; }
 
 	/**
-	 * Routine to set this NodeInst to be locked.
+	 * Method to set this NodeInst to be locked.
 	 * Locked NodeInsts cannot be modified or deleted.
 	 */
 	public void setLocked() { userBits |= NILOCKED; }
 
 	/**
-	 * Routine to set this NodeInst to be unlocked.
+	 * Method to set this NodeInst to be unlocked.
 	 * Locked NodeInsts cannot be modified or deleted.
 	 */
 	public void clearLocked() { userBits &= ~NILOCKED; }
 
 	/**
-	 * Routine to tell whether this NodeInst is locked.
+	 * Method to tell whether this NodeInst is locked.
 	 * Locked NodeInsts cannot be modified or deleted.
 	 * @return true if this NodeInst is locked.
 	 */
 	public boolean isLocked() { return (userBits & NILOCKED) != 0; }
 
 	/**
-	 * Routine to set a Technology-specific value on this NodeInst.
+	 * Method to set a Technology-specific value on this NodeInst.
 	 * This is mostly used by the Schematics technology which allows variations
 	 * on a NodeInst to be stored.
 	 * For example, the Transistor primitive uses these bits to distinguish nMOS, pMOS, etc.
@@ -2189,7 +2196,7 @@ public class NodeInst extends Geometric implements Nodable
 	public void setTechSpecific(int value) { userBits = (userBits & ~NTECHBITS) | (value << NTECHBITSSH); }
 
 	/**
-	 * Routine to return the Technology-specific value on this NodeInst.
+	 * Method to return the Technology-specific value on this NodeInst.
 	 * This is mostly used by the Schematics technology which allows variations
 	 * on a NodeInst to be stored.
 	 * For example, the Transistor primitive uses these bits to distinguish nMOS, pMOS, etc.
@@ -2198,7 +2205,7 @@ public class NodeInst extends Geometric implements Nodable
 	public int getTechSpecific() { return (userBits & NTECHBITS) >> NTECHBITSSH; }
 
 	/**
-	 * Routine to tell whether this NodeInst is mirrored in the X axis.
+	 * Method to tell whether this NodeInst is mirrored in the X axis.
 	 * Mirroring in the X axis implies that X coordinates are negated.
 	 * Thus, it is equivalent to mirroring ABOUT the Y axis.
 	 * @return true if this NodeInst is mirrored in the X axis.
@@ -2206,7 +2213,7 @@ public class NodeInst extends Geometric implements Nodable
 	public boolean isXMirrored() { return sX < 0; }
 
 	/**
-	 * Routine to tell whether this NodeInst is mirrored in the Y axis.
+	 * Method to tell whether this NodeInst is mirrored in the Y axis.
 	 * Mirroring in the Y axis implies that Y coordinates are negated.
 	 * Thus, it is equivalent to mirroring ABOUT the X axis.
 	 * @return true if this NodeInst is mirrored in the Y axis.
@@ -2273,7 +2280,7 @@ public class NodeInst extends Geometric implements Nodable
 	 * transformations.  The reason is that Electric's transformations
 	 * always preserve right angles whereas, in general, affine
 	 * transformations do not.  If the given affine transformation does
-	 * not preserve right angles this routine will print a warning
+	 * not preserve right angles this method will print a warning
 	 * displaying the angle that results when a right angle is
 	 * transformed.
 	 * 

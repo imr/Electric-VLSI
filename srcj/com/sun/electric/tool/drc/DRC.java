@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.drc.DRCQuick;
 
 import java.util.Iterator;
 import java.util.prefs.Preferences;
@@ -133,6 +134,16 @@ public class DRC extends Tool
 	public void init()
 	{
 //		setOn();
+	}
+
+	/**
+	 * Method to check the current cell hierarchically.
+	 */
+	public static void checkHierarchically()
+	{
+		Cell curCell = Library.needCurCell();
+		if (curCell == null) return;
+		DRCQuick.dr_quickcheck(curCell, 0, null, null, false);
 	}
 
 	/**

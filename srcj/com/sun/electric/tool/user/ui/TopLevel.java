@@ -37,6 +37,7 @@ import java.awt.Toolkit;
 import java.awt.Cursor;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.lang.reflect.Method;
 
 import javax.swing.JFrame;
 import javax.swing.JDesktopPane;
@@ -71,9 +72,9 @@ public class TopLevel extends JFrame
 		 */
 		public String toString() { return name; }
 
-		/** Describes Windows. */							public static final OS WINDOWS   = new OS("unknown");
-		/** Describes UNIX/Linux. */						public static final OS UNIX      = new OS("metal-1");
-		/** Describes Macintosh. */							public static final OS MACINTOSH = new OS("metal-2");
+		/** Describes Windows. */							public static final OS WINDOWS   = new OS("Windows");
+		/** Describes UNIX/Linux. */						public static final OS UNIX      = new OS("UNIX");
+		/** Describes Macintosh. */							public static final OS MACINTOSH = new OS("Macintosh");
 	}
 
 	/** True if in MDI mode, otherwise SDI. */				private static boolean mdi;
@@ -124,7 +125,7 @@ public class TopLevel extends JFrame
 	}
 
 	/**
-	 * Routine to initialize the window system.
+	 * Method to initialize the window system.
 	 */
 	public static void Initialize()
 	{
@@ -134,7 +135,7 @@ public class TopLevel extends JFrame
 	}
 
 	/**
-	 * Routine to initialize the window system.
+	 * Method to initialize the window system.
 	 */
 	public static void OSInitialize()
 	{
@@ -162,6 +163,7 @@ public class TopLevel extends JFrame
 				System.setProperty("apple.laf.useScreenMenuBar", "true");
 				System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Electric");
 				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.MacLookAndFeel");
+				macOSXRegistration();
 			}
 		} catch(Exception e) {}
 
@@ -177,13 +179,13 @@ public class TopLevel extends JFrame
 	}
 
 	/**
-	 * Routine to tell which operating system Electric is running on.
+	 * Method to tell which operating system Electric is running on.
 	 * @return the operating system Electric is running on.
 	 */
 	public static OS getOperatingSystem() { return os; }
 
 	/**
-	 * Routine to tell whether Electric is running in SDI or MDI mode.
+	 * Method to tell whether Electric is running in SDI or MDI mode.
 	 * SDI is Single Document Interface, where each document appears in its own window.
 	 * This is used on UNIX/Linux and on Macintosh.
 	 * MDI is Multiple Document Interface, where the main window has all documents in it as subwindows.
@@ -193,33 +195,33 @@ public class TopLevel extends JFrame
 	public static boolean isMDIMode() { return mdi; }
 
 	/**
-	 * Routine to return component palette window.
+	 * Method to return component palette window.
 	 * The component palette is the vertical toolbar on the left side.
 	 * @return the component palette window.
 	 */
 	public static PaletteFrame getPaletteFrame() { return palette; }
 
 	/**
-	 * Routine to return the only TopLevel frame.
+	 * Method to return the only TopLevel frame.
 	 * This applies only in MDI mode.
 	 * @return the only TopLevel frame.
 	 */
 	public static TopLevel getTopLevel() { return topLevel; }
 
 	/**
-	 * Routine to return status bar associated with this TopLevel.
+	 * Method to return status bar associated with this TopLevel.
 	 * @return the status bar associated with this TopLevel.
 	 */
 	public StatusBar getStatusBar() { return sb; }
 
 	/**
-	 * Routine to return the size of the screen that Electric is on.
+	 * Method to return the size of the screen that Electric is on.
 	 * @return the size of the screen that Electric is on.
 	 */
 	public static Dimension getScreenSize() { return new Dimension(scrnSize); }
 
 	/**
-	 * Routine to add an internal frame to the desktop.
+	 * Method to add an internal frame to the desktop.
 	 * This only makes sense in MDI mode, where the desktop has multiple subframes.
 	 * @param jif the internal frame to add.
 	 */
@@ -242,7 +244,7 @@ public class TopLevel extends JFrame
 	}
 
 	/**
-	 * Routine to return the current EditWindow.
+	 * Method to return the current EditWindow.
 	 * @return the current EditWindow.
 	 */
 	public static JFrame getCurrentJFrame()
@@ -258,14 +260,14 @@ public class TopLevel extends JFrame
 	}
 
 	/**
-	 * Routine to return the EditWindow associated with this top-level window.
+	 * Method to return the EditWindow associated with this top-level window.
 	 * This only makes sense for SDI applications where a WindowFrame is inside of a TopLevel.
 	 * @return the EditWindow associated with this top-level window.
 	 */
 	public EditWindow getEditWindow() { return wnd; }
 
 	/**
-	 * Routine to set the edit window associated with this top-level window.
+	 * Method to set the edit window associated with this top-level window.
 	 * This only makes sense for SDI applications where a WindowFrame is inside of a TopLevel.
 	 * @param wnd the EditWindow to associatd with this.
 	 */
@@ -280,4 +282,39 @@ public class TopLevel extends JFrame
 
 		public void windowClosing(WindowEvent evt) { UserMenuCommands.quitCommand(); }
 	}
+	
+	/**
+	 * Generic registration with the Mac OS X application menu.
+	 * Attempts to register with the Apple EAWT.
+	 * This method calls OSXAdapter.registerMacOSXApplication().
+	 */
+	private static void macOSXRegistration()
+	{
+		try
+		{
+			Class osxAdapter = Class.forName("com.sun.electric.tool.user.ui.OSXAdapter");
+			Class[] defArgs = {};
+			Method registerMethod = osxAdapter.getDeclaredMethod("registerMacOSXApplication", defArgs);
+			if (registerMethod != null)
+			{
+				Object[] args = {};
+				registerMethod.invoke(osxAdapter, args);
+			}
+		} catch (NoClassDefFoundError e)
+		{
+			// This will be thrown first if the OSXAdapter is loaded on a system without the EAWT
+			// because OSXAdapter extends ApplicationAdapter in its def
+			System.err.println("This version of Mac OS X does not support the Apple EAWT.  Application Menu handling has been disabled (" + e + ")");
+		} catch (ClassNotFoundException e)
+		{
+			// This shouldn't be reached; if there's a problem with the OSXAdapter we should get the 
+			// above NoClassDefFoundError first.
+			System.err.println("This version of Mac OS X does not support the Apple EAWT.  Application Menu handling has been disabled (" + e + ")");
+		} catch (Exception e)
+		{
+			System.err.println("Exception while loading the OSXAdapter:");
+			e.printStackTrace();
+		}
+	}
+	
 }

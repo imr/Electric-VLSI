@@ -167,7 +167,7 @@ public class Highlight
 	}
 
 	/**
-	 * Routine to clear the list of highlighted objects.
+	 * Method to clear the list of highlighted objects.
 	 */
 	public static void clear()
 	{
@@ -176,7 +176,7 @@ public class Highlight
 	}
 
 	/**
-	 * Routine to indicate that changes to highlighting are finished.
+	 * Method to indicate that changes to highlighting are finished.
 	 * Call this after any change to highlighting.
 	 */
 	public static void finished()
@@ -190,7 +190,7 @@ public class Highlight
 	}
 
 	/**
-	 * Routine to add a Geometric to the list of highlighted objects.
+	 * Method to add a Geometric to the list of highlighted objects.
 	 * @param geom the Geometric to add to the list of highlighted objects.
 	 * @return the newly created Highlight object.
 	 */
@@ -205,7 +205,7 @@ public class Highlight
 	}
 
 	/**
-	 * Routine to add a text selection to the list of highlighted objects.
+	 * Method to add a text selection to the list of highlighted objects.
 	 * @param cell the Cell in which this area resides.
 	 * @param var the Variable associated with the text (text is then a visual of that variable).
 	 * @param name the Name associated with the text (for the name of Nodes and Arcs).
@@ -224,7 +224,7 @@ public class Highlight
 	}
 
 	/**
-	 * Routine to add an area to the list of highlighted objects.
+	 * Method to add an area to the list of highlighted objects.
 	 * @param area the Rectangular area to add to the list of highlighted objects.
 	 * @param cell the Cell in which this area resides.
 	 * @return the newly created Highlight object.
@@ -241,7 +241,7 @@ public class Highlight
 	}
 
 	/**
-	 * Routine to add a line to the list of highlighted objects.
+	 * Method to add a line to the list of highlighted objects.
 	 * @param start the start point of the line to add to the list of highlighted objects.
 	 * @param end the end point of the line to add to the list of highlighted objects.
 	 * @param cell the Cell in which this line resides.
@@ -259,106 +259,106 @@ public class Highlight
 	}
 
 	/**
-	 * Routine to return the type of this Highlight (EOBJ, TEXT, BBOX, or LINE).
+	 * Method to return the type of this Highlight (EOBJ, TEXT, BBOX, or LINE).
 	 * @return the type of this Highlight.
 	 */
 	public Type getType() { return type; }
 
 	/**
-	 * Routine to return the ElectricObject associated with this Highlight object.
+	 * Method to return the ElectricObject associated with this Highlight object.
 	 * @return the ElectricObject associated with this Highlight object.
 	 */
 	public ElectricObject getElectricObject() { return eobj; }
 
 	/**
-	 * Routine to set the Geometric associated with this Highlight object.
+	 * Method to set the Geometric associated with this Highlight object.
 	 * @param geom the Geometric associated with this Highlight object.
 	 */
 	private void setElectricObject(ElectricObject eobj) { this.eobj = eobj; }
 
 	/**
-	 * Routine to return the Cell associated with this Highlight object.
+	 * Method to return the Cell associated with this Highlight object.
 	 * @return the Cell associated with this Highlight object.
 	 */
 	public Cell getCell() { return cell; }
 
 	/**
-	 * Routine to set the Cell associated with this Highlight object.
+	 * Method to set the Cell associated with this Highlight object.
 	 * @param cell the Cell associated with this Highlight object.
 	 */
 	private void setCell(Cell cell) { this.cell = cell; }
 
 	/**
-	 * Routine to return the outline point associated with this Highlight object.
+	 * Method to return the outline point associated with this Highlight object.
 	 * @return the outline point associated with this Highlight object.
 	 */
 	public int getPoint() { return point; }
 
 	/**
-	 * Routine to set an outline point to be displayed with this Highlight.
+	 * Method to set an outline point to be displayed with this Highlight.
 	 * @param point the outline point to show with this Highlight (must be a NodeInst highlight).
 	 */
 	private void setPoint(int point) { this.point = point; }
 
 	/**
-	 * Routine to return the bounds associated with this Highlight object.
+	 * Method to return the bounds associated with this Highlight object.
 	 * Bounds are used for area definitions and also for text.
 	 * @return the bounds associated with this Highlight object.
 	 */
 	public Rectangle2D getBounds() { return bounds; }
 
 	/**
-	 * Routine to return the Name associated with this Highlight object.
+	 * Method to return the Name associated with this Highlight object.
 	 * @return the Name associated with this Highlight object.
 	 */
 	public Name getName() { return name; }
 
 	/**
-	 * Routine to set the Name associated with this Highlight object.
+	 * Method to set the Name associated with this Highlight object.
 	 * @param name the Name associated with this Highlight object.
 	 */
 	private void setName(Name name) { this.name = name; }
 
 	/**
-	 * Routine to return the Variable associated with this Highlight object.
+	 * Method to return the Variable associated with this Highlight object.
 	 * @return the Variable associated with this Highlight object.
 	 */
 	public Variable getVar() { return var; }
 
 	/**
-	 * Routine to set the Variable associated with this Highlight object.
+	 * Method to set the Variable associated with this Highlight object.
 	 * @param var the Variable associated with this Highlight object.
 	 */
 	private void setVar(Variable var) { this.var = var; }
 
 	/**
-	 * Routine to return the "from point" associated with this Highlight object.
+	 * Method to return the "from point" associated with this Highlight object.
 	 * This only applies to Highlights of type LINE.
 	 * @return the from point associated with this Highlight object.
 	 */
 	public Point2D getFromPoint() { return pt1; }
 
 	/**
-	 * Routine to return the "to point" associated with this Highlight object.
+	 * Method to return the "to point" associated with this Highlight object.
 	 * This only applies to Highlights of type LINE.
 	 * @return the to point associated with this Highlight object.
 	 */
 	public Point2D getToPoint() { return pt2; }
 
 	/**
-	 * Routine to return the number of highlighted objects.
+	 * Method to return the number of highlighted objects.
 	 * @return the number of highlighted objects.
 	 */
 	public static int getNumHighlights() { return highlightList.size(); }
 
 	/**
-	 * Routine to return an Iterator over the highlighted objects.
+	 * Method to return an Iterator over the highlighted objects.
 	 * @return an Iterator over the highlighted objects.
 	 */
 	public static Iterator getHighlights() { return highlightList.iterator(); }
 
 	/**
-	 * Routine to load a list of Highlights into the highlighting.
+	 * Method to load a list of Highlights into the highlighting.
 	 * @param newHighlights a List of Highlight objects.
 	 */
 	public static void setHighlightList(List newHighlights)
@@ -370,7 +370,7 @@ public class Highlight
 	}
 
 	/**
-	 * Routine to return an List of all highlighted ElectricObjects.
+	 * Method to return an List of all highlighted ElectricObjects.
 	 * @param wantNodes true if NodeInsts should be included in the list.
 	 * @param wantArcs true if ArcInsts should be included in the list.
 	 * @return a list with the highlighted ElectricObjects.
@@ -418,7 +418,7 @@ public class Highlight
 	}
 
 	/**
-	 * Routine to return the bounds of the highlighted objects.
+	 * Method to return the bounds of the highlighted objects.
 	 * @param wnd the window in which to get bounds.
 	 * @return the bounds of the highlighted objects (null if nothing is highlighted).
 	 */
@@ -478,7 +478,7 @@ public class Highlight
 	}
 
 	/**
-	 * Routine to return the only highlighted object.
+	 * Method to return the only highlighted object.
 	 * If there is not one highlighted object, an error is issued.
 	 * @return the highlighted object (null if error).
 	 */
@@ -499,7 +499,7 @@ public class Highlight
 	}
 
 	/**
-	 * Routine to set a screen offset for the display of highlighting.
+	 * Method to set a screen offset for the display of highlighting.
 	 * @param offX the X offset (in pixels) of the highlighting.
 	 * @param offY the Y offset (in pixels) of the highlighting.
 	 */
@@ -510,7 +510,7 @@ public class Highlight
 	}
 
 	/**
-	 * Routine to add everything in an area to the selection.
+	 * Method to add everything in an area to the selection.
 	 * @param wnd the window being examined.
 	 * @param minSelX the low X coordinate of the area in database units.
 	 * @param maxSelX the high X coordinate of the area in database units.
@@ -550,7 +550,7 @@ public class Highlight
 	}
 
 	/**
-	 * Routine to tell whether a point is over this Highlight.
+	 * Method to tell whether a point is over this Highlight.
 	 * @param wnd the window being examined.
 	 * @param x the X coordinate of the point.
 	 * @param y the Y coordinate of the point.
@@ -595,7 +595,7 @@ public class Highlight
 	}
 
 	/**
-	 * Routine to display this Highlight in a window.
+	 * Method to display this Highlight in a window.
 	 * @param wnd the window in which to draw this highlight.
 	 * @param g the Graphics associated with the window.
 	 */
@@ -842,7 +842,7 @@ public class Highlight
 	}
 
 	/**
-	 * Routine to compute a Poly that describes the current Highlight text.
+	 * Method to compute a Poly that describes the current Highlight text.
 	 * @param wnd the EditWindow in which the text will be drawn.
 	 * @return a Poly that covers the text completely.
 	 */
@@ -946,7 +946,7 @@ public class Highlight
 	}
 
 	/**
-	 * Routine to handle a click in a window and select the appropriate objects.
+	 * Method to handle a click in a window and select the appropriate objects.
 	 * @param pt the coordinates of the click (in database units).
 	 * @param wnd the window being examined.
 	 * @param exclusively true if the currently selected object must remain selected.
@@ -1053,7 +1053,7 @@ public class Highlight
 	// ************************************* SUPPORT *************************************
 
 	/**
-	 * Routine to search a Cell for all objects at a point.
+	 * Method to search a Cell for all objects at a point.
 	 * @param cell the cell to search.
 	 * @param exclusively true if the currently selected object must remain selected.
 	 * This happens during "outline edit" when the node doesn't change, just the point on it.
@@ -1225,7 +1225,7 @@ public class Highlight
 	}
 
 	/**
-	 * Routine to determine whether an object is in a bounds.
+	 * Method to determine whether an object is in a bounds.
 	 * @param geom the Geometric being tested for selection.
 	 * @param findPort true if a port should be selected with a NodeInst.
 	 * @param findSpecial true if hard-to-select and other special selection is being done.
@@ -1320,7 +1320,7 @@ public class Highlight
 	}
 
 	/**
-	 * Routine to return the distance from a bound to a NodeInst.
+	 * Method to return the distance from a bound to a NodeInst.
 	 * @param bounds the bounds in question.
 	 * @param ni the NodeInst.
 	 * @param wnd the window being examined (null to ignore text/window scaling).
@@ -1394,7 +1394,7 @@ public class Highlight
 	}
 
 	/**
-	 * Routine to return the distance from a bounds to an ArcInst.
+	 * Method to return the distance from a bounds to an ArcInst.
 	 * @param bounds the bounds in question.
 	 * @param ai the ArcInst.
 	 * @param wnd the window being examined.
@@ -1429,7 +1429,7 @@ public class Highlight
 	}
 
 	/**
-	 * Routine to draw an array of points as highlighting.
+	 * Method to draw an array of points as highlighting.
 	 * @param wnd the window in which drawing is happening.
 	 * @param g the Graphics for the window.
 	 * @param points the array of points being drawn.
@@ -1473,7 +1473,7 @@ public class Highlight
 	}
 
 	/**
-	 * Routine to tell whether two Highlights are the same.
+	 * Method to tell whether two Highlights are the same.
 	 * @param other the Highlight to compare to this one.
 	 * @return true if the two refer to the same thing.
 	 */

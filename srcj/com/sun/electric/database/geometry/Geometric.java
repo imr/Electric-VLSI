@@ -759,14 +759,6 @@ public abstract class Geometric extends ElectricObject
 
 	// ------------------------------- private data ------------------------------
 
-	// The internal representation of position and orientation is the
-	// 2D transformation matrix:
-	// --                                       --
-	// |   sX cos(angleJ)    sY sin(angleJ)   0  |
-	// |  -sX sin(angleJ)    sY cos(angleJ)   0  |
-	// |        cX                cY          1  |
-	// --                                       --
-
 	/** Cell containing this Geometric object */			protected Cell parent;
 	/** name of this Geometric object */					protected Name name;
 	/** The text descriptor of name of Geometric. */		private TextDescriptor nameDescriptor;

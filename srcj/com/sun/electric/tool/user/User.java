@@ -607,6 +607,57 @@ public class User extends Tool
 	/****************************** MISCELLANEOUS PREFERENCES ******************************/
 
 	/**
+	 * Method to tell whether to beep after long jobs.
+	 * Any task longer than 1 minute is considered a "long job".
+	 * The default is "false".
+	 * @return true if the system should beep after long jobs.
+	 */
+	public static boolean isBeepAfterLongJobs() { return tool.prefs.getBoolean("BeepAfterLongJobs", false); }
+	/**
+	 * Method to set whether to beep after long jobs.
+	 * Any task longer than 1 minute is considered a "long job".
+	 * @param on true if the system should beep after long jobs.
+	 */
+	public static void setBeepAfterLongJobs(boolean on) { tool.prefs.putBoolean("BeepAfterLongJobs", on);   flushOptions(); }
+
+	/**
+	 * Method to tell whether to play a "click" sound when an arc is created.
+	 * The default is "true".
+	 * @return true if the system should play a "click" sound when an arc is created
+	 */
+	public static boolean isPlayClickSoundsWhenCreatingArcs() { return tool.prefs.getBoolean("PlayClickSoundsWhenCreatingArcs", true); }
+	/**
+	 * Method to set whether to play a "click" sound when an arc is created
+	 * @param on true if the system should play a "click" sound when an arc is created
+	 */
+	public static void setPlayClickSoundsWhenCreatingArcs(boolean on) { tool.prefs.putBoolean("PlayClickSoundsWhenCreatingArcs", on);   flushOptions(); }
+
+	/**
+	 * Method to tell whether to include the date and Electric version in output files.
+	 * The default is "true".
+	 * @return true if the system should include the date and Electric version in output files.
+	 */
+	public static boolean isIncludeDateAndVersionInOutput() { return tool.prefs.getBoolean("IncludeDateAndVersionInOutput", true); }
+	/**
+	 * Method to set whether to include the date and Electric version in output files.
+	 * @param on true if the system should include the date and Electric version in output files.
+	 */
+	public static void setIncludeDateAndVersionInOutput(boolean on) { tool.prefs.putBoolean("IncludeDateAndVersionInOutput", on);   flushOptions(); }
+
+	/**
+	 * Method to tell the maximum number of errors to log.
+	 * The default is 0, which means that there is no limit.
+	 * @return the maximum number of errors to log.
+	 */
+	public static int getErrorLimit() { return tool.prefs.getInt("ErrorLimit", 0); }
+	/**
+	 * Method to set the maximum number of errors to log.
+	 * @param limit the maximum number of errors to log.
+	 * A value of zero indicates that there is no limit.
+	 */
+	public static void setErrorLimit(int limit) { tool.prefs.putInt("ErrorLimit", limit);   flushOptions(); }
+
+	/**
 	 * Method to tell whether to switch technologies automatically when changing the current Cell.
 	 * Switching technologies means that the component menu updates to the new primitive set.
 	 * The default is "true".

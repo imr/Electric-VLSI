@@ -322,8 +322,8 @@ public class LayoutLib {
 	                               boolean mirrorAboutYAxis, 
 	                               boolean mirrorAboutXAxis,
 								   double dAngle) {
-	    boolean oldMirX = ni.getMirroredAboutXAxis();
-	    boolean oldMirY = ni.getMirroredAboutYAxis();
+	    boolean oldMirX = ni.isMirroredAboutXAxis();
+	    boolean oldMirY = ni.isMirroredAboutYAxis();
 		double oldXS = ni.getXSize() * (oldMirY ? -1 : 1);
 		double oldYS = ni.getYSize() * (oldMirX ? -1 : 1);
 		 

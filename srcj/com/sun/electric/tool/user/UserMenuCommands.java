@@ -77,6 +77,7 @@ import com.sun.electric.tool.user.dialogs.CellLists;
 import com.sun.electric.tool.user.dialogs.CellOptions;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LETool;
+import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.generator.PadGenerator;
 import com.sun.electric.tool.simulation.Spice;
 import com.sun.electric.tool.simulation.IRSIMTool;
@@ -92,6 +93,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import javax.swing.ButtonGroup;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
@@ -383,11 +385,13 @@ public final class UserMenuCommands
 
 		Menu drcSubMenu = Menu.createMenu("DRC", 'D');
 		toolMenu.add(drcSubMenu);
+		drcSubMenu.addMenuItem("Check Hierarchically", KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0), 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(); }});
 
 		Menu simulationSubMenu = Menu.createMenu("Simulation (SPICE)", 'S');
 		toolMenu.add(simulationSubMenu);
 		simulationSubMenu.addMenuItem("Write SPICE Deck...", null, 
-            new ActionListener() { public void actionPerformed(ActionEvent e) { writeSpiceDeckCommand(); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { Spice.writeSpiceDeck(); }});
 
 		Menu netlisters = Menu.createMenu("Simulation (others)");
         netlisters.addMenuItem("Write IRSIM Netlist", null,
@@ -1315,11 +1319,6 @@ public final class UserMenuCommands
 	}
 
 	// ---------------------- THE TOOLS MENU -----------------
-
-	public static void writeSpiceDeckCommand()
-	{
-		Spice.writeSpiceDeck();
-	}
 
     // Logical Effort Tool
     public static void analyzeCellCommand()

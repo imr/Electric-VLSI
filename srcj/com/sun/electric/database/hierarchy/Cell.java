@@ -1838,7 +1838,7 @@ public class Cell extends NodeProto
 	 * @param connectedPorts this argument allows the user to tell the
 	 * network builder to treat certain PortProtos of a NodeProto as a
 	 * short circuit. For example, it is sometimes useful to build the
-	 * net list as if the PortProtos of a resistor where shorted
+	 * net list as if the PortProtos of a resistor were shorted
 	 * together.
 	 *
 	 * <p> <code>connectedPorts</code> must be either null or an

@@ -97,6 +97,7 @@ public class EditOptions extends javax.swing.JDialog
         });
 
 		// initialize all of the tab panes
+		initGeneral();			// initialize the General Options panel
 		initNewNodes();			// initialize the New Nodes Options panel
 		initNewArcs();			// initialize the New Arcs Options panel
 		initSelection();		// initialize the Selection Options panel
@@ -109,6 +110,59 @@ public class EditOptions extends javax.swing.JDialog
 		initText();				// initialize the Text Options panel
 		init3D();				// initialize the 3D Options panel
 		initTechnology();		// initialize the Technology Options panel
+	}
+
+	//******************************** GENERAL ********************************
+
+	private boolean initialBeepAfterLongJobs;
+	private boolean initialClickSounds;
+	private boolean initialIncludeDateAndVersion;
+	private int initialErrorLimit;
+
+	/**
+	 * Method called at the start of the dialog.
+	 * Caches current values and displays them in the General tab.
+	 */
+	private void initGeneral()
+	{
+		initialBeepAfterLongJobs = User.isBeepAfterLongJobs();
+		generalBeepAfterLongJobs.setSelected(initialBeepAfterLongJobs);
+
+		initialClickSounds = User.isPlayClickSoundsWhenCreatingArcs();
+		generalPlayClickSounds.setSelected(initialClickSounds);
+
+		initialIncludeDateAndVersion = User.isIncludeDateAndVersionInOutput();
+		generalIncludeDateAndVersion.setSelected(initialIncludeDateAndVersion);
+
+		initialErrorLimit = User.getErrorLimit();
+		generalErrorLimit.setText(Integer.toString(initialErrorLimit));
+
+		generalExpandableDialogsFull.setEnabled(false);
+		generalShowFileDialog.setEnabled(false);
+		generalMotionHysteresis.setEditable(false);
+	}
+
+	/**
+	 * Method called when the "OK" panel is hit.
+	 * Updates any changed fields in the General tab.
+	 */
+	private void termGeneral()
+	{
+		boolean curentBeepAfterLongJobs = generalBeepAfterLongJobs.isSelected();
+		if (curentBeepAfterLongJobs != initialBeepAfterLongJobs)
+			User.setBeepAfterLongJobs(curentBeepAfterLongJobs);
+
+		boolean curentClickSounds = generalPlayClickSounds.isSelected();
+		if (curentClickSounds != initialClickSounds)
+			User.setPlayClickSoundsWhenCreatingArcs(curentClickSounds);
+
+		boolean curentIncludeDateAndVersion = generalIncludeDateAndVersion.isSelected();
+		if (curentIncludeDateAndVersion != initialIncludeDateAndVersion)
+			User.setIncludeDateAndVersionInOutput(curentIncludeDateAndVersion);
+
+		int curentErrorLimit = EMath.atoi(generalErrorLimit.getText());
+		if (curentErrorLimit != initialErrorLimit)
+			User.setErrorLimit(curentErrorLimit);
 	}
 
 	//******************************** NEW NODES ********************************
@@ -134,7 +188,7 @@ public class EditOptions extends javax.swing.JDialog
 	private boolean newNodesDataChanging = false;
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the New Nodes tab.
 	 */
 	private void initNewNodes()
@@ -209,7 +263,7 @@ public class EditOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the primitive node popup is changed.
+	 * Method called when the primitive node popup is changed.
 	 */
 	private void newNodesPrimPopupChanged()
 	{
@@ -241,7 +295,7 @@ public class EditOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when any of the primitive data (in the top part) changes.
+	 * Method called when any of the primitive data (in the top part) changes.
 	 * Caches all values for the selected primitive node.
 	 */
 	private void newNodesPrimDataChanged()
@@ -263,7 +317,7 @@ public class EditOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "Override default orientation" checkbox is changed.
+	 * Method called when the "Override default orientation" checkbox is changed.
 	 * This affects whether primitive nodes have an individual orientation override.
 	 */
 	private void newNodesOverrideChanged()
@@ -286,7 +340,7 @@ public class EditOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the New Nodes tab.
 	 */
 	private void termNewNodes()
@@ -383,7 +437,7 @@ public class EditOptions extends javax.swing.JDialog
 	private boolean newArcsDataChanging = false;
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the New Arcs tab.
 	 */
 	private void initNewArcs()
@@ -458,7 +512,7 @@ public class EditOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the primitive arc popup is changed.
+	 * Method called when the primitive arc popup is changed.
 	 */
 	private void newArcsPrimPopupChanged()
 	{
@@ -496,7 +550,7 @@ public class EditOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when any of the primitive data changes.
+	 * Method called when any of the primitive data changes.
 	 * Caches all values for the selected primitive arc.
 	 */
 	private void newArcsPrimDataChanged()
@@ -528,7 +582,7 @@ public class EditOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the New Arcs tab.
 	 */
 	private void termNewArcs()
@@ -605,7 +659,7 @@ public class EditOptions extends javax.swing.JDialog
 	private boolean initialSelectionDraggingMustEnclose;
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Selection tab.
 	 */
 	private void initSelection()
@@ -616,7 +670,7 @@ public class EditOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Selection tab.
 	 */
 	private void termSelection()
@@ -641,7 +695,7 @@ public class EditOptions extends javax.swing.JDialog
 	private boolean initialPortMoveNodeWithExport;
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Ports tab.
 	 */
 	private void initPorts()
@@ -666,7 +720,7 @@ public class EditOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Ports tab.
 	 */
 	private void termPorts()
@@ -696,7 +750,7 @@ public class EditOptions extends javax.swing.JDialog
 	//******************************** FRAME ********************************
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Frame tab.
 	 */
 	private void initFrame()
@@ -716,7 +770,7 @@ public class EditOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Frame tab.
 	 */
 	private void termFrame()
@@ -733,7 +787,7 @@ public class EditOptions extends javax.swing.JDialog
 	private float initialIconLeadLength, initialIconLeadSpacing;
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Icon tab.
 	 */
 	private void initIcon()
@@ -821,7 +875,7 @@ public class EditOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Icon tab.
 	 */
 	private void termIcon()
@@ -896,7 +950,7 @@ public class EditOptions extends javax.swing.JDialog
 	private float initialGridAlignment, initialGridEdgeAlignment;
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Grid tab.
 	 */
 	private void initGrid()
@@ -933,7 +987,7 @@ public class EditOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Grid tab.
 	 */
 	private void termGrid()
@@ -986,7 +1040,7 @@ public class EditOptions extends javax.swing.JDialog
 	//******************************** LAYERS ********************************
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Layers tab.
 	 */
 	private void initLayers()
@@ -995,7 +1049,7 @@ public class EditOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Layers tab.
 	 */
 	private void termLayers()
@@ -1005,7 +1059,7 @@ public class EditOptions extends javax.swing.JDialog
 	//******************************** COLORS ********************************
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Colors tab.
 	 */
 	private void initColors()
@@ -1013,7 +1067,7 @@ public class EditOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Colors tab.
 	 */
 	private void termColors()
@@ -1023,7 +1077,7 @@ public class EditOptions extends javax.swing.JDialog
 	//******************************** TEXT ********************************
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Text tab.
 	 */
 	private void initText()
@@ -1074,7 +1128,7 @@ public class EditOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Text tab.
 	 */
 	private void termText()
@@ -1084,7 +1138,7 @@ public class EditOptions extends javax.swing.JDialog
 	//******************************** 3D ********************************
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the 3D tab.
 	 */
 	private void init3D()
@@ -1092,7 +1146,7 @@ public class EditOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the 3D tab.
 	 */
 	private void term3D()
@@ -1109,7 +1163,7 @@ public class EditOptions extends javax.swing.JDialog
 	private boolean initialTechSpecialTransistors;
 	private boolean initialTechStickFigures;
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Technology tab.
 	 */
 	private void initTechnology()
@@ -1150,7 +1204,7 @@ public class EditOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Technology tab.
 	 */
 	private void termTechnology()
@@ -1259,6 +1313,18 @@ public class EditOptions extends javax.swing.JDialog
         techMOCMOSRules = new javax.swing.ButtonGroup();
         techMOCMOSSticks = new javax.swing.ButtonGroup();
         tabPane = new javax.swing.JTabbedPane();
+        general = new javax.swing.JPanel();
+        generalBeepAfterLongJobs = new javax.swing.JCheckBox();
+        generalPlayClickSounds = new javax.swing.JCheckBox();
+        generalExpandableDialogsFull = new javax.swing.JCheckBox();
+        generalIncludeDateAndVersion = new javax.swing.JCheckBox();
+        generalShowFileDialog = new javax.swing.JCheckBox();
+        jLabel46 = new javax.swing.JLabel();
+        generalErrorLimit = new javax.swing.JTextField();
+        jLabel50 = new javax.swing.JLabel();
+        generalMotionHysteresis = new javax.swing.JTextField();
+        jLabel51 = new javax.swing.JLabel();
+        jLabel53 = new javax.swing.JLabel();
         newNode = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
@@ -1489,6 +1555,101 @@ public class EditOptions extends javax.swing.JDialog
                 closeDialog(evt);
             }
         });
+
+        general.setLayout(new java.awt.GridBagLayout());
+
+        generalBeepAfterLongJobs.setText("Beep after long jobs");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        general.add(generalBeepAfterLongJobs, gridBagConstraints);
+
+        generalPlayClickSounds.setText("Click sounds when arcs are created");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        general.add(generalPlayClickSounds, gridBagConstraints);
+
+        generalExpandableDialogsFull.setText("Expandable dialogs default to full-size");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        general.add(generalExpandableDialogsFull, gridBagConstraints);
+
+        generalIncludeDateAndVersion.setText("Include date and version in output files");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        general.add(generalIncludeDateAndVersion, gridBagConstraints);
+
+        generalShowFileDialog.setText("Show file-selection dialog before writing netlists");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        general.add(generalShowFileDialog, gridBagConstraints);
+
+        jLabel46.setText("Maximum errors to report:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        general.add(jLabel46, gridBagConstraints);
+
+        generalErrorLimit.setColumns(6);
+        generalErrorLimit.setText(" ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        general.add(generalErrorLimit, gridBagConstraints);
+
+        jLabel50.setText("Prevent motion after selection for:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        general.add(jLabel50, gridBagConstraints);
+
+        generalMotionHysteresis.setColumns(6);
+        generalMotionHysteresis.setText(" ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        general.add(generalMotionHysteresis, gridBagConstraints);
+
+        jLabel51.setText("seconds");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        general.add(jLabel51, gridBagConstraints);
+
+        jLabel53.setText("(0 for infinite)");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        general.add(jLabel53, gridBagConstraints);
+
+        tabPane.addTab("General", general);
 
         newNode.setLayout(new java.awt.GridBagLayout());
 
@@ -3311,8 +3472,8 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 40, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(cancel, gridBagConstraints);
 
         ok.setText("OK");
@@ -3327,8 +3488,8 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 40);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         getContentPane().add(ok, gridBagConstraints);
 
         pack();
@@ -3341,6 +3502,7 @@ public class EditOptions extends javax.swing.JDialog
 
 	private void okActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_okActionPerformed
 	{//GEN-HEADEREND:event_okActionPerformed
+		termGeneral();			// terminate the General Options panel
 		termNewNodes();			// terminate the New Nodes Options panel
 		termNewArcs();			// terminate the New Arcs Options panel
 		termSelection();		// terminate the Selection Options panel
@@ -3393,6 +3555,14 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JRadioButton framePortrait;
     private javax.swing.JComboBox frameSize;
     private javax.swing.JCheckBox frameTitleBox;
+    private javax.swing.JPanel general;
+    private javax.swing.JCheckBox generalBeepAfterLongJobs;
+    private javax.swing.JTextField generalErrorLimit;
+    private javax.swing.JCheckBox generalExpandableDialogsFull;
+    private javax.swing.JCheckBox generalIncludeDateAndVersion;
+    private javax.swing.JTextField generalMotionHysteresis;
+    private javax.swing.JCheckBox generalPlayClickSounds;
+    private javax.swing.JCheckBox generalShowFileDialog;
     private javax.swing.JPanel grid;
     private javax.swing.JCheckBox gridAlign;
     private javax.swing.JTextField gridAlignCursor;
@@ -3464,11 +3634,15 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JLabel jLabel43;
     private javax.swing.JLabel jLabel44;
     private javax.swing.JLabel jLabel45;
+    private javax.swing.JLabel jLabel46;
     private javax.swing.JLabel jLabel47;
     private javax.swing.JLabel jLabel48;
     private javax.swing.JLabel jLabel49;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel50;
+    private javax.swing.JLabel jLabel51;
     private javax.swing.JLabel jLabel52;
+    private javax.swing.JLabel jLabel53;
     private javax.swing.JLabel jLabel54;
     private javax.swing.JLabel jLabel56;
     private javax.swing.JLabel jLabel57;
