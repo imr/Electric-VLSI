@@ -424,10 +424,11 @@ public class View implements Comparable
     public int compareTo(Object o) {
 		View v = (View)o;
 
-		if (isPermanentView() || v.isPermanentView())
-			return getOrder() - v.getOrder();
-		else
-			return TextUtils.nameSameNumeric(getAbbreviation(), v.getAbbreviation());
+		return TextUtils.nameSameNumeric(getAbbreviation(), v.getAbbreviation());
+// 		if (isPermanentView() || v.isPermanentView())
+// 			return getOrder() - v.getOrder();
+// 		else
+// 			return TextUtils.nameSameNumeric(getAbbreviation(), v.getAbbreviation());
     }
 
 	/**

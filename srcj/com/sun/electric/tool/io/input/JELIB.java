@@ -559,7 +559,7 @@ public class JELIB extends LibraryFiles
 	{
 		if (scaledCellName != null) return;
 		CellContents cc = (CellContents)allCells.get(cell);
-		if (cc.filledIn) return;
+		if (cc == null || cc.filledIn) return;
 		instantiateCellContent(cell, cc, recursiveSetupFlag);
 		cellsConstructed++;
 		progress.setProgress(cellsConstructed * 100 / totalCells);

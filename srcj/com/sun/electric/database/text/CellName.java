@@ -136,9 +136,9 @@ public class CellName implements Comparable
 		if (cmp != 0) return cmp;
 
 		if (version > 0)
-			return n.version > 0 ? version - n.version : -1;
+			return n.version > 0 ? n.version - version : 1;
 		else
-			return n.version > 0 ? 1 : 0;
+			return n.version > 0 ? -1 : 0;
     }
 
 	/**

@@ -815,6 +815,36 @@ public class TextUtils
 	 * Method to compare two names and give a sort order.
 	 * The comparison considers numbers in numeric order so that the
 	 * string "in10" comes after the string "in9".
+	 *
+	 * Formal definition of order.
+	 * Lets insert in string's character sequence number at start of digit sequences.
+	 * Consider that numbers in the sequence are less than chars.
+	 * 
+	 * Examples below are in increasing order:
+	 *   ""           { }
+	 *   "0"          {  0, '0' }
+	 *   "9"          {  9, '9' }
+	 *   "10"         { 10, '1', '0' }
+	 *   "2147483648" { 2147483648, '2', '1', '4', '7', '4', '8', '3', '6', '4', '8' }
+	 *   " "          { ' ' }
+	 *   "-"          { '-' }
+	 *   "-1"         { '-', 1, '1' }
+	 *   "-2"         { '-', 2, '2' }
+	 *   "a"          { 'a' }
+	 *   "a0"         { 'a',  0, '0' }
+	 *   "a0-0"       { 'a',  0, '0', '-', 0, '0' }
+	 *   "a00"        { 'a',  0, '0', '0' }
+	 *   "a0a"        { 'a',  0, '0', 'a' }
+	 *   "a01"        { 'a',  1, '0', '1' }
+	 *   "a1"         { 'a',  1, '1' }
+	 *   "in"         { 'i', 'n' }
+	 *   "in1"        { 'i', 'n',  1, '1' }
+	 *   "in1a"       { 'i', 'n',  1, '1', 'a' }
+	 *   "in9"        { 'i', 'n',  9, '9' }
+	 *   "in10"       { 'i', 'n', 10, '1', '0' }
+	 *   "in!"        { 'i', 'n', '!' }
+	 *   "ina"        { 'i , 'n', 'a' }
+	 *   
 	 * @param name1 the first string.
 	 * @param name2 the second string.
 	 * @return 0 if they are equal, nonzero according to order.
@@ -824,30 +854,108 @@ public class TextUtils
 		int len1 = name1.length();
 		int len2 = name2.length();
 		int extent = Math.min(len1, len2);
-		for (int pos = 0; pos < extent; )
+		for(int pos = 0; pos < extent; pos++)
 		{
 			char ch1 = name1.charAt(pos);
 			char ch2 = name2.charAt(pos);
-			if (Character.isDigit(ch1) && Character.isDigit(ch2))
+			if (ch1 != ch2)
 			{
-				// found a number: compare them numerically
-				int value1 = TextUtils.atoi(name1, pos, 10);
-				int value2 = TextUtils.atoi(name2, pos, 10);
-				if (value1 != value2) return value1 > value2 ? 1 : -1;
-				// compare numbers as strings
-				while (pos < extent)
+				int digit1 = Character.digit(ch1, 10);
+				int digit2 = Character.digit(ch2, 10);
+				if (digit1 >= 0 || digit2 >= 0)
 				{
-					char nextCh1 = name1.charAt(pos);
-					char nextCh2 = name2.charAt(pos);
-					if (nextCh1 != nextCh2 || !Character.isDigit(nextCh1)) break;
-					pos++;
+					int pos1 = pos + 1, pos2 = pos + 1; // Positions in string to compare
+
+					// Skip leading zeros
+					boolean skipZeros = true;
+					if (digit1 < 0 || digit2 < 0)
+					{
+						// One char is digit, another is not. Is previous digit ?
+						int digit = pos > 0 ? Character.digit(name1.charAt(--pos), 10) : -1;
+						if (digit < 0) return digit2 - digit1;
+						// Are previus digits all zeros ?
+						while (digit == 0)
+							digit = pos > 0 ? Character.digit(name1.charAt(--pos), 10) : -1;
+						if (digit > 0) skipZeros = false; // If no, don't skip
+					}
+					if (skipZeros)
+					{
+						while (digit1 == 0)
+							digit1 = pos1 < len1 ? Character.digit(name1.charAt(pos1++), 10) : -1;
+						while (digit2 == 0)
+							digit2 = pos2 < len2 ? Character.digit(name2.charAt(pos2++), 10) : -1;
+					}
+
+					// skip matching digits
+					while (digit1 == digit2 && digit1 >= 0)
+					{
+						digit1 = pos1 < len1 ? Character.digit(name1.charAt(pos1++), 10) : -1;
+						digit2 = pos2 < len2 ? Character.digit(name2.charAt(pos2++), 10) : -1;
+					}
+
+					boolean dig1 = digit1 >= 0;
+					boolean dig2 = digit2 >= 0;
+					for (int i = 0; dig1 && dig2; i++)
+					{
+						dig1 = pos1 + i < len1 && Character.isDigit(name1.charAt(pos1 + i));
+						dig2 = pos2 + i < len2 && Character.isDigit(name2.charAt(pos2 + i));
+					}
+					if (dig1 != dig2) return dig1 ? 1 : -1;
+					if (digit1 != digit2) return digit1 - digit2;
 				}
-				continue;
+				return ch1 - ch2;
 			}
-			if (ch1 != ch2) return ch1 - ch2;
-			pos++;
 		}
 		return len1 - len2;
+	}
+
+	/**
+	 * Test of nameSameNumeric.
+	 */
+	private static String[] numericStrings = {
+		"",           // { }
+		"0",          // {  0, '0' }
+		"0-0",        // {  0, '0', '-', 0, '0' }
+		"00",         // {  0, '0', '0' }
+		"0a",         // {  0, '0', 'a' }
+		"01",         // {  1, '0', '1' }
+		"1",          // {  1, '1' }
+		"9",          // {  9, '9' }
+		"10",         // { 10, '1', '0' }
+		"2147483648", // { 2147483648, '2', '1', '4', '7', '4', '8', '3', '6', '4', '8' }
+		" ",          // { ' ' }
+		"-",          // { '-' }
+		"-1",         // { '-', 1, '1' }
+		"-2",         // { '-', 2, '2' }
+		"a",          // { 'a' }
+		"a0",         // { 'a',  0, '0' }
+		"a0-0",       // { 'a',  0, '0', '-', 0, '0' }
+		"a00",        // { 'a',  0, '0', '0' }
+		"a0a",        // { 'a',  0, '0', 'a' }
+		"a01",        // { 'a',  1, '0', '1' }
+		"a1",         // { 'a',  1, '1' }
+		"in",         // { 'i', 'n' }
+		"in1",        // { 'i', 'n',  1, '1' }
+		"in1a",       // { 'i', 'n',  1, '1', 'a' }
+		"in9",        // { 'i', 'n',  9, '9' }
+		"in10",       // { 'i', 'n', 10, '1', '0' }
+		"in!",        // { 'i', 'n', '!' }
+		"ina"         // { 'i , 'n', 'a' }
+	};
+
+	static {
+		for (int i = 0; i < numericStrings.length; i++)
+		{
+			for (int j = 0; j < numericStrings.length; j++)
+			{
+				String s1 = numericStrings[i];
+				String s2 = numericStrings[j];
+				int cmp = nameSameNumeric(s1, s2);
+				if (i == j && cmp != 0 || i < j && cmp >= 0 || i > j && cmp <= 0)
+					System.out.println("Error in TextUtils.nameSameNumeric(\"" +
+						s1 + "\", \"" + s2 + "\") = " + cmp);
+			}
+		}
 	}
 
 	/**
