@@ -481,9 +481,9 @@ public class ArcInst extends Geometric implements Comparable
 		headPortInst.getNodeInst().addConnection(headEnd);
 		tailPortInst.getNodeInst().addConnection(tailEnd);
 
-		// add this arc to the cell
-		this.duplicate = parent.addArc(this);
-		parent.linkArc(this);
+//		// add this arc to the cell
+//		this.duplicate = parent.addArc(this);
+//		parent.linkArc(this);
 
 		// update end shrinkage information
 		updateShrinkage(headPortInst.getNodeInst());
@@ -491,6 +491,10 @@ public class ArcInst extends Geometric implements Comparable
 		
 		// fill in the geometry
 		updateGeometric(defAngle);
+
+		// add this arc to the cell
+		this.duplicate = parent.addArc(this);
+		parent.linkArc(this);
 
 		return false;
 	}

@@ -29,6 +29,8 @@ package com.sun.electric.tool.sc;
 import com.sun.electric.database.hierarchy.Cell;
 
 import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * The placement part of the Silicon Compiler tool.
@@ -51,6 +53,7 @@ public class Place
 		/** number of rows */						int				numRows;
 		/** target size of each row */				int				sizeRows;
 		/** rows of placed cells */					RowList			rows;
+		/** rows of placed cells */					List            theRows;
 		/** start of cell list */					NBPlace			plist;
 		/** end of cell list */						NBPlace			endList;
 	};
@@ -63,7 +66,6 @@ public class Place
 		/** instance of cluster */					GetNetlist.SCNiTree node;
 		/** number of cluster */					int				number;
 		/** total size of members */				double			size;
-		/** pointer to last cluster */				Cluster			last;
 		/** pointer to next cluster */				Cluster			next;
 	};
 
@@ -94,7 +96,6 @@ public class Place
 		/** row number (0 = bottom) */				int			rowNum;
 		/** current row size */						int			rowSize;
 		/** next in row list */						RowList		next;
-		/** last in row list */						RowList		last;
 	};
 
 	static class NBPlace
@@ -109,7 +110,6 @@ public class Place
 	{
 		/** number of channel */					int			number;
 		/** list of trunks */						NBTrunk		trunks;
-		/** last in list of channels */				Channel		last;
 		/** next in list of channels */				Channel		next;
 	};
 
@@ -157,6 +157,7 @@ public class Place
 		place.avgHeight = 0;
 		place.numRows = SilComp.getNumberOfRows();
 		place.sizeRows = 0;
+		place.theRows = new ArrayList();
 		place.rows = null;
 		place.plist = null;
 		place.endList = null;
@@ -203,7 +204,6 @@ public class Place
 		row.rowNum = 0;
 		row.rowSize = 0;
 		row.next = null;
-		row.last = null;
 		gnl.curSCCell.placement.rows = row;
 
 		// create cell placement list from sorted cluster list
@@ -292,10 +292,7 @@ public class Place
 			cluster.node = node;
 			cluster.size = node.size;
 			cluster.number = i++;
-			cluster.last = null;
 			cluster.next = clusterList;
-			if (clusterList != null)
-				clusterList.last = cluster;
 			clusterList = cluster;
 		}
 		if (warn)
@@ -965,7 +962,6 @@ public class Place
 			row2.rowNum = row.rowNum + 1;
 			row2.rowSize = 0;
 			row2.next = null;
-			row2.last = row;
 			row.next = row2;
 			row = row2;
 		}
@@ -1031,7 +1027,6 @@ public class Place
 				}
 			}
 			newChan.trunks = trunks;
-			newChan.last = endchan;
 			newChan.next = null;
 			if (endchan != null)
 			{

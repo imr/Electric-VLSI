@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02h: *********************************
 
+BUG: (02/11/05, SMR) R-tree not correct for arcinsts.
+FIX: In ArcInst.lowLevelLink() add the arc to the R-Tree after geometry is correct.
+
 BUG: (02/11/05, SMR) Libraries do not read in properly (Bug #203).
 FIX: In input.ELIB.realizeArcs(), must compute bounds after bits are set, so bounds computation
      moved from ArcInst.lowLevelPopulate() to ArcInst.lowLevelLink().
