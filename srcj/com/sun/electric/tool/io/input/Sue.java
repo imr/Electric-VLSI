@@ -40,6 +40,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -53,14 +54,25 @@ import com.sun.electric.tool.io.IOTool;
 
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.io.LineNumberReader;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.io.InputStream;
 import java.awt.geom.Rectangle2D;
+import java.io.FileInputStream;
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 /**
  * This class reads files in Sue files.
@@ -68,7 +80,7 @@ import java.util.ArrayList;
 public class Sue extends Input
 {
 	/*************** SUE EQUIVALENCES ***************/
-	
+
 	private static class SueExtraWire
 	{
 		String   portname;
@@ -82,14 +94,14 @@ public class Sue extends Input
 			this.yoffset = yoffset;
 		}
 	};
-	
+
 	private SueExtraWire [] io_suetransistorwires =
 	{
 		new SueExtraWire("d",  3, 0),
 		new SueExtraWire("s", -3, 0),
 		new SueExtraWire("g",  0, 4.5)
 	};
-	
+
 	private SueExtraWire [] io_suetransistor4wires =
 	{
 		new SueExtraWire("d",  3,     0),
@@ -97,25 +109,25 @@ public class Sue extends Input
 		new SueExtraWire("b", -0.25, -2.5),
 		new SueExtraWire("g",  0,     4.5)
 	};
-	
+
 	private SueExtraWire [] io_sueresistorwires =
 	{
 		new SueExtraWire("a", -3, 0),
 		new SueExtraWire("b",  3, 0)
 	};
-	
+
 	private SueExtraWire [] io_suecapacitorwires =
 	{
 		new SueExtraWire("a",  0,  1.75),
 		new SueExtraWire("b",  0, -1.75)
 	};
-	
+
 	private SueExtraWire [] io_suesourcewires =
 	{
 		new SueExtraWire("minus", 0, -1.25),
 		new SueExtraWire("plus",  0,  1.5)
 	};
-	
+
 	private SueExtraWire [] io_suetwoportwires =
 	{
 		new SueExtraWire("a", -11.25,  3.625),
@@ -123,7 +135,7 @@ public class Sue extends Input
 		new SueExtraWire("x",  11.25,  3.625),
 		new SueExtraWire("y",  11.25, -3.625)
 	};
-	
+
 	private static class SueEquiv
 	{
 		String                 suename;
@@ -151,7 +163,7 @@ public class Sue extends Input
 		}
 	};
 
-	SueEquiv [] io_sueequivs =
+	private SueEquiv [] io_sueequivs =
 	{
 		//            name         primitive                        NEG     ANG       X     Y      FUNCTION                        EXTRA-WIRES
 		new SueEquiv("pmos10",     Schematics.tech.transistorNode, false, 900,false, -2,    0,     PrimitiveNode.Function.TRAPMOS, io_suetransistorwires),
@@ -169,7 +181,7 @@ public class Sue extends Input
 		new SueEquiv("vccs",       Schematics.tech.twoportNode,    false,   0,false, -1.875,-5,    PrimitiveNode.Function.VCCS,    null)
 	};
 
-	SueEquiv [] io_sueequivs4 =
+	private SueEquiv [] io_sueequivs4 =
 	{
 		//            name         primitive                         NEG     ANG       X     Y      FUNCTION                        EXTRA-WIRES
 		new SueEquiv("pmos10",     Schematics.tech.transistor4Node, false,   0,true,  -2,    0,     PrimitiveNode.Function.TRAPMOS, io_suetransistor4wires),
@@ -188,7 +200,7 @@ public class Sue extends Input
 	};
 
 	/*************** SUE WIRES ***************/
-	
+
 	private static class SueWire
 	{
 		Point2D  [] pt;
@@ -201,23 +213,18 @@ public class Sue extends Input
 			pi = new PortInst[2];
 		}
 	};
-	
+
 	/*************** SUE NETWORKS ***************/
-	
+
 	private static class SueNet
 	{
 		Point2D  pt;
 		String   label;
 	};
 
-//	/*************** MISCELLANEOUS ***************/
-//	
-//	#define MAXLINE       300			/* maximum characters on an input line */
-
-	private String   io_suelastline;
-	private String   io_sueorigline;
-	private String   io_suecurline;
-	private List io_suedirectories;
+	private String io_suelastline;
+	private String lastLineRead;
+	private List   io_suedirectories;
 
 	/**
 	 * Method to import a library from disk.
@@ -228,64 +235,60 @@ public class Sue extends Input
 	{
 		// determine the cell name
 		String cellName = lib.getName();
-	
+
 		// initialize the number of directories that need to be searched
 		io_suedirectories = new ArrayList();
-	
+
 		// determine the current directory
 		String topdirname = TextUtils.getFilePath(lib.getLibFile());
 		io_suedirectories.add(topdirname);
-	
-//		// find all subdirectories that start with "suelib_" and include them in the search
-//		filecount = filesindirectory(topdirname, &filelist);
-//		for(i=0; i<filecount; i++)
-//		{
-//			if (namesamen(filelist[i], x_("suelib_"), 7) != 0) continue;
-//			estrcpy(dirname, topdirname);
-//			estrcat(dirname, filelist[i]);
-//			if (fileexistence(dirname) != 2) continue;
-//			estrcat(dirname, DIRSEPSTR);
-//			io_suedirectories.add(dirname);
-//		}
-//	
-//		// see if the current directory is inside of a SUELIB
-//		len = estrlen(topdirname);
-//		for(i = len-2; i>0; i--)
-//			if (topdirname[i] == DIRSEP) break;
-//		i++;
-//		if (namesamen(&topdirname[i], x_("suelib_"), 7) == 0)
-//		{
-//			topdirname[i] = 0;
-//			filecount = filesindirectory(topdirname, &filelist);
-//			for(i=0; i<filecount; i++)
-//			{
-//				if (namesamen(filelist[i], x_("suelib_"), 7) != 0) continue;
-//				estrcpy(dirname, topdirname);
-//				estrcat(dirname, filelist[i]);
-//				if (fileexistence(dirname) != 2) continue;
-//				estrcat(dirname, DIRSEPSTR);
-//				io_suedirectories.add(dirname);
-//			}
-//		}
-	
+
+		// find all subdirectories that start with "suelib_" and include them in the search
+		File topDir = new File(topdirname);
+		String [] fileList = topDir.list();
+		for(int i=0; i<fileList.length; i++)
+		{
+			if (!fileList[i].startsWith("suelib_")) continue;
+			String dirname = topdirname + fileList[i];
+			if (!dirname.endsWith("/")) dirname += "/";
+			File subDir = new File(dirname);
+			if (subDir.isDirectory()) io_suedirectories.add(dirname);
+		}
+
+		// see if the current directory is inside of a SUELIB
+		int lastSep = topdirname.lastIndexOf('/');
+		if (lastSep >= 0 && topdirname.substring(lastSep+1).startsWith("suelib_"))
+		{
+			String upDirName = topdirname.substring(0, lastSep);
+			File upperDir = new File(upDirName);
+			String [] upFileList = upperDir.list();
+			for(int i=0; i<upFileList.length; i++)
+			{
+				if (!upFileList[i].startsWith("suelib_")) continue;
+				String dirname = upDirName + upFileList[i];
+				File subDir = new File(dirname);
+				if (subDir.isDirectory()) io_suedirectories.add(dirname);
+			}
+		}
+
 		// read the file
 		try
 		{
-			Cell topCell = io_suereadfile(lib, cellName);
+			Cell topCell = io_suereadfile(lib, cellName, lineReader);
 			if (topCell != null)
 				lib.setCurCell(topCell);
 		} catch (IOException e)
 		{
 			System.out.println("ERROR reading Sue libraries");
 		}
-	
+
 		return false;
 	}
-	
+
 	/**
-	 * Method to read the SUE file in "f"
+	 * Method to read the SUE file.
 	 */
-	private Cell io_suereadfile(Library lib, String cellName)
+	private Cell io_suereadfile(Library lib, String cellName, LineNumberReader lr)
 		throws IOException
 	{
 		boolean placeIcon = false;
@@ -298,10 +301,11 @@ public class Sue extends Input
 		Point2D iconPt = null;
 		List argumentKey = new ArrayList();
 		List argumentValue = new ArrayList();
+		HashSet invertNodeOutput = new HashSet();
 		for(;;)
 		{
 			// get the next line of text
-			List keywords = io_suegetnextline(0);
+			List keywords = io_suegetnextline(lr);
 			if (keywords == null) break;
 			int count = keywords.size();
 			if (count == 0) continue;
@@ -313,16 +317,16 @@ public class Sue extends Input
 				// write any wires from the last proc
 				if (cell != null)
 				{
-					io_sueplacewires(sueWires, sueNets, cell);
+					io_sueplacewires(sueWires, sueNets, cell, invertNodeOutput);
 					io_sueplacenets(sueNets, cell);
 					sueWires = new ArrayList();
 					sueNets = new ArrayList();
 				}
-	
+
 				if (count < 2)
 				{
-					System.out.println("Cell " + cellName + ", line " + lineReader.getLineNumber() +
-						": 'proc' is missing arguments: " + io_sueorigline);
+					System.out.println("Cell " + cellName + ", line " + lr.getLineNumber() +
+						": 'proc' is missing arguments: " + lastLineRead);
 					continue;
 				}
 
@@ -346,19 +350,19 @@ public class Sue extends Input
 					iconCell = cell = Cell.makeInstance(lib, subCellName);
 				} else
 				{
-					System.out.println("Cell " + cellName + ", line " + lineReader.getLineNumber() +
-						": unknown 'proc' statement: " + io_sueorigline);
+					System.out.println("Cell " + cellName + ", line " + lr.getLineNumber() +
+						": unknown 'proc' statement: " + lastLineRead);
 				}
 				continue;
 			}
-	
+
 			// handle "make" for defining components
 			if (keyword0.equalsIgnoreCase("make"))
 			{
 				if (count < 2)
 				{
-					System.out.println("Cell " + cellName + ", line " + lineReader.getLineNumber() +
-						": 'make' is missing arguments: " + io_sueorigline);
+					System.out.println("Cell " + cellName + ", line " + lr.getLineNumber() +
+						": 'make' is missing arguments: " + lastLineRead);
 					continue;
 				}
 
@@ -367,7 +371,7 @@ public class Sue extends Input
 
 				// save the name string
 				String theName = parP.theName;
-	
+
 				// ignore self-references
 				String keyword1 = (String)keywords.get(1);
 				if (keyword1.equalsIgnoreCase(cellName))
@@ -380,7 +384,7 @@ public class Sue extends Input
 					}
 					continue;
 				}
-	
+
 				// special case for network names: queue them
 				if (keyword1.equalsIgnoreCase("name_net_m") ||
 					keyword1.equalsIgnoreCase("name_net_s") ||
@@ -392,7 +396,7 @@ public class Sue extends Input
 					sueNets.add(sn);
 					continue;
 				}
-	
+
 				// first check for special names
 				NodeProto proto = null;
 				double xoff = 0, yoff = 0;
@@ -461,7 +465,7 @@ public class Sue extends Input
 					trans.transform(offPt, offPt);
 					xoff = offPt.getX();   yoff = offPt.getY();
 				}
-	
+
 				// now check for internal associations to known primitives
 				if (proto == null)
 				{
@@ -480,7 +484,7 @@ public class Sue extends Input
 						Point2D offPt = new Point2D.Double(curequivs[i].xoffset, curequivs[i].yoffset);
 						trans.transform(offPt, offPt);
 						xoff = offPt.getX();   yoff = offPt.getY();
-						
+
 						if (transpose)
 						{
 							parP.trn = !parP.trn;
@@ -495,7 +499,7 @@ public class Sue extends Input
 						extrawires = curequivs[i].extrawires;
 					}
 				}
-	
+
 				// now check for references to cells
 				if (proto == null)
 				{
@@ -503,7 +507,7 @@ public class Sue extends Input
 					proto = io_suegetnodeproto(lib, keyword1);
 					if (proto == null)
 						proto = io_suereadfromdisk(lib, keyword1);
-	
+
 					// set proper offsets for the cell
 					if (proto != null)
 					{
@@ -513,21 +517,22 @@ public class Sue extends Input
 						AffineTransform trans = NodeInst.pureRotate(parP.rot, parP.trn);
 						Point2D offPt = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
 						trans.transform(offPt, offPt);
-						xoff = offPt.getX();   yoff = offPt.getY();
+//						xoff = offPt.getX();   yoff = offPt.getY();
+//System.out.println("Instance of "+proto.describe()+" is offset ("+xoff+","+yoff+")");
 					}
 				}
-	
+
 				// ignore "title" specifications
 				if (keyword1.startsWith("title_")) continue;
-	
+
 				// stop now if SUE node is unknown
 				if (proto == null)
 				{
-					System.out.println("Cell " + cellName + ", line " + lineReader.getLineNumber() +
+					System.out.println("Cell " + cellName + ", line " + lr.getLineNumber() +
 						", cannot create instance of " + keyword1);
 					continue;
 				}
-	
+
 				// create the instance
 				double wid = proto.getDefWidth();
 				double hei = proto.getDefHeight();
@@ -547,10 +552,10 @@ public class Sue extends Input
 				NodeInst ni = NodeInst.makeInstance(proto, new Point2D.Double(parP.pt.getX() + xoff, parP.pt.getY() + yoff), wid, hei, cell,
 					parP.rot, null, Schematics.getPrimitiveFunctionBits(detailbits));
 				if (ni == null) continue;
-//				ni->temp1 = invertoutput;
+				if (invertoutput) invertNodeOutput.add(ni);
 				if (proto instanceof Cell && ((Cell)proto).isIcon())
 					ni.setExpanded();
-	
+
 				// add any extra wires to the node
 				if (extrawires != null)
 				{
@@ -584,14 +589,14 @@ public class Sue extends Input
 						ArcInst ai = ArcInst.makeInstance(Schematics.tech.wire_arc, 0, pi, ppi);
 						if (ai == null)
 						{
-							System.out.println("Cell " + cellName + ", line " + lineReader.getLineNumber() +
+							System.out.println("Cell " + cellName + ", line " + lr.getLineNumber() +
 								", error adding extra wires to node " + keyword1);
 							break;
 						}
 						if (x != pinx && y != piny) ai.setFixedAngle(false);
 					}
 				}
-	
+
 				// handle names assigned to the node
 				if (parP.theName != null)
 				{
@@ -604,7 +609,7 @@ public class Sue extends Input
 						Export ppt = io_suenewexport(cell, pi, parP.theName);
 						if (ppt == null)
 						{
-							System.out.println("Cell " + cellName + ", line " + lineReader.getLineNumber() +
+							System.out.println("Cell " + cellName + ", line " + lr.getLineNumber() +
 								", could not create export " + parP.theName);
 						} else
 						{
@@ -616,7 +621,7 @@ public class Sue extends Input
 						ni.setName(parP.theName);
 					}
 				}
-	
+
 				// count the variables
 				int varcount = 0;
 				for(int i=2; i<count; i += 2)
@@ -629,7 +634,7 @@ public class Sue extends Input
 						keyword.equalsIgnoreCase("-name")) continue;
 					varcount++;
 				}
-	
+
 				// add variables
 				int varindex = 1;
 				double varoffset = ni.getYSize() / (varcount+1);
@@ -665,7 +670,7 @@ public class Sue extends Input
 						sueVarName = "ATTR_" + keyword.substring(1);
 						if (sueVarName.indexOf(' ') >= 0)
 						{
-							System.out.println("Cell " + cellName + ", line " + lineReader.getLineNumber() +
+							System.out.println("Cell " + cellName + ", line " + lr.getLineNumber() +
 								", bad variable name: " + sueVarName);
 							break;
 						}
@@ -729,19 +734,23 @@ public class Sue extends Input
 						{
 							td.setParam(true);
 							td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
-	
+
 							// make sure the parameter exists in the cell definition
-							Cell cnp = ((Cell)ni.getProto()).contentsView();
-							if (cnp == null) cnp = (Cell)ni.getProto();
-							var = cnp.getVar(sueVarName);
-							if (var == null)
+							NodeProto np = ni.getProto();
+							if (np instanceof Cell)
 							{
-								var = cnp.newVar(sueVarName, newaddr);
-								if (var != null)
+								Cell cnp = ((Cell)np).contentsView();
+								if (cnp == null) cnp = (Cell)np;
+								var = cnp.getVar(sueVarName);
+								if (var == null)
 								{
-									td = var.getTextDescriptor();
-									td.setParam(true);
-									td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);  // really wanted: VTDISPLAYNAMEVALINH
+									var = cnp.newVar(sueVarName, newaddr);
+									if (var != null)
+									{
+										td = var.getTextDescriptor();
+										td.setParam(true);
+										td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);  // really wanted: VTDISPLAYNAMEVALINH
+									}
 								}
 							}
 						}
@@ -749,7 +758,7 @@ public class Sue extends Input
 				}
 				continue;
 			}
-	
+
 			// handle "make_wire" for defining arcs
 			if (keyword0.equalsIgnoreCase("make_wire"))
 			{
@@ -763,7 +772,7 @@ public class Sue extends Input
 				sueWires.add(sw);
 				continue;
 			}
-	
+
 			// handle "icon_term" for defining ports in icons
 			if (keyword0.equalsIgnoreCase("icon_term"))
 			{
@@ -778,7 +787,7 @@ public class Sue extends Input
 				Export ppt = Export.newInstance(cell, pi, parP.theName);
 				if (ppt == null)
 				{
-					System.out.println("Cell " + cellName + ", line " + lineReader.getLineNumber() +
+					System.out.println("Cell " + cellName + ", line " + lr.getLineNumber() +
 						", could not create port " + parP.theName);
 				} else
 				{
@@ -786,14 +795,14 @@ public class Sue extends Input
 				}
 				continue;
 			}
-	
+
 			// handle "icon_arc" for defining icon curves
 			if (keyword0.equalsIgnoreCase("icon_arc"))
 			{
 				if (count != 9)
 				{
-					System.out.println("Cell " + cellName + ", line " + lineReader.getLineNumber() +
-						": needs 9 arguments, has " + count + ": " + io_sueorigline);
+					System.out.println("Cell " + cellName + ", line " + lr.getLineNumber() +
+						": needs 9 arguments, has " + count + ": " + lastLineRead);
 					continue;
 				}
 				int start = 0;   int extent = 359;
@@ -824,7 +833,7 @@ public class Sue extends Input
 				}
 				continue;
 			}
-	
+
 			// handle "icon_line" for defining icon outlines
 			if (keyword0.equalsIgnoreCase("icon_line"))
 			{
@@ -844,7 +853,7 @@ public class Sue extends Input
 				}
 				int keyCount = pointList.size();
 				if (keyCount == 0) continue;
-	
+
 				// determine bounds of icon
 				Point2D firstPt = (Point2D)pointList.get(0);
 				double lx = firstPt.getX();
@@ -873,7 +882,7 @@ public class Sue extends Input
 				ni.newVar(NodeInst.TRACE, points);
 				continue;
 			}
-	
+
 			// handle "icon_setup" for defining variables
 			if (keyword0.equalsIgnoreCase("icon_setup"))
 			{
@@ -881,7 +890,7 @@ public class Sue extends Input
 				String keyword1 = (String)keywords.get(1);
 				if (!keyword1.equalsIgnoreCase("$args"))
 				{
-					System.out.println("Cell " + cellName + ", line " + lineReader.getLineNumber() +
+					System.out.println("Cell " + cellName + ", line " + lr.getLineNumber() +
 						": has unrecognized 'icon_setup'");
 					continue;
 				}
@@ -893,7 +902,7 @@ public class Sue extends Input
 				{
 					while (ptPos < ptLen && pt.charAt(ptPos) == ' ') ptPos++;
 					if (ptPos >= ptLen || pt.charAt(ptPos) == '}') break;
-	
+
 					// collect up to a space or close curly
 					int argStart = ptPos;
 					int curly = 0;
@@ -933,14 +942,14 @@ public class Sue extends Input
 				}
 				continue;
 			}
-	
+
 			// handle "icon_property" for defining icon strings
 			if (keyword0.equalsIgnoreCase("icon_property"))
 			{
 				// extract parameters
 				ParseParameters parP = new ParseParameters(keywords, 1);
 				if (parP.theLabel == null) continue;
-	
+
 				// substitute parameters
 				StringBuffer infstr = new StringBuffer();
 				for(int i=0; i<parP.theLabel.length(); i++)
@@ -972,20 +981,20 @@ public class Sue extends Input
 				if (var != null) var.setDisplay(true);
 				continue;
 			}
-	
+
 			// handle "make_text" for placing strings
 			if (keyword0.equalsIgnoreCase("make_text"))
 			{
 				// extract parameters
 				ParseParameters parP = new ParseParameters(keywords, 1);
 				if (parP.theText == null) continue;
-	
+
 				NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, parP.pt, 0, 0, cell);
 				if (ni == null) continue;
 				Variable var = ni.newVar(Artwork.ART_MESSAGE, parP.theText);
 				continue;
 			}
-	
+
 			// ignore known keywords
 			if (keyword0.equalsIgnoreCase("icon_title") ||
 				keyword0.equalsIgnoreCase("make_line") ||
@@ -993,11 +1002,11 @@ public class Sue extends Input
 			{
 				continue;
 			}
-	
-			System.out.println("Cell " + cellName + ", line " + lineReader.getLineNumber() +
-				": unknown keyword (" + keyword0 + "): " + io_sueorigline);
+
+			System.out.println("Cell " + cellName + ", line " + lr.getLineNumber() +
+				": unknown keyword (" + keyword0 + "): " + lastLineRead);
 		}
-	
+
 		// place an icon instance in the schematic if requested
 		if (placeIcon && schemCell != null &&
 			iconCell != null)
@@ -1008,19 +1017,19 @@ public class Sue extends Input
 			NodeInst ni = NodeInst.makeInstance(iconCell, iconPt, wid, hei, schemCell);
 			if (ni != null) ni.setExpanded();
 		}
-	
+
 		// cleanup the current cell
 		if (cell != null)
 		{
-			io_sueplacewires(sueWires, sueNets, cell);
+			io_sueplacewires(sueWires, sueNets, cell, invertNodeOutput);
 			io_sueplacenets(sueNets, cell);
 		}
-	
+
 		// return the cell
 		if (schemCell != null) return schemCell;
 		return iconCell;
 	}
-	
+
 	/**
 	 * Method to create a port called "thename" on port "pp" of node "ni" in cell "cell".
 	 * The name is modified if it already exists.
@@ -1035,7 +1044,7 @@ public class Sue extends Input
 			{
 				return Export.newInstance(cell, pi, portName);
 			}
-	
+
 			// make space for modified name
 			int openPos = theName.indexOf('[');
 			if (openPos < 0) portName = theName + "-" + i; else
@@ -1056,7 +1065,7 @@ public class Sue extends Input
 			Geometric geom = (Geometric)sea.next();
 			if (!(geom instanceof NodeInst)) continue;
 			NodeInst ni = (NodeInst)geom;
-	
+
 			// find closest port
 			for(Iterator it = ni.getPortInsts(); it.hasNext(); )
 			{
@@ -1077,33 +1086,36 @@ public class Sue extends Input
 		// look for another "sue" file that describes this cell
 		for(Iterator it = io_suedirectories.iterator(); it.hasNext(); )
 		{
+			// get the directory
 			String directory = (String)it.next();
 			String subFileName = directory + name + ".sue";
-//			f = xopen(subfilename, io_filetypesue, x_(""), &truename);
-//			if (f != 0)
-//			{
-//				for(i=0; i<MAXLINE; i++) savecurline[i] = io_suecurline[i];
-//				estrcpy(saveorigline, io_sueorigline);
-//				estrcpy(savesuelastline, io_suelastline);
-//				estrcpy(lastprogressmsg, DiaGetTextProgress(dia));
-//				estrcpy(suevarname, _("Reading "));
-//				estrcat(suevarname, name);
-//				estrcat(suevarname, x_("..."));
-//				DiaSetTextProgress(dia, suevarname);
-//	
-//				estrcpy(subfilename, name);
-//				savelineno = io_suelineno;
-//				io_suelineno = 0;
-//				(void)io_suereadfile(lib, subfilename, dia);
-//				io_suelineno = savelineno;
-//				estrcpy(io_suelastline, savesuelastline);
-//				estrcpy(io_sueorigline, saveorigline);
-//				for(i=0; i<MAXLINE; i++) io_suecurline[i] = savecurline[i];
-//	
-//				// now try to find the cell in the library
-//				proto = io_suegetnodeproto(lib, subfilename);
-//				return(proto);
-//			}
+
+			// see if the file exists in the directory
+			LineNumberReader lr = null;
+			try
+			{
+				FileInputStream fis = new FileInputStream(subFileName);
+				InputStreamReader is = new InputStreamReader(fis);
+				lr = new LineNumberReader(is);
+			} catch (FileNotFoundException e)
+			{
+				continue;
+			}
+			if (lr == null) continue;
+
+			// read the file
+			try
+			{
+				String saveLastLine = io_suelastline;
+				io_suelastline = null;
+				io_suereadfile(lib, name, lr);
+				io_suelastline = saveLastLine;
+				Cell cell = lib.findNodeProto(name);
+				if (cell != null) return cell;
+			} catch (IOException e)
+			{
+				System.out.println("ERROR reading Sue libraries");
+			}
 		}
 		return null;
 	}
@@ -1113,7 +1125,17 @@ public class Sue extends Input
 	 */
 	private NodeProto io_suegetnodeproto(Library lib, String protoname)
 	{
-		return lib.findNodeProto(protoname);
+		for(Iterator it = lib.getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			if (cell.getName().equalsIgnoreCase(protoname))
+			{
+				Cell icon = cell.iconView();
+				if (icon != null) return icon;
+				return cell;
+			}
+		}
+		return null;
 	}
 
 	private static class ParseParameters
@@ -1199,7 +1221,7 @@ public class Sue extends Input
 	/**
 	 * Method to place all SUE wires into the cell.
 	 */
-	private void io_sueplacewires(List sueWires, List sueNets, Cell cell)
+	private void io_sueplacewires(List sueWires, List sueNets, Cell cell, HashSet invertNodeOutput)
 	{
 		// mark all wire ends as "unassigned", all wire types as unknown
 		for(Iterator wIt = sueWires.iterator(); wIt.hasNext(); )
@@ -1208,7 +1230,7 @@ public class Sue extends Input
 			sw.pi[0] = sw.pi[1] = null;
 			sw.proto = null;
 		}
-	
+
 		// examine all network names and assign wire types appropriately
 		for(Iterator nIt = sueNets.iterator(); nIt.hasNext(); )
 		{
@@ -1227,7 +1249,7 @@ public class Sue extends Input
 				}
 			}
 		}
-	
+
 		// find connections that are exactly on existing nodes
 		for(Iterator wIt = sueWires.iterator(); wIt.hasNext(); )
 		{
@@ -1241,7 +1263,7 @@ public class Sue extends Input
 					PortInst pi = io_suewiredport(ni, sw.pt[i], sw.pt[1-i]);
 					if (pi == null) continue;
 					sw.pi[i] = pi;
-	
+
 					// determine whether this port is a bus
 					boolean isbus = false;
 					PortOriginal fp = new PortOriginal(pi);
@@ -1258,7 +1280,7 @@ public class Sue extends Input
 							if (eName.busWidth() > 1) isbus = true;
 						}
 					}
-	
+
 					if (isbus)
 					{
 						sw.proto = Schematics.tech.bus_arc;
@@ -1270,7 +1292,7 @@ public class Sue extends Input
 				}
 			}
 		}
-	
+
 		// now iteratively extend bus wires to connections with others
 		boolean propagatedbus = true;
 		while (propagatedbus)
@@ -1327,7 +1349,7 @@ public class Sue extends Input
 					}
 					if (sw.pi[i] != null) break;
 				}
-	
+
 				// make the pin if it doesn't exist
 				if (sw.pi[i] == null)
 				{
@@ -1335,7 +1357,7 @@ public class Sue extends Input
 					NodeInst ni = NodeInst.makeInstance(proto, sw.pt[i], proto.getDefWidth(), proto.getDefHeight(), cell);
 					sw.pi[i] = ni.getOnlyPortInst();
 				}
-	
+
 				// put that node in all appropriate locations
 				for(Iterator oWIt = sueWires.iterator(); oWIt.hasNext(); )
 				{
@@ -1350,7 +1372,7 @@ public class Sue extends Input
 				}
 			}
 		}
-	
+
 		// make pins at all of the remaining wire ends
 		for(Iterator wIt = sueWires.iterator(); wIt.hasNext(); )
 		{
@@ -1368,14 +1390,14 @@ public class Sue extends Input
 				}
 			}
 		}
-	
+
 		// now make the connections
 		for(Iterator wIt = sueWires.iterator(); wIt.hasNext(); )
 		{
 			SueWire sw = (SueWire)wIt.next();
 			if (sw.proto == null) sw.proto = Schematics.tech.wire_arc;
 			double wid = sw.proto.getDefaultWidth();
-	
+
 			// if this is a bus, make sure it can connect */
 			if (sw.proto == Schematics.tech.bus_arc)
 			{
@@ -1412,19 +1434,14 @@ public class Sue extends Input
 					sw.pi[1].getNodeInst().describe());
 				continue;
 			}
-	
-//			// negate the wire if requested
-//			if (sw->ni[0]->temp1 != 0 &&
-//				estrcmp(sw->pp[0]->protoname, x_("y")) == 0)
-//			{
-//				ai->userbits |= ISNEGATED;
-//			} else if (sw->ni[1]->temp1 != 0 &&
-//				estrcmp(sw->pp[1]->protoname, x_("y")) == 0)
-//			{
-//				ai->userbits |= ISNEGATED | REVERSEEND;
-//			}
+
+			// negate the wire if requested
+			if (invertNodeOutput.contains(sw.pi[0].getNodeInst()) && sw.pi[0].getPortProto().getName().equals("y"))
+				ai.getHead().setNegated(true);
+			if (invertNodeOutput.contains(sw.pi[1].getNodeInst()) && sw.pi[1].getPortProto().getName().equals("y"))
+				ai.getTail().setNegated(true);
 		}
-	
+
 		// now look for implicit connections where "offpage" connectors touch
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
@@ -1463,7 +1480,7 @@ public class Sue extends Input
 						if (!oPi.getPortProto().getBasePort().connectsTo(ap)) continue;
 						break;
 					}
-	
+
 					double wid = ap.getDefaultWidth();
 					ArcInst ai = ArcInst.makeInstance(ap, wid, pi, oPi);
 					wired = true;
@@ -1473,7 +1490,7 @@ public class Sue extends Input
 			}
 		}
 	}
-	
+
 	/**
 	 * Method to find the node at (x, y) and return it.
 	 */
@@ -1489,17 +1506,17 @@ public class Sue extends Input
 			if (!(geom instanceof NodeInst)) continue;
 			NodeInst ni = (NodeInst)geom;
 			if (notThisPort != null && ni == notThisPort.getNodeInst()) continue;
-	
+
 			// ignore pins
 			if (ni.getProto() == Schematics.tech.wirePinNode) continue;
-	
+
 			// find closest port
 			for(Iterator it = ni.getPortInsts(); it.hasNext(); )
 			{
 				PortInst pi = (PortInst)it.next();
 				Poly poly = pi.getPoly();
 				Rectangle2D bounds = poly.getBounds2D();
-	
+
 				// find out if the line crosses the polygon
 				double thisX = oPt.getX();
 				double thisY = oPt.getY();
@@ -1519,7 +1536,7 @@ public class Sue extends Input
 				{
 					if (!poly.isInside(oPt)) continue;
 				}
-	
+
 				double dist = oPt.distance(new Point2D.Double(thisX, thisY));
 				if (bestPi == null || dist < bestDist)
 				{
@@ -1528,7 +1545,7 @@ public class Sue extends Input
 				}
 			}
 		}
-	
+
 		// report the hit
 		return bestPi;
 	}
@@ -1547,7 +1564,7 @@ public class Sue extends Input
 		}
 		if (ni.getTrueCenterX() != pt.getX() ||
 			ni.getTrueCenterY() != pt.getY()) return null;
-	
+
 		// find port that is closest to OTHER end
 		double bestdist = Double.MAX_VALUE;
 		PortInst bestpi = null;
@@ -1589,7 +1606,7 @@ public class Sue extends Input
 					// qualified label: pass 1 only
 					if (pass != 0) continue;
 				}
-	
+
 				// see if this is a bus
 				Name lableName = Name.findName(sn.label);
 				boolean isbus = false;
@@ -1614,7 +1631,7 @@ public class Sue extends Input
 					double cy = (ai.getHead().getLocation().getY() + ai.getTail().getLocation().getY()) / 2;
 					Point2D ctr = new Point2D.Double(cx, cy);
 					double dist = ctr.distance(sn.pt);
-	
+
 					// LINTED "bestdist" used in proper order
 					if (bestai == null || dist < bestDist)
 					{
@@ -1648,104 +1665,70 @@ public class Sue extends Input
 			}
 		}
 	}
-	
+
 	/**
 	 * Method to start at "ai" and search all wires until it finds a named bus.
 	 * Returns zero if no bus name is found.
 	 */
 	private String io_suefindbusname(ArcInst ai)
 	{
-//		REGISTER ARCINST *oai;
-//		REGISTER CHAR *busname, *pt;
-//		REGISTER VARIABLE *var;
-//		static CHAR pseudobusname[50];
-//		REGISTER INTBIG index, len;
-	
-//		for(oai = ai->parent->firstarcinst; oai != NOARCINST; oai = oai->nextarcinst)
-//			oai->temp1 = 0;
-		String busname = io_suesearchbusname(ai);
-//		if (busname == null)
-//		{
-//			for(index=1; ; index++)
-//			{
-//				esnprintf(pseudobusname, 50, x_("NET%ld"), index);
-//				len = estrlen(pseudobusname);
-//				for(oai = ai->parent->firstarcinst; oai != NOARCINST; oai = oai->nextarcinst)
-//				{
-//					var = getvalkey((INTBIG)oai, VARCINST, VSTRING, el_arc_name_key);
-//					if (var == NOVARIABLE) continue;
-//					pt = (CHAR *)var->addr;
-//					if (namesame(pseudobusname, pt) == 0) break;
-//					if (namesamen(pseudobusname, pt, len) == 0 &&
-//						pt[len] == '[') break;
-//				}
-//				if (oai == NOARCINST) break;
-//			}
-//			busname = pseudobusname;
-//		}
+		HashSet arcsSeen = new HashSet();
+		String busname = io_suesearchbusname(ai, arcsSeen);
+		if (busname == null)
+		{
+			for(int index=1; ; index++)
+			{
+				String pseudobusname = "NET" + index;
+				int len = pseudobusname.length();
+				boolean found = false;
+				for(Iterator it = ai.getParent().getArcs(); it.hasNext(); )
+				{
+					ArcInst oAi = (ArcInst)it.next();
+					String arcName = oAi.getName();
+					if (arcName.equalsIgnoreCase(pseudobusname)) { found = true;   break; }
+					if (arcName.startsWith(pseudobusname) && arcName.charAt(len) == '[') { found = true;   break; }
+				}
+				if (!found) return pseudobusname;
+			}
+		}
 		return busname;
 	}
-	
-	private String io_suesearchbusname(ArcInst ai)
+
+	private String io_suesearchbusname(ArcInst ai, HashSet arcsSeen)
 	{
-//		REGISTER ARCINST *oai;
-//		REGISTER CHAR *busname;
-//		REGISTER INTBIG i;
-//		REGISTER NODEINST *ni;
-//		REGISTER PORTARCINST *pi;
-//		REGISTER PORTEXPINST *pe;
-//		REGISTER PORTPROTO *pp;
-//		REGISTER VARIABLE *var;
-//		REGISTER void *infstr;
-//	
-//		ai->temp1 = 1;
-//		if (ai->proto == sch_busarc)
-//		{
-//			var = getvalkey((INTBIG)ai, VARCINST, VSTRING, el_arc_name_key);
-//			if (var != NOVARIABLE)
-//			{
-//				infstr = initinfstr();
-//				for(busname = (CHAR *)var->addr; *busname != 0; busname++)
-//				{
-//					if (*busname == '[') break;
-//					addtoinfstr(infstr, *busname);
-//				}
-//				return(returninfstr(infstr));
-//			}
-//		}
-//		for(i=0; i<2; i++)
-//		{
-//			ni = ai->end[i].nodeinst;
-//			if (ni->proto != sch_wirepinprim && ni->proto != sch_buspinprim &&
-//				ni->proto != sch_offpageprim) continue;
-//			if (ni->proto == sch_buspinprim || ni->proto == sch_offpageprim)
-//			{
-//				// see if there is an arrayed port here
-//				for(pe = ni->firstportexpinst; pe != NOPORTEXPINST; pe = pe->nextportexpinst)
-//				{
-//					pp = pe->exportproto;
-//					for(busname = pp->protoname; *busname != 0; busname++)
-//						if (*busname == '[') break;
-//					if (*busname != 0)
-//					{
-//						infstr = initinfstr();
-//						for(busname = pp->protoname; *busname != 0; busname++)
-//						{
-//							if (*busname == '[') break;
-//							addtoinfstr(infstr, *busname);
-//						}
-//						return(returninfstr(infstr));
-//					}
-//				}
-//			}
-//			for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//			{
-//				oai = pi->conarcinst;
-//				if (oai->temp1 != 0) continue;
-//				busname = io_suesearchbusname(oai);
-//				if (busname != 0) return(busname);
-//			}
-//		}
+		arcsSeen.add(ai);
+		if (ai.getProto() == Schematics.tech.bus_arc)
+		{
+			String arcName = ai.getName();
+			int openPos = arcName.indexOf('[');
+			if (openPos >= 0) arcName = arcName.substring(0, openPos);
+			return arcName;
+		}
+		for(int i=0; i<2; i++)
+		{
+			NodeInst ni = ai.getConnection(i).getPortInst().getNodeInst();
+			if (ni.getProto() != Schematics.tech.wirePinNode && ni.getProto() != Schematics.tech.busPinNode &&
+				ni.getProto() != Schematics.tech.offpageNode) continue;
+			if (ni.getProto() == Schematics.tech.busPinNode || ni.getProto() == Schematics.tech.offpageNode)
+			{
+				// see if there is an arrayed port here
+				for(Iterator it = ni.getExports(); it.hasNext(); )
+				{
+					Export pp = (Export)it.next();
+					String busName = pp.getName();
+					int openPos = busName.indexOf('[');
+					if (openPos >= 0) return busName.substring(0, openPos);
+				}
+			}
+			for(Iterator it = ni.getConnections(); it.hasNext(); )
+			{
+				Connection con = (Connection)it.next();
+				ArcInst oAi = con.getArc();
+				if (arcsSeen.contains(oAi)) continue;
+				String busname = io_suesearchbusname(oAi, arcsSeen);
+				if (busname != null) return busname;
+			}
+		}
 		return null;
 	}
 
@@ -1754,45 +1737,46 @@ public class Sue extends Input
 	 * it up into space-separated keywords.  Returns the number
 	 * of keywords (-1 on EOF)
 	 */
-	private List io_suegetnextline(int curlydepth)
+	private List io_suegetnextline(LineNumberReader lr)
 		throws IOException
 	{
+		lastLineRead = null;
 		for(int lineno=0; ; lineno++)
 		{
 			if (io_suelastline == null)
 			{
-				io_suelastline = lineReader.readLine();
+				io_suelastline = lr.readLine();
 				if (io_suelastline == null) return null;
 			}
 			if (lineno == 0)
 			{
 				// first line: use it
-				io_suecurline = io_suelastline;
+				lastLineRead = io_suelastline;
 			} else
 			{
 				// subsequent line: use it only if a continuation
 				if (io_suelastline.length() == 0 || io_suelastline.charAt(0) != '+') break;
-				io_suecurline += io_suelastline.substring(1);
+				lastLineRead += io_suelastline.substring(1);
 			}
 			io_suelastline = null;
 		}
-		io_sueorigline = io_suecurline;
 
 		// parse the line
 		boolean inblank = true;
 		List keywords = new ArrayList();
 		int startIndex = 0;
-		int len = io_suecurline.length();
+		int len = lastLineRead.length();
+		int curlyDepth = 0;
 		for(int i=0; i<len; i++)
 		{
-			char pt = io_suecurline.charAt(i);
-			if (pt == '{') curlydepth++;
-			if (pt == '}') curlydepth--;
-			if ((pt == ' ' || pt == '\t') && curlydepth == 0)
+			char pt = lastLineRead.charAt(i);
+			if (pt == '{') curlyDepth++;
+			if (pt == '}') curlyDepth--;
+			if ((pt == ' ' || pt == '\t') && curlyDepth == 0)
 			{
 				if (!inblank)
 				{
-					String keyword = io_suecurline.substring(startIndex, i).trim();
+					String keyword = lastLineRead.substring(startIndex, i).trim();
 					keywords.add(keyword);
 					startIndex = i;
 				}
@@ -1806,12 +1790,12 @@ public class Sue extends Input
 				inblank = false;
 			}
 		}
-		String keyword = io_suecurline.substring(startIndex, len).trim();
+		String keyword = lastLineRead.substring(startIndex, len).trim();
 		if (keyword.length() > 0)
 			keywords.add(keyword);
 		return keywords;
 	}
-	
+
 	/**
 	 * Method to examine a SUE expression and add "@" in front of variable names.
 	 */
@@ -1848,7 +1832,7 @@ public class Sue extends Input
 	{
 		return x / 8;
 	}
-	
+
 	/**
 	 * Method to convert SUE Y coordinate "y" to Electric coordinates
 	 */

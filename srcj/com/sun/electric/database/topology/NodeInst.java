@@ -1201,8 +1201,38 @@ public class NodeInst extends Geometric implements Nodable
 		}
 
 		// add in the displayable variables
-		if (dispVars > 0) addDisplayableVariables(getBounds(), polys, start, wnd, false);
+		if (dispVars > 0) addDisplayableVariables(getUntransformedBounds(), polys, start, wnd, false);
 		return polys;
+	}
+
+	/**
+	 * Method to return the bounds of this NodeInst before it is transformed.
+	 * @return the bounds of this NodeInst before it is transformed.
+	 */
+	public Rectangle2D getUntransformedBounds()
+	{
+		if (protoType instanceof PrimitiveNode)
+		{
+			// primitive
+			SizeOffset so = getSizeOffset();
+			double wid = getXSize();
+			double hei = getYSize();
+			double lx = getAnchorCenterX() - wid/2;
+			double hx = lx + wid;
+			double ly = getAnchorCenterY() - hei/2;
+			double hy = ly + hei;
+			lx += so.getLowXOffset();
+			hx -= so.getHighXOffset();
+			ly += so.getLowYOffset();
+			hy -= so.getHighYOffset();
+			Rectangle2D ret = new Rectangle2D.Double(lx, ly, hx-lx, hy-ly);
+			return ret;
+		}
+
+		// cell instance
+		Rectangle2D bounds = ((Cell)protoType).getBounds();
+		Rectangle2D ret = new Rectangle2D.Double(bounds.getMinX()+getAnchorCenterX(), bounds.getMinY()+getAnchorCenterY(), bounds.getWidth(), bounds.getHeight());
+		return ret;
 	}
 
 	/**

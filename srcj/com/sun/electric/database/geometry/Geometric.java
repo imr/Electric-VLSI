@@ -1187,7 +1187,7 @@ public abstract class Geometric extends ElectricObject
 			polys[start].setName(name);
 			numVars = 1;
 		}
-		return super.addDisplayableVariables(rect,polys,start+numVars,wnd,multipleStrings)+numVars;
+		return super.addDisplayableVariables(rect, polys, start+numVars, wnd, multipleStrings) + numVars;
 	}
 
     /**

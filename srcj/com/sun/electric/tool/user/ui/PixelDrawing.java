@@ -650,7 +650,7 @@ public class PixelDrawing
 			{
 				int numPolys = ni.numDisplayableVariables(true);
 				Poly [] polys = new Poly[numPolys];
-				Rectangle2D rect = ni.getBounds();
+				Rectangle2D rect = ni.getUntransformedBounds();
 				ni.addDisplayableVariables(rect, polys, 0, wnd, true);
 				drawPolys(polys, localTrans);
 			}
