@@ -49,6 +49,8 @@ import java.util.Iterator;
  * A NodeInst points to its prototype and the Cell on which it has been
  * instantiated.  It also has a name, and contains a list of Connections
  * and Exports.
+ * <P>
+ * <CENTER><IMG SRC="doc-files/NodeInst-1.gif"></CENTER>
  */
 public class NodeInst extends Geometric
 {
@@ -202,8 +204,8 @@ public class NodeInst extends Geometric
 //		super.delete();
 	}
 
-	/** Is this NodeInst an icon of its parent?  This occurs because a
-	 * schematic may contain an icon of itself */
+	/** Returns true if this NodeInst is an icon of its parent.
+	 */
 	public boolean isIconOfParent()
 	{
 		NodeProto np = getProto();
@@ -250,6 +252,10 @@ public class NodeInst extends Geometric
 		super.remove();
 	}
 
+	/*
+	 * Routine to write a description of this NodeInst.
+	 * Displays the description in the Messages Window.
+	 */
 	public void getInfo()
 	{
 		System.out.println("--------- NODE INSTANCE: ---------");
@@ -400,9 +406,26 @@ public class NodeInst extends Geometric
 	/** Get the Locked bit */
 	public int getTechSpecific() { return (userBits & NTECHBITS) >> NTECHBITSSH; }
 
-	/** Low-level routine to get the user bits.  Should not normally be called. */
+	/**
+	 * Low-level routine to get the user bits.
+	 * The "user bits" are a collection of flags that are more sensibly accessed
+	 * through special methods.
+	 * This general access to the bits is required because the binary ".elib"
+	 * file format stores it as a full integer.
+	 * This should not normally be called by any other part of the system.
+	 * @return the "user bits".
+	 */
 	public int lowLevelGetUserbits() { return userBits; }
-	/** Low-level routine to set the user bits.  Should not normally be called. */
+
+	/**
+	 * Low-level routine to set the user bits.
+	 * The "user bits" are a collection of flags that are more sensibly accessed
+	 * through special methods.
+	 * This general access to the bits is required because the binary ".elib"
+	 * file format stores it as a full integer.
+	 * This should not normally be called by any other part of the system.
+	 * @param userBits the new "user bits".
+	 */
 	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
 
 	public AffineTransform transformOut()
@@ -515,7 +538,7 @@ public class NodeInst extends Geometric
 	}
 
 	/**
-	 * can this node connect to a particular arc? (forwarded to NodeProto)
+	 * can this node connect to a particular arc.
 	 * @param arc the type of arc to test for
 	 * @return the first port that can connect to this node, or
 	 * null, if no such port on this node exists
@@ -564,8 +587,8 @@ public class NodeInst extends Geometric
 	/** Get the Text Descriptor associated with this port. */
 	public void setTextDescriptor(TextDescriptor descriptor) { this.descriptor = descriptor; }
 
-	/** Is there a label attached to this node inst? <br>
-	 * RKao I need to figure out what a "label" is. */
+	/** Returns true if there a label attached to this node inst.
+	 */
 	public boolean hasLabel()
 	{
 		return (textbits & 060) != 0;
@@ -595,6 +618,10 @@ public class NodeInst extends Geometric
 		return protoType.getProtoName();
 	}
 
+	/**
+	 * Returns a printable version of this NodeInst.
+	 * @return a printable version of this NodeInst.
+	 */
 	public String toString()
 	{
 		return "NodeInst " + protoType.getProtoName();

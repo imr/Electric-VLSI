@@ -49,87 +49,140 @@ import java.util.Iterator;
 import java.text.DateFormat;
 
 /**
- * A Cell is a non-primitive NodeProto.  It consists of an internal
- * set of nodes, arcs, connections, and networks.  Through its
- * NodeProto-ness, it projects a set of ports to the rest of the world.
- * A Cell is a member of a cell with a particular view, and has a
- * version number.  It knows about the most recent version of itself,
- * which may be itself.
+ * A Cell is a non-primitive NodeProto.
+ * Besides the information that it inherits from NodeProto, the Cell holds a
+ * set of nodes, arcs, and networks.
+ * The exported ports on NodeInsts inside of this cell become the Exports
+ * of this Cell.
+ * A Cell also has a specific view and version number.
+ * <P>
+ * Cells belong to VersionGroup objects, which list all of the versions of
+ * the cell.  Only the most recent version of any cell is referenced in
+ * lists of cells.
+ * A Cell knows about the most recent version of itself, which may be itself.
+ * <P>
+ * Cells also belong to CellGroup objects, which gather related cells together.
  */
 public class Cell extends NodeProto
 {
 	// ------------------------- private classes -----------------------------
 
-	/** A CellGroup contains related cells. This includes different
-	 * Views of a cell (e.g. the schematic, layout, and icon Views),
-	 * alternative icons, all the parts of a multi-part icon */
+	/**
+	 * A CellGroup contains a list of cells that are related.
+	 * This includes different Views of a cell (e.g. the schematic, layout, and icon Views),
+	 * alternative icons, all the parts of a multi-part icon.
+	 * Only the most recent version of a cell is in the CellGroup.  You must
+	 * explore the Cell's VersionGroup to find old versions.
+	 */
 	public static class CellGroup
 	{
 		// private data
-		ArrayList cells;
+		private ArrayList cells;
 
-		// private and protected methods
+		/**
+		 * Constructs a <CODE>CellGroup</CODE>.
+		 */
 		public CellGroup()
 		{
 			cells = new ArrayList();
 		}
-		void add(Cell f)
-		{
-			cells.add(f);
-			f.cellGroup = this;
-		}
-		void remove(Cell f) { cells.remove(f); }
-		public String toString() { return "CELLGROUP"; }
 
-		/** Return a list of all the Cells that are in this Cell's CellGroup */
+		/**
+		 * Routine to add a Cell to this CellGroup.
+		 * @param cell the cell to add to this CellGroup.
+		 */
+		void add(Cell cell)
+		{
+			cells.add(cell);
+			cell.cellGroup = this;
+		}
+
+		/**
+		 * Routine to remove a Cell from this CellGroup.
+		 * @param cell the cell to remove from this CellGroup.
+		 */
+		void remove(Cell f) { cells.remove(f); }
+
+		/**
+		 * Routine to return an Iterator over all the Cells that are in this CellGroup.
+		 * @return an Iterator over all the Cells that are in this CellGroup.
+		 */
 		public Iterator getCells() { return cells.iterator(); }
+
+		public String toString() { return "CELLGROUP"; }
 	}
 
 	private static class VersionGroup
 	{
-		List versions;
+		// private data
+		private List versions;
 
-		public VersionGroup(Cell f)
+		/**
+		 * Constructs a <CODE>VersionGroup</CODE> that contains a Cell.
+		 * @param cell the cell to initially add to this VersionGroup.
+		 */
+		public VersionGroup(Cell cell)
 		{
 			versions = new ArrayList();
-			add(f);
+			add(cell);
 		}
-		public void add(Cell f)
-		{
-			versions.add(f);
-			f.versionGroup = this;
-		}
-		public void remove(Cell f) { versions.remove(f); }
 
+		/**
+		 * Routine to add a Cell to this VersionGroup.
+		 * @param cell the cell to add to this VersionGroup.
+		 */
+		public void add(Cell cell)
+		{
+			versions.add(cell);
+			cell.versionGroup = this;
+		}
+
+		/**
+		 * Routine to remove a Cell from this VersionGroup.
+		 * @param cell the cell to remove from this VersionGroup.
+		 */
+		public void remove(Cell cell) { versions.remove(cell); }
+
+		/**
+		 * Routine to return the number of Cells in this VersionGroup.
+		 * @return the number of Cells in this VersionGroup.
+		 */
 		public int size() { return versions.size(); }
+
+		/**
+		 * Routine to return an Iterator over all the Cells that are in this VersionGroup.
+		 * @return an Iterator over all the Cells that are in this VersionGroup.
+		 */
 		public Iterator iterator() { return versions.iterator(); }
 	}
 
 	// -------------------------- private data ---------------------------------
 
-	private static int currentTime = 0;
-
-	/** best guess technology */					private Technology tech;
-	/** what group this is a cell of */				private CellGroup cellGroup;
-	/** what history this is a cell of */			private VersionGroup versionGroup;
-	/** what library this is a cell of */			private Library lib;
-	/** what type of view this cell expresses */	private View view;
-	/** when this cell was created */				private Date creationDate;
-	/** when this cell was last modified */			private Date revisionDate;
-	/** version of this cell */						private int version;
-	/** cell-Center */								private NodeInst referencePointNode;
-	/** essential-bounds */							private List essenBounds = new ArrayList();
-	/** NodeInsts that comprise this cell */		private List nodes;
-	/** ArcInsts that comprise this cell */			private List arcs;
-	/** time stamp for marking */					private int timeStamp;
-	/** the bounds of the Cell */					private Rectangle2D.Double elecBounds;
-	/** whether the bounds need to be recomputed */	private boolean boundsDirty;
-	/** whether the bounds have anything in them */	private boolean boundsEmpty;
-	/** geometric data structure */					private Geometric.RTNode rTree;
+	/** The technology of this Cell. */								private Technology tech;
+	/** The CellGroup this Cell belongs to. */						private CellGroup cellGroup;
+	/** The VersionGroup this Cell belongs to. */					private VersionGroup versionGroup;
+	/** The library this Cell belongs to. */						private Library lib;
+	/** This Cell's View. */										private View view;
+	/** The date this Cell was created. */							private Date creationDate;
+	/** The date this Cell was last modified. */					private Date revisionDate;
+	/** The version of this Cell. */								private int version;
+	/** The NodeInst in this cell that defines the cell center. */	private NodeInst referencePointNode;
+	/** The Cell's essential-bounds. */								private List essenBounds = new ArrayList();
+	/** A list of NodeInsts in this Cell. */						private List nodes;
+	/** A list of ArcInsts in this Cell. */							private List arcs;
+	/** The current timestamp value. */								private static int currentTime = 0;
+	/** A time stamp for marking Cells. */							private int timeStamp;
+	/** The bounds of the Cell. */									private Rectangle2D.Double elecBounds;
+	/** Whether the bounds need to be recomputed. */				private boolean boundsDirty;
+	/** Whether the bounds have anything in them. */				private boolean boundsEmpty;
+	/** The geometric data structure. */							private Geometric.RTNode rTree;
 
 	// ------------------ protected and private methods -----------------------
 
-	/** Use the factory "newInstance" to create a Cell. */
+	/**
+	 * This constructor should not be called.
+	 * Use the factory "newInstance" to create a Cell.
+	 */
 	private Cell()
 	{
 		this.versionGroup = new VersionGroup(this);
@@ -137,6 +190,9 @@ public class Cell extends NodeProto
 
 	/**
 	 * Low-level access routine to create a cell in library "lib".
+	 * Unless you know what you are doing, do not use this method.
+	 * @param lib library in which to place this cell.
+	 * @return the newly created cell.
 	 */
 	public static Cell lowLevelAllocate(Library lib)
 	{
@@ -160,7 +216,9 @@ public class Cell extends NodeProto
 
 	/**
 	 * Low-level access routine to fill-in the cell name.
-	 * Returns true on error.
+	 * Unless you know what you are doing, do not use this method.
+	 * @param name the name of this cell.
+	 * @return true on error.
 	 */
 	public boolean lowLevelPopulate(String name)
 	{
@@ -212,7 +270,7 @@ public class Cell extends NodeProto
 
 	/**
 	 * Low-level access routine to link a cell into its library.
-	 * Returns true on error.
+	 * @return true on error.
 	 */
 	public boolean lowLevelLink()
 	{
@@ -247,8 +305,12 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Create a new Cell in library "lib" named "name".
-	 * The name should be something like "foo;2{sch}".
+	 * Factory method to create a new Cell.
+	 * @param lib the Library in which to place this cell.
+	 * @param name the name of this cell.
+	 * The name can be fully qualified with version and view information.
+	 * For example, "foo;2{sch}".
+	 * @return the newly created cell (null on error).
 	 */
 	public static Cell newInstance(Library lib, String name)
 	{
@@ -258,6 +320,9 @@ public class Cell extends NodeProto
 		return theCell;
 	}
 
+	/**
+	 * Routine to remove this node from all lists.
+	 */
 	public void remove()
 	{
 		// remove ourselves from the cellGroup.
@@ -274,32 +339,46 @@ public class Cell extends NodeProto
 		super.remove();
 	}
 
-	public void addArc(ArcInst a)
+	/**
+	 * Routine to add a new ArcInst to the cell.
+	 * @param ai the ArcInst to be included in the cell.
+	 */
+	public void addArc(ArcInst ai)
 	{
-		if (arcs.contains(a))
+		if (arcs.contains(ai))
 		{
-			System.out.println("Cell " + this +" already contains arc " + a);
+			System.out.println("Cell " + this +" already contains arc " + ai);
 			return;
 		}
-		arcs.add(a);
+		arcs.add(ai);
 
 		// must recompute the bounds of the cell
 		boundsDirty = true;
 	}
 
-	public void removeArc(ArcInst a)
+	/**
+	 * Routine to remove an ArcInst from the cell.
+	 * @param ai the ArcInst to be removed from the cell.
+	 */
+	public void removeArc(ArcInst ai)
 	{
-		if (!arcs.contains(a))
+		if (!arcs.contains(ai))
 		{
-			System.out.println("Cell " + this +" doesn't contain arc " + a);
+			System.out.println("Cell " + this +" doesn't contain arc " + ai);
 			return;
 		}
-		arcs.remove(a);
+		arcs.remove(ai);
 
 		// must recompute the bounds of the cell
 		boundsDirty = true;
 	}
 
+	/**
+	 * Routine adjust this cell when the reference point moves.
+	 * This requires renumbering all coordinate values in the Cell.
+	 * @param dx the X distance that the reference point has moved.
+	 * @param dy the Y distance that the reference point has moved.
+	 */
 	public void setReferencePoint(double dx, double dy)
 	{
 		// if there is no change, stop now
@@ -320,7 +399,8 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to add node instance "ni" to the list of nodes in this cell
+	 * Routine to add a new NodeInst to the cell.
+	 * @param ni the NodeInst to be included in the cell.
 	 */
 	public void addNode(NodeInst ni)
 	{
@@ -351,6 +431,10 @@ public class Cell extends NodeProto
 		}
 	}
 
+	/**
+	 * Routine to remove an NodeInst from the cell.
+	 * @param ni the NodeInst to be removed from the cell.
+	 */
 	public void removeNode(NodeInst ni)
 	{
 		if (!nodes.contains(ni))
@@ -368,268 +452,19 @@ public class Cell extends NodeProto
 		essenBounds.remove(ni);
 	}
 
-	private HashMap buildConnPortsTable(ArrayList connPortsLists)
-	{
-		HashMap connPorts = new HashMap();
-		if (connPortsLists == null)
-			return connPorts;
-
-		// iterate over all lists
-		for (int i = 0; i < connPortsLists.size(); i++)
-		{
-			ArrayList connPortsList = (ArrayList) connPortsLists.get(i);
-
-			// all these PortProtos are shorted together
-			JNetwork dummyNet = new JNetwork(null);
-			NodeProto parent = null;
-			for (int j = 0; j < connPortsList.size(); j++)
-			{
-				PortProto pp = (PortProto) connPortsList.get(j);
-
-				// make sure all connected ports have the same parent
-				if (j == 0)
-					parent = pp.getParent();
-				if (pp.getParent() != parent)
-				{
-					System.out.println("PortProtos in the same connected" + " list must belong to same NodeProto");
-					return null;
-				}
-
-				// make sure it's not already present
-				if (connPorts.containsKey(pp))
-				{
-					System.out.println("PortProto occurs more than once in the connected Ports lists");
-					return null;
-				}
-
-				connPorts.put(pp, dummyNet);
-			}
-		}
-		return connPorts;
-	}
-
-	private void redoDescendents(HashMap equivPorts)
-	{
-		for (int i = 0; i < nodes.size(); i++)
-		{
-			NodeInst ni = (NodeInst) nodes.get(i);
-			NodeProto np = ni.getProto();
-
-			if (np instanceof Cell)
-			{
-				if (ni.isIconOfParent())
-					continue;
-
-				// If Cell is an Icon View then redo the Schematic
-				// View. Otherwise redo the Cell.
-				Cell equivCell = (Cell) np.getEquivalent();
-
-				// if an icon has no corresponding schematic then equivCell==null
-				if (equivCell != null)
-					equivCell.redoNetworks(equivPorts);
-			}
-		}
-	}
-
-	private void placeEachPortInstOnItsOwnNet()
-	{
-		for (int i = 0; i < nodes.size(); i++)
-		{
-			NodeInst ni = (NodeInst) nodes.get(i);
-			for (Iterator it = ni.getPortInsts(); it.hasNext();)
-			{
-				PortInst pi = (PortInst) it.next();
-				JNetwork net = new JNetwork(this);
-				net.addPortInst(pi);
-			}
-		}
-	}
-
-	private void mergeNetsConnectedByArcs()
-	{
-		for (int i = 0; i < arcs.size(); i++)
-		{
-			ArcInst ai = (ArcInst) arcs.get(i);
-			JNetwork n0 = ai.getConnection(false).getPortInst().getNetwork();
-			JNetwork n1 = ai.getConnection(true).getPortInst().getNetwork();
-
-			JNetwork merged = JNetwork.merge(n0, n1);
-			merged.addName(ai.getName());
-		}
-	}
-
-	private void addExportNamesToNets()
-	{
-		for (Iterator it = getPorts(); it.hasNext();)
-		{
-			Export e = (Export) it.next();
-			String expNm = e.getProtoName();
-			if (expNm == null)
-			{
-				System.out.println("Cell.addExportNamesToNet: Export with no name!");
-				return;
-			}
-			e.getNetwork().addName(expNm);
-		}
-	}
-
-	private void mergeNetsConnectedByNodeProtoSubnets()
-	{
-		for (int i = 0; i < nodes.size(); i++)
-		{
-			NodeInst ni = (NodeInst) nodes.get(i);
-
-			if (ni.isIconOfParent())
-				continue;
-
-			HashMap netToPort = new HashMap(); // subNet -> PortInst
-			for (Iterator it = ni.getPortInsts(); it.hasNext();)
-			{
-				PortInst piNew = (PortInst) it.next();
-				JNetwork subNet =
-					piNew.getPortProto().getEquivalent().getNetwork();
-
-				if (subNet == null && ni.getProto() instanceof Cell)
-				{
-					System.out.println("Cell.mergeNets... : no subNet on Cell: "
-						+ ni.getProto().getProtoName()
-						+ " port: "
-						+ piNew.getPortProto());
-					return;
-				}
-
-				if (subNet != null)
-				{
-					PortInst piOld = (PortInst) netToPort.get(subNet);
-					if (piOld != null)
-					{
-						JNetwork.merge(piOld.getNetwork(), piNew.getNetwork());
-					} else
-					{
-						netToPort.put(subNet, piNew);
-					}
-				}
-			}
-		}
-	}
-
-	private void mergeNetsConnectedByUserEquivPorts(HashMap equivPorts)
-	{
-		for (int i = 0; i < nodes.size(); i++)
-		{
-			NodeInst ni = (NodeInst) nodes.get(i);
-
-			if (ni.isIconOfParent())
-				continue;
-
-			HashMap listToPort = new HashMap(); // equivList -> PortInst
-			for (Iterator it = ni.getPortInsts(); it.hasNext();)
-			{
-				PortInst piNew = (PortInst) it.next();
-				Object equivList =
-					equivPorts.get(piNew.getPortProto().getEquivalent());
-				if (equivList != null)
-				{
-					PortInst piOld = (PortInst) listToPort.get(equivList);
-					if (piOld != null)
-					{
-						JNetwork.merge(piOld.getNetwork(), piNew.getNetwork());
-					} else
-					{
-						listToPort.put(equivList, piNew);
-					}
-				}
-			}
-		}
-	}
-
-	private HashSet getNetsFromPortInsts()
-	{
-		HashSet nets = new HashSet();
-		for (Iterator nit = getNodes(); nit.hasNext();)
-		{
-			NodeInst ni = (NodeInst) nit.next();
-			for (Iterator pit = ni.getPortInsts(); pit.hasNext();)
-			{
-				PortInst pi = (PortInst) pit.next();
-				nets.add(pi.getNetwork());
-			}
-		}
-		return nets;
-	}
-
-	// Find all nets (including this net!) connected by name.  Each net
-	// will occur exactly once in set;
-	private HashSet findSameNameNets(JNetwork net, HashMap nmTab)
-	{
-		HashSet conNets = new HashSet();
-		conNets.add(net);
-		for (Iterator it = net.getNames(); it.hasNext();)
-		{
-			String nm = (String) it.next();
-			JNetwork oldNet = (JNetwork) nmTab.get(nm);
-			if (oldNet != null)
-				conNets.add(oldNet);
-		}
-		return conNets;
-	}
-
-	// Merge all JNetworks with the same name into one big net.
-	// Warning: this doesn't handle busses correctly because we don't
-	// properly forward JNetworks pointed to by other JNetworks.
-	private void mergeSameNameNets()
-	{
-		HashSet nets = getNetsFromPortInsts();
-		HashMap nmTab = new HashMap();
-
-		for (Iterator netIt = nets.iterator(); netIt.hasNext();)
-		{
-			JNetwork net = (JNetwork) netIt.next();
-
-			JNetwork merged = JNetwork.merge(findSameNameNets(net, nmTab));
-
-			// Net has gained names from merged nets. Update name table with
-			// all names at once.  Name table invariant: if one of a net's
-			// names point to the net then all of the net's names points to
-			// the net.
-			for (Iterator nmIt = merged.getNames(); nmIt.hasNext();)
-			{
-				nmTab.put((String) nmIt.next(), merged);
-			}
-		}
-	}
-
-	private void buildNetworkList()
-	{
-		removeAllNetworks();
-		for (Iterator it = getNetsFromPortInsts().iterator(); it.hasNext();)
-		{
-			addNetwork((JNetwork) it.next());
-		}
-	}
-
-	private void redoNetworks(HashMap equivPorts)
-	{
-		if (timeStamp == currentTime)
-			return;
-		timeStamp = currentTime;
-
-		redoDescendents(equivPorts);
-		placeEachPortInstOnItsOwnNet();
-		mergeNetsConnectedByArcs();
-		mergeNetsConnectedByNodeProtoSubnets();
-		mergeNetsConnectedByUserEquivPorts(equivPorts);
-		addExportNamesToNets();
-		mergeSameNameNets();
-		buildNetworkList();
-	}
-
+	/**
+	 * Routine to indicate that the bounds of this Cell are incorrect because
+	 * a node or arc has been created, deleted, or modified.
+	 */
 	public void setDirty()
 	{
 		boundsDirty = true;
 	}
 
-	/** Get the Electric bounds.  This excludes invisible widths. */
+	/**
+	 * Routine to return the bounds of this Cell.
+	 * @return a Rectangle2D.Double with the bounds of this cell's contents
+	 */
 	public Rectangle2D.Double getBounds()
 	{
 		if (boundsDirty)
@@ -670,27 +505,62 @@ public class Cell extends NodeProto
 		return elecBounds;
 	}
 
-	/** Routine to get the width of this Cell. */
+	/**
+	 * Routine to get the width of this Cell.
+	 * @return the width of this Cell.
+	 */
 	public double getDefWidth() { return getBounds().width; }
-	/** Routine to get the height of this Cell. */
+
+	/**
+	 * Routine to the height of this Cell.
+	 * @return the height of this Cell.
+	 */
 	public double getDefHeight() { return getBounds().height; }
 
-	/** Routine to get the low-X offset of this Cell (always zero for cells). */
+	/**
+	 * Routine to low-X offset of this Cell.
+	 * @return low-X offset of this Cell.  It is always zero for cells.
+	 */
 	public double getLowXOffset() { return 0; }
-	/** Routine to get the high-X offset of this Cell (always zero for cells). */
+
+	/**
+	 * Routine to high-X offset of this Cell.
+	 * @return high-X offset of this Cell.  It is always zero for cells.
+	 */
 	public double getHighXOffset() { return 0; }
-	/** Routine to get the low-Y offset of this Cell (always zero for cells). */
+
+	/**
+	 * Routine to low-Y offset of this Cell.
+	 * @return low-Y offset of this Cell.  It is always zero for cells.
+	 */
 	public double getLowYOffset() { return 0; }
-	/** Routine to get the high-Y offset of this Cell (always zero for cells). */
+
+	/**
+	 * Routine to high-Y offset of this Cell.
+	 * @return high-Y offset of this Cell.  It is always zero for cells.
+	 */
 	public double getHighYOffset() { return 0; }
 
-	/** Routine to get the R-Tree of this Cell */
+	/**
+	 * Routine to R-Tree of this Cell.
+	 * The R-Tree organizes all of the Geometric objects spatially for quick search.
+	 * @return R-Tree of this Cell.
+	 */
 	public Geometric.RTNode getRTree() { return rTree; }
-	/** Routine to set the R-Tree of this Cell */
+
+	/**
+	 * Routine to set the R-Tree of this Cell.
+	 * @param rTree the head of the new R-Tree for this Cell.
+	 */
 	public void setRTree(Geometric.RTNode rTree) { this.rTree = rTree; }
 
-	/** If there are two or more essential bounds return the bounding
-	 * box that surrounds all of them; otherwise return null; */
+	/**
+	 * Routine to compute the "essential bounds" of this Cell.
+	 * It looks for NodeInst objects in the cell that are of the type
+	 * "generic:Essential-Bounds" and builds a rectangle from their locations.
+	 * @return the bounding area of the essential bounds.
+	 * Returns null if an essential bounds cannot be determined.
+	 */
 	Rectangle2D.Double findEssentialBounds()
 	{
 		if (essenBounds.size() < 2)
@@ -712,90 +582,95 @@ public class Cell extends NodeProto
 		return new Rectangle2D.Double(minX, minY, maxX - minX, maxY - minY);
 	}
 
-	private HashMap copyNodes(Cell f)
-	{
-		HashMap oldToNew = new HashMap();
-		for (int i = 0; i < nodes.size(); i++)
-		{
-			NodeInst oldInst = (NodeInst) nodes.get(i);
-			NodeProto oldProto = oldInst.getProto();
-			if (oldProto instanceof PrimitiveNode
-				&& oldProto.getProtoName().equals("Cell-Center"))
-			{
-				// Cell-Center already handled by copyReferencePoint
-			} else
-			{
-				NodeInst newInst =
-					NodeInst.newInstance(oldProto,new Point2D.Double(oldInst.getCenterX(), oldInst.getCenterY()),
-						oldInst.getXSize(), oldInst.getYSize(), oldInst.getAngle(), f);
-				String nm = oldInst.getName();
-				if (nm != null)
-					newInst.setName(nm);
-				if (oldToNew.containsKey(oldInst))
-				{
-					System.out.println("oldInst already in oldToNew?!");
-					return null;
-				}
-				oldToNew.put(oldInst, newInst);
-			}
-		}
-		return oldToNew;
-	}
+//	private HashMap copyNodes(Cell f)
+//	{
+//		HashMap oldToNew = new HashMap();
+//		for (int i = 0; i < nodes.size(); i++)
+//		{
+//			NodeInst oldInst = (NodeInst) nodes.get(i);
+//			NodeProto oldProto = oldInst.getProto();
+//			if (oldProto instanceof PrimitiveNode
+//				&& oldProto.getProtoName().equals("Cell-Center"))
+//			{
+//				// Cell-Center already handled by copyReferencePoint
+//			} else
+//			{
+//				NodeInst newInst =
+//					NodeInst.newInstance(oldProto,new Point2D.Double(oldInst.getCenterX(), oldInst.getCenterY()),
+//						oldInst.getXSize(), oldInst.getYSize(), oldInst.getAngle(), f);
+//				String nm = oldInst.getName();
+//				if (nm != null)
+//					newInst.setName(nm);
+//				if (oldToNew.containsKey(oldInst))
+//				{
+//					System.out.println("oldInst already in oldToNew?!");
+//					return null;
+//				}
+//				oldToNew.put(oldInst, newInst);
+//			}
+//		}
+//		return oldToNew;
+//	}
 
-	private PortInst getNewPortInst(PortInst oldPort, HashMap oldToNew)
-	{
-		NodeInst newInst = (NodeInst) oldToNew.get(oldPort.getNodeInst());
-		if (newInst == null)
-		{
-			System.out.println( "no new instance for old instance in oldToNew?!");
-			return null;
-		}
-		String portNm = oldPort.getPortProto().getProtoName();
-		if (portNm == null)
-		{
-			System.out.println("PortProto with no name?");
-			return null;
-		}
-		return newInst.findPortInst(portNm);
-	}
+//	private PortInst getNewPortInst(PortInst oldPort, HashMap oldToNew)
+//	{
+//		NodeInst newInst = (NodeInst) oldToNew.get(oldPort.getNodeInst());
+//		if (newInst == null)
+//		{
+//			System.out.println( "no new instance for old instance in oldToNew?!");
+//			return null;
+//		}
+//		String portNm = oldPort.getPortProto().getProtoName();
+//		if (portNm == null)
+//		{
+//			System.out.println("PortProto with no name?");
+//			return null;
+//		}
+//		return newInst.findPortInst(portNm);
+//	}
 
-	private void copyArcs(Cell f, HashMap oldToNew)
-	{
-		for (int i = 0; i < arcs.size(); i++)
-		{
-			ArcInst ai = (ArcInst) arcs.get(i);
-			Connection c0 = ai.getConnection(false);
-			Connection c1 = ai.getConnection(true);
-			Point2D p0 = c0.getLocation();
-			Point2D p1 = c1.getLocation();
-			ArcInst.newInstance(ai.getProto(), ai.getWidth(),
-				getNewPortInst(c0.getPortInst(), oldToNew), p0.getX(), p0.getY(),
-				getNewPortInst(c1.getPortInst(), oldToNew), p1.getX(), p1.getY());
-		}
-	}
-	private void copyExports(Cell f, HashMap oldToNew)
-	{
-		for (Iterator it = getPorts(); it.hasNext();)
-		{
-			Export e = (Export) it.next();
-			PortInst newPort = getNewPortInst(e.getOriginalPort(), oldToNew);
-			if (newPort == null)
-			{
-				System.out.println("can't find new PortInst to export");
-				return;
-			}
-			Export.newInstance(f, e.getOriginalNode(), newPort, e.getProtoName());
-		}
-	}
+//	private void copyArcs(Cell f, HashMap oldToNew)
+//	{
+//		for (int i = 0; i < arcs.size(); i++)
+//		{
+//			ArcInst ai = (ArcInst) arcs.get(i);
+//			Connection c0 = ai.getConnection(false);
+//			Connection c1 = ai.getConnection(true);
+//			Point2D p0 = c0.getLocation();
+//			Point2D p1 = c1.getLocation();
+//			ArcInst.newInstance(ai.getProto(), ai.getWidth(),
+//				getNewPortInst(c0.getPortInst(), oldToNew), p0.getX(), p0.getY(),
+//				getNewPortInst(c1.getPortInst(), oldToNew), p1.getX(), p1.getY());
+//		}
+//	}
 
-	private void copyContents(Cell f)
-	{
-		// Note: Electric has already created f and called f.init()
-		HashMap oldToNew = copyNodes(f);
-		copyArcs(f, oldToNew);
-		copyExports(f, oldToNew);
-	}
+//	private void copyExports(Cell f, HashMap oldToNew)
+//	{
+//		for (Iterator it = getPorts(); it.hasNext();)
+//		{
+//			Export e = (Export) it.next();
+//			PortInst newPort = getNewPortInst(e.getOriginalPort(), oldToNew);
+//			if (newPort == null)
+//			{
+//				System.out.println("can't find new PortInst to export");
+//				return;
+//			}
+//			Export.newInstance(f, e.getOriginalNode(), newPort, e.getProtoName());
+//		}
+//	}
 
+//	private void copyContents(Cell f)
+//	{
+//		// Note: Electric has already created f and called f.init()
+//		HashMap oldToNew = copyNodes(f);
+//		copyArcs(f, oldToNew);
+//		copyExports(f, oldToNew);
+//	}
+
+	/*
+	 * Routine to write a description of this Cell.
+	 * Displays the description in the Messages Window.
+	 */
 	public void getInfo()
 	{
 		System.out.println("--------- CELL: ---------");
@@ -834,32 +709,69 @@ public class Cell extends NodeProto
 	}
 
 	// ------------------------- public methods -----------------------------
-	/** Routine to get the CellGroup of this Cell. */
+
+	/**
+	 * Routine to get the CellGroup that this Cell is part of.
+	 * @return he CellGroup that this Cell is part of.
+	 */
 	public CellGroup getCellGroup() { return cellGroup; }
-	/** Routine to set the CellGroup of this Cell. */
+
+	/**
+	 * Routine to put this Cell into the given CellGroup.
+	 * @param cellGroup the CellGroup that this cell belongs to.
+	 */
 	public void setCellGroup(CellGroup cellGroup) { this.cellGroup = cellGroup; }
 
-	/** Routine to get the library of this Cell. */
+	/**
+	 * Routine to get the library to which this Cell belongs.
+	 * @return to get the library to which this Cell belongs.
+	 */
 	public Library getLibrary() { return lib; }
 
-	/** Routine to get the view of this Cell. */
+	/**
+	 * Routine to get this Cell's View.
+	 * Views include "layout", "schematics", "icon", "netlist", etc.
+	 * @return to get this Cell's View.
+	 */
 	public View getView() { return view; }
 
-	/** Routine to get the technology of this Cell. */
+	/**
+	 * Routine to return the Technology of this Cell.
+	 * It can be quite complex to determine which Technology a Cell belongs to.
+	 * The system examines all of the nodes and arcs in it, and also considers
+	 * the Cell's view.
+	 * @return return the Technology of this Cell.
+	 */
 	public Technology getTechnology()
 	{
 		if (tech == null) tech = Technology.whatTechnology(this, null, 0, 0, null, 0, 0);
 		return tech;
 	}
 
-	/** Routine to get the creation date of this Cell. */
+	/**
+	 * Routine to get the creation date of this Cell.
+	 * @return the creation date of this Cell.
+	 */
 	public Date getCreationDate() { return creationDate; }
-	/** Low-level routine to set the creation date of this Cell.  Should not normally be called. */
+
+	/**
+	 * Routine to set this Cell's creation date.
+	 * This is a low-level routine and should not be called unless you know what you are doing.
+	 * @param creationDate the date of this Cell's creation.
+	 */
 	public void lowLevelSetCreationDate(Date creationDate) { this.creationDate = creationDate; }
 
-	/** Routine to get the revision date of this Cell. */
+	/**
+	 * Routine to return the revision date of this Cell.
+	 * @return the revision date of this Cell.
+	 */
 	public Date getRevisionDate() { return revisionDate; }
-	/** Low-level routine to set the revision date of this Cell.  Should not normally be called. */
+
+	/**
+	 * Routine to set this Cell's last revision date.
+	 * This is a low-level routine and should not be called unless you know what you are doing.
+	 * @param revisionDate the date of this Cell's last revision.
+	 */
 	public void lowLevelSetRevisionDate(Date revisionDate) { this.revisionDate = revisionDate; }
 
 //	/** Create an export for this Cell.
@@ -881,69 +793,98 @@ public class Cell extends NodeProto
 //		return null;
 //	}
 
-	/** Get Export with specified name. @return null if not found */
-	public Export findExport(String nm)
+	/**
+	 * Routine to find a named Export on this Cell.
+	 * @param name the name of the export.
+	 * @return the export.  Returns null if that name was not found.
+	 */
+	public Export findExport(String name)
 	{
-		return (Export) findPortProto(nm);
+		return (Export) findPortProto(name);
 	}
 
-	/** Return an iterator over the NodeInsts of this Cell */
+	/**
+	 * Routine to return an Iterator over all NodeInst objects in this Cell.
+	 * @return an Iterator over all NodeInst objects in this Cell.
+	 */
 	public Iterator getNodes()
 	{
 		return nodes.iterator();
 	}
 
-	/** Return the number of NodeInsts in this Cell */
+	/**
+	 * Routine to return the number of NodeInst objects in this Cell.
+	 * @return the number of NodeInst objects in this Cell.
+	 */
 	public int getNumNodes()
 	{
 		return nodes.size();
 	}
 
-	/** Return a NodeInst with specified name */
-	public NodeInst findNode(String nm)
+	/**
+	 * Routine to find a named NodeInst on this Cell.
+	 * @param name the name of the NodeInst.
+	 * @return the NodeInst.  Returns null if none with that name are found.
+	 */
+	public NodeInst findNode(String name)
 	{
 		for (int i = 0; i < nodes.size(); i++)
 		{
 			NodeInst ni = (NodeInst) nodes.get(i);
 			String nodeNm = ni.getName();
-			if (nodeNm != null && nodeNm.equals(nm))
+			if (nodeNm != null && nodeNm.equals(name))
 				return ni;
 		}
 		return null;
 	}
 
-	/** Return an iterator over the ArcInsts of this Cell */
+	/**
+	 * Routine to return an Iterator over all ArcInst objects in this Cell.
+	 * @return an Iterator over all ArcInst objects in this Cell.
+	 */
 	public Iterator getArcs()
 	{
 		return arcs.iterator();
 	}
 
-	/** Return the number of ArcInsts in this Cell */
+	/**
+	 * Routine to return the number of ArcInst objects in this Cell.
+	 * @return the number of ArcInst objects in this Cell.
+	 */
 	public int getNumArcs()
 	{
 		return arcs.size();
 	}
 
-	/** Return the version number of this Cell */
+	/**
+	 * Routine to return the version number of this Cell.
+	 * @return the version number of this Cell.
+	 */
 	public int getVersion() { return version; }
 
-	/** Get an ordered array of the versions of this Cell.  NOTE: the
-	 * array is sorted, but the version number may have little to do
-	 * with the Cell's index in the array. */
+	/**
+	 * Routine to return an Iterator over the different versions of this Cell.
+	 * @return an Iterator over the different versions of this Cell.
+	 */
 	public Iterator getVersions()
 	{
 		return versionGroup.iterator();
 	}
 
-	/** Get the most recent version of this Cell. */
+	/**
+	 * Routine to return the most recent version of this Cell.
+	 * @return he most recent version of this Cell.
+	 */
 	public Cell getNewestVersion()
 	{
 		return (Cell) getVersions().next();
 	}
 
 	/**
-	 * Return a name of the form: cell;version{view}
+	 * Routine to describe this cell.
+	 * The description has the form: cell;version{view}
 	 * If the cell is not from the current library, prepend the library name.
+	 * @return a String that describes this cell.
 	 */
 	public String describe()
 	{
@@ -955,7 +896,10 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Return a name of the form: cell;version{view}
+	 * Routine to describe this cell.
+	 * The description has the form: cell;version{view}
+	 * Unlike "describe()", this routine never prepends the library name.
+	 * @return a String that describes this cell.
 	 */
 	public String noLibDescribe()
 	{
@@ -967,34 +911,15 @@ public class Cell extends NodeProto
 		return name;
 	}
 
-	/** Recompute the network structure for this Cell.
-	 *
-	 * @param connectedPorts this argument allows the user to tell the
-	 * network builder to treat certain PortProtos of a NodeProto as a
-	 * short circuit. For example, it is sometimes useful to build the
-	 * net list as if the PortProtos of a resistor where shorted
-	 * together.
-	 *
-	 * <p> <code>connectedPorts</code> must be either null or an
-	 * ArrayList of ArrayLists of PortProtos.  All of the PortProtos in
-	 * an ArrayList are treated as if they are connected.  All of the
-	 * PortProtos in a single ArrayList must belong to the same
-	 * NodeProto. */
-	public void rebuildNetworks(ArrayList connectedPorts)
-	{
-		if (connectedPorts == null)
-		{
-			connectedPorts = new ArrayList();
-		}
-		HashMap connPorts = buildConnPortsTable(connectedPorts);
-		currentTime++;
-		redoNetworks(connPorts);
-	}
-
-	/** If this is an Icon View Cell then return the newest version of
-	 * the corresponding Schematic View Cell.  If an Icon View Cell
-	 * has no corresponding Schematic View Cell then return null. */
-	public NodeProto getEquivalent()
+	/**
+	 * Finds the Schematic Cell associated with this Icon Cell.
+	 * If this Cell is an Icon View then find the schematic Cell in its
+	 * CellGroup.
+	 * @return the Schematic Cell.  Returns null if there is no equivalent.
+	 * If there are multiple versions of the Schematic View then
+	 * return the latest version.
+	 */
+	public Cell getEquivalent()
 	{
 		if (!view.getFullName().equals("icon"))
 		{
@@ -1011,7 +936,7 @@ public class Cell extends NodeProto
 		return null;
 	}
 
-	/** sanity check method used by Geometric.checkobj */
+	/** Sanity check method used by Geometric.checkobj. */
 	public boolean containsInstance(Geometric thing)
 	{
 		if (thing instanceof ArcInst)
@@ -1026,6 +951,10 @@ public class Cell extends NodeProto
 		}
 	}
 	
+	/**
+	 * Returns a printable version of this object.
+	 * @return a printable version of this object.
+	 */
 	public String toString()
 	{
 		return "Cell " + describe();
@@ -1078,6 +1007,286 @@ public class Cell extends NodeProto
 //		ArcInst.newInstance(ap, w, ni.getPort(), ni.getPort());
 //
 //		return newExport(name, ni.getPort());
+//	}
+
+	/** Recompute the network structure for this Cell.
+	 *
+	 * @param connectedPorts this argument allows the user to tell the
+	 * network builder to treat certain PortProtos of a NodeProto as a
+	 * short circuit. For example, it is sometimes useful to build the
+	 * net list as if the PortProtos of a resistor where shorted
+	 * together.
+	 *
+	 * <p> <code>connectedPorts</code> must be either null or an
+	 * ArrayList of ArrayLists of PortProtos.  All of the PortProtos in
+	 * an ArrayList are treated as if they are connected.  All of the
+	 * PortProtos in a single ArrayList must belong to the same
+	 * NodeProto. */
+//	public void rebuildNetworks(ArrayList connectedPorts)
+//	{
+//		if (connectedPorts == null)
+//		{
+//			connectedPorts = new ArrayList();
+//		}
+//		HashMap connPorts = buildConnPortsTable(connectedPorts);
+//		currentTime++;
+//		redoNetworks(connPorts);
+//	}
+
+//	private HashMap buildConnPortsTable(ArrayList connPortsLists)
+//	{
+//		HashMap connPorts = new HashMap();
+//		if (connPortsLists == null)
+//			return connPorts;
+//
+//		// iterate over all lists
+//		for (int i = 0; i < connPortsLists.size(); i++)
+//		{
+//			ArrayList connPortsList = (ArrayList) connPortsLists.get(i);
+//
+//			// all these PortProtos are shorted together
+//			JNetwork dummyNet = new JNetwork(null);
+//			NodeProto parent = null;
+//			for (int j = 0; j < connPortsList.size(); j++)
+//			{
+//				PortProto pp = (PortProto) connPortsList.get(j);
+//
+//				// make sure all connected ports have the same parent
+//				if (j == 0)
+//					parent = pp.getParent();
+//				if (pp.getParent() != parent)
+//				{
+//					System.out.println("PortProtos in the same connected" + " list must belong to same NodeProto");
+//					return null;
+//				}
+//
+//				// make sure it's not already present
+//				if (connPorts.containsKey(pp))
+//				{
+//					System.out.println("PortProto occurs more than once in the connected Ports lists");
+//					return null;
+//				}
+//
+//				connPorts.put(pp, dummyNet);
+//			}
+//		}
+//		return connPorts;
+//	}
+
+//	private void redoDescendents(HashMap equivPorts)
+//	{
+//		for (int i = 0; i < nodes.size(); i++)
+//		{
+//			NodeInst ni = (NodeInst) nodes.get(i);
+//			NodeProto np = ni.getProto();
+//
+//			if (np instanceof Cell)
+//			{
+//				if (ni.isIconOfParent())
+//					continue;
+//
+//				// If Cell is an Icon View then redo the Schematic
+//				// View. Otherwise redo the Cell.
+//				Cell equivCell = (Cell) np.getEquivalent();
+//
+//				// if an icon has no corresponding schematic then equivCell==null
+//				if (equivCell != null)
+//					equivCell.redoNetworks(equivPorts);
+//			}
+//		}
+//	}
+
+//	private void placeEachPortInstOnItsOwnNet()
+//	{
+//		for (int i = 0; i < nodes.size(); i++)
+//		{
+//			NodeInst ni = (NodeInst) nodes.get(i);
+//			for (Iterator it = ni.getPortInsts(); it.hasNext();)
+//			{
+//				PortInst pi = (PortInst) it.next();
+//				JNetwork net = new JNetwork(this);
+//				net.addPortInst(pi);
+//			}
+//		}
+//	}
+
+//	private void mergeNetsConnectedByArcs()
+//	{
+//		for (int i = 0; i < arcs.size(); i++)
+//		{
+//			ArcInst ai = (ArcInst) arcs.get(i);
+//			JNetwork n0 = ai.getConnection(false).getPortInst().getNetwork();
+//			JNetwork n1 = ai.getConnection(true).getPortInst().getNetwork();
+//
+//			JNetwork merged = JNetwork.merge(n0, n1);
+//			merged.addName(ai.getName());
+//		}
+//	}
+
+//	private void addExportNamesToNets()
+//	{
+//		for (Iterator it = getPorts(); it.hasNext();)
+//		{
+//			Export e = (Export) it.next();
+//			String expNm = e.getProtoName();
+//			if (expNm == null)
+//			{
+//				System.out.println("Cell.addExportNamesToNet: Export with no name!");
+//				return;
+//			}
+//			e.getNetwork().addName(expNm);
+//		}
+//	}
+
+//	private void mergeNetsConnectedByNodeProtoSubnets()
+//	{
+//		for (int i = 0; i < nodes.size(); i++)
+//		{
+//			NodeInst ni = (NodeInst) nodes.get(i);
+//
+//			if (ni.isIconOfParent())
+//				continue;
+//
+//			HashMap netToPort = new HashMap(); // subNet -> PortInst
+//			for (Iterator it = ni.getPortInsts(); it.hasNext();)
+//			{
+//				PortInst piNew = (PortInst) it.next();
+//				JNetwork subNet =
+//					piNew.getPortProto().getEquivalent().getNetwork();
+//
+//				if (subNet == null && ni.getProto() instanceof Cell)
+//				{
+//					System.out.println("Cell.mergeNets... : no subNet on Cell: "
+//						+ ni.getProto().getProtoName()
+//						+ " port: "
+//						+ piNew.getPortProto());
+//					return;
+//				}
+//
+//				if (subNet != null)
+//				{
+//					PortInst piOld = (PortInst) netToPort.get(subNet);
+//					if (piOld != null)
+//					{
+//						JNetwork.merge(piOld.getNetwork(), piNew.getNetwork());
+//					} else
+//					{
+//						netToPort.put(subNet, piNew);
+//					}
+//				}
+//			}
+//		}
+//	}
+
+//	private void mergeNetsConnectedByUserEquivPorts(HashMap equivPorts)
+//	{
+//		for (int i = 0; i < nodes.size(); i++)
+//		{
+//			NodeInst ni = (NodeInst) nodes.get(i);
+//
+//			if (ni.isIconOfParent())
+//				continue;
+//
+//			HashMap listToPort = new HashMap(); // equivList -> PortInst
+//			for (Iterator it = ni.getPortInsts(); it.hasNext();)
+//			{
+//				PortInst piNew = (PortInst) it.next();
+//				Object equivList =
+//					equivPorts.get(piNew.getPortProto().getEquivalent());
+//				if (equivList != null)
+//				{
+//					PortInst piOld = (PortInst) listToPort.get(equivList);
+//					if (piOld != null)
+//					{
+//						JNetwork.merge(piOld.getNetwork(), piNew.getNetwork());
+//					} else
+//					{
+//						listToPort.put(equivList, piNew);
+//					}
+//				}
+//			}
+//		}
+//	}
+
+//	private HashSet getNetsFromPortInsts()
+//	{
+//		HashSet nets = new HashSet();
+//		for (Iterator nit = getNodes(); nit.hasNext();)
+//		{
+//			NodeInst ni = (NodeInst) nit.next();
+//			for (Iterator pit = ni.getPortInsts(); pit.hasNext();)
+//			{
+//				PortInst pi = (PortInst) pit.next();
+//				nets.add(pi.getNetwork());
+//			}
+//		}
+//		return nets;
+//	}
+
+	// Find all nets (including this net!) connected by name.  Each net
+	// will occur exactly once in set;
+//	private HashSet findSameNameNets(JNetwork net, HashMap nmTab)
+//	{
+//		HashSet conNets = new HashSet();
+//		conNets.add(net);
+//		for (Iterator it = net.getNames(); it.hasNext();)
+//		{
+//			String nm = (String) it.next();
+//			JNetwork oldNet = (JNetwork) nmTab.get(nm);
+//			if (oldNet != null)
+//				conNets.add(oldNet);
+//		}
+//		return conNets;
+//	}
+
+	// Merge all JNetworks with the same name into one big net.
+	// Warning: this doesn't handle busses correctly because we don't
+	// properly forward JNetworks pointed to by other JNetworks.
+//	private void mergeSameNameNets()
+//	{
+//		HashSet nets = getNetsFromPortInsts();
+//		HashMap nmTab = new HashMap();
+//
+//		for (Iterator netIt = nets.iterator(); netIt.hasNext();)
+//		{
+//			JNetwork net = (JNetwork) netIt.next();
+//
+//			JNetwork merged = JNetwork.merge(findSameNameNets(net, nmTab));
+//
+//			// Net has gained names from merged nets. Update name table with
+//			// all names at once.  Name table invariant: if one of a net's
+//			// names point to the net then all of the net's names points to
+//			// the net.
+//			for (Iterator nmIt = merged.getNames(); nmIt.hasNext();)
+//			{
+//				nmTab.put((String) nmIt.next(), merged);
+//			}
+//		}
+//	}
+
+//	private void buildNetworkList()
+//	{
+//		removeAllNetworks();
+//		for (Iterator it = getNetsFromPortInsts().iterator(); it.hasNext();)
+//		{
+//			addNetwork((JNetwork) it.next());
+//		}
+//	}
+
+//	private void redoNetworks(HashMap equivPorts)
+//	{
+//		if (timeStamp == currentTime)
+//			return;
+//		timeStamp = currentTime;
+//
+//		redoDescendents(equivPorts);
+//		placeEachPortInstOnItsOwnNet();
+//		mergeNetsConnectedByArcs();
+//		mergeNetsConnectedByNodeProtoSubnets();
+//		mergeNetsConnectedByUserEquivPorts(equivPorts);
+//		addExportNamesToNets();
+//		mergeSameNameNets();
+//		buildNetworkList();
 //	}
 
 }

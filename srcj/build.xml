@@ -62,8 +62,11 @@
 
     <target depends="init" description="Javadoc for my API." name="javadoc">
         <mkdir dir="apidoc"/>
-        <javadoc destdir="apidoc" packagenames="com.foo.mylib.*,com.foo.myapi.*">
-            <sourcepath>
+        <javadoc destdir="apidoc" packagenames="com.sun.electric.*">
+            <classpath>
+                <pathelement location="${beanshell}"/>
+           </classpath>
+           <sourcepath>
                 <pathelement location="."/>
             </sourcepath>
         </javadoc>

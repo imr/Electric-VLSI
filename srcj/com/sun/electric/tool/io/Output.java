@@ -84,9 +84,9 @@ public class Output
 		Output out;
 
 		// handle different file types
-		Library.LibraryName n;
-		if (lib.getLibFile() != null) n = Library.LibraryName.newInstance(lib.getLibFile()); else
-			n = Library.LibraryName.newInstance(lib.getLibName());
+		Library.Name n;
+		if (lib.getLibFile() != null) n = Library.Name.newInstance(lib.getLibFile()); else
+			n = Library.Name.newInstance(lib.getLibName());
 		if (type == ExportType.BINARY)
 		{
 			out = (Output)new OutputBinary();

@@ -25,26 +25,51 @@ package com.sun.electric.database.text;
 
 import com.sun.electric.database.hierarchy.View;
 
+/**
+ * A CellName is a text-parsing object for Cell names.
+ * Cell names have the form:<BR>
+ * <CENTER>Name;Version{View}</CENTER><BR>
+ * where the <I>Name</I> names the cell,
+ * the <I>Version</I> is the version number,
+ * and the <I>View</I> is the view of the cell (layout, schematics, icon, etc.)
+ * <P>
+ * Only the name is necessary.
+ * If the ";Version" is omitted, then the most recent version is assumed.
+ * If the "{View}" is omitted, then the "unknown" view is assumed.
+ */
 public class CellName
 {
 	/** the name */		private String name;
 	/** the view */		private View   view;
 	/** the version */	private int    version;
 
+	/**
+	 * Constructs a <CODE>CellName</CODE> (cannot be called).
+	 */
 	private CellName() {}
 
-	/** Routine to return the name part of a CellName. */
+	/**
+	 * Routine to return the name part of a parsed Cell name.
+	 * @return the name part of a parsed Cell name.
+	 */
 	public String getName() { return name; }
 
-	/** Routine to return the view part of a CellName. */
+	/**
+	 * Routine to return the view part of a parsed Cell name.
+	 * @return the view part of a parsed Cell name.
+	 */
 	public View getView() { return view; }
 
-	/** Routine to return the version part of a CellName. */
+	/**
+	 * Routine to return the version part of a parsed Cell name.
+	 * @return the version part of a parsed Cell name.
+	 */
 	public int getVersion() { return version; }
 
 	/**
-	 * Routine to parse the cell name "name" and return a CellName object
-	 * that has the name, view, and version filled-in.
+	 * Routine to parse the specified Cell name and return a CellName object.
+	 * @param name the name of the Cell.
+	 * @return a CellName object with the fields parsed.
 	 */
 	public static CellName parseName(String name)
 	{

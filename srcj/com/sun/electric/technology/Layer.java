@@ -31,13 +31,15 @@ import java.awt.Paint;
 import java.awt.Shape;
 
 /**
- * represents the geometric depth info and drawing style for a layer
- * of artwork in Electric.
+ * The Layer class defines a single layer of material, out of which NodeInst and ArcInst objects are created.
+ * The Layers are defined by the PrimitiveNode and PrimitiveArc classes, and are used in the generation of geometry.
+ * In addition, layers have extra information that is used for output and behavior.
  */
 public class Layer
 {
 	/**
 	 * Function is a typesafe enum class that describes the function of a layer.
+	 * Functions are technology-independent and describe the nature of the layer (Metal, Polysilicon, etc.)
 	 */
 	public static class Function
 	{
@@ -50,67 +52,71 @@ public class Layer
 			this.constantName = constantName;
 		}
 
+		/**
+		 * Returns a printable version of this Layer.
+		 * @return a printable version of this Layer.
+		 */
 		public String toString() { return name; }
 
-		/** layer is P-type */						public static final int PTYPE =          0100;
-		/** layer is N-type */						public static final int NTYPE =          0200;
-		/** layer is depletion */					public static final int DEPLETION =      0400;
-		/** layer is enhancement */					public static final int ENHANCEMENT =   01000;
-		/** layer is light doped */					public static final int LIGHT =         02000;
-		/** layer is heavy doped */					public static final int HEAVY =         04000;
-		/** layer is pseudo */						public static final int PSEUDO =       010000;
-		/** layer is nonelectrical */				public static final int NONELEC =      020000;
-		/** layer contacts metal */					public static final int CONMETAL =     040000;
-		/** layer contacts polysilicon */			public static final int CONPOLY =     0100000;
-		/** layer contacts diffusion */				public static final int CONDIFF =     0200000;
-		/** layer inside transistor */				public static final int INTRANS =   020000000;
+		/** Describes a P-type layer. */							public static final int PTYPE =          0100;
+		/** Describes a N-type layer. */							public static final int NTYPE =          0200;
+		/** Describes a depletion layer. */							public static final int DEPLETION =      0400;
+		/** Describes a enhancement layer. */						public static final int ENHANCEMENT =   01000;
+		/** Describes a light doped layer. */						public static final int LIGHT =         02000;
+		/** Describes a heavy doped layer. */						public static final int HEAVY =         04000;
+		/** Describes a pseudo layer. */							public static final int PSEUDO =       010000;
+		/** Describes a nonelectrical layer. */						public static final int NONELEC =      020000;
+		/** Describes a layer that is contacts metal. */			public static final int CONMETAL =     040000;
+		/** Describes a layer that is contacts polysilicon. */		public static final int CONPOLY =     0100000;
+		/** Describes a layer that is contacts diffusion. */		public static final int CONDIFF =     0200000;
+		/** Describes a layer that is inside transistor. */			public static final int INTRANS =   020000000;
 
-		/** unknown layer */						public static final Function UNKNOWN    = new Function("unknown",    "LFUNKNOWN");
-		/** metal layer 1 */						public static final Function METAL1     = new Function("metal-1",    "LFMETAL1");
-		/** metal layer 2 */						public static final Function METAL2     = new Function("metal-2",    "LFMETAL2");
-		/** metal layer 3 */						public static final Function METAL3     = new Function("metal-3",    "LFMETAL3");
-		/** metal layer 4 */						public static final Function METAL4     = new Function("metal-4",    "LFMETAL4");
-		/** metal layer 5 */						public static final Function METAL5     = new Function("metal-5",    "LFMETAL5");
-		/** metal layer 6 */						public static final Function METAL6     = new Function("metal-6",    "LFMETAL6");
-		/** metal layer 7 */						public static final Function METAL7     = new Function("metal-7",    "LFMETAL7");
-		/** metal layer 8 */						public static final Function METAL8     = new Function("metal-8",    "LFMETAL8");
-		/** metal layer 9 */						public static final Function METAL9     = new Function("metal-9",    "LFMETAL9");
-		/** metal layer 10 */						public static final Function METAL10    = new Function("metal-10",   "LFMETAL10");
-		/** metal layer 11 */						public static final Function METAL11    = new Function("metal-11",   "LFMETAL11");
-		/** metal layer 12 */						public static final Function METAL12    = new Function("metal-12",   "LFMETAL12");
-		/** polysilicon layer 1 */					public static final Function POLY1      = new Function("poly-1",     "LFPOLY1");
-		/** polysilicon layer 2 */					public static final Function POLY2      = new Function("poly-2",     "LFPOLY2");
-		/** polysilicon layer 3 */					public static final Function POLY3      = new Function("poly-3",     "LFPOLY3");
-		/** polysilicon gate layer */				public static final Function GATE       = new Function("gate",       "LFGATE");
-		/** diffusion layer */						public static final Function DIFF       = new Function("diffusion",  "LFDIFF");
-		/** implant layer */						public static final Function IMPLANT    = new Function("implant",    "LFIMPLANT");
-		/** contact layer 1 */						public static final Function CONTACT1   = new Function("contact-1",  "LFCONTACT1");
-		/** contact layer 2 */						public static final Function CONTACT2   = new Function("contact-2",  "LFCONTACT2");
-		/** contact layer 3 */						public static final Function CONTACT3   = new Function("contact-3",  "LFCONTACT3");
-		/** contact layer 4 */						public static final Function CONTACT4   = new Function("contact-4",  "LFCONTACT4");
-		/** contact layer 5 */						public static final Function CONTACT5   = new Function("contact-5",  "LFCONTACT5");
-		/** contact layer 6 */						public static final Function CONTACT6   = new Function("contact-6",  "LFCONTACT6");
-		/** contact layer 7 */						public static final Function CONTACT7   = new Function("contact-7",  "LFCONTACT7");
-		/** contact layer 8 */						public static final Function CONTACT8   = new Function("contact-8",  "LFCONTACT8");
-		/** contact layer 9 */						public static final Function CONTACT9   = new Function("contact-9",  "LFCONTACT9");
-		/** contact layer 10 */						public static final Function CONTACT10  = new Function("contact-10", "LFCONTACT10");
-		/** contact layer 11 */						public static final Function CONTACT11  = new Function("contact-11", "LFCONTACT11");
-		/** contact layer 12 */						public static final Function CONTACT12  = new Function("contact-12", "LFCONTACT12");
-		/** sinker (diffusion-to-buried plug) */	public static final Function PLUG       = new Function("plug",       "LFPLUG");
-		/** overglass layer */						public static final Function OVERGLASS  = new Function("overglass",  "LFOVERGLASS");
-		/** resistor layer */						public static final Function RESISTOR   = new Function("resistor",   "LFRESISTOR");
-		/** capacitor layer */						public static final Function CAP        = new Function("capacitor",  "LFCAP");
-		/** transistor layer */						public static final Function TRANSISTOR = new Function("transistor", "LFTRANSISTOR");
-		/** emitter layer */						public static final Function EMITTER    = new Function("emitter",    "LFEMITTER");
-		/** base layer */							public static final Function BASE       = new Function("base",       "LFBASE");
-		/** collector layer */						public static final Function COLLECTOR  = new Function("collector",  "LFCOLLECTOR");
-		/** substrate layer */						public static final Function SUBSTRATE  = new Function("substrate",  "LFSUBSTRATE");
-		/** well layer */							public static final Function WELL       = new Function("well",       "LFWELL");
-		/** guard layer */							public static final Function GUARD      = new Function("guard",      "LFGUARD");
-		/** isolation layer */						public static final Function ISOLATION  = new Function("isolation",  "LFISOLATION");
-		/** bus layer */							public static final Function BUS        = new Function("bus",        "LFBUS");
-		/** artwork layer */						public static final Function ART        = new Function("art",        "LFART");
-		/** control layer */						public static final Function CONTROL    = new Function("control",    "LFCONTROL");
+		/** Describes an unknown layer. */							public static final Function UNKNOWN    = new Function("unknown",    "LFUNKNOWN");
+		/** Describes a metal layer 1. */							public static final Function METAL1     = new Function("metal-1",    "LFMETAL1");
+		/** Describes a metal layer 2. */							public static final Function METAL2     = new Function("metal-2",    "LFMETAL2");
+		/** Describes a metal layer 3. */							public static final Function METAL3     = new Function("metal-3",    "LFMETAL3");
+		/** Describes a metal layer 4. */							public static final Function METAL4     = new Function("metal-4",    "LFMETAL4");
+		/** Describes a metal layer 5. */							public static final Function METAL5     = new Function("metal-5",    "LFMETAL5");
+		/** Describes a metal layer 6. */							public static final Function METAL6     = new Function("metal-6",    "LFMETAL6");
+		/** Describes a metal layer 7. */							public static final Function METAL7     = new Function("metal-7",    "LFMETAL7");
+		/** Describes a metal layer 8. */							public static final Function METAL8     = new Function("metal-8",    "LFMETAL8");
+		/** Describes a metal layer 9. */							public static final Function METAL9     = new Function("metal-9",    "LFMETAL9");
+		/** Describes a metal layer 10. */							public static final Function METAL10    = new Function("metal-10",   "LFMETAL10");
+		/** Describes a metal layer 11. */							public static final Function METAL11    = new Function("metal-11",   "LFMETAL11");
+		/** Describes a metal layer 12. */							public static final Function METAL12    = new Function("metal-12",   "LFMETAL12");
+		/** Describes a polysilicon layer 1. */						public static final Function POLY1      = new Function("poly-1",     "LFPOLY1");
+		/** Describes a polysilicon layer 2. */						public static final Function POLY2      = new Function("poly-2",     "LFPOLY2");
+		/** Describes a polysilicon layer 3. */						public static final Function POLY3      = new Function("poly-3",     "LFPOLY3");
+		/** Describes a polysilicon gate layer. */					public static final Function GATE       = new Function("gate",       "LFGATE");
+		/** Describes a diffusion layer. */							public static final Function DIFF       = new Function("diffusion",  "LFDIFF");
+		/** Describes an implant layer. */							public static final Function IMPLANT    = new Function("implant",    "LFIMPLANT");
+		/** Describes a contact layer 1. */							public static final Function CONTACT1   = new Function("contact-1",  "LFCONTACT1");
+		/** Describes a contact layer 2. */							public static final Function CONTACT2   = new Function("contact-2",  "LFCONTACT2");
+		/** Describes a contact layer 3. */							public static final Function CONTACT3   = new Function("contact-3",  "LFCONTACT3");
+		/** Describes a contact layer 4. */							public static final Function CONTACT4   = new Function("contact-4",  "LFCONTACT4");
+		/** Describes a contact layer 5. */							public static final Function CONTACT5   = new Function("contact-5",  "LFCONTACT5");
+		/** Describes a contact layer 6. */							public static final Function CONTACT6   = new Function("contact-6",  "LFCONTACT6");
+		/** Describes a contact layer 7. */							public static final Function CONTACT7   = new Function("contact-7",  "LFCONTACT7");
+		/** Describes a contact layer 8. */							public static final Function CONTACT8   = new Function("contact-8",  "LFCONTACT8");
+		/** Describes a contact layer 9. */							public static final Function CONTACT9   = new Function("contact-9",  "LFCONTACT9");
+		/** Describes a contact layer 10. */						public static final Function CONTACT10  = new Function("contact-10", "LFCONTACT10");
+		/** Describes a contact layer 11. */						public static final Function CONTACT11  = new Function("contact-11", "LFCONTACT11");
+		/** Describes a contact layer 12. */						public static final Function CONTACT12  = new Function("contact-12", "LFCONTACT12");
+		/** Describes a sinker layer (diffusion-to-buried plug). */	public static final Function PLUG       = new Function("plug",       "LFPLUG");
+		/** Describes an overglass layer. */						public static final Function OVERGLASS  = new Function("overglass",  "LFOVERGLASS");
+		/** Describes a resistor layer. */							public static final Function RESISTOR   = new Function("resistor",   "LFRESISTOR");
+		/** Describes a capacitor layer. */							public static final Function CAP        = new Function("capacitor",  "LFCAP");
+		/** Describes a transistor layer. */						public static final Function TRANSISTOR = new Function("transistor", "LFTRANSISTOR");
+		/** Describes an emitter layer. */							public static final Function EMITTER    = new Function("emitter",    "LFEMITTER");
+		/** Describes a base layer. */								public static final Function BASE       = new Function("base",       "LFBASE");
+		/** Describes a collector layer. */							public static final Function COLLECTOR  = new Function("collector",  "LFCOLLECTOR");
+		/** Describes a substrate layer. */							public static final Function SUBSTRATE  = new Function("substrate",  "LFSUBSTRATE");
+		/** Describes a well layer. */								public static final Function WELL       = new Function("well",       "LFWELL");
+		/** Describes a guard layer. */								public static final Function GUARD      = new Function("guard",      "LFGUARD");
+		/** Describes an isolation layer. */						public static final Function ISOLATION  = new Function("isolation",  "LFISOLATION");
+		/** Describes a bus layer. */								public static final Function BUS        = new Function("bus",        "LFBUS");
+		/** Describes an artwork layer. */							public static final Function ART        = new Function("art",        "LFART");
+		/** Describes a control layer. */							public static final Function CONTROL    = new Function("control",    "LFCONTROL");
 	}
 
 	private String name;
@@ -129,49 +135,140 @@ public class Layer
 		this.graphics = graphics;
 	}
 
+	/**
+	 * Routine to create a new layer with the given name and graphics.
+	 * @param name the name of the layer.
+	 * @param graphics the appearance of the layer.
+	 * @return the Layer object.
+	 */
 	public static Layer newInstance(String name, EGraphics graphics)
 	{
 		Layer layer = new Layer(name, graphics);
 		return layer;
 	}
 
+	/**
+	 * Routine to return the name of this Layer.
+	 * @return the name of this Layer.
+	 */
 	public String getName() { return name; }
+
+	/**
+	 * Routine to return the graphics description of this Layer.
+	 * @return the graphics description of this Layer.
+	 */
 	public EGraphics getGraphics() { return graphics; }
 
+	/**
+	 * Routine to set the Function of this Layer.
+	 * @param function the Function of this Layer.
+	 */
 	public void setFunction(Function function)
 	{
 		this.function = function;
 		this.functionExtras = 0;
 	}
 
+	/**
+	 * Routine to set the Function of this Layer when the function is complex.
+	 * Some layer functions have extra bits of information to describe them.
+	 * For example, P-Type Diffusion has the Function DIFF but the extra bits PTYPE.
+	 * @param function the Function of this Layer.
+	 * @param functionExtras extra bits to describe the Function of this Layer.
+	 */
 	public void setFunction(Function function, int functionExtras)
 	{
 		this.function = function;
 		this.functionExtras = functionExtras;
 	}
+
+	/**
+	 * Routine to return the Function of this Layer.
+	 * @return the Function of this Layer.
+	 */
 	public Function getFunction() { return function; }
 
+	/**
+	 * Routine to set the 3D height and thickness of this Layer.
+	 * @param thickness the thickness of this layer.
+	 * Most layers have a thickness of 0, but contact layers are fatter
+	 * because they bridge layers...they typically have a thickness of 1.
+	 * @param height the height of this layer above the ground plane.
+	 * The higher the height value, the farther from the wafer.
+	 */
 	public void setHeight(double thickness, double height)
 	{
 		this.thickness = thickness;
 		this.height = height;
 	}
+
+	/**
+	 * Routine to return the height of this layer.
+	 * @return the height of this layer above the ground plane.
+	 * The higher the height value, the farther from the wafer.
+	 */
 	public double getHeight() { return height; }
+
+	/**
+	 * Routine to return the thickness of this layer.
+	 * @return the thickness of this layer.
+	 * Most layers have a thickness of 0, but contact layers are fatter
+	 * because they bridge layers...they typically have a thickness of 1.
+	 */
 	public double getThickness() { return thickness; }
 
+	/**
+	 * Routine to set the CIF name of this Layer.
+	 * @param cifLayer the CIF name of this Layer.
+	 */
 	public void setCIFLayer(String cifLayer) { this.cifLayer = cifLayer; }
+
+	/**
+	 * Routine to return the CIF name of this layer.
+	 * @return the CIF name of this layer.
+	 */
 	public String getCIFLayer() { return cifLayer; }
 
+	/**
+	 * Routine to set the DXF name of this Layer.
+	 * @param dxfLayer the DXF name of this Layer.
+	 */
 	public void setDXFLayer(String dxfLayer) { this.dxfLayer = dxfLayer; }
+
+	/**
+	 * Routine to return the DXF name of this layer.
+	 * @return the DXF name of this layer.
+	 */
 	public String getDXFLayer() { return dxfLayer; }
 
+	/**
+	 * Routine to set the GDS name of this Layer.
+	 * @param gdsLayer the GDS name of this Layer.
+	 */
 	public void setGDSLayer(String gdsLayer) { this.gdsLayer = gdsLayer; }
+
+	/**
+	 * Routine to return the GDS name of this layer.
+	 * @return the GDS name of this layer.
+	 */
 	public String getGDSLayer() { return gdsLayer; }
 
+	/**
+	 * Routine to set the Skill name of this Layer.
+	 * @param skillLayer the Skill name of this Layer.
+	 */
 	public void setSkillLayer(String skillLayer) { this.skillLayer = skillLayer; }
+
+	/**
+	 * Routine to return the Skill name of this layer.
+	 * @return the Skill name of this layer.
+	 */
 	public String getSkillLayer() { return skillLayer; }
 
-	/** printable version of this object */
+	/**
+	 * Returns a printable version of this Layer.
+	 * @return a printable version of this Layer.
+	 */
 	public String toString()
 	{
 		return "Layer " + name;

@@ -51,13 +51,43 @@ public final class UserMenuCommands
 	}
 
 	// ---------------------- THE FILE MENU -----------------
+	private static class OpenLibraryThread extends Thread
+	{
+		String fileName;
+
+		OpenLibraryThread(String fileName)
+		{
+			this.fileName = fileName;
+		}
+
+		public void run()
+		{
+			long startTime = System.currentTimeMillis();
+			Library lib = Input.readLibrary(fileName, Input.ImportType.BINARY);
+			if (lib == null) return;
+			long endTime = System.currentTimeMillis();
+			float finalTime = (endTime - startTime) / 1000F;
+			System.out.println("Library " + fileName + " read, took " + finalTime + " seconds");
+			Library.setCurrent(lib);
+			Cell cell = lib.getCurCell();
+			if (cell == null)
+			{
+				System.out.println("No current cell in this library");
+			} else
+			{
+				UIEditFrame.CreateEditWindow(cell);
+			}
+		}
+	}
 
 	public static void openLibraryCommand()
 	{
 		String fileName = UIDialogOpenFile.ELIB.chooseInputFile();
 		if (fileName != null)
 		{
-			Input.readLibrary(fileName, Input.ImportType.BINARY);
+			// start a new thread to do the input
+			OpenLibraryThread oThread = new OpenLibraryThread(fileName);
+			oThread.start();
 		}
 	}
 
@@ -73,7 +103,7 @@ public final class UserMenuCommands
 			fileName = UIDialogOpenFile.ELIB.chooseOutputFile(lib.getLibName()+".elib");
 			if (fileName != null)
 			{
-				Library.LibraryName n = Library.LibraryName.newInstance(fileName);
+				Library.Name n = Library.Name.newInstance(fileName);
 				n.setExtension("elib");
 				lib.setLibFile(n.makeName());
 				lib.setLibName(n.getName());

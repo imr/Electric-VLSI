@@ -23,26 +23,31 @@
  */
 package com.sun.electric.technology;
 
-// In Electric, nonexistant "invisible" material surrounds many
-// NodeProtos and ArcProtos.  For example, in the MOCMOS technology,
-// if you ask Electric for a 5 square metal-1/metal-2 contact
-// you get a 4 square metal-1 and 4 square metal-2
-// surrounded by a 1/2 "invisible" perimeter.  This perimeter
-// doesn't scale.  If you ask for an 8 square metal-1/metal-2
-// contact you get a 9 square metal-1 and metal-2 and a 1/2
-// surround.
-//
-// This invisible surround is a pain for a Jose client to deal
-// with. My goal is to hide this from Jose client programs. 
-//
-// This class encodes the dimensions of the invisible surround.
-// NodeProtos and ArcProtos need to pass this information to Geometric
-// so it may properly compute NodeInst and ArcInst bounding boxes
-// without this ridiculous invisible surround.
-
+/**
+ * The SizeOffset object describes the difference between the stored bounds of
+ * a NodeInst and the displayed/selected bounds.
+ * <P>
+ * In Electric, extra space may surround a NodeInst, in order to leave room
+ * for expansion of the definition.  For example, in the MOCMOS technology,
+ * a metal-1/metal-2 contact is 5x5 (in memory) but when displayed, it is only
+ * 4x4.  The extra space does not scale, meaning that if you stretch the node
+ * so that it appears to be 10x10, then it will be 11x11 in memory.
+ * <P>
+ * The distance from each edge is stored in a SizeOffset object.  For the
+ * Via described above, all four offsets would be 0.5 to indicate a half-unit
+ * surround between the stored and displayed/selected bounds.
+ */
 public class SizeOffset
 {
-	final double lx, ly, hx, hy;
+	private double lx, ly, hx, hy;
+
+	/**
+	 * Constructor to create a SizeOffset from the specified parameters.
+	 * @param lx the low-X offset (distance from left side to actual bounds).
+	 * @param ly the low-Y offset (distance from bottom side to actual bounds).
+	 * @param hx the high-X offset (distance from left side to actual bounds).
+	 * @param hy the high-Y offset (distance from top side to actual bounds).
+	 */
 	public SizeOffset(double lx, double ly, double hx, double hy)
 	{
 		this.lx = lx;
@@ -51,16 +56,40 @@ public class SizeOffset
 		this.hy = hy;
 	}
 
+	/**
+	 * Routine to return the low-X offset of this SizeOffset.
+	 * The low-X offset is the distance from the left side to the acutal bounds.
+	 * @return the low-X offset of this SizeOffset.
+	 */
 	public double getLowXOffset() { return lx; }
+
+	/**
+	 * Routine to return the high-X offset of this SizeOffset.
+	 * The high-X offset is the distance from the right side to the acutal bounds.
+	 * @return the high-X offset of this SizeOffset.
+	 */
 	public double getHighXOffset() { return hx; }
+
+	/**
+	 * Routine to return the low-Y offset of this SizeOffset.
+	 * The low-Y offset is the distance from the bottom side to the acutal bounds.
+	 * @return the low-Y offset of this SizeOffset.
+	 */
 	public double getLowYOffset() { return ly; }
+
+	/**
+	 * Routine to return the high-Y offset of this SizeOffset.
+	 * The high-Y offset is the distance from the top side to the acutal bounds.
+	 * @return the high-Y offset of this SizeOffset.
+	 */
 	public double getHighYOffset() { return hy; }
 
+	/**
+	 * Returns a printable version of this SizeOffset.
+	 * @return a printable version of this SizeOffset.
+	 */
 	public String toString()
 	{
-		return "SizeOffset = {\n"
-			+ "    x: [" + lx + "-" + hx + "]\n"
-			+ "    y: [" + ly + "-" + hy + "]\n"
-			+ "}\n";
+		return "SizeOffset {X:[" + lx + "," + hx + "] Y:[" + ly + "," + hy + "]}";
 	}
 }

@@ -103,6 +103,13 @@ public class Tool extends ElectricObject
 	public String getName() { return toolName; }
 	public int getIndex() { return toolIndex; }
 
+	/**
+	 * Routine to determine whether a variable name on Tool is deprecated.
+	 * Deprecated variable names are those that were used in old versions of Electric,
+	 * but are no longer valid.
+	 * @param name the name of the variable.
+	 * @return true if the variable name is deprecated.
+	 */
 	public boolean isdeprecatedvariable(String name)
 	{
 		if (name == "NET_auto_name" ||

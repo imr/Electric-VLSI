@@ -77,8 +77,6 @@ public class UIEditFrame extends JInternalFrame
 				public void internalFrameClosing(InternalFrameEvent evt) { windowClosed(); }
 			}
 		);
-//		moveToFront();
-//		toFront();
 
 		// accumulate a list of current windows
 		windowList.add(this);
@@ -91,6 +89,7 @@ public class UIEditFrame extends JInternalFrame
 
 		JDesktopPane desktop = UITopLevel.getDesktop();
 		desktop.add(frame); 
+		frame.moveToFront();
 		return frame;
 	}
 

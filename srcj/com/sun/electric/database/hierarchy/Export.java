@@ -36,8 +36,6 @@ import java.awt.geom.AffineTransform;
 /**
  * An Export is a PortProto at the Cell level.  It points to the
  * PortProto that got exported, and the NodeInst for that port.
- * It also allows instant access to the PrimitivePort that grounds
- * out the PortProto chain.
  */
 public class Export extends PortProto
 {
@@ -46,13 +44,18 @@ public class Export extends PortProto
 	/** the NodeInst that the exported port belongs to */	private NodeInst originalNode;
 
 	// -------------------- protected and private methods --------------
+
+	/**
+	 * The constructor is only called by subclassed constructors.
+	 */
 	protected Export()
 	{
-		this.userBits = 0;
+		super();
 	}
 
 	/**
-	 * Low-level access routine to create a cell in library "lib".
+	 * Low-level access routine to create an Export.
+	 * @return a newly allocated Export.
 	 */
 	public static Export lowLevelAllocate()
 	{
@@ -61,8 +64,10 @@ public class Export extends PortProto
 	}
 
 	/**
-	 * Low-level access routine to fill-in the cell name and parent.
-	 * Returns true on error.
+	 * Low-level access routine to fill-in the Cell parent and the name of this Export.
+	 * @param parent the Cell in which this Export resides.
+	 * @param protoName the name of this Export.
+	 * @return true on error.
 	 */
 	public boolean lowLevelName(Cell parent, String protoName)
 	{
@@ -74,8 +79,11 @@ public class Export extends PortProto
 	}
 
 	/**
-	 * Low-level access routine to fill-in the subnode and subport.
-	 * Returns true on error.
+	 * Low-level access routine to fill-in the subnode and subport of this Export.
+	 * The Export is also linked into the Cell.
+	 * @param originalNode the node inside of the Export's Cell from which this Export originated.
+	 * @param originalPort the port on that node.
+	 * @return true on error.
 	 */
 	public boolean lowLevelPopulate(NodeInst originalNode, PortInst originalPort)
 	{
@@ -98,9 +106,14 @@ public class Export extends PortProto
 		return false;
 	}
 
-	/** Initialize this Export with a parent (the Cell we're a port of),
-	 * the original PortProto we're based on, the NodeInst that
-	 * original port belongs to, and an appropriate Network. */
+	/**
+	 * Routine to create an Export with the specified values.
+	 * @param parent the Cell in which this Export resides.
+	 * @param originalNode the node inside of the Export's Cell from which this Export originated.
+	 * @param originalPort the port on that node.
+	 * @param protoName the name of this Export.
+	 * @return the newly created Export.
+	 */
 	public static Export newInstance(Cell parent, NodeInst originalNode, PortInst originalPort, String protoName)
 	{
 		Export pp = lowLevelAllocate();
@@ -109,24 +122,32 @@ public class Export extends PortProto
 		return pp;
 	}	
 
+	/**
+	 * Routine to unlink this Export from its Cell.
+	 */
 	public void remove()
 	{
 		originalNode.removeExport(this);
 		super.remove();
 	}
 
-	/** Get the PortProto that was exported to create this Export. */
+	/**
+	 * Routine to return the port on the NodeInst inside of the cell that is the origin of this Export.
+	 * @return the port on the NodeInst inside of the cell that is the origin of this Export.
+	 */
 	public PortInst getOriginalPort() { return originalPort; }
 
-	/** Get the NodeInst that the port returned by getOriginal belongs to */
+	/**
+	 * Routine to return the NodeInst inside of the cell that is the origin of this Export.
+	 * @return the NodeInst inside of the cell that is the origin of this Export.
+	 */
 	public NodeInst getOriginalNode() { return originalNode; }
 
-	/** Get the outline of this Export, relative to some arbitrary
-	 * instance of this Export's parent, passed in as a Geometric
-	 * object.
-	 * @param ni the instance of the port's parent
-	 * @return the shape of the port, transformed into the coordinates
-	 * of the instance's Cell. */
+	/**
+	 * Routine to return a Poly that describes the shape of this Export on a particular NodeInst.
+	 * @param ni the instance of the Export's parent.
+	 * @return the shape of the port.
+	 */
 	public Poly getPoly(NodeInst ni)
 	{
 		// We just figure out where our basis thinks it is, and ask ni to
@@ -143,6 +164,10 @@ if (originalPort == null)
 		return poly;
 	}
 
+	/*
+	 * Routine to write a description of this Export.
+	 * Displays the description in the Messages Window.
+	 */
 	protected void getInfo()
 	{
 		System.out.println(" Original: " + originalPort);
@@ -154,34 +179,37 @@ if (originalPort == null)
 
 	// ----------------------- public methods ----------------------------
 
-	/** Get the base PrimitivePort that generated this Export */
+	/**
+	 * Routine to return the base-level port that this PortProto is created from.
+	 * Since this is an Export, it returns the base port of its sub-port, the port on the NodeInst
+	 * from which the Export was created.
+	 * @return the base-level port that this PortProto is created from.
+	 */
 	public PrimitivePort getBasePort()
 	{
 		PortProto pp = originalPort.getPortProto();
 		return pp.getBasePort();
 	}
 
+	/**
+	 * Routine to return the Network object associated with this Export.
+	 * @return the Network object associated with this Export.
+	 */
 	public JNetwork getNetwork()
 	{
 		return getOriginalPort().getNetwork();
 	}
 
-	/** If this PortProto belongs to an Icon View Cell then return the
-	 * PortProto with the same name on the corresponding Schematic View
-	 * Cell.
-	 *
-	 * <p> If this PortProto doesn't belong to an Icon View Cell then
-	 * return this PortProto.
-	 *
-	 * <p> If the Icon View Cell has no corresponding Schematic View
-	 * Cell then return null. If the corresponding Schematic View Cell
-	 * has no port with the same name then return null.
-	 *
-	 * <p> If there are multiple versions of the Schematic Cell return
-	 * the latest. */
+	/**
+	 * Routine to return the PortProto that is equivalent to this in the
+	 * corresponding Cell.
+	 * It finds the PortProto with the same name on the corresponding Cell.
+	 * If there are multiple versions of the Schematic Cell return the latest.
+	 * @return the PortProto that is equivalent to this in the corresponding Cell.
+	 */
 	public PortProto getEquivalent()
 	{
-		NodeProto equiv = parent.getEquivalent();
+		Cell equiv = ((Cell)parent).getEquivalent();
 		if (equiv == parent)
 			return this;
 		if (equiv == null)
@@ -189,6 +217,10 @@ if (originalPort == null)
 		return equiv.findPortProto(protoName);
 	}
 
+	/**
+	 * Returns a printable version of this Export.
+	 * @return a printable version of this Export.
+	 */
 	public String toString()
 	{
 		return "Export " + protoName;

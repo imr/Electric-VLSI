@@ -66,41 +66,6 @@ public class Input
 		/** GDS input */			public static final ImportType GDS=      new ImportType("GDS");
 	}
 
-	/**
-	 * The thread class that runs library input.
-	 */
-	private static class ImportThread extends Thread
-	{
-		String fileName;
-		ImportType type;
-		Library lib;
-
-		ImportThread(String fileName, ImportType type)
-		{
-			this.fileName = fileName;
-			this.type = type;
-		}
-
-		public void run()
-		{
-			long startTime = System.currentTimeMillis();
-			lib = readALibrary(fileName, null, type);
-			if (lib == null) return;
-			long endTime = System.currentTimeMillis();
-			float finalTime = (endTime - startTime) / 1000F;
-			System.out.println("Library " + fileName + " read, took " + finalTime + " seconds");
-			Library.setCurrent(lib);
-			Cell cell = lib.getCurCell();
-			if (cell == null)
-			{
-				System.out.println("No current cell in this library");
-			} else
-			{
-				UIEditFrame.CreateEditWindow(cell);
-			}
-		}
-	}
-
 	public static class FakeCell
 	{
 		String cellName;
@@ -113,7 +78,25 @@ public class Input
 	{
 	}
 
+	/**
+	 * The base-class routine for reading a library.
+	 * @return true on error.
+	 */
 	protected boolean ReadLib() { return true; }
+
+	// ----------------------- public methods -------------------------------
+
+	/**
+	 * Routine to read a Library from disk.
+	 * @param fileName the path to the disk file.
+	 * @param type the type of library file (BINARY .elib, CIF, GDS, etc.)
+	 * @return the read Library, or null if an error occurred.
+	 */
+	public static Library readLibrary(String fileName, ImportType type)
+	{
+		Library lib = readALibrary(fileName, null, type);
+		return lib;
+	}
 
 	/**
 	 * Routine to read disk file "fileName" which is of type "type".
@@ -127,7 +110,7 @@ public class Input
 		Input in;
 
 		// break file name into library name and path; determine whether this is top-level
-		Library.LibraryName n = Library.LibraryName.newInstance(fileName);
+		Library.Name n = Library.Name.newInstance(fileName);
 		boolean topLevel = false;
 		if (lib == null)
 		{
@@ -227,14 +210,5 @@ public class Input
 //			}
 //		}
 		return in.lib;
-	}
-
-	// ----------------------- public methods -------------------------------
-
-	public static void readLibrary(String fileName, ImportType type)
-	{
-		// start a new thread to do the input
-		ImportThread iThread = new ImportThread(fileName, type);
-		iThread.start();
 	}
 }

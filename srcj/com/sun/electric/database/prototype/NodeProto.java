@@ -41,19 +41,29 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
- * The NodeProto class encapsulates the Electric NodeProto data structure.
- * NodeProtos don't get usede.  The subclasses
- * of NodeProto, Cell and PrimitiveNode, are used instead.
- * The NodeProto portion records the ports associated with this node,
- * the bounds of the node prototype, a list of instances of this node
- * prototype in use in all open libraries, and a list of equivalent nodes
- * for transforming between schematics and icons, or between equivalently
- * structured layouts.
+ * The NodeProto class defines a type of NodeInst.
+ * It is an abstract class that can be implemented as PrimitiveNode (for primitives from Technologies)
+ * or as Cell (for cells in Libraries).
+ * <P>
+ * Every node in the database appears as one <I>prototypical</I> object and many <I>instantiative</I> objects.
+ * Thus, for a PrimitiveNode such as the CMOS P-transistor there is one object (called a PrimitiveNode, which is a NodeProto)
+ * that describes the transistor prototype and there are many objects (called NodeInsts),
+ * one for every instance of a transistor that appears in a circuit.
+ * Similarly, for every Cell, there is one object (called a Cell, which is a NodeProto)
+ * that describes the Cell with everything in it and there are many objects (also called NodeInsts)
+ * for every use of that Cell in some other Cell.
+ * PrimitiveNodes are statically created and placed in the Technology objects,
+ * but complex Cells are created by the tools and placed in Library objects.
+ * <P>
+ * The basic NodeProto has a list of ports, the bounds, a list of instances of this NodeProto
+ * as a NodeInst in other Cells, and much more.
  */
 public abstract class NodeProto extends ElectricObject
 {
 	/**
 	 * Function is a typesafe enum class that describes the function of a NodeProto.
+	 * Functions are technology-independent and include different types of transistors,
+	 * contacts, and other circuit elements.
 	 */
 	public static class Function
 	{
@@ -68,117 +78,121 @@ public abstract class NodeProto extends ElectricObject
 			this.constantName = constantName;
 		}
 
+		/**
+		 * Returns a printable version of this Function.
+		 * @return a printable version of this Function.
+		 */
 		public String toString() { return name; }
 
-		/** node is unknown type */
+		/** Describes a node with unknown type. */
 			public static final Function UNKNOWN=   new Function("unknown",						"node",     "NPUNKNOWN");
-		/** node is a single-layer pin */
+		/** Describes a single-layer pin. */
 			public static final Function PIN=       new Function("pin",							"pin",      "NPPIN");
-		/** node is a two-layer contact (one point) */
+		/** Describes a two-layer contact. */
 			public static final Function CONTACT=   new Function("contact",						"contact",  "NPCONTACT");
-		/** node is a single-layer node */
+		/** Describes a single-layer node. */
 			public static final Function NODE=      new Function("pure-layer-node",				"plnode",   "NPNODE");
-		/** node connects all ports */
+		/** node a node that connects all ports. */
 			public static final Function CONNECT=   new Function("connection",					"conn",     "NPCONNECT");
-		/** node is MOS enhancement transistor */
+		/** Describes a MOS enhancement transistor. */
 			public static final Function TRANMOS=   new Function("nMOS-transistor",				"nmos",     "NPTRANMOS");
-		/** node is MOS depletion transistor */
+		/** Describes a MOS depletion transistor. */
 			public static final Function TRADMOS=   new Function("DMOS-transistor",				"dmos",     "NPTRADMOS");
-		/** node is MOS complementary transistor */
+		/** Describes a MOS complementary transistor. */
 			public static final Function TRAPMOS=   new Function("pMOS-transistor",				"pmos",     "NPTRAPMOS");
-		/** node is NPN junction transistor */
+		/** Describes a NPN junction transistor. */
 			public static final Function TRANPN=    new Function("NPN-transistor",				"npn",      "NPTRANPN");
-		/** node is PNP junction transistor */
+		/** Describes a PNP junction transistor. */
 			public static final Function TRAPNP=    new Function("PNP-transistor",				"pnp",      "NPTRAPNP");
-		/** node is N-channel junction transistor */
+		/** Describes a N-channel junction transistor. */
 			public static final Function TRANJFET=  new Function("n-type-JFET-transistor",		"njfet",    "NPTRANJFET");
-		/** node is P-channel junction transistor */
+		/** Describes a P-channel junction transistor. */
 			public static final Function TRAPJFET=  new Function("p-type-JFET-transistor",		"pjfet",    "NPTRAPJFET");
-		/** node is MESFET depletion transistor */
+		/** Describes a MESFET depletion transistor. */
 			public static final Function TRADMES=   new Function("depletion-mesfet",			"dmes",     "NPTRADMES");
-		/** node is MESFET enhancement transistor */
+		/** Describes a MESFET enhancement transistor. */
 			public static final Function TRAEMES=   new Function("enhancement-mesfet",			"emes",     "NPTRAEMES");
-		/** node is prototype-defined transistor */
+		/** Describes a prototype-defined transistor. */
 			public static final Function TRANSREF=  new Function("prototype-defined-transistor","tref",     "NPTRANSREF");
-		/** node is undetermined transistor */
+		/** Describes an undetermined transistor. */
 			public static final Function TRANS=     new Function("transistor",					"trans",    "NPTRANS");
-		/** node is 4-port MOS enhancement transistor */
+		/** Describes a 4-port MOS enhancement transistor. */
 			public static final Function TRA4NMOS=  new Function("4-port-nMOS-transistor",		"nmos4p",   "NPTRA4NMOS");
-		/** node is 4-port MOS depletion transistor */
+		/** Describes a 4-port MOS depletion transistor. */
 			public static final Function TRA4DMOS=  new Function("4-port-DMOS-transistor",		"dmos4p",   "NPTRA4DMOS");
-		/** node is 4-port MOS complementary transistor */
+		/** Describes a 4-port MOS complementary transistor. */
 			public static final Function TRA4PMOS=  new Function("4-port-pMOS-transistor",		"pmos4p",   "NPTRA4PMOS");
-		/** node is 4-port NPN junction transistor */
+		/** Describes a 4-port NPN junction transistor. */
 			public static final Function TRA4NPN=   new Function("4-port-NPN-transistor",		"npn4p",    "NPTRA4NPN");
-		/** node is 4-port PNP junction transistor */
+		/** Describes a 4-port PNP junction transistor. */
 			public static final Function TRA4PNP=   new Function("4-port-PNP-transistor",		"pnp4p",    "NPTRA4PNP");
-		/** node is 4-port N-channel junction transistor */
+		/** Describes a 4-port N-channel junction transistor. */
 			public static final Function TRA4NJFET= new Function("4-port-n-type-JFET-transistor","njfet4p", "NPTRA4NJFET");
-		/** node is 4-port P-channel junction transistor */
+		/** Describes a 4-port P-channel junction transistor. */
 			public static final Function TRA4PJFET= new Function("4-port-p-type-JFET-transistor","pjfet4p", "NPTRA4PJFET");
-		/** node is 4-port MESFET depletion transistor */
+		/** Describes a 4-port MESFET depletion transistor. */
 			public static final Function TRA4DMES=  new Function("4-port-depletion-mesfet",		"dmes4p",   "NPTRA4DMES");
-		/** node is 4-port MESFET enhancement transistor */
+		/** Describes a 4-port MESFET enhancement transistor. */
 			public static final Function TRA4EMES=  new Function("4-port-enhancement-mesfet",	"emes4p",   "NPTRA4EMES");
-		/** node is E2L transistor */
+		/** Describes an E2L transistor. */
 			public static final Function TRANS4=    new Function("4-port-transistor",			"trans4p",  "NPTRANS4");
-		/** node is resistor */
+		/** Describes a resistor. */
 			public static final Function RESIST=    new Function("resistor",					"res",      "NPRESIST");
-		/** node is capacitor */
+		/** Describes a capacitor. */
 			public static final Function CAPAC=     new Function("capacitor",					"cap",      "NPCAPAC");
-		/** node is electrolytic capacitor */
+		/** Describes an electrolytic capacitor. */
 			public static final Function ECAPAC=    new Function("electrolytic-capacitor",		"ecap",     "NPECAPAC");
-		/** node is diode */
+		/** Describes a diode. */
 			public static final Function DIODE=     new Function("diode",						"diode",    "NPDIODE");
-		/** node is zener diode */
+		/** Describes a zener diode. */
 			public static final Function DIODEZ=    new Function("zener-diode",					"zdiode",   "NPDIODEZ");
-		/** node is inductor */
+		/** Describes an inductor. */
 			public static final Function INDUCT=    new Function("inductor",					"ind",      "NPINDUCT");
-		/** node is meter */
+		/** Describes a meter. */
 			public static final Function METER=     new Function("meter",						"meter",    "NPMETER");
-		/** node is transistor base */
+		/** Describes a transistor base. */
 			public static final Function BASE=      new Function("base",						"base",     "NPBASE");
-		/** node is transistor emitter */
+		/** Describes a transistor emitter. */
 			public static final Function EMIT=      new Function("emitter",						"emit",     "NPEMIT");
-		/** node is transistor collector */
+		/** Describes a transistor collector. */
 			public static final Function COLLECT=   new Function("collector",					"coll",     "NPCOLLECT");
-		/** node is buffer */
+		/** Describes a buffer. */
 			public static final Function BUFFER=    new Function("buffer",						"buf",      "NPBUFFER");
-		/** node is AND gate */
+		/** Describes an AND gate. */
 			public static final Function GATEAND=   new Function("AND-gate",					"and",      "NPGATEAND");
-		/** node is OR gate */
+		/** Describes an OR gate. */
 			public static final Function GATEOR=    new Function("OR-gate",						"or",       "NPGATEOR");
-		/** node is XOR gate */
+		/** Describes an XOR gate. */
 			public static final Function GATEXOR=   new Function("XOR-gate",					"xor",      "NPGATEXOR");
-		/** node is flip-flop */
+		/** Describes a flip-flop. */
 			public static final Function FLIPFLOP=  new Function("flip-flop",					"ff",       "NPFLIPFLOP");
-		/** node is multiplexor */
+		/** Describes a multiplexor. */
 			public static final Function MUX=       new Function("multiplexor",					"mux",      "NPMUX");
-		/** node is connected to power */
+		/** Describes a power connection. */
 			public static final Function CONPOWER=  new Function("power",						"pwr",      "NPCONPOWER");
-		/** node is connected to ground */
+		/** Describes a ground connection. */
 			public static final Function CONGROUND= new Function("ground",						"gnd",      "NPCONGROUND");
-		/** node is source */
+		/** Describes voltage or current source. */
 			public static final Function SOURCE=    new Function("source",						"source",   "NPSOURCE");
-		/** node is connected to substrate */
+		/** Describes a substrate contact. */
 			public static final Function SUBSTRATE= new Function("substrate",					"substr",   "NPSUBSTRATE");
-		/** node is connected to well */
+		/** Describes a well contact. */
 			public static final Function WELL=      new Function("well",						"well",     "NPWELL");
-		/** node is pure artwork */
+		/** Describes a pure artwork. */
 			public static final Function ART=       new Function("artwork",						"art",      "NPART");
-		/** node is an array */
+		/** Describes an array. */
 			public static final Function ARRAY=     new Function("array",						"array",    "NPARRAY");
-		/** node is an alignment object */
+		/** Describes an alignment object. */
 			public static final Function ALIGN=     new Function("align",						"align",    "NPALIGN");
-		/** node is a current-controlled voltage source */
+		/** Describes a current-controlled voltage source. */
 			public static final Function CCVS=      new Function("ccvs",						"ccvs",     "NPCCVS");
-		/** node is a current-controlled current source */
+		/** Describes a current-controlled current source. */
 			public static final Function CCCS=      new Function("cccs",						"cccs",     "NPCCCS");
-		/** node is a voltage-controlled voltage source */
+		/** Describes a voltage-controlled voltage source. */
 			public static final Function VCVS=      new Function("vcvs",						"vcvs",     "NPVCVS");
-		/** node is a voltage-controlled current source */
+		/** Describes a voltage-controlled current source. */
 			public static final Function VCCS=      new Function("vccs",						"vccs",     "NPVCCS");
-		/** node is a transmission line */
+		/** Describes a transmission line. */
 			public static final Function TLINE=     new Function("transmission-line",			"transm",   "NPTLINE");
 	}
 
@@ -203,21 +217,25 @@ public abstract class NodeProto extends ElectricObject
 	/** set if cell is part of a "cell library" */			private static final int INCELLLIBRARY = 020000000;
 	/** set if cell is from a technology-library */			private static final int TECEDITCELL =   040000000;
 
-	/** the name of the NodeProto */						protected String protoName;
-	/** technology of this primitive */						protected Technology tech;
-	/** the exports in the NodeProto */						private List ports;
-	/** JNetworks that comprise this NodeProto */			private List networks;
-	/** All instances of this NodeProto */					private List instances;
-	/** flag bits */										protected int userBits;
-	/** the function of this NodeProto */					private Function function;
+	/** The name of the NodeProto. */						protected String protoName;
+	/** This NodeProto's Technology. */						protected Technology tech;
+	/** A list of exports on the NodeProto. */				private List ports;
+	/** A list of JNetworks in this NodeProto. */			private List networks;
+	/** A list of instances of this NodeProto. */			private List instances;
+	/** Internal flag bits. */								protected int userBits;
+	/** The function of this NodeProto. */					private Function function;
 
-	/** temporary integer value */							private int tempInt;
-	/** temporary Object */									private Object tempObj;
-	/** temporary flag bits */								private int flagBits;
-	/** used to request flag bits */						private static FlagSet.Generator flagGenerator;
+	/** The temporary integer value. */						private int tempInt;
+	/** The temporary Object. */							private Object tempObj;
+	/** The temporary flag bits. */							private int flagBits;
+	/** The object used to request flag bits. */			private static FlagSet.Generator flagGenerator;
 
 	// ----------------- protected and private methods -----------------
 
+	/**
+	 * This constructor should not be called.
+	 * Use the subclass factory methods to create Cell or PrimitiveNode objects.
+	 */
 	protected NodeProto()
 	{
 		ports = new ArrayList();
@@ -228,21 +246,28 @@ public abstract class NodeProto extends ElectricObject
 	}
 
 	/**
-	 * Add a port prototype (Export for Cells, PrimitivePort for
-	 * PrimitiveNodes) to this NodeProto.
+	 * Add a PortProto to this NodeProto.
+	 * Adds Exports for Cells, PrimitivePorts for PrimitiveNodes.
+	 * @param port the PortProto to add to this NodeProto.
 	 */
 	void addPort(PortProto port)
 	{
 		ports.add(port);
 	}
 
-	/** remove a port prototype from this node prototype */
+	/**
+	 * Removes a PortProto from this NodeProto.
+	 * @param port the PortProto to remove from this NodeProto.
+	 */
 	void removePort(PortProto port)
 	{
 		ports.remove(port);
 	}
 
-	/** Add a Network to this Cell */
+	/**
+	 * Add a Network to this NodeProto.
+	 * @param n the JNetwork to add to this NodeProto.
+	 */
 	public void addNetwork(JNetwork n)
 	{
 		if (networks.contains(n))
@@ -252,7 +277,10 @@ public abstract class NodeProto extends ElectricObject
 		networks.add(n);
 	}
 
-	/** Remove a Network from this Cell */
+	/**
+	 * Removes a Network from this NodeProto.
+	 * @param n the Network to remove from this NodeProto.
+	 */
 	void removeNetwork(JNetwork n)
 	{
 		if (!networks.contains(n))
@@ -262,29 +290,40 @@ public abstract class NodeProto extends ElectricObject
 		networks.remove(n);
 	}
 
+	/**
+	 * Removes all Networks from this NodeProto.
+	 */
 	public void removeAllNetworks()
 	{
 		networks.clear();
 	}
 
-	/** Add an instance of this nodeproto to its instances list */
-	public void addInstance(NodeInst inst)
+	/**
+	 * Add to the list of instances of this NodeProto.
+	 * @param ni the NodeInst which is an instance of this NodeProto.
+	 */
+	public void addInstance(NodeInst ni)
 	{
 		if (instances == null)
 		{
 			System.out.println("Hmm.  Instances is *still* null!");
 		}
-		instances.add(inst);
+		instances.add(ni);
 	}
 
-	/** Remove an instance of this nodeproto from its instances list */
-	public void removeInstance(NodeInst inst)
+	/**
+	 * Removes a NodeInst from the list of instances of this NodeProto.
+	 * @param ni the NodeInst which is an instance of this NodeProto.
+	 */
+	public void removeInstance(NodeInst ni)
 	{
-		instances.remove(inst);
+		instances.remove(ni);
 	}
 
-	/** Remove this NodeProto.  Also offs the ports associated with this
-	 * nodeproto. */
+	/**
+	 * Remove this NodeProto.
+	 * Also deletes the ports associated with this NodeProto.
+	 */
 	public void remove()
 	{
 		// kill ports
@@ -297,8 +336,11 @@ public abstract class NodeProto extends ElectricObject
 		}
 	}
 
-	/** Does the ports list contain a particular port?
-	 * Used by PortProto's sanity check method */
+	/**
+	 * Routine to determine whether this NodeProto contains a PortProto.
+	 * @param port the port being sought on this NodeProto.
+	 * @return true if the port is on this NodeProto.
+	 */
 	boolean containsPort(PortProto port)
 	{
 		return ports.contains(port);
@@ -306,152 +348,455 @@ public abstract class NodeProto extends ElectricObject
 
 	// ----------------------- public methods -----------------------
 
-	/** Set the Shrink bit */
+	/**
+	 * Routine to set this NodeProto to be "shrunk".
+	 * A shrunk node is one that may be reduced in size to accomodate its environment.
+	 */
 	public void setShrunk() { userBits |= NODESHRINK; }
-	/** Clear the Shrink bit */
+
+	/**
+	 * Routine to set this NodeProto to be "not shrunk".
+	 * A shrunk node is one that may be reduced in size to accomodate its environment.
+	 */
 	public void clearShrunk() { userBits &= ~NODESHRINK; }
-	/** Get the Shrink bit */
+
+	/**
+	 * Routine to tell if this NodeProto is "shrunk".
+	 * A shrunk node is one that may be reduced in size to accomodate its environment.
+	 * @return true if this NodeProto is "shrunk".
+	 */
 	public boolean isShrunk() { return (userBits & NODESHRINK) != 0; }
 
-	/** Set the Want-Expansion bit */
+	/**
+	 * Routine to set this NodeProto so that instances of it are "expanded" by when created.
+	 */
 	public void setWantExpanded() { userBits |= WANTNEXPAND; }
-	/** Clear the Want-Expansion bit */
+
+	/**
+	 * Routine to set this NodeProto so that instances of it are "not expanded" by when created.
+	 */
 	public void clearWantExpanded() { userBits &= ~WANTNEXPAND; }
-	/** Get the Want-Expansion bit */
+
+	/**
+	 * Routine to tell if instances of it are "not expanded" by when created.
+	 * @return true if instances of it are "not expanded" by when created.
+	 */
 	public boolean isWantExpanded() { return (userBits & WANTNEXPAND) != 0; }
 
-	/** Set the Arc function */
+	/**
+	 * Routine to set the function of this NodeProto.
+	 * The Function is a technology-independent description of the behavior of this NodeProto.
+	 * @param function the new function of this NodeProto.
+	 */
 	public void setFunction(Function function) { this.function = function; }
-	/** Get the Arc function */
+
+	/**
+	 * Routine to return the function of this NodeProto.
+	 * The Function is a technology-independent description of the behavior of this NodeProto.
+	 * @return function the function of this NodeProto.
+	 */
 	public Function getFunction() { return function; }
 
-	/** Set the Arcs-Wipe bit */
+	/**
+	 * Routine to set this NodeProto so that instances of it are "arc-wipable".
+	 * An arc-wipable node is one that is not drawn if there are connecting arcs
+	 * because the arcs cover it.  Typically, pins are wiped.
+	 */
 	public void setArcsWipe() { userBits |= ARCSWIPE; }
-	/** Clear the Arcs-Wipe bit */
+
+	/**
+	 * Routine to set this NodeProto so that instances of it are not "arc-wipable".
+	 * An arc-wipable node is one that is not drawn if there are connecting arcs
+	 * because the arcs cover it.  Typically, pins are wiped.
+	 */
 	public void clearArcsWipe() { userBits &= ~ARCSWIPE; }
-	/** Get the Arcs-Wipe bit */
+
+	/**
+	 * Routine to tell if instances of this NodeProto are "arc-wipable" by when created.
+	 * An arc-wipable node is one that is not drawn if there are connecting arcs
+	 * because the arcs cover it.  Typically, pins are wiped.
+	 * @return true if instances of this NodeProto are "arc-wipable" by when created.
+	 */
 	public boolean isArcsWipe() { return (userBits & ARCSWIPE) != 0; }
 
-	/** Set the Square-Node bit */
+	/**
+	 * Routine to set this NodeProto so that instances of it are "square".
+	 * Square nodes must have the same X and Y size.
+	 */
 	public void setSquare() { userBits |= NSQUARE; }
-	/** Clear the Square-Node bit */
+
+	/**
+	 * Routine to set this NodeProto so that instances of it are not "square".
+	 * Square nodes must have the same X and Y size.
+	 */
 	public void clearSquare() { userBits &= ~NSQUARE; }
-	/** Get the Square-Node bit */
+
+	/**
+	 * Routine to tell if instances of this NodeProto are square.
+	 * Square nodes must have the same X and Y size.
+	 * @return true if instances of this NodeProto are square.
+	 */
 	public boolean isSquare() { return (userBits & NSQUARE) != 0; }
 
-	/** Set the Holds-Outline bit */
+	/**
+	 * Routine to set this NodeProto so that instances of it may hold outline information.
+	 * Outline information is an array of coordinates that define the node.
+	 * It can be as simple as an opened-polygon that connects the points,
+	 * or a serpentine transistor that lays down polysilicon to follow the points.
+	 */
 	public void setHoldsOutline() { userBits |= HOLDSTRACE; }
-	/** Clear the Holds-Outline bit */
+
+	/**
+	 * Routine to set this NodeProto so that instances of it may not hold outline information.
+	 * Outline information is an array of coordinates that define the node.
+	 * It can be as simple as an opened-polygon that connects the points,
+	 * or a serpentine transistor that lays down polysilicon to follow the points.
+	 */
 	public void clearHoldsOutline() { userBits &= ~HOLDSTRACE; }
-	/** Get the Holds-Outline bit */
+
+	/**
+	 * Routine to tell if instances of this NodeProto can hold an outline.
+	 * Outline information is an array of coordinates that define the node.
+	 * It can be as simple as an opened-polygon that connects the points,
+	 * or a serpentine transistor that lays down polysilicon to follow the points.
+	 * @return true if nstances of this NodeProto can hold an outline.
+	 */
 	public boolean isHoldsOutline() { return (userBits & HOLDSTRACE) != 0; }
 
-	/** Set the Wipes (erases) if 1 or 2 arcs connected bit */
+	/**
+	 * Routine to set this NodeProto so that instances of it are wiped when 1 or 2 arcs connect.
+	 * This is used in Schematics pins, which are not shown if 1 or 2 arcs connect, but are shown
+	 * when standing alone, or when 3 or more arcs make a "T" or other connection to it.
+	 */
 	public void setWipeOn1or2() { userBits |= WIPEON1OR2; }
-	/** Clear the Wipes (erases) if 1 or 2 arcs connected bit */
+
+	/**
+	 * Routine to set this NodeProto so that instances of it are not wiped when 1 or 2 arcs connect.
+	 * Only Schematics pins enable this state.
+	 */
 	public void clearWipeOn1or2() { userBits &= ~WIPEON1OR2; }
-	/** Get the Wipes (erases) if 1 or 2 arcs connected bit */
+
+	/**
+	 * Routine to tell if instances of this NodeProto are wiped when 1 or 2 arcs connect.
+	 * This is used in Schematics pins, which are not shown if 1 or 2 arcs connect, but are shown
+	 * when standing alone, or when 3 or more arcs make a "T" or other connection to it.
+	 * @return true if instances of this NodeProto are wiped when 1 or 2 arcs connect.
+	 */
 	public boolean isWipeOn1or2() { return (userBits & WIPEON1OR2) != 0; }
 
-	/** Set the Locked-Primitive bit */
+	/**
+	 * Routine to set this NodeProto so that instances of it are locked.
+	 * Locked instances are used in FPGA technologies, which place instances that cannot be moved
+	 * because it is part of the background circuitry.
+	 */
 	public void setLockedPrim() { userBits |= LOCKEDPRIM; }
-	/** Clear the Locked-Primitive bit */
+
+	/**
+	 * Routine to set this NodeProto so that instances of it are not locked.
+	 * Locked instances are used in FPGA technologies, which place instances that cannot be moved
+	 * because it is part of the background circuitry.
+	 */
 	public void clearLockedPrim() { userBits &= ~LOCKEDPRIM; }
-	/** Get the Locked-Primitive bit */
+
+	/**
+	 * Routine to tell if instances of this NodeProto are loced.
+	 * Locked instances are used in FPGA technologies, which place instances that cannot be moved
+	 * because it is part of the background circuitry.
+	 * @return true if instances of this NodeProto are loced.
+	 */
 	public boolean isLockedPrim() { return (userBits & LOCKEDPRIM) != 0; }
 
-	/** Set the Edge-Select bit */
+	/**
+	 * Routine to set this NodeProto so that instances of it are selectable only by their edges.
+	 * Artwork primitives that are not filled-in or are outlines want edge-selection, instead
+	 * of allowing a click anywhere in the bounding box to work.
+	 */
 	public void setEdgeSelect() { userBits |= NEDGESELECT; }
-	/** Clear the Edge-Select bit */
+
+	/**
+	 * Routine to set this NodeProto so that instances of it are not selectable only by their edges.
+	 * Artwork primitives that are not filled-in or are outlines want edge-selection, instead
+	 * of allowing a click anywhere in the bounding box to work.
+	 */
 	public void clearEdgeSelect() { userBits &= ~NEDGESELECT; }
-	/** Get the Edge-Select bit */
+
+	/**
+	 * Routine to tell if instances of this NodeProto are selectable on their edges.
+	 * Artwork primitives that are not filled-in or are outlines want edge-selection, instead
+	 * of allowing a click anywhere in the bounding box to work.
+	 * @return true if instances of this NodeProto are selectable on their edges.
+	 */
 	public boolean isEdgeSelect() { return (userBits & NEDGESELECT) != 0; }
 
-	/** Set the bit if nonmanhattan arcs can shrink this node */
+	/**
+	 * Routine to set this NodeProto so that instances of it are shrinkable if connected in nonManhattan ways.
+	 * An example of a shrinkable node is the MOS transistor, whose tabs shrink slightly if connected to a nonmanhattan arc.
+	 * Note that the nonManhattan arc must also shrink, and then the connection is smooth.
+	 */
 	public void setArcsShrink() { userBits |= ARCSHRINK; }
-	/** Clear the bit if nonmanhattan arcs can shrink this node */
+
+	/**
+	 * Routine to set this NodeProto so that instances of it are not shrinkable if connected in nonManhattan ways.
+	 * An example of a shrinkable node is the MOS transistor, whose tabs shrink slightly if connected to a nonmanhattan arc.
+	 * Note that the nonManhattan arc must also shrink, and then the connection is smooth.
+	 */
 	public void clearArcsShrink() { userBits &= ~ARCSHRINK; }
-	/** Get the bit if nonmanhattan arcs can shrink this node */
+
+	/**
+	 * Routine to tell if instances of this NodeProto are shrinkable if connected in nonManhattan ways.
+	 * An example of a shrinkable node is the MOS transistor, whose tabs shrink slightly if connected to a nonmanhattan arc.
+	 * Note that the nonManhattan arc must also shrink, and then the connection is smooth.
+	 * @return true if instances of this NodeProto are shrinkable if connected in nonManhattan ways.
+	 */
 	public boolean isArcsShrink() { return (userBits & ARCSHRINK) != 0; }
 
-	/** Set the All-Contents-Locked bit */
+	/**
+	 * Routine to set this NodeProto so that everything inside of it is locked.
+	 * Locked instances cannot be moved or deleted.
+	 * This only applies to Cells.
+	 */
 	public void setAllLocked() { userBits |= NPLOCKED; }
-	/** Clear the All-Contents-Locked bit */
+
+	/**
+	 * Routine to set this NodeProto so that everything inside of it is not locked.
+	 * Locked instances cannot be moved or deleted.
+	 * This only applies to Cells.
+	 */
 	public void clearAllLocked() { userBits &= ~NPLOCKED; }
-	/** Get the All-Contents-Locked bit */
+
+	/**
+	 * Routine to tell if the contents of this NodeProto are locked.
+	 * Locked instances cannot be moved or deleted.
+	 * This only applies to Cells.
+	 * @return true if the contents of this NodeProto are locked.
+	 */
 	public boolean isAllLocked() { return (userBits & NPLOCKED) != 0; }
 
-	/** Set the Not-Used bit */
-	public void setNotUsed() { userBits |= NNOTUSED; }
-	/** Clear the Not-Used bit */
-	public void clearNotUsed() { userBits &= ~NNOTUSED; }
-	/** Get the Not-Used bit */
-	public boolean isNotUsed() { return (userBits & NNOTUSED) != 0; }
-
-	/** Set the Instances-Locked bit */
+	/**
+	 * Routine to set this NodeProto so that all instances inside of it are locked.
+	 * Locked instances cannot be moved or deleted.
+	 * This only applies to Cells.
+	 */
 	public void setInstancesLocked() { userBits |= NPILOCKED; }
-	/** Clear the Instances-Locked bit */
+
+	/**
+	 * Routine to set this NodeProto so that all instances inside of it are not locked.
+	 * Locked instances cannot be moved or deleted.
+	 * This only applies to Cells.
+	 */
 	public void clearInstancesLocked() { userBits &= ~NPILOCKED; }
-	/** Get the Instances-Locked bit */
+
+	/**
+	 * Routine to tell if the sub-instances in this NodeProto are locked.
+	 * Locked instances cannot be moved or deleted.
+	 * This only applies to Cells.
+	 * @return true if the sub-instances in this NodeProto are locked.
+	 */
 	public boolean isInstancesLocked() { return (userBits & NPILOCKED) != 0; }
 
-	/** Set the In-Cell-Library bit */
+	/**
+	 * Routine to set this NodeProto so that it is not used.
+	 * Unused nodes do not appear in the component menus and cannot be created by the user.
+	 */
+	public void setNotUsed() { userBits |= NNOTUSED; }
+
+	/**
+	 * Routine to set this NodeProto so that it is used.
+	 * Unused nodes do not appear in the component menus and cannot be created by the user.
+	 */
+	public void clearNotUsed() { userBits &= ~NNOTUSED; }
+
+	/**
+	 * Routine to tell if this NodeProto is used.
+	 * Unused nodes do not appear in the component menus and cannot be created by the user.
+	 * @return true if this NodeProto is used.
+	 */
+	public boolean isNotUsed() { return (userBits & NNOTUSED) != 0; }
+
+	/**
+	 * Routine to set this NodeProto so that it is part of a cell library.
+	 * Cell libraries are those libraries that contain sets of cells for use
+	 * in other circuits, and do not contain complete circuitry.
+	 */
 	public void setInCellLibrary() { userBits |= INCELLLIBRARY; }
-	/** Clear the In-Cell-Library bit */
+
+	/**
+	 * Routine to set this NodeProto so that it is not part of a cell library.
+	 * Cell libraries are those libraries that contain sets of cells for use
+	 * in other circuits, and do not contain complete circuitry.
+	 */
 	public void clearInCellLibrary() { userBits &= ~INCELLLIBRARY; }
-	/** Get the In-Cell-Library bit */
+
+	/**
+	 * Routine to tell if this NodeProto is part of a cell library.
+	 * Cell libraries are those libraries that contain sets of cells for use
+	 * in other circuits, and do not contain complete circuitry.
+	 * @return true if this NodeProto is part of a cell library.
+	 */
 	public boolean isInCellLibrary() { return (userBits & INCELLLIBRARY) != 0; }
 
-	/** Set the In-Technology-Library bit */
+	/**
+	 * Routine to set this NodeProto so that it is part of a technology library.
+	 * Technology libraries are those libraries that contain Cells with
+	 * graphical descriptions of the nodes, arcs, and layers of a technology.
+	 */
 	public void setInTechnologyLibrary() { userBits |= TECEDITCELL; }
-	/** Clear the In-Technology-Library bit */
+
+	/**
+	 * Routine to set this NodeProto so that it is not part of a technology library.
+	 * Technology libraries are those libraries that contain Cells with
+	 * graphical descriptions of the nodes, arcs, and layers of a technology.
+	 */
 	public void clearInTechnologyLibrary() { userBits &= ~TECEDITCELL; }
-	/** Get the In-Technology-Library bit */
+
+	/**
+	 * Routine to tell if this NodeProto is part of a Technology Library.
+	 * Technology libraries are those libraries that contain Cells with
+	 * graphical descriptions of the nodes, arcs, and layers of a technology.
+	 * @return true if this NodeProto is part of a Technology Library.
+	 */
 	public boolean isInTechnologyLibrary() { return (userBits & TECEDITCELL) != 0; }
 
-	/** Gets a FlagSet for NodeProtos.  This can be used to set and test marks on NodeProtos. */
+	/**
+	 * Routine to get access to flag bits on this NodeProto.
+	 * Flag bits allow NodeProtos to be marked and examined more conveniently.
+	 * However, multiple competing activities may want to mark the nodes at
+	 * the same time.  To solve this, each activity that wants to mark nodes
+	 * must create a FlagSet that allocates bits in the node.  When done,
+	 * the FlagSet must be released.
+	 * @param numBits the number of flag bits desired.
+	 * @return a FlagSet object that can be used to mark and test the NodeProto.
+	 */
 	public static FlagSet getFlagSet(int numBits) { return FlagSet.getFlagSet(flagGenerator, numBits); }
-	/** Frees the FlagSet on NodeProtos.  The bits can be used elsewhere. */
+
+	/**
+	 * Routine to free a set of flag bits on this NodeProto.
+	 * Flag bits allow NodeProtos to be marked and examined more conveniently.
+	 * However, multiple competing activities may want to mark the nodes at
+	 * the same time.  To solve this, each activity that wants to mark nodes
+	 * must create a FlagSet that allocates bits in the node.  When done,
+	 * the FlagSet must be released.
+	 * @param fs the flag bits that are no longer needed.
+	 */
 	public static void freeFlagSet(FlagSet fs) { fs.freeFlagSet(flagGenerator); }
 
-	/** Sets the bits in FlagSet "set" on the current NodeProto. */
-	public void   setBit(FlagSet set) { flagBits = flagBits | set.getMask(); }
-	/** Clears the bits in FlagSet "set" on the current NodeProto. */
+	/**
+	 * Routine to set the specified flag bits on this NodeProto.
+	 * @param set the flag bits that are to be set on this NodeProto.
+	 */
+	public void setBit(FlagSet set) { flagBits = flagBits | set.getMask(); }
+
+	/**
+	 * Routine to set the specified flag bits on this NodeProto.
+	 * @param set the flag bits that are to be cleared on this NodeProto.
+	 */
 	public void clearBit(FlagSet set) { flagBits = flagBits & set.getUnmask(); }
-	/** Tests the bits in FlagSet "set" on the current NodeProto.  Returns true if nonzero. */
+
+	/**
+	 * Routine to test the specified flag bits on this NodeProto.
+	 * @param set the flag bits that are to be tested on this NodeProto.
+	 * @return true if the flag bits are set.
+	 */
 	public boolean isBit(FlagSet set) { return (flagBits & set.getMask()) != 0; }
 
-	/** Set the temporary integer value */
+	/**
+	 * Routine to set an arbitrary integer in a temporary location on this NodeProto.
+	 * @param tempInt the integer to be set on this NodeProto.
+	 */
 	public void setTempInt(int tempInt) { this.tempInt = tempInt; }
-	/** Get the temporary integer value */
+
+	/**
+	 * Routine to get the temporary integer on this NodeProto.
+	 * @return the temporary integer on this NodeProto.
+	 */
 	public int getTempInt() { return tempInt; }
 
-	/** Set the temporary object */
+	/**
+	 * Routine to set an arbitrary Object in a temporary location on this NodeProto.
+	 * @param tempObj the Object to be set on this NodeProto.
+	 */
 	public void setTempObj(Object tempObj) { this.tempObj = tempObj; }
-	/** Get the temporary object */
+
+	/**
+	 * Routine to get the temporary Object on this NodeProto.
+	 * @return the temporary Object on this NodeProto.
+	 */
 	public Object getTempObj() { return tempObj; }
 
+	/**
+	 * Abstract routine to return the default width of this NodeProto.
+	 * Cells return the actual width of the contents.
+	 * PrimitiveNodes return the default width of new instances of this NodeProto.
+	 * @return the width to use when creating new NodeInsts of this NodeProto.
+	 */
 	public abstract double getDefWidth();
+
+	/**
+	 * Abstract routine to return the default height of this NodeProto.
+	 * Cells return the actual height of the contents.
+	 * PrimitiveNodes return the default height of new instances of this NodeProto.
+	 * @return the height to use when creating new NodeInsts of this NodeProto.
+	 */
 	public abstract double getDefHeight();
+
+	/**
+	 * Abstract routine to return the Low X offset between the actual NodeProto edge and the reported/selected bound.
+	 * Cells always implement this by returning zero.
+	 * PrimitiveNodes may have a nonzero offset if the reported and selected size is smaller than the actual size.
+	 * @return the the inset from the left edge of the reported/selected area.
+	 */
 	public abstract double getLowXOffset();
+
+	/**
+	 * Abstract routine to return the High X offset between the actual NodeProto edge and the reported/selected bound.
+	 * Cells always implement this by returning zero.
+	 * PrimitiveNodes may have a nonzero offset if the reported and selected size is smaller than the actual size.
+	 * @return the the inset from the right edge of the reported/selected area.
+	 */
 	public abstract double getHighXOffset();
+
+	/**
+	 * Abstract routine to return the Low Y offset between the actual NodeProto edge and the reported/selected bound.
+	 * Cells always implement this by returning zero.
+	 * PrimitiveNodes may have a nonzero offset if the reported and selected size is smaller than the actual size.
+	 * @return the the inset from the bottom edge of the reported/selected area.
+	 */
 	public abstract double getLowYOffset();
+
+	/**
+	 * Abstract routine to return the High Y offset between the actual NodeProto edge and the reported/selected bound.
+	 * Cells always implement this by returning zero.
+	 * PrimitiveNodes may have a nonzero offset if the reported and selected size is smaller than the actual size.
+	 * @return the the inset from the top edge of the reported/selected area.
+	 */
 	public abstract double getHighYOffset();
 
-	/** Get the Technology to which this NodeProto belongs */
+	/**
+	 * Abstract routine to return the Technology to which this NodeProto belongs.
+	 * For Cells, the Technology varies with the View and contents.
+	 * For PrimitiveNodes, the Technology is simply the one that owns it.
+	 * @return the Technology associated with this NodeProto.
+	 */
 	public abstract Technology getTechnology();
 
-	/** Set the Technology to which this NodeProto belongs (only works for Cells) */
+	/**
+	 * Routine to set the Technology to which this NodeProto belongs
+	 * It can only be called for Cells because PrimitiveNodes have fixed Technology membership.
+	 * @param tech the new technology for this NodeProto (Cell).
+	 */
 	public void setTechnology(Technology tech)
 	{
 		if (this instanceof Cell)
 			this.tech = tech;
 	}
 
-	/** Can this node connect to a particular arc?
-	 * @param arc the type of arc to test for
-	 * @return the first port that can connect to the arc, or null,
-	 * if this node cannot connect to the given arc */
+	/**
+	 * Routine to return the PortProto on this NodeProto that can connect to an arc of the specified type.
+	 * The routine finds a PortProto that can make the connection.
+	 * @param arc the type of arc to connect to an instance of this NodeProto.
+	 * @return a PortProto that can connect to this type of ArcProto.
+	 * Returns null if this ArcProto cannot connect to anything on this NodeProto.
+	 */
 	public PortProto connectsTo(ArcProto arc)
 	{
 		for (int i = 0; i < ports.size(); i++)
@@ -463,21 +808,10 @@ public abstract class NodeProto extends ElectricObject
 		return null;
 	}
 
-	/** If this is an Icon View Cell then return the the corresponding
-	 * Schematic View Cell.
-	 *
-	 * <p> If this isn't an Icon View Cell then return this NodeProto.
-	 *
-	 * <p> If an Icon View Cell has no Schematic View Cell then return
-	 * null.
-	 *
-	 * <p> If there are multiple versions of the Schematic View then
-	 * return the latest version. */
-	public abstract NodeProto getEquivalent();
-
-	/** Get the PortProto that has a particular name.
-	 * @return the PortProto, or null if there is no PortProto with that
-	 * name. */
+	/**
+	 * Routine to find the PortProto that has a particular name.
+	 * @return the PortProto, or null if there is no PortProto with that name.
+	 */
 	public PortProto findPortProto(String name)
 	{
 		for (int i = 0; i < ports.size(); i++)
@@ -489,6 +823,13 @@ public abstract class NodeProto extends ElectricObject
 		return null;
 	}
 
+	/**
+	 * Routine to find the NodeProto with the given name.
+	 * This can be a PrimitiveNode (and can be prefixed by a Technology name),
+	 * or it can be a Cell (and be prefixed by a Library name).
+	 * @param line the name of the NodeProto.
+	 * @return the specified NodeProto, or null if none can be found.
+	 */
 	public static NodeProto findNodeProto(String line)
 	{
 		Technology tech = Technology.getCurrent();
@@ -530,47 +871,9 @@ public abstract class NodeProto extends ElectricObject
 		return null;
 	}
 
-//		/* get the view and version information */
-//		for(pt = line; *pt != 0; pt++) if (*pt == ';' || *pt == '{') break;
-//		nameend = pt;
-//		wantversion = -1;
-//		wantview = el_unknownview;
-//		if (*pt == ';')
-//		{
-//			wantversion = myatoi(pt+1);
-//			for(pt++; *pt != 0; pt++) if (*pt == '{') break;
-//		}
-//		if (*pt == '{')
-//		{
-//			viewname = pt = (pt + 1);
-//			for(; *pt != 0; pt++) if (*pt == '}') break;
-//			if (*pt != '}') return(NONODEPROTO);
-//			*pt = 0;
-//			for(v = el_views; v != NOVIEW; v = v->nextview)
-//				if (namesame(v->sviewname, viewname) == 0 || namesame(v->viewname, viewname) == 0) break;
-//			*pt = '}';
-//			if (v == NOVIEW) return(NONODEPROTO);
-//			wantview = v;
-//		}
-//		save = *nameend;
-//		*nameend = 0;
-//		np = db_findnodeprotoname(line, wantview, lib);
-//		if (np == NONODEPROTO && wantview == el_unknownview)
-//		{
-//			/* search for any view */
-//			for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
-//				if (namesame(line, np->protoname) == 0) break;
-//		}
-//		*nameend = (CHAR)save;
-//		if (np == NONODEPROTO) return(NONODEPROTO);
-//		if (wantversion < 0 || np->version == wantversion) return(np);
-//		for(np = np->prevversion; np != NONODEPROTO; np = np->prevversion)
-//			if (np->version == wantversion) return(np);
-//		return(NONODEPROTO);
-//	}
-
 	/**
-	 * Get an iterator over all PortProtos of this NodeProto
+	 * Routine to return an iterator over all PortProtos of this NodeProto.
+	 * @return an iterator over all PortProtos of this NodeProto.
 	 */
 	public Iterator getPorts()
 	{
@@ -578,7 +881,8 @@ public abstract class NodeProto extends ElectricObject
 	}
 
 	/**
-	 * Get the number of PortProtos on this NodeProto
+	 * Routine to return the number of PortProtos on this NodeProto.
+	 * @return the number of PortProtos on this NodeProto.
 	 */
 	public int getNumPorts()
 	{
@@ -586,8 +890,8 @@ public abstract class NodeProto extends ElectricObject
 	}
 
 	/**
-	 * Get an iterator over all of the NodeInsts in all open Libraries
-	 * that instantiate this NodeProto.
+	 * Routine to return an iterator over all instances of this NodeProto.
+	 * @return an iterator over all instances of this NodeProto.
 	 */
 	public Iterator getInstances()
 	{
@@ -595,12 +899,23 @@ public abstract class NodeProto extends ElectricObject
 	}
 
 	/**
-	 * Routine to describe this NodeProto as a string.
+	 * Abstract routine to describe this NodeProto as a string.
+	 * PrimitiveNodes may prepend their Technology name if it is
+	 * not the current technology (for example, "mocmos:N-Transistor").
+	 * Cells may prepend their Library if it is not the current library,
+	 * and they will include view and version information
+	 * (for example: "Wires:wire100{ic}").
+	 * @return a String describing this NodeProto.
 	 */
 	public abstract String describe();
 
 	/**
-	 * Get the name of this NodeProto.
+	 * Routine to return the name of this NodeProto.
+	 * When this is a PrimitiveNode, the name is just its name in
+	 * the Technology.
+	 * When this is a Cell, the name is the pure cell name, without
+	 * any view or version information.
+	 * @return the prototype name of this NodeProto.
 	 */
 	public String getProtoName()
 	{
@@ -616,6 +931,13 @@ public abstract class NodeProto extends ElectricObject
 		return networks.iterator();
 	}
 
+	/**
+	 * Routine to determine whether a variable name on NodeProtos is deprecated.
+	 * Deprecated variable names are those that were used in old versions of Electric,
+	 * but are no longer valid.
+	 * @param name the name of the variable.
+	 * @return true if the variable name is deprecated.
+	 */
 	public boolean isdeprecatedvariable(String name)
 	{
 		if (name == "NET_last_good_ncc" ||
@@ -624,12 +946,32 @@ public abstract class NodeProto extends ElectricObject
 		return false;
 	}
 
-	/** Low-level routine to get the user bits.  Should not normally be called. */
+	/**
+	 * Low-level routine to get the user bits.
+	 * The "user bits" are a collection of flags that are more sensibly accessed
+	 * through special methods.
+	 * This general access to the bits is required because the binary ".elib"
+	 * file format stores it as a full integer.
+	 * This should not normally be called by any other part of the system.
+	 * @return the "user bits".
+	 */
 	public int lowLevelGetUserbits() { return userBits; }
-	/** Low-level routine to set the user bits.  Should not normally be called. */
+
+	/**
+	 * Low-level routine to set the user bits.
+	 * The "user bits" are a collection of flags that are more sensibly accessed
+	 * through special methods.
+	 * This general access to the bits is required because the binary ".elib"
+	 * file format stores it as a full integer.
+	 * This should not normally be called by any other part of the system.
+	 * @param userBits the new "user bits".
+	 */
 	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
 
-	/** printable version of this object */
+	/**
+	 * Returns a printable version of this NodeProto.
+	 * @return a printable version of this NodeProto.
+	 */
 	public String toString()
 	{
 		return "NodeProto " + describe();

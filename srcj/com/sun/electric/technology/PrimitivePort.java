@@ -33,33 +33,36 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 /**
- * A PrimitivePort lives in a tecnology layer, and is always associated
- * with a primitive node.  It contains a list of ArcProto types that it
- * accepts connections from.  All Exports eventually ground out in a
- * PrimitivePort.
+ * A PrimitivePort lives in a PrimitiveNode in a Tecnology.
+ * It contains a list of ArcProto types that it
+ * accepts connections from.
  */
 public class PrimitivePort extends PortProto
 {
 	// ---------------------------- private data --------------------------
-	//private ShapeProxy proxy; // a proxy determines the port's bounds
 	private ArcProto portArcs[]; // Immutable list of possible connection types.
 	private EdgeH left;
 	private EdgeV bottom;
 	private EdgeH right;
 	private EdgeV top;
 	private Technology tech;
-	protected PortProto.Characteristic characteristic;
+	private PortProto.Characteristic characteristic;
 
 	// ---------------------- protected and private methods ----------------
+
+	/**
+	 * The constructor is only called from the factory method "newInstance".
+	 */
 	private PrimitivePort(Technology tech, PrimitiveNode parent, ArcProto [] portArcs, String protoName,
 		int portAngle, int portRange, int portTopology, EdgeH left, EdgeV bottom, EdgeH right, EdgeV top)
 	{
 		// initialize the parent object
+		super();
 		this.parent = parent;
 		this.protoName = protoName;
-		this.userBits = (portAngle<<PortProto.PORTANGLESH) |
-						(portRange << PortProto.PORTARANGESH) |
-						(portTopology << PortProto.PORTNETSH);
+		setAngle(portAngle);
+		setAngleRange(portRange);
+		setTopology(portTopology);
 
 		// initialize this object
 		this.tech = tech;
@@ -70,6 +73,25 @@ public class PrimitivePort extends PortProto
 		this.top = top;
 	}
 
+	/**
+	 * Routine to create a new PrimitivePort from the parameters.
+	 * @param tech the Technology in which this PrimitivePort is being created.
+	 * @param parent the PrimitiveNode on which this PrimitivePort resides.
+	 * @param portArcs an array of ArcProtos which can connect to this PrimitivePort.
+	 * @param protoName the name of this PrimitivePort.
+	 * @param portAngle the primary angle that the PrimitivePort faces on the PrimitiveNode.
+	 * @param portRange the range about the angle of allowable connections.
+	 * When this value is 180, then all angles are permissible, since arcs
+	 * can connect at up to 180 degrees in either direction from the port angle.
+	 * @param portTopology is a small integer that is unique among PrimitivePorts on the PrimitiveNode.
+	 * When two PrimitivePorts have the same topology number, it indicates that these ports are connected.
+	 * @param characteristic describes the nature of this PrimitivePort (input, output, power, ground, etc.)
+	 * @param left is an EdgeH that describes the left side of the port in a scalable way.
+	 * @param bottom is an EdgeV that describes the bottom side of the port in a scalable way.
+	 * @param right is an EdgeH that describes the right side of the port in a scalable way.
+	 * @param top is an EdgeV that describes the top side of the port in a scalable way.
+	 * @return the newly created PrimitivePort.
+	 */
 	public static PrimitivePort newInstance(Technology tech, PrimitiveNode parent, ArcProto [] portArcs, String protoName,
 		int portAngle, int portRange, int portTopology, PortProto.Characteristic characteristic,
 		EdgeH left, EdgeV bottom, EdgeH right, EdgeV top)
@@ -90,6 +112,10 @@ public class PrimitivePort extends PortProto
 		return pp;
 	}
 
+	/*
+	 * Routine to write a description of this PrimitivePort.
+	 * Displays the description in the Messages Window.
+	 */
 	protected void getInfo()
 	{
 		System.out.println(" Connection types: " + portArcs.length);
@@ -102,28 +128,64 @@ public class PrimitivePort extends PortProto
 
 	// ------------------------ public methods ------------------------
 
-	// Get the bounds for this port with respect to some NodeInst.
-	public void setConnections(ArcProto [] portArcs)
-	{
-		this.portArcs = portArcs;
-	}
+	/**
+	 * Routine to set the list of allowable connections on this PrimitivePort.
+	 * @param portArcs an array of ArcProtos which can connect to this PrimitivePort.
+	 */
+	public void setConnections(ArcProto [] portArcs) { this.portArcs = portArcs; }
 
-	// Get the bounds for this port with respect to some NodeInst.
+	/**
+	 * Routine to return the list of allowable connections on this PrimitivePort.
+	 * @return an array of ArcProtos which can connect to this PrimitivePort.
+	 */
+	public ArcProto [] getConnections() { return portArcs; }
+
+	/**
+	 * Routine to return a Poly that describes the shape of this PrimitivePort on a particular NodeInst.
+	 * @param ni the instance of the PrimitivePort's parent.
+	 * @return the shape of the port.
+	 */
 	public Poly getPoly(NodeInst ni)
 	{
 		return tech.getPoly(ni, this);
 	}
 
-	/** Return this object (it *is* a base port) */
+	/**
+	 * Routine to return the base-level port that this PortProto is created from.
+	 * Since it is a PrimitivePort, it simply returns itself.
+	 * @return the base-level port that this PortProto is created from (this).
+	 */
 	public PrimitivePort getBasePort() { return this; }
+
+	/**
+	 * Routine to return the left edge of the PrimitivePort as a value that scales with the actual NodeInst.
+	 * @return an EdgeH object that describes the left edge of the PrimitivePort.
+	 */
 	public EdgeH getLeft() { return left; }
+
+	/**
+	 * Routine to return the right edge of the PrimitivePort as a value that scales with the actual NodeInst.
+	 * @return an EdgeH object that describes the right edge of the PrimitivePort.
+	 */
 	public EdgeH getRight() { return right; }
+
+	/**
+	 * Routine to return the top edge of the PrimitivePort as a value that scales with the actual NodeInst.
+	 * @return an EdgeV object that describes the top edge of the PrimitivePort.
+	 */
 	public EdgeV getTop() { return top; }
+
+	/**
+	 * Routine to return the bottom edge of the PrimitivePort as a value that scales with the actual NodeInst.
+	 * @return an EdgeV object that describes the bottom edge of the PrimitivePort.
+	 */
 	public EdgeV getBottom() { return bottom; }
 
-	/** can this port connect to a particular arc type?
-	 * @param arc the arc type to test for
-	 * @return true if this port can connect to the arc, false if it can't */
+	/**
+	 * Routine to return true if this PrimitivePort can connect to an arc of a given type.
+	 * @param arc the ArcProto to test for connectivity.
+	 * @return true if this PrimitivePort can connect to the arc, false if it can't
+	 */
 	public boolean connectsTo(ArcProto arc)
 	{
 		for (int i = 0; i < portArcs.length; i++)
@@ -134,59 +196,12 @@ public class PrimitivePort extends PortProto
 		return false;
 	}
 
-	class ArcTypeIterator implements Iterator
-	{
-		ArcProto types[];
-		int idx;
-
-		public ArcTypeIterator(ArcProto types[])
-		{
-			this.types = types;
-			this.idx = 0;
-		}
-
-		public boolean hasNext()
-		{
-			return idx < types.length;
-		}
-
-		public Object next() throws NoSuchElementException
-		{
-			if (idx >= types.length)
-			{
-				throw new NoSuchElementException("No more portArcs");
-			}
-			return types[idx++];
-		}
-
-		public void remove() throws UnsupportedOperationException
-		{
-			throw new UnsupportedOperationException("Can't remove ArcType");
-		}
-	}
-
-	/** Get an iterator over the possible arc connection types */
-	public Iterator getConnectionTypes()
-	{
-		return new ArcTypeIterator(portArcs);
-	}
-
+	/**
+	 * Returns a printable version of this PrimitivePort.
+	 * @return a printable version of this PrimitivePort.
+	 */
 	public String toString()
 	{
 		return "PrimitivePort " + protoName;
 	}
-
-	public PortProto getEquivalent() { return this; }
-	
-	/** Get the first "real" (non-zero width) ArcProto style that can
-	 * connect to this port. */
-//	public ArcProto getWire()
-//	{
-//		for (int i = 0; i < portArcs.length; i++)
-//		{
-//			if (portArcs[i].getBaseWidth() > 0)
-//				return portArcs[i];
-//		}
-//		return portArcs[0];
-//	}
 }

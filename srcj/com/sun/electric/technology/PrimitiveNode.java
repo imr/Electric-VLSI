@@ -40,10 +40,10 @@ import java.util.Iterator;
 public class PrimitiveNode extends NodeProto
 {
 	// constants used in the "specialValues" field
-	/** serpentine transistor */					public static final int SERPTRANS = 1;
-	/** polygonally defined transistor */			public static final int POLYGONAL = 2;
-	/** multi-cut contact */						public static final int MULTICUT =  3;
-	/** MOS transistor (nonserpentine) */			public static final int MOSTRANS =  4;
+	/** Defines a serpentine transistor. */					public static final int SERPTRANS = 1;
+	/** Defines a polygonal transistor. */					public static final int POLYGONAL = 2;
+	/** Defines a multi-cut contact. */						public static final int MULTICUT =  3;
+	/** Defines a MOS transistor (nonserpentine). */		public static final int MOSTRANS =  4;
 
 	// --------------------- private data -----------------------------------
 	
@@ -54,7 +54,10 @@ public class PrimitiveNode extends NodeProto
 	/** offset from database to user */				private SizeOffset offset;
 
 	// ------------------ private and protected methods ----------------------
-	
+
+	/**
+	 * The constructor is never called externally.  Use the factory "newInstance" instead.
+	 */
 	private PrimitiveNode(String protoName, Technology tech, double defWidth, double defHeight,
 		SizeOffset offset, Technology.NodeLayer [] layers)
 	{
@@ -68,6 +71,7 @@ public class PrimitiveNode extends NodeProto
 		this.specialValues = new int [] {0,0,0,0,0,0};
 		this.defWidth = defWidth;
 		this.defHeight = defHeight;
+		if (offset == null) offset = new SizeOffset(0,0,0,0);
 		this.offset = offset;
 
 		// add to the nodes in this technology
@@ -76,6 +80,16 @@ public class PrimitiveNode extends NodeProto
 
 	// ------------------------- public methods -------------------------------
 
+	/**
+	 * Routine to create a new PrimitiveNode from the parameters.
+	 * @param protoName the name of the PrimitiveNode.
+	 * @param tech the Technology of the PrimitiveNode.
+	 * @param width the width of the PrimitiveNode.
+	 * @param height the height of the PrimitiveNode.
+	 * @param offset the offset from the edges of the reported/selected part of the PrimitiveNode.
+	 * @param layers the Layers that comprise the PrimitiveNode.
+	 * @return the newly created PrimitiveNode.
+	 */
 	public static PrimitiveNode newInstance(String protoName, Technology tech, double width, double height,
 		SizeOffset offset, Technology.NodeLayer [] layers)
 	{
@@ -95,25 +109,67 @@ public class PrimitiveNode extends NodeProto
 		return pn;
 	}
 
+	/**
+	 * Routine to return the list of Layers that comprise this PrimitiveNode.
+	 * @return the list of Layers that comprise this PrimitiveNode.
+	 */
 	public Technology.NodeLayer [] getLayers() { return layers; }
-	
+
+	/**
+	 * Routine to set the default size of this PrimitiveNode.
+	 * @param defWidth the new default width of this PrimitiveNode.
+	 * @param defHeight the new default height of this PrimitiveNode.
+	 */
 	public void setDefSize(double defWidth, double defHeight)
 	{
 		this.defWidth = defWidth;
 		this.defHeight = defHeight;
 	}
+
+	/**
+	 * Routine to return the default width of this PrimitiveNode.
+	 * @return the default width of this PrimitiveNode.
+	 */
 	public double getDefWidth() { return defWidth; }
+
+	/**
+	 * Routine to return the default height of this PrimitiveNode.
+	 * @return the default height of this PrimitiveNode.
+	 */
 	public double getDefHeight() { return defHeight; }
 
-//	public void setSizeOffset(double widthOffset, double heightOffset)
-//	{
-//		this.widthOffset = widthOffset;
-//		this.heightOffset = heightOffset;
-//	}
+	/**
+	 * Routine to return the low-X offset of this PrimitiveNode.
+	 * This is the difference between the stored left side and the selected/reported left side.
+	 * @return the low-X offset of this PrimitiveNode.
+	 */
 	public double getLowXOffset() { return offset.getLowXOffset(); }
+
+	/**
+	 * Routine to return the high-X offset of this PrimitiveNode.
+	 * This is the difference between the stored right side and the selected/reported right side.
+	 * @return the high-X offset of this PrimitiveNode.
+	 */
 	public double getHighXOffset() { return offset.getHighXOffset(); }
+
+	/**
+	 * Routine to return the low-Y offset of this PrimitiveNode.
+	 * This is the difference between the stored bottom side and the selected/reported bottom side.
+	 * @return the low-Y offset of this PrimitiveNode.
+	 */
 	public double getLowYOffset() { return offset.getLowYOffset(); }
+
+	/**
+	 * Routine to return the high-Y offset of this PrimitiveNode.
+	 * This is the difference between the stored top side and the selected/reported top side.
+	 * @return the high-Y offset of this PrimitiveNode.
+	 */
 	public double getHighYOffset() { return offset.getHighYOffset(); }
+
+	/**
+	 * Routine to return the Technology of this PrimitiveNode.
+	 * @return the Technology of this PrimitiveNode.
+	 */
 	public Technology getTechnology() { return tech; }
 
 	public void addPrimitivePorts(PrimitivePort [] ports)
@@ -124,7 +180,38 @@ public class PrimitiveNode extends NodeProto
 		}
 	}
 
+	/**
+	 * Routine to return the special values stored on this PrimitiveNode.
+	 * The special values are an array of integers that describe unusual features of the PrimitiveNode.
+	 * Element [0] of the array is one of SERPTRANS, POLYGONAL, MULTICUT, or MOSTRANS.
+	 * Other values depend on the first entry:
+	 * <UL>
+	 * <LI>for MULTICUT:
+	 *   <UL>
+	 *   <LI>cut size is [1] x [2]
+	 *   <LI>cut indented [3] from highlighting
+	 *   <LI>cuts spaced [4] apart
+	 *   </UL>
+	 * <LI>for SERPTRANS:
+	 *   <UL>
+	 *   <LI>layer count is [1]
+	 *   <LI>active port inset [2] from end of serpentine path
+	 *   <LI>active port is [3] from poly edge
+	 *   <LI>poly width is [4]
+	 *   <LI>poly port inset [5] from poly edge
+	 *   <LI>poly port is [6] from active edge
+	 *   </UL>
+	 * @return the special values stored on this PrimitiveNode.
+	 */
 	public int [] getSpecialValues() { return specialValues; }
+
+	/**
+	 * Routine to set the special values stored on this PrimitiveNode.
+	 * The special values are an array of integers that describe unusual features of the PrimitiveNode.
+	 * The first element of the array is one of SERPTRANS, POLYGONAL, MULTICUT, or MOSTRANS.
+	 * Other values depend on the first entry (see the documentation for "getSpecialValues").
+	 * @param specialValues the special values for this PrimitiveNode.
+	 */
 	public void setSpecialValues(int [] specialValues) { this.specialValues = specialValues; }
 
 	/**
@@ -135,15 +222,10 @@ public class PrimitiveNode extends NodeProto
 		return (getFunction() == NodeProto.Function.PIN);
 	}
 
-	/** A PrimitiveNode is its own equivalent. */
-	public NodeProto getEquivalent()
-	{
-		return this;
-	}
-	
 	/**
-	 * Routine to describe this Primitive NodeProto as a string.
+	 * Routine to describe this PrimitiveNode as a string.
 	 * If the primitive is not from the current technology, prepend the technology name.
+	 * @return a description of this PrimitiveNode.
 	 */
 	public String describe()
 	{
@@ -154,27 +236,12 @@ public class PrimitiveNode extends NodeProto
 		return name;
 	}
 
+	/**
+	 * Returns a printable version of this PrimitiveNode.
+	 * @return a printable version of this PrimitiveNode.
+	 */
 	public String toString()
 	{
 		return "PrimitiveNode " + describe();
 	}
-
-//	/**
-//	 * Get the Electric bounds.  This excludes invisible widths. Base units
-//	 */
-//	Rectangle2D getVisBounds()
-//	{
-//		return new Rectangle2D.Double(
-//			elecBounds.x + sizeOffset.lx,
-//			elecBounds.y + sizeOffset.ly,
-//			elecBounds.width - sizeOffset.lx - sizeOffset.hx,
-//			elecBounds.height - sizeOffset.ly - sizeOffset.hy);
-//	}
-
-//	public SizeOffset getSizeOffset()
-//	{
-//		// Essential bounds never have a size offset
-//		return sizeOffset;
-//	}
-
 }

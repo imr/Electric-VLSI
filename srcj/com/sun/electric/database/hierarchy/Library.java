@@ -57,7 +57,7 @@ public class Library extends ElectricObject
 //	/** library is unwanted (used during input) */			private static final int UNWANTEDLIB =             0400;
 
 	/** name of this library  */							private String libName;
-	/** file location of this library */					private String fileName;
+	/** file location of this library */					private String libFile;
 	/** list of Cells in this library */					private ArrayList cells;
 	/** Cell currently being edited */						private Cell curCell;
 	/** flag bits */										private int userBits;
@@ -67,24 +67,62 @@ public class Library extends ElectricObject
 
 	// ----------------- private and protected methods --------------------
 
-	public static class LibraryName
+	/**
+	 * A Name is a text-parsing object for Library names.
+	 * Library names have a full path, a file name, and an extension.
+	 */
+	public static class Name
 	{
 		private String path;
 		private String name;
 		private String extension;
 
-		private LibraryName() {}
+		private Name() {}
 
+		/**
+		 * Routine to return the path to the Library name.
+		 * The path does not include the actual file name or extension.
+		 * @return the path to the Library name.
+		 */
 		public String getPath() { return path; }
+
+		/**
+		 * Routine to return the name of the Library name.
+		 * The name does not include the full path to the file or extension.
+		 * @return the name of the Library.
+		 */
 		public String getName() { return name; }
+
+		/**
+		 * Routine to set the name of the Library name.
+		 * The name does not include the full path to the file or extension.
+		 * @param name the name of the Library.
+		 */
 		public void setName(String name) { this.name = name; }
+
+		/**
+		 * Routine to return the extension of the Library name.
+		 * The extension does not include the dot, so it is "elib" or "txt", etc.
+		 * @return the extension of the Library.
+		 */
 		public String getExtension() { return extension; }
+
+		/**
+		 * Routine to set the extension of the Library name.
+		 * The extension does not include the dot, so it is "elib" or "txt", etc.
+		 * @param extension the extension of the Library name.
+		 */
 		public void setExtension(String extension) { this.extension = extension; }
 
-		public static LibraryName newInstance(String libFile)
+		/**
+		 * Routine to create a new Name object from the specified Library file name.
+		 * @param libFile the full name of the Library disk file.
+		 * @return a Name object with the path, file name, and extension broken out.
+		 */
+		public static Name newInstance(String libFile)
 		{
-			// figure out the view and version of the cell
-			LibraryName n = new LibraryName();
+			// figure out the actual library name and library file
+			Name n = new Name();
 			File f = new File(libFile);
 			n.path = f.getParent();
 			n.name = f.getName();
@@ -97,6 +135,10 @@ public class Library extends ElectricObject
 			return n;
 		}
 
+		/**
+		 * Routine to convert this Name object to a full path name.
+		 * @return the full path name to the Library file.
+		 */
 		public String makeName()
 		{
 			String libFile = path + File.separator + name;
@@ -105,18 +147,25 @@ public class Library extends ElectricObject
 		}
 	}
 
+	/**
+	 * The constructor is never called.  Use the factor method "newInstance" instead.
+	 */
 	private Library()
 	{
 	}
 
 	/**
-	 * The factory to create new libraries.
+	 * This routine is a factory to create new libraries.
+	 * @param libName the name of the library (for example, "gates").
+	 * Library names must be unique, and they must not contain spaces.
+	 * @param libFile the full path to the disk file (for example "/home/strubin/gates.elib").
+	 * @return the Library object.
 	 */
-	public static Library newInstance(String libraryName, String libraryFile)
+	public static Library newInstance(String libName, String libFile)
 	{
 		// make sure the name is legal
-		String legalName = libraryName.replace(' ', '-');
-		if (!legalName.equalsIgnoreCase(libraryName))
+		String legalName = libName.replace(' ', '-');
+		if (!legalName.equalsIgnoreCase(libName))
 			System.out.println("Warning: library renamed to '" + legalName + "'");
 		
 		// see if the library name already exists
@@ -132,13 +181,39 @@ public class Library extends ElectricObject
 		lib.cells = new ArrayList();
 		lib.curCell = null;
 		lib.libName = legalName;
-		lib.fileName = libraryFile;
+		lib.libFile = libFile;
 	
 		// add the library to the global list
 		libraries.add(lib);
 		Library.setCurrent(lib);
 
 		return lib;
+	}
+
+	/**
+	 * Routine to delete this Library.
+	 */
+	public void killLibrary()
+	{
+		// cannot delete the current library
+		if (curLib == this)
+		{
+			System.out.println("Cannot delete the current library");
+			return;
+		}
+
+		// make sure it is in the list of libraries
+		if (!libraries.contains(this))
+		{
+			System.out.println("Cannot delete library " + this);
+			return;
+		}
+
+		// remove all cells in the library
+//		removeAll(cells);
+
+		// remove it from the list of libraries
+		libraries.remove(this);
 	}
 
 	void addCell(Cell c)
@@ -165,80 +240,143 @@ public class Library extends ElectricObject
 
 	// ----------------- public interface --------------------
 
-	/** Set the Major-Change bit */
+	/**
+	 * Routine to indicate that this Library has changed in a major way.
+	 * Major changes include creation, deletion, or modification of circuit elements.
+	 */
 	public void setChangedMajor() { userBits |= LIBCHANGEDMAJOR; }
-	/** Clear the Major-Change bit */
+
+	/**
+	 * Routine to indicate that this Library has not changed in a major way.
+	 * Major changes include creation, deletion, or modification of circuit elements.
+	 */
 	public void clearChangedMajor() { userBits &= ~LIBCHANGEDMAJOR; }
-	/** Get the Major-Change bit */
+
+	/**
+	 * Routine to return true if this Library has changed in a major way.
+	 * Major changes include creation, deletion, or modification of circuit elements.
+	 * @return true if this Library has changed in a major way.
+	 */
 	public boolean isChangedMajor() { return (userBits & LIBCHANGEDMAJOR) != 0; }
 
-	/** Set the Minor-Change bit */
+	/**
+	 * Routine to indicate that this Library has changed in a minor way.
+	 * Minor changes include changes to text and other things that are not essential to the circuitry.
+	 */
 	public void setChangedMinor() { userBits |= LIBCHANGEDMINOR; }
-	/** Clear the Minor-Change bit */
+
+	/**
+	 * Routine to indicate that this Library has not changed in a minor way.
+	 * Minor changes include changes to text and other things that are not essential to the circuitry.
+	 */
 	public void clearChangedMinor() { userBits &= ~LIBCHANGEDMINOR; }
-	/** Get the Minor-Change bit */
+
+	/**
+	 * Routine to return true if this Library has changed in a minor way.
+	 * Minor changes include changes to text and other things that are not essential to the circuitry.
+	 * @return true if this Library has changed in a minor way.
+	 */
 	public boolean isChangedMinor() { return (userBits & LIBCHANGEDMINOR) != 0; }
 
-	/** Set the Came-from-Disk bit */
+	/**
+	 * Routine to indicate that this Library came from disk.
+	 * Libraries that come from disk are saved without a file-selection dialog.
+	 */
 	public void setFromDisk() { userBits |= READFROMDISK; }
-	/** Clear the Came-from-Disk bit */
+
+	/**
+	 * Routine to indicate that this Library did not come from disk.
+	 * Libraries that come from disk are saved without a file-selection dialog.
+	 */
 	public void clearFromDisk() { userBits &= ~READFROMDISK; }
-	/** Get the Came-from-Disk bit */
+
+	/**
+	 * Routine to return true if this Library came from disk.
+	 * Libraries that come from disk are saved without a file-selection dialog.
+	 * @return true if this Library came from disk.
+	 */
 	public boolean isFromDisk() { return (userBits & READFROMDISK) != 0; }
 
-	/** Set the Hidden bit */
+	/**
+	 * Routine to indicate that this Library is hidden.
+	 * Hidden libraries are not seen by the user.
+	 * For example, the "clipboard" library is hidden because it is only used
+	 * internally for copying and pasting circuitry.
+	 */
 	public void setHidden() { userBits |= HIDDENLIBRARY; }
-	/** Clear the Hidden bit */
+
+	/**
+	 * Routine to indicate that this Library is not hidden.
+	 * Hidden libraries are not seen by the user.
+	 * For example, the "clipboard" library is hidden because it is only used
+	 * internally for copying and pasting circuitry.
+	 */
 	public void clearHidden() { userBits &= ~HIDDENLIBRARY; }
-	/** Get the Hidden bit */
+
+	/**
+	 * Routine to return true if this Library is hidden.
+	 * Hidden libraries are not seen by the user.
+	 * For example, the "clipboard" library is hidden because it is only used
+	 * internally for copying and pasting circuitry.
+	 * @return true if this Library is hidden.
+	 */
 	public boolean isHidden() { return (userBits & HIDDENLIBRARY) != 0; }
 
-	/** Set the Units value */
+	/**
+	 * Routine to set the Units value for this Library.
+	 * The Units indicate which display units to use for distance, voltage, current, etc.
+	 */
 	public void setUnits(int value) { userBits = (userBits & ~LIBUNITS) | (value << LIBUNITSSH); }
-	/** Get the Units value */
+
+	/**
+	 * Routine to get the Units value for this Library.
+	 * The Units indicate which display units to use for distance, voltage, current, etc.
+	 * @return the Units value for this Library.
+	 */
 	public int getUnits() { return (userBits & LIBUNITS) >> LIBUNITSSH; }
 
-	public void killLibrary()
-	{
-		// cannot delete the current library
-		if (curLib == this)
-		{
-			System.out.println("Cannot delete the current library");
-			return;
-		}
-
-		// make sure it is in the list of libraries
-		if (!libraries.contains(this))
-		{
-			System.out.println("Cannot delete library " + this);
-			return;
-		}
-
-		// remove all cells in the library
-//		removeAll(cells);
-
-		// remove it from the list of libraries
-		libraries.remove(this);
-	}
-	
 	/**
-	 * Return the current Library
+	 * Routine to return the current Library.
+	 * @return the current Library.
 	 */
 	public static Library getCurrent() { return curLib; }
 	
 	/**
-	 * Set the current Library
+	 * Routine to set the current Library.
+	 * @param lib the new current Library.
 	 */
 	public static void setCurrent(Library lib) { curLib = lib; }
 	
-	/** Low-level routine to get the user bits for this Library.  Should not normally be called. */
+	/**
+	 * Low-level routine to get the user bits.
+	 * The "user bits" are a collection of flags that are more sensibly accessed
+	 * through special methods.
+	 * This general access to the bits is required because the binary ".elib"
+	 * file format stores it as a full integer.
+	 * This should not normally be called by any other part of the system.
+	 * @return the "user bits".
+	 */
 	public int lowLevelGetUserBits() { return userBits; }
 	
-	/** Low-level routine to set the user bits for this Library.  Should not normally be called. */
+	/**
+	 * Low-level routine to set the user bits.
+	 * The "user bits" are a collection of flags that are more sensibly accessed
+	 * through special methods.
+	 * This general access to the bits is required because the binary ".elib"
+	 * file format stores it as a full integer.
+	 * This should not normally be called by any other part of the system.
+	 * @param userBits the new "user bits".
+	 */
 	public void lowLevelSetUserBits(int userBits) { this.userBits = userBits; }
 
 	private static DefaultMutableTreeNode explorerTree = null;
 
+	/**
+	 * Routine to return the tree structure that defines the current cell explorer.
+	 * This is a tree of DefaultMutableTreeNode objects that can be used to
+	 * explore the cell hierarchy.
+	 * @return the tree structure that defines the current cell explorer.
+	 */
 	public static DefaultMutableTreeNode getExplorerTree()
 	{
 		if (explorerTree == null)
@@ -261,9 +399,9 @@ public class Library extends ElectricObject
 	}
 
 	/**
-	 * Check all currently loaded Libraries for one named <code>libName</code>.
-	 * @param libName the name of the library.
-	 * Note that this is not the name of the library file.
+	 * Routine to find a Library with the specified name.
+	 * @param libName the name of the Library.
+	 * Note that this is the Library name, and not the Library file.
 	 * @return the Library, or null if there is no known Library by that name.
 	 */
 	public static Library findLibrary(String libName)
@@ -279,6 +417,7 @@ public class Library extends ElectricObject
 
 	/**
 	 * Return an iterator over all libraries.
+	 * @return an iterator over all libraries.
 	 */
 	public static Iterator getLibraries()
 	{
@@ -286,12 +425,14 @@ public class Library extends ElectricObject
 	}
 
 	/**
-	 * Get the name of this Library
+	 * Routine to return the name of this Library.
+	 * @return the name of this Library.
 	 */
 	public String getLibName() { return libName; }
 
 	/**
-	 * Set the disk file of this Library
+	 * Routine to set the name of this Library.
+	 * @param libName the new name of this Library.
 	 */
 	public void setLibName(String libName)
 	{
@@ -299,18 +440,24 @@ public class Library extends ElectricObject
 	}
 
 	/**
-	 * Get the disk file of this Library
+	 * Routine to return the disk file of this Library.
+	 * @return the disk file of this Library.
 	 */
-	public String getLibFile() { return fileName; }
+	public String getLibFile() { return libFile; }
 
 	/**
-	 * Set the disk file of this Library
+	 * Routine to set the disk file of this Library.
+	 * @param libFile the new disk file of this Library.
 	 */
-	public void setLibFile(String fileName)
+	public void setLibFile(String libFile)
 	{
-		this.fileName = fileName;
+		this.libFile = libFile;
 	}
 
+	/**
+	 * Returns a printable version of this Library.
+	 * @return a printable version of this Library.
+	 */
 	public String toString()
 	{
 		return "Library " + libName;
@@ -319,19 +466,22 @@ public class Library extends ElectricObject
 	// ----------------- cells --------------------
 
 	/**
-	 * Get the cell that is currently being edited in this library,
-	 * or NULL if there is no such cell.
+	 * Routine to get the current Cell in this Library.
+	 * @return the current Cell in this Library.
+	 * Returns NULL if there is no current Cell.
 	 */
 	public Cell getCurCell() { return curCell; }
 
 	/**
-	 * Set the cell that is currently being edited in this library.
+	 * Routine to set the current Cell in this Library.
+	 * @param curCell the new current Cell in this Library.
 	 */
 	public void setCurCell(Cell curCell) { this.curCell = curCell; }
 
 	/**
-	 * Get the cell from this library that has a particular name.  The
-	 * name should be of the form "foo{sch}" or "foo;3{sch}"
+	 * Routine to find the Cell with the given name in this Library.
+	 * @param name the name of the desired Cell.
+	 * @return the Cell with the given name in this Library.
 	 */
 	public Cell findNodeProto(String name)
 	{
@@ -349,6 +499,10 @@ public class Library extends ElectricObject
 		return null;
 	}
 
+	/**
+	 * Routine to return an Iterator over all Cells in this Library.
+	 * @return an Iterator over all Cells in this Library.
+	 */
 	public Iterator getCells()
 	{
 		return cells.iterator();

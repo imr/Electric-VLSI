@@ -25,20 +25,62 @@ package com.sun.electric.database.text;
 
 import java.lang.Character;
 
+/**
+ * A Version is a text-parsing object for Electric's version number.
+ * Electric's current version has the form:<BR>
+ * <CENTER>Major.Minor[Details]</CENTER><BR>
+ * where <I>Major</I> is the major release number,
+ * <I>Minor</I> is the minor release number within the major release,
+ * and <I>Details</I> are sub-release values which can be letters or numbers.
+ * <P>
+ * If Details are omitted, then this is a full release of Electric.
+ * If Details are present, then this is an interim release.
+ * The Details can take two forms: letters or numbers with a dot in front.
+ * <P>
+ * Examples:
+ *  6.03a
+ *  7.04.1
+ *  6.08
+ */
 public class Version
 {
-	int major;
-	int minor;
-	int details;
+	private int major;
+	private int minor;
+	private int details;
 
-	public static final String CURRENT = "7.00aa";
+	/**
+	 * This is the current version of Electric
+	 */
+	public static final String CURRENT = "7.01a";
 
+	/**
+	 * Constructs a <CODE>Version</CODE> (cannot be called).
+	 */
 	private Version() {}
 	
+	/**
+	 * Routine to return the major part of a parsed Version number.
+	 * @return the major part of a parsed Version number.
+	 */
 	public int getMajor() { return major; }
+
+	/**
+	 * Routine to return the minor part of a parsed Version number.
+	 * @return the minor part of a parsed Version number.
+	 */
 	public int getMinor() { return minor; }
+
+	/**
+	 * Routine to return the details part of a parsed Version number.
+	 * @return the details part of a parsed Version number.
+	 */
 	public int getDetail() { return details; }
 
+	/**
+	 * Routine to parse the specified Version number and return a Version object.
+	 * @param version the version of Electric.
+	 * @return a Version object with the fields parsed.
+	 */
 	public static Version parseVersion(String version)
 	{
 		// create an object to hold the version results

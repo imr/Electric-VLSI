@@ -31,8 +31,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 /**
- * A view is simply an object with a name that represents a representation
- * style, e.g. schematic, layout, etc.
+ * A View is an object that represents a style of design, for example schematic, layout, etc.
+ * Each Cell has a View associated with it.
+ * Electric has a set of Views at the start, and users can define their own.
  */
 public class View extends ElectricObject
 {
@@ -51,46 +52,49 @@ public class View extends ElectricObject
 
 	// -------------------------- public data -----------------------------
 
-	/** the unknown view */
+	/** Defines the unknown view. */
 		public static final View UNKNOWN = newInstance("unknown", "");
-	/** the simulation snapshot view */
+	/** Defines the simulation snapshot view. */
 		public static final View SIMSNAP = newInstance("simulation-snapshot", "sim");
-	/** the NetLisp (netlist) view */
+	/** Defines the NetLisp (netlist) view. */
 		public static final View NETLISTNETLISP = newTextInstance("netlist-netlisp-format", "net-netlisp");
-	/** the RSIM (netlist) view */
+	/** Defines the RSIM (netlist) view. */
 		public static final View NETLISTRSIM = newTextInstance("netlist-rsim-format", "net-rsim");
-	/** the SILOS (netlist) view */
+	/** Defines the SILOS (netlist) view. */
 		public static final View NETLISTSILOS = newTextInstance("netlist-silos-format", "net-silos");
-	/** the QUISC (netlist) view */
+	/** Defines the QUISC (netlist) view. */
 		public static final View NETLISTQUISC = newTextInstance("netlist-quisc-format", "net-quisc");
-	/** the ALS (netlist) view */
+	/** Defines the ALS (netlist) view. */
 		public static final View NETLISTALS = newTextInstance("netlist-als-format", "net-als");
-	/** the general Netlist view */
+	/** Defines the general Netlist view. */
 		public static final View NETLIST = newTextInstance("netlist", "net");
-	/** the VHDL view */
+	/** Defines the VHDL view. */
 		public static final View VHDL = newTextInstance("VHDL", "vhdl");
-	/** the Verilog view */
+	/** Defines the Verilog view. */
 		public static final View VERILOG = newTextInstance("Verilog", "ver");
-	/** the Skeleton view */
+	/** Defines the Skeleton view. */
 		public static final View SKELETON = newInstance("skeleton", "sk");
-	/** the Compensated view */
+	/** Defines the Compensated view. */
 		public static final View COMP = newInstance("compensated", "comp");
-	/** the Documentation view */
+	/** Defines the Documentation view. */
 		public static final View DOC = newTextInstance("documentation", "doc");
-	/** the Icon view */
+	/** Defines the Icon view. */
 		public static final View ICON = newInstance("icon", "ic");
-	/** the Schematic view */
+	/** Defines the Schematic view. */
 		public static final View SCHEMATIC = newInstance("schematic", "sch");
-	/** the Layout view */
+	/** Defines the Layout view. */
 		public static final View LAYOUT = newInstance("layout", "lay");
 
 	// -------------------------- private methods -----------------------------
 
+	/**
+	 * This constructor is never called.  Use the factory "makeInstance" instead.
+	 */
 	private View()
 	{
 	}
 
-	public static View makeInstance(String fullName, String shortName, int type)
+	private static View makeInstance(String fullName, String shortName, int type)
 	{
 		// make sure the view doesn't already exist
 		if (viewNames.get(shortName) != null)
@@ -122,19 +126,35 @@ public class View extends ElectricObject
 
 	// -------------------------- public methods -----------------------------
 
+	/**
+	 * Routine to create a View with the given name.
+	 * @param fullName the full name of the View, for example "layout".
+	 * @param shortName the short name of the View, for example "lay".
+	 * The short name is used inside of braces when naming a cell (for example "gate{lay}").
+	 * @return the newly created View.
+	 */
 	public static View newInstance(String fullName, String shortName)
 	{
 		return makeInstance(fullName, shortName, 0);
 	}
 
+	/**
+	 * Routine to create a Text-only View with the given name.
+	 * Cells with text-only views have no nodes or arcs, just text.
+	 * @param fullName the full name of the View, for example "documentation".
+	 * @param shortName the short name of the View, for example "doc".
+	 * The short name is used inside of braces when naming a cell (for example "gate{doc}").
+	 * @return the newly created Text-only View.
+	 */
 	public static View newTextInstance(String fullName, String shortName)
 	{
 		return makeInstance(fullName, shortName, TEXTVIEW);
 	}
 
 	/**
-	 * Retrieve a view using its full or short name.  Return null if
-	 * no such view.
+	 * Routine to return a View using its full or short name.
+	 * @param name the name of the View.
+	 * @return the named View, or null if no such View exists.
 	 */
 	public static View getView(String name)
 	{
@@ -142,44 +162,73 @@ public class View extends ElectricObject
 	}
 
 	/**
-	 * get the full name of this view.  This is a complete word, like
-	 * schematic
+	 * Routine to return the full name of this View.
+	 * @return the full name of this View.
 	 */
 	public String getFullName() { return fullName; }
 
 	/**
-	 * get the short name of this view.  This is the short sequence of
-	 * characters you usually see inside the {} in Facet descriptions,
-	 * e.g. sch
+	 * Routine to return the short name of this View.
+	 * The short name is used inside of braces when naming a cell (for example "gate{doc}").
+	 * @return the short name of this View.
 	 */
 	public String getShortName() { return shortName; }
 
-	/** Sets the temporary integer value. */
+	/**
+	 * Routine to set an arbitrary integer in a temporary location on this View.
+	 * @param tempInt the integer to be set on this View.
+	 */
 	public void setTempInt(int tempInt) { this.tempInt = tempInt; }
-	/** Returns the temporary integer value. */
+
+	/**
+	 * Routine to get the temporary integer on this View.
+	 * @return the temporary integer on this View.
+	 */
 	public int getTempInt() { return tempInt; }
 
-	/** Get the Text-view bit */
+	/**
+	 * Routine to return true if this View is Text-only.
+	 * Cells with text-only views have no nodes or arcs, just text.
+	 * @return true if this View is Text-only.
+	 */
 	public boolean isTextView() { return (type & TEXTVIEW) != 0; }
 
-	/** Get the Multipage-view bit */
+	/**
+	 * Routine to return true if this View is Multipage.
+	 * Multipage views are those where multiple cells are used to compose a single circuit.
+	 * @return true if this View is Text-only.
+	 */
 	public boolean isMultiPageView() { return (type & MULTIPAGEVIEW) != 0; }
 
-	/** Get the ermanent-view bit */
+	/**
+	 * Routine to return true if this View is permanent.
+	 * Permanent views are those that are created initially, and cannot be deleted.
+	 * @return true if this View is permanent.
+	 */
 	public boolean isPermanentView() { return (type & PERMANENTVIEW) != 0; }
 
-	/** Get an ordered array of the views. */
+	/**
+	 * Routine to return an iterator over the views.
+	 * @return an iterator over the views.
+	 */
 	public static Iterator getViews()
 	{
 		return views.iterator();
 	}
 
-	/** Get the number of views. */
+	/**
+	 * Routine to return the number of views.
+	 * @return the number of views.
+	 */
 	public static int getNumViews()
 	{
 		return views.size();
 	}
 
+	/**
+	 * Returns a printable version of this View.
+	 * @return a printable version of this View.
+	 */
 	public String toString()
 	{
 		return "View " + fullName;

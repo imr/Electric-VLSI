@@ -33,18 +33,28 @@ import java.awt.geom.Point2D;
 import java.util.Iterator;
 
 /**
- * The PrimitiveArc class contains basic information about an arc type.
- * There is only one PrimitiveArc object for each type of wire or arc.
+ * The PrimitiveArc class defines a type of ArcInst.
+ * It is an implementation of the ArcProto class.
+ * <P>
+ * Every arc in the database appears as one <I>prototypical</I> object and many <I>instantiative</I> objects.
+ * Thus, for a PrimitiveArc such as the CMOS Metal-1 there is one object (called a PrimitiveArc, which is a ArcProto)
+ * that describes the wire prototype and there are many objects (called ArcInsts),
+ * one for every instance of a Metal-1 wire that appears in a circuit.
+ * PrimitiveArcs are statically created and placed in the Technology objects.
+ * <P>
+ * The basic PrimitiveArc has Layers that describe it graphically.
  */
 public class PrimitiveArc extends ArcProto
 {
 	// ----------------------- private data -------------------------------
 
-	/** function of this arc */							private Function function;
 	/** Layers in this arc */							private Technology.ArcLayer [] layers;
 
 	// ----------------- protected and private methods -------------------------
 
+	/**
+	 * The constructor is never called.  Use the factory "newInstance" instead.
+	 */
 	private PrimitiveArc(Technology tech, String protoName, double defaultWidth, Technology.ArcLayer [] layers)
 	{
 		this.protoName = protoName;
@@ -56,6 +66,14 @@ public class PrimitiveArc extends ArcProto
 
 	// ------------------------ public methods -------------------------------
 
+	/**
+	 * Routine to create a new PrimitiveArc from the parameters.
+	 * @param tech the Technology in which to place this PrimitiveArc.
+	 * @param protoName the name of this PrimitiveArc.
+	 * @param defaultWidth the default width of this PrimitiveArc.
+	 * @param layers the Layers that make up this PrimitiveArc.
+	 * @return the newly created PrimitiveArc.
+	 */
 	public static PrimitiveArc newInstance(Technology tech, String protoName, double defaultWidth, Technology.ArcLayer [] layers)
 	{
 		// check the arguments
@@ -75,42 +93,16 @@ public class PrimitiveArc extends ArcProto
 		return ap;
 	}
 
+	/**
+	 * Routine to return the array of layers that comprise this PrimitiveArc.
+	 * @return the array of layers that comprise this PrimitiveArc.
+	 */
 	public Technology.ArcLayer [] getLayers() { return layers; }
 
 	/**
-	 * Set the default width of this type of arc.
-	 */
-	public void setWidthOffset(double widthOffset)
-	{
-		if (widthOffset < 0.0)
-		{
-			System.out.println("PrimitiveArc " + tech.getTechName() + ":" + protoName + " has negative width offset");
-			return;
-		}
-		this.widthOffset = widthOffset;
-	}
-
-	/** Get the default width of this type of arc.
-	 *
-	 * <p> Exclude the surrounding material. For example, diffusion arcs
-	 * are always accompanied by a surrounding well and select. However,
-	 * this call returns only the width of the diffusion. */
-	public double getWidthOffset() { return widthOffset; }
-
-	/** Get the default width of this type of arc.
-	 *
-	 * <p> Exclude the surrounding material. For example, diffusion arcs
-	 * are always accompanied by a surrounding well and select. However,
-	 * this call returns only the width of the diffusion. */
-	public double getWidth()
-	{
-		return defaultWidth - widthOffset;
-	}
-
-	/**
-	 * Find the PrimitiveNode pin corresponding to this PrimitiveArc type.
-	 * For example, if this PrimitiveArc is metal-1 then return the metal-1-pin.
-	 * @return the PrimitiveNode pin that matches, or null if there is no match
+	 * Routine to find the PrimitiveNode pin corresponding to this PrimitiveArc type.
+	 * For example, if this PrimitiveArc is metal-1 then return the Metal-1-pin.
+	 * @return the PrimitiveNode pin that matches, or null if there is no match.
 	 */
 	public PrimitiveNode findPinProto()
 	{
@@ -121,18 +113,16 @@ public class PrimitiveArc extends ArcProto
 			if (pn.isPin())
 			{
 				PrimitivePort pp = (PrimitivePort) pn.getPorts().next();
-				Iterator types = pp.getConnectionTypes();
-				while (types.hasNext())
-				{
-					if (types.next() == this)
-						return pn;
-				}
+				if (pp.connectsTo(this)) return pn;
 			}
 		}
 		return null;
 	}
 
-	/** printable version of this object */
+	/**
+	 * Returns a printable version of this PrimitiveArc.
+	 * @return a printable version of this PrimitiveArc.
+	 */
 	public String toString()
 	{
 		return "PrimitiveArc " + describe();

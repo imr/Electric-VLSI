@@ -94,7 +94,13 @@ public class TextDescriptor
 	/** text for menu selection */						public static final int TXTMENU =       077771;
 
 	/**
-	 * Position is a typesafe enum class that describes the text position of a variable.
+	 * Position is a typesafe enum class that describes the text position of a Variable.
+	 * The Position describes the "grab point" of the text,
+	 * which is the point on the text that is attached to the object and does not move.
+	 * For example, when the Position is CENT, then the center of the text is fixed,
+	 * and as the text grows, it expands uniformly about the center.
+	 * When the Position is UP, the text is centered above the grab point, and as the text grows
+	 * it expands upward from the bottom-center point.
 	 */
 	public static class Position
 	{
@@ -107,26 +113,35 @@ public class TextDescriptor
 			this.index = index;
 		}
 
-		public int getIndex() { return index; }
+		/**
+		 * Routine to return the integer equivalent of this Position.
+		 * @return the integer equivalent of this Position.
+		 */
+		private int getIndex() { return index; }
+
+		/**
+		 * Returns a printable version of this Position.
+		 * @return a printable version of this Position.
+		 */
 		public String toString() { return name; }
 
-		/** text centered at point */					public static final Position CENT =      new Position("centered", VTPOSCENT);
-		/** text centered above point */				public static final Position UP =        new Position("up", VTPOSUP);
-		/** text centered below point */				public static final Position DOWN =      new Position("down", VTPOSDOWN);
-		/** text centered to left of point */			public static final Position LEFT =      new Position("left", VTPOSLEFT);
-		/** text centered to right of point */			public static final Position RIGHT =     new Position("right", VTPOSRIGHT);
-		/** text centered to upper-left of point */		public static final Position UPLEFT =    new Position("up-left", VTPOSUPLEFT);
-		/** text centered to upper-right of point */	public static final Position UPRIGHT =   new Position("up-right", VTPOSUPRIGHT);
-		/** text centered to lower-left of point */		public static final Position DOWNLEFT =  new Position("down-left", VTPOSDOWNLEFT);
-		/** text centered to lower-right of point */	public static final Position DOWNRIGHT = new Position("down-right", VTPOSDOWNRIGHT);
-		/** text centered and limited to object size */	public static final Position BOXED =     new Position("boxed", VTPOSBOXED);
+		/** Describes text centered at a point. */					public static final Position CENT =      new Position("centered", VTPOSCENT);
+		/** Describes text centered above a point. */				public static final Position UP =        new Position("up", VTPOSUP);
+		/** Describes text centered below a point. */				public static final Position DOWN =      new Position("down", VTPOSDOWN);
+		/** Describes text centered to left of a point. */			public static final Position LEFT =      new Position("left", VTPOSLEFT);
+		/** Describes text centered to right of a point. */			public static final Position RIGHT =     new Position("right", VTPOSRIGHT);
+		/** Describes text centered to upper-left of a point. */	public static final Position UPLEFT =    new Position("up-left", VTPOSUPLEFT);
+		/** Describes text centered to upper-right of a point. */	public static final Position UPRIGHT =   new Position("up-right", VTPOSUPRIGHT);
+		/** Describes text centered to lower-left of a point. */	public static final Position DOWNLEFT =  new Position("down-left", VTPOSDOWNLEFT);
+		/** Describes text centered to lower-right of a point. */	public static final Position DOWNRIGHT = new Position("down-right", VTPOSDOWNRIGHT);
+		/** Describes text centered and limited to object size. */	public static final Position BOXED =     new Position("boxed", VTPOSBOXED);
 	}
 	private static final Position [] thePositions = new Position[] {Position.CENT, Position.UP, Position.DOWN,
 		Position.LEFT, Position.RIGHT, Position.UPLEFT, Position.UPRIGHT, Position.DOWNLEFT, Position.DOWNRIGHT, Position.BOXED};
 
 
 	/**
-	 * DispPos is a typesafe enum class that describes text's display position on a variable.
+	 * DispPos is a typesafe enum class that describes text's display position on a Variable.
 	 */
 	public static class DispPos
 	{
@@ -139,20 +154,33 @@ public class TextDescriptor
 			this.index = index;
 		}
 
-		public int getIndex() { return index; }
+		/**
+		 * Routine to return the integer equivalent of this DispPos.
+		 * @return the integer equivalent of this DispPos.
+		 */
+		private int getIndex() { return index; }
+
+		/**
+		 * Returns a printable version of this DispPos.
+		 * @return a printable version of this DispPos.
+		 */
 		public String toString() { return name; }
 
-		/** display value */							public static final DispPos VALUE =         new DispPos("value", VTDISPLAYVALUE);
-		/** display name and value */					public static final DispPos NAMEVALUE =     new DispPos("name/value", VTDISPLAYNAMEVALUE);
-		/** display name, value, 1-level inherit */		public static final DispPos NAMEVALINH =    new DispPos("name/value/inherit-1", VTDISPLAYNAMEVALINH);
-		/** display name, value, any inherit */			public static final DispPos NAMEVALINHALL = new DispPos("name/value/inherit-all", VTDISPLAYNAMEVALINHALL);
+		/** Describes a Variable that displays its value. */
+			public static final DispPos VALUE =         new DispPos("value", VTDISPLAYVALUE);
+		/** Describes a Variable that displays its name and value. */
+			public static final DispPos NAMEVALUE =     new DispPos("name/value", VTDISPLAYNAMEVALUE);
+		/** Describes a Variable that displays its name, value, 1-level inherit. */
+			public static final DispPos NAMEVALINH =    new DispPos("name/value/inherit-1", VTDISPLAYNAMEVALINH);
+		/** Describes a Variable that displays its name, value, any inherit. */
+			public static final DispPos NAMEVALINHALL = new DispPos("name/value/inherit-all", VTDISPLAYNAMEVALINHALL);
 	}
 	private static final DispPos [] theDispPos = new DispPos[] {DispPos.VALUE, DispPos.NAMEVALUE, DispPos.NAMEVALINH,
 		DispPos.NAMEVALINHALL};
 
 
 	/**
-	 * Units is a typesafe enum class that describes text's units on a variable.
+	 * Units is a typesafe enum class that describes text's units on a Variable.
 	 */
 	public static class Units
 	{
@@ -165,17 +193,26 @@ public class TextDescriptor
 			this.index = index;
 		}
 
-		public int getIndex() { return index; }
+		/**
+		 * Routine to return the integer equivalent of this Units.
+		 * @return the integer equivalent of this Units.
+		 */
+		private int getIndex() { return index; }
+
+		/**
+		 * Returns a printable version of this Units.
+		 * @return a printable version of this Units.
+		 */
 		public String toString() { return name; }
 
-		/** no units */					public static final Units NONE =        new Units("none", VTUNITSNONE);
-		/** resistance units */			public static final Units RESISTANCE =  new Units("resistance", VTUNITSRES);
-		/** capacitance units */		public static final Units CAPACITANCE = new Units("capacitance", VTUNITSCAP);
-		/** inductance units */			public static final Units INDUCTANCE =  new Units("inductance", VTUNITSIND);
-		/** current units */			public static final Units CURRENT =     new Units("current", VTUNITSCUR);
-		/** voltage units */			public static final Units VOLTAGE =     new Units("voltage", VTUNITSVOLT);
-		/** distance units */			public static final Units DISTANCE =    new Units("distance", VTUNITSDIST);
-		/** time units */				public static final Units TIME =        new Units("time", VTUNITSTIME);
+		/** Describes no units. */				public static final Units NONE =        new Units("none", VTUNITSNONE);
+		/** Describes resistance units. */		public static final Units RESISTANCE =  new Units("resistance", VTUNITSRES);
+		/** Describes capacitance units. */		public static final Units CAPACITANCE = new Units("capacitance", VTUNITSCAP);
+		/** Describes inductance units. */		public static final Units INDUCTANCE =  new Units("inductance", VTUNITSIND);
+		/** Describes current units. */			public static final Units CURRENT =     new Units("current", VTUNITSCUR);
+		/** Describes voltage units. */			public static final Units VOLTAGE =     new Units("voltage", VTUNITSVOLT);
+		/** Describes distance units. */		public static final Units DISTANCE =    new Units("distance", VTUNITSDIST);
+		/** Describes time units. */			public static final Units TIME =        new Units("time", VTUNITSTIME);
 	}
 	private static final Units [] theUnits = new Units[] {Units.NONE, Units.RESISTANCE, Units.CAPACITANCE,
 		Units.INDUCTANCE, Units.CURRENT, Units.VOLTAGE, Units.DISTANCE, Units.TIME};
@@ -184,24 +221,62 @@ public class TextDescriptor
 	/** the first word of the text descriptor */		private int descriptor0;
 	/** the second word of the text descriptor */		private int descriptor1;
 
+	/**
+	 * The constructor simply creates a TextDescriptor with no values filled-in.
+	 */
 	public TextDescriptor()
 	{
 	}
 
-	/** Low-level routine to set the bits in the text descriptor directly.  Should not normally be called. */
+	/**
+	 * Low-level routine to set the bits in the TextDescriptor.
+	 * These bits are a collection of flags that are more sensibly accessed
+	 * through special methods.
+	 * This general access to the bits is required because the binary ".elib"
+	 * file format stores it as a full integer.
+	 * This should not normally be called by any other part of the system.
+	 * @param descriptor0 the first word of the new TextDescriptor.
+	 * @param descriptor1 the second word of the new TextDescriptor.
+	 */
 	public void lowLevelSet(int descriptor0, int descriptor1) { this.descriptor0 = descriptor0;   this.descriptor1 = descriptor1; }
-	/** Low-level routine to get the first word of the text descriptor.  Should not normally be called. */
+
+	/**
+	 * Low-level routine to get the first word of the bits in the TextDescriptor.
+	 * These bits are a collection of flags that are more sensibly accessed
+	 * through special methods.
+	 * This general access to the bits is required because the binary ".elib"
+	 * file format stores it as a full integer.
+	 * This should not normally be called by any other part of the system.
+	 * @return the first word of the bits in the TextDescriptor.
+	 */
 	public int lowLevelGet0() { return descriptor0; }
-	/** Low-level routine to get the second word of the text descriptor.  Should not normally be called. */
+
+	/**
+	 * Low-level routine to get the second word of the bits in the TextDescriptor.
+	 * These bits are a collection of flags that are more sensibly accessed
+	 * through special methods.
+	 * This general access to the bits is required because the binary ".elib"
+	 * file format stores it as a full integer.
+	 * This should not normally be called by any other part of the system.
+	 * @return the second word of the bits in the TextDescriptor.
+	 */
 	public int lowLevelGet1() { return descriptor1; }
 
-	/** routine to clear the bits in the text descriptor. */
+	/**
+	 * Routine to clear the the TextDescriptor.
+	 */
 	public void clear() { this.descriptor0 = this.descriptor1 = 0; }
 
-	/** routine to copy this text descriptor to "dest". */
+	/**
+	 * Routine to copy this TextDescriptor to a specified destination.
+	 * @param dest the specified destination TextDescriptor.
+	 */
 	public void copy(TextDescriptor dest) { dest.lowLevelSet(descriptor0, descriptor1); }
 
-	/** routine to return true if the two text descriptors are different. */
+	/**
+	 * Routine to return true if this TextDescriptor is different than the specified one.
+	 * @return true if this TextDescriptor is different than the specified one.
+	 */
 	public boolean diff(TextDescriptor td)
 	{
 		if (this.descriptor0 != td.descriptor0) return true;
@@ -209,62 +284,195 @@ public class TextDescriptor
 		return false;
 	}
 
-	/** routine to return the text position of the text descriptor. */
+	/**
+	 * Routine to return the text position of the TextDescriptor.
+	 * The text position describes the "grab point" of the text,
+	 * which is the point on the text that is attached to the object and does not move.
+	 * @return the text position of the TextDescriptor.
+	 */
 	public Position getPos() { return thePositions[descriptor0 & VTPOSITION]; }
-	/** routine to set the text position of the text descriptor. */
+
+	/**
+	 * Routine to set the text position of the TextDescriptor.
+	 * The text position describes the "grab point" of the text,
+	 * which is the point on the text that is attached to the object and does not move.
+	 * @param p the text position of the TextDescriptor.
+	 */
 	public void setPos(Position p) {descriptor0 = (descriptor0 & ~VTPOSITION) | p.getIndex(); }
 
-	/** routine to return the text size of the text descriptor. */
+	/**
+	 * Routine to return the text size of the TextDescriptor.
+	 * @return the text size of the TextDescriptor.
+	 */
 	public int getSize() { return (descriptor1 & VTSIZE) >> VTSIZESH; }
-	/** routine to set the text size of the text descriptor. */
-	public void setSize(int v) {descriptor1 = (descriptor1 & ~VTSIZE) | (v << VTSIZESH); }
 
-	/** routine to return the text font of the text descriptor. */
+	/**
+	 * Routine to set the text size of the TextDescriptor.
+	 * @param s the text size of the TextDescriptor.
+	 */
+	public void setSize(int s) {descriptor1 = (descriptor1 & ~VTSIZE) | (s << VTSIZESH); }
+
+	/**
+	 * Routine to return the text font of the TextDescriptor.
+	 * @return the text font of the TextDescriptor.
+	 */
 	public int getFace() { return (descriptor1 & VTFACE) >> VTFACESH; }
-	/** routine to set the text font of the text descriptor. */
-	public void setFace(int v) {descriptor1 = (descriptor1 & ~VTFACE) | (v << VTFACESH); }
 
-	/** routine to return the text rotation of the text descriptor. */
+	/**
+	 * Routine to set the text font of the TextDescriptor.
+	 * @param f the text font of the TextDescriptor.
+	 */
+	public void setFace(int f) {descriptor1 = (descriptor1 & ~VTFACE) | (f << VTFACESH); }
+
+	/**
+	 * Routine to return the text rotation of the TextDescriptor.
+	 * @return the text rotation of the TextDescriptor.
+	 */
 	public int getRotation() { return (descriptor1 & VTROTATION) >> VTROTATIONSH; }
-	/** routine to set the text rotation of the text descriptor. */
-	public void setRotation(int v) {descriptor1 = (descriptor1 & ~VTROTATION) | (v << VTROTATIONSH); }
 
-	/** routine to return the text display part of the text descriptor. */
+	/**
+	 * Routine to set the text rotation of the TextDescriptor.
+	 * @param f the text rotation of the TextDescriptor.
+	 */
+	public void setRotation(int r) {descriptor1 = (descriptor1 & ~VTROTATION) | (r << VTROTATIONSH); }
+
+	/**
+	 * Routine to return the text display part of the TextDescriptor.
+	 * @return the text display part of the TextDescriptor.
+	 */
 	public DispPos getDispPart() { return theDispPos[descriptor0 & VTDISPLAYPART]; }
-	/** routine to set the text display part of the text descriptor. */
-	public void setDispPart(DispPos v) {descriptor0 = (descriptor0 & ~VTDISPLAYPART) | v.getIndex(); }
 
-	/** routine to return true if the text descriptor indicates italic text. */
+	/**
+	 * Routine to set the text display part of the TextDescriptor.
+	 * @param f the text display part of the TextDescriptor.
+	 */
+	public void setDispPart(DispPos d) {descriptor0 = (descriptor0 & ~VTDISPLAYPART) | d.getIndex(); }
+
+	/**
+	 * Routine to return true if the text in the TextDescriptor is italic.
+	 * @return true if the text in the TextDescriptor is italic.
+	 */
 	public boolean getItalic() { return (descriptor0 & VTITALIC) != 0; }
-	/** routine to set the text descriptor's italic text factor. */
-	public void setItalic(boolean i) {descriptor0 = (descriptor0 & ~VTITALIC) | (i ? VTITALIC : 0); }
 
-	/** routine to return true if the text descriptor indicates bold text. */
+	/**
+	 * Routine to set the text in the TextDescriptor to be italic.
+	 */
+	public void setItalic() { descriptor0 |= VTITALIC; }
+
+	/**
+	 * Routine to set the text in the TextDescriptor to be not italic.
+	 */
+	public void clearItalic() { descriptor0 &= ~VTITALIC; }
+
+	/**
+	 * Routine to return true if the text in the TextDescriptor is bold.
+	 * @return true if the text in the TextDescriptor is bold.
+	 */
 	public boolean getBold() { return (descriptor0 & VTBOLD) != 0; }
-	/** routine to set the text descriptor's bold text factor. */
-	public void setBold(boolean b) {descriptor0 = (descriptor0 & ~VTBOLD) | (b ? VTBOLD : 0); }
 
-	/** routine to return true if the text descriptor indicates underlined text. */
+	/**
+	 * Routine to set the text in the TextDescriptor to be bold.
+	 */
+	public void setBold() { descriptor0 |= VTBOLD; }
+
+	/**
+	 * Routine to set the text in the TextDescriptor to be not bold.
+	 */
+	public void clearBold() { descriptor0 &= ~VTBOLD; }
+
+	/**
+	 * Routine to return true if the text in the TextDescriptor is underlined.
+	 * @return true if the text in the TextDescriptor is underlined.
+	 */
 	public boolean getUnderline() { return (descriptor0 & VTUNDERLINE) != 0; }
-	/** routine to set the text descriptor's underlined text factor. */
-	public void setUnderline(boolean u) {descriptor0 = (descriptor0 & ~VTUNDERLINE) | (u ? VTUNDERLINE : 0); }
 
-	/** routine to return true if the text descriptor indicates interior text (not see at higher-levels of hierarchy). */
+	/**
+	 * Routine to set the text in the TextDescriptor to be underlined.
+	 */
+	public void setUnderline() { descriptor0 |= VTUNDERLINE; }
+
+	/**
+	 * Routine to set the text in the TextDescriptor to be not underlined.
+	 */
+	public void clearUnderline() { descriptor0 &= ~VTUNDERLINE; }
+
+	/**
+	 * Routine to return true if the text in the TextDescriptor is interior.
+	 * Interior text is not seen at higher levels of the hierarchy.
+	 * @return true if the text in the TextDescriptor is interior.
+	 */
 	public boolean getInterior() { return (descriptor0 & VTINTERIOR) != 0; }
-	/** routine to set the text descriptor's interior text factor (whether seen at higher-levels of hierarchy). */
-	public void setInterior(boolean i) {descriptor0 = (descriptor0 & ~VTINTERIOR) | (i ? VTINTERIOR : 0); }
 
-	/** routine to return true if the text descriptor indicates inheritable text (instances copy from prototypes). */
+	/**
+	 * Routine to set the text in the TextDescriptor to be interior.
+	 * Interior text is not seen at higher levels of the hierarchy.
+	 */
+	public void setInterior() { descriptor0 |= VTINTERIOR; }
+
+	/**
+	 * Routine to set the text in the TextDescriptor to be not interior.
+	 * Interior text is not seen at higher levels of the hierarchy.
+	 */
+	public void clearInterior() { descriptor0 &= ~VTINTERIOR; }
+
+	/**
+	 * Routine to return true if the text in the TextDescriptor is inheritable.
+	 * Inheritable variables copy their contents from prototype to instance.
+	 * Only Variables on NodeProto and PortProto objects can be inheritable.
+	 * When a NodeInst is created, any inheritable Variables on its NodeProto are automatically
+	 * created on that NodeInst.
+	 * @return true if the text in the TextDescriptor is inheritable.
+	 */
 	public boolean getInherit() { return (descriptor0 & VTINHERIT) != 0; }
-	/** routine to set the text descriptor's inheritable text factor (whether instances copy from prototypes). */
-	public void setInherit(boolean i) {descriptor0 = (descriptor0 & ~VTINHERIT) | (i ? VTINHERIT : 0); }
 
-	/** routine to return true if the text descriptor indicates that this variable is a cell parameter. */
+	/**
+	 * Routine to set the text in the TextDescriptor to be inheritable.
+	 * Inheritable variables copy their contents from prototype to instance.
+	 * Only Variables on NodeProto and PortProto objects can be inheritable.
+	 * When a NodeInst is created, any inheritable Variables on its NodeProto are automatically
+	 * created on that NodeInst.
+	 */
+	public void setInherit() { descriptor0 |= VTINHERIT; }
+
+	/**
+	 * Routine to set the text in the TextDescriptor to be not inheritable.
+	 * Inheritable variables copy their contents from prototype to instance.
+	 * Only Variables on NodeProto and PortProto objects can be inheritable.
+	 * When a NodeInst is created, any inheritable Variables on its NodeProto are automatically
+	 * created on that NodeInst.
+	 */
+	public void clearInherit() { descriptor0 &= ~VTINHERIT; }
+
+	/**
+	 * Routine to return true if the text in the TextDescriptor is a parameter.
+	 * Parameters are those Variables that have values on instances which are
+	 * passed down the hierarchy into the contents.
+	 * Parameters can only exist on NodeInst objects.
+	 * @return true if the text in the TextDescriptor is a parameter.
+	 */
 	public boolean getIsParam() { return (descriptor0 & VTISPARAMETER) != 0; }
-	/** routine to set the text descriptor's parameter factor. */
-	public void setIsParam(boolean i) {descriptor0 = (descriptor0 & ~VTISPARAMETER) | (i ? VTISPARAMETER : 0); }
 
-	/** routine to return the X offset of the text in the text descriptor. */
+	/**
+	 * Routine to set the text in the TextDescriptor to be a parameter.
+	 * Parameters are those Variables that have values on instances which are
+	 * passed down the hierarchy into the contents.
+	 * Parameters can only exist on NodeInst objects.
+	 */
+	public void setIsParam() { descriptor0 |= VTISPARAMETER; }
+
+	/**
+	 * Routine to set the text in the TextDescriptor to be not a parameter.
+	 * Parameters are those Variables that have values on instances which are
+	 * passed down the hierarchy into the contents.
+	 * Parameters can only exist on NodeInst objects.
+	 */
+	public void clearIsParam() { descriptor0 &= ~VTISPARAMETER; }
+
+	/**
+	 * Routine to return the X offset of the text in the TextDescriptor.
+	 * The value is scaled by 4, so a value of 3 indicates a shift of 0.75 and a value of 4 shifts by 1.
+	 * @return the X offset of the text in the TextDescriptor.
+	 */
 	public int getXOff()
 	{
 		int offset = (descriptor0 & VTXOFF) >> VTXOFFSH;
@@ -272,7 +480,12 @@ public class TextDescriptor
 		int scale = getOffScale() + 1;
 		return(offset * scale);
 	}
-	/** routine to return the X offset of the text in the text descriptor. */
+
+	/**
+	 * Routine to return the Y offset of the text in the TextDescriptor.
+	 * The value is scaled by 4, so a value of 3 indicates a shift of 0.75 and a value of 4 shifts by 1.
+	 * @return the Y offset of the text in the TextDescriptor.
+	 */
 	public int getYOff()
 	{
 		int offset = (descriptor0 & VTYOFF) >> VTYOFFSH;
@@ -280,7 +493,13 @@ public class TextDescriptor
 		int scale = getOffScale() + 1;
 		return(offset * scale);
 	}
-	/** routine to set the X and Y offset of the text in the text descriptor. */
+
+	/**
+	 * Routine to set the X and Y offsets of the text in the TextDescriptor.
+	 * The values are scaled by 4, so a value of 3 indicates a shift of 0.75 and a value of 4 shifts by 1.
+	 * @param x the X offset of the text in the TextDescriptor.
+	 * @param y the Y offset of the text in the TextDescriptor.
+	 */
 	public void setOff(int x, int y)
 	{
 		descriptor0 = descriptor0 & ~(VTXOFF|VTYOFF|VTXOFFNEG|VTYOFFNEG);
@@ -303,12 +522,26 @@ public class TextDescriptor
 	}
 
 	/** routine to return the offset scale of the text in the text descriptor. */
-	public int getOffScale() { return (descriptor1 & VTOFFSCALE) >> VTOFFSCALE; }
-	/** routine to set the offset scale of the text in the text descriptor. */
-	public void setOffScale(int v) {descriptor1 = (descriptor1 & ~VTOFFSCALE) | (v << VTOFFSCALESH); }
+	private int getOffScale() { return (descriptor1 & VTOFFSCALE) >> VTOFFSCALE; }
 
-	/** routine to return the units of the text in the text descriptor. */
+	/** routine to set the offset scale of the text in the text descriptor. */
+	private void setOffScale(int v) {descriptor1 = (descriptor1 & ~VTOFFSCALE) | (v << VTOFFSCALESH); }
+
+	/**
+	 * Routine to return the units of the TextDescriptor.
+	 * Units describe the type of real-world unit to apply to the value.
+	 * For example, if this value is in volts, the Units tells whether the value
+	 * is volts, millivolts, microvolts, etc.
+	 * @return the units of the TextDescriptor.
+	 */
 	public Units getUnits() { return theUnits[(descriptor1 & VTUNITS) >> VTUNITSSH]; }
-	/** routine to set the units of the text in the text descriptor. */
-	public void setUnits(Units v) {descriptor1 = (descriptor1 & ~VTUNITS) | (v.getIndex() << VTUNITSSH); }
+
+	/**
+	 * Routine to set the units of the TextDescriptor.
+	 * Units describe the type of real-world unit to apply to the value.
+	 * For example, if this value is in volts, the Units tells whether the value
+	 * is volts, millivolts, microvolts, etc.
+	 * @param u the units of the TextDescriptor.
+	 */
+	public void setUnits(Units u) {descriptor1 = (descriptor1 & ~VTUNITS) | (u.getIndex() << VTUNITSSH); }
 }

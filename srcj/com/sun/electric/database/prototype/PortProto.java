@@ -34,45 +34,57 @@ import com.sun.electric.technology.PrimitivePort;
 import java.util.HashMap;
 
 /**
- * A PortProto object lives at the PrimitiveNode level as a PrimitivePort,
- * or at the Cell level as an Export.  A PortProto has a descriptive name,
- * which may be overridden by another PortProto at a higher level in the
- * schematic or layout hierarchy.  PortProtos are expressed at the instance
- * level by Connections.
+ * The PortProto class defines a type of PortInst.
+ * It is an abstract class that can be implemented as PrimitivePort (for primitives from Technologies)
+ * or as Export (for cells in Libraries).
+ * <P>
+ * Every port in the database appears as one <I>prototypical</I> object and many <I>instantiative</I> objects.
+ * Thus, for a PrimitivePort such as the "poly-left" port on a CMOS P-transistor there is one object (called a PrimitivePort, which is a PortProto)
+ * that describes the transistor prototype and there are many objects (called PortInsts),
+ * one for every port on an instance of that transistor in a circuit.
+ * Similarly, for every Export, there is one object (called an Export, which is a PortProto)
+ * that describes the Export on a Cell and there are many objects (also called PortInsts)
+ * for every port on a use of that Cell in some other Cell.
+ * PrimitivePorts are statically created and placed in the Technology objects,
+ * but complex Exports are created by the tools and placed in Library objects.
+ * <P>
+ * A PortProto has a descriptive name, which may be overridden by another PortProto
+ * at a higher level in the schematic or layout hierarchy.
+ * The PortProto also has a parent cell, characteristics, and more.
  */
-
 public abstract class PortProto extends ElectricObject implements Networkable
 {
-	/** angle of this port from node center */			public static final int PORTANGLE =               0777;
-	/** right shift of PORTANGLE field */				public static final int PORTANGLESH =                0;
-	/** range of valid angles about port angle */		public static final int PORTARANGE =           0377000;
-	/** right shift of PORTARANGE field */				public static final int PORTARANGESH =               9;
-	/** electrical net of primitive port (0-30) */		public static final int PORTNET =           0177400000;
+	/** angle of this port from node center */			private static final int PORTANGLE =               0777;
+	/** right shift of PORTANGLE field */				private static final int PORTANGLESH =                0;
+	/** range of valid angles about port angle */		private static final int PORTARANGE =           0377000;
+	/** right shift of PORTARANGE field */				private static final int PORTARANGESH =               9;
+	/** electrical net of primitive port (0-30) */		private static final int PORTNET =           0177400000;
            /* 31 stands for one-port net */
-	/** right shift of PORTNET field */					public static final int PORTNETSH =                 17;
-	/** set if arcs to this port do not connect */		public static final int PORTISOLATED =      0200000000;
-	/** set if this port should always be drawn */		public static final int PORTDRAWN =         0400000000;
-	/** set to exclude this port from the icon */		public static final int BODYONLY =         01000000000;
-	/** input/output/power/ground/clock state */		public static final int STATEBITS =       036000000000;
-	/** right shift of STATEBITS */						public static final int STATEBITSSH =               27;
-	/** un-phased clock port */							public static final int CLKPORT =          02000000000;
-	/** clock phase 1 */								public static final int C1PORT =           04000000000;
-	/** clock phase 2 */								public static final int C2PORT =           06000000000;
-	/** clock phase 3 */								public static final int C3PORT =          010000000000;
-	/** clock phase 4 */								public static final int C4PORT =          012000000000;
-	/** clock phase 5 */								public static final int C5PORT =          014000000000;
-	/** clock phase 6 */								public static final int C6PORT =          016000000000;
-	/** input port */									public static final int INPORT =          020000000000;
-	/** output port */									public static final int OUTPORT =         022000000000;
-	/** bidirectional port */							public static final int BIDIRPORT =       024000000000;
-	/** power port */									public static final int PWRPORT =         026000000000;
-	/** ground port */									public static final int GNDPORT =         030000000000;
-	/** bias-level reference output port */				public static final int REFOUTPORT =      032000000000;
-	/** bias-level reference input port */				public static final int REFINPORT =       034000000000;
-	/** bias-level reference base port */				public static final int REFBASEPORT =     036000000000;
+	/** right shift of PORTNET field */					private static final int PORTNETSH =                 17;
+	/** set if arcs to this port do not connect */		private static final int PORTISOLATED =      0200000000;
+	/** set if this port should always be drawn */		private static final int PORTDRAWN =         0400000000;
+	/** set to exclude this port from the icon */		private static final int BODYONLY =         01000000000;
+	/** input/output/power/ground/clock state */		private static final int STATEBITS =       036000000000;
+	/** right shift of STATEBITS */						private static final int STATEBITSSH =               27;
+	/** un-phased clock port */							private static final int CLKPORT =          02000000000;
+	/** clock phase 1 */								private static final int C1PORT =           04000000000;
+	/** clock phase 2 */								private static final int C2PORT =           06000000000;
+	/** clock phase 3 */								private static final int C3PORT =          010000000000;
+	/** clock phase 4 */								private static final int C4PORT =          012000000000;
+	/** clock phase 5 */								private static final int C5PORT =          014000000000;
+	/** clock phase 6 */								private static final int C6PORT =          016000000000;
+	/** input port */									private static final int INPORT =          020000000000;
+	/** output port */									private static final int OUTPORT =         022000000000;
+	/** bidirectional port */							private static final int BIDIRPORT =       024000000000;
+	/** power port */									private static final int PWRPORT =         026000000000;
+	/** ground port */									private static final int GNDPORT =         030000000000;
+	/** bias-level reference output port */				private static final int REFOUTPORT =      032000000000;
+	/** bias-level reference input port */				private static final int REFINPORT =       034000000000;
+	/** bias-level reference base port */				private static final int REFBASEPORT =     036000000000;
 
 	/**
-	 * Characteristic is a typesafe enum class that describes the characteristics of a portproto.
+	 * Characteristic is a typesafe enum class that describes the function of a PortProto.
+	 * Characteristics are technology-independent and describe the nature of the port (input, output, etc.)
 	 */
 	public static class Characteristic
 	{
@@ -87,42 +99,55 @@ public abstract class PortProto extends ElectricObject implements Networkable
 			this.bits = bits;
 			characteristicList.put(new Integer(bits), this);
 		}
-		public int getBits() { return bits; }
-		public static Characteristic findCharacteristic(int bits)
+
+		/**
+		 * Routine to return the bit value associated with this characteristic.
+		 * @return the bit value associated with this characteristic.
+		 */
+		int getBits() { return bits; }
+
+		/**
+		 * Routine to find the characteristic associated with the given bit value.
+		 * @param bits the bit value associated with a characteristic.
+		 */
+		static Characteristic findCharacteristic(int bits)
 		{
 			Object obj = characteristicList.get(new Integer(bits));
 			if (obj == null) return null;
 			return (Characteristic)obj;
 		}
 
+		/**
+		 * Returns a printable version of this Characteristic.
+		 * @return a printable version of this Characteristic.
+		 */
 		public String toString() { return name; }
 
-		/**   unknown port */						public static final Characteristic UNKNOWN = new Characteristic("unknown", 0);
-		/**   un-phased clock port */				public static final Characteristic CLK = new Characteristic("clock", CLKPORT);
-		/**   clock phase 1 */						public static final Characteristic C1 = new Characteristic("clock1", C1PORT);
-		/**   clock phase 2 */						public static final Characteristic C2 = new Characteristic("clock2", C2PORT);
-		/**   clock phase 3 */						public static final Characteristic C3 = new Characteristic("clock3", C3PORT);
-		/**   clock phase 4 */						public static final Characteristic C4 = new Characteristic("clock4", C4PORT);
-		/**   clock phase 5 */						public static final Characteristic C5 = new Characteristic("clock5", C5PORT);
-		/**   clock phase 6 */						public static final Characteristic C6 = new Characteristic("clock6", C6PORT);
-		/**   input port */							public static final Characteristic IN = new Characteristic("input", INPORT);
-		/**   output port */						public static final Characteristic OUT = new Characteristic("output", OUTPORT);
-		/**   bidirectional port */					public static final Characteristic BIDIR = new Characteristic("bidirectional", BIDIRPORT);
-		/**   power port */							public static final Characteristic PWR = new Characteristic("power", PWRPORT);
-		/**   ground port */						public static final Characteristic GND = new Characteristic("ground", GNDPORT);
-		/**   bias-level reference output port */	public static final Characteristic REFOUT = new Characteristic("refout", REFOUTPORT);
-		/**   bias-level reference input port */	public static final Characteristic REFIN = new Characteristic("refin", REFINPORT);
-		/**   bias-level reference base port */		public static final Characteristic REFBASE = new Characteristic("refbase", REFBASEPORT);
+		/** Describes an unknown port. */						public static final Characteristic UNKNOWN = new Characteristic("unknown", 0);
+		/** Describes an un-phased clock port. */				public static final Characteristic CLK = new Characteristic("clock", CLKPORT);
+		/** Describes a clock phase 1 port. */					public static final Characteristic C1 = new Characteristic("clock1", C1PORT);
+		/** Describes a clock phase 2 port. */					public static final Characteristic C2 = new Characteristic("clock2", C2PORT);
+		/** Describes a clock phase 3 port. */					public static final Characteristic C3 = new Characteristic("clock3", C3PORT);
+		/** Describes a clock phase 4 port. */					public static final Characteristic C4 = new Characteristic("clock4", C4PORT);
+		/** Describes a clock phase 5 port. */					public static final Characteristic C5 = new Characteristic("clock5", C5PORT);
+		/** Describes a clock phase 6 port. */					public static final Characteristic C6 = new Characteristic("clock6", C6PORT);
+		/** Describes an input port. */							public static final Characteristic IN = new Characteristic("input", INPORT);
+		/** Describes an output port. */						public static final Characteristic OUT = new Characteristic("output", OUTPORT);
+		/** Describes a bidirectional port. */					public static final Characteristic BIDIR = new Characteristic("bidirectional", BIDIRPORT);
+		/** Describes a power port. */							public static final Characteristic PWR = new Characteristic("power", PWRPORT);
+		/** Describes a ground port. */							public static final Characteristic GND = new Characteristic("ground", GNDPORT);
+		/** Describes a bias-level reference output port. */	public static final Characteristic REFOUT = new Characteristic("refout", REFOUTPORT);
+		/** Describes a bias-level reference input port. */		public static final Characteristic REFIN = new Characteristic("refin", REFINPORT);
+		/** Describes a bias-level reference base port. */		public static final Characteristic REFBASE = new Characteristic("refbase", REFBASEPORT);
 	}
 
 	// ------------------------ private data --------------------------
 
-	/** port name */								protected String protoName;
-	/** flag bits */								protected int userBits;
-	/** parent NodeProto */							protected NodeProto parent;
-	/** Text descriptor */							protected TextDescriptor descriptor;
-	/** temporary integer value */					protected int tempInt;
-	
+	/** The name of this PortProto. */							protected String protoName;
+	/** Internal flag bits of this PortProto. */				protected int userBits;
+	/** The parent NodeProto of this PortProto. */				protected NodeProto parent;
+	/** The text descriptor of this PortProto. */				private TextDescriptor descriptor;
+	/** A temporary integer value of this PortProto. */			private int tempInt;
 
 	/** Network that this port belongs to (in case two ports are permanently
 	 * connected, like the two ends of the gate in a MOS transistor.
@@ -134,6 +159,10 @@ public abstract class PortProto extends ElectricObject implements Networkable
 
 	// ------------------ protected and private methods ---------------------
 
+	/**
+	 * This constructor should not be called.
+	 * Use the subclass factory methods to create Export or PrimitivePort objects.
+	 */
 	protected PortProto()
 	{
 		this.parent = null;
@@ -143,33 +172,44 @@ public abstract class PortProto extends ElectricObject implements Networkable
 		//if (network!=null)  network.addPart(this);
 	}
 
-	/** Get the bounds for this port with respect to some NodeInst.  A
-	 * port can scale with its owner, so it doesn't make sense to ask
+	/**
+	 * Abstract routine to get the bounds for this port with respect to some NodeInst.
+	 * A port can scale with its owner, so it doesn't make sense to ask
 	 * for the bounds of a port without a NodeInst.  The NodeInst should
-	 * be an instance of the NodeProto that this port belongs to,
-	 * although this isn't checked. */
+	 * be an instance of the NodeProto that this port belongs to.
+	 * @param ni the NodeInst that this port resides on.
+	 * @return a Poly that describes this port.
+	 */
 	abstract public Poly getPoly(NodeInst ni);
 
-	// Set the network associated with this Export.
-	void setNetwork(JNetwork net)
-	{
-		this.network = net;
-	}
+	/**
+	 * Set the network associated with this PortProto.
+	 * @param net the network to associate with this PortProto.
+	 */
+	void setNetwork(JNetwork net) { this.network = net; }
 
-	/** Get the NodeProto (Cell or PrimitiveNode) that owns this port. */
+	/**
+	 * Routine to set the parent NodeProto that this PortProto belongs to.
+	 * @param parent the parent NodeProto that this PortProto belongs to.
+	 */
 	public void setParent(NodeProto parent)
 	{
 		this.parent = parent;
 		parent.addPort(this);
 	}
 
-	/** Remove this portproto.  Also removes this port from the parent
-	 * NodeProto's ports list. */
+	/**
+	 * Routine to remove this PortProto from its parent NodeProto.
+	 */
 	public void remove()
 	{
 		parent.removePort(this);
 	}
 
+	/*
+	 * Routine to write a description of this PortProto.
+	 * Displays the description in the Messages Window.
+	 */
 	protected void getInfo()
 	{
 		System.out.println(" Parent: " + parent);
@@ -180,59 +220,151 @@ public abstract class PortProto extends ElectricObject implements Networkable
 
 	// ---------------------- public methods -------------------------
 
+	/**
+	 * Routine to return the name of this PortProto.
+	 * @return the name of this PortProto.
+	 */
 	public String getProtoName() { return protoName; }
 
-	/** Get the NodeProto (Cell or PrimitiveNode) that owns this port. */
+	/**
+	 * Routine to return the parent NodeProto of this PortProto.
+	 * @return the parent NodeProto of this PortProto.
+	 */
 	public NodeProto getParent() { return parent; }
 
-	/** Get the network associated with this port. */
+	/**
+	 * Routine to return the network of this PortProto.
+	 * @return the network of this PortProto.
+	 */
 	public JNetwork getNetwork() { return network; }
 
-	/** Get the Text Descriptor associated with this port. */
+	/**
+	 * Routine to return the Text Descriptor of this PortProto.
+	 * Text Descriptors tell how to display the port name.
+	 * @return the Text Descriptor of this PortProto.
+	 */
 	public TextDescriptor getTextDescriptor() { return descriptor; }
 
-	/** Get the Text Descriptor associated with this port. */
+	/**
+	 * Routine to set the Text Descriptor of this PortProto.
+	 * Text Descriptors tell how to display the port name.
+	 * @param descriptor the Text Descriptor of this PortProto.
+	 */
 	public void setTextDescriptor(TextDescriptor descriptor) { this.descriptor = descriptor; }
 
+	/**
+	 * Routine to return the Characteristic of this PortProto.
+	 * @return the Characteristic of this PortProto.
+	 */
 	public Characteristic getCharacteristic()
 	{
 		Characteristic characteristic = Characteristic.findCharacteristic(userBits&STATEBITS);
 		return characteristic;
 	}
 
-
+	/**
+	 * Routine to set the Characteristic of this PortProto.
+	 * @param characteristic the Characteristic of this PortProto.
+	 */
 	public void setCharacteristic(Characteristic characteristic)
 	{
 		userBits = (userBits & ~STATEBITS) | characteristic.getBits();
 	}
 
-	/** Get the first "real" (non-zero width) ArcProto style that can
-	 * connect to this port. */
-	public ArcProto getWire()
+	/**
+	 * Routine to set the angle of this PortProto.
+	 * This is the primary angle that the PortProto faces on the NodeProto.
+	 * It is only used on PrimitivePorts, and is set during Technology creation.
+	 * @param angle the angle of this PortProto.
+	 */
+	protected void setAngle(int angle)
 	{
-		return getBasePort().getWire();
+		userBits = (userBits & ~PORTANGLE) | (angle << PORTANGLESH);
 	}
 
+	/**
+	 * Routine to set the angle range of this PortProto.
+	 * This is the range about the angle of allowable connections.
+	 * When this value is 180, then all angles are permissible, since arcs
+	 * can connect at up to 180 degrees in either direction from the port angle.
+	 * It is only used on PrimitivePorts, and is set during Technology creation.
+	 * @param angleRange the angle range of this PortProto.
+	 */
+	protected void setAngleRange(int angleRange)
+	{
+		userBits = (userBits & ~PORTARANGE) | (angleRange << PORTARANGESH);
+	}
+
+	/**
+	 * Routine to set the topology of this PortProto.
+	 * This is a small integer that is unique among PortProtos on this NodeProto.
+	 * When two PortProtos have the same topology number, it indicates that these
+	 * ports are connected.
+	 * It is only used on PrimitivePorts, and is set during Technology creation.
+	 * @param topologyIndex the topology of this PortProto.
+	 */
+	protected void setTopology(int topologyIndex)
+	{
+		userBits = (userBits & ~PORTNET) | (topologyIndex << PORTNETSH);
+	}
+
+	/**
+	 * Abstract routine to return the base-level port that this PortProto is created from.
+	 * For a PrimitivePort, it simply returns itself.
+	 * For an Export, it returns the base port of its sub-port, the port on the NodeInst
+	 * from which the Export was created.
+	 * @return the base-level port that this PortProto is created from.
+	 */
 	public abstract PrimitivePort getBasePort();
 
-	/** Can this port connect to a particular arc type?
-	 * @param arc the arc type to test for
-	 * @return true if this port can connect to the arc, false if it can't */
+	/**
+	 * Routine to return true if the specified ArcProto can connect to this PortProto.
+	 * @param arc the ArcProto to test for connectivity.
+	 * @return true if this PortProto can connect to the ArcProto, false if it can't.
+	 */
 	public boolean connectsTo(ArcProto arc)
 	{
 		return getBasePort().connectsTo(arc);
 	}
 
-	public abstract PortProto getEquivalent();
-
-	/** Low-level routine to get the user bits.  Should not normally be called. */
+	/**
+	 * Low-level routine to get the user bits.
+	 * The "user bits" are a collection of flags that are more sensibly accessed
+	 * through special methods.
+	 * This general access to the bits is required because the binary ".elib"
+	 * file format stores it as a full integer.
+	 * This should not normally be called by any other part of the system.
+	 * @return the "user bits".
+	 */
 	public int lowLevelGetUserbits() { return userBits; }
-	/** Low-level routine to set the user bits.  Should not normally be called. */
+
+	/**
+	 * Low-level routine to set the user bits.
+	 * The "user bits" are a collection of flags that are more sensibly accessed
+	 * through special methods.
+	 * This general access to the bits is required because the binary ".elib"
+	 * file format stores it as a full integer.
+	 * This should not normally be called by any other part of the system.
+	 * @param userBits the new "user bits".
+	 */
 	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
 
-	public int getTempInt() { return tempInt; }
+	/**
+	 * Routine to set an arbitrary integer in a temporary location on this PortProto.
+	 * @param tempInt the integer to be set on this PortProto.
+	 */
 	public void setTempInt(int tempInt) { this.tempInt = tempInt; }
 
+	/**
+	 * Routine to get the temporary integer on this PortProto.
+	 * @return the temporary integer on this PortProto.
+	 */
+	public int getTempInt() { return tempInt; }
+
+	/**
+	 * Returns a printable version of this PortProto.
+	 * @return a printable version of this PortProto.
+	 */
 	public String toString()
 	{
 		return "PortProto " + protoName;

@@ -116,6 +116,20 @@ public class Geometric extends ElectricObject
 		}
 	}
 
+	/**
+	 * The RTNode class implements R-Trees.
+	 * R-trees come from this paper: Guttman, Antonin, “R-Trees: A Dynamic Index Structure for Spatial Searching”,
+	 * ACM SIGMOD, 14:2, 47-57, June 1984.
+	 * <P>
+	 * R-trees are height-balanced trees in which all leaves are at the same depth and contain spatial objects (the
+	 * nodes and arcs). Entries higher in the tree also store boundary information that tightly encloses the leaves
+	 * below. All nodes hold from M to 2M entries, where M is 4. The bounding boxes of two entries may
+	 * overlap, which allows arbitrary structures to be represented. A search for a point or an area is a simple
+	 * recursive walk through the tree to collect appropriate leaf nodes. Insertion and deletion, however, are more
+	 * complex operations.
+	 * <P>
+	 * <CENTER><IMG SRC="doc-files/Geometric-1.gif"></CENTER>
+	 */
 	public static class RTNode
 	{
 		/** bounds of this node and its children */	private Rectangle2D.Double bounds;

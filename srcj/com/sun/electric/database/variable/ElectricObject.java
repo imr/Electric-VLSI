@@ -37,7 +37,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
 /**
- * This class is the superclass of all Electric objects that can be extended with "Variables".
+ * This class is the base class of all Electric objects that can be extended with "Variables".
  */
 public class ElectricObject
 {
@@ -49,16 +49,19 @@ public class ElectricObject
 
 	// ------------------------ private and protected methods -------------------
 
-	/** The constructor is not used */
+	/**
+	 * The constructor is not used.
+	 */
 	protected ElectricObject()
 	{
 	}
 
 	// ------------------------ public methods -------------------
 
-	/** Retrieve the object that is the value of a variable on this Electric object.
-	 * @param name the name of the variable
-	 * @return the object stored at the variable, or null if there is no such object.
+	/**
+	 * Routine to return the Variable on this ElectricObject with a given name.
+	 * @param name the name of the Variable.
+	 * @return the Variable with that name, or null if there is no such Variable.
 	 */
 	public Variable getVal(String name)
 	{
@@ -67,9 +70,11 @@ public class ElectricObject
 		return val;
 	}
 
-	/** Retrieve the object that is the value of a variable on this Electric object.
-	 * @param name the name of the variable
-	 * @return the object stored at the variable, or null if there is no such object.
+	/**
+	 * Routine to return the Variable on this ElectricObject with a given name and type.
+	 * @param name the name of the Variable.
+	 * @param type the required type of the Variable.
+	 * @return the Variable with that name and type, or null if there is no such Variable.
 	 */
 	public Variable getVal(String name, Class type)
 	{
@@ -79,16 +84,12 @@ public class ElectricObject
 		return val;
 	}
 
-	/** Retrieve an object from the array variable. <br>
-	 * Get the object that is the value of a variable on this Electric
-	 * object, with respect to a stack of NodeInsts.  That object must
-	 * be an Object[].  Return the specified array element.
-	 * @param name the name of the variable
-	 * @param idx index into the array that is the value of the variable
-	 * @param context the stack of NodeInsts
-	 * @return the object at the index
-	 * @throws RuntimeException if the variable doesn't exist, or
-	 * the value of the variable isn't an object array. */
+	/**
+	 * Routine to return an entry in an arrayed Variable on this ElectricObject.
+	 * @param name the name of the Variable.
+	 * @param index the required entry in the Variable array.
+	 * @return the Object in that entry of the Variable, or null if there is no such Variable.
+	 */
 	public Object getVal(String name, int index)
 	{
 		Variable v = getVal(name);
@@ -99,7 +100,10 @@ public class ElectricObject
 	}
 
 	/**
-	 * Routine to return the number of displayable variables on this Electric object.
+	 * Routine to return the number of displayable Variables on this ElectricObject.
+	 * A displayable Variable is one that will be shown with its object.
+	 * Displayable Variables can only sensibly exist on NodeInst and ArcInst objects.
+	 * @return the number of displayable Variables on this ElectricObject.
 	 */
 	public int numDisplayableVariables()
 	{
@@ -115,8 +119,10 @@ public class ElectricObject
 	}
 	
 	/**
-	 * Routine to add displayable variables on this Electric object to the polygon list in "polys",
-	 * starting at entry "start".
+	 * Routine to add all displayable Variables on this Electric object to an array of Poly objects.
+	 * @param rect a rectangle describing the bounds of the object on which the Variables will be displayed.
+	 * @param polys an array of Poly objects that will be filled with the displayable Variables.
+	 * @param start the starting index in the array of Poly objects to fill with displayable Variables.
 	 */
 	public void addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start)
 	{
@@ -141,7 +147,12 @@ public class ElectricObject
 		}
 	}
 
-	/** put an object value associated with a name */
+	/**
+	 * Routine to create a Variable on this ElectricObject with the specified values.
+	 * @param name the name of the Variable.
+	 * @param value the object to store in the Variable.
+	 * @return the Variable that has been created.
+	 */
 	public Variable setVal(String name, Object value)
 	{
 		Variable.Name vn = findName(name);
@@ -160,7 +171,12 @@ public class ElectricObject
 		return v;
 	}
 
-	/** put an object into an array value associated with a name */
+	/**
+	 * Routine to put an Object into an entry in an arrayed Variable on this ElectricObject.
+	 * @param name the name of the arrayed Variable.
+	 * @param value the object to store in an entry of the arrayed Variable.
+	 * @param index the location in the arrayed Variable to store the value.
+	 */
 	public void setVal(String name, Object value, int index)
 	{
 		Variable v = getVal(name);
@@ -172,20 +188,32 @@ public class ElectricObject
 		}
 	}
 
-	/** delete a variable from the vars list */
+	/**
+	 * Routine to delete a Variable from this ElectricObject.
+	 * @param name the name of the Variable to delete.
+	 */
 	public void delVal(String name)
 	{
 		if (vars == null) return;
 		vars.remove(name);
 	}
 
-	/** Return true if this variable name is deprecated. */
+	/**
+	 * Routine to determine whether a Variable name on this object is deprecated.
+	 * Deprecated Variable names are those that were used in old versions of Electric,
+	 * but are no longer valid.
+	 * @param name the name of the Variable.
+	 * @return true if the Variable name is deprecated.
+	 */
 	public boolean isdeprecatedvariable(String name)
 	{
 		return false;
 	}
 
-	/** Return all the Variable names. */
+	/**
+	 * Routine to return an Iterator over all Variables on this ElectricObject.
+	 * @return an Iterator over all Variables on this ElectricObject.
+	 */
 	public Iterator getVariables()
 	{
 		if (vars == null)
@@ -193,33 +221,49 @@ public class ElectricObject
 		return vars.entrySet().iterator();
 	}
 
-	/** Return the number of Variables. */
+	/**
+	 * Routine to return the number of Variables on this ElectricObject.
+	 * @return the number of Variables on this ElectricObject.
+	 */
 	public int getNumVariables()
 	{
 		if (vars == null) return 0;
 		return vars.entrySet().size();
 	}
 
-	/** Return all the Variable names. */
+	/**
+	 * Routine to return an Iterator over all Variable names on this ElectricObject.
+	 * @return an Iterator over all Variable names on this ElectricObject.
+	 */
 	public static Iterator getVariableNames()
 	{
 		return varNames.keySet().iterator();
 	}
 
-	/** Return the number of Variable names. */
+	/**
+	 * Routine to return the total number of different Variable names on all ElectricObjects.
+	 * @return the total number of different Variable names on all ElectricObjects.
+	 */
 	public static int getNumVariableNames()
 	{
 		return varNames.keySet().size();
 	}
 
-	/** Returns the Variable.Name for this string. */
+	/**
+	 * Routine to return the Name object for a given Variable name.
+	 * Variable Name objects are caches of the actual string name of the Variable.
+	 * @return the Name object for a given Variable name.
+	 */
 	public static Variable.Name findName(String name)
 	{
 		Variable.Name vn = (Variable.Name)varNames.get(name);
 		return vn;
 	}
 
-	/** Print a full description of this object (in response to an INFO request). */
+	/*
+	 * Routine to write a description of this ElectricObject (lists all Variables).
+	 * Displays the description in the Messages Window.
+	 */
 	protected void getInfo()
 	{
 		if (vars == null) return;
@@ -255,10 +299,10 @@ public class ElectricObject
 		}
 	}
 
-	/** This object as a string.  Will always contain the type of the
-	 * object and the c-side address as a Hexidecimal number.  May also
-	 * include more interesting information.  For objects with names,
-	 * use their getName method if you want their name instead. */
+	/**
+	 * Returns a printable version of this ElectricObject.
+	 * @return a printable version of this ElectricObject.
+	 */
 	public String toString()
 	{
 		return getClass().getName();

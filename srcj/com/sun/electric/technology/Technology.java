@@ -49,102 +49,212 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
 /**
- * A Technology object contains PrimitiveNodes and ArcProtos.  There may
- * be more than one Technology object.  To get a particular Technology,
- * use <code>Electric.findTechnology</code>
+ * Technology is the base class for all of the specific technologies in Electric.
+ *
+ * It is organized into two main areas: nodes and arcs.
+ * Both nodes and arcs are composed of Layers.
+ *<P>
+ * Subclasses of Technology usually start by defining the Layers (such as Metal-1, Metal-2, etc.)
+ * Then the PrimitiveArc objects are created, built entirely from Layers.
+ * Next PrimitiveNode objects are created, and they have Layers as well as connectivity to the PrimitiveArcs.
+ * The Technology concludes with miscellaneous data assignments of technology-wide information.
+ * <P>
+ * Here are the nodes in a sample CMOS technology.
+ * Note that there are two types of transistors and diffusion contacts, one for Well and one for Substrate.
+ * Each layer that can exist as a wire must have a pin node (in this case, metal, polysilicon, and two flavors of diffusion.
+ * Note that there are pure-layer nodes at the bottom which allow arbitrary geometry to be constructed.
+ * <CENTER><IMG SRC="doc-files/Technology-1.gif"></CENTER>
+ *<P>
+ * Conceptually, a Technology has 3 types of information:
+ * <UL><LI><I>Geometry</I>.  Each node and arc can be described in terms of polygons on differnt Layers.
+ * The ArcLayer and NodeLayer subclasses help define those polygons.
+ * <LI><I>Connectivity</I>.  The very structure of the nodes and arcs establisheds a set of rules of connectivity.
+ * Examples include the list of allowable arc types that may connect to each port, and the use of port "network numbers"
+ * to identify those that are connected internally.
+ * <LI><I>Behavior</I>.  Behavioral information takes many forms, but they can all find a place here.
+ * For example, each layer, node, and arc has a "function" that describes its general behavior.
+ * Some information applies to the technology as a whole, for example SPICE model cards.
+ * Other examples include Design Rules and technology characteristics.
+ * </UL>
+ * @author Steven M. Rubin
  */
 public class Technology extends ElectricObject
 {
 	/** technology is not electrical */									private static final int NONELECTRICAL =       01;
 	/** has no directional arcs */										private static final int NODIRECTIONALARCS =   02;
-	/**  has no negated arcs */											private static final int NONEGATEDARCS =       04;
+	/** has no negated arcs */											private static final int NONEGATEDARCS =       04;
 	/** nonstandard technology (cannot be edited) */					private static final int NONSTANDARD =        010;
 	/** statically allocated (don't deallocate memory) */				private static final int STATICTECHNOLOGY =   020;
 	/** no primitives in this technology (don't auto-switch to it) */	private static final int NOPRIMTECHNOLOGY =   040;
 
+	/**
+	 * Defines a single layer of a PrimitiveArc.
+	 * A PrimitiveArc has a list of these ArcLayer objects, one for
+	 * each layer in a typical ArcInst.
+	 * Each PrimitiveArc is composed of a number of ArcLayer descriptors.
+	 * A descriptor converts a specific ArcInst into a polygon that describe this particular layer.
+	 */
 	public static class ArcLayer
 	{
-		Layer layer;
-		int offset;
-		Poly.Type style;
+		private Layer layer;
+		private int offset;
+		private Poly.Type style;
 
+		/**
+		 * Constructs an <CODE>ArcLayer</CODE> with the specified description.
+		 * @param layer the Layer of this ArcLayer.
+		 * @param offset the distance from the outside of the ArcInst to this ArcLayer.
+		 * @param style the Poly.Style of this ArcLayer.
+		 */
 		public ArcLayer(Layer layer, int offset, Poly.Type style)
 		{
 			this.layer = layer;
 			this.offset = offset;
 			this.style = style;
 		}
+
+		/**
+		 * Returns the Layer from the Technology to be used for this ArcLayer.
+		 * @return the Layer from the Technology to be used for this ArcLayer.
+		 */
 		public Layer getLayer() { return layer; }
+
+		/**
+		 * Returns the distance from the outside of the ArcInst to this ArcLayer.
+		 * @return the distance from the outside of the ArcInst to this ArcLayer.
+		 */
 		public int getOffset() { return offset; }
+
+		/**
+		 * Returns the Poly.Style of this ArcLayer.
+		 * @return the Poly.Style of this ArcLayer.
+		 */
 		public Poly.Type getStyle() { return style; }
 	}
 
+	/**
+	 * Defines a point in space that is relative to a NodeInst's bounds.
+	 * The TechPoint has two coordinates: X and Y.
+	 * Each of these coordinates is represented by an Edge class (EdgeH for X
+	 * and EdgeV for Y).
+	 * The Edge classes have two numbers: a multiplier and an adder.
+	 * The desired coordinate takes the NodeInst's center, adds in the
+	 * product of the Edge multiplier and the NodeInst's size, and then adds
+	 * in the Edge adder.
+	 * <P>
+	 * Arrays of TechPoint objects can be used to describe the bounds of
+	 * a particular layer in a NodeInst.  Typically, four TechPoint objects
+	 * can describe a rectangle.  Circles only need two (center and edge).
+	 * The <CODE>Poly.Style</CODE> class defines the possible types of
+	 * geometry.
+	 * @see EdgeH
+	 * @see EdgeV
+	 */
 	public static class TechPoint
 	{
 		private EdgeH x;
 		private EdgeV y;
-		
+
+		/** An array of TechPoints that describes a zero-size rectangle in the center of the NodeInst. */
 		public static final TechPoint [] ATCENTER = new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER),
 					new Technology.TechPoint(EdgeH.CENTER, EdgeV.CENTER)};
+		/** An array of TechPoints that describes a rectangle that completely covers the NodeInst. */
 		public static final TechPoint [] FULLBOX = new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.BOTTOMEDGE),
 					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.TOPEDGE)};
+		/** An array of TechPoints that describes a rectangle that is inset by 0.5 units from the edge of the NodeInst. */
 		public static final TechPoint [] IN0HBOX = new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromLeft(0.5), EdgeV.fromBottom(0.5)),
 					new Technology.TechPoint(EdgeH.fromRight(0.5), EdgeV.fromTop(0.5))};
+		/** An array of TechPoints that describes a rectangle that is inset by 1 unit from the edge of the NodeInst. */
 		public static final TechPoint [] IN1BOX = new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromLeft(1), EdgeV.fromBottom(1)),
 					new Technology.TechPoint(EdgeH.fromRight(1), EdgeV.fromTop(1))};
+		/** An array of TechPoints that describes a rectangle that is inset by 1.5 units from the edge of the NodeInst. */
 		public static final TechPoint [] IN1HBOX = new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5)),
 					new Technology.TechPoint(EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))};
+		/** An array of TechPoints that describes a rectangle that is inset by 2 units from the edge of the NodeInst. */
 		public static final TechPoint [] IN2BOX = new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromLeft(2), EdgeV.fromBottom(2)),
 					new Technology.TechPoint(EdgeH.fromRight(2), EdgeV.fromTop(2))};
+		/** An array of TechPoints that describes a rectangle that is inset by 2.5 units from the edge of the NodeInst. */
 		public static final TechPoint [] IN2HBOX = new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromLeft(2.5), EdgeV.fromBottom(2.5)),
 					new Technology.TechPoint(EdgeH.fromRight(2.5), EdgeV.fromTop(2.5))};
+		/** An array of TechPoints that describes a rectangle that is inset by 3 units from the edge of the NodeInst. */
 		public static final TechPoint [] IN3BOX = new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.fromBottom(3)),
 					new Technology.TechPoint(EdgeH.fromRight(3), EdgeV.fromTop(3))};
+		/** An array of TechPoints that describes a rectangle that is inset by 3.5 units from the edge of the NodeInst. */
 		public static final TechPoint [] IN3HBOX = new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromLeft(3.5), EdgeV.fromBottom(3.5)),
 					new Technology.TechPoint(EdgeH.fromRight(3.5), EdgeV.fromTop(3.5))};
+		/** An array of TechPoints that describes a rectangle that is inset by 4 units from the edge of the NodeInst. */
 		public static final TechPoint [] IN4BOX = new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(4)),
 					new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(4))};
+		/** An array of TechPoints that describes a rectangle that is inset by 4.5 units from the edge of the NodeInst. */
 		public static final TechPoint [] IN4HBOX = new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromLeft(4.5), EdgeV.fromBottom(4.5)),
 					new Technology.TechPoint(EdgeH.fromRight(4.5), EdgeV.fromTop(4.5))};
+		/** An array of TechPoints that describes a rectangle that is inset by 5 units from the edge of the NodeInst. */
 		public static final TechPoint [] IN5BOX = new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromLeft(5), EdgeV.fromBottom(5)),
 					new Technology.TechPoint(EdgeH.fromRight(5), EdgeV.fromTop(5))};
+		/** An array of TechPoints that describes a rectangle that is inset by 5.5 units from the edge of the NodeInst. */
 		public static final TechPoint [] IN5HBOX = new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromLeft(5.5), EdgeV.fromBottom(5.5)),
 					new Technology.TechPoint(EdgeH.fromRight(5.5), EdgeV.fromTop(5.5))};
+		/** An array of TechPoints that describes a rectangle that is inset by 6 units from the edge of the NodeInst. */
 		public static final TechPoint [] IN6BOX = new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(6)),
 					new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(6))};
+		/** An array of TechPoints that describes a rectangle that is inset by 6.5 units from the edge of the NodeInst. */
 		public static final TechPoint [] IN6HBOX = new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromLeft(6.5), EdgeV.fromBottom(6.5)),
 					new Technology.TechPoint(EdgeH.fromRight(6.5), EdgeV.fromTop(6.5))};
+		/** An array of TechPoints that describes a rectangle that is inset by 7 units from the edge of the NodeInst. */
 		public static final TechPoint [] IN7BOX = new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromLeft(7), EdgeV.fromBottom(7)),
 					new Technology.TechPoint(EdgeH.fromRight(7), EdgeV.fromTop(7))};
+		/** An array of TechPoints that describes a rectangle that is inset by 7.5 units from the edge of the NodeInst. */
 		public static final TechPoint [] IN7HBOX = new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromLeft(7.5), EdgeV.fromBottom(7.5)),
 					new Technology.TechPoint(EdgeH.fromRight(7.5), EdgeV.fromTop(7.5))};
 
+		/**
+		 * Constructs a <CODE>TechPoint</CODE> with the specified description.
+		 * @param x the EdgeH that converts a NodeInst into an X coordinate on that NodeInst.
+		 * @param y the EdgeV that converts a NodeInst into a Y coordinate on that NodeInst.
+		 */
 		public TechPoint(EdgeH x, EdgeV y)
 		{
 			this.x = x;
 			this.y = y;
 		}
+
+		/**
+		 * Returns the EdgeH that converts a NodeInst into an X coordinate on that NodeInst.
+		 * @return the EdgeH that converts a NodeInst into an X coordinate on that NodeInst.
+		 */
 		public EdgeH getX() { return x; }
+
+		/**
+		 * Returns the EdgeV that converts a NodeInst into a Y coordinate on that NodeInst.
+		 * @return the EdgeV that converts a NodeInst into a Y coordinate on that NodeInst.
+		 */
 		public EdgeV getY() { return y; }
 	}
 
+	/**
+	 * Defines a single layer of a PrimitiveNode.
+	 * A PrimitiveNode has a list of these NodeLayer objects, one for
+	 * each layer in a typical NodeInst.
+	 * Each PrimitiveNode is composed of a number of NodeLayer descriptors.
+	 * A descriptor converts a specific NodeInst into a polygon that describe this particular layer.
+	 */
 	public static class NodeLayer
 	{
 		private Layer layer;
@@ -154,11 +264,20 @@ public class Technology extends ElectricObject
 		private TechPoint [] points;
 		private String message;
 
-		/** list of scalable points */		public static final int POINTS=     0;
-		/** a rectangle */					public static final int BOX=        1;
-		/** list of absolute points */		public static final int ABSPOINTS=  2;
-		/** minimum sized rectangle */		public static final int MINBOX=     3;
+		// the meaning of "representation"
+		/** Indicates that the "points" list defines scalable points. */			public static final int POINTS=     0;
+		/** Indicates that the "points" list defines a rectangle. */				public static final int BOX=        1;
+		/** Indicates that the "points" list defines a list of absolute points. */	public static final int ABSPOINTS=  2;
+		/** Indicates that the "points" list defines a minimum sized rectangle. */	public static final int MINBOX=     3;
 
+		/**
+		 * Constructs a <CODE>NodeLayer</CODE> with the specified description.
+		 * @param layer the <CODE>Layer</CODE> this is on.
+		 * @param portNum a 0-based index of the port (from the actual NodeInst) on this layer.
+		 * @param style the Poly.Type this NodeLayer will generate (polygon, circle, text, etc.).
+		 * @param representation tells how to interpret "points".  It can be POINTS, BOX, ABSPOINTS, or MINBOX.
+		 * @param points the list of coordinates (stored as TechPoints) associated with this NodeLayer.
+		 */
 		public NodeLayer(Layer layer, int portNum, Poly.Type style, int representation,
 			TechPoint [] points)
 		{
@@ -168,16 +287,83 @@ public class Technology extends ElectricObject
 			this.representation = representation;
 			this.points = points;
 		}
+
+		/**
+		 * Returns the <CODE>Layer</CODE> object associated with this NodeLayer.
+		 * @return the <CODE>Layer</CODE> object associated with this NodeLayer.
+		 */
 		public Layer getLayer() { return layer; }
+
+		/**
+		 * Returns the 0-based index of the port associated with this NodeLayer.
+		 * @return the 0-based index of the port associated with this NodeLayer.
+		 */
 		public int getPortNum() { return portNum; }
+
+		/**
+		 * Returns the Poly.Type this NodeLayer will generate.
+		 * @return the Poly.Type this NodeLayer will generate.
+		 * Examples are polygon, lines, splines, circle, text, etc.
+		 */
 		public Poly.Type getStyle() { return style; }
+
+		/**
+		 * Returns the method of interpreting "points".
+		 * @return the method of interpreting "points".
+		 * It can be POINTS, BOX, ABSPOINTS, or MINBOX.
+		 */
 		public int getRepresentation() { return representation; }
+
+		/**
+		 * Returns the list of coordinates (stored as TechPoints) associated with this NodeLayer.
+		 * @return the list of coordinates (stored as TechPoints) associated with this NodeLayer.
+		 */
 		public TechPoint [] getPoints() { return points; }
+
+		/**
+		 * Returns the left edge coordinate (a scalable EdgeH object) associated with this NodeLayer.
+		 * @return the left edge coordinate associated with this NodeLayer.
+		 * It only makes sense if the representation is BOX or MINBOX.
+		 * The returned coordinate is a scalable EdgeH object.
+		 */
 		public EdgeH getLeftEdge() { return points[0].getX(); }
+
+		/**
+		 * Returns the bottom edge coordinate (a scalable EdgeV object) associated with this NodeLayer.
+		 * @return the bottom edge coordinate associated with this NodeLayer.
+		 * It only makes sense if the representation is BOX or MINBOX.
+		 * The returned coordinate is a scalable EdgeV object.
+		 */
 		public EdgeV getBOTTOMEDGE() { return points[0].getY(); }
+
+		/**
+		 * Returns the right edge coordinate (a scalable EdgeH object) associated with this NodeLayer.
+		 * @return the right edge coordinate associated with this NodeLayer.
+		 * It only makes sense if the representation is BOX or MINBOX.
+		 * The returned coordinate is a scalable EdgeH object.
+		 */
 		public EdgeH getRIGHTEDGE() { return points[1].getX(); }
+
+		/**
+		 * Returns the top edge coordinate (a scalable EdgeV object) associated with this NodeLayer.
+		 * @return the top edge coordinate associated with this NodeLayer.
+		 * It only makes sense if the representation is BOX or MINBOX.
+		 * The returned coordinate is a scalable EdgeV object.
+		 */
 		public EdgeV getTOPEDGE() { return points[1].getY(); }
+
+		/**
+		 * Returns the text message associated with this list NodeLayer.
+		 * @return the text message associated with this list NodeLayer.
+		 * This only makes sense if the style is one of the TEXT types.
+		 */
 		public String getMessage() { return message; }
+
+		/**
+		 * Sets the text to be drawn by this NodeLayer.
+		 * @param message the text to be drawn by this NodeLayer.
+		 * This only makes sense if the style is one of the TEXT types.
+		 */
 		public void setMessage(String message) { this.message = message; }
 	}
 
@@ -194,6 +380,10 @@ public class Technology extends ElectricObject
 	/* the current tlayout echnology in Electric */		private static Technology curLayoutTech = null;
 	/* counter for enumerating technologies */			private static int techNumber = 0;
 
+	/**
+	 * Constructs a <CODE>Technology</CODE>.
+	 * This should not be called directly, but instead is invoked through each subclass's factory.
+	 */
 	protected Technology()
 	{
 		this.nodes = new ArrayList();
@@ -206,6 +396,12 @@ public class Technology extends ElectricObject
 		technologies.add(this);
 	}
 
+	/**
+	 * Routine to determine whether a new technology with the given name would be legal.
+	 * All technology names must be unique, so the name cannot already be in use.
+	 * @param techName the name of the new technology that will be created.
+	 * @return true if the name is valid.
+	 */
 	protected static boolean validTechnology(String techName)
 	{
 		if (Technology.findTechnology(techName) != null)
@@ -216,108 +412,217 @@ public class Technology extends ElectricObject
 		return true;
 	}
 
-	void addNodeProto(PrimitiveNode pn)
+	/**
+	 * Routine to add a new PrimitiveNode to this Technology.
+	 * This is usually done during initialization.
+	 * @param np the PrimitiveNode to be added to this Technology.
+	 */
+	void addNodeProto(PrimitiveNode np)
 	{
-		nodes.add(pn);
+		nodes.add(np);
 	}
 
+	/**
+	 * Routine to add a new PrimitiveArc to this Technology.
+	 * This is usually done during initialization.
+	 * @param ap the PrimitiveArc to be added to this Technology.
+	 */
 	public void addArcProto(PrimitiveArc ap)
 	{
 		arcs.add(ap);
 	}
-		
+
+	/**
+	 * This is called once, at the start of Electric, to initialize the technologies.
+	 * Because of Java's "lazy evaluation", the only way to force the technology constructors to fire
+	 * and build a proper list of technologies, each class must somehow be referenced.
+	 * So, each technology is listed here.  If a new technology is created, this must be updated.
+	 */
 	public static void initAllTechnologies()
 	{
 		// Because of lazy evaluation, technologies aren't initialized unless they're referenced here
-		Technology.setCurrent(Generic.tech);		// must be called first
+		Generic.tech.setCurrent();		// must be called first
 
 		// now all of the rest
-		Technology.setCurrent(Schematics.tech);
-		Technology.setCurrent(Artwork.tech);
-		Technology.setCurrent(CMOS.tech);
-		Technology.setCurrent(MoCMOSOld.tech);
-		Technology.setCurrent(MoCMOSSub.tech);
+		Schematics.tech.setCurrent();
+		Artwork.tech.setCurrent();
+		CMOS.tech.setCurrent();
+		MoCMOSOld.tech.setCurrent();
+		MoCMOSSub.tech.setCurrent();
 
 		// the last one is the real current technology
-		Technology.setCurrent(MoCMOS.tech);
+		MoCMOS.tech.setCurrent();
 
 		// setup the generic technology to handle all connections
 		Generic.tech.makeUnivList();
 	}
 
-	/** Set the NonElectrical bit */
-	public void setNonElectrical() { userBits |= NONELECTRICAL; }
-	/** Get the NonElectrical bit */
+	/**
+	 * Sets the technology to be "non-electrical".
+	 * Users should never call this routine.  It is set once
+	 * by the technology during initialization.
+	 * Examples of non-electrical technologies are "Artwork" and "Gem".
+	 */
+	protected void setNonElectrical() { userBits |= NONELECTRICAL; }
+
+	/**
+	 * Returns true if this technology is "non-electrical".
+	 * @return true if this technology is "non-electrical".
+	 * Examples of non-electrical technologies are "Artwork" and "Gem".
+	 */
 	public boolean isNonElectrical() { return (userBits & NONELECTRICAL) != 0; }
 
-	/** Set the No Directional Arcs bit */
-	public void setNoDirectionalArcs() { userBits |= NODIRECTIONALARCS; }
-	/** Get the No Directional bit */
+	/**
+	 * Sets the technology to have no directional arcs.
+	 * Users should never call this routine.  It is set once
+	 * by the technology during initialization.
+	 * Directional arcs are those with arrows on them, indicating (only graphically) the direction of flow through the arc.
+	 */
+	protected void setNoDirectionalArcs() { userBits |= NODIRECTIONALARCS; }
+
+	/**
+	 * Returns true if this technology does not have directional arcs.
+	 * @return true if this technology does not have directional arcs.
+	 * Directional arcs are those with arrows on them, indicating (only graphically) the direction of flow through the arc.
+	 */
 	public boolean isNoDirectionalArcs() { return (userBits & NODIRECTIONALARCS) != 0; }
 
-	/** Set the No Negated Arcs bit */
-	public void setNoNegatedArcs() { userBits |= NONEGATEDARCS; }
-	/** Get the No Directional bit */
+	/**
+	 * Sets the technology to have no negated arcs.
+	 * Users should never call this routine.  It is set once
+	 * by the technology during initialization.
+	 * Negated arcs have bubbles on them to graphically indicated negation.
+	 * Only Schematics and related technologies allow negated arcs.
+	 */
+	protected void setNoNegatedArcs() { userBits |= NONEGATEDARCS; }
+
+	/**
+	 * Returns true if this technology does not have negated arcs.
+	 * @return true if this technology does not have negated arcs.
+	 * Negated arcs have bubbles on them to graphically indicated negation.
+	 * Only Schematics and related technologies allow negated arcs.
+	 */
 	public boolean isNoNegatedArcs() { return (userBits & NONEGATEDARCS) != 0; }
 
-	/** Set the NonStandard bit */
-	public void setNonStandard() { userBits |= NONSTANDARD; }
-	/** Get the No Directional bit */
+	/**
+	 * Sets the technology to be non-standard.
+	 * Users should never call this routine.  It is set once
+	 * by the technology during initialization.
+	 * A non-standard technology cannot be edited in the technology editor.
+	 * Examples are Schematics and Artwork, which have more complex graphics.
+	 */
+	protected void setNonStandard() { userBits |= NONSTANDARD; }
+
+	/**
+	 * Returns true if this technology is non-standard.
+	 * @return true if this technology is non-standard.
+	 * A non-standard technology cannot be edited in the technology editor.
+	 * Examples are Schematics and Artwork, which have more complex graphics.
+	 */
 	public boolean isNonStandard() { return (userBits & NONSTANDARD) != 0; }
 
-	/** Set the Static Technology bit */
-	public void setStaticTechnology() { userBits |= NONSTANDARD; }
-	/** Get the No Directional bit */
+	/**
+	 * Sets the technology to be "static".
+	 * Users should never call this routine.  It is set once
+	 * by the technology during initialization.
+	 * Static technologies are the core set of technologies in Electric that are
+	 * essential, and cannot be deleted.
+	 * The technology-editor can create others later, and they can be deleted.
+	 */
+	protected void setStaticTechnology() { userBits |= NONSTANDARD; }
+
+	/**
+	 * Returns true if this technoology is "static" (cannot be deleted).
+	 * @return true if this technoology is "static" (cannot be deleted).
+	 * Static technologies are the core set of technologies in Electric that are
+	 * essential, and cannot be deleted.
+	 * The technology-editor can create others later, and they can be deleted.
+	 */
 	public boolean isStaticTechnology() { return (userBits & NONSTANDARD) != 0; }
 
-	/** Set the No Primitive Nodes bit */
+	/**
+	 * Sets the technology to have no primitives.
+	 * Users should never call this routine.  It is set once
+	 * by the technology during initialization.
+	 * This indicates to the user interface that it should not switch to this technology.
+	 * The FPGA technology has this bit set because it initially contains no primitives,
+	 * and they are only created dynamically.
+	 */
 	public void setNoPrimitiveNodes() { userBits |= NOPRIMTECHNOLOGY; }
-	/** Get the No Directional bit */
+
+	/**
+	 * Returns true if this technology has no primitives.
+	 * @return true if this technology has no primitives.
+	 * This indicates to the user interface that it should not switch to this technology.
+	 * The FPGA technology has this bit set because it initially contains no primitives,
+	 * and they are only created dynamically.
+	 */
 	public boolean isNoPrimitiveNodes() { return (userBits & NOPRIMTECHNOLOGY) != 0; }
 
 	/**
-	 * Return the current Technology
+	 * Returns the current Technology.
+	 * @return the current Technology.
+	 * The current technology is maintained by the system as a default
+	 * in situations where a technology cannot be determined.
 	 */
 	public static Technology getCurrent() { return curTech; }
 
 	/**
-	 * Set the current Technology
+	 * Set this to be the current Technology
+	 * The current technology is maintained by the system as a default
+	 * in situations where a technology cannot be determined.
 	 */
-	public static void setCurrent(Technology tech)
+	public void setCurrent()
 	{
-		curTech = tech;
-		if (tech != Generic.tech && tech != Schematics.tech && tech != Artwork.tech)
-			curLayoutTech = tech;
+		curTech = this;
+		if (this != Generic.tech && this != Schematics.tech && this != Artwork.tech)
+			curLayoutTech = this;
 	}
 
-	/** 
-	 * get the name (short) of this technology
+	/**
+	 * Returns the name of this technology.
+	 * Each technology has a unique name, such as "mocmos" (MOSIS CMOS).
+	 * @return the name of this technology.
+	 * @see Technology#setTechName
 	 */
 	public String getTechName() { return techName; }
 
-	/** 
-	 * set the name (short) of this technology
+	/**
+	 * Sets the name of this technology.
+	 * Technology names must be unique.
 	 */
 	protected void setTechName(String techName) { this.techName = techName; }
 
 	/**
-	 * get the description (long) of this technology
+	 * Returns the full description of this Technology.
+	 * Full descriptions go beyond the one-word technology name by including such
+	 * information as foundry, nuumber of available layers, and process specifics.
+	 * For example, "Complementary MOS (from MOSIS, Submicron, 2-6 metals [4], double poly)".
+	 * @return the full description of this Technology.
 	 */
 	public String getTechDesc() { return techDesc; }
 
 	/**
-	 * get the description (long) of this technology
+	 * Sets the full description of this Technology.
+	 * Full descriptions go beyond the one-word technology name by including such
+	 * information as foundry, nuumber of available layers, and process specifics.
+	 * For example, "Complementary MOS (from MOSIS, Submicron, 2-6 metals [4], double poly)".
 	 */
 	public void setTechDesc(String techDesc) { this.techDesc = techDesc; }
 
 	/**
-	 * get the default scale for this technology.
-	 * typically overridden by a library
+	 * Returns the default scale for this Technology.
+	 * The technology's scale is for manufacturing output, which must convert
+	 * the unit-based values in Electric to real-world values.
+	 * @return the default scale for this Technology.
 	 */
 	public double getScale() { return scale; }
 
 	/**
-	 * set the default scale of this technology.
+	 * Sets the default scale of this technology.
+	 * The technology's scale is for manufacturing output, which must convert
+	 * the unit-based values in Electric to real-world values.
+	 * @param scale the new scale between this technology and the real units.
 	 */
 	public void setScale(double scale)
 	{
@@ -325,16 +630,23 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * get the 0-based index of this technology.
+	 * Returns the 0-based index of this Technology.
+	 * Each Technology has a unique index that can be used for array lookup.
+	 * @return the index of this Technology.
 	 */
 	public int getIndex() { return techIndex; }
 
+	/**
+	 * Returns the total number of Technologies currently in Electric.
+	 * @return the total number of Technologies currently in Electric.
+	 */
 	public static int getNumTechnologies()
 	{
 		return technologies.size();
 	}
 
-	/** Find the Technology with a particular name.
+	/**
+	 * Find the Technology with a particular name.
 	 * @param name the name of the desired Technology
 	 * @return the Technology with the same name, or null if no 
 	 * Technology matches.
@@ -351,7 +663,8 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * get an iterator over all of the Technologies
+	 * Get an iterator over all of the Technologies.
+	 * @return an iterator over all of the Technologies.
 	 */
 	public static Iterator getTechnologies()
 	{
@@ -359,7 +672,11 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * Get a list of polygons that describe node "ni"
+	 * Returns the polygons that describe node "ni".
+	 * @param ni the NodeInst that is being described.
+	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
+	 * @return an array of Poly objects that describes this NodeInst graphically.
+	 * This array includes displayable variables on the NodeInst.
 	 */
 	public Poly [] getShape(NodeInst ni)
 	{
@@ -377,6 +694,15 @@ public class Technology extends ElectricObject
 		return getShape(ni, primLayers);
 	}
 
+	/**
+	 * Returns the polygons that describe node "ni", given a set of
+	 * NodeLayer objects to use.
+	 * @param ni the NodeInst that is being described.
+	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
+	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
+	 * @return an array of Poly objects that describes this NodeInst graphically.
+	 * This array includes displayable variables on the NodeInst.
+	 */
 	public Poly [] getShape(NodeInst ni, Technology.NodeLayer [] primLayers)
 	{
 		// get information about the node
@@ -387,7 +713,7 @@ public class Technology extends ElectricObject
 		double lowY = ni.getCenterY() - halfHeight;
 		double highY = ni.getCenterY() + halfHeight;
 
-		NodeProto np = ni.getProto();
+		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		if (np.isHoldsOutline())
 		{
 			Integer [] outline = ni.getTrace();
@@ -412,10 +738,23 @@ public class Technology extends ElectricObject
 			}
 		}
 
-		// construct the polygons
-		int numPolys = primLayers.length + ni.numDisplayableVariables();
+		// if a MultiCut contact, determine the number of extra cuts
+		int numBasicLayers = primLayers.length;
+		int numExtraCuts = 0;
+		MultiCutData mcd = null;
+		if (np.getSpecialValues()[0] == PrimitiveNode.MULTICUT)
+		{
+			mcd = new MultiCutData(ni, np.getSpecialValues());
+			numExtraCuts = mcd.cutsTotal;
+			numBasicLayers--;
+		}
+
+		// construct the polygon array
+		int numPolys = numBasicLayers + numExtraCuts + ni.numDisplayableVariables();
 		Poly [] polys = new Poly[numPolys];
-		for(int i = 0; i < primLayers.length; i++)
+		
+		// add in the basic polygons
+		for(int i = 0; i < numBasicLayers; i++)
 		{
 			Technology.NodeLayer primLayer = primLayers[i];
 			int representation = primLayer.getRepresentation();
@@ -457,13 +796,156 @@ public class Technology extends ElectricObject
 			polys[i].setStyle(style);
 			polys[i].setLayer(primLayer.getLayer());
 		}
+
+		// add in the extra contact cuts
+		if (mcd != null)
+		{
+			Technology.NodeLayer primLayer = primLayers[numBasicLayers];
+			Poly.Type style = primLayer.getStyle();
+			for(int i = 0; i < numExtraCuts; i++)
+			{
+				polys[numBasicLayers+i] = mcd.fillCutPoly(ni, i);
+				polys[numBasicLayers+i].setStyle(style);
+				polys[numBasicLayers+i].setLayer(primLayer.getLayer());
+			}
+		}
+
+		// add in the displayable variables
 		Rectangle2D rect = ni.getBounds();
 		ni.addDisplayableVariables(rect, polys, primLayers.length);
 		return polys;
 	}
 
 	/**
-	 * Get a list of polygons that describe arc "ai".
+	 * Class MultiCutData here.
+	 */
+	private static class MultiCutData
+	{
+		/** the size of each cut */													int cutSizeX, cutSizeY;
+		/** the separation between cuts */											int cutSep;
+		/** the indent of the edge cuts to the node */								int cutIndent;
+		/** the number of cuts in X and Y */										int cutsX, cutsY;
+		/** the total number of cuts */												int cutsTotal;
+		/** the X coordinate of the leftmost cut's center */						double cutBaseX;
+		/** the Y coordinate of the topmost cut's center */							double cutBaseY;
+		/** cut position of last top-edge cut (for interior-cut elimination) */		int cutTopEdge;
+		/** cut position of last left-edge cut  (for interior-cut elimination) */	int cutLeftEdge;
+		/** cut position of last right-edge cut  (for interior-cut elimination) */	int cutRightEdge;
+
+		/**
+		 * Routine to return the number of cuts in multicut contact "ni".
+		 * The values in "specialValues" are:
+		 *     cuts sized "cutSizeX" x "cutSizeY" (specialValues[1] x specialValues[2])
+		 *     cuts indented at least "cutIndent" from the node edge (specialValues[3])
+		 *     cuts separated by "cutSep" (specialValues[4])
+		 */
+		public MultiCutData(NodeInst ni, int [] specialValues)
+		{
+			cutSizeX = specialValues[1];
+			cutSizeY = specialValues[2];
+			cutIndent = specialValues[3];
+			cutSep = specialValues[4];
+
+			// determine the actual node size
+			PrimitiveNode np = (PrimitiveNode)ni.getProto();
+			double cutLX = np.getLowXOffset();
+			double cutHX = np.getHighXOffset();
+			double cutLY = np.getLowYOffset();
+			double cutHY = np.getHighYOffset();
+
+			Rectangle2D.Double bounds = ni.getBounds();
+			double lx = bounds.getMinX() + cutLX;
+			double hx = bounds.getMaxX() - cutHX;
+			double ly = bounds.getMinY() + cutLY;
+			double hy = bounds.getMaxY() - cutHY;
+
+			// number of cuts depends on the size
+			cutsX = ((int)(hx-lx)-cutIndent*2+cutSep) / (cutSizeX+cutSep);
+			cutsY = ((int)(hy-ly)-cutIndent*2+cutSep) / (cutSizeY+cutSep);
+			if (cutsX <= 0) cutsX = 1;
+			if (cutsY <= 0) cutsY = 1;
+			cutsTotal = cutsX * cutsY;
+	//		*reasonable = pl->moscuttotal;
+			if (cutsTotal != 1)
+			{
+				// prepare for the multiple contact cut locations
+				cutBaseX = (hx-lx-cutIndent*2 - cutSizeX*cutsX -
+					cutSep*(cutsX-1)) / 2 + (cutLX + cutIndent + cutSizeX/2) + bounds.getMinX();
+				cutBaseY = (hy-ly-cutIndent*2 - cutSizeY*cutsY -
+					cutSep*(cutsY-1)) / 2 + (cutLY + cutIndent + cutSizeY/2) + bounds.getMinY();
+				if (cutsX > 2 && cutsY > 2)
+				{
+					//*reasonable = cutsX * 2 + (cutsY-2) * 2;
+					cutTopEdge = cutsX*2;
+					cutLeftEdge = cutsX*2 + cutsY-2;
+					cutRightEdge = cutsX*2 + (cutsY-2)*2;
+				}
+			}
+		}
+
+		/**
+		 * routine to fill in the contact cuts of a MOS contact when there are
+		 * multiple cuts.  Node is in "ni" and the contact cut number (0 based) is
+		 * in "cut".
+		 */
+		Poly fillCutPoly(NodeInst ni, int cut)
+		{
+			if (cutsX > 2 && cutsY > 2)
+			{
+				// rearrange cuts so that the initial ones go around the outside
+				if (cut < cutsX)
+				{
+					// bottom edge: it's ok as is
+				} else if (cut < cutTopEdge)
+				{
+					// top edge: shift up
+					cut += cutsX * (cutsY-2);
+				} else if (cut < cutLeftEdge)
+				{
+					// left edge: rearrange
+					cut = (cut - cutTopEdge) * cutsX + cutsX;
+				} else if (cut < cutRightEdge)
+				{
+					// right edge: rearrange
+					cut = (cut - cutLeftEdge) * cutsX + cutsX*2-1;
+				} else
+				{
+					// center: rearrange and scale down
+					cut = cut - cutRightEdge;
+					int cutx = cut % (cutsX-2);
+					int cuty = cut / (cutsX-2);
+					cut = cuty * cutsX + cutx+cutsX+1;
+				}
+			}
+
+			// locate the X center of the cut
+			double cX;
+			if (cutsX == 1)
+			{
+				cX = ni.getCenterX();
+			} else
+			{
+				cX = cutBaseX + (cut % cutsX) * (cutSizeX + cutSep);
+			}
+
+			// locate the Y center of the cut
+			double cY;
+			if (cutsY == 1)
+			{
+				cY = ni.getCenterY();
+			} else
+			{
+				cY = cutBaseY + (cut / cutsX) * (cutSizeY + cutSep);
+			}
+			return new Poly(cX, cY, cutSizeX, cutSizeY);
+		}
+	}
+
+	/**
+	 * Returns the polygons that describe arc "ai".
+	 * @param ai the ArcInst that is being described.
+	 * @return an array of Poly objects that describes this ArcInst graphically.
+	 * This array includes displayable variables on the ArcInst.
 	 */
 	public Poly [] getShape(ArcInst ai)
 	{
@@ -534,7 +1016,11 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * Get a polygon that describes port "pp" of node "ni"
+	 * Returns a polygon that describes a particular port on a NodeInst.
+	 * @param ni the NodeInst that has the port of interest.
+	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
+	 * @param pp the PrimitivePort on that NodeInst that is being described.
+	 * @return a Poly object that describes this PrimitivePort graphically.
 	 */
 	public Poly getPoly(NodeInst ni, PrimitivePort pp)
 	{
@@ -575,6 +1061,10 @@ public class Technology extends ElectricObject
 		}
 	}
 
+	/*
+	 * Routine to write a description of this Technology.
+	 * Displays the description in the Messages Window.
+	 */
 	protected void getInfo()
 	{
 		System.out.println(" Name: " + techName);
@@ -592,18 +1082,34 @@ public class Technology extends ElectricObject
 		super.getInfo();
 	}
 
-	/*
+	/**
 	 * Routine to convert old primitive node names to their proper nodeprotos.
+	 * This method is overridden by those technologies that have any special node name conversion issues.
+	 * By default, there is nothing to be done, because by the time this
+	 * routine is called, normal searches have failed.
+	 * @param name the unknown node name, read from an old library.
+	 * @return the proper PrimitiveNode to use for this name.
 	 */
 	public PrimitiveNode convertOldNodeName(String name) { return null; }
 
-	/*
-	 * Routine to convert old primitive node names to their proper nodeprotos.
+	/**
+	 * Routine to convert old primitive arc names to their proper arcprotos.
+	 * This method is overridden by those technologies that have any special arc name conversion issues.
+	 * By default, there is nothing to be done, because by the time this
+	 * routine is called, normal searches have failed.
+	 * @param name the unknown arc name, read from an old library.
+	 * @return the proper PrimitiveArc to use for this name.
 	 */
 	public PrimitiveArc convertOldArcName(String name) { return null; }
 
-	/*
+	/**
 	 * Routine to convert old primitive port names to their proper portprotos.
+	 * This method is overridden by those technologies that have any special port name conversion issues.
+	 * By default, there is nothing to be done, because by the time this
+	 * routine is called, normal searches have failed.
+	 * @param portName the unknown port name, read from an old library.
+	 * @param np the PrimitiveNode on which this port resides.
+	 * @return the proper PrimitivePort to use for this name.
 	 */
 	public PrimitivePort convertOldPortName(String portName, PrimitiveNode np)
 	{
@@ -630,11 +1136,19 @@ public class Technology extends ElectricObject
 		return null;
 	}
 
+	/**
+	 * Returns a printable version of this object.
+	 * @return a printable version of this object.
+	 */
 	public String toString()
 	{
 		return "Technology " + techName;
 	}
 
+	/**
+	 * Routine to determine the appropriate technology to use for a cell.
+	 * I am not happy with this interface and will redo it soon.  No need to document the mess!!!
+	 */
 	public static Technology whatTechnology(NodeProto cell, NodeProto [] nodeProtoList, int startNodeProto, int endNodeProto,
 		ArcProto [] arcProtoList, int startArcProto, int endArcProto)
 	{
@@ -801,7 +1315,9 @@ public class Technology extends ElectricObject
 	// *************************** ArcProtos ***************************
 
 	/**
-	 * get the PrimitiveArc with a particular name from this technology
+	 * Returns the PrimitiveArc in this technology with a particular name.
+	 * @param name the name of the PrimitiveArc.
+	 * @return the PrimitiveArc in this technology with that name.
 	 */
 	public PrimitiveArc findArcProto(String name)
 	{
@@ -815,7 +1331,8 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * get an iterator over all of the PrimitiveArcs in this technology
+	 * Returns an Iterator on the PrimitiveArc objects in this technology.
+	 * @return an Iterator on the PrimitiveArc objects in this technology.
 	 */
 	public Iterator getArcs()
 	{
@@ -823,7 +1340,8 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * get the number of PrimitiveArcs in this technology
+	 * Returns the number of PrimitiveArc objects in this technology.
+	 * @return the number of PrimitiveArc objects in this technology.
 	 */
 	public int getNumArcs()
 	{
@@ -833,7 +1351,9 @@ public class Technology extends ElectricObject
 	// *************************** NodeProtos ***************************
 
 	/**
-	 * get the PrimitiveNode with a particular name from this technology
+	 * Returns the PrimitiveNode in this technology with a particular name.
+	 * @param name the name of the PrimitiveNode.
+	 * @return the PrimitiveNode in this technology with that name.
 	 */
 	public PrimitiveNode findNodeProto(String name)
 	{
@@ -847,7 +1367,8 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * get an iterator over all of the PrimitiveNodes in this technology
+	 * Returns an Iterator on the PrimitiveNode objects in this technology.
+	 * @return an Iterator on the PrimitiveNode objects in this technology.
 	 */
 	public Iterator getNodes()
 	{
@@ -855,7 +1376,8 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * get the number of PrimitiveNodes in this technology
+	 * Returns the number of PrimitiveNodes objects in this technology.
+	 * @return the number of PrimitiveNodes objects in this technology.
 	 */
 	public int getNumNodes()
 	{

@@ -605,6 +605,12 @@ public class UIEdit extends JPanel
 	void showHighlight(Graphics g, Geometric geom)
 	{
 		g.setColor(Color.white);
+		Rectangle2D.Double highRect = geom.getBounds();
+		if (geom instanceof NodeInst)
+		{
+			NodeInst ni = (NodeInst)geom;
+			highRect.setRect(ni.getCenterX(), ni.getCenterY(), ni.getXSize(), ni.getYSize());
+		}
 		Rectangle2D rect = geom.getBounds();
 		Point c1 = databaseToScreen(rect.getMinX(), rect.getMinY());
 		Point c2 = databaseToScreen(rect.getMinX(), rect.getMaxY());

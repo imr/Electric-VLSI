@@ -292,7 +292,7 @@ public class InputBinary extends Input
 				View view = View.getView(viewName);
 				if (view == null)
 				{
-					view = View.makeInstance(viewName, viewShortName, 0);
+					view = View.newInstance(viewName, viewShortName);
 					if (view == null) return true;
 				}
 				view.setTempInt(i + 1);
