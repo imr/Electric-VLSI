@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ak: *********************************
 
+IMP: (11/5/04, DN) Version and CellName classes are mada Comparable.
+
 BUG: (11/5/04, DN) If Undo occurs after first Copy command, the Clibboard cell becomes unlinked.
 FIX: In User.init() call Clipboard.clear() to create the Clipboard cell.
 

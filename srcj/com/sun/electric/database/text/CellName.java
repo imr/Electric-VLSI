@@ -37,12 +37,12 @@ import com.sun.electric.database.hierarchy.View;
  * If the ";Version" is omitted, then the most recent version is assumed.
  * If the "{View}" is omitted, then the "unknown" view is assumed.
  */
-public class CellName
+public class CellName implements Comparable
 {
 	/** the name */		private final String name;
 	/** the view */		private final View   view;
 	/** the version */	private final int    version;
-
+	/** hash of this */ private final int    hash;
 	/**
 	 * Constructs a <CODE>CellName</CODE> (cannot be called).
 	 */
@@ -50,6 +50,13 @@ public class CellName
         this.name = name;
         this.view = view;
         this.version = version;
+		int h = 0;
+		for (int i = 0; i < name.length(); i++) {
+			h = 31*h + Character.toLowerCase(name.charAt(i));
+		}
+		h = h * 37 + view.getOrder();
+		h = h * 17 + version;
+		hash = h;
     }
 
 	/**
@@ -70,6 +77,70 @@ public class CellName
 	 */
 	public int getVersion() { return version; }
 
+    /**
+     * Returns a hash code for this <code>Version</code>.
+     * @return  a hash code value for this Version.
+	 */
+    public int hashCode() {
+		return hash;
+    }
+
+    /**
+     * Compares this CellName object to the specified object.  The result is
+     * <code>true</code> if and only if the argument is not
+     * <code>null</code> and is an <code>CellName</code> object that
+     * contains the same <code>version</code>, <code>view</code> and case-insensitive <code>name</code> as this CellName.
+     *
+     * @param   obj   the object to compare with.
+     * @return  <code>true</code> if the objects are the same;
+     *          <code>false</code> otherwise.
+     */
+    public boolean equals(Object obj) {
+		if (obj instanceof CellName) {
+			CellName n = (CellName)obj;
+			return hash == n.hash && name.equalsIgnoreCase(n.name) && view == n.view && version == n.version;
+		}
+		return false;
+    }
+
+    /**
+     * Compares this CellName object to the specified object.  The result is
+     * <code>true</code> if and only if the argument is not
+     * <code>null</code> and is an <code>CellName</code> object that
+     * contains the same <code>view</code> and case-insensitive <code>name</code> as this CellName.
+     *
+     * @param   obj   the object to compare with.
+     * @return  <code>true</code> if the objects are the same;
+     *          <code>false</code> otherwise.
+     */
+    public boolean equalsIgnoreVersion(Object obj) {
+		if (obj instanceof CellName) {
+			CellName n = (CellName)obj;
+			return name.equalsIgnoreCase(n.name) && view == n.view;
+		}
+		return false;
+    }
+
+    /**
+     * Compares two <code>CellName</code> objects.
+     * @param   o   the object to be compared.
+     * @return	the resuly of comparision.
+     */
+    public int compareTo(Object o) {
+		CellName n = (CellName)o;
+
+		int cmp = TextUtils.nameSameNumeric(name, n.name);
+		if (cmp != 0) return cmp;
+
+		cmp = view.getOrder() - n.view.getOrder();
+		if (cmp != 0) return cmp;
+
+		if (version > 0)
+			return n.version > 0 ? version - n.version : -1;
+		else
+			return n.version > 0 ? 1 : 0;
+    }
+
 	/**
 	 * Method to build the full cell name.
 	 * @return the full cell name.
@@ -86,6 +157,8 @@ public class CellName
 	 */
 	public static CellName parseName(String name)
 	{
+		if (name == null) return null;
+
 		// figure out the view and version of the cell
 		View view = View.UNKNOWN;
 		int openCurly = name.indexOf('{');
@@ -130,6 +203,20 @@ public class CellName
 		if (openCurly == -1) openCurly = name.length();
 		int nameEnd = Math.min(semiColon, openCurly);
 		name = name.substring(0, nameEnd);
+		if (name.length() == 0)
+		{
+			System.out.println("Cell name can't be empty");
+			return null;
+		}
+		for (int i = 0; i < name.length(); i++)
+		{
+			char ch = name.charAt(i);
+			if (ch == '\n' || ch == '}' || ch == ';' || ch == '|' || ch == ':')
+			{
+				System.out.println("Cell name " + name + " has invalid char '" + ch + "'");
+				return null;
+			}
+		}
         CellName n = new CellName(name, view, version);
 		return n;
 	}
@@ -145,6 +232,8 @@ public class CellName
      * @return a CellName object for the given name, view, and version
      */
     public static CellName newName(String name, View view, int version) {
+		if (view == null) view = View.UNKNOWN;
+		if (version < 0) version = 0;
         CellName n = parseName(name);
         CellName nn = new CellName(n.getName(), view, version);
         return nn;

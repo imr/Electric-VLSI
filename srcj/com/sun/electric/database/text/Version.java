@@ -47,7 +47,7 @@ import java.text.DateFormat;
  *  7.04.1
  *  8.00
  */
-public class Version
+public class Version implements Comparable
 {
 	/**
 	 * This is the current version of Electric
@@ -252,15 +252,8 @@ public class Version
     /**
      * Compares two <code>Version</code> objects numerically.
      *
-     * @param   anotherInteger   the <code>Integer</code> to be compared.
-     * @return	the value <code>0</code> if this <code>Integer</code> is
-     * 		equal to the argument <code>Integer</code>; a value less than
-     * 		<code>0</code> if this <code>Integer</code> is numerically less
-     * 		than the argument <code>Integer</code>; and a value greater 
-     * 		than <code>0</code> if this <code>Integer</code> is numerically
-     * 		 greater than the argument <code>Integer</code> (signed
-     * 		 comparison).
-     * @since   1.2
+     * @param o the object to be compared.
+     * @return the result of comparison.
      */
     public int compareTo(Object o) {
 		Version v = (Version)o;
