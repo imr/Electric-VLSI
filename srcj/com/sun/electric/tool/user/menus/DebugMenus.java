@@ -765,7 +765,7 @@ public class DebugMenus {
 
     public static void threeViewCommand()
 	{
-		ThreeView dialog = new ThreeView(TopLevel.getCurrentJFrame(), true);
+// 		ThreeView dialog = new ThreeView(TopLevel.getCurrentJFrame(), true);
 //		dialog.setVisible(true);
 	}
 
