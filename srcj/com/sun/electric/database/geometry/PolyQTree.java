@@ -24,8 +24,7 @@
 
 package com.sun.electric.database.geometry;
 
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.AffineTransform;
+import java.awt.geom.*;
 import java.util.*;
 
 /**
@@ -81,14 +80,20 @@ public class PolyQTree {
 	 * @param layer
 	 * @return List contains all leave elements
 	 */
-	public Set getObjects(Object layer, List excludeList)
+	/**
+	 * Retrieves list of leaf elements in the tree for a given layer
+	 * @param layer Layer under analysis
+	 * @param modified True if only the original elements should not be retrieved
+	 * @return list of leaf elements
+	 */
+	public Set getObjects(Object layer, boolean modified)
 	{
 		Set objSet = new HashSet();
 		PolyQNode root = (PolyQNode)layers.get(layer);
 
 		if (root != null)
 		{
-			root.getLeafObjects(objSet, excludeList);
+			root.getLeafObjects(objSet, modified);
 		}
 		return (objSet);
 	}
@@ -98,7 +103,7 @@ public class PolyQTree {
 	 * @param layer Given layer to work with
 	 * @param box Bounding box of the cell containing the layer
 	 */
-	public void insert(Object layer, Rectangle2D box, Rectangle2D obj)
+	public void insert(Object layer, Rectangle2D box, PolyNode obj)
 	{
 		PolyQNode root = (PolyQNode)layers.get(layer);
 
@@ -108,11 +113,12 @@ public class PolyQTree {
 			layers.put(layer, root);
 		};
 		// Check whether original got changed! shouldn't happen because they are by value
-		testBox.setRect(obj);
+		//testBox.setRect(obj);
 		//testBox = root.removeObjects(box, testBox);
 		// Only if no other identical element was found, element is inserted
-		if (!root.findAndRemoveObjects(box, testBox))
-			root.insert(box, testBox);
+		Rectangle2D areaBB = obj.getBounds2D();
+		if (!root.findAndRemoveObjects(box, obj, areaBB))
+			root.insert(box, obj, areaBB);
 	}
 
 	public void insert(PolyQTree other, Rectangle2D bounds, AffineTransform trans)
@@ -120,19 +126,91 @@ public class PolyQTree {
 		for(Iterator it = other.layers.keySet().iterator(); it.hasNext();)
 		{
 			Object layer = it.next();
-			Set set = other.getObjects(layer, null);
+			Set set = other.getObjects(layer, false);
 
 			for(Iterator i = set.iterator(); i.hasNext(); )
 			{
-				Rectangle2D rect = (Rectangle2D)i.next();
-                // missing the transformation
-				System.out.println("Missing transformation " + trans);
-				insert(layer, bounds, rect);
+				PolyNode geo = (PolyNode)i.next();
+				geo.transform(trans);
+				insert(layer, bounds, geo);
 			}
 		}
 	}
 
 	//--------------------------PRIVATE METHODS--------------------------
+	public static class PolyNode extends Area
+	{
+		private byte original;
+
+		public PolyNode(Rectangle2D rect)
+		{
+			super(rect);
+		}
+		public double getArea()
+		{
+			if (isRectangular())
+			{
+				Rectangle2D bounds = getBounds2D();
+				return (bounds.getHeight()*bounds.getWidth());
+			}
+			// @TODO: GVG Missing part. Run more robust tests
+            double [] coords = new double[6];
+			List pointList = new ArrayList();
+			double area = 0;
+
+			for (PathIterator pIt = getPathIterator(null); !pIt.isDone(); )
+			{
+				int type = pIt.currentSegment(coords);
+
+				// Closed polygon obtained
+				if (type == PathIterator.SEG_CLOSE)
+				{
+					Object [] points = pointList.toArray();
+					for (int i = 0; i < pointList.size(); i++)
+					{
+						int j = (i + 1)% pointList.size();
+						area += ((Point2D)points[i]).getX()*((Point2D)points[j]).getY();
+						area -= ((Point2D)points[j]).getX()*((Point2D)points[i]).getY();
+					}
+					pointList.clear();
+				} else if (type == PathIterator.SEG_MOVETO || type == PathIterator.SEG_LINETO)
+				{
+					Point2D pt = new Point2D.Double(coords[0], coords[1]);
+					pointList.add(pt);
+				}
+				pIt.next();
+			}
+			area /= 2;
+			return(area < 0 ? -area : area);
+		}
+		public String toString()
+		{
+			return ("PolyNode " + getBounds());
+		}
+		public boolean intersects (Area a)
+		{
+			if (a.isRectangular())
+			{
+				return (intersects(a.getBounds2D())) ;
+			}
+			else if (isRectangular())
+			{
+				return (a.intersects(getBounds2D()));
+			}
+			// @TODO: GVG Missing part
+			System.out.println("IMPLEMENT!!");
+			return (a.intersects(getBounds2D()));
+		}
+		private boolean isOriginal()
+		{
+			boolean value = ((original >> 0 & 1) == 0);
+			return ((original >> 0 & 1) == 0);
+		}
+		private void setNotOriginal()
+		{
+			original |= 1 << 0;
+		}
+	}
 	private static class PolyQNode
     {
 		private Set nodes; // If Set, no need to check whether they are duplicated or not. Java will do it for you
@@ -194,23 +272,23 @@ public class PolyQTree {
 		 * Collects recursive leaf elements in a list. Uses set to avoid
 		 * duplicate elements (qtree could sort same element in all quadrants
 		 * @param set
-		 * @param excludeList list of original geometries
+		 * @param modified True if no original elements should be considered
 		 */
-		protected void getLeafObjects(Set set, List excludeList)
+		protected void getLeafObjects(Set set, boolean modified)
 		{
 			if (nodes != null)
 			{
-				set.addAll(nodes);
-				if ( excludeList != null )
+				// Not sure how efficient this is
+				for (Iterator it = nodes.iterator(); it.hasNext();)
 				{
-					// Make sure objects are not the originals
-					// Not sure how efficient this is
-					set.removeAll(excludeList);
+					PolyNode node = (PolyNode)it.next();
+					if (!modified || (modified && !node.isOriginal()))
+						set.add(node);
 				}
 			}
 			if (children == null) return;
 			for (int i = 0; i < PolyQTree.MAX_NUM_CHILDREN; i++)
-				children[i].getLeafObjects(set, excludeList);
+				children[i].getLeafObjects(set, modified);
 		}
 		/**
 		 *   print function for debugging purposes
@@ -219,7 +297,7 @@ public class PolyQTree {
 		{
 			if (nodes == null) return;
 			for (Iterator it = nodes.iterator(); it.hasNext();)
-				System.out.println("Rectangle " + (Rectangle2D)it.next());
+				System.out.println("Area " + it.next());
 			if (children == null) return;
 			for (int i = 0; i < PolyQTree.MAX_NUM_CHILDREN; i++)
 				children[i].print();
@@ -265,7 +343,7 @@ public class PolyQTree {
 		 * @param obj
 		 * @return
 		 */
-		protected boolean findAndRemoveObjects(Rectangle2D box, Rectangle2D obj)
+		protected boolean findAndRemoveObjects(Rectangle2D box, PolyNode obj, Rectangle2D areaBB)
 		{
 			double centerX = box.getCenterX();
             double centerY = box.getCenterY();
@@ -273,21 +351,16 @@ public class PolyQTree {
             // Node has been split
 			if (children != null)
 			{
-				int loc = getQuadrants(centerX, centerY, obj);
+				int loc = getQuadrants(centerX, centerY, areaBB);
 				for (int i = 0; i < PolyQTree.MAX_NUM_CHILDREN; i++)
 				{
 					if (((loc >> i) & 1) == 0)
 					{
 						Rectangle2D bb = getBox(box, centerX, centerY, i);
-						/*
-                            Object test = obj.clone();
-						Rectangle2D test1 = children[i].removeObjects(bb, obj);
-						if ( !test1.equals(obj))
-						          System.out.println("Parar");
-						          */
+
 						// if identical element was found, no need of re-insertion
 						// No need of reviewing other quadrants?
-						if (children[i].findAndRemoveObjects(bb, obj))
+						if (children[i].findAndRemoveObjects(bb, obj, areaBB))
 							return (true);
 
 						if (children[i].compact())
@@ -301,15 +374,14 @@ public class PolyQTree {
 
 				for (Iterator it = nodes.iterator(); it.hasNext();)
 				{
-					Rectangle2D node = (Rectangle2D)it.next();
+					PolyNode node = (PolyNode)it.next();
 
-					// I should test equals first?
 					if (node.equals(obj))
 						return (true);
 					if (node.intersects(obj))
-					//if (!node.equals(obj) && intersects(node, obj))
 					{
 						obj.add(node);
+						obj.setNotOriginal();
 						deleteList.add(node);
 					}
 				}
@@ -330,7 +402,7 @@ public class PolyQTree {
 		 * @param box
 		 * @param obj
 		 */
-		protected void insert(Rectangle2D box, Rectangle2D obj)
+		protected void insert(Rectangle2D box, PolyNode obj, Rectangle2D areaBB)
 		{
 			double centerX = box.getCenterX();
             double centerY = box.getCenterY();
@@ -338,14 +410,14 @@ public class PolyQTree {
 			// Node has been split
 			if (children != null)
 			{
-				int loc = getQuadrants(centerX, centerY, obj);
+				int loc = getQuadrants(centerX, centerY, areaBB);
 				for (int i = 0; i < PolyQTree.MAX_NUM_CHILDREN; i++)
 				{
 					if (((loc >> i) & 1) == 0)
 					{
 						Rectangle2D bb = getBox(box, centerX, centerY, i);
 
-						children[i].insert(bb, obj);
+						children[i].insert(bb, obj, areaBB);
 					}
 				}
 			}
@@ -355,7 +427,8 @@ public class PolyQTree {
 			}
 			if (nodes.size() < PolyQTree.MAX_NUM_CHILDREN)
 			{
-				nodes.add(obj.clone());
+				nodes.add(obj);
+				//  nodes.add(obj.clone());
 			}
 			else
 			{
@@ -372,7 +445,8 @@ public class PolyQTree {
 					for (int i = 0; i < 4; i++)
 					{
 						Rectangle2D bb = getBox(box, centerX, centerY, i);
-						children[i].insert(bb, (Rectangle2D)it.next());
+						PolyNode node = (PolyNode)it.next();
+						children[i].insert(bb, node, node.getBounds2D());
 					}
 				}
 				nodes.clear(); // not sure about this clear yet

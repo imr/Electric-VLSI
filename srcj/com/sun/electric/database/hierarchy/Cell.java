@@ -1493,7 +1493,7 @@ public class Cell extends NodeProto
 	 * Method to get the strings in this Cell.
 	 * It is only valid for cells with "text" views (documentation, vhdl, netlist, etc.)
 	 * The call needs to be wrapped inside of a Job.
-	 * @return the strings in this Cell.
+	 * @return strings the strings in this Cell.
 	 * Returns null if there are no strings.
 	 */
 	public void setTextViewContents(String [] strings)

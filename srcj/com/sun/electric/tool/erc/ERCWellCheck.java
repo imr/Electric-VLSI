@@ -49,6 +49,7 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.Area;
 import java.util.*;
 
 /**
@@ -136,7 +137,7 @@ public class ERCWellCheck
 			{
 				Layer layer = (Layer)it.next();
 				// Not sure if null goes here
-				Set set = topMerge.getObjects(layer, null);
+				Set set = topMerge.getObjects(layer, false);
 
 				for(Iterator pIt = set.iterator(); pIt.hasNext(); )
 				{
@@ -786,7 +787,7 @@ public class ERCWellCheck
 							Layer layer = poly.getLayer();
 							if (getWellLayerType(layer) == 0) continue;
 							poly.transform(trans);
-							merge.insert((Object)layer, cell.getBounds(), poly.getBounds2D());
+							merge.insert((Object)layer, cell.getBounds(), new PolyQTree.PolyNode(poly.getBounds2D()));
 						}
 					} else
 					{
@@ -813,7 +814,7 @@ public class ERCWellCheck
 						Poly poly = arcInstPolyList[i];
 						Layer layer = poly.getLayer();
 						if (getWellLayerType(layer) == 0) continue;
-						merge.insert((Object)layer, cell.getBounds(), poly.getBounds2D());
+						merge.insert((Object)layer, cell.getBounds(), new PolyQTree.PolyNode(poly.getBounds2D()));
 					}
 				}
 			}

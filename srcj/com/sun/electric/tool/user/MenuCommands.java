@@ -90,6 +90,7 @@ import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.ZoomAndPanListener;
+import com.sun.electric.Main;
 
 import java.awt.Toolkit;
 import java.awt.Dimension;
@@ -103,6 +104,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.Area;
 import java.awt.print.PrinterJob;
 import java.awt.print.Printable;
 import java.awt.print.PageFormat;
@@ -119,12 +121,13 @@ import javax.swing.JOptionPane;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.text.DecimalFormat;
 
 /**
  * This class has all of the pulldown menu commands in Electric.
  * <p>
  * For SDI mode Swing requires that each window have it's own menu.
- * This means for consistency across windows that a change of state on 
+ * This means for consistency across windows that a change of state on
  * a menu item in one window's menu must occur in all other window's
  * menus as well (such as checking a check box).
  */
@@ -819,13 +822,13 @@ public final class MenuCommands
 				new com.sun.electric.tool.generator.layout.FillLibGen();
 			}
 		});
-		russMenu.addMenuItem("Gate Generator Regression", null, 
+		russMenu.addMenuItem("Gate Generator Regression", null,
 		                     new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				new com.sun.electric.tool.generator.layout.GateRegression();
 			}
 		});
-		russMenu.addMenuItem("Generate gate layouts", null, 
+		russMenu.addMenuItem("Generate gate layouts", null,
 							 new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				new com.sun.electric.tool.generator.layout.Loco();
@@ -851,7 +854,7 @@ public final class MenuCommands
 				new com.sun.electric.tool.generator.layout.Test();
 			}
 		});
-                
+
 		/****************************** Jon's TEST MENU ******************************/
 
 		Menu jongMenu = new Menu("JonG", 'J');
@@ -876,6 +879,8 @@ public final class MenuCommands
 		        new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(true);}});
 		gildaMenu.addMenuItem("Covering Implants Old", null,
 		        new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(false);}});
+		gildaMenu.addMenuItem("List Layer Coverage", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(); } });
 
         /********************************* Hidden Menus *******************************/
 
@@ -1172,10 +1177,10 @@ public final class MenuCommands
 	{
 		ExportCell job = new ExportCell(cell, context, filePath, type);
 	}
-	
+
 	/**
 	 * Class to export a cell in a new thread.
-	 * For a non-interactive script, use 
+	 * For a non-interactive script, use
 	 * ExportCell job = new ExportCell(Cell cell, String filename, Output.ExportType type).
 	 * Saves as an elib.
 	 */
@@ -1185,7 +1190,7 @@ public final class MenuCommands
         VarContext context;
 		String filePath;
 		OpenFile.Type type;
-		
+
 		public ExportCell(Cell cell, VarContext context, String filePath, OpenFile.Type type)
 		{
 			super("Export "+cell.describe()+" ("+type+")", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
@@ -1195,12 +1200,12 @@ public final class MenuCommands
 			this.type = type;
 			startJob();
 		}
-		
-		public void doIt() 
+
+		public void doIt()
 		{
 			Output.writeCell(cell, context, filePath, type);
 		}
-		
+
 	}
 
 	/**
@@ -1264,7 +1269,7 @@ public final class MenuCommands
 			startJob();
 		}
 
-		public void doIt() 
+		public void doIt()
 		{
 			try {
 				pj.print();
@@ -1329,7 +1334,7 @@ public final class MenuCommands
 			startJob();
 		}
 
-		public void doIt() 
+		public void doIt()
 		{
 			System.exit(0);
 		}
@@ -1428,8 +1433,8 @@ public final class MenuCommands
 				System.out.println("Redo failed!");
 		}
 	}
-	
-	/** 
+
+	/**
 	 * This method implements the command to show the Key Bindings Options dialog.
 	 */
 	public static void keyBindingsCommand()
@@ -1440,7 +1445,7 @@ public final class MenuCommands
 		dialog.show();
 	}
 
-	/** 
+	/**
 	 * This method shows the GetInfo dialog for the highlighted nodes, arcs, and/or text.
 	 */
 	public static void getInfoCommand()
@@ -1509,7 +1514,86 @@ public final class MenuCommands
 	 */
 	public static void layerCoverageCommand()
 	{
-		System.out.println("Can't Yet");
+		Cell curCell = WindowFrame.needCurCell();
+		if (curCell == null) return;
+        Job job = new LayerCoverage(curCell);
+	}
+	protected static class LayerCoverage extends Job
+	{
+		private Cell curCell;
+
+		protected LayerCoverage(Cell cell)
+		{
+			super("Layer Coverage", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			this.curCell = cell;
+			setReportExecutionFlag(true);
+			startJob();
+		}
+
+		public void doIt()
+		{
+			PolyQTree tree = new PolyQTree();
+
+			// Traversing nodes
+			for (Iterator it = curCell.getNodes(); it.hasNext(); )
+			{
+				NodeInst node = (NodeInst)it .next();
+
+				// Coverage implants are pure primitive nodes
+				// and they are ignored.
+				if ( !Main.getDebug() && node.getFunction() == NodeProto.Function.NODE ) continue;
+
+				NodeProto protoType = node.getProto();
+				if (protoType instanceof Cell)
+				{
+					System.out.println("recursive");
+				}
+                else
+				{
+					Technology tech = protoType.getTechnology();
+					Poly[] polyList = tech.getShapeOfNode(node);
+					AffineTransform transform = node.rotateOut();
+
+					for (int i = 0; i < polyList.length; i++)
+					{
+						Poly poly = polyList[i];
+						Layer layer = poly.getLayer();
+						Layer.Function func = layer.getFunction();
+
+						// Only checking poly or metal
+						if (!Main.getDebug() && !func.isPoly() && !func.isMetal()) continue;
+
+						poly.transform(transform);
+						tree.insert((Object)layer, curCell.getBounds(), new PolyQTree.PolyNode(poly.getBounds2D()));
+					}
+				}
+			}
+
+			double lambdaSqr = 1;
+			// @todo GVG Calculates lambda!
+			Rectangle2D bbox = curCell.getBounds();
+			double totalArea =  (bbox.getHeight()*bbox.getWidth())/lambdaSqr;
+			DecimalFormat pf = new DecimalFormat("#0"); // format for percentaje
+			DecimalFormat df = new DecimalFormat("#0.00"); // format for double with two precision numbers
+
+			// Traversing tree with merged geometry
+			for (Iterator it = tree.getKeyIterator(); it.hasNext(); )
+			{
+				Layer layer = (Layer)it.next();
+				Set set = tree.getObjects(layer, false);
+				double layerArea = 0;
+
+				// Get all objects and sum the area
+				for (Iterator i = set.iterator(); i.hasNext(); )
+				{
+					PolyQTree.PolyNode area = (PolyQTree.PolyNode)i.next();
+					layerArea += area.getArea();
+				}
+				System.out.println("Layer " + layer.getName() + " covers " + df.format(layerArea) + " square lambda (" + (pf.format((layerArea/totalArea)*100)) + "%)");
+			}
+
+			System.out.println("Cell is " + df.format(totalArea) + " square lambda");
+		}
 //		// initialize for analysis
 //		us_coveragetech = cell->tech;
 //
@@ -1825,7 +1909,7 @@ public final class MenuCommands
 		dialog.show();
 	}
 
-	/** 
+	/**
 	 * This command opens a dialog box to edit a Cell.
 	 */
 	public static void newCellCommand()
@@ -2286,13 +2370,13 @@ public final class MenuCommands
     {
         // this only works in SDI mode
         if (TopLevel.isMDIMode()) return;
-        
+
         // find current screen
         WindowFrame curWF = WindowFrame.getCurrentWindowFrame();
 		WindowContent content = curWF.getContent();
         GraphicsConfiguration curConfig = content.getPanel().getGraphicsConfiguration();
         GraphicsDevice curDevice = curConfig.getDevice();
-        
+
         // get all screens
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         GraphicsDevice[] gs = ge.getScreenDevices();
@@ -2305,7 +2389,7 @@ public final class MenuCommands
 
         curWF.moveEditWindow(gs[i].getDefaultConfiguration());
     }
-    
+
 	// ---------------------- THE TOOLS MENU -----------------
 
 	// Logical Effort Tool
@@ -2477,7 +2561,7 @@ public final class MenuCommands
 						}
 					}
 				}
-				
+
 				// if there is only 1 net connected, the node is unimportant
 				if (portNets.size() <= 1) continue;
 				PortProto pp = (PortProto)portNets.get(net);
@@ -2487,7 +2571,7 @@ public final class MenuCommands
 				String name = null;
 				if (no instanceof NodeInst) name = ((NodeInst)no).describe(); else
 				{
-					name = no.getName();						
+					name = no.getName();
 				}
 				System.out.println("    Node " + name + ", port " + pp.getProtoName());
 				total++;
@@ -2739,7 +2823,7 @@ public final class MenuCommands
 		EditWindow curEdit = EditWindow.needCurrent();
 		if (curEdit == null) return;
 		IRSIMTool.tool.netlistCell(curEdit.getCell(), curEdit.getVarContext(), curEdit);
-	}		
+	}
 
 	/**
 	 * Method to create a new template in the current cell.
@@ -2791,7 +2875,7 @@ public final class MenuCommands
 		    PadGenerator.generate(fileName);
         }
 	}
-	
+
 	public static void javaBshScriptCommand()
 	{
 		String fileName = OpenFile.chooseInputFile(OpenFile.Type.JAVA, null);
@@ -3223,11 +3307,10 @@ public final class MenuCommands
 		public void doIt()
 		{
 			List deleteList = new ArrayList(); // New coverage implants are pure primitive nodes
-			HashMap allLayers = new HashMap();
             PolyQTree tree = new PolyQTree();
 
 			// Traversing arcs
-			for(Iterator it = curCell.getArcs(); it.hasNext(); )
+			for (Iterator it = curCell.getArcs(); it.hasNext(); )
 			{
 				ArcInst arc = (ArcInst)it.next();
 				ArcProto arcType = arc.getProto();
@@ -3241,30 +3324,22 @@ public final class MenuCommands
 					Poly poly = polyList[i];
 					Layer layer = poly.getLayer();
 					Layer.Function func = layer.getFunction();
-					
-					if ( func.isSubstrate() )
-					{
-						Rectangle2D bounds = poly.getBounds2D();
-						tree.insert((Object)layer, curCell.getBounds(), bounds);
-						List rectList = (List)allLayers.get(layer);
 
-						if ( rectList == null )
-						{
-							rectList = new ArrayList();
-							allLayers.put(layer, rectList);
-						}
-						rectList.add(bounds);
+					if (Main.getDebug() || func.isSubstrate())
+					{
+						//Area bounds = new PolyQTree.PolyNode(poly.getBounds2D());
+						tree.insert((Object)layer, curCell.getBounds(), new PolyQTree.PolyNode(poly.getBounds2D()));
 					}
 				}
 			}
 			// Traversing nodes
-			for(Iterator it = curCell.getNodes(); it.hasNext(); )
+			for (Iterator it = curCell.getNodes(); it.hasNext(); )
 			{
 				NodeInst node = (NodeInst)it .next();
 
 				// New coverage implants are pure primitive nodes
 				// and previous get deleted and ignored.
-				if ( node.getFunction() == NodeProto.Function.NODE )
+				if (!Main.getDebug() && node.getFunction() == NodeProto.Function.NODE)
 				{
 					deleteList.add(node);
 					continue;
@@ -3284,19 +3359,11 @@ public final class MenuCommands
 					Layer.Function func = layer.getFunction();
 
                     // Only substrate layers, skipping center information
-					if ( func.isSubstrate() )
+					if (Main.getDebug() || func.isSubstrate())
 					{
 						poly.transform(transform);
-						Rectangle2D bounds = poly.getBounds2D();
-						tree.insert((Object)layer, curCell.getBounds(), bounds);
-						List rectList = (List)allLayers.get(layer);
-
-						if ( rectList == null )
-						{
-							rectList = new ArrayList();
-							allLayers.put(layer, rectList);
-						}
-						rectList.add(bounds);
+						//Area bounds = new PolyQTree.PolyNode(poly.getBounds2D());
+						tree.insert((Object)layer, curCell.getBounds(), new PolyQTree.PolyNode(poly.getBounds2D()));
 					}
 				}
 			}
@@ -3311,12 +3378,12 @@ public final class MenuCommands
 			for(Iterator it = tree.getKeyIterator(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
-				Set set = tree.getObjects(layer, (List)allLayers.get(layer));
+				Set set = tree.getObjects(layer, true);
 
 				// Ready to create new implants.
-				for(Iterator i = set.iterator(); i.hasNext(); )
+				for (Iterator i = set.iterator(); i.hasNext(); )
 				{
-					Rectangle2D rect = (Rectangle2D)i.next();
+					Rectangle2D rect = ((PolyQTree.PolyNode)i.next()).getBounds2D();
 					Point2D center = new Point2D.Double(rect.getCenterX(), rect.getCenterY());
 					PrimitiveNode priNode = layer.getPureLayerNode();
 					// Adding the new implant. New implant not assigned to any local variable                                .

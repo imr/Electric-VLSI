@@ -149,6 +149,7 @@ public class PolyMerge
 		double [] coords = new double[6];
 		List pointList = new ArrayList();
 		Point2D lastMoveTo = null;
+		// Gilda: best practice note:
 		for(PathIterator pIt = area.getPathIterator(null); !pIt.isDone(); )
 		{
 			int type = pIt.currentSegment(coords);

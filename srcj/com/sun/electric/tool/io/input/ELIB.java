@@ -1968,8 +1968,10 @@ public class ELIB extends LibraryFiles
 
 			elib = readALibrary(externalURL, externalStream, elib, importType);
             // JKG TODO: when referenced library returns null, how to abort cleanly?
-            //if (elib == null)
-            //    return true;
+			// GVG TODO: It should at least not allow to continue with reading
+			// Put back elib == null return 06/01/04
+            if (elib == null)  
+	            return true;
 //			if (failed) elib->userbits |= UNWANTEDLIB; else
 //			{
 //				// queue this library for announcement through change control

@@ -278,6 +278,7 @@ public abstract class Geometric extends ElectricObject
 			if (flag)
 			{
 				Geometric geom = (Geometric)pointers[child];
+				// @TODO: GVG if pointers is null (bad file read in), we get an exception
 				return geom.getBounds();
 			} else
 			{
