@@ -799,7 +799,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		// add to linked lists
 		nodeUsage = parent.addUsage(getProto());
         if (nodeUsage == null) return true;
-		this.duplicate = parent.addNode(this);
+		int duplicate = parent.addNode(this);
+		if (duplicate < 0) return true;
+		this.duplicate = duplicate;
 		parent.linkNode(this);
 		return false;
 	}

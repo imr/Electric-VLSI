@@ -986,7 +986,7 @@ public class Variable
                 if (sch == null) sch = icon;
                 Variable var = sch.getVar(key);
                 if (var != null && var.descriptor.isParam()) {
-                    descriptor.setParam(true);
+                    this.setParam(true);
                     return true;
                 }
             }

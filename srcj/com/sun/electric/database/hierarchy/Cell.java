@@ -1635,7 +1635,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	/**
 	 * Method to add a new NodeInst to the cell.
 	 * @param ni the NodeInst to be included in the cell.
-	 * @return unique diplicate index for this node.
+	 * @return unique diplicate index for this node or -1 on failure
 	 */
 	public int addNode(NodeInst ni)
 	{
@@ -1647,7 +1647,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		if (nu.contains(ni))
 		{
 			System.out.println("Cell " + this +" already contains node inst " + ni);
-			return duplicate;
+			return -1;
 		}
 
 		// check to see if this instantiation would create a circular library dependency
@@ -1663,7 +1663,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 						System.out.println("ERROR: "+ libDescribe() + " cannot instantiate " +
 							instProto.libDescribe() + " because it would create a circular library dependence: ");
 						System.out.println(libDep.toString());
-						return duplicate;
+						return -1;
 					} else {
 						System.out.println("WARNING: "+ libDescribe() + " instantiates " +
 							instProto.libDescribe() + " which causes a circular library dependence: ");
