@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02i: *********************************
 
+BUG: (02/23/05, SMR) GDS output does not handle polygons with duplicate points.
+FIX: In GDS.outputBoundary(), remove duplicate points before writing.
+
 BUG (02/21/05, GVG) ArrayStoreException in NodeInst.replace due to wrong allocation of
 array memory (Bug #206)
 FIX: new Point2D[2] instead of new Point2D.Double[2] because locations are EPoint type.
