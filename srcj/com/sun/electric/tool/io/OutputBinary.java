@@ -736,7 +736,7 @@ public class OutputBinary extends Output
 		writeBigInteger(ni.lowLevelGetUserbits());
 
 		// write variable information
-		writeVariables(ni,  tech.getScale());
+		writeVariables(ni, tech.getScale());
 	}
 
 	static class OrderedConnections implements Comparator
@@ -745,8 +745,8 @@ public class OutputBinary extends Output
 		{
 			Connection c1 = (Connection)o1;
 			Connection c2 = (Connection)o2;
-			int i1 = c1.getPortInst().getIndex();
-			int i2 = c2.getPortInst().getIndex();
+			int i1 = c1.getPortInst().getPortProto().getPortIndex();
+			int i2 = c2.getPortInst().getPortProto().getPortIndex();
 			return i1 - i2;
 		}
 	}
@@ -757,8 +757,8 @@ public class OutputBinary extends Output
 		{
 			Export e1 = (Export)o1;
 			Export e2 = (Export)o2;
-			int i1 = e1.getOriginalPort().getIndex();
-			int i2 = e2.getOriginalPort().getIndex();
+			int i1 = e1.getOriginalPort().getPortProto().getPortIndex();
+			int i2 = e2.getOriginalPort().getPortProto().getPortIndex();
 			return i1 - i2;
 		}
 	}

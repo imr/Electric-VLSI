@@ -1313,6 +1313,7 @@ public class Schematics extends Technology
 	}
 
 	//**************************************** ROUTINES ****************************************
+	private static Technology.NodeLayer[] NULLNODELAYER = new Technology.NodeLayer [] {};
 
 	/**
 	 * Routine to return a list of Polys that describe a given NodeInst.
@@ -1334,7 +1335,7 @@ public class Schematics extends Technology
 		Technology.NodeLayer [] primLayers = np.getLayers();
 		if (np == wirePinNode)
 		{
-			if (ni.pinUseCount()) return null;
+			if (ni.pinUseCount()) primLayers = NULLNODELAYER;
 		} else if (np == busPinNode)
 		{
 			// bus pins get bigger in "T" configurations, disappear when alone and exported

@@ -216,7 +216,12 @@ public class Variable
 		return trueName;
 	}
 
-	private String betterVariableName(String name)
+	/**
+	 * Routine to convert the standard Variable names to more readable strings.
+	 * @param name the actual Variable name.
+	 * @return a better name for it (returns the same name if no better one exists).
+	 */
+	public static String betterVariableName(String name)
 	{
 		/* handle standard variable names */
 		if (name.equals("ARC_name")) return "Arc Name";
@@ -296,7 +301,7 @@ public class Variable
 	 */
 	public String describe(int aindex, int purpose, VarContext context, ElectricObject eobj)
 	{
-		TextDescriptor.Units units = descriptor.getUnits();
+		TextDescriptor.Unit units = descriptor.getUnit();
 		StringBuffer returnVal = new StringBuffer();
 		TextDescriptor.DispPos dispPos = descriptor.getDispPart();
 		String whichIndex = "";
@@ -339,7 +344,7 @@ public class Variable
 
 	public String getPureValue(int aindex, int purpose)
 	{
-		TextDescriptor.Units units = descriptor.getUnits();
+		TextDescriptor.Unit units = descriptor.getUnit();
 		StringBuffer returnVal = new StringBuffer();
 		if (addr instanceof Object[])
 		{
@@ -376,7 +381,7 @@ public class Variable
 	 * Routine to convert object "addr" to a string, given a purpose and a set of units.
 	 * For completion of the routine, the units should be treated as in "db_makestringvar()".
 	 */
-	private String makeStringVar(Object addr, int purpose, TextDescriptor.Units units)
+	private String makeStringVar(Object addr, int purpose, TextDescriptor.Unit units)
 	{
 		if (addr instanceof Integer)
 			return ((Integer)addr).toString();

@@ -45,6 +45,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.dialogs.Attributes;
 
 import java.awt.Dimension;
 import java.util.List;
@@ -141,7 +142,6 @@ public class GetInfoNode extends javax.swing.JDialog
 		ports.setSelected(true);
 
 		loadNodeInfo();
-		attributesButton.setEnabled(false);
 	}
 
 	static class AttValPair
@@ -1214,8 +1214,8 @@ public class GetInfoNode extends javax.swing.JDialog
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         moreStuffTop.add(textField, gridBagConstraints);
 
         popupLabel.setText(" ");
@@ -1231,8 +1231,8 @@ public class GetInfoNode extends javax.swing.JDialog
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         moreStuffTop.add(popup, gridBagConstraints);
 
         ports.setText("Ports:");
@@ -1297,8 +1297,8 @@ public class GetInfoNode extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         moreStuffBottom.add(locked, gridBagConstraints);
 
         see.setText("See");
@@ -1317,6 +1317,14 @@ public class GetInfoNode extends javax.swing.JDialog
         moreStuffBottom.add(see, gridBagConstraints);
 
         attributesButton.setText("Attributes");
+        attributesButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                attributesButtonActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
@@ -1336,9 +1344,9 @@ public class GetInfoNode extends javax.swing.JDialog
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         moreStuffBottom.add(listEdit, gridBagConstraints);
 
         listPopupLabel.setText(" ");
@@ -1354,9 +1362,9 @@ public class GetInfoNode extends javax.swing.JDialog
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         moreStuffBottom.add(listPopup, gridBagConstraints);
 
         listEvalLabel.setText(" ");
@@ -1373,8 +1381,8 @@ public class GetInfoNode extends javax.swing.JDialog
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         moreStuffBottom.add(listEval, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1392,13 +1400,18 @@ public class GetInfoNode extends javax.swing.JDialog
         gridBagConstraints.gridy = 7;
         gridBagConstraints.gridwidth = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
         getContentPane().add(listPane, gridBagConstraints);
 
         pack();
     }//GEN-END:initComponents
+
+	private void attributesButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_attributesButtonActionPerformed
+	{//GEN-HEADEREND:event_attributesButtonActionPerformed
+		Attributes.showDialog();
+	}//GEN-LAST:event_attributesButtonActionPerformed
 
 	private void moreActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_moreActionPerformed
 	{//GEN-HEADEREND:event_moreActionPerformed
@@ -1458,7 +1471,7 @@ public class GetInfoNode extends javax.swing.JDialog
 
 	private void attributesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_attributesActionPerformed
 	{//GEN-HEADEREND:event_attributesActionPerformed
-		theDialog.showProperList();
+		Attributes.showDialog();
 	}//GEN-LAST:event_attributesActionPerformed
 
 	private void parametersActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_parametersActionPerformed

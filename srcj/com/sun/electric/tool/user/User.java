@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.dialogs.GetInfoNode;
@@ -36,12 +37,15 @@ import com.sun.electric.tool.user.dialogs.GetInfoArc;
 import com.sun.electric.tool.user.dialogs.GetInfoExport;
 import com.sun.electric.tool.user.dialogs.GetInfoText;
 import com.sun.electric.tool.user.dialogs.GetInfoMulti;
+import com.sun.electric.tool.user.dialogs.Attributes;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.PaletteFrame;
 
 import java.util.Iterator;
+import java.util.prefs.Preferences;
+import java.util.prefs.BackingStoreException;
 
 /**
  * This is the User Interface tool.
@@ -54,6 +58,7 @@ public class User extends Tool
 
 	private ArcProto currentArcProto = null;
 	private NodeProto currentNodeProto = null;
+	private Preferences prefs = Preferences.userNodeForPackage(getClass());
 
 	/**
 	 * The constructor sets up the User tool.
@@ -116,6 +121,12 @@ public class User extends Tool
 			Cell parent = geom.getParent();
 			markCellForRedraw(parent, true);
 		}
+		if (obj instanceof PortInst)
+		{
+			PortInst pi = (PortInst)obj;
+			Cell parent = pi.getNodeInst().getParent();
+			markCellForRedraw(parent, true);
+		}
 	}
 
 	/**
@@ -162,5 +173,26 @@ public class User extends Tool
 		GetInfoExport.load();
 		GetInfoText.load();
 		GetInfoMulti.load();
+		Attributes.load();
 	}
+	
+	private static void flushOptions()
+	{
+		try
+		{
+	        tool.prefs.flush();
+		} catch (BackingStoreException e)
+		{
+			System.out.println("Failed to save spice options");
+		}
+	}
+
+	public static boolean isAutoTechnologySwitch() { return tool.prefs.getBoolean("AutoTechnologySwitch", true); }
+	public static void setAutoTechnologySwitch(boolean on) { tool.prefs.putBoolean("AutoTechnologySwitch", on);   flushOptions(); }
+
+	public static boolean isPlaceCellCenter() { return tool.prefs.getBoolean("PlaceCellCenter", true); }
+	public static void setPlaceCellCenter(boolean on) { tool.prefs.putBoolean("PlaceCellCenter", on);   flushOptions(); }
+
+	public static boolean isCheckCellDates() { return tool.prefs.getBoolean("CheckCellDates", false); }
+	public static void setCheckCellDates(boolean on) { tool.prefs.putBoolean("CheckCellDates", on);   flushOptions(); }
 }

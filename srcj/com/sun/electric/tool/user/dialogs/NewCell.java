@@ -26,6 +26,8 @@ package com.sun.electric.tool.user.dialogs;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Schematics;
@@ -36,6 +38,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.Job;
 
+import java.awt.geom.Point2D;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
@@ -275,6 +278,17 @@ public class NewCell extends javax.swing.JDialog
 				System.out.println("Unable to create cell " + cellName);
 				return;
 			}
+
+			// add cell-center if requested
+			if (User.isPlaceCellCenter())
+			{
+				NodeProto cellCenterProto = NodeProto.findNodeProto("generic:Facet-Center");
+				NodeInst cellCenter = NodeInst.newInstance(cellCenterProto, new Point2D.Double(0, 0),
+					cellCenterProto.getDefWidth(), cellCenterProto.getDefHeight(), 0, cell, null);
+				cellCenter.setVisInside();
+				cellCenter.setHardSelect();
+			}
+
 			if (!newWindow)
 			{
 				EditWindow wnd = Highlight.getHighlightedWindow();

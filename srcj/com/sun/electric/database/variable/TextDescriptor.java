@@ -30,6 +30,10 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Point;
+import java.awt.geom.Point2D;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * This class describes how variable text appears.
@@ -50,9 +54,9 @@ public class TextDescriptor
 	private static final int VTDISPLAYPART =            060;		/* 0: bits telling what to display */
 	private static final int VTDISPLAYPARTSH =            4;		/* 0: right shift of VTDISPLAYPART */
 	private static final int VTDISPLAYVALUE =             0;		/* 0:   display value */
-	private static final int VTDISPLAYNAMEVALUE =       040;		/* 0:   display name and value */
-	private static final int VTDISPLAYNAMEVALINH =      020;		/* 0:   display name, value, 1-level inherit */
-	private static final int VTDISPLAYNAMEVALINHALL =   060;		/* 0:   display name, value, any inherit */
+	private static final int VTDISPLAYNAMEVALUE =         1;		/* 0:   display name and value */
+	private static final int VTDISPLAYNAMEVALINH =        2;		/* 0:   display name, value, 1-level inherit */
+	private static final int VTDISPLAYNAMEVALINHALL =     3;		/* 0:   display name, value, any inherit */
 	private static final int VTITALIC =                0100;		/* 0: set for italic text */
 	private static final int VTBOLD =                  0200;		/* 0: set for bold text */
 	private static final int VTUNDERLINE =             0400;		/* 0: set for underline text */
@@ -128,6 +132,19 @@ public class TextDescriptor
 		public Poly.Type getPolyType() { return pt; }
 
 		/**
+		 * Routine to return the number Positions.
+		 * @return the number of Positions.
+		 */
+		public static int getNumPositions() { return thePositions.length; }
+
+		/**
+		 * Routine to return the Position at a given index.
+		 * @param index the Position number desired.
+		 * @return the Position at a given index.
+		 */
+		public static Position getPositionAt(int index) { return thePositions[index]; }
+
+		/**
 		 * Returns a printable version of this Position.
 		 * @return a printable version of this Position.
 		 */
@@ -183,9 +200,9 @@ public class TextDescriptor
 		 * This means that the text may shrink in size or clip letters if necessary.
 		 */
 		public static final Position BOXED = new Position("boxed", VTPOSBOXED, Poly.Type.TEXTCENT);
+		private static final Position [] thePositions = new Position[] {CENT, UP, DOWN,
+			LEFT, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT, BOXED};
 	}
-	private static final Position [] thePositions = new Position[] {Position.CENT, Position.UP, Position.DOWN,
-		Position.LEFT, Position.RIGHT, Position.UPLEFT, Position.UPRIGHT, Position.DOWNLEFT, Position.DOWNRIGHT, Position.BOXED};
 
 
 	/**
@@ -195,18 +212,40 @@ public class TextDescriptor
 	{
 		private final String name;
 		private final int index;
+		private static List positions = new ArrayList();
 
 		private DispPos(String name, int index)
 		{
 			this.name = name;
 			this.index = index;
+			positions.add(this);
 		}
 
 		/**
 		 * Routine to return the integer equivalent of this DispPos.
 		 * @return the integer equivalent of this DispPos.
 		 */
-		private int getIndex() { return index; }
+		public int getIndex() { return index; }
+
+		/**
+		 * Routine to return the name of this DispPos.
+		 * It is used in popup menus.
+		 * @return the name of this DispPos.
+		 */
+		public String getName() { return name; }
+
+		/**
+		 * Routine to return the number DispPos.
+		 * @return the number DispPos.
+		 */
+		public static int getNumShowStyles() { return theDispPos.length; }
+
+		/**
+		 * Routine to return the DispPos at a given index.
+		 * @param index the DispPos number desired.
+		 * @return the DispPos at a given index.
+		 */
+		public static DispPos getShowStylesAt(int index) { return theDispPos[index]; }
 
 		/**
 		 * Returns a printable version of this DispPos.
@@ -223,22 +262,21 @@ public class TextDescriptor
 		 * Describes a Variable that displays its name and value.
 		 * The form of the display is “ATTR=VALUE”;
 		 */
-		public static final DispPos NAMEVALUE = new DispPos("name/value", VTDISPLAYNAMEVALUE);
+		public static final DispPos NAMEVALUE = new DispPos("name=value", VTDISPLAYNAMEVALUE);
 
 		/**
 		 * Describes a Variable that displays its name, value, 1-level inherit.
 		 * The form of the display is “ATTR=VALUE;def=DEFAULT”;
 		 */
-		public static final DispPos NAMEVALINH = new DispPos("name/value/inherit-1", VTDISPLAYNAMEVALINH);
+		public static final DispPos NAMEVALINH = new DispPos("name=inherit;def=value", VTDISPLAYNAMEVALINH);
 
 		/**
 		 * Describes a Variable that displays its name, value, any inherit.
 		 * The form of the display is “ATTR=VALUE;def=DEFAULT”;
 		 */
-		public static final DispPos NAMEVALINHALL = new DispPos("name/value/inherit-all", VTDISPLAYNAMEVALINHALL);
+		public static final DispPos NAMEVALINHALL = new DispPos("name=inheritAll;def=value", VTDISPLAYNAMEVALINHALL);
+		private static final DispPos [] theDispPos = new DispPos[] {VALUE, NAMEVALUE, NAMEVALINH, NAMEVALINHALL};
 	}
-	private static final DispPos [] theDispPos = new DispPos[] {DispPos.VALUE, DispPos.NAMEVALUE, DispPos.NAMEVALINH,
-		DispPos.NAMEVALINHALL};
 
 
 	/**
@@ -330,72 +368,123 @@ public class TextDescriptor
 	public static class Rotation
 	{
 		private final int angle;
-		private final int bits;
+		private final int index;
+		private final String name;
+		private static List rotations = new ArrayList();
 
-		private Rotation(int angle, int bits)
+		private Rotation(int angle, int index, String name)
 		{
 			this.angle = angle;
-			this.bits = bits;
+			this.index = index;
+			this.name = name;
+			rotations.add(this);
 		}
 
 		/**
 		 * Routine to return the integer equivalent of this DispPos.
+		 * This is zero-based.
 		 * @return the integer equivalent of this DispPos.
 		 */
-		private int getBits() { return bits; }
+		public int getIndex() { return index; }
+
+		/**
+		 * Routine to return the description of this DispPos.
+		 * It appears in popup menus.
+		 * @return the description of this DispPos.
+		 */
+		public String getDescription() { return name; }
+
+		/**
+		 * Routine to return the number Rotations.
+		 * @return the number Rotations.
+		 */
+		public static int getNumRotations() { return theRotations.length; }
+
+		/**
+		 * Routine to return the Rotation at a given index.
+		 * @param index the Rotation number desired.
+		 * @return the Rotation at a given index.
+		 */
+		public static Rotation getRotationAt(int index) { return theRotations[index]; }
 
 		/**
 		 * Returns a printable version of this Rotation.
 		 * @return a printable version of this Rotation.
 		 */
-		public String toString() { return "Rotation "+angle; }
+		public String toString() { return "Text Rotation "+angle; }
 
-		/** Describes a Rotation of 0 degrees. */	public static final Rotation ROT0 = new Rotation(0, 0);
-		/** Describes a Rotation of 90 degrees. */	public static final Rotation ROT90 = new Rotation(90, 1);
-		/** Describes a Rotation of 180 degrees. */	public static final Rotation ROT180 = new Rotation(180, 2);
-		/** Describes a Rotation of 270 degrees. */	public static final Rotation ROT270 = new Rotation(270, 3);
+		/** Describes a Rotation of 0 degrees. */	public static final Rotation ROT0 =
+														new Rotation(0, 0, "None");
+		/** Describes a Rotation of 90 degrees. */	public static final Rotation ROT90 =
+														new Rotation(90, 1, "90 degrees counterclockwise");
+		/** Describes a Rotation of 180 degrees. */	public static final Rotation ROT180 =
+														new Rotation(180, 2, "180 degrees");
+		/** Describes a Rotation of 270 degrees. */	public static final Rotation ROT270 =
+														new Rotation(270, 3, "90 degrees clockwise");
+		private static final Rotation [] theRotations = new Rotation[] {ROT0, ROT90, ROT180, ROT270};
 	}
-	private static final Rotation [] theRotations = new Rotation[] {Rotation.ROT0, Rotation.ROT90, Rotation.ROT180,
-		Rotation.ROT270};
 
 
 	/**
-	 * Units is a typesafe enum class that describes text's units on a Variable.
+	 * Unit is a typesafe enum class that describes text's units on a Variable.
 	 */
-	public static class Units
+	public static class Unit
 	{
 		private final String name;
 		private final int index;
+		private static List units = new ArrayList();
 
-		private Units(String name, int index)
+		private Unit(String name, int index)
 		{
 			this.name = name;
 			this.index = index;
+			units.add(this);
 		}
 
 		/**
-		 * Routine to return the integer equivalent of this Units.
-		 * @return the integer equivalent of this Units.
+		 * Routine to return the integer equivalent of this Unit.
+		 * This is zero-based.
+		 * @return the integer equivalent of this Unit.
 		 */
-		private int getIndex() { return index; }
+		public int getIndex() { return index; }
 
 		/**
-		 * Returns a printable version of this Units.
-		 * @return a printable version of this Units.
+		 * Routine to return the description of this Unit.
+		 * It appears in popup menus.
+		 * @return the description of this Unit.
+		 */
+		public String getDescription() { return name; }
+
+		/**
+		 * Routine to return the number Units.
+		 * @return the number Units.
+		 */
+		public static int getNumUnits() { return theUnits.length; }
+
+		/**
+		 * Routine to return the Unit at a given index.
+		 * @param index the Unit number desired.
+		 * @return the Unit at a given index.
+		 */
+		public static Unit getUnitAt(int index) { return theUnits[index]; }
+
+		/**
+		 * Returns a printable version of this Unit.
+		 * @return a printable version of this Unit.
 		 */
 		public String toString() { return name; }
 
-		/** Describes no units. */				public static final Units NONE =        new Units("none", VTUNITSNONE);
-		/** Describes resistance units. */		public static final Units RESISTANCE =  new Units("resistance", VTUNITSRES);
-		/** Describes capacitance units. */		public static final Units CAPACITANCE = new Units("capacitance", VTUNITSCAP);
-		/** Describes inductance units. */		public static final Units INDUCTANCE =  new Units("inductance", VTUNITSIND);
-		/** Describes current units. */			public static final Units CURRENT =     new Units("current", VTUNITSCUR);
-		/** Describes voltage units. */			public static final Units VOLTAGE =     new Units("voltage", VTUNITSVOLT);
-		/** Describes distance units. */		public static final Units DISTANCE =    new Units("distance", VTUNITSDIST);
-		/** Describes time units. */			public static final Units TIME =        new Units("time", VTUNITSTIME);
+		/** Describes no units. */				public static final Unit NONE =        new Unit("none", VTUNITSNONE);
+		/** Describes resistance units. */		public static final Unit RESISTANCE =  new Unit("resistance", VTUNITSRES);
+		/** Describes capacitance units. */		public static final Unit CAPACITANCE = new Unit("capacitance", VTUNITSCAP);
+		/** Describes inductance units. */		public static final Unit INDUCTANCE =  new Unit("inductance", VTUNITSIND);
+		/** Describes current units. */			public static final Unit CURRENT =     new Unit("current", VTUNITSCUR);
+		/** Describes voltage units. */			public static final Unit VOLTAGE =     new Unit("voltage", VTUNITSVOLT);
+		/** Describes distance units. */		public static final Unit DISTANCE =    new Unit("distance", VTUNITSDIST);
+		/** Describes time units. */			public static final Unit TIME =        new Unit("time", VTUNITSTIME);
+		private static final Unit [] theUnits = new Unit[] {Unit.NONE, Unit.RESISTANCE, Unit.CAPACITANCE,
+			Unit.INDUCTANCE, Unit.CURRENT, Unit.VOLTAGE, Unit.DISTANCE, Unit.TIME};
 	}
-	private static final Units [] theUnits = new Units[] {Units.NONE, Units.RESISTANCE, Units.CAPACITANCE,
-		Units.INDUCTANCE, Units.CURRENT, Units.VOLTAGE, Units.DISTANCE, Units.TIME};
 
 
 	/** the words of the text descriptor */		private int descriptor0, descriptor1;
@@ -601,8 +690,8 @@ public class TextDescriptor
 	public Position getPos()
 	{
 		int pos = descriptor0 & VTPOSITION;
-		if (pos >= thePositions.length) pos = 0;
-		return thePositions[pos];
+		if (pos >= Position.getNumPositions()) pos = 0;
+		return Position.getPositionAt(pos);
 	}
 
 	/**
@@ -632,6 +721,13 @@ public class TextDescriptor
 		return Size.newRelSize(size);
 	}
 
+	/**
+	 * Routine to find the true size in points for this TextDescriptor in a given EditWindow.
+	 * If the TextDescriptor is already Absolute (in points) nothing needs to be done.
+	 * Otherwise, the scale of the EditWindow is used to determine the acutal point size.
+	 * @param wnd the EditWindow in which drawing will occur.
+	 * @return the point size of the text described by this TextDescriptor.
+	 */
 	public int getTrueSize(EditWindow wnd)
 	{
 		Size s = getSize();
@@ -644,8 +740,7 @@ public class TextDescriptor
 		double height = s.getSize();
 
 		// convert to screen units
-		Point p = wnd.deltaDatabaseToScreen(height, height);
-		return p.x;
+		return wnd.getTextPointSize(height);
 	}
 
 	/**
@@ -695,7 +790,7 @@ public class TextDescriptor
 	 * There are only 4 rotations: 0, 90 degrees, 180 degrees, and 270 degrees.
 	 * @return the text rotation of the TextDescriptor.
 	 */
-	public Rotation getRotation() { return theRotations[(descriptor1 & VTROTATION) >> VTROTATIONSH]; }
+	public Rotation getRotation() { return Rotation.getRotationAt((descriptor1 & VTROTATION) >> VTROTATIONSH); }
 
 	/**
 	 * Routine to set the text rotation of the TextDescriptor.
@@ -705,14 +800,14 @@ public class TextDescriptor
 	public void setRotation(Rotation r)
 	{
 		checkChanging();
-		descriptor1 = (descriptor1 & ~VTROTATION) | (r.getBits() << VTROTATIONSH);
+		descriptor1 = (descriptor1 & ~VTROTATION) | (r.getIndex() << VTROTATIONSH);
 	}
 
 	/**
 	 * Routine to return the text display part of the TextDescriptor.
 	 * @return the text display part of the TextDescriptor.
 	 */
-	public DispPos getDispPart() { return theDispPos[(descriptor0 & VTDISPLAYPART) >> VTDISPLAYPARTSH]; }
+	public DispPos getDispPart() { return DispPos.theDispPos[(descriptor0 & VTDISPLAYPART) >> VTDISPLAYPARTSH]; }
 
 	/**
 	 * Routine to set the text display part of the TextDescriptor.
@@ -721,7 +816,7 @@ public class TextDescriptor
 	public void setDispPart(DispPos d)
 	{
 		checkChanging();
-		descriptor0 = (descriptor0 & ~VTDISPLAYPART) | d.getIndex();
+		descriptor0 = (descriptor0 & ~VTDISPLAYPART) | (d.getIndex() << VTDISPLAYPARTSH);
 	}
 
 	/**
@@ -954,22 +1049,22 @@ public class TextDescriptor
 	//private TextDescriptor setOffScale(int v) { return descriptor1 = (descriptor1 & ~VTOFFSCALE) | (v << VTOFFSCALESH); }
 
 	/**
-	 * Routine to return the units of the TextDescriptor.
-	 * Units describe the type of real-world unit to apply to the value.
-	 * For example, if this value is in volts, the Units tells whether the value
+	 * Routine to return the Unit of the TextDescriptor.
+	 * Unit describes the type of real-world unit to apply to the value.
+	 * For example, if this value is in volts, the Unit tells whether the value
 	 * is volts, millivolts, microvolts, etc.
-	 * @return the units of the TextDescriptor.
+	 * @return the Unit of the TextDescriptor.
 	 */
-	public Units getUnits() { return theUnits[(descriptor1 & VTUNITS) >> VTUNITSSH]; }
+	public Unit getUnit() { return Unit.theUnits[(descriptor1 & VTUNITS) >> VTUNITSSH]; }
 
 	/**
-	 * Routine to set the units of the TextDescriptor.
-	 * Units describe the type of real-world unit to apply to the value.
-	 * For example, if this value is in volts, the Units tells whether the value
+	 * Routine to set the Unit of the TextDescriptor.
+	 * Unit describe the type of real-world unit to apply to the value.
+	 * For example, if this value is in volts, the Unit tells whether the value
 	 * is volts, millivolts, microvolts, etc.
-	 * @param u the units of the TextDescriptor.
+	 * @param u the Unit of the TextDescriptor.
 	 */
-	public void setUnits(Units u)
+	public void setUnit(Unit u)
 	{
 		checkChanging();
 		descriptor1 = (descriptor1 & ~VTUNITS) | (u.getIndex() << VTUNITSSH);

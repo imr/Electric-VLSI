@@ -27,6 +27,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.variable.ElectricObject;
 
 import java.awt.geom.Rectangle2D;
 
@@ -34,13 +35,12 @@ import java.awt.geom.Rectangle2D;
  * The PortInst class represents an instance of a Port.  It is the
  * combination of a NodeInst and a PortProto.
  */
-public class PortInst
+public class PortInst extends ElectricObject
 {
 	// ------------------------ private data ------------------------
 
 	private NodeInst nodeInst;
 	private PortProto portProto;
-	private int index;
 
 	// -------------------protected or private methods ---------------
 
@@ -100,18 +100,6 @@ public class PortInst
 		}
 		return nodeInst.getNetwork(portProto, 0);
 	}
-
-	/**
-	 * Routine to return the index value on this PortInst.
-	 * @return the index value on this PortInst.
-	 */
-	public int getIndex() { return index; }
-
-	/**
-	 * Routine to set the index value on this PortInst.
-	 * @param i the index value on this PortInst.
-	 */
-	public void setIndex(int i) { index = i; }
 
 	/**
 	 * Routine to return the bounds of this PortInst.

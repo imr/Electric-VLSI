@@ -38,6 +38,7 @@ import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
@@ -332,37 +333,39 @@ public class EditWindow extends JPanel
 				drawText(g2, bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(), bounds.getMaxY(),
 					Poly.Type.TEXTBOX, descript, np.describe(), Color.black);
 
-				// show the ports
-				int numPorts = ni.getNumPortInsts();
-				PortInst [] portlist = new PortInst[numPorts];
-				int i=0;
-				for(Iterator it = ni.getPortInsts(); it.hasNext();)
+				// show the ports that are not further exported or connected
+				FlagSet fs = PortProto.getFlagSet(1);
+				for(Iterator it = ni.getProto().getPorts(); it.hasNext(); )
 				{
-					portlist[i++] = (PortInst) it.next();
+					PortProto pp = (PortProto)it.next();
+					pp.clearBit(fs);
 				}
 				for(Iterator it = ni.getConnections(); it.hasNext();)
 				{
 					Connection con = (Connection) it.next();
 					PortInst pi = con.getPortInst();
-					portlist[pi.getIndex()] = null;
+					pi.getPortProto().setBit(fs);
 				}
 				for(Iterator it = ni.getExports(); it.hasNext();)
 				{
 					Export exp = (Export) it.next();
 					PortInst pi = exp.getOriginalPort();
-					portlist[pi.getIndex()] = null;
+					pi.getPortProto().setBit(fs);
 				}
-				for(i=0; i<numPorts; i++)
+				for(Iterator it = ni.getProto().getPorts(); it.hasNext(); )
 				{
-					if (portlist[i] == null) continue;
-					Poly portPoly = portlist[i].getPoly();
+					PortProto pp = (PortProto)it.next();
+					if (pp.isBit(fs)) continue;
+
+					Poly portPoly = ni.getShapeOfPort(pp);
 					if (portPoly == null) continue;
 					portPoly.transform(trans);
 					descript = portPoly.getTextDescriptor();
 					Poly.Type type = descript.getPos().getPolyType();
 					drawText(g2, portPoly.getCenterX(), portPoly.getCenterX(), portPoly.getCenterY(), portPoly.getCenterY(), type,
-						descript, portlist[i].getPortProto().getProtoName(), Color.red);
+						descript, pp.getProtoName(), Color.red);
 				}
+				fs.freeFlagSet();
 			}
 
 			// draw any displayable variables on the instance
@@ -1076,6 +1079,30 @@ public class EditWindow extends JPanel
 		int screenDX = (int)Math.round(dbDX * scale);
 		int screenDY = (int)Math.round(-dbDY * scale);
 		return new Point(screenDX, screenDY);
+	}
+
+	/**
+	 * Routine to find the size in database units for text of a given point size in this EditWindow.
+	 * The scale of this EditWindow is used to determine the acutal unit size.
+	 * @param pointSize the size of the text in points.
+	 * @return the relative size (in units) of the text.
+	 */
+	public double getTextUnitSize(int pointSize)
+	{
+		Point2D pt = deltaScreenToDatabase(pointSize, pointSize);
+		return pt.getX();
+	}
+
+	/**
+	 * Routine to find the size in database units for text of a given point size in this EditWindow.
+	 * The scale of this EditWindow is used to determine the acutal unit size.
+	 * @param pointSize the size of the text in points.
+	 * @return the relative size (in units) of the text.
+	 */
+	public int getTextPointSize(double unitSize)
+	{
+		Point pt = deltaDatabaseToScreen(unitSize, unitSize);
+		return pt.x;
 	}
 
 	/**

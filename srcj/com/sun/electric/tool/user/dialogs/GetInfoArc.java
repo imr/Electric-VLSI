@@ -74,7 +74,6 @@ public class GetInfoArc extends javax.swing.JDialog
 			theDialog = new GetInfoArc(jf, false);
 		}
 		theDialog.show();
-		theDialog.attributes.setEnabled(false);
 	}
 
 	/**
@@ -87,7 +86,7 @@ public class GetInfoArc extends javax.swing.JDialog
 	}
 
 	/** Creates new form Arc Get-Info */
-	public GetInfoArc(java.awt.Frame parent, boolean modal)
+	private GetInfoArc(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
 		setLocation(100, 50);
@@ -643,7 +642,7 @@ public class GetInfoArc extends javax.swing.JDialog
 
 	private void attributesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_attributesActionPerformed
 	{//GEN-HEADEREND:event_attributesActionPerformed
-		// Add your handling code here:
+		Attributes.showDialog();
 	}//GEN-LAST:event_attributesActionPerformed
 
 	private void tailSeeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_tailSeeActionPerformed

@@ -72,6 +72,7 @@ import com.sun.electric.tool.user.dialogs.GetInfoArc;
 import com.sun.electric.tool.user.dialogs.GetInfoExport;
 import com.sun.electric.tool.user.dialogs.GetInfoText;
 import com.sun.electric.tool.user.dialogs.GetInfoMulti;
+import com.sun.electric.tool.user.dialogs.Attributes;
 import com.sun.electric.tool.user.dialogs.CellLists;
 import com.sun.electric.tool.user.dialogs.CellOptions;
 import com.sun.electric.tool.logicaleffort.LENetlister;
@@ -192,8 +193,10 @@ public final class UserMenuCommands
             new ActionListener() { public void actionPerformed(ActionEvent e) { keyBindingsCommand(); } });
 		editMenu.addSeparator();
 
-		editMenu.addMenuItem("Get Info", KeyStroke.getKeyStroke('I', InputEvent.CTRL_MASK),
+		editMenu.addMenuItem("Get Info...", KeyStroke.getKeyStroke('I', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { getInfoCommand(); } });
+		editMenu.addMenuItem("Attributes...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { attributesCommand(); } });
 
 		editMenu.addSeparator();
         
@@ -942,6 +945,32 @@ public final class UserMenuCommands
 		}
 	}
 
+    public static void attributesCommand()
+	{
+		Attributes.showDialog();
+	}
+
+	public static void selectAllCommand()
+	{
+		Cell curCell = Library.needCurCell();
+		if (curCell == null) return;
+
+		Highlight.clear();
+		for(Iterator it = curCell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			Highlight.addGeometric(ni);
+		}
+		for(Iterator it = curCell.getArcs(); it.hasNext(); )
+		{
+			ArcInst ai = (ArcInst)it.next();
+			Highlight.addGeometric(ai);
+		}
+		Highlight.finished();
+    }
+
+	// ---------------------- THE MODE MENU -----------------
+
     public static void setEditModeCommand(String mode)
     {
         if (mode.equals("Select")) ToolBar.selectCommand();
@@ -964,25 +993,6 @@ public final class UserMenuCommands
         if (mode.equals("Objects")) ToolBar.selectObjectsCommand();
     }
     
-    public static void selectAllCommand()
-	{
-		Cell curCell = Library.needCurCell();
-		if (curCell == null) return;
-
-		Highlight.clear();
-		for(Iterator it = curCell.getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-			Highlight.addGeometric(ni);
-		}
-		for(Iterator it = curCell.getArcs(); it.hasNext(); )
-		{
-			ArcInst ai = (ArcInst)it.next();
-			Highlight.addGeometric(ai);
-		}
-		Highlight.finished();
-    }
-
 	// ---------------------- THE CELL MENU -----------------
 
     /** 

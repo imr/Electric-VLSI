@@ -58,6 +58,7 @@ import com.sun.electric.tool.user.dialogs.GetInfoArc;
 import com.sun.electric.tool.user.dialogs.GetInfoExport;
 import com.sun.electric.tool.user.dialogs.GetInfoText;
 import com.sun.electric.tool.user.dialogs.GetInfoMulti;
+import com.sun.electric.tool.user.dialogs.Attributes;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -186,6 +187,7 @@ public class Highlight
 		GetInfoExport.load();
 		GetInfoText.load();
 		GetInfoMulti.load();
+		Attributes.load();
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();

@@ -90,7 +90,7 @@ public class GetInfoMulti extends javax.swing.JDialog
 	}
 
 	/** Creates new form Multi-Object Get Info */
-	public GetInfoMulti(java.awt.Frame parent, boolean modal)
+	private GetInfoMulti(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
 		setLocation(100, 50);

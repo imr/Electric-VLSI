@@ -1868,6 +1868,7 @@ public class Cell extends NodeProto
 		for(Iterator it = getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
+			errorCount += ni.checkAndRepair();
 			for(Iterator pIt = ni.getConnections(); pIt.hasNext(); )
 			{
 				Connection con = (Connection)pIt.next();

@@ -65,7 +65,7 @@ public class GetInfoText extends javax.swing.JDialog
 	private TextDescriptor.Position initialPos;
 	private TextDescriptor.Size initialSize;
 	private TextDescriptor.Rotation initialRotation;
-	private TextDescriptor.Units initialUnits;
+	private TextDescriptor.Unit initialUnit;
 	private TextDescriptor.DispPos initialDispPart;
 	private boolean initialItalic, initialBold, initialUnderline;
 	private boolean initialInvisibleOutsideCell;
@@ -344,21 +344,21 @@ public class GetInfoText extends javax.swing.JDialog
 
 		// set the units
 		units.setEnabled(true);
-		initialUnits = td.getUnits();
-		if (initialUnits == TextDescriptor.Units.NONE) units.setSelectedIndex(0); else
-		if (initialUnits == TextDescriptor.Units.RESISTANCE) units.setSelectedIndex(1); else
-		if (initialUnits == TextDescriptor.Units.CAPACITANCE) units.setSelectedIndex(2); else
-		if (initialUnits == TextDescriptor.Units.INDUCTANCE) units.setSelectedIndex(3); else
-		if (initialUnits == TextDescriptor.Units.CURRENT) units.setSelectedIndex(4); else
-		if (initialUnits == TextDescriptor.Units.VOLTAGE) units.setSelectedIndex(5); else
-		if (initialUnits == TextDescriptor.Units.DISTANCE) units.setSelectedIndex(6); else
-		if (initialUnits == TextDescriptor.Units.TIME) units.setSelectedIndex(7);
+		initialUnit = td.getUnit();
+		if (initialUnit == TextDescriptor.Unit.NONE) units.setSelectedIndex(0); else
+		if (initialUnit == TextDescriptor.Unit.RESISTANCE) units.setSelectedIndex(1); else
+		if (initialUnit == TextDescriptor.Unit.CAPACITANCE) units.setSelectedIndex(2); else
+		if (initialUnit == TextDescriptor.Unit.INDUCTANCE) units.setSelectedIndex(3); else
+		if (initialUnit == TextDescriptor.Unit.CURRENT) units.setSelectedIndex(4); else
+		if (initialUnit == TextDescriptor.Unit.VOLTAGE) units.setSelectedIndex(5); else
+		if (initialUnit == TextDescriptor.Unit.DISTANCE) units.setSelectedIndex(6); else
+		if (initialUnit == TextDescriptor.Unit.TIME) units.setSelectedIndex(7);
 
 		shownText = textHighlight;
 	}
 
 	/** Creates new form Text Get-Info */
-	public GetInfoText(java.awt.Frame parent, boolean modal)
+	private GetInfoText(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
 		setLocation(100, 50);
@@ -375,6 +375,7 @@ public class GetInfoText extends javax.swing.JDialog
 		textIconUpperLeft.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabUpperLeft.gif")));
 		textIconBoxed.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabBoxed.gif")));
 
+		// This can be done better!!!!! (see Attributes.java)
 		language.addItem("Not Code");
 		language.addItem("TCL (not available)");
 		language.addItem("LISP (not available)");
@@ -631,24 +632,24 @@ public class GetInfoText extends javax.swing.JDialog
 			}
 
 			// handle changes to the units
-			TextDescriptor.Units currentUnits = null;
+			TextDescriptor.Unit currentUnit = null;
 			int unitIndex = dialog.units.getSelectedIndex();
 			switch (unitIndex)
 			{
-				case 1:  currentUnits = TextDescriptor.Units.RESISTANCE;   break;
-				case 2:  currentUnits = TextDescriptor.Units.CAPACITANCE;  break;
-				case 3:  currentUnits = TextDescriptor.Units.INDUCTANCE;   break;
-				case 4:  currentUnits = TextDescriptor.Units.CURRENT;      break;
-				case 5:  currentUnits = TextDescriptor.Units.VOLTAGE;      break;
-				case 6:  currentUnits = TextDescriptor.Units.DISTANCE;     break;
-				case 7:  currentUnits = TextDescriptor.Units.TIME;         break;
-				default: currentUnits = TextDescriptor.Units.NONE;         break;
+				case 1:  currentUnit = TextDescriptor.Unit.RESISTANCE;   break;
+				case 2:  currentUnit = TextDescriptor.Unit.CAPACITANCE;  break;
+				case 3:  currentUnit = TextDescriptor.Unit.INDUCTANCE;   break;
+				case 4:  currentUnit = TextDescriptor.Unit.CURRENT;      break;
+				case 5:  currentUnit = TextDescriptor.Unit.VOLTAGE;      break;
+				case 6:  currentUnit = TextDescriptor.Unit.DISTANCE;     break;
+				case 7:  currentUnit = TextDescriptor.Unit.TIME;         break;
+				default: currentUnit = TextDescriptor.Unit.NONE;         break;
 			}
-			if (currentUnits != dialog.initialUnits)
+			if (currentUnit != dialog.initialUnit)
 			{
 				changed = true;
-				td.setUnits(currentUnits);
-				dialog.initialUnits = currentUnits;
+				td.setUnit(currentUnit);
+				dialog.initialUnit = currentUnit;
 			}
 
 			if (changed)
@@ -775,13 +776,14 @@ public class GetInfoText extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(ok, gridBagConstraints);
 
-        header.setText("jLabel1");
+        header.setText(" ");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 5;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 0);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(header, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();

@@ -23,9 +23,11 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Schematics;
@@ -39,10 +41,15 @@ import com.sun.electric.tool.Job;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashMap;
 import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.DefaultListModel;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.Document;
+import javax.swing.text.BadLocationException;
 
 
 /**
@@ -52,6 +59,26 @@ public class CellOptions extends javax.swing.JDialog
 {
 	private JList cellList;
 	private DefaultListModel cellListModel;
+	private HashMap origValues;
+	private boolean initialCheckDatesDuringCreation;
+	private boolean initialAutoTechnologySwitch;
+	private boolean initialPlaceCellCenter;
+
+	static class OldValues
+	{
+		boolean disAllMod;
+		boolean disInstMod;
+		boolean inCellLib;
+		boolean useTechEditor;
+		boolean defExpanded;
+		double charX, charY;
+		boolean disAllModChanged;
+		boolean disInstModChanged;
+		boolean inCellLibChanged;
+		boolean useTechEditorChanged;
+		boolean defExpandedChanged;
+		boolean characteristicChanged;
+	};
 
 	/** Creates new form Cell Options */
 	public CellOptions(java.awt.Frame parent, boolean modal)
@@ -59,6 +86,47 @@ public class CellOptions extends javax.swing.JDialog
 		super(parent, modal);
 		setLocation(100, 50);
 		initComponents();
+
+		// cache all information
+		origValues = new HashMap();
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = (Cell)cIt.next();
+				OldValues ov = new OldValues();
+				ov.disAllMod = cell.isAllLocked();
+				ov.disInstMod = cell.isInstancesLocked();
+				ov.inCellLib = cell.isInCellLibrary();
+				ov.useTechEditor = cell.isInTechnologyLibrary();
+				ov.defExpanded = cell.isWantExpanded();
+				ov.charX = ov.charY = 0;
+				ov.disAllModChanged = false;
+				ov.disInstModChanged = false;
+				ov.inCellLibChanged = false;
+				ov.useTechEditorChanged = false;
+				ov.defExpandedChanged = false;
+				ov.characteristicChanged = false;
+				Variable var = cell.getVar("FACET_characteristic_spacing");
+				if (var != null)
+				{
+					Object obj = var.getObject();
+					if (obj instanceof Integer[])
+					{
+						Integer [] iSpac = (Integer [])obj;
+						ov.charX = iSpac[0].intValue();
+						ov.charY = iSpac[1].intValue();
+					} else if (obj instanceof Double[])
+					{
+						Double [] dSpac = (Double [])obj;
+						ov.charX = dSpac[0].doubleValue();
+						ov.charY = dSpac[1].doubleValue();
+					}
+				}
+				origValues.put(cell, ov);
+			}
+		}
 
 		// build the cell list
 		cellListModel = new DefaultListModel();
@@ -79,6 +147,22 @@ public class CellOptions extends javax.swing.JDialog
 		}
 		int curIndex = libList.indexOf(Library.getCurrent());
 		if (curIndex >= 0) libraryPopup.setSelectedIndex(curIndex);
+
+		charXSpacing.getDocument().addDocumentListener(new CharSpacingListener(this, true));
+		charYSpacing.getDocument().addDocumentListener(new CharSpacingListener(this, false));
+
+		initialCheckDatesDuringCreation = User.isCheckCellDates();
+		checkDatesDuringCreation.setSelected(initialCheckDatesDuringCreation);
+
+		initialAutoTechnologySwitch = User.isAutoTechnologySwitch();
+		autoSwitchTechnology.setSelected(initialAutoTechnologySwitch);
+
+		initialPlaceCellCenter = User.isPlaceCellCenter();
+		placeCellCenter.setSelected(initialPlaceCellCenter);
+
+		tinyInstancesHashed.setEnabled(false);
+		hashScale.setEditable(false);
+		explorerTextSize.setEditable(false);
 
 		loadCellList();
 	}
@@ -101,21 +185,80 @@ public class CellOptions extends javax.swing.JDialog
 		cellListClick();
 	}
 
-	private void cellListClick()
+	private Cell getSelectedCell()
 	{
 		String libName = (String)libraryPopup.getSelectedItem();
 		Library lib = Library.findLibrary(libName);
 		String cellName = (String)cellList.getSelectedValue();
-		if (cellName == null) return;
+		if (cellName == null) return null;
 		Cell cell = lib.findNodeProto(cellName);
-		if (cell == null) return;
+		return cell;
+	}
 
-		disallowModAnyInCell.setSelected(cell.isAllLocked());
-		disallowModInstInCell.setSelected(cell.isInstancesLocked());
-		partOfCellLib.setSelected(cell.isInCellLibrary());
-		useTechEditor.setSelected(cell.isInTechnologyLibrary());
-		expandNewInstances.setSelected(cell.isWantExpanded());
-		unexpandNewInstances.setSelected(!cell.isWantExpanded());
+	private void cellListClick()
+	{
+		Cell cell = getSelectedCell();
+		if (cell == null) return;
+		OldValues ov = (OldValues)origValues.get(cell);
+		if (ov != null)
+		{
+			disallowModAnyInCell.setSelected(ov.disAllMod);
+			disallowModInstInCell.setSelected(ov.disInstMod);
+			partOfCellLib.setSelected(ov.inCellLib);
+			useTechEditor.setSelected(ov.useTechEditor);
+			expandNewInstances.setSelected(ov.defExpanded);
+			unexpandNewInstances.setSelected(!ov.defExpanded);
+			charXSpacing.setText(Double.toString(ov.charX));
+			charYSpacing.setText(Double.toString(ov.charY));
+		}
+	}
+
+	/**
+	 * Class to handle special changes to characteristic spacing.
+	 */
+	private static class CharSpacingListener implements DocumentListener
+	{
+		CellOptions dialog;
+		boolean x;
+
+		CharSpacingListener(CellOptions dialog, boolean x)
+		{
+			this.dialog = dialog;
+			this.x = x;
+		}
+
+		private void change(DocumentEvent e)
+		{
+			// get the currently selected cell
+			Cell cell = dialog.getSelectedCell();
+			if (cell == null) return;
+			OldValues ov = (OldValues)dialog.origValues.get(cell);
+
+			// get the typed value
+			Document doc = e.getDocument();
+			int len = doc.getLength();
+			String text;
+			try
+			{
+				text = doc.getText(0, len);
+			} catch (BadLocationException ex) { return; }
+			double v = EMath.atof(text);
+
+			// update the option
+			if (x)
+			{
+				if (ov.charX != v) ov.characteristicChanged = true;
+				ov.charX = v;
+			} else
+			{
+				if (ov.charY != v) ov.characteristicChanged = true;
+				ov.charY = v;
+			}
+		}
+
+		public void changedUpdate(DocumentEvent e) { change(e); }
+		public void insertUpdate(DocumentEvent e) { change(e); }
+		public void removeUpdate(DocumentEvent e) { change(e); }
 	}
 
 	/** This method is called from within the constructor to
@@ -236,8 +379,8 @@ public class CellOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(libraryPopup, gridBagConstraints);
 
-        cellPane.setMinimumSize(new java.awt.Dimension(200, 300));
-        cellPane.setPreferredSize(new java.awt.Dimension(200, 300));
+        cellPane.setMinimumSize(new java.awt.Dimension(200, 250));
+        cellPane.setPreferredSize(new java.awt.Dimension(200, 250));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -250,6 +393,14 @@ public class CellOptions extends javax.swing.JDialog
         getContentPane().add(cellPane, gridBagConstraints);
 
         disallowModAnyInCell.setText("Disallow modification of anything in this cell");
+        disallowModAnyInCell.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                disallowModAnyInCellActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
@@ -293,6 +444,14 @@ public class CellOptions extends javax.swing.JDialog
         getContentPane().add(clearDisallowModAnyInCell, gridBagConstraints);
 
         disallowModInstInCell.setText("Disallow modification of instances in this cell");
+        disallowModInstInCell.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                disallowModInstInCellActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
@@ -336,6 +495,14 @@ public class CellOptions extends javax.swing.JDialog
         getContentPane().add(clearDisallowModInstInCell, gridBagConstraints);
 
         partOfCellLib.setText("Part of a cell-library");
+        partOfCellLib.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                partOfCellLibActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
@@ -379,6 +546,14 @@ public class CellOptions extends javax.swing.JDialog
         getContentPane().add(clearPartOfCellLib, gridBagConstraints);
 
         useTechEditor.setText("Use technology editor on this cell");
+        useTechEditor.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                useTechEditorActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
@@ -423,6 +598,14 @@ public class CellOptions extends javax.swing.JDialog
 
         expandNewInstances.setText("Expand new instances");
         expansion.add(expandNewInstances);
+        expandNewInstances.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                expandNewInstancesActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 5;
@@ -432,6 +615,14 @@ public class CellOptions extends javax.swing.JDialog
 
         unexpandNewInstances.setText("Unexpand new instances");
         expansion.add(unexpandNewInstances);
+        unexpandNewInstances.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                unexpandNewInstancesActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 5;
@@ -581,6 +772,61 @@ public class CellOptions extends javax.swing.JDialog
         pack();
     }//GEN-END:initComponents
 
+	private void unexpandNewInstancesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_unexpandNewInstancesActionPerformed
+	{//GEN-HEADEREND:event_unexpandNewInstancesActionPerformed
+		expandNewInstancesActionPerformed(evt);
+	}//GEN-LAST:event_unexpandNewInstancesActionPerformed
+
+	private void expandNewInstancesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_expandNewInstancesActionPerformed
+	{//GEN-HEADEREND:event_expandNewInstancesActionPerformed
+		Cell cell = getSelectedCell();
+		if (cell == null) return;
+		OldValues ov = (OldValues)origValues.get(cell);
+		boolean expanded = expandNewInstances.isSelected();
+		if (ov.defExpanded != expanded) ov.defExpandedChanged = true;
+		ov.defExpanded = expanded;
+	}//GEN-LAST:event_expandNewInstancesActionPerformed
+
+	private void useTechEditorActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_useTechEditorActionPerformed
+	{//GEN-HEADEREND:event_useTechEditorActionPerformed
+		Cell cell = getSelectedCell();
+		if (cell == null) return;
+		OldValues ov = (OldValues)origValues.get(cell);
+		boolean techEditor = useTechEditor.isSelected();
+		if (ov.useTechEditor != techEditor) ov.useTechEditorChanged = true;
+		ov.useTechEditor = techEditor;
+	}//GEN-LAST:event_useTechEditorActionPerformed
+
+	private void partOfCellLibActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_partOfCellLibActionPerformed
+	{//GEN-HEADEREND:event_partOfCellLibActionPerformed
+		Cell cell = getSelectedCell();
+		if (cell == null) return;
+		OldValues ov = (OldValues)origValues.get(cell);
+		boolean cellLib = partOfCellLib.isSelected();
+		if (ov.inCellLib != cellLib) ov.inCellLibChanged = true;
+		ov.inCellLib = cellLib;
+	}//GEN-LAST:event_partOfCellLibActionPerformed
+
+	private void disallowModInstInCellActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_disallowModInstInCellActionPerformed
+	{//GEN-HEADEREND:event_disallowModInstInCellActionPerformed
+		Cell cell = getSelectedCell();
+		if (cell == null) return;
+		OldValues ov = (OldValues)origValues.get(cell);
+		boolean disallow = disallowModInstInCell.isSelected();
+		if (ov.disInstMod != disallow) ov.disInstModChanged = true;
+		ov.disInstMod = disallow;
+	}//GEN-LAST:event_disallowModInstInCellActionPerformed
+
+	private void disallowModAnyInCellActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_disallowModAnyInCellActionPerformed
+	{//GEN-HEADEREND:event_disallowModAnyInCellActionPerformed
+		Cell cell = getSelectedCell();
+		if (cell == null) return;
+		OldValues ov = (OldValues)origValues.get(cell);
+		boolean disallow = disallowModAnyInCell.isSelected();
+		if (ov.disAllMod != disallow) ov.disAllModChanged = true;
+		ov.disAllMod = disallow;
+	}//GEN-LAST:event_disallowModAnyInCellActionPerformed
+
 	private void libraryPopupActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_libraryPopupActionPerformed
 	{//GEN-HEADEREND:event_libraryPopupActionPerformed
 		loadCellList();
@@ -588,42 +834,114 @@ public class CellOptions extends javax.swing.JDialog
 
 	private void setUseTechEditorActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_setUseTechEditorActionPerformed
 	{//GEN-HEADEREND:event_setUseTechEditorActionPerformed
-		// Add your handling code here:
+		String libName = (String)libraryPopup.getSelectedItem();
+		Library lib = Library.findLibrary(libName);
+		for(Iterator it = lib.getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			OldValues ov = (OldValues)origValues.get(cell);
+			if (!ov.useTechEditor) ov.useTechEditorChanged = true;
+			ov.useTechEditor = true;
+		}
+		cellListClick();
 	}//GEN-LAST:event_setUseTechEditorActionPerformed
 
 	private void clearPartOfCellLibActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_clearPartOfCellLibActionPerformed
 	{//GEN-HEADEREND:event_clearPartOfCellLibActionPerformed
-		// Add your handling code here:
+		String libName = (String)libraryPopup.getSelectedItem();
+		Library lib = Library.findLibrary(libName);
+		for(Iterator it = lib.getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			OldValues ov = (OldValues)origValues.get(cell);
+			if (ov.inCellLib) ov.inCellLibChanged = true;
+			ov.inCellLib = false;
+		}
+		cellListClick();
 	}//GEN-LAST:event_clearPartOfCellLibActionPerformed
 
 	private void setPartOfCellLibActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_setPartOfCellLibActionPerformed
 	{//GEN-HEADEREND:event_setPartOfCellLibActionPerformed
-		// Add your handling code here:
+		String libName = (String)libraryPopup.getSelectedItem();
+		Library lib = Library.findLibrary(libName);
+		for(Iterator it = lib.getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			OldValues ov = (OldValues)origValues.get(cell);
+			if (!ov.inCellLib) ov.inCellLibChanged = true;
+			ov.inCellLib = true;
+		}
+		cellListClick();
 	}//GEN-LAST:event_setPartOfCellLibActionPerformed
 
 	private void clearDisallowModInstInCellActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_clearDisallowModInstInCellActionPerformed
 	{//GEN-HEADEREND:event_clearDisallowModInstInCellActionPerformed
-		// Add your handling code here:
+		String libName = (String)libraryPopup.getSelectedItem();
+		Library lib = Library.findLibrary(libName);
+		for(Iterator it = lib.getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			OldValues ov = (OldValues)origValues.get(cell);
+			if (ov.disInstMod) ov.disInstModChanged = true;
+			ov.disInstMod = false;
+		}
+		cellListClick();
 	}//GEN-LAST:event_clearDisallowModInstInCellActionPerformed
 
 	private void setDisallowModInstInCellActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_setDisallowModInstInCellActionPerformed
 	{//GEN-HEADEREND:event_setDisallowModInstInCellActionPerformed
-		// Add your handling code here:
+		String libName = (String)libraryPopup.getSelectedItem();
+		Library lib = Library.findLibrary(libName);
+		for(Iterator it = lib.getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			OldValues ov = (OldValues)origValues.get(cell);
+			if (!ov.disInstMod) ov.disInstModChanged = true;
+			ov.disInstMod = true;
+		}
+		cellListClick();
 	}//GEN-LAST:event_setDisallowModInstInCellActionPerformed
 
 	private void clearDisallowModAnyInCellActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_clearDisallowModAnyInCellActionPerformed
 	{//GEN-HEADEREND:event_clearDisallowModAnyInCellActionPerformed
-		// Add your handling code here:
+		String libName = (String)libraryPopup.getSelectedItem();
+		Library lib = Library.findLibrary(libName);
+		for(Iterator it = lib.getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			OldValues ov = (OldValues)origValues.get(cell);
+			if (ov.disAllMod) ov.disAllModChanged = true;
+			ov.disAllMod = false;
+		}
+		cellListClick();
 	}//GEN-LAST:event_clearDisallowModAnyInCellActionPerformed
 
 	private void setDisallowModAnyInCellActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_setDisallowModAnyInCellActionPerformed
 	{//GEN-HEADEREND:event_setDisallowModAnyInCellActionPerformed
-		// Add your handling code here:
+		String libName = (String)libraryPopup.getSelectedItem();
+		Library lib = Library.findLibrary(libName);
+		for(Iterator it = lib.getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			OldValues ov = (OldValues)origValues.get(cell);
+			if (!ov.disAllMod) ov.disAllModChanged = true;
+			ov.disAllMod = true;
+		}
+		cellListClick();
 	}//GEN-LAST:event_setDisallowModAnyInCellActionPerformed
 
 	private void clearUseTechEditorActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_clearUseTechEditorActionPerformed
 	{//GEN-HEADEREND:event_clearUseTechEditorActionPerformed
-		// Add your handling code here:
+		String libName = (String)libraryPopup.getSelectedItem();
+		Library lib = Library.findLibrary(libName);
+		for(Iterator it = lib.getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			OldValues ov = (OldValues)origValues.get(cell);
+			if (ov.useTechEditor) ov.useTechEditorChanged = true;
+			ov.useTechEditor = false;
+		}
+		cellListClick();
 	}//GEN-LAST:event_clearUseTechEditorActionPerformed
 
 	private void cancel(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cancel
@@ -633,9 +951,76 @@ public class CellOptions extends javax.swing.JDialog
 
 	private void ok(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ok
 	{//GEN-HEADEREND:event_ok
-
+		SetCellOptions job = new SetCellOptions(this);
 		closeDialog(null);
 	}//GEN-LAST:event_ok
+
+	/**
+	 * Class to set cell options.
+	 */
+	protected static class SetCellOptions extends Job
+	{
+		CellOptions dialog;
+		
+		protected SetCellOptions(CellOptions dialog)
+		{
+			super("Change Cell Options", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.dialog = dialog;
+			this.startJob();
+		}
+
+		public void doIt()
+		{
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library lib = (Library)it.next();
+				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+				{
+					Cell cell = (Cell)cIt.next();
+					OldValues ov = (OldValues)dialog.origValues.get(cell);
+					if (ov.disAllModChanged)
+					{
+						if (ov.disAllMod) cell.setAllLocked(); else cell.clearAllLocked();
+					}
+					if (ov.disInstModChanged)
+					{
+						if (ov.disInstMod) cell.setInstancesLocked(); else cell.clearInstancesLocked();
+					}
+					if (ov.inCellLibChanged)
+					{
+						if (ov.inCellLib) cell.setInCellLibrary(); else cell.clearInCellLibrary();
+					}
+					if (ov.useTechEditorChanged)
+					{
+						if (ov.useTechEditor) cell.setInTechnologyLibrary(); else cell.clearInTechnologyLibrary();
+					}
+					if (ov.defExpandedChanged)
+					{
+						if (ov.defExpanded) cell.setWantExpanded(); else cell.clearWantExpanded();
+					}
+					if (ov.characteristicChanged)
+					{
+						Double [] newVals = new Double[2];
+						newVals[0] = new Double(ov.charX);
+						newVals[1] = new Double(ov.charY);
+						cell.newVar("FACET_characteristic_spacing", newVals);
+					}
+				}
+			}
+
+			boolean boolNow = dialog.checkDatesDuringCreation.isSelected();
+			if (boolNow != dialog.initialCheckDatesDuringCreation)
+				User.setCheckCellDates(boolNow);
+
+			boolNow = dialog.autoSwitchTechnology.isSelected();
+			if (boolNow != dialog.initialAutoTechnologySwitch)
+				User.setAutoTechnologySwitch(boolNow);
+
+			boolNow = dialog.placeCellCenter.isSelected();
+			if (boolNow != dialog.initialPlaceCellCenter)
+				User.setPlaceCellCenter(boolNow);
+		}
+	}
 
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog

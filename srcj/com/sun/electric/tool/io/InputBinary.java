@@ -1996,7 +1996,31 @@ public class InputBinary extends Input
 			boolean invalid = obj.isDeprecatedVariable(realKey[key]);
 			if (!invalid)
 			{
-				Variable var = obj.newVar(realKey[key], newAddr);
+				Variable.Key varKey = realKey[key];
+				Variable var = null;
+
+				// "ATTRP_" variables on NodeInsts should really be on PortInsts
+//				if (obj instanceof NodeInst && varKey.getName().startsWith("ATTRP_"))
+//				{
+//					String realName = varKey.getName().substring(6);
+//					int portNameLen = realName.indexOf('_');
+//					if (portNameLen > 0)
+//					{
+//						NodeInst ni = (NodeInst)obj;
+//						String portName = realName.substring(0, portNameLen);
+//						PortInst pi = ni.findPortInst(portName);
+//						if (pi != null)
+//						{
+//							var = obj.newVar(realName.substring(portNameLen+1), newAddr);
+//						}
+//					}
+//				}
+
+				// just assign it normally
+				if (var == null)
+				{
+					var = obj.newVar(varKey, newAddr);
+				}
 				if (var == null) return(-1);
 				var.setDescriptor(new TextDescriptor(null, descript0, descript1));
 				var.lowLevelSetFlags(newtype);

@@ -414,6 +414,13 @@ public abstract class NodeProto extends ElectricObject
 		checkChanging();
 		port.setPortIndex(ports.size());
 		ports.add(port);
+
+		// create a PortInst for every instance of this node
+		for(Iterator it = getInstancesOf(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			ni.addPortInst(port);
+		}
 	}
 
 	/**
@@ -429,6 +436,14 @@ public abstract class NodeProto extends ElectricObject
 		{
 			((PortProto)ports.get(portIndex)).setPortIndex(portIndex);
 		}
+
+		// remove the PortInst from every instance of this node
+		for(Iterator it = getInstancesOf(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			ni.removePortInst(port);
+		}
+
 		port.setPortIndex(-1);
 	}
 

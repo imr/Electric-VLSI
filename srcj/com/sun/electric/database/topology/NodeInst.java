@@ -43,6 +43,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
@@ -584,29 +585,18 @@ public class NodeInst extends Geometric implements Nodable
 		this.protoType = protoType;
 
 		// create all of the portInsts on this node inst
-		int i = 0;
 		for (Iterator it = protoType.getPorts(); it.hasNext();)
 		{
 			PortProto pp = (PortProto) it.next();
-			PortInst pi = PortInst.newInstance(pp, this);
-			pi.setIndex(i++);
-			portMap.put(pp.getProtoName(), pi);
+			addPortInst(pp);
 		}
-
-		// enumerate the port instances
-//		int i = 0;
-//		for(Iterator it = getPortInsts(); it.hasNext();)
-//		{
-//			PortInst pi = (PortInst) it.next();
-//			pi.setIndex(i++);
-//		}
 
 		this.center.setLocation(center);
 		this.sX = width;   this.sY = height;
 		this.angle = angle;
 
 		// fill in the geometry
-		Geometric();
+		redoGeometric();
 		return false;
 	}
 
@@ -671,7 +661,7 @@ public class NodeInst extends Geometric implements Nodable
 		this.angle += dRot;
 
 		// fill in the Geometric fields
-		Geometric();
+		redoGeometric();
 
 		// link back into the R-Tree
 		linkGeom(parent);
@@ -770,7 +760,7 @@ public class NodeInst extends Geometric implements Nodable
 	/**
 	 * Routine to recalculate the Geometric bounds for this NodeInst.
 	 */
-	void Geometric()
+	void redoGeometric()
 	{
 		if (sX == 0 && sY == 0)
 		{
@@ -906,6 +896,46 @@ public class NodeInst extends Geometric implements Nodable
 		// add in the displayable variables
 		addDisplayableVariables(getBounds(), polys, start, wnd, false);
 		return polys;
+	}
+
+	/**
+	 * Routine to return the number of displayable Variables on this NodeInst and all of its PortInsts.
+	 * A displayable Variable is one that will be shown with its object.
+	 * Displayable Variables can only sensibly exist on NodeInst, ArcInst, and PortInst objects.
+	 * @return the number of displayable Variables on this NodeInst and all of its PortInsts.
+	 */
+	public int numDisplayableVariables(boolean multipleStrings)
+	{
+		int numVarsOnNode = super.numDisplayableVariables(multipleStrings);
+
+		for(Iterator it = getPortInsts(); it.hasNext(); )
+		{
+			PortInst pi = (PortInst)it.next();
+			numVarsOnNode += pi.numDisplayableVariables(multipleStrings);
+		}
+		return numVarsOnNode;
+	}
+
+	/**
+	 * Routine to add all displayable Variables on this NodeInst and its PortInsts to an array of Poly objects.
+	 * @param rect a rectangle describing the bounds of the NodeInst on which the Variables will be displayed.
+	 * @param polys an array of Poly objects that will be filled with the displayable Variables.
+	 * @param start the starting index in the array of Poly objects to fill with displayable Variables.
+	 * @param wnd window in which the Variables will be displayed.
+	 * @param multipleStrings true to break multiline text into multiple Polys.
+	 * @return the number of Polys that were added.
+	 */
+	public int addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start, EditWindow wnd, boolean multipleStrings)
+	{
+		int numAddedVariables = super.addDisplayableVariables(rect, polys, start, wnd, multipleStrings);
+
+		for(Iterator it = getPortInsts(); it.hasNext(); )
+		{
+			PortInst pi = (PortInst)it.next();
+			int justAdded = pi.addDisplayableVariables(rect, polys, start+numAddedVariables, wnd, multipleStrings);
+			numAddedVariables += justAdded;
+		}
+		return numAddedVariables;
 	}
 
 	/**
@@ -1275,6 +1305,25 @@ public class NodeInst extends Geometric implements Nodable
 		return null;
 	}
 
+	/**
+	 * Routine to create a new PortInst on this NodeInst.
+	 * @param pp the prototype of the new PortInst.
+	 */
+	public void addPortInst(PortProto pp)
+	{
+		PortInst pi = PortInst.newInstance(pp, this);
+		portMap.put(pp.getProtoName(), pi);
+	}
+
+	/**
+	 * Routine to delete a new PortInst from this NodeInst.
+	 * @param pp the prototype of the PortInst to remove.
+	 */
+	public void removePortInst(PortProto pp)
+	{
+		portMap.remove(pp.getProtoName());
+	}
+
     /** 
      * Routine to get the Schematic Cell from a NodeInst icon
      * @return the equivalent view of the prototype, or null if none
@@ -1316,7 +1365,7 @@ public class NodeInst extends Geometric implements Nodable
 	public void addExport(Export e)
 	{
 		exports.add(e);
-		Geometric();
+		redoGeometric();
 	}
 
 	/**
@@ -1330,7 +1379,7 @@ public class NodeInst extends Geometric implements Nodable
 			throw new RuntimeException("Tried to remove a non-existant export");
 		}
 		exports.remove(e);
-		Geometric();
+		redoGeometric();
 	}
 
 	/**
@@ -1521,7 +1570,7 @@ public class NodeInst extends Geometric implements Nodable
 		connections.add(c);
 		NodeInst ni = c.getPortInst().getNodeInst();
 		ni.computeWipeState();
-		Geometric();
+		redoGeometric();
 	}
 
 	/**
@@ -1533,7 +1582,7 @@ public class NodeInst extends Geometric implements Nodable
 		connections.remove(c);
 		NodeInst ni = c.getPortInst().getNodeInst();
 		ni.computeWipeState();
-		Geometric();
+		redoGeometric();
 	}
 
 	/**
@@ -1803,8 +1852,49 @@ public class NodeInst extends Geometric implements Nodable
 		PrimitiveNode np = (PrimitiveNode)protoType;
 		return np.getTechnology().getTransistorDrainPort(this);
     }
-    
-    
+
+	/**
+	 * Routine to check and repair data structure errors in this NodeInst.
+	 */
+	public int checkAndRepair()
+	{
+		int errorCount = 0;
+
+		// make sure there is a PortInst for every PortProto
+		FlagSet fs = PortProto.getFlagSet(1);
+		for(Iterator it = protoType.getPorts(); it.hasNext(); )
+		{
+			PortProto pp = (PortProto)it.next();
+			pp.clearBit(fs);
+		}
+		for(Iterator it = getPortInsts(); it.hasNext(); )
+		{
+			PortInst pi = (PortInst)it.next();
+			PortProto pp = pi.getPortProto();
+			if (pp.isBit(fs))
+			{
+				System.out.println("Library " + parent.getLibrary().getLibName() +
+					", cell " + parent.describe() + ", node " + describe() +
+					" has multiple PortInsts pointing to the same PortProto (" + pp.getProtoName() + ")");
+				errorCount++;
+			}
+			pp.setBit(fs);
+		}
+		for(Iterator it = protoType.getPorts(); it.hasNext(); )
+		{
+			PortProto pp = (PortProto)it.next();
+			if (!pp.isBit(fs))
+			{
+				System.out.println("Library " + parent.getLibrary().getLibName() +
+					", cell " + parent.describe() + ", node " + describe() +
+					" port " + pp.getProtoName() + " has no PortInst");
+				errorCount++;
+			}
+		}
+		fs.freeFlagSet();
+		return errorCount;
+	}
+
 	/**
 	 * Returns the basename for autonaming.
 	 * @return the basename for autonaming.
