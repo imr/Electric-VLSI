@@ -235,6 +235,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             int pinTotal = 0, pureTotal = 0, compTotal = 0, arcTotal = 0;
             ArcProto firstHighlightedArc = null;
             highlightedNode = null;
+            List arcList = new ArrayList();
+            List contactList = new ArrayList();
+            List pinList = new ArrayList();
+
             for(Iterator it = tech.getArcs(); it.hasNext(); )
             {
                 PrimitiveArc ap = (PrimitiveArc)it.next();
@@ -243,13 +247,13 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 if (np != null && np.isNotUsed()) continue;
                 if (firstHighlightedArc == null) firstHighlightedArc = ap;
                 arcTotal++;
+                arcList.add(ap);
                 inPalette.add(ap);
             }
             User.tool.setCurrentArcProto(firstHighlightedArc);
             inPalette.add("Cell");
             inPalette.add("Misc.");
             inPalette.add("Pure");
-
 
             for(Iterator it = tech.getNodes(); it.hasNext(); )
             {
@@ -261,6 +265,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 {
                     pinTotal++;
                     inPalette.add(np);
+                    pinList.add(np);
                 } else if (fun == PrimitiveNode.Function.NODE)
 	                pureTotal++;
                 else
@@ -271,8 +276,11 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     Object map = null;
 	                if (fun == PrimitiveNode.Function.TRANMOS || fun == PrimitiveNode.Function.TRAPMOS)
                         map = fun;
-                    else if (fun == PrimitiveNode.Function.CONTACT && np.isGroupNode())
-                        map = np.getLayers()[2].getLayer(); // vias as mapping
+                    else if (fun == PrimitiveNode.Function.CONTACT)
+                    {
+                        if (np.isGroupNode()) map = np.getLayers()[2].getLayer(); // vias as mapping
+                        contactList.add(np);
+                    }
 	                // Trick to get "well" in well contacts
 	                else if (fun == PrimitiveNode.Function.SUBSTRATE || fun == PrimitiveNode.Function.WELL)
                     {
@@ -322,7 +330,6 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             }
             if (pinTotal + compTotal == 0) pinTotal = pureTotal;
             menuY = arcTotal + pinTotal + compTotal + 3;
-            menuY = arcTotal + pinTotal + compTotal + 3;
             menuX = 1;
             if (menuY > 40)
             {
@@ -333,6 +340,32 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 menuY = (menuY+1) / 2;
                 menuX = 2;
             }
+            /*
+            menuX = 3;
+            inPalette.clear();
+            // First Arcs
+            for (int i = 0; i < arcList.size(); i++)
+                inPalette.add(arcList.get(i));
+            inPalette.add("Cell");
+            // Second row are pins
+            for (int i = 0; i < pinList.size(); i++)
+                inPalette.add(pinList.get(i));
+            inPalette.add("Misc.");
+            // Last one are contacts
+            for (int i = 0; i < contactList.size(); i++)
+            {
+                PrimitiveNode np = (PrimitiveNode)contactList.get(i);
+                if (np.isGroupNode())
+                {
+                    Object map = np.getLayers()[2].getLayer(); // vias as mapping
+                    if (!np.isSpecialNode()) inPalette.add(elementsMap.get(map));
+                }
+                else
+                    inPalette.add(np);
+            }
+            inPalette.add("Pure");
+            menuY = arcList.size() + 1;
+            */
         }
         Dimension size = TopLevel.getScreenSize();
         entrySize = (int)size.getWidth() / menuX;
