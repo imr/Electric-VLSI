@@ -1155,7 +1155,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             double scalex = entrySize/largest * 0.8;
             double scaley = entrySize/largest * 0.8;
             double scale = Math.min(scalex, scaley);
-            return wnd.renderNode(ni, scale);
+            return wnd.renderNode(ni, scale, true);
         }
 
         private final static double menuArcLength = 8;
@@ -1194,7 +1194,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 double scalex = entrySize/largest * 0.8;
                 double scaley = entrySize/largest * 0.8;
                 double scale = Math.min(scalex, scaley);
-                return wnd.renderArc(ai, scale);
+                return wnd.renderArc(ai, scale, true);
             }
             return null;
         }

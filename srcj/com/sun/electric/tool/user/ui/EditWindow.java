@@ -932,11 +932,11 @@ public class EditWindow extends JPanel
 	 * Special "hook" to render a single node.
 	 * This is used by the PaletteWindow to draw nodes that aren't really in the database.
 	 */
-	public Image renderNode(NodeInst ni, double scale)
+	public Image renderNode(NodeInst ni, double scale, boolean forceVisible)
 	{
 		offscreen.clearImage(false);
 		setScale(scale);
-		offscreen.drawNode(ni, DBMath.MATID, true, null);
+		offscreen.drawNode(ni, DBMath.MATID, true, null, forceVisible);
 		return offscreen.composite();
 	}
 
@@ -944,11 +944,11 @@ public class EditWindow extends JPanel
 	 * Special "hook" to render a single arc.
 	 * This is used by the PaletteWindow to draw arcs that aren't really in the database.
 	 */
-	public Image renderArc(ArcInst ai, double scale)
+	public Image renderArc(ArcInst ai, double scale, boolean forceVisible)
 	{
 		offscreen.clearImage(false);
 		setScale(scale);
-		offscreen.drawArc(ai, DBMath.MATID);
+		offscreen.drawArc(ai, DBMath.MATID, forceVisible);
 		return offscreen.composite();
 	}
 

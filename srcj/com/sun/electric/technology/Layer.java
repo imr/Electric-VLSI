@@ -288,6 +288,7 @@ public class Layer
 	private static HashMap edgeCapacitanceParasiticPrefs = new HashMap();
 	private static HashMap layerThicknessPrefs = new HashMap();
 	private static HashMap layerDistancePrefs = new HashMap();
+    private static HashMap layerVisibilityPrefs = new HashMap();
 
 	private Layer(String name, Technology tech, EGraphics graphics)
 	{
@@ -423,13 +424,15 @@ public class Layer
 	 * Method to tell whether this Layer is visible.
 	 * @return true if this Layer is visible.
 	 */
-	public boolean isVisible() { return visible; }
+	//public boolean isVisible() { return visible; }
+    public boolean isVisible() { return getBooleanPref("Visibility", layerVisibilityPrefs, visible).getBoolean(); }
 
 	/**
 	 * Method to set whether this Layer is visible.
 	 * @param visible true if this Layer is to be visible.
 	 */
-	public void setVisible(boolean visible) { this.visible = visible; }
+	//public void setVisible(boolean visible) { this.visible = visible; }
+    public void setVisible(boolean visible) { getBooleanPref("Visibility", layerVisibilityPrefs, visible).setBoolean(visible); }
 
 	private Pref getLayerPref(String what, HashMap map, String factory)
 	{
@@ -456,7 +459,18 @@ public class Layer
 		return pref;
 	}
 
-	private Pref get3DPref(String what, HashMap map, double factory)
+    private Pref getBooleanPref(String what, HashMap map, boolean factory)
+	{
+		Pref pref = (Pref)map.get(this);
+		if (pref == null)
+		{
+			pref = Pref.makeBooleanPref(what + "Of" + name + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factory);
+			map.put(this, pref);
+		}
+		return pref;
+	}
+
+	private Pref getDoublePref(String what, HashMap map, double factory)
 	{
 		Pref pref = (Pref)map.get(this);
 		if (pref == null)
@@ -478,8 +492,8 @@ public class Layer
 	{
 		this.thickness = thickness;
 		this.distance = distance;
-		get3DPref("Distance", layerDistancePrefs, this.distance).setDouble(this.distance);
-		get3DPref("Thickness", layerThicknessPrefs, thickness).setDouble(this.thickness);
+		getDoublePref("Distance", layerDistancePrefs, this.distance).setDouble(this.distance);
+		getDoublePref("Thickness", layerThicknessPrefs, this.thickness).setDouble(this.thickness);
 	}
 
 	/**
@@ -487,14 +501,14 @@ public class Layer
 	 * The higher the distance value, the farther from the wafer.
 	 * @return the distance of this layer above the ground plane.
 	 */
-	public double getDistance() { return get3DPref("Distance", layerDistancePrefs, distance).getDouble(); }
+	public double getDistance() { return getDoublePref("Distance", layerDistancePrefs, distance).getDouble(); }
 
 	/**
 	 * Method to set the distance of this layer.
 	 * The higher the distance value, the farther from the wafer.
 	 * @param distance the distance of this layer above the ground plane.
 	 */
-	public void setDistance(double distance) { get3DPref("Distance", layerDistancePrefs, this.distance).setDouble(distance); }
+	public void setDistance(double distance) { getDoublePref("Distance", layerDistancePrefs, this.distance).setDouble(distance); }
 
 	/**
 	 * Method to calculate Z value of the upper part of the layer.
@@ -509,14 +523,14 @@ public class Layer
 	 * Layers can have a thickness of 0, which causes them to be rendered flat.
 	 * @return the thickness of this layer.
 	 */
-	public double getThickness() { return get3DPref("Thickness", layerThicknessPrefs, thickness).getDouble(); }
+	public double getThickness() { return getDoublePref("Thickness", layerThicknessPrefs, thickness).getDouble(); }
 
 	/**
 	 * Method to set the thickness of this layer.
 	 * Layers can have a thickness of 0, which causes them to be rendered flat.
 	 * @param thickness the thickness of this layer.
 	 */
-	public void setThickness(double thickness) { get3DPref("Thickness", layerThicknessPrefs, thickness).setDouble(thickness); }
+	public void setThickness(double thickness) { getDoublePref("Thickness", layerThicknessPrefs, thickness).setDouble(thickness); }
 
 	/**
 	 * Method to set the factory-default CIF name of this Layer.

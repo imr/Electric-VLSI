@@ -549,13 +549,13 @@ public class PixelDrawing
 		// draw all arcs
 		for(Iterator arcs = cell.getArcs(); arcs.hasNext(); )
 		{
-			drawArc((ArcInst)arcs.next(), prevTrans);
+			drawArc((ArcInst)arcs.next(), prevTrans, false);
 		}
 
 		// draw all nodes
 		for(Iterator nodes = cell.getNodes(); nodes.hasNext(); )
 		{
-			drawNode((NodeInst)nodes.next(), prevTrans, topLevel, expandBounds);
+			drawNode((NodeInst)nodes.next(), prevTrans, topLevel, expandBounds, false);
 		}
 
 		// show cell variables if at the top level
@@ -565,7 +565,7 @@ public class PixelDrawing
 			int numPolys = cell.numDisplayableVariables(true);
 			Poly [] polys = new Poly[numPolys];
 			cell.addDisplayableVariables(CENTERRECT, polys, 0, wnd, true);
-			drawPolys(polys, prevTrans);
+			drawPolys(polys, prevTrans, false);
 		}
 
         if (DEBUGRENDERTIMING) {
@@ -577,11 +577,12 @@ public class PixelDrawing
 	/**
 	 * Method to draw a NodeInst into the offscreen image.
 	 * @param ni the NodeInst to draw.
-	 * @param trans the transformation of the NodeInst to the display.
-	 * @param topLevel true if this is the top-level of display (not in a subcell).
+     * @param trans the transformation of the NodeInst to the display.
+     * @param topLevel true if this is the top-level of display (not in a subcell).
      * @param expandBounds bounds in which to draw nodes fully expanded
-	 */
-	public void drawNode(NodeInst ni, AffineTransform trans, boolean topLevel, Rectangle2D expandBounds)
+     * @param forceVisible true if layer visibility information should be ignored and force the drawing
+     */
+	public void drawNode(NodeInst ni, AffineTransform trans, boolean topLevel, Rectangle2D expandBounds, boolean forceVisible)
 	{
 		NodeProto np = ni.getProto();
 		AffineTransform localTrans = ni.rotateOut(trans);
@@ -659,7 +660,7 @@ public class PixelDrawing
 				Poly [] polys = new Poly[numPolys];
 				Rectangle2D rect = ni.getUntransformedBounds();
 				ni.addDisplayableVariables(rect, polys, 0, wnd, true);
-				drawPolys(polys, localTrans);
+				drawPolys(polys, localTrans, false);
 			}
 		} else
 		{
@@ -698,7 +699,7 @@ public class PixelDrawing
 				}
 				Technology tech = prim.getTechnology();
 				Poly [] polys = tech.getShapeOfNode(ni, nodeWnd);
-				drawPolys(polys, localTrans);
+				drawPolys(polys, localTrans, forceVisible);
 			}
 		}
 
@@ -740,7 +741,7 @@ public class PixelDrawing
 				{
 					Poly [] polys = new Poly[numPolys];
 					e.addDisplayableVariables(rect, polys, 0, wnd, true);
-					drawPolys(polys, localTrans);
+					drawPolys(polys, localTrans, false);
 				}
 			}
 		}
@@ -749,9 +750,10 @@ public class PixelDrawing
 	/**
 	 * Method to render an ArcInst into the offscreen image.
 	 * @param ai the ArcInst to draw.
-	 * @param trans the transformation of the ArcInst to the display.
-	 */
-	public void drawArc(ArcInst ai, AffineTransform trans)
+     * @param trans the transformation of the ArcInst to the display.
+     * @param forceVisible ignores layer visibility if true
+     */
+	public void drawArc(ArcInst ai, AffineTransform trans, boolean forceVisible)
 	{
         // see if the arc is completely clipped from the screen
 		Rectangle2D arcBounds = ai.getBounds();
@@ -793,7 +795,7 @@ public class PixelDrawing
 		EditWindow arcWnd = wnd;
 		if (!User.isTextVisibilityOnArc()) arcWnd = null;
 		Poly [] polys = tech.getShapeOfArc(ai, arcWnd);
-		drawPolys(polys, trans);
+		drawPolys(polys, trans, forceVisible);
 	}
 
 	private void showCellPorts(NodeInst ni, AffineTransform trans, Color col)
@@ -1249,7 +1251,7 @@ public class PixelDrawing
 	/**
 	 * Method to draw polygon "poly", transformed through "trans".
 	 */
-	private void drawPolys(Poly [] polys, AffineTransform trans)
+	private void drawPolys(Poly[] polys, AffineTransform trans, boolean forceVisible)
 	{
 		if (polys == null) return;
 		for(int i = 0; i < polys.length; i++)
@@ -1261,7 +1263,7 @@ public class PixelDrawing
 			EGraphics graphics = null;
 			if (layer != null)
 			{
-				if (!layer.isVisible()) continue;
+				if (!forceVisible && !layer.isVisible()) continue;
 				graphics = layer.getGraphics();
 			}
 
