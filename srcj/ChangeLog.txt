@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01av: *********************************
 
+BUG: (12/10/04, SMR) Selecting a bus pin does not grab all nets on that pin (Bug #77).
+FIX: In Highlighter.getHighlightedNetworks(), look at all arcs connected to a pin.
+
+BUG: (12/10/04, SMR) Locking cells may crash when changes are made (Bug #84).
+FIX: Moved all calls to CircuitChanges.cantEdit to be inside of jobs.
+
 BUG: (12/9/04, SMR) Waveform window does not always show the full hierarchy of signal names (Bug #82).
 FIX: In WaveformWindow.getSignalsForExplorer(), ensure that all levels of the signal name hierarchy are created.
 

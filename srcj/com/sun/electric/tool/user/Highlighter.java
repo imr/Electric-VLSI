@@ -706,37 +706,39 @@ public class Highlighter implements DatabaseChangeListener {
 				if (h.getType() == Highlight.Type.EOBJ)
 				{
 					ElectricObject eObj = h.getElectricObject();
+					if (eObj instanceof NodeInst)
+					{
+						NodeInst ni = (NodeInst)eObj;
+	                    if (ni.getNumPortInsts() == 1)
+	                    {
+	                        PortInst pi = ni.getOnlyPortInst();
+	                        if (pi != null) eObj = pi;
+	                    }
+					}
 					if (eObj instanceof PortInst)
 					{
 						PortInst pi = (PortInst)eObj;
-						Network net = netlist.getNetwork(pi);
-						if (net != null)
-							nets.add(net);
-						else
+						boolean added = false;
+						for(Iterator aIt = pi.getNodeInst().getConnections(); aIt.hasNext(); )
 						{
-							// if port is isolated, grab all nets
-							if (pi.getPortProto() instanceof PrimitivePort && ((PrimitivePort)pi.getPortProto()).isIsolated())
+							Connection con = (Connection)aIt.next();
+							ArcInst ai = con.getArc();
+							int wid = netlist.getBusWidth(ai);
+							for(int i=0; i<wid; i++)
 							{
-								for(Iterator aIt = pi.getNodeInst().getConnections(); aIt.hasNext(); )
+								Network net = netlist.getNetwork(ai, i);
+								if (net != null)
 								{
-									Connection con = (Connection)aIt.next();
-									ArcInst ai = con.getArc();
-									net = netlist.getNetwork(ai, 0);
-									if (net != null) nets.add(net);
+									added = true;
+									nets.add(net);
 								}
 							}
 						}
-					} else if (eObj instanceof NodeInst)
-					{
-						NodeInst ni = (NodeInst)eObj;
-                        if (ni.getNumPortInsts() == 1) {
-                            PortInst pi = ni.getOnlyPortInst();
-                            if (pi != null)
-                            {
-                                Network net = netlist.getNetwork(pi);
-                                if (net != null) nets.add(net);
-                            }
-                        }
+						if (!added)
+						{
+							Network net = netlist.getNetwork(pi);
+							if (net != null) nets.add(net);
+						}
 					} else if (eObj instanceof ArcInst)
 					{
 						ArcInst ai = (ArcInst)eObj;

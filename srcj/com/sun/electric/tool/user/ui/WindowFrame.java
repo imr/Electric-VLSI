@@ -631,7 +631,7 @@ public class WindowFrame
 		Cell curCell = getCurrentCell();
 		if (curCell == null)
 		{
-			System.out.println("There is no current cell for this operation");
+			System.out.println("There is no current cell for this operation.  To create one, use the 'New Cell' command from the 'Cell' menu.");
 		}
 		return curCell;
 	}

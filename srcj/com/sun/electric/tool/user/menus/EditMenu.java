@@ -1002,7 +1002,6 @@ public class EditMenu {
         if (wnd == null) return;
         ArcInst ai = (ArcInst)wnd.getHighlighter().getOneElectricObject(ArcInst.class);
         if (ai == null) return;
-        if (CircuitChanges.cantEdit(ai.getParent(), null, true) != 0) return;
 
         System.out.println("Select the position in the arc to place the jog");
         EventListener currentListener = WindowFrame.getListener();
@@ -1092,9 +1091,9 @@ public class EditMenu {
 
         private static class InsertJogPoint extends Job
         {
-            ArcInst ai;
-            Point2D insert;
-            Highlighter highlighter;
+            private ArcInst ai;
+            private Point2D insert;
+            private Highlighter highlighter;
 
             protected InsertJogPoint(ArcInst ai, Point2D insert, Highlighter highlighter)
             {
@@ -1107,6 +1106,8 @@ public class EditMenu {
 
             public boolean doIt()
             {
+                if (CircuitChanges.cantEdit(ai.getParent(), null, true) != 0) return false;
+
                 // create the break pins
                 ArcProto ap = ai.getProto();
                 NodeProto np = ((PrimitiveArc)ap).findPinProto();

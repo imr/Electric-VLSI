@@ -136,9 +136,6 @@ class OutlineListener
 		// right click: add a point
 		if (ClickZoomWireListener.isRightMouse(evt))
 		{
-			// make sure outline adjustment is allowed
-			if (CircuitChanges.cantEdit(cell, null, true) != 0) return;
-
 			// add a point
 			AffineTransform trans = outlineNode.rotateOutAboutTrueCenter();
 			Point2D [] origPoints = outlineNode.getTrace();
@@ -147,7 +144,7 @@ class OutlineListener
 				Point2D [] newPoints = new Point2D[1];
 				newPoints[0] = new Point2D.Double(outlineNode.getAnchorCenterX(), outlineNode.getAnchorCenterY());
 				EditWindow.gridAlign(newPoints[0]);
-				setNewPoints(newPoints, 0);
+				setNewPoints(newPoints, 0, cell);
 				point = 0;
 				oldX = newPoints[point].getX();
 				oldY = newPoints[point].getY();
@@ -160,7 +157,7 @@ class OutlineListener
 				EditWindow.gridAlign(newPoints[0]);
 				newPoints[1] = new Point2D.Double(newPoints[0].getX() + 2, newPoints[0].getY() + 2);
 				EditWindow.gridAlign(newPoints[1]);
-				setNewPoints(newPoints, 1);
+				setNewPoints(newPoints, 1, cell);
 				point = 1;
 				oldX = newPoints[point].getX();
 				oldY = newPoints[point].getY();
@@ -205,7 +202,7 @@ class OutlineListener
 					}
 				}
 				trans.transform(newPoints, 0, newPoints, 0, newPoints.length);
-				setNewPoints(newPoints, point+1);
+				setNewPoints(newPoints, point+1, cell);
 				oldX = newPoints[point+1].getX();
 				oldY = newPoints[point+1].getY();
 			}
@@ -253,16 +250,13 @@ class OutlineListener
 		{
 			doingMotionDrag = false;
 
-			// make sure outline adjustment is allowed
-			if (CircuitChanges.cantEdit(cell, null, true) != 0) return;
-
 			int newX = evt.getX();
 			int newY = evt.getY();
 			Point2D curPt = wnd.screenToDatabase(newX, newY);
 			EditWindow.gridAlign(curPt);
 			highlighter.setHighlightOffset(0, 0);
 
-			moveSelectedPoint(curPt.getX() - oldX, curPt.getY() - oldY);
+			moveSelectedPoint(curPt.getX() - oldX, curPt.getY() - oldY, cell);
 			wnd.repaintContents(null);
 		}
 	}
@@ -330,23 +324,23 @@ class OutlineListener
 				j++;
 			}
 			if (pt > 0) pt--;
-			setNewPoints(newPoints, pt);
+			setNewPoints(newPoints, pt, cell);
 		} else if (chr == KeyEvent.VK_LEFT)
 		{
 			double arrowDistance = User.getAlignmentToGrid();
-			moveSelectedPoint(-arrowDistance, 0);
+			moveSelectedPoint(-arrowDistance, 0, cell);
 		} else if (chr == KeyEvent.VK_RIGHT)
 		{
 			double arrowDistance = User.getAlignmentToGrid();
-			moveSelectedPoint(arrowDistance, 0);
+			moveSelectedPoint(arrowDistance, 0, cell);
 		} else if (chr == KeyEvent.VK_UP)
 		{
 			double arrowDistance = User.getAlignmentToGrid();
-			moveSelectedPoint(0, arrowDistance);
+			moveSelectedPoint(0, arrowDistance, cell);
 		} else if (chr == KeyEvent.VK_DOWN)
 		{
 			double arrowDistance = User.getAlignmentToGrid();
-			moveSelectedPoint(0, -arrowDistance);
+			moveSelectedPoint(0, -arrowDistance, cell);
 		} else if (chr == KeyEvent.VK_PERIOD)
 		{
 			// advance to next point
@@ -369,7 +363,7 @@ class OutlineListener
 	public void keyReleased(KeyEvent evt) {}
 	public void keyTyped(KeyEvent evt) {}
 
-	private void moveSelectedPoint(double dx, double dy)
+	private void moveSelectedPoint(double dx, double dy, Cell cell)
 	{
 		Point2D [] origPoints = outlineNode.getTrace();
 		if (origPoints == null) return;
@@ -383,12 +377,12 @@ class OutlineListener
 		AffineTransform trans = outlineNode.rotateOutAboutTrueCenter();
 		trans.transform(newPoints, 0, newPoints, 0, newPoints.length);
 		newPoints[point].setLocation(newPoints[point].getX()+dx, newPoints[point].getY()+dy);
-		setNewPoints(newPoints, point);
+		setNewPoints(newPoints, point, cell);
 	}
 
-	private void setNewPoints(Point2D [] newPoints, int newPoint)
+	private void setNewPoints(Point2D [] newPoints, int newPoint, Cell cell)
 	{
-		SetPoints job = new SetPoints(this, newPoints, newPoint);
+		SetPoints job = new SetPoints(this, newPoints, newPoint, cell);
 	}
 
 	/**
@@ -396,21 +390,26 @@ class OutlineListener
 	 */
 	private static class SetPoints extends Job
 	{
-		OutlineListener listener;
-		Point2D [] newPoints;
-		int newPoint;
+		private OutlineListener listener;
+		private Point2D [] newPoints;
+		private int newPoint;
+		private Cell cell;
 
-		protected SetPoints(OutlineListener listener, Point2D [] newPoints, int newPoint)
+		protected SetPoints(OutlineListener listener, Point2D [] newPoints, int newPoint, Cell cell)
 		{
 			super("Change Outline Points", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.listener = listener;
 			this.newPoints = newPoints;
 			this.newPoint = newPoint;
+			this.cell = cell;
 			startJob();
 		}
 
 		public boolean doIt()
 		{
+			// make sure outline adjustment is allowed
+			if (CircuitChanges.cantEdit(cell, null, true) != 0) return false;
+
 			// get the extent of the data
 			NodeInst ni = listener.outlineNode;
 			double lX = newPoints[0].getX();

@@ -838,7 +838,7 @@ public abstract class Job implements ActionListener, Runnable {
 		if (Thread.currentThread() != databaseChangesThread)
 		{
 			if (Main.NOTHREADING) return;
-			String msg = "Database is changing by other thread";
+			String msg = "Database is being changed by another thread";
             System.out.println(msg);
 			throw new IllegalStateException(msg);
 		} else if (changingJob == null)

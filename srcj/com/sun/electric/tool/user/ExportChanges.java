@@ -409,15 +409,12 @@ public final class ExportChanges
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 
-        // disallow port action if lock is on
-        if (CircuitChanges.cantEdit(cell, null, true) != 0) return;
-
         List allNodes = new ArrayList();
         for (Iterator it = cell.getNodes(); it.hasNext(); ) {
             allNodes.add(it.next());
         }
 
-        ReExportNodes job = new ReExportNodes(allNodes, false, false, true);
+        ReExportNodes job = new ReExportNodes(cell, allNodes, false, false, true);
 	}
 
 	/**
@@ -429,9 +426,6 @@ public final class ExportChanges
 		// make sure there is a current cell
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-
-		// disallow port action if lock is on
-		if (CircuitChanges.cantEdit(cell, null, true) != 0) return;
 
         EditWindow wnd = EditWindow.getCurrent();
 		Rectangle2D bounds = wnd.getHighlighter().getHighlightedArea(null);
@@ -477,7 +471,7 @@ public final class ExportChanges
         }
 
         // create job
-        ReExportPorts job = new ReExportPorts(queuedExports, true, includeWiredPorts, false, null);
+        ReExportPorts job = new ReExportPorts(cell, queuedExports, true, includeWiredPorts, false, null);
 	}
 
     public static void reExportSelected(boolean includeWiredPorts)
@@ -486,11 +480,7 @@ public final class ExportChanges
         Cell cell = WindowFrame.needCurCell();
         if (cell == null) return;
 
-        // disallow port action if lock is on
-        if (CircuitChanges.cantEdit(cell, null, true) != 0) return;
-
         List nodeInsts = MenuCommands.getSelectedObjects(true, false);
-
         if (nodeInsts.size() == 0) {
             JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
                 "Please select one or objects to re-export",
@@ -498,7 +488,7 @@ public final class ExportChanges
             return;
         }
 
-        ReExportNodes job = new ReExportNodes(nodeInsts, includeWiredPorts, false, true);
+        ReExportNodes job = new ReExportNodes(cell, nodeInsts, includeWiredPorts, false, true);
     }
 
 	/**
@@ -511,18 +501,16 @@ public final class ExportChanges
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 
-		// disallow port action if lock is on
-		if (CircuitChanges.cantEdit(cell, null, true) != 0) return;
-
         List allNodes = new ArrayList();
         for (Iterator it = cell.getNodes(); it.hasNext(); ) {
             allNodes.add(it.next());
         }
 
-        ReExportNodes job = new ReExportNodes(allNodes, false, true, true);
+        ReExportNodes job = new ReExportNodes(cell, allNodes, false, true, true);
 	}
 
     public static class ReExportNodes extends Job {
+        private Cell cell;
         private List nodeInsts;
         private boolean includeWiredPorts;
         private boolean onlyPowerGround;
@@ -531,9 +519,10 @@ public final class ExportChanges
         /**
          * @see ExportChanges#reExportNodes(java.util.List, boolean, boolean, boolean)
          */
-        public ReExportNodes(List nodeInsts, boolean includeWiredPorts, boolean onlyPowerGround,
+        public ReExportNodes(Cell cell, List nodeInsts, boolean includeWiredPorts, boolean onlyPowerGround,
                              boolean ignorePrimitives) {
             super("Re-export nodes", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.cell = cell;
             this.nodeInsts = nodeInsts;
             this.includeWiredPorts = includeWiredPorts;
             this.onlyPowerGround = onlyPowerGround;
@@ -542,6 +531,9 @@ public final class ExportChanges
         }
 
         public boolean doIt() {
+            // disallow port action if lock is on
+            if (CircuitChanges.cantEdit(cell, null, true) != 0) return false;
+
             int num = reExportNodes(nodeInsts, includeWiredPorts, onlyPowerGround, ignorePrimitives);
             System.out.println(num+" ports exported.");
             return true;
@@ -549,6 +541,7 @@ public final class ExportChanges
     }
 
     public static class ReExportPorts extends Job {
+        private Cell cell;
         private List portInsts;
         private boolean sort;
         private boolean includeWiredPorts;
@@ -558,9 +551,10 @@ public final class ExportChanges
         /**
          * @see ExportChanges#reExportPorts(java.util.List, boolean, boolean, boolean, java.util.HashMap)
          */
-        public ReExportPorts(List portInsts, boolean sort, boolean includeWiredPorts,
+        public ReExportPorts(Cell cell, List portInsts, boolean sort, boolean includeWiredPorts,
                              boolean onlyPowerGround, HashMap originalExports) {
             super("Re-export ports", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.cell = cell;
             this.portInsts = portInsts;
             this.includeWiredPorts = includeWiredPorts;
             this.onlyPowerGround = onlyPowerGround;
@@ -570,7 +564,10 @@ public final class ExportChanges
         }
 
         public boolean doIt() {
-            int num = reExportPorts(portInsts, sort, includeWiredPorts, onlyPowerGround, originalExports);
+    		// disallow port action if lock is on
+    		if (CircuitChanges.cantEdit(cell, null, true) != 0) return false;
+
+    		int num = reExportPorts(portInsts, sort, includeWiredPorts, onlyPowerGround, originalExports);
             System.out.println(num+" ports exported.");
             return true;
         }
@@ -742,9 +739,6 @@ public final class ExportChanges
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 
-		// disallow port action if lock is on
-		if (CircuitChanges.cantEdit(cell, null, true) != 0) return;
-
 		List exportsToDelete = new ArrayList();
         EditWindow wnd = EditWindow.getCurrent();
 		List highs = wnd.getHighlighter().getHighlightedText(true);
@@ -776,9 +770,6 @@ public final class ExportChanges
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 
-		// disallow port action if lock is on
-		if (CircuitChanges.cantEdit(cell, null, true) != 0) return;
-
 		List exportsToDelete = new ArrayList();
         EditWindow wnd = EditWindow.getCurrent();
 		List highs = wnd.getHighlighter().getHighlightedEObjs(true, false);
@@ -808,9 +799,6 @@ public final class ExportChanges
 		// make sure there is a current cell
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-
-		// disallow port action if lock is on
-		if (CircuitChanges.cantEdit(cell, null, true) != 0) return;
 
 		List exportsToDelete = new ArrayList();
         EditWindow wnd = EditWindow.getCurrent();
@@ -924,6 +912,9 @@ public final class ExportChanges
 
 		public boolean doIt()
 		{
+			// disallow port action if lock is on
+			if (CircuitChanges.cantEdit(cell, null, true) != 0) return false;
+
 			int total = 0;
 			for(Iterator it = exportsToDelete.iterator(); it.hasNext(); )
 			{

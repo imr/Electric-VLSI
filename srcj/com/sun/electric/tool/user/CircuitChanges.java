@@ -103,9 +103,6 @@ public class CircuitChanges
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 
-		// disallow rotating if lock is on
-		if (cantEdit(cell, null, true) != 0) return;
-
 		// if zero rotation, prompt for amount
 		if (amount == 0)
 		{
@@ -136,9 +133,6 @@ public class CircuitChanges
         Cell cell = wf.getContent().getCell();
 
 		if (cell == null) return;
-
-		// disallow rotating if lock is on
-		if (cantEdit(cell, null, true) != 0) return;
 
 		RotateSelected job = new RotateSelected(cell, MenuCommands.getSelectedObjects(true, true), 0, true, horizontally);
 	}
@@ -172,6 +166,9 @@ public class CircuitChanges
 
 		public boolean doIt()
 		{
+			// disallow rotating if lock is on
+			if (cantEdit(cell, null, true) != 0) return false;
+
 			// figure out which nodes get rotated/mirrored
 			HashSet markObj = new HashSet();
 			int nicount = 0;
@@ -578,11 +575,7 @@ public class CircuitChanges
 		for(Iterator it = list.iterator(); it.hasNext(); )
 		{
 			Geometric geom = (Geometric)it.next();
-			if (geom instanceof NodeInst)
-			{
-				if (cantEdit(np, (NodeInst)geom, true) != 0) return;
-				nodes.add(geom);
-			}
+			if (geom instanceof NodeInst) nodes.add(geom);
 		}
 		int total = nodes.size();
 		if (total == 0) return;
@@ -685,6 +678,48 @@ public class CircuitChanges
 
 		public boolean doIt()
 		{
+			int numRemoved = 0;
+			for(int i=0; i<nis.length; i++)
+			{
+				NodeInst ni = nis[i];
+				int res = cantEdit(ni.getParent(), ni, true);
+				if (res < 0) return false;
+				if (res > 0)
+				{
+					numRemoved++;
+					nis[i] = null;
+				}
+			}
+			if (numRemoved > 0)
+			{
+				// make a smaller list
+				int newSize = nis.length - numRemoved;
+				if (newSize == 0) return true;
+				NodeInst [] nnis = new NodeInst[newSize];
+				double [] nCX = new double[newSize];
+				double [] nCY = new double[newSize];
+				double [] nSX = new double[newSize];
+				double [] nSY = new double[newSize];
+				int [] nRot = new int[newSize];
+				int fill = 0;
+				for(int i=0; i<nis.length; i++)
+				{
+					if (nis[i] == null) continue;
+					nnis[fill] = nis[i];
+					nCX[fill] = dCX[i];
+					nCY[fill] = dCY[i];
+					nSX[fill] = dSX[i];
+					nSY[fill] = dSY[i];
+					nRot[fill] = dRot[i];
+				}
+				nis = nnis;
+				dCX = nCX;
+				dCY = nCY;
+				dSX = nSX;
+				dSY = nSY;
+				dRot = nRot;
+			}
+
 			NodeInst.modifyInstances(nis, dCX, dCY, dSX, dSY, dRot);
 			return true;
 		}
@@ -2738,11 +2773,6 @@ public class CircuitChanges
 				}
 				if (hasDisplayable) continue;
 
-				// disallow erasing if lock is on
-				int errorCode = cantEdit(cell, ni, true);
-				if (errorCode < 0) return false;
-				if (errorCode > 0) continue;
-
 				// no displayable variables: delete it
 				pinsToRemove.add(ni);
 				continue;
@@ -3817,7 +3847,7 @@ public class CircuitChanges
 			return true;
 		}
 
-		/*
+		/**
 		 * Method to move the "numtexts" text objects described (as highlight strings)
 		 * in the array "textlist", by "odx" and "ody".  Geometry objects in "list" (NOGEOM-terminated)
 		 * and the "total" nodes in "nodelist" have already been moved, so don't move any text that
@@ -5443,6 +5473,8 @@ public class CircuitChanges
 
 	/**
 	 * Method to tell whether a NodeInst can be modified in a cell.
+	 * WARNING: method may change the database if the user disables a cell lock,
+	 * so method must be called inside of a Change job.
 	 * @param cell the Cell in which the NodeInst resides.
 	 * @param item the NodeInst (may be null).
 	 * @param giveError true to print an error message if the modification is disallowed.
