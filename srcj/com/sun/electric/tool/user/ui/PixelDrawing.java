@@ -68,6 +68,7 @@ import java.awt.image.Raster;
 import java.awt.image.WritableRaster;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 
 /**
@@ -190,7 +191,6 @@ public class PixelDrawing
 	private static class ExpandedCellInfo
 	{
 		int instanceCount;
-		//EditWindow wnd;
         PixelDrawing offscreen;
 	}
 
@@ -298,6 +298,11 @@ public class PixelDrawing
 	public void drawImage(Rectangle2D expandBounds)
 	{
 		Cell cell = wnd.getCell();
+    	if (wnd.isInPlaceEdit())
+    	{
+        	cell = wnd.getInPlaceEditTopCell();
+       	}
+
         drawBounds = wnd.getDisplayedBounds();
 		long startTime = 0;
 //		if (TAKE_STATS)
@@ -543,7 +548,7 @@ public class PixelDrawing
 			int numPolys = cell.numDisplayableVariables(true);
 			Poly [] polys = new Poly[numPolys];
 			cell.addDisplayableVariables(CENTERRECT, polys, 0, wnd, true);
-			drawPolys(polys, DBMath.MATID);
+			drawPolys(polys, prevTrans);
 		}
 
         if (DEBUGRENDERTIMING) {
@@ -585,11 +590,12 @@ public class PixelDrawing
 				tinyPrims++;
 
 				// draw a tiny primitive by setting a single dot from each layer
-				int x = wnd.databaseToScreenX(ctrX);
-				int y = wnd.databaseToScreenY(ctrY);
-				if (x >= 0 && x < sz.width && y >= 0 && y < sz.height)
+				Point scrPt = wnd.databaseToScreen(ctrX, ctrY);
+//				int x = wnd.databaseToScreenX(ctrX);
+//				int y = wnd.databaseToScreenY(ctrY);
+				if (scrPt.x >= 0 && scrPt.x < sz.width && scrPt.y >= 0 && scrPt.y < sz.height)
 				{
-					drawTinyLayers(((PrimitiveNode)np).layerIterator(), x, y);
+					drawTinyLayers(((PrimitiveNode)np).layerIterator(), scrPt.x, scrPt.y);
 				}
 			}
 			return;
@@ -616,13 +622,38 @@ public class PixelDrawing
 				}
 			}
 
+			// if not expanded, but viewing this cell in-place, expand it
+			if (!expanded)
+			{
+				if (wnd.isInPlaceEdit())
+				{
+					List path = wnd.getInPlaceEditNodePath();
+					for(int pathIndex=0; pathIndex<path.size(); pathIndex++)
+					{
+						NodeInst niOnPath = (NodeInst)path.get(pathIndex);
+						if (niOnPath == ni)
+						{
+							expanded = true;
+//							// this node is on the path: see if it is the real path
+//							for(int backIndex = pathIndex-1; backIndex >= 0; backIndex--)
+//							{
+//								NodeInst higherNI = (NodeInst)path.get(backIndex);
+//							}
+						}
+					}
+				}
+			}
+
 			// two ways to draw a cell instance
 			if (expanded)
 			{
 				// show the contents of the cell
 				AffineTransform subTrans = ni.translateOut(localTrans);
 
-				if (expandedCellCached(subCell, subTrans, expandBounds)) return;
+				if (!wnd.isInPlaceEdit())
+				{
+					if (expandedCellCached(subCell, subTrans, expandBounds)) return;
+				}
 
 				// just draw it directly
 				drawCell(subCell, expandBounds, subTrans, false);
@@ -737,12 +768,13 @@ public class PixelDrawing
 			// draw a tiny arc by setting a single dot from each layer
 			Point2D ctr = ai.getTrueCenter();
 			trans.transform(ctr, ctr);
-			int x = wnd.databaseToScreenX(ctr.getX());
-			int y = wnd.databaseToScreenY(ctr.getY());
-			if (x >= 0 && x < sz.width && y >= 0 && y < sz.height)
+			Point scrPt = wnd.databaseToScreen(ctr.getX(), ctr.getY());
+//			int x = wnd.databaseToScreenX(ctr.getX());
+//			int y = wnd.databaseToScreenY(ctr.getY());
+			if (scrPt.x >= 0 && scrPt.x < sz.width && scrPt.y >= 0 && scrPt.y < sz.height)
 			{
 				PrimitiveArc prim = (PrimitiveArc)ai.getProto();
-				drawTinyLayers(prim.layerIterator(), x, y);
+				drawTinyLayers(prim.layerIterator(), scrPt.x, scrPt.y);
 			}
 			return;
 		}
@@ -827,6 +859,7 @@ public class PixelDrawing
 		Poly poly = new Poly(ni.getTrueCenterX(), ni.getTrueCenterY(), ni.getXSize(), ni.getYSize());
 		AffineTransform localPureTrans = ni.rotateOutAboutTrueCenter(trans);
 		poly.transform(localPureTrans);
+		if (wnd.isInPlaceEdit()) poly.transform(wnd.getInPlaceTransformIn());
 		Point2D [] points = poly.getPoints();
 		for(int i=0; i<points.length; i++)
 		{
@@ -901,6 +934,12 @@ public class PixelDrawing
 		if (subCell.getView() == View.ICON) return false;
 
 		// find this cell-transformation combination in the global list of cached cells
+		if (wnd.isInPlaceEdit())
+		{
+			AffineTransform newTrans = new AffineTransform(subTrans);
+			subTrans = newTrans;
+			subTrans.preConcatenate(wnd.getInPlaceTransformIn());
+		}
 		String expandedName = makeExpandedName(subCell, subTrans);
 		ExpandedCellInfo expandedCellCount = (ExpandedCellInfo)expandedCells.get(expandedName);
 		if (expandedCellCount != null)
@@ -949,6 +988,7 @@ public class PixelDrawing
 			renderedCell.getOffscreen().drawCell(subCell, bounds, subTrans, false);
             expandedCellCount.offscreen = renderedCell.getOffscreen();
             offscreen = expandedCellCount.offscreen;
+
             // set wnd reference to null or it will not get garbage collected
             offscreen.wnd = null;
             renderedCell.finished();
@@ -1185,6 +1225,7 @@ public class PixelDrawing
 
 			// transform the bounds
 			poly.transform(trans);
+			if (wnd.isInPlaceEdit()) poly.transform(wnd.getInPlaceTransformIn());
 
 			// render the polygon
             long startTime = System.currentTimeMillis();
@@ -1282,10 +1323,16 @@ public class PixelDrawing
 			if (bounds != null)
 			{
 				// convert coordinates
-				int lX = wnd.databaseToScreenX(bounds.getMinX());
-				int hX = wnd.databaseToScreenX(bounds.getMaxX());
-				int hY = wnd.databaseToScreenY(bounds.getMinY());
-				int lY = wnd.databaseToScreenY(bounds.getMaxY());
+				Point llPt = wnd.databaseToScreen(bounds.getMinX(), bounds.getMinY());
+				Point urPt = wnd.databaseToScreen(bounds.getMaxX(), bounds.getMaxY());
+//				int lX = wnd.databaseToScreenX(bounds.getMinX());
+//				int hX = wnd.databaseToScreenX(bounds.getMaxX());
+//				int hY = wnd.databaseToScreenY(bounds.getMinY());
+//				int lY = wnd.databaseToScreenY(bounds.getMaxY());
+				int lX = Math.min(llPt.x, urPt.x);
+				int hX = Math.max(llPt.x, urPt.x);
+				int lY = Math.min(llPt.y, urPt.y);
+				int hY = Math.max(llPt.y, urPt.y);
 
 				// do clipping
 				if (lX < 0) lX = 0;
@@ -3095,7 +3142,7 @@ public class PixelDrawing
 		}
 	}
 
-	private Point [] clipPoly(Point [] points, int lx, int hx, int ly, int hy)
+	private static Point [] clipPoly(Point [] points, int lx, int hx, int ly, int hy)
 	{
 		// see if any points are outside
 		int count = points.length;
@@ -3169,7 +3216,7 @@ public class PixelDrawing
 	 * Method to clip polygon "in" against line "edge" (1:left, 2:right,
 	 * 4:bottom, 8:top) and place clipped result in "out".
 	 */
-	private int clipEdge(Point [] in, int inCount, Point [] out, int edge, int value)
+	private static int clipEdge(Point [] in, int inCount, Point [] out, int edge, int value)
 	{
 		// look at all the lines
 		Point first = new Point();
@@ -3205,7 +3252,7 @@ public class PixelDrawing
 	 * Method to do clipping on the vector from (x1,y1) to (x2,y2).
 	 * If the vector is completely invisible, true is returned.
 	 */
-	private boolean clipSegment(Point p1, Point p2, int codebit, int value)
+	private static boolean clipSegment(Point p1, Point p2, int codebit, int value)
 	{
 		int x1 = p1.x;   int y1 = p1.y;
 		int x2 = p2.x;   int y2 = p2.y;

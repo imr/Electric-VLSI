@@ -4,17 +4,25 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01v: *********************************
 
+IMP/MAN: (9/21/04, SMR) Added "Down Hierarchy In Place".
+
+BUG: (9/21/04, SMR) Verilog netlister doesn't handle doubly-indexed busses where the first index is non-numeric.
+FIX: In Topology.doGetNetworks() must find any numeric index to determine ascending/descending order.
+
+IMP: (9/20/04, SMR) HSpice output reader now handles noise signals properly.
+
+IMP: (9/20/04, SMR) Made messages window use fixed-width font.
 
 ************************* Version 8.01u: *********************************
 
 BUG: (9/20/04, GVG) DRC and minimum area checking: no merging correctly poly and transistor-poly areas
-while checking areas. FIX: Consider this case as exception and the first polysilicon layer found will be used.
+     while checking areas. FIX: Consider this case as exception and the first polysilicon layer found will be used.
 
 IMP: (9/20/04, GVG) Ability to abort ERC and DRC jobs
 
 BUG: (9/20/04, GVG) ERC not properly detecting well contacts not connected to ground/power.
 FIX: Iterate over Export in JNetwork and check if isGround() or isPower(). Even if contacts are not
-explicitly connected, it won't complain if network has export gnd/power
+     explicitly connected, it won't complain if network has export gnd/power
 
 IMP: (9/19/04, SMR) Serpentine transistors now know port information.
 
@@ -23,7 +31,8 @@ FIX: In Verilog.writeCellTopology(), must find proper signal in aggregate list.
 
 ************************* Version 8.01t: *********************************
 
-IMP: (9/19/04, RK) Implement Variable Value caching and simple expression evaluation in VarContext. These two bypass 80% of the bean shell calls
+IMP: (9/19/04, RK) Implement Variable Value caching and simple expression evaluation in VarContext.
+     These two bypass 80% of the bean shell calls
 
 IMP: (9/19/04, RK) Allow the user to enable more detailed progress reports.
 

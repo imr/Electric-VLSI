@@ -71,7 +71,9 @@ public class CellMenu {
         cellMenu.addSeparator();
 
         cellMenu.addMenuItem("Down Hierarchy", KeyStroke.getKeyStroke('D', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { downHierCommand(); }});
+                new ActionListener() { public void actionPerformed(ActionEvent e) { downHierCommand(); }});
+        cellMenu.addMenuItem("Down Hierarchy In Place", KeyStroke.getKeyStroke('D', 0),
+                new ActionListener() { public void actionPerformed(ActionEvent e) { downHierInPlaceCommand(); }});
         cellMenu.addMenuItem("Up Hierarchy", KeyStroke.getKeyStroke('U', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { upHierCommand(); }});
 
@@ -176,7 +178,17 @@ public class CellMenu {
     public static void downHierCommand() {
         EditWindow curEdit = EditWindow.needCurrent();
         if (curEdit == null) return;
-        curEdit.downHierarchy();
+        curEdit.downHierarchy(false);
+    }
+
+    /**
+     * This command pushes down the hierarchy "in place".
+     */
+    public static void downHierInPlaceCommand()
+    {
+        EditWindow curEdit = EditWindow.needCurrent();
+        if (curEdit == null) return;
+        curEdit.downHierarchy(true);
     }
 
     /**

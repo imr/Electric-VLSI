@@ -62,6 +62,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Point;
+import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -78,9 +79,18 @@ import java.awt.event.MouseWheelListener;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
 import java.awt.font.LineMetrics;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.*;
+import java.awt.geom.Area;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -104,6 +114,12 @@ public class EditWindow extends JPanel
 	/** the window bounds in database units */				private Rectangle2D databaseBounds;
 	/** the size of the window (in pixels) */				private Dimension sz;
 	/** the cell that is in the window */					private Cell cell;
+	/** true if doing in-place display */					private boolean inPlaceDisplay;
+	/** transform from screen to cell (in-place only) */	private AffineTransform intoCell;
+	/** transform from cell to screen (in-place only) */	private AffineTransform outofCell;
+	/** top-level cell being displayed (in-place only) */	private Cell topLevelCell;
+	/** path to cell being edited (in-place only) */		private List inPlaceDescent;
+
 	/** Cell's VarContext */                                private VarContext cellVarContext;
 	/** the window frame containing this editwindow */      private WindowFrame wf;
 	/** the offscreen data for rendering */					private PixelDrawing offscreen = null;
@@ -133,7 +149,8 @@ public class EditWindow extends JPanel
 	private static final int SCROLLBARRESOLUTION = 200;
 
     /** for drawing selection boxes */	private static final BasicStroke selectionLine = new BasicStroke(
-    	1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {2}, 3);
+        	1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {2}, 3);
+    /** for outlining down-hierarchy in-place bounds */	private static final BasicStroke inPlaceMarker = new BasicStroke(3);
 
 	// ************************************* CONSTRUCTION *************************************
 
@@ -144,6 +161,7 @@ public class EditWindow extends JPanel
         this.wf = wf;
 		this.gridXSpacing = User.getDefGridXSpacing();
 		this.gridYSpacing = User.getDefGridYSpacing();
+		inPlaceDisplay = false;
 
 		sz = new Dimension(500, 500);
 		setSize(sz.width, sz.height);
@@ -386,6 +404,47 @@ public class EditWindow extends JPanel
 	 */
 	public Cell getCell() { return cell; }
 
+	/**
+	 * Method to tell whether this EditWindow is displaying a cell "in-place".
+	 * In-place display implies that the user has descended into a lower-level
+	 * cell while requesting that the upper-level remain displayed.
+	 * @return true if this EditWindow is displaying a cell "in-place".
+	 */
+	public boolean isInPlaceEdit() { return inPlaceDisplay; }
+
+	/**
+	 * Method to return the top-level cell for "in-place" display.
+	 * In-place display implies that the user has descended into a lower-level
+	 * cell while requesting that the upper-level remain displayed.
+	 * The top-level cell is the original cell that is remaining displayed.
+	 * @return the top-level cell for "in-place" display.
+	 */
+	public Cell getInPlaceEditTopCell() { return topLevelCell; }
+
+	/**
+	 * Method to return a List of NodeInsts to the cell being in-place edited.
+	 * In-place display implies that the user has descended into a lower-level
+	 * cell while requesting that the upper-level remain displayed.
+	 * @return a List of NodeInsts to the cell being in-place edited.
+	 */
+	public List getInPlaceEditNodePath() { return inPlaceDescent; }
+
+	/**
+	 * Method to return the transformation matrix from the displayed top-level cell to the current cell.
+	 * In-place display implies that the user has descended into a lower-level
+	 * cell while requesting that the upper-level remain displayed.
+	 * @return the transformation matrix from the displayed top-level cell to the current cell.
+	 */
+	public AffineTransform getInPlaceTransformIn() { return intoCell; }
+
+	/**
+	 * Method to return the transformation matrix from the current cell to the displayed top-level cell.
+	 * In-place display implies that the user has descended into a lower-level
+	 * cell while requesting that the upper-level remain displayed.
+	 * @return the transformation matrix from the current cell to the displayed top-level cell.
+	 */
+	public AffineTransform getInPlaceTransformOut() { return outofCell; }
+
     /**
      * Get the highlighter for this WindowContent
      * @return the highlighter
@@ -413,13 +472,13 @@ public class EditWindow extends JPanel
 		// However, when navigating through history, don't want to record new
 		// history objects.
         if (context == null) context = VarContext.globalContext;
-		setCell(cell, context, true);
+		setCell(cell, context, true, true);
 	}
 
 	/**
 	 * Method to set the cell that is shown in the window to "cell".
 	 */
-	private void setCell(Cell cell, VarContext context, boolean addToHistory)
+	private void setCell(Cell cell, VarContext context, boolean addToHistory, boolean fillTheScreen)
 	{
 		// record current history before switching to new cell
 		saveCurrentCellHistoryState();
@@ -450,7 +509,7 @@ public class EditWindow extends JPanel
 				}
 			}
 		}
-		fillScreen();
+		if (fillTheScreen) fillScreen();
 
 		if (addToHistory) {
 			addToHistory(cell, context);
@@ -633,6 +692,37 @@ public class EditWindow extends JPanel
 
 			// add in popup cloud
 			if (showPopupCloud) drawPopupCloud((Graphics2D)g);
+
+			// add in shadow if doing in-place editing
+			if (inPlaceDisplay)
+			{
+				Graphics2D g2 = (Graphics2D)g;
+				Rectangle2D bounds = cell.getBounds();
+				Point i1 = databaseToScreen(bounds.getMinX(), bounds.getMinY());
+				Point i2 = databaseToScreen(bounds.getMinX(), bounds.getMaxY());
+				Point i3 = databaseToScreen(bounds.getMaxX(), bounds.getMaxY());
+				Point i4 = databaseToScreen(bounds.getMaxX(), bounds.getMinY());
+
+				// shade everything else except for the cell being edited
+				Polygon innerPoly = new Polygon();
+				innerPoly.addPoint(i1.x, i1.y);
+				innerPoly.addPoint(i2.x, i2.y);
+				innerPoly.addPoint(i3.x, i3.y);
+				innerPoly.addPoint(i4.x, i4.y);
+				Area outerArea = new Area(new Rectangle(0, 0, sz.width, sz.height));
+				Area innerArea = new Area(innerPoly);
+				outerArea.subtract(innerArea);
+				g.setColor(new Color(128, 128, 128, 128));
+				g2.fill(outerArea);
+
+				// draw a red box around the cell being edited
+				g2.setStroke(inPlaceMarker);
+				g.setColor(Color.RED);
+				g.drawLine(i1.x, i1.y, i2.x, i2.y);
+				g.drawLine(i2.x, i2.y, i3.x, i3.y);
+				g.drawLine(i3.x, i3.y, i4.x, i4.y);
+				g.drawLine(i4.x, i4.y, i1.x, i1.y);
+			}
 		}
 
 		// draw any components that are on top (such as in-line text edits)
@@ -2025,6 +2115,18 @@ public class EditWindow extends JPanel
 	public void focusScreen(Rectangle2D bounds)
 	{
 		if (bounds == null) return;
+		if (inPlaceDisplay)
+		{
+			Point2D llPt = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+			Point2D urPt = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+			outofCell.transform(llPt, llPt);
+			outofCell.transform(urPt, urPt);
+			double lX = Math.min(llPt.getX(), urPt.getX());
+			double hX = Math.max(llPt.getX(), urPt.getX());
+			double lY = Math.min(llPt.getY(), urPt.getY());
+			double hY = Math.max(llPt.getY(), urPt.getY());
+			bounds = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
+		}
 		setScreenBounds(bounds);
 		setScrollPosition();
 		computeDatabaseBounds();
@@ -2112,8 +2214,8 @@ public class EditWindow extends JPanel
     /** 
      * Push into an instance (go down the hierarchy)
      */
-    public void downHierarchy() {
-
+    public void downHierarchy(boolean inPlace)
+    {
         // get highlighted
         Highlight h = highlighter.getOneHighlight();
         if (h == null) return;
@@ -2121,40 +2223,74 @@ public class EditWindow extends JPanel
 
         NodeInst ni = null;
         PortInst pi = null;
+
         // see if a nodeinst was highlighted (true if text on nodeinst was highlighted)
-        if (eobj instanceof NodeInst) {
-            ni = (NodeInst)eobj;
-        }
+        if (eobj instanceof NodeInst) ni = (NodeInst)eobj;
+
         // see if portinst was highlighted
-        if (eobj instanceof PortInst) {
+        if (eobj instanceof PortInst)
+        {
             pi = (PortInst)eobj;
             ni = pi.getNodeInst();
         }
-        if (ni == null) {
+        if (ni == null)
+        {
             System.out.println("Must select a Node to descend into");
             return;
         }
         NodeProto np = ni.getProto();
-        if (!(np instanceof Cell)) {
+        if (!(np instanceof Cell))
+        {
             System.out.println("Can only descend into cell instances");
             return;
         }
         Cell cell = (Cell)np;
         Cell schCell = cell.getEquivalent();
+
         // special case: if cell is icon of current cell, descend into icon
         if (this.cell == schCell) schCell = cell;
         if (schCell == null) schCell = cell;
+
+        // handle in-place display
+		if (np != schCell) inPlace = false;
+		if (inPlace)
+		{
+			AffineTransform transIn = ni.rotateIn(ni.translateIn());
+			AffineTransform transOut = ni.translateOut(ni.rotateOut());
+			if (inPlaceDisplay)
+			{
+	    		// already doing in-place display: continue the transformation
+	    		outofCell.concatenate(transOut);
+	    		intoCell.preConcatenate(transIn);
+	    	} else
+	    	{
+	    		// first in-place display: setup transformation
+	      		outofCell = transOut;
+	      		intoCell = transIn;
+	       		topLevelCell = this.cell;
+	       		inPlaceDescent = new ArrayList();
+	       	}
+	   		inPlaceDescent.add(ni);
+	    	inPlaceDisplay = true;
+	    }
+
+        // do the descent
+        boolean redisplay = true;
+        if (inPlaceDisplay) redisplay = false;
         if (pi != null)
-            setCell(schCell, cellVarContext.push(pi));
+            setCell(schCell, cellVarContext.push(pi), true, redisplay);
         else
-            setCell(schCell, cellVarContext.push(ni));
+            setCell(schCell, cellVarContext.push(ni), true, redisplay);
+        if (!redisplay) fullRepaint();
+
         // if highlighted was a port inst, then highlight the corresponding export
-        if (pi != null) {
+        if (pi != null)
+        {
             Export schExport = schCell.findExport(pi.getPortProto().getName());
-            if (schExport != null) {
+            if (schExport != null)
+            {
                 PortInst origPort = schExport.getOriginalPort();
                 highlighter.addElectricObject(origPort, schCell);
-                //highlighter.addElectricObject(origPort.getNodeInst(), schCell);
                 highlighter.finished();
             }
         }
@@ -2171,7 +2307,28 @@ public class EditWindow extends JPanel
             Nodable no = cellVarContext.getNodable();
 			if (no != null)
 			{
-				Cell parent = no.getParent();
+		        if (inPlaceDisplay)
+		        {
+		        	int inPlaceDepth = inPlaceDescent.size() - 1;
+		        	if (inPlaceDepth == 0)
+		        	{
+		        		inPlaceDisplay = false;
+		        		inPlaceDescent = null;
+		        	} else
+		        	{
+		        		inPlaceDescent.remove(inPlaceDepth);
+		        		intoCell = new AffineTransform();
+		        		outofCell = new AffineTransform();
+		        		for(int i=0; i<inPlaceDepth; i++)
+		        		{
+		        			NodeInst ni = (NodeInst)inPlaceDescent.get(i);
+	        	    		outofCell.concatenate(ni.translateOut(ni.rotateOut()));
+	        	    		intoCell.preConcatenate(ni.rotateIn(ni.translateIn()));
+		        		}
+		        	}
+		        }
+
+		        Cell parent = no.getParent();
 				VarContext context = cellVarContext.pop();
 				CellHistory foundHistory = null;
 				// see if this was in history, if so, restore offset and scale
@@ -2186,12 +2343,13 @@ public class EditWindow extends JPanel
 					}
 				}
                 PortInst pi = cellVarContext.getPortInst();
-				setCell(parent, context, true);
+				setCell(parent, context, true, true);
 				if (foundHistory != null) {
 					setOffset(foundHistory.offset);
 					setScale(foundHistory.scale);
 				}
-                // highlight node we came from
+
+				// highlight node we came from
                 if (pi != null)
                     highlighter.addElectricObject(pi, parent);
                 else
@@ -2447,7 +2605,7 @@ public class EditWindow extends JPanel
         }
 
         // update current cell
-        setCell(history.cell, history.context, false);
+        setCell(history.cell, history.context, false, true);
         setOffset(history.offset);
         setScale(history.scale);
         highlighter.setHighlightList(history.highlights);
@@ -2471,7 +2629,13 @@ public class EditWindow extends JPanel
 	{
 		double dbX = (screenX - sz.width/2) / scale + offx;
 		double dbY = (sz.height/2 - screenY) / scale + offy;
-		return new Point2D.Double(dbX, dbY);
+		Point2D dbPt = new Point2D.Double(dbX, dbY);
+
+		// if doing in-place display, transform into the proper cell
+		if (inPlaceDisplay)
+       		intoCell.transform(dbPt, dbPt);
+
+		return dbPt;
 	}
 
     /**
@@ -2497,31 +2661,34 @@ public class EditWindow extends JPanel
 	 */
 	public Point2D deltaScreenToDatabase(int screenDX, int screenDY)
 	{
-		double dbDX = screenDX / scale;
-		double dbDY = (-screenDY) / scale;
-		return new Point2D.Double(dbDX, dbDY);
+		Point2D origin = screenToDatabase(0, 0);
+		Point2D pt = screenToDatabase(screenDX, screenDY);
+		return new Point2D.Double(pt.getX() - origin.getX(), pt.getY() - origin.getY());
+//		double dbDX = screenDX / scale;
+//		double dbDY = (-screenDY) / scale;
+//		return new Point2D.Double(dbDX, dbDY);
 	}
 
 
-	/**
-	 * Method to convert a database X coordinate to screen coordinates.
-	 * @param dbX the X coordinate (in database units).
-	 * @return the coordinate on the screen.
-	 */
-	public int databaseToScreenX(double dbX)
-	{
-		return (int)(sz.width/2 + (dbX - offx) * scale);
-	}
-
-	/**
-	 * Method to convert a database Y coordinate to screen coordinates.
-	 * @param dbY the Y coordinate (in database units).
-	 * @return the coordinate on the screen.
-	 */
-	public int databaseToScreenY(double dbY)
-	{
-		return (int)(sz.height/2 - (dbY - offy) * scale);
-	}
+//	/**
+//	 * Method to convert a database X coordinate to screen coordinates.
+//	 * @param dbX the X coordinate (in database units).
+//	 * @return the coordinate on the screen.
+//	 */
+//	private int databaseToScreenX(double dbX)
+//	{
+//		return (int)(sz.width/2 + (dbX - offx) * scale);
+//	}
+//
+//	/**
+//	 * Method to convert a database Y coordinate to screen coordinates.
+//	 * @param dbY the Y coordinate (in database units).
+//	 * @return the coordinate on the screen.
+//	 */
+//	private int databaseToScreenY(double dbY)
+//	{
+//		return (int)(sz.height/2 - (dbY - offy) * scale);
+//	}
 
 	/**
 	 * Method to convert a database coordinate to screen coordinates.
@@ -2531,7 +2698,17 @@ public class EditWindow extends JPanel
 	 */
 	public Point databaseToScreen(double dbX, double dbY)
 	{
-		return new Point(databaseToScreenX(dbX), databaseToScreenY(dbY));
+		// if doing in-place display, transform out of the proper cell
+		if (inPlaceDisplay)
+		{
+			Point2D dbPt = new Point2D.Double(dbX, dbY);
+       		outofCell.transform(dbPt, dbPt);
+       		dbX = dbPt.getX();
+       		dbY = dbPt.getY();
+		}
+		int screenX = (int)(sz.width/2 + (dbX - offx) * scale);
+		int screenY = (int)(sz.height/2 - (dbY - offy) * scale);
+		return new Point(screenX, screenY);
 	}
 
 	/**
@@ -2541,7 +2718,7 @@ public class EditWindow extends JPanel
 	 */
 	public Point databaseToScreen(Point2D db)
 	{
-		return new Point(databaseToScreenX(db.getX()), databaseToScreenY(db.getY()));
+   		return databaseToScreen(db.getX(), db.getY());
 	}
 
 	/**
@@ -2551,18 +2728,24 @@ public class EditWindow extends JPanel
 	 */
 	public Rectangle databaseToScreen(Rectangle2D db)
 	{
-		double sLX = sz.width/2 + (db.getMinX() - offx) * scale;
-		double sHX = sz.width/2 + (db.getMaxX() - offx) * scale;
-		double sLY = sz.height/2 - (db.getMinY() - offy) * scale;
-		double sHY = sz.height/2 - (db.getMaxY() - offy) * scale;
-		if (sLX < 0) sLX -= 0.5; else sLX += 0.5;
-		if (sHX < 0) sHX -= 0.5; else sHX += 0.5;
-		if (sLY < 0) sLY -= 0.5; else sLY += 0.5;
-		if (sHY < 0) sHY -= 0.5; else sHY += 0.5;
-		int screenLX = (int)sLX;
-		int screenHX = (int)sHX;
-		int screenLY = (int)sLY;
-		int screenHY = (int)sHY;
+		Point llPt = databaseToScreen(db.getMinX(), db.getMinY());
+		Point urPt = databaseToScreen(db.getMaxX(), db.getMaxY());
+		int screenLX = llPt.x;
+		int screenHX = urPt.x;
+		int screenLY = llPt.y;
+		int screenHY = urPt.y;
+//		double sLX = sz.width/2 + (db.getMinX() - offx) * scale;
+//		double sHX = sz.width/2 + (db.getMaxX() - offx) * scale;
+//		double sLY = sz.height/2 - (db.getMinY() - offy) * scale;
+//		double sHY = sz.height/2 - (db.getMaxY() - offy) * scale;
+//		if (sLX < 0) sLX -= 0.5; else sLX += 0.5;
+//		if (sHX < 0) sHX -= 0.5; else sHX += 0.5;
+//		if (sLY < 0) sLY -= 0.5; else sLY += 0.5;
+//		if (sHY < 0) sHY -= 0.5; else sHY += 0.5;
+//		int screenLX = (int)sLX;
+//		int screenHX = (int)sHX;
+//		int screenLY = (int)sLY;
+//		int screenHY = (int)sHY;
 		if (screenHX < screenLX) { int swap = screenHX;   screenHX = screenLX; screenLX = swap; }
 		if (screenHY < screenLY) { int swap = screenHY;   screenHY = screenLY; screenLY = swap; }
 		return new Rectangle(screenLX, screenLY, screenHX-screenLX, screenHY-screenLY);
@@ -2576,9 +2759,12 @@ public class EditWindow extends JPanel
 	 */
 	public Point deltaDatabaseToScreen(double dbDX, double dbDY)
 	{
-		int screenDX = (int)Math.round(dbDX * scale);
-		int screenDY = (int)Math.round(-dbDY * scale);
-		return new Point(screenDX, screenDY);
+		Point origin = databaseToScreen(0, 0);
+		Point pt = databaseToScreen(dbDX, dbDY);
+		return new Point(pt.x - origin.x, pt.y - origin.y);
+//		int screenDX = (int)Math.round(dbDX * scale);
+//		int screenDY = (int)Math.round(-dbDY * scale);
+//		return new Point(screenDX, screenDY);
 	}
 
 	/**
@@ -2678,7 +2864,7 @@ public class EditWindow extends JPanel
     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
         // if cell was deleted, set cell to null
         if ((cell != null) && !cell.isLinked()) {
-            setCell(null, VarContext.globalContext, false);
+            setCell(null, VarContext.globalContext, false, true);
             cellHistoryGoBack();
         }
     }

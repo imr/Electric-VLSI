@@ -289,6 +289,11 @@ public class HSpiceOut extends Simulate
 			if (k < nodcnt) l = k + numnoi - 1; else l = k - nodcnt;
 			signalNames[l] = line.toString();
 		}
+//		if (numnoi > 0)
+//		{
+//			for(int k=0; k<numnoi; k++)
+//				System.out.println("Special signal: "+signalNames[nodcnt-numnoi+k]);
+//		}
 
 		line = new StringBuffer();
 		if (!isTR0Binary)
@@ -314,12 +319,9 @@ public class HSpiceOut extends Simulate
 		}
 		resetBinaryTR0Reader();
 
-		// now read the data
+		// setup the simulation information
 		Simulation.SimData sd = new Simulation.SimData();
 		sd.setCell(cell);
-		eofReached = false;
-		List timeValues = new ArrayList();
-		List allTheData = new ArrayList();
 		for(int k=0; k<numSignals; k++)
 		{
 			Simulation.SimAnalogSignal as = new Simulation.SimAnalogSignal(sd);
@@ -334,40 +336,46 @@ public class HSpiceOut extends Simulate
 				as.setSignalName(signalNames[k]);
 			}
 		}
+
+		// now read the data
+		List allTheData = new ArrayList();
+		eofReached = false;
 		for(;;)
 		{
+			float [] oneSetOfData = new float[numSignals+1];
+
 			// get the first number, see if it terminates
-			double time = getHSpiceFloat();
+			float time = getHSpiceFloat();
 			if (eofReached) break;
-			timeValues.add(new Double(time));
+			oneSetOfData[0] = time;
 
 			// get a row of numbers
-			float [] oneSetOfData = new float[numSignals];
-			for(int k=1; k<=numSignals; k++)
+			for(int k=0; k<numSignals; k++)
 			{
 				float value = getHSpiceFloat();
 				if (eofReached) break;
-				int l = k - nodcnt;
-				if (k < nodcnt) l = k + numnoi - 1;
-				Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sd.getSignals().get(l);
-				oneSetOfData[k-1] = value;
+				oneSetOfData[(k+numnoi)%numSignals+1] = value;
 			}
-			allTheData.add(oneSetOfData);
 			if (eofReached) break;
+			allTheData.add(oneSetOfData);
 		}
 		closeInput();
 
-		// convert lists to arrays
-		int numEvents = timeValues.size();
+		// transpose the data to sit properly in the simulation information
+		int numEvents = allTheData.size();
 		sd.buildCommonTime(numEvents);
+		float [][] dataRows = new float[numEvents][];
 		for(int i=0; i<numEvents; i++)
-			sd.setCommonTime(i, ((Double)timeValues.get(i)).doubleValue());
+		{
+			dataRows[i] = (float[])allTheData.get(i);
+			sd.setCommonTime(i, dataRows[i][0]);
+		}
 		for(int j=0; j<numSignals; j++)
 		{
 			Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sd.getSignals().get(j);
 			as.buildValues(numEvents);
 			for(int i=0; i<numEvents; i++)
-				as.setValue(i, ((float [])allTheData.get(i))[j]);
+				as.setValue(i, dataRows[i][j+1]);
 		}
 
 //		// postprocess and add exports in cells

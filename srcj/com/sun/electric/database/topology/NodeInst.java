@@ -1177,8 +1177,8 @@ public class NodeInst extends Geometric implements Nodable
 	public AffineTransform transformOut()
 	{
 		// The transform first translates to the position of the
-		// NodeInst's grab point in the parent Cell, and then rotates and
-		// mirrors about the grab point. 
+		// NodeInst's Anchor point in the parent Cell, and then rotates and
+		// mirrors about the anchor point. 
 		AffineTransform xform = rotateOut();
 		xform.concatenate(translateOut());
 		return xform;
@@ -1215,6 +1215,23 @@ public class NodeInst extends Geometric implements Nodable
 		AffineTransform transform = new AffineTransform();
 		transform.translate(-dx, -dy);
 		return transform;
+	}
+
+	/**
+	 * Method to return a transformation that translates down the
+	 * hierarchy, combined with a previous transformation.
+	 * However, it does not account for the rotation of
+	 * this NodeInst...it only translates from one space to another.
+	 * @param prevTransform the previous transformation to the NodeInst's Cell.
+	 * @return a transformation that translates down the hierarchy,
+	 * including the previous transformation.
+	 */
+	public AffineTransform translateIn(AffineTransform prevTransform)
+	{
+		AffineTransform transform = translateIn();
+		AffineTransform returnTransform = new AffineTransform(prevTransform);
+		returnTransform.concatenate(transform);
+		return returnTransform;
 	}
 
 	/**
@@ -1337,7 +1354,7 @@ public class NodeInst extends Geometric implements Nodable
 	 * Method to return a transformation that unrotates this NodeInst.
 	 * It transforms points on this NodeInst that have been rotated with the node
 	 * so that they appear in the correct location on the unrotated node.
-	 * The rotation happens about the node's Grab Point (the location of the cell-center inside of cell definitions).
+	 * The rotation happens about the node's Anchor Point (the location of the cell-center inside of cell definitions).
 	 * @return a transformation that unrotates this NodeInst.
 	 * If this NodeInst is not rotated, the returned transformation is identity.
 	 */
@@ -1352,9 +1369,31 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
+	 * Method to return a transformation that unrotates this NodeInst,
+	 * combined with a previous transformation.
+	 * It transforms points on this NodeInst that have been rotated with the node
+	 * so that they appear in the correct location on the unrotated node.
+	 * The rotation happens about the node's Anchor Point (the location of the cell-center inside of cell definitions).
+	 * @param prevTransform the previous transformation to be applied.
+	 * @return a transformation that unrotates this NodeInst, combined
+	 * with a previous transformation.  If this NodeInst is not
+	 * rotated, the returned transformation is the original parameter.
+	 */
+	public AffineTransform rotateIn(AffineTransform prevTransform)
+	{
+		// if there is no transformation, stop now
+		if (angle == 0 && sX >= 0 && sY >= 0) return prevTransform;
+
+		AffineTransform transform = rotateIn();
+		AffineTransform returnTransform = new AffineTransform(prevTransform);
+		returnTransform.concatenate(transform);
+		return returnTransform;
+	}
+
+	/**
 	 * Method to return a transformation that rotates this NodeInst.
 	 * It transforms points on this NodeInst to account for the NodeInst's rotation.
-	 * The rotation happens about the node's Grab Point (the location of the cell-center inside of cell definitions).
+	 * The rotation happens about the node's Anchor Point (the location of the cell-center inside of cell definitions).
 	 * @return a transformation that rotates this NodeInst.
 	 * If this NodeInst is not rotated, the returned transformation is identity.
 	 */
@@ -1379,7 +1418,7 @@ public class NodeInst extends Geometric implements Nodable
 	 * Method to return a transformation that rotates this NodeInst,
 	 * combined with a previous transformation.  It transforms points
 	 * on this NodeInst to account for the NodeInst's rotation.
-	 * The rotation happens about the node's Grab Point (the location of the cell-center inside of cell definitions).
+	 * The rotation happens about the node's Anchor Point (the location of the cell-center inside of cell definitions).
 	 * @param prevTransform the previous transformation to be applied.
 	 * @return a transformation that rotates this NodeInst, combined
 	 * with a previous transformation..  If this NodeInst is not

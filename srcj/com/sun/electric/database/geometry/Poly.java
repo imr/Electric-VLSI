@@ -986,6 +986,12 @@ public class Poly implements Shape
 		angle = (angle + xAngle) % 3600;
 
 		Type style = Type.getTextTypeFromAngle(angle);
+//		Type revert = unRotateType(style, eObj);
+//		if (revert != origType)
+//		{
+//			System.out.println("Rotating "+origType.name+" on node with angle="+nodeAngle+" MX="+ni.isMirroredAboutXAxis()+" MY="+ni.isMirroredAboutYAxis()+
+//				" produces type="+style.name+" but unrotation gives type="+revert.name);
+//		}
 		return style;
 	}
 
@@ -1024,14 +1030,17 @@ public class Poly implements Shape
 
 		// rotate the anchor
 		int angle = origType.getTextAngle();
-		AffineTransform trans = ni.pureRotateIn();
+
+		int rotAngle = ni.getAngle();
+		if (ni.isMirroredAboutXAxis() != ni.isMirroredAboutYAxis()) rotAngle = -rotAngle;
+		AffineTransform trans = NodeInst.pureRotate(rotAngle, ni.isMirroredAboutXAxis(), ni.isMirroredAboutYAxis());
+
 		Point2D pt = new Point2D.Double(100, 0);
 		trans.transform(pt, pt);
 		int xAngle = GenMath.figureAngle(new Point2D.Double(0, 0), pt);
 		if (ni.isMirroredAboutXAxis() != ni.isMirroredAboutYAxis() &&
 			((angle%1800) == 0 || (angle%1800) == 1350)) angle += 1800;
-		angle = (angle + xAngle) % 3600;
-
+		angle = (angle - xAngle + 3600) % 3600;
 		Type style = Type.getTextTypeFromAngle(angle);
 		return style;
 	}

@@ -325,7 +325,7 @@ public abstract class Topology extends Output
 //for(Iterator it = cni.getCellSignals(); it.hasNext(); )
 //{
 //	CellSignal cs = (CellSignal)it.next();
-//	printWriter.print("**   Name="+cs.name+" export="+cs.pp.getName()+" index="+cs.ppIndex+" descending="+cs.descending+" power="+cs.power+" ground="+cs.ground+" global="+cs.globalSignal+"\n");
+//	printWriter.print("**   Name="+cs.name+" export="+cs.pp+" index="+cs.ppIndex+" descending="+cs.descending+" power="+cs.power+" ground="+cs.ground+" global="+cs.globalSignal+"\n");
 //}
 //if (isAggregateNamesSupported())
 //{
@@ -333,7 +333,7 @@ public abstract class Topology extends Output
 //	for(Iterator it = cni.cellAggretateSignals.iterator(); it.hasNext(); )
 //	{
 //		CellAggregateSignal cas = (CellAggregateSignal)it.next();
-//		printWriter.print("**   Name="+cas.name+", export="+cas.pp.getName()+" descending="+cas.descending+", low="+cas.low+", high="+cas.high+"\n");
+//		printWriter.print("**   Name="+cas.name+", export="+cas.pp+" descending="+cas.descending+", low="+cas.low+", high="+cas.high+"\n");
 //	}
 //}
 //printWriter.print("********DONE WITH CELL " + cell.describe() + "\n");
@@ -446,10 +446,18 @@ public abstract class Topology extends Output
 				if (subNet == null) continue;
 				if (!subNet.hasNames()) break;
 				String firstName = (String)subNet.getNames().next();
-				int openSquare = firstName.indexOf('[');
-				if (openSquare < 0) break;
-				if (!Character.isDigit(firstName.charAt(openSquare+1))) break;
-				int index = TextUtils.atoi(firstName.substring(openSquare+1));
+				int index = -1;
+				int charPos = 0;
+				for(;;)
+				{
+					charPos = firstName.indexOf('[', charPos);
+					if (charPos < 0) break;
+					charPos++;
+					if (!Character.isDigit(firstName.charAt(charPos))) continue;
+					index = TextUtils.atoi(firstName.substring(charPos));
+					break;
+				}
+				if (index < 0) break;
 				if (i != 0)
 				{
 					if (index == last-1) downDir = true; else

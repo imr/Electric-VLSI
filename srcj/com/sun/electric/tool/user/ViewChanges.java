@@ -23,67 +23,28 @@
 */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.constraint.Layout;
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.network.JNetwork;
-import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.Name;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.PrimitiveArc;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
-import com.sun.electric.technology.technologies.Artwork;
-import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.io.input.Input;
-import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
-import com.sun.electric.tool.user.menus.MenuCommands;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.StatusBar;
-import com.sun.electric.tool.user.ui.ToolBar;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WaveformWindow;
-import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import javax.swing.JOptionPane;
 
 /**
  * Class for view-related changes to the circuit.
@@ -118,31 +79,36 @@ public class ViewChanges
 		public boolean doIt()
 		{
 	        // create cell in new technology
-			Cell newcell = us_tran_linkage(oldCell.getName(), View.SCHEMATIC, oldCell);
-			if (newcell == null) return false;
-	
+			Cell newCell = us_tran_linkage(oldCell.getName(), View.SCHEMATIC, oldCell);
+			if (newCell == null) return false;
+
 			// create the parts in this cell
 			HashMap newNodes = new HashMap();
-			us_tran_logmakenodes(oldCell, newcell, Schematics.tech, newNodes);
-			us_tran_logmakearcs(oldCell, newcell, newNodes);
-	
-			// now make adjustments for manhattan-ness
-			us_tran_makemanhattan(newcell);
+			us_tran_logmakenodes(oldCell, newCell, Schematics.tech, newNodes);
+			us_tran_logmakearcs(oldCell, newCell, newNodes);
 
-			// set "FIXANG" if reasonable
-//			for(ai = newcell->firstarcinst; ai != NOARCINST; ai = ai->nextarcinst)
-//			{
-//				if (ai->end[0].xpos == ai->end[1].xpos &&
-//					ai->end[0].ypos == ai->end[1].ypos) continue;
-//				if ((figureangle(ai->end[0].xpos, ai->end[0].ypos, ai->end[1].xpos,
-//					ai->end[1].ypos)%450) == 0) ai->userbits |= FIXANG;
-//			}
+			// now make adjustments for manhattan-ness
+			us_tran_makemanhattan(newCell);
+
+			// set "fixed-angle" if reasonable
+			for(Iterator it = newCell.getArcs(); it.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)it.next();
+				Point2D headPt = ai.getHead().getLocation();
+				Point2D tailPt = ai.getTail().getLocation();
+				if (headPt.getX() == tailPt.getX() && headPt.getY() == tailPt.getY()) continue;
+				if ((GenMath.figureAngle(headPt, tailPt)%450) == 0) ai.setFixedAngle(true);
+			}
+
+			System.out.println("Cell " + newCell.describe() + " created with a schematic representation of " +
+				oldCell.describe());
+			WindowFrame.createEditWindow(newCell);
 			return true;
 		}
 	}
 
-	/*
-	 * routine to create a new cell called "newcellname" that is to be the
+	/**
+	 * Method to create a new cell called "newcellname" that is to be the
 	 * equivalent to an old cell in "cell".  The view type of the new cell is
 	 * in "newcellview" and the view type of the old cell is in "cellview"
 	 */
@@ -161,8 +127,6 @@ public class ViewChanges
 		return newCell;
 	}
 	
-	/********************** CODE FOR CONVERSION TO SCHEMATIC **********************/
-	
 	private static void us_tran_logmakenodes(Cell cell, Cell newCell, Technology newtech, HashMap newNodes)
 	{
 		// for each node, create a new node in the newcell, of the correct logical type.
@@ -180,15 +144,9 @@ public class ViewChanges
 			} else if (type == null)
 			{
 				// a cell
-//				FOR_CELLGROUP(onp, ni->proto)
-//					if (onp->cellview == el_schematicview) break;
-//				if (onp == NONODEPROTO)
-//				{
-//					onp = us_convertcell(ni->proto, newtech);
-//					if (onp == NONODEPROTO) break;
-//				}
-//				schemni = us_tran_logmakenode(onp, ni, ni->transpose, ni->rotation,
-//					newCell, newtech);
+				Cell proto = (Cell)mosNI.getProto();
+				Cell equivCell = proto.getEquivalent();
+				schemNI = us_tran_logmakenode(equivCell, mosNI, equivCell.getDefWidth(), equivCell.getDefHeight(), mosNI.getAngle(), 0, newCell);
 			} else
 			{
 				int rotate = mosNI.getAngle();
@@ -278,8 +236,10 @@ public class ViewChanges
 			if (schemHeadPI == null || schemTailPI == null) continue;
 
 			// create the new arc
-//			bits = us_makearcuserbits(sch_wirearc) & ~(FIXANG|FIXED);
 			ArcInst schemAI = ArcInst.makeInstance(Schematics.tech.wire_arc, 0, schemHeadPI, schemTailPI, mosAI.getName());
+			if (schemAI == null) continue;
+			schemAI.setFixedAngle(false);
+			schemAI.setRigid(false);
 		}
 	}
 
@@ -320,45 +280,53 @@ public class ViewChanges
 		return null;
 	}
 
-	private static void us_tran_makemanhattan(Cell newcell)
+	private static final int MAXADJUST = 5;
+
+	private static void us_tran_makemanhattan(Cell newCell)
 	{
-//		// adjust this cell
-//		for(ni = newcell->firstnodeinst; ni != NONODEINST; ni = ni->nextnodeinst)
-//		{
-//			if (ni->proto->primindex == 0) continue;
-//			if (((ni->proto->userbits&NFUNCTION) >> NFUNCTIONSH) != NPPIN) continue;
-//
-//			// see if this pin can be adjusted so that all wires are manhattan
-//			count = 0;
-//			for(pi = ni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//			{
-//				ai = pi->conarcinst;
-//				if (ai->end[0].nodeinst == ni)
-//				{
-//					if (ai->end[1].nodeinst == ni) continue;
-//					e = 1;
-//				} else e = 0;
-//				x[count] = ai->end[e].xpos;   y[count] = ai->end[e].ypos;
-//				count++;
-//				if (count >= MAXADJUST) break;
-//			}
-//			if (count == 0) continue;
-//
-//			// now adjust for all these points
-//			xp = (ni->lowx + ni->highx) / 2;   yp = (ni->lowy + ni->highy) / 2;
-//			bestdist = MAXINTBIG;
-//			for(i=0; i<count; i++) for(j=0; j<count; j++)
-//			{
-//				dist = abs(xp - x[i]) + abs(yp - y[j]);
-//				if (dist > bestdist) continue;
-//				bestdist = dist;
-//				bestx = x[i];   besty = y[j];
-//			}
-//
-//			// if there was a better place, move the node
-//			if (bestdist != MAXINTBIG)
-//				modifynodeinst(ni, bestx-xp, besty-yp, bestx-xp, besty-yp, 0, 0);
-//		}
+		// adjust this cell
+		double [] x = new double[MAXADJUST];
+		double [] y = new double[MAXADJUST];
+		for(Iterator it = newCell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (ni.getProto() instanceof Cell) continue;
+			NodeProto.Function fun = ni.getFunction();
+			if (fun != NodeProto.Function.PIN) continue;
+
+			// see if this pin can be adjusted so that all wires are manhattan
+			int count = 0;
+			for(Iterator aIt = ni.getConnections(); aIt.hasNext(); )
+			{
+				Connection con = (Connection)aIt.next();
+				ArcInst ai = con.getArc();
+				Connection other = ai.getHead();
+				if (ai.getHead() == con) other = ai.getTail();
+				if (con.getPortInst().getNodeInst() == other.getPortInst().getNodeInst()) continue;
+				x[count] = other.getLocation().getX();
+				y[count] = other.getLocation().getY();
+				count++;
+				if (count >= MAXADJUST) break;
+			}
+			if (count == 0) continue;
+
+			// now adjust for all these points
+			double xp = ni.getAnchorCenterX();
+			double yp = ni.getAnchorCenterY();
+			double bestDist = Double.MAX_VALUE;
+			double bestX = 0, bestY = 0;
+			for(int i=0; i<count; i++) for(int j=0; j<count; j++)
+			{
+				double dist = Math.abs(xp - x[i]) + Math.abs(yp - y[j]);
+				if (dist > bestDist) continue;
+				bestDist = dist;
+				bestX = x[i];   bestY = y[j];
+			}
+
+			// if there was a better place, move the node
+			if (bestDist != Double.MAX_VALUE)
+				ni.modifyInstance(bestX-xp, bestY-yp, 0, 0, 0);
+		}
 	}
 
 	/**
@@ -380,8 +348,6 @@ public class ViewChanges
 	}
 }
 
-//#define MAXADJUST 5
-//
 ///************************* CODE FOR CONVERSION TO LAYOUT *************************/
 //
 ///*

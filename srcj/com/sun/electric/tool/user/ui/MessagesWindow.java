@@ -32,6 +32,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.awt.Font;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.StringSelection;
@@ -110,6 +111,7 @@ public class MessagesWindow
 
 		info = new JTextArea(20, 110);
 		info.setLineWrap(false);
+		info.setFont(new Font("Courier", 0, 12));
 		info.addMouseListener(this);
 		JScrollPane scrollPane = new JScrollPane(info,
 			JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
