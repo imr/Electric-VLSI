@@ -1,14 +1,10 @@
-package com.sun.electric.technology.technologies;
-
-/**
+/* -*- tab-width: 4 -*-
  *
  * Electric(tm) VLSI Design System
  *
  * File: TecMoCMOS.java
- * MOSIS CMOS technology description
- * Written by: Steven M. Rubin, Static Free Software
  *
- * Copyright (c) 2003 Static Free Software.
+ * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,12 +20,8 @@ package com.sun.electric.technology.technologies;
  * along with Electric(tm); see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
- *
- * Static Free Software
- * 4119 Alpine Road
- * Portola Valley, California 94028
- * info@staticfreesoft.com
  */
+package com.sun.electric.technology.technologies;
 
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;

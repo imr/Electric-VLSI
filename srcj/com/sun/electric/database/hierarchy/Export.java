@@ -1,3 +1,26 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: Export.java
+ *
+ * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
 package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.prototype.NodeProto;
@@ -57,18 +80,19 @@ public class Export extends PortProto
 	public boolean lowLevelPopulate(NodeInst originalNode, PortInst originalPort)
 	{
 		// initialize this object
+		if (originalPort == null)
+		{
+			System.out.println("Null port on Export " + protoName + " in cell " + parent.describe());
+			return true;
+		}
+		if (originalNode == null)
+		{
+			System.out.println("Null node on Export " + protoName + " in cell " + parent.describe());
+			return true;
+		}
 		this.originalPort = originalPort;
 		this.originalNode = originalNode;
 		originalNode.addExport(this);
-		return false;
-	}
-
-	/**
-	 * Low-level access routine to link a cell into its library.
-	 * Returns true on error.
-	 */
-	public boolean lowLevelLink()
-	{
 		return false;
 	}
 
@@ -135,15 +159,9 @@ if (originalPort == null)
 		return pp.getBasePort();
 	}
 
-	/** Get the PortInst exported by this Export */
-	public PortInst getPortInst()
-	{
-		return originalPort;
-	}
-
 	public JNetwork getNetwork()
 	{
-		return getPortInst().getNetwork();
+		return getOriginalPort().getNetwork();
 	}
 
 	/** If this PortProto belongs to an Icon View Cell then return the
@@ -173,15 +191,4 @@ if (originalPort == null)
 	{
 		return "Export " + protoName;
 	}
-
-	// Return the first internal connection that exists on the port this
-	// Export was exported from, or null if no such Connection exists.
-//	Connection findFirstConnection() {
-//	  Iterator i= owner.getConnections();
-//	  while (i.hasNext()) {
-//	    Connection c= (Connection)i.next();
-//	    if (c.getPort()== originalPort)  return c;
-//	  }
-//	  return null;
-//	}
 }

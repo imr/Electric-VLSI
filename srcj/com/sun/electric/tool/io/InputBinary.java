@@ -1,3 +1,26 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: InputBinary.java
+ *
+ * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
 package com.sun.electric.tool.io;
 
 import com.sun.electric.database.hierarchy.Library;
@@ -119,7 +142,7 @@ public class InputBinary extends Input
 	/** counter for Exports in the library */								private int portProtoIndex;
 	/** list of all Exports in the library */								private Export [] portProtoList;
 	/** list of NodeInsts that are origins of Exports in the library */		private NodeInst [] portProtoSubNodeList;
-	/** list of PortProtos that are origins of Exports in the library */	private PortProto [] portProtoSubPortList;
+	/** list of PortProtos that are origins of Exports in the library */	private Object [] portProtoSubPortList;
 	/** list of Export names in the library */								private String [] portProtoNameList;
 
 	// the geometric information (only used for old format files)
@@ -346,7 +369,7 @@ public class InputBinary extends Input
 		// allocate pointers for the Exports
 		portProtoList = new Export[portProtoCount];
 		portProtoSubNodeList = new NodeInst[portProtoCount];
-		portProtoSubPortList = new PortProto[portProtoCount];
+		portProtoSubPortList = new Object[portProtoCount];
 		portProtoNameList = new String[portProtoCount];
 
 		// versions 9 to 11 allocate fake-cell pointers
@@ -1015,7 +1038,13 @@ public class InputBinary extends Input
 		{
 			Export pp = portProtoList[i];
 			NodeInst subNodeInst = portProtoSubNodeList[i];
-			PortProto subPortProto = portProtoSubPortList[i];
+			if (portProtoSubPortList[i] instanceof Integer)
+			{
+				// this was an external reference that couldn't be resolved yet.  Do it now
+				int index = ((Integer)portProtoSubPortList[i]).intValue();
+				portProtoSubPortList[i] = convertPortProto(index);
+			}
+			PortProto subPortProto = (PortProto)portProtoSubPortList[i];
 
 			// null entries happen when there are external cell references
 			if (subNodeInst == null || subPortProto == null) continue;
@@ -1023,8 +1052,6 @@ public class InputBinary extends Input
 			// convert portproto to portinst
 			String exportName = portProtoNameList[i];
 			PortInst pi = subNodeInst.findPortInst(subPortProto.getProtoName());
-			if (pi == null)
-				System.out.println("Cannot find port " + subPortProto.getProtoName() + " on node " + subNodeInst.describe());
 			if (pp.lowLevelPopulate(subNodeInst, pi)) return;
 		}
 
@@ -1060,14 +1087,6 @@ public class InputBinary extends Input
 					" because ends are unknown");
 				continue;
 			}
-PortProto headPortProto = headPortInst.getPortProto();
-PortProto tailPortProto = tailPortInst.getPortProto();
-if (headPortProto == null || tailPortProto == null)
-{
-	System.out.println("Cannot create arc of type " + ap.getProtoName() + " in cell " + cell.getProtoName() +
-		" because end PROTOS are unknown");
-	continue;
-}
 			ai.lowLevelPopulate(ap, width, tailPortInst, tailX, tailY, headPortInst, headX, headY);
 			ai.lowLevelLink();
 		}
@@ -1199,6 +1218,10 @@ if (headPortProto == null || tailPortProto == null)
 			int whichPort = readBigInteger();
 			if (whichPort < 0 || portProtoList[whichPort] != null)
 				portProtoSubPortList[portProtoIndex] = convertPortProto(whichPort);
+			if (portProtoSubPortList[portProtoIndex] == null)
+			{
+				portProtoSubPortList[portProtoIndex] = new Integer(whichPort);
+			}
 
 			// read the Export name
 			String exportName = readString();
@@ -1554,8 +1577,6 @@ if (headPortProto == null || tailPortProto == null)
 			}
 			portProtoList[portProtoIndex] = pp;
 			portProtoNameList[portProtoIndex] = protoName;
-//			portProtoSubNodeList[portProtoIndex] = protoName;
-//			portProtoSubPortList[portProtoIndex] = protoName;
 			portProtoIndex++;
 		}
 		return false;

@@ -1,3 +1,26 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: UIEdit.java
+ *
+ * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Cell;
@@ -14,14 +37,14 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Layer;
 
-//import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
-
 import java.awt.event.*;
 import java.awt.*;
 import java.awt.geom.*;
 import java.util.*;
 import java.awt.font.*;
+import java.util.List;
+import java.util.ArrayList;
 
 /*
  * Created on Sep 25, 2003
@@ -30,17 +53,9 @@ import java.awt.font.*;
  * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
 
-/**
- * @author wc147374
- *
- * To change the template for this generated type comment go to
- * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
- */
-
 public class UIEdit extends JPanel
-	implements MouseMotionListener, MouseListener, KeyListener
+	implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 {
-	static int openFrameCount =0;
 	/** the window scale */									private double scale;
 	/** the window offset */								private double offx, offy;
 	/** the size of the window (in pixels) */				private Dimension sz;
@@ -50,13 +65,14 @@ public class UIEdit extends JPanel
 
 	/** an identity transformation */						private static final AffineTransform IDENTITY = new AffineTransform();
 	/** the offset of each new window on the screen */		private static int windowOffset = 0;
+	/** the offset of each new window on the screen */		private static List windowList = new ArrayList();
 
 	/** for drawing solid lines */		private static final BasicStroke solidLine = new BasicStroke(0);
 	/** for drawing thick lines */		private static final BasicStroke thickLine = new BasicStroke(1);
 	/** for drawing dotted lines */		private static final BasicStroke dottedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {1}, 0);
 	/** for drawing dashed lines */		private static final BasicStroke dashedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[] {10}, 0);
 
-	//constructor
+	// constructor
 	private UIEdit(Cell cell)
 	{
 		//super(cell.describe(), true, true, true, true);
@@ -66,15 +82,24 @@ public class UIEdit extends JPanel
 		setSize(sz.width, sz.height);
 		setPreferredSize(sz);
 		//setAutoscrolls(true);
+		addKeyListener(this);
 		addMouseMotionListener(this);
+		addMouseWheelListener(this);
 		addMouseListener(this);
 	}
 
-
-	//factory
+	// factory
 	public static UIEdit CreateElectricDoc(Cell cell)
 	{
-		return new UIEdit(cell);
+		UIEdit ui = new UIEdit(cell);
+		windowList.add(ui);
+		return ui;
+	}
+
+	public void redraw()
+	{
+		needsUpdate = true;
+		repaint();
 	}
 
 	/**
@@ -83,8 +108,7 @@ public class UIEdit extends JPanel
 	public void setCell(Cell cell)
 	{
 		this.cell = cell;
-		needsUpdate = true;
-		repaint();
+		redraw();
 	}
 
 	/**
@@ -497,6 +521,8 @@ public class UIEdit extends JPanel
 
 	public void paint(Graphics g)
 	{
+		// to enable keys to be recieved
+		requestFocus();
 		if (img == null || !getSize().equals(sz))
 		{
 			if (cell == null) return;
@@ -548,19 +574,27 @@ public class UIEdit extends JPanel
 		needsUpdate = true;
 		repaint();
 	}
-	
+
 	public void keyPressed(KeyEvent e)
 	{
+		System.out.println("key pressed");
 	}
-	
+
 	public void keyReleased(KeyEvent e)
 	{
+		System.out.println("key released");
 	}
-	
+
 	public void keyTyped(KeyEvent e)
 	{
-		if (e.getKeyChar() == 'q')
-			System.out.println("Quitting?");
+		System.out.println("Key typed");
 	}
+
+	public void mouseWheelMoved(MouseWheelEvent e)
+	{
+		int clicks = e.getWheelRotation();
+		System.out.println("Mouse wheel rolled by " + clicks);
+	}
+
 }
 

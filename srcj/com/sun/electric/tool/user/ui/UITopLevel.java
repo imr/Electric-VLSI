@@ -1,11 +1,28 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: UITopLevel.java
+ *
+ * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
 package com.sun.electric.tool.user.ui;
 
-/*
- * Created on Sep 22, 2003
- *
- * To change the template for this generated file go to
- * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
- */
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -37,7 +54,17 @@ public class UITopLevel extends JFrame
 	public static void Initialize()
 	{
 		try{
-			UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+			String os = System.getProperty("os.name").toLowerCase();
+			if (os.startsWith("windows"))
+			{
+				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+			} else if (os.startsWith("linux") || os.startsWith("solaris"))
+			{
+				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.MotifLookAndFeel");
+			} else if (os.startsWith("mac"))
+			{
+				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.MacLookAndFeel");
+			}
 		} catch(Exception e) {}
 
 		topLevel = new UITopLevel("Electric");	

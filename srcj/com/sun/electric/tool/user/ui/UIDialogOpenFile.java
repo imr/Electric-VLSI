@@ -1,55 +1,60 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: UIDialogOpenFile.java
+ *
+ * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.tool.user.ui.UIEditFrame;
-import com.sun.electric.tool.io.Input;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.tool.user.ui.UIFileFilter;
+
 import javax.swing.*;
-import java.awt.event.*;
 import java.io.File;
 
-/**
- * @author Willy Chung
- *
- * To change the template for this generated type comment go to
- * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
- */
-public class UIDialogOpenFile implements ActionListener 
+public class UIDialogOpenFile
 {
-	private JComponent parent=null;
-	/** File Chooser Dialog handle*/private final JFileChooser fc = new JFileChooser();
-	/** file handle*/				public File file;
+	private String extension;
+	private String description;
 
-	// message handler when clicked
-	public void actionPerformed(ActionEvent e)
+	public static final UIDialogOpenFile TEXT = new UIDialogOpenFile(null, "Any file");
+	public static final UIDialogOpenFile ELIB = new UIDialogOpenFile("elib", "Library file");
+
+	public UIDialogOpenFile(String extension, String description)
 	{
-		int returnVal = fc.showOpenDialog(parent);
+		this.extension = extension;
+		this.description = description;
+	}
+
+	public String chooseFile()
+	{
+		JFileChooser fc = new JFileChooser();
+		UIFileFilter filter = new UIFileFilter();
+		if (extension != null) filter.addExtension(extension);
+		filter.setDescription(description);
+		fc.setFileFilter(filter);
+		int returnVal = fc.showOpenDialog(null);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
-			file = fc.getSelectedFile();
-
-			Library lib = Input.ReadLibrary(file.getPath(), null, Input.ImportType.BINARY);
-			if (lib == null)
-			{
-				System.out.println("Error reading the library file");
-			} else
-			{
-				System.out.println("Library read");
-				Library.setCurrent(lib);
-				Cell cell = lib.getCurCell();
-				if (cell == null)
-				{
-					System.out.println("No current cell in this library");
-				} else
-				{
-					UIEditFrame frame = UIEditFrame.CreateEditWindow(cell);
-				}
-			}
-
-			
-			//	try{frame.setSelected(true);
-			//	}catch(java.beans.PropertyVetoException f){}			
-		}		
+			File file = fc.getSelectedFile();
+			return file.getPath();
+		}
+		return null;
 	}
 }
-

@@ -1,3 +1,26 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: Cell.java
+ *
+ * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
 package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.prototype.NodeProto;
@@ -695,13 +718,13 @@ public class Cell extends NodeProto
 		for (Iterator it = getPorts(); it.hasNext();)
 		{
 			Export e = (Export) it.next();
-			PortInst newPort = getNewPortInst(e.getPortInst(), oldToNew);
+			PortInst newPort = getNewPortInst(e.getOriginalPort(), oldToNew);
 			if (newPort == null)
 			{
 				System.out.println("can't find new PortInst to export");
 				return;
 			}
-			f.newExport(e.getProtoName(), newPort);
+			Export.newInstance(f, e.getOriginalNode(), newPort, e.getProtoName());
 		}
 	}
 
@@ -809,24 +832,24 @@ public class Cell extends NodeProto
 	public Date getRevisionDate() { return revisionDate; }
 	public void lowLevelSetRevisionDate(Date revisionDate) { this.revisionDate = revisionDate; }
 
-	/** Create an export for this Cell.
-	 * @param name the name of the new Export
-	 * @param role the Export's type 
-	 * @param port the PortInst that will be exported */
-	public Export newExport(String name, PortInst port)
-	{
-		/* RKao: Why do we care that export name has both '[' and '_' ?
-		   if ((name.indexOf('[')>=0) && (name.indexOf('_')>=0)) {
-		   System.out.println("Oops:  tried to create an export called "+
-		   name);
-		   return null;
-		   }
-		*/
-//		Export e = Electric.newPortProto(this.getAddr(), port.getNodeInst().getAddr(), port.getPortProto().getAddr(), name);
-//		e.setRole(role);
-//		return e;
-		return null;
-	}
+//	/** Create an export for this Cell.
+//	 * @param name the name of the new Export
+//	 * @param role the Export's type 
+//	 * @param port the PortInst that will be exported */
+//	public Export newExport(String name, PortInst port)
+//	{
+//		/* RKao: Why do we care that export name has both '[' and '_' ?
+//		   if ((name.indexOf('[')>=0) && (name.indexOf('_')>=0)) {
+//		   System.out.println("Oops:  tried to create an export called "+
+//		   name);
+//		   return null;
+//		   }
+//		*/
+////		Export e = Electric.newPortProto(this.getAddr(), port.getNodeInst().getAddr(), port.getPortProto().getAddr(), name);
+////		e.setRole(role);
+////		return e;
+//		return null;
+//	}
 
 	/** Get Export with specified name. @return null if not found */
 	public Export findExport(String nm)

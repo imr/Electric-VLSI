@@ -4,7 +4,6 @@ import com.sun.electric.database.hierarchy.VarContext;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.tool.user.Electric;
 
 /**
  * This class is the superclass of all Electric objects that can be extended with "Variables".

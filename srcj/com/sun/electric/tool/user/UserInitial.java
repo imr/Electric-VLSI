@@ -1,3 +1,26 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: UserInitial.java
+ *
+ * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
 package com.sun.electric.tool.user;
 
 import com.sun.electric.database.hierarchy.Library;
@@ -12,22 +35,46 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ui.UIEditFrame;
 import com.sun.electric.tool.user.ui.UIMenu;
 import com.sun.electric.tool.user.ui.UITopLevel;
-import com.sun.electric.tool.user.ui.UIDialogOpenFile;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.event.*;
 import javax.swing.*;
 
-public final class Electric
+public final class UserInitial
 {
 	// ------------------------- private data ----------------------------
 
 	public static void main(String[] args)
 	{
-		// initialization
-		initializeEverything();
+		// initialize the display
+		UITopLevel.Initialize();
 
+		// setup the File menu
+		UIMenu fileMenu = UIMenu.CreateUIMenu("File");
+		fileMenu.addMenuItem("Open", KeyStroke.getKeyStroke('O', InputEvent.CTRL_MASK),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.openLibraryCommand(); } });
+		fileMenu.addMenuItem("Full Display", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.fullDisplayCommand(); } });
+		fileMenu.addMenuItem("Quit", KeyStroke.getKeyStroke('Q', InputEvent.CTRL_MASK),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.quitCommand(); } });
+
+		// create the menu bar
+		// should set com.apple.macos.useScreenMenuBar to TRUE (see http://developer.apple.com/documentation/Java/Conceptual/Java131Development/value_add/chapter_6_section_4.html)
+		// so, use -Dcom.apple.macos.useScreenMenuBar=true
+		JMenuBar menuBar = new JMenuBar();
+		menuBar.add(fileMenu);
+		UITopLevel.setMenuBar(menuBar);
+
+		// initialize all of the technologies
+		Technology.initAllTechnologies();
+
+		// test code to make and show something
+		makeFakeCircuitry();
+	}
+
+	private static void makeFakeCircuitry()
+	{
 		// get information about the nodes
 		NodeProto m1m2Proto = NodeProto.findNodeProto("mocmos:Metal-1-Metal-2-Con");
 		NodeProto m2PinProto = NodeProto.findNodeProto("mocmos:Metal-2-Pin");
@@ -135,37 +182,6 @@ public final class Electric
 		System.out.println("*********************** TERMINATED SUCCESSFULLY ***********************");
 		System.out.println("************* Click and drag to Pan");
 		System.out.println("************* Use CONTROL-CLICK to Zoom");
-	}
-
-	// ---------------------- private and protected methods -----------------
-
-	// It is never useful for anyone to create an instance of this class
-	private Electric()
-	{
-	}
-
-	private static void initializeEverything()
-	{
-		// initialize the display
-		UITopLevel.Initialize();
-
-		// setup the File menu
-		UIMenu fileMenu = UIMenu.CreateUIMenu("File");
-		UIDialogOpenFile fileOpen = new UIDialogOpenFile();
-		fileMenu.addMenuItem("Open", KeyStroke.getKeyStroke('O', InputEvent.CTRL_MASK), fileOpen);
-		fileMenu.addMenuItem("Quit", KeyStroke.getKeyStroke('Q', InputEvent.CTRL_MASK),
-			new ActionListener()
-			{
-				public void actionPerformed(ActionEvent e) { System.exit(0); }
-			});
-
-		// create the menu bar
-		JMenuBar menuBar = new JMenuBar();
-		menuBar.add(fileMenu);
-		UITopLevel.setMenuBar(menuBar);
-
-		// initialize all of the technologies
-		Technology.initAllTechnologies();
 	}
 
 }
