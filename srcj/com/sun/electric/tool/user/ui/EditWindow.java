@@ -52,6 +52,7 @@ import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.FindText.WhatToSearch;
+import com.sun.electric.Main;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -673,6 +674,7 @@ public class EditWindow extends JPanel
 			// add cross-probed level display
 			showCrossProbeLevels(g);
 
+            if (Main.getDebug()) {
 			// add in highlighting
             if (Job.acquireExamineLock(false)) {
                 try {
@@ -699,6 +701,21 @@ public class EditWindow extends JPanel
                 Timer timer = new Timer();
                 timer.schedule(redrawTask, 1000);
 */
+            }
+            } else {
+                // old way, ignore exceptions
+                try {
+                    // add in the frame if present
+                    drawCellFrame(g);
+
+                    //long start = System.currentTimeMillis();
+                    mouseOverHighlighter.showHighlights(this, g);
+                    highlighter.showHighlights(this, g);
+                    //WindowFrame.show3DHighlight(this);
+                    //long end = System.currentTimeMillis();
+                    //System.out.println("drawing highlights took "+TextUtils.getElapsedTime(end-start));
+                } catch (Exception e) {
+                }
             }
 
 			// add in drag area

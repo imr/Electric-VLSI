@@ -622,6 +622,7 @@ public abstract class Job implements ActionListener, Runnable {
      * @see #invokeExamineLater(Runnable, Object)
      */
     public static synchronized boolean acquireExamineLock(boolean block) {
+        if (!Main.getDebug()) return true;      // only enable if DEBUG mode
         Thread thread = Thread.currentThread();
 
         // first check to see if we already have the lock
