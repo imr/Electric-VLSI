@@ -7,7 +7,9 @@ NOTE: Please place changes under the version that will be released next.
 ************************* END OF Version 8.01, GNU RELEASE *********************************
 ************************* Version 8.01ax: *********************************
 
-IMP: (12/21/04. GVG): DRC Schematic, improving error messages if objects touch (triggered by Bug #126)
+IMP: (12/22/04, GVG): New names for VTH/VTL/OD18 pure nodes to be consisten with rest of names.
+
+IMP: (12/22/04, GVG): DRC Schematic, improving error messages if objects touch (triggered by Bug #126)
 
 BUG: (12/22/04, SMR) Busses connecting at a Wire Con are flagged as DRC errors (Bug #126).
 FIX: In drc.Schematic.checkPolygonVicinity(), consider WireCon to connect arcs.
