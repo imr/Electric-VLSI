@@ -52,6 +52,9 @@ import java.io.IOException;
 //#define LONGJMPUKNPORPROTO  17		/* error: Unknown port prototype name */
 
 
+/**
+ * This class reads files in readable-dump (.txt) format.
+ */
 public class InputText extends Input
 {
 	// ------------------------- private data ----------------------------
@@ -128,6 +131,10 @@ public class InputText extends Input
 
 	// ----------------------- public methods -------------------------------
 
+	/**
+	 * Routine to read a Library in readable-dump (.txt) format.
+	 * @return true on error.
+	 */
 	protected boolean ReadLib()
 	{
 		// mark all libraries as "not being read", but "wanted"
@@ -505,7 +512,7 @@ String io_keyword = null;
 
 	//******************* GENERAL PARSING ROUTINES ********************/
 
-	boolean io_getkeyword()
+	private boolean io_getkeyword()
 	{
 //		REGISTER INTBIG c, cindex, inquote;
 //
@@ -561,7 +568,7 @@ String io_keyword = null;
 	 * in node prototype "np".  The routine returns NOPORTPROTO if it cannot
 	 * figure out what port this name refers to.
 	 */
-	PortProto io_getport(String line, NodeProto np)
+	private PortProto io_getport(String line, NodeProto np)
 	{
 //		REGISTER PORTPROTO *pp;
 //		REGISTER INTBIG i;
@@ -600,7 +607,7 @@ String io_keyword = null;
 	/**
 	 * null routine for ignoring keywords
 	 */
-	void io_null() {}
+	private void io_null() {}
 
 	//******************* LIBRARY PARSING ROUTINES ********************/
 
@@ -608,7 +615,7 @@ String io_keyword = null;
 	 * a new library is introduced (keyword "****library")
 	 * This should be the first keyword in the file
 	 */
-	void io_newlib()
+	private void io_newlib()
 	{
 //		REGISTER TECHNOLOGY *tech;
 //
@@ -625,7 +632,7 @@ String io_keyword = null;
 	/**
 	 * get the file's Electric version number (keyword "version")
 	 */
-	void io_versn()
+	private void io_versn()
 	{
 //		(void)reallocstring(&version, io_keyword, el_tempcluster);
 //
@@ -651,7 +658,7 @@ String io_keyword = null;
 	/**
 	 * get the number of tools (keyword "aids")
 	 */
-	void io_libkno()
+	private void io_libkno()
 	{
 		bitCount = 0;
 	}
@@ -659,7 +666,7 @@ String io_keyword = null;
 	/**
 	 * get the name of the tool (keyword "aidname")
 	 */
-	void io_libain()
+	private void io_libain()
 	{
 //		REGISTER TOOL *tool;
 //
@@ -671,7 +678,7 @@ String io_keyword = null;
 	/**
 	 * get the number of toolbits (keyword "aidbits")
 	 */
-	void io_libaib()
+	private void io_libaib()
 	{
 		bitCount = 0;
 	}
@@ -679,7 +686,7 @@ String io_keyword = null;
 	/**
 	 * get tool information for the library (keyword "bits")
 	 */
-	void io_libbit()
+	private void io_libbit()
 	{
 //		if (bitCount == 0)
 //			lib->userbits = eatoi(io_keyword);
@@ -689,7 +696,7 @@ String io_keyword = null;
 	/**
 	 * get the number of toolbits (keyword "userbits")
 	 */
-	void io_libusb()
+	private void io_libusb()
 	{
 //		lib->userbits = eatoi(io_keyword);
 //
@@ -700,7 +707,7 @@ String io_keyword = null;
 	/**
 	 * get the number of technologies (keyword "techcount")
 	 */
-	void io_libte()
+	private void io_libte()
 	{
 		varPos = INVTECHNOLOGY;
 		bitCount = 0;
@@ -709,7 +716,7 @@ String io_keyword = null;
 	/**
 	 * get the name of the technology (keyword "techname")
 	 */
-	void io_libten()
+	private void io_libten()
 	{
 //		REGISTER TECHNOLOGY *tech;
 //
@@ -721,7 +728,7 @@ String io_keyword = null;
 	/**
 	 * get lambda values for each technology in library (keyword "lambda")
 	 */
-	void io_lambda()
+	private void io_lambda()
 	{
 //		REGISTER INTBIG lam;
 //
@@ -737,7 +744,7 @@ String io_keyword = null;
 	/**
 	 * get variables on current object (keyword "variables")
 	 */
-	void io_getvar()
+	private void io_getvar()
 	{
 //		REGISTER INTBIG i, j, count, type, len, naddr, ntype, thisnaddr, *store, key, ret;
 //		REGISTER float *fstore;
@@ -943,7 +950,7 @@ String io_keyword = null;
 //		}
 	}
 
-	int io_decode(String name, int type)
+	private int io_decode(String name, int type)
 	{
 //		REGISTER INTBIG thistype, cindex;
 //		REGISTER CHAR *out, *retur;
@@ -1046,7 +1053,7 @@ String io_keyword = null;
 	/**
 	 * get the number of cells in this library (keyword "cellcount")
 	 */
-	void io_libcc()
+	private void io_libcc()
 	{
 //		REGISTER INTBIG i;
 //
@@ -1082,7 +1089,7 @@ String io_keyword = null;
 	/**
 	 * get the main cell of this library (keyword "maincell")
 	 */
-	void io_libms()
+	private void io_libms()
 	{
 //		mainCell = eatoi(io_keyword);
 	}
@@ -1090,7 +1097,7 @@ String io_keyword = null;
 	/**
 	 * get a view (keyword "view")
 	 */
-	void io_libvie()
+	private void io_libvie()
 	{
 //		REGISTER CHAR *pt;
 //		REGISTER INTBIG len;
@@ -1127,7 +1134,7 @@ String io_keyword = null;
 	/**
 	 * initialize for a new cell (keyword "***cell")
 	 */
-	void io_newcel()
+	private void io_newcel()
 	{
 //		REGISTER CHAR *pt;
 //
@@ -1143,7 +1150,7 @@ String io_keyword = null;
 	/**
 	 * get the name of the current cell (keyword "name")
 	 */
-	void io_celnam()
+	private void io_celnam()
 	{
 //		REGISTER CHAR *pt;
 //		REGISTER VIEW *v;
@@ -1199,7 +1206,7 @@ String io_keyword = null;
 	/**
 	 * get the creation date of the current cell (keyword "creationdate")
 	 */
-	void io_celcre()
+	private void io_celcre()
 	{
 //		curNodeProto->creationdate = eatoi(io_keyword);
 	}
@@ -1207,7 +1214,7 @@ String io_keyword = null;
 	/**
 	 * get the revision date of the current cell (keyword "revisiondate")
 	 */
-	void io_celrev()
+	private void io_celrev()
 	{
 //		curNodeProto->revisiondate = eatoi(io_keyword);
 	}
@@ -1215,7 +1222,7 @@ String io_keyword = null;
 	/**
 	 * get the external library file (keyword "externallibrary")
 	 */
-	void io_celext()
+	private void io_celext()
 	{
 //		INTBIG len, filetype, filelen;
 //		REGISTER LIBRARY *elib;
@@ -1401,22 +1408,22 @@ String io_keyword = null;
 	/**
 	 * get the boundary of the current cell
 	 */
-	void io_cellx()
+	private void io_cellx()
 	{
 //		curNodeProto->lowx = eatoi(io_keyword);
 	}
 
-	void io_celhx()
+	private void io_celhx()
 	{
 //		curNodeProto->highx = eatoi(io_keyword);
 	}
 
-	void io_celly()
+	private void io_celly()
 	{
 //		curNodeProto->lowy = eatoi(io_keyword);
 	}
 
-	void io_celhy()
+	private void io_celhy()
 	{
 //		curNodeProto->highy = eatoi(io_keyword);
 	}
@@ -1424,7 +1431,7 @@ String io_keyword = null;
 	/**
 	 * get the default technology for objects in this cell (keyword "technology")
 	 */
-	void io_tech()
+	private void io_tech()
 	{
 //		REGISTER TECHNOLOGY *tech;
 //
@@ -1436,7 +1443,7 @@ String io_keyword = null;
 	/**
 	 * get the tool dirty word for the current cell (keyword "aadirty")
 	 */
-	void io_celaad()
+	private void io_celaad()
 	{
 //		curNodeProto->adirty = eatoi(io_keyword);
 //		bitCount = 0;
@@ -1445,7 +1452,7 @@ String io_keyword = null;
 	/**
 	 * get tool information for current cell (keyword "bits")
 	 */
-	void io_celbit()
+	private void io_celbit()
 	{
 //		if (bitCount == 0) curNodeProto->userbits = eatoi(io_keyword);
 //		bitCount++;
@@ -1454,7 +1461,7 @@ String io_keyword = null;
 	/**
 	 * get tool information for current cell (keyword "userbits")
 	 */
-	void io_celusb()
+	private void io_celusb()
 	{
 //		curNodeProto->userbits = eatoi(io_keyword);
 	}
@@ -1462,12 +1469,12 @@ String io_keyword = null;
 	/**
 	 * get tool information for current cell (keyword "netnum")
 	 */
-	void io_celnet() {}
+	private void io_celnet() {}
 
 	/**
 	 * get the number of node instances in the current cell (keyword "nodes")
 	 */
-	void io_celnoc()
+	private void io_celnoc()
 	{
 //		REGISTER INTBIG i;
 //		REGISTER NODEINST *ni;
@@ -1505,7 +1512,7 @@ String io_keyword = null;
 	/**
 	 * get the number of arc instances in the current cell (keyword "arcs")
 	 */
-	void io_celarc()
+	private void io_celarc()
 	{
 //		REGISTER INTBIG i;
 //		REGISTER ARCINST *ai;
@@ -1541,7 +1548,7 @@ String io_keyword = null;
 	/**
 	 * get the number of port prototypes in the current cell (keyword "porttypes")
 	 */
-	void io_celptc()
+	private void io_celptc()
 	{
 //		REGISTER INTBIG i;
 //
@@ -1569,7 +1576,7 @@ String io_keyword = null;
 	/**
 	 * close the current cell (keyword "celldone")
 	 */
-	void io_celdon()
+	private void io_celdon()
 	{
 //		REGISTER INTBIG i;
 //		REGISTER NODEINST *ni;
@@ -1638,7 +1645,7 @@ String io_keyword = null;
 	/**
 	 * initialize for a new node instance (keyword "**node")
 	 */
-	void io_newno()
+	private void io_newno()
 	{
 //		curNodeInst = nodeList[eatoi(io_keyword)];
 //		textLevel = INNODEINST;
@@ -1648,7 +1655,7 @@ String io_keyword = null;
 	/**
 	 * get the type of the current nodeinst (keyword "type")
 	 */
-	void io_nodtyp()
+	private void io_nodtyp()
 	{
 //		REGISTER NODEPROTO *np;
 //		REGISTER TECHNOLOGY *tech;
@@ -1710,22 +1717,22 @@ String io_keyword = null;
 	/**
 	 * get the bounding box information for the current node instance
 	 */
-	void io_nodlx()
+	private void io_nodlx()
 	{
 //		curNodeInst->lowx = eatoi(io_keyword);
 	}
 
-	void io_nodhx()
+	private void io_nodhx()
 	{
 //		curNodeInst->highx = eatoi(io_keyword);
 	}
 
-	void io_nodly()
+	private void io_nodly()
 	{
 //		curNodeInst->lowy = eatoi(io_keyword);
 	}
 
-	void io_nodhy()
+	private void io_nodhy()
 	{
 //		curNodeInst->highy = eatoi(io_keyword);
 	}
@@ -1733,7 +1740,7 @@ String io_keyword = null;
 	/**
 	 * get the instance name of the current node instance (keyword "name")
 	 */
-	void io_nodnam()
+	private void io_nodnam()
 	{
 //		nextchangequiet();
 //		(void)setvalkey((INTBIG)curNodeInst, VNODEINST, el_node_name_key,
@@ -1743,7 +1750,7 @@ String io_keyword = null;
 	/**
 	 * get the text descriptor of the current node instance (keyword "descript")
 	 */
-	void io_noddes()
+	private void io_noddes()
 	{
 //		REGISTER CHAR *pt;
 //
@@ -1761,7 +1768,7 @@ String io_keyword = null;
 	/**
 	 * get the rotation for the current nodeinst (keyword "rotation");
 	 */
-	void io_nodrot()
+	private void io_nodrot()
 	{
 //		curNodeInst->rotation = eatoi(io_keyword);
 	}
@@ -1769,7 +1776,7 @@ String io_keyword = null;
 	/**
 	 * get the transposition for the current nodeinst (keyword "transpose")
 	 */
-	void io_nodtra()
+	private void io_nodtra()
 	{
 //		curNodeInst->transpose = eatoi(io_keyword);
 	}
@@ -1777,7 +1784,7 @@ String io_keyword = null;
 	/**
 	 * get the tool seen bits for the current nodeinst (keyword "aseen")
 	 */
-	void io_nodkse()
+	private void io_nodkse()
 	{
 		bitCount = 0;
 	}
@@ -1785,7 +1792,7 @@ String io_keyword = null;
 	/**
 	 * get the port count for the current nodeinst (keyword "ports")
 	 */
-	void io_nodpoc()
+	private void io_nodpoc()
 	{
 //		curPortCount = eatoi(io_keyword);
 	}
@@ -1793,7 +1800,7 @@ String io_keyword = null;
 	/**
 	 * get tool information for current nodeinst (keyword "bits")
 	 */
-	void io_nodbit()
+	private void io_nodbit()
 	{
 //		if (bitCount == 0) curNodeInst->userbits = eatoi(io_keyword);
 //		bitCount++;
@@ -1802,7 +1809,7 @@ String io_keyword = null;
 	/**
 	 * get tool information for current nodeinst (keyword "userbits")
 	 */
-	void io_nodusb()
+	private void io_nodusb()
 	{
 //		curNodeInst->userbits = eatoi(io_keyword);
 	}
@@ -1810,7 +1817,7 @@ String io_keyword = null;
 	/**
 	 * initialize for a new portinst on the current nodeinst (keyword "*port")
 	 */
-	void io_newpor()
+	private void io_newpor()
 	{
 //		REGISTER INTBIG i, cindex;
 //		REGISTER PORTPROTO *pp;
@@ -1847,7 +1854,7 @@ String io_keyword = null;
 	/**
 	 * get an arc connection for the current nodeinst (keyword "arc")
 	 */
-	void io_porarc()
+	private void io_porarc()
 	{
 //		REGISTER PORTARCINST *pi;
 //
@@ -1863,7 +1870,7 @@ String io_keyword = null;
 	/**
 	 * get an export site for the current nodeinst (keyword "exported")
 	 */
-	void io_porexp()
+	private void io_porexp()
 	{
 //		REGISTER PORTEXPINST *pe;
 //
@@ -1881,7 +1888,7 @@ String io_keyword = null;
 	/**
 	 * initialize for a new arc instance (keyword "**arc")
 	 */
-	void io_newar()
+	private void io_newar()
 	{
 //		curArcInst = arcList[eatoi(io_keyword)];
 //		textLevel = INARCINST;
@@ -1891,7 +1898,7 @@ String io_keyword = null;
 	/**
 	 * get the type of the current arc instance (keyword "type")
 	 */
-	void io_arctyp()
+	private void io_arctyp()
 	{
 //		REGISTER ARCPROTO *ap;
 //		REGISTER CHAR *pt, *line;
@@ -1949,7 +1956,7 @@ String io_keyword = null;
 	/**
 	 * get the instance name of the current arc instance (keyword "name")
 	 */
-	void io_arcnam()
+	private void io_arcnam()
 	{
 //		nextchangequiet();
 //		(void)setvalkey((INTBIG)curArcInst, VARCINST, el_arc_name_key,
@@ -1959,7 +1966,7 @@ String io_keyword = null;
 	/**
 	 * get the width of the current arc instance (keyword "width")
 	 */
-	void io_arcwid()
+	private void io_arcwid()
 	{
 //		curArcInst->width = eatoi(io_keyword);
 	}
@@ -1967,7 +1974,7 @@ String io_keyword = null;
 	/**
 	 * get the length of the current arc instance (keyword "length")
 	 */
-	void io_arclen()
+	private void io_arclen()
 	{
 //		curArcInst->length = eatoi(io_keyword);
 	}
@@ -1975,12 +1982,12 @@ String io_keyword = null;
 	/**
 	 * get the signals information of the current arc instance (keyword "signals")
 	 */
-	void io_arcsig() {}
+	private void io_arcsig() {}
 
 	/**
 	 * initialize for an end of the current arcinst (keyword "*end")
 	 */
-	void io_newend()
+	private void io_newend()
 	{
 //		curArcEnd = eatoi(io_keyword);
 //		textLevel = INARCEND;
@@ -1989,7 +1996,7 @@ String io_keyword = null;
 	/**
 	 * get the node at the current end of the current arcinst (keyword "node")
 	 */
-	void io_endnod()
+	private void io_endnod()
 	{
 //		curArcInst->end[curArcEnd].nodeinst = nodeList[eatoi(io_keyword)];
 	}
@@ -1997,7 +2004,7 @@ String io_keyword = null;
 	/**
 	 * get the porttype at the current end of current arcinst (keyword "nodeport")
 	 */
-	void io_endpt()
+	private void io_endpt()
 	{
 //		REGISTER PORTPROTO *pp;
 //
@@ -2009,12 +2016,12 @@ String io_keyword = null;
 	/**
 	 * get the coordinates of the current end of the current arcinst
 	 */
-	void io_endxp()
+	private void io_endxp()
 	{
 //		curArcInst->end[curArcEnd].xpos = eatoi(io_keyword);
 	}
 
-	void io_endyp()
+	private void io_endyp()
 	{
 //		curArcInst->end[curArcEnd].ypos = eatoi(io_keyword);
 	}
@@ -2022,7 +2029,7 @@ String io_keyword = null;
 	/**
 	 * get the tool information for the current arcinst (keyword "aseen")
 	 */
-	void io_arckse()
+	private void io_arckse()
 	{
 		bitCount = 0;
 	}
@@ -2030,7 +2037,7 @@ String io_keyword = null;
 	/**
 	 * get tool information for current arcinst (keyword "bits")
 	 */
-	void io_arcbit()
+	private void io_arcbit()
 	{
 //		if (bitCount == 0) curArcInst->userbits = eatoi(io_keyword);
 //		bitCount++;
@@ -2039,7 +2046,7 @@ String io_keyword = null;
 	/**
 	 * get tool information for current arcinst (keyword "userbits")
 	 */
-	void io_arcusb()
+	private void io_arcusb()
 	{
 //		curArcInst->userbits = eatoi(io_keyword);
 	}
@@ -2047,14 +2054,14 @@ String io_keyword = null;
 	/**
 	 * get tool information for current arcinst (keyword "netnum")
 	 */
-	void io_arcnet() {}
+	private void io_arcnet() {}
 
 	//******************** PORT PROTOTYPE PARSING ROUTINES ********************/
 
 	/**
 	 * initialize for a new port prototype (keyword "**porttype")
 	 */
-	void io_newpt()
+	private void io_newpt()
 	{
 //		curPortProto = portProtoList[eatoi(io_keyword)];
 //		textLevel = INPORTPROTO;
@@ -2064,7 +2071,7 @@ String io_keyword = null;
 	/**
 	 * get the name for the current port prototype (keyword "name")
 	 */
-	void io_ptnam()
+	private void io_ptnam()
 	{
 //		if (allocstring(&curPortProto->protoname, io_keyword, lib->cluster))
 //			longjmp(io_filerror, LONGJMPNOMEM);
@@ -2073,7 +2080,7 @@ String io_keyword = null;
 	/**
 	 * get the text descriptor for the current port prototype (keyword "descript")
 	 */
-	void io_ptdes()
+	private void io_ptdes()
 	{
 //		REGISTER CHAR *pt;
 //
@@ -2091,7 +2098,7 @@ String io_keyword = null;
 	/**
 	 * get the sub-nodeinst for the current port prototype (keyword "subnode")
 	 */
-	void io_ptsno()
+	private void io_ptsno()
 	{
 //		curPortProto->subnodeinst = nodeList[eatoi(io_keyword)];
 	}
@@ -2099,7 +2106,7 @@ String io_keyword = null;
 	/**
 	 * get the sub-portproto for the current port prototype (keyword "subport")
 	 */
-	void io_ptspt()
+	private void io_ptspt()
 	{
 //		REGISTER PORTPROTO *pp;
 //
@@ -2111,7 +2118,7 @@ String io_keyword = null;
 	/**
 	 * get the tool seen for the current port prototype (keyword "aseen")
 	 */
-	void io_ptkse()
+	private void io_ptkse()
 	{
 		bitCount = 0;
 	}
@@ -2119,7 +2126,7 @@ String io_keyword = null;
 	/**
 	 * get the tool data for the current port prototype (keyword "bits")
 	 */
-	void io_ptbit()
+	private void io_ptbit()
 	{
 //		if (bitCount == 0) curPortProto->userbits = eatoi(io_keyword);
 //		bitCount++;
@@ -2128,7 +2135,7 @@ String io_keyword = null;
 	/**
 	 * get the tool data for the current port prototype (keyword "userbits")
 	 */
-	void io_ptusb()
+	private void io_ptusb()
 	{
 //		curPortProto->userbits = eatoi(io_keyword);
 	}
@@ -2136,13 +2143,13 @@ String io_keyword = null;
 	/**
 	 * get the tool data for the current port prototype (keyword "netnum")
 	 */
-	void io_ptnet() {}
+	private void io_ptnet() {}
 
 	/**
 	 * routine to convert the technology name in "line" to a technology.
 	 * also handles conversion of the old technology name "logic"
 	 */
-	Technology io_gettechnology(String line)
+	private Technology io_gettechnology(String line)
 	{
 //		REGISTER TECHNOLOGY *tech;
 //
@@ -2162,7 +2169,7 @@ return null;
 	/**
 	 * Routine to free all memory associated with this module.
 	 */
-	void io_freetextinmemory()
+	private void io_freetextinmemory()
 	{
 //		if (io_maxinputline != 0)
 //			efree(io_keyword);

@@ -27,11 +27,15 @@ import com.sun.electric.database.hierarchy.Library;
 
 import java.io.*;
 
+/**
+ * This class manages writing files in different formats.
+ * The class is subclassed by the different file writers.
+ */
 public class Output
 {
-	String filePath;
-	FileOutputStream fileOutputStream;
-	DataOutputStream dataOutputStream;
+	protected String filePath;
+	protected FileOutputStream fileOutputStream;
+	protected DataOutputStream dataOutputStream;
 
 	/**
 	 * Function is a typesafe enum class that describes the types of files that can be written.
@@ -45,28 +49,40 @@ public class Output
 			this.name = name;
 		}
 
+		/**
+		 * Returns a printable version of this ExportType.
+		 * @return a printable version of this ExportType.
+		 */
 		public String toString() { return name; }
 
-		/** binary output */		public static final ExportType BINARY=   new ExportType("binary");
-		/** text output */			public static final ExportType TEXT=     new ExportType("text");
-		/** CIF output */			public static final ExportType CIF=      new ExportType("CIF");
-		/** GDS output */			public static final ExportType GDS=      new ExportType("GDS");
+		/** Describes binary output .*/			public static final ExportType BINARY=   new ExportType("binary");
+		/** Describes text output. */			public static final ExportType TEXT=     new ExportType("text");
+		/** Describes CIF output. */			public static final ExportType CIF=      new ExportType("CIF");
+		/** Describes GDS output. */			public static final ExportType GDS=      new ExportType("GDS");
 	}
 
 	// ------------------------- private data ----------------------------
 
 	// ---------------------- private and protected methods -----------------
 
-	protected Output()
+	Output()
 	{
 	}
 
 	// ----------------------- public methods -------------------------------
 
-	public boolean writeLib(Library lib) { return true; }
+	/**
+	 * Routine to write a Library.
+	 * This method is never called.
+	 * Instead, it is always overridden by the appropriate write subclass.
+	 * @param lib the Library to be written.
+	 */
+	protected boolean writeLib(Library lib) { return true; }
 
 	/**
-	 * Routine to write Library "lib" with type "type".
+	 * Routine to write a Library with a particular format
+	 * @param lib the Library to be written.
+	 * @param type the format of the output file.
 	 */
 	public static boolean writeLibrary(Library lib, ExportType type)
 	{

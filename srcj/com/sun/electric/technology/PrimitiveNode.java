@@ -133,32 +133,10 @@ public class PrimitiveNode extends NodeProto
 	public double getDefHeight() { return defHeight; }
 
 	/**
-	 * Routine to return the low-X offset of this PrimitiveNode.
-	 * This is the difference between the stored left side and the selected/reported left side.
-	 * @return the low-X offset of this PrimitiveNode.
+	 * Routine to size offset of this PrimitiveNode.
+	 * @return the size offset of this PrimitiveNode.
 	 */
-	public double getLowXOffset() { return offset.getLowXOffset(); }
-
-	/**
-	 * Routine to return the high-X offset of this PrimitiveNode.
-	 * This is the difference between the stored right side and the selected/reported right side.
-	 * @return the high-X offset of this PrimitiveNode.
-	 */
-	public double getHighXOffset() { return offset.getHighXOffset(); }
-
-	/**
-	 * Routine to return the low-Y offset of this PrimitiveNode.
-	 * This is the difference between the stored bottom side and the selected/reported bottom side.
-	 * @return the low-Y offset of this PrimitiveNode.
-	 */
-	public double getLowYOffset() { return offset.getLowYOffset(); }
-
-	/**
-	 * Routine to return the high-Y offset of this PrimitiveNode.
-	 * This is the difference between the stored top side and the selected/reported top side.
-	 * @return the high-Y offset of this PrimitiveNode.
-	 */
-	public double getHighYOffset() { return offset.getHighYOffset(); }
+	public SizeOffset getSizeOffset() { return offset; }
 
 	/**
 	 * Routine to return the Technology of this PrimitiveNode.

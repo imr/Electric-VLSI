@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.ui;
 
 import javax.swing.ImageIcon;
 import javax.swing.JTree;
+import javax.swing.JScrollPane;
 import javax.swing.tree.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 

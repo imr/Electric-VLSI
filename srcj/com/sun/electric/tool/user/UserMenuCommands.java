@@ -72,7 +72,7 @@ public final class UserMenuCommands
 
 	public static void openLibraryCommand()
 	{
-		String fileName = UIDialogOpenFile.ELIB.chooseInputFile();
+		String fileName = UIDialogOpenFile.ELIB.chooseInputFile(null);
 		if (fileName != null)
 		{
 			// start a new thread to do the input

@@ -25,15 +25,16 @@ package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.database.text.CellName;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.technologies.Generic;
 
 import java.awt.geom.Rectangle2D;
 import java.util.List;
@@ -541,28 +542,10 @@ public class Cell extends NodeProto
 	public double getDefHeight() { return getBounds().height; }
 
 	/**
-	 * Routine to low-X offset of this Cell.
-	 * @return low-X offset of this Cell.  It is always zero for cells.
+	 * Routine to size offset of this Cell.
+	 * @return the size offset of this Cell.  It is always zero for cells.
 	 */
-	public double getLowXOffset() { return 0; }
-
-	/**
-	 * Routine to high-X offset of this Cell.
-	 * @return high-X offset of this Cell.  It is always zero for cells.
-	 */
-	public double getHighXOffset() { return 0; }
-
-	/**
-	 * Routine to low-Y offset of this Cell.
-	 * @return low-Y offset of this Cell.  It is always zero for cells.
-	 */
-	public double getLowYOffset() { return 0; }
-
-	/**
-	 * Routine to high-Y offset of this Cell.
-	 * @return high-Y offset of this Cell.  It is always zero for cells.
-	 */
-	public double getHighYOffset() { return 0; }
+	public SizeOffset getSizeOffset() { return new SizeOffset(0, 0, 0, 0); }
 
 	/**
 	 * Routine to R-Tree of this Cell.

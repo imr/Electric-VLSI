@@ -53,12 +53,13 @@ public class UIDialogOpenFile extends JFileChooser
 	/**
 	 * Routine to invoke an "open file" dialog and return the selected file.
 	 */
-	public String chooseInputFile()
+	public String chooseInputFile(String newDescription)
 	{
 		saveDialog = false;
 		UIFileFilter filter = new UIFileFilter();
 		if (extension != null) filter.addExtension(extension);
-		setDialogTitle("Read " + description);
+		if (newDescription == null) setDialogTitle("Read " + description); else
+			setDialogTitle(newDescription);
 		filter.setDescription(description);
 		setFileFilter(filter);
 		int returnVal = showOpenDialog(null);

@@ -324,6 +324,18 @@ public class Poly implements Shape
 	 */
 	public void transform(AffineTransform af)
 	{
+		// special case for Poly type CIRCLEARC and THICKCIRCLEARC: if transposing, reverse points
+		if (style == Type.CIRCLEARC || style == Type.THICKCIRCLEARC)
+		{
+			double det = af.getDeterminant();
+			if (det < 0) for(int i=0; i<points.length; i += 3)
+			{
+				double x = points[i+1].getX();
+				double y = points[i+1].getY();
+				points[i+1].setLocation(points[i+2].getX(), points[i+2].getY());
+				points[i+2].setLocation(x, y);
+			}
+		}
 		af.transform(points, 0, points, 0, points.length);
 //		af.transform(points, points);
 		bounds = null;
@@ -417,12 +429,12 @@ public class Poly implements Shape
 			double ang = 0;
 			Point2D.Double lastPoint = points[points.length-1];
 			if (pt.equals(lastPoint)) return true;
-			double lastp = EMath.figureAngle(pt, lastPoint);
+			double lastp = EMath.figureAngle(pt, lastPoint) * 180.0 / Math.PI;
 			for(int i=0; i<points.length; i++)
 			{
 				Point2D.Double thisPoint = points[i];
 				if (pt.equals(thisPoint)) return true;
-				double thisp = EMath.figureAngle(pt, thisPoint);
+				double thisp = EMath.figureAngle(pt, thisPoint) * 180.0 / Math.PI;
 				double tang = lastp - thisp;
 				if (tang < -180) tang += 360;
 				if (tang > 180) tang -= 360;
@@ -461,8 +473,8 @@ public class Poly implements Shape
 
 		if (style == Type.CIRCLE || style == Type.THICKCIRCLE || style == Type.DISC)
 		{
-			double dist = EMath.computeDistance(points[0], points[1]);
-			double odist = EMath.computeDistance(points[0], pt);
+			double dist = points[0].distance(points[1]);
+			double odist = points[0].distance(pt);
 			if (odist < dist) return true;
 			return false;
 		}
@@ -481,22 +493,22 @@ public class Poly implements Shape
 			} else
 			{
 				if (ang < startangle && ang > endangle) return false;
-				angrange = 3600 - startangle + endangle;
+				angrange = (Math.PI*2) - startangle + endangle;
 			}
 
 			/* now see if the point is the proper distance from the center of the arc */
-			double dist = EMath.computeDistance(points[0], pt);
+			double dist = points[0].distance(pt);
 			double wantdist;
 			if (ang == startangle || angrange == 0)
 			{
-				wantdist = EMath.computeDistance(points[0], points[1]);
+				wantdist = points[0].distance(points[1]);
 			} else if (ang == endangle)
 			{
-				wantdist = EMath.computeDistance(points[0], points[2]);
+				wantdist = points[0].distance(points[2]);
 			} else
 			{
-				double startdist = EMath.computeDistance(points[0], points[1]);
-				double enddist = EMath.computeDistance(points[0], points[2]);
+				double startdist = points[0].distance(points[1]);
+				double enddist = points[0].distance(points[2]);
 				if (enddist == startdist) wantdist = startdist; else
 				{
 					wantdist = startdist + (ang - startangle) / angrange *

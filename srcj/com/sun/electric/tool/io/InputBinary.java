@@ -45,6 +45,7 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ui.UITopLevel;
+import com.sun.electric.tool.user.ui.UIDialogOpenFile;
 
 import java.io.IOException;
 import java.io.File;
@@ -56,6 +57,9 @@ import java.awt.geom.Point2D;
 import java.nio.ByteBuffer;
 
 
+/**
+ * This class reads files in binary (.elib) format.
+ */
 public class InputBinary extends Input
 {
 	// ------------------------- private data ----------------------------
@@ -144,8 +148,8 @@ public class InputBinary extends Input
 
 	// the geometric information (only used for old format files)
 	/** the number of Geometrics in the file */								private int geomCount;
-	/** list of all XXXXX in the library */									private boolean [] geomType;
-	/** list of all XXXXX in the library */									private int [] geomMoreUp;
+	/** list of all Geometric types in the library */						private boolean [] geomType;
+	/** list of all Geometric up-pointers in the library */					private int [] geomMoreUp;
 
 	// the variable information
 	/** number of variable names in the library */							private int nameCount;
@@ -169,12 +173,14 @@ public class InputBinary extends Input
 	/** older magic number: version 2 */		public static final int MAGIC2 =  -1575;
 	/** oldest magic number: version 1 */		public static final int MAGIC1 =  -1573;
 
-	InputBinary()
-	{
-	}
+	InputBinary() {}
 
 	// ----------------------- public methods -------------------------------
 
+	/**
+	 * Routine to read a Library in binary (.elib) format.
+	 * @return true on error.
+	 */
 	protected boolean ReadLib()
 	{
 		try
@@ -307,7 +313,7 @@ public class InputBinary extends Input
 		}
 
 		// erase the current database
-//		lib.erase();
+		lib.erase();
 
 		// allocate pointers for the Technologies
 		techList = new Technology[techCount];
@@ -904,31 +910,6 @@ public class InputBinary extends Input
 			fixExternalVariables(cell);
 		}
 
-		// convert port references in external cells
-		for(int i=0; i<nodeProtoCount; i++)
-		{
-			Cell cell = nodeProtoList[i];
-
-//			// ignore this cell if it is in a library being read
-//			boolean showError = true;
-//			Library olib = cell.getLibrary();
-//			if (olib != lib && olib->temp1 != 0) showError = false;
-//
-//			// convert its ports
-//			for(pp = np->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
-//			{
-//				if (pp->temp2 == 0) continue;
-//				if (convertPortProto(&pp->subportproto, showError))
-//				{
-//					if (showError)
-//						ttyputmsg(_("  While reading library %s, on cell %s, port %s (lib %s temp1 is %ld)"),
-//							lib->libname, describenodeproto(np), pp->protoname, np->lib->libname,
-//								np->lib->temp1);
-//				}
-//				pp->temp2 = 0;
-//			}
-		}
-
 		// read the cell contents: arcs and nodes
 		int nodeIndex = 0, arcIndex = 0, geomIndex = 0;
 		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
@@ -1009,7 +990,7 @@ public class InputBinary extends Input
 	/**
 	 * Routine to recursively create the contents of each cell in the library.
 	 */
-	public void completeCellSetupRecursively(Cell cell, int cellIndex)
+	private void completeCellSetupRecursively(Cell cell, int cellIndex)
 	{
 		// scan the nodes in this cell and recurse
 		int startNode = firstNodeIndex[cellIndex];
@@ -1037,7 +1018,7 @@ public class InputBinary extends Input
 		if (cellTech != null) lambda = techScale[cellTech.getIndex()];
 
 		// finish initializing the NodeInsts in the cell
-		int cellCenterNode = -1;
+		double xoff = 0, yoff = 0;
 		for(int i=startNode; i<endNode; i++)
 		{
 			// convert to new style
@@ -1045,32 +1026,60 @@ public class InputBinary extends Input
 			NodeProto np = nodeTypeList[i];
 			if (np == Generic.tech.cellCenter_node)
 			{
-				cellCenterNode = i;
-				continue;
+				int lowX = nodeLowXList[i];
+				int lowY = nodeLowYList[i];
+				int highX = nodeHighXList[i];
+				int highY = nodeHighYList[i];
+				boolean transpose = nodeTransposeList[i];
+				int rotation = nodeRotationList[i];
+				xoff = (lowX + highX) / 2;
+				yoff = (lowY + highY) / 2;
+				Point2D.Double center = new Point2D.Double(xoff / lambda, yoff / lambda);
+				double width = (highX - lowX) / lambda;
+				double height = (highY - lowY) / lambda;
+				double angle = rotation * Math.PI / 1800;
+				if (transpose) width = -width;
+				ni.lowLevelPopulate(np, center, width, height, angle, cell);
+				ni.lowLevelLink();
 			}
+		}
+
+		// finish creating the rest of the NodeInsts
+		for(int i=startNode; i<endNode; i++)
+		{
+			// convert to new style
+			NodeInst ni = nodeList[i];
+			NodeProto np = nodeTypeList[i];
+			if (np == Generic.tech.cellCenter_node) continue;
 
 			// determine the value of lambda for this node
 			if (np instanceof PrimitiveNode)
 			{
-				// special case for "trace" on a node: scale the values
+				// special case for "trace" on a node: scale the values and convert from Integer to Float
 				if (np.isHoldsOutline())
 				{
-					Integer [] outline = ni.getTrace();
-					if (outline != null)
+					Variable var = ni.getVal("trace", Integer[].class);
+					if (var != null)
 					{
+						Integer [] outline = (Integer [])var.getObject();
+						Float [] newOutline = new Float[outline.length];
 						for(int j=0; j<outline.length; j++)
 						{
-							int oldValue = outline[j].intValue();
-							outline[j] = new Integer((int)(oldValue/lambda));
+							float oldValue = outline[j].intValue();
+							newOutline[j] = new Float(oldValue/lambda);
 						}
+						ni.delVal("trace");
+						Variable newVar = ni.setVal("trace", newOutline);
+						if (newVar == null)
+							System.out.println("Could not preserve outline information on node in cell "+cell.describe());
 					}
 				}
 			}
 
-			int lowX = nodeLowXList[i];
-			int lowY = nodeLowYList[i];
-			int highX = nodeHighXList[i];
-			int highY = nodeHighYList[i];
+			double lowX = nodeLowXList[i]-xoff;
+			double lowY = nodeLowYList[i]-yoff;
+			double highX = nodeHighXList[i]-xoff;
+			double highY = nodeHighYList[i]-yoff;
 			boolean transpose = nodeTransposeList[i];
 			int rotation = nodeRotationList[i];
 			Point2D.Double center = new Point2D.Double(((lowX + highX) / 2) / lambda, ((lowY + highY) / 2) / lambda);
@@ -1113,10 +1122,10 @@ public class InputBinary extends Input
 			ArcInst ai = arcList[i];
 			ArcProto ap = arcTypeList[i];
 			double width = arcWidthList[i];
-			double headX = arcHeadXPosList[i];
-			double headY = arcHeadYPosList[i];
-			double tailX = arcTailXPosList[i];
-			double tailY = arcTailYPosList[i];
+			double headX = arcHeadXPosList[i] - xoff / lambda;
+			double headY = arcHeadYPosList[i] - yoff / lambda;
+			double tailX = arcTailXPosList[i] - xoff / lambda;
+			double tailY = arcTailYPosList[i] - yoff / lambda;
 			NodeInst headNode = arcHeadNodeList[i];
 			PortProto headPort = arcHeadPortList[i];
 			NodeInst tailNode = arcTailNodeList[i];
@@ -1141,26 +1150,6 @@ public class InputBinary extends Input
 			ai.lowLevelPopulate(ap, width, tailPortInst, tailX, tailY, headPortInst, headX, headY);
 			ai.lowLevelLink();
 		}
-
-		// create the cell-center last if it exists
-		if (cellCenterNode >= 0)
-		{
-			NodeInst ni = nodeList[cellCenterNode];
-			NodeProto np = nodeTypeList[cellCenterNode];
-			int lowX = nodeLowXList[cellCenterNode];
-			int lowY = nodeLowYList[cellCenterNode];
-			int highX = nodeHighXList[cellCenterNode];
-			int highY = nodeHighYList[cellCenterNode];
-			boolean transpose = nodeTransposeList[cellCenterNode];
-			int rotation = nodeRotationList[cellCenterNode];
-			Point2D.Double center = new Point2D.Double(((lowX + highX) / 2) / lambda, ((lowY + highY) / 2) / lambda);
-			double width = (highX - lowX) / lambda;
-			double height = (highY - lowY) / lambda;
-			double angle = rotation * Math.PI / 1800;
-			if (transpose) width = -width;
-			ni.lowLevelPopulate(np, center, width, height, angle, cell);
-			ni.lowLevelLink();
-		}
 	}
 
 	// --------------------------------- HIGH-LEVEL OBJECTS ---------------------------------
@@ -1170,7 +1159,7 @@ public class InputBinary extends Input
 	 * The header consists of the "magic" number and the size of various pieces of data.
 	 * Returns true on error.
 	 */
-	boolean readHeader()
+	private boolean readHeader()
 		throws IOException
 	{
 		bytesSwapped = false;
@@ -1217,7 +1206,7 @@ public class InputBinary extends Input
 	/**
 	 * routine to read a cell.  returns true upon error
 	 */
-	boolean readNodeProto(Cell cell, int cellIndex)
+	private boolean readNodeProto(Cell cell, int cellIndex)
 		throws IOException
 	{
 		// read the cell name
@@ -1388,7 +1377,7 @@ public class InputBinary extends Input
 	}
 
 	/** routine to read node prototype for external references */
-	boolean readExternalNodeProto(Library lib, int cellIndex)
+	private boolean readExternalNodeProto(Library lib, int cellIndex)
 		throws IOException
 	{
 		// read the cell information (version 9 and later)
@@ -1467,6 +1456,13 @@ public class InputBinary extends Input
 					if (!testFile.exists()) externalFile = null;
 				}
 			}
+			if (externalFile == null)
+			{
+				System.out.println("CANNOT FIND referenced library " + libFile.getPath());
+				String description = "Reference library '" + libFileName + "'";
+				String pt = UIDialogOpenFile.ELIB.chooseInputFile(description);
+				if (pt != null) externalFile = pt;
+			}
 			if (externalFile != null)
 			{
 				System.out.println("Reading referenced library " + externalFile);
@@ -1475,10 +1471,6 @@ public class InputBinary extends Input
 			{
 				System.out.println("CANNOT FIND referenced library " + libFile.getPath());
 				elib = null;
-//				infstr = initinfstr();
-//				formatinfstr(infstr, _("Reference library '%s'"), libname);
-//				pt = fileselect(returninfstr(infstr), filetype, x_(""));
-//				if (pt != 0) filename = pt;
 			}
 			if (elib == null) return true;
 
@@ -1666,7 +1658,7 @@ public class InputBinary extends Input
 	/**
 	 * routine to read a node instance.  returns true upon error
 	 */
-	boolean readNodeInst(int nodeIndex, int cellIndex)
+	private boolean readNodeInst(int nodeIndex, int cellIndex)
 		throws IOException
 	{
 		// read the nodeproto index
@@ -1777,7 +1769,7 @@ public class InputBinary extends Input
 	/**
 	 * routine to read an arc instance.  returns true upon error
 	 */
-	boolean readArcInst(int arcIndex)
+	private boolean readArcInst(int arcIndex)
 		throws IOException
 	{
 		ArcInst ai = arcList[arcIndex];
@@ -1858,7 +1850,7 @@ public class InputBinary extends Input
 	/**
 	 * routine to read (and mostly ignore) a geometry module
 	 */
-	void readGeom(boolean [] isNode, int [] moreup, int index)
+	private void readGeom(boolean [] isNode, int [] moreup, int index)
 		throws IOException
 	{
 		int type = readBigInteger();		// read entrytype
@@ -1924,7 +1916,7 @@ public class InputBinary extends Input
 	/**
 	 * routine to read the global namespace.  returns true upon error
 	 */
-	boolean readNameSpace()
+	private boolean readNameSpace()
 		throws IOException
 	{
 		nameCount = readBigInteger();
@@ -1941,7 +1933,7 @@ public class InputBinary extends Input
 	 * routine to read a set of object variables.  returns negative upon error and
 	 * otherwise returns the number of variables read
 	 */
-	int readVariables(ElectricObject obj)
+	private int readVariables(ElectricObject obj)
 		throws IOException
 	{
 		int count = readBigInteger();
@@ -2063,7 +2055,7 @@ public class InputBinary extends Input
 	/**
 	 * routine to ignore one set of object variables on readin
 	 */
-	void ignoreVariables()
+	private void ignoreVariables()
 		throws IOException
 	{
 		NodeInst ni = NodeInst.lowLevelAllocate();
@@ -2073,7 +2065,7 @@ public class InputBinary extends Input
 	/**
 	 * routine to fix variables that make reference to external cells.
 	 */
-	void fixExternalVariables(ElectricObject obj)
+	private void fixExternalVariables(ElectricObject obj)
 	{
 //		REGISTER INTBIG i;
 //		REGISTER INTBIG j, k, type, len;
@@ -2117,7 +2109,7 @@ public class InputBinary extends Input
 	 * Returns zero if OK, negative on memory error, positive if there were
 	 * correctable problems in the read.
 	 */
-	Object getInVar(int ty)
+	private Object getInVar(int ty)
 		throws IOException
 	{
 		int i;
@@ -2199,7 +2191,7 @@ public class InputBinary extends Input
 	/**
 	 * routine to convert the nodeproto index "i" to a true nodeproto pointer.
 	 */
-	NodeProto convertNodeProto(int i)
+	private NodeProto convertNodeProto(int i)
 	{
 		int error = 0;
 		if (i < 0)
@@ -2227,7 +2219,7 @@ public class InputBinary extends Input
 	/**
 	 * routine to convert the arcproto index "i" to a true arcproto pointer.
 	 */
-	PrimitiveArc convertArcProto(int i)
+	private PrimitiveArc convertArcProto(int i)
 	{
 		int aindex = -i - 2;
 		if (aindex >= arcProtoCount || aindex < 0)
@@ -2241,7 +2233,7 @@ public class InputBinary extends Input
 	/**
 	 * routine to convert the PortProto index "i" to a true PortProto pointer.
 	 */
-	PortProto convertPortProto(int i)
+	private PortProto convertPortProto(int i)
 	{
 		if (i < 0)
 		{
@@ -2262,7 +2254,7 @@ public class InputBinary extends Input
 		return portProtoList[i];
 	}
 
-	NodeProto getPrimNodeProtoList(int i)
+	private NodeProto getPrimNodeProtoList(int i)
 	{
 		getTechList(primNodeProtoTech[i]);
 		if (primNodeProtoError[i])
@@ -2274,7 +2266,7 @@ public class InputBinary extends Input
 		return(primNodeProtoList[i]);
 	}
 
-	PrimitiveArc getArcProtoList(int i)
+	private PrimitiveArc getArcProtoList(int i)
 	{
 		if (arcProtoError[i] != null)
 		{
@@ -2284,7 +2276,7 @@ public class InputBinary extends Input
 		return(arcProtoList[i]);
 	}
 
-	PortProto getPrimPortProtoList(int i)
+	private PortProto getPrimPortProtoList(int i)
 	{
 		if (primPortProtoError[i] != null)
 		{
@@ -2298,7 +2290,7 @@ public class InputBinary extends Input
 	/**
 	 * routine to return the Technology associated with index "i".
 	 */
-	Technology getTechList(int i)
+	private Technology getTechList(int i)
 	{
 		if (techError[i] != null)
 		{
@@ -2311,7 +2303,7 @@ public class InputBinary extends Input
 	/**
 	 * routine to return the View associated with index "i".
 	 */
-	View getView(int i)
+	private View getView(int i)
 	{
 		View v = null;
 		for(Iterator it = View.getViews(); it.hasNext(); )
@@ -2325,7 +2317,7 @@ public class InputBinary extends Input
 	/**
 	 * routine to convert the Electric-format date "secondsSinceEpoch" to a Java Data object.
 	 */
-	Date fromElectricDate(int secondsSinceEpoch)
+	private Date fromElectricDate(int secondsSinceEpoch)
 	{
 		GregorianCalendar creation = new GregorianCalendar();
 		creation.setTimeInMillis(0);
@@ -2339,7 +2331,7 @@ public class InputBinary extends Input
 	/**
 	 * routine to read a single byte from the input stream and return it.
 	 */
-	byte readByte()
+	private byte readByte()
 		throws IOException
 	{
 		int value = dataInputStream.read();
@@ -2347,13 +2339,13 @@ public class InputBinary extends Input
 		return (byte)value;
 	}
 
-	static ByteBuffer bb = ByteBuffer.allocateDirect(8);
-	static byte [] rawData = new byte[8];
+	static private ByteBuffer bb = ByteBuffer.allocateDirect(8);
+	static private byte [] rawData = new byte[8];
 
 	/**
 	 * routine to read an integer (4 bytes) from the input stream and return it.
 	 */
-	int readBigInteger()
+	private int readBigInteger()
 		throws IOException
 	{
 		if (bytesSwapped)
@@ -2373,7 +2365,7 @@ public class InputBinary extends Input
 	/**
 	 * routine to read a float (4 bytes) from the input stream and return it.
 	 */
-	float readFloat()
+	private float readFloat()
 		throws IOException
 	{
 		if (bytesSwapped)
@@ -2393,7 +2385,7 @@ public class InputBinary extends Input
 	/**
 	 * routine to read a double (8 bytes) from the input stream and return it.
 	 */
-	double readDouble()
+	private double readDouble()
 		throws IOException
 	{
 		if (bytesSwapped)
@@ -2417,7 +2409,7 @@ public class InputBinary extends Input
 	/**
 	 * routine to read an short (2 bytes) from the input stream and return it.
 	 */
-	short readSmallInteger()
+	private short readSmallInteger()
 		throws IOException
 	{
 		if (bytesSwapped)
@@ -2435,7 +2427,7 @@ public class InputBinary extends Input
 	/**
 	 * routine to read a string from the input stream and return it.
 	 */
-	String readString()
+	private String readString()
 		throws IOException
 	{
 		if (sizeOfChar != 1)
@@ -2460,7 +2452,7 @@ public class InputBinary extends Input
 	/**
 	 * routine to read a number of bytes from the input stream and return it.
 	 */
-	void readBytes(byte [] data, int diskSize, int memorySize, boolean signExtend)
+	private void readBytes(byte [] data, int diskSize, int memorySize, boolean signExtend)
 		throws IOException
 	{
 		// check for direct transfer

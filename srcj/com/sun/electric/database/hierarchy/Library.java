@@ -198,7 +198,7 @@ public class Library extends ElectricObject
 	/**
 	 * Routine to delete this Library.
 	 */
-	public void killLibrary()
+	public void kill()
 	{
 		// cannot delete the current library
 		if (curLib == this)
@@ -215,10 +215,19 @@ public class Library extends ElectricObject
 		}
 
 		// remove all cells in the library
-//		removeAll(cells);
+		erase();
 
 		// remove it from the list of libraries
 		libraries.remove(this);
+	}
+
+	/**
+	 * Routine to remove all contents from this Library.
+	 */
+	public void erase()
+	{
+		// remove all cells in the library
+		cells.clear();
 	}
 
 	void addCell(Cell c)

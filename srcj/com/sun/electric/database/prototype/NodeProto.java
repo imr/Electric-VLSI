@@ -31,6 +31,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.SizeOffset;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -1025,36 +1026,10 @@ public abstract class NodeProto extends ElectricObject
 	public abstract double getDefHeight();
 
 	/**
-	 * Abstract routine to return the Low X offset between the actual NodeProto edge and the reported/selected bound.
-	 * Cells always implement this by returning zero.
-	 * PrimitiveNodes may have a nonzero offset if the reported and selected size is smaller than the actual size.
-	 * @return the the inset from the left edge of the reported/selected area.
+	 * Routine to size offset of this Cell.
+	 * @return the size offset of this Cell.  It is always zero for cells.
 	 */
-	public abstract double getLowXOffset();
-
-	/**
-	 * Abstract routine to return the High X offset between the actual NodeProto edge and the reported/selected bound.
-	 * Cells always implement this by returning zero.
-	 * PrimitiveNodes may have a nonzero offset if the reported and selected size is smaller than the actual size.
-	 * @return the the inset from the right edge of the reported/selected area.
-	 */
-	public abstract double getHighXOffset();
-
-	/**
-	 * Abstract routine to return the Low Y offset between the actual NodeProto edge and the reported/selected bound.
-	 * Cells always implement this by returning zero.
-	 * PrimitiveNodes may have a nonzero offset if the reported and selected size is smaller than the actual size.
-	 * @return the the inset from the bottom edge of the reported/selected area.
-	 */
-	public abstract double getLowYOffset();
-
-	/**
-	 * Abstract routine to return the High Y offset between the actual NodeProto edge and the reported/selected bound.
-	 * Cells always implement this by returning zero.
-	 * PrimitiveNodes may have a nonzero offset if the reported and selected size is smaller than the actual size.
-	 * @return the the inset from the top edge of the reported/selected area.
-	 */
-	public abstract double getHighYOffset();
+	public abstract SizeOffset getSizeOffset();
 
 	/**
 	 * Abstract routine to return the Technology to which this NodeProto belongs.

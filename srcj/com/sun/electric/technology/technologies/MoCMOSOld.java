@@ -849,9 +849,9 @@ public class MoCMOSOld extends Technology
 		PrimitiveNode st_node = PrimitiveNode.newInstance("S-Transistor", this, 6, 10, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_6),
-				new Technology.NodeLayer(SA_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN2BOX),
-				new Technology.NodeLayer(PS_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
+				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_6, 1, 1, 2, 2),
+				new Technology.NodeLayer(SA_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN2BOX, 3, 3, 0, 0),
+				new Technology.NodeLayer(PS_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX, 5, 5, 2, 2)
 			});
 		st_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -867,14 +867,15 @@ public class MoCMOSOld extends Technology
 		st_node.setFunction(NodeProto.Function.TRAPMOS);
 		st_node.setHoldsOutline();
 		st_node.setCanShrink();
+		st_node.setSpecialValues(new int [] {PrimitiveNode.SERPTRANS, 6, 1, 1, 2, 1, 1, 0, 0});
 
 		/** D-Transistor */
 		PrimitiveNode dt_node = PrimitiveNode.newInstance("D-Transistor", this, 10, 14, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_3),
-				new Technology.NodeLayer(PW_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX),
-				new Technology.NodeLayer(DA_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN4BOX)
+				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_3, 1, 1, 2, 2),
+				new Technology.NodeLayer(PW_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX, 7, 7, 4, 4),
+				new Technology.NodeLayer(DA_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN4BOX, 3, 3, 0, 0)
 			});
 		dt_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -890,6 +891,7 @@ public class MoCMOSOld extends Technology
 		dt_node.setFunction(NodeProto.Function.TRANMOS);
 		dt_node.setHoldsOutline();
 		dt_node.setCanShrink();
+		dt_node.setSpecialValues(new int [] {PrimitiveNode.SERPTRANS, 6, 1, 1, 2, 1, 1, 0, 0});
 
 		/** Metal-1-Metal-2-Con */
 		PrimitiveNode mmc_node = PrimitiveNode.newInstance("Metal-1-Metal-2-Con", this, 4, 4, new SizeOffset(0, 0, 0, 0),

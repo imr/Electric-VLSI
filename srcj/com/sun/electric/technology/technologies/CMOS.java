@@ -582,9 +582,9 @@ public class CMOS extends Technology
 		PrimitiveNode t_node = PrimitiveNode.newInstance("Transistor", this, 6, 6, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_15),
-				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_14),
-				new Technology.NodeLayer(P0_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
+				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_15, 3, 3, 0, 0),
+				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_14, 1, 1, 2, 2),
+				new Technology.NodeLayer(P0_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX, 3, 3, 2, 2)
 			});
 		t_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -600,14 +600,15 @@ public class CMOS extends Technology
 		t_node.setFunction(NodeProto.Function.TRANMOS);
 		t_node.setHoldsOutline();
 		t_node.setCanShrink();
+		t_node.setSpecialValues(new int [] {PrimitiveNode.SERPTRANS, 5, 1, 1, 2, 1, 1, 0, 0});
 
 		/** Transistor-Well */
 		PrimitiveNode tw_node = PrimitiveNode.newInstance("Transistor-Well", this, 8, 8, new SizeOffset(3, 3, 3, 3),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_11),
-				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_10),
-				new Technology.NodeLayer(PW_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
+				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_11, 3, 3, 0, 0),
+				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_10, 1, 1, 2, 2),
+				new Technology.NodeLayer(PW_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX, 4, 4, 3, 3)
 			});
 		tw_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -623,6 +624,7 @@ public class CMOS extends Technology
 		tw_node.setFunction(NodeProto.Function.TRAPMOS);
 		tw_node.setHoldsOutline();
 		tw_node.setCanShrink();
+		tw_node.setSpecialValues(new int [] {PrimitiveNode.SERPTRANS, 5, 1, 1, 2, 1, 1, 0, 0});
 
 		/** Metal-Diff-Split-Cut */
 		PrimitiveNode mdsc_node = PrimitiveNode.newInstance("Metal-Diff-Split-Cut", this, 14, 10, new SizeOffset(3, 3, 3, 3),

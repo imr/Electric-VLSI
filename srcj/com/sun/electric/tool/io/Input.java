@@ -30,16 +30,20 @@ import java.io.*;
 import java.util.List;
 import java.util.ArrayList;
 
+/**
+ * This class manages reading files in different formats.
+ * The class is subclassed by the different file readers.
+ */
 public class Input
 {
 	private static final int READ_BUFFER_SIZE = 65536;
 	
-	/** Name of the file being input. */					String filePath;
-	/** The Library being input. */							Library lib;
+	/** Name of the file being input. */					protected String filePath;
+	/** The Library being input. */							protected Library lib;
+	/** The binary input stream. */							protected DataInputStream dataInputStream;
+	/** the path to the library being read. */				protected static String mainLibDirectory = null;
 	/** The raw input stream. */							private FileInputStream fileInputStream;
-	/** The binary input stream. */							DataInputStream dataInputStream;
-	/** static list of all libraries in Electric */			static List newLibraries = new ArrayList();
-	static String mainLibDirectory = null;
+	/** static list of all libraries in Electric */			private static List newLibraries = new ArrayList();
 
 	/**
 	 * Function is a typesafe enum class that describes the types of files that can be read.
@@ -53,15 +57,19 @@ public class Input
 			this.name = name;
 		}
 
+		/**
+		 * Returns a printable version of this ImportType.
+		 * @return a printable version of this ImportType.
+		 */
 		public String toString() { return name; }
 
-		/** binary input */			public static final ImportType BINARY =   new ImportType("binary");
-		/** text input */			public static final ImportType TEXT =     new ImportType("text");
-		/** CIF input */			public static final ImportType CIF =      new ImportType("CIF");
-		/** GDS input */			public static final ImportType GDS =      new ImportType("GDS");
+		/** Defines binary input. */		public static final ImportType BINARY =   new ImportType("binary");
+		/** Defines text input. */			public static final ImportType TEXT =     new ImportType("text");
+		/** Defines CIF input. */			public static final ImportType CIF =      new ImportType("CIF");
+		/** Defines GDS input. */			public static final ImportType GDS =      new ImportType("GDS");
 	}
 
-	public static class FakeCell
+	protected static class FakeCell
 	{
 		String cellName;
 		NodeProto firstInCell;
@@ -74,7 +82,9 @@ public class Input
 	}
 
 	/**
-	 * The base-class routine for reading a library.
+	 * Routine to read a Library.
+	 * This method is never called.
+	 * Instead, it is always overridden by the appropriate read subclass.
 	 * @return true on error.
 	 */
 	protected boolean ReadLib() { return true; }
@@ -101,13 +111,16 @@ public class Input
 	}
 
 	/**
-	 * Routine to read disk file "fileName" which is of type "type".
-	 * The file is read into library "lib".  If "lib" is null, one is created.
-	 * Also, if "lib" is null, this is an entry-level library read.
+	 * Routine to read a single disk file.
+	 * @param fileName the path to the disk file.
+	 * @param lib the Library to read.
+	 * If the "lib" is null, this is an entry-level library read, and one is created.
 	 * If "lib" is not null, this is a recursive read caused by a cross-library
 	 * reference from inside another library.
+	 * @param type the type of library file (BINARY .elib, CIF, GDS, etc.)
+	 * @return the read Library, or null if an error occurred.
 	 */
-	static Library readALibrary(String fileName, Library lib, ImportType type)
+	protected static Library readALibrary(String fileName, Library lib, ImportType type)
 	{
 		Input in;
 

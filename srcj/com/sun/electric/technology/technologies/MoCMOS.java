@@ -1829,20 +1829,19 @@ public class MoCMOS extends Technology
 
 		/** P-Transistor */
 		pTransistor_node = PrimitiveNode.newInstance("P-Transistor", this, 15.0, 22.0, new SizeOffset(6, 6, 10, 10),
-			new Technology.NodeLayer []
-			{
+			new Technology.NodeLayer [] {
 				new Technology.NodeLayer(pActive_lay, 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(7)),
-					new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(7))}),
+					new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(7))}, 4, 4, 0, 0),
 				new Technology.NodeLayer(transistorPoly_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(10)),
-					new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(10))}),
+					new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(10))}, 1, 1, 2, 2),
 				new Technology.NodeLayer(nWell_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.fromBottom(1)),
-					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.fromTop(1))}),
+					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.fromTop(1))}, 10, 10, 6, 6),
 				new Technology.NodeLayer(pSelect_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(5)),
-					new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(5))})
+					new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(5))}, 6, 6, 2, 2)
 			});
 		pTransistor_node.addPrimitivePorts(new PrimitivePort []
 			{
@@ -1862,20 +1861,19 @@ public class MoCMOS extends Technology
 
 		/** N-Transistor */
 		nTransistor_node = PrimitiveNode.newInstance("N-Transistor", this, 15.0, 22.0, new SizeOffset(6, 6, 10, 10),
-			new Technology.NodeLayer []
-			{
+			new Technology.NodeLayer [] {
 				new Technology.NodeLayer(nActive_lay, 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(7)),
-					new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(7))}),
+					new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(7))}, 4, 4, 0, 0),
 				new Technology.NodeLayer(transistorPoly_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(10)),
-					new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(10))}),
+					new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(10))}, 1, 1, 2, 2),
 				new Technology.NodeLayer(pWell_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.LEFTEDGE, EdgeV.fromBottom(1)),
-					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.fromTop(1))}),
+					new Technology.TechPoint(EdgeH.RIGHTEDGE, EdgeV.fromTop(1))}, 10, 10, 6, 6),
 				new Technology.NodeLayer(nSelect_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(5)),
-					new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(5))})
+					new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(5))}, 6, 6, 2, 2)
 			});
 		nTransistor_node.addPrimitivePorts(new PrimitivePort []
 			{

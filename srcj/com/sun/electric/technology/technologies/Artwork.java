@@ -458,7 +458,7 @@ public class Artwork extends Technology
 			}
 		} else if (np == splineNode)
 		{
-			Integer [] tracePoints = ni.getTrace();
+			Float [] tracePoints = ni.getTrace();
 			if (tracePoints != null)
 			{
 				double cX = ni.getCenterX();
@@ -555,7 +555,7 @@ public class Artwork extends Technology
 	 * @param cX an offset value to add to the retrieved value.
 	 * @return the X coordinate value.
 	 */
-	private double getTracePointX(Integer [] tracePoints, int index, double cX)
+	private double getTracePointX(Float [] tracePoints, int index, double cX)
 	{
 		double v = tracePoints[index*2].doubleValue();
 		return v + cX;
@@ -568,7 +568,7 @@ public class Artwork extends Technology
 	 * @param cY an offset value to add to the retrieved value.
 	 * @return the Y coordinate value.
 	 */
-	private double getTracePointY(Integer [] tracePoints, int index, double cY)
+	private double getTracePointY(Float [] tracePoints, int index, double cY)
 	{
 		double v = tracePoints[index*2+1].doubleValue();
 		return v + cY;
@@ -581,7 +581,7 @@ public class Artwork extends Technology
 	 * @param tracePoints the array of control point values, alternating X/Y/X/Y.
 	 * @return an array of points that describes the spline.
 	 */
-	private Point2D.Double [] fillSpline(double cX, double cY, Integer [] tracePoints)
+	private Point2D.Double [] fillSpline(double cX, double cY, Float [] tracePoints)
 	{
 		int steps = SPLINEGRAIN;
 		int count = tracePoints.length / 2;

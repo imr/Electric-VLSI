@@ -1285,10 +1285,10 @@ public class MoCMOSSub extends Technology
 		PrimitiveNode pt_node = PrimitiveNode.newInstance("P-Transistor", this, 15, 20, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_3),
-				new Technology.NodeLayer(PA_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN6BOX),
-				new Technology.NodeLayer(PS_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN4BOX),
-				new Technology.NodeLayer(NW_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
+				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_3, 1, 1, 2.5, 2.5),
+				new Technology.NodeLayer(PA_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN6BOX, 4, 4, 0, 0),
+				new Technology.NodeLayer(PS_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN4BOX, 6, 6, 2, 2),
+				new Technology.NodeLayer(NW_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX, 10, 10, 6, 6)
 			});
 		pt_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1304,15 +1304,16 @@ public class MoCMOSSub extends Technology
 		pt_node.setFunction(NodeProto.Function.TRAPMOS);
 		pt_node.setHoldsOutline();
 		pt_node.setCanShrink();
+		pt_node.setSpecialValues(new int [] {PrimitiveNode.SERPTRANS, 6, (int)1.5, (int)2.5, 2, 1, 2, 0, 0});
 
 		/** N-Transistor */
 		PrimitiveNode nt_node = PrimitiveNode.newInstance("N-Transistor", this, 15, 20, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_3),
-				new Technology.NodeLayer(NA_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN6BOX),
-				new Technology.NodeLayer(NS_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN4BOX),
-				new Technology.NodeLayer(PW_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX)
+				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_3, 1, 1, 2.5, 2.5),
+				new Technology.NodeLayer(NA_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN6BOX, 4, 4, 0, 0),
+				new Technology.NodeLayer(NS_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN4BOX, 6, 6, 2, 2),
+				new Technology.NodeLayer(PW_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX, 10, 10, 6, 6)
 			});
 		nt_node.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -1328,6 +1329,7 @@ public class MoCMOSSub extends Technology
 		nt_node.setFunction(NodeProto.Function.TRANMOS);
 		nt_node.setHoldsOutline();
 		nt_node.setCanShrink();
+		nt_node.setSpecialValues(new int [] {PrimitiveNode.SERPTRANS, 6, (int)1.5, (int)2.5, 2, 1, 2, 0, 0});
 
 		/** Metal-1-Metal-2-Con */
 		PrimitiveNode mmc_node = PrimitiveNode.newInstance("Metal-1-Metal-2-Con", this, 4, 4, new SizeOffset(0, 0, 0, 0),

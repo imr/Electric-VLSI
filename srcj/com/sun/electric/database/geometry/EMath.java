@@ -34,28 +34,25 @@ public class EMath
 	 * Routine to return the angle between two points.
 	 * @param end1 the first point.
 	 * @param end2 the second point.
-	 * @return the angle between the points (in degrees).
+	 * @return the angle between the points (in radians).
 	 */
 	public static double figureAngle(Point2D.Double end1, Point2D.Double end2)
 	{
-		double angle = Math.atan2(end2.getY()-end1.getY(), end2.getX()-end1.getX()) * 180.0 / Math.PI;
-		if (angle < 0) angle += 360.0;
+		double angle = Math.atan2(end2.getY()-end1.getY(), end2.getX()-end1.getX());
+		if (angle < 0) angle += Math.PI*2;
 		return angle;		
 	}
 
 	/**
-	 * Routine to return the distance between two points.
-	 * @param end1 the first point.
-	 * @param end2 the second point.
-	 * @return the distance between the points.
+	 * Routine to return the sum of two points.
+	 * @param p the first point.
+	 * @param dx the X component of the second point
+	 * @param dt the T component of the second point
+	 * @return the sum of two points.
 	 */
-	public static double computeDistance(Point2D.Double end1, Point2D.Double end2)
+	public static Point2D.Double addPoints(Point2D.Double p, double dx, double dy)
 	{
-		double xDist = end2.getX() - end1.getX();
-		double yDist = end2.getY() - end1.getY();
-		if (xDist == 0) return Math.abs(yDist);
-		if (yDist == 0) return Math.abs(xDist);
-		return Math.sqrt(yDist*yDist + xDist*xDist);
+		return new Point2D.Double(p.getX()+dx, p.getY()+dy);
 	}
 
 	/**
@@ -87,6 +84,55 @@ public class EMath
 
 		// handle nonmanhattan
 		if ((pt.getX()-end1.getX()) * (end2.getY()-end1.getY()) == (pt.getY()-end1.getY()) * (end2.getX()-end1.getX())) return true;
+		return false;
+	}
+
+	/*
+	 * routine to determine the intersection of two lines and return that point
+	 * in (x,y).  The first line is at "ang1" radians and runs through (x1,y1)
+	 * and the second line is at "ang2" radians and runs through (x2,y2).  The
+	 * routine returns a negative value if the lines do not intersect.
+	 */
+	public static Point2D.Double intersect(Point2D.Double p1, double fang1, Point2D.Double p2, double fang2)
+	{
+		/* find the minimum and maximum angles */
+		double fmin = fang2, fmax = fang1;
+		if (fang1 < fang2)
+		{
+			fmin = fang1; fmax = fang2;
+		}
+
+		/* cannot handle lines if they are at the same angle */
+		fang1 %= Math.PI * 2;
+		fang2 %= Math.PI * 2;
+		if (doublesEqual(fang1, fang2)) return null;
+		if (doublesEqual(fmin + Math.PI, fmax)) return null;
+
+		double fa1 = Math.sin(fang1);
+		double fb1 = -Math.cos(fang1);
+		double fc1 = -fa1 * p1.getX() - fb1 * p1.getY();
+		double fa2 = Math.sin(fang2);
+		double fb2 = -Math.cos(fang2);
+		double fc2 = -fa2 * p2.getX() - fb2 * p2.getY();
+		if (Math.abs(fa1) < Math.abs(fa2))
+		{
+			double fswap = fa1;   fa1 = fa2;   fa2 = fswap;
+			fswap = fb1;   fb1 = fb2;   fb2 = fswap;
+			fswap = fc1;   fc1 = fc2;   fc2 = fswap;
+		}
+		double fy = (fa2 * fc1 / fa1 - fc2) / (fb2 - fa2*fb1/fa1);
+		return new Point2D.Double((-fb1 * fy - fc1) / fa1, fy);
+	}
+
+	private static double DBL_EPSILON = 2.2204460492503131e-016; /* smallest such that 1.0+DBL_EPSILON != 1.0 */
+
+	/*
+	 * Routine to return true if "a" is equal to "b" within the epsilon of double floating
+	 * point arithmetic.
+	 */
+	public static boolean doublesEqual(double a, double b)
+	{
+		if (Math.abs(a-b) <= DBL_EPSILON) return true;
 		return false;
 	}
 }

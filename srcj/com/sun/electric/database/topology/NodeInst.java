@@ -134,20 +134,19 @@ public class NodeInst extends Geometric
 			/* special case for polygonally-defined nodes: compute precise geometry */
 			if (protoType.isHoldsOutline())
 			{
-				Integer [] outline = getTrace();
+				Float [] outline = getTrace();
 				if (outline != null)
 				{
 					int numPoints = outline.length / 2;
 					Point2D.Double [] pointList = new Point2D.Double[numPoints];
 					for(int i=0; i<numPoints; i++)
 					{
-						pointList[i] = new Point2D.Double(cX + outline[i*2].intValue(), cY + outline[i*2+1].intValue());
+						pointList[i] = new Point2D.Double(cX + outline[i*2].floatValue(), cY + outline[i*2+1].floatValue());
 					}
 					Poly poly = new Poly(pointList);
 					poly.setStyle(Poly.Type.OPENED);
 					poly.transform(rotateOut());
 					visBounds.setRect(poly.getBounds2DDouble());
-//System.out.println("For node in cell "+parent.describe()+" with "+numPoints+" points, bounds="+visBounds);
 					return;
 				}
 			}
@@ -264,6 +263,10 @@ public class NodeInst extends Geometric
 	 */
 	public void modifyInstance(double dx, double dy, double dxsize, double dysize, double drot)
 	{
+		// remove from the R-Tree structure
+		unLinkGeom(parent);
+
+		// make the change
 		this.cX += dx;
 		this.cY += dy;
 
@@ -271,7 +274,12 @@ public class NodeInst extends Geometric
 		this.sY += dysize;
 
 		this.angle += drot;
+
+		// fill in the Geometric fields
 		updateGeometric();
+
+		// link back into the R-Tree
+		linkGeom(parent);
 
 		// change the coordinates of every arc end connected to this
 		for(Iterator it = getConnections(); it.hasNext(); )
@@ -280,9 +288,9 @@ public class NodeInst extends Geometric
 			if (con.getPortInst().getNodeInst() == this)
 			{
 				Point2D.Double oldLocation = con.getLocation();
-				con.setLocation(new Point2D.Double(oldLocation.getX()+dx, oldLocation.getY()+dy));
+				if (con.isHeadEnd()) con.getArc().modify(0, dx, dy, 0, 0); else
+					con.getArc().modify(0, 0, 0, dx, dy);
 			}
-			con.getArc().updateGeometric();
 		}
 		parent.setDirty();
 	}
@@ -850,14 +858,14 @@ public class NodeInst extends Geometric
 	 * It is typically used in Artwork primitives to give them a precise shape.
 	 * It is also used by pure-layer nodes in all layout technologies to allow them to take any shape.
 	 * It is even used by many MOS transistors to allow a precise gate path to be specified.
-	 * @return an array of Integers, organized as X/Y/X/Y.
+	 * @return an array of Floats, organized as X/Y/X/Y.
 	 */
-	public Integer [] getTrace()
+	public Float [] getTrace()
 	{
-		Variable var = this.getVal("trace", Integer[].class);
+		Variable var = this.getVal("trace", Float[].class);
 		if (var == null) return null;
 		Object obj = var.getObject();
-		if (obj instanceof Object[]) return (Integer []) obj;
+		if (obj instanceof Object[]) return (Float []) obj;
 		return null;
 	}
 

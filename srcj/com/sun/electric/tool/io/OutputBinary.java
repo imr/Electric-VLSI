@@ -55,6 +55,9 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
 
+/**
+ * This class writes files in binary (.elib) format.
+ */
 public class OutputBinary extends Output
 {
 
@@ -68,7 +71,11 @@ public class OutputBinary extends Output
 
 	// ----------------------- public methods -------------------------------
 
-	public boolean writeLib(Library lib)
+	/**
+	 * Routine to write a Library in binary (.elib) format.
+	 * @param lib the Library to be written.
+	 */
+	protected boolean writeLib(Library lib)
 	{
 		try
 		{
@@ -527,7 +534,7 @@ public class OutputBinary extends Output
 
 	// --------------------------------- OBJECT CONVERSION ---------------------------------
 
-	void writeNodeProto(Cell cell, boolean thislib)
+	private void writeNodeProto(Cell cell, boolean thislib)
 		throws IOException
 	{
 		// write cell information
@@ -631,7 +638,7 @@ public class OutputBinary extends Output
 		}
 	}
 
-	void writeNodeInst(NodeInst ni)
+	private void writeNodeInst(NodeInst ni)
 		throws IOException
 	{
 		// write the nodeproto pointer
@@ -698,7 +705,7 @@ public class OutputBinary extends Output
 		writeVariables(ni,  tech.getScale());
 	}
 
-	void writeArcInst(ArcInst ai)
+	private void writeArcInst(ArcInst ai)
 		throws IOException
 	{
 		// write the arcproto pointer
@@ -734,7 +741,7 @@ public class OutputBinary extends Output
 	/**
 	 * routine to convert the Java Date object to an Electric-format date (seconds since the epoch).
 	 */
-	long toElectricDate(Date date)
+	private long toElectricDate(Date date)
 	{
 		GregorianCalendar creation = new GregorianCalendar();
 		creation.setTime(date);
@@ -785,7 +792,7 @@ public class OutputBinary extends Output
 	/**
 	 * routine to write the global namespace.  returns true upon error
 	 */
-	boolean writeNameSpace()
+	private boolean writeNameSpace()
 		throws IOException
 	{
 		int numVariableNames = ElectricObject.getNumVariableNames();
@@ -810,7 +817,7 @@ public class OutputBinary extends Output
 	/**
 	 * routine to write an empty set of variables.
 	 */
-	void writeNoVariables()
+	private void writeNoVariables()
 		throws IOException
 	{
 		writeBigInteger(0);
@@ -820,7 +827,7 @@ public class OutputBinary extends Output
 	 * routine to write a set of object variables.  returns negative upon error and
 	 * otherwise returns the number of variables write
 	 */
-	int writeVariables(ElectricObject obj, double scale)
+	private int writeVariables(ElectricObject obj, double scale)
 		throws IOException
 	{
 		int count = 0;
@@ -886,7 +893,7 @@ public class OutputBinary extends Output
 		return(count);
 	}
 
-	int getVarType(Object obj)
+	private int getVarType(Object obj)
 	{
 		if (obj instanceof Integer) return VINTEGER;
 		if (obj instanceof Short) return VSHORT;
@@ -910,7 +917,7 @@ public class OutputBinary extends Output
 	 * Returns zero if OK, negative on memory error, positive if there were
 	 * correctable problems in the write.
 	 */
-	void putOutVar(Object obj)
+	private void putOutVar(Object obj)
 		throws IOException
 	{
 		if (obj instanceof Integer)
@@ -1006,7 +1013,7 @@ public class OutputBinary extends Output
 	 * for NODEPROTO references.  Any found are marked (by setting the "externalRefFlag" bit).
 	 * This is used to gather cross-library references.
 	 */
-	void findXLibVariables(ElectricObject obj)
+	private void findXLibVariables(ElectricObject obj)
 	{
 		for(Iterator it = obj.getVariables(); it.hasNext(); )
 		{
@@ -1040,7 +1047,7 @@ public class OutputBinary extends Output
 	/**
 	 * routine to write a single byte from the input stream and return it.
 	 */
-	void writeByte(byte b)
+	private void writeByte(byte b)
 		throws IOException
 	{
 		dataOutputStream.write(b);
@@ -1049,7 +1056,7 @@ public class OutputBinary extends Output
 	/**
 	 * routine to write an integer (4 bytes) from the input stream and return it.
 	 */
-	void writeBigInteger(int i)
+	private void writeBigInteger(int i)
 		throws IOException
 	{
 		dataOutputStream.writeInt(i);
@@ -1058,7 +1065,7 @@ public class OutputBinary extends Output
 	/**
 	 * routine to write a float (4 bytes) from the input stream and return it.
 	 */
-	void writeFloat(float f)
+	private void writeFloat(float f)
 		throws IOException
 	{
 		dataOutputStream.writeFloat(f);
@@ -1067,7 +1074,7 @@ public class OutputBinary extends Output
 	/**
 	 * routine to write a double (8 bytes) from the input stream and return it.
 	 */
-	void writeDouble(double d)
+	private void writeDouble(double d)
 		throws IOException
 	{
 		dataOutputStream.writeDouble(d);
@@ -1076,7 +1083,7 @@ public class OutputBinary extends Output
 	/**
 	 * routine to write an short (2 bytes) from the input stream and return it.
 	 */
-	void writeSmallInteger(short s)
+	private void writeSmallInteger(short s)
 		throws IOException
 	{
 		dataOutputStream.writeShort(s);
@@ -1085,7 +1092,7 @@ public class OutputBinary extends Output
 	/**
 	 * routine to write a string from the input stream and return it.
 	 */
-	void writeString(String s)
+	private void writeString(String s)
 		throws IOException
 	{
 		// disk and memory match: write the data

@@ -59,13 +59,14 @@ public class UIEditFrame extends JInternalFrame
 		// the right half: an edit window
 		wnd = UIEdit.CreateElectricDoc(cell);
 
-		// the left half: a cell explorer tree
+		// the left half: a cell explorer tree in a scroll pane
 		tree = UITreeView.CreateTreeView(Library.getExplorerTree(), wnd);
+		JScrollPane scrolledTree = new JScrollPane(tree);
 
 		// put them together into the frame
 		JSplitPane js = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		js.setRightComponent(wnd);
-		js.setLeftComponent(tree);
+		js.setLeftComponent(scrolledTree);
 		js.setDividerLocation(150);
 		this.getContentPane().add(js);
 		show();

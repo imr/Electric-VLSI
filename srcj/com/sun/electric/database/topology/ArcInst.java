@@ -655,11 +655,27 @@ public class ArcInst extends Geometric /*implements Networkable*/
 	 * Routine to change the width of this ArcInst.
 	 * @param dWidth the change to the ArcInst width.
 	 */
-	public void modify(double dWidth)
+	public void modify(double dWidth, double dHeadX, double dHeadY, double dTailX, double dTailY)
 	{
+		// first remove from the R-Tree structure
+		unLinkGeom(parent);
+
+		// now make the change
 		arcWidth += dWidth;
+		if (dHeadX != 0 || dHeadY != 0)
+		{
+			Point2D.Double pt = head.getLocation();
+			head.setLocation(new Point2D.Double(dHeadX+pt.getX(), pt.getY()+dHeadY));
+		}
+		if (dTailX != 0 || dTailY != 0)
+		{
+			Point2D.Double pt = tail.getLocation();
+			tail.setLocation(new Point2D.Double(dTailX+pt.getX(), pt.getY()+dTailY));
+		}
 		updateGeometric();
-//		Electric.modifyArcInst(getAddr(), dWidth);
+
+		// reinsert in the R-Tree structure
+		linkGeom(parent);
 	}
 
 	/**
@@ -777,7 +793,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		}
 
 		/* nonmanhattan arcs cannot have zero length so re-compute it */
-		if (len == 0) len = EMath.computeDistance(end1, end2);
+		if (len == 0) len = end1.distance(end2);
 		double xextra, yextra, xe1, ye1, xe2, ye2;
 		if (len == 0)
 		{

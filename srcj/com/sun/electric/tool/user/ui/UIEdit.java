@@ -303,7 +303,8 @@ public class UIEdit extends JPanel
 				Poly [] polys = new Poly[numPolys];
 				Rectangle2D rect = ni.getBounds();
 				ni.addDisplayableVariables(rect, polys, 0);
-				drawPolys(g2, polys, localTrans);
+				if (drawPolys(g2, polys, localTrans))
+					System.out.println("... while displaying instance "+ni.describe() + " in cell " + ni.getParent().describe());
 			}
 		} else
 		{
@@ -313,7 +314,8 @@ public class UIEdit extends JPanel
 				PrimitiveNode prim = (PrimitiveNode)np;
 				Technology tech = prim.getTechnology();
 				Poly [] polys = tech.getShape(ni);
-				drawPolys(g2, polys, localTrans);
+				if (drawPolys(g2, polys, localTrans))
+					System.out.println("... while displaying node "+ni.describe() + " in cell " + ni.getParent().describe());
 			}
 		}
 
@@ -339,15 +341,17 @@ public class UIEdit extends JPanel
 		ArcProto ap = ai.getProto();
 		Technology tech = ap.getTechnology();
 		Poly [] polys = tech.getShape(ai);
-		drawPolys(g2, polys, trans);
+		if (drawPolys(g2, polys, trans))
+			System.out.println("... while displaying arc "+ai.describe() + " in cell " + ai.getParent().describe());
 	}
 
 	/**
 	 * Routine to draw polygon "poly", transformed through "trans".
+	 * Returns true on error.
 	 */
-	void drawPolys(Graphics2D g2, Poly [] polys, AffineTransform trans)
+	boolean drawPolys(Graphics2D g2, Poly [] polys, AffineTransform trans)
 	{
-		if (polys == null) return;
+		if (polys == null) return false;
 		for(int i = 0; i < polys.length; i++)
 		{
 			// get the polygon and transform it
@@ -355,7 +359,7 @@ public class UIEdit extends JPanel
 			if (poly == null)
 			{
 				System.out.println("Warning: poly " + i + " of list of " + polys.length + " is null");
-				continue;
+				return true;
 			}
 			poly.transform(trans);
 
@@ -416,7 +420,7 @@ public class UIEdit extends JPanel
 				int startY = (int)(points[1].getY() * scale);
 				int endX = (int)(points[2].getX() * scale);
 				int endY = (int)(points[2].getY() * scale);
-				int radius = (int)(EMath.computeDistance(points[0], points[1]) * scale);
+				int radius = (int)(points[0].distance(points[1]) * scale);
 				int diameter = radius * 2;
 				int startAngle = (int)(Math.atan2(startY-ctrY, startX-ctrX) * 180.0 / Math.PI);
 				if (startAngle < 0) startAngle += 360;
@@ -436,6 +440,7 @@ public class UIEdit extends JPanel
 				System.out.println("Cannot render GRIDDOTS polygon");
 			}
 		}
+		return false;
 	}
 
 	// ************************************* SPECIAL SHAPE DRAWING *************************************
@@ -703,6 +708,7 @@ public class UIEdit extends JPanel
 		if (doingDrag)
 		{
 			clearHighlighting();
+System.out.println("Screen dragged from ("+startDrag.getX()+","+startDrag.getY()+") to ("+endDrag.getX()+","+endDrag.getY()+")");
 			double minSelX = Math.min(startDrag.getX(), endDrag.getX())-EXACTSELECTDISTANCE;
 			double maxSelX = Math.max(startDrag.getX(), endDrag.getX())+EXACTSELECTDISTANCE;
 			double minSelY = Math.min(startDrag.getY(), endDrag.getY())-EXACTSELECTDISTANCE;
@@ -711,11 +717,13 @@ public class UIEdit extends JPanel
 			Point2D.Double end = screenToDatabase((int)maxSelX, (int)maxSelY);
 			Rectangle2D.Double searchArea = new Rectangle2D.Double(Math.min(start.getX(), end.getX()),
 				Math.min(start.getY(), end.getY()), Math.abs(start.getX() - end.getX()), Math.abs(start.getY() - end.getY()));
+System.out.println("Screen the search area is "+searchArea);
 			Geometric.Search sea = new Geometric.Search(searchArea, cell);
 			for(;;)
 			{
 				Geometric nextGeom = sea.nextObject();
 				if (nextGeom == null) break;
+System.out.println("Found "+nextGeom.describe()+ " at "+nextGeom.getBounds());
 				addHighlighting(nextGeom);
 			}
 			doingDrag = false;
@@ -765,8 +773,9 @@ public class UIEdit extends JPanel
 	{
 		if (e.getKeyChar() == 'f')
 		{
-			System.out.println("doing full display");
+			System.out.println("doing full display...");
 			UserMenuCommands.fullDisplayCommand();
+			System.out.println("...did full display");
 		}
 	}
 

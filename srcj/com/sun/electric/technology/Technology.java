@@ -34,7 +34,9 @@ import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.MoCMOSOld;
 import com.sun.electric.technology.technologies.MoCMOSSub;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.topology.NodeInst;
@@ -268,6 +270,7 @@ public class Technology extends ElectricObject
 		private int representation;
 		private TechPoint [] points;
 		private String message;
+		private double lWidth, rWidth, extentT, extendB;
 
 		// the meaning of "representation"
 		/**
@@ -306,6 +309,34 @@ public class Technology extends ElectricObject
 			this.style = style;
 			this.representation = representation;
 			this.points = points;
+			this.lWidth = this.rWidth = this.extentT = this.extendB = 0;
+		}
+
+		/**
+		 * Constructs a <CODE>NodeLayer</CODE> with the specified description.
+		 * @param layer the <CODE>Layer</CODE> this is on.
+		 * @param portNum a 0-based index of the port (from the actual NodeInst) on this layer.
+		 * A negative value indicates that this layer is not connected to an electrical layer.
+		 * @param style the Poly.Type this NodeLayer will generate (polygon, circle, text, etc.).
+		 * @param representation tells how to interpret "points".  It can be POINTS, BOX, or MINBOX.
+		 * @param points the list of coordinates (stored as TechPoints) associated with this NodeLayer.
+		 * @param lWidth the extension to the left of this layer (serpentine transistors only).
+		 * @param rWidth the extension to the right of this layer (serpentine transistors only).
+		 * @param extentT the extension to the top of this layer (serpentine transistors only).
+		 * @param extendB the extension to the bottom of this layer (serpentine transistors only).
+		 */
+		public NodeLayer(Layer layer, int portNum, Poly.Type style, int representation, TechPoint [] points,
+			double lWidth, double rWidth, double extentT, double extendB)
+		{
+			this.layer = layer;
+			this.portNum = portNum;
+			this.style = style;
+			this.representation = representation;
+			this.points = points;
+			this.lWidth = lWidth;
+			this.rWidth = rWidth;
+			this.extentT = extentT;
+			this.extendB = extendB;
 		}
 
 		/**
@@ -385,6 +416,34 @@ public class Technology extends ElectricObject
 		 * This only makes sense if the style is one of the TEXT types.
 		 */
 		public void setMessage(String message) { this.message = message; }
+
+		/**
+		 * Returns the left extension of this layer.
+		 * Only makes sense when this is a layer in a serpentine transistor.
+		 * @return the left extension of this layer.
+		 */
+		public double getSerpentineLWidth() { return lWidth; }
+
+		/**
+		 * Returns the right extension of this layer.
+		 * Only makes sense when this is a layer in a serpentine transistor.
+		 * @return the right extension of this layer.
+		 */
+		public double getSerpentineRWidth() { return rWidth; }
+
+		/**
+		 * Returns the top extension of this layer.
+		 * Only makes sense when this is a layer in a serpentine transistor.
+		 * @return the top extension of this layer.
+		 */
+		public double getSerpentineExtentT() { return extentT; }
+
+		/**
+		 * Returns the bottom extension of this layer.
+		 * Only makes sense when this is a layer in a serpentine transistor.
+		 * @return the bottom extension of this layer.
+		 */
+		public double getSerpentineExtentB() { return extendB; }
 	}
 
 	/** name of the technology */						private String techName;
@@ -742,9 +801,10 @@ public class Technology extends ElectricObject
 		double highY = ni.getCenterY() + halfHeight;
 
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
-		if (np.isHoldsOutline())
+		int [] specialValues = np.getSpecialValues();
+		if (specialValues[0] != PrimitiveNode.SERPTRANS && np.isHoldsOutline())
 		{
-			Integer [] outline = ni.getTrace();
+			Float [] outline = ni.getTrace();
 			if (outline != null)
 			{
 				int numPolys = ni.numDisplayableVariables() + 1;
@@ -753,8 +813,8 @@ public class Technology extends ElectricObject
 				Point2D.Double [] pointList = new Point2D.Double[numPoints];
 				for(int i=0; i<numPoints; i++)
 				{
-					pointList[i] = new Point2D.Double(ni.getCenterX() + outline[i*2].intValue(),
-						ni.getCenterY() + outline[i*2+1].intValue());
+					pointList[i] = new Point2D.Double(ni.getCenterX() + outline[i*2].floatValue(),
+						ni.getCenterY() + outline[i*2+1].floatValue());
 				}
 				polys[0] = new Poly(pointList);
 				Technology.NodeLayer primLayer = primLayers[0];
@@ -770,11 +830,20 @@ public class Technology extends ElectricObject
 		int numBasicLayers = primLayers.length;
 		int numExtraCuts = 0;
 		MultiCutData mcd = null;
-		if (np.getSpecialValues()[0] == PrimitiveNode.MULTICUT)
+		SerpentineTrans std = null;
+		if (specialValues[0] == PrimitiveNode.MULTICUT)
 		{
 			mcd = new MultiCutData(ni, np.getSpecialValues());
 			numExtraCuts = mcd.cutsTotal;
 			numBasicLayers--;
+		} else if (specialValues[0] == PrimitiveNode.SERPTRANS)
+		{
+			std = new SerpentineTrans(ni, np.getSpecialValues());
+			if (std.layersTotal > 0)
+			{
+				numExtraCuts = std.layersTotal;
+				numBasicLayers = 0;
+			}
 		}
 
 		// construct the polygon array
@@ -839,9 +908,18 @@ public class Technology extends ElectricObject
 			}
 		}
 
+		// add in the extra transistor layers
+		if (std != null)
+		{
+			for(int i = 0; i < numExtraCuts; i++)
+			{
+				polys[numBasicLayers+i] = std.fillTransPoly(ni, i);
+			}
+		}
+
 		// add in the displayable variables
 		Rectangle2D rect = ni.getBounds();
-		ni.addDisplayableVariables(rect, polys, primLayers.length);
+		ni.addDisplayableVariables(rect, polys, numBasicLayers+numExtraCuts);
 		return polys;
 	}
 
@@ -862,7 +940,9 @@ public class Technology extends ElectricObject
 		/** cut position of last right-edge cut  (for interior-cut elimination) */	int cutRightEdge;
 
 		/**
-		 * Routine to return the number of cuts in multicut contact "ni".
+		 * Constructor throws initialize for multiple cuts.
+		 * @param ni the NodeInst with multiple cuts.
+		 * @param specialValues the array of special values for the NodeInst.
 		 * The values in "specialValues" are:
 		 *     cuts sized "cutSizeX" x "cutSizeY" (specialValues[1] x specialValues[2])
 		 *     cuts indented at least "cutIndent" from the node edge (specialValues[3])
@@ -877,10 +957,11 @@ public class Technology extends ElectricObject
 
 			// determine the actual node size
 			PrimitiveNode np = (PrimitiveNode)ni.getProto();
-			double cutLX = np.getLowXOffset();
-			double cutHX = np.getHighXOffset();
-			double cutLY = np.getLowYOffset();
-			double cutHY = np.getHighYOffset();
+			SizeOffset so = Technology.getSizeOffset(ni);
+			double cutLX = so.getLowXOffset();
+			double cutHX = so.getHighXOffset();
+			double cutLY = so.getLowYOffset();
+			double cutHY = so.getHighYOffset();
 
 			Rectangle2D.Double bounds = ni.getBounds();
 			double lx = bounds.getMinX() + cutLX;
@@ -967,6 +1048,190 @@ public class Technology extends ElectricObject
 				cY = cutBaseY + (cut / cutsX) * (cutSizeY + cutSep);
 			}
 			return new Poly(cX, cY, cutSizeX, cutSizeY);
+		}
+	}
+
+	/**
+	 * Class SerpentineTrans here.
+	 */
+	private static class SerpentineTrans
+	{
+		/** the number of polygons that make up this serpentine transistor */	int layersTotal;
+		/** the number of segments in this serpentine transistor */				int numSegments;
+		/** the extra gate width of this serpentine transistor */				double extraScale;
+		/** the node layers that make up this serpentine transistor */			Technology.NodeLayer [] primLayers;
+		/** the gate coordinates for this serpentine transistor */				Point2D.Double [] points;
+
+		/**
+		 * Constructor throws initialize for a serpentine transistor.
+		 * @param ni the NodeInst with a serpentine transistor.
+		 * @param specialValues the array of special values for the NodeInst.
+		 * The values in "specialValues" are:
+		 *     layer count is [1]
+		 *     active port inset [2] from end of serpentine path
+		 *     active port is [3] from poly edge
+		 *     poly width is [4]
+		 *     poly port inset [5] from poly edge
+		 *     poly port is [6] from active edge
+		 */
+		public SerpentineTrans(NodeInst ni, int [] specialValues)
+		{
+			points = null;
+			layersTotal = 0;
+			Float [] outline = ni.getTrace();
+			if (outline != null)
+			{
+				if (outline.length < 4) outline = null;
+			}
+			if (outline != null)
+			{
+				PrimitiveNode np = (PrimitiveNode)ni.getProto();
+				primLayers = np.getLayers();
+				int count = primLayers.length;
+				numSegments = outline.length/2 - 1;
+				layersTotal = count * numSegments;
+				points = new Point2D.Double[outline.length/2];
+				for(int i=0; i<outline.length; i += 2)
+					points[i/2] = new Point2D.Double(outline[i].intValue(), outline[i+1].intValue());
+
+				extraScale = 0;
+				Variable varw = ni.getVal("transistor_width", Integer.class);
+				if (varw != null)
+				{
+					Object obj = varw.getObject();
+					extraScale = ((Integer)obj).intValue() / 120 / 2;
+				}
+			}
+		}
+
+		private static final double LEFTANGLE =  (Math.PI/2);
+		private static final double RIGHTANGLE =  (Math.PI/2*3);
+
+		/**
+		 * routine to describe a box of a serpentine transistor.
+		 * If the variable "trace" exists on the node, get that
+		 * x/y/x/y information as the centerline of the serpentine path.  The outline is
+		 * placed in the polygon "poly".
+		 * NOTE: For each trace segment, the left hand side of the trace
+		 * will contain the polygons that appear ABOVE the gate in the node
+		 * definition. That is, the "top" port and diffusion will be above a
+		 * gate segment that extends from left to right, and on the left of a
+		 * segment that goes from bottom to top.
+		 */
+		Poly fillTransPoly(NodeInst ni, int box)
+		{
+			// compute the segment (along the serpent) and element (of transistor)
+			int segment = box % numSegments;
+			int element = box / numSegments;
+
+			// see if nonstandard width is specified
+			double lwid = primLayers[element].getSerpentineLWidth();
+			double rwid = primLayers[element].getSerpentineRWidth();
+			double extendt = primLayers[element].getSerpentineExtentT();
+			double extendb = primLayers[element].getSerpentineExtentB();
+			lwid += extraScale;
+			rwid += extraScale;
+
+			// prepare to fill the serpentine transistor
+			double xoff = ni.getCenterX();
+			double yoff = ni.getCenterY();
+			int thissg = segment;   int next = segment+1;
+			Point2D.Double thisPt = points[thissg];
+			Point2D.Double nextPt = points[next];
+			double angle = EMath.figureAngle(thisPt, nextPt);
+
+			// push the points at the ends of the transistor
+			if (thissg == 0)
+			{
+				// extend "thissg" 180 degrees back
+				double ang = angle+Math.PI;
+				thisPt = EMath.addPoints(thisPt, Math.cos(ang) * extendt, Math.sin(ang) * extendt);
+			}
+			if (next == numSegments)
+			{
+				// extend "next" 0 degrees forward
+				nextPt = EMath.addPoints(nextPt, Math.cos(angle) * extendb, Math.sin(angle) * extendb);
+			}
+
+			// compute endpoints of line parallel to and left of center line
+			double ang = angle+LEFTANGLE;
+			double sin = Math.sin(ang) * lwid;
+			double cos = Math.cos(ang) * lwid;
+			Point2D.Double thisL = EMath.addPoints(thisPt, cos, sin);
+			Point2D.Double nextL = EMath.addPoints(nextPt, cos, sin);
+
+			// compute endpoints of line parallel to and right of center line
+			ang = angle+RIGHTANGLE;
+			sin = Math.sin(ang) * rwid;
+			cos = Math.cos(ang) * rwid;
+			Point2D.Double thisR = EMath.addPoints(thisPt, cos, sin);
+			Point2D.Double nextR = EMath.addPoints(nextPt, cos, sin);
+
+			// determine proper intersection of this and the previous segment
+			if (thissg != 0)
+			{
+				Point2D.Double otherPt = points[thissg-1];
+				double otherang = EMath.figureAngle(otherPt, thisPt);
+				if (otherang != angle)
+				{
+					ang = otherang + LEFTANGLE;
+					thisL = EMath.intersect(EMath.addPoints(thisPt, Math.cos(ang)*lwid, Math.sin(ang)*lwid),
+						otherang, thisL,angle);
+					ang = otherang + RIGHTANGLE;
+					thisR = EMath.intersect(EMath.addPoints(thisPt, Math.cos(ang)*rwid, Math.sin(ang)*rwid),
+						otherang, thisR,angle);
+				}
+			}
+
+			// determine proper intersection of this and the next segment
+			if (next != numSegments)
+			{
+				Point2D.Double otherPt = points[next+1];
+				double otherang = EMath.figureAngle(nextPt, otherPt);
+				if (otherang != angle)
+				{
+					ang = otherang + LEFTANGLE;
+					Point2D.Double newPtL = EMath.addPoints(nextPt, Math.cos(ang)*lwid, Math.sin(ang)*lwid);
+					nextL = EMath.intersect(newPtL, otherang, nextL,angle);
+					ang = otherang + RIGHTANGLE;
+					Point2D.Double newPtR = EMath.addPoints(nextPt, Math.cos(ang)*rwid, Math.sin(ang)*rwid);
+					nextR = EMath.intersect(newPtR, otherang, nextR,angle);
+				}
+			}
+
+			// fill the polygon
+			Point2D.Double [] points = new Point2D.Double[4];
+			points[0] = EMath.addPoints(thisL, xoff, yoff);
+			points[1] = EMath.addPoints(thisR, xoff, yoff);
+			points[2] = EMath.addPoints(nextR, xoff, yoff);
+			points[3] = EMath.addPoints(nextL, xoff, yoff);
+			Poly retPoly = new Poly(points);
+
+			// see if the sides of the polygon intersect
+//			ang = figureangle(poly->xv[0], poly->yv[0], poly->xv[1], poly->yv[1]);
+//			angle = figureangle(poly->xv[2], poly->yv[2], poly->xv[3], poly->yv[3]);
+//			if (intersect(poly->xv[0], poly->yv[0], ang, poly->xv[2], poly->yv[2], angle, &x, &y) >= 0)
+//			{
+//				// lines intersect, see if the point is on one of the lines
+//				if (x >= mini(poly->xv[0], poly->xv[1]) && x <= maxi(poly->xv[0], poly->xv[1]) &&
+//					y >= mini(poly->yv[0], poly->yv[1]) && y <= maxi(poly->yv[0], poly->yv[1]))
+//				{
+//					if (abs(x-poly->xv[0])+abs(y-poly->yv[0]) > abs(x-poly->xv[1])+abs(y-poly->yv[1]))
+//					{
+//						poly->xv[1] = x;   poly->yv[1] = y;
+//						poly->xv[2] = poly->xv[3];   poly->yv[2] = poly->yv[3];
+//					} else
+//					{
+//						poly->xv[0] = x;   poly->yv[0] = y;
+//					}
+//					poly->count = 3;
+//				}
+//			}
+
+			Technology.NodeLayer primLayer = primLayers[element];
+			retPoly.setStyle(primLayer.getStyle());
+			retPoly.setLayer(primLayer.getLayer());
+			return retPoly;
 		}
 	}
 
@@ -1090,6 +1355,12 @@ public class Technology extends ElectricObject
 		}
 	}
 
+	public static SizeOffset getSizeOffset(NodeInst ni)
+	{
+		PrimitiveNode np = (PrimitiveNode)ni.getProto();
+		return np.getSizeOffset();
+	}
+
 	/*
 	 * Routine to write a description of this Technology.
 	 * Displays the description in the Messages Window.
@@ -1166,8 +1437,8 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * Returns a printable version of this object.
-	 * @return a printable version of this object.
+	 * Returns a printable version of this Technology.
+	 * @return a printable version of this Technology.
 	 */
 	public String toString()
 	{

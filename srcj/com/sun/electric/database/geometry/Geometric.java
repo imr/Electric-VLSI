@@ -222,6 +222,40 @@ public class Geometric extends ElectricObject
 			}
 		}
 
+		public void checkRTree(int level, Cell cell)
+		{
+			Rectangle2D.Double localBounds = new Rectangle2D.Double();
+			if (total == 0)
+			{
+				localBounds.setRect(0, 0, 0, 0);
+			} else
+			{
+				localBounds.setRect(getBBox(0));
+				for(int i=1; i<total; i++)
+					Rectangle2D.Double.union(localBounds, getBBox(i), localBounds);
+			}
+			if (!localBounds.equals(bounds))
+			{
+				if (Math.abs(localBounds.getMinX() - bounds.getMinX()) >= 0.0001 ||
+					Math.abs(localBounds.getMinY() - bounds.getMinY()) >= 0.0001 ||
+					Math.abs(localBounds.getWidth() - bounds.getWidth()) >= 0.0001 ||
+					Math.abs(localBounds.getHeight() - bounds.getHeight()) >= 0.0001)
+				{
+					System.out.println("Tree of "+cell.describe()+" at level "+level+" has bounds "+localBounds+" but stored bounds are "+bounds);
+					for(int i=0; i<total; i++)
+						System.out.println("  ---Child "+i+" is "+ getBBox(i));
+				}
+			}
+
+			if (!flag)
+			{
+				for(int j=0; j<total; j++)
+				{
+					((RTNode)getChild(j)).checkRTree(level+1, cell);
+				}
+			}
+		}
+
 		/**
 		 * Routine to get the bounding box of child "child" of this R-tree node.
 		 */
@@ -287,7 +321,7 @@ public class Geometric extends ElectricObject
 				for(int i=0; i<temp.getTotal(); i++)
 				{
 					Rectangle2D.Double thisv = temp.getBBox(i);
-					double dist = EMath.computeDistance(new Point2D.Double(thisv.getCenterX(), thisv.getCenterY()), thisCenter);
+					double dist = thisCenter.distance(thisv.getCenterX(), thisv.getCenterY());
 					if (dist >= newDist)
 					{
 						newDist = dist;
@@ -304,7 +338,7 @@ public class Geometric extends ElectricObject
 				{
 					if (i == newN) continue;
 					Rectangle2D.Double thisv = temp.getBBox(i);
-					double dist = EMath.computeDistance(new Point2D.Double(thisv.getCenterX(), thisv.getCenterY()), thisCenter);
+					double dist = thisCenter.distance(thisv.getCenterX(), thisv.getCenterY());
 					if (dist >= oldDist)
 					{
 						oldDist = dist;
@@ -481,7 +515,166 @@ public class Geometric extends ElectricObject
 				if (climb.getParent() == null) break;
 				climb = climb.getParent();
 			}
+			
+			// now check the RTree
+//			checkRTree(0, cell);
 		}
+
+		/**
+		 * routine to remove entry "ind" from this R-tree node in cell "cell"
+		 */
+		void removeRTNode(int ind, Cell cell)
+		{
+			// delete entry from this R-tree node
+			int j = 0;
+			for(int i=0; i<getTotal(); i++)
+				if (i != ind) setChild(j++, getChild(i));
+			setTotal(j);
+
+			// see if node is now too small
+			if (getTotal() < MINRTNODESIZE)
+			{
+				// if recursed to top, shorten R-tree
+				RTNode prtn = getParent();
+				if (prtn == null)
+				{
+					// if tree has no hierarchy, allow short node
+					if (getFlag())
+					{
+						// compute correct bounds of the top node
+						figBounds();
+						return;
+					}
+
+					// save all top-level entries
+					RTNode temp = new RTNode();
+					temp.setTotal(getTotal());
+					temp.setFlag(true);
+					for(int i=0; i<getTotal(); i++)
+						temp.setChild(i, getChild(i));
+
+					// erase top level
+					setTotal(0);
+					setFlag(true);
+
+					// reinsert all data
+					for(int i=0; i<temp.getTotal(); i++) ((RTNode)temp.getChild(i)).reInsert(cell);
+					return;
+				}
+
+				// node has too few entries, must delete it and reinsert members
+				int found = -1;
+				for(int i=0; i<prtn.getTotal(); i++)
+					if (prtn.getChild(i) == this) { found = i;   break; }
+				if (found < 0) System.out.println("R-trees: cannot find entry in parent");
+
+				// remove this entry from its parent
+				prtn.removeRTNode(found, cell);
+
+				// reinsert the entries
+				reInsert(cell);
+				return;
+			}
+
+			// recompute bounding box of this R-tree node and all up the tree
+			RTNode climb = this;
+			for(;;)
+			{
+				climb.figBounds();
+				if (climb.getParent() == null) break;
+				climb = climb.getParent();
+			}
+		}
+
+		/**
+		 * routine to reinsert the tree of nodes below this RTNode into cell "cell".
+		 */
+		void reInsert(Cell cell)
+		{
+			if (getFlag())
+			{
+				for(int i=0; i<getTotal(); i++) ((Geometric)getChild(i)).linkGeom(cell);
+			} else
+			{
+				for(int i=0; i<getTotal(); i++)
+					((RTNode)getChild(i)).reInsert(cell);
+			}
+		}
+
+		/**
+		 * routine to find the location of geometry module "geom" in the R-tree
+		 * below this.  The subnode that contains this module is placed in "subrtn"
+		 * and the index in that subnode is placed in "subind".  The routine returns
+		 * null if it is unable to find the geometry module.
+		 */
+		Object [] findGeom(Geometric geom)
+		{
+			// if R-tree node contains primitives, search for direct hit
+			if (getFlag())
+			{
+				for(int i=0; i<getTotal(); i++)
+				{
+					if (getChild(i) == geom)
+					{
+						Object [] retObj = new Object[2];
+						retObj[0] = this;
+						retObj[1] = new Integer(i);
+						return retObj;
+					}
+				}
+				return null;
+			}
+
+			// recurse on all sub-nodes that would contain this geometry module
+			Rectangle2D.Double geomBounds = geom.getBounds();
+			for(int i=0; i<getTotal(); i++)
+			{
+				// get bounds and area of sub-node
+				Rectangle2D.Double bounds = getBBox(i);
+
+				if (bounds.getMaxX() < geomBounds.getMinX()) continue;
+				if (bounds.getMinX() > geomBounds.getMaxX()) continue;
+				if (bounds.getMaxY() < geomBounds.getMinY()) continue;
+				if (bounds.getMinY() > geomBounds.getMaxY()) continue;
+				Object [] subRet = ((RTNode)getChild(i)).findGeom(geom);
+				if (subRet != null) return subRet;
+			}
+			return null;
+		}
+
+		/*
+		 * routine to find the location of geometry module "geom" anywhere in the R-tree
+		 * at "rtn".  The subnode that contains this module is placed in "subrtn"
+		 * and the index in that subnode is placed in "subind".  The routine returns
+		 * false if it is unable to find the geometry module.
+		 */
+		Object [] findGeomAnywhere(Geometric geom)
+		{
+			// if R-tree node contains primitives, search for direct hit
+			if (getFlag())
+			{
+				for(int i=0; i<getTotal(); i++)
+				{
+					if (getChild(i) == geom)
+					{
+						Object [] retVal = new Object[2];
+						retVal[0] = this;
+						retVal[1] = new Integer(i);
+						return retVal;
+					}
+				}
+				return null;
+			}
+
+			// recurse on all sub-nodes
+			for(int i=0; i<getTotal(); i++)
+			{
+				Object [] retVal = ((RTNode)getChild(i)).findGeomAnywhere(geom);
+				if (retVal != null) return retVal;
+			}
+			return null;
+		}
+
 	}
 
 	/**
@@ -527,6 +720,36 @@ public class Geometric extends ElectricObject
 
 		// add this geometry element to the correct leaf R-tree node
 		rtn.addToRTNode(this, parnt);
+	}
+
+	/**
+	 * routine to remove this geometry from the R-tree in cell "parnt"
+	 */
+	protected void unLinkGeom(Cell parnt)
+	{
+		// find this node in the tree
+		RTNode whichRTN = null;
+		int whichInd = 0;
+		Object[] result = ((RTNode)parnt.getRTree()).findGeom(this);
+		if (result != null)
+		{
+			whichRTN = (RTNode)result[0];
+			whichInd = ((Integer)result[1]).intValue();
+		} else
+		{
+			result = (parnt.getRTree()).findGeomAnywhere(this);
+			if (result == null)
+			{
+				System.out.println("Internal error: cannot find " + describe() + " in R-Tree of " + parnt.describe());
+				return;
+			}
+			whichRTN = (RTNode)result[0];
+			whichInd = ((Integer)result[1]).intValue();
+			System.out.println("Internal warning: " + describe() + " not in proper R-Tree location in cell " + parnt.describe());
+		}
+
+		// delete geom from this R-tree node
+		whichRTN.removeRTNode(whichInd, parnt);
 	}
 
 	// ------------------------------- private data ------------------------------
