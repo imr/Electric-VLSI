@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02j: *********************************
 
+IMP: (03/25/05, SMR) Added HPGL output.
+
+IMP: (03/24/05, SMR) Unconnected nodes that are on the same network as a selected node now highlight
+     (Bug #222).
+
 IMP: (03/27/05, GVG) Improvements in 3D directional lights. New defaults: (1 1 -1) (-1 1 -1)
 
 IMP: (03/23/05, SMR) More improvements to IRSIM; refactored "Stimuli" and broke out subclasses.

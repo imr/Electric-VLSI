@@ -43,6 +43,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -277,6 +278,9 @@ public class GDS extends Geometry
      * Method to determine whether or not to include the original Geometric with a Poly
      */
     protected boolean includeGeometric() { return false; }
+    
+    /** Overridable method to determine the current EditWindow to use for text scaling */
+    protected EditWindow windowBeingRendered() { return null; }
 
 	protected boolean selectLayer(Layer layer)
 	{

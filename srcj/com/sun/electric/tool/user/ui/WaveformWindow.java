@@ -253,7 +253,7 @@ public class WaveformWindow implements WindowContent
 		private static final ImageIcon iconDeleteAllSignals = Resources.getResource(WaveformWindow.class, "ButtonSimDeleteAll.gif");
 		private static final ImageIcon iconToggleBus = Resources.getResource(WaveformWindow.class, "ButtonSimToggleBus.gif");
 
-	    // constructor
+		// constructor
 		public Panel(WaveformWindow waveWindow, boolean isAnalog)
 		{
 			// remember state
@@ -760,7 +760,7 @@ public class WaveformWindow implements WindowContent
 		{
 			if (timePanel != null) timePanel.repaint(); else
 			{
-				waveWindow.mainTimePanel.repaint();							
+				waveWindow.mainTimePanel.repaint();
 			}
 			repaint();
 		}
@@ -774,8 +774,8 @@ public class WaveformWindow implements WindowContent
 		public void paint(Graphics g)
 		{
 			// to enable keys to be received
-            if (waveWindow.wf == WindowFrame.getCurrentWindowFrame())
-			    requestFocus();
+			if (waveWindow.wf == WindowFrame.getCurrentWindowFrame())
+				requestFocus();
 
 			sz = getSize();
 			int wid = sz.width;
@@ -920,7 +920,7 @@ public class WaveformWindow implements WindowContent
 			if (x >= VERTLABELWIDTH)
 				g.drawLine(x, 0, x, hei);
 			g2.setStroke(Highlight.solidLine);
-		
+
 			// show dragged area if there
 			if (draggingArea)
 			{
@@ -1518,7 +1518,7 @@ public class WaveformWindow implements WindowContent
 				cps.add(it.next());
 			return cps;
 		}
-	
+
 		private void clearHighlightedSignals()
 		{
 			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
@@ -1581,7 +1581,7 @@ public class WaveformWindow implements WindowContent
 		 */
 		public void mousePressed(MouseEvent evt)
 		{
-            requestFocus();
+			requestFocus();
 			waveWindow.vcrClickStop();
 
 			// set this to be the selected panel
@@ -1910,7 +1910,7 @@ public class WaveformWindow implements WindowContent
 			ZoomAndPanListener.setProperCursor(evt);
 			draggingArea = true;
 		}
-	
+
 		/**
 		 * Method to implement the Mouse Released event for zooming.
 		 */ 
@@ -1956,7 +1956,7 @@ public class WaveformWindow implements WindowContent
 				wp.repaintWithTime();
 			}
 		}
-	
+
 		/**
 		 * Method to implement the Mouse Dragged event for zooming.
 		 */ 
@@ -1986,14 +1986,14 @@ public class WaveformWindow implements WindowContent
 			dragStartX = evt.getX();
 			dragStartY = evt.getY();
 		}
-	
+
 		/**
 		 * Method to implement the Mouse Released event for panning.
 		 */ 
 		public void mouseReleasedPan(MouseEvent evt)
 		{
 		}
-	
+
 		/**
 		 * Method to implement the Mouse Dragged event for panning.
 		 */ 
@@ -2140,7 +2140,7 @@ public class WaveformWindow implements WindowContent
 				}
 			} catch (Throwable t)
 			{
-                ActivityLogger.logException(t);
+				ActivityLogger.logException(t);
 				dtde.dropComplete(false);
 				return;
 			}
@@ -2614,22 +2614,22 @@ public class WaveformWindow implements WindowContent
 			Cell cellInWindow = wnd.getCell();
 			VarContext curContext = wnd.getVarContext();
 			ww = null;
-            Stack contextStack = new Stack();
+			Stack contextStack = new Stack();
 			for(;;)
 			{
 				ww = WaveformWindow.findWaveformWindow(cellInWindow);
 				if (ww != null) break;
 				Nodable no = curContext.getNodable();
 				if (no == null) break;
-                contextStack.push(no);
+				contextStack.push(no);
 				cellInWindow = no.getParent();
 				curContext = curContext.pop();
 				//context = no.getName() + "." + context;
 			}
-            context = VarContext.globalContext;
-            while (!contextStack.isEmpty()) {
-                context = context.push((Nodable)contextStack.pop());
-            }
+			context = VarContext.globalContext;
+			while (!contextStack.isEmpty()) {
+				context = context.push((Nodable)contextStack.pop());
+			}
 		}
 
 		/**
@@ -2643,20 +2643,20 @@ public class WaveformWindow implements WindowContent
 			Cell cellInWindow = wnd.getCell();
 			VarContext curContext = wnd.getVarContext();
 			ww = null;
-            Stack contextStack = new Stack();
+			Stack contextStack = new Stack();
 			for(;;)
 			{
 				if (wantWW.getCell() == cellInWindow) { ww = wantWW;   break; }
 				Nodable no = curContext.getNodable();
 				if (no == null) break;
-                contextStack.push(no);
+				contextStack.push(no);
 				cellInWindow = no.getParent();
 				curContext = curContext.pop();
 			}
-            context = VarContext.globalContext;
-            while (!contextStack.isEmpty()) {
-                context = context.push((Nodable)contextStack.pop());
-            }
+			context = VarContext.globalContext;
+			while (!contextStack.isEmpty()) {
+				context = context.push((Nodable)contextStack.pop());
+			}
 		}
 
 		/**
@@ -2715,8 +2715,8 @@ public class WaveformWindow implements WindowContent
 					if (loc.getWaveformWindow() != ww) continue;
 					Network net = (Network)highSet.iterator().next();
 					//String netName = loc.getContext() + net.describe();
-                    String netName = WaveformWindow.getSpiceNetName(loc.getContext(), net);
-                    Signal sSig = ww.sd.findSignalForNetwork(netName);
+					String netName = WaveformWindow.getSpiceNetName(loc.getContext(), net);
+					Signal sSig = ww.sd.findSignalForNetwork(netName);
 					if (sSig == null)
 					{
 						netName = netName.replace('@', '_');
@@ -2751,7 +2751,7 @@ public class WaveformWindow implements WindowContent
 		public void highlighterLostFocus(Highlighter highlighterGainedFocus) {}
 	}
 
-    // ************************************* CONTROL *************************************
+	// ************************************* CONTROL *************************************
 
 	private static class WaveComponentListener implements ComponentListener
 	{
@@ -2780,7 +2780,7 @@ public class WaveformWindow implements WindowContent
 		this.showVertexPoints = false;
 		this.showGrid = false;
 
-        highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER, wf);
+		highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER, wf);
 
 		// the total panel in the waveform window
 		overall = new OnePanel(null, this);
@@ -3250,55 +3250,55 @@ public class WaveformWindow implements WindowContent
 					WaveSignal ws = (WaveSignal)pIt.next();
 					if (!ws.highlighted) continue;
 					String want = ws.sSig.getFullName();
-                    Stack upNodables = new Stack();
-                    Network net = null;
-                    for (;;)
-                    {
-                        String contextStr = getSpiceNetName(context, null);
-                        if (contextStr.length() > 0)
-                        {
-                            boolean matches = false;
-                        	contextStr += ".";
-                        	if (want.startsWith(contextStr)) matches = true; else
-                        	{
-                        		contextStr = contextStr.replace('@', '_');
-                            	if (want.startsWith(contextStr)) matches = true;
-                        	}
-                            if (!matches)
-                            {
-                                if (context == VarContext.globalContext) break;
-                                cell = context.getNodable().getParent();
-                                upNodables.push(context.getNodable());
-                                context = context.pop();
-                                continue;
-                            }
-                        }
-            			Netlist netlist = cell.acquireUserNetlist();
-            			if (netlist == null)
-            			{
-            				System.out.println("Sorry, a deadlock aborted crossprobing (network information unavailable).  Please try again");
-            				return;
-            			}
-                        net = findNetwork(netlist, want.substring(contextStr.length()));
-                        if (net != null) break;
-                        if (context == VarContext.globalContext) break;
+					Stack upNodables = new Stack();
+					Network net = null;
+					for (;;)
+					{
+						String contextStr = getSpiceNetName(context, null);
+						if (contextStr.length() > 0)
+						{
+							boolean matches = false;
+							contextStr += ".";
+							if (want.startsWith(contextStr)) matches = true; else
+							{
+								contextStr = contextStr.replace('@', '_');
+								if (want.startsWith(contextStr)) matches = true;
+							}
+							if (!matches)
+							{
+								if (context == VarContext.globalContext) break;
+								cell = context.getNodable().getParent();
+								upNodables.push(context.getNodable());
+								context = context.pop();
+								continue;
+							}
+						}
+						Netlist netlist = cell.acquireUserNetlist();
+						if (netlist == null)
+						{
+							System.out.println("Sorry, a deadlock aborted crossprobing (network information unavailable).  Please try again");
+							return;
+						}
+						net = findNetwork(netlist, want.substring(contextStr.length()));
+						if (net != null) break;
+						if (context == VarContext.globalContext) break;
 
-                        cell = context.getNodable().getParent();
-                        upNodables.push(context.getNodable());
-                        context = context.pop();
-                    }
-                    if (net != null)
-                    {
-                        // found network
-                        while (!upNodables.isEmpty())
-                        {
-                            Nodable no = (Nodable)upNodables.pop();
-                            net = HierarchyEnumerator.getNetworkInChild(net, no);
-                            if (net == null) break;
-                        }
-                    }
-                    if (net != null)
-                        hl.addNetwork(net, cell);
+						cell = context.getNodable().getParent();
+						upNodables.push(context.getNodable());
+						context = context.pop();
+					}
+					if (net != null)
+					{
+						// found network
+						while (!upNodables.isEmpty())
+						{
+							Nodable no = (Nodable)upNodables.pop();
+							net = HierarchyEnumerator.getNetworkInChild(net, no);
+							if (net == null) break;
+						}
+					}
+					if (net != null)
+						hl.addNetwork(net, cell);
 				}
 			}
 			hl.finished();
@@ -3384,7 +3384,7 @@ public class WaveformWindow implements WindowContent
 			{
 				newTime = lowTime;
 				vcrClickStop();
-			}	
+			}
 		} else
 		{
 			newTime += dTime;
@@ -3393,7 +3393,7 @@ public class WaveformWindow implements WindowContent
 			{
 				newTime = highTime;
 				vcrClickStop();
-			}	
+			}
 		}
 		setMainTimeCursor(newTime);
 		redrawAllPanels();
@@ -3553,7 +3553,7 @@ if (wp.signalButtons != null)
 						wp.waveSignals.remove(ws.sigButton);
 						break;
 					}
-				}	
+				}
 			}
 			if (wp.waveSignals.size() == 0)
 			{
@@ -3598,11 +3598,11 @@ if (wp.signalButtons != null)
 	 */
 	public Cell getCell() { return sd.getCell(); }
 
-    /**
-     * Get the highlighter for this window content.
-     * @return the highlighter
-     */
-    public Highlighter getHighlighter() { return highlighter; }
+	/**
+	 * Get the highlighter for this window content.
+	 * @return the highlighter
+	 */
+	public Highlighter getHighlighter() { return highlighter; }
 
 	/**
 	 * Method to return the static HighlightListener to use for all waveform windows.
@@ -3794,8 +3794,8 @@ if (wp.signalButtons != null)
 		for(Iterator it = nets.iterator(); it.hasNext(); )
 		{
 			Network net = (Network)it.next();
-            String netName = WaveformWindow.getSpiceNetName(context, net);
-            Signal sSig = sd.findSignalForNetwork(netName);
+			String netName = WaveformWindow.getSpiceNetName(context, net);
+			Signal sSig = sd.findSignalForNetwork(netName);
 			if (sSig == null)
 			{
 				netName = netName.replace('@', '_');
@@ -3827,21 +3827,21 @@ if (wp.signalButtons != null)
 				}
 			}
 
-            // check if signal already in panel
-            boolean alreadyPlotted = false;
-            for(Iterator pIt = wp.waveSignals.values().iterator(); pIt.hasNext(); )
-            {
-            	WaveSignal ws = (WaveSignal)pIt.next();
-                String name = ws.sSig.getFullName();
-                if (name.equals(sSig.getFullName())) {
-                    alreadyPlotted = true;
-                    // add it again, this will increment colors
-                    wp.addSignalToPanel(ws.sSig);
-                }
-            }
-            if (!alreadyPlotted) {
-            	WaveSignal wsig = new WaveSignal(wp, sSig);
-            }
+			// check if signal already in panel
+			boolean alreadyPlotted = false;
+			for(Iterator pIt = wp.waveSignals.values().iterator(); pIt.hasNext(); )
+			{
+				WaveSignal ws = (WaveSignal)pIt.next();
+				String name = ws.sSig.getFullName();
+				if (name.equals(sSig.getFullName())) {
+					alreadyPlotted = true;
+					// add it again, this will increment colors
+					wp.addSignalToPanel(ws.sSig);
+				}
+			}
+			if (!alreadyPlotted) {
+				WaveSignal wsig = new WaveSignal(wp, sSig);
+			}
 			added = true;
 			wp.repaint();
 		}
@@ -3852,106 +3852,106 @@ if (wp.signalButtons != null)
 		}
 	}
 
-    public static String getSpiceNetName(Network net) {
-        String name = "";
-        if (net.hasNames())
-        {
-            if (net.getExportedNames().hasNext())
-            {
-                name = (String)net.getExportedNames().next();
-            } else
-            {
-                name = (String)net.getNames().next();
-            }
-        } else
-        {
-            name = net.describe();
-            if (name.equals(""))
-                name = "UNCONNECTED";
-        }
-        return name;
-    }
+	public static String getSpiceNetName(Network net) {
+		String name = "";
+		if (net.hasNames())
+		{
+			if (net.getExportedNames().hasNext())
+			{
+				name = (String)net.getExportedNames().next();
+			} else
+			{
+				name = (String)net.getNames().next();
+			}
+		} else
+		{
+			name = net.describe();
+			if (name.equals(""))
+				name = "UNCONNECTED";
+		}
+		return name;
+	}
 
-    /**
-     * Get the spice net name associated with the network and the context.
-     * If the network is null, a String describing only the context is returned.
-     * @param context the context
-     * @param net the network, or null
-     * @return a String describing the unique, global spice name for the network,
-     * or a String describing the context if net is null
-     */
-    public static String getSpiceNetName(VarContext context, Network net) {
-        if (net != null) {
-            while (net.isExported() && (context != VarContext.globalContext)) {
-                // net is exported, find net in parent
-                net = getNetworkInParent(net, context.getNodable());
-//                net = HierarchyEnumerator.getNetworkInParent(net, context.getNodable());
-                if (net == null) break;
-                context = context.pop();
-            }
-        }
-        // create net name
-        String contextStr = context.getInstPath(".");
-        contextStr = contextStr.toLowerCase();
-        if (net == null)
-            return contextStr;
-        else {
-            if (context == VarContext.globalContext) return getSpiceNetName(net);
-            else return contextStr + "." + getSpiceNetName(net);
-        }
-    }
+	/**
+	 * Get the spice net name associated with the network and the context.
+	 * If the network is null, a String describing only the context is returned.
+	 * @param context the context
+	 * @param net the network, or null
+	 * @return a String describing the unique, global spice name for the network,
+	 * or a String describing the context if net is null
+	 */
+	public static String getSpiceNetName(VarContext context, Network net) {
+		if (net != null) {
+			while (net.isExported() && (context != VarContext.globalContext)) {
+				// net is exported, find net in parent
+				net = getNetworkInParent(net, context.getNodable());
+//				net = HierarchyEnumerator.getNetworkInParent(net, context.getNodable());
+				if (net == null) break;
+				context = context.pop();
+			}
+		}
+		// create net name
+		String contextStr = context.getInstPath(".");
+		contextStr = contextStr.toLowerCase();
+		if (net == null)
+			return contextStr;
+		else {
+			if (context == VarContext.globalContext) return getSpiceNetName(net);
+			else return contextStr + "." + getSpiceNetName(net);
+		}
+	}
 
-    /**
-     * Get the Network in the childNodable's parent that corresponds to the Network
-     * inside the childNodable.
-     * @param childNetwork the network in the childNodable
-     * @return the network in the parent that connects to the
-     * specified network, or null if no such network.
-     * null on error.
-     */
-    public static Network getNetworkInParent(Network childNetwork, Nodable childNodable) {
-        if (childNodable == null || childNetwork == null) return null;
-        if (!(childNodable.getProto() instanceof Cell)) return null;
-        Cell childCell = (Cell)childNodable.getProto();
-        if (childCell.contentsView() != null)
-            childCell = childCell.contentsView();
-        // find export on network
-        boolean found = false;
-        Export export = null;
-        int i = 0;
-        for (Iterator it = childCell.getPorts(); it.hasNext(); ) {
-            export = (Export)it.next();
-            for (i=0; i<export.getNameKey().busWidth(); i++) {
-        		Netlist netlist = childCell.acquireUserNetlist();
-        		if (netlist == null)
-        		{
-        			System.out.println("Sorry, a deadlock aborted crossprobing (network information unavailable).  Please try again");
-        			return null;
-        		}
-//                Network net = childCell.getUserNetlist().getNetwork(export, i);
-                Network net = netlist.getNetwork(export, i);
-                if (net == childNetwork) { found = true; break; }
-            }
-            if (found) break;
-        }
-        if (!found) return null;
-        // find corresponding port on icon
-        //System.out.println("In "+cell.describe()+" JNet "+network.describe()+" is exported as "+export.getName()+"; index "+i);
-        Export pp = (Export)childNodable.getProto().findPortProto(export.getNameKey());
-        //System.out.println("Found corresponding port proto "+pp.getName()+" on cell "+no.getProto().describe());
-        // find corresponding network in parent
-        Cell parentCell = childNodable.getParent();
-        //if (childNodable instanceof NodeInst) childNodable = Netlist.getNodableFor((NodeInst)childNodable, 0);
+	/**
+	 * Get the Network in the childNodable's parent that corresponds to the Network
+	 * inside the childNodable.
+	 * @param childNetwork the network in the childNodable
+	 * @return the network in the parent that connects to the
+	 * specified network, or null if no such network.
+	 * null on error.
+	 */
+	public static Network getNetworkInParent(Network childNetwork, Nodable childNodable) {
+		if (childNodable == null || childNetwork == null) return null;
+		if (!(childNodable.getProto() instanceof Cell)) return null;
+		Cell childCell = (Cell)childNodable.getProto();
+		if (childCell.contentsView() != null)
+			childCell = childCell.contentsView();
+		// find export on network
+		boolean found = false;
+		Export export = null;
+		int i = 0;
+		for (Iterator it = childCell.getPorts(); it.hasNext(); ) {
+			export = (Export)it.next();
+			for (i=0; i<export.getNameKey().busWidth(); i++) {
+				Netlist netlist = childCell.acquireUserNetlist();
+				if (netlist == null)
+				{
+					System.out.println("Sorry, a deadlock aborted crossprobing (network information unavailable).  Please try again");
+					return null;
+				}
+//				Network net = childCell.getUserNetlist().getNetwork(export, i);
+				Network net = netlist.getNetwork(export, i);
+				if (net == childNetwork) { found = true; break; }
+			}
+			if (found) break;
+		}
+		if (!found) return null;
+		// find corresponding port on icon
+		//System.out.println("In "+cell.describe()+" JNet "+network.describe()+" is exported as "+export.getName()+"; index "+i);
+		Export pp = (Export)childNodable.getProto().findPortProto(export.getNameKey());
+		//System.out.println("Found corresponding port proto "+pp.getName()+" on cell "+no.getProto().describe());
+		// find corresponding network in parent
+		Cell parentCell = childNodable.getParent();
+		//if (childNodable instanceof NodeInst) childNodable = Netlist.getNodableFor((NodeInst)childNodable, 0);
 		Netlist netlist = parentCell.acquireUserNetlist();
 		if (netlist == null)
 		{
 			System.out.println("Sorry, a deadlock aborted crossprobing (network information unavailable).  Please try again");
 			return null;
 		}
-//        Network parentNet = parentCell.getUserNetlist().getNetwork(childNodable, pp, i);
-        Network parentNet = netlist.getNetwork(childNodable, pp, i);
-        return parentNet;
-    }
+//		Network parentNet = parentCell.getUserNetlist().getNetwork(childNodable, pp, i);
+		Network parentNet = netlist.getNetwork(childNodable, pp, i);
+		return parentNet;
+	}
 
 	/**
 	 * Method to locate a simulation signal in the waveform.
@@ -4432,7 +4432,7 @@ if (wp.signalButtons != null)
 //			/* determine trace color */
 //			switch (state >> 8)
 //			{
-//				case LOGIC_LOW:  *color = sim_colorlevellow;     break;
+//				case LOGIC_LOW:  *color = sim_colorlevellow;	 break;
 //				case LOGIC_X:    *color = sim_colorlevelundef;   break;
 //				case LOGIC_HIGH: *color = sim_colorlevelhigh;    break;
 //				case LOGIC_Z:    *color = sim_colorlevelzdef;    break;
@@ -5029,7 +5029,7 @@ if (wp.signalButtons != null)
 	 * @param caseSensitive true to match only where the case is the same.
 	 */
 	public void initTextSearch(String search, boolean caseSensitive,
-	                           boolean regExp, Set whatToSearch) {
+		boolean regExp, Set whatToSearch) {
 		System.out.println("Text search not implemented for waveform windows");
 	}
 
@@ -5052,17 +5052,17 @@ if (wp.signalButtons != null)
 	 */
 	public void replaceAllText(String replace) {}
 
-    /**
-     * Method to export directly PNG file
-     * @param ep
-     * @param filePath
-     */
-    public void writeImage(ElectricPrinter ep, String filePath)
-    {
-        BufferedImage img = getOffScreenImage(ep);
-        PNG.writeImage(img, filePath);
-    }
-    
+	/**
+	 * Method to export directly PNG file
+	 * @param ep
+	 * @param filePath
+	 */
+	public void writeImage(ElectricPrinter ep, String filePath)
+	{
+		BufferedImage img = getOffScreenImage(ep);
+		PNG.writeImage(img, filePath);
+	}
+
 	/**
 	 * Method to print window using offscreen canvas
 	 * @param ep Image observer plus printable object

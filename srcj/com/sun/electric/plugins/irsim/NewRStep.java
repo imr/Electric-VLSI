@@ -1306,7 +1306,7 @@ public class NewRStep extends Eval
 		t.rUp.min	= Sim.SMALL;
 		t.rDown.min	= Sim.SMALL;
 		t.rMin		= Sim.SMALL;
-	
+
 		inputThev[Sim.X_X] = inputThev[Sim.X];
 	}
 }

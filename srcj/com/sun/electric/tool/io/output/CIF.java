@@ -42,6 +42,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -235,6 +236,9 @@ public class CIF extends Geometry
      * Method to determine whether or not to include the original Geometric with a Poly
      */
     protected boolean includeGeometric() { return true; }
+    
+    /** Overridable method to determine the current EditWindow to use for text scaling */
+    protected EditWindow windowBeingRendered() { return null; }
 
 	/**
 	 * Method to emit the current layer number.

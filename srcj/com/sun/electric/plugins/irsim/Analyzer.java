@@ -580,7 +580,7 @@ public class Analyzer extends Engine
 				if (targ[0].equals("unitdelay")) command = VECTORUNITDELAY; else
 				if (targ[0].equals("until")) command = VECTORUNTIL; else
 				if (targ[0].equals("V")) command = VECTORV; else
-				if (targ[0].equals("vector")) command = VECTORVECTOR; else					
+				if (targ[0].equals("vector")) command = VECTORVECTOR; else
 				if (targ[0].equals("x")) command = VECTORX; else
 				{
 					System.out.println("Unknown command: " + targ[0]);
@@ -854,7 +854,7 @@ public class Analyzer extends Engine
 				newsv.sigsNegated = null;
 				if (command == VECTORT) newsv.sigsNegated = new ArrayList();
 				getTargetNodes(params, 0, newsv.sigs, newsv.sigsNegated);
-	
+
 				if (command == VECTORL || command == VECTORH || command == VECTORX)
 				{
 					// add this moment in time to the control points for the signal
@@ -1114,17 +1114,17 @@ public class Analyzer extends Engine
 			Signal sig = (Signal)sIt.next();
 			Sim.Node n = (Sim.Node)sig.getAppObject();
 			if (n == null) continue;
-	
+
 			String name = n.nName;
 			while((n.nFlags & Sim.ALIAS) != 0)
 				n = n.nLink;
-	
+
 			if ((n.nFlags & Sim.MERGED) != 0)
 			{
 				System.out.println(name + " => node is inside a transistor stack");
 				return;
 			}
-	
+
 			String infstr = "";
 			infstr += pValue(name, n);
 			if ((n.nFlags & Sim.INPUT) != 0)
@@ -1134,7 +1134,7 @@ public class Analyzer extends Engine
 				infstr += "(tpLH=" + n.tpLH + ", tpHL=" + n.tpHL + ") ";
 			infstr += "(" + n.nCap + " pf) ";
 			System.out.println(infstr);
-	
+
 			infstr = "";
 			if (sv.command == VECTOREXCL)
 			{
@@ -1156,7 +1156,7 @@ public class Analyzer extends Engine
 								drive = "pullup ";
 						else
 							infstr += pTrans(t);
-		
+
 						if (drive != null)
 						{
 							infstr += drive;
@@ -1180,7 +1180,7 @@ public class Analyzer extends Engine
 				}
 			}
 			System.out.println(infstr);
-	
+
 			if (n.events != null)
 			{
 				System.out.println("Pending events:");
@@ -1659,7 +1659,7 @@ public class Analyzer extends Engine
 		if (sigsOnBus == null)
 		{
 			System.out.println("Signal: " + sv.parameters[0] + " is not a bus");
-			return;			
+			return;
 		}
 
 		if (sigsOnBus.size() != sv.parameters[1].length())

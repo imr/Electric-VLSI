@@ -408,13 +408,13 @@ public class Sim
 
 	public static final int INPUT_MASK	=	(H_INPUT | L_INPUT | X_INPUT | U_INPUT);
 
-	/** event scheduling */							public static final int	DEBUG_EV	= 0x01;		
-	/** final value computation */					public static final int	DEBUG_DC	= 0x02;		
-	/** tau/delay computation */					public static final int	DEBUG_TAU	= 0x04;		
-	/** taup computation */							public static final int	DEBUG_TAUP	= 0x08;		
-	/** spike analysis */							public static final int	DEBUG_SPK	= 0x10;		
-	/** tree walk */								public static final int	DEBUG_TW	= 0x20;		
-	
+	/** event scheduling */							public static final int	DEBUG_EV	= 0x01;
+	/** final value computation */					public static final int	DEBUG_DC	= 0x02;
+	/** tau/delay computation */					public static final int	DEBUG_TAU	= 0x04;
+	/** taup computation */							public static final int	DEBUG_TAUP	= 0x08;
+	/** spike analysis */							public static final int	DEBUG_SPK	= 0x10;
+	/** tree walk */								public static final int	DEBUG_TW	= 0x20;
+
 	public static final int	REPORT_DECAY	= 0x01;
 	public static final int	REPORT_DELAY	= 0x02;
 	public static final int	REPORT_TAU		= 0x04;

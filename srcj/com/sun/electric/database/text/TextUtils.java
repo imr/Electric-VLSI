@@ -45,9 +45,12 @@ import java.net.URLConnection;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
+import java.util.StringTokenizer;
 import java.util.TimeZone;
 
 /**
@@ -517,6 +520,21 @@ public class TextUtils
 			i = stringLC.indexOf(searchLC);
 		if (i >= 0) i += startingPos;
 		return i;
+	}
+
+	/**
+	 * Method to break a line into keywords, separated by white space.
+	 * @param line the string to tokenize.
+	 * @return an array of Strings for each keyword on the line.
+	 */
+	public static String [] parseLine(String line)
+	{
+		StringTokenizer st = new StringTokenizer(line, " \t");
+		int total = st.countTokens();
+		String [] strings = new String[total];
+		for(int i=0; i<total; i++)
+			strings[i] = st.nextToken();
+		return strings;
 	}
 
 	/**

@@ -305,6 +305,7 @@ public class Output
 	 * The alternative is to write the entire library, regardless of
 	 * hierarchical structure (use "WriteLibrary").
      * @param cell the Cell to be written.
+     * @param context the VarContext of the Cell (its position in the hierarchy above it).
      * @param filePath the path to the disk file to be written.
      * @param type the format of the output file.
      */
@@ -337,6 +338,9 @@ public class Output
 		} else if (type == FileType.FASTHENRY)
 		{
 			FastHenry.writeFastHenryFile(cell, context, filePath);
+		} else if (type == FileType.HPGL)
+		{
+			HPGL.writeHPGLFile(cell, context, filePath);
 		} else if (type == FileType.GDS)
 		{
 			GDS.writeGDSFile(cell, context, filePath);
@@ -386,13 +390,6 @@ public class Output
 		{
 			Verilog.writeVerilogFile(cell, context, filePath);
 		}
-        
-//		if (error)
-//		{
-//			System.out.println("Error writing "+type+" file");
-//			return true;
-//		}
-//		return false;        
     }
 
 	/**
@@ -703,6 +700,16 @@ public class Output
         return false;
     }
 
+	/** 
+     * Close the printWriter.
+     * @return true on error.
+     */
+    protected boolean closeTextOutputStream()
+    {
+        printWriter.close();
+        return false;
+    }
+
 	protected void emitCopyright(String prefix, String postfix)
 	{
 		if (!IOTool.isUseCopyrightMessage()) return;
@@ -725,7 +732,9 @@ public class Output
 	private String continuationString = "";
 
 	protected void setOutputWidth(int width, boolean strict) { maxWidth = width;   strictWidthLimit = strict; }
+
 	protected void setCommentChar(char ch) { commentChar = ch; }
+
 	protected void setContinuationString(String str) { continuationString = str; }
 
 	private void writeChunk(String str)
@@ -848,16 +857,6 @@ public class Output
 		}
 		return bounds;
 	}
-
-	/** 
-     * Close the printWriter.
-     * @return true on error.
-     */
-    protected boolean closeTextOutputStream()
-    {
-        printWriter.close();
-        return false;
-    }
 
 }
 

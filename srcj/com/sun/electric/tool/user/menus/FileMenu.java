@@ -165,6 +165,8 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.POSTSCRIPT, false); } });
 	    exportSubMenu.addMenuItem("PNG (Portable Network Graphics)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.PNG, false); } });
+		exportSubMenu.addMenuItem("HPGL...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.HPGL, false); } });
 		exportSubMenu.addMenuItem("DXF (AutoCAD)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.DXF, false); } });
 		exportSubMenu.addSeparator();
@@ -703,6 +705,7 @@ public class FileMenu {
             if (PostScript.syncAll()) return;
             if (IOTool.isPrintEncapsulated()) type = FileType.EPS;
         }
+
 	    WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
 	    WindowContent wnd = (wf != null) ? wf.getContent() : null;
 

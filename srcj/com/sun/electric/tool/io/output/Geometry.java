@@ -40,6 +40,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.AffineTransform;
 import java.util.HashMap;
@@ -119,6 +120,9 @@ public abstract class Geometry extends Output
     /** Overridable method to determine whether or not to include the original Geometric with a Poly */
     protected boolean includeGeometric() { return false; }
     
+    /** Overridable method to determine the current EditWindow to use for text scaling */
+    protected EditWindow windowBeingRendered() { return null; }
+    
     
     /**
      * Class to store polygon geometry of a cell
@@ -127,7 +131,7 @@ public abstract class Geometry extends Output
     {
         /** HashMap of Poly(gons) in this Cell, keyed by Layer, all polys per layer stored as a List */
 															protected HashMap polyMap;
-        /** Nodables in this Cell */						protected ArrayList nodables;
+        /** Nodables (instances) in this Cell */			protected ArrayList nodables;
         /** Cell */											protected Cell cell;
 		/** true if cell name used in other libraries */	protected boolean nonUniqueName;
         
@@ -289,7 +293,7 @@ public abstract class Geometry extends Output
 		{
 			PrimitiveNode prim = (PrimitiveNode)ni.getProto();
 			Technology tech = prim.getTechnology();
-			Poly [] polys = tech.getShapeOfNode(ni);
+			Poly [] polys = tech.getShapeOfNode(ni, windowBeingRendered());
 			for (int i=0; i<polys.length; i++)
 				polys[i].transform(trans);
 			cellGeom.addPolys(polys, ni);
@@ -299,7 +303,7 @@ public abstract class Geometry extends Output
 		{
 			ArcProto ap = ai.getProto();
 			Technology tech = ap.getTechnology();
-			Poly [] polys = tech.getShapeOfArc(ai);
+			Poly [] polys = tech.getShapeOfArc(ai, windowBeingRendered());
 			cellGeom.addPolys(polys, ai);
 		}
     }

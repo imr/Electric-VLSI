@@ -708,14 +708,14 @@ public class SStep extends Eval
 			// initial values and stuff...
 			n.nFlags |= Sim.VISITED;
 			result = (n.nGateList.size() == 0) ? xChargedState[n.nPot] : chargedState[n.nPot];
-	
+
 			for(Iterator it = n.nTermList.iterator(); it.hasNext(); )
 			{
 				Sim.Trans t = (Sim.Trans)it.next();
-	
+
 				// don't bother with off transistors
 				if (t.state == Sim.OFF) continue;
-	
+
 				/* for each non-off transistor, do nothing if node on other side has
 				 * its visited flag set (this is how cycles are detected).  Otherwise
 				 * check cache and use value found there, if any.  As a last resort,
@@ -741,7 +741,7 @@ public class SStep extends Eval
 					}
 				}
 			}
-	
+
 			n.nFlags &= ~Sim.VISITED;
 		}
 		if ((theSim.irDebug & (Sim.DEBUG_DC | Sim.DEBUG_TW)) != 0 && level > 0)

@@ -37,6 +37,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.PixelDrawing;
@@ -1261,24 +1262,37 @@ public class User extends Listener
 	public static void setDefaultTechnology(String t) { cacheDefaultTechnology.setString(t); }
 
 	private static Pref cacheSchematicTechnology = Pref.makeStringPref("SchematicTechnology", User.tool.prefs, "mocmos");
+	private static Technology schematicTechnologyCache = null;
 	static { cacheSchematicTechnology.attachToObject(User.tool, "Technology/Technology tab", "Schematics use scale values from this technology"); }
 	/**
-	 * Method to choose the layout technology to use when schematics are found.
+	 * Method to choose the layout Technology to use when schematics are found.
 	 * This is important in Spice deck generation (for example) because the Spice primitives may
 	 * say "2x3" on them, but a real technology (such as "mocmos") must be found to convert these pure
 	 * numbers to real spacings for the deck.
-	 * The default is "mocmos".
-	 * @return the technology to use when schematics are found.
+	 * The default is the MOSIS CMOS technology.
+	 * @return the Technology to use when schematics are found.
 	 */
-	public static String getSchematicTechnology() { return cacheSchematicTechnology.getString(); }
+	public static Technology getSchematicTechnology()
+	{
+		if (schematicTechnologyCache != null) return schematicTechnologyCache;
+		schematicTechnologyCache = Technology.findTechnology(cacheSchematicTechnology.getString());
+		return schematicTechnologyCache;
+	}
 	/**
-	 * Method to set the layout technology to use when schematics are found.
+	 * Method to set the layout Technology to use when schematics are found.
 	 * This is important in Spice deck generation (for example) because the Spice primitives may
 	 * say "2x3" on them, but a real technology (such as "mocmos") must be found to convert these pure
 	 * numbers to real spacings for the deck.
-	 * @param t the technology to use when schematics are found.
+	 * @param t the Technology to use when schematics are found.
 	 */
-	public static void setSchematicTechnology(String t) { cacheSchematicTechnology.setString(t); }
+	public static void setSchematicTechnology(Technology t)
+	{
+		if (schematicTechnologyCache != t)
+		{
+			schematicTechnologyCache = t;
+			cacheSchematicTechnology.setString(t.getTechName());
+		}
+	}
 
     public static final String INITIALWORKINGDIRSETTING_BASEDONOS = "Based on OS";
     public static final String INITIALWORKINGDIRSETTING_USECURRENTDIR = "Use current directory";

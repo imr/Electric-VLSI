@@ -228,7 +228,7 @@ public class IRSIM extends Output
 
         technology = cell.getTechnology();
 		if (technology == Schematics.tech)
-			technology = Technology.findTechnology(User.getSchematicTechnology());
+			technology = User.getSchematicTechnology();
 	}
 
 	/** IRSIM Netlister */

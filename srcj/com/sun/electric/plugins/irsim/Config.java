@@ -38,26 +38,26 @@ public class Config
 	 */
 	private static class Length
 	{
-		/** next element with same width */				Length    next;		
-		/** length of this channel in centimicrons */	long      l;		
-		/** equivalent resistance/square */				double    r;		
+		/** next element with same width */				Length    next;
+		/** length of this channel in centimicrons */	long      l;
+		/** equivalent resistance/square */				double    r;
 	};
 
 	private static class Width
 	{
-		/** next width */								Width     next;		
-		/** width of this channel in centimicrons */	long      w;		
-		/** list of length structures */				Length    list;		
+		/** next width */								Width     next;
+		/** width of this channel in centimicrons */	long      w;
+		/** list of length structures */				Length    list;
 	}
 
-	/** centimicrons per micron */														private static final double CM_M	  = 100.0;	
+	/** centimicrons per micron */														private static final double CM_M	  = 100.0;
 
 	/* values of configFlags */
-	/** set if capacitance from gate of pullup should be included. */					private static final int CNTPULLUP	= 0x2;		
-	/** set if diffusion perimeter does not include sources/drains of transistors. */	private static final int DIFFPERIM	= 0x4;		
-	/** set if poly over xistor doesn't make a capacitor */								private static final int SUBPAREA	= 0x8;		
-	/** set if we should add capacitance due to diffusion-extension of source/drain. */	private static final int DIFFEXTF	= 0x10;		
-	/** set if DIFFPERIM or DIFFEXTF are true */										private static final int TDIFFCAP	= 0x1;		
+	/** set if capacitance from gate of pullup should be included. */					private static final int CNTPULLUP	= 0x2;
+	/** set if diffusion perimeter does not include sources/drains of transistors. */	private static final int DIFFPERIM	= 0x4;
+	/** set if poly over xistor doesn't make a capacitor */								private static final int SUBPAREA	= 0x8;
+	/** set if we should add capacitance due to diffusion-extension of source/drain. */	private static final int DIFFEXTF	= 0x10;
+	/** set if DIFFPERIM or DIFFEXTF are true */										private static final int TDIFFCAP	= 0x1;
 
 	private static final int RES_TAB_SIZE = 67;
 
@@ -68,31 +68,31 @@ public class Config
 	 *	Area capacitances are all in pfarads/sq-micron units.
 	 *	Perimeter capacitances are all in pfarads/micron units.
 	 */
-	/** 2nd metal capacitance -- area */			public  double CM2A = .00000;		
-	/** 2nd metal capacitance -- perimeter */		public  double CM2P = .00000;		
-	/** 1st metal capacitance -- area */			public  double CMA  = .00003;		
-	/** 1st metal capacitance -- perimeter */		public  double CMP  = .00000;		
-	/** poly capacitance -- area */					public  double CPA  = .00004;		
-	/** poly capacitance -- perimeter */			public  double CPP  = .00000;		
-	/** n-diffusion capacitance -- area */			public  double CDA  = .00010;		
-	/** n-diffusion capacitance -- perimeter */		public  double CDP  = .00060;		
-	/** p-diffusion capacitance -- area */			public  double CPDA = .00010;		
-	/** p-diffusion capacitance -- perimeter */		public  double CPDP = .00060;		
-	/** gate capacitance -- area */					private double CGA  = .00040;		
+	/** 2nd metal capacitance -- area */			public  double CM2A = .00000;
+	/** 2nd metal capacitance -- perimeter */		public  double CM2P = .00000;
+	/** 1st metal capacitance -- area */			public  double CMA  = .00003;
+	/** 1st metal capacitance -- perimeter */		public  double CMP  = .00000;
+	/** poly capacitance -- area */					public  double CPA  = .00004;
+	/** poly capacitance -- perimeter */			public  double CPP  = .00000;
+	/** n-diffusion capacitance -- area */			public  double CDA  = .00010;
+	/** n-diffusion capacitance -- perimeter */		public  double CDP  = .00060;
+	/** p-diffusion capacitance -- area */			public  double CPDA = .00010;
+	/** p-diffusion capacitance -- perimeter */		public  double CPDP = .00060;
+	/** gate capacitance -- area */					private double CGA  = .00040;
 
-	/** microns/lambda */							public  double lambda     = 2.5;	
-	/** LAMBDA**2 */								public  double lambdaSquared    = 6.25;	
-	/** centi-microns/lambda */						public  long   lambdaCM   = 250;	
-	/** low voltage threshold, normalized units */	public  double lowThresh  = 0.3;	
-	/** high voltage threshold,normalized units */	public  double highThresh = 0.8;	
-	/** width of source/drain diffusion */			private double DIFFEXT    = 0;	
+	/** microns/lambda */							public  double lambda     = 2.5;
+	/** LAMBDA**2 */								public  double lambdaSquared    = 6.25;
+	/** centi-microns/lambda */						public  long   lambdaCM   = 250;
+	/** low voltage threshold, normalized units */	public  double lowThresh  = 0.3;
+	/** high voltage threshold,normalized units */	public  double highThresh = 0.8;
+	/** width of source/drain diffusion */			private double DIFFEXT    = 0;
 
 	/* the following are computed from above */
-	/** xtor diff-width capacitance -- perimeter */	private double CTDW;				
+	/** xtor diff-width capacitance -- perimeter */	private double CTDW;
 													private double CPTDW;
-	/** xtor diff-extension cap. -- perimeter */	private double CTDE;				
+	/** xtor diff-extension cap. -- perimeter */	private double CTDE;
 													private double CPTDE;
-	/** xtor gate capacitance -- area */			public  double CTGA;				
+	/** xtor gate capacitance -- area */			public  double CTGA;
 
 	private List [][]  resHTab;
 	private int        configFlags;

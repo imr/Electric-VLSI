@@ -50,6 +50,7 @@ public class FileType {
 	/** Describes FastHenry files.*/		public static final FileType FASTHENRY    = new FileType("FastHenry", new String[] {"inp"}, "FastHenry File (inp)");
 	/** Describes GDS files. */				public static final FileType GDS          = new FileType("GDS", new String[] {"gds"}, "GDS File (gds)");
 	/** Describes HSpice output. */			public static final FileType HSPICEOUT    = new FileType("HSpiceOutput", new String[] {"tr0", "pa0"}, "HSpice Output File (tr0/pa0)");
+	/** Describes HPGL files. */			public static final FileType HPGL         = new FileType("HPGL", new String[] {"hpgl2"}, "HPGL File (hpgl2)");
 	/** Describes HTML files. */			public static final FileType HTML         = new FileType("HTML", new String[] {"html"}, "HTML File (html)");
 	/** Describes IRSIM decks. */			public static final FileType IRSIM        = new FileType("IRSIM", new String[] {"sim"}, "IRSIM Deck (sim)");
 	/** Describes IRSIM parameter decks. */	public static final FileType IRSIMPARAM   = new FileType("IRSIM Parameters", new String[] {"prm"}, "IRSIM Parameter Deck (prm)");

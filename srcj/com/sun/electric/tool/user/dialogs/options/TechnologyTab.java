@@ -67,7 +67,7 @@ public class TechnologyTab extends PreferencePanel
 	private int initialTechRules;
 	private int initialTechNumMetalLayers;
 	private boolean initialTechSecondPolyLayers;
-	private String initialSchematicTechnology;
+	private Technology initialSchematicTechnology;
     private String initialDefaultTechnology;
 	private boolean initialTechNoStackedVias;
 	private boolean initialTechAlternateContactRules;
@@ -123,7 +123,7 @@ public class TechnologyTab extends PreferencePanel
 			technologyPopup.addItem(tech.getTechName());
             defaultTechPulldown.addItem(tech.getTechName());
 		}
-		technologyPopup.setSelectedItem(initialSchematicTechnology);
+		technologyPopup.setSelectedItem(initialSchematicTechnology.getTechName());
 
 		// build the layers list
 		schemPrimModel = new DefaultListModel();
@@ -302,8 +302,9 @@ public class TechnologyTab extends PreferencePanel
 		}
 
 		// Schematics
-		String currentTech = (String)technologyPopup.getSelectedItem();
-		if (!currentTech.equals(initialSchematicTechnology))
+		String currentTechName = (String)technologyPopup.getSelectedItem();
+		Technology currentTech = Technology.findTechnology(currentTechName);
+		if (currentTech != initialSchematicTechnology && currentTech != null)
 			User.setSchematicTechnology(currentTech);
 
         // Getting default tech

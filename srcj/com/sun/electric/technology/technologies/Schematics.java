@@ -2210,12 +2210,8 @@ public class Schematics extends Technology
 	public static Technology getDefaultSchematicTechnology()
 	{
 		// see if the default schematics technology is already set
-		String defTech = User.getSchematicTechnology();
-		if (defTech.length() > 0)
-		{
-			Technology tech = Technology.findTechnology(defTech);
-			if (tech != null) return tech;
-		}
+		Technology schemTech = User.getSchematicTechnology();
+		if (schemTech != null) return schemTech;
 
 		// look at all circuitry and see which technologies are in use
 		HashMap usedTechnologies = new HashMap();
@@ -2255,14 +2251,13 @@ public class Schematics extends Technology
 			bestAmount = mi.intValue();
 			bestTech = tech;
 		}
-		if (bestTech != null)
+		if (bestTech == null)
 		{
-			User.setSchematicTechnology(bestTech.getTechName());
-			return bestTech;
+			// presume mosis cmos
+			bestTech = MoCMOS.tech;
 		}
 
-		// presume mosos cmos
-		bestTech = MoCMOS.tech;
+		User.setSchematicTechnology(bestTech);
 		return bestTech;
 	}
 

@@ -910,7 +910,20 @@ public class Highlight
                     {
                         NodeInst oNi = (NodeInst)it.next();
                         if (oNi == ni) continue;
-                        if (!markObj.contains(oNi)) continue;
+                        if (!markObj.contains(oNi))
+                        {
+                    		boolean connected = false;
+                        	if (oNi.getNumExports() > 0)
+                        	{
+                        		// could be connected by exports...check
+                        		for(Iterator eIt = oNi.getProto().getPorts(); eIt.hasNext(); )
+                        		{
+                        			PortProto oPp = (PortProto)eIt.next();
+                        			if (netlist.sameNetwork(no, epp, oNi, oPp)) { connected = true;   break; }
+                        		}
+                        	}
+                        	if (!connected) continue;
+                        }
 
                         Point c = wnd.databaseToScreen(oNi.getTrueCenter());
                         g.fillOval(c.x-4, c.y-4, 8, 8);
