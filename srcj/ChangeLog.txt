@@ -4,10 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01am: *********************************
 
+BUG: (11/11/04, RK) NCC crashes when a Cell has an Export and global with the same name.
+
 BUG: (11/11/04, DN) Exception in JELIB reader when referenced library not found.
+
 FIX: Check of null pointer in input.JELIB.realizeCellsRecursively .
 
 BUG: (11/11/04, DN) TextUtils.nameSameNumeric may loop infinitely after my previous change.
+
 FIX: Reimplement TextUtils.nameSameNumeric. It is case-sensitive. "nameSameNumeric(s1,s2) == 0" IFF "s1.equals(s2)".
 
 IMP: (11/10/04, GVG) Scaling factor in 3D view.
