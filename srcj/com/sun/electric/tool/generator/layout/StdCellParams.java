@@ -128,6 +128,7 @@ public class StdCellParams {
 	private boolean doubleStrapGate = false;
 	private boolean exhaustivePlace = true;
 	private int nbPlacerPerms = 40000;
+	private boolean simpleName = false;
 
 	// ------------------------ private methods -----------------------------
 
@@ -561,6 +562,7 @@ public class StdCellParams {
 	 * "_PH70" for PMOS region height of 70 lambda
 	 * "_MW70" for maximum transistor width of 70 lambda */
 	public String parameterizedName(String nm) {
+		if (simpleName) return nm;
 		return nm
 			+"_NH"+nmosWellHeight+"_PH"+pmosWellHeight
 			+"_MW"+maxMosWidth+"_VY"
@@ -962,5 +964,7 @@ public class StdCellParams {
 		Cell f = diffNode.getParent();
 		LayoutLib.newNodeInst(sel, r.getCenterX(), r.getCenterY(), w, h, 0, f);
 	}
+	public void setSimpleName(boolean b) {simpleName = b;}
+	public boolean getSimpleName() {return simpleName;}
 
 }

@@ -1,6 +1,9 @@
 			Java Electric change log
 
 ************************* Version 8.00a: Released  *************************
+IMP: (5/25/04, RK) Modify "Justin" command so it scans LoCo schematics and generates layout for all
+gates it knows how to.
+
 IMP: (5/25/04, GVG) Disable doAction button in CellBrowser when no cells are available.
 getSelectedCell returns null if index is -1. Rename functionaly enabled in CellBrowser.
 

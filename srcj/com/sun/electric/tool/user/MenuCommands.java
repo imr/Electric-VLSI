@@ -741,10 +741,10 @@ public final class MenuCommands
 				new com.sun.electric.tool.generator.layout.GateRegression();
 			}
 		});
-		russMenu.addMenuItem("Generate Justin's inverter library", null, 
+		russMenu.addMenuItem("Generate layout for LoCo", null, 
 							 new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				new com.sun.electric.tool.generator.layout.Justin();
+				new com.sun.electric.tool.generator.layout.Loco();
 			}
 		});
 		russMenu.addMenuItem("create flat netlists for Ivan", null, new ActionListener() {

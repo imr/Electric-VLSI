@@ -73,58 +73,59 @@ public class GateRegression extends Job {
 	private static void aPass(double x, StdCellParams stdCell) {
 		tracePass(x);
 		
-		MullerC_sy.makePart(x, stdCell); traceGate();
-		Nms1.makePart(x, stdCell); traceGate();
-		Nms2.makePart(x, stdCell); traceGate();
-		Nms2_sy.makePart(x, stdCell); traceGate();
-		Nms3_sy3.makePart(x, stdCell); traceGate();
-		Pms1.makePart(x, stdCell); traceGate();
-		Pms2.makePart(x, stdCell); traceGate();
-		Pms2_sy.makePart(x, stdCell); traceGate();
-		Inv_passgate.makePart(x, stdCell); traceGate();
+//		MullerC_sy.makePart(x, stdCell); traceGate();
+//		Nms1.makePart(x, stdCell); traceGate();
+//		Nms2.makePart(x, stdCell); traceGate();
+//		Nms2_sy.makePart(x, stdCell); traceGate();
+//		Nms3_sy3.makePart(x, stdCell); traceGate();
+//		Pms1.makePart(x, stdCell); traceGate();
+//		Pms2.makePart(x, stdCell); traceGate();
+//		Pms2_sy.makePart(x, stdCell); traceGate();
+//		Inv_passgate.makePart(x, stdCell); traceGate();
 		Inv.makePart(x, stdCell); traceGate();
-		InvCTLn.makePart(x, stdCell); traceGate();
-		InvLT.makePart(x, stdCell); traceGate();
-		InvHT.makePart(x, stdCell); traceGate();
-		Inv2iKp.makePart(x, stdCell); traceGate();
-
-		Inv2iKn.makePart(x, stdCell); traceGate();
-		Inv2i.makePart(x, stdCell); traceGate();
-		Nor2.makePart(x, stdCell); traceGate();
-		Nor2LT.makePart(x, stdCell); traceGate();
-		Nor2kresetV.makePart(x, stdCell); traceGate();
-		Nand2.makePart(x, stdCell); traceGate();
-
-		Nand2en.makePart(x, stdCell); traceGate();
-		Nand2PH.makePart(x, stdCell); traceGate();
-		Nand2HLT.makePart(x, stdCell); traceGate();
-		Nand2PHfk.makePart(x, stdCell); traceGate();
-		Nand2LT.makePart(x, stdCell); traceGate();
-		Nand2_sy.makePart(x, stdCell); traceGate();
-		Nand2HLT_sy.makePart(x, stdCell); traceGate();
-		Nand2LT_sy.makePart(x, stdCell); traceGate();
-		Nand2en_sy.makePart(x, stdCell); traceGate();
-		Nand3.makePart(x, stdCell); traceGate();
-		Nand3LT.makePart(x, stdCell); traceGate();
-		Nand3MLT.makePart(x, stdCell); traceGate();
-		Nand3_sy3.makePart(x, stdCell); traceGate();
-		Nand3LT_sy3.makePart(x, stdCell); traceGate();
-		Nand3en_sy.makePart(x, stdCell); traceGate();
-		Nand3LTen_sy.makePart(x, stdCell); traceGate();
-		Nand3en.makePart(x, stdCell); traceGate();
-		Nand3LTen.makePart(x, stdCell); traceGate();
-
-		//if (x>=1.7) Nand3en_sy3.makePart(x, stdCell);
-		//if (x>=2.5) Nand3LTen_sy3.makePart(x, stdCell);
-
-		// Test gates that can double strap MOS gates
-		stdCell.setDoubleStrapGate(true);
-		Inv.makePart(x, stdCell); traceGate();
-		InvLT.makePart(x, stdCell); traceGate();
-		InvHT.makePart(x, stdCell); traceGate();
-		Nms1.makePart(x, stdCell); traceGate();
-		Pms1.makePart(x, stdCell); traceGate();
-		stdCell.setDoubleStrapGate(false);
+		Inv2_star.makePart(x, "", stdCell); traceGate();
+//		InvCTLn.makePart(x, stdCell); traceGate();
+//		InvLT.makePart(x, stdCell); traceGate();
+//		InvHT.makePart(x, stdCell); traceGate();
+//		Inv2iKp.makePart(x, stdCell); traceGate();
+//
+//		Inv2iKn.makePart(x, stdCell); traceGate();
+//		Inv2i.makePart(x, stdCell); traceGate();
+//		Nor2.makePart(x, stdCell); traceGate();
+//		Nor2LT.makePart(x, stdCell); traceGate();
+//		Nor2kresetV.makePart(x, stdCell); traceGate();
+//		Nand2.makePart(x, stdCell); traceGate();
+//
+//		Nand2en.makePart(x, stdCell); traceGate();
+//		Nand2PH.makePart(x, stdCell); traceGate();
+//		Nand2HLT.makePart(x, stdCell); traceGate();
+//		Nand2PHfk.makePart(x, stdCell); traceGate();
+//		Nand2LT.makePart(x, stdCell); traceGate();
+//		Nand2_sy.makePart(x, stdCell); traceGate();
+//		Nand2HLT_sy.makePart(x, stdCell); traceGate();
+//		Nand2LT_sy.makePart(x, stdCell); traceGate();
+//		Nand2en_sy.makePart(x, stdCell); traceGate();
+//		Nand3.makePart(x, stdCell); traceGate();
+//		Nand3LT.makePart(x, stdCell); traceGate();
+//		Nand3MLT.makePart(x, stdCell); traceGate();
+//		Nand3_sy3.makePart(x, stdCell); traceGate();
+//		Nand3LT_sy3.makePart(x, stdCell); traceGate();
+//		Nand3en_sy.makePart(x, stdCell); traceGate();
+//		Nand3LTen_sy.makePart(x, stdCell); traceGate();
+//		Nand3en.makePart(x, stdCell); traceGate();
+//		Nand3LTen.makePart(x, stdCell); traceGate();
+//
+//		//if (x>=1.7) Nand3en_sy3.makePart(x, stdCell);
+//		//if (x>=2.5) Nand3LTen_sy3.makePart(x, stdCell);
+//
+//		// Test gates that can double strap MOS gates
+//		stdCell.setDoubleStrapGate(true);
+//		Inv.makePart(x, stdCell); traceGate();
+//		InvLT.makePart(x, stdCell); traceGate();
+//		InvHT.makePart(x, stdCell); traceGate();
+//		Nms1.makePart(x, stdCell); traceGate();
+//		Pms1.makePart(x, stdCell); traceGate();
+//		stdCell.setDoubleStrapGate(false);
 	}
 
 	private static void allSizes(StdCellParams stdCell) {
@@ -135,21 +136,6 @@ public class GateRegression extends Job {
 				aPass(x, stdCell);
 			} 
 		}
-	}
-	/** build inverter library for Justin */
-	private void doJustin(StdCellParams stdCell) {
-		stdCell.setVddY(21);
-		stdCell.setGndY(-21);
-		stdCell.setNmosWellHeight(42);
-		stdCell.setPmosWellHeight(42);
-		InvV.makePart(24.4467, 25.3333, stdCell);	// 3x13x50000
-		InvV.makePart(51.4667, 53.3333, stdCell);	// 3x13x50000D
-		InvV.makePart(25.7333, 26.6667, stdCell);	// 3x13x70850
-		InvV.makePart(28.95, 30, stdCell);			// 3x3x33330
-		InvV.makePart(32.1667, 33.3333, stdCell);	// 3x3x50000
-		InvV.makePart(69.1583, 71.6667, stdCell);	// 3x3x50000D
-		InvV.makePart(23.8033, 24.6667, stdCell);	// 3x7x50000
-		InvV.makePart(26.3767, 27.3333, stdCell);	// 3x7x60000
 	}
 
 	public void doIt() {
@@ -172,33 +158,34 @@ public class GateRegression extends Job {
 //			homeDir + "work/async/electric-jkl-28august/purpleFour.elib");
 		stdCell.setSizeQuantizationError(0.05);
 		stdCell.setMaxMosWidth(1000);
+		stdCell.setVddY(21);
+		stdCell.setGndY(-21);
+		stdCell.setNmosWellHeight(42);
+		stdCell.setPmosWellHeight(42);
 
-		// generate inverters for Justin
-		//doJustin(stdCell);
-		
 		// a normal run
-		//allSizes(stdCell);
+		allSizes(stdCell);
 		
-		aPass(50, stdCell);
+		//aPass(200, stdCell);
 		
-		// test the ability to move ground bus
-		stdCell.setGndY(stdCell.getGndY() - 7);
-		//allSizes(stdCell);
-		aPass(20, stdCell);
-		stdCell.setGndY(stdCell.getGndY() + 7);
-
-		// test different PMOS to NMOS heights
-		stdCell.setNmosWellHeight(50);
-		stdCell.setPmosWellHeight(100);
-		//allSizes(stdCell);
-		aPass(20, stdCell);
-
-		stdCell.setNmosWellHeight(100);
-		stdCell.setPmosWellHeight(50);
-		//allSizes(stdCell);
-		aPass(20, stdCell);
-		stdCell.setNmosWellHeight(70);
-		stdCell.setPmosWellHeight(70);
+//		// test the ability to move ground bus
+//		stdCell.setGndY(stdCell.getGndY() - 7);
+//		//allSizes(stdCell);
+//		aPass(20, stdCell);
+//		stdCell.setGndY(stdCell.getGndY() + 7);
+//
+//		// test different PMOS to NMOS heights
+//		stdCell.setNmosWellHeight(50);
+//		stdCell.setPmosWellHeight(100);
+//		//allSizes(stdCell);
+//		aPass(20, stdCell);
+//
+//		stdCell.setNmosWellHeight(100);
+//		stdCell.setPmosWellHeight(50);
+//		//allSizes(stdCell);
+//		aPass(20, stdCell);
+//		stdCell.setNmosWellHeight(70);
+//		stdCell.setPmosWellHeight(70);
 
 		Cell gallery = Gallery.makeGallery(scratchLib);
 		DrcRings.addDrcRings(gallery, FILTER);

@@ -38,14 +38,6 @@ import com.sun.electric.technology.*;
 /** IC Layer information database gives information about various IC
  *  layers */
 public class Tech {
-	//  private static class Info {
-	//    final boolean isVia;
-	//    final double invisWidth, invisHeight;
-	//    Info(boolean isvia, double invisWid, double invisHei) {
-	//      isVia=isvia; invisWidth=invisWid;  invisHeight=invisHei;
-	//    }
-	//  }
-
 	//---------------------------- private data ----------------------------------
 	// The info map holds special information needed to construct
 	// Electric Nodes and Arcs.  This information isn't otherwise
@@ -64,6 +56,7 @@ public class Tech {
 	private static PrimitiveArc[] layers = new PrimitiveArc[nbLay];
 	private static PrimitiveNode[] vias = new PrimitiveNode[nbLay - 1];
 	private static HashMap viaMap = new HashMap();
+	private static Technology tech;
 
 	//----------------------------- public data ----------------------------------
 	/** layers 
@@ -126,7 +119,8 @@ public class Tech {
 		LayoutLib.error(pred, msg);
 	}
 	static {
-		Technology tech = Technology.findTechnology("mocmos");
+		tech = Technology.findTechnology("mocmos");
+		//setNanometersPerLambda(100);
 
 		// initialize layers
 		for (int i=0; i<nbLay; i++) {
@@ -241,6 +235,10 @@ public class Tech {
 	  System.out.println("End Polygon");
 	}
 	*/
+	
+	public static void setNanometersPerLambda(double nanoMeters) {
+		tech.setScale(nanoMeters);
+	}
 
 	public static PrimitiveNode getViaFor(PrimitiveArc a1, PrimitiveArc a2) {
 		int code = a1.hashCode() * a2.hashCode();

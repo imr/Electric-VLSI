@@ -492,9 +492,9 @@ class CapLayer implements VddGndStraps {
 	private NodeInst capCellInst;
 	private CapFloorplan plan; 
 
-	public CapLayer(Library lib, CapFloorplan plan, Cell cell) {
+	public CapLayer(Library lib, CapFloorplan plan, CapCell capCell, Cell cell) {
 		this.plan = plan;
-		capCell = new CapCell(lib, plan); 
+		this.capCell = capCell; 
 
 		double angle = plan.horizontal ? 0 : 90;
 		capCellInst = LayoutLib.newNodeInst(capCell.getCell(), 0, 0, G.DEF_SIZE,
@@ -706,13 +706,13 @@ class FillCell {
    	}
 	
 	private Cell makeFillCell1(Library lib, Floorplan[] plans, int botLayer, 
-					 		   int topLayer, boolean wireLowest) {
+					 		   int topLayer, CapCell capCell, boolean wireLowest) {
 		String name = fillName(botLayer, topLayer, wireLowest);
 		Cell cell = Cell.newInstance(lib, name);
 		VddGndStraps[] layers = new VddGndStraps[7];
 		for (int i=topLayer; i>=botLayer; i--) {
 			if (i==1) {
-				layers[i] = new CapLayer(lib, (CapFloorplan) plans[i], cell); 
+				layers[i] = new CapLayer(lib, (CapFloorplan) plans[i], capCell, cell); 
 			} else {
 				layers[i] = new MetalLayer(i, (MetalFloorplan)plans[i], cell);
 			} 
@@ -721,8 +721,8 @@ class FillCell {
 				connectLayers(layers[i], layers[i+1], cell);
 			}
 		}
-		if (layers[6]!=null) exportPerimeter(layers[6], cell);
-		if (layers[5]!=null) exportPerimeter(layers[5], cell);
+		if (layers[topLayer]!=null) exportPerimeter(layers[topLayer], cell);
+		if (layers[topLayer-1]!=null) exportPerimeter(layers[topLayer-1], cell);
 		if (wireLowest)  exportWiring(layers[botLayer], cell);
 		
 		double cellWidth = plans[topLayer].cellWidth;
@@ -737,11 +737,11 @@ class FillCell {
 	}
 	private FillCell() {}
 	public static Cell makeFillCell(Library lib, Floorplan[] plans, 
-								   int botLayer, int topLayer, 
+								   int botLayer, int topLayer, CapCell capCell, 
 								   boolean wireLowest) {
 		FillCell fc = new FillCell();
 
-		return fc.makeFillCell1(lib, plans, botLayer, topLayer, wireLowest);
+		return fc.makeFillCell1(lib, plans, botLayer, topLayer, capCell, wireLowest);
 	}
 }
 
@@ -944,7 +944,7 @@ class TiledCell {
 	}
 	private TiledCell(int numX, int numY, Cell cell, Floorplan[] plans, 
 	                  Library lib) {
-		String tiledName = cell.getProtoName() + "_"+numX+"x"+numY+"{lay}";
+		String tiledName = "t"+cell.getProtoName()+"_"+numX+"x"+numY+"{lay}";
 		Cell tiled = Cell.newInstance(lib, tiledName);
 
 		Rectangle2D bounds = cell.findEssentialBounds();
@@ -992,7 +992,7 @@ public class FillLibGen extends Job {
 
 	private static final double width = 245; //245 80
 	private static final double height = 175; //175 100 
-	private static final boolean topHori = false;
+	private static final boolean topHori = true;
 	// m1 via = 4x4, m1 wide metal space = 6, m1 space = 3
 	// m6 via = 5x5, m6 wide metal space = 8, m6 space = 4
 	private static final double m1via = 4;
@@ -1002,9 +1002,10 @@ public class FillLibGen extends Job {
 	private static final double m6sp = 4;
 	private static final double m6SP = 8;
 
-	private static final int nbTracks = 5;
+	private static final int nbTracks = 3;
 	private static final double m1Res = 2*m1SP - m1sp + nbTracks*(m1via+m1sp);
-	private static final double m6Res = 2*m6SP - m6sp + nbTracks*(m6via+m6sp);
+	private static final int nbTrack6 = 2;
+	private static final double m6Res = 2*m6SP - m6sp + nbTrack6*(m6via+m6sp);
 
 	private static final Floorplan[] plans = {
 		null,
@@ -1048,8 +1049,11 @@ public class FillLibGen extends Job {
 	private void genFillCellFamily(String libName, Floorplan[] plans) {
 		Library lib = LayoutLib.openLibForWrite(libName, libName+".elib");
 		printCoverage(plans);
-		System.out.println("m1-m5 reserved: "+m1Res);
-		System.out.println("m6 reserved: "+m6Res);
+		System.out.println("m1-m5 reserved space: "+m1Res);
+		System.out.println("m6 reserved space: "+m6Res);
+
+		// create a special cell to hold the power supply bypass capacitor
+		CapCell capCell = new CapCell(lib, (CapFloorplan) plans[1]); 
 		
 //		Cell c = FillCell.makeFillCell(lib, plans, 5, 6, true);
 //		makeTiledCells(c, lib);	
@@ -1058,11 +1062,14 @@ public class FillLibGen extends Job {
 				boolean wireLowest = w==1;
 				if (!(wireLowest && i==1)) {
 					Cell fill = 
-						FillCell.makeFillCell(lib, plans, i, 6, wireLowest);
+						FillCell.makeFillCell(lib, plans, i, 6, capCell, 
+						                      wireLowest);
 					makeTiledCells(fill, plans, lib);	
 				}
 			}
 		}
+		Cell fill = FillCell.makeFillCell(lib, plans, 1, 4, capCell, false);
+		makeTiledCells(fill, plans, lib);
 		Gallery.makeGallery(lib);
 	}
 

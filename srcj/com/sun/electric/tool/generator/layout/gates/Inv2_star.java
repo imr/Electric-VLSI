@@ -40,44 +40,43 @@ import com.sun.electric.tool.generator.layout.*;
  * increase the size of the NMOS rather than decrease the size of the
  * PMOS.  This seems like a confusing inconsistency to me but.
  */
-class Inv_star {
-	private static final double wellOverhangDiff = 6;
-	private static final double inY = 0.0;
-	private static final double outHiY = 11.0;
-	private static final double outLoY = -11.0;
+/** run a wide output bus in metal-1 along n-well/p-well boundary */
+public class Inv2_star {
+	private static final double outBusWidth = 10;
+	private static final double outBusSpace = outBusWidth>10 ? 6 : 3;
+	private static final double inY = 0; 
+	private static final double outY = 0;
 
 	private static void error(boolean pred, String msg) {
 		LayoutLib.error(pred, msg);
 	}
 
-	static Cell makePart(double sz, String threshold, StdCellParams stdCell) {
+	public static Cell makePart(double sz, String threshold, StdCellParams stdCell) {
 		sz = stdCell.roundSize(sz);
 		error(!threshold.equals("") && !threshold.equals("LT")
-			  && !threshold.equals("HT"),
-			  "Inv: threshold not \"\", \"LT\", or \"HT\": " + threshold);
-		String nm = "inv"+threshold
-		            +(stdCell.getDoubleStrapGate() ? "_strap" : "");
+			  && !threshold.equals("HT") && !threshold.equals("CLK"),
+			  "Inv: threshold not \"\", \"LT\", \"HT\" or \"CLK\": " + threshold);
+		String nm = "inv"+threshold;
 
 		sz = stdCell.checkMinStrength(sz, threshold.equals("LT") ? .5 : 1, nm);
 
-		// Space needed at the top of the PMOS well and bottom of MOS well.
-		// We need more space if we're double strapping poly.
-		double outsideSpace = stdCell.getDoubleStrapGate() ? (
-		  2 + 5 + 1.5 // p1_nd_sp + p1m1_wid + p1_p1_sp/2
-        ) : (
-          wellOverhangDiff
-        );
+		double outsideSpace = 2 + 5 + 1.5; // p1_nd_sp + p1m1_wid + p1_p1_sp/2
+		double insideSpace = outBusWidth/2 + outBusSpace - .5; // MOS diff surrounds m1 by .5  
 
 		// find number of folds and width of PMOS
 		double spaceAvail =
-			stdCell.getCellTop() - outsideSpace - wellOverhangDiff;
-		double lamPerSz = threshold.equals("HT") ? 12 : 6;
+			stdCell.getCellTop() - outsideSpace - insideSpace;
+		double lamPerSz;
+		if (threshold.equals("HT")) lamPerSz=12;
+		else if (threshold.equals("CLK"))lamPerSz=9;
+		else lamPerSz=6;
+
 		double totWidP = sz * lamPerSz;
 		FoldsAndWidth fwP = stdCell.calcFoldsAndWidth(spaceAvail, totWidP, 1);
 		error(fwP==null, "can't make " + nm + " this small: " + sz);
 
 		// find number of folds and width of NMOS
-		spaceAvail = -wellOverhangDiff - (stdCell.getCellBot() + outsideSpace);
+		spaceAvail = -insideSpace - (stdCell.getCellBot() + outsideSpace);
 		lamPerSz = threshold.equals("LT") ? 6 : 3;
 		double totWidN = sz * lamPerSz;
 		FoldsAndWidth fwN = stdCell.calcFoldsAndWidth(spaceAvail, totWidN, 1);
@@ -94,15 +93,15 @@ class Inv_star {
 			                4, inX, inY);
 
 		double mosX = inX + 2 + 3 + 2; // m1_wid/2 + m1_m1_sp + m1_wid/2
-		double nmosY = -wellOverhangDiff - fwN.physWid / 2;
+		double nmosY = -insideSpace - fwN.physWid / 2;
 		FoldedMos nmos = new FoldedNmos(mosX, nmosY, fwN.nbFolds, 1, 
 		                                fwN.gateWid, inv);
-		double pmosY = wellOverhangDiff + fwP.physWid / 2;
+		double pmosY = insideSpace + fwP.physWid / 2;
 		FoldedMos pmos = new FoldedPmos(mosX, pmosY, fwP.nbFolds, 1,
 		                                fwP.gateWid, inv);
 
 		// inverter output:  m1_wid/2 + m1_m1_sp + m1_wid/2 
-		double outX = StdCellParams.getRightDiffX(nmos, pmos) + 2 + 3 + 2;
+		double outX = stdCell.getRightDiffX(nmos, pmos) + 2 + 3 + 2;
 		LayoutLib.newExport(inv, "out", PortProto.Characteristic.OUT,
 			                Tech.m1, 4, outX, 0);
 
@@ -110,57 +109,53 @@ class Inv_star {
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, inv);
 		stdCell.wireVddGnd(pmos, StdCellParams.EVEN, inv);
 
-		// Connect up input. Do PMOS gates first because PMOS gate spacing
-		// is a valid spacing for p1m1 vias even for small strengths.
-		TrackRouter in = new TrackRouterH(Tech.m1, 3, inY, inv);
-		in.connect(inv.findExport("in"));
-		for (int i=0; i<pmos.nbGates(); i++)  in.connect(pmos.getGate(i, 'B'));
-		for (int i=0; i<nmos.nbGates(); i++)  in.connect(nmos.getGate(i, 'T'));
+//		// Connect up input. Do PMOS gates first because PMOS gate spacing
+//		// is a valid spacing for p1m1 vias even for small strengths.
+//		TrackRouter in = new TrackRouterH(Tech.m1, 3, inY, inv);
+//		in.connect(inv.findExport("in"));
+//		for (int i=0; i<pmos.nbGates(); i++)  in.connect(pmos.getGate(i, 'B'));
+//		for (int i=0; i<nmos.nbGates(); i++)  in.connect(nmos.getGate(i, 'T'));
 
-		if (stdCell.getDoubleStrapGate()) {
-			// Connect gates using metal1 along bottom of cell 
-			double gndBot = stdCell.getGndY() - stdCell.getGndWidth() / 2;
-			double inLoFromGnd = gndBot - 3 - 2; // -m1_m1_sp -m1_wid/2
-			double nmosBot = nmosY - fwN.physWid / 2;
-			double inLoFromMos = nmosBot - 2 - 2.5; // -nd_p1_sp - p1m1_wid/2
-			double inLoY = Math.min(inLoFromGnd, inLoFromMos);
+		// Connect gates using metal1 along bottom of cell 
+		double gndBot = stdCell.getGndY() - stdCell.getGndWidth() / 2;
+		double inLoFromGnd = gndBot - 3 - 2; // -m1_m1_sp -m1_wid/2
+		double nmosBot = nmosY - fwN.physWid / 2;
+		double inLoFromMos = nmosBot - 2 - 2.5; // -nd_p1_sp - p1m1_wid/2
+		double inLoY = Math.min(inLoFromGnd, inLoFromMos);
 
-			TrackRouter inLo = new TrackRouterH(Tech.m1, 3, inLoY, inv);
-			inLo.connect(inv.findExport("in"));
-			for (int i = 0; i < nmos.nbGates(); i++) {
-				inLo.connect(nmos.getGate(i, 'B'));
-			}
+		TrackRouter inLo = new TrackRouterH(Tech.m1, 3, inLoY, inv);
+		inLo.connect(inv.findExport("in"));
+		for (int i = 0; i < nmos.nbGates(); i++) {
+			inLo.connect(nmos.getGate(i, 'B'));
+		}
 
-			// Connect gates using metal1 along top of cell 
-			double vddTop = stdCell.getVddY() + stdCell.getVddWidth() / 2;
-			double inHiFromVdd = vddTop + 3 + 2; // +m1_m1_sp + m1_wid/2
-			double pmosTop = pmosY + fwP.physWid / 2;
-			double inHiFromMos = pmosTop + 2 + 2.5; // +pd_p1_sp + p1m1_wid/2
-			double inHiY = Math.max(inHiFromVdd, inHiFromMos);
+		// Connect gates using metal1 along top of cell 
+		double vddTop = stdCell.getVddY() + stdCell.getVddWidth() / 2;
+		double inHiFromVdd = vddTop + 3 + 2; // +m1_m1_sp + m1_wid/2
+		double pmosTop = pmosY + fwP.physWid / 2;
+		double inHiFromMos = pmosTop + 2 + 2.5; // +pd_p1_sp + p1m1_wid/2
+		double inHiY = Math.max(inHiFromVdd, inHiFromMos);
 
-			TrackRouter inHi = new TrackRouterH(Tech.m1, 3, inHiY, inv);
-			inHi.connect(inv.findExport("in"));
-			for (int i=0; i<pmos.nbGates(); i++) {
-				inHi.connect(pmos.getGate(i, 'T'));
-			}
+		TrackRouter inHi = new TrackRouterH(Tech.m1, 3, inHiY, inv);
+		inHi.connect(inv.findExport("in"));
+		for (int i=0; i<pmos.nbGates(); i++) {
+			inHi.connect(pmos.getGate(i, 'T'));
 		}
 
 		// connect up output
-		TrackRouter outHi = new TrackRouterH(Tech.m2, 4, outHiY, inv);
-		outHi.connect(inv.findExport("out"));
-		for (int i=1; i<pmos.nbSrcDrns(); i += 2) {
-			outHi.connect(pmos.getSrcDrn(i));
+		TrackRouter out = new TrackRouterH(Tech.m1, outBusWidth, outY, inv);
+		out.connect(inv.findExport("out"));
+		for (int i=1; i<pmos.nbSrcDrns(); i+=2) {
+			out.connect(pmos.getSrcDrn(i));
 		}
 
-		TrackRouter outLo = new TrackRouterH(Tech.m2, 4, outLoY, inv);
-		outLo.connect(inv.findExport("out"));
-		for (int i = 1; i < nmos.nbSrcDrns(); i += 2) {
-			outLo.connect(nmos.getSrcDrn(i));
+		for (int i=1; i<nmos.nbSrcDrns(); i+=2) {
+			out.connect(nmos.getSrcDrn(i));
 		}
 
 		// add wells
 		double wellMinX = 0;
-		double wellMaxX = outX + 2 + 1.5; // m1_wid/2 + m1m1_space/2
+		double wellMaxX = outX + outBusWidth/2 + 1.5; // m1_wid/2 + m1m1_space/2
 		stdCell.addNmosWell(wellMinX, wellMaxX, inv);
 		stdCell.addPmosWell(wellMinX, wellMaxX, inv);
 
