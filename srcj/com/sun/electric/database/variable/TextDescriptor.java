@@ -42,6 +42,8 @@ import java.util.prefs.Preferences;
 
 /**
  * This class describes how variable text appears.
+ * <P>
+ * This class should be thread-safe
  */
 public class TextDescriptor
 {
