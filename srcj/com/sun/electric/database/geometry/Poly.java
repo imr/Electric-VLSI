@@ -577,7 +577,8 @@ public class Poly implements Shape
 			Rectangle2D bounds = getBox();
 			if (bounds != null)
 			{
-				if (EMath.pointInRect(pt, bounds)) return true;
+                //if (EMath.pointInRect(pt, bounds)) return true;
+                if (EMath.pointCloseToWithinRect(pt, bounds)) return true;
                 // special case: single point, take care of double precision error
                 if (bounds.getWidth() == 0 && bounds.getHeight() == 0) {
                     if (EMath.doublesClose(pt.getX(), bounds.getX()) &&
@@ -589,12 +590,14 @@ public class Poly implements Shape
 			// general polygon containment by summing angles to vertices
 			double ang = 0;
 			Point2D lastPoint = points[points.length-1];
-			if (pt.equals(lastPoint)) return true;
+            //if (pt.equals(lastPoint)) return true;
+            if (EMath.pointsClose(pt, lastPoint)) return true;
 			int lastp = EMath.figureAngle(pt, lastPoint);
 			for(int i=0; i<points.length; i++)
 			{
 				Point2D thisPoint = points[i];
-				if (pt.equals(thisPoint)) return true;
+				//if (pt.equals(thisPoint)) return true;
+                if (EMath.pointsClose(pt, lastPoint)) return true;
 				int thisp = EMath.figureAngle(pt, thisPoint);
 				int tang = lastp - thisp;
 				if (tang < -1800) tang += 3600;
@@ -608,7 +611,8 @@ public class Poly implements Shape
 
 		if (style == Type.CROSS || style == Type.BIGCROSS)
 		{
-			if (getCenterX() == pt.getX() && getCenterY() == pt.getY()) return true;
+            if (EMath.doublesClose(getCenterX(), pt.getX()) && EMath.doublesClose(getCenterY(), pt.getY())) return true;
+			//if (getCenterX() == pt.getX() && getCenterY() == pt.getY()) return true;
 			return false;
 		}
 
@@ -678,7 +682,8 @@ public class Poly implements Shape
 						(enddist - startdist);
 				}
 			}
-			if (dist == wantdist) return true;
+			//if (dist == wantdist) return true;
+            if (EMath.doublesClose(dist, wantdist)) return true;
 			return false;
 		}
 
@@ -699,13 +704,16 @@ public class Poly implements Shape
 			double dx = Math.abs(ctr.getX() - points[1].getX());
 			double dy = Math.abs(ctr.getY() - points[1].getY());
 			double rad = Math.max(dx, dy);
-			if (!bounds.contains(new Point2D.Double(ctr.getX()+rad,ctr.getY()+rad))) return false;
-			if (!bounds.contains(new Point2D.Double(ctr.getX()-rad,ctr.getY()-rad))) return false;
+            if (!EMath.pointCloseToWithinRect(new Point2D.Double(ctr.getX()+rad,ctr.getY()+rad), bounds)) return false;
+            if (!EMath.pointCloseToWithinRect(new Point2D.Double(ctr.getX()-rad,ctr.getY()-rad), bounds)) return false;
+			//if (!bounds.contains(new Point2D.Double(ctr.getX()+rad,ctr.getY()+rad))) return false;
+			//if (!bounds.contains(new Point2D.Double(ctr.getX()-rad,ctr.getY()-rad))) return false;
 			return true;
 		}
 		for(int i=0; i<points.length; i++)
 		{
-			if (!bounds.contains(points[i])) return false;
+            if (!EMath.pointCloseToWithinRect(points[i], bounds)) return false;
+			//if (!bounds.contains(points[i])) return false;
 		}
 		return true;
 	}

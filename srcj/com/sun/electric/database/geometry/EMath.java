@@ -372,6 +372,24 @@ public class EMath
 		return true;
 	}
 
+    /**
+     * Method to tell whether a point is inside of a bounds, compensating
+     * for possible double precision errors.
+     * @param pt the point in question
+     * @param bounds the bounds being tested
+     * @return true if the point is basically within the bounds, within some
+     * epsilon.
+     */
+    public static boolean pointCloseToWithinRect(Point2D pt, Rectangle2D bounds)
+    {
+        double epsilon = 0.004;
+        if (pt.getX() < (bounds.getMinX() - epsilon)) return false;
+        if (pt.getX() > (bounds.getMaxX() + epsilon)) return false;
+        if (pt.getY() < (bounds.getMinY() - epsilon)) return false;
+        if (pt.getY() > (bounds.getMaxY() + epsilon)) return false;
+        return true;
+    }
+
 	/**
 	 * Method to transform a Rectangle2D by a given transformation.
 	 * @param bounds the Rectangle to transform.
