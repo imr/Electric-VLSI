@@ -1330,12 +1330,16 @@ public class ELIB extends LibraryFiles
 
 			// null entries happen when there are external cell references
 			if (subNodeInst == null || subPortProto == null || subNodeInst.getParent() != cell || subNodeInst.getProto() != subPortProto.getParent()) {
-                System.out.println("ERROR: Cell "+cell.describe() + ": export " + portProtoNameList[i] + " could not be created");
+				String msg = "ERROR: Cell "+cell.describe() + ": export " + portProtoNameList[i] + " could not be created";
+                System.out.println(msg);
+				Input.errorLogger.logError(msg, cell, 1);
                 continue;
             }
 			if (subNodeInst.getProto() == null)
 			{
-                System.out.println("ERROR: Cell "+cell.describe() + ": export " + portProtoNameList[i] + " could not be created...proto bad!");
+				String msg = "ERROR: Cell "+cell.describe() + ": export " + portProtoNameList[i] + " could not be created...proto bad!";
+                System.out.println(msg);
+				Input.errorLogger.logError(msg, cell, 1);
 				continue;
 			}
 
