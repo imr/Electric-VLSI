@@ -130,11 +130,11 @@ public abstract class InteractiveRouter extends Router {
      */
     public boolean makeVerticalRoute(PortInst startPort, PortInst endPort) {
         RouteElement startRE = RouteElement.existingPortInst(startPort);
-        List route = routeVerticallyToPort(startRE, endPort.getPortProto());
-        if (route == null || route.size() == 0) return false;
-        // last node is second to last in route
-        RouteElement lastNode = (RouteElement)route.get(route.size()-2);
-        createRoute(route, startPort.getNodeInst().getParent(), lastNode);
+        RouteElement endRE = RouteElement.existingPortInst(endPort);
+        List route = new ArrayList();
+        boolean success = routeVertically(route, startRE, endRE);
+        if (!success) return false;
+        createRoute(route, startPort.getNodeInst().getParent(), endRE);
         return true;
     }
 
@@ -148,11 +148,10 @@ public abstract class InteractiveRouter extends Router {
      */
     public boolean makeVerticalRoute(PortInst startPort, ArcProto arc) {
         RouteElement startRE = RouteElement.existingPortInst(startPort);
-        List route = routeVerticallyToArc(startRE, arc);
-        if (route == null || route.size() == 0) return false;
-        // last node is second to last in route
-        RouteElement lastNode = (RouteElement)route.get(route.size()-2);
-        createRoute(route, startPort.getNodeInst().getParent(), lastNode);
+        List route = new ArrayList();
+        RouteElement endRE = routeVertically(route, startRE, arc);
+        if (endRE == null) return false;
+        createRoute(route, startPort.getNodeInst().getParent(), endRE);
         return true;
     }
 
@@ -434,13 +433,11 @@ public abstract class InteractiveRouter extends Router {
         // lines intersect, connect them
         RouteElement startRE = bisectArc(route, startArc, point);
         RouteElement endRE = bisectArc(route, endArc, point);
-        List addedREs = routeVerticallyToPort(startRE, endRE.getPortProto());
-        if (addedREs == null) {
+        boolean success = routeVertically(route, startRE, endRE);
+        if (!success) {
             System.out.println("Can't route vertically between "+startArc+" and "+endArc);
             return false;
         }
-        route.addAll(addedREs);
-        route.add(endRE);
         return true;
     }
 

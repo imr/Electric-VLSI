@@ -175,17 +175,50 @@ public abstract class Router {
      * Routes vertically from startRE to a node that can connect to endPort.
      * This does not route in x or y, just up or down layerwise, so all new
      * RouteElements have the same location as startRE.
+     * <P>NOTE: for simplicty, startRE and endRE must be nodes.
      * @param startRE The start of the Route.  Must be of type newNode or existingPortInst.
-     * @param endPort the port to be able to connect to.
-     * @return list of RouteElements that specify route, or null if no
-     * valid route found.
+     * @param endRE The end of the Route.  Must be of type newNode or existingPortInst.
+     * @return true if successful, otherwise returns false and does not modify route.
      */
-    public List routeVerticallyToPort(RouteElement startRE, PortProto endPort) {
-        
-        // get start port
+    public boolean routeVertically(List route, RouteElement startRE, RouteElement endRE) {
+
+        PortProto endPort = endRE.getPortProto();
+
+        assert (endPort != null);
+        // assert that startRE and endRE have the same location
+        assert (startRE.getLocation().equals(endRE.getLocation()));
+
+        ArcProto [] endArcs = endPort.getBasePort().getConnections();
+        if (endArcs == null) return false;
+
+        // see what arcs endPort can connect to, and try to route to each
+        for (int i = 0; i < endArcs.length; i++) {
+            ArcProto endArc = endArcs[i];
+            if (endArc == Generic.tech.universal_arc) continue;
+            if (endArc == Generic.tech.invisible_arc) continue;
+            if (endArc == Generic.tech.unrouted_arc) continue;
+            if (endArc.isNotUsed()) continue;
+            RouteElement lastRE = routeVertically(route, startRE, endArc);
+
+            // continue if no valid route found
+            if (lastRE == null) continue;
+
+            // else, valid route found.  add final connection
+            Cell cell = startRE.getCell();
+            double arcWidth = getArcWidthToUse(startRE, endArc);
+            RouteElement arc = RouteElement.newArc(cell, endArc, arcWidth, lastRE, endRE, null);
+            route.add(arc);
+            route.add(endRE);
+            return true;
+        }
+        return false;
+    }
+
+    public RouteElement routeVertically(List route, RouteElement startRE, PortProto endPort) {
         PortProto startPort = startRE.getPortProto();
-        if (startPort == null) return null;
-        // get valid end arcs
+
+        assert (startRE.getLocation() != null && startPort != null);
+
         ArcProto [] endArcs = endPort.getBasePort().getConnections();
         if (endArcs == null) return null;
 
@@ -196,25 +229,28 @@ public abstract class Router {
             if (endArc == Generic.tech.invisible_arc) continue;
             if (endArc == Generic.tech.unrouted_arc) continue;
             if (endArc.isNotUsed()) continue;
-            List route = routeVerticallyToArc(startRE, endArc);
+            List vertRoute = new ArrayList();
+            RouteElement lastRE = routeVertically(vertRoute, startRE, endArc);
+
             // continue if no valid route found
-            if (route == null || route.size() == 0) continue;
-            // else, valid route found.
-            return route;
+            if (lastRE == null) continue;
+            // otherwise, valid route and lastRE found
+            return lastRE;
         }
         return null;
     }
 
     /**
-     * Create a List of RouteElements that specifies a route from startPort
-     * to endArc. The final element in the route is a node that can connect
-     * to endArc.  Returns null if no valid route is found.<p>
-     * Note that this method adds startRE to the returned list.
+     * Create a List of RouteElements that specifies a route from startRE
+     * to endArc. Returns the final element in the route which is a node that can connect
+     * to endArc.  Returns null if no valid route is found.
+     * <P>Note:
+     * <P>this method adds startRE to the returned list.
      * @param startRE start of the route
      * @param endArc arc final element should be able to connect to
-     * @return a list of RouteElements specifying a route
+     * @return the final RouteElement in the route (list) that can connect to endArc
      */
-    public List routeVerticallyToArc(RouteElement startRE, ArcProto endArc) {
+    public RouteElement routeVertically(List route, RouteElement startRE, ArcProto endArc) {
 
         // get start port
         PortProto startPort = startRE.getPortProto();
@@ -225,8 +261,6 @@ public abstract class Router {
         if (!findConnectingPorts(bestRoute, startPort, endArc))
             return null;
         if (bestRoute == null || bestRoute.size() == 0) return null; // no valid route found
-        // create list of route elements
-        List route = new ArrayList();
 
         Point2D location = startRE.getLocation();
         if (location == null) return null;
@@ -248,7 +282,7 @@ public abstract class Router {
             route.add(arc);
             lastNode = node;
         }
-        return route;
+        return lastNode;
     }
 
     private static int searchNumber;
@@ -401,6 +435,36 @@ public abstract class Router {
             }
         }
         return null;
+    }
+
+    protected static void cleanRoute(List route) {
+
+        // first pass: remove extra pins
+        for (Iterator it = route.iterator(); it.hasNext(); ) {
+
+            RouteElement re = (RouteElement)it.next();
+            Point2D location = re.getLocation();
+            if (location != null) {
+                // check if
+            }
+        }
+    }
+
+    /**
+     * Get arc width to use by searching for largest arc of passed type
+     * connected to any elements in the route.
+     * @param route the route to be searched
+     * @param ap the arc type
+     * @return the largest width
+     */
+    protected static double getArcWidthToUse(List route, ArcProto ap) {
+        double widest = ap.getDefaultWidth();
+        for (Iterator it = route.iterator(); it.hasNext(); ) {
+            RouteElement re = (RouteElement)it.next();
+            double width = getArcWidthToUse(re, ap);
+            if (width > widest) widest = width;
+        }
+        return widest;
     }
 
     /**

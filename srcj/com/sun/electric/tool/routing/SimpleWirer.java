@@ -68,11 +68,12 @@ public class SimpleWirer extends InteractiveRouter {
                 useArc = Generic.tech.universal_arc;
             else {
                 // add in contacts on startPort to be able to route to endPort
-                List addedRoute = routeVerticallyToPort(startRE, endPort);
-                if (addedRoute == null) {
+                RouteElement vertEndRE = routeVertically(route, startRE, endPort);
+                if (vertEndRE == null) {
                     System.out.println("Don't know how to connect (using Technology "+cell.getTechnology()+"):\n   "+startRE+"\n   "+endRE);
                     return false;
                 }
+            /*
                 // if startRE was bisect pin, replace it with next node in list
                 if (startRE.isBisectArcPin()) {
                     // find next newNode
@@ -85,6 +86,7 @@ public class SimpleWirer extends InteractiveRouter {
                         }
                     }
                 }
+                */
                 // get new startRE to start route from (last RE in addedRoute)
                 for (Iterator it = addedRoute.iterator(); it.hasNext(); ) {
                     RouteElement re = (RouteElement)it.next();
@@ -139,13 +141,13 @@ public class SimpleWirer extends InteractiveRouter {
         }
         return true;
     }
-    
-    
+
+
     /**
      * Build a stack of contacts to connect between <code>startRE</code> and
      * <code>endRE</code>.  This is a recursive method.  It does not actually build
      * the final arc to endRE, but instead returns a RouteElement in the same
-     * location as startRE that can be used to connect to endRE (using 
+     * location as startRE that can be used to connect to endRE (using
      * getArcToUse(returnedRE, endRE).
      * @param route a route to add new contacts and arcs to
      * @param contactsUsed the contacts used so far (prevents duplication).
