@@ -3,6 +3,8 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02i: *********************************
+IMP/MAN (02/21/05, GVG) New version of 3D tab in preferences. It would be a 3D view where transparency
+and colors can be seen if 3D plugin is available. Access to 3D transparency factors in preference now.
 
 IMP/MAN (02/17/05, GVG) First version of 3D Demo Tool. Few extra classes in j3d plugin.
 Features: setup of original view angle, two spline interpolators, dialog box to control motion,
