@@ -350,13 +350,9 @@ public class Library extends ElectricObject
      * @param lib the reference library that may no longer be referenced
      */
     public void removeReferencedLib(Library lib) {
+        if (lib == this) return;            // we don't store references to self
         synchronized(referencedLibs) {
-            if (!referencedLibs.contains(lib))
-            {
-            	System.out.println("Internal error: referenced library list incorrect");
-            	return;
-            }
-//            assert(referencedLibs.contains(lib));
+            assert(referencedLibs.contains(lib));
         }
         boolean refFound = false;
         for (Iterator itCell = getCells(); itCell.hasNext(); ) {
