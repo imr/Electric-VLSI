@@ -25,6 +25,10 @@ package com.sun.electric.technology;
 
 import com.sun.electric.database.geometry.EGraphics;
 
+import java.util.Iterator;
+import java.util.prefs.Preferences;
+import java.util.prefs.BackingStoreException;
+
 /**
  * The Layer class defines a single layer of material, out of which NodeInst and ArcInst objects are created.
  * The Layers are defined by the PrimitiveNode and PrimitiveArc classes, and are used in the generation of geometry.
@@ -179,6 +183,7 @@ public class Layer
 	}
 
 	private String name;
+	private Technology tech;
 	private EGraphics graphics;
 	private Function function;
 	private int functionExtras;
@@ -189,9 +194,10 @@ public class Layer
 	private double thickness, height;
 	private double resistance, capacitance, edgeCapacitance;
 
-	private Layer(String name, EGraphics graphics)
+	private Layer(String name, Technology tech, EGraphics graphics)
 	{
 		this.name = name;
+		this.tech = tech;
 		this.graphics = graphics;
 	}
 
@@ -204,7 +210,7 @@ public class Layer
 	 */
 	public static Layer newInstance(Technology tech, String name, EGraphics graphics)
 	{
-		Layer layer = new Layer(name, graphics);
+		Layer layer = new Layer(name, tech, graphics);
 		tech.addLayer(layer);
 		return layer;
 	}
@@ -214,6 +220,12 @@ public class Layer
 	 * @return the name of this Layer.
 	 */
 	public String getName() { return name; }
+
+	/**
+	 * Routine to return the Technology of this Layer.
+	 * @return the Technology of this Layer.
+	 */
+	public Technology getTechnology() { return tech; }
 
 	/**
 	 * Routine to return the graphics description of this Layer.
@@ -329,11 +341,14 @@ public class Layer
 
 	/**
 	 * Routine to set the Spice parasitics for this Layer.
+	 * This is typically called only during initialization.
+	 * It does not set the "option" storage, as "setResistance()",
+	 * "setCapacitance()", and ""setEdgeCapacitance()" do.
 	 * @param resistance the resistance of this Layer.
 	 * @param capacitance the capacitance of this Layer.
 	 * @param edgeCapacitance the edge capacitance of this Layer.
 	 */
-	public void setSpiceParasitics(double resistance, double capacitance, double edgeCapacitance)
+	public void setDefaultParasitics(double resistance, double capacitance, double edgeCapacitance)
 	{
 		this.resistance = resistance;
 		this.capacitance = capacitance;
@@ -341,22 +356,79 @@ public class Layer
 	}
 
 	/**
-	 * Routine to return the Spice resistance for this layer.
-	 * @return the Spice resistance for this layer.
+	 * Routine to return the resistance for this layer.
+	 * @return the resistance for this layer.
 	 */
-	public double getSpiceResistance() { return resistance; }
+	public double getResistance() { tech.gatherParasiticOverrides();   return resistance; }
 
 	/**
-	 * Routine to return the Spice capacitance for this layer.
-	 * @return the Spice capacitance for this layer.
+	 * Routine to set the resistance for this Layer.
+	 * Also saves this information in the permanent options.
+	 * @param resistance the new resistance for this Layer.
 	 */
-	public double getSpiceCapacitance() { return capacitance; }
+	public void setResistance(double resistance)
+	{
+		this.resistance = resistance;
+		Preferences prefs = Preferences.userNodeForPackage(tech.getClass());
+		prefs.putDouble("LayerResistance_" + tech.getTechName() + "_" + getName(), resistance);
+		try
+		{
+	        prefs.flush();
+		} catch (BackingStoreException e)
+		{
+			System.out.println("Failed to save resistance option for layer " + getName());
+		}
+	}
 
 	/**
-	 * Routine to return the Spice edge capacitance for this layer.
-	 * @return the Spice edge capacitance for this layer.
+	 * Routine to return the capacitance for this layer.
+	 * @return the capacitance for this layer.
 	 */
-	public double getSpiceEdgeCapacitance() { return edgeCapacitance; }
+	public double getCapacitance() { tech.gatherParasiticOverrides();   return capacitance; }
+
+	/**
+	 * Routine to set the capacitance for this Layer.
+	 * Also saves this information in the permanent options.
+	 * @param resistance the new capacitance for this Layer.
+	 */
+	public void setCapacitance(double capacitance)
+	{
+		this.capacitance = capacitance;
+		Preferences prefs = Preferences.userNodeForPackage(tech.getClass());
+		prefs.putDouble("LayerCapacitance_" + tech.getTechName() + "_" + getName(), capacitance);
+		try
+		{
+	        prefs.flush();
+		} catch (BackingStoreException e)
+		{
+			System.out.println("Failed to save capacitance option for layer " + getName());
+		}
+	}
+
+	/**
+	 * Routine to return the edge capacitance for this layer.
+	 * @return the edge capacitance for this layer.
+	 */
+	public double getEdgeCapacitance() { tech.gatherParasiticOverrides();   return edgeCapacitance; }
+
+	/**
+	 * Routine to set the edge capacitance for this Layer.
+	 * Also saves this information in the permanent options.
+	 * @param resistance the new edge capacitance for this Layer.
+	 */
+	public void setEdgeCapacitance(double edgeCapacitance)
+	{
+		this.edgeCapacitance = edgeCapacitance;
+		Preferences prefs = Preferences.userNodeForPackage(tech.getClass());
+		prefs.putDouble("LayerEdgeCapacitance_" + tech.getTechName() + "_" + getName(), edgeCapacitance);
+		try
+		{
+	        prefs.flush();
+		} catch (BackingStoreException e)
+		{
+			System.out.println("Failed to save edge capacitance option for layer " + getName());
+		}
+	}
 
 	/**
 	 * Returns a printable version of this Layer.

@@ -49,8 +49,11 @@ import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.ui.Menu;
 import com.sun.electric.tool.user.dialogs.About;
 import com.sun.electric.tool.user.dialogs.EditCell;
-import com.sun.electric.tool.user.dialogs.Options;
+import com.sun.electric.tool.user.dialogs.ToolOptions;
+import com.sun.electric.tool.user.dialogs.EditOptions;
+import com.sun.electric.tool.user.dialogs.IOOptions;
 import com.sun.electric.tool.user.dialogs.CrossLibCopy;
+import com.sun.electric.tool.user.dialogs.NewExport;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.misc.PadGenerator;
@@ -95,9 +98,6 @@ public final class UserMenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(); } });
 		fileMenu.addMenuItem("Save as...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAsLibraryCommand(); } });
-		fileMenu.add(importSubMenu);
-		fileMenu.addMenuItem("Options...",null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { optionsCommand(); } });
 		if (TopLevel.getOperatingSystem() == TopLevel.OS.MACINTOSH)
 		{
 //			MRJApplicationUtils.registerQuitHandler(new MRJQuitHandler()
@@ -138,6 +138,13 @@ public final class UserMenuCommands
             new ActionListener() { public void actionPerformed(ActionEvent e) { arcFixedAngleCommand(); }});
         arcSubMenu.addMenuItem("Not Fixed Angle", null, 
             new ActionListener() { public void actionPerformed(ActionEvent e) { arcNotFixedAngleCommand(); }});
+		editMenu.addSeparator();
+		editMenu.addMenuItem("I/O Options...",null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ioOptionsCommand(); } });
+		editMenu.addMenuItem("Edit Options...",null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { editOptionsCommand(); } });
+		editMenu.addMenuItem("Tool Options...",null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { toolOptionsCommand(); } });
 
 		// setup the Cell menu
 		Menu cellMenu = Menu.createMenu("Cell", 'C');
@@ -158,6 +165,8 @@ public final class UserMenuCommands
 		// setup the Export menu
 		Menu exportMenu = Menu.createMenu("Export", 'X');
 		menuBar.add(exportMenu);
+		exportMenu.addMenuItem("Create Export...", KeyStroke.getKeyStroke('E', InputEvent.CTRL_MASK),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { newExportCommand(); } });
 
 		// setup the View menu
 		Menu viewMenu = Menu.createMenu("View", 'V');
@@ -373,16 +382,6 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This routine implements the command to show Options.
-	 */
-	public static void optionsCommand()
-	{
-		JFrame jf = TopLevel.getCurrentJFrame();
- 		Options dialog = new Options(jf, true);
-		dialog.show();
-	}
-
-	/**
 	 * This routine implements the command to quit Electric.
 	 */
 	public static void quitCommand()
@@ -538,6 +537,36 @@ public final class UserMenuCommands
 		EditWindow.redrawAll();
 	}
 
+	/**
+	 * This routine implements the command to show I/O Options.
+	 */
+	public static void ioOptionsCommand()
+	{
+		JFrame jf = TopLevel.getCurrentJFrame();
+ 		IOOptions dialog = new IOOptions(jf, true);
+		dialog.show();
+	}
+
+	/**
+	 * This routine implements the command to show Edit Options.
+	 */
+	public static void editOptionsCommand()
+	{
+		JFrame jf = TopLevel.getCurrentJFrame();
+ 		EditOptions dialog = new EditOptions(jf, true);
+		dialog.show();
+	}
+
+	/**
+	 * This routine implements the command to show Tool Options.
+	 */
+	public static void toolOptionsCommand()
+	{
+		JFrame jf = TopLevel.getCurrentJFrame();
+ 		ToolOptions dialog = new ToolOptions(jf, true);
+		dialog.show();
+	}
+
 	// ---------------------- THE CELL MENU -----------------
 
     public static void editCellCommand()
@@ -591,6 +620,18 @@ public final class UserMenuCommands
 	{
 		JFrame jf = TopLevel.getCurrentJFrame();
  		CrossLibCopy dialog = new CrossLibCopy(jf, true);
+		dialog.show();
+	}
+
+	// ---------------------- THE EXPORT MENU -----------------
+
+	/**
+	 * This routine implements the command to create a new Export.
+	 */
+	public static void newExportCommand()
+	{
+		JFrame jf = TopLevel.getCurrentJFrame();
+ 		NewExport dialog = new NewExport(jf, true);
 		dialog.show();
 	}
 

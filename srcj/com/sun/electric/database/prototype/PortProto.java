@@ -32,6 +32,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.technology.PrimitivePort;
 
+import java.util.Iterator;
 import java.util.HashMap;
 
 /**
@@ -102,20 +103,35 @@ public abstract class PortProto extends ElectricObject implements Networkable
 		}
 
 		/**
-		 * Routine to return the bit value associated with this characteristic.
-		 * @return the bit value associated with this characteristic.
+		 * Routine to return the bit value associated with this Characteristic.
+		 * @return the bit value associated with this Characteristic.
 		 */
 		int getBits() { return bits; }
 
 		/**
+		 * Routine to return the name of this Characteristic.
+		 * @return the name of this Characteristic.
+		 */
+		public String getName() { return name; }
+
+		/**
 		 * Routine to find the characteristic associated with the given bit value.
-		 * @param bits the bit value associated with a characteristic.
+		 * @param bits the bit value associated with a Characteristic.
 		 */
 		static Characteristic findCharacteristic(int bits)
 		{
 			Object obj = characteristicList.get(new Integer(bits));
 			if (obj == null) return null;
 			return (Characteristic)obj;
+		}
+
+		/**
+		 * Routine to return an iterator over all of the PortProto Characteristics.
+		 * @return an iterator over all of the PortProto Characteristics.
+		 */
+		public static Iterator getCharacteristics()
+		{
+			return characteristicList.values().iterator();
 		}
 
 		/**

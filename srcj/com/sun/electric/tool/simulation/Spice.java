@@ -26,9 +26,11 @@ package com.sun.electric.tool.simulation;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.DialogOpenFile;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.Prefs;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.Simulation;
+
+import java.util.prefs.Preferences;
+import java.util.prefs.BackingStoreException;
 
 /**
  * Class for user-level changes to the circuit.
@@ -36,40 +38,53 @@ import com.sun.electric.tool.simulation.Simulation;
 public class Spice
 {
 	private static Spice only = new Spice();
+	private Preferences prefs = Preferences.userNodeForPackage(getClass());
 
 	// constructor, used once
 	Spice()
 	{
-		// see if default preferences are set
-		if (!Prefs.exists("SpiceEngine")) setEngine("Spice 3");
-		if (!Prefs.exists("SpiceLevel")) setLevel("1");
-		if (!Prefs.exists("SpiceUseNodeNames")) setUseNodeNames(true);
-		if (!Prefs.exists("SpiceUseParasitics")) setUseParasitics(true);
+	}
+	
+	public static void flushOptions()
+	{
+		try
+		{
+	        only.prefs.flush();
+		} catch (BackingStoreException e)
+		{
+			System.out.println("Failed to save spice options");
+		}
 	}
 
-	public static String getEngine() { return Prefs.getStringOption("SpiceEngine"); }
-	public static void setEngine(String engine) { Prefs.setStringOption("SpiceEngine", engine); }
+	public static String getEngine() { return only.prefs.get("SpiceEngine", "Spice 3"); }
+	public static void setEngine(String engine) { only.prefs.put("SpiceEngine", engine); }
 
-	public static String getLevel() { return Prefs.getStringOption("SpiceLevel"); }
-	public static void setLevel(String engine) { Prefs.setStringOption("SpiceLevel", engine); }
+	public static String getLevel() { return only.prefs.get("SpiceLevel", "1"); }
+	public static void setLevel(String level) { only.prefs.put("SpiceLevel", level); }
 
-	public static String getOutputFormat() { return Prefs.getStringOption("SpiceOutputFormat"); }
-	public static void setOutputFormat(String engine) { Prefs.setStringOption("SpiceOutputFormat", engine); }
+	public static String getOutputFormat() { return only.prefs.get("SpiceOutputFormat", "Standard"); }
+	public static void setOutputFormat(String format) { only.prefs.put("SpiceOutputFormat", format); }
 
-	public static boolean isUseParasitics() { return Prefs.getBooleanOption("SpiceUseParasitics"); }
-	public static void setUseParasitics(boolean v) { Prefs.setBooleanOption("SpiceUseParasitics", v); }
+	public static String getHeaderCardInfo() { return only.prefs.get("SpiceHeaderCardInfo", ""); }
+	public static void setHeaderCardInfo(String info) { only.prefs.put("SpiceHeaderCardInfo", info); }
 
-	public static boolean isUseNodeNames() { return Prefs.getBooleanOption("SpiceUseNodeNames"); }
-	public static void setUseNodeNames(boolean v) { Prefs.setBooleanOption("SpiceUseNodeNames", v); }
+	public static String getTrailerCardInfo() { return only.prefs.get("SpiceTrailerCardInfo", ""); }
+	public static void setTrailerCardInfo(String info) { only.prefs.put("SpiceTrailerCardInfo", info); }
 
-	public static boolean isForceGlobalPwrGnd() { return Prefs.getBooleanOption("SpiceForceGlobalPwrGnd"); }
-	public static void setForceGlobalPwrGnd(boolean v) { Prefs.setBooleanOption("SpiceForceGlobalPwrGnd", v); }
+	public static boolean isUseParasitics() { return only.prefs.getBoolean("SpiceUseParasitics", true); }
+	public static void setUseParasitics(boolean v) { only.prefs.putBoolean("SpiceUseParasitics", v); }
 
-	public static boolean isUseCellParameters() { return Prefs.getBooleanOption("SpiceUseCellParameters"); }
-	public static void setUseCellParameters(boolean v) { Prefs.setBooleanOption("SpiceUseCellParameters", v); }
+	public static boolean isUseNodeNames() { return only.prefs.getBoolean("SpiceUseNodeNames", true); }
+	public static void setUseNodeNames(boolean v) { only.prefs.putBoolean("SpiceUseNodeNames", v); }
 
-	public static boolean isWriteTransSizeInLambda() { return Prefs.getBooleanOption("SpiceWriteTransSizeInLambda"); }
-	public static void setWriteTransSizeInLambda(boolean v) { Prefs.setBooleanOption("SpiceWriteTransSizeInLambda", v); }
+	public static boolean isForceGlobalPwrGnd() { return only.prefs.getBoolean("SpiceForceGlobalPwrGnd", false); }
+	public static void setForceGlobalPwrGnd(boolean v) { only.prefs.putBoolean("SpiceForceGlobalPwrGnd", v); }
+
+	public static boolean isUseCellParameters() { return only.prefs.getBoolean("SpiceUseCellParameters", false); }
+	public static void setUseCellParameters(boolean v) { only.prefs.putBoolean("SpiceUseCellParameters", v); }
+
+	public static boolean isWriteTransSizeInLambda() { return only.prefs.getBoolean("SpiceWriteTransSizeInLambda", false); }
+	public static void setWriteTransSizeInLambda(boolean v) { only.prefs.putBoolean("SpiceWriteTransSizeInLambda", v); }
 
 	public static void writeSpiceDeck()
 	{

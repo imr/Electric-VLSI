@@ -1009,50 +1009,49 @@ public class MoCMOS extends Technology
 		padFrame_lay.setHeight(0, 33);				// Pad-Frame
 
 		// The layer height
-		metal1_lay.setSpiceParasitics(0.06, 0.07, 0);			// Metal-1
-		metal2_lay.setSpiceParasitics(0.06, 0.04, 0);			// Metal-2
-		metal3_lay.setSpiceParasitics(0.06, 0.04, 0);			// Metal-3
-		metal4_lay.setSpiceParasitics(0.03, 0.04, 0);			// Metal-4
-		metal5_lay.setSpiceParasitics(0.03, 0.04, 0);			// Metal-5
-		metal6_lay.setSpiceParasitics(0.03, 0.04, 0);			// Metal-6
-		poly1_lay.setSpiceParasitics(2.5, 0.09, 0);				// Polysilicon-1
-		poly2_lay.setSpiceParasitics(50.0, 1.0, 0);				// Polysilicon-2
-		pActive_lay.setSpiceParasitics(2.5, 0.9, 0);			// P-Active
-		nActive_lay.setSpiceParasitics(3.0, 0.9, 0);			// N-Active
-		pSelect_lay.setSpiceParasitics(0, 0, 0);				// P-Select
-		nSelect_lay.setSpiceParasitics(0, 0, 0);				// N-Select
-		pWell_lay.setSpiceParasitics(0, 0, 0);					// P-Well
-		nWell_lay.setSpiceParasitics(0, 0, 0);					// N-Well
-		polyCut_lay.setSpiceParasitics(2.2, 0, 0);				// Poly-Cut
-		activeCut_lay.setSpiceParasitics(2.5, 0, 0);			// Active-Cut
-		via1_lay.setSpiceParasitics(1.0, 0, 0);					// Via-1
-		via2_lay.setSpiceParasitics(0.9, 0, 0);					// Via-2
-		via3_lay.setSpiceParasitics(0.8, 0, 0);					// Via-3
-		via4_lay.setSpiceParasitics(0.8, 0, 0);					// Via-4
-		via5_lay.setSpiceParasitics(0.8, 0, 0);					// Via-5
-		passivation_lay.setSpiceParasitics(0, 0, 0);			// Passivation
-		transistorPoly_lay.setSpiceParasitics(2.5, 0.09, 0);	// Transistor-Poly
-		polyCap_lay.setSpiceParasitics(0, 0, 0);				// Poly-Cap
-		pActiveWell_lay.setSpiceParasitics(0, 0, 0);			// P-Active-Well
-		silicideBlock_lay.setSpiceParasitics(0, 0, 0);			// Silicide-Block
-		pseudoMetal1_lay.setSpiceParasitics(0, 0, 0);			// Pseudo-Metal-1
-		pseudoMetal2_lay.setSpiceParasitics(0, 0, 0);			// Pseudo-Metal-2
-		pseudoMetal3_lay.setSpiceParasitics(0, 0, 0);			// Pseudo-Metal-3
-		pseudoMetal4_lay.setSpiceParasitics(0, 0, 0);			// Pseudo-Metal-4
-		pseudoMetal5_lay.setSpiceParasitics(0, 0, 0);			// Pseudo-Metal-5
-		pseudoMetal6_lay.setSpiceParasitics(0, 0, 0);			// Pseudo-Metal-6
-		pseudoPoly1_lay.setSpiceParasitics(0, 0, 0);			// Pseudo-Polysilicon-1
-		pseudoPoly2_lay.setSpiceParasitics(0, 0, 0);			// Pseudo-Polysilicon-2
-		pseudoPActive_lay.setSpiceParasitics(0, 0, 0);			// Pseudo-P-Active
-		pseudoNActive_lay.setSpiceParasitics(0, 0, 0);			// Pseudo-N-Active
-		pseudoPSelect_lay.setSpiceParasitics(0, 0, 0);			// Pseudo-P-Select
-		pseudoNSelect_lay.setSpiceParasitics(0, 0, 0);			// Pseudo-N-Select
-		pseudoPWell_lay.setSpiceParasitics(0, 0, 0);			// Pseudo-P-Well
-		pseudoNWell_lay.setSpiceParasitics(0, 0, 0);			// Pseudo-N-Well
-		padFrame_lay.setSpiceParasitics(0, 0, 0);				// Pad-Frame
+		metal1_lay.setDefaultParasitics(0.06, 0.07, 0);			// Metal-1
+		metal2_lay.setDefaultParasitics(0.06, 0.04, 0);			// Metal-2
+		metal3_lay.setDefaultParasitics(0.06, 0.04, 0);			// Metal-3
+		metal4_lay.setDefaultParasitics(0.03, 0.04, 0);			// Metal-4
+		metal5_lay.setDefaultParasitics(0.03, 0.04, 0);			// Metal-5
+		metal6_lay.setDefaultParasitics(0.03, 0.04, 0);			// Metal-6
+		poly1_lay.setDefaultParasitics(2.5, 0.09, 0);			// Polysilicon-1
+		poly2_lay.setDefaultParasitics(50.0, 1.0, 0);			// Polysilicon-2
+		pActive_lay.setDefaultParasitics(2.5, 0.9, 0);			// P-Active
+		nActive_lay.setDefaultParasitics(3.0, 0.9, 0);			// N-Active
+		pSelect_lay.setDefaultParasitics(0, 0, 0);				// P-Select
+		nSelect_lay.setDefaultParasitics(0, 0, 0);				// N-Select
+		pWell_lay.setDefaultParasitics(0, 0, 0);				// P-Well
+		nWell_lay.setDefaultParasitics(0, 0, 0);				// N-Well
+		polyCut_lay.setDefaultParasitics(2.2, 0, 0);			// Poly-Cut
+		activeCut_lay.setDefaultParasitics(2.5, 0, 0);			// Active-Cut
+		via1_lay.setDefaultParasitics(1.0, 0, 0);				// Via-1
+		via2_lay.setDefaultParasitics(0.9, 0, 0);				// Via-2
+		via3_lay.setDefaultParasitics(0.8, 0, 0);				// Via-3
+		via4_lay.setDefaultParasitics(0.8, 0, 0);				// Via-4
+		via5_lay.setDefaultParasitics(0.8, 0, 0);				// Via-5
+		passivation_lay.setDefaultParasitics(0, 0, 0);			// Passivation
+		transistorPoly_lay.setDefaultParasitics(2.5, 0.09, 0);	// Transistor-Poly
+		polyCap_lay.setDefaultParasitics(0, 0, 0);				// Poly-Cap
+		pActiveWell_lay.setDefaultParasitics(0, 0, 0);			// P-Active-Well
+		silicideBlock_lay.setDefaultParasitics(0, 0, 0);		// Silicide-Block
+		pseudoMetal1_lay.setDefaultParasitics(0, 0, 0);			// Pseudo-Metal-1
+		pseudoMetal2_lay.setDefaultParasitics(0, 0, 0);			// Pseudo-Metal-2
+		pseudoMetal3_lay.setDefaultParasitics(0, 0, 0);			// Pseudo-Metal-3
+		pseudoMetal4_lay.setDefaultParasitics(0, 0, 0);			// Pseudo-Metal-4
+		pseudoMetal5_lay.setDefaultParasitics(0, 0, 0);			// Pseudo-Metal-5
+		pseudoMetal6_lay.setDefaultParasitics(0, 0, 0);			// Pseudo-Metal-6
+		pseudoPoly1_lay.setDefaultParasitics(0, 0, 0);			// Pseudo-Polysilicon-1
+		pseudoPoly2_lay.setDefaultParasitics(0, 0, 0);			// Pseudo-Polysilicon-2
+		pseudoPActive_lay.setDefaultParasitics(0, 0, 0);		// Pseudo-P-Active
+		pseudoNActive_lay.setDefaultParasitics(0, 0, 0);		// Pseudo-N-Active
+		pseudoPSelect_lay.setDefaultParasitics(0, 0, 0);		// Pseudo-P-Select
+		pseudoNSelect_lay.setDefaultParasitics(0, 0, 0);		// Pseudo-N-Select
+		pseudoPWell_lay.setDefaultParasitics(0, 0, 0);			// Pseudo-P-Well
+		pseudoNWell_lay.setDefaultParasitics(0, 0, 0);			// Pseudo-N-Well
+		padFrame_lay.setDefaultParasitics(0, 0, 0);				// Pad-Frame
 
-		setMinResistance(50);
-		setMinCapacitance(0.04);
+		setDefaultParasitics(50, 0.04);
 
 		///* The low 5 bits map Metal-1, Poly-1, Active, Metal-2, and Metal-3 */
 		//static TECH_COLORMAP colmap[32] =

@@ -36,6 +36,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.TreeSet;
+import java.util.prefs.Preferences;
+import java.util.prefs.BackingStoreException;
 
 /** Jose uses JNetworks to represent connectivity.
  *
@@ -284,5 +286,74 @@ public class JNetwork
 			}
 		}
 		return arcs.iterator();
+	}
+
+	// options
+	private static Preferences prefs = null;
+
+	public static boolean isUnifyPowerAndGround()
+	{
+		if (prefs == null) prefs = Preferences.userNodeForPackage(com.sun.electric.database.network.JNetwork.class);
+		return prefs.getBoolean("NetUnifyPowerAndGround", false);
+	}
+	public static void setUnifyPowerAndGround(boolean v)
+	{
+		if (prefs == null) prefs = Preferences.userNodeForPackage(com.sun.electric.database.network.JNetwork.class);
+		prefs.putBoolean("NetUnifyPowerAndGround", v);
+	}
+
+	public static boolean isUnifyLikeNamedNets()
+	{
+		if (prefs == null) prefs = Preferences.userNodeForPackage(com.sun.electric.database.network.JNetwork.class);
+		return prefs.getBoolean("NetUnifyLikeNamedNets", false);
+	}
+	public static void setUnifyLikeNamedNets(boolean v)
+	{
+		if (prefs == null) prefs = Preferences.userNodeForPackage(com.sun.electric.database.network.JNetwork.class);
+		prefs.putBoolean("NetUnifyLikeNamedNets", v);
+	}
+
+	public static boolean isIgnoreResistors()
+	{
+		if (prefs == null) prefs = Preferences.userNodeForPackage(com.sun.electric.database.network.JNetwork.class);
+		return prefs.getBoolean("NetIgnoreResistors", false);
+	}
+	public static void setIgnoreResistors(boolean v)
+	{
+		if (prefs == null) prefs = Preferences.userNodeForPackage(com.sun.electric.database.network.JNetwork.class);
+		prefs.putBoolean("NetIgnoreResistors", v);
+	}
+
+	public static String getUnificationPrefix()
+	{
+		if (prefs == null) prefs = Preferences.userNodeForPackage(com.sun.electric.database.network.JNetwork.class);
+		return prefs.get("NetUnificationPrefix", "");
+	}
+	public static void setUnificationPrefix(String v)
+	{
+		if (prefs == null) prefs = Preferences.userNodeForPackage(com.sun.electric.database.network.JNetwork.class);
+		prefs.put("NetUnificationPrefix", v);
+	}
+
+	public static boolean isBusBaseZero()
+	{
+		if (prefs == null) prefs = Preferences.userNodeForPackage(com.sun.electric.database.network.JNetwork.class);
+		return prefs.getBoolean("NetBusBaseZero", true);
+	}
+	public static void setBusBaseZero(boolean v)
+	{
+		if (prefs == null) prefs = Preferences.userNodeForPackage(com.sun.electric.database.network.JNetwork.class);
+		prefs.putBoolean("NetBusBaseZero", v);
+	}
+
+	public static boolean isBusAscending()
+	{
+		if (prefs == null) prefs = Preferences.userNodeForPackage(com.sun.electric.database.network.JNetwork.class);
+		return prefs.getBoolean("NetBusAscending", false);
+	}
+	public static void setBusAscending(boolean v)
+	{
+		if (prefs == null) prefs = Preferences.userNodeForPackage(com.sun.electric.database.network.JNetwork.class);
+		prefs.putBoolean("NetBusAscending", v);
 	}
 }

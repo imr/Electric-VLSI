@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: Options.java
+ * File: ToolOptions.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -23,14 +23,17 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.user.Prefs;
 import com.sun.electric.tool.simulation.Spice;
 import com.sun.electric.tool.logicaleffort.LETool;
+import com.sun.electric.tool.user.ui.DialogOpenFile;
 
 import java.util.Iterator;
 import java.util.List;
@@ -38,6 +41,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.awt.event.ItemEvent;
 import javax.swing.JComboBox;
+import javax.swing.JCheckBox;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;
 import javax.swing.DefaultListModel;
@@ -49,11 +53,12 @@ import javax.swing.text.BadLocationException;
 
 
 /**
- * Class to handle the "Options" dialog.
+ * Class to handle the "Tool Options" dialog.
  */
-public class Options extends javax.swing.JDialog
+public class ToolOptions extends javax.swing.JDialog
 {
 	private Technology curTech;
+	private Library curLib;
 
 	static class Option
 	{
@@ -63,22 +68,28 @@ public class Options extends javax.swing.JDialog
 		int oldInt, newInt;
 		double oldDouble, newDouble;
 
+		static final int ISSTRING = 1;
+		static final int ISINTEGER = 2;
+		static final int ISDOUBLE = 3;
+		static final int ISBOOLEAN = 4;
+
 		Option() {}
 
 		static Option newStringOption(String oldValue)
 		{
 			Option option = new Option();
-			option.type = 1;
-			option.oldString = option.newString = oldValue;
+			option.type = ISSTRING;
+			option.oldString = new String(oldValue);
+			option.newString = new String(oldValue);
 			return option;
 		}
-		void setStringValue(String newString) { this.newString = newString; }
+		void setStringValue(String newString) { this.newString = new String(newString); }
 		String getStringValue() { return newString; }
 
 		static Option newIntOption(int oldValue)
 		{
 			Option option = new Option();
-			option.type = 2;
+			option.type = ISINTEGER;
 			option.oldInt = option.newInt = oldValue;
 			return option;
 		}
@@ -88,7 +99,7 @@ public class Options extends javax.swing.JDialog
 		static Option newDoubleOption(double oldValue)
 		{
 			Option option = new Option();
-			option.type = 3;
+			option.type = ISDOUBLE;
 			option.oldDouble = option.newDouble = oldValue;
 			return option;
 		}
@@ -98,28 +109,30 @@ public class Options extends javax.swing.JDialog
 		static Option newBooleanOption(boolean oldValue)
 		{
 			Option option = new Option();
-			option.type = 4;
+			option.type = ISBOOLEAN;
 			option.oldBoolean = option.newBoolean = oldValue;
 			return option;
 		}
 		void setBooleanValue(boolean newBoolean) { this.newBoolean = newBoolean; }
 		boolean getBooleanValue() { return newBoolean; }
 
+		int getType() { return type; }
+
 		boolean isChanged()
 		{
 			switch (type)
 			{
-				case 1: return !oldString.equals(newString);
-				case 2: return oldInt != newInt;
-				case 3: return oldDouble != newDouble;
-				case 4: return oldBoolean != newBoolean;
+				case ISSTRING:  return !oldString.equals(newString);
+				case ISINTEGER: return oldInt != newInt;
+				case ISDOUBLE:  return oldDouble != newDouble;
+				case ISBOOLEAN: return oldBoolean != newBoolean;
 			}
 			return false;
 		}
 	}
 
-	/** Creates new form Options */
-	public Options(java.awt.Frame parent, boolean modal)
+	/** Creates new form ToolOptions */
+	public ToolOptions(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
 		setLocation(100, 50);
@@ -127,113 +140,19 @@ public class Options extends javax.swing.JDialog
 
 		// get current information
 		curTech = Technology.getCurrent();
+		curLib = Library.getCurrent();
+
+		// factory reset not working yet
+		factoryReset.setEnabled(false);
 
 		// initialize the SPICE Options panel
 		initSpice();
 
 		// initialize the Logical Effort Options panel
 		initLogicalEffort();
-	}
 
-	//******************************** SPICE ********************************
-
-	private JList spiceLayerList;
-	private DefaultListModel spiceLayerListModel;
-	private Option spiceEngineOption, spiceLevelOption, spiceOutputFormatOption;
-	private Option spiceUseParasiticsOption, spiceUseNodeNamesOption, spiceForceGlobalPwrGndOption;
-	private Option spiceUseCellParametersOption, spiceWriteTransSizeInLambdaOption;
-	private Option spiceTechMinResistanceOption, spiceTechMinCapacitanceOption;
-
-	private void initSpice()
-	{
-		spiceEngineOption = Option.newStringOption(Spice.getEngine());
-		spiceEnginePopup.addItem("Spice 2");
-		spiceEnginePopup.addItem("Spice 3");
-		spiceEnginePopup.addItem("HSpice");
-		spiceEnginePopup.addItem("PSpice");
-		spiceEnginePopup.addItem("Gnucap");
-		spiceEnginePopup.addItem("SmartSpice");
-		spiceEnginePopup.setSelectedItem(spiceEngineOption.getStringValue());
-
-		spiceLevelOption = Option.newStringOption(Spice.getLevel());
-		spiceLevelPopup.addItem("1");
-		spiceLevelPopup.addItem("2");
-		spiceLevelPopup.addItem("3");
-		spiceLevelPopup.setSelectedItem(spiceLevelOption.getStringValue());
-
-		spiceOutputFormatOption = Option.newStringOption(Spice.getOutputFormat());
-		spiceOutputFormatPopup.addItem("Standard");
-		spiceOutputFormatPopup.addItem("Raw");
-		spiceOutputFormatPopup.addItem("Raw/Smart");
-		spiceOutputFormatPopup.setSelectedItem(spiceOutputFormatOption.getStringValue());
-
-		spiceUseParasiticsOption = Option.newBooleanOption(Spice.isUseParasitics());
-		spiceUseParasitics.setSelected(spiceUseParasiticsOption.getBooleanValue());
-
-		spiceUseNodeNamesOption = Option.newBooleanOption(Spice.isUseNodeNames());
-		spiceUseNodeNames.setSelected(spiceUseNodeNamesOption.getBooleanValue());
-
-		spiceForceGlobalPwrGndOption = Option.newBooleanOption(Spice.isForceGlobalPwrGnd());
-		spiceForceGlobal.setSelected(spiceForceGlobalPwrGndOption.getBooleanValue());
-
-		spiceUseCellParametersOption = Option.newBooleanOption(Spice.isUseCellParameters());
-		spiceUseCellParameters.setSelected(spiceUseCellParametersOption.getBooleanValue());
-
-		spiceWriteTransSizeInLambdaOption = Option.newBooleanOption(Spice.isWriteTransSizeInLambda());
-		spiceWriteTransSizeInLambda.setSelected(spiceWriteTransSizeInLambdaOption.getBooleanValue());
-
-		spiceTechnology.setText("For technology " + curTech.getTechName());
-
-		// make an empty list for the layer names
-		spiceLayerListModel = new DefaultListModel();
-		spiceLayerList = new JList(spiceLayerListModel);
-		spiceLayerList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		spiceLayer.setViewportView(spiceLayerList);
-		spiceLayerList.addMouseListener(new java.awt.event.MouseAdapter()
-		{
-			public void mouseClicked(java.awt.event.MouseEvent evt) { spiceLayerListClick(evt); }
-		});
-		showLayersInTechnology(spiceLayerListModel);
-		spiceLayerList.setSelectedIndex(0);
-		spiceLayerListClick(null);
-
-		spiceTechMinResistanceOption = Option.newDoubleOption(curTech.getMinResistance());
-		spiceMinResistance.setText(Double.toString(spiceTechMinResistanceOption.getDoubleValue()));
-
-		spiceTechMinCapacitanceOption = Option.newDoubleOption(curTech.getMinCapacitance());
-		spiceMinCapacitance.setText(Double.toString(spiceTechMinCapacitanceOption.getDoubleValue()));
-	}
-
-	private void termSpice()
-	{
-		if (spiceEngineOption.isChanged()) Spice.setEngine(spiceEngineOption.getStringValue());
-		if (spiceLevelOption.isChanged()) Spice.setLevel(spiceLevelOption.getStringValue());
-		if (spiceOutputFormatOption.isChanged()) Spice.setOutputFormat(spiceOutputFormatOption.getStringValue());
-
-		if (spiceUseNodeNamesOption.isChanged()) Spice.setUseNodeNames(spiceUseNodeNamesOption.getBooleanValue());
-		if (spiceForceGlobalPwrGndOption.isChanged()) Spice.setForceGlobalPwrGnd(spiceForceGlobalPwrGndOption.getBooleanValue());
-		if (spiceUseCellParametersOption.isChanged()) Spice.setUseCellParameters(spiceUseCellParametersOption.getBooleanValue());
-		if (spiceWriteTransSizeInLambdaOption.isChanged()) Spice.setWriteTransSizeInLambda(spiceWriteTransSizeInLambdaOption.getBooleanValue());
-		if (spiceUseParasiticsOption.isChanged()) Spice.setUseParasitics(spiceUseParasiticsOption.getBooleanValue());
-
-		if (spiceTechMinResistanceOption.isChanged()) curTech.setMinResistance(spiceTechMinResistanceOption.getDoubleValue());
-		if (spiceTechMinCapacitanceOption.isChanged()) curTech.setMinCapacitance(spiceTechMinCapacitanceOption.getDoubleValue());
-	}
-
-	private void spiceLayerListClick(java.awt.event.MouseEvent evt)
-	{
-		String layerName = (String)spiceLayerList.getSelectedValue();
-		for(Iterator it = curTech.getLayers(); it.hasNext(); )
-		{
-			Layer layer = (Layer)it.next();
-			if (layer.getName().equals(layerName))
-			{
-				spiceResistance.setText(Double.toString(layer.getSpiceResistance()));
-				spiceCapacitance.setText(Double.toString(layer.getSpiceCapacitance()));
-				spiceEdgeCapacitance.setText(Double.toString(layer.getSpiceEdgeCapacitance()));
-				return;
-			}
-		}
+		// initialize the Network Options panel
+		initNetwork();
 	}
 
 	private void showLayersInTechnology(DefaultListModel model)
@@ -246,68 +165,342 @@ public class Options extends javax.swing.JDialog
 		}
 	}
 
-//	private void spiceLayerListClick(java.awt.event.MouseEvent evt)
-//	{
-//		int index = list.getSelectedIndex();
-//		Cell cell = (Cell)cellList.get(index);
-//		System.out.println("Clicked cell " + cell.describe());
-//	}
+	//******************************** SPICE ********************************
+
+	private JList spiceLayerList, spiceCellList;
+	private DefaultListModel spiceLayerListModel, spiceCellListModel;
+	private String spiceEngineInitial, spiceLevelInitial, spiceOutputFormatInitial;
+	private boolean spiceUseParasiticsInitial, spiceUseNodeNamesInitial, spiceForceGlobalPwrGndInitial;
+	private boolean spiceUseCellParametersInitial, spiceWriteTransSizesInLambdaInitial;
+	private double spiceTechMinResistanceInitial, spiceTechMinCapacitanceInitial;
+	private String spiceHeaderCardInitial, spiceTrailerCardInitial;
+	private HashMap spiceLayerResistanceOptions;
+	private HashMap spiceLayerCapacitanceOptions;
+	private HashMap spiceLayerEdgeCapacitanceOptions;
+	private HashMap spiceCellModelOptions;
+
+	private void initSpice()
+	{
+		// the top section: general controls
+		spiceEngineInitial = Spice.getEngine();
+		spiceEnginePopup.addItem("Spice 2");
+		spiceEnginePopup.addItem("Spice 3");
+		spiceEnginePopup.addItem("HSpice");
+		spiceEnginePopup.addItem("PSpice");
+		spiceEnginePopup.addItem("Gnucap");
+		spiceEnginePopup.addItem("SmartSpice");
+		spiceEnginePopup.setSelectedItem(spiceEngineInitial);
+
+		spiceLevelInitial = Spice.getLevel();
+		spiceLevelPopup.addItem("1");
+		spiceLevelPopup.addItem("2");
+		spiceLevelPopup.addItem("3");
+		spiceLevelPopup.setSelectedItem(spiceLevelInitial);
+
+		spiceOutputFormatInitial = Spice.getOutputFormat();
+		spiceOutputFormatPopup.addItem("Standard");
+		spiceOutputFormatPopup.addItem("Raw");
+		spiceOutputFormatPopup.addItem("Raw/Smart");
+		spiceOutputFormatPopup.setSelectedItem(spiceOutputFormatInitial);
+
+		spiceRunPopup.addItem("Don't Run SPICE");
+		spiceRunPopup.addItem("Run SPICE");
+		spiceRunPopup.addItem("Run SPICE Quietly");
+		spiceRunPopup.addItem("Run SPICE, Read Output");
+		spiceRunPopup.addItem("Run SPICE Quietly, Read Output");
+		spiceRunPopup.setEnabled(false);
+
+		spiceUseParasiticsInitial = Spice.isUseParasitics();
+		spiceUseParasitics.setSelected(spiceUseParasiticsInitial);
+
+		spiceUseNodeNamesInitial = Spice.isUseNodeNames();
+		spiceUseNodeNames.setSelected(spiceUseNodeNamesInitial);
+
+		spiceForceGlobalPwrGndInitial = Spice.isForceGlobalPwrGnd();
+		spiceForceGlobalPwrGnd.setSelected(spiceForceGlobalPwrGndInitial);
+
+		spiceUseCellParametersInitial = Spice.isUseCellParameters();
+		spiceUseCellParameters.setSelected(spiceUseCellParametersInitial);
+
+		spiceWriteTransSizesInLambdaInitial = Spice.isWriteTransSizeInLambda();
+		spiceWriteTransSizesInLambda.setSelected(spiceWriteTransSizesInLambdaInitial);
+
+		spiceRunParameters.setEnabled(false);
+		spicePrimitivesetPopup.addItem("spiceparts");
+		spicePrimitivesetPopup.setEnabled(false);
+
+		// the next section: parasitic values
+		spiceTechnology.setText("For technology " + curTech.getTechName());
+
+		spiceLayerResistanceOptions = new HashMap();
+		spiceLayerCapacitanceOptions = new HashMap();
+		spiceLayerEdgeCapacitanceOptions = new HashMap();
+		for(Iterator it = curTech.getLayers(); it.hasNext(); )
+		{
+			Layer layer = (Layer)it.next();
+			spiceLayerResistanceOptions.put(layer, Option.newDoubleOption(layer.getResistance()));
+			spiceLayerCapacitanceOptions.put(layer, Option.newDoubleOption(layer.getCapacitance()));
+			spiceLayerEdgeCapacitanceOptions.put(layer, Option.newDoubleOption(layer.getEdgeCapacitance()));
+		}
+		spiceLayerListModel = new DefaultListModel();
+		spiceLayerList = new JList(spiceLayerListModel);
+		spiceLayerList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		spiceLayer.setViewportView(spiceLayerList);
+		spiceLayerList.addMouseListener(new java.awt.event.MouseAdapter()
+		{
+			public void mouseClicked(java.awt.event.MouseEvent evt) { spiceLayerListClick(); }
+		});
+		showLayersInTechnology(spiceLayerListModel);
+		spiceLayerList.setSelectedIndex(0);
+		spiceLayerListClick();
+		spiceResistance.getDocument().addDocumentListener(new LayerDocumentListener(spiceLayerResistanceOptions, spiceLayerList, curTech));
+		spiceCapacitance.getDocument().addDocumentListener(new LayerDocumentListener(spiceLayerCapacitanceOptions, spiceLayerList, curTech));
+		spiceEdgeCapacitance.getDocument().addDocumentListener(new LayerDocumentListener(spiceLayerEdgeCapacitanceOptions, spiceLayerList, curTech));
+
+		spiceTechMinResistanceInitial = curTech.getMinResistance();
+		spiceMinResistance.setText(Double.toString(spiceTechMinResistanceInitial));
+
+		spiceTechMinCapacitanceInitial = curTech.getMinCapacitance();
+		spiceMinCapacitance.setText(Double.toString(spiceTechMinCapacitanceInitial));
+
+		// the next section: header and trailer cards
+		spiceHeaderCardInitial = Spice.getHeaderCardInfo();
+		if (spiceHeaderCardInitial.length() == 0) spiceNoHeaderCards.setSelected(true); else
+		{
+			if (spiceHeaderCardInitial.startsWith(":::::"))
+			{
+				spiceHeaderCardsWithExtension.setSelected(true);
+				spiceHeaderCardExtension.setText(spiceHeaderCardInitial.substring(5));
+			} else
+			{
+				spiceHeaderCardsFromFile.setSelected(true);
+				spiceHeaderCardFile.setText(spiceHeaderCardInitial);
+			}
+		}
+		spiceTrailerCardInitial = Spice.getTrailerCardInfo();
+		if (spiceTrailerCardInitial.length() == 0) spiceNoTrailerCards.setSelected(true); else
+		{
+			if (spiceTrailerCardInitial.startsWith(":::::"))
+			{
+				spiceTrailerCardsWithExtension.setSelected(true);
+				spiceTrailerCardExtension.setText(spiceTrailerCardInitial.substring(5));
+			} else
+			{
+				spiceTrailerCardsFromFile.setSelected(true);
+				spiceTrailerCardFile.setText(spiceTrailerCardInitial);
+			}
+		}
+
+		// the last section has cell overrides
+		spiceCellModelOptions = new HashMap();
+		for(Iterator it = curLib.getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			spiceCellModelOptions.put(cell, Option.newStringOption(""));
+		}
+		spiceCellListModel = new DefaultListModel();
+		spiceCellList = new JList(spiceCellListModel);
+		spiceCellList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		spiceCell.setViewportView(spiceCellList);
+		spiceCellList.addMouseListener(new java.awt.event.MouseAdapter()
+		{
+			public void mouseClicked(java.awt.event.MouseEvent evt) { spiceCellListClick(); }
+		});
+		for(Iterator it = curLib.getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			spiceCellListModel.addElement(cell.noLibDescribe());
+		}
+		spiceCellList.setSelectedIndex(0);
+		spiceCellListClick();
+//		spiceCell.getDocument().addDocumentListener(new CellDocumentListener(spiceCellModelOptions, spiceCellList, curLib));
+	}
+
+	private void spiceCellListClick()
+	{
+		String cellName = (String)spiceCellList.getSelectedValue();
+		Cell cell = curLib.findNodeProto(cellName);
+		if (cell != null)
+		{
+			Option option = (Option)spiceCellModelOptions.get(cell);
+			spiceModelCell.setText(option.getStringValue());
+		}
+	}
+
+	private void termSpice()
+	{
+		// the top section: general controls
+		String stringNow = (String)spiceEnginePopup.getSelectedItem();
+		if (!spiceEngineInitial.equals(stringNow)) Spice.setEngine(stringNow);
+
+		stringNow = (String)spiceLevelPopup.getSelectedItem();
+		if (!spiceLevelInitial.equals(stringNow)) Spice.setLevel(stringNow);
+
+		stringNow = (String)spiceOutputFormatPopup.getSelectedItem();
+		if (!spiceOutputFormatInitial.equals(stringNow)) Spice.setOutputFormat(stringNow);
+
+		boolean booleanNow = spiceUseNodeNames.isSelected();
+		if (spiceUseNodeNamesInitial != booleanNow) Spice.setUseNodeNames(booleanNow);
+
+		booleanNow = spiceForceGlobalPwrGnd.isSelected();
+		if (spiceForceGlobalPwrGndInitial != booleanNow) Spice.setForceGlobalPwrGnd(booleanNow);
+
+		booleanNow = spiceUseCellParameters.isSelected();
+		if (spiceUseCellParametersInitial != booleanNow) Spice.setUseCellParameters(booleanNow);
+
+		booleanNow = spiceWriteTransSizesInLambda.isSelected();
+		if (spiceWriteTransSizesInLambdaInitial != booleanNow) Spice.setWriteTransSizeInLambda(booleanNow);
+
+		booleanNow = spiceUseParasitics.isSelected();
+		if (spiceUseParasiticsInitial != booleanNow) Spice.setUseParasitics(booleanNow);
+
+		Spice.flushOptions();
+
+		// the next section: parasitic values
+		double doubleNow = EMath.atof(spiceMinResistance.getText());
+		if (spiceTechMinResistanceInitial != doubleNow) curTech.setMinResistance(doubleNow);
+		doubleNow = EMath.atof(spiceMinCapacitance.getText());
+		if (spiceTechMinCapacitanceInitial != doubleNow) curTech.setMinCapacitance(doubleNow);
+
+		for(Iterator it = curTech.getLayers(); it.hasNext(); )
+		{
+			Layer layer = (Layer)it.next();
+			Option resistanceOption = (Option)spiceLayerResistanceOptions.get(layer);
+			if (resistanceOption != null && resistanceOption.isChanged())
+				layer.setResistance(resistanceOption.getDoubleValue());
+			Option capacitanceOption = (Option)spiceLayerCapacitanceOptions.get(layer);
+			if (capacitanceOption != null && capacitanceOption.isChanged())
+				layer.setCapacitance(capacitanceOption.getDoubleValue());
+			Option edgeCapacitanceOption = (Option)spiceLayerEdgeCapacitanceOptions.get(layer);
+			if (edgeCapacitanceOption != null && edgeCapacitanceOption.isChanged())
+				layer.setEdgeCapacitance(edgeCapacitanceOption.getDoubleValue());
+		}
+
+		// the next section: header and trailer cards
+		String header = "";
+		if (spiceHeaderCardsWithExtension.isSelected())
+		{
+			header = ":::::" + spiceHeaderCardExtension.getText();
+		} else if (spiceHeaderCardsFromFile.isSelected())
+		{
+			header = spiceHeaderCardFile.getText();
+		}
+		if (!spiceTrailerCardInitial.equals(header)) Spice.setHeaderCardInfo(header);
+
+		String trailer = "";
+		if (spiceTrailerCardsWithExtension.isSelected())
+		{
+			trailer = ":::::" + spiceTrailerCardExtension.getText();
+		} else if (spiceTrailerCardsFromFile.isSelected())
+		{
+			trailer = spiceTrailerCardFile.getText();
+		}
+		if (spiceTrailerCardInitial.equals(trailer)) Spice.setTrailerCardInfo(trailer);
+	}
+
+	private void spiceLayerListClick()
+	{
+		String layerName = (String)spiceLayerList.getSelectedValue();
+		Layer layer = curTech.findLayer(layerName);
+		if (layer != null)
+		{
+			Option resistanceOption = (Option)spiceLayerResistanceOptions.get(layer);
+			spiceResistance.setText(Double.toString(resistanceOption.getDoubleValue()));
+			Option capacitanceOption = (Option)spiceLayerCapacitanceOptions.get(layer);
+			spiceCapacitance.setText(Double.toString(capacitanceOption.getDoubleValue()));
+			Option edgeCapacitanceOption = (Option)spiceLayerEdgeCapacitanceOptions.get(layer);
+			spiceEdgeCapacitance.setText(Double.toString(edgeCapacitanceOption.getDoubleValue()));
+		}
+	}
+
+	/**
+	 * Class to handle special changes to per-layer parasitics.
+	 */
+	private static class LayerDocumentListener implements DocumentListener
+	{
+		HashMap optionMap;
+		JList list;
+		Technology tech;
+
+		LayerDocumentListener(HashMap optionMap, JList list, Technology tech)
+		{
+			this.optionMap = optionMap;
+			this.list = list;
+			this.tech = tech;
+		}
+
+		private void change(DocumentEvent e)
+		{
+			// get the currently selected layer
+			String layerName = (String)list.getSelectedValue();
+			Layer layer = tech.findLayer(layerName);
+			if (layer == null) return;
+
+			// get the typed value
+			Document doc = e.getDocument();
+			int len = doc.getLength();
+			String text;
+			try
+			{
+				text = doc.getText(0, len);
+			} catch (BadLocationException ex) { return; }
+			Option option = (Option)optionMap.get(layer);
+			double v = EMath.atof(text);
+
+			// update the option
+			option.setDoubleValue(v);
+		}
+
+		public void changedUpdate(DocumentEvent e) { change(e); }
+		public void insertUpdate(DocumentEvent e) { change(e); }
+		public void removeUpdate(DocumentEvent e) { change(e); }
+	}
 
 	//******************************** LOGICAL EFFORT ********************************
 
 	private JList leArcList;
 	private DefaultListModel leArcListModel;
 	private HashMap leArcOptions;
-	private Option leUseLocalSettingsOption, leDisplayIntermediateCapsOption, leHighlightComponentsOption;
-	private Option leGlobalFanOutOption, leConvergenceOption, leMaxIterationsOption;
-	private Option leGateCapacitanceOption, leDefaultWireCapRatioOption, leDiffToGateCapRatioNMOSOption;
-	private Option leDiffToGateCapRatioPMOSOption, leKeeperSizeRatioOption;
+	private boolean leUseLocalSettingsInitial, leDisplayIntermediateCapsInitial, leHighlightComponentsInitial;
+	private double leGlobalFanOutInitial, leConvergenceInitial;
+	private int leMaxIterationsInitial;
+	private double leGateCapacitanceInitial, leDefaultWireCapRatioInitial, leDiffToGateCapRatioNMOSInitial;
+	private double leDiffToGateCapRatioPMOSInitial, leKeeperSizeRatioInitial;
 
 	private void initLogicalEffort()
 	{
-		leUseLocalSettingsOption = Option.newBooleanOption(LETool.isUseLocalSettings());
-		leUseLocalSettings.setSelected(leUseLocalSettingsOption.getBooleanValue());
+		leUseLocalSettingsInitial = LETool.isUseLocalSettings();
+		leUseLocalSettings.setSelected(leUseLocalSettingsInitial);
 
-		leDisplayIntermediateCapsOption = Option.newBooleanOption(LETool.isDisplayIntermediateCaps());
-		leDisplayIntermediateCaps.setSelected(leDisplayIntermediateCapsOption.getBooleanValue());
+		leDisplayIntermediateCapsInitial = LETool.isDisplayIntermediateCaps();
+		leDisplayIntermediateCaps.setSelected(leDisplayIntermediateCapsInitial);
 
-		leHighlightComponentsOption = Option.newBooleanOption(LETool.isHighlightComponents());
-		leHighlightComponents.setSelected(leHighlightComponentsOption.getBooleanValue());
+		leHighlightComponentsInitial = LETool.isHighlightComponents();
+		leHighlightComponents.setSelected(leHighlightComponentsInitial);
 
-		leGlobalFanOutOption = Option.newDoubleOption(LETool.getGlobalFanOut());
-		leGlobalFanOut.setText(Double.toString(leGlobalFanOutOption.getDoubleValue()));
-//		leGlobalFanOut.getDocument().addDocumentListener(new DocumentListener() {
-//			private void change(DocumentEvent e, String huh)
-//			{
-//				String text = leGlobalFanOut.getText();
-//System.out.println("Changed '"+huh+"' of fanout.  text now "+text);
-//				leGlobalFanOutOption.setDoubleValue(Double.parseDouble(text));
-//			}
-//			public void changedUpdate(DocumentEvent e) { change(e,"change"); }
-//			public void insertUpdate(DocumentEvent e) { change(e,"insert"); }
-//			public void removeUpdate(DocumentEvent e) { change(e,"remove"); }
-//		});
+		leGlobalFanOutInitial = LETool.getGlobalFanOut();
+		leGlobalFanOut.setText(Double.toString(leGlobalFanOutInitial));
 
-		leConvergenceOption = Option.newDoubleOption(LETool.getConvergence());
-		leConvergence.setText(Double.toString(leConvergenceOption.getDoubleValue()));
+		leConvergenceInitial = LETool.getConvergence();
+		leConvergence.setText(Double.toString(leConvergenceInitial));
 
-		leMaxIterationsOption = Option.newIntOption(LETool.getMaxIterations());
-		leMaxIterations.setText(Integer.toString(leMaxIterationsOption.getIntValue()));
+		leMaxIterationsInitial = LETool.getMaxIterations();
+		leMaxIterations.setText(Integer.toString(leMaxIterationsInitial));
 
-		leGateCapacitanceOption = Option.newDoubleOption(LETool.getGateCapacitance());
-		leGateCapacitance.setText(Double.toString(leGateCapacitanceOption.getDoubleValue()));
+		leGateCapacitanceInitial = LETool.getGateCapacitance();
+		leGateCapacitance.setText(Double.toString(leGateCapacitanceInitial));
 
-		leDefaultWireCapRatioOption = Option.newDoubleOption(LETool.getDefWireCapRatio());
-		leDefaultWireCapRatio.setText(Double.toString(leDefaultWireCapRatioOption.getDoubleValue()));
+		leDefaultWireCapRatioInitial = LETool.getDefWireCapRatio();
+		leDefaultWireCapRatio.setText(Double.toString(leDefaultWireCapRatioInitial));
 
-		leDiffToGateCapRatioNMOSOption = Option.newDoubleOption(LETool.getDiffToGateCapRatioNMOS());
-		leDiffToGateCapRatioNMOS.setText(Double.toString(leDiffToGateCapRatioNMOSOption.getDoubleValue()));
+		leDiffToGateCapRatioNMOSInitial = LETool.getDiffToGateCapRatioNMOS();
+		leDiffToGateCapRatioNMOS.setText(Double.toString(leDiffToGateCapRatioNMOSInitial));
 
-		leDiffToGateCapRatioPMOSOption = Option.newDoubleOption(LETool.getDiffToGateCapRatioPMOS());
-		leDiffToGateCapRatioPMOS.setText(Double.toString(leDiffToGateCapRatioPMOSOption.getDoubleValue()));
+		leDiffToGateCapRatioPMOSInitial = LETool.getDiffToGateCapRatioPMOS();
+		leDiffToGateCapRatioPMOS.setText(Double.toString(leDiffToGateCapRatioPMOSInitial));
 
-		leKeeperSizeRatioOption = Option.newDoubleOption(LETool.getKeeperSizeRatio());
-		leKeeperSizeRatio.setText(Double.toString(leKeeperSizeRatioOption.getDoubleValue()));
+		leKeeperSizeRatioInitial = LETool.getKeeperSizeRatio();
+		leKeeperSizeRatio.setText(Double.toString(leKeeperSizeRatioInitial));
 
 		// make an empty list for the layer names
 		leArcOptions = new HashMap();
@@ -320,46 +513,58 @@ public class Options extends javax.swing.JDialog
 		leArcList = new JList(leArcListModel);
 		leArcList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		leArc.setViewportView(leArcList);
-//		leArcList.addMouseListener(new java.awt.event.MouseAdapter()
-//		{
-//			public void mouseClicked(java.awt.event.MouseEvent evt) { leArcListClick(evt); }
-//		});
+		leArcList.addMouseListener(new java.awt.event.MouseAdapter()
+		{
+			public void mouseClicked(java.awt.event.MouseEvent evt) { leArcListClick(evt); }
+		});
 		showArcsInTechnology(leArcListModel);
 		leArcList.setSelectedIndex(0);
 		leArcListClick(null);
-
-//		leWireRatio.getDocument().addDocumentListener(new DocumentListener() {
-//			private void change()
-//			{
-//				String arcName = (String)leArcList.getSelectedValue();
-//				int firstSpace = arcName.indexOf(' ');
-//				if (firstSpace > 0) arcName = arcName.substring(0, firstSpace);
-//				ArcProto arc = curTech.findArcProto(arcName);
-//				Option option = (Option)leArcOptions.get(arc);
-//				if (option == null) return;
-//System.out.println("Changed Arc "+arc.getProtoName()+" to "+leWireRatio.getText());
-//				option.setDoubleValue(Double.parseDouble(leWireRatio.getText()));
-//			}
-//			public void changedUpdate(DocumentEvent e) { change(); }
-//			public void insertUpdate(DocumentEvent e) { change(); }
-//			public void removeUpdate(DocumentEvent e) { change(); }
-//		});
+		leWireRatio.getDocument().addDocumentListener(new ArcDocumentListener(leArcOptions, leArcList, leArcListModel, curTech));
 	}
 
 	private void termLogicalEffort()
 	{
-		if (leUseLocalSettingsOption.isChanged()) LETool.setUseLocalSettings(leUseLocalSettingsOption.getBooleanValue());
-		if (leDisplayIntermediateCapsOption.isChanged()) LETool.setDisplayIntermediateCaps(leDisplayIntermediateCapsOption.getBooleanValue());
-		if (leHighlightComponentsOption.isChanged()) LETool.setHighlightComponents(leHighlightComponentsOption.getBooleanValue());
+		boolean nowBoolean = leUseLocalSettings.isSelected();
+		if (leUseLocalSettingsInitial != nowBoolean) LETool.setUseLocalSettings(nowBoolean);
 
-		if (leGlobalFanOutOption.isChanged()) LETool.setGlobalFanOut(leGlobalFanOutOption.getDoubleValue());
-		if (leConvergenceOption.isChanged()) LETool.setConvergence(leConvergenceOption.getDoubleValue());
-		if (leMaxIterationsOption.isChanged()) LETool.setMaxIterations(leMaxIterationsOption.getIntValue());
-		if (leGateCapacitanceOption.isChanged()) LETool.setGateCapacitance(leGateCapacitanceOption.getDoubleValue());
-		if (leDefaultWireCapRatioOption.isChanged()) LETool.setDefWireCapRatio(leDefaultWireCapRatioOption.getDoubleValue());
-		if (leDiffToGateCapRatioNMOSOption.isChanged()) LETool.setDiffToGateCapRatioNMOS(leDiffToGateCapRatioNMOSOption.getDoubleValue());
-		if (leDiffToGateCapRatioPMOSOption.isChanged()) LETool.setDiffToGateCapRatioPMOS(leDiffToGateCapRatioPMOSOption.getDoubleValue());
-		if (leKeeperSizeRatioOption.isChanged()) LETool.setKeeperSizeRatio(leKeeperSizeRatioOption.getDoubleValue());
+		nowBoolean = leDisplayIntermediateCaps.isSelected();
+		if (leDisplayIntermediateCapsInitial != nowBoolean) LETool.setDisplayIntermediateCaps(nowBoolean);
+
+		nowBoolean = leHighlightComponents.isSelected();
+		if (leHighlightComponentsInitial != nowBoolean) LETool.setHighlightComponents(nowBoolean);
+
+		double nowDouble = EMath.atof(leGlobalFanOut.getText());
+		if (leGlobalFanOutInitial != nowDouble) LETool.setGlobalFanOut(nowDouble);
+
+		nowDouble = EMath.atof(leConvergence.getText());
+		if (leConvergenceInitial != nowDouble) LETool.setConvergence(nowDouble);
+
+		int nowInt = EMath.atoi(leMaxIterations.getText());
+		if (leMaxIterationsInitial != nowInt) LETool.setMaxIterations(nowInt);
+
+		nowDouble = EMath.atof(leGateCapacitance.getText());
+		if (leGateCapacitanceInitial != nowDouble) LETool.setGateCapacitance(nowDouble);
+
+		nowDouble = EMath.atof(leDefaultWireCapRatio.getText());
+		if (leDefaultWireCapRatioInitial != nowDouble) LETool.setDefWireCapRatio(nowDouble);
+
+		nowDouble = EMath.atof(leDiffToGateCapRatioNMOS.getText());
+		if (leDiffToGateCapRatioNMOSInitial != nowDouble) LETool.setDiffToGateCapRatioNMOS(nowDouble);
+
+		nowDouble = EMath.atof(leDiffToGateCapRatioPMOS.getText());
+		if (leDiffToGateCapRatioPMOSInitial != nowDouble) LETool.setDiffToGateCapRatioPMOS(nowDouble);
+
+		nowDouble = EMath.atof(leKeeperSizeRatio.getText());
+		if (leKeeperSizeRatioInitial != nowDouble) LETool.setKeeperSizeRatio(nowDouble);
+
+		for(Iterator it = curTech.getArcs(); it.hasNext(); )
+		{
+			ArcProto arc = (ArcProto)it.next();
+			Option option = (Option)leArcOptions.get(arc);
+			if (option != null && option.isChanged())
+				LETool.setArcRatio(arc, option.getDoubleValue());
+		}
 	}
 
 	private void leArcListClick(java.awt.event.MouseEvent evt)
@@ -370,8 +575,57 @@ public class Options extends javax.swing.JDialog
 		ArcProto arc = curTech.findArcProto(arcName);
 		Option option = (Option)leArcOptions.get(arc);
 		if (option == null) return;
-System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+option.getDoubleValue());
 		leWireRatio.setText(Double.toString(option.getDoubleValue()));
+	}
+
+	/**
+	 * Class to handle special changes to per-arc logical effort.
+	 */
+	private static class ArcDocumentListener implements DocumentListener
+	{
+		HashMap optionMap;
+		JList list;
+		DefaultListModel model;
+		Technology tech;
+
+		ArcDocumentListener(HashMap optionMap, JList list, DefaultListModel model, Technology tech)
+		{
+			this.optionMap = optionMap;
+			this.list = list;
+			this.model = model;
+			this.tech = tech;
+		}
+
+		private void change(DocumentEvent e)
+		{
+			// get the currently selected layer
+			String arcName = (String)list.getSelectedValue();
+			int firstSpace = arcName.indexOf(' ');
+			if (firstSpace > 0) arcName = arcName.substring(0, firstSpace);
+			ArcProto arc = tech.findArcProto(arcName);
+			Option option = (Option)optionMap.get(arc);
+			if (option == null) return;
+
+			// get the typed value
+			Document doc = e.getDocument();
+			int len = doc.getLength();
+			String text;
+			try
+			{
+				text = doc.getText(0, len);
+			} catch (BadLocationException ex) { return; }
+			double v = EMath.atof(text);
+
+			// update the option
+			option.setDoubleValue(v);
+			int index = list.getSelectedIndex();
+			String newLine = arc.getProtoName() + " (" + v + ")";
+			model.setElementAt(newLine, index);
+		}
+
+		public void changedUpdate(DocumentEvent e) { change(e); }
+		public void insertUpdate(DocumentEvent e) { change(e); }
+		public void removeUpdate(DocumentEvent e) { change(e); }
 	}
 
 	private void showArcsInTechnology(DefaultListModel model)
@@ -382,6 +636,57 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
 			ArcProto arc = (ArcProto)it.next();
 			model.addElement(arc.getProtoName() + " (" + Double.toString(LETool.getArcRatio(arc)) + ")");
 		}
+	}
+
+	//******************************** NETWORK ********************************
+
+	private boolean netUnifyPwrGndInitial, netUnifyLikeNamedNetsInitial, netIgnoreResistorsInitial;
+	private String netUnificationPrefixInitial;
+	private boolean netBusBaseZeroInitial, netBusAscendingInitial;
+
+	private void initNetwork()
+	{
+		netUnifyPwrGndInitial = JNetwork.isUnifyPowerAndGround();
+		netUnifyPwrGnd.setSelected(netUnifyPwrGndInitial);
+
+		netUnifyLikeNamedNetsInitial = JNetwork.isUnifyLikeNamedNets();
+		netUnifyLikeNamedNets.setSelected(netUnifyLikeNamedNetsInitial);
+
+		netIgnoreResistorsInitial = JNetwork.isIgnoreResistors();
+		netIgnoreResistors.setSelected(netIgnoreResistorsInitial);
+
+		netUnificationPrefixInitial = JNetwork.getUnificationPrefix();
+		netUnificationPrefix.setText(netUnificationPrefixInitial);
+
+		netBusBaseZeroInitial = JNetwork.isBusBaseZero();
+		netStartingIndex.addItem("0");
+		netStartingIndex.addItem("1");
+		if (!netBusBaseZeroInitial) netStartingIndex.setSelectedIndex(1);
+
+		netBusAscendingInitial = JNetwork.isBusAscending();
+		if (netBusAscendingInitial) netAscending.setSelected(true); else
+			netDescending.setSelected(true);
+	}
+
+	private void termNetwork()
+	{
+		boolean nowBoolean = netUnifyPwrGnd.isSelected();
+		if (netUnifyPwrGndInitial != nowBoolean) JNetwork.setUnifyPowerAndGround(nowBoolean);
+
+		nowBoolean = netUnifyLikeNamedNets.isSelected();
+		if (netUnifyLikeNamedNetsInitial != nowBoolean) JNetwork.setUnifyLikeNamedNets(nowBoolean);
+
+		nowBoolean = netIgnoreResistors.isSelected();
+		if (netIgnoreResistorsInitial != nowBoolean) JNetwork.setIgnoreResistors(nowBoolean);
+
+		String nowString = netUnificationPrefix.getText();
+		if (!netUnificationPrefixInitial.equals(nowString)) JNetwork.setUnificationPrefix(nowString);
+
+		nowBoolean = netStartingIndex.getSelectedIndex() == 0;
+		if (netBusBaseZeroInitial != nowBoolean) JNetwork.setBusBaseZero(nowBoolean);
+
+		nowBoolean = netAscending.isSelected();
+		if (netBusAscendingInitial != nowBoolean) JNetwork.setBusAscending(nowBoolean);
 	}
 
 	/** This method is called from within the constructor to
@@ -396,10 +701,10 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         spiceHeader = new javax.swing.ButtonGroup();
         spiceTrailer = new javax.swing.ButtonGroup();
         spiceModel = new javax.swing.ButtonGroup();
-        Bottom = new javax.swing.JPanel();
-        cancel = new javax.swing.JButton();
-        ok = new javax.swing.JButton();
+        netDefaultOrder = new javax.swing.ButtonGroup();
         tabs = new javax.swing.JTabbedPane();
+        drc = new javax.swing.JPanel();
+        drcRules = new javax.swing.JPanel();
         spice = new javax.swing.JPanel();
         spice1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
@@ -411,17 +716,17 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         spiceOutputFormatPopup = new javax.swing.JComboBox();
         spiceUseParasitics = new javax.swing.JCheckBox();
         spiceUseNodeNames = new javax.swing.JCheckBox();
-        spiceForceGlobal = new javax.swing.JCheckBox();
+        spiceForceGlobalPwrGnd = new javax.swing.JCheckBox();
         spiceUseCellParameters = new javax.swing.JCheckBox();
-        spiceWriteTransSizeInLambda = new javax.swing.JCheckBox();
+        spiceWriteTransSizesInLambda = new javax.swing.JCheckBox();
         spice2 = new javax.swing.JPanel();
         jLabel21 = new javax.swing.JLabel();
-        jTextField5 = new javax.swing.JTextField();
+        spiceRunParameters = new javax.swing.JTextField();
         jLabel16 = new javax.swing.JLabel();
         jLabel17 = new javax.swing.JLabel();
         spice3 = new javax.swing.JPanel();
         jLabel13 = new javax.swing.JLabel();
-        SpicePrimitivesetPopup = new javax.swing.JComboBox();
+        spicePrimitivesetPopup = new javax.swing.JComboBox();
         jSeparator1 = new javax.swing.JSeparator();
         spice4 = new javax.swing.JPanel();
         spiceLayer = new javax.swing.JScrollPane();
@@ -439,28 +744,46 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         spiceMinCapacitance = new javax.swing.JTextField();
         jSeparator2 = new javax.swing.JSeparator();
         spice5 = new javax.swing.JPanel();
-        jLabel3 = new javax.swing.JLabel();
-        jTextField2 = new javax.swing.JTextField();
-        jRadioButton1 = new javax.swing.JRadioButton();
-        jRadioButton2 = new javax.swing.JRadioButton();
-        jRadioButton3 = new javax.swing.JRadioButton();
-        jRadioButton4 = new javax.swing.JRadioButton();
-        jRadioButton5 = new javax.swing.JRadioButton();
-        jRadioButton6 = new javax.swing.JRadioButton();
-        jTextField9 = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
-        jTextField10 = new javax.swing.JTextField();
-        jTextField11 = new javax.swing.JTextField();
-        jButton2 = new javax.swing.JButton();
+        spiceHeaderCardExtension = new javax.swing.JTextField();
+        spiceNoHeaderCards = new javax.swing.JRadioButton();
+        spiceHeaderCardsWithExtension = new javax.swing.JRadioButton();
+        spiceHeaderCardsFromFile = new javax.swing.JRadioButton();
+        spiceNoTrailerCards = new javax.swing.JRadioButton();
+        spiceTrailerCardsWithExtension = new javax.swing.JRadioButton();
+        spiceTrailerCardsFromFile = new javax.swing.JRadioButton();
+        spiceHeaderCardFile = new javax.swing.JTextField();
+        spiceBrowseHeaderFile = new javax.swing.JButton();
+        spiceTrailerCardExtension = new javax.swing.JTextField();
+        spiceTrailerCardFile = new javax.swing.JTextField();
+        spiceBrowseTrailerFile = new javax.swing.JButton();
         jSeparator4 = new javax.swing.JSeparator();
         jSeparator3 = new javax.swing.JSeparator();
         spice6 = new javax.swing.JPanel();
-        jScrollPane3 = new javax.swing.JScrollPane();
+        spiceCell = new javax.swing.JScrollPane();
         jLabel8 = new javax.swing.JLabel();
-        jRadioButton7 = new javax.swing.JRadioButton();
-        jRadioButton8 = new javax.swing.JRadioButton();
-        jButton3 = new javax.swing.JButton();
-        jTextField12 = new javax.swing.JTextField();
+        spiceDeriveModelFromCircuit = new javax.swing.JRadioButton();
+        spiceUseModelFromFile = new javax.swing.JRadioButton();
+        spiceModelFileBrowse = new javax.swing.JButton();
+        spiceModelCell = new javax.swing.JTextField();
+        verilog = new javax.swing.JPanel();
+        fastHenry = new javax.swing.JPanel();
+        wellCheck = new javax.swing.JPanel();
+        antennaRules = new javax.swing.JPanel();
+        network = new javax.swing.JPanel();
+        netUnifyPwrGnd = new javax.swing.JCheckBox();
+        netUnifyLikeNamedNets = new javax.swing.JCheckBox();
+        netIgnoreResistors = new javax.swing.JCheckBox();
+        jLabel3 = new javax.swing.JLabel();
+        netUnificationPrefix = new javax.swing.JTextField();
+        jSeparator5 = new javax.swing.JSeparator();
+        jLabel26 = new javax.swing.JLabel();
+        jLabel27 = new javax.swing.JLabel();
+        netStartingIndex = new javax.swing.JComboBox();
+        jLabel28 = new javax.swing.JLabel();
+        netAscending = new javax.swing.JRadioButton();
+        netDescending = new javax.swing.JRadioButton();
+        jLabel29 = new javax.swing.JLabel();
+        ncc = new javax.swing.JPanel();
         logicalEffort = new javax.swing.JPanel();
         leArc = new javax.swing.JScrollPane();
         jLabel4 = new javax.swing.JLabel();
@@ -486,8 +809,13 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         leDiffToGateCapRatioPMOS = new javax.swing.JTextField();
         leKeeperSizeRatio = new javax.swing.JTextField();
         leWireRatio = new javax.swing.JTextField();
+        routing = new javax.swing.JPanel();
+        compaction = new javax.swing.JPanel();
+        cancel = new javax.swing.JButton();
+        ok = new javax.swing.JButton();
+        factoryReset = new javax.swing.JButton();
 
-        getContentPane().setLayout(new java.awt.BorderLayout(0, 10));
+        getContentPane().setLayout(new java.awt.GridBagLayout());
 
         setTitle("Options");
         setName("");
@@ -499,35 +827,18 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
             }
         });
 
-        Bottom.setLayout(new java.awt.BorderLayout());
+        tabs.setToolTipText("");
+        drc.setLayout(new java.awt.GridBagLayout());
 
-        Bottom.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(5, 5, 5, 5)));
-        cancel.setText("Cancel");
-        cancel.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                CancelButton(evt);
-            }
-        });
+        tabs.addTab("DRC", drc);
 
-        Bottom.add(cancel, java.awt.BorderLayout.WEST);
+        drcRules.setLayout(new java.awt.GridBagLayout());
 
-        ok.setText("OK");
-        ok.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                OKButton(evt);
-            }
-        });
-
-        Bottom.add(ok, java.awt.BorderLayout.EAST);
-
-        getContentPane().add(Bottom, java.awt.BorderLayout.SOUTH);
+        tabs.addTab("Design Rules", drcRules);
 
         spice.setLayout(new java.awt.GridBagLayout());
 
+        spice.setToolTipText("Options for Spice deck generation");
         spice1.setLayout(new java.awt.GridBagLayout());
 
         jLabel1.setText("SPICE Engine:");
@@ -557,17 +868,9 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
         gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
         spice1.add(spiceRunPopup, gridBagConstraints);
-
-        spiceEnginePopup.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                SpiceEngineChanged(evt);
-            }
-        });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -575,27 +878,11 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         spice1.add(spiceEnginePopup, gridBagConstraints);
 
-        spiceLevelPopup.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                SpiceLevelChanged(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         spice1.add(spiceLevelPopup, gridBagConstraints);
-
-        spiceOutputFormatPopup.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                SpiceOutputFormatChanged(evt);
-            }
-        });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -604,14 +891,6 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         spice1.add(spiceOutputFormatPopup, gridBagConstraints);
 
         spiceUseParasitics.setText("Use Parasitics");
-        spiceUseParasitics.addItemListener(new java.awt.event.ItemListener()
-        {
-            public void itemStateChanged(java.awt.event.ItemEvent evt)
-            {
-                spiceUseParasiticsChanged(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
@@ -619,64 +898,32 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         spice1.add(spiceUseParasitics, gridBagConstraints);
 
         spiceUseNodeNames.setText("Use Node Names");
-        spiceUseNodeNames.addItemListener(new java.awt.event.ItemListener()
-        {
-            public void itemStateChanged(java.awt.event.ItemEvent evt)
-            {
-                spiceUseNodeNamesChanged(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         spice1.add(spiceUseNodeNames, gridBagConstraints);
 
-        spiceForceGlobal.setText("Force Global VDD/GND");
-        spiceForceGlobal.addItemListener(new java.awt.event.ItemListener()
-        {
-            public void itemStateChanged(java.awt.event.ItemEvent evt)
-            {
-                spiceForceGlobalPwrGndChanged(evt);
-            }
-        });
-
+        spiceForceGlobalPwrGnd.setText("Force Global VDD/GND");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        spice1.add(spiceForceGlobal, gridBagConstraints);
+        spice1.add(spiceForceGlobalPwrGnd, gridBagConstraints);
 
         spiceUseCellParameters.setText("Use Cell Parameters");
-        spiceUseCellParameters.addItemListener(new java.awt.event.ItemListener()
-        {
-            public void itemStateChanged(java.awt.event.ItemEvent evt)
-            {
-                spiceUseCellParametersChanged(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         spice1.add(spiceUseCellParameters, gridBagConstraints);
 
-        spiceWriteTransSizeInLambda.setText("Write Trans Sizes in Lambda");
-        spiceWriteTransSizeInLambda.addItemListener(new java.awt.event.ItemListener()
-        {
-            public void itemStateChanged(java.awt.event.ItemEvent evt)
-            {
-                spiceWriteTransSizesInLambdaChanged(evt);
-            }
-        });
-
+        spiceWriteTransSizesInLambda.setText("Write Trans Sizes in Lambda");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        spice1.add(spiceWriteTransSizeInLambda, gridBagConstraints);
+        spice1.add(spiceWriteTransSizesInLambda, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -695,8 +942,8 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         gridBagConstraints.weighty = 1.0;
         spice2.add(jLabel21, gridBagConstraints);
 
-        jTextField5.setMinimumSize(new java.awt.Dimension(100, 20));
-        jTextField5.setPreferredSize(new java.awt.Dimension(100, 20));
+        spiceRunParameters.setMinimumSize(new java.awt.Dimension(100, 20));
+        spiceRunParameters.setPreferredSize(new java.awt.Dimension(100, 20));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
@@ -704,15 +951,15 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
-        spice2.add(jTextField5, gridBagConstraints);
+        spice2.add(spiceRunParameters, gridBagConstraints);
 
         jLabel16.setText("Run:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weighty = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
         spice2.add(jLabel16, gridBagConstraints);
 
         jLabel17.setText("With");
@@ -742,9 +989,9 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 1.0;
-        spice3.add(SpicePrimitivesetPopup, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        spice3.add(spicePrimitivesetPopup, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -770,9 +1017,9 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.gridheight = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         spice4.add(spiceLayer, gridBagConstraints);
 
         jLabel7.setText("Layer:");
@@ -809,19 +1056,11 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 5;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
         spice4.add(spiceTechnology, gridBagConstraints);
 
         spiceResistance.setColumns(8);
-        spiceResistance.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                spiceLayerResistanceChanged(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 1;
@@ -830,14 +1069,6 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         spice4.add(spiceResistance, gridBagConstraints);
 
         spiceCapacitance.setColumns(8);
-        spiceCapacitance.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                spiceLayerCapacitanceChanged(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 2;
@@ -846,14 +1077,6 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         spice4.add(spiceCapacitance, gridBagConstraints);
 
         spiceEdgeCapacitance.setColumns(8);
-        spiceEdgeCapacitance.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                spiceLayerEdgeCapacitanceChanged(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 3;
@@ -870,14 +1093,6 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         spice4.add(jLabel18, gridBagConstraints);
 
         spiceMinResistance.setColumns(8);
-        spiceMinResistance.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                spiceMinResistanceChanged(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
@@ -892,14 +1107,6 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         spice4.add(jLabel19, gridBagConstraints);
 
         spiceMinCapacitance.setColumns(8);
-        spiceMinCapacitance.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                spiceMinCapacitanceChanged(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 4;
@@ -924,117 +1131,127 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
 
         spice5.setLayout(new java.awt.GridBagLayout());
 
-        jLabel3.setText("Edit Built-in Headers for Technology/Level");
+        spiceHeaderCardExtension.setColumns(5);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
-        spice5.add(jLabel3, gridBagConstraints);
+        spice5.add(spiceHeaderCardExtension, gridBagConstraints);
 
-        jTextField2.setColumns(5);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        spice5.add(jTextField2, gridBagConstraints);
-
-        jRadioButton1.setText("Use Built-in Header Cards");
-        spiceHeader.add(jRadioButton1);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        spice5.add(jRadioButton1, gridBagConstraints);
-
-        jRadioButton2.setText("Use Header Cards with extension:");
-        spiceHeader.add(jRadioButton2);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        spice5.add(jRadioButton2, gridBagConstraints);
-
-        jRadioButton3.setText("Use Header Cards from File:");
-        spiceHeader.add(jRadioButton3);
+        spiceNoHeaderCards.setText("No Header Cards");
+        spiceHeader.add(spiceNoHeaderCards);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        spice5.add(jRadioButton3, gridBagConstraints);
+        spice5.add(spiceNoHeaderCards, gridBagConstraints);
 
-        jRadioButton4.setText("No Trailer Cards");
-        spiceTrailer.add(jRadioButton4);
+        spiceHeaderCardsWithExtension.setText("Use Header Cards with extension:");
+        spiceHeader.add(spiceHeaderCardsWithExtension);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        spice5.add(spiceHeaderCardsWithExtension, gridBagConstraints);
+
+        spiceHeaderCardsFromFile.setText("Use Header Cards from File:");
+        spiceHeader.add(spiceHeaderCardsFromFile);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        spice5.add(spiceHeaderCardsFromFile, gridBagConstraints);
+
+        spiceNoTrailerCards.setText("No Trailer Cards");
+        spiceTrailer.add(spiceNoTrailerCards);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        spice5.add(spiceNoTrailerCards, gridBagConstraints);
+
+        spiceTrailerCardsWithExtension.setText("Use Trailer Cards with extension:");
+        spiceTrailer.add(spiceTrailerCardsWithExtension);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        spice5.add(jRadioButton4, gridBagConstraints);
+        spice5.add(spiceTrailerCardsWithExtension, gridBagConstraints);
 
-        jRadioButton5.setText("Use Trailer Cards with extension:");
-        spiceTrailer.add(jRadioButton5);
+        spiceTrailerCardsFromFile.setText("Use Trailer Cards from File:");
+        spiceTrailer.add(spiceTrailerCardsFromFile);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        spice5.add(jRadioButton5, gridBagConstraints);
-
-        jRadioButton6.setText("Include Trailer from File:");
-        spiceTrailer.add(jRadioButton6);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        spice5.add(jRadioButton6, gridBagConstraints);
+        spice5.add(spiceTrailerCardsFromFile, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.weightx = 1.0;
-        spice5.add(jTextField9, gridBagConstraints);
+        spice5.add(spiceHeaderCardFile, gridBagConstraints);
 
-        jButton1.setText("Browse");
-        jButton1.setMinimumSize(new java.awt.Dimension(78, 20));
-        jButton1.setPreferredSize(new java.awt.Dimension(78, 20));
+        spiceBrowseHeaderFile.setText("Browse");
+        spiceBrowseHeaderFile.setMinimumSize(new java.awt.Dimension(78, 20));
+        spiceBrowseHeaderFile.setPreferredSize(new java.awt.Dimension(78, 20));
+        spiceBrowseHeaderFile.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                spiceBrowseHeaderFileActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridheight = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        spice5.add(jButton1, gridBagConstraints);
+        spice5.add(spiceBrowseHeaderFile, gridBagConstraints);
 
-        jTextField10.setColumns(5);
+        spiceTrailerCardExtension.setColumns(5);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
-        spice5.add(jTextField10, gridBagConstraints);
+        spice5.add(spiceTrailerCardExtension, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.weightx = 1.0;
-        spice5.add(jTextField11, gridBagConstraints);
+        spice5.add(spiceTrailerCardFile, gridBagConstraints);
 
-        jButton2.setText("Browse");
-        jButton2.setMinimumSize(new java.awt.Dimension(78, 20));
-        jButton2.setPreferredSize(new java.awt.Dimension(78, 20));
+        spiceBrowseTrailerFile.setText("Browse");
+        spiceBrowseTrailerFile.setMinimumSize(new java.awt.Dimension(78, 20));
+        spiceBrowseTrailerFile.setPreferredSize(new java.awt.Dimension(78, 20));
+        spiceBrowseTrailerFile.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                spiceBrowseTrailerFileActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridheight = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        spice5.add(jButton2, gridBagConstraints);
+        spice5.add(spiceBrowseTrailerFile, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1059,8 +1276,8 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
 
         spice6.setLayout(new java.awt.GridBagLayout());
 
-        jScrollPane3.setMinimumSize(new java.awt.Dimension(200, 100));
-        jScrollPane3.setPreferredSize(new java.awt.Dimension(200, 100));
+        spiceCell.setMinimumSize(new java.awt.Dimension(200, 100));
+        spiceCell.setPreferredSize(new java.awt.Dimension(200, 100));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
@@ -1068,7 +1285,7 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
-        spice6.add(jScrollPane3, gridBagConstraints);
+        spice6.add(spiceCell, gridBagConstraints);
 
         jLabel8.setText("For Cell");
         jLabel8.setVerticalAlignment(javax.swing.SwingConstants.TOP);
@@ -1078,29 +1295,37 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         spice6.add(jLabel8, gridBagConstraints);
 
-        jRadioButton7.setText("Derive Model from Circuitry");
-        spiceModel.add(jRadioButton7);
+        spiceDeriveModelFromCircuit.setText("Derive Model from Circuitry");
+        spiceModel.add(spiceDeriveModelFromCircuit);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        spice6.add(jRadioButton7, gridBagConstraints);
+        spice6.add(spiceDeriveModelFromCircuit, gridBagConstraints);
 
-        jRadioButton8.setText("Use Model from File:");
-        spiceModel.add(jRadioButton8);
+        spiceUseModelFromFile.setText("Use Model from File:");
+        spiceModel.add(spiceUseModelFromFile);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        spice6.add(jRadioButton8, gridBagConstraints);
+        spice6.add(spiceUseModelFromFile, gridBagConstraints);
 
-        jButton3.setText("Browse");
+        spiceModelFileBrowse.setText("Browse");
+        spiceModelFileBrowse.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                spiceModelFileBrowseActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        spice6.add(jButton3, gridBagConstraints);
+        spice6.add(spiceModelFileBrowse, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
@@ -1108,7 +1333,7 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
-        spice6.add(jTextField12, gridBagConstraints);
+        spice6.add(spiceModelCell, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1118,6 +1343,153 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         spice.add(spice6, gridBagConstraints);
 
         tabs.addTab("Spice", spice);
+
+        verilog.setLayout(new java.awt.GridBagLayout());
+
+        tabs.addTab("Verilog", verilog);
+
+        fastHenry.setLayout(new java.awt.GridBagLayout());
+
+        tabs.addTab("Fast Henry", fastHenry);
+
+        wellCheck.setLayout(new java.awt.GridBagLayout());
+
+        tabs.addTab("Well Check", wellCheck);
+
+        antennaRules.setLayout(new java.awt.GridBagLayout());
+
+        tabs.addTab("Antenna Rules", antennaRules);
+
+        network.setLayout(new java.awt.GridBagLayout());
+
+        netUnifyPwrGnd.setText("Unify Power and Ground");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        network.add(netUnifyPwrGnd, gridBagConstraints);
+
+        netUnifyLikeNamedNets.setText("Unify all like-named nets");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        network.add(netUnifyLikeNamedNets, gridBagConstraints);
+
+        netIgnoreResistors.setText("Ignore Resistors");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        network.add(netIgnoreResistors, gridBagConstraints);
+
+        jLabel3.setText("Unify Networks that start with:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        network.add(jLabel3, gridBagConstraints);
+
+        netUnificationPrefix.setColumns(20);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 40, 4, 0);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        network.add(netUnificationPrefix, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        network.add(jSeparator5, gridBagConstraints);
+
+        jLabel26.setText("For busses:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        network.add(jLabel26, gridBagConstraints);
+
+        jLabel27.setText("Default starting index:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        network.add(jLabel27, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        network.add(netStartingIndex, gridBagConstraints);
+
+        jLabel28.setText("Default order:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        network.add(jLabel28, gridBagConstraints);
+
+        netAscending.setText("Ascending (0:N)");
+        netDefaultOrder.add(netAscending);
+        netAscending.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                netAscendingActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 40, 4, 0);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        network.add(netAscending, gridBagConstraints);
+
+        netDescending.setText("Descending (N:0)");
+        netDefaultOrder.add(netDescending);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 12;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 40, 4, 0);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        network.add(netDescending, gridBagConstraints);
+
+        jLabel29.setText("Network numbering:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        network.add(jLabel29, gridBagConstraints);
+
+        tabs.addTab("Network", network);
+
+        ncc.setLayout(new java.awt.GridBagLayout());
+
+        tabs.addTab("NCC", ncc);
 
         logicalEffort.setLayout(new java.awt.GridBagLayout());
 
@@ -1140,24 +1512,14 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weighty = 0.5;
         logicalEffort.add(jLabel4, gridBagConstraints);
 
         leDisplayIntermediateCaps.setText("Display intermediate capacitances");
-        leDisplayIntermediateCaps.addItemListener(new java.awt.event.ItemListener()
-        {
-            public void itemStateChanged(java.awt.event.ItemEvent evt)
-            {
-                leDisplayIntermediateCapsItemStateChanged(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 9;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weighty = 0.5;
         logicalEffort.add(leDisplayIntermediateCaps, gridBagConstraints);
 
         jLabel5.setText("Wire ratio for each layer:");
@@ -1166,7 +1528,6 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         gridBagConstraints.gridy = 8;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weighty = 0.5;
         logicalEffort.add(jLabel5, gridBagConstraints);
 
         jLabel14.setText("Convergence epsilon:");
@@ -1240,29 +1601,14 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         logicalEffort.add(jLabel25, gridBagConstraints);
 
         leUseLocalSettings.setText("Use Local (cell) LE Settings");
-        leUseLocalSettings.addItemListener(new java.awt.event.ItemListener()
-        {
-            public void itemStateChanged(java.awt.event.ItemEvent evt)
-            {
-                leUseLocalSettingsItemStateChanged(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 8;
         gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         logicalEffort.add(leUseLocalSettings, gridBagConstraints);
 
         leHighlightComponents.setText("Highlight components");
-        leHighlightComponents.addItemListener(new java.awt.event.ItemListener()
-        {
-            public void itemStateChanged(java.awt.event.ItemEvent evt)
-            {
-                leHighlightComponentsItemStateChanged(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 10;
@@ -1278,112 +1624,48 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
         logicalEffort.add(jLabel6, gridBagConstraints);
 
         leGlobalFanOut.setColumns(8);
-        leGlobalFanOut.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                leGlobalFanOutActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 0;
         logicalEffort.add(leGlobalFanOut, gridBagConstraints);
 
         leConvergence.setColumns(8);
-        leConvergence.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                leConvergenceActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 1;
         logicalEffort.add(leConvergence, gridBagConstraints);
 
         leMaxIterations.setColumns(8);
-        leMaxIterations.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                leMaxIterationsActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 2;
         logicalEffort.add(leMaxIterations, gridBagConstraints);
 
         leGateCapacitance.setColumns(8);
-        leGateCapacitance.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                leGateCapacitanceActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 3;
         logicalEffort.add(leGateCapacitance, gridBagConstraints);
 
         leDefaultWireCapRatio.setColumns(8);
-        leDefaultWireCapRatio.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                leDefaultWireCapRatioActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 4;
         logicalEffort.add(leDefaultWireCapRatio, gridBagConstraints);
 
         leDiffToGateCapRatioNMOS.setColumns(8);
-        leDiffToGateCapRatioNMOS.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                leDiffToGateCapRatioNMOSActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 5;
         logicalEffort.add(leDiffToGateCapRatioNMOS, gridBagConstraints);
 
         leDiffToGateCapRatioPMOS.setColumns(8);
-        leDiffToGateCapRatioPMOS.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                leDiffToGateCapRatioPMOSActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 6;
         logicalEffort.add(leDiffToGateCapRatioPMOS, gridBagConstraints);
 
         leKeeperSizeRatio.setColumns(8);
-        leKeeperSizeRatio.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                leKeeperSizeRatioActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 7;
@@ -1397,120 +1679,114 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
 
         tabs.addTab("Logical Effort", logicalEffort);
 
-        getContentPane().add(tabs, java.awt.BorderLayout.CENTER);
+        routing.setLayout(new java.awt.GridBagLayout());
+
+        tabs.addTab("Routing", routing);
+
+        compaction.setLayout(new java.awt.GridBagLayout());
+
+        tabs.addTab("Compaction", compaction);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        getContentPane().add(tabs, gridBagConstraints);
+
+        cancel.setText("Cancel");
+        cancel.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                CancelButton(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 40, 4, 4);
+        getContentPane().add(cancel, gridBagConstraints);
+
+        ok.setText("OK");
+        ok.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                OKButton(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 40);
+        getContentPane().add(ok, gridBagConstraints);
+
+        factoryReset.setText("Factory Reset");
+        factoryReset.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                factoryResetActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(factoryReset, gridBagConstraints);
 
         pack();
     }//GEN-END:initComponents
 
-	private void leKeeperSizeRatioActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_leKeeperSizeRatioActionPerformed
-	{//GEN-HEADEREND:event_leKeeperSizeRatioActionPerformed
-		leKeeperSizeRatioOption.setDoubleValue(Double.parseDouble(leKeeperSizeRatio.getText()));
-	}//GEN-LAST:event_leKeeperSizeRatioActionPerformed
+	private void netAscendingActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_netAscendingActionPerformed
+	{//GEN-HEADEREND:event_netAscendingActionPerformed
+		// Add your handling code here:
+	}//GEN-LAST:event_netAscendingActionPerformed
 
-	private void leDiffToGateCapRatioPMOSActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_leDiffToGateCapRatioPMOSActionPerformed
-	{//GEN-HEADEREND:event_leDiffToGateCapRatioPMOSActionPerformed
-		leDiffToGateCapRatioPMOSOption.setDoubleValue(Double.parseDouble(leDiffToGateCapRatioPMOS.getText()));
-	}//GEN-LAST:event_leDiffToGateCapRatioPMOSActionPerformed
+	private void spiceModelFileBrowseActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_spiceModelFileBrowseActionPerformed
+	{//GEN-HEADEREND:event_spiceModelFileBrowseActionPerformed
+		String fileName = DialogOpenFile.ANY.chooseInputFile(null);
+		if (fileName == null) return;
+		spiceModelCell.setText(fileName);
+		spiceUseModelFromFile.setSelected(true);
+	}//GEN-LAST:event_spiceModelFileBrowseActionPerformed
 
-	private void leDiffToGateCapRatioNMOSActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_leDiffToGateCapRatioNMOSActionPerformed
-	{//GEN-HEADEREND:event_leDiffToGateCapRatioNMOSActionPerformed
-		leDiffToGateCapRatioNMOSOption.setDoubleValue(Double.parseDouble(leDiffToGateCapRatioNMOS.getText()));
-	}//GEN-LAST:event_leDiffToGateCapRatioNMOSActionPerformed
+	private void spiceBrowseTrailerFileActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_spiceBrowseTrailerFileActionPerformed
+	{//GEN-HEADEREND:event_spiceBrowseTrailerFileActionPerformed
+		String fileName = DialogOpenFile.ANY.chooseInputFile(null);
+		if (fileName == null) return;
+		spiceTrailerCardFile.setText(fileName);
+		spiceTrailerCardsFromFile.setSelected(true);
+	}//GEN-LAST:event_spiceBrowseTrailerFileActionPerformed
 
-	private void leDefaultWireCapRatioActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_leDefaultWireCapRatioActionPerformed
-	{//GEN-HEADEREND:event_leDefaultWireCapRatioActionPerformed
-		leDefaultWireCapRatioOption.setDoubleValue(Double.parseDouble(leDefaultWireCapRatio.getText()));
-	}//GEN-LAST:event_leDefaultWireCapRatioActionPerformed
+	private void spiceBrowseHeaderFileActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_spiceBrowseHeaderFileActionPerformed
+	{//GEN-HEADEREND:event_spiceBrowseHeaderFileActionPerformed
+		String fileName = DialogOpenFile.ANY.chooseInputFile(null);
+		if (fileName == null) return;
+		spiceHeaderCardFile.setText(fileName);
+		spiceHeaderCardsFromFile.setSelected(true);
+	}//GEN-LAST:event_spiceBrowseHeaderFileActionPerformed
 
-	private void leGateCapacitanceActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_leGateCapacitanceActionPerformed
-	{//GEN-HEADEREND:event_leGateCapacitanceActionPerformed
-		leGateCapacitanceOption.setDoubleValue(Double.parseDouble(leGateCapacitance.getText()));
-	}//GEN-LAST:event_leGateCapacitanceActionPerformed
+	private void factoryResetActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_factoryResetActionPerformed
+	{//GEN-HEADEREND:event_factoryResetActionPerformed
 
-	private void leMaxIterationsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_leMaxIterationsActionPerformed
-	{//GEN-HEADEREND:event_leMaxIterationsActionPerformed
-		leMaxIterationsOption.setIntValue(Integer.parseInt(leMaxIterations.getText()));
-	}//GEN-LAST:event_leMaxIterationsActionPerformed
-
-	private void leConvergenceActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_leConvergenceActionPerformed
-	{//GEN-HEADEREND:event_leConvergenceActionPerformed
-		leConvergenceOption.setDoubleValue(Double.parseDouble(leConvergence.getText()));
-	}//GEN-LAST:event_leConvergenceActionPerformed
-
-	private void leGlobalFanOutActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_leGlobalFanOutActionPerformed
-	{//GEN-HEADEREND:event_leGlobalFanOutActionPerformed
-		leGlobalFanOutOption.setDoubleValue(Double.parseDouble(leGlobalFanOut.getText()));
-	}//GEN-LAST:event_leGlobalFanOutActionPerformed
+	}//GEN-LAST:event_factoryResetActionPerformed
 
 	private void leHelpActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_leHelpActionPerformed
 	{//GEN-HEADEREND:event_leHelpActionPerformed
 		System.out.println("No help yet");
 	}//GEN-LAST:event_leHelpActionPerformed
-
-	private void leDisplayIntermediateCapsItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_leDisplayIntermediateCapsItemStateChanged
-	{//GEN-HEADEREND:event_leDisplayIntermediateCapsItemStateChanged
-		leDisplayIntermediateCapsOption.setBooleanValue(evt.getStateChange() == ItemEvent.SELECTED);
-	}//GEN-LAST:event_leDisplayIntermediateCapsItemStateChanged
-
-	private void leHighlightComponentsItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_leHighlightComponentsItemStateChanged
-	{//GEN-HEADEREND:event_leHighlightComponentsItemStateChanged
-		leHighlightComponentsOption.setBooleanValue(evt.getStateChange() == ItemEvent.SELECTED);
-	}//GEN-LAST:event_leHighlightComponentsItemStateChanged
-
-	private void leUseLocalSettingsItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_leUseLocalSettingsItemStateChanged
-	{//GEN-HEADEREND:event_leUseLocalSettingsItemStateChanged
-		leUseLocalSettingsOption.setBooleanValue(evt.getStateChange() == ItemEvent.SELECTED);
-	}//GEN-LAST:event_leUseLocalSettingsItemStateChanged
-
-	private void spiceUseNodeNamesChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_spiceUseNodeNamesChanged
-	{//GEN-HEADEREND:event_spiceUseNodeNamesChanged
-		spiceUseNodeNamesOption.setBooleanValue(evt.getStateChange() == ItemEvent.SELECTED);
-	}//GEN-LAST:event_spiceUseNodeNamesChanged
-
-	private void spiceForceGlobalPwrGndChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_spiceForceGlobalPwrGndChanged
-	{//GEN-HEADEREND:event_spiceForceGlobalPwrGndChanged
-		spiceForceGlobalPwrGndOption.setBooleanValue(evt.getStateChange() == ItemEvent.SELECTED);
-	}//GEN-LAST:event_spiceForceGlobalPwrGndChanged
-
-	private void spiceUseCellParametersChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_spiceUseCellParametersChanged
-	{//GEN-HEADEREND:event_spiceUseCellParametersChanged
-		spiceUseCellParametersOption.setBooleanValue(evt.getStateChange() == ItemEvent.SELECTED);
-	}//GEN-LAST:event_spiceUseCellParametersChanged
-
-	private void spiceWriteTransSizesInLambdaChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_spiceWriteTransSizesInLambdaChanged
-	{//GEN-HEADEREND:event_spiceWriteTransSizesInLambdaChanged
-		spiceWriteTransSizeInLambdaOption.setBooleanValue(evt.getStateChange() == ItemEvent.SELECTED);
-	}//GEN-LAST:event_spiceWriteTransSizesInLambdaChanged
-
-	private void spiceUseParasiticsChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_spiceUseParasiticsChanged
-	{//GEN-HEADEREND:event_spiceUseParasiticsChanged
-		spiceUseParasiticsOption.setBooleanValue(evt.getStateChange() == ItemEvent.SELECTED);
-	}//GEN-LAST:event_spiceUseParasiticsChanged
-
-	private void spiceLayerEdgeCapacitanceChanged(java.awt.event.ActionEvent evt)//GEN-FIRST:event_spiceLayerEdgeCapacitanceChanged
-	{//GEN-HEADEREND:event_spiceLayerEdgeCapacitanceChanged
-		// Add your handling code here:
-	}//GEN-LAST:event_spiceLayerEdgeCapacitanceChanged
-
-	private void spiceLayerCapacitanceChanged(java.awt.event.ActionEvent evt)//GEN-FIRST:event_spiceLayerCapacitanceChanged
-	{//GEN-HEADEREND:event_spiceLayerCapacitanceChanged
-		// Add your handling code here:
-	}//GEN-LAST:event_spiceLayerCapacitanceChanged
-
-	private void spiceLayerResistanceChanged(java.awt.event.ActionEvent evt)//GEN-FIRST:event_spiceLayerResistanceChanged
-	{//GEN-HEADEREND:event_spiceLayerResistanceChanged
-		// Add your handling code here:
-	}//GEN-LAST:event_spiceLayerResistanceChanged
-
-	private void spiceMinCapacitanceChanged(java.awt.event.ActionEvent evt)//GEN-FIRST:event_spiceMinCapacitanceChanged
-	{//GEN-HEADEREND:event_spiceMinCapacitanceChanged
-		spiceTechMinCapacitanceOption.setDoubleValue(Double.parseDouble(spiceMinCapacitance.getText()));
-	}//GEN-LAST:event_spiceMinCapacitanceChanged
-
-	private void spiceMinResistanceChanged(java.awt.event.ActionEvent evt)//GEN-FIRST:event_spiceMinResistanceChanged
-	{//GEN-HEADEREND:event_spiceMinResistanceChanged
-		spiceTechMinResistanceOption.setDoubleValue(Double.parseDouble(spiceMinResistance.getText()));
-	}//GEN-LAST:event_spiceMinResistanceChanged
 
 	private void CancelButton(java.awt.event.ActionEvent evt)//GEN-FIRST:event_CancelButton
 	{//GEN-HEADEREND:event_CancelButton
@@ -1522,28 +1798,11 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
 	{//GEN-HEADEREND:event_OKButton
 		termSpice();
 		termLogicalEffort();
+		termNetwork();
 
 		setVisible(false);
 		dispose();
 	}//GEN-LAST:event_OKButton
-
-	private void SpiceLevelChanged(java.awt.event.ActionEvent evt)//GEN-FIRST:event_SpiceLevelChanged
-	{//GEN-HEADEREND:event_SpiceLevelChanged
-		JComboBox cb = (JComboBox)evt.getSource();
-		spiceLevelOption.setStringValue((String)cb.getSelectedItem());
-	}//GEN-LAST:event_SpiceLevelChanged
-
-	private void SpiceEngineChanged(java.awt.event.ActionEvent evt)//GEN-FIRST:event_SpiceEngineChanged
-	{//GEN-HEADEREND:event_SpiceEngineChanged
-		JComboBox cb = (JComboBox)evt.getSource();
-		spiceEngineOption.setStringValue((String)cb.getSelectedItem());
-	}//GEN-LAST:event_SpiceEngineChanged
-
-	private void SpiceOutputFormatChanged(java.awt.event.ActionEvent evt)//GEN-FIRST:event_SpiceOutputFormatChanged
-	{//GEN-HEADEREND:event_SpiceOutputFormatChanged
-		JComboBox cb = (JComboBox)evt.getSource();
-		spiceOutputFormatOption.setStringValue((String)cb.getSelectedItem());
-	}//GEN-LAST:event_SpiceOutputFormatChanged
 	
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
@@ -1553,12 +1812,13 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JPanel Bottom;
-    private javax.swing.JComboBox SpicePrimitivesetPopup;
+    private javax.swing.JPanel antennaRules;
     private javax.swing.JButton cancel;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
+    private javax.swing.JPanel compaction;
+    private javax.swing.JPanel drc;
+    private javax.swing.JPanel drcRules;
+    private javax.swing.JButton factoryReset;
+    private javax.swing.JPanel fastHenry;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -1577,6 +1837,10 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
     private javax.swing.JLabel jLabel23;
     private javax.swing.JLabel jLabel24;
     private javax.swing.JLabel jLabel25;
+    private javax.swing.JLabel jLabel26;
+    private javax.swing.JLabel jLabel27;
+    private javax.swing.JLabel jLabel28;
+    private javax.swing.JLabel jLabel29;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
@@ -1584,25 +1848,11 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
-    private javax.swing.JRadioButton jRadioButton1;
-    private javax.swing.JRadioButton jRadioButton2;
-    private javax.swing.JRadioButton jRadioButton3;
-    private javax.swing.JRadioButton jRadioButton4;
-    private javax.swing.JRadioButton jRadioButton5;
-    private javax.swing.JRadioButton jRadioButton6;
-    private javax.swing.JRadioButton jRadioButton7;
-    private javax.swing.JRadioButton jRadioButton8;
-    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JSeparator jSeparator3;
     private javax.swing.JSeparator jSeparator4;
-    private javax.swing.JTextField jTextField10;
-    private javax.swing.JTextField jTextField11;
-    private javax.swing.JTextField jTextField12;
-    private javax.swing.JTextField jTextField2;
-    private javax.swing.JTextField jTextField5;
-    private javax.swing.JTextField jTextField9;
+    private javax.swing.JSeparator jSeparator5;
     private javax.swing.JScrollPane leArc;
     private javax.swing.JTextField leConvergence;
     private javax.swing.JTextField leDefaultWireCapRatio;
@@ -1618,7 +1868,18 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
     private javax.swing.JCheckBox leUseLocalSettings;
     private javax.swing.JTextField leWireRatio;
     private javax.swing.JPanel logicalEffort;
+    private javax.swing.JPanel ncc;
+    private javax.swing.JRadioButton netAscending;
+    private javax.swing.ButtonGroup netDefaultOrder;
+    private javax.swing.JRadioButton netDescending;
+    private javax.swing.JCheckBox netIgnoreResistors;
+    private javax.swing.JComboBox netStartingIndex;
+    private javax.swing.JTextField netUnificationPrefix;
+    private javax.swing.JCheckBox netUnifyLikeNamedNets;
+    private javax.swing.JCheckBox netUnifyPwrGnd;
+    private javax.swing.JPanel network;
     private javax.swing.JButton ok;
+    private javax.swing.JPanel routing;
     private javax.swing.JPanel spice;
     private javax.swing.JPanel spice1;
     private javax.swing.JPanel spice2;
@@ -1626,26 +1887,47 @@ System.out.println("Clicked on Arc "+arc.getProtoName()+" which has value "+opti
     private javax.swing.JPanel spice4;
     private javax.swing.JPanel spice5;
     private javax.swing.JPanel spice6;
+    private javax.swing.JButton spiceBrowseHeaderFile;
+    private javax.swing.JButton spiceBrowseTrailerFile;
     private javax.swing.JTextField spiceCapacitance;
+    private javax.swing.JScrollPane spiceCell;
+    private javax.swing.JRadioButton spiceDeriveModelFromCircuit;
     private javax.swing.JTextField spiceEdgeCapacitance;
     private javax.swing.JComboBox spiceEnginePopup;
-    private javax.swing.JCheckBox spiceForceGlobal;
+    private javax.swing.JCheckBox spiceForceGlobalPwrGnd;
     private javax.swing.ButtonGroup spiceHeader;
+    private javax.swing.JTextField spiceHeaderCardExtension;
+    private javax.swing.JTextField spiceHeaderCardFile;
+    private javax.swing.JRadioButton spiceHeaderCardsFromFile;
+    private javax.swing.JRadioButton spiceHeaderCardsWithExtension;
     private javax.swing.JScrollPane spiceLayer;
     private javax.swing.JComboBox spiceLevelPopup;
     private javax.swing.JTextField spiceMinCapacitance;
     private javax.swing.JTextField spiceMinResistance;
     private javax.swing.ButtonGroup spiceModel;
+    private javax.swing.JTextField spiceModelCell;
+    private javax.swing.JButton spiceModelFileBrowse;
+    private javax.swing.JRadioButton spiceNoHeaderCards;
+    private javax.swing.JRadioButton spiceNoTrailerCards;
     private javax.swing.JComboBox spiceOutputFormatPopup;
+    private javax.swing.JComboBox spicePrimitivesetPopup;
     private javax.swing.JTextField spiceResistance;
+    private javax.swing.JTextField spiceRunParameters;
     private javax.swing.JComboBox spiceRunPopup;
     private javax.swing.JLabel spiceTechnology;
     private javax.swing.ButtonGroup spiceTrailer;
+    private javax.swing.JTextField spiceTrailerCardExtension;
+    private javax.swing.JTextField spiceTrailerCardFile;
+    private javax.swing.JRadioButton spiceTrailerCardsFromFile;
+    private javax.swing.JRadioButton spiceTrailerCardsWithExtension;
     private javax.swing.JCheckBox spiceUseCellParameters;
+    private javax.swing.JRadioButton spiceUseModelFromFile;
     private javax.swing.JCheckBox spiceUseNodeNames;
     private javax.swing.JCheckBox spiceUseParasitics;
-    private javax.swing.JCheckBox spiceWriteTransSizeInLambda;
+    private javax.swing.JCheckBox spiceWriteTransSizesInLambda;
     private javax.swing.JTabbedPane tabs;
+    private javax.swing.JPanel verilog;
+    private javax.swing.JPanel wellCheck;
     // End of variables declaration//GEN-END:variables
 	
 }

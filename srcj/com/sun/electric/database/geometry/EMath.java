@@ -65,6 +65,26 @@ public class EMath
 	}
 
 	/**
+	 * Routine to parse the floating-point number in a string.
+	 * <P>
+	 * There is one reason to use this routine instead of Double.parseDouble...
+	 * <UL>
+	 * <LI>This routine does not throw an exception if the number is invalid (or blank).
+	 * </UL>
+	 * @param s the string with a number in it.
+	 * @return the numeric value.
+	 */
+	public static double atof(String text)
+	{
+		double v = 0;
+		try
+		{
+			v = Double.parseDouble(text);
+		} catch (NumberFormatException ex) {}
+		return v;
+	}
+
+	/**
 	 * Routine to parse the number in a string.
 	 * <P>
 	 * There are many reasons to use this routine instead of Integer.parseInt...
@@ -78,6 +98,7 @@ public class EMath
 	 *     This routine properly returns -1.
 	 * <LI>This routine does not require that the entire string be part of the number.
 	 *     If there is extra text after the end, Integer.parseInt fails (for example "123xx").
+	 * <LI>This routine does not throw an exception if the number is invalid (or blank).
 	 * </UL>
 	 * @param s the string with a number in it.
 	 * @return the numeric value.

@@ -541,7 +541,7 @@ public class CrossLibCopy extends javax.swing.JDialog
 
 	private void deleteAfterCopyItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_deleteAfterCopyItemStateChanged
 	{//GEN-HEADEREND:event_deleteAfterCopyItemStateChanged
-		if (evt.getStateChange() == ItemEvent.SELECTED)
+		if (deleteAfterCopy.isSelected())
 		{
 			copyLeft.setText("<< Move");
 			copyRight.setText("Move >>");

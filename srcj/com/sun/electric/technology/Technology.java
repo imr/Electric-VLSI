@@ -44,11 +44,14 @@ import com.sun.electric.technology.technologies.CMOS;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.MoCMOSOld;
 import com.sun.electric.technology.technologies.MoCMOSSub;
+import com.sun.electric.tool.user.Prefs;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.prefs.Preferences;
+import java.util.prefs.BackingStoreException;
 import java.awt.Dimension;
 import java.awt.geom.Dimension2D;
 import java.awt.geom.Point2D;
@@ -475,11 +478,14 @@ public class Technology extends ElectricObject
 	/** list of arcs in the technology */				private List arcs;
 	/** minimum resistance in this Technology. */		private double minResistance;
 	/** minimum capacitance in this Technology. */		private double minCapacitance;
+	/** true if parasitic overrides were examined. */	private boolean parasiticOverridesGathered = false;
 
 	/* static list of all Technologies in Electric */	private static List technologies = new ArrayList();
 	/* the current technology in Electric */			private static Technology curTech = null;
 	/* the current tlayout echnology in Electric */		private static Technology curLayoutTech = null;
 	/* counter for enumerating technologies */			private static int techNumber = 0;
+
+	/****************************** CONTROL ******************************/
 
 	/**
 	 * Constructs a <CODE>Technology</CODE>.
@@ -496,52 +502,6 @@ public class Technology extends ElectricObject
 
 		// add the technology to the global list
 		technologies.add(this);
-	}
-
-	/**
-	 * Routine to determine whether a new technology with the given name would be legal.
-	 * All technology names must be unique, so the name cannot already be in use.
-	 * @param techName the name of the new technology that will be created.
-	 * @return true if the name is valid.
-	 */
-	protected static boolean validTechnology(String techName)
-	{
-		if (Technology.findTechnology(techName) != null)
-		{
-			System.out.println("ERROR: Multiple technologies named " + techName);
-			return false;
-		}
-		return true;
-	}
-
-	/**
-	 * Routine to add a new Layer to this Technology.
-	 * This is usually done during initialization.
-	 * @param layer the Layer to be added to this Technology.
-	 */
-	public void addLayer(Layer layer)
-	{
-		layers.add(layer);
-	}
-
-	/**
-	 * Routine to add a new PrimitiveNode to this Technology.
-	 * This is usually done during initialization.
-	 * @param np the PrimitiveNode to be added to this Technology.
-	 */
-	public void addNodeProto(PrimitiveNode np)
-	{
-		nodes.add(np);
-	}
-
-	/**
-	 * Routine to add a new PrimitiveArc to this Technology.
-	 * This is usually done during initialization.
-	 * @param ap the PrimitiveArc to be added to this Technology.
-	 */
-	public void addArcProto(PrimitiveArc ap)
-	{
-		arcs.add(ap);
 	}
 
 	/**
@@ -570,19 +530,150 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * Sets the technology to be "non-electrical".
-	 * Users should never call this routine.
-	 * It is set once by the technology during initialization.
-	 * Examples of non-electrical technologies are "Artwork" and "Gem".
+	 * Returns the current Technology.
+	 * @return the current Technology.
+	 * The current technology is maintained by the system as a default
+	 * in situations where a technology cannot be determined.
 	 */
-	protected void setNonElectrical() { userBits |= NONELECTRICAL; }
+	public static Technology getCurrent() { return curTech; }
 
 	/**
-	 * Returns true if this technology is "non-electrical".
-	 * @return true if this technology is "non-electrical".
-	 * Examples of non-electrical technologies are "Artwork" and "Gem".
+	 * Set this to be the current Technology
+	 * The current technology is maintained by the system as a default
+	 * in situations where a technology cannot be determined.
 	 */
-	public boolean isNonElectrical() { return (userBits & NONELECTRICAL) != 0; }
+	public void setCurrent()
+	{
+		curTech = this;
+		if (this != Generic.tech && this != Schematics.tech && this != Artwork.tech)
+			curLayoutTech = this;
+	}
+
+	/**
+	 * Returns the total number of Technologies currently in Electric.
+	 * @return the total number of Technologies currently in Electric.
+	 */
+	public static int getNumTechnologies()
+	{
+		return technologies.size();
+	}
+
+	/**
+	 * Find the Technology with a particular name.
+	 * @param name the name of the desired Technology
+	 * @return the Technology with the same name, or null if no 
+	 * Technology matches.
+	 */
+	public static Technology findTechnology(String name)
+	{
+		for (int i = 0; i < technologies.size(); i++)
+		{
+			Technology t = (Technology) technologies.get(i);
+			if (t.techName.equalsIgnoreCase(name))
+				return t;
+		}
+		return null;
+	}
+
+	/**
+	 * Get an iterator over all of the Technologies.
+	 * @return an iterator over all of the Technologies.
+	 */
+	public static Iterator getTechnologies()
+	{
+		return technologies.iterator();
+	}
+
+	/****************************** LAYERS ******************************/
+
+	/**
+	 * Returns an Iterator on the Layers in this Technology.
+	 * @return an Iterator on the Layers in this Technology.
+	 */
+	public Iterator getLayers()
+	{
+		return layers.iterator();
+	}
+
+	/**
+	 * Returns the number of Layers in this Technology.
+	 * @return the number of Layers in this Technology.
+	 */
+	public int getNumLayers()
+	{
+		return layers.size();
+	}
+
+	/**
+	 * Routine to find a Layer with a given name.
+	 * @param layerName the name of the desired Layer.
+	 * @return the Layer with that name (null if none found).
+	 */
+	public Layer findLayer(String layerName)
+	{
+		for(Iterator it = getLayers(); it.hasNext(); )
+		{
+			Layer layer = (Layer)it.next();
+			if (layer.getName().equalsIgnoreCase(layerName)) return layer;
+		}
+		return null;
+	}
+
+	/**
+	 * Routine to add a new Layer to this Technology.
+	 * This is usually done during initialization.
+	 * @param layer the Layer to be added to this Technology.
+	 */
+	public void addLayer(Layer layer)
+	{
+		layers.add(layer);
+	}
+
+	/****************************** ARCS ******************************/
+
+	/**
+	 * Returns the PrimitiveArc in this technology with a particular name.
+	 * @param name the name of the PrimitiveArc.
+	 * @return the PrimitiveArc in this technology with that name.
+	 */
+	public PrimitiveArc findArcProto(String name)
+	{
+		for (int i = 0; i < arcs.size(); i++)
+		{
+			PrimitiveArc ap = (PrimitiveArc) arcs.get(i);
+			if (ap.getProtoName().equalsIgnoreCase(name))
+				return ap;
+		}
+		return null;
+	}
+
+	/**
+	 * Returns an Iterator on the PrimitiveArc objects in this technology.
+	 * @return an Iterator on the PrimitiveArc objects in this technology.
+	 */
+	public Iterator getArcs()
+	{
+		return arcs.iterator();
+	}
+
+	/**
+	 * Returns the number of PrimitiveArc objects in this technology.
+	 * @return the number of PrimitiveArc objects in this technology.
+	 */
+	public int getNumArcs()
+	{
+		return arcs.size();
+	}
+
+	/**
+	 * Routine to add a new PrimitiveArc to this Technology.
+	 * This is usually done during initialization.
+	 * @param ap the PrimitiveArc to be added to this Technology.
+	 */
+	public void addArcProto(PrimitiveArc ap)
+	{
+		arcs.add(ap);
+	}
 
 	/**
 	 * Sets the technology to have no directional arcs.
@@ -625,134 +716,135 @@ public class Technology extends ElectricObject
 	public boolean isNoNegatedArcs() { return (userBits & NONEGATEDARCS) != 0; }
 
 	/**
-	 * Sets the technology to be non-standard.
-	 * Users should never call this routine.
-	 * It is set once by the technology during initialization.
-	 * A non-standard technology cannot be edited in the technology editor.
-	 * Examples are Schematics and Artwork, which have more complex graphics.
+	 * Returns the polygons that describe arc "ai".
+	 * @param ai the ArcInst that is being described.
+	 * @param wnd the window in which this arc is being displayed.
+	 * @return an array of Poly objects that describes this ArcInst graphically.
+	 * This array includes displayable variables on the ArcInst.
 	 */
-	protected void setNonStandard() { userBits |= NONSTANDARD; }
-
-	/**
-	 * Returns true if this technology is non-standard.
-	 * @return true if this technology is non-standard.
-	 * A non-standard technology cannot be edited in the technology editor.
-	 * Examples are Schematics and Artwork, which have more complex graphics.
-	 */
-	public boolean isNonStandard() { return (userBits & NONSTANDARD) != 0; }
-
-	/**
-	 * Sets the technology to be "static".
-	 * Users should never call this routine.
-	 * It is set once by the technology during initialization.
-	 * Static technologies are the core set of technologies in Electric that are
-	 * essential, and cannot be deleted.
-	 * The technology-editor can create others later, and they can be deleted.
-	 */
-	protected void setStaticTechnology() { userBits |= NONSTANDARD; }
-
-	/**
-	 * Returns true if this technoology is "static" (cannot be deleted).
-	 * @return true if this technoology is "static" (cannot be deleted).
-	 * Static technologies are the core set of technologies in Electric that are
-	 * essential, and cannot be deleted.
-	 * The technology-editor can create others later, and they can be deleted.
-	 */
-	public boolean isStaticTechnology() { return (userBits & NONSTANDARD) != 0; }
-
-	/**
-	 * Sets the technology to have no primitives.
-	 * Users should never call this routine.
-	 * It is set once by the technology during initialization.
-	 * This indicates to the user interface that it should not switch to this technology.
-	 * The FPGA technology has this bit set because it initially contains no primitives,
-	 * and they are only created dynamically.
-	 */
-	public void setNoPrimitiveNodes() { userBits |= NOPRIMTECHNOLOGY; }
-
-	/**
-	 * Returns true if this technology has no primitives.
-	 * @return true if this technology has no primitives.
-	 * This indicates to the user interface that it should not switch to this technology.
-	 * The FPGA technology has this bit set because it initially contains no primitives,
-	 * and they are only created dynamically.
-	 */
-	public boolean isNoPrimitiveNodes() { return (userBits & NOPRIMTECHNOLOGY) != 0; }
-
-	/**
-	 * Returns the current Technology.
-	 * @return the current Technology.
-	 * The current technology is maintained by the system as a default
-	 * in situations where a technology cannot be determined.
-	 */
-	public static Technology getCurrent() { return curTech; }
-
-	/**
-	 * Set this to be the current Technology
-	 * The current technology is maintained by the system as a default
-	 * in situations where a technology cannot be determined.
-	 */
-	public void setCurrent()
+	public Poly [] getShapeOfArc(ArcInst ai, EditWindow wnd)
 	{
-		curTech = this;
-		if (this != Generic.tech && this != Schematics.tech && this != Artwork.tech)
-			curLayoutTech = this;
+		// get information about the arc
+		PrimitiveArc ap = (PrimitiveArc)ai.getProto();
+		Technology tech = ap.getTechnology();
+		Technology.ArcLayer [] primLayers = ap.getLayers();
+
+		// see how many polygons describe this arc
+		boolean addArrow = false;
+		if (!tech.isNoDirectionalArcs() && ai.isDirectional()) addArrow = true;
+		int numDisplayable = ai.numDisplayableVariables(true);
+		int maxPolys = primLayers.length + numDisplayable;
+		if (addArrow) maxPolys++;
+		Poly [] polys = new Poly[maxPolys];
+		int polyNum = 0;
+
+		// construct the polygons that describe the basic arc
+		for(int i = 0; i < primLayers.length; i++)
+		{
+			Technology.ArcLayer primLayer = primLayers[i];
+			polys[polyNum] = ai.makePoly(ai.getXSize(), ai.getWidth() - primLayer.getOffset(), primLayer.getStyle());
+			if (polys[polyNum] == null) return null;
+			polys[polyNum].setLayer(primLayer.getLayer());
+			polyNum++;
+		}
+
+		// add an arrow to the arc description
+		if (addArrow)
+		{
+			Point2D headLoc = ai.getHead().getLocation();
+			Point2D tailLoc = ai.getTail().getLocation();
+			double headX = headLoc.getX();   double headY = headLoc.getY();
+			double tailX = tailLoc.getX();   double tailY = tailLoc.getY();
+			double angle = ai.getAngle();
+			if (ai.isReverseEnds())
+			{
+				double swap = headX;   headX = tailX;   tailX = swap;
+				swap = headY;   headY = tailY;   tailY = swap;
+				angle += Math.PI;
+			}
+			int numPoints = 6;
+			if (ai.isSkipHead()) numPoints = 2;
+			Point2D [] points = new Point2D.Double[numPoints];
+			points[0] = new Point2D.Double(headX, headY);
+			points[1] = new Point2D.Double(tailX, tailY);
+			if (!ai.isSkipHead())
+			{
+				points[2] = points[0];
+				double angleOfArrow = Math.PI/6;		// 30 degrees
+				double backAngle1 = angle - angleOfArrow;
+				double backAngle2 = angle + angleOfArrow;
+				points[3] = new Point2D.Double(headX + Math.cos(backAngle1), headY + Math.sin(backAngle1));
+				points[4] = points[0];
+				points[5] = new Point2D.Double(headX + Math.cos(backAngle2), headY + Math.sin(backAngle2));
+			}
+			polys[polyNum] = new Poly(points);
+			polys[polyNum].setStyle(Poly.Type.VECTORS);
+			polys[polyNum].setLayer(null);
+			polyNum++;
+		}
+		
+		// add in the displayable variables
+		Rectangle2D rect = ai.getBounds();
+		ai.addDisplayableVariables(rect, polys, polyNum, wnd, true);
+
+		return polys;
 	}
 
 	/**
-	 * Returns the name of this technology.
-	 * Each technology has a unique name, such as "mocmos" (MOSIS CMOS).
-	 * @return the name of this technology.
-	 * @see Technology#setTechName
+	 * Routine to convert old primitive arc names to their proper ArcProtos.
+	 * This method is overridden by those technologies that have any special arc name conversion issues.
+	 * By default, there is nothing to be done, because by the time this
+	 * routine is called, normal searches have failed.
+	 * @param name the unknown arc name, read from an old Library.
+	 * @return the proper PrimitiveArc to use for this name.
 	 */
-	public String getTechName() { return techName; }
+	public PrimitiveArc convertOldArcName(String name) { return null; }
+
+	/****************************** NODES ******************************/
 
 	/**
-	 * Sets the name of this technology.
-	 * Technology names must be unique.
+	 * Returns the PrimitiveNode in this technology with a particular name.
+	 * @param name the name of the PrimitiveNode.
+	 * @return the PrimitiveNode in this technology with that name.
 	 */
-	protected void setTechName(String techName) { this.techName = techName; }
+	public PrimitiveNode findNodeProto(String name)
+	{
+		for (int i = 0; i < nodes.size(); i++)
+		{
+			PrimitiveNode pn = (PrimitiveNode) nodes.get(i);
+			if (pn.getProtoName().equalsIgnoreCase(name))
+				return pn;
+		}
+		return null;
+	}
 
 	/**
-	 * Returns the full description of this Technology.
-	 * Full descriptions go beyond the one-word technology name by including such
-	 * information as foundry, nuumber of available layers, and process specifics.
-	 * For example, "Complementary MOS (from MOSIS, Submicron, 2-6 metals [4], double poly)".
-	 * @return the full description of this Technology.
+	 * Returns an Iterator on the PrimitiveNode objects in this technology.
+	 * @return an Iterator on the PrimitiveNode objects in this technology.
 	 */
-	public String getTechDesc() { return techDesc; }
+	public Iterator getNodes()
+	{
+		return nodes.iterator();
+	}
 
 	/**
-	 * Sets the full description of this Technology.
-	 * Full descriptions go beyond the one-word technology name by including such
-	 * information as foundry, nuumber of available layers, and process specifics.
-	 * For example, "Complementary MOS (from MOSIS, Submicron, 2-6 metals [4], double poly)".
+	 * Returns the number of PrimitiveNodes objects in this technology.
+	 * @return the number of PrimitiveNodes objects in this technology.
 	 */
-	public void setTechDesc(String techDesc) { this.techDesc = techDesc; }
+	public int getNumNodes()
+	{
+		return nodes.size();
+	}
 
 	/**
-	 * Returns the minimum resistance of this Technology.
-	 * @return the minimum resistance of this Technology.
+	 * Routine to add a new PrimitiveNode to this Technology.
+	 * This is usually done during initialization.
+	 * @param np the PrimitiveNode to be added to this Technology.
 	 */
-	public double getMinResistance() { return minResistance; }
-
-	/**
-	 * Sets the minimum resistance of this Technology.
-	 * @param minResistance the minimum resistance of this Technology.
-	 */
-	public void setMinResistance(double minResistance) { this.minResistance = minResistance; }
-
-	/**
-	 * Returns the minimum capacitance of this Technology.
-	 * @return the minimum capacitance of this Technology.
-	 */
-	public double getMinCapacitance() { return minCapacitance; }
-
-	/**
-	 * Sets the minimum capacitance of this Technology.
-	 * @param minCapacitance the minimum capacitance of this Technology.
-	 */
-	public void setMinCapacitance(double minCapacitance) { this.minCapacitance = minCapacitance; }
+	public void addNodeProto(PrimitiveNode np)
+	{
+		nodes.add(np);
+	}
 
 	/**
 	 * Routine to return the pure "NodeProto Function" a primitive NodeInst in this Technology.
@@ -787,64 +879,28 @@ public class Technology extends ElectricObject
 	public void setPrimitiveFunction(NodeInst ni, NodeProto.Function function) {}
 
 	/**
-	 * Returns the default scale for this Technology.
-	 * The technology's scale is for manufacturing output, which must convert
-	 * the unit-based values in Electric to real-world values.
-	 * @return the default scale for this Technology.
+	 * Sets the technology to have no primitives.
+	 * Users should never call this routine.
+	 * It is set once by the technology during initialization.
+	 * This indicates to the user interface that it should not switch to this technology.
+	 * The FPGA technology has this bit set because it initially contains no primitives,
+	 * and they are only created dynamically.
 	 */
-	public double getScale() { return scale; }
+	public void setNoPrimitiveNodes() { userBits |= NOPRIMTECHNOLOGY; }
 
 	/**
-	 * Sets the default scale of this technology.
-	 * The technology's scale is for manufacturing output, which must convert
-	 * the unit-based values in Electric to real-world values.
-	 * @param scale the new scale between this technology and the real units.
+	 * Returns true if this technology has no primitives.
+	 * @return true if this technology has no primitives.
+	 * This indicates to the user interface that it should not switch to this technology.
+	 * The FPGA technology has this bit set because it initially contains no primitives,
+	 * and they are only created dynamically.
 	 */
-	public void setScale(double scale)
+	public boolean isNoPrimitiveNodes() { return (userBits & NOPRIMTECHNOLOGY) != 0; }
+
+	public static SizeOffset getSizeOffset(NodeInst ni)
 	{
-		if (scale != 0) this.scale = scale;
-	}
-
-	/**
-	 * Returns the 0-based index of this Technology.
-	 * Each Technology has a unique index that can be used for array lookup.
-	 * @return the index of this Technology.
-	 */
-	public int getIndex() { return techIndex; }
-
-	/**
-	 * Returns the total number of Technologies currently in Electric.
-	 * @return the total number of Technologies currently in Electric.
-	 */
-	public static int getNumTechnologies()
-	{
-		return technologies.size();
-	}
-
-	/**
-	 * Find the Technology with a particular name.
-	 * @param name the name of the desired Technology
-	 * @return the Technology with the same name, or null if no 
-	 * Technology matches.
-	 */
-	public static Technology findTechnology(String name)
-	{
-		for (int i = 0; i < technologies.size(); i++)
-		{
-			Technology t = (Technology) technologies.get(i);
-			if (t.techName.equalsIgnoreCase(name))
-				return t;
-		}
-		return null;
-	}
-
-	/**
-	 * Get an iterator over all of the Technologies.
-	 * @return an iterator over all of the Technologies.
-	 */
-	public static Iterator getTechnologies()
-	{
-		return technologies.iterator();
+		PrimitiveNode np = (PrimitiveNode)ni.getProto();
+		return np.getSizeOffset();
 	}
 
 	/**
@@ -1493,79 +1549,16 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * Returns the polygons that describe arc "ai".
-	 * @param ai the ArcInst that is being described.
-	 * @param wnd the window in which this arc is being displayed.
-	 * @return an array of Poly objects that describes this ArcInst graphically.
-	 * This array includes displayable variables on the ArcInst.
+	 * Routine to convert old primitive node names to their proper NodeProtos.
+	 * This method is overridden by those technologies that have any special node name conversion issues.
+	 * By default, there is nothing to be done, because by the time this
+	 * routine is called, normal searches have failed.
+	 * @param name the unknown node name, read from an old Library.
+	 * @return the proper PrimitiveNode to use for this name.
 	 */
-	public Poly [] getShapeOfArc(ArcInst ai, EditWindow wnd)
-	{
-		// get information about the arc
-		PrimitiveArc ap = (PrimitiveArc)ai.getProto();
-		Technology tech = ap.getTechnology();
-		Technology.ArcLayer [] primLayers = ap.getLayers();
+	public PrimitiveNode convertOldNodeName(String name) { return null; }
 
-		// see how many polygons describe this arc
-		boolean addArrow = false;
-		if (!tech.isNoDirectionalArcs() && ai.isDirectional()) addArrow = true;
-		int numDisplayable = ai.numDisplayableVariables(true);
-		int maxPolys = primLayers.length + numDisplayable;
-		if (addArrow) maxPolys++;
-		Poly [] polys = new Poly[maxPolys];
-		int polyNum = 0;
-
-		// construct the polygons that describe the basic arc
-		for(int i = 0; i < primLayers.length; i++)
-		{
-			Technology.ArcLayer primLayer = primLayers[i];
-			polys[polyNum] = ai.makePoly(ai.getXSize(), ai.getWidth() - primLayer.getOffset(), primLayer.getStyle());
-			if (polys[polyNum] == null) return null;
-			polys[polyNum].setLayer(primLayer.getLayer());
-			polyNum++;
-		}
-
-		// add an arrow to the arc description
-		if (addArrow)
-		{
-			Point2D headLoc = ai.getHead().getLocation();
-			Point2D tailLoc = ai.getTail().getLocation();
-			double headX = headLoc.getX();   double headY = headLoc.getY();
-			double tailX = tailLoc.getX();   double tailY = tailLoc.getY();
-			double angle = ai.getAngle();
-			if (ai.isReverseEnds())
-			{
-				double swap = headX;   headX = tailX;   tailX = swap;
-				swap = headY;   headY = tailY;   tailY = swap;
-				angle += Math.PI;
-			}
-			int numPoints = 6;
-			if (ai.isSkipHead()) numPoints = 2;
-			Point2D [] points = new Point2D.Double[numPoints];
-			points[0] = new Point2D.Double(headX, headY);
-			points[1] = new Point2D.Double(tailX, tailY);
-			if (!ai.isSkipHead())
-			{
-				points[2] = points[0];
-				double angleOfArrow = Math.PI/6;		// 30 degrees
-				double backAngle1 = angle - angleOfArrow;
-				double backAngle2 = angle + angleOfArrow;
-				points[3] = new Point2D.Double(headX + Math.cos(backAngle1), headY + Math.sin(backAngle1));
-				points[4] = points[0];
-				points[5] = new Point2D.Double(headX + Math.cos(backAngle2), headY + Math.sin(backAngle2));
-			}
-			polys[polyNum] = new Poly(points);
-			polys[polyNum].setStyle(Poly.Type.VECTORS);
-			polys[polyNum].setLayer(null);
-			polyNum++;
-		}
-		
-		// add in the displayable variables
-		Rectangle2D rect = ai.getBounds();
-		ai.addDisplayableVariables(rect, polys, polyNum, wnd, true);
-
-		return polys;
-	}
+	/****************************** PORTS ******************************/
 
 	/**
 	 * Returns a polygon that describes a particular port on a NodeInst.
@@ -1628,53 +1621,6 @@ public class Technology extends ElectricObject
 		}
 	}
 
-	public static SizeOffset getSizeOffset(NodeInst ni)
-	{
-		PrimitiveNode np = (PrimitiveNode)ni.getProto();
-		return np.getSizeOffset();
-	}
-
-	/*
-	 * Routine to write a description of this Technology.
-	 * Displays the description in the Messages Window.
-	 */
-	public void getInfo()
-	{
-		System.out.println(" Name: " + techName);
-		System.out.println(" Description: " + techDesc);
-		System.out.println(" Nodes (" + nodes.size() + ")");
-		for (int i = 0; i < nodes.size(); i++)
-		{
-			System.out.println("     " + nodes.get(i));
-		}
-		System.out.println(" Arcs (" + arcs.size() + ")");
-		for (int i = 0; i < arcs.size(); i++)
-		{
-			System.out.println("     " + arcs.get(i));
-		}
-		super.getInfo();
-	}
-
-	/**
-	 * Routine to convert old primitive node names to their proper NodeProtos.
-	 * This method is overridden by those technologies that have any special node name conversion issues.
-	 * By default, there is nothing to be done, because by the time this
-	 * routine is called, normal searches have failed.
-	 * @param name the unknown node name, read from an old Library.
-	 * @return the proper PrimitiveNode to use for this name.
-	 */
-	public PrimitiveNode convertOldNodeName(String name) { return null; }
-
-	/**
-	 * Routine to convert old primitive arc names to their proper ArcProtos.
-	 * This method is overridden by those technologies that have any special arc name conversion issues.
-	 * By default, there is nothing to be done, because by the time this
-	 * routine is called, normal searches have failed.
-	 * @param name the unknown arc name, read from an old Library.
-	 * @return the proper PrimitiveArc to use for this name.
-	 */
-	public PrimitiveArc convertOldArcName(String name) { return null; }
-
 	/**
 	 * Routine to convert old primitive port names to their proper PortProtos.
 	 * This method is overridden by those technologies that have any special port name conversion issues.
@@ -1696,13 +1642,237 @@ public class Technology extends ElectricObject
 		return null;
 	}
 
+	/****************************** PARASITICS ******************************/
+
 	/**
-	 * Returns a printable version of this Technology.
-	 * @return a printable version of this Technology.
+	 * Returns the minimum resistance of this Technology.
+	 * @return the minimum resistance of this Technology.
 	 */
-	public String toString()
+	public double getMinResistance() { gatherParasiticOverrides();   return minResistance; }
+
+	/**
+	 * Sets the minimum resistance of this Technology.
+	 * @param minResistance the minimum resistance of this Technology.
+	 */
+	public void setMinResistance(double minResistance)
 	{
-		return "Technology " + techName;
+		this.minResistance = minResistance;
+		Preferences prefs = Preferences.userNodeForPackage(getClass());
+		prefs.putDouble("MinResistance_" + techName, minResistance);
+		try
+		{
+	        prefs.flush();
+		} catch (BackingStoreException e)
+		{
+			System.out.println("Failed to save minimum resistance option for technology " + techName);
+		}
+	}
+
+	/**
+	 * Returns the minimum capacitance of this Technology.
+	 * @return the minimum capacitance of this Technology.
+	 */
+	public double getMinCapacitance() { gatherParasiticOverrides();   return minCapacitance; }
+
+	/**
+	 * Sets the minimum capacitance of this Technology.
+	 * @param minCapacitance the minimum capacitance of this Technology.
+	 */
+	public void setMinCapacitance(double minCapacitance)
+	{
+		this.minCapacitance = minCapacitance;
+		Preferences prefs = Preferences.userNodeForPackage(getClass());
+		prefs.putDouble("MinCapacitance_" + techName, minCapacitance);
+		try
+		{
+	        prefs.flush();
+		} catch (BackingStoreException e)
+		{
+			System.out.println("Failed to save minimum capacitance option for technology " + techName);
+		}
+	}
+
+	/**
+	 * Routine to set default parasitic values on this Technology.
+	 * These values are not saved in the options.
+	 * @param minResistance the minimum resistance in this Technology.
+	 * @param minCapacitance the minimum capacitance in this Technology.
+	 */
+	public void setDefaultParasitics(double minResistance, double minCapacitance)
+	{
+		this.minResistance = minResistance;
+		this.minCapacitance = minCapacitance;
+	}
+
+	/**
+	 * Routine to examine all parasitic overrides for this Layer's Technology.
+	 * It only needs to be done once per session, before any of the parasitics
+	 * are used.
+	 */
+	public void gatherParasiticOverrides()
+	{
+		if (parasiticOverridesGathered) return;
+		parasiticOverridesGathered = true;
+
+		Preferences prefs = Preferences.userNodeForPackage(getClass());
+		minResistance = prefs.getDouble("MinResistance_" + techName, minResistance);
+		minCapacitance = prefs.getDouble("MinCapacitance_" + techName, minCapacitance);
+
+		for(Iterator it = getLayers(); it.hasNext(); )
+		{
+			Layer layer = (Layer)it.next();
+			double resistance = prefs.getDouble("LayerResistance_" + techName + "_" + layer.getName(), layer.getResistance());
+			double capacitance = prefs.getDouble("LayerCapacitance_" + techName + "_" + layer.getName(), layer.getCapacitance());
+			double edgeCapacitance = prefs.getDouble("LayerEdgeCapacitance_" + techName + "_" + layer.getName(), layer.getEdgeCapacitance());
+			layer.setDefaultParasitics(resistance, capacitance, edgeCapacitance);
+		}
+	}
+
+	/****************************** MISCELANEOUS ******************************/
+
+	/**
+	 * Sets the technology to be "non-electrical".
+	 * Users should never call this routine.
+	 * It is set once by the technology during initialization.
+	 * Examples of non-electrical technologies are "Artwork" and "Gem".
+	 */
+	protected void setNonElectrical() { userBits |= NONELECTRICAL; }
+
+	/**
+	 * Returns true if this technology is "non-electrical".
+	 * @return true if this technology is "non-electrical".
+	 * Examples of non-electrical technologies are "Artwork" and "Gem".
+	 */
+	public boolean isNonElectrical() { return (userBits & NONELECTRICAL) != 0; }
+
+	/**
+	 * Sets the technology to be non-standard.
+	 * Users should never call this routine.
+	 * It is set once by the technology during initialization.
+	 * A non-standard technology cannot be edited in the technology editor.
+	 * Examples are Schematics and Artwork, which have more complex graphics.
+	 */
+	protected void setNonStandard() { userBits |= NONSTANDARD; }
+
+	/**
+	 * Returns true if this technology is non-standard.
+	 * @return true if this technology is non-standard.
+	 * A non-standard technology cannot be edited in the technology editor.
+	 * Examples are Schematics and Artwork, which have more complex graphics.
+	 */
+	public boolean isNonStandard() { return (userBits & NONSTANDARD) != 0; }
+
+	/**
+	 * Sets the technology to be "static".
+	 * Users should never call this routine.
+	 * It is set once by the technology during initialization.
+	 * Static technologies are the core set of technologies in Electric that are
+	 * essential, and cannot be deleted.
+	 * The technology-editor can create others later, and they can be deleted.
+	 */
+	protected void setStaticTechnology() { userBits |= NONSTANDARD; }
+
+	/**
+	 * Returns true if this technoology is "static" (cannot be deleted).
+	 * @return true if this technoology is "static" (cannot be deleted).
+	 * Static technologies are the core set of technologies in Electric that are
+	 * essential, and cannot be deleted.
+	 * The technology-editor can create others later, and they can be deleted.
+	 */
+	public boolean isStaticTechnology() { return (userBits & NONSTANDARD) != 0; }
+
+	/**
+	 * Returns the name of this technology.
+	 * Each technology has a unique name, such as "mocmos" (MOSIS CMOS).
+	 * @return the name of this technology.
+	 * @see Technology#setTechName
+	 */
+	public String getTechName() { return techName; }
+
+	/**
+	 * Sets the name of this technology.
+	 * Technology names must be unique.
+	 */
+	protected void setTechName(String techName) { this.techName = techName; }
+
+	/**
+	 * Returns the full description of this Technology.
+	 * Full descriptions go beyond the one-word technology name by including such
+	 * information as foundry, nuumber of available layers, and process specifics.
+	 * For example, "Complementary MOS (from MOSIS, Submicron, 2-6 metals [4], double poly)".
+	 * @return the full description of this Technology.
+	 */
+	public String getTechDesc() { return techDesc; }
+
+	/**
+	 * Sets the full description of this Technology.
+	 * Full descriptions go beyond the one-word technology name by including such
+	 * information as foundry, nuumber of available layers, and process specifics.
+	 * For example, "Complementary MOS (from MOSIS, Submicron, 2-6 metals [4], double poly)".
+	 */
+	public void setTechDesc(String techDesc) { this.techDesc = techDesc; }
+
+	/**
+	 * Returns the default scale for this Technology.
+	 * The technology's scale is for manufacturing output, which must convert
+	 * the unit-based values in Electric to real-world values.
+	 * @return the default scale for this Technology.
+	 */
+	public double getScale() { return scale; }
+
+	/**
+	 * Sets the default scale of this technology.
+	 * The technology's scale is for manufacturing output, which must convert
+	 * the unit-based values in Electric to real-world values.
+	 * @param scale the new scale between this technology and the real units.
+	 */
+	public void setScale(double scale)
+	{
+		if (scale != 0) this.scale = scale;
+	}
+
+	/**
+	 * Returns the 0-based index of this Technology.
+	 * Each Technology has a unique index that can be used for array lookup.
+	 * @return the index of this Technology.
+	 */
+	public int getIndex() { return techIndex; }
+
+	/**
+	 * Routine to determine whether a new technology with the given name would be legal.
+	 * All technology names must be unique, so the name cannot already be in use.
+	 * @param techName the name of the new technology that will be created.
+	 * @return true if the name is valid.
+	 */
+	private static boolean validTechnology(String techName)
+	{
+		if (Technology.findTechnology(techName) != null)
+		{
+			System.out.println("ERROR: Multiple technologies named " + techName);
+			return false;
+		}
+		return true;
+	}
+
+	/*
+	 * Routine to write a description of this Technology.
+	 * Displays the description in the Messages Window.
+	 */
+	public void getInfo()
+	{
+		System.out.println(" Name: " + techName);
+		System.out.println(" Description: " + techDesc);
+		System.out.println(" Nodes (" + nodes.size() + ")");
+		for (int i = 0; i < nodes.size(); i++)
+		{
+			System.out.println("     " + nodes.get(i));
+		}
+		System.out.println(" Arcs (" + arcs.size() + ")");
+		for (int i = 0; i < arcs.size(); i++)
+		{
+			System.out.println("     " + arcs.get(i));
+		}
+		super.getInfo();
 	}
 
 	/**
@@ -1894,93 +2064,12 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * Returns an Iterator on the Layers in this Technology.
-	 * @return an Iterator on the Layers in this Technology.
+	 * Returns a printable version of this Technology.
+	 * @return a printable version of this Technology.
 	 */
-	public Iterator getLayers()
+	public String toString()
 	{
-		return layers.iterator();
-	}
-
-	/**
-	 * Returns the number of Layers in this Technology.
-	 * @return the number of Layers in this Technology.
-	 */
-	public int getNumLayers()
-	{
-		return layers.size();
-	}
-
-	// *************************** ArcProtos ***************************
-
-	/**
-	 * Returns the PrimitiveArc in this technology with a particular name.
-	 * @param name the name of the PrimitiveArc.
-	 * @return the PrimitiveArc in this technology with that name.
-	 */
-	public PrimitiveArc findArcProto(String name)
-	{
-		for (int i = 0; i < arcs.size(); i++)
-		{
-			PrimitiveArc ap = (PrimitiveArc) arcs.get(i);
-			if (ap.getProtoName().equalsIgnoreCase(name))
-				return ap;
-		}
-		return null;
-	}
-
-	/**
-	 * Returns an Iterator on the PrimitiveArc objects in this technology.
-	 * @return an Iterator on the PrimitiveArc objects in this technology.
-	 */
-	public Iterator getArcs()
-	{
-		return arcs.iterator();
-	}
-
-	/**
-	 * Returns the number of PrimitiveArc objects in this technology.
-	 * @return the number of PrimitiveArc objects in this technology.
-	 */
-	public int getNumArcs()
-	{
-		return arcs.size();
-	}
-
-	// *************************** NodeProtos ***************************
-
-	/**
-	 * Returns the PrimitiveNode in this technology with a particular name.
-	 * @param name the name of the PrimitiveNode.
-	 * @return the PrimitiveNode in this technology with that name.
-	 */
-	public PrimitiveNode findNodeProto(String name)
-	{
-		for (int i = 0; i < nodes.size(); i++)
-		{
-			PrimitiveNode pn = (PrimitiveNode) nodes.get(i);
-			if (pn.getProtoName().equalsIgnoreCase(name))
-				return pn;
-		}
-		return null;
-	}
-
-	/**
-	 * Returns an Iterator on the PrimitiveNode objects in this technology.
-	 * @return an Iterator on the PrimitiveNode objects in this technology.
-	 */
-	public Iterator getNodes()
-	{
-		return nodes.iterator();
-	}
-
-	/**
-	 * Returns the number of PrimitiveNodes objects in this technology.
-	 * @return the number of PrimitiveNodes objects in this technology.
-	 */
-	public int getNumNodes()
-	{
-		return nodes.size();
+		return "Technology " + techName;
 	}
 
 }
