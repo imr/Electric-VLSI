@@ -94,6 +94,7 @@ public class Spice extends Topology
 
     /** map of "parameterized" cells that are not covered by Topology */    private Map uniquifyCells;
     /** uniqueID */                                                         private int uniqueID;
+    /** map of shortened instance names */                                  private Map uniqueNames;
 
 	private static class SpiceNet
 	{
@@ -272,6 +273,7 @@ public class Spice extends Topology
         // set up the parameterized cells
         uniquifyCells = new HashMap();
         uniqueID = 0;
+        uniqueNames = new HashMap();
         checkIfParameterized(topCell);
 
 		// setup the legal characters
@@ -1097,12 +1099,14 @@ public class Spice extends Topology
         int limit = maxNameLength();
         if (limit > 0 && uniqueCellName.length() > limit)
         {
-            int ckSum = 0;
-            for(int i=0; i<uniqueCellName.length(); i++)
-                ckSum += (int)uniqueCellName.charAt(i);
-            ckSum = (ckSum % 9999);
+            Integer i = (Integer)uniqueNames.get(uniqueCellName.toString());
+            if (i == null) {
+                i = new Integer(uniqueID);
+                uniqueID++;
+                uniqueNames.put(uniqueCellName.toString(), i);
+            }
             uniqueCellName = uniqueCellName.delete(limit-10, uniqueCellName.length());
-            uniqueCellName.append("-TRUNC"+ckSum);
+            uniqueCellName.append("-ID"+i);
         }
 
         // make it safe
