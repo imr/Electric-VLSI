@@ -109,7 +109,7 @@ public class Cell extends NodeProto
 		// ------------------------- public methods -----------------------------
 
 		/**
-		 * Constructs a <CODE>CellGroup</CODE>.
+		 * Constructs a CellGroup.
 		 */
 		public CellGroup()
 		{
@@ -169,7 +169,7 @@ public class Cell extends NodeProto
 			return sortedList;
 		}
 
-		static class CellsByView implements Comparator
+		private static class CellsByView implements Comparator
 		{
 			public int compare(Object o1, Object o2)
 			{
@@ -196,9 +196,17 @@ public class Cell extends NodeProto
 			return null;
 		}
 
-        /** See if this cell group contains @param cell */
+        /**
+         * Method to tell whether this CellGroup contains a specified Cell.
+         * @param cell the Cell in question.
+         * @return true if the Cell is in this CellGroup.
+         */
         public boolean containsCell(Cell cell) { return cells.contains(cell); }
         
+		/**
+		 * Returns a printable version of this CellGroup.
+		 * @return a printable version of this CellGroup.
+		 */
 		public String toString() { return "CELLGROUP"; }
 	}
 
@@ -208,7 +216,7 @@ public class Cell extends NodeProto
 		private List versions;
 
 		/**
-		 * Constructs a <CODE>VersionGroup</CODE> that contains the history of a Cell.
+		 * Constructs a VersionGroup that contains the history of a Cell.
 		 */
 		public VersionGroup()
 		{
@@ -240,7 +248,7 @@ public class Cell extends NodeProto
 			return formerNewestCell;
 		}
 
-		static class CellsByVersion implements Comparator
+		private static class CellsByVersion implements Comparator
 		{
 			public int compare(Object o1, Object o2)
 			{
@@ -273,10 +281,13 @@ public class Cell extends NodeProto
 
 	// -------------------------- private data ---------------------------------
 
+	/** Variable key for characteristic spacing for a cell. */		public static final Variable.Key CHARACTERISTIC_SPACING = ElectricObject.newKey("FACET_characteristic_spacing");
+	/** Variable key for text cell contents. */						public static final Variable.Key CELL_TEXT_KEY = ElectricObject.newKey("FACET_message");
+
 	/** Length of base name for autonaming. */						private static final int ABBREVLEN = 8;
 	/** zero rectangle */											private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
-	public static final Variable.Key CHARACTERISTIC_SPACING = ElectricObject.newKey("FACET_characteristic_spacing");
-	/** key of Variable holding text cell contents. */				public static final Variable.Key CELL_TEXT_KEY = ElectricObject.newKey("FACET_message");
+
+	/** counter for enumerating cells */							private static int cellNumber = 0;
 
 	/** The CellGroup this Cell belongs to. */						private CellGroup cellGroup;
 	/** The VersionGroup this Cell belongs to. */					private VersionGroup versionGroup;
@@ -304,7 +315,6 @@ public class Cell extends NodeProto
 	/** true if this Cell is linked to library */					private boolean linked;
 	/** 0-based index of this Cell. */								private int cellIndex;
 
-	/** counter for enumerating cells */							private static int cellNumber = 0;
 
 	// ------------------ protected and private methods -----------------------
 
@@ -2107,8 +2117,6 @@ public class Cell extends NodeProto
 		revisionDate = new Date();
 	}
 
-	private static FlagSet cellDateFlagSet;
-
 	/**
 	 * Method to check the current cell to be sure that no subcells have a more recent date.
 	 * This is invoked when the "Check cell dates" feature is enabled in the New Nodes tab of
@@ -2116,19 +2124,18 @@ public class Cell extends NodeProto
 	 */
 	public void checkCellDates()
 	{
-		cellDateFlagSet = NodeProto.getFlagSet(1);
-
+		FlagSet cellDateFlagSet = NodeProto.getFlagSet(1);
 		cellDateFlagSet.clearOnAllCells();
-		checkCellDate(getRevisionDate());
+		checkCellDate(getRevisionDate(), cellDateFlagSet);
 		cellDateFlagSet.freeFlagSet();
 	}
 
-	/*
+	/**
 	 * Recursive method to check sub-cell revision times.
 	 * @param rev_time the revision date of the top-level cell.
 	 * Nothing below it can be newer.
 	 */
-	private void checkCellDate(Date rev_time)
+	private void checkCellDate(Date rev_time, FlagSet cellDateFlagSet)
 	{
 		for(Iterator it = getNodes(); it.hasNext(); )
 		{
@@ -2141,7 +2148,7 @@ public class Cell extends NodeProto
 			if (subCell.isIconOf(this)) continue;
 			if (!subCell.isBit(cellDateFlagSet))
 			{
-				subCell.checkCellDate(rev_time); // recurse
+				subCell.checkCellDate(rev_time, cellDateFlagSet); // recurse
 			}
 
 			Cell contentsCell = subCell.contentsView();
@@ -2149,7 +2156,7 @@ public class Cell extends NodeProto
 			{
 				if (!contentsCell.isBit(cellDateFlagSet))
 				{
-					contentsCell.checkCellDate(rev_time); // recurse
+					contentsCell.checkCellDate(rev_time, cellDateFlagSet); // recurse
 				}
 			}
 		}

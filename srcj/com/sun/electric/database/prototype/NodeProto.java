@@ -451,6 +451,8 @@ public abstract class NodeProto extends ElectricObject
 	/** set if cell is part of a "cell library" */			private static final int INCELLLIBRARY = 020000000;
 	/** set if cell is from a technology-library */			private static final int TECEDITCELL =   040000000;
 
+	/** The object used to request flag bits. */			private static FlagSet.Generator flagGenerator = new FlagSet.Generator("NodeProto");
+
 	/** The name of the NodeProto. */						protected String protoName;
 	/** This NodeProto's Technology. */						protected Technology tech;
 	/** A list of PortProtos on the NodeProto. */			private List ports;
@@ -460,7 +462,6 @@ public abstract class NodeProto extends ElectricObject
 	/** The temporary integer value. */						private int tempInt;
 	/** The temporary Object. */							private Object tempObj;
 	/** The temporary flag bits. */							private int flagBits;
-	/** The object used to request flag bits. */			private static FlagSet.Generator flagGenerator = new FlagSet.Generator("NodeProto");
 
 	// ----------------- protected and private methods -----------------
 
@@ -688,7 +689,7 @@ public abstract class NodeProto extends ElectricObject
 	 */
 	public Function getFunction() { return function; }
 
-	/*
+	/**
 	 * Method to return the function of this NodeProto, grouped according to its
 	 * general function.
 	 * For example, all transistors return the same value.

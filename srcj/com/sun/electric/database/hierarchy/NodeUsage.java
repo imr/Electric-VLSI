@@ -169,8 +169,8 @@ public class NodeUsage
 	public boolean isIcon() { return protoType.isIcon(); }
 
 	/**
-	 * Returns a printable version of this NodeInst.
-	 * @return a printable version of this NodeInst.
+	 * Returns a printable version of this NodeUsage.
+	 * @return a printable version of this NodeUsage.
 	 */
 	public String toString()
 	{

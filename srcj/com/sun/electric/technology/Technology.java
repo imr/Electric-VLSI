@@ -477,6 +477,11 @@ public class Technology extends ElectricObject
 	/** statically allocated (don't deallocate memory) */				private static final int STATICTECHNOLOGY =   020;
 	/** no primitives in this technology (don't auto-switch to it) */	private static final int NOPRIMTECHNOLOGY =   040;
 
+	/** preferences for all technologies */					private static Preferences prefs = null;
+	/** static list of all Technologies in Electric */		private static List technologies = new ArrayList();
+	/** the current technology in Electric */				private static Technology curTech = null;
+	/** the current tlayout echnology in Electric */		private static Technology curLayoutTech = null;
+	/** counter for enumerating technologies */				private static int techNumber = 0;
 
 	/** name of this technology */							private String techName;
 	/** short, readable name of this technology */			private String techShortName;
@@ -501,12 +506,6 @@ public class Technology extends ElectricObject
 	/** scale for this Technology. */						private Pref prefScale;
 	/** Minimum resistance for this Technology. */			private Pref prefMinResistance;
 	/** Minimum capacitance for this Technology. */			private Pref prefMinCapacitance;
-	/** preferences for all technologies */					private static Preferences prefs = null;
-
-	/* static list of all Technologies in Electric */		private static List technologies = new ArrayList();
-	/* the current technology in Electric */				private static Technology curTech = null;
-	/* the current tlayout echnology in Electric */			private static Technology curLayoutTech = null;
-	/* counter for enumerating technologies */				private static int techNumber = 0;
 
 	/****************************** CONTROL ******************************/
 
@@ -647,7 +646,7 @@ public class Technology extends ElectricObject
 		return technologies.iterator();
 	}
 
-	static class TechnologyCaseInsensitive implements Comparator
+	private static class TechnologyCaseInsensitive implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{
@@ -747,7 +746,7 @@ public class Technology extends ElectricObject
 		return(layerList);
 	}
 
-	static class LayerHeight implements Comparator
+	private static class LayerHeight implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{
@@ -1149,6 +1148,13 @@ public class Technology extends ElectricObject
 	 */
 	public void setDefaultOutline(NodeInst ni) {}
 
+	/**
+	 * Method to get the SizeOffset associated with a NodeInst in this Technology.
+	 * By having this be a method of Technology, it can be overridden by
+	 * individual Technologies that need to make special considerations.
+	 * @param ni the NodeInst to query.
+	 * @return the SizeOffset object for the NodeInst.
+	 */
 	public static SizeOffset getSizeOffset(NodeInst ni)
 	{
 		NodeProto np = ni.getProto();
@@ -1436,17 +1442,17 @@ public class Technology extends ElectricObject
 	 */
 	public static class MultiCutData
 	{
-		/** the size of each cut */													double cutSizeX, cutSizeY;
-		/** the separation between cuts */											double cutSep;
-		/** the indent of the edge cuts to the node */								double cutIndent;
-		/** the number of cuts in X and Y */										int cutsX, cutsY;
-		/** the total number of cuts */												int cutsTotal;
-		/** the "reasonable" number of cuts (around the outside only) */			int cutsReasonable;
-		/** the X coordinate of the leftmost cut's center */						double cutBaseX;
-		/** the Y coordinate of the topmost cut's center */							double cutBaseY;
-		/** cut position of last top-edge cut (for interior-cut elimination) */		double cutTopEdge;
-		/** cut position of last left-edge cut  (for interior-cut elimination) */	double cutLeftEdge;
-		/** cut position of last right-edge cut  (for interior-cut elimination) */	double cutRightEdge;
+		/** the size of each cut */													private double cutSizeX, cutSizeY;
+		/** the separation between cuts */											private double cutSep;
+		/** the indent of the edge cuts to the node */								private double cutIndent;
+		/** the number of cuts in X and Y */										private int cutsX, cutsY;
+		/** the total number of cuts */												private int cutsTotal;
+		/** the "reasonable" number of cuts (around the outside only) */			private int cutsReasonable;
+		/** the X coordinate of the leftmost cut's center */						private double cutBaseX;
+		/** the Y coordinate of the topmost cut's center */							private double cutBaseY;
+		/** cut position of last top-edge cut (for interior-cut elimination) */		private double cutTopEdge;
+		/** cut position of last left-edge cut  (for interior-cut elimination) */	private double cutLeftEdge;
+		/** cut position of last right-edge cut  (for interior-cut elimination) */	private double cutRightEdge;
 
 		/**
 		 * Constructor to initialize for multiple cuts.
@@ -1605,6 +1611,10 @@ public class Technology extends ElectricObject
 			}
 		}
 
+		/**
+		 * Method to tell whether this SerpentineTrans object has valid outline information.
+		 * @return true if the data exists.
+		 */
 		public boolean hasValidData() { return points != null; }
 
 		private static final int LEFTANGLE =  900;
@@ -1621,7 +1631,7 @@ public class Technology extends ElectricObject
 		 * gate segment that extends from left to right, and on the left of a
 		 * segment that goes from bottom to top.
 		 */
-		Poly fillTransPoly(int box)
+		private Poly fillTransPoly(int box)
 		{
 			// compute the segment (along the serpent) and element (of transistor)
 			int segment = box % numSegments;
@@ -2004,6 +2014,13 @@ public class Technology extends ElectricObject
 		return pref;
 	}
 
+	/**
+	 * Method to return the Pref object associated with all Technologies.
+	 * The Pref object is used to save option information.
+	 * Since preferences are organized by package, there is only one for
+	 * the technologies (they are all in the same package).
+	 * @return the Pref object associated with all Technologies.
+	 */
 	public static Preferences getTechnologyPreferences() { return prefs; }
 
 	/**
@@ -2316,7 +2333,7 @@ public class Technology extends ElectricObject
 		return true;
 	}
 
-	/*
+	/**
 	 * Method to write a description of this Technology.
 	 * Displays the description in the Messages Window.
 	 */

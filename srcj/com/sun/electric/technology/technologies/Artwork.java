@@ -28,6 +28,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.ElectricObject;
@@ -162,11 +163,6 @@ public class Artwork extends Technology
 			new Technology.TechPoint(new EdgeH(-0.125, 0), EdgeV.makeTopEdge()),
 			new Technology.TechPoint(new EdgeH(0.125, 0), EdgeV.makeBottomEdge()),
 			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeTopEdge()),
-		};
-		Technology.TechPoint [] box_3 = new Technology.TechPoint[] {
-			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeTopEdge()),
-			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
-			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
 		};
 		Technology.TechPoint [] box_4 = new Technology.TechPoint[] {
 			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
@@ -306,7 +302,13 @@ public class Artwork extends Technology
 		arrowNode = PrimitiveNode.newInstance("Arrow", this, 2, 2, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(G_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, box_3)
+				new Technology.NodeLayer(G_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS,
+					new Technology.TechPoint[]
+					{
+						new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeTopEdge()),
+						new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
+						new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
+					})
 			});
 		arrowNode.addPrimitivePorts(new PrimitivePort[]
 			{
@@ -483,6 +485,26 @@ public class Artwork extends Technology
 				polys[0].setLayer(layerOverride);
 				return polys;
 			}
+		} else if (np == arrowNode)
+		{
+			if (isFilledArrowHeads())
+			{
+				primLayers = new Technology.NodeLayer[2];
+				primLayers[0] = new Technology.NodeLayer(G_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.POINTS,
+					new Technology.TechPoint[]
+					{
+						new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeTopEdge()),
+						new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
+						new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
+					});
+				primLayers[1] = new Technology.NodeLayer(G_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.POINTS,
+					new Technology.TechPoint[]
+					{
+						new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
+						new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter()),
+						new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
+					});
+			}
 		}
 		return super.getShapeOfNode(ni, wnd, electrical, reasonable, primLayers, layerOverride);
 	}
@@ -635,7 +657,7 @@ public class Artwork extends Technology
 		}
 	}
 
-	/*
+	/**
 	 * Method to convert the given spline control points into a spline curve.
 	 * @param cX the center X coordinate of the spline.
 	 * @param cY the center Y coordinate of the spline.
@@ -781,4 +803,18 @@ public class Artwork extends Technology
 		if (name.equals("Dash-3")) return thickerArc;
 		return null;
 	}
+
+	/******************** OPTIONS ********************/
+
+	private static Pref cacheFillArrows = Pref.makeBooleanPref("ArtworkFillArrows", getTechnologyPreferences(), false);
+	/**
+	 * Method to tell whether arrow heads are filled-in.
+	 * @return true if arrow heads are filled-in.
+	 */
+	public static boolean isFilledArrowHeads() { return cacheFillArrows.getBoolean(); }
+	/**
+	 * Method to set whether arrow heads are filled-in.
+	 * @param f true if arrow heads are filled-in.
+	 */
+	public static void setFilledArrowHeads(boolean f) { cacheFillArrows.setBoolean(f); }
 }

@@ -237,6 +237,8 @@ public abstract class PortProto extends ElectricObject
 
 	// ------------------------ private data --------------------------
 
+	/** The object used to request flag bits. */				private static FlagSet.Generator flagGenerator = new FlagSet.Generator("PortProto");
+
 	/** The name of this PortProto. */							private Name protoName;
 	/** Internal flag bits of this PortProto. */				protected int userBits;
 	/** The parent NodeProto of this PortProto. */				protected NodeProto parent;
@@ -245,11 +247,6 @@ public abstract class PortProto extends ElectricObject
 	/** A temporary integer value of this PortProto. */			private int tempInt;
 	/** The temporary Object. */								private Object tempObj;
 	/** The temporary flag bits. */								private int flagBits;
-	/** The object used to request flag bits. */				private static FlagSet.Generator flagGenerator = new FlagSet.Generator("PortProto");
-
-	// ----------------------- public constants -----------------------
-
-	// ------------------ protected and private methods ---------------------
 
 	/**
 	 * This constructor should not be called.
@@ -313,8 +310,6 @@ public abstract class PortProto extends ElectricObject
 		System.out.println(" Name: " + protoName);
 		super.getInfo();
 	}
-
-	// ---------------------- public methods -------------------------
 
 	/**
 	 * Method to return the name key of this PortProto.

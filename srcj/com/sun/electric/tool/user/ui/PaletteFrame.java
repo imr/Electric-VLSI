@@ -165,7 +165,14 @@ public class PaletteFrame
 		return palette;
 	}
 
-	public PalettePanel getPanel() { return panel; }
+	/**
+	 * Method to set the cursor that is displayed in the PaletteFrame.
+	 * @param cursor the cursor to display here.
+	 */
+	public void setCursor(Cursor cursor)
+	{
+		panel.setCursor(cursor);
+	}
 
 	public Rectangle getPaletteLocation()
 	{
@@ -1042,9 +1049,8 @@ public class PaletteFrame
 
 		private void updateBox(Object source, int oldx, int oldy)
 		{
-			if (!(source instanceof EditWindow.CircuitPart)) return;
-			EditWindow.CircuitPart dispPart = (EditWindow.CircuitPart)source;
-			EditWindow wnd = dispPart.getEditWindow();
+			if (!(source instanceof EditWindow)) return;
+			EditWindow wnd = (EditWindow)source;
 			if (isDrawn)
 			{
 				// undraw it
@@ -1104,9 +1110,8 @@ public class PaletteFrame
 
 		public void mouseReleased(MouseEvent evt)
 		{
-			if (!(evt.getSource() instanceof EditWindow.CircuitPart)) return;
-			EditWindow.CircuitPart dispPart = (EditWindow.CircuitPart)evt.getSource();
-			EditWindow wnd = dispPart.getEditWindow();
+			if (!(evt.getSource() instanceof EditWindow)) return;
+			EditWindow wnd = (EditWindow)evt.getSource();
 
 			oldx = evt.getX();
 			oldy = evt.getY();

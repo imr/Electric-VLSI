@@ -224,13 +224,13 @@ public class Name implements Comparable
 
 	// ------------------ protected and private methods -----------------------
 
-	public static final int ERROR		= 0x01;
-	public static final int LIST		= 0x02;
-	public static final int BUS			= 0x04;
-	public static final int SIMPLE		= 0x08;
-	public static final int TEMP		= 0x10;
-	public static final int DUPLICATES	= 0x20;
-	public static final int HAS_EMPTIES	= 0x40;
+	private static final int ERROR			= 0x01;
+	private static final int LIST			= 0x02;
+	private static final int BUS			= 0x04;
+	private static final int SIMPLE			= 0x08;
+	private static final int TEMP			= 0x10;
+	private static final int DUPLICATES		= 0x20;
+	private static final int HAS_EMPTIES	= 0x40;
 
 	/**
 	 * Returns the name object for this string, assuming that is is trimmed.
@@ -455,7 +455,7 @@ public class Name implements Comparable
 	 * @param ns given string
 	 * @return flags describing the string.
 	 */
-	static int checkNameThrow(String ns) throws NumberFormatException
+	private static int checkNameThrow(String ns) throws NumberFormatException
 	{
 		int flags = SIMPLE;
 		

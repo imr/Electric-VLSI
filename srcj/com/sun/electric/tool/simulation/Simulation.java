@@ -24,10 +24,13 @@
 package com.sun.electric.tool.simulation;
 
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.Highlight;
 
 /**
  * This is the Simulation Interface tool.
@@ -54,6 +57,49 @@ public class Simulation extends Tool
 	public void init()
 	{
 //		setOn();
+	}
+
+	/**
+	 * Method to set the strength of the currently selected transistor.
+	 * This is used by the Verilog netlister.
+	 * @param weak true to set the currently selected transistor to be weak.
+	 * false to make it normal strength.
+	 */
+	public static void setTransistorStrengthCommand(boolean weak)
+	{
+		NodeInst ni = (NodeInst)Highlight.getOneElectricObject(NodeInst.class);
+		if (ni == null) return;
+		SetTransistorStrength job = new SetTransistorStrength(ni, weak);
+	}
+
+	/**
+	 * Class to read a text library in a new thread.
+	 * For a non-interactive script, use ReadTextLibrary job = new ReadTextLibrary(filename).
+	 */
+	private static class SetTransistorStrength extends Job
+	{
+		NodeInst ni;
+		boolean weak;
+		protected SetTransistorStrength(NodeInst ni, boolean weak)
+		{
+			super("Change Transistor Strength", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.ni = ni;
+			this.weak = weak;
+			startJob();
+		}
+
+		public void doIt()
+		{
+			if (weak)
+			{
+				Variable var = ni.newVar(Simulation.WEAK_NODE_KEY, "Weak");
+				var.setDisplay();
+			} else
+			{
+				if (ni.getVar(Simulation.WEAK_NODE_KEY) != null)
+					ni.delVar(Simulation.WEAK_NODE_KEY);
+			}
+		}
 	}
 
 	/****************************** VERILOG OPTIONS ******************************/

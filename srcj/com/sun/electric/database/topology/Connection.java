@@ -36,7 +36,7 @@ import java.awt.geom.Point2D;
  * the node for a list of its connections.  The connections that point
  * to the portproto are also connected to the wires of interest.
  */
-public class Connection //extends ElectricObject
+public class Connection
 {
 	// ------------------------- private data --------------------------------
 
@@ -45,8 +45,8 @@ public class Connection //extends ElectricObject
 	/** the location of this Connection */			private Point2D location;
 	/** flags for this Connection */				private short flags;
 
-	/** the shrinkage is from 0 to 90 */		private static final int SHRINKAGE = 0177;
-	/** set if the end is negated */			private static final int NEGATED   = 0200;
+	/** the shrinkage is from 0 to 90 */			private static final int SHRINKAGE = 0177;
+	/** set if the end is negated */				private static final int NEGATED   = 0200;
 
 	/**
 	 * The constructor creates a new Connection from the given values.

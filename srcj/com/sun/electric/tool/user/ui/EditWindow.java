@@ -87,14 +87,14 @@ import javax.swing.JPopupMenu;
 import javax.swing.JMenuItem;
 import javax.swing.tree.DefaultMutableTreeNode;
 
-/*
+/**
  * This class defines an editing window for displaying circuitry.
+ * It implements WindowContent, which means it can be in the main part of a window
+ * (to the right of the explorer panel).
  */
-
-public class EditWindow
-	implements WindowContent
+public class EditWindow extends JPanel
+	implements WindowContent, MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener
 {
-	CircuitPart dispArea;
 	/** the window scale */									private double scale;
 	/** the window offset */								private double offx = 0, offy = 0;
 	/** the window bounds in database units */				private Rectangle2D databaseBounds;
@@ -123,168 +123,24 @@ public class EditWindow
 	/** list of windows to redraw (gets synchronized) */	private static List redrawThese = new ArrayList();
 	/** true if rendering a window now (synchronized) */	private static boolean runningNow = false;
 
-    /** for drawing selection boxes */	private static final BasicStroke selectionLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {2}, 3);
+	private static final int SCROLLBARRESOLUTION = 200;
 
-	public class CircuitPart extends JPanel
-		implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener
-	{
-		private EditWindow wnd;
+    /** for drawing selection boxes */	private static final BasicStroke selectionLine = new BasicStroke(
+    	1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {2}, 3);
 
-		CircuitPart(EditWindow wnd) { this.wnd = wnd; }
-
-        /** Get the EditWindow containing this circuit part */
-        public EditWindow getEditWindow() { return wnd; }
-
-		/**
-		 * Method to repaint this EditWindow.
-		 * Composites the image (taken from the PixelDrawing object)
-		 * with the grid, highlight, and any dragging rectangle.
-		 */
-		public void paint(Graphics g)
-		{
-			// to enable keys to be received
-			if (cell != null && cell == WindowFrame.getCurrentCell())
-				requestFocus();
-
-			// redo the explorer tree if it changed
-			wf.redoExplorerTreeIfRequested();
-
-			if (offscreen == null || !getSize().equals(sz))
-			{
-				setScreenSize(getSize());
-				repaintContents();
-				return;
-			}
-
-			// show the image
-			Image img = offscreen.getImage();
-			synchronized(img) { g.drawImage(img, 0, 0, this); };
-
-//			synchronized(redrawThese)
-//			{
-//				if (redrawThese.size() > 0)
-//				{
-//					EditWindow nextWnd = (EditWindow)redrawThese.get(0);
-//					redrawThese.remove(0);
-//					RenderJob nextJob = new RenderJob(nextWnd, nextWnd.getOffscreen());
-//					return;
-//				}
-////				runningNow = false;
-//			}
-
-			// overlay other things if there is a valid cell
-			if (cell != null)
-			{
-				// add in grid if requested
-				if (showGrid) drawGrid(g);
-
-				// add in the frame if present
-				drawCellFrame(g);
-
-				// add in highlighting
-				for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
-				{
-					Highlight h = (Highlight)it.next();
-					Cell highCell = h.getCell();
-					if (highCell != cell) continue;
-					h.showHighlight(wnd, g);
-				}
-
-				// add in drag area
-				if (doingAreaDrag) showDragBox(g);
-				// add in popup cloud
-				if (showPopupCloud) drawPopupCloud((Graphics2D)g);
-			}
-		}
-
-		// ************************************* EVENT LISTENERS *************************************
-
-		/** 
-		 * Respond to an action performed, in this case change the current cell
-		 * when the user clicks on an entry in the upHierarchy popup menu.
-		 */
-		public void actionPerformed(ActionEvent e)
-		{
-			JMenuItem source = (JMenuItem)e.getSource();
-			// extract library and cell from string
-			Cell cell = (Cell)NodeProto.findNodeProto(source.getText());
-			if (cell == null) return;
-			setCell(cell, VarContext.globalContext);
-		}
-
-		// the MouseListener events
-		public void mousePressed(MouseEvent evt)
-		{
-			CircuitPart dispPart = (CircuitPart)evt.getSource();
-			EditWindow wnd = dispPart.wnd;
-			WindowFrame.setCurrentWindowFrame(wnd.wf);
-
-			WindowFrame.curMouseListener.mousePressed(evt);
-		}
-		public void mouseReleased(MouseEvent evt) { WindowFrame.curMouseListener.mouseReleased(evt); }
-		public void mouseClicked(MouseEvent evt) { WindowFrame.curMouseListener.mouseClicked(evt); }
-		public void mouseEntered(MouseEvent evt)
-		{
-			showCoordinates(evt);
-			WindowFrame.curMouseListener.mouseEntered(evt);
-		}
-		public void mouseExited(MouseEvent evt) { WindowFrame.curMouseListener.mouseExited(evt); }
-
-		// the MouseMotionListener events
-		public void mouseMoved(MouseEvent evt)
-		{
-			showCoordinates(evt);
-			WindowFrame.curMouseMotionListener.mouseMoved(evt);
-		}
-		public void mouseDragged(MouseEvent evt)
-		{
-			showCoordinates(evt);
-			WindowFrame.curMouseMotionListener.mouseDragged(evt);
-		}
-
-		private void showCoordinates(MouseEvent evt)
-		{
-			CircuitPart dispPart = (CircuitPart)evt.getSource();
-			EditWindow wnd = dispPart.wnd;
-			if (wnd.getCell() == null) StatusBar.setCoordinates(null, wnd.wf); else
-			{
-				Point2D pt = wnd.screenToDatabase(evt.getX(), evt.getY());
-				EditWindow.gridAlign(pt);
-				StatusBar.setCoordinates("(" + pt.getX() + "," + pt.getY() + ")", wnd.wf);
-			}
-		}
-
-		// the MouseWheelListener events
-		public void mouseWheelMoved(MouseWheelEvent evt) { WindowFrame.curMouseWheelListener.mouseWheelMoved(evt); }
-
-		// the KeyListener events
-		public void keyPressed(KeyEvent evt) { WindowFrame.curKeyListener.keyPressed(evt); }
-		public void keyReleased(KeyEvent evt) { WindowFrame.curKeyListener.keyReleased(evt); }
-		public void keyTyped(KeyEvent evt) { WindowFrame.curKeyListener.keyTyped(evt); }
-	}
-
-
-   	private static final int SCROLLBARRESOLUTION = 200;
-
-	/**
-	 * Method to return the scroll bar resolution.
-	 * This is the extent of the JScrollBar.
-	 * @return the scroll bar resolution.
-	 */
-	public static int getScrollBarResolution() { return SCROLLBARRESOLUTION; }
+	// ************************************* CONSTRUCTION *************************************
 
     // constructor
     private EditWindow(Cell cell, WindowFrame wf)
 	{
-		dispArea = new CircuitPart(this);
         this.cell = cell;
         this.wf = wf;
 		this.gridXSpacing = User.getDefGridXSpacing();
 		this.gridYSpacing = User.getDefGridYSpacing();
 
 		sz = new Dimension(500, 500);
-		dispArea.setSize(sz.width, sz.height);
-		dispArea.setPreferredSize(sz);
+		setSize(sz.width, sz.height);
+		setPreferredSize(sz);
 		databaseBounds = new Rectangle2D.Double();
 
         cellHistory = new ArrayList();
@@ -320,69 +176,16 @@ public class EditWindow
 		gbc.gridx = 0;   gbc.gridy = 0;
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.weightx = gbc.weighty = 1;
-		overall.add(dispArea, gbc);
+		overall.add(this, gbc);
 
 		//setAutoscrolls(true);
         // add listeners --> BE SURE to remove listeners in finished()
-		dispArea.addKeyListener(dispArea);
-		dispArea.addMouseListener(dispArea);
-		dispArea.addMouseMotionListener(dispArea);
-		dispArea.addMouseWheelListener(dispArea);
+		addKeyListener(this);
+		addMouseListener(this);
+		addMouseMotionListener(this);
+		addMouseWheelListener(this);
 		if (wf != null) setCell(cell, VarContext.globalContext);
 	}
-
-	public void repaint() { dispArea.repaint(); }
-
-	public void fullRepaint() { repaintContents(); }
-	
-	public JPanel getPanel() { return overall; }
-
-	public void loadExplorerTree(DefaultMutableTreeNode rootNode)
-	{
-		wf.libraryExplorerNode = ExplorerTree.makeLibraryTree();
-		wf.jobExplorerNode = Job.getExplorerTree();
-		wf.errorExplorerNode = ErrorLog.getExplorerTree();
-		wf.signalExplorerNode = null;
-		rootNode.add(wf.libraryExplorerNode);
-		rootNode.add(wf.jobExplorerNode);
-		rootNode.add(wf.errorExplorerNode);
-	}
-
-	/**
-	 * This class handles changes to the edit window scroll bars.
-	 */
-	static class ScrollAdjustmentListener implements AdjustmentListener
-	{
-        /** A weak reference to the WindowFrame */
-		EditWindow wnd;               
-
-		ScrollAdjustmentListener(EditWindow wnd)
-		{
-			super();
-			this.wnd = wnd;
-//			this.wf = new WeakReference(wf);
-		}
-
-		public void adjustmentValueChanged(AdjustmentEvent e)
-		{
-			if (e.getSource() == wnd.getBottomScrollBar() && wnd.getCell() != null)
-				wnd.bottomScrollChanged(e.getValue());
-			if (e.getSource() == wnd.getRightScrollBar() && wnd.getCell() != null)
-				wnd.rightScrollChanged(e.getValue());
-		}
-	}
-
-	/**
-	 * Method to return the horizontal scroll bar at the bottom of the edit window.
-	 * @return the horizontal scroll bar at the bottom of the edit window.
-	 */
-	public JScrollBar getBottomScrollBar() { return bottomScrollBar; }
-
-	/**
-	 * Method to return the vertical scroll bar at the right side of the edit window.
-	 * @return the vertical scroll bar at the right side of the edit window.
-	 */
-	public JScrollBar getRightScrollBar() { return rightScrollBar; }
 
 	/**
 	 * Factory method to create a new EditWindow with a given cell, in a given WindowFrame.
@@ -395,6 +198,85 @@ public class EditWindow
 		EditWindow ui = new EditWindow(cell, wf);
 		return ui;
 	}
+
+	// ************************************* EVENT LISTENERS *************************************
+
+	/** 
+	 * Respond to an action performed, in this case change the current cell
+	 * when the user clicks on an entry in the upHierarchy popup menu.
+	 */
+	public void actionPerformed(ActionEvent e)
+	{
+		JMenuItem source = (JMenuItem)e.getSource();
+		// extract library and cell from string
+		Cell cell = (Cell)NodeProto.findNodeProto(source.getText());
+		if (cell == null) return;
+		setCell(cell, VarContext.globalContext);
+	}
+
+	// the MouseListener events
+	public void mousePressed(MouseEvent evt)
+	{
+		EditWindow wnd = (EditWindow)evt.getSource();
+		WindowFrame.setCurrentWindowFrame(wnd.wf);
+
+		WindowFrame.curMouseListener.mousePressed(evt);
+	}
+
+	public void mouseReleased(MouseEvent evt) { WindowFrame.curMouseListener.mouseReleased(evt); }
+
+	public void mouseClicked(MouseEvent evt) { WindowFrame.curMouseListener.mouseClicked(evt); }
+
+	public void mouseEntered(MouseEvent evt)
+	{
+		showCoordinates(evt);
+		WindowFrame.curMouseListener.mouseEntered(evt);
+	}
+
+	public void mouseExited(MouseEvent evt) { WindowFrame.curMouseListener.mouseExited(evt); }
+
+	// the MouseMotionListener events
+	public void mouseMoved(MouseEvent evt)
+	{
+		showCoordinates(evt);
+		WindowFrame.curMouseMotionListener.mouseMoved(evt);
+	}
+
+	public void mouseDragged(MouseEvent evt)
+	{
+		showCoordinates(evt);
+		WindowFrame.curMouseMotionListener.mouseDragged(evt);
+	}
+
+	private void showCoordinates(MouseEvent evt)
+	{
+		EditWindow wnd = (EditWindow)evt.getSource();
+		if (wnd.getCell() == null) StatusBar.setCoordinates(null, wnd.wf); else
+		{
+			Point2D pt = wnd.screenToDatabase(evt.getX(), evt.getY());
+			EditWindow.gridAlign(pt);
+			StatusBar.setCoordinates("(" + pt.getX() + "," + pt.getY() + ")", wnd.wf);
+		}
+	}
+
+	// the MouseWheelListener events
+	public void mouseWheelMoved(MouseWheelEvent evt) { WindowFrame.curMouseWheelListener.mouseWheelMoved(evt); }
+
+	// the KeyListener events
+	public void keyPressed(KeyEvent evt) { WindowFrame.curKeyListener.keyPressed(evt); }
+
+	public void keyReleased(KeyEvent evt) { WindowFrame.curKeyListener.keyReleased(evt); }
+
+	public void keyTyped(KeyEvent evt) { WindowFrame.curKeyListener.keyTyped(evt); }
+
+	// ************************************* INFORMATION *************************************
+
+	/**
+	 * Method to return the top-level JPanel for this EditWindow.
+	 * The actual EditWindow object is below the top level, surrounded by scroll bars.
+	 * @return the top-level JPanel for this EditWindow.
+	 */
+	public JPanel getPanel() { return overall; }
 
 	/**
 	 * Method to return the current EditWindow.
@@ -436,28 +318,28 @@ public class EditWindow
 	 */
 	public WindowFrame getWindowFrame() { return wf; }
 
-    /**
-     * Method to set the cell that is shown in the window to "cell".
-     */
-    public void setCell(Cell cell, VarContext context)
-    {
-        // by default record history and fillscreen
-        // However, when navigating through history, don't want to record new
-        // history objects.
-        setCell(cell, context, true);
-    }
+	/**
+	 * Method to set the cell that is shown in the window to "cell".
+	 */
+	public void setCell(Cell cell, VarContext context)
+	{
+		// by default record history and fillscreen
+		// However, when navigating through history, don't want to record new
+		// history objects.
+		setCell(cell, context, true);
+	}
 
 	/**
-     * Method to set the cell that is shown in the window to "cell".
-     */
+	 * Method to set the cell that is shown in the window to "cell".
+	 */
 	private void setCell(Cell cell, VarContext context, boolean addToHistory)
 	{
-        // record current history before switching to new cell
-        saveCurrentCellHistoryState();
+		// record current history before switching to new cell
+		saveCurrentCellHistoryState();
 
-        // set new values
+		// set new values
 		this.cell = cell;
-        this.cellVarContext = context;
+		this.cellVarContext = context;
 		Library curLib = Library.getCurrent();
 		curLib.setCurCell(cell);
 		Highlight.clear();
@@ -477,9 +359,9 @@ public class EditWindow
 		}
 		fillScreen();
 
-        if (addToHistory) {
-            addToHistory(cell, context);
-        }
+		if (addToHistory) {
+			addToHistory(cell, context);
+		}
 
 		if (cell != null && User.isCheckCellDates()) cell.checkCellDates();
 	}
@@ -526,26 +408,146 @@ public class EditWindow
 	 */
 	public PixelDrawing getOffscreen() { return offscreen; }
 
-    /**
-     * Method to get rid of this EditWindow.  Called by WindowFrame when
-     * that windowFrame gets closed.
-     */
-    public void finished()
-    {
-        //wf = null;                          // clear reference
-        //offscreen = null;                   // need to clear this ref, because it points to this
-        synchronized(redrawThese)
-        {
-//            if (redrawThese.contains(this)) redrawThese.remove(this);
-        }
-        // remove myself from listener list
-		dispArea.removeKeyListener(dispArea);
-		dispArea.removeMouseListener(dispArea);
-		dispArea.removeMouseMotionListener(dispArea);
-		dispArea.removeMouseWheelListener(dispArea);
-    }
+	public void loadExplorerTree(DefaultMutableTreeNode rootNode)
+	{
+		wf.libraryExplorerNode = ExplorerTree.makeLibraryTree();
+		wf.jobExplorerNode = Job.getExplorerTree();
+		wf.errorExplorerNode = ErrorLog.getExplorerTree();
+		wf.signalExplorerNode = null;
+		rootNode.add(wf.libraryExplorerNode);
+		rootNode.add(wf.jobExplorerNode);
+		rootNode.add(wf.errorExplorerNode);
+	}
 
-	// ************************************* RENDERING A WINDOW *************************************
+	/**
+	 * Method to get rid of this EditWindow.  Called by WindowFrame when
+	 * that windowFrame gets closed.
+	 */
+	public void finished()
+	{
+		//wf = null;                          // clear reference
+		//offscreen = null;                   // need to clear this ref, because it points to this
+		synchronized(redrawThese)
+		{
+//			  if (redrawThese.contains(this)) redrawThese.remove(this);
+		}
+		// remove myself from listener list
+		removeKeyListener(this);
+		removeMouseListener(this);
+		removeMouseMotionListener(this);
+		removeMouseWheelListener(this);
+	}
+
+	// ************************************* SCROLLING *************************************
+
+	/**
+	 * Method to return the scroll bar resolution.
+	 * This is the extent of the JScrollBar.
+	 * @return the scroll bar resolution.
+	 */
+	public static int getScrollBarResolution() { return SCROLLBARRESOLUTION; }
+
+	/**
+	 * This class handles changes to the edit window scroll bars.
+	 */
+	static class ScrollAdjustmentListener implements AdjustmentListener
+	{
+        /** A weak reference to the WindowFrame */
+		EditWindow wnd;               
+
+		ScrollAdjustmentListener(EditWindow wnd)
+		{
+			super();
+			this.wnd = wnd;
+//			this.wf = new WeakReference(wf);
+		}
+
+		public void adjustmentValueChanged(AdjustmentEvent e)
+		{
+			if (e.getSource() == wnd.getBottomScrollBar() && wnd.getCell() != null)
+				wnd.bottomScrollChanged(e.getValue());
+			if (e.getSource() == wnd.getRightScrollBar() && wnd.getCell() != null)
+				wnd.rightScrollChanged(e.getValue());
+		}
+	}
+
+	/**
+	 * Method to return the horizontal scroll bar at the bottom of the edit window.
+	 * @return the horizontal scroll bar at the bottom of the edit window.
+	 */
+	public JScrollBar getBottomScrollBar() { return bottomScrollBar; }
+
+	/**
+	 * Method to return the vertical scroll bar at the right side of the edit window.
+	 * @return the vertical scroll bar at the right side of the edit window.
+	 */
+	public JScrollBar getRightScrollBar() { return rightScrollBar; }
+
+	// ************************************* REPAINT *************************************
+
+	/**
+	 * Method to repaint this EditWindow.
+	 * Composites the image (taken from the PixelDrawing object)
+	 * with the grid, highlight, and any dragging rectangle.
+	 */
+	public void paint(Graphics g)
+	{
+		// to enable keys to be received
+		if (cell != null && cell == WindowFrame.getCurrentCell())
+			requestFocus();
+
+		// redo the explorer tree if it changed
+		wf.redoExplorerTreeIfRequested();
+
+		if (offscreen == null || !getSize().equals(sz))
+		{
+			setScreenSize(getSize());
+			repaintContents();
+			return;
+		}
+
+		// show the image
+		Image img = offscreen.getImage();
+		synchronized(img) { g.drawImage(img, 0, 0, this); };
+
+//			synchronized(redrawThese)
+//			{
+//				if (redrawThese.size() > 0)
+//				{
+//					EditWindow nextWnd = (EditWindow)redrawThese.get(0);
+//					redrawThese.remove(0);
+//					RenderJob nextJob = new RenderJob(nextWnd, nextWnd.getOffscreen());
+//					return;
+//				}
+////				runningNow = false;
+//			}
+
+		// overlay other things if there is a valid cell
+		if (cell != null)
+		{
+			// add in grid if requested
+			if (showGrid) drawGrid(g);
+
+			// add in the frame if present
+			drawCellFrame(g);
+
+			// add in highlighting
+			for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+			{
+				Highlight h = (Highlight)it.next();
+				Cell highCell = h.getCell();
+				if (highCell != cell) continue;
+				h.showHighlight(this, g);
+			}
+
+			// add in drag area
+			if (doingAreaDrag) showDragBox(g);
+			// add in popup cloud
+			if (showPopupCloud) drawPopupCloud((Graphics2D)g);
+		}
+	}
+
+	public void fullRepaint() { repaintContents(); }
 
 	/**
 	 * Method requests that every EditWindow be redrawn, including a rerendering of its contents.
@@ -573,7 +575,7 @@ public class EditWindow
 			WindowContent content = wf.getContent();
 			if (!(content instanceof EditWindow)) continue;
 			EditWindow wnd = (EditWindow)content;
-			wnd.dispArea.repaint();
+			wnd.repaint();
 		}
 	}
 
@@ -1946,10 +1948,10 @@ public class EditWindow
 				{
 					String cellName = (String)it.next();
 					JMenuItem menuItem = new JMenuItem(cellName);
-					menuItem.addActionListener(dispArea);
+					menuItem.addActionListener(this);
 					parents.add(menuItem);
 				}
-				parents.show(dispArea, 0, 0);
+				parents.show(this, 0, 0);
 			}
         } catch (NullPointerException e)
 		{
@@ -2278,6 +2280,11 @@ public class EditWindow
 
 	public static int getDefaultFontSize() { return 14; }
 
+	/**
+	 * Method to get a Font to use for a given TextDescriptor in this EditWindow.
+	 * @param descript the TextDescriptor.
+	 * @return the Font to use (returns null if the text is too small to display).
+	 */
 	public Font getFont(TextDescriptor descript)
 	{
 		int size = getDefaultFontSize();
@@ -2296,6 +2303,7 @@ public class EditWindow
 				if (af != null) fontName = af.getName();
 			}
 		}
+		if (size < PixelDrawing.MINIMUMTEXTSIZE) return null;
 		Font font = new Font(fontName, fontStyle, size);
 		return font;
 	}

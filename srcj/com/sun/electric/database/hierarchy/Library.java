@@ -41,16 +41,18 @@ import java.net.URL;
 
 /**
  * A Library represents a collection of Cells.
- * To get hold of a Library, you use Electric.getLibrary(String name)
- * Electric.newLibrary(String name) to create a brand new library, or
+ * To find of a Library, you use Electric.getLibrary(String name).
+ * Use Electric.newLibrary(String name) to create a new library, or
  * Electric.getCurrent() to get the current Library.
  * <p>
- * Once you have a Library, you can create a new Cell, find an existing
+ * Once you have a Library, you can create a new Cell in it, find an existing
  * Cell, get an Enumeration of all Cells, or find the Cell that the user
  * is currently editing.
  */
 public class Library extends ElectricObject
 {
+	/** key of Variable holding font associations. */		public static final Variable.Key FONT_ASSOCIATIONS = ElectricObject.newKey("LIB_font_associations");
+
 	// ------------------------ private data ------------------------------
 
 	/** library has changed significantly */				private static final int LIBCHANGEDMAJOR =           01;
@@ -68,8 +70,6 @@ public class Library extends ElectricObject
 	/** Cell currently being edited */						private Cell curCell;
 	/** flag bits */										private int userBits;
 	/** The temporary flag bits. */							private int flagBits;
-
-	/** key of Variable holding font associations. */		public static final Variable.Key FONT_ASSOCIATIONS = ElectricObject.newKey("LIB_font_associations");
 
 	/** static list of all libraries in Electric */			private static List libraries = new ArrayList();
 	/** the current library in Electric */					private static Library curLib = null;
@@ -182,7 +182,11 @@ public class Library extends ElectricObject
 		cells.clear();
 	}
 
-	void addCell(Cell c)
+	/**
+	 * Method to add a Cell to this Library.
+	 * @param c the Cell to add.
+	 */
+	public void addCell(Cell c)
 	{
 		// sanity check: make sure Cell isn't already in the list
 		if (cells.contains(c))
@@ -197,7 +201,11 @@ public class Library extends ElectricObject
 		WindowFrame.wantToRedoLibraryTree();
 	}
 
-	void removeCell(Cell c)
+	/**
+	 * Method to remove a Cell from this Library.
+	 * @param c the Cell to remove.
+	 */
+	public void removeCell(Cell c)
 	{
 		// sanity check: make sure Cell is in the list
 		if (!cells.contains(c))
@@ -374,6 +382,7 @@ public class Library extends ElectricObject
 	}
 
 	/**
+	 * Method to clear all change locks on the Cells in this Library.
 	 */
 	public static void clearChangeLocks()
 	{
@@ -388,6 +397,10 @@ public class Library extends ElectricObject
 		}
 	}
 
+	/**
+	 * This class is an iterator over the "visible" Libraries.
+	 * It ignores those that are hidden (specifically, the clipboard Library).
+	 */
 	private static class VisibleLibraryIterator implements Iterator
 	{
 		private Iterator uit;
@@ -485,7 +498,7 @@ public class Library extends ElectricObject
 		return sortedList;
 	}
 
-	static class LibCaseInsensitive implements Comparator
+	private static class LibCaseInsensitive implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{
@@ -636,7 +649,7 @@ public class Library extends ElectricObject
 		return null;
 	}
 
-	static class CellCaseInsensitive implements Comparator
+	private static class CellCaseInsensitive implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{
@@ -648,7 +661,7 @@ public class Library extends ElectricObject
 		}
 	}
 
-    static class CellComparatorNoLibDescribe implements Comparator
+	private static class CellComparatorNoLibDescribe implements Comparator
     {
         public int compare(Object o1, Object o2)
         {

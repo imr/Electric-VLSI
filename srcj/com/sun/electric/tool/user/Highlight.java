@@ -811,7 +811,7 @@ public class Highlight
 		{
 			
             System.out.println("Wrong type of object is selected");
-            System.out.println(" (WANTED "+type.toString()+" BUT GOT "+eobj.getClass().toString()+")");
+            System.out.println(" (Wanted "+type.toString()+" but got "+eobj.getClass().toString()+")");
             return null;
 		}
 		return eobj;
@@ -1019,10 +1019,13 @@ public class Highlight
 				}
 				Point p = wnd.databaseToScreen(ai.getTrueCenterX(), ai.getTrueCenterY());
 				Font font = wnd.getFont(null);
-				GlyphVector gv = wnd.getGlyphs(constraints, font);
-				Rectangle2D glyphBounds = gv.getVisualBounds();
-				g.drawString(constraints, (int)(p.x - glyphBounds.getWidth()/2 + highOffX),
-					(int)(p.y + font.getSize()/2 + highOffY));
+				if (font != null)
+				{
+					GlyphVector gv = wnd.getGlyphs(constraints, font);
+					Rectangle2D glyphBounds = gv.getVisualBounds();
+					g.drawString(constraints, (int)(p.x - glyphBounds.getWidth()/2 + highOffX),
+						(int)(p.y + font.getSize()/2 + highOffY));
+				}
 			}
 			return;
 		}
@@ -1579,7 +1582,7 @@ public class Highlight
 					for(int i=0; i<polys.length; i++)
 					{
 						Poly poly = polys[i];
-						poly.setExactTextBounds(wnd);
+						if (poly.setExactTextBounds(wnd)) continue;
                         // ignore areaMustEnclose if bounds is size 0,0
 						if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
 						{
@@ -1609,7 +1612,7 @@ public class Highlight
 				{
 					Poly poly = polys[i];
 					poly.transform(trans);
-					poly.setExactTextBounds(wnd);
+					if (poly.setExactTextBounds(wnd)) continue;
                     // ignore areaMustEnclose if bounds is size 0,0
 					if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
 					{
@@ -1653,7 +1656,7 @@ public class Highlight
 					for(int i=0; i<polys.length; i++)
 					{
 						Poly poly = polys[i];
-						poly.setExactTextBounds(wnd);
+						if (poly.setExactTextBounds(wnd)) continue;
                         // ignore areaMustEnclose if bounds is size 0,0
                         if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
 						{

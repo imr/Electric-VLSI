@@ -334,5 +334,9 @@ public class Tool extends ElectricObject
 		}
 	}
 
+	/**
+	 * The initialization method for this Tool.
+	 * Gets overridden by tools that want to do initialization.
+	 */
 	public void init() {}
 }

@@ -452,7 +452,7 @@ public class ToolOptions extends EDialog
 	}
 
 	/**
-	 * Class to handle special changes to changes to design rules.
+	 * Class to handle special changes to design rules.
 	 */
 	private static class DRCDocumentListener implements DocumentListener
 	{

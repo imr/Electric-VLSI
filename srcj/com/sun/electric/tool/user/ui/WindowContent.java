@@ -77,7 +77,11 @@ public interface WindowContent
 	public abstract Cell getCell();
 
 	/**
-	 * Method to get the actual contents JPanel for this WindowContent.
+	 * Method to return the top-level JPanel for this WindowContent.
+	 * Although the classes that implement this interface may also extend JPanel,
+	 * it is not always the case that those classes will be the JPanel that this
+	 * method returns.  For example, the actual EditWindow object is below the top level, surrounded by scroll bars.
+	 * @return the top-level JPanel for this WindowContent.
 	 */
 	public abstract JPanel getPanel();
 	public abstract void bottomScrollChanged(int e);

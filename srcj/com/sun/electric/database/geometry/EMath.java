@@ -70,6 +70,38 @@ public class EMath
 	}
 
 	/**
+	 * Class to define an Double-like object that can be modified.
+	 */
+	public static class MutableDouble
+	{
+		private double value;
+
+		/**
+		 * Constructor creates a MutableDouble object with an initial value.
+		 * @param value the initial value.
+		 */
+		public MutableDouble(double value) { this.value = value; }
+
+		/**
+		 * Method to change the value of this MutableDouble.
+		 * @param value the new value.
+		 */
+		public void setValue(double value) { this.value = value; }
+
+		/**
+		 * Method to return the value of this MutableDouble.
+		 * @return the current value of this MutableDouble.
+		 */
+		public double doubleValue() { return value; }
+
+		/**
+		 * Returns a printable version of this MutableDouble.
+		 * @return a printable version of this MutableDouble.
+		 */
+		public String toString() { return Double.toString(value); }
+	}
+
+	/**
 	 * Method to compare two objects for equality.
 	 * This does more than a simple "equal" because they may have the same value
 	 * but have diffent type (one Float, the other Double).

@@ -312,24 +312,27 @@ public class ElectricObject
 		{
 			// compute text height
 			Font font = wnd.getFont(td);
-			height = font.getSize2D() / wnd.getScale();
-			if (multipleStrings)
+			if (font == null) varLength = 0; else
 			{
-				if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTBOX ||
-					style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT)
-						cY += height * (varLength-1) / 2;
-				if (style == Poly.Type.TEXTBOT || style == Poly.Type.TEXTBOTLEFT || style == Poly.Type.TEXTBOTRIGHT)
-					cY += height * (varLength-1);
-//				if (style == Poly.Type.TEXTTOP || style == Poly.Type.TEXTTOPLEFT || style == Poly.Type.TEXTTOPRIGHT)
-//					cY -= height*2;
-			} else
-			{
-				if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTBOX ||
-					style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT)
-						cY -= height * (varLength-1) / 2;
-				if (style == Poly.Type.TEXTTOP || style == Poly.Type.TEXTTOPLEFT || style == Poly.Type.TEXTTOPRIGHT)
-					cY -= height * (varLength-1);
-				varLength = 1;
+				height = font.getSize2D() / wnd.getScale();
+				if (multipleStrings)
+				{
+					if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTBOX ||
+						style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT)
+							cY += height * (varLength-1) / 2;
+					if (style == Poly.Type.TEXTBOT || style == Poly.Type.TEXTBOTLEFT || style == Poly.Type.TEXTBOTRIGHT)
+						cY += height * (varLength-1);
+//					if (style == Poly.Type.TEXTTOP || style == Poly.Type.TEXTTOPLEFT || style == Poly.Type.TEXTTOPRIGHT)
+//						cY -= height*2;
+				} else
+				{
+					if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTBOX ||
+						style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT)
+							cY -= height * (varLength-1) / 2;
+					if (style == Poly.Type.TEXTTOP || style == Poly.Type.TEXTTOPLEFT || style == Poly.Type.TEXTTOPRIGHT)
+						cY -= height * (varLength-1);
+					varLength = 1;
+				}
 			}
 		}
 		Poly [] polys = new Poly[varLength];
@@ -894,14 +897,14 @@ public class ElectricObject
 		return key;
 	}
 
-	/*
+	/**
 	 * Method to determine the appropriate Cell associated with this ElectricObject.
 	 * @return the appropriate Cell associated with this ElectricObject.
 	 * Returns null if no Cell can be found.
 	 */
 	public Cell whichCell() { return null; }
 
-	/*
+	/**
 	 * Method to write a description of this ElectricObject (lists all Variables).
 	 * Displays the description in the Messages Window.
 	 */

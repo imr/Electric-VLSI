@@ -194,7 +194,7 @@ public class MoCMOS extends Technology
 
 	//******************** DESIGN RULES ********************
 
-	static class DRCRules
+	private static class DRCRules
 	{
 		String rule;			/* the name of the rule */
 		int when;				/* when the rule is used */
@@ -215,7 +215,7 @@ public class MoCMOS extends Technology
 		}
 	};
 
-	DRCRules [] theRules = new DRCRules[]
+	private DRCRules [] theRules = new DRCRules[]
 	{
 		new DRCRules("1.1",  DE|SU,           MINWID,   "P-Well",          null,            12, null),
 		new DRCRules("1.1",  DE|SU,           MINWID,   "N-Well",          null,            12, null),
@@ -553,12 +553,6 @@ public class MoCMOS extends Technology
 		new DRCRules("30.4", 0,               SPACINGW, "Metal-6",        "Metal-6",        8,  null)
 	};
 
-	/** defines the first transparent layer (metal-1). */			private static final int TRANSPARENT_1 = 1;
-	/** defines the second transparent layer (poly-1). */			private static final int TRANSPARENT_2 = 2;
-	/** defines the third transparent layer (active). */			private static final int TRANSPARENT_3 = 3;
-	/** defines the fourth transparent layer (metal-2). */			private static final int TRANSPARENT_4 = 4;
-	/** defines the fifth transparent layer (metal-3). */			private static final int TRANSPARENT_5 = 5;
-
 	// -------------------- private and protected methods ------------------------
 
 	private MoCMOS()
@@ -610,7 +604,7 @@ public class MoCMOS extends Technology
 
 		/** metal-1 layer */
 		Layer metal1_lay = Layer.newInstance(this, "Metal-1",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, TRANSPARENT_1, 96,209,255, 0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_1, 96,209,255, 0.8,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -630,7 +624,7 @@ public class MoCMOS extends Technology
 
 		/** metal-2 layer */
 		Layer metal2_lay = Layer.newInstance(this, "Metal-2",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, TRANSPARENT_4, 224,95,255, 0.7,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_4, 224,95,255, 0.7,1,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -650,7 +644,7 @@ public class MoCMOS extends Technology
 
 		/** metal-3 layer */
 		Layer metal3_lay = Layer.newInstance(this, "Metal-3",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, TRANSPARENT_5, 247,251,20, 0.6,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_5, 247,251,20, 0.6,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -730,7 +724,7 @@ public class MoCMOS extends Technology
 
 		/** poly layer */
 		poly1_lay = Layer.newInstance(this, "Polysilicon-1",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, TRANSPARENT_2, 255,155,192, 0.5,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_2, 255,155,192, 0.5,1,
 			new int[] { 0x1111,   //    X   X   X   X
 						0xFFFF,   // XXXXXXXXXXXXXXXX
 						0x1111,   //    X   X   X   X
@@ -770,7 +764,7 @@ public class MoCMOS extends Technology
 
 		/** P active layer */
 		Layer pActive_lay = Layer.newInstance(this, "P-Active",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, TRANSPARENT_3, 107,226,96, 0.5,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_3, 107,226,96, 0.5,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -790,7 +784,7 @@ public class MoCMOS extends Technology
 
 		/** N active layer */
 		Layer nActive_lay = Layer.newInstance(this, "N-Active",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, TRANSPARENT_3, 107,226,96, 0.5,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_3, 107,226,96, 0.5,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -945,7 +939,7 @@ public class MoCMOS extends Technology
 
 		/** poly/trans layer */
 		transistorPoly_lay = Layer.newInstance(this, "Transistor-Poly",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, TRANSPARENT_2, 255,155,192, 0.5,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_2, 255,155,192, 0.5,1,
 			new int[] { 0x1111,   //    X   X   X   X
 						0xFFFF,   // XXXXXXXXXXXXXXXX
 						0x1111,   //    X   X   X   X
@@ -970,7 +964,7 @@ public class MoCMOS extends Technology
 
 		/** P act well layer */
 		Layer pActiveWell_lay = Layer.newInstance(this, "P-Active-Well",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, TRANSPARENT_3, 107,226,96, 1.0,0,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_3, 107,226,96, 1.0,0,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -1010,7 +1004,7 @@ public class MoCMOS extends Technology
 
 		/** pseudo metal 1 */
 		Layer pseudoMetal1_lay = Layer.newInstance(this, "Pseudo-Metal-1",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, TRANSPARENT_1, 96,209,255, 0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_1, 96,209,255, 0.8,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -1030,7 +1024,7 @@ public class MoCMOS extends Technology
 
 		/** pseudo metal-2 */
 		Layer pseudoMetal2_lay = Layer.newInstance(this, "Pseudo-Metal-2",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, TRANSPARENT_4, 224,95,255, 0.7,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_4, 224,95,255, 0.7,1,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -1050,7 +1044,7 @@ public class MoCMOS extends Technology
 
 		/** pseudo metal-3 */
 		Layer pseudoMetal3_lay = Layer.newInstance(this, "Pseudo-Metal-3",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, TRANSPARENT_5, 247,251,20, 0.6,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_5, 247,251,20, 0.6,1,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -1130,7 +1124,7 @@ public class MoCMOS extends Technology
 
 		/** pseudo poly layer */
 		Layer pseudoPoly1_lay = Layer.newInstance(this, "Pseudo-Polysilicon",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, TRANSPARENT_2, 255,155,192, 1.0,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_2, 255,155,192, 1.0,1,
 			new int[] { 0x1111,   //    X   X   X   X
 						0xFFFF,   // XXXXXXXXXXXXXXXX
 						0x1111,   //    X   X   X   X
@@ -1141,7 +1135,8 @@ public class MoCMOS extends Technology
 						0x5555,   //  X X X X X X X X
 						0x1111,   //    X   X   X   X
 						0xFFFF,   // XXXXXXXXXXXXXXXX 
-						0x1111,   //  X X X X X X X X
+						0x1111,   //    X   X   X   X
+						0x5555,   //  X X X X X X X X
 						0x1111,   //    X   X   X   X
 						0xFFFF,   // XXXXXXXXXXXXXXXX
 						0x1111,   //    X   X   X   X
@@ -1169,7 +1164,7 @@ public class MoCMOS extends Technology
 
 		/** pseudo P active */
 		Layer pseudoPActive_lay = Layer.newInstance(this, "Pseudo-P-Active",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, TRANSPARENT_3, 107,226,96, 1.0,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_3, 107,226,96, 1.0,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -1189,7 +1184,7 @@ public class MoCMOS extends Technology
 
 		/** pseudo N active */
 		Layer pseudoNActive_lay = Layer.newInstance(this, "Pseudo-N-Active",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, TRANSPARENT_3, 107,226,96, 1.0,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.PATTERNED, EGraphics.TRANSPARENT_3, 107,226,96, 1.0,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -1465,47 +1460,47 @@ public class MoCMOS extends Technology
 		padFrame_lay.setFactorySkillLayer("");				// Pad-Frame
 
 		// The layer height
-		metal1_lay.setHeight(0, 17);						// Metal-1
-		metal2_lay.setHeight(0, 19);						// Metal-2
-		metal3_lay.setHeight(0, 21);						// Metal-3
-		metal4_lay.setHeight(0, 23);						// Metal-4
-		metal5_lay.setHeight(0, 25);						// Metal-5
-		metal6_lay.setHeight(0, 27);						// Metal-6
-		poly1_lay.setHeight(0, 15);							// Polysilicon-1
-		poly2_lay.setHeight(0, 16);							// Polysilicon-2
-		pActive_lay.setHeight(0, 13);						// P-Active
-		nActive_lay.setHeight(0, 13);						// N-Active
-		pSelect_lay.setHeight(0, 12);						// P-Select
-		nSelect_lay.setHeight(0, 12);						// N-Select
-		pWell_lay.setHeight(0, 11);							// P-Well
-		nWell_lay.setHeight(0, 11);							// N-Well
-		polyCut_lay.setHeight(2, 16);						// Poly-Cut
-		activeCut_lay.setHeight(4, 15);						// Active-Cut
-		via1_lay.setHeight(2, 18);							// Via-1
-		via2_lay.setHeight(2, 20);							// Via-2
-		via3_lay.setHeight(2, 22);							// Via-3
-		via4_lay.setHeight(2, 24);							// Via-4
-		via5_lay.setHeight(2, 26);							// Via-5
-		passivation_lay.setHeight(0, 30);					// Passivation
-		transistorPoly_lay.setHeight(0, 15);				// Transistor-Poly
-		polyCap_lay.setHeight(0, 28);						// Poly-Cap
-		pActiveWell_lay.setHeight(0, 13);					// P-Active-Well
-		silicideBlock_lay.setHeight(0, 10);					// Silicide-Block
-		pseudoMetal1_lay.setHeight(0, 17);					// Pseudo-Metal-1
-		pseudoMetal2_lay.setHeight(0, 19);					// Pseudo-Metal-2
-		pseudoMetal3_lay.setHeight(0, 21);					// Pseudo-Metal-3
-		pseudoMetal4_lay.setHeight(0, 23);					// Pseudo-Metal-4
-		pseudoMetal5_lay.setHeight(0, 25);					// Pseudo-Metal-5
-		pseudoMetal6_lay.setHeight(0, 27);					// Pseudo-Metal-6
-		pseudoPoly1_lay.setHeight(0, 12);					// Pseudo-Polysilicon-1
-		pseudoPoly2_lay.setHeight(0, 13);					// Pseudo-Polysilicon-2
-		pseudoPActive_lay.setHeight(0, 11);					// Pseudo-P-Active
-		pseudoNActive_lay.setHeight(0, 11);					// Pseudo-N-Active
-		pseudoPSelect_lay.setHeight(0, 2);					// Pseudo-P-Select
-		pseudoNSelect_lay.setHeight(0, 2);					// Pseudo-N-Select
-		pseudoPWell_lay.setHeight(0, 0);					// Pseudo-P-Well
-		pseudoNWell_lay.setHeight(0, 0);					// Pseudo-N-Well
-		padFrame_lay.setHeight(0, 33);						// Pad-Frame
+		metal1_lay.setFactory3DInfo(0, 17);					// Metal-1
+		metal2_lay.setFactory3DInfo(0, 19);					// Metal-2
+		metal3_lay.setFactory3DInfo(0, 21);					// Metal-3
+		metal4_lay.setFactory3DInfo(0, 23);					// Metal-4
+		metal5_lay.setFactory3DInfo(0, 25);					// Metal-5
+		metal6_lay.setFactory3DInfo(0, 27);					// Metal-6
+		poly1_lay.setFactory3DInfo(0, 15);					// Polysilicon-1
+		poly2_lay.setFactory3DInfo(0, 16);					// Polysilicon-2
+		pActive_lay.setFactory3DInfo(0, 13);				// P-Active
+		nActive_lay.setFactory3DInfo(0, 13);				// N-Active
+		pSelect_lay.setFactory3DInfo(0, 12);				// P-Select
+		nSelect_lay.setFactory3DInfo(0, 12);				// N-Select
+		pWell_lay.setFactory3DInfo(0, 11);					// P-Well
+		nWell_lay.setFactory3DInfo(0, 11);					// N-Well
+		polyCut_lay.setFactory3DInfo(2, 16);				// Poly-Cut
+		activeCut_lay.setFactory3DInfo(4, 15);				// Active-Cut
+		via1_lay.setFactory3DInfo(2, 18);					// Via-1
+		via2_lay.setFactory3DInfo(2, 20);					// Via-2
+		via3_lay.setFactory3DInfo(2, 22);					// Via-3
+		via4_lay.setFactory3DInfo(2, 24);					// Via-4
+		via5_lay.setFactory3DInfo(2, 26);					// Via-5
+		passivation_lay.setFactory3DInfo(0, 30);			// Passivation
+		transistorPoly_lay.setFactory3DInfo(0, 15);			// Transistor-Poly
+		polyCap_lay.setFactory3DInfo(0, 28);				// Poly-Cap
+		pActiveWell_lay.setFactory3DInfo(0, 13);			// P-Active-Well
+		silicideBlock_lay.setFactory3DInfo(0, 10);			// Silicide-Block
+		pseudoMetal1_lay.setFactory3DInfo(0, 17);			// Pseudo-Metal-1
+		pseudoMetal2_lay.setFactory3DInfo(0, 19);			// Pseudo-Metal-2
+		pseudoMetal3_lay.setFactory3DInfo(0, 21);			// Pseudo-Metal-3
+		pseudoMetal4_lay.setFactory3DInfo(0, 23);			// Pseudo-Metal-4
+		pseudoMetal5_lay.setFactory3DInfo(0, 25);			// Pseudo-Metal-5
+		pseudoMetal6_lay.setFactory3DInfo(0, 27);			// Pseudo-Metal-6
+		pseudoPoly1_lay.setFactory3DInfo(0, 12);			// Pseudo-Polysilicon-1
+		pseudoPoly2_lay.setFactory3DInfo(0, 13);			// Pseudo-Polysilicon-2
+		pseudoPActive_lay.setFactory3DInfo(0, 11);			// Pseudo-P-Active
+		pseudoNActive_lay.setFactory3DInfo(0, 11);			// Pseudo-N-Active
+		pseudoPSelect_lay.setFactory3DInfo(0, 2);			// Pseudo-P-Select
+		pseudoNSelect_lay.setFactory3DInfo(0, 2);			// Pseudo-N-Select
+		pseudoPWell_lay.setFactory3DInfo(0, 0);				// Pseudo-P-Well
+		pseudoNWell_lay.setFactory3DInfo(0, 0);				// Pseudo-N-Well
+		padFrame_lay.setFactory3DInfo(0, 33);				// Pad-Frame
 
 		// The layer height
 		metal1_lay.setFactoryParasitics(0.06, 0.07, 0);			// Metal-1

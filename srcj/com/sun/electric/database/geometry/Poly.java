@@ -772,11 +772,12 @@ public class Poly implements Shape
 	/**
 	 * Method to convert text Polys to their precise bounds in a given window.
 	 * @param wnd the window.
+	 * @return true if the text is too small to display.
 	 */
-	public void setExactTextBounds(EditWindow wnd)
+	public boolean setExactTextBounds(EditWindow wnd)
 	{
 		String theString = getString().trim();
-		if (theString.length() == 0) return;
+		if (theString.length() == 0) return true;
 		int numLines = 1;
 		if (var != null)
 		{
@@ -794,12 +795,13 @@ public class Poly implements Shape
 			}
 		}
 
+		Font font = wnd.getFont(getTextDescriptor());
+		if (font == null) return true;
 		Rectangle2D bounds = getBounds2D();
 		double lX = bounds.getMinX();
 		double hX = bounds.getMaxX();
 		double lY = bounds.getMinY();
 		double hY = bounds.getMaxY();
-		Font font = wnd.getFont(getTextDescriptor());
 		GlyphVector gv = wnd.getGlyphs(theString, font);
 		Rectangle2D glyphBounds = gv.getVisualBounds();
 		Point2D corner = getTextCorner(wnd, font, gv, getStyle(), lX, hX, lY, hY);
@@ -831,6 +833,7 @@ public class Poly implements Shape
 			new Point2D.Double(cX+width, cY+height),
 			new Point2D.Double(cX, cY+height)};
 		this.bounds = null;
+		return false;
 	}
 
 	/**
@@ -1463,11 +1466,30 @@ public class Poly implements Shape
 	}
 
 	/**
+	 * Method to compute the perimeter of this Poly.
+	 * @return the perimeter of this Poly.
+	 */
+	public double getPerimeter()
+	{
+		double perim = 0;
+		int start = 0;
+		if (style == Type.OPENED || style == Type.OPENEDT1 || style == Type.OPENEDT2 || style == Type.OPENEDT3)
+			start = 1;
+		for(int i=start; i<points.length; i++)
+		{
+			int j = i - 1;
+			if (j < 0) j = points.length - 1;
+			perim += points[i].distance(points[j]);
+		}
+		return perim;
+	}
+
+	/**
 	 * Method to compute the area of this Poly.
 	 * @return the area of this Poly.
 	 * The calculation may return a negative value if the polygon points are counter-clockwise.
 	 */
-	public double areaPoly()
+	public double getArea()
 	{
 		if (style == Type.FILLED || style == Type.CLOSED || style == Type.CROSSED || style.isText())
 		{
@@ -1491,7 +1513,7 @@ public class Poly implements Shape
 				return area;
 			}
 
-			return areaPoints(points);
+			return getAreaOfPoints(points);
 		}
 		return 0;
 	}
@@ -1502,7 +1524,7 @@ public class Poly implements Shape
 	 * @return the area of the polygon defined by these points.
 	 * The calculation may return a negative value if the points are counter-clockwise.
 	 */
-	public static double areaPoints(Point2D [] points)
+	private static double getAreaOfPoints(Point2D [] points)
 	{
 		double area = 0.0;
 		double x0 = points[0].getX();

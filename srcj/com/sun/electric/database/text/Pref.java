@@ -120,6 +120,12 @@ public class Pref
 		 */
 		public String getDescription() { return description; }
 
+		/**
+		 * Method to set whether this Meaning option is valid and should be reconciled.
+		 * Some should not, for example, the scale value on technologies that
+		 * don't use scaling (such as Schematics, Artwork, etc.)
+		 * @param valid true if this Meaning option is valid and should be reconciled.
+		 */
 		public void setValidOption(boolean valid) { this.valid = valid; }
 
 		/**
@@ -149,7 +155,21 @@ public class Pref
 		 * @return the array of strings that should be used for this integer Meaning option.
 		 */
 		public String [] getTrueMeaning() { return trueMeaning; }
-		public void setDesiredValue(Object desiredValue) { this.desiredValue = desiredValue; }
+
+		/**
+		 * Method to set the desired value on this Meaning.
+		 * The desired value is the one that is currently in effect, as opposed to
+		 * the value that has been read with a Library.
+		 * @param desiredValue the desired value on this Meaning.
+		 */
+		private void setDesiredValue(Object desiredValue) { this.desiredValue = desiredValue; }
+
+		/**
+		 * Method to get the desired value on this Meaning.
+		 * The desired value is the one that is currently in effect, as opposed to
+		 * the value that has been read with a Library.
+		 * @return the desired value on this Meaning.
+		 */
 		public Object getDesiredValue() { return desiredValue; }
 	}
 
@@ -169,6 +189,9 @@ public class Pref
 	private static List allPrefs = new ArrayList();
 	private static Set meaningVariablesThatChanged;
 
+	/**
+	 * The constructor for the Pref.
+	 */
 	protected Pref() {}
 
 	/**
@@ -313,6 +336,7 @@ public class Pref
 		this.cachedObj = new String(prefs.get(name, factory));
 		allPrefs.add(this);
 	}
+
 	/**
 	 * Factory methods to create a string Pref objects.
 	 * @param name the name of this Pref.
@@ -332,24 +356,28 @@ public class Pref
 	 * @return the boolean value on this Pref object.
 	 */
 	public boolean getBoolean() { return ((Integer)cachedObj).intValue() != 0; }
+
 	/**
 	 * Method to get the integer value on this Pref object.
 	 * The object must have been created as "integer".
 	 * @return the integer value on this Pref object.
 	 */
 	public int getInt() { return ((Integer)cachedObj).intValue(); }
+
 	/**
 	 * Method to get the long value on this Pref object.
 	 * The object must have been created as "long".
 	 * @return the long value on this Pref object.
 	 */
 	public long getLong() { return ((Long)cachedObj).longValue(); }
+
 	/**
 	 * Method to get the double value on this Pref object.
 	 * The object must have been created as "double".
 	 * @return the double value on this Pref object.
 	 */
 	public double getDouble() { return ((Double)cachedObj).doubleValue(); }
+
 	/**
 	 * Method to get the string value on this Pref object.
 	 * The object must have been created as "string".

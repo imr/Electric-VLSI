@@ -71,6 +71,8 @@ public class ArcInst extends Geometric
 {
 	/** The index of the head of this ArcInst. */		public static final int HEADEND = 0;
 	/** The index of the tail of this ArcInst. */		public static final int TAILEND = 1;
+	/** Key of the obsolete variable holding arc name.*/public static final Variable.Key ARC_NAME = ElectricObject.newKey("ARC_name");
+	/** Key of Varible holding arc curvature. */		public static final Variable.Key ARC_RADIUS = ElectricObject.newKey("ARC_radius");
 
 	// -------------------------- private data ----------------------------------
 
@@ -96,9 +98,6 @@ public class ArcInst extends Geometric
 //	/** opaque arcinst re-draw is done */				private static final int REODONA =          04000000000;
 //	/** general flag for spreading and highlighting */	private static final int ARCFLAGBIT =      010000000000;
 	/** set if hard to select */						private static final int HARDSELECTA =     020000000000;
-
-	/** Key of the obsolete variable holding arc name.*/public static final Variable.Key ARC_NAME = ElectricObject.newKey("ARC_name");
-	/** Key of Varible holding arc curvature. */		public static final Variable.Key ARC_RADIUS = ElectricObject.newKey("ARC_radius");
 
 	/** prefix for autonameing. */						private static final Name BASENAME = Name.findName("net@");
 
@@ -518,6 +517,16 @@ public class ArcInst extends Geometric
 	public int getAngle() { return angle; }
 
 	/**
+	 * Method to set the rotation angle of this ArcInst.
+	 * @param angle the rotation angle of this ArcInst (in tenth-degrees).
+	 * In general, you should not call this method because the
+	 * constructors and modification methods update this correctly.
+	 * If, however, you have a zero-length arc and want to explicitly set
+	 * its angle, then use this method.
+	 */
+	public void setAngle(int angle) { this.angle = angle; }
+
+	/**
 	 * Method to create a Poly object that describes an ArcInst.
 	 * The ArcInst is described by its length, width and style.
 	 * @param length the length of the ArcInst.
@@ -909,7 +918,7 @@ public class ArcInst extends Geometric
 	 */
 	public boolean isDeprecatedVariable(Variable.Key key) { return key == ARC_NAME; }
 
-	/*
+	/**
 	 * Method to write a description of this ArcInst.
 	 * Displays the description in the Messages Window.
 	 */
@@ -1122,6 +1131,7 @@ public class ArcInst extends Geometric
 	 * This general access to the bits is required because the ELIB
 	 * file format stores it this way.
 	 * This should not normally be called by any other part of the system.
+	 * If you need to set the angle of an arc, use "setAngle".
 	 * @param angle the angle of the ArcInst (in degrees).
 	 */
 	public void lowLevelSetArcAngle(int angle) { userBits = (userBits & ~AANGLE) | (angle << AANGLESH); }

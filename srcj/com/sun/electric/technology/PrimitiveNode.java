@@ -322,6 +322,11 @@ public class PrimitiveNode extends NodeProto
 	 */
 	public Technology getTechnology() { return tech; }
 
+	/**
+	 * Method to add an array of Ports to this PrimitiveNode.
+	 * The method is only used during initialization.
+	 * @param ports the array of PrimitivePorts to add.
+	 */
 	public void addPrimitivePorts(PrimitivePort [] ports)
 	{
 		for(int i = 0; i < ports.length; i++)

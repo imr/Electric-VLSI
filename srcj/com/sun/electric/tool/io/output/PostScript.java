@@ -138,10 +138,9 @@ public class PostScript extends Output
 		wf = WindowFrame.getCurrentWindowFrame();
 		if (wf != null && wf.getContent().getCell() != cell) wf = null;
 		wnd = null;
-		if (wf != null && wf.getContent() instanceof EditWindow.CircuitPart)
+		if (wf != null && wf.getContent() instanceof EditWindow)
 		{
-			EditWindow.CircuitPart cp = (EditWindow.CircuitPart)wf.getContent();
-			wnd = cp.getEditWindow();
+			wnd = (EditWindow)wf.getContent();
 		}
 
 		// clear flags that tell whether headers have been included

@@ -603,6 +603,8 @@ public class TextDescriptor
 	/** the words of the text descriptor */		private int descriptor0, descriptor1;
 	/** the owner of the text descriptor */		ElectricObject owner;
 
+	/** preferences for all descriptors */	private static Preferences prefs = Preferences.userNodeForPackage(TextDescriptor.class);
+
 	/**
 	 * The constructor simply creates a TextDescriptor with zero values filled-in.
 	 * @param owner owner of this TextDescriptor.
@@ -649,8 +651,6 @@ public class TextDescriptor
 		this.descriptor0 = (int)(descriptor >> 32);
 		this.descriptor1 = (int)(descriptor & 0xFFFFFFFF);
 	}
-
-	/** preferences for all descriptors */	private static Preferences prefs = Preferences.userNodeForPackage(TextDescriptor.class);
 
 	/**
 	 * Default TextDescriptor for NodeInsts is 1 unit tall.
@@ -1117,9 +1117,7 @@ public class TextDescriptor
 	public void setDispPart(DispPos d)
 	{
 		checkChanging();
-//System.out.println("word 0 was "+Integer.toOctalString(descriptor0));
 		descriptor0 = (descriptor0 & ~VTDISPLAYPART) | (d.getIndex() << VTDISPLAYPARTSH);
-//System.out.println("word 0 is "+Integer.toOctalString(descriptor0)+" after adding in "+Integer.toOctalString((d.getIndex() << VTDISPLAYPARTSH))+ ("disppos="+d+")"));
 	}
 
 	/**

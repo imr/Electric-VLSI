@@ -26,6 +26,7 @@ package com.sun.electric.tool.user;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.geometry.PolyQTree;
 import com.sun.electric.database.hierarchy.*;
@@ -52,6 +53,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.erc.ERCAntenna;
@@ -68,6 +70,7 @@ import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.routing.MimicStitch;
 import com.sun.electric.tool.simulation.IRSIMTool;
+import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.dialogs.*;
 import com.sun.electric.tool.user.help.HelpViewer;
 import com.sun.electric.tool.user.ui.MenuBar;
@@ -97,6 +100,9 @@ import java.awt.Image;
 import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseEvent;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -412,6 +418,8 @@ public final class MenuCommands
 
 		editMenu.addMenuItem("Array...", KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Array.showArrayDialog(); } });
+		editMenu.addMenuItem("Insert Jog In Arc", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { insertJogInArcCommand(); } });
 		editMenu.addMenuItem("Change...", KeyStroke.getKeyStroke('C', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Change.showChangeDialog(); } });
 
@@ -659,17 +667,29 @@ public final class MenuCommands
         windowMenu.addSeparator();
 
         m = windowMenu.addMenuItem("Pan Left", KeyStroke.getKeyStroke('4', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panX(WindowFrame.getCurrentWindowFrame(), 4); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panX(WindowFrame.getCurrentWindowFrame(), 1); }});
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD4, buckyBit), null);
         m = windowMenu.addMenuItem("Pan Right", KeyStroke.getKeyStroke('6', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panX(WindowFrame.getCurrentWindowFrame(), -4); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panX(WindowFrame.getCurrentWindowFrame(), -1); }});
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD6, buckyBit), null);
         m = windowMenu.addMenuItem("Pan Up", KeyStroke.getKeyStroke('8', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panY(WindowFrame.getCurrentWindowFrame(), -4); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panY(WindowFrame.getCurrentWindowFrame(), -1); }});
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD8, buckyBit), null);
         m = windowMenu.addMenuItem("Pan Down", KeyStroke.getKeyStroke('2', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panY(WindowFrame.getCurrentWindowFrame(), 4); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panY(WindowFrame.getCurrentWindowFrame(), 1); }});
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD2, buckyBit), null);
+		Menu panningDistanceSubMenu = new Menu("Panning Distance");
+		windowMenu.add(panningDistanceSubMenu);
+
+		ButtonGroup windowPanGroup = new ButtonGroup();
+		JMenuItem panSmall, panMedium, panLarge;
+		panSmall = panningDistanceSubMenu.addRadioButton("Small", true, windowPanGroup, null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panningDistanceCommand(0.15); } });
+		panMedium = panningDistanceSubMenu.addRadioButton("Medium", true, windowPanGroup, null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panningDistanceCommand(0.3); } });
+		panLarge = panningDistanceSubMenu.addRadioButton("Large", true, windowPanGroup, null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panningDistanceCommand(0.6); } });
+		panLarge.setSelected(true);
 
         windowMenu.addSeparator();
 
@@ -719,7 +739,7 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.SPICE, true); }});
 		spiceSimulationSubMenu.addMenuItem("Write CDL Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.CDL, true); }});
-		spiceSimulationSubMenu.addMenuItem("Plot Spice Deck...", null,
+		spiceSimulationSubMenu.addMenuItem("Plot Spice Listing...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotSpiceResults(); }});
 
 		spiceSimulationSubMenu.addSeparator();
@@ -742,11 +762,18 @@ public final class MenuCommands
 		toolMenu.add(verilogSimulationSubMenu);
 		verilogSimulationSubMenu.addMenuItem("Write Verilog Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.VERILOG, true); } });
-		verilogSimulationSubMenu.addMenuItem("Plot Verilog Deck...", null,
+		verilogSimulationSubMenu.addMenuItem("Plot Verilog VCD Dump...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotVerilogResults(); }});
 		verilogSimulationSubMenu.addSeparator();
 		verilogSimulationSubMenu.addMenuItem("Set Verilog Template", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Verilog.VERILOG_TEMPLATE_KEY); }});
+		verilogSimulationSubMenu.addSeparator();
+		Menu transistorStrengthSubMenu = new Menu("Transistor Strength", 'T');
+		transistorStrengthSubMenu.addMenuItem("Weak", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setTransistorStrengthCommand(true); }});
+		transistorStrengthSubMenu.addMenuItem("Normal", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setTransistorStrengthCommand(false); }});
+		verilogSimulationSubMenu.add(transistorStrengthSubMenu);
 
 		Menu netlisters = new Menu("Simulation (others)");
 		toolMenu.add(netlisters);
@@ -795,11 +822,14 @@ public final class MenuCommands
 		Menu routingSubMenu = new Menu("Routing", 'R');
 		routingSubMenu.addMenuItem("Mimic-Stitch Now", KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { MimicStitch.mimicStitch(true); }});
-	   routingSubMenu.addMenuItem("Auto-Stitch Now", null,
+	    routingSubMenu.addMenuItem("Auto-Stitch Now", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { AutoStitch.autoStitch(false, true); }});
 		routingSubMenu.addMenuItem("Auto-Stitch Highlighted Now", KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { AutoStitch.autoStitch(true, true); }});
 		toolMenu.add(routingSubMenu);
+		routingSubMenu.addSeparator();
+		routingSubMenu.addMenuItem("Get Unrouted Wire", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { getUnroutedArcCommand(); }});
 
 		Menu generationSubMenu = new Menu("Generation", 'G');
 		toolMenu.add(generationSubMenu);
@@ -815,6 +845,8 @@ public final class MenuCommands
 
 		toolMenu.addMenuItem("Tool Options...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolOptions.toolOptionsCommand(); } });
+		toolMenu.addMenuItem("List Tools",null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { listToolsCommand(); } });
 		Menu languagesSubMenu = new Menu("Languages");
 		languagesSubMenu.addMenuItem("Run Java Bean Shell Script", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { javaBshScriptCommand(); }});
@@ -1034,7 +1066,7 @@ public final class MenuCommands
 	 * Class to read a text library in a new thread.
 	 * For a non-interactive script, use ReadTextLibrary job = new ReadTextLibrary(filename).
 	 */
-	protected static class ReadTextLibrary extends Job
+	private static class ReadTextLibrary extends Job
 	{
 		URL fileURL;
 		protected ReadTextLibrary(URL fileURL)
@@ -1227,7 +1259,7 @@ public final class MenuCommands
 	 * ExportCell job = new ExportCell(Cell cell, String filename, Output.ExportType type).
 	 * Saves as an elib.
 	 */
-	protected static class ExportCell extends Job
+	private static class ExportCell extends Job
 	{
 		Cell cell;
         VarContext context;
@@ -1299,7 +1331,7 @@ public final class MenuCommands
 	/**
 	 * Class to print a cell in a new thread.
 	 */
-	protected static class PrintJob extends Job
+	private static class PrintJob extends Job
 	{
 		Cell cell;
 		PrinterJob pj;
@@ -1370,7 +1402,7 @@ public final class MenuCommands
 	/**
 	 * Class to quit Electric in a new thread.
 	 */
-	protected static class QuitJob extends Job
+	private static class QuitJob extends Job
 	{
 		public QuitJob()
 		{
@@ -1665,7 +1697,8 @@ public final class MenuCommands
 		if (curCell == null) return;
         Job job = new LayerCoverage(curCell);
 	}
-	protected static class LayerCoverage extends Job
+
+	private static class LayerCoverage extends Job
 	{
 		private Cell curCell;
 
@@ -3082,7 +3115,7 @@ public final class MenuCommands
 		MakeTemplate job = new MakeTemplate(templateKey);
 	}
 
-	protected static class MakeTemplate extends Job
+	private static class MakeTemplate extends Job
 	{
 		private Variable.Key templateKey;
 
@@ -3113,6 +3146,11 @@ public final class MenuCommands
 			}
 		}
 	}
+	
+	public static void getUnroutedArcCommand()
+	{
+		User.tool.setCurrentArcProto(Generic.tech.unrouted_arc);
+	}
 
 	public static void padFrameGeneratorCommand()
 	{
@@ -3123,6 +3161,24 @@ public final class MenuCommands
         }
 	}
 
+	public static void listToolsCommand()
+	{
+		System.out.println("Tools in Electric:");
+		for(Iterator it = Tool.getTools(); it.hasNext(); )
+		{
+			Tool tool = (Tool)it.next();
+			StringBuffer infstr = new StringBuffer();
+			if (tool.isOn()) infstr.append("On"); else
+				infstr.append("Off");
+			if (tool.isBackground()) infstr.append(", Background");
+			if (tool.isFixErrors()) infstr.append(", Correcting");
+			if (tool.isIncremental()) infstr.append(", Incremental");
+			if (tool.isAnalysis()) infstr.append(", Analysis");
+			if (tool.isSynthesis()) infstr.append(", Synthesis");
+			System.out.println(tool.getName() + ": " + infstr.toString());
+		}
+	}
+	
 	public static void javaBshScriptCommand()
 	{
 		String fileName = OpenFile.chooseInputFile(OpenFile.Type.JAVA, null);
@@ -3242,6 +3298,187 @@ public final class MenuCommands
 	}
 
 	/**
+	 * This method implements the command to insert a jog in an arc
+	 */
+	public static void insertJogInArcCommand()
+	{
+		EditWindow wnd = EditWindow.needCurrent();
+		if (wnd == null) return;
+		ArcInst ai = (ArcInst)Highlight.getOneElectricObject(ArcInst.class);
+		if (ai == null) return;
+		if (CircuitChanges.cantEdit(ai.getParent(), null, true)) return;
+
+		System.out.println("Select the position in the arc to place the jog");
+		EventListener currentListener = WindowFrame.getListener();
+		WindowFrame.setListener(new InsertJogInArcListener(wnd, ai, currentListener));
+	}
+
+	/**
+	 * Class to handle the interactive selection of a jog point in an arc.
+	 */
+	private static class InsertJogInArcListener
+		implements MouseMotionListener, MouseListener
+	{
+		private EditWindow wnd;
+		private ArcInst ai;
+		private EventListener currentListener;
+
+		/**
+		 * Create a new insert-jog-point listener
+		 * @param wnd Controlling window
+		 * @param ai the arc that is having a jog inserted.
+		 * @param currentListener listener to restore when done
+		 */
+		public InsertJogInArcListener(EditWindow wnd, ArcInst ai, EventListener currentListener)
+		{
+			this.wnd = wnd;
+			this.ai = ai;
+			this.currentListener = currentListener;
+		}
+
+		public void mousePressed(MouseEvent evt) {}
+		public void mouseClicked(MouseEvent evt) {}
+		public void mouseEntered(MouseEvent evt) {}
+		public void mouseExited(MouseEvent evt) {}
+
+		public void mouseDragged(MouseEvent evt)
+		{
+			mouseMoved(evt);
+		}
+
+		public void mouseReleased(MouseEvent evt)
+		{
+			Point2D insert = getInsertPoint(evt);
+			InsertJogPoint job = new InsertJogPoint(ai, insert);
+			WindowFrame.setListener(currentListener);
+		}
+
+		public void mouseMoved(MouseEvent evt)
+		{
+			Point2D insert = getInsertPoint(evt);
+			double x = insert.getX();
+			double y = insert.getY();
+
+			double width = (ai.getWidth() - ai.getProto().getWidthOffset()) / 2;
+			Highlight.clear();
+			Highlight.addLine(new Point2D.Double(x-width, y-width), new Point2D.Double(x-width, y+width), ai.getParent());
+			Highlight.addLine(new Point2D.Double(x-width, y+width), new Point2D.Double(x+width, y+width), ai.getParent());
+			Highlight.addLine(new Point2D.Double(x+width, y+width), new Point2D.Double(x+width, y-width), ai.getParent());
+			Highlight.addLine(new Point2D.Double(x+width, y-width), new Point2D.Double(x-width, y-width), ai.getParent());
+			Highlight.finished();
+			wnd.repaint();
+		}
+
+		private Point2D getInsertPoint(MouseEvent evt)
+		{
+			Point2D mouseDB = wnd.screenToDatabase((int)evt.getX(), (int)evt.getY());
+			Point2D insert = EMath.closestPointToSegment(ai.getHead().getLocation(), ai.getTail().getLocation(), mouseDB);
+			EditWindow.gridAlign(insert);
+			return insert;
+		}
+
+		private static class InsertJogPoint extends Job
+		{
+			ArcInst ai;
+			Point2D insert;
+
+			protected InsertJogPoint(ArcInst ai, Point2D insert)
+			{
+				super("Insert Jog in Arc", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+				this.ai = ai;
+				this.insert = insert;
+				startJob();
+			}
+
+			public void doIt()
+			{
+				// create the break pins
+				ArcProto ap = ai.getProto();
+				NodeProto np = ((PrimitiveArc)ap).findPinProto();
+				if (np == null) return;
+				NodeInst ni = NodeInst.makeInstance(np, insert, np.getDefWidth(), np.getDefHeight(),
+					0, ai.getParent(), null);
+				if (ni == null)
+				{
+					System.out.println("Cannot create pin " + np.describe());
+					return;
+				}
+				NodeInst ni2 = NodeInst.makeInstance(np, insert, np.getDefWidth(), np.getDefHeight(),
+					0, ai.getParent(), null);
+				if (ni2 == null)
+				{
+					System.out.println("Cannot create pin " + np.describe());
+					return;
+				}
+
+				// get location of connection to these pins
+				PortInst pi = ni.getOnlyPortInst();
+				PortInst pi2 = ni2.getOnlyPortInst();
+
+//				// see if edge alignment is appropriate
+//				if (us_edgealignment_ratio != 0 && (ai->end[0].xpos == ai->end[1].xpos ||
+//					ai->end[0].ypos == ai->end[1].ypos))
+//				{
+//					edgealignment = muldiv(us_edgealignment_ratio, WHOLE, el_curlib->lambda[el_curtech->techindex]);
+//					px = us_alignvalue(x, edgealignment, &otheralign);
+//					py = us_alignvalue(y, edgealignment, &otheralign);
+//					if (px != x || py != y)
+//					{
+//						// shift the nodes and make sure the ports are still valid
+//						startobjectchange((INTBIG)ni, VNODEINST);
+//						modifynodeinst(ni, px-x, py-y, px-x, py-y, 0, 0);
+//						endobjectchange((INTBIG)ni, VNODEINST);
+//						startobjectchange((INTBIG)ni2, VNODEINST);
+//						modifynodeinst(ni2, px-x, py-y, px-x, py-y, 0, 0);
+//						endobjectchange((INTBIG)ni2, VNODEINST);
+//						(void)shapeportpoly(ni, ppt, poly, FALSE);
+//						if (!isinside(nx, ny, poly)) getcenter(poly, &nx, &ny);
+//					}
+//				}
+
+				// now save the arc information and delete it
+				PortInst headPort = ai.getHead().getPortInst();
+				PortInst tailPort = ai.getTail().getPortInst();
+				Point2D headPt = ai.getHead().getLocation();
+				Point2D tailPt = ai.getTail().getLocation();
+				double width = ai.getWidth();
+				boolean headNegated = ai.getHead().isNegated();
+				boolean tailNegated = ai.getTail().isNegated();
+				if (ai.isReverseEnds())
+				{
+					boolean swap = headNegated;   headNegated = tailNegated;   tailNegated = swap;
+				}
+				String arcName = ai.getName();
+				int angle = (ai.getAngle() + 900) % 3600;
+				ai.kill();
+
+				// create the new arcs
+				ArcInst newAi1 = ArcInst.makeInstance(ap, width, headPort, headPt, pi, insert, null);
+				if (headNegated) newAi1.getHead().setNegated(true);
+				ArcInst newAi2 = ArcInst.makeInstance(ap, width, pi, insert, pi2, insert, null);
+				ArcInst newAi3 = ArcInst.makeInstance(ap, width, pi2, insert, tailPort, tailPt, null);
+				if (tailNegated) newAi3.getTail().setNegated(true);
+				if (arcName != null)
+				{
+					if (headPt.distance(insert) > tailPt.distance(insert))
+					{
+						newAi1.setName(arcName);
+					} else
+					{
+						newAi3.setName(arcName);
+					}
+				}
+				newAi2.setAngle(angle);
+
+				// highlight one of the jog nodes
+				Highlight.clear();
+				Highlight.addElectricObject(ni, ai.getParent());
+				Highlight.finished();
+			}
+		}
+	}
+
+	/**
 	 * This method implements the command to show the undo history.
 	 */
 	public static void showUndoListCommand()
@@ -3267,7 +3504,7 @@ public final class MenuCommands
 	/**
 	 * Class to read a library in a new thread.
 	 */
-	protected static class MakeFakeCircuitry extends Job
+	private static class MakeFakeCircuitry extends Job
 	{
 		protected MakeFakeCircuitry()
 		{
@@ -3539,7 +3776,7 @@ public final class MenuCommands
 	    }
 	}
 
-	protected static class CoverImplant extends Job
+	private static class CoverImplant extends Job
 	{
 		private Cell curCell;
         private boolean testMerge = false;
@@ -3653,7 +3890,8 @@ public final class MenuCommands
 				System.out.println("No implant areas added");
 		}
 	}
-	protected static class CoverImplantOld extends Job
+
+	private static class CoverImplantOld extends Job
 	{
 		private Cell curCell;
 
@@ -3878,7 +4116,7 @@ public final class MenuCommands
 		MakeWhitDesign job = new MakeWhitDesign();
 	}
 
-	protected static class MakeWhitDesign extends Job
+	private static class MakeWhitDesign extends Job
 	{
 		protected MakeWhitDesign()
 		{

@@ -154,6 +154,10 @@ public class TextWindow
 		rootNode.add(wf.errorExplorerNode);
 	}
 	
+	/**
+	 * Method to return the top-level JPanel for this TextWindow.
+	 * @return the top-level JPanel for this TextWindow.
+	 */
 	public JPanel getPanel() { return overall; }
 
 	/**

@@ -67,8 +67,8 @@ import java.util.HashMap;
  * of the poly or metal wires, so it is the perimeter times the thickness.
  *<P>
  * Things to do:
- *   Have errors show the gates, too
- *   Progress indicator
+ *   Have errors show the gates;
+ *   Not all active connections excuse the area trouble...they should be part of the ratio formula
  */
 public class ERCAntenna
 {
@@ -94,6 +94,8 @@ public class ERCAntenna
 	
 	/** default maximum ratio of poly to gate area */		public static final double DEFPOLYRATIO  = 200;
 	/** default maximum ratio of metal to gate area */		public static final double DEFMETALRATIO = 400;
+	/** default poly thickness for side-area */				public static final double DEFPOLYTHICKNESS  = 2;
+	/** default metal thickness for side-area */			public static final double DEFMETALTHICKNESS = 5.7;
 
 	/** nothing found on the path */						private static final int ERCANTPATHNULL   = 0;
 	/** found a gate on the path */							private static final int ERCANTPATHGATE   = 1;
@@ -320,27 +322,33 @@ public class ERCAntenna
 					if (vmerge != null)
 					{
 						// get the area of the antenna
-						double totalRegionArea = 0.0;
+						double totalRegionPerimeterArea = 0.0;
 						for(Iterator lIt = vmerge.getLayersUsed(); lIt.hasNext(); )
 						{
 							Layer oLay = (Layer)lIt.next();
+							double thickness = oLay.getThickness();
+							if (thickness == 0)
+							{
+								if (oLay.getFunction().isMetal()) thickness = DEFMETALTHICKNESS; else
+									if (oLay.getFunction().isPoly()) thickness = DEFPOLYTHICKNESS;
+							}
 							List merges = vmerge.getMergedPoints(oLay);
 							for(Iterator mIt = merges.iterator(); mIt.hasNext(); )
 							{
 								Poly merged = (Poly)mIt.next();
-								totalRegionArea += merged.areaPoly();
+								totalRegionPerimeterArea += merged.getPerimeter() * thickness;
 							}
 						}
 
 						// see if it is an antenna violation
-						double ratio = totalRegionArea / totalGateArea;
-//System.out.println("   Area="+totalRegionArea+" and gate area="+totalGateArea+" so ratio="+ratio);
+						double ratio = totalRegionPerimeterArea / totalGateArea;
+//System.out.println("   Perimeter area="+totalRegionPerimeterArea+" and gate area="+totalGateArea+" so ratio="+ratio);
 						double neededratio = getAntennaRatio(lay);
 						if (ratio > worstRatio) worstRatio = ratio;
 						if (ratio >= neededratio)
 						{
 							// error
-							String errMsg = "layer " + lay.getName() + " has area " + totalRegionArea +
+							String errMsg = "layer " + lay.getName() + " has perimeter-area " + totalRegionPerimeterArea +
 								"; gates have area " + totalGateArea + ", ratio is " + ratio + " but limit is " + neededratio;
 							ErrorLog err = ErrorLog.logError(errMsg, cell, 0);
 							for(Iterator lIt = vmerge.getLayersUsed(); lIt.hasNext(); )

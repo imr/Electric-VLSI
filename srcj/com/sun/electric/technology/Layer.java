@@ -234,6 +234,8 @@ public class Layer
 	private static HashMap resistanceParasiticPrefs = new HashMap();
 	private static HashMap capacitanceParasiticPrefs = new HashMap();
 	private static HashMap edgeCapacitanceParasiticPrefs = new HashMap();
+	private static HashMap layerThicknessPrefs = new HashMap();
+	private static HashMap layerHeightPrefs = new HashMap();
 
 	private Layer(String name, Technology tech, EGraphics graphics)
 	{
@@ -254,6 +256,7 @@ public class Layer
 	public static Layer newInstance(Technology tech, String name, EGraphics graphics)
 	{
 		Layer layer = new Layer(name, tech, graphics);
+		graphics.setLayer(layer);
 		if (tech != null) tech.addLayer(layer);
 		return layer;
 	}
@@ -375,35 +378,6 @@ public class Layer
 	 */
 	public void setVisible(boolean visible) { this.visible = visible; }
 
-	/**
-	 * Method to set the 3D height and thickness of this Layer.
-	 * @param thickness the thickness of this layer.
-	 * Most layers have a thickness of 0, but contact layers are fatter
-	 * because they bridge layers...they typically have a thickness of 1.
-	 * @param height the height of this layer above the ground plane.
-	 * The higher the height value, the farther from the wafer.
-	 */
-	public void setHeight(double thickness, double height)
-	{
-		this.thickness = thickness;
-		this.height = height;
-	}
-
-	/**
-	 * Method to return the height of this layer.
-	 * @return the height of this layer above the ground plane.
-	 * The higher the height value, the farther from the wafer.
-	 */
-	public double getHeight() { return height; }
-
-	/**
-	 * Method to return the thickness of this layer.
-	 * @return the thickness of this layer.
-	 * Most layers have a thickness of 0, but contact layers are fatter
-	 * because they bridge layers...they typically have a thickness of 1.
-	 */
-	public double getThickness() { return thickness; }
-
 	private Pref getLayerPref(String what, HashMap map, String factory)
 	{
 		Pref pref = (Pref)map.get(this);
@@ -428,6 +402,61 @@ public class Layer
 		}
 		return pref;
 	}
+
+	private Pref get3DPref(String what, HashMap map, double factory)
+	{
+		Pref pref = (Pref)map.get(this);
+		if (pref == null)
+		{
+			pref = Pref.makeDoublePref(what + "Of" + name + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factory);
+			map.put(this, pref);
+		}
+		return pref;
+	}
+
+	/**
+	 * Method to set the 3D height and thickness of this Layer.
+	 * @param thickness the thickness of this layer.
+	 * Most layers have a thickness of 0, but contact layers are fatter
+	 * because they bridge layers...they typically have a thickness of 1.
+	 * @param height the height of this layer above the ground plane.
+	 * The higher the height value, the farther from the wafer.
+	 */
+	public void setFactory3DInfo(double thickness, double height)
+	{
+		get3DPref("Thickness", layerThicknessPrefs, thickness);
+		get3DPref("Height", layerHeightPrefs, height);
+		this.thickness = thickness;
+		this.height = height;
+	}
+
+	/**
+	 * Method to return the height of this layer.
+	 * The higher the height value, the farther from the wafer.
+	 * @return the height of this layer above the ground plane.
+	 */
+	public double getHeight() { return get3DPref("Height", layerHeightPrefs, height).getDouble(); }
+
+	/**
+	 * Method to set the height of this layer.
+	 * The higher the height value, the farther from the wafer.
+	 * @param height the height of this layer above the ground plane.
+	 */
+	public void setHeight(double height) { get3DPref("Height", layerHeightPrefs, this.height).setDouble(height); }
+
+	/**
+	 * Method to return the thickness of this layer.
+	 * Layers can have a thickness of 0, which causes them to be rendered flat.
+	 * @return the thickness of this layer.
+	 */
+	public double getThickness() { return get3DPref("Thickness", layerThicknessPrefs, thickness).getDouble(); }
+
+	/**
+	 * Method to set the thickness of this layer.
+	 * Layers can have a thickness of 0, which causes them to be rendered flat.
+	 * @param thickness the thickness of this layer.
+	 */
+	public void setThickness(double thickness) { get3DPref("Thickness", layerThicknessPrefs, thickness).setDouble(thickness); }
 
 	/**
 	 * Method to set the factory-default CIF name of this Layer.

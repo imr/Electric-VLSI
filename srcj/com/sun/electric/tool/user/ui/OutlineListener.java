@@ -60,7 +60,7 @@ class OutlineListener
 		if (origPoints == null)
 		{
 			// node has no points: fake some
-			
+			System.out.println("MAKE FAKE POINTS");
 		}
 
 		high = Highlight.getOneHighlight();
@@ -74,8 +74,7 @@ class OutlineListener
 	{
 		int x = evt.getX();
 		int y = evt.getY();
-		EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-		EditWindow wnd = ecp.getEditWindow();
+		EditWindow wnd = (EditWindow)evt.getSource();
 		Cell cell = wnd.getCell();
         if (cell == null) return;
 
@@ -192,8 +191,7 @@ class OutlineListener
 
 	public void mouseReleased(MouseEvent evt)
 	{
-		EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-		EditWindow wnd = ecp.getEditWindow();
+		EditWindow wnd = (EditWindow)evt.getSource();
 		Cell cell = wnd.getCell();
         if (cell == null) return;
 
@@ -219,8 +217,7 @@ class OutlineListener
 
 	public void mouseDragged(MouseEvent evt)
 	{
-		EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-		EditWindow wnd = ecp.getEditWindow();
+		EditWindow wnd = (EditWindow)evt.getSource();
 
 		int newX = evt.getX();
 		int newY = evt.getY();
@@ -249,8 +246,7 @@ class OutlineListener
 	public void keyPressed(KeyEvent evt)
 	{
 		int chr = evt.getKeyCode();
-		EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-		EditWindow wnd = ecp.getEditWindow();
+		EditWindow wnd = (EditWindow)evt.getSource();
 		Cell cell = wnd.getCell();
         if (cell == null) return;
 

@@ -347,14 +347,8 @@ public class Spice extends Topology
 					int count = pointList.length;
 
 					// compute perimeter and area
-					double perim = 0;
-					for(int i=0; i<count; i++)
-					{
-						int j = i - 1;
-						if (j < 0) j = count - 1;
-						perim += pointList[i].distance(pointList[j]);
-					}
-					double area = Poly.areaPoints(pointList);
+					double perim = poly.getPerimeter();
+					double area = poly.getArea();
 
 					// accumulate this information
 					if (layerIsDiff(layer))

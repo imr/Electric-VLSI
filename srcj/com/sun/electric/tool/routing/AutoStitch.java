@@ -799,7 +799,7 @@ public class AutoStitch
 			for(int i=0; i<tot; i++)
 			{
 				Poly poly = polys[i];
-				double area = Math.abs(poly.areaPoly());
+				double area = Math.abs(poly.getArea());
 
 				if (bestFound && area >= bestArea) continue;
 				bestArea = area;

@@ -71,10 +71,9 @@ public class MeasureListener
 	{
 		int newX = evt.getX();
 		int newY = evt.getY();
- 		if (evt.getSource() instanceof EditWindow.CircuitPart)
+ 		if (evt.getSource() instanceof EditWindow)
 		{
-			EditWindow.CircuitPart dispPart = (EditWindow.CircuitPart)evt.getSource();
-			EditWindow wnd = dispPart.getEditWindow();
+			EditWindow wnd = (EditWindow)evt.getSource();
 
 			Highlight.clear();
 			Point2D start = wnd.screenToDatabase(startX, startY);

@@ -72,6 +72,9 @@ import java.util.Iterator;
  */
 public class NodeInst extends Geometric implements Nodable
 {
+	/** key of obsolete Varible holding instance name. */	public static final Variable.Key NODE_NAME = ElectricObject.newKey("NODE_name");
+	/** key of Varible holding outline information. */		public static final Variable.Key TRACE = ElectricObject.newKey("trace");
+
 	// -------------------------- constants --------------------------------
 //	/** node is not in use */								private static final int DEADN =                     01;
 //	/** node has text that is far away */					private static final int NHASFARTEXT =               02;
@@ -93,13 +96,10 @@ public class NodeInst extends Geometric implements Nodable
 	/** right-shift of NTECHBITS */							private static final int NTECHBITSSH =               17;
 	/** set if node is locked (can't be changed) */			private static final int NILOCKED =          0100000000;
 
-	/** key of obsolete Varible holding instance name. */	public static final Variable.Key NODE_NAME = ElectricObject.newKey("NODE_name");
-	/** key of Varible holding outline information. */		public static final Variable.Key TRACE = ElectricObject.newKey("trace");
-
 	/**
 	 * the PortAssociation class is used when replacing nodes.
 	 */
-	static class PortAssociation
+	private static class PortAssociation
 	{
 		/** the original PortInst being associated. */			PortInst portInst;
 		/** the Poly that describes the original PortInst. */	Poly poly;
@@ -270,10 +270,6 @@ public class NodeInst extends Geometric implements Nodable
 		// make sure the change values are sensible
 		dRot = dRot % 3600;
 		if (dRot < 0) dRot += 3600;
-//		if (dX == 0 && dY == 0 && dXSize == 0 && dYSize == 0 && dRot == 0)
-//		{
-//			return;
-//		}
 
 		// make the change
 		if (Undo.recordChange())
@@ -348,7 +344,7 @@ public class NodeInst extends Geometric implements Nodable
 		}
 	}
 
-	/*
+	/**
 	 * Method to replace this NodeInst with one of another type.
 	 * All arcs and exports on this NodeInst are moved to the new one.
 	 * @param np the new type to put in place of this NodeInst.
@@ -894,7 +890,7 @@ public class NodeInst extends Geometric implements Nodable
 	/**
 	 * Method to recalculate the Geometric bounds for this NodeInst.
 	 */
-	void redoGeometric()
+	private void redoGeometric()
 	{
 		// if zero size, set the bounds directly
 		if (sX == 0 && sY == 0)
@@ -983,10 +979,9 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public Poly [] getAllText(boolean hardToSelect, EditWindow wnd)
 	{
-		int nodeNameText = 0;
-		if (protoType instanceof Cell && !isExpanded()) nodeNameText = 1;
-		if (!User.isTextVisibilityOnInstance()) nodeNameText = 0;
-		if (!User.isEasySelectionOfAnnotationText()) nodeNameText = 0;
+		int cellInstanceNameText = 0;
+		if (protoType instanceof Cell && !isExpanded() && hardToSelect) cellInstanceNameText = 1;
+		if (!User.isTextVisibilityOnInstance()) cellInstanceNameText = 0;
 		int dispVars = numDisplayableVariables(false);
 		int numExports = 0;
 		int numExportVariables = 0;
@@ -1002,19 +997,19 @@ public class NodeInst extends Geometric implements Nodable
 		if (protoType == Generic.tech.invisiblePinNode &&
 			!User.isTextVisibilityOnAnnotation())
 		{
-			nodeNameText = dispVars = numExports = numExportVariables = 0;
+			dispVars = numExports = numExportVariables = 0;
 		}
 		if (!User.isTextVisibilityOnNode())
 		{
-			nodeNameText = dispVars = numExports = numExportVariables = 0;
+			cellInstanceNameText = dispVars = numExports = numExportVariables = 0;
 		}
-		int totalText = nodeNameText + dispVars + numExports + numExportVariables;
+		int totalText = cellInstanceNameText + dispVars + numExports + numExportVariables;
 		if (totalText == 0) return null;
 		Poly [] polys = new Poly[totalText];
 		int start = 0;
 
 		// add in the cell name if appropriate
-		if (nodeNameText != 0)
+		if (cellInstanceNameText != 0)
 		{
 			double cX = getTrueCenterX();
 			double cY = getTrueCenterY();
@@ -1707,7 +1702,7 @@ public class NodeInst extends Geometric implements Nodable
 	/**
 	 * sanity check function, used by Connection.checkobj
 	 */
-	boolean containsConnection(Connection c)
+	private boolean containsConnection(Connection c)
 	{
 		return connections.contains(c);
 	}
@@ -1824,7 +1819,7 @@ public class NodeInst extends Geometric implements Nodable
 	 * Method to add an Connection to this NodeInst.
 	 * @param c the Connection to add.
 	 */
-	void addConnection(Connection c)
+	public void addConnection(Connection c)
 	{
 		connections.add(c);
 		NodeInst ni = c.getPortInst().getNodeInst();
@@ -1836,7 +1831,7 @@ public class NodeInst extends Geometric implements Nodable
 	 * Method to remove an Connection from this NodeInst.
 	 * @param c the Connection to remove.
 	 */
-	void removeConnection(Connection c)
+	public void removeConnection(Connection c)
 	{
 		connections.remove(c);
 		NodeInst ni = c.getPortInst().getNodeInst();
@@ -1879,50 +1874,6 @@ public class NodeInst extends Geometric implements Nodable
 	 */
 	public void setProtoTextDescriptor(TextDescriptor descriptor) { this.protoDescriptor.copy(descriptor); }
 
-	/*
-	 * Method to write a description of this NodeInst.
-	 * Displays the description in the Messages Window.
-	 */
-//	public void getInfo()
-//	{
-//		System.out.println("-------------- NODE INSTANCE " + describe() + ": --------------");
-//		String xMir = "";
-//		String yMir = "";
-//		if (isXMirrored()) xMir = ", MirrorX";
-//		if (isYMirrored()) yMir = ", MirrorY";
-//		System.out.println(" Center: (" + getCenterX() + "," + getCenterY() + "), size: " + getXSize() + "x" + getYSize() + ", rotated " + angle/10.0 +
-//			xMir + yMir);
-//		super.getInfo();
-//		System.out.println(" Ports:");
-//		for(Iterator it = getPortInsts(); it.hasNext();)
-//		{
-//			PortInst pi = (PortInst) it.next();
-//			Poly p = pi.getPoly();
-//			System.out.println("     " + pi.getPortProto().getProtoName() + " at (" + p.getCenterX() + "," + p.getCenterY() + ")");
-//		}
-//		if (connections.size() != 0)
-//		{
-//			System.out.println(" Connections:");
-//			for (int i = 0; i < connections.size(); i++)
-//			{
-//				Connection c = (Connection) connections.get(i);
-//				System.out.println("     " + c.getArc().describe() +
-//					" on port " + c.getPortInst().getPortProto().getProtoName());
-//			}
-//		}
-//		if (exports.size() != 0)
-//		{
-//			System.out.println(" Exports:");
-//			for (int i = 0; i < exports.size(); i++)
-//			{
-//				Export ex = (Export) exports.get(i);
-//				System.out.println("     " + ex.getProtoName() +
-//					" on port " + ex.getOriginalPort().getPortProto().getProtoName() +
-//					", " + ex.getCharacteristic());
-//			}
-//		}
-//	}
-
 	/**
 	 * Method to determine whether a variable key on NodeInst is deprecated.
 	 * Deprecated variable keys are those that were used in old versions of Electric,
@@ -1945,7 +1896,7 @@ public class NodeInst extends Geometric implements Nodable
 		return false;
 	}
 
-	/*
+	/**
 	 * Method to tell if this NodeInst is an invisible-pin with text that is offset away from the pin center.
 	 * Since invisible pins with text are never shown, their text should not be offset.
 	 * @param repair true to fix such text by changing its offset to (0,0).
@@ -2084,7 +2035,7 @@ public class NodeInst extends Geometric implements Nodable
         return false;
     }
    
-	/*
+	/**
 	 * Method to tell whether this NodeInst is a field-effect transtor.
 	 * This includes the nMOS, PMOS, and DMOS transistors, as well as the DMES and EMES transistors.
 	 * @return true if this NodeInst is a field-effect transtor.

@@ -236,10 +236,9 @@ public class ClickZoomWireListener
 
         long currentTime = System.currentTimeMillis();
 
-		if (evt.getSource() instanceof EditWindow.CircuitPart)
+		if (evt.getSource() instanceof EditWindow)
 		{
-			EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-			EditWindow wnd = ecp.getEditWindow();
+			EditWindow wnd = (EditWindow)evt.getSource();
 	        Cell cell = wnd.getCell();
 	        if (cell == null) return;
 	        clickX = evt.getX();
@@ -423,10 +422,9 @@ public class ClickZoomWireListener
         if (debug) System.out.println("  ["+modeLeft+","+modeRight+"] "+evt.paramString());
         long currentTime = System.currentTimeMillis();
 
- 		if (evt.getSource() instanceof EditWindow.CircuitPart)
+ 		if (evt.getSource() instanceof EditWindow)
 		{
-			EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-			EditWindow wnd = ecp.getEditWindow();
+			EditWindow wnd = (EditWindow)evt.getSource();
 	        Cell cell = wnd.getCell();
 	        if (cell == null) return;
 	
@@ -584,10 +582,9 @@ public class ClickZoomWireListener
 
         if (debug) System.out.println("  ["+modeLeft+","+modeRight+"] "+evt.paramString());
 
-		if (evt.getSource() instanceof EditWindow.CircuitPart)
+		if (evt.getSource() instanceof EditWindow)
 		{
-			EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-			EditWindow wnd = ecp.getEditWindow();
+			EditWindow wnd = (EditWindow)evt.getSource();
 	        Cell cell = wnd.getCell();
 	        if (cell == null) return;
 	        // add back in offset
@@ -770,10 +767,9 @@ public class ClickZoomWireListener
         mouseY = evt.getY();
 
         //if (debug) System.out.println("  ["+modeLeft+","+modeRight+"] "+evt.paramString());
-		if (evt.getSource() instanceof EditWindow.CircuitPart)
+		if (evt.getSource() instanceof EditWindow)
 		{
-			EditWindow.CircuitPart dispPart = (EditWindow.CircuitPart)evt.getSource();
-			EditWindow wnd = dispPart.getEditWindow();
+			EditWindow wnd = (EditWindow)evt.getSource();
 			Cell cell = wnd.getCell();
 			if (cell == null) return;
 
@@ -816,10 +812,9 @@ public class ClickZoomWireListener
 
         if (debug) System.out.println("  "+evt.paramString());
 
-		if (evt.getSource() instanceof EditWindow.CircuitPart)
+		if (evt.getSource() instanceof EditWindow)
 		{
-			EditWindow.CircuitPart dispPart = (EditWindow.CircuitPart)evt.getSource();
-			EditWindow wnd = dispPart.getEditWindow();
+			EditWindow wnd = (EditWindow)evt.getSource();
 			Cell cell = wnd.getCell();
 			if (cell == null) return;
 
@@ -832,11 +827,11 @@ public class ClickZoomWireListener
 			if (sideways || sideways2) {
 				// scroll right if roll foward (pos)
 				// scroll left if roll back (neg)
-				ZoomAndPanListener.panX(wnd.getWindowFrame(), rotation);
+				ZoomAndPanListener.panX(wnd.getWindowFrame(), rotation > 0 ? 1 : -1);
 			} else {
 				// scroll up if roll forward (pos)
 				// scroll down if roll back (neg)
-				ZoomAndPanListener.panY(wnd.getWindowFrame(), rotation);
+				ZoomAndPanListener.panY(wnd.getWindowFrame(), rotation > 0 ? 1 : -1);
 			}
 		}
     }
@@ -850,10 +845,9 @@ public class ClickZoomWireListener
         if (debug) System.out.println("  ["+modeLeft+","+modeRight+"] "+evt.paramString());
 
         int chr = evt.getKeyCode();
-		if (evt.getSource() instanceof EditWindow.CircuitPart)
+		if (evt.getSource() instanceof EditWindow)
 		{
-			EditWindow.CircuitPart dispPart = (EditWindow.CircuitPart)evt.getSource();
-			EditWindow wnd = dispPart.getEditWindow();
+			EditWindow wnd = (EditWindow)evt.getSource();
 			Cell cell = wnd.getCell();
 			if (cell == null) return;
 

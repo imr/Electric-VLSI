@@ -839,6 +839,19 @@ public class User extends Listener
 	 */
 	public static void setBeepAfterLongJobs(boolean on) { cacheBeepAfterLongJobs.setBoolean(on); }
 
+	private static Pref cache3DPerspective = Pref.makeBooleanPref("Perspective3D", User.tool.prefs, true);
+	/**
+	 * Method to tell whether to draw 3D views with perspective.
+	 * The default is "true".
+	 * @return true to draw 3D views with perspective.
+	 */
+	public static boolean is3DPerspective() { return cache3DPerspective.getBoolean(); }
+	/**
+	 * Method to set whether to draw 3D views with perspective.
+	 * @param on true to draw 3D views with perspective.
+	 */
+	public static void set3DPerspective(boolean on) { cache3DPerspective.setBoolean(on); }
+
 	private static Pref cachePlayClickSoundsWhenCreatingArcs = Pref.makeBooleanPref("PlayClickSoundsWhenCreatingArcs", User.tool.prefs, true);
 	/**
 	 * Method to tell whether to play a "click" sound when an arc is created.

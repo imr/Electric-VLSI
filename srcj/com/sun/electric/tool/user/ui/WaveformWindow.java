@@ -1379,6 +1379,11 @@ public class WaveformWindow implements WindowContent
 		overall.add(delta, gbc);
 	}
 
+	/**
+	 * Method to return the top-level JPanel for this WaveformWindow.
+	 * The actual WaveformWindow object is below the top level, surrounded by scroll bars and other display artifacts.
+	 * @return the top-level JPanel for this WaveformWindow.
+	 */
 	public JPanel getPanel() { return overall; }
 
 	public void setCell(Cell cell, VarContext context) { sd.setCell(cell); }

@@ -156,15 +156,6 @@ public abstract class ArcProto extends ElectricObject
 
 	// ----------------------- private data -------------------------------
 
-	/** The name of this ArcProto. */							protected String protoName;
-	/** The technology in which this ArcProto resides. */		protected Technology tech;
-//	/** The "factory" default width of this ArcProto. */		protected double factoryDefaultWidth;
-	/** The offset from width to reported/displayed width. */	protected double widthOffset;
-	/** Flags bits for this ArcProto. */						private int userBits;
-	/** The function of this ArcProto. */						private Function function;
-	/** A temporary integer for this ArcProto. */				private int tempInt;
-	/** The temporary Object for this ArcProto. */				private Object tempObj;
-	/** The temporary flag bits. */								private int flagBits;
 	/** The object used to request flag bits. */				private static FlagSet.Generator flagGenerator = new FlagSet.Generator("ArcProto");
 	/** Pref map for arc width. */								private static HashMap defaultWidthPrefs = new HashMap();
 	/** Pref map for arc angle increment. */					private static HashMap defaultAnglePrefs = new HashMap();
@@ -176,21 +167,30 @@ public abstract class ArcProto extends ElectricObject
 	/** Pref map for arc directionality. */						private static HashMap defaultDirectionalPrefs = new HashMap();
 	/** Pref map for arc antenna ratio. */						private static HashMap defaultAntennaRatioPrefs = new HashMap();
 
+	/** The name of this ArcProto. */							protected String protoName;
+	/** The technology in which this ArcProto resides. */		protected Technology tech;
+	/** The offset from width to reported/displayed width. */	protected double widthOffset;
+	/** Flags bits for this ArcProto. */						private int userBits;
+	/** The function of this ArcProto. */						private Function function;
+	/** A temporary integer for this ArcProto. */				private int tempInt;
+	/** The temporary Object for this ArcProto. */				private Object tempObj;
+	/** The temporary flag bits. */								private int flagBits;
+
 	// the meaning of the "userBits" field:
-//	/** these arcs are fixed-length */					private static final int WANTFIX =            01;
-//	/** these arcs are fixed-angle */					private static final int WANTFIXANG =         02;
-//	/** set if arcs should not slide in ports */		private static final int WANTCANTSLIDE =      04;
-//	/** set if ends do not extend by half width */		private static final int WANTNOEXTEND =      010;
-//	/** set if arcs should be negated */				private static final int WANTNEGATED =       020;
-//	/** set if arcs should be directional */			private static final int WANTDIRECTIONAL =   040;
-	/** set if arcs can wipe wipable nodes */			private static final int CANWIPE =          0100;
-	/** set if arcs can curve */						private static final int CANCURVE =         0200;
-	/** arc function (from efunction.h) */				private static final int AFUNCTION =      017400;
-	/** right shift for AFUNCTION */					private static final int AFUNCTIONSH =         8;
-//	/** angle increment for this type of arc */			private static final int AANGLEINC =   017760000;
-//	/** right shift for AANGLEINC */					private static final int AANGLEINCSH =        13;
-	/** set if arc is selectable by edge, not area */	private static final int AEDGESELECT = 020000000;
-	/** set if arc is not used */						private static final int ANOTUSED = 020000000000;
+//	/** these arcs are fixed-length */							private static final int WANTFIX =            01;
+//	/** these arcs are fixed-angle */							private static final int WANTFIXANG =         02;
+//	/** set if arcs should not slide in ports */				private static final int WANTCANTSLIDE =      04;
+//	/** set if ends do not extend by half width */				private static final int WANTNOEXTEND =      010;
+//	/** set if arcs should be negated */						private static final int WANTNEGATED =       020;
+//	/** set if arcs should be directional */					private static final int WANTDIRECTIONAL =   040;
+	/** set if arcs can wipe wipable nodes */					private static final int CANWIPE =          0100;
+	/** set if arcs can curve */								private static final int CANCURVE =         0200;
+	/** arc function (from efunction.h) */						private static final int AFUNCTION =      017400;
+	/** right shift for AFUNCTION */							private static final int AFUNCTIONSH =         8;
+//	/** angle increment for this type of arc */					private static final int AANGLEINC =   017760000;
+//	/** right shift for AANGLEINC */							private static final int AANGLEINCSH =        13;
+	/** set if arc is selectable by edge, not area */			private static final int AEDGESELECT = 020000000;
+	/** set if arc is not used */								private static final int ANOTUSED = 020000000000;
 
 	// ----------------- protected and private methods -------------------------
 

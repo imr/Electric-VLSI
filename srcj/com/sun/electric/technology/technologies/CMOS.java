@@ -48,12 +48,6 @@ public class CMOS extends Technology
 {
 	/** the Complementary MOS (old, N-Well, from Griswold) Technology object. */	public static final CMOS tech = new CMOS();
 
-/** defines the 1st transparent layer. */			private static final int TRANSPARENT_1 = 1;
-/** defines the 2nd transparent layer. */			private static final int TRANSPARENT_2 = 2;
-/** defines the 3rd transparent layer. */			private static final int TRANSPARENT_3 = 3;
-/** defines the 4th transparent layer. */			private static final int TRANSPARENT_4 = 4;
-/** defines the 5th transparent layer. */			private static final int TRANSPARENT_5 = 5;
-
 	// -------------------- private and protected methods ------------------------
 	private CMOS()
 	{
@@ -104,7 +98,7 @@ public class CMOS extends Technology
 
 		/** M layer */
 		Layer M_lay = Layer.newInstance(this, "Metal",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_1, 0,255,0,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_1, 0,255,0,0.8,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -124,7 +118,7 @@ public class CMOS extends Technology
 
 		/** P layer */
 		Layer P_lay = Layer.newInstance(this, "Polysilicon",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_2, 255,190,6,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_2, 255,190,6,0.8,1,
 			new int[] { 0x0808,   //     X       X   
 						0x0404,   //      X       X  
 						0x0202,   //       X       X 
@@ -144,7 +138,7 @@ public class CMOS extends Technology
 
 		/** D layer */
 		Layer D_lay = Layer.newInstance(this, "Diffusion",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_3, 170,140,30,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_3, 170,140,30,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -164,7 +158,7 @@ public class CMOS extends Technology
 
 		/** P0 layer */
 		Layer P0_lay = Layer.newInstance(this, "P+",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_4, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_4, 0,0,0,0.8,1,
 			new int[] { 0x1000,   //    X            
 						0x0020,   //           X     
 						0x0000,   //                 
@@ -194,7 +188,7 @@ public class CMOS extends Technology
 
 		/** PW layer */
 		Layer PW_lay = Layer.newInstance(this, "P-Well",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_5, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_5, 0,0,0,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x00c0,   //         XX      
 						0x0000,   //                 
@@ -239,7 +233,7 @@ public class CMOS extends Technology
 
 		/** PM layer */
 		Layer PM_lay = Layer.newInstance(this, "Pseudo-Metal",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_1, 0,255,0,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_1, 0,255,0,0.8,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -259,7 +253,7 @@ public class CMOS extends Technology
 
 		/** PP layer */
 		Layer PP_lay = Layer.newInstance(this, "Pseudo-Polysilicon",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_2, 255,190,6,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_2, 255,190,6,0.8,1,
 			new int[] { 0x0808,   //     X       X   
 						0x0404,   //      X       X  
 						0x0202,   //       X       X 
@@ -279,7 +273,7 @@ public class CMOS extends Technology
 
 		/** PD layer */
 		Layer PD_lay = Layer.newInstance(this, "Pseudo-Diffusion",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_3, 170,140,30,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_3, 170,140,30,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -299,7 +293,7 @@ public class CMOS extends Technology
 
 		/** PP0 layer */
 		Layer PP0_lay = Layer.newInstance(this, "Pseudo-P+",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_4, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_4, 0,0,0,0.8,1,
 			new int[] { 0x1000,   //    X            
 						0x0020,   //           X     
 						0x0000,   //                 
@@ -319,7 +313,7 @@ public class CMOS extends Technology
 
 		/** PPW layer */
 		Layer PPW_lay = Layer.newInstance(this, "Pseudo-P-Well",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, TRANSPARENT_5, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, EGraphics.TRANSPARENT_5, 0,0,0,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x00c0,   //         XX      
 						0x0000,   //                 

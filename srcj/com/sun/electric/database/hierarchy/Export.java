@@ -289,14 +289,14 @@ public class Export extends PortProto
 	 */
 	public void checkChanging() { Cell parent = (Cell)getParent(); if (parent != null) parent.checkChanging(); }
 
-	/*
+	/**
 	 * Method to determine the appropriate Cell associated with this ElectricObject.
 	 * @return the appropriate Cell associated with this ElectricObject.
 	 * Returns null if no Cell can be found.
 	 */
 	public Cell whichCell() { return (Cell)getParent(); };
 
-	/*
+	/**
 	 * Method to write a description of this Export.
 	 * Displays the description in the Messages Window.
 	 */
@@ -494,7 +494,7 @@ public class Export extends PortProto
 		}
 	}
 
-	/*
+	/**
 	 * Method to recursively alter the state bit fields of this Export.
 	 */
 	private void recursivelyChangeAllPorts()

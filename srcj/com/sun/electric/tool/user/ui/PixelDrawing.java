@@ -159,6 +159,8 @@ import java.util.Iterator;
  */
 public class PixelDrawing
 {
+	/** Text smaller than this will not be drawn. */		public static final int MINIMUMTEXTSIZE = 5;
+
 	static class PolySeg
 	{
 		int fx,fy, tx,ty, direction, increment;
@@ -1775,7 +1777,7 @@ public class PixelDrawing
 		if (descript != null)
 		{
 			size = descript.getTrueSize(wnd);
-			if (size < 5) return;
+			if (size < MINIMUMTEXTSIZE) return;
 			italic = descript.isItalic();
 			bold = descript.isBold();
 			underline = descript.isUnderline();
@@ -2116,7 +2118,6 @@ public class PixelDrawing
 		LineMetrics lm = theFont.getLineMetrics(msg, frc);
 
 		// allocate space for the rendered text
-//		Rectangle rect = gv.getPixelBounds(frc, 0, (float)(lm.getAscent()-lm.getLeading()));
 		Rectangle rect = gv.getOutline(0, (float)(lm.getAscent()-lm.getLeading())).getBounds();
 		int width = rect.width;
 
@@ -2136,7 +2137,6 @@ public class PixelDrawing
 					gv = theFont.createGlyphVector(frc, msg);
 					lm = theFont.getLineMetrics(msg, frc);
 					rect = gv.getOutline(0, (float)(lm.getAscent()-lm.getLeading())).getBounds();
-//					rect = gv.getPixelBounds(frc, 0, 0);
 					height = (int)(lm.getHeight()+0.5);
 					if (height <= 0) return null;
 				}

@@ -104,7 +104,7 @@ public class Variable
 	 * @param descriptor a TextDescriptor to control how the Variable will be displayed.
 	 * @param key a Key object that identifies this Variable.
 	 */
-	Variable(ElectricObject owner, Object addr, TextDescriptor descriptor, Key key)
+	public Variable(ElectricObject owner, Object addr, TextDescriptor descriptor, Key key)
 	{
 		this.addr = addr;
 		this.descriptor = new TextDescriptor(owner, descriptor);
@@ -141,18 +141,7 @@ public class Variable
      * @return the object stored in this Variable.
      */
     public Object getObject() { return addr; }
-    
-    /**
-     * Set the actual object stored in this Variable.
-	 * @param the object to be stored in this variable .
-     */
-//     void setObject(Object addr)
-// 	{
-// 		// owner.checkChanging(); this is not necessary,
-// 		// because this method can be called only from this package
-// 		this.addr = addr;
-// 	}
-    
+
     /** 
      * Treat the stored Object as an array of Objects and
      * get the object at index @param index.
@@ -291,6 +280,7 @@ public class Variable
 		if (name.equals("SIM_rise_delay")) return "Rise Delay";
 		if (name.equals("SIM_spice_card")) return "SPICE code";
 		if (name.equals("SIM_spice_model")) return "SPICE model";
+		if (name.equals("SIM_weak_node")) return "Transistor Strength";
 		if (name.equals("transistor_width")) return "Transistor Width";
 		if (name.equals("VERILOG_code")) return "Verilog code";
 		if (name.equals("VERILOG_declaration")) return "Verilog declaration";
@@ -352,13 +342,15 @@ public class Variable
     }
 
 	/**
-	 * Method to make a printable string from variable "val", array index
-	 * "aindex".  If "aindex" is negative, print the entire array.  If "purpose" is
-	 * zero, the conversion is for human reading and should be easy to understand.
-	 * If "purpose" is positive, the conversion is for machine reading and should
-	 * be easy to parse.  If "purpose" is negative, the conversion is for
-	 * parameter substitution and should be easy to understand but not hard to
-	 * parse (a combination of the two).
+	 * Method to return a String describing this Variable.
+	 * @param aindex if negative, print the entire array.
+	 * @param purpose if zero, the conversion is for human reading and should be easy to understand.
+	 * If positive, the conversion is for machine reading and should be easy to parse.
+	 * If negative, the conversion is for parameter substitution and should be easy to understand
+	 * but not hard to parse (a combination of the two).
+	 * @param context the VarContext for this Variable.
+	 * @param eobj the ElectricObject on which this Variable resides.
+	 * @return a String desribing this Variable.
 	 */
 	public String describe(int aindex, int purpose, VarContext context, ElectricObject eobj)
 	{
@@ -404,6 +396,15 @@ public class Variable
 		return returnVal.toString();
 	}
 
+	/**
+	 * Method to convert this Variable to a String without any evaluation of code.
+	 * @param aindex if negative, print the entire array.
+	 * @param purpose if zero, the conversion is for human reading and should be easy to understand.
+	 * If positive, the conversion is for machine reading and should be easy to parse.
+	 * If negative, the conversion is for parameter substitution and should be easy to understand
+	 * but not hard to parse (a combination of the two).
+	 * @return a String desribing this Variable.
+	 */
 	public String getPureValue(int aindex, int purpose)
 	{
 		TextDescriptor.Unit units = descriptor.getUnit();

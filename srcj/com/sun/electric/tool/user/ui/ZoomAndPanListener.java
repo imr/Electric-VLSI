@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.database.hierarchy.Cell;
 
+import java.awt.Dimension;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
@@ -89,10 +90,9 @@ public class ZoomAndPanListener
 		setProperCursor(evt);
 		int newX = evt.getX();
 		int newY = evt.getY();
- 		if (evt.getSource() instanceof EditWindow.CircuitPart)
+ 		if (evt.getSource() instanceof EditWindow)
 		{
-			EditWindow.CircuitPart dispPart = (EditWindow.CircuitPart)evt.getSource();
-			EditWindow wnd = dispPart.getEditWindow();
+			EditWindow wnd = (EditWindow)evt.getSource();
 
 			double scale = wnd.getScale();
 			if (mode == ToolBar.CursorMode.ZOOM)
@@ -129,10 +129,9 @@ public class ZoomAndPanListener
 
 		int newX = evt.getX();
 		int newY = evt.getY();
- 		if (evt.getSource() instanceof EditWindow.CircuitPart)
+ 		if (evt.getSource() instanceof EditWindow)
 		{
-			EditWindow.CircuitPart dispPart = (EditWindow.CircuitPart)evt.getSource();
-			EditWindow wnd = dispPart.getEditWindow();
+			EditWindow wnd = (EditWindow)evt.getSource();
 
 			// zooming the window scale
 			Highlight.clear();
@@ -186,12 +185,13 @@ public class ZoomAndPanListener
 
     // --------------------------- Pan Commands -------------------------------
 
+	private static double panningAmount = 0.6;
+
     /**
-     * Pan in X direction.  if ticks is positive, pan right. If ticks is
-     * negative, pan left. A ticks value of 1 is a short pan (10% of screen).
-     * Make ticks a higher value to pan more.
+     * Pan in X direction.
      * @param wf the WindowFrame
-     * @param ticks the amount and direction of pan
+     * @param ticks the amount and direction of pan.
+     * If ticks is 1, pan right. If ticks is -1, pan left.
      */
     public static void panX(WindowFrame wf, int ticks) {
 
@@ -200,11 +200,8 @@ public class ZoomAndPanListener
 			Cell cell = wf.getContent().getCell();
 			if (cell == null) return;
             EditWindow wnd = (EditWindow)wf.getContent();
-
-	        // heuristic: factor in multiplier
-	        int mult = (int)(80/wnd.getScale());
-	        if (mult <= 0) mult = 2;
-	        if (wnd.getScale() > 70) mult = 1; // we're really zoomed in
+            Dimension dim = wnd.getSize();
+            int mult = (int)((double)dim.width * panningAmount / wnd.getScale());
 	
 	        Point2D wndOffset = wnd.getOffset();
 	        Point2D newOffset = new Point2D.Double(wndOffset.getX() - mult*ticks, wndOffset.getY());
@@ -214,11 +211,10 @@ public class ZoomAndPanListener
     }
 
     /**
-     * Pan in Y direction.  if ticks is positive, pan up. If ticks is
-     * negative, pan down. A ticks value of 1 is a short pan (10% of screen).
-     * Make ticks a higher value to pan more.
+     * Pan in Y direction.
      * @param wf the WindowFrame
-     * @param ticks the amount and direction of pan
+     * @param ticks the amount and direction of pan.
+     * If ticks is 1, pan up. If ticks is -1, pan down.
      */
     public static void panY(WindowFrame wf, int ticks) {
 
@@ -227,11 +223,8 @@ public class ZoomAndPanListener
 	        Cell cell = wf.getContent().getCell();
 	        if (cell == null) return;
 			EditWindow wnd = (EditWindow)wf.getContent();
-
-	        // heuristic: factor in multiplier
-	        int mult = (int)(80/wnd.getScale());
-	        if (mult <= 0) mult = 2;
-	        if (wnd.getScale() > 70) mult = 1; // we're really zoomed in
+			Dimension dim = wnd.getSize();
+			int mult = (int)((double)dim.height * panningAmount / wnd.getScale());
 	
 	        Point2D wndOffset = wnd.getOffset();
 	        Point2D newOffset = new Point2D.Double(wndOffset.getX(), wndOffset.getY() - mult*ticks);
@@ -239,6 +232,17 @@ public class ZoomAndPanListener
 	        wnd.repaintContents();
 		}
     }
+
+	/**
+	 * This method implements the command to set the panning distance.
+	 * @param amount the amount to pan a window.
+	 * A value of 1 will pan by an entire window width or height;
+	 * smaller values pan by less.
+	 */
+	public static void panningDistanceCommand(double amount)
+	{
+		panningAmount = amount;
+	}
 
 
 }

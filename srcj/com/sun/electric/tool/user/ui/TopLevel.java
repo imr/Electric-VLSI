@@ -279,12 +279,11 @@ public class TopLevel extends JFrame
 		TopLevel.cursor = cursor;
 		JFrame jf = TopLevel.getCurrentJFrame();
 		jf.setCursor(cursor);
-		palette.getPanel().setCursor(cursor);
+		palette.setCursor(cursor);
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
-			JPanel panel = wf.getContent().getPanel();
-			panel.setCursor(cursor);
+			wf.setCursor(cursor);
 		}
 	}
 

@@ -301,8 +301,12 @@ public class TextUtils
 		return false;
 	}
 
-	/** Get a string representing elapsed time.
-	 * format: days : hours : minutes : seconds */
+	/**
+	 * Method to describe a time value as a String.
+	 * @param milliseconds the time span in milli-seconds.
+	 * @return a String describing the time span with the
+	 * format: days : hours : minutes : seconds
+	 */
 	public static String getElapsedTime(long milliseconds)
 	{
 		if (milliseconds < 60000)
@@ -447,12 +451,13 @@ public class TextUtils
 		System.out.println(prefix + str);
 	}
 
-	/*
-	 * Routine to compare two names "name1" and "name2" and return an
-	 * integer giving their sorting order (0 if equal, nonzero according
-	 * to order) in the same manner as any other string compare EXCEPT
-	 * that it considers numbers properly, so that the string "in10" comes
-	 * after the string "in9".
+	/**
+	 * Method to compare two names and give a sort order.
+	 * The comparison considers numbers in numeric order so that the
+	 * string "in10" comes after the string "in9".
+	 * @param name1 the first string.
+	 * @param name2 the second string.
+	 * @return 0 if they are equal, nonzero according to order.
 	 */
 	public static int nameSameNumeric(String name1, String name2)
 	{

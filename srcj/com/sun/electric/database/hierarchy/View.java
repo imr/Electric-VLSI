@@ -54,10 +54,10 @@ public class View extends ElectricObject
 	/** the abbreviation of the view */						private String abbreviation;
 	/** ordering for this view */							private int order;
 	/** flag bits for the view */							private int type;
+
 	/** a list of all views in existence */					private static List views = new ArrayList();
 	/** a list of views by short and long names */			private static HashMap viewNames = new HashMap();
-
-	private static int overallOrder = 16;
+	/** the index for new Views. */							private static int overallOrder = 16;
 
 	// -------------------------- public data -----------------------------
 
@@ -360,7 +360,7 @@ public class View extends ElectricObject
 		return sortedList;
 	}
 
-	static class ViewByOrder implements Comparator
+	private static class ViewByOrder implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{

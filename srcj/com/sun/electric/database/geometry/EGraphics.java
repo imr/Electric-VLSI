@@ -23,20 +23,37 @@
  */
 package com.sun.electric.database.geometry;
 
+import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.Technology;
+
 import java.awt.Color;
+import java.util.HashMap;
 
 /**
  * Class to define the appearance of a piece of geometry.
  */
 public class EGraphics
 {
-	/** appearance on a display */							private int displayMethod;
-	/** appearance on paper */								private int printMethod;
+	/** the Layer associated with this graphics. */			private Layer layer;
+	/** display: true to use patterns; false for solid */	private boolean displayPatterned;
+	/** display: true to outline patterns */				private boolean displayOutlinePatterned;
+	/** printer: true to use patterns; false for solid */	private boolean printPatterned;
+	/** printer: true to outline patterns */				private boolean printOutlinePatterned;
 	/** transparent layer to use (0 for none) */			private int transparentLayer;
 	/** color to use */										private int red, green, blue;
 	/** opacity (0 to 1) of color */						private double opacity;
 	/** whether to draw color in foregound */				private int foreground;
 	/** stipple pattern to draw */							private int [] pattern;
+
+	private static HashMap usePatternDisplayMap = new HashMap();
+	private static HashMap outlinePatternPrinterMap = new HashMap();
+	private static HashMap usePatternPrinterMap = new HashMap();
+	private static HashMap outlinePatternDisplayMap = new HashMap();
+	private static HashMap transparentLayerMap = new HashMap();
+	private static HashMap colorMap = new HashMap();
+	private static HashMap patternMap = new HashMap();
 
 	/**
 	 * There are 3 ways to encode color in an integer.
@@ -49,7 +66,7 @@ public class EGraphics
 	/** Describes the full RGB escape bit. */				public final static int FULLRGBBIT = 01;
 	/** Describes opaque color escape bit. */				public final static int OPAQUEBIT =  02;
 
-	// the opaque colors
+	// the opaque colors (all have the OPAQUEBIT set in them)
 	/** Describes the color white. */						public final static int WHITE =    0002;
 	/** Describes the color black. */						public final static int BLACK =    0006;
 	/** Describes the color red. */							public final static int RED =      0012;
@@ -94,6 +111,20 @@ public class EGraphics
 	/** Describes transparent layer 11. */					public final static int LAYERT11 = 010000;
 	/** Describes transparent layer 12. */					public final static int LAYERT12 = 020000;
 
+	// Constants used in technologies and in creating an EGraphics
+	/** defines the 1st transparent layer. */				public static final int TRANSPARENT_1 = 1;
+	/** defines the 2nd transparent layer. */				public static final int TRANSPARENT_2 = 2;
+	/** defines the 3rd transparent layer. */				public static final int TRANSPARENT_3 = 3;
+	/** defines the 4th transparent layer. */				public static final int TRANSPARENT_4 = 4;
+	/** defines the 5th transparent layer. */				public static final int TRANSPARENT_5 = 5;
+	/** defines the 6th transparent layer. */				public static final int TRANSPARENT_6 = 6;
+	/** defines the 7th transparent layer. */				public static final int TRANSPARENT_7 = 7;
+	/** defines the 8th transparent layer. */				public static final int TRANSPARENT_8 = 8;
+	/** defines the 9th transparent layer. */				public static final int TRANSPARENT_9 = 9;
+	/** defines the 10th transparent layer. */				public static final int TRANSPARENT_10 = 10;
+	/** defines the 11th transparent layer. */				public static final int TRANSPARENT_11 = 11;
+	/** defines the 12th transparent layer. */				public static final int TRANSPARENT_12 = 12;
+
 	// drawing styles
 	/** choice between solid and patterned */				private final static int NATURE =     1;
 	/** Draw as a solid fill. */							public final static int SOLIDC =      0;
@@ -102,8 +133,9 @@ public class EGraphics
 
 	/**
 	 * Method to create a graphics object.
-	 * @param displayMethod the way to show this EGraphics on a display.
-	 * @param printMethod the way to show this EGraphics on paper.
+	 * @param displayMethod the way to show this EGraphics on a display (SOLIDC, PATTERNED, or OUTLINEPAT).
+	 * @param printMethod the way to show this EGraphics on paper (SOLIDC, PATTERNED, or OUTLINEPAT).
+	 * @param transparentLayer the transparent layer number (0 for none).
 	 * @param red the red component of this EGraphics.
 	 * @param green the green component of this EGraphics.
 	 * @param blue the blue component of this EGraphics.
@@ -115,8 +147,11 @@ public class EGraphics
 	public EGraphics(int displayMethod, int printMethod, int transparentLayer,
 		int red, int green, int blue, double opacity, int foreground, int[] pattern)
 	{
-		this.displayMethod = displayMethod;
-		this.printMethod = printMethod;
+		this.layer = null;
+		this.displayPatterned = (displayMethod & NATURE) == PATTERNED;
+		this.displayOutlinePatterned = (displayMethod & OUTLINEPAT) != 0;
+		this.printPatterned = (printMethod & NATURE) == PATTERNED;
+		this.printOutlinePatterned = (printMethod & OUTLINEPAT) != 0;
 		this.transparentLayer = transparentLayer;
 		this.red = red;
 		this.green = green;
@@ -124,7 +159,11 @@ public class EGraphics
 		this.opacity = opacity;
 		this.foreground = foreground;
 		this.pattern = pattern;
-		if (transparentLayer < 0 || transparentLayer >= 12)
+		if (pattern.length != 16)
+		{
+			System.out.println("Graphics bad: has " + pattern.length + " pattern entries instead of 16");
+		}
+		if (transparentLayer < 0 || transparentLayer >= TRANSPARENT_12)
 		{
 			System.out.println("Graphics transparent color bad: " + transparentLayer);
 		}
@@ -135,51 +174,229 @@ public class EGraphics
 	}
 
 	/**
-	 * Method describes how this layer appears on a display.
-	 * This layer can be drawn as a solid fill or as a pattern.
-	 * @return true to draw this layer patterned (on a display).
-	 * False to draw this layer as a solid fill.
+	 * Method tells which Layer is associated with this EGraphics.
+	 * @return the Layer that is associated with this EGraphics.
+	 * Returns null if no Layer is associated.
 	 */
-	public boolean isPatternedOnDisplay() { return (displayMethod & NATURE) == PATTERNED; }
+	public Layer getLayer() { return layer; }
 
 	/**
-	 * Method to tell whether this pattern has an outline around it.
-	 * When the layer is drawn as a pattern, the outline can be defined more clearly by drawing a line around the edge.
+	 * Method to set which Layer is associated with this EGraphics.
+	 * Since this is called only during initialization, it also examines preferences
+	 * and uses them to override the graphics information.
+	 * @param layer the Layer to associate with this EGraphics.
+	 */
+	public void setLayer(Layer layer)
+	{
+		this.layer = layer;
+		Technology tech = layer.getTechnology();
+
+		Pref usePatternDisplayPref = Pref.makeBooleanPref("UsePatternDisplayFor" + layer.getName() + "In" + tech.getTechName(),
+			Technology.getTechnologyPreferences(), displayPatterned);
+		displayPatterned = usePatternDisplayPref.getBoolean();
+		usePatternDisplayMap.put(layer, usePatternDisplayPref);
+
+		Pref outlinePatternDisplayPref = Pref.makeBooleanPref("OutlinePatternDisplayFor" + layer.getName() + "In" + tech.getTechName(),
+			Technology.getTechnologyPreferences(), displayOutlinePatterned);
+		displayOutlinePatterned = outlinePatternDisplayPref.getBoolean();
+		outlinePatternDisplayMap.put(layer, outlinePatternDisplayPref);
+
+		Pref usePatternPrinterPref = Pref.makeBooleanPref("UsePatternPrinterFor" + layer.getName() + "In" + tech.getTechName(),
+			Technology.getTechnologyPreferences(), printPatterned);
+		printPatterned = usePatternPrinterPref.getBoolean();
+		usePatternPrinterMap.put(layer, usePatternPrinterPref);
+
+		Pref outlinePatternPrinterPref = Pref.makeBooleanPref("OutlinePatternPrinterFor" + layer.getName() + "In" + tech.getTechName(),
+			Technology.getTechnologyPreferences(), printOutlinePatterned);
+		printOutlinePatterned = outlinePatternPrinterPref.getBoolean();
+		outlinePatternPrinterMap.put(layer, outlinePatternPrinterPref);
+
+		Pref transparentLayerPref = Pref.makeIntPref("TransparentLayerFor" + layer.getName() + "In" + tech.getTechName(),
+			Technology.getTechnologyPreferences(), transparentLayer);
+		transparentLayer = transparentLayerPref.getInt();
+		transparentLayerMap.put(layer, transparentLayerPref);
+
+		Pref colorPref = Pref.makeIntPref("ColorFor" + layer.getName() + "In" + tech.getTechName(),
+			Technology.getTechnologyPreferences(), (red<<16) | (green << 8) | blue);
+		int color = colorPref.getInt();
+		red = (color >> 16) & 0xFF;
+		green = (color >> 8) & 0xFF;
+		blue = color & 0xFF;
+		colorMap.put(layer, colorPref);
+
+		String pat = makePatString(pattern);
+		Pref patternPref = Pref.makeStringPref("PatternFor" + layer.getName() + "In" + tech.getTechName(),
+			Technology.getTechnologyPreferences(), pat);
+		pat = patternPref.getString();
+		parsePatString(pat, pattern);
+		patternMap.put(layer, patternPref);
+	}
+
+	private String makePatString(int [] pattern)
+	{
+		StringBuffer sb = new StringBuffer();
+		for(int i=0; i<16; i++)
+		{
+			if (i > 0) sb.append("/");
+			sb.append(Integer.toString(pattern[i]));
+		}
+		return sb.toString();
+	}
+
+	private void parsePatString(String patString, int [] pattern)
+	{
+		int pos = 0;
+		for(int i=0; i<16; i++)
+		{
+			pattern[i] = TextUtils.atoi(patString.substring(pos));
+			pos = patString.indexOf('/', pos) + 1;
+		}
+	}
+
+	/**
+	 * Method describes how this EGraphics appears on a display.
+	 * This EGraphics can be drawn as a solid fill or as a pattern.
+	 * @return true to draw this EGraphics patterned on a display.
+	 * False to draw this EGraphics as a solid fill on a display.
+	 */
+	public boolean isPatternedOnDisplay() { return displayPatterned; }
+
+	/**
+	 * Method to set how this EGraphics appears on a display.
+	 * This EGraphics can be drawn as a solid fill or as a pattern.
+	 * @param p true to draw this EGraphics patterned on a display.
+	 * False to draw this EGraphics as a solid fill on a display.
+	 */
+	public void setPatternedOnDisplay(boolean p)
+	{
+		displayPatterned = p;
+
+		if (layer != null)
+		{
+			Pref pref = (Pref)usePatternDisplayMap.get(layer);
+			if (pref != null) pref.setBoolean(p);
+		}
+	}
+
+	/**
+	 * Method to tell whether this pattern has an outline around it on the display.
+	 * When the EGraphics is drawn as a pattern, the outline can be defined more clearly by drawing a line around the edge.
 	 * @return true to dan outline around this pattern (on the display).
 	 */
-	public boolean isOutlinePatternedOnDisplay() { return (displayMethod & OUTLINEPAT) != 0; }
+	public boolean isOutlinePatternedOnDisplay() { return displayOutlinePatterned; }
 
 	/**
-	 * Method describes how this layer appears on a printer.
-	 * This layer can be drawn as a solid fill or as a pattern.
-	 * @return true to draw this layer patterned (on a printer).
-	 * False to draw this layer as a solid fill.
+	 * Method to set whether this pattern has an outline around it on the display.
+	 * When the EGraphics is drawn as a pattern, the outline can be defined more clearly by drawing a line around the edge.
+	 * @param o true to draw this pattern with an outline around it.
 	 */
-	public boolean isPatternedOnPrinter() { return (printMethod & NATURE) == PATTERNED; }
+	public void setOutlinePatternedOnDisplay(boolean o)
+	{
+		displayOutlinePatterned = o;
+
+		if (layer != null)
+		{
+			Pref pref = (Pref)outlinePatternDisplayMap.get(layer);
+			if (pref != null) pref.setBoolean(o);
+		}
+	}
+
+	/**
+	 * Method describes how this EGraphics appears on a printer.
+	 * This EGraphics can be drawn as a solid fill or as a pattern.
+	 * @return true to draw this EGraphics patterned on a printer.
+	 * False to draw this EGraphics as a solid fill on a printer.
+	 */
+	public boolean isPatternedOnPrinter() { return printPatterned; }
+
+	/**
+	 * Method to set how this EGraphics appears on a printer.
+	 * This EGraphics can be drawn as a solid fill or as a pattern.
+	 * @param p true to draw this EGraphics patterned on a printer.
+	 * False to draw this EGraphics as a solid fill on a printer.
+	 */
+	public void setPatternedOnPrinter(boolean p)
+	{
+		this.printPatterned = p;
+
+		if (layer != null)
+		{
+			Pref pref = (Pref)usePatternPrinterMap.get(layer);
+			if (pref != null) pref.setBoolean(p);
+		}
+	}
 
 	/**
 	 * Method to tell whether this pattern has an outline around it.
-	 * When the layer is drawn as a pattern, the outline can be defined more clearly by drawing a line around the edge.
+	 * When the EGraphics is drawn as a pattern, the outline can be defined more clearly by drawing a line around the edge.
 	 * @return true to dan outline around this pattern (on the printer).
 	 */
-	public boolean isOutlinePatternedOnPrinter() { return (printMethod & OUTLINEPAT) != 0; }
+	public boolean isOutlinePatternedOnPrinter() { return printOutlinePatterned; }
 
 	/**
-	 * Method to return the transparent layer associated with this EGraphics.
-	 * @return the transparent layer associated with this EGraphics.
-	 * A value of zero means that this Layer is not drawn transparently.
+	 * Method to set whether this pattern has an outline around it on a printer.
+	 * When the EGraphics is drawn as a pattern, the outline can be defined more clearly by drawing a line around the edge.
+	 * @param o true to draw this pattern with an outline around it on a printer.
+	 */
+	public void setOutlinePatternedOnPrinter(boolean o)
+	{
+		printOutlinePatterned = o;
+
+		if (layer != null)
+		{
+			Pref pref = (Pref)outlinePatternPrinterMap.get(layer);
+			if (pref != null) pref.setBoolean(o);
+		}
+	}
+
+	/**
+	 * Method to return the transparent layer number associated with this EGraphics.
+	 * @return the transparent layer number associated with this EGraphics.
+	 * A value of zero means that this EGraphics is not drawn transparently.
 	 * Instead, use the "getColor()" method to get its solid color.
 	 */
 	public int getTransparentLayer() { return transparentLayer; }
 
 	/**
-	 * Method to set the transparent layer associated with this EGraphics.
-	 * @param transparentLayer the transparent layer associated with this EGraphics.
-	 * A value of zero means that this Layer is not drawn transparently.
+	 * Method to set the transparent layer number associated with this EGraphics.
+	 * @param transparentLayer the transparent layer number associated with this EGraphics.
+	 * A value of zero means that this EGraphics is not drawn transparently.
 	 * Then, use the "setColor()" method to set its solid color.
 	 */
-	public void setTransparentLayer(int transparentLayer) { this.transparentLayer = transparentLayer; }
-	
+	public void setTransparentLayer(int transparentLayer)
+	{
+		this.transparentLayer = transparentLayer;
+
+		if (layer != null)
+		{
+			Pref pref = (Pref)transparentLayerMap.get(layer);
+			if (pref != null) pref.setInt(transparentLayer);
+		}
+	}
+
+	/**
+	 * Method to get the stipple pattern of this EGraphics.
+	 * The stipple pattern is a 16 x 16 pattern that is stored in 16 integers.
+	 * @return the stipple pattern of this EGraphics.
+	 */
+	public int [] getPattern() { return pattern; }
+
+	/**
+	 * Method to set the stipple pattern of this EGraphics.
+	 * The stipple pattern is a 16 x 16 pattern that is stored in 16 integers.
+	 * @param pattern the stipple pattern of this EGraphics.
+	 */
+	public void setPattern(int [] pattern)
+	{
+		this.pattern = pattern;
+
+		if (layer != null)
+		{
+			Pref pref = (Pref)patternMap.get(layer);
+			if (pref != null) pref.setString(makePatString(pattern));
+		}
+	}
+
 	/**
 	 * Method to return the color associated with this EGraphics.
 	 * @return the color associated with this EGraphics.
@@ -190,7 +407,7 @@ public class EGraphics
 		Color color = new Color(red, green, blue, alpha);
 		return color;
 	}
-	
+
 	/**
 	 * Method to set the color associated with this EGraphics.
 	 * @param color the color to set.
@@ -201,6 +418,12 @@ public class EGraphics
 		red = color.getRed();
 		green = color.getGreen();
 		blue = color.getBlue();
+
+		if (layer != null)
+		{
+			Pref pref = (Pref)colorMap.get(layer);
+			if (pref != null) pref.setInt((red << 16) | (green << 8) | blue);
+		}
 	}
 
 	/**
@@ -215,35 +438,35 @@ public class EGraphics
 			transparentLayer = 0;
 			switch (color)
 			{
-				case WHITE:   red = 255;   green = 255;   blue = 255;   break;
-				case BLACK:   red =   0;   green =   0;   blue =   0;   break;
-				case RED:     red = 255;   green =   0;   blue =   0;   break;
-				case BLUE:    red =   0;   green =   0;   blue = 255;   break;
-				case GREEN:   red =   0;   green = 255;   blue =   0;   break;
-				case CYAN:    red =   0;   green = 255;   blue = 255;   break;
-				case MAGENTA: red = 255;   green =   0;   blue = 255;   break;
-				case YELLOW:  red = 255;   green = 255;   blue =   0;   break;
-				case CELLTXT: red =   0;   green =   0;   blue =   0;   break;
-				case CELLOUT: red =   0;   green =   0;   blue =   0;   break;
-				case WINBOR:  red =   0;   green =   0;   blue =   0;   break;
-				case HWINBOR: red =   0;   green = 255;   blue =   0;   break;
-				case MENBOR:  red =   0;   green =   0;   blue =   0;   break;
-				case HMENBOR: red = 255;   green = 255;   blue = 255;   break;
-				case MENTXT:  red =   0;   green =   0;   blue =   0;   break;
-				case MENGLY:  red =   0;   green =   0;   blue =   0;   break;
-				case CURSOR:  red =   0;   green =   0;   blue =   0;   break;
-				case GRAY:    red = 180;   green = 180;   blue = 180;   break;
-				case ORANGE:  red = 255;   green = 190;   blue =   6;   break;
-				case PURPLE:  red = 186;   green =   0;   blue = 255;   break;
-				case BROWN:   red = 139;   green =  99;   blue =  46;   break;
-				case LGRAY:   red = 230;   green = 230;   blue = 230;   break;
-				case DGRAY:   red = 100;   green = 100;   blue = 100;   break;
-				case LRED:    red = 255;   green = 150;   blue = 150;   break;
-				case DRED:    red = 159;   green =  80;   blue =  80;   break;
-				case LGREEN:  red = 175;   green = 255;   blue = 175;   break;
-				case DGREEN:  red =  89;   green = 159;   blue =  85;   break;
-				case LBLUE:   red = 150;   green = 150;   blue = 255;   break;
-				case DBLUE:   red =   2;   green =  15;   blue = 159;   break;
+				case WHITE:   setColor(new Color(255, 255, 255));   break;
+				case BLACK:   setColor(new Color(  0,   0,   0));   break;
+				case RED:     setColor(new Color(255,   0,   0));   break;
+				case BLUE:    setColor(new Color(  0,   0, 255));   break;
+				case GREEN:   setColor(new Color(  0, 255,   0));   break;
+				case CYAN:    setColor(new Color(  0, 255, 255));   break;
+				case MAGENTA: setColor(new Color(255,   0, 255));   break;
+				case YELLOW:  setColor(new Color(255, 255,   0));   break;
+				case CELLTXT: setColor(new Color(  0,   0,   0));   break;
+				case CELLOUT: setColor(new Color(  0,   0,   0));   break;
+				case WINBOR:  setColor(new Color(  0,   0,   0));   break;
+				case HWINBOR: setColor(new Color(  0, 255,   0));   break;
+				case MENBOR:  setColor(new Color(  0,   0,   0));   break;
+				case HMENBOR: setColor(new Color(255, 255, 255));   break;
+				case MENTXT:  setColor(new Color(  0,   0,   0));   break;
+				case MENGLY:  setColor(new Color(  0,   0,   0));   break;
+				case CURSOR:  setColor(new Color(  0,   0,   0));   break;
+				case GRAY:    setColor(new Color(180, 180, 180));   break;
+				case ORANGE:  setColor(new Color(255, 190,   6));   break;
+				case PURPLE:  setColor(new Color(186,   0, 255));   break;
+				case BROWN:   setColor(new Color(139,  99,  46));   break;
+				case LGRAY:   setColor(new Color(230, 230, 230));   break;
+				case DGRAY:   setColor(new Color(100, 100, 100));   break;
+				case LRED:    setColor(new Color(255, 150, 150));   break;
+				case DRED:    setColor(new Color(159,  80,  80));   break;
+				case LGREEN:  setColor(new Color(175, 255, 175));   break;
+				case DGREEN:  setColor(new Color( 89, 159,  85));   break;
+				case LBLUE:   setColor(new Color(150, 150, 255));   break;
+				case DBLUE:   setColor(new Color(  2,  15, 159));   break;
 			}
 			return;
 		}
@@ -251,9 +474,7 @@ public class EGraphics
 		{
 			// a full RGB color (opaque)
 			transparentLayer = 0;
-			red =   (color >> 24) & 0xFF;
-			green = (color >> 16) & 0xFF;
-			blue =  (color >> 8) & 0xFF;
+			setColor(new Color((color >> 24) & 0xFF, (color >> 16) & 0xFF, (color >> 8) & 0xFF));
 			return;
 		}
 
@@ -271,6 +492,21 @@ public class EGraphics
 		if ((color&LAYERT11) != 0) transparentLayer = 11; else
 		if ((color&LAYERT12) != 0) transparentLayer = 12;
 	}
+
+	/**
+	 * Method to get the opacity of this EGraphics.
+	 * Opacity runs from 0 (transparent) to 1 (opaque).
+	 * @return the opacity of this EGraphics.
+	 */
+	public double getOpacity() { return opacity; }
+
+	/**
+	 * Method to get whether this EGraphics should be drawn in the foreground.
+	 * The foreground is the main "mix" of layers, such as metals and polysilicons.
+	 * The background is typically used by implant and well layers.
+	 * @return the whether this EGraphics should be drawn in the foreground.
+	 */
+	public boolean getForeground() { return foreground != 0; }
 
 	/**
 	 * Method to find the index of a color, given its name.
@@ -379,24 +615,12 @@ public class EGraphics
 	}
 
 	/**
-	 * Method to get the opacity of this Layer.
-	 * Opacity runs from 0 (transparent) to 1 (opaque).
-	 * @return the opacity of this Layer.
+	 * Method to return the array of transparent colors.
+	 * @return an array of the possible transparent colors.
 	 */
-	public double getOpacity() { return opacity; }
-
-	/**
-	 * Method to get whether this Layer should be drawn in the foreground.
-	 * The foreground is the main "mix" of layers, such as metals and polysilicons.
-	 * The background is typically used by implant and well layers.
-	 * @return the whether this Layer should be drawn in the foreground.
-	 */
-	public boolean getForeground() { return foreground != 0; }
-
-	/**
-	 * Method to get the stipple pattern of this Layer.
-	 * The stipple pattern is a 16 x 16 pattern that is stored in 16 integers.
-	 * @return the stipple pattern of this Layer.
-	 */
-	public int [] getPattern() { return pattern; }
+	public static int [] getTransparentColors()
+	{
+		return new int [] {LAYERT1, LAYERT2, LAYERT3, LAYERT4, LAYERT5, LAYERT6, LAYERT7, LAYERT8, LAYERT9,
+			LAYERT10, LAYERT11, LAYERT12};
+	}
 }

@@ -23,6 +23,8 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.PortProto;
@@ -32,9 +34,11 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
@@ -44,17 +48,35 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.StatusBar;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.GraphicsEnvironment;
+import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseAdapter;
+import java.awt.font.FontRenderContext;
+import java.awt.font.LineMetrics;
+import java.awt.font.GlyphVector;
+import java.awt.geom.Point2D;
 import java.util.Iterator;
 import java.util.HashMap;
 import javax.swing.JOptionPane;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.ImageIcon;
+import javax.swing.ListSelectionModel;
+import javax.swing.DefaultListModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-
 
 /**
  * Class to handle the "Edit Options" dialog.
@@ -1118,13 +1140,689 @@ public class EditOptions extends EDialog
 
 	//******************************** LAYERS ********************************
 
+	private JPanel layerPatternView, layerPatternIcon;
+	private HashMap layerMap;
+	private boolean layerChanging = false;
+	static class LayerInformation
+	{
+		EGraphics graphics;
+		int [] pattern;
+		boolean useStippleDisplay;
+		boolean outlinePatternDisplay;
+		boolean useStipplePrinter;
+		boolean outlinePatternPrinter;
+		int transparentLayer;
+		int red, green, blue;
+
+		LayerInformation()
+		{
+			pattern = new int[16];
+		}
+	}
+
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Layers tab.
 	 */
 	private void initLayers()
 	{
-		layerName.setEnabled(false);
+		int [] colors = EGraphics.getTransparentColors();
+		layerColor.addItem("Not Transparent");
+		for(int i=0; i<colors.length; i++)
+			layerColor.addItem(EGraphics.getColorName(colors[i]));
+
+		Technology tech = Technology.getCurrent();
+
+		layerMap = new HashMap();
+		layerTechName.setText("For " + tech.getTechName() + " layer:");
+		for(Iterator it = tech.getLayers(); it.hasNext(); )
+		{
+			Layer layer = (Layer)it.next();
+			layerName.addItem(layer.getName());
+			LayerInformation li = new LayerInformation();
+			EGraphics graphics = layer.getGraphics();
+			int [] pattern = graphics.getPattern();
+			for(int i=0; i<16; i++) li.pattern[i] = pattern[i];
+			li.useStippleDisplay = graphics.isPatternedOnDisplay();
+			li.outlinePatternDisplay = graphics.isOutlinePatternedOnDisplay();
+			li.useStipplePrinter = graphics.isPatternedOnPrinter();
+			li.outlinePatternPrinter = graphics.isOutlinePatternedOnPrinter();
+			li.transparentLayer = graphics.getTransparentLayer();
+			int color = graphics.getColor().getRGB();
+			li.red = (color >> 16) & 0xFF;
+			li.green = (color >> 8) & 0xFF;
+			li.blue = color & 0xFF;
+			layerMap.put(layer, li);
+		}
+		layerName.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { layerSelected(); }
+		});
+		layerUseStipplePatternDisplay.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { layerInfoChanged(); }
+		});
+		layerOutlinePatternDisplay.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { layerInfoChanged(); }
+		});
+		layerUseStipplePatternPrinter.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { layerInfoChanged(); }
+		});
+		layerOutlinePatternPrinter.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { layerInfoChanged(); }
+		});
+		layerColor.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { layerInfoChanged(); }
+		});
+		layerRed.getDocument().addDocumentListener(new LayerColorDocumentListener());
+		layerGreen.getDocument().addDocumentListener(new LayerColorDocumentListener());
+		layerBlue.getDocument().addDocumentListener(new LayerColorDocumentListener());
+
+		layerPatternView = new LayerPatternView();
+		layerPatternView.setMaximumSize(new java.awt.Dimension(257, 257));
+		layerPatternView.setMinimumSize(new java.awt.Dimension(257, 257));
+		layerPatternView.setPreferredSize(new java.awt.Dimension(257, 257));
+		java.awt.GridBagConstraints gbc = new java.awt.GridBagConstraints();
+		gbc.gridx = 0;       gbc.gridy = 5;
+		gbc.gridwidth = 7;   gbc.gridheight = 1;
+		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+		layers.add(layerPatternView, gbc);
+		layerSelected();
+
+		layerPatternIcon = new LayerPatternChoices();
+		layerPatternIcon.setMaximumSize(new java.awt.Dimension(352, 16));
+		layerPatternIcon.setMinimumSize(new java.awt.Dimension(352, 16));
+		layerPatternIcon.setPreferredSize(new java.awt.Dimension(352, 16));
+		gbc = new java.awt.GridBagConstraints();
+		gbc.gridx = 0;   gbc.gridy = 7;
+		gbc.gridwidth = 7;   gbc.gridheight = 1;
+		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+		layers.add(layerPatternIcon, gbc);
+
+		// not yet
+		layerOutlinePatternDisplay.setEnabled(false);
+		layerOutlinePatternPrinter.setEnabled(false);
+	}
+
+	private void layerSelected()
+	{
+		layerChanging = true;
+		String name = (String)layerName.getSelectedItem();
+		Layer layer = Technology.getCurrent().findLayer(name);
+		LayerInformation li = (LayerInformation)layerMap.get(layer);
+		if (li == null) return;
+		layerUseStipplePatternDisplay.setSelected(li.useStippleDisplay);
+		layerOutlinePatternDisplay.setSelected(li.outlinePatternDisplay);
+		layerUseStipplePatternPrinter.setSelected(li.useStipplePrinter);
+		layerOutlinePatternPrinter.setSelected(li.outlinePatternPrinter);
+		layerColor.setSelectedIndex(li.transparentLayer);
+		if (li.transparentLayer == 0)
+		{
+			// a pure color
+			layerRedLabel.setEnabled(true);
+			layerRed.setEnabled(true);
+			layerRed.setText(Integer.toString(li.red));
+			layerGreenLabel.setEnabled(true);
+			layerGreen.setEnabled(true);
+			layerGreen.setText(Integer.toString(li.green));
+			layerBlueLabel.setEnabled(true);
+			layerBlue.setEnabled(true);
+			layerBlue.setText(Integer.toString(li.blue));
+		} else
+		{
+			// a transparent color
+			layerRedLabel.setEnabled(false);
+			layerRed.setText("");
+			layerRed.setEnabled(false);
+			layerGreenLabel.setEnabled(false);
+			layerGreen.setText("");
+			layerGreen.setEnabled(false);
+			layerBlueLabel.setEnabled(false);
+			layerBlue.setText("");
+			layerBlue.setEnabled(false);
+		}
+		layerPatternView.repaint();
+		layerChanging = false;
+	}
+
+	private void layerInfoChanged()
+	{
+		if (layerChanging) return;
+		String name = (String)layerName.getSelectedItem();
+		Layer layer = Technology.getCurrent().findLayer(name);
+		LayerInformation li = (LayerInformation)layerMap.get(layer);
+		if (li == null) return;
+		li.useStippleDisplay = layerUseStipplePatternDisplay.isSelected();
+		li.outlinePatternDisplay = layerOutlinePatternDisplay.isSelected();
+		li.useStipplePrinter = layerUseStipplePatternPrinter.isSelected();
+		li.outlinePatternPrinter = layerOutlinePatternPrinter.isSelected();
+		li.transparentLayer = layerColor.getSelectedIndex();
+		boolean colorsEnabled = li.transparentLayer == 0;
+		layerRedLabel.setEnabled(colorsEnabled);
+		layerRed.setEnabled(colorsEnabled);
+		layerGreenLabel.setEnabled(colorsEnabled);
+		layerGreen.setEnabled(colorsEnabled);
+		layerBlueLabel.setEnabled(colorsEnabled);
+		layerBlue.setEnabled(colorsEnabled);
+		li.red = TextUtils.atoi(layerRed.getText());
+		li.green = TextUtils.atoi(layerGreen.getText());
+		li.blue = TextUtils.atoi(layerBlue.getText());
+	}
+
+	/**
+	 * Class to handle special changes to layer color options.
+	 */
+	private class LayerColorDocumentListener implements DocumentListener
+	{
+		LayerColorDocumentListener() {}
+
+		public void changedUpdate(DocumentEvent e) { layerInfoChanged(); }
+		public void insertUpdate(DocumentEvent e) { layerInfoChanged(); }
+		public void removeUpdate(DocumentEvent e) { layerInfoChanged(); }
+	}
+
+	private class LayerPatternView extends JPanel
+		implements MouseMotionListener, MouseListener
+	{
+		boolean newState;
+
+		LayerPatternView()
+		{
+			addMouseListener(this);
+			addMouseMotionListener(this);
+		}
+
+		/**
+		 * Method to repaint this LayerPatternView.
+		 */
+		public void paint(Graphics g)
+		{
+			Dimension dim = getSize();
+			g.setColor(Color.WHITE);
+			g.fillRect(0, 0, dim.width, dim.height);
+			g.setColor(Color.BLACK);
+			for(int i=0; i<=256; i += 16)
+			{
+				g.drawLine(i, 0, i, 256);
+				g.drawLine(0, i, 256, i);
+			}
+
+			String name = (String)layerName.getSelectedItem();
+			Layer layer = Technology.getCurrent().findLayer(name);
+			LayerInformation li = (LayerInformation)layerMap.get(layer);
+			if (li == null) return;
+			for(int y=0; y<16; y++)
+			{
+				int bits = li.pattern[y];
+				for(int x=0; x<16; x++)
+				{
+					if ((bits & (1<<(15-x))) != 0)
+					{
+						g.fillRect(x*16, y*16, 16, 16);
+					}
+				}
+			}
+		}
+
+		// the MouseListener events
+		public void mousePressed(MouseEvent evt)
+		{
+			String name = (String)layerName.getSelectedItem();
+			Layer layer = Technology.getCurrent().findLayer(name);
+			LayerInformation li = (LayerInformation)layerMap.get(layer);
+			if (li == null) return;
+			int xIndex = evt.getX() / 16;
+			int yIndex = evt.getY() / 16;
+			int curWord = li.pattern[yIndex];
+			newState = (curWord & (1<<(15-xIndex))) == 0;
+			mouseDragged(evt);
+		}
+		public void mouseReleased(MouseEvent evt) {}
+		public void mouseClicked(MouseEvent evt) {}
+		public void mouseEntered(MouseEvent evt) {}
+		public void mouseExited(MouseEvent evt) {}
+
+		// the MouseMotionListener events
+		public void mouseMoved(MouseEvent evt) {}
+		public void mouseDragged(MouseEvent evt)
+		{
+			String name = (String)layerName.getSelectedItem();
+			Layer layer = Technology.getCurrent().findLayer(name);
+			LayerInformation li = (LayerInformation)layerMap.get(layer);
+			if (li == null) return;
+			int xIndex = evt.getX() / 16;
+			int yIndex = evt.getY() / 16;
+			int curWord = li.pattern[yIndex];
+			if ((curWord & (1<<(15-xIndex))) != 0)
+			{
+				if (newState) return;
+				curWord &= ~(1<<(15-xIndex));
+			} else
+			{
+				if (!newState) return;
+				curWord |= 1<<(15-xIndex);
+			}
+			li.pattern[yIndex] = curWord;
+			repaint();
+		}
+	}
+
+	private static final int [] preDefinedPatterns =
+	{
+		0x8888,  // X   X   X   X   
+		0x4444,  //  X   X   X   X  
+		0x2222,  //   X   X   X   X 
+		0x1111,  //    X   X   X   X
+		0x8888,  // X   X   X   X   
+		0x4444,  //  X   X   X   X  
+		0x2222,  //   X   X   X   X 
+		0x1111,  //    X   X   X   X
+		0x8888,  // X   X   X   X   
+		0x4444,  //  X   X   X   X  
+		0x2222,  //   X   X   X   X 
+		0x1111,  //    X   X   X   X
+		0x8888,  // X   X   X   X   
+		0x4444,  //  X   X   X   X  
+		0x2222,  //   X   X   X   X 
+		0x1111,  //    X   X   X   X
+
+		0x8888,  // X   X   X   X   
+		0x1111,  //    X   X   X   X
+		0x2222,  //   X   X   X   X 
+		0x4444,  //  X   X   X   X  
+		0x8888,  // X   X   X   X   
+		0x1111,  //    X   X   X   X
+		0x2222,  //   X   X   X   X 
+		0x4444,  //  X   X   X   X  
+		0x8888,  // X   X   X   X   
+		0x1111,  //    X   X   X   X
+		0x2222,  //   X   X   X   X 
+		0x4444,  //  X   X   X   X  
+		0x8888,  // X   X   X   X   
+		0x1111,  //    X   X   X   X
+		0x2222,  //   X   X   X   X 
+		0x4444,  //  X   X   X   X  
+
+		0xCCCC,  // XX  XX  XX  XX  
+		0xCCCC,  // XX  XX  XX  XX  
+		0x3333,  //   XX  XX  XX  XX
+		0x3333,  //   XX  XX  XX  XX
+		0xCCCC,  // XX  XX  XX  XX  
+		0xCCCC,  // XX  XX  XX  XX  
+		0x3333,  //   XX  XX  XX  XX
+		0x3333,  //   XX  XX  XX  XX
+		0xCCCC,  // XX  XX  XX  XX  
+		0xCCCC,  // XX  XX  XX  XX  
+		0x3333,  //   XX  XX  XX  XX
+		0x3333,  //   XX  XX  XX  XX
+		0xCCCC,  // XX  XX  XX  XX  
+		0xCCCC,  // XX  XX  XX  XX  
+		0x3333,  //   XX  XX  XX  XX
+		0x3333,  //   XX  XX  XX  XX
+
+		0xFFFF,  // XXXXXXXXXXXXXXXX
+		0x0000,  //                 
+		0xFFFF,  // XXXXXXXXXXXXXXXX
+		0x0000,  //                 
+		0xFFFF,  // XXXXXXXXXXXXXXXX
+		0x0000,  //                 
+		0xFFFF,  // XXXXXXXXXXXXXXXX
+		0x0000,  //                 
+		0xFFFF,  // XXXXXXXXXXXXXXXX
+		0x0000,  //                 
+		0xFFFF,  // XXXXXXXXXXXXXXXX
+		0x0000,  //                 
+		0xFFFF,  // XXXXXXXXXXXXXXXX
+		0x0000,  //                 
+		0xFFFF,  // XXXXXXXXXXXXXXXX
+		0x0000,  //                 
+
+		0xAAAA,  // X X X X X X X X 
+		0xAAAA,  // X X X X X X X X 
+		0xAAAA,  // X X X X X X X X 
+		0xAAAA,  // X X X X X X X X 
+		0xAAAA,  // X X X X X X X X 
+		0xAAAA,  // X X X X X X X X 
+		0xAAAA,  // X X X X X X X X 
+		0xAAAA,  // X X X X X X X X 
+		0xAAAA,  // X X X X X X X X 
+		0xAAAA,  // X X X X X X X X 
+		0xAAAA,  // X X X X X X X X 
+		0xAAAA,  // X X X X X X X X 
+		0xAAAA,  // X X X X X X X X 
+		0xAAAA,  // X X X X X X X X 
+		0xAAAA,  // X X X X X X X X 
+		0xAAAA,  // X X X X X X X X 
+
+		0x6060,  //  XX      XX     
+		0x9090,  // X  X    X  X    
+		0x9090,  // X  X    X  X    
+		0x6060,  //  XX      XX     
+		0x0606,  //      XX      XX 
+		0x0909,  //     X  X    X  X
+		0x0909,  //     X  X    X  X
+		0x0606,  //      XX      XX 
+		0x6060,  //  XX      XX     
+		0x9090,  // X  X    X  X    
+		0x9090,  // X  X    X  X    
+		0x6060,  //  XX      XX     
+		0x0606,  //      XX      XX 
+		0x0909,  //     X  X    X  X
+		0x0909,  //     X  X    X  X
+		0x0606,  //      XX      XX 
+
+		0x2222,  //   X   X   X   X 
+		0x0000,  //                 
+		0x8888,  // X   X   X   X   
+		0x0000,  //                 
+		0x2222,  //   X   X   X   X 
+		0x0000,  //                 
+		0x8888,  // X   X   X   X   
+		0x0000,  //                 
+		0x2222,  //   X   X   X   X 
+		0x0000,  //                 
+		0x8888,  // X   X   X   X   
+		0x0000,  //                 
+		0x2222,  //   X   X   X   X 
+		0x0000,  //                 
+		0x8888,  // X   X   X   X   
+		0x0000,  //                 
+
+		0x4444,  //  X   X   X   X  
+		0x1111,  //    X   X   X   X
+		0x4444,  //  X   X   X   X  
+		0x1111,  //    X   X   X   X
+		0x4444,  //  X   X   X   X  
+		0x1111,  //    X   X   X   X
+		0x4444,  //  X   X   X   X  
+		0x1111,  //    X   X   X   X
+		0x4444,  //  X   X   X   X  
+		0x1111,  //    X   X   X   X
+		0x4444,  //  X   X   X   X  
+		0x1111,  //    X   X   X   X
+		0x4444,  //  X   X   X   X  
+		0x1111,  //    X   X   X   X
+		0x4444,  //  X   X   X   X  
+		0x1111,  //    X   X   X   X
+
+		0x1010,  //    X       X    
+		0x2020,  //   X       X     
+		0x4040,  //  X       X      
+		0x8080,  // X       X       
+		0x0101,  //        X       X
+		0x0202,  //       X       X 
+		0x0404,  //      X       X  
+		0x0808,  //     X       X   
+		0x1010,  //    X       X    
+		0x2020,  //   X       X     
+		0x4040,  //  X       X      
+		0x8080,  // X       X       
+		0x0101,  //        X       X
+		0x0202,  //       X       X 
+		0x0404,  //      X       X  
+		0x0808,  //     X       X   
+
+		0x0808,  //     X       X   
+		0x0404,  //      X       X  
+		0x0202,  //       X       X 
+		0x0101,  //        X       X
+		0x8080,  // X       X       
+		0x4040,  //  X       X      
+		0x2020,  //   X       X     
+		0x1010,  //    X       X    
+		0x0808,  //     X       X   
+		0x0404,  //      X       X  
+		0x0202,  //       X       X 
+		0x0101,  //        X       X
+		0x8080,  // X       X       
+		0x4040,  //  X       X      
+		0x2020,  //   X       X     
+		0x1010,  //    X       X    
+
+		0x4040,  //  X       X      
+		0x8080,  // X       X       
+		0x0101,  //        X       X
+		0x0202,  //       X       X 
+		0x0101,  //        X       X
+		0x8080,  // X       X       
+		0x4040,  //  X       X      
+		0x2020,  //   X       X     
+		0x4040,  //  X       X      
+		0x8080,  // X       X       
+		0x0101,  //        X       X
+		0x0202,  //       X       X 
+		0x0101,  //        X       X
+		0x8080,  // X       X       
+		0x4040,  //  X       X      
+		0x2020,  //   X       X     
+
+		0x2020,  //   X       X     
+		0x0000,  //                 
+		0x8080,  // X       X       
+		0x0000,  //                 
+		0x0202,  //       X       X 
+		0x0000,  //                 
+		0x0808,  //     X       X   
+		0x0000,  //                 
+		0x2020,  //   X       X     
+		0x0000,  //                 
+		0x8080,  // X       X       
+		0x0000,  //                 
+		0x0202,  //       X       X 
+		0x0000,  //                 
+		0x0808,  //     X       X   
+		0x0000,  //                 
+
+		0x0808,  //     X       X   
+		0x0000,  //                 
+		0x0202,  //       X       X 
+		0x0000,  //                 
+		0x8080,  // X       X       
+		0x0000,  //                 
+		0x2020,  //   X       X     
+		0x0000,  //                 
+		0x0808,  //     X       X   
+		0x0000,  //                 
+		0x0202,  //       X       X 
+		0x0000,  //                 
+		0x8080,  // X       X       
+		0x0000,  //                 
+		0x2020,  //   X       X     
+		0x0000,  //                 
+
+		0x0000,  //                 
+		0x0303,  //       XX      XX
+		0x4848,  //  X  X    X  X   
+		0x0303,  //       XX      XX
+		0x0000,  //                 
+		0x3030,  //   XX      XX    
+		0x8484,  // X    X  X    X  
+		0x3030,  //   XX      XX    
+		0x0000,  //                 
+		0x0303,  //       XX      XX
+		0x4848,  //  X  X    X  X   
+		0x0303,  //       XX      XX
+		0x0000,  //                 
+		0x3030,  //   XX      XX    
+		0x8484,  // X    X  X    X  
+		0x3030,  //   XX      XX    
+
+		0x1C1C,  //    XXX     XXX  
+		0x3E3E,  //   XXXXX   XXXXX 
+		0x3636,  //   XX XX   XX XX 
+		0x3E3E,  //   XXXXX   XXXXX 
+		0x1C1C,  //    XXX     XXX  
+		0x0000,  //                 
+		0x0000,  //                 
+		0x0000,  //                 
+		0x1C1C,  //    XXX     XXX  
+		0x3E3E,  //   XXXXX   XXXXX 
+		0x3636,  //   XX XX   XX XX 
+		0x3E3E,  //   XXXXX   XXXXX 
+		0x1C1C,  //    XXX     XXX  
+		0x0000,  //                 
+		0x0000,  //                 
+		0x0000,  //                 
+
+		0x0000,  //                 
+		0xCCCC,  // XX  XX  XX  XX  
+		0x0000,  //                 
+		0xCCCC,  // XX  XX  XX  XX  
+		0x0000,  //                 
+		0x0000,  //                 
+		0x0000,  //                 
+		0x0000,  //                 
+		0x0000,  //                 
+		0xCCCC,  // XX  XX  XX  XX  
+		0x0000,  //                 
+		0xCCCC,  // XX  XX  XX  XX  
+		0x0000,  //                 
+		0x0000,  //                 
+		0x0000,  //                 
+		0x0000,  //                 
+
+		0x0000,  //                 
+		0x0000,  //                 
+		0x2222,  //   X   X   X   X 
+		0x8888,  // X   X   X   X   
+		0x0000,  //                 
+		0x0000,  //                 
+		0x2222,  //   X   X   X   X 
+		0x8888,  // X   X   X   X   
+		0x0000,  //                 
+		0x0000,  //                 
+		0x2222,  //   X   X   X   X 
+		0x8888,  // X   X   X   X   
+		0x0000,  //                 
+		0x0000,  //                 
+		0x2222,  //   X   X   X   X 
+		0x8888,  // X   X   X   X   
+
+		0x0000,  //                 
+		0x0000,  //                 
+		0x1111,  //    X   X   X   X
+		0x0000,  //                 
+		0x0000,  //                 
+		0x0000,  //                 
+		0x1111,  //    X   X   X   X
+		0x0000,  //                 
+		0x0000,  //                 
+		0x0000,  //                 
+		0x1111,  //    X   X   X   X
+		0x0000,  //                 
+		0x0000,  //                 
+		0x0000,  //                 
+		0x1111,  //    X   X   X   X
+		0x0000,  //                 
+
+		0x0000,  //                 
+		0x2222,  //   X   X   X   X 
+		0x4444,  //  X   X   X   X  
+		0x8888,  // X   X   X   X   
+		0x0000,  //                 
+		0x2222,  //   X   X   X   X 
+		0x4444,  //  X   X   X   X  
+		0x8888,  // X   X   X   X   
+		0x0000,  //                 
+		0x2222,  //   X   X   X   X 
+		0x4444,  //  X   X   X   X  
+		0x8888,  // X   X   X   X   
+		0x0000,  //                 
+		0x2222,  //   X   X   X   X 
+		0x4444,  //  X   X   X   X  
+		0x8888,  // X   X   X   X   
+
+		0x0000,  //                 
+		0x2222,  //   X   X   X   X 
+		0x5555,  //  X X X X X X X X
+		0x2222,  //   X   X   X   X 
+		0x0000,  //                 
+		0x2222,  //   X   X   X   X 
+		0x5555,  //  X X X X X X X X
+		0x2222,  //   X   X   X   X 
+		0x0000,  //                 
+		0x2222,  //   X   X   X   X 
+		0x5555,  //  X X X X X X X X
+		0x2222,  //   X   X   X   X 
+		0x0000,  //                 
+		0x2222,  //   X   X   X   X 
+		0x5555,  //  X X X X X X X X
+		0x2222,  //   X   X   X   X 
+
+		0x0000,  //                 
+		0x0000,  //                 
+		0x0000,  //                 
+		0x0000,  //                 
+		0x0000,  //                 
+		0x0000,  //                 
+		0x0000,  //                 
+		0x0000,  //                 
+		0x0000,  //                 
+		0x0000,  //                 
+		0x0000,  //                 
+		0x0000,  //                 
+		0x0000,  //                 
+		0x0000,  //                 
+		0x0000,  //                 
+		0x0000,  //                 
+
+		0xFFFF,  // XXXXXXXXXXXXXXXX
+		0xFFFF,  // XXXXXXXXXXXXXXXX
+		0xFFFF,  // XXXXXXXXXXXXXXXX
+		0xFFFF,  // XXXXXXXXXXXXXXXX
+		0xFFFF,  // XXXXXXXXXXXXXXXX
+		0xFFFF,  // XXXXXXXXXXXXXXXX
+		0xFFFF,  // XXXXXXXXXXXXXXXX
+		0xFFFF,  // XXXXXXXXXXXXXXXX
+		0xFFFF,  // XXXXXXXXXXXXXXXX
+		0xFFFF,  // XXXXXXXXXXXXXXXX
+		0xFFFF,  // XXXXXXXXXXXXXXXX
+		0xFFFF,  // XXXXXXXXXXXXXXXX
+		0xFFFF,  // XXXXXXXXXXXXXXXX
+		0xFFFF,  // XXXXXXXXXXXXXXXX
+		0xFFFF,  // XXXXXXXXXXXXXXXX
+		0xFFFF   // XXXXXXXXXXXXXXXX
+	};
+
+	private class LayerPatternChoices extends JPanel
+		implements MouseListener
+	{
+		LayerPatternChoices()
+		{
+			addMouseListener(this);
+		}
+
+		/**
+		 * Method to repaint this LayerPatternChoices.
+		 */
+		public void paint(Graphics g)
+		{
+			ImageIcon icon = new ImageIcon(getClass().getResource("IconLayerPatterns.gif"));
+			g.drawImage(icon.getImage(), 0, 0, null);
+		}
+
+		// the MouseListener events
+		public void mousePressed(MouseEvent evt)
+		{
+			int iconIndex = evt.getX() / 16;
+			String name = (String)layerName.getSelectedItem();
+			Layer layer = Technology.getCurrent().findLayer(name);
+			LayerInformation li = (LayerInformation)layerMap.get(layer);
+			if (li == null) return;
+			for(int i=0; i<16; i++)
+			{
+				li.pattern[i] = preDefinedPatterns[iconIndex*16+i];
+			}
+			layerPatternView.repaint();
+		}
+		public void mouseReleased(MouseEvent evt) {}
+		public void mouseClicked(MouseEvent evt) {}
+		public void mouseEntered(MouseEvent evt) {}
+		public void mouseExited(MouseEvent evt) {}
 	}
 
 	/**
@@ -1133,6 +1831,60 @@ public class EditOptions extends EDialog
 	 */
 	private void termLayers()
 	{
+		Technology tech = Technology.getCurrent();
+		boolean changed = false;
+		for(Iterator it = tech.getLayers(); it.hasNext(); )
+		{
+			Layer layer = (Layer)it.next();
+			LayerInformation li = (LayerInformation)layerMap.get(layer);
+			if (li == null) continue;
+
+			EGraphics graphics = layer.getGraphics();
+			int [] pattern = graphics.getPattern();
+			boolean patternChanged = false;
+			for(int i=0; i<16; i++) if (li.pattern[i] != pattern[i]) patternChanged = true;
+			if (patternChanged)
+			{
+				graphics.setPattern(li.pattern);
+				changed = true;
+			}
+			if (li.useStippleDisplay != graphics.isPatternedOnDisplay())
+			{
+				graphics.setPatternedOnDisplay(li.useStippleDisplay);
+				changed = true;
+			}
+			if (li.outlinePatternDisplay != graphics.isOutlinePatternedOnDisplay())
+			{
+				graphics.setOutlinePatternedOnDisplay(li.outlinePatternDisplay);
+				changed = true;
+			}
+			if (li.useStipplePrinter != graphics.isPatternedOnPrinter())
+			{
+				graphics.setPatternedOnPrinter(li.useStipplePrinter);
+				changed = true;
+			}
+			if (li.outlinePatternPrinter != graphics.isOutlinePatternedOnPrinter())
+			{
+				graphics.setOutlinePatternedOnPrinter(li.outlinePatternPrinter);
+				changed = true;
+			}
+			int color = (li.red << 16) | (li.green << 8) | li.blue;
+			if (color != (graphics.getColor().getRGB() & 0xFFFFFF))
+			{
+				graphics.setColor((color << 8) | EGraphics.FULLRGBBIT);
+				changed = true;
+			}
+			if (li.transparentLayer != graphics.getTransparentLayer())
+			{
+				graphics.setTransparentLayer(li.transparentLayer);
+				changed = true;
+			}
+		}
+		if (changed)
+		{
+			TopLevel.getPaletteFrame().loadForTechnology();
+			EditWindow.repaintAllContents();
+		}
 	}
 
 	//******************************** COLORS ********************************
@@ -1445,12 +2197,239 @@ public class EditOptions extends EDialog
 
 	//******************************** 3D ********************************
 
+	private boolean initial3DPerspective;
+	private boolean initial3DTextChanging = false;
+	private Technology threeDTech;
+	private JList threeDLayerList;
+	private DefaultListModel threeDLayerModel;
+	private HashMap threeDThicknessMap, threeDHeightMap;
+	private JPanel threeDSideView;
+
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the 3D tab.
 	 */
 	private void init3D()
 	{
+		threeDTech = Technology.getCurrent(); 
+		threeDTechnology.setText("Layer heights for technology " + threeDTech.getTechName());
+		threeDLayerModel = new DefaultListModel();
+		threeDLayerList = new JList(threeDLayerModel);
+		threeDLayerList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		threeDLayerPane.setViewportView(threeDLayerList);
+		threeDLayerList.clearSelection();
+		threeDLayerList.addMouseListener(new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent evt) { threeDClickedLayer(); }
+		});
+		threeDThicknessMap = new HashMap();
+		threeDHeightMap = new HashMap();
+		for(Iterator it = threeDTech.getLayers(); it.hasNext(); )
+		{
+			Layer layer = (Layer)it.next();
+			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+			threeDLayerModel.addElement(layer.getName());
+			threeDThicknessMap.put(layer, new EMath.MutableDouble(layer.getThickness()));
+			threeDHeightMap.put(layer, new EMath.MutableDouble(layer.getHeight()));
+		}
+		threeDLayerList.setSelectedIndex(0);
+		threeDHeight.getDocument().addDocumentListener(new ThreeDInfoDocumentListener(this));
+		threeDThickness.getDocument().addDocumentListener(new ThreeDInfoDocumentListener(this));
+
+		threeDSideView = new ThreeDSideView(this);
+		java.awt.GridBagConstraints gbc = new java.awt.GridBagConstraints();
+		gbc.gridx = 2;       gbc.gridy = 1;
+		gbc.gridwidth = 2;   gbc.gridheight = 4;
+		gbc.weightx = 0.5;   gbc.weighty = 1.0;
+		gbc.fill = java.awt.GridBagConstraints.BOTH;
+		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+		threeD.add(threeDSideView, gbc);
+
+		threeDClickedLayer();
+
+		initial3DPerspective = User.is3DPerspective();
+		threeDPerspective.setSelected(initial3DPerspective);
+	}
+
+	private class ThreeDSideView extends JPanel
+		implements MouseMotionListener, MouseListener
+	{
+		EditOptions dialog;
+		double lowHeight, highHeight;
+
+		ThreeDSideView(EditOptions dialog)
+		{
+			this.dialog = dialog;
+			addMouseListener(this);
+			addMouseMotionListener(this);
+			boolean first = true;
+			for(Iterator it = dialog.threeDTech.getLayers(); it.hasNext(); )
+			{
+				Layer layer = (Layer)it.next();
+				if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+				EMath.MutableDouble thickness = (EMath.MutableDouble)dialog.threeDThicknessMap.get(layer);
+				EMath.MutableDouble height = (EMath.MutableDouble)dialog.threeDHeightMap.get(layer);
+				if (first)
+				{
+					lowHeight = height.doubleValue() - thickness.doubleValue()/2;
+					highHeight = height.doubleValue() + thickness.doubleValue()/2;
+					first = false;
+				} else
+				{
+					if (height.doubleValue() - thickness.doubleValue()/2 < lowHeight)
+						lowHeight = height.doubleValue() - thickness.doubleValue()/2;
+					if (height.doubleValue() + thickness.doubleValue()/2 > highHeight)
+						highHeight = height.doubleValue() + thickness.doubleValue()/2;
+				}
+			}
+			lowHeight -= 4;
+			highHeight += 4;
+		}
+
+		/**
+		 * Method to repaint this ThreeDSideView.
+		 */
+		public void paint(Graphics g)
+		{
+			Dimension dim = getSize();
+			g.setColor(Color.WHITE);
+			g.fillRect(0, 0, dim.width, dim.height);
+			g.setColor(Color.BLACK);
+			g.drawLine(0, 0, 0, dim.height-1);
+			g.drawLine(0, dim.height-1, dim.width-1, dim.height-1);
+			g.drawLine(dim.width-1, dim.height-1, dim.width-1, 0);
+			g.drawLine(dim.width-1, 0, 0, 0);
+
+			String layerName = (String)dialog.threeDLayerList.getSelectedValue();
+			Layer selectedLayer = dialog.threeDTech.findLayer(layerName);
+			for(Iterator it = dialog.threeDTech.getLayers(); it.hasNext(); )
+			{
+				Layer layer = (Layer)it.next();
+				if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+				if (layer == selectedLayer) g.setColor(Color.RED); else
+					g.setColor(Color.BLACK);
+				EMath.MutableDouble thickness = (EMath.MutableDouble)dialog.threeDThicknessMap.get(layer);
+				EMath.MutableDouble height = (EMath.MutableDouble)dialog.threeDHeightMap.get(layer);
+				int yValue = dim.height - (int)((height.doubleValue() - lowHeight) / (highHeight - lowHeight) * dim.height + 0.5);
+				int yHeight = (int)(thickness.doubleValue() / (highHeight - lowHeight) * dim.height + 0.5);
+				if (yHeight == 0)
+				{
+					g.drawLine(0, yValue, dim.width/3, yValue);
+				} else
+				{
+					yHeight -= 4;
+					int firstPart = dim.width / 6;
+					int pointPos = dim.width / 4;
+					g.drawLine(0, yValue-yHeight/2, firstPart, yValue-yHeight/2);
+					g.drawLine(0, yValue+yHeight/2, firstPart, yValue+yHeight/2);
+					g.drawLine(firstPart, yValue-yHeight/2, pointPos, yValue);
+					g.drawLine(firstPart, yValue+yHeight/2, pointPos, yValue);
+					g.drawLine(pointPos, yValue, dim.width/3, yValue);
+				}
+				String string = layer.getName();
+				Font font = new Font(User.getDefaultFont(), Font.PLAIN, 9);
+				g.setFont(font);
+				FontRenderContext frc = new FontRenderContext(null, true, true);
+				GlyphVector gv = font.createGlyphVector(frc, string);
+				LineMetrics lm = font.getLineMetrics(string, frc);
+				Rectangle rect = gv.getOutline(0, (float)(lm.getAscent()-lm.getLeading())).getBounds();
+				double txtWidth = rect.width;
+				double txtHeight = lm.getHeight();
+				Graphics2D g2 = (Graphics2D)g;
+				g2.drawGlyphVector(gv, dim.width/3 + 1, (float)(yValue + txtHeight/2) - lm.getDescent());
+			}
+		}
+
+		// the MouseListener events
+		public void mousePressed(MouseEvent evt)
+		{
+			Dimension dim = getSize();
+			String layerName = (String)dialog.threeDLayerList.getSelectedValue();
+			Layer selectedLayer = dialog.threeDTech.findLayer(layerName);
+			EMath.MutableDouble height = (EMath.MutableDouble)dialog.threeDHeightMap.get(selectedLayer);
+			int yValue = dim.height - (int)((height.doubleValue() - lowHeight) / (highHeight - lowHeight) * dim.height + 0.5);
+			if (Math.abs(yValue - evt.getY()) > 5)
+			{
+				int bestDist = dim.height;
+				for(Iterator it = dialog.threeDTech.getLayers(); it.hasNext(); )
+				{
+					Layer layer = (Layer)it.next();
+					if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+					height = (EMath.MutableDouble)dialog.threeDHeightMap.get(layer);
+					yValue = dim.height - (int)((height.doubleValue() - lowHeight) / (highHeight - lowHeight) * dim.height + 0.5);
+					int dist = Math.abs(yValue - evt.getY());
+					if (dist < bestDist)
+					{
+						bestDist = dist;
+						selectedLayer = layer;
+					}
+				}
+				dialog.threeDLayerList.setSelectedValue(selectedLayer.getName(), true);
+				dialog.threeDClickedLayer();
+			}
+		}
+		public void mouseReleased(MouseEvent evt) {}
+		public void mouseClicked(MouseEvent evt) {}
+		public void mouseEntered(MouseEvent evt) {}
+		public void mouseExited(MouseEvent evt) {}
+
+		// the MouseMotionListener events
+		public void mouseMoved(MouseEvent evt) {}
+		public void mouseDragged(MouseEvent evt)
+		{
+			Dimension dim = getSize();
+			String layerName = (String)dialog.threeDLayerList.getSelectedValue();
+			Layer layer = dialog.threeDTech.findLayer(layerName);
+			EMath.MutableDouble height = (EMath.MutableDouble)threeDHeightMap.get(layer);
+			double newHeight = (double)(dim.height - evt.getY()) / dim.height * (highHeight - lowHeight) + lowHeight;
+			if (height.doubleValue() != newHeight)
+			{
+				height.setValue(newHeight);
+				dialog.threeDHeight.setText(TextUtils.formatDouble(newHeight));
+				repaint();
+			}
+		}
+	}
+
+	/**
+	 * Class to handle changes to the thickness or height.
+	 */
+	private static class ThreeDInfoDocumentListener implements DocumentListener
+	{
+		EditOptions dialog;
+
+		ThreeDInfoDocumentListener(EditOptions dialog) { this.dialog = dialog; }
+
+		public void changedUpdate(DocumentEvent e) { dialog.threeDValuesChanged(); }
+		public void insertUpdate(DocumentEvent e) { dialog.threeDValuesChanged(); }
+		public void removeUpdate(DocumentEvent e) { dialog.threeDValuesChanged(); }
+	}
+
+	private void threeDValuesChanged()
+	{
+		if (initial3DTextChanging) return;
+		String layerName = (String)threeDLayerList.getSelectedValue();
+		Layer layer = threeDTech.findLayer(layerName);
+		if (layer == null) return;
+		EMath.MutableDouble thickness = (EMath.MutableDouble)threeDThicknessMap.get(layer);
+		EMath.MutableDouble height = (EMath.MutableDouble)threeDHeightMap.get(layer);
+		thickness.setValue(TextUtils.atof(threeDThickness.getText()));
+		height.setValue(TextUtils.atof(threeDHeight.getText()));
+		threeDSideView.repaint();
+	}
+
+	private void threeDClickedLayer()
+	{
+		initial3DTextChanging = true;
+		String layerName = (String)threeDLayerList.getSelectedValue();
+		Layer layer = threeDTech.findLayer(layerName);
+		if (layer == null) return;
+		EMath.MutableDouble thickness = (EMath.MutableDouble)threeDThicknessMap.get(layer);
+		EMath.MutableDouble height = (EMath.MutableDouble)threeDHeightMap.get(layer);
+		threeDHeight.setText(TextUtils.formatDouble(height.doubleValue()));
+		threeDThickness.setText(TextUtils.formatDouble(thickness.doubleValue()));
+		initial3DTextChanging = false;
+		threeDSideView.repaint();
 	}
 
 	/**
@@ -1459,6 +2438,21 @@ public class EditOptions extends EDialog
 	 */
 	private void term3D()
 	{
+		for(Iterator it = threeDTech.getLayers(); it.hasNext(); )
+		{
+			Layer layer = (Layer)it.next();
+			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+			EMath.MutableDouble thickness = (EMath.MutableDouble)threeDThicknessMap.get(layer);
+			EMath.MutableDouble height = (EMath.MutableDouble)threeDHeightMap.get(layer);
+			if (thickness.doubleValue() != layer.getThickness())
+				layer.setThickness(thickness.doubleValue());
+			if (height.doubleValue() != layer.getHeight())
+				layer.setHeight(height.doubleValue());
+		}
+
+		boolean currentPerspective = threeDPerspective.isSelected();
+		if (currentPerspective != initial3DPerspective)
+			User.set3DPerspective(currentPerspective);
 	}
 
 	//******************************** TECHNOLOGY ********************************
@@ -1471,6 +2465,7 @@ public class EditOptions extends EDialog
 	private boolean initialTechAlternateContactRules;
 	private boolean initialTechSpecialTransistors;
 	private boolean initialTechStickFigures;
+	private boolean initialTechArtworkArrowsFilled;
 	private double initialTechNegatingBubbleSize;
 
 	/**
@@ -1509,6 +2504,10 @@ public class EditOptions extends EDialog
 		if (initialTechStickFigures) techMOCMOSStickFigures.setSelected(true); else
 			techMOCMOSFullGeom.setSelected(true);
 
+		// Artwork
+		initialTechArtworkArrowsFilled = Artwork.isFilledArrowHeads();
+		techArtworkArrowsFilled.setSelected(initialTechArtworkArrowsFilled);
+
 		// Schematics
 		initialSchematicTechnology = User.getSchematicTechnology();
 		for(Iterator it = Technology.getTechnologiesSortedByName().iterator(); it.hasNext(); )
@@ -1524,7 +2523,6 @@ public class EditOptions extends EDialog
 		// not yet
 		techMOCMOSFullGeom.setEnabled(false);
 		techMOCMOSStickFigures.setEnabled(false);
-		techArtworkArrowsFilled.setEnabled(false);
 	}
 
 	/**
@@ -1599,6 +2597,14 @@ public class EditOptions extends EDialog
 			redrawPalette = redrawWindows = true;
 		}
 
+		// Artwork
+		boolean currentArrowsFilled = techArtworkArrowsFilled.isSelected();
+		if (currentArrowsFilled != initialTechArtworkArrowsFilled)
+		{
+			Artwork.setFilledArrowHeads(currentArrowsFilled);
+			redrawWindows = true;
+		}
+
 		// Schematics
 		String currentTech = (String)technologyPopup.getSelectedItem();
 		if (!currentTech.equals(initialSchematicTechnology))
@@ -1606,7 +2612,10 @@ public class EditOptions extends EDialog
 
 		double currentNegatingBubbleSize = TextUtils.atof(techSchematicsNegatingSize.getText());
 		if (currentNegatingBubbleSize != initialTechNegatingBubbleSize)
+		{
 			Schematics.setNegatingBubbleSize(currentNegatingBubbleSize);
+			redrawWindows = true;
+		}
 
 		// update the display
 		if (redrawPalette)
@@ -1784,8 +2793,23 @@ public class EditOptions extends EDialog
         gridAlignEdges = new javax.swing.JTextField();
         layers = new javax.swing.JPanel();
         jLabel40 = new javax.swing.JLabel();
+        layerColor = new javax.swing.JComboBox();
         layerName = new javax.swing.JComboBox();
-        jLabel63 = new javax.swing.JLabel();
+        layerUseStipplePatternDisplay = new javax.swing.JCheckBox();
+        layerOutlinePatternDisplay = new javax.swing.JCheckBox();
+        layerTechName = new javax.swing.JLabel();
+        jLabel50 = new javax.swing.JLabel();
+        layerRedLabel = new javax.swing.JLabel();
+        layerRed = new javax.swing.JTextField();
+        layerGreenLabel = new javax.swing.JLabel();
+        layerGreen = new javax.swing.JTextField();
+        layerBlueLabel = new javax.swing.JLabel();
+        layerBlue = new javax.swing.JTextField();
+        jLabel67 = new javax.swing.JLabel();
+        jLabel51 = new javax.swing.JLabel();
+        jLabel65 = new javax.swing.JLabel();
+        layerUseStipplePatternPrinter = new javax.swing.JCheckBox();
+        layerOutlinePatternPrinter = new javax.swing.JCheckBox();
         colors = new javax.swing.JPanel();
         colorChooser = new javax.swing.JColorChooser();
         jLabel64 = new javax.swing.JLabel();
@@ -1827,7 +2851,13 @@ public class EditOptions extends EDialog
         textSmartHorizontalOutside = new javax.swing.JRadioButton();
         jSeparator1 = new javax.swing.JSeparator();
         threeD = new javax.swing.JPanel();
-        jLabel65 = new javax.swing.JLabel();
+        threeDTechnology = new javax.swing.JLabel();
+        threeDLayerPane = new javax.swing.JScrollPane();
+        jLabel45 = new javax.swing.JLabel();
+        jLabel47 = new javax.swing.JLabel();
+        threeDThickness = new javax.swing.JTextField();
+        threeDHeight = new javax.swing.JTextField();
+        threeDPerspective = new javax.swing.JCheckBox();
         technology = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
         jLabel49 = new javax.swing.JLabel();
@@ -3067,28 +4097,158 @@ public class EditOptions extends EDialog
 
         layers.setLayout(new java.awt.GridBagLayout());
 
-        jLabel40.setText("Appearance of layer:");
+        jLabel40.setText("Transparent layer:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         layers.add(jLabel40, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 6;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        layers.add(layerColor, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 6;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         layers.add(layerName, gridBagConstraints);
 
-        jLabel63.setText("CANNOT CONTROL LAYER APPEARANCE YET");
+        layerUseStipplePatternDisplay.setText("Use Stipple Pattern");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        layers.add(layerUseStipplePatternDisplay, gridBagConstraints);
+
+        layerOutlinePatternDisplay.setText("Outline Pattern");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        layers.add(layerOutlinePatternDisplay, gridBagConstraints);
+
+        layerTechName.setText("For xxxxx layer:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 20, 0);
-        layers.add(jLabel63, gridBagConstraints);
+        gridBagConstraints.gridwidth = 7;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        layers.add(layerTechName, gridBagConstraints);
+
+        jLabel50.setText("Click on a pattern below  to use it above::");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 7;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        layers.add(jLabel50, gridBagConstraints);
+
+        layerRedLabel.setText("Red:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        layers.add(layerRedLabel, gridBagConstraints);
+
+        layerRed.setColumns(5);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        layers.add(layerRed, gridBagConstraints);
+
+        layerGreenLabel.setText("Green:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        layers.add(layerGreenLabel, gridBagConstraints);
+
+        layerGreen.setColumns(5);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        layers.add(layerGreen, gridBagConstraints);
+
+        layerBlueLabel.setText("Blue:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        layers.add(layerBlueLabel, gridBagConstraints);
+
+        layerBlue.setColumns(5);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 6;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        layers.add(layerBlue, gridBagConstraints);
+
+        jLabel67.setText("Color:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        layers.add(jLabel67, gridBagConstraints);
+
+        jLabel51.setText("Display:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        layers.add(jLabel51, gridBagConstraints);
+
+        jLabel65.setText("Printer:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 0, 4);
+        layers.add(jLabel65, gridBagConstraints);
+
+        layerUseStipplePatternPrinter.setText("Use Stipple Pattern");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 0, 4);
+        layers.add(layerUseStipplePatternPrinter, gridBagConstraints);
+
+        layerOutlinePatternPrinter.setText("Outline Pattern");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 0, 4);
+        layers.add(layerOutlinePatternPrinter, gridBagConstraints);
 
         tabPane.addTab("Layers", layers);
 
@@ -3424,11 +4584,64 @@ public class EditOptions extends EDialog
 
         threeD.setLayout(new java.awt.GridBagLayout());
 
-        jLabel65.setText("NO 3D FACILITIES AVAILABLE YET");
+        threeDTechnology.setText("Layer heights for technology:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        threeD.add(jLabel65, gridBagConstraints);
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(threeDTechnology, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(threeDLayerPane, gridBagConstraints);
+
+        jLabel45.setText("Thickness:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(jLabel45, gridBagConstraints);
+
+        jLabel47.setText("Height:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(jLabel47, gridBagConstraints);
+
+        threeDThickness.setColumns(6);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(threeDThickness, gridBagConstraints);
+
+        threeDHeight.setColumns(6);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(threeDHeight, gridBagConstraints);
+
+        threeDPerspective.setText("Use Perspective");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(threeDPerspective, gridBagConstraints);
 
         tabPane.addTab("3D", threeD);
 
@@ -3772,10 +4985,14 @@ public class EditOptions extends EDialog
     private javax.swing.JLabel jLabel42;
     private javax.swing.JLabel jLabel43;
     private javax.swing.JLabel jLabel44;
+    private javax.swing.JLabel jLabel45;
     private javax.swing.JLabel jLabel46;
+    private javax.swing.JLabel jLabel47;
     private javax.swing.JLabel jLabel48;
     private javax.swing.JLabel jLabel49;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel50;
+    private javax.swing.JLabel jLabel51;
     private javax.swing.JLabel jLabel52;
     private javax.swing.JLabel jLabel53;
     private javax.swing.JLabel jLabel54;
@@ -3788,9 +5005,9 @@ public class EditOptions extends EDialog
     private javax.swing.JLabel jLabel60;
     private javax.swing.JLabel jLabel61;
     private javax.swing.JLabel jLabel62;
-    private javax.swing.JLabel jLabel63;
     private javax.swing.JLabel jLabel64;
     private javax.swing.JLabel jLabel65;
+    private javax.swing.JLabel jLabel67;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
@@ -3810,7 +5027,19 @@ public class EditOptions extends EDialog
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JSeparator jSeparator3;
     private javax.swing.JSeparator jSeparator9;
+    private javax.swing.JTextField layerBlue;
+    private javax.swing.JLabel layerBlueLabel;
+    private javax.swing.JComboBox layerColor;
+    private javax.swing.JTextField layerGreen;
+    private javax.swing.JLabel layerGreenLabel;
     private javax.swing.JComboBox layerName;
+    private javax.swing.JCheckBox layerOutlinePatternDisplay;
+    private javax.swing.JCheckBox layerOutlinePatternPrinter;
+    private javax.swing.JTextField layerRed;
+    private javax.swing.JLabel layerRedLabel;
+    private javax.swing.JLabel layerTechName;
+    private javax.swing.JCheckBox layerUseStipplePatternDisplay;
+    private javax.swing.JCheckBox layerUseStipplePatternPrinter;
     private javax.swing.JPanel layers;
     private javax.swing.JPanel middle;
     private javax.swing.JPanel newArc;
@@ -3888,6 +5117,11 @@ public class EditOptions extends EDialog
     private javax.swing.JRadioButton textUnits;
     private javax.swing.ButtonGroup textVerticalGroup;
     private javax.swing.JPanel threeD;
+    private javax.swing.JTextField threeDHeight;
+    private javax.swing.JScrollPane threeDLayerPane;
+    private javax.swing.JCheckBox threeDPerspective;
+    private javax.swing.JLabel threeDTechnology;
+    private javax.swing.JTextField threeDThickness;
     private javax.swing.JPanel top;
     // End of variables declaration//GEN-END:variables
 	
