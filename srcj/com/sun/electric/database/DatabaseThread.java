@@ -92,7 +92,7 @@ public class DatabaseThread extends Thread
 			if (cells[i] != null) cells[i].unlink();
 	}
 
-	void check() {
+	public void check() {
 		// check proper tree
 		for (int i = 0; i < cells.length; i++) {
 			Cell_ cell = cells[i];

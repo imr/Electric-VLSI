@@ -23,7 +23,8 @@
  */
 package com.sun.electric.database;
 
-import java.io.PrintWriter;
+import com.sun.electric.database.geometry.EPoint;
+
 import java.lang.ref.SoftReference;
 import java.util.Collections;
 import java.util.Iterator;
@@ -74,8 +75,7 @@ public class Cell_
 		CellContents contents = getContents();
 		return Collections.unmodifiableCollection(contents.orderedNodes.values()).iterator();
 	}
-	
-	
+		
 	public static Cell_ newInstance(String name) {
 		if (!(Thread.currentThread() instanceof DatabaseChangeThread))
 			throw new IllegalStateException("Not in DatabaseChangeThread");
@@ -113,6 +113,46 @@ public class Cell_
 		DatabaseChangeThread thread = this.thread.checkChanging();
 		unlink();
 		thread.endChanging();
+	}
+	
+	public void setName(String name) {
+		DatabaseChangeThread thread = this.thread.checkChanging();
+		if (name == null)
+			throw new IllegalArgumentException("Cell name is null");
+		if (!this.name.equals(name) && thread.orderedCells.get(name) != null)
+			throw new IllegalArgumentException("Cell " + name + " exists");
+		thread.orderedCells.remove(this.name);
+		thread.orderedCells.put(name, this);
+		this.name = name;
+		thread.endChanging();
+	}
+	
+	public NodeInst_ newNode(Cell_ proto, String name, EPoint anchor) {
+		DatabaseChangeThread thread = this.thread.checkChanging();
+		if (name == null)
+			throw new NullPointerException("node name");
+		if (proto == null)
+			throw new NullPointerException("proto");
+		if (anchor == null)
+			throw new NullPointerException("anchor");
+		if (proto.thread != thread || proto.nodes == null)
+			throw new IllegalArgumentException("proto not alive");
+		ImmutableNodeInst inode = new ImmutableNodeInst(proto.id, name, anchor);
+		int nodeId = thread.allocNodeId(id);
+		CellContents contents = getContents();
+		assert nodes.length == contents.nodes.length;
+		if (nodeId >= nodes.length) {
+			ImmutableNodeInst[] newINodes = new ImmutableNodeInst[nodeId + 1];
+			NodeInst_[] newNodes = new NodeInst_[nodeId + 1];
+			System.arraycopy(nodes, 0, newINodes, 0, nodes.length);
+			System.arraycopy(contents.nodes, 0, newNodes, 0, contents.nodes.length);
+			nodes = newINodes;
+			contents.nodes = newNodes;
+		}
+		NodeInst_ node = new NodeInst_(nodeId, contents, inode);
+		nodes[nodeId] = inode;
+		thread.endChanging();
+		return null;
 	}
 	
 	ImmutableCell backup(ImmutableCell oldS) {
