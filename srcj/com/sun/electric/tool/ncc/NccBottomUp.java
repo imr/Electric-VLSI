@@ -291,7 +291,7 @@ public class NccBottomUp {
 											  skipPassed, options); 
 			if (r==null) {
 				System.out.println(
-					"Halting multiple cell NCC because of failure to build " +					"a black box"
+					"Halting multiple cell NCC because of failure to build " +					"a black box"
 				);
 				return result;
 			}
