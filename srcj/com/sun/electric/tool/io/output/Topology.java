@@ -749,7 +749,8 @@ public abstract class Topology extends Output
                 String eval = var.describe(context, no.getNodeInst());
 				//Object eval = context.evalVar(var, no);
 				if (eval == null) continue;
-				uniqueCellName += "-" + var.getTrueName() + "-" + eval.toString();
+                //uniqueCellName += "-" + var.getTrueName() + "-" + eval.toString();
+                uniqueCellName += "-" + eval.toString();
 			}
 		}
 
