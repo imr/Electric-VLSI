@@ -170,6 +170,9 @@ public class ERCWellCheck
 
 			}
 
+            boolean foundPWell = false;
+            boolean foundNWell = false;
+
 			for(Iterator it = wellAreas.iterator(); it.hasNext(); )
 			{
 				WellArea wa = (WellArea)it.next();
@@ -188,8 +191,12 @@ public class ERCWellCheck
 					desiredContact = PrimitiveNode.Function.WELL;
 					contactAction = ERC.getPWellCheck();
 					noContactError = "No P-Well contact found in this area";
+                    foundPWell = true;
 				}
+                else
+                    foundNWell = true;
 
+                //@TODO: contactAction != 0 -> do nothing
 				// find a contact in the area
 				boolean found = false;
 				for(Iterator cIt = wellCons.iterator(); cIt.hasNext(); )
@@ -267,7 +274,7 @@ public class ERCWellCheck
 			}
 
 			// if just 1 N-Well contact is needed, see if it is there
-			if (ERC.getNWellCheck() == 1)
+			if (ERC.getNWellCheck() == 1 && foundNWell)
 			{
 				boolean found = false;
 				for(Iterator it = wellCons.iterator(); it.hasNext(); )
@@ -282,7 +289,7 @@ public class ERCWellCheck
 			}
 
 			// if just 1 P-Well contact is needed, see if it is there
-			if (ERC.getPWellCheck() == 1)
+			if (ERC.getPWellCheck() == 1 && foundPWell)
 			{
 				boolean found = false;
 				for(Iterator it = wellCons.iterator(); it.hasNext(); )
@@ -571,8 +578,9 @@ public class ERCWellCheck
 					Object newElem = poly;
 
 					if (newAlgorithm)
-						newElem = new PolyQTree.PolyNode(poly.getBounds2D());
-					thisMerge.add(layer, newElem, false);
+						newElem = new PolyQTree.PolyNode(poly);
+                        // newElem = new PolyQTree.PolyNode(poly.getBounds2D());
+					thisMerge.add(layer, newElem, newAlgorithm);
 				}
 			}
        }
@@ -613,10 +621,10 @@ public class ERCWellCheck
 
 						if (newAlgorithm)
                         {
-                            System.out.println("WHy just getBounds2D?");
-                            newElem = new PolyQTree.PolyNode(poly.getBounds2D());
+                            //newElem = new PolyQTree.PolyNode(poly.getBounds2D());
+                            newElem = new PolyQTree.PolyNode(poly);
                         }
-						thisMerge.add(layer, newElem, false);
+						thisMerge.add(layer, newElem, newAlgorithm);
 					}
 				}
 	        }

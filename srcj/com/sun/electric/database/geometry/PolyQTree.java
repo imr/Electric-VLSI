@@ -260,10 +260,7 @@ public class PolyQTree implements GeometryHandler
 
 						// Adding the point at the beginning of the loop
 						if (type == PathIterator.SEG_MOVETO)
-						{
 							lastMoveTo = pt;
-							//throw new UnsupportedOperationException("Case not supported");
-						}
 	            }
 	            pi.next();
 			}
@@ -477,80 +474,76 @@ public class PolyQTree implements GeometryHandler
 		private Collection getSimpleObjects(boolean simple)
 		{
 			Set set = new HashSet();
-			/*
-			if (isRectangular())
-			{
-				set.add(this);
-			}
-			else
-			*/
-			{
-				// Possible not connected loops
-				double [] coords = new double[6];
-				List pointList = new ArrayList();
-                PathIterator pi = getPathIterator(null);
-                List polyList = new ArrayList();
-                boolean isSingular = isSingular();
-				List toDelete = new ArrayList();
+            // Possible not connected loops
+            double [] coords = new double[6];
+            List pointList = new ArrayList();
+            PathIterator pi = getPathIterator(null);
+            List polyList = new ArrayList();
+            boolean isSingular = isSingular();
+            List toDelete = new ArrayList();
 
-				while (!pi.isDone()) {
-					switch (pi.currentSegment(coords)) {
-						case PathIterator.SEG_CLOSE:
-							{
-								Object [] points = pointList.toArray();
-                                GeneralPath simplepath = new GeneralPath();
-								for (int i = 0; i < pointList.size(); i++)
-								{
-									int j = (i + 1)% pointList.size();
-									Line2D line = new Line2D.Double(((Point2D)points[i]), (Point2D)points[j]);
-									simplepath.append(line, true);
-								}
-								toDelete.clear();
-								//PolyNode node = new PolyNode(simplepath);
-								// Search possible inner loops
-								if (!simple && !isSingular)
-								{
-									Iterator it = polyList.iterator();
-									while (it.hasNext())
-									{
-										GeneralPath pn = (GeneralPath)it.next();
-										if (pn.contains((Point2D)pointList.get(0)))
-										{
-											pn.append(simplepath.getPathIterator(null), true);
-											simplepath = null;
-											break;
-										}
-										else if (simplepath.contains(pn.getCurrentPoint()))
-										{
-											// Checking if inner loop is pn
-											simplepath.append(pn.getPathIterator(null), true);
-											toDelete.add(pn);
-											//break;  // @TODO might not work with double loops!!
-										}
-									}
-								}
-								//set.add(node);
-								if (simplepath != null)
-									polyList.add(simplepath);
-								polyList.removeAll(toDelete);
-								pointList.clear();
-							}
-							break;
-						default:
-							Point2D pt = new Point2D.Double(coords[0], coords[1]);
-							pointList.add(pt);
-					}
-					pi.next();
-				}
-				for (Iterator it = polyList.iterator(); it.hasNext();)
-				{
-					GeneralPath pn = (GeneralPath)it.next();
-					PolyNode node = new PolyNode(pn);
-					set.add(node);
-				}
-			}
+            while (!pi.isDone()) {
+                switch (pi.currentSegment(coords)) {
+                    case PathIterator.SEG_CLOSE:
+                        {
+                            Object [] points = pointList.toArray();
+                            GeneralPath simplepath = new GeneralPath();
+                            for (int i = 0; i < pointList.size(); i++)
+                            {
+                                int j = (i + 1)% pointList.size();
+                                Line2D line = new Line2D.Double(((Point2D)points[i]), (Point2D)points[j]);
+                                simplepath.append(line, true);
+                            }
+                            toDelete.clear();
+                            //PolyNode node = new PolyNode(simplepath);
+                            // Search possible inner loops
+                            if (!simple && !isSingular)
+                            {
+                                Iterator it = polyList.iterator();
+                                while (it.hasNext())
+                                {
+                                    GeneralPath pn = (GeneralPath)it.next();
+                                    if (pn.contains((Point2D)pointList.get(0)))
+                                    {
+                                        pn.append(simplepath.getPathIterator(null), true);
+                                        simplepath = null;
+                                        break;
+                                    }
+                                    else if (simplepath.contains(pn.getCurrentPoint()))
+                                    {
+                                        // Checking if inner loop is pn
+                                        simplepath.append(pn.getPathIterator(null), true);
+                                        toDelete.add(pn);
+                                        //break;  // @TODO might not work with double loops!!
+                                    }
+                                }
+                            }
+                            //set.add(node);
+                            if (simplepath != null)
+                                polyList.add(simplepath);
+                            polyList.removeAll(toDelete);
+                            pointList.clear();
+                        }
+                        break;
+                    default:
+                        Point2D pt = new Point2D.Double(coords[0], coords[1]);
+                        pointList.add(pt);
+                }
+                pi.next();
+            }
+            for (Iterator it = polyList.iterator(); it.hasNext();)
+            {
+                GeneralPath pn = (GeneralPath)it.next();
+                PolyNode node = new PolyNode(pn);
+                set.add(node);
+            }
 			return set;
 		}
+
+        /**
+         * Sort list of objects based on area
+         * @return
+         */
 		public List getSortedLoops()
 		{
 			Collection set = getSimpleObjects(true);

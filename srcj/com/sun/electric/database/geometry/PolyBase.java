@@ -285,7 +285,7 @@ public class PolyBase implements Shape
 	 * @param polyOther the other Poly to compare.
 	 * @return true if the Polys are the same.
 	 */
-	public boolean polySame(Poly polyOther)
+	public boolean polySame(PolyBase polyOther)
 	{
 		// polygons must have the same number of points
 		Point2D [] points = getPoints();
@@ -1636,7 +1636,6 @@ public class PolyBase implements Shape
             return (false);
 
         Poly poly = (Poly)obj;
-        Layer layer = getLayer();
         if (getLayer() != poly.getLayer())
         {
 	        // Don't put until polys are sorted by layer

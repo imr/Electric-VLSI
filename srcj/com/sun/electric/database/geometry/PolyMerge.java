@@ -239,8 +239,25 @@ public class PolyMerge
         {
             List newList = PolyBase.getPointsInArea(area, layer, simple);
 
-            if (newList.size() != polyList.size() || !newList.containsAll(polyList))
+            if (newList.size() != polyList.size())
                 System.out.println("Error in getPointsInArea");
+            else
+            {
+                boolean foundError = false;
+                for (Iterator it = polyList.iterator(); it.hasNext(); )
+                {
+                    PolyBase poly = (PolyBase)it.next();
+                    boolean found = false;
+                   for (Iterator iter = polyList.iterator(); iter.hasNext(); )
+                   {
+                       PolyBase poly1 = (PolyBase)iter.next();
+                       if (poly1.polySame(poly)) { found = true; break;};
+                   }
+                    if (!found) {foundError=true; break;}
+                }
+                if (foundError)
+                    System.out.println("Error in getPointsInArea");
+            }
         }
 		return polyList;
 	}
