@@ -672,7 +672,7 @@ public class View3DWindow extends JPanel
 	public void keyTyped(KeyEvent evt) {
 		System.out.println("Aqui keyTyped");WindowFrame.curKeyListener.keyTyped(evt); }
 
-    public void highlightChanged() {
+    public void highlightChanged(Highlighter which) {
         repaint();
     }
 
