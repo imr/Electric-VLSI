@@ -348,6 +348,11 @@ public class Change extends EDialog implements HighlightListener
 					changeListModel.addElement(cell.noLibDescribe());
 					changeNodeProtoList.add(cell);
 				}
+				int i = com.sun.electric.database.text.TextUtils.nameSameNumeric("stagesCORlay_fill:inv_NH91.0_PH84.0_MW100.0_VY21.0_GY-28.0_X049.6",
+					"stagesCORlay_fill:inv_NH91.0_PH84.0_MW100.0_VY21.0_GY-28.0_X044.9");
+				int j = com.sun.electric.database.text.TextUtils.nameSameNumeric("stagesCORlay_fill:inv_NH91.0_PH84.0_MW100.0_VY21.0_GY-28.0_X049.6",
+					"stagesCORlay_fill:inv_NH91.0_PH84.0_MW100.0_VY21.0_GY-28.0_X054.8");
+				System.out.println("i="+i+" j="+j);
 			}
 			if (showPrimitives.isSelected())
 			{

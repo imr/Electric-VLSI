@@ -170,7 +170,9 @@ public class ToolMenu {
         MenuBar.Menu netlisters = new MenuBar.Menu("Simulation (Others)");
         toolMenu.add(netlisters);
         netlisters.addMenuItem("Write IRSIM Deck...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.IRSIM, true); }});
+                new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.IRSIM, true); }});
+        netlisters.addMenuItem("Write SILOS Deck...", null,
+                new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.SILOS, true); }});
         netlisters.addMenuItem("Write Maxwell Deck...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.MAXWELL, true); } });
 

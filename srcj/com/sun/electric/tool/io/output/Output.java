@@ -276,6 +276,9 @@ public class Output
 		} else if (type == OpenFile.Type.POSTSCRIPT)
 		{
 			PostScript.writePostScriptFile(cell, context, filePath);
+		} else if (type == OpenFile.Type.SILOS)
+		{
+			Silos.writeSilosFile(cell, context, filePath);
 		} else if (type == OpenFile.Type.SPICE)
 		{
 			Spice.writeSpiceFile(cell, context, filePath, false);

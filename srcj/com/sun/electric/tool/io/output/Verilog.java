@@ -738,7 +738,7 @@ public class Verilog extends Topology
 		writeLongLine(infstr.toString());
 	}
 
-	/*
+	/**
 	 * Method to add a bus of signals named "name" to the infinite string "infstr".  If "name" is zero,
 	 * do not include the ".NAME()" wrapper.  The signals are in "outerSignalList" and range in index from
 	 * "lowindex" to "highindex".  They are described by a bus with characteristic "tempval"
@@ -865,7 +865,7 @@ public class Verilog extends Topology
 		if (name != null) infstr.append(")");
 	}
 
-	/*
+	/**
 	 * Method to add text from all nodes in cell "np"
 	 * (which have "verilogkey" text on them)
 	 * to that text to the output file.  Returns true if anything
@@ -904,7 +904,7 @@ public class Verilog extends Topology
 		return first;
 	}
 
-	/*
+	/**
 	 * Method to write a long line to the Verilog file, breaking it where sensible.
 	 */
 	private void writeLongLine(String s)
@@ -924,7 +924,7 @@ public class Verilog extends Topology
 	private StringBuffer sim_verDeclarationLine;
 	private int sim_verdeclarationprefix;
 
-	/*
+	/**
 	 * Method to initialize the collection of signal names in a declaration.
 	 * The declaration starts with the string "header".
 	 */
@@ -935,7 +935,7 @@ public class Verilog extends Topology
 		sim_verdeclarationprefix = header.length();
 	}
 
-	/*
+	/**
 	 * Method to add "signame" to the collection of signal names in a declaration.
 	 */
 	private void addDeclaration(String signame)
@@ -950,7 +950,7 @@ public class Verilog extends Topology
 		sim_verDeclarationLine.append(" " + signame);
 	}
 
-	/*
+	/**
 	 * Method to terminate the collection of signal names in a declaration
 	 * and write the declaration to the Verilog file.
 	 */
@@ -959,7 +959,7 @@ public class Verilog extends Topology
 		printWriter.print(sim_verDeclarationLine.toString() + ";\n");
 	}
 
-	/*
+	/**
 	 * Method to adjust name "p" and return the string.
 	 * This code removes all index indicators and other special characters, turning
 	 * them into "_".
@@ -1008,7 +1008,7 @@ public class Verilog extends Topology
 	/** Method to report that aggregate names (busses) ARE used. */
 	protected boolean isAggregateNamesSupported() { return true; }
 
-	/*
+	/**
 	 * Method to adjust a network name to be safe for Verilog output.
 	 * Verilog does permit a digit in the first location; prepend a "_" if found.
 	 * Verilog only permits the "_" and "$" characters: all others are converted to "_".

@@ -56,7 +56,7 @@ public class OpenFile
 		/** Describes IRSIM decks. */			public static final Type IRSIM        = new Type("IRSIM", new String[] {"sim"}, "IRSIM Deck (sim)");
 		/** Describes Java source. */			public static final Type JAVA         = new Type("Java", new String[] {"java", "bsh"}, "Java Script File (java, bsh)");
 		/** Describes JELIB files.*/			public static final Type JELIB        = new Type("JELIB", new String[] {"jelib"}, "Library File (jelib)");
-		/** Describes MAXWELL decks. */			public static final Type MAXWELL      = new Type("Maxwell", new String[] {"mac"}, "Maxwell Deck (mac)");
+		/** Describes Maxwell decks. */			public static final Type MAXWELL      = new Type("Maxwell", new String[] {"mac"}, "Maxwell Deck (mac)");
 		/** Describes Pad Frame Array spec. */	public static final Type PADARR       = new Type("PadArray", new String[] {"arr"}, "Pad Generator Array File (arr)");
 		/** Describes Pads files. */			public static final Type PADS         = new Type("Pads", new String[] {"asc"}, "Pads File (asc)");
 		/** Describes PostScript files. */		public static final Type POSTSCRIPT   = new Type("PostScript", new String[] {"ps"}, "PostScript (ps)");
@@ -64,11 +64,12 @@ public class OpenFile
 		/** Describes Raw Spice output. */		public static final Type RAWSPICEOUT  = new Type("RawSpiceOutput", new String[] {"raw"}, "Spice Raw Output File (raw)");
 		/** Describes Raw SmartSpice output. */	public static final Type RAWSSPICEOUT = new Type("RawSmartSpiceOutput", new String[] {"raw"}, "SmartSPICE Raw Output File (raw)");
 		/** Describes Readable Dump files. */	public static final Type READABLEDUMP = new Type("ReadableDump", new String[] {"txt"}, "Readable Dump Library File (txt)");
-		/** Describes SPICE decks.*/			public static final Type SPICE        = new Type("Spice", new String[] {"spi", "sp"}, "Spice Deck (spi, sp)");
-		/** Describes SPICE standard output.*/	public static final Type SPICEOUT     = new Type("SpiceOutput", new String[] {"spo"}, "Spice/GNUCap Output FIle (spo)");
+		/** Describes Silos decks.*/			public static final Type SILOS        = new Type("Silos", new String[] {"sil"}, "Silos Deck (sil)");
+		/** Describes Spice decks.*/			public static final Type SPICE        = new Type("Spice", new String[] {"spi", "sp"}, "Spice Deck (spi, sp)");
+		/** Describes Spice standard output.*/	public static final Type SPICEOUT     = new Type("SpiceOutput", new String[] {"spo"}, "Spice/GNUCap Output FIle (spo)");
 		/** Describes text files. */			public static final Type TEXT         = new Type("Text", new String[] {"txt"}, "Text File (txt)");
-		/** Describes VERILOG decks. */			public static final Type VERILOG      = new Type("Verilog", new String[] {"v"}, "Verilog Deck (v)");
-		/** Describes VERILOG output. */		public static final Type VERILOGOUT   = new Type("VerilogOutput", new String[] {"dump"}, "Verilog VCD Dump (vcd)");
+		/** Describes Verilog decks. */			public static final Type VERILOG      = new Type("Verilog", new String[] {"v"}, "Verilog Deck (v)");
+		/** Describes Verilog output. */		public static final Type VERILOGOUT   = new Type("VerilogOutput", new String[] {"dump"}, "Verilog VCD Dump (vcd)");
 
 		private final String name;
 		private final String [] extensions;

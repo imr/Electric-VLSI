@@ -737,8 +737,8 @@ public class TextUtils
 			if (Character.isDigit(ch1) && Character.isDigit(ch2))
 			{
 				// found a number: compare them numerically
-				int value1 = TextUtils.atoi(name1.substring(pos));
-				int value2 = TextUtils.atoi(name2.substring(pos));
+				int value1 = TextUtils.atoi(name1, pos, 10);
+				int value2 = TextUtils.atoi(name2, pos, 10);
 				if (value1 != value2) return value1 - value2;
 				while (pos < extent-1)
 				{
