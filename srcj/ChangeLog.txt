@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.02c: *********************************
+
 ************************* Version 8.02b: *********************************
 
 BUG: (01/13/05, GVG) DRC and ordered database changes. After the changes, it was noticed that
