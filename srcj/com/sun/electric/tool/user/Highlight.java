@@ -1086,6 +1086,14 @@ public class Highlight
 					drawOutlineFromPoints(wnd, g, poly.getPoints(), offX, offY, opened, null);
 				}
 
+                // show name of port
+                if ((g instanceof Graphics2D)) {
+                    Font font = new Font(User.getDefaultFont(), Font.PLAIN, (int)(1.5*EditWindow.getDefaultFontSize()));
+                    GlyphVector v = wnd.getGlyphs(pp.getProtoName(), font);
+                    Point2D point = wnd.databaseToScreen(poly.getCenterX(), poly.getCenterY());
+                    ((Graphics2D)g).drawGlyphVector(v, (float)point.getX()+offX, (float)point.getY()+offY);
+                }
+
 				// handle verbose highlighting of nodes
 				Netlist netlist = cell.getUserNetlist();
 				int busWidth = pp.getProtoNameKey().busWidth();

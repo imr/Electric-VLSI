@@ -87,7 +87,7 @@ public class TopLevel extends JFrame
 	/** The messages window. */								private static MessagesWindow messages;
 	/** The cursor being displayed. */						private static Cursor cursor;
 
-    /** The menu bar */                                     private JMenuBar menuBar;
+    /** The menu bar */                                     private MenuBar menuBar;
     /** The tool bar */                                     private ToolBar toolBar;
     
 	/**
@@ -254,6 +254,9 @@ public class TopLevel extends JFrame
      */
     public ToolBar getToolBar() { return toolBar; }
 
+    /** Get the Menu Bar. Unfortunately named because getMenuBar() already exists */
+    public MenuBar getTheMenuBar() { return menuBar; }
+
 	/**
 	 * Method to return the size of the screen that Electric is on.
 	 * @return the size of the screen that Electric is on.
@@ -343,7 +346,7 @@ public class TopLevel extends JFrame
         //System.out.println(this.getClass()+" being disposed of");
         // clean up menubar
         setJMenuBar(null);
-        MenuManager.disposeOf(menuBar); menuBar = null;
+        menuBar.finished(); menuBar = null;
         // clean up toolbar
         getContentPane().remove(toolBar);
         toolBar.finished(); toolBar = null;

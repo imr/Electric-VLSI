@@ -12,7 +12,14 @@ import java.awt.event.ActionEvent;
  * User: gainsley
  * Date: Apr 6, 2004
  * Time: 1:16:12 PM
- * To change this template use File | Settings | File Templates.
+ *
+ * <p>The KeyBindings object holds information about an action's key bindings.
+ * There can be 0 or more default bindings which are set by the program.
+ * There can be 0 or more user defined bindings which are stored as preferences by
+ * the KeyBindingManager. Finally, there is a set of action listeners that get
+ * activated when the action occurs.
+ *
+ * <p>The action can also be disabled/enabled.
  */
 public class KeyBindings implements ActionListener {
     /** description of action */            private String actionDesc;
@@ -21,6 +28,7 @@ public class KeyBindings implements ActionListener {
     /** actions to perform */               private List actionListeners;
     /** source to use when sending event to listeners */ private Object eventSource;
     /** true if KeyBindingManager using default keys */  private boolean usingDefaultKeys;
+    /** if these bindings are enabled */    private boolean enabled;
 
     /** separator for keyBindingsToString */private static final String sep = "; ";
 
@@ -35,6 +43,7 @@ public class KeyBindings implements ActionListener {
         actionListeners = new ArrayList();
         eventSource = null;
         usingDefaultKeys = true;
+        enabled = true;
     }
 
     // ------------------------ Add/Remove KeyBindings --------------------------
@@ -119,8 +128,9 @@ public class KeyBindings implements ActionListener {
      * @param e the ActionEvent
      */
     public void actionPerformed(ActionEvent e) {
+        if (!enabled) return;
         if (eventSource != null)
-            e.setSource(eventSource);
+            e.setSource(eventSource);               // fake the source of the event
         for (Iterator it = actionListeners.iterator(); it.hasNext(); ) {
             ActionListener action = (ActionListener)it.next();
             action.actionPerformed(e);
@@ -179,4 +189,8 @@ public class KeyBindings implements ActionListener {
     public void setUsingDefaultKeys(boolean b) { usingDefaultKeys = b; }
 
     public boolean getUsingDefaultKeys() { return usingDefaultKeys; }
+
+    public void setEnabled(boolean b) { enabled = b; }
+
+    public boolean getEnabled() { return enabled; }
 }

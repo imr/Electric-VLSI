@@ -75,7 +75,7 @@ import java.awt.*;
  *
  * @author  gainsley
  */
-public class KeyBindingManager implements KeyEventPostProcessor {
+public class KeyBindingManager {
 
     // ----------------------------- object stuff ---------------------------------
     /** Hash table of lists all key bindings */     private HashMap inputMap;
@@ -87,7 +87,7 @@ public class KeyBindingManager implements KeyEventPostProcessor {
     /** prefix on pref key, if desired */           private String prefPrefix;
 
     // ----------------------------- global stuff ----------------------------------
-    /** Listener to register for catching keys */   public static KeyBindingListener listener = new KeyBindingListener();
+    /** Listener to register for catching keys */   //public static KeyBindingListener listener = new KeyBindingListener();
     /** All key binding manangers */                private static List allManagers = new ArrayList();
 
     /** debug preference saving */                  private static final boolean debugPrefs = false;
@@ -115,7 +115,9 @@ public class KeyBindingManager implements KeyEventPostProcessor {
         //KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventPostProcessor(this);
 
         // add to list of all managers
-        allManagers.add(this);
+        synchronized(allManagers) {
+            allManagers.add(this);
+        }
         initialize();
     }
 
@@ -124,7 +126,9 @@ public class KeyBindingManager implements KeyEventPostProcessor {
      * be reclaimed by removing static references to this.
      */
     public void finished() {
-        allManagers.remove(this);
+        synchronized(allManagers) {
+            allManagers.remove(this);
+        }
         //KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventPostProcessor(this);
     }
 
@@ -197,6 +201,7 @@ public class KeyBindingManager implements KeyEventPostProcessor {
     // ------------------------------ Key Processing ---------------------------------
 
 
+/*
     public static class KeyBindingListener implements KeyListener
     {
         public void keyPressed(KeyEvent e) {
@@ -214,6 +219,7 @@ public class KeyBindingManager implements KeyEventPostProcessor {
     public boolean postProcessKeyEvent(KeyEvent e) {
         return processKeyEvent(e);
     }
+*/
 
     /**
      * Process a KeyEvent by finding what actionListeners should be
@@ -605,6 +611,34 @@ public class KeyBindingManager implements KeyEventPostProcessor {
             if (conflictingIt.hasNext()) conflicts.add(conflicting);
         }
         return conflicts;
+    }
+
+    /**
+     * Sets the enabled state of the action to 'b'. If b is false, it
+     * disables all events that occur when actionDesc takes place. If b is
+     * true, it enables all resulting events.
+     * @param actionDesc the describing action
+     * @param b true to enable, false to disable.
+     */
+    public synchronized void setEnabled(String actionDesc, boolean b) {
+        ActionListener action = (ActionListener)actionMap.get(actionDesc);
+        if (action == null) return;
+        if (action instanceof PrefixAction) return;
+        KeyBindings k = (KeyBindings)action;
+        k.setEnabled(b);
+    }
+
+    /**
+     * Get the enabled state of the action described by 'actionDesc'.
+     * @param actionDesc the describing action.
+     * @return true if the action is enabled, false otherwise.
+     */
+    public synchronized boolean getEnabled(String actionDesc) {
+        ActionListener action = (ActionListener)actionMap.get(actionDesc);
+        if (action == null) return false;
+        if (action instanceof PrefixAction) return false;
+        KeyBindings k = (KeyBindings)action;
+        return k.getEnabled();
     }
 
     // --------------------------------- Private -------------------------------------

@@ -8,11 +8,11 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.KeyBindingManager;
-import com.sun.electric.tool.user.ui.MenuManager;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
-import com.sun.electric.tool.user.ui.MenuManager.Menu;
+import com.sun.electric.tool.user.ui.MenuBar;
+import com.sun.electric.tool.user.ui.MenuBar.Menu;
 
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -38,7 +38,7 @@ import javax.swing.tree.TreePath;
  */
 public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectionListener {
     
-    /** MenuBar for building dialog tree */                 JMenuBar menuBar;
+    /** MenuBar for building dialog tree */                 MenuBar menuBar;
     
     /** class to encapsulate a tree node for displaying key bindings.
      * The toString() method is overridden to show the key binding next to the
@@ -48,7 +48,7 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
     private class KeyBoundTreeNode
     {
         private JMenuItem menuItem;
-        
+
         KeyBoundTreeNode(JMenuItem menuItem) {
             this.menuItem = menuItem;
         }
@@ -61,7 +61,7 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
         public String toString() {
             if (menuItem != null) {
                 StringBuffer buf = new StringBuffer(menuItem.getText());
-                KeyBindings bindings = MenuManager.getKeyBindings(menuItem);
+                KeyBindings bindings = menuBar.getKeyBindings(menuItem);
                 if (bindings == null) return buf.toString();
                 Iterator it = bindings.getKeyStrokePairs();
                 if (!it.hasNext()) return buf.toString();
@@ -73,10 +73,11 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
     }
 
     /** Creates new form EditKeyBindings */
-    public EditKeyBindings(java.awt.Frame parent, boolean modal) {
+    public EditKeyBindings(MenuBar menuBar, java.awt.Frame parent, boolean modal) {
 		super(parent, modal);
         setLocation(300, 100);
-        
+        this.menuBar = menuBar;
+
         initComponents();
         buildCommandsTree();
     }
@@ -269,7 +270,7 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
         if (item == null) return;
 
         // reset item to default bindings
-        MenuManager.resetKeyBindings(item);
+        menuBar.resetKeyBindings(item);
 
         // update tree view and list box
         DefaultTreeModel model = (DefaultTreeModel)commandsTree.getModel();
@@ -291,7 +292,7 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
         if (pair == null) return;
 
         // remove it and update view
-        MenuManager.removeKeyBinding(item.getText(), pair);
+        menuBar.removeKeyBinding(item.getText(), pair);
         DefaultTreeModel model = (DefaultTreeModel)commandsTree.getModel();
         model.reload(getSelectedTreeNode());
         updateListBox(item);
@@ -304,7 +305,7 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
     private void resetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resetActionPerformed
         // confirm that the user really wants to reset all key bindings
         if (!confirmResetAll()) return;
-        MenuManager.resetAllKeyBindings();
+        menuBar.resetAllKeyBindings();
 
         // update tree view
         DefaultTreeModel model = (DefaultTreeModel)commandsTree.getModel();
@@ -314,13 +315,13 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
     }//GEN-LAST:event_resetActionPerformed
 
     /**
-     * Add a key binding to the selected menu item
+     * Open dialog to add a key binding to the selected menu item
      * @param evt the event
      */
     private void addActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addActionPerformed
         JMenuItem item = getSelectedMenuItem();
         if (item == null) return;
-        EditKeyBinding dialog = new EditKeyBinding(TopLevel.getCurrentJFrame(), true, item);
+        EditKeyBinding dialog = new EditKeyBinding(item, menuBar, TopLevel.getCurrentJFrame(), true);
         dialog.show();
 
         // update tree view
@@ -345,8 +346,7 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
     private void buildCommandsTree() {
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
 
-        menuBar = MenuCommands.createMenuBar();
-        // now convert menuBar to tree
+        // convert menuBar to tree
         for (int i=0; i<menuBar.getMenuCount(); i++) {
             Menu menu = (Menu)menuBar.getMenu(i);
             DefaultMutableTreeNode menuNode = new DefaultMutableTreeNode(new KeyBoundTreeNode(menu));
@@ -405,7 +405,7 @@ public class EditKeyBindings extends javax.swing.JDialog implements TreeSelectio
             bindingsJList.setListData(new Object [] {});
             return;
         }
-        KeyBindings bindings = MenuManager.getKeyBindings(item);
+        KeyBindings bindings = menuBar.getKeyBindings(item);
         if (bindings == null) {
             bindingsJList.setListData(new Object [] {});
             return;

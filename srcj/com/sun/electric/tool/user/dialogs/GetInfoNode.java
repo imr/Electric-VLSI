@@ -55,6 +55,7 @@ import java.awt.geom.Point2D;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.prefs.Preferences;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;
@@ -81,6 +82,8 @@ public class GetInfoNode extends javax.swing.JDialog
 	private List allParameters;
 	private List portObjects;
 	private boolean bigger;
+
+    private static Preferences prefs = Preferences.userNodeForPackage(GetInfoNode.class);
 
 	/**
 	 * Method to show the Node Get-Info dialog.
@@ -112,12 +115,16 @@ public class GetInfoNode extends javax.swing.JDialog
 		initComponents();
         getRootPane().setDefaultButton(ok);
 
+        bigger = prefs.getBoolean("GetInfoNode-bigger", false);
+        int buttonSelected = prefs.getInt("GetInfoNode-buttonSelected", 0);
+
 		// start small
-		bigger = false;
-		getContentPane().remove(moreStuffTop);
-		getContentPane().remove(listPane);
-		getContentPane().remove(moreStuffBottom);
-        pack();
+		if (bigger == false) {
+		    getContentPane().remove(moreStuffTop);
+		    getContentPane().remove(listPane);
+		    getContentPane().remove(moreStuffBottom);
+            pack();
+        }
 
 		// make the list
 		listModel = new DefaultListModel();
@@ -137,7 +144,12 @@ public class GetInfoNode extends javax.swing.JDialog
 		listPopup.addItem("LISP (not available)");
 		listPopup.addItem("Java");
 
-		ports.setSelected(true);
+        if (buttonSelected == 0)
+		    ports.setSelected(true);
+        if (buttonSelected == 1)
+		    parameters.setSelected(true);
+        if (buttonSelected == 2)
+		    attributes.setSelected(true);
 
 		loadNodeInfo();
 	}
@@ -1523,6 +1535,10 @@ public class GetInfoNode extends javax.swing.JDialog
 
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
+        prefs.putBoolean("GetInfoNode-bigger", bigger);
+        if (ports.isSelected()) prefs.putInt("GetInfoNode-buttonSelected", 0);
+        if (parameters.isSelected()) prefs.putInt("GetInfoNode-buttonSelected", 1);
+        if (attributes.isSelected()) prefs.putInt("GetInfoNode-buttonSelected", 2);
 		setVisible(false);
 		theDialog = null;
 		dispose();

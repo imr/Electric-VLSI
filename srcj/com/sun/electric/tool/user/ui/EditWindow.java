@@ -1172,17 +1172,31 @@ public class EditWindow
      * Push into an instance (go down the hierarchy)
      */
     public void downHierarchy() {
-        NodeInst ni = (NodeInst)Highlight.getOneElectricObject(NodeInst.class);
-		if (ni == null) return;
+
+        // get highlighted
+        Highlight h = Highlight.getOneHighlight();
+        if (h == null) return;
+        ElectricObject eobj = h.getElectricObject();
+
+        NodeInst ni = null;
+        PortInst pi = null;
+        // see if a nodeinst was highlighted (true if text on nodeinst was highlighted)
+        if (eobj instanceof NodeInst) {
+            ni = (NodeInst)eobj;
+        }
+        // see if portinst was highlighted
+        if (eobj instanceof PortInst) {
+            pi = (PortInst)eobj;
+            ni = pi.getNodeInst();
+        }
+        if (ni == null) {
+            System.out.println("Must select a Node to descend into");
+            return;
+        }
         NodeProto np = ni.getProto();
         if (!(np instanceof Cell)) {
             System.out.println("Can only descend into cell instances");
             return;
-        }
-        ElectricObject eobj = Highlight.getOneElectricObject(PortInst.class);
-        PortInst pi = null;
-        if (eobj != null) {
-            pi = (PortInst)eobj;
         }
         Cell cell = (Cell)np;
         Cell schCell = cell.getEquivalent();
@@ -1196,7 +1210,7 @@ public class EditWindow
         // if highlighted was a port inst, then highlight the corresponding export
         if (pi != null) {
             PortInst origPort = schCell.findExport(pi.getPortProto().getProtoName()).getOriginalPort();
-            Highlight.addElectricObject(origPort, schCell);
+            //Highlight.addElectricObject(origPort, schCell);
             Highlight.addElectricObject(origPort.getNodeInst(), schCell);
             Highlight.finished();
         }

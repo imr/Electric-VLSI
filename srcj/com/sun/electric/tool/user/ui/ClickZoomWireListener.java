@@ -925,6 +925,9 @@ public class ClickZoomWireListener
                     if (it.hasNext()) wiringTarget = ((Highlight)it.next()).getElectricObject();
                     else wiringTarget = null;
                 }
+                // if same target, do nothing
+                if (endObj == wiringTarget)
+                    return;
                 // draw new route to target
                 endObj = wiringTarget;
                 System.out.println("Switching to wiring target "+wiringTarget);

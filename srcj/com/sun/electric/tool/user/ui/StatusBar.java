@@ -27,8 +27,10 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
@@ -159,6 +161,7 @@ public class StatusBar extends JPanel
 			int nodeCount = 0, arcCount = 0, textCount = 0;
 			NodeInst theNode = null;
 			ArcInst theArc = null;
+            PortInst thePort = null;
 			Highlight theText = null;
 			for(Iterator hIt = Highlight.getHighlights(); hIt.hasNext(); )
 			{
@@ -166,7 +169,12 @@ public class StatusBar extends JPanel
 				if (h.getType() == Highlight.Type.EOBJ)
 				{
 					ElectricObject eObj = (ElectricObject)h.getElectricObject();
-					if (eObj instanceof NodeInst)
+                    if (eObj instanceof PortInst)
+                    {
+                        thePort = (PortInst)eObj;
+                        theNode = thePort.getNodeInst();
+                        nodeCount++;
+                    } else if (eObj instanceof NodeInst)
 					{
 						theNode = (NodeInst)eObj;
 						nodeCount++;
@@ -183,7 +191,13 @@ public class StatusBar extends JPanel
 			}
 			if (nodeCount + arcCount + textCount == 1)
 			{
-				if (nodeCount == 1) selectedMsg = "SELECTED NODE: " + theNode.describe(); else
+				if (nodeCount == 1)
+                {
+                    if (thePort != null)
+                        selectedMsg = "SELECTED PORT: \""+thePort.getPortProto().getProtoName()+"\" of NODE: \""+theNode.describe()+"\"";
+                    else
+                        selectedMsg = "SELECTED NODE: " + theNode.describe();
+                } else
 				{
 					if (arcCount == 1) selectedMsg = "SELECTED ARC: " + theArc.describe(); else
 					{
@@ -250,7 +264,8 @@ public class StatusBar extends JPanel
 			{
 				String width = Double.toString(cell.getBounds().getWidth());
 				Rectangle2D bounds = cell.getBounds();
-				sizeMsg = "SIZE: " + bounds.getWidth() + "x" + bounds.getHeight();
+				sizeMsg = "SIZE: " + TextUtils.formatDouble(bounds.getWidth(),3) + "x" +
+                        TextUtils.formatDouble(bounds.getHeight(), 3);
 			}
 		}
 		fieldSize.setText(sizeMsg);

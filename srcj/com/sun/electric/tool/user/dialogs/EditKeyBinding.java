@@ -6,7 +6,7 @@
 
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.tool.user.ui.MenuManager;
+import com.sun.electric.tool.user.ui.MenuBar;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
 import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.KeyBindingManager;
@@ -23,6 +23,7 @@ import java.util.Iterator;
 public class EditKeyBinding extends javax.swing.JDialog {
 
     /** The MenuItem we are adding a key binding to */  private JMenuItem menuItem;
+    /** The MenuBar that item is a part of */           private MenuBar menuBar;
 
     /**
      * Creates new form EditKeyBinding.
@@ -30,9 +31,10 @@ public class EditKeyBinding extends javax.swing.JDialog {
      * @param modal blocks access to other windows if true
      * @param item the menu item which we are adding a Key Binding to.
      */
-    public EditKeyBinding(java.awt.Frame parent, boolean modal, JMenuItem item) {
+    public EditKeyBinding(JMenuItem item, MenuBar menuBar, java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         menuItem = item;
+        this.menuBar = menuBar;
         initComponents();                   // prebuilt by netbeans
         initDialog();
     }
@@ -228,7 +230,7 @@ public class EditKeyBinding extends javax.swing.JDialog {
     }//GEN-END:initComponents
 
     private void initDialog() {
-        header.setText("Add Key Binding for:  "+MenuManager.getDescription(menuItem));
+        header.setText("Add Key Binding for:  "+MenuBar.getDescription(menuItem));
         pack();
     }
 
@@ -308,7 +310,7 @@ public class EditKeyBinding extends javax.swing.JDialog {
                 // remove all bindings in k
                 for (Iterator kit = k.getKeyStrokePairs(); kit.hasNext(); ) {
                     KeyStrokePair pair = (KeyStrokePair)kit.next();
-                    MenuManager.removeKeyBinding(k.getActionDesc(), pair);
+                    menuBar.removeKeyBinding(k.getActionDesc(), pair);
                 }
             }
         }
@@ -316,7 +318,7 @@ public class EditKeyBinding extends javax.swing.JDialog {
         if (stroke == null) {
             stroke = prefixStroke; prefixStroke = null;
         }
-        MenuManager.addUserKeyBinding(menuItem, stroke, prefixStroke);
+        menuBar.addUserKeyBinding(menuItem, stroke, prefixStroke);
         setVisible(false);
 
     }//GEN-LAST:event_addButtonActionPerformed
