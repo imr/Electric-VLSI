@@ -34,10 +34,9 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.variable.VarContext;
 
-/** The purpose of the HierarchyEnumerator is to provide an shared
- * infrastructure for programs that wish to "flatten" the design
- * hierarchy. Examples of such programs include the logical effort
- * engine and routers.
+/** The HierarchyEnumerator can help programs that need to "flatten"
+ * the design hierarchy. Examples of such programs include the logical
+ * effort engine and routers.
  *
  * <p>The HierarchyEnumerator performs a recursive descent of
  * the "completely expanded" design hierarchy. The HierarchyEnumerator
@@ -50,8 +49,7 @@ import com.sun.electric.database.variable.VarContext;
  * expanded". Suppose the root Cell instantiates Cell A twice, and
  * Cell A instantiates Cell B twice. Then the HierarchyEnumerator
  * visits two instances of Cell A and four instances of Cell B. 
- *
- * <p>Warning: this code is experimental. */
+ */
 public final class HierarchyEnumerator {
 	// --------------------- private data ------------------------------
 	private Visitor visitor;
@@ -68,7 +66,7 @@ public final class HierarchyEnumerator {
 	// Prevent anyone from instantiating HierarchyEnumerator.
 	private HierarchyEnumerator() {	};
 
-	// See if this net inherits a net number from an export. If not then
+	// See if net inherits a net number from an export. If not then
 	// return null.
 	private Integer netIDFromExports(JNetwork net, Map portNmToNetID) {
 		// A network may get a net number from an export
@@ -76,7 +74,7 @@ public final class HierarchyEnumerator {
 			Export e = (Export) expIt.next();
 			Integer[] ids = (Integer[]) portNmToNetID.get(e.getProtoName());
 			if (ids != null) {
-				// this only works in the absence of busses
+				// only works in the absence of busses
 				return ids[0];
 			}
 		}
@@ -236,10 +234,11 @@ public final class HierarchyEnumerator {
 	}
 
 	// ------------------------ public types ---------------------------
-	/** Whereas the HierarchyEnumerator is responsible for enumerating
-	 * every Cell and NodeInst in the flattened design, the Visitor
-	 * object is responsible for performing useful work during the
-	 * enumeration.  
+	/** Perform useful work while the HierarchyEnumerator enumerates
+	 * the design. Whereas the HierarchyEnumerator is responsible for
+	 * enumerating every Cell and NodeInst in the flattened design,
+	 * the Visitor object is responsible for performing useful work
+	 * during the enumeration.
 	 *
 	 * <p>The HierarchyEnumerator performs a recursive descent of the
 	 * design hierarchy starting with the root Cell. When the
@@ -258,44 +257,48 @@ public final class HierarchyEnumerator {
 	 * returns true, then the HierarchyEnumerator enumerates the contents
 	 * of that NodeInst's child Cell before it continues enumerating the
 	 * NodeInsts of the current Cell.
-	 *
-	 * <p>Warning: This code is experimental.*/
+	 */
 	public static abstract class Visitor {
-		/** This is a hook to allow the user to add additional information
-		 * to a CellInfo. This is a "Factory" method. If the user wishes
-		 * to record additional application specific information for each
-		 * Cell, she should extend the CellInfo class and then override
-		 * this method to return an instance of that derived class. */
+		/** A hook to allow the user to add additional information to
+		 * a CellInfo. newCellInfo is a "Factory" method. If the user
+		 * wishes to record additional application specific
+		 * information for each Cell, the user should extend the
+		 * CellInfo class and then override newCellInfo to return an
+		 * instance of that derived class. */
 		public CellInfo newCellInfo() {return new CellInfo();}
 
 		/** The HierarchyEnumerator is about to begin enumerating the
-		 * contents of a new Cell instance.
+		 * contents of a new Cell instance. That instance has just
+		 * become the new "current" Cell instance.
 		 * @param info information about the Cell instance being
 		 * enumerated
-		 * @return The Visitor should true if she wishes to enumerate the
-		 * contents of this Cell instance */
+		 * @return a boolean indicating if the HierarchyEnumerator
+		 * should enumerate the contents of the current Cell. True
+		 * means enumerate the current cell */
 		public abstract boolean enterCell(CellInfo info);
 
-		/** The HierarchyEnumerator has finished enumerating the contents
-		 * of this Cell instance. It is about to leave this Cell instance,
-		 * never to return.  The CellInfo associated with this Cell
-		 * instance is about to be abandoned.
+		/** The HierarchyEnumerator has finished enumerating the
+		 * contents of the current Cell instance. It is about to leave
+		 * it, never to return.  The CellInfo associated with the
+		 * current Cell instance is about to be abandoned.
 		 * @param info information about the Cell instance being
 		 * enumerated */
 		public abstract void exitCell(CellInfo info);
 
-		/** The HierarchyEnumerator is visiting NodeInst ni.
-		 * @param ni The Nodable that HierarchyEnumerator is visiting.
-		 * @return The visitor should return true if this is an instance
-		 * of a cell and the visitor wishes to descend into this
-		 * instance. If this instance is of a PrimitiveNode then the
-		 * return value is ignored by the HierarchyEnumerator. */
+		/** The HierarchyEnumerator is visiting Nodable ni.
+		 * @param ni the Nodable that HierarchyEnumerator is visiting.
+		 * @return a boolean indicating whether or not the
+		 * HierarchyEnumerator should expand the Cell instantiated by
+		 * ni. True means expand. If ni instantiates a PrimitiveNode
+		 * then the return value is ignored by the
+		 * HierarchyEnumerator. */
 		public abstract boolean visitNodeInst(Nodable ni, CellInfo info);
 	}
 
 	/** The NetDescription object provides a JNetwork and the level of
-	 * hierarchy in which the JNetwork occurs. The visitor can use this
-	 * object to formulate, for example, the name of the net */
+	 * hierarchy in which the JNetwork occurs. The visitor can use
+	 * NetDescription to formulate, for example, the name of
+	 * the net */
 	public static class NetDescription {
 		private JNetwork net;
 		private CellInfo info;
@@ -329,8 +332,7 @@ public final class HierarchyEnumerator {
 	 * information in the CellInfo. In those cases the user should
 	 * extend the CellInfo class and override the Visitor.newCellInfo()
 	 * method to return an instance of the derived class.
-	 *
-	 * <p>Warning: Did I mention that this code is experimental? */
+	 */
 	public static class CellInfo {
 		private Cell cell;
 		private VarContext context;
@@ -359,19 +361,20 @@ public final class HierarchyEnumerator {
 		/** The Cell currently being visited. */
 		public final Cell getCell() {return cell;}
 
-		/** This Cell is the root of the traversal */
+		/** The Cell that is the root of the traversal */
 		public final boolean isRootCell() {return parentInfo == null;}
 
-		/** The VarContext to use for evaluating all variables in this
-		 * Cell. */
+		/** The VarContext to use for evaluating all variables in the
+		 * current Cell. */
 		public final VarContext getContext() {return context;}
 
-		/** Get the CellInfo for this Cell's parent.  If this Cell is the
-		 * root then return null. */
+		/** Get the CellInfo for the current Cell's parent.  If the
+		 * current Cell is the root then return null. */
 		public final CellInfo getParentInfo() {return parentInfo;}
 
-		/** Get the NodeInst in the parent Cell that instantiates this
-		 * Cell instance. If this Cell is the root then return null. */
+		/** Get the NodeInst that instantiates the Current
+		 * instance. If the current Cell is the root then return
+		 * null. */
 		public final Nodable getParentInst() {return parentInst;}
 
 		/** Get the CellInfo for the root Cell */
@@ -387,19 +390,19 @@ public final class HierarchyEnumerator {
 			return (Integer[]) exportNmToNetIDs.get(exportNm);
 		}
 
-		/** Map any net inside the cell to a net number. During the course
-		 * of the traversal, all nets that map to the same net number are
-		 * connected. Nets that map to different net numbers are
-		 * disconnected.
+		/** Map any net inside the current cell to a net
+		 * number. During the course of the traversal, all nets that
+		 * map to the same net number are connected. Nets that map to
+		 * different net numbers are disconnected.
 		 *
 		 * <p>If you want to generate a unique name for the net use
 		 * netIdToNetDescription().
 		 *
-		 * <p>I'm not sure this is the right thing to do. It might be
-		 * better to return a NetDescription here and embed the netID in
-		 * the NetDescription.  Also, I haven't provided a mechanism for
-		 * mapping a JNetwork in this Cell to a JNetwork in this Cell's
-		 * parent. */
+		 * <p>I'm not sure getNetID is the right thing to do. It might
+		 * be better to return a NetDescription here and embed the
+		 * netID in the NetDescription.  Also, I haven't provided a
+		 * mechanism for mapping a JNetwork in the current Cell to a
+		 * JNetwork in the current Cell's parent. */
 		public final Integer getNetID(JNetwork net) {
 			return (Integer) netToNetID.get(net);
 		}
@@ -428,32 +431,32 @@ public final class HierarchyEnumerator {
         }
         
 		/** Get the JNetwork that is closest to the root in the design
-		 * hierarchy that corresponds to this netID. */
+		 * hierarchy that corresponds to netID. */
 		public final NetDescription netIdToNetDescription(Integer netID) {
 			return (NetDescription) netIdToNetDesc.get(netID);
 		}
 
-		/** Find position of NodeInst: ni in the root Cell. This is useful
-		 * for flattening layout. */
+		/** Find position of NodeInst: ni in the root
+		 * Cell. getPositionInRoot is useful for flattening layout. */
 		public final AffineTransform getPositionInRoot(NodeInst ni) {
 			AffineTransform x = new AffineTransform(xformToRoot);
 			x.concatenate(ni.getPositionAsTransform());
 			return x;
 		}
 
-		/** Find position of Point2D: p in the root Cell. This is useful
-		 * for flattening layout. */
+		/** Find position of Point2D: p in the root
+		 * Cell. getPOsitionInRoot is useful for flattening layout. */
 		public final Point2D getPositionInRoot(Point2D p) {
 			Point2D ans = new Point2D.Double();
 			xformToRoot.transform(p, ans);
 			return ans;
 		}
 
-		/** Find the rectangular bounds of rectangle: r in the root Cell.
-		 * If this Cell instance is rotated by a multiple of 90 degrees in
-		 * the root Cell then the result is also the position of
-		 * rectangle: r mapped to the root Cell.  This is useful for
-		 * flattening layout. */
+		/** Find the rectangular bounds of rectangle: r in the root
+		 * Cell.  If the current Cell instance is rotated by a
+		 * multiple of 90 degrees in the root Cell then the result is
+		 * also the position of rectangle: r mapped to the root Cell.
+		 * getBoundsInRoot is useful for flattening layout. */
 		public final Rectangle2D getBoundsInRoot(Rectangle2D r) {
 			double[] coords = new double[8];
 			// Clockwise
@@ -479,7 +482,7 @@ public final class HierarchyEnumerator {
 				minY = Math.min(minY, coords[i + 1]);
 				maxY = Math.max(maxY, coords[i + 1]);
 			}
-			return new Rectangle2D.Double(minX, minY, maxX - minX, maxY - minY);
+            return new Rectangle2D.Double(minX, minY, maxX - minX, maxY - minY);
 		}
 	}
 
@@ -490,8 +493,7 @@ public final class HierarchyEnumerator {
 	 * beginEnumeration().
 	 * @param root the starting point of the enumeration.
 	 * @param context the VarContext for evaluating parameters in Cell
-	 * root. If this parameter is null then VarContext.globalContext is
-	 * used.
+	 * root. If context is null then VarContext.globalContext is used.
 	 * @param visitor the object responsible for doing something useful
 	 * during the enumertion of the design hierarchy. */
 	public static void enumerateCell(

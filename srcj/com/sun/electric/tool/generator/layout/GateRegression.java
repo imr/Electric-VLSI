@@ -58,65 +58,80 @@ public class GateRegression extends Job {
 		String osName = ((String) props.get("os.name")).toLowerCase();
 		return osName.indexOf("windows") != -1;
 	}
+	private static int gateNb;
+	
+	private static void tracePass(double x) {
+		System.out.println("\nbegin pass x="+x);
+		gateNb=0;
+	}
+	
+	private static void traceGate() {
+		System.out.print(" "+gateNb++);
+		System.out.flush();
+	}
 
 	private static void aPass(double x, StdCellParams stdCell) {
-		MullerC_sy.makePart(x, stdCell);
-		Nms1.makePart(x, stdCell);
-		Nms2.makePart(x, stdCell);
-		Nms2_sy.makePart(x, stdCell);
-		Nms3_sy3.makePart(x, stdCell);
-		Pms1.makePart(x, stdCell);
-		Pms2.makePart(x, stdCell);
-		Pms2_sy.makePart(x, stdCell);
-		Inv_passgate.makePart(x, stdCell);
-		Inv.makePart(x, stdCell);
-		InvCTLn.makePart(x, stdCell);
-		InvLT.makePart(x, stdCell);
-		InvHT.makePart(x, stdCell);
-		Inv2iKp.makePart(x, stdCell);
+		tracePass(x);
+		MullerC_sy.makePart(x, stdCell); traceGate();
+		Nms1.makePart(x, stdCell); traceGate();
+		Nms2.makePart(x, stdCell); traceGate();
+		Nms2_sy.makePart(x, stdCell); traceGate();
+		Nms3_sy3.makePart(x, stdCell); traceGate();
+		Pms1.makePart(x, stdCell); traceGate();
+		Pms2.makePart(x, stdCell); traceGate();
+		Pms2_sy.makePart(x, stdCell); traceGate();
+		Inv_passgate.makePart(x, stdCell); traceGate();
+		Inv.makePart(x, stdCell); traceGate();
+		InvCTLn.makePart(x, stdCell); traceGate();
+		InvLT.makePart(x, stdCell); traceGate();
+		InvHT.makePart(x, stdCell); traceGate();
+		Inv2iKp.makePart(x, stdCell); traceGate();
 
-		Inv2iKn.makePart(x, stdCell);
-		Inv2i.makePart(x, stdCell);
-		Nor2.makePart(x, stdCell);
-		Nor2LT.makePart(x, stdCell);
-		Nor2kresetV.makePart(x, stdCell);
-		Nand2.makePart(x, stdCell);
+		Inv2iKn.makePart(x, stdCell); traceGate();
+		Inv2i.makePart(x, stdCell); traceGate();
+		Nor2.makePart(x, stdCell); traceGate();
+		Nor2LT.makePart(x, stdCell); traceGate();
+		Nor2kresetV.makePart(x, stdCell); traceGate();
+		Nand2.makePart(x, stdCell); traceGate();
 
-		Nand2en.makePart(x, stdCell);
-		Nand2PH.makePart(x, stdCell);
-		Nand2HLT.makePart(x, stdCell);
-		Nand2PHfk.makePart(x, stdCell);
-		Nand2LT.makePart(x, stdCell);
-		Nand2_sy.makePart(x, stdCell);
-		Nand2HLT_sy.makePart(x, stdCell);
-		Nand2LT_sy.makePart(x, stdCell);
-		Nand2en_sy.makePart(x, stdCell);
-		Nand3.makePart(x, stdCell);
-		Nand3LT.makePart(x, stdCell);
-		Nand3MLT.makePart(x, stdCell);
-		Nand3_sy3.makePart(x, stdCell);
-		Nand3LT_sy3.makePart(x, stdCell);
-		Nand3en_sy.makePart(x, stdCell);
-		Nand3LTen_sy.makePart(x, stdCell);
-		Nand3en.makePart(x, stdCell);
-		Nand3LTen.makePart(x, stdCell);
+		Nand2en.makePart(x, stdCell); traceGate();
+		Nand2PH.makePart(x, stdCell); traceGate();
+		Nand2HLT.makePart(x, stdCell); traceGate();
+		Nand2PHfk.makePart(x, stdCell); traceGate();
+		Nand2LT.makePart(x, stdCell); traceGate();
+		Nand2_sy.makePart(x, stdCell); traceGate();
+		Nand2HLT_sy.makePart(x, stdCell); traceGate();
+		Nand2LT_sy.makePart(x, stdCell); traceGate();
+		Nand2en_sy.makePart(x, stdCell); traceGate();
+		Nand3.makePart(x, stdCell); traceGate();
+		Nand3LT.makePart(x, stdCell); traceGate();
+		Nand3MLT.makePart(x, stdCell); traceGate();
+		Nand3_sy3.makePart(x, stdCell); traceGate();
+		Nand3LT_sy3.makePart(x, stdCell); traceGate();
+		Nand3en_sy.makePart(x, stdCell); traceGate();
+		Nand3LTen_sy.makePart(x, stdCell); traceGate();
+		Nand3en.makePart(x, stdCell); traceGate();
+		Nand3LTen.makePart(x, stdCell); traceGate();
 
 		//if (x>=1.7) Nand3en_sy3.makePart(x, stdCell);
 		//if (x>=2.5) Nand3LTen_sy3.makePart(x, stdCell);
 
 		// Test gates that can double strap MOS gates
 		stdCell.setDoubleStrapGate(true);
-		Inv.makePart(x, stdCell);
-		InvLT.makePart(x, stdCell);
-		InvHT.makePart(x, stdCell);
-		Nms1.makePart(x, stdCell);
-		Pms1.makePart(x, stdCell);
+		Inv.makePart(x, stdCell); traceGate();
+		InvLT.makePart(x, stdCell); traceGate();
+		InvHT.makePart(x, stdCell); traceGate();
+		Nms1.makePart(x, stdCell); traceGate();
+		Pms1.makePart(x, stdCell); traceGate();
 		stdCell.setDoubleStrapGate(false);
 	}
 
 	private static void allSizes(StdCellParams stdCell) {
-		double maxSz = 1000;
-		for (double d=0.1; d<maxSz; d*=10) {
+		//double maxSz = 1000;
+		//double minSz = 0.1;
+		double minSz = 100;
+		double maxSz = 100.1;
+		for (double d=minSz; d<maxSz; d*=10) {
 			for (double x=d; x<Math.min(d*10, maxSz); x*=1.01) {
 				aPass(x, stdCell);
 			} 
@@ -146,7 +161,7 @@ public class GateRegression extends Job {
 
 		// a normal run
 		allSizes(stdCell);
-		//aPass(20, stdCell);
+		//aPass(500, stdCell);
 
 		// test the ability to move ground bus
 		stdCell.setGndY(stdCell.getGndY() - 7);
