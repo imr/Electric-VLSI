@@ -2,6 +2,10 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.01s: *********************************
+
+IMP: (9/17/04, GVG) New active size for new technology. All transistors affected.
+
 ************************* Version 8.01r: *********************************
 
 FIX: (9/17/04, GVG) DRC fix related to Well regions not connected and serpentine transistors.

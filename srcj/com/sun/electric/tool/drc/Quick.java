@@ -2186,7 +2186,7 @@ public class Quick
 
 						if (minRule == null) continue;
 
-						double actual = area - minRule.value;
+						double actual = DBMath.round(area - minRule.value);
 
 						if (actual >= 0) continue;
 
