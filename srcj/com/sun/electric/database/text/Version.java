@@ -122,7 +122,7 @@ public class Version
             {
                 String val = parse.nextToken(delim);
                 // Find path for main jar
-	            String filename = ROOTARNAME+"-"+getVersion()+".jar";
+	            String filename = ROOTARNAME+".jar";
                 if (val.lastIndexOf(filename) != -1)
                 {
                     File electricJar = new File(val);
