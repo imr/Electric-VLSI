@@ -1,4 +1,4 @@
-package com.sun.electric.database.variables;
+package com.sun.electric.database.variable;
 
 import com.sun.electric.database.hierarchy.VarContext;
 import com.sun.electric.user.Electric;

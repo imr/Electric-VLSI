@@ -1,6 +1,6 @@
 package com.sun.electric.database.prototype;
 
-import com.sun.electric.database.variables.ElectricObject;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.technology.Technology;

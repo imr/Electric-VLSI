@@ -1,6 +1,6 @@
 package com.sun.electric.database.geometry;
 
-import com.sun.electric.database.variables.ElectricObject;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.hierarchy.Cell;
 
 import java.awt.Dimension;

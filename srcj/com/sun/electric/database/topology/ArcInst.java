@@ -7,7 +7,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.technology.PrimitivePort;
 
-//import java.awt.geom.AffineTransform;
 import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;

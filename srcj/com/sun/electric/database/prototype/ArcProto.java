@@ -1,6 +1,6 @@
 package com.sun.electric.database.prototype;
 
-import com.sun.electric.database.variables.ElectricObject;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.technology.Technology;
 import com.sun.electric.database.technology.PrimitiveNode;
 import com.sun.electric.database.technology.PrimitivePort;

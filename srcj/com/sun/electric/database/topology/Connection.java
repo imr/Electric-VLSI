@@ -1,7 +1,6 @@
 package com.sun.electric.database.topology;
 
-import com.sun.electric.database.variables.ElectricObject;
-import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.variable.ElectricObject;
 
 import java.awt.Point;
 import java.awt.geom.Point2D;
@@ -21,7 +20,7 @@ import java.util.HashMap;
 public class Connection extends ElectricObject
 {
 	// ------------------------- private data --------------------------------
-	private static final JNetwork NO_SUBNET = new JNetwork(null);
+//	private static final JNetwork NO_SUBNET = new JNetwork(null);
 
 	private ArcInst arc; // the arc on one side of this connection 
 	private PortInst portInst;

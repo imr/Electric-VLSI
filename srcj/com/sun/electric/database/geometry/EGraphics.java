@@ -1,10 +1,8 @@
 package com.sun.electric.database.geometry;
 
-import com.sun.electric.database.variables.ElectricObject;
-
 import java.awt.*;
 
-public class EGraphics extends ElectricObject
+public class EGraphics
 {
 	int bits;
 	int color;
