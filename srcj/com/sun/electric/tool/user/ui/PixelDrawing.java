@@ -1989,7 +1989,8 @@ public class PixelDrawing
 			boxedHeight = (int)rect.getHeight();
             // clip if not within bounds
             Rectangle2D dbBounds = wnd.screenToDatabase(rect);
-            if (drawBounds != null && !drawBounds.intersects(dbBounds)) return;
+            //  drawBounds.getWidth() > 0 initial window
+            if (drawBounds != null && drawBounds.getWidth() > 0 && !drawBounds.intersects(dbBounds)) return;
 		}
 
         // create RenderInfo
@@ -2000,7 +2001,8 @@ public class PixelDrawing
 
         // check if text is on-screen
         Rectangle2D dbBounds = wnd.screenToDatabase(renderInfo.bounds);
-        if (drawBounds != null && !drawBounds.intersects(dbBounds))
+        //  drawBounds.getWidth() > 0 initial window
+        if (drawBounds != null && drawBounds.getWidth() > 0 && !drawBounds.intersects(dbBounds))
             return;
 
 		// render the text
