@@ -262,8 +262,8 @@ public class LETool extends Tool {
      * @param context varcontext of the cell
      * @param wnd the edit window holding the cell
      */
-    public void optimizeEqualGateDelays(Cell cell, VarContext context, EditWindow wnd) {
-        AnalyzeCell acjob = new AnalyzeCell(LESizer.Alg.EQUALGATEDELAYS, cell, context, wnd);
+    public void optimizeEqualGateDelays(Cell cell, VarContext context, EditWindow wnd, boolean newAlg) {
+        AnalyzeCell acjob = new AnalyzeCell(LESizer.Alg.EQUALGATEDELAYS, cell, context, wnd, newAlg);
     }
     
     /**
@@ -278,14 +278,16 @@ public class LETool extends Tool {
         /** EditWindow */                       private EditWindow wnd;
         /** algorithm type */                   private LESizer.Alg algorithm;
         /** netlist */                          private LENetlister netlister;
+        private boolean newAlg;
 
-        protected AnalyzeCell(LESizer.Alg algorithm, Cell cell, VarContext context, EditWindow wnd) {
+        protected AnalyzeCell(LESizer.Alg algorithm, Cell cell, VarContext context, EditWindow wnd, boolean newAlg) {
             super("Analyze Cell "+cell.describe(), tool, Job.Type.EXAMINE, null, cell, Job.Priority.USER);
             progress = null;
             this.algorithm = algorithm;
             this.cell = cell;
             this.context = context;
             this.wnd = wnd;
+            this.newAlg = newAlg;
 			this.startJob(true, false);
         }
         
@@ -303,7 +305,10 @@ public class LETool extends Tool {
 //            } catch (InterruptedException e) {}
 
             // get sizer and netlister
-            netlister = new LENetlister(algorithm, this);
+            if (newAlg)
+                netlister = new LENetlister2(this);
+            else
+                netlister = new LENetlister1(this);
             netlister.netlist(cell, context);
 
             // calculate statistics
@@ -319,7 +324,7 @@ public class LETool extends Tool {
 
             System.out.println("Starting iterations: ");
             setProgress("iterating");
-            boolean success = netlister.size();
+            boolean success = netlister.size(algorithm);
 
             // if user aborted, return, and do not update sizes
             if (checkAbort(null)) {
@@ -360,8 +365,7 @@ public class LETool extends Tool {
             if (getScheduledToAbort())
                 buf.append("  Job aborted, no changes made\n");
             else {
-                buf.append("  Gates sized: "+netlister.getNumGates()+"\n");
-                buf.append("  Total Drive Strength: "+netlister.getTotalSize(Instance.Type.LEGATE)+"\n");
+                buf.append("  Job completed successfully\n");
             }
             return buf.toString();
         }
@@ -392,7 +396,7 @@ public class LETool extends Tool {
      * Prints results of a sizing job for a Nodable.
      * @param no the Nodable to print info for.
      */
-    public static void printResults(Nodable no) {
+    public static void printResults(Nodable no, VarContext context) {
         // iterate through LE jobs from most recent until we
         // find info for 'no'
         Iterator it = Job.getAllJobs();
@@ -405,7 +409,7 @@ public class LETool extends Tool {
             AnalyzeCell job = (AnalyzeCell)stack.pop();
             if (job.getAborted()) continue;             // ignore aborted jobs
             LENetlister netlister = job.getNetlister();
-            if (netlister.printResults(no)) return;
+            if (netlister.printResults(no, context)) return;
         }
         // no info found
         System.out.println("No existing completed sizing jobs contain info about "+no.getName());

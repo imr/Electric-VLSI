@@ -49,6 +49,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.logicaleffort.LENetlister;
+import com.sun.electric.tool.logicaleffort.LENetlister1;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.interval.Diode;
 import com.sun.electric.tool.user.Clipboard;
@@ -140,7 +141,7 @@ public class DebugMenus {
         jongMenu.addMenuItem("Eval Vars", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { evalVarsOnObject(); }});
         jongMenu.addMenuItem("LE test1", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { LENetlister.test1(); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { LENetlister1.test1(); }});
         jongMenu.addMenuItem("Display shaker", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { shakeDisplay(); }});
         jongMenu.addMenuItem("Run command", null,

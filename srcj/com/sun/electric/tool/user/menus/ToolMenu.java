@@ -239,7 +239,9 @@ public class ToolMenu {
 
         MenuBar.Menu logEffortSubMenu = new MenuBar.Menu("Logical Effort", 'L');
         logEffortSubMenu.addMenuItem("Optimize for Equal Gate Delays", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { optimizeEqualGateDelaysCommand(); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { optimizeEqualGateDelaysCommand(false); }});
+        logEffortSubMenu.addMenuItem("Optimize for Equal Gate Delays with Caching", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { optimizeEqualGateDelaysCommand(true); }});
         logEffortSubMenu.addMenuItem("Print Info for Selected Node", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { printLEInfoCommand(); }});
         toolMenu.add(logEffortSubMenu);
@@ -295,7 +297,7 @@ public class ToolMenu {
     // ---------------------------- Tool Menu Commands ----------------------------
 
     // Logical Effort Tool
-    public static void optimizeEqualGateDelaysCommand()
+    public static void optimizeEqualGateDelaysCommand(boolean newAlg)
     {
         EditWindow curEdit = EditWindow.needCurrent();
         if (curEdit == null) return;
@@ -308,7 +310,7 @@ public class ToolMenu {
         curEdit.setCell(curEdit.getCell(), VarContext.globalContext);
 
         // optimize cell for equal gate delays
-        letool.optimizeEqualGateDelays(curEdit.getCell(), curEdit.getVarContext(), curEdit);
+        letool.optimizeEqualGateDelays(curEdit.getCell(), curEdit.getVarContext(), curEdit, newAlg);
     }
 
     /** Print Logical Effort info for highlighted nodes */
@@ -316,6 +318,7 @@ public class ToolMenu {
         EditWindow wnd = EditWindow.needCurrent();
         if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
+        VarContext context = wnd.getVarContext();
 
         if (highlighter.getNumHighlights() == 0) {
             System.out.println("Nothing highlighted");
@@ -333,7 +336,7 @@ public class ToolMenu {
             }
             if (eobj instanceof NodeInst) {
                 NodeInst ni = (NodeInst)eobj;
-                LETool.printResults(ni);
+                LETool.printResults(ni, context);
             }
         }
 

@@ -58,7 +58,7 @@ public class LESizer {
     /** which algorithm to use */                   private Alg optimizationAlg;
     /** Where to direct output */                   private PrintStream out;
     /** What job we are part of */                  private Job job;
-    /** Netlist */                                  private LENetlister netlist;
+    /** Netlist */                                  private LENetlister1 netlist;
     /** error logger */                             private ErrorLogger errorLogger;
 
     /** Alg is a typesafe enum class that describes the algorithm to be used */
@@ -74,7 +74,7 @@ public class LESizer {
     }
         
     /** Creates a new instance of LESizer */
-    protected LESizer(Alg alg, LENetlister netlist, Job job, ErrorLogger errorLogger) {
+    protected LESizer(Alg alg, LENetlister1 netlist, Job job, ErrorLogger errorLogger) {
         optimizationAlg = alg;
         this.netlist = netlist;
         this.job = job;
@@ -150,6 +150,17 @@ public class LESizer {
                             if (inst.getParallelGroup() == instance.getParallelGroup()) {
                                 // add the instance. Note this adds the current instance at some point as well
                                 drivers.add(inst);
+                                // error check
+                                if (inst.getParallelGroup() > 0 && loopcount == 0 && inst.getLeSU() != instance.getLeSU()) {
+                                    String msg = "\nError: LEKEEPER \""+inst.getName()+"\" drives in parallel with \""+instance.getName()+
+                                            "\" but has a different step-up";
+                                    System.out.println(msg);
+                                    NodeInst ni = inst.getNodable().getNodeInst();
+                                    if (ni != null) {
+                                        ErrorLogger.ErrorLog log = errorLogger.logError(msg, ni.getParent(), 0);
+                                        log.addGeom(ni, true, ni.getParent(), inst.getContext());
+                                    }
+                                }
                             }
                         }
                     }
@@ -414,7 +425,7 @@ public class LESizer {
         System.out.println("=========================");
         
         float su = (float)4.0;
-        LENetlister netlist = new LENetlister(Alg.EQUALGATEDELAYS, null);
+        LENetlister1 netlist = new LENetlister1(null);
                 
         {
         // inv1
