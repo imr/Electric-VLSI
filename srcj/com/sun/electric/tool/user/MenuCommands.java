@@ -1046,6 +1046,8 @@ public final class MenuCommands
 		menuBar.add(gildaMenu);
 		gildaMenu.addMenuItem("Merge Polyons", null,
 		        new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(true, true);}});
+		gildaMenu.addMenuItem("Covering Implants", null,
+		        new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(true, false);}});
 		gildaMenu.addMenuItem("Covering Implants Old", null,
 		        new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(false, false);}});
 		gildaMenu.addMenuItem("List Layer Coverage", null,
