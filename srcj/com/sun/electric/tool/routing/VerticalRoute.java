@@ -71,7 +71,7 @@ public class VerticalRoute {
     /** if route specification succeeded */     private boolean specificationSucceeded;
 
     private int searchNumber;
-    private static final int SEARCHLIMIT = 1000;
+    private static final int SEARCHLIMIT = 3000;
     private static final boolean DEBUG = false;
     private static final boolean DEBUGSEARCH = false;
     private static final boolean DEBUGTERSE = false;
@@ -108,8 +108,10 @@ public class VerticalRoute {
             System.out.println("Searching for way to connect "+startPort.getBasePort().getParent()+
                     " and "+endPort.getBasePort().getParent());
         }
-        if (startPort.getBasePort().getParent() == Generic.tech.universalPinNode &&
-            endPort.getBasePort().getParent() == Generic.tech.universalPinNode) {
+        if ((startPort.getBasePort().getParent() == Generic.tech.universalPinNode &&
+            endPort.getBasePort().getParent() == Generic.tech.universalPinNode) ||
+            (startPort.getBasePort().getParent() == Generic.tech.invisiblePinNode &&
+            endPort.getBasePort().getParent() == Generic.tech.invisiblePinNode)) {
             startArc = endArc = User.tool.getCurrentArcProto();
             startArcs = endArcs = new ArcProto [] { startArc };
         }
