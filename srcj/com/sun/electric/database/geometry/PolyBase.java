@@ -1718,14 +1718,10 @@ public class PolyBase implements Shape
 
 		// Crop in both directions if possible, self-contained case
 		// covered already
-        // 100% self-contained case. @TODO Check this function GVG
-        //if (parasitic)
-        {
-            if (bX <= lX) lX = uX;
-            if (bY >= lY) hY = bY;
-            if (uY <= hY) lY = hY;
-            if (hX <= uX) hX = bX;
-        }
+		if (bX <= lX) lX = uX;
+		if (bY >= lY) hY = bY;
+		if (uY <= hY) lY = hY;
+		if (hX <= uX) hX = bX;
 		bounds.setRect(lX, lY, hX-lX, hY-lY);
 
 		return 0;
@@ -1744,7 +1740,6 @@ public class PolyBase implements Shape
 		double lX = bounds.getMinX();   double hX = bounds.getMaxX();
 		double lY = bounds.getMinY();   double hY = bounds.getMaxY();
 
-        //@TODO Rounding error here GVG
 		// if the two boxes don't touch, just return
 		//if (bX >= hX || bY >= hY || uX <= lX || uY <= lY) return 0;
         if (!DBMath.isGreaterThan(hX, bX) || !DBMath.isGreaterThan(hY, bY) ||
@@ -1762,14 +1757,13 @@ public class PolyBase implements Shape
 			double lxe = lX - bX;   double hxe = uX - hX;
 			double lye = lY - bY;   double hye = uY - hY;
 			double biggestExt = Math.max(Math.max(lxe, hxe), Math.max(lye, hye));
-            boolean hlX = !DBMath.isGreaterThan(hX, lX);
 			//if (biggestExt == 0) return 1;
             if (DBMath.areEquals(biggestExt, 0)) return 1;
 			//if (lxe == biggestExt)
             if (DBMath.areEquals(lxe, biggestExt))
 			{
 				lX = (lX + uX) / 2;
-				if (hlX) return 1;
+				if (!DBMath.isGreaterThan(hX, lX)) return 1;
                 //if (lX >= hX) return 1;
 				bounds.setRect(lX, lY, hX-lX, hY-lY);
 				return 0;
@@ -1778,18 +1772,17 @@ public class PolyBase implements Shape
             if (DBMath.areEquals(hxe, biggestExt))
 			{
 				hX = (hX + bX) / 2;
-				if (hlX) return 1;
+				if (!DBMath.isGreaterThan(hX, lX)) return 1;
                 //if (hX <= lX) return 1;
 				bounds.setRect(lX, lY, hX-lX, hY-lY);
 				return 0;
 			}
 
-            boolean hlY = !DBMath.isGreaterThan(hY, lY);
             //if (lye == biggestExt)
 			if (DBMath.areEquals(lye, biggestExt))
 			{
 				lY = (lY + uY) / 2;
-				if (hlY) return 1;
+				if (!DBMath.isGreaterThan(hY, lY)) return 1;
                 //if (lY >= hY) return 1;
 				bounds.setRect(lX, lY, hX-lX, hY-lY);
 				return 0;
@@ -1798,7 +1791,7 @@ public class PolyBase implements Shape
 			if (DBMath.areEquals(hye, biggestExt))
 			{
 				hY = (hY + bY) / 2;
-				if (hlY) return 1;
+				if (!DBMath.isGreaterThan(hY, lY)) return 1;
                 //if (hY <= lY) return 1;
 				bounds.setRect(lX, lY, hX-lX, hY-lY);
 				return 0;

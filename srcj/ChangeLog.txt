@@ -5,6 +5,7 @@ NOTE: Please place changes under the version that will be released next.
 ************************* Version 8.01al: *********************************
 
 IMP: (11/5/04, GVG) Min area only for top cell because its hierarchically done.
+BUG: (11/5/04, GVG) Fixing error introduced in 8.01ai and PolyBase.halfCropBox/PolyBase.cropBox.
 
 BUG: (11/5/04, GVG) 3D bug for generic polyhedra (wrong indices for normal)
 
