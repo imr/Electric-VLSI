@@ -532,7 +532,7 @@ public class WindowFrame extends Observable
 		if (!wantToRedoLibraryTree && !wantToRedoJobTree && !wantToRedoErrorTree && !wantToRedoSignalTree) return;
 
 		// remember the state of the tree
-		HashMap expanded = new HashMap();
+		HashSet expanded = new HashSet();
 		recursivelyCache(expanded, new TreePath(rootNode), true);
 
 		// get the new library tree part
@@ -557,7 +557,7 @@ public class WindowFrame extends Observable
 		recursivelyCache(expanded, new TreePath(rootNode), false);
 	}
 
-	private void recursivelyCache(HashMap expanded, TreePath path, boolean cache)
+	private void recursivelyCache(HashSet expanded, TreePath path, boolean cache)
 	{
 		DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
 		Object obj = node.getUserObject();
@@ -566,10 +566,22 @@ public class WindowFrame extends Observable
 
 		if (cache)
 		{
-			if (explorerTab.isExpanded(path)) expanded.put(obj, obj);
+			if (explorerTab.isExpanded(path)) expanded.add(obj);
 		} else
 		{
-			if (expanded.get(obj) != null) explorerTab.expandPath(path);
+			if (expanded.contains(obj)) explorerTab.expandPath(path); else
+			{
+				if (obj instanceof Library)
+				{
+					Library lib = (Library)obj;
+					if (lib == Library.getCurrent()) explorerTab.expandPath(path);
+				} else if (obj instanceof String)
+				{
+					String msg = (String)obj;
+					if (msg.equalsIgnoreCase("libraries") || msg.equalsIgnoreCase("signals"))
+						explorerTab.expandPath(path);
+				}
+			}
 		}
 
 		// now recurse

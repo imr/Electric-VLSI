@@ -56,6 +56,7 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.EventListener;
 import java.util.Iterator;
 
@@ -582,7 +583,12 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
 			// change the cursor
 			TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-            return (PlaceNodeListener)newListener;
+			// zoom the window to fit the placed node (if appropriate)
+			EditWindow wnd = EditWindow.getCurrent();
+			if (wnd != null)
+				wnd.zoomWindowToFitCellInstance(np);
+
+			return (PlaceNodeListener)newListener;
 		}
         return null;
 	}

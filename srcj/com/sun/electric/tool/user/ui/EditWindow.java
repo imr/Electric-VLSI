@@ -49,6 +49,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.generator.layout.LayoutLib;
@@ -485,6 +486,9 @@ public class EditWindow extends JPanel
 		}
 		if (np != null)
 		{
+			// zoom the window to fit the placed node (if appropriate)
+			zoomWindowToFitCellInstance(np);
+
 			Poly poly = null;
 			if (np instanceof Cell)
 			{
@@ -518,6 +522,41 @@ public class EditWindow extends JPanel
 			repaint();
 		}
 		highlighter.finished();
+	}
+
+	/**
+	 * Method to zoom this window to fit a placed node (if appropriate).
+	 * If the placed object is a cell instance that is larger than the window,
+	 * and the window is empty, zoom out to fit.
+	 * @param np the node being placed.
+	 */
+	public void zoomWindowToFitCellInstance(NodeProto np)
+	{
+		Cell parent = getCell();
+		boolean empty = true;
+		if (parent.getNumArcs() > 0) empty = false;
+		if (parent.getNumNodes() > 1) empty = false; else
+		{
+			if (parent.getNumNodes() == 1)
+			{
+				NodeInst onlyNi = parent.getNode(0);
+				if (onlyNi.getProto() != Generic.tech.cellCenterNode) empty = false;
+			}
+		}
+		if (empty && np instanceof Cell)
+		{
+			// placing instance of cell into empty cell: see if scaling is necessary
+			Rectangle2D cellBounds = ((Cell)np).getBounds();
+			Rectangle2D screenBounds = displayableBounds();
+			if (cellBounds.getWidth() > screenBounds.getWidth() ||
+				cellBounds.getHeight() > screenBounds.getHeight())
+			{
+				double scaleX = cellBounds.getWidth() / (screenBounds.getWidth() * 0.9);
+				double scaleY = cellBounds.getHeight() / (screenBounds.getHeight() * 0.9);
+				double scale = Math.max(scaleX, scaleY);
+				setScale(getScale() / scale);
+			}
+		}
 	}
 
 	/**

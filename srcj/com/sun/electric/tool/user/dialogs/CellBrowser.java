@@ -619,7 +619,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
             if (newName == null) return;
             CircuitChanges.duplicateCell(cell, newName);
             closeDialog(null);                     // we have performed the action
-
+            updateCellList();
         }
 
     }

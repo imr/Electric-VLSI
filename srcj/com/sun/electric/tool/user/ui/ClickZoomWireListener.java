@@ -676,33 +676,36 @@ public class ClickZoomWireListener
 	                double minSelY = Math.min(start.getY(), end.getY());
 	                double maxSelY = Math.max(start.getY(), end.getY());
 
+	                // determine if the user clicked on a single point to prevent unintended zoom-in
+	                // a single point is 4 lambda or less AND 10 screen pixels or less
+	                boolean onePoint = true;
+                    Rectangle2D bounds = new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY);
+	                if (bounds.getHeight() > 4 && bounds.getWidth() > 4) onePoint = false;
+	                if (Math.abs(wnd.getStartDrag().getX()-wnd.getEndDrag().getX()) > 10 ||
+	                	Math.abs(wnd.getStartDrag().getY()-wnd.getEndDrag().getY()) > 10) onePoint = false;
+	                
 	                if (modeRight == Mode.drawBox) {
 	                    // just draw a highlight box
 	                    highlighter.addArea(new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY), cell);
 	                }
                     if (modeRight == Mode.zoomBoxSingleShot) {
                         // zoom to box: focus on box
-                        Rectangle2D bounds = new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY);
-                        // don't zoom a box dimension is less than 4 (heuristic to prevent unintended zoom)
-                        // note these dimensions are in lambda, the db unit, not screen pixels
-                        if (bounds.getHeight() > 4 && bounds.getWidth() > 4)
+                        if (!onePoint)
                             wnd.focusScreen(bounds);
                         WindowFrame.setListener(oldListener);
                     }
 	                if (modeRight == Mode.zoomBox) {
 	                    // zoom to box: focus on box
-	                    Rectangle2D bounds = new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY);
-	                    // don't zoom a box dimension is less than 4 (heuristic to prevent unintended zoom)
-	                    // note these dimensions are in lambda, the db unit, not screen pixels
-	                    if (bounds.getHeight() > 4 && bounds.getWidth() > 4)
-	                        wnd.focusScreen(bounds);
-	                    else {
+	                    if (onePoint)
+	                    {
 	                        // modeRight == Mode.zoomOut
 	                        // if not zoomBox, then user meant to zoomOut
 	                        double scale = wnd.getScale();
 	                        wnd.setScale(scale / 2);
 	                        wnd.clearDoingAreaDrag();
 	                        wnd.repaintContents(null);
+	                    } else {
+	                        wnd.focusScreen(bounds);
 	                    }
 
 	                }
