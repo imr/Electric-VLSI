@@ -978,6 +978,7 @@ public class EditWindow extends JPanel
 
 		// show the image
 		BufferedImage img = offscreen.getBufferedImage();
+		// TODO: Do not need synchronization here
 		synchronized(img) { g.drawImage(img, 0, 0, this); };
 
 		// overlay other things if there is a valid cell

@@ -28,6 +28,8 @@ package com.sun.electric.tool.sc;
 
 import com.sun.electric.database.hierarchy.Cell;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
@@ -81,10 +83,14 @@ public class Place
 	{
 		/** pointers to names of nodes */			ClusterTree  [] node;
 		/** number of connections */				int				count;
-		/** pointer to next list element */			ClConnect		next;
-		/** pointer to previous list element*/		ClConnect		last;
 
-		private ClConnect() { node = new ClusterTree[2]; }
+		private ClConnect(ClusterTree ct0, ClusterTree ct1, int c)
+		{
+			node = new ClusterTree[2];
+			node[0] = ct0;
+			node[1] = ct1;
+			count = c;
+		}
 	};
 
 	static class RowList
@@ -107,7 +113,6 @@ public class Place
 	{
 		/** number of channel */					int			number;
 		/** list of trunks */						NBTrunk		trunks;
-		/** next in list of channels */				Channel		next;
 	};
 
 	private static class NBTrunk
@@ -238,6 +243,19 @@ public class Place
 	}
 
 	/**
+	 * Method to add the parent pointer to the cluster tree by doing a preorder transversal.
+	 * @param node pointer to current node in transversal.
+	 * @param parent pointer to parent node.
+	 */
+	private void cTreeAddParents(ClusterTree node, ClusterTree parent)
+	{
+		if (node == null) return;
+		node.parent = parent;
+		cTreeAddParents(node.lPtr, node);
+		cTreeAddParents(node.rPtr, node);
+	}
+
+	/**
 	 * Method to create "clusters" of cells of size one.
 	 * @param cell pointer to complex cell.
 	 * @return list of clusters.
@@ -320,36 +338,16 @@ public class Place
 		if (nodes == null) return null;
 
 		// if one node, write to root and end
-		if (nodes.next == null)
-		{
-			return nodes;
-		}
+		if (nodes.next == null) return nodes;
 
-		// pair nodes in groups
 		// create list of connections between nodes
-		ClConnect nConnects = cTreeNumConnects(nodes, cell);
-
-		// sort number of connects from largest to smallest
-		nConnects = cTreeSortConnects(nConnects);
+		List connectList = cTreeNumConnects(nodes, cell);
 
 		// pair by number of connects
-		ClusterTree nStart = cTreePair(nodes, nConnects);
+		ClusterTree nStart = cTreePair(nodes, connectList);
 
 		// recurse up a level
 		return createCTreeRecurse(nStart, cell);
-	}
-
-	/**
-	 * Method to add the parent pointer to the cluster tree by doing a preorder transversal.
-	 * @param node pointer to current node in transversal.
-	 * @param parent pointer to parent node.
-	 */
-	private void cTreeAddParents(ClusterTree node, ClusterTree parent)
-	{
-		if (node == null) return;
-		node.parent = parent;
-		cTreeAddParents(node.lPtr, node);
-		cTreeAddParents(node.rPtr, node);
 	}
 
 	/**
@@ -357,9 +355,9 @@ public class Place
 	 * @param nodes List of current nodes.
 	 * @param cell Pointer to parent cell.
 	 */
-	private ClConnect cTreeNumConnects(ClusterTree nodes, GetNetlist.SCCell cell)
+	private List cTreeNumConnects(ClusterTree nodes, GetNetlist.SCCell cell)
 	{
-		ClConnect start = null, end = null;
+		List connections = new ArrayList();
 		int nodeNum = 0;
 
 		// go through list of nodes
@@ -378,25 +376,27 @@ public class Place
 
 				if (common != 0)
 				{
-					ClConnect newCon = new ClConnect();
-					newCon.node[0] = nodes;
-					newCon.node[1] = nextnode;
-					newCon.count = common;
-					newCon.last = end;
-					newCon.next = null;
-					if (end != null)
-					{
-						end.next = newCon;
-					} else
-					{
-						start = newCon;
-					}
-					end = newCon;
+					ClConnect newCon = new ClConnect(nodes, nextnode, common);
+					connections.add(newCon);
 				}
 			}
 		}
-		return start;
+
+		// sort number of connects from largest to smallest
+        Collections.sort(connections, new ConnectsByCount());
+
+        return connections;
 	}
+
+    public static class ConnectsByCount implements Comparator
+    {
+        public int compare(Object o1, Object o2)
+        {
+        	ClConnect c1 = (ClConnect)o1;
+        	ClConnect c2 = (ClConnect)o2;
+            return c2.count - c1.count;
+        }
+    }
 
 	/**
 	 * Method to mark all extracted nodes references by any member of all the
@@ -448,58 +448,12 @@ public class Place
 	}
 
 	/**
-	 * Method to sort the passed list on number of connections from largest to smallest.
-	 */
-	private ClConnect cTreeSortConnects(ClConnect list)
-	{
-		// order placement list highest to lowest
-		if (list != null)
-		{
-			ClConnect pOld = list;
-			for (ClConnect pp = list.next; pp != null;)
-			{
-				if (pp.count > pOld.count)
-				{
-					pOld.next = pp.next;
-					if (pp.next != null)
-						pp.next.last = pOld;
-					ClConnect pLast;
-					for (pLast = pOld.last; pLast != null; pLast = pLast.last)
-					{
-						if (pLast.count >= pp.count)
-							break;
-					}
-					if (pLast == null)
-					{
-						pp.next = list;
-						list.last = pp;
-						list = pp;
-						pp.last = null;
-					} else
-					{
-						pp.next = pLast.next;
-						pp.next.last = pp;
-						pp.last = pLast;
-						pLast.next = pp;
-					}
-					pp = pOld.next;
-				} else
-				{
-					pOld = pp;
-					pp = pp.next;
-				}
-			}
-		}
-		return list;
-	}
-
-	/**
 	 * Method to pair up the given nodes by using the information in the connection list.
 	 * @param nodes pointer to start of list of nodes.
 	 * @param nConnects pointer to start of list of connections.
 	 * @return new list.
 	 */
-	private ClusterTree cTreePair(ClusterTree nodes, ClConnect nConnects)
+	private ClusterTree cTreePair(ClusterTree nodes, List connectList)
 	{
 		// clear the placed flag in all tree nodes
 		for (ClusterTree tPtr = nodes; tPtr != null; tPtr = tPtr.next)
@@ -507,47 +461,41 @@ public class Place
 
 		// go through connection list
 		ClusterTree newStart = null;
-		for (ClConnect connect = nConnects; connect != null; )
+		if (connectList.size() > 0)
 		{
-			// if either placed, continue
-			if ((connect.node[0].bits & BITS_PLACED) != 0 ||
-				(connect.node[1].bits & BITS_PLACED) != 0)
+			for (int i=0; i<connectList.size(); )
 			{
-				connect = connect.next;
-				continue;
+				ClConnect connect = (ClConnect)connectList.get(i);
+	
+				// if either placed, continue
+				if ((connect.node[0].bits & BITS_PLACED) != 0 ||
+					(connect.node[1].bits & BITS_PLACED) != 0)
+				{
+					i++;
+					continue;
+				}
+	
+				// get best choice
+				ClConnect bConnect = bestPair(connectList, i);
+	
+				// create new cluster tree node
+				ClusterTree newNode = new ClusterTree();
+				newNode.cluster = null;
+				newNode.bits = 0;
+				newNode.parent = null;
+				newNode.lPtr = bConnect.node[0];
+				newNode.lPtr.parent = newNode;
+				bConnect.node[0].bits |= BITS_PLACED;
+				newNode.rPtr = bConnect.node[1];
+				newNode.rPtr.parent = newNode;
+				bConnect.node[1].bits |= BITS_PLACED;
+				newNode.next = newStart;
+				newStart = newNode;
+	
+				// remove from list
+				connectList.remove(bConnect);
 			}
-
-			// get best choice
-			ClConnect bConnect = bestPair(connect);
-
-			// create new cluster tree node
-			ClusterTree newNode = new ClusterTree();
-			newNode.cluster = null;
-			newNode.bits = 0;
-			newNode.parent = null;
-			newNode.lPtr = bConnect.node[0];
-			newNode.lPtr.parent = newNode;
-			bConnect.node[0].bits |= BITS_PLACED;
-			newNode.rPtr = bConnect.node[1];
-			newNode.rPtr.parent = newNode;
-			bConnect.node[1].bits |= BITS_PLACED;
-			newNode.next = newStart;
-			newStart = newNode;
-
-			// remove from list
-			if (connect == bConnect)
-			{
-				connect = connect.next;
-			} else
-			{
-				bConnect.last.next = bConnect.next;
-				if (bConnect.next != null)
-					bConnect.next.last = bConnect.last;
-			}
-		}
-
-		// if no connections, arbitrarily combine two clusters
-		if (nConnects == null)
+		} else
 		{
 			// create new cluster tree node
 			ClusterTree newNode = new ClusterTree();
@@ -590,7 +538,6 @@ public class Place
 		ClusterTree	node;		/* cluster tree node */
 		int			count;		/* number of times seen */
 		ClConnect	ref;		/* first reference */
-		Temp		next;		/* next in list */
 	}
 
 	/**
@@ -600,67 +547,52 @@ public class Place
 	 * @param connect start of sorted list.
 	 * @return pointer to best pair.
 	 */
-	private ClConnect bestPair(ClConnect connect)
+	private ClConnect bestPair(List connectList, int index)
 	{
-		Temp sList = null;
-		for (ClConnect nConnect = connect; nConnect != null; nConnect = nConnect.next)
+		List sList = new ArrayList();
+		ClConnect connect = (ClConnect)connectList.get(index);
+		for(int oIndex=index; oIndex<connectList.size(); oIndex++)
 		{
+			ClConnect nConnect = (ClConnect)connectList.get(oIndex);
 			if (nConnect.count < connect.count) break;
 			if ((nConnect.node[0].bits & BITS_PLACED) != 0 ||
 				(nConnect.node[1].bits & BITS_PLACED) != 0) continue;
 
 			// check if nodes previously counted
-			Temp nList;
-			for (nList = sList; nList != null; nList = nList.next)
+			for(int i=0; i<2; i++)
 			{
-				if (nList.node == nConnect.node[0])
-					break;
-			}
-			if (nList != null)
-			{
-				nList.count++;
-			} else
-			{
-				nList = new Temp();
-				nList.node = nConnect.node[0];
-				nList.count = 1;
-				nList.ref = nConnect;
-				nList.next = sList;
-				sList = nList;
-			}
-
-			for (nList = sList; nList != null; nList = nList.next)
-			{
-				if (nList.node == nConnect.node[1])
-					break;
-			}
-			if (nList != null)
-			{
-				nList.count++;
-			} else
-			{
-				nList = new Temp();
-				nList.node = nConnect.node[1];
-				nList.count = 1;
-				nList.ref = nConnect;
-				nList.next = sList;
-				sList = nList;
+				Temp nList = null;
+				for(Iterator it = sList.iterator(); it.hasNext(); )
+				{
+					Temp nl = (Temp)it.next();
+					if (nl.node == nConnect.node[i])
+					{
+						nList = nl;
+						break;
+					}
+				}
+				if (nList != null)
+				{
+					nList.count++;
+				} else
+				{
+					nList = new Temp();
+					nList.node = nConnect.node[i];
+					nList.count = 1;
+					nList.ref = nConnect;
+					sList.add(nList);
+				}
 			}
 		}
 
 		// find the minimum count
-		int minUse = sList.count;
-		Temp blist = sList;
-		for (Temp nList = sList.next; nList != null; nList = nList.next)
+		Temp best = null;
+		for(Iterator it = sList.iterator(); it.hasNext(); )
 		{
-			if (nList.count < minUse)
-			{
-				minUse = nList.count;
-				blist = nList;
-			}
+			Temp nList = (Temp)it.next();
+			if (best == null || nList.count <= best.count) best = nList;
 		}
-
-		return blist.ref;
+		return best.ref;
 	}
 
 	/**
@@ -962,7 +894,7 @@ public class Place
 	private void netBalance(GetNetlist.SCCell cell)
 	{
 		// create channel list
-		Channel channel = null, endchan = null;
+		List channels = new ArrayList();
 		int i = 0;
 		NBTrunk sameTrunk = null;
 		do
@@ -998,15 +930,7 @@ public class Place
 				}
 			}
 			newChan.trunks = trunks;
-			newChan.next = null;
-			if (endchan != null)
-			{
-				endchan.next = newChan;
-				endchan = newChan;
-			} else
-			{
-				channel = endchan = newChan;
-			}
+			channels.add(newChan);
 			sameTrunk = trunks;
 			i++;
 		} while ((i + 1) < cell.placement.numRows);
@@ -1014,10 +938,10 @@ public class Place
 		// report current placement evaluation
 		if (DEBUG)
 			System.out.println("Evaluation before Net-Balancing  = " +
-				nBCost(cell.placement.theRows, channel, cell));
+				nBCost(cell.placement.theRows, channels, cell));
 
 		// do the net balance for each cell
-		nBAllCells(cell, channel);
+		nBAllCells(cell, channels);
 
 		// number placement
 		nBRebalanceRows(cell.placement.theRows, cell.placement);
@@ -1026,7 +950,7 @@ public class Place
 		// report new evaluation
 		if (DEBUG)
 			System.out.println("Evaluation after Net-Balancing   = %d" +
-				nBCost(cell.placement.theRows, channel, cell));
+				nBCost(cell.placement.theRows, channels, cell));
 	}
 
 	/**
@@ -1035,7 +959,7 @@ public class Place
 	 * @param cell pointer to parent cell.
 	 * @param channels pointer to start of channel list.
 	 */
-	private void nBAllCells(GetNetlist.SCCell cell, Channel channels)
+	private void nBAllCells(GetNetlist.SCCell cell, List channels)
 	{
 		// process cell
 		for (Iterator it = cell.niList.iterator(); it.hasNext(); )
@@ -1052,7 +976,7 @@ public class Place
 	 * @param channels pointer to channel list of trunks.
 	 * @param cell parent complex cell.
 	 */
-	private void nBDoCell(NBPlace place, Channel channels, GetNetlist.SCCell cell)
+	private void nBDoCell(NBPlace place, List channels, GetNetlist.SCCell cell)
 	{
 		if (place == null) return;
 
@@ -1152,11 +1076,12 @@ public class Place
 	 * @param cell pointer to parent cell.
 	 * @return cost.
 	 */
-	private int nBCost(List theRows, Channel channels, GetNetlist.SCCell cell)
+	private int nBCost(List theRows, List channels, GetNetlist.SCCell cell)
 	{
 		// initialize all trunks
-		for (Channel nChan = channels; nChan != null; nChan = nChan.next)
+		for(Iterator it = channels.iterator(); it.hasNext(); )
 		{
+			Channel nChan = (Channel)it.next();
 			for (NBTrunk nTrunk = nChan.trunks; nTrunk != null; nTrunk = nTrunk.next)
 			{
 				nTrunk.minX = Double.MAX_VALUE;
@@ -1165,7 +1090,8 @@ public class Place
 		}
 
 		// check all rows
-		Channel nChan = channels;
+		int chanPos = 0;
+		Channel nChan = (Channel)channels.get(chanPos);
 		boolean above = true;
 		int dis = 0;
 		int rowNum = 0;
@@ -1184,7 +1110,10 @@ public class Place
 						rowNum++;
 						dis = 0;
 						if (above ^= true)
-							nChan = nChan.next;
+						{
+							chanPos++;
+							nChan = (Channel)channels.get(chanPos);
+						}
 					}
 				}
 			} else
@@ -1197,7 +1126,10 @@ public class Place
 						rowNum++;
 						dis = maxRowSize;
 						if (above ^= true)
-							nChan = nChan.next;
+						{
+							chanPos++;
+							nChan = (Channel)channels.get(chanPos);
+						}
 					}
 				}
 			}
@@ -1239,8 +1171,9 @@ public class Place
 		int cost = 0;
 
 		// calculate horizontal costs
-		for (nChan = channels; nChan != null; nChan = nChan.next)
+		for(Iterator it = channels.iterator(); it.hasNext(); )
 		{
+			nChan = (Channel)it.next();
 			for (NBTrunk nTrunk = nChan.trunks; nTrunk != null; nTrunk = nTrunk.next)
 			{
 				if (nTrunk.minX != Double.MAX_VALUE)
@@ -1249,7 +1182,7 @@ public class Place
 		}
 
 		// calculate vertical cost
-		for (NBTrunk nTrunk = channels.trunks; nTrunk != null; nTrunk = nTrunk.next)
+		for (NBTrunk nTrunk = ((Channel)channels.get(0)).trunks; nTrunk != null; nTrunk = nTrunk.next)
 		{
 			NBTrunk fTrunk = null;
 			int fCount = 0, count = 0;

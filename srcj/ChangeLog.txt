@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02i: *********************************
 
+BUG: (02/17/05, SMR) "Properties" windows grab focus inappropriately (Bug #208).
+FIX: In EDialog.focusOnTextField()" do not reques focus.
+
 BUG: (02/17/05, DN) Version related methods of Cell causes ConcurrentModificationException (Bug #209)
 FIX: Synchronize these methods by "lib.cells"
 

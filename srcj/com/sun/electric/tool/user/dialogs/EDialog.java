@@ -116,7 +116,7 @@ public class EDialog extends JDialog
      * @param textComponent the text field
      */
     protected void focusOnTextField(JTextComponent textComponent) {
-        textComponent.requestFocus();
+//        textComponent.requestFocus();
         textComponent.setSelectionStart(0);
         textComponent.setSelectionEnd(textComponent.getDocument().getLength());
     }

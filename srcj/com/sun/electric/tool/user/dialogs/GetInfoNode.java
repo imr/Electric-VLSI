@@ -146,7 +146,9 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 
         // update dialog if we care about the changes
 		if (e.objectChanged(shownNode) || shownPort instanceof Export && e.objectChanged((Export)shownPort))
+		{
             loadInfo();
+		}
     }
 
 //     /**
