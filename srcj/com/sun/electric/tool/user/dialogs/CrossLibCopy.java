@@ -31,11 +31,9 @@ import com.sun.electric.tool.user.User;
 
 import java.util.Iterator;
 import java.util.List;
-import javax.swing.JComboBox;
-import javax.swing.JList;
-import javax.swing.ListSelectionModel;
-import javax.swing.DefaultListModel;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
 
 
 /**
@@ -52,6 +50,36 @@ public class CrossLibCopy extends EDialog
 	private static boolean lastCopyRelated = false;
 	private static boolean lastCopySubcells = false;
 	private static boolean lastUseExisting = true;
+
+	// Class to synchronize the 3 scrollbars in dialog
+	private class CrossLibScrollBarListener implements ChangeListener
+	{
+		private JScrollBar[] scrollBarList;
+
+		public  CrossLibScrollBarListener(JScrollBar[] bars)
+		{
+			scrollBarList = new JScrollBar[2];
+
+			System.arraycopy(bars, 0, scrollBarList, 0, bars.length);
+		}
+		public void stateChanged(ChangeEvent evt)
+		{
+
+			BoundedRangeModel   sourceScroll = (BoundedRangeModel)evt.getSource();
+
+			int iSMin   = sourceScroll.getMinimum();
+			int iSMax   = sourceScroll.getMaximum();
+			int iSDiff  = iSMax - iSMin;
+			int iSVal   = sourceScroll.getValue();
+			int iDMin   = cellsLeft.getVerticalScrollBar().getMinimum();
+			int iDMax   = cellsLeft.getVerticalScrollBar().getMaximum();
+			int iDDiff  = iDMax - iDMin;
+			int iDVal = (iSDiff == iDDiff) ? iSVal : (iDDiff * iSVal) / iSDiff;
+
+			for (int i = 0; i < scrollBarList.length; i++)
+				scrollBarList[i].setValue(iDVal);
+		}
+	}
 
 	/** Creates new form CrossLibCopy */
 	public CrossLibCopy(java.awt.Frame parent, boolean modal)
@@ -111,6 +139,15 @@ public class CrossLibCopy extends EDialog
 		copyRelatedViews.setSelected(lastCopyRelated);
 		copySubcells.setSelected(lastCopySubcells);
 		useExistingSubcells.setSelected(lastUseExisting);
+
+		// TO syncronize scroll bars
+		JScrollBar[] scrollArray1 = {cellsRight.getVerticalScrollBar(), center.getVerticalScrollBar()};
+		cellsLeft.getVerticalScrollBar().getModel().addChangeListener( new CrossLibScrollBarListener(scrollArray1));
+		JScrollBar[] scrollArray2 = {cellsLeft.getVerticalScrollBar(), center.getVerticalScrollBar()};
+		cellsRight.getVerticalScrollBar().getModel().addChangeListener( new CrossLibScrollBarListener(scrollArray2));
+		JScrollBar[] scrollArray3 = {cellsLeft.getVerticalScrollBar(), cellsRight.getVerticalScrollBar()};
+		center.getVerticalScrollBar().getModel().addChangeListener( new CrossLibScrollBarListener(scrollArray3));
+
 		finishInitialization();
 	}
 
@@ -552,7 +589,7 @@ public class CrossLibCopy extends EDialog
 
         pack();
     }//GEN-END:initComponents
-
+	
     private void compareContentItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_compareContentItemStateChanged
         
         if (compareContent.isSelected())
