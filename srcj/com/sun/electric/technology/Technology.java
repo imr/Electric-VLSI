@@ -2257,7 +2257,8 @@ public class Technology implements Comparable
 				if (nextIndex == total-1)
 					portPoints[nextIndex] = nextPt;
 			}
-			trans.transform(portPoints, 0, portPoints, 0, total);
+			if (total > 0)
+				trans.transform(portPoints, 0, portPoints, 0, total);
 			Poly retPoly = new Poly(portPoints);
 			retPoly.setStyle(Poly.Type.OPENED);
 			return retPoly;

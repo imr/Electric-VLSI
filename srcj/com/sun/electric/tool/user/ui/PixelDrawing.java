@@ -200,6 +200,7 @@ public class PixelDrawing
 	/** the EditWindow being drawn */						private EditWindow wnd;
 	/** the size of the EditWindow */						private Dimension sz;
     /** the area of the cell to draw, in DB units */        private Rectangle2D drawBounds;
+	/** whether any layers are highlighted/dimmed */		private boolean highlightingLayers;
 
 	// the full-depth image
     /** the offscreen opaque image of the window */			private BufferedImage img;
@@ -333,6 +334,18 @@ public class PixelDrawing
 
 		// remember the true window size (since recursive calls may cache individual cells that are smaller)
 		topSz = sz;
+
+		// see if any layers are being highlighted/dimmed
+		highlightingLayers = false;
+		for(Iterator it = Technology.getCurrent().getLayers(); it.hasNext(); )
+		{
+			Layer layer = (Layer)it.next();
+			if (layer.isDimmed())
+			{
+				highlightingLayers = true;
+				break;
+			}
+		}
 
 		// initialize rendering into the offscreen image
 		clearImage(true);
@@ -492,6 +505,9 @@ public class PixelDrawing
 					if (dimThisEntry)
 					{
 						newColorMap[i] = new Color(dimColor(colorMap[i].getRGB()));
+					} else
+					{
+						newColorMap[i] = new Color(brightenColor(colorMap[i].getRGB()));
 					}
 				}
 				colorMap = newColorMap;
@@ -1562,11 +1578,15 @@ public class PixelDrawing
 	private int getTheColor(EGraphics desc, boolean dimmed)
 	{
 		int col = desc.getColor().getRGB() & 0xFFFFFF;
-		if (dimmed) col = dimColor(col);
+		if (highlightingLayers)
+		{
+			if (dimmed) col = dimColor(col); else
+				col = brightenColor(col);
+		}
 		return col;
 	}
 
-	private float [] hsbTempArray = new float[3];
+	private double [] hsvTempArray = new double[3];
 
 	/**
 	 * Method to dim a color by reducing its saturation.
@@ -1578,10 +1598,98 @@ public class PixelDrawing
 		int r = col & 0xFF;
 		int g = (col >> 8) & 0xFF;
 		int b = (col >> 16) & 0xFF;
-		Color.RGBtoHSB(r, g, b, hsbTempArray);
-		hsbTempArray[1] *= 0.2;
-		col = Color.HSBtoRGB(hsbTempArray[0], hsbTempArray[1], hsbTempArray[2])& 0xFFFFFF;
+		fromRGBtoHSV(r, g, b, hsvTempArray);
+		hsvTempArray[1] *= 0.2;
+		col = fromHSVtoRGB(hsvTempArray[0], hsvTempArray[1], hsvTempArray[2]);
 		return col;
+	}
+
+	/**
+	 * Method to brighten a color by increasing its saturation.
+	 * @param col the color as a 24-bit integer.
+	 * @return the brightened color, a 24-bit integer.
+	 */
+	private int brightenColor(int col)
+	{
+		int r = col & 0xFF;
+		int g = (col >> 8) & 0xFF;
+		int b = (col >> 16) & 0xFF;
+		fromRGBtoHSV(r, g, b, hsvTempArray);
+		hsvTempArray[1] *= 1.5;
+		if (hsvTempArray[1] > 1) hsvTempArray[1] = 1;
+		col = fromHSVtoRGB(hsvTempArray[0], hsvTempArray[1], hsvTempArray[2]);
+		return col;
+	}
+
+	/**
+	 * Method to convert a red/green/blue color to a hue/saturation/intensity color.
+	 * Why not use Color.RGBtoHSB?  It doesn't work as well.
+	 */
+	private void fromRGBtoHSV(int ir, int ig, int ib, double [] hsi)
+	{
+		double r = ir / 255.0f;
+		double g = ig / 255.0f;
+		double b = ib / 255.0f;
+
+		// "i" is maximum of "r", "g", and "b"
+		hsi[2] = Math.max(Math.max(r, g), b);
+
+		// "x" is minimum of "r", "g", and "b"
+		double x = Math.min(Math.min(r, g), b);
+
+		// "saturation" is (i-x)/i
+		if (hsi[2] == 0.0) hsi[1] = 0.0; else hsi[1] = (hsi[2] - x) / hsi[2];
+
+		// hue is quadrant-based
+		hsi[0] = 0.0;
+		if (hsi[1] != 0.0)
+		{
+			double rdot = (hsi[2] - r) / (hsi[2] - x);
+			double gdot = (hsi[2] - g) / (hsi[2] - x);
+			double bdot = (hsi[2] - b) / (hsi[2] - x);
+			if (b == x && r == hsi[2]) hsi[0] = (1.0 - gdot) / 6.0; else
+			if (b == x && g == hsi[2]) hsi[0] = (1.0 + rdot) / 6.0; else
+			if (r == x && g == hsi[2]) hsi[0] = (3.0 - bdot) / 6.0; else
+			if (r == x && b == hsi[2]) hsi[0] = (3.0 + gdot) / 6.0; else
+			if (g == x && b == hsi[2]) hsi[0] = (5.0 - rdot) / 6.0; else
+			if (g == x && r == hsi[2]) hsi[0] = (5.0 + bdot) / 6.0; else
+				System.out.println("Cannot convert (" + ir + "," + ig + "," + ib + "), for x=" + x + " i=" + hsi[2] + " s=" + hsi[1]);
+		}
+	}
+
+	/**
+	 * Method to convert a hue/saturation/intensity color to a red/green/blue color.
+	 * Why not use Color.HSBtoRGB?  It doesn't work as well.
+	 */
+	private int fromHSVtoRGB(double h, double s, double v)
+	{
+		h = h * 6.0;
+		int i = (int)h;
+		double f = h - (double)i;
+		double m = v * (1.0 - s);
+		double n = v * (1.0 - s * f);
+		double k = v * (1.0 - s * (1.0 - f));
+		int r = 0, g = 0, b = 0;
+		switch (i)
+		{
+			case 0: r = (int)(v*255.0); g = (int)(k*255.0); b = (int)(m*255.0);   break;
+			case 1: r = (int)(n*255.0); g = (int)(v*255.0); b = (int)(m*255.0);   break;
+			case 2: r = (int)(m*255.0); g = (int)(v*255.0); b = (int)(k*255.0);   break;
+			case 3: r = (int)(m*255.0); g = (int)(n*255.0); b = (int)(v*255.0);   break;
+			case 4: r = (int)(k*255.0); g = (int)(m*255.0); b = (int)(v*255.0);   break;
+			case 5: r = (int)(v*255.0); g = (int)(m*255.0); b = (int)(n*255.0);   break;
+		}
+		if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255)
+		{
+			System.out.println("(" + h + "," + s + "," + v + ") -> (" + r + "," + g + "," + b + ") (i=" + i + ")");
+			if (r < 0) r = 0;
+			if (r > 255) r = 255;
+			if (g < 0) g = 0;
+			if (g > 255) g = 255;
+			if (b < 0) b = 0;
+			if (b > 255) b = 255;
+		}
+		return (b << 16) | (g << 8) | r;
 	}
 
 	/**

@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02e: *********************************
 
+IMP/MAN: (01/26/05, SMR) Removed the command "Windows / Special Zoom / Zoom Box" because
+     it duplicates the shift-right drag function and, more importantly, doesn't work.
+
+BUG: (01/26/05, SMR) Deleting nodes leaves their highlighting on the screen.
+FIX: In Highlight.isValid() must convert PortInst objects to their NodeInsts.
+
+IMP: (01/26/05, SMR) Serpentine transistors have their sizes recomputed with their bounds.
+
 BUG: (01/26/05, DN) Arcs may be created with ends on unlinked PortInsts.
 FIX: Check PortInst.isLinked when creating arcs.
 
@@ -20,10 +28,10 @@ FIX: "kill" methods will return with message if object is already killed.
 BUG: (01/26/05, DN) The Font Association String[] var is incorrectly prepared.
 FIX: In Output.createFontAssociation, <= instead of < .
 
-BUG: (01/25/05, GVG) PolyBase.isInside not working properly for non-convex mahnattan polygons. Angle-based algorithm
-tends to cancel out angles for concave corners.
-FIX: (for now) for wiring check if point is along polygon edges. More stable solution is to change algorithm for an intersection-based
-one.
+BUG: (01/25/05, GVG) PolyBase.isInside not working properly for non-convex mahnattan polygons.
+     Angle-based algorithm tends to cancel out angles for concave corners.
+FIX: (for now) for wiring check if point is along polygon edges. More stable solution is to
+     change algorithm for an intersection-based one.
 
 BUG: (01/25/05, SMR) Spice output allows names that start with a digit (but Spice doesn't) (Bug #169).
 FIX: In Spice.getSafeNetName(), insert an "_" before names that start with a digit.

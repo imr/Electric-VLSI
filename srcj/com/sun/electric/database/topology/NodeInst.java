@@ -1243,6 +1243,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 				else
 					Rectangle2D.union(poly.getBounds2D(), visBounds, visBounds);
 			}
+
+			// recompute actual bounds
+			double width = DBMath.round(visBounds.getWidth());
+			double height = DBMath.round(visBounds.getHeight());
+			sX = isXMirrored() ? -width : width;
+			sY = isYMirrored() ? -height : height;
 			return;
 		}
 

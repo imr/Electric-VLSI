@@ -68,7 +68,6 @@ import java.util.List;
  *
  * Still to do:
  *    Alternate way to find large contacts which preserves cut placement
- *    Serpentine transistors
  *    Nonmanhattan geometry (contacts, transistors)
  *    In via creation, check that the cut/via is the right size
  *    Explicit connection where two cells overlap?
@@ -544,6 +543,7 @@ public class Connectivity
 		Point2D start, end;
 		boolean startHub, endHub;
 		double width;
+		boolean handled;
 
 		Centerline(double width, Point2D start, Point2D end)
 		{
@@ -563,7 +563,7 @@ public class Connectivity
 	private void convertToWires(PolyBase poly, Layer layer, ArcProto ap, PolyMerge merge, PolyMerge originalMerge, Cell newCell)
 	{
 		// reduce the geometry to a skeleton of centerlines
-		List lines = findCenterlines(poly, layer, ap, merge, originalMerge);
+		List lines = findCenterlines(poly, layer, ap.getDefaultWidth(), merge, originalMerge);
 
 		// now realize the wires
 		for(Iterator it = lines.iterator(); it.hasNext(); )
@@ -676,358 +676,6 @@ public class Connectivity
 		return piRet;
 	}
 
-	/**
-	 * Method to find a list of centerlines that skeletonize a polygon.
-	 * @param poly the Poly to skeletonize.
-	 * @param layer the layer on which the polygon resides.
-	 * @param ap the ArcProto to use when realizing the polygon.
-	 * @return a List of Centerline objects that describe a single "bone" of the skeleton.
-	 */
-	private List findCenterlines(PolyBase poly, Layer layer, ArcProto ap, PolyMerge merge, PolyMerge originalMerge)
-	{
-		// first make a list of all parallel wires in the polygon
-		List centerlines = new ArrayList();
-		Point2D [] points = poly.getPoints();
-		for(int i=0; i<points.length; i++)
-		{
-			int lastI = i-1;
-			if (lastI < 0) lastI = points.length-1;
-			Point2D lastPt = points[lastI];
-			Point2D thisPt = points[i];
-			if (lastPt.equals(thisPt)) continue;
-			int angle = GenMath.figureAngle(thisPt, lastPt) % 1800;
-
-			// now find another line parallel to this one
-			for(int j=i+2; j<points.length; j++)
-			{
-				Point2D oLastPt = points[j-1];
-				Point2D oThisPt = points[j];
-				if (oLastPt.equals(oThisPt)) continue;
-				int oAngle = GenMath.figureAngle(oThisPt, oLastPt) % 1800;
-				if (oAngle == angle)
-				{
-					// parallel lines: find the center line
-					int perpAngle = angle + 900;
-					Point2D oneSide = thisPt;
-					Point2D otherSide = GenMath.intersect(thisPt, perpAngle, oThisPt, oAngle);
-					Point2D centerPt = new Point2D.Double((oneSide.getX()+otherSide.getX()) / 2, (oneSide.getY()+otherSide.getY()) / 2);
-					double width = oneSide.distance(otherSide);
-
-					// now determine range along that centerline
-					Point2D lastPtCL = GenMath.intersect(lastPt, perpAngle, centerPt, angle);
-					Point2D thisPtCL = GenMath.intersect(thisPt, perpAngle, centerPt, angle);
-					Point2D oLastPtCL = GenMath.intersect(oLastPt, perpAngle, centerPt, angle);
-					Point2D oThisPtCL = GenMath.intersect(oThisPt, perpAngle, centerPt, angle);
-
-					// determine extent of these points
-					double minX = Math.min(Math.min(lastPtCL.getX(), thisPtCL.getX()), Math.min(oLastPtCL.getX(), oThisPtCL.getX()));
-					double maxX = Math.max(Math.max(lastPtCL.getX(), thisPtCL.getX()), Math.max(oLastPtCL.getX(), oThisPtCL.getX()));
-					double minY = Math.min(Math.min(lastPtCL.getY(), thisPtCL.getY()), Math.min(oLastPtCL.getY(), oThisPtCL.getY()));
-					double maxY = Math.max(Math.max(lastPtCL.getY(), thisPtCL.getY()), Math.max(oLastPtCL.getY(), oThisPtCL.getY()));
-
-					// determine distance along the line
-					Point2D [] corners = new Point2D[4];
-					corners[0] = new Point2D.Double(minX, minY);
-					corners[1] = new Point2D.Double(minX, maxY);
-					corners[2] = new Point2D.Double(maxX, maxY);
-					corners[3] = new Point2D.Double(maxX, minY);
-
-					// see which lines are at the corners (farthest extents)
-					boolean lastCorner = false, thisCorner = false, oLastCorner = false, oThisCorner = false;
-					Point2D aCorner = null;
-					for(int k=0; k<4; k++)
-					{
-						if (lastPtCL.equals(corners[k])) { aCorner = lastPtCL;   lastCorner = true; }
-						if (thisPtCL.equals(corners[k])) { aCorner = thisPtCL;   thisCorner = true; }
-						if (oLastPtCL.equals(corners[k])) { aCorner = oLastPtCL;   oLastCorner = true; }
-						if (oThisPtCL.equals(corners[k])) { aCorner = oThisPtCL;   oThisCorner = true; }
-					}
-
-					// handle one line encompasing the other
-					if (!lastCorner && !thisCorner)
-					{
-						centerlines.add(new Centerline(width, lastPtCL, thisPtCL));
-						continue;
-					}
-					if (!oLastCorner && !oThisCorner)
-					{
-						centerlines.add(new Centerline(width, oLastPtCL, oThisPtCL));
-						continue;
-					}
-
-					// order them by distance from a corner
-					double lastDist = aCorner.distance(lastPtCL);
-					double thisDist = aCorner.distance(thisPtCL);
-					double oLastDist = aCorner.distance(oLastPtCL);
-					double oThisDist = aCorner.distance(oThisPtCL);
-					if (lastDist > thisDist)
-					{
-						double swap = lastDist;   lastDist = thisDist;   thisDist = swap;
-						Point2D swapPt = lastPtCL;   lastPtCL = thisPtCL;   thisPtCL = swapPt;
-					}
-					if (oLastDist > oThisDist)
-					{
-						double swap = oLastDist;   oLastDist = oThisDist;   oThisDist = swap;
-						Point2D swapPt = oLastPtCL;   oLastPtCL = oThisPtCL;   oThisPtCL = swapPt;
-					}
-
-					// ignore if disjoint
-					if (thisDist <= oLastDist || oThisDist <= lastDist) continue;
-
-					Point2D start = lastPtCL;
-					if (oLastDist > lastDist) start = oLastPtCL;
-					Point2D end = thisPtCL;
-					if (oThisDist < thisDist) end = oThisPtCL;
-					centerlines.add(new Centerline(width, start, end));
-				}
-			}
-		}
-
-		// sort the parallel wires by width
-		Collections.sort(centerlines, new ParallelWiresByWidth());
-//System.out.print("For layer "+layer.getName()+", centerline widths are");
-//for(Iterator it = centerlines.iterator(); it.hasNext(); )
-//{
-//	Centerline cl = (Centerline)it.next();
-//	System.out.print(" "+cl.width);
-//}
-//System.out.println();
-	
-		// now pull out the relevant ones
-		List validCenterlines = new ArrayList();
-		merge.deleteLayer(tempLayer1);
-		merge.addPolygon(tempLayer1, poly);
-		double lastWidth = -1;
-		for(Iterator it = centerlines.iterator(); it.hasNext(); )
-		{
-			Centerline cl = (Centerline)it.next();
-			if (cl.width < ap.getDefaultWidth()) continue;
-			double length = cl.start.distance(cl.end);
-			if (length < cl.width) continue;
-
-			// see if this centerline actually covers new area
-			Poly clPoly = Poly.makeEndPointPoly(length, cl.width, GenMath.figureAngle(cl.start, cl.end),
-				cl.start, 0, cl.end, 0);
-			boolean intersects = merge.intersects(tempLayer1, clPoly);
-			if (!intersects) continue;
-			validCenterlines.add(cl);
-			merge.subPolygon(tempLayer1, clPoly);
-		}
-		merge.deleteLayer(tempLayer1);
-//System.out.println("  And valid centerlines are:");
-//for(Iterator it = validCenterlines.iterator(); it.hasNext(); )
-//{
-//	Centerline cl = (Centerline)it.next();
-//	System.out.println("    "+cl.width+" from ("+cl.start.getX()+","+cl.start.getY()+") to ("+cl.end.getX()+","+cl.end.getY()+")");
-//}
-
-		// now combine colinear centerlines
-		int numCenterlines = validCenterlines.size();
-		Centerline [] lines = new Centerline[numCenterlines];
-		for(int i=0; i<numCenterlines; i++)
-			lines[i] = (Centerline)validCenterlines.get(i);
-		for(int i=0; i<numCenterlines; i++)
-		{
-			Centerline cl = lines[i];
-			for(int j=i+1; j<numCenterlines; j++)
-			{
-				Centerline oCl = lines[j];
-				if (isColinear(cl, oCl))
-				{
-					// delete the second line
-					for(int k=j; k<numCenterlines-1; k++)
-						lines[k] = lines[k+1];
-					numCenterlines--;
-					j--;
-				}
-			}
-		}
-
-		// now extend centerlines so they meet
-		for(int i=0; i<numCenterlines; i++)
-		{
-			Centerline cl = lines[i];
-			for(int j=i+1; j<numCenterlines; j++)
-			{
-				Centerline oCl = lines[j];
-				double maxDist = (cl.width + oCl.width) / 2;
-				if (cl.start.distance(oCl.start) <= maxDist || cl.start.distance(oCl.end) <= maxDist ||
-					cl.end.distance(oCl.start) <= maxDist || cl.end.distance(oCl.end) <= maxDist)
-				{
-					// endpoints are near: see if they can be extended
-					Point2D intersect = GenMath.intersect(cl.start, GenMath.figureAngle(cl.start, cl.end), oCl.start, GenMath.figureAngle(oCl.start, oCl.end));
-					if (intersect == null) continue;
-					Point2D newStart = cl.start, newEnd = cl.end;
-					double extendStart = 0, extendEnd = 0;
-					if (intersect.distance(newStart) < intersect.distance(newEnd))
-					{
-						newStart = intersect;
-						extendStart = cl.width / 2;
-					} else
-					{
-						newEnd = intersect;
-						extendEnd = cl.width / 2;
-					}
-					Poly extended = Poly.makeEndPointPoly(newStart.distance(newEnd), cl.width, GenMath.figureAngle(newStart, newEnd),
-						newStart, extendStart, newEnd, extendEnd);
-					if (originalMerge.contains(layer, extended))
-					{
-						cl.start = newStart;
-						cl.end = newEnd;
-						if (extendStart != 0) cl.startHub = true;
-						if (extendEnd != 0) cl.endHub = true;
-					}
-
-					newStart = oCl.start;
-					newEnd = oCl.end;
-					extendStart = extendEnd = 0;
-					if (intersect.distance(newStart) < intersect.distance(newEnd))
-					{
-						newStart = intersect;
-						extendStart = oCl.width / 2;
-					} else
-					{
-						newEnd = intersect;
-						extendEnd = oCl.width / 2;
-					}
-					extended = Poly.makeEndPointPoly(newStart.distance(newEnd), oCl.width, GenMath.figureAngle(newStart, newEnd),
-						newStart, extendStart, newEnd, extendEnd);
-					if (originalMerge.contains(layer, extended))
-					{
-						oCl.start = newStart;
-						oCl.end = newEnd;
-						if (extendStart != 0) oCl.startHub = true;
-						if (extendEnd != 0) oCl.endHub = true;
-					}
-				}					
-			}
-		}
-
-		// make a list of the final results
-		List finalCenterlines = new ArrayList();
-		for(int i=0; i<numCenterlines; i++)
-			finalCenterlines.add(lines[i]);
-		return finalCenterlines;
-	}
-
-	private static class ParallelWiresByWidth implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			Centerline cl1 = (Centerline)o1;
-			Centerline cl2 = (Centerline)o2;
-			double cll1 = cl1.start.distance(cl1.end);
-			double cll2 = cl2.start.distance(cl2.end);
-			if (cl1.width < cl2.width) return -1;
-			if (cl1.width > cl2.width) return 1;
-			double cla1 = cl1.width * cll1;
-			double cla2 = cl2.width * cll2;
-			if (cla1 > cla2) return -1;
-			if (cla1 < cla2) return 1;
-			return 0;
-		}
-	}
-
-	/**
-	 * Method to determine whether two Centerline objects are colinear.
-	 * @param cl the first Centerline object.
-	 * @param oCl the second Centerline object.
-	 * @return true if they are colinear.  Also modifies the first one (c1) to contain the overall line.
-	 */
-	private boolean isColinear(Centerline cl, Centerline oCl)
-	{
-		// get information about the other line
-		double fx = cl.start.getX();
-		double fy = cl.start.getY();
-		double tx = cl.end.getX();
-		double ty = cl.end.getY();
-		double oFx = oCl.start.getX();
-		double oFy = oCl.start.getY();
-		double oTx = oCl.end.getX();
-		double oTy = oCl.end.getY();
-		if (oFx == oTx && oFy == oTy) return false;
-
-		// see if they are colinear
-		double lowX = Math.min(fx, tx);
-		double highX = Math.max(fx, tx);
-		double lowY = Math.min(fy, ty);
-		double highY = Math.max(fy, ty);
-		if (fx == tx)
-		{
-			// vertical line
-			double oLow = Math.min(oFy, oTy);
-			double oHigh = Math.max(oFy, oTy);
-			if (oFx != fx || oTx != fx) return false;
-			if (lowY > oHigh || highY < oLow) return false;
-			cl.start.setLocation(tx, Math.min(lowY, oLow));
-			cl.end.setLocation(tx, Math.max(highY, oHigh));
-			return true;
-		}
-		if (fy == ty)
-		{
-			// horizontal line
-			double oLow = Math.min(oFx, oTx);
-			double oHigh = Math.max(oFx, oTx);
-			if (oFy != fy || oTy != fy) return false;
-			if (lowX > oHigh || highX < oLow) return false;
-			cl.start.setLocation(Math.min(lowX, oLow), ty);
-			cl.end.setLocation(Math.max(highX, oHigh), ty);
-			return true;
-		}
-
-		// general case
-		int ang = GenMath.figureAngle(new Point2D.Double(fx, fy), new Point2D.Double(tx, ty));
-		int oAng = GenMath.figureAngle(new Point2D.Double(oFx, oFy), new Point2D.Double(oTx, oTy));
-		if (ang != oAng && Math.min(ang, oAng) + 1800 != Math.max(ang, oAng)) return false;
-		if ((oFx-fx) * (ty-fy) / (tx-fx) != oFy-fy) return false;
-		if ((oTx-fx) * (ty-fy) / (tx-fx) != oTy-fy) return false;
-		double oLow = Math.min(oFy, oTy);
-		double oHigh = Math.max(oFy, oTy);
-		if (lowY >= oHigh || highY <= oLow) return false;
-		oLow = Math.min(oFx, oTx);
-		oHigh = Math.max(oFx, oTx);
-		if (lowX >= oHigh || highX <= oLow) return false;
-
-		// find the extreme points
-		Point2D [] points = new Point2D[4];
-		points[0] = cl.start;
-		points[1] = cl.end;
-		points[2] = oCl.start;
-		points[3] = oCl.end;
-		double bestDist = 0;
-		int bestEnd = -1;
-		for(int i=1; i<3; i++)
-		{
-			double dist = points[0].distance(points[i]);
-			if (dist > bestDist)
-			{
-				bestDist = dist;
-				bestEnd = i;
-			}
-		}
-		if (bestEnd < 0) return false;
-		bestDist = 0;
-		int bestOtherEnd = -1;
-		for(int i=0; i<4; i++)
-		{
-			if (i == bestEnd) continue;
-			double dist = points[bestEnd].distance(points[i]);
-			if (dist > bestDist)
-			{
-				bestDist = dist;
-				bestOtherEnd = i;
-			}
-		}
-		double newEndAX = points[bestEnd].getX();
-		double newEndAY = points[bestEnd].getY();
-		double newEndBX = points[bestOtherEnd].getX();
-		double newEndBY = points[bestOtherEnd].getY();
-
-		cl.start.setLocation(newEndAX, newEndAY);
-		cl.end.setLocation(newEndBX, newEndBY);
-		return true;
-	}
-
 	/********************************************** VIA/CONTACT EXTRACTION **********************************************/
 
 	private static class PossibleVia
@@ -1118,7 +766,7 @@ public class Connectivity
 						}
 						if (gotMinimum)
 						{
-							realizeNode(pNp, centerX, centerY, desiredWidth, desiredHeight, 0, merge, newCell);
+							realizeNode(pNp, centerX, centerY, desiredWidth, desiredHeight, 0, null, merge, newCell);
 //System.out.println("  Is part of "+pNp.getName()+" contact which is "+desiredWidth+"x"+desiredHeight+" at ("+centerX+","+centerY+")");
 							// remove other cuts in this area
 							for(int o=1; o<polyList.size(); o++)
@@ -1390,12 +1038,129 @@ public class Connectivity
 				SizeOffset so = transistor.getProtoSizeOffset();
 				double width = wid + so.getLowXOffset() + so.getHighXOffset();
 				double height = hei + so.getLowYOffset() + so.getHighYOffset();
-				realizeNode(transistor, poly.getCenterX(), poly.getCenterY(), width, height, angle, merge, newCell);
+				realizeNode(transistor, poly.getCenterX(), poly.getCenterY(), width, height, angle, null, merge, newCell);
+			} else
+			{
+				// complex polygon: extract angled or serpentine transistor
+				extractNonManhattanTransistor(poly, transistor, merge, originalMerge, newCell);
 			}
 		}
 		originalMerge.deleteLayer(tempLayer1);
 	}
 
+	/**
+	 * Method to extract a transistor from a nonmanhattan polygon that defines the intersection of poly and active.
+	 * @param poly the outline of poly/active to extract.
+	 * @param transistor the type of transistor to create.
+	 * @param merge the geometry collection to adjust when a transistor is extracted.
+	 * @param originalMerge the original geometry collection (for examination).
+	 * @param newCell the cell in which to create the extracted transistor
+	 */
+	private void extractNonManhattanTransistor(PolyBase poly, PrimitiveNode transistor, PolyMerge merge, PolyMerge originalMerge, Cell newCell)
+	{
+		// determine minimum width of polysilicon
+		SizeOffset so = transistor.getProtoSizeOffset();
+		double minWidth = transistor.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
+
+		// reduce the geometry to a skeleton of centerlines
+		List lines = findCenterlines(poly, tempLayer1, minWidth, merge, originalMerge);
+		if (lines.size() == 0) return;
+
+		// if just one line, it is simply an angled transistor
+		if (lines.size() == 1)
+		{
+			Centerline cl = (Centerline)lines.get(0);
+			int angle = GenMath.figureAngle(cl.start, cl.end);
+			double polySize = cl.start.distance(cl.end);
+			double activeSize = cl.width;
+			double cX = (cl.start.getX() + cl.end.getX()) / 2;
+			double cY = (cl.start.getY() + cl.end.getY()) / 2;
+			double sX = polySize + so.getLowXOffset() + so.getHighXOffset();
+			double sY = activeSize + so.getLowYOffset() + so.getHighYOffset();
+			realizeNode(transistor, cX, cY, sX, sY, angle, null, merge, newCell);
+			return;
+		}
+
+		// serpentine transistor: organize the lines into an array of points
+		Point2D [] points = new Point2D[lines.size()+1];
+		for(Iterator it = lines.iterator(); it.hasNext(); )
+		{
+			Centerline cl = (Centerline)it.next();
+			cl.handled = false;
+		}
+		Centerline firstCL = (Centerline)lines.get(0);
+		firstCL.handled = true;
+		points[0] = firstCL.start;
+		points[1] = firstCL.end;
+		int pointsSeen = 2;
+		while (pointsSeen < points.length)
+		{
+			boolean added = false;
+			for(Iterator it = lines.iterator(); it.hasNext(); )
+			{
+				Centerline cl = (Centerline)it.next();
+				if (cl.handled) continue;
+				if (cl.start.equals(points[0]))
+				{
+					// insert "end" point at start
+					for(int i=pointsSeen; i>0; i--)
+						points[i] = points[i-1];
+					points[0] = cl.end;
+					pointsSeen++;
+					cl.handled = true;
+					added = true;
+					break;
+				}
+				if (cl.end.equals(points[0]))
+				{
+					// insert "start" point at start
+					for(int i=pointsSeen; i>0; i--)
+						points[i] = points[i-1];
+					points[0] = cl.start;
+					pointsSeen++;
+					cl.handled = true;
+					added = true;
+					break;
+				}
+				if (cl.start.equals(points[pointsSeen-1]))
+				{
+					// add "end" at the end
+					points[pointsSeen++] = cl.end;
+					cl.handled = true;
+					added = true;
+					break;
+				}
+				if (cl.end.equals(points[pointsSeen-1]))
+				{
+					// add "start" at the end
+					points[pointsSeen++] = cl.start;
+					cl.handled = true;
+					added = true;
+					break;
+				}
+			}
+			if (!added) break;
+		}
+
+		// make sure all points are handled
+		if (pointsSeen != points.length) return;
+
+		// compute information about the transistor and create it
+		double lX = points[0].getX(), hX = points[0].getX();
+		double lY = points[0].getY(), hY = points[0].getY();
+		for(int i=1; i<points.length; i++)
+		{
+			if (points[i].getX() < lX) lX = points[i].getX();
+			if (points[i].getX() > hX) hX = points[i].getX();
+			if (points[i].getY() < lY) lY = points[i].getY();
+			if (points[i].getY() > hY) hY = points[i].getY();
+		}
+		double cX = (lX + hX) / 2;
+		double cY = (lY + hY) / 2;
+		for(int i=0; i<points.length; i++)
+			points[i].setLocation(points[i].getX() - cX, points[i].getY() - cY);
+		realizeNode(transistor, cX, cY, hX - lX, hY - lY, 0, points, merge, newCell);
+	}
 	/********************************************** CONVERT CONNECTING GEOMETRY **********************************************/
 
 	/**
@@ -1725,6 +1490,358 @@ public class Connectivity
 	/********************************************** MISCELLANEOUS EXTRACTION HELPERS **********************************************/
 
 	/**
+	 * Method to find a list of centerlines that skeletonize a polygon.
+	 * @param poly the Poly to skeletonize.
+	 * @param layer the layer on which the polygon resides.
+	 * @param ap the ArcProto to use when realizing the polygon.
+	 * @return a List of Centerline objects that describe a single "bone" of the skeleton.
+	 */
+	private List findCenterlines(PolyBase poly, Layer layer, double minWidth, PolyMerge merge, PolyMerge originalMerge)
+	{
+		// first make a list of all parallel wires in the polygon
+		List centerlines = new ArrayList();
+		Point2D [] points = poly.getPoints();
+		for(int i=0; i<points.length; i++)
+		{
+			int lastI = i-1;
+			if (lastI < 0) lastI = points.length-1;
+			Point2D lastPt = points[lastI];
+			Point2D thisPt = points[i];
+			if (lastPt.equals(thisPt)) continue;
+			int angle = GenMath.figureAngle(thisPt, lastPt) % 1800;
+
+			// now find another line parallel to this one
+			for(int j=i+2; j<points.length; j++)
+			{
+				Point2D oLastPt = points[j-1];
+				Point2D oThisPt = points[j];
+				if (oLastPt.equals(oThisPt)) continue;
+				int oAngle = GenMath.figureAngle(oThisPt, oLastPt) % 1800;
+				if (oAngle == angle)
+				{
+					// parallel lines: find the center line
+					int perpAngle = angle + 900;
+					Point2D oneSide = thisPt;
+					Point2D otherSide = GenMath.intersect(thisPt, perpAngle, oThisPt, oAngle);
+					Point2D centerPt = new Point2D.Double((oneSide.getX()+otherSide.getX()) / 2, (oneSide.getY()+otherSide.getY()) / 2);
+					double width = oneSide.distance(otherSide);
+
+					// now determine range along that centerline
+					Point2D lastPtCL = GenMath.intersect(lastPt, perpAngle, centerPt, angle);
+					Point2D thisPtCL = GenMath.intersect(thisPt, perpAngle, centerPt, angle);
+					Point2D oLastPtCL = GenMath.intersect(oLastPt, perpAngle, centerPt, angle);
+					Point2D oThisPtCL = GenMath.intersect(oThisPt, perpAngle, centerPt, angle);
+
+					// determine extent of these points
+					double minX = Math.min(Math.min(lastPtCL.getX(), thisPtCL.getX()), Math.min(oLastPtCL.getX(), oThisPtCL.getX()));
+					double maxX = Math.max(Math.max(lastPtCL.getX(), thisPtCL.getX()), Math.max(oLastPtCL.getX(), oThisPtCL.getX()));
+					double minY = Math.min(Math.min(lastPtCL.getY(), thisPtCL.getY()), Math.min(oLastPtCL.getY(), oThisPtCL.getY()));
+					double maxY = Math.max(Math.max(lastPtCL.getY(), thisPtCL.getY()), Math.max(oLastPtCL.getY(), oThisPtCL.getY()));
+
+					// determine distance along the line
+					Point2D [] corners = new Point2D[4];
+					corners[0] = new Point2D.Double(minX, minY);
+					corners[1] = new Point2D.Double(minX, maxY);
+					corners[2] = new Point2D.Double(maxX, maxY);
+					corners[3] = new Point2D.Double(maxX, minY);
+
+					// see which lines are at the corners (farthest extents)
+					boolean lastCorner = false, thisCorner = false, oLastCorner = false, oThisCorner = false;
+					Point2D aCorner = null;
+					for(int k=0; k<4; k++)
+					{
+						if (lastPtCL.equals(corners[k])) { aCorner = lastPtCL;   lastCorner = true; }
+						if (thisPtCL.equals(corners[k])) { aCorner = thisPtCL;   thisCorner = true; }
+						if (oLastPtCL.equals(corners[k])) { aCorner = oLastPtCL;   oLastCorner = true; }
+						if (oThisPtCL.equals(corners[k])) { aCorner = oThisPtCL;   oThisCorner = true; }
+					}
+
+					// handle one line encompasing the other
+					if (!lastCorner && !thisCorner)
+					{
+						centerlines.add(new Centerline(width, lastPtCL, thisPtCL));
+						continue;
+					}
+					if (!oLastCorner && !oThisCorner)
+					{
+						centerlines.add(new Centerline(width, oLastPtCL, oThisPtCL));
+						continue;
+					}
+
+					// order them by distance from a corner
+					double lastDist = aCorner.distance(lastPtCL);
+					double thisDist = aCorner.distance(thisPtCL);
+					double oLastDist = aCorner.distance(oLastPtCL);
+					double oThisDist = aCorner.distance(oThisPtCL);
+					if (lastDist > thisDist)
+					{
+						double swap = lastDist;   lastDist = thisDist;   thisDist = swap;
+						Point2D swapPt = lastPtCL;   lastPtCL = thisPtCL;   thisPtCL = swapPt;
+					}
+					if (oLastDist > oThisDist)
+					{
+						double swap = oLastDist;   oLastDist = oThisDist;   oThisDist = swap;
+						Point2D swapPt = oLastPtCL;   oLastPtCL = oThisPtCL;   oThisPtCL = swapPt;
+					}
+
+					// ignore if disjoint
+					if (thisDist <= oLastDist || oThisDist <= lastDist) continue;
+
+					Point2D start = lastPtCL;
+					if (oLastDist > lastDist) start = oLastPtCL;
+					Point2D end = thisPtCL;
+					if (oThisDist < thisDist) end = oThisPtCL;
+					centerlines.add(new Centerline(width, start, end));
+				}
+			}
+		}
+
+		// sort the parallel wires by width
+		Collections.sort(centerlines, new ParallelWiresByWidth());
+//System.out.print("For layer "+layer.getName()+", centerline widths are");
+//for(Iterator it = centerlines.iterator(); it.hasNext(); )
+//{
+//	Centerline cl = (Centerline)it.next();
+//	System.out.print(" "+cl.width);
+//}
+//System.out.println();
+	
+		// now pull out the relevant ones
+		List validCenterlines = new ArrayList();
+		merge.deleteLayer(tempLayer1);
+		merge.addPolygon(tempLayer1, poly);
+		double lastWidth = -1;
+		for(Iterator it = centerlines.iterator(); it.hasNext(); )
+		{
+			Centerline cl = (Centerline)it.next();
+			if (cl.width < minWidth) continue;
+			double length = cl.start.distance(cl.end);
+			if (length < cl.width) continue;
+
+			// see if this centerline actually covers new area
+			Poly clPoly = Poly.makeEndPointPoly(length, cl.width, GenMath.figureAngle(cl.start, cl.end),
+				cl.start, 0, cl.end, 0);
+			boolean intersects = merge.intersects(tempLayer1, clPoly);
+			if (!intersects) continue;
+			validCenterlines.add(cl);
+			merge.subPolygon(tempLayer1, clPoly);
+		}
+		merge.deleteLayer(tempLayer1);
+//System.out.println("  And valid centerlines are:");
+//for(Iterator it = validCenterlines.iterator(); it.hasNext(); )
+//{
+//	Centerline cl = (Centerline)it.next();
+//	System.out.println("    "+cl.width+" from ("+cl.start.getX()+","+cl.start.getY()+") to ("+cl.end.getX()+","+cl.end.getY()+")");
+//}
+
+		// now combine colinear centerlines
+		int numCenterlines = validCenterlines.size();
+		Centerline [] lines = new Centerline[numCenterlines];
+		for(int i=0; i<numCenterlines; i++)
+			lines[i] = (Centerline)validCenterlines.get(i);
+		for(int i=0; i<numCenterlines; i++)
+		{
+			Centerline cl = lines[i];
+			for(int j=i+1; j<numCenterlines; j++)
+			{
+				Centerline oCl = lines[j];
+				if (isColinear(cl, oCl))
+				{
+					// delete the second line
+					for(int k=j; k<numCenterlines-1; k++)
+						lines[k] = lines[k+1];
+					numCenterlines--;
+					j--;
+				}
+			}
+		}
+
+		// now extend centerlines so they meet
+		for(int i=0; i<numCenterlines; i++)
+		{
+			Centerline cl = lines[i];
+			for(int j=i+1; j<numCenterlines; j++)
+			{
+				Centerline oCl = lines[j];
+				double maxDist = (cl.width + oCl.width) / 2;
+				if (cl.start.distance(oCl.start) <= maxDist || cl.start.distance(oCl.end) <= maxDist ||
+					cl.end.distance(oCl.start) <= maxDist || cl.end.distance(oCl.end) <= maxDist)
+				{
+					// endpoints are near: see if they can be extended
+					Point2D intersect = GenMath.intersect(cl.start, GenMath.figureAngle(cl.start, cl.end), oCl.start, GenMath.figureAngle(oCl.start, oCl.end));
+					if (intersect == null) continue;
+					Point2D newStart = cl.start, newEnd = cl.end;
+					double extendStart = 0, extendEnd = 0;
+					if (intersect.distance(newStart) < intersect.distance(newEnd))
+					{
+						newStart = intersect;
+						extendStart = cl.width / 2;
+					} else
+					{
+						newEnd = intersect;
+						extendEnd = cl.width / 2;
+					}
+					Poly extended = Poly.makeEndPointPoly(newStart.distance(newEnd), cl.width, GenMath.figureAngle(newStart, newEnd),
+						newStart, extendStart, newEnd, extendEnd);
+					if (originalMerge.contains(layer, extended))
+					{
+						cl.start = newStart;
+						cl.end = newEnd;
+						if (extendStart != 0) cl.startHub = true;
+						if (extendEnd != 0) cl.endHub = true;
+					}
+
+					newStart = oCl.start;
+					newEnd = oCl.end;
+					extendStart = extendEnd = 0;
+					if (intersect.distance(newStart) < intersect.distance(newEnd))
+					{
+						newStart = intersect;
+						extendStart = oCl.width / 2;
+					} else
+					{
+						newEnd = intersect;
+						extendEnd = oCl.width / 2;
+					}
+					extended = Poly.makeEndPointPoly(newStart.distance(newEnd), oCl.width, GenMath.figureAngle(newStart, newEnd),
+						newStart, extendStart, newEnd, extendEnd);
+					if (originalMerge.contains(layer, extended))
+					{
+						oCl.start = newStart;
+						oCl.end = newEnd;
+						if (extendStart != 0) oCl.startHub = true;
+						if (extendEnd != 0) oCl.endHub = true;
+					}
+				}					
+			}
+		}
+
+		// make a list of the final results
+		List finalCenterlines = new ArrayList();
+		for(int i=0; i<numCenterlines; i++)
+			finalCenterlines.add(lines[i]);
+		return finalCenterlines;
+	}
+
+	private static class ParallelWiresByWidth implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Centerline cl1 = (Centerline)o1;
+			Centerline cl2 = (Centerline)o2;
+			double cll1 = cl1.start.distance(cl1.end);
+			double cll2 = cl2.start.distance(cl2.end);
+			if (cl1.width < cl2.width) return -1;
+			if (cl1.width > cl2.width) return 1;
+			double cla1 = cl1.width * cll1;
+			double cla2 = cl2.width * cll2;
+			if (cla1 > cla2) return -1;
+			if (cla1 < cla2) return 1;
+			return 0;
+		}
+	}
+
+	/**
+	 * Method to determine whether two Centerline objects are colinear.
+	 * @param cl the first Centerline object.
+	 * @param oCl the second Centerline object.
+	 * @return true if they are colinear.  Also modifies the first one (c1) to contain the overall line.
+	 */
+	private boolean isColinear(Centerline cl, Centerline oCl)
+	{
+		// get information about the other line
+		double fx = cl.start.getX();
+		double fy = cl.start.getY();
+		double tx = cl.end.getX();
+		double ty = cl.end.getY();
+		double oFx = oCl.start.getX();
+		double oFy = oCl.start.getY();
+		double oTx = oCl.end.getX();
+		double oTy = oCl.end.getY();
+		if (oFx == oTx && oFy == oTy) return false;
+
+		// see if they are colinear
+		double lowX = Math.min(fx, tx);
+		double highX = Math.max(fx, tx);
+		double lowY = Math.min(fy, ty);
+		double highY = Math.max(fy, ty);
+		if (fx == tx)
+		{
+			// vertical line
+			double oLow = Math.min(oFy, oTy);
+			double oHigh = Math.max(oFy, oTy);
+			if (oFx != fx || oTx != fx) return false;
+			if (lowY > oHigh || highY < oLow) return false;
+			cl.start.setLocation(tx, Math.min(lowY, oLow));
+			cl.end.setLocation(tx, Math.max(highY, oHigh));
+			return true;
+		}
+		if (fy == ty)
+		{
+			// horizontal line
+			double oLow = Math.min(oFx, oTx);
+			double oHigh = Math.max(oFx, oTx);
+			if (oFy != fy || oTy != fy) return false;
+			if (lowX > oHigh || highX < oLow) return false;
+			cl.start.setLocation(Math.min(lowX, oLow), ty);
+			cl.end.setLocation(Math.max(highX, oHigh), ty);
+			return true;
+		}
+
+		// general case
+		int ang = GenMath.figureAngle(new Point2D.Double(fx, fy), new Point2D.Double(tx, ty));
+		int oAng = GenMath.figureAngle(new Point2D.Double(oFx, oFy), new Point2D.Double(oTx, oTy));
+		if (ang != oAng && Math.min(ang, oAng) + 1800 != Math.max(ang, oAng)) return false;
+		if ((oFx-fx) * (ty-fy) / (tx-fx) != oFy-fy) return false;
+		if ((oTx-fx) * (ty-fy) / (tx-fx) != oTy-fy) return false;
+		double oLow = Math.min(oFy, oTy);
+		double oHigh = Math.max(oFy, oTy);
+		if (lowY >= oHigh || highY <= oLow) return false;
+		oLow = Math.min(oFx, oTx);
+		oHigh = Math.max(oFx, oTx);
+		if (lowX >= oHigh || highX <= oLow) return false;
+
+		// find the extreme points
+		Point2D [] points = new Point2D[4];
+		points[0] = cl.start;
+		points[1] = cl.end;
+		points[2] = oCl.start;
+		points[3] = oCl.end;
+		double bestDist = 0;
+		int bestEnd = -1;
+		for(int i=1; i<3; i++)
+		{
+			double dist = points[0].distance(points[i]);
+			if (dist > bestDist)
+			{
+				bestDist = dist;
+				bestEnd = i;
+			}
+		}
+		if (bestEnd < 0) return false;
+		bestDist = 0;
+		int bestOtherEnd = -1;
+		for(int i=0; i<4; i++)
+		{
+			if (i == bestEnd) continue;
+			double dist = points[bestEnd].distance(points[i]);
+			if (dist > bestDist)
+			{
+				bestDist = dist;
+				bestOtherEnd = i;
+			}
+		}
+		double newEndAX = points[bestEnd].getX();
+		double newEndAY = points[bestEnd].getY();
+		double newEndBX = points[bestOtherEnd].getX();
+		double newEndBY = points[bestOtherEnd].getY();
+
+		cl.start.setLocation(newEndAX, newEndAY);
+		cl.end.setLocation(newEndBX, newEndBY);
+		return true;
+	}
+
+	/**
 	 * Method to scan the geometric information and convert it all to pure layer nodes in the new cell.
 	 * When all other extractions are done, this is done to preserve any geometry that is unaccounted-for.
 	 */
@@ -1809,11 +1926,16 @@ public class Connectivity
 	 * @param centerY the new node's Y location.
 	 * @param width the new node's width.
 	 * @param height the new node's height.
+	 * @param angle the rotation of the new node.
+	 * @param points an array of Point2D objects that define the new node's outline (null if there is no outline).
+	 * @param merge the geometry collection.  The new node will be removed from the merge.
+	 * @param newCell the cell in which to create the new node.
 	 */
-	private void realizeNode(PrimitiveNode pNp, double centerX, double centerY, double width, double height, int angle, PolyMerge merge, Cell newCell)
+	private void realizeNode(PrimitiveNode pNp, double centerX, double centerY, double width, double height, int angle, Point2D [] points, PolyMerge merge, Cell newCell)
 	{
 		NodeInst ni = NodeInst.makeInstance(pNp, new Point2D.Double(centerX, centerY), width, height, newCell, angle, null, 0);
 		if (ni == null) return;
+		if (points != null) ni.newVar(NodeInst.TRACE, points);
 
 		// now remove the generated layers from the Merge
 		AffineTransform trans = ni.rotateOut();

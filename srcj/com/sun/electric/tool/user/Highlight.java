@@ -387,6 +387,7 @@ public class Highlight
             if (!cell.isLinked()) return false;
 
         if (type == Type.EOBJ) {
+        	if (eobj instanceof PortInst) return ((PortInst)eobj).getNodeInst().isLinked();
             return eobj.isLinked();
         }
         if (type == Type.BBOX || type == Type.LINE || type == Type.MESSAGE ||

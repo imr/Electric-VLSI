@@ -2572,8 +2572,6 @@ public class ELIB extends LibraryFiles
 				{
 					System.out.println("Cannot figure out the type for code "+(newtype&ELIBConstants.VTYPE));
 		            if (Library.FONT_ASSOCIATIONS == varKeys.getKey(key)) newtype = ELIBConstants.VSTRING;
-//					System.out.println("Variable is "+varKeys.getKey(key).getName());
-//					System.out.println("Library is "+lib.getName()+" Version is "+version);
 				}
 				newAddr = newAddrArray;
 				if ((newtype&ELIBConstants.VTYPE) == ELIBConstants.VGENERAL)
