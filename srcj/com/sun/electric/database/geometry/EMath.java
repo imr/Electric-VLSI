@@ -529,15 +529,23 @@ public class EMath
 	 */
 	public static boolean doublesClose(double a, double b)
 	{
-		if (a == 0 || b == 0)
+		if (b != 0)
 		{
-			if (Math.abs(a-b) < 0.001) return true;
-		} else
-		{
-			double ratio = a / b;
-			if (ratio < 1.01 && ratio > 0.99) return true;
+			 double ratio = a / b;
+			 if (ratio < 1.00001 && ratio > 0.99999) return true;
 		}
+		if (Math.abs(a-b) < 0.001) return true;
 		return false;
+
+//		if (a == 0 || b == 0)
+//		{
+//			if (Math.abs(a-b) < 0.001) return true;
+//		} else
+//		{
+//			double ratio = a / b;
+//			if (ratio < 1.00001 && ratio > 0.99999) return true;
+//		}
+//		return false;
 	}
 
     /**

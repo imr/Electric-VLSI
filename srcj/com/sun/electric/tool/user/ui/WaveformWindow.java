@@ -1807,27 +1807,52 @@ public class WaveformWindow implements WindowContent, HighlightListener
 		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
 		{
 			Panel wp = (Panel)it.next();
+			boolean redoPanel = false;
 			for(Iterator pIt = wp.waveSignals.values().iterator(); pIt.hasNext(); )
 			{
 				Signal ws = (Signal)pIt.next();
 				Simulate.SimSignal ss = ws.sSig;
+				String oldSigName = "";
+				if (ss.getSignalContext() != null) oldSigName = ss.getSignalContext();
+				oldSigName += ss.getSignalName();
 				ws.sSig = null;
 				for(Iterator sIt = sd.getSignals().iterator(); sIt.hasNext(); )
 				{
 					Simulate.SimSignal newSs = (Simulate.SimSignal)sIt.next();
-					if (newSs.getSignalContext().equals(ss.getSignalContext()) &&
-						newSs.getSignalName().equals(ss.getSignalName()))
-					{
-						ws.sSig = newSs;
-						break;
-					}
+					String newSigName = "";
+					if (newSs.getSignalContext() != null) newSigName = newSs.getSignalContext();
+					newSigName += newSs.getSignalName();
+					if (!newSigName.equals(oldSigName)) continue;
+					newSs.setSignalColor(ss.getSignalColor());
+					ws.sSig = newSs;
+					break;
 				}
 				if (ws.sSig == null)
 				{
-					System.out.println("Could not find signal " + ss.getSignalContext() + ss.getSignalName() + " in the new data");
+					System.out.println("Could not find signal " + oldSigName + " in the new data");
+					redoPanel = true;
 				}
 			}
+			while (redoPanel)
+			{
+				redoPanel = false;
+				for(Iterator pIt = wp.waveSignals.values().iterator(); pIt.hasNext(); )
+				{
+					Signal ws = (Signal)pIt.next();
+					if (ws.sSig == null)
+					{
+						redoPanel = true;
+						wp.signalButtons.remove(ws.sigButton);
+						wp.waveSignals.remove(ws.sigButton);
+						break;
+					}
+				}		
+			}
+			wp.signalButtons.validate();
+			wp.signalButtons.repaint();
+			wp.repaint();
 		}
+		getSignalsForExplorer();
 		System.out.println("Simulation data refreshed from disk");
 	}
 
@@ -1888,6 +1913,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 
 	private DefaultMutableTreeNode getSignalsForExplorer()
 	{
+System.out.println("Loading signal explorer tree");
 		DefaultMutableTreeNode signalsExplorerTree = new DefaultMutableTreeNode("SIGNALS");
 		HashMap contextMap = new HashMap();
 		contextMap.put("", signalsExplorerTree);
@@ -2555,7 +2581,6 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			wp.finished();
 		}
 	}
-
 
 	public void fullRepaint() { repaint(); }
 

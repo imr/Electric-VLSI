@@ -1407,11 +1407,14 @@ public class Technology extends ElectricObject
 		{
 			Technology.NodeLayer primLayer = primLayers[numBasicLayers];
 			Poly.Type style = primLayer.getStyle();
+			PortProto port = null;
+			if (electrical) port = np.getPort(0);
 			for(int i = 0; i < numExtraLayers; i++)
 			{
 				polys[fillPoly] = mcd.fillCutPoly(ni, i);
 				polys[fillPoly].setStyle(style);
 				polys[fillPoly].setLayer(primLayer.getLayer());
+				polys[fillPoly].setPort(port);
 				fillPoly++;
 			}
 		}

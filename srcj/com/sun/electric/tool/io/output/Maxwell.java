@@ -146,8 +146,15 @@ public class Maxwell extends Output
 			layerList = new ArrayList();
 			maxNetMap.put(index, layerList);
 		}
-		printWriter.print("Box pos3 " + box.getMinX() + " " + box.getMinY() + " " + layer.getName() + "-Bot   " +
-			box.getWidth() + " " + box.getHeight() + " " + layer.getName() + "-Hei \"Box-" + boxNumber + "\"\n");
+
+		// convert to microns
+		double scale = layer.getTechnology().getScale();
+		double lX = box.getMinX() * scale / 1000;
+		double lY = box.getMinY() * scale / 1000;
+		double wid = box.getWidth() * scale / 1000;
+		double hei = box.getHeight() * scale / 1000;
+		printWriter.print("Box pos3 " + lX + " " + lY + " " + layer.getName() + "-Bot   " +
+			wid + " " + hei + " " + layer.getName() + "-Hei \"Box-" + boxNumber + "\"\n");
 		layerList.add(new Integer(boxNumber));
 		boxNumber++;
 	}

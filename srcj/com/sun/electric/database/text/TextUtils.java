@@ -678,8 +678,8 @@ public class TextUtils
 
 		try
 		{
-			InputStream stream = url.openStream();
-			stream.close();
+			URLConnection con = url.openConnection();
+			if (con.getContentLength() < 0) return false;
 		} catch (IOException e)
 		{
 			if (errorMsg != null)

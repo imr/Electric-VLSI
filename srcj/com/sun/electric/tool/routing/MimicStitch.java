@@ -29,23 +29,24 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WiringListener;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WiringListener;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
+
 import javax.swing.JOptionPane;
 
 /**
@@ -55,9 +56,9 @@ public class MimicStitch
 {
     /** router to use */            static InteractiveRouter router = new SimpleWirer();
 
-	/*
-	 * Entry point for mimic router.  Called each "slice".  If "forced" is true,
-	 * this mimic operation was explicitly requested.
+	/**
+	 * Entry point for mimic router.
+	 * @param forced true if this mimic operation was explicitly requested.
 	 */
 	public static void mimicStitch(boolean forced)
 	{
@@ -174,7 +175,7 @@ public class MimicStitch
 		}
 	}
 
-	/*
+	/**
 	 * Method to mimic the unrouting of an arc that ran from nodes[0]/ports[0] to
 	 * nodes[1]/ports[1] with type "typ".
 	 */
@@ -509,8 +510,9 @@ public class MimicStitch
 //if (ptInPoly)
 //{
 //Rectangle2D btemp = thisPoly.getBounds2D();
-//System.out.println("YES: ("+want1.getX()+","+want1.getY()+" inside of "+opp.getName()+" port at "+btemp.getMinX()+"<=X<="+btemp.getMaxX()+
-//	" and "+btemp.getMinY()+"<=Y<="+btemp.getMaxY());
+//System.out.println("YES: port "+pp.getName()+" of "+ni.describe()+" to port "+opp.getName()+" of node "+oNi.describe());
+//System.out.println("  Because ("+want1.getX()+","+want1.getY()+") is inside of "+btemp.getMinX()+"<=X<="+btemp.getMaxX()+
+//	" and "+btemp.getMinY()+"<=Y<="+btemp.getMaxY()+" which is of type "+thisPoly.getStyle());
 //}
 								if (!ptInPoly) continue;
 
@@ -518,9 +520,9 @@ public class MimicStitch
 								int situation = 0;
 
 								// see if there are already wires going in this direction
-								int desiredangle = -1;
+								int desiredAngle = -1;
 								if (x0 != wantX1 || y0 != wantY1)
-									desiredangle = EMath.figureAngle(xy0, want1);
+									desiredAngle = EMath.figureAngle(xy0, want1);
 								PortInst piNet0 = null;
 								for(Iterator pII = ni.getConnections(); pII.hasNext(); )
 								{
@@ -529,7 +531,7 @@ public class MimicStitch
 									if (pi.getPortProto() != pp) continue;
 									ArcInst oai = con.getArc();
 									piNet0 = pi;
-									if (desiredangle < 0)
+									if (desiredAngle < 0)
 									{
 										if (oai.getHead().getLocation().getX() == oai.getTail().getLocation().getX() &&
 											oai.getHead().getLocation().getY() == oai.getTail().getLocation().getY())
@@ -544,9 +546,9 @@ public class MimicStitch
 												continue;
 										int thisend = 0;
 										if (oai.getTail().getPortInst() == pi) thisend = 1;
-										int existingangle = EMath.figureAngle(oai.getConnection(thisend).getLocation(),
+										int existingAngle = EMath.figureAngle(oai.getConnection(thisend).getLocation(),
 											oai.getConnection(1-thisend).getLocation());
-										if (existingangle == desiredangle)
+										if (existingAngle == desiredAngle)
 										{
 											situation |= LIKELYARCSSAMEDIR;
 											break;
@@ -554,9 +556,9 @@ public class MimicStitch
 									}
 								}
 
-								desiredangle = -1;
+								desiredAngle = -1;
 								if (x0 != wantX1 || y0 != wantY1)
-									desiredangle = EMath.figureAngle(want1, xy0);
+									desiredAngle = EMath.figureAngle(want1, xy0);
 								PortInst piNet1 = null;
 								for(Iterator pII = oNi.getConnections(); pII.hasNext(); )
 								{
@@ -565,7 +567,7 @@ public class MimicStitch
 									if (pi.getPortProto() != opp) continue;
 									ArcInst oai = con.getArc();
 									piNet1 = pi;
-									if (desiredangle < 0)
+									if (desiredAngle < 0)
 									{
 										if (oai.getHead().getLocation().getX() == oai.getTail().getLocation().getX() &&
 											oai.getHead().getLocation().getY() == oai.getTail().getLocation().getY())
@@ -580,9 +582,9 @@ public class MimicStitch
 												continue;
 										int thisend = 0;
 										if (oai.getTail().getPortInst() == pi) thisend = 1;
-										int existingangle = EMath.figureAngle(oai.getConnection(thisend).getLocation(),
+										int existingAngle = EMath.figureAngle(oai.getConnection(thisend).getLocation(),
 											oai.getConnection(1-thisend).getLocation());
-										if (existingangle == desiredangle)
+										if (existingAngle == desiredAngle)
 										{
 											situation |= LIKELYARCSSAMEDIR;
 											break;
@@ -783,6 +785,8 @@ public class MimicStitch
 					if (ifIgnoreOtherSameDir != 0)
 						msg += ", might have added " + ifIgnoreOtherSameDir + " wires if 'cannot have other arcs in the same direction' were off";
 					System.out.println(msg);
+					if (ifIgnorePorts + ifIgnoreArcCount + ifIgnoreNodeType + ifIgnoreNodeSize + ifIgnoreOtherSameDir != 0)
+						System.out.println(" (settings are in the Tools / Routing tab of the Preferences)");
 				}
 			}
 			return count;

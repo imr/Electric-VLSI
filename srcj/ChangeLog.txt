@@ -2,6 +2,8 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (6/30/04, SMR) Maxwell output writes contact cuts, scales to microns.
+
 IMP: (6/30/04, SMR) AND, OR, and XOR gates now scale properly.
 
 IMP: (6/29/04, SMR) New waveform windows start with the panel selected.
