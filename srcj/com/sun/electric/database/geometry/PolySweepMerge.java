@@ -1,6 +1,7 @@
 package com.sun.electric.database.geometry;
 
 import com.sun.electric.technology.Layer;
+import com.sun.electric.Main;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
@@ -22,6 +23,10 @@ public class PolySweepMerge extends GeometryHandler
 {
     static final PolySweepShapeSort shapeSort = new PolySweepShapeSort();
     static final PolySweepAreaSort areaSort = new PolySweepAreaSort();
+    public static final int ONE_FRONTIER_MODE = 1;
+    public static final int TWO_FRONTIER_MODE = 2;
+
+    private int mode = ONE_FRONTIER_MODE;
 
     /**
      * Auxiliar class to sort shapes in array
@@ -71,15 +76,27 @@ public class PolySweepMerge extends GeometryHandler
         super(initialSize);
 	}
 
+    /**
+     * Method to switch between a sweep algorithm with one
+     * or two frontiers
+     * @param mode
+     */
+    public void setMode(int mode)
+    {
+        //just to  get rest of
+        //this.mode = mode;
+    }
+
     private static class PolySweepContainer
     {
         List polyList = null;
-        List areas = null; // Needs to be a list to apply sort
+        private List areas = null; // Needs to be a list to apply sort
 
         public PolySweepContainer(boolean createPolyList)
         {
             polyList = (createPolyList) ? new ArrayList() : null;
         }
+
         public void add(Object value)
         {
             polyList.add(value);
@@ -192,41 +209,115 @@ public class PolySweepMerge extends GeometryHandler
             if (container == null) continue;
 
             Collections.sort(container.polyList, shapeSort);
-            double maxSweep = -Double.MAX_VALUE;
-            Area areaTmp = null;
+            double maxXSweep = -Double.MAX_VALUE;
+            Area areaXTmp = null;
             container.areas = new ArrayList();
+            List twoFrontierAreas = new ArrayList();
+            List tmp = new ArrayList();
 
             for (int i = 0; i < container.polyList.size(); i++)
             {
                 Shape geom = (Shape)container.polyList.get(i);
-                Rectangle2D rect = geom.getBounds2D();
-                double x = rect.getX();
-                double y = rect.getMaxX();
-                if (x > maxSweep)
+                Rectangle2D rectX = geom.getBounds2D();
+                double minX = rectX.getX();
+                double maxX = rectX.getMaxX();
+                if (minX > maxXSweep)
                 {
-                   // Previous area is 100% disconnected
-                   if (areaTmp != null)
-                   {
-                       if (!container.areas.contains(areaTmp))
-                           container.areas.add(areaTmp);
-                       areaTmp = null;
-                   }
+                    // Previous area is 100% disconnected
+                    if (areaXTmp != null)
+                    {
+                       // Note: this comparison is not meant to call Area.equals!
+                       if (!container.areas.contains(areaXTmp))
+                           container.areas.add(areaXTmp);
+                       sweepYFrontier(twoFrontierAreas, tmp);
+                       areaXTmp = null;
+                    }
+                    tmp.clear();
                 }
-                if (areaTmp == null)
+                if (areaXTmp == null)
                 {
-                    areaTmp = new Area(geom);
-                    container.areas.add(areaTmp);
+                    // First one!
+                    areaXTmp = new Area(geom);
+                    container.areas.add(areaXTmp);
+                    tmp.add(areaXTmp);
                 }
                 else
-                    areaTmp.add(new Area(geom));
-                if (y > maxSweep)
-                    maxSweep = y;
+                {
+                    Area geomArea = new Area(geom);
+                    areaXTmp.add(geomArea);
+                    tmp.add(geomArea);
+                }
+                if (maxX > maxXSweep)
+                    maxXSweep = maxX;
             }
             // Can't use HashSet due to Comparator
-            if (areaTmp != null && !container.areas.contains(areaTmp))
-                container.areas.add(areaTmp);
+            if (areaXTmp != null && !container.areas.contains(areaXTmp))
+                container.areas.add(areaXTmp);
+            sweepYFrontier(twoFrontierAreas, tmp);
+
+            if (Main.LOCALDEBUGFLAG)
+            {
+            // Testing if we get same amount of single polygons
+            Collection set1 = getObjects(layer, false, true);
+            // Another tmp list
+            List set2 = new ArrayList();
+            for (Iterator iter = twoFrontierAreas.iterator(); iter.hasNext(); )
+            {
+                Area area = (Area)iter.next();
+                PolyBase.getPointsInArea(area, (Layer)layer, true, false, set2);
+            }
+            if (set2.size() != set1.size())
+                System.out.println("Wrong calculation");
+            }
+            if (mode == TWO_FRONTIER_MODE)
+            {
+                if (container.areas.size() != twoFrontierAreas.size())
+                     System.out.println("differrent set");
+                 container.areas = twoFrontierAreas;
+            }
             container.polyList = null;
         }
+    }
+
+    private static void sweepYFrontier(List twoFrontierAreas, List tmp)
+    {
+        // Y frontier
+        Collections.sort(tmp, areaSort);
+        double maxYSweep = -Double.MAX_VALUE;
+        Area areaYTmp = null;
+        for (int j = 0; j < tmp.size(); j++)
+        {
+           Area area = (Area)tmp.get(j);
+           Rectangle2D rectY = area.getBounds2D();
+           double minY = rectY.getY();
+           double maxY = rectY.getMaxY();
+
+           // Done with this piece of geometry
+           if (minY > maxYSweep)
+           {
+               if (areaYTmp != null)
+               {
+                   if (!twoFrontierAreas.contains(areaYTmp))
+                       twoFrontierAreas.add(areaYTmp);
+               }
+               areaYTmp = null;
+           }
+            if (areaYTmp == null)
+            {
+                // first one on Y
+                areaYTmp = area;
+                twoFrontierAreas.add(areaYTmp);
+            }
+            else
+            {
+                areaYTmp.add(area);
+            }
+
+            if (maxY > maxYSweep)
+                maxYSweep = maxY;
+       }
+        if (areaYTmp != null && !twoFrontierAreas.contains(areaYTmp))
+            twoFrontierAreas.add(areaYTmp);
     }
 
 	/**

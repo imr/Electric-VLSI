@@ -566,7 +566,10 @@ public class ERCWellCheck
                 switch(check.mode)
                 {
                     case GeometryHandler.ALGO_SWEEP:
-                        thisMerge = new PolySweepMerge(ercLayers.size());
+                        PolySweepMerge sweepMerge = new PolySweepMerge(ercLayers.size());
+                        if (Main.LOCALDEBUGFLAG)
+                            sweepMerge.setMode(PolySweepMerge.TWO_FRONTIER_MODE);
+                        thisMerge = sweepMerge;
                         break;
                     case GeometryHandler.ALGO_QTREE:
                         thisMerge = new PolyQTree(cell.getBounds());
