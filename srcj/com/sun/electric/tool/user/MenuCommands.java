@@ -681,6 +681,7 @@ public final class MenuCommands
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, buckyBit), null);
         m = windowMenu.addMenuItem("Zoom In", KeyStroke.getKeyStroke('7', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { zoomInDisplay(); } });
+        menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD7, buckyBit), null);
 
 		Menu specialZoomSubMenu = new Menu("Special Zoom");
 		windowMenu.add(specialZoomSubMenu);
@@ -689,7 +690,6 @@ public final class MenuCommands
 		menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD5, buckyBit), null);
 		m = specialZoomSubMenu.addMenuItem("Zoom Box", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { zoomBoxCommand(); }});
-        menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD7, buckyBit), null);
 		specialZoomSubMenu.addMenuItem("Make Grid Just Visible", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeGridJustVisibleCommand(); }});
 		specialZoomSubMenu.addMenuItem("Match Other Window", null,
