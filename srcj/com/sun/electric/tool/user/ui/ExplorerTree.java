@@ -983,7 +983,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		{
 			Cell cell = (Cell)currentSelectedObject;
 			if (cell == null) return;
-			PaletteFrame.placeInstance(cell, null);
+			PaletteFrame.placeInstance(cell, null, false);
 		}
 
 		private void newCellAction()

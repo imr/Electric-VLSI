@@ -1,7 +1,7 @@
 <!-- HEADER 7-3-3: GDS Control -->
 
-GDS options are controlled with the <B>GDS Options...</B> subcommand of the <B>IO Options</B>
-command of the <B>File</B> menu.
+GDS options are controlled with the "GDS" tab of the "I/O" section
+(in the <B>Preferences...</B> command of the <B>File</B> menu).
 <P>
 <CENTER><IMG SRC="fig07-12.png" ALT="Figure 7.12"></CENTER>
 <P>
@@ -11,44 +11,13 @@ This dialog lets you edit those GDS layer numbers and assign them to different E
 <P>
 The list on the left shows all of the Electric layers.
 By clicking on a layer name, its GDS layer numbers are shown in the top-right and can be edited.
-You can place multiple GDS layer numbers in the field, separated by commas.
-When you do this, all of those numbers will be accepted when reading GDS
-(but only the first will be used when writing GDS).
 In addition to GDS layer numbers to use for layout, there are also two other types of GDS layer numbers:
 a <I>pin</I> layer (for exports) and a <I>text</I> layer (for export names).
-<P>
-These dialog elements apply to reading GDS:
-<UL>
-<LI>
-"Input Includes Text".
-Text annotations in the GDS file can often clutter the display,
-so they are ignored during input.
-If you check this item, annotation text will be read and displayed.
-<LI>
-"Input Expands Cells".
-This controls whether cell instances are expanded or not in the Electric circuit.
-By default, cell instances are not expanded (they appear as a simple box).
-If you check this item,
-cells are expanded so that their contents are displayed.
-Expansion of cells can always be changed after reading GDS by using the subcommands of the <B>Expand Cell Instances</B>
-and <B>Unexpand Cell Instances</B> commands of the <B>Cell</B> menu.
-<LI>
-"Input Instantiates Arrays".
-This controls whether or not arrays in the GDS file are instantiated.
-By default, arrays are instantiated fully, but this can consume excessive amounts of memory if there are large arrays.
-If you uncheck this item, only the upper-left and lower-right instance are actually placed.
-<LI>
-"Input Ignores Unknown Layers".
-This controls whether unknown layers in the GDS file will be ignored, or placed in the circuit.
-By default, unknown layers appear as DRC-Nodes
-(special nodes used to indicate DRC errors, which appear as orange squares).
-By checking this item, the unknown layers are simply ignored.
-</UL>
 <P>
 These dialog elements apply to writing GDS:
 <UL>
 <LI>
-"Output Merges Boxes".
+"Output merges Boxes".
 This controls the merging of adjoining geometry.
 This is an issue because of the duplication and overlap that occurs wherever arcs and nodes meet.
 The default action is to write each node and arc individually.
@@ -58,11 +27,11 @@ If you check this item,
 all connecting regions on the same layer are merged into one complex polygon.
 This requires more processing, produces a smaller file, and generates more complex constructs.
 <LI>
-"Output Writes Export Pins".
+"Output Writes export Pins".
 This controls whether pins are written to the GDS file for each export.
 If checked, and there is a valid pin layer, then it is written.
 <LI>
-"Output All Upper Case".
+"Output all upper case".
 This controls whether the GDS file uses all upper case.
 The default is to mix upper and lower case, but some systems insist on upper-case GDS.
 <LI>
@@ -70,19 +39,6 @@ The default is to mix upper and lower case, but some systems insist on upper-cas
 This is the layer number to use when writing text.
 When pins are being written, and there is a text layer number associated with the appropriate Electric layer,
 then that layer number is used instead of this default number.
-<LI>
-"Output Arc Conversion".
-GDS II format is only able to handle straight lines, not curves.
-If your design has any curved geometry,
-the GDS II output will approximate these curves with straight line segments.
-To control how this approximation is handled, there are two factors:
-the maximum <I>angle</I> and the maximum <I>sag</I>.
-The maximum angle is the number of degrees of curvature between line segments
-(so a quarter-circle curve, which is 90 degrees,
-will be broken into 10 lines if the maximum angle is 9 degrees).
-The maximum sag is the maximum distance between the actual curve and the center of the approximating line segment.
-No line segment will be allowed to sag more than this distance.
-These two values can be entered in the "Maximum arc angle" and "Maximum arc sag" areas.
 </UL>
 
 <!-- TRAILER -->

@@ -1,10 +1,11 @@
 Title                                =title
-Table of Contents                    =index
 
 Introduction
  Welcome                             =chap01-01
- Setup and Requirements              =chap01-02
- Plug-Ins                            =chap01-03
+ About Electric                      =chap01-02
+ Requirements                        =chap01-03
+ Setup                               =chap01-04
+ Plug-Ins                            =chap01-05
  Fundamental Concepts                =chap01-06
  The Display                         =chap01-07
  The Mouse                           =chap01-08
@@ -62,7 +63,6 @@ Hierarchy
   Cell Lists                         =chap03-07-01
   Cell Graphing                      =chap03-07-02
   Cell Properties                    =chap03-07-03
-  The Cell Explorer                  =chap03-07-04
  Rearranging Cell Hierarchy          =chap03-08
  Libraries
   Introduction to Libraries          =chap03-09-01
@@ -92,6 +92,7 @@ Display
   Aligning to a Grid                 =chap04-07-02
   Aligning to Objects                =chap04-07-03
   Measuring                          =chap04-07-04
+ The Cell Explorer                   =chap04-08
  Printing                            =chap04-09
  Text Windows                        =chap04-10
  3D Windows                          =chap04-11
@@ -135,6 +136,8 @@ Advanced Editing
   Introduction to Outlines           =chap06-10-01
   Manipulating Outlines              =chap06-10-02
   Special Outline Generation         =chap06-10-03
+ Interpretive Languages              =chap06-11
+ Emergencies                         =chap06-12
 
 Technologies
  Introduction to Technologies
@@ -170,13 +173,16 @@ Tools
  Simulation
   Introduction to Simulation         =chap08-04-01
   Verilog                            =chap08-04-02
-  Spice                              =chap08-04-03
-  Spice and Verilog Primitives       =chap08-04-04
+  Verilog Plotting                   =chap08-04-03
+  Spice                              =chap08-04-04
   Spice Plotting                     =chap08-04-05
+  Spice and Verilog Primitives       =chap08-04-06
  Routing
   Auto Stitching                     =chap08-05-01
   Mimic Stitching                    =chap08-05-02
  Network Consistency Checking (NCC)  =chap08-06
- Pad Frame Generation                =chap08-07
+ Generation
+  Pad Frame Generation               =chap08-07-01
+  Other Generators                   =chap08-07-02
  Logical Effort                      =chap08-08
 

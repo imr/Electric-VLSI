@@ -43,7 +43,7 @@ public class About extends EDialog
 {
 	JList list;
 	DefaultListModel model;
-	boolean showingCast = false;
+	static private CastOfThousands [] showingCast = null;
 
 	private static class CastOfThousands
 	{
@@ -52,6 +52,15 @@ public class About extends EDialog
 
 		private CastOfThousands(String name, String work) { this.name = name;   this.work = work; }
 
+		static CastOfThousands [] javaTeam = new CastOfThousands[]
+		{
+			new CastOfThousands("Robert Bosnyak", 			"Pads library"),
+			new CastOfThousands("Jonathan Gainsley", 		"User interface, spice, logical effort, and more"),
+			new CastOfThousands("Gilda Garretón", 			"Geometry, parasitics, 3D"),
+			new CastOfThousands("Russell Kao",				"NCC, generators, hierarchy enumeration"),
+			new CastOfThousands("Dmitry Nadezhin", 			"Networks, simulation, optimizations, and more"),
+			new CastOfThousands("Ivan Sutherland", 			"Inspiration, NCC"),
+		};
 		static CastOfThousands [] theCast = new CastOfThousands[]
 		{
 			new CastOfThousands("Philip Attfield", 			"Box merging (C)"),
@@ -158,6 +167,7 @@ public class About extends EDialog
         ok = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
         castOfThousands = new javax.swing.JButton();
+		javaTeam = new javax.swing.JButton();
         Bottom = new javax.swing.JPanel();
         jLabel9 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
@@ -262,19 +272,36 @@ public class About extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         TopLeft.add(jLabel3, gridBagConstraints);
 
-        castOfThousands.setText("And A Cast of Thousands");
-        castOfThousands.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                showCast(evt);
-            }
-        });
+		javaTeam.setText("The Java Team");
+		javaTeam.addActionListener(new java.awt.event.ActionListener()
+		{
+			public void actionPerformed(java.awt.event.ActionEvent evt)
+			{
+				showJavaTeam(evt);
+			}
+		});
+
+		gridBagConstraints = new java.awt.GridBagConstraints();
+		gridBagConstraints.gridx = 0;
+		gridBagConstraints.gridy = 3;
+		gridBagConstraints.gridwidth = 1;
+		gridBagConstraints.weighty = 0.1;
+		gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+		TopLeft.add(javaTeam, gridBagConstraints);
+
+		castOfThousands.setText("Cast of Thousands");
+		castOfThousands.addActionListener(new java.awt.event.ActionListener()
+		{
+			public void actionPerformed(java.awt.event.ActionEvent evt)
+			{
+				showCast(evt);
+			}
+		});
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 1;
         gridBagConstraints.weighty = 0.1;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         TopLeft.add(castOfThousands, gridBagConstraints);
@@ -296,7 +323,7 @@ public class About extends EDialog
         Bottom.add(jLabel9, gridBagConstraints);
 
         jLabel8.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        jLabel8.setText("Copyright (c) 2003 Sun Microsystems and Static Free Software");
+        jLabel8.setText("Copyright (c) 2004 Sun Microsystems and Static Free Software");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -373,8 +400,16 @@ public class About extends EDialog
 		model.clear();
 		for(int i=0; i<CastOfThousands.theCast.length; i++)
 			model.addElement(CastOfThousands.theCast[i].name);
-		showingCast = true;
+		showingCast = CastOfThousands.theCast;
 	}//GEN-LAST:event_showCast
+
+	private void showJavaTeam(java.awt.event.ActionEvent evt)//GEN-FIRST:event_showJavaTeam
+	{//GEN-HEADEREND:event_showJavaTeam
+		model.clear();
+		for(int i=0; i<CastOfThousands.javaTeam.length; i++)
+			model.addElement(CastOfThousands.javaTeam[i].name);
+		showingCast = CastOfThousands.javaTeam;
+	}//GEN-LAST:event_showJavaTeam
 
 	private void showCopying(java.awt.event.ActionEvent evt)//GEN-FIRST:event_showCopying
 	{//GEN-HEADEREND:event_showCopying
@@ -551,7 +586,7 @@ public class About extends EDialog
 		model.clear();
 		for(int i=0; i<copyingString.length; i++)
 			model.addElement(copyingString[i]);
-		showingCast = false;
+		showingCast = null;
 	}//GEN-LAST:event_showCopying
 
 	private void showWarranty(java.awt.event.ActionEvent evt)//GEN-FIRST:event_showWarranty
@@ -580,7 +615,7 @@ public class About extends EDialog
 		model.clear();
 		for(int i=0; i<warrantyString.length; i++)
 			model.addElement(warrantyString[i]);
-		showingCast = false;
+		showingCast = null;
 	}//GEN-LAST:event_showWarranty
 
 	private void regionChanged(java.awt.event.ActionEvent evt)//GEN-FIRST:event_regionChanged
@@ -616,9 +651,9 @@ public class About extends EDialog
 
 	private void listClick(java.awt.event.MouseEvent evt)
 	{
-		if (!showingCast) return;
+		if (showingCast == null) return;
 		int index = list.getSelectedIndex();
-		model.setElementAt(CastOfThousands.theCast[index].name + ": " + CastOfThousands.theCast[index].work, index);
+		model.setElementAt(showingCast[index].name + ": " + showingCast[index].work, index);
 	}
 	
     // Variables declaration - do not modify
@@ -627,7 +662,8 @@ public class About extends EDialog
     private JPanel Top;
     private JPanel TopLeft;
     private JPanel TopRight;
-    private JButton castOfThousands;
+	private JButton castOfThousands;
+	private JButton javaTeam;
     private JButton copyingDetails;
     private JComboBox jComboBox1;
     private JLabel jLabel10;

@@ -25,70 +25,71 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.lib.LibFile;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ExportChanges;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Resources;
-import com.sun.electric.tool.user.menus.CellMenu;
-import com.sun.electric.tool.user.dialogs.LayoutText;
-import com.sun.electric.tool.user.dialogs.CellBrowser;
-import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.AnnularRing;
+import com.sun.electric.tool.user.dialogs.CellBrowser;
+import com.sun.electric.tool.user.dialogs.LayoutText;
+import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.menus.CellMenu;
 
-import java.awt.Dimension;
-import java.awt.Image;
-import java.awt.Graphics;
 import java.awt.BorderLayout;
-import java.awt.Rectangle;
 import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Font;
 import java.awt.Container;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.FontMetrics;
-import java.awt.event.ActionListener;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseWheelListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.KeyListener;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.net.URL;
-import java.util.Iterator;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.EventListener;
-import javax.swing.JInternalFrame;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
+import java.util.Iterator;
+import java.util.List;
+
 import javax.swing.JComboBox;
-import javax.swing.JOptionPane;
-import javax.swing.JPopupMenu;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
 import javax.swing.JMenuItem;
-import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 
 /**
  * This class defines a palette window for component selection.
@@ -499,7 +500,7 @@ public class PaletteFrame
 						return;
 					}
 				}
-				placeInstance(obj, panel);
+				placeInstance(obj, panel, false);
 			} else if (obj instanceof PrimitiveArc)
 			{
 				PrimitiveArc ap = (PrimitiveArc)obj;
@@ -614,9 +615,32 @@ public class PaletteFrame
 						}
 						cellMenu.show(panel, e.getX(), e.getY());
 					}
+				} if (msg.equals("Export"))
+				{
+					JPopupMenu specialMenu = new JPopupMenu("Export");
+					JMenuItem menuItem = new JMenuItem("Wire");
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeExport("wire"); } });
+					specialMenu.add(menuItem);
+					menuItem = new JMenuItem("Bus");
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeExport("bus"); } });
+					specialMenu.add(menuItem);
+					menuItem = new JMenuItem("Universal");
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeExport("universal"); } });
+					specialMenu.add(menuItem);
+					specialMenu.show(panel, e.getX(), e.getY());
+				} if (msg.equals("Text"))
+				{
+					placeInstance("ART_message", panel, false);
 				}
 			}
 			repaint();
+		}
+
+		private void makeExport(String type)
+		{
+			if (type.equals("wire")) placeInstance(Schematics.tech.wirePinNode, this, true); else
+			if (type.equals("bus")) placeInstance(Schematics.tech.busPinNode, this, true); else
+			if (type.equals("universal")) placeInstance(Generic.tech.invisiblePinNode, this, true);
 		}
 
 		public void makeLayoutTextCommand()
@@ -673,7 +697,7 @@ public class PaletteFrame
 			{
 				JMenuItem mi = (JMenuItem)evt.getSource();
 				String msg = mi.getText();
-				placeInstance(obj, panel);
+				placeInstance(obj, panel, false);
 			}
 		};
 
@@ -932,7 +956,7 @@ public class PaletteFrame
 	 * @param panel the PalettePanel that invoked this request.
 	 * If this is null, then the request did not come from the palette.
 	 */
-	public static void placeInstance(Object obj, PalettePanel panel)
+	public static void placeInstance(Object obj, PalettePanel panel, boolean export)
 	{
 		NodeProto np = null;
 		NodeInst ni = null;
@@ -983,9 +1007,11 @@ public class PaletteFrame
 			if (newListener != null && newListener instanceof PlaceNodeListener)
 			{
 				((PlaceNodeListener)newListener).setParameter(np);
+				((PlaceNodeListener)newListener).makePortWhenCreated(export);
 			} else
 			{
 				newListener = new PlaceNodeListener(panel, obj, oldListener, oldCursor);
+				((PlaceNodeListener)newListener).makePortWhenCreated(export);
 				WindowFrame.setListener(newListener);
 			}
 			if (placeText != null)
@@ -1011,6 +1037,7 @@ public class PaletteFrame
 		private String textNode;
 		private PalettePanel window;
 		private int defAngle;
+		private boolean makePort;
 
 		public PlaceNodeListener(PalettePanel window, Object toDraw, EventListener oldListener, Cursor oldCursor)
 		{
@@ -1020,6 +1047,7 @@ public class PaletteFrame
 			this.oldCursor = oldCursor;
 			this.isDrawn = false;
 			this.textNode = null;
+			this.makePort = false;
 
 			// get default creation angle
 			NodeProto np = null;
@@ -1040,6 +1068,8 @@ public class PaletteFrame
                 window.addKeyListener(this);
             }
 		}
+
+		public void makePortWhenCreated(boolean m) { makePort = m; }
 
 		public void setParameter(Object toDraw) { this.toDraw = toDraw; }
 
@@ -1136,7 +1166,7 @@ public class PaletteFrame
 			String descript = "Create ";
 			if (np instanceof Cell) descript += ((Cell)np).noLibDescribe(); else
 				descript += np.getName() + " Primitive";
-			PlaceNewNode job = new PlaceNewNode(descript, toDraw, where, wnd.getCell(), textNode);
+			PlaceNewNode job = new PlaceNewNode(descript, toDraw, where, wnd.getCell(), textNode, makePort);
 
 			// restore the former listener to the edit windows
             finished();
@@ -1193,14 +1223,16 @@ public class PaletteFrame
 		Point2D where;
 		Cell cell;
 		String varName;
+		boolean export;
 
-		protected PlaceNewNode(String description, Object toDraw, Point2D where, Cell cell, String varName)
+		protected PlaceNewNode(String description, Object toDraw, Point2D where, Cell cell, String varName, boolean export)
 		{
 			super(description, User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.toDraw = toDraw;
 			this.where = where;
 			this.cell = cell;
 			this.varName = varName;
+			this.export = export;
 			startJob();
 		}
 
@@ -1307,6 +1339,11 @@ public class PaletteFrame
 				Highlight.addElectricObject(eObj, cell);
 			}
 			Highlight.finished();
+			if (export)
+			{
+				ExportChanges.newExportCommand();
+				System.out.println("SHOULD EXPORT IT NOW");
+			}
 			return true;
 		}
 	}

@@ -1,10 +1,14 @@
 <!-- HEADER 8-5-1: Auto Stitching -->
 
+<!-- COMMAND Tool/Routing/Enable Auto-Stitching -->
+<!-- COMMAND Tool/Routing/Auto-Stitch Now -->
+<!-- COMMAND Tool/Routing/Auto-Stitch Highlighted Now -->
+
 The auto-stitching router looks for adjoining nodes that make implicit connections,
 and places wires at those connections to make them explicit.
 For example, if a cell has power and ground rails at the top and bottom,
 and there are ports on the left and right of each rail,
- then the auto-stitching router can be used to connect all of these rails in a horizontal string of these cells.
+then the auto-stitching router can be used to connect all of these rails in a horizontal string of these cells.
 <P>
 The auto-stitcher places a wire when all of these conditions are met:
 <UL>
@@ -20,12 +24,13 @@ because the pin is inside of the arc.
 <LI>The ports must not already be connected to each other.
 </UL>
 <P>
-To run the auto-stitcher, use the <B>Enable Auto-Stitching</B> subcommand of the <B>Routing</B>
-command of the <B>Tools</B> menu.
+To run the auto-stitcher, use the <B>Enable Auto-Stitching</B> command (in menu <B>Tool / Routing</B>
+).
 The router will make all necessary connections, and incrementally add wires as further changes are made to the circuit.
-To stop stitching, use the same menu entry, which now reads <B>Disable Auto-Stitching</B>.
-To run the auto-stitcher only once, and in the highlighted area only,
-use the <B>Auto-Stitch Highlighted Now</B> subcommand.
+To stop stitching, select the menu entry again to uncheck it.
+To run the auto-stitcher only once for the current cell, use <B>Auto-Stitch Now</B>
+To run it once, and in the highlighted area only,
+use the <B>Auto-Stitch Highlighted Now</B> command.
 Note that this auto-stitches all cell instances that intersect the highlighted area,
 so even if only a portion of a cell falls into the highlighted area,
 the entire cell is stitched.
@@ -34,7 +39,7 @@ the entire cell is stitched.
 <TD><CENTER><IMG SRC="fig09-05.png" ALT="Figure 9.5"></CENTER></TD><TD>
 The auto-stitcher allows you to specify a particular type of wire to use in routing.
 By default, the router figures out which wire to use.
-However, with the <B>Routing Options...</B> subcommand,
+However, in the "Routing" preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Routing" tab)
 a specified wire can be given (or automatic selection can be resumed by selecting the "DEFAULT ARC" entry).
 </TD></TR></TABLE>
 

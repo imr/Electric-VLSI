@@ -30,6 +30,7 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.tool.user.menus.MenuBar.Menu;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.menus.FileMenu;
 
 import java.awt.Dimension;
 import java.awt.Frame;
@@ -51,6 +52,7 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -87,6 +89,7 @@ public class ManualViewer extends EDialog
 		String fileName;
 		String chapterName;
 		int chapterNumber;
+		int sectionNumber;
 		URL url;
 		int level;
 		boolean newAtLevel;
@@ -102,6 +105,7 @@ public class ManualViewer extends EDialog
 	private boolean menubarShown = false;
 	private static int lastPageVisited = 0;
 	private static HashMap menuMap = null;
+	private HashMap menuMapCheck;
 
     /**
      * Create a new user's manual dialog.
@@ -123,6 +127,8 @@ public class ManualViewer extends EDialog
 		boolean newAtLevel = false;
 		String chapterName = null;
 		int chapterNumber = 0;
+		int [] sectionNumbers = new int[5];
+		sectionNumbers[0] = -1;
 		currentIndex = lastPageVisited;
 		for(;;)
 		{
@@ -149,8 +155,10 @@ public class ManualViewer extends EDialog
 					chapterNumber++;
 					chapterName = chapterNumber + ": " + title;
 				}
-				stack[indent+1] = new DefaultMutableTreeNode(title);
+				sectionNumbers[indent]++;
+				stack[indent+1] = new DefaultMutableTreeNode(sectionNumbers[indent] + ": " + title);
 				stack[indent].add(stack[indent+1]);
+				sectionNumbers[indent+1] = 0;
 				newAtLevel = true;
 			} else
 			{
@@ -159,6 +167,7 @@ public class ManualViewer extends EDialog
 				pi.title = title;
 				pi.chapterName = chapterName;
 				pi.chapterNumber = chapterNumber;
+				pi.sectionNumber = ++sectionNumbers[indent];
 				pi.level = indent;
 				pi.newAtLevel = newAtLevel;
 				pi.url = ManualViewer.class.getResource("helphtml/" + fileName + ".html");
@@ -187,6 +196,12 @@ public class ManualViewer extends EDialog
         loadPage(currentIndex);
     }
 
+	public static void loadSamplesLibrary()
+	{
+		URL url = ManualViewer.class.getResource("helphtml/samples.elib");
+		FileMenu.ReadELIB job = new FileMenu.ReadELIB(url);
+	}
+
 	private void loadMenuBar()
 	{
 		if (menubarShown) return;
@@ -195,6 +210,7 @@ public class ManualViewer extends EDialog
 		if (menuMap == null)
 		{
 			menuMap = new HashMap();
+			if (Main.getDebug()) menuMapCheck = new HashMap();
 
 			// scan all manual entries for menu associations
 			URL url = ManualViewer.class.getResource("helphtml/toc.txt");
@@ -243,6 +259,7 @@ public class ManualViewer extends EDialog
 							System.out.println("ERROR: command " + commandName + " is keyed to both " + already + " and " + fileName);
 						}
 						menuMap.put(commandName, fileName);
+						if (menuMapCheck != null) menuMapCheck.put(commandName, fileName);
 						continue;
 					}
 				}
@@ -270,6 +287,17 @@ public class ManualViewer extends EDialog
 		}
 		setJMenuBar(helpMenuBar);
 		pack();
+
+		if (menuMapCheck != null)
+		{
+			for(Iterator it = menuMapCheck.keySet().iterator(); it.hasNext(); )
+			{
+				String commandName = (String)it.next();
+				String fileName = (String)menuMapCheck.get(commandName);
+				System.out.println("Command " + commandName + " was mentioned in file " + fileName + " but does not exist");
+			}
+			menuMapCheck = null;
+		}
 	}
 
 	private void addMenu(Menu menu, JMenu helpMenu, String cumulative)
@@ -292,10 +320,14 @@ public class ManualViewer extends EDialog
 			{
 				JMenuItem helpMenuItem = new JMenuItem(menuItem.getText());
 				helpMenu.add(helpMenuItem);
-				String fileName = (String)menuMap.get(cumulative + menuItem.getText());
+				String commandName = cumulative + menuItem.getText();
+				String fileName = (String)menuMap.get(commandName);
 				if (fileName == null && Main.getDebug())
 				{
-					System.out.println("No help for " + cumulative + menuItem.getText());
+					System.out.println("No help for " + commandName);
+				} else
+				{
+					if (menuMapCheck != null) menuMapCheck.remove(commandName);
 				}
 				helpMenuItem.addActionListener(new HelpMenuActionListener(this, fileName));
 			}
@@ -459,6 +491,7 @@ public class ManualViewer extends EDialog
 				if (line == null) break;
 				if (line.length() == 0) continue;
 				if (line.equals("<!-- TRAILER -->")) continue;
+				if (line.startsWith("<!-- COMMAND ")) continue;
 				if (line.startsWith("<!-- HEADER ")) line = line.substring(12);
 				sb.append(line);
 			}
@@ -540,7 +573,7 @@ public class ManualViewer extends EDialog
 						printWriter.println("<BR>");
 					} else
 					{
-						printWriter.println("<H3>" + pageName + "\"</H3>");
+						printWriter.println("<H3>" + pageName + "</H3>");
 					}
 					continue;
 				}
@@ -550,18 +583,18 @@ public class ManualViewer extends EDialog
 					if (pi.level == 2 && nextIndex > 0 && nextPi.level == pi.level && !nextPi.newAtLevel) nextIsNewPage = false;
 					if (nextIsNewPage)
 					{
-						printWriter.println("<P>");
-						printWriter.println("<HR>");
-						printWriter.println("<CENTER><TABLE BORDER=0><TR>");
-						printWriter.println("<TD><A HREF=\"" + lastFileName + ".html#" + lastFileName +".html\"><IMG SRC=\"iconbackarrow.png\" ALT=\"Prev\" BORDER=0></A></TD>");
-						printWriter.println("<TD><A HREF=\"" + lastFileName + ".html#" + lastFileName +".html\">Previous</A></TD>");
-						printWriter.println("<TD>&nbsp;&nbsp;&nbsp;</TD>");
-						printWriter.println("<TD><A HREF=\"index.html\"><IMG SRC=\"iconcontarrow.png\" ALT=\"Contents\" BORDER=0></A></TD>");
-						printWriter.println("<TD><A HREF=\"index.html\">Table of Contents</A></TD>");
-						printWriter.println("<TD>&nbsp;&nbsp;&nbsp;</TD>");
-						printWriter.println("<TD><A HREF=\"" + nextFileName + ".html#" + nextFileName +".html\">Next</A></TD>");
-						printWriter.println("<TD><A HREF=\"" + nextFileName + ".html#" + nextFileName +".html\"><IMG SRC=\"iconforearrow.png\" ALT=\"Next\" BORDER=0></A></TD>");
-						printWriter.println("</TR></TABLE></CENTER>");
+//						printWriter.println("<P>");
+//						printWriter.println("<HR>");
+//						printWriter.println("<CENTER><TABLE BORDER=0><TR>");
+//						printWriter.println("<TD><A HREF=\"" + lastFileName + ".html#" + lastFileName +".html\"><IMG SRC=\"iconbackarrow.png\" ALT=\"Prev\" BORDER=0></A></TD>");
+//						printWriter.println("<TD><A HREF=\"" + lastFileName + ".html#" + lastFileName +".html\">Previous</A></TD>");
+//						printWriter.println("<TD>&nbsp;&nbsp;&nbsp;</TD>");
+//						printWriter.println("<TD><A HREF=\"index.html\"><IMG SRC=\"iconcontarrow.png\" ALT=\"Contents\" BORDER=0></A></TD>");
+//						printWriter.println("<TD><A HREF=\"index.html\">Table of Contents</A></TD>");
+//						printWriter.println("<TD>&nbsp;&nbsp;&nbsp;</TD>");
+//						printWriter.println("<TD><A HREF=\"" + nextFileName + ".html#" + nextFileName +".html\">Next</A></TD>");
+//						printWriter.println("<TD><A HREF=\"" + nextFileName + ".html#" + nextFileName +".html\"><IMG SRC=\"iconforearrow.png\" ALT=\"Next\" BORDER=0></A></TD>");
+//						printWriter.println("</TR></TABLE></CENTER>");
 					}
 					continue;
 				}
@@ -869,9 +902,6 @@ public class ManualViewer extends EDialog
 			// do not show top-level
 			setRootVisible(true);
 			setShowsRootHandles(true);
-
-//			// enable tool tips - we'll use these to display useful info
-//			ToolTipManager.sharedInstance().registerComponent(this);
 		}
 
 		public String convertValueToText(Object value, boolean selected, boolean expanded, boolean leaf,
@@ -882,7 +912,9 @@ public class ManualViewer extends EDialog
 			{
 				Integer index = (Integer)nodeInfo;
 				PageInfo pi = (PageInfo)dialog.pageSequence.get(index.intValue());
-				return pi.title;
+				String ret = pi.title;
+				if (pi.sectionNumber > 0) ret = pi.sectionNumber + ": " + ret;
+				return ret;
 			}
 			return nodeInfo.toString();
 		}

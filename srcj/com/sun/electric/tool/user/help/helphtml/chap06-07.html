@@ -2,6 +2,7 @@
 
 <!-- COMMAND Edit/Undo -->
 <!-- COMMAND Edit/Redo -->
+<!-- COMMAND Edit/Info/Show Undo List -->
 
 Electric has an undo mechanism that tracks all changes made during a session.
 When a command is issued, it and its side effects are stored.
@@ -16,6 +17,11 @@ You can also use the undo (counterclockwise) and redo (clockwise) icons from the
 </TD><TD><CENTER><IMG SRC="fig06-09.png" ALT="Figure 6.9"></CENTER></TD></TR></TABLE>
 <P>
 Electric stores only the last 20 changes, so anything older than that cannot be undone.
+To change the number of changes that are saved, use the <B>Preferences...</B>
+command of the <B>File</B> menu, select the "General" tab of the "General" section,
+and change the "Maximum undo history" field.
+To see a history of changes that were made, use the
+<B>Show Undo List</B> subcommand of the <B>Info</B> command of the <B>Edit</B> menu.
 <P>
 In Electric, almost every command is undoable, but there are some exceptions.
 Commands that write disk files are not undoable,

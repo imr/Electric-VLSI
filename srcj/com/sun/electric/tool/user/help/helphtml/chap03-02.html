@@ -5,6 +5,7 @@
 <!-- COMMAND Cell/Duplicate Cell... -->
 <!-- COMMAND Cell/New Version of Current Cell -->
 <!-- COMMAND Cell/Delete Cell... -->
+<!-- COMMAND Cell/Edit Cell... -->
 <!-- COMMAND Cell/Delete Unused Old Versions -->
 
 Cells are created with the <B>New Cell...</B> command of the <B>Cell</B> menu.
@@ -25,6 +26,11 @@ The <B>New Version of Current Cell</B> command makes a copy of the cell in the c
 but since it is a "new version", it has the same cell name.
 The newly created cell is displayed in the window.
 <P>
+Once cells are created you can edit them with the
+<B>Edit Cell...</B> command (in menu <B>Cell</B>).
+Cells can also be edited by using the Cell Explorer
+(see <A HREF="chap04-08.html#chap04-08">Section 4-8</A> for more).
+<P>
 <TABLE><TR><TD>
 To delete a cell, use the <B>Delete Cell...</B> command of the <B>Cell</B> menu.
 When deleting a cell, there cannot be any instances of this cell, or the deletion fails.
@@ -32,7 +38,6 @@ As a side effect of failure, you are shown a list of all other cells that have i
 so you can see the extent of its use.
 To find out whether a cell is being used elsewhere in the hierarchy, use the <B>List Cell Usage</B>
 subcommand of the <B>Cell Info</B> command of the <B>Cell</B> menu.
-</TD><TD><CENTER><IMG SRC="fig03-11.png" ALT="Figure 3.11"></CENTER></TD></TR></TABLE>
 <P>
 Because Electric is able to keep old versions of cells,
 deleting the latest version will cause an older version to become the "most recent".
@@ -42,6 +47,7 @@ For example, if you have cell "Adder" and an older version "Adder;1",
 then deleting "Adder" will cause "Adder;1" to be renamed to "Adder".
 This might make you think that the deletion failed, because there is still a cell called "Adder",
 but this cell is actually the older (but now most recent) version.
+</TD><TD><CENTER><IMG SRC="fig03-11.png" ALT="Figure 3.11"></CENTER></TD></TR></TABLE>
 <P>
 To clean-up old and unused versions of cells,
 use the <B>Delete Unused Old Versions</B> command of the <B>Cell</B> menu.

@@ -363,7 +363,7 @@ public class CellProperties extends EDialog
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
-        setTitle("New Cell");
+        setTitle("Cell Properties");
         setName("");
         addWindowListener(new java.awt.event.WindowAdapter()
         {

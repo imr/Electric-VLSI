@@ -435,6 +435,7 @@ public class ReadableDump extends LibraryFiles
 		}
 		Technology cellTech = Technology.whatTechnology(cell, nodePrototypes, 0, numNodes,
 			arcPrototypes, 0, numArcs);
+		cell.setTechnology(cellTech);
 		double lambda = 1;
 		if (cellTech != null)
 		{

@@ -1,6 +1,11 @@
 <!-- HEADER 8-6: Network Consistency Checking (NCC) -->
 
-<TABLE><TR><TD>
+<!-- COMMAND Tool/NCC/Flat NCC schematic and layout of current cell -->
+<!-- COMMAND Tool/NCC/Flat NCC two cells from open windows -->
+<!-- COMMAND Tool/NCC/Flat NCC each cell in the design, current cell is root -->
+<!-- COMMAND Tool/NCC/Hierarchical NCC each cell in the design, current cell is root -->
+<!-- COMMAND Tool/NCC/List annotations of each cell in the design, current cell is root -->
+
 Electric is able to compare two different cells and determine whether their networks have the same topology.
 This operation is sometimes called Layout vs. Schematic (LVS),
 but because Electric can compare any two circuits (including two layouts or two schematics)
@@ -10,115 +15,34 @@ Electric's NCC system is based on the
 (see Ebeling, Carl, "GeminiII: A Second Generation Layout Validation Program",
 <I>Proceedings of ICCAD</I> 1988, p322-325.)
 <P>
-To compare two cells, use the <B>NCC Control and Options...</B> subcommand of the <B>Network</B> command of the <B>Tools</B> menu.
+To compare two cells, use these commands (in menu <B>Tool / NCC</B>):
+<UL>
+<LI>
+   <B>Flat NCC schematic and layout of current cell</B>
+   compares the current cell and its equivalent schematic or layout.
+</LI>
+<LI>
+   <B>Flat NCC two cells from open windows</B>
+   compares two cells that are the two opened windows (there must be exactly two windows).
+</LI>
+<LI>
+   <B>Flat NCC each cell in the design, current cell is root</B>
+   compares the current cell and its equivalent schematic or layout, and then recurses down the hierarchy.
+</LI>
+<LI>
+   <B>Hierarchical NCC each cell in the design, current cell is root</B>
+   compares the current cell and its equivalent schematic or layout, and then recurses down the hierarchy.
+</LI>
+</UL>
+<TABLE><TR><TD>
+There is only one NCC setting, available in the "NCC" preferences (in menu <B>File / Preferences...</B>, "Tools" section, "NCC" tab).
+Component sizes can be allowed up to a specified amount or percentage.
 </TD><TD><CENTER><IMG SRC="fig09-22.png" ALT="Figure 9.22"></CENTER></TD></TR></TABLE>
 <P>
-The top part of the dialog lists the two cells that are to be compared.
-If two different cells are currently being displayed on the screen, they are loaded into the dialog.
-Otherwise, you can select the cells with the "Set" buttons.
-If there are many cells being displayed, the "Next" buttons will cycle through them.
-After the first use of this dialog, it remembers the last two cells that were compared.
-<P>
-The bottom of the dialog has buttons for running NCC ("Do NCC") and for doing a "Preanalysis"
-(a quick comparison of the cells that can discover comparison problems without doing the full analysis).
-The preanalysis shows networks and components in the two cells and lets you examine those that are different.
-The "Save" button saves the changes made in the dialog without doing any analysis.
-<P>
 For an example of network consistency checking,
-open the library "samples.txt" and compare the cells "tool-NCC{lay}" and "tool-NCC{sch}"
-(you can read the library with the <B>Readable Dump</B> subcommand of the <B>Import</B>
-command of the <B>File</B> menu).
+open the Samples library (in menu <B>Help / Load Samples Library</B>) and compare the cells "tool-NCC{lay}" and "tool-NCC{sch}"
+.
 These two cells are equivalent and the checker will find them to be so.
-<P>
-When you request comparison, the system displays the number of components,
-networks, and other information in each cell.
-Inconsistencies in these numbers generally lead to failure of comparison.
-If inconsistencies are found, you will be asked if you want to stop, do a Preanalysis, or continue with the full NCC.
-<P>
-When comparison fails, you can review the errors by typing "&gt;" and "&lt;"
-to step to the next and previous error that was found.
-This list is also available in the Cell Explorer (see <A HREF="chap03-07.html#chap03-07">Section 3-7</A>).
-<P>
-Once compared successfully, nodes and arcs in one cell can be matched to those in the other simply by
-selecting one and using the <B>Show Network</B> subcommand.
-<P>
-<H3>Fine-Tuning</H3>
-<P>
-To control the network consistency checker, use the center portion of the <B>NCC Control and Options...</B> dialog.
-The options on the left are defaults for all cells.
-Some of these options can be overridden for individual cells by selecting that cell and choosing the
-"Yes" or "No" override buttons on the right.
-Note that overrides apply to schematics and not their icons (icon cells are not shown in the list).
-To see a list of all overrides that exist, use the "List all overrides" button.
-<P>
-For an initial comparison of two cells, it is best to leave all options off.
-The system can automatically detect some of the options, and you can choose to select others as needed.
-<P>
-When checking a particular cell, the NCC can ignore or examine the contents of instances.
-If "Expand hierarchy" is checked, then all circuitry below the current cell is extracted and considered with the cell.
-Otherwise, cell instances are only compared by their connections without regard to their contents.
-To help align two hierarchies that are structured differently, this option can be applied selectively to different cells.
-<P>
-The "Merge parallel components" checkbox instructs the NCC to consider multiple components wired in parallel to be a single component.
-When this option is selected, two or more parallel components will correctly match a single,
-larger component in the other cell.
-<P>
-The "Merge series transistors" checkbox instructs the NCC to consider multiple transistors wired in series to be a single,
-complex component.
-When this option is selected, the order of wiring gates to these transistors will not be ignored.
-<P>
-The NCC remembers the time at which a successful NCC was done and marks the matched cells so that they are not checked again
-(if they haven't changed).
-The "Clear NCC dates this library" button removes this information from the current library, forcing the NCC to run again.
-The "Clear NCC dates all libraries" button does the same thing for every library.
-Note that these buttons also remove "NCCmatch" tags that are created by the matching process.
-<P>
-These forced matches are created automatically during NCC and may also be placed
-by the user, using the <B>Create NCC Forced Association</B> subcommand of the <B>Network</B> command
-of the <B>Tools</B> menu.
-The command places an NCC-match tag on the currently select object.
-By changing the tag's name, and setting that name on objects in different cells, those objects are forced to match during NCC.
-To review these forced-matches, use the "List all forced matches" button; to clear them without clearing valid NCC dates,
-use the "Remove all forced matches" button.
-<P>
-"Ignore power and ground" instructs the NCC to ignore all power and ground networks.
-This is useful when the layout has power and ground but the schematic doesn't.
-<P>
-The "Check export names" check instructs the NCC to check export names for consistency after a match is found.
-If exports are named differently in the two circuits, warnings will be issued.
-<P>
-"Check component sizes" instructs the NCC to compare component sizes after a match is found.
-Unless this is checked, component will be equated only according to their connectivity,
-and not their size.
-The size tolerance fields allow slop in the percentage and absolute difference between two components.
-<P>
-The system will warn about networks that do not connect to any components unless "Allow no-component nets" is checked.
-<P>
-The network consistency checker can work on the current cell, or it can recursively check each cell from the current point on downward.
-To recursive check individual levels of the hierarchy, uncheck the "Expand hierarchy" box and check the "Recurse through hierarchy" box.
-<P>
-There is a popup that allows you to control how resistors will be treated.
-Resistors can be included or excluded from circuit analysis (see XXX).
-NCC typically wants to exclude resistors.
-The popup lets you choose 3 actions that can occur:
-(1) "No resistor adjustment" causes the current state of resistor inclusion/exclusion to remains for an NCC run;
-(2) "Include Resistors" forces resistors to be included before an NCC run; and
-(3) "Exclude Resistors" forces resistors to be ignored before an NCC run.
-<P>
-The "NCC Debugging options..." button brings up a dialog for helping to debug this system.
-It is not intended for users and is not discussed further.
-<P>
-<H3>Disambiguation</H3>
-<P>
-During comparison,
-there are often situations where a group of networks or components from one cell are equivalent to a group in the other cell.
-Because they are structurally ambiguous, the NCC tries to disambiguate them and achieve a complete match.
-The first thing that is checked is names (export names, network names, or node names).
-<P>
-Other techniques for disambiguation include node sizes, and random guessing.
-When a random guess is made, tags are placed in the circuit to show what was presumed.
-These labels have names like "NCCMatch3" and are placed on nodes or arcs to indicate presumed association.
-The "Show 'NCCMatch' Tags" requests that these automatically-generated equivalence markers be displayed in the circuit.
 
 <!-- TRAILER -->
 

@@ -50,25 +50,28 @@ public class HelpMenu {
         {
             helpMenu.addMenuItem("About Electric...", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) { aboutCommand(); } });
+			helpMenu.addSeparator();
         }
+
 		helpMenu.addMenuItem("User's Manual...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { userManualCommand(); } });
+		helpMenu.addMenuItem("Load Samples Library", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ManualViewer.loadSamplesLibrary(); } });
 		return helpMenu;
     }
 
     // ---------------------- THE HELP MENU -----------------
 
-    public static void aboutCommand()
+	public static void aboutCommand()
     {
 		About dialog = new About(TopLevel.getCurrentJFrame(), true);
         dialog.setVisible(true);
     }
 
-	public static void userManualCommand()
+	private static void userManualCommand()
 	{
 		ManualViewer dialog = new ManualViewer(TopLevel.getCurrentJFrame());
 		dialog.setVisible(true);
 	}
-
 
 }

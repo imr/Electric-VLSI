@@ -99,9 +99,9 @@ public class ToolMenu {
 
         //------------------- Simulation (SPICE)
 
-        MenuBar.Menu spiceSimulationSubMenu = new MenuBar.Menu("Simulation (SPICE)", 'S');
+        MenuBar.Menu spiceSimulationSubMenu = new MenuBar.Menu("Simulation (Spice)", 'S');
         toolMenu.add(spiceSimulationSubMenu);
-        spiceSimulationSubMenu.addMenuItem("Write SPICE Deck...", null,
+        spiceSimulationSubMenu.addMenuItem("Write Spice Deck...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.SPICE, true); }});
         spiceSimulationSubMenu.addMenuItem("Write CDL Deck...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.CDL, true); }});
@@ -116,19 +116,19 @@ public class ToolMenu {
 
         spiceSimulationSubMenu.addSeparator();
 
-        spiceSimulationSubMenu.addMenuItem("Set Generic SPICE Template", null,
+        spiceSimulationSubMenu.addMenuItem("Set Generic Spice Template", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_TEMPLATE_KEY); }});
-        spiceSimulationSubMenu.addMenuItem("Set SPICE 2 Template", null,
+        spiceSimulationSubMenu.addMenuItem("Set Spice 2 Template", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_2_TEMPLATE_KEY); }});
-        spiceSimulationSubMenu.addMenuItem("Set SPICE 3 Template", null,
+        spiceSimulationSubMenu.addMenuItem("Set Spice 3 Template", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_3_TEMPLATE_KEY); }});
-        spiceSimulationSubMenu.addMenuItem("Set HSPICE Template", null,
+        spiceSimulationSubMenu.addMenuItem("Set HSpice Template", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_H_TEMPLATE_KEY); }});
-        spiceSimulationSubMenu.addMenuItem("Set PSPICE Template", null,
+        spiceSimulationSubMenu.addMenuItem("Set PSpice Template", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_P_TEMPLATE_KEY); }});
         spiceSimulationSubMenu.addMenuItem("Set GnuCap Template", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_GC_TEMPLATE_KEY); }});
-        spiceSimulationSubMenu.addMenuItem("Set SmartSPICE Template", null,
+        spiceSimulationSubMenu.addMenuItem("Set SmartSpice Template", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_SM_TEMPLATE_KEY); }});
 
         //------------------- Simulation (Verilog)
@@ -165,7 +165,7 @@ public class ToolMenu {
 
         //------------------- Simulation (others)
 
-        MenuBar.Menu netlisters = new MenuBar.Menu("Simulation (others)");
+        MenuBar.Menu netlisters = new MenuBar.Menu("Simulation (Others)");
         toolMenu.add(netlisters);
         netlisters.addMenuItem("Write IRSIM Deck...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.IRSIM, true); }});

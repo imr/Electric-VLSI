@@ -2,6 +2,14 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (7/14/04, SMR) Added command to show samples library.
+
+IMP: (7/14/04, SMR) Fixed "Describe This Cell" results to line up properly, get state bits right.
+
+BUG: (7/14/05, SMR) Multi-technology libraries get confused about cell technologies.
+FIX: In "tool.io.input.ELIB.computeLambda()" and "tool.io.input.ReadableDump.computeLambda()",
+     call "cell.setTechnology(cellTech)" to save result.
+
 BUG: (7/13/04, RK) Don't let a user start NCC on an Icon Cell
 
 IMP: (7/13/04, RK) Install NCC into main menus.

@@ -2,19 +2,31 @@
 
 Multipage schematics are provided in Electric by having different views for each page.
 Thus, you can have cells called "Timer{p1}" and "Timer{p2}" which are pages 1 and 2 of the Timer schematic.
-To create these cells, use the <B>Edit Multi-page Schematic View...</B> command of the <B>Views</B> menu.
+To create these cells, use the <B>Edit Multi-Page Schematic View...</B> command of the <B>View</B> menu.
 <P>
-As a graphical aid to schematic design, frames can be displayed in a cell by using the <B>Frame Options...</B>
-command of the <B>View</B> menu.
+As a graphical aid to schematic design, frames can be displayed in a cell by using the <B>Cell Properties...</B>
+command of the <B>Cell</B> menu.
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig03-10.png" ALT="Figure 3.10"></CENTER></TD><TD>
+The frame size can be "Half-A", "A", "B", "C", "D",
+and "E".
+The frame can be horizontal (landscale) or vertical (portrait).
+You can choose to display a title box in the lower-right corner.
+The designer name can also be set for each cell.
+</TD></TR></TABLE>
+<P>
+Besides the designer name, cell frames have a company name and a project name.
+These values are not set for each cell, but instead are preferences that
+are set for each user.
+Individual libraries can override these defaults as well.
+
 <TABLE><TR><TD>
 <P>
-The "Half-A", "A", "B", "C", "D",
-and "E" size frames are available in both landscape and portrait mode.
-You can also choose to display a title box in the lower-right corner.
-</TD><TD><CENTER><IMG SRC="fig07-20.png" ALT="Figure 07-20"></CENTER></TD></TR></TABLE>
-In the title box, the cell name and date are shown.
-You can also add information about the designer, company, and project.
-This information can be set as a default for all design,
-and can be overridden on a per-library basis.
+The <B>Preferences...</B> command of the <B>File</B> menu, in the "Frame" tab of the "Display"
+section, lets you set all of these defaults.
+Note that the designer name is taken first from the cell,
+then from the library if the cell does not set a value, and finally from the general default
+if the library and cell do not set a value.
+</TD><TD><CENTER><IMG SRC="fig07-20.png" ALT="Figure 7.20"></CENTER></TD></TR></TABLE>
 
 <!-- TRAILER -->

@@ -33,6 +33,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -203,7 +204,7 @@ public class CellLists extends EDialog
 		if (maxlen < 0) line += "\t"; else line += "   ";
 
 		/* show other factors about the cell */
-		if (cell.isLockedPrim()) line += "L"; else line += " ";
+		if (cell.isAllLocked()) line += "L"; else line += " ";
 		if (maxlen < 0) line += "\t"; else line += " ";
 		if (cell.isInstancesLocked()) line += "I"; else line += " ";
 		if (maxlen < 0) line += "\t"; else line += " ";
@@ -211,13 +212,8 @@ public class CellLists extends EDialog
 		if (maxlen < 0) line += "\t"; else line += " ";
 
 		boolean goodDRC = false;
-		Variable var = cell.getVar("DRC_last_good_drc", Long.class);
-		if (var != null)
-		{
-			long lastGoodDateLong = ((Integer)var.getObject()).intValue();
-			Date lastGoodDate = new Date(lastGoodDateLong);
-			if (cell.getRevisionDate().before(lastGoodDate)) goodDRC = true;
-		}
+		Date lastGoodDate = DRC.getLastDRCDate(cell);
+		if (lastGoodDate != null && cell.getRevisionDate().before(lastGoodDate)) goodDRC = true;
 		if (goodDRC) line += "D"; else line += " ";
 		if (maxlen < 0) line += "\t"; else line += " ";
 
@@ -561,8 +557,8 @@ public class CellLists extends EDialog
 	{
 		String header = "Cell";
 		for(int i=4; i<maxLen; i++) header += "-";
-		header += "Version-----Creation date";
-		header += "---------Revision Date------------Size-------Usage-L-I-C-D-N";
+		header += "Version--------Creation date";
+		header += "---------------Revision Date----------------Size-------Usage--L-I-C-D";
 		System.out.println(header);
 	}
 

@@ -1224,6 +1224,7 @@ public class ELIB extends LibraryFiles
 		int startArc = firstArcIndex[cellIndex];
 		int endArc = firstArcIndex[cellIndex+1];
 		Technology cellTech = Technology.whatTechnology(cell, nodeInstList.protoType, startNode, endNode, arcTypeList, startArc, endArc);
+		cell.setTechnology(cellTech);
 		if (cellTech != null) lambda = techScale[cellTech.getIndex()];
 		return lambda;
 	}

@@ -1,5 +1,7 @@
 <!-- HEADER 8-3-2: Antenna Rule Checking -->
 
+<!-- COMMAND Tool/ERC/Antenna Check -->
+
 Antenna rules are required by some IC manufacturers to ensure that the transistors of the chip are not destroyed during fabrication.
 During fabrication, the wafer is bombarded with ions during the polysilicon and metal layer creation process.
 These ions must find a path to through the wafer (to the substrate and active layers at the bottom).
@@ -7,14 +9,16 @@ If there is a large area of poly or metal, and if it connects ONLY to gates of t
 (not to source or drain or any other active material) then these ions will travel through the transistors.
 If the ratio of the poly or metal layers to the area of the transistors is too large, the transistors will be destroyed.
 <P>
-To check for antenna rule violations, use the <B>Antenna-Rules Check</B> subcommand of the <B>Electrical Rules</B>
-command of the <B>Tools</B> menu.
+To check for antenna rule violations, use the <B>Antenna Check</B> subcommand of the <B>ERC</B>
+command of the <B>Tool</B> menu.
 After analysis is done, you can review the errors by typing "&gt;" to see the next error and "&lt;" to see the previous error.
 You can also see the list of errors in the Cell Explorer
-(see <A HREF="chap03-07.html#chap03-07">Section 3-7</A>).
+(see <A HREF="chap04-08.html#chap04-08">Section 4-8</A>).
 <P>
 <TABLE><TR><TD VALIGN=TOP>
-To modify the required ratio of poly or metal to transistor area, use the <B>Antenna-Rules Options...</B> subcommand.
+You can control the Antenna Checker with the "Antenna Rules" tab of the "Tools" section of the
+<B>Preferences...</B> command of the <B>File</B> menu.
+The dialog lets you modify the required ratio of a layer (poly or metal) to the transistor area.
 </TD><TD><CENTER><IMG SRC="fig09-24.png" ALT="Figure 9.24"></CENTER></TD></TR></TABLE>
 
 <!-- TRAILER -->

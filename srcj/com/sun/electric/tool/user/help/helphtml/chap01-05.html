@@ -1,0 +1,30 @@
+<!-- HEADER 1-5: Plug-Ins -->
+
+Electric plug-ins are additional pieces of code that can be downloaded separately
+to enhance the system's functionality.
+At this time, these plug-ins are available:
+<UL>
+<LI><B>Bean Shell</B>
+The Bean Shell is used to do parameter evaluation in Electric.
+Advanced operations that make use of cell parameters will need this plug-in.
+The Bean Shell is available <A HREF="http://www.beanshell.org">here</A>.
+</LI>
+<LI><B>3D Viewer</B>
+The 3D viewer lets you rotate the integrated circuit and view it as a three-dimensional
+interconnection of layers.
+This viewer is available from the <A HREF="http://www.staticfreesoft.com">Static Free Software</A>
+website.
+Besides downloading this plug-in, you must also install the Java3D package from
+<A HREF="http://java.sun.com/products/java-media/3D">Sun Microsystems</A>.
+</LI>
+</UL>
+<P>
+To attach a plugin, it must be invoked from the command line by adding it to the classpath.
+For example, to add the beanshell (a file named "bsh-2.0b1.jar"), type:
+<CENTER><CODE>java -classpath electric.jar:bsh-2.0b1.jar com.sun.electric.Launcher</CODE></CENTER>
+<P>
+Note that you must explicitly mention the main Electric class (com.sun.electric.Launcher)
+when using plug-ins since all of the jar files are grouped together as the "classpath".
+<P>
+
+<!-- TRAILER -->
