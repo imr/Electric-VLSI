@@ -83,7 +83,7 @@ public class LibraryFiles extends Input
 		protected int []       userBits;
 	};
 
-	/** collection of libraries and their input objects. */					private static HashMap libsBeingRead;
+	/** collection of libraries and their input objects. */					private static List libsBeingRead;
 	protected static final boolean VERBOSE = false;
 
 	LibraryFiles() {}
@@ -92,13 +92,15 @@ public class LibraryFiles extends Input
 
 	public static void initializeLibraryInput()
 	{
-		libsBeingRead = new HashMap();
+		libsBeingRead = new ArrayList();
 	}
 
 	public boolean readInputLibrary()
 	{
 		// add this reader to the list
-		libsBeingRead.put(lib, this);
+        assert(!libsBeingRead.contains(this));
+        libsBeingRead.add(this);
+		//libsBeingRead.put(lib, this);
 		scaledCells = new ArrayList();
 		skewedCells = new ArrayList();
 
@@ -313,7 +315,7 @@ public class LibraryFiles extends Input
 		// clear flag bits for scanning the library hierarchically
 		totalCells = 0;
 		FlagSet markCellForNodes = NodeProto.getFlagSet(1);
-		for(Iterator it = libsBeingRead.values().iterator(); it.hasNext(); )
+		for(Iterator it = libsBeingRead.iterator(); it.hasNext(); )
 		{
 			LibraryFiles reader = (LibraryFiles)it.next();
 			totalCells += reader.nodeProtoCount;
@@ -335,7 +337,7 @@ public class LibraryFiles extends Input
 		for(int i=0; i<20; i++)
 		{
 			boolean unchanged = true;
-			for(Iterator it = libsBeingRead.values().iterator(); it.hasNext(); )
+			for(Iterator it = libsBeingRead.iterator(); it.hasNext(); )
 			{
 				LibraryFiles reader = (LibraryFiles)it.next();
 				for(int cellIndex=0; cellIndex<reader.nodeProtoCount; cellIndex++)
@@ -355,7 +357,7 @@ public class LibraryFiles extends Input
 			System.out.println("Finished computing scale factors");
 
 		// recursively create the cell contents
-		for(Iterator it = libsBeingRead.values().iterator(); it.hasNext(); )
+		for(Iterator it = libsBeingRead.iterator(); it.hasNext(); )
 		{
 			LibraryFiles reader = (LibraryFiles)it.next();
 			for(int cellIndex=0; cellIndex<reader.nodeProtoCount; cellIndex++)
@@ -370,7 +372,7 @@ public class LibraryFiles extends Input
 
 		// tell which libraries had extra "scaled" cells added
 		boolean first = true;
-		for(Iterator it = libsBeingRead.values().iterator(); it.hasNext(); )
+		for(Iterator it = libsBeingRead.iterator(); it.hasNext(); )
 		{
 			LibraryFiles reader = (LibraryFiles)it.next();
 			if (reader.scaledCells != null && reader.scaledCells.size() != 0)
@@ -417,7 +419,13 @@ public class LibraryFiles extends Input
 		MoCMOS.tech.convertOldState();
 	}
 
-	protected LibraryFiles getReaderForLib(Library lib) { return (LibraryFiles)libsBeingRead.get(lib); }
+	protected LibraryFiles getReaderForLib(Library lib) {
+        for (Iterator it = libsBeingRead.iterator(); it.hasNext(); ) {
+            LibraryFiles reader = (LibraryFiles)it.next();
+            if (reader.lib == lib) return reader;
+        }
+        return null;
+    }
 
 	// *************************** THE CELL CLEANUP INTERFACE ***************************
 
