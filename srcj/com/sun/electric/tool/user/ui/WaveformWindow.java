@@ -2262,33 +2262,46 @@ public class WaveformWindow implements WindowContent
 			public void actionPerformed(ActionEvent evt) { growPanels(0.8); }
 		});
 
+		// the time section that shows the value of the main and extension cursors
+		JPanel timeLabelPanel = new JPanel();
+		timeLabelPanel.setLayout(new GridBagLayout());
+		gbc.gridx = 10;       gbc.gridy = 0;
+		gbc.gridwidth = 3;   gbc.gridheight = 1;
+		gbc.weightx = 0;     gbc.weighty = 0;
+		gbc.anchor = GridBagConstraints.CENTER;
+		gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
+		gbc.insets = new Insets(0, 4, 0, 4);
+		overall.add(timeLabelPanel, gbc);
+
 		mainPos = new JLabel("Main:");
 		mainPos.setToolTipText("The main (white) time cursor");
-		gbc.gridx = 10;       gbc.gridy = 0;
+		gbc.gridx = 0;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
-		gbc.weightx = 0.3;   gbc.weighty = 0;
+		gbc.weightx = 0.3;     gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
-		gbc.fill = java.awt.GridBagConstraints.NONE;
+		gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
 		gbc.insets = new Insets(0, 0, 0, 0);
-		overall.add(mainPos, gbc);
+		timeLabelPanel.add(mainPos, gbc);
+
 		extPos = new JLabel("Ext:");
 		extPos.setToolTipText("The extension (yellow) time cursor");
-		gbc.gridx = 11;       gbc.gridy = 0;
+		gbc.gridx = 1;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
-		gbc.weightx = 0.3;   gbc.weighty = 0;
+		gbc.weightx = 0.3;     gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
-		gbc.fill = java.awt.GridBagConstraints.NONE;
+		gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
 		gbc.insets = new Insets(0, 0, 0, 0);
-		overall.add(extPos, gbc);
+		timeLabelPanel.add(extPos, gbc);
+
 		delta = new JLabel("Delta:");
 		delta.setToolTipText("Time distance between cursors");
-		gbc.gridx = 12;       gbc.gridy = 0;
+		gbc.gridx = 2;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
-		gbc.weightx = 0.3;   gbc.weighty = 0;
+		gbc.weightx = 0.3;     gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
-		gbc.fill = java.awt.GridBagConstraints.NONE;
+		gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
 		gbc.insets = new Insets(0, 0, 0, 0);
-		overall.add(delta, gbc);
+		timeLabelPanel.add(delta, gbc);
 
 		// add VCR controls
 		JButton vcrButtonRewind = new JButton(iconVCRRewind);
@@ -2939,6 +2952,7 @@ public class WaveformWindow implements WindowContent
 					if (range == 0) range = 2;
 					double rangeExtra = range / 10;
 					wp.setValueRange(lowValue - rangeExtra, highValue + rangeExtra);
+					wp.makeSelectedPanel();
 				}
 			}
 			Signal wsig = new Signal(wp, sSig);

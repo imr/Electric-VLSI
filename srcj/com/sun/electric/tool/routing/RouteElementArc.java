@@ -314,7 +314,7 @@ public class RouteElementArc extends RouteElement {
             }
             setDone();
             arcInst = newAi;
-            arcInst.copyConstraints(inheritFrom);
+            arcInst.copyPropertiesFrom(inheritFrom);
             return newAi;
         }
         if (getAction() == RouteElementAction.deleteArc) {

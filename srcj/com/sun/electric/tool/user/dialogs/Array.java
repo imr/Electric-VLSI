@@ -545,7 +545,8 @@ public class Array extends EDialog
 					ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), pi0,
 						new Point2D.Double(cX0+xOff0, cY0+yOff0), pi1, new Point2D.Double(cX1+xOff1, cY1+yOff1), null);
 					if (newAi == null) return false;
-					newAi.copyVarsFrom(ai);
+					newAi.copyPropertiesFrom(ai);
+
 					if (lastAddNames)
 					{
 						setNewName(newAi, x, y);

@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01n: *********************************
 
+BUG: (9/10/04, SMR) Arraying arcs doesn't copy their constraining properties.
+FIX: Array code calls "copyPropertiesFrom()".
+
+IMP/MAN: (9/10/04, SMR) Added David Harris's ROM generator.
+
+BUG: (9/9/4, SMR) Area-erase doesn't work in schematics.
+
 IMP: (9/9/04, GVG) DRC Adding warning messages when zero width arcs are detected (covered or non-covered by other layers).
 
 BUG: (9/9/04, RK) NCC Memory usage optimization. On small test case: LoCo fourMemories NCC uses 1/3 of the memory. Hierarchical comparison of LoCo is now 3x faster with these optimizations.

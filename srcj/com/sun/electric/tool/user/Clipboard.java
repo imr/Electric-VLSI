@@ -933,7 +933,7 @@ public class Clipboard
 		}
 
 		// make sure the constraints and other userbits are the same
-        destArc.copyConstraints(srcArc);
+        destArc.copyPropertiesFrom(srcArc);
 		return destArc;
 	}
 

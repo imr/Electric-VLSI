@@ -43,6 +43,7 @@ import com.sun.electric.tool.routing.MimicStitch;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.generator.PadGenerator;
+import com.sun.electric.tool.generator.ROMGenerator;
 import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.database.variable.*;
@@ -282,8 +283,10 @@ public class ToolMenu {
         toolMenu.add(generationSubMenu);
         generationSubMenu.addMenuItem("Coverage Implants Generator", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) {layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, false);}});
-        generationSubMenu.addMenuItem("Pad Frame Generator", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
+		generationSubMenu.addMenuItem("Pad Frame Generator", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
+		generationSubMenu.addMenuItem("ROM Generator...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ROMGenerator.generateROM(); }});
 //		generationSubMenu.addMenuItem("Generate gate layouts", null,
 //			new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateLayoutGenerator(); }});
 

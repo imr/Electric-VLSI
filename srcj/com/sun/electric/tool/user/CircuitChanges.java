@@ -1428,7 +1428,7 @@ public class CircuitChanges
 						continue;
 					}
 					newName = null;
-					ai1.copyProperties(ai);
+					ai1.copyPropertiesFrom(ai);
 				}
 				if (!headPt.equals(headPtAdj))
 				{
@@ -1448,7 +1448,7 @@ public class CircuitChanges
 						System.out.println("Error shortening arc "+ai.describe());
 						continue;
 					}
-					ai1.copyProperties(ai);
+					ai1.copyPropertiesFrom(ai);
 				}
 				ai.kill();
 			}
@@ -2367,7 +2367,7 @@ public class CircuitChanges
 				ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), piHead, ai.getHead().getLocation(),
 					piTail, ai.getTail().getLocation(), name);
 				if (newAi == null) return false;
-				newAi.copyProperties(ai);
+				newAi.copyPropertiesFrom(ai);
 			}
 			System.out.println("Cell " + cell.describe() + " created");
 			return true;
@@ -2508,7 +2508,7 @@ public class CircuitChanges
 				name = ElectricObject.uniqueObjectName(ai.getName(), cell, ArcInst.class);
 			ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), piHead, ptHead, piTail, ptTail, name);
 			if (newAi == null) return;
-			newAi.copyProperties(ai);
+			newAi.copyPropertiesFrom(ai);
 		}
 
 		// replace arcs to the cell
@@ -2545,7 +2545,7 @@ public class CircuitChanges
 			ai.kill();
 			ArcInst newAi = ArcInst.makeInstance(ap, wid, pis[0], pts[0], pis[1], pts[1], name);
 			if (newAi == null) return;
-            newAi.copyProperties(ai);
+            newAi.copyPropertiesFrom(ai);
 		}
 
 		// replace the exports

@@ -1094,16 +1094,15 @@ public class ArcInst extends Geometric
 	public ArcProto getProto() { return protoType; }
 
     /**
-     * Copies all properties (variables, constraints, name, and textdescriptor)
+     * Copies all properties (variables, constraints, and textdescriptor)
      * from 'fraomAi' to this arcinst. This is basically the same as calling
-     * copyVarsFrom(), copyConstraints(), and setTextDescriptor().
+     * copyVarsFrom(), copyConstraintsFrom(), and setTextDescriptor().
      * @param fromAi the arc from which to copy all arc properties
      */
-    public void copyProperties(ArcInst fromAi) {
+    public void copyPropertiesFrom(ArcInst fromAi) {
         if (fromAi == null) return;
         copyVarsFrom(fromAi);
-        copyConstraints(fromAi);
-//        setName(fromAi.getName());
+		copyConstraintsFrom(fromAi);
         setNameTextDescriptor(fromAi.getNameTextDescriptor());
     }
 
@@ -1111,7 +1110,7 @@ public class ArcInst extends Geometric
      * Copies constraints (Rigid, Ends Extended, etc) from another arcinst to this arcinst
      * @param fromAi the arcinst from which to copy constraints
      */
-    public void copyConstraints(ArcInst fromAi) {
+    public void copyConstraintsFrom(ArcInst fromAi) {
         if (fromAi == null) return;
         /*
         setRigid(fromAi.isRigid());
@@ -1126,6 +1125,8 @@ public class ArcInst extends Geometric
         */
         // equivalent:
         lowLevelSetUserbits(fromAi.lowLevelGetUserbits());
+		getHead().setNegated(fromAi.getHead().isNegated());
+		getTail().setNegated(fromAi.getTail().isNegated());
     }
 
 	/**
