@@ -8,6 +8,7 @@
 // package java.lang;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
 class FloatingDecimal{
     boolean	isExceptional;
@@ -1812,8 +1813,6 @@ class FloatingDecimal{
      * See BigDecimal for roundingMode constants.
      */
     public double doubleValue(int roundingMode) {
-	if (roundingMode < BigDecimal.ROUND_UP || roundingMode > BigDecimal.ROUND_UNNECESSARY)
-	    throw new IllegalArgumentException("Invalid rounding mode");
 	return floatingValue(roundingMode, true);
     }
 
@@ -1823,16 +1822,48 @@ class FloatingDecimal{
      * See BigDecimal for roundingMode constants.
      */
     public double floatValue(int roundingMode) {
-	if (roundingMode < BigDecimal.ROUND_UP || roundingMode > BigDecimal.ROUND_UNNECESSARY)
-	    throw new IllegalArgumentException("Invalid rounding mode");
 	return floatingValue(roundingMode, false);
     }
 
     private double floatingValue(int roundingMode, boolean doublePrecision) {
-	boolean roundHalf =
-	    (roundingMode == BigDecimal.ROUND_HALF_EVEN) ||
-	    (roundingMode == BigDecimal.ROUND_HALF_UP) ||
-	    (roundingMode == BigDecimal.ROUND_HALF_DOWN);
+	boolean roundHalf;
+	boolean roundUp = false;
+	switch (roundingMode) {
+	    case BigDecimal.ROUND_UP:
+		roundHalf = false;
+		roundUp = true;
+		break;
+	    case BigDecimal.ROUND_DOWN:
+		roundHalf = false;
+		roundUp = false;
+		break;
+	    case BigDecimal.ROUND_CEILING:
+		roundHalf = false;
+		roundUp = !isNegative;
+		break;
+	    case BigDecimal.ROUND_FLOOR:
+		roundHalf = false;
+		roundUp = isNegative;
+		break;
+	    case BigDecimal.ROUND_HALF_UP:
+		roundHalf = true;
+		roundUp = true;
+		break;
+	    case BigDecimal.ROUND_HALF_DOWN:
+		roundHalf = true;
+		roundUp = false;
+		break;
+	    case BigDecimal.ROUND_HALF_EVEN:
+		roundHalf = true;
+		// roundUp may be refined later
+		break;
+	    case BigDecimal.ROUND_UNNECESSARY:
+		roundHalf = false;
+		// roundUp is not applicable
+		break;
+	    default:
+		throw new IllegalArgumentException("Invalid rounding mode");
+	}
 
 	// First, check for NaN and Infinity values 
 	if(digits == notANumber)
@@ -1840,13 +1871,9 @@ class FloatingDecimal{
 	if(digits == infinity)
 	    return isNegative?Double.NEGATIVE_INFINITY:Double.POSITIVE_INFINITY;
 
+	BigDecimal Ev = null; // "Ev = 0.digits * 10^decExponent" -- assert-only
 	int pentExp = decExponent - nDigits;
-	/*
-	 * The exact value is
-	 * "Ev = 0.digits * 10^decExponent"
-	 * "Ev = digits.0 * 10^(decExponent - nDigits)"
-	 * "Ev = digits.0 * 2^(decExponent - nDigits) * 5^pentExp"
-	 */
+	// "Ev = digits.0 * 2^(decExponent - nDigits) * 5^pentExp"
 
 	// Cancel "5" factors from significand when "pentExp" is negative.
 	char[] localDigits = digits;
@@ -1862,10 +1889,10 @@ class FloatingDecimal{
 		for (int i = nDigits - 2; i >= nZeros; i--) {
 		    char c = localDigits[i];
 		    if (c >= '5') {
-			c = (char)( ((int)c)<<1 - ((int)'0' + 10) + carry );
+			c = (char)( (((int)c)<<1) - ((int)'0' + 10) + carry );
 			carry = 1;
 		    } else {
-			c = (char)( ((int)c)<<1 - (int)'0' + carry );
+			c = (char)( (((int)c)<<1) - (int)'0' + carry );
 			carry = 0;
 		    }
 		    localDigits[i + 1] = c;
@@ -1879,12 +1906,13 @@ class FloatingDecimal{
 	    nLocalDigits = nDigits - nZeros;
 	    System.arraycopy(localDigits, nZeros, localDigits, 0, nLocalDigits);
 	}
-	/*
-	 * "Ev = localDigits.0 * 2^(decExponent - nDigits) * 5^pentExp"
-	 */
+	// "Ev = localDigits.0 * 2^(decExponent - nDigits) * 5^pentExp"
+	assert (Ev = new BigDecimal(this.toString()).abs()).compareTo
+	    (multPow52(checkLocalDigits(localDigits, nLocalDigits), pentExp, decExponent - nDigits)) == 0;
 
 	// Convert "localDigits" to "bits".
 	int binExp;
+	BigInteger Bits = null; // assert-only
 	int nBits; // size of "bits".
 	int wBits; // size of "bits" in words.
 	long lBits; // Left-adjusted higher "bits".
@@ -1951,18 +1979,45 @@ class FloatingDecimal{
 	    }
 	    // Calculate "nBits".
 	    nBits = 32*wBits - trailingZeroCnt(wBits == 2 ? (int)lBits : wBits == 1 ? (int)(lBits >>> 32) : bBits.data[0]);
-	    System.out.println("nBits=" + nBits + " wBits=" + wBits + " lBits=" + Long.toHexString(lBits));
 	}
-	// "Ev == 0.bits * 2^(binExp + decExponent - nDigits) * 5^pentExp".
 	binExp += decExponent - nDigits;
-	// "Ev == 0.bits * 2^binExp * 5^pentExp" now.
+	// "Ev == 0.bits * 2^binExp * 5^pentExp".
+	assert Ev.compareTo(multPow52(Bits = checkBits(nBits, wBits, lBits, bBits), pentExp, binExp - nBits)) == 0;
+
+	boolean negativePentExp;
+	int threshExp;
+	Pow5 p5;
+	if (pentExp >= 0) {
+	    negativePentExp = false;
+	    p5 = pow5(pentExp);
+	    threshExp = binExp + p5.nBits;
+	} else {
+	    negativePentExp = true;
+	    p5 = pow5(-pentExp);
+	    threshExp = binExp - p5.nBits + 1;
+	}
+	// "2^(threshExp - 2) <= Ev < 2^threshExp"
+	assert Ev.compareTo(multPow52(BigInteger.ONE, 0, threshExp - 2)) >= 0;
+	assert Ev.compareTo(multPow52(BigInteger.ONE, 0, threshExp)) < 0;
+
+	int minBinExp = (doublePrecision ? minBinaryExponent : singleMinBinaryExponent);
+	if (threshExp <= minBinExp && (threshExp < minBinExp || !roundHalf)) {
+	    if (roundingMode == BigDecimal.ROUND_UNNECESSARY)      /* Rounding prohibited */
+		throw new ArithmeticException("Rounding necessary");
+	    double res;
+	    if (roundUp && !roundHalf)
+		res = (doublePrecision ? Double.MIN_VALUE : Float.MIN_VALUE);
+	    else
+		res = 0.0;
+	    return isNegative?-res:res;
+	}
 
 	/*
 	 * It is possible to leave only two adjacent floating-point candidates
 	 * using 64-bit computations. The code below will put threshold between
 	 * the floating point candidates into variables "threadExp" and "thresh".
 	 * It also computed "diff = Diff(2), where Diff(m) is defined below.
-	 * Threshold is "T = 0.thresh * 2^threshExp". Zero value of "thresh" may
+	 * Threshold is "Th = 0.thresh * 2^threshExp". Zero value of "thresh" may
 	 * indicate also that treshold "T = 2^n" for "n >= threshExp". 
 	 *
 	 * Let "x = 0.bits * 2^p" is a floating number, define
@@ -1976,18 +2031,14 @@ class FloatingDecimal{
 	 * Let "Ev = M * 5^pentExp = (0.bits * 2^binExp) * 5^pentExp
 	 *
 	 * Define
-	 *   "Diff(m) = (Mult(M, P, m) - T) * 2^(32*(m + 1) - threshExp)", when "pentExp >= 0".
-	 *   "Diff(m) = (Mult(T, P, m) - 0.5*Trunc(M, m)) * 2^(32*(m + 1) - binExp)", when "pentExp < 0".
+	 *   "Diff(m) = (Mult(M, P, m) - Th) * 2^(32*(m + 1) - threshExp)", when "pentExp >= 0".
+	 *   "Diff(m) = (Mult(Th, P, m) - 0.5*Trunc(M, m)) * 2^(32*(m + 1) - binExp)", when "pentExp < 0".
 	 */
-	int threshExp; // binary exponent of threshold "T"
+	BigDecimal Th = null;
 	long thresh; // bits "0.thresh" of threshold "T"
 	long diff;
-	Pow5 p5 = pow5(Math.abs(pentExp));
-	boolean p5divide;
 	if (pentExp >= 0) { // multiply "0.bits" by p5
 	    // Approximation will be "B = 0.sumH * 2^binExp + 0.sumL * 2^(binExp - 32)"
-	    threshExp = binExp + p5.nBits;
-	    p5divide = false;
 	    long sumH, sumL;
 	    if (nBits + p5.nBits <= 64) {
 		sumH = (lBits >>> p5.nBits)*(p5.lBits >>> (64 - p5.nBits));
@@ -2006,24 +2057,18 @@ class FloatingDecimal{
 		sumH += (lBits >>> 32)*(p5.lBits >>> 32) + (sumL >>> 32);
 		sumL &= LONG_MASK;
 	    }
-	    thresh = roundingThreshold(threshExp, sumH, roundHalf, doublePrecision);
-	    System.out.println("sumH=" + Long.toHexString(sumH));
-	    System.out.println("lBits=" + Long.toHexString(lBits));
-	    System.out.println("Thresh=" + Long.toHexString(thresh) + " " + ((double)(thresh >>> 1)) * (1L << threshExp - 63));
-	    System.out.println("Prod=" + ((double)(lBits >>> 1)) * ((double)(p5.lBits >>> 1)) * (1L << threshExp - 63) / (1L << 30) / (1L << 33));
+	    thresh = roundingThreshold(sumH, threshExp, roundHalf, doublePrecision);
 	    sumH -= thresh;
 	    diff = sumH > Integer.MAX_VALUE ? Long.MAX_VALUE :
 		sumH < Integer.MIN_VALUE ? -Long.MAX_VALUE :
 		(sumH << 32) | sumL;
 	} else { // pentExp < 0, divide "0.bits" by "p5"
-	    threshExp = binExp - p5.nBits + 1;
-	    p5divide = false;
-
 	    double dDenom = (double)(p5.lBits >>> 10); // 2^53 <= dDenom <= 2^54
 	    double d = (lBits >>> 11)/dDenom; // 2^52 <= (lBits >>> 11) < 2^53
 	    assert d < 1.0;
-	    final double two64 = 1.0*(1L<<32)*(1L<<32);
-	    thresh = roundingThreshold(threshExp, (long)(d*two64), roundHalf, doublePrecision);
+	    final double two63 = 1.0*(1L<<32)*(1L<<31);
+	    thresh = roundingThreshold((long)(d*two63) << 1, threshExp, roundHalf, doublePrecision);
+// 	    System.out.println("d=" + d + " " + Double.toHexString(d) + " " + Long.toHexString(thresh));
 
 	    // myltiply by higher 32 bits of thresh
 	    long sumL = (p5.lBits&LONG_MASK)*(thresh >>> 32);
@@ -2031,21 +2076,24 @@ class FloatingDecimal{
 	    sumL = (sumL&LONG_MASK) - ((lBits&1) << 31);
 
 	    if ((thresh & LONG_MASK) != 0 || !roundHalf && doublePrecision && threshExp > (minBinaryExponent + 32)) {
-		d = sumH/dDenom;
+		d = (sumH >> 10)/dDenom;
+// 		System.out.println("lBits=" + Long.toHexString(lBits) + " p5.lBits=" + Long.toHexString(p5.lBits) + " prod=" + Long.toHexString((p5.lBits >>> 32)*(thresh >>> 32)));
+// 		System.out.println("sumH=" + Long.toHexString(sumH) + " sumL=" + Long.toHexString(sumL));
 		long higherThresh = thresh & ~LONG_MASK;
-		thresh = roundingThreshold(threshExp, higherThresh + (long)(d*two64), roundHalf, doublePrecision);
+		thresh = roundingThreshold(higherThresh - ((long)(d*two63) << 1), threshExp, roundHalf, doublePrecision);
+// 		System.out.println("d=" + d + " " + Double.toHexString(d) + " " + Long.toHexString(thresh));
 		final long two32 = (1L<<32);
 		while (thresh - higherThresh < 0) {
 		    sumL = sumL - (p5.lBits&LONG_MASK);
 		    sumH = sumH - (p5.lBits >>> 32);
-		    higherThresh += two32;
+		    higherThresh -= two32;
 		}
 		while (thresh - higherThresh >= two32) {
 		    sumL = sumL + (p5.lBits&LONG_MASK);
 		    sumH = sumH + (p5.lBits >>> 32);
-		    higherThresh -= two32;
+		    higherThresh += two32;
 		}
-		long prod = (p5.lBits >>> 32)*(thresh >>> 32);
+		long prod = (p5.lBits >>> 32)*(thresh&LONG_MASK);
 		sumL += (prod&LONG_MASK);
 		sumH += (prod >>> 32);
 	    }
@@ -2056,6 +2104,7 @@ class FloatingDecimal{
 		((sumH << 32) | sumL);
 	}
 	// "thresh == 0" or "diff == Diff(2)"
+	assert (Th = checkThresh(thresh, threshExp, roundHalf, doublePrecision)) != null;
 
 	boolean asUpper = false;
 	switch (roundingMode) {
@@ -2079,7 +2128,7 @@ class FloatingDecimal{
 		break;
 	    case BigDecimal.ROUND_HALF_EVEN:
 		long mask = ~(thresh|-thresh); // mask of trailing zeros
-		assert (mask&0x3ffL) == 0x3ffL : mask;
+		assert (mask&0x1ffL) == 0x1ffL : mask;
 		asUpper = (((thresh >>> 1)&mask) >>> 1) != ((thresh >>> 2)&mask); // last two bits are '11'
 		break;
 	    case BigDecimal.ROUND_UNNECESSARY:
@@ -2087,29 +2136,22 @@ class FloatingDecimal{
 		break;
 	}
 	// asUpper = (ROUND(thresh) == ROUND(thresh + eps))
-	boolean diffAsPositive = asUpper ^ p5divide; // diff==0 similar as diff>0
-
-	int minBinExp = doublePrecision ? minBinaryExponent : singleMinBinaryExponent;
-	if (threshExp <= minBinExp && thresh == 0) {
-	    // Force thresh to be Double.MIN_VALUE or Float.MIN_VALUE
-	    thresh = signMask;
-	    binExp = minBinExp;
-	    diff = (p5divide ? Long.MAX_VALUE : -Long.MAX_VALUE);
-	}
+	boolean diffAsPositive = asUpper ^ negativePentExp; // diff==0 similar as diff>0
 
 	int w;
 	long l;
-	if (p5divide) {
+	if (negativePentExp) {
 	    w = (thresh&LONG_MASK) != 0 ? 2 : 1;
 	    l = thresh;
 	} else {
 	    w = wBits;
 	    l = lBits;
 	}
+// 	System.out.println("Ev=" + Ev + " Th=" + Th + " diff=" + diff);
 	for (int m = 2; m < w + p5.bBits.nWords; m++) {
 	    int minW = Math.max(0, m - p5.bBits.nWords);
 	    int maxW = Math.min(m, w - 1);
-	    int inf = p5divide && m < wBits ? -Integer.MAX_VALUE : 0;
+	    int inf = negativePentExp && m < wBits ? -Integer.MAX_VALUE : 0;
 	    int sup = (maxW - minW + 1) << 32;
 	    if (diff >= -inf) {
 		if (diff > -inf) break;
@@ -2127,7 +2169,7 @@ class FloatingDecimal{
 		sumH += prod >>> 32;
 		i++;
 	    }
-	    if (p5divide && m < wBits) {
+	    if (negativePentExp && m < wBits) {
 		sumH -= (bBits.data[m] >>> 1);
 		sumL -= (bBits.data[m]&1) << 31;
 	    }
@@ -2137,9 +2179,11 @@ class FloatingDecimal{
 		sumH < Integer.MIN_VALUE ? Long.MIN_VALUE :
 		((sumH << 32) | sumL);
 	}
-	
+// 	System.out.println("Ev=" + Ev + " Th=" + Th + " diff=" + diff);
+	assert(checkDiff(Ev, Th, pentExp).signum() == Math.signum(diff));
+
 	// Calculate correction
-	if (p5divide)
+	if (negativePentExp)
 	    diff = -diff;
 	if (diff != 0 && roundingMode == BigDecimal.ROUND_UNNECESSARY)      /* Rounding prohibited */
 	    throw new ArithmeticException("Rounding necessary");
@@ -2178,7 +2222,7 @@ class FloatingDecimal{
 	    if (isNegative)
 		ieee |= signMask;
 	    ieee += correction;
-	    System.out.println("threshExp=" + threshExp + " " + Long.toHexString(thresh) + " ieee=" + Long.toHexString(ieee));
+	    // System.out.println("threshExp=" + threshExp + " " + Long.toHexString(thresh) + " ieee=" + Long.toHexString(ieee));
 	    return Double.longBitsToDouble(ieee);
 	} else {
 	    assert threshExp >= singleMinBinaryExponent;
@@ -2200,25 +2244,142 @@ class FloatingDecimal{
 	}
     }
 
-    public static void main(String[] args) {
-	String s = "3e27";
-	double d1 = Double.parseDouble(s);
+    public static void perform() {
+	//String s = "3.1231431231231892e100";
+	String s = "3e-100";
 	FloatingDecimal fd = readJavaFormatString(s);
-	double d2 = fd.doubleValue(BigDecimal.ROUND_HALF_EVEN);
-	System.out.println("s=" + s);
-	System.out.println(Double.toHexString(d1));
-	System.out.println(Double.toHexString(d2));
+	for (int i = 0; i < 100000; i++) {
+	    fd.doubleValue();
+	    fd.doubleValue(BigDecimal.ROUND_HALF_EVEN);
+	}
+	System.out.println("Warm");
+
+	long startTime1 = System.currentTimeMillis();
+	for (int i = 0; i < 1000000; i++) {
+	    fd.doubleValue();
+	}
+	long endTime1 = System.currentTimeMillis();
+	System.out.println("**** doubleValue() took " + (endTime1-startTime1) + " mSec =" + s);
+
+	long startTime2 = System.currentTimeMillis();
+	for (int i = 0; i < 1000000; i++) {
+	    fd.doubleValue(BigDecimal.ROUND_HALF_EVEN);
+	}
+	long endTime2 = System.currentTimeMillis();
+	System.out.println("**** doubleValue() took " + (endTime2-startTime2) + " mSec =" + s);
+    }
+
+    public static void main(String[] args) {
+	String ss[] = { "0", "1", "2", "3", "3e100", "0.5", "3.1231431231231892e100", "0.1", "0.2", "0.3", "3e-100"};
+	for (int i = 0; i < ss.length; i++) {
+	    String s = ss[i];
+	    System.out.println("s=" + s);
+	    double d1 = Double.parseDouble(s);
+	    FloatingDecimal fd = readJavaFormatString(s);
+	    double d2 = fd.doubleValue(BigDecimal.ROUND_HALF_EVEN);
+	    System.out.println(Double.toHexString(d1));
+	    System.out.println(Double.toHexString(d2));
+	    if (d1 != d2)
+		System.out.println("DIFFERENT");
+	}
+
+	perform();
+    }
+
+    private BigDecimal multPow52(BigInteger unscaledValue, int p5, int p2) {
+	int scale = -Math.min(p5, p2);
+	unscaledValue = unscaledValue.multiply(BigInteger.valueOf(5).pow(p5 + scale));
+	unscaledValue = unscaledValue.multiply(BigInteger.valueOf(2).pow(p2 + scale));
+	return new BigDecimal(unscaledValue, scale);
+    }
+
+    private BigInteger checkLong(long value) {
+	return BigInteger.valueOf(value >>> 32).shiftLeft(32).or(BigInteger.valueOf(value & LONG_MASK));
+    }
+
+    private BigInteger checkLocalDigits(char[] localDigits, int nLocalDigits) {
+	assert nLocalDigits > 0;
+	assert localDigits[0] != '0' || nLocalDigits == 1;
+	assert localDigits[nLocalDigits - 1] != '5';
+	return new BigInteger(new String(localDigits, 0, nLocalDigits), 10);
+    }
+
+    private BigInteger checkBits(int nBits, int wBits, long lBits, FDBigInt bBits) {
+	BigInteger bits;
+	if (bBits != null) {
+	    assert (bBits.data[bBits.nWords - 1] & singleSignMask) != 0;
+	    byte[] bytes = new byte[bBits.nWords*4+1];
+	    bytes[0] = 0;
+	    for (int i = 0; i < wBits; i++) {
+		int w = bBits.data[bBits.nWords - i - 1];
+		bytes[i*4+1] = (byte)(w >> 24);
+		bytes[i*4+2] = (byte)(w >> 16);
+		bytes[i*4+3] = (byte)(w >>  8);
+		bytes[i*4+4] = (byte)(w >>  0);
+	    }
+	    bits = new BigInteger(bytes);
+	} else {
+	    assert (lBits & signMask) != 0;
+	    bits = BigInteger.valueOf(lBits >>> 32);
+	    long lowerInt = lBits & LONG_MASK;
+	    if (lowerInt != 0)
+		bits = bits.shiftLeft(32).or(BigInteger.valueOf(lowerInt));
+	}
+	assert bits.signum() > 0;
+	assert bits.bitLength() == wBits*32;
+
+	int trailingZeros = bits.getLowestSetBit();
+	assert trailingZeros < 32;
+	bits = bits.shiftRight(trailingZeros);
+
+	assert bits.bitLength() == nBits;
+	assert checkLong(lBits).compareTo(bits.shiftRight(nBits - 64)) == 0;
+
+	return bits;
+    }
+
+    private BigDecimal checkThresh(long threshBits, int threshExp, boolean roundHalf, boolean doublePrecision) {
+	assert threshBits == 0 || (threshBits >>> 62) != 0; // thresh bits are semi-normalized
+	int minExp = (doublePrecision ? minBinaryExponent : singleMinBinaryExponent);
+	assert threshExp > (roundHalf ? minExp - 1 : minExp);
+	int ieeeExp = threshExp - (threshBits == 0 ? 0 : (threshBits & signMask) != 0 ? 1 : 2);
+	int ulpExp = Math.max(ieeeExp - (doublePrecision ? expShift :singleExpShift), minExp);
+	int ulpShift = ulpExp - (threshExp - 64);
+	for (int i = 0; i < 63; i++) {
+	    boolean bi = ((threshBits >> i) & 1) != 0;
+	    if (ulpExp - 1 > threshExp - 64 + i)
+		assert !bi;
+	    if (ulpExp - 1 == threshExp - 64 + i)
+		assert bi == roundHalf;
+	}
+	byte[] bytes = new byte[9];
+	bytes[0] = (byte)(threshBits == 0 ? 1 : 0);
+	for (int i = 0; i < 8; i++)
+	    bytes[i+1] = (byte)(threshBits >> (64 - 8*(i+1)));
+	return multPow52(new BigInteger(bytes), 0, threshExp - 64);
+    }
+
+    private BigDecimal checkDiff(BigDecimal ev, BigDecimal th, int pentExp) {
+	if (pentExp >= 0)
+	    return ev.subtract(th);
+	else
+	    return th.subtract(ev).multiply(multPow52(BigInteger.ONE, -pentExp, 0));
     }
 
     /*
-     * A threshold for a given floating precision and rounding mode is
-     * a real number "thresh = 0.threshBits * 2^threshExp" , such
-     * that for sufficiently small eps a real numnber (thresh - eps) is rounded
-     * to one of two adjacent floating numbers and a real number(thresh + eps)
-     * is rounded to another.
+     * A vicinity of floating-point number for a given flaoting precision and
+     * for a given rounding mode is a set of real numbers which rounds to this
+     * floating point number.
      *
-     * This routing finds for given "x = 0.bits * 2^threshExp" the threshold between
-     * floating number to which "x" is rounded and another neighbour floating number of "x".
+     * A threshold for a given floating precision and rounding mode is
+     * a real number "thresh = 0.threshBits * 2^threshExp" , which separates two
+     * adjacent vicinities. Threshold is between adjacent floating-point numbers, for
+     * HALF_* rounding modes and it is floating-point number otherwise.
+     *
+     * This routing finds for given "x = 0.bits * 2^threshExp" the "nearest" threshold.
+     * For HALF_* rounding modes, it returns middle of interval with floating-point
+     * endpoints, to which "x" belongs. For other rounding modes, it returns floating-point
+     * number which is ROUND_UP of "x".
      *
      * This routine knows about minimal binary exponent and subnormal numbers, but it
      * cosiders maximal binary exponent unlimited.
@@ -2227,7 +2388,7 @@ class FloatingDecimal{
      * It can't be represented with the same exponent "threshExp". In this case this routine
      * returns 0.
      */
-    static long roundingThreshold(int threshExp, long bits, boolean roundHalf, boolean doublePrecision) {
+    static long roundingThreshold(long bits, int threshExp, boolean roundHalf, boolean doublePrecision) {
 	final int doubleShift = 63 - (expShift + 1);
 	final int singleShift = 63 - (singleExpShift + 1);
 	final int doubleSubnormalShift = 63 + minBinaryExponent;
