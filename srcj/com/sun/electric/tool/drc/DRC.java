@@ -711,20 +711,6 @@ public class DRC extends Listener
 	 */
 	public static void setIgnoreAreaChecking(boolean on) { cacheIgnoreAreaChecking.setBoolean(on); }
 
-    private static Pref cacheIgnoreHierarchicalAreaChecking = Pref.makeBooleanPref("IgnoreHierarchicalAreaCheck", DRC.tool.prefs, false);
-    static { cacheIgnoreHierarchicalAreaChecking.attachToObject(DRC.tool, "Tools/DRC tab", "DRC ignores hierarchical area checking"); }
-	/**
-	 * Method to tell whether DRC should performance hierarchical area checking.
-	 * The default is "false".
-	 * @return true if DRC should performance hierarchical area checking.
-	 */
-	public static boolean isIgnoreHierarchicalAreaChecking() { return cacheIgnoreHierarchicalAreaChecking.getBoolean(); }
-	/**
-	 * Method to set whether DRC should performance hierarchical area checking.
-	 * @param on true if DRC should performance hierarchical area checking.
-	 */
-	public static void setIgnoreHierarchicalAreaChecking(boolean on) { cacheIgnoreHierarchicalAreaChecking.setBoolean(on); }
-
     private static Pref cacheIgnorePolySelectChecking = Pref.makeBooleanPref("IgnorePolySelectCheck", DRC.tool.prefs, false);
     static { cacheIgnorePolySelectChecking.attachToObject(DRC.tool, "Tools/DRC tab", "DRC ignores polysilicon select rule checking"); }
 	/**
