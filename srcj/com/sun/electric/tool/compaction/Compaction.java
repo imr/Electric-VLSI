@@ -146,6 +146,7 @@ public class Compaction extends Listener
 
 		private static class LINE
 		{
+			private int     index;
 			private double  val;
 			private double  low, high;
 			private double  top, bottom;
@@ -154,8 +155,9 @@ public class Compaction extends Listener
 			private LINE    prevline;
 		};
 
-		private double    com_maxboundary, com_lowbound;
-		private int    com_flatindex;			/* counter for unique network numbers */
+		private double  com_maxboundary, com_lowbound;
+		private int     com_flatindex;			/* counter for unique network numbers */
+		private int     lineIndex = 0;
 
 		private CompactCell(Cell cell)
 		{
@@ -267,15 +269,11 @@ public class Compaction extends Listener
 
 for(LINE cur_line = linecomp; cur_line != null; cur_line = cur_line.nextline)
 {
-	System.out.print("LINE FROM "+cur_line.low+" TO "+cur_line.high+":");
+	System.out.print("LINE " + cur_line.index + " FROM "+cur_line.low+" TO "+cur_line.high+":");
 	for(OBJECT o = cur_line.firstobject; o != null; o = o.nextobject)
 		System.out.print(" "+o.inst.describe());
 	System.out.println();
 }
-System.out.print("PERPENDICULAR:");
-for(OBJECT o = otherobject[0]; o != null; o = o.nextobject)
-	System.out.print(" "+o.inst.describe());
-System.out.println();
 
 			// prevent the stretching line from sliding
 			HashSet clearedArcs = com_noslide(linestretch);
@@ -300,7 +298,7 @@ System.out.println();
 		private boolean com_compact(LINE line, LINE other_line, Axis axis, boolean change, Cell cell)
 		{
 			boolean spread = isAllowsSpreading();
-System.out.println("***IN COMPACT");
+
 			// loop through all lines that may compact
 			for(LINE cur_line = line.nextline; cur_line != null; cur_line = cur_line.nextline)
 			{
@@ -311,12 +309,14 @@ System.out.println("***IN COMPACT");
 					// look at all previous lines
 					for(LINE prev_line = cur_line.prevline; prev_line != null; prev_line = prev_line.prevline)
 					{
+System.out.println("COMPARING LINEs "+cur_line.index+" AND "+prev_line.index);
 						// no need to test this line if it is farther than best motion
 						if (best_motion != DEFAULT_VAL &&
 							cur_line.low - prev_line.high > best_motion) continue;
 
 						// simple object compaction
 						double this_motion = com_checkinst(cur_object, prev_line, axis, cell);
+System.out.println("   OBJECT "+cur_object.inst.describe()+" HAS DISTANCE "+this_motion+" TO LINE "+prev_line.index);
 						if (this_motion == DEFAULT_VAL) continue;
 						if (best_motion == DEFAULT_VAL || this_motion < best_motion)
 						{
@@ -330,6 +330,7 @@ System.out.println("***IN COMPACT");
 					// no constraints: allow overlap
 					best_motion = cur_line.low - com_lowbound;
 				}
+System.out.println("BEST MOTION FOR LINES IS "+best_motion);
 				if (best_motion > 0 || (spread && best_motion < 0))
 				{
 					if (axis == HORIZONTAL)
@@ -698,7 +699,6 @@ System.out.println("MOVE NODE "+ni.describe()+" BY ("+(-movex)+","+(-movey)+")")
 				{
 					if (!(cur_object.inst instanceof NodeInst))    // arc rigid
 					{
-System.out.println("TEMP RIGID: "+((ArcInst)cur_object.inst).describe());
 						Layout.setTempRigid((ArcInst)cur_object.inst, true);
 					}
 				}
@@ -709,7 +709,6 @@ System.out.println("TEMP RIGID: "+((ArcInst)cur_object.inst).describe());
 				{
 					if (!(cur_object.inst instanceof NodeInst))   // arc unrigid
 					{
-System.out.println("TEMP UNRIGID: "+((ArcInst)cur_object.inst).describe());
 						Layout.setTempRigid((ArcInst)cur_object.inst, false);
 					}
 				}
@@ -728,7 +727,6 @@ System.out.println("TEMP UNRIGID: "+((ArcInst)cur_object.inst).describe());
 				{
 					if (!(cur_object.inst instanceof NodeInst))
 					{
-System.out.println("REMOVE TEMP RIGID: "+((ArcInst)cur_object.inst).describe());
 						Layout.removeTempRigid((ArcInst)cur_object.inst);
 					}
 				}
@@ -739,7 +737,6 @@ System.out.println("REMOVE TEMP RIGID: "+((ArcInst)cur_object.inst).describe());
 				{
 					if (!(cur_object.inst instanceof NodeInst))
 					{
-System.out.println("REMOVE TEMP RIGID: "+((ArcInst)cur_object.inst).describe());
 						Layout.removeTempRigid((ArcInst)cur_object.inst);
 					}
 				}
@@ -903,6 +900,7 @@ System.out.println("REMOVE TEMP RIGID: "+((ArcInst)cur_object.inst).describe());
 		private LINE com_make_object_line(LINE line, OBJECT object)
 		{
 			LINE new_line = new LINE();
+			new_line.index = lineIndex++;
 			new_line.nextline = line;
 			new_line.prevline = null;
 			new_line.firstobject = object;

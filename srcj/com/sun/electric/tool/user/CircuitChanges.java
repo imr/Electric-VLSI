@@ -4131,6 +4131,7 @@ public class CircuitChanges
 	 * is a top-level request.  Otherwise, this is for a subcell, so only create a
 	 * new cell if one with the same name and date doesn't already exists.
 	 */
+	private static HashSet cellsCopied = null;
 	public static Cell copyRecursively(Cell fromCell, String toName, Library toLib,
 		View toView, boolean verbose, boolean move, String subDescript, boolean noRelatedViews,
 		boolean noSubCells, boolean useExisting)
@@ -4138,16 +4139,15 @@ public class CircuitChanges
 		Date fromCellCreationDate = fromCell.getCreationDate();
 		Date fromCellRevisionDate = fromCell.getRevisionDate();
 
+		boolean topLevel = subDescript.length() == 0;
+		if (topLevel) cellsCopied = new HashSet();
+
 		// see if the cell is already there
-		for(Iterator it = toLib.getCells(); it.hasNext(); )
+		for(Iterator it = cellsCopied.iterator(); it.hasNext(); )
 		{
-			Cell newFromCell = (Cell)it.next();
-			if (!newFromCell.getName().equalsIgnoreCase(toName)) continue;
-			if (newFromCell.getView() != toView) continue;
-			if (!newFromCell.getCreationDate().equals(fromCell.getCreationDate())) continue;
-			if (!newFromCell.getRevisionDate().equals(fromCell.getRevisionDate())) continue;
-			if (subDescript != null) return newFromCell;
-			break;
+			Cell copiedCell = (Cell)it.next();
+			if (copiedCell.getName().equalsIgnoreCase(toName) && copiedCell.getView() == toView)
+				return copiedCell;
 		}
 
 		// copy subcells
@@ -4169,7 +4169,7 @@ public class CircuitChanges
 					if (cell.getLibrary() == toLib) continue;
 
 					// see if the cell is already there
-					if (inDestLib(cell, toLib)) continue;
+					if (inDestLib(cell)) continue;
 
 					// copy subcell if not already there
 					Cell oNp = copyRecursively(cell, cell.getName(), toLib, cell.getView(),
@@ -4201,7 +4201,7 @@ public class CircuitChanges
 					if (!np.isIcon()) continue;
 
 					// see if the cell is already there
-					if (inDestLib(np, toLib)) continue;
+					if (inDestLib(np)) continue;
 
 					// copy equivalent view if not already there
 					Cell oNp = copyRecursively(np, np.getName(), toLib, np.getView(),
@@ -4228,7 +4228,7 @@ public class CircuitChanges
 					if (np.isIcon()) continue;
 
 					// see if the cell is already there
-					if (inDestLib(np, toLib)) continue;
+					if (inDestLib(np)) continue;
 
 					// copy equivalent view if not already there
 					Cell oNp = copyRecursively(np, np.getName(), toLib, np.getView(),
@@ -4246,116 +4246,106 @@ public class CircuitChanges
 		}
 
 		// see if the cell is NOW there
-		Cell beforeNewFromCell = null;
-		Cell newFromCell = null;
-		for(Iterator it = toLib.getCells(); it.hasNext(); )
+		for(Iterator it = cellsCopied.iterator(); it.hasNext(); )
 		{
-			Cell thisCell = (Cell)it.next();
-			if (!thisCell.getName().equalsIgnoreCase(toName)) continue;
-			if (thisCell.getView() != toView) continue;
-			if (thisCell.getCreationDate() != fromCellCreationDate) continue;
-			if (!move && thisCell.getRevisionDate() != fromCellRevisionDate) continue; // moving icon of schematic changes schematic's revision date
-			if (subDescript != null) return thisCell;
-			newFromCell = thisCell;
-			break;
+			Cell copiedCell = (Cell)it.next();
+			if (copiedCell.getName().equalsIgnoreCase(toName) && copiedCell.getView() == toView)
+				return copiedCell;
 		}
-		if (beforeNewFromCell == newFromCell || newFromCell == null)
+
+		// copy the cell
+		String newName = toName;
+		if (toView.getAbbreviation().length() > 0)
 		{
-			// copy the cell
-			String newName = toName;
-			if (toView.getAbbreviation().length() > 0)
-			{
-				newName = toName + "{" + toView.getAbbreviation() + "}";
-			}
-			newFromCell = Cell.copyNodeProto(fromCell, toLib, newName, useExisting);
-			if (newFromCell == null)
-			{
-				if (move)
-				{
-					System.out.println("Move of " + subDescript + fromCell.describe() + " failed");
-				} else
-				{
-					System.out.println("Copy of " + subDescript + fromCell.describe() + " failed");
-				}
-				return null;
-			}
-
-            // Message before the delete!!
-			if (verbose)
-			{
-				if (fromCell.getLibrary() != toLib)
-				{
-					String msg = "";
-					if (move) msg += "Moved "; else
-						 msg += "Copied ";
-					msg += subDescript + fromCell.libDescribe() +
-						" to library " + toLib.getName();
-					System.out.println(msg);
-				} else
-				{
-					System.out.println("Copied " + subDescript + newFromCell.describe());
-				}
-			}
-
-			// if moving, adjust pointers and kill original cell
+			newName = toName + "{" + toView.getAbbreviation() + "}";
+		}
+		Cell newFromCell = Cell.copyNodeProto(fromCell, toLib, newName, useExisting);
+		if (newFromCell == null)
+		{
 			if (move)
 			{
-				// clear highlighting if the current node is being replaced
-//				list = us_gethighlighted(WANTNODEINST, 0, 0);
-//				for(i=0; list[i] != NOGEOM; i++)
-//				{
-//					if (!list[i]->entryisnode) continue;
-//					ni = list[i]->entryaddr.ni;
-//					if (ni->proto == fromCell) break;
-//				}
-//				if (list[i] != NOGEOM) us_clearhighlightcount();
+				System.out.println("Move of " + subDescript + fromCell.describe() + " failed");
+			} else
+			{
+				System.out.println("Copy of " + subDescript + fromCell.describe() + " failed");
+			}
+			return null;
+		}
 
-				// now replace old instances with the moved one
-				for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		// remember that this cell was copied
+		cellsCopied.add(newFromCell);
+
+        // Message before the delete!!
+		if (verbose)
+		{
+			if (fromCell.getLibrary() != toLib)
+			{
+				String msg = "";
+				if (move) msg += "Moved "; else
+					 msg += "Copied ";
+				msg += subDescript + fromCell.libDescribe() + " to library " + toLib.getName();
+				System.out.println(msg);
+			} else
+			{
+				System.out.println("Copied " + subDescript + newFromCell.describe());
+			}
+		}
+
+		// if moving, adjust pointers and kill original cell
+		if (move)
+		{
+			// clear highlighting if the current node is being replaced
+//			list = us_gethighlighted(WANTNODEINST, 0, 0);
+//			for(i=0; list[i] != NOGEOM; i++)
+//			{
+//				if (!list[i]->entryisnode) continue;
+//				ni = list[i]->entryaddr.ni;
+//				if (ni->proto == fromCell) break;
+//			}
+//			if (list[i] != NOGEOM) us_clearhighlightcount();
+
+			// now replace old instances with the moved one
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library lib = (Library)it.next();
+				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 				{
-					Library lib = (Library)it.next();
-					for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+					Cell np = (Cell)cIt.next();
+					boolean found = true;
+					while (found)
 					{
-						Cell np = (Cell)cIt.next();
-						boolean found = true;
-						while (found)
+						found = false;
+						for(Iterator nIt = np.getNodes(); nIt.hasNext(); )
 						{
-							found = false;
-							for(Iterator nIt = np.getNodes(); nIt.hasNext(); )
+							NodeInst ni = (NodeInst)nIt.next();
+							if (ni.getProto() == fromCell)
 							{
-								NodeInst ni = (NodeInst)nIt.next();
-								if (ni.getProto() == fromCell)
-								{
-									NodeInst replacedNi = ni.replace(newFromCell, false, false);
-									if (replacedNi == null)
-										System.out.println("Error moving node " + ni.describe() + " in cell " + np.describe());
-									found = true;
-									break;
-								}
+								NodeInst replacedNi = ni.replace(newFromCell, false, false);
+								if (replacedNi == null)
+									System.out.println("Error moving node " + ni.describe() + " in cell " + np.describe());
+								found = true;
+								break;
 							}
 						}
 					}
 				}
-				doKillCell(fromCell);
-				fromCell = null;
 			}
+			doKillCell(fromCell);
+			fromCell = null;
 		}
 		return newFromCell;
 	}
 
-	/*
-	 * Method to return true if a cell like "np" exists in library "lib".
+	/**
+	 * Method to return true if a cell like "cell" exists in library "lib".
 	 */
-	private static boolean inDestLib(Cell np, Library lib)
+	private static boolean inDestLib(Cell cell)
 	{
-		for(Iterator it = lib.getCells(); it.hasNext(); )
+		for(Iterator it = cellsCopied.iterator(); it.hasNext(); )
 		{
-			Cell oNp = (Cell)it.next();
-			if (!oNp.getName().equalsIgnoreCase(np.getName())) continue;
-			if (oNp.getView() != np.getView()) continue;
-			if (oNp.getCreationDate() != np.getCreationDate()) continue;
-			if (oNp.getRevisionDate() != np.getRevisionDate()) continue;
-			return true;
+			Cell copiedCell = (Cell)it.next();
+			if (copiedCell.getName().equalsIgnoreCase(cell.getName()) && copiedCell.getView() == cell.getView())
+				return true;
 		}
 		return false;
 	}

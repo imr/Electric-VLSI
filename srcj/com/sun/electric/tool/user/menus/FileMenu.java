@@ -399,9 +399,10 @@ public class FileMenu {
 		    System.out.println("refer to it.");
 		    return;
 	    }
+	    if (preventLoss(lib, 1)) return;
 
-        int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), "Are you sure you want to close library " + lib.getName() + "?");
-        if (response != JOptionPane.YES_OPTION) return;
+//        int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), "Are you sure you want to close library " + lib.getName() + "?");
+//        if (response != JOptionPane.YES_OPTION) return;
         String libName = lib.getName();
         WindowFrame.removeLibraryReferences(lib);
         CloseLibrary job = new CloseLibrary(lib);
@@ -883,9 +884,9 @@ public class FileMenu {
      */
     public static boolean quitCommand()
     {
-        if (preventLoss(null, 0)) return (false);
+        if (preventLoss(null, 0)) return false;
         QuitJob job = new QuitJob();
-        return (true);
+        return true;
     }
 
     /**
