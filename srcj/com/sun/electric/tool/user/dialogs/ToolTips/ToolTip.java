@@ -38,12 +38,20 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
 /**
- * Created by IntelliJ IDEA.
  * User: gainsley
  * Date: May 14, 2004
  * Time: 12:11:03 PM
- *
+ * <p>
  * A Dialog for displaying useful tips on how to use Electric effectively (or at all).
+ *
+ * <p>
+ * To add a new Tool Tip, create an html file in the ToolTips java source directory
+ * (i.e. package directory). Then add the file name (sans .html) to the allToolTips array
+ * in the ToolTip class.  Note that names in the allToolTips array get converted to a
+ * file name using the following properties: 1) spaces converted to underscore, 2) name
+ * converted to lower case, 3) ".html" appended.
+ * <p>Ex: "Mouse Interface" --> mouse_interface.html
+ *
  */
 public class ToolTip extends javax.swing.JDialog {
 
