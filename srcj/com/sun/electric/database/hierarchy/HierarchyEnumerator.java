@@ -61,7 +61,7 @@ import java.util.List;
  * visits two instances of Cell A and four instances of Cell B. 
  */
 public final class HierarchyEnumerator {
-	/** Stores the information necessary to generate an instance name for a Part 
+    /** Stores the information necessary to generate an instance name for a Part
 	  * It is sometimes important not to store the instance name as a String. 
 	  * When I stored instance names as strings in NCC profiles indicated that 
 	  * almost 50% of the storage space was used in these strings and 70% of the
@@ -888,5 +888,38 @@ public final class HierarchyEnumerator {
         Network childNet = childNetlist.getNetwork(export, i);
 //        Network childNet = childCell.getUserNetlist().getNetwork(export, i);
         return childNet;
+    }
+
+    /**
+     * Method to search if child network is connected to visitor network (visitorNet).
+     * Used in Quick.java and Connection.java
+     * @param net
+     * @param info
+     * @return
+     */
+    public static boolean searchNetworkInParent(Network net, CellInfo info,
+                                                Network visitorNet)
+    {
+        if (visitorNet == net) return true;
+        CellInfo cinfo = info;
+        while (net != null && cinfo.getParentInst() != null) {
+            net = cinfo.getNetworkInParent(net);
+            if (visitorNet == net) return true;
+            cinfo = cinfo.getParentInfo();
+        }
+        return false;
+    }
+
+    public static boolean searchInExportNetwork(Network net, CellInfo info,
+                                                Network visitorNet)
+    {
+        boolean found = false;
+        for (Iterator it = net.getExports(); !found && it.hasNext();)
+        {
+            Export exp = (Export)it.next();
+            Network tmpNet = info.getNetlist().getNetwork(exp, 0);
+            found = searchNetworkInParent(tmpNet, info, visitorNet);
+        }
+        return found;
     }
 }
