@@ -78,6 +78,7 @@ public class GEM extends Technology
 		setFactoryScale(1000, true);   // in nanometers: really 1 microns
 		setNoNegatedArcs();
 		setStaticTechnology();
+		setNonStandard();
 
 		//**************************************** LAYERS ****************************************
 

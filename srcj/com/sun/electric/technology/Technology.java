@@ -2680,7 +2680,7 @@ public class Technology implements Comparable
 	 * essential, and cannot be deleted.
 	 * The technology-editor can create others later, and they can be deleted.
 	 */
-	protected void setStaticTechnology() { userBits |= NONSTANDARD; }
+	protected void setStaticTechnology() { userBits |= STATICTECHNOLOGY; }
 
 	/**
 	 * Returns true if this technoology is "static" (cannot be deleted).
@@ -2689,7 +2689,7 @@ public class Technology implements Comparable
 	 * essential, and cannot be deleted.
 	 * The technology-editor can create others later, and they can be deleted.
 	 */
-	public boolean isStaticTechnology() { return (userBits & NONSTANDARD) != 0; }
+	public boolean isStaticTechnology() { return (userBits & STATICTECHNOLOGY) != 0; }
 
 	/**
 	 * Returns the name of this technology.

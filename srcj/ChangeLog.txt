@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02j: *********************************
 
+IMP: (03/30/05, SMR) Duplicating or copying arcs that share names keeps the sharing (Bug #190).
+
 IMP: (03/30/05, GVG) Ability to change color in 3D background.
 
 FIX: (03/30/05, JKG) fix situation where attribute on instance with same name of parameter

@@ -696,6 +696,9 @@ public class Clipboard
 			// sort the arcs by name
 			Collections.sort(theArcs);
 
+			// for associating old names with new names
+			HashMap newArcNames = new HashMap();
+
 			// create the new arcs
 			for(Iterator it = theArcs.iterator(); it.hasNext(); )
 			{
@@ -713,7 +716,15 @@ public class Clipboard
 				{
 					name = ai.getName();
 					if (uniqueArcs)
-						name = ElectricObject.uniqueObjectName(name, toCell, ArcInst.class);
+					{
+						String newName = (String)newArcNames.get(name);
+						if (newName == null)
+						{
+							newName = ElectricObject.uniqueObjectName(name, toCell, ArcInst.class);
+							newArcNames.put(name, newName);
+						}
+						name = newName;
+					}
 				}
 				ArcInst newAr = ArcInst.newInstance(ai.getProto(), ai.getWidth(),
 					headPi, tailPi, new Point2D.Double(ai.getHead().getLocation().getX() + dX, ai.getHead().getLocation().getY() + dY),
