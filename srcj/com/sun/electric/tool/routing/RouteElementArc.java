@@ -357,7 +357,7 @@ public class RouteElementArc extends RouteElement {
                 tail1 = new Point2D.Double(tailPoint.getX()+offsetX, tailPoint.getY()-offsetY);
                 tail2 = new Point2D.Double(tailPoint.getX()-offsetX, tailPoint.getY()-offsetY);
             } else {
-                assert(headPoint.getY() == tailPoint.getY());
+                //assert(headPoint.getY() == tailPoint.getY());
                 if (headPoint.getX() > tailPoint.getX()) {
                     offsetX = offsetEnds;
                     offsetY = offset;
