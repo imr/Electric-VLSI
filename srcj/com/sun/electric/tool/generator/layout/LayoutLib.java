@@ -49,9 +49,9 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.output.Output;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import java.awt.geom.Rectangle2D;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 /*
@@ -117,7 +117,7 @@ public class LayoutLib {
 		URL libFileURL = TextUtils.makeURLToFile(libFileName);
 		String libName = TextUtils.getFileNameWithoutExtension(libFileURL);
 		Library lib = Library.findLibrary(libName);
-		OpenFile.Type type = OpenFile.getOpenFileType(libFileName, OpenFile.Type.DEFAULTLIB);
+		FileType type = OpenFile.getOpenFileType(libFileName, FileType.DEFAULTLIB);
 		if (lib==null) {
 			lib = Input.readLibrary(libFileURL, type/*OpenFile.Type.ELIB*/);
 		}
@@ -169,7 +169,7 @@ public class LayoutLib {
 	 * @param lib the library to be written.
 	 */
 	public static void writeLibrary(Library lib) {
-		Output.writeLibrary(lib, OpenFile.Type.ELIB, false);
+		Output.writeLibrary(lib, FileType.ELIB, false);
 	}
 	/** Get the width of an ArcInst. The getArcInstWidth method differs
 	 * from ArcInst.getWidth() in that it subtracts off the "width

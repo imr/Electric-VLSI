@@ -51,8 +51,6 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.WaveformZoom;
 
 import java.awt.*;
-import java.awt.print.PageFormat;
-import java.awt.print.Printable;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
@@ -95,19 +93,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
-import javax.swing.JSplitPane;
-import javax.swing.SwingConstants;
-import javax.swing.Timer;
+import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
@@ -4390,12 +4376,19 @@ public class WaveformWindow implements WindowContent
 	 * @param ep Image observer plus printable object
 	 * @return Printable.NO_SUCH_PAGE or Printable.PAGE_EXISTS
 	 */
-	public int getOffScreenImage(ElectricPrinter ep)
+	public BufferedImage getOffScreenImage(ElectricPrinter ep)
 	{
 		Graphics2D g2d = (Graphics2D)ep.getGraphics();
-		g2d.translate(ep.getPageFormat().getImageableX(), ep.getPageFormat().getImageableY());
 		JPanel printArea = wf.getContent().getPanel();
+		int iw = (int)ep.getPageFormat().getImageableWidth() * ep.getDesiredDPI() / 72;
+		int ih = (int)ep.getPageFormat().getImageableHeight() * ep.getDesiredDPI() / 72;
+		BufferedImage bImage = (BufferedImage)(printArea.createImage(iw,ih));
+
+		if (g2d == null)
+			g2d = bImage.createGraphics();
+		g2d.translate(ep.getPageFormat().getImageableX(), ep.getPageFormat().getImageableY());
 		printArea.paint(g2d);
-		return Printable.PAGE_EXISTS;
+
+		return bImage;
 	}
 }

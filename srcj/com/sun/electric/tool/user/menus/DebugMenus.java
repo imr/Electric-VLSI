@@ -63,6 +63,7 @@ import com.sun.electric.tool.io.input.JELIB1;
 import com.sun.electric.tool.io.input.LibraryStatistics;
 import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.io.output.Output;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LENetlister1;
 import com.sun.electric.tool.simulation.Simulation;
@@ -259,7 +260,7 @@ public class DebugMenus {
     		URL outURL = TextUtils.makeURLToFile(fileName);
     		lib.setLibFile(outURL);
     		lib.setName(TextUtils.getFileNameWithoutExtension(outURL));
-    		Output.writeLibrary(lib, OpenFile.Type.JELIB, false);
+    		Output.writeLibrary(lib, FileType.JELIB, false);
             return true;
         }
     }
@@ -1415,11 +1416,11 @@ public class DebugMenus {
 
 	private static void libTestCommand()
 	{
-        String fileName = OpenFile.chooseInputFile(OpenFile.Type.LIBRARYFORMATS, null);
+        String fileName = OpenFile.chooseInputFile(FileType.LIBRARYFORMATS, null);
         //String fileName = OpenFile.chooseInputFile(OpenFile.Type.DEFAULTLIB, null);
         if (fileName == null) return;
 		// start a job to do the input
-		OpenFile.Type type = OpenFile.getOpenFileType(fileName, OpenFile.Type.JELIB);
+		FileType type = OpenFile.getOpenFileType(fileName, FileType.JELIB);
 		URL fileURL = TextUtils.makeURLToFile(fileName);
 		LibTestJob job = new LibTestJob(fileURL, type);
 	}
@@ -1430,9 +1431,9 @@ public class DebugMenus {
 	private static class LibTestJob extends Job
 	{
 		URL fileURL;
-		OpenFile.Type type;
+		FileType type;
 
-		protected LibTestJob(URL fileURL, OpenFile.Type type)
+		protected LibTestJob(URL fileURL, FileType type)
 		{
 			super("Lib test", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.fileURL = fileURL;
@@ -1442,9 +1443,9 @@ public class DebugMenus {
 
 		public boolean doIt()
 		{
-			if (type == OpenFile.Type.JELIB)
+			if (type == FileType.JELIB)
 				JELIB1.convertLibrary(fileURL, "test.jelib");
-			else if (type == OpenFile.Type.ELIB);
+			else if (type == FileType.ELIB);
 				ELIB1.convertLibrary(fileURL, "test.jelib");
 			return true;
 		}

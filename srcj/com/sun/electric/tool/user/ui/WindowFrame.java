@@ -47,7 +47,6 @@ import javax.swing.tree.TreePath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Resources;

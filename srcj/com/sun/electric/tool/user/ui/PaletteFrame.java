@@ -45,6 +45,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Input;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.AnnularRing;
@@ -474,7 +475,7 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
     private void selectedLibSave() {
         Library lib = getSelectedLib();
         if (lib == null) return;
-        FileMenu.saveLibraryCommand(lib, OpenFile.Type.DEFAULTLIB, false, true);
+        FileMenu.saveLibraryCommand(lib, FileType.DEFAULTLIB, false, true);
     }
     private void selectedLibSaveAs() {
         Library lib = getSelectedLib();

@@ -34,6 +34,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.Main;
 
 import java.awt.geom.Rectangle2D;
@@ -1043,7 +1044,7 @@ public class CellLists extends EDialog
 			// finally show the results
 			if (saveToDisk.isSelected())
 			{
-				String trueName = OpenFile.chooseOutputFile(OpenFile.Type.READABLEDUMP, null, "celllist.txt");
+				String trueName = OpenFile.chooseOutputFile(FileType.READABLEDUMP, null, "celllist.txt");
 				if (trueName == null) System.out.println("Cannot write cell listing"); else
 				{
 					FileOutputStream fileOutputStream = null;

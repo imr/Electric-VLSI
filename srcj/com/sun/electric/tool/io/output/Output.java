@@ -26,8 +26,6 @@ package com.sun.electric.tool.io.output;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -36,22 +34,16 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.PrimitiveArc;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.Input;
-import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
-import com.sun.electric.plugins.skill.Skill;
-
-import java.awt.Dimension;
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
@@ -62,7 +54,6 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -117,7 +108,7 @@ public class Output
 	 * @param compatibleWith6 true to write a library that is compatible with version 6 Electric.
      * @return true on error.
 	 */
-	public static boolean writeLibrary(Library lib, OpenFile.Type type, boolean compatibleWith6)
+	public static boolean writeLibrary(Library lib, FileType type, boolean compatibleWith6)
 	{
 		Output out;
 
@@ -174,10 +165,10 @@ public class Output
 		// make the proper output file name
 		String properOutputNameWithoutExtension = TextUtils.getFilePath(libFile) + TextUtils.getFileNameWithoutExtension(libFile);
 		String properOutputName = properOutputNameWithoutExtension;
-		if (type == OpenFile.Type.ELIB) properOutputName += ".elib";
-		if (type == OpenFile.Type.JELIB) properOutputName += ".jelib";
-		if (type == OpenFile.Type.READABLEDUMP) properOutputName += ".txt";
-		if (type == OpenFile.Type.ELIB || type == OpenFile.Type.JELIB)
+		if (type == FileType.ELIB) properOutputName += ".elib";
+		if (type == FileType.JELIB) properOutputName += ".jelib";
+		if (type == FileType.READABLEDUMP) properOutputName += ".txt";
+		if (type == FileType.ELIB || type == FileType.JELIB)
 		{
 			// backup previous files if requested
 			int backupScheme = IOTool.getBackupRedundancy();
@@ -231,7 +222,7 @@ public class Output
 					}
 				}
 			}
-			if (type == OpenFile.Type.ELIB)
+			if (type == FileType.ELIB)
 			{
 				ELIB elib = new ELIB();
 				if (compatibleWith6) elib.write6Compatible();
@@ -247,7 +238,7 @@ public class Output
 				if (out.writeLib(lib)) return true;
 				if (out.closeTextOutputStream()) return true;
 			}
- 		} else if (type == OpenFile.Type.READABLEDUMP)
+ 		} else if (type == FileType.READABLEDUMP)
 		{
 			out = (Output)new ReadableDump();
 			if (out.openTextOutputStream(properOutputName)) return true;
@@ -271,78 +262,78 @@ public class Output
      * @param filePath the path to the disk file to be written.
      * @param type the format of the output file.
      */
-    public static void writeCell(Cell cell, VarContext context, String filePath, OpenFile.Type type)
+    public static void writeCell(Cell cell, VarContext context, String filePath, FileType type)
     {
-		if (type == OpenFile.Type.CDL)
+		if (type == FileType.CDL)
 		{
 			Spice.writeSpiceFile(cell, context, filePath, true);
-		} else if (type == OpenFile.Type.CIF)
+		} else if (type == FileType.CIF)
 		{
 			CIF.writeCIFFile(cell, context, filePath);
-		} else if (type == OpenFile.Type.COSMOS)
+		} else if (type == FileType.COSMOS)
 		{
 			Sim.writeSimFile(cell, context, filePath, type);
-		} else if (type == OpenFile.Type.DXF)
+		} else if (type == FileType.DXF)
 		{
 			DXF.writeDXFFile(cell, context, filePath);
-		} else if (type == OpenFile.Type.EAGLE)
+		} else if (type == FileType.EAGLE)
 		{
 			Eagle.writeEagleFile(cell, context, filePath);
-		} else if (type == OpenFile.Type.ECAD)
+		} else if (type == FileType.ECAD)
 		{
 			ECAD.writeECADFile(cell, context, filePath);
-		} else if (type == OpenFile.Type.EDIF)
+		} else if (type == FileType.EDIF)
 		{
 			EDIF.writeEDIFFile(cell, context, filePath);
-		} else if (type == OpenFile.Type.ESIM)
+		} else if (type == FileType.ESIM)
 		{
 			Sim.writeSimFile(cell, context, filePath, type);
-		} else if (type == OpenFile.Type.FASTHENRY)
+		} else if (type == FileType.FASTHENRY)
 		{
 			FastHenry.writeFastHenryFile(cell, context, filePath);
-		} else if (type == OpenFile.Type.GDS)
+		} else if (type == FileType.GDS)
 		{
 			GDS.writeGDSFile(cell, context, filePath);
-		} else if (type == OpenFile.Type.IRSIM)
+		} else if (type == FileType.IRSIM)
 		{
 			IRSIM.writeIRSIMFile(cell, context, filePath);
-		} else if (type == OpenFile.Type.L)
+		} else if (type == FileType.L)
 		{
 			L.writeLFile(cell, context, filePath);
-		} else if (type == OpenFile.Type.LEF)
+		} else if (type == FileType.LEF)
 		{
 			LEF.writeLEFFile(cell, context, filePath);
-		} else if (type == OpenFile.Type.MAXWELL)
+		} else if (type == FileType.MAXWELL)
 		{
 			Maxwell.writeMaxwellFile(cell, context, filePath);
-		} else if (type == OpenFile.Type.MOSSIM)
+		} else if (type == FileType.MOSSIM)
 		{
 			MOSSIM.writeMOSSIMFile(cell, context, filePath);
-		} else if (type == OpenFile.Type.PADS)
+		} else if (type == FileType.PADS)
 		{
 			Pads.writePadsFile(cell, context, filePath);
-		} else if (type == OpenFile.Type.PAL)
+		} else if (type == FileType.PAL)
 		{
 			PAL.writePALFile(cell, context, filePath);
-		} else if (type == OpenFile.Type.POSTSCRIPT || type == OpenFile.Type.EPS)
+		} else if (type == FileType.POSTSCRIPT || type == FileType.EPS)
 		{
 			PostScript.writePostScriptFile(cell, context, filePath);
-		} else if (type == OpenFile.Type.RSIM)
+		} else if (type == FileType.RSIM)
 		{
 			Sim.writeSimFile(cell, context, filePath, type);
-		} else if (type == OpenFile.Type.SILOS)
+		} else if (type == FileType.SILOS)
 		{
 			Silos.writeSilosFile(cell, context, filePath);
-		} else if (type == OpenFile.Type.SKILL)
+		} else if (type == FileType.SKILL)
 		{
 			IOTool.writeSkill(cell, filePath);
-		} else if (type == OpenFile.Type.SPICE)
+		} else if (type == FileType.SPICE)
 		{
 			Spice.writeSpiceFile(cell, context, filePath, false);
-		} else if (type == OpenFile.Type.TEGAS)
+		} else if (type == FileType.TEGAS)
 		{
 			Tegas.writeTegasFile(cell, context, filePath);
-		} else if (type == OpenFile.Type.VERILOG)
+		} else if (type == FileType.VERILOG)
 		{
 			Verilog.writeVerilogFile(cell, context, filePath);
 		}

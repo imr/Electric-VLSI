@@ -36,6 +36,7 @@ import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.EditMenu;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.io.FileType;
 
 import java.awt.Component;
 import java.awt.Cursor;
@@ -193,7 +194,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		toolbar.saveLibraryButton = ToolBarButton.newInstance(SaveLibraryName,
 		        Resources.getResource(toolbar.getClass(), "ButtonSaveLibrary.gif"));
         toolbar.saveLibraryButton.addActionListener(
-            new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.saveLibraryCommand(Library.getCurrent(), OpenFile.Type.DEFAULTLIB, false, true); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.saveLibraryCommand(Library.getCurrent(), FileType.DEFAULTLIB, false, true); } });
         toolbar.saveLibraryButton.setToolTipText(SaveLibraryName);
         toolbar.saveLibraryButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
         // setModel before setEnable... not sure why yet

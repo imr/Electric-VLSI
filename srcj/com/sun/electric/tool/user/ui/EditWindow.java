@@ -69,6 +69,7 @@ import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.image.ImageObserver;
+import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.event.ActionEvent;
@@ -2892,11 +2893,11 @@ public class EditWindow extends JPanel
 	 * @param ep Image observer plus printable object
 	 * @return Printable.NO_SUCH_PAGE or Printable.PAGE_EXISTS
 	 */
-	public int getOffScreenImage(ElectricPrinter ep)
+	public BufferedImage getOffScreenImage(ElectricPrinter ep)
 	{
-		if (getCell() == null) return Printable.NO_SUCH_PAGE;
+		if (getCell() == null) return null;
 		
-		Image img = ep.getImage();
+		BufferedImage img = ep.getBufferedImage();
 		if (img == null)
 		{
 			EditWindow w = EditWindow.CreateElectricDoc(null, null);
@@ -2908,15 +2909,19 @@ public class EditWindow extends JPanel
 			offscreen.setBackgroundColor(Color.WHITE);
 			offscreen.drawImage(null);
 			img = offscreen.getImage();
-			ep.setImage(img);
+			ep.setBufferedImage(img);
 		}
 
-		// copy the image to the page
-		int ix = (int)ep.getPageFormat().getImageableX() * ep.getDesiredDPI() / 72;
-		int iy = (int)ep.getPageFormat().getImageableY() * ep.getDesiredDPI() / 72;
+		// copy the image to the page if graphics is not null
 		Graphics2D g2d = (Graphics2D)ep.getGraphics();
-		g2d.scale(72.0 / ep.getDesiredDPI(), 72.0 / ep.getDesiredDPI());
-		g2d.drawImage(img, ix, iy, null);
-		return Printable.PAGE_EXISTS;
+		if (g2d != null)
+		{
+			int ix = (int)ep.getPageFormat().getImageableX() * ep.getDesiredDPI() / 72;
+			int iy = (int)ep.getPageFormat().getImageableY() * ep.getDesiredDPI() / 72;
+
+			g2d.scale(72.0 / ep.getDesiredDPI(), 72.0 / ep.getDesiredDPI());
+			g2d.drawImage(img, ix, iy, null);
+		}
+		return img;
 	}
 }

@@ -40,11 +40,10 @@ import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.io.FileType;
 
-import java.io.InputStream;
 import java.io.File;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -192,7 +191,7 @@ public abstract class LibraryFiles extends Input
 	 * @return a Library that was read. If library cannot be read or found, creates
 	 * a Library called DUMMYname, and returns that.
 	 */
-	protected Library readExternalLibraryFromFilename(String theFileName, OpenFile.Type defaultType)
+	protected Library readExternalLibraryFromFilename(String theFileName, FileType defaultType)
 	{
 		// get the path to the library file
 		URL url = TextUtils.makeURLToFile(theFileName);
@@ -215,7 +214,7 @@ public abstract class LibraryFiles extends Input
 			libFilePath = "";
 		}
 		String libName = libFileName;
-		OpenFile.Type importType = OpenFile.getOpenFileType(libName, defaultType);
+		FileType importType = OpenFile.getOpenFileType(libName, defaultType);
 
 		if (libName.endsWith(".elib"))
 		{
@@ -241,15 +240,15 @@ public abstract class LibraryFiles extends Input
         URL externalURL = getLibrary(libFileName, libFile.getPath(), errmsg);
         if (externalURL == null) {
             // try JELIB
-            externalURL = getLibrary(libName + "." + OpenFile.Type.JELIB.getExtensions()[0], libFile.getPath(), errmsg);
+            externalURL = getLibrary(libName + "." + FileType.JELIB.getExtensions()[0], libFile.getPath(), errmsg);
         }
         if (externalURL == null) {
             // try ELIB
-            externalURL = getLibrary(libName + "." + OpenFile.Type.ELIB.getExtensions()[0], libFile.getPath(), errmsg);
+            externalURL = getLibrary(libName + "." + FileType.ELIB.getExtensions()[0], libFile.getPath(), errmsg);
         }
         if (externalURL == null) {
             // try txt
-            externalURL = getLibrary(libName + "." + OpenFile.Type.READABLEDUMP.getExtensions()[0], libFile.getPath(), errmsg);
+            externalURL = getLibrary(libName + "." + FileType.READABLEDUMP.getExtensions()[0], libFile.getPath(), errmsg);
         }
 
         boolean exists = (externalURL == null) ? false : true;

@@ -28,6 +28,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.io.output.Verilog;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
@@ -136,7 +137,7 @@ public class VerilogTab extends PreferencePanel
 
 	private void verModelFileBrowseActionPerformed()
 	{
-		String fileName = OpenFile.chooseInputFile(OpenFile.Type.VERILOG, null);
+		String fileName = OpenFile.chooseInputFile(FileType.VERILOG, null);
 		if (fileName == null) return;
 		verUseModelFile.setSelected(true);
 		verFileName.setEditable(true);

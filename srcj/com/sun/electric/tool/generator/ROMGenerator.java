@@ -38,6 +38,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.menus.FileMenu;
@@ -102,7 +103,7 @@ public class ROMGenerator
 		tech = Technology.findTechnology("mocmos");	
 
 		// get the personality file
-		String romfile = OpenFile.chooseInputFile(OpenFile.Type.TEXT, null);
+		String romfile = OpenFile.chooseInputFile(FileType.TEXT, null);
 		if (romfile == null) return;
 
 		// Set the root name of the cells

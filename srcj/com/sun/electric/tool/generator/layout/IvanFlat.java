@@ -47,8 +47,8 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Input;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.dialogs.OpenFile;
 
 class IvanFlater extends HierarchyEnumerator.Visitor {
 	private static final boolean debug = false;
@@ -232,7 +232,7 @@ public class IvanFlat extends Job {
 		Library lib = Library.findLibrary(libNm);
 		if (lib==null) {
 			URL libFileURL = TextUtils.makeURLToFile(libFileNm);
-			Input.readLibrary(libFileURL, OpenFile.Type.ELIB);
+			Input.readLibrary(libFileURL, FileType.ELIB);
 			lib = Library.findLibrary(libNm);
 		}
 		error(lib==null, "can't open Library for reading: "+libFileNm);

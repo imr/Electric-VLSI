@@ -47,6 +47,7 @@ import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.SwingExamineTask;
 import com.sun.electric.tool.io.input.Input;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.Main;
 
@@ -786,7 +787,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
         public boolean doIt()
         {
-            Library lib = Input.readLibrary(fileURL, OpenFile.Type.READABLEDUMP);
+            Library lib = Input.readLibrary(fileURL, FileType.READABLEDUMP);
             Undo.noUndoAllowed();
             if (lib == null) return false;
             for(Iterator it = lib.getCells(); it.hasNext(); )

@@ -30,6 +30,7 @@ import com.sun.electric.tool.user.Highlighter;
 import java.util.Set;
 import java.awt.*;
 import java.awt.image.ImageObserver;
+import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import javax.swing.JPanel;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -44,7 +45,7 @@ public interface WindowContent
 	 * @param search the string to locate.
 	 * @param caseSensitive true to match only where the case is the same.
 	 */
-	public abstract void initTextSearch(String search, boolean caseSensitive, 
+	public abstract void initTextSearch(String search, boolean caseSensitive,
 	                                    boolean regExp, Set whatToSearch);
 
 	/**
@@ -108,5 +109,5 @@ public interface WindowContent
 	 * @param ep Image observer plus printable object
 	 * @return Printable.NO_SUCH_PAGE or Printable.PAGE_EXISTS
 	 */
-	public abstract int getOffScreenImage(ElectricPrinter ep); // For printing purposes
+	public abstract BufferedImage getOffScreenImage(ElectricPrinter ep); // For printing and export purposes
 }

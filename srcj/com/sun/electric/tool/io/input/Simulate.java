@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.WaveformWindow;
@@ -55,7 +56,7 @@ public class Simulate extends Input
 	 */
 	public static void plotSpiceResults()
 	{
-		OpenFile.Type type = getCurrentSpiceOutputType();
+		FileType type = getCurrentSpiceOutputType();
 		if (type == null) return;
 		plotSimulationResults(type, null, null, null);
 	}
@@ -67,7 +68,7 @@ public class Simulate extends Input
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-		OpenFile.Type type = getCurrentSpiceOutputType();
+		FileType type = getCurrentSpiceOutputType();
 		if (type == null) return;
 		plotSimulationResults(type, cell, null, null);
 	}
@@ -77,7 +78,7 @@ public class Simulate extends Input
 	 */
 	public static void plotVerilogResults()
 	{
-		plotSimulationResults(OpenFile.Type.VERILOGOUT, null, null, null);
+		plotSimulationResults(FileType.VERILOGOUT, null, null, null);
 	}
 
 	/**
@@ -87,31 +88,31 @@ public class Simulate extends Input
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-		plotSimulationResults(OpenFile.Type.VERILOGOUT, cell, null, null);
+		plotSimulationResults(FileType.VERILOGOUT, cell, null, null);
 	}
 
 	/**
 	 * Method to read simulation output of a given type.
 	 */
-	public static void plotSimulationResults(OpenFile.Type type, Cell cell, URL fileURL, WaveformWindow ww)
+	public static void plotSimulationResults(FileType type, Cell cell, URL fileURL, WaveformWindow ww)
 	{
 		Simulate is = null;
-		if (type == OpenFile.Type.HSPICEOUT)
+		if (type == FileType.HSPICEOUT)
 		{
 			is = (Simulate)new HSpiceOut();
-		} else if (type == OpenFile.Type.PSPICEOUT)
+		} else if (type == FileType.PSPICEOUT)
 		{
 			is = (Simulate)new PSpiceOut();
-		} else if (type == OpenFile.Type.RAWSPICEOUT)
+		} else if (type == FileType.RAWSPICEOUT)
 		{
 			is = (Simulate)new RawSpiceOut();
-		} else if (type == OpenFile.Type.RAWSSPICEOUT)
+		} else if (type == FileType.RAWSSPICEOUT)
 		{
 			is = (Simulate)new SmartSpiceOut();
-		} else if (type == OpenFile.Type.SPICEOUT)
+		} else if (type == FileType.SPICEOUT)
 		{
 			is = (Simulate)new SpiceOut();
-		} else if (type == OpenFile.Type.VERILOGOUT)
+		} else if (type == FileType.VERILOGOUT)
 		{
 			is = (Simulate)new VerilogOut();
 		}
@@ -168,13 +169,13 @@ public class Simulate extends Input
 	 */
 	private static class ReadSimulationOutput extends Job
 	{
-		OpenFile.Type type;
+		FileType type;
 		Simulate is;
 		URL fileURL;
 		Cell cell;
 		WaveformWindow ww;
 
-		protected ReadSimulationOutput(OpenFile.Type type, Simulate is, URL fileURL, Cell cell, WaveformWindow ww)
+		protected ReadSimulationOutput(FileType type, Simulate is, URL fileURL, Cell cell, WaveformWindow ww)
 		{
 			super("Read Simulation Output", IOTool.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.type = type;
@@ -213,25 +214,25 @@ public class Simulate extends Input
 		return null;
 	}
 
-	public static OpenFile.Type getCurrentSpiceOutputType()
+	public static FileType getCurrentSpiceOutputType()
 	{
 		String format = Simulation.getSpiceOutputFormat();
 		int engine = Simulation.getSpiceEngine();
 		if (format.equalsIgnoreCase("Standard"))
 		{
 			if (engine == Simulation.SPICE_ENGINE_H)
-				return OpenFile.Type.HSPICEOUT;
+				return FileType.HSPICEOUT;
 			if (engine == Simulation.SPICE_ENGINE_3 || engine == Simulation.SPICE_ENGINE_P)
-				return OpenFile.Type.PSPICEOUT;
-			return OpenFile.Type.SPICEOUT;
+				return FileType.PSPICEOUT;
+			return FileType.SPICEOUT;
 		}
 		if (format.equalsIgnoreCase("Raw"))
 		{
-			return OpenFile.Type.RAWSPICEOUT;
+			return FileType.RAWSPICEOUT;
 		}
 		if (format.equalsIgnoreCase("Raw/Smart"))
 		{
-			return OpenFile.Type.RAWSSPICEOUT;
+			return FileType.RAWSSPICEOUT;
 		}
 		return null;
 	}

@@ -29,7 +29,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
@@ -45,11 +44,11 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Input;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
-import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.menus.EditMenu;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -527,8 +526,8 @@ public class PadGenerator {
                         }
                     }
 
-                    OpenFile.Type style = OpenFile.Type.DEFAULTLIB;
-                    if (TextUtils.getExtension(fileURL).equals("txt")) style = OpenFile.Type.READABLEDUMP;
+                    FileType style = FileType.DEFAULTLIB;
+                    if (TextUtils.getExtension(fileURL).equals("txt")) style = FileType.READABLEDUMP;
                     Library saveLib = Library.getCurrent();
                     cellLib = Library.newInstance(TextUtils.getFileNameWithoutExtension(fileURL), fileURL);
                     cellLib = Input.readLibrary(fileURL, style);

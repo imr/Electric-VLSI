@@ -36,17 +36,10 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.ELIBConstants;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.Progress;
-import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.menus.MenuCommands;
-import com.sun.electric.tool.user.menus.FileMenu;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.WindowContent;
 
 import java.awt.geom.Point2D;
 import java.io.InputStream;
@@ -58,8 +51,6 @@ import java.io.LineNumberReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Iterator;
-
-import javax.swing.JOptionPane;
 
 /**
  * This class manages reading files in different formats.
@@ -110,7 +101,7 @@ public class Input
 	 * @param type the type of library file (ELIB, JELIB, etc.)
 	 * @return the read Library, or null if an error occurred.
 	 */
-	public static synchronized Library readLibrary(URL fileURL, OpenFile.Type type)
+	public static synchronized Library readLibrary(URL fileURL, FileType type)
 	{
 		if (fileURL == null) return null;
 		long startTime = System.currentTimeMillis();
@@ -164,7 +155,7 @@ public class Input
 	 * @param type the type of library file (CIF, GDS, etc.)
 	 * @return the read Library, or null if an error occurred.
 	 */
-	public static Library importLibrary(URL fileURL, OpenFile.Type type)
+	public static Library importLibrary(URL fileURL, FileType type)
 	{
 		// make sure the file exists
 		if (fileURL == null) return null;
@@ -219,31 +210,31 @@ public class Input
 			startProgressDialog("import", fileURL.getFile());
 
 			Input in;
-			if (type == OpenFile.Type.CIF)
+			if (type == FileType.CIF)
 			{
 				in = (Input)new CIF();
 				if (in.openTextInput(fileURL)) return null;
-			} else if (type == OpenFile.Type.DEF)
+			} else if (type == FileType.DEF)
 			{
 				in = (Input)new DEF();
 				if (in.openTextInput(fileURL)) return null;
-			} else if (type == OpenFile.Type.DXF)
+			} else if (type == FileType.DXF)
 			{
 				in = (Input)new DXF();
 				if (in.openTextInput(fileURL)) return null;
-			} else if (type == OpenFile.Type.EDIF)
+			} else if (type == FileType.EDIF)
 			{
 				in = (Input)new EDIF();
 				if (in.openTextInput(fileURL)) return null;
-			} else if (type == OpenFile.Type.GDS)
+			} else if (type == FileType.GDS)
 			{
 				in = (Input)new GDS();
 				if (in.openBinaryInput(fileURL)) return null;
-			} else if (type == OpenFile.Type.LEF)
+			} else if (type == FileType.LEF)
 			{
 				in = (Input)new LEF();
 				if (in.openTextInput(fileURL)) return null;
-			} else if (type == OpenFile.Type.SUE)
+			} else if (type == FileType.SUE)
 			{
 				in = (Input)new Sue();
 				if (in.openTextInput(fileURL)) return null;
@@ -295,7 +286,7 @@ public class Input
 	 * @param type the type of library file (ELIB, CIF, GDS, etc.)
 	 * @return the read Library, or null if an error occurred.
 	 */
-	protected static Library readALibrary(URL fileURL, Library lib, OpenFile.Type type)
+	protected static Library readALibrary(URL fileURL, Library lib, FileType type)
 	{
 		// get the library file name and path
 		String libName = TextUtils.getFileNameWithoutExtension(fileURL);
@@ -303,18 +294,18 @@ public class Input
 
 		// handle different file types
 		LibraryFiles in;
-		if (type == OpenFile.Type.ELIB)
+		if (type == FileType.ELIB)
 		{
 			in = new ELIB();
 			if (in.openBinaryInput(fileURL)) return null;
-		} else if (type == OpenFile.Type.JELIB)
+		} else if (type == FileType.JELIB)
 		{
 			if (NEWJELIB)
 				in = new JELIB1();
 			else
 				in = new JELIB();
 			if (in.openTextInput(fileURL)) return null;
-		} else if (type == OpenFile.Type.READABLEDUMP)
+		} else if (type == FileType.READABLEDUMP)
 		{
 			in = new ReadableDump();
 			if (in.openTextInput(fileURL)) return null;

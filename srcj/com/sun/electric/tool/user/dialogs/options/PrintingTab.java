@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.dialogs.options;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -143,7 +144,7 @@ public class PrintingTab extends PreferencePanel
 	private void printSetEPSSyncActionPerformed()
 	{
 		String defaultFileName = initialCell.getName() + ".eps";
-		String fileName = OpenFile.chooseOutputFile(OpenFile.Type.POSTSCRIPT, "Choose EPS file", defaultFileName);
+		String fileName = OpenFile.chooseOutputFile(FileType.POSTSCRIPT, "Choose EPS file", defaultFileName);
 		if (fileName == null) return;
 		printSyncFileName.setText(fileName);
 	}

@@ -25,7 +25,6 @@
  */
 package com.sun.electric.tool.io.output;
 
-import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.geometry.PolyBase;
@@ -53,11 +52,11 @@ import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.io.input.Simulate;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.Exec;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.ExecDialog;
-import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 
@@ -112,9 +111,9 @@ public class Spice extends Topology
 
     private static class SpiceFinishedListener implements Exec.FinishedListener {
         private Cell cell;
-        private OpenFile.Type type;
+        private FileType type;
         private String file;
-        private SpiceFinishedListener(Cell cell, OpenFile.Type type, String file) {
+        private SpiceFinishedListener(Cell cell, FileType type, String file) {
             this.cell = cell;
             this.type = type;
             this.file = file;
@@ -215,7 +214,7 @@ public class Spice extends Topology
             command = command.replaceAll("\\$\\{FILENAME_NO_EXT}", filename_noext);
 
             // set up run probe
-            OpenFile.Type type = Simulate.getCurrentSpiceOutputType();
+            FileType type = Simulate.getCurrentSpiceOutputType();
             String [] extensions = type.getExtensions();
             String outFile = rundir + File.separator + filename_noext + "." + extensions[0];
             Exec.FinishedListener l = new SpiceFinishedListener(cell, type, outFile);

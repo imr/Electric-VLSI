@@ -33,9 +33,11 @@ import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.io.output.PostScript;
+import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
@@ -47,6 +49,7 @@ import javax.swing.*;
 import javax.print.PrintService;
 import javax.print.PrintServiceLookup;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.awt.print.PrinterJob;
 import java.awt.print.PrinterException;
 import java.awt.print.PageFormat;
@@ -79,24 +82,24 @@ public class FileMenu {
 		MenuBar.Menu importSubMenu = new MenuBar.Menu("Import");
 		fileMenu.add(importSubMenu);
 		importSubMenu.addMenuItem("CIF (Caltech Intermediate Format)...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.CIF); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.CIF); } });
 		importSubMenu.addMenuItem("GDS II (Stream)...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.GDS); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.GDS); } });
 		importSubMenu.addMenuItem("EDIF (Electronic Design Interchange Format)...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.EDIF); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.EDIF); } });
 		importSubMenu.addMenuItem("LEF (Library Exchange Format)...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.LEF); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.LEF); } });
 		importSubMenu.addMenuItem("DEF (Design Exchange Format)...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.DEF); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.DEF); } });
 		importSubMenu.addMenuItem("DXF (AutoCAD)...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.DXF); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.DXF); } });
 		importSubMenu.addMenuItem("SUE (Schematic User Environment)...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.SUE); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.SUE); } });
 		importSubMenu.addSeparator();
 		importSubMenu.addMenuItem("ELIB...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.ELIB); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.ELIB); } });
 		importSubMenu.addMenuItem("Readable Dump...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.READABLEDUMP); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.READABLEDUMP); } });
 		importSubMenu.addMenuItem("Text Cell Contents...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.readTextCell(); }});
 
@@ -105,7 +108,7 @@ public class FileMenu {
 		fileMenu.addMenuItem("Close Library", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { closeLibraryCommand(Library.getCurrent()); } });
 		fileMenu.addMenuItem("Save Library", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.DEFAULTLIB, false, true); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), FileType.DEFAULTLIB, false, true); } });
 		fileMenu.addMenuItem("Save Library as...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAsLibraryCommand(Library.getCurrent()); } });
 		fileMenu.addMenuItem("Save All Libraries", KeyStroke.getKeyStroke('S', buckyBit),
@@ -116,35 +119,37 @@ public class FileMenu {
 		MenuBar.Menu exportSubMenu = new MenuBar.Menu("Export");
 		fileMenu.add(exportSubMenu);
 		exportSubMenu.addMenuItem("CIF (Caltech Intermediate Format)...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.CIF, false); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.CIF, false); } });
 		exportSubMenu.addMenuItem("GDS II (Stream)...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.GDS, false); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.GDS, false); } });
 		exportSubMenu.addMenuItem("EDIF (Electronic Design Interchange Format)...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.EDIF, false); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.EDIF, false); } });
 		exportSubMenu.addMenuItem("LEF (Library Exchange Format)...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.LEF, false); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.LEF, false); } });
 		if (IOTool.hasSkill())
 			exportSubMenu.addMenuItem("Skill (Cadence Commands)...", null,
-				new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.SKILL, false); } });
+				new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.SKILL, false); } });
 		exportSubMenu.addSeparator();
 		exportSubMenu.addMenuItem("Eagle...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.EAGLE, false); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.EAGLE, false); } });
 		exportSubMenu.addMenuItem("ECAD...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.ECAD, false); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.ECAD, false); } });
 		exportSubMenu.addMenuItem("Pads...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.PADS, false); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.PADS, false); } });
 		exportSubMenu.addSeparator();
 		exportSubMenu.addMenuItem("Text Cell Contents...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.writeTextCell(); }});
 		exportSubMenu.addMenuItem("PostScript...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.POSTSCRIPT, false); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.POSTSCRIPT, false); } });
 		exportSubMenu.addMenuItem("DXF (AutoCAD)...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.DXF, false); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.DXF, false); } });
 		exportSubMenu.addMenuItem("L...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(OpenFile.Type.L, false); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.L, false); } });
+	    exportSubMenu.addMenuItem("PNG (Portable Network Graphics)", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.PNG, false); } });
 		exportSubMenu.addSeparator();
 		exportSubMenu.addMenuItem("ELIB (Version 6)...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB, true, false); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), FileType.ELIB, true, false); } });
 //		exportSubMenu.addMenuItem("ELIB (Version 7)...", null,
 //			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB, false, false); } });
 //        exportSubMenu.addMenuItem("ELIB (Version 7) All Libraries", null,
@@ -227,7 +232,7 @@ public class FileMenu {
      */
     public static void openLibraryCommand()
     {
-        String fileName = OpenFile.chooseInputFile(OpenFile.Type.LIBRARYFORMATS, null);
+        String fileName = OpenFile.chooseInputFile(FileType.LIBRARYFORMATS, null);
         //String fileName = OpenFile.chooseInputFile(OpenFile.Type.DEFAULTLIB, null);
         if (fileName != null)
         {
@@ -242,16 +247,16 @@ public class FileMenu {
 				if (FileMenu.preventLoss(deleteLib, 2)) return;
 				WindowFrame.removeLibraryReferences(deleteLib);
 			}
-			OpenFile.Type type = getLibraryFormat(fileName, OpenFile.Type.DEFAULTLIB);
+			FileType type = getLibraryFormat(fileName, FileType.DEFAULTLIB);
 			ReadLibrary job = new ReadLibrary(fileURL, type, deleteLib);
         }
     }
 
     /** Get the type from the fileName, or if no valid Library type found, return defaultType.
      */
-    public static OpenFile.Type getLibraryFormat(String fileName, OpenFile.Type defaultType) {
-        for (int i=0; i<OpenFile.Type.libraryTypes.length; i++) {
-            OpenFile.Type type = OpenFile.Type.libraryTypes[i];
+    public static FileType getLibraryFormat(String fileName, FileType defaultType) {
+        for (int i=0; i<FileType.libraryTypes.length; i++) {
+            FileType type = FileType.libraryTypes[i];
             if (fileName.endsWith("."+type.getExtensions()[0])) return type;
         }
         return defaultType;
@@ -264,10 +269,10 @@ public class FileMenu {
 	public static class ReadLibrary extends Job
 	{
 		private URL fileURL;
-		private OpenFile.Type type;
+		private FileType type;
 		private Library deleteLib;
 
-		public ReadLibrary(URL fileURL, OpenFile.Type type, Library deleteLib)
+		public ReadLibrary(URL fileURL, FileType type, Library deleteLib)
 		{
 			super("Read External Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.fileURL = fileURL;
@@ -319,7 +324,7 @@ public class FileMenu {
             boolean success = false;
             for (Iterator it = fileURLs.iterator(); it.hasNext(); ) {
                 URL file = (URL)it.next();
-                OpenFile.Type defType = OpenFile.Type.DEFAULTLIB;
+                FileType defType = FileType.DEFAULTLIB;
                 String fileName = file.getFile();
                 defType = getLibraryFormat(fileName, defType);
                 if (openALibrary(file, defType)) success = true;
@@ -338,10 +343,10 @@ public class FileMenu {
     }
 
     /** Opens a library */
-    private static boolean openALibrary(URL fileURL, OpenFile.Type type)
+    private static boolean openALibrary(URL fileURL, FileType type)
     {
     	Library lib = null;
-    	if (type == OpenFile.Type.ELIB || type == OpenFile.Type.JELIB || type == OpenFile.Type.READABLEDUMP)
+    	if (type == FileType.ELIB || type == FileType.JELIB || type == FileType.READABLEDUMP)
         {
     		lib = Input.readLibrary(fileURL, type);
         } else
@@ -405,7 +410,7 @@ public class FileMenu {
 	 * This method implements the command to import a library (Readable Dump or JELIB format).
 	 * It is interactive, and pops up a dialog box.
 	 */
-	public static void importLibraryCommand(OpenFile.Type type)
+	public static void importLibraryCommand(FileType type)
 	{
 		String fileName = OpenFile.chooseInputFile(type, null);
 		if (fileName != null)
@@ -483,27 +488,27 @@ public class FileMenu {
      * @param compatibleWith6 true to write a library that is compatible with version 6 Electric.
      * @return true if library saved, false otherwise.
      */
-    public static boolean saveLibraryCommand(Library lib, OpenFile.Type type, boolean compatibleWith6, boolean forceToType)
+    public static boolean saveLibraryCommand(Library lib, FileType type, boolean compatibleWith6, boolean forceToType)
     {
         String [] extensions = type.getExtensions();
         String extension = extensions[0];
         String fileName = null;
         if (lib.isFromDisk())
         {
-        	if (type == OpenFile.Type.JELIB ||
-        		(type == OpenFile.Type.ELIB && !compatibleWith6))
+        	if (type == FileType.JELIB ||
+        		(type == FileType.ELIB && !compatibleWith6))
 	        {
 	            fileName = lib.getLibFile().getPath();
 	            if (forceToType)
 	            {
-		            type = OpenFile.getOpenFileType(fileName, OpenFile.Type.DEFAULTLIB);
+		            type = OpenFile.getOpenFileType(fileName, FileType.DEFAULTLIB);
 		            if (Main.getDebug())
 		            {
 			            // old code Gilda Nov 9
-						OpenFile.Type oldtype = type;
-						if (fileName.endsWith(".elib")) oldtype = OpenFile.Type.ELIB; else
-						if (fileName.endsWith(".jelib")) oldtype = OpenFile.Type.JELIB; else
-						if (fileName.endsWith(".txt")) oldtype = OpenFile.Type.READABLEDUMP;
+						FileType oldtype = type;
+						if (fileName.endsWith(".elib")) oldtype = FileType.ELIB; else
+						if (fileName.endsWith(".jelib")) oldtype = FileType.JELIB; else
+						if (fileName.endsWith(".txt")) oldtype = FileType.READABLEDUMP;
 			            if (type != oldtype)
 				            System.out.println("Wrong type determined by OpenFile.getOpenFileType");
 		            }
@@ -525,7 +530,7 @@ public class FileMenu {
         }
         if (fileName == null)
         {
-            fileName = OpenFile.chooseOutputFile(OpenFile.Type.libraryTypes, null, lib.getName() + "." + extension);
+            fileName = OpenFile.chooseOutputFile(FileType.libraryTypes, null, lib.getName() + "." + extension);
             if (fileName == null) return false;
             type = getLibraryFormat(fileName, type);
             // mark for saving, all libraries that depend on this
@@ -554,10 +559,10 @@ public class FileMenu {
     {
         Library lib;
         String newName;
-        OpenFile.Type type;
+        FileType type;
         boolean compatibleWith6;
 
-        public SaveLibrary(Library lib, String newName, OpenFile.Type type, boolean compatibleWith6)
+        public SaveLibrary(Library lib, String newName, FileType type, boolean compatibleWith6)
         {
             super("Write Library "+lib.getName(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.lib = lib;
@@ -607,7 +612,7 @@ public class FileMenu {
     public static void saveAsLibraryCommand(Library lib)
     {
         lib.clearFromDisk();
-        saveLibraryCommand(lib, OpenFile.Type.DEFAULTLIB, false, true);
+        saveLibraryCommand(lib, FileType.DEFAULTLIB, false, true);
         WindowFrame.wantToRedoTitleNames();
     }
 
@@ -616,10 +621,10 @@ public class FileMenu {
      */
     public static void saveAllLibrariesCommand()
     {
-        saveAllLibrariesCommand(OpenFile.Type.DEFAULTLIB, false, true);
+        saveAllLibrariesCommand(FileType.DEFAULTLIB, false, true);
     }
 
-    public static void saveAllLibrariesCommand(OpenFile.Type type, boolean compatibleWith6, boolean forceToType)
+    public static void saveAllLibrariesCommand(FileType type, boolean compatibleWith6, boolean forceToType)
     {
         for(Iterator it = Library.getLibraries(); it.hasNext(); )
         {
@@ -633,12 +638,12 @@ public class FileMenu {
     }
 
     public static void saveAllLibrariesInFormatCommand() {
-        Object[] formats = {OpenFile.Type.ELIB, OpenFile.Type.JELIB, OpenFile.Type.READABLEDUMP};
+        Object[] formats = {FileType.ELIB, FileType.JELIB, FileType.READABLEDUMP};
         Object format = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(),
                 "Output file format for all libraries:", "Save All Libraries In Format...",
                 JOptionPane.PLAIN_MESSAGE,
-                null, formats, OpenFile.Type.DEFAULTLIB);
-        OpenFile.Type outType = (OpenFile.Type)format;
+                null, formats, FileType.DEFAULTLIB);
+        FileType outType = (FileType)format;
         for (Iterator it = Library.getLibraries(); it.hasNext(); ) {
             Library lib = (Library)it.next();
             if (lib.isHidden()) continue;
@@ -661,14 +666,16 @@ public class FileMenu {
      * This method implements the export cell command for different export types.
      * It is interactive, and pops up a dialog box.
      */
-    public static void exportCellCommand(OpenFile.Type type, boolean isNetlist)
+    public static void exportCommand(FileType type, boolean isNetlist)
     {
-        if (type == OpenFile.Type.POSTSCRIPT)
+        if (type == FileType.POSTSCRIPT)
         {
             if (PostScript.syncAll()) return;
-            if (IOTool.isPrintEncapsulated()) type = OpenFile.Type.EPS;
+            if (IOTool.isPrintEncapsulated()) type = FileType.EPS;
         }
-        EditWindow wnd = EditWindow.needCurrent();
+        //EditWindow wnd = EditWindow.needCurrent();
+	    WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
+	    WindowContent wnd = (wf != null) ? wf.getContent() : null;
 
 	    if (wnd == null)
         {
@@ -679,15 +686,14 @@ public class FileMenu {
         if (cell == null)
         {
             System.out.println("No cell in this window");
-            return;
         }
-        VarContext context = wnd.getVarContext();
+        VarContext context = (wnd instanceof EditWindow) ? ((EditWindow)wnd).getVarContext() : null;
 
         String [] extensions = type.getExtensions();
-        String filePath = cell.getName() + "." + extensions[0];
+        String filePath = ((cell != null) ? cell.getName() : "") + "." + extensions[0];
 
         // special case for spice
-        if (type == OpenFile.Type.SPICE &&
+        if (type == FileType.SPICE &&
 			!Simulation.getSpiceRunChoice().equals(Simulation.spiceRunChoiceDontRun))
         {
             // check if user specified working dir
@@ -716,13 +722,21 @@ public class FileMenu {
             filePath = User.getWorkingDirectory() + File.separator + filePath;
         }
 
+	    // Special case for PNG format
+	    if (type == FileType.PNG)
+	    {
+		    String name = (cell != null) ? cell.describe() : filePath;
+		    ExportImage job = new ExportImage(name, wnd, filePath);
+			return;
+	    }
+
         exportCellCommand(cell, context, filePath, type);
     }
 
     /**
      * This is the non-interactive version of exportCellCommand
      */
-    public static void exportCellCommand(Cell cell, VarContext context, String filePath, OpenFile.Type type)
+    public static void exportCellCommand(Cell cell, VarContext context, String filePath, FileType type)
     {
         ExportCell job = new ExportCell(cell, context, filePath, type);
     }
@@ -738,9 +752,9 @@ public class FileMenu {
         Cell cell;
         VarContext context;
         String filePath;
-        OpenFile.Type type;
+        FileType type;
 
-        public ExportCell(Cell cell, VarContext context, String filePath, OpenFile.Type type)
+        public ExportCell(Cell cell, VarContext context, String filePath, FileType type)
         {
             super("Export "+cell.describe()+" ("+type+")", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
             this.cell = cell;
@@ -758,6 +772,28 @@ public class FileMenu {
 
     }
 
+	private static class ExportImage extends Job
+	{
+		String filePath;
+		WindowContent wnd;
+
+		public ExportImage(String description, WindowContent wnd, String filePath)
+		{
+			super("Export "+description+" ("+FileType.PNG+")", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			this.wnd = wnd;
+			this.filePath = filePath;
+			startJob();
+		}
+		public boolean doIt()
+        {
+			PrinterJob pj = PrinterJob.getPrinterJob();
+	        ElectricPrinter ep = getOutputPreferences(wnd, pj);
+            BufferedImage img = wnd.getOffScreenImage(ep);
+			PNG.writeImage(img, filePath);
+            return true;
+        }
+	}
+
     private static PageFormat pageFormat = null;
 
     public static void pageSetupCommand() {
@@ -767,6 +803,20 @@ public class FileMenu {
         else
             pageFormat = pj.pageDialog(pageFormat);
     }
+
+	private static ElectricPrinter getOutputPreferences(WindowContent context, PrinterJob pj)
+	{
+ 		if (pageFormat == null)
+		 {
+			pageFormat = pj.defaultPage();
+			pageFormat.setOrientation(PageFormat.LANDSCAPE);
+            pageFormat = pj.validatePage(pageFormat);
+		 }
+
+ 		ElectricPrinter ep = new ElectricPrinter(context, pageFormat);
+		pj.setPrintable(ep, pageFormat);
+		return (ep);
+	}
 
     /**
      * This method implements the command to print the current window.
@@ -782,16 +832,16 @@ public class FileMenu {
 
         PrinterJob pj = PrinterJob.getPrinterJob();
         pj.setJobName(wf.getTitle());
- 		if (pageFormat == null)
-		 {
-			pageFormat = pj.defaultPage();
-			pageFormat.setOrientation(PageFormat.LANDSCAPE);
-            pageFormat = pj.validatePage(pageFormat);
-		 }
-
- 		ElectricPrinter ep = new ElectricPrinter();
-		ep.setPrintWindow(wf);
-        pj.setPrintable(ep, pageFormat);
+	    ElectricPrinter ep = getOutputPreferences(wf.getContent(), pj);
+// 		if (pageFormat == null)
+//		 {
+//			pageFormat = pj.defaultPage();
+//			pageFormat.setOrientation(PageFormat.LANDSCAPE);
+//            pageFormat = pj.validatePage(pageFormat);
+//		 }
+//
+// 		ElectricPrinter ep = new ElectricPrinter(wf.getContent());
+//        pj.setPrintable(ep, pageFormat);
 
         // see if a default printer should be mentioned
         String pName = IOTool.getPrinterName();
@@ -941,7 +991,7 @@ public class FileMenu {
             if (ret == 0)
             {
                 // save the library
-                if (!saveLibraryCommand(lib, OpenFile.Type.DEFAULTLIB, false, true))
+                if (!saveLibraryCommand(lib, FileType.DEFAULTLIB, false, true))
                     saveCancelled = true;
                 continue;
             }
@@ -1033,7 +1083,7 @@ public class FileMenu {
         }
         // set libraries to save to panic dir
         boolean retValue = true;
-        OpenFile.Type type = OpenFile.Type.DEFAULTLIB;
+        FileType type = FileType.DEFAULTLIB;
         for(Iterator it = Library.getLibraries(); it.hasNext(); )
         {
             Library lib = (Library)it.next();

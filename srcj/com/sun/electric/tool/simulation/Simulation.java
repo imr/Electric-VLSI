@@ -24,7 +24,6 @@
 package com.sun.electric.tool.simulation;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.network.Network;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
@@ -36,13 +35,11 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
-import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.net.URL;
@@ -82,7 +79,7 @@ public class Simulation extends Tool
 		public static final int VDD_STRENGTH  = 014;
 
 		private Cell cell;
-		private OpenFile.Type type;
+		private FileType type;
 		private URL fileURL;
 		private List signals;
 		private List sweeps;
@@ -195,7 +192,7 @@ public class Simulation extends Tool
 		 * OpenFile.Type.SPICEOUT is the output of Spice3/GNUCap.
 		 * @param type the type of this simulation data.
 		 */
-		public void setDataType(OpenFile.Type type) { this.type = type; }
+		public void setDataType(FileType type) { this.type = type; }
 
 		/**
 		 * Method to return the type of this simulation data.
@@ -204,7 +201,7 @@ public class Simulation extends Tool
 		 * OpenFile.Type.SPICEOUT is the output of Spice3/GNUCap.
 		 * @return the type of this simulation data.
 		 */
-		public OpenFile.Type getDataType() { return type; }
+		public FileType getDataType() { return type; }
 
 		/**
 		 * Method to set a URL to the file containing this simulation data.

@@ -32,7 +32,6 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
@@ -44,7 +43,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.io.FileType;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -65,7 +64,7 @@ public class Sim extends Output
 	 * @param cell the top-level cell to write.
 	 * @param filePath the disk file to create with Sim.
 	 */
-	public static void writeSimFile(Cell cell, VarContext context, String filePath, OpenFile.Type type)
+	public static void writeSimFile(Cell cell, VarContext context, String filePath, FileType type)
 	{
 		Sim out = new Sim();
 		if (out.openTextOutputStream(filePath)) return;
@@ -87,9 +86,9 @@ public class Sim extends Output
 	public static class Visitor extends HierarchyEnumerator.Visitor
 	{
 		private Sim generator;
-		private OpenFile.Type type;
+		private FileType type;
 
-		public Visitor(Sim generator, OpenFile.Type type)
+		public Visitor(Sim generator, FileType type)
 		{
 			this.generator = generator;
 			this.type = type;
@@ -106,7 +105,7 @@ public class Sim extends Output
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) { return true; }
 	}
 
-	private void init(Cell cell, String netfile, OpenFile.Type format)
+	private void init(Cell cell, String netfile, FileType format)
 	{
 		globalNetNames = new HashMap();
 
@@ -118,7 +117,7 @@ public class Sim extends Output
 			printWriter.println("| Version " + cell.getVersion() + " last revised " + TextUtils.formatDate(cell.getRevisionDate()));
 		}
 		
-		if (format == OpenFile.Type.COSMOS)
+		if (format == FileType.COSMOS)
 		{
 			printWriter.println("| [e | d | p | n] gate source drain length width xpos ypos {[gsd]=attrs}");
 			printWriter.println("| N node D-area D-perim P-area P-perim M-area M-perim");
@@ -131,13 +130,13 @@ public class Sim extends Output
 		}
 	}
 
-	private void writeCellContents(HierarchyEnumerator.CellInfo ci, OpenFile.Type format)
+	private void writeCellContents(HierarchyEnumerator.CellInfo ci, FileType format)
 	{
 		Cell cell = ci.getCell();
 		Technology tech = cell.getTechnology();
 		boolean top = ci.isRootCell();
 		Netlist netList = ci.getNetlist();
-		if (format == OpenFile.Type.COSMOS) printWriter.println("| cell " + cell.getName());
+		if (format == FileType.COSMOS) printWriter.println("| cell " + cell.getName());
 
 		// if top level, cache all export names
 		if (top)
@@ -194,7 +193,7 @@ public class Sim extends Output
 					if (!oAi.isSkipHead()) length += width/2;
 					if (!oAi.isSkipTail()) length += width/2;
 				}
-				if (format != OpenFile.Type.COSMOS)
+				if (format != FileType.COSMOS)
 				{
 					width = TextUtils.convertDistance(width, tech, TextUtils.UnitScale.MICRO);
 					length = TextUtils.convertDistance(length, tech, TextUtils.UnitScale.MICRO);
@@ -219,7 +218,7 @@ public class Sim extends Output
 			if (globalNetNum != globalNetVDD && globalNetNum != globalNetGND &&
 				(marea != 0 || parea != 0 || darea != 0))
 			{
-				if (format == OpenFile.Type.COSMOS)
+				if (format == FileType.COSMOS)
 				{
 					printWriter.println("N " + makeNodeName(globalNetNum, format) + " " +
 						TextUtils.formatDouble(darea) + " " + TextUtils.formatDouble(dperim) + " " +
@@ -234,7 +233,7 @@ public class Sim extends Output
 			}
 		}
 
-		if (format == OpenFile.Type.COSMOS)
+		if (format == FileType.COSMOS)
 		{
 			// Test each arc for attributes
 			for(Iterator it = cell.getArcs(); it.hasNext(); )
@@ -279,7 +278,7 @@ public class Sim extends Output
 				if (size.getDoubleWidth() > 0) width = size.getDoubleWidth();
 				if (size.getDoubleLength() > 0) length = size.getDoubleLength();
 
-				if (format == OpenFile.Type.COSMOS)
+				if (format == FileType.COSMOS)
 				{
 					// see if there is an attribute mentioned on this node
 					String extra = "";
@@ -323,20 +322,20 @@ public class Sim extends Output
 	 * name if at the top level, or "power", "ground", etc. if special).  The
 	 * "format" is the particular simuator being used
 	 */
-	private String makeNodeName(int globalNetNum, OpenFile.Type format)
+	private String makeNodeName(int globalNetNum, FileType format)
 	{
 		// test for special names
 		if (globalNetNum == globalNetVDD) return "vdd";
 		if (globalNetNum == globalNetGND) return "gnd";
 		if (globalNetNum == globalNetPhi1H)
 		{
-			if (format == OpenFile.Type.RSIM) return "phi1h";
+			if (format == FileType.RSIM) return "phi1h";
 			return "clk1";
 		}
 		if (globalNetNum == globalNetPhi1L) return "phi1l";
 		if (globalNetNum == globalNetPhi2H)
 		{
-			if (format == OpenFile.Type.RSIM) return "phi2h";
+			if (format == FileType.RSIM) return "phi2h";
 			return "clk2";
 		}
 		if (globalNetNum == globalNetPhi2L) return "phi2l";

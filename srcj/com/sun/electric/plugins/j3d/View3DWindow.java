@@ -1060,9 +1060,9 @@ public class View3DWindow extends JPanel
 	 * @param ep Image observer plus printable object
 	 * @return Printable.NO_SUCH_PAGE or Printable.PAGE_EXISTS
 	 */
-	public int getOffScreenImage(ElectricPrinter ep)
+	public BufferedImage getOffScreenImage(ElectricPrinter ep)
     {
-		BufferedImage bImage = (BufferedImage)ep.getImage();
+		BufferedImage bImage = ep.getBufferedImage();
 
 		// might have problems if visibility of some layers is switched off
 		if (bImage == null)
@@ -1089,25 +1089,29 @@ public class View3DWindow extends JPanel
 			offScreenCanvas3D.renderOffScreenBuffer();
 			offScreenCanvas3D.waitForOffScreenRendering();
 			bImage = offScreenCanvas3D.getOffScreenBuffer().getImage();
-			ep.setImage(bImage);
+			ep.setBufferedImage(bImage);
 		}
 		Graphics2D g2d = (Graphics2D)ep.getGraphics();
-		AffineTransform t2d = new AffineTransform();
-		t2d.translate(ep.getPageFormat().getImageableX(), ep.getPageFormat().getImageableY());
-		double xscale  = ep.getPageFormat().getImageableWidth() / (double)bImage.getWidth();
-		double yscale  = ep.getPageFormat().getImageableHeight() / (double)bImage.getHeight();
-		double scale = Math.min(xscale, yscale);
-		t2d.scale(scale, scale);
+		// In case of printing
+		if (g2d != null)
+		{
+			AffineTransform t2d = new AffineTransform();
+			t2d.translate(ep.getPageFormat().getImageableX(), ep.getPageFormat().getImageableY());
+			double xscale  = ep.getPageFormat().getImageableWidth() / (double)bImage.getWidth();
+			double yscale  = ep.getPageFormat().getImageableHeight() / (double)bImage.getHeight();
+			double scale = Math.min(xscale, yscale);
+			t2d.scale(scale, scale);
 
-		try {
-			ImageObserver obj = (ImageObserver)ep;
-			g2d.drawImage(bImage, t2d, obj);
+			try {
+				ImageObserver obj = (ImageObserver)ep;
+				g2d.drawImage(bImage, t2d, obj);
+			}
+			catch (Exception ex) {
+				ex.printStackTrace();
+				return null;
+			}
 		}
-		catch (Exception ex) {
-			ex.printStackTrace();
-			return Printable.NO_SUCH_PAGE;
-		}
-        return Printable.PAGE_EXISTS;
+        return bImage;
     }
 
 	// ************************************* EVENT LISTENERS *************************************
@@ -1515,7 +1519,6 @@ public class View3DWindow extends JPanel
 			Cell cell = info.getCell();
 			NodeInst ni = no.getNodeInst();
 			AffineTransform trans = ni.rotateOut();
-			NodeProto np = ni.getProto();
 			AffineTransform root = info.getTransformToRoot();
 			if (root.getType() != AffineTransform.TYPE_IDENTITY)
 				trans.preConcatenate(root);

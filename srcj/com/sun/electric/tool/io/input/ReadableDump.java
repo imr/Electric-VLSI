@@ -45,25 +45,20 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
-import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.io.FileType;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.io.InputStream;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -1041,7 +1036,7 @@ public class ReadableDump extends LibraryFiles
 		}
 
 		// get the library associated with that name
-		Library elib = readExternalLibraryFromFilename(withoutQuotes, OpenFile.Type.ELIB);
+		Library elib = readExternalLibraryFromFilename(withoutQuotes, FileType.ELIB);
 
 		// find the requested cell in the external library
 		Cell cell = null;

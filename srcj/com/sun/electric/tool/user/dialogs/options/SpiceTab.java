@@ -32,6 +32,7 @@ import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.output.Spice;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
@@ -326,7 +327,7 @@ public class SpiceTab extends PreferencePanel
 	 */
 	private void spiceModelFileBrowseActionPerformed()
 	{
-		String fileName = OpenFile.chooseInputFile(OpenFile.Type.ANY, null);
+		String fileName = OpenFile.chooseInputFile(FileType.ANY, null);
 		if (fileName == null) return;
 		spiceUseModelFromFile.setSelected(true);
 		spiceModelCell.setText(fileName);
@@ -368,7 +369,7 @@ public class SpiceTab extends PreferencePanel
 
 	private void spiceBrowseTrailerFileActionPerformed()
 	{
-		String fileName = OpenFile.chooseInputFile(OpenFile.Type.ANY, null);
+		String fileName = OpenFile.chooseInputFile(FileType.ANY, null);
 		if (fileName == null) return;
 		spiceTrailerCardFile.setText(fileName);
 		spiceTrailerCardsFromFile.setSelected(true);
@@ -376,7 +377,7 @@ public class SpiceTab extends PreferencePanel
 
 	private void spiceBrowseHeaderFileActionPerformed()
 	{
-		String fileName = OpenFile.chooseInputFile(OpenFile.Type.ANY, null);
+		String fileName = OpenFile.chooseInputFile(FileType.ANY, null);
 		if (fileName == null) return;
 		spiceHeaderCardFile.setText(fileName);
 		spiceHeaderCardsFromFile.setSelected(true);

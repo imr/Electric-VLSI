@@ -35,6 +35,7 @@ import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.compaction.Compaction;
@@ -55,7 +56,6 @@ import com.sun.electric.tool.ncc.NetEquivalence;
 import com.sun.electric.tool.parasitic.ParasiticTool;
 import com.sun.electric.tool.generator.PadGenerator;
 import com.sun.electric.tool.generator.ROMGenerator;
-import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.database.variable.*;
 import com.sun.electric.database.topology.PortInst;
@@ -69,12 +69,7 @@ import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.PolyQTree;
-import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
@@ -120,9 +115,9 @@ public class ToolMenu {
 		MenuBar.Menu spiceSimulationSubMenu = new MenuBar.Menu("Simulation (Spice)", 'S');
 		toolMenu.add(spiceSimulationSubMenu);
 		spiceSimulationSubMenu.addMenuItem("Write Spice Deck...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.SPICE, true); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.SPICE, true); }});
 		spiceSimulationSubMenu.addMenuItem("Write CDL Deck...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.CDL, true); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.CDL, true); }});
 		spiceSimulationSubMenu.addMenuItem("Plot Spice Listing...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotSpiceResults(); }});
 		spiceSimulationSubMenu.addMenuItem("Plot Spice for This Cell", null,
@@ -154,7 +149,7 @@ public class ToolMenu {
 		MenuBar.Menu verilogSimulationSubMenu = new MenuBar.Menu("Simulation (Verilog)", 'V');
 		toolMenu.add(verilogSimulationSubMenu);
 		verilogSimulationSubMenu.addMenuItem("Write Verilog Deck...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.VERILOG, true); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.VERILOG, true); } });
 		verilogSimulationSubMenu.addMenuItem("Plot Verilog VCD Dump...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotVerilogResults(); }});
 		verilogSimulationSubMenu.addMenuItem("Plot Verilog for This Cell", null,
@@ -186,27 +181,27 @@ public class ToolMenu {
 		MenuBar.Menu netlisters = new MenuBar.Menu("Simulation (Others)");
 		toolMenu.add(netlisters);
 		netlisters.addMenuItem("Write Maxwell Deck...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.MAXWELL, true); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.MAXWELL, true); } });
 		netlisters.addMenuItem("Write Tegas Deck...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.TEGAS, true); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.TEGAS, true); } });
 		netlisters.addMenuItem("Write SILOS Deck...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.SILOS, true); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.SILOS, true); }});
 		netlisters.addMenuItem("Write PAL Deck...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.PAL, true); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.PAL, true); } });
 		netlisters.addSeparator();
 		netlisters.addMenuItem("Write IRSIM Deck...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.IRSIM, true); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.IRSIM, true); }});
 		netlisters.addMenuItem("Write ESIM/RNL Deck...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.ESIM, true); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.ESIM, true); }});
 		netlisters.addMenuItem("Write RSIM Deck...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.RSIM, true); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.RSIM, true); }});
 		netlisters.addMenuItem("Write COSMOS Deck...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.COSMOS, true); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.COSMOS, true); }});
 		netlisters.addMenuItem("Write MOSSIM Deck...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.MOSSIM, true); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.MOSSIM, true); }});
 		netlisters.addSeparator();
 		netlisters.addMenuItem("Write FastHenry Deck...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCellCommand(OpenFile.Type.FASTHENRY, true); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.FASTHENRY, true); }});
 		netlisters.addMenuItem("FastHenry Arc Properties...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FastHenryArc.showFastHenryArcDialog(); }});
 
@@ -1028,7 +1023,7 @@ public class ToolMenu {
 
     public static void padFrameGeneratorCommand()
     {
-        String fileName = OpenFile.chooseInputFile(OpenFile.Type.PADARR, null);
+        String fileName = OpenFile.chooseInputFile(FileType.PADARR, null);
         if (fileName != null)
         {
             PadGenerator.generate(fileName);
@@ -1071,7 +1066,7 @@ public class ToolMenu {
 
     public static void javaBshScriptCommand()
     {
-        String fileName = OpenFile.chooseInputFile(OpenFile.Type.JAVA, null);
+        String fileName = OpenFile.chooseInputFile(FileType.JAVA, null);
         if (fileName != null)
         {
             // start a job to run the script

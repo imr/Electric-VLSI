@@ -5,6 +5,7 @@ import com.sun.electric.tool.io.IOTool;
 import java.awt.print.Printable;
 import java.awt.print.PageFormat;
 import java.awt.image.ImageObserver;
+import java.awt.image.BufferedImage;
 import java.awt.Image;
 import java.awt.Graphics;
 
@@ -17,18 +18,20 @@ import java.awt.Graphics;
  */
 public class ElectricPrinter implements Printable, ImageObserver
 {
-	private WindowFrame wf;
-	private Image img = null;
+	private WindowContent context;
+	private BufferedImage img = null;
 	private Graphics graphics;
 	private PageFormat pageFormat;
 	private int desiredDPI = IOTool.getPrintResolution();
 
-	public void setPrintWindow(WindowFrame wf) {
-		this.wf = wf;
+	public ElectricPrinter (WindowContent context, PageFormat pageFormat)
+	{
+		this.context = context;
+		this.pageFormat = pageFormat;
 	}
 
-	public Image getImage() {return img;}
-	public void setImage(Image img) {this.img = img;}
+	public BufferedImage getBufferedImage() {return img;}
+	public void setBufferedImage(BufferedImage img) {this.img = img;}
 	public Graphics getGraphics() {return graphics;}
 	public PageFormat getPageFormat() {return pageFormat;}
 	public int getDesiredDPI() {return desiredDPI;}
@@ -36,12 +39,12 @@ public class ElectricPrinter implements Printable, ImageObserver
 	public int print(Graphics g, PageFormat pf, int page)
 		throws java.awt.print.PrinterException
 	{
-		WindowContent context = wf.getContent();
 		if (page != 0) return Printable.NO_SUCH_PAGE;
 
 		graphics = g;
 		pageFormat = pf;
-		return (context.getOffScreenImage(this));
+		BufferedImage img = context.getOffScreenImage(this);
+		return ((img != null) ? Printable.PAGE_EXISTS : Printable.NO_SUCH_PAGE);
 	}
 
 	/** This function is required for 3D view */

@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.Main;
 
 import java.awt.BorderLayout;
@@ -189,7 +190,7 @@ public class MessagesWindow
 	 */
 	public void save()
 	{
-		save(OpenFile.chooseOutputFile(OpenFile.Type.TEXT, null, "emessages.txt"));
+		save(OpenFile.chooseOutputFile(FileType.TEXT, null, "emessages.txt"));
 	}
 
 	public void save(String filePath) {

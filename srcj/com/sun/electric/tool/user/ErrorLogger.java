@@ -36,6 +36,7 @@ import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.Main;
 
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -626,7 +627,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 	    PrintStream buffWriter = null;
 	    String filePath = null;
 	    try {
-		    filePath = OpenFile.chooseOutputFile(OpenFile.Type.TEXT, null, "ErrorLoggerSave.txt");
+		    filePath = OpenFile.chooseOutputFile(FileType.TEXT, null, "ErrorLoggerSave.txt");
 		    buffWriter = new PrintStream(new FileOutputStream(filePath));
 
 	    } catch (IOException e)

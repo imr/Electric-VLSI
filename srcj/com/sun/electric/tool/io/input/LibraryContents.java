@@ -52,6 +52,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.ncc.basic.TransitiveRelation;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.dialogs.OpenFile;
@@ -2174,7 +2175,7 @@ public class LibraryContents
 		{
 			LibraryRef libRef = (LibraryRef)lit.next();
 			if (libRef == myLibraryRef) continue;
-			libRef.lib = reader.readExternalLibraryFromFilename(libRef.fileName, OpenFile.Type.JELIB);
+			libRef.lib = reader.readExternalLibraryFromFilename(libRef.fileName, FileType.JELIB);
 			assert libRef.lib != null;
 
 			for (Iterator cit = libRef.cells.values().iterator(); cit.hasNext();)

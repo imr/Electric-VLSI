@@ -27,6 +27,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlighter;
@@ -35,6 +36,7 @@ import com.sun.electric.tool.user.menus.MenuBar;
 
 import java.awt.*;
 import java.awt.image.ImageObserver;
+import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.event.FocusListener;
@@ -276,7 +278,7 @@ public class TextWindow
 		if (content instanceof TextWindow)
 		{
 			TextWindow tw = (TextWindow)content;
-			String fileName = OpenFile.chooseInputFile(OpenFile.Type.TEXT, null);
+			String fileName = OpenFile.chooseInputFile(FileType.TEXT, null);
             tw.readTextCell(fileName);
         }
     }
@@ -333,7 +335,7 @@ public class TextWindow
 		if (content instanceof TextWindow)
 		{
 			TextWindow tw = (TextWindow)content;
-			String fileName = OpenFile.chooseOutputFile(OpenFile.Type.TEXT, "Text file", content.getCell().getName() + ".txt");
+			String fileName = OpenFile.chooseOutputFile(FileType.TEXT, "Text file", content.getCell().getName() + ".txt");
             tw.writeTextCell(fileName);
         }
     }
@@ -664,8 +666,8 @@ public class TextWindow
 	 * @param ep Image observer plus printable object
 	 * @return Printable.NO_SUCH_PAGE or Printable.PAGE_EXISTS
 	 */
-	public int getOffScreenImage(ElectricPrinter ep)
+	public BufferedImage getOffScreenImage(ElectricPrinter ep)
 	{
-		return Printable.NO_SUCH_PAGE;
+		return null;
 	}
 }

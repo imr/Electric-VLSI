@@ -25,7 +25,6 @@
  */
 package com.sun.electric.tool.io.input;
 
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -34,9 +33,6 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.CellName;
-import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.text.Pref;
@@ -47,25 +43,19 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.io.ELIBConstants;
-import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.io.InputStream;
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -256,7 +246,7 @@ public class JELIB extends LibraryFiles
 				if (Library.findLibrary(curExternalLibName) != null) continue;
 
 				// recurse
-				readExternalLibraryFromFilename(unQuote((String)pieces.get(1)), OpenFile.Type.JELIB);
+				readExternalLibraryFromFilename(unQuote((String)pieces.get(1)), FileType.JELIB);
 				continue;
 			}
 

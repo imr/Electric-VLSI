@@ -32,6 +32,7 @@ import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.tool.user.menus.MenuBar.Menu;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.menus.FileMenu;
+import com.sun.electric.tool.io.FileType;
 
 import java.awt.Dimension;
 import java.awt.Frame;
@@ -209,7 +210,7 @@ public class ManualViewer extends EDialog
 	{
 		if (Library.findLibrary("samples") != null) return;
 		URL url = ManualViewer.class.getResource("helphtml/samples.jelib");
-		FileMenu.ReadLibrary job = new FileMenu.ReadLibrary(url, OpenFile.Type.JELIB, null);
+		FileMenu.ReadLibrary job = new FileMenu.ReadLibrary(url, FileType.JELIB, null);
 	}
 
 	private void loadMenuBar()
@@ -557,7 +558,7 @@ public class ManualViewer extends EDialog
 	 */
 	private void manual()
 	{
-		String manualFileName = OpenFile.chooseOutputFile(OpenFile.Type.HTML, "Manual file", "electric.html");
+		String manualFileName = OpenFile.chooseOutputFile(FileType.HTML, "Manual file", "electric.html");
 		if (manualFileName == null) return;
 		PrintWriter printWriter = null;
 		try
