@@ -326,7 +326,7 @@ public class ERCAntenna
 					{
 						// get the area of the antenna
 						double totalRegionPerimeterArea = 0.0;
-						for(Iterator lIt = vmerge.getLayersUsed(); lIt.hasNext(); )
+						for(Iterator lIt = vmerge.getKeyIterator(); lIt.hasNext(); )
 						{
 							Layer oLay = (Layer)lIt.next();
 							double thickness = oLay.getThickness();
@@ -354,7 +354,7 @@ public class ERCAntenna
 							String errMsg = "layer " + lay.getName() + " has perimeter-area " + totalRegionPerimeterArea +
 								"; gates have area " + totalGateArea + ", ratio is " + ratio + " but limit is " + neededratio;
 							ErrorLog err = errorLogger.logError(errMsg, cell, 0);
-							for(Iterator lIt = vmerge.getLayersUsed(); lIt.hasNext(); )
+							for(Iterator lIt = vmerge.getKeyIterator(); lIt.hasNext(); )
 							{
 								Layer oLay = (Layer)lIt.next();
 								List merges = vmerge.getMergedPoints(oLay);

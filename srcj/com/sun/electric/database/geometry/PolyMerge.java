@@ -30,10 +30,7 @@ import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.PathIterator;
-import java.util.List;
-import java.util.Iterator;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 
 /**
  * This is the Polygon Merging facility.
@@ -58,6 +55,7 @@ import java.util.HashMap;
  * for each layer, and it returns an array of Polys on that layer.
  */
 public class PolyMerge
+        implements GeometryHandler
 {
 	private HashMap allLayers = new HashMap(); // should be more efficient here
 
@@ -69,6 +67,17 @@ public class PolyMerge
 		;
 	}
 
+	/**
+	 * Method to add a Poly to the merged collection.
+	 * @param key the layer that this Poly sits on.
+	 * @param value the Poly to merge.
+	 */
+	public void add(Object key, Object value)
+	{
+		Layer layer = (Layer)key;
+		Poly poly = (Poly)value;
+		addPolygon(layer, poly);
+	}
 	/**
 	 * Method to add a Poly to the merged collection.
 	 * @param layer the layer that this Poly sits on.
@@ -105,6 +114,17 @@ public class PolyMerge
 
 	/**
 	 * Method to add another Merge to this one.
+	 * @param subMerge the other Merge to add in.
+	 * @param trans a transformation on the other Merge.
+	 */
+	public void addAll(GeometryHandler subMerge, AffineTransform trans)
+	{
+		PolyMerge other = (PolyMerge)subMerge;
+		addMerge(other, trans);
+	}
+
+	/**
+	 * Method to add another Merge to this one.
 	 * @param other the other Merge to add in.
 	 * @param trans a transformation on the other Merge.
 	 */
@@ -126,13 +146,19 @@ public class PolyMerge
 		}
 	}
 
+
 	/**
 	 * Method to return an Iterator over all of the Layers used in this Merge.
 	 * @return an Iterator over all of the Layers used in this Merge.
 	 */
-	public Iterator getLayersUsed()
+	public Iterator getKeyIterator()
 	{
 		return allLayers.keySet().iterator();
+	}
+
+	public Collection getObjects(Object layer, boolean modified)
+	{
+		return (getMergedPoints((Layer)layer));
 	}
 
 	/**

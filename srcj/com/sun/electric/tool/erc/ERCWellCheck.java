@@ -26,6 +26,7 @@ package com.sun.electric.tool.erc;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.geometry.PolyQTree;
+import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -91,13 +92,14 @@ public class ERCWellCheck
 	{
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
-        Job job = null;
+        Job job = new WellCheck(curCell, newAlgorithm);;
 
-		// @todo GVG Install latest version
+		/*
 		if (newAlgorithm)
 			job = new WellCheckNew(curCell);
 		else
-			job = new WellCheck(curCell);
+		*/
+
 	}
 
 	private static class WellCheckNew extends Job
@@ -140,7 +142,7 @@ public class ERCWellCheck
 			{
 				Layer layer = (Layer)it.next();
 				// Not sure if null goes here
-				Set set = topMerge.getObjects(layer, false);
+				Collection set = topMerge.getObjects(layer, false);
 
 				for(Iterator pIt = set.iterator(); pIt.hasNext(); )
 				{
@@ -313,7 +315,9 @@ public class ERCWellCheck
 							case 3: areaType = "P-Select";  break;
 							case 4: areaType = "N-Select";  break;
 						}
-						ErrorLog err = errorLogger.logError(areaType + " areas too close (are " + dist + ", should be " + rule.distance + ")", cell, 0);
+						ErrorLog err = errorLogger.logError(areaType + " areas too close (are "
+						        + TextUtils.formatDouble(dist, 1) + ", should be "
+						        + TextUtils.formatDouble(rule.distance, 1) + ")", cell, 0);
 						err.addPoly(wa.poly, true, cell);
 						err.addPoly(oWa.poly, true, cell);
 					}
@@ -433,12 +437,14 @@ public class ERCWellCheck
 	private static class WellCheck extends Job
 	{
 		Cell cell;
+		boolean newAlgorithm;
         ErrorLogger errorLogger;
 
-		protected WellCheck(Cell cell)
+		protected WellCheck(Cell cell, boolean newAlg)
 		{
 			super("ERC Well Check", ERC.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.cell = cell;
+			this.newAlgorithm = newAlg;
 			startJob();
 		}
 
@@ -458,29 +464,68 @@ public class ERCWellCheck
 			cellMerges = new HashMap();
 
 			// enumerate the hierarchy below here
-			Visitor wcVisitor = new Visitor();
+			Visitor wcVisitor = new Visitor(newAlgorithm);
 			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, wcVisitor);
 
 			// make a list of well and substrate areas
-			PolyMerge topMerge = (PolyMerge)cellMerges.get(cell);
+			//PolyMerge topMerge = (PolyMerge)cellMerges.get(cell);
 			wellAreas = new ArrayList();
 			int wellIndex = 0;
-			for(Iterator it = topMerge.getLayersUsed(); it.hasNext(); )
+
+			GeometryHandler topMerge = (GeometryHandler)cellMerges.get(cell);
+
+			for(Iterator it = topMerge.getKeyIterator(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
-				List polyList = topMerge.getMergedPoints(layer);
-				if (polyList != null)
+
+				// Not sure if null goes here
+				Collection set = topMerge.getObjects(layer, false);
+
+				for(Iterator pIt = set.iterator(); pIt.hasNext(); )
 				{
-					for(Iterator pIt = polyList.iterator(); pIt.hasNext(); )
+					WellArea wa = new WellArea();
+					Poly poly = null;
+
+					if (newAlgorithm)
 					{
-						WellArea wa = new WellArea();
-						wa.poly = (Poly)pIt.next();
-						wa.bounds = wa.poly.getBounds2D();
-						wa.layer = layer;
-						wa.index = wellIndex++;
-						wellAreas.add(wa);
+						PolyQTree.PolyNode pn = (PolyQTree.PolyNode)pIt.next();
+						poly = new Poly(pn.getPoints());
+					}
+					else
+						poly = (Poly)pIt.next();
+
+					wa.poly = poly;
+					wa.poly.setLayer(layer);
+					wa.poly.setStyle(Poly.Type.FILLED);
+					wa.bounds = wa.poly.getBounds2D();
+					wa.layer = layer;
+					wa.index = wellIndex++;
+					wellAreas.add(wa);
+				}
+			}
+			//else
+			{
+				/*
+				PolyMerge topMerge = (PolyMerge)cellMerges.get(cell);
+				for(Iterator it = topMerge.getKeyIterator(); it.hasNext(); )
+				{
+					Layer layer = (Layer)it.next();
+					List polyList = topMerge.getMergedPoints(layer);
+
+					if (polyList != null)
+					{
+						for(Iterator pIt = polyList.iterator(); pIt.hasNext(); )
+						{
+							WellArea wa = new WellArea();
+							wa.poly = (Poly)pIt.next();
+							wa.bounds = wa.poly.getBounds2D();
+							wa.layer = layer;
+							wa.index = wellIndex++;
+							wellAreas.add(wa);
+						}
 					}
 				}
+				*/
 			}
 
 			// number the well areas according to topology of contacts in them
@@ -640,7 +685,9 @@ public class ERCWellCheck
 							case 3: areaType = "P-Select";  break;
 							case 4: areaType = "N-Select";  break;
 						}
-						ErrorLog err = errorLogger.logError(areaType + " areas too close (are " + dist + ", should be " + rule.distance + ")", cell, 0);
+						ErrorLog err = errorLogger.logError(areaType + " areas too close (are "
+						        + TextUtils.formatDouble(dist, 1) + ", should be "
+						        + TextUtils.formatDouble(rule.distance, 1) + ")", cell, 0);
 						err.addPoly(wa.poly, true, cell);
 						err.addPoly(oWa.poly, true, cell);
 					}
@@ -794,7 +841,7 @@ public class ERCWellCheck
 							Layer layer = poly.getLayer();
 							if (getWellLayerType(layer) == 0) continue;
 							poly.transform(trans);
-							merge.insert((Object)layer, new PolyQTree.PolyNode(poly.getBounds2D()));
+							merge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()));
 						}
 					} else
 					{
@@ -805,7 +852,7 @@ public class ERCWellCheck
 						{
 							AffineTransform tTrans = ni.translateOut();
 							tTrans.concatenate(trans);
-							merge.insert(subMerge, tTrans);
+							merge.addAll(subMerge, tTrans);
 						}
 					}
 				}
@@ -821,7 +868,7 @@ public class ERCWellCheck
 						Poly poly = arcInstPolyList[i];
 						Layer layer = poly.getLayer();
 						if (getWellLayerType(layer) == 0) continue;
-						merge.insert((Object)layer, new PolyQTree.PolyNode(poly.getBounds2D()));
+						merge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()));
 					}
 				}
 			}
@@ -883,8 +930,11 @@ public class ERCWellCheck
 
 	public static class Visitor extends HierarchyEnumerator.Visitor
     {
-        public Visitor()
+		boolean newAlgorithm;
+
+        public Visitor(boolean newAlgorithm)
         {
+	        this.newAlgorithm = newAlgorithm;
         }
 
         public boolean enterCell(HierarchyEnumerator.CellInfo info)
@@ -892,14 +942,19 @@ public class ERCWellCheck
             return true;
         }
 
-        public void exitCell(HierarchyEnumerator.CellInfo info) 
+        public void exitCell(HierarchyEnumerator.CellInfo info)
         {
 			// make an object for merging all of the wells in this cell
 			Cell cell = info.getCell();
-			PolyMerge merge = (PolyMerge)cellMerges.get(cell);
+	        GeometryHandler merge = (GeometryHandler)cellMerges.get(cell);
+			//PolyMerge merge = (PolyMerge)cellMerges.get(cell);
+
 			if (merge == null)
 			{
-				merge = new PolyMerge();
+				if (newAlgorithm)
+					merge = new PolyQTree(cell.getBounds());
+				else
+					merge = new PolyMerge();
 				cellMerges.put(cell, merge);
 
 				// merge everything
@@ -920,17 +975,28 @@ public class ERCWellCheck
 							Layer layer = poly.getLayer();
 							if (getWellLayerType(layer) == 0) continue;
 							poly.transform(trans);
-							merge.addPolygon(layer, poly);
+                            Object newElem = poly;
+
+							if (newAlgorithm)
+								newElem = new PolyQTree.PolyNode(poly.getBounds2D());
+							// No using interface because .....
+							/*
+							if (newAlgorithm)
+								((PolyQTree)merge).add(layer, new PolyQTree.PolyNode(poly.getBounds2D()));
+							else
+								((PolyMerge)merge).addPolygon(layer, poly);
+								*/
+							merge.add(layer, newElem);
 						}
 					} else
 					{
 						// get sub-merge information for the cell instance
-						PolyMerge subMerge = (PolyMerge)cellMerges.get(subNp);
+						GeometryHandler subMerge = (GeometryHandler)cellMerges.get(subNp);
 						if (subMerge != null)
 						{
 							AffineTransform tTrans = ni.translateOut();
 							tTrans.concatenate(trans);
-							merge.addMerge(subMerge, tTrans);
+							merge.addAll(subMerge, tTrans);
 						}
 					}
 				}
@@ -946,7 +1012,13 @@ public class ERCWellCheck
 						Poly poly = arcInstPolyList[i];
 						Layer layer = poly.getLayer();
 						if (getWellLayerType(layer) == 0) continue;
-						merge.addPolygon(layer, poly);
+                        Object newElem = poly;
+
+						if (newAlgorithm)
+							newElem = new PolyQTree.PolyNode(poly.getBounds2D());
+							//((PolyQTree)merge).insert((Object)layer, new PolyQTree.PolyNode(poly.getBounds2D()));
+							//((PolyMerge)merge).addPolygon(layer, poly);
+						merge.add(layer, newElem);
 					}
 				}
 			}
@@ -1000,7 +1072,7 @@ public class ERCWellCheck
 			}
        }
 
-        public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) 
+        public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
         {
             return true;
         }

@@ -34,10 +34,11 @@ import java.util.List;
  * @author  Gilda Garreton
  * @version 0.1
  */
-public class PolyQTree {
+public class PolyQTree
+        implements GeometryHandler
+{
 	private static int MAX_NUM_CHILDREN = 4;
-	private static int MAX_DEPTH = 10;
-	//private static Rectangle2D testBox = new Rectangle2D.Double();
+	//private static int MAX_DEPTH = 10;
     private HashMap layers = new HashMap();
 	private Rectangle2D rootBox;
 
@@ -84,7 +85,7 @@ public class PolyQTree {
 	 * @param modified True if only the original elements should not be retrieved
 	 * @return list of leaf elements
 	 */
-	public Set getObjects(Object layer, boolean modified)
+	public Collection getObjects(Object layer, boolean modified)
 	{
 		Set objSet = new HashSet();
 		PolyQNode root = (PolyQNode)layers.get(layer);
@@ -99,10 +100,11 @@ public class PolyQTree {
 	/**
 	 * Given a layer, insert the object obj into the qTree associated.
 	 * @param layer Given layer to work with
-	 * @param obj
+	 * @param newObj
 	 */
-	public void insert(Object layer, PolyNode obj)
+	public void add(Object layer, Object newObj)
 	{
+		PolyNode obj = (PolyNode)newObj;
 		PolyQNode root = (PolyQNode)layers.get(layer);
 
 		if (root == null)
@@ -121,23 +123,26 @@ public class PolyQTree {
 			System.out.println("Repeated element?");
 	}
 
+	//public void insert(PolyQTree other, AffineTransform trans)
 	/**
-	 * Merge two PolyTree
-	 * @param other Tree to merge with
+	 *  Merge two PolyQTree
+	 * @param subMerge
 	 * @param trans
 	 */
-	public void insert(PolyQTree other, AffineTransform trans)
+	public void addAll(GeometryHandler subMerge, AffineTransform trans)
 	{
+		PolyQTree other = (PolyQTree)subMerge;
+
 		for(Iterator it = other.layers.keySet().iterator(); it.hasNext();)
 		{
 			Object layer = it.next();
-			Set set = other.getObjects(layer, false);
+			Set set = (Set)other.getObjects(layer, false);
 
 			for(Iterator i = set.iterator(); i.hasNext(); )
 			{
 				PolyNode geo = (PolyNode)i.next();
 				geo.transform(trans);
-				insert(layer, geo);
+				add(layer, geo);
 			}
 		}
 	}
@@ -151,6 +156,13 @@ public class PolyQTree {
 		{
 			super(shape);
 		}
+
+		public boolean equals(Object obj)
+		{
+			Area a = (Area)obj;
+			return (equals(a));
+		}
+		
 		/**
 		 *
 		 * @return
@@ -160,15 +172,27 @@ public class PolyQTree {
 			PathIterator pi = getPathIterator(null);
 			double coords[] = new double[6];
 			List pointList = new ArrayList();
+            Point2D lastMoveTo = null;
 
 			while (!pi.isDone()) {
-				switch (pi.currentSegment(coords)) {
+				int type = pi.currentSegment(coords);
+				switch (type) {
 	                case PathIterator.SEG_CLOSE:
-						// do nothing
+						// next available loop
+						if (lastMoveTo != null)
+							pointList.add(lastMoveTo);
+						lastMoveTo = null;
 						break;
 					default:
 						Point2D pt = new Point2D.Double(coords[0], coords[1]);
 						pointList.add(pt);
+
+						// Adding the point at the beginning of the loop
+						if (type == PathIterator.SEG_MOVETO)
+						{
+							lastMoveTo = pt;
+							//throw new UnsupportedOperationException("Case not supported");
+						}
 	            }
 	            pi.next();
 			}
@@ -196,6 +220,8 @@ public class PolyQTree {
 							pointList.clear();
 						}
 						break;
+					case PathIterator.SEG_MOVETO:
+
 					default:
 						Point2D pt = new Point2D.Double(coords[0], coords[1]);
 						pointList.add(pt);
@@ -275,8 +301,6 @@ public class PolyQTree {
 
                                 if (edges.containsKey(edge))
 									return (true);
-								if (edges.get(edge) != null)
-									return (true);
 								edges.put(edge, edge);
 							}
 							pointList.clear();
@@ -331,10 +355,26 @@ public class PolyQTree {
 			area /= 2;
 			return(area < 0 ? -area : area);
 		}
+
+		/**
+		 * Returns a printable version of this PolyNode.
+		 * @return a printable version of this PolyNode.
+		 */
 		public String toString()
 		{
 			return ("PolyNode " + getBounds());
 		}
+
+		/**
+		 * Overwriting original for Area to consider touching polygons
+		 * @param p
+		 * @return
+		 */
+		/**
+		public boolean intersects(Rectangle2D p) {
+	return intersects(p.getX(), p.getY(), p.getWidth(), p.getHeight());
+		}
+		 */
 		public boolean intersects (Area a)
 		{
 			if (a.isRectangular())
@@ -352,14 +392,12 @@ public class PolyQTree {
 				return (a.intersects(getBounds2D()));
 			}
 			// @TODO: GVG Missing part. Doesn't detect if elements are touching
-			//System.out.println("IMPLEMENT!!");
 			// @TODO: GVG very expensive?
 			Area area = (Area)this.clone();
 			area.intersect(a);
 			boolean inter = !area.isEmpty();
 
 			return (inter);
-			//return (a.intersects(getBounds2D()));
 		}
 		private boolean isOriginal()
 		{
@@ -369,6 +407,46 @@ public class PolyQTree {
 		private void setNotOriginal()
 		{
 			original |= 1 << 0;
+		}
+		private Collection getSimpleObjects()
+		{
+			Set set = new HashSet();
+			if (isRectangular())
+			{
+				set.add(this);
+			}
+			else
+			{
+				// Possible not connected loops
+				double [] coords = new double[6];
+				List pointList = new ArrayList();
+                PathIterator pi = getPathIterator(null);
+
+				while (!pi.isDone()) {
+					switch (pi.currentSegment(coords)) {
+						case PathIterator.SEG_CLOSE:
+							{
+								Object [] points = pointList.toArray();
+                                GeneralPath simplepath = new GeneralPath();
+								for (int i = 0; i < pointList.size(); i++)
+								{
+									int j = (i + 1)% pointList.size();
+									Line2D line = new Line2D.Double(((Point2D)points[i]), (Point2D)points[j]);
+									simplepath.append(line, true);
+								}
+								pointList.clear();
+								PolyNode node = new PolyNode(simplepath);
+								set.add(node);
+							}
+							break;
+						default:
+							Point2D pt = new Point2D.Double(coords[0], coords[1]);
+							pointList.add(pt);
+					}
+					pi.next();
+				}
+			}
+			return set;
 		}
 	}
 	private static class PolyQNode
@@ -444,7 +522,12 @@ public class PolyQTree {
 				{
 					PolyNode node = (PolyNode)it.next();
 					if (!modified || (modified && !node.isOriginal()))
-						set.add(node);
+					{
+						if (node.isOriginal())
+							set.add(node);
+						else
+							set.addAll(node.getSimpleObjects());
+					}
 				}
 			}
 			if (children == null) return;
@@ -564,7 +647,9 @@ public class PolyQTree {
 
 					if (node.equals(obj))
 						return (true);
-					if (node.intersects(obj))
+
+
+					//if (node.intersects(obj))
 					{
 						obj.add(node);
 						obj.setNotOriginal();

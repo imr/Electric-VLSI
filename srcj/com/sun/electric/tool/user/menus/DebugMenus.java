@@ -66,12 +66,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Class to handle the commands in the debugging pulldown menus.
@@ -526,7 +521,7 @@ public class DebugMenus {
 					if (Main.getDebug() || func.isSubstrate())
 					{
 						//Area bounds = new PolyQTree.PolyNode(poly.getBounds2D());
-						tree.insert((Object)layer, new PolyQTree.PolyNode(poly.getBounds2D()));
+						tree.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()));
 					}
 				}
 			}
@@ -561,7 +556,7 @@ public class DebugMenus {
 					{
 						poly.transform(transform);
 						//Area bounds = new PolyQTree.PolyNode(poly.getBounds2D());
-						tree.insert((Object)layer, new PolyQTree.PolyNode(poly.getBounds2D()));
+						tree.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()));
 					}
 				}
 			}
@@ -576,7 +571,7 @@ public class DebugMenus {
 			for(Iterator it = tree.getKeyIterator(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
-				Set set = tree.getObjects(layer, true);
+				Collection set = tree.getObjects(layer, true);
 
 				// Ready to create new implants.
 				for (Iterator i = set.iterator(); i.hasNext(); )
@@ -710,7 +705,7 @@ public class DebugMenus {
 			java.util.List nodesList = new ArrayList();
 
 			// Need to detect if geometry was really modified
-			for(Iterator it = merge.getLayersUsed(); it.hasNext(); )
+			for(Iterator it = merge.getKeyIterator(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
 				java.util.List list = merge.getMergedPoints(layer) ;

@@ -1,6 +1,7 @@
 			Java Electric change log
 
 ************************* Version 8.01: Released  *************************
+IMP: (7/22/04, GVG) New interface for geometrical operation. Error thrown if Java3D is not found. Some improvements in ERC.
 
 IMP: (7/20/04, RK) Add Regular Expressions to FindText Dialog. Allow user selection of objects to be searched. Report finds and changes in Messages Window. Persist dialog settings.  Allow temporary arc and node inst names to be searched.
 

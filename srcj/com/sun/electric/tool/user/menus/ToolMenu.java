@@ -177,7 +177,7 @@ public class ToolMenu {
         MenuBar.Menu ercSubMenu = new MenuBar.Menu("ERC", 'E');
         toolMenu.add(ercSubMenu);
         ercSubMenu.addMenuItem("Check Wells", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(true); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(false); } });
         ercSubMenu.addMenuItem("Antenna Check", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { new ERCAntenna(); } });
 
@@ -639,7 +639,7 @@ public class ToolMenu {
 	        System.out.println("For network '" + net.describe() + "' in cell '" + cell.describe() + "':");
         }
         PolyQTree tree = new PolyQTree(cell.getBounds());
-	    LayerCoverageJob.LayerVisitor visitor = new LayerCoverageJob.LayerVisitor(true, tree, null, LayerCoverageJob.NETWORK);
+	    LayerCoverageJob.LayerVisitor visitor = new LayerCoverageJob.LayerVisitor(true, tree, null, LayerCoverageJob.NETWORK, null);
 	    HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, netlist, visitor);
 
 		double totalWire = 0;
@@ -649,7 +649,7 @@ public class ToolMenu {
 		for (Iterator it = tree.getKeyIterator(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
-			Set set = tree.getObjects(layer, false);
+			Collection set = tree.getObjects(layer, false);
 			double layerArea = 0;
 			double perimeter = 0;
 
@@ -892,6 +892,7 @@ public class ToolMenu {
 	    public final static int NETWORK = 3; // List Geometry on Network function
         private final int function;
         private java.util.List deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
+	    private HashMap originalPolygons = new HashMap(); // Storing initial nodes
 
         public static class LayerVisitor extends HierarchyEnumerator.Visitor
         {
@@ -899,6 +900,7 @@ public class ToolMenu {
             private PolyQTree tree;
             private java.util.List deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
             private final int function;
+            private HashMap originalPolygons;
 
 	        /**
 	         * Determines if function of given layer is applicable for the corresponding operation
@@ -921,12 +923,13 @@ public class ToolMenu {
 				}
 	        }
 
-            public LayerVisitor(boolean test, PolyQTree t, java.util.List delList, int func)
+            public LayerVisitor(boolean test, PolyQTree t, java.util.List delList, int func, HashMap original)
             {
                 this.testCase = test;
                 this.tree = t;
                 this.deleteList = delList;
                 this.function = func;
+	            this.originalPolygons = original;
             }
             public void exitCell(HierarchyEnumerator.CellInfo info)
             {
@@ -951,13 +954,22 @@ public class ToolMenu {
                         Layer layer = poly.getLayer();
                         Layer.Function func = layer.getFunction();
 
-                        //boolean value = (function==IMPLANT) ? !func.isSubstrate() : !func.isPoly() && !func.isMetal();
-                        //if (!testCase && value) continue;
 	                    boolean value = IsValidFunction(func, function, testCase);
                         if (!value) continue;
-                        //if (!testCase && (function==IMPLANT) ? func.isSubstrate() : !func.isPoly() && !func.isMetal()) continue;
 
-                        tree.insert((Object)layer, new PolyQTree.PolyNode(poly));
+						PolyQTree.PolyNode pnode = new PolyQTree.PolyNode(poly);
+						if (function == IMPLANT)
+						{
+							// For coverage implants
+							Map map = (Map)originalPolygons.get(layer);
+							if (map == null)
+							{
+								map = new HashMap();
+								originalPolygons.put(layer, map);
+							}
+							map.put(pnode, pnode.clone());
+						}
+                        tree.add(layer, pnode);
                     }
                 }
 
@@ -998,9 +1010,14 @@ public class ToolMenu {
                             Layer.Function func = layer.getFunction();
 
                             // Only checking poly or metal for AREA case
-	                        //boolean value = (function==IMPLANT) ? !func.isSubstrate() : !func.isPoly() && !func.isMetal();
                             boolean value = IsValidFunction(func, function, testCase);
                             if (!value) continue;
+
+	                        if (poly.getPoints().length < 3)
+	                        {
+		                        // When is this happening?
+		                        continue;
+	                        }
 
                             poly.transform(transform);
                             // Not sure if I need this for general merge polygons function
@@ -1008,7 +1025,19 @@ public class ToolMenu {
 
                             //System.out.println("Node name"+ node.getName() + " layer " + layer.getName()+ " P " + poly.getBounds2D());
 
-                            tree.insert((Object)layer, new PolyQTree.PolyNode(poly));
+	                        PolyQTree.PolyNode pnode = new PolyQTree.PolyNode(poly);
+	                        if (function == IMPLANT)
+	                        {
+								// For coverage implants
+								Map map = (Map)originalPolygons.get(layer);
+								if (map == null)
+								{
+									map = new HashMap();
+									originalPolygons.put(layer, map);
+								}
+		                        map.put(pnode, pnode.clone());
+	                        }
+                            tree.add(layer, pnode);
                         }
                     }
                 }
@@ -1037,7 +1066,7 @@ public class ToolMenu {
         public boolean doIt()
         {
             // enumerate the hierarchy below here
-            LayerVisitor visitor = new LayerVisitor(testCase, tree, deleteList, function);
+            LayerVisitor visitor = new LayerVisitor(testCase, tree, deleteList, function, originalPolygons);
             HierarchyEnumerator.enumerateCell(curCell, VarContext.globalContext, null, visitor);
 
             switch (function)
@@ -1053,7 +1082,7 @@ public class ToolMenu {
                         for (Iterator it = tree.getKeyIterator(); it.hasNext(); )
                         {
                             Layer layer = (Layer)it.next();
-                            Set set = tree.getObjects(layer, false);
+                            Collection set = tree.getObjects(layer, false);
                             double layerArea = 0;
 
                             // Get all objects and sum the area
@@ -1080,12 +1109,20 @@ public class ToolMenu {
                         for(Iterator it = tree.getKeyIterator(); it.hasNext(); )
                         {
                             Layer layer = (Layer)it.next();
-                            Set set = tree.getObjects(layer, !isMerge);
+                            Collection set = tree.getObjects(layer, !isMerge);
 
                             // Ready to create new implants.
                             for (Iterator i = set.iterator(); i.hasNext(); )
                             {
                                 PolyQTree.PolyNode qNode = (PolyQTree.PolyNode)i.next();
+
+	                            if (function == IMPLANT)
+	                            {
+		                            Map map = (Map)originalPolygons.get(layer);
+		                            // One of the original elements
+		                            if (map.containsValue(qNode))
+			                            continue;
+	                            }
                                 Rectangle2D rect = qNode.getBounds2D();
                                 Point2D center = new Point2D.Double(rect.getCenterX(), rect.getCenterY());
                                 PrimitiveNode priNode = layer.getPureLayerNode();
@@ -1113,7 +1150,7 @@ public class ToolMenu {
                             node.kill();
                         }
                         if (noNewNodes)
-                            System.out.println("No implant areas added");
+                            System.out.println("No new areas added");
 
                     }
                     break;

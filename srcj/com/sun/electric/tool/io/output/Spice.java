@@ -413,7 +413,7 @@ public class Spice extends Topology
 		{
 			JNetwork net = (JNetwork)it.next();
 			SpiceNet spNet = (SpiceNet)spiceNetMap.get(net);
-			for(Iterator lIt = spNet.merge.getLayersUsed(); lIt.hasNext(); )
+			for(Iterator lIt = spNet.merge.getKeyIterator(); lIt.hasNext(); )
 			{
 				Layer layer = (Layer)lIt.next();
 				List polyList = spNet.merge.getMergedPoints(layer);
