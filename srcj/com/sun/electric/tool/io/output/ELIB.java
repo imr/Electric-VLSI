@@ -1100,6 +1100,12 @@ public class ELIB extends Output
 					varObj = new Float(((Double)varObj).doubleValue());
 				type |= ELIBConstants.getVarType(varObj);
 			}
+			// Only string variables may have language code bits.
+			if ((type&ELIBConstants.VTYPE) != VSTRING && (type&(ELIBConstants.VCODE1|ELIBConstants.VCODE2)) != 0)
+			{
+				System.out.println("Variable " + key.getName() + " on " + obj + " is not a string. Language bits are cleared.");
+				type &= ~(ELIBConstants.VCODE1|ELIBConstants.VCODE2);
+			}
 
 			// special case for "trace" information on NodeInsts
 			if (obj instanceof NodeInst && key == NodeInst.TRACE && varObj instanceof Point2D[])

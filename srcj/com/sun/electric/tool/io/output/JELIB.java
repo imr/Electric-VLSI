@@ -810,7 +810,7 @@ public class JELIB extends Output
 		}
 
 		// write language
-		if (var != null && var.isCode())
+		if (var != null && var.isCode() && (var.getValue() instanceof String || var.getValue() instanceof String[]))
 		{
 			Variable.Code codeType = var.getCode();
 			if (codeType == Variable.Code.JAVA) ret.append("OJ"); else

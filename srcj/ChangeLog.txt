@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01aw: *********************************
 
+BUG: (12/14/04, DN) Non-string variables with language code bits can corrupt disk library (Bug #100).
+FIX: Clear language code bits from non-string variables in ELIB and JELIB writers.
+
 ************************* Version 8.01av: *********************************
 
 IMP: (12/14/04, DN) Renamed transistor port names in TSMC90. JELIB reader handles renamed ports. (Bug #83)
