@@ -59,33 +59,23 @@ public class TopLevel extends JFrame
 	public static void Initialize()
 	{
 		// setup specific look-and-feel
-		String defLibDir = null;
+		libdir = null;
 		try{
 			String os = System.getProperty("os.name").toLowerCase();
 			if (os.startsWith("windows"))
 			{
+				libdir = "C:\\DevelE\\Electric\\lib\\";
 				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-				defLibDir = "C:\\DevelE\\Electric\\lib\\";
-			} else if (os.startsWith("linux") || os.startsWith("solaris"))
+			} else if (os.startsWith("linux") || os.startsWith("solaris") || os.startsWith("sunos"))
 			{
+				libdir = System.getProperty("user.dir") + "/../lib/";
 				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.MotifLookAndFeel");
-				defLibDir = System.getProperty("ELECTRIC_LIBDIR",".");
 			} else if (os.startsWith("mac"))
 			{
+				libdir = System.getProperty("user.dir") + "/../lib/";
 				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.MacLookAndFeel");
-				defLibDir = System.getProperty("ELECTRIC_LIBDIR",".");
 			}
 		} catch(Exception e) {}
-
-		// figure out the library directory
-		libdir = null;
-		File dir1 = new File ("./lib");
-		try
-		{
-			libdir = dir1.getCanonicalPath();
-		} catch(Exception e) { libdir = null; }
-//		if (libdir == null)
-			libdir = defLibDir;
 
 		// make the top-level window
 		topLevel = new TopLevel("Electric");	
