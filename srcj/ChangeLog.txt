@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02b: *********************************
 
+BUG: (01/13/05, GVG) DRC and ordered database changes. After the changes, it was noticed that
+checkDist was not invariant because it reported only the first error found. This affects regression result.
+FIX: checkDist will check all cases. Disadv: DRC gets slower but accurate.
+
 IMP: (01/13/05, JKG) Spice generated node names are now determinant.
 
 IMP: (01/13/05, JKG) CDL: "convert brackets" option now works properly;
