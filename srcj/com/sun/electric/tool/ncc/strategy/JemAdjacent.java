@@ -27,6 +27,7 @@
  * input list or record
  */
 package com.sun.electric.tool.ncc.strategy;
+import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.lists.*;
 import com.sun.electric.tool.ncc.trees.*;
 
@@ -34,87 +35,89 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.HashSet;
 
-public class JemAdjacent extends JemStratSome {
-	int numEquivProcessed;
-	int numAdjacentFound;
-	int numAdjacentUnique;
+public class JemAdjacent extends JemStrat {
+	private int numEquivProcessed;
+	private int numAdjacentUnique;
+	private Set adjacent = new HashSet();
 
-	public String nameString(){return "JemAdjacent";}
-
-	private JemAdjacent(){super();}
+	private JemAdjacent(){}
 	
-	public static JemAdjacent please(){return new JemAdjacent();}
+	public static JemEquivList doYourJob(JemRecordList l) {
+		JemAdjacent ja = new JemAdjacent();
+		return ja.doFor(l);
+	}
 	
 	//do something before starting
 	private void preamble(JemRecordList j){
-		if(getDepth() != 0)return;
-		String s= "a list of " + j.size();
-		startTime("JemAdjacent", s);
-		numEquivProcessed= 0;
-		numAdjacentFound= 0;
-		numAdjacentUnique= 0;
-		return;
-	} //end of preamble
+		startTime("JemAdjacent", "a list of " + j.size());
+	}
 	
     //summarize at the end
-    private void summary(JemEquivList offspring){
-        if(getDepth() != 0)return;
-		JemRecordList cc= JemEquivRecord.tryToRetire(offspring);
-		getMessenger().line("JemAdjacent done - processed " +
+    private JemEquivList summary(){
+		JemEquivList offspring = new JemEquivList();
+		for (Iterator it=adjacent.iterator(); it.hasNext();) {
+			offspring.add((JemEquivRecord)it.next());
+		}
+
+		Messenger.line("JemAdjacent done - processed " +
 							numEquivProcessed + " JemEquivRecords");
-		getMessenger().line(" to find " + numAdjacentFound + 
-							" adjacent hash groups, of which " +
-							cc.size() + " are unique");
+		Messenger.line(offspringStats(offspring));
+
 		elapsedTime(numEquivProcessed);
-        return;
-    } //end of summary
+		return offspring.selectActive();
+    }
 	
 	// ---------- for JemRecordList -------------
 	
     public JemEquivList doFor(JemRecordList g){
-		depth= 0;
 		preamble(g);
-		Set adjacent= new HashSet(5);
-		JemEquivList mm= super.doFor(g);
-		//cull the list to remove duplicates
-		Iterator it= mm.iterator();
-		while(it.hasNext()){
-			JemEquivRecord er= (JemEquivRecord)it.next();
-			adjacent.add(er);
-		} //end of while
-		JemEquivList out= new JemEquivList();
-		it= adjacent.iterator();
-		while(it.hasNext()){
-			JemEquivRecord er= (JemEquivRecord)it.next();
-			out.add(er);
-			numAdjacentUnique++;
-		} //end of while
-		summary(out);
-        return out;
-    } //end of doFor(JemRecordList)
+		super.doFor(g);
+        return summary();
+    }
 	
 	// ---------- for JemRecord -------------
 	
+	/** 
+	 * add JemEquivRecords that are adjacent to the contents of er. A
+	 * JemEquivRecord is adjacent if it can be reached in one step
+	 * from any of er's circuits and it's live and not retired nor
+	 * mismatched
+	 * @return Set of adjacent JemEquivRecords
+	 */
+	private void addAdjacentEquivRecs(JemEquivRecord er){
+		for (Iterator ci=er.getCircuits(); ci.hasNext();) {
+			JemCircuit jc= (JemCircuit) ci.next();
+			for (Iterator ni=jc.getNetObjs(); ni.hasNext();) {
+				NetObject netObj= (NetObject)ni.next();
+				for (Iterator it=netObj.getConnected(); it.hasNext();) {
+					//for each adjacent NetObject
+					netObj = (NetObject)it.next();
+					JemEquivRecord sg= netObj.getParent().getParent();
+					if(sg.isActive()) adjacent.add(sg);
+				}
+			}
+		}
+	}
+	
+	/** The real output of this method is what it adds to adjacent */
     public JemEquivList doFor(JemRecord g){
-		JemEquivList out= new JemEquivList();
 		if(g instanceof JemHistoryRecord){
-			getMessenger().line("processing " + g.nameString());
-			JemEquivList these= super.doFor(g);
-			out.addAll(these);
-		} else if(g instanceof JemEquivRecord){
+			Messenger.line("processing " + g.nameString());
+			super.doFor(g);
+		} else {
+			error(!(g instanceof JemEquivRecord), "unrecognized JemRecord");
 			numEquivProcessed++;
-			String s= ("processed " + g.nameString());
 			JemEquivRecord er= (JemEquivRecord)g;
-			out= er.adjacentGroups();
-//			getMessenger().line(s + " to find " + out.size() + " adjacent");
-			numAdjacentFound += out.size();
-		} //end of else
-		return out;
-	} //end of doFor
+			addAdjacentEquivRecs(er);
+//			String s= ("processed " + g.nameString());
+//			Messenger.line(s + " to find " + out.size() + " adjacent");
+		}
+		return new JemEquivList(); // return value is ignored
+	}
 	
 	//------------- for NetObject ------------
 	public Integer doFor(NetObject n){
-		getMessenger().error("doFor(NetObject) called in " + nameString());
-		return null;
-	} //end of doFor
-} //end of JemAdjacent
+		error(true, "JemAdjacent should never call doFor(NetObject)");
+		return CODE_ERROR;
+	}
+}

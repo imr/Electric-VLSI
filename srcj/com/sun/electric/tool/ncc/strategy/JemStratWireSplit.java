@@ -30,18 +30,19 @@
  * the new JemHistoryRecord.
  */
 package com.sun.electric.tool.ncc.strategy;
+import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.trees.*;
 import com.sun.electric.tool.ncc.lists.*;
 import com.sun.electric.tool.ncc.jemNets.*;
 
 import java.util.Iterator;
 
-public class JemStratWireSplit extends JemStratSome {
+public class JemStratWireSplit extends JemStrat {
 
 	private int numWithGates;
 	private int numNoGates;
 
-	private static int numCodes= 2;
+	private static final int NUM_CODES= 2;
 	protected static final Integer CODE_NO_GATES= new Integer(0);
 	protected static final Integer CODE_WITH_GATES= new Integer(1);
 
@@ -61,7 +62,7 @@ public class JemStratWireSplit extends JemStratSome {
 		JemEquivList offspring= doFor(ss);
 		summary(offspring);
 
-        getMessenger().line("Jemini proceeds with these maximum counts: ");
+        Messenger.line("Jemini proceeds with these maximum counts: ");
 
 		jss.wires = getOffspringParent(offspring);
 		jss.noGates= pickAnOffspring(CODE_NO_GATES, offspring, 
@@ -69,50 +70,39 @@ public class JemStratWireSplit extends JemStratSome {
         jss.withGates= pickAnOffspring(CODE_WITH_GATES, offspring, 
 									   "Wires with gates");
 
-		getMessenger().line("JemStratWireSplit there are "+offspring.size()+ 
-							" offspring");
-		JemEquivRecord.tryToRetire(offspring);
+		Messenger.line("JemStratWireSplit: ");
+		Messenger.line(offspringStats(offspring));
+		Messenger.freshLine();
 
 		for(Iterator it=offspring.iterator(); it.hasNext();){
 			JemEquivRecord er= (JemEquivRecord) it.next();
-			if(er.getParent() != jss.wires){
-				getMessenger().error("got problem");
-			}
+			error(er.getParent() != jss.wires, "got problem");
 		}
-		getMessenger().freshLine();
         return jss.wires;
 	}
 
 	//do something before starting
     private void preamble(JemRecord j){
         startTime("JemStratWireSplit" , j.nameString());
-        numNoGates= 0;
-        numWithGates= 0;
-        return;
     }
 
 	//summarize at the end
     private void summary(JemEquivList cc){
-        getMessenger().line("JemStratWireSplit separated " +
+        Messenger.line("JemStratWireSplit separated " +
                             numNoGates + " Wires without gates and " +
                             numWithGates + " Wires with gates into " +
-                            numCodes + " distinct hash groups");
-        getMessenger().line(cc.sizeInfoString());
+                            NUM_CODES + " distinct hash groups");
+        Messenger.line(cc.sizeInfoString());
         elapsedTime(numNoGates + numWithGates);
-    }
-
-    // ---------- for JemRecord -------------
-
-    public JemEquivList doFor(JemRecord j){
-        return super.doFor(j);
     }
 
     //------------- for NetObject ------------
 
     public Integer doFor(NetObject n){
+    	error(!(n instanceof Wire), "JemStratWireSplit expects only Wires");
 		Wire w= (Wire)n;
-		int i= w.sortMe(); //returns number with
-		if(i == 0){
+		int nbGates= w.numPartsWithGateAttached();
+		if(nbGates==0){
 			numNoGates++;
 			return CODE_NO_GATES;
 		} else {

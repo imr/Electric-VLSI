@@ -54,7 +54,10 @@ public class NetReaderB {
 	/** holder for the tokenized input line */	private String[] theLine;
 	/** holds the length and width values */	private double[] theDoubles;
     /** Messenger to make output */
-	protected static Messenger myMessenger= Messenger.toTestPlease("NetReaderB");
+
+	public static void error(boolean pred, String msg) {
+		if (pred) Messenger.error(msg);
+	}
 
 	/** 
 	 * Here is the constructor for NetReaderB
@@ -64,8 +67,7 @@ public class NetReaderB {
 		myNameFactory= new NameFactory();
         theLine= new String[6];
 		theDoubles= new double[2];
-		return;
-    } //end of constructor
+    }
 
 	/** 
 	 * Here is a factory method for NetReaderB class
@@ -73,7 +75,7 @@ public class NetReaderB {
 	 */
     public static NetReaderB please(){
         return new NetReaderB();
-    } //end of please
+    }
 
 	/**
 	 * Here is method to set up and initialize a StreamTokenizer
@@ -85,7 +87,7 @@ public class NetReaderB {
         try{
             fr= new FileReader(fileName);
         }catch (Exception e){
-            myMessenger.error(e.toString());
+            Messenger.error(e.toString());
         }
         BufferedReader br= new BufferedReader(fr);
         StreamTokenizer st= new StreamTokenizer(br);
@@ -129,7 +131,7 @@ public class NetReaderB {
 				}
             } //end of while
         }catch(Exception e){
-            myMessenger.line(e.toString());
+            Messenger.line(e.toString());
         } //end of catch
         return i;
     } //end of getLine
@@ -141,7 +143,7 @@ public class NetReaderB {
     public void printAstringLine(int ii){
         for(int i=0; i<ii; i++){
             if(theLine[i] != null){
-                myMessenger.say(" " + theLine[i]);
+                Messenger.say(" " + theLine[i]);
             } //end of if
         } //end of loop
     } //end of printAline
@@ -151,7 +153,7 @@ public class NetReaderB {
 	 */
     public void printAnumericLine(){
         for(int i=0; i<2; i++){
-			myMessenger.say(" " + theDoubles[i]);
+			Messenger.say(" " + theDoubles[i]);
         } //end of loop
     } //end of printAline
 
@@ -161,21 +163,20 @@ public class NetReaderB {
 	 * @param (implicit) theLine and theDouble hold the data to use
 	 * @return (implicit) the JemCircuit ends with another component in it
 	 */
-    public void useAline(JemCircuit j){
-		if(j == null) return;
-        TransistorOne t= null;
+    private void useAline(JemCircuit j){
+    	error(j==null, "null JemCircuit");
         if(theLine[0] == null)return;
 		Name nn= null;
 		if(theLine[0].equals("NMOS")){
 			nn= myNameFactory.namePlease();
-			t= TransistorOne.nPlease(j, nn);
+			TransistorOne t= TransistorOne.nPlease(j, nn);
 			finishTransistor(t, j);
-		} //end of if
+		}
 		if(theLine[0].equals("PMOS")){
 			nn= myNameFactory.namePlease();
-			t= TransistorOne.pPlease(j, nn);
+			TransistorOne t= TransistorOne.pPlease(j, nn);
 			finishTransistor(t, j);
-		} //end of if
+		}
 		if(theLine[0].equals("EXPORT")){
 			Port p= Port.please(j, nameFor(1)); //get the String
 			Wire s= null;
@@ -183,9 +184,8 @@ public class NetReaderB {
 			if(theLine[2] != null)
 				s= Wire.please(j, nameFor(2));
 			p.connect(s);
-		} //end of Part
-		return;
-    } //end of useAline
+		}
+    }
 
 	/**
 	 * Here is an auxiliary method to attach the Wires to a transistor
@@ -203,7 +203,7 @@ public class NetReaderB {
 		if(theLine[3]!=null) d= Wire.please(j, nameFor(3));
 		t.connect(s,g,d);
 		return;
-	} //end of finishTransistor
+	}
 
 	/**
 	 * Here is an auxiliary method to get Wires for the names in theLine
@@ -233,18 +233,18 @@ public class NetReaderB {
 		while((iii= getAline(st)) > 0){
 			//printAstringLine(iii);
 			//printAnumericLine();
-			//myMessenger.freshLine();
+			//Messenger.freshLine();
 			useAline(out);
-		} //end of while
+		}
 		long endTime= new Date().getTime();
-		myMessenger.say("To read " + (Wire.getWireCount() - numWires) +
+		Messenger.say("To read " + (Wire.getWireCount() - numWires) +
 						" wires, ");
-		myMessenger.say(numPorts + " Ports and ");
-		myMessenger.line(numParts + " Parts");
-		myMessenger.line("took " + (endTime - startTime) + " milliseconds");
-		myMessenger.freshLine();
+		Messenger.say(numPorts + " Ports and ");
+		Messenger.line(numParts + " Parts");
+		Messenger.line("took " + (endTime - startTime) + " milliseconds");
+		Messenger.freshLine();
 		//out.printMe(myMessenger);
 		return out;
 	} //end of read
 
-} //end of NetReaderB
+}

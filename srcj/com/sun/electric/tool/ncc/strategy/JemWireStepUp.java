@@ -22,114 +22,62 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.strategy;
+import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.jemNets.*;
 import com.sun.electric.tool.ncc.trees.*;
 import com.sun.electric.tool.ncc.lists.*;
-import com.sun.electric.tool.ncc.basicA.JemHistogram;
 
 import java.util.Iterator;
 
-public class JemWireStepUp extends JemStratSome{
+public class JemWireStepUp extends JemStrat {
 	int numWiresProcessed;
 	int numEquivProcessed;
-	int numOffspringProduced;
-	private static JemStrat myFront= JemStratFrontier.please();
 
-	public String nameString(){return "JemWireStepUp";}
 	private JemWireStepUp(){}
 
 	public static JemEquivList doYourJob(JemSets jss){
-		JemWireStepUp jws = new JemWireStepUp();
-		return jws.doYourJob2(jss);
-	}
-	private JemEquivList doYourJob2(JemSets jss){
-		JemRecord w= jss.wires;
-		JemEquivList frontier= myFront.doFor(w);
-		depth= 0;
-		preamble(w);
-		JemEquivList offspring= doFor(frontier);
-		summary(offspring);
+		JemEquivList frontier= JemStratFrontier.doYourJob(jss.wires);
+		JemWireStepUp ws = new JemWireStepUp();
+		ws.preamble(frontier);
+		JemEquivList offspring= ws.doFor(frontier);
+		ws.summary(offspring);
 		return offspring;
 	}
 
 	//do something before starting
-	private void preamble(JemRecord j){
-		if(getDepth() != 0)return;
-		startTime("JemWireStepUp", j.nameString());
-		numWiresProcessed= 0;
-		numEquivProcessed= 0;
-		numOffspringProduced= 0;
-		return;
+	private void preamble(JemRecordList j){
+		startTime("JemWireStepUp", " JemEquivList of size: "+j.size());
 	}
 
     //summarize at the end
     private void summary(JemEquivList offspring){
-        if(getDepth() != 0)return;
-		JemRecordList cc= JemEquivRecord.tryToRetire(offspring);
-		getMessenger().line("JemWireStepUp done - processed " +
+		Messenger.line("JemWireStepUp done - processed " +
 							numWiresProcessed + " Wires from " +
 							numEquivProcessed + " JemEquivRecords");
-		getMessenger().line(" to make " + numOffspringProduced + 
-							" distinct hash groups, of which " +
-							cc.size() + " remain active");
-		JemHistogram jh= new JemHistogram(3);
-		Iterator it= offspring.iterator();
-		while(it.hasNext()){
-			JemEquivRecord er= (JemEquivRecord)it.next();
-			jh.incrementEntry(er.maxSize());
-		}
-		jh.printMe(getMessenger());
+		Messenger.line(offspringStats(offspring));
 		elapsedTime(numWiresProcessed);
-        return;
-    } //end of summary
-
-	// ---------- for JemRecordList -------------
-	
-    public JemEquivList doFor(JemRecordList g){
-		JemEquivList mm= super.doFor(g);
-        return mm;
-    } //end of doFor
+    }
 
 	// ---------- for JemRecord -------------
 	
     public JemEquivList doFor(JemRecord g){
-		preamble(g);
 		JemEquivList out= new JemEquivList();
 		if(g instanceof JemHistoryRecord){
-			getMessenger().line("processing " + g.nameString());
-			JemEquivList these= super.doFor(g);
-			out.addAll(these);
+			out.addAll(super.doFor(g));
 		} else {
-			if(!(g instanceof JemEquivRecord))
-				getMessenger().error("unrecognized JemRecord");
+			error(!(g instanceof JemEquivRecord), "unrecognized JemRecord");
 			numEquivProcessed++;
-			String s= ("processed " + g.nameString());
-			JemEquivList these= super.doFor(g);
-	//		getMessenger().line(s + " to get " + these.size() + " offspring");
-			out.addAll(these);
-			numOffspringProduced += these.size();
-		} //end of else
-		summary(out);
+			out.addAll(super.doFor(g));
+		}
 		return out;
-	} //end of doFor
+	}
 
-	// ---------- for JemCircuit -------------
-	
-    public JemCircuitMap doFor(JemCircuit g){
-		JemCircuitMap mm= super.doFor(g);
-        return mm;
-    } //end of doFor
-	
 	//------------- for NetObject ------------
 	public Integer doFor(NetObject n){
-		if(n instanceof Wire){
-			numWiresProcessed++;
-			Wire w= (Wire)n;
-			int pp= w.stepUp();
-			Integer i= new Integer(pp);
-			return i;
-		} //end of Parts
-		else return null;
-	} //end of doFor
+		error(!(n instanceof Wire), "JemWireStepUp expects only wires");
+		numWiresProcessed++;
+		Wire w= (Wire)n;
+		return new Integer(w.stepUp());
+	}
 
-} //end of class JemWireStepUp
+}

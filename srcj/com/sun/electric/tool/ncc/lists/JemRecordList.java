@@ -24,6 +24,7 @@
 package com.sun.electric.tool.ncc.lists;
 import com.sun.electric.tool.ncc.trees.JemRecord;
 import com.sun.electric.tool.ncc.strategy.JemStrat;
+import com.sun.electric.tool.ncc.basicA.Messenger;
 
 import java.util.Iterator;
 
@@ -36,15 +37,14 @@ public class JemRecordList extends JemList {
 	} //end of classOK
 
 	protected void reportClassError(){
-		getMessenger().error("JemRecordList can add only JemRecords");
+		Messenger.error("JemRecordList can add only JemRecords");
 	}// end of reportClassError
 	
 	public JemEquivList apply(JemStrat s){
 		JemEquivList out= new JemEquivList();
 		Iterator it= iterator();
 		while(it.hasNext()){
-			Object oo= it.next();
-			JemRecord jr= (JemRecord)oo;
+			JemRecord jr= (JemRecord)it.next();
 			JemEquivList xx= s.doFor(jr);
 			out.addAll(xx);
 		} //end of while

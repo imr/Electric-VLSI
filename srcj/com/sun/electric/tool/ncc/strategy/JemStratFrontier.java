@@ -22,104 +22,85 @@
  * Boston, Mass 02111-1307, USA.
 */
 
-/** JemStratFrontier finds and returns the frontier */
+/** JemStratFrontier finds all non-retired JemEquiRecords */
 
 package com.sun.electric.tool.ncc.strategy;
+
+import java.util.HashMap;
+
+import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.jemNets.*;
 import com.sun.electric.tool.ncc.trees.*;
 import com.sun.electric.tool.ncc.lists.*;
 
-public class JemStratFrontier extends JemStratNone{
-    public String nameString(){return "JemStratFrontier";}
-
-    //these are variables that pass between levels of the tree
-	
+public class JemStratFrontier extends JemStrat {
 	int numHistoryRecords;
-	int numEquivRecords;
-	JemEquivList frontier;
 
-    private JemStratFrontier(){
-        super();
-		numHistoryRecords= 0;
-		numEquivRecords= 0;
-		frontier= new JemEquivList();
-    }
-
-    public static JemStratFrontier please(){return new JemStratFrontier();}
+    private JemStratFrontier(){}
 
     // ---------- the tree walking code ---------
 
     //do something before starting
-    private void preamble(JemRecordList j){
-        if(getDepth() != 0)return;
-        //depth is zero
-		numHistoryRecords= 0;
-		numEquivRecords= 0;
-		frontier= new JemEquivList();
+    private void preamble(){
 		startTime("JemStratFrontier", "starting on a JemEquivList");
-    } //end of preamble
+    }
 	
     //do something before starting
-    private void preamble(JemParent j){
-        if(getDepth() != 0)return;
-        //depth is zero
-		numHistoryRecords= 0;
-		numEquivRecords= 0;
-		frontier= new JemEquivList();
+    private void preamble(JemRecord j){
 		startTime("JemStratFrontier", j.nameString());
-    } //end of preamble
+    }
 	
     //summarize at the end
     private void summary(JemEquivList x){
-        if(getDepth() != 0)return;
-        //depth is zero
-            getMessenger().say("JemStratFrontier done - used ");
-            getMessenger().line(numHistoryRecords + " HistoryRecords to find " +
-								numEquivRecords + " EquivRecords");
+        Messenger.say("JemStratFrontier done - used ");
+        Messenger.line(numHistoryRecords + " HistoryRecords");
+		Messenger.line(offspringStats(x));
         elapsedTime();
-    } //end of summary
+    }
 
-	public JemEquivList doFor(JemRecordList r){
-		startTime(nameString(), "JemStratFrontier");
-		//getMessenger().line(
-		depth= 0;
-        preamble(r);
-		JemEquivList out= super.doFor(r);
-		//		elapsedTime();
-		summary(out);
-        return out;
-    } //end of doFor(JemRecordList)
+	public static JemEquivList doYourJob(JemRecordList r) {
+		JemStratFrontier jsf = new JemStratFrontier();
+        jsf.preamble();
+		JemEquivList el= jsf.doFor(r);
+		jsf.summary(el);
+        return el;
+    }
+    
+    public static JemEquivList doYourJob(JemRecord r) {
+    	JemStratFrontier jsf = new JemStratFrontier();
+    	jsf.preamble(r);
+    	JemEquivList el = jsf.doFor(r);
+    	jsf.summary(el);
+    	return el;
+    }
 	
     // ---------- for JemRecord -------------
 
     public JemEquivList doFor(JemRecord j){
-        preamble(j);
-		JemEquivList frontier= new JemEquivList();
+		JemEquivList frontier = new JemEquivList();
 		if(j instanceof JemHistoryRecord){
 			numHistoryRecords++;
-			JemEquivList xx= super.doFor(j);
-			frontier.addAll(xx);
-		} else if(j instanceof JemEquivRecord){
+			frontier = super.doFor(j);
+		} else {
+			error(!(j instanceof JemEquivRecord), "unrecognized JemRecord");
 			JemEquivRecord er= (JemEquivRecord)j;
-			numEquivRecords++;
-			if( ! er.canRetire())frontier.add(j);
-		} //end of else
-		summary(frontier);
+			if (!er.isRetired())  frontier.add(j);
+		}
 		return frontier;
-    } //end of doFor
+    }
 
     // ---------- for JemCircuit -------------
 
-    public JemCircuitMap doFor(JemCircuit j){
-		getMessenger().line(nameString() + "shouldn't call doFor(JemCircuit)");
+    public HashMap doFor(JemCircuit j){
+    	error(true, "shouldn't call doFor(JemCircuit)");
 		return null;
-    } //end of doFor
+    }
 
     // ---------- for NetObject -------------
 
     public Integer doFor(NetObject n){
-		getMessenger().line(nameString() + "shouldn't call doFor(NetObject)");
-        return null;
-    } //end of doFor
+    	error(true, "shouldn't call doFor(NetObject)");
+        return CODE_ERROR;
+    }
 
 }

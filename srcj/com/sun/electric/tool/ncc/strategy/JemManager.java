@@ -48,16 +48,13 @@ public class JemManager {
 
     public static void doYourJob(JemEquivRecord g){
 		JemSets myJemSets= new JemSets();
-		JemStratVariable sv= new JemStratVariable(myJemSets);
-		Messenger myMessenger= Messenger.toTestPlease("JemManager");
 		
 		JemStratFixed.doYourJob(myJemSets, g);
-		sv.doAllProcess();
+		JemStratVariable.doYourJob(myJemSets);
 
-        myMessenger.freshLine();
+        Messenger.freshLine();
 
 //		myJemSets.showTheFrontier(myJemSets.starter);
-		JemEquivRecord.printTheLists();
     }
 
 }

@@ -31,8 +31,9 @@ import com.sun.electric.tool.ncc.trees.*;
 import com.sun.electric.tool.ncc.lists.*;
 import com.sun.electric.tool.ncc.basicA.Messenger;
 
-//import java.util.Iterator;
+import java.util.Iterator;
 import java.util.Date;
+import java.util.HashMap;
 
 /** 
  * JemStrat is the superclass for all strategies.
@@ -45,10 +46,6 @@ import java.util.Date;
  * Each of these does a call-back to the apply(JemStrat) method of its class
  *    which actually computes the appropriate answer, perhaps by doFor calls,
  *    for each of its children, accumulating the answers.
- * There are two direct subclasses of JemStrat:
- *	JemStratNone is the parent for strategies with no offspring.
- *	JemStratSome is the parent for strategies with offspring.
- * JemStratkeeps an elapsed time indicator.
  * JemStrat keeps track of the depth in the tree, 
  *    giving reports when depth == 0.  
  * Because of that, calls to JemStrat.doFor(Record) 
@@ -64,18 +61,20 @@ public abstract class JemStrat {
     private Date theStartDate= null;
 	
     private static int passNumber= 1; //an index of strategy steps
-    private static int passFraction= 0;
-    public static void passFractionOn(){passFraction= 1;}
-    public static void passFractionOff(){passFraction= 0;}
+
+	public static final Integer CODE_ERROR = null;
+    public static final Integer CODE_NO_CHANGE = new Integer(0);
 	
-	private static Messenger myMessenger= 
-		Messenger.toTestPlease("JemStrat");
-    protected static Messenger getMessenger(){return myMessenger;}
+    /**
+     * Die if error occurs
+     * @param pred true if error occurs
+     * @param msg message to print if error occurs
+     */
+    public static void error(boolean pred, String msg) {
+    	if (pred) Messenger.error(msg);
+    }
 	
-    protected JemStrat(){
-        depth= 0;
-        return;
-    } //end of constructor
+    protected JemStrat(){}
 
 	/** 
 	 * Method doFor(JemRecordList) processes a list of JemRecords.
@@ -83,13 +82,11 @@ public abstract class JemStrat {
 	 * @return a JemEquivList of the new frontier JemEquivRecords
 	 */
     public JemEquivList doFor(JemRecordList r){
-//		startTime(nameString(), "JemRecordList");
 		depth++;
 		JemEquivList out= r.apply(this);
 		depth--;
-//		elapsedTime();
         return out;
-    } //end of doFor(JemRecordList)
+    }
 	
 	
 	/** 
@@ -102,7 +99,7 @@ public abstract class JemStrat {
 		JemEquivList out= rr.apply(this);
 		depth--;
         return out;
-    } //end of doFor(JemRecord)
+    }
 
     /** 
 	 * Method doFor(JemCircuit) process a single JemCircuit,
@@ -114,12 +111,12 @@ public abstract class JemStrat {
 	 * Returns an empty map if no offspring intended, and
 	 * returns the input input JemCircuit if method fails to split.
 	 */
-    public JemCircuitMap doFor(JemCircuit c){
+    public HashMap doFor(JemCircuit c){
 		depth++;
-		JemCircuitMap m= c.apply(this);
+		HashMap codeToNetObjs = c.apply(this);
 		depth--;
-		return m;
-	} //end of doFor(JemCircuit)
+		return codeToNetObjs;
+	}
 
     /** 
 	 * doFor(NetObject) tests the NetObject to decide its catagory.
@@ -127,39 +124,77 @@ public abstract class JemStrat {
 	 * @return an Integer for the choice, or null to drop this NetObject.
 	 */
     public abstract Integer doFor(NetObject n);
+
+	//comments on the "code"th offspring of g
+	protected JemEquivRecord pickAnOffspring(Integer code, JemEquivList g,
+											 String ss){
+		int value= code.intValue();
+		for(Iterator it=g.iterator(); it.hasNext();){
+			JemEquivRecord ch= (JemEquivRecord)it.next();
+			if(ch.getValue() == value){
+				Messenger.line(ch.nameString() + " of "
+									+ ch.maxSize() + " " + ss);
+				return ch;
+			}
+		}
+		//falls out if not found
+		Messenger.line("without " + ss);
+		return null;
+	}
+
+	/**
+	 * Get the parent of the 0th JemEquivRecord
+	 * @param el list of JemEquivRecords
+	 * @return parent of 0th JemEquivRecord or null if el is empty
+	 */
+	protected JemRecord getOffspringParent(JemEquivList el){
+		if (el.size()==0) return null;
+		JemEquivRecord er = (JemEquivRecord) el.get(0);
+		return (JemRecord) er.getParent();
+	}
+	
+	protected String offspringStats(JemEquivList el) {
+		int retired=0, mismatched=0, active=0;
+		for (Iterator it=el.iterator(); it.hasNext();) {
+			JemEquivRecord er = (JemEquivRecord) it.next();
+			if (er.isMismatched())  mismatched++;
+			else if (er.isRetired())  retired++;
+			else active++;
+		}
+		return " yielding "+mismatched+" mismatched "+retired+" retired "+
+		       active+" active JemEquivRecords";
+	}
 	
     protected void startTime(String strat, String target){
         theStartDate= new Date();
         passNumber++;
         String sn;
-        if(passFraction == 0)sn= passNumber + " ";
-        else sn= passNumber + "." + passFraction++ + " ";
+        sn= passNumber + " ";
         String sss= sn + strat + " doing " + target;
-        myMessenger.line(sss);
-        return;
-    } //end of startTime
+        Messenger.line(sss);
+    }
 
     protected long elapsedTime(){
         Date d= new Date();
         long time= d.getTime() - theStartDate.getTime();
-        myMessenger.line(" took " + time + " miliseconds");
-        myMessenger.freshLine();
+        Messenger.line(" took " + time + " miliseconds");
+        Messenger.freshLine();
         return time;
-    } //end of elapsedTime
+    }
 
     protected long elapsedTime(int actions){
         Date d= new Date();
         long time= d.getTime() - theStartDate.getTime();
         float average= 0;
         if(actions > 0)average= (float)time * 1000 / (float)actions;
-        myMessenger.say(" took " +
+        Messenger.say(" took " +
                         time + " miliseconds to do " +
                         actions + " actions: average action time is ");
-        if(actions > 0) myMessenger.line(average + " microseconds");
-        else myMessenger.line("uncertain");
-        myMessenger.freshLine();
+        if(actions > 0) Messenger.line(average + " microseconds");
+        else Messenger.line("uncertain");
+        Messenger.freshLine();
         return time;
-    } //end of elapsedTime
+    }
 
 
-} //end of class JemStrat
+}

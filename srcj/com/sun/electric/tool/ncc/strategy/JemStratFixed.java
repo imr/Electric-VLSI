@@ -44,8 +44,6 @@ import java.util.Iterator;
 public class JemStratFixed {
     JemSets myJemSets;
 
-    private Messenger getMessenger(){return JemStrat.getMessenger();}
-
     private JemStratFixed(JemSets js){myJemSets= js;}
 
 	public static void doYourJob(JemSets js, JemEquivRecord g){
@@ -59,14 +57,13 @@ public class JemStratFixed {
 	 */
     private void doAllFixed(JemEquivRecord g){
         if(g == null){
-            getMessenger().error("doAllFixed called with null JemEquivRecord");
+            Messenger.error("doAllFixed called with null JemEquivRecord");
         }
         myJemSets.starter= g;
-        getMessenger().line("Starting fixed methods on " + g.nameString());
-        getMessenger().freshLine();
+        Messenger.line("Starting fixed methods on " + g.nameString());
+        Messenger.freshLine();
 
         JemRecord e= myJemSets.starter;
-        JemStratCount.doYourJob(e, myJemSets.ports);
         JemStratCheck.doYourJob(e);
 		JemStratPrint.doYourJob(e);
 
@@ -76,7 +73,7 @@ public class JemStratFixed {
         e= myJemSets.starter;
 		//JemStratPrint.doYourJob(e);
         JemStratCheck.doYourJob(e);
-		JemStratCount.doYourJob(e, myJemSets.ports);
+		JemStratCount.doYourJob(e);
 
 		// JemStratPopularWires uses myJemSets.wires as input,
 		// and puts its output in the Lists myJemSets.parallel and myJemSets.series
@@ -85,7 +82,7 @@ public class JemStratFixed {
 		e= myJemSets.starter;
 		//JemStratPrint.doYourJob(e);
 		JemStratCheck.doYourJob(e);
-        JemStratCount.doYourJob(e, myJemSets.ports);
+        JemStratCount.doYourJob(e);
 
 		//mergeParts is a local routine.
 		//it uses myJemSets.parallel and myJemSets.series as input
@@ -95,64 +92,61 @@ public class JemStratFixed {
 		e= myJemSets.starter;
 		JemStratCheck.doYourJob(e);
 		//JemStratPrint.doYourJob(e);
-        JemStratCount.doYourJob(e, myJemSets.ports);
+        JemStratCount.doYourJob(e);
 		
 		//JemStratNPsplit starts with parts and splits into
 		// N-type, P-type and Not transistor
-		JemStratNPsplit split3= JemStratNPsplit.please();
-		split3.doYourJob(myJemSets);
+		JemStratNPsplit.doYourJob(myJemSets);
 		
 		e= myJemSets.starter;
 		JemStratCheck.doYourJob(e);
 		//JemStratPrint.doYourJob(e);
-        JemStratCount.doYourJob(e, myJemSets.ports);
+        JemStratCount.doYourJob(e);
 		
 		//JemWirePopularity uses myJemSets.wires as input
 		JemWirePopularity.doYourJob(myJemSets);
 		
 		e= myJemSets.starter;
 		//JemStratPrint.doYourJob(e);
-        JemStratCount.doYourJob(e, myJemSets.ports);
+        JemStratCount.doYourJob(e);
 		JemStratCheck.doYourJob(e);
 		
-		//JemWirePopularity uses myJemSets.wires as input
+		//JemWireStepUp uses myJemSets.wires as input
 		JemWireStepUp.doYourJob(myJemSets);
 		
 		e= myJemSets.starter;
 		//JemStratPrint.doYourJob(e);
-        JemStratCount.doYourJob(e, myJemSets.ports);
+        JemStratCount.doYourJob(e);
 		JemStratCheck.doYourJob(e);
 		
-		getMessenger().line("**** doAllFixed is finished ****");
+		Messenger.line("**** doAllFixed is finished ****");
     }
 	
 	//this routine merges the various parts using series and parallel lists
 	private void mergeParts(){
 		JemEquivRecord theParts= (JemEquivRecord)myJemSets.parts;
 		int numParts= theParts.maxSize();
-		getMessenger().line("--- Jemini starting merge process with " +
+		Messenger.line("--- Jemini starting merge process with " +
 					  numParts + " Parts");
-		getMessenger().freshLine();
+		Messenger.freshLine();
 		int tripNumber= 1;
 		for(boolean progress= true; progress == true; tripNumber++){
-			getMessenger().line("parallel and series merge trip " + tripNumber);
+			Messenger.line("parallel and series merge trip " + tripNumber);
 			if(progress)progress= JemStratMergePar.doYourJob(myJemSets);
 			if(progress)progress= JemStratMergeSer.doYourJob(myJemSets);
 		} //end of for
 		JemEquivRecord xx= (JemEquivRecord)myJemSets.noGates;
-		boolean empty= xx.deleteMeIfEmpty();
-		if(empty){
+		if(xx.maxSize()==0){
 			myJemSets.noGates= null;
-			getMessenger().line("   No Wires without gates remain");
+			Messenger.line("   No Wires without gates remain");
 		} else {
-			getMessenger().line("  At most " +
+			Messenger.line("  At most " +
 					   xx.maxSize() + " Wires without gates remain");
 		} //end of not empty
 		numParts= theParts.maxSize();
-		getMessenger().line("--- Jemini finishing merge process with " +
+		Messenger.line("--- Jemini finishing merge process with " +
 					  numParts + " Parts");
-		getMessenger().freshLine();
-		return;
+		Messenger.freshLine();
 	}
 
 }

@@ -24,11 +24,21 @@
 
 package com.sun.electric.tool.ncc.lists;
 import com.sun.electric.tool.ncc.trees.JemEquivRecord;
+import com.sun.electric.tool.ncc.basicA.Messenger;
 
 import java.util.Iterator;
 import java.util.Collections;
+import java.util.Comparator;
 
 public class JemEquivList extends JemRecordList {
+
+	private static class SizeCompare implements Comparator {
+		public int compare(Object o1, Object o2){
+			JemEquivRecord s1 = (JemEquivRecord)o1;
+			JemEquivRecord s2 = (JemEquivRecord)o2;
+			return s1.maxSize() - s2.maxSize();
+		}
+	}
 
 	public JemEquivList(){	}
 
@@ -36,35 +46,67 @@ public class JemEquivList extends JemRecordList {
 		if (x instanceof JemEquivRecord){
 			JemEquivRecord er= (JemEquivRecord)x;
 			if(er.getCode() == -597136633){
-				getMessenger().error("killing " + er.nameString());
+				Messenger.error("killing " + er.nameString());
 			} //end of if
 			return true;
 		} //end of if
 		return false;
-	} //end of classOK
+	}
 	
-	public void sort(){Collections.sort(getContent());}
+	public void sortByIncreasingSize() {
+		Collections.sort(getContent(), new SizeCompare());
+	}
 
 	protected void reportClassError(){
-		getMessenger().error("JemEquivList can add only JemEquivRecords");
+		Messenger.error("JemEquivList can add only JemEquivRecords");
 		return;
-	}// end of reportClassError
+	}
 
 	public String sizeInfoString(){
         String max= " Of max sizes";
         String diff= " and size differences";
         boolean matchOK= true;
-        Iterator it= iterator();
-        while(it.hasNext()){
+        for (Iterator it= iterator(); it.hasNext();) {
             JemEquivRecord g= (JemEquivRecord)it.next();
             max= max + " " + g.maxSize();
             diff= diff + " " + g.maxSizeDiff();
             if(g.maxSizeDiff() > 0) matchOK= false;
-        } //end of loop
+        }
         if(matchOK)return (max);
         else return (max + diff + " WARNING: Mismatched sizes");
-    } //end of sizeInfoString
-	
-	//public JemRecord getFirstRecord(){return (JemRecord)getFirst();}
+    }
 
-} //end of JemEquivList
+	/** 
+	 * selectActive selects JemEquivRecords that aren't retired or mismatched
+	 * @param in the input JemEquivList
+	 * @return a JemEquivList, possibly empty, of those that do retire.
+	 */
+	public JemEquivList selectActive(){
+		int numRetired= 0;
+	    JemEquivList out = new JemEquivList();
+	    for (Iterator it=iterator(); it.hasNext();) {
+			JemEquivRecord er= (JemEquivRecord) it.next();
+	        if(er.isActive()) out.add(er);
+	    }
+		Messenger.line("selectActive retired " +numRetired+" JemEquivRecords");
+	    return out;
+	}
+
+	/** 
+	 * selectRetired selects JemEquivRecords that are retired
+	 * @param in the input JemEquivList
+	 * @return a JemEquivList, possibly empty, of those that do retire.
+	 */
+	public JemEquivList selectRetired(){
+		JemEquivList out= new JemEquivList();
+	    for (Iterator it=iterator(); it.hasNext();) {
+			JemEquivRecord er = (JemEquivRecord) it.next();
+	        if(er.isRetired())  out.add(er);
+	    }
+		Messenger.line("findNewlyRetired found " +
+					   out.size() + " retired JemEquivRecords");
+		return out;
+	}
+	
+
+}

@@ -67,18 +67,14 @@ public class JemSets {
     //    protected TwinList workingPorts;
 */
 	
-    private static Messenger myMessenger;
-
     public JemSets(){
-        myMessenger= Messenger.toTestPlease("JemSets");
         workingWires= null;
         workingParts= null;
-        return;
-    } //end of constructor
+    }
 
     public void sizeReport(){
-        myMessenger.say("There are " + workingParts.size() + " working Parts");
-        myMessenger.line(" and " + workingWires.size() + " working Wires");
+        Messenger.say("There are " + workingParts.size() + " working Parts");
+        Messenger.line(" and " + workingWires.size() + " working Wires");
     } //end of sizeReport
 
 /*    public int setPartFrontier(){
@@ -97,7 +93,7 @@ public class JemSets {
         JemRecordList front;
         if(g == null)front= JemHistoryRecord.findTheLeaves(starter);
         else front= JemHistoryRecord.findTheLeaves(g);
-        myMessenger.line("Printing the frontier:");
+        Messenger.line("Printing the frontier:");
         JemEquivRecord.print("the frontier from starter", front);
     } //end of showTheFrontier
 */

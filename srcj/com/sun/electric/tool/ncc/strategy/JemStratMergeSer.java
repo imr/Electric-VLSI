@@ -31,6 +31,7 @@
  * to merge the transistors that it links.
  */
 package com.sun.electric.tool.ncc.strategy;
+import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.jemNets.*;
 import com.sun.electric.tool.ncc.jemNets.TransistorOne;
 import com.sun.electric.tool.ncc.jemNets.TransistorTwo;
@@ -40,111 +41,81 @@ import com.sun.electric.tool.ncc.strategy.JemSets;
 
 //import java.util.Collection;
 import java.util.Iterator;
+import java.util.ArrayList;
 
-public class JemStratMergeSer extends JemStratSome {
+public class JemStratMergeSer extends JemStrat {
 
-    private int numWires= 0;
-    private int numShort= 0;
-    private int numMerged= 0;
-    private int numLeft= 0;
+    private int numWires;
+    private int numShort;
+    private int numLeft;
+    private ArrayList toBeDeleted = new ArrayList();
 
-    private static int numCodes= 1;
-    protected final static Integer CODE_WIRE= new Integer(0);
-
-    public String nameString(){return "JemStratMergeSer";}
+    private static final int NUM_CODES= 1;
 
     private JemStratMergeSer(){}
 
 	// ---------- to do the job -------------
 
 	public static boolean doYourJob(JemSets jss){
-		JemStratMergeSer jsms = new JemStratMergeSer();
-		return jsms.doYourJob2(jss);
-	}
-	
-	private boolean doYourJob2(JemSets jss){
-		JemEquivRecord s= (JemEquivRecord)jss.noGates;
+		JemEquivRecord noGates= (JemEquivRecord)jss.noGates;
+		if(noGates == null) return false;
 		JemEquivRecord pt= (JemEquivRecord)jss.parts;
-        int tot= pt.maxSize();
-		if(s == null) return false;
-		doFor(s);
-		if(pt.maxSize() < tot)return true;
-		return false;
+		int nmPartsBefore = pt.maxSize();
+		JemStratMergeSer ms = new JemStratMergeSer();
+		ms.preamble(noGates);
+		ms.doFor(noGates);
+		ms.summary();
+		return pt.maxSize() < nmPartsBefore;
 	}
 	
     //do something before starting
     private void preamble(JemRecord j){
-		if(getDepth() != 0)return;
 		startTime("JemStratMergeSer" , j.nameString());
-        numShort= 0;
-        numWires= 0;
-		numLeft= 0;
-		numMerged= 0;
-		return;
-    } //end of preamble
+    }
 
     //summarize at the end
     private void summary(){
-		if(getDepth() != 0)return;
-		getMessenger().line("JemStratMergeSer formed " +
-					  numMerged + " TransTwo, processing " +
+    	for (int i=0; i<toBeDeleted.size(); i++) {
+    		Wire w = (Wire) toBeDeleted.get(i); 
+    		w.killMe();
+    	}
+		Messenger.line("JemStratMergeSer formed " +
+					  toBeDeleted.size() + " TransTwo, processing " +
 					  numWires + " Wires = " +
 					  numShort + " two-diff Wires, of which " +
 					  numLeft + " remain.");
 		elapsedTime(numWires);
-		return;
-    } //end of summary
+    }
 
-    // ---------- for JemRecord -------------
-
-    public JemEquivList doFor(JemRecord j){
-		preamble(j);
-		JemEquivList el= super.doFor(j);
-		summary();
-		//to indicate no change to this symmetry group
-        return el;
-    } //end of doFor
-
-    // ---------- for JemCircuit -------------
-	
-    public JemCircuitMap doFor(JemCircuit g){
-		JemCircuitMap mm= super.doFor(g);
-        return mm;
-    } //end of doFor
-	
     //------------- for NetObject ------------
 
     public Integer doFor(NetObject n){
-		if(n instanceof Wire){
-			Wire w= (Wire)n;
-			return doFor(w);
-		} //end of wires
-		else return null;
-    } //end of doFor
+		error(!(n instanceof Wire), "expecting only wires");
+		return doFor((Wire)n);
+    }
 
     private Integer doFor(Wire n){
 		//does it have exactly two diffusions?
 		numWires++;
+
 		int count= 0;
-		Iterator it= n.iterator();
-		while(it.hasNext()){
-			Object oo= it.next();
-			Part p= (Part)oo;
-			if( ! (p instanceof TransistorOne))continue;
+		for(Iterator it=n.getParts(); it.hasNext();){
+			Part p= (Part)it.next();
+			if(!(p instanceof TransistorOne)) return CODE_NO_CHANGE;
 			TransistorOne t= (TransistorOne)p;
-			if(t.touchesAtDiffusion(n))count++;
-			else return CODE_WIRE; //must touch gate
-			if(count > 2)return CODE_WIRE;
-		} //end of while
-		if(count != 2) return CODE_WIRE;
+			if(!t.touchesAtDiffusion(n)) return CODE_NO_CHANGE;
+			count++;
+			if(count > 2)return CODE_NO_CHANGE;
+		}
+		if(count != 2) return CODE_NO_CHANGE;
 		//we've got a candidate
 		numShort++;
-		if(TransistorTwo.joinOnWire(n) != null){
-			numMerged++;
-			return null; //drop this wire
-		} //end of made one
+		if(TransistorTwo.joinOnWire(n)){
+			toBeDeleted.add(n);
+			return CODE_NO_CHANGE; //drop this wire
+		}
 		numLeft++;
-		return CODE_WIRE;
-    } //end of doFor Wire
+		return CODE_NO_CHANGE;
+    }
 
-} //end of JemStratMergeSer
+}

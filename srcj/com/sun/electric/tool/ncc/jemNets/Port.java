@@ -38,97 +38,51 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 
-public class Port extends NetObject implements Comparable{
+public class Port extends NetObject {
     // ---------- private data -------------
-    private static int numCon= 1;
-    private static int termCoefs[] = {47};
+    private static final int NUM_CON= 1;
+    private static final int termCoefs[] = {47};
     private static int portCount= 0; //the count of all Ports made
-    
-    //	private Name myOwnName;
-    
-    //override the methods in NetObject
-    
-    //  public String getStringName(){return getTheName().toString();} //name alone
+	private Wire wire;    
     
     // ---------- private methods ----------
-    protected Port(Name n){
-	super(n, numCon);
-	for(int i= 0; i<numCon; i++)content.add((Object)null); //clears the array
-	portCount++;
-    } //end of constructor
+    private Port(Name n){
+		super(n);
+		portCount++;
+    }
     
     // ---------- public methods ----------
     
     public static Port please(Name n){
-        Port p= new Port(n);
-        return p;
-    } //end of please
+        return new Port(n);
+    }
 
     public static Port please(JemCircuit cc, Name n){
         Port p= new Port(n);
 	 	cc.adopt(p);
         return p;
-    } //end of please
+    }
+    
+    public Type getNetObjType() {return Type.PORT;}
+
+	public Iterator getConnected() {
+		ArrayList l = new ArrayList();
+		return l.iterator();
+	}
 
 	public boolean isThisGate(int x){return false;}
 	
-	public int compareTo(Object x){
-		if(x instanceof Port){
-			Port p= (Port)x;
-			return getTheName().compareTo(p.getTheName());
-		} //end of if
-		return 0;
-	} //end of compareTo
-	/*	
-
-    public static int parallelMerge(Collection j){
-		int s= j.size();
-		if(s<2)return 0; //too small
-		List x= new ArrayList(j);
-		Collections.sort(x);
-		Iterator it= x.iterator();
-		Part a= (Part)it.next(); //the first one
-		int merged= 0;
-		while(it.hasNext()){
-			Part p= (Part)it.next();
-			//getMessenger().line("merge #" + merged +
-			//		   " is " + a.getStringName() + " to " + p.getStringName());
-			if(a.parallelMerge(p)){
-				merged++;
-			} //end of if
-		} //end of loop
-		return merged;
-    } //end of parallelMerge
-
-    //merge with this Port, this one survives 
-    public boolean parallelMerge(Part p){
-		if(p == null)return false;
-        if(p == this)return false;
-        if( ! (p instanceof Port)) return false;
-        //its the same class but a different one
-        Port pp= (Port)p;
-		Wire ww= pp.getMyWire();
-		if(ww != getMyWire())return false;
-		JemCircuit cc= (JemCircuit)pp.getParent();
-		if(cc != getParent())return false;
-		Name x= getTheName().parallelMerge(pp.getTheName());
-		myOwnName= x;
-		pp.deleteMe();
-        return true;
-    } //end of parallelMerge
-*/
     // ---------- abstract commitment ----------
     public int size(){return 1;}
-    public int getNumCon(){return numCon;}
+    public int getNumCon(){return NUM_CON;}
     public int[] getTermCoefs(){return termCoefs;} //the terminal coeficients
 
     public void connect(Wire w){
-        content.set(0, w); //Port points to Wire
+        wire = w;
 		w.add(this);
-		return;
-    } //end of connect
+    }
 
-	public Wire getMyWire(){return (Wire)content.get(0);}
+	public Wire getMyWire(){return wire;}
 
 	/** 
 	 * Compute a hash code for Wire w to use.  special because a Ports
@@ -139,61 +93,39 @@ public class Port extends NetObject implements Comparable{
     public int getHashFor(Wire w){
 		JemCircuit circuit= (JemCircuit)getParent();
 		JemEquivRecord g= (JemEquivRecord)circuit.getParent();
-		if(g.canRetire())return getCode();
+		if(g.isRetired())return getCode();
 		else return 0;
-	} //end of getHashFor
+	}
 	
 	public Integer computeCode(int i){
 		Wire w= getMyWire();
 		int ii= getHashFor(w);
 		return new Integer(ii);
-	} //end of computeCode
+	}
 	
     public String nameString(){
         return ("Port " + getStringName());
-    } //end of nameString
+    }
 
     public String connectionString(int n){
         String s= "is unconnected";
-        Wire w= (Wire)content.get(0);
-        if(w !=null)s= w.getStringName();
+        if(wire!=null)  s = wire.getStringName();
         return ("is on " + s);
-    } //end of connectionString
+    }
 
-	public boolean checkMe(){
-		String s= null;
-		if(content.size() == 0){
-			s= " is unconnected";
-			getMessenger().line(nameString() + s);
-			return false;
-		} //end of if
-		Wire w=	getMyWire();
-		if(w == null){
-			s= " has null connection";
-			getMessenger().line(nameString() + s);
-			return false;
-		} //end of if
-		if(w.touches(this)){
-			return true;
-		} else {
-			s= " has inconsitant connection to ";
-			getMessenger().line(nameString() + s + w.nameString());
-			return false;
-		} //end of else
+	public void checkMe(JemCircuit parent){
+		error(parent!=getParent(), "wrong parent");
+		error(wire==null, nameString() + " has null connection");
+		error(!wire.touches(this),
+			  nameString()+" has inconsistant connection to " + 
+			  wire.nameString());
+	}
 
-	} //end of checkMe
-
-	public int cleanMe(){
-		if(checkMe())return 0;
-		else return 1;
-	}// end of cleanMe
-	
 	public void printMe(int maxCon){
 		String n= nameString();
 		String c= connectionString(maxCon);
-		getMessenger().line(n + " " + c);
-		return;
-	} //end of printMe
+		Messenger.line(n + " " + c);
+	}
 	
-} //end of Port
+}
 

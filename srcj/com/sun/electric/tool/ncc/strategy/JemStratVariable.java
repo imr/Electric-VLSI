@@ -36,194 +36,116 @@ import com.sun.electric.tool.ncc.trees.NetObject;
 import com.sun.electric.tool.ncc.lists.JemRecordList;
 import com.sun.electric.tool.ncc.lists.JemEquivList;
 import com.sun.electric.tool.ncc.basicA.Messenger;
+import com.sun.electric.tool.ncc.jemNets.Part;
+import com.sun.electric.tool.ncc.jemNets.Wire;
+
+import java.util.Iterator;
 
 public class JemStratVariable {
-	private static Messenger getMessenger(){return JemStrat.getMessenger();}
-
 	JemSets myJemSets;
 
-	private int shouldDo= 1; // the number of promissing splits sought
-	private int doneCount;
-	private int splitCount;
-	private int reprocessCount;
-	private static JemAdjacent myAdjacent= JemAdjacent.please();
-	private static JemHashPartAll myPartAll= JemHashPartAll.please();
-	private static JemHashWireAll myWireAll= JemHashWireAll.please();
-	private static JemWireName myNamer= JemWireName.please();
-	private static JemStratFrontier myFront= JemStratFrontier.please();
+	private static void error(boolean pred, String msg) {
+		if (pred) Messenger.error(msg);
+	}
 
-    public JemStratVariable(JemSets js){myJemSets= js;}
+    private JemStratVariable(JemSets js){myJemSets= js;}
 
-	public void doAllProcess(){
-        getMessenger().line("----- starting doAllProcess");
-		JemEquivList thePartSeed= new JemEquivList();
-		JemEquivList theWireSeed= new JemEquivList();
-		//do one hash process on Parts
-		theWireSeed= onePartsPass(myJemSets);
-		//do the full hash process on that seed
-		
-        doActiveLists(theWireSeed, thePartSeed);
-        getMessenger().line("----- done doActiveLists");
-		
-		thePartSeed= new JemEquivList();
-		while(thePartSeed.size() == 0){
-			thePartSeed= oneNamePass(myJemSets);
-			JemStratCount.doYourJob(myJemSets.starter, myJemSets.ports);
-		} //end of loop
-		
-        doActiveLists(theWireSeed, thePartSeed);
-        getMessenger().line("----- done doActiveLists");
-		
-		thePartSeed= new JemEquivList();
-		while(thePartSeed.size() == 0){
-			thePartSeed= oneNamePass(myJemSets);
-			JemStratCount.doYourJob(myJemSets.starter, myJemSets.ports);
-		} //end of loop
-		
-        doActiveLists(theWireSeed, thePartSeed);
-		
-		thePartSeed= new JemEquivList();
-		while(thePartSeed.size() == 0){
-			thePartSeed= oneNamePass(myJemSets);
-			JemStratCount.doYourJob(myJemSets.starter, myJemSets.ports);
-		} //end of loop
-		
-        doActiveLists(theWireSeed, thePartSeed);
-		
-		thePartSeed= new JemEquivList();
-		while(thePartSeed.size() == 0){
-			thePartSeed= oneNamePass(myJemSets);
-			JemStratCount.doYourJob(myJemSets.starter, myJemSets.ports);
-		} //end of loop
-		
-        doActiveLists(theWireSeed, thePartSeed);
-        getMessenger().line("----- done doActiveLists");
-		return;
-	} //end of doAllProcess
+	public static void doYourJob(JemSets js) {
+		JemStratVariable jsv = new JemStratVariable(js);
+		jsv.doAllProcess();
+	}
 
-	private JemEquivList onePartsPass(JemSets in){
-		getMessenger().line("----- starting onePartsPass");
-		JemEquivList partOffspring= myPartAll.doYourJob(in);
-		JemStratCount.doYourJob(partOffspring, myJemSets.ports);
-		JemEquivList freshParts= JemEquivRecord.findNewlyRetired(partOffspring);
-		JemEquivList theWireSeed= myAdjacent.doFor(freshParts);
-		//JemStratCheck.doYourJob(theWireSeed);
-		JemStratCount.doYourJob(theWireSeed, myJemSets.ports);
-		//		JemStratPrint.doYourJob(theWireSeed);
-		getMessenger().line("----- done onePartsPass");
-		return theWireSeed;
-	} // end of onePartsPass
+	private void doAllProcess(){
+        Messenger.line("----- starting doAllProcess");
+
+		while (true) {
+			JemEquivList partOffspring = hashFrontierParts(myJemSets);
+			chaseRetired(partOffspring);
+		
+			JemEquivList wireOffspring = hashFrontierWires(myJemSets);
+			chaseRetired(wireOffspring);
+			if (partOffspring.size()==0 && wireOffspring.size()==0) break;
+		}
+		
+		while (true) {
+			JemStratCount.doYourJob(myJemSets.starter);
+			JemEquivList offspring = JemWireName.doYourJob(myJemSets);
+			if (offspring.size()==0) break;
+			chaseRetired(offspring);
+		}
+
+        Messenger.line("----- done doAllProcess");
+	}
+
+	private JemEquivList hashFrontierParts(JemSets in){
+		Messenger.line("----- hash all Parts on frontier");
+		JemEquivList frontier = JemStratFrontier.doYourJob(in.parts);
+		JemEquivList offspring = JemHashPartAll.doYourJob(frontier);
+		return offspring;
+	}
 	
-	private JemEquivList oneNamePass(JemSets in){
-		getMessenger().line("----- starting oneNamePass");
-		JemEquivList frontier= myFront.doFor(in.wires);
-		JemStratCount.doYourJob(frontier, myJemSets.ports);
-		JemEquivList offspring= myNamer.doFor(frontier);
-		JemEquivList fresh= JemEquivRecord.findNewlyRetired(offspring);
-		JemEquivList thePartSeed= myAdjacent.doFor(fresh);
-		JemStratCount.doYourJob(thePartSeed, myJemSets.ports);
-		getMessenger().line("----- done oneNamePass");
-		return thePartSeed;
-	} // end of oneNamePass
+	private JemEquivList hashFrontierWires(JemSets in){
+		Messenger.line("----- hash all Wires on frontier");
+		JemEquivList frontier = JemStratFrontier.doYourJob(in.wires);
+		JemEquivList offspring = JemHashWireAll.doYourJob(frontier);
+		return offspring;
+	}
 	
-	/*
-	public int portSplit(){
-		JemRecord g= (JemEquivRecord)myJemSets.ports;
-		if(g == null)return 0;
-		myJemSets.active= JemHistoryRecord.findTheLeaves(g);
-		if(myJemSets.active.size() == 0)return 0;
-		JemNameSplit split= (JemNameSplit)JemNameSplit.please();
-		JemRecordList cc= split.doFor(myJemSets.active);
-		getMessenger().line("portSplit produced " + cc.size() +
-					  " new JemEquivRecords");
-		return cc.size(); //the number of offspring produced
-	} //end of randomSplit
+	private boolean isPartsList(JemEquivList el) {
+		JemEquivRecord er = (JemEquivRecord) el.get(0);
+		return er.getNetObjType()==NetObject.Type.PART;
+	}
 
-	public int randomSplit(){
-		JemRecord g= myJemSets.wires;
-		if(g == null)return 0;
-		myJemSets.active= JemHistoryRecord.findTheLeaves(g);
-		if(myJemSets.active.size() == 0)return 0;
-
-		JemRandomMatch split= (JemRandomMatch)JemRandomMatch.please();
-		JemRecordList cc= split.doFor(myJemSets.active);
-		getMessenger().line("randomSplit produced " + cc.size() +
-					  " new JemEquivRecords");
-		return cc.size();
-	} //end of randomSplit
-*/
-	
-	// returns true if processing is done, false otherwise
-	private int doActiveLists(JemEquivList inWires, JemEquivList inParts){
-	//	myJemSets.sizeReport();
-		if((inWires.size() == 0)&&(inParts.size() == 0)){
-			getMessenger().line("------ both seed sizes are zero");
-			return 0;
-		} //end of if 0
-        int i= 0;
-		JemEquivList wireSeed= inWires;
-		JemEquivList partSeed= inParts;
-		
-		getMessenger().line("------ starting doActiveLists");
-        while(i < 500 && ((wireSeed.size() > 0) || (partSeed.size() > 0))){
-			if(partSeed.size() > 0){
-				getMessenger().line("------ Parts pass " + ++i);
-				wireSeed= processParts(partSeed);
-				partSeed=  new JemEquivList(); //partSeed is used up
-		} //end of if partSeed
-			if(wireSeed.size() > 0){
-				getMessenger().line("------ Wires pass " + ++i);
-				partSeed= processWires(wireSeed); //one pass
-				wireSeed=  new JemEquivList(); //wireSeed is used up
-		} //end of else
-		} //end of while
-		getMessenger().line("------ done  doActiveLists after " +
-							i + " passes");
+	/**
+	 * Takes a list of newly divided Part/Wire JemEquivRecords. If any
+	 * of them retire then find the retirees' neighbors and perform a
+	 * hash step on them to get newly divided Wire/Part
+	 * JemEquivRecords. Repeat until the hash step yields no newly
+	 * divided JemEquivRecords.
+	 * @param newDivided newly divided JemEquivRecords
+	 */
+	private void chaseRetired(JemEquivList newDivided) {
+		Messenger.line("------ starting chaseRetired");
+		int i=0;
+		while (true) {
+			Messenger.line("------ chaseRetired pass: " + i++);
+			if (newDivided.size()==0) break;
+			JemEquivList newRetired = newDivided.selectRetired();
+			if (newRetired.size()==0) break;
+			JemEquivList adjacent = JemAdjacent.doYourJob(newRetired);
+			if (adjacent.size()==0)  break;
+			boolean doParts = isPartsList(adjacent);
+			newDivided = doParts ? JemHashPartAll.doYourJob(adjacent) :
+								   JemHashWireAll.doYourJob(adjacent);
+		}
+		Messenger.line("------ done  chaseRetired after "+i+" passes");
 		//		JemStratCheck.doYourJob(myJemSets.starter);
-		JemStratCount.doYourJob(myJemSets.starter, myJemSets.ports);
-		getMessenger().freshLine();
-		//JemStratPrint.doYourJob(myJemSets.starter);
-        return i;
-    } //end of doActiveLists
+		Messenger.freshLine();
+	}
+	
+	/**
+	 * Takes a list of newly divided Part/Wire JemEquivRecords. Finds
+	 * their neighbors and performs a hash step on them to get newly
+	 * divided Wire/Part JemEquivRecords. Repeat until the hash step
+	 * yields no newly divided JemEquivRecords.
+	 * @param newDivided newly divided JemEquivRecords
+	 */
+	private void chaseDivided(JemEquivList newDivided) {
+		Messenger.line("------ starting chaseDivided");
+		int i=0;
+		while (true) {
+			Messenger.line("------ chaseDivided pass: " + i++);
+			if (newDivided.size()==0) break;
+			JemEquivList adjacent = JemAdjacent.doYourJob(newDivided);
+			if (adjacent.size()==0)  break;
+			boolean doParts = isPartsList(adjacent);
+			newDivided = doParts ? JemHashPartAll.doYourJob(adjacent) :
+								   JemHashWireAll.doYourJob(adjacent);
+		}
+		Messenger.line("------ done  chaseDivided after "+i+" passes");
+		//		JemStratCheck.doYourJob(myJemSets.starter);
+		Messenger.freshLine();
+	}
+	
 
-	//takes in a list of wires and produces the adjacent list of parts
-    private JemEquivList processWires(JemEquivList in){
-		getMessenger().line("Jemini starting processWires");
-		JemEquivList out;
-		if(in.size() != 0){
-			JemEquivList offspring= myWireAll.doFor(in);
-			JemEquivList fresh= JemEquivRecord.findNewlyRetired(offspring);
-			out= myAdjacent.doFor(fresh);
-			getMessenger().line("Jemini processed " +
-								in.size() + " Wire groups, producing " +
-								offspring.size() + " offspring of which " +
-								fresh.size() + " retired with " +
-								out.size() + " adjacent Part groups");
-        } else {
-			getMessenger().line("processWires got an empty input list");
-			out=  new JemEquivList();
-		} //end of else
-		getMessenger().freshLine();
-		return out;
-	} //end of processWires
-
-    private JemEquivList processParts(JemEquivList in){
-		getMessenger().line("Jemini starting processParts");
-		JemEquivList out;
-		if(in.size() != 0){
-            JemEquivList offspring= myPartAll.doFor(in);
-			JemEquivList fresh= JemEquivRecord.findNewlyRetired(offspring);
-			 out= myAdjacent.doFor(fresh);
-			getMessenger().line("Jemini processed " +
-								in.size() + " Part groups, producing " +
-								offspring.size() + " offspring of which " +
-								fresh.size() + " retired with " +
-								out.size() + " adjacent Wire groups");
-		} else {
-			getMessenger().line("processParts got an empty input list");
-			out=  new JemEquivList();
-		} //end of else
-		getMessenger().freshLine();
-		return out;
-	} //end of processWires
-} //end of JemManager
+}

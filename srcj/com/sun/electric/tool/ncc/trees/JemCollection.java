@@ -23,7 +23,6 @@
 */
 package com.sun.electric.tool.ncc.trees;
 import com.sun.electric.tool.ncc.basicA.Messenger;
-import com.sun.electric.tool.ncc.trees.JemParent;
 import com.sun.electric.tool.ncc.strategy.JemStrat;
 
 import java.util.ArrayList;

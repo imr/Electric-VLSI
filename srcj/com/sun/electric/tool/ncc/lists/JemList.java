@@ -32,21 +32,17 @@ import java.util.Iterator;
 public abstract class JemList {
 
 	private List content;
-	private static Messenger myMessenger;
 
 	public JemList(){
 		content= new ArrayList();
-		myMessenger= Messenger.toTestPlease("JemList");
 	}
 
 	public List getContent(){return content;}
 	
-	protected static Messenger getMessenger(){return myMessenger;}
-
 	protected abstract boolean classOK(Object x);
 
 	protected void reportClassError(){
-		getMessenger().error("JemList has class type error");
+		Messenger.error("JemList has class type error");
 	} //end of reportClassError
 
 	public boolean add(Object x){

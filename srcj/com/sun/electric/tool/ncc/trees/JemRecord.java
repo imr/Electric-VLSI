@@ -38,22 +38,28 @@ import java.util.Iterator;
  * JemRecord is both a JemParent and a JemChild.  Every JemRecord is
  * assigned a pseudo random code at birth which it retains for life.
  */
-public abstract class JemRecord extends JemParent implements JemChild{
-	/** points toward the tree root */ private JemHistoryRecord myParent= null;
+public abstract class JemRecord {
+	/** points toward root */ private JemHistoryRecord myParent;
 
 	/** the fixed randoom code */ protected int nominalCode;
     /** the number of processing passes invested */ //protected int passes;
     /** an estimate of the work invested */ protected int workDone;
 	/** the int that distinguished this Record */ protected int value;
 
+	public static void error(boolean pred, String msg) {
+		if (pred) Messenger.error(msg);
+	}
+
 	/** constructor for JemRecord */
-	protected JemRecord(){
-        myParent= null;
-        workDone= 0;
-    }
+	protected JemRecord(){}
 	
 	// ------ The JemParent methods
 	
+	/**
+	 * @return JemHistoryRecord that contains me
+	 */
+	public JemHistoryRecord getParent() {return myParent;}
+
    	/**
 	 * nameString returns a String of type and name for this
 	 * JemRecord.
@@ -67,48 +73,19 @@ public abstract class JemRecord extends JemParent implements JemChild{
 	 */
 	public int getCode(){return nominalCode;}
 
-	/** 
-	 * checkChild checks that a proposed JemChild is of the proper class.
-	 * @param the JemChild to test
-	 * @return true if the JemChild is an OK class, false otherwise
-	 */
-	protected abstract boolean checkChild(JemChild c);
-	
 	// ----- the JemChild interface
 	
-	/** 
-	 * getParent fetches the parent JemParent towards the tree's root.
-	 * @return the parent of this JemChild, or null for the root.
-	 */
-    public JemParent getParent(){return myParent;}
+    public void checkMe(JemRecord parent) {
+    	error(getParent()!=parent, "wrong parent");
+    }
 
 	/** 
 	 * setParent checks the proposed parent's class before writing it.
 	 * @param the JemParent proposed
 	 * @return true if parent was accepted, false otherwise
 	 */
-	public boolean setParent(JemParent x){
-		if(checkParent(x)){
-			myParent= (JemHistoryRecord)x;
-			return true;
-		} else {
-		getMessenger().error("wrong class parent in " + nameString());
-			return false;
-		} //end of else
-	} //end of setParent
+	public void setParent(JemHistoryRecord x){myParent=x;}
 	
-	/** checkParent tests a proposed JemParent for inclusion in this.
-		* @param the JemParent to test
-		* @return true if the JemParent is acceptable, false otherwise
-		*/
-	public boolean checkParent(JemParent p){
-		if(p instanceof JemRecord)return true;
-		else {
-			getMessenger().error("wrong class parent in " + nameString());
-			return false;
-		} //end of if
-	} //end of checkParent
-
 	/** 
 	 * The apply method does a JemStrat strategy in this JemRecord
 	 * @param the JemStrat to apply to this JemRecord
@@ -120,7 +97,7 @@ public abstract class JemRecord extends JemParent implements JemChild{
 	 *  a routine to print this JemRecord on a Messenger.
 	 * @param the Messenger to use for output
 	 */
-	public abstract void printMe(Messenger mm);
+	public abstract void printMe();
 	
 	/** 
 	 * access method for workDone.
@@ -135,25 +112,4 @@ public abstract class JemRecord extends JemParent implements JemChild{
 	 */
 	public int getValue(){return value;}
 
-	/** 
-	 * copyAndDump transfers the value parameters from another record
-	 * to this one.
-	 * @param the source of the values
-	 */
-	protected void copyAndKill(JemRecord e){
-		workDone= e.workDone;
-		value= e.value;
-		e.killMe();
-	} //end of copyValue
-
-	/** killMe destroys a JemRecord by nulling all its pointers */
-	protected void killMe(){
-		if(myParent != null){
-			myParent.remove(this);
-		} //end of if
-		myParent= null;
-		nominalCode= 0;
-		super.killMe(); //kill the content
-	} //end of killMe
-	
-} //end of JemRecord
+}

@@ -29,13 +29,14 @@ import com.sun.electric.tool.ncc.jemNets.Part;
 import com.sun.electric.tool.ncc.jemNets.Wire;
 
 import java.util.Iterator;
+import java.util.HashMap;
 
 /** 
  * JemStratPrint gives a limited print out of the tree
  * It prints not more than maxLines stuff for each list
  * and not more than maxPins in any one Wire
  */
-public class JemStratPrint extends JemStratNone {
+public class JemStratPrint extends JemStrat {
 
     // ---------- private data -------------
 
@@ -56,7 +57,7 @@ public class JemStratPrint extends JemStratNone {
 	}
 
     // ---------- the tree walking code ---------
-    private void preamble(JemParent j){
+    private void preamble(JemRecord j){
     	startTime("JemStratPrint", j.nameString());
     }
 
@@ -64,46 +65,38 @@ public class JemStratPrint extends JemStratNone {
 
 	// ---------- for JemRecord -------------
 	public JemEquivList doFor(JemRecord j){
-		Messenger mm= getMessenger();
-		mm.say("**  Depth= " + depth + " ");
-		j.printMe(mm);
+		Messenger.say("**  Depth= " + getDepth() + " ");
+		j.printMe();
 		return super.doFor(j);
 	}
 
 	// ---------- for JemCircuit -------------
 
 	// has extra stuff to limit the amount of printing
-	public JemCircuitMap doFor(JemCircuit j){
-		JemCircuitMap cm;
-		getMessenger().say("**  Depth= " + depth +
+	public HashMap doFor(JemCircuit j){
+		Messenger.say("**  Depth= " + getDepth() +
 					 " " + j.nameString() +
-					 " of " + j.size() +
+					 " of " + j.numNetObjs() +
 					 " and code " + j.getCode());
-		if(j.size() < MAX_LINES){
-			getMessenger().line("");
-			cm= super.doFor(j);
-		}else{
-			depth++;
-			getMessenger().line(" starts with");
-			int count= 0;
-			Iterator it= j.iterator();
-			while(it.hasNext() && (count < MAX_LINES)){
-				Object x= it.next();
-				NetObject n= (NetObject)x;
-				doFor(n);
-				count++;
-			} //end of loop
-			cm= JemCircuitMap.mapPlease(1);
-			depth--;
-		} //end of else
-		return cm;
-	} //end of doFor
+
+		Messenger.line(j.numNetObjs()<MAX_LINES ? "" : " starts with");
+
+		int count= 0;
+		HashMap codeToNetObjs = new HashMap();
+		for (Iterator it=j.getNetObjs(); it.hasNext();) {
+			NetObject n= (NetObject) it.next();
+			codeToNetObjs.put(CODE_NO_CHANGE, n);
+			if (count<MAX_LINES) n.printMe(MAX_PINS);
+			count++;
+		}
+		return codeToNetObjs;
+	}
 
 	// ---------- for NetObject -------------
 
 	public Integer doFor(NetObject n){
-		n.printMe(MAX_PINS);
-		return null;
-	} //end of doFor NetObject
+		error(true, "should never get here");
+		return CODE_ERROR;
+	}
 
-} //end of JemStratPrint
+}

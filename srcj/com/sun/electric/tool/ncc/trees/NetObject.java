@@ -33,25 +33,37 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 /**  
- * NetObject is the parent class for Parts and Wires.
- * There is only one class of Wire, but many sub-classes of Part
- * including: Transistor, Resistor, and Port.
- * The hash code calculations are in Wire and Part.
- * Wires can connect only to Parts and vice versa.
+ * NetObject is the parent class for Parts, Wires, and Ports.  There
+ * is only one class of Wire, but many sub-classes of Part including:
+ * Transistor, Resistor.  The hash code calculations are in Wire and
+ * Part.  Wires can connect only to Parts and vice versa.
  */
-public abstract class NetObject implements JemChild{
+public abstract class NetObject {
+	public static class Type {
+		int ordinal;
+		private Type(int ord) {ordinal=ord;}
+		public int ordinal() {return ordinal;}
+		
+		public static final Type PART = new Type(0);
+		public static final Type WIRE = new Type(1);
+		public static final Type PORT = new Type(2);
+	}
 
     // ---------- private data -------------
-    private Name myName= null;
-    private JemCircuit myParent= null;  // the parent pointer
-    protected List content;
-    private static Messenger myMessenger;
+    private Name myName;
+    private JemCircuit myParent;
 	
     /** 
 	 * Get an identifying String for this NewObject.
 	 * @return an identifying String.
 	 */
     public abstract String nameString();	//type and name
+    
+    /**
+     * Distinguish Parts, Wires, and Ports.
+     * @return
+     */
+    public abstract Type getNetObjType();
 
     /** 
 	 * Get a String listing the connections for this NetObject.
@@ -60,46 +72,20 @@ public abstract class NetObject implements JemChild{
 	 */
     public abstract String connectionString(int n);
 
-    /** 
-	 * Put this NetObject into standard form, complain if errors found.
-	 * @return the number of errors found: 0 if good.
-	 */
-    public abstract int cleanMe();
-
-    /** 
-	 * Compute a separation code for this NetObject.
-	 * @param type: 0 by part name, 1 omitting gate connections
-	 * 2 by gate connections only, 3 using all connections.
-	 * @return an Integer code for distinguishing the objects.
-	 */
-    public abstract Integer computeCode(int type);
-
-	public boolean checkParent(JemParent p){
-		if(p instanceof JemCircuit)return true;
-		else {
-			getMessenger().error("wrong class parent in " + nameString());
-			return false;
-		} //end of if
-	} //end of checkParent
+    public abstract Iterator getConnected();
 
     // ---------- protected methods ----------
 
-    //the constructor - if s==null gives next sequential name
-    protected NetObject(Name n, int i){
-		myMessenger= Messenger.toTestPlease("NetObject");
-		myName= n; //gets the Name
-        myParent= null;
-        content= new ArrayList(i);
-        return;
-    } //end of constructor
+    protected NetObject(Name n){myName= n;}
 
-    protected static Messenger getMessenger(){return myMessenger;}
+    public static void error(boolean pred, String msg) {
+    	if (pred) Messenger.error(msg);
+    }
 
     /** 
-	 * Fix this object to be in standard form.
-	 * @return true if all OK, false otherwise
+	 * Make sure this object is OK.
 	 */
-    public abstract boolean checkMe();
+    public abstract void checkMe(JemCircuit parent);
 	
     // ---------- public methods ----------
 
@@ -116,22 +102,9 @@ public abstract class NetObject implements JemChild{
 	 * getParent fetches the next JemTree towards the root.
 	 * @return the JemTree parent of this instance, if any.
 	 */
-    public JemParent getParent(){return myParent;}
+    public JemCircuit getParent(){return myParent;}
 
-	/** 
-	 * setParent checks the proposed parent's class before writing it.
-	 * @param x the JemParent proposed
-	 * @return true if parent was accepted, false otherwise
-	 */
-	public boolean setParent(JemParent x){
-		if(checkParent(x)){
-			myParent= (JemCircuit)x;
-			return true;
-		} else {
-			getMessenger().error("wrong class parent in " + nameString());
-			return false;
-		} //end of else
-	}
+	public void setParent(JemCircuit x){myParent=x;}
 
     /** 
 	 * toString returns the name and connections of this NetObject as
@@ -143,8 +116,6 @@ public abstract class NetObject implements JemChild{
     }
 
     public abstract void printMe(int i); //i is the size limit
-
-    public Iterator iterator(){return content.iterator();}
 
 }
 

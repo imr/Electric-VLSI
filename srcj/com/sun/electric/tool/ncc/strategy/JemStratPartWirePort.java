@@ -28,6 +28,7 @@
  * and ports with their top element.
  */
 package com.sun.electric.tool.ncc.strategy;
+import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.trees.*;
 import com.sun.electric.tool.ncc.lists.*;
 import com.sun.electric.tool.ncc.jemNets.*;
@@ -37,12 +38,12 @@ import com.sun.electric.tool.ncc.jemNets.*;
 //import java.util.Collection;
 import java.util.Iterator;
 
-public class JemStratPartWirePort extends JemStratSome{
-    private int numParts= 0;
-    private int numWires= 0;
-    private int numPorts= 0;
+public class JemStratPartWirePort extends JemStrat {
+    private int numParts;
+    private int numWires;
+    private int numPorts;
 
-    private static int numCodes= 3;
+    private static final int NUM_CODES= 3;
     protected static final Integer CODE_PART= new Integer(0);
     protected static final Integer CODE_WIRE= new Integer(1);
     protected static final Integer CODE_PORT= new Integer(2);
@@ -62,18 +63,17 @@ public class JemStratPartWirePort extends JemStratSome{
         JemEquivList offspring= doFor(ss);
         summary(offspring);
         
-        getMessenger().line("Jemini proceeds with these maximum counts: ");
+        Messenger.line("Jemini proceeds with these maximum counts: ");
 
 		jss.starter = getOffspringParent(offspring);		
 		jss.parts= pickAnOffspring(CODE_PART, offspring, "Parts and");
 		jss.wires= pickAnOffspring(CODE_WIRE, offspring, "Wires and");
 		jss.ports= pickAnOffspring(CODE_PORT, offspring, "Ports");
 
-		getMessenger().line("JemStratPartWirePort: there are " + 
-							offspring.size() + " offspring");
+		Messenger.line("JemStratPartWirePort: "); 
+		Messenger.line(offspringStats(offspring));
 
-		JemEquivRecord.tryToRetire(offspring);
-        getMessenger().freshLine();
+        Messenger.freshLine();
         return jss.starter;
     }
 
@@ -84,27 +84,16 @@ public class JemStratPartWirePort extends JemStratSome{
 
     //summarize at the end
     private void summary(JemEquivList cc){
-        getMessenger().line("jemStratPartWirePort separated " +
+        Messenger.line("jemStratPartWirePort separated " +
                             numParts + " Parts and " +
                             numWires + " Wires and " +
                             numPorts + " Ports into " +
-                            numCodes + " distinct hash groups");
+                            NUM_CODES + " distinct hash groups");
         //	+ numPorts + " Ports.");
-        getMessenger().line(cc.sizeInfoString());
+        Messenger.line(cc.sizeInfoString());
         elapsedTime(numParts + numWires + numPorts);
     }
 
-    // ---------- for JemRecord -------------
-
-    public JemEquivList doFor(JemRecord j){
-        return super.doFor(j);
-    }	
-
-	// ---------- for JemCircuit -------------
-    public JemCircuitMap doFor(JemCircuit c){
-		return super.doFor(c);
-	}
-	
     //------------- for NetObject ------------
 
     public Integer doFor(NetObject n){
@@ -118,8 +107,8 @@ public class JemStratPartWirePort extends JemStratSome{
             numParts++;
             return CODE_PART;
         } else {
-			getMessenger().error("unrecognized NetObject");
-			return null;
+			error(true, "unrecognized NetObject");
+			return CODE_ERROR;
 		}
     }
     

@@ -35,28 +35,20 @@ public class Resistor extends Part{
     private static int termCoefs[] = {17,17}; //resistors are symmetric
     private float myValue= 0; //resistance
 
-    public int size(){return numCon;}
-
     // ---------- private methods ----------
     private Resistor(Name n){super(n, numCon);}
 
     private void flip(){
-        Wire w= (Wire)getMyWires().get(0);
-        getMyWires().set(0, getMyWires().get(1));
-        getMyWires().set(1, w);
-    } //end of flip
+        Wire w = pins[0];
+        pins[0] = pins[1];
+        pins[1] = w;
+    }
 
     // ---------- public methods ----------
 
-    public static Resistor please(){
-		Resistor r= new Resistor(null);
-		return r;
-    } //end of please
+    public static Resistor please() {return new Resistor(null);}
 
-    public static Resistor please(Name n){
-		Resistor r= new Resistor(n);
-		return r;
-    } //end of please
+    public static Resistor please(Name n){return new Resistor(n);}
 
 
     // ---------- abstract commitment ----------
@@ -81,12 +73,11 @@ public class Resistor extends Part{
     public boolean touchesAtGate(Wire w){return false;}
 	
     public void connect(Wire ss, Wire ee){
-        getMyWires().set(0, ss);
-        getMyWires().set(1, ee);
-		if(ss!=null)ss.add(this);
-		if(ee!=null)ee.add(this);
-		return;
-    } //end of connect
+        pins[0] = ss;
+        pins[1] = ee;
+		ss.add(this);
+		ee.add(this);
+    }
 	
     //merge with this resistor
     public boolean parallelMerge(Part p){
@@ -94,11 +85,9 @@ public class Resistor extends Part{
         if(this == p)return false;
         //its the same class but a different one
         Resistor r= (Resistor)p;
-        if(getMyWires().get(0) != r.getMyWires().get(0))flip();
-        if(getMyWires().get(0) != r.getMyWires().get(0))r.flip();
-        if(getMyWires().get(0) != r.getMyWires().get(0))flip();
-        //first connection must match
-        if(getMyWires().get(1) != r.getMyWires().get(1))return false;
+        if(pins[0]!=r.pins[0])  r.flip();
+		if(pins[0]!=r.pins[0] || pins[1]!=r.pins[1])  return false;
+
         //OK to merge
         float ff= 0;
         float pp= r.getValue();
@@ -107,31 +96,20 @@ public class Resistor extends Part{
         myValue= ff;
         r.deleteMe();
         return true; //return true if merged
-    } //end of parallelMerge
+    }
 
 
     // ---------- printing methods ----------
 
     public String nameString(){
 		return ("Resistor " + getStringName());
-    } //end of nameString
+    }
 
     public String connectionString(int n){
-        String s= "unconnected";
-		Object aa= getMyWires().get(0);
-		Wire ww= null;
-		if(aa != null){
-			ww= (Wire)aa;
-			s= ww.getStringName();
-		} //end of if
-		String e= "unconnected";
-		aa= getMyWires().get(1);
-        if(aa != null){
-			ww= (Wire)aa;
-			e= ww.getStringName();
-		}
+		String s = pins[0].getStringName();
+		String e = pins[1].getStringName();
 		return ("S= " + s + " E= " + e);
-    } //end of connectionString
+    }
 
-} //end of Resistor
+}
 

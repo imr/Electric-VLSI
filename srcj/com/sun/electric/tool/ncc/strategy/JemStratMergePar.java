@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.strategy;
+import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.jemNets.*;
 import com.sun.electric.tool.ncc.jemNets.Transistor;
 import com.sun.electric.tool.ncc.jemNets.TransistorZero;
@@ -38,12 +39,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 /**
- *  MergeParallel works by seeking a wire with many gates on it
- * it then sorts the transistors on that wire by hash of their names
- * seeking any that lie in the same hash bin
- * it produces exactly one offspring identical to its target
+ * MergeParallel works by seeking a wire with many gates on it it then
+ * sorts the transistors on that wire by hash of their names seeking
+ * any that lie in the same hash bin it produces exactly one offspring
+ * identical to its target
 */
-public class JemStratMergePar extends JemStratSome{
+public class JemStratMergePar extends JemStrat {
 
     //statistics to gather
     private int numTransCandidates= 0;
@@ -51,8 +52,6 @@ public class JemStratMergePar extends JemStratSome{
     private int numTransOneDone= 0;
     private int numTransTwoDone= 0;
     private int numCapDone= 0;
-
-    protected final static Integer CODE_WIRE= new Integer(0);
 
     private JemStratMergePar(){}
 
@@ -78,7 +77,7 @@ public class JemStratMergePar extends JemStratSome{
 
     //do at the end
     private void summary(){
-		getMessenger().line("Parallel merged " +
+		Messenger.line("Parallel merged " +
 					  numTransOneDone + " TransOne and " +
 					  numTransTwoDone + " TransTwo of " +
 					  numTransCandidates + " candidates and " +
@@ -87,22 +86,11 @@ public class JemStratMergePar extends JemStratSome{
 		elapsedTime(numTransOneDone + numTransTwoDone + numCapDone);
     }
 
-    // ---------- for JemRecord -------------
-
-    public JemEquivList doFor(JemRecord j){
-		return super.doFor(j);
-    }
-
-	// ---------- for JemCircuit -------------
-	
-    public JemCircuitMap doFor(JemCircuit g){
-		return super.doFor(g);
-    }
-	
 	//------------- for NetObject ------------
 
     //Given a JemEquivRecord of Wires there won't be any Parts.
     public Integer doFor(NetObject n){
+		error(!(n instanceof Wire), "JemStratMergePar expects only Wires");
 		return doFor((Wire)n);
     }
 
@@ -113,7 +101,7 @@ public class JemStratMergePar extends JemStratSome{
         List capacitors= new ArrayList(3);
 		
 		//the connections loop
-		for(Iterator wi=w.iterator(); wi.hasNext();){
+		for(Iterator wi=w.getParts(); wi.hasNext();){
 			Part p= (Part)wi.next();
 			if(p instanceof Transistor){
 				Transistor t= (Transistor)p;
@@ -141,7 +129,7 @@ public class JemStratMergePar extends JemStratSome{
 		numCapDone+= processTransList(capacitors);
 		numTransOneDone+= processTransList(transOne);
 		numTransTwoDone+= processTransList(transTwo);
-		return CODE_WIRE; // not enough to merge
+		return CODE_NO_CHANGE; // not enough to merge
     }
 
 	//this converts TransistorOne capacitors into real capacitors
@@ -166,7 +154,7 @@ public class JemStratMergePar extends JemStratSome{
 		
 		for(Iterator it=ttt.iterator(); it.hasNext();){
 			Transistor t= (Transistor)it.next();
-			Integer code= t.computeCode(0);
+			Integer code= t.computeNameCode();
 			ArrayList list= (ArrayList) h.get(code);
 			if (list==null) {
 				list= new ArrayList();
@@ -182,6 +170,6 @@ public class JemStratMergePar extends JemStratSome{
 			numDone += Part.parallelMerge(j);
 		}
 		return numDone;
-    } //end of processTransList
+    }
 
-} //end of JemStratMergePar
+}

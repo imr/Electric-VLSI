@@ -22,8 +22,8 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.jemNets;
+import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.basicA.Name;
-//import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.trees.NetObject;
 //import com.sun.electric.tool.ncc.trees.JemTreeGroup;
 import com.sun.electric.tool.ncc.jemNets.Transistor;
@@ -40,7 +40,7 @@ import java.util.Hashtable;
 
 public class Wire extends NetObject{
     // ---------- private data -------------
-    //    private List myParts;
+    Set content = new HashSet(); 
 	
 	//portMap maps each Wire to a List of Ports
 	private static Map portMap= new HashMap(20);
@@ -51,12 +51,14 @@ public class Wire extends NetObject{
 
     // ---------- private methods ----------
     private Wire(Name n){
-        super(n, 2); //sets the name and content size
-      //  content= new ArrayList(3);
+        super(n); //sets the name and content size
         wireCount++;
-    } //end of constructor
+    }
 
     // ---------- public methods ----------
+
+	public Iterator getParts() {return content.iterator();}
+	public Iterator getConnected() {return getParts();}
 
     /** 
 	 * disconnect the indicated Part from this Wire
@@ -66,40 +68,32 @@ public class Wire extends NetObject{
     public boolean disconnect(Part p){return content.remove(p);}
 
     /** 
-	 * add the indicated Part to the Collection on this Wire
+	 * add the indicated Part or Port to this Wire
 	 * @param the NetObject to add
 	 * complain if the NetObject to add isn't a Part or a Port
 	 * @return true if properly added, false otherwise
 	 */
-    public boolean add(NetObject p){
-        if(p == null){
-            getMessenger().error("Wires can't add null Objects");
-            return false;
-        } else if(p instanceof Part) {
-            return content.add(p);
-		} else if(p instanceof Port){
+    public void add(NetObject p){
+    	error(p==null, "Wires can't add null Objects");
+        if(p instanceof Part) {
+            error(!content.add(p), "add failed?");
+		} else {
+			error(!(p instanceof Port), "Wires can add only Parts or Ports"); 
 			//portMap contains the pointers from Wire to Port
-			List ports;
-			if(portMap.containsKey(this)){
-				ports= (List)portMap.get(this);
-			} else {
-				ports= new ArrayList(1);
+			List ports = (List)portMap.get(this);
+			if(ports==null){
+				ports = new ArrayList();
 				portMap.put(this, ports);
-			} //end of else
-			ports.add(p);
-			return true;
-        } else {
-            getMessenger().error("Wires can add only Parts or Ports");
-            return false;
-        }//end of else
-    } //end of add
+			}
+			error(!ports.add(p), "add failed?");
+        }
+    }
 	
 	//return the list of Ports on this Wire
 	public List getPortList(){
-		if( ! portMap.containsKey(this))return new ArrayList(1);
 		List out= (List)portMap.get(this);
-		return out;
-	} //end of getPortList
+		return out!=null ? out : new ArrayList();
+	}
 	
 	
     /** 
@@ -111,12 +105,12 @@ public class Wire extends NetObject{
         if(wireHashtable.containsKey(n)){
             //wire is known
             return (Wire)wireHashtable.get(n);
-        } //end of if
-          //no known wire by this name
+        }
+        //no known wire by this name
         Wire w= new Wire(n); //make one
         wireHashtable.put(w.getTheName(),w);
         return w;
-    } //end of please
+    }
 
     /**
 	 * Factory - return a Wire with the given String as its name
@@ -127,79 +121,53 @@ public class Wire extends NetObject{
 	 */
     public static Wire please(JemCircuit cc, Name nn){
         Wire w=  Wire.please(nn);
-        if(w.getParent()!=null)return w;
-        cc.adopt(w);
+        if(w.getParent()==null)  cc.adopt(w);
         return w;
-    } //end of please
+    }
+    
+    public Type getNetObjType() {return Type.WIRE;}
 
     /**
 	 * @return the number of Wires that ever were constructed
 	 */
     public static int getWireCount (){return wireCount;}
+    
+    /**
+     * remove Wire from its parent's list. This Wire must not be connected to 
+     * any Parts. 
+     *
+     */
+    public void killMe() {
+    	error(content.size()!=0, "Wire still connected to Parts");
+    	getParent().remove(this);
+    }
 
-    /** 
-	 * Put this Wire into standard form, removing duplicate references to Parts.
-	 * @return the number of references removed: 0 if none.
+	/**
+	 * @return the number of Parts with Gates attached
 	 */
-    public int cleanMe(){
-        int a= size();
-        if(a<2)return 0;
-        Set s= new HashSet();
-        s.addAll(content);
-        content.clear();
-        content.addAll(s);
-        int b= size();
-        int diff= a-b;
-        if(diff == 0) return diff; //no change
-        getMessenger().line("Removed " + diff +
-                            " duplicate connections on " + nameString());
-        return diff;
-    } //end of cleanMe
-
-	public int sortMe(){
-		Set with= new HashSet();
-		Set without= new HashSet();
-		Iterator it= content.iterator();
-		while(it.hasNext()){
+	public int numPartsWithGateAttached(){
+		int with = 0;
+		for (Iterator it=content.iterator(); it.hasNext();) {
 			Part p= (Part)it.next();
-			if(p.touchesAtGate(this))with.add(p);
-			else without.add(p);
-		} //end of while
-		content.clear();
-		content.addAll(with);
-		content.addAll(without);
-		return with.size();
-	} //end of sortMe
+			if(p.touchesAtGate(this)) with++;
+		}
+		return with;
+	}
 
-	//this computes the number of non port connections on the wire
-	public int popularity(){
-		Iterator it= content.iterator();
-		int ports= 0;
-		while(it.hasNext()){
-			Object oo= it.next();
-			if(oo instanceof Port)ports++;
-			else break; //first non-port is past the ports
-		} //end of while
-		int out= size()-ports;
-		return out;
-	} // end of popularity
-	
-	//calculates N gate - N diffusion
+	//calculates #gates - #diffusions
 	public int stepUp(){
-		Iterator it= content.iterator();
 		int gates= 0;
 		int diffusion= 0;
-		while(it.hasNext()){
+		for (Iterator it=content.iterator(); it.hasNext();) {
 			Object oo= it.next();
 			if(oo instanceof Transistor){
 				Transistor t= (Transistor)oo;
 				if(t.touchesAtGate(this))gates++;
 				if(t.touchesAtDiffusion(this))diffusion++;
-			} //end of while
-		} //end of while
-		int out= gates - diffusion;
-		return out;
-	} // end of stepUp
+			}
+		}
+		return gates - diffusion;
+	}
 	
     /** 
 	 * check that this Wire is properly structured.  check each
@@ -207,31 +175,15 @@ public class Wire extends NetObject{
 	 * @param the Messenger to report errors
 	 * @return true if all was OK, false if problems
 	 */
-    public boolean checkMe(){
-        boolean good= true;
-        Iterator it= iterator();
-        while(it.hasNext()){
+    public void checkMe(JemCircuit parent){
+    	error(getParent()!=parent, "wrong parent");
+        for (Iterator it=getParts(); it.hasNext();) {
             NetObject nn=(NetObject)it.next();
-            if(nn instanceof Part){
-                //its a Part
-                Part pp=(Part)nn;
-                if(pp.touches(this)==false){
-                    //its not connected back
-                    getMessenger().error("Part " + pp.getStringName() +
-                                         " not connected to Wire " +
-										 getStringName());
-                    good= false;
-                } //end of if
-            }else{
-                //its not a Part
-                getMessenger().error("Wire " + getStringName() +
-                                     "connected to Wire " +
-									 nn.getStringName());
-                good= false;
-            } //end of if
-        } //end of loop
-        return good;
-    } //end of checkMe
+            error(!(nn instanceof Part), "expecting only parts");
+            Part pp=(Part)nn;
+            error(!pp.touches(this), "Part not connected back to wire"); 
+        }
+    }
 
     /** 
 	 * Does this Wire touch the given Part?
@@ -243,114 +195,85 @@ public class Wire extends NetObject{
 	public boolean touches(Port pp){
 		if( ! portMap.containsKey(this))return false;
 		List pl= (List)portMap.get(this);
-		Iterator it= pl.iterator();
-		while(it.hasNext()){
+		
+		for (Iterator it=pl.iterator(); it.hasNext();) {
 			Port xx= (Port)it.next();
 			if(pp == xx)return true;
-		} //end of loop
+		}
 		return false;
-	}// end of touches(Port)
+	}
 	
-    //returns true if this wire touches
-    //two N-type or two P-type gates.
-    public boolean hasTwoGates(){
-        int pgates= 0;
-        int ngates= 0;
-        Iterator it= iterator();
-        while(it.hasNext()){
-            Part p= (Part)it.next();
-            if( ! p.touchesAtGate(this))
-                continue;
-            Transistor t= (Transistor)p;
-            if(t.isNtype())ngates++;
-            if(t.isPtype())pgates++;
-            if((ngates >1)||(pgates>1))
-                return true;
-        } //end of while
-        return false;
-    } //end of hasTwoGates
-
     /** 
 	 * Compute a separation code for this Wire.
 	 * @param type: 0 by part name, 1 omitting gate connections
 	 * 2 by gate connections only, 3 using all connections.
 	 * @return an Integer code for distinguishing the objects.
 	 */
-    public Integer computeCode(int type){
-        if(type == 0) return computeNameCode();
-        if(type == 1) return computeWithoutGate();
-        if(type == 2) return computeGateOnly();
-        if(type == 3) return computeHashCode();
-        return null;
-    } //end of computeCode
+//    public Integer computeCode(int type){
+//        if(type == 0) return computeNameCode();
+//        if(type == 1) return computeWithoutGate();
+//        if(type == 2) return computeGateOnly();
+//        if(type == 3) return computeHashCode();
+//        return null;
+//    }
 
     /**
 	 * compute the name code for this object
      * as the sum of the Object hashCode()'s of its wires
 	 */
-    private Integer computeNameCode(){
-        int sum= 0;
-        Iterator it= iterator();
-        while(it.hasNext()){
-            Part pp= (Part)it.next();
-            if(pp != null){
-                int	hash= pp.hashCode();
-                sum= sum + hash;
-            } //end of if
-        } //end of while
-        return new Integer(sum);
-    } //end of computeNameCode
+//    private Integer computeNameCode(){
+//        int sum= 0;
+//        for (Iterator it=iterator(); it.hasNext();) {
+//            Part pp= (Part)it.next();
+//            sum += pp.hashCode();
+//        }
+//        return new Integer(sum);
+//    }
 
     /** Gate touches are supposed to come last in the list of Parts */
-    private Integer computeWithoutGate(){
-        int sum= 0;
-        int hash= 0;
-        Iterator it= iterator();
-        while(it.hasNext()){
-            Object oo= it.next();
-            if(oo == null)continue;
-            Part pp= (Part)oo;
-            if(pp.touchesAtGate(this)) return new Integer(sum);
-            hash= pp.getHashFor(this);
-            sum= sum+hash;
-        } //end of while
-        return new Integer(sum);
-    } //end of computeWithoutGate
+//    private Integer computeWithoutGate(){
+//        int sum= 0;
+//        int hash= 0;
+//        for (Iterator it=iterator(); it.hasNext();) {
+//            Object oo= it.next();
+//            if(oo == null)continue;
+//            Part pp= (Part)oo;
+//            if(pp.touchesAtGate(this)) return new Integer(sum);
+//            hash= pp.getHashFor(this);
+//            sum= sum+hash;
+//        }
+//        return new Integer(sum);
+//    }
 
-    private Integer computeGateOnly(){
-        int sum= 0;
-        int hash= 0;
-        Iterator it= iterator();
-        while(it.hasNext()){
-            Object oo= it.next();
-            if(oo == null)continue;
-            Part pp= (Part)oo;
-            if( ! pp.touchesAtGate(this))continue;
-            hash= pp.getHashFor(this);
-            sum= sum+hash;
-        } //end of while
-        return new Integer(sum);
-    } //end of computeGateOnly
+//    private Integer computeGateOnly(){
+//        int sum= 0;
+//        int hash= 0;
+//        Iterator it= iterator();
+//        while(it.hasNext()){
+//            Object oo= it.next();
+//            if(oo == null)continue;
+//            Part pp= (Part)oo;
+//            if( ! pp.touchesAtGate(this))continue;
+//            hash= pp.getHashFor(this);
+//            sum= sum+hash;
+//        } //end of while
+//        return new Integer(sum);
+//    } //end of computeGateOnly
 
-    private Integer computeHashCode(){
+    public Integer computeHashCode(){
         int sum= 0;
-        int hash= 0;
-        Iterator it= iterator();
-        while(it.hasNext()){
-            Object oo= it.next();
-            if(oo == null)continue;
-            Part pp= (Part)oo;
-            hash= pp.getHashFor(this);
-            sum= sum+hash;
-        } //end of while
+        for (Iterator it=getParts(); it.hasNext();) {
+            Part pp= (Part) it.next();
+            sum += pp.getHashFor(this);
+        }
         return new Integer(sum);
-    } //end of computeHashCode
+    }
 
     /** 
-	 * report the number of connections on this wire.
+	 * report the number of Parts connected to this wire.
 	 * @return an int with the number of connections
 	 */
-    public int size(){return content.size();}
+    public int numParts(){return content.size();}
 
     /** 
 	 * Get an identifying String for this NewObject.
@@ -358,7 +281,7 @@ public class Wire extends NetObject{
 	 */
     public String nameString(){
         return ("Wire " + getStringName());
-    } //end of nameString
+    }
 
     /** 
 	 * Get a String indicating up to N connections for this NetObject.
@@ -368,35 +291,34 @@ public class Wire extends NetObject{
     public String connectionString(int n){
         if (content.size()==0)return ("is unconnected");
         if (content.size()>n)return ("has " + content.size() + " pins");
-        Iterator it= iterator();
+        Iterator it= getParts();
         String s= "";
         while(it.hasNext()){
             Part pp= (Part)it.next();
             String cc= pp.getStringName();
             s= s + " " + cc;
-        } //end of loop
+        }
         return s;
-    } //end of connectionString
+    }
 
     public void printMe(int x){
         int maxPins= 3;
-        getMessenger().say(nameString());
+        Messenger.say(nameString());
         String s= "";
-        if(size()>maxPins){
+        if(numParts()>maxPins){
             int count= 0;
-            s= " has " + size() + " pins starting:";
-            Iterator it= iterator();
+            s= " has " + numParts() + " pins starting:";
+            Iterator it= getParts();
             while(it.hasNext()&&(count<maxPins)){
                 Part pp= (Part)it.next();
                 String cc= pp.getStringName();
                 s= s + " " + cc;
                 count++;
-            } //end of while
+            }
         }else{
             s= connectionString(maxPins);
-        } //end of else
-        getMessenger().line(s);
-        return;
-    } //end of doFor
+        }
+        Messenger.line(s);
+    }
 
-} //end of class Wire
+}

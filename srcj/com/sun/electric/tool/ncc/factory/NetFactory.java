@@ -33,7 +33,6 @@
 
 package com.sun.electric.tool.ncc.factory;
 import com.sun.electric.tool.ncc.basicA.Messenger;
-import com.sun.electric.tool.ncc.basicA.JemHistogram;
 import com.sun.electric.tool.ncc.trees.JemEquivRecord;
 import com.sun.electric.tool.ncc.trees.JemCircuit;
 import com.sun.electric.tool.ncc.trees.NetObject;
@@ -55,9 +54,6 @@ import com.sun.electric.tool.ncc.strategy.JemManager;
 import java.util.Iterator;
 
 public class NetFactory {
-    private static Messenger myMessenger=
-	Messenger.toTestPlease("NetFactory");
-	
     /** Here is the NetFactory constructor */
     public NetFactory(){}
 
@@ -66,15 +62,13 @@ public class NetFactory {
      * @param the JemCircuit to print
      */
     private void printCircuit(JemCircuit cc){
-        Iterator it= cc.iterator();
-        myMessenger.line(Wire.getWireCount() + " Wires made");
-        myMessenger.line(Part.getPartCount() + " Parts made");
-        while(it.hasNext()){
+        Messenger.line(Wire.getWireCount() + " Wires made");
+        Messenger.line(Part.getPartCount() + " Parts made");
+        for (Iterator it= cc.getNetObjs(); it.hasNext();) {
             NetObject n= (NetObject)it.next();
             n.printMe(10);
-        } //end of while
-        return;
-    } //end of printCircuit
+        }
+    }
 
     /**
      * The readAndCompare method reads the named files and starts
@@ -85,23 +79,16 @@ public class NetFactory {
     private void readAndCompare(String aaa, String bbb){
         NetReaderB nra= NetReaderB.please();
         NetReaderB nrb= NetReaderB.please();
-        myMessenger.line("Reading input:");
+        Messenger.line("Reading input:");
         JemCircuit c= nra.read(aaa);
         JemCircuit d= nrb.read(bbb);
 
-        JemEquivRecord g= JemEquivRecord.please();
-        g.adopt(c);
-        g.adopt(d);
+        JemEquivRecord g= JemEquivRecord.please(0);
+        g.addCircuit(c);
+        g.addCircuit(d);
 
         JemManager.doYourJob(g);
-        return;
     }
-
-	/** The testXXX methods run various tests on Jemini */
-    public void testZero(){
-		JemHistogram.testMe(myMessenger);
-		return;
-    } //end of testZero
 
     public void testOne(String netListA, String netListB){
     //    readAndCompare("equilibrate.flat", "equilibrate.flat");
@@ -112,47 +99,6 @@ public class NetFactory {
   //      readAndCompare("expArings.flat", "expArings.flat");
        // readAndCompare("twogate", "twogateb");
        readAndCompare(netListA, netListB);
-    } //end of testOne
+    }
 
-    public void testTwo(){
-        readAndCompare("input1", "input1a");
-    } //end of testTwo
-  
-     public void testThree(){
-         readAndCompare("expTail.flat", "expTailb.flat");
-     } //end of testThree
-
-     public void testFour(){
-         readAndCompare("rxGroup.flat", "rxGroupa.flat");
-     } //end of testThree
-  /*
-     public void TrippleTest(){
-         NetReaderB nra= NetReaderB.please();
-         NetReaderB nrb= NetReaderB.please();
-         NetReaderB nrc= NetReaderB.please();
-         myMessenger.line("Reading input:");
-         JemCircuit c= nra.read("input1");
-         JemCircuit d= nrb.read("input1a");
-         JemCircuit e= nrc.read("input1a");
-
-         JemStrat print= JemStratPrint.please();
-         JemStrat check= JemStratCheck.please();
-         JemStrat count= JemStratCount.please();
-         JemManager manager= JemManager.please();
-
-         JemEquivRecord gg= JemEquivRecord.please();
-
-         gg.adopt(c);
-         gg.adopt(d);
-         gg.adopt(e);
-
-         gg.accept(count);
-         gg.accept(check);
-         //		g.accept(print);
-
-         manager.doItAll(gg);
-
-     } //end of TrippleTest
-     */
-
-} //end of NetFactory
+}

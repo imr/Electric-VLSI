@@ -42,35 +42,33 @@ import com.sun.electric.tool.ncc.strategy.JemStrat;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Arrays;
 
-public abstract class Part extends NetObject{
+public abstract class Part extends NetObject {
     // ---------- private data -------------
+    protected Wire[] pins;
+	public Iterator getConnected() {return Arrays.asList(pins).iterator();}
 
     /** the count of all Parts ever made */	private static int partCount= 0;
     
     // ---------- private methods ----------
 
-	/** Here is the constructor for Parts
-	* @param the Name for this Parts
-	* @param an int saying how many terminals this Parts has
-	* @return the fresh Parts
-	*/
+	/** 
+	 * Here is the constructor for Parts
+	 * @param n the Name for this Parts
+	 * @param numPins how many terminals this Parts has
+	 */
     protected Part(Name n, int numPins){
-		super(n, numPins); //sets the name and content size
-	//	content= new ArrayList(numPins); //sets the capacity
-		for(int i= 0; i<numPins; i++)content.add(null); //clears the array
+		super(n); //sets the name and content size
+		pins = new Wire[numPins];
 		partCount++;
-        return;
-    } //end of constructor
+    }
 
     // ---------- public methods ----------
-
-	/** 
-	 * getMyWires is the accessor Method for the Wires array.
-	 * @return the List of all Wires touched by this part.
-	 */
-	public List getMyWires(){return content;}
+    
+    public Type getNetObjType() {return Type.PART;}
 
 	/**
 	 *  valueString reports the numeric values of this Part,
@@ -78,11 +76,6 @@ public abstract class Part extends NetObject{
 	 * @return a String describing the Part's numeric values.
 	 */
 	public abstract String valueString();
-
-	/**
-	 * The clear method disconnects this part from its Wires
-	 */
-	public void clear(){content.clear();}
 
 	/** 
 	 * Here is the accessor for the part count
@@ -94,7 +87,7 @@ public abstract class Part extends NetObject{
 	 * Here is the accessor for the number of terminals on this Part
 	 * @return the number of terminals on this Part, usually a small number.
 	 */
-	public abstract int size(); //get the number of connections
+	public int numPins() {return pins.length;}
 
 	/** 
 	 * Here is an accessor method for the coefficiant array for this
@@ -120,9 +113,12 @@ public abstract class Part extends NetObject{
 	 * @return the count of Parts actually merged
 	 */
     public static int parallelMerge(Collection parts){
+    	// Clone the list so we don't surprise the caller by changing it
+    	LinkedList pts = new LinkedList(parts);
 		int merged= 0;
-		while (parts.size()>=2) {
-			Iterator it= parts.iterator();
+		while (true) {
+			Iterator it= pts.iterator();
+			if (!it.hasNext()) break;
 			Part first= (Part)it.next();
 			it.remove();			
 			while(it.hasNext()){
@@ -144,15 +140,15 @@ public abstract class Part extends NetObject{
 	 */
 	public boolean disconnect(Wire w){
 		boolean found= false;
-		for(int i= 0;i<size(); i++){
-			Wire ww= (Wire)content.get(i);
+		for(int i=0; i<pins.length; i++){
+			Wire ww= pins[i];
 			if(ww == w){
-				content.set(i,null);
+				pins[i] = null;
 				found= true;
-			}content.set(i,null);
-		} //end of loop
+			}
+		}
 		return found;
-    } //end of disconnect
+    }
 	
 	/** 
 	 * deleteMe disconnects this Part from its wires and removes it
@@ -160,46 +156,26 @@ public abstract class Part extends NetObject{
 	 * further consideration.
 	 */
     public void deleteMe(){
-		Iterator it= iterator();
-		while(it.hasNext()){
-			Wire w= (Wire)it.next();
+		for (int i=0; i<pins.length; i++) {
+			Wire w= pins[i];
 			if(w!=null)	w.disconnect(this);
-		} //end of loop
+		}
 		JemCircuit parent= (JemCircuit)getParent();
 		parent.remove(this);
-		return;
-    } //end of deleteMe
+    }
 	
-	/** 
-	 * cleanMe checks that this Part in standard form and complains if not
-	 * @return the number of problems found, 0 if all is well.
-	 */
-	public int cleanMe(){
-        int badCount= 0;
-        int n= size();
-        for(int i= 0; i<n; i++){
-            if(content.get(i)==null){
-                getMessenger().error(getStringName() +
-                    " has null on terminal " + i);
-                badCount++;
-            } //end of if
-        } //end of for
-        return badCount;
-    } //end of cleanMe
-
 	/** 
 	 * A method to test if a Part touches a Wire.
 	 * @param the Wire to test
 	 * @return true if this Part touches the Wire, false otherwise
 	 */
 	public boolean touches(Wire w){
-	Iterator it= iterator();
-	while(it.hasNext()){
-	    Wire x= (Wire)it.next();
-	    if(x == w) return true;
-	} //end of while
+		for (int i=0; i<pins.length; i++) {
+		    Wire x= pins[i];
+		    if(x == w) return true;
+		}
         return false;
-    } //end of holds
+    }
 
 	/** 
 	 * A method to test if this Part touches a Wire with a gate connection.
@@ -228,67 +204,65 @@ public abstract class Part extends NetObject{
 	 * 2 by gate connections only, 3 using all connections.
 	 * @return an Integer code for distinguishing the objects.
 	 */
-	public Integer computeCode(int type){
-		if(type == 0) return computeNameCode();
-		if(type == 1) return computeWithoutGate();
-		if(type == 2) return computeGateOnly();
-		if(type == 3) return computeHashCode();
-		return null;
-	} //end of computeCode
+//	public Integer computeCode(int type){
+//		if(type == 0) return computeNameCode();
+//		if(type == 1) return computeWithoutGate();
+//		if(type == 2) return computeGateOnly();
+//		if(type == 3) return computeHashCode();
+//		return null;
+//	} //end of computeCode
 
     //compute the name code for this object
     //as the sum of the Object hashCode()'s of its wires
-    private Integer computeNameCode(){
+    public Integer computeNameCode(){
         int sum= 0;
 		int hash= 0;
 		int codes[]= getTermCoefs();
-		for(int i=0; i<size(); i++){
+		for(int i=0; i<pins.length; i++){
 			int code= 0;
-			Wire w= (Wire)content.get(i);
+			Wire w= pins[i];
 			if(w!=null)hash= w.hashCode(); //use the Object function!
 			sum= sum+hash*codes[i];
-        } //end of loop
+        }
         return new Integer(sum);
-    } //end of computeNameCode
+    }
 
-	private Integer computeWithoutGate(){
-        int sum= 0;
-		int hash= 0;
-        int codes[]= getTermCoefs();
-		for(int i=0; i<size(); i++){
-			if(isThisGate(i))continue;
-			hash= codes[i];
-			Wire w= (Wire)content.get(i);
-			if(w!=null)hash= w.getCode();
-            sum= sum+hash*codes[i];
-        } //end of loop
-        return new Integer(sum);
-    } //end of computeWithoutGate
+//	public Integer computeWithoutGateCode(){
+//        int sum= 0;
+//		int hash= 0;
+//        int codes[]= getTermCoefs();
+//		for(int i=0; i<size(); i++){
+//			if(isThisGate(i))continue;
+//			hash= codes[i];
+//			Wire w= (Wire)content.get(i);
+//			if(w!=null)hash= w.getCode();
+//            sum= sum+hash*codes[i];
+//        }
+//        return new Integer(sum);
+//    }
 
-	private Integer computeGateOnly(){
-        int sum= 0;
-        int codes[]= getTermCoefs();
-		for(int i=0; i<size(); i++){
-			if( ! isThisGate(i))continue;
-			int hash= codes[i];
-			Wire w= (Wire)content.get(i);
-			if(w!=null)hash= w.getCode();
-            sum= sum+hash*codes[i];
-        } //end of loop
-        return new Integer(sum);
-    } //end of computeHashCode
+//	public Integer computeGateOnlyCode(){
+//        int sum= 0;
+//        int codes[]= getTermCoefs();
+//		for(int i=0; i<size(); i++){
+//			if( ! isThisGate(i))continue;
+//			int hash= codes[i];
+//			Wire w= (Wire)content.get(i);
+//			if(w!=null)hash= w.getCode();
+//            sum= sum+hash*codes[i];
+//        }
+//        return new Integer(sum);
+//    }
 
-	protected Integer computeHashCode(){
+	public Integer computeHashCode(){
         int sum= 0;
         int codes[]= getTermCoefs();
-		for(int i=0; i<size(); i++){
-			int hash= codes[i];
-			Wire w= (Wire)content.get(i);
-			if(w!=null)hash= w.getCode();
-            sum= sum+hash*codes[i];
-        } //end of loop
+		for(int i=0; i<pins.length; i++) {
+			Wire w = pins[i];
+            sum += w.getCode() * codes[i];
+        }
         return new Integer(sum);
-    } //end of computeHashCode
+    }
 
 	/** 
 	 * The Part must compute a hash code contribution for a Wire to
@@ -300,38 +274,27 @@ public abstract class Part extends NetObject{
     public int getHashFor(Wire w){
         int sum= 0;
         int codes[]= getTermCoefs();
-		for(int i=0; i<size(); i++){
-			Wire x= (Wire)content.get(i);
-			if(x != null && x == w)sum= sum+(codes[i] * getCode());
-        } //end of loop
+		for(int i=0; i<pins.length; i++){
+			Wire x= pins[i];
+			error(x==null, "null wire?");
+			if(x==w) sum += codes[i] * getCode();
+        }
         return sum;
-    } //end of getHash
+    }
 	
 	/** 
 	 * check that this Part is in proper form
 	 * complain if it's wrong
-	 * @param the messenger to use for a report
 	 * @return true if all OK, false if there's a problem
 	 */
-	public boolean checkMe(){
-	boolean good= true;
-	for(int i=0; i<size(); i++){
-	    Wire w= (Wire)content.get(i);
-	    if(w==null){
-			getMessenger().error(getStringName() +
-								 " has null on terminal " + i);
-			good= false;
-		}else{
-			if(w.touches(this)==false){
-				getMessenger().error("Wire " + w.getStringName() +
-									 " not connected to Part " + getStringName()
-									 + " at terminal " + i);
-				good= false;
-			} //end of if
-		} //end of else
-	} //end of for
-	return good;
-    } //end of checkMe
+	public void checkMe(JemCircuit parent){
+		error(parent!=getParent(), "wrong parent");
+		for(int i=0; i<pins.length; i++){
+		    Wire w= pins[i];
+		    error(w==null, "Wire is null");
+			error(!w.touches(this), "Wire not connected to Part");
+		}
+    }
 	
 	/** 
 	 * printMe prints out this NetObject
@@ -341,9 +304,8 @@ public abstract class Part extends NetObject{
 		String n= nameString();
 		String s= valueString();
 		String c= connectionString(maxCon);
-		getMessenger().line(n + " " + s + " " + c);
-		return;
-	} //end of printMe
+		Messenger.line(n + " " + s + " " + c);
+	}
 	
-} //end of Part
+}
 

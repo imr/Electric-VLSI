@@ -49,119 +49,125 @@ import java.util.HashMap;
  * The JemEquivRecord class was formerly called "SymmetryGroup".
 */
 public class JemEquivRecord extends JemRecord{
+	private List circuits = new ArrayList(); 
+	
 	/** ourRandom is a random number generator for assigning random
 	 * codes to JemEquivRecords as they are constructed.  */
     private static Random ourRandom= new Random(204);
-
-	/** The retired list holds JemEquivRecords whose NetObjects have
-	 * been matched. JemEquivRecords "retire" when they have only one
-	 * NetObject from each of the circuits being compared. */
-	public static JemRecordList retired= new JemRecordList();
-
-	/** The mismatched JemRecordList holds JemEquivRecords one of
-	 * whose circuits holds only a single NetObject. */
-    private static JemRecordList mismatched= new JemRecordList();
+    private static HashSet randoms = new HashSet();
 
 	/** Here is the constructor */
-    private JemEquivRecord(){
-        nominalCode= ourRandom.nextInt();
+    private JemEquivRecord(int key){
+        Integer nc;
+		// I've seen different nextInt() calls return the same value
+		// Don't allow two JemEquivRecords to have the same nominal code.
+        do {
+			nominalCode = ourRandom.nextInt();
+			nc = new Integer(nominalCode);
+        } while(randoms.contains(nc));
+        
+        randoms.add(nc);
+        value = key;
     }
+
+	private ArrayList getOneMapPerCircuit(JemStrat js) {
+		ArrayList mapPerCkt = new ArrayList();
+		for (Iterator it=getCircuits(); it.hasNext();) {
+			JemCircuit ckt = (JemCircuit)it.next();
+			HashMap codeToNetObjs = js.doFor(ckt);
+			mapPerCkt.add(codeToNetObjs);
+		}
+		return mapPerCkt;
+	}
+
+	/**
+	 * Get all the keys of all the maps.
+	 * @param maps list of maps
+	 * @return the set of all keys from all the maps
+	 */
+	private Set getKeysFromAllMaps(ArrayList mapPerCkt) {
+		Set keys = new HashSet();
+		for (Iterator it=mapPerCkt.iterator(); it.hasNext();) {
+			HashMap map = (HashMap) it.next();
+			keys.addAll(map.keySet());
+		}
+		return keys;    	
+	}
+	/**
+	 * Create a JemEquivRec for all the JemCircuits corresponding to a
+	 * given key. If a map has a list of NetObjects for the given key
+	 * then create a JemCircuit containing those NetObjects.
+	 * Otherwise, add an empty JemCircuit to the JemEquivRec.
+	 * @param mapPerCkt ArrayList of maps.  Each map maps: 
+	 * (Integer -> ArrayList of NetObjects)
+	 * @param key check each map for a List of NetObjects at this key 
+	 * @return a JemEquivRec
+	 */
+	private JemEquivRecord makeEquivRecForKey(ArrayList mapPerCkt,
+											  Integer key) {
+		JemEquivRecord er = JemEquivRecord.please(key.intValue());
+		for (Iterator it=mapPerCkt.iterator(); it.hasNext();) {
+			HashMap map = (HashMap) it.next();
+			ArrayList netObjs = (ArrayList) map.get(key);
+			if (netObjs==null)  netObjs = new ArrayList();
+			JemCircuit ckt = JemCircuit.please(netObjs);
+			er.addCircuit(ckt); 
+		}
+		return er;												 	
+	}
 
 	/** Here is a factory method for the JemEquivRecord class.
 	 * @return a fresh JemEquivRecord */
-    public static JemEquivRecord please(){
-        JemEquivRecord e= new JemEquivRecord();
-        return e;
-    } //end of please
+    public static JemEquivRecord please(int key){
+    	return new JemEquivRecord(key);
+    }
 
-	/** Here is another factory method for JemEquivRecord class.
-	 * @param a JemCircuitHolder with the circuits for the JemEquivRecord 
-	 * @return a fresh JemEquivRecord with the circuits attached */
-    public static JemEquivRecord please(JemCircuitHolder h){
-        if(h == null)return null;
-		if(h.maxSize() < 1)return null;
-        JemEquivRecord e= JemEquivRecord.please();
-        Iterator it= h.iterator();
-        while(it.hasNext()){
-            Object oo= it.next();
-            JemCircuit x= (JemCircuit)oo;
-            e.adopt(x);
-        } //end of while
-        return e;
-    } //end of please
-
-	/**
-	 * A routine to convert a JemCircuitHolderMap into a
-	 * corresponding JemEquivList of fresh JemEquivRecords.  The
-	 * new records "value" field is marked according to the keys of
-	 * the map.
-	 * @param a JemCircuitHolderMap of JemCircuitHolders that contain
-	 * the subdivided JemCircuits
-	 * @return a corresponding JemEquivList of JemEquivRecords
-	 */
-	public static JemEquivList makeEquivs(JemCircuitHolderMap in){
-		if(in == null) return null;
-		JemEquivList out= new JemEquivList();
-		Iterator it;
-		it= in.keyIterator();
-		while(it.hasNext()){
-			Integer ii= (Integer)it.next();
-			JemCircuitHolder ch= (JemCircuitHolder)in.get(ii);
-			JemEquivRecord er= JemEquivRecord.please(ch);
-			if(er != null){
-				out.add(er);
-				er.value= ii.intValue();
-			} //end of if
-		} //end of while
-		return out;
-	} //end of makeEquivs
-
-	/** The killMe method destroys all pointers in this JemEquivRecord. */
-	protected void killMe(){
-//		getMessenger().line("killing " + nameString());
-		if(getCode() == -597136633){
-			getMessenger().error("killing " + nameString());
-		} //end of if
-		super.killMe(); //sets content to empty
-		return;
-	} //end of killMe
-	
 	//left over abstract methods
 
    	/**
 	 * nameString returns a String of type and name for this JemEquivRecord.
 	 * @return a String identifying this JemTree object.
 	 */
-    public String nameString(){
-        String s= "JemEquivRecord " + getCode();
-        return s;
-    } //end of nameString
+    public String nameString(){return "JemEquivRecord " + getCode();}
+
+	public Iterator getCircuits() {return circuits.iterator();}
+	public int numCircuits() {return circuits.size();}
+	public void addCircuit(JemCircuit c) {
+		circuits.add(c);
+		c.setParent(this);
+	}
 
 	/**
-	 * checkParent tests a proposed JemParent as parent for this JemEquivRecord.
-	 * @param the JemParent to test
-	 * @return true if the JemParent is a JemHistoryRecord, false otherwise
+	 * say whether this JemEquivRecord contains Parts, Wires, or Ports.
+	 * Assumes that JemEquivRecord only holds one kind of NetObject. The
+	 * assumption is true after JemStratPartWirePort has run.
+	 * @return PART, WIRE, or PORT
 	 */
-	public boolean checkParent(JemParent p){
-		if(p instanceof JemHistoryRecord)return true;
-		else{
-			getMessenger().error("bad parent class in " + nameString());
-			return false;
-		} //end of else
-	} //end of checkParent
-
+	public NetObject.Type getNetObjType() {
+		for (Iterator ci=getCircuits(); ci.hasNext();) {
+			JemCircuit c = (JemCircuit) ci.next();
+			Iterator ni = c.getNetObjs();
+			if (ni.hasNext()) {
+				NetObject no = (NetObject) ni.next();
+				return no.getNetObjType();
+			}
+		}
+		error(true, "no NetObjects in a JemEquivRecord?");
+		return null; 
+	}
+	
 	/**
-	 * checkChild checks that a proposed JemChild is of the proper class.
-	 * @param the JemChild to test
-	 * @return true if the JemChild is a JemCircuit, false otherwise
+	 * Get total number of NetObjects in all Circuits
+	 * @return number of NetObjects
 	 */
-	public boolean checkChild(JemChild c){
-		if(c instanceof JemCircuit)return true;
-		else{
-			getMessenger().error("bad child class in " + nameString());
-			return false;
-		} //end of else
-	} //end of checkChild
+	public int numNetObjs() {
+		int sum = 0;
+		for (Iterator ci=getCircuits(); ci.hasNext();) {
+			JemCircuit c = (JemCircuit) ci.next();
+			sum += c.numNetObjs();
+		}
+		return sum;
+	}
 
 	/** 
 	 * The apply method applies a JemStrat to this JemEquivRecord,
@@ -169,157 +175,27 @@ public class JemEquivRecord extends JemRecord{
 	 * @param the strategy to apply
 	 * @return the JemEquivList of offspring
 	 */
-	public JemEquivList apply(JemStrat js){
-		JemCircuitMapHolder hh= new JemCircuitMapHolder();
-		Iterator it= iterator();
-		while(it.hasNext()){
-			Object oo= it.next();
-			JemCircuit cc= (JemCircuit)oo;
-			JemCircuitMap mm= js.doFor(cc);
-			hh.add(mm);
-		} //end of loop
-		JemCircuitHolderMap mm= JemCircuitHolderMap.please(hh);
-		JemEquivList offspring= makeEquivs(mm);
-		offspring= makeHistory(offspring);
+	public JemEquivList apply(JemStrat js) {
+		ArrayList mapPerCkt = getOneMapPerCircuit(js);
+		
+		Set keys = getKeysFromAllMaps(mapPerCkt);
+		
+		error(keys.size()==0, "must have at least one key");
+		
+		// If everything maps to one hash code then no offspring
+		if (keys.size()==1) return new JemEquivList();
+		
+		JemEquivList offspring = new JemEquivList();
+		for (Iterator it=keys.iterator(); it.hasNext();) {
+			Integer key = (Integer) it.next();
+			JemEquivRecord er = makeEquivRecForKey(mapPerCkt, key); 
+			offspring.add(er);
+		}
+		JemHistoryRecord.please(this, offspring);
+		
 		return offspring;
-	} //end of apply
-
-	/**
-	 * makeHistory collects a list of JemEquivRecord proposed
-	 * offspring under a JemHistoryRecord parent and returns the
-	 * list.  If there is only one entry in the input list,
-	 * makeHistory uses gobbleUp to put its information into this
-	 * JemEquivRecord.
-	 * @param the JemEquivList of offspring
-	 * @return the JemEquivList of offspring, possibly empty
-	 */
-    public JemEquivList makeHistory(JemEquivList offsp){
-		//should never get null input - this needs to be checked
-        if(offsp == null)return null; //no split, and circuits have been fixed.
-    //    JemRecordList rrl= reduce(rl);
-        if(offsp.size() > 1){
-            JemHistoryRecord h= JemHistoryRecord.please(offsp);
-            h.historize(this);
-			killMe();
-            return offsp;
-        }else if(offsp.size() == 1){
-            //it's a singleton offspring
-            // so adopt its content
-            JemEquivRecord er= (JemEquivRecord)offsp.get(0);
-			if(er.maxSize() == 0){
-				int i= 0; //for debug - maybe return an empty list
-			} //end of if
-			gobbleUp(er);
-			JemEquivList out= new JemEquivList();
-			//avoid returning the record itself - couldn't split
-//			out.add(this);
-            return out;
-        } //end of else
-		return offsp;
-    } //end of makeHistory
-
-	/** 
-	 * gobbleUp encorporates the information from another
-	 * JemEquivRecord into this one and destroys the other.
-	 * @param the JemEquivRecord to encorporate
-	 */
-	private void gobbleUp(JemEquivRecord e){
-		clear();
-		Iterator it= e.iterator();
-		while(it.hasNext()){
-			Object oo= it.next();
-			JemCircuit c= (JemCircuit)oo;
-			adopt(c);
-		} //end of while
-		copyAndKill(e);
-        return;
-    } //end of absorb
-	
-	/** 
-	 * getWireExportMap produces a map of Wires to arbitrary Integers
-	 * based on matching export names.
-	 * @return a map of Wires to Integers
-	 */
-	public Map getWireExportMap(){
-		//step 1 - get the string maps from the circuits
-		List holder= new ArrayList(2); //to hold the circuit's maps
-		Map out= new HashMap(2);
-		Set keys= new HashSet(4);
-		int i= 0;
-		Iterator ci= iterator();
-		while(ci.hasNext()){
-			JemCircuit jc= (JemCircuit)ci.next();
-			Map mm= jc.getExportMap();
-			holder.add(mm);
-			if(mm.isEmpty())continue;
-			keys.addAll(mm.keySet());
-		} //end of while ci
-		  //keys now holds all possible Strings that are names
-		if(keys.size() == 0)return out; //no ports
-		Iterator ki= keys.iterator();
-		while(ki.hasNext()){
-			String theKey= (String)ki.next();
-			//check that all maps have this key
-			Iterator hi= holder.iterator();
-			List wires= new ArrayList(2);
-			while(hi.hasNext()){
-				Map mm= (Map)hi.next();
-				if(mm.containsKey(theKey)){
-					Wire w= (Wire)mm.get(theKey);
-					wires.add(w);
-				} //end of if
-			} //end of hi loop
-			//does wires contain enough records?
-			if(wires.size() == holder.size()){
-				//yes it does
-				i++;
-				hi= wires.iterator();
-				while(hi.hasNext()){
-					Wire w= (Wire)hi.next();
-					out.put(w, new Integer(i));
-				} //end of output loop
-			} //end of if
-		} //end of key loop
-		printTheMap(out);
-		return out;
-	} //end of getWireExportMap
-
-	/** 
-	 * printTheMap is a debug routine that exhibits the map.
-	 * @param the Map to exhibit
-	 */
-	private static void printTheMap(Map m){
-		Messenger mm= getMessenger();
-		mm.line("printing an EquivRecord map of size= " + m.size());
-		if(m.size() == 0)return;
-		Iterator it= m.keySet().iterator();
-		while(it.hasNext()){
-			Wire w= (Wire)it.next();
-			Object oo= m.get(w);
-			if(oo == null){
-				mm.line(w.nameString() + " maps to null");
-			} else {
-				Integer i= (Integer)oo;
-				mm.line(w.nameString() + " maps to " + i.intValue());
-			} //end of else
-		} //end of loop
-		return;
 	}
-
-	/**
-	 * Here is the comparison method for Comparable interface
-	 * @param an Object to test to compare to this JemEquivRecord
-	 * @return a positive, negative or zero integer that indicates sorting 
-	 * order
-	 */
-	public int compareTo(Object oo){
-		JemEquivRecord s= (JemEquivRecord)oo;
-		int sizeDiff= maxSize() - s.maxSize();
-		if(sizeDiff != 0)return sizeDiff;
-		if(s == this) return 0;
-		else return 1;
-	} //end of compareTo
-
+	
 	/** 
 	 * sizeString generates a String indicating the size of the
 	 * JemCircuits in this JemEquivRecord
@@ -327,16 +203,14 @@ public class JemEquivRecord extends JemRecord{
 	 * JemCircuits
 	 */
     public String sizeString(){
-        if(size() == 0) return "0";
-        Iterator it= iterator();
+        if(numCircuits() == 0) return "0";
         String s= "";
-        while(it.hasNext()){
-            Object oo= it.next();
-            JemCircuit jc= (JemCircuit)oo;
-            s= s + " " + jc.size() ;
-        } //end of while
+        for (Iterator it=getCircuits(); it.hasNext();) {
+            JemCircuit jc= (JemCircuit) it.next();
+            s= s + " " + jc.numNetObjs() ;
+        }
         return s;
-    } //end of sizeString
+    }
 	
 	/** 
 	 * maxSizeDiff computes the difference in the number of
@@ -346,15 +220,13 @@ public class JemEquivRecord extends JemRecord{
     public int maxSizeDiff(){
         int out= 0;
         int max= maxSize();
-        Iterator it= iterator();
-        while(it.hasNext()){
-            Object oo= it.next();
-            JemCircuit j= (JemCircuit)oo;
-            int diff= max-j.size();
+        for (Iterator it=getCircuits(); it.hasNext();) {
+            JemCircuit j= (JemCircuit) it.next();
+            int diff= max-j.numNetObjs();
             if(diff > out)out= diff;
-        } //end of loop
+        }
         return out;
-    } // end of maxSizeDiff
+    }
 
 	/** 
 	 * maxSize returns the number of NetObjects in the most populous
@@ -364,44 +236,40 @@ public class JemEquivRecord extends JemRecord{
 	 */
 	public int maxSize(){
         int out= 0;
-        Iterator it= iterator();
-        while(it.hasNext()){
-            Object oo= it.next();
-            JemCircuit j= (JemCircuit)oo;
-            if(j.size() > out)out= j.size();
-        } //end of while
+        for (Iterator it=getCircuits(); it.hasNext();) {
+            JemCircuit j= (JemCircuit)it.next();;
+            out = Math.max(out, j.numNetObjs());
+        }
         return out;
-    } //end of maxSize
+    }
 
 	/** 
-	 * isLive indicates that this JemEquivRecord is neither retired
+	 * isActive indicates that this JemEquivRecord is neither retired
 	 * nor mismatched.
 	 * @return true if this JemEquivRecord is still in play, false otherwise
 	 */
-	public boolean isLive(){
-        if(size() == 0)return false;
-        int largest= 0;
-        Iterator it= iterator();
-        while(it.hasNext()){
-            Object oo= it.next();
-            JemCircuit j= (JemCircuit)oo;
-            if(j.size() == 0)return false;
-            if(j.size() > largest)largest= j.size();
-        } //end of while
-        if(largest > 1)return true;
+	public boolean isActive(){
+        error(numCircuits()==0, "JemEquivRecord with no circuits?");
+        for (Iterator it=getCircuits(); it.hasNext();) {
+            JemCircuit c = (JemCircuit) it.next();
+            if (c.numNetObjs()==0) return false; // mismatched
+            if (c.numNetObjs()>1)  return true;  // live
+        }
         return false;
-    } //end of isLive
+    }
 
 	/** 
 	 * canRetire indicates whether this JemEquivRecord can or has
 	 * retired.
 	 * @return true if this JemEquivRecord can or has retired
 	 */
-    public boolean canRetire(){
-        if(maxSize() > 1) return false;
-        if(maxSizeDiff() > 0)return false;
-        return true;
-    } //end of canRetire
+    public boolean isRetired(){
+		for (Iterator it=getCircuits(); it.hasNext();) {
+			JemCircuit c = (JemCircuit) it.next();
+			if (c.numNetObjs()!=1) return false;
+		}
+		return true;
+    }
 
 	/** 
 	 * isMismatched indicates whether some JemCircuits in this
@@ -410,185 +278,19 @@ public class JemEquivRecord extends JemRecord{
 	 * otherwise
 	 */
     public boolean isMismatched(){
-        if(maxSize() == 0)return false;
-        Iterator it= iterator();
-        while(it.hasNext()){
-            Object oo= it.next();
-            JemCircuit j= (JemCircuit)oo;
-            if(j.size() == 0)return true;
-        } //end of while
+        for (Iterator it=getCircuits(); it.hasNext();) {
+            JemCircuit c = (JemCircuit) it.next();
+            if (c.numNetObjs()==0) return true;
+        }
         return false;
-    } //end of isMismatched
+    }
 
-	/** 
-	 * deleteMeIfEmpty makes an attempt to delete this JemEquivRecord
-	 * if it's empty.
-	 * @return true if deletion is possible
-	 */
-    public boolean deleteMeIfEmpty(){
-        if(maxSize() > 0)return false;
-		killMe();
-        return true;
-    } //end of deleteMeIfEmpty
-		
-	/** 
-	 * adjacentGroups finds the JemEquivRecords whose content is
-	 * adjacent to this one's.  a JemEquivRecord is adjacent if it can
-	 * be reached in one step from any of g's circuits and it's live
-	 * and not retired nor mismatched
-	 * @return
-	 */
-    public JemEquivList adjacentGroups(){
-		JemEquivList out= new JemEquivList();
-        if(maxSize() == 0)return out; //there are none
-        Iterator ci= iterator();
-        while(ci.hasNext()){
-            Object oo= ci.next();
-            JemCircuit jc= (JemCircuit)oo;
-            if(jc.size() == 0)continue;
-            //get first NetObject in circuit
-            Iterator it= jc.iterator();
-            NetObject netObj= (NetObject)it.next();
-            it= netObj.iterator();
-            while(it.hasNext()){
-                //for each adjacent NetObject
-                netObj= (NetObject)it.next();
-                //get it's grandparent JemEquivRecord
-                jc= (JemCircuit)netObj.getParent();
-                JemEquivRecord sg= (JemEquivRecord)jc.getParent();
-                if(sg.canRetire())continue;
-                if(sg.isLive())out.add(sg);
-            } //end of loop
-        } //end of circuit loop
-		return out;
-    } //end of adjacentGroups
-
-	/** 
-	 * tryToRetire tries to retire or mismatch the JemEquivRecords in
-	 * a JemEquivList, and returns a JemEquivList of those that fail
-	 * to retire.
-	 * @param in the input JemEquivList
-	 * @return a JemEquivList, possibly empty, of those that do retire.
-	 */
-    public static JemEquivList tryToRetire(JemEquivList in){
-        if(in == null)return null;
-		int count= 0;
-        JemEquivList out= new JemEquivList();
-        Iterator it= in.iterator();
-        while(it.hasNext()){
-            Object oo= it.next();
-            if(oo != null){
-                JemEquivRecord sg= (JemEquivRecord)oo;
-                if(sg.canRetire()){
-                    sg.retireMe();
-					count++;
-                    continue;
-                } //end of if
-                if(sg.isMismatched()){
-                    sg.mismatchMe();
-                    continue;
-                } //end of if
-                out.add(sg);
-            } //end of if not null
-        } //end of loop
-		getMessenger().line("tryToRetire retired " +
-							count + " JemEquivRecords");
-        return out;
-    } // end of tryToRetire
-
-	/** 
-	 * findNewlyRetired tries to retire or mismatch the
-	 * JemEquivRecords in a JemEquivList, and returns a JemEquivList
-	 * of those that do retire.
-	 * @param in the input JemEquivList
-	 * @return a JemEquivList, possibly empty, of those that do retire.
-	 */
-	public static JemEquivList findNewlyRetired(JemEquivList in){
-		if(in == null)return null;
-		int count= 0;
-		JemEquivList out= new JemEquivList();
-        Iterator it= in.iterator();
-        while(it.hasNext()){
-            Object oo= it.next();
-            if(oo != null){
-                JemEquivRecord sg= (JemEquivRecord)oo;
-                if(sg.canRetire()){
-                    sg.retireMe();
-					out.add(sg);
-					count++;
-                } //end of if
-                if(sg.isMismatched()){
-                    sg.mismatchMe();
-                } //end of if
-            } //end of if not null
-        } //end of loop
-		getMessenger().line("findNewlyRetired retired " +
-							count + " JemEquivRecords");
-		return out;
-	} // end of newlyRetired
-
-	/** retireMe adds this JemEquivRecord to the retired list.
-	 */
-    private void retireMe(){
-        retired.add(this);
-//        getMessenger().line("retired JemEquivRecord #" +
-//                            retired.size() +
-//                            " has code " + getCode() +
-//                            " sizes are " + sizeString() );
-        // myJemSets.print(g);
-        return;
-    } //end of retireMe
-
-	/** mismatchMe adds this JemEquivRecord to the mismatched list.
-		*/
-    private void mismatchMe(){
-        mismatched.add(this);
-        getMessenger().line("mismatched JemEquivRecord #" +
-                            mismatched.size() +
-                            " has code " + getCode() +
-                            " sizes are " + sizeString() );
-        //myJemSets.print(g);
-        return;
-    } //end of mismatchMe
-
-	/** printTheLists prints the retired and mismatched lists.
-		* @param (implicit) the retired and mismatched lists
-	 */
-	public static void printTheLists(){
-		getMessenger().freshLine();
-        print("retired ", retired);
-		getMessenger().freshLine();
-        print("mismatched ", mismatched);
-    } //end of printTheLists
-
-	/** 
-	 * print is a helper method for printTheLists
-	 * @param s a herald string
-	 * @param c the JemRecordList to print
-	 */
-    private static void print(String s, JemRecordList c){
-		Messenger mm= getMessenger();
-        mm.line(s + " is a JemRecordList of " + c.size());
-        int count= 0;
-        JemStrat.passFractionOn();
-        Iterator it= c.iterator();
-        while(it.hasNext() && (count < 200)){
-            Object oo= it.next();
-            JemEquivRecord g= (JemEquivRecord)oo;
-            count++;
-            //getMessenger().say(count + " ");
-            g.printMe(mm);
-        } //end of loop
-        JemStrat.passFractionOff();
-        return;
-    } //end of print
-	
 	/** 
 	 * printMe prints this JemEquivRecord on a given Messenger.
 	 * @param the Messenger to use for output
 	 */
-	public void printMe(Messenger mm){
-		mm.line(nameString() + " value= " + value +
+	public void printMe(){
+		Messenger.line(nameString() + " value= " + value +
 				" maxSize= " + maxSize());
 	}
 

@@ -23,110 +23,55 @@
 */
 
 package com.sun.electric.tool.ncc.strategy;
+import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.jemNets.*;
 import com.sun.electric.tool.ncc.trees.*;
 import com.sun.electric.tool.ncc.lists.*;
-import com.sun.electric.tool.ncc.basicA.JemHistogram;
 
 import java.util.Iterator;
 
-public class JemWirePopularity extends JemStratSome{
+public class JemWirePopularity extends JemStrat {
 	int numWiresProcessed;
 	int numEquivProcessed;
-	int numOffspringProduced;
-	JemStrat myFront;
 
-	public String nameString(){return "JemWirePopularity";}
-	private JemWirePopularity(){
-		myFront= JemStratFrontier.please();
-	}
+	private JemWirePopularity(){}
 
 	public static JemEquivList doYourJob(JemSets jss){
-		JemWirePopularity jwp = new JemWirePopularity();
-		return jwp.doYourJob2(jss);
-	}
-	private JemEquivList doYourJob2(JemSets jss){
-		JemRecord w= jss.wires;
-		JemEquivList frontier= myFront.doFor(w);
-		depth= 0;
-		preamble(w);
-		JemEquivList offspring= doFor(frontier);
-		summary(offspring);
+		JemEquivList frontier= JemStratFrontier.doYourJob(jss.wires);
+		JemWirePopularity wp = new JemWirePopularity();
+		wp.preamble(frontier);
+		JemEquivList offspring= wp.doFor(frontier);
+		wp.summary(offspring);
 		return offspring;
-	} //end of doYourJob
+	}
 
 	//do something before starting
-	private void preamble(JemRecord j){
-		if(getDepth() != 0)return;
-		startTime("JemWirePopularity", j.nameString());
-		numWiresProcessed= 0;
-		numEquivProcessed= 0;
-		numOffspringProduced= 0;
-	} //end of preamble
+	private void preamble(JemEquivList el){
+		startTime("JemWirePopularity", " JemEquivList of size: "+el.size());
+	}
 
     //summarize at the end
     private void summary(JemEquivList offspring){
-        if(getDepth() != 0)return;
-		JemRecordList cc= JemEquivRecord.tryToRetire(offspring);
-		getMessenger().line("JemWirePopularity done - separated " +
+		Messenger.line("JemWirePopularity done - examined " +
 							numWiresProcessed + " Wires from " +
 							numEquivProcessed + " JemEquivRecords");
-		getMessenger().line(" into " +
-							numOffspringProduced + 
-							" distinct hash groups, of which " +
-							cc.size() + " remain active");
-		JemHistogram jh= new JemHistogram(3);
-		Iterator it= offspring.iterator();
-		while(it.hasNext()){
-			JemEquivRecord er= (JemEquivRecord)it.next();
-			jh.incrementEntry(er.maxSize());
-		}
-		jh.printMe(getMessenger());
+		Messenger.line(offspringStats(offspring));
         elapsedTime(numWiresProcessed);
-    } //end of summary
+    }
 
-	// ---------- for JemRecordList -------------
-	
-    public JemEquivList doFor(JemRecordList g){
-		JemEquivList mm= super.doFor(g);
-        return mm;
-    } //end of doFor
-	
     // ---------- for JemRecord -------------
 	
     public JemEquivList doFor(JemRecord g){
-		preamble(g);
-		JemEquivList out= new JemEquivList();
-		if(g instanceof JemHistoryRecord){
-			JemEquivList these= super.doFor(g);
-			out.addAll(these);
-		} else if(g instanceof JemEquivRecord){
-			numEquivProcessed++;
-			JemEquivList these= super.doFor(g);
-			out.addAll(these);
-			numOffspringProduced += these.size();
-		} //end of else
-		summary(out);
-		return out;
-	} //end of doFor
+		if (g instanceof JemEquivRecord)  numEquivProcessed++;  
+		return super.doFor(g);
+	}
 
-	// ---------- for JemCircuit -------------
-	
-    public JemCircuitMap doFor(JemCircuit g){
-		JemCircuitMap mm= super.doFor(g);
-        return mm;
-    } //end of doFor
-	
 	//------------- for NetObject ------------
 	public Integer doFor(NetObject n){
-		if(n instanceof Wire){
-			numWiresProcessed++;
-			Wire w= (Wire)n;
-			int pp= w.popularity();
-			Integer i= new Integer(pp);
-			return i;
-		} //end of Parts
-		else return null;
-	} //end of doFor
+		error(!(n instanceof Wire), "JemWirePopularity expects wires only");
+		Wire w= (Wire)n;
+		numWiresProcessed++;
+		return new Integer(w.numParts());
+	}
 
-} //end of class JemWirePopularity
+}

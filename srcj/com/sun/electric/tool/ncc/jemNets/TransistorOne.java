@@ -40,91 +40,53 @@ public class TransistorOne extends Transistor {
     private static int termCoefs[] = {47,13,47};
 
     // ---------- private methods ----------
-    protected TransistorOne(Name n){
-		super(n, numCon);
-    } //end of constructor
+    protected TransistorOne(Name n){super(n, numCon);}
 
     public void flip(){
-		List c= getMyWires();
-        Wire w= (Wire)c.get(0);
-		c.set(0, c.get(2));
-        c.set(2, w);
-    } //end of flip
+        Wire w= pins[0];
+		pins[0] = pins[2];
+        pins[2] = w;
+    }
 
     // ---------- public methods ----------
-
-    public static TransistorOne please(){
-		TransistorOne t= new TransistorOne(null); //nameless
-		return t;
-    } //end of please
-
-	/*    public static TransistorOne please(String n){
-		TransistorOne t= new TransistorOne(n);
-	return t;
-    } //end of please
-*/
-    public static TransistorOne please(JemCircuit cc, Name n){
-		TransistorOne t= new TransistorOne(n);
-		cc.adopt(t);
-		return t;
-    } //end of please
 
     public static TransistorOne nPlease(JemCircuit cc, Name n){
 		TransistorOne t= new TransistorOne(n);
 		cc.adopt(t);
 		t.myType= Transistor.Ntype;
 		return t;
-    } //end of nPlease
+    }
 
     public static TransistorOne pPlease(JemCircuit cc, Name n){
 		TransistorOne t= new TransistorOne(n);
 		cc.adopt(t);
 		t.myType= Transistor.Ptype;
 		return t;
-    } //end of pPlease
+    }
 
     // ---------- abstract commitment ----------
 
 	public boolean isThisGate(int x){return (x == 1);}
-	public int size(){return numCon;}
-    public int getNumCon(){return numCon;}
     public int[] getTermCoefs(){return termCoefs;} //the terminal coeficients
 
     // ---------- public methods ----------
 
     public void connect(Wire source, Wire gate, Wire drain){
-		List c= (ArrayList)getMyWires();
-        c.set(0, source);
-        c.set(1, gate);
-        c.set(2, drain);
-        if(source!=null)source.add(this);
-		if(gate!=null)gate.add(this);
-		if(drain!=null)drain.add(this);
-		return;
-    } //end of connect
+        pins[0] = source;
+        pins[1] = gate;
+        pins[2] = drain;
+        source.add(this);
+		gate.add(this);
+		drain.add(this);
+    }
 
-    public boolean touchesAtGate(Wire w){
-		ArrayList c=(ArrayList)getMyWires();
-		Wire x= (Wire)c.get(1);
-        if(w == x)return true;
-        return false;
-    } //end of touchesAtGate
+    public boolean touchesAtGate(Wire w){return w==pins[1];}
 
     public boolean touchesAtDiffusion(Wire w){
-		ArrayList c=(ArrayList)getMyWires();
-		Wire x= (Wire)c.get(0);
-		Wire y= (Wire)c.get(2);
-        if(w == x)return true;
-        if(w == y)return true;
-        return false;
-    } //end of touchesAtDiffusion
+        return w==pins[0] || w==pins[2];
+    }
 
-    public boolean isCapacitor(){
-		List ww= getMyWires();
-		Wire x= (Wire)ww.get(0);
-		Wire y= (Wire)ww.get(2);
-		return(x == y);
-    } //end of isAcapacitor
+    public boolean isCapacitor() {return(pins[0]==pins[2]);}
 
     //merge into this transistor
     public boolean parallelMerge(Part p){
@@ -137,43 +99,27 @@ public class TransistorOne extends Transistor {
 		// myMessenger.line("Comparing " + nameString() +
 		//    " to " + t.nameString());
 
-		List ca= getMyWires();
-		List cb= t.getMyWires();
-        if(ca.get(0) != cb.get(0))flip();
-        if(ca.get(0) != cb.get(0))t.flip();
-        if(ca.get(0) != cb.get(0))flip();
-        //first connection must match
-        if(ca.get(1) != cb.get(1))return false;
-        if(ca.get(2) != cb.get(2))return false;
-        //OK to merge topologically
-		//myMessenger.line("Merging " + nameString() +
-		//	  " and " + t.nameString());
-        myWidth= myWidth + t.myWidth;
-        t.deleteMe();
-        return true; //return true if merged
-    } //end of parallelMerge
+		if(pins[0]!=t.pins[0])  t.flip();
+		if(pins[0]!=t.pins[0] || pins[2]!=t.pins[2])return false;
+		
+		myWidth += t.myWidth;
+		t.deleteMe();
+		return true;		    	
+    }
 
     // ---------- printing methods ----------
 
     public String nameString(){
         String s= super.nameString();
         return (s + "TransOne " + getStringName());
-    } //end of name string
+    }
 
     public String connectionString(int n){
-        ArrayList c= (ArrayList)getMyWires();
-        Wire w= null;
-        String s= "unconnected";
-        String g= "unconnected";
-        String d= "unconnected";
-        w= (Wire)c.get(0);
-        if(w!=null)s= w.getStringName();
-        w= (Wire)c.get(1);
-        if(w!=null)g= w.getStringName();
-        w= (Wire)c.get(2);
-        if(w!=null)d= w.getStringName();
+        String s= pins[0].getStringName();
+        String g= pins[1].getStringName();
+        String d= pins[2].getStringName();
         return ("S=" + s + " G=" + g + " D=" + d);
-    } //end of connectionString
+    }
 
-} //end of Part
+}
 

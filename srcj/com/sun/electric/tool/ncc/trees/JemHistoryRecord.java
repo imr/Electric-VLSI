@@ -34,22 +34,28 @@ import com.sun.electric.tool.ncc.lists.*;
 import com.sun.electric.tool.ncc.basicA.Messenger;
 
 import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.List;
 
 public class JemHistoryRecord extends JemRecord {
+	private List content = new ArrayList();
 
 	/** private constructor for a JemhistoryRecord */
-    private JemHistoryRecord(){}
+    private JemHistoryRecord(JemEquivRecord lameDuck,
+    						 JemEquivList offspring) {
+		error(offspring.size()<=1, "don't need History Record");
+    	setParent(lameDuck.getParent());
+    	if (getParent()!=null) {
+    		getParent().replaceEquivRecord(lameDuck, this);
+    	}
+    	nominalCode = lameDuck.getCode();
+		workDone = lameDuck.workDone;
+		value = lameDuck.value;
 
-	/** 
-	 *Please is a factory JemHistoryRecords taking over a previous
-	 * JemEquivRecord.
-	 * @param e the JemEquivRecord whose place is to be taken
-	 * @return the fresh JemHistoryRecord
-	 */
-	public static JemHistoryRecord please(JemEquivRecord e){
-		JemHistoryRecord h= new JemHistoryRecord();
-		return h.historize(e);
-	}
+		for (Iterator it=offspring.iterator(); it.hasNext();) {
+			adopt((JemEquivRecord)it.next());
+		}
+    }
 
 	/**
 	 * A factory method to make a JemHistoryRecord holding several
@@ -59,47 +65,28 @@ public class JemHistoryRecord extends JemRecord {
 	 * @return null if no offspring or a JemHistoryRecord with those
 	 * offspring
 	 */
-    public static JemHistoryRecord please(JemEquivList r){
-        if((r == null)||(r.size() == 0))return null;
-        JemHistoryRecord h= new JemHistoryRecord();
-        Iterator it= r.iterator();
-        while(it.hasNext()){
-            Object oo= it.next();
-            JemEquivRecord e= (JemEquivRecord)oo;
-            h.adopt(e);
-        } //end of while
-        return h;
-    } //end of please
+    public static JemHistoryRecord please(JemEquivRecord lameDuck,
+    									  JemEquivList offspring){
+        return new JemHistoryRecord(lameDuck, offspring);
+    }
+    
+    private void replaceEquivRecord(JemEquivRecord oldRec, JemHistoryRecord newRec) {
+    	for (int i=0; i<content.size(); i++) {
+    		 JemRecord r = (JemRecord) content.get(i);
+    		 if (r==oldRec) {
+    		 	content.set(i, newRec);
+    		 	return;
+    		 }
+    	}
+    	error(true, "can't find old JemEquivRecord");
+    }
 
-	/**
-	 * The historize method converts a JemEquivRecord into this
-	 * JemHistory record
-	 * @param the JemEquivRecord to historize
-	 * @return this JemHistoryRecord
-	 */
-    public JemHistoryRecord historize(JemEquivRecord e){
-        JemHistoryRecord p= (JemHistoryRecord)e.getParent();
-        if(p != null){
-            p.remove(e);
-            p.adopt(this);
-        } //end of not null
-		nominalCode= e.getCode();
-		copyAndKill(e);
-		return this;
-    } //end of absorb
-
-	/** 
-	 * checkChild checks that a proposed JemChild is a JemRecord.
-	 * @param the JemChild to test
-	 * @return true if the JemChild is an OK class, false otherwise
-	 */
-	public boolean checkChild(JemChild c){
-		if(c instanceof JemRecord)return true;
-		else{
-			getMessenger().error("bad child class in " + nameString());
-			return false;
-		} //end of else
-	} //end of checkChild
+	public Iterator getChildRecs() {return content.iterator();}
+	public int numChildRecs() {return content.size();}
+	public void adopt(JemRecord r) {
+		content.add(r);
+		r.setParent(this);
+	}
 
 	/** 
 	 * The apply method applies a JemStrat to this JemHistoryRecord.
@@ -108,15 +95,12 @@ public class JemHistoryRecord extends JemRecord {
 	 */
 	public JemEquivList apply(JemStrat js){
 		JemEquivList out= new JemEquivList();
-		Iterator it= iterator();
-		while(it.hasNext()){
-			Object oo= it.next();
-			JemRecord jr= (JemRecord)oo;
-			JemEquivList xx= js.doFor(jr);
-			out.addAll(xx);
-		} //end of while
+		for (Iterator it=getChildRecs(); it.hasNext();) {
+			JemRecord jr= (JemRecord) it.next();
+			out.addAll(js.doFor(jr));
+		}
 		return out;		
-	} //end of apply
+	}
 	
 	/** 
 	 * findSmallestOffspring searches recursively for the
@@ -126,8 +110,7 @@ public class JemHistoryRecord extends JemRecord {
     public JemEquivRecord findSmallestOffspringIn(){
         int bestSize= 0;
         JemEquivRecord theBest= null;
-        Iterator it= iterator();
-        while(it.hasNext()){
+        for (Iterator it=getChildRecs(); it.hasNext();) {
             JemEquivRecord good;
             Object oo= it.next();
             if(oo instanceof JemHistoryRecord){
@@ -145,7 +128,7 @@ public class JemHistoryRecord extends JemRecord {
             } //end of if better
         } //end of while
         return theBest;
-    } //end of findSmallestOffspring
+    }
 
 	/**
 	 * findSmallest searches recursively for the JemEquivRecord with
@@ -163,19 +146,18 @@ public class JemHistoryRecord extends JemRecord {
             if(oo instanceof JemHistoryRecord){
                 JemHistoryRecord hr= (JemHistoryRecord)oo;
                 good= hr.findSmallestOffspringIn();
-            } else if(oo instanceof JemEquivRecord){
-                good = (JemEquivRecord)oo;
             } else {
-                return null; //should never happen
-            } //end of else
+            	error(!(oo instanceof JemEquivRecord), "bad JemRecord");
+                good = (JemEquivRecord)oo;
+            }
             int goodSize= good.maxSize();
             if((theBest == null) || (goodSize < bestSize)){
                 bestSize= goodSize;
                 theBest= good;
-            } //end of if better
-        } //end of while
+            }
+        }
         return theBest;
-    } //end of findSmallest
+    }
 
 /*
     public static JemRecordList findTheLeaves(JemRecord x){
@@ -209,24 +191,23 @@ public class JemHistoryRecord extends JemRecord {
     } //end of findTheLeaves
 	 */
 
-	/** nameString returns a String of type and name for this JemParent.
- * @return a String identifying this JemTree object.
- */
+	/**
+	 * nameString returns a String of type and name for this JemParent.
+ 	 * @return a String identifying this JemTree object.
+ 	 */
 	public String nameString(){
-        String s= "JemHistoryRecord " + nominalCode +
-			" value= " + value;
-        return s;
-    } //end of nameString
+        return "JemHistoryRecord " + nominalCode +
+			   " value= " + value;
+    }
 	
 	/** 
 	 * The printMe method prints this JemJistoryRecord on a given
 	 * Messenger
 	 * @param the Messenger to use
 	 */
-	public void printMe(Messenger mm){
-		mm.line(nameString() + 		
-				" with " + size() + " offspring");
-		return;
-	} //end of printMe
+	public void printMe(){
+		Messenger.line(nameString() + 		
+				" with " + numChildRecs() + " offspring");
+	}
 	
-} //end of JemHistoryRecord
+}

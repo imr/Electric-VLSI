@@ -58,9 +58,7 @@ public class jemini_2 extends Job {
 		String netList = testDir+"expTail.flat";
 		
 		NetFactory f= new NetFactory();		
-		//f.testZero();
 		f.testOne(netList, netList);
-		//f.testTwo();
 		
         System.out.println("Jemini done");
     }

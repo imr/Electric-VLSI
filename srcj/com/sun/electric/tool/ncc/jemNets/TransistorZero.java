@@ -34,84 +34,65 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TransistorZero extends Transistor {
-    private static int numCon= 2;
-    private static int termCoefs[] = {23,51};
+    private static final int NUM_CON= 2;
+    private static final int[] termCoefs = {23,51};
     private float myWidth= 0;
     private float myLength= 0;
 
     // ---------- private methods ----------
-    protected TransistorZero(Name n){
-		super(n, numCon);
-		return;
-    } //end of constructor
+    protected TransistorZero(Name n) {super(n, NUM_CON);}
 
     // ---------- public methods ----------
 
     public static TransistorZero please(){
-		TransistorZero t= new TransistorZero(null);
-		return t;
-    } //end of please
+		return new TransistorZero(null);
+    }
 
     public static TransistorZero please(Name n){
-		TransistorZero t= new TransistorZero(n);
-		return t;
-    } //end of please
+		return new TransistorZero(n);
+    }
 
     public static TransistorZero please(JemCircuit parent, Name n){
 		if(parent == null) return please(n);
 		TransistorZero t= new TransistorZero(n);
 		parent.adopt(t);
 		return t;
-    } //end of please
+    }
 	
     //given a TransistorOne this returns a TransistorZero or null
     public static TransistorZero please(TransistorOne t1){
         //check to see that source and drain are the same
-        List ww= t1.getMyWires();
-        Wire source= (Wire)ww.get(0);
-        Wire gate= (Wire)ww.get(1);
-        Wire drain= (Wire)ww.get(2);
-        if(source != drain)return null; //not convertable
-	//get a new zero with the name and no parent
+        Wire source= t1.pins[0];
+        Wire gate= t1.pins[1];
+        Wire drain= t1.pins[2];
+        error(source!=drain, "not convertible to TransistorZero");
+
+		//get a new zero with the name and no parent
 		TransistorZero t0= please((JemCircuit)t1.getParent(), t1.getTheName());
 		t0.connect(source, gate);
 		t0.myType= t1.myType;
 		t1.deleteMe();
 		return t0;
-    } //end of constructor
+    }
 	
     // ---------- abstract commitment ----------
 
 	public boolean isThisGate(int x){return (x == 1);}
-    public int size(){return numCon;}
     //    public boolean remove(NetObject j){return super.remove(j);}
-    public int getNumCon(){return numCon;}
     public int[] getTermCoefs(){return termCoefs;} //the terminal coeficients
 
     // ---------- public methods ----------
 
     public void connect(Wire source, Wire gate){
-	List c= (ArrayList)getMyWires();
-        c.set(0, source);
-        c.set(1, gate);
-        if(source!=null)source.add(this);
-	if(gate!=null)gate.add(this);
-	return;
-    } //end of connect
+        pins[0] = source;
+        pins[1] = gate;
+        source.add(this);
+		gate.add(this);
+    }
 
-    public boolean touchesAtGate(Wire w){
-	ArrayList c=(ArrayList)getMyWires();
-	Wire x= (Wire)c.get(1);
-        if(w == x)return true;
-        return false;
-    } //end of touchesAtGate
+    public boolean touchesAtGate(Wire w) {return w==pins[1];}
 
-    public boolean touchesAtDiffusion(Wire w){
-	ArrayList c=(ArrayList)getMyWires();
-	Wire x= (Wire)c.get(0);
-        if(w == x)return true;
-        return false;
-    } //end of touchesAtDiffusion
+    public boolean touchesAtDiffusion(Wire w){return w==pins[0];}
 
     //merge into this transistor
     public boolean parallelMerge(Part p){
@@ -122,36 +103,26 @@ public class TransistorZero extends Transistor {
 		//its the same class but a different individual
 		// myMessenger.line("Comparing " + nameString() +
         //" to " + t.nameString());
-		List ca= (ArrayList)getMyWires();
-		List cb= (ArrayList)t.getMyWires();
-		if(ca.get(1) != cb.get(1))return false;
-		if(ca.get(0) != cb.get(0))return false;
+		if(pins[1]!=t.pins[1]  || pins[0]!=t.pins[0])  return false;
 		//OK to merge topologically
 		if(myLength != t.myLength)return false; //can't merge
 	    //myMessenger.line("Merging " + nameString() +
 	    //	  " and " + t.nameString());
 		myWidth= myWidth + t.myWidth;
 		t.deleteMe();
-		return true; //return true if merged
-    } //end of parallelMerge
+		return true;
+    }
 	
     // ---------- printing methods ----------
 
     public String nameString(){
-		String s= super.nameString();
-		return (s + "TransCap " + getStringName());
-    } //end of name string
+		return super.nameString() + "TransCap " + getStringName();
+    }
     
     public String connectionString(int n){
-		ArrayList c= (ArrayList)getMyWires();
-		Wire w= null;
-        String s= "unconnected";
-        String g= "unconnected";
-		w= (Wire)c.get(0);
-        if(w!=null)s= w.getStringName();
-		w= (Wire)c.get(1);
-        if(w!=null)g= w.getStringName();
+        String s= pins[0].getStringName();
+        String g= pins[1].getStringName();
 		return ("S=" + s + " G=" + g);
-    } //end of connectionString
+    }
     
-} //end of TransistorZero
+}

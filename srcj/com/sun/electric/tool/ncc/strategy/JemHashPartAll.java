@@ -24,120 +24,60 @@
 // JemHashPartAll hashes Parts by all Wires.
 
 package com.sun.electric.tool.ncc.strategy;
+import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.jemNets.*;
 import com.sun.electric.tool.ncc.trees.*;
 import com.sun.electric.tool.ncc.lists.*;
 
-public class JemHashPartAll extends JemStratSome{
+public class JemHashPartAll extends JemStrat {
 	private int numPartsProcessed;
 	private int numEquivProcessed;
-	private int numOffspringProduced;
-	private static JemStrat myFront= JemStratFrontier.please();
 
-    public String nameString(){return "JemHashPartAll";}
+    private JemHashPartAll(){}
 	
-    private JemHashPartAll(){
-		super(); 
-    } //end of constructor
-	
-    public static JemHashPartAll please(){return new JemHashPartAll();}
-	
-	public JemEquivList doYourJob(JemSets jss){
-		JemRecord p= jss.parts;
-		JemEquivList frontier= myFront.doFor(p);
-		depth= 0;
-		preamble(p);
-		JemEquivList offspring= super.doFor(frontier);
-		summary(offspring);
+	public static JemEquivList doYourJob(JemRecordList l){
+		JemHashPartAll jhpa = new JemHashPartAll();
+		jhpa.preamble(l);
+		JemEquivList offspring= jhpa.doFor(l);
+		jhpa.summary(offspring);
 		return offspring;
-	} //end of doYourJob
+	}
 	
     //do something before starting
     private void preamble(JemRecordList j){
-		if(getDepth() != 0)return;
-		String s= "a list of " + j.size();
-		startTime("JemHashPartAll", s);
-		numPartsProcessed= 0;
-		numEquivProcessed= 0;
-		numOffspringProduced= 0;
-		return;
-    } //end of preamble
+		startTime("JemHashPartAll", "a list of size: "+j.size());
+    }
 	
-	  //do something before starting
+	//do something before starting
     private void preamble(JemRecord j){
-		if(getDepth() != 0)return;
 		startTime("JemHashPartAll", j.nameString());
-		numPartsProcessed= 0;
-		numEquivProcessed= 0;
-		numOffspringProduced= 0;
-		return;
-    } //end of preamble
+    }
 
     //summarize at the end
-    private void summary(JemEquivList offsp){
-		if(getDepth() != 0)return;
+    private void summary(JemEquivList offspring){
 		//JemEquivList cc= JemEquivRecord.tryToRetire(offsp);
-		getMessenger().line("JemHashPartAll processed " +
+		Messenger.line("JemHashPartAll processed " +
 							numPartsProcessed + " Parts from " +
 							numEquivProcessed + " JemEquivRecords");
-		getMessenger().line(" to make " + numOffspringProduced + 
-							" distinct hash groups, of which " +
-							"some" + " remain active");
-		getMessenger().line(offsp.sizeInfoString());
+		Messenger.line(offspringStats(offspring));
+		Messenger.line(offspring.sizeInfoString());
 		elapsedTime(numPartsProcessed);
-		return;
-    } //end of summary
-	
-	// ---------- for JemRecordList -------------
-	
-    public JemEquivList doFor(JemRecordList g){
-		preamble(g);
-		JemEquivList mm= super.doFor(g);
-		summary(mm);
-		return mm;
-    } //end of doFor
+    }
 	
 	// ---------- for JemRecord -------------
 	
     public JemEquivList doFor(JemRecord g){
-		JemEquivList out= new JemEquivList();
-		if(g instanceof JemHistoryRecord){
-			JemEquivList these= super.doFor(g);
-			out.addAll(these);
-		} else if(g instanceof JemEquivRecord){
-			numEquivProcessed++;
-			String s= ("processed " + g.nameString());
-			JemEquivList these= super.doFor(g);
-			
-			//returns null pointer in some cases
-			
-	//		getMessenger().line(s + " to get " + these.size() + " offspring ");
-			out.addAll(these);
-			numOffspringProduced += these.size();
-		} //end of else
-		return out;
-    } //end of doFor
-	
-	// ---------- for JemCircuit -------------
-	
-    public JemCircuitMap doFor(JemCircuit g){
-		JemCircuitMap mm= super.doFor(g);
-        return mm;
-    } //end of doFor
+		if (g instanceof JemEquivRecord)  numEquivProcessed++;
+		return super.doFor(g);
+    }
 	
     //------------- for NetObject ------------
 	
     public Integer doFor(NetObject n){
-		if(n instanceof Part){
-			if(n instanceof Port){
-				int i= 0; //for debug
-			}
-			numPartsProcessed++;
-			Part p= (Part)n;
-			Integer i=p.computeCode(3);
-			return i;
-		} //end of Parts
-		else return null;
-    } //end of doFor
+		error(!(n instanceof Part), "JemHashPartAll expects only Parts");
+		numPartsProcessed++;
+		Part p= (Part)n;
+		return p.computeHashCode();
+    }
 	
-} //end of class JemHashPartAll
+}

@@ -26,9 +26,7 @@
  * Messenger prints to System.out. It also prints to a log file if one
  * has been set.
  *
- * TODO: This is a greatly simplified version of Ivan's messenger. I
- * left it an object because that's the way he had it. Right now it
- * doesn't need to be an object. However I need to figure out what to
+ * TODO: I need to figure out what to
  * do to make this thread safe.
  */
 package com.sun.electric.tool.ncc.basicA;
@@ -39,7 +37,7 @@ import java.util.Date;
 public class Messenger{
 	private static PrintStream logStrm;
 	
-	public static Messenger toTestPlease(String s){return new Messenger();}
+	//public static Messenger toTestPlease(String s){return new Messenger();}
 
 	/** Specify a log file. */
 	public static void setLogFile(String logFileName){
@@ -58,25 +56,25 @@ public class Messenger{
 		logStrm.println(logFileName+" file started "+d);
 	}
 	/** print without trailing newline */
-	public void say(String s){
+	public static void say(String s){
 		System.out.print(s);
 		if (logStrm!=null) logStrm.print(s);
 	}
 	
 	/** print with trailing newline */
-	public void line(String s){
+	public static void line(String s){
 		System.out.println(s);
 		if (logStrm!=null) logStrm.println(s);
 	}
 	
 	/** print newline */
-	public void freshLine(){
+	public static void freshLine(){
 		System.out.println();
 		logStrm.println("");
 	}
 
 	/** print, dump stack, and halt */
-    public void error(String s){
+    public static void error(String s){
     	String msg = "Error: "+s;
     	RuntimeException e = new RuntimeException(msg);
     	

@@ -36,14 +36,14 @@ import java.util.List;
 public abstract class Transistor extends Part{
     
     // ---------- private data -------------
-    protected double myWidth= 0;
-    protected double myLength= 0;
-    protected Type myType= null;
+    protected double myWidth;
+    protected double myLength;
+    protected Type myType;
     
     // ---------- private methods ----------
     protected Transistor(Name n, int numCon){
-	super(n, numCon);
-    } //end of constructor
+		super(n, numCon);
+    }
 
     // ---------- public methods ----------
     
@@ -52,18 +52,16 @@ public abstract class Transistor extends Part{
 	public void setWidthLength(double w, double l){
 		myWidth= w;
 		myLength= l;
-	} //end of setWidthLength
+	}
 
 	public void setType(boolean n){
 		if(n)myType= Ntype;
 		else myType= Ptype;
-    } //end of setType
+    }
 
     // ---------- abstract commitment ----------
 
-    public abstract int size();
 //    public boolean remove(NetObject j){return super.remove(j);}
-    public abstract int getNumCon();
     public abstract int[] getTermCoefs();
 
     // ---------- public methods ----------
@@ -73,36 +71,33 @@ public abstract class Transistor extends Part{
     public abstract boolean touchesAtGate(Wire w);
     public abstract boolean touchesAtDiffusion(Wire w);
 		
+	/**
+	 * Compare the type (N vs P) and the gate length
+	 * @param t Transistor to compare to
+	 * @return true if type and gate length match
+	 */
 	public boolean isLike(Transistor t){
-		if(myType != t.myType)return false;
-		if(myLength != t.myLength)return false;
-//		if(myWidth != t.myWidth)return false;
-		return true;
-    } //end of isLike
+		return myType==t.myType && myLength==t.myLength;
+    }
 	
     // ---------- printing methods ----------
 
 	public String nameString(){
-		String s= "";
-		if(myType != null)s= myType.name;
-		return s;
-    } //end of nameString
+		return myType!=null ? myType.name : "";
+    }
 	
 	public String valueString(){
-		String sz= "W= " + myWidth + " L= " + myLength;
-		return sz;
-	} // end of valueString
+		return "W= " + myWidth + " L= " + myLength;
+	}
 
     public abstract String connectionString(int n);
 
-    private static class Type{
-		private String name= null;
-		private Type(String s){
-			name= s;
-		} //end of constructor
-    } //end of type
+    protected static class Type{
+		private String name;
+		private Type(String s){name=s;}
+    }
 	
 	protected final static Type Ntype= new Type("N-");
     protected final static Type Ptype= new Type("P-");
 
-} //end of Transistor
+}

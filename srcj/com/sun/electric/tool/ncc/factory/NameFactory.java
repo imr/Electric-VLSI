@@ -39,7 +39,6 @@ import com.sun.electric.tool.ncc.basicA.Messenger;
 public class NameFactory {
 
 	/** myHash holds the Strings for Names */	private Hashtable myHash;
-    /** provides a way to deliver text output */	private Messenger myMessenger;
     /** a counter for generated names */	private int si;
 	/** a table of characters */ private static String[] st= {
 		"a" , "b", "c", "d", "e", "f", "g", "h", "i",
@@ -51,10 +50,8 @@ public class NameFactory {
 		*/
 	public NameFactory(){
 		myHash= new Hashtable();
-		myMessenger= Messenger.toTestPlease("NameFactory");
 		si= 0;
-		return;
-	} //end of NameFactory
+	}
 
 	/**
 	 * Here is a no-argument factory method for making a Name.
@@ -64,7 +61,7 @@ public class NameFactory {
 		Name n= null;
 		String s= nextString();
 		return namePlease(s);
-	} //end of namePlease
+	}
 
     /** 
 	 * Here is a factory method for finding or making a Name with
@@ -138,45 +135,45 @@ public class NameFactory {
 		* @return none
 		*/
     public void testMe(){
-		myMessenger.line("testing NameFactory");
+		Messenger.line("testing NameFactory");
 		for (int i=0; i<30; i++){
-			myMessenger.say(nextString() + " ");
+			Messenger.say(nextString() + " ");
 		} // end of loop
-		myMessenger.freshLine();
+		Messenger.freshLine();
 		Name n, nn;
 		n= namePlease("tom");
-		myMessenger.say(n.toString());
-		myMessenger.say(" " + n.isIndexed());
-		myMessenger.say(" " + n.isExtended());
-		myMessenger.line(" " + Name.getNumberNames());
+		Messenger.say(n.toString());
+		Messenger.say(" " + n.isIndexed());
+		Messenger.say(" " + n.isExtended());
+		Messenger.line(" " + Name.getNumberNames());
 		n= namePlease("mary_5");
-		myMessenger.say(n.toString());
-		myMessenger.say(" " + n.isIndexed());
-		myMessenger.say(" " + n.isExtended());
-		myMessenger.say(" " + n.baseString());
-		myMessenger.line(" " + Name.getNumberNames());
+		Messenger.say(n.toString());
+		Messenger.say(" " + n.isIndexed());
+		Messenger.say(" " + n.isExtended());
+		Messenger.say(" " + n.baseString());
+		Messenger.line(" " + Name.getNumberNames());
 		n= namePlease("pete", 4);
-		myMessenger.say(n.toString());
-		myMessenger.say(" " + n.isIndexed());
-		myMessenger.say(" " + n.isExtended());
-		myMessenger.line(" " + Name.getNumberNames());
+		Messenger.say(n.toString());
+		Messenger.say(" " + n.isIndexed());
+		Messenger.say(" " + n.isExtended());
+		Messenger.line(" " + Name.getNumberNames());
 		n= namePlease("tom");
-		myMessenger.say(n.toString());
-		myMessenger.say(" " + n.isIndexed());
-		myMessenger.say(" " + n.isExtended());
-		myMessenger.line(" " + Name.getNumberNames());
-		myMessenger.freshLine();
+		Messenger.say(n.toString());
+		Messenger.say(" " + n.isIndexed());
+		Messenger.say(" " + n.isExtended());
+		Messenger.line(" " + Name.getNumberNames());
+		Messenger.freshLine();
 		for (int i=0; i<30; i++){
-			myMessenger.line(i + " gives " + makeAstring(i));
+			Messenger.line(i + " gives " + makeAstring(i));
 		} //end of loop
-		myMessenger.freshLine();
+		Messenger.freshLine();
 		for (int i=0; i<10; i++){
-			myMessenger.line(i+50 + " gives " + makeAstring(i+50));
+			Messenger.line(i+50 + " gives " + makeAstring(i+50));
 		} //end of loop
-		myMessenger.freshLine();
+		Messenger.freshLine();
 		for (int i=0; i<10; i++){
-			myMessenger.line(i+700 + " gives " + makeAstring(i+700));
-		} //end of loop
-    } //end of testMe
+			Messenger.line(i+700 + " gives " + makeAstring(i+700));
+		}
+    }
 
-} //end of NameFactory class
+}
