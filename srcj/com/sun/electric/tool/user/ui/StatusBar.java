@@ -187,7 +187,7 @@ public class StatusBar extends JPanel implements HighlightListener
 		Cell cell = null;
 		if (frame == null)
 		{
-			WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
 			if (wf != null) cell = wf.getContent().getCell();
 		} else
 		{

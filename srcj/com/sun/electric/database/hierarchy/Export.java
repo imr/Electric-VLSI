@@ -85,8 +85,11 @@ public class Export extends PortProto
 	{
 		if (parent.findExport(protoName) != null)
 		{
-			System.out.println("Cell " + parent.describe() + " already has an export called " + protoName);
-			return null;
+            String oldName = protoName;
+            protoName = ElectricObject.uniqueObjectName(protoName, parent, PortProto.class);
+			System.out.println("Cell " + parent.describe() + " already has an export named " + oldName +
+                    ", making new export named "+protoName);
+            assert(parent.findExport(protoName) == null);
 		}
 		Export pp = lowLevelAllocate();
 		if (pp.lowLevelName(parent, protoName)) return null;

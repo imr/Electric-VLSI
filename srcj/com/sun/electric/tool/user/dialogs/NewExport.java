@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -32,9 +33,13 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.util.Iterator;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.Point2D;
 import javax.swing.JOptionPane;
 
 
@@ -275,12 +280,6 @@ public class NewExport extends EDialog
 		}
 		NodeInst ni = (NodeInst)eobj;
 		Cell parent = ni.getParent();
-		if (parent.findExport(name) != null)
-		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-				"Cell " + parent.describe() + " already has an export called " + name);
-			return;
-		}
 
 		PortInst pi = null;
 		if (pp == null)
@@ -338,6 +337,30 @@ public class NewExport extends EDialog
 			if (body) e.setBodyOnly();
 			if (ch.isReference())
 				e.newVar(Export.EXPORT_REFERENCE_NAME, referenceName);
+
+            // create export on icon, if any
+            Cell icon = cell.iconView();
+            if (icon != null) {
+                // find analagous point to create export
+                Rectangle2D bounds = cell.getBounds();
+                double locX = pi.getPoly().getCenterX();
+                double locY = pi.getPoly().getCenterY();
+                Rectangle2D iconBounds = icon.getBounds();
+                double relLocXPercent = (locX - bounds.getX())/bounds.getWidth();
+                double relLocYPercent = (locY - bounds.getY())/bounds.getHeight();
+                double newlocX = relLocXPercent*iconBounds.getWidth() + iconBounds.getX();
+                double newlocY = relLocYPercent*iconBounds.getHeight() + iconBounds.getY();
+                // round
+                Point2D point = new Point2D.Double(newlocX, newlocY);
+                EditWindow.gridAlign(point);
+                newlocX = point.getX();
+                newlocY = point.getY();
+                // create export in icon
+                if (!CircuitChanges.makeIconExport(e, 0, newlocX, newlocY, newlocX+1, newlocY, icon)) {
+                    System.out.println("Warning: Failed to create associated export in icon "+icon.describe());
+                }
+            }
+
 			return true;
 		}
 	}

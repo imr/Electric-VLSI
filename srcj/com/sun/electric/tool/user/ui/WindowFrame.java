@@ -476,10 +476,29 @@ public class WindowFrame
 	public WindowContent getContent() { return content; }
 
 	/**
-	 * Method to get the current WindowFrame.
+	 * Method to get the current WindowFrame. If there is no current
+     * WindowFrame, then it will create a new EditWindow window frame.
 	 * @return the current WindowFrame.
 	 */
-	public static WindowFrame getCurrentWindowFrame() { synchronized(windowList) { return curWindowFrame; } }
+	public static WindowFrame getCurrentWindowFrame() {
+        return getCurrentWindowFrame(true);
+    }
+
+    /**
+     * Method to get the current WindowFrame. If 'makeNewFrame' is true,
+     * then this will make a new EditWindow window frame if there is no
+     * current frame. If 'makeNewFrame' is false, this will return null
+     * if there is no current WindowFrame.
+     * @param makeNewFrame whether or not to make a new WindowFrame if no current frame
+     * @return the current WindowFrame. May return null if 'makeNewFrame' is false.
+     */
+    public static WindowFrame getCurrentWindowFrame(boolean makeNewFrame) {
+        synchronized(windowList) {
+            if ((curWindowFrame == null) && makeNewFrame)
+                curWindowFrame = createEditWindow(null);
+            return curWindowFrame;
+        }
+    }
 
 	/**
 	 * Method to set the current listener that responds to clicks in any window.
@@ -606,6 +625,12 @@ public class WindowFrame
 	 */
 	public void finished()
 	{
+        // if this was called from the code, instead of an event handler,
+        // make sure we're not visible anymore
+        if (TopLevel.isMDIMode()) {
+            jif.setVisible(false);
+        }
+
         // remove references to this
         synchronized(windowList) {
             if (windowList.size() <= 1 && !TopLevel.isMDIMode() &&

@@ -71,7 +71,9 @@ public class TextUtils
 		double v = 0;
 		try
 		{
-			v = Double.parseDouble(text);
+            Number n = parseUserInput(text);
+			v = n.doubleValue();
+
 		} catch (NumberFormatException ex)
 		{
 			int start = 0;
@@ -218,15 +220,15 @@ public class TextUtils
                 v /= 1000;
                 unitScaleIndex--;
             }
-            while ((Math.abs(v) < 1) && (unitScaleIndex < UnitScale.UNIT_END)) {
+            while ((Math.abs(v) < 0.1) && (unitScaleIndex < UnitScale.UNIT_END)) {
                 v *= 1000;
                 unitScaleIndex++;
             }
             // if number still out of range, adjust decimal formatting
-            if (Math.abs(v) < 1) {
+            if (Math.abs(v) < 0.1) {
                 int maxDecimals = 3;
                 double v2 = Math.abs(v);
-                while (v2 < 1) {
+                while (v2 < 0.1) {
                     maxDecimals++;
                     v2 *= 10;
                 }
