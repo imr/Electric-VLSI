@@ -243,7 +243,7 @@ public class View3DWindow extends JPanel
 		view.setFrontClipPolicy(View.VIRTUAL_EYE);
 		if (User.is3DPerspective())
 		{
-		viewingPlatform.getViewPlatformTransform().setTransform(vTrans);
+			viewingPlatform.getViewPlatformTransform().setTransform(vTrans);
 		}
 		else
 		{
@@ -289,19 +289,19 @@ public class View3DWindow extends JPanel
 		}
 
 		// Lights
-        Color3f alColor = new Color3f(0.7f, 0.7f, 0.7f);
+        Color3f alColor = new Color3f(0.6f, 0.6f, 0.6f);
         AmbientLight aLgt = new AmbientLight(alColor);
-		Vector3f lightDir = new Vector3f(-1.0f, -1.0f, -1.0f);
-		DirectionalLight light = new DirectionalLight(white, lightDir);
+		Vector3f lightDir1 = new Vector3f(-1.0f, -1.0f, -1.0f);
+		DirectionalLight light1 = new DirectionalLight(white, lightDir1);
 
 		// Setting the influencing bounds
-		light.setInfluencingBounds(infiniteBounds);
+		light1.setInfluencingBounds(infiniteBounds);
 	    aLgt.setInfluencingBounds(infiniteBounds);
 		// Allow to turn off light while the scene graph is live
-		light.setCapability(Light.ALLOW_STATE_WRITE);
+		light1.setCapability(Light.ALLOW_STATE_WRITE);
 		// Add light to the env.
         objRoot.addChild(aLgt);
-		objTrans.addChild(light);
+		objTrans.addChild(light1);
 
 		// Picking tools
         //PickZoomBehavior behavior2 = new PickZoomBehavior(objRoot, canvas, infiniteBounds);
@@ -560,16 +560,6 @@ public class View3DWindow extends JPanel
 			pIt.next();
 		}
 
-//        Point3d[] pts = new Point3d[8];
-//        pts[0] = new Point3d(bounds.getMinX(), bounds.getMinY(), distance);
-//        pts[1] = new Point3d(bounds.getMinX(), bounds.getMaxY(), distance);
-//        pts[2] = new Point3d(bounds.getMaxX(), bounds.getMaxY(), distance);
-//        pts[3] = new Point3d(bounds.getMaxX(), bounds.getMinY(), distance);
-//        pts[4] = new Point3d(bounds.getMinX(), bounds.getMinY(), height);
-//        pts[5] = new Point3d(bounds.getMinX(), bounds.getMaxY(), height);
-//        pts[6] = new Point3d(bounds.getMaxX(), bounds.getMaxY(), height);
-//        pts[7] = new Point3d(bounds.getMaxX(), bounds.getMinY(), height);
-
 		if (shapes.size()>1) System.out.println("Error: case not handled");
 		return((Shape3D)shapes.get(0));
 	}
@@ -645,7 +635,11 @@ public class View3DWindow extends JPanel
 				//ap.setLineAttributes(lineAttr);
 
 				// Adding to internal material
-				Material mat = new Material(objColor, black, objColor, white, 30.0f);
+//				Material mat = new Material(objColor, black, objColor, white, 70.0f);
+				Material mat = new Material();
+				mat.setDiffuseColor(objColor);
+				mat.setSpecularColor(objColor);
+				mat.setAmbientColor(objColor);
                 mat.setLightingEnable(true);
 				mat.setCapability(Material.ALLOW_COMPONENT_READ);
 				mat.setCapability(Material.ALLOW_COMPONENT_WRITE);
@@ -744,6 +738,22 @@ public class View3DWindow extends JPanel
 		}
 	}
 
+	/**
+	 * Method to turn on/off antialiasing
+	 * @param value true if antialiasing is set to true
+	 */
+	public static void setAntialiasing(Boolean value)
+	{
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			WindowContent content = wf.getContent();
+			if (!(content instanceof View3DWindow)) continue;
+			View3DWindow wnd = (View3DWindow)content;
+			View view = wnd.u.getViewer().getView();
+			view.setSceneAntialiasingEnable(value.booleanValue());
+		}
+	}
 	// ************************************* EVENT LISTENERS *************************************
 
 	//private int lastXPosition, lastYPosition;

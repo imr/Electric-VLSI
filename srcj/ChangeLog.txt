@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01x: *********************************
 
+IMP: (10/5/04, GVG) 3DView: Ability to turn on/off antialiasing without closing 3D window. Changes in diffuse, specular
+and ambient colors. Parasitic: arc cropping added.
+
 IMP/MAN: (10/4/04, GVG) First basic coding for parasitic extraction (Package tool/parasitic added).
 
 IMP/MAN: (10/2/04, SMR) Added "LEF" and "DXF" output.
@@ -32,8 +35,6 @@ IMP: (9/27/04, GVG) ERC profiling: removal of 3 fields in WellArea/WellCon (15% 
 Poly classs splitted: new PolyBase classs should be used if only geometrical information is required. Poly class contains
 text attributes that are not required in some cases (ERC, DRC, LayerCoverage, etc). Developers should know when to switch
 from heavy class Poly to light class PolyBase.
-
-IMP: (9/27/04, GVG) ERC profiling: removal of 3 fields in WellArea/WellCon (15% reduction in WellArea, 20% in WellCon).
 
 IMP: (9/25/04, GVG) Adding ambiental light to 3D view. Antialiasing option added and
 manual was updated.

@@ -2316,7 +2316,7 @@ public class NodeInst extends Geometric implements Nodable
     }
 
 	/**
-	 * Method to tell whether this NodeInst is a field-effect transtor.
+	 * Method to tell whether this NodeInst is a field-effect transistor.
 	 * This includes the nMOS, PMOS, and DMOS transistors, as well as the DMES and EMES transistors.
 	 * @return true if this NodeInst is a field-effect transtor.
 	 */

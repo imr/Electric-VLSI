@@ -27,6 +27,7 @@ import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.Resources;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -44,6 +45,8 @@ import java.awt.font.GlyphVector;
 import java.awt.font.LineMetrics;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
@@ -57,6 +60,9 @@ import javax.swing.event.DocumentListener;
  */
 public class ThreeDTab extends PreferencePanel
 {
+	/** Main class for 3D plugin */	                    private static final Class view3DClass = Resources.get3DMainClass();
+    /** Set Antialiasing method */                       private static Method set3DClass = null;
+
 	/** Creates new form ThreeDTab */
 	public ThreeDTab(java.awt.Frame parent, boolean modal)
 	{
@@ -139,7 +145,6 @@ public class ThreeDTab extends PreferencePanel
 			this.dialog = dialog;
 			addMouseListener(this);
 			addMouseMotionListener(this);
-			//boolean first = true;
 
 			for(Iterator it = dialog.curTech.getLayers(); it.hasNext(); )
 			{
@@ -211,7 +216,6 @@ public class ThreeDTab extends PreferencePanel
 				GlyphVector gv = font.createGlyphVector(frc, string);
 				LineMetrics lm = font.getLineMetrics(string, frc);
 				Rectangle rect = gv.getOutline(0, (float)(lm.getAscent()-lm.getLeading())).getBounds();
-				double txtWidth = rect.width;
 				double txtHeight = lm.getHeight();
 				Graphics2D g2 = (Graphics2D)g;
 				g2.drawGlyphVector(gv, dim.width/3 + 1, (float)(yValue + txtHeight/2) - lm.getDescent());
@@ -334,7 +338,21 @@ public class ThreeDTab extends PreferencePanel
 
         boolean currentAntialiasing = threeDAntialiasing.isSelected();
 		if (currentAntialiasing != initial3DAntialiasing)
+		{
+			// Using reflection to call 3D function
+			if (view3DClass != null)
+
+			try
+			{
+				if (set3DClass == null)
+					set3DClass = view3DClass.getDeclaredMethod("setAntialiasing", new Class[] {Boolean.class});
+				Boolean value = new Boolean(currentAntialiasing);
+				set3DClass.invoke(view3DClass, new Object[]{value});
+			} catch (Exception e) {
+				System.out.println("Cannot call 3D setAntialiasing plugin method: " + e.getMessage());
+			}
 			User.set3DAntialiasing(currentAntialiasing);
+		}
 	}
 
 	/** This method is called from within the constructor to

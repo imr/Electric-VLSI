@@ -36,14 +36,12 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.PrimitiveArc;
-import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.*;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.AffineTransform;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
@@ -1451,4 +1449,54 @@ public class ArcInst extends Geometric
         }
         return (true);
     }
+
+	/**
+	 * Method to crop given polygon against a connecting transistor. Function similar to Quick.cropActiveArc
+	 * @param poly
+	 * @return new polygon if was cropped otherwise the original
+	 */
+	public Poly cropPerLayer(Poly poly)
+	{
+		// must be manhattan
+		Rectangle2D polyBounds = poly.getBox();
+		if (polyBounds == null) return poly;
+		polyBounds = new Rectangle2D.Double(polyBounds.getMinX(), polyBounds.getMinY(), polyBounds.getWidth(), polyBounds.getHeight());
+
+		// search for adjoining transistor in the cell
+		for(int i=0; i<2; i++)
+		{
+			Connection con = getConnection(i);
+			PortInst pi = con.getPortInst();
+			NodeInst ni = pi.getNodeInst();
+			//if (!ni.isFET()) continue;
+
+			// crop the arc against this transistor
+			AffineTransform trans = ni.rotateOut();
+			Technology tech = ni.getProto().getTechnology();
+			Poly [] activeCropPolyList = tech.getShapeOfNode(ni, null, false, false);
+			int nTot = activeCropPolyList.length;
+			for(int k=0; k<nTot; k++)
+			{
+				Poly nPoly = activeCropPolyList[k];
+				if (nPoly.getLayer() != poly.getLayer()) continue;
+				nPoly.transform(trans);
+				Rectangle2D nPolyBounds = nPoly.getBox();
+				if (nPolyBounds == null) continue;
+				int result = Poly.cropBoxComplete(polyBounds, nPolyBounds);
+				if (result == 1)
+				{
+					// Empty polygon
+					return null;
+				}
+				if (result == -2)
+					System.out.println("When is this case?");
+				Poly newPoly = new Poly(polyBounds);
+				newPoly.setLayer(poly.getLayer());
+				newPoly.setStyle(poly.getStyle());
+				return newPoly;
+			}
+		}
+		return poly;
+	}
+
 }

@@ -1534,4 +1534,159 @@ public class PolyBase implements Shape
 	        */
         return (geometryCheck);
     }
+
+	/**
+	 * Method to crop the box in the reference parameters (lx-hx, ly-hy)
+	 * against the box in (bx-ux, by-uy).  If the box is cropped into oblivion,
+	 * returns 1.  If the boxes overlap but cannot be cleanly cropped,
+	 * returns -1.  Otherwise the box is cropped and zero is returned
+	 */
+	public static int cropBox(Rectangle2D bounds, Rectangle2D PUBox)
+	{
+		// if the two boxes don't touch, just return
+		double bX = PUBox.getMinX();    double uX = PUBox.getMaxX();
+		double bY = PUBox.getMinY();    double uY = PUBox.getMaxY();
+		double lX = bounds.getMinX();   double hX = bounds.getMaxX();
+		double lY = bounds.getMinY();   double hY = bounds.getMaxY();
+		if (bX >= hX || bY >= hY || uX <= lX || uY <= lY) return 0;
+
+		// if the box to be cropped is within the other, say so
+		if (bX <= lX && uX >= hX && bY <= lY && uY >= hY) return 1;
+
+		// see which direction is being cropped
+		double xoverlap = Math.min(hX, uX) - Math.max(lX, bX);
+		double yoverlap = Math.min(hY, uY) - Math.max(lY, bY);
+		if (xoverlap > yoverlap)
+		{
+			// one above the other: crop in Y
+			if (bX <= lX && uX >= hX)
+			{
+				// it covers in X...do the crop
+				if (uY >= hY) hY = bY;
+				if (bY <= lY) lY = uY;
+				if (hY <= lY) return 1;
+				bounds.setRect(lX, lY, hX-lX, hY-lY);
+				return 0;
+			}
+		} else
+		{
+			// one next to the other: crop in X
+			if (bY <= lY && uY >= hY)
+			{
+				// it covers in Y...crop in X
+				if (uX >= hX) hX = bX;
+				if (bX <= lX) lX = uX;
+				if (hX <= lX) return 1;
+				bounds.setRect(lX, lY, hX-lX, hY-lY);
+				return 0;
+			}
+		}
+		return -1;
+	}
+
+
+	/**
+	 * Method to crop the box in the reference parameters (lx-hx, ly-hy)
+	 * against the box in (bx-ux, by-uy). If the box is cropped into oblivion,
+	 * returns 1. If the boxes overlap but cannot be cleanly cropped,
+	 * returns -1. If boxes don't overlap, returns -2.
+	 * Otherwise the box is cropped and zero is returned
+	 */
+	public static int cropBoxComplete(Rectangle2D bounds, Rectangle2D PUBox)
+	{
+		// if the two boxes don't touch, just return
+		double bX = PUBox.getMinX();    double uX = PUBox.getMaxX();
+		double bY = PUBox.getMinY();    double uY = PUBox.getMaxY();
+		double lX = bounds.getMinX();   double hX = bounds.getMaxX();
+		double lY = bounds.getMinY();   double hY = bounds.getMaxY();
+		if (bX >= hX || bY >= hY || uX <= lX || uY <= lY) return -2;
+
+		// if the box to be cropped is within the other, say so
+		if (bX <= lX && uX >= hX && bY <= lY && uY >= hY) return 1;
+
+		// Crop in both directions if possible, self-contained case
+		// covered already
+		if (bX <= lX) lX = uX;
+		if (bY >= lY) hY = bY;
+		if (uY <= hY) lY = hY;
+		if (hX <= uX) hX = bX;
+		bounds.setRect(lX, lY, hX-lX, hY-lY);
+
+		return 0;
+	}
+
+	/**
+	 * Method to crop the box in the reference parameters (lx-hx, ly-hy)
+	 * against the box in (bx-ux, by-uy).  If the box is cropped into oblivion,
+	 * returns 1.  If the boxes overlap but cannot be cleanly cropped,
+	 * returns -1.  Otherwise the box is cropped and zero is returned
+	 */
+	public static int halfCropBox(Rectangle2D bounds, Rectangle2D limit)
+	{
+		double bX = limit.getMinX();    double uX = limit.getMaxX();
+		double bY = limit.getMinY();    double uY = limit.getMaxY();
+		double lX = bounds.getMinX();   double hX = bounds.getMaxX();
+		double lY = bounds.getMinY();   double hY = bounds.getMaxY();
+
+		// if the two boxes don't touch, just return
+		if (bX >= hX || bY >= hY || uX <= lX || uY <= lY) return 0;
+
+		// if the box to be cropped is within the other, figure out which half to remove
+		if (bX <= lX && uX >= hX && bY <= lY && uY >= hY)
+		{
+			double lxe = lX - bX;   double hxe = uX - hX;
+			double lye = lY - bY;   double hye = uY - hY;
+			double biggestExt = Math.max(Math.max(lxe, hxe), Math.max(lye, hye));
+			if (biggestExt == 0) return 1;
+			if (lxe == biggestExt)
+			{
+				lX = (lX + uX) / 2;
+				if (lX >= hX) return 1;
+				bounds.setRect(lX, lY, hX-lX, hY-lY);
+				return 0;
+			}
+			if (hxe == biggestExt)
+			{
+				hX = (hX + bX) / 2;
+				if (hX <= lX) return 1;
+				bounds.setRect(lX, lY, hX-lX, hY-lY);
+				return 0;
+			}
+			if (lye == biggestExt)
+			{
+				lY = (lY + uY) / 2;
+				if (lY >= hY) return 1;
+				bounds.setRect(lX, lY, hX-lX, hY-lY);
+				return 0;
+			}
+			if (hye == biggestExt)
+			{
+				hY = (hY + bY) / 2;
+				if (hY <= lY) return 1;
+				bounds.setRect(lX, lY, hX-lX, hY-lY);
+				return 0;
+			}
+		}
+
+		// reduce (lx-hx,lY-hy) bY (bX-uX,bY-uY)
+		boolean crops = false;
+		if (bX <= lX && uX >= hX)
+		{
+			// it covers in X...crop in Y
+			if (uY >= hY) hY = (hY + bY) / 2;
+			if (bY <= lY) lY = (lY + uY) / 2;
+			bounds.setRect(lX, lY, hX-lX, hY-lY);
+			crops = true;
+		}
+		if (bY <= lY && uY >= hY)
+		{
+			// it covers in Y...crop in X
+			if (uX >= hX) hX = (hX + bX) / 2;
+			if (bX <= lX) lX = (lX + uX) / 2;
+			bounds.setRect(lX, lY, hX-lX, hY-lY);
+			crops = true;
+		}
+		if (!crops) return -1;
+		return 0;
+	}
 }

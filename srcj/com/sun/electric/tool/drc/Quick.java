@@ -177,7 +177,7 @@ public class Quick
 		/** mirroring of cell instance 1 */				boolean mirrorX1, mirrorY1;
 		/** rotation of cell instance 2 */				int rot2;
 		/** mirroring of cell instance 2 */				boolean mirrorX2, mirrorY2;
-		/** distance from instance 1 to instance 2 */	double dx, dy;	
+		/** distance from instance 1 to instance 2 */	double dx, dy;
 	};
 	private List instanceInteractionList = new ArrayList();
 
@@ -594,13 +594,11 @@ public class Quick
 		Technology tech = np.getTechnology();
 		AffineTransform trans = ni.rotateOut();
 
-		// Skipping Facet-Center ugly!
-        // @TODO do I need to check PrimitiveNode?
-		if (np instanceof PrimitiveNode && np == Generic.tech.cellCenterNode)
-			return false;
+		// Skipping special nodes
+		if (isSpecialNode(np)) return false; // Oct 5;
+
         if (np.getFunction() == NodeProto.Function.PIN) return false; // Sept 30
 		// get all of the polygons on this node
-		//NodeProto.Function fun = ni.getFunction();
 		Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
 		convertPseudoLayers(ni, nodeInstPolyList);
 		int tot = nodeInstPolyList.length;
@@ -612,11 +610,7 @@ public class Quick
 			Poly poly = nodeInstPolyList[j];
 			Layer layer = poly.getLayer();
 			if (layer == null) continue;
-			if (layer.isNonElectrical())
-            {
-                    System.out.println("Exception1 " + ni.getName() + " layer " + layer.getName());
-                continue;
-            }
+			//if (layer.isNonElectrical()) continue; // covered by isSpecialNode
 			poly.transform(trans);
 
 			// determine network for this polygon
@@ -789,6 +783,18 @@ public class Quick
 	}
 
 	/**
+	 * Method to detect if np is not relevant for DRC calculation and therefore
+	 * could be skip
+	 * @param np
+	 * @return
+	 */
+	private static boolean isSpecialNode(NodeProto np)
+	{
+		return (np == Generic.tech.cellCenterNode || np == Generic.tech.drcNode ||
+		        np == Generic.tech.essentialBoundsNode);
+	}
+
+	/**
 	 * Method to recursively examine the area "bounds" in cell "cell" with global index "globalIndex".
 	 * The objects that are found are transformed by "uptrans" to be in the space of a top-level cell.
 	 * They are then compared with objects in "oNi" (which is in that top-level cell),
@@ -824,7 +830,8 @@ public class Quick
 				NodeInst ni = (NodeInst)geom;
 				NodeProto np = ni.getProto();
 
-				if (np == Generic.tech.cellCenterNode) continue;  // Oct 4
+				//if (np == Generic.tech.cellCenterNode) continue;  // Oct 4
+                if (isSpecialNode(np)) continue; // Oct 5;
 
 				if (np instanceof Cell)
 				{
@@ -832,7 +839,7 @@ public class Quick
 					subUpTrans.preConcatenate(upTrans);
 
 					CheckInst ci = (CheckInst)checkInsts.get(ni);
-					
+
 					int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
 
 //					if (!dr_quickparalleldrc) downhierarchy(ni, ni->proto, 0);
@@ -844,7 +851,8 @@ public class Quick
 					AffineTransform rTrans = ni.rotateOut();
 					rTrans.preConcatenate(upTrans);
                     if (np.getFunction() == NodeProto.Function.PIN) continue; // Sept 30
-                    if (np == Generic.tech.cellCenterNode) continue;  // Sept 30
+                    //if (np == Generic.tech.cellCenterNode) continue;  // Sept 30
+					//if (np == Generic.tech.cellCenterNode || np == Generic.tech.drcNode) continue;  // Oct 5
 					Technology tech = np.getTechnology();
 					Poly [] primPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
 					convertPseudoLayers(ni, primPolyList);
@@ -854,11 +862,7 @@ public class Quick
 						Poly poly = primPolyList[j];
 						Layer layer = poly.getLayer();
 						if (layer == null) continue;
-						if (layer.isNonElectrical()) //continue; // Sept 30
-                        {
-                            System.out.println("Exception 2");
-                            continue;
-                        }
+						//if (layer.isNonElectrical()) continue; // covered by isSpecialNode
 						poly.transform(rTrans);
 
 						// determine network for this polygon
@@ -910,7 +914,7 @@ public class Quick
 	/**
 	 * Method to examine polygon "poly" layer "layer" network "net" technology "tech" geometry "geom"
 	 * which is in cell "cell" and has global index "globalIndex".
-	 * The polygon is compared against things inside node "oNi", and that node's parent has global index "topGlobalIndex". 
+	 * The polygon is compared against things inside node "oNi", and that node's parent has global index "topGlobalIndex".
 	 */
 	private boolean badSubBox(Poly poly, Layer layer, int net, Technology tech, Geometric geom, AffineTransform trans,
                               int globalIndex, NodeInst oNi, int topGlobalIndex)
@@ -1014,6 +1018,9 @@ public class Quick
 		Netlist netlist = getCheckProto(cell).netlist;
         Rectangle2D subBound = new Rectangle2D.Double(); //Sept 30
 
+		if (geom instanceof NodeInst && isSpecialNode(((NodeInst)geom).getProto()))
+			System.out.println("When do I see this case");
+
 		// Sept04 changes: bounds by rBound
 		for(Iterator it = cell.searchIterator(bounds); it.hasNext(); )
 		{
@@ -1023,6 +1030,8 @@ public class Quick
 			{
 				NodeInst ni = (NodeInst)nGeom;
 				NodeProto np = ni.getProto();
+
+				if (isSpecialNode(np)) continue; // Oct 5;
 
 				// ignore nodes that are not primitive
 				if (np instanceof Cell)
@@ -1055,6 +1064,8 @@ public class Quick
 					// see if this type of node can interact with this layer
 					if (!checkLayerWithNode(layer, np)) continue;
 
+                    if (np.getFunction() == NodeProto.Function.PIN) continue; // Sept 30
+
 					// see if the objects directly touch
 					boolean touch = Geometric.objectsTouch(nGeom, geom);
 
@@ -1071,17 +1082,12 @@ public class Quick
 					    /* Step 1 */
 					boolean multi = baseMulti;
 					if (!multi) multi = isMultiCut(ni);
-                    if (np.getFunction() == NodeProto.Function.PIN) continue; // Sept 30
 					for(int j=0; j<tot; j++)
 					{
 						Poly npoly = subPolyList[j];
 						Layer nLayer = npoly.getLayer();
 						if (nLayer == null) continue;
-						if (nLayer.isNonElectrical()) //continue;   // Sept 30
-                        {
-                                System.out.println("Exception 3 " + ni.getName() + " layer " + layer.getName());
-                            continue;
-                        }
+						//if (nLayer.isNonElectrical()) continue; // covered by isSpecialNode
                         //npoly.transform(rTrans);
 
 						Rectangle2D nPolyRect = npoly.getBounds2D();
@@ -1778,7 +1784,7 @@ public class Quick
 	/**
 	 * Method to look for the instance-interaction in "dii" in the global list of instances interactions
 	 * that have already been checked.  Returns the entry if it is found, NOINSTINTER if not.
-	 */ 
+	 */
 	private boolean findInteraction(InstanceInter dii)
 	{
 			for(Iterator it = instanceInteractionList.iterator(); it.hasNext(); )
@@ -2066,7 +2072,7 @@ public class Quick
 				from = points[i-1];
 			Point2D to = points[i];
 			if (from.equals(to)) continue;
-			
+
 			double ang = DBMath.figureAngleRadians(from, to);
 			Point2D center = new Point2D.Double((from.getX() + to.getX()) / 2, (from.getY() + to.getY()) / 2);
 			double perpang = ang + Math.PI / 2;
@@ -2681,7 +2687,7 @@ public class Quick
 			Rectangle2D nodeBounds = ni.getBounds();
 			double cX = nodeBounds.getCenterX();
 			double cY = nodeBounds.getCenterY();
-			
+
 			if (cX < bounds.getMinX() || cX > bounds.getMaxX() ||
 				cY < bounds.getMinY() || cY > bounds.getMaxY()) continue;
 
@@ -2720,7 +2726,7 @@ public class Quick
 	 * returns 1.  If the boxes overlap but cannot be cleanly cropped,
 	 * returns -1.  Otherwise the box is cropped and zero is returned
 	 */
-	private int cropBox(Rectangle2D bounds, Rectangle2D PUBox)
+	private int cropBoxOld(Rectangle2D bounds, Rectangle2D PUBox)
 	{
 		// if the two boxes don't touch, just return
 		double bX = PUBox.getMinX();    double uX = PUBox.getMaxX();
@@ -2769,7 +2775,7 @@ public class Quick
 	 * returns 1.  If the boxes overlap but cannot be cleanly cropped,
 	 * returns -1.  Otherwise the box is cropped and zero is returned
 	 */
-	private int halfCropBox(Rectangle2D bounds, Rectangle2D limit)
+	private int halfCropBoxOld(Rectangle2D bounds, Rectangle2D limit)
 	{
 		double bX = limit.getMinX();    double uX = limit.getMaxX();
 		double bY = limit.getMinY();    double uY = limit.getMaxY();
@@ -2905,7 +2911,7 @@ public class Quick
 				// warning: does not handle arbitrary polygons, only boxes
 				Rectangle2D polyBox = poly.getBox();
 				if (polyBox == null) continue;
-				int temp = cropBox(bound, polyBox);
+				int temp = Poly.cropBox(bound, polyBox);
 				if (temp > 0) { allgone = true;   break; }
 				if (temp < 0)
 				{
@@ -2966,7 +2972,7 @@ public class Quick
 				// warning: does not handle arbitrary polygons, only boxes
 				Rectangle2D polyBox = poly.getBox();
 				if (polyBox == null) continue;
-				int temp = halfCropBox(bounds, polyBox);
+				int temp = Poly.halfCropBox(bounds, polyBox);
 				if (temp > 0) return true;
 				if (temp < 0)
 				{
@@ -3002,13 +3008,11 @@ public class Quick
 		Rectangle2D polyBounds = poly.getBox();
 		if (polyBounds == null) return;
 		polyBounds = new Rectangle2D.Double(polyBounds.getMinX(), polyBounds.getMinY(), polyBounds.getWidth(), polyBounds.getHeight());
-//boolean debug = false;
-//if (ai.getProto().getName().equals("P-Active")) debug = true;
-//if (debug) System.out.println("Cropping arc that is "+polyBounds.getMinX()+"<=X<="+polyBounds.getMaxX()+" and "+polyBounds.getMinY()+"<=Y<="+polyBounds.getMaxY());
 
 		// search for adjoining transistor in the cell
 		boolean cropped = false;
 		boolean halved = false;
+		int count = 0;
 		for(int i=0; i<2; i++)
 		{
 			Connection con = ai.getConnection(i);
@@ -3028,23 +3032,18 @@ public class Quick
 				nPoly.transform(trans);
 				Rectangle2D nPolyBounds = nPoly.getBox();
 				if (nPolyBounds == null) continue;
-//if (debug) System.out.println("  End "+i+" is "+nPolyBounds.getMinX()+"<=X<="+nPolyBounds.getMaxX()+" and "+nPolyBounds.getMinY()+"<=Y<="+nPolyBounds.getMaxY());
-				int result;
-				if (halved)
-				{
-					result = cropBox(polyBounds, nPolyBounds);
-				} else
-				{
-					result = halfCropBox(polyBounds, nPolyBounds);
-				}
+				// @TODO Why only one half is half crop?
+				// Should I change cropBox by cropBoxComplete?
+				int result = (halved) ?
+						Poly.cropBox(polyBounds, nPolyBounds) :
+				        Poly.halfCropBox(polyBounds, nPolyBounds);
+
 				if (result == 1)
 				{
-//if (debug) System.out.println("    Cropped to oblivion");
 					// remove this polygon from consideration
 					poly.setLayer(null);
 					return;
 				}
-//if (debug) System.out.println("    Cropped to be "+polyBounds.getMinX()+"<=X<="+polyBounds.getMaxX()+" and "+polyBounds.getMinY()+"<=Y<="+polyBounds.getMaxY());
 				cropped = true;
 				halved = true;
 			}

@@ -248,6 +248,7 @@ public class ParasiticTool extends Tool{
                         Poly nPoly = arcInstPolyList[i];
                         Layer layer = nPoly.getLayer();
                         if (!layer.getFunction().isMetal()) continue;
+	                    nPoly = ai.cropPerLayer(nPoly);
                         polyList.addAll(ParasiticValue.initParasiticValues(poly, nPoly));
                     }
                 }
@@ -280,6 +281,7 @@ public class ParasiticTool extends Tool{
 					Layer layer = poly.getLayer();
                     if (!layer.getFunction().isMetal()) continue;
                     //polyToCheckList.add(poly);
+	                poly = ai.cropPerLayer(poly);
                     Rectangle2D bnd = poly.getBounds2D();
                     bounds.setRect(bnd.getMinX()-maxDistance, bnd.getMinY()-maxDistance,
                             bnd.getWidth()+maxDistance*2, bnd.getHeight()+maxDistance*2);
