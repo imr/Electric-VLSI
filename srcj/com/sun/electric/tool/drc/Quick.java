@@ -2890,11 +2890,25 @@ public class Quick
 			for(Iterator it = ni.getPortInsts(); it.hasNext(); )
 			{
 				PortInst pi = (PortInst)it.next();
+				PortProto po = pi.getPortProto();
+				String name = po.getName();
+				boolean found = false;
+                boolean oldFound = false;
+				Network piNet = netlist.getNetwork(pi);
 
 				// ignore connections on poly/gate
-				Network piNet = netlist.getNetwork(pi);
-				if (piNet == badNet) continue;
+				if (name.indexOf("poly") != -1)
+				{
+					found = true;
+					//continue;
+				}
 
+				if (piNet == badNet)
+					oldFound = true;
+				if (Main.LOCALDEBUGFLAG && oldFound != found)
+						System.out.println("Here is different in activeOnTransistorRecurse");
+                if (found)
+                    continue;
 				Integer [] netNumbers = (Integer [])networkLists.get(piNet);
 				int net = netNumbers[globalIndex].intValue();
 				if (net < 0) continue;
