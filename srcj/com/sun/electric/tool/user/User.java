@@ -208,17 +208,35 @@ public class User extends Listener
 	}
 
 	private static AudioClip clickSound = null;
+	private static boolean hasSound = true;
 
 	public static void playSound(int arcsCreated)
 	{
-		if (User.isPlayClickSoundsWhenCreatingArcs())
+		if (!hasSound) return;
+		if (!User.isPlayClickSoundsWhenCreatingArcs()) return;
+
+		if (clickSound == null)
 		{
+			// first time: see if there is a sound card
+		    try
+		    {
+		    	hasSound = javax.sound.sampled.AudioSystem.getMixerInfo().length > 0;
+			    if (!hasSound) return;
+		    }
+		    catch (Throwable t)
+			{
+		    	hasSound = false;
+		    	return;
+		    }
+
+		    // initialize the click sound
 			URL url = Resources.getURLResource(TopLevel.class, "Click.wav");
-			if (url == null) return;
-			if (clickSound == null)
-				clickSound = Applet.newAudioClip(url);
-			clickSound.play();
+			if (url == null) { hasSound = false;   return; }
+			clickSound = Applet.newAudioClip(url);
 		}
+
+		// play the sound
+		clickSound.play();
 	}
 
 	/****************************** ICON GENERATION PREFERENCES ******************************/

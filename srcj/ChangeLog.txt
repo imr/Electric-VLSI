@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02a: *********************************
 
+IMP: (11/4/04, SMR) "Click" sounds are only played if there is a sound card.
+
 IMP: (11/3/04, SMR) CIF resolution errors now select the object.
 
 IMP: (11/3/04, SMR) Removed unused listeners: ClickAndDragListener and WiringListener.
