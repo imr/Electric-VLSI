@@ -926,6 +926,12 @@ public class Quick
 			baseMulti = isMultiCut((NodeInst)geom);
 
 		// search in the area surrounding the box
+		/*
+		bounds.setRect(DBMath.round(bounds.getMinX()-bound),
+		        DBMath.round(bounds.getMinY()-bound),
+		        DBMath.round(bounds.getWidth()+bound*2),
+		        DBMath.round(bounds.getHeight()+bound*2));
+		*/
 		bounds.setRect(bounds.getMinX()-bound, bounds.getMinY()-bound, bounds.getWidth()+bound*2, bounds.getHeight()+bound*2);
 		return badBoxInArea(poly, layer, tech, net, geom, trans, globalIndex,
 			bounds, cell, globalIndex,
@@ -1040,7 +1046,7 @@ public class Quick
 						if (con && touch) continue;
 
 						double nMinSize = npoly.getMinSize();
-						DRC.Rule dRule = getAdjustedMinDist(tech, layer, minSize,
+								DRC.Rule dRule = getAdjustedMinDist(tech, layer, minSize,
 							nLayer, nMinSize, con, multi);
 						DRC.Rule eRule = DRC.getEdgeRule(layer, nLayer);
 						if (dRule == null && eRule == null) continue;
@@ -1330,7 +1336,7 @@ public class Quick
 				pdy = Math.max(lY2-hY1, lY1-hY2);
 				if (pdx == 0 && pdy == 0) pd = 1; else
 				{
-					pd = Math.max(pdx, pdy);
+					pd = DBMath.round(Math.max(pdx, pdy));
 
 					if (pd < dist && pd > 0)
 					{
