@@ -152,8 +152,9 @@
         <mkdir dir="${appdir}/Contents/Resources/Java"/>
         <copy file="/System/Library/Frameworks/JavaVM.framework/Versions/Current/Resources/MacOS/JavaApplicationStub" todir="${appdir}/Contents/MacOS"/>
         <chmod file="${appdir}/Contents/MacOS/JavaApplicationStub" perm="755"/>
-        <copy file="Info.plist" todir="${appdir}/Contents"/>
-        <copy file="electric.icns" todir="${appdir}/Contents/Resources"/>
+        <copy file="packaging/Info.plist" todir="${appdir}/Contents"/>
+        <copy file="packaging/PkgInfo" todir="${appdir}/Contents"/>
+        <copy file="packaging/electric.icns" todir="${appdir}/Contents/Resources"/>
         <copy file="electric.jar" todir="${appdir}/Contents/Resources/Java"/>
         <exec command="/Developer/Tools/SetFile -a B ${appdir}"/>
     </target>
