@@ -1444,9 +1444,13 @@ public class Quick
 				// if they touch, it is acceptable
 				if (pd <= 0) return false;
 
+				if (!Main.LOCALDEBUGFLAG && net1 == net2)
+				{
+					return (false);
+				}
 				// see if the notch is filled
 				boolean newR = lookForCrossPolygons(geom1, poly1, geom2, poly2, layer1, cell, overlap);
-				if (Main.getDebug())
+				if (Main.LOCALDEBUGFLAG)
 				{
 					Point2D pt1 = new Point2D.Double();
 					Point2D pt2 = new Point2D.Double();
@@ -1480,6 +1484,13 @@ public class Quick
 							System.out.println("DIfferent 2");
 				}
 				if (newR) return false;
+
+				if (net1 == net2)
+				{
+					if (Main.LOCALDEBUGFLAG)
+						System.out.println("Should I return false before?");
+					return (false);
+				}
 
 				// look further if on the same net and diagonally separate (1 intervening point)
 				//if (net1 == net2 && intervening == 1) return false;
@@ -3445,13 +3456,13 @@ public class Quick
     {
 		private Network jNet;
 		private GeometryHandler metalMerge;
-		private GeometryHandler selectMerge;
+		private GeometryHandler otherTypetMerge;
 		private Layer polyLayer;
 
 		public QuickAreaEnumerator(Network jNet, GeometryHandler selectMerge)
 		{
 			this.jNet = jNet;
-			this.selectMerge = selectMerge;
+			this.otherTypetMerge = selectMerge;
 		}
 
 		/**
@@ -3529,7 +3540,7 @@ public class Quick
 					if (layer.getFunction().isMetal() || layer.getFunction().isPoly())
 						metalMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
 					else
-						selectMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
+						otherTypetMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
 				}
 			}
 			return true;
@@ -3560,10 +3571,15 @@ public class Quick
 			if (!(np instanceof PrimitiveNode)) return (true);
 
 			PrimitiveNode pNp = (PrimitiveNode)np;
+			boolean forceChecking = false;
+			if (np instanceof PrimitiveNode)
+			{
+				if (isSpecialNode(np)) return (false);
+				PrimitiveNode pn = (PrimitiveNode)np;
+				forceChecking = pn.containsSubstrateLayer(); // forcing the checking
+			}
 
-			if (np instanceof PrimitiveNode && isSpecialNode(np)) return (false);
-
-			boolean found = false;
+            boolean found = forceChecking;
 			Network thisNet = null;
 			for(Iterator pIt = ni.getPortInsts(); !found && pIt.hasNext(); )
 			{
@@ -3571,6 +3587,7 @@ public class Quick
 				thisNet = info.getNetlist().getNetwork(pi);
 				found = searchNetworkInParent(thisNet, info);
 			}
+			// Substrate layers are special so we must check node regardless network
 			if (!found)
 				return (false);
 
@@ -3584,21 +3601,20 @@ public class Quick
 				Poly poly = nodeInstPolyList[i];
 				Layer layer = poly.getLayer();
 
-				// No area associated
+				// No area rule associated
 				if (minAreaLayerMap.get(layer) == null && enclosedAreaLayerMap.get(layer) == null)
 					continue;
 
 				// make sure this layer connects electrically to the desired port
 				PortProto pp = poly.getPort();
-                if (pp == null) continue;
-				Network net = info.getNetlist().getNetwork(ni, pp, 0);
-				found = searchNetworkInParent(net, info);
-				if (net != thisNet)
-				{
-					if (found && Main.LOCALDEBUGFLAG)
-						System.out.println("Another mismatch");
-				}
-				if (!found) continue;
+				found = forceChecking && layer.getFunction().isSubstrate();
+                if (pp != null)
+                {
+					Network net = info.getNetlist().getNetwork(ni, pp, 0);
+					found = searchNetworkInParent(net, info);
+                }
+				//	if (!forceChecking && !found) continue;
+                if (!found) continue;
 
 				// it has to take into account poly and transistor poly as one layer
 				if (layer.getFunction().isPoly())
@@ -3612,7 +3628,7 @@ public class Quick
 				if (layer.getFunction().isMetal() || layer.getFunction().isPoly())
 					metalMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
 				else
-					selectMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
+					otherTypetMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
 			}
 
             return true;
