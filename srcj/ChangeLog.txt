@@ -3,6 +3,8 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01al: *********************************
+IMP: (11/6/04, GVG) New width for metal1 arcs. New well rectangular contact to avoid min area/width problems.
+New primitive nodes are available from Tech Palette via menu.
 
 IMP: (11/5/04, GVG) Min area only for top cell because its hierarchically done.
 BUG: (11/5/04, GVG) Fixing error introduced in 8.01ai and PolyBase.halfCropBox/PolyBase.cropBox.

@@ -630,16 +630,18 @@ public class Quick
 			{
 				SizeOffset so = ni.getSizeOffset();
 				double minSize = 0, actual = 0;
+                String msg = "X axis";
 				if (sizeRule.sizeX - ni.getXSize() > sizeRule.sizeY - ni.getYSize())
 				{
 					minSize = sizeRule.sizeX - so.getLowXOffset() - so.getHighXOffset();
 					actual = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
 				} else
 				{
+                    msg = "Y axis";
 					minSize = sizeRule.sizeY - so.getLowYOffset() - so.getHighYOffset();
 					actual = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 				}
-				reportError(MINSIZEERROR, null, cell, minSize, actual, sizeRule.rule,
+				reportError(MINSIZEERROR, msg, cell, minSize, actual, sizeRule.rule,
 					null, ni, null, null, null, null);
 			}
 		}
@@ -1957,7 +1959,9 @@ public class Quick
 
 			double actual = 0;
 			Point2D left1, left2, left3, right1, right2, right3;
-			if (bounds.getWidth() < minWidthRule.value)
+			//if (bounds.getWidth() < minWidthRule.value)
+            String msg = "(X axis)";
+            if (tooSmallWidth)
 			{
 				actual = bounds.getWidth();
 				left1 = new Point2D.Double(bounds.getMinX() - TINYDELTA, bounds.getMinY());
@@ -1969,6 +1973,7 @@ public class Quick
 			} else
 			{
 				actual = bounds.getHeight();
+                msg = "(Y axis)";
 				left1 = new Point2D.Double(bounds.getMinX(), bounds.getMinY() - TINYDELTA);
 				left2 = new Point2D.Double(bounds.getMaxX(), bounds.getMinY() - TINYDELTA);
 				left3 = new Point2D.Double(bounds.getCenterX(), bounds.getMinY() - TINYDELTA);
@@ -1995,7 +2000,7 @@ public class Quick
 			if (overlapLayer && !zeroWide) return false;
 
             int errorType = MINWIDTHERROR;
-			String extraMsg = "";
+			String extraMsg = msg;
 			String rule = minWidthRule.rule;
 			if (zeroWide)
 			{
@@ -3378,12 +3383,12 @@ public class Quick
 					errorMessagePart2 = new StringBuffer(msg);
 					break;
 				case MINWIDTHERROR:
-					errorMessage.append("Minimum width error:");
+                    errorMessage.append("Minimum width/heigh error (" + msg + "):");
 					errorMessagePart2 = new StringBuffer(", layer " + layer1.getName());
 					errorMessagePart2.append(" LESS THAN " + TextUtils.formatDouble(limit) + " WIDE (IS " + TextUtils.formatDouble(actual) + ")");
                     break;
 				case MINSIZEERROR:
-					errorMessage.append("Minimum size error:");
+					errorMessage.append("Minimum size error on " + msg + ":");
 					errorMessagePart2 = new StringBuffer(" LESS THAN " + TextUtils.formatDouble(limit) + " IN SIZE (IS " + TextUtils.formatDouble(actual) + ")");
 					break;
 				case BADLAYERERROR:
@@ -3478,12 +3483,16 @@ public class Quick
 				Network aNet = info.getNetlist().getNetwork(ai, 0);
 				boolean found = false;
 
-				for (Iterator arcIt = aNet.getExports(); !found && arcIt.hasNext();)
-				{
-					Export exp = (Export)arcIt.next();
-					Network net = info.getNetlist().getNetwork(exp, 0);
-					found = searchNetworkInParent(net, info);
-				}
+                // aNet is null if ArcProto is Artwork
+                if (aNet != null)
+                {
+                    for (Iterator arcIt = aNet.getExports(); !found && arcIt.hasNext();)
+                    {
+                        Export exp = (Export)arcIt.next();
+                        Network net = info.getNetlist().getNetwork(exp, 0);
+                        found = searchNetworkInParent(net, info);
+                    }
+                }
 
 				if (!found && aNet != jNet)
 					continue; // no same net

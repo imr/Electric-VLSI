@@ -275,7 +275,11 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                         map = np.getLayers()[1].getLayer();
 	                // Trick to get "well" in well contacts
 	                else if (fun == PrimitiveNode.Function.SUBSTRATE || fun == PrimitiveNode.Function.WELL)
+                    {
+                        if (np.isGroupNode())
+                             map = fun;
 	                    toAdd = makeNodeInst(np, fun, 0, true, "Well");
+                    }
                     if (map != null)
                     {
                         list = (List)elementsMap.get(map);
@@ -285,7 +289,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                             elementsMap.put(map, list);
                             inPalette.add(list);
                         }
-                        list.add(np);
+                        list.add(toAdd);
                         found = true;
                     }
 	                // Leaving standard transistors or contact
@@ -304,9 +308,16 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 // Only for more than 1
                 if (list.size() > 1)
                 {
-                   PrimitiveNode np = (PrimitiveNode)list.get(0);
+                    Object obj = list.get(0);
+                    PrimitiveNode np = null;
+
+                    // Contact and transistor cases
+                    if (obj instanceof PrimitiveNode)
+                        np = (PrimitiveNode)obj;
+                    else if (obj instanceof NodeInst)
+                        np = (PrimitiveNode)((NodeInst)obj).getProto();
                    // Not default -> swap
-                   if (np.isSpecialNode()) Collections.swap(list, 0, 1);
+                   if (np != null && np.isSpecialNode()) Collections.swap(list, 0, 1);
                 }
             }
             if (pinTotal + compTotal == 0) pinTotal = pureTotal;
@@ -366,9 +377,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
     /**
      * Method to compose item name depending on object class
      * @param item
+     * @param getVarName
      * @return
      */
-    private static String getItemName(Object item)
+    private static String getItemName(Object item, boolean getVarName)
     {
         if (item instanceof PrimitiveNode)
         {
@@ -378,8 +390,15 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         else if (item instanceof NodeInst)
         {
             NodeInst ni = (NodeInst)item;
-	        Variable var = ni.getVar(TECH_TMPVAR);
-            return (var.getObject().toString());
+            if (getVarName)
+            {
+                Variable var = ni.getVar(TECH_TMPVAR);
+                return (var.getObject().toString());
+            }
+            else // At least case for well contacts
+            {
+               return (ni.getProto().getName());
+            }
         }
         return ("");
     }
@@ -405,7 +424,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 if (list != null && list.size() > 1 && isCursorOnCorner(e))
 				{
                     // Careful with this name
-					JPopupMenu menu = new JPopupMenu(getItemName(obj));
+					JPopupMenu menu = new JPopupMenu(getItemName(obj, true));
 
 					for (Iterator it = list.iterator(); it.hasNext();)
 					{
@@ -418,13 +437,13 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 							for (Iterator listIter = subList.iterator(); listIter.hasNext();)
 							{
 								Object subItem = listIter.next();
-								menu.add(menuItem = new JMenuItem(getItemName(subItem)));
+								menu.add(menuItem = new JMenuItem(getItemName(subItem, true)));
                                 menuItem.addActionListener(new TechPalette.PlacePopupListListener(panel, subItem, list, subList));
 							}
 						}
                         else
 						{
-							menu.add(menuItem = new JMenuItem(getItemName(item)));
+							menu.add(menuItem = new JMenuItem(getItemName(item, false)));
                             menuItem.addActionListener(new TechPalette.PlacePopupListListener(panel, item, list, null));
 						}
 					}
