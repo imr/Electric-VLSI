@@ -1,7 +1,14 @@
 			Java Electric change log
 
 ************************* Version 8.01k: *********************************
-BUG: (8/25//04, GVG) MoCMOS wrong min spacing for active in different implants (Same problem in C-Electric) 
+
+BUG: (8/25/04, JKG) Automatic reinheritance of default parameters inside getVar() was a
+    bad idea. Call ElectricObject.getParameter() or ElectricObject.getParameters() if you
+    want the returned variables to include default parameter variables.
+
+IMP/MAN: (8/25/04, JKG) Added File Menu -> Page Setup... command
+
+BUG: (8/25//04, GVG) MoCMOS wrong min spacing for active in different implants (Same problem in C-Electric)
 FIX: 4 instead of 3
 
 IMP: for a given pair, DRC only reports errors once.
