@@ -3,37 +3,28 @@
 
     <target name="init">
         <property name="beanshell" value="../lib/java/bsh-1.2b3.jar"/>
-        <property name="AppleJava" value="AppleJavaExtensions.jar"/>
+        <property name="AppleJava" value="packaging/AppleJavaExtensions.jar"/>
     </target>
 
-    <target depends="init" name="compile">
-        <!-- Both srcdir and destdir should be package roots. -->
-        <!-- They could be different of course; in that case NetBeans can also be set -->
-        <!-- up to compile to a different filesystem in the same way; see Compiler Types: -->
+    <target name="compile" depends="init">
         <javac debug="true" deprecation="true" destdir="." srcdir=".">
-            <!-- To add something to the classpath: -->
             <classpath><pathelement location="${beanshell}"/></classpath>
             <classpath><pathelement location="${AppleJava}"/></classpath>
-            <!-- To exclude some files: -->
             <exclude name="intervalsimulation/"/>
         </javac>
     </target>
 
-    <target depends="init,compile" name="run">
+    <target name="run" depends="init,compile">
         <java classname="com.sun.electric.Launcher" failonerror="true" fork="true">
             <classpath>
                 <pathelement location="."/>
                 <pathelement location="${beanshell}"/>
                 <pathelement location="${AppleJava}"/>
            </classpath>
-            <!-- Pass some args, perhaps: -->
-            <!-- arg value="-myfile"/ -->
-            <!-- Will be given as an absolute path: -->
-            <!-- arg file="myfile.txt"/ -->
         </java>
     </target>
 
-    <target depends="init,compile" description="Make binary Jar file" name="jar">
+    <target name="jar" depends="init,compile" description="Make binary Jar file">
         <!-- To make a standalone app: -->
         <!-- 1. Create electric.mf manifest. -->
         <!-- 2. Put in it two lines: -->
@@ -43,16 +34,14 @@
         <unjar src="${beanshell}" dest="."/> 
         <unjar src="${AppleJava}" dest="."/> 
         <delete dir="META-INF"></delete>
-        <jar basedir="." compress="true" jarfile="electric.jar" manifest="electric.mf">
-            <!--  <arg line="-J-mx500m"></arg>  -->
+        <jar basedir="." compress="true" jarfile="electric.jar" manifest="packaging/electric.mf">
             <exclude name="apidoc/"/>
             <exclude name="intervalsimulation/"/>
+            <exclude name="packaging/"/>
             <exclude name="build.xml"/>
             <exclude name="ChangeLog.txt"/>
             <exclude name="electric.jar"/>
-            <exclude name="electric.mf"/>
             <exclude name="Hack_stack.txt"/>
-            <exclude name="*.group"/>
             <exclude name="**/.nbattrs"/>
             <exclude name="**/*.java"/>
             <exclude name="**/*.form"/>
@@ -61,39 +50,48 @@
         <delete dir="com/apple"></delete>
     </target>
 
-    <target depends="init,compile" description="Make source Jar file" name="jarSource">
+    <target name="mac-app" depends="jar">
+        <property name="appdir" value="electric.app"/>
+        <mkdir dir="${appdir}"/>
+        <mkdir dir="${appdir}/Contents"/>
+        <mkdir dir="${appdir}/Contents/MacOS"/>
+        <mkdir dir="${appdir}/Contents/Resources"/>
+        <mkdir dir="${appdir}/Contents/Resources/Java"/>
+        <copy file="/System/Library/Frameworks/JavaVM.framework/Versions/Current/Resources/MacOS/JavaApplicationStub" todir="${appdir}/Contents/MacOS"/>
+        <chmod file="${appdir}/Contents/MacOS/JavaApplicationStub" perm="755"/>
+        <copy file="Info.plist" todir="${appdir}/Contents"/>
+        <copy file="electric.icns" todir="${appdir}/Contents/Resources"/>
+        <copy file="electric.jar" todir="${appdir}/Contents/Resources/Java"/>
+        <exec command="/Developer/Tools/SetFile -a B ${appdir}"/>
+    </target>
+
+    <target name="jarSource" depends="init,compile" description="Make source Jar file">
         <unjar src="${beanshell}" dest="."/> 
         <unjar src="${AppleJava}" dest="."/> 
         <delete dir="META-INF"></delete>
-        <jar basedir="." compress="true" jarfile="electric.jar" manifest="electric.mf">
-            <!--  <arg line="-J-mx500m"></arg>  -->
+        <jar basedir="." compress="true" jarfile="electric.jar" manifest="packaging/electric.mf">
             <exclude name="apidoc/"/>
             <exclude name="intervalsimulation/"/>
+            <exclude name="packaging/"/>
             <exclude name="electric.jar"/>
-            <exclude name="electric.mf"/>
             <exclude name="Hack_stack.txt"/>
-            <exclude name="*.group"/>
             <exclude name="**/.nbattrs"/>
         </jar>
         <delete dir="bsh"></delete>
         <delete dir="com/apple"></delete>
     </target>
 
-    <target depends="init,jar" description="Run Jar file" name="testJar">
+    <target name="testJar" depends="init,jar" description="Run Jar file">
         <java classname="com.sun.electric.Launcher" failonerror="true" fork="true">
             <classpath>
                 <pathelement location="."/>
                 <pathelement location="${beanshell}"/>
                 <pathelement location="${AppleJava}"/>
            </classpath>
-            <!-- Pass some args, perhaps: -->
-            <!-- arg value="-myfile"/ -->
-            <!-- Will be given as an absolute path: -->
-            <!-- arg file="myfile.txt"/ -->
         </java>
     </target>
 
-    <target depends="init" description="Create Javadoc" name="javadoc">
+    <target name="javadoc" depends="init" description="Create Javadoc">
         <mkdir dir="apidoc"/>
         <javadoc destdir="apidoc" packagenames="com.sun.electric.*">
             <classpath>
@@ -106,7 +104,7 @@
         </javadoc>
     </target>
 
-    <target depends="init" description="Clean all build products" name="clean">
+    <target name="clean" depends="init" description="Clean all build products">
         <delete quiet="true">
             <fileset dir=".">
                 <include name="**/*.class"/>
@@ -115,7 +113,7 @@
                 <include name="**/*.class"/>
             </fileset>
         </delete>
-    <delete file="electric.jar"/>
+        <delete file="electric.jar"/>
         <delete dir="apidoc"/>
     </target>
 

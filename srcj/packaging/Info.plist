@@ -1,0 +1,19 @@
+<key>CFBundleIconFile</key>
+<string>Electric.icns</string>
+<key>Java</key>
+<dict>
+    <key>MainClass</key>
+    <string>com.sun.electric.Launcher</string>
+    <key>JVMVersion</key>
+    <string>1.4+</string>
+    <key>ClassPath</key>
+      <array>
+      <string>$JAVAROOT/electric.jar</string>
+      </array>
+    <key>Properties</key>
+    <dict>
+      <key>com.apple.mrj.application.apple.menu.about.name</key>
+		<string>Electric</string>
+      <key>com.apple.macos.useScreenMenuBar</key>
+		<string>true</string>
+	</dict>
