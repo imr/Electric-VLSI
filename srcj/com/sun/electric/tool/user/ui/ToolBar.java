@@ -215,7 +215,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 				new ImageIcon(toolbar.getClass().getResource("ButtonSelect.gif")));
 			selectButton.addActionListener(
 				new ActionListener() { public void actionPerformed(ActionEvent e) { selectCommand(); } });
-			selectButton.setToolTipText("Select");
+			selectButton.setToolTipText(cursorSelectName);
 			toolbar.add(selectButton);
 			modeGroup.add(selectButton);
 
@@ -224,7 +224,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 				new ImageIcon(toolbar.getClass().getResource("ButtonWiring.gif")));
 			wireButton.addActionListener(
 				new ActionListener() { public void actionPerformed(ActionEvent e) { wiringCommand(); } });
-			wireButton.setToolTipText("Wiring");
+			wireButton.setToolTipText(cursorWiringName);
 			toolbar.add(wireButton);
 			modeGroup.add(wireButton);
 
@@ -235,7 +235,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
             new ImageIcon(toolbar.getClass().getResource("ButtonPan.gif")));
 		panButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { panCommand(); } });
-		panButton.setToolTipText("Pan");
+		panButton.setToolTipText(cursorPanName);
 		toolbar.add(panButton);
 		modeGroup.add(panButton);
 
@@ -244,7 +244,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
             new ImageIcon(toolbar.getClass().getResource("ButtonZoom.gif")));
 		zoomButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { zoomCommand(); } });
-		zoomButton.setToolTipText("Zoom");
+		zoomButton.setToolTipText(cursorZoomName);
 		toolbar.add(zoomButton);
 		modeGroup.add(zoomButton);
 
@@ -253,7 +253,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 			new ImageIcon(toolbar.getClass().getResource("ButtonOutline.gif")));
 		outlineButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { outlineEditCommand(); } });
-		outlineButton.setToolTipText("Outline Edit");
+		outlineButton.setToolTipText(cursorOutlineName);
 		toolbar.add(outlineButton);
 		modeGroup.add(outlineButton);
 
@@ -262,7 +262,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 			new ImageIcon(toolbar.getClass().getResource("ButtonMeasure.gif")));
 		measureButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { measureCommand(); } });
-		measureButton.setToolTipText("Measure Distances");
+		measureButton.setToolTipText(cursorMeasureName);
 		toolbar.add(measureButton);
 		modeGroup.add(measureButton);
 
