@@ -31,7 +31,6 @@ package com.sun.electric.tool.user.ui;
  */
 
 import com.sun.electric.tool.user.KeyBindingManager;
-import com.sun.electric.tool.user.KeyBindingManager.KeyBinding;
 
 
 import java.awt.event.ActionListener;
@@ -75,9 +74,7 @@ public class MenuManager
         public void setParentMenu(JMenu menu);
         public JMenu getParentMenu();
         public void addDefaultKeyBinding(KeyStroke stroke, KeyStroke prefixStroke);
-        public ActionListener getPrimaryAction();
-        public void setPrimaryAction(ActionListener action);
-        public List getKeyBindings();
+        public KeyBindings getKeyBindings();
     }
 
     /**
@@ -88,54 +85,45 @@ public class MenuManager
     public static class MenuItem extends JMenuItem implements MenuItemInterface
     {
         /** parent menu */                      private JMenu parentMenu = null;
-        /** menu action */                      private ActionListener action = null;
 
         public MenuItem(String s) { super(s); }
         public MenuItem(String text, int mnemonic) { super( text, mnemonic); }
 
         public void setParentMenu(JMenu menu) { parentMenu = menu; }
         public JMenu getParentMenu() { return parentMenu; }
-        public ActionListener getPrimaryAction() { return action; }
-        public void setPrimaryAction(ActionListener action) { this.action = action; }
         public void addDefaultKeyBinding(KeyStroke stroke, KeyStroke prefixStroke) {
             MenuManager.addDefaultKeyBinding(this, stroke, prefixStroke);
         }
-        public List getKeyBindings() { return MenuManager.getKeyBindingsFor(this); }
+        public KeyBindings getKeyBindings() { return MenuManager.getKeyBindings(this); }
     }
 
     public static class RadioButtonMenuItem extends JRadioButtonMenuItem implements MenuItemInterface
     {
         /** parent menu */                      private JMenu parentMenu = null;
-        /** menu action */                      private ActionListener action = null;
 
         public RadioButtonMenuItem(String text, boolean selected) { super(text, selected); }
         
         public void setParentMenu(JMenu menu) { parentMenu = menu; }
         public JMenu getParentMenu() { return parentMenu; }
-        public ActionListener getPrimaryAction() { return action; }
-        public void setPrimaryAction(ActionListener action) { this.action = action; }
         public void addDefaultKeyBinding(KeyStroke stroke, KeyStroke prefixStroke) {
             MenuManager.addDefaultKeyBinding(this, stroke, prefixStroke);
         }
-        public List getKeyBindings() { return MenuManager.getKeyBindingsFor(this); }
+        public KeyBindings getKeyBindings() { return MenuManager.getKeyBindings(this); }
     }
     
 
     public static class CheckBoxMenuItem extends JCheckBoxMenuItem implements MenuItemInterface
     {
         /** parent menu */                      private JMenu parentMenu = null;
-        /** menu action */                      private ActionListener action = null;
 
         public CheckBoxMenuItem(String text, boolean state) { super(text, state); }
         
         public void setParentMenu(JMenu menu) { parentMenu = menu; }
         public JMenu getParentMenu() { return parentMenu; }
-        public ActionListener getPrimaryAction() { return action; }
-        public void setPrimaryAction(ActionListener action) { this.action = action; }
         public void addDefaultKeyBinding(KeyStroke stroke, KeyStroke prefixStroke) {
             MenuManager.addDefaultKeyBinding(this, stroke, prefixStroke);
         }
-        public List getKeyBindings() { return MenuManager.getKeyBindingsFor(this); }
+        public KeyBindings getKeyBindings() { return MenuManager.getKeyBindings(this); }
     }
 
     /**
@@ -146,19 +134,16 @@ public class MenuManager
     public static class Menu extends JMenu implements MenuItemInterface
     {
         /** parent menu */                      private JMenu parentMenu = null;
-        /** menu action */                      public ActionListener action = null;
 
         public Menu(String s) { super(s); }
         public Menu(String text, char mnemonic) { super(text); setMnemonic(mnemonic); }
 
         public void setParentMenu(JMenu menu) { parentMenu = menu; }
         public JMenu getParentMenu() { return parentMenu; }
-        public ActionListener getPrimaryAction() { return action; }
-        public void setPrimaryAction(ActionListener action) { this.action = action; }
         public void addDefaultKeyBinding(KeyStroke stroke, KeyStroke prefixStroke) {
             MenuManager.addDefaultKeyBinding(this, stroke, prefixStroke);
         }
-        public List getKeyBindings() { return MenuManager.getKeyBindingsFor(this); }
+        public KeyBindings getKeyBindings() { return MenuManager.getKeyBindings(this); }
 
         /**
          * Override the default method to add a JMenuItem to this Menu.
@@ -227,24 +212,39 @@ public class MenuManager
          */
         private void addItem(JMenuItem item, KeyStroke accelerator, ActionListener action)
         {
-            item.addActionListener(action);
-            item.addActionListener(MenuManager.updater);
-            item.addActionListener(ToolBarButton.updater);
             this.add(item);
             ((MenuItemInterface)item).setParentMenu(this);
-            ((MenuItemInterface)item).setPrimaryAction(action);
             // add to hash map
             synchronized(menuItems) {
                 String key = item.getText();
                 ArrayList list = (ArrayList)menuItems.get(key);
                 if (list == null) {
+                    // this is the first instance of this menu item
                     list = new ArrayList();
                     menuItems.put(key, list);
+                    // add default binding
+                    ((MenuItemInterface)item).addDefaultKeyBinding(accelerator, null);
+                    // add listener that will perform same thing as if user clicked on menu
+                    // this is needed to change the state of button and fire off to listeners
+                    keyBindingManager.addActionListener(item.getText(), new ActionListener() {
+                        public void actionPerformed(ActionEvent e) {
+                            JMenuItem m = (JMenuItem)e.getSource(); m.doClick(); }
+                    });
+                    // add action listeners to keyBindingManager so it will activate them
+                    // on a shortcut key or key-combo activation.
+                    //keyBindingManager.addActionListener(item.getText(), action);
+                    //keyBindingManager.addActionListener(item.getText(), MenuManager.updater);
+                    //keyBindingManager.addActionListener(item.getText(), ToolBarButton.updater);
+                    keyBindingManager.setEventSource(item.getText(), item);
                 }
                 list.add(item);
             }
-            // add default binding (this will also load any user saved bindings)
-            ((MenuItemInterface)item).addDefaultKeyBinding(accelerator, null);
+            // set accelerator so user sees shortcut key on menu
+            item.setAccelerator(accelerator);
+            // add action listeners so when user selects menu, actions will occur
+            item.addActionListener(action);
+            item.addActionListener(MenuManager.updater);
+            item.addActionListener(ToolBarButton.updater);
         }
     }
 
@@ -317,8 +317,8 @@ public class MenuManager
     
     //------------------------------ Manager Methods -------------------------------
 
-    public static List getKeyBindingsFor(JMenuItem item) {
-        return keyBindingManager.getBindingsFor(item.getText());
+    public static KeyBindings getKeyBindings(JMenuItem item) {
+        return keyBindingManager.getKeyBindings(item.getText());
     }
 
     /** Get a string description of the menu item of the form <p>
@@ -362,9 +362,15 @@ public class MenuManager
      * @param prefixStroke an optional prefix stroke (may be null)
      */
     public static void addDefaultKeyBinding(JMenuItem m, KeyStroke stroke, KeyStroke prefixStroke) {
+        // avoid adding the same binding multiple times when multiple menus are generated
+        synchronized (menuItems) {
+            List list = (List)menuItems.get(m.getText());
+            if (list != null) {
+                if (list.size() > 1) return;                    // more than one item created already
+            }
+        }
         // add default key binding
-        ActionListener action = ((MenuItemInterface)m).getPrimaryAction();
-        keyBindingManager.addDefaultKeyBinding(new KeyBinding(m.getText(), stroke, prefixStroke, action));
+        keyBindingManager.addDefaultKeyBinding(m.getText(), KeyStrokePair.getKeyStrokePair(prefixStroke, stroke));
         // update accelerator
         updateAccelerator(m.getText());
     }
@@ -376,10 +382,8 @@ public class MenuManager
      * @param prefixStroke an option prefix stroke (may be null)
      */
     public static void addUserKeyBinding(JMenuItem m, KeyStroke stroke, KeyStroke prefixStroke) {
-
         // add user key binding (gets stored to prefs, overrides default bindings)
-        ActionListener action = ((MenuItemInterface)m).getPrimaryAction();
-        keyBindingManager.addUserKeyBinding(new KeyBinding(m.getText(), stroke, prefixStroke, action));
+        keyBindingManager.addUserKeyBinding(m.getText(), KeyStrokePair.getKeyStrokePair(prefixStroke, stroke));
         // update accelerator
         updateAccelerator(m.getText());
     }
@@ -388,43 +392,43 @@ public class MenuManager
      * Sets <ocde>item<code> back to default Key Bindings
      * @param item the item to reset to default bindings
      */
-    public static void setToDefaultBindings(JMenuItem item) {
-        String actionDesc = item.getText();
+    public static void resetKeyBindings(JMenuItem item) {
         // tell KeyBindingManager to reset to default KeyBindings
-        keyBindingManager.setToDefaultBindings(actionDesc);
+        keyBindingManager.resetKeyBindings(item.getText());
         // update accelerator
-        updateAccelerator(actionDesc);
+        updateAccelerator(item.getText());
     }
 
     /**
      * Sets *All* menu items back to their default key bindings
      */
-    public static void setToDefaultBindingsAll() {
+    public static void resetAllKeyBindings() {
         synchronized(menuItems) {
             Collection c = menuItems.values();
             for (Iterator it = c.iterator(); it.hasNext(); ) {
                 List list = (List)it.next();
                 JMenuItem m = (JMenuItem)list.get(0);
                 // call set to default only on one, others will get reset by that method
-                setToDefaultBindings(m);
+                resetKeyBindings(m);
             }
         }
     }
 
     /**
      * Removes a key binding.
-     * @param k the KeyBinding to remove
+     * @param actionDesc the item to remove the binding from
+     * @param pair the key stroke pair to remove
      */
-    public static void removeKeyBinding(KeyBinding k) {
+    public static void removeKeyBinding(String actionDesc, KeyStrokePair pair) {
         // remove binding from binding manager
-        keyBindingManager.removeKeyBinding(k);
+        keyBindingManager.removeKeyBinding(actionDesc, pair);
         // update accelerator
-        updateAccelerator(k.actionDesc);
+        updateAccelerator(actionDesc);
     }
 
     /**
      * Updates a menu item's accelerator.  Menu item is specified by
-     * actionDesc.  This is usually called after a menu item's bindings
+     * actionDesc (MenuItem.getText()).  This is usually called after a menu item's bindings
      * have changed (binding removed, added, or reset to default). This
      * updates the accelerator to a valid binding, which is displayed when
      * the user opens the menu.
@@ -432,13 +436,16 @@ public class MenuManager
      */
     public static void updateAccelerator(String actionDesc) {
         // get valid key binding, update menus with it
-        List bindings = keyBindingManager.getBindingsFor(actionDesc);
+        KeyBindings bindings = keyBindingManager.getKeyBindings(actionDesc);
         KeyStroke accelerator = null;
         if (bindings != null) {
-            for (Iterator it = bindings.iterator(); it.hasNext(); ) {
-                KeyBinding key = (KeyBinding)it.next();
-                if (key.prefixStroke != null) continue;         // menus can't display two-stroke key bindings
-                accelerator = key.stroke;
+            Iterator it;
+            if (bindings.getUsingDefaultKeys()) it = bindings.getDefaultKeyStrokePairs(); else
+                it = bindings.getKeyStrokePairs();
+            while (it.hasNext()) {
+                KeyStrokePair pair = (KeyStrokePair)it.next();
+                if (pair.getPrefixStroke() != null) continue;         // menus can't display two-stroke key bindings
+                accelerator = pair.getStroke();
                 break;
             }
         }

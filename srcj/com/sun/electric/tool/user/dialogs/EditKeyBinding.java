@@ -7,8 +7,9 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.tool.user.ui.MenuManager;
+import com.sun.electric.tool.user.ui.KeyStrokePair;
+import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.KeyBindingManager;
-import com.sun.electric.tool.user.KeyBindingManager.KeyBinding;
 
 import javax.swing.*;
 import java.util.List;
@@ -250,7 +251,7 @@ public class EditKeyBinding extends javax.swing.JDialog {
      */
     private void stroke2InputKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_stroke2InputKeyPressed
         KeyStroke key = KeyStroke.getKeyStrokeForEvent(evt);
-        stroke2Input.setText(KeyBindingManager.keyStrokeToString(key));
+        stroke2Input.setText(KeyStrokePair.keyStrokeToString(key));
         updateConflicts();
         evt.consume();
     }//GEN-LAST:event_stroke2InputKeyPressed
@@ -272,7 +273,7 @@ public class EditKeyBinding extends javax.swing.JDialog {
      */
     private void stroke1InputKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_stroke1InputKeyPressed
         KeyStroke key = KeyStroke.getKeyStrokeForEvent(evt);
-        stroke1Input.setText(KeyBindingManager.keyStrokeToString(key));
+        stroke1Input.setText(KeyStrokePair.keyStrokeToString(key));
         updateConflicts();
         evt.consume();
     }//GEN-LAST:event_stroke1InputKeyPressed
@@ -303,8 +304,12 @@ public class EditKeyBinding extends javax.swing.JDialog {
         } else if (removeConflicts == 0) {
             List conflicts = getConflicts();
             for (Iterator it = conflicts.iterator(); it.hasNext(); ) {
-                KeyBinding k = (KeyBinding)it.next();
-                MenuManager.removeKeyBinding(k);
+                KeyBindings k = (KeyBindings)it.next();
+                // remove all bindings in k
+                for (Iterator kit = k.getKeyStrokePairs(); kit.hasNext(); ) {
+                    KeyStrokePair pair = (KeyStrokePair)kit.next();
+                    MenuManager.removeKeyBinding(k.getActionDesc(), pair);
+                }
             }
         }
         // add new key binding
@@ -333,8 +338,8 @@ public class EditKeyBinding extends javax.swing.JDialog {
         // create array of strings to display in list box
         String [] objects = new String[conflicts.size()];
         for (int i=0; i<conflicts.size(); i++) {
-            KeyBinding k = (KeyBinding)conflicts.get(i);
-            String s = k.actionDesc + "  [ "+k.toString()+" ]";
+            KeyBindings k = (KeyBindings)conflicts.get(i);
+            String s = k.getActionDesc() + "  [ "+k.bindingsToString()+" ]";
             objects[i] = s;
         }
         // update list box
@@ -365,7 +370,8 @@ public class EditKeyBinding extends javax.swing.JDialog {
         if (key2 == null) {
             stroke = key1; prefixStroke = null;
         }
-        return KeyBindingManager.getConflictsAllManagers(stroke, prefixStroke);
+        KeyStrokePair pair = KeyStrokePair.getKeyStrokePair(prefixStroke, stroke);
+        return KeyBindingManager.getConflictsAllManagers(pair);
     }
 
     /**
@@ -375,7 +381,7 @@ public class EditKeyBinding extends javax.swing.JDialog {
      */
     private KeyStroke getStroke(JTextField field) {
         String str = field.getText();
-        return KeyBindingManager.stringToKeyStroke(str);
+        return KeyStrokePair.stringToKeyStroke(str);
     }
 
     // ------------------------------ Helper Dialogs ------------------------------
