@@ -1,4 +1,3 @@
-package trick;
 import Jama.*;
 import Jama.util.Maths;
 import java.io.*;

@@ -1,7 +1,36 @@
-package trick;
 import Jama.*;
 import java.io.*;
 import java.text.DecimalFormat;
+
+/**
+ * This example calculate a product of (n = 2**pow) interval matrices in different ways.
+ * Its purpose is to demonstrate wrapping effect known in methods of finding
+ * validate solution of odinary differentional equations.
+ * Center of each interval matrix Ai is a real matix A
+ *  | r*cos(a)  -r*sin(a) |
+ *  | r*sin(a)   r*cos(a) | with 0 < r < 1 .
+ * It's k-th power is A**k
+ *  | r**k*cos(a*k)  -r**k*sin(a*k) |
+ *  | r**k*sin(a*k)   r**k*cos(a*k) |
+ * The center matrix is disturbed by radius matrix with small value in each elements.
+ *
+ * The demo plots in "omega.raw" norm of radius of product matrix for different method
+ * for different frequences "a".
+ *
+ * The "stupid" product Si of these matrices is performed in sequentional manner.
+ * It needs O(n) time and O(1) space, but it suffers from wrapping effect.
+ *
+ * The "presice" product Si2 is rather tight,
+ * but it requires O(n*n) time and O(n) space.
+ * 
+ * The "fast" product Pi is obtained by groupping n intervals in a binary tree.
+ * It needs O(n) time and O(log(n)) space for time-varying matrix and
+ * O(log(n)) time and O(1) space for constant matrix A..
+ * The norm of radius of Pi is only a little worse than norm of radius of Si2, calculated
+ * by "precise" method.
+ * The "fast2" product Mi is a small variation of above method which uses easier
+ * definition of interval matricies multiplication.
+ */
 
 public class IntervalExp {
 
@@ -40,7 +69,7 @@ public class IntervalExp {
 	varType[0] = "frequency";
 	varName[1] = "stupid";
 	varType[1] = "voltage";
-	varName[2] = "best";
+	varName[2] = "precise";
 	varType[2] = "voltage";
 	varName[3] = "fast1";
 	varType[3] = "voltage";

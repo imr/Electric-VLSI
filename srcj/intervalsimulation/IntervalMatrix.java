@@ -1,6 +1,11 @@
-package trick;
 import Jama.*;
 
+/**
+ * An Interval Matrix is a matrix of real intervals.
+ * Each interval is represented by its center and radius.
+ * NOTE. This implementation doesn't consider properly
+ *       floatin-point rounding errors.
+ */
 class IntervalMatrix {
     Matrix center;
     Matrix delta;

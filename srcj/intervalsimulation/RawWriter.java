@@ -1,4 +1,3 @@
-package trick;
 import Jama.Matrix;
 import java.io.*;
 import java.util.Locale;
@@ -14,7 +13,7 @@ class RawWriter {
        PrintWriter FILE = new PrintWriter(new FileOutputStream(fileName));
 
        int i;
-       FILE.println("Title: %s" + fileName);
+       FILE.println("Title: " + fileName);
        FILE.println("Plotname: Waveform");
        FILE.println("Flags: real");
        FILE.println("No. Variables: " + data.getColumnDimension());
