@@ -551,7 +551,7 @@ public class Spice extends Topology
 				for(Iterator it = cell.getVariables(); it.hasNext(); )
 				{
 					Variable paramVar = (Variable)it.next();
-					if (!paramVar.getTextDescriptor().isParam()) continue;
+					if (!paramVar.isParam()) continue;
 					infstr.append(" " + paramVar.getTrueName() + "=" + paramVar.getPureValue(-1));
 				}
 			}
@@ -660,7 +660,7 @@ public class Spice extends Topology
 					for(Iterator it = subCell.getVariables(); it.hasNext(); )
 					{
 						Variable paramVar = (Variable)it.next();
-						if (!paramVar.getTextDescriptor().isParam()) continue;
+						if (!paramVar.isParam()) continue;
 						Variable instVar = no.getVar(paramVar.getKey());
 						String paramStr = "??";
 						if (instVar != null) paramStr = formatParam(trimSingleQuotes(String.valueOf(context.evalVar(instVar))));
@@ -686,6 +686,8 @@ public class Spice extends Topology
 			{
 				if (fun == PrimitiveNode.Function.RESIST)
 				{
+                    if (useCDL && Simulation.getCDLIgnoreResistors())
+                        continue;
 					Variable resistVar = ni.getVar(Schematics.SCHEM_RESISTANCE);
 					String extra = "";
 					if (resistVar != null)
@@ -1091,7 +1093,7 @@ public class Spice extends Topology
                 for(Iterator it = no.getVariables(); it.hasNext(); )
                 {
                     Variable var = (Variable)it.next();
-                    if (!var.getTextDescriptor().isParam()) continue;
+                    if (!var.isParam()) continue;
                     paramValues.add(var);
                 }
                 for(Iterator it = paramValues.iterator(); it.hasNext(); )
@@ -1310,6 +1312,9 @@ public class Spice extends Topology
 	{
 		// get network information about this cell
 		boolean shortResistors = false;
+        if (useCDL && Simulation.getCDLIgnoreResistors()) {
+            shortResistors = true;
+        }
 		Netlist netList = cell.getNetlist(shortResistors);
 		return netList;
 	}

@@ -1180,7 +1180,22 @@ public class TextDescriptor implements Serializable
 	 * Parameters can only exist on NodeInst objects.
 	 * @return true if the text in the TextDescriptor is a parameter.
 	 */
-	public boolean isParam() { return (descriptor0 & VTISPARAMETER) != 0; }
+	protected boolean isParam() { return (descriptor0 & VTISPARAMETER) != 0; }
+
+    /**
+     * Method to set the text in the TextDescriptor as a parameter.
+     * Parameters are those Variables that have values on instances which are
+     * passed down the hierarchy into the contents.
+     * Parameters can only exist on NodeInst objects.
+     * @param b true to set the text in the TextDescriptor as a parameter.
+     */
+    protected void setParam(boolean b) {
+        if (b) {
+            descriptor0 |= VTISPARAMETER;
+        } else {
+            descriptor0 &= ~VTISPARAMETER;
+        }
+    }
 
 	/**
 	 * Method to return the X offset of the text in the TextDescriptor.

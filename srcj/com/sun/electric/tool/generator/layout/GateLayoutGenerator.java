@@ -34,7 +34,9 @@ import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.logicaleffort.LEInst;
 import com.sun.electric.tool.generator.layout.gates.MoCMOSGenerator;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -217,6 +219,16 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 			c = MoCMOSGenerator.makeGate(pNm, x, stdCell);
 		}
 		if (c!=null) {
+            // record defining schematic cell if it is sizable
+            if (LEInst.getType(iconInst, context) == LEInst.Type.LEGATE) {
+                Variable var = c.newVar(LEInst.ATTR_LEGATE, c.libDescribe());
+                var.setDisplay(false);
+            }
+            if (LEInst.getType(iconInst, context) == LEInst.Type.LEKEEPER) {
+                Variable var = c.newVar(LEInst.ATTR_LEKEEPER, c.libDescribe());
+                var.setDisplay(false);
+            }
+
 			System.out.println("Use: "+pNm+" X="+x+" for instance: "+
 			                   info.getUniqueNodableName(iconInst, "/"));
 		}

@@ -4903,7 +4903,7 @@ public class CircuitChanges
 				for(Iterator it = varList.iterator(); it.hasNext(); )
 				{
 					Variable var = (Variable)it.next();
-					if (!var.getTextDescriptor().isParam()) continue;
+					if (!var.isParam()) continue;
 
 					// see if this parameter exists on the new prototype
 					Cell cNp = newCell.contentsView();
@@ -4912,7 +4912,7 @@ public class CircuitChanges
 					{
 						Variable cVar = (Variable)cIt.next();
 						if (!(var.getKey().equals(cVar.getKey()))) continue;
-						if (cVar.getTextDescriptor().isParam())
+						if (cVar.isParam())
 						{
 							newNi.delVar(var.getKey());
 							break;
@@ -4999,7 +4999,7 @@ public class CircuitChanges
 				for(Iterator it = ni.getVariables(); it.hasNext(); )
 				{
 					Variable var = (Variable)it.next();
-					if (!var.getTextDescriptor().isParam()) continue;
+					if (!var.isParam()) continue;
 					Variable oVar = null;
                     // try to find equivalent in all parameters on prototype
                     Iterator oIt = cNp.getVariables();
@@ -5007,7 +5007,7 @@ public class CircuitChanges
 					while (oIt.hasNext())
 					{
 						oVar = (Variable)oIt.next();
-						if (!oVar.getTextDescriptor().isParam()) continue;
+						if (!oVar.isParam()) continue;
 						if (oVar.getKey().equals(var.getKey())) { delete = false; break; }
 					}
 					if (delete)

@@ -1958,7 +1958,7 @@ public class Quick
 		for(Iterator vIt = cell.getVariables(); vIt.hasNext(); )
 		{
 			Variable var = (Variable)vIt.next();
-			if (var.getTextDescriptor().isParam())
+			if (var.isParam())
 			{
 				cp.cellParameterized = true;
 				cp.treeParameterized = true;

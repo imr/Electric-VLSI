@@ -197,7 +197,7 @@ public abstract class ElectricObject
         if (key == null) { debugGetParameterRecurse--; return null; }
         Variable var = getVar(key, null);
         if (var != null)
-            if (var.getTextDescriptor().isParam()) {
+            if (var.isParam()) {
                 debugGetParameterRecurse--;
                 return var;
             }
@@ -226,7 +226,7 @@ public abstract class ElectricObject
         // get all parameters on this object
         for (Iterator it = getVariables(); it.hasNext(); ) {
             Variable v = (Variable)it.next();
-            if (!v.getTextDescriptor().isParam()) continue;
+            if (!v.isParam()) continue;
             keysToVars.put(v.getKey(), v);
         }
         // look on default var owner
@@ -1296,7 +1296,7 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 			if (firstvar) System.out.println("Variables:");   firstvar = false;
 			Object addr = val.getObject();
             TextDescriptor td = val.getTextDescriptor();
-            String par = td.isParam() ? "(param)" : "";
+            String par = val.isParam() ? "(param)" : "";
 			if (addr instanceof Object[])
 			{
 				Object[] ary = (Object[]) addr;

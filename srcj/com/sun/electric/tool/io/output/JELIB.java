@@ -508,7 +508,7 @@ public class JELIB extends Output
 		}
 
 		// write parameter
-		if (td.isParam()) ret.append("P");
+		if (var.isParam()) ret.append("P");
 
 		if (display)
 		{

@@ -26,6 +26,7 @@ package com.sun.electric.database.variable;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -306,7 +307,7 @@ public class Variable
 		String name = key.getName();
 		if (name.startsWith("ATTR_"))
 		{
-			if (getTextDescriptor().isParam())
+			if (isParam())
 				trueName +=  "Parameter '" + name.substring(5) + "'"; else
 					trueName +=  "Attribute '" + name.substring(5) + "'";
 		} else
@@ -970,7 +971,29 @@ public class Variable
 	 * Parameters can only exist on NodeInst objects.
 	 * @return true if the text in the Variable's TextDescriptor is a parameter.
 	 */
-	public boolean isParam() { return descriptor.isParam(); }
+	public boolean isParam() {
+        if (descriptor.isParam()) return true;
+        // invariant: all attributes on nodeinsts that have a same
+        // named parameter on their content views must be parameters.
+        // It is possible for the user to create a case where an attributee
+        // is not marked as a param even though it should be,
+        // so we check it here
+        if (getOwner() instanceof Nodable) {
+            Nodable no = (Nodable)getOwner();
+            if (no.getProto() instanceof Cell) {
+                Cell icon = (Cell)no.getProto();
+                Cell sch = icon.contentsView();
+                if (sch == null) sch = icon;
+                Variable var = sch.getVar(key);
+                if (var != null && var.descriptor.isParam()) {
+                    descriptor.setParam(true);
+                    return true;
+                }
+            }
+            //System.out.println("Var "+key.getName()+" on "+no.getName()+" is not a param");
+        }
+        return false;
+    }
 
 	/**
 	 * Method to set the text in the Variable's TextDescriptor to be a parameter.
