@@ -233,9 +233,9 @@ public class HSpiceOut extends Simulate
 				if (l == ' ') break;
 				line.append((char)l);
 				j++;
-				if (j >= 16) break;
+				if (version == 9007 && j >= 16) break;
 			}
-			int l = (j+15) / 16 * 16 - 1;
+			int l = (j+16) / 16 * 16 - 1;
 			for(; j<l; j++)
 			{
 				int i = getByteFromFile();
@@ -244,7 +244,6 @@ public class HSpiceOut extends Simulate
 			if (k == 0) continue;
 
 			// convert name if there is a colon in it
-String origLine = line.toString();
 			for(j=0; j<line.length(); j++)
 			{
 				if (line.charAt(j) == ':') break;
