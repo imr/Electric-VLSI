@@ -30,7 +30,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ErrorLog;
-import com.sun.electric.tool.user.ui.Button;
 import com.sun.electric.tool.user.ui.PaletteFrame;
 
 import java.awt.GridBagConstraints;

@@ -59,6 +59,7 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import java.awt.Dimension;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -1102,7 +1103,10 @@ public class Cell extends NodeProto
 		{
 			NodeInst ni = (NodeInst)it.next();
 			Undo.redrawObject(ni);
-//			ni.modifyInstance(0, 0, 0, 0, 0);
+			AffineTransform trans = NodeInst.pureRotate(ni.getAngle(), ni.isMirroredAboutXAxis(), ni.isMirroredAboutYAxis());
+			Point2D in = new Point2D.Double(cX, cY);
+			trans.transform(in, in);
+			ni.modifyInstance(in.getX(), in.getY(), 0, 0, 0);
 		}
 
 		// adjust all windows showing this cell

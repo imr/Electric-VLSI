@@ -2239,11 +2239,7 @@ public class InputBinary extends InputLibrary
 			if (!invalid)
 			{
 				Variable.Key varKey = realKey[key];
-				Variable var = null;
-				if (var == null)
-				{
-					var = obj.newVar(varKey, newAddr);
-				}
+				Variable var = obj.newVar(varKey, newAddr);
 				if (var == null) return(-1);
 				var.setDescriptor(new TextDescriptor(null, descript0, descript1));
 				var.lowLevelSetFlags(newtype);

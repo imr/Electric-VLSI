@@ -335,16 +335,6 @@ public class CircuitChanges
 		}
 	}
 
-	public static void mirrorObjects()
-	{
-		System.out.println("Cannot mirror yet");
-	}
-
-	public static void sizeObjects()
-	{
-		System.out.println("Cannot size yet");
-	}
-
 	/****************************** DELETE SELECTED OBJECTS ******************************/
 
 	/**

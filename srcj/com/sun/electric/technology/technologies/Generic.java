@@ -28,6 +28,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -36,6 +37,7 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.util.Iterator;
 
@@ -258,6 +260,35 @@ public class Generic extends Technology
 			});
 		simProbeNode.setFunction(NodeProto.Function.ART);
 		simProbeNode.setCanBeZeroSize();
+	}
+
+	private static Technology.NodeLayer[] NULLNODELAYER = new Technology.NodeLayer [] {};
+	/**
+	 * Method to return a list of Polys that describe a given NodeInst.
+	 * This method overrides the general one in the Technology object
+	 * because of the unusual primitives in the Schematics Technology.
+	 * @param ni the NodeInst to describe.
+	 * @param wnd the window in which this node will be drawn.
+	 * @param electrical true to get the "electrical" layers.
+	 * This makes no sense for Schematics primitives.
+	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
+	 * This makes no sense for Schematics primitives.
+	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
+	 * @param layerOverride the layer to use for all generated polygons (if not null).
+	 * @return an array of Poly objects.
+	 */
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, boolean electrical, boolean reasonable,
+		Technology.NodeLayer [] primLayers, Layer layerOverride)
+	{
+		NodeProto prototype = ni.getProto();
+
+		PrimitiveNode np = (PrimitiveNode)prototype;
+		if (np == invisiblePinNode)
+		{
+			if (ni.isInvisiblePinWithText())
+				primLayers = NULLNODELAYER;
+		}
+		return super.getShapeOfNode(ni, wnd, electrical, reasonable, primLayers, layerOverride);
 	}
 
 	/**

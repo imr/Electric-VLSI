@@ -1984,13 +1984,10 @@ public class PixelDrawing
 		FontRenderContext frc = new FontRenderContext(null, false, false);
 		GlyphVector gv = theFont.createGlyphVector(frc, msg);
 		java.awt.font.LineMetrics lm = theFont.getLineMetrics(msg, frc);
-		double lmHeight = lm.getHeight();
-		double lmAscent = lm.getAscent();
-		double lmLeading = lm.getLeading();
 
 		// allocate space for the rendered text
 		Rectangle rect = gv.getPixelBounds(frc, 0, 0);
-		int height = (int)(lmHeight+0.5);
+		int height = (int)(lm.getHeight()+0.5);
 		if (rect.width <= 0 || height <= 0) return null;
 
 		// if text is to be "boxed", make sure it fits
@@ -2005,10 +2002,9 @@ public class PixelDrawing
 					// convert the text to a GlyphVector
 					frc = new FontRenderContext(null, false, false);
 					gv = theFont.createGlyphVector(frc, msg);
-
-					// allocate space for the rendered text
+					lm = theFont.getLineMetrics(msg, frc);
 					rect = gv.getPixelBounds(frc, 0, 0);
-					height = theFont.getSize();
+					height = (int)(lm.getHeight()+0.5);
 					if (height <= 0) return null;
 				}
 			}
@@ -2019,7 +2015,7 @@ public class PixelDrawing
 		// now render it
 		Graphics2D g2 = (Graphics2D)textImage.getGraphics();
 		g2.setColor(new Color(128,128,128));
-		g2.drawGlyphVector(gv, (float)-rect.x, (float)(lmAscent-lmLeading));
+		g2.drawGlyphVector(gv, (float)-rect.x, (float)(lm.getAscent()-lm.getLeading()));
 		if (underline)
 		{
 			g2.drawLine(0, height-1, rect.width, height-1);

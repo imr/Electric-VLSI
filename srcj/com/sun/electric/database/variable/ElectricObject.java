@@ -25,6 +25,7 @@ package com.sun.electric.database.variable;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -201,16 +202,18 @@ public class ElectricObject
 			height = font.getSize2D() / wnd.getScale();
 			if (multipleStrings)
 			{
-				if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT)
-					cY += height * (varLength-1) / 2;
+				if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTBOX ||
+					style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT)
+						cY += height * (varLength-1) / 2;
 				if (style == Poly.Type.TEXTBOT || style == Poly.Type.TEXTBOTLEFT || style == Poly.Type.TEXTBOTRIGHT)
 					cY += height * (varLength-1);
 //				if (style == Poly.Type.TEXTTOP || style == Poly.Type.TEXTTOPLEFT || style == Poly.Type.TEXTTOPRIGHT)
 //					cY -= height*2;
 			} else
 			{
-				if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT)
-					cY -= height * (varLength-1) / 2;
+				if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTBOX ||
+					style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT)
+						cY -= height * (varLength-1) / 2;
 				if (style == Poly.Type.TEXTTOP || style == Poly.Type.TEXTTOPLEFT || style == Poly.Type.TEXTTOPRIGHT)
 					cY -= height * (varLength-1);
 				varLength = 1;
@@ -219,8 +222,17 @@ public class ElectricObject
 		Poly [] polys = new Poly[varLength];
 		for(int i=0; i<varLength; i++)
 		{
-			Point2D [] pointList = new Point2D.Double[1];
-			pointList[0] = new Point2D.Double(cX+offX, cY+offY);
+			Point2D [] pointList = null;
+			if (style == Poly.Type.TEXTBOX && this instanceof Geometric)
+			{
+				Geometric geom = (Geometric)this;
+				Rectangle2D bounds = geom.getBounds();
+				pointList = Poly.makePoints(bounds);
+			} else
+			{
+				pointList = new Point2D.Double[1];
+				pointList[0] = new Point2D.Double(cX+offX, cY+offY);
+			}
 			polys[i] = new Poly(pointList);
 			polys[i].setStyle(style);
 			VarContext context = null;

@@ -1203,6 +1203,23 @@ public class NodeInst extends Geometric implements Nodable
 	}
 
 	/**
+	 * Method to return a transformation that rotates this NodeInst.
+	 * It transforms points on this NodeInst to account for the NodeInst's rotation.
+	 * The rotation happens about the node's true geometric center.
+	 * @return a transformation that rotates this NodeInst.
+	 * If this NodeInst is not rotated, the returned transformation is identity.
+	 */
+	public AffineTransform pureRotateIn()
+	{
+		int numFlips = 0;
+		if (sX < 0) numFlips++;
+		if (sY < 0) numFlips++;
+		int rotAngle = angle;
+		if (numFlips != 1) rotAngle = -rotAngle;
+		return pureRotate(rotAngle, sX < 0, sY < 0);
+	}
+
+	/**
 	 * Method to return a transformation that unrotates this NodeInst.
 	 * It transforms points on this NodeInst that have been rotated with the node
 	 * so that they appear in the correct location on the unrotated node.

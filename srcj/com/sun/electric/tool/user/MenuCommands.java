@@ -97,6 +97,7 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.ExplorerTree;
 import com.sun.electric.tool.user.ui.PaletteFrame;
 import com.sun.electric.tool.user.ui.MessagesWindow;
+import com.sun.electric.tool.user.ui.SizeListener;
 
 import java.awt.Toolkit;
 import java.awt.Dimension;
@@ -246,8 +247,8 @@ public final class MenuCommands
 		mirrorSubMenu.addMenuItem("Vertically", null, 
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.mirrorObjects(false); }});
 
-		editMenu.addMenuItem("Size", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.sizeObjects(); } });
+		editMenu.addMenuItem("Size", KeyStroke.getKeyStroke('B', buckyBit),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { SizeListener.sizeObjects(); } });
 
 		editMenu.addSeparator();
 

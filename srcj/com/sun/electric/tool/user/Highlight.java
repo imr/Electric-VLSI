@@ -354,7 +354,7 @@ public class Highlight
 	 * Method to set the Variable associated with this Highlight object.
 	 * @param var the Variable associated with this Highlight object.
 	 */
-	private void setVar(Variable var) { this.var = var; }
+	public void setVar(Variable var) { this.var = var; }
 
 	/**
 	 * Method to return the "from point" associated with this Highlight object.
@@ -655,7 +655,9 @@ public class Highlight
 		}
 		if (type != eobj.getClass())
 		{
+			
             System.out.println("Wrong type of object is selected");
+            System.out.println(" (WANTED "+type.toString()+" BUT GOT "+eobj.getClass().toString()+")");
             return null;
 		}
 		return eobj;
@@ -1203,6 +1205,10 @@ public class Highlight
 		if (style == Poly.Type.TEXTBOX)
 		{
 			Point2D [] points = new Point2D.Double[12];
+			if (eobj instanceof Geometric)
+			{
+				bounds = ((Geometric)eobj).getBounds();
+			}
 			double lX = bounds.getMinX();
 			double hX = bounds.getMaxX();
 			double lY = bounds.getMinY();
@@ -1211,15 +1217,6 @@ public class Highlight
 			points[1] = new Point2D.Double(hX, hY);
 			points[2] = new Point2D.Double(lX, hY);
 			points[3] = new Point2D.Double(hX, lY);
-
-			if (eobj instanceof Geometric)
-			{
-				bounds = ((Geometric)eobj).getBounds();
-			}
-			lX = bounds.getMinX();
-			hX = bounds.getMaxX();
-			lY = bounds.getMinY();
-			hY = bounds.getMaxY();
 			double shrinkX = (hX - lX) / 5;
 			double shrinkY = (hY - lY) / 5;
 			points[4] = new Point2D.Double(lX+shrinkX, lY);
@@ -1541,7 +1538,8 @@ public class Highlight
 						if (!poly.isInside(bounds)) continue;
 					} else
 					{
-						if (poly.polyDistance(bounds) >= directHitDist) continue;
+						double hitdist = poly.polyDistance(bounds);
+						if (hitdist >= directHitDist) continue;
 					}
 					Highlight h = new Highlight(Type.TEXT);
 					if (poly.getPort() != null)
@@ -1694,7 +1692,8 @@ public class Highlight
 //			if (ni.getProto() instanceof PrimitiveNode && (ni->proto->userbits&NINVISIBLE) != 0) return;
 
 			// do not "find" Invisible-Pins if they have text or exports
-			if (ni.isInvisiblePinWithText()) return null;
+			if (ni.isInvisiblePinWithText())
+				return null;
 
 			// get the distance to the object
 			double dist = distToNode(bounds, ni, wnd);

@@ -845,7 +845,6 @@ public class Poly implements Shape
 		Point2D corner = getTextCorner(wnd, font, gv, getStyle(), lX, hX, lY, hY);
 		double cX = corner.getX();
 		double cY = corner.getY();
-
 		double textScale = getTextScale(wnd, gv, getStyle(), lX, hX, lY, hY);
 		double width = glyphBounds.getWidth() * textScale;
 		double height = font.getSize() * textScale * numLines;
@@ -922,7 +921,7 @@ public class Poly implements Shape
 		double scaledWidth = textWidth * textScale;
 		double scaledHeight = textHeight * textScale;
 		double offX = 0, offY = 0;
-		if (style == Poly.Type.TEXTCENT)
+		if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTBOX)
 		{
 			offX = -scaledWidth/2;
 			offY = -scaledHeight/2;
@@ -952,15 +951,10 @@ public class Poly implements Shape
 		} else if (style == Poly.Type.TEXTBOTRIGHT)
 		{
 			offX = -scaledWidth;
-		} if (style == Poly.Type.TEXTBOX)
-		{
-			if (textWidth > hX - lX)
-			{
-				// text too big for box: scale it down
-				textScale *= (hX - lX) / textWidth;
-			}
-			offX = -(textWidth * textScale) / 2;
-			offY = -(textHeight * textScale) / 2;
+//		} if (style == Poly.Type.TEXTBOX)
+//		{
+//			offX = -(textWidth * textScale) / 2;
+//			offY = -(textHeight * textScale) / 2;
 		}
 		int rotation = getTextDescriptor().getRotation().getIndex();
 		if (rotation != 0)

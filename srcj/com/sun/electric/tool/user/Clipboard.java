@@ -925,7 +925,6 @@ public class Clipboard
 			oX = delta.getX();
 			oY = delta.getY();
 			showList();
-
 			wnd.repaint();
 		}
 
@@ -943,10 +942,10 @@ public class Clipboard
 		    PasteObjects job = new PasteObjects(pasteList, oX, oY);
 		}
 
+		public void mouseMoved(MouseEvent evt) {}
 		public void mouseClicked(MouseEvent evt) {}
 		public void mouseEntered(MouseEvent evt) {}
 		public void mouseExited(MouseEvent evt) {}
-		public void mouseMoved(MouseEvent evt) {}
 		public void mouseWheelMoved(MouseWheelEvent e) {}
 		public void keyPressed(KeyEvent e) {}
 		public void keyReleased(KeyEvent e) {}

@@ -49,6 +49,7 @@ import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.dialogs.LayoutText;
+import com.sun.electric.tool.user.dialogs.MakeCellInstance;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Dimension;
@@ -315,26 +316,17 @@ public class PaletteFrame
 		if (ysize < entrySize) entrySize = ysize;
 		size.setSize(entrySize*menuX+1, entrySize*menuY+1);
 		container.setSize(size);
-//		if (TopLevel.isMDIMode())
-//		{
-//			((JInternalFrame)container).setSize(size);
-//		} else
-//		{
-//			((JFrame)container).setSize(size);
-//		}
 		panel.repaint();
 	}
 
 	private static NodeInst makeNodeInst(NodeProto np, NodeProto.Function func, int angle)
 	{
-		//Undo.changesQuiet(true);
 		NodeInst ni = NodeInst.lowLevelAllocate();
 		SizeOffset so = np.getSizeOffset();
 		Point2D pt = new Point2D.Double((so.getHighXOffset() - so.getLowXOffset()) / 2,
 			(so.getHighYOffset() - so.getLowYOffset()) / 2);
 		AffineTransform trans = NodeInst.pureRotate(angle, false, false);
 		trans.transform(pt, pt);
-		//Undo.changesQuiet(false);
 		ni.lowLevelPopulate(np, pt, np.getDefWidth(), np.getDefHeight(), angle, null);
 		np.getTechnology().setPrimitiveFunction(ni, func);
 		np.getTechnology().setDefaultOutline(ni);
@@ -515,24 +507,40 @@ public class PaletteFrame
 					cellMenu.show(panel, e.getX(), e.getY());
 				} else if (msg.equals("Misc."))
 				{
-					JPopupMenu specialMenu = new JPopupMenu("Special");
-					JMenuItem menuItem = new JMenuItem("Annotation Text");
-					menuItem.addActionListener(new PlacePopupListener(panel, Generic.tech.invisiblePinNode));
+					JPopupMenu specialMenu = new JPopupMenu("Miscellaneous");
+					JMenuItem menuItem = new JMenuItem("Cell Instance...");
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeCellInstanceCommand(); } });
+					specialMenu.add(menuItem);
+					specialMenu.addSeparator();
+					menuItem = new JMenuItem("Annotation Text");
+					menuItem.addActionListener(new PlacePopupListener(panel, ""));
 					specialMenu.add(menuItem);
 					menuItem = new JMenuItem("Layout Text...");
 					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeLayoutTextCommand(); } });
 					specialMenu.add(menuItem);
+					specialMenu.addSeparator();
 					menuItem = new JMenuItem("Cell Center");
 					menuItem.addActionListener(new PlacePopupListener(panel, Generic.tech.cellCenterNode));
 					specialMenu.add(menuItem);
 					menuItem = new JMenuItem("Essential Bounds");
 					menuItem.addActionListener(new PlacePopupListener(panel, Generic.tech.essentialBoundsNode));
 					specialMenu.add(menuItem);
+					specialMenu.addSeparator();
 					menuItem = new JMenuItem("Simulation Probe");
 					menuItem.addActionListener(new PlacePopupListener(panel, Generic.tech.simProbeNode));
 					specialMenu.add(menuItem);
 					menuItem = new JMenuItem("DRC Exclusion");
 					menuItem.addActionListener(new PlacePopupListener(panel, Generic.tech.drcNode));
+					specialMenu.add(menuItem);
+					specialMenu.addSeparator();
+					menuItem = new JMenuItem("Invisible Pin");
+					menuItem.addActionListener(new PlacePopupListener(panel, Generic.tech.invisiblePinNode));
+					specialMenu.add(menuItem);
+					menuItem = new JMenuItem("Universal Pin");
+					menuItem.addActionListener(new PlacePopupListener(panel, Generic.tech.universalPinNode));
+					specialMenu.add(menuItem);
+					menuItem = new JMenuItem("Unrouted Pin");
+					menuItem.addActionListener(new PlacePopupListener(panel, Generic.tech.unroutedPinNode));
 					specialMenu.add(menuItem);
 					specialMenu.show(panel, e.getX(), e.getY());
 				} else if (msg.equals("Pure"))
@@ -573,6 +581,12 @@ public class PaletteFrame
 				}
 			}
 			repaint();
+		}
+
+		public void makeCellInstanceCommand()
+		{
+			MakeCellInstance dialog = new MakeCellInstance(TopLevel.getCurrentJFrame(), true);
+			dialog.show();
 		}
 
 		public void makeLayoutTextCommand()
@@ -887,6 +901,13 @@ public class PaletteFrame
 	{
 		NodeProto np = null;
 		NodeInst ni = null;
+		boolean placeText = false;
+
+		if (obj instanceof String)
+		{
+			obj = Generic.tech.invisiblePinNode;
+			placeText = true;
+		}
 		if (obj instanceof NodeProto)
 		{
 			np = (NodeProto)obj;
@@ -904,17 +925,17 @@ public class PaletteFrame
 			if (np instanceof Cell)
 				System.out.println("Click to create an instance of cell " + np.describe()); else
 					System.out.println("Click to create node " + np.describe());
-			EventListener currentListener = oldListener;
-			if (currentListener != null && currentListener instanceof PlaceNodeListener)
+			EventListener newListener = oldListener;
+			if (newListener != null && newListener instanceof PlaceNodeListener)
 			{
-				((PlaceNodeListener)currentListener).setParameter(np);
+				((PlaceNodeListener)newListener).setParameter(np);
 			} else
 			{
-				currentListener = new PlaceNodeListener(panel, obj, oldListener, oldCursor);
-				EditWindow.setListener(currentListener);
+				newListener = new PlaceNodeListener(panel, obj, oldListener, oldCursor);
+				EditWindow.setListener(newListener);
 			}
-			if (np == Generic.tech.invisiblePinNode)
-				((PlaceNodeListener)currentListener).setTextNode();
+			if (placeText)
+				((PlaceNodeListener)newListener).setTextNode();
 			if (panel != null)
 				panel.getFrame().highlightedNode = np;
 
@@ -923,7 +944,7 @@ public class PaletteFrame
 		}
 	}
 
-	static class PlaceNodeListener
+	public static class PlaceNodeListener
 		implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 	{
 		private int oldx, oldy;
@@ -937,7 +958,7 @@ public class PaletteFrame
 		private PalettePanel window;
 		private int defAngle;
 
-		private PlaceNodeListener(PalettePanel window, Object toDraw, EventListener oldListener, Cursor oldCursor)
+		public PlaceNodeListener(PalettePanel window, Object toDraw, EventListener oldListener, Cursor oldCursor)
 		{
 			this.window = window;
 			this.toDraw = toDraw;
@@ -988,13 +1009,29 @@ public class PaletteFrame
 			}
 			if (np != null)
 			{
-				SizeOffset so = np.getSizeOffset();
-				double trueSizeX = np.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
-				double trueSizeY = np.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
-				Poly poly = new Poly(drawnLoc.getX(), drawnLoc.getY(), trueSizeX, trueSizeY);
-				AffineTransform trans = NodeInst.rotateAbout(defAngle%3600, drawnLoc.getX(), drawnLoc.getY(),
-					(defAngle >= 3600 ? -trueSizeX : trueSizeX), trueSizeY);
-				poly.transform(trans);
+				Poly poly = null;
+				if (np instanceof Cell)
+				{
+					Cell placeCell = (Cell)np;
+					Rectangle2D cellBounds = placeCell.getBounds();
+					SizeOffset so = np.getSizeOffset();
+					poly = new Poly(cellBounds);
+					AffineTransform rotate = NodeInst.pureRotate(defAngle%3600,
+						(defAngle >= 3600 ? true : false), false);
+					AffineTransform translate = new AffineTransform();
+					translate.setToTranslation(drawnLoc.getX(), drawnLoc.getY());
+					rotate.concatenate(translate);
+					poly.transform(rotate);
+				} else
+				{
+					SizeOffset so = np.getSizeOffset();
+					double trueSizeX = np.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
+					double trueSizeY = np.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
+					poly = new Poly(drawnLoc.getX(), drawnLoc.getY(), trueSizeX, trueSizeY);
+					AffineTransform trans = NodeInst.rotateAbout(defAngle%3600, drawnLoc.getX(), drawnLoc.getY(),
+						(defAngle >= 3600 ? -trueSizeX : trueSizeX), trueSizeY);
+					poly.transform(trans);
+				}
 				Point2D [] points = poly.getPoints();
 				for(int i=0; i<points.length; i++)
 				{

@@ -374,6 +374,17 @@ public class EditWindow extends JPanel
 			// add in drag area
 			if (doingAreaDrag) showDragBox(g);
 		}
+		synchronized(redrawThese)
+		{
+			if (redrawThese.size() > 0)
+			{
+				EditWindow nextWnd = (EditWindow)redrawThese.get(0);
+				redrawThese.remove(0);
+				RenderJob nextJob = new RenderJob(nextWnd, nextWnd.getOffscreen());
+				return;
+			}
+			runningNow = false;
+		}
 	}
 
 	/**
@@ -396,17 +407,17 @@ public class EditWindow extends JPanel
 		{
 			offscreen.drawImage();
 			wnd.repaint();
-			synchronized(redrawThese)
-			{
-				if (redrawThese.size() > 0)
-				{
-					EditWindow nextWnd = (EditWindow)redrawThese.get(0);
-					redrawThese.remove(0);
-					RenderJob nextJob = new RenderJob(nextWnd, nextWnd.getOffscreen());
-					return;
-				}
-				runningNow = false;
-			}
+//			synchronized(redrawThese)
+//			{
+//				if (redrawThese.size() > 0)
+//				{
+//					EditWindow nextWnd = (EditWindow)redrawThese.get(0);
+//					redrawThese.remove(0);
+//					RenderJob nextJob = new RenderJob(nextWnd, nextWnd.getOffscreen());
+//					return;
+//				}
+//				runningNow = false;
+//			}
 		}
 	}
 
