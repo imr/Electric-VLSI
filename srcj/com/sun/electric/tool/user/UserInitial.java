@@ -36,16 +36,25 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.user.ui.Button;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ui.UIEditFrame;
 import com.sun.electric.tool.user.ui.UIMenu;
+import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.UITopLevel;
 
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Insets;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
+
+import javax.swing.ImageIcon;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 import javax.swing.JMenuBar;
 
@@ -158,6 +167,39 @@ public final class UserInitial
         menuBar.add(jongMenu);
 		UITopLevel.setMenuBar(menuBar);
 
+		//create button
+		Button openButton = Button.CreateButton(new ImageIcon("com/sun/electric/tool/user/icon11.gif"));
+		//set button border style
+		openButton.setButtonStyle(Button.STYLE_HOVER);
+		//set mouse roll feature on
+		openButton.setMouseHover(true);
+		openButton.addActionListener(
+			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.openLibraryCommand(); } });
+		openButton.setToolTipText("Open");
+	
+		Button aButton = Button.CreateButton(new ImageIcon("com/sun/electric/tool/user/icon10.gif"));
+		aButton.setButtonStyle(Button.STYLE_HOVER);
+		aButton.setMouseHover(true);
+		aButton.setToolTipText("test");
+		
+		//set an area for popup menu to be triggered within a button
+		Insets insets = new Insets(22,22,32,32);
+		JPopupMenu popup = new JPopupMenu();
+		JMenuItem testItem = new JMenuItem("test 1");
+		popup.add(testItem);
+		testItem = new JMenuItem("test 2");
+		popup.add(testItem);
+		
+		aButton.addPopupMenu(popup, insets);
+		
+		//add buttons to toolbar
+		ToolBar toolbar = ToolBar.CreateToolBar();
+		toolbar.add(openButton);
+		toolbar.add(aButton);
+
+		
+		(UITopLevel.getTopLevel()).getContentPane().add(toolbar, BorderLayout.NORTH);
+		
 		// initialize all of the technologies
 		Technology.initAllTechnologies();
 
