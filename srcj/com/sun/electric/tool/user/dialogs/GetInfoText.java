@@ -378,12 +378,14 @@ public class GetInfoText extends EDialog {
 
        if (changed) {
             // split text into lines
+	        // Should skip empty lines
             String[] textArray = new String[theText.getLineCount()];
             for (int i = 0; i < theText.getLineCount(); i++) {
                 try {
                     int startPos = theText.getLineStartOffset(i);
                     int endPos = theText.getLineEndOffset(i);
                     if (currentText.charAt(endPos - 1) == '\n') endPos--;
+	                if (endPos < startPos) continue; // empty line, just return character
                     textArray[i] = currentText.substring(startPos, endPos);
                 } catch (javax.swing.text.BadLocationException e) {
                 }

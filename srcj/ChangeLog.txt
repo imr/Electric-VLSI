@@ -2,6 +2,10 @@
 
 ************************* Version 8.00: Released  *************************
 
+BUG: (6/04/04, GVG) If empty lines are inserted as vars, null and outbound exceptions are thrown om Poly.java and
+GetInfoText.java respectively.
+FIX: Skip access if object array[i] is null.
+
 IMP: (6/3/04, SMR) Searching objects in a cell is now an Iterator.
 
 IMP: (6/3/04, SMR) Implemented "Show Power and Ground"

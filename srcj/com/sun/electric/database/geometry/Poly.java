@@ -786,6 +786,8 @@ public class Poly implements Shape
 				Object [] objList = (Object [])var.getObject();
 				for(int i=0; i<numLines; i++)
 				{
+					// empty line
+					if (objList[i] == null) continue;
 					String str = objList[i].toString();
 					if (str.length() > theString.length()) theString = str;
 				}
