@@ -83,6 +83,7 @@ import com.sun.j3d.utils.behaviors.interpolators.KBKeyFrame;
 import com.sun.j3d.utils.behaviors.interpolators.KBRotPosScaleSplinePathInterpolator;
 import com.sun.j3d.utils.behaviors.interpolators.RotPosScaleTCBSplinePathInterpolator;
 import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
+import com.sun.j3d.utils.behaviors.keyboard.KeyNavigatorBehavior;
 import com.sun.j3d.utils.geometry.GeometryInfo;
 import com.sun.j3d.utils.geometry.NormalGenerator;
 import com.sun.j3d.utils.picking.PickCanvas;
@@ -291,6 +292,7 @@ public class View3DWindow extends JPanel
 
         //translateB.setView(bnd.getWidth(), 0);
         rotateB.setRotation(User.get3DRotX(), User.get3DRotY());
+        zoomB.setZomm(User.get3DOrigZoom());
 		proj.ortho(bnd.getMinX(), bnd.getMinX(), bnd.getMinY(), bnd.getMaxY(), (vDist+radius)/200.0, (vDist+radius)*2.0);
 
 		vTrans.set(vCenter);
@@ -362,6 +364,17 @@ public class View3DWindow extends JPanel
         pickCanvas.setTolerance(4.0f);
 
         setInterpolator(infiniteBounds);
+
+        // Key
+        TransformGroup keyB = new TransformGroup( );
+		keyB.setCapability( TransformGroup.ALLOW_TRANSFORM_WRITE );
+		keyB.setCapability( TransformGroup.ALLOW_TRANSFORM_READ );
+
+		// attach a navigation behavior to the position of the viewer
+		KeyNavigatorBehavior key = new KeyNavigatorBehavior( keyB );
+		key.setSchedulingBounds(infiniteBounds);
+		key.setEnable( true );
+		objRoot.addChild( key );
 
 		// Have Java 3D perform optimizations on this scene graph.
 	    objRoot.compile();
@@ -955,7 +968,7 @@ public class View3DWindow extends JPanel
             if (poly == null) continue; // Case for transistors and active regions.
 			Layer layer = poly.getLayer();
 
-            if (layer.getTechnology() == null) continue; // Non-layout technology. E.g Artwork
+            if (layer == null || layer.getTechnology() == null) continue; // Non-layout technology. E.g Artwork
 			if (!layer.isVisible()) continue; // Doesn't generate the graph
 
 			double thickness = layer.getThickness() * scale3D;
@@ -1393,46 +1406,56 @@ public class View3DWindow extends JPanel
 	 */
 	public class JMouseZoom extends MouseZoom
 	{
-		//Vector3d extraTrans = new Vector3d();
-
 		public JMouseZoom(Component c, int flags) {super(c, flags);}
 
+        void setZomm(double factor)
+        {
+            // Remember old matrix
+            transformGroup.getTransform(currXform);
+            Matrix4d mat = new Matrix4d();
+            currXform.get(mat);
+            double dy = currXform.getScale() * factor;
+            currXform.setScale(dy);
+            transformGroup.setTransform(currXform);
+            transformChanged( currXform );
+        }
 
 		void zoomInOut(boolean out)
 		{
-			// Remember old matrix
-			transformGroup.getTransform(currXform);
-
-			Matrix4d mat = new Matrix4d();
-			currXform.get(mat);
+//			// Remember old matrix
+//			transformGroup.getTransform(currXform);
+//
+//			Matrix4d mat = new Matrix4d();
+//			currXform.get(mat);
 			double z_factor = Math.abs(getFactor());
 			double factor = (out) ? (0.5/z_factor) : (2*z_factor);
 			double factor1 = (out) ? (1/z_factor) : (z_factor);
-
-			double dy = currXform.getScale() * factor1;
-			currXform.setScale(dy);
-
-			// Translate to origin
-//			currXform.setTranslation(new Vector3d(0.0,0.0,0.0));
+            setZomm(factor1);
 //
-//			extraTrans.z = dy; //dy*getFactor();
+//			double dy = currXform.getScale() * factor1;
+//			currXform.setScale(dy);
 //
-//			//transformX.set(extraTrans);
-//			transformX.setScale(dy);
+//			// Translate to origin
+////			currXform.setTranslation(new Vector3d(0.0,0.0,0.0));
+////
+////			extraTrans.z = dy; //dy*getFactor();
+////
+////			//transformX.set(extraTrans);
+////			transformX.setScale(dy);
+////
+////			if (invert) {
+////				currXform.mul(currXform, transformX);
+////			} else {
+////				currXform.mul(transformX, currXform);
+////			}
+////
+////			// Set old extraTrans back
+////			Vector3d extraTrans = new Vector3d(mat.m03, mat.m13, mat.m23);
+////			currXform.setTranslation(extraTrans);
 //
-//			if (invert) {
-//				currXform.mul(currXform, transformX);
-//			} else {
-//				currXform.mul(transformX, currXform);
-//			}
+//			transformGroup.setTransform(currXform);
 //
-//			// Set old extraTrans back
-//			Vector3d extraTrans = new Vector3d(mat.m03, mat.m13, mat.m23);
-//			currXform.setTranslation(extraTrans);
-
-			transformGroup.setTransform(currXform);
-
-			transformChanged( currXform );
+//			transformChanged( currXform );
 
 		}
     }
@@ -1444,7 +1467,7 @@ public class View3DWindow extends JPanel
     {
         public JMouseRotate(int flags) {super(flags);}
 
-        public void setRotation(double angleX, double angleY)
+        void setRotation(double angleX, double angleY)
         {
 		    transformX.rotX(angleX);
 		    transformY.rotY(angleY);
@@ -1530,16 +1553,16 @@ public class View3DWindow extends JPanel
      */
     public void set3DCamera(int mode)
     {
-//        if (mode == 0)
-//        {
-//            boolean state = kbSplineInter.getEnable();
-//            kbSplineInter.setEnable(!state);
-//        }
-//        else
-//        {
-//            boolean state = tcbSplineInter.getEnable();
-//            tcbSplineInter.setEnable(!state);
-//        }
+        if (mode == 0)
+        {
+            boolean state = kbSplineInter.getEnable();
+            kbSplineInter.setEnable(!state);
+        }
+        else
+        {
+            boolean state = tcbSplineInter.getEnable();
+            tcbSplineInter.setEnable(!state);
+        }
     }
 
     /**
@@ -1564,8 +1587,7 @@ public class View3DWindow extends JPanel
             NodeInst ni = (NodeInst)it.next();
             if (ni.getProto() == Artwork.tech.pinNode)
             {
-                Poly [] polyList = Artwork.tech.getShapeOfNode(ni);
-                Poly poly = polyList[0];
+                Rectangle2D rect = ni.getBounds();
                 Variable var = (Variable)ni.getVar("3D_Z_VALUE");
                 double zValue = (var == null) ? zCenter : TextUtils.atof(var.getObject().toString());
                 var = (Variable)ni.getVar("3D_SCALE_VALUE");
@@ -1582,7 +1604,7 @@ public class View3DWindow extends JPanel
                 double rotY = (var == null) ? 0 : TextUtils.atof(var.getObject().toString());
                 var = (Variable)ni.getVar("3D_ROTZ_VALUE");
                 double rotZ = (var == null) ? 0 : TextUtils.atof(var.getObject().toString());
-                Utils3D.ThreeDDemoKnot knot = new Utils3D.ThreeDDemoKnot(poly.getCenterX(), poly.getCenterY(),
+                Utils3D.ThreeDDemoKnot knot = new Utils3D.ThreeDDemoKnot(rect.getCenterX(), rect.getCenterY(),
                         zValue, scale, heading, pitch, bank, rotX, rotY, rotZ);
                 polys.add(knot);
             }
@@ -1590,7 +1612,6 @@ public class View3DWindow extends JPanel
 
         if (polys.size() == 0) return; // nothing to create
 
-        //objTrans.getTransform(yAxis);
         KBKeyFrame[] splineKeyFrames = new KBKeyFrame[polys.size()];
         TCBKeyFrame[] keyFrames = new TCBKeyFrame[polys.size()];
         for (int i = 0; i < polys.size(); i++)

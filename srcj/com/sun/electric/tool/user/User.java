@@ -1236,7 +1236,7 @@ public class User extends Listener
 	/**
 	 * Method to get current scale factor for Z values.
 	 * The default is 1.0
-	 * @return true to draw 3D views with perspective.
+	 * @return scale factor along Z.
 	 */
 	public static double get3DFactor() { return cache3DFactor.getDouble(); }
 	/**
@@ -1249,7 +1249,7 @@ public class User extends Listener
 	/**
 	 * Method to get default rotation along X value for the view
 	 * The default is 0 and values are in radiant
-	 * @return true to draw 3D views with perspective.
+	 * @return rotation along X axis.
 	 */
 	public static double get3DRotX() { return cache3DRotX.getDouble(); }
 	/**
@@ -1262,7 +1262,7 @@ public class User extends Listener
 	/**
 	 * Method to get default rotation along Y value for the view
 	 * The default is 0 and values are in radiant
-	 * @return true to draw 3D views with perspective.
+	 * @return rotation along Y axis.
 	 */
 	public static double get3DRotY() { return cache3DRotY.getDouble(); }
 	/**
@@ -1270,6 +1270,19 @@ public class User extends Listener
 	 * @param value angle on Y
 	 */
 	public static void set3DRotY(double value) { cache3DRotY.setDouble(value); }
+
+    private static Pref cache3DOrigZoom= Pref.makeDoublePref("RotY3D", User.tool.prefs, 1);
+	/**
+	 * Method to get original zoom factor for the view
+	 * The default is 1
+	 * @return original zoom factor
+	 */
+	public static double get3DOrigZoom() { return cache3DOrigZoom.getDouble(); }
+	/**
+	 * Method to set default zoom factor
+	 * @param value angle on Y
+	 */
+	public static void set3DOrigZoom(double value) { cache3DOrigZoom.setDouble(value); }
     /**************************** End of 3D Display Preferences **************************************/
 
 	private static Pref cachePlayClickSoundsWhenCreatingArcs = Pref.makeBooleanPref("PlayClickSoundsWhenCreatingArcs", User.tool.prefs, true);
