@@ -129,15 +129,15 @@ public class View3DWindow extends JPanel
 		orbit.setSchedulingBounds(infiniteBounds);
 
 		/** step A **/
-		Point3d center = new Point3d(0, 0, /*cell.getBounds().getCenterX(),cell.getBounds().getCenterY(),*/ 0);
+		Point3d center = new Point3d(0, 0, 0);
+
+		//if (!User.is3DPerspective()) center = new Point3d(cell.getBounds().getCenterX(),cell.getBounds().getCenterY(), -10);
 
 		orbit.setRotationCenter(center);
 		orbit.setMinRadius(0);
 		orbit.setZoomFactor(10);
 		orbit.setTransFactors(10, 10);
         orbit.setProportionalZoom(true);
-		//Transform3D t1 = new Transform3D();
-		//orbit.setHomeTransform(t1);
 
 		viewingPlatform.setViewPlatformBehavior(orbit);
 
@@ -151,18 +151,46 @@ public class View3DWindow extends JPanel
 		double radius = sceneBnd.getRadius();
 		View view = u.getViewer().getView();
 
+		// Setting the projection policy
+		view.setProjectionPolicy(User.is3DPerspective()? View.PERSPECTIVE_PROJECTION : View.PARALLEL_PROJECTION);
+		if (!User.is3DPerspective()) view.setCompatibilityModeEnable(true);
+
 		Point3d c1 = new Point3d();
 		sceneBnd.getCenter(c1);
-
 		Vector3d vCenter = new Vector3d(c1);
 		double vDist = 1.4 * radius / Math.tan(view.getFieldOfView()/2.0);
+        Point3d c2 = new Point3d();
+
+        sceneBnd.getCenter(c2);
+		c2.z += vDist;
+
+		//if (User.is3DPerspective())
 		vCenter.z += vDist;
 		Transform3D vTrans = new Transform3D();
+		Transform3D proj = new Transform3D();
+        Transform3D lookAt = new Transform3D();
+
+		//lookAt.lookAt(c2, c1, new Vector3d(1, 1, 1));
+		//lookAt.invert();
+
+		proj.ortho(cell.getBounds().getMinX(), cell.getBounds().getMaxX(),
+		        cell.getBounds().getMinY(), cell.getBounds().getMaxY(), (vDist+radius)/200.0, (vDist+radius)*2.0);
+
 		vTrans.set(vCenter);
 
+		view.setBackClipDistance((vDist+radius)*2.0);
+		view.setFrontClipDistance((vDist+radius)/200.0);
 		view.setBackClipPolicy(View.VIRTUAL_EYE);
-		view.setBackClipDistance(radius*20);
+		view.setFrontClipPolicy(View.VIRTUAL_EYE);
+		if (User.is3DPerspective())
+		{
 		viewingPlatform.getViewPlatformTransform().setTransform(vTrans);
+		}
+		else
+		{
+			view.setVpcToEc(proj);
+			//viewingPlatform.getViewPlatformTransform().setTransform(lookAt);
+		}
 		setWindowTitle();
 	}
 
@@ -188,11 +216,6 @@ public class View3DWindow extends JPanel
 		Background bg = new Background(new Color3f(new Color(User.getColorBackground())));
 		bg.setApplicationBounds(infiniteBounds);
 		objRoot.addChild(bg);
-
-		/*
-		double cx = cell.getBounds().getMinX();
-        double cy = cell.getBounds().getMinY();
-        */
 
 		// Drawing nodes
 		for(Iterator nodes = cell.getNodes(); nodes.hasNext(); )

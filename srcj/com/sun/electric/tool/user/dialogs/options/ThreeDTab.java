@@ -123,7 +123,7 @@ public class ThreeDTab extends PreferencePanel
 		threeDPerspective.setSelected(initial3DPerspective);
 
 		// not yet
-		threeDPerspective.setEnabled(false);
+		//threeDPerspective.setEnabled(false);
 	}
 
 	private class ThreeDSideView extends JPanel

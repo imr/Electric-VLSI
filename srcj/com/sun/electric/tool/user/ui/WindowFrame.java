@@ -157,6 +157,7 @@ public class WindowFrame
 			frame.populateJFrame();
 		} catch (Exception e) {
             System.out.println("Can't open 3D View window: " + e.getMessage());
+			e.printStackTrace();
         }
 
 		return frame;
