@@ -56,15 +56,18 @@ public class CrossLibCopy extends EDialog
 	private class CrossLibScrollBarListener implements ChangeListener
 	{
 		private JScrollBar[] scrollBarList;
+        protected boolean blocked = false;
 
 		public  CrossLibScrollBarListener(JScrollBar[] bars)
 		{
 			scrollBarList = new JScrollBar[2];
-
 			System.arraycopy(bars, 0, scrollBarList, 0, bars.length);
 		}
 		public void stateChanged(ChangeEvent evt)
 		{
+            if (blocked) return;
+
+            blocked = true;
 
 			BoundedRangeModel   sourceScroll = (BoundedRangeModel)evt.getSource();
 
@@ -79,6 +82,8 @@ public class CrossLibCopy extends EDialog
 
 			for (int i = 0; i < scrollBarList.length; i++)
 				scrollBarList[i].setValue(iDVal);
+
+            blocked = false;
 		}
 	}
 

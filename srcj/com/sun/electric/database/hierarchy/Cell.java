@@ -529,7 +529,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		for(int i=0; i<toName.length(); i++)
 		{
 			char ch = toName.charAt(i);
-			if (ch <= ' ' || ch == ':' || ch >= 0177) return null;
+			if (ch <= ' ' || ch == ':' || ch >= 0177)
+            {
+                System.out.println("invalid name of new cell");
+                return null;
+            }
 		}
 
 		// determine whether this copy is to a different library
