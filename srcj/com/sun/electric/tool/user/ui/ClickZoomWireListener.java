@@ -1072,6 +1072,9 @@ public class ClickZoomWireListener
             if (found) break;
         }
         if (!found) return;
+
+        if (ap == User.tool.getCurrentArcProto()) return;
+
         // if a single portinst highlighted, route from that to node that can connect to arc
         if (Highlight.getNumHighlights() == 1 && cell != null) {
             ElectricObject obj = Highlight.getOneHighlight().getElectricObject();

@@ -143,9 +143,10 @@ public abstract class InteractiveRouter extends Router {
      * @return true on sucess
      */
     public boolean makeVerticalRoute(PortInst startPort, ArcProto arc) {
-        if (!started) startInteractiveRoute();
         // do nothing if startPort can already connect to arc
         if (startPort.getPortProto().connectsTo(arc)) return true;
+
+        if (!started) startInteractiveRoute();
 
         RouteElement startRE = RouteElement.existingPortInst(startPort, null);
         Route route = new Route();
@@ -153,7 +154,10 @@ public abstract class InteractiveRouter extends Router {
         route.setEnd(startRE);
 
         VerticalRoute vroute = new VerticalRoute(startRE, arc);
-        if (!vroute.specifyRoute()) return false;
+        if (!vroute.specifyRoute()) {
+            cancelInteractiveRoute();
+            return false;
+        }
         vroute.buildRoute(route, startRE.getCell(), startRE.getLocation());
         // restore highlights at start of planning, so that
         // they will correctly show up if this job is undone.

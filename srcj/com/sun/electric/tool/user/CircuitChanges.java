@@ -1213,18 +1213,21 @@ public class CircuitChanges
 			Highlight.clear();
 			Highlight.finished();
 
-			// if just one node is selected, see if it can be deleted with "pass through"
+/*			// if just one node is selected, see if it can be deleted with "pass through"
 			if (deleteList.size() == 1 && oneGeom instanceof NodeInst)
 			{
 				Reconnect re = Reconnect.erasePassThru((NodeInst)oneGeom, false);
 				if (re != null)
 				{
-					ArcInst ai = re.reconnectArcs();
-					Highlight.addElectricObject(ai, cell);
-					Highlight.finished();
-					return true;
+					List arcs = re.reconnectArcs();
+                    for (Iterator it = arcs.iterator(); it.hasNext(); ) {
+                        ArcInst ai = (ArcInst)it.next();
+					    Highlight.addElectricObject(ai, cell);
+					    Highlight.finished();
+                    }
+					//return true;
 				}
-			}
+			}*/
 
 			// delete the text
 			for(Iterator it = highlightedText.iterator(); it.hasNext(); )
@@ -1479,7 +1482,12 @@ public class CircuitChanges
 			if (geom instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)geom;
-				eraseNodeInst(ni);
+
+                // see if any arcs can be reconnected as a result of this kill
+                Reconnect re = Reconnect.erasePassThru(ni, false);
+                if (re != null) re.reconnectArcs();
+
+                eraseNodeInst(ni);
 			}
 		}
 
@@ -1512,14 +1520,18 @@ public class CircuitChanges
 			{
 				if (ni.getProto().getFunction() != NodeProto.Function.PIN) continue;
 				if (ni.getNumExports() != 0) continue;
-				Reconnect re = Reconnect.erasePassThru(ni, false);
-				if (re != null) nodesToPassThru.add(re);
+                if (!ni.isInlinePin()) continue;
+				nodesToPassThru.add(ni);
 			}
 		}
 		for(Iterator it = nodesToPassThru.iterator(); it.hasNext(); )
 		{
-			Reconnect re = (Reconnect)it.next();
-			re.reconnectArcs();
+            NodeInst ni = (NodeInst)it.next();
+            Reconnect re = Reconnect.erasePassThru(ni, false);
+			if (re != null) {
+                re.reconnectArcs();
+			    eraseNodeInst(ni);
+            }
 		}
 
 		deleteFlag.freeFlagSet();
@@ -4094,6 +4106,27 @@ public class CircuitChanges
 		}
 	}
 
+
+    /**
+     * Store information of new arc to be created that reconnects
+     * two arcs that will be deleted
+     */
+    private static class ReconnectedArc
+    {
+        /** port at other end of arc */						private PortInst [] reconPi;
+        /** coordinate at other end of arc */				private Point2D [] recon;
+        /** old arc insts that will be deleted */           private ArcInst [] reconAr;
+        /** prototype of new arc */							private ArcProto ap;
+        /** width of new arc */								private double wid;
+        /** true to make new arc directional */				private boolean directional;
+        /** true to make new arc negated */					private boolean negated;
+        /** true to ignore the head of the new arc */		private boolean ignoreHead;
+        /** true to ignore the tail of the new arc */		private boolean ignoreTail;
+        /** true to reverse the head/tail on new arc */		private boolean reverseEnd;
+        /** the name to use on the reconnected arc */		private String arcName;
+        /** TextDescriptor for the reconnected arc name */	private TextDescriptor arcNameTD;
+    }
+
 	/**
 	 * This class handles deleting pins that are between two arcs,
 	 * and reconnecting the arcs without the pin.
@@ -4101,26 +4134,12 @@ public class CircuitChanges
 	private static class Reconnect
 	{
 		/** node in the center of the reconnect */			private NodeInst ni;
-		/** number of arcs found on this reconnection */	private int arcsFound;
-		/** coordinate at other end of arc */				private Point2D [] recon;
-		/** coordinate where arc hits deleted node */		private Point2D [] orig;
-		/** distance between ends */						private Point2D [] delta;
-		/** port at other end of arc */						private PortInst [] reconPi;
-		/** arcinst being reconnected */					private ArcInst [] reconAr;
-		/** prototype of new arc */							private ArcProto ap;
-		/** width of new arc */								private double wid;
-		/** true to make new arc directional */				private boolean directional;
-		/** true to make new arc negated */					private boolean negated;
-		/** true to ignore the head of the new arc */		private boolean ignoreHead;
-		/** true to ignore the tail of the new arc */		private boolean ignoreTail;
-		/** true to reverse the head/tail on new arc */		private boolean reverseEnd;
-		/** the name to use on the reconnected arc */		private String arcName;
-		/** TextDescriptor for the reconnected arc name */	private TextDescriptor arcNameTD;
+        /** list of reconnected arcs */                     private ArrayList reconnectedArcs;
 
 		/**
 		 * Method to find a possible Reconnect through a given NodeInst.
 		 * @param ni the NodeInst to examine.
-		 * @param allowDiffs true to allow differences in the two arcs.
+		 * @param allowdiffs true to allow differences in the two arcs.
 		 * If this is false, then different width arcs, or arcs that are not lined up
 		 * precisely, will not be considered for reconnection.
 		 * @return a Reconnect object that describes the reconnection to be done.
@@ -4133,157 +4152,171 @@ public class CircuitChanges
 			if (cantEdit(cell, ni, true)) return null;
 			Netlist netlist = cell.getUserNetlist();
 
-			// look for pairs arcs that will get reconnected
-			List reconList = new ArrayList();
-			for(Iterator it = ni.getConnections(); it.hasNext(); )
-			{
-				Connection con = (Connection)it.next();
-				PortInst pi = con.getPortInst();
-				ArcInst ai = con.getArc();
+            Reconnect recon = new Reconnect();
+            recon.ni = ni;
+            recon.reconnectedArcs = new ArrayList();
 
-				// ignore arcs that connect from the node to itself
-				if (ai.getHead().getPortInst().getNodeInst() == ai.getTail().getPortInst().getNodeInst())
-					continue;
+            // get all arcs connected to each portinst on node
+            for (Iterator it = ni.getPortInsts(); it.hasNext(); ) {
+                PortInst pi = (PortInst)it.next();
 
-				// find a "reconnect" object with this network
-				Reconnect reFound = null;
-				for(Iterator rIt = reconList.iterator(); rIt.hasNext(); )
-				{
-					Reconnect re = (Reconnect)rIt.next();
-					if (netlist.sameNetwork(ai, re.reconAr[0])) { reFound = re;   break; }
-				}
-				if (reFound == null)
-				{
-					reFound = new Reconnect();
-					reFound.ni = ni;
-					reFound.recon = new Point2D[2];
-					reFound.orig = new Point2D[2];
-					reFound.delta = new Point2D[2];
-					reFound.reconPi = new PortInst[2];
-					reFound.reconAr = new ArcInst[2];
-					reFound.arcsFound = 0;
-					reconList.add(reFound);
-				}
-				int j = reFound.arcsFound;
-				reFound.arcsFound++;
-				if (reFound.arcsFound > 2) continue;
-				reFound.reconAr[j] = ai;
-				for(int i=0; i<2; i++)
-				{
-					if (ai.getConnection(i).getPortInst().getNodeInst() == ni) continue;
-					reFound.reconPi[j] = ai.getConnection(i).getPortInst();
-					reFound.recon[j] = ai.getConnection(i).getLocation();
-					reFound.orig[j] = ai.getConnection(1-i).getLocation();
-					reFound.delta[j] = new Point2D.Double(reFound.recon[j].getX() - reFound.orig[j].getX(),
-						reFound.recon[j].getY() - reFound.orig[j].getY());
-				}
-			}
+                ArrayList arcs = new ArrayList();
+                for (Iterator it2 = pi.getConnections(); it2.hasNext(); ) {
+                    Connection conn = (Connection)it2.next();
+                    ArcInst ai = conn.getArc();
+                    // ignore arcs that connect from the node to itself
+                    if (ai.getHead().getPortInst().getNodeInst() == ai.getTail().getPortInst().getNodeInst())
+                        continue;
+                    arcs.add(ai);
+                }
 
-			// examine all of the reconnection situations
-			for(Iterator rIt = reconList.iterator(); rIt.hasNext(); )
-			{
-				Reconnect re = (Reconnect)rIt.next();
-				if (re.arcsFound != 2) continue;
+                // go through all arcs on this portinst and see if any can be reconnected
+                while (arcs.size() > 1) {
+                    ArcInst ai1 = (ArcInst)arcs.remove(0);
+                    for (Iterator it2 = arcs.iterator(); it2.hasNext(); ) {
+                        ArcInst ai2 = (ArcInst)it2.next();
 
-				// verify that the two arcs to merge have the same type
-				if (re.reconAr[0].getProto() != re.reconAr[1].getProto()) { re.arcsFound = -1; continue; }
-				re.ap = re.reconAr[0].getProto();
+                        ReconnectedArc ra = reconnectArcs(pi, ai1, ai2, allowdiffs);
+                        // if reconnection to be made, add to list
+                        if (ra != null) recon.reconnectedArcs.add(ra);
+                    }
+                }
+            }
+            if (recon.reconnectedArcs.size() == 0) return null;
 
-				if (!allowdiffs)
-				{
-					// verify that the two arcs to merge have the same width
-					if (re.reconAr[0].getWidth() != re.reconAr[1].getWidth()) { re.arcsFound = -2; continue; }
+            return recon;
+		}
 
-					// verify that the two arcs have the same slope
-					if ((re.delta[1].getX()*re.delta[0].getY()) != (re.delta[0].getX()*re.delta[1].getY())) { re.arcsFound = -3; continue; }
-					if (re.orig[0].getX() != re.orig[1].getX() || re.orig[0].getY() != re.orig[1].getY())
-					{
-						// did not connect at the same location: be sure that angle is consistent
-						if (re.delta[0].getX() != 0 || re.delta[0].getY() != 0)
-						{
-							if (((re.orig[0].getX()-re.orig[1].getX())*re.delta[0].getY()) !=
-								(re.delta[0].getX()*(re.orig[0].getY()-re.orig[1].getY()))) { re.arcsFound = -3; continue; }
-						} else if (re.delta[1].getX() != 0 || re.delta[1].getY() != 0)
-						{
-							if (((re.orig[0].getX()-re.orig[1].getX())*re.delta[1].getY()) !=
-								(re.delta[1].getX()*(re.orig[0].getY()-re.orig[1].getY()))) { re.arcsFound = -3; continue; }
-						} else { re.arcsFound = -3; continue; }
-					}
-				}
+        /** Returns null if couldn't reconnect arcs together */
+        private static ReconnectedArc reconnectArcs(PortInst pi, ArcInst ai1, ArcInst ai2, boolean allowdiffs) {
 
-				// remember facts about the new arcinst
-				re.wid = re.reconAr[0].getWidth();
+            // verify that the two arcs to merge have the same type
+            if (ai1.getProto() != ai2.getProto()) return null;
 
-				re.directional = re.reconAr[0].isDirectional() || re.reconAr[1].isDirectional();
+            ReconnectedArc ra = new ReconnectedArc();
+            ra.ap = ai1.getProto();
+            ra.reconPi = new PortInst[2];
+            ra.recon = new Point2D[2];
+            ra.reconAr = new ArcInst[2];
+            ra.reconAr[0] = ai1;
+            ra.reconAr[1] = ai2;
+            Point2D [] orig = new Point2D[2];               // end points on port that will be deleted
+            Point2D [] delta = new Point2D[2];              // deltaX,Y of arc
+
+            // get end points of arcs
+            for (int i=0; i<2; i++) {
+                if (ai1.getConnection(i).getPortInst() != pi) {
+                    ra.reconPi[0] = ai1.getConnection(i).getPortInst();
+                    ra.recon[0] = ai1.getConnection(i).getLocation();
+                } else {
+                    orig[0] = ai1.getConnection(i).getLocation();
+                }
+                if (ai2.getConnection(i).getPortInst() != pi) {
+                    ra.reconPi[1] = ai2.getConnection(i).getPortInst();
+                    ra.recon[1] = ai2.getConnection(i).getLocation();
+                } else {
+                    orig[1] = ai2.getConnection(i).getLocation();
+                }
+            }
+            delta[0] = new Point2D.Double(ra.recon[0].getX() - orig[0].getX(),
+                                          ra.recon[0].getY() - orig[0].getY());
+            delta[1] = new Point2D.Double(ra.recon[1].getX() - orig[1].getX(),
+                                          ra.recon[1].getY() - orig[1].getY());
+
+            if (!allowdiffs)
+            {
+                // verify that the two arcs to merge have the same width
+                if (ai1.getWidth() != ai2.getWidth()) return null;
+
+                // verify that the two arcs have the same slope
+                if ((delta[1].getX()*delta[0].getY()) != (delta[0].getX()*delta[1].getY())) return null;
+                if (orig[0].getX() != orig[1].getX() || orig[0].getY() != orig[1].getY())
+                {
+                    // did not connect at the same location: be sure that angle is consistent
+                    if (delta[0].getX() != 0 || delta[0].getY() != 0)
+                    {
+                        if (((orig[0].getX()-orig[1].getX())*delta[0].getY()) !=
+                            (delta[0].getX()*(orig[0].getY()-orig[1].getY()))) return null;
+                    } else if (delta[1].getX() != 0 || delta[1].getY() != 0)
+                    {
+                        if (((orig[0].getX()-orig[1].getX())*delta[1].getY()) !=
+                            (delta[1].getX()*(orig[0].getY()-orig[1].getY()))) return null;
+                    } else return null;
+                }
+            }
+
+            // ok to connect arcs
+            ra.wid = ai1.getWidth();
+
+            ra.directional = ai1.isDirectional() || ai2.isDirectional();
 //				re.negated = re.reconAr[0].isNegated() || re.reconAr[1].isNegated();
 //				if (re.reconAr[0].isNegated() && re.reconAr[1].isNegated()) re.negated = false;
-				re.ignoreHead = re.reconAr[0].isSkipHead() || re.reconAr[1].isSkipHead();
-				re.ignoreTail = re.reconAr[0].isSkipTail() || re.reconAr[1].isSkipTail();
-				re.reverseEnd = re.reconAr[0].isReverseEnds() || re.reconAr[1].isReverseEnds();
-				re.arcName = null;
-				if (re.reconAr[0].getName() != null && !re.reconAr[0].getNameKey().isTempname())
-				{
-					re.arcName = re.reconAr[0].getName();
-					re.arcNameTD = re.reconAr[0].getNameTextDescriptor();
-				}
-				if (re.reconAr[1].getName() != null && !re.reconAr[1].getNameKey().isTempname())
-				{
-					re.arcName = re.reconAr[1].getName();
-					re.arcNameTD = re.reconAr[1].getNameTextDescriptor();
-				}
+            ra.ignoreHead = ai1.isSkipHead() || ai2.isSkipHead();
+            ra.ignoreTail = ai1.isSkipTail() || ai2.isSkipTail();
+            ra.reverseEnd = ai1.isReverseEnds() || ai2.isReverseEnds();
+            ra.arcName = null;
+            if (ai1.getName() != null && !ai1.getNameKey().isTempname())
+            {
+                ra.arcName = ai1.getName();
+                ra.arcNameTD = ai1.getNameTextDescriptor();
+            }
+            if (ai2.getName() != null && !ai2.getNameKey().isTempname())
+            {
+                ra.arcName = ai2.getName();
+                ra.arcNameTD = ai2.getNameTextDescriptor();
+            }
 
-				// special code to handle directionality
-				if (re.directional || re.negated || re.ignoreHead || re.ignoreTail || re.reverseEnd)
-				{
-					// reverse ends if the arcs point the wrong way
-					for(int i=0; i<2; i++)
-					{
-						if (re.reconAr[i].getConnection(i).getPortInst().getNodeInst() == ni)
-						{
-							if (re.reconAr[i].isReverseEnds()) re.reverseEnd = false; else
-								re.reverseEnd = true;									
-						}
-					}
-				}
-			}
+            // special code to handle directionality
+            if (ra.directional || ra.negated || ra.ignoreHead || ra.ignoreTail || ra.reverseEnd)
+            {
+                // reverse ends if the arcs point the wrong way
+                for(int i=0; i<2; i++)
+                {
+                    if (ra.reconAr[i].getConnection(i).getPortInst() == pi)
+                    {
+                        if (ra.reconAr[i].isReverseEnds()) ra.reverseEnd = false; else
+                            ra.reverseEnd = true;
+                    }
+                }
+            }
 
-			// see if any reconnection will be done
-			Reconnect reFound = null;
-			for(Iterator rIt = reconList.iterator(); rIt.hasNext(); )
-			{
-				Reconnect re = (Reconnect)rIt.next();
-				if (re.arcsFound == 2) { reFound = re;   break; }
-			}
-			return reFound;
-		}
+            return ra;
+        }
+
 
 		/**
 		 * Method to implement the reconnection in this Reconnect.
-		 * @return the newly created ArcInst that reconnects.
+		 * @return list of newly created ArcInst that reconnects.
 		 */
-		public ArcInst reconnectArcs()
+		public List reconnectArcs()
 		{
 			// kill the intermediate pin
-			eraseNodeInst(ni);
+			//eraseNodeInst(ni);
+
+            List newArcs = new ArrayList();
 
 			// reconnect the arcs
-			ArcInst newAi = ArcInst.makeInstance(ap, wid, reconPi[0], recon[0], reconPi[1], recon[1], null);
-			if (newAi == null) return null;
-			if (directional) newAi.setDirectional();
-//			if (negated) newAi.setNegated();
-			if (ignoreHead) newAi.setSkipHead();
-			if (ignoreTail) newAi.setSkipTail();
-			if (reverseEnd) newAi.setReverseEnds();
-			if (arcName != null)
-			{
-				newAi.setName(arcName);
-				newAi.setNameTextDescriptor(arcNameTD);
-			}
+            for (Iterator it = reconnectedArcs.iterator(); it.hasNext(); ) {
 
-			reconAr[0].copyVars(newAi);
-			reconAr[1].copyVars(newAi);
+                ReconnectedArc ra = (ReconnectedArc)it.next();
+                ArcInst newAi = ArcInst.makeInstance(ra.ap, ra.wid, ra.reconPi[0], ra.recon[0], ra.reconPi[1], ra.recon[1], null);
+                if (newAi == null) continue;
+                if (ra.directional) newAi.setDirectional();
+    //			if (negated) newAi.setNegated();
+                if (ra.ignoreHead) newAi.setSkipHead();
+                if (ra.ignoreTail) newAi.setSkipTail();
+                if (ra.reverseEnd) newAi.setReverseEnds();
+                if (ra.arcName != null)
+                {
+                    newAi.setName(ra.arcName);
+                    newAi.setNameTextDescriptor(ra.arcNameTD);
+                }
 
-			return newAi;
+                ra.reconAr[0].copyVars(newAi);
+                ra.reconAr[1].copyVars(newAi);
+                newArcs.add(newAi);
+            }
+			return newArcs;
 		}
 	};
 
