@@ -25,7 +25,6 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
@@ -33,7 +32,6 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
@@ -76,8 +74,6 @@ import javax.swing.JScrollBar;
 import javax.swing.JPopupMenu;
 import javax.swing.JMenuItem;
 import javax.swing.tree.DefaultMutableTreeNode;
-
-//import com.sun.j3d.utils.universe.*;
 
 /**
  * This class defines an editing window for displaying circuitry.
