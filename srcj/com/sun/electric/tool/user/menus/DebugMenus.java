@@ -1203,6 +1203,7 @@ public class DebugMenus {
 		long primSqr = 0;
 		int namedArcs = 0;
 		int namedNodes = 0;
+		int sameLocations = 0;
 
 		objs = new int[96];
 		vobjs = new int[96];
@@ -1264,8 +1265,12 @@ public class DebugMenus {
 // 					if (cellArcs.contains(ai.getName()))
 // 						System.out.println(cell + " has duplicate arc " + ai.getName());
 					cellArcs.add(ai.getName());
-					countPoint(ai.getHead().getLocation());
-					countPoint(ai.getTail().getLocation());
+					for (int i = 0; i < 2; i++) {
+						Point2D p = ai.getLocation(i);
+						if (ai.getPortInst(i).getNodeInst().getAnchorCenter().equals(p))
+							sameLocations++;
+						countPoint(p);
+					}
 				}
 
 				for (Iterator eIt = cell.getPorts(); eIt.hasNext(); )
@@ -1298,6 +1303,7 @@ public class DebugMenus {
 				((double)prims)/primUsages + " " + Math.sqrt(((double)primSqr)/primUsages));
 		System.out.println(namedNodes + " named nodes " + nodeNames.size());
 		System.out.println(namedArcs + " named arcs " + arcNames.size());
+		System.out.println(sameLocations + " same locations");
 		System.out.println(numPoints + " points " + points.size());
 		HashSet doubles = new HashSet();
 		for (Iterator it = points.iterator(); it.hasNext(); )
@@ -1331,6 +1337,7 @@ P 392542 0 0 0
 96421 prims 13727 primUsages 7.024185910978364 40.263985564608774
 468 named nodes 12604
 1496 named arcs 10925
+121518 same locations
 499519 points 136298
 14542 doubles 7299 whole 6728 quarter
 
@@ -1346,6 +1353,7 @@ P 704883 0 0 0
 162499 prims 20344 primUsages 7.987563900904443 69.86202450228595
 910 named nodes 19655
 5527 named arcs 10363
+233128 same locations
 862879 points 230599
 18702 doubles 9531 whole 8486 quarter
 */

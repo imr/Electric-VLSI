@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
@@ -1508,7 +1509,13 @@ public class ELIB extends LibraryFiles
 			}
 			ELIBConstants.applyELIBArcBits(ai, arcUserBits[i]);
 			int defAngle = ai.lowLevelGetArcAngle() * 10;
-			ai.lowLevelPopulate(ap, width, headPortInst, new Point2D.Double(headX, headY), tailPortInst, new Point2D.Double(tailX, tailY), defAngle, name, -1);
+			if (ai.lowLevelPopulate(ap, width, headPortInst, new EPoint(headX, headY), tailPortInst, new EPoint(tailX, tailY), defAngle, name, -1))
+			{
+				String msg = "ERROR: Cell "+cell.describe() + ": arc " + name + " could not be created";
+                System.out.println(msg);
+				Input.errorLogger.logError(msg, cell, 1);
+				continue;
+			}
 //			ai.lowLevelPopulate(ap, width, tailPortInst, new Point2D.Double(tailX, tailY), headPortInst, new Point2D.Double(headX, headY), defAngle, name, -1);
 			ai.lowLevelLink();
 		}

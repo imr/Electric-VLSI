@@ -25,6 +25,7 @@ package com.sun.electric.database.topology;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
@@ -94,7 +95,9 @@ public class ArcInst extends Geometric implements Comparable
 	/** angle of arc from end 0 to end 1 */				private static final int AANGLE =                037740;
 	/** bits of right shift for AANGLE field */			private static final int AANGLESH =                   5;
 //	/** set if arc is to be drawn shortened */			private static final int ASHORT =                040000;
+	/** set if head end of ArcInst is negated */		private static final int ISHEADNEGATED =        0200000;
 //	/** set if ends do not extend by half width */		private static final int NOEXTEND =             0400000;
+	/** set if tail end of ArcInst is negated */		private static final int ISTAILNEGATED =       01000000;
 //	/** set if ends are negated */						private static final int ISNEGATED =           01000000;
 	/** set if arc has arrow on head end */				private static final int HEADARROW =           02000000;
 	/** no extension on tail */							private static final int TAILNOEXTEND =        04000000;
@@ -123,8 +126,17 @@ public class ArcInst extends Geometric implements Comparable
 	/** width of this ArcInst. */						private double width;
 	/** length of this ArcInst. */						private double length;
 	/** prototype of this arc instance */				private ArcProto protoType;
-	/** tail connection of this arc instance */			private Connection tailEnd;
-	/** head connection of this arc instance */			private Connection headEnd;
+
+	/** PortInst on tail end of this arc instance */	/*package*/PortInst tailPortInst;
+	/** Location of tail end of this arc instance */	/*package*/EPoint tailLocation;
+	/** the tail shrinkage is from 0 to 90 */			/*package*/byte tailShrink;
+	/** tail connection of this arc instance */			private TailConnection tailEnd;
+
+	/** PortInst on head end of this arc instance */	/*package*/PortInst headPortInst;
+	/** Location of head end of this arc instance */	/*package*/EPoint headLocation;
+	/** the head shrinkage is from 0 to 90 */			/*package*/byte headShrink;
+	/** head connection of this arc instance */			private HeadConnection headEnd;
+
 	/** 0-based index of this ArcInst in cell. */		private int arcIndex = -1;
 	/** angle of this ArcInst (in tenth-degrees). */	private int angle;
 
@@ -214,7 +226,7 @@ public class ArcInst extends Geometric implements Comparable
 
 		// create the arc that connects them
 		ArcInst ai = ArcInst.lowLevelAllocate();
-		ai.lowLevelPopulate(ap, ap.getDefaultWidth(), piH, new Point2D.Double(xH, yH), piT, new Point2D.Double(xT, yT), 0, null, -1);
+		ai.lowLevelPopulate(ap, ap.getDefaultWidth(), piH, new EPoint(xH, yH), piT, new EPoint(xT, yT), 0, null, -1);
 		return ai;
 	}
 
@@ -249,37 +261,45 @@ public class ArcInst extends Geometric implements Comparable
 	                                  Point2D headPt, Point2D tailPt, String name, int defAngle)
 	{
         // if points are null, create them as would newInstance
+		EPoint headP;
         if (headPt == null)
         {
             Rectangle2D headBounds = head.getBounds();
-            headPt = new Point2D.Double(headBounds.getCenterX(), headBounds.getCenterY());
-        }
+            headP = new EPoint(headBounds.getCenterX(), headBounds.getCenterY());
+        } else
+		{
+			headP = EPoint.snap(headPt);
+		}
+		EPoint tailP;
         if (tailPt == null)
         {
             Rectangle2D tailBounds = tail.getBounds();
-            tailPt = new Point2D.Double(tailBounds.getCenterX(), tailBounds.getCenterY());
-        }
+            tailP = new EPoint(tailBounds.getCenterX(), tailBounds.getCenterY());
+        } else
+		{
+			tailP = EPoint.snap(tailPt);
+		}
 
 		// make sure fields are valid
 		if (type == null || head == null || tail == null || !head.isLinked() || !tail.isLinked()) return null;
 
 		ArcInst ai = lowLevelAllocate();
-		if (ai.lowLevelPopulate(type, width, head, headPt, tail, tailPt, defAngle, name, -1)) return null;
-		if (!ai.headStillInPort(headPt, false))
+		if (ai.lowLevelPopulate(type, width, head, headP, tail, tailP, defAngle, name, -1)) return null;
+		if (!ai.headStillInPort(headP, false))
 		{
 			Cell parent = head.getNodeInst().getParent();
 			Poly poly = ai.getHead().getPortInst().getPoly();
 			System.out.println("Error in cell " + parent.describe() + ": head of " + type.getName() +
-				" arc at (" + headPt.getX() + "," + headPt.getY() + ") does not fit in port " +
+				" arc at (" + headP.getX() + "," + headP.getY() + ") does not fit in port " +
 				ai.getHead().getPortInst().describe() + " which is centered at (" + poly.getCenterX() + "," + poly.getCenterY() + ")");
 			return null;
 		}
-		if (!ai.tailStillInPort(tailPt, false))
+		if (!ai.tailStillInPort(tailP, false))
 		{
 			Cell parent = tail.getNodeInst().getParent();
 			Poly poly = ai.getTail().getPortInst().getPoly();
 			System.out.println("Error in cell " + parent.describe() + ": tail of " + type.getName() +
-				" arc at (" + tailPt.getX() + "," + tailPt.getY() + ") does not fit in port " +
+				" arc at (" + tailP.getX() + "," + tailP.getY() + ") does not fit in port " +
 				ai.getTail().getPortInst().describe() + " which is centered at (" + poly.getCenterX() + "," + poly.getCenterY() + ")");
 			return null;
 		}
@@ -318,10 +338,10 @@ public class ArcInst extends Geometric implements Comparable
 	public void modify(double dWidth, double dHeadX, double dHeadY, double dTailX, double dTailY)
 	{
 		// save old arc state
-		double oldxA = headEnd.getLocation().getX();
-		double oldyA = headEnd.getLocation().getY();
-		double oldxB = tailEnd.getLocation().getX();
-		double oldyB = tailEnd.getLocation().getY();
+		double oldxA = headLocation.getX();
+		double oldyA = headLocation.getY();
+		double oldxB = tailLocation.getX();
+		double oldyB = tailLocation.getY();
 		double oldWidth = getWidth();
 
 		// change the arc
@@ -339,11 +359,7 @@ public class ArcInst extends Geometric implements Comparable
 	public ArcInst replace(ArcProto ap)
 	{
 		// check for connection allowance
-		Connection head = getHead();
-		Connection tail = getTail();
-		PortInst piH = head.getPortInst();
-		PortInst piT = tail.getPortInst();
-		if (!piH.getPortProto().connectsTo(ap) || !piT.getPortProto().connectsTo(ap))
+		if (!headPortInst.getPortProto().connectsTo(ap) || !tailPortInst.getPortProto().connectsTo(ap))
 		{
 			System.out.println("Cannot replace arc " + describe() + " with one of type " + ap.getName() +
 				" because the nodes cannot connect to it");
@@ -354,7 +370,7 @@ public class ArcInst extends Geometric implements Comparable
 		double newwid = getWidth() - getProto().getWidthOffset() + ap.getWidthOffset();
 
 		// first create the new nodeinst in place
-		ArcInst newar = ArcInst.newInstance(ap, newwid, piH, piT, head.getLocation(), tail.getLocation(), null, 0);
+		ArcInst newar = ArcInst.newInstance(ap, newwid, headPortInst, tailPortInst, headLocation, tailLocation, null, 0);
 		if (newar == null)
 		{
 			System.out.println("Cannot replace arc " + describe() + " with one of type " + ap.getName() +
@@ -397,7 +413,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * @return true on error.
 	 */
 	public boolean lowLevelPopulate(ArcProto protoType, double width,
-		PortInst headPort, Point2D headPt, PortInst tailPort, Point2D tailPt, int defAngle, String name, int duplicate)
+		PortInst headPort, EPoint headPt, PortInst tailPort, EPoint tailPt, int defAngle, String name, int duplicate)
 	{
 		// initialize this object
 		this.protoType = protoType;
@@ -405,17 +421,6 @@ public class ArcInst extends Geometric implements Comparable
 		if (width < 0)
 			width = protoType.getWidth();
 		this.width = DBMath.round(width);
-
-		double headX = DBMath.round(headPt.getX());
-		if (headX == 0) headX = +0.0;
-		double headY = DBMath.round(headPt.getY());
-		if (headY == 0) headY = +0.0;
-		headPt.setLocation(headX, headY);
-		double tailX = DBMath.round(tailPt.getX());
-		if (tailX == 0) tailX = +0.0;
-		double tailY = DBMath.round(tailPt.getY());
-		if (tailY == 0) tailY = +0.0;
-		tailPt.setLocation(tailX, tailY);
 
 		Cell parent = headPort.getNodeInst().getParent();
 		if (parent != tailPort.getNodeInst().getParent())
@@ -446,8 +451,13 @@ public class ArcInst extends Geometric implements Comparable
 		}
 
 		// create node/arc connections and place them properly
-		headEnd = new Connection(this, headPort, headPt);
-		tailEnd = new Connection(this, tailPort, tailPt);
+		tailPortInst = tailPort;
+		tailLocation = tailPt;
+		tailEnd = new TailConnection(this);
+
+		headPortInst = headPort;
+		headLocation = headPt;
+		headEnd = new HeadConnection(this);
 		
 		// fill in the geometry
 		updateGeometric(defAngle);
@@ -468,16 +478,16 @@ public class ArcInst extends Geometric implements Comparable
 		}
 
 		// attach this arc to the two nodes it connects
-		if (headEnd != null) headEnd.getPortInst().getNodeInst().addConnection(headEnd);
-		if (tailEnd != null) tailEnd.getPortInst().getNodeInst().addConnection(tailEnd);
+		headPortInst.getNodeInst().addConnection(headEnd);
+		tailPortInst.getNodeInst().addConnection(tailEnd);
 
 		// add this arc to the cell
 		this.duplicate = parent.addArc(this);
 		parent.linkArc(this);
 
 		// update end shrinkage information
-		updateShrinkage(headEnd.getPortInst().getNodeInst());
-		updateShrinkage(tailEnd.getPortInst().getNodeInst());
+		updateShrinkage(headPortInst.getNodeInst());
+		updateShrinkage(tailPortInst.getNodeInst());
 		return false;
 	}
 
@@ -487,16 +497,16 @@ public class ArcInst extends Geometric implements Comparable
 	public void lowLevelUnlink()
 	{
 		// remove this arc from the two nodes it connects
-		headEnd.getPortInst().getNodeInst().removeConnection(headEnd);
-		tailEnd.getPortInst().getNodeInst().removeConnection(tailEnd);
+		headPortInst.getNodeInst().removeConnection(headEnd);
+		tailPortInst.getNodeInst().removeConnection(tailEnd);
 
 		// remove this arc from the cell
 		parent.removeArc(this);
 		parent.unLinkArc(this);
 
 		// update end shrinkage information
-		updateShrinkage(headEnd.getPortInst().getNodeInst());
-		updateShrinkage(tailEnd.getPortInst().getNodeInst());
+		updateShrinkage(headPortInst.getNodeInst());
+		updateShrinkage(tailPortInst.getNodeInst());
 		parent.checkInvariants();
 	}
 
@@ -517,20 +527,14 @@ public class ArcInst extends Geometric implements Comparable
 		width = DBMath.round(width + dWidth);
 
 		if (dHeadX != 0 || dHeadY != 0)
-		{
-			Point2D pt = headEnd.getLocation();
-			headEnd.setLocation(new Point2D.Double(DBMath.round(dHeadX+pt.getX()), DBMath.round(pt.getY()+dHeadY)));
-		}
+			headLocation = new EPoint(headLocation.getX() + dHeadX, headLocation.getY() + dHeadY);
 		if (dTailX != 0 || dTailY != 0)
-		{
-			Point2D pt = tailEnd.getLocation();
-			tailEnd.setLocation(new Point2D.Double(DBMath.round(dTailX+pt.getX()), DBMath.round(pt.getY()+dTailY)));
-		}
+			tailLocation = new EPoint(tailLocation.getX() + dTailX, tailLocation.getY() + dTailY);
 		updateGeometric(getAngle());
 
 		// update end shrinkage information
-		updateShrinkage(headEnd.getPortInst().getNodeInst());
-		updateShrinkage(tailEnd.getPortInst().getNodeInst());
+		updateShrinkage(headPortInst.getNodeInst());
+		updateShrinkage(tailPortInst.getNodeInst());
 
 		// reinsert in the R-Tree structure
 		parent.linkArc(this);
@@ -589,13 +593,10 @@ public class ArcInst extends Geometric implements Comparable
 			if (curvedPoly != null) return curvedPoly;
 		}
 
-		Point2D endH = headEnd.getLocation();
-		Point2D endT = tailEnd.getLocation();
-
 		// zero-width polygons are simply lines
 		if (width == 0)
 		{
-			Poly poly = new Poly(new Point2D.Double[]{new Point2D.Double(endH.getX(), endH.getY()), new Point2D.Double(endT.getX(), endT.getY())});
+			Poly poly = new Poly(new Point2D.Double[]{headLocation.mutable(), tailLocation.mutable()});
 			if (style == Poly.Type.FILLED) style = Poly.Type.OPENED;
 			poly.setStyle(style);
 			return poly;
@@ -606,7 +607,6 @@ public class ArcInst extends Geometric implements Comparable
 		if (isHeadExtended())
 		{
 			extendH = width/2;
-			int headShrink = getHead().getEndShrink();
 			if (headShrink != 0)
 				extendH = getExtendFactor(width, headShrink);
 		}
@@ -614,13 +614,12 @@ public class ArcInst extends Geometric implements Comparable
 		if (isTailExtended())
 		{
 			extendT = width/2;
-			int tailShrink = getTail().getEndShrink();
 			if (tailShrink != 0)
 				extendT = getExtendFactor(width, tailShrink);
 		}
 
 		// make the polygon
-		Poly poly = Poly.makeEndPointPoly(length, width, getAngle(), endH, extendH, endT, extendT);
+		Poly poly = Poly.makeEndPointPoly(length, width, getAngle(), headLocation, extendH, tailLocation, extendT);
 		if (poly != null) poly.setStyle(style);
 		return poly;
 	}
@@ -672,15 +671,13 @@ public class ArcInst extends Geometric implements Comparable
 		// get information about the curved arc
 		double radius = radiusDouble.doubleValue();
 		double pureRadius = Math.abs(radius);
-		Point2D headPt = getTail().getLocation();
-		Point2D tailPt = getHead().getLocation();
-		double length = headPt.distance(tailPt);
+		double length = tailLocation.distance(headLocation);
 
 		// see if the radius can work with these arc ends
 		if (pureRadius*2 < length) return null;
 
 		// determine the center of the circle
-		Point2D [] centers = DBMath.findCenters(pureRadius, headPt, tailPt, length);
+		Point2D [] centers = DBMath.findCenters(pureRadius, tailLocation, headLocation, length);
 		if (centers == null) return null;
 
 		Point2D centerPt = centers[1];
@@ -691,8 +688,8 @@ public class ArcInst extends Geometric implements Comparable
 		}
 
 		// determine the base and range of angles
-		int angleBase = DBMath.figureAngle(centerPt, headPt);
-		int angleRange = DBMath.figureAngle(centerPt, tailPt);
+		int angleBase = DBMath.figureAngle(centerPt, tailLocation);
+		int angleRange = DBMath.figureAngle(centerPt, headLocation);
 		angleRange -= angleBase;
 		if (angleRange < 0) angleRange += 3600;
 
@@ -776,7 +773,7 @@ public class ArcInst extends Geometric implements Comparable
 		for(Iterator it = ni.getConnections(); it.hasNext(); )
 		{
 			Connection con = (Connection)it.next();
-			short shrink = checkShortening(ni, con.getPortInst().getPortProto());
+			byte shrink = checkShortening(ni, con.getPortInst().getPortProto());
 			if (shrink != 0) ni.setShortened();
 			con.setEndShrink(shrink);
 		}
@@ -795,7 +792,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * Small values are shortened almost to nothing, whereas large values are shortened
 	 * very little (and a value of 90 indicates no shortening at all).
 	 */
-	private static short checkShortening(NodeInst ni, PortProto pp)
+	private static byte checkShortening(NodeInst ni, PortProto pp)
 	{
 		// quit now if we don't have to worry about this kind of nodeinst
 		NodeProto np = ni.getProto();
@@ -847,7 +844,7 @@ public class ArcInst extends Geometric implements Comparable
 		int ang = Math.abs(shortAngles[1]-shortAngles[0]);
 		if (ang > 180) ang = 360 - ang;
 		if (ang > 90) ang = 180 - ang;
-		return (short)ang;
+		return (byte)ang;
 	}
 
 	/**
@@ -856,13 +853,15 @@ public class ArcInst extends Geometric implements Comparable
 	private void updateGeometric(int defAngle)
 	{
 		checkChanging();
-		Point2D p1 = tailEnd.getLocation();
-		Point2D p2 = headEnd.getLocation();
-		double dx = p2.getX() - p1.getX();
-		double dy = p2.getY() - p1.getY();
-		length = Math.sqrt(dx * dx + dy * dy);
-		if (p1.equals(p2)) angle = defAngle;
-        else angle = DBMath.figureAngle(p1, p2);
+		if (tailLocation.equals(headLocation))
+		{
+			length = 0;
+			angle = defAngle;
+		} else
+		{
+			length = tailLocation.distance(headLocation);
+			angle = DBMath.figureAngle(tailLocation, headLocation);
+		}
 
 		// compute the bounds
 		Poly poly = makePoly(length, width, Poly.Type.FILLED);
@@ -878,13 +877,13 @@ public class ArcInst extends Geometric implements Comparable
 	 * Method to return the Connection on the tail end of this ArcInst.
 	 * @return the Connection on the tail end of this ArcInst.
 	 */
-	public Connection getTail() { return tailEnd; }
+	public TailConnection getTail() { return tailEnd; }
 
 	/**
 	 * Method to return the Connection on the head end of this ArcInst.
 	 * @return the Connection on the head end of this ArcInst.
 	 */
-	public Connection getHead() { return headEnd; }
+	public HeadConnection getHead() { return headEnd; }
 
 	/**
 	 * Method to return the connection at an end of this ArcInst.
@@ -904,39 +903,55 @@ public class ArcInst extends Geometric implements Comparable
 	 * Method to return the PortInst on tail of this ArcInst.
 	 * @return the PortInst on tail.
 	 */
-	public PortInst getTailPortInst() { return tailEnd.getPortInst(); }
+	public PortInst getTailPortInst() { return tailPortInst; }
 
 	/**
 	 * Method to return the PortInst on head of this ArcInst.
 	 * @return the PortInst on head.
 	 */
-	public PortInst getHeadPortInst() { return headEnd.getPortInst(); }
+	public PortInst getHeadPortInst() { return headPortInst; }
 
 	/**
 	 * Method to return the PortInst on an end of this ArcInst.
 	 * @param connIndex TAILEND (0) for the tail of this ArcInst, HEADEND (1) for the head.
 	 * @return the PortInst at an end.
 	 */
-	public PortInst getPortInst(int connIndex) { return getConnection(connIndex).getPortInst(); }
+	public PortInst getPortInst(int connIndex)
+	{
+		switch (connIndex)
+		{
+			case TAILEND: return tailPortInst;
+			case HEADEND: return headPortInst;
+			default: throw new IllegalArgumentException("Bad end " + connIndex);
+		}
+	}
 
 	/**
 	 * Method to return the Location on tail of this ArcInst.
 	 * @return the Location on tail.
 	 */
-	public Point2D getTailLocation() { return tailEnd.getLocation(); }
+	public EPoint getTailLocation() { return tailLocation; }
 
 	/**
 	 * Method to return the Location on head of this ArcInst.
 	 * @return the Location on head.
 	 */
-	public Point2D getHeadLocation() { return headEnd.getLocation(); }
+	public EPoint getHeadLocation() { return headLocation; }
 
 	/**
 	 * Method to return the Location on an end of this ArcInst.
 	 * @param connIndex TAILEND (0) for the tail of this ArcInst, HEADEND (1) for the head.
 	 * @return the Location on an end.
 	 */
-	public Point2D getLocation(int connIndex) { return getConnection(connIndex).getLocation(); }
+	public EPoint getLocation(int connIndex)
+	{
+		switch (connIndex)
+		{
+			case TAILEND: return tailLocation;
+			case HEADEND: return headLocation;
+			default: throw new IllegalArgumentException("Bad end " + connIndex);
+		}
+	}
 
 	/**
 	 * Method to tell whether a tail connection on this ArcInst contains a port location.
@@ -1410,7 +1425,7 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public boolean isTailNegated()
 	{
-		return tailEnd.isNegated();
+		return (userBits & ISTAILNEGATED) != 0;
 	}
 
 	/**
@@ -1421,7 +1436,7 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public boolean isHeadNegated()
 	{
-		return headEnd.isNegated();
+		return (userBits & ISHEADNEGATED) != 0;
 	}
 
 	/**
@@ -1449,7 +1464,16 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public void setTailNegated(boolean n)
 	{
-		tailEnd.setNegated(n);
+		if (n)
+		{
+			// only allow if negation is supported on this port
+			PortProto pp = tailPortInst.getPortProto();
+			if (pp instanceof PrimitivePort && ((PrimitivePort)pp).isNegatable())
+				userBits |= ISTAILNEGATED;
+		} else
+		{
+			userBits &= ~ISTAILNEGATED;
+		}
 	}
 
 	/**
@@ -1460,7 +1484,16 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public void setHeadNegated(boolean n)
 	{
-		headEnd.setNegated(n);
+		if (n)
+		{
+			// only allow if negation is supported on this port
+			PortProto pp = headPortInst.getPortProto();
+			if (pp instanceof PrimitivePort && ((PrimitivePort)pp).isNegatable())
+				userBits |= ISHEADNEGATED;
+		} else
+		{
+			userBits &= ~ISHEADNEGATED;
+		}
 	}
 
 	/****************************** MISCELLANEOUS ******************************/
@@ -1473,50 +1506,44 @@ public class ArcInst extends Geometric implements Comparable
 		int errorCount = 0;
 
 		// see if the ends are in their ports
-		Point2D headPt = getHead().getLocation();
-		if (!headStillInPort(headPt, false))
+		if (!headStillInPort(headLocation, false))
 		{
-			Poly poly = getHead().getPortInst().getPoly();
+			Poly poly = headPortInst.getPoly();
 			String msg = "Cell " + parent.describe() + ", arc " + describe() +
-				": head not in port, is at (" + headPt.getX() + "," + headPt.getY() +
-				") distance to port is " + poly.polyDistance(headPt.getX(), headPt.getY()) +
+				": head not in port, is at (" + headLocation.getX() + "," + headLocation.getY() +
+				") distance to port is " + poly.polyDistance(headLocation.getX(), headLocation.getY()) +
 				" port center is (" + poly.getCenterX() + "," + poly.getCenterY() + ")";
 			System.out.println(msg);
 			if (errorLogger != null)
 			{
 				ErrorLogger.MessageLog error = errorLogger.logError(msg, parent, 1);
 				error.addGeom(this, true, parent, null);
-				error.addGeom(getHead().getPortInst().getNodeInst(), true, parent, null);
+				error.addGeom(headPortInst.getNodeInst(), true, parent, null);
 			}
 			if (repair)
 			{
-				double x = DBMath.round(poly.getCenterX());
-				double y = DBMath.round(poly.getCenterY());
-				getHead().setLocation(new Point2D.Double(x, y));
+				headLocation = new EPoint(poly.getCenterX(), poly.getCenterY());
 				updateGeometric(getAngle());
 			}
 			errorCount++;
 		}
-		Point2D tailPt = getTail().getLocation();
-		if (!tailStillInPort(tailPt, false))
+		if (!tailStillInPort(tailLocation, false))
 		{
-			Poly poly = getTail().getPortInst().getPoly();
+			Poly poly = tailPortInst.getPoly();
 			String msg = "Cell " + parent.describe() + ", arc " + describe() +
-				": tail not in port, is at (" + tailPt.getX() + "," + tailPt.getY() +
-				") distance to port is " + poly.polyDistance(tailPt.getX(), tailPt.getY()) +
+				": tail not in port, is at (" + tailLocation.getX() + "," + tailLocation.getY() +
+				") distance to port is " + poly.polyDistance(tailLocation.getX(), tailLocation.getY()) +
 				" port center is (" + poly.getCenterX() + "," + poly.getCenterY() + ")";
 			System.out.println(msg);
 			if (errorLogger != null)
 			{
 				ErrorLogger.MessageLog error = errorLogger.logError(msg, parent, 1);
 				error.addGeom(this, true, parent, null);
-				error.addGeom(getTail().getPortInst().getNodeInst(), true, parent, null);
+				error.addGeom(tailPortInst.getNodeInst(), true, parent, null);
 			}
 			if (repair)
 			{
-				double x = DBMath.round(poly.getCenterX());
-				double y = DBMath.round(poly.getCenterY());
-				getTail().setLocation(new Point2D.Double(x, y));
+				tailLocation = new EPoint(poly.getCenterX(), poly.getCenterY());
 				updateGeometric(getAngle());
 			}
 			errorCount++;

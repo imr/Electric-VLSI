@@ -23,46 +23,32 @@
  */
 package com.sun.electric.database.topology;
 
-import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
-
-import java.awt.geom.Point2D;
+import com.sun.electric.database.geometry.EPoint;
 
 /**
- * A Connection is the link between a PortInst on a NodeInst and an ArcInst.
- * A Connection has an location indicating the endpoint of the
- * ArcInst, a pointer to the PortInst on a NodeInst and a pointer to that ArcInst.
+ * An abstract class Connection is the link between a PortInst on a NodeInst
+ * and an ArcInst. Its subclasses are TailConnection and HeadConnection.
+ * A Connection has an methods to get location indicating the endpoint of the
+ * ArcInst, to get the PortInst on a NodeInst and to get that ArcInst.
+ * It has also methods to get and modify propery bits on this end of the ArcInst.
  * To find the arc(s) associated with a particular port on a node, ask
- * the node for a list of its connections.  The connections that point
- * to the portproto are also connected to the wires of interest.
+ * the PortInst for a list of its connections.
  *
- * This class is thread-safe.
+ * This class and its subclasses are immutable.
  */
-public class Connection
+public abstract class Connection
 {
 	// ------------------------- private data --------------------------------
 
-	/** the arc on one side of this Connection */	private final ArcInst arc;
-	/** the PortInst on the connected node */		private final PortInst portInst;
-	/** the location of this Connection */			private final Point2D location;
-	/** flags for this Connection */				private short flags;
-
-	/** the shrinkage is from 0 to 90 */			private static final int SHRINKAGE = 0177;
-	/** set if the end is negated */				private static final int NEGATED   = 0200;
+	/** the arc on one side of this Connection */	/*package*/ final ArcInst arc;
 
 	/**
-	 * The constructor creates a new Connection from the given values.
+	 * The constructor creates a new Connection of the given ArcInst.
 	 * @param arc the ArcInst that makes a Connection.
-	 * @param portInst the PortInst on a NodeInst that makes a Connection.
-	 * @param pt the coordinate on the NodeInst.
 	 */
-	protected Connection(ArcInst arc, PortInst portInst, Point2D pt)
+	/*package*/ Connection(ArcInst arc)
 	{
 		this.arc = arc;
-		this.portInst = portInst;
-		this.location = (Point2D)pt.clone();
-		this.flags = 0;
 	}
 
 	// --------------------------- public methods --------------------------
@@ -77,123 +63,59 @@ public class Connection
 	 * Method to return the PortInst on this Connection.
 	 * @return the PortInst on this Connection.
 	 */
-	public PortInst getPortInst() { return portInst; }
+	public abstract PortInst getPortInst();
 
 	/**
 	 * Method to return the location on this Connection.
 	 * @return the location on this Connection.
 	 */
-	public synchronized Point2D getLocation() { return (Point2D)location.clone(); }
-
-	/**
-	 * Method to set the location on this Connection.
-	 * @param pt the location on this Connection.
-	 */
-	synchronized void setLocation(Point2D pt)
-	{
-		arc.checkChanging();
-		location.setLocation(pt.getX(), pt.getY());
-	}
-
-	/**
-	 * Method to return the shrinkage happening because of angled arcs on this Connection.
-	 * @return the shrinkage for this Connection.
-	 */
-	synchronized int getEndShrink() { return (int)(flags & SHRINKAGE); }
-
-	/**
-	 * Method to set the shrinkage happening because of angled arcs on this Connection.
-	 * @param endShrink the shrinkage for this Connection.
-	 */
-	synchronized void setEndShrink(int endShrink)
-	{
-		arc.checkChanging();
-		flags = (short)((flags & ~SHRINKAGE) | (endShrink & SHRINKAGE));
-	}
+	public abstract EPoint getLocation();
 
 	/**
 	 * Method to tell whether this connection is arrowed.
 	 * @return true if this connection is arrowed.
 	 */
-	public boolean isArrowed() { return arc.isArrowed(getEndIndex()); }
+	public abstract boolean isArrowed();
 
 	/**
 	 * Method to set whether this connection is arrowed.
 	 * @param state true to set that end of this arc to be arrowed.
 	 */
-	public void setArrowed(boolean state) { arc.setArrowed(getEndIndex(), state); }
+	public abstract void setArrowed(boolean state);
 
 	/**
 	 * Method to tell whether this connection is extended.
 	 * @return true if this connection is negated.
 	 */
-	public boolean isExtended() { return arc.isExtended(getEndIndex()); }
+	public abstract boolean isExtended();
 
 	/**
 	 * Method to set whether this connection is extended.
 	 * @param e true to set that end of this arc to be extended.
 	 */
-	public void setExtended(boolean e) { arc.setExtended(getEndIndex(), e); }
+	public abstract void setExtended(boolean e);
 
 	/**
 	 * Method to tell whether this connection is negated.
 	 * @return true if this connection is negated.
 	 */
-	public synchronized boolean isNegated() { return (flags & NEGATED) != 0; }
+	public abstract boolean isNegated();
 
 	/**
 	 * Method to set whether this connection is negated.
 	 * @param negated true if this connection is negated.
 	 */
-	public void setNegated(boolean negated)
-	{
-		if (negated)
-		{
-			// only allow if negation is not supported on this port
-			if (portInst.getNodeInst().getProto() instanceof PrimitiveNode)
-			{
-				PrimitivePort pp = (PrimitivePort)portInst.getPortProto();
-				if (pp.isNegatable())
-				{					
-					// Check to ensure at least one end of negated arc is attached to functional
-					PortCharacteristic characteristic = portInst.getPortProto().getCharacteristic();
-					if (characteristic != PortCharacteristic.IN &&
-						characteristic != PortCharacteristic.OUT) return;
-
-					// negate the connection
-                    setNegatedSafe(true);
-				}
-			}
-		} else
-		{
-            setNegatedSafe(false);
-		}
-	}
-
-	private synchronized void setNegatedSafe(boolean negated)
-    {
-		arc.checkChanging();
-        if (negated)
-            flags |= NEGATED;
-        else
-            flags &= ~NEGATED;
-    }
+	public abstract void setNegated(boolean negated);
 
 	/**
 	 * Method to determine the index of this Connection on its ArcInst.
 	 * @return HEADEND if this Connection is on the head; TAILEND if this Connection is on the head.
 	 */
-	public int getEndIndex()
-	{
-		return arc.getHead() == this ? ArcInst.HEADEND : ArcInst.TAILEND;
-	}
+	public abstract int getEndIndex();
 
 	/**
-	 * Returns a printable version of this Connection.
-	 * @return a printable version of this Connection.
+	 * Method to set the shrinkage happening because of angled arcs on this Connection.
+	 * @param endShrink the shrinkage for this Connection.
 	 */
-	public String toString()
-	{
-		return "Connection";
-	}
+	/*package*/ abstract void setEndShrink(byte endShrink);
 }

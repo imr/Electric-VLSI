@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02g: *********************************
 
+IMP: (02/07/05, DN) Changed implementation of ArcInst and Connection: Connection's fields moved
+     to Connection, immutable class EPoint is used for Locations.
+
 IMP/MAN: (02/04/05, SMR) Directional arcs can now have arrow heads on either end. (Bug #150)
      Modified Arc Properties dialog to control directional, negated, and end extension.
      Modified commands in Edit / Arc menu.

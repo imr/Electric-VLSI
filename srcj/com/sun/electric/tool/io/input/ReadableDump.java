@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -630,8 +631,8 @@ public class ReadableDump extends LibraryFiles
 			double headY = (ail.arcHeadY[j]-yoff) / lambda;
 			double tailX = (ail.arcTailX[j]-xoff) / lambda;
 			double tailY = (ail.arcTailY[j]-yoff) / lambda;
-			Point2D headPt = new Point2D.Double(headX, headY);
-			Point2D tailPt = new Point2D.Double(tailX, tailY);
+			EPoint headPt = new EPoint(headX, headY);
+			EPoint tailPt = new EPoint(tailX, tailY);
 			int userBits = ail.arcUserBits[j];
 
 //			// make checks
@@ -646,7 +647,13 @@ public class ReadableDump extends LibraryFiles
 
 			ELIBConstants.applyELIBArcBits(ai, userBits);
 			int defAngle = ai.lowLevelGetArcAngle() * 10;
-			ai.lowLevelPopulate(ap, width, headPortInst, headPt, tailPortInst, tailPt, defAngle, name, -1);
+			if (ai.lowLevelPopulate(ap, width, headPortInst, headPt, tailPortInst, tailPt, defAngle, name, -1))
+			{
+				String msg = "ERROR: Cell "+cell.describe() + ": arc " + name + " could not be created";
+                System.out.println(msg);
+				Input.errorLogger.logError(msg, cell, 1);
+				continue;
+			}
 			ai.lowLevelLink();
 		}
 	}
