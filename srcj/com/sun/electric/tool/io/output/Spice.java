@@ -330,11 +330,19 @@ public class Spice extends Topology
      * @param no Nodable representing the node
      * @param infstr Buffer where to write to
      */
-    private void writeMFactor(Nodable no, StringBuffer infstr)
+    private void writeMFactor(VarContext context, Nodable no, StringBuffer infstr)
     {
         Variable mVar = no.getVar("ATTR_M");
+        if (mVar == null) return;
+        Object value = context.evalVar(mVar);
 
-        if (mVar != null) infstr.append(" M=" + formatParam(mVar.getObject().toString()));
+        // check for M=@M, and warn user that this is a bad idea, and we will not write it out
+        if (mVar.getObject().toString().equals("@M") || (mVar.getObject().toString().equals("P(\"M\")"))) {
+            System.out.println("Warning: M=@M [eval="+value+"] on "+no.getName()+" is a bad idea, not writing it out: "+context.push(no).getInstPath("."));
+            return;
+        }
+
+        infstr.append(" M=" + formatParam(value.toString()));
     }
 
 	/**
@@ -498,7 +506,7 @@ public class Spice extends Topology
 				PortProto pp = cs.getExport();
 				if (pp == null) continue;
 
-				if (cs.isGlobal()) continue;
+				if (cs.isGlobal() && !cs.getNetwork().isExported()) continue;
 				if (useCDL)
 				{
 //					// if this is output and the last was input (or visa-versa), insert "/"
@@ -608,17 +616,18 @@ public class Spice extends Topology
 							// no port name found, look for variable name
 							String varName = "ATTR_" + paramName;
 							Variable attrVar = no.getVar(varName);
+                            if (attrVar == null) attrVar = no.getParameter(varName);
 							if (attrVar == null) infstr.append("??"); else
 							{
-                                if (attrVar.getCode() != Variable.Code.NONE)
-                                    infstr.append(trimSingleQuotes(String.valueOf(context.evalVar(attrVar))));
-                                else
-								    infstr.append(trimSingleQuotes(attrVar.getPureValue(-1, -1)));
+                                //if (attrVar.getCode() != Variable.Code.NONE)
+                                    infstr.append(trimSingleQuotes(String.valueOf(context.evalVar(attrVar, no))));
+                                //else
+								//    infstr.append(trimSingleQuotes(attrVar.getPureValue(-1, -1)));
 							}
 						}
 					}
                     // Writing MFactor if available. Not sure here
-					writeMFactor(no, infstr);
+					writeMFactor(context, no, infstr);
 					
 					infstr.append('\n');
 					multiLinePrint(false, infstr.toString());
@@ -671,7 +680,7 @@ public class Spice extends Topology
 					}
 				}
                 // Writing MFactor if available.
-                writeMFactor(no, infstr);
+                writeMFactor(context, no, infstr);
 
 				infstr.append("\n");
 				multiLinePrint(false, infstr.toString());
@@ -700,7 +709,7 @@ public class Spice extends Topology
 							extra = TextUtils.displayedUnits(pureValue, TextDescriptor.Unit.RESISTANCE, TextUtils.UnitScale.NONE);
 						}
 					}
-					writeTwoPort(ni, "R", extra, cni, netList);
+					writeTwoPort(ni, "R", extra, cni, netList, context);
 				} else if (fun == NodeProto.Function.CAPAC || fun == NodeProto.Function.ECAPAC)
 				{
 					Variable capacVar = ni.getVar(Schematics.SCHEM_CAPACITANCE);
@@ -714,7 +723,7 @@ public class Spice extends Topology
 							extra = TextUtils.displayedUnits(pureValue, TextDescriptor.Unit.CAPACITANCE, TextUtils.UnitScale.NONE);
 						}
 					}
-					writeTwoPort(ni, "C", extra, cni, netList);
+					writeTwoPort(ni, "C", extra, cni, netList, context);
 				} else if (fun == NodeProto.Function.INDUCT)
 				{
 					Variable inductVar = ni.getVar(Schematics.SCHEM_INDUCTANCE);
@@ -728,7 +737,7 @@ public class Spice extends Topology
 							extra = TextUtils.displayedUnits(pureValue, TextDescriptor.Unit.INDUCTANCE, TextUtils.UnitScale.NONE);
 						}
 					}
-					writeTwoPort(ni, "L", extra, cni, netList);
+					writeTwoPort(ni, "L", extra, cni, netList, context);
 				} else if (fun == NodeProto.Function.DIODE || fun == NodeProto.Function.DIODEZ)
 				{
 					Variable diodeVar = ni.getVar(Schematics.SCHEM_DIODE);
@@ -736,7 +745,7 @@ public class Spice extends Topology
 					if (diodeVar != null)
 						extra = diodeVar.describe(context, ni);
 					if (extra.length() == 0) extra = "DIODE";
-					writeTwoPort(ni, "D", extra, cni, netList);
+					writeTwoPort(ni, "D", extra, cni, netList, context);
 				}
 				continue;
 			}
@@ -967,7 +976,7 @@ public class Spice extends Topology
 				}
 			}
             // Writing MFactor if available.
-            writeMFactor(ni, infstr);
+            writeMFactor(context, ni, infstr);
 
 			infstr.append("\n");
 			multiLinePrint(false, infstr.toString());
@@ -1347,7 +1356,7 @@ public class Spice extends Topology
 	 * If the device is connected to the same net at both ends, do not
 	 * write it. Is this OK?
 	 */
-	private void writeTwoPort(NodeInst ni, String partName, String extra, CellNetInfo cni, Netlist netList)
+	private void writeTwoPort(NodeInst ni, String partName, String extra, CellNetInfo cni, Netlist netList, VarContext context)
 	{
 		PortInst port0 = ni.getPortInst(0);
 		PortInst port1 = ni.getPortInst(1);
@@ -1374,7 +1383,7 @@ public class Spice extends Topology
 
         // add Mfactor if there
         StringBuffer sbExtra = new StringBuffer(extra);
-        writeMFactor(ni, sbExtra);
+        writeMFactor(context, ni, sbExtra);
 
 		multiLinePrint(false, partName + " " + cs1.getName() + " " + cs0.getName() + " " + sbExtra.toString() + "\n");
 	}
