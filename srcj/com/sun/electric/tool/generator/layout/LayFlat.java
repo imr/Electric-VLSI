@@ -231,7 +231,7 @@ public class LayFlat extends Job {
 	public void doIt() {
 		System.out.println("Begin flat");
 		Cell cell = getTestCell();
-		Library scratch = LayoutLib.openLibForModify(
+		Library scratch = LayoutLib.openLibForWrite(
 			"scratch", 
 		    getHomeDir()+"work/async/scratch.elib");
 		Cell lowCell = Cell.newInstance(scratch, "lowCell{lay}");

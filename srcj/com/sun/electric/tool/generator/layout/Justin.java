@@ -66,14 +66,14 @@ public class Justin extends Job {
 		if (!osIsWindows()) {
 			homeDir = "/home/rkao/";
 		} else if (nfsWedged) {
-			homeDir = "c:/a1/kao/Sun/";
+			homeDir = "c:/a1/kao/Sun";
 		} else {
 			homeDir = "x:/";
 		}
 
 		Library scratchLib = 
-		    LayoutLib.openLibForModify("fullswing_inverters", 
-									   homeDir+"fullswing_inverters");
+		    LayoutLib.openLibForWrite("fullswing_inverters", 
+									  homeDir+"fullswing_inverters");
 
 		StdCellParams stdCell = new StdCellParams(scratchLib);
 //		stdCell.enableNCC(
@@ -97,7 +97,7 @@ public class Justin extends Job {
 		Cell gallery = Gallery.makeGallery(scratchLib);
 		DrcRings.addDrcRings(gallery, FILTER);
 		
-		LayoutLib.writeLibrary(scratchLib);
+		//LayoutLib.writeLibrary(scratchLib);
 
 		System.out.println("done.");
 	}

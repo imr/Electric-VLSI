@@ -165,7 +165,7 @@ public class GateRegression extends Job {
 		}
 
 		Library scratchLib = 
-		  LayoutLib.openLibForModify("scratch", homeDir+"scratch");
+		  LayoutLib.openLibForWrite("scratch", homeDir+"scratch");
 
 		StdCellParams stdCell = new StdCellParams(scratchLib);
 //		stdCell.enableNCC(

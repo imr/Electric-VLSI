@@ -27,6 +27,8 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Properties;
 import java.util.ArrayList;
 import java.util.List;
@@ -99,22 +101,40 @@ class MetalFloorplan extends Floorplan {
 	/** if horizontal then y coordinate of top Gnd wire 
 	 *  if vertical then x coordinate of right Gnd wire */ 
 	public final double gndCenter;
-
+	
+	public final double coverage;
+	
+	private double roundDownOneLambda(double x) {
+		return Math.floor(x);
+	}
+	// Round metal widths down to multiples of 1 lambda resolution.
+	// Then metal center can be on 1/2 lambda grid without problems. 
 	MetalFloorplan(double cellWidth, double cellHeight,
-			  double vddReserve, double gndReserve, 
-			  double space, boolean horiz) {
+			       double vddReserve, double gndReserve, 
+			       double space, boolean horiz) {
 		super(cellWidth, cellHeight, horiz);
 		mergedVdd = vddReserve==0;
 		double cellSpace = horiz ? cellHeight : cellWidth;
-		gndWidth = (cellSpace/2 - space - gndReserve) / 2;
-		gndCenter = cellSpace/4 + space/2 + gndWidth/2;
 		if (mergedVdd) {		
-			vddWidth = cellSpace/2 - space - vddReserve;
+			double w = cellSpace/2 - space - vddReserve;
+			vddWidth =  roundDownOneLambda(w);
 			vddCenter = 0;
 		} else {
-			vddWidth = (cellSpace/2 - space - vddReserve) / 2;
+			double w = (cellSpace/2 - space - vddReserve) / 2;
+			vddWidth = roundDownOneLambda(w);
 			vddCenter = vddReserve/2 + vddWidth/2;
 		}
+		double vddEdge = vddCenter + vddWidth/2;
+		double w = cellSpace/2 - vddEdge - space - gndReserve/2;
+		gndWidth = roundDownOneLambda(w);
+		gndCenter = vddEdge + space + gndWidth/2;
+		
+		// compute coverage statistics
+		double cellArea = cellWidth * cellHeight;
+		double strapLength = horiz ? cellWidth : cellHeight;
+		double vddArea = (mergedVdd ? 1 : 2) * vddWidth * strapLength;  
+		double gndArea = 2 * gndWidth * strapLength;
+		coverage = (vddArea + gndArea)/cellArea;
 	}
 }
 
@@ -417,10 +437,25 @@ class CapCell {
 		LayoutLib.newArcInst(Tech.m1, plan.vddWidth, pi, rightCont);
 
 	}
-	
+
+	double roundToHalfLambda(double x) {
+		return Math.rint(x * 2) / 2;
+	}
+
+	// The height of a MOS diff contact is 1/2 lambda. Therefore, using the
+	// center for diffusion arcs always generates CIF resolution errors
+	private void newDiffArc(PortInst p1, PortInst p2) {
+		double x = p1.getBounds().getCenterX();
+		double y1 = roundToHalfLambda(p1.getBounds().getCenterY());
+		double y2 = roundToHalfLambda(p2.getBounds().getCenterY());
+
+		LayoutLib.newArcInst(Tech.ndiff, LayoutLib.DEF_SIZE, p1, x, y1, p2, x, y2);
+	}
+
 	private void connectDiffs(PortInst[] a, PortInst[] b) {
 		for (int i=0; i<a.length; i++) {
-			LayoutLib.newArcInst(Tech.ndiff, G.DEF_SIZE, a[i], b[i]);
+			//LayoutLib.newArcInst(Tech.ndiff, G.DEF_SIZE, a[i], b[i]);
+			newDiffArc(a[i], b[i]);
 		}
 	}
 		
@@ -670,8 +705,8 @@ class FillCell {
 		}
    	}
 	
-	private FillCell(Library lib, Floorplan[] plans, int botLayer, 
-					 int topLayer, boolean wireLowest) {
+	private Cell makeFillCell1(Library lib, Floorplan[] plans, int botLayer, 
+					 		   int topLayer, boolean wireLowest) {
 		String name = fillName(botLayer, topLayer, wireLowest);
 		Cell cell = Cell.newInstance(lib, name);
 		VddGndStraps[] layers = new VddGndStraps[7];
@@ -698,11 +733,15 @@ class FillCell {
 		LayoutLib.newNodeInst(Tech.essentialBounds,
 							  cellWidth/2, cellHeight/2,
 							  G.DEF_SIZE, G.DEF_SIZE, 0, cell);
+		return cell;
 	}
-	public static void newFillCell(Library lib, Floorplan[] plans, 
+	private FillCell() {}
+	public static Cell makeFillCell(Library lib, Floorplan[] plans, 
 								   int botLayer, int topLayer, 
 								   boolean wireLowest) {
-		new FillCell(lib, plans, botLayer, topLayer, wireLowest);
+		FillCell fc = new FillCell();
+
+		return fc.makeFillCell1(lib, plans, botLayer, topLayer, wireLowest);
 	}
 }
 
@@ -731,11 +770,12 @@ class Router {
 	private void connectPorts(List ports) {
 		for (Iterator it=ports.iterator(); it.hasNext(); ) {
 			PortInst first = (PortInst) it.next();
+			double width = LayoutLib.widestWireWidth(first);
 			it.remove();
 			for (Iterator it2=ports.iterator(); it2.hasNext();) {
 				PortInst pi = (PortInst) it2.next();
 				PrimitiveArc a = findCommonArc(first, pi);
-				if (a!=null)  LayoutLib.newArcInst(a, G.DEF_SIZE, first, pi);
+				if (a!=null)  LayoutLib.newArcInst(a, width, first, pi);
 			}
 		}
 	}
@@ -758,57 +798,50 @@ class Router {
 		new Router(ports);
 	}
 }
+class TiledCell {
+	private static final int VERT_EXTERIOR = 0;
+	private static final int HORI_EXTERIOR = 1;
+	private static final int INTERIOR = 2;
 
-/**
- * Generate fill cells.
- * Create a library called fillCells. 
- */
-public class FillLibGen extends Job {
-	private static final double width = 245; //245 80
-	private static final double height = 175; //175 100 
-	private static final boolean topHori = false;
-	// m1 via = 4x4, m1 space = 6
-	// m6 via = 5x5, m6 space = 8
-	private static final Floorplan[] plans = {
-		null,
-		new CapFloorplan(width, height, 			 !topHori),	// metal 1
-		new MetalFloorplan(width, height, 16, 16, 6,  topHori),	// metal 2
-		new MetalFloorplan(width, height, 16, 16, 6, !topHori),	// metal 3
-		new MetalFloorplan(width, height, 16, 16, 6,  topHori),	// metal 4
-		new MetalFloorplan(width, height, 16, 16, 6, !topHori),	// metal 5
-		new MetalFloorplan(width, height, 21, 21, 8,  topHori)	// metal 6
-	};
-	private static final Floorplan[] noGapPlans = {
-		null,
-		new CapFloorplan(width, height, 		   !topHori),	// metal 1
-		new MetalFloorplan(width, height, 0, 0, 6,  topHori),	// metal 2
-		new MetalFloorplan(width, height, 0, 0, 6, !topHori),	// metal 3
-		new MetalFloorplan(width, height, 0, 0, 6,  topHori),	// metal 4
-		new MetalFloorplan(width, height, 0, 0, 6, !topHori),	// metal 5
-		new MetalFloorplan(width, height, 0, 0, 8,  topHori)	// metal 6
-	};
+	private int vddNum, gndNum;
 
-	private void fillCellTest() {
-		genFillCellFamily("fillLib", plans);
-		genFillCellFamily("noGapFillLib", noGapPlans);
+	private String vddName() {
+		int n = vddNum++;
+		return n==0 ? "vdd" : "vdd_"+n;
+	}
+	private String gndName() {
+		int n = gndNum++;
+		return n==0 ? "gnd" : "gnd_"+n;
 	}
 
-	private void genFillCellFamily(String libName, Floorplan[] plans) {
-		Library lib = LayoutLib.openLibForWrite(libName, libName+".elib");
-
-		//FillCell.newFillCell(lib, plans, 1, 2, true);
-		for (int i=1; i<=6; i++) {
-			for (int w=0; w<2; w++) {
-				boolean wireLowest = w==1;
-				if (!(wireLowest && i==1)) {
-					FillCell.newFillCell(lib, plans, i, 6, wireLowest);	
-				}
+	private static class OrderPortInstsByName implements Comparator {
+		private String base(String s) {
+			int under = s.indexOf("_");
+			if (under==-1) return s;
+			return s.substring(0, under);
+		}
+		private int subscript(String s) {
+			int under = s.indexOf("_");
+			if (under==-1) return 0;
+			String num = s.substring(under+1, s.length());
+			return Integer.parseInt(num);
+		}
+		public int compare(Object o1, Object o2) {
+			PortInst p1 = (PortInst) o1;
+			PortInst p2 = (PortInst) o2;
+			String n1 = p1.getPortProto().getProtoName();
+			String n2 = p2.getPortProto().getProtoName();
+			String base1 = base(n1);
+			String base2 = base(n2);			
+			if (!base1.equals(base2)) {
+				return n1.compareTo(n2);
+			} else {
+				int sub1 = subscript(n1);
+				int sub2 = subscript(n2);
+				return sub1-sub2;
 			}
 		}
-		genTestCell(lib);
-		Gallery.makeGallery(lib);
 	}
-
 	private ArrayList getAllPortInsts(Cell cell) {
 		// get all the ports
 		ArrayList ports = new ArrayList();
@@ -821,23 +854,218 @@ public class FillLibGen extends Job {
 		}
 		return ports;
 	}
-
-	private void genTestCell(Library lib) {
-		Cell test = Cell.newInstance(lib, "test{lay}");
-		Cell fill = lib.findNodeProto("fill");
-		NodeInst[] insts = new NodeInst[4];
-		for (int i=0; i<4; i++) {
-			insts[i] = LayoutLib.newNodeInst(fill, 0, 0, G.DEF_SIZE, G.DEF_SIZE,
-			                                 0, test);
-		}
-		LayoutLib.abutBottomTop(insts[0], insts[2]);
-		LayoutLib.abutLeftRight(insts[0], insts[1]);
-		LayoutLib.abutLeftRight(insts[2], insts[3]);
-		
-		ArrayList portInsts = getAllPortInsts(test);
-		Router.connectCoincident(portInsts);
+	private int orientation(Rectangle2D bounds, PortInst pi) {
+		double portX = pi.getBounds().getCenterX();
+		double portY = pi.getBounds().getCenterY();
+		double minX = bounds.getMinX();
+		double maxX = bounds.getMaxX();
+		double minY = bounds.getMinY();
+		double maxY = bounds.getMaxY();
+		if (portX==minX || portX==maxX) return VERT_EXTERIOR;
+		if (portY==minY || portY==maxY) return HORI_EXTERIOR;
+		return INTERIOR;
 	}
+	/** return a list of all PortInsts of ni that aren't connected to 
+	 * something. */
+	private ArrayList getUnconnectedPortInsts(int orientation, NodeInst ni) {
+		Rectangle2D bounds = ni.findEssentialBounds();
+		ArrayList ports = new ArrayList();
+		for (Iterator it=ni.getPortInsts(); it.hasNext();) {
+			PortInst pi = (PortInst) it.next();
+			Iterator conns = pi.getConnections();
+			if (!conns.hasNext() && orientation(bounds,pi)==orientation) {
+				ports.add(pi);
+			}
+		}
+		return ports;
+	}
+	private void exportPortInsts(List ports, Cell tiled) {
+		Collections.sort(ports, new OrderPortInstsByName());
+		for (Iterator it=ports.iterator(); it.hasNext();) {
+			PortInst pi = (PortInst) it.next();
+			PortProto pp = (PortProto) pi.getPortProto();
+			PortProto.Characteristic role = pp.getCharacteristic(); 
+			if (role==PortProto.Characteristic.PWR) {
+				//System.out.println(pp.getProtoName());
+				Export e = Export.newInstance(tiled, pi, vddName());
+				e.setCharacteristic(PortProto.Characteristic.PWR);
+			} else if (role==PortProto.Characteristic.GND) {
+				//System.out.println(pp.getProtoName());
+				Export e = Export.newInstance(tiled, pi, gndName());
+				e.setCharacteristic(PortProto.Characteristic.GND);
+			} else {
+				LayoutLib.error(true, "unrecognized Characteristic");
+			}
+		}
+	}
+	/** export all PortInsts of all NodeInsts in insts that aren't connected
+	 * to something */
+	private void exportUnconnectedPortInsts(NodeInst[][] rows, 
+	                                        Floorplan[] plans, Cell tiled) {
+		// Subtle!  If top layer is horizontal then begin numbering exports on 
+		// vertical edges of boundary first. This ensures that fill6_2x2 and 
+		// fill56_2x2 have matching port names on the vertical edges.
+		// Always number interior exports last so they never interfere with
+		// perimeter exports.
+		Floorplan topPlan = plans[plans.length-1];
+		int[] orientations;
+		if (topPlan.horizontal) {
+			orientations = new int[] {
+				VERT_EXTERIOR,
+				HORI_EXTERIOR,
+				INTERIOR
+			};
+		} else {
+			orientations = new int[] {
+				HORI_EXTERIOR,
+				VERT_EXTERIOR,
+				INTERIOR
+			};
+		}
+		for (int o=0; o<3; o++) {
+			int orientation = orientations[o];
+			for (int row=0; row<rows.length; row++) {
+				for (int col=0; col<rows[row].length; col++) {
+					if (orientation!=INTERIOR || row==col) {
+						List ports = 
+							getUnconnectedPortInsts(orientation, rows[row][col]);
+						exportPortInsts(ports, tiled);
+					} 
+				}
+			}
+		}
+	}
+	private NodeInst[][] newRows(int numX, int numY) {
+		NodeInst[][] rows = new NodeInst[numY][];
+		for (int row=0; row<numX; row++) {
+			rows[row] = new NodeInst[numX];
+		}
+		return rows;
+	}
+	private TiledCell(int numX, int numY, Cell cell, Floorplan[] plans, 
+	                  Library lib) {
+		String tiledName = cell.getProtoName() + "_"+numX+"x"+numY+"{lay}";
+		Cell tiled = Cell.newInstance(lib, tiledName);
+
+		Rectangle2D bounds = cell.findEssentialBounds();
+		LayoutLib.error(bounds==null, "missing Essential Bounds");
+		double cellW = bounds.getWidth();
+		double cellH = bounds.getHeight();
+		double w = cellW * numX;
+		double h = cellH * numY;
+		// assume that cell is centered about its Facet-Center 
+		double y = -h/2 + cellH/2;
+		
+		NodeInst[][] rows = newRows(numX, numY); 
+		for (int row=0; row<numY; row++) {
+			double x = -w/2 + cellW/2;
+			for (int col=0; col<numX; col++) {
+				rows[row][col] = LayoutLib.newNodeInst(cell, x, y, G.DEF_SIZE, 
+													   G.DEF_SIZE, 0, tiled);
+				x += cellW;
+			}
+			y += cellH;
+		}
+		ArrayList portInsts = getAllPortInsts(tiled);
+		Router.connectCoincident(portInsts);
+		exportUnconnectedPortInsts(rows, plans, tiled);
+	}
+	public static void makeTiledCell(int numX, int numY, Cell cell, 
+	                                 Floorplan[] plans, Library lib) {
+		new TiledCell(numX, numY, cell, plans, lib);
+	}
+}
+
+/**
+ * Generate fill cells.
+ * Create a library called fillCells. 
+ */
+public class FillLibGen extends Job {
+	private static final int[][] TILE_DIMS = {
+		{2, 2},	// {x repeat, y repeat}
+		{3, 3},
+		{4, 4},
+		{5, 5},
+		{10, 10},
+		{12, 12}
+	};
+
+	private static final double width = 245; //245 80
+	private static final double height = 175; //175 100 
+	private static final boolean topHori = false;
+	// m1 via = 4x4, m1 wide metal space = 6, m1 space = 3
+	// m6 via = 5x5, m6 wide metal space = 8, m6 space = 4
+	private static final double m1via = 4;
+	private static final double m1sp = 3;
+	private static final double m1SP = 6;
+	private static final double m6via = 5;
+	private static final double m6sp = 4;
+	private static final double m6SP = 8;
+
+	private static final int nbTracks = 5;
+	private static final double m1Res = 2*m1SP - m1sp + nbTracks*(m1via+m1sp);
+	private static final double m6Res = 2*m6SP - m6sp + nbTracks*(m6via+m6sp);
+
+	private static final Floorplan[] plans = {
+		null,
+		new CapFloorplan(width, height, 			 	      !topHori),//cap
+		new MetalFloorplan(width, height, m1Res, m1Res, m1SP,  topHori),//metal 2
+		new MetalFloorplan(width, height, m1Res, m1Res, m1SP, !topHori),//metal 3
+		new MetalFloorplan(width, height, m1Res, m1Res, m1SP,  topHori),//metal 4
+		new MetalFloorplan(width, height, m1Res, m1Res, m1SP, !topHori),//metal 5
+		new MetalFloorplan(width, height, m6Res, m6Res, m6SP,  topHori)	//metal 6
+	};
+	private static final Floorplan[] noGapPlans = {
+		null,
+		new CapFloorplan(width, height, 		   !topHori),	// cap
+		new MetalFloorplan(width, height, 0, 0, 6,  topHori),	// metal 2
+		new MetalFloorplan(width, height, 0, 0, 6, !topHori),	// metal 3
+		new MetalFloorplan(width, height, 0, 0, 6,  topHori),	// metal 4
+		new MetalFloorplan(width, height, 0, 0, 6, !topHori),	// metal 5
+		new MetalFloorplan(width, height, 0, 0, 8,  topHori)	// metal 6
+	};
 	
+	private void printCoverage(Floorplan[] plans) {
+		for (int i=2; i<plans.length; i++) {
+			System.out.println("metal-"+i+" coverage: "+
+							   ((MetalFloorplan)plans[i]).coverage);
+		}
+	}
+
+	private void fillCellTest() {
+		genFillCellFamily("fillLib", plans);
+		//genFillCellFamily("noGapFillLib", noGapPlans);
+	}
+
+	private void makeTiledCells(Cell cell, Floorplan[] plans, Library lib) {
+		for (int i=0; i<TILE_DIMS.length; i++) {
+			int numX = TILE_DIMS[i][0];
+			int numY = TILE_DIMS[i][1];
+			TiledCell.makeTiledCell(numX, numY, cell, plans, lib);
+		}
+	}
+
+	private void genFillCellFamily(String libName, Floorplan[] plans) {
+		Library lib = LayoutLib.openLibForWrite(libName, libName+".elib");
+		printCoverage(plans);
+		System.out.println("m1-m5 reserved: "+m1Res);
+		System.out.println("m6 reserved: "+m6Res);
+		
+//		Cell c = FillCell.makeFillCell(lib, plans, 5, 6, true);
+//		makeTiledCells(c, lib);	
+		for (int i=1; i<=6; i++) {
+			for (int w=0; w<2; w++) {
+				boolean wireLowest = w==1;
+				if (!(wireLowest && i==1)) {
+					Cell fill = 
+						FillCell.makeFillCell(lib, plans, i, 6, wireLowest);
+					makeTiledCells(fill, plans, lib);	
+				}
+			}
+		}
+		Gallery.makeGallery(lib);
+	}
+
 	public void doIt() {
 		System.out.println("Begin FillCell");
 		fillCellTest();

@@ -117,22 +117,23 @@ public class LayoutLib {
 	 * file on disk
 	 * @return the desired library
 	 */
-	public static Library openLibForModify(String libName, String libFileName) {
-		// return an open Library if it exists
-		Library lib = Library.findLibrary(libName);
-		if (lib!=null)  return lib;
-
-		// open a Library file if it exists
-		URL libFileURL = TextUtils.makeURLToFile(libFileName);
-		lib = Input.readLibrary(libFileURL, OpenFile.Type.ELIB);
-		if (lib!=null)  return lib;
-		
-		// create a new Library
-		lib = Library.newInstance(libName, libFileURL);
-
-		error(lib==null, "can't open Library for modify: "+libName);
-		return lib;
-	}
+	// This doesn't work anymore.
+//	public static Library openLibForModify(String libName, String libFileName) {
+//		// return an open Library if it exists
+//		Library lib = Library.findLibrary(libName);
+//		if (lib!=null)  return lib;
+//
+//		// open a Library file if it exists
+//		URL libFileURL = TextUtils.makeURLToFile(libFileName);
+//		lib = Input.readLibrary(libFileURL, OpenFile.Type.ELIB);
+//		if (lib!=null)  return lib;
+//		
+//		// create a new Library
+//		lib = Library.newInstance(libName, libFileURL);
+//
+//		error(lib==null, "can't open Library for modify: "+libName);
+//		return lib;
+//	}
 	public static Library openLibForWrite(String libName, String libFileName) {
 		// return an open Library if it exists
 		Library lib = Library.findLibrary(libName);
