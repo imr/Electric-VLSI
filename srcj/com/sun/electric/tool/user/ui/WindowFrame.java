@@ -635,7 +635,11 @@ public class WindowFrame
 	 */
 	public void setCursor(Cursor cursor)
 	{
-		content.getPanel().setCursor(cursor);
+        if (!TopLevel.isMDIMode()) {
+            jf.setCursor(cursor);
+        }
+        js.setCursor(cursor);
+        content.getPanel().setCursor(cursor);
 	}
 
 	public static void removeLibraryReferences(Library lib)

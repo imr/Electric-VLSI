@@ -343,15 +343,17 @@ public class TopLevel extends JFrame
 
 	public static void setCurrentCursor(Cursor cursor)
 	{
-		TopLevel.cursor = cursor;
-		JFrame jf = TopLevel.getCurrentJFrame();
-		jf.setCursor(cursor);
-		if (palette != null) palette.setCursor(cursor);
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = (WindowFrame)it.next();
-			wf.setCursor(cursor);
-		}
+        TopLevel.cursor = cursor;
+        if (mode == Mode.MDI) {
+            JFrame jf = TopLevel.getCurrentJFrame();
+            jf.setCursor(cursor);
+        }
+        if (palette != null) palette.setCursor(cursor);
+        for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+        {
+            WindowFrame wf = (WindowFrame)it.next();
+            wf.setCursor(cursor);
+        }        
 	}
 
 	/**
