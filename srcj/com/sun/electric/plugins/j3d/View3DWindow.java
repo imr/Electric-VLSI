@@ -516,7 +516,7 @@ public class View3DWindow extends JPanel
 				}
 				// Bottom face
 				for (int i = 0; i < listLen; i++)
-					indices[count++] = i + listLen;
+					indices[count++] = (listLen-i)%listLen + listLen;
 
 				GeometryInfo gi = new GeometryInfo(GeometryInfo.POLYGON_ARRAY);
 				gi.setCoordinates(pts);
