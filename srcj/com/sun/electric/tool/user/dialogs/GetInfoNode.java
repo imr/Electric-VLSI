@@ -1453,7 +1453,7 @@ public class GetInfoNode extends javax.swing.JDialog
 
 	private void attributesButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_attributesButtonActionPerformed
 	{//GEN-HEADEREND:event_attributesButtonActionPerformed
-		Attributes.showDialog();
+		Attributes2.showDialog();
 	}//GEN-LAST:event_attributesButtonActionPerformed
 
 	private void moreActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_moreActionPerformed
