@@ -616,5 +616,5 @@ public class IconTab extends PreferencePanel
     private javax.swing.JPanel jPanel6;
     private javax.swing.JSeparator jSeparator11;
     // End of variables declaration//GEN-END:variables
-	
+
 }

@@ -366,5 +366,5 @@ public class UnitsTab extends PreferencePanel
     private javax.swing.JComboBox unitsTime;
     private javax.swing.JComboBox unitsVoltage;
     // End of variables declaration//GEN-END:variables
-	
+
 }

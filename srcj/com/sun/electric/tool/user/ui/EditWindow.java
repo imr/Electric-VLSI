@@ -611,7 +611,7 @@ public class EditWindow extends JPanel
 	}
 
 	// ************************************* INFORMATION *************************************
-	
+
 	/**
 	 * Method to return the top-level JPanel for this EditWindow.
 	 * The actual EditWindow object is below the top level, surrounded by scroll bars.
@@ -949,7 +949,7 @@ public class EditWindow extends JPanel
 	                try {
 	                    // add in the frame if present
 	                    drawCellFrame(g);
-	
+
 	                    //long start = System.currentTimeMillis();
 	                    mouseOverHighlighter.showHighlights(this, g);
 	                    highlighter.showHighlights(this, g);
@@ -1569,12 +1569,12 @@ public class EditWindow extends JPanel
 		public String toString() { return "StringsInCell obj="+object+" var="+key+
 			" name="+name+" line="+lineInVariable+" start="+startPosition+" end="+endPosition+" msg="+theLine; }
 	}
-	
+
 	private WhatToSearch get(Set whatToSearch, WhatToSearch what) {
 		if (whatToSearch.contains(what)) return what;
 		return null;
 	}
-	
+
 	private void searchTextNodes(String search, boolean caseSensitive,
 		                         boolean regExp, Set whatToSearch) {
 		boolean doTemp = whatToSearch.contains(WhatToSearch.TEMP_NAMES);
@@ -1680,7 +1680,7 @@ public class EditWindow extends JPanel
 		currentFindPosition = -1;
 		currentStringInCell = null;
 	}
-	
+
 	private String repeatChar(char c, int num) {
 		StringBuffer sb = new StringBuffer();
 		for (int i=0; i<num; i++) sb.append(c);
@@ -1692,7 +1692,7 @@ public class EditWindow extends JPanel
 		String foundStr = sic.theLine;
 		String highlightHdr = repeatChar(' ', foundHdr.length()+sic.startPosition);
 		String highlight =	repeatChar('^', sic.endPosition-sic.startPosition); 
-		
+	
 		System.out.println(foundHdr+foundStr+"\n"+
 						   highlightHdr+highlight);
 	}
@@ -1733,7 +1733,7 @@ public class EditWindow extends JPanel
 			highlighter.addText(eObj, cell, var, currentStringInCell.name);
 		}
 		highlighter.finished();
-		return true;		
+		return true;	
 	}
 
 	/**
@@ -1945,13 +1945,13 @@ public class EditWindow extends JPanel
 					// export name
 					Export pp = (Export)sic.object;
 					pp.rename(newString);
-					Undo.redrawObject(pp.getOriginalPort().getNodeInst());					
+					Undo.redrawObject(pp.getOriginalPort().getNodeInst());				
 				} else
 				{
 					// node or arc name
 					Geometric geom = (Geometric)sic.object;
 					geom.setName(newString);
-					Undo.redrawObject(geom);					
+					Undo.redrawObject(geom);				
 				}
 			} else
 			{
@@ -2577,7 +2577,7 @@ public class EditWindow extends JPanel
 				}
 			}
 		}
-		
+	
         // do the descent
         boolean redisplay = true;
         if (inPlaceDisplay) redisplay = false;
@@ -3190,7 +3190,7 @@ public class EditWindow extends JPanel
 	public BufferedImage getOffScreenImage(ElectricPrinter ep)
 	{
 		if (getCell() == null) return null;
-		
+	
 		BufferedImage img = ep.getBufferedImage();
 		if (img == null)
 		{

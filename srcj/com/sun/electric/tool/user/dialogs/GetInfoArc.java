@@ -832,7 +832,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 	{//GEN-HEADEREND:event_cancelActionPerformed
 		closeDialog(null);
 	}//GEN-LAST:event_cancelActionPerformed
-	
+
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
@@ -994,5 +994,5 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
     private javax.swing.JLabel type;
     private javax.swing.JTextField width;
     // End of variables declaration//GEN-END:variables
-	
+
 }

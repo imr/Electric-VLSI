@@ -471,5 +471,5 @@ public class TechnologyTab extends PreferencePanel
     private javax.swing.JPanel technology;
     private javax.swing.JComboBox technologyPopup;
     // End of variables declaration//GEN-END:variables
-	
+
 }

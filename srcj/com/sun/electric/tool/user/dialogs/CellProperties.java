@@ -1068,7 +1068,7 @@ public class CellProperties extends EDialog
 	private static class SetCellOptions extends Job
 	{
 		CellProperties dialog;
-		
+	
 		protected SetCellOptions(CellProperties dialog)
 		{
 			super("Change Cell Options", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1170,5 +1170,5 @@ public class CellProperties extends EDialog
     private javax.swing.JCheckBox useTechEditor;
     private javax.swing.JComboBox whichTechnology;
     // End of variables declaration//GEN-END:variables
-	
+
 }

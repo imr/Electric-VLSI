@@ -673,7 +673,7 @@ public class Change extends EDialog implements HighlightListener
 						for(Iterator it = others.iterator(); it.hasNext(); )
 						{
 							NodeInst lNi = (NodeInst)it.next();
-	
+
 							// disallow replacing if lock is on
 							int errorCode = CircuitChanges.cantEdit(curCell, lNi, true);
 							if (errorCode < 0) return false;
@@ -758,7 +758,7 @@ public class Change extends EDialog implements HighlightListener
 									{
 										ArcInst lAi = (ArcInst)nIt.next();
 										if (lAi.getProto() != oldAType) continue;
-	
+
 										// disallow replacing if lock is on
 										int errorCode = CircuitChanges.cantEdit(cell, null, true);
 										if (errorCode < 0) return false;
@@ -1328,7 +1328,7 @@ public class Change extends EDialog implements HighlightListener
 	{
 		setVisible(false);
 		dispose();
-		theDialog = null;		
+		theDialog = null;	
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -1349,5 +1349,5 @@ public class Change extends EDialog implements HighlightListener
     private javax.swing.JCheckBox showCells;
     private javax.swing.JCheckBox showPrimitives;
     // End of variables declaration//GEN-END:variables
-	
+
 }

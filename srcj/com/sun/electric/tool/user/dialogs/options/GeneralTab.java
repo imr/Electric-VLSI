@@ -378,5 +378,5 @@ public class GeneralTab extends PreferencePanel
     private javax.swing.JTextField maxUndoHistory;
     private javax.swing.JComboBox workingDirComboBox;
     // End of variables declaration//GEN-END:variables
-	
+
 }

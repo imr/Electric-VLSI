@@ -208,7 +208,7 @@ public class DXFTab extends PreferencePanel
 
         pack();
     }//GEN-END:initComponents
-	
+
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
@@ -227,5 +227,5 @@ public class DXFTab extends PreferencePanel
     private javax.swing.JLabel jLabel17;
     private javax.swing.JSeparator jSeparator1;
     // End of variables declaration//GEN-END:variables
-	
+
 }

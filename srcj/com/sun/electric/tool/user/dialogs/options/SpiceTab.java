@@ -203,7 +203,7 @@ public class SpiceTab extends PreferencePanel
 		spiceResistance.getDocument().addDocumentListener(new LayerDocumentListener(spiceLayerResistanceOptions, spiceLayerList, curTech));
 		spiceCapacitance.getDocument().addDocumentListener(new LayerDocumentListener(spiceLayerCapacitanceOptions, spiceLayerList, curTech));
 		spiceEdgeCapacitance.getDocument().addDocumentListener(new LayerDocumentListener(spiceLayerEdgeCapacitanceOptions, spiceLayerList, curTech));
-		
+	
 		spiceTechMinResistanceInitial = curTech.getMinResistance();
 		spiceMinResistance.setText(Double.toString(spiceTechMinResistanceInitial));
 
@@ -1268,7 +1268,7 @@ public class SpiceTab extends PreferencePanel
             useDir.setBackground(spice2.getBackground());
         }
     }//GEN-LAST:event_useDirCheckBoxActionPerformed
-	
+
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
@@ -1348,5 +1348,5 @@ public class SpiceTab extends PreferencePanel
     private javax.swing.JTextField useDir;
     private javax.swing.JCheckBox useDirCheckBox;
     // End of variables declaration//GEN-END:variables
-	
+
 }

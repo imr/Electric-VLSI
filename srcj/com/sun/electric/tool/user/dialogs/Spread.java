@@ -268,5 +268,5 @@ public class Spread extends EDialog
     private javax.swing.JRadioButton spreadRight;
     private javax.swing.JRadioButton spreadUp;
     // End of variables declaration//GEN-END:variables
-	
+
 }

@@ -253,7 +253,7 @@ public class NetworkTab extends PreferencePanel
 
         pack();
     }//GEN-END:initComponents
-	
+
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
@@ -278,5 +278,5 @@ public class NetworkTab extends PreferencePanel
     private javax.swing.JCheckBox netUnifyPwrGnd;
     private javax.swing.JPanel network;
     // End of variables declaration//GEN-END:variables
-	
+
 }

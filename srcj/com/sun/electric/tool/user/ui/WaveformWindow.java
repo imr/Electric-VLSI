@@ -352,7 +352,7 @@ public class WaveformWindow implements WindowContent
 			{
 				public void actionPerformed(ActionEvent evt) { hidePanel(); }
 			});
-	
+
 			if (isAnalog)
 			{
 				// the "delete signal" button for this panel
@@ -694,7 +694,7 @@ public class WaveformWindow implements WindowContent
 		{
 			if (timePanel != null) timePanel.repaint(); else
 			{
-				waveWindow.mainTimePanel.repaint();								
+				waveWindow.mainTimePanel.repaint();							
 			}
 			repaint();
 		}
@@ -811,7 +811,7 @@ public class WaveformWindow implements WindowContent
 			if (x >= VERTLABELWIDTH)
 				g.drawLine(x, 0, x, hei);
 			g2.setStroke(Highlight.solidLine);
-			
+		
 			// show dragged area if there
 			if (draggingArea)
 			{
@@ -865,7 +865,7 @@ public class WaveformWindow implements WindowContent
 						textWid = (int)glyphBounds.getWidth();
 						textHei = (int)glyphBounds.getHeight();
 						g.drawString(lowValueString, (lowX+highX)/2 - textWid/2, highY + textHei + 3);
-	
+
 						// show the high value
 						String highValueString = TextUtils.formatDouble(highValue);
 						gv = waveWindowFont.createGlyphVector(waveWindowFRC, highValueString);
@@ -873,7 +873,7 @@ public class WaveformWindow implements WindowContent
 						textWid = (int)glyphBounds.getWidth();
 						textHei = (int)glyphBounds.getHeight();
 						g.drawString(highValueString, (lowX+highX)/2 - textWid/2, lowY - 2);
-	
+
 						// show the value difference
 						String valueDiffString = TextUtils.formatDouble(highValue - lowValue);
 						gv = waveWindowFont.createGlyphVector(waveWindowFRC, valueDiffString);
@@ -885,7 +885,7 @@ public class WaveformWindow implements WindowContent
 				}
 			}
 		}
-		
+	
 		private List processSignals(Graphics g, Rectangle2D bounds)
 		{
 			List result = null;
@@ -1284,7 +1284,7 @@ public class WaveformWindow implements WindowContent
 			List foundList = processSignals(null, bounds);
 			return foundList;
 		}
-		
+	
 		private void clearHighlightedSignals()
 		{
 			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
@@ -1581,7 +1581,7 @@ public class WaveformWindow implements WindowContent
 		}
 
 		// ****************************** ZOOMING IN WAVEFORM WINDOW ******************************
-	
+
 		/**
 		 * Method to implement the Mouse Pressed event for zooming.
 		 */ 
@@ -1592,7 +1592,7 @@ public class WaveformWindow implements WindowContent
 			ZoomAndPanListener.setProperCursor(evt);
 			draggingArea = true;
 		}
-		
+	
 		/**
 		 * Method to implement the Mouse Released event for zooming.
 		 */ 
@@ -1638,7 +1638,7 @@ public class WaveformWindow implements WindowContent
 				wp.repaintWithTime();
 			}
 		}
-		
+	
 		/**
 		 * Method to implement the Mouse Dragged event for zooming.
 		 */ 
@@ -1659,7 +1659,7 @@ public class WaveformWindow implements WindowContent
 		}
 
 		// ****************************** PANNING IN WAVEFORM WINDOW ******************************
-	
+
 		/**
 		 * Method to implement the Mouse Pressed event for panning.
 		 */ 
@@ -1668,14 +1668,14 @@ public class WaveformWindow implements WindowContent
 			dragStartX = evt.getX();
 			dragStartY = evt.getY();
 		}
-		
+	
 		/**
 		 * Method to implement the Mouse Released event for panning.
 		 */ 
 		public void mouseReleasedPan(MouseEvent evt)
 		{
 		}
-		
+	
 		/**
 		 * Method to implement the Mouse Dragged event for panning.
 		 */ 
@@ -1795,19 +1795,19 @@ public class WaveformWindow implements WindowContent
 		{
 			e.acceptDrag(e.getDropAction());
 		}
-	
+
 		public void dragOver(DropTargetDragEvent e)
 		{
 			e.acceptDrag(e.getDropAction());
 		}
-	
+
 		public void dropActionChanged(DropTargetDragEvent e)
 		{
 			e.acceptDrag(e.getDropAction());
 		}
 
 		public void dragExit(DropTargetEvent e) {}
-	
+
 		public void drop(DropTargetDropEvent dtde)
 		{
 			Object data = null;
@@ -2324,7 +2324,7 @@ public class WaveformWindow implements WindowContent
 					Panel wp = (Panel)it.next();
 					wp.clearHighlightedSignals();
 				}
-	
+
 				Set highSet = which.getHighlightedNetworks();
 				if (highSet.size() == 1)
 				{
@@ -2335,7 +2335,7 @@ public class WaveformWindow implements WindowContent
                     String netName = WaveformWindow.getSpiceNetName(loc.getContext(), net);
 					Simulation.SimSignal sSig = ww.sd.findSignalForNetwork(netName);
 					if (sSig == null) return;
-	
+
 					boolean foundSignal = false;
 					for(Iterator it = ww.wavePanels.iterator(); it.hasNext(); )
 					{
@@ -2942,7 +2942,7 @@ public class WaveformWindow implements WindowContent
 			{
 				newTime = lowTime;
 				vcrClickStop();
-			}		
+			}	
 		} else
 		{
 			newTime += dTime;
@@ -2951,7 +2951,7 @@ public class WaveformWindow implements WindowContent
 			{
 				newTime = highTime;
 				vcrClickStop();
-			}		
+			}	
 		}
 		setMainTimeCursor(newTime);
 		redrawAllPanels();
@@ -3079,7 +3079,7 @@ public class WaveformWindow implements WindowContent
 						wp.waveSignals.remove(ws.sigButton);
 						break;
 					}
-				}		
+				}	
 			}
 			if (wp.waveSignals.size() == 0)
 			{
@@ -3883,7 +3883,7 @@ public class WaveformWindow implements WindowContent
 				break;
 			}
 		}
-		netValues.put(net, new Integer(state));	
+		netValues.put(net, new Integer(state));
 	}
 
 	// ************************************ PANEL CONTROL ************************************
@@ -3931,7 +3931,7 @@ public class WaveformWindow implements WindowContent
 		overall.validate();
 		redrawAllPanels();
 	}
-	
+
 	/**
 	 * Method called to grow or shrink the panels vertically.
 	 */

@@ -597,7 +597,7 @@ public class CrossLibCopy extends EDialog
 
         pack();
     }//GEN-END:initComponents
-	
+
     private void compareContentItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_compareContentItemStateChanged
         
         if (compareContent.isSelected())
@@ -678,7 +678,7 @@ public class CrossLibCopy extends EDialog
 		setVisible(false);
 		dispose();
 	}//GEN-LAST:event_closeDialog
-	
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel Bottom;
     private javax.swing.JPanel BottomCenter;
@@ -702,5 +702,5 @@ public class CrossLibCopy extends EDialog
     private javax.swing.JComboBox librariesRight;
     private javax.swing.JCheckBox useExistingSubcells;
     // End of variables declaration//GEN-END:variables
-	
+
 }

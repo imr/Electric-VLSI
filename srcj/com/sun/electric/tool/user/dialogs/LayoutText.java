@@ -451,5 +451,5 @@ public class LayoutText extends EDialog
     private javax.swing.JTextField textSize;
     private javax.swing.JCheckBox textUnderline;
     // End of variables declaration//GEN-END:variables
-	
+
 }

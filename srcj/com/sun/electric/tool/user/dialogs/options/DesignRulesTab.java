@@ -543,7 +543,7 @@ public class DesignRulesTab extends PreferencePanel
 			if (layer1 > layer2) { int temp = layer1; layer1 = layer2;  layer2 = temp; }
 			int dindex = (layer1+1) * (layer1/2) + (layer1&1) * ((layer1+1)/2);
 			dindex = layer2 + drRules.numLayers * layer1 - dindex;
-	
+
 			if (drRules.conList[dindex].doubleValue() >= 0)
 				drNormalConnected.setText(drRules.conList[dindex].toString());
 			if (drRules.unConList[dindex].doubleValue() >= 0)
@@ -558,7 +558,7 @@ public class DesignRulesTab extends PreferencePanel
 				drMultiUnconnected.setText(drRules.unConListMulti[dindex].toString());
 			if (drRules.edgeList[dindex].doubleValue() >= 0)
 				drNormalEdge.setText(drRules.edgeList[dindex].toString());
-	
+
 			drNormalConnectedRule.setText(drRules.conListRules[dindex]);
 			drNormalUnconnectedRule.setText(drRules.unConListRules[dindex]);
 			drWideConnectedRule.setText(drRules.conListWideRules[dindex]);
@@ -1005,7 +1005,7 @@ public class DesignRulesTab extends PreferencePanel
 
         pack();
     }//GEN-END:initComponents
-	
+
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
@@ -1060,5 +1060,5 @@ public class DesignRulesTab extends PreferencePanel
     private javax.swing.JLabel jLabel52;
     private javax.swing.JLabel jLabel53;
     // End of variables declaration//GEN-END:variables
-	
+
 }

@@ -330,5 +330,5 @@ public class NewCell extends EDialog
     private javax.swing.JButton ok;
     private javax.swing.JScrollPane view;
     // End of variables declaration//GEN-END:variables
-	
+
 }

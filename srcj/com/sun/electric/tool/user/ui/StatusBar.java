@@ -224,7 +224,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 			}
 		}
 	}
-	
+
 	private void redoStatusBar()
 	{
         updateSelectedText();

@@ -113,7 +113,7 @@ public final class Launcher
         }
 
 		String command = program;
-		command += " -cp " + System.getProperty("java.class.path",".");
+		command += " -cp \"" + System.getProperty("java.class.path",".") + "\"";
 //		command += " -mx" + maxMemWanted + "m -jar " + jarfile;
         command += " -ss2m";
 		if (enableAssertions)
@@ -132,5 +132,4 @@ public final class Launcher
 			Main.main(args);
 		}
 	}
-
 }

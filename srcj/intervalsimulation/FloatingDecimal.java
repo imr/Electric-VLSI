@@ -1123,7 +1123,7 @@ public class FloatingDecimal{
 		} else {
 		    targetChars = infinity;
 		}
-		
+	
 		// compare Input string to "NaN" or "Infinity" 
 		int j = 0;
 		while(i < l && j < targetChars.length) {
@@ -1149,7 +1149,7 @@ public class FloatingDecimal{
 		}
 
 	    }  // else carry on with original code as before
-		
+	
 	    char[] digits = new char[ l ];
 	    int    nDigits= 0;
 	    boolean decSeen = false;

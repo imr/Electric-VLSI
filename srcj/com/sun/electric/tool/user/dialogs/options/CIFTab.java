@@ -379,7 +379,7 @@ public class CIFTab extends PreferencePanel
 
         pack();
     }//GEN-END:initComponents
-	
+
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
@@ -403,5 +403,5 @@ public class CIFTab extends PreferencePanel
     private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
     // End of variables declaration//GEN-END:variables
-	
+
 }

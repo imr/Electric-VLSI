@@ -574,7 +574,7 @@ public class PrintingTab extends PreferencePanel
 
         pack();
     }//GEN-END:initComponents
-	
+
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
@@ -624,5 +624,5 @@ public class PrintingTab extends PreferencePanel
     private javax.swing.ButtonGroup printingPlotArea;
     private javax.swing.ButtonGroup printingPlotOrPrint;
     // End of variables declaration//GEN-END:variables
-	
+
 }

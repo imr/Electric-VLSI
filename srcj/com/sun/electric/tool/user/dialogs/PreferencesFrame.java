@@ -58,6 +58,7 @@ import com.sun.electric.tool.user.dialogs.options.RoutingTab;
 import com.sun.electric.tool.user.dialogs.options.SUETab;
 import com.sun.electric.tool.user.dialogs.options.ScaleTab;
 import com.sun.electric.tool.user.dialogs.options.SelectionTab;
+import com.sun.electric.tool.user.dialogs.options.SiliconCompilerTab;
 import com.sun.electric.tool.user.dialogs.options.SkillTab;
 import com.sun.electric.tool.user.dialogs.options.SpiceTab;
 import com.sun.electric.tool.user.dialogs.options.TechnologyTab;
@@ -286,6 +287,10 @@ public class PreferencesFrame extends EDialog
 		optionPanes.add(rot);
 		toolSet.add(new DefaultMutableTreeNode(rot.getName()));
 
+		SiliconCompilerTab sct = new SiliconCompilerTab(parent, modal);
+		optionPanes.add(sct);
+		toolSet.add(new DefaultMutableTreeNode(sct.getName()));
+
 		SpiceTab spt = new SpiceTab(parent, modal);
 		optionPanes.add(spt);
 		toolSet.add(new DefaultMutableTreeNode(spt.getName()));
@@ -315,9 +320,9 @@ public class PreferencesFrame extends EDialog
 		optionPanes.add(ut);
 		techSet.add(new DefaultMutableTreeNode(ut.getName()));
 
-		ScaleTab sct = new ScaleTab(parent, modal);
-		optionPanes.add(sct);
-		techSet.add(new DefaultMutableTreeNode(sct.getName()));
+		ScaleTab scat = new ScaleTab(parent, modal);
+		optionPanes.add(scat);
+		techSet.add(new DefaultMutableTreeNode(scat.getName()));
 
 		IconTab ict = new IconTab(parent, modal);
 		optionPanes.add(ict);

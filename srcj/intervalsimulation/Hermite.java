@@ -189,7 +189,7 @@ class Hermite
 		double kk = 0.0 + 1.0 / numPoints * k;
 		double t = kk*h;
 		raw.set(k, 0, t);
-		
+	
 		raw.set(k, 1, Math.exp(-t));
 		raw.set(k, 2, getV(t));
 		raw.set(k, 3, 1.-t*(1.-t/2*(1-t/3*(1-t/4*(1-t/5*(1-t/6*(1-t/7*(1-t/8))))))));

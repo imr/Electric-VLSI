@@ -388,7 +388,7 @@ public class VerilogTab extends PreferencePanel
 
         pack();
     }//GEN-END:initComponents
-	
+
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
@@ -409,5 +409,5 @@ public class VerilogTab extends PreferencePanel
     private javax.swing.JPanel verilog;
     private javax.swing.ButtonGroup verilogModel;
     // End of variables declaration//GEN-END:variables
-	
+
 }

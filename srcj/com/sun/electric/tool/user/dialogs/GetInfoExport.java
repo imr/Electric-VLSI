@@ -560,7 +560,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 	{//GEN-HEADEREND:event_cancelActionPerformed
 		closeDialog(null);
 	}//GEN-LAST:event_cancelActionPerformed
-	
+
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
@@ -587,5 +587,5 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
     private javax.swing.ButtonGroup sizes;
     private javax.swing.JTextField theText;
     // End of variables declaration//GEN-END:variables
-	
+
 }

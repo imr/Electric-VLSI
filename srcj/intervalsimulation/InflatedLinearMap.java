@@ -90,7 +90,7 @@ class InflatedLinearMap {
 	    this.lSolver = lSolver;
 	    map = new InflatedLinearMap(n);
 	}
-	
+
 	abstract void step();
     }
 
@@ -107,7 +107,7 @@ class InflatedLinearMap {
 	    radius = new double[n];
 	    radScaleUp = 1.0 + (n+1)/2*ULP; // Compensate round error of n additions.
 	}
-	
+
 	void setState(double[] center) {
 	    if (center.length != n)
 		throw new IllegalArgumentException(center.length + " != " + n);
@@ -163,7 +163,7 @@ class InflatedLinearMap {
 	AccurateGlobalSolver (LocalSolver lSolver) {
 	    super(lSolver);
 	}
-	
+
 	void setState(double center) {
 	    this.center.assign(center);
 	    this.radius.assign(0);

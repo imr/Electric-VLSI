@@ -166,7 +166,7 @@ public class SizeListener
 				gbc.gridy = 1;
 				gbc.insets = new java.awt.Insets(4, 4, 4, 4);
 				getContentPane().add(ySizeLabel, gbc);
-	
+
 				ySize = new JTextField();
 				ySize.setColumns(6);
 				gbc = new GridBagConstraints();
@@ -237,7 +237,7 @@ public class SizeListener
 				if (geom instanceof NodeInst && nodes)
 				{
 					NodeInst ni = (NodeInst)geom;
-					SizeOffset so = ni.getSizeOffset();					
+					SizeOffset so = ni.getSizeOffset();				
 					xS = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
 					yS = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 				} else if (geom instanceof ArcInst && !nodes)
@@ -276,7 +276,7 @@ public class SizeListener
 	private static class ResizeStuff extends Job
 	{
 		SizeObjects dialog;
-	
+
 		protected ResizeStuff(SizeObjects dialog)
 		{
 			super("Resize Objects", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -306,7 +306,7 @@ public class SizeListener
 				if (geom instanceof NodeInst && dialog.nodes)
 				{
 					NodeInst ni = (NodeInst)geom;
-					SizeOffset so = ni.getSizeOffset();					
+					SizeOffset so = ni.getSizeOffset();				
 					double x = xS + so.getLowXOffset() + so.getHighXOffset();
 					double y = yS + so.getLowYOffset() + so.getHighYOffset();
 					if (ni.getProto() instanceof PrimitiveNode && ((PrimitiveNode)ni.getProto()).isSquare())

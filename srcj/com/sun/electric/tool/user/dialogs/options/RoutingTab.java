@@ -131,7 +131,7 @@ public class RoutingTab extends PreferencePanel
 			if (ap != null) newArcName = ap.getTechnology().getTechName() + ":" + ap.getName();
 			Routing.setPreferredRoutingArc(newArcName);
 		}
-		
+	
 		boolean cur = routMimicCanUnstitch.isSelected();
 		if (cur != initRoutMimicCanUnstitch)
 			Routing.setMimicStitchCanUnstitch(cur);
@@ -355,7 +355,7 @@ public class RoutingTab extends PreferencePanel
 
         pack();
     }//GEN-END:initComponents
-	
+
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
@@ -383,5 +383,5 @@ public class RoutingTab extends PreferencePanel
     private javax.swing.ButtonGroup routStitcher;
     private javax.swing.JPanel routing;
     // End of variables declaration//GEN-END:variables
-	
+
 }

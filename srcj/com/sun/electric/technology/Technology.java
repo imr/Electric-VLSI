@@ -103,30 +103,6 @@ import java.util.prefs.Preferences;
  */
 public class Technology
 {
-
-    /**
-	 * Method to determine the index in the upper-left triangle array for two layers.
-	 * @param layer1Index the first layer index.
-	 * @param layer2Index the second layer index.
-	 * @return the index in the array that corresponds to these two layers.
-	 */
-	public int getLayerIndex(int layer1Index, int layer2Index)
-	{
-		if (layer1Index > layer2Index) { int temp = layer1Index; layer1Index = layer2Index;  layer2Index = temp; }
-		int pIndex = (layer1Index+1) * (layer1Index/2) + (layer1Index&1) * ((layer1Index+1)/2);
-		pIndex = layer2Index + getNumLayers() * layer1Index - pIndex;
-		return pIndex;
-	}
-
-    public static Layer getLayerFromOverride(String override, int startPos, char endChr, Technology tech)
-    {
-        int endPos = override.indexOf(endChr, startPos);
-        if (endPos < 0) return null;
-        String layerName = override.substring(startPos, endPos);
-        Layer layer = tech.findLayer(layerName);
-        return layer;
-    }
-
     /**
 	 * Defines a single layer of a PrimitiveArc.
 	 * A PrimitiveArc has a list of these ArcLayer objects, one for
@@ -684,7 +660,7 @@ public class Technology
 	 * Method to set state of a technology.
 	 * It gets overridden by individual technologies.
 	 */
-	public void setState() {;}
+	public void setState() {}
 
 	/**
 	 * Method to initialize a technology. This will check and restore
@@ -857,6 +833,45 @@ public class Technology
 		{
 			Layer layer = (Layer)it.next();
 			if (layer.getName().equalsIgnoreCase(layerName)) return layer;
+		}
+		return null;
+	}
+
+    /**
+	 * Method to determine the index in the upper-left triangle array for two layers.
+	 * @param layer1Index the first layer index.
+	 * @param layer2Index the second layer index.
+	 * @return the index in the array that corresponds to these two layers.
+	 */
+	public int getLayerIndex(int layer1Index, int layer2Index)
+	{
+		if (layer1Index > layer2Index) { int temp = layer1Index; layer1Index = layer2Index;  layer2Index = temp; }
+		int pIndex = (layer1Index+1) * (layer1Index/2) + (layer1Index&1) * ((layer1Index+1)/2);
+		pIndex = layer2Index + getNumLayers() * layer1Index - pIndex;
+		return pIndex;
+	}
+
+    public static Layer getLayerFromOverride(String override, int startPos, char endChr, Technology tech)
+    {
+        int endPos = override.indexOf(endChr, startPos);
+        if (endPos < 0) return null;
+        String layerName = override.substring(startPos, endPos);
+        Layer layer = tech.findLayer(layerName);
+        return layer;
+    }
+
+	/**
+	 * Method to find the Layer in this Technology that matches a function description.
+	 * @param fun the layer function to locate.
+	 * @return the Layer that matches this description (null if not found).
+	 */
+	public Layer findLayerFromFunction(Layer.Function fun)
+	{
+		for(Iterator it = this.getLayers(); it.hasNext(); )
+		{
+			Layer lay = (Layer)it.next();
+			Layer.Function lFun = lay.getFunction();
+			if (lFun == fun) return lay;
 		}
 		return null;
 	}

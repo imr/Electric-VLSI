@@ -242,7 +242,7 @@ public class AntennaRulesTab extends PreferencePanel
 
         pack();
     }//GEN-END:initComponents
-	
+
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
@@ -258,5 +258,5 @@ public class AntennaRulesTab extends PreferencePanel
     private javax.swing.JLabel jLabel66;
     private javax.swing.JLabel jLabel68;
     // End of variables declaration//GEN-END:variables
-	
+
 }

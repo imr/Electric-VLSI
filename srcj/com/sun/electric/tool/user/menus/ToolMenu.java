@@ -77,6 +77,7 @@ import com.sun.electric.tool.routing.Maze;
 import com.sun.electric.tool.routing.MimicStitch;
 import com.sun.electric.tool.routing.River;
 import com.sun.electric.tool.routing.Routing;
+import com.sun.electric.tool.sc.SilComp;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
@@ -339,6 +340,16 @@ public class ToolMenu {
 		if (Technology.getTSMC90Technology() != null)
 	        generationSubMenu.addMenuItem("Generate gate layouts (TSMC90)", null,
 	            new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateLayoutGenerator(Technology.getTSMC90Technology()); }});
+
+		//------------------- Silicon Compiler
+
+		MenuBar.Menu silCompSubMenu = new MenuBar.Menu("Silicon Compiler", 'M');
+		toolMenu.add(silCompSubMenu);
+//		silCompSubMenu.addMenuItem("Read MOSIS CMOS Library", null,
+//			new ActionListener() { public void actionPerformed(ActionEvent e) {SilComp.readCellLibrary("sclib");}});
+//		silCompSubMenu.addSeparator();
+		silCompSubMenu.addMenuItem("Convert Netlist to Layout", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) {SilComp.doSiliconCompilation();}});
 
 		//------------------- Compaction
 

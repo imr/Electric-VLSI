@@ -1151,7 +1151,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			String defaultName = "";
 			if (cellGroup.getNumCells() > 0)
 				defaultName = ((Cell)cellGroup.getCells().next()).getName();
-			
+		
 			String response = JOptionPane.showInputDialog(tree, "New name for cells in this group", defaultName);
 			if (response == null) return;
 			CircuitChanges.renameCellGroupInJob(cellGroup, response);

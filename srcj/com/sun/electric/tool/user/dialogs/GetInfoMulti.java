@@ -1024,5 +1024,5 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
     private javax.swing.JTextField ySize;
     private javax.swing.JLabel ySizeRange;
     // End of variables declaration//GEN-END:variables
-	
+
 }

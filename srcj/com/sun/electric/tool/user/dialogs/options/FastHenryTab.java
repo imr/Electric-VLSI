@@ -45,7 +45,7 @@ public class FastHenryTab extends PreferencePanel
 	private double initialDefThickness;
 	private int initialWidthSubdivisions, initialHeightSubdivisions;
 	private double initialMaxSegLength;
-	
+
 	/** Creates new form FastHenryTab */
 	public FastHenryTab(java.awt.Frame parent, boolean modal)
 	{
@@ -353,7 +353,7 @@ public class FastHenryTab extends PreferencePanel
 
         pack();
     }//GEN-END:initComponents
-	
+
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
@@ -382,5 +382,5 @@ public class FastHenryTab extends PreferencePanel
     private javax.swing.JLabel jLabel61;
     private javax.swing.JLabel jLabel62;
     // End of variables declaration//GEN-END:variables
-	
+
 }

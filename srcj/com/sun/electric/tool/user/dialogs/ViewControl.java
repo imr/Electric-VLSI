@@ -338,5 +338,5 @@ public class ViewControl extends EDialog
     private javax.swing.JTextField name;
     private javax.swing.JCheckBox textView;
     // End of variables declaration//GEN-END:variables
-	
+
 }

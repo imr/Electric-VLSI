@@ -501,5 +501,5 @@ public class NewArcsTab extends PreferencePanel
     private javax.swing.JLabel pinLabel;
     private javax.swing.JCheckBox playClickSounds;
     // End of variables declaration//GEN-END:variables
-	
+
 }

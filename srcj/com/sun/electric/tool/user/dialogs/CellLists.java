@@ -1160,5 +1160,5 @@ public class CellLists extends EDialog
     private javax.swing.JComboBox views;
     private javax.swing.ButtonGroup whichCells;
     // End of variables declaration//GEN-END:variables
-	
+
 }

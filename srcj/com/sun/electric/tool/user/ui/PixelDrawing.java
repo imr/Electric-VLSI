@@ -511,7 +511,7 @@ public class PixelDrawing
 				{
 					int index = baseIndex + x;
 					int pixelValue = opaqueData[index];
-					
+				
 					// the value of Alpha starts at 0xFF, which means "background"
 					// opaque drawing typically sets it to 0, which means "filled"
 					// Text drawing can antialias by setting the edge values in the range 0-254
@@ -871,7 +871,7 @@ public class PixelDrawing
 		{
 			if (shownPorts[i]) continue;
 			Export pp = (Export)ni.getProto().getPort(i);
-	
+
 			Poly portPoly = ni.getShapeOfPort(pp);
 			if (portPoly == null) continue;
 			portPoly.transform(trans);
@@ -2888,7 +2888,7 @@ public class PixelDrawing
 				pattern = desc.getPattern();
 				if (desc.isOutlinedOnDisplay())
 				{
-					drawCircle(center, edge, layerBitMap, desc, dimmed);				
+					drawCircle(center, edge, layerBitMap, desc, dimmed);			
 				}
 			}
 		}

@@ -578,7 +578,7 @@ public class ChangeText extends EDialog
 					what += " " + dialog.numCellsChanged + " cells";
 					others = true;
 				}
-				System.out.println(what);					
+				System.out.println(what);				
 			}
 			return true;
 		}

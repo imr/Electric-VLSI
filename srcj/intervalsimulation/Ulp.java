@@ -126,7 +126,7 @@ class Ulp
 	    System.out.println("**** " + name + " took " + (endTime-startTime) + " nSec");
 	    check();
 	} 
-	
+
 	abstract void calc();
 
 	double getX(int i) {

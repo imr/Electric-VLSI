@@ -112,7 +112,7 @@ public class Progress
 			xPos = pt.x;
 			yPos = pt.y;
 			jf.dispose();
-		}		
+		}	
 	}
 
 	/**

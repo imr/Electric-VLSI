@@ -102,7 +102,7 @@ public class NewNodesTab extends PreferencePanel
 		nodeMoveAfterDuplicate.setSelected(initialNewNodesMoveAfterDuplicate = User.isMoveAfterDuplicate());
 		nodeDupArrayCopyExports.setSelected(initialNewNodesDupCopiesExports = User.isDupCopiesExports());
 		nodeExtractCopyExports.setSelected(initialNewNodesExtractCopiesExports = User.isExtractCopiesExports());
-		
+	
 		// setup listeners to react to any changes to a primitive size
 		nodePrimitive.addActionListener(new ActionListener()
 		{
@@ -413,5 +413,5 @@ public class NewNodesTab extends PreferencePanel
     private javax.swing.JTextField nodePrimitiveYSize;
     private javax.swing.JCheckBox nodeSwitchTechnology;
     // End of variables declaration//GEN-END:variables
-	
+
 }

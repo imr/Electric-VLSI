@@ -489,7 +489,7 @@ public class LogicalEffortTab extends PreferencePanel
 
         pack();
     }//GEN-END:initComponents
-	
+
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
@@ -522,5 +522,5 @@ public class LogicalEffortTab extends PreferencePanel
     private javax.swing.JTextField leWireRatio;
     private javax.swing.JPanel logicalEffort;
     // End of variables declaration//GEN-END:variables
-	
+
 }

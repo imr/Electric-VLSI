@@ -1770,5 +1770,5 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
     private javax.swing.JTextField ySize;
     private javax.swing.JLabel ysizeLabel;
     // End of variables declaration//GEN-END:variables
-	
+
 }

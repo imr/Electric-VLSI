@@ -365,5 +365,5 @@ public class FrameTab extends PreferencePanel
     private javax.swing.JLabel jLabel18;
     private javax.swing.JLabel jLabel19;
     // End of variables declaration//GEN-END:variables
-	
+
 }

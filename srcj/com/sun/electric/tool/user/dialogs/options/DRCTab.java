@@ -90,7 +90,7 @@ public class DRCTab extends PreferencePanel
 		{
 			public void actionPerformed(ActionEvent evt)
 			{
-				drcClearValidDates.setEnabled(false);		
+				drcClearValidDates.setEnabled(false);	
 				requestedDRCClearDates = true;
 			}
 		});
@@ -98,7 +98,7 @@ public class DRCTab extends PreferencePanel
 		// not yet
 		drcUseMultipleThreads.setEnabled(false);
 		drcNumberOfThreads.setEditable(false);
-		drcEditRulesDeck.setEnabled(false);		
+		drcEditRulesDeck.setEnabled(false);	
 	}
 
 	/**
@@ -314,7 +314,7 @@ public class DRCTab extends PreferencePanel
 
         pack();
     }//GEN-END:initComponents
-	
+
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
@@ -340,5 +340,5 @@ public class DRCTab extends PreferencePanel
     private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel minArea;
     // End of variables declaration//GEN-END:variables
-	
+
 }

@@ -358,5 +358,5 @@ public class GridAndAlignmentTab extends PreferencePanel
     private javax.swing.JLabel jLabel37;
     private javax.swing.JLabel jLabel38;
     // End of variables declaration//GEN-END:variables
-	
+
 }

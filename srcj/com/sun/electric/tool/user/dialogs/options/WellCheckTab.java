@@ -256,7 +256,7 @@ public class WellCheckTab extends PreferencePanel
 
         pack();
     }//GEN-END:initComponents
-	
+
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
@@ -283,5 +283,5 @@ public class WellCheckTab extends PreferencePanel
     private javax.swing.JRadioButton wellPMustHaveAllContacts;
     private javax.swing.JRadioButton wellPNoContactCheck;
     // End of variables declaration//GEN-END:variables
-	
+
 }

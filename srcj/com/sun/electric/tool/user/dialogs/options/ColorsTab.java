@@ -403,5 +403,5 @@ public class ColorsTab extends PreferencePanel
     private javax.swing.JScrollPane colorLayerPane;
     private javax.swing.JPanel colors;
     // End of variables declaration//GEN-END:variables
-	
+
 }

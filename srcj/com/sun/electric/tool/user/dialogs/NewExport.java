@@ -368,7 +368,7 @@ public class NewExport extends EDialog
 	{//GEN-HEADEREND:event_cancelActionPerformed
 		closeDialog(null);
 	}//GEN-LAST:event_cancelActionPerformed
-	
+
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
@@ -388,5 +388,5 @@ public class NewExport extends EDialog
     private javax.swing.JButton ok;
     private javax.swing.JTextField referenceExport;
     // End of variables declaration//GEN-END:variables
-	
+
 }

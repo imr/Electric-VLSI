@@ -504,5 +504,5 @@ public class ThreeDTab extends PreferencePanel
     private javax.swing.JLabel threeDTechnology;
     private javax.swing.JTextField threeDThickness;
     // End of variables declaration//GEN-END:variables
-	
+
 }

@@ -204,7 +204,7 @@ public class Trick {
     }
 
     private static void prepare () {
-	
+
 		double C_val[][] = {
 			{1e-3,    0,   0},
 			{   0, 1e-3,   0},
@@ -217,13 +217,13 @@ public class Trick {
 			{ 0,      0,   1},
 			{ 0,  1/1e3,  -1},
 			{-1,      1,   0}};
-	
+
 		C = new Matrix(C_val);
 		C1 = C.inverse();
 		Goff = new Matrix(Goff_val);
 		Gon = Goff.copy();
 		Gon.set(0,0,Gd);
-	
+
 		Matrix Aoff = prepareA(0.0);
 		Matrix Aon = prepareA(Gd);
 		Loff = new Linear(Aoff);
@@ -289,7 +289,7 @@ public class Trick {
 	    
 		Matrix Xoff = S.inverse().times(Loff.A).times(S);
 		Linear.eigens("Xoff", Xoff.plus(Xoff.transpose()));
-	
+
 		Matrix Xon = S.inverse().times(Lon.A).times(S);
 		Linear.eigens("Xon", Xon.plus(Xon.transpose()));
 
@@ -451,7 +451,7 @@ public class Trick {
 		for (int i = 0; i <= n; i++) {
 			double sen = Math.abs(listSense(s.t0 + (s.t1-s.t0)/n*i, t1).get(0, 0));
 			sum += (i == 0 || i == n ? 0.5 : 1.0)*sen;
-		
+	
 		}
 		return sum*(s.t1-s.t0)/n;
     }
@@ -600,7 +600,7 @@ public class Trick {
 		T1 = 0.0020;
 
 		Matrix S = expAont( T1 ).times( expAofft(T - T1) );
-	
+
 		Linear.eigens("S", S);
 		Linear.eigens("SA", abs(S));
 		Matrix P = S;

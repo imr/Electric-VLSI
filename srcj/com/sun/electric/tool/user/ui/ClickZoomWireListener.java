@@ -263,15 +263,15 @@ public class ClickZoomWireListener
 	        Point2D dbClick = wnd.screenToDatabase(clickX, clickY);
 	        lastdbMouseX = dbClick.getX();
 	        lastdbMouseY = dbClick.getY();
-	
+
 	        boolean another = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
 	        invertSelection = (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0;
 	        specialSelect = ToolBar.getSelectSpecial();
-	
+
 	        // ===== right mouse clicks =====
-	
+
 	        if (isRightMouse(evt)) {
-	
+
 	            rightMousePressedTimeStamp = currentTime;
 
                 if (modeRight == Mode.zoomBoxSingleShot) {
@@ -363,11 +363,11 @@ public class ClickZoomWireListener
 	            }
 	            return;
 	        }
-	
+
 	        // ===== left mouse clicks ======
-	
+
 	        if (isLeftMouse(evt)) {
-	
+
 	            // if doing sticky move place objects now
 	            if (modeLeft == Mode.stickyMove) {
 	                // moving objects
@@ -383,12 +383,12 @@ public class ClickZoomWireListener
 	                modeLeft = Mode.none;
 	                return;
 	            }
-	
+
 	            // new time stamp must occur after checking for sticky move
 	            leftMousePressedTimeStamp = evt.getWhen();
-	
+
 	            // ----- double-click responses -----
-	
+
 	            if (evt.getClickCount() == 2) {
 	                /* if CTRL is being held, user wants to cycle through what's
 	                under the cursor--pop up menu to let them select */
@@ -408,9 +408,9 @@ public class ClickZoomWireListener
 	                    }
 	                }
 	            }
-	
+
 	            // ----- single click responses -----
-	
+
 	            // if toolbar is in select mode, draw box
 	            if (ToolBar.getSelectMode() == ToolBar.SelectMode.AREA) {
 	                // select area
@@ -422,7 +422,7 @@ public class ClickZoomWireListener
 	                modeLeft = Mode.drawBox;
 	                return;
 	            }
-	
+
 	            // if already over highlighted object, move it
 	            if (!another && !invertSelection && highlighter.overHighlighted(wnd, clickX, clickY)) {
 	                highlighter.finished();
@@ -475,18 +475,18 @@ public class ClickZoomWireListener
             Highlighter highlighter = wnd.getHighlighter();
 	        Cell cell = wnd.getCell();
 	        if (cell == null) return;
-	
+
 	        int mouseX = evt.getX();
 	        int mouseY = evt.getY();
 	        Point2D dbMouse = wnd.screenToDatabase(mouseX, mouseY);
 	        lastdbMouseX = (int)dbMouse.getX();
 	        lastdbMouseY = (int)dbMouse.getY();
-	
+
 	        boolean another = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
 	        specialSelect = ToolBar.getSelectSpecial();
-	
+
 	        // ===== Right mouse drags =====
-	
+
 	        if (isRightMouse(evt)) {
 
                 if (modeRight == Mode.zoomBoxSingleShot) {
@@ -594,11 +594,11 @@ public class ClickZoomWireListener
                     router.highlightRoute(wnd, cell, startObj, null, dbMouse);
                 }
 	        }
-	
+
 	        // ===== Left mouse drags =====
-	
+
 	        if (isLeftMouse(evt)) {
-	
+
 	            if (modeLeft == Mode.selectBox || modeLeft == Mode.drawBox) {
 	                // select objects in box
 	                wnd.setEndDrag(mouseX, mouseY);
@@ -622,7 +622,7 @@ public class ClickZoomWireListener
 	                wnd.repaint();
 	            }
 	        }
-	
+
 	        wnd.repaint();
 	        }
     }
@@ -647,9 +647,9 @@ public class ClickZoomWireListener
 	        Point2D dbMouse = wnd.screenToDatabase(releaseX, releaseY);
 	        boolean another = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
 	        specialSelect = ToolBar.getSelectSpecial();
-	
+
 	        // ===== Right Mouse Release =====
-	
+
 	        if (isRightMouse(evt)) {
 
 	            if (modeRight == Mode.zoomIn) {
@@ -675,7 +675,7 @@ public class ClickZoomWireListener
 	                double maxSelX = Math.max(start.getX(), end.getX());
 	                double minSelY = Math.min(start.getY(), end.getY());
 	                double maxSelY = Math.max(start.getY(), end.getY());
-	
+
 	                if (modeRight == Mode.drawBox) {
 	                    // just draw a highlight box
 	                    highlighter.addArea(new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY), cell);
@@ -704,7 +704,7 @@ public class ClickZoomWireListener
 	                        wnd.clearDoingAreaDrag();
 	                        wnd.repaintContents(null);
 	                    }
-	
+
 	                }
 	                highlighter.finished();
 	                wnd.clearDoingAreaDrag();
@@ -747,11 +747,11 @@ public class ClickZoomWireListener
                 }
 	            modeRight = Mode.none;
 	        }
-	
+
 	        // ===== Left Mouse Release =====
-	
+
 	        if (isLeftMouse(evt)) {
-	
+
 	            // ignore move if done within cancelMoveDelayMillis
 	            long curTime = evt.getWhen();
 	            if (debug) System.out.println("Time diff between click->release is: "+(curTime - leftMousePressedTimeStamp));
@@ -764,7 +764,7 @@ public class ClickZoomWireListener
 	                    return;
 	                }
 	            }
-	
+
 	            // if 'stickyMove' is true and we are moving stuff, ignore mouse release
 	            if (getStickyMove() && (modeLeft == Mode.move)) {
 	                // only do so if after cancel move delay
@@ -775,7 +775,7 @@ public class ClickZoomWireListener
 	                */
 	                    modeLeft = Mode.stickyMove; // user moving stuff in sticky mode
 	            } else {
-	
+
 	                if (modeLeft == Mode.selectBox || modeLeft == Mode.drawBox) {
 	                    // select all in box
 	                    Point2D start = wnd.screenToDatabase((int)wnd.getStartDrag().getX(), (int)wnd.getStartDrag().getY());

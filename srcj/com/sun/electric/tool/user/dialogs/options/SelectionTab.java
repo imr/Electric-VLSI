@@ -210,5 +210,5 @@ public class SelectionTab extends PreferencePanel
     private javax.swing.JTextField selectionCancelMoveDelay;
     private javax.swing.JCheckBox useMouseOverHighlighting;
     // End of variables declaration//GEN-END:variables
-	
+
 }

@@ -74,7 +74,7 @@ public class ZoomAndPanListener
 	{
 		setProperCursor(evt);
 	}
-	
+
 	public static void setProperCursor(MouseEvent evt)
 	{
 		if (ToolBar.getCursorMode() == ToolBar.CursorMode.ZOOM)

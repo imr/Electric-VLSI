@@ -177,5 +177,5 @@ public class LayersTab extends PreferencePanel
     private javax.swing.JLabel layerTechName;
     private javax.swing.JPanel layers;
     // End of variables declaration//GEN-END:variables
-	
+
 }

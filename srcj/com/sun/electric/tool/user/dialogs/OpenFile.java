@@ -117,7 +117,7 @@ public class OpenFile
 			return dialog.getDirectory() + fileName;
 		}
 	}
-	
+
 //	private static class MoveComponentListener implements ComponentListener
 //	{
 //		public void componentHidden(ComponentEvent e) {}

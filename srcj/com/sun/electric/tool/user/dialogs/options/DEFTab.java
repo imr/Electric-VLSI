@@ -121,7 +121,7 @@ public class DEFTab extends PreferencePanel
 
         pack();
     }//GEN-END:initComponents
-	
+
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
@@ -134,5 +134,5 @@ public class DEFTab extends PreferencePanel
     private javax.swing.JCheckBox defPlaceLogical;
     private javax.swing.JCheckBox defPlacePhysical;
     // End of variables declaration//GEN-END:variables
-	
+
 }

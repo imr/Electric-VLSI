@@ -102,7 +102,7 @@ public class SUETab extends PreferencePanel
 
         pack();
     }//GEN-END:initComponents
-	
+
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
@@ -114,5 +114,5 @@ public class SUETab extends PreferencePanel
     private javax.swing.JPanel sue;
     private javax.swing.JCheckBox sueMake4PortTransistors;
     // End of variables declaration//GEN-END:variables
-	
+
 }

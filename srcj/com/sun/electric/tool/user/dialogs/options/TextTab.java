@@ -298,7 +298,7 @@ public class TextTab extends PreferencePanel
 		textItalic.setSelected(currentTextDescriptor.isItalic());
 		textBold.setSelected(currentTextDescriptor.isBold());
 		textUnderline.setSelected(currentTextDescriptor.isUnderline());
-		
+	
 		textAnchor.setSelectedItem(currentTextDescriptor.getPos());
 		textValuesChanging = false;
 
@@ -785,5 +785,5 @@ public class TextTab extends PreferencePanel
     private javax.swing.ButtonGroup textVerticalGroup;
     private javax.swing.JPanel top;
     // End of variables declaration//GEN-END:variables
-	
+
 }

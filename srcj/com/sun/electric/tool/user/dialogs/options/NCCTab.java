@@ -78,13 +78,13 @@ public class NCCTab extends PreferencePanel
 	{
 		initialEnableSizeChecking = NccGuiOptions.getCheckSizes();
 		enableSizeChecking.setSelected(initialEnableSizeChecking);
-		
+	
 		initialRelativeSizeTolerance = NccGuiOptions.getRelativeSizeTolerance();
 		relativeSizeTolerance.setText(Double.toString(initialRelativeSizeTolerance));
-		
+	
 		initialAbsoluteSizeTolerance = NccGuiOptions.getAbsoluteSizeTolerance();
 		absoluteSizeTolerance.setText(Double.toString(initialAbsoluteSizeTolerance));
-		
+	
 		initialHaltAfterFindingFirstMismatchedCell = 
 			NccGuiOptions.getHaltAfterFirstMismatch();
 		haltAfterFindingFirstMismatchedCell.
@@ -421,7 +421,7 @@ public class NCCTab extends PreferencePanel
     private void skipPassedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_skipPassedActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_skipPassedActionPerformed
-	
+
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
@@ -456,5 +456,5 @@ public class NCCTab extends PreferencePanel
     private javax.swing.JPanel sizeChecking;
     private javax.swing.JCheckBox skipPassed;
     // End of variables declaration//GEN-END:variables
-	
+
 }

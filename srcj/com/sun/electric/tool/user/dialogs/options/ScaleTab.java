@@ -235,7 +235,7 @@ public class ScaleTab extends PreferencePanel
 
         pack();
     }//GEN-END:initComponents
-	
+
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
@@ -251,5 +251,5 @@ public class ScaleTab extends PreferencePanel
     private javax.swing.JScrollPane unitsList;
     private javax.swing.JTextField unitsScaleValue;
     // End of variables declaration//GEN-END:variables
-	
+
 }

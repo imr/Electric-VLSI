@@ -242,7 +242,7 @@ public class ManualViewer extends EDialog
 				int titleEnd = line.indexOf('=', titleStart);
 				if (titleEnd < 0) continue;
 				String fileName = line.substring(titleEnd+1);
-	
+
 				URL pageURL = ManualViewer.class.getResource("helphtml/" + fileName + ".html");
 				if (pageURL == null)
 				{
@@ -966,7 +966,7 @@ public class ManualViewer extends EDialog
 		// set up dialog
 		GridBagConstraints gbc;
 		getContentPane().setLayout(new GridBagLayout());
-		
+	
 		// setup tree pane for chapter selection (on the left)
 		rootNode = new DefaultMutableTreeNode("Manual");
 		DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
@@ -974,7 +974,7 @@ public class ManualViewer extends EDialog
 		TreeHandler handler = new TreeHandler(this);
 		optionTree.addMouseListener(handler);
 		JScrollPane scrolledTree = new JScrollPane(optionTree);
-		
+	
 		// the left side of the options dialog: a tree
 		JPanel leftHalf = new JPanel();
 		leftHalf.setLayout(new GridBagLayout());
@@ -1096,7 +1096,7 @@ public class ManualViewer extends EDialog
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		rightHalf.setPreferredSize(new Dimension(screenSize.width/2, screenSize.height*3/4));
 		rightHalf.setMinimumSize(new Dimension(screenSize.width/4, screenSize.height/3));
-		
+	
 		// build split pane with both halves
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		splitPane.setLeftComponent(leftHalf);
@@ -1108,13 +1108,13 @@ public class ManualViewer extends EDialog
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.weightx = 1.0;  gbc.weighty = 1.0;
 		getContentPane().add(splitPane, gbc);
-		
+	
 		// close of dialog event
 		addWindowListener(new WindowAdapter()
 		{
 		    public void windowClosing(WindowEvent evt) { closeDialog(evt); }
 		});
-		
+	
 		pack();
     }
 

@@ -838,5 +838,5 @@ public class LayerVisibility extends EDialog
     private javax.swing.JButton toggleHighlight;
     private javax.swing.JButton unhighlightAll;
     // End of variables declaration//GEN-END:variables
-	
+
 }

@@ -260,5 +260,5 @@ public class PortsAndExportsTab extends PreferencePanel
     private javax.swing.JRadioButton portShortExport;
     private javax.swing.JRadioButton portShortPort;
     // End of variables declaration//GEN-END:variables
-	
+
 }
