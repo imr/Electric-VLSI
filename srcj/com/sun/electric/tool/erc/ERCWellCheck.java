@@ -488,6 +488,7 @@ public class ERCWellCheck
 			if (abort)
 			{
 				setAborted();
+				setReportExecutionFlag(true); // Force reporting
 		        System.out.println("WellCheck aborted");
 			}
 			return (abort);

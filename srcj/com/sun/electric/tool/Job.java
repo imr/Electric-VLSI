@@ -417,7 +417,7 @@ public abstract class Job implements ActionListener, Runnable {
     private synchronized String getProgress() { return progress; }
 
     /** Return run status */
-    public boolean isFinished() { return finished; }
+    //public boolean isFinished() { return finished; }
     
     /** Tell thread to abort. Extending class should check
      * abort when/where applicable
@@ -464,8 +464,8 @@ public abstract class Job implements ActionListener, Runnable {
     /** get status */
     public String getStatus() {
 		if (!started) return "waiting";
-        if (finished) return "done";
         if (aborted) return "aborted";
+        if (finished) return "done";
         if (scheduledToAbort) return "scheduled to abort";
         if (getProgress() == null) return "running";
         return getProgress();
@@ -587,6 +587,8 @@ public abstract class Job implements ActionListener, Runnable {
             long time = endTime - startTime;
             buf.append(" took: "+TextUtils.getElapsedTime(time));
             buf.append(" (started at "+start+")");
+        } else if (getProgress() == null) {
+	        buf.append(" does not have finished.");
         } else {
             buf.append(" did not successfully finish.");
         }
