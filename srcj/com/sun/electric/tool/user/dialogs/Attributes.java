@@ -388,7 +388,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
     /**
      * Class to sort Variables by name.
      */
-    static class VariableNameSort implements Comparator
+    public static class VariableNameSort implements Comparator
 	{
         public int compare(Object o1, Object o2)
         {
