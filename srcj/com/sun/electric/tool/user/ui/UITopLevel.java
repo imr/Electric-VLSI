@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.ui;
 
 import java.io.File;
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
@@ -81,7 +82,8 @@ public class UITopLevel extends JFrame
 
 		// make the desktop
 		desktop = new JDesktopPane();
-		topLevel.getContentPane().add(desktop);
+		topLevel.getContentPane().setLayout(new BorderLayout());
+		topLevel.getContentPane().add(desktop, BorderLayout.CENTER);
 		topLevel.setVisible(true);
 
 		// create the messages window
@@ -108,6 +110,8 @@ public class UITopLevel extends JFrame
 	public static JDesktopPane getDesktop() { return desktop; }
 	public static String getLibDir() { return libdir; }
 	public static UIEditFrame getCurrent() { return (UIEditFrame)desktop.getSelectedFrame(); }
+	public static UITopLevel getTopLevel() { return topLevel;}
+	
 
 	public void AddWindowExit()
 	{
