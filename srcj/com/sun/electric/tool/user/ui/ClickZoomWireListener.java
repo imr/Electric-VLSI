@@ -26,6 +26,8 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
@@ -46,6 +48,7 @@ import java.awt.*;
 import java.util.List;
 import java.util.Iterator;
 import java.util.EventListener;
+import java.util.ArrayList;
 import java.util.prefs.Preferences;
 
 /**
@@ -271,9 +274,20 @@ public class ClickZoomWireListener
 
 	            // draw possible wire connection
 	            if (!invertSelection) {
-	                Iterator hIt = highlighter.getHighlights().iterator();
+                    // ignore anything that can't have a wire drawn to it
+                    // (everything except nodes, ports, and arcs)
+                    List highlights = new ArrayList();
+                    for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext(); ) {
+                        Highlight h = (Highlight)it.next();
+                        if (h.getType() == Highlight.Type.EOBJ) {
+                            ElectricObject eobj = h.getElectricObject();
+                            if (eobj instanceof PortInst || eobj instanceof NodeInst || eobj instanceof ArcInst)
+                                highlights.add(h);
+                        }
+                    }
+                    Iterator hIt = highlights.iterator();
 	                // if already 2 objects, wire them up
-	                if (highlighter.getNumHighlights() == 2) {
+	                if (highlights.size() == 2) {
 	                    Highlight h1 = (Highlight)hIt.next();
 	                    Highlight h2 = (Highlight)hIt.next();
                         ElectricObject eobj1 = h1.getElectricObject();
@@ -290,7 +304,7 @@ public class ClickZoomWireListener
 	                }
 	                // if one object, put into wire find mode
 	                // which will draw possible wire route.
-	                if (highlighter.getNumHighlights() == 1) {
+	                if (highlights.size() == 1) {
 	                    Highlight h1 = (Highlight)hIt.next();
                         ElectricObject eobj1 = h1.getElectricObject();
 	                    if (eobj1 != null) {

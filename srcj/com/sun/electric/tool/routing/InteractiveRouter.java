@@ -233,7 +233,8 @@ public abstract class InteractiveRouter extends Router {
      */
     public void highlightRoute(EditWindow wnd, Route route, Cell cell) {
         if (!started) startInteractiveRoute(wnd);
-        //Highlight.setHighlightList(startRouteHighlights);
+        wnd.getHighlighter().clear();
+        //wnd.getHighlighter().setHighlightList(startRouteHighlights);
         for (Iterator it = route.iterator(); it.hasNext(); ) {
             RouteElement e = (RouteElement)it.next();
             e.addHighlightArea(wnd.getHighlighter());
