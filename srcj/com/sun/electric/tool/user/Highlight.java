@@ -196,17 +196,6 @@ public class Highlight
 		}
 		if (foundArcProto != null && !mixedArc) User.tool.setCurrentArcProto(foundArcProto);
 
-		//User.tool.updateInformationAreas();
-		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = (WindowFrame)it.next();
-			WindowContent content = wf.getContent();
-			if (content == null) continue;
-			if (!(content instanceof EditWindow)) continue;
-			EditWindow wnd = (EditWindow)content;
-			wnd.repaint();
-		}
-
         // notify all listeners that highlights have changed (changes committed).
         fireHighlightChanged();
 	}

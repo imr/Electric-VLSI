@@ -47,6 +47,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ErrorLog;
+import com.sun.electric.tool.user.HighlightListener;
 
 import java.awt.Dimension;
 import java.awt.Image;
@@ -93,7 +94,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
  * (to the right of the explorer panel).
  */
 public class EditWindow extends JPanel
-	implements WindowContent, MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener
+	implements WindowContent, MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener,
+        HighlightListener
 {
 	/** the window scale */									private double scale;
 	/** the window offset */								private double offx = 0, offy = 0;
@@ -184,6 +186,7 @@ public class EditWindow extends JPanel
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		addMouseWheelListener(this);
+        Highlight.addHighlightListener(this);
 		if (wf != null) setCell(cell, VarContext.globalContext);
 	}
 
@@ -268,6 +271,10 @@ public class EditWindow extends JPanel
 	public void keyReleased(KeyEvent evt) { WindowFrame.curKeyListener.keyReleased(evt); }
 
 	public void keyTyped(KeyEvent evt) { WindowFrame.curKeyListener.keyTyped(evt); }
+
+    public void highlightChanged() {
+        repaint();
+    }
 
 	// ************************************* INFORMATION *************************************
 
@@ -433,6 +440,7 @@ public class EditWindow extends JPanel
 		removeMouseListener(this);
 		removeMouseMotionListener(this);
 		removeMouseWheelListener(this);
+        Highlight.removeHighlightListener(this);
 	}
 
 	// ************************************* SCROLLING *************************************
