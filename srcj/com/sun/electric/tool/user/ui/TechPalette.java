@@ -295,7 +295,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                         if (np.isGroupNode())
                         {
                             map = fun;
-                            if (!np.isSpecialNode()) wellList.add(map);
+                            if (!np.isSpecialNode())
+                                wellList.add(map);
                         } else
                            wellList.add(toAdd);
                     }
@@ -351,7 +352,12 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 menuY = (menuY+1) / 2;
                 menuX = 2;
             }
+            // Sorting arcs/contacts/pins
             /*
+            TechPaletteSort sort = new TechPaletteSort();
+            Collections.sort(arcList, sort);
+            Collections.sort(pinList, sort);
+            Collections.sort(contactList, sort);
             boolean withTrans = transList.size() > 0;
             boolean longer = (arcList.size() < (contactList.size() + wellList.size()));
             menuX = 3;
@@ -381,7 +387,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             for (int i = 0; i < wellList.size(); i++)
             {
                 Object obj = wellList.get(i);
-                if (obj instanceof PrimitiveNode)
+                if (obj instanceof NodeInst)
                     inPalette.add(obj);
                 else
                     inPalette.add(elementsMap.get(obj));
@@ -410,6 +416,37 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
         return size;
     }
+
+    /**
+     * Method to compare pins/contacts/arcs
+     */
+    private static class TechPaletteSort implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+            Object[] list = {o1, o2};
+            Object[] layerList = new Layer[2];
+
+            for (int i = 0; i < layerList.length; i++)
+            {
+                Object obj = list[i];
+                if (obj instanceof PrimitiveNode)
+                {
+                    // If contact, then uses via for sorting
+                    int index = (((PrimitiveNode)obj).getFunction() == PrimitiveNode.Function.CONTACT) ? 1 : 0;
+                    layerList[i] = ((PrimitiveNode)obj).getLayers()[index].getLayer();
+                } else if (obj instanceof PrimitiveArc)
+                {
+                    layerList[i] = ((PrimitiveArc)obj).getLayers()[0].getLayer();
+                } else if (obj instanceof Layer) {
+                    layerList[i] = obj;
+                } else {
+                    throw new Error("Case not implemented in TechPaletteSort");
+                }
+            }
+            return Layer.LayerSort.compareStatic(layerList[0], layerList[1]);
+		}
+	}
 
     private static NodeInst makeNodeInst(NodeProto np, PrimitiveNode.Function func, int angle, boolean display, String varName)
     {
