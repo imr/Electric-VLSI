@@ -164,19 +164,25 @@ public abstract class Job implements ActionListener, Runnable {
 					if (job.jobType == Type.EXAMINE)
 					{
 						job.started = true;
-						numStarted++;
-						numExamine++;
                         if (job instanceof InthreadExamineJob) {
                             // notify thread that it can run.
                             InthreadExamineJob ijob = (InthreadExamineJob)job;
+                            boolean started = false;
                             synchronized(ijob.mutex) {
                                 if (ijob.waiting) {
                                     ijob.waiting = false;
                                     ijob.mutex.notify();
+                                    started = true;
                                 }
+                            }
+                            if (started) {
+                                numStarted++;
+                                numExamine++;                                
                             }
                             continue;
                         }
+                        numStarted++;
+                        numExamine++;
 						Thread t = new Thread(job, job.jobName);
                         job.thread = t;
 						t.start();
@@ -622,7 +628,7 @@ public abstract class Job implements ActionListener, Runnable {
      * @see #invokeExamineLater(Runnable, Object)
      */
     public static synchronized boolean acquireExamineLock(boolean block) {
-        if (!Main.getDebug()) return true;      // only enable if DEBUG mode
+        //if (!Main.getDebug()) return true;      // only enable if DEBUG mode
         Thread thread = Thread.currentThread();
 
         // first check to see if we already have the lock
@@ -648,7 +654,7 @@ public abstract class Job implements ActionListener, Runnable {
      * @see #invokeExamineLater(Runnable, Object)
      */
     public static synchronized void releaseExamineLock() {
-	    if (!Main.getDebug()) return;      // only enable if DEBUG mode
+        //if (!Main.getDebug()) return true;      // only enable if DEBUG mode
         Job dummy = databaseChangesThread.getJob(Thread.currentThread());
         assert(dummy != null);
         assert(dummy instanceof InthreadExamineJob);
