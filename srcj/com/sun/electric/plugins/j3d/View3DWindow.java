@@ -72,6 +72,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import java.util.Iterator;
 import java.util.HashMap;
+import java.util.Set;
 
 /**
  * Created by IntelliJ IDEA.
@@ -317,7 +318,7 @@ public class View3DWindow extends JPanel
 	public void fullRepaint() { System.out.println("View3DWindow::fullRepaint"); }
 	public boolean findNextText(boolean reverse) { return false; }
 	public void replaceText(String replace) {}
-	public void initTextSearch(String search, boolean caseSensitive) {}
+	public void initTextSearch(String search, boolean caseSensitive, boolean regExp, Set whatToSearch) {}
 	public void zoomOutContents() {}
 	public void zoomInContents() {}
 	public JPanel getIPanel() { return overall; }
