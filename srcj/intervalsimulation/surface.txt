@@ -1,372 +1,186 @@
  Surface approach for enclosure of solutions of Ordinary Differential Equations.
 
-
-
 We consider approach gor proof that solution of ordinary differential equation
-
 is enclosed in some region.
 
-
-
 Let us first consider autonomous system of ordinary differentian equations
-
 in R**n with control variables:
 
-
-
 d(x(t))/dt = v(x(t),a(t))
-
 x(0) =  x0,
-
 where a(t) - control variable which range is A - "a(t) in A".
 
-
-
 Suppose that we have a guess that all solutions of this equation are
-
 located in some region. We shall show how we can proof this statement.
-
 First of, we shall describe this region.
 
-
-
 Let the border of this region consists of K smooth surfaces, each of them is
-
 described by equation gk(x) = 0. The region G is a set of points
-
 G = { x | ( ALL k in K | gk(x) <= 0 ) } . We shall suppose that gk(x) is
-
 continuously differentiable. The border of G is expressd 
-
 dG = { x | "x in G" and ( EXIST k in K | gk(x) = 0 ) }
 
-
-
 The following theorem simply says that if a solution can't crous out the
-
 border of region then this soution is inside region.
 
-
-
 Theorem 1.
-
 Let we have a system of differential equations
-
 d(x(t))/dt = v(x(t), a(t))   , "a(t) in A"
-
 Let a closed region is defined by K continuously differential functions gk.
-
 G = { x | (ALL k in K | gk(x) <= 0 ) }
-
 Let vector v at the border of "G" is duirected inside "G" for all "a"
-
 (ALL x in G ALL k in K | gk(x) = 0 => (ALL a in A | v(x,a)*d(gk(x))/dx <= 0 ) )
-
 Let we have x(t) - continuously differentiable solution of differential equation
-
 with initial point inside G: "x(0) = x0", "x0 in G".
-
 Then x(t) is inside G:
-
 ( ALL t >= 0 | x(t) in G )
 
-
-
 Proof. Suppose that this is not trur - at some moment t1 x(t1) is
-
 outside of G: NOT (x(t1) in G). Then there is infinum t2 of such t:
-
 t2 = INF { t | NOT (x(t) in G) }. For t < t2 x(t) in G. As x(t) is
-
 continous and G is closed we have x(t2) in G. Hence
-
 (ALL j in K | gk(x(t2)) <= 0).
-
 If gk(x(t2)) < 0, then it followes from continuety of gk(x) and x(t) that
-
 (EXIST deltak > 0 | (ALL t t2<=t<t2+deltak | gk(x(t)) < 0 ) ) .
-
 If gk(x(t2)) = 0, then from from theorem's supposition 
-
 v(x(t2),a)* d(gk(x(t2)))/dx < 0 . So
-
 d(gk(x(t2)))/d(t2) = d(gk(x(t2)))/dx*d(x(t2))/d(t2) = 
-
 (gk(x(t2)))/dx*v(x(t2),a(t2)) < 0 . Hence
-
 (EXIST deltak > 0 | (ALL t t2 < t < t2+deltak | gk(x(t2)) < 0))
-
 We can take delta = MIN { deltak | k IN K } and then we have
-
 ( ALL t < t2 + deltak | x(t) in G }. It is in contradiction with
-
 definition of t2  -  t2 = INF { t | NOT (x(t) in G) }. This contradiction
-
 shows that supposition (EXIST t1 | NOT (x(t1) in G) } is false. So 
-
 (ALL t | x(t) in G } is true.
-
 End of proof.
 
-
-
 This theorem is similar to invariant approach in descrete programming.
-
 "x in G' is true initially. If "x in G" at time t, then "x in G" at some time
-
 after t, then "x in G" forevere. 
 
-
-
 Example 1.
-
 Equation 
-
 d(x(t))/dt = -a(t)*x   x in R**1  a(t) in [a_min,a_max], where a_min > 0.
-
 v(x,a) = -a*x .
 
-
-
 Region G
-
 g0(x) = x - x_max
-
 g1(x) = x_min - x , where x_min < 0 < x_mwx .
-
 d(g0(x))/dx = 1
-
 d(g1(x))/dx = -1
-
 Region G is an interval [x_min,x_max].
 
-
-
 When g0(x) = 0, we have x = x_max, hence
-
 v(x)*d(g0(x))/dx = -a*x+max < - a_min * x_max < 0 .
-
 When g1(x) = 0, we have x = x_min, hence
-
 v(x)*d(g1(x))/d = a*x_min < a_min*x_mio < 0
-
 So v(x) is directed inside G.
 
-
-
 Hence if solution of equation x(t) starts inside G "x(0) in [x_min,x_max]"
-
 then x(t) stays at [x_min,x_max]
-
 End if example 1.
 
-
-
 Example 2.
-
 Equations:
-
 d(x[0](t))/dt = x[1]
-
 d(x[1](t))/dt = -x[0]
-
 v[0](x) = x[1]
-
 v[1](x) = -x[0].
 
-
-
 We know that the solution of these equations is
-
 x[0](t) = x[0](0)*cos(t) + x[1](0)*sin(t)
-
 x[1](t) = -x[0](0)*sin(t) + x[1](0)*cos(t)
 
-
-
 We see that x[0](t)**2 + x[1](t)**2 = x[0](0)**2 + x[1](0)**2 = r**2 ,
-
 so it is naturally to choose G as disc with center at (0,0).
-
 g(x) = x[0]**2 + x[1]**2 - r**2, where r > 0
-
 d(g(x))/d(x[0]) = 2*x[0]
-
 d(g(x))/d(x[1]) = 2*x[1]
 
-
-
 v(x)*d(g(x))/d(x) = x[1]*2*x[0] + (-x[0])*2*x[1] = 0
-
 We see that v(x) is not directed inside G, it is tangent to surface of G.
-
 So we can't prove that solution x(t) will stay in G using the Theorem.
-
 End of example 2.
 
-
-
 It is interesting, if we can change in theorem condition v(x)*d(gk(x))/d(x) < 0
-
 to condition v(x)*d(gk(x))/d(x) <= 0. The following example shows that we can't.
 
-
-
 Example 3.
-
 Equations:
-
 d(x[0](t))/dt = 1
-
 d(x[1](t))/dt = 0
-
 v[0](x) = 1
-
 v[1](x) = 0
 
-
-
 Region G
-
 g0(x) = x[1]
-
 d(g0(x))/d(x[0]) = 0  d(g0(x))/d(x[1]) = 1
-
 g1(x) = ((x[0])+)**2 - x[1] , where (x+) = (x >= 0 ? x : 0)
-
 d(g1(x))/d(x[0]) = 2*((x[0])+) d(g1(x))/d(x[1]) = -1
-
 G { x | (x[0] <= 0) &&  (x[1] = 0) }
 
-
-
 v(x)*d(g0(x))/d(x) = 1*0 + 0*1 = 0
-
 v(x)*d(g1(x))/d(x) = 1*2*(x[0])+) + 0*(-1) = 2*((x[0])+) = 0, when "x in G"
-
 We see that v(x) is tangent to surface of G.
 
-
-
 Let us take a solution x(t):
-
 x[0](t) = t
-
 x[1](t) = 0
-
 When t <= 0 it is in G, when t > 0, it is outside G
 
-
-
 So we can't change "<" to "<=" in theorem.
-
 End of example 3.
 
-
-
 Possible we can demand more conditions on gk(x), and formulate theorem with "<=",
-
 but I don't do so, because in most examples we can satisfy "<" condition,
-
 by little modification of surface.
 
-
-
 Example 4.
-
 Equations:
-
 d(x[0](t))/dt = x[1](t)
-
 d(x[1](t))/dt = -x[0](t) - a(t)*x[1](t)
-
 v[0](x,a) = x[1]
-
 v[1](x,a) = -x[0] - a*x[1]
-
 a(t) is in [a_min,a_max] and a_min > 0.
 
-
-
 First try of region G.
-
 g(x) = x[0]**2 + x[1]**2 - r**2 , where r > 0
-
 v(x)*d(g(x))/d(x) = x[1]*2*x[0] + (-x[0] - a*x[1])*2*x[1] = -2*a*(x[1]**2)
-
 Unfortunately at point x=(x[0],x[1])=(r,0) we have v(x)*d(g(x))/d(x) = 0, 
-
 v(x) is tangent to surface of G. We can't apply the theorem.
 
-
-
 Region G.
-
 So we shall modify region G to direct vector v(x) inside the region in
-
 points (r,0) and (-r,0).
-
 g(x) = x[0]**2 + x[1]**2 + eps*x[0]*x[1] - r**2
-
 d(g(x))/d(x[0]) = 2*x[0] + eps*x[1]
-
 d(g(x))/d(x[1]) = 2*x[1] + eps*x[0]
-
 v(x)*d(g(x))/dx = x[1]*(2*x[0] + eps*x[1]) + (-x[0] - a*x[1])*(2*x[1] + eps*x[0]) = 
-
 = -eps*(x[0]**2) + (eps - 2*a)*(x[1]**2) - eps*a*x[0]*x[1] = 
-
 = -eps*(x[0] + a/2*x[1])**2 - (2*a - eps*(1+(a/2)**2))*(x[1]**2)
-
 If we choose eps > 0 and eps < min{2*a_min/(1+(a_min/2)**2), 2*a_max/(1+(a_max/2)**2},
-
 then the quadratic form is negatively defined. It is negative at surface of G, because
-
 point (0,0) doesn't belong to surface of G (r > 0 and eps < 2). So with such choice of eps
-
 v(x) is directed inside G.
 
-
-
 We can apply theorem. If x(t) - solution of equations, x(0) is inside G, then x(t) is inside G.
-
 End of example 4.
 
-
-
 Now we shall consider nonautonomous systems in R**n:
-
 d(x(t))/dt = f(x(t),t,a(t)),
-
 x(t0) = x0.
-
 where  x = (x[1],x[2],...,x[n]) ,  a(t) in A
-
 We can consider related autonomous system in R**(n+1)
-
 xx = (xx[0],xx[1],xx[2],...,xx[n])
-
 d(xx(t))/dt = v(xx(t),a(t))
-
 xx[0](0) = t0
-
 xx[i](0) = x0[i]
-
 v[0](xx,a) = 1
-
 v[i](xx,a) = f[i](xx[1..n],xx[0],a)
 
-
-
 We use regions which are defined by gg(xx) in R**(n+1) or by g(x,t) in R**n.
-
 ggk(xx) = gk(xx[1..n],x(0)).
-
 d(ggk(xx))/d(x[0]) = d(g(x,t))/d(t)
-
 d(ggk(xx))/d(x[i]) = d(g(x,t))/d(x[i])
-
 Condition that v(xx) is directed inside G can be written
-
 v(xx)*d(gg(xx))/d(xx) = f(x,t,a)*d(g(x,t))/dx + 1*d(g(x,t))/dt
-
