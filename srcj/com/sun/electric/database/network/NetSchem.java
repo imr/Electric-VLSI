@@ -1084,8 +1084,7 @@ class NetSchem extends NetCell {
 		}
 		
 		// add temporary names to unnamed nets
-		int numArcs = cell.getNumArcs();
-		for (int i = 0; i < numArcs; i++) {
+		for (int i = 0, numArcs = cell.getNumArcs(); i < numArcs; i++) {
 			ArcInst ai = cell.getArc(i);
 			int drawn = drawns[arcsOffset + i];
 			if (drawn < 0) continue;
@@ -1101,6 +1100,20 @@ class NetSchem extends NetCell {
 				else
 					netName = drawnNames[drawn].subname(j).toString();
 				network.addName(netName, false);
+			}
+		}
+
+		// add temporary names to unconnected ports
+		for (Iterator it = getNodables(); it.hasNext();) {
+			Nodable no = (Nodable)it.next();
+			NodeProto np = no.getProto();
+			for (int i = 0, numPorts = np.getNumPorts(); i < numPorts; i++) {
+				PortProto pp = np.getPort(i);
+				for (int k = 0, busWidth = pp.getNameKey().busWidth(); k < busWidth; k++) {
+					Network network = userNetlist.getNetwork(no, pp, k);
+					if (network == null || network.hasNames()) continue;
+					network.addName(no.getName() + "." + pp.getNameKey().subname(k), false);
+				}
 			}
 		}
 
@@ -1150,8 +1163,6 @@ class NetSchem extends NetCell {
 
 	/**
 	 * Update map of equivalent ports newEquivPort.
-	 * @param currentTime time stamp of current network reevaluation
-	 * or will be kept untouched if not.
 	 */
 	private boolean updateInterface() {
 		boolean changed = false;

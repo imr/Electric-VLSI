@@ -226,4 +226,15 @@ public class PortInst extends ElectricObject
     public boolean isLinked() {
         return nodeInst.isLinked();
     }
+
+    /**
+     * Returns true if this PortInst is completely linked into database.
+	 * This means there is path to this ElectricObjects through lists:
+	 * Library&#46;libraries->Library&#46;cells->Cell&#46;nodes->NodeInst&#46;portInsts-> PortInst
+     */
+	public boolean isActuallyLinked() {
+		int portIndex = getPortIndex();
+		return nodeInst != null && nodeInst.isActuallyLinked() &&
+			0 <= portIndex && portIndex < nodeInst.getNumPortInsts() && nodeInst.getPortInst(portIndex) == this;
+	}
 }

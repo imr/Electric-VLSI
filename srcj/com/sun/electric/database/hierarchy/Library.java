@@ -400,6 +400,15 @@ public class Library extends ElectricObject
 
 	// ----------------- public interface --------------------
 
+    /**
+     * Returns true if this Library is completely linked into database.
+	 * This means that it is contained in Library&#46;libraries.
+     */
+	public boolean isActuallyLinked()
+	{
+		return libraries.contains(this);
+	}
+
 	/**
 	 * Method to check and repair data structure errors in this Library.
 	 */
@@ -865,6 +874,11 @@ public class Library extends ElectricObject
 		if (n.getView() == View.UNKNOWN && onlyWithName != null) return onlyWithName;
 		return null;
 	}
+
+	/**
+	 * Returns true, if cell is contained in this Library.
+	 */
+	boolean contains(Cell cell) { return cells.contains(cell); }
 
 	/**
 	 * Method to return an Iterator over all Cells in this Library.

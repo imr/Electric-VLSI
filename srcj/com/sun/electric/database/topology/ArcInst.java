@@ -1077,6 +1077,18 @@ public class ArcInst extends Geometric
 	 */
 	public boolean isLinked() { return arcIndex >= 0; }
 
+    /**
+     * Returns true if this ArcInst is completely linked into database.
+	 * This means there is path to this ArcInstElectricObjects through lists:
+	 * Library&#46;libraries->Library&#46;cells->Cell&#46;arcs-> ArcInst
+     */
+	public boolean isActuallyLinked()
+	{
+		Cell parent = getParent();
+		return parent != null && parent.isActuallyLinked() &&
+			0 <= arcIndex && arcIndex < parent.getNumArcs() && parent.getArc(arcIndex) == this;
+	}
+
 	/**
 	 * Returns the basename for autonaming.
 	 * @return the basename for autonaming.

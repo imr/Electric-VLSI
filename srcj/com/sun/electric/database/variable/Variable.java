@@ -275,6 +275,17 @@ public class Variable
      */
     public ElectricObject getOwner() { return descriptor.owner; }
 
+    /**
+     * Returns true if this Variable is completely linked into database.
+	 * This means that its owner ElectricObject is completely linked into database
+	 * and this Variable is in vars list of the owner.
+     */
+	public boolean isActuallyLinked()
+	{
+		ElectricObject owner = getOwner();
+		return owner != null && owner.isActuallyLinked() && owner.getVar(key) == this;
+	}
+
 	/**
 	 * Method to return a more readable name for this Variable.
 	 * The method adds "Parameter" or "Attribute" as appropriate

@@ -47,7 +47,7 @@ import java.util.Iterator;
 /**
  * This class is the base class of all Electric objects that can be extended with "Variables".
  */
-public class ElectricObject
+public abstract class ElectricObject
 {
 	// ------------------------ private data ------------------------------------
 
@@ -78,7 +78,27 @@ public class ElectricObject
      * @param linked true if object is now linked, false if not.
      */
     protected void setLinked(boolean linked) { this.linked = linked; }
-
+	
+    /**
+     * Returns true if this ElectricObject is completely linked into database.
+	 * This means there is path to this ElectricObjects through a chain of lists.
+	 * Below is a chain of lists for every subclass of ElectricObjects:
+	 *
+	 * Library&#46;libraries-> Library
+	 * Library&#46;libraries->Library&#46;cells-> Cell
+	 * Library&#46;libraries->Library&#46;cells->Cell&#46;ports-> Export
+	 * Library&#46;libraries->Library&#46;cells->Cell&#46;nodes-> NodeInst
+	 * Library&#46;libraries->Library&#46;cells->Cell&#46;nodes->NodeInst&#46;portInsts-> PortInst
+	 * Library&#46;libraries->Library&#46;cells->Cell&#46;arcs-> ArcInst
+	 * Technology&#46;technologies-> Technology
+	 * Technology&#46;technologies->Technology&#46;nodes-> PrimitiveNode
+	 * Technology&#46;technologies->Technology&#46;nodes->PrimitiveNode&#46;ports -> PrimitivePort
+	 * Technology&#46;technologies->Technology&#46;arcs-> PrimitiveArc
+	 * View&#46;views-> View
+	 * Tool&#46;tools-> Tool's subclass
+     */
+	public abstract boolean isActuallyLinked();
+	
 	/**
 	 * Method to return the Variable on this ElectricObject with a given name.
 	 * @param name the name of the Variable.

@@ -290,7 +290,7 @@ public class Global
 
 	/**
 	 * Add specified Global.Set to the buffer.
-	 * @param sey specified Global.Set.
+	 * @param set specified Global.Set.
 	 */
 	static String addToBuf(Global.Set set) {
 		String errorMsg = null;

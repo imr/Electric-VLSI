@@ -32,6 +32,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 
@@ -923,6 +924,33 @@ public class TextDescriptor
 
 		// handle change control, constraint, and broadcast
 		Undo.modifyTextDescript(owner, this, descriptor0, descriptor1, colorIndex);
+	}
+
+    /**
+     * Returns true if this TextDescriptor is completely linked into database.
+	 * This means that its owner ElectricObject is completely linked into database
+	 * and this TextDescriptor is linked to its owner or to some of its variables.
+     */
+	public boolean isActuallyLinked()
+	{
+		if (owner == null || !owner.isActuallyLinked()) return false;
+		for (Iterator it = owner.getVariables(); it.hasNext();) {
+			Variable var = (Variable)it;
+			if (var.getTextDescriptor() == this) return true;
+		}
+		if (owner instanceof NodeInst && ((NodeInst)owner).getNameTextDescriptor() == this) return true;
+		if (owner instanceof NodeInst && ((NodeInst)owner).getProtoTextDescriptor() == this) return true;
+		if (owner instanceof ArcInst && ((ArcInst)owner).getNameTextDescriptor() == this) return true;
+		if (owner instanceof Export && ((Export)owner).getTextDescriptor() == this) return true;
+		if (owner instanceof Technology)
+		{
+			for (Iterator it = ((Technology)owner).getNodeLayers(); it.hasNext();)
+			{
+				Technology.NodeLayer nodeLayer = (Technology.NodeLayer)it.next();
+				if (nodeLayer.getDescriptor() == this) return true;
+			}
+		}
+		return false;
 	}
 
 	/**

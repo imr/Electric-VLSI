@@ -2737,6 +2737,16 @@ public class Cell extends NodeProto implements Comparable
 
 	/****************************** MISCELLANEOUS ******************************/
 
+    /**
+     * Returns true if this Cell is completely linked into database.
+	 * This means there is path to this Cell through lists:
+	 * Library&#46;libraries->Library&#46;cells-> Cell
+     */
+	public boolean isActuallyLinked()
+	{
+		return lib != null && lib.isActuallyLinked() && lib.contains(this);
+	}
+
 	/**
 	 * Method to check and repair data structure errors in this Cell.
 	 */

@@ -243,6 +243,15 @@ public class PrimitiveArc extends ArcProto
      * the libraries.
      * @return true if this object is in database.
      */
-    protected boolean isDatabaseObject() { return false; }
+//    protected boolean isDatabaseObject() { return false; }
 
+    /**
+     * Returns true if this PrimitiveArc is completely linked into database.
+	 * This means there is path to this PrimitiveArc through lists:
+	 * Technology&#46;technologies->Technology&#46;arcs-> PrimitiveArc
+     */
+	public boolean isActuallyLinked()
+	{
+		return tech != null && tech.findArcProto(getName()) == this;
+	}
 }

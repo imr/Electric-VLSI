@@ -128,6 +128,15 @@ public class Tool extends ElectricObject
 		return null;
 	}
 
+    /**
+     * Returns true if this Tool is completely linked into database.
+	 * This means that this Tool is contained in Tool&#46;tools
+     */
+	public boolean isActuallyLinked()
+	{
+		return tools.contains(this);
+	}
+
 	/**
 	 * Method to return an Iterator over all of the Tools in Electric.
 	 * @return an Iterator over all of the Tools in Electric.

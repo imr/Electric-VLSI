@@ -663,8 +663,6 @@ class NetCell
 
 	/**
 	 * Update map of equivalent ports newEquivPort.
-	 * @param currentTime time stamp of current network reevaluation
-	 * or will be kept untouched if not.
 	 */
 	private boolean updateInterface() {
 		boolean changed = false;
@@ -690,8 +688,6 @@ class NetCell
 
 	/**
 	 * Show map of equivalent ports newEquivPort.
-	 * @param userEquivMap HashMap (PortProto -> Network) of user-specified equivalent ports
-	 * @param currentTime.time stamp of current network reevaluation
 	 */
 	private void showEquivPorts()
 	{

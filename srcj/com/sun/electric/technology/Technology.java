@@ -324,6 +324,8 @@ public class Technology extends ElectricObject
 			this.style = style;
 			this.representation = representation;
 			this.points = points;
+			descriptor = new TextDescriptor(layer.getTechnology());
+			layer.getTechnology().addNodeLayer(this);
 			this.lWidth = this.rWidth = this.extentT = this.extendB = 0;
 		}
 
@@ -348,6 +350,8 @@ public class Technology extends ElectricObject
 			this.style = style;
 			this.representation = representation;
 			this.points = points;
+			descriptor = new TextDescriptor(layer.getTechnology());
+			layer.getTechnology().addNodeLayer(this);
 			this.lWidth = lWidth;
 			this.rWidth = rWidth;
 			this.extentT = extentT;
@@ -444,7 +448,10 @@ public class Technology extends ElectricObject
 		 * @param descriptor the text descriptor to be drawn by this NodeLayer.
 		 * This only makes sense if the style is one of the TEXT types.
 		 */
-		public void setDescriptor(TextDescriptor descriptor) { this.descriptor = descriptor; }
+		public void setDescriptor(TextDescriptor descriptor)
+		{
+			this.descriptor.copy(descriptor);
+		}
 
 		/**
 		 * Returns the left extension of this layer.
@@ -527,6 +534,7 @@ public class Technology extends ElectricObject
 	/** list of primitive nodes in this technology */		private List nodes;
 	/** list of arcs in this technology */					private List arcs;
     /** list of PortProtos in this Technology. */			private List ports;
+	/** list of NodeLayers in this Technology. */			private List nodeLayers;
 	/** minimum resistance in this Technology. */			private double minResistance;
 	/** minimum capacitance in this Technology. */			private double minCapacitance;
 	/** true if parasitic overrides were examined. */		private boolean parasiticOverridesGathered = false;
@@ -549,6 +557,7 @@ public class Technology extends ElectricObject
 		this.nodes = new ArrayList();
 		this.arcs = new ArrayList();
         this.ports = new ArrayList();
+		this.nodeLayers = new ArrayList();
 		this.scale = 1.0;
 		this.scaleRelevant = true;
 		this.techIndex = techNumber++;
@@ -706,6 +715,15 @@ public class Technology extends ElectricObject
 			sortedList.add(it.next());
 		Collections.sort(sortedList, new TextUtils.TechnologiesByName());
 		return sortedList;
+	}
+
+    /**
+     * Returns true if this Technology is completely linked into database.
+	 * This means that technology is in Technology&#46;technologies 
+     */
+	public boolean isActuallyLinked()
+	{
+		return techIndex < technologies.size() && technologies.get(techIndex) == this;
 	}
 
 	/****************************** LAYERS ******************************/
@@ -1121,6 +1139,20 @@ public class Technology extends ElectricObject
     {
         ports.add(pp);
     }
+
+    /**
+     * Returns an Iterator on the Technology.NodeLayer objects in this technology.
+     * @return an Iterator on the Technology.NodeLayer objects in this technology.
+     */
+	public Iterator getNodeLayers()
+	{
+		return nodeLayers.iterator();
+	}
+
+	private void addNodeLayer(NodeLayer nodeLayer)
+	{
+		nodeLayers.add(nodeLayer);
+	}
 
 	/**
 	 * Method to return the pure "NodeProto Function" a primitive NodeInst in this Technology.

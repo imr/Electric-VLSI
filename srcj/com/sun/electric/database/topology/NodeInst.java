@@ -830,6 +830,18 @@ public class NodeInst extends Geometric implements Nodable
 	public boolean isLinked() { return nodeIndex >= 0; }
 
     /**
+     * Returns true if this NodeInst is completely linked into database.
+	 * This means there is path to this NodeInstElectricObjects through lists:
+	 * Library&#46;libraries->Library&#46;cells->Cell&#46;nodes-> NodeInst
+     */
+	public boolean isActuallyLinked()
+	{
+		Cell parent = getParent();
+		return parent != null && parent.isActuallyLinked() &&
+			0 <= nodeIndex && nodeIndex < parent.getNumNodes() && parent.getNode(nodeIndex) == this;
+	}
+
+    /**
      * This method can be overridden by extending objects.
      * For objects (such as instances) that have instance variables that are
      * inherited from some Object that has the default variables, this gets

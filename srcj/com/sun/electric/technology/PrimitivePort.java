@@ -137,6 +137,20 @@ public class PrimitivePort extends PortProto
 
 	// ------------------------ public methods ------------------------
 
+    /**
+     * Returns true if this PrimitivePort is completely linked into database.
+	 * This means there is path to this PrimitivePort through lists:
+	 * Technology&#46;technologies->Technology&#46;nodes->PrimitiveNode&#46;ports -> PrimitivePort
+     */
+	public boolean isActuallyLinked()
+	{
+		if (parent == null || !(parent instanceof PrimitiveNode)) return false;
+		PrimitiveNode pn = (PrimitiveNode)parent;
+		int portIndex = getPortIndex();
+		return pn.isActuallyLinked() &&
+			0 <= portIndex && portIndex < pn.getNumPorts() && pn.getPort(portIndex) == this;
+	}
+
 	/**
 	 * Method to set the list of allowable connections on this PrimitivePort.
 	 * @param portArcs an array of ArcProtos which can connect to this PrimitivePort.

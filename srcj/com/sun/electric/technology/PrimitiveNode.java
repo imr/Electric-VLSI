@@ -199,7 +199,7 @@ public class PrimitiveNode extends NodeProto
 	 * The active must be split since each half corresponds to a different PrimitivePort on the PrimitiveNode.
 	 * @param electricalLayers the list of electrical Layers that comprise this PrimitiveNode.
 	 */
-	public void setElectricalLayers(Technology.NodeLayer [] electricalLayers) { this.electricalLayers = electricalLayers; }
+	public void setElectricalLayers(Technology.NodeLayer [] electricalLayers) {	this.electricalLayers = electricalLayers; }
 
 	/**
 	 * Method to find the NodeLayer on this PrimitiveNode with a given Layer.
@@ -490,6 +490,15 @@ public class PrimitiveNode extends NodeProto
      * is not stored to disk with the libraries. They are actually a technology object.
      * @return true if this object is in database.
      */
-    protected boolean isDatabaseObject() { return false; }
+//    protected boolean isDatabaseObject() { return false; }
 
+    /**
+     * Returns true if this PrimitiveNode is completely linked into database.
+	 * This means there is path to this PrimitiveNode through lists:
+	 * Technology&#46;technologies->Technology&#46;nodes-> PrimitiveNode
+     */
+	public boolean isActuallyLinked()
+	{
+		return tech != null && tech.findNodeProto(getName()) == this;
+	}
 }

@@ -415,6 +415,20 @@ public class Export extends PortProto
 		return pp.getBasePort();
 	}
 
+    /**
+     * Returns true if this Export is completely linked into database.
+	 * This means there is path to this Export through lists:
+	 * Library&#46;libraries->Library&#46;cells->Cell&#46;ports-> Export
+     */
+	public boolean isActuallyLinked()
+	{
+		if (parent == null || !(parent instanceof Cell)) return false;
+		Cell parentCell = (Cell)parent;
+		int portIndex = getPortIndex();
+		return parentCell.isActuallyLinked() &&
+			0 <= portIndex && portIndex < parentCell.getNumPorts() && parentCell.getPort(portIndex) == this;
+	}
+
 	/**
 	 * Method to set a Change object on this Export.
 	 * This is used during constraint propagation to tell whether this object has already been changed and how.

@@ -322,6 +322,15 @@ public class View extends ElectricObject
 		return findView(viewName);
 	}
 
+    /**
+     * Returns true if this View is completely linked into database.
+	 * This means this View is contained in View&#46;views
+     */
+	public boolean isActuallyLinked()
+	{
+		return views.contains(this);
+	}
+
 	/**
 	 * Method to return the full name of this View.
 	 * @return the full name of this View.

@@ -36,6 +36,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.Highlight;
@@ -879,6 +880,19 @@ public class Undo
 							export++;
 						else
 							variable++;
+					} else if (ch.obj instanceof Technology)
+					{
+						boolean varFound = false;
+						for (Iterator it = ch.obj.getVariables(); it.hasNext();)
+						{
+							Variable var = (Variable)it.next();
+							if (var.getTextDescriptor() == td)
+								varFound = true;
+						}
+						if (varFound)
+							variable++;
+						else
+							object++;
 					} else
 					{
 						variable++;
