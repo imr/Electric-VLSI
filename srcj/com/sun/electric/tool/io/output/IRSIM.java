@@ -183,11 +183,11 @@ public class IRSIM extends Output
 	}
 
 	/** IRSIM Netlister */
-    private static final List implLayers = new ArrayList(2);
+    private static final List diffLayers = new ArrayList(2);
 
     static {
-	    implLayers.add(Layer.Function.DIFFP);
-	    implLayers.add(Layer.Function.DIFFN);
+	    diffLayers.add(Layer.Function.DIFFP);
+	    diffLayers.add(Layer.Function.DIFFN);
     };
 
 	private class IRSIMNetlister extends HierarchyEnumerator.Visitor
@@ -303,12 +303,16 @@ public class IRSIM extends Output
             ci.width = dim.getDoubleWidth() * m;
 
 			// no parasitics yet
-            // Only implant layers are required for source and drain
-            Poly [] implList = info.getCell().getTechnology().getShapeOfNode(ni, null, true, false, implLayers);
+            // Only diffusion layers are required for source and drain
+            Poly [] implList = info.getCell().getTechnology().getShapeOfNode(ni, null, true, false, diffLayers);
             if (implList.length != 2)
-                System.out.println("ERROR, wrong number of implant layers in " + ni + ", cell " + iinfo.getCell());
+            {
+                System.out.println("ERROR, wrong number of diffusion layers in " + ni + ", cell " + iinfo.getCell());
+                return false;
+            }
 
             // Drain and source regions are identical -> get value for only one and copy the second for now
+
             Poly poly = implList[0];
             double area = Math.abs(poly.getArea());
             double perim = poly.getPerimeter();
