@@ -56,7 +56,7 @@ import com.sun.electric.tool.user.dialogs.CrossLibCopy;
 import com.sun.electric.tool.user.dialogs.NewExport;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LETool;
-import com.sun.electric.tool.misc.PadGenerator;
+import com.sun.electric.tool.generator.PadGenerator;
 import com.sun.electric.tool.simulation.Spice;
 import com.sun.electric.tool.simulation.IRSIMTool;
 //import com.sun.electric.tool.ncc.factory.NetFactory;

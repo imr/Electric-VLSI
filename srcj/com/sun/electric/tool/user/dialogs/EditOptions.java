@@ -47,6 +47,231 @@ public class EditOptions extends javax.swing.JDialog
 		super(parent, modal);
 		setLocation(100, 50);
 		initComponents();
+
+		initNewNodes();			// initialize the New Nodes Options panel
+		initNewArcs();			// initialize the New Arcs Options panel
+		initSelection();		// initialize the Selection Options panel
+		initPorts();			// initialize the Ports Options panel
+		initFrame();			// initialize the Frame Options panel
+		initIcon();				// initialize the Icon Options panel
+		initGrid();				// initialize the Grid Options panel
+		initAlignment();		// initialize the Alignment Options panel
+		initLayers();			// initialize the Layers Options panel
+		initColors();			// initialize the Colors Options panel
+		initText();				// initialize the Text Options panel
+		init3D();				// initialize the 3D Options panel
+		initTechnology();		// initialize the Technology Options panel
+	}
+
+	//******************************** NEW NODES ********************************
+
+	private void initNewNodes()
+	{
+		nodePrimitive.setEnabled(false);
+		nodePrimitiveXSize.setEditable(false);
+		nodePrimitiveYSize.setEditable(false);
+		nodeOverrideDefaultOrientation.setEnabled(false);
+		nodePrimitiveRotation.setEditable(false);
+		nodePrimitiveMirror.setEnabled(false);
+		nodeDisallowModificationLockedPrims.setEnabled(false);
+		nodeMoveAfterDuplicate.setEnabled(false);
+		nodeCopyExports.setEnabled(false);
+		nodeInstanceRotation.setEditable(false);
+		nodeInstanceMirror.setEnabled(false);
+		nodeCheckCellDates.setEnabled(false);
+		nodeSwitchTechnology.setEnabled(false);
+		nodePlaceCellCenter.setEnabled(false);
+		nodeTinyCellsHashedOut.setEnabled(false);
+		nodeHashLimit.setEditable(false);
+	}
+
+	//******************************** NEW ARCS ********************************
+
+	private void initNewArcs()
+	{
+		arcDefaultForArc.setEnabled(false);
+		arcProtoList.setEnabled(false);
+		arcDefaultForAllArcs.setEnabled(false);
+		arcReset.setEnabled(false);
+		arcRigid.setEnabled(false);
+		arcFixedAngle.setEnabled(false);
+		arcSlidable.setEnabled(false);
+		arcNegated.setEnabled(false);
+		arcDirectional.setEnabled(false);
+		arcEndsExtend.setEnabled(false);
+		arcWidth.setEditable(false);
+		arcAngle.setEditable(false);
+		arcPinName.setEnabled(false);
+		arcSetPin.setEnabled(false);
+	}
+
+	//******************************** SELECTION ********************************
+
+	private void initSelection()
+	{
+		selEasyCellInstances.setEnabled(false);
+		selEasyAnnotationText.setEnabled(false);
+		selCenterBasedPrimitives.setEnabled(false);
+		selDraggingEnclosesEntireObject.setEnabled(false);
+	}
+
+	//******************************** PORTS ********************************
+
+	private void initPorts()
+	{
+		portFullPort.setEnabled(false);
+		portFullExport.setEnabled(false);
+		portShortPort.setEnabled(false);
+		portShortExport.setEnabled(false);
+		portCrossPort.setEnabled(false);
+		portCrossExport.setEnabled(false);
+		portMoveNode.setEnabled(false);
+	}
+
+	//******************************** FRAME ********************************
+
+	private void initFrame()
+	{
+		frameCellName.setEnabled(false);
+		frameSize.setEnabled(false);
+		frameLandscape.setEnabled(false);
+		framePortrait.setEnabled(false);
+		frameTitleBox.setEnabled(false);
+		frameLibrary.setEnabled(false);
+		frameDefaultCompany.setEditable(false);
+		frameLibraryCompany.setEditable(false);
+		frameDefaultDesigner.setEditable(false);
+		frameLibraryDesigner.setEditable(false);
+		frameDefaultProject.setEditable(false);
+		frameLibraryProject.setEditable(false);
+	}
+
+	//******************************** ICON ********************************
+
+	private void initIcon()
+	{
+		iconInputPos.setEnabled(false);
+		iconPowerPos.setEnabled(false);
+		iconOutputPos.setEnabled(false);
+		iconGroundPos.setEnabled(false);
+		iconBidirPos.setEnabled(false);
+		iconClockPos.setEnabled(false);
+		iconDrawLeads.setEnabled(false);
+		iconLeadLength.setEditable(false);
+		iconDrawBody.setEnabled(false);
+		iconLeadSpacing.setEditable(false);
+		iconExportPos.setEnabled(false);
+		iconExportStyle.setEnabled(false);
+		iconExportTechnology.setEnabled(false);
+		iconReverseOrder.setEnabled(false);
+		iconInstancePos.setEnabled(false);
+	}
+
+	//******************************** GRID ********************************
+
+	private void initGrid()
+	{
+		gridCurrentHoriz.setEditable(false);
+		gridCurrentVert.setEditable(false);
+		gridNewHoriz.setEditable(false);
+		gridNewVert.setEditable(false);
+		gridBoldHoriz.setEditable(false);
+		gridBoldVert.setEditable(false);
+		gridAlign.setEnabled(false);
+	}
+
+	//******************************** ALIGNMENT ********************************
+
+	private void initAlignment()
+	{
+		alignCursor.setEditable(false);
+		alignEdges.setEditable(false);
+	}
+
+	//******************************** LAYERS ********************************
+
+	private void initLayers()
+	{
+		layerName.setEnabled(false);
+	}
+
+	//******************************** COLORS ********************************
+
+	private void initColors()
+	{
+	}
+
+	//******************************** TEXT ********************************
+
+	private void initText()
+	{
+		textIconCenter.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabCenter.gif")));
+		textIconLeft.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabLeft.gif")));
+		textIconRight.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabRight.gif")));
+		textIconTop.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabTop.gif")));
+		textIconBottom.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabBottom.gif")));
+		textIconLowerRight.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabLowerRight.gif")));
+		textIconLowerLeft.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabLowerLeft.gif")));
+		textIconUpperRight.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabUpperRight.gif")));
+		textIconUpperLeft.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabUpperLeft.gif")));
+		textIconBoxed.setIcon(new javax.swing.ImageIcon(getClass().getResource("IconGrabBoxed.gif")));
+
+		textNodes.setEnabled(false);
+		textArcs.setEnabled(false);
+		textPorts.setEnabled(false);
+		textNonlayout.setEnabled(false);
+		textInstances.setEnabled(false);
+		textCellText.setEnabled(false);
+		textPointSize.setEditable(false);
+		textUnitSize.setEditable(false);
+		textFace.setEnabled(false);
+		textItalic.setEnabled(false);
+		textBold.setEnabled(false);
+		textUnderline.setEnabled(false);
+		textPoints.setEnabled(false);
+		textUnits.setEnabled(false);
+		textEditor.setEnabled(false);
+		textNewVisibleInsideCell.setEnabled(false);
+		textGrabCenter.setEnabled(false);
+		textGrabBottom.setEnabled(false);
+		textGrabTop.setEnabled(false);
+		textGrabRight.setEnabled(false);
+		textGrabLeft.setEnabled(false);
+		textGrabLowerRight.setEnabled(false);
+		textGrabLowerLeft.setEnabled(false);
+		textGrabUpperRight.setEnabled(false);
+		textGrabUpperLeft.setEnabled(false);
+		textGrabBoxed.setEnabled(false);
+		textSmartVerticalOff.setEnabled(false);
+		textSmartVerticalInside.setEnabled(false);
+		textSmartVerticalOutside.setEnabled(false);
+		textSmartHorizontalOff.setEnabled(false);
+		textSmartHorizontalInside.setEnabled(false);
+		textSmartHorizontalOutside.setEnabled(false);
+	}
+
+	//******************************** 3D ********************************
+
+	private void init3D()
+	{
+	}
+
+	//******************************** TECHNOLOGY ********************************
+
+	private void initTechnology()
+	{
+		techMOCMOSMetalLayers.setEnabled(false);
+		techMOCMOSSCMOSRules.setEnabled(false);
+		techMOCMOSSubmicronRules.setEnabled(false);
+		techMOCMOSDeepRules.setEnabled(false);
+		techMOCMOSSecondPoly.setEnabled(false);
+		techMOCMOSDisallowStackedVias.setEnabled(false);
+		techMOCMOSAlternateContactRules.setEnabled(false);
+		techMOCMOSShowSpecialTrans.setEnabled(false);
+		techMOCMOSFullGeom.setEnabled(false);
+		techMOCMOSStickFigures.setEnabled(false);
+		techArtworkArrowsFilled.setEnabled(false);
+		techSchematicsNegatingSize.setEditable(false);
 	}
 
 	/** This method is called from within the constructor to
@@ -58,134 +283,229 @@ public class EditOptions extends javax.swing.JDialog
     {
         java.awt.GridBagConstraints gridBagConstraints;
 
+        newArcGroup = new javax.swing.ButtonGroup();
+        portGroup = new javax.swing.ButtonGroup();
+        exportGroup = new javax.swing.ButtonGroup();
+        frameGroup = new javax.swing.ButtonGroup();
+        textSizeGroup = new javax.swing.ButtonGroup();
+        textCornerGroup = new javax.swing.ButtonGroup();
+        textTypeGroup = new javax.swing.ButtonGroup();
+        textVerticalGroup = new javax.swing.ButtonGroup();
+        textHorizontalGroup = new javax.swing.ButtonGroup();
+        techMOCMOSRules = new javax.swing.ButtonGroup();
+        techMOCMOSSticks = new javax.swing.ButtonGroup();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         newNode = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
-        primitive = new javax.swing.JComboBox();
+        nodePrimitive = new javax.swing.JComboBox();
         jLabel2 = new javax.swing.JLabel();
-        primitiveXSize = new javax.swing.JTextField();
+        nodePrimitiveXSize = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
-        primitiveYSize = new javax.swing.JTextField();
-        overrideDefaultOrientation = new javax.swing.JCheckBox();
+        nodePrimitiveYSize = new javax.swing.JTextField();
+        nodeOverrideDefaultOrientation = new javax.swing.JCheckBox();
         jLabel4 = new javax.swing.JLabel();
-        primitiveRotation = new javax.swing.JTextField();
-        primitiveMirror = new javax.swing.JCheckBox();
+        nodePrimitiveRotation = new javax.swing.JTextField();
+        nodePrimitiveMirror = new javax.swing.JCheckBox();
         jSeparator1 = new javax.swing.JSeparator();
         jLabel5 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
-        disallowModificationLockedPrims = new javax.swing.JCheckBox();
-        moveAfterDuplicate = new javax.swing.JCheckBox();
-        copyExports = new javax.swing.JCheckBox();
-        instanceRotation = new javax.swing.JTextField();
-        instanceMirror = new javax.swing.JCheckBox();
+        nodeDisallowModificationLockedPrims = new javax.swing.JCheckBox();
+        nodeMoveAfterDuplicate = new javax.swing.JCheckBox();
+        nodeCopyExports = new javax.swing.JCheckBox();
+        nodeInstanceRotation = new javax.swing.JTextField();
+        nodeInstanceMirror = new javax.swing.JCheckBox();
+        nodeCheckCellDates = new javax.swing.JCheckBox();
+        nodeSwitchTechnology = new javax.swing.JCheckBox();
+        nodePlaceCellCenter = new javax.swing.JCheckBox();
+        nodeTinyCellsHashedOut = new javax.swing.JCheckBox();
+        jLabel47 = new javax.swing.JLabel();
+        nodeHashLimit = new javax.swing.JTextField();
+        jSeparator8 = new javax.swing.JSeparator();
+        jLabel53 = new javax.swing.JLabel();
         newArc = new javax.swing.JPanel();
-        jRadioButton1 = new javax.swing.JRadioButton();
-        jComboBox1 = new javax.swing.JComboBox();
-        jRadioButton2 = new javax.swing.JRadioButton();
-        jButton1 = new javax.swing.JButton();
-        jCheckBox1 = new javax.swing.JCheckBox();
-        jCheckBox2 = new javax.swing.JCheckBox();
-        jCheckBox3 = new javax.swing.JCheckBox();
-        jCheckBox4 = new javax.swing.JCheckBox();
-        jCheckBox5 = new javax.swing.JCheckBox();
-        jCheckBox6 = new javax.swing.JCheckBox();
+        arcDefaultForArc = new javax.swing.JRadioButton();
+        arcProtoList = new javax.swing.JComboBox();
+        arcDefaultForAllArcs = new javax.swing.JRadioButton();
+        arcReset = new javax.swing.JButton();
+        arcRigid = new javax.swing.JCheckBox();
+        arcFixedAngle = new javax.swing.JCheckBox();
+        arcSlidable = new javax.swing.JCheckBox();
+        arcNegated = new javax.swing.JCheckBox();
+        arcDirectional = new javax.swing.JCheckBox();
+        arcEndsExtend = new javax.swing.JCheckBox();
         jLabel7 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
+        arcWidth = new javax.swing.JTextField();
         jLabel8 = new javax.swing.JLabel();
-        jTextField2 = new javax.swing.JTextField();
+        arcAngle = new javax.swing.JTextField();
         jLabel9 = new javax.swing.JLabel();
-        jLabel10 = new javax.swing.JLabel();
-        jButton2 = new javax.swing.JButton();
+        arcPinName = new javax.swing.JLabel();
+        arcSetPin = new javax.swing.JButton();
         selection = new javax.swing.JPanel();
         selEasyCellInstances = new javax.swing.JCheckBox();
         selEasyAnnotationText = new javax.swing.JCheckBox();
         selCenterBasedPrimitives = new javax.swing.JCheckBox();
         selDraggingEnclosesEntireObject = new javax.swing.JCheckBox();
-        cell = new javax.swing.JPanel();
         port = new javax.swing.JPanel();
         jLabel11 = new javax.swing.JLabel();
         jLabel12 = new javax.swing.JLabel();
-        jRadioButton3 = new javax.swing.JRadioButton();
-        jRadioButton4 = new javax.swing.JRadioButton();
-        jRadioButton5 = new javax.swing.JRadioButton();
-        jRadioButton6 = new javax.swing.JRadioButton();
-        jRadioButton7 = new javax.swing.JRadioButton();
-        jRadioButton8 = new javax.swing.JRadioButton();
+        portFullPort = new javax.swing.JRadioButton();
+        portFullExport = new javax.swing.JRadioButton();
+        portShortPort = new javax.swing.JRadioButton();
+        portShortExport = new javax.swing.JRadioButton();
+        portCrossPort = new javax.swing.JRadioButton();
+        portCrossExport = new javax.swing.JRadioButton();
         jSeparator2 = new javax.swing.JSeparator();
-        jCheckBox7 = new javax.swing.JCheckBox();
+        portMoveNode = new javax.swing.JCheckBox();
+        jSeparator9 = new javax.swing.JSeparator();
         frame = new javax.swing.JPanel();
-        jLabel13 = new javax.swing.JLabel();
+        frameCellName = new javax.swing.JLabel();
         jLabel14 = new javax.swing.JLabel();
-        jComboBox2 = new javax.swing.JComboBox();
-        jRadioButton9 = new javax.swing.JRadioButton();
-        jRadioButton10 = new javax.swing.JRadioButton();
-        jCheckBox8 = new javax.swing.JCheckBox();
+        frameSize = new javax.swing.JComboBox();
+        frameLandscape = new javax.swing.JRadioButton();
+        framePortrait = new javax.swing.JRadioButton();
+        frameTitleBox = new javax.swing.JCheckBox();
         jLabel15 = new javax.swing.JLabel();
         jLabel16 = new javax.swing.JLabel();
-        jComboBox3 = new javax.swing.JComboBox();
+        frameLibrary = new javax.swing.JComboBox();
         jLabel17 = new javax.swing.JLabel();
-        jTextField3 = new javax.swing.JTextField();
-        jTextField4 = new javax.swing.JTextField();
+        frameDefaultCompany = new javax.swing.JTextField();
+        frameLibraryCompany = new javax.swing.JTextField();
         jLabel18 = new javax.swing.JLabel();
-        jTextField5 = new javax.swing.JTextField();
-        jTextField6 = new javax.swing.JTextField();
+        frameDefaultDesigner = new javax.swing.JTextField();
+        frameLibraryDesigner = new javax.swing.JTextField();
         jLabel19 = new javax.swing.JLabel();
-        jTextField7 = new javax.swing.JTextField();
-        jTextField8 = new javax.swing.JTextField();
+        frameDefaultProject = new javax.swing.JTextField();
+        frameLibraryProject = new javax.swing.JTextField();
         icon = new javax.swing.JPanel();
         jLabel20 = new javax.swing.JLabel();
-        jComboBox4 = new javax.swing.JComboBox();
+        iconInputPos = new javax.swing.JComboBox();
         jLabel21 = new javax.swing.JLabel();
-        jComboBox5 = new javax.swing.JComboBox();
+        iconPowerPos = new javax.swing.JComboBox();
         jLabel22 = new javax.swing.JLabel();
-        jComboBox6 = new javax.swing.JComboBox();
+        iconOutputPos = new javax.swing.JComboBox();
         jLabel23 = new javax.swing.JLabel();
-        jComboBox7 = new javax.swing.JComboBox();
+        iconGroundPos = new javax.swing.JComboBox();
         jLabel24 = new javax.swing.JLabel();
-        jComboBox8 = new javax.swing.JComboBox();
+        iconBidirPos = new javax.swing.JComboBox();
         jLabel25 = new javax.swing.JLabel();
-        jComboBox9 = new javax.swing.JComboBox();
-        jCheckBox9 = new javax.swing.JCheckBox();
+        iconClockPos = new javax.swing.JComboBox();
+        iconDrawLeads = new javax.swing.JCheckBox();
         jLabel26 = new javax.swing.JLabel();
-        jTextField9 = new javax.swing.JTextField();
-        jCheckBox10 = new javax.swing.JCheckBox();
+        iconLeadLength = new javax.swing.JTextField();
+        iconDrawBody = new javax.swing.JCheckBox();
         jLabel27 = new javax.swing.JLabel();
-        jTextField10 = new javax.swing.JTextField();
+        iconLeadSpacing = new javax.swing.JTextField();
         jLabel28 = new javax.swing.JLabel();
-        jComboBox10 = new javax.swing.JComboBox();
+        iconExportPos = new javax.swing.JComboBox();
         jLabel29 = new javax.swing.JLabel();
-        jComboBox11 = new javax.swing.JComboBox();
+        iconExportStyle = new javax.swing.JComboBox();
         jLabel30 = new javax.swing.JLabel();
-        jComboBox12 = new javax.swing.JComboBox();
-        jCheckBox11 = new javax.swing.JCheckBox();
+        iconExportTechnology = new javax.swing.JComboBox();
+        iconReverseOrder = new javax.swing.JCheckBox();
         jLabel31 = new javax.swing.JLabel();
-        jComboBox13 = new javax.swing.JComboBox();
+        iconInstancePos = new javax.swing.JComboBox();
         grid = new javax.swing.JPanel();
         jLabel32 = new javax.swing.JLabel();
         jLabel33 = new javax.swing.JLabel();
         jLabel34 = new javax.swing.JLabel();
-        jTextField11 = new javax.swing.JTextField();
-        jTextField12 = new javax.swing.JTextField();
+        gridCurrentHoriz = new javax.swing.JTextField();
+        gridCurrentVert = new javax.swing.JTextField();
         jLabel35 = new javax.swing.JLabel();
-        jTextField13 = new javax.swing.JTextField();
-        jTextField14 = new javax.swing.JTextField();
+        gridNewHoriz = new javax.swing.JTextField();
+        gridNewVert = new javax.swing.JTextField();
         jLabel36 = new javax.swing.JLabel();
-        jTextField15 = new javax.swing.JTextField();
-        jTextField16 = new javax.swing.JTextField();
-        jCheckBox12 = new javax.swing.JCheckBox();
+        gridBoldHoriz = new javax.swing.JTextField();
+        gridBoldVert = new javax.swing.JTextField();
+        gridAlign = new javax.swing.JCheckBox();
+        jLabel10 = new javax.swing.JLabel();
+        jLabel13 = new javax.swing.JLabel();
         alignment = new javax.swing.JPanel();
         jLabel37 = new javax.swing.JLabel();
-        jTextField17 = new javax.swing.JTextField();
+        alignCursor = new javax.swing.JTextField();
         jLabel38 = new javax.swing.JLabel();
         jLabel39 = new javax.swing.JLabel();
-        jTextField18 = new javax.swing.JTextField();
+        alignEdges = new javax.swing.JTextField();
         layers = new javax.swing.JPanel();
         jLabel40 = new javax.swing.JLabel();
-        jComboBox14 = new javax.swing.JComboBox();
+        layerName = new javax.swing.JComboBox();
         colors = new javax.swing.JPanel();
         text = new javax.swing.JPanel();
+        top = new javax.swing.JPanel();
+        jLabel41 = new javax.swing.JLabel();
+        textNodes = new javax.swing.JRadioButton();
+        textArcs = new javax.swing.JRadioButton();
+        textPorts = new javax.swing.JRadioButton();
+        textNonlayout = new javax.swing.JRadioButton();
+        textInstances = new javax.swing.JRadioButton();
+        textCellText = new javax.swing.JRadioButton();
+        jLabel42 = new javax.swing.JLabel();
+        textPointSize = new javax.swing.JTextField();
+        textUnitSize = new javax.swing.JTextField();
+        jLabel43 = new javax.swing.JLabel();
+        textFace = new javax.swing.JComboBox();
+        textItalic = new javax.swing.JCheckBox();
+        textBold = new javax.swing.JCheckBox();
+        textUnderline = new javax.swing.JCheckBox();
+        textPoints = new javax.swing.JRadioButton();
+        textUnits = new javax.swing.JRadioButton();
+        middle = new javax.swing.JPanel();
+        jLabel44 = new javax.swing.JLabel();
+        textEditor = new javax.swing.JComboBox();
+        textNewVisibleInsideCell = new javax.swing.JCheckBox();
+        bottom = new javax.swing.JPanel();
+        jLabel45 = new javax.swing.JLabel();
+        textGrabCenter = new javax.swing.JRadioButton();
+        textGrabBottom = new javax.swing.JRadioButton();
+        textGrabTop = new javax.swing.JRadioButton();
+        textGrabRight = new javax.swing.JRadioButton();
+        textGrabLeft = new javax.swing.JRadioButton();
+        textGrabLowerRight = new javax.swing.JRadioButton();
+        textGrabLowerLeft = new javax.swing.JRadioButton();
+        textGrabUpperRight = new javax.swing.JRadioButton();
+        textGrabUpperLeft = new javax.swing.JRadioButton();
+        textGrabBoxed = new javax.swing.JRadioButton();
+        textIconCenter = new javax.swing.JLabel();
+        textIconBottom = new javax.swing.JLabel();
+        textIconTop = new javax.swing.JLabel();
+        textIconRight = new javax.swing.JLabel();
+        textIconLeft = new javax.swing.JLabel();
+        textIconLowerRight = new javax.swing.JLabel();
+        textIconLowerLeft = new javax.swing.JLabel();
+        textIconUpperRight = new javax.swing.JLabel();
+        textIconUpperLeft = new javax.swing.JLabel();
+        textIconBoxed = new javax.swing.JLabel();
+        jSeparator5 = new javax.swing.JSeparator();
+        jLabel56 = new javax.swing.JLabel();
+        textSmartVerticalOff = new javax.swing.JRadioButton();
+        textSmartVerticalInside = new javax.swing.JRadioButton();
+        textSmartVerticalOutside = new javax.swing.JRadioButton();
+        jLabel57 = new javax.swing.JLabel();
+        textSmartHorizontalOff = new javax.swing.JRadioButton();
+        textSmartHorizontalInside = new javax.swing.JRadioButton();
+        textSmartHorizontalOutside = new javax.swing.JRadioButton();
+        jSeparator3 = new javax.swing.JSeparator();
+        jSeparator4 = new javax.swing.JSeparator();
         threeD = new javax.swing.JPanel();
         technology = new javax.swing.JPanel();
+        jLabel46 = new javax.swing.JLabel();
+        jLabel49 = new javax.swing.JLabel();
+        techMOCMOSMetalLayers = new javax.swing.JComboBox();
+        techMOCMOSSCMOSRules = new javax.swing.JRadioButton();
+        techMOCMOSSubmicronRules = new javax.swing.JRadioButton();
+        techMOCMOSDeepRules = new javax.swing.JRadioButton();
+        techMOCMOSSecondPoly = new javax.swing.JCheckBox();
+        techMOCMOSDisallowStackedVias = new javax.swing.JCheckBox();
+        techMOCMOSAlternateContactRules = new javax.swing.JCheckBox();
+        techMOCMOSShowSpecialTrans = new javax.swing.JCheckBox();
+        techMOCMOSFullGeom = new javax.swing.JRadioButton();
+        techMOCMOSStickFigures = new javax.swing.JRadioButton();
+        jSeparator6 = new javax.swing.JSeparator();
+        jLabel50 = new javax.swing.JLabel();
+        techArtworkArrowsFilled = new javax.swing.JCheckBox();
+        jSeparator7 = new javax.swing.JSeparator();
+        jLabel51 = new javax.swing.JLabel();
+        jLabel52 = new javax.swing.JLabel();
+        techSchematicsNegatingSize = new javax.swing.JTextField();
         cancel = new javax.swing.JButton();
         ok = new javax.swing.JButton();
 
@@ -208,108 +528,116 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         newNode.add(jLabel1, gridBagConstraints);
 
-        primitive.addActionListener(new java.awt.event.ActionListener()
+        nodePrimitive.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                primitiveActionPerformed(evt);
+                nodePrimitiveActionPerformed(evt);
             }
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newNode.add(primitive, gridBagConstraints);
+        newNode.add(nodePrimitive, gridBagConstraints);
 
         jLabel2.setText("X size of new primitives:");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
         newNode.add(jLabel2, gridBagConstraints);
 
-        primitiveXSize.setColumns(8);
+        nodePrimitiveXSize.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newNode.add(primitiveXSize, gridBagConstraints);
+        newNode.add(nodePrimitiveXSize, gridBagConstraints);
 
         jLabel3.setText("Y size of new primitives:");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
         newNode.add(jLabel3, gridBagConstraints);
 
-        primitiveYSize.setColumns(8);
-        primitiveYSize.addActionListener(new java.awt.event.ActionListener()
+        nodePrimitiveYSize.setColumns(8);
+        nodePrimitiveYSize.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                primitiveYSizeActionPerformed(evt);
+                nodePrimitiveYSizeActionPerformed(evt);
             }
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newNode.add(primitiveYSize, gridBagConstraints);
+        newNode.add(nodePrimitiveYSize, gridBagConstraints);
 
-        overrideDefaultOrientation.setText("Override default orientation");
-        overrideDefaultOrientation.addActionListener(new java.awt.event.ActionListener()
+        nodeOverrideDefaultOrientation.setText("Override default orientation");
+        nodeOverrideDefaultOrientation.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                overrideDefaultOrientationActionPerformed(evt);
+                nodeOverrideDefaultOrientationActionPerformed(evt);
             }
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        newNode.add(overrideDefaultOrientation, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
+        newNode.add(nodeOverrideDefaultOrientation, gridBagConstraints);
 
         jLabel4.setText("Rotation of new nodes:");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
         newNode.add(jLabel4, gridBagConstraints);
 
-        primitiveRotation.setColumns(6);
+        nodePrimitiveRotation.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newNode.add(primitiveRotation, gridBagConstraints);
+        newNode.add(nodePrimitiveRotation, gridBagConstraints);
 
-        primitiveMirror.setText("Mirror X");
-        primitiveMirror.addActionListener(new java.awt.event.ActionListener()
+        nodePrimitiveMirror.setText("Mirror X");
+        nodePrimitiveMirror.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                primitiveMirrorActionPerformed(evt);
+                nodePrimitiveMirrorActionPerformed(evt);
             }
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
-        newNode.add(primitiveMirror, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        newNode.add(nodePrimitiveMirror, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -322,211 +650,299 @@ public class EditOptions extends javax.swing.JDialog
         jLabel5.setText("For all nodes:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 13;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 0);
         newNode.add(jLabel5, gridBagConstraints);
 
         jLabel6.setText("Rotation of new nodes:");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 14;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
         newNode.add(jLabel6, gridBagConstraints);
 
-        disallowModificationLockedPrims.setText("Disallow modification of locked primitives");
-        disallowModificationLockedPrims.addActionListener(new java.awt.event.ActionListener()
+        nodeDisallowModificationLockedPrims.setText("Disallow modification of locked primitives");
+        nodeDisallowModificationLockedPrims.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                disallowModificationLockedPrimsActionPerformed(evt);
+                nodeDisallowModificationLockedPrimsActionPerformed(evt);
             }
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 15;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        newNode.add(disallowModificationLockedPrims, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 2, 4);
+        newNode.add(nodeDisallowModificationLockedPrims, gridBagConstraints);
 
-        moveAfterDuplicate.setText("Move after Duplicate");
-        moveAfterDuplicate.addActionListener(new java.awt.event.ActionListener()
+        nodeMoveAfterDuplicate.setText("Move after Duplicate");
+        nodeMoveAfterDuplicate.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                moveAfterDuplicateActionPerformed(evt);
+                nodeMoveAfterDuplicateActionPerformed(evt);
             }
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 16;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        newNode.add(moveAfterDuplicate, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(2, 20, 2, 4);
+        newNode.add(nodeMoveAfterDuplicate, gridBagConstraints);
 
-        copyExports.setText("Duplicate/Array/Extract copies exports");
-        copyExports.addActionListener(new java.awt.event.ActionListener()
+        nodeCopyExports.setText("Duplicate/Array/Extract copies exports");
+        nodeCopyExports.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                copyExportsActionPerformed(evt);
+                nodeCopyExportsActionPerformed(evt);
             }
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 17;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        newNode.add(copyExports, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(2, 20, 0, 0);
+        newNode.add(nodeCopyExports, gridBagConstraints);
 
-        instanceRotation.setColumns(6);
+        nodeInstanceRotation.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 14;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newNode.add(instanceRotation, gridBagConstraints);
+        newNode.add(nodeInstanceRotation, gridBagConstraints);
 
-        instanceMirror.setText("Mirror X");
-        instanceMirror.addActionListener(new java.awt.event.ActionListener()
+        nodeInstanceMirror.setText("Mirror X");
+        nodeInstanceMirror.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                instanceMirrorActionPerformed(evt);
+                nodeInstanceMirrorActionPerformed(evt);
             }
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 14;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        newNode.add(nodeInstanceMirror, gridBagConstraints);
+
+        nodeCheckCellDates.setText("Check cell dates during creation");
+        nodeCheckCellDates.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                nodeCheckCellDatesActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 7;
-        newNode.add(instanceMirror, gridBagConstraints);
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
+        newNode.add(nodeCheckCellDates, gridBagConstraints);
+
+        nodeSwitchTechnology.setText("Switch technology to match current cell");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
+        newNode.add(nodeSwitchTechnology, gridBagConstraints);
+
+        nodePlaceCellCenter.setText("Place Cell-Center in new cells");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
+        newNode.add(nodePlaceCellCenter, gridBagConstraints);
+
+        nodeTinyCellsHashedOut.setText("Tiny cell instances hashed out");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
+        newNode.add(nodeTinyCellsHashedOut, gridBagConstraints);
+
+        jLabel47.setText("Units per pixel when cells are hashed::");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
+        newNode.add(jLabel47, gridBagConstraints);
+
+        nodeHashLimit.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        newNode.add(nodeHashLimit, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 12;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        newNode.add(jSeparator8, gridBagConstraints);
+
+        jLabel53.setText("For cells:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
+        newNode.add(jLabel53, gridBagConstraints);
 
         jTabbedPane1.addTab("New Nodes", newNode);
 
         newArc.setLayout(new java.awt.GridBagLayout());
 
-        jRadioButton1.setText("Default for arc:");
+        arcDefaultForArc.setText("Default for arc:");
+        newArcGroup.add(arcDefaultForArc);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        newArc.add(jRadioButton1, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        newArc.add(arcDefaultForArc, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
-        newArc.add(jComboBox1, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        newArc.add(arcProtoList, gridBagConstraints);
 
-        jRadioButton2.setText("Defaults for all arcs");
+        arcDefaultForAllArcs.setText("Defaults for all arcs");
+        newArcGroup.add(arcDefaultForAllArcs);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        newArc.add(jRadioButton2, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        newArc.add(arcDefaultForAllArcs, gridBagConstraints);
 
-        jButton1.setText("jButton1");
+        arcReset.setText("Reset to initial defaults");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        newArc.add(jButton1, gridBagConstraints);
+        newArc.add(arcReset, gridBagConstraints);
 
-        jCheckBox1.setText("Rigid");
+        arcRigid.setText("Rigid");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        newArc.add(jCheckBox1, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        newArc.add(arcRigid, gridBagConstraints);
 
-        jCheckBox2.setText("Fixed-angle");
+        arcFixedAngle.setText("Fixed-angle");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        newArc.add(jCheckBox2, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        newArc.add(arcFixedAngle, gridBagConstraints);
 
-        jCheckBox3.setText("Slidable");
+        arcSlidable.setText("Slidable");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        newArc.add(jCheckBox3, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        newArc.add(arcSlidable, gridBagConstraints);
 
-        jCheckBox4.setText("Negated");
+        arcNegated.setText("Negated");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        newArc.add(jCheckBox4, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        newArc.add(arcNegated, gridBagConstraints);
 
-        jCheckBox5.setText("Directional");
+        arcDirectional.setText("Directional");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        newArc.add(jCheckBox5, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        newArc.add(arcDirectional, gridBagConstraints);
 
-        jCheckBox6.setText("Ends extended");
+        arcEndsExtend.setText("Ends extended");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        newArc.add(jCheckBox6, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        newArc.add(arcEndsExtend, gridBagConstraints);
 
         jLabel7.setText("Width:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         newArc.add(jLabel7, gridBagConstraints);
 
-        jTextField1.setColumns(8);
+        arcWidth.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        newArc.add(jTextField1, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        newArc.add(arcWidth, gridBagConstraints);
 
         jLabel8.setText("Angle:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         newArc.add(jLabel8, gridBagConstraints);
 
-        jTextField2.setColumns(6);
+        arcAngle.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 4;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        newArc.add(jTextField2, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        newArc.add(arcAngle, gridBagConstraints);
 
         jLabel9.setText("Pin:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         newArc.add(jLabel9, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -535,15 +951,15 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        newArc.add(jLabel10, gridBagConstraints);
+        newArc.add(arcPinName, gridBagConstraints);
 
-        jButton2.setText("Set Pin");
+        arcSetPin.setText("Set Pin");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 5;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        newArc.add(jButton2, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        newArc.add(arcSetPin, gridBagConstraints);
 
         jTabbedPane1.addTab("New Arcs", newArc);
 
@@ -583,104 +999,114 @@ public class EditOptions extends javax.swing.JDialog
 
         jTabbedPane1.addTab("Selection", selection);
 
-        cell.setLayout(new java.awt.GridBagLayout());
-
-        jTabbedPane1.addTab("Cells", cell);
-
         port.setLayout(new java.awt.GridBagLayout());
 
         jLabel11.setText("Ports (in instances):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         port.add(jLabel11, gridBagConstraints);
 
         jLabel12.setText("Exports (in cells):");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         port.add(jLabel12, gridBagConstraints);
 
-        jRadioButton3.setText("Full Names");
+        portFullPort.setText("Full Names");
+        portGroup.add(portFullPort);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        port.add(jRadioButton3, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        port.add(portFullPort, gridBagConstraints);
 
-        jRadioButton4.setText("Full Names");
+        portFullExport.setText("Full Names");
+        exportGroup.add(portFullExport);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        port.add(jRadioButton4, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        port.add(portFullExport, gridBagConstraints);
 
-        jRadioButton5.setText("Short Names");
+        portShortPort.setText("Short Names");
+        portGroup.add(portShortPort);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        port.add(jRadioButton5, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        port.add(portShortPort, gridBagConstraints);
 
-        jRadioButton6.setText("Short Names");
+        portShortExport.setText("Short Names");
+        exportGroup.add(portShortExport);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        port.add(jRadioButton6, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        port.add(portShortExport, gridBagConstraints);
 
-        jRadioButton7.setText("Crosses");
+        portCrossPort.setText("Crosses");
+        portGroup.add(portCrossPort);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        port.add(jRadioButton7, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        port.add(portCrossPort, gridBagConstraints);
 
-        jRadioButton8.setText("Crosses");
+        portCrossExport.setText("Crosses");
+        exportGroup.add(portCrossExport);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        port.add(jRadioButton8, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        port.add(portCrossExport, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         port.add(jSeparator2, gridBagConstraints);
 
-        jCheckBox7.setText("Move node with export name");
+        portMoveNode.setText("Move node with export name");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        port.add(jCheckBox7, gridBagConstraints);
+        port.add(portMoveNode, gridBagConstraints);
+
+        jSeparator9.setOrientation(javax.swing.SwingConstants.VERTICAL);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridheight = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
+        port.add(jSeparator9, gridBagConstraints);
 
         jTabbedPane1.addTab("Ports/Exports", port);
 
         frame.setLayout(new java.awt.GridBagLayout());
 
-        jLabel13.setText("No cell in window");
+        frameCellName.setText("No cell in window");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        frame.add(jLabel13, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
+        frame.add(frameCellName, gridBagConstraints);
 
         jLabel14.setText("Frame size:");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -688,6 +1114,7 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         frame.add(jLabel14, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -695,148 +1122,156 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        frame.add(jComboBox2, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        frame.add(frameSize, gridBagConstraints);
 
-        jRadioButton9.setText("Landscape");
+        frameLandscape.setText("Landscape");
+        frameGroup.add(frameLandscape);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        frame.add(jRadioButton9, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        frame.add(frameLandscape, gridBagConstraints);
 
-        jRadioButton10.setText("Portrait");
-        jRadioButton10.addActionListener(new java.awt.event.ActionListener()
+        framePortrait.setText("Portrait");
+        frameGroup.add(framePortrait);
+        framePortrait.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                jRadioButton10ActionPerformed(evt);
+                framePortraitActionPerformed(evt);
             }
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        frame.add(jRadioButton10, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        frame.add(framePortrait, gridBagConstraints);
 
-        jCheckBox8.setText("Title Box");
+        frameTitleBox.setText("Title Box");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridheight = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        frame.add(jCheckBox8, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        frame.add(frameTitleBox, gridBagConstraints);
 
         jLabel15.setText("Default:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         frame.add(jLabel15, gridBagConstraints);
 
         jLabel16.setText("Library:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         frame.add(jLabel16, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        frame.add(jComboBox3, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        frame.add(frameLibrary, gridBagConstraints);
 
         jLabel17.setText("Company Name:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         frame.add(jLabel17, gridBagConstraints);
 
-        jTextField3.setColumns(15);
+        frameDefaultCompany.setColumns(15);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
-        frame.add(jTextField3, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        frame.add(frameDefaultCompany, gridBagConstraints);
 
-        jTextField4.setColumns(15);
+        frameLibraryCompany.setColumns(15);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
-        frame.add(jTextField4, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        frame.add(frameLibraryCompany, gridBagConstraints);
 
         jLabel18.setText("Designer Name:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         frame.add(jLabel18, gridBagConstraints);
 
-        jTextField5.setColumns(15);
+        frameDefaultDesigner.setColumns(15);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
-        frame.add(jTextField5, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        frame.add(frameDefaultDesigner, gridBagConstraints);
 
-        jTextField6.setColumns(15);
+        frameLibraryDesigner.setColumns(15);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
-        frame.add(jTextField6, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        frame.add(frameLibraryDesigner, gridBagConstraints);
 
         jLabel19.setText("Project Name:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         frame.add(jLabel19, gridBagConstraints);
 
-        jTextField7.setColumns(15);
+        frameDefaultProject.setColumns(15);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
-        frame.add(jTextField7, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        frame.add(frameDefaultProject, gridBagConstraints);
 
-        jTextField8.setColumns(15);
+        frameLibraryProject.setColumns(15);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
-        frame.add(jTextField8, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        frame.add(frameLibraryProject, gridBagConstraints);
 
         jTabbedPane1.addTab("Frame", frame);
 
@@ -847,104 +1282,110 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         icon.add(jLabel20, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
-        icon.add(jComboBox4, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        icon.add(iconInputPos, gridBagConstraints);
 
         jLabel21.setText("Power on:");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         icon.add(jLabel21, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
-        icon.add(jComboBox5, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        icon.add(iconPowerPos, gridBagConstraints);
 
         jLabel22.setText("Outputs on:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         icon.add(jLabel22, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
-        icon.add(jComboBox6, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        icon.add(iconOutputPos, gridBagConstraints);
 
         jLabel23.setText("Ground on:");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         icon.add(jLabel23, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
-        icon.add(jComboBox7, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        icon.add(iconGroundPos, gridBagConstraints);
 
         jLabel24.setText("Bidir. on:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         icon.add(jLabel24, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
-        icon.add(jComboBox8, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        icon.add(iconBidirPos, gridBagConstraints);
 
         jLabel25.setText("Clock on:");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         icon.add(jLabel25, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
-        icon.add(jComboBox9, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        icon.add(iconClockPos, gridBagConstraints);
 
-        jCheckBox9.setText("Draw leads");
+        iconDrawLeads.setText("Draw leads");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        icon.add(jCheckBox9, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        icon.add(iconDrawLeads, gridBagConstraints);
 
         jLabel26.setText("Lead length:");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -953,21 +1394,22 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         icon.add(jLabel26, gridBagConstraints);
 
-        jTextField9.setColumns(8);
+        iconLeadLength.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        icon.add(jTextField9, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        icon.add(iconLeadLength, gridBagConstraints);
 
-        jCheckBox10.setText("Draw body");
+        iconDrawBody.setText("Draw body");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        icon.add(jCheckBox10, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        icon.add(iconDrawBody, gridBagConstraints);
 
         jLabel27.setText("Lead spacing:");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -976,86 +1418,91 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         icon.add(jLabel27, gridBagConstraints);
 
-        jTextField10.setColumns(8);
+        iconLeadSpacing.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        icon.add(jTextField10, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        icon.add(iconLeadSpacing, gridBagConstraints);
 
         jLabel28.setText("Export location:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         icon.add(jLabel28, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 0.5;
-        icon.add(jComboBox10, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        icon.add(iconExportPos, gridBagConstraints);
 
         jLabel29.setText("Export style:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         icon.add(jLabel29, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 0.5;
-        icon.add(jComboBox11, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        icon.add(iconExportStyle, gridBagConstraints);
 
         jLabel30.setText("Export technology:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 7;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         icon.add(jLabel30, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 0.5;
-        icon.add(jComboBox12, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        icon.add(iconExportTechnology, gridBagConstraints);
 
-        jCheckBox11.setText("Reverse export order");
+        iconReverseOrder.setText("Reverse export order");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 8;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        icon.add(jCheckBox11, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        icon.add(iconReverseOrder, gridBagConstraints);
 
         jLabel31.setText("Instance location:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 9;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         icon.add(jLabel31, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 0.5;
-        icon.add(jComboBox13, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        icon.add(iconInstancePos, gridBagConstraints);
 
         jTabbedPane1.addTab("Icon", icon);
 
@@ -1066,7 +1513,6 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         grid.add(jLabel32, gridBagConstraints);
 
         jLabel33.setText("Vertical:");
@@ -1074,97 +1520,119 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         grid.add(jLabel33, gridBagConstraints);
 
-        jLabel34.setText("Grid dot spacing (current window):");
+        jLabel34.setText("Grid dot spacing:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(8, 4, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         grid.add(jLabel34, gridBagConstraints);
 
-        jTextField11.setColumns(8);
+        gridCurrentHoriz.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
-        grid.add(jTextField11, gridBagConstraints);
+        grid.add(gridCurrentHoriz, gridBagConstraints);
 
-        jTextField12.setColumns(8);
+        gridCurrentVert.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
-        grid.add(jTextField12, gridBagConstraints);
+        grid.add(gridCurrentVert, gridBagConstraints);
 
-        jLabel35.setText("Default grid spacing (new windows):");
+        jLabel35.setText("Default grid spacing:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.insets = new java.awt.Insets(8, 4, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         grid.add(jLabel35, gridBagConstraints);
 
-        jTextField13.setColumns(8);
+        gridNewHoriz.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
-        grid.add(jTextField13, gridBagConstraints);
+        grid.add(gridNewHoriz, gridBagConstraints);
 
-        jTextField14.setColumns(8);
+        gridNewVert.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
-        grid.add(jTextField14, gridBagConstraints);
+        grid.add(gridNewVert, gridBagConstraints);
 
         jLabel36.setText("Distance between bold dots:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.insets = new java.awt.Insets(8, 4, 8, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         grid.add(jLabel36, gridBagConstraints);
 
-        jTextField15.setColumns(8);
+        gridBoldHoriz.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
-        grid.add(jTextField15, gridBagConstraints);
+        grid.add(gridBoldHoriz, gridBagConstraints);
 
-        jTextField16.setColumns(8);
+        gridBoldVert.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
-        grid.add(jTextField16, gridBagConstraints);
+        grid.add(gridBoldVert, gridBagConstraints);
 
-        jCheckBox12.setText("Align grid with circuitry");
+        gridAlign.setText("Align grid with circuitry");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        grid.add(gridAlign, gridBagConstraints);
+
+        jLabel10.setText("(for current window)");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(0, 14, 8, 0);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        grid.add(jLabel10, gridBagConstraints);
+
+        jLabel13.setText("(for new windows)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        grid.add(jCheckBox12, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(0, 14, 8, 0);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        grid.add(jLabel13, gridBagConstraints);
 
         jTabbedPane1.addTab("Grid", grid);
 
@@ -1174,18 +1642,19 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         alignment.add(jLabel37, gridBagConstraints);
 
-        jTextField17.setColumns(8);
+        alignCursor.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
-        alignment.add(jTextField17, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        alignment.add(alignCursor, gridBagConstraints);
 
         jLabel38.setText("Values of zero will cause no alignment");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1199,18 +1668,19 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         alignment.add(jLabel39, gridBagConstraints);
 
-        jTextField18.setColumns(8);
+        alignEdges.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
-        alignment.add(jTextField18, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        alignment.add(alignEdges, gridBagConstraints);
 
         jTabbedPane1.addTab("Alignment", alignment);
 
@@ -1220,15 +1690,16 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         layers.add(jLabel40, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 1.0;
-        layers.add(jComboBox14, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        layers.add(layerName, gridBagConstraints);
 
         jTabbedPane1.addTab("Layers", layers);
 
@@ -1238,6 +1709,451 @@ public class EditOptions extends javax.swing.JDialog
 
         text.setLayout(new java.awt.GridBagLayout());
 
+        top.setLayout(new java.awt.GridBagLayout());
+
+        jLabel41.setText("Default text information for different types of text:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 0);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        top.add(jLabel41, gridBagConstraints);
+
+        textNodes.setText("Nodes");
+        textTypeGroup.add(textNodes);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        top.add(textNodes, gridBagConstraints);
+
+        textArcs.setText("Arcs");
+        textTypeGroup.add(textArcs);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        top.add(textArcs, gridBagConstraints);
+
+        textPorts.setText("Exports/Ports");
+        textTypeGroup.add(textPorts);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        top.add(textPorts, gridBagConstraints);
+
+        textNonlayout.setText("Nonlayout text");
+        textTypeGroup.add(textNonlayout);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        top.add(textNonlayout, gridBagConstraints);
+
+        textInstances.setText("Instance names");
+        textTypeGroup.add(textInstances);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        top.add(textInstances, gridBagConstraints);
+
+        textCellText.setText("Cell text");
+        textTypeGroup.add(textCellText);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        top.add(textCellText, gridBagConstraints);
+
+        jLabel42.setText("Size");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        top.add(jLabel42, gridBagConstraints);
+
+        textPointSize.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        top.add(textPointSize, gridBagConstraints);
+
+        textUnitSize.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        top.add(textUnitSize, gridBagConstraints);
+
+        jLabel43.setText("Type face:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 3;
+        top.add(jLabel43, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        top.add(textFace, gridBagConstraints);
+
+        textItalic.setText("Italic");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        top.add(textItalic, gridBagConstraints);
+
+        textBold.setText("Bold");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        top.add(textBold, gridBagConstraints);
+
+        textUnderline.setText("Underline");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        top.add(textUnderline, gridBagConstraints);
+
+        textPoints.setText("Points (max 63)");
+        textSizeGroup.add(textPoints);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        top.add(textPoints, gridBagConstraints);
+
+        textUnits.setText("Units (max 127.75)");
+        textSizeGroup.add(textUnits);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        top.add(textUnits, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        text.add(top, gridBagConstraints);
+
+        middle.setLayout(new java.awt.GridBagLayout());
+
+        jLabel44.setText("Text editor:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        middle.add(jLabel44, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        middle.add(textEditor, gridBagConstraints);
+
+        textNewVisibleInsideCell.setText("New text visible only inside cell");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        middle.add(textNewVisibleInsideCell, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        text.add(middle, gridBagConstraints);
+
+        bottom.setLayout(new java.awt.GridBagLayout());
+
+        jLabel45.setText("Text corner:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        bottom.add(jLabel45, gridBagConstraints);
+
+        textGrabCenter.setText("Center");
+        textCornerGroup.add(textGrabCenter);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
+        bottom.add(textGrabCenter, gridBagConstraints);
+
+        textGrabBottom.setText("Bottom");
+        textCornerGroup.add(textGrabBottom);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
+        bottom.add(textGrabBottom, gridBagConstraints);
+
+        textGrabTop.setText("Top");
+        textCornerGroup.add(textGrabTop);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
+        bottom.add(textGrabTop, gridBagConstraints);
+
+        textGrabRight.setText("Right");
+        textCornerGroup.add(textGrabRight);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
+        bottom.add(textGrabRight, gridBagConstraints);
+
+        textGrabLeft.setText("Left");
+        textCornerGroup.add(textGrabLeft);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
+        bottom.add(textGrabLeft, gridBagConstraints);
+
+        textGrabLowerRight.setText("Lower right");
+        textCornerGroup.add(textGrabLowerRight);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
+        bottom.add(textGrabLowerRight, gridBagConstraints);
+
+        textGrabLowerLeft.setText("Lower left");
+        textCornerGroup.add(textGrabLowerLeft);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
+        bottom.add(textGrabLowerLeft, gridBagConstraints);
+
+        textGrabUpperRight.setText("Upper right");
+        textCornerGroup.add(textGrabUpperRight);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
+        bottom.add(textGrabUpperRight, gridBagConstraints);
+
+        textGrabUpperLeft.setText("Upper left");
+        textCornerGroup.add(textGrabUpperLeft);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
+        bottom.add(textGrabUpperLeft, gridBagConstraints);
+
+        textGrabBoxed.setText("Boxed");
+        textCornerGroup.add(textGrabBoxed);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 10;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
+        bottom.add(textGrabBoxed, gridBagConstraints);
+
+        textIconCenter.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconCenter.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        bottom.add(textIconCenter, gridBagConstraints);
+
+        textIconBottom.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconBottom.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        bottom.add(textIconBottom, gridBagConstraints);
+
+        textIconTop.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconTop.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        bottom.add(textIconTop, gridBagConstraints);
+
+        textIconRight.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconRight.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        bottom.add(textIconRight, gridBagConstraints);
+
+        textIconLeft.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconLeft.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        bottom.add(textIconLeft, gridBagConstraints);
+
+        textIconLowerRight.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconLowerRight.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        bottom.add(textIconLowerRight, gridBagConstraints);
+
+        textIconLowerLeft.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconLowerLeft.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        bottom.add(textIconLowerLeft, gridBagConstraints);
+
+        textIconUpperRight.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconUpperRight.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        bottom.add(textIconUpperRight, gridBagConstraints);
+
+        textIconUpperLeft.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconUpperLeft.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        bottom.add(textIconUpperLeft, gridBagConstraints);
+
+        textIconBoxed.setMinimumSize(new java.awt.Dimension(25, 15));
+        textIconBoxed.setPreferredSize(new java.awt.Dimension(25, 15));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 10;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
+        bottom.add(textIconBoxed, gridBagConstraints);
+
+        jSeparator5.setOrientation(javax.swing.SwingConstants.VERTICAL);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridheight = 11;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
+        bottom.add(jSeparator5, gridBagConstraints);
+
+        jLabel56.setText("Smart Vertical Placement");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
+        bottom.add(jLabel56, gridBagConstraints);
+
+        textSmartVerticalOff.setText("Off");
+        textVerticalGroup.add(textSmartVerticalOff);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
+        bottom.add(textSmartVerticalOff, gridBagConstraints);
+
+        textSmartVerticalInside.setText("Inside");
+        textVerticalGroup.add(textSmartVerticalInside);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        bottom.add(textSmartVerticalInside, gridBagConstraints);
+
+        textSmartVerticalOutside.setText("Outside");
+        textVerticalGroup.add(textSmartVerticalOutside);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        bottom.add(textSmartVerticalOutside, gridBagConstraints);
+
+        jLabel57.setText("Smart Horizontal Placement");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
+        bottom.add(jLabel57, gridBagConstraints);
+
+        textSmartHorizontalOff.setText("Off");
+        textHorizontalGroup.add(textSmartHorizontalOff);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
+        bottom.add(textSmartHorizontalOff, gridBagConstraints);
+
+        textSmartHorizontalInside.setText("Inside");
+        textHorizontalGroup.add(textSmartHorizontalInside);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        bottom.add(textSmartHorizontalInside, gridBagConstraints);
+
+        textSmartHorizontalOutside.setText("Outside");
+        textHorizontalGroup.add(textSmartHorizontalOutside);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        bottom.add(textSmartHorizontalOutside, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        text.add(bottom, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        text.add(jSeparator3, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        text.add(jSeparator4, gridBagConstraints);
+
         jTabbedPane1.addTab("Text", text);
 
         threeD.setLayout(new java.awt.GridBagLayout());
@@ -1246,12 +2162,180 @@ public class EditOptions extends javax.swing.JDialog
 
         technology.setLayout(new java.awt.GridBagLayout());
 
+        jLabel46.setText("MOSIS CMOS:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        technology.add(jLabel46, gridBagConstraints);
+
+        jLabel49.setText("Metal layers:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
+        technology.add(jLabel49, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        technology.add(techMOCMOSMetalLayers, gridBagConstraints);
+
+        techMOCMOSSCMOSRules.setText("SCMOS rules (4 metal or less)");
+        techMOCMOSRules.add(techMOCMOSSCMOSRules);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
+        technology.add(techMOCMOSSCMOSRules, gridBagConstraints);
+
+        techMOCMOSSubmicronRules.setText("Submicron rules");
+        techMOCMOSRules.add(techMOCMOSSubmicronRules);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
+        technology.add(techMOCMOSSubmicronRules, gridBagConstraints);
+
+        techMOCMOSDeepRules.setText("Deep rules (5 metal or more)");
+        techMOCMOSRules.add(techMOCMOSDeepRules);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
+        technology.add(techMOCMOSDeepRules, gridBagConstraints);
+
+        techMOCMOSSecondPoly.setText("Second Polysilicon Layer");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
+        technology.add(techMOCMOSSecondPoly, gridBagConstraints);
+
+        techMOCMOSDisallowStackedVias.setText("Disallow stacked vias");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
+        technology.add(techMOCMOSDisallowStackedVias, gridBagConstraints);
+
+        techMOCMOSAlternateContactRules.setText("Alternate Active and Poly contact rules");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
+        technology.add(techMOCMOSAlternateContactRules, gridBagConstraints);
+
+        techMOCMOSShowSpecialTrans.setText("Show Special transistors");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
+        technology.add(techMOCMOSShowSpecialTrans, gridBagConstraints);
+
+        techMOCMOSFullGeom.setText("Full Geometry");
+        techMOCMOSSticks.add(techMOCMOSFullGeom);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
+        technology.add(techMOCMOSFullGeom, gridBagConstraints);
+
+        techMOCMOSStickFigures.setText("Stick Figures");
+        techMOCMOSSticks.add(techMOCMOSStickFigures);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        technology.add(techMOCMOSStickFigures, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        technology.add(jSeparator6, gridBagConstraints);
+
+        jLabel50.setText("Artwork:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 0);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        technology.add(jLabel50, gridBagConstraints);
+
+        techArtworkArrowsFilled.setText("Arrows filled");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 12;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
+        technology.add(techArtworkArrowsFilled, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 13;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        technology.add(jSeparator7, gridBagConstraints);
+
+        jLabel51.setText("Schematics:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 14;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 0);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        technology.add(jLabel51, gridBagConstraints);
+
+        jLabel52.setText("Negating Bubble Size:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 15;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 20, 0, 0);
+        technology.add(jLabel52, gridBagConstraints);
+
+        techSchematicsNegatingSize.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 15;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        technology.add(techSchematicsNegatingSize, gridBagConstraints);
+
         jTabbedPane1.addTab("Technology", technology);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         getContentPane().add(jTabbedPane1, gridBagConstraints);
 
@@ -1267,6 +2351,7 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 40, 4, 4);
         getContentPane().add(cancel, gridBagConstraints);
 
@@ -1280,53 +2365,59 @@ public class EditOptions extends javax.swing.JDialog
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 40);
         getContentPane().add(ok, gridBagConstraints);
 
         pack();
     }//GEN-END:initComponents
 
-	private void jRadioButton10ActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jRadioButton10ActionPerformed
-	{//GEN-HEADEREND:event_jRadioButton10ActionPerformed
+	private void nodeCheckCellDatesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_nodeCheckCellDatesActionPerformed
+	{//GEN-HEADEREND:event_nodeCheckCellDatesActionPerformed
 		// Add your handling code here:
-	}//GEN-LAST:event_jRadioButton10ActionPerformed
+	}//GEN-LAST:event_nodeCheckCellDatesActionPerformed
 
-	private void primitiveActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_primitiveActionPerformed
-	{//GEN-HEADEREND:event_primitiveActionPerformed
+	private void framePortraitActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_framePortraitActionPerformed
+	{//GEN-HEADEREND:event_framePortraitActionPerformed
 		// Add your handling code here:
-	}//GEN-LAST:event_primitiveActionPerformed
+	}//GEN-LAST:event_framePortraitActionPerformed
 
-	private void instanceMirrorActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_instanceMirrorActionPerformed
-	{//GEN-HEADEREND:event_instanceMirrorActionPerformed
+	private void nodePrimitiveActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_nodePrimitiveActionPerformed
+	{//GEN-HEADEREND:event_nodePrimitiveActionPerformed
 		// Add your handling code here:
-	}//GEN-LAST:event_instanceMirrorActionPerformed
+	}//GEN-LAST:event_nodePrimitiveActionPerformed
 
-	private void primitiveMirrorActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_primitiveMirrorActionPerformed
-	{//GEN-HEADEREND:event_primitiveMirrorActionPerformed
+	private void nodeInstanceMirrorActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_nodeInstanceMirrorActionPerformed
+	{//GEN-HEADEREND:event_nodeInstanceMirrorActionPerformed
 		// Add your handling code here:
-	}//GEN-LAST:event_primitiveMirrorActionPerformed
+	}//GEN-LAST:event_nodeInstanceMirrorActionPerformed
 
-	private void copyExportsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_copyExportsActionPerformed
-	{//GEN-HEADEREND:event_copyExportsActionPerformed
+	private void nodePrimitiveMirrorActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_nodePrimitiveMirrorActionPerformed
+	{//GEN-HEADEREND:event_nodePrimitiveMirrorActionPerformed
 		// Add your handling code here:
-	}//GEN-LAST:event_copyExportsActionPerformed
+	}//GEN-LAST:event_nodePrimitiveMirrorActionPerformed
 
-	private void moveAfterDuplicateActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_moveAfterDuplicateActionPerformed
-	{//GEN-HEADEREND:event_moveAfterDuplicateActionPerformed
+	private void nodeCopyExportsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_nodeCopyExportsActionPerformed
+	{//GEN-HEADEREND:event_nodeCopyExportsActionPerformed
 		// Add your handling code here:
-	}//GEN-LAST:event_moveAfterDuplicateActionPerformed
+	}//GEN-LAST:event_nodeCopyExportsActionPerformed
 
-	private void disallowModificationLockedPrimsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_disallowModificationLockedPrimsActionPerformed
-	{//GEN-HEADEREND:event_disallowModificationLockedPrimsActionPerformed
+	private void nodeMoveAfterDuplicateActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_nodeMoveAfterDuplicateActionPerformed
+	{//GEN-HEADEREND:event_nodeMoveAfterDuplicateActionPerformed
 		// Add your handling code here:
-	}//GEN-LAST:event_disallowModificationLockedPrimsActionPerformed
+	}//GEN-LAST:event_nodeMoveAfterDuplicateActionPerformed
 
-	private void overrideDefaultOrientationActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_overrideDefaultOrientationActionPerformed
-	{//GEN-HEADEREND:event_overrideDefaultOrientationActionPerformed
+	private void nodeDisallowModificationLockedPrimsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_nodeDisallowModificationLockedPrimsActionPerformed
+	{//GEN-HEADEREND:event_nodeDisallowModificationLockedPrimsActionPerformed
 		// Add your handling code here:
-	}//GEN-LAST:event_overrideDefaultOrientationActionPerformed
+	}//GEN-LAST:event_nodeDisallowModificationLockedPrimsActionPerformed
+
+	private void nodeOverrideDefaultOrientationActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_nodeOverrideDefaultOrientationActionPerformed
+	{//GEN-HEADEREND:event_nodeOverrideDefaultOrientationActionPerformed
+		// Add your handling code here:
+	}//GEN-LAST:event_nodeOverrideDefaultOrientationActionPerformed
 
 	private void okActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_okActionPerformed
 	{//GEN-HEADEREND:event_okActionPerformed
@@ -1338,10 +2429,10 @@ public class EditOptions extends javax.swing.JDialog
 		closeDialog(null);
 	}//GEN-LAST:event_cancelActionPerformed
 
-	private void primitiveYSizeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_primitiveYSizeActionPerformed
-	{//GEN-HEADEREND:event_primitiveYSizeActionPerformed
+	private void nodePrimitiveYSizeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_nodePrimitiveYSizeActionPerformed
+	{//GEN-HEADEREND:event_nodePrimitiveYSizeActionPerformed
 		// Add your handling code here:
-	}//GEN-LAST:event_primitiveYSizeActionPerformed
+	}//GEN-LAST:event_nodePrimitiveYSizeActionPerformed
 	
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
@@ -1351,45 +2442,65 @@ public class EditOptions extends javax.swing.JDialog
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTextField alignCursor;
+    private javax.swing.JTextField alignEdges;
     private javax.swing.JPanel alignment;
+    private javax.swing.JTextField arcAngle;
+    private javax.swing.JRadioButton arcDefaultForAllArcs;
+    private javax.swing.JRadioButton arcDefaultForArc;
+    private javax.swing.JCheckBox arcDirectional;
+    private javax.swing.JCheckBox arcEndsExtend;
+    private javax.swing.JCheckBox arcFixedAngle;
+    private javax.swing.JCheckBox arcNegated;
+    private javax.swing.JLabel arcPinName;
+    private javax.swing.JComboBox arcProtoList;
+    private javax.swing.JButton arcReset;
+    private javax.swing.JCheckBox arcRigid;
+    private javax.swing.JButton arcSetPin;
+    private javax.swing.JCheckBox arcSlidable;
+    private javax.swing.JTextField arcWidth;
+    private javax.swing.JPanel bottom;
     private javax.swing.JButton cancel;
-    private javax.swing.JPanel cell;
     private javax.swing.JPanel colors;
-    private javax.swing.JCheckBox copyExports;
-    private javax.swing.JCheckBox disallowModificationLockedPrims;
+    private javax.swing.ButtonGroup exportGroup;
     private javax.swing.JPanel frame;
+    private javax.swing.JLabel frameCellName;
+    private javax.swing.JTextField frameDefaultCompany;
+    private javax.swing.JTextField frameDefaultDesigner;
+    private javax.swing.JTextField frameDefaultProject;
+    private javax.swing.ButtonGroup frameGroup;
+    private javax.swing.JRadioButton frameLandscape;
+    private javax.swing.JComboBox frameLibrary;
+    private javax.swing.JTextField frameLibraryCompany;
+    private javax.swing.JTextField frameLibraryDesigner;
+    private javax.swing.JTextField frameLibraryProject;
+    private javax.swing.JRadioButton framePortrait;
+    private javax.swing.JComboBox frameSize;
+    private javax.swing.JCheckBox frameTitleBox;
     private javax.swing.JPanel grid;
+    private javax.swing.JCheckBox gridAlign;
+    private javax.swing.JTextField gridBoldHoriz;
+    private javax.swing.JTextField gridBoldVert;
+    private javax.swing.JTextField gridCurrentHoriz;
+    private javax.swing.JTextField gridCurrentVert;
+    private javax.swing.JTextField gridNewHoriz;
+    private javax.swing.JTextField gridNewVert;
     private javax.swing.JPanel icon;
-    private javax.swing.JCheckBox instanceMirror;
-    private javax.swing.JTextField instanceRotation;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JCheckBox jCheckBox1;
-    private javax.swing.JCheckBox jCheckBox10;
-    private javax.swing.JCheckBox jCheckBox11;
-    private javax.swing.JCheckBox jCheckBox12;
-    private javax.swing.JCheckBox jCheckBox2;
-    private javax.swing.JCheckBox jCheckBox3;
-    private javax.swing.JCheckBox jCheckBox4;
-    private javax.swing.JCheckBox jCheckBox5;
-    private javax.swing.JCheckBox jCheckBox6;
-    private javax.swing.JCheckBox jCheckBox7;
-    private javax.swing.JCheckBox jCheckBox8;
-    private javax.swing.JCheckBox jCheckBox9;
-    private javax.swing.JComboBox jComboBox1;
-    private javax.swing.JComboBox jComboBox10;
-    private javax.swing.JComboBox jComboBox11;
-    private javax.swing.JComboBox jComboBox12;
-    private javax.swing.JComboBox jComboBox13;
-    private javax.swing.JComboBox jComboBox14;
-    private javax.swing.JComboBox jComboBox2;
-    private javax.swing.JComboBox jComboBox3;
-    private javax.swing.JComboBox jComboBox4;
-    private javax.swing.JComboBox jComboBox5;
-    private javax.swing.JComboBox jComboBox6;
-    private javax.swing.JComboBox jComboBox7;
-    private javax.swing.JComboBox jComboBox8;
-    private javax.swing.JComboBox jComboBox9;
+    private javax.swing.JComboBox iconBidirPos;
+    private javax.swing.JComboBox iconClockPos;
+    private javax.swing.JCheckBox iconDrawBody;
+    private javax.swing.JCheckBox iconDrawLeads;
+    private javax.swing.JComboBox iconExportPos;
+    private javax.swing.JComboBox iconExportStyle;
+    private javax.swing.JComboBox iconExportTechnology;
+    private javax.swing.JComboBox iconGroundPos;
+    private javax.swing.JComboBox iconInputPos;
+    private javax.swing.JComboBox iconInstancePos;
+    private javax.swing.JTextField iconLeadLength;
+    private javax.swing.JTextField iconLeadSpacing;
+    private javax.swing.JComboBox iconOutputPos;
+    private javax.swing.JComboBox iconPowerPos;
+    private javax.swing.JCheckBox iconReverseOrder;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -1425,62 +2536,137 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JLabel jLabel39;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel40;
+    private javax.swing.JLabel jLabel41;
+    private javax.swing.JLabel jLabel42;
+    private javax.swing.JLabel jLabel43;
+    private javax.swing.JLabel jLabel44;
+    private javax.swing.JLabel jLabel45;
+    private javax.swing.JLabel jLabel46;
+    private javax.swing.JLabel jLabel47;
+    private javax.swing.JLabel jLabel49;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel50;
+    private javax.swing.JLabel jLabel51;
+    private javax.swing.JLabel jLabel52;
+    private javax.swing.JLabel jLabel53;
+    private javax.swing.JLabel jLabel56;
+    private javax.swing.JLabel jLabel57;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
-    private javax.swing.JRadioButton jRadioButton1;
-    private javax.swing.JRadioButton jRadioButton10;
-    private javax.swing.JRadioButton jRadioButton2;
-    private javax.swing.JRadioButton jRadioButton3;
-    private javax.swing.JRadioButton jRadioButton4;
-    private javax.swing.JRadioButton jRadioButton5;
-    private javax.swing.JRadioButton jRadioButton6;
-    private javax.swing.JRadioButton jRadioButton7;
-    private javax.swing.JRadioButton jRadioButton8;
-    private javax.swing.JRadioButton jRadioButton9;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
+    private javax.swing.JSeparator jSeparator3;
+    private javax.swing.JSeparator jSeparator4;
+    private javax.swing.JSeparator jSeparator5;
+    private javax.swing.JSeparator jSeparator6;
+    private javax.swing.JSeparator jSeparator7;
+    private javax.swing.JSeparator jSeparator8;
+    private javax.swing.JSeparator jSeparator9;
     private javax.swing.JTabbedPane jTabbedPane1;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField10;
-    private javax.swing.JTextField jTextField11;
-    private javax.swing.JTextField jTextField12;
-    private javax.swing.JTextField jTextField13;
-    private javax.swing.JTextField jTextField14;
-    private javax.swing.JTextField jTextField15;
-    private javax.swing.JTextField jTextField16;
-    private javax.swing.JTextField jTextField17;
-    private javax.swing.JTextField jTextField18;
-    private javax.swing.JTextField jTextField2;
-    private javax.swing.JTextField jTextField3;
-    private javax.swing.JTextField jTextField4;
-    private javax.swing.JTextField jTextField5;
-    private javax.swing.JTextField jTextField6;
-    private javax.swing.JTextField jTextField7;
-    private javax.swing.JTextField jTextField8;
-    private javax.swing.JTextField jTextField9;
+    private javax.swing.JComboBox layerName;
     private javax.swing.JPanel layers;
-    private javax.swing.JCheckBox moveAfterDuplicate;
+    private javax.swing.JPanel middle;
     private javax.swing.JPanel newArc;
+    private javax.swing.ButtonGroup newArcGroup;
     private javax.swing.JPanel newNode;
+    private javax.swing.JCheckBox nodeCheckCellDates;
+    private javax.swing.JCheckBox nodeCopyExports;
+    private javax.swing.JCheckBox nodeDisallowModificationLockedPrims;
+    private javax.swing.JTextField nodeHashLimit;
+    private javax.swing.JCheckBox nodeInstanceMirror;
+    private javax.swing.JTextField nodeInstanceRotation;
+    private javax.swing.JCheckBox nodeMoveAfterDuplicate;
+    private javax.swing.JCheckBox nodeOverrideDefaultOrientation;
+    private javax.swing.JCheckBox nodePlaceCellCenter;
+    private javax.swing.JComboBox nodePrimitive;
+    private javax.swing.JCheckBox nodePrimitiveMirror;
+    private javax.swing.JTextField nodePrimitiveRotation;
+    private javax.swing.JTextField nodePrimitiveXSize;
+    private javax.swing.JTextField nodePrimitiveYSize;
+    private javax.swing.JCheckBox nodeSwitchTechnology;
+    private javax.swing.JCheckBox nodeTinyCellsHashedOut;
     private javax.swing.JButton ok;
-    private javax.swing.JCheckBox overrideDefaultOrientation;
     private javax.swing.JPanel port;
-    private javax.swing.JComboBox primitive;
-    private javax.swing.JCheckBox primitiveMirror;
-    private javax.swing.JTextField primitiveRotation;
-    private javax.swing.JTextField primitiveXSize;
-    private javax.swing.JTextField primitiveYSize;
+    private javax.swing.JRadioButton portCrossExport;
+    private javax.swing.JRadioButton portCrossPort;
+    private javax.swing.JRadioButton portFullExport;
+    private javax.swing.JRadioButton portFullPort;
+    private javax.swing.ButtonGroup portGroup;
+    private javax.swing.JCheckBox portMoveNode;
+    private javax.swing.JRadioButton portShortExport;
+    private javax.swing.JRadioButton portShortPort;
     private javax.swing.JCheckBox selCenterBasedPrimitives;
     private javax.swing.JCheckBox selDraggingEnclosesEntireObject;
     private javax.swing.JCheckBox selEasyAnnotationText;
     private javax.swing.JCheckBox selEasyCellInstances;
     private javax.swing.JPanel selection;
+    private javax.swing.JCheckBox techArtworkArrowsFilled;
+    private javax.swing.JCheckBox techMOCMOSAlternateContactRules;
+    private javax.swing.JRadioButton techMOCMOSDeepRules;
+    private javax.swing.JCheckBox techMOCMOSDisallowStackedVias;
+    private javax.swing.JRadioButton techMOCMOSFullGeom;
+    private javax.swing.JComboBox techMOCMOSMetalLayers;
+    private javax.swing.ButtonGroup techMOCMOSRules;
+    private javax.swing.JRadioButton techMOCMOSSCMOSRules;
+    private javax.swing.JCheckBox techMOCMOSSecondPoly;
+    private javax.swing.JCheckBox techMOCMOSShowSpecialTrans;
+    private javax.swing.JRadioButton techMOCMOSStickFigures;
+    private javax.swing.ButtonGroup techMOCMOSSticks;
+    private javax.swing.JRadioButton techMOCMOSSubmicronRules;
+    private javax.swing.JTextField techSchematicsNegatingSize;
     private javax.swing.JPanel technology;
     private javax.swing.JPanel text;
+    private javax.swing.JRadioButton textArcs;
+    private javax.swing.JCheckBox textBold;
+    private javax.swing.JRadioButton textCellText;
+    private javax.swing.ButtonGroup textCornerGroup;
+    private javax.swing.JComboBox textEditor;
+    private javax.swing.JComboBox textFace;
+    private javax.swing.JRadioButton textGrabBottom;
+    private javax.swing.JRadioButton textGrabBoxed;
+    private javax.swing.JRadioButton textGrabCenter;
+    private javax.swing.JRadioButton textGrabLeft;
+    private javax.swing.JRadioButton textGrabLowerLeft;
+    private javax.swing.JRadioButton textGrabLowerRight;
+    private javax.swing.JRadioButton textGrabRight;
+    private javax.swing.JRadioButton textGrabTop;
+    private javax.swing.JRadioButton textGrabUpperLeft;
+    private javax.swing.JRadioButton textGrabUpperRight;
+    private javax.swing.ButtonGroup textHorizontalGroup;
+    private javax.swing.JLabel textIconBottom;
+    private javax.swing.JLabel textIconBoxed;
+    private javax.swing.JLabel textIconCenter;
+    private javax.swing.JLabel textIconLeft;
+    private javax.swing.JLabel textIconLowerLeft;
+    private javax.swing.JLabel textIconLowerRight;
+    private javax.swing.JLabel textIconRight;
+    private javax.swing.JLabel textIconTop;
+    private javax.swing.JLabel textIconUpperLeft;
+    private javax.swing.JLabel textIconUpperRight;
+    private javax.swing.JRadioButton textInstances;
+    private javax.swing.JCheckBox textItalic;
+    private javax.swing.JCheckBox textNewVisibleInsideCell;
+    private javax.swing.JRadioButton textNodes;
+    private javax.swing.JRadioButton textNonlayout;
+    private javax.swing.JTextField textPointSize;
+    private javax.swing.JRadioButton textPoints;
+    private javax.swing.JRadioButton textPorts;
+    private javax.swing.ButtonGroup textSizeGroup;
+    private javax.swing.JRadioButton textSmartHorizontalInside;
+    private javax.swing.JRadioButton textSmartHorizontalOff;
+    private javax.swing.JRadioButton textSmartHorizontalOutside;
+    private javax.swing.JRadioButton textSmartVerticalInside;
+    private javax.swing.JRadioButton textSmartVerticalOff;
+    private javax.swing.JRadioButton textSmartVerticalOutside;
+    private javax.swing.ButtonGroup textTypeGroup;
+    private javax.swing.JCheckBox textUnderline;
+    private javax.swing.JTextField textUnitSize;
+    private javax.swing.JRadioButton textUnits;
+    private javax.swing.ButtonGroup textVerticalGroup;
     private javax.swing.JPanel threeD;
+    private javax.swing.JPanel top;
     // End of variables declaration//GEN-END:variables
 	
 }
