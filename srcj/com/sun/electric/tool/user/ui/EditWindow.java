@@ -256,6 +256,7 @@ public class EditWindow extends JPanel
 	// the MouseListener events
 	public void mousePressed(MouseEvent evt)
 	{
+        requestFocus();
 		MessagesWindow.userCommandIssued();
 		lastXPosition = evt.getX();   lastYPosition = evt.getY();
 		EditWindow wnd = (EditWindow)evt.getSource();
@@ -584,9 +585,10 @@ public class EditWindow extends JPanel
 	public void paint(Graphics g)
 	{
 		// to enable keys to be received
+        // placed requestFocus in mousePressed() - JKG
+		/*
 		if (cell != null && cell == WindowFrame.getCurrentCell())
 			requestFocus();
-		/*
 			*/
 
 		// redo the explorer tree if it changed
@@ -2136,10 +2138,13 @@ public class EditWindow extends JPanel
             setCell(schCell, cellVarContext.push(ni));
         // if highlighted was a port inst, then highlight the corresponding export
         if (pi != null) {
-            PortInst origPort = schCell.findExport(pi.getPortProto().getName()).getOriginalPort();
-            highlighter.addElectricObject(origPort, schCell);
-            //highlighter.addElectricObject(origPort.getNodeInst(), schCell);
-            highlighter.finished();
+            Export schExport = schCell.findExport(pi.getPortProto().getName());
+            if (schExport != null) {
+                PortInst origPort = schExport.getOriginalPort();
+                highlighter.addElectricObject(origPort, schCell);
+                //highlighter.addElectricObject(origPort.getNodeInst(), schCell);
+                highlighter.finished();
+            }
         }
     }
 
