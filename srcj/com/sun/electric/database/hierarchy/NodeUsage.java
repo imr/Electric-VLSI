@@ -75,6 +75,15 @@ public class NodeUsage
 	 * Routine to return an Iterator for all NodeInsts of this NodeIsage .
 	 * @return an Iterator for all NodeInsts of this NodeUsage.
 	 */
+	public final NodeInst getInst(int i)
+	{
+		return (NodeInst)insts.get(i);
+	}
+
+	/**
+	 * Routine to return an Iterator for all NodeInsts of this NodeIsage .
+	 * @return an Iterator for all NodeInsts of this NodeUsage.
+	 */
 	public Iterator getInsts()
 	{
 		return insts.iterator();
@@ -139,7 +148,7 @@ public class NodeUsage
 	 */
 	public String toString()
 	{
-		return "NodeUsage " + protoType.getProtoName();
+		return "NodeUsage of " + protoType + " in " + parent.describe();
 	}
 
 }

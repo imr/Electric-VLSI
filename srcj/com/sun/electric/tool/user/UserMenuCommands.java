@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
@@ -501,7 +502,7 @@ public final class UserMenuCommands
 				for(Iterator cit = lib.getCells(); cit.hasNext(); )
 				{
 					Cell cell = (Cell)cit.next();
-					for (Iterator nit = cell.getNodesDirect(); nit.hasNext();)
+					for (Iterator nit = cell.getNodesByUsage(); nit.hasNext();)
 					{
 						NodeInst ni = (NodeInst)nit.next();
 						nnodes++;
@@ -511,7 +512,30 @@ public final class UserMenuCommands
 		}
 		endTime = System.currentTimeMillis();
 		finalTime = (endTime - startTime) / 1000F;
-		System.out.println("**** getNodesDirect() on "+nnodes+" nodes took " + finalTime + " seconds ("+
+		System.out.println("**** getNodesByUsage() on "+nnodes+" nodes took " + finalTime + " seconds ("+
+			(int)(finalTime/nnodes*1e9)+" nsec/node)");
+
+		startTime = System.currentTimeMillis();
+		nnodes = 0;
+		for (int i = 0; i < 1000; i++)
+		{
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library lib = (Library)it.next();
+				for(Iterator cit = lib.getCells(); cit.hasNext(); )
+				{
+					Cell cell = (Cell)cit.next();
+					for (Iterator nit = cell.getUsagesIn(); nit.hasNext();)
+					{
+						NodeUsage nu = (NodeUsage)nit.next();
+						nnodes++;
+					}
+				}
+			}
+		}
+		endTime = System.currentTimeMillis();
+		finalTime = (endTime - startTime) / 1000F;
+		System.out.println("**** getNodeUsages() on "+nnodes+" node usages took " + finalTime + " seconds ("+
 			(int)(finalTime/nnodes*1e9)+" nsec/node)");
 
 		startTime = System.currentTimeMillis();
@@ -546,14 +570,35 @@ public final class UserMenuCommands
 				{
 					Cell cell = (Cell)cit.next();
 					cell.setDirty();
-					cell.getBoundsDirect();
+					cell.getBoundsByUsage();
 					ncells++;
 				}
 			}
 		}
 		endTime = System.currentTimeMillis();
 		finalTime = (endTime - startTime) / 1000F;
-		System.out.println("**** getBoundsDirect() on "+ncells+" cells took " + finalTime + " seconds ("+
+		System.out.println("**** getBoundsByUsage() on "+ncells+" cells took " + finalTime + " seconds ("+
+			(int)(finalTime/ncells*1e6)+" usec/cell)");
+
+		startTime = System.currentTimeMillis();
+		ncells = 0;
+		for (int i = 0; i < 10; i++)
+		{
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library lib = (Library)it.next();
+				for(Iterator cit = lib.getCells(); cit.hasNext(); )
+				{
+					Cell cell = (Cell)cit.next();
+					cell.setDirty();
+					cell.getBoundsByArray();
+					ncells++;
+				}
+			}
+		}
+		endTime = System.currentTimeMillis();
+		finalTime = (endTime - startTime) / 1000F;
+		System.out.println("**** getBoundsByArray() on "+ncells+" cells took " + finalTime + " seconds ("+
 			(int)(finalTime/ncells*1e6)+" usec/cell)");
 	}
     

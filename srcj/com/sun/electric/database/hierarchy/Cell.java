@@ -176,7 +176,6 @@ public class Cell extends NodeProto
 
 	// -------------------------- private data ---------------------------------
 
-	/** The technology of this Cell. */								private Technology tech;
 	/** The CellGroup this Cell belongs to. */						private CellGroup cellGroup;
 	/** The VersionGroup this Cell belongs to. */					private VersionGroup versionGroup;
 	/** The library this Cell belongs to. */						private Library lib;
@@ -187,7 +186,7 @@ public class Cell extends NodeProto
 	/** The NodeInst in this cell that defines the cell center. */	private NodeInst referencePointNode;
 	/** The Cell's essential-bounds. */								private List essenBounds = new ArrayList();
 	/** A list of NodeInsts in this Cell. */						private List nodes;
-	/** A map from NodeProto to NodeUsage */						private Map usages;
+	/** A map from NodeProto to NodeUsages in it */					private Map usagesIn;
 	/** A list of ArcInsts in this Cell. */							private List arcs;
 	/** The current timestamp value. */								private static int currentTime = 0;
 	/** The timestamp of last network renumbering of this Cell */	private int networksTime;
@@ -217,7 +216,7 @@ public class Cell extends NodeProto
 	{
 		Cell c = new Cell();
 		c.nodes = new ArrayList();
-		c.usages = new HashMap();
+		c.usagesIn = new HashMap();
 		c.arcs = new ArrayList();
 		c.cellGroup = null;
 		c.tech = null;
@@ -436,9 +435,9 @@ public class Cell extends NodeProto
 		referencePointNode.modifyInstance(-dx, -dy, 0, 0, 0);
 
 		// must adjust all nodes by (dx,dy)
-		for(Iterator it = getNodes(); it.hasNext(); )
+		for(int i = 0; i < nodes.size(); i++)
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = (NodeInst)nodes.get(i);
 			if (ni == referencePointNode) continue;
 
 			// move NodeInst "ni" by (dx,dy)
@@ -498,7 +497,11 @@ public class Cell extends NodeProto
 		}
 		nu.removeInst(ni);
 		if (nu.getNumInsts() == 0)
-			usages.remove(nu.getProto());
+		{
+			NodeProto protoType = nu.getProto();
+			protoType.removeUsageOf(nu);
+			usagesIn.remove(protoType);
+		}
 		nodes.remove(ni);
 
 		// must recompute the bounds of the cell
@@ -516,47 +519,33 @@ public class Cell extends NodeProto
 	 */
 	private NodeUsage addUsage(NodeProto protoType)
 	{
-		NodeUsage nu = (NodeUsage)usages.get(protoType);
+		NodeUsage nu = (NodeUsage)usagesIn.get(protoType);
 		if (nu == null)
 		{
 			nu = new NodeUsage(protoType, this);
-			usages.put(protoType, nu);
+			usagesIn.put(protoType, nu);
+			protoType.addUsageOf(nu);
 		}
 		return nu;
-	}
-
-	private void showUsages()
-	{
-		System.out.println("Usages of "+this);
-		for (Iterator it = usages.entrySet().iterator(); it.hasNext();)
-		{
-			Map.Entry ent = (Map.Entry)it.next();
-			NodeProto np = (NodeProto)ent.getKey();
-			NodeUsage nu = (NodeUsage)ent.getValue();
-			if (nu.getProto() != np) System.out.println("?????????");
-			System.out.println("\t"+np+" "+nu.getNumInsts());
-		}
 	}
 
 	private class NodeInstsIterator implements Iterator
 	{
 		private boolean hasNext;
 		private Iterator uit;
-		private Iterator iit;
+		private NodeUsage nu;
+		private int i, n;
 
 		NodeInstsIterator()
 		{
-			uit = getNodeUsages();
+			uit = getUsagesIn();
 			hasNext = false;
+			i = 0;
 			while (!hasNext && uit.hasNext())
 			{
-				NodeUsage nu = (NodeUsage)uit.next();
-				iit = nu.getInsts();
-				hasNext = iit.hasNext();
-			}
-			if (iit == null)
-			{
-				iit = uit; /* cause next() to throw NoSuchElementException */
+				nu = (NodeUsage)uit.next();
+				n = nu.getNumInsts();
+				hasNext = n > 0;
 			}
 		}
 
@@ -564,13 +553,16 @@ public class Cell extends NodeProto
 
 		public Object next()
 		{
-			Object o = iit.next();
-			hasNext = iit.hasNext();
+			if (!hasNext) uit.next(); // throw NoSuchElementException
+			Object o = nu.getInst(i);
+			i++;
+			hasNext = i < n;
 			while (!hasNext && uit.hasNext())
 			{
-				NodeUsage nu = (NodeUsage)uit.next();
-				iit = nu.getInsts();
-				hasNext = iit.hasNext();
+				nu = (NodeUsage)uit.next();
+				n = nu.getNumInsts();
+				hasNext = n > 0;
+				i = 0;
 			}
 			return o;
 		}
@@ -649,7 +641,7 @@ public class Cell extends NodeProto
 	 * Routine to return the bounds of this Cell.
 	 * @return a Rectangle2D.Double with the bounds of this cell's contents
 	 */
-	public Rectangle2D.Double getBoundsDirect()
+	public Rectangle2D.Double getBoundsByUsage()
 	{
 		if (boundsDirty)
 		{
@@ -658,7 +650,7 @@ public class Cell extends NodeProto
 			boundsEmpty = true;
 			cellLowX = cellHighX = cellLowY = cellHighY = 0;
 
-			for(Iterator it = getNodesDirect(); it.hasNext(); )
+			for(Iterator it = getNodesByUsage(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst) it.next();
 				if (ni.getProto() == Generic.tech.cellCenter_node) continue;
@@ -683,6 +675,64 @@ public class Cell extends NodeProto
 			for(Iterator it = arcs.iterator(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst) it.next();
+				Rectangle2D bounds = ai.getBounds();
+				double lowx = bounds.getMinX();
+				double highx = bounds.getMaxX();
+				double lowy = bounds.getMinY();
+				double highy = bounds.getMaxY();
+				if (lowx < cellLowX) cellLowX = lowx;
+				if (highx > cellHighX) cellHighX = highx;
+				if (lowy < cellLowY) cellLowY = lowy;
+				if (highy > cellHighY) cellHighY = highy;
+			}
+			elecBounds.x = EMath.smooth(cellLowX);
+			elecBounds.width = EMath.smooth(cellHighX - cellLowX);
+			elecBounds.y = EMath.smooth(cellLowY);
+			elecBounds.height = EMath.smooth(cellHighY - cellLowY);
+			boundsDirty = false;
+		}
+
+		return elecBounds;
+	}
+
+	/**
+	 * Routine to return the bounds of this Cell.
+	 * @return a Rectangle2D.Double with the bounds of this cell's contents
+	 */
+	public Rectangle2D.Double getBoundsByArray()
+	{
+		if (boundsDirty)
+		{
+			// recompute bounds
+			double cellLowX, cellHighX, cellLowY, cellHighY;
+			boundsEmpty = true;
+			cellLowX = cellHighX = cellLowY = cellHighY = 0;
+
+			for(int i = 0; i < nodes.size(); i++ )
+			{
+				NodeInst ni = (NodeInst) nodes.get(i);
+				if (ni.getProto() == Generic.tech.cellCenter_node) continue;
+				Rectangle2D bounds = ni.getBounds();
+				double lowx = bounds.getMinX();
+				double highx = bounds.getMaxX();
+				double lowy = bounds.getMinY();
+				double highy = bounds.getMaxY();
+				if (boundsEmpty)
+				{
+					boundsEmpty = false;
+					cellLowX = lowx;   cellHighX = highx;
+					cellLowY = lowy;   cellHighY = highy;
+				} else
+				{
+					if (lowx < cellLowX) cellLowX = lowx;
+					if (highx > cellHighX) cellHighX = highx;
+					if (lowy < cellLowY) cellLowY = lowy;
+					if (highy > cellHighY) cellHighY = highy;
+				}
+			}
+			for(int i = 0; i < arcs.size(); i++ )
+			{
+				ArcInst ai = (ArcInst) arcs.get(i);
 				Rectangle2D bounds = ai.getBounds();
 				double lowx = bounds.getMinX();
 				double highx = bounds.getMaxX();
@@ -862,7 +912,7 @@ public class Cell extends NodeProto
 		Rectangle2D rect = getBounds();
 		System.out.println("  location: (" + rect.getX() + "," + rect.getY() + "), size: " + rect.getWidth() + "x" + rect.getHeight());
 		System.out.println("  nodes (" + getNumNodes() + "):");
-		for (Iterator it = getNodeUsages(); it.hasNext();)
+		for (Iterator it = getUsagesIn(); it.hasNext();)
 		{
 			NodeUsage nu = (NodeUsage)it.next();
 			System.out.println("     " + nu + " ("+nu.getNumInsts()+")");
@@ -967,16 +1017,16 @@ public class Cell extends NodeProto
 	 */
 	public Iterator getNodes()
 	{
-		return new NodeInstsIterator();
+		return nodes.iterator();
 	}
 
 	/**
 	 * Routine to return an Iterator over all NodeInst objects in this Cell.
 	 * @return an Iterator over all NodeInst objects in this Cell.
 	 */
-	public Iterator getNodesDirect()
+	public Iterator getNodesByUsage()
 	{
-		return nodes.iterator();
+		return new NodeInstsIterator();
 	}
 
 	/**
@@ -985,31 +1035,25 @@ public class Cell extends NodeProto
 	 */
 	public int getNumNodes()
 	{
-		int n = 0;
-		for (Iterator it = getNodeUsages(); it.hasNext();)
-		{
-			NodeUsage nu = (NodeUsage)it.next();
-			n += nu.getNumInsts();
-		}
-		return n;
+		return nodes.size();
 	}
 
 	/**
 	 * Routine to return an Iterator over all NodeUsage objects in this Cell.
 	 * @return an Iterator over all NodeUsage objects in this Cell.
 	 */
-	public Iterator getNodeUsages()
+	public Iterator getUsagesIn()
 	{
-		return usages.values().iterator();
+		return usagesIn.values().iterator();
 	}
 
 	/**
 	 * Routine to return the number of NodeUsage objects in this Cell.
 	 * @return the number of NodeUsage objects in this Cell.
 	 */
-	public int getNumNodeUsages()
+	public int getNumUsagesIn()
 	{
-		return usages.size();
+		return usagesIn.size();
 	}
 
 	/**
@@ -1019,9 +1063,10 @@ public class Cell extends NodeProto
 	 */
 	public NodeInst findNode(String name)
 	{
-		for (Iterator it = getNodes(); it.hasNext();)
+		int n = nodes.size();
+		for (int i = 0; i < n; i++)
 		{
-			NodeInst ni = (NodeInst) it.next();
+			NodeInst ni = (NodeInst) nodes.get(i);
 			String nodeNm = ni.getName();
 			if (nodeNm != null && nodeNm.equals(name))
 				return ni;
@@ -1175,7 +1220,7 @@ public class Cell extends NodeProto
 		} else if (thing instanceof NodeInst)
 		{
 			NodeInst ni = (NodeInst)thing;
-			NodeUsage nu = (NodeUsage)usages.get(ni.getProto());
+			NodeUsage nu = (NodeUsage)usagesIn.get(ni.getProto());
 			return (nu != null) && nu.contains(ni);
 		} else
 		{
@@ -1365,7 +1410,7 @@ public class Cell extends NodeProto
 	private boolean redoDescendents(HashMap userEquivPorts)
 	{
 		boolean redoThis = false;
-		for (Iterator it = getNodeUsages(); it.hasNext();)
+		for (Iterator it = getUsagesIn(); it.hasNext();)
 		{
 			NodeUsage nu = (NodeUsage) it.next();
 			if (nu.isIconOfParent()) continue;
@@ -1381,7 +1426,7 @@ public class Cell extends NodeProto
 
 	private void placeEachPortInstOnItsOwnNet()
 	{
-		for (Iterator uit = getNodeUsages(); uit.hasNext();)
+		for (Iterator uit = getUsagesIn(); uit.hasNext();)
 		{
 			NodeUsage nu = (NodeUsage) uit.next();
 			if (nu.isIconOfParent()) continue;

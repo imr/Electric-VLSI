@@ -243,7 +243,6 @@ public class NodeInst extends Geometric
 	{
 		// add to linked lists
 		linkGeom(parent);
-		protoType.addInstance(this);
 		nodeUsage = parent.addNode(this);
 		return false;
 	}
@@ -255,7 +254,6 @@ public class NodeInst extends Geometric
 	{
 		// remove this node from the cell
 		unLinkGeom(parent);
-		protoType.removeInstance(this);
 		parent.removeNode(this);
 		nodeUsage = null;
 	}

@@ -25,6 +25,7 @@ package com.sun.electric.database.prototype;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
@@ -360,7 +361,7 @@ public abstract class NodeProto extends ElectricObject
 	/** This NodeProto's Technology. */						protected Technology tech;
 	/** A list of exports on the NodeProto. */				private List ports;
 	/** A list of JNetworks in this NodeProto. */			private List networks;
-	/** A list of instances of this NodeProto. */			private List instances;
+	/** A list of NodeUsages of this NodeProto. */			private List usagesOf;
 	/** Internal flag bits. */								protected int userBits;
 	/** The function of this NodeProto. */					private Function function;
 
@@ -385,7 +386,7 @@ public abstract class NodeProto extends ElectricObject
 	protected NodeProto()
 	{
 		ports = new ArrayList();
-		instances = new ArrayList();
+		usagesOf = new ArrayList();
 		networks = new ArrayList();
 		function = Function.UNKNOWN;
 		equivPortsUpdateTime = equivPortsCheckTime = 0;
@@ -448,25 +449,57 @@ public abstract class NodeProto extends ElectricObject
 	}
 
 	/**
-	 * Add to the list of instances of this NodeProto.
-	 * @param ni the NodeInst which is an instance of this NodeProto.
+	 * Add to the list of usages of this NodeProto.
+	 * @param nu the NodeUsage which is an usage of this NodeProto.
 	 */
-	public void addInstance(NodeInst ni)
+	public void addUsageOf(NodeUsage nu)
 	{
-		if (instances == null)
-		{
-			System.out.println("Hmm.  Instances is *still* null!");
-		}
-		instances.add(ni);
+		usagesOf.add(nu);
 	}
 
 	/**
-	 * Removes a NodeInst from the list of instances of this NodeProto.
-	 * @param ni the NodeInst which is an instance of this NodeProto.
+	 * Removes a NodeUsage from the list of usages of this NodeProto.
+	 * @param nu the NodeUsage which is an usage of this NodeProto.
 	 */
-	public void removeInstance(NodeInst ni)
+	public void removeUsageOf(NodeUsage nu)
 	{
-		instances.remove(ni);
+		usagesOf.remove(nu);
+	}
+
+	private class NodeInstsIterator implements Iterator
+	{
+		private Iterator uit;
+		private NodeUsage nu;
+		private int i, n;
+
+		NodeInstsIterator()
+		{
+			uit = getUsagesOf();
+			i = n = 0;
+			while (i >= n && uit.hasNext())
+			{
+				nu = (NodeUsage)uit.next();
+				n = nu.getNumInsts();
+			}
+		}
+
+		public boolean hasNext() { return i < n; }
+
+		public Object next()
+		{
+			if (i >= n) uit.next(); // throw NoSuchElementException
+			NodeInst ni = nu.getInst(i);
+			i++;
+			while (i >= n && uit.hasNext())
+			{
+				nu = (NodeUsage)uit.next();
+				n = nu.getNumInsts();
+				i = 0;
+			}
+			return ni;
+		}
+
+		public void remove() { throw new UnsupportedOperationException("NodeInstsIterator.remove()"); };
 	}
 
 	/**
@@ -502,10 +535,10 @@ public abstract class NodeProto extends ElectricObject
 	private void notifyCellsNetworks()
 	{
 		if (this instanceof Cell) ((Cell)this).setNetworksDirty();
-		for (Iterator it = instances.iterator(); it.hasNext();)
+		for (Iterator it = getUsagesOf(); it.hasNext();)
 		{
-			NodeInst ni = (NodeInst) it.next();
-			ni.getParent().setNetworksDirty();
+			NodeUsage nu = (NodeUsage) it.next();
+			nu.getParent().setNetworksDirty();
 		}
 	}
 
@@ -1230,7 +1263,16 @@ public abstract class NodeProto extends ElectricObject
 	 */
 	public Iterator getInstances()
 	{
-		return instances.iterator();
+		return new NodeInstsIterator();
+	}
+
+	/**
+	 * Routine to return an iterator over all usages of this NodeProto.
+	 * @return an iterator over all usages of this NodeProto.
+	 */
+	public Iterator getUsagesOf()
+	{
+		return usagesOf.iterator();
 	}
 
 	/**
