@@ -36,7 +36,6 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
-import static com.sun.electric.tool.simulation.Simulation.tool;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
