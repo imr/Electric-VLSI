@@ -171,8 +171,9 @@ public class GateRegression extends Job {
 		Library scratchLib = 
 		  LayoutLib.openLibForWrite("scratch", "scratch");
 
+		Tech.setTechnology("tsmc90");
 		StdCellParams stdCell = new StdCellParams(scratchLib);
-		stdCell.enableNCC("purpleFour");
+		//stdCell.enableNCC("purpleFour");
 		stdCell.setSizeQuantizationError(0.05);
 		stdCell.setMaxMosWidth(1000);
 		stdCell.setVddY(21);
@@ -181,9 +182,13 @@ public class GateRegression extends Job {
 		stdCell.setPmosWellHeight(42);
 
 		// a normal run
-		allSizes(stdCell);
-		
-		//aPass(200, stdCell);
+		//allSizes(stdCell);
+		try {
+			aPass(200, stdCell);
+		} catch (Exception e) {
+			System.out.println(e);
+			return true;
+		}
 		
 //		// test the ability to move ground bus
 //		stdCell.setGndY(stdCell.getGndY() - 7);

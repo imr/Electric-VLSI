@@ -52,7 +52,7 @@ public class TrackRouterV extends TrackRouter {
 
 		// if center isn't set explicitly then infer from first pin
 		if (center==null)
-			center = new Double(newPort.getBounds().getCenterX());
+			center = new Double(LayoutLib.roundCenterX(newPort));
 
 		ArcProto portLyr = Tech.closestLayer(newPort.getPortProto(), layer);
 
@@ -60,7 +60,7 @@ public class TrackRouterV extends TrackRouter {
 		if (newWid==-1)  newWid = portLyr.getWidth();
 
 		// place a ViaStack at newPort.Y + viaOffset
-		double y = newPort.getBounds().getCenterY() + viaOffset;
+		double y = LayoutLib.roundCenterY(newPort) + viaOffset;
 
 		// 1) If the port layer is the same as the track layer then just
 		// drop down a pin. Don't reuse a pin because the part of the
@@ -87,7 +87,8 @@ public class TrackRouterV extends TrackRouter {
 			NodeProto pin = ((PrimitiveArc)portLyr).findOverridablePinProto();
 			double defSz = LayoutLib.DEF_SIZE;
 			NodeInst pinInst = 
-			  LayoutLib.newNodeInst(pin, center.doubleValue()+wireOffset, lastPort.getBounds().getCenterY(), 
+			  LayoutLib.newNodeInst(pin, center.doubleValue()+wireOffset, 
+			  		                LayoutLib.roundCenterY(lastPort), 
 			                        defSz,
 									defSz, 0, 
 									parent);

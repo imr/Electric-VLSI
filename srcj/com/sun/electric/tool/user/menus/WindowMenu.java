@@ -24,21 +24,33 @@
 
 package com.sun.electric.tool.user.menus;
 
-import com.sun.electric.tool.user.ui.*;
-import com.sun.electric.tool.user.dialogs.GetInfoText;
-import com.sun.electric.tool.user.dialogs.LayerVisibility;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.database.hierarchy.Cell;
-
-import javax.swing.*;
-
-import java.awt.event.ActionListener;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.util.EventListener;
 import java.util.Iterator;
+
+import javax.swing.KeyStroke;
+
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.LayerVisibility;
+import com.sun.electric.tool.user.ui.ClickZoomWireListener;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.MessagesWindow;
+import com.sun.electric.tool.user.ui.PaletteFrame;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowContent;
+import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.ZoomAndPanListener;
 
 /**
  * Class to handle the commands in the "Window" pulldown menu.

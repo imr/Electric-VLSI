@@ -116,7 +116,7 @@ public class KeeperHigh {
 		// connect up signal wires
 		TrackRouter d =
 			new TrackRouterH(Tech.m2, 4,
-							 pmos.findPortInst("d").getBounds().getCenterY(),
+							 LayoutLib.roundCenterY(pmos.findPortInst("d")),
 							 keep);
 		d.connect(new PortInst[] {pmos.findPortInst("d"),
 								  invK.findPortInst("out"),
@@ -131,7 +131,7 @@ public class KeeperHigh {
 									  invI.findPortInst("out")});
 		TrackRouter mc_bar =
 			new TrackRouterH(Tech.m1, 4,
-							 pmos.findPortInst("g").getBounds().getCenterY(),
+					         LayoutLib.roundCenterY(pmos.findPortInst("g")),
 							 keep);
 		mc_bar.connect(new PortInst[] {mc.findPortInst("out"),
 									   pmos.findPortInst("g")});

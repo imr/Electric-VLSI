@@ -22,10 +22,13 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.generator.layout;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.NodeInst;
 
 import java.util.HashMap;
 import java.util.Iterator;
 
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -36,23 +39,63 @@ import com.sun.electric.technology.Technology;
 /** IC Layer information database gives information about various IC
  *  layers */
 public class Tech {
+	// ----------------------- public class --------------------------------------
+	/** Hide the differences between technologies. A MosInst's gate is always 
+	 * vertical. */
+	public static class MosInst {
+		private boolean isTsmc90;
+		private NodeInst mos;
+		boolean ntype;
+		protected MosInst(boolean ntype, double x, double y, double w, double l, 
+				          Cell parent) {
+			this.isTsmc90 = Tech.isTsmc90;
+			this.ntype = ntype;
+			NodeProto np = ntype ? nmos : pmos;
+			double angle = isTsmc90 ? 0 : 90;
+			double xSize = isTsmc90 ? l : w;
+			double ySize = isTsmc90 ? w : l;
+			mos = LayoutLib.newNodeInst(np, x, y, xSize, ySize, angle, parent);
+		}
+		private String mosTypeString() {
+			return ntype ? "n-trans" : "p-trans";
+		}
+		private PortInst getPort(String portNm) {
+			PortInst pi = mos.findPortInst(portNm);
+			error(pi==null, "MosInst can't find port!");
+			return pi;
+		}
+		public PortInst leftDiff() {
+			String portNm = mosTypeString() + "-diff" + 
+			                (isTsmc90 ? "-left" : "-top");
+			return getPort(portNm);
+		}
+		public PortInst rightDiff() {
+			String portNm = mosTypeString() + "-diff" + 
+			                (isTsmc90 ? "-right" : "-bottom");
+			return getPort(portNm);
+		}
+		public PortInst topPoly() {
+			String portNm = mosTypeString() + "-poly" + 
+			                (isTsmc90 ? "-top" : "-right");
+			return getPort(portNm);
+		}
+		public PortInst botPoly() {
+			String portNm = mosTypeString() + "-poly" + 
+			                (isTsmc90 ? "-bottom" : "-left");
+			return getPort(portNm);
+		}
+	}
+
 	//---------------------------- private data ----------------------------------
-	// The info map holds special information needed to construct
-	// Electric Nodes and Arcs.  This information isn't otherwise
-	// available from Jose.
-	//private static HashMap infos = new HashMap();
-	private static String[] layerNms = {
-		"Polysilicon-1",
-		"Metal-1",
-		"Metal-2",
-		"Metal-3",
-		"Metal-4",
-		"Metal-5",
-		"Metal-6" 
-	};
-	private static int nbLay = layerNms.length;
-	private static PrimitiveArc[] layers = new PrimitiveArc[nbLay];
-	private static PrimitiveNode[] vias = new PrimitiveNode[nbLay - 1];
+	private static boolean isTsmc90;
+	private static final String[] MOCMOS_LAYER_NAMES = {"Polysilicon-1", "Metal-1", 
+	    "Metal-2", "Metal-3", "Metal-4", "Metal-5", "Metal-6"};
+	private static final String[] TSMC90_LAYER_NAMES = {"Polysilicon", "Metal-1", 
+		"Metal-2", "Metal-3", "Metal-4", "Metal-5", "Metal-6"};
+	private static String[] layerNms;
+	private static int nbLay;
+	private static PrimitiveArc[] layers;
+	private static PrimitiveNode[] vias;
 	private static HashMap viaMap = new HashMap();
 	private static Technology tech;
 
@@ -66,9 +109,9 @@ public class Tech {
 	 * at adjacent heights can connect using vias.
 	 *
 	 * For now, well and diffusion don't have heights. */
-	public static final PrimitiveArc pdiff, ndiff, p1, m1, m2, m3, m4, m5, m6;
+	public static PrimitiveArc pdiff, ndiff, p1, m1, m2, m3, m4, m5, m6;
 	/** layer pins */
-	public static final PrimitiveNode ndpin,
+	public static PrimitiveNode ndpin,
 		pdpin,
 		p1pin,
 		m1pin,
@@ -78,7 +121,7 @@ public class Tech {
 		m5pin,
 		m6pin;
 	/** vias */
-	public static final PrimitiveNode nwm1,
+	public static PrimitiveNode nwm1,
 		pwm1,
 		ndm1,
 		pdm1,
@@ -89,11 +132,11 @@ public class Tech {
 		m4m5,
 		m5m6;
 	/** Transistors */
-	public static final PrimitiveNode nmos, pmos;
+	public static PrimitiveNode nmos, pmos;
 	/** Well */
-	public static final PrimitiveNode nwell, pwell;
+	public static PrimitiveNode nwell, pwell;
 	/** Layer nodes are sometimes used to patch notches */
-	public static final PrimitiveNode m1Node,
+	public static PrimitiveNode m1Node,
 		m2Node,
 		m3Node,
 		m4Node,
@@ -105,21 +148,43 @@ public class Tech {
 		pselNode,
 		nselNode;
 	/** Essential-Bounds */
-	public static final PrimitiveNode essentialBounds;
+	public static PrimitiveNode essentialBounds;
 	/** Facet-Center */
-	public static final PrimitiveNode facetCenter;
+	public static PrimitiveNode facetCenter;
 	/** Generic: Universal Arcs are used to fool Electric's NCC into
 	 *  paralleling MOS stacks.*/
-	public static final ArcProto universalArc;
+	public static ArcProto universalArc;
+
+	/** round to avoid MOCMOS CIF resolution errors */
+	public static double roundToGrid(double x) {
+		return isTsmc90 ? x : (Math.rint(x * 2) / 2);
+	}
+	public static MosInst newNmosInst(double x, double y, 
+			                          double w, double l, Cell parent) {
+		return new MosInst(true, x, y, w, l, parent);
+	}
+	public static MosInst newPmosInst(double x, double y, 
+                                      double w, double l, Cell parent) {
+		return new MosInst(false, x, y, w, l, parent);
+}
 
 	//----------------------------- private methods  -----------------------------
 	private static void error(boolean pred, String msg) {
 		LayoutLib.error(pred, msg);
 	}
-	static {
-		tech = Technology.findTechnology("mocmos");
-		//setNanometersPerLambda(100);
-
+	//----------------------------- public methods  ------------------------------
+	
+	public static void setTechnology(String techNm) {
+		error(!techNm.equals("mocmos") && !techNm.equals("tsmc90"),
+			  "LayoutLib only supports two technologies: mocmos or tsmc90: "+techNm);
+		isTsmc90 = techNm.equals("tsmc90");
+		
+		tech = Technology.findTechnology(techNm);
+		layerNms = isTsmc90 ? TSMC90_LAYER_NAMES : MOCMOS_LAYER_NAMES;
+		nbLay = layerNms.length;
+		layers = new PrimitiveArc[nbLay];
+		vias = new PrimitiveNode[nbLay - 1];
+		
 		// initialize layers
 		for (int i=0; i<nbLay; i++) {
 			layers[i] = tech.findArcProto(layerNms[i]);
@@ -201,41 +266,6 @@ public class Tech {
 		viaMap.put(new Integer(ndiff.hashCode() * m1.hashCode()), ndm1);
 		viaMap.put(new Integer(pdiff.hashCode() * m1.hashCode()), pdm1);
 		viaMap.put(new Integer(p1.hashCode() * m1.hashCode()), p1m1);
-	}
-
-	//----------------------------- public methods  ------------------------------
-	/*
-	// this is useful for debugging only
-	public static void dumpPoly(Poly p) {
-	  // dump the poly
-	  System.out.println("Begin Polygon:");
-	  AffineTransform at = new AffineTransform(); // identity transform
-	  PathIterator pi = p.getPathIterator(at);
-	  double[] coords = {0,0,0,0,0,0};
-	  for (; !pi.isDone(); pi.next()) {
-	    int t = pi.currentSegment(coords);
-	    switch (t) {
-	    case PathIterator.SEG_CLOSE:
-	      System.out.println(" close");
-	      break;
-	    case PathIterator.SEG_MOVETO:
-	      System.out.println(" moveTo ("+base2lambda((int)coords[0])+", "
-	                         +base2lambda((int)coords[1])+")");
-	      break;
-	    case PathIterator.SEG_LINETO:
-	      System.out.println(" lineTo ("+base2lambda((int)coords[0])
-	                         +", "+base2lambda((int)coords[1])+")");
-	      break;
-	    default:
-	      System.out.println(" other");
-	    }
-	  }
-	  System.out.println("End Polygon");
-	}
-	*/
-	
-	public static void setNanometersPerLambda(double nanoMeters) {
-		tech.setScale(nanoMeters);
 	}
 
 	public static PrimitiveNode getViaFor(PrimitiveArc a1, PrimitiveArc a2) {

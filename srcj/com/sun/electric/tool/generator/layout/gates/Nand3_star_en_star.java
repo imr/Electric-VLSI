@@ -315,7 +315,7 @@ class Nand3_star_en_star {
 		// Nand input A
 		// above Vdd power rail
 		// m1_wid/2 + m1_m1_sp + m1_wid/2
-		double inaX = pmosa.getSrcDrn(1).getBounds().getCenterX() + 2 + 3 + 2;
+		double inaX = LayoutLib.roundCenterX(pmosa.getSrcDrn(1)) + 2 + 3 + 2;
 		double inaHiY = stdCell.getVddY() + stdCell.getVddWidth()/2 +
 			3 + 2;	// m1_m1_sp + m1_wid/2
 		LayoutLib.newExport(nand, "ina", PortCharacteristic.IN, Tech.m1,

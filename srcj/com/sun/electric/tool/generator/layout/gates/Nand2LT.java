@@ -133,7 +133,7 @@ public class Nand2LT {
 				//double offset = (i+1==nmos.nbGates()-1) ? 6.5;
 				double offset = 6.5;
 				PortInst g = nmos.getGate(i+1, 'T');
-				double contX = g.getBounds().getCenterX()+offset;
+				double contX = LayoutLib.roundCenterX(g)+offset;
 				if (inbX-contX<7) {
 					// Shift right-most ina contact so it doesn't interfere with
 					// vertical routing track for inb.

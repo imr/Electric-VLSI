@@ -29,6 +29,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.tool.generator.layout.Tech.MosInst;
 
 /** first cut at a folded transistor generator.  Transistors are
  * rotated 90 degrees counter clockwise so that gates are vertical.
@@ -102,7 +103,7 @@ public abstract class FoldedMos {
 		}
 	};
 	private PortInst[] diffVias;
-	private NodeInst[] moss;
+	private MosInst[] moss;
 	private PortInst[] internalDiffs;
 	private double difContWid;
 	private double gateWidth;
@@ -112,24 +113,11 @@ public abstract class FoldedMos {
 	// -------------------- protected and private methods ---------------------
 
 	// after rotating 90 degrees counter clock wise
-	private static final String 
-	    nDiffLeft = "n-trans-diff-top",
-		nDiffRight = "n-trans-diff-bottom",
-		nPolyBot = "n-trans-poly-left",
-		nPolyTop = "n-trans-poly-right",
-		pDiffLeft = "p-trans-diff-top",
-		pDiffRight = "p-trans-diff-bottom",
-		pPolyBot = "p-trans-poly-left",
-		pPolyTop = "p-trans-poly-right";
 	private static void error(boolean pred, String msg) {
 		LayoutLib.error(pred, msg);
 	}
 	private boolean isPmos() {
 		return this instanceof FoldedPmos;
-	}
-
-	double roundToHalfLambda(double x) {
-		return Math.rint(x * 2) / 2;
 	}
 
 	// This method is necessary to ensure that the edges of all
@@ -148,8 +136,8 @@ public abstract class FoldedMos {
 	// the .5 lambda grid. The second problem is handled by using the y
 	// coordinate of the contact.
 	private void newDiffArc(ArcProto diff, double y, PortInst p1, PortInst p2){
-		double x1 = roundToHalfLambda(p1.getBounds().getCenterX());
-		double x2 = roundToHalfLambda(p2.getBounds().getCenterX());
+		double x1 = Tech.roundToGrid(LayoutLib.roundCenterX(p1));
+		double x2 = Tech.roundToGrid(LayoutLib.roundCenterX(p2));
 
 		LayoutLib.newArcInst(diff, LayoutLib.DEF_SIZE, p1, x1, y, p2, x2, y);
 	}
@@ -209,16 +197,14 @@ public abstract class FoldedMos {
 		this.gateWidth = gateWidth;
 		physWidth = Math.max(minDifContWid, gateWidth);
 		diffVias = new PortInst[nbFolds + 1];
-		moss = new NodeInst[nbFolds * nbSeries];
+		moss = new MosInst[nbFolds * nbSeries];
 		internalDiffs = new PortInst[nbFolds * (nbSeries - 1)];
 		if (gateSpace==null) gateSpace = useMinSp;
 
-		PrimitiveNode mos = isPmos() ? Tech.pmos : Tech.nmos;
+		//PrimitiveNode mos = isPmos() ? Tech.pmos : Tech.nmos;
 		PrimitiveNode diffCont = isPmos() ? Tech.pdm1 : Tech.ndm1;
 		ArcProto diff = isPmos() ? Tech.pdiff : Tech.ndiff;
 		NodeProto difNod = isPmos() ? Tech.pdNode : Tech.ndNode;
-		String diffLeft = isPmos() ? pDiffLeft : nDiffLeft;
-		String diffRight = isPmos() ? pDiffRight : nDiffRight;
 
 		double foldPitch = 8 + (nbSeries - 1) * (3 + 2);
 		int diffNdx = 0, mosNdx = 0, internalDiffNdx = 0;
@@ -292,15 +278,15 @@ public abstract class FoldedMos {
 				}
 
 				x += (j==0 ? viaToMosPitch : mosToMosPitch) + extraSp;
-				NodeInst m = LayoutLib.newNodeInst(mos, x, mosY, gateWidth, 2,
-				                                   90, f);
+				MosInst m = isPmos() ? Tech.newPmosInst(x, mosY, gateWidth, 2, f) :
+					                   Tech.newNmosInst(x, mosY, gateWidth, 2, f);
 				moss[mosNdx++] = m;
 
-				newDiffArc(diff, difContY, prevPort, m.findPortInst(diffLeft));
-				prevPort = m.findPortInst(diffRight);
+				newDiffArc(diff, difContY, prevPort, m.leftDiff());
+				prevPort = m.rightDiff();
 
 				if (j != 0) {
-					internalDiffs[internalDiffNdx++] = m.findPortInst(diffLeft);
+					internalDiffs[internalDiffNdx++] = m.leftDiff();
 				}
 			}
 			double extraSp =
@@ -340,10 +326,7 @@ public abstract class FoldedMos {
 	public int nbGates() {return moss.length;}
 	public PortInst getGate(int mosNdx, char pos) {
 		error(pos!='T' && pos!='B', "pos must be 'T' or 'B': " + pos);
-		String polyTop = isPmos() ? pPolyTop : nPolyTop;
-		String polyBot = isPmos() ? pPolyBot : nPolyBot;
-		String polyPP = pos == 'T' ? polyTop : polyBot;
-		return moss[mosNdx].findPortInst(polyPP);
+		return pos=='T' ? moss[mosNdx].topPoly() : moss[mosNdx].botPoly();
 	}
 	public int nbInternalSrcDrns() {return internalDiffs.length;}
 	/** "Internal diffusions" are the diffusions between two series

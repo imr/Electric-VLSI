@@ -153,7 +153,7 @@ class Nand2_star_sy {
 				// Last contact may interfere, needlessly, with inB
 				double offset = 6.5;
 				PortInst g = pmos.getGate(i, 'B');
-				double gX = g.getBounds().getCenterX() + offset;
+				double gX = LayoutLib.roundCenterX(g) + offset;
 				if (inbX-gX<7)  offset -= 7 - (inbX-gX);
 				inA.connect(g, offset, 1.5);
 			}

@@ -209,7 +209,7 @@ public class SchemToLay {
 			double maxX = Double.NEGATIVE_INFINITY;
 			ArrayList ports = getAllPorts();
 			for (int i=0; i<ports.size(); i++) {
-				double x = ((PortInst)ports.get(i)).getBounds().getCenterX();
+				double x = LayoutLib.roundCenterX((PortInst)ports.get(i));
 				minX = Math.min(minX, x);
 				maxX = Math.max(maxX, x);
 			}
@@ -220,7 +220,7 @@ public class SchemToLay {
 			double minX = Double.POSITIVE_INFINITY;
 			ArrayList ports = getAllPorts();
 			for (int i=0; i<ports.size(); i++) {
-				double x = ((PortInst)ports.get(i)).getBounds().getCenterX();
+				double x = LayoutLib.roundCenterX((PortInst)ports.get(i));
 				minX = Math.min(minX, x);
 			}
 			return minX;
@@ -229,7 +229,7 @@ public class SchemToLay {
 			double maxX = Double.NEGATIVE_INFINITY;
 			ArrayList ports = getAllPorts();
 			for (int i=0; i<ports.size(); i++) {
-				double x = ((PortInst)ports.get(i)).getBounds().getCenterX();
+				double x = LayoutLib.roundCenterX((PortInst)ports.get(i));
 				maxX = Math.max(maxX, x);
 			}
 			return maxX;
@@ -565,8 +565,8 @@ public class SchemToLay {
 	private static void sortPortsLeftToRight(ArrayList ports) {
 		Comparator compare = new Comparator() {
 				public int compare(Object o1, Object o2) {
-					double diff = ((PortInst)o1).getBounds().getCenterX() - 
-					              ((PortInst)o2).getBounds().getCenterX();
+					double diff = LayoutLib.roundCenterX((PortInst)o1) - 
+					              LayoutLib.roundCenterX((PortInst)o2);
 					if (diff<0) return -1;
 					if (diff==0) return 0;
 					return 1;
@@ -602,8 +602,8 @@ public class SchemToLay {
 			PortInst prev = (PortInst) ports.get(i-1);
 			PortInst port = (PortInst) ports.get(i);
 			
-			double dx = port.getBounds().getCenterX() - 
-			            prev.getBounds().getCenterX();
+			double dx = LayoutLib.roundCenterX(port) - 
+			            LayoutLib.roundCenterX(prev);
 			error(dx<=0, "metal1route: ports not sorted left to right!");
 			if (dx<=ADJACENT_DIST) {
 				metal1route(prev, port);
@@ -649,7 +649,7 @@ public class SchemToLay {
 			// RKao debug
 			error(ports.size()==0, "No device ports on this net?: "+expNm);
 			
-			double x = ((PortInst)ports.get(0)).getBounds().getCenterX();
+			double x = LayoutLib.roundCenterX((PortInst)ports.get(0));
 			LayoutLib.newExport(gasp, expNm, exp.getCharacteristic(), Tech.m2, 
 			                    4, x, trackY);
 			route.connect(gasp.findExport(expNm));
@@ -696,8 +696,8 @@ public class SchemToLay {
 			Iterator it = inst.getPortInsts();
 			while (it.hasNext()) {
 				PortInst port = (PortInst) it.next();
-				double x = port.getBounds().getCenterX();
-				double y = port.getBounds().getCenterY();
+				double x = LayoutLib.roundCenterX(port);
+				double y = LayoutLib.roundCenterY(port);
 				Placer.Port plPort = plInst.addPort(x, y);
 				portToPlacerPort.put(port, plPort);
 			}

@@ -244,8 +244,8 @@ public class StdCellParams {
 		NodeProto diffNode =
 			mos instanceof FoldedPmos ? Tech.pdNode : Tech.ndNode;
 
-		double prevX = prevPort.getBounds().getCenterX();
-		double thisX = thisPort.getBounds().getCenterX();
+		double prevX = LayoutLib.roundCenterX(prevPort);
+		double thisX = LayoutLib.roundCenterX(thisPort);
 		double dist = thisX - prevX;
 
 		// If they overlap perfectly or if they're so far apart there's no
@@ -265,10 +265,10 @@ public class StdCellParams {
 
 		NodeInst dFill = LayoutLib.newNodeInst(diffNode, thisX-dist/2, mosY, 
 											   dist, diffWid, 0, f);
-		double contY = thisPort.getBounds().getCenterY(); // contact is always on grid
+		double contY = LayoutLib.roundCenterY(thisPort); // contact is always on grid
 		LayoutLib.newArcInst(diffArc, DEF_SIZE, thisPort, thisX, contY, 
 							 dFill.getOnlyPortInst(), 
-							 dFill.getOnlyPortInst().getBounds().getCenterX(), 
+							 LayoutLib.roundCenterX(dFill.getOnlyPortInst()), 
 							 contY);
 		addSelAroundDiff(dFill);
 
@@ -384,7 +384,9 @@ public class StdCellParams {
 	//------------------------------------------------------------------------------
 	// Utilities for gate generators
 
-	public StdCellParams(Library lib) {init(lib);}
+	public StdCellParams(Library lib) {
+		init(lib);
+	}
 
 	public double getNmosWellHeight() {
 		return nmosWellHeight;
@@ -773,7 +775,7 @@ public class StdCellParams {
 
 			net.connect(pin);
 		}
-		double diffY = leftDiff.getBounds().getCenterY();
+		double diffY = LayoutLib.roundCenterY(leftDiff);
 		double notchLoY = Math.min(busY - busWid / 2, diffY);
 		double notchHiY = Math.max(busY + busWid / 2, diffY);
 		PortInst lastDiff = null;
@@ -785,8 +787,8 @@ public class StdCellParams {
 
 					if (lastDiff!=null) {
 						// Check to see if we just created a notch.
-						double leftX = lastDiff.getBounds().getCenterX();
-						double rightX = thisDiff.getBounds().getCenterX();
+						double leftX = LayoutLib.roundCenterX(lastDiff);
+						double rightX = LayoutLib.roundCenterX(thisDiff);
 						error(leftX>rightX,
 							  "wireVddGnd: trans not sorted left to right");
 						double deltaX = rightX - leftX;
@@ -883,7 +885,7 @@ public class StdCellParams {
 	}
 
 	public static double getRightDiffX(FoldedMos m) {
-		return m.getSrcDrn(m.nbSrcDrns() - 1).getBounds().getCenterX();
+		return LayoutLib.roundCenterX(m.getSrcDrn(m.nbSrcDrns() - 1));
 	}
 
 	public static double getRightDiffX(FoldedMos[] moss) {
@@ -972,7 +974,7 @@ public class StdCellParams {
 		error(prot!=Tech.pdNode && prot!=Tech.ndNode,
 			  "addSelectAroundDiff: only works with MOSIS CMOS diff nodes");
 		NodeProto sel = prot == Tech.pdNode ? Tech.pselNode : Tech.nselNode;
-		Rectangle2D r = diffNode.getBounds();
+		Rectangle2D r = LayoutLib.getBounds(diffNode);
 		double w = r.getWidth() + selectOverhangsDiff * 2;
 		double h = r.getHeight() + selectOverhangsDiff * 2;
 		Cell f = diffNode.getParent();

@@ -471,9 +471,9 @@ class CapCell {
 	// The height of a MOS diff contact is 1/2 lambda. Therefore, using the
 	// center for diffusion arcs always generates CIF resolution errors
 	private void newDiffArc(PortInst p1, PortInst p2) {
-		double x = p1.getBounds().getCenterX();
-		double y1 = roundToHalfLambda(p1.getBounds().getCenterY());
-		double y2 = roundToHalfLambda(p2.getBounds().getCenterY());
+		double x = LayoutLib.roundCenterX(p1);
+		double y1 = roundToHalfLambda(LayoutLib.roundCenterY(p1));
+		double y2 = roundToHalfLambda(LayoutLib.roundCenterY(p2));
 
 		LayoutLib.newArcInst(Tech.ndiff, LayoutLib.DEF_SIZE, p1, x, y1, p2, x, y2);
 	}
@@ -539,8 +539,9 @@ class CapLayer implements VddGndStraps {
 		return capCellInst.findPortInst(vddName+"_"+n);
 	}
 	public double getVddCenter(int n) {
-		Rectangle2D bounds = getVdd(n).getBounds();
-		return plan.horizontal ? bounds.getCenterY() : bounds.getCenterX();
+		PortInst pi = getVdd(n);
+		return plan.horizontal ? LayoutLib.roundCenterY(pi) : 
+			                     LayoutLib.roundCenterX(pi);
 	}
 	public double getVddWidth(int n) {return capCell.getVddWidth();}
 	public int numGnd() {return capCell.numGnd();}
@@ -548,8 +549,9 @@ class CapLayer implements VddGndStraps {
 		return capCellInst.findPortInst(gndName+"_"+n);
 	}
 	public double getGndCenter(int n) {
-		Rectangle2D bounds = getGnd(n).getBounds();
-		return plan.horizontal ? bounds.getCenterY() : bounds.getCenterX();
+		PortInst pi = getGnd(n);
+		return plan.horizontal ? LayoutLib.roundCenterY(pi) :
+			                     LayoutLib.roundCenterX(pi);
 	}
 	public double getGndWidth(int n) {return capCell.getGndWidth();}
 
@@ -797,9 +799,8 @@ class FillCell {
 class Router {
 	private HashMap portMap = new HashMap();
 	private String makeKey(PortInst pi) {
-		Rectangle2D bounds = pi.getBounds();
-		String x = ""+bounds.getCenterX();
-		String y = ""+bounds.getCenterY();
+		String x = ""+LayoutLib.roundCenterX(pi);
+		String y = ""+LayoutLib.roundCenterY(pi);
 		return x+"x"+y;
 	}
 	private boolean bothConnect(PrimitiveArc a, PortProto pp1, PortProto pp2) {
@@ -905,8 +906,8 @@ class TiledCell {
 		return ports;
 	}
 	private int orientation(Rectangle2D bounds, PortInst pi) {
-		double portX = pi.getBounds().getCenterX();
-		double portY = pi.getBounds().getCenterY();
+		double portX = LayoutLib.roundCenterX(pi);
+		double portY = LayoutLib.roundCenterY(pi);
 		double minX = bounds.getMinX();
 		double maxX = bounds.getMaxX();
 		double minY = bounds.getMinY();

@@ -148,7 +148,7 @@ public class Nand2PH {
 		
 		// Connect upper and lower tracks of input A
 		PortInst jogA =
-		  LayoutLib.newNodeInst(Tech.m1pin, nmosA.getGate(0, 'T').getBounds().getCenterX(), pGatesY,
+		  LayoutLib.newNodeInst(Tech.m1pin, LayoutLib.roundCenterX(nmosA.getGate(0, 'T')), pGatesY,
 								DEF_SIZE,
 								DEF_SIZE, 0, gate).getOnlyPortInst();
 		aGatesLo.connect(jogA);

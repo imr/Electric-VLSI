@@ -96,7 +96,7 @@ class Nand2_star {
 			
 			// magic constant: 3 lambda lines up gates 1, 2 of NMOS and PMOS
 			double nmosPitch = 32;
-			double nmosX = pmos.getSrcDrn(0).getBounds().getCenterX()
+			double nmosX = LayoutLib.roundCenterX(pmos.getSrcDrn(0))
 				+ 3 + (nbFoldsN/2)*nmosPitch;
 			FoldedMos nmos = new FoldedNmos(nmosX, nmosY, nbFolds, nbStacked,
 											fwN.gateWid, nand);

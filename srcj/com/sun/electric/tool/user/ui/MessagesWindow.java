@@ -189,7 +189,10 @@ public class MessagesWindow
 	 */
 	public void save()
 	{
-		String filePath = OpenFile.chooseOutputFile(OpenFile.Type.TEXT, null, "emessages.txt");
+		save(OpenFile.chooseOutputFile(OpenFile.Type.TEXT, null, "emessages.txt"));
+	}
+
+	public void save(String filePath) {
 		if (filePath == null) return;
 		try
 		{

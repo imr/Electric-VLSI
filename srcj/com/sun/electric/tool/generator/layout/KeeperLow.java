@@ -90,7 +90,7 @@ public class KeeperLow {
 		// connect up signal wires
 		TrackRouter d =
 			new TrackRouterH(Tech.m2, 4,
-							 nmos.findPortInst("d").getBounds().getCenterY(),
+							 LayoutLib.roundCenterY(nmos.findPortInst("d")),
 							 keep);
 		d.connect(new PortInst[] {nmos.findPortInst("d"),
 								  invK.findPortInst("out"),

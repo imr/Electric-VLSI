@@ -49,8 +49,9 @@ import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-
-/**
+import java.awt.geom.Rectangle2D;
+import com.sun.electric.database.geometry.DBMath;
+/*
  * The LayoutLib class provides an assortment of methods that I
  * found to be useful for programatic layout generation.
  */
@@ -166,43 +167,40 @@ public class LayoutLib {
 	public static void writeLibrary(Library lib) {
 		Output.writeLibrary(lib, OpenFile.Type.ELIB, false);
 	}
-	/**
-	 * Get the width of an ArcInst. The getArcInstWidth method differs
+	/** Get the width of an ArcInst. The getArcInstWidth method differs
 	 * from ArcInst.getWidth() in that it subtracts off the "width
 	 * offset". Hence, getArcInstWidth returns a width that matches
 	 * that reported by the GUI.
 	 *
  	 * @param ai the ArcInst whose width is reported
-	 * @return the width of the ArcInst.
-	 */
+	 * @return the width of the ArcInst. */
 	public static double getArcInstWidth(ArcInst ai) {
-		return ai.getWidth() - ai.getProto().getWidthOffset();
+		double w = ai.getWidth() - ai.getProto().getWidthOffset();
+		return DBMath.round(w);
 	}
-	/**
-	 * Get the default width of a NodeProto. The getNodeProtoWidth
+	/** Get the default width of a NodeProto. The getNodeProtoWidth
 	 * method differs from NodeProto.getDefWidth in that it subtracts
 	 * off the "width offset". Hence getNodeProtoWidth returns a width
 	 * that matches that reported by the GUI.
 	 *
 	 * @param np the NodeProto we want the width of.
-	 * @return the width of the NodeProto. 
-	 */
+	 * @return the width of the NodeProto. */
 	public static double getNodeProtoWidth(NodeProto np) {
 		SizeOffset so = np.getProtoSizeOffset();
-		return np.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
+		double w = np.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
+		return DBMath.round(w);
 	}
-	/**
-	 * Get the default height of a NodeProto. The getNodeProtoHeight
+	/** Get the default height of a NodeProto. The getNodeProtoHeight
 	 * method differs from NodeProto.getDefHeight in that it subtracts
 	 * off the "height offset". Hence getNodeProtoHeight returns a
 	 * height that matches that reported by the GUI.
 	 *
 	 * @param np the NodeProto we want the height of
-	 * @return the height of the NodeProto
-	 */
+	 * @return the height of the NodeProto */
 	public static double getNodeProtoHeight(NodeProto np) {
 		SizeOffset so = np.getProtoSizeOffset();
-		return np.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
+		double h = np.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
+		return DBMath.round(h);
 	}
 	/**
 	 * Find the width of the widest wire connected hierarchically to port.
@@ -224,7 +222,7 @@ public class LayoutLib {
 			double check = widestWireWidth(((Export)pp).getOriginalPort());
 			maxWid = Math.max(maxWid, check);
 		}
-		return maxWid;
+		return DBMath.round(maxWid);
 	}
 
 	/** Return a list of ArcInsts attached to PortInst, pi.
@@ -237,6 +235,16 @@ public class LayoutLib {
 			if (c.getPortInst()==pi)  arcs.add(c.getArc());
 		}
 		return arcs.iterator();
+	}
+	/** The center returned by bounds might have a slight amount of rounding
+	 * error. Compensate for this by always rounding coordinates to a 103-4
+	 * lambda grid when reading and writing the database. */
+	public static double roundCenterX(PortInst pi) {
+		return DBMath.round(pi.getBounds().getCenterX());
+	}
+	public static double roundCenterY(PortInst pi) {
+		Rectangle2D bounds = pi.getBounds();
+		return DBMath.round(pi.getBounds().getCenterY());
 	}
 
 	/**
@@ -325,6 +333,12 @@ public class LayoutLib {
 				height = signH * (Math.abs(height) + hi+lo);
 			}
 		}
+		// round all dimensions to a 10e-4 lambda grid
+		x = DBMath.round(x);
+		y = DBMath.round(y);
+		width = DBMath.round(width);
+		height = DBMath.round(height);
+		
 		NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(x, y), width, height, parent,
 		        (int)Math.round(angle*10), null, 0);
 		error(ni==null, "newNodeInst failed");								
@@ -404,12 +418,16 @@ public class LayoutLib {
 	 */
 	public static Point2D getPosition(NodeInst ni) {
 		NodeProto np = ni.getProto();
+		Point2D p;
 		if (np instanceof Cell) {
 			AffineTransform xForm = ni.transformOut();
-			return xForm.transform(new Point2D.Double(0, 0), null);
+			p = xForm.transform(new Point2D.Double(0, 0), null);
 		} else {
-			return ni.getAnchorCenter();
+			p = ni.getAnchorCenter();
 		}
+		double x = DBMath.round(p.getX());
+		double y = DBMath.round(p.getY());
+		return new Point2D.Double(x,y);
 	}
 	/**
 	 * Create a new ArcInst. This differs from ArcInst.newInstance in that
@@ -435,10 +453,17 @@ public class LayoutLib {
 			width = ap.getDefaultWidth();
 		} else {
 			width += ap.getWidthOffset();
-		} 
+		}
+		
+		hX = DBMath.round(hX);
+		hY = DBMath.round(hY);
+		tX = DBMath.round(tX);
+		tY = DBMath.round(tY);
+		width = DBMath.round(width);
+
 		ArcInst ai = ArcInst.newInstance(ap, width, 
 		                                 head, tail, new Point2D.Double(hX, hY),
-		        new Point2D.Double(tX, tY),
+										 new Point2D.Double(tX, tY),
 										 null, 0);
 		ai.setFixedAngle(true);
 		error(ai==null, "newArcInst failed");
@@ -463,10 +488,10 @@ public class LayoutLib {
 	 */
 	public static ArcInst newArcInst(ArcProto ap, double width,
 							         PortInst head, PortInst tail) {
-		double hX = head.getBounds().getCenterX();
-		double hY = head.getBounds().getCenterY();
-		double tX = tail.getBounds().getCenterX();
-		double tY = tail.getBounds().getCenterY();
+		double hX = roundCenterX(head);
+		double hY = roundCenterY(head);
+		double tX = roundCenterX(tail);
+		double tY = roundCenterY(tail);
 		ArcInst ai;
 		if (hX==tX || hY==tY) {
 			// no jog necessary						         	
@@ -476,6 +501,20 @@ public class LayoutLib {
 			NodeProto pinProto = ((PrimitiveArc)ap).findOverridablePinProto();
 			PortInst pin = newNodeInst(pinProto, tX, hY, DEF_SIZE, DEF_SIZE, 0, 
 			                           parent).getOnlyPortInst(); 
+
+			// debug
+			double newX = roundCenterX(pin);
+			double newY = roundCenterY(pin);
+			
+			if (newX!=tX || newY!=hY) {
+				Rectangle2D r = head.getBounds();
+				double loy = r.getMinY();
+				double hiy = r.getMaxY();
+				System.out.println(loy+" "+hiy);
+				error(true, "center moved");
+			}
+			
+			
 			ai = newArcInst(ap, width, head, pin);
 			ai.setFixedAngle(true);
 			ai = newArcInst(ap, width, pin, tail);
@@ -522,7 +561,13 @@ public class LayoutLib {
 		e.setCharacteristic(role);
 		return e;
 	}
-	
+	public static Rectangle2D roundBounds(Rectangle2D r) {
+		double w = DBMath.round(r.getWidth());
+		double h = DBMath.round(r.getHeight());
+		double x = DBMath.round(r.getX());
+		double y = DBMath.round(r.getY());
+		return new Rectangle2D.Double(x,y,w,h);
+	}
 	/**
 	 * Get the essential or regular bounds.  If NodeInst
 	 * <code>node</code> has an Essential Bounds then return
@@ -532,8 +577,8 @@ public class LayoutLib {
 	 */
 	public static Rectangle2D getBounds(NodeInst node) {
 		Rectangle2D bounds = node.findEssentialBounds();
-		if (bounds!=null) return bounds;
-		return node.getBounds();
+		if (bounds==null) bounds = node.getBounds();
+		return roundBounds(bounds);
 	}
 	/**
 	 * Get the essential or regular bounds.  If Cell c has an
@@ -544,8 +589,8 @@ public class LayoutLib {
 	 */
 	public static Rectangle2D getBounds(Cell c) {
 		Rectangle2D bounds = c.findEssentialBounds();
-		if (bounds!=null) return bounds; 
-		return c.getBounds();
+		if (bounds==null) bounds = c.getBounds();
+		return roundBounds(bounds);
 	}
 
 	// --------------------- Abutment methods ---------------------------------
