@@ -24,6 +24,7 @@
 package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Export;
@@ -251,8 +252,8 @@ public class GDS extends Geometry
 				outputShort((short)12);
 				outputShort(HDR_XY);
 				Poly portPoly = pp.getOriginalPort().getPoly();
-				outputInt((int)(scaleFactor*portPoly.getCenterX()));
-				outputInt((int)(scaleFactor*portPoly.getCenterY()));
+				outputInt((int)(scaleDBUnit(portPoly.getCenterX())));
+				outputInt((int)(scaleDBUnit(portPoly.getCenterY())));
 
 				// now the string
 				String str = pp.getName();
@@ -360,8 +361,8 @@ public class GDS extends Geometry
 		outputAngle(angle);
 		outputShort((short)12);
 		outputShort(HDR_XY);
-		outputInt((int)(scaleFactor*ni.getAnchorCenterX()));
-		outputInt((int)(scaleFactor*ni.getAnchorCenterY()));
+		outputInt((int)(scaleDBUnit(ni.getAnchorCenterX())));
+		outputInt((int)(scaleDBUnit(ni.getAnchorCenterY())));
 		outputHeader(HDR_ENDEL, 0);
 	}
 
@@ -416,8 +417,8 @@ public class GDS extends Geometry
 					outputShort((short)12);
 					outputShort(HDR_XY);
 					Point2D [] points = poly.getPoints();
-					outputInt((int)(scaleFactor*points[0].getX()));
-					outputInt((int)(scaleFactor*points[0].getY()));
+					outputInt((int)(scaleDBUnit(points[0].getX())));
+					outputInt((int)(scaleDBUnit(points[0].getY())));
 
 					// now the string
 					String str = poly.getString();
@@ -728,8 +729,8 @@ public class GDS extends Geometry
 			{
 				int j = i;
 				if (i == sofar) j = 0;
-				outputInt((int)(scaleFactor*points[j].getX()));
-				outputInt((int)(scaleFactor*points[j].getY()));
+				outputInt((int)(scaleDBUnit(points[j].getX())));
+				outputInt((int)(scaleDBUnit(points[j].getY())));
 			}
 			outputHeader(HDR_ENDEL, 0);
 			if (sofar >= count) break;
@@ -749,8 +750,8 @@ public class GDS extends Geometry
 		outputShort(HDR_XY);
 		for (int i = 0; i < points.length; i ++)
 		{
-			outputInt((int)(scaleFactor*points[i].getX()));
-			outputInt((int)(scaleFactor*points[i].getY()));
+			outputInt((int)(scaleDBUnit(points[i].getX())));
+			outputInt((int)(scaleDBUnit(points[i].getY())));
 		}
 		outputHeader(HDR_ENDEL, 0);
 	}
@@ -772,6 +773,14 @@ public class GDS extends Geometry
 			bufferPosition = 0;
 		}
 	}
+
+    private int scaleDBUnit(double dbunit) {
+        // scale according to technology
+        double scaled = scaleFactor*dbunit;
+        // round to nearest nanometer
+        int unit = (int)Math.round(scaled);
+        return unit;
+    }
 
 	/*************************** GDS LOW-LEVEL OUTPUT ROUTINES ***************************/
 
