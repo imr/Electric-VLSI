@@ -2,6 +2,9 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+BUG: (11/8/04, SMR) Upper-level text is not shown when editing "down in-place".
+FIX: In "PixelDrawing.drawText()" compute clipping bounds properly.
+
 ************************* Version 8.01am: *********************************
 
 IMP: (11/8/04, GVG) Default sizes for new arcs/nodes in TSMC90 now correctly stored and retrieved from preferences

@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -529,6 +530,8 @@ public class PixelDrawing
 	{
         renderPolyTime = 0;
         renderTextTime = 0;
+
+//        drawBounds = wnd.getDisplayedBounds();
 
 		// draw all arcs
 		for(Iterator arcs = cell.getArcs(); arcs.hasNext(); )
@@ -2048,21 +2051,25 @@ public class PixelDrawing
             if (drawBounds != null && drawBounds.getWidth() > 0 && !drawBounds.intersects(dbBounds)) return;
 		}
 
-        // create RenderInfo
-        long startTime = System.currentTimeMillis();
-        RenderTextInfo renderInfo = new RenderTextInfo();
-        if (!renderInfo.buildInfo(s, fontName, size, italic, bold, underline, rect, style, rotation))
-            return;
+		// create RenderInfo
+		long startTime = System.currentTimeMillis();
+		RenderTextInfo renderInfo = new RenderTextInfo();
+		if (!renderInfo.buildInfo(s, fontName, size, italic, bold, underline, rect, style, rotation))
+			return;
 
-        // check if text is on-screen
-        Rectangle2D dbBounds = wnd.screenToDatabase(renderInfo.bounds);
-        //  drawBounds.getWidth() > 0 initial window
-        if (drawBounds != null && drawBounds.getWidth() > 0 && !drawBounds.intersects(dbBounds))
-            return;
+		// check if text is on-screen
+		Rectangle2D dbBounds = wnd.screenToDatabase(renderInfo.bounds);
+		if (wnd.isInPlaceEdit() && dbBounds != null)
+		{
+			AffineTransform xOut = wnd.getInPlaceTransformOut();
+			GenMath.transformRect(dbBounds, xOut);
+		}
+		if (drawBounds != null && drawBounds.getWidth() > 0 && !drawBounds.intersects(dbBounds))
+			return;
 
 		// render the text
 		Raster ras = renderText(renderInfo);
-        renderTextTime += (System.currentTimeMillis() - startTime);
+		renderTextTime += (System.currentTimeMillis() - startTime);
 		if (ras == null) return;
 		Point pt = getTextCorner(ras.getWidth(), ras.getHeight(), style, rect, rotation);
 		int atX = pt.x;
@@ -2271,38 +2278,39 @@ public class PixelDrawing
 		return color;
 	}
 
-    private static class RenderTextInfo {
-        private Font font;
-        private GlyphVector gv;
-        private LineMetrics lm;
-        private Point2D anchorPoint;
-        private Rectangle2D rasBounds;              // the raster bounds of the unrotated text, in pixels (screen units)
-        private Rectangle2D bounds;                 // the real bounds of the rotated, anchored text (in screen units)
-        private boolean underline;
+	private static class RenderTextInfo {
+		private Font font;
+		private GlyphVector gv;
+		private LineMetrics lm;
+		private Point2D anchorPoint;
+	    private Rectangle2D rasBounds;              // the raster bounds of the unrotated text, in pixels (screen units)
+	    private Rectangle2D bounds;                 // the real bounds of the rotated, anchored text (in screen units)
+	    private boolean underline;
 
-        private boolean buildInfo(String msg, String fontName, int tSize, boolean italic, boolean bold, boolean underline,
-                          Rectangle probableBoxedBounds, Poly.Type style, int rotation) {
-            font = getFont(msg, fontName, tSize, italic, bold, underline);
-            this.underline = underline;
+	    private boolean buildInfo(String msg, String fontName, int tSize, boolean italic, boolean bold, boolean underline,
+	    	Rectangle probableBoxedBounds, Poly.Type style, int rotation)
+	    {
+			font = getFont(msg, fontName, tSize, italic, bold, underline);
+			this.underline = underline;
 
-            // convert the text to a GlyphVector
-            FontRenderContext frc = new FontRenderContext(null, true, true);
-            gv = font.createGlyphVector(frc, msg);
-            lm = font.getLineMetrics(msg, frc);
+			// convert the text to a GlyphVector
+			FontRenderContext frc = new FontRenderContext(null, true, true);
+			gv = font.createGlyphVector(frc, msg);
+			lm = font.getLineMetrics(msg, frc);
 
-            // figure bounding box of text
-            //Rectangle rasRect = gv.getOutline(0, (float)(lm.getAscent()-lm.getLeading())).getBounds();
-            Rectangle2D rasRect = gv.getLogicalBounds();
-            int width = (int)rasRect.getWidth();
+			// figure bounding box of text
+			//Rectangle rasRect = gv.getOutline(0, (float)(lm.getAscent()-lm.getLeading())).getBounds();
+			Rectangle2D rasRect = gv.getLogicalBounds();
+			int width = (int)rasRect.getWidth();
 
-            int height = (int)(lm.getHeight()+0.5);
-            if (width <= 0 || height <= 0) return false;
-            int fontStyle = font.getStyle();
+			int height = (int)(lm.getHeight()+0.5);
+			if (width <= 0 || height <= 0) return false;
+			int fontStyle = font.getStyle();
 
-            int boxedWidth = (int)probableBoxedBounds.getWidth();
-            int boxedHeight = (int)probableBoxedBounds.getHeight();
-            // if text is to be "boxed", make sure it fits
-            if (boxedWidth > 0 && boxedHeight > 0)
+			int boxedWidth = (int)probableBoxedBounds.getWidth();
+			int boxedHeight = (int)probableBoxedBounds.getHeight();
+			// if text is to be "boxed", make sure it fits
+			if (boxedWidth > 0 && boxedHeight > 0)
             {
                 if (width > boxedWidth || height > boxedHeight)
                 {
@@ -2321,13 +2329,15 @@ public class PixelDrawing
                     }
                 }
             }
-            if (underline) height++;
-            rasBounds = new Rectangle2D.Double(0, (float)lm.getAscent()-lm.getLeading(), width, height);
+			if (underline) height++;
+			rasBounds = new Rectangle2D.Double(0, (float)lm.getAscent()-lm.getLeading(), width, height);
 
-            anchorPoint = getTextCorner(width, height, style, probableBoxedBounds, rotation);
-            if (rotation == 1 || rotation == 3) {
+			anchorPoint = getTextCorner(width, height, style, probableBoxedBounds, rotation);
+			if (rotation == 1 || rotation == 3)
+            {
                 bounds = new Rectangle2D.Double(anchorPoint.getX(), anchorPoint.getY(), height, width);
-            } else {
+            } else
+            {
                 bounds = new Rectangle2D.Double(anchorPoint.getX(), anchorPoint.getY(), width, height);
             }
 

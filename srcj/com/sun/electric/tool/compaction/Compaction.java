@@ -41,6 +41,8 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.drc.DRC;
@@ -118,37 +120,38 @@ public class Compaction extends Listener
 	 */
 	private static class CompactCell extends Job
 	{
-		Cell cell;
+		private Cell cell;
 
 		private static final double DEFAULT_VAL = -99999999;
-		private static final int HORIZONTAL  =        0;
-		private static final int VERTICAL    =        1;
 
-		static class COMPPOLYLIST
+		private static class Axis {}
+		private static final Axis HORIZONTAL = new Axis();
+		private static final Axis VERTICAL   = new Axis();
+
+		private static class COMPPOLYLIST
 		{
-			Poly          poly;
-			Technology       tech;
-			int            networknum;
-			COMPPOLYLIST nextpolylist;
+			private Poly         poly;
+			private Technology   tech;
+			private int          networknum;
+			private COMPPOLYLIST nextpolylist;
 		};
 
-		static class OBJECT
+		private static class OBJECT
 		{
-			Geometric inst;
-			boolean         isnode;
-			COMPPOLYLIST    firstpolylist;
-			double          lowx, highx, lowy, highy;
-			OBJECT nextobject;
+			private Geometric     inst;
+			private COMPPOLYLIST  firstpolylist;
+			private double        lowx, highx, lowy, highy;
+			private OBJECT        nextobject;
 		};
 
-		static class LINE
+		private static class LINE
 		{
-			double        val;
-			double        low, high;
-			double        top, bottom;
-			OBJECT        firstobject;
-			LINE nextline;
-			LINE prevline;
+			private double  val;
+			private double  low, high;
+			private double  top, bottom;
+			private OBJECT  firstobject;
+			private LINE    nextline;
+			private LINE    prevline;
 		};
 
 		private double    com_maxboundary, com_lowbound;
@@ -178,9 +181,10 @@ public class Compaction extends Listener
 			for(;;)
 			{
 				boolean vChange = com_examineonecell(cell, VERTICAL);
-				boolean hChange = com_examineonecell(cell, VERTICAL);
+				boolean hChange = com_examineonecell(cell, HORIZONTAL);
 				if (!vChange && !hChange) break;
 			}
+			System.out.println("Compaction complete");
 			return true;
 		}
 
@@ -189,26 +193,26 @@ public class Compaction extends Listener
 		 * compaction (if "axis" is HORIZONTAL) to cell "np".  Displays state if
 		 * "verbose" is nonzero.  Returns true if a change was made.
 		 */
-		private boolean com_examineonecell(Cell np, int axis)
+		private boolean com_examineonecell(Cell cell, Axis axis)
 		{
 			// determine maximum drc surround for entire technology
 			com_maxboundary = DRC.getWorstSpacingDistance(Technology.getCurrent());
 
-			if (axis == HORIZONTAL) System.out.println("Doing a horizontal compaction"); else
-				System.out.println("Doing a vertical compaction");
+			if (axis == HORIZONTAL) System.out.println("Compacting horizontally"); else
+				System.out.println("Compacting vertically");
 
-			// number ports of cell "np"
+			// number ports of cell "cell"
 			HashMap portIndices = new HashMap();
 			com_flatindex = 1;
-			Netlist nl = np.getUserNetlist();
-			for(Iterator it = np.getPorts(); it.hasNext(); )
+			Netlist nl = cell.getUserNetlist();
+			for(Iterator it = cell.getPorts(); it.hasNext(); )
 			{
 				Export pp = (Export)it.next();
 				Network net = nl.getNetwork(pp, 0);
 
 				// see if this port is on the same net as previously examined one
 				Export found = null;
-				for(Iterator oIt = np.getPorts(); oIt.hasNext(); )
+				for(Iterator oIt = cell.getPorts(); oIt.hasNext(); )
 				{
 					Export oPp = (Export)oIt.next();
 					if (oPp == pp) break;
@@ -223,7 +227,7 @@ public class Compaction extends Listener
 			}
 
 			// copy port numbering onto arcs
-			HashMap arcIndices = com_subsmash(np, portIndices);
+			HashMap arcIndices = com_subsmash(cell, portIndices);
 
 			// clear "seen" information on every node
 			HashSet nodesSeen = new HashSet();
@@ -234,9 +238,10 @@ public class Compaction extends Listener
 			otherobject[0] = null;
 
 			// now check every object
-			for(Iterator it = np.getNodes(); it.hasNext(); )
+			for(Iterator it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
+				if (ni.getProto() == Generic.tech.cellCenterNode) continue;
 
 				// clear "thisobject" before calling com_createobject
 				OBJECT [] thisobject = new OBJECT[1];
@@ -260,6 +265,18 @@ public class Compaction extends Listener
 			for(LINE cur_line = linecomp; cur_line != null; cur_line = cur_line.nextline)
 				com_computeline_hi_and_low(cur_line, axis);
 
+for(LINE cur_line = linecomp; cur_line != null; cur_line = cur_line.nextline)
+{
+	System.out.print("LINE FROM "+cur_line.low+" TO "+cur_line.high+":");
+	for(OBJECT o = cur_line.firstobject; o != null; o = o.nextobject)
+		System.out.print(" "+o.inst.describe());
+	System.out.println();
+}
+System.out.print("PERPENDICULAR:");
+for(OBJECT o = otherobject[0]; o != null; o = o.nextobject)
+	System.out.print(" "+o.inst.describe());
+System.out.println();
+
 			// prevent the stretching line from sliding
 			HashSet clearedArcs = com_noslide(linestretch);
 
@@ -269,7 +286,7 @@ public class Compaction extends Listener
 			// do the compaction
 			com_lowbound = com_findleastlow(linecomp, axis);
 			boolean change = com_lineup_firstrow(linecomp, linestretch, axis, com_lowbound);
-			change = com_compact(linecomp, linestretch, axis, change, np);
+			change = com_compact(linecomp, linestretch, axis, change, cell);
 
 			// restore rigidity if no changes were made
 			if (!change) com_undo_fixed_nonfixed(linecomp, linestretch);
@@ -280,16 +297,15 @@ public class Compaction extends Listener
 			return change;
 		}
 
-		private boolean com_compact(LINE line, LINE other_line, int axis, boolean change, Cell cell)
+		private boolean com_compact(LINE line, LINE other_line, Axis axis, boolean change, Cell cell)
 		{
 			boolean spread = isAllowsSpreading();
-
+System.out.println("***IN COMPACT");
 			// loop through all lines that may compact
 			for(LINE cur_line = line.nextline; cur_line != null; cur_line = cur_line.nextline)
 			{
 				// look at every object in the line that may compact
 				double best_motion = DEFAULT_VAL;
-				OBJECT thisoreason = null, otheroreason = null;
 				for(OBJECT cur_object = cur_line.firstobject; cur_object != null; cur_object = cur_object.nextobject)
 				{
 					// look at all previous lines
@@ -300,19 +316,11 @@ public class Compaction extends Listener
 							cur_line.low - prev_line.high > best_motion) continue;
 
 						// simple object compaction
-						OBJECT [] oReason = new OBJECT[1];
-						COMPPOLYLIST [] oPReason = new COMPPOLYLIST[1];
-						COMPPOLYLIST [] pReason = new COMPPOLYLIST[1];
-						double this_motion = com_checkinst(cur_object, prev_line, axis, oReason, oPReason, pReason, cell);
+						double this_motion = com_checkinst(cur_object, prev_line, axis, cell);
 						if (this_motion == DEFAULT_VAL) continue;
 						if (best_motion == DEFAULT_VAL || this_motion < best_motion)
 						{
 							best_motion = this_motion;
-							if (oReason[0] != null)
-							{
-								thisoreason = oReason[0];
-								otheroreason = cur_object;
-							}
 						}
 					}
 				}
@@ -333,11 +341,9 @@ public class Compaction extends Listener
 			return change;
 		}
 
-		private double com_checkinst(OBJECT object, LINE line, int axis, OBJECT [] oReason,
-			COMPPOLYLIST [] oPReason, COMPPOLYLIST [] pReason, Cell cell)
+		private double com_checkinst(OBJECT object, LINE line, Axis axis, Cell cell)
 		{
 			double best_motion = DEFAULT_VAL;
-			oReason[0] = null;
 			for(COMPPOLYLIST polys = object.firstpolylist; polys != null; polys = polys.nextpolylist)
 			{
 				Poly poly = polys.poly;
@@ -346,17 +352,11 @@ public class Compaction extends Listener
 				Layer layer = poly.getLayer().getNonPseudoLayer();
 
 				// find distance line can move toward this poly
-				OBJECT [] subOReason = new OBJECT[1];
-				COMPPOLYLIST [] subPReason = new COMPPOLYLIST[1];
-				double this_motion = com_minseparate(object, layer, polys, line, axis,
-					subOReason, subPReason, cell);
+				double this_motion = com_minseparate(object, layer, polys, line, axis, cell);
 				if (this_motion == DEFAULT_VAL) continue;
 				if (best_motion == DEFAULT_VAL || this_motion < best_motion)
 				{
 					best_motion = this_motion;
-					oReason[0] = subOReason[0];
-					oPReason[0] = subPReason[0];
-					pReason[0] = polys;
 				}
 			}
 			return best_motion;
@@ -371,9 +371,8 @@ public class Compaction extends Listener
 		 * constraint.
 		 */
 		private double com_minseparate(OBJECT object, Layer nlayer, COMPPOLYLIST npolys,
-			LINE line, int axis, OBJECT [] oReason, COMPPOLYLIST [] pReason, Cell cell)
+			LINE line, Axis axis, Cell cell)
 		{
-			oReason[0] = null;
 			Poly npoly = npolys.poly;
 			double nminsize = npoly.getMinSize();
 			Technology tech = npolys.tech;
@@ -396,7 +395,7 @@ public class Compaction extends Listener
 			// search the line
 			for(OBJECT cur_object = line.firstobject; cur_object != null; cur_object = cur_object.nextobject)
 			{
-				if (cur_object.isnode)
+				if (cur_object.inst instanceof NodeInst)
 				{
 					double ni_hi = cur_object.highy;
 					if (axis == HORIZONTAL) ni_hi = cur_object.highx;
@@ -427,8 +426,6 @@ public class Compaction extends Listener
 								if (this_motion < best_motion || best_motion == DEFAULT_VAL)
 								{
 									best_motion = this_motion;
-									oReason[0] = cur_object;
-									pReason[0] = polys;
 								}
 								continue;
 							}
@@ -474,8 +471,6 @@ public class Compaction extends Listener
 							if (this_motion < best_motion || best_motion == DEFAULT_VAL)
 							{
 								best_motion = this_motion;
-								oReason[0] = cur_object;
-								pReason[0] = polys;
 							}
 						}
 					}
@@ -511,8 +506,6 @@ public class Compaction extends Listener
 								if (this_motion < best_motion || best_motion == DEFAULT_VAL)
 								{
 									best_motion = this_motion;
-									oReason[0] = cur_object;
-									pReason[0] = polys;
 								}
 								continue;
 							}
@@ -538,8 +531,6 @@ public class Compaction extends Listener
 							if (this_motion < best_motion || best_motion == DEFAULT_VAL)
 							{
 								best_motion = this_motion;
-								oReason[0] = cur_object;
-								pReason[0] = polys;
 							}
 						}
 					}
@@ -557,15 +548,15 @@ public class Compaction extends Listener
 		 * between them is returned.  Otherwise, DEFAULT_VAL is returned.
 		 */
 		private double com_check(Layer layer1, int index1, OBJECT object1, Rectangle2D bound1,
-			Layer layer2, int index2, OBJECT object2, Rectangle2D bound2, double dist, int axis)
+			Layer layer2, int index2, OBJECT object2, Rectangle2D bound2, double dist, Axis axis)
 		{
 			// crop out parts of a box covered by a similar layer on the other node
-			if (object1.isnode)
+			if (object1.inst instanceof NodeInst)
 			{
 				if (com_cropnodeinst(object1.firstpolylist, bound2, layer2, index2))
 					return DEFAULT_VAL;
 			}
-			if (object2.isnode)
+			if (object2.inst instanceof NodeInst)
 			{
 				if (com_cropnodeinst(object2.firstpolylist, bound1, layer1, index1))
 					return DEFAULT_VAL;
@@ -606,7 +597,7 @@ public class Compaction extends Listener
 			return false;
 		}
 
-		private boolean com_lineup_firstrow(LINE line, LINE other_line, int axis, double lowbound)
+		private boolean com_lineup_firstrow(LINE line, LINE other_line, Axis axis, double lowbound)
 		{
 			boolean change = false;
 			double i = line.low - lowbound;
@@ -636,9 +627,10 @@ public class Compaction extends Listener
 
 			for(OBJECT cur_object = line.firstobject; cur_object != null; cur_object = cur_object.nextobject)
 			{
-				if (cur_object.isnode)
+				if (cur_object.inst instanceof NodeInst)
 				{
 					NodeInst ni = (NodeInst)cur_object.inst;
+System.out.println("MOVE NODE "+ni.describe()+" BY ("+(-movex)+","+(-movey)+")");
 					ni.modifyInstance(-movex, -movey, 0, 0, 0);
 					break;
 				}
@@ -670,7 +662,7 @@ public class Compaction extends Listener
 		 * finds the smallest low value (lowx for VERTICAL, lowy for HORIZ case)
 		 * stores it in line->low.
 		 */
-		private double com_findleastlow(LINE line, int axis)
+		private double com_findleastlow(LINE line, Axis axis)
 		{
 			if (line == null) return 0;
 
@@ -679,7 +671,7 @@ public class Compaction extends Listener
 			double low = 0;
 			for(OBJECT cur_object = line.firstobject; cur_object != null; cur_object = cur_object.nextobject)
 			{
-				if (!cur_object.isnode) continue;
+				if (!(cur_object.inst instanceof NodeInst)) continue;
 				double thislow = cur_object.lowy;
 				if (axis == HORIZONTAL) thislow = cur_object.lowx;
 
@@ -704,8 +696,9 @@ public class Compaction extends Listener
 			{
 				for(OBJECT cur_object = cur_line.firstobject; cur_object != null; cur_object = cur_object.nextobject)
 				{
-					if (!cur_object.isnode)    // arc rigid
+					if (!(cur_object.inst instanceof NodeInst))    // arc rigid
 					{
+System.out.println("TEMP RIGID: "+((ArcInst)cur_object.inst).describe());
 						Layout.setTempRigid((ArcInst)cur_object.inst, true);
 					}
 				}
@@ -714,8 +707,9 @@ public class Compaction extends Listener
 			{
 				for(OBJECT cur_object = cur_line.firstobject; cur_object != null; cur_object = cur_object.nextobject)
 				{
-					if (!cur_object.isnode)   // arc unrigid
+					if (!(cur_object.inst instanceof NodeInst))   // arc unrigid
 					{
+System.out.println("TEMP UNRIGID: "+((ArcInst)cur_object.inst).describe());
 						Layout.setTempRigid((ArcInst)cur_object.inst, false);
 					}
 				}
@@ -732,8 +726,9 @@ public class Compaction extends Listener
 			{
 				for(OBJECT cur_object = cur_line.firstobject; cur_object != null; cur_object = cur_object.nextobject)
 				{
-					if (!cur_object.isnode)
+					if (!(cur_object.inst instanceof NodeInst))
 					{
+System.out.println("REMOVE TEMP RIGID: "+((ArcInst)cur_object.inst).describe());
 						Layout.removeTempRigid((ArcInst)cur_object.inst);
 					}
 				}
@@ -742,8 +737,9 @@ public class Compaction extends Listener
 			{
 				for(OBJECT cur_object = cur_line.firstobject; cur_object != null; cur_object = cur_object.nextobject)
 				{
-					if (!cur_object.isnode)
+					if (!(cur_object.inst instanceof NodeInst))
 					{
+System.out.println("REMOVE TEMP RIGID: "+((ArcInst)cur_object.inst).describe());
 						Layout.removeTempRigid((ArcInst)cur_object.inst);
 					}
 				}
@@ -762,7 +758,7 @@ public class Compaction extends Listener
 				for(OBJECT cur_object = cur_line.firstobject; cur_object != null;
 					cur_object = cur_object.nextobject)
 				{
-					if (!cur_object.isnode)
+					if (!(cur_object.inst instanceof NodeInst))
 					{
 						ArcInst ai = (ArcInst)cur_object.inst;
 						if (ai.isSlidable())
@@ -788,14 +784,14 @@ public class Compaction extends Listener
 			}
 		}
 
-		private void com_computeline_hi_and_low(LINE line, int axis)
+		private void com_computeline_hi_and_low(LINE line, Axis axis)
 		{
 			// find smallest and highest vals for the each object
 			boolean first_time = true;
 			double lx = 0, hx = 0, ly = 0, hy = 0;
 			for(OBJECT cur_object = line.firstobject; cur_object != null; cur_object = cur_object.nextobject)
 			{
-				if (!cur_object.isnode) continue;
+				if (!(cur_object.inst instanceof NodeInst)) continue;
 				if (first_time)
 				{
 					lx = cur_object.lowx;
@@ -829,7 +825,7 @@ public class Compaction extends Listener
 		/**
 		 * Method to sort line by center val from least to greatest
 		 */
-		private LINE com_sort(LINE line, int axis)
+		private LINE com_sort(LINE line, Axis axis)
 		{
 			if (line == null)
 			{
@@ -914,7 +910,7 @@ public class Compaction extends Listener
 			return new_line;
 		}
 
-		private void com_createobjects(NodeInst ni, int axis, OBJECT [] thisobject, OBJECT [] otherobject, HashSet nodesSeen,
+		private void com_createobjects(NodeInst ni, Axis axis, OBJECT [] thisobject, OBJECT [] otherobject, HashSet nodesSeen,
 			HashMap arcIndices, HashMap portIndices, Netlist nl)
 		{
 			// if node has already been examined, quit now
@@ -945,7 +941,6 @@ public class Compaction extends Listener
 
 				// stop if other end has already been examined
 				if (nodesSeen.contains(other_end)) continue;
-
 				OBJECT new_object = com_make_ai_object(ai, null, GenMath.MATID, axis, 0,0,0,0, arcIndices);
 
 				OBJECT second_object = com_make_ni_object(other_end, null, GenMath.MATID, axis, 0,0,0,0, arcIndices, portIndices, nl);
@@ -991,21 +986,40 @@ public class Compaction extends Listener
 		 * "object".
 		 */
 		private OBJECT com_make_ni_object(NodeInst ni, OBJECT object, AffineTransform newtrans,
-			int axis, double low1, double high1, double low2, double high2, HashMap arcIndices, HashMap portIndices, Netlist nl)
+			Axis axis, double low1, double high1, double low2, double high2, HashMap arcIndices, HashMap portIndices, Netlist nl)
 		{
 			OBJECT new_object = object;
 			if (object == null)
 			{
 				new_object = new OBJECT();
 				new_object.inst = ni;
-				new_object.isnode = true;
 				new_object.nextobject = null;
 				new_object.firstpolylist = null;
 				Rectangle2D bounds = ni.getBounds();
-				new_object.lowx = bounds.getMinX();
-				new_object.highx = bounds.getMaxX();
-				new_object.lowy = bounds.getMinY();
-				new_object.highy = bounds.getMaxY();
+				if (ni.getProto() instanceof Cell)
+				{
+					new_object.lowx = bounds.getMinX();
+					new_object.highx = bounds.getMaxX();
+					new_object.lowy = bounds.getMinY();
+					new_object.highy = bounds.getMaxY();
+				} else
+				{
+					double cX = ni.getTrueCenterX();
+					double cY = ni.getTrueCenterY();
+					double sX = ni.getXSize();
+					double sY = ni.getYSize();
+					SizeOffset so = ni.getSizeOffset();
+					double lX = cX - sX/2 + so.getLowXOffset();
+					double hX = cX + sX/2 - so.getLowXOffset();
+					double lY = cY - sY/2 + so.getLowYOffset();
+					double hY = cY + sY/2 - so.getLowYOffset();
+					Rectangle2D bound = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
+					GenMath.transformRect(bound, ni.rotateOut());
+					new_object.lowx = bound.getMinX();
+					new_object.highx = bound.getMaxX();
+					new_object.lowy = bound.getMinY();
+					new_object.highy = bound.getMaxY();
+				}
 			}
 
 			// propagate global network info to local port prototypes on "ni"
@@ -1159,7 +1173,7 @@ public class Compaction extends Listener
 		 * defined by "low1", "high1" and "low2", "high2" before being added to "object".
 		 */
 		private OBJECT com_make_ai_object(ArcInst ai, OBJECT object, AffineTransform newtrans,
-			int axis, double low1, double high1, double low2, double high2, HashMap arcIndices)
+			Axis axis, double low1, double high1, double low2, double high2, HashMap arcIndices)
 		{
 			// create the object if at the top level
 			OBJECT new_object = object;
@@ -1167,10 +1181,10 @@ public class Compaction extends Listener
 			{
 				new_object = new OBJECT();
 				new_object.inst = ai;
-				new_object.isnode = false;
 				new_object.nextobject = null;
 				new_object.firstpolylist = null;
-				Rectangle2D bounds = ai.getBounds();
+                Poly poly = ai.makePoly(ai.getLength(), ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
+				Rectangle2D bounds = poly.getBounds2D();
 				new_object.lowx = bounds.getMinX();
 				new_object.highx = bounds.getMaxX();
 				new_object.lowy = bounds.getMinY();
