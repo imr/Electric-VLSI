@@ -65,20 +65,6 @@ public class Resources {
     public static Class get3DClass(String name)
     {
         return (getClass(name, plugin3D));
-//        Class threeDClass = null;
-//		try
-//        {
-//            threeDClass = Class.forName(plugin3D+"."+name);
-//
-//        } catch (ClassNotFoundException e)
-//        {
-//            if (Main.getDebug()) System.out.println("Can't find class '" + name +
-//                    "' from 3D plugin: " + e.getMessage());
-//        } catch (Error e)
-//        {
-//            if (Main.getDebug()) System.out.println("Java3D not installed: " + e.getMessage());
-//        }
-//		return (threeDClass);
     }
 
     private static Class getClass(String name, String plugin)
