@@ -484,7 +484,7 @@ public class Array extends EDialog
 					xPos += xOff;   yPos += yOff;
 					NodeInst newNi = NodeInst.makeInstance(ni.getProto(),
 						new Point2D.Double(xPos, yPos), sx, sy, ro, cell, null);
-					if (newNi == null) return false;
+					if (newNi == null) continue;
 					newNi.setProtoTextDescriptor(ni.getProtoTextDescriptor());
 					newNi.setNameTextDescriptor(ni.getNameTextDescriptor());
 					if (ni.isExpanded()) newNi.setExpanded(); else newNi.clearExpanded();
@@ -535,7 +535,9 @@ public class Array extends EDialog
 					}
 
 					NodeInst ni0 = (NodeInst)nodeMap.get(ai.getHead().getPortInst().getNodeInst());
+					if (ni0 == null) continue;
 					NodeInst ni1 = (NodeInst)nodeMap.get(ai.getTail().getPortInst().getNodeInst());
+					if (ni1 == null) continue;
 					cX0 = ni0.getAnchorCenterX();
 					cY0 = ni0.getAnchorCenterY();
 					cX1 = ni1.getAnchorCenterX();
@@ -544,7 +546,7 @@ public class Array extends EDialog
 					PortInst pi1 = ni1.findPortInstFromProto(ai.getTail().getPortInst().getPortProto());
 					ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), pi0,
 						new Point2D.Double(cX0+xOff0, cY0+yOff0), pi1, new Point2D.Double(cX1+xOff1, cY1+yOff1), null);
-					if (newAi == null) return false;
+					if (newAi == null) continue;
 					newAi.copyPropertiesFrom(ai);
 
 					if (lastAddNames)
@@ -567,6 +569,7 @@ public class Array extends EDialog
 					Export pp = (Export)eit.next();
 					PortInst oldPI = pp.getOriginalPort();
 					NodeInst newNI = (NodeInst)nodeMap.get(oldPI.getNodeInst());
+					if (newNI == null) continue;
 					PortInst pi = newNI.findPortInstFromProto(oldPI.getPortProto());
 					portInstsToExport.add(pi);
 				}

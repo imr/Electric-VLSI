@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01n: *********************************
 
+IMP: (9/10/04, SMR) In-line text editing starts the text selected.
+
+IMP: (9/10/04, SMR) Creation of multiple cell-center nodes is disallowed.
+
+BUG: (9/10/04, SMR) When instances in a cell are locked, moving more than one object
+     erroneously invokes the locked-warning dialog.
+FIX: In CircuitChanges.ManyMove.doIt() only check nodes that moved, not all in the cell.
+
 IMP/MAN (9/10/04, RK) Allow user to control number of items printed in the error diagnostics.
 
 IMP/MAN (9/10/04, RK) Reworked the NCC commands. The operation is now selected by the NCC preferences pane while the number of windows is selected by the menu.

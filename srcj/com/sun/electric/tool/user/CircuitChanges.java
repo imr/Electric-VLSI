@@ -4136,10 +4136,6 @@ public class CircuitChanges
 			{
 				NodeInst ni = (NodeInst)it.next();
 				ni.clearBit(flag);
-
-				// make sure moving the node is allowed
-				if (CircuitChanges.cantEdit(cell, ni, true)) continue;
-
 				ni.setTempObj(new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY()));
 			}
 			for(Iterator it = cell.getArcs(); it.hasNext(); )
@@ -4160,6 +4156,9 @@ public class CircuitChanges
 					NodeInst ni = (NodeInst)eobj;
 					if (!ni.isBit(flag)) numNodes++;
 					ni.setBit(flag);
+
+					// make sure moving the node is allowed
+					if (CircuitChanges.cantEdit(cell, ni, true)) continue;
 				} else if (eobj instanceof ArcInst)
 				{
 					ArcInst ai = (ArcInst)eobj;
@@ -5750,7 +5749,7 @@ public class CircuitChanges
 					if (!giveError) return true;
 					String [] options = {"Yes", "No", "Always"};
 					int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
-						"Instances in cell " + cell.describe() + " are locked.  You cannot move " + item.describe() +
+						"Modification of instances in cell " + cell.describe() + " is disallowed.  You cannot move " + item.describe() +
 						".  Change anyway?",
 						"Allow changes", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
 						null, options, options[1]);
@@ -5766,7 +5765,7 @@ public class CircuitChanges
 			if (!giveError) return true;
 			String [] options = {"Yes", "No", "Always"};
 			int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
-				"Changes to cell " + cell.describe() + " are locked.  Change "+((item == null)? "" : item.describe())+" anyway?",
+				"Modification of cell " + cell.describe() + " is disallowed.  Change "+((item == null)? "" : item.describe())+" anyway?",
 				"Allow changes", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
 				null, options, options[1]);
 			if (ret == 1) return true;

@@ -422,21 +422,32 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 		EditInPlaceListener eip = new EditInPlaceListener(cti, curWnd, theFont, highX - lowX, highY - lowY, lowX, lowY);
 	}
 
+	/**
+	 * Class for in-line editing a single-line piece of text.
+	 * The class exists so that it can grab the focus.
+	 */
 	static private class EIPTextField extends JTextField
 	{
-		private boolean first = true;
-
 		EIPTextField(String text) { super(text); }
 
 		public void paint(Graphics g)
 		{
-			if (first)
-			{
-				selectAll();
-				repaint();
-				System.out.println("First paint");
-				first = false;
-			}
+			requestFocus();
+			super.paint(g);
+		}
+	}
+
+	/**
+	 * Class for in-line editing a multiple-line piece of text.
+	 * The class exists so that it can grab the focus.
+	 */
+	static private class EIPEditorPane extends JEditorPane
+	{
+		EIPEditorPane(String text) { super("text/plain", text); }
+
+		public void paint(Graphics g)
+		{
+			requestFocus();
 			super.paint(g);
 		}
 	}
@@ -460,7 +471,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 			// make the field bigger
 			if (cti.isMultiLineCapable())
 			{
-				JEditorPane ep = new JEditorPane("text/plain", cti.initialText);
+				EIPEditorPane ep = new EIPEditorPane(cti.initialText);
 				tc = ep;
 				height *= 2;
 			} else
@@ -478,7 +489,6 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 			tc.setLocation(lowX, lowY);
 			tc.setBorder(new EmptyBorder(0,0,0,0));
 			if (theFont != null) tc.setFont(theFont);
-//			javax.swing.text.Document doc = tc.getDocument();
 			tc.selectAll();
 
 			wnd.add(tc);

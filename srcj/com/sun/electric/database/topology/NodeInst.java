@@ -219,6 +219,21 @@ public class NodeInst extends Geometric implements Nodable
 				return null;
 			}
 		}
+
+		if (protoType == Generic.tech.cellCenterNode)
+		{
+			// only 1 cell-center is allowed: check for others
+			for(Iterator it = parent.getNodes(); it.hasNext(); )
+			{
+				NodeInst oNi = (NodeInst)it.next();
+				if (oNi.getProto() == Generic.tech.cellCenterNode)
+				{
+					System.out.println("Can only be one cell-center in a cell: new one ignored");
+					return null;
+				}
+			}
+		}
+
 		NodeInst ni = lowLevelAllocate();
 		if (ni.lowLevelPopulate(protoType, center, width, height, angle, parent)) return null;
 		if (name != null) ni.setName(name);
