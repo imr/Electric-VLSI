@@ -1127,7 +1127,7 @@ public class Quick
 						             topCell, topGlobalIndex, subTrans, minSize, baseMulti, sameInstance))
                     {
                         foundError = true;
-                        if (errorType == DRC.ERROR_CHECK_DEFAULT) return true;
+                        if (errorType != DRC.ERROR_CHECK_EXHAUSTIVE) return true;
                     }
 				} else
 				{
@@ -1211,7 +1211,7 @@ public class Quick
 						if (ret)
                         {
                             foundError = true;
-                            if (errorType == DRC.ERROR_CHECK_DEFAULT) return true;
+                            if (errorType != DRC.ERROR_CHECK_EXHAUSTIVE) return true;
                         }
 					}
 				}
@@ -1287,7 +1287,7 @@ public class Quick
 					if (ret)
                     {
                         foundError = true;
-                        if (errorType == DRC.ERROR_CHECK_DEFAULT) return true;
+                        if (errorType != DRC.ERROR_CHECK_EXHAUSTIVE) return true;
                     }
 				}
 			}
