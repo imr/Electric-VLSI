@@ -66,7 +66,7 @@ public class EvalJavaBsh
     /** Context stack for recursive eval calls */   private Stack contextStack = new Stack();
     /** Info stack for recursive eval calls */      private Stack infoStack = new Stack();
 
-    /** turn on Bsh verbose DEBUG stmts */          private static boolean DEBUG = true;
+    /** turn on Bsh verbose DEBUG stmts */          private static boolean DEBUG = false;
     /** turn on stack trace stmts for exceptions */ private static boolean DEBUGSTACKTRACE = false;
 
     public static class IgnorableException extends Exception {
