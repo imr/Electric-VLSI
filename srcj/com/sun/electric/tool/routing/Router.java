@@ -68,7 +68,7 @@ public abstract class Router {
 
     /** set to tell user short info on what was done */     protected boolean verbose = false;
 
-    // ------------------ Protected Abstract Router Methods -----------------
+    // ------------------ Abstract Router Methods -----------------
 
     /**
      * Plan a route from startRE to endRE.
@@ -83,9 +83,11 @@ public abstract class Router {
      *        Ignored if null
      * @return false on error, route should be ignored.
      */
-    protected abstract boolean planRoute(Route route, Cell cell, RouteElementPort endRE,
-                                         Point2D startLoc, Point2D endLoc, Point2D hint);
+//    protected abstract boolean planRoute(Route route, Cell cell, RouteElementPort endRE,
+//                                         Point2D startLoc, Point2D endLoc, Point2D hint);
 
+    /** Return a string describing the Router */
+    //public abstract String toString();
 
     // --------------------------- Public Methods ---------------------------
 
@@ -97,9 +99,6 @@ public abstract class Router {
     public void createRoute(Route route, Cell cell) {
         CreateRouteJob job = new CreateRouteJob(this, route, cell, verbose);
     }
-
-    /** Return a string describing the Router */
-    public abstract String toString();
 
     /**
      * Create the route, but does not wrap Job around it

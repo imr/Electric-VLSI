@@ -30,15 +30,13 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Point2D;
-import java.util.List;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.HashSet;
+import java.util.*;
 
 /**
  * User: gainsley
@@ -55,7 +53,7 @@ public class SimpleWirer extends InteractiveRouter {
 
 
     protected boolean planRoute(Route route, Cell cell, RouteElementPort endRE,
-                                Point2D startLoc, Point2D endLoc, Point2D clicked) {
+                                Point2D startLoc, Point2D endLoc, Point2D clicked, VerticalRoute vroute) {
 
         RouteElementPort startRE = route.getEnd();
 
@@ -96,13 +94,7 @@ public class SimpleWirer extends InteractiveRouter {
             if (User.tool.getCurrentArcProto() == Generic.tech.universal_arc)
                 useArc = Generic.tech.universal_arc;
             else {
-                // route vertically
-                VerticalRoute vroute = new VerticalRoute(startRE, endRE);
-                if (!vroute.specifyRoute()) {
-                    System.out.println("Don't know how to connect (using Technology "+cell.getTechnology()+"):\n   "+startRE+"\n   "+endRE);
-                    return false;
-                }
-                vroute.buildRoute(route, cell, startLoc, endLoc, cornerLoc);
+                vroute.buildRoute(route, cell, startRE, endRE, startLoc, endLoc, cornerLoc);
                 return true;
             }
         }

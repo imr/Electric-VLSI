@@ -57,14 +57,16 @@ import java.awt.geom.Point2D;
  * it the contact size and arc angle, and it does not connect to startRE or endRE.
  */
 public class VerticalRoute {
-    /** start of the route */                   private RouteElementPort startRE;
-    /** end of the route */                     private RouteElementPort endRE;
+    /** start of the vertical route */          private PortProto startPort;
+    /** end of the vertical route */            private PortProto endPort;
     /** list of arcs and nodes to make route */ private SpecifiedRoute specifiedRoute;
     /** list of all valid specified routes */   private List allSpecifiedRoutes;
     /** first arc (from startRE) */             private ArcProto startArc;
     /** last arct (to endRE) */                 private ArcProto endArc;
-    /** start object (ignored in search) */     private ElectricObject startObj;
-    /** end object (ignored in search) */       private ElectricObject endObj;
+
+    /** the possible start arcs */              private ArcProto [] startArcs;
+    /** the possible end arcs */                private ArcProto [] endArcs;
+    /** if route specification succeeded */     private boolean specificationSucceeded;
 
     private int searchNumber;
     private static final int SEARCHLIMIT = 100;
@@ -83,45 +85,53 @@ public class VerticalRoute {
     }
 
     /**
-     * Create new VerticalRoute object to route between startRE and endRE
-     * @param startRE the start of the route
-     * @param endRE the end of the route
+     * Private constructor. Any of start/endPort, or start/endArc may be null, however
+     * startArcs and endArcs must not be null.  They are the possible arcs to connect between
+     * startPort/Arc and endPort/Arc.
+     * @param startPort the start port of the route
+     * @param endPort the end port of the route
+     * @param startArc the start arc of the route
+     * @param endArc the end arc of the route
+     * @param startArcs the possible starting arcs
+     * @param endArcs the possible ending arcs
      */
-    public VerticalRoute(RouteElementPort startRE, RouteElementPort endRE) {
-        this.startRE = startRE;
-        this.endRE = endRE;
+    private VerticalRoute(PortProto startPort, PortProto endPort, ArcProto startArc, ArcProto endArc,
+                          ArcProto [] startArcs, ArcProto [] endArcs) {
+        this.startPort = startPort;
+        this.endPort = endPort;
+        this.startArc = startArc;
+        this.endArc = endArc;
+        this.startArcs = copyArcArray(startArcs);
+        this.endArcs = copyArcArray(endArcs);
         specifiedRoute = null;
         allSpecifiedRoutes = null;
-        startArc = null;
-        endArc = null;
+        specificationSucceeded = false;
+    }
+    
+    /**
+     * Create new VerticalRoute object to route between startRE and endRE
+     * @param startPort the start port of the route
+     * @param endPort the end port of the route
+     */
+    public static VerticalRoute newRoute(PortProto startPort, PortProto endPort) {
+        ArcProto [] startArcs = startPort.getBasePort().getConnections();
+        ArcProto [] endArcs = endPort.getBasePort().getConnections();
+        VerticalRoute vr = new VerticalRoute(startPort, endPort, null, null, startArcs, endArcs);
+        vr.specificationSucceeded = vr.specifyRoute();
+        return vr;
     }
 
     /**
      * Create new VerticalRoute object to route between startRE and endArc
-     * @param startRE the start of the route
+     * @param startPort the start port of the route
      * @param endArc and arc the end of the route will be able to connect to
      */
-    public VerticalRoute(RouteElementPort startRE, ArcProto endArc) {
-        this.startRE = startRE;
-        this.endRE = null;
-        specifiedRoute = null;
-        allSpecifiedRoutes = null;
-        startArc = null;
-        this.endArc = endArc;
-    }
-
-    /**
-     * Create new VerticalRoute object to route between startArc and endArc
-     * @param startArc the arc the start of the route will be able to connect to
-     * @param endArc the arc the end of the route will be able to connect to
-     */
-    public VerticalRoute(ArcProto startArc, ArcProto endArc) {
-        this.startRE = null;
-        this.endRE = null;
-        specifiedRoute = null;
-        allSpecifiedRoutes = null;
-        this.startArc = startArc;
-        this.endArc = endArc;
+    public static VerticalRoute newRoute(PortProto startPort, ArcProto endArc) {
+        ArcProto [] startArcs = startPort.getBasePort().getConnections();
+        ArcProto [] endArcs = {endArc};
+        VerticalRoute vr = new VerticalRoute(startPort, null, null, endArc, startArcs, endArcs);
+        vr.specificationSucceeded = vr.specifyRoute();
+        return vr;
     }
 
     /**
@@ -137,35 +147,31 @@ public class VerticalRoute {
     public ArcProto getEndArc() { return endArc; }
 
     /**
+     * See if specification succeeded and VerticalRoute contains a valid specification
+     * @return true if succeeded, false otherwise.
+     */
+    public boolean isSpecificationSucceeded() { return specificationSucceeded; }
+
+    // we need to copy the array, because we want to modify it
+    private ArcProto [] copyArcArray(ArcProto [] arcs) {
+        ArcProto [] copy = new ArcProto[arcs.length];
+        for (int i=0; i<arcs.length; i++) {
+            ArcProto arc = arcs[i];
+            // get rid of arcs we won't route with
+            if (arc == Generic.tech.universal_arc) arc = null;
+            if (arc == Generic.tech.invisible_arc) arc = null;
+            if (arc == Generic.tech.unrouted_arc) arc = null;
+            if ((arc != null) && (arc.isNotUsed())) arc = null;
+            copy[i] = arc;
+        }
+        return copy;
+    }
+
+    /**
      * Specify a Route between startRE and endRE
      * @return true if a route was found, false otherwise
      */
-    public boolean specifyRoute() {
-        // find possible arcs we can try to connect between
-        // this bunch of junk makes it possible to accommodate
-        // several start and end types, but use the same method to evaluate
-        ArcProto [] startArcs = null;
-        ArcProto [] endArcs = null;
-        if (startRE != null) {
-            PortProto startPort = ((RouteElementPort)startRE).getPortProto();
-            startArcs = startPort.getBasePort().getConnections();
-            startObj = startPort;
-        } else if (startArc != null) {
-            startArcs = new ArcProto[1];
-            startArcs[0] = startArc;
-        }
-        if (endRE != null) {
-            PortProto endPort = ((RouteElementPort)endRE).getPortProto();
-            endArcs = endPort.getBasePort().getConnections();
-            endObj = endPort;
-        } else if (endArc != null) {
-            endArcs = new ArcProto[1];
-            endArcs[0] = endArc;
-        }
-
-        // null out bad arcs
-        startArcs = nullBadArcs(startArcs);
-        endArcs = nullBadArcs(endArcs);
+    private boolean specifyRoute() {
 
         if (endArcs == null || startArcs == null) {
             System.out.println("VerticalRoute: invalid start or end point");
@@ -173,17 +179,6 @@ public class VerticalRoute {
         }
 
         return specifyRoute(startArcs, endArcs);
-    }
-
-    private static ArcProto [] nullBadArcs(ArcProto [] arcs) {
-        // null out bad ars
-        for (int i=0; i<arcs.length; i++) {
-            if (arcs[i] == Generic.tech.universal_arc) arcs[i] = null;
-            if (arcs[i] == Generic.tech.invisible_arc) arcs[i] = null;
-            if (arcs[i] == Generic.tech.unrouted_arc) arcs[i] = null;
-            if ((arcs[i] != null) && (arcs[i].isNotUsed())) arcs[i] = null;
-        }
-        return arcs;
     }
 
     /**
@@ -198,7 +193,8 @@ public class VerticalRoute {
      * @param cell the cell in which to create the vertical route
      * @param location where to create the route (database units)
      */
-    public void buildRoute(Route route, Cell cell, Point2D startLoc, Point2D endLoc, Point2D location) {
+    public void buildRoute(Route route, Cell cell, RouteElementPort startRE, RouteElementPort endRE,
+                           Point2D startLoc, Point2D endLoc, Point2D location) {
 
         if (specifiedRoute == null) {
             System.out.println("Error: Trying to build VerticalRoute without a call to specifyRoute() first");
@@ -408,8 +404,8 @@ public class VerticalRoute {
             if (pp.getParent().getFunction() != NodeProto.Function.CONTACT) continue;
             if (DEBUGSEARCH) System.out.println(ds+"Checking if "+pp+" (parent is "+pp.getParent()+") connects to "+startArc);
             if (pp.connectsTo(startArc)) {
-                if (pp == startObj) continue;                       // ignore start port
-                if (pp == endObj) continue;                         // ignore end port
+                if (pp == startPort) continue;                       // ignore start port
+                if (pp == endPort) continue;                         // ignore end port
                 if (specifiedRoute.contains(pp)) continue;          // ignore ones we've already hit
                 // add to list
                 int prePortSize = specifiedRoute.size();

@@ -78,12 +78,10 @@ public abstract class InteractiveRouter extends Router {
         badStartObject = badEndObject = null;
     }
 
-    // --------------------- Abstract Router Classes ------------------------------
-
-    public abstract String toString();
+    public String toString() { return "Interactive Router"; }
 
     protected abstract boolean planRoute(Route route, Cell cell, RouteElementPort endRE,
-                                         Point2D startLoc, Point2D endLoc, Point2D hint);
+                                Point2D startLoc, Point2D endLoc, Point2D clicked, VerticalRoute vroute);
 
     // ----------------------- Interactive Route Control --------------------------
 
@@ -151,18 +149,20 @@ public abstract class InteractiveRouter extends Router {
         if (!started) startInteractiveRoute();
 
         Point2D startLoc = new Point2D.Double(startPort.getPoly().getCenterX(), startPort.getPoly().getCenterY());
-        Poly poly = getConnectingSite(startPort, startLoc);
+        Poly poly = getConnectingSite(startPort, startLoc, -1);
         RouteElementPort startRE = RouteElementPort.existingPortInst(startPort, poly);
         Route route = new Route();
         route.add(startRE); route.setStart(startRE);
         route.setEnd(startRE);
 
-        VerticalRoute vroute = new VerticalRoute(startRE, arc);
-        if (!vroute.specifyRoute()) {
+        PrimitiveNode pn = ((PrimitiveArc)arc).findOverridablePinProto();
+        PortProto pp = pn.getPort(0);
+        VerticalRoute vroute = VerticalRoute.newRoute(startPort.getPortProto(), arc);
+        if (!vroute.isSpecificationSucceeded()) {
             cancelInteractiveRoute();
             return false;
         }
-        vroute.buildRoute(route, startRE.getCell(), startLoc, startLoc, startLoc);
+        vroute.buildRoute(route, startRE.getCell(), startRE, null, startLoc, startLoc, startLoc);
         // restore highlights at start of planning, so that
         // they will correctly show up if this job is undone.
         Highlight.clear();
@@ -226,21 +226,49 @@ public abstract class InteractiveRouter extends Router {
         RouteElementPort startRE = null;                // denote start of route
         RouteElementPort endRE = null;                  // denote end of route
 
-        // special case: if both objects are arc insts, check if they intersect
-        // if they intersect, connect them there
-/*        if ((startObj instanceof ArcInst) && endObj instanceof ArcInst) {
-            if (connectIntersectingArcs(route, (ArcInst)startObj, (ArcInst)endObj)) {
-                // arcs intersected, return new route
-                return route;
-            }
-        }*/
+        // first, convert NodeInsts to PortInsts, if it is one.
+        // Now we don't have to worry about NodeInsts.
+        startObj = convertNodeInsts(startObj, clicked);
+        endObj = convertNodeInsts(endObj, clicked);
 
+        // get the port types at each end so we can build electrical route
+        PortProto startPort = getRoutePort(startObj);
+        PortProto endPort;
+        if (endObj == null) {
+            // end object is null, we are routing to a pin. Figure out what arc to use
+            ArcProto useArc = getArcToUse(startPort, null);
+            PrimitiveNode pn = ((PrimitiveArc)useArc).findOverridablePinProto();
+            endPort = pn.getPort(0);
+        } else {
+            endPort = getRoutePort(endObj);
+        }
+
+        // now determine the electrical route. We need to know what
+        // arcs will be used (and their widths, eventually) to determine
+        // the Port Poly size for contacts
+        VerticalRoute vroute = VerticalRoute.newRoute(startPort, endPort);
+        if (!vroute.isSpecificationSucceeded()) return new Route();
+        // arc width of arcs that will connect to startObj, endObj will determine
+        // valid attachment points of arcs
+        ArcProto startArc = vroute.getStartArc();
+        ArcProto endArc = vroute.getEndArc();
+        double startArcWidth = getArcWidthToUse(startObj, startArc);
+        double endArcWidth = (endObj == null) ? startArcWidth : getArcWidthToUse(endObj, endArc);
+
+        // get valid connecting sites for start and end objects based on the objects
+        // themselves, the point the user clicked, and the width of the wire that will
+        // attach to each
+        Poly startPoly = getConnectingSite(startObj, clicked, startArcWidth);
+        Poly endPoly = getConnectingSite(endObj, clicked, endArcWidth);
+        //Poly startPoly = getConnectingSite(startObj, clicked, 3);
+        //Poly endPoly = getConnectingSite(endObj, clicked, 3);
+
+        // Now we can figure out where on the start and end objects the connecting
+        // arc(s) should connect
         Point2D startPoint = new Point2D.Double(0, 0);
         Point2D endPoint = new Point2D.Double(0,0);
-        getConnectingPoints(startObj, endObj, clicked, startPoint, endPoint);
+        getConnectingPoints(startObj, endObj, clicked, startPoint, endPoint, startPoly, endPoly);
 
-        Poly startPoly = getConnectingSite(startObj, clicked);
-        Poly endPoly = getConnectingSite(endObj, clicked);
 
         PortInst existingStartPort = null;
         PortInst existingEndPort = null;
@@ -258,13 +286,6 @@ public abstract class InteractiveRouter extends Router {
             // arc: figure out where on arc to start
             startRE = findArcConnectingPoint(route, (ArcInst)startObj, startPoint);
             reverseRoute = true;
-        }
-        if (startObj instanceof NodeInst) {
-            // find closest portinst to start from
-            existingStartPort = ((NodeInst)startObj).findClosestPortInst(clicked);
-            if (existingStartPort != null) {
-                startRE = RouteElementPort.existingPortInst(existingStartPort, startPoly);
-            }
         }
         if (startRE == null) {
             if (startObj != badStartObject)
@@ -287,13 +308,6 @@ public abstract class InteractiveRouter extends Router {
                 endRE = findArcConnectingPoint(route, (ArcInst)endObj, endPoint);
                 reverseRoute = false;
             }
-            if (endObj instanceof NodeInst) {
-                // find closest portinst to start from
-                existingEndPort = ((NodeInst)endObj).findClosestPortInst(clicked);
-                if (existingEndPort != null) {
-                    endRE = RouteElementPort.existingPortInst(existingEndPort, endPoly);
-                }
-            }
             if (endRE == null) {
                 if (endObj != badEndObject)
                     System.out.println("  Can't route to "+endObj+", no ports");
@@ -307,16 +321,12 @@ public abstract class InteractiveRouter extends Router {
             // start object
             ArcProto useArc = null;
             if (startObj instanceof PortInst) {
-                PortInst startPort = (PortInst)startObj;
-                useArc = getArcToUse(startPort.getPortProto(), null);
+                PortInst startPi = (PortInst)startObj;
+                useArc = getArcToUse(startPi.getPortProto(), null);
             }
             if (startObj instanceof ArcInst) {
-                ArcInst startArc = (ArcInst)startObj;
-                useArc = startArc.getProto();
-            }
-            if (startObj instanceof NodeInst) {
-                PortInst startPort = ((NodeInst)startObj).findClosestPortInst(clicked);
-                useArc = getArcToUse(startPort.getPortProto(), null);
+                ArcInst startAi = (ArcInst)startObj;
+                useArc = startAi.getProto();
             }
             if (!(useArc instanceof PrimitiveArc)) {
                 System.out.println("  Don't know how to determine pin for arc "+useArc);
@@ -352,7 +362,7 @@ public abstract class InteractiveRouter extends Router {
         //route.add(endRE); route.setEnd(endRE);
 
         // Tell Router to route between startRE and endRE
-        if (planRoute(route, cell, endRE, startPoint, endPoint, clicked))
+        if (planRoute(route, cell, endRE, startPoint, endPoint, clicked, vroute))
             return route;
         else
             return new Route();             // error, return empty route
@@ -360,11 +370,68 @@ public abstract class InteractiveRouter extends Router {
 
     // -------------------- Internal Router Utility Methods --------------------
 
+    /**
+     * If routeObj is a NodeInst, first thing we do is get the nearest PortInst
+     * to where the user clicked, and use that instead.
+     * @param routeObj the route object (possibly a NodeInst).
+     * @param clicked where the user clicked
+     * @return the PortInst on the NodeInst closest to where the user clicked,
+     * or just the routeObj back if it is not a NodeInst.
+     */
+    protected static ElectricObject convertNodeInsts(ElectricObject routeObj, Point2D clicked) {
+        if (routeObj instanceof NodeInst) {
+            return ((NodeInst)routeObj).findClosestPortInst(clicked);
+        }
+        return routeObj;
+    }
 
+    /**
+     * Get the PortProto associated with routeObj (it should be either
+     * a ArcInst or a PortInst, otherwise this will return null).
+     * @param routeObj the route object
+     * @return the PortProto for this route object
+     */
+    protected static PortProto getRoutePort(ElectricObject routeObj) {
+        assert(!(routeObj instanceof NodeInst));
+        if (routeObj instanceof ArcInst) {
+            ArcInst ai = (ArcInst)routeObj;
+            PrimitiveNode pn = ((PrimitiveArc)ai.getProto()).findOverridablePinProto();
+            return (PortProto)pn.getPort(0);
+        }
+        if (routeObj instanceof PortInst) {
+            PortInst pi = (PortInst)routeObj;
+            return pi.getPortProto();
+        }
+        return null;
+    }
+
+    protected static double getArcWidthToUse(ElectricObject routeObj, ArcProto ap) {
+        double width = -1;
+        if (routeObj instanceof ArcInst) {
+            ArcInst ai = (ArcInst)routeObj;
+            if (ai.getProto() == ap)
+                return ai.getWidth();
+        }
+        if (routeObj instanceof PortInst) {
+            width = getArcWidthToUse((PortInst)routeObj, ap);
+        }
+        return width;
+    }
+
+    /**
+     * Get the connecting points for the start and end objects of the route. This fills in
+     * the two Point2D's startPoint and endPoint. These will be the end points of an arc that
+     * connects to either startObj or endObj.
+     * @param startObj the start route object
+     * @param endObj the end route object
+     * @param clicked where the user clicked
+     * @param startPoint point inside startPoly on startObj to connect arc to
+     * @param endPoint point inside endPoly on endObj to connect arc to
+     * @param startPoly valid port site on startObj
+     * @param endPoly valid port site on endObj
+     */
     protected static void getConnectingPoints(ElectricObject startObj, ElectricObject endObj, Point2D clicked,
-                                              Point2D startPoint, Point2D endPoint) {
-        Poly startPoly = getConnectingSite(startObj, clicked);
-        Poly endPoly = getConnectingSite(endObj, clicked);
+                                              Point2D startPoint, Point2D endPoint, Poly startPoly, Poly endPoly) {
 
         // just go by bounds for now
         Rectangle2D startBounds = startPoly.getBounds2D();
@@ -434,51 +501,24 @@ public abstract class InteractiveRouter extends Router {
                 endPoint.setLocation(endPoint.getX(), endBounds.getMinY());
             }
         }
-
-        // final special case: if arc inst lined up with port, use closest end point of arc
-        // to point (i.e. ignore where user clicked).
-/*        if (startObj instanceof ArcInst) {
-            ArcInst ai = (ArcInst)startObj;
-            if (endPoint.getX() == ai.getHead().getLocation().getX() &&
-                endPoint.getX() == ai.getTail().getLocation().getX()) {
-                double y = getClosestValue(startBounds.getMinY(), startBounds.getMaxY(), endPoint.getY());
-                startPoint.setLocation(startPoint.getX(), y);
-            }
-            if (endPoint.getY() == ai.getHead().getLocation().getY() &&
-                endPoint.getY() == ai.getTail().getLocation().getY()) {
-                double x = getClosestValue(startBounds.getMinX(), startBounds.getMaxX(), endPoint.getX());
-                startPoint.setLocation(x, startPoint.getY());
-            }
-        }
-        if (endObj instanceof ArcInst) {
-            ArcInst ai = (ArcInst)endObj;
-            if (startPoint.getX() == ai.getHead().getLocation().getX() &&
-                startPoint.getX() == ai.getTail().getLocation().getX()) {
-                double y = getClosestValue(endBounds.getMinY(), endBounds.getMaxY(), startPoint.getY());
-                endPoint.setLocation(endPoint.getX(), y);
-            }
-            if (startPoint.getY() == ai.getHead().getLocation().getY() &&
-                startPoint.getY() == ai.getTail().getLocation().getY()) {
-                double x = getClosestValue(endBounds.getMinX(), endBounds.getMaxX(), startPoint.getX());
-                endPoint.setLocation(x, endPoint.getY());
-            }
-        }*/
     }
-
 
     /**
      * Get the connecting site of the electric object.
      * <ul>
-     * <li>For NodeInsts, this is the nearest portinst, which is then subject to:
+     * <li>For NodeInsts, this is the nearest portinst to "clicked", which is then subject to:
      * <li>For PortInsts, this is the nearest site of a multisite port, or just the entire port
      * <li>For ArcInsts, this is a poly composed of the head location and the tail location
      * </ul>
+     * See NodeInst.getShapeOfPort() for more details.
      * @param obj the object to get a connection site for
      * @param clicked used to find the nearest portinst on a nodeinst, and nearest
      * site on a multisite port
+     * @param arcWidth contacts port sites are restricted by the size of arcs connecting
+     * to them, such that the arc width does extend beyond the contact edges.
      * @return a poly describing where something can connect to
      */
-    protected static Poly getConnectingSite(ElectricObject obj, Point2D clicked) {
+    protected static Poly getConnectingSite(ElectricObject obj, Point2D clicked, double arcWidth) {
 
         assert(clicked != null);
 
@@ -493,7 +533,7 @@ public abstract class InteractiveRouter extends Router {
             PortProto pp = pi.getPortProto();
             boolean compressPort = false;
             if (ni.getProto() instanceof PrimitiveNode) compressPort = true;
-            Poly poly = ni.getShapeOfPort(pp, clicked, compressPort, -1); // this is for multi-site ports
+            Poly poly = ni.getShapeOfPort(pp, clicked, compressPort, arcWidth); // this is for multi-site ports
             return poly;
         }
         if (obj instanceof ArcInst) {
@@ -506,39 +546,6 @@ public abstract class InteractiveRouter extends Router {
             return poly;
         }
         return null;
-    }
-
-    /**
-     * Get closest value to clicked within a range from min to max
-     */
-    protected static double getClosestValue(double min, double max, double clicked) {
-        if (clicked >= max) {
-            return max;
-        } else if (clicked <= min) {
-            return min;
-        } else {
-            return clicked;
-        }
-    }
-
-    /**
-     * Gets the closest orthogonal point from the startPoint to the clicked point.
-     * This is used when the user clicks in space and the router draws only a single
-     * arc towards the clicked point in one dimension.
-     * @param startPoint start point of the arc
-     * @param clicked where the user clicked
-     * @return an end point to draw to from start point to make a single arc segment.
-     */
-    protected static Point2D getClosestOrthogonalPoint(Point2D startPoint, Point2D clicked) {
-        Point2D newPoint;
-        if (Math.abs(startPoint.getX() - clicked.getX()) < Math.abs(startPoint.getY() - clicked.getY())) {
-            // draw horizontally
-            newPoint = new Point2D.Double(startPoint.getX(), clicked.getY());
-        } else {
-            // draw vertically
-            newPoint = new Point2D.Double(clicked.getX(), startPoint.getY());
-        }
-        return newPoint;
     }
 
     /**
@@ -621,80 +628,6 @@ public abstract class InteractiveRouter extends Router {
         return startRE;
     }
 
-    protected boolean connectIntersectingArcs(Route route, ArcInst startArc, ArcInst endArc) {
-        // check if arcs intersect
-        // equation for line 1
-        // y = startSlope*x + startYint
-        Point2D startHead = startArc.getHead().getLocation();
-        Point2D startTail = startArc.getTail().getLocation();
-        double startSlope, startYint;
-        startSlope = (startTail.getY() - startHead.getY())/(startTail.getX() - startHead.getX());
-        startYint = startTail.getY() - startSlope*startTail.getX();
-        // equation for line 2
-        Point2D endHead = endArc.getHead().getLocation();
-        Point2D endTail = endArc.getTail().getLocation();
-        double endSlope, endYint;
-        endSlope = (endTail.getY() - endHead.getY())/(endTail.getX() - endHead.getX());
-        endYint = endTail.getY() - endSlope*endTail.getX();
-
-        // if slopes are the same, lines may be colinear or may not intersect
-        if (startSlope == endSlope) {
-            // ignore colinear case
-            // if don't intersect, do not edit route, and return false
-            return false;
-        }
-        // find intersecting point of lines
-        Point2D point = null;
-        if (Double.isInfinite(startSlope)) {
-            // startArc is vertical
-            // check if X coord startArc is within endArc
-            if (withinBounds(startHead.getX(), endHead.getX(), endTail.getX())) {
-                double y = endSlope*startHead.getX() + endYint;
-                point = new Point2D.Double(startHead.getX(), y);
-            }
-        } else if (Double.isInfinite(endSlope)) {
-            // endArc is vertical
-            // check if X coord startArc is within startArc
-            if (withinBounds(endHead.getX(), startHead.getX(), startTail.getX())) {
-                double y = startSlope*endHead.getX() + startYint;
-                point = new Point2D.Double(endHead.getX(), y);
-            }
-        } else {
-            double x, y;
-            x = (endYint - startYint)/(startSlope - endSlope);
-            y = startSlope*x + startYint;
-            // check if it is on both line segments
-            Point2D tryPoint = new Point2D.Double(x, y);
-            if (onSegment(tryPoint, new Line2D.Double(startHead, startTail)) &&
-                onSegment(tryPoint, new Line2D.Double(endHead, endTail))) {
-                point = tryPoint;
-            }
-        }
-        if (point == null) return false;
-
-        // lines intersect, connect them
-        RouteElementPort startRE = bisectArc(route, startArc, point);
-        RouteElementPort endRE = bisectArc(route, endArc, point);
-        route.setStart(startRE);
-        route.setEnd(startRE);
-
-        // see if we can connect directly
-        ArcProto useArc = getArcToUse(startRE.getPortProto(), endRE.getPortProto());
-        if (useArc != null) {
-            // replace one of the bisect pins with the other
-            //replaceRouteElementArcPin(route, endRE, startRE);
-            // note that endRE was never added to the route, otherwise we'd remove it here
-        } else {
-            VerticalRoute vroute = new VerticalRoute(route.getEnd(), endRE);
-            if (!vroute.specifyRoute()) {
-                System.out.println("Can't route vertically between "+startArc+" and "+endArc);
-                return false;
-            }
-            vroute.buildRoute(route, endRE.getCell(), point, point, point);
-        }
-        return true;
-    }
-
     /**
      * Splits an arc at bisectPoint and updates the route to reflect the change.
      * This method should NOT add the returned RouteElement to the route.
@@ -746,7 +679,40 @@ public abstract class InteractiveRouter extends Router {
         return newPinRE;
     }
 
-    // ----------------------------------------------------------------------
+    // ------------------------- Spatial Dimension Calculations -------------------------
+
+    /**
+     * Get closest value to clicked within a range from min to max
+     */
+    protected static double getClosestValue(double min, double max, double clicked) {
+        if (clicked >= max) {
+            return max;
+        } else if (clicked <= min) {
+            return min;
+        } else {
+            return clicked;
+        }
+    }
+
+    /**
+     * Gets the closest orthogonal point from the startPoint to the clicked point.
+     * This is used when the user clicks in space and the router draws only a single
+     * arc towards the clicked point in one dimension.
+     * @param startPoint start point of the arc
+     * @param clicked where the user clicked
+     * @return an end point to draw to from start point to make a single arc segment.
+     */
+    protected static Point2D getClosestOrthogonalPoint(Point2D startPoint, Point2D clicked) {
+        Point2D newPoint;
+        if (Math.abs(startPoint.getX() - clicked.getX()) < Math.abs(startPoint.getY() - clicked.getY())) {
+            // draw horizontally
+            newPoint = new Point2D.Double(startPoint.getX(), clicked.getY());
+        } else {
+            // draw vertically
+            newPoint = new Point2D.Double(clicked.getX(), startPoint.getY());
+        }
+        return newPoint;
+    }
 
     protected boolean withinBounds(double point, double bound1, double bound2) {
         double min, max;

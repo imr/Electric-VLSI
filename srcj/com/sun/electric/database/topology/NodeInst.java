@@ -1389,6 +1389,21 @@ public class NodeInst extends Geometric implements Nodable
         // we only compress port if it is a rectangle
         Rectangle2D box = poly.getBox();
         if (forWiringTool && (box != null)) {
+            if ((arcWidth != -1) && (np.getFunction() == NodeProto.Function.CONTACT)) {
+                // reduce the port size such that the connecting arc's width cannot extend
+                // beyond the width of the contact
+                SizeOffset so = ((PrimitiveNode)np).getProtoSizeOffset();
+                double width = ni.getXSize() - so.getHighXOffset() - so.getLowXOffset();
+                double height = ni.getYSize() - so.getHighYOffset() - so.getLowYOffset();
+                double offsetX = 0.5*(width - box.getWidth() - arcWidth);
+                double offsetY = 0.5*(height - box.getHeight() - arcWidth);
+                if (offsetX < 0) {
+                    box = new Rectangle2D.Double(box.getX()+offsetX, box.getY(), box.getWidth()-2*offsetX, box.getHeight());
+                }
+                if (offsetY < 0) {
+                    box = new Rectangle2D.Double(box.getX(), box.getY()-offsetY, box.getWidth(), box.getHeight()+2*offsetY);
+                }
+            }
             if (ni.getXSize() == np.getDefWidth()) {
                 double x = poly.getCenterX();
                 box = new Rectangle2D.Double(x, box.getMinY(), 0, box.getHeight());
@@ -1396,20 +1411,6 @@ public class NodeInst extends Geometric implements Nodable
             if (ni.getYSize() == np.getDefHeight()) {
                 double y = poly.getCenterY();
                 box = new Rectangle2D.Double(box.getMinX(), y, box.getWidth(), 0);
-            }
-            if ((arcWidth != -1) && (np.getFunction() == NodeProto.Function.CONTACT)) {
-                // reduce the port size such that the connecting arc's width cannot extend
-                // beyond the width of the contact
-                double width = ni.getXSize();
-                double height = ni.getYSize();
-                double offsetX = 0.5*(width - box.getWidth() - arcWidth);
-                double offsetY = 0.5*(height - box.getHeight() - arcWidth);
-                if (offsetX < 0) {
-                    box = new Rectangle2D.Double(box.getX()+offsetX, box.getY(), box.getWidth()-2*offsetX, box.getHeight());
-                }
-                if (offsetY < 0) {
-                    box = new Rectangle2D.Double(box.getX(), box.getY()+offsetY, box.getWidth(), box.getHeight()-2*offsetY);
-                }
             }
             poly = new Poly(box);
         }
