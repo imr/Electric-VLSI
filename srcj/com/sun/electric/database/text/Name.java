@@ -283,7 +283,7 @@ public class Name implements Comparable
 		for (int i = 0; i < len; i++)
 		{
 			char ch = ns.charAt(i);
-			if (ch == '+' || ch == '-') newLen++;
+			if (ch != '+' && ch != '-') newLen++;
 		}
 		if (newLen == len) return ns;
 
@@ -291,7 +291,7 @@ public class Name implements Comparable
 		for (int i = 0; i < len; i++)
 		{
 			char ch = ns.charAt(i);
-			if (ch == '+' || ch == '-') buf.append(ns.charAt(i));
+			if (ch != '+' && ch != '-') buf.append(ns.charAt(i));
 		}
 		return buf.toString();
 	}
@@ -308,7 +308,7 @@ public class Name implements Comparable
 		this.lowerCase = (ns.equals(lower) ? this : findTrimmedName(lower));
 		try
 		{
-			flags = checkNameThrow(ons);
+			flags = checkNameThrow(ns);
 		} catch (NumberFormatException e)
 		{
 			flags = ERROR;
@@ -426,7 +426,7 @@ public class Name implements Comparable
 	 */
 	private void makeSplitSubNames(int split)
 	{
-		if (ns.length() == 0) return;
+		// if (ns.length() == 0) return;
 		if (split < 0 || split >= ns.length())
 		{
 			System.out.println("HEY! string is '"+ns+"' but want index "+split);
