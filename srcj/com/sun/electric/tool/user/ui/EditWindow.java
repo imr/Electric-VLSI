@@ -29,10 +29,13 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
@@ -1155,12 +1158,27 @@ public class EditWindow
             System.out.println("Can only descend into cell instances");
             return;
         }
+        ElectricObject eobj = Highlight.getOneElectricObject(PortInst.class);
+        PortInst pi = null;
+        if (eobj != null) {
+            pi = (PortInst)eobj;
+        }
         Cell cell = (Cell)np;
         Cell schCell = cell.getEquivalent();
         // special case: if cell is icon of current cell, descend into icon
         if (this.cell == schCell) schCell = cell;
         if (schCell == null) schCell = cell;
-        setCell(schCell, cellVarContext.push(ni));
+        if (pi != null)
+            setCell(schCell, cellVarContext.push(pi));
+        else
+            setCell(schCell, cellVarContext.push(ni));
+        // if highlighted was a port inst, then highlight the corresponding export
+        if (pi != null) {
+            PortInst origPort = schCell.findExport(pi.getPortProto().getProtoName()).getOriginalPort();
+            Highlight.addElectricObject(origPort, schCell);
+            Highlight.addElectricObject(origPort.getNodeInst(), schCell);
+            Highlight.finished();
+        }
     }
 
     /**
@@ -1186,13 +1204,18 @@ public class EditWindow
 						break;
 					}
 				}
+                PortInst pi = cellVarContext.getPortInst();
 				setCell(parent, context, true);
 				if (foundHistory != null) {
 					setOffset(foundHistory.offset);
 					setScale(foundHistory.scale);
 				}
-				if (no instanceof NodeInst)
+                // highlight node we came from
+                if (pi != null)
+                    Highlight.addElectricObject(pi, parent);
+                else if (no instanceof NodeInst)
 					Highlight.addElectricObject((NodeInst)no, parent);
+                // highlight portinst selected at the time, if any
 				return;
 			}
 

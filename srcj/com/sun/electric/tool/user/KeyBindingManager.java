@@ -91,6 +91,7 @@ public class KeyBindingManager implements KeyEventPostProcessor {
     /** All key binding manangers */                private static List allManagers = new ArrayList();
 
     /** debug preference saving */                  private static final boolean debugPrefs = false;
+    /** debug key bindings */                       private static final boolean DEBUG = false;
 
     /**
      * Construct a new KeyBindingManager that can act as a KeyListener
@@ -223,25 +224,33 @@ public class KeyBindingManager implements KeyEventPostProcessor {
      */
     public synchronized boolean processKeyEvent(KeyEvent e) {
 
-        //System.out.println("got event (consumed="+e.isConsumed()+")"+e);
+        if (DEBUG) System.out.println("got event (consumed="+e.isConsumed()+")"+e);
 
         // only look at key pressed events
-        if (e.getID() != KeyEvent.KEY_PRESSED) return false;
+        if ((e.getID() != KeyEvent.KEY_PRESSED) && (e.getID() != KeyEvent.KEY_TYPED)) return false;
         // ignore modifier only events (CTRL, SHIFT etc just by themselves)
         if (e.getKeyCode() == KeyEvent.VK_CONTROL) return false;
         if (e.getKeyCode() == KeyEvent.VK_SHIFT) return false;
         if (e.getKeyCode() == KeyEvent.VK_ALT) return false;
         if (e.getKeyCode() == KeyEvent.VK_META) return false;
 
-        //System.out.println("last Prefix key is "+lastPrefix);
+        // get KeyStroke
+        KeyStroke stroke = KeyStroke.getKeyStrokeForEvent(e);
+
+        // remove modifiers from Events with undefined KeyCode (Key Typed events)
+        // This lets KeyStrokes like '<' register correctly, because they are always
+        // delivered as SHIFT-'<'.
+        if (stroke.getKeyCode() == KeyEvent.VK_UNDEFINED) {
+            stroke = KeyStroke.getKeyStroke(stroke.getKeyChar());
+        }
+        if (DEBUG) System.out.println("  Current key is "+stroke+", last prefix key is "+lastPrefix);
+
         // ignore if consumed
         if (e.isConsumed()) {
             lastPrefix = null;              // someone did something with it, null prefix key
             return false;
         }
 
-        // get KeyStroke
-        KeyStroke stroke = KeyStroke.getKeyStrokeForEvent(e);
         HashMap inputMapToUse = inputMap;
 
         // check if we should use prefixed key map instead of regular inputMap
@@ -293,7 +302,7 @@ public class KeyBindingManager implements KeyEventPostProcessor {
             }
         }
 
-        //System.out.println(" actionPerformed="+actionPerformed);
+        if (DEBUG) System.out.println(" actionPerformed="+actionPerformed);
         if (actionPerformed) {
             e.consume();                // consume event if we did something useful with it
             return true;                // let KeyboardFocusManager know we consumed event

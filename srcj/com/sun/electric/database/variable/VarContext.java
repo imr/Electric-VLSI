@@ -27,6 +27,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.network.Netlist;
 
 /**
@@ -47,8 +48,8 @@ import com.sun.electric.database.network.Netlist;
  * removed by calling pop().  Note that individual VarContexts are
  * immutable:  you get new ones by calling push and pop;  push and pop
  * do not edit their own VarContexts.
- * 
- * <p>Retrieve a Variable by calling getVar(String name) on any 
+ *
+ * <p>Retrieve a Variable by calling getVar(String name) on any
  * ElectricObject.
  *
  * <p>If the one knows that the Variable contains an object that
@@ -75,8 +76,9 @@ import com.sun.electric.database.network.Netlist;
 public class VarContext
 {
 	private VarContext prev;
-	private Nodable ni;
-    
+    private Nodable ni;
+    private PortInst pi;
+
 	/**
 	 * The blank VarContext that is the parent of all VarContext chains.
 	 */
@@ -84,17 +86,29 @@ public class VarContext
 
 	/**
 	 * get a new VarContext that consists of the current VarContext with
-	 * the given NodeInst pushd onto the stack
+	 * the given NodeInst pushed onto the stack
 	 */
 	public VarContext push(Nodable ni)
 	{
-		return new VarContext(ni, this);
+		return new VarContext(ni, this, null);
 	}
 
-	private VarContext(Nodable ni, VarContext prev)
+    /**
+     * get a new VarContext that consists of the current VarContext with
+     * the given PortInst pushed onto the stack.  This is really only
+     * needed for Highlighting purposes. You can still get the NodeInst
+     * from getNodable().
+     */
+    public VarContext push(PortInst pi)
+    {
+        return new VarContext(pi.getNodeInst(), this, pi);
+    }
+
+	private VarContext(Nodable ni, VarContext prev, PortInst pi)
 	{
 		this.ni = ni;
 		this.prev = prev;
+        this.pi = pi;
 	}
 
 	// For the global context.
@@ -123,9 +137,19 @@ public class VarContext
     }
 
     /**
+     * Return the PortInst that resides on the NodeInst that provides
+     * the context. This is currently only useful for Highlighting.
+     */
+    public PortInst getPortInst()
+    {
+        return pi;
+    }
+
+    /**
      * Does deep comparison of two VarContexts.  Matches
      * hierarchy traversal.  Returns true if they both represent
      * the same hierarchy traversal, false otherwise. (Recursive method).
+     * Does not compare PortInsts.
      * @param c the VarContext to compare against.
      * @return true if equal, false otherwise.
      */
