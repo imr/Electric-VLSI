@@ -238,10 +238,11 @@ public class NccBottomUp {
 				  NccUtils.buildBlackBoxes(refCC, thisCC, hierInfo, options);
 				if (!ok) return null;
 			} else {
+				result.abandonNccGlobals();
 				NccResult r = NccUtils.compareAndPrintStatus(refCC.cell, refCC.context,
 						                                     thisCC.cell, thisCC.context, 
 															 hierInfo, options); 
-				result.andEquals(r, true);
+				result.andEquals(r);
 				if (r.match())  passed.setPassed(refCC.cell, thisCC.cell);
 				
 				// Halt after first mismatch if that's what user wants
@@ -349,6 +350,7 @@ public class NccBottomUp {
 			compared.addAll(cellContextsInGroup);
 			
 			String grpNm = cell.getLibrary().getName()+":"+cell.getName();
+			result.abandonNccGlobals();
 			NccResult r = compareCellsInGroup(cellContextsInGroup, grpNm,
 											  hierInfo, hierarchical, 
 											  skipPassed, options); 
@@ -359,8 +361,7 @@ public class NccBottomUp {
 				);
 				return result;
 			}
-			boolean saveEquivalenceDataOfTopCell = !it.hasNext();
-			result.andEquals(r, saveEquivalenceDataOfTopCell);
+			result.andEquals(r);
 
 			if (!result.match() && options.haltAfterFirstMismatch) {
 				System.out.println( 

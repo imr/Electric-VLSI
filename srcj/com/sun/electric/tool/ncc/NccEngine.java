@@ -105,7 +105,7 @@ public class NccEngine {
 	private NccResult designsMatch(HierarchyInfo hierInfo, boolean hierInfoOnly) {
 		if (globals.getRoot()==null) {
 			globals.status2("empty cell");
-			return new NccResult(true, true, true, null);
+			return new NccResult(true, true, true, globals);
 		} else {
 			Date d0 = new Date();
 			ExportChecker expCheck = new ExportChecker(globals);
@@ -137,7 +137,7 @@ public class NccEngine {
 			Date d3 = new Date();
 			globals.status1("  Local partitioning took "+ 
 					        NccUtils.hourMinSec(d2, d3));
-			if (!localOK) return new NccResult(expNamesOK, false, false, null);
+			if (!localOK) return new NccResult(expNamesOK, false, false, globals);
 
 			boolean topoOK = HashCodePartitioning.doYourJob(globals);
 

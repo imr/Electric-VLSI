@@ -37,12 +37,15 @@ public class NccResult {
 		this.sizeMatch = sizeMatch;
 		this.globalData = globalData;
 	}
+	/** Use this method to avoid holding the global data for two comparisons
+	 * at the same time. */
+	public void abandonNccGlobals() {globalData=null;}
 	/** aggregate the result of multiple comparisons */
-	public void andEquals(NccResult result, boolean copyGlobalData) {
+	public void andEquals(NccResult result) {
 		exportMatch &= result.exportMatch;
 		topologyMatch &= result.topologyMatch;
 		sizeMatch &= result.sizeMatch;
-		if (copyGlobalData)  globalData = result.globalData;
+		globalData = result.globalData;
 	}
 	/** No problem was found with Exports */ 
 	public boolean exportMatch() {return exportMatch;}

@@ -119,11 +119,17 @@ public class LeafEquivRecords {
 		processInternalEquivRecords();
 		return Collections.unmodifiableList(unmatched).iterator();
 	}
-	public int numUnmatched() {return unmatched.size();}
+	public int numUnmatched() {
+		processInternalEquivRecords();
+		return unmatched.size();
+	}
 	/** @return all matched leaf EquivRecords */
 	public Iterator getMatched() {
 		processInternalEquivRecords();
 		return Collections.unmodifiableList(matched).iterator();
 	}
-	public int numMatched() {return matched.size();}
+	public int numMatched() {
+		processInternalEquivRecords();
+		return matched.size();
+	}
 }

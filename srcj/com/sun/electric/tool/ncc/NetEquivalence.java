@@ -78,7 +78,8 @@ public class NetEquivalence {
 		NccContext nc = nameIndex.findNccContext(vc);
 		
 		if (nc==null) return null;
-		if (nc.getCell()!=net.getParent()) return null;
+		if (nc.getCell()!=net.getParent())  return null;
+		if (!nc.getContext().equals(vc))  return null;
 		for (Iterator it=nc.getIndices(); it.hasNext();) {
 			int index = ((Integer)it.next()).intValue();
 			NetNameProxy prox = equivNets[designIndex][index];
@@ -93,10 +94,11 @@ public class NetEquivalence {
 	 * VarContext, find the "NCC equivalent" net in the other design.
 	 * <p>
 	 * Subtle: Because the user interface may rebuild the Networks, we cannot 
-	 * depend upon Network "==" for equality. Instead I must extract the instance
-	 * path from the VarContext, and the network names from the Network. I know
-	 * I have the right net if the network name matches and the Cells are "==" 
-	 * the same. 
+	 * depend upon Network "==" for equality. Instead I depend upon 1) the
+	 * .equals() equality of instance names along the VarContext, 2) the .equals()
+	 * equality of the VarContext (which depends upon the == equality of Nodables
+	 * along the VarContext), 3) the .equals equality of the names of the Network. 
+	 * 4) the == equality of the parent Cells of the Network
 	 * @param vc VarContext specifying a point in the hierarchy.
 	 * @param net Network located at that point in the hierarchy.
 	 * @return the "NCC equivalent" NetNameProxy or null if no equivalent can
@@ -130,9 +132,11 @@ public class NetEquivalence {
 				if (to!=equivNets[otherDesign][netNdx])  numErrors++;
 			}
 		}
-		System.out.print("  Net equivalence regression ");
-		if (numErrors==0) System.out.println("passed.");
-		else System.out.println("failed with "+numErrors+" errors.");
+		System.out.print("  Net equivalence regression "+
+				         (numErrors==0 ? "passed. " : "failed. "));
+		System.out.print(numNets+" matched Networks. ");
+		if (numErrors!=0) System.out.print(numErrors+" errors.");
+		System.out.println();
 
 		return numErrors;
 	}
@@ -208,6 +212,7 @@ class NccContext {
 	private Cell cell;
 	private Map nodableNameToChild = new HashMap();
 	private Set objectIndices = new HashSet();
+	
 	public NccContext(VarContext vc) {context=vc;}
 	public void addChild(NccContext child) {
 		String name = child.context.getNodable().getName();
@@ -231,6 +236,8 @@ class NccContext {
 	public NccContext findChild(String instNm) {
 		return (NccContext) nodableNameToChild.get(instNm);
 	}
+	/** @return the VarContext */
+	public VarContext getContext() {return context;}
 	/** @return the parent Cell of all NameProxy's at this point in the 
 	 * design hierarchy.  If there aren't any NameProxy's here then return
 	 * null. */
