@@ -97,8 +97,9 @@ public class Quick
 	private static final int LAYERSURROUNDERROR = 6;
 	private static final int MINAREAERROR       = 7;
 	private static final int ENCLOSEDAREAERROR  = 8;
+	private static final int POLYSELECTERROR   = 9;
 	// Different types of warnings
-	private static final int ZEROLENGTHARCWARN  = 9;
+	private static final int ZEROLENGTHARCWARN  = 10;
 
 	/**
 	 * The CheckInst object is associated with every cell instance in the library.
@@ -144,28 +145,6 @@ public class Quick
 	{
 		this.job = job;
 	}
-
-	/*
-	 * The CHECKSTATE object exists for each processor and has global information for that thread.
-	 */
-//	typedef struct
-//	{
-//		POLYLIST  *nodeinstpolylist;
-//		POLYLIST  *arcinstpolylist;
-//		POLYLIST  *subpolylist;
-//		POLYLIST  *cropnodepolylist;
-//		POLYLIST  *croparcpolylist;
-//		POLYLIST  *layerlookpolylist;
-//		POLYLIST  *activecroppolylist;
-//		POLYGON   *checkdistpoly1rebuild;
-//		POLYGON   *checkdistpoly2rebuild;
-//		INTBIG     globalindex;
-//		NODEINST  *tinynodeinst;
-//		GEOM      *tinyobj;
-//		void      *hierarchybasesnapshot;		/* traversal path at start of instance interaction check */
-//		void      *hierarchytempsnapshot;		/* traversal path when at bottom of one interaction check */
-//	} CHECKSTATE;
-
 
 	/**
 	 * The InstanceInter object records interactions between two cell instances and prevents checking
@@ -603,7 +582,7 @@ public class Quick
 		Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
 		convertPseudoLayers(ni, nodeInstPolyList);
 		int tot = nodeInstPolyList.length;
-
+        boolean isTransistor =  np.getFunction().isTransistor();
 		// examine the polygons on this node
 		boolean errorsFound = false;
 		for(int j=0; j<tot; j++)
@@ -624,6 +603,14 @@ public class Quick
 				errorsFound = true;
 			}
 			ret = checkMinWidth(ni, layer, poly, tot==1);
+			if (ret)
+			{
+				if (onlyFirstError) return true;
+				errorsFound = true;
+			}
+			// Check PP.R.1 select over transistor poly
+			// Assumes polys on transistors fulfill condition by construction
+			ret = !isTransistor && checkSelectOverPolysilicon(ni, layer, poly, cell, netNumber, globalIndex);
 			if (ret)
 			{
 				if (onlyFirstError) return true;
@@ -696,6 +683,13 @@ public class Quick
 				errorsFound = true;
 			}
 			ret = checkMinWidth(ai, layer, poly, tot==1);
+			if (ret)
+			{
+				if (onlyFirstError) return true;
+				errorsFound = true;
+			}
+			// Check PP.R.1 select over transistor poly
+			ret = checkSelectOverPolysilicon(ai, layer, poly, ai.getParent(), netNumber, globalIndex);
 			if (ret)
 			{
 				if (onlyFirstError) return true;
@@ -835,8 +829,6 @@ public class Quick
 					AffineTransform rTrans = ni.rotateOut();
 					rTrans.preConcatenate(upTrans);
                     if (np.getFunction() == PrimitiveNode.Function.PIN) continue; // Sept 30
-                    //if (np == Generic.tech.cellCenterNode) continue;  // Sept 30
-					//if (np == Generic.tech.cellCenterNode || np == Generic.tech.drcNode) continue;  // Oct 5
 					Technology tech = np.getTechnology();
 					Poly [] primPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
 					convertPseudoLayers(ni, primPolyList);
@@ -1225,14 +1217,6 @@ public class Quick
 		Rectangle2D isBox2 = poly2.getBox();
 		Rectangle2D trueBox2 = isBox2;
 		if (trueBox2 == null) trueBox2 = poly2.getBounds2D();
-//boolean debug = false;
-//if (layer1.getName().equalsIgnoreCase("N-Active") && layer2.getName().equalsIgnoreCase("Polysilicon-1")) debug = true;
-//if (layer2.getName().equalsIgnoreCase("Polysilicon-1") && layer1.getName().equalsIgnoreCase("N-Active")) debug = true;
-//if (debug)
-//{
-// System.out.println("Comparing layer "+layer1.getName()+" is "+trueBox1.getMinX()+"<=X<="+trueBox1.getMaxX()+" and "+trueBox1.getMinY()+"<=Y<="+trueBox1.getMaxY()+" on object "+geom1.describe());
-// System.out.println("     with layer "+layer2.getName()+" is "+trueBox2.getMinX()+"<=X<="+trueBox2.getMaxX()+" and "+trueBox2.getMinY()+"<=Y<="+trueBox2.getMaxY()+" on object "+geom2.describe());
-//}
 
 		/*
 		 * special rule for allowing touching:
@@ -1276,7 +1260,6 @@ public class Quick
 					if (wRule != null)
 					{
 						double minWidth = wRule.value;
-						String sizeRule = wRule.rule;
 						double lxb = Math.max(trueBox1.getMinX(), trueBox2.getMinX());
 						double hxb = Math.min(trueBox1.getMaxX(), trueBox2.getMaxX());
 						double lyb = Math.max(trueBox1.getMinY(), trueBox2.getMinY());
@@ -1339,7 +1322,7 @@ public class Quick
 			if (geom1 instanceof NodeInst)
 			{
 				if (cropNodeInst((NodeInst)geom1, globalIndex1, trans1,
-					trueBox1, layer2, net2, geom2, trueBox2))
+				        layer2, net2, geom2, trueBox2))
 						return false;
 			} else
 			{
@@ -1349,7 +1332,7 @@ public class Quick
 			if (geom2 instanceof NodeInst)
 			{
 				if (cropNodeInst((NodeInst)geom2, globalIndex2, trans2,
-					trueBox2, layer1, net1, geom1, trueBox1))
+				        layer1, net1, geom1, trueBox1))
 						return false;
 			} else
 			{
@@ -1955,7 +1938,6 @@ public class Quick
 		Cell cell = geom.getParent();
 		DRCRules.DRCRule minWidthRule = DRC.getMinValue(layer, DRCTemplate.MINWID);
 		if (minWidthRule == null) return false;
-		//double minWidth = minWidthRule.value;
 
 		// simpler analysis if manhattan
 		Rectangle2D bounds = poly.getBox();
@@ -1963,19 +1945,7 @@ public class Quick
 		{
 			boolean tooSmallWidth = DBMath.isGreaterThan(minWidthRule.value, bounds.getWidth());
 			boolean tooSmallHeight = DBMath.isGreaterThan(minWidthRule.value, bounds.getHeight());
-			/*
-			if (bounds.getWidth() >= minWidthRule.value && bounds.getHeight() >= minWidthRule.value)
-			{
-				if (Main.getDebug() && (tooSmallWidth || tooSmallHeight))
-					System.out.println("Wrong rounding condition found in Quick.checkMinWidth()");
-				return false;
-			}
-			*/
-			if (!tooSmallWidth && !tooSmallHeight)
-			{
-				//if (Main.getDebug()) System.out.println("Wrong rounding condition found in Quick.checkMinWidth()");
-				return false;
-			}
+			if (!tooSmallWidth && !tooSmallHeight) return false;
 
 			double actual = 0;
 			Point2D left1, left2, left3, right1, right2, right3;
@@ -2183,43 +2153,6 @@ public class Quick
 				Layer layer = (Layer)it.next();
 				boolean localError = checkMinAreaLayer(quickArea.metalMerge, cell, layer);
 				if (!errorFound) errorFound = localError;
-
-//				DRCRules.DRCRule minAreaRule = (DRCRules.DRCRule)minAreaLayerMap.get(layer);
-//				DRCRules.DRCRule encloseAreaRule = (DRCRules.DRCRule)enclosedAreaLayerMap.get(layer);
-//
-//				// Layer doesn't have min area
-//				if (minAreaRule == null && encloseAreaRule == null) continue;
-//
-//				Collection set = quickArea.metalMerge.getObjects(layer, false, true);
-//
-//				for(Iterator pIt = set.iterator(); pIt.hasNext(); )
-//				{
-//					PolyQTree.PolyNode pn = (PolyQTree.PolyNode)pIt.next();
-//					if (pn == null) throw new Error("wrong condition in Quick.checkMinArea()");
-//					List list = pn.getSortedLoops();
-//					// Order depends on area comparison done. First element is the smallest.
-//					// and depending on # polygons it could be minArea or encloseArea
-//					DRCRules.DRCRule evenRule = (list.size()%2==0) ? encloseAreaRule : minAreaRule;
-//					DRCRules.DRCRule oddRule = (evenRule == minAreaRule) ? encloseAreaRule : minAreaRule;
-//					// Looping over simple polygons. Possible problems with disconnected elements
-//					// polyArray.length = Maximum number of distintic loops
-//					for (int i = 0; i < list.size(); i++)
-//					{
-//						PolyQTree.PolyNode simplePn = (PolyQTree.PolyNode)list.get(i);
-//						double area = simplePn.getArea();
-//						DRCRules.DRCRule minRule = (i%2 == 0) ? evenRule : oddRule;
-//
-//						if (minRule == null) continue;
-//
-//						// isGreaterThan doesn't consider equals condition therefore negate condition is used
-//						if (!DBMath.isGreaterThan(minRule.value, area)) continue;
-//
-//						errorFound = true;
-//						int errorType = (minRule == minAreaRule) ? MINAREAERROR : ENCLOSEDAREAERROR;
-//						reportError(errorType, null, cell, minRule.value, area, minRule.rule,
-//								new Poly(simplePn.getPoints()), null /*ni*/, layer, null, null, null);
-//					}
-//				}
 			}
 		}
 
@@ -2657,12 +2590,90 @@ public class Quick
 		return false;
 	}
 
-
-	private boolean selectOnTransistor(Poly poly1, Layer layer1, int net1,
-	                                   Poly poly2, Layer layer2, int net2, Cell cell, int globalIndex)
+	/**
+	 * Method to check if non-transistor polysilicons are completed covered by N++/P++ regions
+	 * @param geom
+	 * @param layer
+	 * @param poly
+	 * @param cell
+	 * @param net
+	 * @param globalIndex
+	 * @return
+	 */
+	private boolean checkSelectOverPolysilicon(Geometric geom, Layer layer, Poly poly, Cell cell, int net, int globalIndex)
 	{
+		if (!layer.getFunction().isPoly()) return false;
 		// One layer must be select and other polysilicon. They are not connected
-		return (false);
+
+		DRCRules.DRCRule minOverlapRule = DRC.getMinValue(layer, DRCTemplate.POLYSELECT);
+		if (minOverlapRule == null) return false;
+		double value = minOverlapRule.value;
+
+		Rectangle2D polyBnd = poly.getBounds2D();
+		Rectangle2D searchBounds = new Rectangle2D.Double(polyBnd.getMinX()-value, polyBnd.getMinY()-value,
+			polyBnd.getWidth() + value*2, polyBnd.getHeight() + value*2);
+
+		GeometryHandler areaMerge = new PolyQTree(cell.getBounds());
+
+		for(Iterator sIt = cell.searchIterator(searchBounds); sIt.hasNext(); )
+		{
+			Geometric g = (Geometric)sIt.next();
+			if (!(g instanceof NodeInst)) continue;
+			NodeInst ni = (NodeInst)g;
+			NodeProto np = ni.getProto();
+			if (np instanceof Cell)
+			{
+				System.out.println("Skipping this case for now");
+			}
+			else
+			{
+				if (np.getFunction() == PrimitiveNode.Function.PIN) continue; // Sept 30
+				Technology tech = np.getTechnology();
+				Poly [] primPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
+				int tot = primPolyList.length;
+				for(int j=0; j<tot; j++)
+				{
+					Poly nPoly = primPolyList[j];
+                    if (!nPoly.getLayer().getFunction().isImplant()) continue;
+
+					if (g instanceof NodeInst)
+					{
+						Rectangle2D trueBox2 = new Rectangle2D.Double(polyBnd.getMinX(), polyBnd.getMinY(), polyBnd.getWidth(), polyBnd.getHeight());
+						if (cropNodeInst((NodeInst)g, globalIndex, new AffineTransform(), layer, net, geom, trueBox2))
+							return false;
+					} else
+					{
+						Rectangle2D nPolyBnd = nPoly.getBounds2D();
+						Rectangle2D trueBox1 = new Rectangle2D.Double(nPolyBnd.getMinX(), nPolyBnd.getMinY(), nPolyBnd.getWidth(), nPolyBnd.getHeight());
+						if (cropArcInst((ArcInst)geom, layer, new AffineTransform(), trueBox1))
+							return false;
+					}
+					//areaMerge.add(layer, new PolyQTree.PolyNode(nPoly.getBounds2D()), true);
+				}
+			}
+		}
+		Collection set = areaMerge.getObjects(layer, false, false);
+		boolean found = false;
+
+		for(Iterator pIt = set.iterator(); pIt.hasNext(); )
+		{
+			PolyQTree.PolyNode pn = (PolyQTree.PolyNode)pIt.next();
+
+			if (pn.contains(searchBounds))
+			{
+				//System.out.println("Aqui ");
+				found = true;
+				break;
+			}
+		}
+
+		// error if the merged area doesn't contain 100% the search area.
+		if (!found)
+		{
+			reportError(POLYSELECTERROR, "PolySelect error", cell, minOverlapRule.value, -1, minOverlapRule.rule,
+						poly, geom, layer, null, null, null);
+		}
+		return (!found);
 	}
 
 	/**
@@ -2769,130 +2780,6 @@ public class Quick
 	}
 
 	/**
-	 * Method to crop the box in the reference parameters (lx-hx, ly-hy)
-	 * against the box in (bx-ux, by-uy).  If the box is cropped into oblivion,
-	 * returns 1.  If the boxes overlap but cannot be cleanly cropped,
-	 * returns -1.  Otherwise the box is cropped and zero is returned
-	 */
-	private int cropBoxOld(Rectangle2D bounds, Rectangle2D PUBox)
-	{
-		// if the two boxes don't touch, just return
-		double bX = PUBox.getMinX();    double uX = PUBox.getMaxX();
-		double bY = PUBox.getMinY();    double uY = PUBox.getMaxY();
-		double lX = bounds.getMinX();   double hX = bounds.getMaxX();
-		double lY = bounds.getMinY();   double hY = bounds.getMaxY();
-		if (bX >= hX || bY >= hY || uX <= lX || uY <= lY) return 0;
-
-		// if the box to be cropped is within the other, say so
-		if (bX <= lX && uX >= hX && bY <= lY && uY >= hY) return 1;
-
-		// see which direction is being cropped
-		double xoverlap = Math.min(hX, uX) - Math.max(lX, bX);
-		double yoverlap = Math.min(hY, uY) - Math.max(lY, bY);
-		if (xoverlap > yoverlap)
-		{
-			// one above the other: crop in Y
-			if (bX <= lX && uX >= hX)
-			{
-				// it covers in X...do the crop
-				if (uY >= hY) hY = bY;
-				if (bY <= lY) lY = uY;
-				if (hY <= lY) return 1;
-				bounds.setRect(lX, lY, hX-lX, hY-lY);
-				return 0;
-			}
-		} else
-		{
-			// one next to the other: crop in X
-			if (bY <= lY && uY >= hY)
-			{
-				// it covers in Y...crop in X
-				if (uX >= hX) hX = bX;
-				if (bX <= lX) lX = uX;
-				if (hX <= lX) return 1;
-				bounds.setRect(lX, lY, hX-lX, hY-lY);
-				return 0;
-			}
-		}
-		return -1;
-	}
-
-	/**
-	 * Method to crop the box in the reference parameters (lx-hx, ly-hy)
-	 * against the box in (bx-ux, by-uy).  If the box is cropped into oblivion,
-	 * returns 1.  If the boxes overlap but cannot be cleanly cropped,
-	 * returns -1.  Otherwise the box is cropped and zero is returned
-	 */
-	private int halfCropBoxOld(Rectangle2D bounds, Rectangle2D limit)
-	{
-		double bX = limit.getMinX();    double uX = limit.getMaxX();
-		double bY = limit.getMinY();    double uY = limit.getMaxY();
-		double lX = bounds.getMinX();   double hX = bounds.getMaxX();
-		double lY = bounds.getMinY();   double hY = bounds.getMaxY();
-
-		// if the two boxes don't touch, just return
-		if (bX >= hX || bY >= hY || uX <= lX || uY <= lY) return 0;
-
-		// if the box to be cropped is within the other, figure out which half to remove
-		if (bX <= lX && uX >= hX && bY <= lY && uY >= hY)
-		{
-			double lxe = lX - bX;   double hxe = uX - hX;
-			double lye = lY - bY;   double hye = uY - hY;
-			double biggestExt = Math.max(Math.max(lxe, hxe), Math.max(lye, hye));
-			if (biggestExt == 0) return 1;
-			if (lxe == biggestExt)
-			{
-				lX = (lX + uX) / 2;
-				if (lX >= hX) return 1;
-				bounds.setRect(lX, lY, hX-lX, hY-lY);
-				return 0;
-			}
-			if (hxe == biggestExt)
-			{
-				hX = (hX + bX) / 2;
-				if (hX <= lX) return 1;
-				bounds.setRect(lX, lY, hX-lX, hY-lY);
-				return 0;
-			}
-			if (lye == biggestExt)
-			{
-				lY = (lY + uY) / 2;
-				if (lY >= hY) return 1;
-				bounds.setRect(lX, lY, hX-lX, hY-lY);
-				return 0;
-			}
-			if (hye == biggestExt)
-			{
-				hY = (hY + bY) / 2;
-				if (hY <= lY) return 1;
-				bounds.setRect(lX, lY, hX-lX, hY-lY);
-				return 0;
-			}
-		}
-
-		// reduce (lx-hx,lY-hy) bY (bX-uX,bY-uY)
-		boolean crops = false;
-		if (bX <= lX && uX >= hX)
-		{
-			// it covers in X...crop in Y
-			if (uY >= hY) hY = (hY + bY) / 2;
-			if (bY <= lY) lY = (lY + uY) / 2;
-			bounds.setRect(lX, lY, hX-lX, hY-lY);
-			crops = true;
-		}
-		if (bY <= lY && uY >= hY)
-		{
-			// it covers in Y...crop in X
-			if (uX >= hX) hX = (hX + bX) / 2;
-			if (bX <= lX) lX = (lX + uX) / 2;
-			bounds.setRect(lX, lY, hX-lX, hY-lY);
-			crops = true;
-		}
-		if (!crops) return -1;
-		return 0;
-	}
-
-	/**
 	 * Method to crop the box on layer "nLayer", electrical index "nNet"
 	 * and bounds (lx-hx, ly-hy) against the nodeinst "ni".  The geometry in nodeinst "ni"
 	 * that is being checked runs from (nlx-nhx, nly-nhy).  Only those layers
@@ -2900,9 +2787,8 @@ public class Quick
 	 * are checked.  Returns true if the bounds are reduced
 	 * to nothing.
 	 */
-	private boolean cropNodeInst(NodeInst ni, int globalIndex,
-		AffineTransform trans, Rectangle2D nBound,
-		Layer nLayer, int nNet, Geometric nGeom, Rectangle2D bound)
+	private boolean cropNodeInst(NodeInst ni, int globalIndex, AffineTransform trans,
+	                             Layer nLayer, int nNet, Geometric nGeom, Rectangle2D bound)
 	{
 		Technology tech = ni.getProto().getTechnology();
 		Poly [] cropNodePolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
@@ -3173,13 +3059,8 @@ public class Quick
 
 		// see how close they can get.
 		double wideS = (size1 > size2) ? size1 : size2;
-		//double wideLimit = DRC.getWideLimit(tech);
-
-		boolean wide = false;
-		//if (size1 > wideLimit || size2 > wideLimit) wide = true;
 
 		return (DRC.getSpacingRule(layer1, layer2, con, multi, wideS));
-		//DRC.Rule rule = DRC.getSpacingRule(layer1, layer2, con, wide, multi, wideS);
 	}
 
 	/**
@@ -3469,6 +3350,11 @@ public class Quick
 				case BADLAYERERROR:
 					errorMessage.append("Invalid layer (" + layer1.getName() + "):");
 					break;
+				case POLYSELECTERROR:
+					errorMessage.append("Layer surround error:");
+					errorMessagePart2 = new StringBuffer(", layer %" + layer1.getName());
+					errorMessagePart2.append(" NEEDS SURROUND OF LAYER Select BY " + limit);
+                    break;
 				case LAYERSURROUNDERROR:
 					errorMessage.append("Layer surround error:");
 					errorMessagePart2 = new StringBuffer(", layer %" + layer1.getName());

@@ -3149,11 +3149,6 @@ public class MoCMOS extends Technology
 				int index = -1;
 				if (layert1 >= 0 && layert2 >= 0)
 				{
-					/*
-					if (layert1 > layert2) {int temp = layert1; layert1 = layert2;  layert2 = temp; }
-					index = (layert1+1) * (layert1/2) + (layert1&1) * ((layert1+1)/2);
-					index = layert2 + getNumLayers() * layert1 - index;
-					*/
 					index = getLayerIndex(layert1, layert2);
 				}
 

@@ -55,6 +55,7 @@ public class DRCTemplate
     /** arc surround rule */			public static final int ASURROUND = 20;
     /** minimum area rule */			public static final int AREA = 21;
     /** enclosed area rule */			public static final int ENCLOSEDAREA = 22;
+	/** a poly select rule */           public static final int POLYSELECT = 23;
 
     public String rule;			/* the name of the rule */
     public int when;				/* when the rule is used */

@@ -205,6 +205,15 @@ public class Layer
 		}
 
 		/**
+		 * Method to tell whether this layer function is implant.
+		 * @return true if this layer function is implant.
+		 */
+		public boolean isImplant()
+		{
+			return (this == IMPLANT || this == IMPLANTN || this == IMPLANTP);
+		}
+
+		/**
 		 * Method to tell the distance of this layer function.
 		 * @return the distance of this layer function.
 		 */

@@ -26,7 +26,7 @@ FIX: Use untransformed node bounds when computing text location.
 BUG: (10/28/04, DN) IgnoreResitors option connects incorrectly.
 FIX: In NetSchem.internalConnections replace "drawn" by "drawnOffsets[drawn]"
 
-IMP: (10/27/04, GVG) New scheme in TechPalette, Schematic. Extra text in well contacts.
+IMP/MAN: (10/27/04, GVG) New scheme in TechPalette, Schematic. Extra text in well contacts.
 
 BUG: (10/27/04, SMR) Pasting primitives does not adjust sizes right (shifts their positions instead).
 FIX: In "Clipboard.pasteNodeToNode()" fixed this.
