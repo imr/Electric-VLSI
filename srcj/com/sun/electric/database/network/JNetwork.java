@@ -45,6 +45,7 @@ public class JNetwork
 	private ArrayList names = new ArrayList(); // Sorted list of names. The
 	// first name is the most
 	// appropriate.
+	private int exportedNamesCount;
 
 	// ----------------------- protected and private methods -----------------
 
@@ -66,10 +67,16 @@ public class JNetwork
 		//		this(new ArrayList(), cell);
 	}
 
-	public void addName(String nm)
+	public void addName(String nm, boolean exported)
 	{
-		if (nm != null)
+		if (nm != null) {
 			names.add(nm);
+			if (exported) {
+				if (exportedNamesCount != names.size() - 1)
+					throw new IllegalStateException("exported names should go first");
+				exportedNamesCount = names.size();
+			}
+		}
 	}
 
 	// --------------------------- public methods ------------------------------
@@ -85,6 +92,12 @@ public class JNetwork
 	public Iterator getNames()
 	{
 		return names.iterator();
+	}
+
+	/** A net can have multiple names. Return alphabetized list of names. */
+	public Iterator getExportedNames()
+	{
+		return names.subList(0, exportedNamesCount).iterator();
 	}
 
 	/** Returns true if JNetwork has names */

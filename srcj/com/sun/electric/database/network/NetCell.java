@@ -92,6 +92,7 @@ class NetCell
 
 	/** A map from Name to NetName. */								Map netNames = new HashMap();
 	/** Counter for enumerating NetNames. */						private int netNameCount;
+	/** Counter for enumerating NetNames. */						int exportedNetNameCount;
 	
 	/** Netlist for current user options. */						Netlist userNetlist;
 
@@ -507,6 +508,7 @@ class NetCell
 			Export e = (Export) it.next();
 			addNetNames(e.getNameKey());
 		}
+		exportedNetNameCount = netNameCount;
 		for (Iterator it = cell.getArcs(); it.hasNext(); ) {
 			ArcInst ai = (ArcInst) it.next();
 			if (ai.getProto().getFunction() == ArcProto.Function.NONELEC) continue;
@@ -581,7 +583,7 @@ class NetCell
 		int numPorts = cell.getNumPorts();
 		for (int i = 0; i < numPorts; i++) {
 			Export e = (Export)cell.getPort(i);
-			setNetName(netNameToNet, drawns[i], e.getNameKey());
+			setNetName(netNameToNet, drawns[i], e.getNameKey(), true);
 		}
 		int numArcs = cell.getNumArcs();
 		for (int i = 0; i < numArcs; i++) {
@@ -589,7 +591,7 @@ class NetCell
 			if (!ai.isUsernamed()) continue;
 			int drawn = drawns[arcsOffset + i];
 			if (drawn < 0) continue;
-			setNetName(netNameToNet, drawn, ai.getNameKey());
+			setNetName(netNameToNet, drawn, ai.getNameKey(), false);
 		}
 		for (int i = 0; i < numArcs; i++) {
 			ArcInst ai = cell.getArc(i);
@@ -597,7 +599,7 @@ class NetCell
 			if (drawn < 0) continue;
 			JNetwork network = userNetlist.getNetworkByMap(drawn);
 			if (network.hasNames()) continue;
-			network.addName(ai.getName());
+			network.addName(ai.getName(), false);
 		}
 		/*
 		// debug info
@@ -623,7 +625,7 @@ class NetCell
 		*/
 	}
 
-	private void setNetName(JNetwork[] netNamesToNet, int drawn, Name name) {
+	private void setNetName(JNetwork[] netNamesToNet, int drawn, Name name, boolean exported) {
 		JNetwork network = userNetlist.getNetworkByMap(drawn);
 		NetName nn = (NetName)netNames.get(name);
 		if (netNamesToNet[nn.index] != null) {
@@ -635,7 +637,7 @@ class NetCell
         }
 		else
 			netNamesToNet[nn.index] = network;
-		network.addName(name.toString());
+		network.addName(name.toString(), exported);
 	}
 
 	/**

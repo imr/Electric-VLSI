@@ -957,13 +957,19 @@ class NetSchem extends NetCell {
 	{
 		userNetlist.initNetworks();
 		for (int i = 0; i < globals.size(); i++) {
-			userNetlist.getNetworkByMap(i).addName(globals.get(i).getName());
+			userNetlist.getNetworkByMap(i).addName(globals.get(i).getName(), true);
 		}
 		for (Iterator it = netNames.values().iterator(); it.hasNext(); )
 		{
 			NetName nn = (NetName)it.next();
-			if (nn.index < 0) continue;
-			userNetlist.getNetworkByMap(netNamesOffset + nn.index).addName(nn.name.toString());
+			if (nn.index < 0 || nn.index >= exportedNetNameCount) continue;
+			userNetlist.getNetworkByMap(netNamesOffset + nn.index).addName(nn.name.toString(), true);
+		}
+		for (Iterator it = netNames.values().iterator(); it.hasNext(); )
+		{
+			NetName nn = (NetName)it.next();
+			if (nn.index < exportedNetNameCount) continue;
+			userNetlist.getNetworkByMap(netNamesOffset + nn.index).addName(nn.name.toString(), false);
 		}
 		
 		// add temporary names to unnamed nets
@@ -976,12 +982,14 @@ class NetSchem extends NetCell {
 				JNetwork network = userNetlist.getNetwork(ai, j);
 				if (network == null || network.hasNames()) continue;
 				if (drawnNames[drawn] == null) continue;
+				String netName;
 				if (drawnWidths[drawn] == 1)
-					network.addName(drawnNames[drawn].toString());
+					netName = drawnNames[drawn].toString();
 				else if (drawnNames[drawn].isTempname())
-					network.addName(drawnNames[drawn].toString() + "[" + j + "]");
+					netName = drawnNames[drawn].toString() + "[" + j + "]";
 				else
-					network.addName(drawnNames[drawn].subname(j).toString());
+					netName = drawnNames[drawn].subname(j).toString();
+				network.addName(netName, false);
 			}
 		}
 
