@@ -1498,7 +1498,7 @@ public class ELIB extends LibraryFiles
 					double scaleY = height / bounds.getHeight();
 					String scaledCellName = subCell.getName() + "-SCALED-BY-" + scaleX +
 						"{" + subCell.getView().getAbbreviation() + "}";
-					if (!DBMath.doublesClose(scaleX, scaleY))
+					if (!DBMath.areEquals(scaleX, scaleY))
 					{
                         // don't scale, most likely the size changed, and this is not a lambda problem
                         //scaledCellName = null;

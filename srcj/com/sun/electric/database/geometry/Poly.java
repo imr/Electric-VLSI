@@ -581,8 +581,8 @@ public class Poly implements Shape
                 if (DBMath.pointInRect(pt, bounds)) return true;
                 // special case: single point, take care of double precision error
                 if (bounds.getWidth() == 0 && bounds.getHeight() == 0) {
-                    if (DBMath.doublesClose(pt.getX(), bounds.getX()) &&
-                        DBMath.doublesClose(pt.getY(), bounds.getY())) return true;
+                    if (DBMath.areEquals(pt.getX(), bounds.getX()) &&
+                        DBMath.areEquals(pt.getY(), bounds.getY())) return true;
                 }
 				return false;
 			}
@@ -611,7 +611,7 @@ public class Poly implements Shape
 
 		if (style == Type.CROSS || style == Type.BIGCROSS)
 		{
-            if (DBMath.doublesClose(getCenterX(), pt.getX()) && DBMath.doublesClose(getCenterY(), pt.getY())) return true;
+            if (DBMath.areEquals(getCenterX(), pt.getX()) && DBMath.areEquals(getCenterY(), pt.getY())) return true;
 			//if (getCenterX() == pt.getX() && getCenterY() == pt.getY()) return true;
 			return false;
 		}
@@ -683,7 +683,7 @@ public class Poly implements Shape
 				}
 			}
 			//if (dist == wantdist) return true;
-            if (DBMath.doublesClose(dist, wantdist)) return true;
+            if (DBMath.areEquals(dist, wantdist)) return true;
 			return false;
 		}
 

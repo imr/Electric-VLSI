@@ -564,7 +564,11 @@ public class Technology extends ElectricObject
 			{
 				Class extraTechClass = Class.forName("com.sun.electric.plugins." + extraTechnologies[i]);
 				extraTechClass.getMethod("setItUp", (Class[])null).invoke(null, (Object[])null);
-	 		} catch (Exception e) {}
+	 		} catch (Exception e)
+            {
+                System.out.println("Exceptions while importing extra technologies");
+                e.printStackTrace();
+            }
 		}
 
 		// set the current technology
@@ -2747,7 +2751,8 @@ public class Technology extends ElectricObject
 		Technology.NodeLayer inLayer = nty.findNodeLayer(innerLayer);
 		if (inLayer == null)
 		{
-			System.out.println("Internal error in " + getTechDesc() + " surround computation");
+			System.out.println("Internal error in " + getTechDesc() + " surround computation. Layer '" +
+                    innerLayer.getName() + "' is not valid in '" + nty.getName() + "'");
 			return;
 		}
 
@@ -2755,7 +2760,8 @@ public class Technology extends ElectricObject
 		Technology.NodeLayer outLayer = nty.findNodeLayer(outerLayer);
 		if (outLayer == null)
 		{
-			System.out.println("Internal error in " + getTechDesc() + " surround computation");
+            System.out.println("Internal error in " + getTechDesc() + " surround computation. Layer '" +
+                    outerLayer.getName() + "' is not valid in '" + nty.getName() + "'");
 			return;
 		}
 
@@ -2790,25 +2796,29 @@ public class Technology extends ElectricObject
 		String errorMessage = "Layer surround error of outer layer '" + outerLayer.getName()
 		        + "' and inner layer '" + innerLayer.getName() + "'in '" + getTechDesc() + "':";
 
-		if (outLeft.getAdder() != leftIndent)
+        leftIndent = DBMath.round(leftIndent);
+        rightIndent = DBMath.round(rightIndent);
+        topIndent = DBMath.round(topIndent);
+        bottomIndent = DBMath.round(bottomIndent);
+		if (!DBMath.areEquals(outLeft.getAdder(), leftIndent))
 		{
 			outLeft.setAdder(leftIndent);
 			hasChanged = true;
 			errorMessage += " left=" + leftIndent;
 		}
-		if (outRight.getAdder() != rightIndent)
+		if (!DBMath.areEquals(outRight.getAdder(), rightIndent))
 		{
 			outRight.setAdder(rightIndent);
 			hasChanged = true;
 			errorMessage += " right=" + rightIndent;
 		}
-		if (outTop.getAdder() != topIndent)
+		if (!DBMath.areEquals(outTop.getAdder(), topIndent))
 		{
 			outTop.setAdder(topIndent);
 			hasChanged = true;
 			errorMessage += " top=" + topIndent;
 		}
-		if (outBottom.getAdder() != bottomIndent)
+		if (!DBMath.areEquals(outBottom.getAdder(), bottomIndent))
 		{
 			outBottom.setAdder(bottomIndent);
 			hasChanged = true;
@@ -2834,7 +2844,8 @@ public class Technology extends ElectricObject
 		Technology.ArcLayer inLayer = aty.findArcLayer(innerLayer);
 		if (inLayer == null)
 		{
-			System.out.println("Internal error in " + getTechDesc() + " surround computation");
+		    System.out.println("Internal error in " + getTechDesc() + " surround computation. Arc layer '" +
+                    inLayer.getLayer().getName() + "' is not valid in '" + aty.getName() + "'");
 			return;
 		}
 
@@ -2842,7 +2853,8 @@ public class Technology extends ElectricObject
 		Technology.ArcLayer outLayer = aty.findArcLayer(outerLayer);
 		if (outLayer == null)
 		{
-			System.out.println("Internal error in " + getTechDesc() + " surround computation");
+            System.out.println("Internal error in " + getTechDesc() + " surround computation. Arc layer '" +
+                    inLayer.getLayer().getName() + "' is not valid in '" + aty.getName() + "'");
 			return;
 		}
 

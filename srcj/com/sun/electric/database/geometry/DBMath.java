@@ -74,7 +74,7 @@ public class DBMath extends GenMath {
     * @param b the second number.
     * @return true if the numbers are approximately equal (to a few decimal places).
     */
-    public static boolean doublesClose(double a, double b) {
+    public static boolean areEquals(double a, double b) {
         if (Math.abs(a-b) < EPSILON) return true;
         return false;
     }
@@ -102,8 +102,8 @@ public class DBMath extends GenMath {
      */
     public static boolean pointsClose(Point2D a, Point2D b)
     {
-        if (doublesClose(a.getX(), b.getX()) &&
-                doublesClose(a.getY(), b.getY())) return true;
+        if (areEquals(a.getX(), b.getX()) &&
+                areEquals(a.getY(), b.getY())) return true;
         return false;
     }
 

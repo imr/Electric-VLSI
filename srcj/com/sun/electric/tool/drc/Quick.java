@@ -3053,10 +3053,10 @@ public class Quick
 			if (errorType == MINWIDTHERROR)
 			{
 				errorMessage += ", layer " + layer1.getName();
-				errorMessage += " LESS THAN " + limit + " WIDE (IS " + actual + ")";
+				errorMessage += " LESS THAN " + TextUtils.formatDouble(limit) + " WIDE (IS " + TextUtils.formatDouble(actual) + ")";
 			} else if (errorType == MINSIZEERROR)
 			{
-				errorMessage += " LESS THAN " + limit + " IN SIZE (IS " + actual + ")";
+				errorMessage += " LESS THAN " + TextUtils.formatDouble(limit) + " IN SIZE (IS " + TextUtils.formatDouble(actual) + ")";
 			} else if (errorType == LAYERSURROUNDERROR)
 			{
 				errorMessage += ", layer %" + layer1.getName();
