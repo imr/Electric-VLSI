@@ -49,8 +49,8 @@ public class CrossLibCopy extends EDialog
 	private JList listLeft, listRight, listCenter;
 	private DefaultListModel modelLeft, modelRight, modelCenter;
 	private static boolean lastDeleteAfterCopy = false;
-	private static boolean lastCopyRelated = true;
-	private static boolean lastCopySubcells = true;
+	private static boolean lastCopyRelated = false;
+	private static boolean lastCopySubcells = false;
 	private static boolean lastUseExisting = false;
 
 	/** Creates new form CrossLibCopy */
