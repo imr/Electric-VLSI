@@ -56,8 +56,14 @@ public class DRC extends Listener
 	/** overrides of rules for each technology. */		private static HashMap prefDRCOverride = new HashMap();
 	/** map of cells and their objects to DRC */		private static HashMap cellsToCheck = new HashMap();
 	private static boolean incrementalRunning = false;
+    /** key of Variable for last valid DRC date on a Cell. */
+    public static final Variable.Key LAST_GOOD_DRC_DATE = ElectricObject.newKey("DRC_last_good_drc_date");
+    /** key of Variable for last valid DRC bit on a Cell. */
+    public static final Variable.Key LAST_GOOD_DRC_BIT = ElectricObject.newKey("DRC_last_good_drc_bit");
+    public static final int DRC_BIT_AREA = 01; /* Min area condition */
+    public static final int DRC_BIT_COVERAGE = 02;   /* Coverage DRC condition */
 
-	/****************************** DESIGN RULES ******************************/
+    /****************************** DESIGN RULES ******************************/
 
     public static class NodeSizeRule
 	{
@@ -384,9 +390,7 @@ public class DRC extends Listener
 			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
-				Variable var = cell.getVar(DRCRules.LAST_GOOD_DRC);
-				if (var == null) continue;
-				cell.delVar(DRCRules.LAST_GOOD_DRC);
+				DRC.cleanDRCDateAndBits(cell);
 			}
 		}
 	}
@@ -708,10 +712,21 @@ public class DRC extends Listener
 	 * @param cell the cell to query.
 	 * @return the date of the last successful DRC of that Cell.
 	 */
-	public static Date getLastDRCDate(Cell cell)
+	public static Date getLastDRCDateBasedOnBits(Cell cell, byte activeBits)
 	{
-		Variable varDate = cell.getVar(DRCRules.LAST_GOOD_DRC, Integer[].class);
+		Variable varDate = cell.getVar(LAST_GOOD_DRC_DATE, Integer[].class);
 		if (varDate == null) return null;
+
+        Variable varBits = cell.getVar(LAST_GOOD_DRC_BIT, Byte.class);
+        byte thisByte = ((Byte)varBits.getObject()).byteValue();
+        boolean area = (thisByte & DRC_BIT_AREA) == (activeBits & DRC_BIT_AREA);
+        boolean coverage = (thisByte & DRC_BIT_COVERAGE) == (activeBits & DRC_BIT_COVERAGE);
+        if (activeBits != 0 && (!area || !coverage))
+        //if ((((Byte)varBits.getObject()).byteValue() & activeBits) == 0 )
+        {
+            return null;
+        }
+
 		Integer [] lastDRCDateAsInts = (Integer [])varDate.getObject();
 		long lastDRCDateInSecondsHigh = lastDRCDateAsInts[0].intValue();
 		long lastDRCDateInSecondsLow = lastDRCDateAsInts[1].intValue();
@@ -723,21 +738,35 @@ public class DRC extends Listener
 	 * Method to set the date of the last successful DRC of a given Cell.
 	 * @param cell the cell to modify.
 	 * @param date the date of the last successful DRC of that Cell.
+     * @param bits extra bits to set
 	 */
-	public static void setLastDRCDate(Cell cell, Date date)
+	public static void setLastDRCDateAndBits(Cell cell, Date date, byte bits)
 	{
 		long iVal = date.getTime();
 		Integer [] dateArray = new Integer[2];
 		dateArray[0] = new Integer((int)(iVal >> 32));
 		dateArray[1] = new Integer((int)(iVal & 0xFFFFFFFF));
-		cell.newVar(DRCRules.LAST_GOOD_DRC, dateArray);
+		cell.newVar(LAST_GOOD_DRC_DATE, dateArray);
+        Byte b = new Byte(bits);
+        cell.newVar(LAST_GOOD_DRC_BIT, b);
 	}
+
 	/**
 	 * Method to clean any DRC date stored previously
 	 * @param cell the cell to clean
 	 */
-	public static void cleanDRCDate(Cell cell)
+	public static void cleanDRCDateAndBits(Cell cell)
 	{
-		cell.delVar(DRCRules.LAST_GOOD_DRC);
+		cell.delVar(LAST_GOOD_DRC_DATE);
+        cell.delVar(LAST_GOOD_DRC_BIT);
 	}
+
+    public static byte getActiveBits()
+    {
+        byte bits = 0;
+        if (!isIgnoreAreaChecking()) bits |= DRC_BIT_AREA;
+        if (!isIgnorePolySelectChecking()) bits |= DRC_BIT_COVERAGE;
+        return bits;
+    }
+
 }

@@ -138,6 +138,7 @@ public class Quick
 	private DRC.CheckDRCLayoutJob job; // Reference to running job
 	private HashMap cellsMap = new HashMap(); // for cell caching
     private HashMap nodesMap = new HashMap(); // for node caching
+    private byte activeBits = 0; // to caching current extra bits
 
 	public Quick(DRC.CheckDRCLayoutJob job)
 	{
@@ -217,9 +218,11 @@ public class Quick
     // returns the number of errors found
 	private int doCheck(Cell cell, int count, Geometric [] geomsToCheck, boolean [] validity, Rectangle2D bounds)
 	{
-
 		// Check if there are DRC rules for particular tech
 		DRCRules rules = DRC.getRules(cell.getTechnology());
+
+        // caching bits
+        activeBits = DRC.getActiveBits();
 
 		// Nothing to check for this particular technology
 		if (rules == null || rules.getNumberOfRules() == 0) return 0;
@@ -376,11 +379,13 @@ public class Quick
 		if (version != null) validVersion = version.compareTo(Version.getVersion()) >=0;
 		errorLogger = null;
         int logsFound = 0;
+        int totalErrors = 0;
+
 		if (count == 0)
 		{
 			// just do full DRC here
 			errorLogger = ErrorLogger.newInstance("DRC (full)");
-			checkThisCell(cell, 0, bounds, validVersion);
+			totalErrors = checkThisCell(cell, 0, bounds, validVersion);
 
 			// sort the errors by layer
 			errorLogger.sortLogs();
@@ -396,6 +401,7 @@ public class Quick
                 logsFound = errorLoggerIncremental.getNumLogs();
 			}
 
+            // @TODO missing counting this number of errors.
 			checkTheseGeometrics(cell, count, geomsToCheck, validity);
 		}
 
@@ -404,7 +410,7 @@ public class Quick
             logsFound = errorLogger.getNumLogs() - logsFound;
         }
 
-		if (count != 0) goodDRCDate.clear();
+		if (totalErrors != 0) goodDRCDate.clear();
 
 		// some cells were sucessfully checked: save that information in the database
 	    // some cells don't have valid DRC date anymore and therefore they should be clean
@@ -434,17 +440,19 @@ public class Quick
 
 		public boolean doIt()
 		{
+            byte bits = DRC.getActiveBits();
+
 			for(Iterator it = goodDRCDate.keySet().iterator(); it.hasNext(); )
 			{
 				Cell cell = (Cell)it.next();
 				Date now = (Date)goodDRCDate.get(cell);
-				DRC.setLastDRCDate(cell, now);
+				DRC.setLastDRCDateAndBits(cell, now, bits);
 			}
 
 			for(Iterator it = cleanDRCDate.keySet().iterator(); it.hasNext(); )
 			{
 				Cell cell = (Cell)it.next();
-				DRC.cleanDRCDate(cell);
+				DRC.cleanDRCDateAndBits(cell);
 			}
 			return true;
 		}
@@ -520,7 +528,7 @@ public class Quick
 		// if the cell hasn't changed since the last good check, stop now
 		if (validVersion && allSubCellsStillOK)
 		{
-			Date lastGoodDate = DRC.getLastDRCDate(cell);
+			Date lastGoodDate = DRC.getLastDRCDateBasedOnBits(cell, activeBits);
 			if (lastGoodDate != null)
 			{
 				Date lastChangeDate = cell.getRevisionDate();
@@ -531,13 +539,13 @@ public class Quick
 		// announce progress
 		System.out.println("Checking cell " + cell.describe());
 
+		// now look at every node and arc here
+		totalMsgFound = 0;
+
 		// Check the area first but only when is not incremental
 		// Only for the most top cell
 		if (cell == topCell && !DRC.isIgnoreAreaChecking() && !onlyFirstError)
-			checkMinArea(cell);
-
-		// now look at every node and arc here
-		totalMsgFound = 0;
+			totalMsgFound = checkMinArea(cell);
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
@@ -2150,14 +2158,14 @@ public class Quick
 		return false;
 	}
 
-	private boolean checkMinAreaLayer(GeometryHandler merge, Cell cell, Layer layer)
+	private int checkMinAreaLayer(GeometryHandler merge, Cell cell, Layer layer)
 	{
-		boolean errorFound = false;
+		int errorFound = 0;
 		DRCRules.DRCRule minAreaRule = (DRCRules.DRCRule)minAreaLayerMap.get(layer);
 		DRCRules.DRCRule encloseAreaRule = (DRCRules.DRCRule)enclosedAreaLayerMap.get(layer);
 
 		// Layer doesn't have min area
-		if (minAreaRule == null && encloseAreaRule == null) return (false);
+		if (minAreaRule == null && encloseAreaRule == null) return 0;
 
 		Collection set = merge.getObjects(layer, false, true);
 
@@ -2183,7 +2191,7 @@ public class Quick
 				// isGreaterThan doesn't consider equals condition therefore negate condition is used
 				if (!DBMath.isGreaterThan(minRule.value, area)) continue;
 
-				errorFound = true;
+				errorFound++;
 				int errorType = (minRule == minAreaRule) ? MINAREAERROR : ENCLOSEDAREAERROR;
 				reportError(errorType, null, cell, minRule.value, area, minRule.rule,
 						new Poly(simplePn.getPoints()), null /*ni*/, layer, null, null, null);
@@ -2200,14 +2208,14 @@ public class Quick
 	 * @param cell
 	 * @return
 	 */
-	private boolean checkMinArea(Cell cell)
+	private int checkMinArea(Cell cell)
 	{
 		CheckProto cp = getCheckProto(cell);
-		boolean errorFound = false;
+		int errorFound = 0;
 
 		// Nothing to check
 		if (minAreaLayerMap.isEmpty() && enclosedAreaLayerMap.isEmpty())
-			return false;
+			return 0;
 
 		// Select/well regions
 		GeometryHandler	selectMerge = new PolyQTree(cell.getBounds());
@@ -2222,13 +2230,12 @@ public class Quick
 			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
 
 			// Job aborted
-			if (job != null && job.checkAbort()) return true;
+			if (job != null && job.checkAbort()) return 0;
 
 			for(Iterator it = quickArea.mainMerge.getKeyIterator(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
-				boolean localError = checkMinAreaLayer(quickArea.mainMerge, cell, layer);
-				if (!errorFound) errorFound = localError;
+				errorFound += checkMinAreaLayer(quickArea.mainMerge, cell, layer);
 			}
 		}
 
@@ -2247,8 +2254,7 @@ public class Quick
 		for(Iterator it = selectMerge.getKeyIterator(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
-			boolean localError = checkMinAreaLayer(selectMerge, cell, layer);
-			if (!errorFound) errorFound = localError;
+			errorFound +=  checkMinAreaLayer(selectMerge, cell, layer);
 		}
 
 		return errorFound;
@@ -2853,17 +2859,14 @@ public class Quick
 				AffineTransform rTransI = ni.rotateIn();
 				AffineTransform tTransI = ni.translateIn();
 				rTransI.preConcatenate(tTransI);
-//				transmult(rTransI, tTransI, temptrans);
 				subBounds.setRect(bounds);
 				DBMath.transformRect(subBounds, rTransI);
 
 				CheckInst ci = (CheckInst)checkInsts.get(ni);
 				int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
 
-//				if (!dr_quickparalleldrc) downhierarchy(ni, np, 0);
 				boolean ret = activeOnTransistorRecurse(subBounds,
 					net1, net2, (Cell)np, localIndex, trans);
-//				if (!dr_quickparalleldrc) uphierarchy();
 				if (ret) return true;
 				continue;
 			}

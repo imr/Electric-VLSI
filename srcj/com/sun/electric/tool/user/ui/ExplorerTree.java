@@ -31,6 +31,7 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -963,6 +964,10 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { renameLibraryAction(); } });
 
+                menuItem = new JMenuItem("Save Library");
+				menu.add(menuItem);
+				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryAction(); } });
+
 				menuItem = new JMenuItem("Close Library");
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { closeLibraryAction(); } });
@@ -1138,6 +1143,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		{
 			Library lib = (Library)currentSelectedObject;
 			CircuitChanges.renameLibrary(lib);
+		}
+
+        private void saveLibraryAction()
+		{
+			Library lib = (Library)currentSelectedObject;
+			FileMenu.saveLibraryCommand(lib, FileType.DEFAULTLIB, false, true);
 		}
 
 		private void closeLibraryAction()
