@@ -461,6 +461,21 @@ public class IOTool extends Tool
 	 */
 	public static void setPrintEncapsulated(boolean on) { cachePrintEncapsulated.setBoolean(on); }
 
+	private static Pref cachePrintResolution = Pref.makeIntPref("PrintResolution", IOTool.tool.prefs, 300);
+	/**
+	 * Method to tell the default printing resolution.
+	 * Java printing assumes 72 DPI, this is an override.
+	 * The default is "300".
+	 * @return the default printing resolution.
+	 */
+	public static int getPrintResolution() { return cachePrintResolution.getInt(); }
+	/**
+	 * Method to set the default printing resolution.
+	 * Java printing assumes 72 DPI, this is an override.
+	 * @param r the default printing resolution.
+	 */
+	public static void setPrintResolution(int r) { cachePrintResolution.setInt(r); }
+
 	private static Pref cachePrintForPlotter = Pref.makeBooleanPref("PostScriptForPlotter", IOTool.tool.prefs, false);
 	/**
 	 * Method to tell whether PostScript Output is for a plotter.

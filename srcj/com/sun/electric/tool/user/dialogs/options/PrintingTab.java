@@ -50,6 +50,7 @@ public class PrintingTab extends PreferencePanel
 	public String getName() { return "Printing"; }
 
 	private int initialPrintArea;
+	private int initialPrintResolution;
 	private boolean initialPrintDate;
 	private boolean initialPrintEncapsulated;
 	private boolean initialPrintPlotter;
@@ -79,6 +80,9 @@ public class PrintingTab extends PreferencePanel
 
 		initialPrintEncapsulated = IOTool.isPrintEncapsulated();
 		printEncapsulated.setSelected(initialPrintEncapsulated);
+
+		initialPrintResolution = IOTool.getPrintResolution();
+		printResolution.setText(Integer.toString(initialPrintResolution));
 
 		initialPrintPlotter = IOTool.isPrintForPlotter();
 		if (initialPrintPlotter) printUsePlotter.setSelected(true); else
@@ -129,7 +133,6 @@ public class PrintingTab extends PreferencePanel
 		printEPSScale.setText(TextUtils.formatDouble(initialEPSScale));
 
 		// not yet:
-		printResolution.setEditable(false);
 		printHPGL1.setEnabled(false);
 		printHPGL2.setEnabled(false);
 		printHPGLFillsPage.setEnabled(false);
@@ -164,6 +167,10 @@ public class PrintingTab extends PreferencePanel
 		boolean encapsulated = printEncapsulated.isSelected();
 		if (encapsulated != initialPrintEncapsulated)
 			IOTool.setPrintEncapsulated(encapsulated);
+
+		int resolution = TextUtils.atoi(printResolution.getText());
+		if (resolution != initialPrintResolution)
+			IOTool.setPrintResolution(resolution);
 
 		boolean plotter = printUsePlotter.isSelected();
 		if (plotter != initialPrintPlotter)
@@ -302,13 +309,13 @@ public class PrintingTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         jPanel4.add(printPlotDisplayedWindow, gridBagConstraints);
 
-        jLabel19.setText("Print and Copy resolution factor:");
+        jLabel19.setText("Print resolution (DPI):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridheight = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel4.add(jLabel19, gridBagConstraints);
 
         printResolution.setColumns(8);
@@ -316,8 +323,8 @@ public class PrintingTab extends PreferencePanel
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridheight = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel4.add(printResolution, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();

@@ -344,7 +344,6 @@ public class ViewChanges
 
 	private static class MakeIconView extends Job
 	{
-		private static boolean reverseIconExportOrder;
 		private Cell curCell;
 
 		protected MakeIconView(Cell cell)
@@ -375,119 +374,8 @@ public class ViewChanges
 				if (response != JOptionPane.YES_OPTION) return false;
 			}
 
-			// get icon style controls
-			double leadLength = User.getIconGenLeadLength();
-			double leadSpacing = User.getIconGenLeadSpacing();
-			reverseIconExportOrder = User.isIconGenReverseExportOrder();
-
-			// make a sorted list of exports
-			List exportList = new ArrayList();
-			for(Iterator it = curCell.getPorts(); it.hasNext(); )
-				exportList.add(it.next());
-			Collections.sort(exportList, new ExportSorted());
-
-			// create the new icon cell
-			String iconCellName = curCell.getName() + "{ic}";
-			iconCell = Cell.makeInstance(lib, iconCellName);
-			if (iconCell == null)
-			{
-				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-					"Cannot create Icon cell " + iconCellName,
-						"Icon creation failed", JOptionPane.ERROR_MESSAGE);
-				return false;
-			}
-			iconCell.setWantExpanded();
-
-			// determine number of inputs and outputs
-			int leftSide = 0, rightSide = 0, bottomSide = 0, topSide = 0;
-			HashMap portIndex = new HashMap();
-			for(Iterator it = exportList.iterator(); it.hasNext(); )
-			{
-				Export pp = (Export)it.next();
-				if (pp.isBodyOnly()) continue;
-				int index = iconPosition(pp);
-				switch (index)
-				{
-					case 0: portIndex.put(pp, new Integer(leftSide++));    break;
-					case 1: portIndex.put(pp, new Integer(rightSide++));   break;
-					case 2: portIndex.put(pp, new Integer(topSide++));     break;
-					case 3: portIndex.put(pp, new Integer(bottomSide++));  break;
-				}
-			}
-
-			// determine the size of the "black box" core
-			double ySize = Math.max(Math.max(leftSide, rightSide), 5) * leadSpacing;
-			double xSize = Math.max(Math.max(topSide, bottomSide), 3) * leadSpacing;
-
-			// create the "black box"
-			NodeInst bbNi = null;
-			if (User.isIconGenDrawBody())
-			{
-				bbNi = NodeInst.newInstance(Artwork.tech.boxNode, new Point2D.Double(0,0), xSize, ySize, iconCell);
-				if (bbNi == null) return false;
-				bbNi.newVar(Artwork.ART_COLOR, new Integer(EGraphics.RED));
-
-				// put the original cell name on it
-				Variable var = bbNi.newVar(Schematics.SCHEM_FUNCTION, curCell.getName());
-				if (var != null)
-				{
-					var.setDisplay(true);
-				}
-			}
-
-			// place pins around the Black Box
-			int total = 0;
-			for(Iterator it = exportList.iterator(); it.hasNext(); )
-			{
-				Export pp = (Export)it.next();
-				if (pp.isBodyOnly()) continue;
-				Integer portPosition = (Integer)portIndex.get(pp);
-
-				// determine location of the port
-				int index = iconPosition(pp);
-				double spacing = leadSpacing;
-				double xPos = 0, yPos = 0;
-				double xBBPos = 0, yBBPos = 0;
-				switch (index)
-				{
-					case 0:		// left side
-						xBBPos = -xSize/2;
-						xPos = xBBPos - leadLength;
-						if (leftSide*2 < rightSide) spacing = leadSpacing * 2;
-						yBBPos = yPos = ySize/2 - ((ySize - (leftSide-1)*spacing) / 2 + portPosition.intValue() * spacing);
-						break;
-					case 1:		// right side
-						xBBPos = xSize/2;
-						xPos = xBBPos + leadLength;
-						if (rightSide*2 < leftSide) spacing = leadSpacing * 2;
-						yBBPos = yPos = ySize/2 - ((ySize - (rightSide-1)*spacing) / 2 + portPosition.intValue() * spacing);
-						break;
-					case 2:		// top
-						if (topSide*2 < bottomSide) spacing = leadSpacing * 2;
-						xBBPos = xPos = xSize/2 - ((xSize - (topSide-1)*spacing) / 2 + portPosition.intValue() * spacing);
-						yBBPos = ySize/2;
-						yPos = yBBPos + leadLength;
-						break;
-					case 3:		// bottom
-						if (bottomSide*2 < topSide) spacing = leadSpacing * 2;
-						xBBPos = xPos = xSize/2 - ((xSize - (bottomSide-1)*spacing) / 2 + portPosition.intValue() * spacing);
-						yBBPos = -ySize/2;
-						yPos = yBBPos - leadLength;
-						break;
-				}
-
-				if (makeIconExport(pp, index, xPos, yPos, xBBPos, yBBPos, iconCell))
-					total++;
-			}
-
-			// if no body, leads, or cell center is drawn, and there is only 1 export, add more
-			if (!User.isIconGenDrawBody() &&
-				!User.isIconGenDrawLeads() &&
-				User.isPlaceCellCenter() &&
-				total <= 1)
-			{
-				NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(0,0), xSize, ySize, iconCell);
-			}
+			iconCell = makeIconForCell(curCell);
+			if (iconCell == null) return false;
 
 			// place an icon in the schematic
 			int exampleLocation = User.getIconGenInstanceLocation();
@@ -529,20 +417,130 @@ public class ViewChanges
 			}
 			return true;
 		}
+	}
 
-		static class ExportSorted implements Comparator
+	/**
+	 * Method to create an icon for a cell.
+	 * @param curCell the cell to turn into an icon.
+	 * @return the icon cell (null on error).
+	 */
+	public static Cell makeIconForCell(Cell curCell)
+	{
+		// get icon style controls
+		double leadLength = User.getIconGenLeadLength();
+		double leadSpacing = User.getIconGenLeadSpacing();
+		boolean reverseIconExportOrder = User.isIconGenReverseExportOrder();
+
+		// make a sorted list of exports
+		List exportList = new ArrayList();
+		for(Iterator it = curCell.getPorts(); it.hasNext(); )
+			exportList.add(it.next());
+		Collections.sort(exportList, new TextUtils.ExportsByName(reverseIconExportOrder));
+
+		// create the new icon cell
+		String iconCellName = curCell.getName() + "{ic}";
+		Cell iconCell = Cell.makeInstance(curCell.getLibrary(), iconCellName);
+		if (iconCell == null)
 		{
-			public int compare(Object o1, Object o2)
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				"Cannot create Icon cell " + iconCellName,
+					"Icon creation failed", JOptionPane.ERROR_MESSAGE);
+			return null;
+		}
+		iconCell.setWantExpanded();
+
+		// determine number of inputs and outputs
+		int leftSide = 0, rightSide = 0, bottomSide = 0, topSide = 0;
+		HashMap portIndex = new HashMap();
+		for(Iterator it = exportList.iterator(); it.hasNext(); )
+		{
+			Export pp = (Export)it.next();
+			if (pp.isBodyOnly()) continue;
+			int index = iconPosition(pp);
+			switch (index)
 			{
-				Export e1 = (Export)o1;
-				Export e2 = (Export)o2;
-				String s1 = e1.getName();
-				String s2 = e2.getName();
-				if (reverseIconExportOrder)
-					return s2.compareToIgnoreCase(s1);
-				return s1.compareToIgnoreCase(s2);
+				case 0: portIndex.put(pp, new Integer(leftSide++));    break;
+				case 1: portIndex.put(pp, new Integer(rightSide++));   break;
+				case 2: portIndex.put(pp, new Integer(topSide++));     break;
+				case 3: portIndex.put(pp, new Integer(bottomSide++));  break;
 			}
 		}
+
+		// determine the size of the "black box" core
+		double ySize = Math.max(Math.max(leftSide, rightSide), 5) * leadSpacing;
+		double xSize = Math.max(Math.max(topSide, bottomSide), 3) * leadSpacing;
+
+		// create the "black box"
+		NodeInst bbNi = null;
+		if (User.isIconGenDrawBody())
+		{
+			bbNi = NodeInst.newInstance(Artwork.tech.boxNode, new Point2D.Double(0,0), xSize, ySize, iconCell);
+			if (bbNi == null) return null;
+			bbNi.newVar(Artwork.ART_COLOR, new Integer(EGraphics.RED));
+
+			// put the original cell name on it
+			Variable var = bbNi.newVar(Schematics.SCHEM_FUNCTION, curCell.getName());
+			if (var != null)
+			{
+				var.setDisplay(true);
+			}
+		}
+
+		// place pins around the Black Box
+		int total = 0;
+		for(Iterator it = exportList.iterator(); it.hasNext(); )
+		{
+			Export pp = (Export)it.next();
+			if (pp.isBodyOnly()) continue;
+			Integer portPosition = (Integer)portIndex.get(pp);
+
+			// determine location of the port
+			int index = iconPosition(pp);
+			double spacing = leadSpacing;
+			double xPos = 0, yPos = 0;
+			double xBBPos = 0, yBBPos = 0;
+			switch (index)
+			{
+				case 0:		// left side
+					xBBPos = -xSize/2;
+					xPos = xBBPos - leadLength;
+					if (leftSide*2 < rightSide) spacing = leadSpacing * 2;
+					yBBPos = yPos = ySize/2 - ((ySize - (leftSide-1)*spacing) / 2 + portPosition.intValue() * spacing);
+					break;
+				case 1:		// right side
+					xBBPos = xSize/2;
+					xPos = xBBPos + leadLength;
+					if (rightSide*2 < leftSide) spacing = leadSpacing * 2;
+					yBBPos = yPos = ySize/2 - ((ySize - (rightSide-1)*spacing) / 2 + portPosition.intValue() * spacing);
+					break;
+				case 2:		// top
+					if (topSide*2 < bottomSide) spacing = leadSpacing * 2;
+					xBBPos = xPos = xSize/2 - ((xSize - (topSide-1)*spacing) / 2 + portPosition.intValue() * spacing);
+					yBBPos = ySize/2;
+					yPos = yBBPos + leadLength;
+					break;
+				case 3:		// bottom
+					if (bottomSide*2 < topSide) spacing = leadSpacing * 2;
+					xBBPos = xPos = xSize/2 - ((xSize - (bottomSide-1)*spacing) / 2 + portPosition.intValue() * spacing);
+					yBBPos = -ySize/2;
+					yPos = yBBPos - leadLength;
+					break;
+			}
+
+			if (makeIconExport(pp, index, xPos, yPos, xBBPos, yBBPos, iconCell))
+				total++;
+		}
+
+		// if no body, leads, or cell center is drawn, and there is only 1 export, add more
+		if (!User.isIconGenDrawBody() &&
+			!User.isIconGenDrawLeads() &&
+			User.isPlaceCellCenter() &&
+			total <= 1)
+		{
+			NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(0,0), xSize, ySize, iconCell);
+		}
+
+		return iconCell;
 	}
 
 	/**

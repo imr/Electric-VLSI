@@ -323,8 +323,8 @@ public class TextDescriptor
 	{
 		// text size information
 		public static final int TXTMAXPOINTS =       63;
+		public static final double TXTMAXQGRID =    127.75;
 		private static final int TXTQGRIDSH =          6;		
-		private static final double TXTMAXQGRID =    127.75;
 
 		private final boolean absolute;
 		private final double size;

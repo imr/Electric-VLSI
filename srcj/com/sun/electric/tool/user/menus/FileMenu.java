@@ -714,10 +714,6 @@ public class FileMenu {
  		if (pageFormat == null)
 			pageFormat = pj.defaultPage();
 
- 		javax.print.attribute.PrintRequestAttributeSet pset = new javax.print.attribute.HashPrintRequestAttributeSet();
-// 		pset.add(javax.print.attribute.standard.Fidelity.FIDELITY_FALSE);
-// 		pset.add(new javax.print.attribute.standard.PrinterResolution(300, 300, javax.print.attribute.ResolutionSyntax.DPI));
-
  		ElectricPrinter ep = new ElectricPrinter();
 		ep.setPrintWindow(wf);
         pj.setPrintable(ep, pageFormat);
@@ -745,9 +741,8 @@ public class FileMenu {
             }
         }
 
-        if (pj.printDialog(pset))
+        if (pj.printDialog())
         {
-//System.out.println("Page is "+pageFormat.getImageableWidth()+"x"+pageFormat.getImageableHeight());
 			// disable double-buffering so prints look better
 			JPanel overall = wf.getContent().getPanel();
 			RepaintManager currentManager = RepaintManager.currentManager(overall);
@@ -767,7 +762,7 @@ public class FileMenu {
 
             printerToUse = pj.getPrintService();
             if (printerToUse != null)
-				IOTool.setPrinterName(printerToUse.getName());
+ 				IOTool.setPrinterName(printerToUse.getName());
 			SwingUtilities.invokeLater(new PrintJobAWT(wf, pj, oldSize));
         }
     }
@@ -829,11 +824,12 @@ public class FileMenu {
 				if (printCell == null) return Printable.NO_SUCH_PAGE;
 
 	            // create an EditWindow for rendering this cell
+				int desiredDPI = IOTool.getPrintResolution();
 	            if (img == null)
 	            {
 	                EditWindow w = EditWindow.CreateElectricDoc(null, null);
-	                int iw = (int)pageFormat.getImageableWidth();
-	                int ih = (int)pageFormat.getImageableHeight();
+	                int iw = (int)pageFormat.getImageableWidth() * desiredDPI / 72;
+	                int ih = (int)pageFormat.getImageableHeight() * desiredDPI / 72;
 	                w.setScreenSize(new Dimension(iw, ih));
 	                w.setCell(printCell, context);
 	                PixelDrawing offscreen = w.getOffscreen();
@@ -843,8 +839,10 @@ public class FileMenu {
 	            }
 
 	            // copy the image to the page
-	            int ix = (int)pageFormat.getImageableX();
-	            int iy = (int)pageFormat.getImageableY();
+	            int ix = (int)pageFormat.getImageableX() * desiredDPI / 72;
+	            int iy = (int)pageFormat.getImageableY() * desiredDPI / 72;
+				Graphics2D g2d = (Graphics2D)g;
+				g2d.scale(72.0 / desiredDPI, 72.0 / desiredDPI);
 	            g.drawImage(img, ix, iy, null);
 	            return Printable.PAGE_EXISTS;
 			} else if (wf.getContent() instanceof WaveformWindow)

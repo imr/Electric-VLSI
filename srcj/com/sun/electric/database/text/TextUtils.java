@@ -1112,19 +1112,26 @@ public class TextUtils
 			String s2 = a2.getName();
 			if (s1 == null) s1 = "";
 			if (s2 == null) s2 = "";
-			return TextUtils.nameSameNumeric(s1, s2);
+			return nameSameNumeric(s1, s2);
 		}
 	}
 
 	public static class ExportsByName implements Comparator
 	{
+		private boolean reverse = false;
+
+		public ExportsByName() {}
+
+		public ExportsByName(boolean reverse) { this.reverse = reverse; }
+
 		public int compare(Object o1, Object o2)
 		{
 			Export p1 = (Export)o1;
 			Export p2 = (Export)o2;
 			String s1 = p1.getName();
 			String s2 = p2.getName();
-			return TextUtils.nameSameNumeric(s1, s2);
+			if (reverse) return nameSameNumeric(s2, s1);
+			return nameSameNumeric(s1, s2);
 		}
 	}
 
