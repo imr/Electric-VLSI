@@ -685,6 +685,7 @@ public final class HierarchyEnumerator {
          */
         public Network getNetworkInParent(Network network) {
             if (parentInfo == null) return null;
+			if (network == null) return null;
 			if (network.getNetlist() != netlist) return null;
             // find export on network
             boolean found = false;
