@@ -228,18 +228,21 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 	private static class ChangeExport extends Job
 	{
 		Export pp;
+        String oldName;
         String newName;
         boolean newBodyOnly, newAlwaysDrawn;
         PortProto.Characteristic newChar;
         String newRefName;
 
 		protected ChangeExport(Export pp,
+                String oldName,
                 String newName,
                 boolean newBodyOnly, boolean newAlwaysDrawn,
                 PortProto.Characteristic newChar, String newRefName)
 		{
 			super("Modify Export", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.pp = pp;
+            this.oldName = oldName;
 			this.newName = newName;
             this.newBodyOnly = newBodyOnly;
             this.newAlwaysDrawn = newAlwaysDrawn;
@@ -251,7 +254,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 		public boolean doIt()
 		{
 		    // change the name
-			pp.rename(newName);
+			if (!oldName.equals(newName)) pp.rename(newName);
 
 			// change the body-only
 			if (newBodyOnly) pp.setBodyOnly(); else
@@ -503,6 +506,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
             // generate Job to change export port options
             ChangeExport job = new ChangeExport(
                     shownExport,
+                    initialName,
                     newName,
                     newBodyOnly, newAlwaysDrawn,
                     newChar, newRefName
