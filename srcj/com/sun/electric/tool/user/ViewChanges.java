@@ -1079,7 +1079,7 @@ public class ViewChanges
 			}
 			String selectedValue = (String)JOptionPane.showInputDialog(null,
 				"New technology to create", "Technology conversion",
-				JOptionPane.INFORMATION_MESSAGE, null, techNames, techNames[0]);
+				JOptionPane.INFORMATION_MESSAGE, null, techNames, User.getSchematicTechnology());
 			if (selectedValue == null) return false;
 			Technology newTech = Technology.findTechnology(selectedValue);
 			if (newTech == null) return false;
@@ -1121,6 +1121,15 @@ public class ViewChanges
 
 				Cell subCell = (Cell)ni.getProto();
 				if (convertedCells.containsKey(subCell)) continue;
+
+				// see if it already exists
+				String searchCellName = subCell.getName() + "{lay}";
+				Cell existing = oldCell.getLibrary().findNodeProto(searchCellName);
+				if (existing != null)
+				{
+					convertedCells.put(oldCell, existing);
+					continue;
+				}
 				makeLayoutCells(subCell, subCell.getName(), oldTech, newTech, nView, convertedCells);
 			}
 

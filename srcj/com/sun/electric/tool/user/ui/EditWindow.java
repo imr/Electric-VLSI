@@ -2323,6 +2323,39 @@ public class EditWindow extends JPanel
 	{
         if (cell == null) return;
         Cell oldCell = cell;
+
+        // determine which export is selected so it can be shown in the upper level
+        List what = highlighter.getHighlights();
+        Export selectedExport = null;
+        for(Iterator it = what.iterator(); it.hasNext(); )
+        {
+        	Highlight h = (Highlight)it.next();
+        	if (h.getType() == Highlight.Type.EOBJ)
+        	{
+        		ElectricObject eObj = h.getElectricObject();
+        		if (eObj instanceof PortInst)
+        		{
+        			PortInst pi = (PortInst)eObj;
+        			for(Iterator eIt = pi.getNodeInst().getExports(); eIt.hasNext(); )
+        			{
+        				Export e = (Export)eIt.next();
+        				if (e.getOriginalPort() == pi)
+        				{
+        					selectedExport = e;
+        					break;
+        				}
+        			}
+        		}
+        	} else if (h.getType() == Highlight.Type.TEXT)
+        	{
+        		if (h.getVar() == null && h.getName() == null && h.getElectricObject() instanceof Export)
+        		{
+					selectedExport = (Export)h.getElectricObject();
+					break;
+        		}
+        	}
+        }
+
         try {
             Nodable no = cellVarContext.getNodable();
 			if (no != null)
@@ -2370,6 +2403,8 @@ public class EditWindow extends JPanel
 				}
 
 				// highlight node we came from
+				if (selectedExport != null)
+					pi = no.getNodeInst().findPortInstFromProto(selectedExport);
                 if (pi != null)
                     highlighter.addElectricObject(pi, parent);
                 else
@@ -2426,16 +2461,17 @@ public class EditWindow extends JPanel
 				setCell(parent, VarContext.globalContext);
                 // highlight instance
                 NodeInst highlightNi = null;
-                for (Iterator it = parent.getNodes(); it.hasNext(); ){
+                for (Iterator it = parent.getNodes(); it.hasNext(); )
+                {
                     NodeInst ni = (NodeInst)it.next();
-                    if (ni.getProto() instanceof Cell) {
+                    if (ni.getProto() instanceof Cell)
+                    {
                         Cell nodeCell = (Cell)ni.getProto();
-                        if (nodeCell == oldCell) {
-                            highlighter.addElectricObject(ni, parent);
-                            break;
-                        }
-                        if (nodeCell.isIconOf(oldCell)) {
-                            highlighter.addElectricObject(ni, parent);
+                        if (nodeCell == oldCell || nodeCell.isIconOf(oldCell))
+                        {
+            				if (selectedExport != null)
+            					highlighter.addElectricObject(ni.findPortInstFromProto(selectedExport), parent); else
+            						highlighter.addElectricObject(ni, parent);
                             break;
                         }
                     }

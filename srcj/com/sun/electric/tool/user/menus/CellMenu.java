@@ -92,9 +92,9 @@ public class CellMenu {
         cellMenu.addSeparator();
 
         cellMenu.addMenuItem("Down Hierarchy", KeyStroke.getKeyStroke('D', buckyBit),
-                new ActionListener() { public void actionPerformed(ActionEvent e) { downHierCommand(); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { downHierCommand(); }});
         cellMenu.addMenuItem("Down Hierarchy In Place", KeyStroke.getKeyStroke('D', 0),
-                new ActionListener() { public void actionPerformed(ActionEvent e) { downHierInPlaceCommand(); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { downHierInPlaceCommand(); }});
         cellMenu.addMenuItem("Up Hierarchy", KeyStroke.getKeyStroke('U', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { upHierCommand(); }});
 
