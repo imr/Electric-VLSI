@@ -32,7 +32,6 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.tool.drc.DRC;
 
 import java.awt.Color;
 
