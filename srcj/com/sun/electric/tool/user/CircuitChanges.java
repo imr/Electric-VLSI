@@ -3217,6 +3217,7 @@ public class CircuitChanges
 					content.setCell(newVersion, null);
 			}
 			EditWindow.repaintAll();
+            System.out.println("Created new version: \""+newVersion.describe()+"\", old version renamed to \""+cell.describe()+"\"");
 			return true;
 		}
 	}

@@ -5,6 +5,8 @@
 BUG: (7/16/04, GVG) PolyQTree doesn't properly merge polygons that are touching each other.
 FIX: Extra code for those cases.
 
+BUG: (7/18/04, JKG) New cell version command: old version had bad cell group
+
 IMP: (7/16/04, GVG) Better thickness and distances for layers in 3D: technology MoCMOS
 
 ************************* Version 8.00: Released  *************************

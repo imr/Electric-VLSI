@@ -712,7 +712,7 @@ public class Cell extends NodeProto implements Comparable
 
 		// see if this cell already exists
 		Library lib = getLibrary();
-//		Cell existingCell = lib.findNodeProto(name);
+		Cell existingCell = lib.findNodeProto(name);
 //		if (existingCell != null)
 //		{
 //			System.out.println("Cannot create cell " + name + " in library " + lib.getName() + " ...already exists");
@@ -721,10 +721,11 @@ public class Cell extends NodeProto implements Comparable
 
 		CellName n = CellName.parseName(name);
 		if (n == null) return true;
+        //if (existingCell != null) n.setVersion(n.getVersion()+1);
 		int version = n.getVersion();
 
 		// make sure this version isn't in use
-		if (version > 0)
+		if ((version > 0))
 		{
 			for (Iterator it = lib.getCells(); it.hasNext();)
 			{
@@ -809,7 +810,7 @@ public class Cell extends NodeProto implements Comparable
 		if (displacedCell != null)
 		{
 			// remove this from the cellgroup since there is now a newer version
-			displacedCell.getCellGroup().remove(displacedCell);
+			//displacedCell.getCellGroup().remove(displacedCell);
 		}
 
 		if (getNewestVersion() != this) cellGroup = null; else
