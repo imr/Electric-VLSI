@@ -253,7 +253,7 @@ public class TextUtils
      */
     public static String formatDouble(double v)
     {
-        return formatDouble(v, 0);
+        return formatDouble(v, 3);
     }
 
 	/**
