@@ -103,7 +103,7 @@ public class Export extends PortProto
 
         // if this was made on a schematic, and an icon exists, make the export on the icon as well
         Cell icon = parent.iconView();
-        if (icon != null) {
+        if ((icon != null) && (icon.findExport(protoName) == null)) {
             // find analagous point to create export
             Rectangle2D bounds = parent.getBounds();
             double locX = portInst.getPoly().getCenterX();

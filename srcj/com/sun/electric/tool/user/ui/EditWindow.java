@@ -382,6 +382,7 @@ public class EditWindow extends JPanel
 		// by default record history and fillscreen
 		// However, when navigating through history, don't want to record new
 		// history objects.
+        if (context == null) context = VarContext.globalContext;
 		setCell(cell, context, true);
 	}
 
@@ -2167,7 +2168,7 @@ public class EditWindow extends JPanel
 			{
 				NodeInst ni = (NodeInst)it.next();
 				Cell parent = ni.getParent();
-				found.add(parent.describe());
+				found.add(parent);
 			}
 			if (cell.getView() == View.SCHEMATIC)
 			{
@@ -2179,7 +2180,7 @@ public class EditWindow extends JPanel
 						NodeInst ni = (NodeInst)it.next();
 						if (ni.isIconOfParent()) continue;
 						Cell parent = ni.getParent();
-						found.add(parent.describe());
+						found.add(parent);
 					}
 				}
 			}
@@ -2192,8 +2193,7 @@ public class EditWindow extends JPanel
 			} else if (found.size() == 1)
 			{
 				// just one parent cell: show it
-				String cellName = (String)found.iterator().next();
-				Cell parent = (Cell)NodeProto.findNodeProto(cellName);
+				Cell parent = (Cell)found.iterator().next();
 				setCell(parent, VarContext.globalContext);
 			} else
 			{
@@ -2201,7 +2201,8 @@ public class EditWindow extends JPanel
 				JPopupMenu parents = new JPopupMenu("parents");
 				for(Iterator it = found.iterator(); it.hasNext(); )
 				{
-					String cellName = (String)it.next();
+                    Cell parent = (Cell)it.next();
+					String cellName = parent.describe();
 					JMenuItem menuItem = new JMenuItem(cellName);
 					menuItem.addActionListener(this);
 					parents.add(menuItem);

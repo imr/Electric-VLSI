@@ -27,6 +27,7 @@ import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
@@ -602,10 +603,19 @@ public class Undo
 			{
 				cell = (Cell)obj;
 				lib = cell.getLibrary();
-			} else if (type == Type.OBJECTNEW || type == Type.OBJECTKILL || type == Type.OBJECTRENAME || type == Type.OBJECTREDRAW)
+			} else if (type == Type.OBJECTNEW || type == Type.OBJECTKILL || type == Type.OBJECTREDRAW)
 			{
 				cell = obj.whichCell();
 				if (cell != null) lib = cell.getLibrary();
+            } else if (type == Type.OBJECTRENAME) {
+                cell = obj.whichCell();
+                if (cell != null) lib = cell.getLibrary();
+                // also mark libraries that reference this cell as dirty
+                for (Iterator it = cell.getUsagesOf(); it.hasNext(); ) {
+                    NodeUsage nu = (NodeUsage)it.next();
+                    Cell parent = nu.getParent();
+                    parent.getLibrary().setChangedMinor();
+                }
 			} else if (type == Type.VARIABLENEW || type == Type.VARIABLEKILL || type == Type.VARIABLEMOD ||
 				type == Type.VARIABLEINSERT || type == Type.VARIABLEDELETE)
 			{

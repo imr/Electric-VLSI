@@ -188,8 +188,10 @@ public class Cell extends NodeProto implements Comparable
 			for (Iterator it = getCells(); it.hasNext();)
 			{
 				Cell c = (Cell) it.next();
-				if (c.isSchematicView())
-					return c;
+				if (c.isSchematicView()) {
+                    // get latest version
+                    return c.getNewestVersion();
+                }
 			}
 			return null;
 		}

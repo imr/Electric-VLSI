@@ -107,7 +107,7 @@ public class Library extends ElectricObject
 		if (existingLibrary != null)
 		{
 			System.out.println("Error: library '" + legalName + "' already exists");
-			return null;
+			return existingLibrary;
 		}
 		
 		// create the library

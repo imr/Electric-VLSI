@@ -3268,7 +3268,7 @@ public class CircuitChanges
 				WindowContent content = wf.getContent();
 				if (content == null) continue;
 				if (content.getCell() == cell)
-					content.setCell(newVersion, null);
+					content.setCell(newVersion, VarContext.globalContext);
 			}
 			EditWindow.repaintAll();
             System.out.println("Created new version: \""+newVersion.describe()+"\", old version renamed to \""+cell.describe()+"\"");
