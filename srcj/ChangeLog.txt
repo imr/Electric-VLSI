@@ -5,7 +5,7 @@ NOTE: Please place changes under the version that will be released next.
 ************************* Version 8.01y: *********************************
 
 BUG: (10/18/04, GVG) Rounding error in DRC min width checking
-FIX: DBMath.isGreater() function added to consolidate comparison and rouding operations
+FIX: DBMath.isGreater() function added to consolidate comparison and rounding operations
 
 IMP: (10/18/04, GVG) Parasitic tab skeleton in Preferences. Corresponding html/png files were added for manual. All
 tools-related figures were redone.
