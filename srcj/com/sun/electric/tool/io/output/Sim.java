@@ -3,7 +3,8 @@
  * Electric(tm) VLSI Design System
  *
  * File: Sim.java
- * Simulation tool: ESIM, RSIM, RNL, and COSMOS controller
+ * Input/output tool: ESIM, RSIM, RNL, and COSMOS output
+ * Written by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *

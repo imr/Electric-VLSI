@@ -4,6 +4,7 @@
  *
  * File: LEF.java
  * Input/output tool: LEF output
+ * Written by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *

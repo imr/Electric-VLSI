@@ -3,8 +3,9 @@
  * Electric(tm) VLSI Design System
  *
  * File: MOSSIM.java
- * MOSSIM net list generator
- *
+ * Input/output tool: MOSSIM net list generator
+ * Written by Steven M. Rubin, Sun Microsystems.
+ * 
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify

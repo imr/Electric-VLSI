@@ -206,7 +206,7 @@ public class RoutingTab extends PreferencePanel
         jPanel7.setLayout(new java.awt.GridBagLayout());
 
         jPanel7.setBorder(new javax.swing.border.TitledBorder("Mimic Stitcher"));
-        jLabel70.setText("Mimic stitching restrictions (non-interactive):");
+        jLabel70.setText("Restrictions (when non-interactive):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
@@ -224,7 +224,7 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         jPanel7.add(routMimicPortsMustMatch, gridBagConstraints);
 
-        routMimicInteractive.setText("Mimic stitching runs interactively");
+        routMimicInteractive.setText("Preview new arcs (interactive)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -233,7 +233,7 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel7.add(routMimicInteractive, gridBagConstraints);
 
-        routMimicCanUnstitch.setText("Mimic stitching can unstitch");
+        routMimicCanUnstitch.setText("Also mimics arc deletion (unstitching)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;

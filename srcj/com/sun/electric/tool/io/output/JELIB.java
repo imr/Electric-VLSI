@@ -3,6 +3,8 @@
  * Electric(tm) VLSI Design System
  *
  * File: JELIB.java
+ * Input/output tool: JELIB Library output
+ * Written by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *
@@ -241,24 +243,25 @@ public class JELIB extends Output
 		}
 
 		// write view information
-// 		boolean hasPersistent = false;
-// 		for(Iterator it = View.getViews(); it.hasNext(); )
-// 		{
-// 			View v = (View)it.next();
-// 			if (v.numPersistentVariables() != 0) { hasPersistent = true;  break; }
-// 		}
-// 		if (hasPersistent)
-// 		{
-// 			printWriter.print("\n# Views:\n");
-// 			for(Iterator it = View.getViews(); it.hasNext(); )
-// 			{
-// 				View v = (View)it.next();
-// 				if (v.numPersistentVariables() == 0) continue;
-// 				printWriter.print("V" + convertString(v.getFullName()) + "|" + convertString(v.getAbbreviation()));
-// 				writeVars(v, null);
-// 				printWriter.print("\n");
-// 			}
-// 		}
+		List viewList = new ArrayList();
+		for(Iterator it = View.getViews(); it.hasNext(); )
+		{
+			View view = (View)it.next();
+			if (!view.isPermanentView()) viewList.add(view);
+		}
+		if (viewList.size() > 0)
+		{
+			printWriter.print("\n# Views:\n");
+			Collections.sort(viewList, new TextUtils.ViewsByName());
+			for(Iterator it = viewList.iterator(); it.hasNext(); )
+			{
+				View view = (View)it.next();
+				if (!view.isPermanentView())
+				{
+					printWriter.print("V" + convertString(view.getFullName()) + "|" + convertString(view.getAbbreviation()) + "\n");
+				}
+			}
+		}
 
 		// write the cells of the database
 		List cells = lib.getCellsSortedByName();
@@ -444,12 +447,18 @@ public class JELIB extends Output
 				sortedList.add(cIt.next());
 			Collections.sort(sortedList, new TextUtils.CellsByName());
 			printWriter.print("G");
-			boolean first = true;
+
+			// if there is a main schematic cell, write that first
+			Cell main = group.getMainSchematics();
+			if (main != null)
+			{
+				printWriter.print(convertString(main.describe()));
+			}
 			for(Iterator cIt = sortedList.iterator(); cIt.hasNext(); )
 			{
 				Cell cell = (Cell)cIt.next();
-				if (first) first = false; else
-					printWriter.print("|");
+				if (cell == main) continue;
+				printWriter.print("|");
 				printWriter.print(convertString(cell.describe()));
 			}
 			printWriter.print("\n");

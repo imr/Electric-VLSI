@@ -3,6 +3,8 @@
  * Electric(tm) VLSI Design System
  *
  * File: Topology.java
+ * Input/output tool: superclass for output modules that write connectivity.
+ * Written by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *

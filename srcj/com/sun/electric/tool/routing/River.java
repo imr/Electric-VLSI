@@ -3,8 +3,9 @@
  * Electric(tm) VLSI Design System
  *
  * File: River.java
- * Routines for the river-routing option of the routing tool
- * Written by: Telle Whitney, Schlumberger Palo Alto Research
+ * Routing tool: River Routing (busses).
+ * Original C Code written by Telle Whitney, Schlumberger Palo Alto Research
+ * Translated to Java by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *

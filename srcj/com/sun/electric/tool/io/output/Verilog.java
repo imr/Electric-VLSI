@@ -3,6 +3,8 @@
  * Electric(tm) VLSI Design System
  *
  * File: Verilog.java
+ * Input/output tool: Verilog Netlist output
+ * Written by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *

@@ -833,9 +833,10 @@ public class Library extends ElectricObject
 	{
 		getCurCellPref();
 		String cellName = curCellPref.getString();
+		if (cellName.length() == 0) return null;
 		Cell cell = this.findNodeProto(cellName);
+		if (cell == null) curCellPref.setString("");
 		return cell;
-//		return curCell;
 	}
 
 	/**
@@ -848,7 +849,6 @@ public class Library extends ElectricObject
 		String cellName = "";
 		if (curCell != null) cellName = curCell.noLibDescribe();
 		curCellPref.setString(cellName);
-//		this.curCell = curCell;
 	}
 
 	/**

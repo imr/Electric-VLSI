@@ -3,7 +3,9 @@
  * Electric(tm) VLSI Design System
  *
  * File: Maze.java
- * Maze routing
+ * Routing tool: Maze routing
+ * Original C Code written by Glen M. Lawson
+ * Translated to Java by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *

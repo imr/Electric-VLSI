@@ -3,6 +3,8 @@
  * Electric(tm) VLSI Design System
  *
  * File: ELIB.java
+ * Input/output tool: ELIB Library output
+ * Written by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *

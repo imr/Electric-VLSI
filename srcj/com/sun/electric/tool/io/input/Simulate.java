@@ -3,6 +3,8 @@
  * Electric(tm) VLSI Design System
  *
  * File: Simulate.java
+ * Input/output tool: superclass for simulation-output formats that display their results in a waveform window.
+ * Written by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *

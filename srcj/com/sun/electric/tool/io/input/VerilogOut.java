@@ -3,6 +3,8 @@
  * Electric(tm) VLSI Design System
  *
  * File: VerilogOut.java
+ * Input/output tool: reader for Verilog output (.v)
+ * Written by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *
@@ -36,7 +38,7 @@ import java.util.List;
 
 /**
  * Class for reading and displaying waveforms from Verilog output.
- * Thease are contained in .dump files.
+ * Thease are contained in .v files.
  */
 public class VerilogOut extends Simulate
 {

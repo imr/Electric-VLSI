@@ -3,6 +3,8 @@
  * Electric(tm) VLSI Design System
  *
  * File: PAL.java
+ * Input/output tool: PAL Netlist output
+ * Written by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *
@@ -129,16 +131,9 @@ public class PAL extends Output
 			this.pal = pal;
 		}
 
-		public boolean enterCell(HierarchyEnumerator.CellInfo info)
-		{
-System.out.println("ENTERING CELL "+info.getCell().describe());
-			return true;
-		}
+		public boolean enterCell(HierarchyEnumerator.CellInfo info) { return true; }
 
-		public void exitCell(HierarchyEnumerator.CellInfo info)
-		{
-System.out.println("EXITING CELL "+info.getCell().describe());
-		}   
+		public void exitCell(HierarchyEnumerator.CellInfo info) {}   
 
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
 		{
@@ -153,14 +148,14 @@ System.out.println("EXITING CELL "+info.getCell().describe());
 			PrimitiveNode.Function fun = ni.getFunction();
 			if (fun != PrimitiveNode.Function.GATEAND && fun != PrimitiveNode.Function.GATEOR &&
 				fun != PrimitiveNode.Function.GATEXOR && fun != PrimitiveNode.Function.BUFFER) return false;
-Netlist nl = info.getNetlist();
-System.out.println("Networks in cell "+ni.getParent().describe()+" around node "+ni.describe());
-for(Iterator it = nl.getNetworks(); it.hasNext(); )
-{
-	Network net = (Network)it.next();
-	System.out.println(" Network "+net.toString()+" is uniquely named "+info.getUniqueNetName(net, "."));
-}
-if (fun != PrimitiveNode.Function.PIN) return false;
+//Netlist nl = info.getNetlist();
+//System.out.println("Networks in cell "+ni.getParent().describe()+" around node "+ni.describe());
+//for(Iterator it = nl.getNetworks(); it.hasNext(); )
+//{
+//	Network net = (Network)it.next();
+//	System.out.println(" Network "+net.toString()+" is uniquely named "+info.getUniqueNetName(net, "."));
+//}
+//if (fun != PrimitiveNode.Function.PIN) return false;
 
 			String funName = "";
 			if (fun == PrimitiveNode.Function.GATEAND) funName = "&"; else

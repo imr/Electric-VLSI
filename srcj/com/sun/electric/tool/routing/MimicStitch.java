@@ -3,6 +3,8 @@
  * Electric(tm) VLSI Design System
  *
  * File: MimicStitch.java
+ * Routing tool: Mimic Stitcher (duplicates user's routes elsewhere in the cell).
+ * Written by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -520,13 +522,6 @@ public class MimicStitch
 
 								// see if they are the same distance apart
 								boolean ptInPoly = thisPoly.isInside(want1);
-//if (ptInPoly)
-//{
-//Rectangle2D btemp = thisPoly.getBounds2D();
-//System.out.println("YES: port "+pp.getName()+" of "+ni.describe()+" to port "+opp.getName()+" of node "+oNi.describe());
-//System.out.println("  Because ("+want1.getX()+","+want1.getY()+") is inside of "+btemp.getMinX()+"<=X<="+btemp.getMaxX()+
-//	" and "+btemp.getMinY()+"<=Y<="+btemp.getMaxY()+" which is of type "+thisPoly.getStyle());
-//}
 								if (!ptInPoly) continue;
 
 								// figure out the wiring situation here

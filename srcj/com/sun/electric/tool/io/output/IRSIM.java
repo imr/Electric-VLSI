@@ -3,6 +3,8 @@
  * Electric(tm) VLSI Design System
  *
  * File: IRSIM.java
+ * Input/output tool: IRSIM Netlist output
+ * Written by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *

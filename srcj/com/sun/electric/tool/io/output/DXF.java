@@ -4,6 +4,7 @@
  *
  * File: DXF.java
  * Input/output tool: DXF output
+ * Written by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *

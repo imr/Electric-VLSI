@@ -1104,6 +1104,18 @@ public class TextUtils
 		}
 	}
 
+	public static class ViewsByName implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			View t1 = (View)o1;
+			View t2 = (View)o2;
+			String s1 = t1.getFullName();
+			String s2 = t2.getFullName();
+			return s1.compareToIgnoreCase(s2);
+		}
+	}
+
 	public static class TechnologiesByName implements Comparator
 	{
 		public int compare(Object o1, Object o2)

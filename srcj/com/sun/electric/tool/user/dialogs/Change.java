@@ -517,7 +517,9 @@ public class Change extends EDialog implements HighlightListener
 					NodeInst onlyNewNi = CircuitChanges.replaceNodeInst(ni, np, ignorePortNames, allowMissingPorts);
 					if (onlyNewNi == null)
 					{
-						System.out.println(np.describe() + " does not fit in the place of " + oldNType.describe());
+						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+							np.describe() + " does not fit in the place of " + oldNType.describe(),
+							"Change failed", JOptionPane.ERROR_MESSAGE);
 						return false;
 					}
 

@@ -3,6 +3,8 @@
  * Electric(tm) VLSI Design System
  *
  * File: PSpiceOut.java
+ * Input/output tool: reader for PSpice output (.spo)
+ * Written by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *

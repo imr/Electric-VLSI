@@ -4,6 +4,8 @@
  *
  * File: EDIF.java
  * Input/output tool: EDIF netlist generator
+ * Original C Code written by Steven M. Rubin, B G West and G. Lawson
+ * Translated to Java by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *

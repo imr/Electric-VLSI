@@ -3,6 +3,8 @@
  * Electric(tm) VLSI Design System
  *
  * File: Tegas.java
+ * Original C Code written by T.J.Goodman, University of Canterbury, N.Z.
+ * Translated to Java by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *

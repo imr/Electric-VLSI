@@ -3,6 +3,8 @@
  * Electric(tm) VLSI Design System
  *
  * File: SpiceOut.java
+ * Input/output tool: reader for basic Spice2 or GNUCap output (.spo)
+ * Written by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *

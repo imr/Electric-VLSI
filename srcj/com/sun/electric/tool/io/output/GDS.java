@@ -3,6 +3,9 @@
  * Electric(tm) VLSI Design System
  *
  * File: GDS.java
+ * Input/output tool: DXF output
+ * Original C Code written by Sid Penstone, Queens University
+ * Translated to Java by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *

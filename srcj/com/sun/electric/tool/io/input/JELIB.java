@@ -3,6 +3,8 @@
  * Electric(tm) VLSI Design System
  *
  * File: JELIB.java
+ * Input/output tool: JELIB Library input
+ * Written by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *
@@ -293,6 +295,29 @@ public class JELIB extends LibraryFiles
 				continue;
 			}
 
+			if (first == 'V')
+			{
+				// parse View information
+				List pieces = parseLine(line);
+				String viewName = unQuote((String)pieces.get(0));
+				View view = View.findView(viewName);
+				if (view == null)
+				{
+					String viewAbbr = unQuote((String)pieces.get(1));
+					view = View.newInstance(viewName, viewAbbr);
+					if (view == null)
+					{
+						Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
+							", Cannot create view " + viewName, null, -1);
+						continue;
+					}
+				}
+
+//				// get additional variables starting at position 2
+//				addVariables(view, pieces, 2, filePath, lineReader.getLineNumber());
+				continue;
+			}
+
 			if (first == 'T')
 			{
 				// parse Technology information
@@ -393,6 +418,7 @@ public class JELIB extends LibraryFiles
 				for(int i=0; i<pieces.size(); i++)
 				{
 					String cellName = unQuote((String)pieces.get(i));
+					if (cellName.length() == 0) continue;
 					int colonPos = cellName.indexOf(':');
 					if (colonPos >= 0) cellName = cellName.substring(colonPos+1);
 					Cell cell = lib.findNodeProto(cellName);
@@ -402,13 +428,19 @@ public class JELIB extends LibraryFiles
 							", Cannot find cell " + cellName, null, -1);
 						break;
 					}
-					if (i == 0)
+
+					// the first entry is the "main schematic cell"
+					if (firstCell == null)
 					{
 						firstCell = cell;
 						cell.putInOwnCellGroup();
 					} else
 					{
 						cell.joinGroup(firstCell);
+					}
+					if (i == 0)
+					{
+						if (cell.getView() == View.SCHEMATIC) cell.getCellGroup().setMainSchematics(cell);
 					}
 				}
 				continue;

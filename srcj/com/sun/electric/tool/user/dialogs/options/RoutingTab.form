@@ -48,7 +48,7 @@
           <SubComponents>
             <Component class="javax.swing.JLabel" name="jLabel70">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Mimic stitching restrictions (non-interactive):"/>
+                <Property name="text" type="java.lang.String" value="Restrictions (when non-interactive):"/>
               </Properties>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
@@ -68,7 +68,7 @@
             </Component>
             <Component class="javax.swing.JCheckBox" name="routMimicInteractive">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Mimic stitching runs interactively"/>
+                <Property name="text" type="java.lang.String" value="Preview new arcs (interactive)"/>
               </Properties>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
@@ -78,7 +78,7 @@
             </Component>
             <Component class="javax.swing.JCheckBox" name="routMimicCanUnstitch">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Mimic stitching can unstitch"/>
+                <Property name="text" type="java.lang.String" value="Also mimics arc deletion (unstitching)"/>
               </Properties>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">

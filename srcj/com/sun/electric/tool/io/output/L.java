@@ -3,7 +3,8 @@
  * Electric(tm) VLSI Design System
  *
  * File: L.java
- * Input/output tool: L output
+ * Input/output tool: L Netlist output
+ * Written by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *

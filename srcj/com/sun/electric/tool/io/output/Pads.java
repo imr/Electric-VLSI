@@ -3,6 +3,9 @@
  * Electric(tm) VLSI Design System
  *
  * File: Pads.java
+ * Input/output tool: Pads netlist output
+ * Original C Code written by Neil Levine, NAL Consulting for Intel Corp.
+ * Translated to Java by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *

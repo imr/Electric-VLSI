@@ -3,6 +3,8 @@
  * Electric(tm) VLSI Design System
  *
  * File: Geometry.java
+ * Input/output tool: superclass for output modules that write pure geometry.
+ * Written by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *

@@ -222,24 +222,22 @@ public class Input // extends IOTool
 		// import the library
 		boolean error = in.importALibrary(lib);
 		in.closeInput();
-		if (error)
-		{
-			System.out.println("Error importing library " + lib.getName());
-			return null;
-		}
 
 		// clean up
 		stopProgressDialog();
 		Undo.changesQuiet(false);
 		NetworkTool.reload();
-	       errorLogger.termLogging(true);
-		if (lib != null)
+		errorLogger.termLogging(true);
+		if (lib == null)
+		{
+			System.out.println("Error importing library " + lib.getName());
+		} else
 		{
 			long endTime = System.currentTimeMillis();
 			float finalTime = (endTime - startTime) / 1000F;
 			System.out.println("Library " + fileURL.getFile() + " read, took " + finalTime + " seconds");
 		}
- 		return lib;
+		return lib;
 	}
 
 	/**
