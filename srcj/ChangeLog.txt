@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01al: *********************************
 
+BUG: (11/8/04, RK) Fill Generator script must now select technology
+
 BUG: (11/8/04, GVG) Metal 1 pin didn't get correct offset after resizing (1.2 -> 1.4 done on 11/06/04)
 FIX: Metal 1 min width rule: 1.2 -> 1.4 to keep code consistent
 

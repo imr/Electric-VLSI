@@ -62,7 +62,8 @@ void makeCells() {
 	fg.makeFillCell(4, 6, PERIMETER, POWER, null);
 	fg.makeFillCell(4, 6, PERIMETER_AND_INTERNAL, POWER, null);
 	
-	Gallery.makeGallery(fg.getFillLibrary());
+	fg.makeGallery();
+	fg.writeLibrary();
 }
 
 makeCells();
@@ -78,6 +79,9 @@ fg.reserveSpaceOnLayer(5, 0, TRACKS, 6, TRACKS);
 fg.reserveSpaceOnLayer(6, 0, TRACKS, 4, TRACKS);
 
 makeCells();
+
+System.exit(0);
+
 
 
 

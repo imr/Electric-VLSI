@@ -1167,7 +1167,9 @@ public class FillGenerator {
 	public static final ExportConfig PERIMETER_AND_INTERNAL = 
 		ExportConfig.PERIMETER_AND_INTERNAL;
 	
-	public FillGenerator() {}
+	public FillGenerator() {
+		Tech.setTechnology("mocmos");
+	}
 
 	/** Specify the library into which fill cells should be placed */
 	public void setFillLibrary(String libName) {		
@@ -1254,6 +1256,9 @@ public class FillGenerator {
 	}
 	public void makeGallery() {
 		Gallery.makeGallery(lib);
+	}
+	public void writeLibrary() {
+		LayoutLib.writeLibrary(lib);
 	}
 }
 
