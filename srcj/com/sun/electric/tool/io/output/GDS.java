@@ -101,6 +101,8 @@ public class GDS extends Geometry
 	private static final short HDR_STRANS      = 0x1A01;
 	private static final short HDR_MAG         = 0x1B05;
 	private static final short HDR_ANGLE       = 0x1C05;
+    private static final short HDR_PROPATTR    = 0x2B02;
+    private static final short HDR_PROPVALUE   = 0x2C06;
 
 	// Header byte counts
 	private static final short HDR_N_BGNLIB    =     28;
@@ -132,6 +134,7 @@ public class GDS extends Geometry
 	/** constant for GDS units */				private static double scaleFactor;				
 	/** cell naming map */						private HashMap cellNames;
 	/** layer number map */						private HashMap layerNumbers;
+    /** property number */                      private int propNumber;
 
 	/**
 	 * Main entry point for GDS output.
@@ -226,13 +229,6 @@ public class GDS extends Geometry
 				if (currentLayerNumbers.text >= 0) textLayer = currentLayerNumbers.text;
 				if (currentLayerNumbers.pin >= 0) pinLayer = currentLayerNumbers.pin;
 
-				// put out a pin if requested
-				if (IOTool.isGDSOutWritesExportPins())
-				{
-					poly.transform(trans);
-					writePoly(poly, pinLayer);
-				}
-
 				outputHeader(HDR_TEXT, 0);
 				outputHeader(HDR_LAYER, textLayer);
 				outputHeader(HDR_TEXTTYPE, 0);
@@ -261,6 +257,10 @@ public class GDS extends Geometry
 				int j = str.length();
 				if (j > 512) j = 512;
 
+                // round up string length to the nearest integer
+                if ((j % 4) != 0) {
+                    j = (int)(j / 4) + 4;
+                }
 				// pad with a blank
 				outputShort((short)(4+j));
 				outputShort(HDR_STRING);
