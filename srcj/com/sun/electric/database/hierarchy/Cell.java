@@ -29,17 +29,17 @@ import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.CellName;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.network.Network;
-import com.sun.electric.database.text.CellName;
-import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -49,16 +49,16 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.technology.technologies.Schematics;
 
+import java.awt.Dimension;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -1695,10 +1695,10 @@ public class Cell extends NodeProto
 		Cell np = contentsView();
 		if (np != null) child = np;
 
-		return child.db_isachildof(parent);
+		return child.getIsAChildOf(parent);
 	}
 
-	private boolean db_isachildof(Cell parent)
+	private boolean getIsAChildOf(Cell parent)
 	{
 		/* if they are the same, that is recursion */
 		if (this == parent) return true;
@@ -1712,7 +1712,7 @@ public class Cell extends NodeProto
 //			if (ni->nextinst != NONODEINST && ni->nextinst->parent == ni->parent) continue;
 
 			/* recurse to see if the grandparent belongs to the child */
-			if (db_isachildof(ni.getParent())) return true;
+			if (getIsAChildOf(ni.getParent())) return true;
 		}
 
 		/* if this has an icon, look at it's instances */
@@ -1737,7 +1737,7 @@ public class Cell extends NodeProto
 				}
 
 				/* recurse to see if the grandparent belongs to the child */
-				if (db_isachildof(ni.getParent())) return true;
+				if (getIsAChildOf(ni.getParent())) return true;
 			}
 		}
 		return false;

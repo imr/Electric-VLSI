@@ -46,8 +46,8 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.dialogs.Attributes;
+import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Dimension;
 import java.util.List;

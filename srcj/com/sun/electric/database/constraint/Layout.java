@@ -48,12 +48,12 @@ import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.tool.Tool;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 public class Layout extends Constraints
 {

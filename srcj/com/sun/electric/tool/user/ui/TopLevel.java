@@ -28,16 +28,15 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.ui.PaletteFrame;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.Cursor;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JDesktopPane;
 import javax.swing.JInternalFrame;

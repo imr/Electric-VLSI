@@ -23,7 +23,6 @@
  */
 package com.sun.electric.database.geometry;
 
-import com.sun.electric.technology.Layer;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -33,16 +32,17 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.font.GlyphVector;
 
 /**
  * The Poly class describes an extended set of points
@@ -1254,7 +1254,7 @@ public class Poly implements Shape
 				Math.min(p.getY(),t.getY()) > otherBounds.getMaxY() ||
 				Math.max(p.getY(),t.getY()) < otherBounds.getMinY())
 					continue;
-			if (polyOther.db_lineintersect(p, t)) return true;
+			if (polyOther.lineIntersect(p, t)) return true;
 		}
 		return false;
 	}
@@ -1263,7 +1263,7 @@ public class Poly implements Shape
 	 * routine to return true if the line segment from (px1,py1) to (tx1,ty1)
 	 * intersects any line in polygon "poly"
 	 */
-	private boolean db_lineintersect(Point2D p1, Point2D t1)
+	private boolean lineIntersect(Point2D p1, Point2D t1)
 	{
 		int count = points.length;
 		for(int i=0; i<count; i++)
@@ -1281,6 +1281,12 @@ public class Poly implements Shape
 			}
 			Point2D t2 = points[i];
 			if (style == Type.VECTORS && (i&1) != 0) i++;
+
+			// simple test: if it hit one of the points, it is an intersection
+			if (t2.getX() == p1.getX() && t2.getY() == p1.getY()) return true;
+			if (t2.getX() == t1.getX() && t2.getY() == t1.getY()) return true;
+
+			// ignore zero-size segments
 			if (p2.getX() == t2.getX() && p2.getY() == t2.getY()) continue;
 
 			// special case: this line is vertical
@@ -1302,6 +1308,7 @@ public class Poly implements Shape
 				}
 				int ang = EMath.figureAngle(p1, t1);
 				Point2D inter = EMath.intersect(p2, 900, p1, ang);
+				if (inter == null) continue;
 				if (inter.getX() != p2.getX() || inter.getY() < Math.min(p2.getY(),t2.getY()) || inter.getY() > Math.max(p2.getY(),t2.getY())) continue;
 				return true;
 			}
@@ -1325,6 +1332,7 @@ public class Poly implements Shape
 				}
 				int ang = EMath.figureAngle(p1, t1);
 				Point2D inter = EMath.intersect(p2, 0, p1, ang);
+				if (inter == null) continue;
 				if (inter.getY() != p2.getY() || inter.getX() < Math.min(p2.getX(),t2.getX()) || inter.getX() > Math.max(p2.getX(),t2.getX())) continue;
 				return true;
 			}
@@ -1335,8 +1343,9 @@ public class Poly implements Shape
 
 			// general case of line intersection
 			int ang1 = EMath.figureAngle(p1, t1);
-			int ang2 = EMath.figureAngle(p2, p2);
+			int ang2 = EMath.figureAngle(p2, t2);
 			Point2D inter = EMath.intersect(p2, ang2, p1, ang1);
+			if (inter == null) continue;
 			if (inter.getX() < Math.min(p2.getX(),t2.getX()) || inter.getX() > Math.max(p2.getX(),t2.getX()) ||
 				inter.getY() < Math.min(p2.getY(),t2.getY()) || inter.getY() > Math.max(p2.getY(),t2.getY()) ||
 				inter.getX() < Math.min(p1.getX(),t1.getX()) || inter.getX() > Math.max(p1.getX(),t1.getX()) ||

@@ -45,10 +45,10 @@ import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.WiringListener;
-import com.sun.electric.tool.routing.Routing;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;

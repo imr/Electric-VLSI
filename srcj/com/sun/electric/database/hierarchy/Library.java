@@ -24,18 +24,18 @@
 package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.text.CellName;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.user.ui.ExplorerTree;
 
+import java.io.File;
 import java.util.List;
 import java.util.Comparator;
 import java.util.Collections;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.io.File;
 
 /**
  * A Library represents a collection of Cells.

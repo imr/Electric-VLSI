@@ -41,6 +41,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
@@ -53,16 +54,15 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.BinaryConstants;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.Progress;
-import com.sun.electric.lib.LibFile;
 
-import java.io.IOException;
-import java.io.File;
-import java.util.Iterator;
-import java.util.Date;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
+import java.io.IOException;
+import java.io.File;
 import java.nio.ByteBuffer;
+import java.util.Iterator;
+import java.util.Date;
 
 
 /**

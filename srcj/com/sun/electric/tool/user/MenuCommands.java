@@ -195,8 +195,17 @@ public final class MenuCommands
 
 		editMenu.addSeparator();
 
-		editMenu.addMenuItem("Rotate", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.rotateObjects(); } });
+		Menu rotateSubMenu = Menu.createMenu("Rotate", 'R');
+		editMenu.add(rotateSubMenu);
+        rotateSubMenu.addMenuItem("90 Degrees Clockwise", null, 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.rotateObjects(2700); }});
+        rotateSubMenu.addMenuItem("90 Degrees Counterclockwise", KeyStroke.getKeyStroke('J', buckyBit), 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.rotateObjects(900); }});
+        rotateSubMenu.addMenuItem("180 Degrees", null, 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.rotateObjects(1800); }});
+        rotateSubMenu.addMenuItem("Other...", null, 
+            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.rotateObjects(0); }});
+
 		editMenu.addMenuItem("Mirror", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.mirrorObjects(); } });
 		editMenu.addMenuItem("Size", null,

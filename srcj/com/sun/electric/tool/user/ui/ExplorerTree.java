@@ -27,6 +27,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
@@ -57,8 +58,8 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.ToolTipManager;
-import javax.swing.tree.TreeSelectionModel;
 import javax.swing.event.TreeModelListener;
+import javax.swing.tree.TreeSelectionModel;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -96,6 +97,15 @@ public class ExplorerTree extends JTree
 	private static ImageIcon iconViewOldText = null;
 	private static DefaultMutableTreeNode libraryExplorerTree = new DefaultMutableTreeNode("LIBRARIES");
 	private static boolean explorerChanged = true;
+
+	static class CellAndCount
+	{
+		private Cell cell;
+		private int count;
+		public CellAndCount(Cell cell, int count) { this.cell = cell;   this.count = count; }
+		public Cell getCell() { return cell; }
+		public int getCount() { return count; }
+	}
 
 	/**
 	 * Method to create a new ExplorerTree.
@@ -218,6 +228,83 @@ public class ExplorerTree extends JTree
 
 	private static void rebuildExplorerTreeByHierarchy()
 	{
+		libraryExplorerTree.removeAllChildren();
+		List sortedList = Library.getVisibleLibrariesSortedByName();
+		for(Iterator it = sortedList.iterator(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			DefaultMutableTreeNode libTree = new DefaultMutableTreeNode(lib);
+			for(Iterator eit = lib.getCellsSortedByName().iterator(); eit.hasNext(); )
+			{
+				Cell cell = (Cell)eit.next();
+
+				// ignore icons and text views
+				if (cell.getView() == View.ICON) continue;
+				if (cell.getView().isTextView()) continue;
+
+				for(Iterator vIt = cell.getVersions(); vIt.hasNext(); )
+				{
+					Cell cellVersion = (Cell)vIt.next();
+					Iterator insts = cellVersion.getInstancesOf();
+					if (insts.hasNext()) continue;
+
+					// no children: add this as root node
+					DefaultMutableTreeNode cellTree = new DefaultMutableTreeNode(cellVersion);
+					libTree.add(cellTree);
+					createHierarchicalExplorerTree(cellVersion, cellTree);
+				}
+			}
+			libraryExplorerTree.add(libTree);
+		}
+	}
+
+	static class MutableInteger
+	{
+		private int value;
+		public MutableInteger(int value) { setValue(value); }
+		public int getValue() { return value; }
+		public void setValue(int value) { this.value = value; }
+	}
+
+	/**
+	 * Method to build a hierarchical explorer structure.
+	 */
+	private static void createHierarchicalExplorerTree(Cell cell, DefaultMutableTreeNode cellTree)
+	{
+		// see what is inside
+		HashMap cellCount = new HashMap();
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (!(ni.getProto() instanceof Cell)) continue;
+			Cell subCell = (Cell)ni.getProto();
+			if (subCell.getView() == View.ICON)
+			{
+				if (ni.isIconOfParent()) continue;
+				subCell = subCell.contentsView();
+				if (subCell == null) continue;
+			}
+			MutableInteger mi = (MutableInteger)cellCount.get(subCell);
+			if (mi == null)
+			{
+				mi = new MutableInteger(0);
+				cellCount.put(subCell, mi);
+			}
+			mi.setValue(mi.getValue()+1);
+		}
+
+		// show what is there
+		for(Iterator it = cellCount.keySet().iterator(); it.hasNext(); )
+		{
+			Cell subCell = (Cell)it.next();
+			MutableInteger mi = (MutableInteger)cellCount.get(subCell);
+			if (mi == null) continue;
+
+			CellAndCount cc = new CellAndCount(subCell, mi.getValue());
+			DefaultMutableTreeNode subCellTree = new DefaultMutableTreeNode(cc);
+			cellTree.add(subCellTree);
+			createHierarchicalExplorerTree(subCell, subCellTree);
+		}
 	}
 
 	private static void rebuildExplorerTreeByGroups()
@@ -355,6 +442,11 @@ public class ExplorerTree extends JTree
 			if (lib == Library.getCurrent()) nodeName += " [Current]";
 			return nodeName;
 		}
+		if (nodeInfo instanceof CellAndCount)
+		{
+			CellAndCount cc = (CellAndCount)nodeInfo;
+			return cc.getCell().noLibDescribe() + " (" + cc.getCount() + ")";
+		}
 		if (nodeInfo instanceof Cell.CellGroup)
 		{
 			Cell.CellGroup group = (Cell.CellGroup)nodeInfo;
@@ -410,6 +502,11 @@ public class ExplorerTree extends JTree
 				if (iconLibrary == null)
 					iconLibrary = new ImageIcon(getClass().getResource("IconLibrary.gif"));
 				setIcon(iconLibrary);
+			}
+			if (nodeInfo instanceof CellAndCount)
+			{
+				CellAndCount cc = (CellAndCount)nodeInfo;
+				nodeInfo = cc.getCell();
 			}
 			if (nodeInfo instanceof Cell)
 			{
@@ -529,6 +626,12 @@ public class ExplorerTree extends JTree
 			// double click
 			if (e.getClickCount() == 2)
 			{
+				if (currentSelectedObject instanceof CellAndCount)
+				{
+					CellAndCount cc = (CellAndCount)currentSelectedObject;
+					wnd.setCell(cc.getCell(), VarContext.globalContext);
+					return;
+				}
 				if (currentSelectedObject instanceof Cell)
 				{
 					Cell cell = (Cell)currentSelectedObject;
@@ -612,6 +715,11 @@ public class ExplorerTree extends JTree
 				JPopupMenu popup = job.getPopupStatus();
 				popup.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 				return;
+			}
+			if (currentSelectedObject instanceof CellAndCount)
+			{
+				CellAndCount cc = (CellAndCount)currentSelectedObject;
+				currentSelectedObject = cc.getCell();
 			}
 			if (currentSelectedObject instanceof Cell)
 			{
@@ -771,9 +879,9 @@ public class ExplorerTree extends JTree
 					menu.add(menuItem);
 					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { showByGroupAction(); } });
 
-//					menuItem = new JMenuItem("Show Cells by Hierarchy");
-//					menu.add(menuItem);
-//					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { showByHierarchyAction(); } });
+					menuItem = new JMenuItem("Show Cells by Hierarchy");
+					menu.add(menuItem);
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { showByHierarchyAction(); } });
 
 					menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 					return;

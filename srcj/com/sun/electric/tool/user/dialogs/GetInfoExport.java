@@ -41,23 +41,23 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.dialogs.Attributes;
+import com.sun.electric.tool.user.ui.TopLevel;
 
-import java.util.List;
-import java.util.Iterator;
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.geom.Rectangle2D;
+import java.util.List;
+import java.util.Iterator;
 import javax.swing.JFrame;
 import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JScrollPane;
-import javax.swing.text.Document;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.Document;
 
 
 /**
@@ -1048,16 +1048,16 @@ public class GetInfoExport extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(bodyOnly, gridBagConstraints);
 
         alwaysDrawn.setText("Always drawn");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(alwaysDrawn, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();

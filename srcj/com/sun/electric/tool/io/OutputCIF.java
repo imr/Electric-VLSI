@@ -31,14 +31,14 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.technology.Layer;
 
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.Date;
 import java.util.Set;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 
 
 /** 

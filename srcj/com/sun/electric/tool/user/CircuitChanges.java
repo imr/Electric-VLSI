@@ -80,9 +80,256 @@ public class CircuitChanges
 
 	/****************************** NODE TRANSFORMATION ******************************/
 
-	public static void rotateObjects()
+	public static void rotateObjects(int amount)
 	{
-		System.out.println("Cannot rotate yet");
+		Cell cell = Library.needCurCell();
+		if (cell == null) return;
+
+		// disallow rotating if lock is on
+		if (cantEdit(cell, null, true)) return;
+
+		// if zero rotation, prompt for amount
+		if (amount == 0)
+		{
+			String val = JOptionPane.showInputDialog("Amount to rotate");
+			if (val == null) return;
+			double fAmount = TextUtils.atof(val);
+			if (fAmount == 0)
+			{
+				return;
+			}
+			amount = (int)(fAmount / 10);
+		}
+
+		RotateSelected job = new RotateSelected(cell, amount);
+	}
+
+	protected static class RotateSelected extends Job
+	{
+		Cell cell;
+		int amount;
+
+		protected RotateSelected(Cell cell, int amount)
+		{
+			super("Rotate selected objects", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cell = cell;
+			this.amount = amount;
+			this.startJob();
+		}
+
+		public void doIt()
+		{
+
+			// figure out which nodes get rotated
+			FlagSet markObj = Geometric.getFlagSet(1);
+			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				ni.clearBit(markObj);
+			}
+			int nicount = 0;
+			NodeInst theni = null;
+			Rectangle2D selectedBounds = new Rectangle2D.Double();
+			List highs = Highlight.getHighlighted(true, true);
+			for(Iterator it = highs.iterator(); it.hasNext(); )
+			{
+				Geometric geom = (Geometric)it.next();
+				if (!(geom instanceof NodeInst)) continue;
+				NodeInst ni = (NodeInst)geom;
+				if (cantEdit(cell, ni, true)) return;
+				ni.setBit(markObj);
+				if (nicount == 0)
+				{
+					selectedBounds.setRect(ni.getBounds());
+				} else
+				{
+					Rectangle2D.union(selectedBounds, ni.getBounds(), selectedBounds);
+				}
+				theni = ni;
+				nicount++;
+			}
+
+			// must be at least 1 node
+			if (nicount <= 0)
+			{
+				System.out.println("Must select at least 1 node for rotation");
+				return;
+			}
+
+			// if multiple nodes, find the center one
+			if (nicount > 1)
+			{
+				Point2D center = new Point2D.Double(selectedBounds.getCenterX(), selectedBounds.getCenterY());
+				theni = null;
+				double bestdist = Integer.MAX_VALUE;
+				for(Iterator it = cell.getNodes(); it.hasNext(); )
+				{
+					NodeInst ni = (NodeInst)it.next();
+					if (!ni.isBit(markObj)) continue;
+					double dist = center.distance(ni.getTrueCenter());
+
+					// LINTED "bestdist" used in proper order
+					if (theni == null || dist < bestdist)
+					{
+						theni = ni;
+						bestdist = dist;
+					}
+				}
+			}
+
+//			if (nicount > 1)
+//			{
+//				us_abortcommand(_("Must highlight one node for rotation about the grab-point"));
+//				return;
+//			}
+//			ni = theni;
+//
+//			// disallow rotating if lock is on
+//			if (us_cantedit(ni->parent, ni, TRUE)) return;
+//
+//			// find the grab point
+//			corneroffset(ni, ni->proto, ni->rotation, ni->transpose, &gx, &gy, FALSE);
+//			gx += ni->lowx;   gy += ni->lowy;
+//
+//			// build transformation for this operation
+//			transid(transtz);   transtz[2][0] = -gx;   transtz[2][1] = -gy;
+//			makeangle(amt, 0, rot);
+//			transid(transfz);   transfz[2][0] = gx;    transfz[2][1] = gy;
+//			transmult(transtz, rot, t1);
+//			transmult(t1, transfz, t2);
+//			cx = (ni->lowx+ni->highx)/2;   cy = (ni->lowy+ni->highy)/2;
+//			xform(cx, cy, &gx, &gy, t2);
+//			gx -= cx;   gy -= cy;
+//
+//			// save highlighting
+//			us_pushhighlight();
+//			us_clearhighlightcount();
+//
+//			// do the rotation
+//			startobjectchange((INTBIG)ni, VNODEINST);
+//
+//			// rotate and translate
+//			modifynodeinst(ni, gx, gy, gx, gy, amt, 0);
+//
+//			// end change
+//			endobjectchange((INTBIG)ni, VNODEINST);
+//
+//			// restore highlighting
+//			us_pophighlight(TRUE);
+
+			// see which nodes already connect to the main rotation node (theni)
+			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				ni.clearBit(markObj);
+			}
+			theni.setBit(markObj);
+			for(Iterator it = cell.getArcs(); it.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)it.next();
+				ai.clearBit(markObj);
+			}
+			for(Iterator it = highs.iterator(); it.hasNext(); )
+			{
+				Geometric geom = (Geometric)it.next();
+				if (!(geom instanceof ArcInst)) continue;
+				ArcInst ai = (ArcInst)geom;
+				ai.setBit(markObj);
+			}
+			us_spreadrotateconnection(theni, markObj);
+
+			// now make sure that it is all connected
+			List nilist = new ArrayList();
+			List ailist = new ArrayList();
+			for(Iterator it = highs.iterator(); it.hasNext(); )
+			{
+				Geometric geom = (Geometric)it.next();
+				if (!(geom instanceof NodeInst)) continue;
+				NodeInst ni = (NodeInst)geom;
+				if (ni == theni) continue;
+				if (ni.isBit(markObj)) continue;
+
+				if (theni.getNumPortInsts() == 0)
+				{
+					// no port on the cell: create one
+					Cell subCell = (Cell)theni.getProto();
+					NodeInst subni = NodeInst.makeInstance(Generic.tech.universalPinNode, new Point2D.Double(0,0), 0, 0, 0, subCell, null);
+					if (subni == null) break;
+					Export thepp = Export.newInstance(subCell, subni.getOnlyPortInst(), "temp");
+					if (thepp == null) break;
+
+					// add to the list of temporary nodes
+					nilist.add(subni);
+				}
+				PortInst thepi = theni.getPortInst(0);
+				if (ni.getNumPortInsts() != 0)
+				{
+					ArcInst ai = ArcInst.makeInstance(Generic.tech.invisible_arc, 0, ni.getPortInst(0), thepi, null);
+					if (ai == null) break;
+					ai.setRigid();
+					ailist.add(ai);
+				}
+			}
+
+			// make all selected arcs temporarily rigid
+//			us_modarcbits(6, FALSE, x_(""), list);
+
+			// see if there is a snap point
+//			if (!us_getonesnappoint(&rotcx, &rotcy))
+//			{
+//				// no snap point, use center of node
+//				rotcx = (theni->lowx + theni->highx) / 2;
+//				rotcy = (theni->lowy + theni->highy) / 2;
+//			}
+
+			// build transformation for this operation
+//			transid(transtz);   transtz[2][0] = -rotcx;   transtz[2][1] = -rotcy;
+//			makeangle(amt, 0, rot);
+//			transid(transfz);   transfz[2][0] = rotcx;    transfz[2][1] = rotcy;
+//			transmult(transtz, rot, t1);
+//			transmult(t1, transfz, t2);
+//			cx = (theni->lowx+theni->highx)/2;   cy = (theni->lowy+theni->highy)/2;
+//			xform(cx, cy, &gx, &gy, t2);
+//			gx -= cx;   gy -= cy;
+
+			// do the rotation
+			theni.modifyInstance(0, 0, 0, 0, amount);
+
+			// delete intermediate arcs used to constrain
+			for(Iterator it = ailist.iterator(); it.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)it.next();
+				ai.kill();
+			}
+
+			// delete intermediate nodes used to constrain
+			for(Iterator it = nilist.iterator(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+//				(void)killportproto(nilist[i]->parent, nilist[i]->firstportexpinst->exportproto);
+				ni.kill();
+			}
+		}
+	}
+
+	/*
+	 * Helper method for rotation to mark selected nodes that need not be
+	 * connected with an invisible arc.
+	 */
+	private static void us_spreadrotateconnection(NodeInst theni, FlagSet markObj)
+	{
+		for(Iterator it = theni.getConnections(); it.hasNext(); )
+		{
+			Connection con = (Connection)it.next();
+			ArcInst ai = con.getArc();
+			if (!ai.isBit(markObj)) continue;
+			Connection other = ai.getTail();
+			if (other == con) other = ai.getHead();
+			NodeInst ni = other.getPortInst().getNodeInst();
+			if (ni.isBit(markObj)) continue;
+			ni.setBit(markObj);
+			us_spreadrotateconnection(ni, markObj);
+		}
 	}
 
 	public static void mirrorObjects()
@@ -140,23 +387,23 @@ public class CircuitChanges
 				deleteList.add(eobj);
 			}
 
-			/* clear the highlighting */
+			// clear the highlighting
 			Highlight.clear();
 			Highlight.finished();
 
-			/* delete the text */
+			// delete the text
 			for(Iterator it = highlightedText.iterator(); it.hasNext(); )
 			{
 				Highlight high = (Highlight)it.next();
 
-				/* disallow erasing if lock is on */
+				// disallow erasing if lock is on
 				Cell np = high.getCell();
 				if (np != null)
 				{
 					if (cantEdit(np, null, true)) continue;
 				}
 
-//				/* do not deal with text on an object if the object is already in the list */
+//				// do not deal with text on an object if the object is already in the list
 //				if (high.fromgeom != NOGEOM)
 //				{
 //					for(j=0; list[j] != NOGEOM; j++)
@@ -164,7 +411,7 @@ public class CircuitChanges
 //					if (list[j] != NOGEOM) continue;
 //				}
 
-				/* deleting variable on object */
+				// deleting variable on object
 				Variable var = high.getVar();
 				ElectricObject eobj = high.getElectricObject();
 				if (var != null)
@@ -1915,12 +2162,12 @@ public class CircuitChanges
 			NodeProto subNp = subNi.getProto();
 			if (!(subNp instanceof Cell)) continue;
 
-			/* ignore recursive references (showing icon in contents) */
+			// ignore recursive references (showing icon in contents)
 			if (subNi.isIconOfParent()) continue;
 			if (subNi.isExpanded()) doUnExpand(subNi);
 		}
 
-		/* expanded the cell */
+		// expanded the cell
 		if (ni.isBit(expandFlagBit))
 		{
 			ni.clearExpanded();

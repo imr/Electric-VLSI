@@ -35,6 +35,22 @@ import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Insets;
+import java.awt.Cursor;
+import java.awt.Toolkit;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.geom.Rectangle2D;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
 import javax.swing.JPanel;
 import javax.swing.JFrame;
 import javax.swing.JToolBar;
@@ -47,22 +63,6 @@ import javax.swing.ButtonGroup;
 import javax.swing.AbstractAction;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.LineBorder;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.BorderLayout;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.awt.Color;
-import java.awt.Insets;
-import java.awt.Cursor;
-import java.awt.Toolkit;
-import java.awt.Image;
-import java.awt.Point;
-import java.awt.geom.Rectangle2D;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ArrayList;
 
 
 /**

@@ -23,20 +23,17 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import bsh.*;
-
 import java.awt.BorderLayout;
 import java.awt.Rectangle;
+import java.awt.Dimension;
+import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.Dimension;
-import java.awt.Container;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
-
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JScrollBar;
@@ -47,6 +44,10 @@ import javax.swing.ImageIcon;
 import javax.swing.SwingUtilities;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
+
+// the bean shell
+import bsh.EvalError;
+import bsh.Interpreter;
 
 /**
  * a console for the Java side of Electric.  Used because the standard

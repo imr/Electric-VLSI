@@ -26,7 +26,6 @@ package com.sun.electric.tool.user.ui;
 import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.event.MouseEvent;
-
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JPopupMenu;

@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: ElectricObject.java
+ * File: EvalJavaBsh.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -21,11 +21,6 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-/*
- * EvalJavaBsh.java
- *
- * Created on November 6, 2003, 10:26 AM
- */
 
 package com.sun.electric.database.variable;
 
@@ -36,11 +31,11 @@ import com.sun.electric.tool.Job;
 import bsh.Interpreter;
 import bsh.InterpreterError;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.util.Stack;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 
 /**
  * Used for evaluating Java expressions in Variables

@@ -33,9 +33,6 @@ import com.sun.electric.tool.user.ErrorLog;
 import com.sun.electric.tool.user.ui.Button;
 import com.sun.electric.tool.user.ui.PaletteFrame;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.ArrayList;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Component;
@@ -44,6 +41,9 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.AdjustmentListener;
 import java.awt.event.AdjustmentEvent;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
 import javax.swing.JInternalFrame;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -56,10 +56,10 @@ import javax.swing.JButton;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollBar;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
 
 /**
  * This class defines an edit window, with a cell explorer on the left side.

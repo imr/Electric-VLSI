@@ -24,9 +24,9 @@
 package com.sun.electric.database.variable;
 
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.prototype.NodeProto;
 
 import java.lang.Number;
 import java.lang.NumberFormatException;

@@ -25,11 +25,12 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.event.ItemEvent;
 import java.lang.Runnable;
 import java.util.Iterator;
 import java.util.List;
@@ -40,7 +41,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
-import java.awt.event.ItemEvent;
 
 
 /**

@@ -35,6 +35,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ExplorerTree;
 
+import java.awt.geom.Point2D;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
@@ -42,7 +43,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.Comparator;
 import java.util.Collections;
-import java.awt.geom.Point2D;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 public class ErrorLog
@@ -332,7 +332,7 @@ public class ErrorLog
 		}
 
 		ErrorLog el = (ErrorLog)allErrors.get(currentErrorNumber);
-		return el.db_reportcurrenterror(showhigh, gPair);
+		return el.reportCurrentError(showhigh, gPair);
 	}
 
 	/**
@@ -350,7 +350,7 @@ public class ErrorLog
 		}
 
 		ErrorLog el = (ErrorLog)allErrors.get(currentErrorNumber);
-		return el.db_reportcurrenterror(true, null);
+		return el.reportCurrentError(true, null);
 	}
 
 	/**
@@ -452,7 +452,7 @@ public class ErrorLog
 	 */
 	public String reportError()
 	{
-		return db_reportcurrenterror(true, null);
+		return reportCurrentError(true, null);
 	}
 
 	/**
@@ -471,7 +471,7 @@ public class ErrorLog
 	 * Highlights associated graphics if "showhigh" is nonzero.  Fills "g1" and "g2"
 	 * with associated geometry modules (if nonzero).
 	 */
-	private String db_reportcurrenterror(boolean showhigh, Geometric [] gPair)
+	private String reportCurrentError(boolean showhigh, Geometric [] gPair)
 	{
 		if (allErrors.size() == 0)
 		{

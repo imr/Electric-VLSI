@@ -432,7 +432,7 @@ public class Variable
 
 	/**
 	 * Method to convert object "addr" to a string, given a purpose and a set of units.
-	 * For completion of the method, the units should be treated as in "db_makestringvar()".
+	 * For completion of the method, the units should be treated as in "makeStringVar()".
 	 */
 	private String makeStringVar(Object addr, int purpose, TextDescriptor.Unit units)
 	{

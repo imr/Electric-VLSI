@@ -50,6 +50,8 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.InputBinary;
 import com.sun.electric.tool.io.BinaryConstants;
 
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -57,8 +59,6 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Collections;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 
 
 /**

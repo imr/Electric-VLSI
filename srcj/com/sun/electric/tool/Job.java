@@ -34,21 +34,20 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.user.ui.ExplorerTree;
 import com.sun.electric.tool.user.User;
 
+import java.awt.Point;
+import java.awt.Toolkit;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 import java.lang.Thread;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.sql.Time;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.JPopupMenu;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.Point;
-import java.awt.Toolkit;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
  * Jobs are processes that will run in the background, such as 
