@@ -188,7 +188,7 @@ public class GDS extends Geometry
 		}
 
 		// now write exports
-		if (IOTool.getGDSOutDefaultTextLayer() >= 0)
+		if (IOTool.getGDSOutDefaultTextLayer() >= 0 && IOTool.isGDSOutWritesExportPins())
 		{
 			for(Iterator it = cell.getPorts(); it.hasNext(); )
 			{
