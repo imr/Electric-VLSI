@@ -380,8 +380,11 @@ public class Cell extends NodeProto implements Comparable
 			NodeProto cellCenterProto = Generic.tech.cellCenterNode;
 			NodeInst cellCenter = NodeInst.newInstance(cellCenterProto, new Point2D.Double(0, 0),
 				cellCenterProto.getDefWidth(), cellCenterProto.getDefHeight(), 0, cell, null);
-			cellCenter.setVisInside();
-			cellCenter.setHardSelect();
+            if (cellCenter != null)
+            {
+                cellCenter.setVisInside();
+			    cellCenter.setHardSelect(); 
+            }
 		}
 		return cell;
 	}

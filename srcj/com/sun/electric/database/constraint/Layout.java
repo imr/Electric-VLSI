@@ -1155,8 +1155,11 @@ public class Layout extends Constraints
 			double dy = curPoly.getCenterY();
 			double ox = change.getA1();
 			double oy = change.getA2();
-			m00 = curPoly.getBounds2D().getWidth() / oldPoly.getBounds2D().getWidth();
-			m11 = curPoly.getBounds2D().getHeight() / oldPoly.getBounds2D().getHeight();
+            // Zero means flat port. Valid for new technology
+            if (oldPoly.getBounds2D().getWidth() > 0)
+                m00 = curPoly.getBounds2D().getWidth() / oldPoly.getBounds2D().getWidth();
+            if (oldPoly.getBounds2D().getHeight() >0)
+			    m11 = curPoly.getBounds2D().getHeight() / oldPoly.getBounds2D().getHeight();
 			m02 = dx - ono.getX() + ox;   m12 = dy - ono.getY() + oy;
 		}
 		trans.setTransform(m00, m10, m01, m11, m02, m12);
