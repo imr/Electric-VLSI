@@ -558,9 +558,22 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
             boolean confirm = true;
 
             List cells = getSelectedCells();
+            String lastDeleted = null;
             for (Iterator it = cells.iterator(); it.hasNext(); ) {
                 Cell cell = (Cell)it.next();
-                CircuitChanges.deleteCell(cell, confirm);
+                if (CircuitChanges.deleteCell(cell, confirm)) {
+                    lastDeleted = cell.noLibDescribe();
+                }
+            }
+            if (lastDeleted != null) {
+                for (Iterator it = cellListNames.iterator(); it.hasNext(); ) {
+                    String name = (String)it.next();
+                    if (name.equals(lastDeleted)) {
+                        if (it.hasNext())
+                            lastSelectedCell = (String)it.next();
+                        break;
+                    }
+                }
             }
             updateCellList();
 
