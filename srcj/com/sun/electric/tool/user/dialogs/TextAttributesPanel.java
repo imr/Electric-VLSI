@@ -57,8 +57,6 @@ public class TextAttributesPanel extends javax.swing.JPanel {
     private Object initialDispPos;      // this needs to be an object because one choice, "none" is a string
                                         // instead of a TextDescriptor.DispPos
     private String initialCode;
-    private boolean initialParamter;
-    private boolean initialInherits;
 
     /**
      * Create a Panel for editing attribute specific
@@ -92,18 +90,6 @@ public class TextAttributesPanel extends javax.swing.JPanel {
         // set show style
         initialDispPos = TextDescriptor.DispPos.NAMEVALUE;
         show.setSelectedItem(initialDispPos);
-        // set isParam
-        initialParamter = false;
-        parameter.setSelected(false);
-        // only vars on cell and nodeinst can thier parameter property set
-        if (!(owner instanceof Cell) && !(owner instanceof NodeInst))
-            parameter.setEnabled(false);
-        // set isInherits
-        initialInherits = false;
-        inherited.setSelected(false);
-        // only vars on Cell and Exports can have their inherits property set
-        if (!(owner instanceof Cell) && !(owner instanceof Export))
-            inherited.setEnabled(false);
 
         // dialog is disabled by default
         setVariable(null, null, null, null);
@@ -141,8 +127,6 @@ public class TextAttributesPanel extends javax.swing.JPanel {
         code.setEnabled(enabled);
         units.setEnabled(enabled);
         show.setEnabled(enabled);
-        parameter.setEnabled(enabled);
-        inherited.setEnabled(enabled);
 
         if (!enabled) return;
 
@@ -182,18 +166,6 @@ public class TextAttributesPanel extends javax.swing.JPanel {
             populateShowComboBox(false);
             show.setSelectedItem(initialDispPos);
         }
-        // set isParam
-        initialParamter = td.isParam();
-        parameter.setSelected(td.isParam());
-        // only vars on Cell and NodeInst can have their parameter property set
-        if (!(owner instanceof Cell) && !(owner instanceof NodeInst))
-            parameter.setEnabled(false);
-        // set isInherits
-        initialInherits = td.isInherit();
-        inherited.setSelected(td.isInherit());
-        // only vars on Cell and Exports can have their inherits property set
-        if (!(owner instanceof Cell) && !(owner instanceof Export))
-            inherited.setEnabled(false);
     }
 
     /**
@@ -214,12 +186,6 @@ public class TextAttributesPanel extends javax.swing.JPanel {
         // see if show style changed - check if DispPos changed
         Object newDisp = show.getSelectedItem();
         if (newDisp != initialDispPos) changed = true;
-        // see if is param changed
-        boolean newParameter = parameter.isSelected();
-        if (newParameter != initialParamter) changed = true;
-        // see if is inherits changed
-        boolean newInherits = inherited.isSelected();
-        if (newInherits != initialInherits) changed = true;
 
         if (futureVarName == null) {
             // nothing changed on current var/td, return
@@ -233,16 +199,12 @@ public class TextAttributesPanel extends javax.swing.JPanel {
                 futureVarName,
                 newCode,
                 newUnit,
-                newDisp,
-                newParameter,
-                newInherits
+                newDisp
         );
 
         initialCode = newCode;
         initialUnit = newUnit;
         initialDispPos = newDisp;
-        initialParamter = newParameter;
-        initialInherits = newInherits;
         return true;
     }
 
@@ -268,9 +230,7 @@ public class TextAttributesPanel extends javax.swing.JPanel {
         private String code;
         private TextDescriptor.Unit unit;
         private Object dispPos;
-        private boolean parameter;
-        private boolean inherits;
-        
+
         private ChangeText(
                 ElectricObject owner,
                 Variable var,
@@ -278,9 +238,7 @@ public class TextAttributesPanel extends javax.swing.JPanel {
                 String futureVarName,
                 String code,
                 TextDescriptor.Unit unit,
-                Object dispPos,
-                boolean parameter,
-                boolean inherits
+                Object dispPos
                 )
         {
             super("Modify Text Attribute", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -291,8 +249,6 @@ public class TextAttributesPanel extends javax.swing.JPanel {
             this.code = code;
             this.unit = unit;
             this.dispPos = dispPos;
-            this.parameter = parameter;
-            this.inherits = inherits;
             startJob();
         }
 
@@ -321,10 +277,6 @@ public class TextAttributesPanel extends javax.swing.JPanel {
                 var.setDisplay();
                 td.setDispPart((TextDescriptor.DispPos)dispPos);
             }
-            // change the parameter
-            if (parameter) td.setParam(); else td.clearParam();
-            // change the inherits
-            if (inherits) td.setInherit(); else td.clearInherit();
 			return true;
        }
     }
@@ -345,10 +297,9 @@ public class TextAttributesPanel extends javax.swing.JPanel {
         jLabel3 = new javax.swing.JLabel();
         show = new javax.swing.JComboBox();
         jPanel2 = new javax.swing.JPanel();
-        parameter = new javax.swing.JCheckBox();
-        inherited = new javax.swing.JCheckBox();
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
 
         setLayout(new java.awt.GridBagLayout());
 
@@ -407,33 +358,22 @@ public class TextAttributesPanel extends javax.swing.JPanel {
 
         jPanel2.setLayout(new java.awt.GridBagLayout());
 
-        parameter.setText("Parameter");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 30, 0, 0);
-        jPanel2.add(parameter, gridBagConstraints);
-
-        inherited.setText("Is Inherited");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(0, 30, 0, 0);
-        jPanel2.add(inherited, gridBagConstraints);
-
-        jLabel4.setText("Attributes marked as Parameters");
+        jLabel4.setText("Attributes created on a cell");
         jPanel2.add(jLabel4, new java.awt.GridBagConstraints());
 
-        jLabel5.setText("can be inherited on instances");
+        jLabel5.setText("are inherited by instances");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         jPanel2.add(jLabel5, gridBagConstraints);
+
+        jLabel6.setText("of that cell");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanel2.add(jLabel6, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -448,15 +388,14 @@ public class TextAttributesPanel extends javax.swing.JPanel {
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox code;
-    private javax.swing.JCheckBox inherited;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
-    private javax.swing.JCheckBox parameter;
     private javax.swing.JComboBox show;
     private javax.swing.JComboBox units;
     // End of variables declaration//GEN-END:variables
