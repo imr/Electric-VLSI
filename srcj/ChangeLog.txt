@@ -61,6 +61,8 @@ FIX: Netlist.getNetlist(Nodable) returns sublist with "shortResistors" from pare
      netlist instead of user preferences. Removed "getUserNetlist" calls from Hierarchy
      enumerator.
 
+IMP: (10/28/04, SMR) Double-clicking on a sweep signal toggles its inclusion/exclusion.
+
 IMP: (10/28/04, GVG) Bug fix in hierarchical checking for minArea
 
 IMP: (10/28/04, SMR) Renaming a cell such that it is the same as an existing one makes it a new version.

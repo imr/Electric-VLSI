@@ -911,8 +911,6 @@ public class WaveformWindow implements WindowContent
 								double time = ws.sSig.getTime(i, s);
 								int x = scaleTimeToX(time);
 								int y = scaleValueToY(as.getSweepValue(s, i));
-//if (as.getSweepValue(s, i) != 0) System.out.println("For s="+s+", plotting point ("+(int)(time*1e11)+", "+as.getSweepValue(s, i)+") at X="+x+
-//		" SO V("+s+","+i+")="+as.getSweepValue(s, i));
 								if (i != 0)
 								{
 									if (processALine(g, lastX, lastY, x, y, bounds, result, ws, s)) break;
@@ -3942,11 +3940,23 @@ public class WaveformWindow implements WindowContent
 		boolean isAnalog = sd.isAnalog();
 		if (isAnalog)
 		{
-			WaveformWindow.Panel wp = new WaveformWindow.Panel(this, isAnalog);
 			Rectangle2D bounds = sd.getBounds();
 			double lowValue = bounds.getMinY();
 			double highValue = bounds.getMaxY();
+			double lowTime = bounds.getMinX();
+			double highTime = bounds.getMaxX();
+			if (this.timeLocked)
+			{
+				if (wavePanels.size() > 0)
+				{
+					Panel aPanel = (Panel)wavePanels.get(0);
+					lowTime = aPanel.minTime;
+					highTime = aPanel.maxTime;
+				}
+			}
+			WaveformWindow.Panel wp = new WaveformWindow.Panel(this, isAnalog);
 			wp.setValueRange(lowValue, highValue);
+			wp.setTimeRange(lowTime, highTime);
 			wp.makeSelectedPanel();
 		}
 		getPanel().validate();

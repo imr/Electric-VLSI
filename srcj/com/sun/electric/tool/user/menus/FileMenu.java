@@ -84,6 +84,8 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.CIF); } });
 		importSubMenu.addMenuItem("GDS II (Stream)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.GDS); } });
+		importSubMenu.addMenuItem("EDIF (Electronic Design Interchange Format)...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.EDIF); } });
 		importSubMenu.addMenuItem("SUE (Schematic User Environment)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.SUE); } });
 		importSubMenu.addSeparator();

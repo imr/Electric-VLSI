@@ -661,12 +661,14 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					wf.setCellWindow(cc.getCell());
 					return;
 				}
+
 				if (currentSelectedObject instanceof Cell)
 				{
 					Cell cell = (Cell)currentSelectedObject;
 					wf.setCellWindow(cell);
 					return;
 				}
+
 				if (currentSelectedObject instanceof Library || currentSelectedObject instanceof Cell.CellGroup ||
 					currentSelectedObject instanceof String)
 				{
@@ -674,6 +676,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 						tree.expandPath(currentPath);
 					return;
 				}
+
 				if (currentSelectedObject instanceof Simulation.SimSignal)
 				{
 					Simulation.SimSignal sig = (Simulation.SimSignal)currentSelectedObject;
@@ -682,6 +685,14 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 						WaveformWindow ww = (WaveformWindow)wf.getContent();
 						ww.addSignal(sig);
 					}
+					return;
+				}
+
+				if (currentSelectedObject instanceof WaveformWindow.SweepSignal)
+				{
+					WaveformWindow.SweepSignal ss = (WaveformWindow.SweepSignal)currentSelectedObject;
+					if (ss == null) return;
+					ss.setIncluded(!ss.isIncluded());
 					return;
 				}
 

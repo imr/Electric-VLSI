@@ -356,12 +356,24 @@ public abstract class ElectricObject
 			} else if (this instanceof Geometric)
 			{
 				Geometric geom = (Geometric)this;
-				Poly [] polys = geom.getPolyList(var, geom.getTrueCenterX(), geom.getTrueCenterY(), wnd, false);
+				double x = geom.getTrueCenterX();
+				double y = geom.getTrueCenterY();
+				if (geom instanceof NodeInst)
+				{
+					NodeInst ni = (NodeInst)geom;
+					Rectangle2D uBounds = ni.getUntransformedBounds();
+					x = uBounds.getCenterX();
+					y = uBounds.getCenterY();
+				}
+				Poly [] polys = geom.getPolyList(var, x, y, wnd, false);
 				if (polys.length > 0)
 				{
 					poly = polys[0];
 					if (geom instanceof NodeInst)
-						poly.transform(((NodeInst)geom).rotateOut());
+					{
+						NodeInst ni = (NodeInst)geom;
+						poly.transform(ni.rotateOut());
+					}
 				}
 			} else if (this instanceof Cell)
 			{

@@ -58,9 +58,6 @@ public class EDIFTab extends PreferencePanel
 
 		initialInputScale = IOTool.getEDIFInputScale();
 		edifInputScale.setText(TextUtils.formatDouble(initialInputScale));
-
-		// not yet
-		edifInputScale.setEditable(false);
 	}
 
 	/**
