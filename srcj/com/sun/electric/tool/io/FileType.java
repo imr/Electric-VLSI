@@ -70,6 +70,7 @@ public class FileType {
 	/** Describes RSIM output. */			public static final FileType RSIM         = new FileType("RSIM", new String[] {"sim"}, "RSIM File (sim)");
 	/** Describes Silos decks.*/			public static final FileType SILOS        = new FileType("Silos", new String[] {"sil"}, "Silos Deck (sil)");
 	/** Describes Skill decks.*/			public static final FileType SKILL        = new FileType("Skill", new String[] {"il"}, "Skill Deck (il)");
+    /** Describes Skill decks.*/			public static final FileType SKILLEXPORTSONLY        = new FileType("SkillExportsOnly", new String[] {"il"}, "Skill Deck (il)");
 	/** Describes Spice decks.*/			public static final FileType SPICE        = new FileType("Spice", new String[] {"spi", "sp"}, "Spice Deck (spi, sp)");
 	/** Describes Spice standard output.*/	public static final FileType SPICEOUT     = new FileType("SpiceOutput", new String[] {"spo"}, "Spice/GNUCap Output File (spo)");
 	/** Describes Sue files.*/				public static final FileType SUE          = new FileType("Sue", new String[] {"sue"}, "Sue File (sue)");

@@ -142,9 +142,12 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.LEF, false); } });
 		exportSubMenu.addMenuItem("L...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.L, false); } });
-		if (IOTool.hasSkill())
+		if (IOTool.hasSkill()) {
 			exportSubMenu.addMenuItem("Skill (Cadence Commands)...", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.SKILL, false); } });
+            exportSubMenu.addMenuItem("Skill Exports Only (Cadence Commands)...", null,
+                new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.SKILLEXPORTSONLY, false); } });
+        }
 		exportSubMenu.addSeparator();
 		exportSubMenu.addMenuItem("Eagle...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.EAGLE, false); } });

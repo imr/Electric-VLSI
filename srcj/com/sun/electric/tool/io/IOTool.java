@@ -86,7 +86,7 @@ public class IOTool extends Tool
 			// find the necessary method on the Skill class
 			try
 			{
-				skillOutputMethod = skillClass.getMethod("writeSkillFile", new Class[] {Cell.class, String.class});
+				skillOutputMethod = skillClass.getMethod("writeSkillFile", new Class[] {Cell.class, String.class, Boolean.class});
 			} catch (NoSuchMethodException e)
 			{
 				skillClass = null;
@@ -104,15 +104,16 @@ public class IOTool extends Tool
 	 * @param cell the Cell to write in Skill.
 	 * @param fileName the name of the file to write.
 	 */
-	public static void writeSkill(Cell cell, String fileName)
+	public static void writeSkill(Cell cell, String fileName, boolean exportsOnly)
 	{
 		if (!hasSkill()) return;
 		try
 		{
-			skillOutputMethod.invoke(skillClass, new Object[] {cell, fileName});
+			skillOutputMethod.invoke(skillClass, new Object[] {cell, fileName, new Boolean(exportsOnly)});
 		} catch (Exception e)
 		{
 			System.out.println("Unable to run the Skill output module");
+            e.printStackTrace(System.out);
 		}
 	}
 
@@ -848,4 +849,19 @@ public class IOTool extends Tool
 	 * @param on true if Skill Output flattens the hierarchy.
 	 */
 	public static void setSkillFlattensHierarchy(boolean on) { cacheSkillFlattensHierarchy.setBoolean(on); }
+
+    private static Pref cacheSkillGDSNameLimit = Pref.makeBooleanPref("SkillGDSNameLimit", IOTool.tool.prefs, false);
+    /**
+     * Method to tell whether Skill Output flattens the hierarchy.
+     * Flattened files are larger, but have no hierarchical structure.
+     * The default is "false".
+     * @return true if Skill Output flattens the hierarchy.
+     */
+    public static boolean isSkillGDSNameLimit() { return cacheSkillGDSNameLimit.getBoolean(); }
+    /**
+     * Method to set whether Skill Output flattens the hierarchy.
+     * Flattened files are larger, but have no hierarchical structure.
+     * @param on true if Skill Output flattens the hierarchy.
+     */
+    public static void setSkillGDSNameLimit(boolean on) { cacheSkillGDSNameLimit.setBoolean(on); }
 }
