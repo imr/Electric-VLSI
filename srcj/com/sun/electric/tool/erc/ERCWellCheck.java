@@ -172,30 +172,6 @@ public class ERCWellCheck
 					wellAreas.add(wa);
 				}
 			}
-			//else
-			{
-				/*
-				PolyMerge topMerge = (PolyMerge)cellMerges.get(cell);
-				for(Iterator it = topMerge.getKeyIterator(); it.hasNext(); )
-				{
-					Layer layer = (Layer)it.next();
-					List polyList = topMerge.getMergedPoints(layer);
-
-					if (polyList != null)
-					{
-						for(Iterator pIt = polyList.iterator(); pIt.hasNext(); )
-						{
-							WellArea wa = new WellArea();
-							wa.poly = (Poly)pIt.next();
-							wa.bounds = wa.poly.getBounds2D();
-							wa.layer = layer;
-							wa.index = wellIndex++;
-							wellAreas.add(wa);
-						}
-					}
-				}
-				*/
-			}
 
 			// number the well areas according to topology of contacts in them
 			/* Not sure why this code is here
@@ -652,13 +628,6 @@ public class ERCWellCheck
 
 							if (newAlgorithm)
 								newElem = new PolyQTree.PolyNode(poly.getBounds2D());
-							// No using interface because .....
-							/*
-							if (newAlgorithm)
-								((PolyQTree)merge).add(layer, new PolyQTree.PolyNode(poly.getBounds2D()));
-							else
-								((PolyMerge)merge).addPolygon(layer, poly);
-								*/
 							merge.add(layer, newElem);
 						}
 					} else
@@ -689,8 +658,6 @@ public class ERCWellCheck
 
 						if (newAlgorithm)
 							newElem = new PolyQTree.PolyNode(poly.getBounds2D());
-							//((PolyQTree)merge).insert((Object)layer, new PolyQTree.PolyNode(poly.getBounds2D()));
-							//((PolyMerge)merge).addPolygon(layer, poly);
 						merge.add(layer, newElem);
 					}
 				}

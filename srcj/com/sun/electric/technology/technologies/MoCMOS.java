@@ -341,8 +341,6 @@ public class MoCMOS extends Technology
 
 		new DRC.RuleTemplate("7.4",  DRC.RuleTemplate.DE|DRC.RuleTemplate.SU, DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Metal-1",        "Metal-1",        6),
 		new DRC.RuleTemplate("7.4",  DRC.RuleTemplate.SC, DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Metal-1",        "Metal-1",        4),
-        //new DRC.RuleTemplate("7.4",  DRC.RuleTemplate.DE|DRC.RuleTemplate.SU, DRC.RuleTemplate.SPACINGW, "Metal-1",        "Metal-1",        6,  null),
-		//new DRC.RuleTemplate("7.4",  DRC.RuleTemplate.SC, DRC.RuleTemplate.SPACINGW, "Metal-1",        "Metal-1",        4,  null),
 
 		new DRC.RuleTemplate("8.1",  DRC.RuleTemplate.DE, DRC.RuleTemplate.CUTSIZE,   null,             null,            3, "Metal-1-Metal-2-Con"),
 		new DRC.RuleTemplate("8.1",  DRC.RuleTemplate.DE, DRC.RuleTemplate.NODSIZ,    null,             null,            5, "Metal-1-Metal-2-Con"),
@@ -413,8 +411,8 @@ public class MoCMOS extends Technology
 		new DRC.RuleTemplate("15.3", DRC.RuleTemplate.SU|DRC.RuleTemplate.SC|    DRC.RuleTemplate.M3,    DRC.RuleTemplate.VIASUR,   "Metal-3",         null,            2, "Metal-2-Metal-3-Con"),
 		new DRC.RuleTemplate("15.3", DRC.RuleTemplate.SU|DRC.RuleTemplate.SC|    DRC.RuleTemplate.M456,  DRC.RuleTemplate.VIASUR,   "Metal-3",         null,            1, "Metal-2-Metal-3-Con"),
 
-		new DRC.RuleTemplate("15.4", DRC.RuleTemplate.DE, DRC.RuleTemplate.SPACINGW, "Metal-3",        "Metal-3",        8,  null),
-		new DRC.RuleTemplate("15.4", DRC.RuleTemplate.SU, DRC.RuleTemplate.SPACINGW, "Metal-3",        "Metal-3",        6,  null),
+		new DRC.RuleTemplate("15.4", DRC.RuleTemplate.DE, DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Metal-3",        "Metal-3",        8),
+		new DRC.RuleTemplate("15.4", DRC.RuleTemplate.SU, DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Metal-3",        "Metal-3",        6),
 		new DRC.RuleTemplate("15.4", DRC.RuleTemplate.SC|DRC.RuleTemplate.M3,    DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Metal-3",        "Metal-3",        8),
 		new DRC.RuleTemplate("15.4", DRC.RuleTemplate.SC|DRC.RuleTemplate.M456,  DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Metal-3",        "Metal-3",        6),
 
@@ -441,7 +439,7 @@ public class MoCMOS extends Technology
 		new DRC.RuleTemplate("22.3", DRC.RuleTemplate.M4,    DRC.RuleTemplate.VIASUR,   "Metal-4",         null,            2, "Metal-3-Metal-4-Con"),
 		new DRC.RuleTemplate("22.3", DRC.RuleTemplate.M56,   DRC.RuleTemplate.VIASUR,   "Metal-4",         null,            1, "Metal-3-Metal-4-Con"),
 
-		new DRC.RuleTemplate("22.4", DRC.RuleTemplate.M4,    DRC.RuleTemplate.SPACINGW, "Metal-4",        "Metal-4",        12, null),
+		new DRC.RuleTemplate("22.4", DRC.RuleTemplate.M4,    DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Metal-4",        "Metal-4",        12),
 		new DRC.RuleTemplate("22.4", DRC.RuleTemplate.DE|DRC.RuleTemplate.M56,   DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Metal-4",        "Metal-4",        8),
 		new DRC.RuleTemplate("22.4", DRC.RuleTemplate.SU|DRC.RuleTemplate.M56,   DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Metal-4",        "Metal-4",        6),
 
@@ -453,7 +451,7 @@ public class MoCMOS extends Technology
 		new DRC.RuleTemplate("25.1", DRC.RuleTemplate.DE|DRC.RuleTemplate.M5,    DRC.RuleTemplate.NODSIZ,    null,             null,            7, "Metal-4-Metal-5-Con"),
 		new DRC.RuleTemplate("25.1", DRC.RuleTemplate.DE|DRC.RuleTemplate.M6,    DRC.RuleTemplate.NODSIZ,    null,             null,            5, "Metal-4-Metal-5-Con"),
 
-		new DRC.RuleTemplate("25.2", DRC.RuleTemplate.ALL,               DRC.RuleTemplate.SPACINGW, "Via4",           "Via4",           3,  null),
+		new DRC.RuleTemplate("25.2", DRC.RuleTemplate.ALL,               DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Via4",           "Via4",           3),
 
 		new DRC.RuleTemplate("25.3", DRC.RuleTemplate.ALL,               DRC.RuleTemplate.VIASUR,   "Metal-4",         null,            1, "Metal-4-Metal-5-Con"),
 
@@ -466,9 +464,9 @@ public class MoCMOS extends Technology
 
 		new DRC.RuleTemplate("26.3", DRC.RuleTemplate.DE|DRC.RuleTemplate.M5,    DRC.RuleTemplate.VIASUR,   "Metal-5",         null,            2, "Metal-4-Metal-5-Con"),
 		new DRC.RuleTemplate("26.3", DRC.RuleTemplate.SU|DRC.RuleTemplate.M5,    DRC.RuleTemplate.VIASUR,   "Metal-5",         null,            1, "Metal-4-Metal-5-Con"),
-		new DRC.RuleTemplate("26.3", DRC.RuleTemplate.M6,    DRC.RuleTemplate.VIASUR,   "Metal-5",         null,            1, "Metal-4-Metal-5-Con"),
+		new DRC.RuleTemplate("26.3", DRC.RuleTemplate.M6, DRC.RuleTemplate.VIASUR,   "Metal-5",         null,            1, "Metal-4-Metal-5-Con"),
 
-		new DRC.RuleTemplate("26.4", DRC.RuleTemplate.M5,    DRC.RuleTemplate.SPACINGW, "Metal-5",        "Metal-5",        8,  null),
+		new DRC.RuleTemplate("26.4", DRC.RuleTemplate.M5, DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Metal-5",        "Metal-5",        8),
 		new DRC.RuleTemplate("26.4", DRC.RuleTemplate.DE|DRC.RuleTemplate.M6,    DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Metal-5",        "Metal-5",        8),
 		new DRC.RuleTemplate("26.4", DRC.RuleTemplate.SU|DRC.RuleTemplate.M6,    DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Metal-5",        "Metal-5",        6),
 
@@ -481,7 +479,7 @@ public class MoCMOS extends Technology
 
 		new DRC.RuleTemplate("29.2", DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACING,  "Via5",           "Via5",           4,  null),
 
-		new DRC.RuleTemplate("29.3", DRC.RuleTemplate.ALL,               DRC.RuleTemplate.VIASUR,   "Metal-5",         null,            1, "Metal-5-Metal-6-Con"),
+		new DRC.RuleTemplate("29.3", DRC.RuleTemplate.ALL, DRC.RuleTemplate.VIASUR,   "Metal-5",         null,            1, "Metal-5-Metal-6-Con"),
 
 		new DRC.RuleTemplate("30.1", DRC.RuleTemplate.ALL, DRC.RuleTemplate.MINWID,   "Metal-6",         null,            4,  null),
 
@@ -490,7 +488,7 @@ public class MoCMOS extends Technology
 		new DRC.RuleTemplate("30.3", DRC.RuleTemplate.DE, DRC.RuleTemplate.VIASUR,   "Metal-6",         null,            2, "Metal-5-Metal-6-Con"),
 		new DRC.RuleTemplate("30.3", DRC.RuleTemplate.SU, DRC.RuleTemplate.VIASUR,   "Metal-6",         null,            1, "Metal-5-Metal-6-Con"),
 
-		new DRC.RuleTemplate("30.4", DRC.RuleTemplate.ALL,               DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Metal-6",        "Metal-6",        8)
+		new DRC.RuleTemplate("30.4", DRC.RuleTemplate.ALL, DRC.RuleTemplate.SPACINGW, WIDELIMIT, "Metal-6",        "Metal-6",        8)
 	};
 
 	// -------------------- private and protected methods ------------------------

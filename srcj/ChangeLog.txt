@@ -2,6 +2,10 @@
 
 ************************* Version 8.01j: *********************************
 
+BUG: (8/23/04, GVG) DRC and wide rules in MoCMOS not properly translated to new data structure (Metal2-Metal3 wide
+distance setup calling wrong constructor)
+FIX: Adding missing argument (WIDELIMIT)
+
 IMP: (8/22/04, JKG) Added mouse-over highlighter. To disable if necessary, set
     ClickZoomWireListener.useMouseOverHighlighter to false. 
 
