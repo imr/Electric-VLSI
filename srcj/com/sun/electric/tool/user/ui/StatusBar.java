@@ -54,14 +54,15 @@ public class StatusBar extends JPanel implements HighlightListener
 	//private int fillPosition;
 	private WindowFrame frame;
 	private String coords = null;
-	public JLabel fieldSelected, fieldSize, fieldTech, fieldCoords;
+	private JLabel fieldSelected, fieldSize, fieldTech, fieldCoords;
+    private int fieldSizeNumChars, fieldTechNumChars, fieldCoordsNumChars;
 
 	private static String selectionOverride = null;
 
 	public StatusBar(WindowFrame frame)
 	{
 		//super(new SpringLayout());
-		super(new GridLayout());
+		super(new GridBagLayout());
 
 		setBorder(new BevelBorder(BevelBorder.LOWERED));
         //SpringLayout layout = (SpringLayout)this.getLayout();
@@ -69,9 +70,21 @@ public class StatusBar extends JPanel implements HighlightListener
 		//fillPosition = 0;
 		this.frame = frame;
 		addField(fieldSelected = new JLabel(), 0);
+        Dimension d = new Dimension(140, 16);
 		addField(fieldSize = new JLabel(), 1);
+        fieldSize.setMinimumSize(d);
+        fieldSize.setMaximumSize(d);
+        fieldSize.setPreferredSize(d);
 		addField(fieldTech = new JLabel(), 2);
+        d = new Dimension (200, 16);
+        fieldTech.setMinimumSize(d);
+        fieldTech.setMaximumSize(d);
+        fieldTech.setPreferredSize(d);
 		fieldCoords = new JLabel();
+        d = new Dimension(100, 16);
+        fieldCoords.setMinimumSize(d);
+        fieldCoords.setMaximumSize(d);
+        fieldCoords.setPreferredSize(d);
 		if (User.isShowCursorCoordinates()) addField(fieldCoords, 3);
 
 		/*
@@ -123,8 +136,11 @@ public class StatusBar extends JPanel implements HighlightListener
 //		frame.add(field);
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = index;   gbc.gridy = 0;
-		gbc.weightx = 0.5;
-		gbc.fill = GridBagConstraints.HORIZONTAL;
+		//gbc.weightx = 0.5;
+        if (index == 0) { gbc.weightx = 1.0; gbc.fill = GridBagConstraints.HORIZONTAL; }
+        gbc.ipadx = 5;
+        gbc.anchor = GridBagConstraints.WEST;
+		//gbc.fill = GridBagConstraints.HORIZONTAL;
 		add(field, gbc);
 	}
 
@@ -243,7 +259,7 @@ public class StatusBar extends JPanel implements HighlightListener
 		Technology tech = Technology.getCurrent();
 		if (tech != null)
 		{
-			String message = "TECHNOLOGY: " + tech.getTechName();
+			String message = "TECH: " + tech.getTechName();
 			if (tech.isScaleRelevant()) message += " (scale=" + tech.getScale() + "nm)";
 			fieldTech.setText(message);
 		}

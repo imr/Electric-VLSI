@@ -292,7 +292,7 @@ public class EditWindow extends JPanel
 			Point2D pt = wnd.screenToDatabase(evt.getX(), evt.getY());
 			EditWindow.gridAlign(pt);
 
-			StatusBar.setCoordinates("(" + TextUtils.formatDouble(pt.getX(), 2) + "," + TextUtils.formatDouble(pt.getY(), 2) + ")", wnd.wf);
+			StatusBar.setCoordinates("(" + TextUtils.formatDouble(pt.getX(), 2) + ", " + TextUtils.formatDouble(pt.getY(), 2) + ")", wnd.wf);
 		}
 	}
 
