@@ -294,7 +294,7 @@ public class FileMenu {
 			// see if the former library can be deleted
 			if (deleteLib != null)
 			{
-				if (Library.getNumVisibleLibraries() > 1)
+				if (Library.getVisibleLibraries().size() > 1)
 				{
 					if (!deleteLib.kill()) return false;
 					deleteLib = null;

@@ -105,7 +105,7 @@ public class JELIB extends Output
 	private boolean writeTheLibrary(Library lib)
 		throws IOException
 	{
-		printWriter.print("# header information:\n");
+		printWriter.println("# header information:");
 
 		// pick up all full names that might become abbreviations
 		abbreviationMap = new HashMap();
@@ -115,110 +115,103 @@ public class JELIB extends Output
 		// write header information (library, version, main cell)
 		printWriter.print("H" + convertString(lib.getName()) + "|" + Version.getVersion());
 		writeVars(lib, null);
-		printWriter.print("\n");
+		printWriter.println();
 
 		// write view information
-		TreeSet views = new TreeSet();
-		for(Iterator it = View.getViews(); it.hasNext(); )
+		boolean viewHeaderPrinted = false;
+		for(Iterator<View> it = View.getViews(); it.hasNext(); )
 		{
-			View view = (View)it.next();
-			if (externalObjs.contains(view)) views.add(view);
-		}
-		if (views.size() > 0)
-		{
-			printWriter.print("\n# Views:\n");
-			for(Iterator it = views.iterator(); it.hasNext(); )
+			View view = it.next();
+			if (!externalObjs.contains(view)) continue;
+			if (!viewHeaderPrinted)
 			{
-				View view = (View)it.next();
-				printWriter.print("V" + convertString(view.getFullName()) + "|" + convertString(view.getAbbreviation()) + "\n");
+				printWriter.println();
+				printWriter.println("# Views:");
+				viewHeaderPrinted = true;
 			}
+			printWriter.println("V" + convertString(view.getFullName()) + "|" + convertString(view.getAbbreviation()));
 		}
 
 		// write external library information
-		TreeMap externalLibs = new TreeMap();
-		for (Iterator it = Library.getLibraries(); it.hasNext(); )
+		boolean libraryHeaderPrinted = false;
+		for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
-			Library eLib = (Library)it.next();
-			if (eLib == lib) continue;
-			if (externalObjs.contains(eLib)) externalLibs.put(eLib.getName(), eLib);
-		}
-		if (externalLibs.size() > 0)
-		{
-			printWriter.print("\n# External Libraries and cells:\n");
-			for(Iterator it = externalLibs.values().iterator(); it.hasNext(); )
+			Library eLib = it.next();
+			if (eLib == lib || !externalObjs.contains(eLib)) continue;
+			if (!libraryHeaderPrinted)
 			{
-				Library eLib = (Library)it.next();
-				String libFile = eLib.getLibFile().toString();
-//				if (libFile.endsWith(".elib")) libFile = libFile.substring(0, libFile.length()-5) + ".jelib"; else
-//				if (libFile.endsWith(".txt")) libFile = libFile.substring(0, libFile.length()-4) + ".jelib";
-				if (NEWREVISION) printWriter.println();
-				printWriter.print("L" + convertString(eLib.getName()) + "|" + convertString(libFile) + "\n");
-				TreeMap externalCells = new TreeMap();
-				for(Iterator cIt = eLib.getCells(); cIt.hasNext(); )
+				printWriter.println();
+				printWriter.println("# External Libraries and cells:");
+				libraryHeaderPrinted = true;
+			}
+			String libFile = eLib.getLibFile().toString();
+			printWriter.println();
+			printWriter.println("L" + convertString(eLib.getName()) + "|" + convertString(libFile));
+			TreeMap externalCells = new TreeMap();
+			for(Iterator cIt = eLib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = (Cell)cIt.next();
+				if (externalObjs.contains(cell)) externalCells.put(cell.getCellName(), cell);
+			}
+			for(Iterator cIt = externalCells.values().iterator(); cIt.hasNext(); )
+			{
+				Cell cell = (Cell)cIt.next();
+				Rectangle2D bounds = cell.getBounds();
+				if (NEWREVISION)
 				{
-					Cell cell = (Cell)cIt.next();
-					if (externalObjs.contains(cell)) externalCells.put(cell.getCellName(), cell);
+					printWriter.print("R" + convertString(cell.getCellName().toString()) +
+						"|" + TextUtils.formatDouble(DBMath.round(bounds.getMinX()),0) +
+						"|" + TextUtils.formatDouble(DBMath.round(bounds.getMaxX()),0) +
+						"|" + TextUtils.formatDouble(DBMath.round(bounds.getMinY()),0) +
+						"|" + TextUtils.formatDouble(DBMath.round(bounds.getMaxY()),0) +
+						"|" + cell.getCreationDate().getTime() +
+						"|" + cell.getRevisionDate().getTime() +
+						"\n");
+				} else
+				{
+					printWriter.print("R" + convertString(cell.getName()) + ";" + cell.getVersion() +
+						"{" + convertString(cell.getView().getAbbreviation()) + "}" +
+						"|" + TextUtils.formatDouble(bounds.getMinX(),0) +
+						"|" + TextUtils.formatDouble(bounds.getMaxX(),0) +
+						"|" + TextUtils.formatDouble(bounds.getMinY(),0) +
+						"|" + TextUtils.formatDouble(bounds.getMaxY(),0) + "\n");
 				}
-				for(Iterator cIt = externalCells.values().iterator(); cIt.hasNext(); )
+				List sortedExports = new ArrayList();
+				for (Iterator eIt = cell.getPorts(); eIt.hasNext(); )
 				{
-					Cell cell = (Cell)cIt.next();
-					Rectangle2D bounds = cell.getBounds();
+					Export export = (Export)eIt.next();
+					if (externalObjs.contains(export)) sortedExports.add(export);
+				}
+				Collections.sort(sortedExports, exportsComparator);
+				for (Iterator eIt = sortedExports.iterator(); eIt.hasNext(); )
+				{
+					Export export = (Export)eIt.next();
 					if (NEWREVISION)
 					{
-						printWriter.print("R" + convertString(cell.getCellName().toString()) +
-							"|" + TextUtils.formatDouble(DBMath.round(bounds.getMinX()),0) +
-							"|" + TextUtils.formatDouble(DBMath.round(bounds.getMaxX()),0) +
-							"|" + TextUtils.formatDouble(DBMath.round(bounds.getMinY()),0) +
-							"|" + TextUtils.formatDouble(DBMath.round(bounds.getMaxY()),0) +
-							"|" + cell.getCreationDate().getTime() +
-							"|" + cell.getRevisionDate().getTime() +
-							"\n");
+						Poly poly = export.getOriginalPort().getPoly();
+						printWriter.println("F" + convertString(export.getName()) +
+							"|" + TextUtils.formatDouble(DBMath.round(poly.getCenterX()), 0) +
+							"|" + TextUtils.formatDouble(DBMath.round(poly.getCenterY()), 0));
 					} else
 					{
-						printWriter.print("R" + convertString(cell.getName()) + ";" + cell.getVersion() +
-							"{" + convertString(cell.getView().getAbbreviation()) + "}" +
-							"|" + TextUtils.formatDouble(bounds.getMinX(),0) +
-							"|" + TextUtils.formatDouble(bounds.getMaxX(),0) +
-							"|" + TextUtils.formatDouble(bounds.getMinY(),0) +
-							"|" + TextUtils.formatDouble(bounds.getMaxY(),0) + "\n");
-					}
-					List sortedExports = new ArrayList();
-					for (Iterator eIt = cell.getPorts(); eIt.hasNext(); )
-					{
-						Export export = (Export)eIt.next();
-						if (externalObjs.contains(export)) sortedExports.add(export);
-					}
-					Collections.sort(sortedExports, exportsComparator);
-					for (Iterator eIt = sortedExports.iterator(); eIt.hasNext(); )
-					{
-						Export export = (Export)eIt.next();
-						if (NEWREVISION)
-						{
-							Poly poly = export.getOriginalPort().getPoly();
-							printWriter.println("F" + convertString(export.getName()) +
-								"|" + TextUtils.formatDouble(DBMath.round(poly.getCenterX()), 0) +
-								"|" + TextUtils.formatDouble(DBMath.round(poly.getCenterY()), 0));
-						} else
-						{
-							printWriter.print("#" + convertString(export.getName()));
-							printWriter.print("|" + describeDescriptor(null, export.getTextDescriptor()));
-							PortOriginal po = new PortOriginal(export.getOriginalPort());
-							PrimitivePort pp = po.getBottomPortProto();
-							PrimitiveNode pn = (PrimitiveNode)pp.getParent();
-							printWriter.print("|" + pn.getFullName() + "|");
-							if (pn.getNumPorts() > 1)
-								printWriter.print(pp.getName());
-							// port information
-							Poly poly = export.getOriginalPort().getPoly();
-							printWriter.print("|" + TextUtils.formatDouble(poly.getCenterX(), 0) +
-											  "|" + TextUtils.formatDouble(poly.getCenterY(), 0));
-							int angle = po.getAngleToTop();
-							printWriter.print(angle != 0 ? "|" + angle : "|");
-							printWriter.print("|" + export.getCharacteristic().getShortName());
-							if (export.isAlwaysDrawn()) printWriter.print("/A");
-							if (export.isBodyOnly()) printWriter.print("/B");
-							printWriter.print("\n");
-						}
+						printWriter.print("#" + convertString(export.getName()));
+						printWriter.print("|" + describeDescriptor(null, export.getTextDescriptor()));
+						PortOriginal po = new PortOriginal(export.getOriginalPort());
+						PrimitivePort pp = po.getBottomPortProto();
+						PrimitiveNode pn = (PrimitiveNode)pp.getParent();
+						printWriter.print("|" + pn.getFullName() + "|");
+						if (pn.getNumPorts() > 1)
+							printWriter.print(pp.getName());
+						// port information
+						Poly poly = export.getOriginalPort().getPoly();
+						printWriter.print("|" + TextUtils.formatDouble(poly.getCenterX(), 0) +
+										  "|" + TextUtils.formatDouble(poly.getCenterY(), 0));
+						int angle = po.getAngleToTop();
+						printWriter.print(angle != 0 ? "|" + angle : "|");
+						printWriter.print("|" + export.getCharacteristic().getShortName());
+						if (export.isAlwaysDrawn()) printWriter.print("/A");
+						if (export.isBodyOnly()) printWriter.print("/B");
+						printWriter.print("\n");
 					}
 				}
 			}

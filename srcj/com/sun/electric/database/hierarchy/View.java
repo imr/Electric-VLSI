@@ -32,6 +32,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.TreeSet;
 
 /**
  * A View is an object that represents a style of design, for example schematic, layout, etc.
@@ -41,7 +42,7 @@ import java.util.List;
  * <P>
  * Electric has a set of Views at the start, and users can define their own.
  */
-public class View implements Comparable
+public class View implements Comparable<View>
 {
 	// -------------------------- private data -----------------------------
 
@@ -53,8 +54,8 @@ public class View implements Comparable
 	/** ordering for this view */							private final int order;
 	/** flag bits for the view */							private final int type;
 
-	/** a list of all views in existence */					private static List views = new ArrayList();
-	/** a list of views by short and long names */			private static HashMap viewNames = new HashMap();
+	/** a set of all views in existence */					private static TreeSet<View> views = new TreeSet<View>();
+	/** a list of views by short and long names */			private static HashMap<String,View> viewNames = new HashMap<String,View>();
 	/** the index for new Views. */							private static int overallOrder = 16;
 
 	// -------------------------- public data -----------------------------
@@ -258,12 +259,12 @@ public class View implements Comparable
 	private static View makeInstance(String fullName, String abbreviation, int type, int order)
 	{
 		// make sure the view doesn't already exist
-		if (viewNames.get(abbreviation) != null)
+		if (viewNames.containsKey(abbreviation))
 		{
 			System.out.println("multiple views with same name: " + abbreviation);
 			return null;
 		}
-		if (viewNames.get(fullName) != null)
+		if (viewNames.containsKey(fullName))
 		{
 			System.out.println("multiple views with same name: " + fullName);
 			return null;
@@ -296,7 +297,7 @@ public class View implements Comparable
 	 */
 	public static View findView(String name)
 	{
-		return (View) viewNames.get(name);
+		return viewNames.get(name);
 	}
 
     /**
@@ -345,7 +346,7 @@ public class View implements Comparable
 	 * Method to return an iterator over the views.
 	 * @return an iterator over the views.
 	 */
-	public static Iterator getViews() { return views.iterator(); }
+	public static Iterator<View> getViews() { return views.iterator(); }
 
 	/**
 	 * Method to return the number of views.
@@ -358,38 +359,29 @@ public class View implements Comparable
 	 * The list excludes hidden libraries (i.e. the clipboard).
 	 * @return a List of all libraries, sorted by name.
 	 */
-	public static List getOrderedViews()
+	public static List<View> getOrderedViews()
 	{
-		List sortedList = new ArrayList();
-		for(Iterator it = getViews(); it.hasNext(); )
-			sortedList.add(it.next());
+		List<View> sortedList = new ArrayList<View>(views);
 		Collections.sort(sortedList, new ViewByOrder());
 		return sortedList;
 	}
 
-	private static class ViewByOrder implements Comparator
+	private static class ViewByOrder implements Comparator<View>
 	{
-		public int compare(Object o1, Object o2)
+		public int compare(View v1, View v2)
 		{
-			View v1 = (View)o1;
-			View v2 = (View)o2;
 			return v1.getOrder() - v2.getOrder();
 		}
 	}
 
     /**
      * Compares two <code>View</code> objects.
-     * @param   o   the object to be compared.
-     * @return	the result of comparision.
+     * @param   that   the View to be compared.
+     * @return	the result of comparison.
      */
-    public int compareTo(Object o) {
-		View v = (View)o;
-
-		return TextUtils.nameSameNumeric(getAbbreviation(), v.getAbbreviation());
-// 		if (isPermanentView() || v.isPermanentView())
-// 			return getOrder() - v.getOrder();
-// 		else
-// 			return TextUtils.nameSameNumeric(getAbbreviation(), v.getAbbreviation());
+    public int compareTo(View that)
+	{
+		return TextUtils.nameSameNumeric(getAbbreviation(), that.getAbbreviation());
     }
 
 	/**

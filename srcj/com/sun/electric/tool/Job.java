@@ -201,7 +201,6 @@ public abstract class Job implements ActionListener, Runnable {
 					{
 						job.started = true;
 						numStarted++;
-						if (job.upCell != null) job.upCell.setChangeLock();
 						return job;
 					}
 				}
@@ -486,7 +485,6 @@ public abstract class Job implements ActionListener, Runnable {
 				databaseChangesThread.endExamine(this);
 			} else {
 				changingJob = null;
-				Library.clearChangeLocks();
 			}
             endTime = System.currentTimeMillis();
 		}

@@ -23,8 +23,6 @@
  */
 package com.sun.electric.tool.io;
 
-import com.sun.electric.tool.user.dialogs.OpenFile;
-
 import javax.swing.filechooser.FileFilter;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -79,6 +77,7 @@ public class FileType {
 	/** Describes text files. */			public static final FileType TEXT         = new FileType("Text", new String[] {"txt"}, "Text File (txt)");
 	/** Describes Verilog decks. */			public static final FileType VERILOG      = new FileType("Verilog", new String[] {"v"}, "Verilog Deck (v)");
 	/** Describes Verilog output. */		public static final FileType VERILOGOUT   = new FileType("VerilogOutput", new String[] {"dump"}, "Verilog VCD Dump (vcd)");
+	/** Describes Xml files. */				public static final FileType XML          = new FileType("XML", new String[] {"xml"}, "XML File (xml)");
 
 	/** Describes default file format.*/	public static final FileType DEFAULTLIB   = ELIB;
 

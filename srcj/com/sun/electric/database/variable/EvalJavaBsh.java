@@ -348,7 +348,7 @@ public class EvalJavaBsh
         Throwable returnVal = null;
         if (interpreterClass != null) {
             try {
-                returnVal = (Throwable)getTargetMethod.invoke(ex, null);
+                returnVal = (Throwable)getTargetMethod.invoke(ex, (Object[])null);
             } catch (Exception e) {
                 handleInvokeException(e, "Bean shell error getting exception target");
             }

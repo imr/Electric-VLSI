@@ -249,11 +249,7 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
      */
     private void updateLibrarySelector() {
         librarySelector.removeAllItems();
-        List libList = Library.getVisibleLibrariesSortedByName();
-        for (Iterator it = libList.iterator(); it.hasNext(); ) {
-            Library lib = (Library)it.next();
-            librarySelector.addItem(lib.getName());
-        }
+        for (Library lib: Library.getVisibleLibraries()) librarySelector.addItem(lib.getName());
         Library current = Library.getCurrent();
         if (current != null)
             librarySelector.setSelectedItem(current.getName());

@@ -201,10 +201,8 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 	private static synchronized void rebuildExplorerTreeByName(DefaultMutableTreeNode libraryExplorerTree)
 	{
-		List sortedList = Library.getVisibleLibrariesSortedByName();
-		for(Iterator it = sortedList.iterator(); it.hasNext(); )
+		for(Library lib: Library.getVisibleLibraries())
 		{
-			Library lib = (Library)it.next();
 			DefaultMutableTreeNode libTree = new DefaultMutableTreeNode(lib);
 			for(Iterator eit = lib.getCellsSortedByName().iterator(); eit.hasNext(); )
 			{
@@ -218,10 +216,8 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 	private static synchronized void rebuildExplorerTreeByHierarchy(DefaultMutableTreeNode libraryExplorerTree)
 	{
-		List sortedList = Library.getVisibleLibrariesSortedByName();
-		for(Iterator it = sortedList.iterator(); it.hasNext(); )
+		for(Library lib: Library.getVisibleLibraries())
 		{
-			Library lib = (Library)it.next();
 			DefaultMutableTreeNode libTree = new DefaultMutableTreeNode(lib);
 			for(Iterator eit = lib.getCellsSortedByName().iterator(); eit.hasNext(); )
 			{
@@ -293,12 +289,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 	private static synchronized void rebuildExplorerTreeByGroups(DefaultMutableTreeNode libraryExplorerTree)
 	{
-		List sortedList = Library.getVisibleLibrariesSortedByName();
-
 		HashSet cellsSeen = new HashSet();
-		for(Iterator it = sortedList.iterator(); it.hasNext(); )
+		for(Library lib: Library.getVisibleLibraries())
 		{
-			Library lib = (Library)it.next();
 			DefaultMutableTreeNode libTree = new DefaultMutableTreeNode(lib);
 			List cells = lib.getCellsSortedByName();
 			for(Iterator eit = cells.iterator(); eit.hasNext(); )

@@ -26,7 +26,6 @@ package com.sun.electric.database.text;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -1240,12 +1239,10 @@ public class TextUtils
 // 		}
 // 	}
 
-	public static class CellsByDate implements Comparator
+	public static class CellsByDate implements Comparator<Cell>
 	{
-		public int compare(Object o1, Object o2)
+		public int compare(Cell c1, Cell c2)
 		{
-			Cell c1 = (Cell)o1;
-			Cell c2 = (Cell)o2;
 			Date r1 = c1.getRevisionDate();
 			Date r2 = c2.getRevisionDate();
 			return r1.compareTo(r2);
@@ -1331,18 +1328,6 @@ public class TextUtils
 		}
 	}
 
-	public static class LibrariesByName implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			Library l1 = (Library)o1;
-			Library l2 = (Library)o2;
-			String s1 = l1.getName();
-			String s2 = l2.getName();
-			return s1.compareToIgnoreCase(s2);
-		}
-	}
-
 	public static class ToolsByName implements Comparator
 	{
 		public int compare(Object o1, Object o2)
@@ -1351,18 +1336,6 @@ public class TextUtils
 			Tool t2 = (Tool)o2;
 			String s1 = t1.getName();
 			String s2 = t2.getName();
-			return s1.compareToIgnoreCase(s2);
-		}
-	}
-
-	public static class ViewsByName implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			View t1 = (View)o1;
-			View t2 = (View)o2;
-			String s1 = t1.getFullName();
-			String s2 = t2.getFullName();
 			return s1.compareToIgnoreCase(s2);
 		}
 	}

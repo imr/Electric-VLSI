@@ -174,7 +174,7 @@ public class Variable
             return (false);
 
         Variable var = (Variable)obj;
-       	boolean check = var.getTextDescriptor().compare(getTextDescriptor());
+       	boolean check = var.getTextDescriptor().equals(getTextDescriptor());
 
 		if (!check && buffer != null)
 			buffer.append("No same variables detected in " + var + " and " + this + "\n");

@@ -98,11 +98,7 @@ public class VerilogTab extends PreferencePanel
 		}
 
 		// make list of libraries
-		for(Iterator it = Library.getVisibleLibrariesSortedByName().iterator(); it.hasNext(); )
-		{
-			Library lib = (Library)it.next();
-			verLibrary.addItem(lib.getName());
-		}
+		for(Library lib: Library.getVisibleLibraries()) verLibrary.addItem(lib.getName());
 		verLibrary.setSelectedItem(curLib.getName());
 		verLibrary.addActionListener(new ActionListener()
 		{

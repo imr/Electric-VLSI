@@ -192,7 +192,7 @@ public class ActivityLogger {
 	    if (!Main.BATCHMODE)
             JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), msg, "Exception Caught", JOptionPane.ERROR_MESSAGE);
 	    else
-	        System.out.println(msg);
+	        System.out.println(msg[0]);
         exceptionLogged = true;
     }
 

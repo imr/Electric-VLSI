@@ -407,10 +407,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	/** Whether the bounds have anything in them. */				private boolean boundsEmpty;
 	/** The geometric data structure. */							private Geometric.RTNode rTree;
 	/** The Change object. */										private Undo.Change change;
-// 	/** Lock count. lock=0 "no locked",
-// 	 *  lock=-1 "locked for changes".
-// 	 *  lock=n>0 "locked for examination n times"
-// 	 */                                                             private int lock;
 	/** 0-based index of this Cell. */								private int cellIndex;
 	/** This Cell's Technology. */									private Technology tech;
 	/** The temporary integer value. */								private int tempInt;
@@ -3534,31 +3530,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	}
 
 	/**
-	 * Method to set change lock of cells in up-tree of this cell.
-	 */
-	public void setChangeLock()
-	{
-// 		if (lock < 0) return;
-// 		if (lock > 0)
-// 		{
-// 			System.out.println("An attemt to set change lock of cell "+describe()+" being examined");
-// 			return;
-// 		}
-// 		lock = -1;
-// 		for (Iterator it = getUsagesOf(); it.hasNext(); )
-// 		{
-// 			NodeUsage nu = (NodeUsage)it.next();
-// 			nu.getParent().setChangeLock();
-// 		}
-// 		if (!isSchematic()) return;
-// 		for (Iterator it = cellGroup.getCells(); it.hasNext(); )
-// 		{
-// 			Cell cell = (Cell)it.next();
-// 			if (cell.isIcon()) cell.setChangeLock();
-// 		}
-	}
-
-	/**
 	 * Method to get the 0-based index of this Cell.
 	 * @return the index of this Cell.
 	 */
@@ -3611,38 +3582,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * @return true if the flag bits are set.
 	 */
 	public boolean isBit(FlagSet set) { return (flagBits & set.getMask()) != 0; }
-
-	/**
-	 * Method to clear change lock of this cell.
-	 */
-// 	public void clearChangeLock()
-// 	{
-// 		if (lock >= 0) return;
-// 		lock = 0;
-// 	}
-
-	/**
-	 * Routing to check whether changing of this cell allowed or not.
-	 */
-// 	public void checkChanging()
-// 	{
-//         if (Main.NOTHREADING) return;
-
-// 		if (Job.getChangingThread() != Thread.currentThread())
-// 		{
-// 			if (Job.getChangingThread() == null)
-// 				System.out.println(this+" is changing without Undo.startChanges() lock");
-// 			else
-// 				System.out.println(this+" is changing by another thread "+Job.getChangingThread());
-// 			//throw new IllegalStateException("Cell.checkChanging()");
-// 		}
-// 		Cell rootCell = Job.getChangingCell();
-// 		if (lock != -1 && rootCell != null)
-// 		{
-// 			System.out.println("Change to cell "+rootCell.describe()+" affects cell "+describe()+" which is not above it in the hierarchy");
-// 			//throw new IllegalStateException("Cell.checkChanging()");
-// 		}
-// 	}
 
 	/**
 	 * Method to set a Change object on this Cell.

@@ -318,17 +318,17 @@ public class TextTab extends PreferencePanel
 		if (!currentFontName.equalsIgnoreCase(initialTextFontName))
 			User.setDefaultFont(currentFontName);
 
-		if (!currentTextNodeDescriptor.compare(initialTextNodeDescriptor))
+		if (!currentTextNodeDescriptor.equals(initialTextNodeDescriptor))
 			TextDescriptor.setNodeTextDescriptor(currentTextNodeDescriptor);
-		if (!currentTextArcDescriptor.compare(initialTextArcDescriptor))
+		if (!currentTextArcDescriptor.equals(initialTextArcDescriptor))
 			TextDescriptor.setArcTextDescriptor(currentTextArcDescriptor);
-		if (!currentTextExportDescriptor.compare(initialTextExportDescriptor))
+		if (!currentTextExportDescriptor.equals(initialTextExportDescriptor))
 			TextDescriptor.setExportTextDescriptor(currentTextExportDescriptor);
-		if (!currentTextAnnotationDescriptor.compare(initialTextAnnotationDescriptor))
+		if (!currentTextAnnotationDescriptor.equals(initialTextAnnotationDescriptor))
 			TextDescriptor.setAnnotationTextDescriptor(currentTextAnnotationDescriptor);
-		if (!currentTextInstanceDescriptor.compare(initialTextInstanceDescriptor))
+		if (!currentTextInstanceDescriptor.equals(initialTextInstanceDescriptor))
 			TextDescriptor.setInstanceTextDescriptor(currentTextInstanceDescriptor);
-		if (!currentTextCellDescriptor.compare(initialTextCellDescriptor))
+		if (!currentTextCellDescriptor.equals(initialTextCellDescriptor))
 			TextDescriptor.setCellTextDescriptor(currentTextCellDescriptor);
 
 		if (!currentTextNodeFont.toString().equals(initialTextNodeFont))

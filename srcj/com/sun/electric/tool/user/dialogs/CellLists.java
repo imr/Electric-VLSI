@@ -89,11 +89,7 @@ public class CellLists extends EDialog
         getRootPane().setDefaultButton(ok);
 
 		// make a popup of views
-		for(Iterator it = View.getViews(); it.hasNext(); )
-		{
-			View v = (View)it.next();
-			views.addItem(v.getFullName());
-		}
+		for(View v: View.getOrderedViews()) views.addItem(v.getFullName());
 
 		curCell = WindowFrame.getCurrentCell();
 		onlyCellsUnderCurrent.setEnabled(curCell != null);

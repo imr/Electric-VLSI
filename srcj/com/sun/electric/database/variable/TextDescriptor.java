@@ -36,6 +36,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Rectangle2D;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -48,7 +49,7 @@ import java.util.prefs.Preferences;
  * <P>
  * This class should be thread-safe
  */
-public class TextDescriptor
+public class TextDescriptor implements Serializable
 {
 	private static final int VTPOSITION =               017;		/* 0: position of text relative to point */
 	private static final int VTPOSCENT =                  0;		/* 0:   text centered about point */
@@ -896,6 +897,14 @@ public class TextDescriptor
 	public static void setCellTextDescriptorFont(String font) { cacheCellFont.setString(font); }
 
     /**
+     * Returns a hash code for this <code>TextDescriptor</code>.
+     * @return  a hash code value for this TextDescriptor.
+	 */
+    public int hashCode() {
+		return descriptor0^descriptor1^colorIndex;
+    }
+
+    /**
      * Compares this text descriptor to the specified object.
      * The result is <code>true</code> if and only if the argument is not
      * <code>null</code> and is a <code>TextDescriptor</code> object with
@@ -1129,27 +1138,6 @@ public class TextDescriptor
             this.descriptor1 = d1;
             this.colorIndex = ci;
         }
-	}
-
-	/**
-	 * Method to compare another TextDescriptor to this TextDescriptor.
-	 * @param descriptor the other TextDescriptor.
-	 * @return true if they are the same; false if they differ.
-	 */
-	public boolean compare(TextDescriptor descriptor)
-	{
-        int d0, d1, ci;
-        synchronized(descriptor) {
-            d0 = descriptor.descriptor0;
-            d1 = descriptor.descriptor1;
-            ci = descriptor.colorIndex;
-        }
-        synchronized(this) {
-            if (this.descriptor0 == d0 &&
-                this.descriptor1 == d1 &&
-                this.colorIndex == ci) return true;
-        }
-		return false;
 	}
 
 	/**

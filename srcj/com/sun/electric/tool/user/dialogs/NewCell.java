@@ -67,11 +67,7 @@ public class NewCell extends EDialog
 		viewList = new JList(viewModel);
 		viewList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		view.setViewportView(viewList);
-		for(Iterator it = View.getViews(); it.hasNext(); )
-		{
-			View v = (View)it.next();
-			viewModel.addElement(v.getFullName());
-		}
+		for(View v: View.getOrderedViews())	viewModel.addElement(v.getFullName());
 		viewList.addMouseListener(new MouseAdapter()
 		{
 			public void mouseClicked(MouseEvent e)
@@ -85,12 +81,8 @@ public class NewCell extends EDialog
 				viewList.setSelectedValue(View.LAYOUT.getFullName(), true);
 
 		// make a popup of libraries
-		List libList = Library.getVisibleLibrariesSortedByName();
-		for(Iterator it = libList.iterator(); it.hasNext(); )
-		{
-			Library lib = (Library)it.next();
-			library.addItem(lib.getName());
-		}
+		List<Library> libList = Library.getVisibleLibraries();
+		for(Library lib: libList) library.addItem(lib.getName());
 		int curIndex = libList.indexOf(Library.getCurrent());
 		if (curIndex >= 0) library.setSelectedIndex(curIndex);
 

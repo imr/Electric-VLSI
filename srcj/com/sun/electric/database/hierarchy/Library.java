@@ -57,7 +57,7 @@ import javax.swing.JOptionPane;
  * Cell, get an Enumeration of all Cells, or find the Cell that the user
  * is currently editing.
  */
-public class Library extends ElectricObject
+public class Library extends ElectricObject implements Comparable<Library>
 {
 	/** key of Variable holding font associations. */		public static final Variable.Key FONT_ASSOCIATIONS = ElectricObject.newKey("LIB_font_associations");
 
@@ -80,10 +80,10 @@ public class Library extends ElectricObject
 	/** Preference for cell currently being edited */		private Pref curCellPref;
 	/** flag bits */										private int userBits;
 	/** The temporary flag bits. */							private int flagBits;
-    /** list of referenced libs */                          private List referencedLibs;
+    /** list of referenced libs */                          private List<Library> referencedLibs;
 	/** preferences for all libraries */					private static Preferences prefs = null;
 
-	/** static list of all libraries in Electric */			private static List libraries = new ArrayList();
+	/** static list of all libraries in Electric */			private static TreeSet<Library> libraries = new TreeSet<Library>();
 	/** the current library in Electric */					private static Library curLib = null;
 
 	// ----------------- private and protected methods --------------------
@@ -133,7 +133,7 @@ public class Library extends ElectricObject
 		lib.curCellPref = null;
 		lib.libName = legalName;
 		lib.libFile = libFile;
-        lib.referencedLibs = new ArrayList();
+        lib.referencedLibs = new ArrayList<Library>();
         lib.setLinked(true);
 
 		// add the library to the global list
@@ -160,9 +160,8 @@ public class Library extends ElectricObject
 		if (curLib == this)
 		{
 			// find another library
-			for(Iterator it = getLibraries(); it.hasNext(); )
+			for(Library lib: libraries)
 			{
-				Library lib = (Library)it.next();
 				if (lib == curLib) continue;
 				if (lib.isHidden()) continue;
 				newCurLib = lib;
@@ -188,9 +187,8 @@ public class Library extends ElectricObject
 
 		// make sure none of these cells are referenced by other libraries
 		boolean referenced = false;
-		for(Iterator it = getLibraries(); it.hasNext(); )
+		for(Library lib: libraries)
 		{
-			Library lib = (Library)it.next();
 			if (lib == this) continue;
 			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
 			{
@@ -599,10 +597,8 @@ public class Library extends ElectricObject
 	{
 		TreeSet list = new TreeSet();
 
-		for (int i = 0; i < libraries.size(); i++)
+		for (Library l: libraries)
 		{
-			Library l = (Library) libraries.get(i);
-
 			// skip itself
 			if (l == elib) continue;
 
@@ -622,9 +618,8 @@ public class Library extends ElectricObject
 	 */
 	public static Library findLibrary(String libName)
 	{
-		for (int i = 0; i < libraries.size(); i++)
+		for (Library l: libraries)
 		{
-			Library l = (Library) libraries.get(i);
 			if (l.getName().equalsIgnoreCase(libName))
 				return l;
 		}
@@ -632,73 +627,15 @@ public class Library extends ElectricObject
 	}
 
 	/**
-	 * Method to clear all change locks on the Cells in this Library.
-	 */
-	public static void clearChangeLocks()
-	{
-// 		for (int i = 0; i < libraries.size(); i++)
-// 		{
-// 			Library l = (Library) libraries.get(i);
-// 			for (int j = 0; j < l.cells.size(); j++)
-// 			{
-// 				Cell c = (Cell) l.cells.get(j);
-// 				c.clearChangeLock();
-// 			}
-// 		}
-	}
-
-	/**
-	 * This class is an iterator over the "visible" Libraries.
-	 * It ignores those that are hidden (specifically, the clipboard Library).
-	 */
-	private static class VisibleLibraryIterator implements Iterator
-	{
-		private Iterator uit;
-		private Library nextLib;
-
-		VisibleLibraryIterator()
-		{
-			uit = getLibraries();
-			nextLib = nextLibrary();
-		}
-
-		private Library nextLibrary()
-		{
-			while (uit.hasNext())
-			{
-				Library lib = (Library)uit.next();
-				if (!lib.isHidden()) return lib;
-			}
-			return null;
-		}
-
-		public boolean hasNext()
-		{
-			return nextLib != null;
-		}
-
-		public Object next()
-		{
-			if (nextLib == null) return uit.next(); // throw NoSuchElementException
-			Library lib = nextLib;
-			nextLib = nextLibrary();
-			return lib;
-		}
-
-		public void remove() { throw new UnsupportedOperationException("VisibleLibraryIterator.remove()"); };
-	}
-
-	/**
 	 * Method to return an iterator over all libraries.
 	 * @return an iterator over all libraries.
 	 */
-	public static Iterator getLibraries()
+	public static Iterator<Library> getLibraries()
 	{
-        ArrayList librariesCopy = new ArrayList();
         synchronized(libraries) {
-            librariesCopy.addAll(libraries);
+			ArrayList<Library> librariesCopy = new ArrayList<Library>(libraries);
+			return librariesCopy.iterator();
         }
-        return librariesCopy.iterator();
 	}
 
 	/**
@@ -714,42 +651,16 @@ public class Library extends ElectricObject
 	 * Method to return an iterator over all libraries.
 	 * @return an iterator over all libraries.
 	 */
-	public static Iterator getVisibleLibraries()
+	public static List<Library> getVisibleLibraries()
 	{
-		return new VisibleLibraryIterator();
-	}
-
-	/**
-	 * Method to return the number of libraries.
-	 * @return the number of libraries.
-	 */
-	public static int getNumVisibleLibraries()
-	{
-		// surely there is a better way to do this...  smr
-		int numVis = 0;
-		for(Iterator it = getLibraries(); it.hasNext(); )
-		{
-			Library lib = (Library)it.next();
-			if (!lib.isHidden()) numVis++;
-		}
-		return numVis;
-	}
-
-	/**
-	 * Method to return a List of all libraries, sorted by name.
-	 * The list excludes hidden libraries (i.e. the clipboard).
-	 * @return a List of all libraries, sorted by name.
-	 */
-	public static List getVisibleLibrariesSortedByName()
-	{
-		List sortedList = new ArrayList();
-		synchronized (libraries)
-		{
-			for(Iterator it = new VisibleLibraryIterator(); it.hasNext(); )
-				sortedList.add(it.next());
-		}
-		Collections.sort(sortedList, new TextUtils.LibrariesByName());
-		return sortedList;
+        synchronized(libraries) {
+			ArrayList<Library> visibleLibraries = new ArrayList<Library>();
+			for (Library lib: libraries)
+			{
+				if (!lib.isHidden()) visibleLibraries.add(lib);
+			}
+			return visibleLibraries;
+        }
 	}
 
 	/**
@@ -788,7 +699,9 @@ public class Library extends ElectricObject
 	 */
 	public void lowLevelRename(String libName)
 	{
+		libraries.remove(this);
 		this.libName = libName;
+		libraries.add(this);
 
 		String newLibFile = TextUtils.getFilePath(libFile) + libName;
 		String extension = TextUtils.getExtension(libFile);
@@ -810,6 +723,16 @@ public class Library extends ElectricObject
 	{
 		this.libFile = libFile;
 	}
+
+    /**
+     * Compares two <code>Library</code> objects.
+     * @param   that   the Library to be compared.
+     * @return	the result of comparison.
+     */
+    public int compareTo(Library that)
+	{
+		return TextUtils.nameSameNumeric(libName, that.libName);
+    }
 
 	/**
 	 * Returns a printable version of this Library.
@@ -906,22 +829,6 @@ public class Library extends ElectricObject
 	 * @return an iterator over all libraries.
 	 */
 	public List getCellsSortedByName()
-	{
-		List sortedList = new ArrayList();
-		synchronized (cells)
-		{
-			for(Iterator it = getCells(); it.hasNext(); )
-				sortedList.add(it.next());
-		}
-		Collections.sort(sortedList, new TextUtils.CellsByName());
-		return sortedList;
-	}
-
-	/**
-	 * Method to return an iterator over all libraries.
-	 * @return an iterator over all libraries.
-	 */
-	public List getCellsSortedByFullName()
 	{
 		List sortedList = new ArrayList();
 		synchronized (cells)

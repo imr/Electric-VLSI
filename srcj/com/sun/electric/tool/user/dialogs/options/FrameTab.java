@@ -76,9 +76,8 @@ public class FrameTab extends PreferencePanel
 
 		// cache text in each library
 		frameLibInfo = new HashMap();
-		for(Iterator it = Library.getVisibleLibrariesSortedByName().iterator(); it.hasNext(); )
+		for(Library lib: Library.getVisibleLibraries())
 		{
-			Library lib = (Library)it.next();
 			LibraryFrameInfo lfi = new LibraryFrameInfo();
 			String company = "";
 			String designer = "";

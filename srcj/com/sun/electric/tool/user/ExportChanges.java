@@ -1203,7 +1203,7 @@ public final class ExportChanges
 	 */
 	public static void synchronizeLibrary()
 	{
-		List libs = Library.getVisibleLibrariesSortedByName();
+		List<Library> libs = Library.getVisibleLibraries();
 		Library curLib = Library.getCurrent();
 		int otherLibraries = libs.size() - 1;
 		if (otherLibraries <= 1)
@@ -1213,9 +1213,8 @@ public final class ExportChanges
 		}
 		String [] libNames = new String[otherLibraries];
 		int i=0;
-		for(Iterator it = libs.iterator(); it.hasNext(); )
+		for(Library oLib: libs)
 		{
-			Library oLib = (Library)it.next();
 			if (oLib == curLib) continue;
 			libNames[i++] = oLib.getName();
 		}
