@@ -74,7 +74,7 @@ public class Spice extends Topology
 //	/** key of Variable holding SPICE code. */					public static final Variable.Key SPICE_CARD_KEY = ElectricObject.newKey("SPICE_Code");
 	/** key of Variable holding SPICE model. */					public static final Variable.Key SPICE_MODEL_KEY = ElectricObject.newKey("SIM_spice_model");
 	/** key of Variable holding SPICE model file. */			public static final Variable.Key SPICE_MODEL_FILE_KEY = ElectricObject.newKey("SIM_spice_behave_file");
-	/** Old pre-fix for spice extension. */                     public static final Variable.Key SPICE_PREFIX_KEY = ElectricObject.newKey(":::::");
+	/** Old pre-fix for spice extension. */                     public static final String SPICE_PREFIX = "Extension ";
 
 	/** maximum subcircuit name length */						private static final int SPICEMAXLENSUBCKTNAME     = 70;
 	/** legal characters in a spice deck */						private static final String SPICELEGALCHARS        = "!#$%*+-/<>[]_";
@@ -245,7 +245,7 @@ public class Spice extends Topology
      * @param no Nodable representing the node
      * @param infstr Buffer where to write to
      */
-    private void writeMFactor(NodeProto no, StringBuffer infstr)
+    private void writeMFactor(Nodable no, StringBuffer infstr)
     {
         Variable mVar = no.getVar("ATTR_M");
 
@@ -458,7 +458,7 @@ public class Spice extends Topology
 				}
 			}
             // Writing M factor
-            writeMFactor(cell, infstr);
+            //writeMFactor(cell, infstr);
 			infstr.append("\n");
 			multiLinePrint(false, infstr.toString());
 
@@ -552,7 +552,8 @@ public class Spice extends Topology
 						}
 					}
                     // Writing MFactor if available. Not sure here
-                    writeMFactor(niProto, infstr);
+					writeMFactor(no, infstr);
+					
 					infstr.append('\n');
 					multiLinePrint(false, infstr.toString());
 					continue;
@@ -616,13 +617,9 @@ public class Spice extends Topology
 						infstr.append(" " + paramStr);
 					}
 				}
-				// Calculating M Factor if exists
-                /*
-				Variable mVar = no.getVar("ATTR_M");
-				if (mVar != null) infstr.append(" M=" + mVar.getObject().toString());
-                */
                 // Writing MFactor if available.
-                writeMFactor(no.getProto(), infstr);
+                writeMFactor(no, infstr);
+
 				infstr.append("\n");
 				multiLinePrint(false, infstr.toString());
 				continue;
@@ -883,13 +880,8 @@ public class Spice extends Topology
 					if (pd > 0.0) infstr.append(" PD=" + TextUtils.formatDouble(pd, 2) + "U");
 				}
 			}
-			// Calculating M Factor if exists
-            /*
-			Variable mVar = ni.getVar("ATTR_M");
-			if (mVar != null) infstr.append(" M=" + mVar.getObject().toString());
-            */
             // Writing MFactor if available.
-            writeMFactor(ni.getProto(), infstr);
+            writeMFactor(ni, infstr);
 
 			infstr.append("\n");
 			multiLinePrint(false, infstr.toString());
@@ -1077,12 +1069,11 @@ public class Spice extends Topology
 		if (headerFile.length() > 0)
 		{
 			//if (headerFile.startsWith("Extension "))
-            String prefixheader = Spice.SPICE_PREFIX_KEY.getName();
-            if (headerFile.startsWith(prefixheader))
+            if (headerFile.startsWith(SPICE_PREFIX))
 			{
 				// extension specified: look for a file with the cell name and that extension
 				String headerPath = TextUtils.getFilePath(cell.getLibrary().getLibFile());
-				String fileName = headerPath + cell.getProtoName() + "." + headerFile.substring(prefixheader.length());
+				String fileName = headerPath + cell.getProtoName() + "." + headerFile.substring(SPICE_PREFIX.length());
 				File test = new File(fileName);
 				if (test.exists())
 				{

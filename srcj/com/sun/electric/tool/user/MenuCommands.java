@@ -206,7 +206,7 @@ public final class MenuCommands
 
         fileMenu.addSeparator();
 
-		fileMenu.addMenuItem("Print...", null,
+		fileMenu.addMenuItem("Print...", KeyStroke.getKeyStroke('P', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { printCommand(); } });
 
 		if (TopLevel.getOperatingSystem() != TopLevel.OS.MACINTOSH)

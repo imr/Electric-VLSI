@@ -907,14 +907,13 @@ public class ToolOptions extends EDialog
 		spiceMinCapacitance.setText(Double.toString(spiceTechMinCapacitanceInitial));
 
 		// the next section: header and trailer cards
-        String initial = Spice.SPICE_PREFIX_KEY.getName();
 		spiceHeaderCardInitial = Simulation.getSpiceHeaderCardInfo();
 		if (spiceHeaderCardInitial.length() == 0) spiceNoHeaderCards.setSelected(true); else
 		{
-			if (spiceHeaderCardInitial.startsWith(initial))
+			if (spiceHeaderCardInitial.startsWith(Spice.SPICE_PREFIX))
 			{
 				spiceHeaderCardsWithExtension.setSelected(true);
-				spiceHeaderCardExtension.setText(spiceHeaderCardInitial.substring(initial.length()));
+				spiceHeaderCardExtension.setText(spiceHeaderCardInitial.substring(Spice.SPICE_PREFIX.length()));
 			} else
 			{
 				spiceHeaderCardsFromFile.setSelected(true);
@@ -924,10 +923,10 @@ public class ToolOptions extends EDialog
 		spiceTrailerCardInitial = Simulation.getSpiceTrailerCardInfo();
 		if (spiceTrailerCardInitial.length() == 0) spiceNoTrailerCards.setSelected(true); else
 		{
-			if (spiceTrailerCardInitial.startsWith(initial))
+			if (spiceTrailerCardInitial.startsWith(Spice.SPICE_PREFIX))
 			{
 				spiceTrailerCardsWithExtension.setSelected(true);
-				spiceTrailerCardExtension.setText(spiceTrailerCardInitial.substring(initial.length()));
+				spiceTrailerCardExtension.setText(spiceTrailerCardInitial.substring(Spice.SPICE_PREFIX.length()));
 			} else
 			{
 				spiceTrailerCardsFromFile.setSelected(true);
@@ -1126,10 +1125,9 @@ public class ToolOptions extends EDialog
 
 		// the next section: header and trailer cards
 		String header = "";
-        String initial = Spice.SPICE_PREFIX_KEY.getName();
 		if (spiceHeaderCardsWithExtension.isSelected())
 		{
-			header = initial + spiceHeaderCardExtension.getText();
+			header = Spice.SPICE_PREFIX + spiceHeaderCardExtension.getText();
 		} else if (spiceHeaderCardsFromFile.isSelected())
 		{
 			header = spiceHeaderCardFile.getText();
@@ -1139,7 +1137,7 @@ public class ToolOptions extends EDialog
 		String trailer = "";
 		if (spiceTrailerCardsWithExtension.isSelected())
 		{
-			trailer = initial + spiceTrailerCardExtension.getText();
+			trailer = Spice.SPICE_PREFIX + spiceTrailerCardExtension.getText();
 		} else if (spiceTrailerCardsFromFile.isSelected())
 		{
 			trailer = spiceTrailerCardFile.getText();
@@ -3136,7 +3134,7 @@ public class ToolOptions extends EDialog
 
         spice5.setLayout(new java.awt.GridBagLayout());
 
-        spiceHeaderCardExtension.setColumns(Spice.SPICE_PREFIX_KEY.getName().length());
+        spiceHeaderCardExtension.setColumns(1);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
@@ -3213,7 +3211,7 @@ public class ToolOptions extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         spice5.add(spiceBrowseHeaderFile, gridBagConstraints);
 
-        spiceTrailerCardExtension.setColumns(Spice.SPICE_PREFIX_KEY.getName().length());
+        spiceTrailerCardExtension.setColumns(1);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
