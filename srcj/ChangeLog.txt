@@ -18,8 +18,6 @@ FIX: In CircuitChanges.cleanupCell(), ignore Universal Pins as well as Invisible
 IMP: (12/19/04, SMR) Cleaned up code to be consistent with documentation
      (added "Add Ports from Library" in Export menu).
 
-************************* Version 8.01aw: *********************************
-
 IMP: (12/20/04, GVG) List of primitive nodes in Change dialog and tech palette are sorted alphabetically (Bug #132)
 In case of sorted list of nodes, use Technology.Technology.getCurrent()
 
