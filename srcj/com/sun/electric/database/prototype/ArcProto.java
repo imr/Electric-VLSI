@@ -54,60 +54,67 @@ public abstract class ArcProto
 	public static class Function
 	{
 		private final String name;
-		private final int level;
+		private int level;
+		private static HashMap metalLayers = new HashMap();
+		private static HashMap polyLayers = new HashMap();
 
-		private Function(String name, int level) { this.name = name;   this.level = level; }
+		private Function(String name, int metalLlevel, int polyLevel)
+		{
+			this.name = name;   this.level = 0;
+			if (metalLlevel != 0) metalLayers.put(new Integer(this.level = metalLlevel), this);
+			if (polyLevel != 0) polyLayers.put(new Integer(this.level = polyLevel), this);
+		}
 
 		public String toString() { return name; }
 
 		/** Describes an arc with unknown type. */
-		public static final Function UNKNOWN = new Function("unknown", 0);
+		public static final Function UNKNOWN = new Function("unknown", 0, 0);
 		/** Describes an arc on Metal layer 1. */
-		public static final Function METAL1 = new Function("metal-1", 1);
+		public static final Function METAL1 = new Function("metal-1", 1, 0);
 		/** Describes an arc on Metal layer 2. */
-		public static final Function METAL2 = new Function("metal-2", 2);
+		public static final Function METAL2 = new Function("metal-2", 2, 0);
 		/** Describes an arc on Metal layer 3. */
-		public static final Function METAL3 = new Function("metal-3", 3);
+		public static final Function METAL3 = new Function("metal-3", 3, 0);
 		/** Describes an arc on Metal layer 4. */
-		public static final Function METAL4 = new Function("metal-4", 4);
+		public static final Function METAL4 = new Function("metal-4", 4, 0);
 		/** Describes an arc on Metal layer 5. */
-		public static final Function METAL5 = new Function("metal-5", 5);
+		public static final Function METAL5 = new Function("metal-5", 5, 0);
 		/** Describes an arc on Metal layer 6. */
-		public static final Function METAL6 = new Function("metal-6", 6);
+		public static final Function METAL6 = new Function("metal-6", 6, 0);
 		/** Describes an arc on Metal layer 7. */
-		public static final Function METAL7 = new Function("metal-7", 7);
+		public static final Function METAL7 = new Function("metal-7", 7, 0);
 		/** Describes an arc on Metal layer 8. */
-		public static final Function METAL8 = new Function("metal-8", 8);
+		public static final Function METAL8 = new Function("metal-8", 8, 0);
 		/** Describes an arc on Metal layer 9. */
-		public static final Function METAL9 = new Function("metal-9", 9);
+		public static final Function METAL9 = new Function("metal-9", 9, 0);
 		/** Describes an arc on Metal layer 10. */
-		public static final Function METAL10 = new Function("metal-10", 10);
+		public static final Function METAL10 = new Function("metal-10", 10, 0);
 		/** Describes an arc on Metal layer 11. */
-		public static final Function METAL11 = new Function("metal-11", 11);
+		public static final Function METAL11 = new Function("metal-11", 11, 0);
 		/** Describes an arc on Metal layer 12. */
-		public static final Function METAL12 = new Function("metal-12", 12);
+		public static final Function METAL12 = new Function("metal-12", 12, 0);
 		/** Describes an arc on Polysilicon layer 1. */
-		public static final Function POLY1 = new Function("polysilicon-1", 1);
+		public static final Function POLY1 = new Function("polysilicon-1", 0, 1);
 		/** Describes an arc on Polysilicon layer 2. */
-		public static final Function POLY2 = new Function("polysilicon-2", 2);
+		public static final Function POLY2 = new Function("polysilicon-2", 0, 2);
 		/** Describes an arc on Polysilicon layer 3. */
-		public static final Function POLY3 = new Function("polysilicon-3", 3);
+		public static final Function POLY3 = new Function("polysilicon-3", 0, 3);
 		/** Describes an arc on the Diffusion layer. */
-		public static final Function DIFF = new Function("diffusion", 0);
+		public static final Function DIFF = new Function("diffusion", 0, 0);
 		/** Describes an arc on the P-Diffusion layer. */
-		public static final Function DIFFP = new Function("p-diffusion", 0);
+		public static final Function DIFFP = new Function("p-diffusion", 0, 0);
 		/** Describes an arc on the N-Diffusion layer. */
-		public static final Function DIFFN = new Function("n-diffusion", 0);
+		public static final Function DIFFN = new Function("n-diffusion", 0, 0);
 		/** Describes an arc on the Substrate-Diffusion layer. */
-		public static final Function DIFFS = new Function("substrate-diffusion", 0);
+		public static final Function DIFFS = new Function("substrate-diffusion", 0, 0);
 		/** Describes an arc on the Well-Diffusion layer. */
-		public static final Function DIFFW = new Function("well-diffusion", 0);
+		public static final Function DIFFW = new Function("well-diffusion", 0, 0);
 		/** Describes a bus arc. */
-		public static final Function BUS = new Function("bus", 0);
+		public static final Function BUS = new Function("bus", 0, 0);
 		/** Describes an arc that is unrouted (to be replaced by routers). */
-		public static final Function UNROUTED = new Function("unrouted", 0);
+		public static final Function UNROUTED = new Function("unrouted", 0, 0);
 		/** Describes an arc that is non-electrical (does not make a circuit connection). */
-		public static final Function NONELEC = new Function("nonelectrical", 0);
+		public static final Function NONELEC = new Function("nonelectrical", 0, 0);
 
 		/**
 		 * Method to get the level of this ArcProto.Function.
@@ -116,6 +123,28 @@ public abstract class ArcProto
 		 * @return the level of this ArcProto.Function.
 		 */
 		public int getLevel() { return level; }
+
+		/**
+		 * Method to find the Function that corresponds to Metal on a given layer.
+		 * @param level the layer (starting at 1 for Metal-1).
+		 * @return the Function that represents that Metal layer.
+		 */
+		public static Function getMetal(int level)
+		{
+			Function func = (Function)metalLayers.get(new Integer(level));
+			return func;
+		}
+
+		/**
+		 * Method to find the Function that corresponds to Polysilicon on a given layer.
+		 * @param level the layer (starting at 1 for Polysilicon-1).
+		 * @return the Function that represents that Polysilicon layer.
+		 */
+		public static Function getPoly(int level)
+		{
+			Function func = (Function)polyLayers.get(new Integer(level));
+			return func;
+		}
 
 		/**
 		 * Method to tell whether this ArcProto.Function is metal.

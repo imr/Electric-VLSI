@@ -49,10 +49,11 @@ public class OpenFile
 	{
         /** all types */                        private static final ArrayList allTypes = new ArrayList();
 
-		/** Describes any file.*/				public static final Type ANY          = new Type("All", new String[] {}, "All Files");
+		/** Describes any file.*/				public static final Type ANY          = new Type("All", new String[] {""}, "All Files");
 		/** Describes CDL decks.*/				public static final Type CDL          = new Type("CDL", new String[] {"cdl"}, "CDL Deck (cdl)");
 		/** Describes CIF files. */				public static final Type CIF          = new Type("CIF", new String[] {"cif"}, "CIF File (cif)");
 		/** Describes COSMOS output. */			public static final Type COSMOS       = new Type("COSMOS", new String[] {"sim"}, "COSMOS File (sim)");
+		/** Describes DEF output. */			public static final Type DEF          = new Type("DEF", new String[] {"def"}, "DEF File (def)");
 		/** Describes DXF output. */			public static final Type DXF          = new Type("DXF", new String[] {"dxf"}, "DXF File (dxf)");
 		/** Describes Eagle files.*/			public static final Type EAGLE        = new Type("Eagle", new String[] {"txt"}, "Eagle File (txt)");
 		/** Describes ECAD files.*/				public static final Type ECAD         = new Type("ECAD", new String[] {"enl"}, "ECAD File (enl)");

@@ -133,6 +133,7 @@ public class MoCMOS extends Technology
 	/** P-Active-Well-Node */					private PrimitiveNode pActiveWellNode_node;
 	/** Polysilicon-1-Transistor-Node */		private PrimitiveNode polyTransistorNode_node;
 	/** Silicide-Block-Node */					private PrimitiveNode silicideBlockNode_node;
+	/** Thick-Active-Node */					private PrimitiveNode thickActiveNode_node;
 
 	// for dynamically modifying the transistor geometry
 	private Technology.NodeLayer pTransistorPolyLayer, nTransistorPolyLayer;
@@ -440,6 +441,9 @@ public class MoCMOS extends Technology
 		new DRCTemplate("22.4", DRCTemplate.M4,    DRCTemplate.SPACINGW, WIDELIMIT, "Metal-4",        "Metal-4",        12),
 		new DRCTemplate("22.4", DRCTemplate.DE|DRCTemplate.M56,   DRCTemplate.SPACINGW, WIDELIMIT, "Metal-4",        "Metal-4",        8),
 		new DRCTemplate("22.4", DRCTemplate.SU|DRCTemplate.M56,   DRCTemplate.SPACINGW, WIDELIMIT, "Metal-4",        "Metal-4",        6),
+
+		new DRCTemplate("24.1", DRCTemplate.ALL, DRCTemplate.MINWID,  "Thick-Active",    null,            4,  null),
+		new DRCTemplate("24.2", DRCTemplate.ALL, DRCTemplate.SPACING, "Thick-Active",   "Thick-Active",   4, null),
 
 		new DRCTemplate("25.1", DRCTemplate.DE, DRCTemplate.CUTSIZE,   null,             null,            3, "Metal-4-Metal-5-Con"),
 		new DRCTemplate("25.1", DRCTemplate.DE, DRCTemplate.MINWID,   "Via4",            null,            3,  null),
@@ -911,6 +915,26 @@ public class MoCMOS extends Technology
 						0x8888,   // X   X   X   X   
 						0x0000}));//                 
 
+		/** Thick active */
+		Layer thickActive_lay = Layer.newInstance(this, "Thick-Active",
+			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 0,0,0, 1.0,false,
+			new int[] { 0x4040,   //  X       X      
+						0x8080,   // X       X       
+						0x0101,   //        X       X
+						0x0202,   //       X       X 
+						0x0101,   //        X       X
+						0x8080,   // X       X       
+						0x4040,   //  X       X      
+						0x2020,   //   X       X     
+						0x4040,   //  X       X      
+						0x8080,   // X       X       
+						0x0101,   //        X       X
+						0x0202,   //       X       X 
+						0x0101,   //        X       X
+						0x8080,   // X       X       
+						0x4040,   //  X       X      
+						0x2020}));//   X       X     
+
 		/** pseudo metal 1 */
 		Layer pseudoMetal1_lay = Layer.newInstance(this, "Pseudo-Metal-1",
 			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_1, 96,209,255, 0.8,true,
@@ -1223,6 +1247,7 @@ public class MoCMOS extends Technology
 		polyCap_lay.setFunction(Layer.Function.CAP);									// Poly-Cap
 		pActiveWell_lay.setFunction(Layer.Function.DIFFP);								// P-Active-Well
 		silicideBlock_lay.setFunction(Layer.Function.ART);								// Silicide-Block
+		thickActive_lay.setFunction(Layer.Function.DIFF);								// Thick-Active
 		pseudoMetal1_lay.setFunction(Layer.Function.METAL1, Layer.Function.PSEUDO);		// Pseudo-Metal-1
 		pseudoMetal2_lay.setFunction(Layer.Function.METAL2, Layer.Function.PSEUDO);		// Pseudo-Metal-2
 		pseudoMetal3_lay.setFunction(Layer.Function.METAL3, Layer.Function.PSEUDO);		// Pseudo-Metal-3
@@ -1266,6 +1291,7 @@ public class MoCMOS extends Technology
 		polyCap_lay.setFactoryCIFLayer("CPC");				// Poly-Cap
 		pActiveWell_lay.setFactoryCIFLayer("CAA");			// P-Active-Well
 		silicideBlock_lay.setFactoryCIFLayer("CSB");		// Silicide-Block
+		thickActive_lay.setFactoryCIFLayer("CTA");			// Thick-Active
 		pseudoMetal1_lay.setFactoryCIFLayer("");			// Pseudo-Metal-1
 		pseudoMetal2_lay.setFactoryCIFLayer("");			// Pseudo-Metal-2
 		pseudoMetal3_lay.setFactoryCIFLayer("");			// Pseudo-Metal-3
@@ -1309,6 +1335,7 @@ public class MoCMOS extends Technology
 		polyCap_lay.setFactoryGDSLayer("28");				// Poly-Cap
 		pActiveWell_lay.setFactoryGDSLayer("43");			// P-Active-Well
 		silicideBlock_lay.setFactoryGDSLayer("29");			// Silicide-Block
+		thickActive_lay.setFactoryGDSLayer("60");			// Thick-Active
 		pseudoMetal1_lay.setFactoryGDSLayer("");			// Pseudo-Metal-1
 		pseudoMetal2_lay.setFactoryGDSLayer("");			// Pseudo-Metal-2
 		pseudoMetal3_lay.setFactoryGDSLayer("");			// Pseudo-Metal-3
@@ -1352,6 +1379,7 @@ public class MoCMOS extends Technology
 		polyCap_lay.setFactorySkillLayer("");				// Poly-Cap
 		pActiveWell_lay.setFactorySkillLayer("aa");			// P-Active-Well
 		silicideBlock_lay.setFactorySkillLayer("");			// Silicide-Block
+		thickActive_lay.setFactorySkillLayer("");			// Thick-Active
 		pseudoMetal1_lay.setFactorySkillLayer("");			// Pseudo-Metal-1
 		pseudoMetal2_lay.setFactorySkillLayer("");			// Pseudo-Metal-2
 		pseudoMetal3_lay.setFactorySkillLayer("");			// Pseudo-Metal-3
@@ -1463,6 +1491,7 @@ public class MoCMOS extends Technology
 		polyCap_lay.setFactoryParasitics(0, 0, 0);				// Poly-Cap
 		pActiveWell_lay.setFactoryParasitics(0, 0, 0);			// P-Active-Well
 		silicideBlock_lay.setFactoryParasitics(0, 0, 0);		// Silicide-Block
+		thickActive_lay.setFactoryParasitics(0, 0, 0);			// Thick-Active
 		pseudoMetal1_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Metal-1
 		pseudoMetal2_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Metal-2
 		pseudoMetal3_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Metal-3
@@ -2649,6 +2678,21 @@ public class MoCMOS extends Technology
 		silicideBlockNode_node.setHoldsOutline();
 		silicideBlockNode_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
+		/** Thick-Active-Node */
+		thickActiveNode_node = PrimitiveNode.newInstance("Thick-Active-Node", this, 2.0, 2.0, null,
+			new Technology.NodeLayer []
+			{
+				new Technology.NodeLayer(thickActive_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+			});
+		thickActiveNode_node.addPrimitivePorts(new PrimitivePort []
+			{
+				PrimitivePort.newInstance(this, thickActiveNode_node, new ArcProto[] {poly1_arc}, "thick-active", 0,180, 0, PortCharacteristic.UNKNOWN,
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
+			});
+		thickActiveNode_node.setFunction(PrimitiveNode.Function.NODE);
+		thickActiveNode_node.setHoldsOutline();
+		thickActiveNode_node.setSpecialType(PrimitiveNode.POLYGONAL);
+
 		// The pure layer nodes
 		metal1_lay.setPureLayerNode(metal1Node_node);					// Metal-1
 		metal2_lay.setPureLayerNode(metal2Node_node);					// Metal-2
@@ -2676,6 +2720,7 @@ public class MoCMOS extends Technology
 		polyCap_lay.setPureLayerNode(polyCapNode_node);					// Poly-Cap
 		pActiveWell_lay.setPureLayerNode(pActiveWellNode_node);			// P-Active-Well
 		silicideBlock_lay.setPureLayerNode(silicideBlockNode_node);		// Silicide-Block
+		thickActive_lay.setPureLayerNode(thickActiveNode_node);			// Thick-Active
 		padFrame_lay.setPureLayerNode(padFrameNode_node);				// Pad-Frame
 	}
 

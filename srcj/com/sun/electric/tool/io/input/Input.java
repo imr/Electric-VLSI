@@ -222,6 +222,10 @@ public class Input // extends IOTool
 			{
 				in = (Input)new CIF();
 				if (in.openTextInput(fileURL)) return null;
+			} else if (type == OpenFile.Type.DEF)
+			{
+				in = (Input)new DEF();
+				if (in.openTextInput(fileURL)) return null;
 			} else if (type == OpenFile.Type.EDIF)
 			{
 				in = (Input)new EDIF();

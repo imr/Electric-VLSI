@@ -40,13 +40,12 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.drc.DRC;
-import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.AffineTransform;
@@ -94,8 +93,8 @@ public class Compaction extends Listener
 		Cell cell = WindowFrame.getCurrentCell();
 		if (cell == null) return;
 
-		// do the compaction
-		CompactCell job = new CompactCell(cell);
+		// do the compaction, starting horizontally
+		CompactCell job = new CompactCell(cell, true, CompactCell.HORIZONTAL);
 	}
 
 	/****************************** OPTIONS ******************************/
@@ -120,55 +119,59 @@ public class Compaction extends Listener
 	 */
 	private static class CompactCell extends Job
 	{
-		private Cell cell;
-
 		private static final double DEFAULT_VAL = -99999999;
 
 		private static class Axis {}
 		private static final Axis HORIZONTAL = new Axis();
 		private static final Axis VERTICAL   = new Axis();
 
-		private static class COMPPOLYLIST
+		private static class PolyList
 		{
-			private Poly         poly;
-			private Technology   tech;
-			private int          networknum;
-			private COMPPOLYLIST nextpolylist;
+			private Poly       poly;
+			private Technology tech;
+			private int        networkNum;
+			private PolyList   nextPolyList;
 		};
 
-		private static class OBJECT
+		private static class GeomObj
 		{
-			private Geometric     inst;
-			private COMPPOLYLIST  firstpolylist;
-			private double        lowx, highx, lowy, highy;
-			private OBJECT        nextobject;
+			private Geometric inst;
+			private PolyList  firstPolyList;
+			private double    lowx, highx, lowy, highy;
+			private double    outerLowx, outerHighx, outerLowy, outerHighy;
+			private GeomObj   nextObject;
 		};
 
-		private static class LINE
+		private static class Line
 		{
-			private int     index;
-			private double  val;
-			private double  low, high;
-			private double  top, bottom;
-			private OBJECT  firstobject;
-			private LINE    nextline;
-			private LINE    prevline;
+			private int      index;
+			private double   val;
+			private double   low, high;
+			private double   top, bottom;
+			private GeomObj  firstObject;
+			private Line     nextLine;
+			private Line     prevLine;
 		};
 
-		private double  com_maxboundary, com_lowbound;
-		private int     com_flatindex;			/* counter for unique network numbers */
-		private int     lineIndex = 0;
+		/** protection frame max size for technology */			private double  maxBoundary;
+		/** lowest edge of current line */						private double  lowBound;
+		/** counter for unique network numbers */				private int     flatIndex;
+		/** used for numbering lines (debugging only) */		private int     lineIndex = 0;
+		/** result of last compaction (in orthogonal dir) */	private boolean lastTime;
+		/** current axis of compaction */						private Axis    curAxis;
+		/** cell being compacted */								private Cell    cell;
 
-		private CompactCell(Cell cell)
+		private CompactCell(Cell cell, boolean lastTime, Axis curAxis)
 		{
 			super("Compact Cell", Compaction.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
+			this.lastTime = lastTime;
+			this.curAxis = curAxis;
 			startJob();
 		}
 
 		public boolean doIt()
 		{
-
 //			// special handling for technology-edit cells
 //			if (el_curwindowpart != null && cell != null &&
 //				(el_curwindowpart->state&WINDOWMODE) == WINDOWTECEDMODE)
@@ -180,13 +183,14 @@ public class Compaction extends Listener
 //			}
 
 			// alternate vertical then horizontal compaction
-			for(;;)
+			boolean change = examineOneCell(cell);
+			if (!change && !lastTime)
 			{
-				boolean vChange = com_examineonecell(cell, VERTICAL);
-				boolean hChange = com_examineonecell(cell, HORIZONTAL);
-				if (!vChange && !hChange) break;
+				System.out.println("Compaction complete");
+			} else
+			{
+				CompactCell job = new CompactCell(cell, change, curAxis == HORIZONTAL ? VERTICAL : HORIZONTAL);
 			}
-			System.out.println("Compaction complete");
 			return true;
 		}
 
@@ -195,17 +199,17 @@ public class Compaction extends Listener
 		 * compaction (if "axis" is HORIZONTAL) to cell "np".  Displays state if
 		 * "verbose" is nonzero.  Returns true if a change was made.
 		 */
-		private boolean com_examineonecell(Cell cell, Axis axis)
+		private boolean examineOneCell(Cell cell)
 		{
 			// determine maximum drc surround for entire technology
-			com_maxboundary = DRC.getWorstSpacingDistance(Technology.getCurrent());
+			maxBoundary = DRC.getWorstSpacingDistance(Technology.getCurrent());
 
-			if (axis == HORIZONTAL) System.out.println("Compacting horizontally"); else
+			if (curAxis == HORIZONTAL) System.out.println("Compacting horizontally"); else
 				System.out.println("Compacting vertically");
 
 			// number ports of cell "cell"
 			HashMap portIndices = new HashMap();
-			com_flatindex = 1;
+			flatIndex = 1;
 			Netlist nl = cell.getUserNetlist();
 			for(Iterator it = cell.getPorts(); it.hasNext(); )
 			{
@@ -225,19 +229,19 @@ public class Compaction extends Listener
 				{
 					Integer oIndex = (Integer)portIndices.get(found);
 					portIndices.put(pp, oIndex);
-				} else portIndices.put(pp, new Integer(com_flatindex++));
+				} else portIndices.put(pp, new Integer(flatIndex++));
 			}
 
 			// copy port numbering onto arcs
-			HashMap arcIndices = com_subsmash(cell, portIndices);
+			HashMap arcIndices = subCellSmash(cell, portIndices);
 
 			// clear "seen" information on every node
 			HashSet nodesSeen = new HashSet();
 
 			// clear object information
-			LINE linecomp = null;
-			OBJECT [] otherobject = new OBJECT[1];
-			otherobject[0] = null;
+			Line lineComp = null;
+			GeomObj [] otherObject = new GeomObj[1];
+			otherObject[0] = null;
 
 			// now check every object
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
@@ -245,299 +249,232 @@ public class Compaction extends Listener
 				NodeInst ni = (NodeInst)it.next();
 				if (ni.getProto() == Generic.tech.cellCenterNode) continue;
 
-				// clear "thisobject" before calling com_createobject
-				OBJECT [] thisobject = new OBJECT[1];
-				thisobject[0] = null;
-				com_createobjects(ni, axis, thisobject, otherobject, nodesSeen, arcIndices, portIndices, nl);
+				// clear "thisObject" before calling createobject
+				GeomObj [] thisObject = new GeomObj[1];
+				thisObject[0] = null;
+				createObjects(ni, thisObject, otherObject, nodesSeen, arcIndices, portIndices);
 
 				// create object of layout
-				if (thisobject[0] != null)
-					linecomp = com_make_object_line(linecomp, thisobject[0]);
+				if (thisObject[0] != null)
+					lineComp = makeObjectLine(lineComp, thisObject[0]);
 			}
 
 			// create list of perpendicular line which need to be set stretchable
-			LINE linestretch = null;
-			if (otherobject[0] != null)
-				linestretch = com_make_object_line(null, otherobject[0]);
+			Line lineStretch = null;
+			if (otherObject[0] != null)
+				lineStretch = makeObjectLine(null, otherObject[0]);
 
 			// sort the compacting line of objects
-			linecomp = com_sort(linecomp, axis);
+			lineComp = sortLines(lineComp);
 
 			// compute bounds for each line
-			for(LINE cur_line = linecomp; cur_line != null; cur_line = cur_line.nextline)
-				com_computeline_hi_and_low(cur_line, axis);
+			for(Line curLine = lineComp; curLine != null; curLine = curLine.nextLine)
+				computeLineHiAndLow(curLine);
 
-for(LINE cur_line = linecomp; cur_line != null; cur_line = cur_line.nextline)
-{
-	System.out.print("LINE " + cur_line.index + " FROM "+cur_line.low+" TO "+cur_line.high+":");
-	for(OBJECT o = cur_line.firstobject; o != null; o = o.nextobject)
-		System.out.print(" "+o.inst.describe());
-	System.out.println();
-}
-
-			// prevent the stretching line from sliding
-			HashSet clearedArcs = com_noslide(linestretch);
-
-			// set rigidity properly
-			com_fixed_nonfixed(linecomp, linestretch);
+//for(Line curLine = lineComp; curLine != null; curLine = curLine.nextLine)
+//{
+//	System.out.print("Line " + curLine.index + " FROM "+curLine.low+" TO "+curLine.high+":");
+//	for(GeomObj o = curLine.firstObject; o != null; o = o.nextObject)
+//		System.out.print(" "+o.inst.describe());
+//	System.out.println();
+//}
 
 			// do the compaction
-			com_lowbound = com_findleastlow(linecomp, axis);
-			boolean change = com_lineup_firstrow(linecomp, linestretch, axis, com_lowbound);
-			change = com_compact(linecomp, linestretch, axis, change, cell);
-
-			// restore rigidity if no changes were made
-			if (!change) com_undo_fixed_nonfixed(linecomp, linestretch);
-
-			// allow the streteching line to slide again
-			com_slide(clearedArcs);
+			lowBound = findLeastLow(lineComp);
+			boolean change = lineupFirstRow(lineComp, lineStretch, lowBound);
+			change = compactLine(lineComp, lineStretch, change, cell);
 
 			return change;
 		}
 
-		private boolean com_compact(LINE line, LINE other_line, Axis axis, boolean change, Cell cell)
+		private boolean compactLine(Line line, Line lineStretch, boolean change, Cell cell)
 		{
 			boolean spread = isAllowsSpreading();
 
 			// loop through all lines that may compact
-			for(LINE cur_line = line.nextline; cur_line != null; cur_line = cur_line.nextline)
+			for(Line curLine = line.nextLine; curLine != null; curLine = curLine.nextLine)
 			{
 				// look at every object in the line that may compact
-				double best_motion = DEFAULT_VAL;
-				for(OBJECT cur_object = cur_line.firstobject; cur_object != null; cur_object = cur_object.nextobject)
+				double bestMotion = DEFAULT_VAL;
+				for(GeomObj curObject = curLine.firstObject; curObject != null; curObject = curObject.nextObject)
 				{
 					// look at all previous lines
-					for(LINE prev_line = cur_line.prevline; prev_line != null; prev_line = prev_line.prevline)
+					for(Line prevLine = curLine.prevLine; prevLine != null; prevLine = prevLine.prevLine)
 					{
-System.out.println("COMPARING LINEs "+cur_line.index+" AND "+prev_line.index);
 						// no need to test this line if it is farther than best motion
-						if (best_motion != DEFAULT_VAL &&
-							cur_line.low - prev_line.high > best_motion) continue;
+						if (bestMotion != DEFAULT_VAL &&
+							curLine.low - prevLine.high > bestMotion) continue;
 
 						// simple object compaction
-						double this_motion = com_checkinst(cur_object, prev_line, axis, cell);
-System.out.println("   OBJECT "+cur_object.inst.describe()+" HAS DISTANCE "+this_motion+" TO LINE "+prev_line.index);
-						if (this_motion == DEFAULT_VAL) continue;
-						if (best_motion == DEFAULT_VAL || this_motion < best_motion)
+						double thisMotion = checkInst(curObject, prevLine, cell);
+						if (thisMotion == DEFAULT_VAL) continue;
+						if (bestMotion == DEFAULT_VAL || thisMotion < bestMotion)
 						{
-							best_motion = this_motion;
+							bestMotion = thisMotion;
 						}
 					}
 				}
 
-				if (best_motion == DEFAULT_VAL)
+				if (bestMotion == DEFAULT_VAL)
 				{
 					// no constraints: allow overlap
-					best_motion = cur_line.low - com_lowbound;
+					bestMotion = curLine.low - lowBound;
 				}
-System.out.println("BEST MOTION FOR LINES IS "+best_motion);
-				if (best_motion > 0 || (spread && best_motion < 0))
+				if (bestMotion > 0 || (spread && bestMotion < 0))
 				{
-					if (axis == HORIZONTAL)
-						change = com_move(cur_line, best_motion, 0, change); else
-							change = com_move(cur_line, 0, best_motion, change);
-					com_fixed_nonfixed(line, other_line);
+					// initialize arcs: disable stretching line from sliding; make moving line rigid
+					HashSet clearedArcs = ensureSlidability(lineStretch);
+					setupTemporaryRigidity(line, lineStretch);
+
+					if (curAxis == HORIZONTAL)
+						change = moveLine(curLine, bestMotion, 0, change); else
+							change = moveLine(curLine, 0, bestMotion, change);
+
+					// restore slidability on stretching lines
+					restoreSlidability(clearedArcs);
 				}
 			}
 			return change;
 		}
 
-		private double com_checkinst(OBJECT object, LINE line, Axis axis, Cell cell)
+		private double checkInst(GeomObj object, Line line, Cell cell)
 		{
-			double best_motion = DEFAULT_VAL;
-			for(COMPPOLYLIST polys = object.firstpolylist; polys != null; polys = polys.nextpolylist)
+			double bestMotion = DEFAULT_VAL;
+			for(PolyList polys = object.firstPolyList; polys != null; polys = polys.nextPolyList)
 			{
-				Poly poly = polys.poly;
-
 				// translate any pseudo layers for this node
+				Poly poly = polys.poly;
 				Layer layer = poly.getLayer().getNonPseudoLayer();
 
 				// find distance line can move toward this poly
-				double this_motion = com_minseparate(object, layer, polys, line, axis, cell);
-				if (this_motion == DEFAULT_VAL) continue;
-				if (best_motion == DEFAULT_VAL || this_motion < best_motion)
+				double thisMotion = minSeparate(object, layer, polys, line, cell);
+				if (thisMotion == DEFAULT_VAL) continue;
+				if (bestMotion == DEFAULT_VAL || thisMotion < bestMotion)
 				{
-					best_motion = this_motion;
+					bestMotion = thisMotion;
 				}
 			}
-			return best_motion;
+			return bestMotion;
 		}
 
 		/**
 		 * Method finds the minimum distance which is necessary between polygon
-		 * "obj" (from object "object" on layer "nlayer" with network connectivity
-		 * "nindex") and the previous line in "line".  It returns the amount
+		 * "obj" (from object "object" on layer "nLayer" with network connectivity
+		 * "nIndex") and the previous line in "line".  It returns the amount
 		 * to move this object to get it closest to the line (DEFAULT_VAL if they can
 		 * overlap).  The object "reason" is set to the object that is causing the
 		 * constraint.
 		 */
-		private double com_minseparate(OBJECT object, Layer nlayer, COMPPOLYLIST npolys,
-			LINE line, Axis axis, Cell cell)
+		private double minSeparate(GeomObj object, Layer nLayer, PolyList nPolys, Line line, Cell cell)
 		{
-			Poly npoly = npolys.poly;
-			double nminsize = npoly.getMinSize();
-			Technology tech = npolys.tech;
-			int nindex = npolys.networknum;
+			Poly nPoly = nPolys.poly;
+			double nminsize = nPoly.getMinSize();
+			Technology tech = nPolys.tech;
+			int nIndex = nPolys.networkNum;
 
 			// see how far around the box it is necessary to search
-			double bound = DRC.getMaxSurround(nlayer, Double.MAX_VALUE);
+			double bound = DRC.getMaxSurround(nLayer, Double.MAX_VALUE);
 
 			// if there is no separation, allow them to sit on top of each other
 			if (bound < 0) return DEFAULT_VAL;
 
 			// can only handle orthogonal rectangles for now
-			Rectangle2D box = npoly.getBox();
-			if (box == null) return bound;
+			Rectangle2D nbox = nPoly.getBox();
+			if (nbox == null) return bound;
 
-			double best_motion = DEFAULT_VAL;
-			double geom_lo = object.lowy;
-			if (axis == HORIZONTAL) geom_lo = object.lowx;
+			double bestMotion = DEFAULT_VAL;
+			double geomLow = object.lowy;
+			if (curAxis == HORIZONTAL) geomLow = object.lowx;
 
 			// search the line
-			for(OBJECT cur_object = line.firstobject; cur_object != null; cur_object = cur_object.nextobject)
+			for(GeomObj curObject = line.firstObject; curObject != null; curObject = curObject.nextObject)
 			{
-				if (cur_object.inst instanceof NodeInst)
+				if (curAxis == HORIZONTAL)
 				{
-					double ni_hi = cur_object.highy;
-					if (axis == HORIZONTAL) ni_hi = cur_object.highx;
-
-					if ((axis == HORIZONTAL && com_in_bound(box.getMinY()-bound, box.getMaxY()+bound,
-						cur_object.lowy, cur_object.highy)) ||
-							(axis == VERTICAL && com_in_bound(box.getMinX()-bound, box.getMaxX()+bound,
-								cur_object.lowx, cur_object.highx)))
-					{
-						// examine every layer in this object
-						for(COMPPOLYLIST polys = cur_object.firstpolylist; polys != null; polys = polys.nextpolylist)
-						{
-							// don't check between technologies
-							if (polys.tech != tech) continue;
-
-							Poly poly = polys.poly;
-							Layer layer = poly.getLayer().getNonPseudoLayer();
-							int pindex = polys.networknum;
-
-							// see whether the two objects are electrically connected
-							boolean con = false;
-							if (pindex == nindex && pindex != -1) con = true;
-							Rectangle2D polyBox = poly.getBox();
-							if (polyBox == null)
-							{
-								double this_motion = geom_lo - ni_hi - bound;
-								if (this_motion == DEFAULT_VAL) continue;
-								if (this_motion < best_motion || best_motion == DEFAULT_VAL)
-								{
-									best_motion = this_motion;
-								}
-								continue;
-							}
-
-							// see how close they can get
-							double minsize = poly.getMinSize();
-							double dist = -1;
-							DRCRules.DRCRule rule = DRC.getSpacingRule(nlayer, layer, con, false, 0);
-							if (rule != null) dist = rule.value;
-							if (dist < 0) continue;
-
-							/*
-							 * special rule for ignoring distance:
-							 *   the layers are the same and either:
-							 *     they connect and are *NOT* contact layers
-							 *   or:
-							 *     they don't connect and are implant layers (substrate/well)
-							 */
-							if (nlayer == layer)
-							{
-								Layer.Function fun = nlayer.getFunction();
-								if (con)
-								{
-									if (!fun.isContact()) continue;
-								} else
-								{
-									if (fun == Layer.Function.SUBSTRATE || fun == Layer.Function.WELL ||
-										fun == Layer.Function.IMPLANT) continue;
-								}
-							}
-
-							/*
-							 * if the two layers are located on the y-axis so
-							 * that there is no necessary contraint between them
-							 */
-							if ((axis == HORIZONTAL && !com_in_bound(box.getMinY()-dist, box.getMaxY()+dist, polyBox.getMinY(), polyBox.getMaxY())) ||
-								(axis == VERTICAL && !com_in_bound(box.getMinX()-dist, box.getMaxX()+dist, polyBox.getMinX(), polyBox.getMaxX())))
-									continue;
-
-							// check the distance
-							double this_motion = com_check(nlayer, nindex, object, polyBox, layer, pindex, cur_object, box, dist, axis);
-							if (this_motion == DEFAULT_VAL) continue;
-							if (this_motion < best_motion || best_motion == DEFAULT_VAL)
-							{
-								best_motion = this_motion;
-							}
-						}
-					}
+					if (!isInBound(nbox.getMinY()-bound, nbox.getMaxY()+bound, curObject.outerLowy, curObject.outerHighy)) continue;
 				} else
 				{
-					double ai_hi = cur_object.highy;
-					if (axis == HORIZONTAL) ai_hi = cur_object.highx;
+					if (!isInBound(nbox.getMinX()-bound, nbox.getMaxX()+bound, curObject.outerLowx, curObject.outerHighx)) continue;
+				}
 
-					if ((axis == HORIZONTAL && com_in_bound(box.getMinY()-bound, box.getMaxY()+bound,
-						cur_object.lowy, cur_object.highy)) ||
-							(axis == VERTICAL && com_in_bound(box.getMinX()-bound, box.getMaxX()+bound,
-								cur_object.lowx, cur_object.highx)))
+				// examine every layer in this object
+				for(PolyList polys = curObject.firstPolyList; polys != null; polys = polys.nextPolyList)
+				{
+					// don't check between technologies
+					if (polys.tech != tech) continue;
+
+					Poly poly = polys.poly;
+					Layer layer = poly.getLayer().getNonPseudoLayer();
+					int pIndex = polys.networkNum;
+
+					// see whether the two objects are electrically connected
+					boolean con = false;
+					if (pIndex == nIndex && pIndex != -1)
 					{
-						// prepare to examine every layer in this arcinst
-						for(COMPPOLYLIST polys = cur_object.firstpolylist; polys != null; polys = polys.nextpolylist)
+						Layer.Function nFun = nLayer.getFunction();
+						Layer.Function fun = layer.getFunction();
+						if (!nFun.isSubstrate() && !fun.isSubstrate())
+							con = true;
+					}
+					Rectangle2D polyBox = poly.getBox();
+					if (polyBox == null)
+					{
+						double niHigh = curObject.outerHighy;
+						if (curAxis == HORIZONTAL) niHigh = curObject.outerHighx;
+
+						double thisMotion = geomLow - niHigh - bound;
+						if (thisMotion == DEFAULT_VAL) continue;
+						if (thisMotion < bestMotion || bestMotion == DEFAULT_VAL)
 						{
-							// don't check between technologies
-							if (polys.tech != tech) continue;
-
-							Poly poly = polys.poly;
-
-							// see whether the two objects are electrically connected
-							int pindex = polys.networknum;
-							boolean con = false;
-							if (nindex == -1 || pindex == nindex) con = true;
-
-							// warning: non-manhattan arcs are ignored here
-							Rectangle2D polyBox = poly.getBox();
-							if (polyBox == null)
-							{
-								double this_motion = geom_lo - ai_hi - bound;
-								if (this_motion == DEFAULT_VAL) continue;
-								if (this_motion < best_motion || best_motion == DEFAULT_VAL)
-								{
-									best_motion = this_motion;
-								}
-								continue;
-							}
-
-							// see how close they can get
-							double minsize = poly.getMinSize();
-							double dist = -1;
-							DRCRules.DRCRule rule = DRC.getSpacingRule(nlayer, poly.getLayer(), con, false, 0);
-							if (rule != null) dist = rule.value;
-							if (dist < 0) continue;
-
-							/*
-							 * if the two layers are so located on the y-axis so
-							 * that there is no necessary contraint between them
-							 */
-							if ((axis == HORIZONTAL && !com_in_bound(box.getMinY()-dist, box.getMaxY()+dist, polyBox.getMinY(), polyBox.getMaxY())) ||
-								(axis == VERTICAL && !com_in_bound(box.getMinX()-dist, box.getMaxX()+dist, polyBox.getMinX(), polyBox.getMaxX())))
-									continue;
-
-							// check the distance
-							double this_motion = com_check(nlayer, nindex, object, polyBox, poly.getLayer(), pindex, cur_object, box, dist, axis);
-							if (this_motion == DEFAULT_VAL) continue;
-							if (this_motion < best_motion || best_motion == DEFAULT_VAL)
-							{
-								best_motion = this_motion;
-							}
+							bestMotion = thisMotion;
 						}
+						continue;
+					}
+
+					// see how close they can get
+					double dist = -1;
+					DRCRules.DRCRule rule = DRC.getSpacingRule(nLayer, layer, con, false, 0);
+					if (rule != null) dist = rule.value;
+					if (dist < 0) continue;
+
+					/*
+					 * special rule for ignoring distance:
+					 *   the layers are the same and either:
+					 *     they connect and are *NOT* contact layers
+					 *   or:
+					 *     they don't connect and are implant layers (substrate/well)
+					 */
+					if (nLayer == layer)
+					{
+						Layer.Function fun = nLayer.getFunction();
+						if (con)
+						{
+							if (!fun.isContact()) continue;
+						} else
+						{
+							if (fun.isSubstrate()) continue;
+						}
+					}
+
+					// if the two layers are offset on the axis so that there is no possible contraint between them
+					if (curAxis == HORIZONTAL)
+					{
+						if (!isInBound(nbox.getMinY()-dist, nbox.getMaxY()+dist, polyBox.getMinY(), polyBox.getMaxY())) continue;
+					} else
+					{
+						if (!isInBound(nbox.getMinX()-dist, nbox.getMaxX()+dist, polyBox.getMinX(), polyBox.getMaxX())) continue;
+					}
+
+					// check the distance
+					double thisMotion = checkLayers(nLayer, nIndex, object, polyBox, layer, pIndex, curObject, nbox, dist);
+					if (thisMotion == DEFAULT_VAL) continue;
+					if (thisMotion < bestMotion || bestMotion == DEFAULT_VAL)
+					{
+						bestMotion = thisMotion;
 					}
 				}
 			}
-			return best_motion;
+			return bestMotion;
 		}
 
 		/**
@@ -548,43 +485,49 @@ System.out.println("BEST MOTION FOR LINES IS "+best_motion);
 		 * "object2" are (lx2-hx2,ly2-hy2).  If the objects are in bounds, the spacing
 		 * between them is returned.  Otherwise, DEFAULT_VAL is returned.
 		 */
-		private double com_check(Layer layer1, int index1, OBJECT object1, Rectangle2D bound1,
-			Layer layer2, int index2, OBJECT object2, Rectangle2D bound2, double dist, Axis axis)
+		private double checkLayers(Layer layer1, int index1, GeomObj object1, Rectangle2D bound1,
+			Layer layer2, int index2, GeomObj object2, Rectangle2D bound2, double dist)
 		{
 			// crop out parts of a box covered by a similar layer on the other node
 			if (object1.inst instanceof NodeInst)
 			{
-				if (com_cropnodeinst(object1.firstpolylist, bound2, layer2, index2))
+				if (cropNodeInst(object1.firstPolyList, bound2, layer2, index2))
 					return DEFAULT_VAL;
 			}
 			if (object2.inst instanceof NodeInst)
 			{
-				if (com_cropnodeinst(object2.firstpolylist, bound1, layer1, index1))
+				if (cropNodeInst(object2.firstPolyList, bound1, layer1, index1))
 					return DEFAULT_VAL;
 			}
 
 			// now compare the box extents
-			if (axis == HORIZONTAL)
+			if (curAxis == HORIZONTAL)
 			{
-				if (bound1.getMaxY()+dist > bound2.getMinY() && bound1.getMinY()-dist < bound2.getMaxY()) return(bound2.getMinX() - bound1.getMaxX() - dist);
-			} else if (bound1.getMaxX()+dist > bound2.getMinX() && bound1.getMinX()-dist < bound2.getMaxX()) return(bound2.getMinY() - bound1.getMaxY() - dist);
+				if (bound1.getMaxY()+dist > bound2.getMinY() && bound1.getMinY()-dist < bound2.getMaxY())
+				{
+					return bound2.getMinX() - bound1.getMaxX() - dist;
+				}
+			} else if (bound1.getMaxX()+dist > bound2.getMinX() && bound1.getMinX()-dist < bound2.getMaxX())
+			{
+				return bound2.getMinY() - bound1.getMaxY() - dist;
+			}
 			return DEFAULT_VAL;
 		}
 
 		/**
-		 * Method to crop the box on layer "nlayer", electrical index "nindex"
+		 * Method to crop the box on layer "nLayer", electrical index "nIndex"
 		 * and bounds (lx-hx, ly-hy) against the nodeinst "ni".  Only those layers
 		 * in the nodeinst that are the same layer and the same electrical index
 		 * are checked.  The routine returns true if the bounds are reduced
 		 * to nothing.
 		 */
-		private boolean com_cropnodeinst(COMPPOLYLIST polys, Rectangle2D bound, Layer nlayer, int nindex)
+		private boolean cropNodeInst(PolyList polys, Rectangle2D bound, Layer nLayer, int nIndex)
 		{
-			for(COMPPOLYLIST cur_polys = polys; cur_polys != null; cur_polys = cur_polys.nextpolylist)
+			for(PolyList curPoly = polys; curPoly != null; curPoly = curPoly.nextPolyList)
 			{
-				if (cur_polys.networknum != nindex) continue;
-				if (cur_polys.poly.getLayer() != nlayer) continue;
-				Rectangle2D polyBox = cur_polys.poly.getBox();
+				if (curPoly.networkNum != nIndex) continue;
+				if (curPoly.poly.getLayer() != nLayer) continue;
+				Rectangle2D polyBox = curPoly.poly.getBox();
 				if (polyBox == null) continue;
 				int temp = Poly.cropBox(bound, polyBox);
 				if (temp > 0) return true;
@@ -592,21 +535,27 @@ System.out.println("BEST MOTION FOR LINES IS "+best_motion);
 			return false;
 		}
 
-		private boolean com_in_bound(double ll, double lh, double rl, double rh)
+		private boolean isInBound(double ll, double lh, double rl, double rh)
 		{
 			if (rh > ll && rl < lh) return true;
 			return false;
 		}
 
-		private boolean com_lineup_firstrow(LINE line, LINE other_line, Axis axis, double lowbound)
+		private boolean lineupFirstRow(Line line, Line lineStretch, double lowestBound)
 		{
 			boolean change = false;
-			double i = line.low - lowbound;
+			double i = line.low - lowestBound;
 			if (i > 0)
 			{
-				if (axis == HORIZONTAL) change = com_move(line, i, 0, change); else
-					change = com_move(line, 0, i, change);
-				com_fixed_nonfixed(line, other_line);
+				// initialize arcs: disable stretching line from sliding; make moving line rigid
+				HashSet clearedArcs = ensureSlidability(lineStretch);
+				setupTemporaryRigidity(line, lineStretch);
+
+				if (curAxis == HORIZONTAL) change = moveLine(line, i, 0, change); else
+					change = moveLine(line, 0, i, change);
+
+				// restore slidability on stretching lines
+				restoreSlidability(clearedArcs);
 			}
 			return change;
 		}
@@ -615,46 +564,47 @@ System.out.println("BEST MOTION FOR LINES IS "+best_motion);
 		 * moves a object of instances distance (movex, movey), and returns a true if
 		 * there is actually a move
 		 */
-		private boolean com_move(LINE line, double movex, double movey, boolean change)
+		private boolean moveLine(Line line, double moveX, double moveY, boolean change)
 		{
-			double move = movex;
-			if (movex == 0) move = movey;
+			double move = moveX;
+			if (moveX == 0) move = moveY;
 			if (line == null) return false;
-			if (!change && move != 0)
-			{
-	//			(void)asktool(us_tool, x_("clear"));
-				change = true;
-			}
+			if (!change && move != 0) change = true;
 
-			for(OBJECT cur_object = line.firstobject; cur_object != null; cur_object = cur_object.nextobject)
+			for(GeomObj curObject = line.firstObject; curObject != null; curObject = curObject.nextObject)
 			{
-				if (cur_object.inst instanceof NodeInst)
+				if (curObject.inst instanceof NodeInst)
 				{
-					NodeInst ni = (NodeInst)cur_object.inst;
-System.out.println("MOVE NODE "+ni.describe()+" BY ("+(-movex)+","+(-movey)+")");
-					ni.modifyInstance(-movex, -movey, 0, 0, 0);
+					NodeInst ni = (NodeInst)curObject.inst;
+//System.out.println("FINALLY, MOVE NODE "+ni.describe()+" BY ("+(-moveX)+","+(-moveY)+")");
+					ni.modifyInstance(-moveX, -moveY, 0, 0, 0);
+//					flushBatch();
 					break;
 				}
 			}
 
-			for(OBJECT cur_object = line.firstobject; cur_object != null; cur_object = cur_object.nextobject)
+			for(GeomObj curObject = line.firstObject; curObject != null; curObject = curObject.nextObject)
 			{
-				cur_object.lowx -= movex;
-				cur_object.highx -= movex;
-				cur_object.lowy -= movey;
-				cur_object.highy -= movey;
-				for(COMPPOLYLIST polys = cur_object.firstpolylist; polys != null; polys = polys.nextpolylist)
+				curObject.lowx -= moveX;
+				curObject.highx -= moveX;
+				curObject.lowy -= moveY;
+				curObject.highy -= moveY;
+
+				curObject.outerLowx -= moveX;
+				curObject.outerHighx -= moveX;
+				curObject.outerLowy -= moveY;
+				curObject.outerHighy -= moveY;
+				for(PolyList polys = curObject.firstPolyList; polys != null; polys = polys.nextPolyList)
 				{
 					Point2D [] points = polys.poly.getPoints();
 					for(int i=0; i<points.length; i++)
 					{
-						points[i].setLocation(points[i].getX() - movex, points[i].getY() - movey);
+						points[i].setLocation(points[i].getX() - moveX, points[i].getY() - moveY);
 					}
 				}
 			}
 			line.high -= move;
 			line.low -= move;
-
 			return change;
 		}
 
@@ -663,27 +613,26 @@ System.out.println("MOVE NODE "+ni.describe()+" BY ("+(-movex)+","+(-movey)+")")
 		 * finds the smallest low value (lowx for VERTICAL, lowy for HORIZ case)
 		 * stores it in line->low.
 		 */
-		private double com_findleastlow(LINE line, Axis axis)
+		private double findLeastLow(Line line)
 		{
 			if (line == null) return 0;
 
 			// find smallest low for the each object
-			boolean first_time = true;
+			boolean first = true;
 			double low = 0;
-			for(OBJECT cur_object = line.firstobject; cur_object != null; cur_object = cur_object.nextobject)
+			for(GeomObj curObject = line.firstObject; curObject != null; curObject = curObject.nextObject)
 			{
-				if (!(cur_object.inst instanceof NodeInst)) continue;
-				double thislow = cur_object.lowy;
-				if (axis == HORIZONTAL) thislow = cur_object.lowx;
+				if (!(curObject.inst instanceof NodeInst)) continue;
+				double thisLow = curObject.lowy;
+				if (curAxis == HORIZONTAL) thisLow = curObject.lowx;
 
-				if (!first_time) low = Math.min(low, thislow); else
+				if (!first) low = Math.min(low, thisLow); else
 				{
-					low = thislow;
-					first_time = false;
+					low = thisLow;
+					first = false;
 				}
 			}
 			line.low = low;
-
 			return low;
 		}
 
@@ -691,53 +640,25 @@ System.out.println("MOVE NODE "+ni.describe()+" BY ("+(-movex)+","+(-movey)+")")
 		 * Method to temporarily make all arcs in fixline rigid and those
 		 * in nfixline nonrigid in order to move fixline over
 		 */
-		private void com_fixed_nonfixed(LINE fixline, LINE nfixline)
+		private void setupTemporaryRigidity(Line fixLine, Line lineStretch)
 		{
-			for(LINE cur_line = fixline; cur_line != null; cur_line = cur_line.nextline)
+			for(Line curLine = fixLine; curLine != null; curLine = curLine.nextLine)
 			{
-				for(OBJECT cur_object = cur_line.firstobject; cur_object != null; cur_object = cur_object.nextobject)
+				for(GeomObj curObject = curLine.firstObject; curObject != null; curObject = curObject.nextObject)
 				{
-					if (!(cur_object.inst instanceof NodeInst))    // arc rigid
+					if (!(curObject.inst instanceof NodeInst))    // arc rigid
 					{
-						Layout.setTempRigid((ArcInst)cur_object.inst, true);
+						Layout.setTempRigid((ArcInst)curObject.inst, true);
 					}
 				}
 			}
-			for(LINE cur_line = nfixline; cur_line != null; cur_line = cur_line.nextline)
+			for(Line curLine = lineStretch; curLine != null; curLine = curLine.nextLine)
 			{
-				for(OBJECT cur_object = cur_line.firstobject; cur_object != null; cur_object = cur_object.nextobject)
+				for(GeomObj curObject = curLine.firstObject; curObject != null; curObject = curObject.nextObject)
 				{
-					if (!(cur_object.inst instanceof NodeInst))   // arc unrigid
+					if (!(curObject.inst instanceof NodeInst))   // arc unrigid
 					{
-						Layout.setTempRigid((ArcInst)cur_object.inst, false);
-					}
-				}
-			}
-		}
-
-		/**
-		 * Method to reset temporary changes to arcs in fixline and nfixline
-		 * so that they are back to their default values.
-		 */
-		private void com_undo_fixed_nonfixed(LINE fixline, LINE nfixline)
-		{
-			for(LINE cur_line = fixline; cur_line != null; cur_line = cur_line.nextline)
-			{
-				for(OBJECT cur_object = cur_line.firstobject; cur_object != null; cur_object = cur_object.nextobject)
-				{
-					if (!(cur_object.inst instanceof NodeInst))
-					{
-						Layout.removeTempRigid((ArcInst)cur_object.inst);
-					}
-				}
-			}
-			for(LINE cur_line = nfixline; cur_line != null; cur_line = cur_line.nextline)
-			{
-				for(OBJECT cur_object = cur_line.firstobject; cur_object != null; cur_object = cur_object.nextobject)
-				{
-					if (!(cur_object.inst instanceof NodeInst))
-					{
-						Layout.removeTempRigid((ArcInst)cur_object.inst);
+						Layout.setTempRigid((ArcInst)curObject.inst, false);
 					}
 				}
 			}
@@ -747,17 +668,17 @@ System.out.println("MOVE NODE "+ni.describe()+" BY ("+(-movex)+","+(-movey)+")")
 		 * set the CANTSLIDE bit of userbits for each object in line so that this
 		 * line will not slide.
 		 */
-		private HashSet com_noslide(LINE line)
+		private HashSet ensureSlidability(Line line)
 		{
 			HashSet clearedArcs = new HashSet();
-			for(LINE cur_line = line; cur_line != null; cur_line = cur_line.nextline)
+			for(Line curLine = line; curLine != null; curLine = curLine.nextLine)
 			{
-				for(OBJECT cur_object = cur_line.firstobject; cur_object != null;
-					cur_object = cur_object.nextobject)
+				for(GeomObj curObject = curLine.firstObject; curObject != null;
+				curObject = curObject.nextObject)
 				{
-					if (!(cur_object.inst instanceof NodeInst))
+					if (!(curObject.inst instanceof NodeInst))
 					{
-						ArcInst ai = (ArcInst)cur_object.inst;
+						ArcInst ai = (ArcInst)curObject.inst;
 						if (ai.isSlidable())
 						{
 							ai.setSlidable(false);
@@ -772,7 +693,7 @@ System.out.println("MOVE NODE "+ni.describe()+" BY ("+(-movex)+","+(-movey)+")")
 		/**
 		 * restore the CANTSLIDE bit of userbits for each object in line
 		 */
-		private void com_slide(HashSet clearedArcs)
+		private void restoreSlidability(HashSet clearedArcs)
 		{
 			for(Iterator it = clearedArcs.iterator(); it.hasNext(); )
 			{
@@ -781,30 +702,30 @@ System.out.println("MOVE NODE "+ni.describe()+" BY ("+(-movex)+","+(-movey)+")")
 			}
 		}
 
-		private void com_computeline_hi_and_low(LINE line, Axis axis)
+		private void computeLineHiAndLow(Line line)
 		{
 			// find smallest and highest vals for the each object
-			boolean first_time = true;
+			boolean first = true;
 			double lx = 0, hx = 0, ly = 0, hy = 0;
-			for(OBJECT cur_object = line.firstobject; cur_object != null; cur_object = cur_object.nextobject)
+			for(GeomObj curObject = line.firstObject; curObject != null; curObject = curObject.nextObject)
 			{
-				if (!(cur_object.inst instanceof NodeInst)) continue;
-				if (first_time)
+				if (!(curObject.inst instanceof NodeInst)) continue;
+				if (first)
 				{
-					lx = cur_object.lowx;
-					hx = cur_object.highx;
-					ly = cur_object.lowy;
-					hy = cur_object.highy;
-					first_time = false;
+					lx = curObject.outerLowx;
+					hx = curObject.outerHighx;
+					ly = curObject.outerLowy;
+					hy = curObject.outerHighy;
+					first = false;
 				} else
 				{
-					if (cur_object.lowx < lx) lx = cur_object.lowx;
-					if (cur_object.highx > hx) hx = cur_object.highx;
-					if (cur_object.lowy < ly) ly = cur_object.lowy;
-					if (cur_object.highy > hy) hy = cur_object.highy;
+					if (curObject.outerLowx < lx) lx = curObject.outerLowx;
+					if (curObject.outerHighx > hx) hx = curObject.outerHighx;
+					if (curObject.outerLowy < ly) ly = curObject.outerLowy;
+					if (curObject.outerHighy > hy) hy = curObject.outerHighy;
 				}
 			}
-			if (axis == HORIZONTAL)
+			if (curAxis == HORIZONTAL)
 			{
 				line.low = lx;
 				line.high = hx;
@@ -822,111 +743,110 @@ System.out.println("MOVE NODE "+ni.describe()+" BY ("+(-movex)+","+(-movey)+")")
 		/**
 		 * Method to sort line by center val from least to greatest
 		 */
-		private LINE com_sort(LINE line, Axis axis)
+		private Line sortLines(Line line)
 		{
 			if (line == null)
 			{
-				System.out.println("Error: com_sort called with null argument");
+				System.out.println("Error: sortLines called with null argument");
 				return null;
 			}
 
 			// first figure out the weighting factor that will be sorted
-			for(LINE cur_line = line; cur_line != null; cur_line = cur_line.nextline)
+			for(Line curLine = line; curLine != null; curLine = curLine.nextLine)
 			{
-				double ave = 0, totallen = 0;
-				for(OBJECT cur_object = cur_line.firstobject; cur_object != null;
-					cur_object = cur_object.nextobject)
+				double ave = 0, totalLen = 0;
+				for(GeomObj curObject = curLine.firstObject; curObject != null; curObject = curObject.nextObject)
 				{
 					double len = 0, ctr = 0;
-					if (axis == HORIZONTAL)
+					if (curAxis == HORIZONTAL)
 					{
-						len = cur_object.highy - cur_object.lowy;
-						ctr = (cur_object.lowx+cur_object.highx) / 2;
+						len = curObject.highy - curObject.lowy;
+						ctr = (curObject.lowx+curObject.highx) / 2;
 					} else
 					{
-						len = cur_object.highx - cur_object.lowx;
-						ctr = (cur_object.lowy+cur_object.highy) / 2;
+						len = curObject.highx - curObject.lowx;
+						ctr = (curObject.lowy+curObject.highy) / 2;
 					}
 
 					ctr *= len;
-					totallen += len;
+					totalLen += len;
 					ave += ctr;
 				}
-				if (totallen != 0) ave /= totallen;
-				cur_line.val = ave;
+				if (totalLen != 0) ave /= totalLen;
+				curLine.val = ave;
 			}
 
 			// now sort on the "val" field
-			LINE new_line = null;
+			Line newLine = null;
 			for(;;)
 			{
 				if (line == null) break;
 				boolean first = true;
-				double bestval = 0;
-				LINE bestline = null;
-				for(LINE cur_line = line; cur_line != null; cur_line = cur_line.nextline)
+				double bestVal = 0;
+				Line bestLine = null;
+				for(Line curLine = line; curLine != null; curLine = curLine.nextLine)
 				{
 					if (first)
 					{
-						bestval = cur_line.val;
-						bestline = cur_line;
+						bestVal = curLine.val;
+						bestLine = curLine;
 						first = false;
-					} else if (cur_line.val > bestval)
+					} else if (curLine.val > bestVal)
 					{
-						bestval = cur_line.val;
-						bestline = cur_line;
+						bestVal = curLine.val;
+						bestLine = curLine;
 					}
 				}
 
-				// remove bestline from the list
-				if (bestline.prevline == null) line = bestline.nextline; else
-					bestline.prevline.nextline = bestline.nextline;
-				if (bestline.nextline != null)
-					bestline.nextline.prevline = bestline.prevline;
+				// remove bestLine from the list
+				if (bestLine.prevLine == null) line = bestLine.nextLine; else
+					bestLine.prevLine.nextLine = bestLine.nextLine;
+				if (bestLine.nextLine != null)
+					bestLine.nextLine.prevLine = bestLine.prevLine;
 
 				// insert at the start of this list
-				if (new_line != null) new_line.prevline = bestline;
-				bestline.nextline = new_line;
-				bestline.prevline = null;
-				new_line = bestline;
+				if (newLine != null) newLine.prevLine = bestLine;
+				bestLine.nextLine = newLine;
+				bestLine.prevLine = null;
+				newLine = bestLine;
 			}
-			return(new_line);
+			return newLine;
 		}
 
 		/**
 		 * create a new line with the element object and add it to the beginning of
 		 * the given line
 		 */
-		private LINE com_make_object_line(LINE line, OBJECT object)
+		private Line makeObjectLine(Line line, GeomObj object)
 		{
-			LINE new_line = new LINE();
-			new_line.index = lineIndex++;
-			new_line.nextline = line;
-			new_line.prevline = null;
-			new_line.firstobject = object;
-			if (line != null) line.prevline = new_line;
-			return new_line;
+			Line newLine = new Line();
+			newLine.index = lineIndex++;
+			newLine.nextLine = line;
+			newLine.prevLine = null;
+			newLine.firstObject = object;
+			if (line != null) line.prevLine = newLine;
+			return newLine;
 		}
 
-		private void com_createobjects(NodeInst ni, Axis axis, OBJECT [] thisobject, OBJECT [] otherobject, HashSet nodesSeen,
-			HashMap arcIndices, HashMap portIndices, Netlist nl)
+		private void createObjects(NodeInst ni, GeomObj [] thisObject, GeomObj [] otherObject, HashSet nodesSeen,
+			HashMap arcIndices, HashMap portIndices)
 		{
 			// if node has already been examined, quit now
 			if (nodesSeen.contains(ni)) return;
 			nodesSeen.add(ni);
 
 			// if this is the first object, add it
-			if (thisobject[0] == null)
-				thisobject[0] = com_make_ni_object(ni, null, GenMath.MATID, axis, 0,0,0,0, arcIndices, portIndices, nl);
-			double st_low = 0, st_high = 0;
-			if (axis == HORIZONTAL)
+			if (thisObject[0] == null)
+				thisObject[0] = makeNodeInstObject(ni, null, GenMath.MATID, 0,0,0,0, arcIndices, portIndices);
+			double stLow = 0, stHigh = 0;
+			if (curAxis == HORIZONTAL)
 			{
-				st_low = thisobject[0].lowx;
-				st_high = thisobject[0].highx;
+				stLow = thisObject[0].lowx;
+				stHigh = thisObject[0].highx;
 			} else
 			{
-				st_low = thisobject[0].lowy;
-				st_high = thisobject[0].highy;
+				stLow = thisObject[0].lowy;
+				stHigh = thisObject[0].highy;
 			}
 
 			// for each arc on node, find node at other end and add to object
@@ -934,34 +854,34 @@ System.out.println("MOVE NODE "+ni.describe()+" BY ("+(-movex)+","+(-movey)+")")
 			{
 				Connection con = (Connection)it.next();
 				ArcInst ai = con.getArc();
-				NodeInst other_end = ai.getTail().getPortInst().getNodeInst();
-				if (other_end == ni) other_end = ai.getHead().getPortInst().getNodeInst();
+				NodeInst otherEnd = ai.getTail().getPortInst().getNodeInst();
+				if (otherEnd == ni) otherEnd = ai.getHead().getPortInst().getNodeInst();
 
 				// stop if other end has already been examined
-				if (nodesSeen.contains(other_end)) continue;
-				OBJECT new_object = com_make_ai_object(ai, null, GenMath.MATID, axis, 0,0,0,0, arcIndices);
+				if (nodesSeen.contains(otherEnd)) continue;
+				GeomObj newObject = makeArcInstObject(ai, null, GenMath.MATID, 0,0,0,0, arcIndices);
 
-				OBJECT second_object = com_make_ni_object(other_end, null, GenMath.MATID, axis, 0,0,0,0, arcIndices, portIndices, nl);
+				GeomObj secondObject = makeNodeInstObject(otherEnd, null, GenMath.MATID, 0,0,0,0, arcIndices, portIndices);
 
-				double bd_low = 0, bd_high = 0;
-				if (axis == HORIZONTAL)
+				double bdLow = 0, bdHigh = 0;
+				if (curAxis == HORIZONTAL)
 				{
-					bd_low = second_object.lowx;
-					bd_high = second_object.highx;
+					bdLow = secondObject.lowx;
+					bdHigh = secondObject.highx;
 				} else
 				{
-					bd_low = second_object.lowy;
-					bd_high = second_object.highy;
+					bdLow = secondObject.lowy;
+					bdHigh = secondObject.highy;
 				}
-				if (bd_high > st_low && bd_low < st_high)
+				if (bdHigh > stLow && bdLow < stHigh)
 				{
-					com_add_object_to_object(thisobject, new_object);
-					com_add_object_to_object(thisobject, second_object);
-					com_createobjects(other_end, axis, thisobject, otherobject, nodesSeen, arcIndices, portIndices, nl);
+					addObjectToObject(thisObject, newObject);
+					addObjectToObject(thisObject, secondObject);
+					createObjects(otherEnd, thisObject, otherObject, nodesSeen, arcIndices, portIndices);
 				} else
 				{
 					// arcs in object to be used later in fixed_non_fixed
-					com_add_object_to_object(otherobject, new_object);
+					addObjectToObject(otherObject, newObject);
 				}
 			}
 		}
@@ -969,37 +889,41 @@ System.out.println("MOVE NODE "+ni.describe()+" BY ("+(-movex)+","+(-movey)+")")
 		/**
 		 * add object add_object to the beginning of list "*object"
 		 */
-		private void com_add_object_to_object(OBJECT [] object, OBJECT add_object)
+		private void addObjectToObject(GeomObj [] object, GeomObj addObject)
 		{
-			add_object.nextobject = object[0];
-			object[0] = add_object;
+			addObject.nextObject = object[0];
+			object[0] = addObject;
 		}
 
 		/**
 		 * Method to build a object describing node "ni" in axis "axis".  If "object"
-		 * is NOOBJECT, this node is at the top level, and a new OBJECT should be
+		 * is null, this node is at the top level, and a new GeomObj should be
 		 * constructed for it.  Otherwise, the node is in a subcell and it must be
-		 * transformed through "newtrans" and clipped to the two protection frames
+		 * transformed through "newTrans" and clipped to the two protection frames
 		 * defined by "low1" to "high1" and "low2" to "high2" before being added to
 		 * "object".
 		 */
-		private OBJECT com_make_ni_object(NodeInst ni, OBJECT object, AffineTransform newtrans,
-			Axis axis, double low1, double high1, double low2, double high2, HashMap arcIndices, HashMap portIndices, Netlist nl)
+		private GeomObj makeNodeInstObject(NodeInst ni, GeomObj object, AffineTransform newTrans,
+			double low1, double high1, double low2, double high2, HashMap arcIndices, HashMap portIndices)
 		{
-			OBJECT new_object = object;
+			GeomObj newObject = object;
 			if (object == null)
 			{
-				new_object = new OBJECT();
-				new_object.inst = ni;
-				new_object.nextobject = null;
-				new_object.firstpolylist = null;
+				newObject = new GeomObj();
+				newObject.inst = ni;
+				newObject.nextObject = null;
+				newObject.firstPolyList = null;
 				Rectangle2D bounds = ni.getBounds();
+				newObject.outerLowx = bounds.getMinX();
+				newObject.outerHighx = bounds.getMaxX();
+				newObject.outerLowy = bounds.getMinY();
+				newObject.outerHighy = bounds.getMaxY();
 				if (ni.getProto() instanceof Cell)
 				{
-					new_object.lowx = bounds.getMinX();
-					new_object.highx = bounds.getMaxX();
-					new_object.lowy = bounds.getMinY();
-					new_object.highy = bounds.getMaxY();
+					newObject.lowx = newObject.outerLowx;
+					newObject.highx = newObject.outerHighx;
+					newObject.lowy = newObject.outerLowy;
+					newObject.highy = newObject.outerHighy;
 				} else
 				{
 					double cX = ni.getTrueCenterX();
@@ -1013,48 +937,47 @@ System.out.println("MOVE NODE "+ni.describe()+" BY ("+(-movex)+","+(-movey)+")")
 					double hY = cY + sY/2 - so.getLowYOffset();
 					Rectangle2D bound = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
 					GenMath.transformRect(bound, ni.rotateOut());
-					new_object.lowx = bound.getMinX();
-					new_object.highx = bound.getMaxX();
-					new_object.lowy = bound.getMinY();
-					new_object.highy = bound.getMaxY();
+					newObject.lowx = bound.getMinX();
+					newObject.highx = bound.getMaxX();
+					newObject.lowy = bound.getMinY();
+					newObject.highy = bound.getMaxY();
 				}
 			}
 
 			// propagate global network info to local port prototypes on "ni"
-			HashMap localPortIndices = com_fillnode(ni, arcIndices, portIndices, nl);
+			HashMap localPortIndices = fillNode(ni, arcIndices, portIndices);
 
 			// create pseudo-object for complex ni
 			if (ni.getProto() instanceof Cell)
 			{
 				Cell subCell = (Cell)ni.getProto();
-				Netlist subNl = subCell.getUserNetlist();
 
 				// compute transformation matrix from subnode to this space
-				AffineTransform t1 = ni.rotateOut(newtrans);
-				AffineTransform trans = ni.translateOut(newtrans);
+				AffineTransform t1 = ni.rotateOut(newTrans);
+				AffineTransform trans = ni.translateOut(newTrans);
 
 				/*
 				 * create a line for cell "ni->proto" at the current location and
-				 * translation.  Put only the instances which are within com_maxboundary
+				 * translation.  Put only the instances which are within maxBoundary
 				 * of the perimeter of the cell.
 				 */
-				HashMap localArcIndices = com_subsmash(subCell, localPortIndices);
+				HashMap localArcIndices = subCellSmash(subCell, localPortIndices);
 
 				// compute protection frame if at the top level
 				if (object == null)
 				{
 					Rectangle2D bounds = ni.getBounds();
-					if (axis == HORIZONTAL)
+					if (curAxis == HORIZONTAL)
 					{
 						low1 = bounds.getMinX();
-						high1 = bounds.getMinX() + com_maxboundary;
-						low2 = bounds.getMaxX() - com_maxboundary;
+						high1 = bounds.getMinX() + maxBoundary;
+						low2 = bounds.getMaxX() - maxBoundary;
 						high2 = bounds.getMaxX();
 					} else
 					{
 						low1 = bounds.getMinY();
-						high1 = bounds.getMinY() + com_maxboundary;
-						low2 = bounds.getMaxY() - com_maxboundary;
+						high1 = bounds.getMinY() + maxBoundary;
+						low2 = bounds.getMaxY() - maxBoundary;
 						high2 = bounds.getMaxY();
 					}
 				}
@@ -1063,18 +986,18 @@ System.out.println("MOVE NODE "+ni.describe()+" BY ("+(-movex)+","+(-movey)+")")
 				for(Iterator it = subCell.getNodes(); it.hasNext(); )
 				{
 					NodeInst subNi = (NodeInst)it.next();
-					com_make_ni_object(subNi, new_object, trans, axis,
-						low1, high1, low2, high2, localArcIndices, localPortIndices, subNl);
+					makeNodeInstObject(subNi, newObject, trans,
+						low1, high1, low2, high2, localArcIndices, localPortIndices);
 				}
 				for(Iterator it = subCell.getArcs(); it.hasNext(); )
 				{
 					ArcInst subAi = (ArcInst)it.next();
-					com_make_ai_object(subAi, new_object, trans, axis,
+					makeArcInstObject(subAi, newObject, trans,
 						low1, high1, low2, high2, localArcIndices);
 				}
 			} else
 			{
-				AffineTransform trans = ni.rotateOut(newtrans);
+				AffineTransform trans = ni.rotateOut(newTrans);
 				Technology tech = ni.getProto().getTechnology();
 				Poly [] polys = tech.getShapeOfNode(ni, null, true, true);
 				int tot = polys.length;
@@ -1087,7 +1010,7 @@ System.out.println("MOVE NODE "+ni.describe()+" BY ("+(-movex)+","+(-movey)+")")
 					if (object != null)
 					{
 						Rectangle2D bounds = poly.getBounds2D();
-						if (axis == HORIZONTAL)
+						if (curAxis == HORIZONTAL)
 						{
 							if ((bounds.getMaxX() < low1 || bounds.getMinX() > high1) && (bounds.getMaxX() < low2 || bounds.getMinX() > high2)) continue;
 						} else
@@ -1102,13 +1025,13 @@ System.out.println("MOVE NODE "+ni.describe()+" BY ("+(-movex)+","+(-movey)+")")
 						Integer i = (Integer)localPortIndices.get(poly.getPort());
 						if (i != null) pIndex = i.intValue();
 					}
-					com_add_poly_polylist(poly, new_object, pIndex, tech);
+					addPolyToPolyList(poly, newObject, pIndex, tech);
 				}
 			}
-			return new_object;
+			return newObject;
 		}
 
-		private HashMap com_fillnode(NodeInst ni, HashMap arcIndices, HashMap portIndices, Netlist nl)
+		private HashMap fillNode(NodeInst ni, HashMap arcIndices, HashMap portIndices)
 		{
 			// initialize network information for this node instance
 			HashMap localPortIndices = new HashMap();
@@ -1135,6 +1058,7 @@ System.out.println("MOVE NODE "+ni.describe()+" BY ("+(-movex)+","+(-movey)+")")
 			}
 
 			// look for unconnected ports and assign new network numbers
+			Netlist nl = ni.getParent().getUserNetlist();
 			for(Iterator it = ni.getProto().getPorts(); it.hasNext(); )
 			{
 				PortProto pp = (PortProto)it.next();
@@ -1158,35 +1082,42 @@ System.out.println("MOVE NODE "+ni.describe()+" BY ("+(-movex)+","+(-movey)+")")
 						}
 					}
 				}
-				if (!found) localPortIndices.put(pp, new Integer(com_flatindex++));
+				if (!found) localPortIndices.put(pp, new Integer(flatIndex++));
 			}
 			return localPortIndices;
 		}
 
 		/**
 		 * Method to build a "object" structure that describes arc "ai".  If "object"
-		 * is NOOBJECT, this arc is at the top level, and a new OBJECT should be
+		 * is null, this arc is at the top level, and a new GeomObj should be
 		 * constructed for it.  Otherwise, the arc is in a subcell and it must be
-		 * transformed through "newtrans" and clipped to the two protection frames
+		 * transformed through "newTrans" and clipped to the two protection frames
 		 * defined by "low1", "high1" and "low2", "high2" before being added to "object".
 		 */
-		private OBJECT com_make_ai_object(ArcInst ai, OBJECT object, AffineTransform newtrans,
-			Axis axis, double low1, double high1, double low2, double high2, HashMap arcIndices)
+		private GeomObj makeArcInstObject(ArcInst ai, GeomObj object, AffineTransform newTrans,
+			double low1, double high1, double low2, double high2, HashMap arcIndices)
 		{
 			// create the object if at the top level
-			OBJECT new_object = object;
+			GeomObj newObject = object;
 			if (object == null)
 			{
-				new_object = new OBJECT();
-				new_object.inst = ai;
-				new_object.nextobject = null;
-				new_object.firstpolylist = null;
+				newObject = new GeomObj();
+				newObject.inst = ai;
+				newObject.nextObject = null;
+				newObject.firstPolyList = null;
                 Poly poly = ai.makePoly(ai.getLength(), ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
 				Rectangle2D bounds = poly.getBounds2D();
-				new_object.lowx = bounds.getMinX();
-				new_object.highx = bounds.getMaxX();
-				new_object.lowy = bounds.getMinY();
-				new_object.highy = bounds.getMaxY();
+				newObject.lowx = bounds.getMinX();
+				newObject.highx = bounds.getMaxX();
+				newObject.lowy = bounds.getMinY();
+				newObject.highy = bounds.getMaxY();
+
+				poly = ai.makePoly(ai.getLength(), ai.getWidth(), Poly.Type.CLOSED);
+				bounds = poly.getBounds2D();
+				newObject.outerLowx = bounds.getMinX();
+				newObject.outerHighx = bounds.getMaxX();
+				newObject.outerLowy = bounds.getMinY();
+				newObject.outerHighy = bounds.getMaxY();
 			}
 
 			Technology tech = ai.getProto().getTechnology();
@@ -1200,9 +1131,9 @@ System.out.println("MOVE NODE "+ni.describe()+" BY ("+(-movex)+","+(-movey)+")")
 				// make sure polygon is within protection frame
 				if (object != null)
 				{
-					poly.transform(newtrans);
+					poly.transform(newTrans);
 					Rectangle2D bounds = poly.getBounds2D();
-					if (axis == HORIZONTAL)
+					if (curAxis == HORIZONTAL)
 					{
 						if ((bounds.getMaxX() < low1 || bounds.getMinX() > high1) && (bounds.getMaxX() < low2 || bounds.getMinX() > high2)) continue;
 					} else
@@ -1215,37 +1146,37 @@ System.out.println("MOVE NODE "+ni.describe()+" BY ("+(-movex)+","+(-movey)+")")
 				int aIndex = -1;
 				Integer iv = (Integer)arcIndices.get(ai);
 				if (iv != null) aIndex = iv.intValue();
-				com_add_poly_polylist(poly, new_object, aIndex, tech);
+				addPolyToPolyList(poly, newObject, aIndex, tech);
 			}
-			return new_object;
+			return newObject;
 		}
 
 		/**
 		 * Method to link polygon "poly" into object "object" with network number
-		 * "networknum"
+		 * "networkNum"
 		 */
-		private void com_add_poly_polylist(Poly poly, OBJECT object, int networknum, Technology tech)
+		private void addPolyToPolyList(Poly poly, GeomObj object, int networkNum, Technology tech)
 		{
-			COMPPOLYLIST new_polys = new COMPPOLYLIST();
-			new_polys.poly = poly;
-			new_polys.tech = tech;
-			new_polys.networknum = networknum;
-			new_polys.nextpolylist = object.firstpolylist;
-			object.firstpolylist = new_polys;
+			PolyList newPolyList = new PolyList();
+			newPolyList.poly = poly;
+			newPolyList.tech = tech;
+			newPolyList.networkNum = networkNum;
+			newPolyList.nextPolyList = object.firstPolyList;
+			object.firstPolyList = newPolyList;
 		}
 
 		/**
-		 * copy network information from ports to arcs in cell "topcell"
+		 * copy network information from ports to arcs in cell "topCell"
 		 */
-		private HashMap com_subsmash(Cell topcell, HashMap portIndices)
+		private HashMap subCellSmash(Cell topCell, HashMap portIndices)
 		{
-			Netlist nl = topcell.getUserNetlist();
+			Netlist nl = topCell.getUserNetlist();
 
 			// first erase the arc node information
 			HashMap arcIndices = new HashMap();
 
 			// copy network information from ports to arcs
-			for(Iterator it = topcell.getArcs(); it.hasNext(); )
+			for(Iterator it = topCell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 
@@ -1255,7 +1186,7 @@ System.out.println("MOVE NODE "+ni.describe()+" BY ("+(-movex)+","+(-movey)+")")
 				// see if this arc connects to a port
 				Network aNet = nl.getNetwork(ai, 0);
 				boolean found = false;
-				for(Iterator pIt = topcell.getPorts(); pIt.hasNext(); )
+				for(Iterator pIt = topCell.getPorts(); pIt.hasNext(); )
 				{
 					Export pp = (Export)pIt.next();
 					Integer pIndex = (Integer)portIndices.get(pp);
@@ -1263,7 +1194,7 @@ System.out.println("MOVE NODE "+ni.describe()+" BY ("+(-movex)+","+(-movey)+")")
 					if (pNet == aNet)
 					{
 						// propagate port numbers into all connecting arcs
-						for(Iterator aIt = topcell.getArcs(); aIt.hasNext(); )
+						for(Iterator aIt = topCell.getArcs(); aIt.hasNext(); )
 						{
 							ArcInst oAi = (ArcInst)aIt.next();
 							Network oANet = nl.getNetwork(oAi, 0);
@@ -1278,8 +1209,8 @@ System.out.println("MOVE NODE "+ni.describe()+" BY ("+(-movex)+","+(-movey)+")")
 				if (!found)
 				{
 					// copy new net number to all of these connected arcs
-					Integer pIndex = new Integer(com_flatindex++);
-					for(Iterator aIt = topcell.getArcs(); aIt.hasNext(); )
+					Integer pIndex = new Integer(flatIndex++);
+					for(Iterator aIt = topCell.getArcs(); aIt.hasNext(); )
 					{
 						ArcInst oAi = (ArcInst)aIt.next();
 						Network oANet = nl.getNetwork(oAi, 0);

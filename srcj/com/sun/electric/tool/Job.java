@@ -506,6 +506,17 @@ public abstract class Job implements ActionListener, Runnable {
         }
     }
 
+    /**
+     * Method to end the current batch of changes and start another.
+     * Besides starting a new batch, it cleans up the constraint system, and 
+     */
+    protected void flushBatch()
+    {
+		if (jobType != Type.CHANGE)	return;
+		Undo.endChanges();
+		Undo.startChanges(tool, jobName, upCell, savedHighlights, savedHighlightsOffset);
+    }
+
     protected synchronized void setProgress(String progress) {
         this.progress = progress;
         WindowFrame.wantToRedoJobTree();

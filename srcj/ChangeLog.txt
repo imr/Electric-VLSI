@@ -4,6 +4,18 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01am: *********************************
 
+BUG: (11/11/04, SMR) Arraying crashes.
+FIX: Array.setNewName() ignores temporary names; Name constructor uses TextUtils.atoi instead of Integer.parseInt.
+
+BUG: (11/11/04, SMR) Mirroring is broken.
+FIX: In "Layout.java", fixed computation of new mirroring values.
+
+IMP: (11/10/04, SMR) Added compaction.
+
+IMP: (11/10/04, SMR) Added initial regression tests for I/O.
+
+IMP: (11/10/04, SMR) Added Job.flushBatch() to reset constraints in the middle of a job.
+
 BUG: (11/11/04, GVG) MinAre DRC didn't detect errors in subcells if nodes were not part of exports
 FIX: Collect those nodes and check at the end.
 

@@ -324,7 +324,7 @@ public class Name implements Comparable
                 base = this;
 			} else {
 				base = findTrimmedName(ns.substring(0,l));
-				suffix = Integer.parseInt(ns.substring(l));
+				suffix = TextUtils.atoi(ns.substring(l));
 			}
 		}
         this.numSuffix = suffix;

@@ -614,7 +614,9 @@ public class Array extends EDialog
 		private void setNewName(Geometric geom, int x, int y)
 		{
 			String objName = "";
+			Name geomNameKey = geom.getNameKey();
 			String geomName = geom.getName();
+			if (geomNameKey.isTempname()) geomName = null;
 			if (geomName != null)
 			{
 				if (!geomName.equals("0") && !geomName.equals("0-0"))

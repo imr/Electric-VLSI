@@ -275,6 +275,7 @@ public class Layout extends Constraints
 		// change the arcs on the nodeinst
 		boolean flipX = (oldSX * ni.getXSizeWithMirror()) < 0;
 		boolean flipY = (oldSY * ni.getYSizeWithMirror()) < 0;
+//System.out.println("Node "+ni.describe()+" was "+oldSX+"x"+oldSY+" and is now "+ni.getXSizeWithMirror()+"x"+ni.getYSizeWithMirror()+" so fx="+flipX+" and fy="+flipY);
 		if (modNodeArcs(ni, dRot, dSX, dSY, flipX, flipY))
 			Undo.ChangeCell.forceHierarchicalAnalysis(ni.getParent());
 
@@ -347,9 +348,9 @@ public class Layout extends Constraints
 		if (ni.getChangeClock() >= changeClock) return false;
 
 		// if simple rotation on transposed nodeinst, reverse rotation
-		boolean flipX = ni.isMirroredAboutXAxis();
+		boolean flipX = ni.isXMirrored();
 		if ((ni.getXSizeWithMirror() + deltaSX) * ni.getXSizeWithMirror() < 0) flipX = !flipX;
-		boolean flipY = ni.isMirroredAboutYAxis();
+		boolean flipY = ni.isYMirrored();
 		if ((ni.getYSizeWithMirror() + deltaSY) * ni.getYSizeWithMirror() < 0) flipY = !flipY;
 		if (flipX ^ flipY) dAngle = (3600 - dAngle) % 3600;
 
@@ -574,7 +575,6 @@ public class Layout extends Constraints
 			{
 				// compute port motion within the other nodeinst (is this right? !!!)
 				Poly oldPoly = oldPortPosition(ono, opt);
-				//Point2D onoPt = oldPortPosition(ono, opt);
 				double oldX = oldPoly.getCenterX();
 				double oldY = oldPoly.getCenterY();
 				Poly oPoly = thatEnd.getPortInst().getPoly();
@@ -598,10 +598,10 @@ public class Layout extends Constraints
 				{
 					thisWasTranspose = (change.getA3() < 0) ^ (change.getA4() < 0);
 				}
-				boolean onoTranspose = ono.isMirroredAboutXAxis() ^ ono.isMirroredAboutYAxis();
+				boolean onoTranspose = ono.isXMirrored() ^ ono.isYMirrored();
 				boolean dTrans = flipX ^ flipY;
-				boolean oFlipX = ono.isMirroredAboutXAxis(); if (flipX) oFlipX = !oFlipX;
-				boolean oFlipY = ono.isMirroredAboutYAxis(); if (flipY) oFlipY = !oFlipY;
+				boolean oFlipX = ono.isXMirrored(); if (flipX) oFlipX = !oFlipX;
+				boolean oFlipY = ono.isYMirrored(); if (flipY) oFlipY = !oFlipY;
 				if (dTrans && (onoTranspose != thisWasTranspose))
 				{
 					nextAngle = (3600 - nextAngle) % 3600;
@@ -613,8 +613,8 @@ public class Layout extends Constraints
 					ai.setRigidModified();
 					if (DEBUG) System.out.println("    Moving node "+ono.describe()+" at other end by ("+dx+","+dy+")");
 					double changeSX = 0, changeSY = 0;
-					if (oFlipX) changeSX = -ono.getXSizeWithMirror() * 2;
-					if (oFlipY) changeSY = -ono.getYSizeWithMirror() * 2;
+if (oFlipX != ono.isXMirrored()) changeSX = -ono.getXSizeWithMirror() * 2;
+if (oFlipY != ono.isYMirrored()) changeSY = -ono.getYSizeWithMirror() * 2;
 					if (alterNodeInst(ono, dx, dy, changeSX, changeSY, nextAngle, true))
 						examineCell = true;
 				}
@@ -642,7 +642,7 @@ public class Layout extends Constraints
 				ono = ai.getTail().getPortInst().getNodeInst();
 
 			int nextAngle = dAngle;
-			if (ono.isMirroredAboutXAxis() ^ ono.isMirroredAboutYAxis()) nextAngle = (3600 - nextAngle) % 3600;
+			if (ono.isXMirrored() ^ ono.isYMirrored()) nextAngle = (3600 - nextAngle) % 3600;
 			if (DEBUG) System.out.println("  Node " + ni.describe() + " re-examining arc " + ai.describe() + " to other node "+ono.describe());
 			if (modNodeArcs(ono, nextAngle, 0, 0, flipX, flipY)) examineCell = true;
 		}
@@ -683,7 +683,7 @@ public class Layout extends Constraints
 
 		// if simple rotation on transposed nodeinst, reverse rotation
 		int nextAngle = dAngle;
-		if (ni.isMirroredAboutXAxis() ^ ni.isMirroredAboutYAxis()) nextAngle = (3600 - dAngle) % 3600;
+		if (ni.isXMirrored() ^ ni.isYMirrored()) nextAngle = (3600 - dAngle) % 3600;
 
 		// prepare transformation matrix and angle/transposition information
 		AffineTransform trans = NodeInst.pureRotate(nextAngle, flipX, flipY);
@@ -1364,6 +1364,8 @@ public class Layout extends Constraints
 
 				double dSX = DBMath.round(cellBounds.getWidth() - ni.getXSize());
 				double dSY = DBMath.round(cellBounds.getHeight() - ni.getYSize());
+
+				// is this right?  Shouldn't it be isXMirrored/isYMirrored !!!
 				if (ni.isMirroredAboutYAxis()) dSX = -dSX;
 				if (ni.isMirroredAboutXAxis()) dSY = -dSY;
 				if (alterNodeInst(ni, 0, 0, dSX, dSY, 0, true)) forcedLook = true;
@@ -1507,6 +1509,8 @@ public class Layout extends Constraints
 				Rectangle2D cellBounds = np.getBounds();
 				double dSX = DBMath.round(cellBounds.getWidth() - ni.getXSize());
 				double dSY = DBMath.round(cellBounds.getHeight() - ni.getYSize());
+
+				// is this right?  Shouldn't it be isXMirrored/isYMirrored !!!
 				if (ni.isMirroredAboutYAxis()) dSX = -dSX;
 				if (ni.isMirroredAboutXAxis()) dSY = -dSY;
 				if (alterNodeInst(ni, 0, 0, dSX, dSY, 0, true)) forcedLook = true;
