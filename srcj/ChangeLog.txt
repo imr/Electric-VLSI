@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01y: *********************************
 
+IMP: (10/18/04, SMR) Specifying libraries on the command line handles both ELIB and JELIB format.
+
+BUG: (10/18/04, SMR) JELIB input damages quoted strings.
+FIX: Fixed input module (so JELIB files are fine, reader was bad).
+
 ************************* Version 8.01x: *********************************
 
 IMP: (10/15/04, SMR) Spice plotting allows partial files.

@@ -888,6 +888,7 @@ public class JELIB extends LibraryFiles
 			char chr = line.charAt(pos++);
 			if (chr == '^')
 			{
+				sb.append(chr);
 				sb.append(line.charAt(pos++));
 				continue;
 			}
