@@ -2536,7 +2536,8 @@ public class WaveformWindow implements WindowContent
                     Stack upNodables = new Stack();
                     JNetwork net = null;
                     for (;;) {
-                        String contextStr = getSpiceNetName(context, null) + ".";
+                        String contextStr = getSpiceNetName(context, null);
+                        if (contextStr.length() > 0) contextStr += ".";
                         if (contextStr.length() > 0 && !want.startsWith(contextStr)) {
                             if (context == VarContext.globalContext) break;
                             netlist = context.getNodable().getParent().getUserNetlist();
@@ -2563,7 +2564,7 @@ public class WaveformWindow implements WindowContent
                         }
                     }
                     if (net != null) {
-                        hl.addNetwork(net, cell);                        
+                        hl.addNetwork(net, cell);
                     }
 				}
 			}
@@ -2991,7 +2992,22 @@ public class WaveformWindow implements WindowContent
 					wp.makeSelectedPanel();
 				}
 			}
-			Signal wsig = new Signal(wp, sSig);
+
+            // check if signal already in panel
+            boolean alreadyPlotted = false;
+            for(Iterator pIt = wp.waveSignals.values().iterator(); pIt.hasNext(); )
+            {
+                Signal ws = (Signal)pIt.next();
+                String name = ws.sSig.getFullName();
+                if (name.equals(sSig.getFullName())) {
+                    alreadyPlotted = true;
+                    // add it again, this will increment colors
+                    wp.addSignalToPanel(ws.sSig);
+                }
+            }
+            if (!alreadyPlotted) {
+			    Signal wsig = new Signal(wp, sSig);
+            }
 			added = true;
 			wp.repaint();
 		}
