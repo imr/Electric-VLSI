@@ -38,11 +38,14 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * An ArcInst is an instance of an ArcProto (a wire type)
@@ -1321,4 +1324,54 @@ public class ArcInst extends Geometric
 	 */
 	public boolean isHardSelect() { return (userBits & HARDSELECTA) != 0; }
 
+    /**
+     *
+     * @param obj
+     * @return
+     */
+    public boolean myEquals(Object obj)
+	{
+		if (this == obj) return (true);
+
+        // Better if compare classes? but it will crash with obj=null
+        if (obj == null || getClass() != obj.getClass())
+            return (false);
+
+        ArcInst a = (ArcInst)obj;
+         if (protoType.getClass() != a.getProto().getClass())
+            return (false);
+
+        // Not sure if I should defina myEquals for Geometric
+        ArcProto arcType = a.getProto();
+		Technology tech = arcType.getTechnology();
+        if (getProto().getTechnology() != tech)
+            return (false);
+
+		Poly[] polyList = getProto().getTechnology().getShapeOfArc(this);
+        Poly[] aPolyList = tech.getShapeOfArc(a);
+
+         if (polyList.length != aPolyList.length) return (false);
+
+        // Remove noCheckList if equals is implemented
+        // Sort them out by a key so comparison won't be O(n2)
+        List noCheckAgain = new ArrayList();
+        for (int i = 0; i < polyList.length; i++)
+        {
+            boolean found = false;
+            for (int j = 0; j < aPolyList.length; j++)
+            {
+                // Already found
+                if (noCheckAgain.contains(aPolyList[j])) continue;
+                if (polyList[i].myEquals(aPolyList[j]))
+                {
+                    found = true;
+                    noCheckAgain.add(aPolyList[j]);
+                    break;
+                }
+            }
+            // polyList[i] doesn't match any elem in noPolyList
+            if (!found) return (false);
+        }
+        return (true);
+    }
 }

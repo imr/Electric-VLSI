@@ -183,8 +183,11 @@ public class CrossLibCopy extends EDialog
 			String pt = " ";
 			if (op == 3)
 			{
-				if (leftCell.getRevisionDate().before(rightCell.getRevisionDate()))
-				{
+                int compare = leftCell.compareTo(rightCell);
+
+                //
+				//if (leftCell.getRevisionDate().before(rightCell.getRevisionDate()))
+//				{
 //					if (examineContents)
 //					{
 //						if (us_samecontents(leftCell, rightCell, examineContents))
@@ -199,13 +202,34 @@ public class CrossLibCopy extends EDialog
 //								lib->libname, leftName, otherlib->libname, rightName);
 //						}
 //					} else
-					{
-						pt = "<-OLD";
-						if (report) System.out.println(curLibLeft.getLibName() + ":" + leftName + " OLDER THAN " +
-							curLibRight.getLibName() + ":" + rightName);
-					}
-				} else if (leftCell.getRevisionDate().after(rightCell.getRevisionDate()))
-				{
+
+
+               switch (compare)
+               {
+                   case -1:
+                       {
+                            pt = "<-OLD";
+                            if (report) System.out.println(curLibLeft.getLibName() + ":" + leftName + " OLDER THAN " +
+                                curLibRight.getLibName() + ":" + rightName);
+                       }
+                       break;
+                   case 1:
+                       {
+                            pt = "  OLD->";
+                            if (report) System.out.println(curLibRight.getLibName() + ":" + rightName + " OLDER THAN " +
+                                curLibLeft.getLibName() + ":" + leftName);
+                       }
+                       break;
+                   case 0:
+                       {
+                           pt = "-EQUAL-";
+                       }
+                       break;
+                   default:
+                       System.out.println("Error: invalid case");
+                       ;
+               }
+				//{
 //					if (examineContents)
 //					{
 //						if (us_samecontents(leftCell, otherf, examineContents))
@@ -220,15 +244,12 @@ public class CrossLibCopy extends EDialog
 //								otherlib->libname, rightName, lib->libname, leftName);
 //						}
 //					} else
-					{
-						pt = "  OLD->";
-						if (report) System.out.println(curLibRight.getLibName() + ":" + rightName + " OLDER THAN " +
-							curLibLeft.getLibName() + ":" + leftName);
-					}
-				} else
-				{
-					pt = "-EQUAL-";
-				}
+//					{
+//					}
+//				} else
+//				{
+//					pt = "-EQUAL-";
+//				}
 			}
 			if (!report) modelCenter.addElement(pt);
 		}
@@ -277,8 +298,11 @@ public class CrossLibCopy extends EDialog
 		public boolean doIt()
 		{
 			boolean sameC = (leftC != null && leftC.myEquals(rightC));
+            StringBuffer message = new StringBuffer("Cells are ");
 
-			System.out.println("Cell left and right are " + leftC.compareTo(rightC) + " equal?" + sameC);
+            if (!sameC) message.append("not ");
+            message.append("equals");
+			System.out.println(message);
 			return (true);
 		}
 	}
@@ -594,12 +618,12 @@ public class CrossLibCopy extends EDialog
 
 	private void listDifferencesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_listDifferencesActionPerformed
 	{//GEN-HEADEREND:event_listDifferencesActionPerformed
-		System.out.println("This button doesn't work yet");
+		examineContentsActionPerformed(evt);
 	}//GEN-LAST:event_listDifferencesActionPerformed
 
 	private void examineContentsQuietlyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_examineContentsQuietlyActionPerformed
 	{//GEN-HEADEREND:event_examineContentsQuietlyActionPerformed
-		System.out.println("This button doesn't work yet");
+		examineContentsActionPerformed(evt);
 	}//GEN-LAST:event_examineContentsQuietlyActionPerformed
 
 	private void examineContentsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_examineContentsActionPerformed
@@ -608,8 +632,14 @@ public class CrossLibCopy extends EDialog
 		String cellLeft = (String)listLeft.getSelectedValue();
 		String cellRight = (String)listRight.getSelectedValue();
 
+        // Nothing selected
+        if (cellLeft == null || cellRight == null) return;
+
 		Cell leftCell = curLibLeft.findNodeProto(cellLeft);
 		Cell rightCell = curLibRight.findNodeProto(cellRight);
+
+        // invalid cells
+         if (leftCell == null || rightCell == null) return;
 		Job job = new CrossLibraryExamineJob(leftCell, rightCell);
 
 	}//GEN-LAST:event_examineContentsActionPerformed

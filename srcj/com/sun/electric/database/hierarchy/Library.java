@@ -711,11 +711,4 @@ public class Library extends ElectricObject
         Collections.sort(sortedList, new CellComparatorNoLibDescribe());
         return sortedList;
     }
-
-	public boolean equals(Object obj)
-	{
-		// Library comparison
-        if (this == obj) return (true);
-		return (false);
-	}
 }

@@ -57,14 +57,7 @@ import java.awt.Dimension;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Comparator;
-import java.util.Collections;
+import java.util.*;
 import javax.swing.JOptionPane;
 
 /**
@@ -2464,7 +2457,8 @@ public class Cell extends NodeProto implements Comparable
 		if (this == obj) return (true);
 
 		// Consider already obj==null
-		if (!(obj instanceof Cell)) return (false);
+        if (obj == null || getClass() != obj.getClass())
+            return (false);
 
 		Cell toCompare = (Cell)obj;
 
@@ -2475,6 +2469,8 @@ public class Cell extends NodeProto implements Comparable
             return (false);
 
         // Traversing nodes
+        // @TODO GVG This should be removed if equals is implemented
+        List noCheckAgain = new ArrayList();
         for (Iterator it = getNodes(); it.hasNext(); )
         {
             boolean found = false;
@@ -2484,9 +2480,16 @@ public class Cell extends NodeProto implements Comparable
             {
                 NodeInst n = (NodeInst)i .next();
 
-                if (node.myEquals(n)) 
+                if (noCheckAgain.contains(n)) continue;
+
+                if (node.myEquals(n))
                 {
                     found = true;
+                    // if node is found, remove elem from iterator
+                    // because it was found
+                    //@TODO GVG Check iterator functionality
+                    // Not sure if it could be done with iterators
+                    noCheckAgain.add(n);
                     break;
                 }
             }
@@ -2494,6 +2497,32 @@ public class Cell extends NodeProto implements Comparable
             if (!found) return (false);
         }
 
+        // Traversing Arcs
+        for (Iterator it = getArcs(); it.hasNext(); )
+        {
+            boolean found = false;
+            ArcInst arc = (ArcInst)it.next();
+
+            for (Iterator i = toCompare.getArcs(); i.hasNext();)
+            {
+                ArcInst a = (ArcInst)it.next();
+
+                if (noCheckAgain.contains(a)) continue;
+
+                if (arc.myEquals(a))
+                {
+                    found = true;
+                    // if node is found, remove elem from iterator
+                    // because it was found
+                    //@TODO GVG Check iterator functionality
+                    // Not sure if it could be done with iterators
+                    noCheckAgain.add(a);
+                    break;
+                }
+            }
+            // No correspoding NodeInst found
+            if (!found) return (false);
+        }
         /**
 ////	/* make sure the nodes are the same */
 ////	lambda1 = lambdaofcell(np1);
@@ -2553,9 +2582,14 @@ public class Cell extends NodeProto implements Comparable
 //					latoa((ni2->lowy+ni2->highy)/2, lambda2), describenodeproto(np2));
 //		return(FALSE);
 //	}
-		return (false);
+		return (true);
 	}
 
+    /**
+     * Compares revision dates of Cells.
+     * @param obj
+     * @return
+     */
 	public int compareTo(Object obj)
 	{
 		if (equals(obj)) return 0;

@@ -2431,12 +2431,20 @@ public class NodeInst extends Geometric implements Nodable
 		return new Rectangle2D.Double(minX, minY, maxX-minX, maxY-minY);
 	}
 
+    /**
+     * This function is to compare NodeInst elements. Initiative CrossLibCopy
+     * @param obj
+     * @return True if objects represent same NodeInst
+     */
     public boolean myEquals(Object obj)
 	{
 		if (this == obj) return (true);
 
 		// Consider already obj==null
-		if (!(obj instanceof NodeInst)) return (false);
+		//if (!(obj instanceof NodeInst)) return (false);
+        // Better if compare classes? but it will crash with obj=null
+        if (obj == null || getClass() != obj.getClass())
+            return (false);
 
         NodeInst no = (NodeInst)obj;
         if (getFunction() != no.getFunction()) return (false);
@@ -2444,8 +2452,50 @@ public class NodeInst extends Geometric implements Nodable
         NodeProto noProtoType = no.getProto();
         NodeProto protoType = getProto();
 
-        if (protoType != noProtoType) return (false);
-        if (protoType.getTechnology() != noProtoType.getTechnology()) return (false);
+        if (protoType.getClass() != noProtoType.getClass())
+            return (false);
+        // Do I need to compare names?
+        //System.out.println("Class " + protoType.getClass() + noProtoType.getClass());
+        //System.out.println("Name " + protoType.getProtoName() + noProtoType.getProtoName());
+        // If this is Cell, no is a Cell otherwise class checker would notice
+        if (protoType instanceof Cell)
+            return (noProtoType instanceof Cell);
+
+        // Technology only valid for PrimitiveNodes?
+        PrimitiveNode np = (PrimitiveNode)protoType;
+        PrimitiveNode noNp = (PrimitiveNode)noProtoType;
+        if (np.getTechnology().getPrimitiveFunction(this) != noNp.getTechnology().getPrimitiveFunction(no))
+            return (false);
+
+        // Comparing transformation
+        if (!rotateOut().equals(no.rotateOut())) return (false);
+        Poly[] polyList = np.getTechnology().getShapeOfNode(this);
+        Poly[] noPolyList = noNp.getTechnology().getShapeOfNode(no);
+
+        if (polyList.length != noPolyList.length) return (false);
+
+        // Compare variables?
+        // Has to be another way more eficient
+        // Remove noCheckList if equals is implemented
+        // Sort them out by a key so comparison won't be O(n2)
+        List noCheckAgain = new ArrayList();
+        for (int i = 0; i < polyList.length; i++)
+        {
+            boolean found = false;
+            for (int j = 0; j < noPolyList.length; j++)
+            {
+                // Already found
+                if (noCheckAgain.contains(noPolyList[j])) continue;
+                if (polyList[i].myEquals(noPolyList[j]))
+                {
+                    found = true;
+                    noCheckAgain.add(noPolyList[j]);
+                    break;
+                }
+            }
+            // polyList[i] doesn't match any elem in noPolyList
+            if (!found) return (false);
+        }
 
         return (true);
     }

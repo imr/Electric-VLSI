@@ -1692,4 +1692,24 @@ public class Poly implements Shape
 	{
 		return getPathIterator(at);
 	}
+
+    /**
+     * Initiative CrossLibCopy. It should be equals
+     * @param obj
+     * @return
+     */
+    public boolean myEquals(Object obj)
+    {
+        if (this == obj) return (true);
+
+        if (obj == null || getClass() != obj.getClass())
+            return (false);
+
+        Poly poly = (Poly)obj;
+        Layer layer = getLayer();
+        if (getLayer() != poly.getLayer()) return (false);
+        if (layer.getFunction() != poly.getLayer().getFunction()) return (false);
+
+        return (polySame(poly));
+    }
 }

@@ -1861,6 +1861,7 @@ public final class MenuCommands
 					}
 				}
 				// Traversing nodes
+                // This function should be moved to visitNodeInst
 				for (Iterator it = curCell.getNodes(); it.hasNext(); )
 				{
 					NodeInst node = (NodeInst)it .next();
