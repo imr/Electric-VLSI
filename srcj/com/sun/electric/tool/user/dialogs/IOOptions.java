@@ -32,6 +32,7 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.output.GDS;
 import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.event.MouseEvent;
@@ -786,7 +787,7 @@ public class IOOptions extends javax.swing.JDialog
 
 		// get list of printers
 		initialPrinter = IOTool.getPrinterName();
-		PrintService [] printers = PrintServiceLookup.lookupPrintServices(null, null);
+		PrintService [] printers = User.getPrinters();
 		PrintService printerToUse = null;
 		for(int i=0; i<printers.length; i++)
 			printDefaultPrinter.addItem(printers[i].getName());

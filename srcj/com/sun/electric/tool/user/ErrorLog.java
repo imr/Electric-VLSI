@@ -273,9 +273,7 @@ public class ErrorLog
 		{
 			System.out.println("Type > and < to step through errors, or open the ERRORS view in the explorer");
 		}
-		WindowFrame.redoErrorTree();
-//		ExplorerTree.explorerTreeChanged();
-//		EditWindow.repaintAll();
+		WindowFrame.wantToRedoErrorTree();
 	}
 
 	/**

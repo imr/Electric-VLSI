@@ -36,6 +36,10 @@ public interface WindowContent
 {
     public abstract void finished();
 	public abstract void fillScreen();
+	public abstract void zoomOutContents();
+	public abstract void zoomInContents();
+	public abstract void focusOnHighlighted();
+
 	public abstract void setCell(Cell cell, VarContext context);
 	public abstract Cell getCell();
 

@@ -137,7 +137,7 @@ public class EditWindow
 				requestFocus();
 
 			// redo the explorer tree if it changed
-			wf.redoLibraryTreeIfRequested();
+			wf.redoExplorerTreeIfRequested();
 
 			if (offscreen == null || !getSize().equals(sz))
 			{
@@ -1082,19 +1082,6 @@ public class EditWindow
         repaintContents();
     }
 
-	/**
-	 * Method to focus the screen so that an area fills it.
-	 * @param bounds the area to make fill the screen.
-	 */
-	public void focusScreen(Rectangle2D bounds)
-	{
-        if (bounds == null) return;
-		setScreenBounds(bounds);
-        setScrollPosition();
-		computeDatabaseBounds();
-		repaintContents();
-	}
-
 	private void setScreenBounds(Rectangle2D bounds)
 	{
 		double width = bounds.getWidth();
@@ -1106,6 +1093,19 @@ public class EditWindow
 		scale = Math.min(scalex, scaley);
 		offx = bounds.getCenterX();
 		offy = bounds.getCenterY();
+	}
+
+	/**
+	 * Method to focus the screen so that an area fills it.
+	 * @param bounds the area to make fill the screen.
+	 */
+	public void focusScreen(Rectangle2D bounds)
+	{
+		if (bounds == null) return;
+		setScreenBounds(bounds);
+		setScrollPosition();
+		computeDatabaseBounds();
+		repaintContents();
 	}
 
 	/**
@@ -1124,7 +1124,7 @@ public class EditWindow
 					cellBounds = new Rectangle2D.Double(cellBounds.getCenterX()-defaultCellSize/2,
 						cellBounds.getCenterY()-defaultCellSize/2, defaultCellSize, defaultCellSize);
 				}
-
+	
 				// make sure text fits
 				setScreenBounds(cellBounds);
 				Rectangle2D relativeTextBounds = cell.getRelativeTextBounds(this);
@@ -1137,7 +1137,28 @@ public class EditWindow
 			}
 		}
  		repaint();
-   }
+	}
+
+	public void zoomOutContents()
+	{
+		double scale = getScale();
+		setScale(scale / 2);
+		repaintContents();
+	}
+
+	public void zoomInContents()
+	{
+		double scale = getScale();
+		setScale(scale * 2);
+		repaintContents();
+	}
+
+	public void focusOnHighlighted()
+	{
+		// focus on highlighting
+		Rectangle2D bounds = Highlight.getHighlightedArea(this);
+		focusScreen(bounds);
+	}
 
     // ************************************* HIERARCHY TRAVERSAL *************************************
 

@@ -55,6 +55,7 @@ import javax.swing.DefaultListModel;
 * a license - please visit www.cloudgarden.com for details.
 */
 
+
 public class About extends javax.swing.JDialog
 {
 	JList list;
@@ -656,10 +657,12 @@ public class About extends javax.swing.JDialog
     private JLabel theIcon;
     private JLabel version;
     private JButton warrantyDetails;
+
 	/**
 	* Initializes the GUI.
 	* Auto-generated code - any changes you make will disappear.
 	*/
+	
 	public void initGUI(){
 		try {
 			preInitGUI();
@@ -689,7 +692,7 @@ public class About extends javax.swing.JDialog
 			thisLayout.setVgap(10);
 			this.setTitle("About Electric");
 			this.setName("");
-			this.setSize(new java.awt.Dimension(607,458));
+			this.setSize(new java.awt.Dimension(421,410));
 			this.addWindowListener( new WindowAdapter() {
 				public void windowClosing(WindowEvent evt) {
 					AboutWindowClosing(evt);
@@ -822,6 +825,7 @@ public class About extends javax.swing.JDialog
 		showGUI();
 	}
 
+
 	/**
 	* This static method creates a new instance of this class and shows
 	* it inside a new JFrame, (unless it is already a JFrame).
@@ -831,6 +835,7 @@ public class About extends javax.swing.JDialog
 	* It is auto-generated code - the body of this method will be
 	* re-generated after any changes are made to the GUI.
 	* However, if you delete this method it will not be re-created.	*/
+	
 	public static void showGUI(){
 		try {
 			About inst = new About();

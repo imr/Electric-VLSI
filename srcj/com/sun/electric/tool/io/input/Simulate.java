@@ -32,6 +32,7 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 
 import java.awt.Color;
+import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Iterator;
@@ -65,6 +66,64 @@ public class Simulate extends Input
 		public SimData()
 		{
 			signals = new ArrayList();
+		}
+
+		/**
+		 * Method to compute the time and value bounds of this simulation data.
+		 * @return a Rectangle2D that has time bounds in the X part and
+		 * value bounds in the Y part.
+		 */
+		public Rectangle2D getBounds()
+		{
+			// determine extent of the data
+			double lowTime=0, highTime=0, lowValue=0, highValue=0;
+			boolean first = true;
+			for(Iterator it = signals.iterator(); it.hasNext(); )
+			{
+				SimSignal sig = (SimSignal)it.next();
+				if (sig instanceof SimAnalogSignal)
+				{
+					SimAnalogSignal as = (SimAnalogSignal)sig;
+					for(int i=0; i<as.values.length; i++)
+					{
+						double time = 0;
+						if (sig.useCommonTime) time = commonTime[i]; else
+							time = as.time[i];
+						if (first)
+						{
+							first = false;
+							lowTime = highTime = time;
+							lowValue = highValue = as.values[i];
+						} else
+						{
+							if (time < lowTime) lowTime = time;
+							if (time > highTime) highTime = time;
+							if (as.values[i] < lowValue) lowValue = as.values[i];
+							if (as.values[i] > highValue) highValue = as.values[i];
+						}
+					}
+				} else if (sig instanceof SimDigitalSignal)
+				{
+					SimDigitalSignal ds = (SimDigitalSignal)sig;
+					if (ds.state == null) continue;
+					for(int i=0; i<ds.state.length; i++)
+					{
+						double time = 0;
+						if (sig.useCommonTime) time = commonTime[i]; else
+							time = ds.time[i];
+						if (first)
+						{
+							first = false;
+							lowTime = highTime = time;
+						} else
+						{
+							if (time < lowTime) lowTime = time;
+							if (time > highTime) highTime = time;
+						}
+					}
+				}
+			}
+			return new Rectangle2D.Double(lowTime, lowValue, highTime-lowTime, highValue-lowValue);
 		}
 	}
 
@@ -219,53 +278,11 @@ public class Simulate extends Input
 	private static void showSimulationData(SimData sd)
 	{
 		// determine extent of the data
-		double lowTime=0, highTime=0, lowValue=0, highValue=0;
-		boolean first = true;
-		for(Iterator it = sd.signals.iterator(); it.hasNext(); )
-		{
-			SimSignal sig = (SimSignal)it.next();
-			if (sig instanceof SimAnalogSignal)
-			{
-				SimAnalogSignal as = (SimAnalogSignal)sig;
-				for(int i=0; i<as.values.length; i++)
-				{
-					double time = 0;
-					if (sig.useCommonTime) time = sd.commonTime[i]; else
-						time = as.time[i];
-					if (first)
-					{
-						first = false;
-						lowTime = highTime = time;
-						lowValue = highValue = as.values[i];
-					} else
-					{
-						if (time < lowTime) lowTime = time;
-						if (time > highTime) highTime = time;
-						if (as.values[i] < lowValue) lowValue = as.values[i];
-						if (as.values[i] > highValue) highValue = as.values[i];
-					}
-				}
-			} else if (sig instanceof SimDigitalSignal)
-			{
-				SimDigitalSignal ds = (SimDigitalSignal)sig;
-				if (ds.state == null) continue;
-				for(int i=0; i<ds.state.length; i++)
-				{
-					double time = 0;
-					if (sig.useCommonTime) time = sd.commonTime[i]; else
-						time = ds.time[i];
-					if (first)
-					{
-						first = false;
-						lowTime = highTime = time;
-					} else
-					{
-						if (time < lowTime) lowTime = time;
-						if (time > highTime) highTime = time;
-					}
-				}
-			}
-		}
+		Rectangle2D bounds = sd.getBounds();
+		double lowTime = bounds.getMinX();
+		double highTime = bounds.getMaxX();
+		double lowValue = bounds.getMinY();
+		double highValue = bounds.getMaxY();
 		double timeRange = highTime - lowTime;
 
 		// make the waveform window
@@ -286,6 +303,7 @@ public class Simulate extends Input
 			WaveformWindow.Signal wsig = new WaveformWindow.Signal(wp, sSig);
 if (sig > 20) break;
 		}
+		ww.getPanel().validate();
 	}
 
 	/*

@@ -27,7 +27,9 @@ import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Version;
 import com.sun.electric.database.variable.EvalJavaBsh;
+import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
@@ -36,9 +38,22 @@ import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.net.URL;
 import java.util.List;
 import java.util.ArrayList;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.ImageIcon;
+import javax.swing.BorderFactory;
+import javax.swing.JLabel;
 
 // these may not exist on non-Macintosh platforms, and are stubbed-out in "AppleJavaExtensions.jar"
 import com.apple.eawt.Application;
@@ -56,6 +71,8 @@ public final class Main
 		// initialize Mac OS 10 if applicable
 		MacOSXInterface.registerMacOSXApplication();
 
+		SplashWindow sw = new SplashWindow();
+
 		// convert args to array list
         List argsList = new ArrayList();
         for (int i=0; i<args.length; i++) argsList.add(args[i]);
@@ -63,8 +80,70 @@ public final class Main
 		TopLevel.OSInitialize();
 
 		// initialize database
-		new InitDatabase(argsList);
+		new InitDatabase(argsList, sw);
 	}
+
+	/**
+	 * Class to display a Splash Screen at the start of the program.
+	 */
+	static class SplashWindow extends JFrame
+	{
+		public SplashWindow()
+		{
+			super();
+			setUndecorated(true);
+
+			JPanel whole = new JPanel();
+			whole.setBorder(BorderFactory.createLineBorder(new Color(0, 170, 0), 5));
+			whole.setLayout(new BorderLayout());
+
+			JLabel l = new JLabel(new ImageIcon(LibFile.getLibFile("SplashImage.gif")));
+			whole.add(l, BorderLayout.CENTER);
+			JLabel v = new JLabel("Version " + Version.CURRENT, JLabel.CENTER);
+			whole.add(v, BorderLayout.SOUTH);
+			Font font = new Font(User.getDefaultFont(), Font.BOLD, 24);
+			v.setFont(font);
+			v.setForeground(Color.BLACK);
+			v.setBackground(Color.WHITE);
+
+			getContentPane().add(whole, BorderLayout.SOUTH);
+			pack();
+			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+			Dimension labelSize = getPreferredSize();
+			setLocation(screenSize.width/2 - (labelSize.width/2),
+				screenSize.height/2 - (labelSize.height/2));
+			WindowsEvents windowsEvents = new WindowsEvents(this);
+			addWindowListener(windowsEvents);
+			setVisible(true);
+		}
+	}
+
+	/**
+	 * This class handles deactivation of the splash screen and forces it back to the top.
+	 */
+	static class WindowsEvents implements WindowListener
+	{
+		SplashWindow sw;
+
+		WindowsEvents(SplashWindow sw)
+		{
+			super();
+			this.sw = sw;
+		}
+
+		public void windowActivated(WindowEvent e) {}
+		public void windowClosed(WindowEvent e) {}
+		public void windowClosing(WindowEvent e) {}
+		public void windowDeiconified(WindowEvent e) {}
+		public void windowIconified(WindowEvent e) {}
+		public void windowOpened(WindowEvent e) {}
+
+		public void windowDeactivated(WindowEvent e)
+		{
+			sw.toFront();
+		}
+	}
+
 
     /** check if command line option 'option' present in 
      * command line args. If present, return true and remove if from the list.
@@ -126,11 +205,13 @@ public final class Main
 	protected static class InitDatabase extends Job
 	{
 		List argsList;
+		SplashWindow sw;
 
-		protected InitDatabase(List argsList)
+		protected InitDatabase(List argsList, SplashWindow sw)
 		{
 			super("Init database", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.argsList = argsList;
+			this.sw = sw;
 			startJob();
 		}
 
@@ -160,6 +241,9 @@ public final class Main
 
 			// run script
 			if (beanShellScript != null) EvalJavaBsh.runScript(beanShellScript);
+
+			// remove the splash screen
+			sw.removeNotify();
 		}
 	}
 

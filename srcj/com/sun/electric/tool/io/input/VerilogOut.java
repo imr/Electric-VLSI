@@ -84,9 +84,9 @@ public class VerilogOut extends Simulate
 		throws IOException
 	{
 		Simulate.SimData sd = new Simulate.SimData();
-		double sim_timescale = 1.0;
-		String sim_vercurscope = "";
-		int sim_vercurlevel = 0;
+		double timeScale = 1.0;
+		String currentScope = "";
+		int curLevel = 0;
 		int numSignals = 0;
 		HashMap symbolTable = new HashMap();
 		List curArray = null;
@@ -98,32 +98,19 @@ public class VerilogOut extends Simulate
 			// ignore "$date", "$version" or "$timescale"
 			if (keyword.equals("$date") || keyword.equals("$version"))
 			{
-				sim_verparsetoend();
+				parseToEnd();
 				continue;
 			}
 			if (keyword.equals("$timescale"))
 			{
 				String units = getNextKeyword();
-//				units = -1;
-//				pt = sim_verline;
-//				keyword = getkeyword(&pt, x_(" "));
-//				for(pt = keyword; *pt != 0; pt++)
-//					if (!isdigit(*pt)) break;
-//				if (*pt == 0)
-//				{
-//					ttyputerr(_("No time units on line %ld"), pt, sim_verlineno);
-//				} else
-//				{
-//					if (namesame(pt, "ps") == 0) units = INTTIMEUNITPSEC; else
-//					if (namesame(pt, "s") == 0) units = INTTIMEUNITSEC; else
-//						ttyputerr(_("Unknown time units: '%s' on line %ld"), pt, sim_verlineno);
-//				}
-//				if (units >= 0)
-//				{
-//					*pt = 0;
-//					sim_timescale = figureunits(keyword, VTUNITSTIME, units);
-//				}
-				sim_verparsetoend();
+				timeScale = TextUtils.atof(units);
+				if (units.endsWith("ms")) timeScale /= 1000.0; else
+				if (units.endsWith("us")) timeScale /= 1000000.0; else
+				if (units.endsWith("ns")) timeScale /= 1000000000.0; else
+				if (units.endsWith("ps")) timeScale /= 1000000000000.0; else
+				if (units.endsWith("fs")) timeScale /= 1000000000000000.0;
+				parseToEnd();
 				continue;
 			}
 			if (keyword.equals("$scope"))
@@ -138,18 +125,18 @@ public class VerilogOut extends Simulate
 
 					String scopeName = getNextKeyword();
 					if (scopeName == null) break;
-					if (sim_vercurscope.length() > 0) sim_vercurscope += ".";
-					sim_vercurscope += scopeName;
-					sim_vercurlevel++;
+					if (currentScope.length() > 0) currentScope += ".";
+					currentScope += scopeName;
+					curLevel++;
 					curArray = new ArrayList();
 				}
-				sim_verparsetoend();
+				parseToEnd();
 				continue;
 			}
 
 			if (keyword.equals("$upscope"))
 			{
-				if (sim_vercurlevel <= 0 || sim_vercurscope.length() == 0)
+				if (curLevel <= 0 || currentScope.length() == 0)
 				{
 					System.out.println("Unbalanced $upscope on line " + lineReader.getLineNumber());
 					continue;
@@ -159,13 +146,13 @@ public class VerilogOut extends Simulate
 				cleanUpScope(curArray, sd);
 				curArray = new ArrayList();
 
-				int dotPos = sim_vercurscope.lastIndexOf('.');
+				int dotPos = currentScope.lastIndexOf('.');
 				if (dotPos >= 0)
 				{
-					sim_vercurscope = sim_vercurscope.substring(0, dotPos);
-					sim_vercurlevel--;
+					currentScope = currentScope.substring(0, dotPos);
+					curLevel--;
 				}
-				sim_verparsetoend();
+				parseToEnd();
 				continue;
 			}
 
@@ -195,13 +182,13 @@ public class VerilogOut extends Simulate
 					if (index == null) break;
 					if (index.equals("$end")) index = ""; else
 					{
-						sim_verparsetoend();
+						parseToEnd();
 					}
 					numSignals++;
 
 					Simulate.SimDigitalSignal sig = new Simulate.SimDigitalSignal(null);
 					sig.signalName = signalName + index;
-					sig.signalContext = sim_vercurscope;
+					sig.signalContext = currentScope;
 					sig.tempList = new ArrayList();
 
 					if (index.length() > 0 && width == 1)
@@ -220,7 +207,7 @@ public class VerilogOut extends Simulate
 						{
 							Simulate.SimDigitalSignal subSig = new Simulate.SimDigitalSignal(null);
 							subSig.signalName = signalName + "[" + i + "]";
-							subSig.signalContext = sim_vercurscope;
+							subSig.signalContext = currentScope;
 							subSig.tempList = new ArrayList();
 							sig.bussedSignals.add(subSig);
 							addSignalToHashMap(subSig, symbol + "[" + i + "]", symbolTable);
@@ -236,22 +223,19 @@ public class VerilogOut extends Simulate
 
 			if (keyword.equals("$enddefinitions"))
 			{
-				sim_verparsetoend();
+				parseToEnd();
 				System.out.println("Found " + numSignals + " signal names");
-//				DiaSetTextProgress(sim_verprogressdialog, _("Reading stimulus..."));
 				continue;
 			}
 			if (keyword.equals("$dumpvars"))
 			{
-				System.out.println("dumpvars");
-
-				double curtime = 0.0;
+				double curTime = 0.0;
 				for(;;)
 				{
-					String sim_verline = getLineFromSimulator();
-					if (sim_verline == null) break;
-					char chr = sim_verline.charAt(0);
-					String restOfLine = sim_verline.substring(1);
+					String currentLine = getLineFromSimulator();
+					if (currentLine == null) break;
+					char chr = currentLine.charAt(0);
+					String restOfLine = currentLine.substring(1);
 					if (chr == '0' || chr == '1' || chr == 'x' || chr == 'z')
 					{
 						Object entry = symbolTable.get(restOfLine);
@@ -272,19 +256,19 @@ public class VerilogOut extends Simulate
 							case 'x': state = Simulate.SimData.LOGIC_X    | Simulate.SimData.GATE_STRENGTH;  break;
 							case 'z': state = Simulate.SimData.LOGIC_Z    | Simulate.SimData.GATE_STRENGTH;  break;
 						}
-						VerilogStimuli vs = new VerilogStimuli(curtime, state);
+						VerilogStimuli vs = new VerilogStimuli(curTime, state);
 						sig.tempList.add(vs);
 						continue;
 					}
 					if (chr == '$')
 					{
 						if (restOfLine.equals("end")) continue;
-						System.out.println("Unknown directive on line " + lineReader.getLineNumber() + ": " + sim_verline);
+						System.out.println("Unknown directive on line " + lineReader.getLineNumber() + ": " + currentLine);
 						continue;
 					}
 					if (chr == '#')
 					{
-						curtime = TextUtils.atoi(restOfLine) * sim_timescale;
+						curTime = TextUtils.atoi(restOfLine) * timeScale;
 						continue;
 					}
 					if (chr == 'b')
@@ -292,14 +276,14 @@ public class VerilogOut extends Simulate
 						int spacePos = restOfLine.indexOf(' ');
 						if (spacePos < 0)
 						{
-							System.out.println("Bus has missing signal name on line " + lineReader.getLineNumber() + ": " + sim_verline);
+							System.out.println("Bus has missing signal name on line " + lineReader.getLineNumber() + ": " + currentLine);
 							continue;
 						}
-						String symname = restOfLine.substring(spacePos+1);
-						Object entry = symbolTable.get(symname);
+						String symName = restOfLine.substring(spacePos+1);
+						Object entry = symbolTable.get(symName);
 						if (entry == null)
 						{
-							System.out.println("Unknown symbol '" + symname + "' on line " + lineReader.getLineNumber());
+							System.out.println("Unknown symbol '" + symName + "' on line " + lineReader.getLineNumber());
 							continue;
 						}
 						if (entry instanceof List) entry = ((List)entry).get(0);
@@ -317,12 +301,12 @@ public class VerilogOut extends Simulate
 								case 'x': state = Simulate.SimData.LOGIC_X    | Simulate.SimData.GATE_STRENGTH;  break;
 								case 'z': state = Simulate.SimData.LOGIC_Z    | Simulate.SimData.GATE_STRENGTH;  break;
 							}
-							VerilogStimuli vs = new VerilogStimuli(curtime, state);
+							VerilogStimuli vs = new VerilogStimuli(curTime, state);
 							subSig.tempList.add(vs);
 						}
 						continue;
 					}
-					System.out.println("Unknown stimulus on line " + lineReader.getLineNumber() + ": " + sim_verline);
+					System.out.println("Unknown stimulus on line " + lineReader.getLineNumber() + ": " + currentLine);
 				}
 			}
 			continue;
@@ -441,7 +425,7 @@ public class VerilogOut extends Simulate
 		}
 	}
 
-	private void sim_verparsetoend()
+	private void parseToEnd()
 		throws IOException
 	{
 		for(;;)

@@ -48,6 +48,8 @@ import com.sun.electric.tool.user.ui.StatusBar;
 import com.sun.electric.tool.user.ui.WindowContent;
 
 import java.util.Iterator;
+import javax.print.PrintServiceLookup;
+import javax.print.PrintService;
 
 /**
  * This is the User Interface tool.
@@ -61,6 +63,7 @@ public class User extends Listener
 
 	private ArcProto currentArcProto = null;
 	private NodeProto currentNodeProto = null;
+	private PrintService [] printers;
 
 	/**
 	 * The constructor sets up the User tool.
@@ -79,10 +82,19 @@ public class User extends Listener
 		setOn();
 		setIncremental();
 
+		// find the printers (takes a long time...do it at startup)
+		printers = PrintServiceLookup.lookupPrintServices(null, null);
+
 		// initialize the display
 		TopLevel.Initialize();
 		TopLevel.getPaletteFrame().loadForTechnology();
 	}
+
+	/**
+	 * Method to return the list of printers.
+	 * @return the list of printers.
+	 */
+	public static PrintService [] getPrinters() { return tool.printers; }
 
 	/**
 	 * Method to return the "current" NodeProto, as maintained by the user interface.

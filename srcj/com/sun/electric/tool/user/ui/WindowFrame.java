@@ -96,14 +96,14 @@ public class WindowFrame
 	 * The content is the object in the right side (EditWindow, WaveformWindow, etc.)
 	 * @param content the new content object.
 	 */
-	public void setContent(WindowContent content)
-	{
-		this.content = content;
-
-		rootNode.removeAllChildren();
-		content.loadExplorerTree(rootNode);
-		js.setRightComponent(content.getPanel());
-	}
+//	public void setContent(WindowContent content)
+//	{
+//		this.content = content;
+//
+//		rootNode.removeAllChildren();
+//		content.loadExplorerTree(rootNode);
+//		js.setRightComponent(content.getPanel());
+//	}
 
 	/**
 	 * Method to get the content of this window.
@@ -112,110 +112,63 @@ public class WindowFrame
 	 */
 	public WindowContent getContent() { return content; }
 
-	private boolean wantToRedo = false;
+	private boolean wantToRedoLibraryTree = false;
+	private boolean wantToRedoJobTree = false;
+	private boolean wantToRedoErrorTree = false;
 
 	public static void wantToRedoLibraryTree()
 	{
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
-			wf.wantToRedo = true;
+			wf.wantToRedoLibraryTree = true;
 		}
 	}
 
-	public void redoLibraryTreeIfRequested()
-	{
-		if (wantToRedo) redoLibraryTree();
-	}
-
-	/**
-	 * Method called when the library/cell list subtree has changed.
-	 */
-	public static void redoLibraryTree()
+	public static void wantToRedoJobTree()
 	{
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
-			if (wf.libraryExplorerNode == null) continue;
-
-			// remember the state of the tree
-			HashMap expanded = new HashMap();
-			wf.recursivelyCache(expanded, new TreePath(wf.rootNode), true);
-
-			// get the new library tree part
-			wf.libraryExplorerNode = ExplorerTree.makeLibraryTree();
-
-			// rebuild the tree
-			wf.rootNode.removeAllChildren();
-			wf.rootNode.add(wf.libraryExplorerNode);
-			if (wf.signalExplorerNode != null) wf.rootNode.add(wf.signalExplorerNode);
-			wf.rootNode.add(wf.jobExplorerNode);
-			wf.rootNode.add(wf.errorExplorerNode);
-
-			wf.tree.treeDidChange();
-			wf.treeModel.reload();
-			wf.recursivelyCache(expanded, new TreePath(wf.rootNode), false);
+			wf.wantToRedoJobTree = true;
 		}
 	}
 
-	/**
-	 * Method called when the error list subtree has changed.
-	 */
-	public static void redoErrorTree()
+	public static void wantToRedoErrorTree()
 	{
-		for(Iterator it = windowList.iterator(); it.hasNext(); )
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
-			if (wf.errorExplorerNode == null) continue;
-
-			// remember the state of the tree
-			HashMap expanded = new HashMap();
-			wf.recursivelyCache(expanded, new TreePath(wf.rootNode), true);
-
-			// get the new error part
-			wf.errorExplorerNode = ErrorLog.getExplorerTree();
-
-			// rebuild the tree
-			wf.rootNode.removeAllChildren();
-			if (wf.libraryExplorerNode != null) wf.rootNode.add(wf.libraryExplorerNode);
-			if (wf.signalExplorerNode != null) wf.rootNode.add(wf.signalExplorerNode);
-			wf.rootNode.add(wf.jobExplorerNode);
-			wf.rootNode.add(wf.errorExplorerNode);
-
-			wf.tree.treeDidChange();
-			wf.treeModel.reload();
-			wf.recursivelyCache(expanded, new TreePath(wf.rootNode), false);
+			wf.wantToRedoErrorTree = true;
 		}
 	}
 
-	/**
-	 * Method called when the Job list subtree has changed.
-	 */
-	public static void redoJobTree()
+	public void redoExplorerTreeIfRequested()
 	{
-		for(Iterator it = windowList.iterator(); it.hasNext(); )
-		{
-			WindowFrame wf = (WindowFrame)it.next();
-			if (wf.jobExplorerNode == null) continue;
+		if (!wantToRedoLibraryTree && !wantToRedoJobTree && !wantToRedoErrorTree) return;
 
-			// remember the state of the tree
-			HashMap expanded = new HashMap();
-			wf.recursivelyCache(expanded, new TreePath(wf.rootNode), true);
+		// remember the state of the tree
+		HashMap expanded = new HashMap();
+		recursivelyCache(expanded, new TreePath(rootNode), true);
 
-			// get the new jobs part
-			wf.jobExplorerNode = Job.getExplorerTree();
+		// get the new library tree part
+		if (wantToRedoLibraryTree)
+			libraryExplorerNode = ExplorerTree.makeLibraryTree();
+		if (wantToRedoJobTree)
+			jobExplorerNode = Job.getExplorerTree();
+		if (wantToRedoErrorTree)
+			errorExplorerNode = ErrorLog.getExplorerTree();
 
-			// rebuild the tree
-			wf.rootNode.removeAllChildren();
-			if (wf.libraryExplorerNode != null) wf.rootNode.add(wf.libraryExplorerNode);
-			if (wf.signalExplorerNode != null) wf.rootNode.add(wf.signalExplorerNode);
-			wf.rootNode.add(wf.jobExplorerNode);
-			wf.rootNode.add(wf.errorExplorerNode);
+		// rebuild the tree
+		rootNode.removeAllChildren();
+		if (libraryExplorerNode != null) rootNode.add(libraryExplorerNode);
+		if (signalExplorerNode != null) rootNode.add(signalExplorerNode);
+		rootNode.add(jobExplorerNode);
+		rootNode.add(errorExplorerNode);
 
-			wf.tree.treeDidChange();
-			wf.treeModel.reload();
-			wf.recursivelyCache(expanded, new TreePath(wf.rootNode), false);
-		}
+		tree.treeDidChange();
+		treeModel.reload();
+		recursivelyCache(expanded, new TreePath(rootNode), false);
 	}
 
 	private void recursivelyCache(HashMap expanded, TreePath path, boolean cache)
@@ -227,11 +180,9 @@ public class WindowFrame
 
 		if (cache)
 		{
-//System.out.println("REMEMBERING: expanded="+tree.isExpanded(path)+" node="+obj);
 			if (tree.isExpanded(path)) expanded.put(obj, obj);
 		} else
 		{
-//System.out.println("PUTTINGBACK: expanded="+(expanded.get(obj) != null)+" node="+obj);
 			if (expanded.get(obj) != null) tree.expandPath(path);
 		}
 
@@ -306,7 +257,7 @@ public class WindowFrame
 		content.loadExplorerTree(rootNode);
 		treeModel = new DefaultTreeModel(rootNode);
 		tree = ExplorerTree.CreateExplorerTree(rootNode, treeModel);
-		redoLibraryTree();
+		wantToRedoLibraryTree();
 		JScrollPane scrolledTree = new JScrollPane(tree);
 
 		// put them together into the split pane
@@ -512,7 +463,7 @@ public class WindowFrame
             if (windowList.size() <= 1)
             {
                 JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-                        "Cannot close the last window");
+                    "Cannot close the last window");
                 return;
             }
             windowList.remove(this);

@@ -892,7 +892,7 @@ public class ExplorerTree extends JTree
 		{
 			Library lib = (Library)currentSelectedObject;
 			lib.setCurrent();
-			WindowFrame.redoLibraryTree();
+			WindowFrame.wantToRedoLibraryTree();
 			EditWindow.repaintAll();
 		}
 
@@ -982,19 +982,19 @@ public class ExplorerTree extends JTree
 		private void showAlphabeticallyAction()
 		{
 			howToShow = SHOWALPHABETICALLY;
-			WindowFrame.redoLibraryTree();
+			WindowFrame.wantToRedoLibraryTree();
 		}
 
 		private void showByGroupAction()
 		{
 			howToShow = SHOWBYCELLGROUP;
-			WindowFrame.redoLibraryTree();
+			WindowFrame.wantToRedoLibraryTree();
 		}
 
 		private void showByHierarchyAction()
 		{
 			howToShow = SHOWBYHIERARCHY;
-			WindowFrame.redoLibraryTree();
+			WindowFrame.wantToRedoLibraryTree();
 		}
 
 	}

@@ -533,18 +533,18 @@ public final class MenuCommands
 		menuBar.add(windowMenu);
 
         m = windowMenu.addMenuItem("Fill Display", KeyStroke.getKeyStroke('9', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.fullDisplay(); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { fullDisplay(); } });
         m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD9, buckyBit), null);
         m = windowMenu.addMenuItem("Redisplay Window", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.redrawDisplay(); } });
         m = windowMenu.addMenuItem("Zoom Out", KeyStroke.getKeyStroke('0', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.zoomOutDisplay(); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { zoomOutDisplay(); } });
         m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, buckyBit), null);
         m = windowMenu.addMenuItem("Zoom In", KeyStroke.getKeyStroke('7', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.zoomInDisplay(); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { zoomInDisplay(); } });
         m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD7, buckyBit), null);
         m = windowMenu.addMenuItem("Focus on Highlighted", KeyStroke.getKeyStroke('F', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.focusOnHighlighted(); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { focusOnHighlighted(); } });
         m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD5, buckyBit), null);
 
         windowMenu.addSeparator();
@@ -793,7 +793,7 @@ public final class MenuCommands
 		Library lib = Library.newInstance(newLibName, null);
 		if (lib == null) return;
 		lib.setCurrent();
-		WindowFrame.redoLibraryTree();
+		WindowFrame.wantToRedoLibraryTree();
 		EditWindow.repaintAll();
 	}
 
@@ -919,7 +919,7 @@ public final class MenuCommands
 		String libName = lib.getLibName();
 		if (lib.kill())
 			System.out.println("Library " + libName + " deleted");
-		WindowFrame.redoLibraryTree();
+		WindowFrame.wantToRedoLibraryTree();
 		EditWindow.repaintAll();
 	}
 
@@ -2005,6 +2005,46 @@ public final class MenuCommands
 	}
 
 	// ---------------------- THE WINDOW MENU -----------------
+
+	public static void fullDisplay()
+	{
+		// get the current frame
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (wf == null) return;
+
+		// make the circuit fill the window
+		wf.getContent().fillScreen();
+	}
+
+	public static void zoomOutDisplay()
+	{
+		// get the current frame
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (wf == null) return;
+
+		// zoom out
+		wf.getContent().zoomOutContents();
+	}
+
+	public static void zoomInDisplay()
+	{
+		// get the current frame
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (wf == null) return;
+
+		// zoom in
+		wf.getContent().zoomInContents();
+	}
+
+	public static void focusOnHighlighted()
+	{
+		// get the current frame
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (wf == null) return;
+
+		// focus on highlighted
+		wf.getContent().focusOnHighlighted();
+	}
 
 	/**
 	 * This method implements the command to toggle the display of the grid.

@@ -178,60 +178,15 @@ public class ZoomAndPanListener
 	public void keyReleased(KeyEvent evt) {}
 	public void keyTyped(KeyEvent evt) {}
 
-    // ----------------------------------- Zoom commands -----------------------------------
+    // ----------------------------------- redisplay commands -----------------------------------
 
-    public static void fullDisplay()
-    {
-        // get the current window
-        EditWindow wnd = EditWindow.getCurrent();
-        if (wnd == null) return;
-
-        // make the circuit fill the window
-        wnd.fillScreen();
-    }
-
-    public static void redrawDisplay()
-    {
-        // get the current window
-        EditWindow wnd = EditWindow.getCurrent();
-        if (wnd == null) return;
-        wnd.repaintContents();
-    }
-
-    public static void zoomOutDisplay()
-    {
-        // get the current window
-        EditWindow wnd = EditWindow.getCurrent();
-        if (wnd == null) return;
-
-        // zoom out by a factor of two
-        double scale = wnd.getScale();
-        wnd.setScale(scale / 2);
-        wnd.repaintContents();
-    }
-
-    public static void zoomInDisplay()
-    {
-        // get the current window
-        EditWindow wnd = EditWindow.getCurrent();
-        if (wnd == null) return;
-
-        // zoom in by a factor of two
-        double scale = wnd.getScale();
-        wnd.setScale(scale * 2);
-        wnd.repaintContents();
-    }
-
-    public static void focusOnHighlighted()
-    {
-        // get the current window
-        EditWindow wnd = EditWindow.getCurrent();
-        if (wnd == null) return;
-
-        // focus on highlighting
-        Rectangle2D bounds = Highlight.getHighlightedArea(wnd);
-        wnd.focusScreen(bounds);
-    }
+	public static void redrawDisplay()
+	{
+		// get the current window
+		EditWindow wnd = EditWindow.getCurrent();
+		if (wnd == null) return;
+		wnd.repaintContents();
+	}
 
     // --------------------------- Pan Commands -------------------------------
 

@@ -59,6 +59,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JScrollPane;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JButton;
 import javax.swing.BoxLayout;
 import javax.swing.JSeparator;
@@ -74,6 +75,9 @@ import javax.swing.tree.DefaultMutableTreeNode;
  */
 public class WaveformWindow implements WindowContent
 {
+	private static int panelSizeDigital = 30;
+	private static int panelSizeAnalog = 150;
+
 	/**
 	 * Test method to build a waveform with fake data.
 	 */
@@ -147,6 +151,8 @@ public class WaveformWindow implements WindowContent
 		/** true if a time cursor is being dragged */			private boolean draggingMain, draggingExt;
 		/** true if an area is being dragged */					private boolean draggingArea;
 		/** true if the waveform is being panned */				private boolean draggingPan;
+		/** true if this waveform panel is selected */			private boolean selected;
+		/** true if this waveform panel is analog */			private boolean isAnalog;
 		/** the time panel at the top of this panel. */			private TimeTickPanel timePanel;
 
 		private int dragStartX, dragStartY;
@@ -159,7 +165,7 @@ public class WaveformWindow implements WindowContent
 		private static final ImageIcon iconClosePanel = new ImageIcon(WaveformWindow.class.getResource("ButtonSimClose.gif"));
 		private static final ImageIcon iconDeleteSignal = new ImageIcon(WaveformWindow.class.getResource("ButtonSimDelete.gif"));
 		private static final ImageIcon iconDeleteAllSignals = new ImageIcon(WaveformWindow.class.getResource("ButtonSimDeleteAll.gif"));
-//
+
 //		public static void setListener(EventListener listener)
 //		{
 //			curMouseListener = (MouseListener)listener;
@@ -169,16 +175,18 @@ public class WaveformWindow implements WindowContent
 //		}
 //
 //		public static EventListener getListener() { return curMouseListener; }
-//
+
 	    // constructor
 		public Panel(WaveformWindow waveWindow, boolean isAnalog)
 		{
 			// remember state
 			this.waveWindow = waveWindow;
+			this.isAnalog = isAnalog;
+			this.selected = false;
 
 			// setup this panel window
-			int height = 30;
-			if (isAnalog) height = 150;
+			int height = panelSizeDigital;
+			if (isAnalog) height = panelSizeAnalog;
 			sz = new Dimension(500, height);
 			setSize(sz.width, sz.height);
 			setPreferredSize(sz);
@@ -213,7 +221,7 @@ public class WaveformWindow implements WindowContent
 			close.setDefaultCapable(false);
 			gbc.gridx = 0;       gbc.gridy = 1;
 			gbc.gridwidth = 1;   gbc.gridheight = 1;
-			gbc.weightx = 0;     gbc.weighty = 0;
+			gbc.weightx = 0.25;  gbc.weighty = 0;
 			gbc.anchor = GridBagConstraints.NORTH;
 			gbc.fill = GridBagConstraints.NONE;
 			gbc.insets = new Insets(0, 0, 0, 0);
@@ -229,7 +237,7 @@ public class WaveformWindow implements WindowContent
 			overlaySignal.setDefaultCapable(false);
 			gbc.gridx = 1;       gbc.gridy = 1;
 			gbc.gridwidth = 1;   gbc.gridheight = 1;
-			gbc.weightx = 0;     gbc.weighty = 0;
+			gbc.weightx = 0.25;  gbc.weighty = 0;
 			gbc.anchor = GridBagConstraints.NORTH;
 			gbc.fill = GridBagConstraints.NONE;
 			gbc.insets = new Insets(0, 0, 0, 0);
@@ -245,7 +253,7 @@ public class WaveformWindow implements WindowContent
 			deleteSignal.setDefaultCapable(false);
 			gbc.gridx = 2;       gbc.gridy = 1;
 			gbc.gridwidth = 1;   gbc.gridheight = 1;
-			gbc.weightx = 0;     gbc.weighty = 0;
+			gbc.weightx = 0.25;  gbc.weighty = 0;
 			gbc.anchor = GridBagConstraints.NORTH;
 			gbc.fill = GridBagConstraints.NONE;
 			gbc.insets = new Insets(0, 0, 0, 0);
@@ -261,7 +269,7 @@ public class WaveformWindow implements WindowContent
 			deleteAllSignals.setDefaultCapable(false);
 			gbc.gridx = 3;       gbc.gridy = 1;
 			gbc.gridwidth = 1;   gbc.gridheight = 1;
-			gbc.weightx = 0;     gbc.weighty = 0;
+			gbc.weightx = 0.25;  gbc.weighty = 0;
 			gbc.anchor = GridBagConstraints.NORTH;
 			gbc.fill = GridBagConstraints.NONE;
 			gbc.insets = new Insets(0, 0, 0, 0);
@@ -321,6 +329,8 @@ public class WaveformWindow implements WindowContent
 			waveWindow.left.add(leftHalf);
 			waveWindow.right.add(rightHalf);
 			waveWindow.wavePanels.add(this);
+//			leftHalf.validate();
+//			rightHalf.validate();
 		}
 
 		public void closePanel()
@@ -396,15 +406,13 @@ public class WaveformWindow implements WindowContent
 			g.fillRect(0, 0, wid, hei);
 
 			// look at all traces in this panel
-			boolean hasAnalog = false;
 			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
 			{
 				Signal ws = (Signal)it.next();
+				g.setColor(ws.sSig.signalColor);
 				if (ws.sSig instanceof Simulate.SimAnalogSignal)
 				{
 					// draw analog trace
-					g.setColor(ws.sSig.signalColor);
-					hasAnalog = true;
 					Simulate.SimAnalogSignal as = (Simulate.SimAnalogSignal)ws.sSig;
 					int lx = 0, ly = 0;
 					int numEvents = as.values.length;
@@ -417,32 +425,23 @@ public class WaveformWindow implements WindowContent
 						int y = scaleValueToY(as.values[i]);
 						if (i != 0)
 						{
-							g.drawLine(lx, ly, x, y);
-							if (ws.highlighted)
-							{
-								int xDelta = 0, yDelta = 1;
-								if (Math.abs(x-lx) < Math.abs(y-ly))
-								{
-									xDelta = 1;   yDelta = 0;
-								}
-								g.drawLine(lx+xDelta, ly+yDelta, x+xDelta, y+yDelta);
-								g.drawLine(lx-xDelta, ly-yDelta, x-xDelta, y-yDelta);
-							}
+							drawALine(g, lx, ly, x, y, ws.highlighted);
 						}
 						lx = x;   ly = y;
 					}
+					continue;
 				}
 				if (ws.sSig instanceof Simulate.SimDigitalSignal)
 				{
-					// draw digital trace
-					g.setColor(ws.sSig.signalColor);
+					// draw digital traces
 					Simulate.SimDigitalSignal ds = (Simulate.SimDigitalSignal)ws.sSig;
 					if (ds.bussedSignals != null)
 					{
+						// a digital bus trace
 						int busWidth = ds.bussedSignals.size();
 						long curValue = 0;
 						double curTime = 0;
-						int lastX = -1;
+						int lastX = VERTLABELWIDTH;
 						for(;;)
 						{
 							double nextTime = Double.MAX_VALUE;
@@ -477,39 +476,50 @@ public class WaveformWindow implements WindowContent
 								bit++;
 							}
 							int x = scaleTimeToX(curTime);
-							if (x < VERTLABELWIDTH+5)
+							if (x >= VERTLABELWIDTH)
 							{
-								// on the left edge: just draw the "<"
-								drawALine(g, x, hei/2, x+5, hei-5, ws.highlighted);
-								drawALine(g, x, hei/2, x+5, 5, ws.highlighted);
-							} else
-							{
-								// bus change point: draw the "X"
-								drawALine(g, x-5, 5, x+5, hei-5, ws.highlighted);
-								drawALine(g, x+5, 5, x-5, hei-5, ws.highlighted);
+								if (x < VERTLABELWIDTH+5)
+								{
+									// on the left edge: just draw the "<"
+									drawALine(g, x, hei/2, x+5, hei-5, ws.highlighted);
+									drawALine(g, x, hei/2, x+5, 5, ws.highlighted);
+								} else
+								{
+									// bus change point: draw the "X"
+									drawALine(g, x-5, 5, x+5, hei-5, ws.highlighted);
+									drawALine(g, x+5, 5, x-5, hei-5, ws.highlighted);
+								}
+								if (lastX+5 < x-5)
+								{
+									// previous bus change point: draw horizontal bars to connect
+									drawALine(g, lastX+5, 5, x-5, 5, ws.highlighted);
+									drawALine(g, lastX+5, hei-5, x-5, hei-5, ws.highlighted);
+								}
+								String valString = "XX";
+								if (curDefined) valString = Long.toString(curValue);
+	
+								Font font = new Font(User.getDefaultFont(), Font.PLAIN, 12);
+								g.setFont(font);
+								FontRenderContext frc = new FontRenderContext(null, false, false);
+								GlyphVector gv = font.createGlyphVector(frc, valString);
+								Rectangle2D glyphBounds = gv.getVisualBounds();
+								int textHei = (int)glyphBounds.getHeight();
+								g.drawString(valString, x+2, hei/2+textHei/2);
 							}
-							if (lastX >= 0)
-							{
-								// previous bus change point: draw horizontal bars to connect
-								drawALine(g, lastX+5, 5, x-5, 5, ws.highlighted);
-								drawALine(g, lastX+5, hei-5, x-5, hei-5, ws.highlighted);
-							}
-							String valString = "XX";
-							if (curDefined) valString = Long.toString(curValue);
-
-							Font font = new Font(User.getDefaultFont(), Font.PLAIN, 12);
-							g.setFont(font);
-							FontRenderContext frc = new FontRenderContext(null, false, false);
-							GlyphVector gv = font.createGlyphVector(frc, valString);
-							Rectangle2D glyphBounds = gv.getVisualBounds();
-							int textHei = (int)glyphBounds.getHeight();
-
-							g.drawString(valString, x+2, hei/2+textHei/2);
-							if (nextTime == Double.MAX_VALUE) break;
 							curTime = nextTime;
 							lastX = x;
+							if (nextTime == Double.MAX_VALUE) break;
 						}
+						if (lastX+5 < wid)
+						{
+							// run horizontal bars to the end
+							drawALine(g, lastX+5, 5, wid, 5, ws.highlighted);
+							drawALine(g, lastX+5, hei-5, wid, hei-5, ws.highlighted);
+						}
+						continue;
 					}
+
+					// a simple digital signal
 					int lastx = VERTLABELWIDTH;
 					int lastState = 0;
 					if (ds.state == null) continue;
@@ -541,7 +551,7 @@ public class WaveformWindow implements WindowContent
 							drawALine(g, lastx, lowy, x, lowy, ws.highlighted);
 						} else
 						{
-							drawALine(g, lastx, lowy, x-lastx, highy-lowy, ws.highlighted);
+							g.fillRect(lastx, lowy, x-lastx, highy-lowy);
 						}
 						lastx = x;
 						lastState = state;
@@ -552,7 +562,13 @@ public class WaveformWindow implements WindowContent
 			// draw the vertical label
 			g.setColor(Color.WHITE);
 			g.drawLine(VERTLABELWIDTH, 0, VERTLABELWIDTH, hei);
-			if (hasAnalog)
+			if (selected)
+			{
+				g.drawLine(VERTLABELWIDTH-1, 0, VERTLABELWIDTH-1, hei);
+				g.drawLine(VERTLABELWIDTH-2, 0, VERTLABELWIDTH-2, hei-1);
+				g.drawLine(VERTLABELWIDTH-3, 0, VERTLABELWIDTH-3, hei-2);
+			}
+			if (isAnalog)
 			{
 				double displayedLow = scaleYToValue(hei);
 				double displayedHigh = scaleYToValue(0);
@@ -586,10 +602,12 @@ public class WaveformWindow implements WindowContent
 
 			// draw the time cursors
 			int x = scaleTimeToX(waveWindow.mainTime);
-			g.drawLine(x, 0, x, hei);
+			if (x >= VERTLABELWIDTH)
+				g.drawLine(x, 0, x, hei);
 			g.setColor(Color.YELLOW);
 			x = scaleTimeToX(waveWindow.extTime);
-			g.drawLine(x, 0, x, hei);
+			if (x >= VERTLABELWIDTH)
+				g.drawLine(x, 0, x, hei);
 			
 			// show dragged area if there
 			if (draggingArea)
@@ -608,7 +626,23 @@ public class WaveformWindow implements WindowContent
 
 		private void drawALine(Graphics g, int fX, int fY, int tX, int tY, boolean highlighted)
 		{
+			// clip to left edge
+			if (fX < VERTLABELWIDTH || tX < VERTLABELWIDTH)
+			{
+				Point2D from = new Point2D.Double(fX, fY);
+				Point2D to = new Point2D.Double(tX, tY);
+				sz = getSize();
+				if (EMath.clipLine(from, to, VERTLABELWIDTH, sz.width, 0, sz.height)) return;
+				fX = (int)from.getX();
+				fY = (int)from.getY();
+				tX = (int)to.getX();
+				tY = (int)to.getY();
+			}
+
+			// draw the line
 			g.drawLine(fX, fY, tX, tY);
+
+			// highlight the line if requested
 			if (highlighted)
 			{
 				if (fX == tX)
@@ -623,18 +657,13 @@ public class WaveformWindow implements WindowContent
 					g.drawLine(fX, fY-1, tX, tY-1);
 				} else
 				{
-					if (highlighted)
+					int xDelta = 0, yDelta = 1;
+					if (Math.abs(fX-tX) < Math.abs(fY-tY))
 					{
-						int cX = (fX + tX) / 2;
-						int cY = (fY + tY) / 2;
-						int fXInc = 1, fYInc = 1, tXInc = 1, tYInc = 1;
-						if (fX < cX) fXInc = -1;
-						if (fY < cY) fYInc = -1;
-						if (tX < cX) tXInc = -1;
-						if (tY < cY) tYInc = -1;
-						g.drawLine(fX+fXInc, fY+fYInc, tX+tXInc, tY+tYInc);
-						g.drawLine(fX-fXInc, fY-fYInc, tX-tXInc, tY-tYInc);
+						xDelta = 1;   yDelta = 0;
 					}
+					g.drawLine(tX+xDelta, tY+yDelta, fX+xDelta, fY+yDelta);
+					g.drawLine(tX-xDelta, tY-yDelta, fX-xDelta, fY-yDelta);
 				}
 			}
 		}
@@ -786,6 +815,22 @@ public class WaveformWindow implements WindowContent
 		// the MouseListener events
 		public void mousePressed(MouseEvent evt)
 		{
+			// set this to be the selected panel
+			for(Iterator it = waveWindow.wavePanels.iterator(); it.hasNext(); )
+			{
+				Panel wp = (Panel)it.next();
+				if (wp.selected && wp != this)
+				{
+					wp.selected = false;
+					wp.repaint();
+				}
+			}
+			if (!selected)
+			{
+				selected = true;
+				repaint();
+			}
+
 			// see if the time cursors are selected
 			draggingMain = draggingExt = draggingArea = draggingPan = false;
 			if (ToolBar.getCursorMode() == ToolBar.CursorMode.PAN)
@@ -973,10 +1018,6 @@ public class WaveformWindow implements WindowContent
 		/** the data for this signal */					private Simulate.SimSignal sSig;
 		/** true if this signal is highlighted */		private boolean highlighted;
 		/** the button on the left with this signal */	private JButton sigButton;
-//		CHAR     *origname;			/* original name of this trace */
-//		INTBIG    nodeptr;			/* "user" data for this trace */
-//		INTBIG    busindex;			/* index of this trace in the bus (when part of a bus) */
-//		struct Itrace *buschannel;
 
 		public Signal(Panel wavePanel, Simulate.SimSignal sSig)
 		{
@@ -1019,7 +1060,10 @@ public class WaveformWindow implements WindowContent
 	/** let panel: the signal names */						private JPanel left;
 	/** right panel: the signal traces */					private JPanel right;
 	private JButton timeLock;
+	private JButton growPanel;
+	private JButton shrinkPanel;
 	private JScrollPane scrollAll;
+	private JSplitPane split;
 	/** labels for the text at the top */					private JLabel mainPos, extPos, delta;
 	/** a list of panels in this window */					private List wavePanels;
 	/** current "main" time cursor */						private double mainTime;
@@ -1030,6 +1074,8 @@ public class WaveformWindow implements WindowContent
 	private static final ImageIcon iconAddPanel = new ImageIcon(WaveformWindow.class.getResource("ButtonSimAddPanel.gif"));
 	private static final ImageIcon iconLockTime = new ImageIcon(WaveformWindow.class.getResource("ButtonSimLockTime.gif"));
 	private static final ImageIcon iconUnLockTime = new ImageIcon(WaveformWindow.class.getResource("ButtonSimUnLockTime.gif"));
+	private static final ImageIcon iconGrowPanel = new ImageIcon(WaveformWindow.class.getResource("ButtonSimGrow.gif"));
+	private static final ImageIcon iconShrinkPanel = new ImageIcon(WaveformWindow.class.getResource("ButtonSimShrink.gif"));
 
     // ************************************* CONTROL *************************************
 
@@ -1050,11 +1096,12 @@ public class WaveformWindow implements WindowContent
 		left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
 		right = new JPanel();
 		right.setLayout(new BoxLayout(right, BoxLayout.Y_AXIS));
-		JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
+		split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
+		split.setResizeWeight(0.1);
 		scrollAll = new JScrollPane(split);
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;       gbc.gridy = 1;
-		gbc.gridwidth = 4;   gbc.gridheight = 1;
+		gbc.gridwidth = 7;   gbc.gridheight = 1;
 		gbc.weightx = 1;     gbc.weighty = 1;
 		gbc.anchor = GridBagConstraints.CENTER;
 		gbc.fill = java.awt.GridBagConstraints.BOTH;
@@ -1092,8 +1139,38 @@ public class WaveformWindow implements WindowContent
 			public void actionPerformed(ActionEvent evt) { togglePanelTimeLock(); }
 		});
 
-		mainPos = new JLabel("Main:");
+		growPanel = new JButton(iconGrowPanel);
+		growPanel.setBorderPainted(false);
+		growPanel.setDefaultCapable(false);
 		gbc.gridx = 2;       gbc.gridy = 0;
+		gbc.gridwidth = 1;   gbc.gridheight = 1;
+		gbc.weightx = 0;     gbc.weighty = 0;
+		gbc.anchor = GridBagConstraints.CENTER;
+		gbc.fill = java.awt.GridBagConstraints.NONE;
+		gbc.insets = new Insets(0, 0, 0, 0);
+		overall.add(growPanel, gbc);
+		growPanel.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { growPanels(1.25); }
+		});
+
+		shrinkPanel = new JButton(iconShrinkPanel);
+		shrinkPanel.setBorderPainted(false);
+		shrinkPanel.setDefaultCapable(false);
+		gbc.gridx = 3;       gbc.gridy = 0;
+		gbc.gridwidth = 1;   gbc.gridheight = 1;
+		gbc.weightx = 0;     gbc.weighty = 0;
+		gbc.anchor = GridBagConstraints.CENTER;
+		gbc.fill = java.awt.GridBagConstraints.NONE;
+		gbc.insets = new Insets(0, 0, 0, 0);
+		overall.add(shrinkPanel, gbc);
+		shrinkPanel.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { growPanels(0.8); }
+		});
+
+		mainPos = new JLabel("Main:");
+		gbc.gridx = 4;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0.3;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
@@ -1101,7 +1178,7 @@ public class WaveformWindow implements WindowContent
 		gbc.insets = new Insets(0, 0, 0, 0);
 		overall.add(mainPos, gbc);
 		extPos = new JLabel("Ext:");
-		gbc.gridx = 3;       gbc.gridy = 0;
+		gbc.gridx = 5;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0.3;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
@@ -1109,7 +1186,7 @@ public class WaveformWindow implements WindowContent
 		gbc.insets = new Insets(0, 0, 0, 0);
 		overall.add(extPos, gbc);
 		delta = new JLabel("Delta:");
-		gbc.gridx = 4;       gbc.gridy = 0;
+		gbc.gridx = 6;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0.3;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
@@ -1331,7 +1408,7 @@ public class WaveformWindow implements WindowContent
 			time = -time;
 		}
 		if (EMath.doublesEqual(time, 0.0)) return "0" + unit;
-		if (time < 1.0E-15 || time >= 1000.0) return negative + time + unit;
+		if (time < 1.0E-15 || time >= 1000.0) return negative + TextUtils.formatDouble(time) + unit;
 
 		// get proper time unit to use
 		double scaled = time * 1.0E17;
@@ -1414,15 +1491,38 @@ public class WaveformWindow implements WindowContent
 		// cannot delete the last panel
 		if (wavePanels.size() <= 1)
 		{
-			System.out.println("Cannot delete the last waveform panel");
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				"Cannot delete the last waveform panel");
 			return;
 		}
 		left.remove(wp.leftHalf);
 		right.remove(wp.rightHalf);
 		wavePanels.remove(wp);
-		scrollAll.validate();
-		left.repaint();
-		right.repaint();
+		overall.validate();
+		redrawAll();
+	}
+	
+	/**
+	 * Method called to grow or shrink the panels vertically.
+	 */
+	public void growPanels(double scale)
+	{
+		panelSizeDigital = (int)(panelSizeDigital * scale);
+		panelSizeAnalog = (int)(panelSizeAnalog * scale);
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			Dimension sz = wp.getSize();
+			sz.height = (int)(sz.height * scale);
+			wp.setSize(sz.width, sz.height);
+			wp.setPreferredSize(sz);
+
+			sz = wp.signalButtonsPane.getSize();
+			sz.height = (int)(sz.height * scale);
+			wp.signalButtonsPane.setPreferredSize(sz);
+			wp.signalButtonsPane.setSize(sz.width, sz.height);
+		}
+		overall.validate();
 		redrawAll();
 	}
 
@@ -1504,13 +1604,12 @@ public class WaveformWindow implements WindowContent
 				wp.setValueRange(lowValue - rangeExtra, highValue + rangeExtra);
 			}
 			Signal wsig = new Signal(wp, sig);
-			wp.signalButtons.validate();
-			wp.signalButtons.repaint();
-			scrollAll.validate();
+			overall.validate();
 			wp.repaint();
 			return;
 		}
-		System.out.println("First select a signal from the explorer tree");
+		JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+			"First select a signal from the explorer tree");
 	}
 
 	/**
@@ -1521,11 +1620,23 @@ public class WaveformWindow implements WindowContent
 	 */
 	public void overlaySignalInPanel(Panel wp)
 	{
+		if (!wp.isAnalog)
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				"Can only add signals to an analog panel");
+			return;
+		}
 		ExplorerTree tree = wf.getExplorerTree();
 		Object obj = tree.getCurrentlySelectedObject();
 		if (obj instanceof Simulate.SimSignal)
 		{
 			Simulate.SimSignal sig = (Simulate.SimSignal)obj;
+			if (sig instanceof Simulate.SimDigitalSignal)
+			{
+				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+					"Can only add analog signals to this panel");
+				return;
+			}
 			Signal wsig = new Signal(wp, sig);
 			wp.signalButtons.validate();
 			wp.signalButtons.repaint();
@@ -1533,7 +1644,8 @@ public class WaveformWindow implements WindowContent
 			wp.repaint();
 			return;
 		}
-		System.out.println("First select a signal from the explorer tree");
+		JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+			"First select a signal from the explorer tree");
 	}
 
 	/**
@@ -1575,11 +1687,105 @@ public class WaveformWindow implements WindowContent
 		wp.waveSignals.clear();
 		wp.repaint();
 	}
-	
+
 	public void fillScreen()
 	{
+		Rectangle2D bounds = sd.getBounds();
+		double lowTime = bounds.getMinX();
+		double highTime = bounds.getMaxX();
+		double lowValue = bounds.getMinY();
+		double highValue = bounds.getMaxY();
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			if (!timeLocked && !wp.selected) continue;
+
+			boolean repaint = false;
+			if (wp.minTime != lowTime || wp.maxTime != highTime)
+			{
+				wp.minTime = lowTime;
+				wp.maxTime = highTime;
+				repaint = true;
+			}
+			if (wp.isAnalog)
+			{
+				if (wp.minTime != lowValue || wp.maxTime != highValue)
+				{
+					wp.analogLowValue = lowValue;
+					wp.analogHighValue = highValue;
+					wp.analogRange = highValue - lowValue;
+					repaint = true;
+				}
+			}
+			if (repaint)
+			{
+				wp.timePanel.repaint();
+				wp.repaint();
+			}
+		}
 	}
-	
+
+	public void zoomOutContents()
+	{
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			if (!timeLocked && !wp.selected) continue;
+
+			boolean repaint = false;
+			double range = wp.maxTime - wp.minTime;
+			wp.minTime -= range/2;
+			wp.maxTime += range/2;
+			wp.timePanel.repaint();
+			wp.repaint();
+		}
+	}
+
+	public void zoomInContents()
+	{
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			if (!timeLocked && !wp.selected) continue;
+
+			boolean repaint = false;
+			double range = wp.maxTime - wp.minTime;
+			wp.minTime += range/4;
+			wp.maxTime -= range/4;
+			wp.timePanel.repaint();
+			wp.repaint();
+		}
+	}
+
+	public void focusOnHighlighted()
+	{
+		if (mainTime == extTime) return;
+		double maxTime, minTime;
+		if (mainTime > extTime)
+		{
+			double size = (mainTime-extTime) / 20.0;
+			maxTime = mainTime + size;
+			minTime = extTime - size;
+		} else
+		{
+			double size = (extTime-mainTime) / 20.0;
+			maxTime = extTime + size;
+			minTime = mainTime - size;
+		}
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			if (!timeLocked && !wp.selected) continue;
+			if (wp.minTime != minTime || wp.maxTime != maxTime)
+			{
+				wp.minTime = minTime;
+				wp.maxTime = maxTime;
+				wp.timePanel.repaint();
+				wp.repaint();
+			}
+		}
+	}
+
 	public void finished()
 	{
 		for(Iterator it = wavePanels.iterator(); it.hasNext(); )

@@ -551,6 +551,14 @@ public class Technology extends ElectricObject
 		// do any specific intialization
 		init();
 
+//		// precache the CIF and GDS layer overrides to save time later
+//		for(Iterator it = this.getLayers(); it.hasNext(); )
+//		{
+//			Layer layer = (Layer)it.next();
+//			layer.getCIFLayer();
+//			layer.getGDSLayer();
+//		}
+		
 		// setup mapping from pseudo-layers to real layers
 		for(Iterator it = this.getLayers(); it.hasNext(); )
 		{

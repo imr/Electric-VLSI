@@ -168,7 +168,7 @@ public abstract class Job implements ActionListener, Runnable {
 			allJobs.add(j);
             if (j.getDisplay()) {
 //                explorerTree.add(j.myNode);
-                WindowFrame.redoJobTree();
+                WindowFrame.wantToRedoJobTree();
             }
 		}
 
@@ -183,7 +183,7 @@ public abstract class Job implements ActionListener, Runnable {
 			}
             if (j.getDisplay()) {
 //                explorerTree.remove(j.myNode);
-                WindowFrame.redoJobTree();        
+                WindowFrame.wantToRedoJobTree();        
             }
 		}
 
@@ -345,7 +345,7 @@ public abstract class Job implements ActionListener, Runnable {
 		finished = true;                        // is this redundant with Thread.isAlive()?
         endTime = System.currentTimeMillis();
 //        Job.removeJob(this);
-        WindowFrame.redoJobTree();
+        WindowFrame.wantToRedoJobTree();
 
 		// say something if it took more than a minute
 		if (endTime - startTime >= 60*1000)
@@ -365,7 +365,7 @@ public abstract class Job implements ActionListener, Runnable {
 
     protected void setProgress(String progress) {
         this.progress = progress;
-        WindowFrame.redoJobTree();        
+        WindowFrame.wantToRedoJobTree();        
     }        
     
     private String getProgress() { return progress; }
@@ -382,11 +382,11 @@ public abstract class Job implements ActionListener, Runnable {
             return;
         }
         scheduledToAbort = true;
-        WindowFrame.redoJobTree();
+        WindowFrame.wantToRedoJobTree();
     }
 
 	/** Confirmation that thread is aborted */
-    protected void setAborted() { aborted = true; WindowFrame.redoJobTree(); }
+    protected void setAborted() { aborted = true; WindowFrame.wantToRedoJobTree(); }
     /** get scheduled to abort status */
     protected boolean getScheduledToAbort() { return scheduledToAbort; }
     /** get abort status */
