@@ -37,6 +37,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
@@ -44,7 +45,8 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * This class initializes the User Interface.
@@ -54,7 +56,11 @@ public final class UserInitial
 {
 	public static void main(String[] args)
 	{
-		// initialize all of the technologies
+        // convert args to array list
+        ArrayList argsList = new ArrayList();
+        for (int i=0; i<args.length; i++) argsList.add(args[i]);
+        
+        // initialize all of the technologies
 		new InitTechnologies();
 
 		// initialize all of the tools
@@ -63,15 +69,78 @@ public final class UserInitial
 		// initialize the constraint system
 		Layout con = Layout.getConstraint();
 		Constraint.setCurrent(con);
+        
+        if (hasCommandLineOption(argsList, "-m")) {
+            // set multiheaded option here
+        }
+        String beanShellScript = getCommandLineOption(argsList, "-s");
+        if (!openCommandLineLibs(argsList)) {
+            // open default library (or maybe open none at all?)
+            Library mainLib = Library.newInstance("noname", null);
+            Library.setCurrent(mainLib);
+			WindowFrame window1 = WindowFrame.createEditWindow(null);
+        }
 
-		// create the first library
-		Library mainLib = Library.newInstance("noname", null);
-		Library.setCurrent(mainLib);
+        // test code to make and show something
+		//MakeFakeCircuitry job = new MakeFakeCircuitry();
 
-		// test code to make and show something
-		MakeFakeCircuitry job = new MakeFakeCircuitry();
+        // run script
+        if (beanShellScript != null) EvalJavaBsh.tool.runScript(beanShellScript);
 	}
-
+    
+    /** check if command line option 'option' present in 
+     * command line args. If present, return true and remove if from the list.
+     * Otherwise, return false.
+     */
+    private static boolean hasCommandLineOption(ArrayList argsList, String option) 
+    {
+        for (int i=0; i<argsList.size(); i++) {
+            if (((String)argsList.get(i)).equals(option)) {
+                argsList.remove(i);
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /** get command line option for 'option'. Returns null if 
+     * no such 'option'.  If found, remove it from the list.
+     */
+    private static String getCommandLineOption(ArrayList argsList, String option)
+    {
+        for (int i=0; i<argsList.size()-1; i++) {
+            if (((String)argsList.get(i)).equals(option)) {
+                argsList.remove(i); // note that this shifts objects in arraylist
+                // check if next string valid (i.e. no dash)
+                if (((String)argsList.get(i)).startsWith("-")) {
+                    System.out.println("Bad command line option: "+ option +" "+ argsList.get(i+1));
+                    return null;
+                }
+                return (String)argsList.remove(i);
+            }
+        }
+        return null;
+    }
+    
+    /** open any libraries specified on the command line.  This method should be 
+     * called after any valid options have been parsed out
+     */
+    private static boolean openCommandLineLibs(ArrayList argsList)
+    {
+        boolean openedALib = false;
+        for (int i=0; i<argsList.size(); i++) {
+            String arg = (String)argsList.get(i);
+            if (arg.startsWith("-")) {
+                System.out.println("Command line option "+arg+" not understood, ignoring.");
+                continue;
+            }
+            System.out.println("Opening library "+arg);
+    		UserMenuCommands.ReadBinaryLibrary job = new UserMenuCommands.ReadBinaryLibrary(arg);
+            openedALib = true;
+        }
+        return openedALib;
+    }
+    
 	/**
 	 * Class to init all technologies.
 	 */
@@ -88,7 +157,7 @@ public final class UserInitial
 			Technology.initAllTechnologies();
 		}
 	}
-
+    
 	/**
 	 * Class to read a library in a new thread.
 	 */
@@ -348,7 +417,6 @@ public final class UserInitial
 //			instanceArc.getInfo();
 
 			// display a cell
-			WindowFrame window1 = WindowFrame.createEditWindow(myCell);
 		}
 	}
 

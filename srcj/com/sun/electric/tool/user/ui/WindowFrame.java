@@ -71,15 +71,16 @@ public class WindowFrame
 
 		// initialize the frame
 		Dimension frameSize = new Dimension(800, 500);
+        String cellDescription = (cell == null) ? "no cell" : cell.describe();
 		if (TopLevel.isMDIMode())
 		{
-			frame.jif = new JInternalFrame(cell.describe(), true, true, true, true);
+			frame.jif = new JInternalFrame(cellDescription, true, true, true, true);
 			frame.jif.setSize(frameSize);
 			frame.jif.setLocation(windowOffset+150, windowOffset);
 			frame.jif.setAutoscrolls(true);
 		} else
 		{
-			frame.jf = new TopLevel("Electric - "+cell.describe(), frameSize);
+			frame.jf = new TopLevel("Electric - "+cellDescription, frameSize);
 			frame.jf.setSize(frameSize);
 			frame.jf.setLocation(windowOffset+150, windowOffset);
 		}
@@ -87,7 +88,7 @@ public class WindowFrame
 		if (windowOffset > 300) windowOffset = 0;
 
 		// the right half: an edit window
-		frame.wnd = EditWindow.CreateElectricDoc(cell);
+		frame.wnd = EditWindow.CreateElectricDoc(cell, frame);
 
 		// the left half: an explorer tree in a scroll pane
 		root.removeAllChildren();
@@ -179,5 +180,16 @@ public class WindowFrame
             wf.tree.treeDidChange();
 		}
 	}
+    
+    /**
+     * Routine to set the description on the window frame
+     */
+    public void setTitle(String title)
+    {
+        if (TopLevel.isMDIMode())
+            jif.setTitle(title);
+        else
+            jf.setTitle(title);
+    }
   
 }

@@ -100,7 +100,7 @@ public class Spice
 		EditWindow wnd = TopLevel.getCurrentEditWindow();
 		if (wnd == null) return;
 		if (wnd.getCell() == null) return;
-		String fileName = DialogOpenFile.ELIB.chooseOutputFile(wnd.getCell().getProtoName());
+		String fileName = DialogOpenFile.chooseOutputFile(DialogOpenFile.SPI, null, wnd.getCell().getProtoName());
 		if (fileName != null)
 		{
 			// start a job to do the deck writing

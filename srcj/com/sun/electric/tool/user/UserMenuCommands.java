@@ -35,6 +35,8 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -227,6 +229,10 @@ public final class UserMenuCommands
             new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
 		Menu compactionSubMenu = Menu.createMenu("Compaction", 'C');
 		toolMenu.add(compactionSubMenu);
+        Menu languagesSubMenu = Menu.createMenu("Languages");
+        languagesSubMenu.addMenuItem("Run Java Bean Shell Script", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { javaBshScriptCommand(); }});
+        toolMenu.add(languagesSubMenu);
 
 		// setup the Help menu
 		Menu helpMenu = Menu.createMenu("Help", 'H');
@@ -284,7 +290,7 @@ public final class UserMenuCommands
 	 */
 	public static void openLibraryCommand()
 	{
-		String fileName = DialogOpenFile.ELIB.chooseInputFile(null);
+		String fileName = DialogOpenFile.chooseInputFile(DialogOpenFile.ELIB, null);
 		if (fileName != null)
 		{
 			// start a job to do the input
@@ -315,6 +321,15 @@ public final class UserMenuCommands
 			Cell cell = lib.getCurCell();
 			if (cell == null) System.out.println("No current cell in this library"); else
 			{
+                // check if edit window open with null cell, use that one if exists
+                for (Iterator it = WindowFrame.getWindows(); it.hasNext(); ) {
+                    WindowFrame wf = (WindowFrame)it.next();
+                    EditWindow wnd = wf.getEditWindow();
+                    if (wnd.getCell() == null) {
+                        wnd.setCell(cell, VarContext.globalContext);
+                        return;
+                    }
+                }
 				WindowFrame.createEditWindow(cell);
 			}
 		}
@@ -325,7 +340,7 @@ public final class UserMenuCommands
 	 */
 	public static void importLibraryCommand()
 	{
-		String fileName = DialogOpenFile.TEXT.chooseInputFile(null);
+		String fileName = DialogOpenFile.chooseInputFile(DialogOpenFile.TEXT, null);
 		if (fileName != null)
 		{
 			// start a job to do the input
@@ -372,7 +387,7 @@ public final class UserMenuCommands
 			fileName = lib.getLibFile();
 		} else
 		{
-			fileName = DialogOpenFile.ELIB.chooseOutputFile(lib.getLibName()+".elib");
+			fileName = DialogOpenFile.chooseOutputFile(DialogOpenFile.ELIB, null, lib.getLibName()+".elib");
 			if (fileName != null)
 			{
 				Library.Name n = Library.Name.newInstance(fileName);
@@ -833,6 +848,18 @@ public final class UserMenuCommands
 		PadGenerator gen = new PadGenerator();
 		gen.ArrayFromFile();
 	}
+    
+    public static void javaBshScriptCommand()
+    {
+		String fileName = DialogOpenFile.chooseInputFile(DialogOpenFile.JAVA, null);
+		if (fileName != null)
+		{
+			// start a job to run the script
+            EvalJavaBsh.tool.runScript(fileName);
+        }
+        
+        
+    }
 
     // ---------------------- THE HELP MENU -----------------
 

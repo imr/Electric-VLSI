@@ -3401,7 +3401,7 @@ public class ToolOptions extends javax.swing.JDialog
 
 	private void spiceModelFileBrowseActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_spiceModelFileBrowseActionPerformed
 	{//GEN-HEADEREND:event_spiceModelFileBrowseActionPerformed
-		String fileName = DialogOpenFile.ANY.chooseInputFile(null);
+		String fileName = DialogOpenFile.chooseInputFile(DialogOpenFile.ANY, null);
 		if (fileName == null) return;
 		spiceModelCell.setText(fileName);
 		spiceUseModelFromFile.setSelected(true);
@@ -3409,7 +3409,7 @@ public class ToolOptions extends javax.swing.JDialog
 
 	private void spiceBrowseTrailerFileActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_spiceBrowseTrailerFileActionPerformed
 	{//GEN-HEADEREND:event_spiceBrowseTrailerFileActionPerformed
-		String fileName = DialogOpenFile.ANY.chooseInputFile(null);
+		String fileName = DialogOpenFile.chooseInputFile(DialogOpenFile.ANY, null);
 		if (fileName == null) return;
 		spiceTrailerCardFile.setText(fileName);
 		spiceTrailerCardsFromFile.setSelected(true);
@@ -3417,7 +3417,7 @@ public class ToolOptions extends javax.swing.JDialog
 
 	private void spiceBrowseHeaderFileActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_spiceBrowseHeaderFileActionPerformed
 	{//GEN-HEADEREND:event_spiceBrowseHeaderFileActionPerformed
-		String fileName = DialogOpenFile.ANY.chooseInputFile(null);
+		String fileName = DialogOpenFile.chooseInputFile(DialogOpenFile.ANY, null);
 		if (fileName == null) return;
 		spiceHeaderCardFile.setText(fileName);
 		spiceHeaderCardsFromFile.setSelected(true);

@@ -102,6 +102,7 @@ public class EditWindow extends JPanel
     /** the cell that is in the window */					private Cell cell;
     /** Cell's VarContext */                                private VarContext cellVarContext;
     /** the offscreen image of the window */				private Image img = null;
+    /** the window frame containing this editwindow */      private WindowFrame wf;
 	/** true if the window needs to be rerendered */		private boolean needsUpdate = false;
 	/** true to track the time for redraw */				private boolean trackTime = false;
 	/** true if showing grid in this window */				private boolean showGrid = false;
@@ -126,11 +127,12 @@ public class EditWindow extends JPanel
     // ************************************* CONTROL *************************************
 
     // constructor
-    private EditWindow(Cell cell)
+    private EditWindow(Cell cell, WindowFrame wf)
 	{
         //super(cell.describe(), true, true, true, true);
         this.cell = cell;
         this.cellVarContext = VarContext.globalContext;
+        this.wf = wf;
         
 		sz = new Dimension(500, 500);
 		setSize(sz.width, sz.height);
@@ -143,9 +145,9 @@ public class EditWindow extends JPanel
 	}
 
 	// factory
-	public static EditWindow CreateElectricDoc(Cell cell)
+	public static EditWindow CreateElectricDoc(Cell cell, WindowFrame wf)
 	{
-		EditWindow ui = new EditWindow(cell);
+		EditWindow ui = new EditWindow(cell, wf);
 		return ui;
 	}
 
@@ -185,10 +187,9 @@ public class EditWindow extends JPanel
 
 		// to enable keys to be recieved
 		requestFocus();
-
+        
 		if (img == null || !getSize().equals(sz))
 		{
-			if (cell == null) return;
 			sz = getSize();
 			img = createImage(sz.width, sz.height);
 			fillScreen();
@@ -200,7 +201,9 @@ public class EditWindow extends JPanel
 		}
 		g2.drawImage(img, 0, 0, this);
 
-		// add in grid
+        if (cell == null) return;
+
+        // add in grid
 		if (showGrid) drawGrid(g2);
 
 		// add in highlighting
@@ -1133,6 +1136,7 @@ public class EditWindow extends JPanel
 		Highlight.finished();
 		fillScreen();
 		redraw();
+        wf.setTitle(cell.describe());
 	}
 	
 	public boolean isDoingAreaDrag() { return doingAreaDrag; }

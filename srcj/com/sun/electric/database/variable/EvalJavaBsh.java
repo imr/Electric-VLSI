@@ -30,6 +30,8 @@
 package com.sun.electric.database.variable;
 
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.Job;
 
 import bsh.Interpreter;
 import bsh.InterpreterError;
@@ -37,6 +39,8 @@ import bsh.InterpreterError;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.util.Stack;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 /**
  * Used for evaluating Java expressions in Variables
@@ -46,7 +50,7 @@ import java.util.Stack;
  *
  * @author  gainsley
  */
-public class EvalJavaBsh {
+public class EvalJavaBsh extends Tool {
     
     // ------------------------ private data ------------------------------------
         
@@ -65,24 +69,25 @@ public class EvalJavaBsh {
     
     /** the contructor */
     private EvalJavaBsh() {
-        init();
+        super("EvalJavaBsh");
     }
     
     /** Initialize bean shell */
-    private void init() {
+    public void init() {
         env = new Interpreter();
         try {
             env.set("evalJavaBsh", this);
             env.eval("Object P(String par) { return evalJavaBsh.P(par); }");
+            env.eval("Object PAR(String par) { return evalJavaBsh.PAR(par); }");
+            
+            // the following is for running scripts
+            env.eval("import com.sun.electric.tool.user.UserMenuCommands;");
 
-            //env.eval("Object P(String par) { context = evalContextStack.peek(); return context.lookupVarEval(par); }");
-            //env.eval("Object PAR(String par) { context = evalContextStack.peek(); return context.lookupVarFarEval(par); }");
-            //env.set("context", VarContext.globalContext);
         } catch (bsh.EvalError e) {
             handleBshError(e);
         }
     }
-    
+     
     /** Handle errors.  Sends it to system.out */
     protected void handleBshError(bsh.EvalError e) {
         System.out.println("Bean Shell eval error: " + e.getMessage());
@@ -181,4 +186,35 @@ public class EvalJavaBsh {
         VarContext context = (VarContext)contextStack.peek();
         return context.lookupVarFarEval(name);
     }
+    
+    //---------------------------Running Scripts-------------------------------------
+    
+    
+    /** Run a Java Bean Shell script */
+    public void runScript(String script) {
+        runScriptJob job = new runScriptJob(script);
+    }
+     
+    private class runScriptJob extends Job
+    {
+        String script;
+        protected runScriptJob(String script) {
+            super("JavaBsh script: "+script, EvalJavaBsh.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.script = script;
+            this.startJob();
+        }
+
+        public void doIt() {
+            try {
+                env.source(script);
+            } catch (bsh.EvalError e) {
+                handleBshError(e);
+            } catch (FileNotFoundException e) {
+                System.out.println("Cannot run Java Bean Shell script '"+script+"': "+e.getMessage());
+            } catch (IOException e) {
+                System.out.println("IO Error trying to run Java Bean Shell script '"+script+"': "+e.getMessage());
+            }
+        }
+    }
+       
 }

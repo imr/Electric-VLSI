@@ -33,6 +33,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.simulation.Simulation;
@@ -92,6 +93,7 @@ public class Tool extends ElectricObject implements Change
 	{
 		// Because of lazy evaluation, tools aren't initialized unless they're referenced here
 		User.tool.init();
+        EvalJavaBsh.tool.init();
         // Init LEtool -> must be initialized after EvalJavaBash init() runs, 
         // otherwise Interpreter will be null
         LETool.tool.init();

@@ -758,7 +758,7 @@ public class PaletteFrame
 			double offx = 0;   // (so.getHighXOffset() - so.getLowXOffset()) / 2;
 			double offy = 0;   // (so.getHighYOffset() - so.getLowYOffset()) / 2;
 			g2.translate(-offx, -offy);
-			EditWindow w = EditWindow.CreateElectricDoc(null);
+			EditWindow w = EditWindow.CreateElectricDoc(null, null);
 			w.setScale(scale);
 			w.drawNode(g2, ni, new AffineTransform(), true);
 		}
@@ -828,7 +828,7 @@ public class PaletteFrame
 				g2.scale(scale, -scale);
 				double offx = 0, offy = 0;
 				g2.translate(-offx, -offy);
-				EditWindow w = EditWindow.CreateElectricDoc(null);
+				EditWindow w = EditWindow.CreateElectricDoc(null, null);
 				w.setScale(scale);
 				w.drawArc(g2, ai, new AffineTransform(), true);
 			}

@@ -174,6 +174,8 @@ public class NodeInst extends Geometric implements Nodable
 	public static NodeInst newInstance(NodeProto protoType, Point2D center, double width, double height,
 		int angle, Cell parent, String name)
 	{
+        if (parent == null) return null;
+        
 		if (protoType instanceof Cell)
 		{
 			if (((Cell)protoType).isAChildOf(parent))

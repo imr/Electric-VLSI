@@ -35,15 +35,22 @@ public class DialogOpenFile extends JFileChooser
 {
 	static class EFileFilter extends FileFilter
 	{
-		String desc;
-		List extensions;
-
+		/** description of filter */        private String desc;
+		/** list of valid extensions */     private String[] extensions;
+        /** List of all filters */          private static ArrayList allFilters = new ArrayList();
+        
 		/** Creates a new instance of EFileFilter */
-		public EFileFilter()
+		public EFileFilter(String[] extensions, String desc)
 		{
-			extensions = new ArrayList();
+            this.extensions = extensions;
+            this.desc = desc;
+            EFileFilter.allFilters.add(this);
 		}
 
+        /** Returns true if file has extension matching any of
+         * extensions is @param extensions.  Also returns true
+         * if file is a directory.  Returns false otherwise
+         */
 		public boolean accept(java.io.File f)
 		{
 			if (f == null) return false;
@@ -53,19 +60,20 @@ public class DialogOpenFile extends JFileChooser
 			if (i < 0) return false;
 			String thisExtension = filename.substring(i+1);
 			if (thisExtension == null) return false;
-			for(Iterator it = extensions.iterator(); it.hasNext(); )
-			{
-				String extension = (String)it.next();
+            if (extensions.length == 0) return true;     // special case for ANY
+            for (int j=0; j<extensions.length; j++) 
+            {
+				String extension = extensions[j];
 				if (extension.equalsIgnoreCase(thisExtension)) return true;
 			}
 			return false;
 		}
 
-		public void addExtension(String extension)
-		{
-			extensions.add(extension);
-		}
-
+        public static ArrayList getAllFilters()
+        {
+            return allFilters;
+        }
+        
 		public String getDescription()
 		{
 			return desc;
@@ -76,68 +84,92 @@ public class DialogOpenFile extends JFileChooser
 			this.desc = desc;
 		}
 	}
+        
+	public static final EFileFilter ANY  = null;                    // default to built-in filter "All Files"
+	public static final EFileFilter TEXT = new EFileFilter(new String[] {"txt"}, "Text File (txt)");
+	public static final EFileFilter ELIB = new EFileFilter(new String[] {"elib"}, "Library File (elib)");
+    public static final EFileFilter SPI  = new EFileFilter(new String[] {"spi", "sp"}, "Spice Deck (spi, sp)");
+    public static final EFileFilter JAVA = new EFileFilter(new String[] {"java", "bsh"}, "Java Script File (java, bsh)");
+    public static final EFileFilter ARR  = new EFileFilter(new String[] {"arr"}, "Pad Generator Array File (arr)");
 
-	/** The file extension associated with this dialog */			private String extension;
-	/** The description of files associated with this dialog */		private String description;
 	/** True if this is a file save dialog */						private boolean saveDialog;
+    /** Remember last directory used */                             private static File fileChooserDir = initDir();
+    /** single dialog box...cause it takes so long to pop up */     private static DialogOpenFile dialog = new DialogOpenFile();
 
-	public static final DialogOpenFile ANY = new DialogOpenFile(null, "Any File");
-	public static final DialogOpenFile TEXT = new DialogOpenFile("txt", "Text File");
-	public static final DialogOpenFile ELIB = new DialogOpenFile("elib", "Library File");
-
-	/**
-	 * Constructor creates a link to files with the extension "extension" and
-	 * description "description".
-	 *
-	 * After construction, the "chooseInputFile()" or "chooseOutputFile()" methods
-	 * may be called to return a selected input or output file.
-	 */
-	public DialogOpenFile(String extension, String description)
-	{
-		this.extension = extension;
-		this.description = description;
-	}
-
-	/**
-	 * Routine to invoke an "open file" dialog and return the selected file.
-	 */
-	public String chooseInputFile(String newDescription)
-	{
-		saveDialog = false;
-		if (newDescription == null) setDialogTitle("Read " + description); else
-			setDialogTitle(newDescription);
-		if (extension != null)
-		{
-			EFileFilter filter = new EFileFilter();
-			filter.addExtension(extension);
-			filter.setDescription(description);
-			setFileFilter(filter);
-		}
-		int returnVal = showOpenDialog(null);
+    /** Private constructor, use factory methods chooseInputFile or
+     * chooseOutputFile instead.
+     */
+    private DialogOpenFile()
+    {
+        // add list of file filters to this dialog
+        for (Iterator it = EFileFilter.getAllFilters().iterator(); it.hasNext(); )
+            addChoosableFileFilter((EFileFilter)it.next());
+    }
+    
+    /**
+     * Routine to set the default directory to browse.  The default is the
+     * System property "user.dir", which is the current working directory.
+     * If that is unavailable, null is returned (which makes the JFileChooser
+     * use the user's home dir (unix) or My Documents (windows).
+     */
+    private static File initDir()
+    {
+        String cwd = java.lang.System.getProperty("user.dir");
+        if (cwd == null) return null;
+        return new File(cwd);
+    }
+        
+    /**
+     * Factory method to create a new open dialog box using the
+     * default EFileFilter @param filter.
+     * @param Used to filter file types. Defaults to ANY if null.
+     * @param title dialog title to use; if null uses "Open 'filetype'".
+     */
+    public static String chooseInputFile(FileFilter filter, String title)
+    {
+        dialog.saveDialog = false;
+        
+        if (title == null) dialog.setDialogTitle("Open " + filter.getDescription()); else
+            dialog.setDialogTitle(title);
+        // note that if filter is null it defaults to the built in filter "All Files"
+        dialog.setFileFilter(filter);
+        
+        dialog.setCurrentDirectory(fileChooserDir);
+		int returnVal = dialog.showOpenDialog(null);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
-			File file = getSelectedFile();
+			File file = dialog.getSelectedFile();
 			return file.getPath();
 		}
 		return null;
-	}
+    }
+    
 
-	/**
-	 * Routine to invoke a "save file" dialog and return the selected file.
-	 */
-	public String chooseOutputFile(String defaultFile)
+    /**
+     * Factory method to create a new save dialog box using the
+     * default EFileFilter @param filter.
+     * @param Used to filter file types. Defaults to ANY if null.
+     * @param title dialog title to use; if null uses "Write 'filetype'".
+     * @param defaultFile default file name to write.
+     */
+	public static String chooseOutputFile(FileFilter filter, String title, String defaultFile)
 	{
-		saveDialog = true;
-		setDialogTitle("Write " + description);
-		EFileFilter filter = new EFileFilter();
-		if (extension != null) filter.addExtension(extension);
-		filter.setDescription(description);
-		setFileFilter(filter);
-		setSelectedFile(new File(defaultFile));
-		int returnVal = showSaveDialog(null);
+        dialog.saveDialog = true;
+        
+        if (title == null) dialog.setDialogTitle("Write " + filter.getDescription()); else
+            dialog.setDialogTitle(title);
+        // note that if filter is null it defaults to the built in filter "All Files"
+        dialog.setFileFilter(filter);
+        
+        dialog.setCurrentDirectory(fileChooserDir);
+
+		dialog.setFileFilter(filter);
+		dialog.setSelectedFile(new File(defaultFile));
+        dialog.setCurrentDirectory(fileChooserDir);
+		int returnVal = dialog.showSaveDialog(null);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
-			File file = getSelectedFile();
+			File file = dialog.getSelectedFile();
 			return file.getPath();
 		}
 		return null;
@@ -161,6 +193,7 @@ public class DialogOpenFile extends JFileChooser
 			}
 		}
 		setSelectedFile(f);
+        fileChooserDir = getCurrentDirectory();
 		super.approveSelection();
 	}
 }

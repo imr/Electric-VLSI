@@ -94,8 +94,8 @@ public class TopLevel extends JFrame
 	public TopLevel(String name, Dimension screenSize)
 	{
 		super(name);
-		addWindowListener(new WindowsEvents(this));
-		addWindowFocusListener(new WindowsEvents(this));
+		//addWindowListener(new WindowsEvents(this));
+		//addWindowFocusListener(new WindowsEvents(this));
 		setSize(screenSize);
 		getContentPane().setLayout(new BorderLayout());
 		setVisible(true);

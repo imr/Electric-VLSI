@@ -1453,7 +1453,7 @@ public class InputBinary extends Input
 			{
 				System.out.println("CANNOT FIND referenced library " + libFile.getPath());
 				String description = "Reference library '" + libFileName + "'";
-				String pt = DialogOpenFile.ELIB.chooseInputFile(description);
+				String pt = DialogOpenFile.chooseInputFile(DialogOpenFile.ELIB, description);
 				if (pt != null) externalFile = pt;
 			}
 			if (externalFile != null)
@@ -2317,7 +2317,7 @@ public class InputBinary extends Input
 			int data = dataInputStream.readShort();
 			if (!bytesSwapped)
 				data = ((data >> 8) & 0xFF) | ((data & 0xFF) << 8);
-			return data;
+			return (short)data;
 		}
 		readBytes(rawData, sizeOfSmall, 2, true);
 		if (bytesSwapped)

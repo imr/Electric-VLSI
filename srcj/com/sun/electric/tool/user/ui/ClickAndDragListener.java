@@ -54,6 +54,8 @@ class ClickAndDragListener
 		oldx = evt.getX();
 		oldy = evt.getY();
 		EditWindow wnd = (EditWindow)evt.getSource();
+		Cell cell = wnd.getCell();
+        if (cell == null) return;
 
 		// show "get info" on double-click
 		if (evt.getClickCount() == 2)
@@ -104,6 +106,7 @@ class ClickAndDragListener
 	{
 		EditWindow wnd = (EditWindow)evt.getSource();
 		Cell cell = wnd.getCell();
+        if (cell == null) return;
 
 		// handle dragging out a selection rectangle
 		if (wnd.isDoingAreaDrag())
@@ -151,6 +154,8 @@ class ClickAndDragListener
 		int newX = evt.getX();
 		int newY = evt.getY();
 		EditWindow wnd = (EditWindow)evt.getSource();
+		Cell cell = wnd.getCell();
+        if (cell == null) return;
 
 		// handle moving the selected objects
 		if (doingMotionDrag)
@@ -182,7 +187,10 @@ class ClickAndDragListener
 	{
 		int chr = evt.getKeyCode();
 		EditWindow wnd = (EditWindow)evt.getSource();
-		if (chr == KeyEvent.VK_F)
+		Cell cell = wnd.getCell();
+        if (cell == null) return;
+
+        if (chr == KeyEvent.VK_F)
 		{
 			System.out.println("doing full display...");
 			UserMenuCommands.fullDisplayCommand();
@@ -210,7 +218,7 @@ class ClickAndDragListener
 
 	private void moveSelected(EditWindow wnd, double dX, double dY)
 	{
-		// scale distance according to arrow motion
+        // scale distance according to arrow motion
 		double arrowDistance = ToolBar.getArrowDistance();
 		dX *= arrowDistance;
 		dY *= arrowDistance;

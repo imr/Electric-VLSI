@@ -557,8 +557,7 @@ public class PadGenerator
 
 	public void ArrayFromFile()
 	{
-		DialogOpenFile arrayFileType = new DialogOpenFile("arr", "Pad Generator Array File");
-		String fileName = arrayFileType.chooseInputFile(null);
+        String fileName = DialogOpenFile.chooseInputFile(DialogOpenFile.ARR, null);
 		if (fileName == null)
 		{
 			System.out.println("File not found");
