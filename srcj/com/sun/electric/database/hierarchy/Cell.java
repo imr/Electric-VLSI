@@ -1165,9 +1165,14 @@ public class Cell extends NodeProto
 		int nodeIndex = ni.getNodeIndex();
 		int lastNode = nodes.size() - 1;
 		if (nodeIndex == lastNode)
+		{
 			nodes.remove(nodeIndex);
-		else
-			nodes.set(nodeIndex, nodes.remove(lastNode));
+		} else
+		{
+			NodeInst lastNi = (NodeInst) nodes.remove(lastNode);
+			nodes.set(nodeIndex, lastNi);
+			lastNi.setNodeIndex(nodeIndex);
+		}
 		ni.setNodeIndex(-1);
 
 		// must recompute the bounds of the cell
@@ -1272,9 +1277,14 @@ public class Cell extends NodeProto
 		int arcIndex = ai.getArcIndex();
 		int lastArc = arcs.size() - 1;
 		if (arcIndex == lastArc)
+		{
 			arcs.remove(arcIndex);
-		else
-			arcs.set(arcIndex, arcs.remove(lastArc));
+		} else
+		{
+			ArcInst lastAi = (ArcInst) arcs.remove(lastArc);
+			arcs.set(arcIndex, lastAi);
+			lastAi.setArcIndex(arcIndex);
+		}
 		ai.setArcIndex(-1);
 
 		// must recompute the bounds of the cell
