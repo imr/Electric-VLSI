@@ -63,6 +63,7 @@ public class LayerVisibility extends EDialog
 	private JList layerList;
 	private DefaultListModel layerListModel;
 	private HashMap visibility;
+	private HashMap highlighted;
 	private List layersInList;
 	private boolean initialTextOnNode;
 	private boolean initialTextOnArc;
@@ -71,6 +72,7 @@ public class LayerVisibility extends EDialog
 	private boolean initialTextOnAnnotation;
 	private boolean initialTextOnInstance;
 	private boolean initialTextOnCell;
+	private boolean showHighlighted;
 
 	// 3D view. Static values to avoid unnecessary calls
 	private static final Class view3DClass = Resources.get3DMainClass();
@@ -108,8 +110,21 @@ public class LayerVisibility extends EDialog
 			public void mouseClicked(MouseEvent e) { apply(e); }
 		});
 
+		// cache dimming
+		boolean noDimming = true;
+		for(Iterator it = Technology.getTechnologiesSortedByName().iterator(); it.hasNext(); )
+		{
+			Technology tech = (Technology)it.next();
+			for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
+			{
+				Layer layer = (Layer)lIt.next();
+				if (layer.isDimmed()) noDimming = false;
+			}
+		}
+
 		// cache visibility
 		visibility = new HashMap();
+		highlighted = new HashMap();
 		for(Iterator it = Technology.getTechnologiesSortedByName().iterator(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
@@ -118,6 +133,8 @@ public class LayerVisibility extends EDialog
 				Layer layer = (Layer)lIt.next();
 				if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
 				visibility.put(layer, new Boolean(layer.isVisible()));
+				if (noDimming) highlighted.put(layer, new Boolean(false)); else
+					highlighted.put(layer, new Boolean(!layer.isDimmed()));
 			}
 		}
 
@@ -159,7 +176,9 @@ public class LayerVisibility extends EDialog
 		if (layerVisible.booleanValue()) layerName.append("\u2713 "); else
 			layerName.append("  ");
 		if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) layerName.append(" (for pins)");
+		Boolean layerHighlighted = (Boolean)highlighted.get(layer);
 		layerName.append(layer.getName());
+		if (layerHighlighted.booleanValue()) layerName.append(" (HIGHLIGHTED)");
 		return layerName.toString();
 	}
 
@@ -177,6 +196,27 @@ public class LayerVisibility extends EDialog
 				int line = indices[i];
 				setVisibility(line, !isLineChecked(line));
 			}
+		}
+	}
+
+	/**
+	 * Method to clear all highlighting.
+	 */
+	private void clearAllHighlight()
+	{
+		for(int i=0; i<layerListModel.size(); i++)
+		{
+			changeHighlighted(i, 0);
+		}
+	}
+
+	private void toggleHighlight()
+	{
+		int [] indices = layerList.getSelectedIndices();
+		for(int i=0; i<indices.length; i++)
+		{
+			int line = indices[i];
+			changeHighlighted(line, 1);
 		}
 	}
 
@@ -241,11 +281,54 @@ public class LayerVisibility extends EDialog
 		layerListModel.set(i, lineName(layer));
 	}
 
+	/**
+	 * Method to change a line of the layer list.
+	 * @param i the line number to change.
+	 * @param how 1: toggle highlighting; 0: clear highlighting.
+	 */
+	private void changeHighlighted(int i, int how)
+	{
+		// find the layer on the given line
+		String name = (String)layerListModel.get(i);
+		if (name != null) name = name.substring(2);
+		String techName = (String)technology.getSelectedItem();
+		Technology tech = Technology.findTechnology(techName);
+		int spacePos = name.indexOf(' ');
+		if (spacePos >= 0) name = name.substring(0, spacePos);
+		Layer layer = tech.findLayer(name);
+		if (layer == null)
+		{
+			System.out.println("Can't find "+name);
+			return;
+		}
+
+		// remember the state of this layer
+		boolean newState = false;
+		if (how == 1) newState = !((Boolean)highlighted.get(layer)).booleanValue();
+		highlighted.put(layer, new Boolean(newState));
+
+		// update the list
+		layerListModel.set(i, lineName(layer));
+	}
+
 	protected void escapePressed() { cancelActionPerformed(null); }
 
 	private void termDialog()
 	{
-		// update visibility
+		// see if anything was highlighted
+		boolean anyHighlighted = false;
+		for(Iterator it = Technology.getTechnologiesSortedByName().iterator(); it.hasNext(); )
+		{
+			Technology tech = (Technology)it.next();
+			for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
+			{
+				Layer layer = (Layer)lIt.next();
+                Boolean layerHighlighted = (Boolean)highlighted.get(layer.getNonPseudoLayer());
+                if (layerHighlighted != null && layerHighlighted.booleanValue()) anyHighlighted = true;
+			}
+		}
+
+		// update visibility and highlighting
 		for(Iterator it = Technology.getTechnologiesSortedByName().iterator(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
@@ -253,25 +336,42 @@ public class LayerVisibility extends EDialog
 			{
 				Layer layer = (Layer)lIt.next();
 				Boolean layerVis = (Boolean)visibility.get(layer.getNonPseudoLayer());
-                if (layerVis == null) continue;
-                if (layer.isVisible() != layerVis.booleanValue())
-                	layer.setVisible(layerVis.booleanValue());
+                if (layerVis != null)
+                {
+	                if (layer.isVisible() != layerVis.booleanValue())
+	                	layer.setVisible(layerVis.booleanValue());
 
-				// 3D appearance if available
-				Object obj3D = layer.getGraphics().get3DAppearance();
-				if (obj3D != null)
-				{
-					try
+					// 3D appearance if available
+					Object obj3D = layer.getGraphics().get3DAppearance();
+					if (obj3D != null)
 					{
-						if (setVisibilityMethod == null) setVisibilityMethod = view3DClass.getDeclaredMethod("set3DVisibility", new Class[] {Object.class, Boolean.class});
-						setVisibilityMethod.invoke(view3DClass, new Object[]{obj3D, layerVis});
-					} catch (Exception e) {
-						System.out.println("Cannot call 3D plugin method set3DVisibility: " + e.getMessage());
+						try
+						{
+							if (setVisibilityMethod == null) setVisibilityMethod = view3DClass.getDeclaredMethod("set3DVisibility", new Class[] {Object.class, Boolean.class});
+							setVisibilityMethod.invoke(view3DClass, new Object[]{obj3D, layerVis});
+						} catch (Exception e) {
+							System.out.println("Cannot call 3D plugin method set3DVisibility: " + e.getMessage());
+						}
 					}
-				}
+                }
+
+                Boolean layerHighlighted = (Boolean)highlighted.get(layer.getNonPseudoLayer());
+                if (layerHighlighted != null)
+                {
+                	boolean newState = false;
+                	if (anyHighlighted && !layerHighlighted.booleanValue()) newState = true;
+                	if (newState != layer.isDimmed()) layer.setDimmed(newState);
+                }
 			}
 		}
 
+//System.out.print("Dim layers in "+Technology.getCurrent().getTechName()+":");
+//for(Iterator it = Technology.getCurrent().getLayers(); it.hasNext(); )
+//{
+// Layer l = (Layer)it.next();
+// if (l.isDimmed()) System.out.print(" "+l.getName());
+//}
+//System.out.println();
 		// recompute visibility of primitive nodes and arcs
 		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
@@ -365,6 +465,9 @@ public class LayerVisibility extends EDialog
         makeInvisible = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JSeparator();
         jSeparator2 = new javax.swing.JSeparator();
+        toggleHighlight = new javax.swing.JButton();
+        unhighlightAll = new javax.swing.JButton();
+        jSeparator3 = new javax.swing.JSeparator();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -389,7 +492,7 @@ public class LayerVisibility extends EDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 20;
+        gridBagConstraints.gridy = 22;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 0.5;
@@ -406,7 +509,7 @@ public class LayerVisibility extends EDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 19;
+        gridBagConstraints.gridy = 21;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 0.5;
         getContentPane().add(ok, gridBagConstraints);
@@ -450,7 +553,7 @@ public class LayerVisibility extends EDialog
         nodeText.setText("Node text");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 14;
+        gridBagConstraints.gridy = 16;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(nodeText, gridBagConstraints);
@@ -458,7 +561,7 @@ public class LayerVisibility extends EDialog
         arcText.setText("Arc text");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 15;
+        gridBagConstraints.gridy = 17;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(arcText, gridBagConstraints);
@@ -466,7 +569,7 @@ public class LayerVisibility extends EDialog
         portText.setText("Port text");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 16;
+        gridBagConstraints.gridy = 18;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(portText, gridBagConstraints);
@@ -474,7 +577,7 @@ public class LayerVisibility extends EDialog
         exportText.setText("Export text");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 16;
+        gridBagConstraints.gridy = 18;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(exportText, gridBagConstraints);
@@ -482,7 +585,7 @@ public class LayerVisibility extends EDialog
         annotationText.setText("Annotation text");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 15;
+        gridBagConstraints.gridy = 17;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(annotationText, gridBagConstraints);
@@ -490,7 +593,7 @@ public class LayerVisibility extends EDialog
         instanceNames.setText("Instance names");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 14;
+        gridBagConstraints.gridy = 16;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(instanceNames, gridBagConstraints);
@@ -498,7 +601,7 @@ public class LayerVisibility extends EDialog
         cellText.setText("Cell text");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 17;
+        gridBagConstraints.gridy = 19;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         getContentPane().add(cellText, gridBagConstraints);
@@ -545,7 +648,7 @@ public class LayerVisibility extends EDialog
         jLabel4.setText("Text visibility options:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 13;
+        gridBagConstraints.gridy = 15;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(jLabel4, gridBagConstraints);
@@ -561,7 +664,7 @@ public class LayerVisibility extends EDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 19;
+        gridBagConstraints.gridy = 21;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(cancel, gridBagConstraints);
 
@@ -595,7 +698,7 @@ public class LayerVisibility extends EDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 12;
+        gridBagConstraints.gridy = 14;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -603,14 +706,61 @@ public class LayerVisibility extends EDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 18;
+        gridBagConstraints.gridy = 20;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(jSeparator2, gridBagConstraints);
 
+        toggleHighlight.setText("Toggle Highlight");
+        toggleHighlight.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                toggleHighlightActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 13;
+        getContentPane().add(toggleHighlight, gridBagConstraints);
+
+        unhighlightAll.setText("Unhighlight All");
+        unhighlightAll.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                unhighlightAllActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 13;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(unhighlightAll, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 12;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(jSeparator3, gridBagConstraints);
+
         pack();
     }//GEN-END:initComponents
+
+	private void toggleHighlightActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_toggleHighlightActionPerformed
+	{//GEN-HEADEREND:event_toggleHighlightActionPerformed
+		toggleHighlight();
+	}//GEN-LAST:event_toggleHighlightActionPerformed
+
+	private void unhighlightAllActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_unhighlightAllActionPerformed
+	{//GEN-HEADEREND:event_unhighlightAllActionPerformed
+		clearAllHighlight();
+	}//GEN-LAST:event_unhighlightAllActionPerformed
 
 	private void makeInvisibleActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_makeInvisibleActionPerformed
 	{//GEN-HEADEREND:event_makeInvisibleActionPerformed
@@ -675,6 +825,7 @@ public class LayerVisibility extends EDialog
     private javax.swing.JLabel jLabel4;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
+    private javax.swing.JSeparator jSeparator3;
     private javax.swing.JScrollPane layerPane;
     private javax.swing.JButton makeInvisible;
     private javax.swing.JButton makeVisible;
@@ -682,6 +833,8 @@ public class LayerVisibility extends EDialog
     private javax.swing.JButton ok;
     private javax.swing.JCheckBox portText;
     private javax.swing.JComboBox technology;
+    private javax.swing.JButton toggleHighlight;
+    private javax.swing.JButton unhighlightAll;
     // End of variables declaration//GEN-END:variables
 	
 }

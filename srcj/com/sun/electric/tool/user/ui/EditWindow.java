@@ -159,7 +159,7 @@ public class EditWindow extends JPanel
     /** Mouse-over Highlighter for this window */           private Highlighter mouseOverHighlighter;
 
 	/** list of windows to redraw (gets synchronized) */	private static List redrawThese = new ArrayList();
-	/** list of pan/zoom changes (synchronized) */			private static List zoomAndPanRequests = new ArrayList();
+	/** list of window changes (synchronized) */			private static List windowChangeRequests = new ArrayList();
 	/** true if rendering a window now (synchronized) */	private static EditWindow runningNow = null;
 
 	private static final int SCROLLBARRESOLUTION = 200;
@@ -169,6 +169,18 @@ public class EditWindow extends JPanel
     /** for outlining down-hierarchy in-place bounds */	private static final BasicStroke inPlaceMarker = new BasicStroke(3);
 
 	private static EditWindowDropTarget editWindowDropTarget = new EditWindowDropTarget();
+
+	private static class WindowChangeRequest
+	{
+		private static final int ZOOMREQUEST   = 1;
+		private static final int PANREQUEST    = 2;
+		private static final int RESIZEREQUEST = 3;
+		EditWindow wnd;
+		double offx, offy;
+		Dimension sz;
+		double scale;
+		int requestType;
+	}
 
 	// ************************************* CONSTRUCTION *************************************
 
@@ -783,11 +795,10 @@ public class EditWindow extends JPanel
 		if (offscreen == null || !getSize().equals(sz))
 		{
 			setScreenSize(getSize());
-//System.out.println("Size changed, offscreen="+offscreen);
 			repaintContents(null);
 			return;
 		}
-//System.out.println("PAINT");
+
 		// show the image
 		BufferedImage img = offscreen.getBufferedImage();
 		synchronized(img) { g.drawImage(img, 0, 0, this); };
@@ -889,7 +900,7 @@ public class EditWindow extends JPanel
 		{
 			if (runningNow == null)
 			{
-				if (handleZoomAndPanRequests(this))
+				if (handleWindowChangeRequests(this))
 				{
 					if (!redrawThese.contains(this))
 						redrawThese.add(this);
@@ -937,14 +948,6 @@ public class EditWindow extends JPanel
 		}
 	}
 
-	private static class ZoomAndPanRequest
-	{
-		EditWindow wnd;
-		double offx, offy;
-		double scale;
-		boolean zoomRequest;
-	}
-
 	/**
 	 * Method requests that this EditWindow be redrawn, including a rerendering of the contents.
 	 */
@@ -962,7 +965,7 @@ public class EditWindow extends JPanel
 					redrawThese.add(this);
 				return;
 			}
-			handleZoomAndPanRequests(this);
+			handleWindowChangeRequests(this);
 			runningNow = this;
 		}
 		RenderJob renderJob = new RenderJob(this, offscreen, bounds);
@@ -992,7 +995,6 @@ public class EditWindow extends JPanel
 		public boolean doIt()
 		{
 			// do the hard work of re-rendering the image
-            //long start = System.currentTimeMillis();
             try
             {
 				offscreen.drawImage(bounds);
@@ -1002,24 +1004,9 @@ public class EditWindow extends JPanel
             	ActivityLogger.logException(e);
 				wnd.repaintContents(bounds);
             }
-            //long end = System.currentTimeMillis();
-            //System.out.println("Rerender time "+TextUtils.getElapsedTime(end-start));
-//
-//			// see if anything else is queued
+
 			synchronized(redrawThese)
 			{
-//				if (handleZoomAndPanRequests(wnd))
-//				{
-//					if (!redrawThese.contains(wnd))
-//						redrawThese.add(wnd);
-//				}
-//				if (redrawThese.size() > 0)
-//				{
-//					runningNow = (EditWindow)redrawThese.get(0);
-//					redrawThese.remove(0);
-//					RenderJob nextJob = new RenderJob(runningNow, runningNow.getOffscreen(), null);
-//					return true;
-//				}
 				runningNow = null;
 			}
 			wnd.repaint();
@@ -1928,6 +1915,24 @@ public class EditWindow extends JPanel
 	 */
 	public void setScreenSize(Dimension sz)
 	{
+		// see if the request must be queued
+		if (wf != null)
+		{
+			synchronized (redrawThese)
+			{
+				if (runningNow != null)
+				{
+					// must queue the request
+					WindowChangeRequest zap = new WindowChangeRequest();
+					zap.wnd = this;
+					zap.sz = sz;
+					zap.requestType = WindowChangeRequest.RESIZEREQUEST;
+					windowChangeRequests.add(zap);
+					return;
+				}
+			}
+		}
+
 		this.sz = sz;
 		offscreen = new PixelDrawing(this);
 	}
@@ -1951,11 +1956,11 @@ public class EditWindow extends JPanel
 				if (runningNow != null)
 				{
 					// must queue the request
-					ZoomAndPanRequest zap = new ZoomAndPanRequest();
+					WindowChangeRequest zap = new WindowChangeRequest();
 					zap.wnd = this;
 					zap.scale = scale;
-					zap.zoomRequest = true;
-					zoomAndPanRequests.add(zap);
+					zap.requestType = WindowChangeRequest.ZOOMREQUEST;
+					windowChangeRequests.add(zap);
 					return;
 				}
 			}
@@ -1964,31 +1969,37 @@ public class EditWindow extends JPanel
 		computeDatabaseBounds();
 	}
 
-	private static boolean handleZoomAndPanRequests(EditWindow wnd)
+	private static boolean handleWindowChangeRequests(EditWindow wnd)
 	{
 		boolean changed = false;
 		List notThisWindow = null;
-		for(Iterator it = zoomAndPanRequests.iterator(); it.hasNext(); )
+		for(Iterator it = windowChangeRequests.iterator(); it.hasNext(); )
 		{
-			ZoomAndPanRequest zap = (ZoomAndPanRequest)it.next();
+			WindowChangeRequest zap = (WindowChangeRequest)it.next();
 			if (zap.wnd != wnd)
 			{
 				if (notThisWindow == null) notThisWindow = new ArrayList();
 				notThisWindow.add(zap);
 				continue;
 			}
-			if (zap.zoomRequest)
+			switch (zap.requestType)
 			{
-				if (wnd.scale != zap.scale) changed = true;
-				wnd.scale = zap.scale;
-			} else
-			{
-				if (wnd.offx != zap.offx || wnd.offy != zap.offy) changed = true;
-				wnd.offx = zap.offx;   wnd.offy = zap.offy;
+				case WindowChangeRequest.ZOOMREQUEST:
+					if (wnd.scale != zap.scale) changed = true;
+					wnd.scale = zap.scale;
+					break;
+				case WindowChangeRequest.PANREQUEST:
+					if (wnd.offx != zap.offx || wnd.offy != zap.offy) changed = true;
+					wnd.offx = zap.offx;   wnd.offy = zap.offy;
+					break;
+				case WindowChangeRequest.RESIZEREQUEST:
+					wnd.sz = zap.sz;
+					wnd.offscreen = new PixelDrawing(wnd);
+					break;
 			}
 		}
-		if (notThisWindow != null) zoomAndPanRequests = notThisWindow; else
-			zoomAndPanRequests.clear();
+		if (notThisWindow != null) windowChangeRequests = notThisWindow; else
+			windowChangeRequests.clear();
 		if (changed) wnd.computeDatabaseBounds();
 		return changed;
 	}
@@ -2010,10 +2021,10 @@ public class EditWindow extends JPanel
 		double oY = offy;
 		synchronized (redrawThese)
 		{
-			for(Iterator it = zoomAndPanRequests.iterator(); it.hasNext(); )
+			for(Iterator it = windowChangeRequests.iterator(); it.hasNext(); )
 			{
-				ZoomAndPanRequest zap = (ZoomAndPanRequest)it.next();
-				if (zap.zoomRequest) continue;
+				WindowChangeRequest zap = (WindowChangeRequest)it.next();
+				if (zap.requestType != WindowChangeRequest.PANREQUEST) continue;
 				oX = zap.offx;
 				oY = zap.offy;
 			}
@@ -2035,12 +2046,12 @@ public class EditWindow extends JPanel
 				if (runningNow != null)
 				{
 					// must queue the request
-					ZoomAndPanRequest zap = new ZoomAndPanRequest();
+					WindowChangeRequest zap = new WindowChangeRequest();
 					zap.wnd = this;
 					zap.offx = off.getX();
 					zap.offy = off.getY();
-					zap.zoomRequest = false;
-					zoomAndPanRequests.add(zap);
+					zap.requestType = WindowChangeRequest.PANREQUEST;
+					windowChangeRequests.add(zap);
 					return;
 				}
 			}

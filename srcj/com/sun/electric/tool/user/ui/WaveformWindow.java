@@ -3156,27 +3156,41 @@ public class WaveformWindow implements WindowContent
 			DefaultMutableTreeNode thisTree = signalsExplorerTree;
 			if (sSig.getSignalContext() != null)
 			{
-				thisTree = (DefaultMutableTreeNode)contextMap.get(sSig.getSignalContext());
-				if (thisTree == null)
-				{
-					String branchName = sSig.getSignalContext();
-					String parent = "";
-					int dotPos = branchName.lastIndexOf('.');
-					if (dotPos >= 0)
-					{
-						parent = branchName.substring(0, dotPos);
-						branchName = branchName.substring(dotPos+1);
-					}
-					thisTree = new DefaultMutableTreeNode(branchName);
-					contextMap.put(sSig.getSignalContext(), thisTree);
-					DefaultMutableTreeNode parentTree = (DefaultMutableTreeNode)contextMap.get(parent);
-					if (parentTree != null)
-						parentTree.add(thisTree);
-				}
+				String fullContext = sSig.getSignalContext();
+				thisTree = makeContext(fullContext, contextMap);
 			}
 			thisTree.add(new DefaultMutableTreeNode(sSig));
 		}
 		return signalsExplorerTree;
+	}
+
+	/**
+	 * Recursive method to locate and create branches in the Signal Explorer tree.
+	 * @param branchName the name of a branch to find/create.
+	 * The name has dots in it to separate levels of the hierarchy.
+	 * @param contextMap a HashMap of branch names to tree nodes.
+	 * @return the tree node for the requested branch name.
+	 */
+	private DefaultMutableTreeNode makeContext(String branchName, HashMap contextMap)
+	{
+		DefaultMutableTreeNode branchTree = (DefaultMutableTreeNode)contextMap.get(branchName);
+		if (branchTree != null) return branchTree;
+
+		// split the branch name into a leaf and parent
+		String parent = "";
+		String leaf = branchName;
+		int dotPos = leaf.lastIndexOf('.');
+		if (dotPos >= 0)
+		{
+			parent = leaf.substring(0, dotPos);
+			leaf = leaf.substring(dotPos+1);
+		}
+
+		DefaultMutableTreeNode parentBranch = makeContext(parent, contextMap);
+		DefaultMutableTreeNode thisTree = new DefaultMutableTreeNode(leaf);
+		parentBranch.add(thisTree);
+		contextMap.put(branchName, thisTree);
+		return thisTree;
 	}
 
 	private DefaultMutableTreeNode getSweepsForExplorer()

@@ -1179,7 +1179,7 @@ public class Spice extends Topology
 	protected String getPowerName() { return null; }
 
 	/** Method to return the proper name of Ground */
-	protected String getGroundName() { return "gnd"; }
+	protected String getGroundName() { return null; } // "gnd"; }
 
 	/** Method to return the proper name of a Global signal */
 	protected String getGlobalName(Global glob) { return glob.getName(); }

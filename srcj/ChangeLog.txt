@@ -4,6 +4,17 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01av: *********************************
 
+BUG: (12/9/04, SMR) Waveform window does not always show the full hierarchy of signal names (Bug #82).
+FIX: In WaveformWindow.getSignalsForExplorer(), ensure that all levels of the signal name hierarchy are created.
+
+BUG: (12/9/04, SMR) Spice netlister may mix-up ground signal names (Bug #81).
+FIX: Change Spice.getGroundName to return null.
+
+IMP/MAN: (12/9/04, SMR) "Layer Visibility" dialog also lets you "highlight" layers.
+
+BUG: (12/9/04, SMR) Resizing a window doesn't always redraw its contents.
+FIX: In EditWindow.java, queue resizing, just like panning and zooming.
+
 ************************* Version 8.01au: *********************************
 
 BUG: (12/9/04, SMR) Going "Up Hierarchy" may display the cell twice (Bug #74).

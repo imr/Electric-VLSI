@@ -353,6 +353,7 @@ public class HSpiceOut extends Simulate
 		{
 			Simulation.SimAnalogSignal as = new Simulation.SimAnalogSignal(sd);
 			int lastDotPos = signalNames[k].lastIndexOf('.');
+//System.out.println("SIGNAL NAMED: "+signalNames[k]+" DOT AT "+lastDotPos);
 			if (lastDotPos >= 0)
 			{
 				as.setSignalContext(signalNames[k].substring(0, lastDotPos));

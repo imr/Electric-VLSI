@@ -346,7 +346,7 @@ public class PixelDrawing
 			}
 			Rectangle rect = new Rectangle(sz);
 			blackGraphics.setColor(new Color(User.getColorText()));
-			drawText(rect, Poly.Type.TEXTBOX, noCellTextDescriptor, "No cell in this window", null, blackGraphics);
+			drawText(rect, Poly.Type.TEXTBOX, noCellTextDescriptor, "No cell in this window", null, blackGraphics, false);
 		} else
 		{
 			// determine which cells should be cached (must have at least 2 instances)
@@ -444,7 +444,58 @@ public class PixelDrawing
 		// merge in the transparent layers
 		if (numLayerBitMapsCreated > 0)
 		{
+			// get the technology's color map
 			Color [] colorMap = curTech.getColorMap();
+
+			// adjust the colors if any of the transparent layers are dimmed
+			boolean dimmedTransparentLayers = false;
+			for(Iterator it = curTech.getLayers(); it.hasNext(); )
+			{
+				Layer layer = (Layer)it.next();
+				if (!layer.isDimmed()) continue;
+				if (layer.getGraphics().getTransparentLayer() == 0) continue;
+				dimmedTransparentLayers = true;
+				break;
+			}
+			if (dimmedTransparentLayers)
+			{
+				Color [] newColorMap = new Color[colorMap.length];
+				int numTransparents = curTech.getNumTransparentLayers();
+				boolean [] dimLayer = new boolean[numTransparents];
+				for(int i=0; i<numTransparents; i++) dimLayer[i] = true;
+				for(Iterator it = curTech.getLayers(); it.hasNext(); )
+				{
+					Layer layer = (Layer)it.next();
+					if (layer.isDimmed()) continue;
+					int tIndex = layer.getGraphics().getTransparentLayer();
+					if (tIndex == 0) continue;
+					dimLayer[tIndex-1] = false;
+				}
+
+				for(int i=0; i<colorMap.length; i++)
+				{
+					newColorMap[i] = colorMap[i];
+					if (i == 0) continue;
+					boolean dimThisEntry = true;
+					for(int j=0; j<numTransparents; j++)
+					{
+						if ((i & (1<<j)) != 0)
+						{
+							if (!dimLayer[j])
+							{
+								dimThisEntry = false;
+								break;
+							}
+						}
+					}
+					if (dimThisEntry)
+					{
+						newColorMap[i] = new Color(dimColor(colorMap[i].getRGB()));
+					}
+				}
+				colorMap = newColorMap;
+			}
+
 			for(int y=0; y<sz.height; y++)
 			{
 				for(int i=0; i<numLayerBitMaps; i++)
@@ -717,7 +768,7 @@ public class PixelDrawing
 				if (exportDisplayLevel == 2)
 				{
 					// draw port as a cross
-					drawCross(poly, blackGraphics);
+					drawCross(poly, blackGraphics, false);
 				} else
 				{
 					// draw port as text
@@ -732,7 +783,7 @@ public class PixelDrawing
 					Point pt = wnd.databaseToScreen(poly.getCenterX(), poly.getCenterY());
 					Rectangle textRect = new Rectangle(pt);
 					type = Poly.rotateType(type, ni);
-					drawText(textRect, type, descript, portName, null, blackGraphics);
+					drawText(textRect, type, descript, portName, null, blackGraphics, false);
 				}
 
 				// draw variables on the export
@@ -830,7 +881,7 @@ public class PixelDrawing
 			if (portDisplayLevel == 2)
 			{
 				// draw port as a cross
-				drawCross(portPoly, portGraphics);
+				drawCross(portPoly, portGraphics, false);
 			} else
 			{
 				// draw port as text
@@ -850,7 +901,7 @@ public class PixelDrawing
 					}
 					Point pt = wnd.databaseToScreen(portPoly.getCenterX(), portPoly.getCenterY());
 					Rectangle rect = new Rectangle(pt);
-					drawText(rect, type, newDescript, portName, null, portGraphics);
+					drawText(rect, type, newDescript, portName, null, portGraphics, false);
 				}
 			}
 		}
@@ -873,7 +924,7 @@ public class PixelDrawing
 			Point from = wnd.databaseToScreen(points[lastI]);
 			Point to = wnd.databaseToScreen(points[i]);
 			blackGraphics.setColor(new Color(User.getColorInstanceOutline()));
-			drawLine(from, to, null, blackGraphics, 0);
+			drawLine(from, to, null, blackGraphics, 0, false);
 		}
 
 		// draw the instance name
@@ -883,7 +934,7 @@ public class PixelDrawing
 			Rectangle rect = wnd.databaseToScreen(bounds);
 			TextDescriptor descript = ni.getProtoTextDescriptor();
 			blackGraphics.setColor(new Color(User.getColorText()));
-			drawText(rect, Poly.Type.TEXTBOX, descript, np.describe(), null, blackGraphics);
+			drawText(rect, Poly.Type.TEXTBOX, descript, np.describe(), null, blackGraphics, false);
 		}
 	}
 
@@ -1261,10 +1312,12 @@ public class PixelDrawing
 			if (poly == null) continue;
 			Layer layer = poly.getLayer();
 			EGraphics graphics = null;
+			boolean dimmed = false;
 			if (layer != null)
 			{
 				if (!forceVisible && !layer.isVisible()) continue;
 				graphics = layer.getGraphics();
+				dimmed = layer.isDimmed();
 			}
 
 			// transform the bounds
@@ -1273,7 +1326,7 @@ public class PixelDrawing
 
 			// render the polygon
             long startTime = System.currentTimeMillis();
-			renderPoly(poly, graphics);
+			renderPoly(poly, graphics, dimmed);
             renderPolyTime += (System.currentTimeMillis() - startTime);
 
 			// handle refreshing
@@ -1318,7 +1371,7 @@ public class PixelDrawing
 	/**
 	 * Render a Poly to the offscreen buffer.
 	 */
-	private void renderPoly(Poly poly, EGraphics graphics)
+	private void renderPoly(Poly poly, EGraphics graphics, boolean dimmed)
 	{
 		int layerNum = -1;
 		if (graphics != null) layerNum = graphics.getTransparentLayer() - 1;
@@ -1382,14 +1435,14 @@ public class PixelDrawing
 //				if (lX > hX || lY > hY) return;
 
 				// draw the box
-				drawBox(lX, hX, lY, hY, layerBitMap, graphics);
+				drawBox(lX, hX, lY, hY, layerBitMap, graphics, dimmed);
 				return;
 			}
 			Point [] intPoints = new Point[points.length];
 			for(int i=0; i<points.length; i++)
 				intPoints[i] = wnd.databaseToScreen(points[i]);
 			Point [] clippedPoints = GenMath.clipPoly(intPoints, 0, sz.width-1, 0, sz.height-1);
-			drawPolygon(clippedPoints, layerBitMap, graphics);
+			drawPolygon(clippedPoints, layerBitMap, graphics, dimmed);
 			return;
 		}
 		if (style == Poly.Type.CROSSED)
@@ -1402,12 +1455,12 @@ public class PixelDrawing
 			Point pt1b = new Point(pt1a);   Point pt1c = new Point(pt1a);
 			Point pt2b = new Point(pt2a);   Point pt2c = new Point(pt2a);
 			Point pt3b = new Point(pt3a);   Point pt3c = new Point(pt3a);
-			drawLine(pt0a, pt1a, layerBitMap, graphics, 0);
-			drawLine(pt1b, pt2a, layerBitMap, graphics, 0);
-			drawLine(pt2b, pt3a, layerBitMap, graphics, 0);
-			drawLine(pt3b, pt0b, layerBitMap, graphics, 0);
-			drawLine(pt0c, pt2c, layerBitMap, graphics, 0);
-			drawLine(pt1c, pt3c, layerBitMap, graphics, 0);
+			drawLine(pt0a, pt1a, layerBitMap, graphics, 0, dimmed);
+			drawLine(pt1b, pt2a, layerBitMap, graphics, 0, dimmed);
+			drawLine(pt2b, pt3a, layerBitMap, graphics, 0, dimmed);
+			drawLine(pt3b, pt0b, layerBitMap, graphics, 0, dimmed);
+			drawLine(pt0c, pt2c, layerBitMap, graphics, 0, dimmed);
+			drawLine(pt1c, pt3c, layerBitMap, graphics, 0, dimmed);
 			return;
 		}
 		if (style.isText())
@@ -1416,7 +1469,7 @@ public class PixelDrawing
 			Rectangle rect = wnd.databaseToScreen(bounds);
 			TextDescriptor descript = poly.getTextDescriptor();
 			String str = poly.getString();
-			drawText(rect, style, descript, str, layerBitMap, graphics);
+			drawText(rect, style, descript, str, layerBitMap, graphics, dimmed);
 			return;
 		}
 		if (style == Poly.Type.CLOSED || style == Poly.Type.OPENED || style == Poly.Type.OPENEDT1 ||
@@ -1431,13 +1484,13 @@ public class PixelDrawing
 			{
 				Point pt1 = wnd.databaseToScreen(points[j-1]);
 				Point pt2 = wnd.databaseToScreen(points[j]);
-				drawLine(pt1, pt2, layerBitMap, graphics, lineType);
+				drawLine(pt1, pt2, layerBitMap, graphics, lineType, dimmed);
 			}
 			if (style == Poly.Type.CLOSED)
 			{
 				Point pt1 = wnd.databaseToScreen(points[points.length-1]);
 				Point pt2 = wnd.databaseToScreen(points[0]);
-				drawLine(pt1, pt2, layerBitMap, graphics, lineType);
+				drawLine(pt1, pt2, layerBitMap, graphics, lineType, dimmed);
 			}
 			return;
 		}
@@ -1447,7 +1500,7 @@ public class PixelDrawing
 			{
 				Point pt1 = wnd.databaseToScreen(points[j]);
 				Point pt2 = wnd.databaseToScreen(points[j+1]);
-				drawLine(pt1, pt2, layerBitMap, graphics, 0);
+				drawLine(pt1, pt2, layerBitMap, graphics, 0, dimmed);
 			}
 			return;
 		}
@@ -1455,21 +1508,21 @@ public class PixelDrawing
 		{
 			Point center = wnd.databaseToScreen(points[0]);
 			Point edge = wnd.databaseToScreen(points[1]);
-			drawCircle(center, edge, layerBitMap, graphics);
+			drawCircle(center, edge, layerBitMap, graphics, dimmed);
 			return;
 		}
 		if (style == Poly.Type.THICKCIRCLE)
 		{
 			Point center = wnd.databaseToScreen(points[0]);
 			Point edge = wnd.databaseToScreen(points[1]);
-			drawThickCircle(center, edge, layerBitMap, graphics);
+			drawThickCircle(center, edge, layerBitMap, graphics, dimmed);
 			return;
 		}
 		if (style == Poly.Type.DISC)
 		{
 			Point center = wnd.databaseToScreen(points[0]);
 			Point edge = wnd.databaseToScreen(points[1]);
-			drawDisc(center, edge, layerBitMap, graphics);
+			drawDisc(center, edge, layerBitMap, graphics, dimmed);
 			return;
 		}
 		if (style == Poly.Type.CIRCLEARC || style == Poly.Type.THICKCIRCLEARC)
@@ -1477,13 +1530,13 @@ public class PixelDrawing
 			Point center = wnd.databaseToScreen(points[0]);
 			Point edge1 = wnd.databaseToScreen(points[1]);
 			Point edge2 = wnd.databaseToScreen(points[2]);
-			drawCircleArc(center, edge1, edge2, style == Poly.Type.THICKCIRCLEARC, layerBitMap, graphics);
+			drawCircleArc(center, edge1, edge2, style == Poly.Type.THICKCIRCLEARC, layerBitMap, graphics, dimmed);
 			return;
 		}
 		if (style == Poly.Type.CROSS)
 		{
 			// draw the cross
-			drawCross(poly, graphics);
+			drawCross(poly, graphics, dimmed);
 			return;
 		}
 		if (style == Poly.Type.BIGCROSS)
@@ -1491,25 +1544,50 @@ public class PixelDrawing
 			// draw the big cross
 			Point center = wnd.databaseToScreen(points[0]);
 			int size = 5;
-			drawLine(new Point(center.x-size, center.y), new Point(center.x+size, center.y), layerBitMap, graphics, 0);
-			drawLine(new Point(center.x, center.y-size), new Point(center.x, center.y+size), layerBitMap, graphics, 0);
+			drawLine(new Point(center.x-size, center.y), new Point(center.x+size, center.y), layerBitMap, graphics, 0, dimmed);
+			drawLine(new Point(center.x, center.y-size), new Point(center.x, center.y+size), layerBitMap, graphics, 0, dimmed);
 			return;
 		}
 	}
 
 	// ************************************* BOX DRAWING *************************************
 
+	private int getTheColor(EGraphics desc, boolean dimmed)
+	{
+		int col = desc.getColor().getRGB() & 0xFFFFFF;
+		if (dimmed) col = dimColor(col);
+		return col;
+	}
+
+	private float [] hsbTempArray = new float[3];
+
+	/**
+	 * Method to dim a color by reducing its saturation.
+	 * @param col the color as a 24-bit integer.
+	 * @return the dimmed color, a 24-bit integer.
+	 */
+	private int dimColor(int col)
+	{
+		int r = col & 0xFF;
+		int g = (col >> 8) & 0xFF;
+		int b = (col >> 16) & 0xFF;
+		Color.RGBtoHSB(r, g, b, hsbTempArray);
+		hsbTempArray[1] *= 0.2;
+		col = Color.HSBtoRGB(hsbTempArray[0], hsbTempArray[1], hsbTempArray[2])& 0xFFFFFF;
+		return col;
+	}
+
 	/**
 	 * Method to draw a box on the off-screen buffer.
 	 */
-	private void drawBox(int lX, int hX, int lY, int hY, byte [][] layerBitMap, EGraphics desc)
+	private void drawBox(int lX, int hX, int lY, int hY, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
 	{
 		// get color and pattern information
 		int col = 0;
 		int [] pattern = null;
 		if (desc != null)
 		{
-			col = desc.getColor().getRGB() & 0xFFFFFF;
+			col = getTheColor(desc, dimmed);
 			if (desc.isPatternedOnDisplay())
 				pattern = desc.getPattern();
 		}
@@ -1585,7 +1663,7 @@ public class PixelDrawing
 	/**
 	 * Method to draw a line on the off-screen buffer.
 	 */
-	private void drawLine(Point pt1, Point pt2, byte [][] layerBitMap, EGraphics desc, int texture)
+	private void drawLine(Point pt1, Point pt2, byte [][] layerBitMap, EGraphics desc, int texture, boolean dimmed)
 	{
 		// first clip the line
 		if (GenMath.clipLine(pt1, pt2, 0, sz.width-1, 0, sz.height-1)) return;
@@ -1593,30 +1671,30 @@ public class PixelDrawing
 		// now draw with the proper line type
 		switch (texture)
 		{
-			case 0: drawSolidLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, desc);       break;
-			case 1: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, desc, 0x88);   break;
-			case 2: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, desc, 0xE7);   break;
-			case 3: drawThickLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, desc);       break;
+			case 0: drawSolidLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, desc, dimmed);       break;
+			case 1: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, desc, 0x88, dimmed);   break;
+			case 2: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, desc, 0xE7, dimmed);   break;
+			case 3: drawThickLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, desc, dimmed);       break;
 		}
 	}
 
-	private void drawCross(Poly poly, EGraphics graphics)
+	private void drawCross(Poly poly, EGraphics graphics, boolean dimmed)
 	{
 		Point2D [] points = poly.getPoints();
 		Point center = wnd.databaseToScreen(points[0]);
 		int size = 3;
-		drawLine(new Point(center.x-size, center.y), new Point(center.x+size, center.y), null, graphics, 0);
-		drawLine(new Point(center.x, center.y-size), new Point(center.x, center.y+size), null, graphics, 0);
+		drawLine(new Point(center.x-size, center.y), new Point(center.x+size, center.y), null, graphics, 0, dimmed);
+		drawLine(new Point(center.x, center.y-size), new Point(center.x, center.y+size), null, graphics, 0, dimmed);
 	}
 
-	private void drawSolidLine(int x1, int y1, int x2, int y2, byte [][] layerBitMap, EGraphics desc)
+	private void drawSolidLine(int x1, int y1, int x2, int y2, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
 	{
 		// get color and pattern information
 		int col = 0;
 		int [] pattern = null;
 		if (desc != null)
 		{
-			col = desc.getColor().getRGB() & 0xFFFFFF;
+			col = getTheColor(desc, dimmed);
 			if (desc.isPatternedOnDisplay())
 				pattern = desc.getPattern();
 		}
@@ -1685,11 +1763,11 @@ public class PixelDrawing
 		}
 	}
 
-	private void drawPatLine(int x1, int y1, int x2, int y2, byte [][] layerBitMap, EGraphics desc, int pattern)
+	private void drawPatLine(int x1, int y1, int x2, int y2, byte [][] layerBitMap, EGraphics desc, int pattern, boolean dimmed)
 	{
 		// get color and pattern information
 		int col = 0;
-		if (desc != null) col = desc.getColor().getRGB() & 0xFFFFFF;
+		if (desc != null) col = getTheColor(desc, dimmed);
 
 		// initialize counter for line style
 		int i = 0;
@@ -1762,11 +1840,11 @@ public class PixelDrawing
 		}
 	}
 
-	private void drawThickLine(int x1, int y1, int x2, int y2, byte [][] layerBitMap, EGraphics desc)
+	private void drawThickLine(int x1, int y1, int x2, int y2, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
 	{
 		// get color and pattern information
 		int col = 0;
-		if (desc != null) col = desc.getColor().getRGB() & 0xFFFFFF;
+		if (desc != null) col = getTheColor(desc, dimmed);
 
 		// initialize the Bresenham algorithm
 		int dx = Math.abs(x2-x1);
@@ -1835,14 +1913,14 @@ public class PixelDrawing
 	/**
 	 * Method to draw a polygon on the off-screen buffer.
 	 */
-	private void drawPolygon(Point [] points, byte [][] layerBitMap, EGraphics desc)
+	private void drawPolygon(Point [] points, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
 	{
 		// get color and pattern information
 		int col = 0;
 		int [] pattern = null;
 		if (desc != null)
 		{
-			col = desc.getColor().getRGB() & 0xFFFFFF;
+			col = getTheColor(desc, dimmed);
 			if (desc.isPatternedOnDisplay())
 				pattern = desc.getPattern();
 		}
@@ -1868,7 +1946,7 @@ public class PixelDrawing
 		{
 			// draw the edge lines to make the polygon clean
 			if (pattern != null && desc.isOutlinedOnDisplay())
-				drawSolidLine(polySegs[i].fx, polySegs[i].fy, polySegs[i].tx, polySegs[i].ty, layerBitMap, desc);
+				drawSolidLine(polySegs[i].fx, polySegs[i].fy, polySegs[i].tx, polySegs[i].ty, layerBitMap, desc, dimmed);
 
 			// compute the direction of this edge
 			int j = polySegs[i].ty - polySegs[i].fy;
@@ -2040,7 +2118,7 @@ public class PixelDrawing
 	/**
 	 * Method to draw a text on the off-screen buffer
 	 */
-	private void drawText(Rectangle rect, Poly.Type style, TextDescriptor descript, String s, byte [][] layerBitMap, EGraphics desc)
+	private void drawText(Rectangle rect, Poly.Type style, TextDescriptor descript, String s, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
 	{
 		// quit if string is null
 		int len = s.length();
@@ -2048,7 +2126,7 @@ public class PixelDrawing
 
 		// get parameters
 		int col = 0;
-		if (desc != null) col = desc.getColor().getRGB() & 0xFFFFFF;
+		if (desc != null) col = getTheColor(desc, dimmed);
 
 		// get text description
 		int size = EditWindow.getDefaultFontSize();
@@ -2084,7 +2162,7 @@ public class PixelDrawing
 				if (lY < 0) lY = 0;
 				if (hY >= sz.height) hY = sz.height-1;
 
-				drawBox(lX, hX, lY, hY, layerBitMap, desc);
+				drawBox(lX, hX, lY, hY, layerBitMap, desc, dimmed);
 				return;
 			}
 			italic = descript.isItalic();
@@ -2549,12 +2627,12 @@ public class PixelDrawing
 	/**
 	 * Method to draw a circle on the off-screen buffer
 	 */
-	private void drawCircle(Point center, Point edge, byte [][] layerBitMap, EGraphics desc)
+	private void drawCircle(Point center, Point edge, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
 	{
 		// get parameters
 		int radius = (int)center.distance(edge);
 		int col = 0;
-		if (desc != null) col = desc.getColor().getRGB() & 0xFFFFFF;
+		if (desc != null) col = getTheColor(desc, dimmed);
 
 		// set redraw area
 		int left = center.x - radius;
@@ -2674,12 +2752,12 @@ public class PixelDrawing
 	/**
 	 * Method to draw a thick circle on the off-screen buffer
 	 */
-	private void drawThickCircle(Point center, Point edge, byte [][] layerBitMap, EGraphics desc)
+	private void drawThickCircle(Point center, Point edge, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
 	{
 		// get parameters
 		int radius = (int)center.distance(edge);
 		int col = 0;
-		if (desc != null) col = desc.getColor().getRGB() & 0xFFFFFF;
+		if (desc != null) col = getTheColor(desc, dimmed);
 
 		int x = 0;   int y = radius;
 		int d = 3 - 2 * radius;
@@ -2796,7 +2874,7 @@ public class PixelDrawing
 	/**
 	 * Method to draw a filled-in circle of radius "radius" on the off-screen buffer
 	 */
-	private void drawDisc(Point center, Point edge, byte [][] layerBitMap, EGraphics desc)
+	private void drawDisc(Point center, Point edge, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
 	{
 		// get parameters
 		int radius = (int)center.distance(edge);
@@ -2804,13 +2882,13 @@ public class PixelDrawing
 		int [] pattern = null;
 		if (desc != null)
 		{
-			col = desc.getColor().getRGB() & 0xFFFFFF;
+			col = getTheColor(desc, dimmed);
 			if (desc.isPatternedOnDisplay())
 			{
 				pattern = desc.getPattern();
 				if (desc.isOutlinedOnDisplay())
 				{
-					drawCircle(center, edge, layerBitMap, desc);				
+					drawCircle(center, edge, layerBitMap, desc, dimmed);				
 				}
 			}
 		}
@@ -3000,7 +3078,7 @@ public class PixelDrawing
 	 * draws an arc centered at (centerx, centery), clockwise,
 	 * passing by (x1,y1) and (x2,y2)
 	 */
-	private void drawCircleArc(Point center, Point p1, Point p2, boolean thick, byte [][] layerBitMap, EGraphics desc)
+	private void drawCircleArc(Point center, Point p1, Point p2, boolean thick, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
 	{
 		// ignore tiny arcs
 		if (p1.x == p2.x && p1.y == p2.y) return;
@@ -3008,7 +3086,7 @@ public class PixelDrawing
 		// get parameters
 		arcLayerBitMap = layerBitMap;
 		arcCol = 0;
-		if (desc != null) arcCol = desc.getColor().getRGB() & 0xFFFFFF;
+		if (desc != null) arcCol = getTheColor(desc, dimmed);
 
 		arcCenter = center;
 		int pa_x = p2.x - arcCenter.x;

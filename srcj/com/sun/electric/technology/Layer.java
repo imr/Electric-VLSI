@@ -275,9 +275,10 @@ public class Layer
 	private String skillLayer;
 	private double thickness, distance;
 	private double resistance, capacitance, edgeCapacitance;
-	private Layer nonPseudoLayer;
-	private boolean visible;
-	private PrimitiveNode pureLayerNode;
+	/** the "real" layer (if this one is pseudo) */							private Layer nonPseudoLayer;
+	/** true if this layer is invisible */									private boolean visible;
+	/** true if dimmed (drawn darker) undimmed layers are highlighted */	private boolean dimmed;
+	/** the pure-layer node that contains just this layer */				private PrimitiveNode pureLayerNode;
 
 	private static HashMap cifLayerPrefs = new HashMap();
 	private static HashMap gdsLayerPrefs = new HashMap();
@@ -297,6 +298,7 @@ public class Layer
 		this.graphics = graphics;
 		this.nonPseudoLayer = this;
 		this.visible = true;
+		this.dimmed = false;
 		this.function = Function.UNKNOWN;
 	}
 
@@ -437,6 +439,20 @@ public class Layer
 	 */
 	//public void setVisible(boolean visible) { this.visible = visible; }
     public void setVisible(boolean visible) { getBooleanPref("Visibility", layerVisibilityPrefs, visible).setBoolean(visible); }
+
+	/**
+	 * Method to tell whether this Layer is dimmed.
+	 * Dimmed layers are drawn darker so that undimmed layers can be highlighted.
+	 * @return true if this Layer is dimmed.
+	 */
+	public boolean isDimmed() { return dimmed; }
+
+	/**
+	 * Method to set whether this Layer is dimmed.
+	 * Dimmed layers are drawn darker so that undimmed layers can be highlighted.
+	 * @param dimmed true if this Layer is to be dimmed.
+	 */
+	public void setDimmed(boolean dimmed) { this.dimmed = dimmed; }
 
 	private Pref getLayerPref(String what, HashMap map, String factory)
 	{
