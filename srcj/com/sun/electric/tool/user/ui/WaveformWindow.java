@@ -28,12 +28,12 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Simulate;
@@ -46,6 +46,7 @@ import com.sun.electric.tool.user.User;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -56,7 +57,16 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DragGestureEvent;
+import java.awt.dnd.DragGestureListener;
+import java.awt.dnd.DragSource;
+import java.awt.dnd.DragSourceDragEvent;
+import java.awt.dnd.DragSourceDropEvent;
+import java.awt.dnd.DragSourceEvent;
+import java.awt.dnd.DragSourceListener;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTargetDropEvent;
@@ -64,6 +74,8 @@ import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -73,8 +85,6 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
 import java.awt.geom.Point2D;
@@ -107,7 +117,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
  */
 public class WaveformWindow implements WindowContent, HighlightListener
 {
-	private static int panelSizeDigital = 30;
+	private static int panelSizeDigital = 25;
 	private static int panelSizeAnalog = 150;
 	private static Color [] colorArray = new Color [] {
 		Color.RED, Color.GREEN, Color.BLUE, Color.PINK, Color.CYAN, Color.ORANGE, Color.MAGENTA, Color.YELLOW};
@@ -115,7 +125,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	/** the window that this lives in */					private WindowFrame wf;
 	/** the cell being simulated */							private Simulation.SimData sd;
 	/** the top-level panel of the waveform window. */		private JPanel overall;
-	/** let panel: the signal names */						private JPanel left;
+	/** left panel: the signal names */						private JPanel left;
 	/** right panel: the signal traces */					private JPanel right;
 	/** the "lock time" button. */							private JButton timeLock;
 	/** the "refresh" button. */							private JButton refresh;
@@ -156,51 +166,6 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	private static final ImageIcon iconVCRToEnd = Resources.getResource(WaveformWindow.class, "ButtonVCRToEnd.gif");
 	private static final ImageIcon iconVCRFaster = Resources.getResource(WaveformWindow.class, "ButtonVCRFaster.gif");
 	private static final ImageIcon iconVCRSlower = Resources.getResource(WaveformWindow.class, "ButtonVCRSlower.gif");
-
-	/**
-	 * Test method to build a waveform with fake data.
-	 */
-	public static void makeFakeWaveformCommand()
-	{
-		// make the waveform data
-		Simulation.SimData sd = new Simulation.SimData();
-		double timeStep = 0.0000000001;
-		sd.buildCommonTime(100);
-		for(int i=0; i<100; i++)
-			sd.setCommonTime(i, i * timeStep);
-		for(int i=0; i<18; i++)
-		{
-			Simulation.SimAnalogSignal as = new Simulation.SimAnalogSignal(sd);
-			as.setSignalName("Signal"+(i+1));
-			as.setSignalColor(colorArray[i % colorArray.length]);
-			as.setCommonTimeUse(true);
-			as.buildValues(100);
-			for(int k=0; k<100; k++)
-			{
-				as.setValue(k, Math.sin((k+i*10) / (2.0+i*2)) * 4);
-			}
-		}
-		sd.setCell(null);
-
-		// make the waveform window
-		WindowFrame wf = WindowFrame.createWaveformWindow(sd);
-		WaveformWindow ww = (WaveformWindow)wf.getContent();
-		ww.setMainTimeCursor(timeStep*22);
-		ww.setExtensionTimeCursor(timeStep*77);
-		ww.setDefaultTimeRange(0, timeStep*100);
-
-		// make some waveform panels and put signals in them
-		for(int i=0; i<6; i++)
-		{
-			Panel wp = new Panel(ww, true);
-			wp.setValueRange(-5, 5);
-			for(int j=0; j<(i+1)*3; j++)
-			{
-				Simulation.SimAnalogSignal as = (Simulation.SimAnalogSignal)sd.getSignals().get(j);
-				Signal wsig = new Signal(wp, as);
-			}
-		}
-	}
 
 	/**
 	 * This class defines a single panel of Signals with an associated list of signal names.
@@ -292,7 +257,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			// the name of this panel
 			if (isAnalog)
 			{
-				JLabel label = new JLabel(Integer.toString(panelNumber));
+				JLabel label = new DragLabel(Integer.toString(panelNumber));
 				label.setToolTipText("Identification number of this waveform panel");
 				gbc.gridx = 0;       gbc.gridy = 1;
 				gbc.gridwidth = 1;   gbc.gridheight = 1;
@@ -303,7 +268,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				leftHalf.add(label, gbc);
 			} else
 			{
-				digitalSignalButton = new JButton(Integer.toString(panelNumber));
+				digitalSignalButton = new DragButton(Integer.toString(panelNumber), panelNumber);
 				digitalSignalButton.setBorderPainted(false);
 				digitalSignalButton.setToolTipText("Name of this waveform panel");
 				gbc.gridx = 0;       gbc.gridy = 1;
@@ -544,7 +509,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			waveWindow.closePanel(this);
 		}
 
-		private void addSignalToPanel(Simulation.SimSignal sSig)
+		private Signal addSignalToPanel(Simulation.SimSignal sSig)
 		{
 			// see if the signal is already there
 			for(Iterator it = waveSignals.keySet().iterator(); it.hasNext(); )
@@ -554,30 +519,31 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				if (ws.sSig == sSig)
 				{
 					// found it already: just change the color
-					Color color = ws.sSig.getSignalColor();
+					Color color = ws.color;
 					int index = 0;
 					for( ; index<colorArray.length; index++)
 					{
 						if (color.equals(colorArray[index])) { index++;   break; }
 					}
 					if (index >= colorArray.length) index = 0;
-					ws.sSig.setSignalColor(colorArray[index]);
+					ws.color = colorArray[index];
 					but.setForeground(colorArray[index]);
 					signalButtons.repaint();
 					repaint();
-					return;
+					return null;
 				}
 			}
 
 			// not found: add it
 			int sigNo = waveSignals.size();
-			sSig.setSignalColor(colorArray[sigNo % colorArray.length]);
 			Signal wsig = new Signal(this, sSig);
+			wsig.color = colorArray[sigNo % colorArray.length];
 			signalButtons.validate();
 			signalButtons.repaint();
 			if (signalButtonsPane != null) signalButtonsPane.validate();
 			repaint();
 			waveWindow.saveSignalOrder();
+			return wsig;
 		}
 
 		private void deleteSignalFromPanel()
@@ -733,7 +699,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
 			{
 				Signal ws = (Signal)it.next();
-				g.setColor(ws.sSig.getSignalColor());
+				g.setColor(ws.color);
 				if (ws.sSig instanceof Simulation.SimAnalogSignal)
 				{
 					// draw analog trace
@@ -1496,9 +1462,71 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	// ****************************** DRAG AND DROP ******************************
 
 	/**
+	 * Class to extend a JLabel so that it is draggable.
+	 */
+	private static class DragLabel extends JLabel implements DragGestureListener, DragSourceListener
+	{
+		private DragSource dragSource;
+
+		public DragLabel(String s)
+		{
+			setText(s);
+			dragSource = DragSource.getDefaultDragSource();
+			dragSource.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_MOVE, this);
+		}
+
+		public void dragGestureRecognized(DragGestureEvent e)
+		{
+			// make the Transferable Object
+			Transferable transferable = new StringSelection("PANEL " + getText());
+
+			// begin the drag
+			dragSource.startDrag(e, DragSource.DefaultLinkDrop, transferable, this);
+		}
+
+		public void dragEnter(DragSourceDragEvent e) {}
+		public void dragOver(DragSourceDragEvent e) {}
+		public void dragExit(DragSourceEvent e) {}
+		public void dragDropEnd(DragSourceDropEvent e) {}
+		public void dropActionChanged (DragSourceDragEvent e) {}
+	}
+
+	/**
+	 * Class to extend a JButton so that it is draggable.
+	 */
+	private static class DragButton extends JButton implements DragGestureListener, DragSourceListener
+	{
+		private DragSource dragSource;
+		private int panelNumber;
+
+		public DragButton(String s, int panelNumber)
+		{
+			setText(s);
+			this.panelNumber = panelNumber;
+			dragSource = DragSource.getDefaultDragSource();
+			dragSource.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_MOVE, this);
+		}
+
+		public void dragGestureRecognized(DragGestureEvent e)
+		{
+			// make the Transferable Object
+			Transferable transferable = new StringSelection("PANEL " + panelNumber + " BUTTON " + getText());
+
+			// begin the drag
+			dragSource.startDrag(e, DragSource.DefaultLinkDrop, transferable, this);
+		}
+
+		public void dragEnter(DragSourceDragEvent e) {}
+		public void dragOver(DragSourceDragEvent e) {}
+		public void dragExit(DragSourceEvent e) {}
+		public void dragDropEnd(DragSourceDropEvent e) {}
+		public void dropActionChanged (DragSourceDragEvent e) {}
+	}
+
+	/**
 	 * This class extends JPanel so that wavepanels can be identified by the Drag and Drop system.
 	 */
-	public static class OnePanel extends JPanel
+	private static class OnePanel extends JPanel
 	{
 		Panel panel;
 		WaveformWindow ww;
@@ -1519,17 +1547,17 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	{
 		public void dragEnter(DropTargetDragEvent e)
 		{
-			e.acceptDrag(DnDConstants.ACTION_LINK);
+			e.acceptDrag(e.getDropAction());
 		}
 	
 		public void dragOver(DropTargetDragEvent e)
 		{
-			e.acceptDrag(DnDConstants.ACTION_LINK);
+			e.acceptDrag(e.getDropAction());
 		}
 	
 		public void dropActionChanged(DropTargetDragEvent e)
 		{
-			e.acceptDrag(DnDConstants.ACTION_LINK);
+			e.acceptDrag(e.getDropAction());
 		}
 
 		public void dragExit(DropTargetEvent e) {}
@@ -1564,6 +1592,72 @@ public class WaveformWindow implements WindowContent, HighlightListener
 			OnePanel op = (OnePanel)dt.getComponent();
 			WaveformWindow ww = op.getWaveformWindow();
 			Panel panel = op.getPanel();
+
+			if (sigName.startsWith("PANEL "))
+			{
+				// rearranging signals and panels
+				int panelNumber = TextUtils.atoi(sigName.substring(6));
+				int sigPos = sigName.indexOf("BUTTON ");
+				if (!panel.isAnalog) sigPos = -1;
+				if (sigPos < 0)
+				{
+//					System.out.println("Moved panel "+panelNumber+" to panel "+panel.panelNumber);
+					Panel sourcePanel = ww.getPanelFromNumber(panelNumber);
+					if (sourcePanel == panel)
+					{
+						dtde.dropComplete(false);
+						return;
+					}
+					ww.left.remove(sourcePanel.leftHalf);
+					ww.right.remove(sourcePanel.rightHalf);
+
+					int destIndex = 0;
+					Component [] lefts = ww.left.getComponents();
+					for(destIndex=0; destIndex < lefts.length; destIndex++)
+					{
+						if (lefts[destIndex] == panel.leftHalf) break;
+					}
+					ww.left.add(sourcePanel.leftHalf, destIndex);
+					ww.right.add(sourcePanel.rightHalf, destIndex);
+
+					ww.getPanel().validate();
+					dtde.dropComplete(true);
+					ww.saveSignalOrder();
+					return;
+				} else
+				{
+					String signalName = sigName.substring(sigPos + 7);
+					Panel sourcePanel = ww.getPanelFromNumber(panelNumber);
+					Simulation.SimSignal sSig = null;
+					Color oldColor = null;
+					for(Iterator it = sourcePanel.waveSignals.values().iterator(); it.hasNext(); )
+					{
+						Signal ws = (Signal)it.next();
+						if (!ws.sSig.getSignalName().equals(signalName)) continue;
+						sSig = ws.sSig;
+						oldColor = ws.color;
+						sourcePanel.removeHighlightedSignal(ws);
+						sourcePanel.signalButtons.remove(ws.sigButton);
+						sourcePanel.waveSignals.remove(ws.sigButton);
+						break;
+					}
+					if (sSig != null)
+					{
+						sourcePanel.signalButtons.validate();
+						sourcePanel.signalButtons.repaint();
+						sourcePanel.repaint();
+						Signal newSig = panel.addSignalToPanel(sSig);
+						if (newSig != null)
+						{
+							newSig.color = oldColor;
+							newSig.sigButton.setForeground(oldColor);
+						}
+					}
+					ww.saveSignalOrder();
+					dtde.dropComplete(true);
+					return;
+				}
+			}
 
 			// dropped onto an existing panel
 			Simulation.SimSignal sSig = ww.findSignal(sigName);
@@ -1707,6 +1801,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	{
 		/** the panel that holds this signal */			private Panel wavePanel;
 		/** the data for this signal */					private Simulation.SimSignal sSig;
+		/** the color of this signal */					private Color color;
 		/** true if this signal is highlighted */		private boolean highlighted;
 		/** the button on the left with this signal */	private JButton sigButton;
 
@@ -1761,7 +1856,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 
 			public void actionPerformed(ActionEvent evt)
 			{
-				signal.sSig.setSignalColor(col);
+				signal.color = col;
 				signal.sigButton.setForeground(col);
 				signal.wavePanel.repaint();
 			}
@@ -1769,17 +1864,19 @@ public class WaveformWindow implements WindowContent, HighlightListener
 
 		public Signal(Panel wavePanel, Simulation.SimSignal sSig)
 		{
+			int sigNo = wavePanel.waveSignals.size();
 			this.wavePanel = wavePanel;
 			this.sSig = sSig;
-			this.highlighted = false;
+			highlighted = false;
 			String sigName = sSig.getSignalName();
 			if (sSig.getSignalContext() != null) sigName = sSig.getSignalContext() + "." + sigName;
 			if (wavePanel.isAnalog)
 			{
-				sigButton = new JButton(sigName);
+				color = colorArray[sigNo % colorArray.length];
+				sigButton = new DragButton(sigName, wavePanel.panelNumber);
 				sigButton.setBorderPainted(false);
 				sigButton.setDefaultCapable(false);
-				sigButton.setForeground(sSig.getSignalColor());
+				sigButton.setForeground(color);
 				wavePanel.signalButtons.add(sigButton);
 				wavePanel.waveSignals.put(sigButton, this);
 				sigButton.addActionListener(new ActionListener()
@@ -1789,6 +1886,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				sigButton.addMouseListener(new SignalButton(this));
 			} else
 			{
+				this.color = Color.RED;
 				wavePanel.digitalSignalButton.setText(sigName);
 				wavePanel.waveSignals.put(wavePanel.digitalSignalButton, this);
 			}
@@ -2181,6 +2279,21 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	}
 
 	/**
+	 * Method to return a Panel, given its number.
+	 * @param panelNumber the number of the desired Panel.
+	 * @return the Panel with that number (null if not found).
+	 */
+	private Panel getPanelFromNumber(int panelNumber)
+	{
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			if (wp.panelNumber == panelNumber) return wp;
+		}
+		return null;
+	}
+
+	/**
 	 * Method called when signal waveforms change, and equivalent should be shown in the edit window.
 	 */
 	public void showSelectedNetworksInSchematic()
@@ -2193,7 +2306,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 
 		highlightChangedByWaveform = true;
 		Highlight.clear();
-		for(Iterator it = this.wavePanels.iterator(); it.hasNext(); )
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
 		{
 			Panel wp = (Panel)it.next();
 			for(Iterator pIt = wp.waveSignals.values().iterator(); pIt.hasNext(); )
@@ -2393,7 +2506,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 					if (newSs.getSignalContext() != null) newSigName = newSs.getSignalContext();
 					newSigName += newSs.getSignalName();
 					if (!newSigName.equals(oldSigName)) continue;
-					newSs.setSignalColor(ss.getSignalColor());
+//					newSs.setSignalColor(ss.getSignalColor());
 					ws.sSig = newSs;
 					break;
 				}

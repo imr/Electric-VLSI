@@ -221,13 +221,13 @@ public class Simulation extends Tool
 						char netChar = netName.charAt(i);
 						if (Character.isLetterOrDigit(sigChar) != Character.isLetterOrDigit(netChar))
 						{
-							  matches = false;
-							  break;
+							matches = false;
+							break;
 						}
 						if (Character.isLetterOrDigit(sigChar) && sigChar != netChar)
 						{
-							  matches = false;
-							  break;
+							matches = false;
+							break;
 						}
 					}
 					if (matches) return sSig;
@@ -243,12 +243,10 @@ public class Simulation extends Tool
 		{
 			this.sd = sd;
 			if (sd != null) sd.signals.add(this);
-			this.signalColor = Color.RED;
 		}
 
 		private String signalName;
 		private String signalContext;
-		private Color signalColor;
 		private SimData sd;
 		private boolean useCommonTime;
 		private double [] time;
@@ -262,10 +260,6 @@ public class Simulation extends Tool
 		public void setSignalContext(String signalContext) { this.signalContext = signalContext; }
 
 		public String getSignalContext() { return signalContext; }
-
-		public void setSignalColor(Color signalColor) { this.signalColor = signalColor; }
-
-		public Color getSignalColor() { return signalColor; }
 
 		public int getNumEvents() { return 0; }
 

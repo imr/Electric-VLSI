@@ -2,6 +2,8 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (7/6/04, SMR) Implemented drag-and-drop to rearrange signals/panels in the waveform window.
+
 IMP: (7/6/04, SMR) Implemented Edit / Selection commands for placing signals in the waveform window.
 
 IMP: (7/5/04, SMR) Implemented opening and closing of bus contents in waveform window.

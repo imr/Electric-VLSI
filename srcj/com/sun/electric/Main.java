@@ -88,7 +88,9 @@ public final class Main
         List argsList = new ArrayList();
         for (int i=0; i<args.length; i++) argsList.add(args[i]);
 
-		// -m for multiple windows
+		// -debug for debugging
+		if (hasCommandLineOption(argsList, "-debug")) DEBUG = true;
+
 		TopLevel.OSInitialize(!hasCommandLineOption(argsList, "-m"));
 
 		// initialize database
@@ -245,9 +247,6 @@ public final class Main
             if (hasCommandLineOption(argsList, "-NOMINMEM")) {
                 // do nothing, just consume option: handled in Launcher
             }
-            if (hasCommandLineOption(argsList, "-debug")) {
-                DEBUG = true;
-            }
 			String beanShellScript = getCommandLineOption(argsList, "-s");
 			openCommandLineLibs(argsList);
 
@@ -270,6 +269,11 @@ public final class Main
 		}
 	}
 
+	/**
+	 * Method to tell whether Electric is running in "debug" mode.
+	 * If the program is started with the "-debug" switch, debug mode is enabled.
+	 * @return true if running in debug mode.
+	 */
     public static boolean getDebug() { return DEBUG; }
 
 	/**

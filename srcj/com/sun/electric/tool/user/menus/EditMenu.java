@@ -331,9 +331,9 @@ public class EditMenu {
 		selListSubMenu.addMenuItem("Show Previous Error", KeyStroke.getKeyStroke('<'),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showPrevErrorCommand(); }});
 		selListSubMenu.addSeparator();
-		selListSubMenu.addMenuItem("Add to Waveform in New Panel", null,
+		selListSubMenu.addMenuItem("Add to Waveform in New Panel", KeyStroke.getKeyStroke('A', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { addToWaveformNewCommand(); }});
-		selListSubMenu.addMenuItem("Add to Waveform in Current Panel", null,
+		selListSubMenu.addMenuItem("Add to Waveform in Current Panel", KeyStroke.getKeyStroke('O', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { addToWaveformCurrentCommand(); }});
 
     }

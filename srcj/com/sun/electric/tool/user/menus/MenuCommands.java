@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.menus;
 
+import com.sun.electric.Main;
 import com.sun.electric.tool.user.menus.MenuBar.Menu;
 import com.sun.electric.tool.user.menus.MenuBar.MenuItem;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
@@ -81,8 +82,10 @@ public final class MenuCommands
         ViewMenu.addViewMenu(menuBar);
         WindowMenu.addWindowMenu(menuBar);
         ToolMenu.addToolMenu(menuBar);
-        HelpMenu.addHelpMenu(menuBar);
-        DebugMenus.addDebugMenus(menuBar);
+		MenuBar.Menu helpMenu = HelpMenu.addHelpMenu(menuBar);
+
+		if (Main.getDebug())
+	        DebugMenus.addDebugMenus(menuBar, helpMenu);
 
         /********************************* Hidden Menus *******************************/
 
