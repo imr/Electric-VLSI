@@ -61,14 +61,16 @@ import java.util.List;
  */
 public class ERCWellCheck
 {
+    public static final int ALGO_POLYMERGE = 0;
+    public static final int ALGO_QTREE = 1;
+    public static final int ALGO_SWEEP = 2;
 	Cell cell;
-	boolean newAlgorithm;
+	int newAlgorithm;
 	ErrorLogger errorLogger;
 	Highlighter highlighter;
 	List wellCons = new ArrayList();
 	List wellAreas = new ArrayList();
 	HashMap cellMerges = new HashMap(); // make a map of merge information in each cell
-    HashMap otherCellMerges = new HashMap(); //
 	HashMap doneCells = new HashMap(); // Mark if cells are done already.
 	WellCheckJob job;
 
@@ -88,7 +90,7 @@ public class ERCWellCheck
 		PrimitiveNode.Function fun;
 	};
 
-	public ERCWellCheck(Cell cell, WellCheckJob job, boolean newAlgorithm, Highlighter highlighter)
+	public ERCWellCheck(Cell cell, WellCheckJob job, int newAlgorithm, Highlighter highlighter)
 	{
 		this.job = job;
 		this.newAlgorithm = newAlgorithm;
@@ -99,7 +101,7 @@ public class ERCWellCheck
 	/*
 	 * Method to analyze the current Cell for well errors.
 	 */
-	public static void analyzeCurCell(boolean newAlgorithm)
+	public static void analyzeCurCell(int newAlgorithm)
 	{
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd == null) return;
@@ -115,7 +117,7 @@ public class ERCWellCheck
 	 * Static function to call the ERC Well functionality
 	 * @return number of errors
 	 */
-	public static int checkERCWell(Cell cell, WellCheckJob job, boolean newAlgorithm, Highlighter highlighter)
+	public static int checkERCWell(Cell cell, WellCheckJob job, int newAlgorithm, Highlighter highlighter)
 	{
 		ERCWellCheck check = new ERCWellCheck(cell, job, newAlgorithm, highlighter);
 		return check.doIt();
@@ -157,13 +159,19 @@ public class ERCWellCheck
 				WellArea wa = new WellArea();
 				PolyBase poly = null;
 
-				if (newAlgorithm)
-				{
-					PolyQTree.PolyNode pn = (PolyQTree.PolyNode)pIt.next();
-					poly = new PolyBase(pn.getPoints());
-				}
-				else
-					poly = (PolyBase)pIt.next();
+                switch(newAlgorithm)
+                {
+                    case ALGO_SWEEP:
+                        poly = (PolyBase)pIt.next();
+                        break;
+                    case ALGO_QTREE:
+                        PolyQTree.PolyNode pn = (PolyQTree.PolyNode)pIt.next();
+					    poly = new PolyBase(pn.getPoints());
+                        break;
+                    case ALGO_POLYMERGE:
+                        poly = (PolyBase)pIt.next();
+                        break;
+                }
 
 				wa.poly = poly;
 				wa.poly.setLayer(layer);
@@ -491,7 +499,6 @@ public class ERCWellCheck
 		wellCons.clear();
 		doneCells.clear();
 		cellMerges.clear();
-        otherCellMerges.clear();
 		errorLogger.termLogging(true);
 		return (errorCount);
 	}
@@ -499,10 +506,10 @@ public class ERCWellCheck
 	private static class WellCheckJob extends Job
 	{
 		Cell cell;
-		boolean newAlgorithm;
+		int newAlgorithm;
 		Highlighter highlighter;
 
-		protected WellCheckJob(Cell cell, boolean newAlgorithm, Highlighter highlighter)
+		protected WellCheckJob(Cell cell, int newAlgorithm, Highlighter highlighter)
 		{
 			super("ERC Well Check", ERC.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.cell = cell;
@@ -555,24 +562,23 @@ public class ERCWellCheck
 			// make an object for merging all of the wells in this cell
 			Cell cell = info.getCell();
 	        GeometryHandler thisMerge = (GeometryHandler)(check.cellMerges.get(cell));
-            GeometryHandler newMerge = (GeometryHandler)(check.otherCellMerges.get(cell));
 
 			if (thisMerge == null)
 			{
-				if (check.newAlgorithm)
-					thisMerge = new PolyQTree(cell.getBounds());
-				else
-					thisMerge = new PolyMerge();
+                switch(check.newAlgorithm)
+                {
+                    case ALGO_SWEEP:
+                        thisMerge = new PolySweepMerge();
+                        break;
+                    case ALGO_QTREE:
+                        thisMerge = new PolyQTree(cell.getBounds());
+                        break;
+                    case ALGO_POLYMERGE:
+                        thisMerge = new PolyMerge();
+                        break;
+                }
 				check.cellMerges.put(cell, thisMerge);
 			}
-            if (Main.getDebug())
-            {
-            if (newMerge == null)
-            {
-                newMerge = new PolySweepMerge();
-                check.otherCellMerges.put(cell, newMerge);
-            }
-            }
 
             return true;
         }
@@ -586,11 +592,11 @@ public class ERCWellCheck
 			Cell cell = info.getCell();
 	        GeometryHandler thisMerge = (GeometryHandler)check.cellMerges.get(info.getCell());
 			if (thisMerge == null) throw new Error("wrong condition in ERCWellCheck.enterCell()");
-            GeometryHandler newMerge = (GeometryHandler)(check.otherCellMerges.get(cell));
-            if (newMerge == null) throw new Error("wrong condition in ERCWellCheck.enterCell()");
 
 	        if (check.doneCells.get(cell) == null)
 	        {
+                boolean qTreeAlgo = check.newAlgorithm == ALGO_QTREE;
+
 				for(Iterator it = cell.getArcs(); it.hasNext(); )
 				{
 					ArcInst ai = (ArcInst)it.next();
@@ -606,12 +612,9 @@ public class ERCWellCheck
 						// Only interested in well/select
 						Object newElem = poly;
 
-						if (check.newAlgorithm)
-							newElem = new PolyQTree.PolyNode(poly);
-						thisMerge.add(layer, newElem, check.newAlgorithm);
-
-                        if (Main.getDebug())
-                        newMerge.add(layer, poly, false);
+                        if (qTreeAlgo)
+                            newElem = new PolyQTree.PolyNode(poly);
+						thisMerge.add(layer, newElem, qTreeAlgo);
 					}
 				}
 	        }
@@ -632,17 +635,9 @@ public class ERCWellCheck
 					AffineTransform tTrans = ni.translateOut(ni.rotateOut());
 					thisMerge.addAll(subMerge, tTrans);
 				}
-                if (Main.LOCALDEBUGFLAG)
-                {
-                GeometryHandler newSubMerge = (GeometryHandler)check.otherCellMerges.get(subNp);
-                if (newSubMerge != null)
-				{
-					AffineTransform tTrans = ni.translateOut(ni.rotateOut());
-					newMerge.addAll(newSubMerge, tTrans);
-				}
-                }
 			}
-            ((PolySweepMerge)newMerge).postProcess();
+            if (check.newAlgorithm == ALGO_SWEEP)
+                ((PolySweepMerge)thisMerge).postProcess();
        }
         public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
         {
@@ -652,7 +647,6 @@ public class ERCWellCheck
 			// merge everything
 	        Cell cell = info.getCell();
 	        GeometryHandler thisMerge = (GeometryHandler)check.cellMerges.get(cell);
-            GeometryHandler newMerge = (GeometryHandler)(check.otherCellMerges.get(cell));
 			NodeInst ni = no.getNodeInst();
 			//AffineTransform trans = ni.transformOut();
             PrimitiveNode.Function fun = ni.getFunction();
@@ -665,6 +659,7 @@ public class ERCWellCheck
 	        // No done yet
 	        if (check.doneCells.get(cell) == null)
 	        {
+                boolean qTreeAlgo = check.newAlgorithm == ALGO_QTREE;
 				NodeProto subNp = ni.getProto();
 				if (subNp instanceof PrimitiveNode)
 				{
@@ -684,10 +679,9 @@ public class ERCWellCheck
 						poly.transform(trans);
 						Object newElem = poly;
 
-						if (check.newAlgorithm)
+						if (qTreeAlgo)
                             newElem = new PolyQTree.PolyNode(poly);
-						thisMerge.add(layer, newElem, check.newAlgorithm);
-                        newMerge.add(layer, poly, false);
+						thisMerge.add(layer, newElem, qTreeAlgo);
 					}
 				}
 	        }

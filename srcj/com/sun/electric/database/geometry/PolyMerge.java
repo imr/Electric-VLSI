@@ -348,7 +348,7 @@ public class PolyMerge
 		return getAreaPoints(area, layer, simple);
 	}
    
-    private List getAreaPoints(Area area, Layer layer, boolean simple)
+    public static List getAreaPoints(Area area, Layer layer, boolean simple)
     {
 		List polyList = new ArrayList();
 		double [] coords = new double[6];
@@ -411,7 +411,7 @@ public class PolyMerge
 		}
         if (Main.LOCALDEBUGFLAG)
         {
-            List newList = PolyBase.getPointsInArea(area, layer, simple);
+            List newList = PolyBase.getPointsInArea(area, layer, simple, null);
 
             if (newList.size() != polyList.size())
                 System.out.println("Error in getPointsInArea");

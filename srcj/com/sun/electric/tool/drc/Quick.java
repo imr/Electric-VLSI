@@ -2779,7 +2779,7 @@ public class Quick
 		// error if the merged area doesn't contain 100% the search area.
 		if (!found)
 		{
-            List polyList = PolyBase.getPointsInArea(polyArea, layer, true);
+            List polyList = PolyBase.getPointsInArea(polyArea, layer, true, null);
 
             for (Iterator it = polyList.iterator(); it.hasNext(); )
             {

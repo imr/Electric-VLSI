@@ -1519,11 +1519,12 @@ public class PolyBase implements Shape
      * @param simple if true, polygons with inner loops will return in sample Poly.
      * @return List of PolyBase elements
      */
-	public static List getPointsInArea(Area area, Layer layer, boolean simple)
+	public static List getPointsInArea(Area area, Layer layer, boolean simple, List polyList)
 	{
 		if (area == null) return null;
 
-		List polyList = new ArrayList();
+		//List polyList = new ArrayList();
+        if (polyList == null) polyList = new ArrayList();
 		double [] coords = new double[6];
 		List pointList = new ArrayList();
 		Point2D lastMoveTo = null;

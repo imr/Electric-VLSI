@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02f: *********************************
 
+IMP: (01/31/05, GVG) First version of sweep algorithm connected to ERC Well
+
 IMP: (01/31/05, SMR) Waveform window draws grid dimmer and in the background.  Horizontal grid lines
      are adjusted to 10%, 30%, 50%, 70%, and 90% of actual values.  Panning commands (Ctrl-2-4-6-8)
      now work in waveform window.

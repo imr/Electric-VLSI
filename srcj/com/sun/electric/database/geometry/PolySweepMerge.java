@@ -5,9 +5,16 @@ import com.sun.electric.technology.Layer;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Area;
-import java.awt.*;
-import java.util.*;
+import java.awt.Shape;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Comparator;
+import java.util.Set;
 
 /**
  * Created by IntelliJ IDEA.
@@ -134,7 +141,6 @@ public class PolySweepMerge implements GeometryHandler
                 container.areas.add(areaTmp);
             }
         }
-        System.out.println("postProcess not implementd in PolySweepMerge");
     }
 
 	/**
@@ -145,7 +151,17 @@ public class PolySweepMerge implements GeometryHandler
 	 */
 	public Collection getObjects(Object layer, boolean modified, boolean simple)
     {
-        System.out.println("getObjects not implementd in PolySweepMerge");
-        return null;
+        PolySweepContainer container = (PolySweepContainer)layers.get(layer);
+
+        if (container == null) return null;
+
+        List list = new ArrayList();
+        for (Iterator it = container.areas.iterator(); it.hasNext(); )
+        {
+            Area area = (Area)it.next();
+            PolyBase.getPointsInArea(area, (Layer)layer, simple, list);
+        }
+
+        return list;
     }
 }

@@ -177,10 +177,12 @@ public class DebugMenus {
         menuBar.add(gildaMenu);
         gildaMenu.addMenuItem("Parasitic", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.parasiticCommand(); } });
-	    gildaMenu.addMenuItem("Check Wells", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(true); } });
-	    gildaMenu.addMenuItem("Check Wells OLD", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(false); } });
+	    gildaMenu.addMenuItem("Check Wells Sweep", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(ERCWellCheck.ALGO_SWEEP); } });
+	    gildaMenu.addMenuItem("Check Wells Orig", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(ERCWellCheck.ALGO_POLYMERGE); } });
+	    gildaMenu.addMenuItem("Check Wells QTree", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(ERCWellCheck.ALGO_QTREE); } });
 	    gildaMenu.addMenuItem("List Geometry on Network", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.listGeometryOnNetworkCommand(); } });
 	    gildaMenu.addMenuItem("3D View", null,

@@ -235,7 +235,7 @@ public class ToolMenu {
 		MenuBar.Menu ercSubMenu = new MenuBar.Menu("ERC", 'E');
 		toolMenu.add(ercSubMenu);
 		ercSubMenu.addMenuItem("Check Wells", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(false); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(ERCWellCheck.ALGO_POLYMERGE); } });
 		ercSubMenu.addMenuItem("Antenna Check", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { new ERCAntenna(); } });
 
