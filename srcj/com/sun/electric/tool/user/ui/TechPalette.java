@@ -238,6 +238,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             List arcList = new ArrayList();
             List contactList = new ArrayList();
             List pinList = new ArrayList();
+            List transList = new ArrayList();
+            List wellList = new ArrayList();
 
             for(Iterator it = tech.getArcs(); it.hasNext(); )
             {
@@ -250,7 +252,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 arcList.add(ap);
                 inPalette.add(ap);
             }
-            User.tool.setCurrentArcProto(firstHighlightedArc);
+            //User.tool.setCurrentArcProto(firstHighlightedArc);
             inPalette.add("Cell");
             inPalette.add("Misc.");
             inPalette.add("Pure");
@@ -275,18 +277,27 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     List list = null;
                     Object map = null;
 	                if (fun == PrimitiveNode.Function.TRANMOS || fun == PrimitiveNode.Function.TRAPMOS)
-                        map = fun;
-                    else if (fun == PrimitiveNode.Function.CONTACT)
                     {
-                        if (np.isGroupNode()) map = np.getLayers()[2].getLayer(); // vias as mapping
-                        contactList.add(np);
-                    }
-	                // Trick to get "well" in well contacts
-	                else if (fun == PrimitiveNode.Function.SUBSTRATE || fun == PrimitiveNode.Function.WELL)
+                        map = fun;
+                        transList.add(map);
+                    } else if (fun == PrimitiveNode.Function.CONTACT)
                     {
                         if (np.isGroupNode())
-                             map = fun;
+                        {
+                            map = np.getLayers()[2].getLayer(); // vias as mapping
+                            if (!np.isSpecialNode()) contactList.add(map);
+                        } else
+                            contactList.add(np);
+	                // Trick to get "well" in well contacts
+                    } else if (fun == PrimitiveNode.Function.SUBSTRATE || fun == PrimitiveNode.Function.WELL)
+                    {
 	                    toAdd = makeNodeInst(np, fun, 0, true, "Well");
+                        if (np.isGroupNode())
+                        {
+                            map = fun;
+                            if (!np.isSpecialNode()) wellList.add(map);
+                        } else
+                           wellList.add(toAdd);
                     }
                     if (map != null)
                     {
@@ -341,30 +352,51 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 menuX = 2;
             }
             /*
+            boolean withTrans = transList.size() > 0;
+            boolean longer = (arcList.size() < (contactList.size() + wellList.size()));
             menuX = 3;
             inPalette.clear();
             // First Arcs
             for (int i = 0; i < arcList.size(); i++)
                 inPalette.add(arcList.get(i));
+            if (longer && withTrans)
+                inPalette.add(elementsMap.get(transList.get(0))); // First set of transistors
             inPalette.add("Cell");
             // Second row are pins
             for (int i = 0; i < pinList.size(); i++)
                 inPalette.add(pinList.get(i));
+            if (longer && withTrans)
+                inPalette.add(elementsMap.get(transList.get(1))); // Second set of transistors
             inPalette.add("Misc.");
             // Last one are contacts
             for (int i = 0; i < contactList.size(); i++)
             {
-                PrimitiveNode np = (PrimitiveNode)contactList.get(i);
-                if (np.isGroupNode())
-                {
-                    Object map = np.getLayers()[2].getLayer(); // vias as mapping
-                    if (!np.isSpecialNode()) inPalette.add(elementsMap.get(map));
-                }
+                Object obj = contactList.get(i);
+                if (obj instanceof PrimitiveNode)
+                    inPalette.add(obj);
                 else
-                    inPalette.add(np);
+                    inPalette.add(elementsMap.get(obj));
+            }
+            // Wells
+            for (int i = 0; i < wellList.size(); i++)
+            {
+                Object obj = wellList.get(i);
+                if (obj instanceof PrimitiveNode)
+                    inPalette.add(obj);
+                else
+                    inPalette.add(elementsMap.get(obj));
+            }
+            // Transistors fit better here
+            if (!longer && withTrans)
+            {
+               for (int i = 0; i < transList.size(); i++)
+               {
+                   inPalette.add(elementsMap.get(transList.get(i))); // Second set of transistors
+               }
             }
             inPalette.add("Pure");
             menuY = arcList.size() + 1;
+            if (withTrans) menuY++;
             */
         }
         Dimension size = TopLevel.getScreenSize();
