@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01aw: *********************************
 
-IMP: (12/17/04, GVG) Fixed compilation warnings on Java-1.5.
+BUG: (12/17/04, GVG) 3D view: problems with zoom in/zoom out (Bug #23)
+FIX: Change factor calculation and now we are just setting a new transformation scale.
+
+IMP: (12/17/04, DN) Fixed compilation warnings on Java-1.5.
 
 IMP: (12/16/04, GVG) Minor changes due to manul preparation.
 

@@ -48,7 +48,6 @@ import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.ViewingPlatform;
 import com.sun.j3d.utils.universe.Viewer;
 import com.sun.j3d.utils.geometry.GeometryInfo;
-import com.sun.j3d.utils.geometry.Primitive;
 import com.sun.j3d.utils.geometry.NormalGenerator;
 import com.sun.j3d.utils.behaviors.mouse.*;
 import com.sun.j3d.utils.picking.PickTool;
@@ -396,7 +395,7 @@ public class View3DWindow extends JPanel
 	public void zoomInContents() {zoomB.zoomInOut(true);}
 
 	/**
-	 * Method to reset zoom/rotation/translation to original place (Fill Window operation)
+	 * Method to reset zoom/rotation/extraTrans to original place (Fill Window operation)
 	 */
 	public void fillScreen()
 	{
@@ -1282,7 +1281,7 @@ public class View3DWindow extends JPanel
 	 */
 	public class JMouseZoom extends MouseZoom
 	{
-		Vector3d translation = new Vector3d();
+		Vector3d extraTrans = new Vector3d();
 
 		public JMouseZoom(Component c, int flags) {super(c, flags);}
 
@@ -1293,26 +1292,32 @@ public class View3DWindow extends JPanel
 
 			Matrix4d mat = new Matrix4d();
 			currXform.get(mat);
-			double factor = (out) ? 0.5 : 2;
-			double dy = currXform.getScale() * factor;
+			double z_factor = Math.abs(getFactor());
+			double factor = (out) ? (0.5/z_factor) : (2*z_factor);
+			double factor1 = (out) ? (1/z_factor) : (z_factor);
+
+			System.out.println("Factor " + factor + " Fa " + factor1);
+
+			double dy = currXform.getScale() * factor1;
+			currXform.setScale(dy);
 
 			// Translate to origin
-			currXform.setTranslation(new Vector3d(0.0,0.0,0.0));
-
-			translation.z = dy*getFactor();
-
-			//transformX.set(translation);
-			transformX.setScale(dy);
-
-			if (invert) {
-				currXform.mul(currXform, transformX);
-			} else {
-				currXform.mul(transformX, currXform);
-			}
-
-			// Set old translation back
-			Vector3d translation = new Vector3d(mat.m03, mat.m13, mat.m23);
-			currXform.setTranslation(translation);
+//			currXform.setTranslation(new Vector3d(0.0,0.0,0.0));
+//
+//			extraTrans.z = dy; //dy*getFactor();
+//
+//			//transformX.set(extraTrans);
+//			transformX.setScale(dy);
+//
+//			if (invert) {
+//				currXform.mul(currXform, transformX);
+//			} else {
+//				currXform.mul(transformX, currXform);
+//			}
+//
+//			// Set old extraTrans back
+//			Vector3d translation = new Vector3d(mat.m03, mat.m13, mat.m23);
+//			currXform.setTranslation(translation);
 
 			transformGroup.setTransform(currXform);
 
@@ -1325,7 +1330,7 @@ public class View3DWindow extends JPanel
 		 * center
 		 * @param evt
 		 */
-		void doProcess(MouseEvent evt)
+		void doProcessOld(MouseEvent evt)
 		{
 			int id;
 			int dy;
@@ -1352,12 +1357,17 @@ public class View3DWindow extends JPanel
 						Matrix4d mat = new Matrix4d();
 						currXform.get(mat);
 
+//						double z_factor = Math.abs(getFactor()*dy);
+//						boolean out = (dy < 0);
+//			double factor = (out) ? (currXform.getScale()/z_factor) : (currXform.getScale()*z_factor);
+//			currXform.setScale(factor);
+
 						// Translate to origin
 						currXform.setTranslation(new Vector3d(0.0,0.0,0.0));
 
-						translation.z  = dy*getFactor();
+						extraTrans.z  = dy*getFactor();
 
-						transformX.set(translation);
+						transformX.set(extraTrans);
 
 						if (invert) {
 							currXform.mul(currXform, transformX);
@@ -1365,7 +1375,7 @@ public class View3DWindow extends JPanel
 							currXform.mul(transformX, currXform);
 						}
 
-						// Set old translation back
+						// Set old extraTrans back
 						Vector3d translation = new Vector3d(mat.m03, mat.m13, mat.m23);
 						currXform.setTranslation(translation);
 
@@ -1393,7 +1403,7 @@ public class View3DWindow extends JPanel
 			    }
 			}
 		}
-	}
+    }
 
 	//*** To navigate cells
 		// Extra functions to check area
