@@ -447,7 +447,7 @@ public class ErrorLogger implements ActionListener {
 	public synchronized void clearAllErrors() { allErrors.clear(); }
 
     /** Get the current logger */
-    public synchronized static ErrorLogger getCurrent() {
+    public static ErrorLogger getCurrent() {
         synchronized(allLoggers) {
             if (currentLogger == null) return newInstance("Unknown");
             return currentLogger;
@@ -674,19 +674,21 @@ public class ErrorLogger implements ActionListener {
     public static DefaultMutableTreeNode getExplorerTree()
     {
         DefaultMutableTreeNode explorerTree = new DefaultMutableTreeNode(errorNode);
+        ArrayList loggersCopy = new ArrayList();
         synchronized(allLoggers) {
-            for (Iterator eit = allLoggers.iterator(); eit.hasNext(); ) {
-                ErrorLogger logger = (ErrorLogger)eit.next();
-                if (logger.getNumErrors() == 0) continue;
-                DefaultMutableTreeNode loggerNode = new DefaultMutableTreeNode(logger);
-                for (Iterator it = logger.allErrors.iterator(); it.hasNext();)
-                {
-                    ErrorLog el = (ErrorLog)it.next();
-                    DefaultMutableTreeNode node = new DefaultMutableTreeNode(el);
-                    loggerNode.add(node);
-                }
-                explorerTree.add(loggerNode);
+            loggersCopy.addAll(allLoggers);
+        }
+        for (Iterator eit = loggersCopy.iterator(); eit.hasNext(); ) {
+            ErrorLogger logger = (ErrorLogger)eit.next();
+            if (logger.getNumErrors() == 0) continue;
+            DefaultMutableTreeNode loggerNode = new DefaultMutableTreeNode(logger);
+            for (Iterator it = logger.allErrors.iterator(); it.hasNext();)
+            {
+                ErrorLog el = (ErrorLog)it.next();
+                DefaultMutableTreeNode node = new DefaultMutableTreeNode(el);
+                loggerNode.add(node);
             }
+            explorerTree.add(loggerNode);
         }
         return explorerTree;
     }
