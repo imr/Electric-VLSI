@@ -128,6 +128,14 @@ public class NccJob extends Job {
 		}
 	}
 	
+	private boolean isSchemOrLay(Cell c) {
+		View v = c.getView();
+		boolean ok = v==View.SCHEMATIC || v==View.LAYOUT;
+		if (!ok) System.out.println("Cell: "+NccUtils.fullName(c)+
+									" isn't schematic or layout");
+		return ok;
+	}
+	
 	private boolean nccCellsFromTwoWindows() {
 		List cells = NccUtils.getCellsFromWindows();
 		if (cells.size()<2) {
@@ -136,15 +144,9 @@ public class NccJob extends Job {
 		} 
 		Cell c1 = (Cell) cells.get(0);
 		Cell c2 = (Cell) cells.get(1);
+		if (!isSchemOrLay(c1) || isSchemOrLay(c2)) return false;
 		if (hierarchical) {
-			if (c1.getView()==View.SCHEMATIC) {
-				return NccHierarchical.compareHierarchical(c1, c2);
-			} else if (c2.getView()==View.SCHEMATIC){
-				return NccHierarchical.compareHierarchical(c2, c1);
-			} else {
-				System.out.println("no Schematic found");
-				return false;
-			}
+			return NccHierarchical.compareHierarchical(c1, c2);
 		} else {
 			return NccUtils.nccTwoCells(c1, c2);
 		}

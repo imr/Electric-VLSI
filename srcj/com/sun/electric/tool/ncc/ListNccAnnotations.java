@@ -45,7 +45,7 @@ import com.sun.electric.database.variable.Variable;
 class ScanHierForNccAnnot extends HierarchyEnumerator.Visitor {
 	private HashSet enteredCells = new HashSet();
 
-	private void scanForAnnot(Cell cell) {
+	private void printAnn(Cell cell) {
 		NccCellAnnotations ann = NccCellAnnotations.getAnnotations(cell);
 		if (ann==null) return;
 		System.out.println("  Cell: "+NccUtils.fullName(cell)+" annotations:");
@@ -54,6 +54,17 @@ class ScanHierForNccAnnot extends HierarchyEnumerator.Visitor {
 			System.out.println("    "+it.next());
 		}
 	}
+
+	private void scanForAnnot(Cell cell) {
+		Cell.CellGroup g = cell.getCellGroup();
+		for (Iterator it=g.getCells(); it.hasNext();) {
+			Cell c = (Cell) it.next();
+			if (c.getView()==View.SCHEMATIC || c.getView()==View.LAYOUT) {
+				printAnn(c);								
+			}
+		}
+	}
+	
 	public boolean enterCell(HierarchyEnumerator.CellInfo info) {
 		Cell cell = info.getCell();
 		if (enteredCells.contains(cell))  return false;

@@ -216,11 +216,11 @@ public class NccHierarchical {
 		return compareCellGroups(use1, use2, options); 
 	}
 	
-	public static boolean compareHierarchical(Cell schem, Cell lay) {
+	public static boolean compareHierarchical(Cell c1, Cell c2) {
 		NccOptions options = new NccOptions();
 		options.verbose = false;
 		options.continueAfterMismatch = false;
 		NccHierarchical ncch = new NccHierarchical();
-		return ncch.compareCells(schem, lay, options);
+		return ncch.compareCells(c1, c2, options);
 	}
 }
