@@ -392,7 +392,9 @@ public class MenuBar extends JMenuBar
                 // this is needed to change the state of button and fire off to listeners
                 menuBarGroup.keyBindingManager.addActionListener(((MenuItemInterface)item).getDescription(), new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
-                        JMenuItem m = (JMenuItem)e.getSource(); m.doClick(); }
+                        JMenuItem m = (JMenuItem)e.getSource();
+                        m.doClick();
+                    }
                 });
                 // fake event source so it looks like event generated from menuitem
                 menuBarGroup.keyBindingManager.setEventSource(((MenuItemInterface)item).getDescription(), item);
@@ -596,7 +598,7 @@ public class MenuBar extends JMenuBar
         }
         synchronized(menuBarGroup) {
             ArrayList list = (ArrayList)menuBarGroup.menuItems.get(((MenuItemInterface)item).getDescription());
-            if (list == null) return;
+            if (list == null) return;           // hidden menu items will have null list
             // remove reference to item
             list.remove(item);
         }

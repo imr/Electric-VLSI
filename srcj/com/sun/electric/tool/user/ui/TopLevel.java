@@ -335,7 +335,8 @@ public class TopLevel extends JFrame
         //System.out.println(this.getClass()+" being disposed of");
         // clean up menubar
         setJMenuBar(null);
-        menuBar.finished(); menuBar = null;
+        // TODO: figure out why Swing still sends events to finished menuBars
+        //menuBar.finished(); menuBar = null;
         // clean up toolbar
         getContentPane().remove(toolBar);
         toolBar.finished(); toolBar = null;
@@ -389,28 +390,5 @@ public class TopLevel extends JFrame
             MenuCommands.quitCommand();
         }
 	}
-
-    /**
-     * Overwrites original JFrame::processWindowEvent to
-     * avoid quit if cancel button is pressed.
-     * Processes window events occurring on this component.
-     * Hides the window or disposes of it, as specified by the setting
-     * of the <code>defaultCloseOperation</code> property.
-     *
-     * @param  e  the window event
-     * @see    #setDefaultCloseOperation
-     * @see    java.awt.Window#processWindowEvent
-     */
-    /*
-    protected void processWindowEvent(WindowEvent e) {
-        // Check for close in SDI mode
-        if (!isMDIMode()) {
-            if (e.getID() != WindowEvent.WINDOW_CLOSING ||
-                    MenuCommands.quitCommand())
-                super.processWindowEvent(e);
-        } else {
-            // MDI Mode: let WindowFrame handle it, because
-            // each TopLevel is associated with a WindowFrame
-        }
-    }*/
+    
 }
