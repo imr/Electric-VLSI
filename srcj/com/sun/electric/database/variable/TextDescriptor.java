@@ -37,10 +37,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Rectangle2D;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 import java.util.prefs.Preferences;
 
 /**
@@ -118,7 +115,7 @@ public class TextDescriptor
 		private final String name;
 		private final int index;
 		private final Poly.Type pt;
-        private static List positions = new ArrayList();
+        private static final List positions = new ArrayList();
 
 		private Position(String name, int index, Poly.Type pt)
 		{
@@ -174,7 +171,7 @@ public class TextDescriptor
         /**
          * Get an iterator over all Positions
          */
-        public static Iterator getPositions() { return positions.iterator(); }
+        public static Iterator getPositions() { return Collections.unmodifiableList(positions).iterator(); }
 
 		/**
 		 * Returns a printable version of this Position.
@@ -242,7 +239,7 @@ public class TextDescriptor
 	{
 		private final String name;
 		private final int index;
-		private static List positions = new ArrayList();
+		private static final List positions = new ArrayList();
 
 		private DispPos(String name, int index)
 		{
@@ -287,7 +284,7 @@ public class TextDescriptor
          * Get an iterator over all show styles.
          * @return an iterator over the list of show styles
          */
-        public static Iterator getShowStyles() { return positions.iterator(); }
+        public static Iterator getShowStyles() { return Collections.unmodifiableList(positions).iterator(); }
 
 		/**
 		 * Returns a printable version of this DispPos.
@@ -411,7 +408,7 @@ public class TextDescriptor
 		private final int angle;
 		private final int index;
 		private final String name;
-		private static List rotations = new ArrayList();
+		private static final List rotations = new ArrayList();
 
 		private Rotation(int angle, int index, String name)
 		{
@@ -471,7 +468,7 @@ public class TextDescriptor
          * Get an iterator over all rotations
          * @return an iterator over all rotations
          */
-        public static Iterator getRotations() { return rotations.iterator(); }
+        public static Iterator getRotations() { return Collections.unmodifiableList(rotations).iterator(); }
 
 		/**
 		 * Returns a printable version of this Rotation.
@@ -497,7 +494,7 @@ public class TextDescriptor
 	{
 		private final String name;
 		private final int index;
-		private static List units = new ArrayList();
+		private static final List units = new ArrayList();
 
 		private Unit(String name, int index)
 		{
@@ -537,7 +534,7 @@ public class TextDescriptor
          * Get an iterator over all units.
          * @return an iterator over the list of unit types.
          */
-        public static Iterator getUnits() { return units.iterator(); }
+        public static Iterator getUnits() { return Collections.unmodifiableList(units).iterator(); }
 
 		/**
 		 * Returns a printable version of this Unit.
@@ -563,8 +560,8 @@ public class TextDescriptor
 		private String fontName;
 		private int index;
 		private static int indexCount = 0;
-		private static HashMap fontMap = new HashMap();
-		private static List fontList = new ArrayList();
+		private static final HashMap fontMap = new HashMap();
+		private static final List fontList = new ArrayList();
 
 		private ActiveFont(String fontName)
 		{
@@ -632,9 +629,9 @@ public class TextDescriptor
 
 	/** the words of the text descriptor */		private int descriptor0, descriptor1;
 	/** the color of the text descriptor */		private int colorIndex;
-	/** the owner of the text descriptor */		ElectricObject owner;
+	/** the owner of the text descriptor */		protected final ElectricObject owner;
 
-	/** preferences for all descriptors */	private static Preferences prefs = Preferences.userNodeForPackage(TextDescriptor.class);
+	/** preferences for all descriptors */	private static final Preferences prefs = Preferences.userNodeForPackage(TextDescriptor.class);
 
 	/**
 	 * The constructor simply creates a TextDescriptor with zero values filled-in.
@@ -690,7 +687,7 @@ public class TextDescriptor
 	/**
 	 * Default TextDescriptor for NodeInsts is 1 unit tall.
 	 */
-	private static Pref cacheNodeDescriptor = Pref.makeLongPref("TextDescriptorForNode", prefs, (4 << TXTQGRIDSH) << VTSIZESH);
+	private static final Pref cacheNodeDescriptor = Pref.makeLongPref("TextDescriptorForNode", prefs, (4 << TXTQGRIDSH) << VTSIZESH);
 	/**
 	 * Method to return a TextDescriptor that is a default for Variables on NodeInsts.
 	 * @param owner owner of this TextDescriptor.
@@ -907,9 +904,17 @@ public class TextDescriptor
 			return true;
 		}
 		if (anObject instanceof TextDescriptor) {
-			TextDescriptor td = (TextDescriptor)anObject;
-			return descriptor0 == td.descriptor0 && descriptor1 == td.descriptor1 &&
-			colorIndex == td.colorIndex;
+            int d0, d1, ci;
+            synchronized(anObject) {
+    			TextDescriptor td = (TextDescriptor)anObject;
+                d0 = td.descriptor0;
+                d1 = td.descriptor1;
+                ci = td.colorIndex;
+            }
+            synchronized(this) {
+			    return descriptor0 == d0 && descriptor1 == d1 &&
+			        colorIndex == ci;
+            }
 		}
 		return false;
     }
@@ -923,7 +928,13 @@ public class TextDescriptor
 		owner.checkChanging();
 
 		// handle change control, constraint, and broadcast
-		Undo.modifyTextDescript(owner, this, descriptor0, descriptor1, colorIndex);
+        int d0, d1, ci;
+        synchronized(this) {
+            d0 = descriptor0;
+            d1 = descriptor1;
+            ci = colorIndex;
+        }
+		Undo.modifyTextDescript(owner, this, d0, d1, ci);
 	}
 
     /**
@@ -1075,7 +1086,7 @@ public class TextDescriptor
 	 * @param descriptor0 the first word of the new TextDescriptor.
 	 * @param descriptor1 the second word of the new TextDescriptor.
 	 */
-	public void lowLevelSet(int descriptor0, int descriptor1)
+	public synchronized void lowLevelSet(int descriptor0, int descriptor1)
 	{
 		this.descriptor0 = descriptor0;
 		this.descriptor1 = descriptor1;
@@ -1090,7 +1101,7 @@ public class TextDescriptor
 	 * This should not normally be called by any other part of the system.
 	 * @param descriptor1 the bits of the new TextDescriptor.
 	 */
-	public void lowLevelSet(long descriptor)
+	public synchronized void lowLevelSet(long descriptor)
 	{
 		this.descriptor0 = (int)(descriptor >> 32);
 		this.descriptor1 = (int)(descriptor & 0xFFFFFFFF);
@@ -1108,9 +1119,17 @@ public class TextDescriptor
 	public void copy(TextDescriptor descriptor)
 	{
 		checkChanging();
-		this.descriptor0 = descriptor.descriptor0;
-		this.descriptor1 = descriptor.descriptor1;
-		this.colorIndex = descriptor.colorIndex;
+        int d0, d1, ci;
+        synchronized(descriptor) {
+            d0 = descriptor.descriptor0;
+            d1 = descriptor.descriptor1;
+            ci = descriptor.colorIndex;
+        }
+        synchronized(this) {
+            this.descriptor0 = d0;
+            this.descriptor1 = d1;
+            this.colorIndex = ci;
+        }
 	}
 
 	/**
@@ -1120,9 +1139,17 @@ public class TextDescriptor
 	 */
 	public boolean compare(TextDescriptor descriptor)
 	{
-		if (this.descriptor0 == descriptor.descriptor0 &&
-			this.descriptor1 == descriptor.descriptor1 &&
-			this.colorIndex == descriptor.colorIndex) return true;
+        int d0, d1, ci;
+        synchronized(descriptor) {
+            d0 = descriptor.descriptor0;
+            d1 = descriptor.descriptor1;
+            ci = descriptor.colorIndex;
+        }
+        synchronized(this) {
+            if (this.descriptor0 == d0 &&
+                this.descriptor1 == d1 &&
+                this.colorIndex == ci) return true;
+        }
 		return false;
 	}
 
@@ -1135,7 +1162,7 @@ public class TextDescriptor
 	 * This should not normally be called by any other part of the system.
 	 * @return the first word of the bits in the TextDescriptor.
 	 */
-	public int lowLevelGet0() { return descriptor0; }
+	public synchronized int lowLevelGet0() { return descriptor0; }
 
 	/**
 	 * Low-level method to get the second word of the bits in the TextDescriptor.
@@ -1146,7 +1173,7 @@ public class TextDescriptor
 	 * This should not normally be called by any other part of the system.
 	 * @return the second word of the bits in the TextDescriptor.
 	 */
-	public int lowLevelGet1() { return descriptor1; }
+	public synchronized int lowLevelGet1() { return descriptor1; }
 
 	/**
 	 * Low-level method to get the bits in the TextDescriptor.
@@ -1157,7 +1184,7 @@ public class TextDescriptor
 	 * This should not normally be called by any other part of the system.
 	 * @return the bits in the TextDescriptor.
 	 */
-	public long lowLevelGet() { return ((long)descriptor0 << 32) | descriptor1; }
+	public synchronized long lowLevelGet() { return ((long)descriptor0 << 32) | descriptor1; }
 
 	/**
 	 * Method to return the color index of the TextDescriptor.
@@ -1166,7 +1193,7 @@ public class TextDescriptor
 	 * Methods in "EGraphics" manipulate color indices.
 	 * @return the color index of the TextDescriptor.
 	 */
-	public int getColorIndex() { return colorIndex; }
+	public synchronized int getColorIndex() { return colorIndex; }
 
 	/**
 	 * Method to set the color index of the TextDescriptor.
@@ -1187,7 +1214,7 @@ public class TextDescriptor
      * @see TextDescriptor#setColorIndex(int)
      * @param colorIndex the color index
      */
-    public void lowLevelSetColorIndex(int colorIndex) {
+    public synchronized void lowLevelSetColorIndex(int colorIndex) {
         this.colorIndex = colorIndex;
     }
 
@@ -1197,7 +1224,7 @@ public class TextDescriptor
 	 * which is the point on the text that is attached to the object and does not move.
 	 * @return the text position of the TextDescriptor.
 	 */
-	public Position getPos()
+	public synchronized Position getPos()
 	{
 		int pos = descriptor0 & VTPOSITION;
 		if (pos >= Position.getNumPositions()) pos = 0;
@@ -1210,7 +1237,7 @@ public class TextDescriptor
 	 * which is the point on the text that is attached to the object and does not move.
 	 * @param p the text position of the TextDescriptor.
 	 */
-	public void setPos(Position p)
+	public synchronized void setPos(Position p)
 	{
 		checkChanging();
 		descriptor0 = (descriptor0 & ~VTPOSITION) | p.getIndex();
@@ -1222,7 +1249,7 @@ public class TextDescriptor
 	 * or relative text (in quarter units).
 	 * @return the text size of the text in this TextDescriptor.
 	 */
-	public Size getSize()
+	public synchronized Size getSize()
 	{
 		int textSize = (descriptor1 & VTSIZE) >> VTSIZESH;
 		if (textSize == 0) return Size.newRelSize(1);
@@ -1260,7 +1287,7 @@ public class TextDescriptor
 	 * The size must be between 1 and 63 points.
 	 * @param s the point size of this TextDescriptor.
 	 */
-	public void setAbsSize(int s)
+	public synchronized void setAbsSize(int s)
 	{
 		Size size = Size.newAbsSize(s);
 		if (size == null) return;
@@ -1273,7 +1300,7 @@ public class TextDescriptor
 	 * The size must be between 0.25 and 127.75 grid units (in .25 increments).
 	 * @param s the unit size of this TextDescriptor.
 	 */
-	public void setRelSize(double s)
+	public synchronized void setRelSize(double s)
 	{
 		Size size = Size.newRelSize(s);
 		if (size == null) return;
@@ -1285,13 +1312,13 @@ public class TextDescriptor
 	 * Method to return the text font of the TextDescriptor.
 	 * @return the text font of the TextDescriptor.
 	 */
-	public int getFace() { return (descriptor1 & VTFACE) >> VTFACESH; }
+	public synchronized int getFace() { return (descriptor1 & VTFACE) >> VTFACESH; }
 
 	/**
 	 * Method to set the text font of the TextDescriptor.
 	 * @param f the text font of the TextDescriptor.
 	 */
-	public void setFace(int f)
+	public synchronized void setFace(int f)
 	{
 		checkChanging();
 		descriptor1 = (descriptor1 & ~VTFACE) | (f << VTFACESH);
@@ -1302,14 +1329,14 @@ public class TextDescriptor
 	 * There are only 4 rotations: 0, 90 degrees, 180 degrees, and 270 degrees.
 	 * @return the text rotation of the TextDescriptor.
 	 */
-	public Rotation getRotation() { return Rotation.getRotationAt((descriptor1 & VTROTATION) >> VTROTATIONSH); }
+	public synchronized Rotation getRotation() { return Rotation.getRotationAt((descriptor1 & VTROTATION) >> VTROTATIONSH); }
 
 	/**
 	 * Method to set the text rotation of the TextDescriptor.
 	 * There are only 4 rotations: 0, 90 degrees, 180 degrees, and 270 degrees.
 	 * @param r the text rotation of the TextDescriptor.
 	 */
-	public void setRotation(Rotation r)
+	public synchronized void setRotation(Rotation r)
 	{
 		checkChanging();
 		descriptor1 = (descriptor1 & ~VTROTATION) | (r.getIndex() << VTROTATIONSH);
@@ -1319,13 +1346,13 @@ public class TextDescriptor
 	 * Method to return the text display part of the TextDescriptor.
 	 * @return the text display part of the TextDescriptor.
 	 */
-	public DispPos getDispPart() { return DispPos.getShowStylesAt((descriptor0 & VTDISPLAYPART) >> VTDISPLAYPARTSH); }
+	public synchronized DispPos getDispPart() { return DispPos.getShowStylesAt((descriptor0 & VTDISPLAYPART) >> VTDISPLAYPARTSH); }
 
 	/**
 	 * Method to set the text display part of the TextDescriptor.
 	 * @param d the text display part of the TextDescriptor.
 	 */
-	public void setDispPart(DispPos d)
+	public synchronized void setDispPart(DispPos d)
 	{
 		checkChanging();
 		descriptor0 = (descriptor0 & ~VTDISPLAYPART) | (d.getIndex() << VTDISPLAYPARTSH);
@@ -1335,12 +1362,12 @@ public class TextDescriptor
 	 * Method to return true if the text in the TextDescriptor is italic.
 	 * @return true if the text in the TextDescriptor is italic.
 	 */
-	public boolean isItalic() { return (descriptor0 & VTITALIC) != 0; }
+	public synchronized boolean isItalic() { return (descriptor0 & VTITALIC) != 0; }
 
 	/**
 	 * Method to set the text in the TextDescriptor to be italic.
 	 */
-	public void setItalic(boolean state)
+	public synchronized void setItalic(boolean state)
 	{
 		checkChanging();
         if (state)
@@ -1353,12 +1380,12 @@ public class TextDescriptor
 	 * Method to return true if the text in the TextDescriptor is bold.
 	 * @return true if the text in the TextDescriptor is bold.
 	 */
-	public boolean isBold() { return (descriptor0 & VTBOLD) != 0; }
+	public synchronized boolean isBold() { return (descriptor0 & VTBOLD) != 0; }
 
 	/**
 	 * Method to set the text in the TextDescriptor to be bold.
 	 */
-	public void setBold(boolean state)
+	public synchronized void setBold(boolean state)
 	{
 		checkChanging();
         if (state)
@@ -1371,12 +1398,12 @@ public class TextDescriptor
 	 * Method to return true if the text in the TextDescriptor is underlined.
 	 * @return true if the text in the TextDescriptor is underlined.
 	 */
-	public boolean isUnderline() { return (descriptor0 & VTUNDERLINE) != 0; }
+	public synchronized boolean isUnderline() { return (descriptor0 & VTUNDERLINE) != 0; }
 
 	/**
 	 * Method to set the text in the TextDescriptor to be underlined.
 	 */
-	public void setUnderline(boolean state)
+	public synchronized void setUnderline(boolean state)
 	{
 		checkChanging();
 		if (state)
@@ -1390,13 +1417,13 @@ public class TextDescriptor
 	 * Interior text is not seen at higher levels of the hierarchy.
 	 * @return true if the text in the TextDescriptor is interior.
 	 */
-	public boolean isInterior() { return (descriptor0 & VTINTERIOR) != 0; }
+	public synchronized boolean isInterior() { return (descriptor0 & VTINTERIOR) != 0; }
 
 	/**
 	 * Method to set the text in the TextDescriptor to be interior.
 	 * Interior text is not seen at higher levels of the hierarchy.
 	 */
-	public void setInterior(boolean state)
+	public synchronized void setInterior(boolean state)
 	{
 		checkChanging();
 		if (state)
@@ -1413,7 +1440,7 @@ public class TextDescriptor
 	 * created on that NodeInst.
 	 * @return true if the text in the TextDescriptor is inheritable.
 	 */
-	public boolean isInherit() { return (descriptor0 & VTINHERIT) != 0; }
+	public synchronized boolean isInherit() { return (descriptor0 & VTINHERIT) != 0; }
 
 	/**
 	 * Method to set the text in the TextDescriptor to be inheritable.
@@ -1422,7 +1449,7 @@ public class TextDescriptor
 	 * When a NodeInst is created, any inheritable Variables on its NodeProto are automatically
 	 * created on that NodeInst.
 	 */
-	public void setInherit(boolean state)
+	public synchronized void setInherit(boolean state)
 	{
 		checkChanging();
 		if (state)
@@ -1438,7 +1465,7 @@ public class TextDescriptor
 	 * Parameters can only exist on NodeInst objects.
 	 * @return true if the text in the TextDescriptor is a parameter.
 	 */
-	public boolean isParam() { return (descriptor0 & VTISPARAMETER) != 0; }
+	public synchronized boolean isParam() { return (descriptor0 & VTISPARAMETER) != 0; }
 
 	/**
 	 * Method to set the text in the TextDescriptor to be a parameter.
@@ -1446,7 +1473,7 @@ public class TextDescriptor
 	 * passed down the hierarchy into the contents.
 	 * Parameters can only exist on NodeInst objects.
 	 */
-	public void setParam(boolean state)
+	public synchronized void setParam(boolean state)
 	{
 		checkChanging();
 		if (state)
@@ -1459,7 +1486,7 @@ public class TextDescriptor
 	 * Method to return the X offset of the text in the TextDescriptor.
 	 * @return the X offset of the text in the TextDescriptor.
 	 */
-	public double getXOff()
+	public synchronized double getXOff()
 	{
 		int offset = (descriptor0 & VTXOFF) >> VTXOFFSH;
 		if ((descriptor0&VTXOFFNEG) != 0) offset = -offset;
@@ -1471,7 +1498,7 @@ public class TextDescriptor
 	 * Method to return the Y offset of the text in the TextDescriptor.
 	 * @return the Y offset of the text in the TextDescriptor.
 	 */
-	public double getYOff()
+	public synchronized double getYOff()
 	{
 		int offset = (descriptor0 & VTYOFF) >> VTYOFFSH;
 		if ((descriptor0&VTYOFFNEG) != 0) offset = -offset;
@@ -1485,7 +1512,7 @@ public class TextDescriptor
 	 * @param xd the X offset of the text in the TextDescriptor.
 	 * @param yd the Y offset of the text in the TextDescriptor.
 	 */
-	public void setOff(double xd, double yd)
+	public synchronized void setOff(double xd, double yd)
 	{
 		checkChanging();
 		int x = (int)(xd * 4);
@@ -1511,7 +1538,7 @@ public class TextDescriptor
 	}
 
 	/** Method to return the offset scale of the text in the text descriptor. */
-	private int getOffScale() { return (descriptor1 & VTOFFSCALE) >> VTOFFSCALESH; }
+	private synchronized int getOffScale() { return (descriptor1 & VTOFFSCALE) >> VTOFFSCALESH; }
 
 	/**
 	 * Method to return the Unit of the TextDescriptor.
@@ -1520,7 +1547,7 @@ public class TextDescriptor
 	 * is volts, millivolts, microvolts, etc.
 	 * @return the Unit of the TextDescriptor.
 	 */
-	public Unit getUnit() { return Unit.getUnitAt(((descriptor1 & VTUNITS) >> VTUNITSSH) & VTUNITSHMASK); }
+	public synchronized Unit getUnit() { return Unit.getUnitAt(((descriptor1 & VTUNITS) >> VTUNITSSH) & VTUNITSHMASK); }
 
 	/**
 	 * Method to set the Unit of the TextDescriptor.
@@ -1529,7 +1556,7 @@ public class TextDescriptor
 	 * is volts, millivolts, microvolts, etc.
 	 * @param u the Unit of the TextDescriptor.
 	 */
-	public void setUnit(Unit u)
+	public synchronized void setUnit(Unit u)
 	{
 		checkChanging();
 		descriptor1 = (descriptor1 & ~VTUNITS) | (u.getIndex() << VTUNITSSH);
