@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02g: *********************************
 
+BUG: (02/04/05, DN) Duplicate or rename cells spoils "getInstancesOf" (Bug #192).
+FIX: In NodeInst.check add checking of NodeUsage to catch corruption in time.
+     In NodeInst.rename use Cell.removeNodeName instead of Cell.removeNode to avoid corruption.
+
+BUG: (02/04/05, DN) User writes corrupted library when invariants are broken (Bug #191).
+FIX: In ToolMenu suggest user "ForceQuit" with save in "panic" directory.
+     In "Cell.checkInvariants" report only first assert violation message to be less annoying.
+
 IMP: (02/03/05, GVG) Removing extra call in ERC for subMerge trees.
 
 IMP: (02/03/05, GVG) Optimizing usage of memory in sweep algorithm (using ERC as test case).

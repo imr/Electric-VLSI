@@ -2355,10 +2355,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public void lowLevelRename(Name name, int duplicate)
 	{
-		parent.removeNode(this);
+		parent.removeNodeName(this);
 		this.name = name;
 		this.duplicate = duplicate;
-		this.duplicate = parent.addNode(this);
+		this.duplicate = parent.addNodeName(this);
 		parent.checkInvariants();
 	}
 
@@ -2860,6 +2860,21 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	{
 		assert name != null;
 		assert duplicate >= 0;
+
+		assert nodeUsage != null;
+		assert nodeUsage.getParent() == parent;
+		assert nodeUsage.getProto() == protoType;
+		assert nodeUsage.contains(this);
+		if (protoType instanceof Cell)
+		{
+			int foundUsage = 0;
+			for (Iterator it = ((Cell)protoType).getUsagesOf(); it.hasNext(); )
+			{
+				NodeUsage nu = (NodeUsage)it.next();
+				if (nu == nodeUsage) foundUsage++;
+			}
+			assert foundUsage == 1;
+		}
 
 		assert portInsts != null;
 		assert portInsts.length == protoType.getNumPorts();

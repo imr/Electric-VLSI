@@ -1671,6 +1671,20 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			}
 		}
 
+		duplicate = addNodeName(ni);
+		nu.addInst(ni);
+		return duplicate;
+	}
+
+	/**
+	 * Method to add a new NodeInst to the name index of this cell.
+	 * @param ai the NodeInst to be included tp the name index in the cell.
+	 * @return unique diplicate index for this node.
+	 */
+	public int addNodeName(NodeInst ni)
+	{
+		String name = ni.getName();
+		int duplicate = ni.getDuplicate();
 		int nodeIndex = 0;
 		if (duplicate >= 0)
 		{
@@ -1713,9 +1727,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			n.setNodeIndex(nodeIndex);
 		}
 		addTempName(ni);
-		nu.addInst(ni);
 		return duplicate;
 	}
+
 
 	/**
 	 * Method to remove an NodeInst from the cell.
@@ -1735,6 +1749,15 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		if (nu.isEmpty())
 			removeUsage(nu);
 
+		removeNodeName(ni);
+	}
+
+	/**
+	 * Method to remove an NodeInst from the name index of this cell.
+	 * @param ni the NodeInst to be removed from the cell.
+	 */
+	public void removeNodeName(NodeInst ni)
+	{
 		int nodeIndex = ni.getNodeIndex();
 		NodeInst removedNi = (NodeInst) nodes.remove(nodeIndex);
 		assert removedNi == ni;
@@ -3589,6 +3612,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		assert cellGroup.containsCell(this);
 	}
 
+	private static boolean invariantsFailed = false;
+
 	/**
 	 * Method to check invariants in this Cell.
 	 * @return true if invariants are valid
@@ -3601,9 +3626,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			return true;
 		} catch (Throwable e)
 		{
-			System.out.println("Exception checking invariants of Cell " + describe());
-			e.printStackTrace();
-			ActivityLogger.logException(e);
+			if (!invariantsFailed)
+			{
+				System.out.println("Exception checking invariants of Cell " + describe());
+				e.printStackTrace();
+				ActivityLogger.logException(e);
+				invariantsFailed = true;
+			}
 		}
 		return false;
 	}

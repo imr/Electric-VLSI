@@ -678,12 +678,20 @@ public class FileMenu {
 		// check database invariants
 		if (!Library.checkInvariants())
 		{
-			String [] messages = { "Database invariants are not valid", "Do you really want to write libraries?"};
-            Object [] options = {"Continue Writing", "Cancel" };
+			String [] messages = {
+				"Database invariants are not valid",
+				"You may use \"Force Quit (and Save)\" to save in a panic directory",
+				"Do you really want to write libraries into the working directory?"};
+            Object [] options = {"Continue Writing", "Cancel", "ForceQuit" };
             int val = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(), messages,
-                    "Invalid database invariants", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null,
-                    options, options[1]);
+				"Invalid database invariants", JOptionPane.DEFAULT_OPTION,
+				JOptionPane.WARNING_MESSAGE, null, options, options[1]);
             if (val == 1) return false;
+			if (val == 2)
+			{
+				forceQuit();
+				return false;
+			}
 		}
 		return true;
 	}

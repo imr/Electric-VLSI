@@ -521,6 +521,8 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 		}
 	}
 
+	private static boolean invariantsFailed = false;
+
 	/**
 	 * Method to check invariants in all Libraries.
 	 * @return true if invariants are valid
@@ -562,9 +564,13 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 			return true;
 		} catch (Throwable e)
 		{
-			System.out.println("Exception checking database invariants");
-			e.printStackTrace();
-			ActivityLogger.logException(e);
+			if (!invariantsFailed)
+			{
+				System.out.println("Exception checking database invariants");
+				e.printStackTrace();
+				ActivityLogger.logException(e);
+				invariantsFailed = true;
+			}
 		}
 		return false;
 	}

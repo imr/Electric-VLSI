@@ -28,6 +28,7 @@ import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
@@ -1190,22 +1191,24 @@ public class DebugMenus {
 	private static int[] vobjs;
 	private static int[] vobjs1;
 	private static int[] vcnt;
-	private static int subCells;
-	private static int namedArcs;
-	private static int namedNodes;
 	private static int numPoints;
 	private static HashSet points;
 
 	private static void varStatistics()
 	{
+		int subCells = 0;
+		int cellUsages = 0;
+		long cellSqr = 0;
+		int primUsages = 0;
+		long primSqr = 0;
+		int namedArcs = 0;
+		int namedNodes = 0;
+
 		objs = new int[96];
 		vobjs = new int[96];
 		vobjs1 = new int[96];
 		vcnt = new int[96];
 		points = new HashSet();
-		subCells = 0;
-		namedArcs = 0;
-		namedNodes = 0;
 		numPoints = 0;
 		
 		TreeSet nodeNames = new TreeSet();
@@ -1222,6 +1225,18 @@ public class DebugMenus {
 				countVars('C', cell);
 				TreeSet cellNodes = new TreeSet();
 				TreeSet cellArcs = new TreeSet();
+
+				for (Iterator uIt = cell.getUsagesIn(); uIt.hasNext(); )
+				{
+					NodeUsage nu = (NodeUsage)uIt.next();
+					if (nu.getProto() instanceof Cell) {
+						cellUsages++;
+						cellSqr += nu.getNumInsts()*nu.getNumInsts();
+					} else {
+						primUsages++;
+						primSqr += nu.getNumInsts()*nu.getNumInsts();
+					}
+				}
 
 				for (Iterator nIt = cell.getNodes(); nIt.hasNext(); )
 				{
@@ -1274,7 +1289,13 @@ public class DebugMenus {
 			c += vcnt[i];
 		}
 		System.out.println(o + " " + v + " " + v1 + " " + c);
-		System.out.println(subCells + " subcells");
+		if (cellUsages != 0)
+			System.out.println(subCells + " subcells " + cellUsages + " cellUsages " +
+				((double)subCells)/cellUsages + " " + Math.sqrt(((double)cellSqr)/cellUsages));
+		int prims = objs['N'] - subCells;
+		if (primUsages != 0)
+			System.out.println(prims + " prims " + primUsages + " primUsages " +
+				((double)prims)/primUsages + " " + Math.sqrt(((double)primSqr)/primUsages));
 		System.out.println(namedNodes + " named nodes " + nodeNames.size());
 		System.out.println(namedArcs + " named arcs " + arcNames.size());
 		System.out.println(numPoints + " points " + points.size());
@@ -1306,7 +1327,8 @@ H 43 42 37 47
 N 113337 4713 2328 22715
 P 392542 0 0 0
 738458 8473 5170 28211
-16916 subcells
+16916 subcells 3093 cellUsages 5.469123827998707 24.734189873996737
+96421 prims 13727 primUsages 7.024185910978364 40.263985564608774
 468 named nodes 12604
 1496 named arcs 10925
 499519 points 136298
@@ -1320,7 +1342,8 @@ H 49 47 43 51
 N 188496 8490 4847 32189
 P 704883 0 0 0
 1345947 14511 9797 40049
-25997 subcells
+25997 subcells 7383 cellUsages 3.5211973452526073 17.251291844283067
+162499 prims 20344 primUsages 7.987563900904443 69.86202450228595
 910 named nodes 19655
 5527 named arcs 10363
 862879 points 230599
