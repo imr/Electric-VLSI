@@ -37,9 +37,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.*;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
@@ -158,6 +156,7 @@ public class ParasiticTool extends Tool{
 		{
             ParasiticCellInfo iinfo = (ParasiticCellInfo)info;
             iinfo.extInit();
+            int numRemoveParents = context.getNumLevels();
 
             for(Iterator aIt = info.getCell().getArcs(); aIt.hasNext(); )
             {
@@ -170,10 +169,17 @@ public class ParasiticTool extends Tool{
                 if (net == null)
                     continue;
 
+                PortInst tailP = ai.getTail().getPortInst();
+                PortInst headP = ai.getHead().getPortInst();
+                Network net1 = netList.getNetwork(tailP);
+                Network net2 = netList.getNetwork(headP);
+                if (net1 != net) net2 = net1;
+
                 NetPBucket parasiticNet = getNetParasiticsBucket(net, info);
                 if (parasiticNet == null)
                     continue;
 
+                String net2Name = info.getUniqueNetNameProxy(net2, "/").toString(numRemoveParents);
                 boolean isDiffArc = ai.isDiffusionArc();    // check arc function
 
                 Technology tech = ai.getProto().getTechnology();
@@ -189,7 +195,9 @@ public class ParasiticTool extends Tool{
                     if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
 
                     if (layer.isDiffusionLayer() || (!isDiffArc && layer.getCapacitance() > 0.0))
-                        parasiticNet.add(layer, poly);
+                        parasiticNet.addCapacitance(layer, poly);
+                    if (layer.getResistance() > 0)
+                        parasiticNet.addResistance(layer, poly, net2Name);
                 }
             }
 
@@ -244,7 +252,7 @@ public class ParasiticTool extends Tool{
 
                 // get the area of this polygon
                 poly.transform(trans);
-                parasiticNet.add(layer, poly);
+                parasiticNet.addCapacitance(layer, poly);
             }
 			return (true);
 		}
