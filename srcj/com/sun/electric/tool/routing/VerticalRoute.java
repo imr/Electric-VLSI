@@ -74,7 +74,7 @@ public class VerticalRoute {
     private static final int SEARCHLIMIT = 3000;
     private static final boolean DEBUG = false;
     private static final boolean DEBUGSEARCH = false;
-    private static final boolean DEBUGTERSE = false;
+    private static final boolean DEBUGTERSE = true;
 
     private static class SpecifiedRoute extends ArrayList {
         ArcProto startArc;
@@ -174,9 +174,9 @@ public class VerticalRoute {
         for (int i=0; i<arcs.length; i++) {
             ArcProto arc = arcs[i];
             // get rid of arcs we won't route with
-            if (arc == Generic.tech.universal_arc) arc = null;
-            if (arc == Generic.tech.invisible_arc) arc = null;
-            if (arc == Generic.tech.unrouted_arc) arc = null;
+            if (arc == Generic.tech.universal_arc && User.tool.getCurrentArcProto() != Generic.tech.universal_arc) arc = null;
+            if (arc == Generic.tech.invisible_arc && User.tool.getCurrentArcProto() != Generic.tech.invisible_arc) arc = null;
+            if (arc == Generic.tech.unrouted_arc && User.tool.getCurrentArcProto() != Generic.tech.unrouted_arc) arc = null;
             if ((arc != null) && (arc.isNotUsed())) arc = null;
             copy[i] = arc;
         }
