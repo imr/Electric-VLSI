@@ -27,9 +27,11 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.user.Resources;
 
 import java.awt.Color;
 import java.util.HashMap;
+import java.lang.reflect.Method;
 
 /**
  * Class to define the appearance of a piece of geometry.
@@ -473,6 +475,20 @@ public class EGraphics
 			Pref pref = (Pref)colorMap.get(layer);
 			if (pref != null) pref.setInt((red << 16) | (green << 8) | blue);
 		}
+        // update any color used in 3D view if available
+        Object obj3D = get3DAppearance();
+
+        if (obj3D != null)
+        {
+            Class app3DClass = Resources.get3DClass("utils.J3DAppearance");
+            try
+            {
+                Method setColorMethod3DClass = app3DClass.getDeclaredMethod("set3DColor", new Class[] {Object.class, Color.class});
+                setColorMethod3DClass.invoke(obj3D, new Object[]{null, color});
+            } catch (Exception e) {
+                System.out.println("Cannot call 3D plugin method set3DColor: " + e.getMessage());
+            }
+        }
 	}
 
 	/**

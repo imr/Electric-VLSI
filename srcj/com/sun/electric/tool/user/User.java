@@ -52,6 +52,7 @@ import java.awt.Color;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.lang.reflect.Method;
 
 /**
  * This is the User Interface tool.
@@ -955,6 +956,56 @@ public class User extends Listener
 	 * @param c the color of the instance outlines on the display.
 	 */
 	public static void setColorInstanceOutline(int c) { cacheColorInstanceOutline.setInt(c); }
+
+    private static Pref cacheColorInstanceCell3D = Pref.makeIntPref("ColorInstanceCell3D", User.tool.prefs, Color.GRAY.getRGB());
+	/**
+	 * Method to get the color of the cell instance on the 3D display.
+	 * The default is "gray".
+	 * @return the color of the cell instance on the 3D display.
+	 */
+	public static int getColorInstanceCell3D() { return cacheColorInstanceCell3D.getInt(); }
+	/**
+	 * Method to set the color of the cell instance on the 3D display.
+	 * @param c the color of the cell instance on the 3D display.
+	 */
+	public static void setColorInstanceCell3D(int c)
+    {
+        cacheColorInstanceCell3D.setInt(c);
+
+        try
+        {
+            Class j3DAppClass = Resources.get3DClass("utils.J3DAppearance");
+            Method setCellAppMethod = j3DAppClass.getDeclaredMethod("setCellAppearanceValues", new Class[] {});
+            setCellAppMethod.invoke(j3DAppClass, new Object[]{});
+        } catch (Exception e) {
+            System.out.println("Cannot call 3D plugin method setCellAppearanceValues: " + e.getMessage());
+        }
+    }
+
+    private static Pref cacheColorHighlighted3D = Pref.makeIntPref("ColorHighlighted3D", User.tool.prefs, Color.GRAY.getRGB());
+	/**
+	 * Method to get the color of the highlighted instance on the 3D display.
+	 * The default is "gray".
+	 * @return the color of the highlighted instance on the 3D display.
+	 */
+	public static int getColorHighlighted3D() { return cacheColorHighlighted3D.getInt(); }
+	/**
+	 * Method to set the color of the highlighted instance on the 3D display.
+	 * @param c the color of the highlighted instance on the 3D display.
+	 */
+	public static void setColorHighlighted3D(int c)
+    {
+        cacheColorHighlighted3D.setInt(c);
+
+        try
+        {
+            Class j3DAppClass = Resources.get3DClass("utils.J3DAppearance");
+            Method setHighlightAppMethod = j3DAppClass.getDeclaredMethod("setHighlightedAppearanceValues", new Class[] {});
+            setHighlightAppMethod.invoke(j3DAppClass, new Object[]{});
+        } catch (Exception e) {
+            System.out.println("Cannot call 3D plugin method setHighlightedAppearanceValues: " + e.getMessage());
+        }
+    }
 
 	/****************************** UNITS PREFERENCES ******************************/
 

@@ -127,18 +127,6 @@ public class ColorPatternPanel extends JPanel
 //System.out.println("Color changed to 0x"+Integer.toHexString(color)+" on "+graphics);
 				colorObj = new Color(color);
 				graphics.setColor(colorObj);
-//				Object obj3D = graphics.get3DAppearance();
-//
-//				if (obj3D != null)
-//				{
-//					try
-//					{
-//						if (setColorMethod3DClass == null) setColorMethod3DClass = app3DClass.getDeclaredMethod("set3DColor", new Class[] {Object.class, java.awt.Color.class});
-//						setColorMethod3DClass.invoke(app3DClass, new Object[]{obj3D, colorObj});
-//					} catch (Exception e) {
-//						System.out.println("Cannot call 3D plugin method set3DColor: " + e.getMessage());
-//					}
-//				}
 				changed = true;
 			}
 			if (opacity != graphics.getOpacity())
@@ -156,7 +144,7 @@ public class ColorPatternPanel extends JPanel
 
 	}
 
-	private JPanel patternView, patternIcon, options3D;
+	private JPanel patternView, patternIcon;
 	private Info currentLI;
 	private boolean dataChanging = false;
 	private boolean showPrinter;

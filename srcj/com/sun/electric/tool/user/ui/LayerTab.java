@@ -59,10 +59,6 @@ public class LayerTab extends JFrame
 	private List layersInList;
 	private boolean loading;
 
-	// 3D view. Static values to avoid unnecessary calls
-	private static final Class view3DClass = Resources.get3DMainClass();
-	private static Method setVisibilityMethod = null;
-
 	/** Creates new panel for Layers */
 	public LayerTab()
 	{
@@ -363,10 +359,13 @@ public class LayerTab extends JFrame
 						Object obj3D = layer.getGraphics().get3DAppearance();
 						if (obj3D != null)
 						{
+                            Class j3DAppClass = Resources.get3DClass("utils.J3DAppearance");
+                            Method setVisibilityMethod = null;
+
 							try
 							{
-								if (setVisibilityMethod == null) setVisibilityMethod = view3DClass.getDeclaredMethod("set3DVisibility", new Class[] {Object.class, Boolean.class});
-								setVisibilityMethod.invoke(view3DClass, new Object[]{obj3D, layerVis});
+								if (setVisibilityMethod == null) setVisibilityMethod = j3DAppClass.getDeclaredMethod("set3DVisibility", new Class[] {Boolean.class});
+								setVisibilityMethod.invoke(obj3D, new Object[]{layerVis});
 							} catch (Exception e) {
 								System.out.println("Cannot call 3D plugin method set3DVisibility: " + e.getMessage());
 							}

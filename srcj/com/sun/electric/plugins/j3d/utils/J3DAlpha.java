@@ -35,13 +35,13 @@ import javax.swing.*;
  * @author  Gilda Garreton
  * @version 0.1
  */
-public class JAlpha extends Alpha implements ChangeListener
+public class J3DAlpha extends Alpha implements ChangeListener
 {
     private Alpha alpha;
     private float manualValue = 0.5f; // in the middle
     private boolean autoMode = true;
 
-    public JAlpha(Alpha alpha, boolean mode, float value)
+    public J3DAlpha(Alpha alpha, boolean mode, float value)
     {
         this.alpha = alpha;
         this.autoMode = mode;

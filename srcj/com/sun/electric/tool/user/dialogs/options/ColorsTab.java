@@ -175,6 +175,17 @@ public class ColorsTab extends PreferencePanel
 		colorLayerModel.addElement(name);
 		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
 
+        // 3D Stuff
+        color = User.getColorInstanceCell3D();
+		name = "Special: CELL INSTANCES IN 3D";
+		colorLayerModel.addElement(name);
+		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
+
+        color = User.getColorHighlighted3D();
+		name = "Special: HIGHLIGHTED INSTANCES IN 3D";
+		colorLayerModel.addElement(name);
+		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
+
 		// finish initialization
 		colorLayerList.setSelectedIndex(0);
 		colorChooser.getSelectionModel().addChangeListener(new ChangeListener()
@@ -318,6 +329,20 @@ public class ColorsTab extends PreferencePanel
 					if (color.intValue() != User.getColorInstanceOutline())
 					{
 						User.setColorInstanceOutline(color.intValue());
+						colorChanged = true;
+					}
+                } else if (layerName.equals("Special: CELL INSTANCES IN 3D"))
+				{
+					if (color.intValue() != User.getColorInstanceCell3D())
+					{
+						User.setColorInstanceCell3D(color.intValue());
+						colorChanged = true;
+					}
+                } else if (layerName.equals("Special: HIGHLIGHTED INSTANCES IN 3D"))
+				{
+					if (color.intValue() != User.getColorHighlighted3D())
+					{
+						User.setColorHighlighted3D(color.intValue());
 						colorChanged = true;
 					}
 				}

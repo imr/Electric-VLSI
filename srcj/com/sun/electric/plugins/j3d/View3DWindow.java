@@ -49,8 +49,8 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.*;
 import com.sun.electric.plugins.j3d.utils.J3DUtils;
-import com.sun.electric.plugins.j3d.utils.JAlpha;
-import com.sun.electric.plugins.j3d.utils.JAppearance;
+import com.sun.electric.plugins.j3d.utils.J3DAlpha;
+import com.sun.electric.plugins.j3d.utils.J3DAppearance;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -117,7 +117,7 @@ public class View3DWindow extends JPanel
     //RotPosScaleTCBSplinePathInterpolator tcbSplineInter;
     private Map interpolatorMap = new HashMap();
 
-    private JAlpha jAlpha = new JAlpha(new Alpha (-1,
+    private J3DAlpha jAlpha = new J3DAlpha(new Alpha (-1,
         Alpha.INCREASING_ENABLE | Alpha.DECREASING_ENABLE,
         0,
         0,
@@ -137,33 +137,6 @@ public class View3DWindow extends JPanel
 	/** Lis with all Shape3D drawn per ElectricObject */    private HashMap electricObjectMap = new HashMap();
     private boolean oneTransformPerNode = false;
     /** Map with object transformation for individual moves */ private HashMap transformGroupMap = new HashMap();
-
-	// Done only once.
-	/** cell has a unique appearance **/                    private static final JAppearance cellApp = new JAppearance(null, TransparencyAttributes.SCREEN_DOOR, 0);
-
-    static {
-
-	    //** Data for cells
-		Color3f objColor = new Color3f(Color.GRAY);
-		ColoringAttributes ca = new ColoringAttributes();
-		ca.setColor(objColor);
-		cellApp.setColoringAttributes(ca);
-
-			// Set up the polygon attributes
-		PolygonAttributes pa = new PolygonAttributes();
-		pa.setCullFace(PolygonAttributes.CULL_NONE);
-		pa.setPolygonMode(PolygonAttributes.POLYGON_LINE);
-		cellApp.setPolygonAttributes(pa);
-
-		TextureAttributes texAttr = new TextureAttributes();
-		texAttr.setTextureMode(TextureAttributes.MODULATE);
-		//texAttr.setTextureColorTable(pattern);
-		cellApp.setTextureAttributes(texAttr);
-
-		LineAttributes lineAttr = new LineAttributes();
-		lineAttr.setLineAntialiasingEnable(true);
-		cellApp.setLineAttributes(lineAttr);
-	}
 
     public static WindowContent create3DWindow(Cell cell, WindowFrame wf, WindowContent view2D, Boolean transPerNode)
     {
@@ -213,6 +186,10 @@ public class View3DWindow extends JPanel
 		canvas = new Canvas3D(config);
 		add("Center", canvas);
 		canvas.addMouseListener(this);
+
+        // Set global appearances before create the elements
+        J3DAppearance.setCellAppearanceValues();
+        J3DAppearance.setHighlightedAppearanceValues();
 
 		// Create a simple scene and attach it to the virtual universe
 		BranchGroup scene = createSceneGraph(cell, infiniteBounds);
@@ -329,7 +306,7 @@ public class View3DWindow extends JPanel
 		setWindowTitle();
 	}
 
-	protected BranchGroup createSceneGraph(Cell cell, BoundingSphere infiniteBounds)
+    protected BranchGroup createSceneGraph(Cell cell, BoundingSphere infiniteBounds)
 	{
 		// Create the root of the branch graph
 		BranchGroup objRoot = new BranchGroup();
@@ -360,18 +337,26 @@ public class View3DWindow extends JPanel
 
 		// Lights
         Color3f alColor = new Color3f(0.6f, 0.6f, 0.6f);
-        AmbientLight aLgt = new AmbientLight(alColor);
+        AmbientLight aLgt = new AmbientLight(alColor); //J3DUtils.white);
+        AmbientLight ambLight = new AmbientLight( true, new Color3f( 1.0f, 1.0f, 1.0f ) );
 		Vector3f lightDir1 = new Vector3f(-1.0f, -1.0f, -1.0f);
+        Vector3f lightDir2 = new Vector3f(1.0f, 1.0f, 1.0f);
 		DirectionalLight light1 = new DirectionalLight(J3DUtils.white, lightDir1);
+        DirectionalLight light2 = new DirectionalLight(J3DUtils.white, lightDir2);
+        DirectionalLight headLight = new DirectionalLight( );
 
 		// Setting the influencing bounds
 		light1.setInfluencingBounds(infiniteBounds);
+        light2.setInfluencingBounds(infiniteBounds);
+        ambLight.setInfluencingBounds(infiniteBounds);
 	    aLgt.setInfluencingBounds(infiniteBounds);
+        headLight.setInfluencingBounds(infiniteBounds);
 		// Allow to turn off light while the scene graph is live
 		light1.setCapability(Light.ALLOW_STATE_WRITE);
 		// Add light to the env.
         objRoot.addChild(aLgt);
 		objTrans.addChild(light1);
+        //objTrans.addChild(light2);
 
 		// Picking tools
         //PickZoomBehavior behavior2 = new PickZoomBehavior(objRoot, canvas, infiniteBounds);
@@ -567,7 +552,7 @@ public class View3DWindow extends JPanel
 
 			pol.transform(transform);
 			rect = pol.getBounds2D();
-			list.add(J3DUtils.addPolyhedron(rect, values[0], values[1] - values[0], cellApp, objTrans));
+			list.add(J3DUtils.addPolyhedron(rect, values[0], values[1] - values[0], J3DAppearance.cellApp, objTrans));
 		}
 		else
         {
@@ -664,7 +649,7 @@ public class View3DWindow extends JPanel
                 J3DUtils.correctNormals(topList, bottomList);
                 System.arraycopy(topList.toArray(), 0, pts, 0, 4);
                 System.arraycopy(bottomList.toArray(), 0, pts, 4, 4);
-                boxList.add(J3DUtils.addShape3D(pts, 4, JAppearance.getAppearance(layer.getGraphics()), objTrans));
+                boxList.add(J3DUtils.addShape3D(pts, 4, J3DAppearance.getAppearance(layer.getGraphics()), objTrans));
 
                 // Second polyhedron
                 topList.clear();
@@ -680,7 +665,7 @@ public class View3DWindow extends JPanel
                 J3DUtils.correctNormals(topList, bottomList);
                 System.arraycopy(topList.toArray(), 0, pts, 0, 4);
                 System.arraycopy(bottomList.toArray(), 0, pts, 4, 4);
-                boxList.add(J3DUtils.addShape3D(pts, 4, JAppearance.getAppearance(layer.getGraphics()), objTrans));
+                boxList.add(J3DUtils.addShape3D(pts, 4, J3DAppearance.getAppearance(layer.getGraphics()), objTrans));
             }
             if (boxList != null) list.addAll(boxList);
         }
@@ -720,7 +705,7 @@ public class View3DWindow extends JPanel
 				poly.transform(transform);
 
 			// Setting appearance
-            JAppearance ap = JAppearance.getAppearance(layer.getGraphics());
+            J3DAppearance ap = J3DAppearance.getAppearance(layer.getGraphics());
 
 			if (poly.getBox() == null) // non-manhattan shape
 			{
@@ -997,10 +982,10 @@ public class View3DWindow extends JPanel
 			Shape3D obj = (Shape3D)h.getObject();
 			if (toSelect) // highlight cell, set transparency
 			{
-				JAppearance app = (JAppearance)obj.getAppearance();
-				obj.setAppearance(JAppearance.highligtAp);
+				J3DAppearance app = (J3DAppearance)obj.getAppearance();
+				obj.setAppearance(J3DAppearance.highligtAp);
 				//app.getRenderingAttributes().setVisible(false);
-				JAppearance.highligtAp.setGraphics(app.getGraphics());
+				J3DAppearance.highligtAp.setGraphics(app.getGraphics());
 				if (view2D != null && do2D)
 				{
 					//Geometry geo = obj.getGeometry();
@@ -1019,14 +1004,14 @@ public class View3DWindow extends JPanel
 			}
 			else // back to normal
 			{
-				EGraphics graphics = JAppearance.highligtAp.getGraphics();
+				EGraphics graphics = J3DAppearance.highligtAp.getGraphics();
 				if (graphics != null)
 				{
-					JAppearance origAp = (JAppearance)graphics.get3DAppearance();
+					J3DAppearance origAp = (J3DAppearance)graphics.get3DAppearance();
 					obj.setAppearance(origAp);
 				}
 				else // its a cell
-					obj.setAppearance(cellApp);
+					obj.setAppearance(J3DAppearance.cellApp);
 			}
 		}
 		if (!toSelect) highlighter.clear();
@@ -1358,7 +1343,7 @@ public class View3DWindow extends JPanel
      * Method to retrieve alpha value associated to this view
      * @return
      */
-    public JAlpha getAlpha() { return jAlpha; }
+    public J3DAlpha getAlpha() { return jAlpha; }
 
     ///////////////////// KEY BEHAVIOR FUNCTION ///////////////////////////////
 
@@ -1436,7 +1421,7 @@ public class View3DWindow extends JPanel
         if (result != null && result.getNode(PickResult.SHAPE3D) != null)
         {
              Shape3D shape = (Shape3D)result.getNode(PickResult.SHAPE3D);
-             shape.setAppearance(JAppearance.highligtAp);
+             shape.setAppearance(J3DAppearance.highligtAp);
             for (int i = 0; i < result.numIntersections(); i++)
             {
                 PickIntersection inter = result.getIntersection(i);

@@ -30,7 +30,7 @@ import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.plugins.j3d.View3DWindow;
 import com.sun.electric.plugins.j3d.utils.J3DClientApp;
 import com.sun.electric.plugins.j3d.utils.J3DUtils;
-import com.sun.electric.plugins.j3d.utils.JAlpha;
+import com.sun.electric.plugins.j3d.utils.J3DAlpha;
 import com.sun.electric.plugins.j3d.utils.J3DUtils;
 import com.sun.electric.plugins.j3d.utils.J3DClientApp;
 
@@ -76,7 +76,7 @@ public class J3DViewDialog extends EDialog
         getRootPane().setDefaultButton(connect);
 //        spline.addItem("KB Spline");
 //        spline.addItem("TCB Spline");
-        JAlpha alpha = view3d.getAlpha();
+        J3DAlpha alpha = view3d.getAlpha();
         if (alpha != null)
         {
             slider.addChangeListener(alpha);

@@ -28,9 +28,9 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.options.ThreeDTab;
-import com.sun.electric.plugins.j3d.utils.JAppearance;
+import com.sun.electric.plugins.j3d.utils.J3DAppearance;
 import com.sun.electric.plugins.j3d.View3DWindow;
-import com.sun.electric.plugins.j3d.utils.JAppearance;
+import com.sun.electric.plugins.j3d.utils.J3DAppearance;
 
 import java.awt.GridBagConstraints;
 import java.awt.event.MouseAdapter;
@@ -139,8 +139,8 @@ public class JThreeDTab extends ThreeDTab
 			threeDDistanceMap.put(layer, new GenMath.MutableDouble(layer.getDistance()));
             // Get a copy of JAppearance to set values temporarily
             // this function will generate JAppearance if doesn't exist yet
-            JAppearance app = JAppearance.getAppearance(layer.getGraphics());
-            transparencyMap.put(layer, new JAppearance(app));
+            J3DAppearance app = J3DAppearance.getAppearance(layer.getGraphics());
+            transparencyMap.put(layer, new J3DAppearance(app));
 
 		}
 		threeDLayerList.setSelectedIndex(0);
@@ -268,7 +268,7 @@ public class JThreeDTab extends ThreeDTab
         else if (initial3DTextChanging) return;
 		GenMath.MutableDouble thickness = (GenMath.MutableDouble)threeDThicknessMap.get(layer);
 		GenMath.MutableDouble height = (GenMath.MutableDouble)threeDDistanceMap.get(layer);
-        JAppearance app = (JAppearance)transparencyMap.get(layer);
+        J3DAppearance app = (J3DAppearance)transparencyMap.get(layer);
         TransparencyAttributes ta = app.getTransparencyAttributes();
         if (set)
         {
@@ -310,8 +310,8 @@ public class JThreeDTab extends ThreeDTab
 			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
 			GenMath.MutableDouble thickness = (GenMath.MutableDouble)threeDThicknessMap.get(layer);
 			GenMath.MutableDouble height = (GenMath.MutableDouble)threeDDistanceMap.get(layer);
-            JAppearance newApp = (JAppearance)transparencyMap.get(layer);
-            JAppearance oldApp = (JAppearance)layer.getGraphics().get3DAppearance();
+            J3DAppearance newApp = (J3DAppearance)transparencyMap.get(layer);
+            J3DAppearance oldApp = (J3DAppearance)layer.getGraphics().get3DAppearance();
             oldApp.setTransparencyAttributes(newApp.getTransparencyAttributes());
 			if (thickness.doubleValue() != layer.getThickness())
 				layer.setThickness(thickness.doubleValue());

@@ -6,7 +6,7 @@ import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.plugins.j3d.ui.JThreeDTab;
 import com.sun.electric.plugins.j3d.*;
 import com.sun.electric.plugins.j3d.utils.J3DUtils;
-import com.sun.electric.plugins.j3d.utils.JAppearance;
+import com.sun.electric.plugins.j3d.utils.J3DAppearance;
 
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.ViewingPlatform;
@@ -152,7 +152,7 @@ public class JThreeDSideView extends JPanel
             if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
             if (!layer.isVisible()) continue;
             double xyFactor = (layer.getFunctionExtras() == Layer.Function.CONMETAL) ? 0.8 : 1;
-            JAppearance ap = (JAppearance)parentDialog.transparencyMap.get(layer);
+            J3DAppearance ap = (J3DAppearance)parentDialog.transparencyMap.get(layer);
             GenMath.MutableDouble thickness = (GenMath.MutableDouble)parentDialog.threeDThicknessMap.get(layer);
             GenMath.MutableDouble distance = (GenMath.MutableDouble)parentDialog.threeDDistanceMap.get(layer);
             double dis = distance.doubleValue();
@@ -193,10 +193,10 @@ public class JThreeDSideView extends JPanel
             // For this shape, its appareance has to be set back to normal
             shape = (Shape3D)layerPolyhedra.get(currentLayerSelected);
             if (shape != null) // is null if previous shape belongs to another dialog (another tech)
-                shape.setAppearance((JAppearance)parentDialog.transparencyMap.get(currentLayerSelected));
+                shape.setAppearance((J3DAppearance)parentDialog.transparencyMap.get(currentLayerSelected));
         }
         shape = (Shape3D)layerPolyhedra.get(layer);
-        shape.setAppearance(JAppearance.highligtAp);
+        shape.setAppearance(J3DAppearance.highligtAp);
         currentLayerSelected = layer;
     }
 
@@ -227,8 +227,8 @@ public class JThreeDSideView extends JPanel
             Shape3D s = (Shape3D)result.getNode(PickResult.SHAPE3D);
             if (s != null)
             {
-                JAppearance app = (JAppearance)s.getAppearance();
-                if (app != JAppearance.highligtAp)
+                J3DAppearance app = (J3DAppearance)s.getAppearance();
+                if (app != J3DAppearance.highligtAp)
                 {
                     Layer layer = app.getGraphics().getLayer();
                     parentDialog.threeDLayerList.setSelectedValue(layer.getName(), false);

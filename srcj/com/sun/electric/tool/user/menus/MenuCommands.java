@@ -91,7 +91,7 @@ public final class MenuCommands
         ToolMenu.addToolMenu(menuBar);
 		MenuBar.Menu helpMenu = HelpMenu.addHelpMenu(menuBar);
 
-        Class plugin3D = Resources.get3DClass("J3DMenu");
+        Class plugin3D = Resources.get3DClass("ui.J3DMenu");
         if (plugin3D != null)
         {
             // Adding 3D/Demo menu
