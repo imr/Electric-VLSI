@@ -2,11 +2,11 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-IMP/MAN: (9/24/04, SMR) Added Silos netlisting.
-
 ************************* Version 8.01x: *********************************
 
 BUG: (9/24/04, GVG) Geometries on Network: arcs were not transformed up to the top cell and adding export detection.
+
+IMP/MAN: (9/24/04, SMR) Added Silos netlisting.
 
 BUG: (9/24/04, SMR) Cell names are sorted incorrectly.
 FIX: In TextUtils.nameSameNumeric(), make sure numbers are evaluated in base 10.
