@@ -835,8 +835,11 @@ public class WindowFrame
 	 * Method to return an Iterator over all WindowFrames.
 	 * @return an Iterator over all WindowFrames.
 	 */
-	public static synchronized Iterator getWindows() {
-        List listCopy = new ArrayList(windowList);
+	public static Iterator getWindows() {
+        ArrayList listCopy = new ArrayList();
+        synchronized(windowList) {
+            listCopy.addAll(windowList);
+        }
         return listCopy.iterator();
     }
 
