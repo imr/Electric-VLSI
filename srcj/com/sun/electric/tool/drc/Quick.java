@@ -50,6 +50,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.Main;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -1896,11 +1897,11 @@ public class Quick
 			pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
 			Rectangle2D newBounds = new Rectangle2D.Double(bounds.getMinX()-TINYDELTA, bounds.getMinY()-TINYDELTA,
 				bounds.getWidth()+TINYDELTA*2, bounds.getHeight()+TINYDELTA*2);
-			if (lookForLayer(cell, layer, DBMath.MATID, newBounds,
+			if (lookForLayer(poly, cell, layer, DBMath.MATID, newBounds,
 				left1, left2, left3, pointsFound)) return false;
 
 			pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
-			if (lookForLayer(cell, layer, DBMath.MATID, newBounds,
+			if (lookForLayer(poly, cell, layer, DBMath.MATID, newBounds,
 				right1, right2, right3, pointsFound)) return false;
 
 			reportError(MINWIDTHERROR, tech, null, cell, minWidth, actual, minWidthRule.rule,
@@ -2159,7 +2160,7 @@ public class Quick
 		// search the cell for geometry that fills the notch
 		boolean [] pointsFound = new boolean[3];
 		pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
-		boolean allFound = lookForLayer(cell, layer, DBMath.MATID, bounds,
+		boolean allFound = lookForLayer(null, cell, layer, DBMath.MATID, bounds,
 			pt1, pt2, pt3, pointsFound);
 		if (needBoth)
 		{
@@ -2178,7 +2179,7 @@ public class Quick
 	 * found at (xf1,yf1) or (xf2,yf2) or (xf3,yf3) then sets "p1found/p2found/p3found" to 1.
 	 * If all locations are found, returns true.
 	 */
-	private boolean lookForLayer(Cell cell, Layer layer, AffineTransform moreTrans,
+	private boolean lookForLayer(Poly thisPoly, Cell cell, Layer layer, AffineTransform moreTrans,
 		Rectangle2D bounds, Point2D pt1, Point2D pt2, Point2D pt3, boolean [] pointsFound)
 	{
 		for(Iterator it = cell.searchIterator(bounds); it.hasNext(); )
@@ -2202,7 +2203,7 @@ public class Quick
 					AffineTransform rot = ni.rotateOut();
 					trans.preConcatenate(rot);
 					trans.preConcatenate(moreTrans);
-					if (lookForLayer((Cell)ni.getProto(), layer, trans, newBounds,
+					if (lookForLayer(thisPoly, (Cell)ni.getProto(), layer, trans, newBounds,
 						pt1, pt2, pt3, pointsFound))
 							return true;
 					continue;
@@ -2215,6 +2216,16 @@ public class Quick
 				for(int i=0; i<tot; i++)
 				{
 					Poly poly = layerLookPolyList[i];
+
+					/* @TODO GVG Gilda's new condition  */
+					/*
+					if (Main.getDebug() && thisPoly != null && poly.polySame(thisPoly))
+					{
+						System.out.println("Warning: same polygon");
+						continue;
+					}
+					*/
+
 					if (!tech.sameLayer(poly.getLayer(), layer)) continue;
 					poly.transform(bound);
 					if (poly.isInside(pt1)) pointsFound[0] = true;
