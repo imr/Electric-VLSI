@@ -202,7 +202,7 @@ public class TopLevel extends JFrame
             TopLevel.mode = osMode;
         else
             TopLevel.mode = mode;
-        TopLevel.mode = Mode.MDI;
+        //TopLevel.mode = Mode.MDI;
 
         // set current working directory
         String setting = User.getInitialWorkingDirectorySetting();
