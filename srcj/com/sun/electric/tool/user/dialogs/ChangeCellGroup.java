@@ -64,8 +64,24 @@ public class ChangeCellGroup extends EDialog {
             if (cg == cell.getCellGroup()) continue;
             if (!cellGroups.contains(cg)) {
                 cellGroups.add(cg);
-                cellGroupsComboBox.addItem(cg.getName());
             }
+        }
+        // sort cell groups
+        Collections.sort(cellGroups, new CellGroupComparator());
+        for (Iterator it = cellGroups.iterator(); it.hasNext(); ) {
+            Cell.CellGroup cg = (Cell.CellGroup)it.next();
+            cellGroupsComboBox.addItem(cg.getName());
+        }
+    }
+
+    private static class CellGroupComparator implements Comparator {
+
+        public int compare(Object o1, Object o2) {
+            Cell.CellGroup cg1 = (Cell.CellGroup)o1;
+            Cell.CellGroup cg2 = (Cell.CellGroup)o2;
+            String s1 = cg1.getName();
+            String s2 = cg2.getName();
+            return s1.compareTo(s2);
         }
     }
 
