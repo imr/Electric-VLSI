@@ -1454,7 +1454,7 @@ public class MoCMOS extends Technology
 		via4_lay.setFactory3DInfo(2, 24);					// Via-4
 		via5_lay.setFactory3DInfo(2, 26);					// Via-5
 		passivation_lay.setFactory3DInfo(0, 30);			// Passivation
-		transistorPoly_lay.setFactory3DInfo(0, 15);			// Transistor-Poly
+		transistorPoly_lay.setFactory3DInfo(0.5, 15);			// Transistor-Poly
 		polyCap_lay.setFactory3DInfo(0, 28);				// Poly-Cap
 		pActiveWell_lay.setFactory3DInfo(0, 13);			// P-Active-Well
 		silicideBlock_lay.setFactory3DInfo(0, 10);			// Silicide-Block
