@@ -3716,6 +3716,8 @@ public class CircuitChanges
                 return false;
             }
 
+            System.out.println("Duplicated cell "+cell+". New cell is "+dupCell+".");
+
             // if icon of cell is present, duplicate that as well, and replace old icon with new icon in new cell
             for (Iterator it = cell.getNodes(); it.hasNext(); ) {
                 NodeInst ni = (NodeInst)it.next();
@@ -3727,6 +3729,8 @@ public class CircuitChanges
                         System.out.println("Could not duplicate icon cell "+icon.describe());
                         break;
                     }
+                    System.out.println("  Also duplicated icon view, cell "+icon+". New cell is "+dupIcon+".");
+
                     // replace old icon(s) in duplicated cell
                     for (Iterator it2 = dupCell.getNodes(); it2.hasNext(); ) {
                         NodeInst ni2 = (NodeInst)it2.next();
