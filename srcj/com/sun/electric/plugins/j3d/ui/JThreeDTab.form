@@ -424,7 +424,7 @@
           <Properties>
             <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
               <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-                <TitledBorder title="Initial Position"/>
+                <TitledBorder title="Initial Transformation"/>
               </Border>
             </Property>
           </Properties>
@@ -495,9 +495,9 @@
                 </Constraint>
               </Constraints>
             </Component>
-            <Component class="javax.swing.JLabel" name="origZoomLabel">
+            <Component class="javax.swing.JLabel" name="initZoomLabel">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Orig. Zoom:"/>
+                <Property name="text" type="java.lang.String" value="Initial Zoom:"/>
               </Properties>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">

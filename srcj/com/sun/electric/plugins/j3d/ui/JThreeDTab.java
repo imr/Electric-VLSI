@@ -387,7 +387,7 @@ public class JThreeDTab extends ThreeDTab
         yRotField = new javax.swing.JTextField();
         yRotLabel = new javax.swing.JLabel();
         threeDZoom = new javax.swing.JTextField();
-        origZoomLabel = new javax.swing.JLabel();
+        initZoomLabel = new javax.swing.JLabel();
         zRotField = new javax.swing.JTextField();
         zRotLabel = new javax.swing.JLabel();
         scaleField = new javax.swing.JTextField();
@@ -673,7 +673,7 @@ public class JThreeDTab extends ThreeDTab
 
         initialViewPanel.setLayout(new java.awt.GridBagLayout());
 
-        initialViewPanel.setBorder(new javax.swing.border.TitledBorder("Initial Position"));
+        initialViewPanel.setBorder(new javax.swing.border.TitledBorder("Initial Transformation"));
         xRotLabel.setText("Rotation X:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
@@ -720,13 +720,13 @@ public class JThreeDTab extends ThreeDTab
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         initialViewPanel.add(threeDZoom, gridBagConstraints);
 
-        origZoomLabel.setText("Orig. Zoom:");
+        initZoomLabel.setText("Initial Zoom:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        initialViewPanel.add(origZoomLabel, gridBagConstraints);
+        initialViewPanel.add(initZoomLabel, gridBagConstraints);
 
         zRotField.setColumns(6);
         zRotField.setMinimumSize(new java.awt.Dimension(70, 19));
@@ -799,10 +799,10 @@ public class JThreeDTab extends ThreeDTab
     private javax.swing.JCheckBox dirTwoBox;
     private javax.swing.JPanel dirTwoPanel;
     private javax.swing.JPanel directionPanel;
+    private javax.swing.JLabel initZoomLabel;
     private javax.swing.JPanel initialViewPanel;
     private javax.swing.JLabel jLabel45;
     private javax.swing.JLabel jLabel47;
-    private javax.swing.JLabel origZoomLabel;
     private javax.swing.JTextField scaleField;
     private javax.swing.JLabel scaleLabel;
     private javax.swing.JSeparator separator;
