@@ -62,7 +62,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 {
 	private static GetInfoArc theDialog = null;
 	private static ArcInst shownArc = null;
-    private static Preferences prefs = Preferences.userNodeForPackage(GetInfoArc.class);
+	private static Preferences prefs = Preferences.userNodeForPackage(GetInfoArc.class);
 
     private String initialName;
 	private double initialWidth;

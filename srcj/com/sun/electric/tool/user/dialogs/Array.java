@@ -83,7 +83,7 @@ public class Array extends EDialog
 	public static void showArrayDialog()
 	{
 		// first make sure something is selected
-        EditWindow wnd = EditWindow.getCurrent();
+	    EditWindow wnd = EditWindow.getCurrent();
 		List highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
 		if (highs.size() == 0)
 		{

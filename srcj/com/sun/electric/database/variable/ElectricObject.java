@@ -59,7 +59,7 @@ public abstract class ElectricObject
 	// ------------------------ private data ------------------------------------
 
 	/** extra variables (null if no variables yet) */		private TreeMap vars;
-    /** if object is linked into database */                private boolean linked;
+	/** if object is linked into database */                private boolean linked;
 
 	/** a list of all variable keys */						private static final HashMap varKeys = new HashMap();
 	/** all variable keys addressed by lower case name */	private static final HashMap varLowCaseKeys = new HashMap();

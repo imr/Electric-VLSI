@@ -83,7 +83,7 @@ import javax.swing.RootPaneContainer;
 public class PaletteFrame implements DatabaseChangeListener, MouseListener
 {
 	/** the palette window frame. */					private Container container;
-    /** panel in which to place palettes */             private JPanel paletteSwitcher;
+	/** panel in which to place palettes */             private JPanel paletteSwitcher;
 	/** the technology palette */						private TechPalette techPalette;
     /** the library palette */                          private LibraryPalette libraryPalette;
 	/** the popup that selects technologies. */			private JComboBox techSelector;

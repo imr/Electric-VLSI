@@ -79,7 +79,7 @@ import javax.swing.SwingUtilities;
 public class FileMenu {
 
 
-    protected static void addFileMenu(MenuBar menuBar) {
+	protected static void addFileMenu(MenuBar menuBar) {
         MenuBar.MenuItem m;
 		int buckyBit = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 

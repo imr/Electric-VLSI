@@ -103,7 +103,7 @@ public class Clipboard
 		}
 	}
 
-    // this is really only for debugging
+	// this is really only for debugging
     public static void editClipboard() {
         EditWindow wnd = EditWindow.getCurrent();
         wnd.setCell(clipCell, VarContext.globalContext);

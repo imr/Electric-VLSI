@@ -60,7 +60,7 @@ public class Tool implements Comparable
 	private static List listeners = new ArrayList();
 	private static int toolNumber = 0;
 
-    /** Preferences for this Tool */                        public Preferences prefs;
+	/** Preferences for this Tool */                        public Preferences prefs;
     
 	/** set if tool is on */								private static final int TOOLON =             01;
 	/** set if tool is running in background */				private static final int TOOLBG =             02;

@@ -75,7 +75,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
 	};
 
 	/**
-     * Model for storing Table data
+	 * Model for storing Table data
      * */
     private static class VariableTableModel extends AbstractTableModel {
 

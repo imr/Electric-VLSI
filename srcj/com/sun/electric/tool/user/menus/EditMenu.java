@@ -99,7 +99,7 @@ import javax.swing.KeyStroke;
  */
 public class EditMenu {
 
-    protected static void addEditMenu(MenuBar menuBar) {
+	protected static void addEditMenu(MenuBar menuBar) {
         MenuBar.MenuItem m;
 		int buckyBit = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 

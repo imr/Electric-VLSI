@@ -38,7 +38,7 @@ public class Ncc {
 
 	private Ncc() {}
 	
-    private NccResult compare1(Cell cell1, VarContext ctxt1,
+	private NccResult compare1(Cell cell1, VarContext ctxt1,
     		                   Cell cell2, VarContext ctxt2,
 							   NccOptions options) {
 		if (options.operation==NccOptions.LIST_ANNOTATIONS) {

@@ -53,7 +53,7 @@ package com.sun.electric.tool;
  */
 public abstract class SwingExamineTask implements Runnable {
 
-    private boolean immediate = true;
+	private boolean immediate = true;
 
     /**
      * This should only be called by the Job class.

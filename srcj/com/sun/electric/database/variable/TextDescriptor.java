@@ -119,7 +119,7 @@ public class TextDescriptor implements Serializable
 		private final String name;
 		private final int index;
 		private final Poly.Type pt;
-        private static final List positions = new ArrayList();
+	    private static final List positions = new ArrayList();
 
 		private Position(String name, int index, Poly.Type pt)
 		{

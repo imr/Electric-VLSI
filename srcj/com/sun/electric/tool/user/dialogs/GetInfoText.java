@@ -85,7 +85,7 @@ import javax.swing.border.EmptyBorder;
  * Class to handle the Text "Properties" dialog.
  */
 public class GetInfoText extends EDialog implements HighlightListener, DatabaseChangeListener {
-    private static GetInfoText theDialog = null;
+	private static GetInfoText theDialog = null;
     private EditWindow wnd;
     private CachedTextInfo cti;
 

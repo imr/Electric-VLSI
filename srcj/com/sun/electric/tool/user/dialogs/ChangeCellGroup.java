@@ -41,7 +41,7 @@ import java.util.prefs.Preferences;
  */
 public class ChangeCellGroup extends EDialog {
 
-    private static Preferences prefs = Preferences.userNodeForPackage(ChangeCellGroup.class);
+	private static Preferences prefs = Preferences.userNodeForPackage(ChangeCellGroup.class);
     private static final String selectedRadioButton = "ChangeCellGroup-WhichMoveType";
 
     private Cell cell;                              // cell to move

@@ -79,7 +79,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 	private PortProto shownPort = null;
 	private double initialXPos, initialYPos;
 	private String initialXSize, initialYSize;
-    private boolean initialMirrorX, initialMirrorY;
+	private boolean initialMirrorX, initialMirrorY;
 	private int initialRotation, initialPopupIndex;
     private Variable.Code initialListPopupEntry;
 	private boolean initialEasyToSelect, initialInvisibleOutsideCell, initialLocked, initialExpansion;

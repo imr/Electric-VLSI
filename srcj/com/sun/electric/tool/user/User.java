@@ -221,7 +221,7 @@ public class User extends Listener
 		if (clickSound == null)
 		{
 			// first time: see if there is a sound card
-		    try
+			try
 		    {
 		    	hasSound = javax.sound.sampled.AudioSystem.getMixerInfo().length > 0;
 			    if (!hasSound) return;

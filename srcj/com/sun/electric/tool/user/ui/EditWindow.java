@@ -127,7 +127,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
  */
 public class EditWindow extends JPanel
 	implements WindowContent, MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener,
-        HighlightListener, DatabaseChangeListener
+	    HighlightListener, DatabaseChangeListener
 {
 	/** the window scale */									private double scale;
 	/** the window offset */								private double offx = 0, offy = 0;

@@ -239,7 +239,7 @@ public class TextTab extends PreferencePanel
 			currentTextDescriptor.setRelSize(size);
 		}
 
-        currentTextDescriptor.setItalic(textItalic.isSelected());
+	    currentTextDescriptor.setItalic(textItalic.isSelected());
         currentTextDescriptor.setBold(textBold.isSelected());
         currentTextDescriptor.setUnderline(textUnderline.isSelected());
 
