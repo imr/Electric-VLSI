@@ -180,8 +180,9 @@ public class NodeUsage
 	public Cell getParent() { return parent; }
 
 	/**
-	 * Routine to return an Iterator for all NodeInsts of this NodeIsage .
-	 * @return an Iterator for all NodeInsts of this NodeUsage.
+	 * Routine to return by index a NodeInsts of this NodeIsage.
+	 * @param i index
+	 * @return specified NodeInst NodeUsage.
 	 */
 	public final NodeInst getInst(int i)
 	{

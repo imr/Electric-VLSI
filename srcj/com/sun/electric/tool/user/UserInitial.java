@@ -230,100 +230,100 @@ public final class UserInitial
 			r0Node.setExpanded();
 			NodeInst nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(0, -35), 0, 0, 0, rotTestCell);
 			Variable var = nodeLabel.setVar("ART_message", "Rotated 0");
-			var.setDisplay();   var.getTextDescriptor().setRelSize(10);
+			var.setDisplay();   var.setDescriptor(var.getTextDescriptor().setRelSize(10));
 
 			NodeInst r90Node = NodeInst.newInstance(myCell, new Point2D.Double(100, 0), myWidth, myHeight, 900, rotTestCell);
 			r90Node.setExpanded();
 			nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(100, -35), 0, 0, 0, rotTestCell);
 			var = nodeLabel.setVar("ART_message", "Rotated 90");
-			var.setDisplay();   var.getTextDescriptor().setRelSize(10);
+			var.setDisplay();   var.setDescriptor(var.getTextDescriptor().setRelSize(10));
 
 			NodeInst r180Node = NodeInst.newInstance(myCell, new Point2D.Double(200, 0), myWidth, myHeight, 1800, rotTestCell);
 			r180Node.setExpanded();
 			nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(200, -35), 0, 0, 0, rotTestCell);
 			var = nodeLabel.setVar("ART_message", "Rotated 180");
-			var.setDisplay();   var.getTextDescriptor().setRelSize(10);
+			var.setDisplay();   var.setDescriptor(var.getTextDescriptor().setRelSize(10));
 
 			NodeInst r270Node = NodeInst.newInstance(myCell, new Point2D.Double(300, 0), myWidth, myHeight, 2700, rotTestCell);
 			r270Node.setExpanded();
 			nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(300, -35), 0, 0, 0, rotTestCell);
 			var = nodeLabel.setVar("ART_message", "Rotated 270");
-			var.setDisplay();   var.getTextDescriptor().setRelSize(10);
+			var.setDisplay();   var.setDescriptor(var.getTextDescriptor().setRelSize(10));
 
 			// Mirrored in X
 			NodeInst r0MXNode = NodeInst.newInstance(myCell, new Point2D.Double(0, 100), -myWidth, myHeight, 0, rotTestCell);
 			r0MXNode.setExpanded();
 			nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(0, 100-35), 0, 0, 0, rotTestCell);
 			var = nodeLabel.setVar("ART_message", "Rotated 0 MX");
-			var.setDisplay();   var.getTextDescriptor().setRelSize(10);
+			var.setDisplay();   var.setDescriptor(var.getTextDescriptor().setRelSize(10));
 
 			NodeInst r90MXNode = NodeInst.newInstance(myCell, new Point2D.Double(100, 100), -myWidth, myHeight, 900, rotTestCell);
 			r90MXNode.setExpanded();
 			nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(100, 100-35), 0, 0, 0, rotTestCell);
 			var = nodeLabel.setVar("ART_message", "Rotated 90 MX");
-			var.setDisplay();   var.getTextDescriptor().setRelSize(10);
+			var.setDisplay();   var.setDescriptor(var.getTextDescriptor().setRelSize(10));
 
 			NodeInst r180MXNode = NodeInst.newInstance(myCell, new Point2D.Double(200, 100), -myWidth, myHeight, 1800, rotTestCell);
 			r180MXNode.setExpanded();
 			nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(200, 100-35), 0, 0, 0, rotTestCell);
 			var = nodeLabel.setVar("ART_message", "Rotated 180 MX");
-			var.setDisplay();   var.getTextDescriptor().setRelSize(10);
+			var.setDisplay();   var.setDescriptor(var.getTextDescriptor().setRelSize(10));
 
 			NodeInst r270MXNode = NodeInst.newInstance(myCell, new Point2D.Double(300, 100), -myWidth, myHeight, 2700, rotTestCell);
 			r270MXNode.setExpanded();
 			nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(300, 100-35), 0, 0, 0, rotTestCell);
 			var = nodeLabel.setVar("ART_message", "Rotated 270 MX");
-			var.setDisplay();   var.getTextDescriptor().setRelSize(10);
+			var.setDisplay();   var.setDescriptor(var.getTextDescriptor().setRelSize(10));
 
 			// Mirrored in Y
 			NodeInst r0MYNode = NodeInst.newInstance(myCell, new Point2D.Double(0, 200), myWidth, -myHeight, 0, rotTestCell);
 			r0MYNode.setExpanded();
 			nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(0, 200-35), 0, 0, 0, rotTestCell);
 			var = nodeLabel.setVar("ART_message", "Rotated 0 MY");
-			var.setDisplay();   var.getTextDescriptor().setRelSize(10);
+			var.setDisplay();   var.setDescriptor(var.getTextDescriptor().setRelSize(10));
 
 			NodeInst r90MYNode = NodeInst.newInstance(myCell, new Point2D.Double(100, 200), myWidth, -myHeight, 900, rotTestCell);
 			r90MYNode.setExpanded();
 			nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(100, 200-35), 0, 0, 0, rotTestCell);
 			var = nodeLabel.setVar("ART_message", "Rotated 90 MY");
-			var.setDisplay();   var.getTextDescriptor().setRelSize(10);
+			var.setDisplay();   var.setDescriptor(var.getTextDescriptor().setRelSize(10));
 
 			NodeInst r180MYNode = NodeInst.newInstance(myCell, new Point2D.Double(200, 200), myWidth, -myHeight, 1800, rotTestCell);
 			r180MYNode.setExpanded();
 			nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(200, 200-35), 0, 0, 0, rotTestCell);
 			var = nodeLabel.setVar("ART_message", "Rotated 180 MY");
-			var.setDisplay();   var.getTextDescriptor().setRelSize(10);
+			var.setDisplay();   var.setDescriptor(var.getTextDescriptor().setRelSize(10));
 
 			NodeInst r270MYNode = NodeInst.newInstance(myCell, new Point2D.Double(300, 200), myWidth, -myHeight, 2700, rotTestCell);
 			r270MYNode.setExpanded();
 			nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(300, 200-35), 0, 0, 0, rotTestCell);
 			var = nodeLabel.setVar("ART_message", "Rotated 270 MY");
-			var.setDisplay();   var.getTextDescriptor().setRelSize(10);
+			var.setDisplay();   var.setDescriptor(var.getTextDescriptor().setRelSize(10));
 
 			// Mirrored in X and Y
 			NodeInst r0MXYNode = NodeInst.newInstance(myCell, new Point2D.Double(0, 300), -myWidth, -myHeight, 0, rotTestCell);
 			r0MXYNode.setExpanded();
 			nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(0, 300-35), 0, 0, 0, rotTestCell);
 			var = nodeLabel.setVar("ART_message", "Rotated 0 MXY");
-			var.setDisplay();   var.getTextDescriptor().setRelSize(10);
+			var.setDisplay();   var.setDescriptor(var.getTextDescriptor().setRelSize(10));
 
 			NodeInst r90MXYNode = NodeInst.newInstance(myCell, new Point2D.Double(100, 300), -myWidth, -myHeight, 900, rotTestCell);
 			r90MXYNode.setExpanded();
 			nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(100, 300-35), 0, 0, 0, rotTestCell);
 			var = nodeLabel.setVar("ART_message", "Rotated 90 MXY");
-			var.setDisplay();   var.getTextDescriptor().setRelSize(10);
+			var.setDisplay();   var.setDescriptor(var.getTextDescriptor().setRelSize(10));
 
 			NodeInst r180MXYNode = NodeInst.newInstance(myCell, new Point2D.Double(200, 300), -myWidth, -myHeight, 1800, rotTestCell);
 			r180MXYNode.setExpanded();
 			nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(200, 300-35), 0, 0, 0, rotTestCell);
 			var = nodeLabel.setVar("ART_message", "Rotated 180 MXY");
-			var.setDisplay();   var.getTextDescriptor().setRelSize(10);
+			var.setDisplay();   var.setDescriptor(var.getTextDescriptor().setRelSize(10));
 
 			NodeInst r270MXYNode = NodeInst.newInstance(myCell, new Point2D.Double(300, 300), -myWidth, -myHeight, 2700, rotTestCell);
 			r270MXYNode.setExpanded();
 			nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(300, 300-35), 0, 0, 0, rotTestCell);
 			var = nodeLabel.setVar("ART_message", "Rotated 270 MXY");
-			var.setDisplay();   var.getTextDescriptor().setRelSize(10);
+			var.setDisplay();   var.setDescriptor(var.getTextDescriptor().setRelSize(10));
 
 			System.out.println("Created cell " + rotTestCell.describe());
 
@@ -345,8 +345,7 @@ public final class UserInitial
 					var = instanceNode.setName(theName);
 					if (var != null)
 					{
-						TextDescriptor td = var.getTextDescriptor();
-						td.setOff(0, 32);
+						var.setDescriptor(var.getTextDescriptor().setOff(0, 32));
 					}
 				}
 			}

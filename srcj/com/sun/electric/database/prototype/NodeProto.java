@@ -68,15 +68,21 @@ public abstract class NodeProto extends ElectricObject
 	public static class Function
 	{
 		private final String name;
-		private final String shortName;
+		private final Name shortName;
 		private final String constantName;
 
 		private Function(String name, String shortName, String constantName)
 		{
 			this.name = name;
-			this.shortName = shortName;
+			this.shortName = Name.findName(shortName).getBasename();
 			this.constantName = constantName;
 		}
+
+		/**
+		 * Returns a short name of this Function.
+		 * @return a short name of this Function.
+		 */
+		public Name getShortName() { return shortName; }
 
 		/**
 		 * Returns a printable version of this Function.
@@ -762,7 +768,7 @@ public abstract class NodeProto extends ElectricObject
 	/**
 	 * Routine to return the function of this NodeProto.
 	 * The Function is a technology-independent description of the behavior of this NodeProto.
-	 * @return function the function of this NodeProto.
+	 * @return the function of this NodeProto.
 	 */
 	public Function getFunction() { return function; }
 

@@ -1294,8 +1294,7 @@ public class InputBinary extends Input
 					descript1 = readBigInteger();
 				}
 			}
-			TextDescriptor descript = pp.getTextDescriptor();
-			descript.lowLevelSet(descript0, descript1);
+			TextDescriptor descript = TextDescriptor.newDescriptor(descript0, descript1);
 
 			// ignore the "seen" bits (versions 8 and older)
 			if (magic > MAGIC9) readBigInteger();
@@ -1637,8 +1636,7 @@ public class InputBinary extends Input
 				descript1 = readBigInteger();
 			}
 		}
-		TextDescriptor descript = ni.getTextDescriptor();
-		descript.lowLevelSet(descript0, descript1);
+		TextDescriptor descript = TextDescriptor.newDescriptor(descript0, descript1);
 
 		// read the nodeinst name (versions 1, 2, or 3 only)
 		if (magic >= MAGIC3)
@@ -1932,7 +1930,7 @@ public class InputBinary extends Input
 			{
 				Variable var = obj.setVar(realName[key], newAddr);
 				if (var == null) return(-1);
-				var.getTextDescriptor().lowLevelSet(descript0, descript1);
+				var.setDescriptor(TextDescriptor.newDescriptor(descript0, descript1));
 				var.lowLevelSetFlags(newtype);
 
 				// handle updating of technology caches

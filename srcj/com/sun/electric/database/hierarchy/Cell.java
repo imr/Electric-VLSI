@@ -257,6 +257,8 @@ public class Cell extends NodeProto
 
 	// -------------------------- private data ---------------------------------
 
+	/** Length of base name for autonaming. */						private static final int ABBREVLEN = 8;
+
 	/** The CellGroup this Cell belongs to. */						private CellGroup cellGroup;
 	/** The VersionGroup this Cell belongs to. */					private VersionGroup versionGroup;
 	/** The library this Cell belongs to. */						private Library lib;
@@ -264,6 +266,7 @@ public class Cell extends NodeProto
 	/** The date this Cell was created. */							private Date creationDate;
 	/** The date this Cell was last modified. */					private Date revisionDate;
 	/** The version of this Cell. */								private int version;
+	/** The basename for autonaming of instances of this Cell */	private Name basename;
 	/** The Cell's essential-bounds. */								private List essenBounds = new ArrayList();
 	/** A list of NodeInsts in this Cell. */						private List nodes;
 	/** A map from NodeProto to NodeUsages in it */					private Map usagesIn;
@@ -373,6 +376,11 @@ public class Cell extends NodeProto
 		this.protoName = n.getName();
 		this.view = n.getView();
 		this.version = version;
+
+		// prepare basename for autonaming
+		basename = Name.findName(protoName.substring(0,Math.min(ABBREVLEN,protoName.length()))).getBasename();
+		if (basename == null)
+			basename = NodeProto.Function.UNKNOWN.getShortName();
 		return false;
 	}
 
@@ -891,7 +899,7 @@ public class Cell extends NodeProto
 		if (name == null) return;
 		Name basename = name.getBasename();
 		int numSuffix = name.getNumSuffix();
-		if (basename != null && numSuffix > 0)
+		if (basename != null && basename != basename)
 		{
 			basename = basename.lowerCase(); 
 			MaxSuffix ms = (MaxSuffix) maxSuffix.get(basename);
@@ -1582,6 +1590,12 @@ public class Cell extends NodeProto
 	{
 		return (Cell) getVersions().next();
 	}
+
+	/**
+	 * Routine to return the basename for autonaming instances of this Cell.
+	 * @return the basename for autonaming instances of this Cell.
+	 */
+	public Name getBasename() { return basename; }
 
 	/**
 	 * Routine to describe this cell.

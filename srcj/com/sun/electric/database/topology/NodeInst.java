@@ -33,6 +33,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.hierarchy.Instancable;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.text.Name;
@@ -69,7 +70,7 @@ import java.util.Iterator;
  * <P>
  * <CENTER><IMG SRC="doc-files/NodeInst-1.gif"></CENTER>
  */
-public class NodeInst extends Geometric
+public class NodeInst extends Geometric implements Instancable
 {
 	// -------------------------- constants --------------------------------
 //	/** node is not in use */								private static final int DEADN =                     01;
@@ -1708,6 +1709,15 @@ public class NodeInst extends Geometric
 	{
 		PrimitiveNode np = (PrimitiveNode)protoType;
 		return np.getTechnology().getTransistorSize(this);
+	}
+
+	/**
+	 * Returns the basename for autonaming.
+	 * @return the basename for autonaming.
+	 */
+	private Name getBasename()
+	{
+		return protoType instanceof Cell ? ((Cell)protoType).getBasename() : getFunction().getShortName();
 	}
 
 	/**

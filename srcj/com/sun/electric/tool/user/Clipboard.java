@@ -947,7 +947,7 @@ public class Clipboard
 			{
 				double lambda = 1;
 				TextDescriptor descript = TextDescriptor.newBlankDescriptor();
-				var.getTextDescriptor().copy(descript);
+				var.setDescriptor(descript);
 				int dx = descript.getXOff() / 4;
 				int dy = descript.getYOff() / 4;
 
@@ -1068,12 +1068,10 @@ public class Clipboard
 		{
 			if (var.isDisplay()) newVar.setDisplay(); else newVar.clearDisplay();
 			if (var.getTextDescriptor().isInterior()) newVar.clearDisplay();
-			TextDescriptor newDescript = TextDescriptor.newNodeArcDescriptor();
-			newDescript.clearInherit();
-			newDescript.setOff(xc, yc);
+			TextDescriptor newDescript = TextDescriptor.newNodeArcDescriptor().clearInherit().setOff(xc, yc);
 			if (var.getTextDescriptor().isParam())
 			{
-				newDescript.clearInterior();
+				newDescript = newDescript.clearInterior();
 				TextDescriptor.DispPos i = newDescript.getDispPart();
 				if (i == TextDescriptor.DispPos.NAMEVALINH || i == TextDescriptor.DispPos.NAMEVALINHALL)
 					newDescript.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
