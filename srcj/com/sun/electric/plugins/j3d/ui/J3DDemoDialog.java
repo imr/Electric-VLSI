@@ -101,6 +101,7 @@ public class J3DDemoDialog extends EDialog
         enter = new javax.swing.JButton();
         read = new javax.swing.JButton();
         save = new javax.swing.JButton();
+        movie = new javax.swing.JButton();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -142,7 +143,7 @@ public class J3DDemoDialog extends EDialog
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -200,8 +201,28 @@ public class J3DDemoDialog extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(save, gridBagConstraints);
 
+        movie.setText("Create Movie");
+        movie.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                movieActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(movie, gridBagConstraints);
+
         pack();
     }//GEN-END:initComponents
+
+    private void movieActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_movieActionPerformed
+        String fileName = OpenFile.chooseOutputFile(FileType.MOV, "Save 3D Movie", "demo.mov");
+        view3D.saveMovie(fileName);
+    }//GEN-LAST:event_movieActionPerformed
 
     private void saveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveActionPerformed
         String fileName = OpenFile.chooseOutputFile(FileType.J3D, "Save 3D Demo File", "demo.j3d");
@@ -253,6 +274,7 @@ public class J3DDemoDialog extends EDialog
     private javax.swing.JButton close;
     private javax.swing.JButton demo;
     private javax.swing.JButton enter;
+    private javax.swing.JButton movie;
     private javax.swing.JButton read;
     private javax.swing.JButton save;
     private javax.swing.JSlider slider;

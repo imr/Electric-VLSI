@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02j: *********************************
 
+IMP: (03/14/05, GVG) First version of movie feature.
+
 IMP: (03/14/05, RK) Modify qLite regression to test NCC black box support.
 
 IMP: (03/14/05, RK) NCC: Add support for black boxes.

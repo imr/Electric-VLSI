@@ -197,17 +197,6 @@ public class WindowFrame extends Observable
             wf.notifyObservers(wf.getContent());
             wf.clearChanged();
         }
-//		if (view3DClass == null) return; // error in class initialization or not available
-//
-//		try
-//		{
-//			if (show3DMethod == null)
-//				show3DMethod = view3DClass.getDeclaredMethod("show3DHighlight", new Class[] {WindowContent.class});
-//			show3DMethod.invoke(view3DClass, new Object[]{view2D});
-//		} catch (Exception e) {
-//            System.out.println("Cannot call 3D plugin method: " + e.getMessage());
-//            ActivityLogger.logException(e);
-//        }
 	}
 
     /*****************************************************************************

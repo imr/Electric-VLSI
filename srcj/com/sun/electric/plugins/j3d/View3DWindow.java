@@ -48,11 +48,7 @@ import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.*;
-import com.sun.electric.plugins.j3d.utils.J3DUtils;
-import com.sun.electric.plugins.j3d.utils.J3DAlpha;
-import com.sun.electric.plugins.j3d.utils.J3DAppearance;
-import com.sun.electric.plugins.j3d.utils.J3DSerialization;
-import com.sun.electric.plugins.j3d.utils.J3DCanvas3D;
+import com.sun.electric.plugins.j3d.utils.*;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -89,6 +85,7 @@ import com.sun.j3d.utils.geometry.Primitive;
 import com.sun.j3d.utils.geometry.Cylinder;
 
 import javax.media.j3d.*;
+import javax.media.MediaLocator;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.vecmath.*;
@@ -927,6 +924,12 @@ public class View3DWindow extends JPanel
     public void writeImage(ElectricPrinter ep, String filePath)
     {
         canvas.filePath = filePath;
+        saveImage(false);
+    }
+
+    public void saveImage(boolean movieMode)
+    {
+        canvas.movieMode = movieMode;
         canvas.writePNG_ = true;
         canvas.repaint();
     }
@@ -1454,6 +1457,7 @@ public class View3DWindow extends JPanel
      */
     public void removeInterpolator(Map interMap)
     {
+        canvas.resetMoveFrames();
         for (Iterator it = interMap.keySet().iterator(); it.hasNext();)
         {
             TransformGroup grp = (TransformGroup)it.next();
@@ -1621,6 +1625,12 @@ public class View3DWindow extends JPanel
             e.printStackTrace();
         }
         return list;
+    }
+
+    public void saveMovie(String filename)
+    {
+        if (filename != null)
+            canvas.saveMovie(filename);
     }
 
     /**

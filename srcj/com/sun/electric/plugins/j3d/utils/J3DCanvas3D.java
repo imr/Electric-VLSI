@@ -1,19 +1,25 @@
 package com.sun.electric.plugins.j3d.utils;
 
-import com.sun.j3d.utils.geometry.Primitive;
-import com.sun.j3d.utils.geometry.Cylinder;
+import com.sun.image.codec.jpeg.JPEGEncodeParam;
+import com.sun.image.codec.jpeg.JPEGCodec;
+import com.sun.image.codec.jpeg.JPEGImageEncoder;
+import com.sun.electric.plugins.jmf.ImageToMovie;
+import com.sun.electric.tool.user.Resources;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.util.List;
+import java.util.ArrayList;
+import java.lang.reflect.Method;
 import javax.media.j3d.*;
 import javax.vecmath.*;
 import javax.imageio.ImageIO;
-//import com.sun.image.codec.jpeg.*;
 
 /** Class CapturingCanvas3D, using the instructions from the Java3D 
     FAQ pages on how to capture a still image in jpeg format.
-
+    From www.j3d.org
     A capture button would call a method that looks like
 
 
@@ -35,6 +41,8 @@ public class J3DCanvas3D extends Canvas3D  {
     public boolean writePNG_;
     public BufferedImage img;
     private Shape3D axis;
+    private int count;
+    public boolean movieMode;
 
     public J3DCanvas3D(GraphicsConfiguration gc)
     {
@@ -66,12 +74,36 @@ public class J3DCanvas3D extends Canvas3D  {
         }
     }
 
+    List inputFiles = new ArrayList();
+    public void saveMovie(String filename)
+    {
+        Class movieClass = Resources.getJMFClass("ImageToMovie");
+        if (movieClass == null)
+        {
+            System.out.println("Movie plugin not available");
+            return;
+        }
+        try {
+            Dimension dim = getSize();
+            Method createJMFMethod = movieClass.getDeclaredMethod("createMovie", new Class[] {String.class,
+                                                                                              Dimension.class, List.class});
+            createJMFMethod.invoke(movieClass, new Object[] {filename, dim, inputFiles});
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public void resetMoveFrames()
+    {
+        inputFiles.clear();
+    }
+
     public void postSwap()
     {
         if(writePNG_)
         {
-            Dimension dim = getScreen3D().getSize();
-
+            Dimension dim = getSize();
             GraphicsContext3D  ctx = getGraphicsContext3D();
             // The raster components need all be set!
 
@@ -92,7 +124,28 @@ public class J3DCanvas3D extends Canvas3D  {
             img = ras.getImage().getImage();
             writePNG_ = false;
 
-            if (filePath != null)
+            if (movieMode)
+            {
+                try
+                {
+                    String capture = "Capture" + count + ".jpg";
+                    inputFiles.add(capture);
+                    FileOutputStream out = new FileOutputStream(capture);
+
+                    JPEGImageEncoder encoder = JPEGCodec.createJPEGEncoder(out);
+                     JPEGEncodeParam param = encoder.getDefaultJPEGEncodeParam(img);
+                     param.setQuality(0.75f,false); // 75% quality for the JPEG
+                     encoder.setJPEGEncodeParam(param);
+                     encoder.encode(img);
+                     out.close();
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+                count++;
+            }
+            else if (filePath != null)  // for png export
             {
                 File tmp = new File(filePath);
                 try

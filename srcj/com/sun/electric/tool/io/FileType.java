@@ -56,12 +56,13 @@ public class FileType {
 	/** Describes IRSIM vector decks. */	public static final FileType IRSIMVECTOR  = new FileType("IRSIM Vectors", new String[] {"cmd"}, "IRSIM Vector Deck (cmd)");
 	/** Describes Java source. */			public static final FileType JAVA         = new FileType("Java", new String[] {"java", "bsh"}, "Java Script File (java, bsh)");
 	/** Describes JELIB files.*/			public static final FileType JELIB        = new FileType("JELIB", new String[] {"jelib"}, "Library File (jelib)");
-    /** Describes J3D files.*/				public static final FileType J3D          = new FileType("J3D", new String[] {"j3d"}, "Java3D Demo File");	
+    /** Describes J3D files.*/				public static final FileType J3D          = new FileType("J3D", new String[] {"j3d"}, "Java3D Demo File (j3d}");
     /** Describes L files.*/				public static final FileType L            = new FileType("L", new String[] {"L"}, "L File (L)");
 	/** Describes LEF files.*/				public static final FileType LEF          = new FileType("LEF", new String[] {"lef"}, "LEF File (lef)");
 	/** Describes Maxwell decks. */			public static final FileType MAXWELL      = new FileType("Maxwell", new String[] {"mac"}, "Maxwell Deck (mac)");
 	/** Describes MOSSIM decks. */			public static final FileType MOSSIM       = new FileType("MOSSIM", new String[] {"ntk"}, "MOSSIM Deck (ntk)");
-	/** Describes Pad Frame Array spec. */	public static final FileType PADARR       = new FileType("PadArray", new String[] {"arr"}, "Pad Generator Array File (arr)");
+    /** Describes Movie files. */			public static final FileType MOV          = new FileType("Movie", new String[] {"mov"}, "Movie File (mov)");
+    /** Describes Pad Frame Array spec. */	public static final FileType PADARR       = new FileType("PadArray", new String[] {"arr"}, "Pad Generator Array File (arr)");
 	/** Describes Pads files. */			public static final FileType PADS         = new FileType("Pads", new String[] {"asc"}, "Pads File (asc)");
 	/** Describes PAL files. */				public static final FileType PAL          = new FileType("PAL", new String[] {"pal"}, "PAL File (pal)");
 	/** Describes PostScript files. */		public static final FileType POSTSCRIPT   = new FileType("PostScript", new String[] {"ps"}, "PostScript (ps)");

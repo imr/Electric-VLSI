@@ -9,6 +9,7 @@
 
 	<!-- Use -DGNU=true for GNU release -->
 	<!-- Use -Dsource=true to release the source  -->
+    <!-- Use -DJMF=true to include JMF plugin -->
     <target name="compile" depends="init" description="Compile">
         <javac debug="true" deprecation="true" destdir="." srcdir="."
 	    source="1.4" fork="true" memoryMaximumSize="256m">
@@ -19,6 +20,7 @@
 	        <exclude name="com/sun/electric/plugins/j3d/*.*" if="NO3D"/>
             <exclude name="com/sun/electric/plugins/j3d/ui/*.*" if="NO3D"/>
             <exclude name="com/sun/electric/plugins/j3d/utils/*.*" if="NO3D"/>
+            <exclude name="com/sun/electric/plugins/jmf/*.*" unless="JMF"/>
         </javac>
     </target>
 
@@ -86,6 +88,7 @@
             <exclude name="com/sun/electric/plugins/tsmc90/*.*" if="GNU"/>
             <exclude name="com/sun/electric/plugins/tsmc90/fill90nm/*.*" if="GNU"/>
             <exclude name="com/sun/electric/plugins/tsmc90/gates90nm/*.*" if="GNU"/>
+            <exclude name="com/sun/electric/plugins/jmf/*.*" unless="JMF"/>
             <exclude name="**/*.java" unless="source"/>
             <exclude name="**/*.form" unless="source"/>
             <exclude name="classes/" unless="source"/>
@@ -125,6 +128,7 @@
 	        <exclude name="com/sun/electric/plugins/j3d/*.*" if="NO3D"/>
             <exclude name="com/sun/electric/plugins/j3d/ui/*.*" if="NO3D"/>
             <exclude name="com/sun/electric/plugins/j3d/utils/*.*" if="NO3D"/>
+            <exclude name="com/sun/electric/plugins/jmf/*.*" unless="JMF"/>
             <exclude name="**/*.java" unless="source"/>
             <exclude name="**/*.form" unless="source"/>
             <exclude name="classes/" unless="source"/>
