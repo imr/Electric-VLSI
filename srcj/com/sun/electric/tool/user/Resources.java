@@ -35,8 +35,6 @@ public class Resources {
 
 	// Location of valid 3D plugin
 	private static final String plugin3D = "com.sun.electric.plugins.j3d";
-
-    public static String get3DPluginPath() {return plugin3D;}
 	/**
 	 * Method to load a valid icon stored in resources package under the given class.
 	 * @param theClass class path where the icon resource is stored under
