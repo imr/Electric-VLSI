@@ -158,6 +158,7 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
     
     public boolean visitNodeInst(Nodable ni, HierarchyEnumerator.CellInfo info) {
         float leX = (float)0.0;
+        boolean wire = false;
 
         // check if leGate
         Instance.Type type = Instance.Type.NOTSIZEABLE;        
@@ -173,15 +174,15 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
             float width = VarContext.objectToFloat(info.getContext().evalVar(var), (float)3.0f);
             leX = (float)(0.95f*len + 0.05f*len*(width/3.0f))*wireRatio;  // equivalent lambda of gate
             leX = leX/9.0f;                         // drive strength X=1 is 9 lambda of gate
-            VarContext vc = info.getContext().push(ni);
-            if (DEBUG) System.out.println("  Added LEWire "+vc.getInstPath(".")+", X="+leX);
+            wire = true;
         }
         else if (ni.getVar("ATTR_LEKEEPER") != null) type = Instance.Type.LEKEEPER;
         else if (ni.getVar("ATTR_LESETTINGS") != null) return false;
         else return true;                           // descend into and process
         
-        // build leGate instance
         if (DEBUG) System.out.println("------------------------------------");
+
+        // build leGate instance
         ArrayList pins = new ArrayList();
         //Cell schCell = ni.getProtoEquivalent();
 		Netlist netlist = info.getNetlist();
@@ -193,20 +194,22 @@ public class LENetlister extends HierarchyEnumerator.Visitor {
             Variable var = pp.getVar("ATTR_le");
             // Note default 'le' value should be one
             float le = VarContext.objectToFloat(info.getContext().evalVar(var), (float)1.0);
-            String netName = info.getUniqueNetName(netlist.getNetwork(ni,pp,0), ".");
+            String netName = info.getUniqueNetName(info.getNetID(netlist.getNetwork(ni,pp,0)), ".");
 //            String netName = info.getUniqueNetName(pi.getNetwork(), ".");
             Pin.Dir dir = Pin.Dir.INPUT;
-            //if (pp.getCharacteristic() == PortProto.Characteristic.IN) dir = Pin.Dir.INPUT;
             // if it's not an output, it doesn't really matter what it is.
             if (pp.getCharacteristic() == PortProto.Characteristic.OUT) dir = Pin.Dir.OUTPUT;
             pins.add(new Pin(pp.getProtoName(), dir, le, netName));
-            if (DEBUG) System.out.println("    Added "+dir+" pin "+pp.getProtoName()+", le: "+le+", netName: "+netName);
+            if (DEBUG) System.out.println("    Added "+dir+" pin "+pp.getProtoName()+", le: "+le+", netName: "+netName+", JNetwork: "+netlist.getNetwork(ni,pp,0));
             if (type == Instance.Type.NOTSIZEABLE) break;    // this is LEWIRE, only add one pin of it
         }
         // create new leGate instance
         VarContext vc = info.getContext().push(ni);                   // to create unique flat name
         Instance inst = lesizer.addInstance(vc.getInstPath("."), type, su, leX, pins);
-        if (DEBUG) System.out.println("  Added instance "+vc.getInstPath(".")+" of type "+type);
+        if (DEBUG) {
+            if (wire) System.out.println("  Added LEWire "+vc.getInstPath(".")+", X="+leX);
+            else System.out.println("  Added instance "+vc.getInstPath(".")+" of type "+type);
+        }
         instancesMap.put(inst, ni);
         return false;
     }
