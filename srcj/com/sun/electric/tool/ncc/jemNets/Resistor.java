@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.jemNets;
+import com.sun.electric.tool.ncc.jemNets.NccNameProxy.PartNameProxy;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -55,7 +56,7 @@ public class Resistor extends Part {
     }
 
     // ---------- public methods ----------
-	public Resistor(NccNameProxy name, double resist, Wire w1, Wire w2) {
+	public Resistor(PartNameProxy name, double resist, Wire w1, Wire w2) {
 		super(name, new Wire[]{w1, w2});
 		resistance = (float) resist;
 	}

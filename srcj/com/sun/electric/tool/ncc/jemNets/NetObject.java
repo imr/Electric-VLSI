@@ -48,7 +48,6 @@ public abstract class NetObject {
 	}
 
     // ---------- private data -------------
-    private NccNameProxy myName;	// null means name is empty string
     private Circuit myParent;
     private static final int MAX_CONN = 100;
 	
@@ -56,14 +55,9 @@ public abstract class NetObject {
      * @return PART or WIRE or PORT */
     public abstract Type getNetObjType();
 
-
     public abstract Iterator getConnected();
 
     // ---------- protected methods ----------
-	/** @param name NameProxy that can be called to obtain the instance name.
-	 * null means the name is the empty string. */
-    protected NetObject(NccNameProxy name){myName=name;}
-
     protected static void error(boolean pred, String msg) {
     	LayoutLib.error(pred, msg);
     }
@@ -73,10 +67,7 @@ public abstract class NetObject {
 	
     // ---------- public methods ----------
 
-    public String getName(){
-    	return myName!=null ? myName.toString() : "";
-    }
-    public NccNameProxy getNameProxy() {return myName;}
+    public abstract String getName();
 
     /** Return an integer hash code for this NetObject.
 	 * @return the integer hash code from this NetObjec's EquivRecord. */

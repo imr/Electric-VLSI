@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.jemNets;
+import com.sun.electric.tool.ncc.jemNets.NccNameProxy.PartNameProxy;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -109,7 +110,7 @@ public class Subcircuit extends Part {
 		return msg;
 	}
 	
-	public Subcircuit(NccNameProxy instName, SubcircuitInfo subcircuitInfo,
+	public Subcircuit(PartNameProxy instName, SubcircuitInfo subcircuitInfo,
 	                  Wire[] pins) {
 		super(instName, pins);
 		this.subcircuitInfo = subcircuitInfo;

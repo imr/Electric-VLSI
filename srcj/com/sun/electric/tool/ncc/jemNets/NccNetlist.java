@@ -29,12 +29,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import com.sun.electric.tool.ncc.jemNets.NccNameProxy.WireNameProxy;
+import com.sun.electric.tool.ncc.jemNets.NccNameProxy.PartNameProxy;
+
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.CellInfo;
-import com.sun.electric.database.hierarchy.HierarchyEnumerator.NameProxy;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator.NodableNameProxy;
 import com.sun.electric.database.network.Global;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
@@ -129,9 +133,9 @@ class Wires {
 		growIfNeeded(netID);
 		Wire wire = (Wire) wires.get(netID);
 		if (wire==null) {
-			NameProxy np = info.getUniqueNetNameProxy(netID, "/");
-			NccNameProxy wireNm = new NccNameProxy(np, pathPrefix);
-			wire = new Wire(wireNm/*, info.isGlobalNet(netID)*/);
+			NetNameProxy np = info.getUniqueNetNameProxy(netID, "/");
+			WireNameProxy wireNm = new WireNameProxy(np, pathPrefix);
+			wire = new Wire(wireNm);
 			wires.set(netID, wire);
 		}
 		return wire;
@@ -390,8 +394,8 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	}
 
 	private void buildMOS(NodeInst ni, Transistor.Type type, NccCellInfo info) {
-		NameProxy np = info.getUniqueNodableNameProxy(ni, "/");
-		NccNameProxy name = new NccNameProxy(np, pathPrefix); 
+		NodableNameProxy np = info.getUniqueNodableNameProxy(ni, "/");
+		PartNameProxy name = new PartNameProxy(np, pathPrefix); 
 		double width=0, length=0;
 		if (globals.getOptions().checkSizes) {
 			TransistorSize dim = ni.getTransistorSize(info.getContext());
@@ -506,8 +510,8 @@ class Visitor extends HierarchyEnumerator.Visitor {
 
 		CellInfo parentInfo = info.getParentInfo();
 		Nodable parentInst = info.getParentInst();
-		NameProxy np = parentInfo.getUniqueNodableNameProxy(parentInst, "/");
-		NccNameProxy name = new NccNameProxy(np, pathPrefix); 
+		NodableNameProxy np = parentInfo.getUniqueNodableNameProxy(parentInst, "/");
+		PartNameProxy name = new PartNameProxy(np, pathPrefix); 
 
 		parts.add(new Subcircuit(name, subcktInfo, pins));
 	}

@@ -43,10 +43,10 @@ public class Ncc {
 							   NccOptions options) {
 		if (options.operation==NccOptions.LIST_ANNOTATIONS) {
 			ListNccAnnotations.doYourJob(cell1, cell2);
-			return new NccResult(true, true, true);
+			return new NccResult(true, true, true, null);
 		} else {
 	    	Date before = new Date();
-			NccResult result = new NccResult(false, false, false);
+			NccResult result = new NccResult(false, false, false, null);
 			if (options.operation==NccOptions.FLAT_TOP_CELL) {
 				prln("Flat NCC top cell");
 				result = NccUtils.compareAndPrintStatus(cell1, ctxt1, cell2, 

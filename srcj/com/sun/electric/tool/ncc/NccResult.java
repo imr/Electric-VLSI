@@ -28,17 +28,21 @@ public class NccResult {
 	private boolean exportMatch;
 	private boolean topologyMatch;
 	private boolean sizeMatch;
+	private NccGlobals globalData;
 
-	public NccResult(boolean exportNameMatch, boolean topologyMatch, boolean sizeMatch) {
+	public NccResult(boolean exportNameMatch, boolean topologyMatch, 
+			         boolean sizeMatch, NccGlobals globalData) {
 		this.exportMatch = exportNameMatch;
 		this.topologyMatch = topologyMatch;
 		this.sizeMatch = sizeMatch;
+		this.globalData = globalData;
 	}
 	/** aggregate the result of multiple comparisons */
 	public void and(NccResult result) {
 		exportMatch &= result.exportMatch;
 		topologyMatch &= result.topologyMatch;
 		sizeMatch &= result.sizeMatch;
+		globalData = result.globalData;
 	}
 	/** No problem was found with Exports */ 
 	public boolean exportMatch() {return exportMatch;}
@@ -51,6 +55,10 @@ public class NccResult {
 	
 	/** No problem was found */
 	public boolean match() {return exportMatch && topologyMatch && sizeMatch;}
+	
+	NetEquivalence getNetEquivalence() {
+		return new NetEquivalence(globalData.getEquivalentNets());
+	}
 	
 	public String summary(boolean checkSizes) {
 		String s;

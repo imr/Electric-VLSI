@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.jemNets;
+import com.sun.electric.tool.ncc.jemNets.NccNameProxy.PartNameProxy;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -41,6 +42,7 @@ public abstract class Part extends NetObject {
 	protected static final int TYPE_FIELD_WIDTH = 4;
 	
     // ---------- private data -------------
+	private PartNameProxy nameProxy;
     protected Wire[] pins;
 
     // ---------- private methods ----------
@@ -49,16 +51,16 @@ public abstract class Part extends NetObject {
 	 * @param name the name of this Part
 	 * @param pins terminals of this Part
 	 */
-    protected Part(NccNameProxy name, Wire[] pins){
-		super(name);
+    protected Part(PartNameProxy name, Wire[] pins){
+    	nameProxy = name;
 		this.pins = pins;
 		for (int i=0; i<pins.length; i++)  pins[i].add(this);
     }
 
     // ---------- public methods ----------
-    
+    public String getName() {return nameProxy.toString();}
 	public Iterator getConnected() {return Arrays.asList(pins).iterator();}
-
+	public PartNameProxy getNameProxy() {return nameProxy;}
     public Type getNetObjType() {return Type.PART;}
 
 	/** 

@@ -22,18 +22,26 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc;
+
 import java.util.List;
+import java.util.Set;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
+import com.sun.electric.database.network.Network;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.CellContext;
 import com.sun.electric.tool.ncc.basic.NccUtils;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 /* Implements NCC's user interface */
 public class NccJob extends Job {
+	public static NccResult lastResult;
 	private final int numWindows;
 	
 	private CellContext[] getSchemLayFromCurrentWindow() {
@@ -124,8 +132,26 @@ public class NccJob extends Job {
 		
 		return options;
 	}
+	private void testProbing() {
+		EditWindow wnd = EditWindow.getCurrent();
+		Cell cell = wnd.getCell();
+		VarContext context = wnd.getVarContext();
+		Highlighter hiLite = wnd.getHighlighter();
+		Set nets = hiLite.getHighlightedNetworks();
+		Network net = (Network) nets.iterator().next();
+		NetEquivalence ne = lastResult.getNetEquivalence();
+		NetNameProxy prox = ne.findEquivalent(context, net, 0);
+		VarContext eCtxt = prox.getContext();
+		String eNet = prox.leafName();
+		System.out.println("Equiv net: "+prox.toString());
+	}
 
     public boolean doIt() {
+    	if (numWindows==-1) {
+    		// tests probing
+    		testProbing();
+    		return true;
+    	}
 		LayoutLib.error(numWindows!=1 && numWindows!=2, 
                         "numWindows must be 1 or 2");
 		CellContext[] cellCtxts = getCellsFromWindows(numWindows);
@@ -136,6 +162,7 @@ public class NccJob extends Job {
 		NccResult result = Ncc.compare(cellCtxts[0].cell, cellCtxts[0].context,
 									   cellCtxts[1].cell, cellCtxts[1].context, 
 									   options);
+		lastResult = result;
 		return result.match();
     }
 

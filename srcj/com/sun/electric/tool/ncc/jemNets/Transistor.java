@@ -32,6 +32,7 @@ import java.util.Set;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.basic.Primes;
+import com.sun.electric.tool.ncc.jemNets.NccNameProxy.PartNameProxy;
 import com.sun.electric.tool.ncc.trees.Circuit;
 
 /** One or more MOS transistors in series. All gates have the same width
@@ -212,7 +213,7 @@ public class Transistor extends Part {
     
     // ---------- private methods ----------
 	/** Stack of series transistors */
-	private Transistor(Type np, NccNameProxy name, double width, double length,
+	private Transistor(Type np, PartNameProxy name, double width, double length,
 					   Wire[] pins) {
 		super(name, pins);
 		type = np;
@@ -254,7 +255,7 @@ public class Transistor extends Part {
     // ---------- public methods ----------
 
 	/** The standard 3 terminal Transistor. */
-	public Transistor(Type np, NccNameProxy name, double width, double length,
+	public Transistor(Type np, PartNameProxy name, double width, double length,
 					  Wire src, Wire gate, Wire drn) {
 		this(np, name, width, length, new Wire[] {src, gate, drn});
 	}

@@ -66,24 +66,47 @@ public final class HierarchyEnumerator {
 	  * When I stored instance names as strings in NCC profiles indicated that 
 	  * almost 50% of the storage space was used in these strings and 70% of the
 	  * execution time was spent generating these Strings!!! */
-	public static class NameProxy {
+	public static abstract class NameProxy {
 		private VarContext context;
 		private String sep;
-		private String leafName;
 
 		private String makePath(VarContext context, String sep) {
 			String path = context.getInstPath(sep);
 			if (!path.equals(""))  path+=sep;
 			return path; 
 		}
-		public NameProxy(VarContext context, String sep, String leafName) {
+		protected NameProxy(VarContext context, String sep) {
 			this.context = context;
 			this.sep = sep;
-			this.leafName = leafName;
 		}
-
+		abstract String leafName();
+		public VarContext getContext() {return context;}
 		public String toString() {
-			return makePath(context, sep) + leafName;		
+			return makePath(context, sep) + leafName();		
+		}
+	}
+	public static class NetNameProxy extends NameProxy {
+		private Network net;
+		public String leafName() {
+			Iterator it = net.getNames();
+			if (it.hasNext()) {
+				return (String) it.next();
+			} else {
+				return "netIndex"+net.getNetIndex();
+			}
+		}
+		public Iterator leafNames() {return net.getNames();}
+		public NetNameProxy(VarContext context, String sep, Network net) {
+			super(context, sep);
+			this.net = net;
+		}
+	}
+	public static class NodableNameProxy extends NameProxy {
+		private Nodable node;
+		public String leafName() {return node.getName();}
+		public NodableNameProxy(VarContext context, String sep, Nodable node) {
+			super(context, sep);
+			this.node = node;
 		}
 	}
 	// --------------------- private data ------------------------------
@@ -625,7 +648,7 @@ public final class HierarchyEnumerator {
         
         /** Same as getUniqueNetName except it returns a NameProxy instead of a
          * String name */
-		public final NameProxy getUniqueNetNameProxy(Network net, String sep) {
+		public final NetNameProxy getUniqueNetNameProxy(Network net, String sep) {
 			return getUniqueNetNameProxy(getNetID(net), sep);
 		}
         
@@ -640,18 +663,18 @@ public final class HierarchyEnumerator {
         }
 		/** Same as getUniqueNetName except it returns a NameProxy instead of a
 		 * String name */
-		public final NameProxy getUniqueNetNameProxy(int netID, String sep) {
+		public final NetNameProxy getUniqueNetNameProxy(int netID, String sep) {
 			NetDescription ns = (NetDescription) netIdToNetDesc.get(netID);
 			VarContext netContext = ns.getCellInfo().getContext();
 			String leafName;
 
-			Iterator it = ns.getNet().getNames();
-			if (it.hasNext()) {
-				leafName = (String) it.next();
-			} else {
-				leafName = "netID"+netID;
-			}
-			return new NameProxy(netContext, sep, leafName);
+//			Iterator it = ns.getNet().getNames();
+//			if (it.hasNext()) {
+//				leafName = (String) it.next();
+//			} else {
+//				leafName = "netID"+netID;
+//			}
+			return new NetNameProxy(netContext, sep, ns.getNet());
 		}
         
         /** Get a unique, flat instance name for the Nodable.
@@ -664,8 +687,8 @@ public final class HierarchyEnumerator {
 
 		/** Same as getUniqueNodableName except that it returns a NameProxy 
 		 *  instead of a String name. */
-		public final NameProxy getUniqueNodableNameProxy(Nodable no, String sep) {
-			return new NameProxy(getContext(), sep, no.getName());
+		public final NodableNameProxy getUniqueNodableNameProxy(Nodable no, String sep) {
+			return new NodableNameProxy(getContext(), sep, no);
 		}
         
 		/** Get the Network that is closest to the root in the design

@@ -178,7 +178,7 @@ public class NccBottomUp {
 							   			  boolean hierarchical,
 							   			  boolean skipPassed, 
 							   			  NccOptions options) {
-		NccResult result = new NccResult(true, true, true);
+		NccResult result = new NccResult(true, true, true, null);
 		// make sure there's work to do
 		// Subtle: empty Cell list may occur when a Cell joins a different 
 		// group. In that case avoid blowing up.
@@ -292,7 +292,7 @@ public class NccBottomUp {
 	                                    boolean hierarchical, 
 	                                    boolean skipPassed, 
 	                                    NccOptions options) {
-		NccResult result = new NccResult(true, true, true);
+		NccResult result = new NccResult(true, true, true, null);
 		HierarchyInfo hierInfo = new HierarchyInfo();
 		for (Iterator it=use1.cellsInReverseTopologicalOrder(); it.hasNext();) {
 			Cell cell = (Cell) it.next();

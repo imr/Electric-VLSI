@@ -28,6 +28,8 @@
  * class. This allows an Ncc run to be completely thread safe.
  */
 package com.sun.electric.tool.ncc;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -35,10 +37,13 @@ import java.util.List;
 import java.util.Random;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.jemNets.NccNetlist;
+import com.sun.electric.tool.ncc.jemNets.Wire;
+import com.sun.electric.tool.ncc.jemNets.NccNameProxy.WireNameProxy;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 import com.sun.electric.tool.ncc.trees.LeafEquivRecords;
@@ -104,6 +109,7 @@ public class NccGlobals {
 		return EquivRecord.newLeafRecord(code, ckts, this);
 	}
 	
+	private void println(String s) {System.out.println(s); System.out.flush();}
 	// ----------------------------- public methods --------------------------
 	/**
 	 * The constructor initializes global root, parts, wires, and ports from 
@@ -157,7 +163,6 @@ public class NccGlobals {
 		}
 		return rootCellNames;
 	}
-	private void println(String s) {System.out.println(s); System.out.flush();}
 	public void status1(String msg) {
 		if (options.howMuchStatus>=1) println(msg);
 	}
@@ -177,4 +182,28 @@ public class NccGlobals {
 	
 	public LeafEquivRecords getPartLeafEquivRecs() {return partLeafRecs;}
 	public LeafEquivRecords getWireLeafEquivRecs() {return wireLeafRecs;}
+
+	/** @return an NetNameProxy[][]. NetNameProxy[d][n] gives the nth net of
+	 * the dth design.  NetNameProxy[a][n] is NCC equivalent to NetNameProxy[b][n]
+	 * for all a and b.*/
+	public NetNameProxy[][] getEquivalentNets() {
+		int numDes = getNumNetlistsBeingCompared();
+		NetNameProxy[][] equivNets = new NetNameProxy[numDes][];
+		int numMatched = wireLeafRecs.numMatched();
+		for (int i=0; i<numDes; i++) {
+			equivNets[i] = new NetNameProxy[numMatched];
+		}
+		int wireNdx = 0;
+		for (Iterator it=wireLeafRecs.getMatched(); it.hasNext(); wireNdx++) {
+			EquivRecord er = (EquivRecord) it.next();
+			int cktNdx = 0;
+			for (Iterator cit=er.getCircuits(); cit.hasNext(); cktNdx++) {
+				Circuit ckt = (Circuit) cit.next();
+				LayoutLib.error(ckt.numNetObjs()!=1, "not matched?");
+				Wire w = (Wire) ckt.getNetObjs().next();
+				equivNets[cktNdx][wireNdx] = w.getNameProxy().getNetNameProxy();
+			}
+		}
+		return equivNets;
+	}
 }

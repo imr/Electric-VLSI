@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.jemNets;
+import com.sun.electric.tool.ncc.jemNets.NccNameProxy.WireNameProxy;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -33,27 +34,18 @@ import com.sun.electric.tool.ncc.trees.Circuit;
 public class Wire extends NetObject{
 	private static final ArrayList DELETED = null;
 
-    // ---------- private data -------------
+	// ---------- private data -------------
     private ArrayList parts = new ArrayList();
 	private Port port;  	  // usually null because most Wires have no Port
-	//private boolean isGlobal; // in Electric this is a Global wire 	
-
+	private WireNameProxy nameProxy;
+	
     // ---------- public methods ----------
 
-	public Wire(NccNameProxy name/*, boolean isGlobal*/){
-		super(name);
-		//this.isGlobal = isGlobal;
-	}
+	public Wire(WireNameProxy name){nameProxy = name;}
+	public String getName() {return nameProxy.toString();}
+	public WireNameProxy getNameProxy() {return nameProxy;}
 	public Iterator getParts() {return parts.iterator();}
 	public Iterator getConnected() {return getParts();}
-	//public boolean isGlobal() {return isGlobal;}
-
-    /** 
-	 * disconnect the indicated Part from this Wire
-	 * @param p the Part to remove
-	 * @return true if it was properly removed.
-	 */
-    //public boolean disconnect(Part p){return parts.remove(p);}
 
     /** add a Part to this Wire
 	 * @param p the Part to add */
@@ -88,43 +80,10 @@ public class Wire extends NetObject{
 	
     public Type getNetObjType() {return Type.WIRE;}
 
-    /** remove Wire from its parent's list. This Wire must not be connected to 
-     * any Parts. */
-//    public void killMe() {
-//    	error(parts.size()!=0, "Can't kill: wire connected to a Part");
-//    	error(port!=null, "Can't kill: wire connected to a Port");
-//    	//error(isGlobal(), "Can't kill: wire declared GLOBAL in Electric");
-//    	getParent().remove(this);
-//    }
 	/** Mark this wire deleted and release all storage */
 	public void setDeleted() {parts=DELETED;}
 	public boolean isDeleted() {return parts==DELETED;}
 
-	/** @return the number of Parts with Gates attached */
-//	public int numPartsWithGateAttached(){
-//		int with = 0;
-//		for (Iterator it=parts.iterator(); it.hasNext();) {
-//			Part p= (Part)it.next();
-//			if(p.touchesAtGate(this)) with++;
-//		}
-//		return with;
-//	}
-
-	//calculates #gates - #diffusions
-//	public int stepUp(){
-//		int gates= 0;
-//		int diffusion= 0;
-//		for (Iterator it=parts.iterator(); it.hasNext();) {
-//			Object oo= it.next();
-//			if(oo instanceof Transistor){
-//				Transistor t= (Transistor)oo;
-//				if(t.touchesAtGate(this))gates++;
-//				if(t.touchesAtDiffusion(this))diffusion++;
-//			}
-//		}
-//		return gates - diffusion;
-//	}
-	
     /** check that this Wire is properly structured.  check each
 	 * connection to see if it points back
 	 * @param parent the wire's parent */
@@ -159,16 +118,6 @@ public class Wire extends NetObject{
 	 * @return an int with the number of connections */
     public int numParts(){return parts.size();}
     
-    /** count the number of Part Pins connected to this wire. */
-//    public int numPartPins() {
-//    	int numPins = 0;
-//		for (Iterator it=getParts(); it.hasNext();) {
-//			Part p = (Part) it.next();
-//			numPins += p.numPinsConnected(this);
-//		}
-//		return numPins;
-//     }
-
     /** Get an identifying String for NetObject. */
     public String nameString() {return ("Wire " + getName());}
     

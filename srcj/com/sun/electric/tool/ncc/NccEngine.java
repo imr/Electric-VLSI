@@ -105,7 +105,7 @@ public class NccEngine {
 	private NccResult designsMatch(HierarchyInfo hierInfo, boolean hierInfoOnly) {
 		if (globals.getRoot()==null) {
 			globals.status2("empty cell");
-			return new NccResult(true, true, true);
+			return new NccResult(true, true, true, null);
 		} else {
 			Date d0 = new Date();
 			ExportChecker expCheck = new ExportChecker(globals);
@@ -137,7 +137,7 @@ public class NccEngine {
 			Date d3 = new Date();
 			globals.status1("  Local partitioning took "+ 
 					        NccUtils.hourMinSec(d2, d3));
-			if (!localOK) return new NccResult(expNamesOK, false, false);
+			if (!localOK) return new NccResult(expNamesOK, false, false, null);
 
 			boolean topoOK = HashCodePartitioning.doYourJob(globals);
 
@@ -157,7 +157,7 @@ public class NccEngine {
 
 			boolean exportsOK = expNamesOK && expTopoOK;
 			boolean topologyOK = localOK && topoOK;
-			return new NccResult(exportsOK, topologyOK, sizesOK);
+			return new NccResult(exportsOK, topologyOK, sizesOK, globals);
 		}
 	}
 	private boolean netlistErrors(List nccNets) {
@@ -187,7 +187,7 @@ public class NccEngine {
 
 		/** If some netlist is invalid then the comparison fails */
 		if (netlistErrors(nccNetlists)) {
-			return new NccResult(false, false, true);
+			return new NccResult(false, false, true, null);
 		}
 
 		globals.setInitialNetlists(nccNetlists);
