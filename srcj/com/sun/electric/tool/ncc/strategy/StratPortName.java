@@ -63,14 +63,11 @@ public class StratPortName extends Strategy {
 		return el;
 	}
 		
-	//do something before starting
 	private void preamble() {
 		startTime("StratPortName", "all active Wires");
 	}
 	
-	//summarize at the end
 	private void summary(LeafList offspring){
-		//RecordList out= EquivRecord.tryToRetire(cc);
 		globals.println("StratPortName processed " +
 							numWiresProcessed + " Wires from " +
 							numEquivProcessed + " EquivRecords");

@@ -36,6 +36,7 @@ public class NCCTab extends PreferencePanel
     private double initialRelativeSizeTolerance;
     private double initialAbsoluteSizeTolerance;
     private boolean initialHaltAfterFindingFirstMismatchedCell;
+    private boolean initialSkipPassed;
     
 	/** Creates new form NCCTab */
 	public NCCTab(java.awt.Frame parent, boolean modal)
@@ -67,6 +68,8 @@ public class NCCTab extends PreferencePanel
 		haltAfterFindingFirstMismatchedCell.
 			setSelected(initialHaltAfterFindingFirstMismatchedCell);
 
+        initialSkipPassed = NCC.getSkipPassed();
+        skipPassed.setSelected(initialSkipPassed);
 		//enableSizeChecking.setEnabled(false);
 //		absoluteSizeTolerance.setEditable(false);
 	}
@@ -97,6 +100,10 @@ public class NCCTab extends PreferencePanel
 			initialHaltAfterFindingFirstMismatchedCell ) {
 			NCC.setHaltAfterFirstMismatch(currentHaltAfterFindingFirstMismatchedCell);
 		}
+        boolean currentSkipPassed = skipPassed.isSelected();
+        if (currentSkipPassed!=initialSkipPassed) {
+            NCC.setSkipPassed(currentSkipPassed);
+        }
 	}
 
 	/** This method is called from within the constructor to
@@ -119,6 +126,7 @@ public class NCCTab extends PreferencePanel
         absoluteSizeTolerance = new javax.swing.JTextField();
         checkingAllCells = new javax.swing.JPanel();
         haltAfterFindingFirstMismatchedCell = new javax.swing.JCheckBox();
+        skipPassed = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -135,7 +143,8 @@ public class NCCTab extends PreferencePanel
         sizeChecking.setLayout(new java.awt.GridBagLayout());
 
         sizeChecking.setBorder(new javax.swing.border.TitledBorder("Size Checking"));
-        enableSizeChecking.setText("Check sizes when NCCing a single pair of Cells flat");
+        enableSizeChecking.setText("Check transistor sizes");
+        enableSizeChecking.setActionCommand("Check Transistor Sizes");
         enableSizeChecking.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -189,6 +198,19 @@ public class NCCTab extends PreferencePanel
         haltAfterFindingFirstMismatchedCell.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
         checkingAllCells.add(haltAfterFindingFirstMismatchedCell, new java.awt.GridBagConstraints());
 
+        skipPassed.setText("Don't recheck cells that have passed in this Electric run");
+        skipPassed.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
+        skipPassed.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                skipPassedActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        checkingAllCells.add(skipPassed, gridBagConstraints);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -202,6 +224,10 @@ public class NCCTab extends PreferencePanel
 
         pack();
     }//GEN-END:initComponents
+
+    private void skipPassedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_skipPassedActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_skipPassedActionPerformed
 	
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
@@ -223,6 +249,7 @@ public class NCCTab extends PreferencePanel
     private javax.swing.JPanel ncc;
     private javax.swing.JTextField relativeSizeTolerance;
     private javax.swing.JPanel sizeChecking;
+    private javax.swing.JCheckBox skipPassed;
     // End of variables declaration//GEN-END:variables
 	
 }

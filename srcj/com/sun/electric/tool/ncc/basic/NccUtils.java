@@ -109,17 +109,17 @@ public class NccUtils {
 		return cellCtxts;
 	}
 
-	public static boolean hasSkipAnnotation(Cell c) {
-		NccCellAnnotations ann = NccCellAnnotations.getAnnotations(c);
-		if (ann==null) return false;
-		String reason = ann.getSkipReason();
-		if (reason!=null) {
-			System.out.println("Skip NCC of "+NccUtils.fullName(c)+
-							   " because "+reason);
-			return true;							   
-		}
-		return false;
-	}
+//	public static boolean hasSkipAnnotation(Cell c) {
+//		NccCellAnnotations ann = NccCellAnnotations.getAnnotations(c);
+//		if (ann==null) return false;
+//		String reason = ann.getSkipReason();
+//		if (reason!=null) {
+//			System.out.println("Skip NCC of "+NccUtils.fullName(c)+
+//							   " because "+reason);
+//			return true;							   
+//		}
+//		return false;
+//	}
 	/** print hours minutes seconds */
 	public static String hourMinSec(Date start, Date stop) {
 		final int msecPerHour = 1000*60*60;
@@ -137,17 +137,16 @@ public class NccUtils {
 		return time; 
 	}
 	
-	public static NccResult compareAndPrintStatus(Cell cell1, 
-				                                  VarContext context1,
-												  Cell cell2, 
-												  VarContext context2, 
+	public static NccResult compareAndPrintStatus(CellContext c1, 
+												  CellContext c2, 
 							   	                  HierarchyInfo hierInfo,
 							                      NccOptions options) {
-		System.out.println("Comparing: "+NccUtils.fullName(cell1)+
-						   " with: "+NccUtils.fullName(cell2));
+		System.out.println("Comparing: "+NccUtils.fullName(c1.cell)+
+						   " with: "+NccUtils.fullName(c2.cell));
 		System.out.flush();
 		Date before = new Date();
-		NccResult result = NccEngine.compare(cell1, context1, cell2, context2,  
+		NccResult result = NccEngine.compare(c1.cell, c1.context, 
+		                                     c2.cell, c2.context,  
 										     hierInfo, options);
 		Date after = new Date();
 
@@ -157,5 +156,32 @@ public class NccUtils {
 
 		return result;
 	}
+	public static boolean buildBlackBoxes(CellContext c1, CellContext c2,
+								          HierarchyInfo hierInfo, 
+								          NccOptions options) {
+		System.out.println("Build black boxes for: "+NccUtils.fullName(c1.cell)+
+						   " and: "+NccUtils.fullName(c2.cell));
+		System.out.flush();
+		boolean ok = 
+			NccEngine.buildBlackBoxes(c1.cell, c1.context, c2.cell, c2.context, 
+									  hierInfo, options);	                                 
+		System.out.println(ok ? "Done" : "Failed");
+		System.out.flush();
+		return ok;
+	}
 
+	public static boolean sizesMatch(double w1, double w2, NccOptions opt) {
+		double maxWidth = Math.max(w1, w2);
+		double minWidth = Math.min(w1, w2);
+		double absWidErr = maxWidth - minWidth;
+		double relWidErr = absWidErr / minWidth;
+		return absWidErr<=opt.absoluteSizeTolerance || 
+		       relWidErr<=opt.relativeSizeTolerance;
+	}
+	public static String removePathPrefix(String path, String prefix) {
+		if (prefix.length()==0) return path;
+		LayoutLib.error(!path.startsWith(prefix), "path doesn't contain prefix");
+		// I add one to remove the leading '/' from returned path
+		return path.substring(prefix.length()+1);
+	}
 }

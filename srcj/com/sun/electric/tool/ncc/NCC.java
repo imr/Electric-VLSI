@@ -94,4 +94,13 @@ public class NCC {
 	public static void setHaltAfterFirstMismatch(boolean on) { 
 		haltAfterFirstMismatch.setBoolean(on); 
 	}
+    
+	private static Pref skipPassed = 
+		Pref.makeBooleanPref("skipPassed", NCC.tool.prefs, false);
+	public static boolean getSkipPassed() {
+		return skipPassed.getBoolean(); 
+	}
+	public static void setSkipPassed(boolean on) { 
+		skipPassed.setBoolean(on); 
+	}
 }

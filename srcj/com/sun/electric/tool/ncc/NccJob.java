@@ -101,19 +101,11 @@ public class NccJob extends Job {
 		NccOptions options = new NccOptions();
 		options.verbose = false;
 		options.checkSizes = NCC.getCheckSizes();
-		options.relativeSizeTolerance = NCC.getRelativeSizeTolerance();
+		// convert percent to fraction
+		options.relativeSizeTolerance = NCC.getRelativeSizeTolerance()/100;
 		options.absoluteSizeTolerance = NCC.getAbsoluteSizeTolerance();
 		options.haltAfterFirstMismatch = NCC.getHaltAfterFirstMismatch();
 		return options;
-	}
-
-	private NccResult nccTwoCells(CellContext[] cellCtxts, NccOptions options) {
-		Cell cell0 = cellCtxts[0].cell;
-		VarContext context0 = cellCtxts[0].context;
-		Cell cell1 = cellCtxts[1].cell;
-		VarContext context1 = cellCtxts[0].context;
-		return NccUtils.compareAndPrintStatus(cell0, context0, cell1, context1, 
-										      null, options);
 	}
 
     public boolean doIt() {
@@ -123,14 +115,17 @@ public class NccJob extends Job {
 		NccOptions options = getOptionsFromNccConfigDialog();
 		CellContext[] cellCtxts = getCellsFromWindows(numWindows);
 
+		boolean skipPassed = NCC.getSkipPassed();
+
 		NccResult result;
 		if (cellCtxts==null) {
 			result = new NccResult(false, false, false); 
 		} else if (bottomUpFlat || hierarchical) {
 			result = NccBottomUp.compare(cellCtxts[0].cell, cellCtxts[1].cell, 
-			                             hierarchical, options);
+			                             hierarchical, skipPassed, options);
 		} else {
-			result = nccTwoCells(cellCtxts, options);
+			result = NccUtils.compareAndPrintStatus(cellCtxts[0], cellCtxts[1], 
+										            null, options);
 		}
 		
 		System.out.println("Summary for all cells "+result.summary(options.checkSizes));

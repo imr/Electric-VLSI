@@ -34,16 +34,21 @@ import com.sun.electric.tool.ncc.strategy.StratHashWires;
 import com.sun.electric.tool.ncc.strategy.StratPortName;
 import com.sun.electric.tool.ncc.strategy.StratRandomMatch;
 import com.sun.electric.tool.ncc.strategy.StratResult;
+import com.sun.electric.tool.ncc.strategy.StratSizes;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.NetObject;
 import com.sun.electric.tool.ncc.lists.RecordList;
 import com.sun.electric.tool.ncc.lists.LeafList;
 import com.sun.electric.tool.ncc.basic.Messenger;
+import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.jemNets.Part;
 import com.sun.electric.tool.ncc.jemNets.Wire;
+import com.sun.electric.tool.ncc.jemNets.Transistor;
 
 import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
 
 public class HashCodePartitioning {
 	NccGlobals globals;
@@ -155,40 +160,23 @@ public class HashCodePartitioning {
 			hashFrontier();
 		}
 	}
-	
-	private EquivRecord findSmallestActive(EquivRecord root) {
-		LeafList frontier = StratFrontier.doYourJob(root, globals);
-		int minSz = Integer.MAX_VALUE;
-		EquivRecord minRec = null;
-		for (Iterator ri=frontier.iterator(); ri.hasNext();) {
-			EquivRecord r = (EquivRecord) ri.next();
-			if (r.isMismatched())  continue;
-			int sz  = r.maxSize();
-			if (sz<minSz) {
-				minSz = sz;
-				minRec = r;
-			}
+	private void useTransistorSizes() {
+		globals.println("----- use transistor sizes");
+		while (true) {
+			LeafList offspring = StratSizes.doYourJob(globals);
+			if (offspring.size()==0) break;
+			chaseRetired(offspring);
+			hashFrontier();
 		}
-		return minRec;
-	}
-	
-	private EquivRecord findSmallestActive() {
-		EquivRecord w = findSmallestActive(globals.getWires());
-		EquivRecord p = findSmallestActive(globals.getParts());
-		if (p==null) return w;
-		if (w==null) return p;
-		return p.maxSize()<w.maxSize() ? p : w; 
 	}
 	
 	private void randomMatch() {
 		globals.println("----- random matching");
 		while (true) {
-			EquivRecord smallest = findSmallestActive();
-			if (smallest==null) return; 
-			LeafList el = new LeafList();
-			el.add(smallest);
-			LeafList offspring = StratRandomMatch.doYourJob(el, globals);
-			if (offspring.size()!=0) chaseRetired(offspring);
+			LeafList offspring = StratRandomMatch.doYourJob(globals);
+			if (offspring.size()==0) break; 
+			chaseRetired(offspring);
+			hashFrontier();
 		}
 	}
 	
@@ -202,6 +190,7 @@ public class HashCodePartitioning {
 		if (!done()) useExportNames();
 		NccOptions options = globals.getOptions();
 		StratCount.doYourJob(globals.getRoot(), globals);
+		if (!done()) useTransistorSizes();
 		if (!done()) randomMatch();
 		
 		globals.println("----- done HashCodePartitioning");

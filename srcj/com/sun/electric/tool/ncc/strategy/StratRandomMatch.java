@@ -37,21 +37,51 @@ public class StratRandomMatch extends Strategy {
 	private static final Integer CODE_FIRST = new Integer(1);
 	private static final Integer CODE_REST = new Integer(2);
     private StratRandomMatch(NccGlobals globals){super(globals);}
-	
-	public static LeafList doYourJob(RecordList l,
-	                                    NccGlobals globals){
-		StratRandomMatch rm = new StratRandomMatch(globals);
 
-		LeafList offspring = rm.doFor(l);
-		return offspring;
+	private EquivRecord findSmallestActive(EquivRecord root) {
+		LeafList frontier = StratFrontier.doYourJob(root, globals);
+		int minSz = Integer.MAX_VALUE;
+		EquivRecord minRec = null;
+		for (Iterator ri=frontier.iterator(); ri.hasNext();) {
+			EquivRecord r = (EquivRecord) ri.next();
+			if (r.isMismatched())  continue;
+			int sz  = r.maxSize();
+			if (sz<minSz) {
+				minSz = sz;
+				minRec = r;
+			}
+		}
+		return minRec;
 	}
 	
-    //------------- for NetObject ------------
+	private EquivRecord findSmallestActive() {
+		EquivRecord w = findSmallestActive(globals.getWires());
+		EquivRecord p = findSmallestActive(globals.getParts());
+		if (p==null) return w;
+		if (w==null) return p;
+		return p.maxSize()<w.maxSize() ? p : w; 
+	}
+
+	private LeafList doYourJob() {
+		EquivRecord smallest = findSmallestActive();
+		if (smallest==null) return new LeafList();
+		return doFor(smallest); 
+	}
 	
-    public Integer doFor(NetObject n){
+	public Integer doFor(NetObject n){
 		Circuit ckt = n.getParent();
 		Iterator ni = ckt.getNetObjs();
 		Object first = ni.next();
 		return n==first ? CODE_FIRST : CODE_REST;
-    }
+	}
+
+
+    //----------------------------- intended interface ------------------------
+	/** Find the smallest active equivalence class. Partition it by matching
+	 * the first NetObject in each Circuit.
+	 * @return the offspring resulting from the partition */
+	public static LeafList doYourJob(NccGlobals globals){
+		StratRandomMatch rm = new StratRandomMatch(globals);
+		return rm.doYourJob();
+	}
 }

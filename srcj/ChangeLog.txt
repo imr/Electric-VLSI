@@ -2,6 +2,8 @@
 
 ************************* Version 8.01l: *********************************
 
+IMP: (8/30/04, RK) Transistor size checking. 
+
 BUG: (8/30/04, SMR) Crashes when the last waveform panel is deleted.
 FIX: Only select a panel if there are any.
 

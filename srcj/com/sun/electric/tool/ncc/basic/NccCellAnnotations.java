@@ -40,9 +40,11 @@ public class NccCellAnnotations {
 		NamePattern(boolean isRegEx, String pat) {
 			isRegExp=isRegEx; pattern=pat;
 		}
+		/** String match or regular expression match */
 		public boolean matches(String name) {
 			return isRegExp ? name.matches(pattern) : name.equals(pattern);
 		}
+		public boolean stringEquals(String name) {return name.equals(pattern);}
 	}
 	/** I need a special Lexer for name patterns because spaces are
 	 * significant inside regular expressions. For example the 
@@ -102,6 +104,8 @@ public class NccCellAnnotations {
 				return new NamePattern(false, s.substring(startTok, endTok));
 			}
 		}
+		/** @return everything not parsed by nextPattern() */
+		public String restOfLine() {return s.substring(pos);}
 	}
 	/** unprocessed annotation text */
 	private List annotText = new ArrayList();
@@ -118,27 +122,23 @@ public class NccCellAnnotations {
 	private List flattenInstances = new ArrayList();
 	/** NamePatterns matching Export names that need renaming */
 	private List exportsToRename = new ArrayList();
+	/** Reason why we should treat this Cell as a black box */
+	private String blackBoxReason;
 	
-	private void processExportsConnAnnot(String note) {
+	private void processExportsConnAnnot(NamePatternLexer lex) {
 		List connected = new ArrayList();
-		NamePatternLexer lex = new NamePatternLexer(note);
-		lex.nextPattern();	// skip the keyword
 		for (NamePattern np=lex.nextPattern(); np!=null; np=lex.nextPattern()) {
 			connected.add(np);
 		}
 		if (connected.size()>0) exportsConnByParent.add(connected); 
 	}
 
-	private void processSkipAnnotation(String note) {
-		skipReason = "";
-		int sp = note.indexOf(" ");
-		if (sp!=-1) skipReason = note.substring(sp);
+	private void processSkipAnnotation(NamePatternLexer lex) {
+		skipReason = lex.restOfLine();
 	}
 	
-	private void processNotSubcircuitAnnotation(String note) {
-		notSubcircuitReason = "";
-		int sp = note.indexOf(" ");
-		if (sp!=-1) notSubcircuitReason = note.substring(sp);
+	private void processNotSubcircuitAnnotation(NamePatternLexer lex) {
+		notSubcircuitReason = lex.restOfLine();
 	}
 
 	private void processJoinGroupAnnotation(String note) {
@@ -173,50 +173,56 @@ public class NccCellAnnotations {
 		LayoutLib.error(groupToJoin==null, "null cell group?");
 	}
 
-	private void processFlattenInstancesAnnotation(String note) {
-		NamePatternLexer lex = new NamePatternLexer(note);
-		lex.nextPattern();	// skip the keyword
+	private void processFlattenInstancesAnnotation(NamePatternLexer lex) {
 		for (NamePattern np=lex.nextPattern(); np!=null; np=lex.nextPattern()) {
 			flattenInstances.add(np);
 		}
 	}
 
-	private void processExportsToRenameAnnotation(String note) {
-		NamePatternLexer lex = new NamePatternLexer(note);
-		lex.nextPattern();	// skip the keyword
+	private void processExportsToRenameAnnotation(NamePatternLexer lex) {
 		for (NamePattern np=lex.nextPattern(); np!=null; np=lex.nextPattern()) {
 			exportsToRename.add(np);
 		}
 	}
+	private void processBlackBox(NamePatternLexer lex) {
+	}
 
-	private void doAnnotation(String note) {
+	private void doAnnotation(String note, String cellName) {
 		annotText.add(note);
-		if (note.startsWith("exportsConnectedByParent")) {
-			processExportsConnAnnot(note);
-		} else if (note.startsWith("skipNCC")) {
-			processSkipAnnotation(note);
-		} else if (note.startsWith("notSubcircuit")) {
-			processNotSubcircuitAnnotation(note);
-		} else if (note.startsWith("joinGroup")) {
+		NamePatternLexer lex = new NamePatternLexer(note);
+		NamePattern key = lex.nextPattern();
+		if (key==null) {
+			// skip blank lines
+		} else if (key.stringEquals("exportsConnectedByParent")) {
+			processExportsConnAnnot(lex);
+		} else if (key.stringEquals("skipNCC")) {
+			processSkipAnnotation(lex);
+		} else if (key.stringEquals("notSubcircuit")) {
+			processNotSubcircuitAnnotation(lex);
+		} else if (key.stringEquals("joinGroup")) {
 			processJoinGroupAnnotation(note);
-		} else if (note.startsWith("flattenInstances")) {
-			processFlattenInstancesAnnotation(note);
-		} else if (note.startsWith("exportsToRename")) {
-			processExportsToRenameAnnotation(note);
+		} else if (key.stringEquals("flattenInstances")) {
+			processFlattenInstancesAnnotation(lex);
+		} else if (key.stringEquals("exportsToRename")) {
+			processExportsToRenameAnnotation(lex);
+		} else if (key.stringEquals("blackBox")) {
+			processBlackBox(lex);
 		} else {
-			System.out.println("Unrecognized NCC annotation: "+note);
+			System.out.println("Unrecognized NCC annotation: "+note+
+			                   " on Cell: "+cellName);
 		}
 	}
 
 	private NccCellAnnotations(Cell cell, Object annotation) {
+		String cellName = NccUtils.fullName(cell);
 		if (annotation instanceof String) {
-			doAnnotation((String) annotation);
+			doAnnotation((String) annotation, cellName);
 		} else if (annotation instanceof String[]) {
 			String[] ss = (String[]) annotation;
-			for (int i=0; i<ss.length; i++)  doAnnotation(ss[i]);
+			for (int i=0; i<ss.length; i++)  doAnnotation(ss[i], cellName);
 		} else {
 			System.out.println("ignoring bad NCC annotation: "+annotation+
-							   " on Cell: "+cell.getName());
+							   " on Cell: "+cellName);
 		}
 	}
 	
@@ -258,4 +264,7 @@ public class NccCellAnnotations {
 		}
 		return false;
 	}
+	/** @return the reason given by the user for block boxing this Cell.
+	 * return null if there is no blackBox annotation. */
+	public String getBlackBoxReason() {return blackBoxReason;}
 }

@@ -35,4 +35,12 @@ public class CellContext {
 		this.cell = cell;
 		this.context = context;
 	}
+	public boolean equals(Object o) {
+		if (!(o instanceof CellContext)) return false;
+		CellContext cc = (CellContext) o;
+		return cell==cc.cell && context==cc.context;
+	}
+	public int hashCode() {
+		return cell.hashCode() * context.hashCode();
+	}
 }

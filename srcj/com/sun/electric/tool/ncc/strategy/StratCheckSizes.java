@@ -30,57 +30,55 @@ import java.util.HashMap;
 
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.basic.Messenger;
+import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.jemNets.*;
 import com.sun.electric.tool.ncc.trees.*;
 import com.sun.electric.tool.ncc.lists.*;
 
 public class StratCheckSizes extends Strategy {
-	private final double absTol;
-	private final double relTol;
+	private NccOptions options;
 	private double minWidth, maxWidth, minLength, maxLength;
 	private Transistor minWidMos, maxWidMos, minLenMos, maxLenMos;
 	private boolean matches = true;
 	
     private StratCheckSizes(NccGlobals globals) {
     	super(globals);
-    	NccOptions options = globals.getOptions();
-    	absTol = options.absoluteSizeTolerance;
-    	relTol = options.relativeSizeTolerance / 100; // convert from percent
+    	options = globals.getOptions();
     }
     
     private void checkWidthMismatch() {
-		double relWidErr = (maxWidth - minWidth) / minWidth;
-		double absWidErr = maxWidth - minWidth;
-		boolean isCap = minWidMos.isCapacitor(); 
-		if (absWidErr>absTol && relWidErr>relTol) {
+		if (!NccUtils.sizesMatch(maxWidth, minWidth, options)) {
+			boolean isCap = minWidMos.isCapacitor(); 
 			if (isCap) {
-				System.out.print("Warning: MOS capacitor widths don't match. ");
+				System.out.print("  MOS capacitor widths don't match. ");
 			} else {
-				System.out.print("MOS widths don't match. ");
+				System.out.print("  MOS widths don't match. ");
 			}
+			double relWidErr = (maxWidth - minWidth) / minWidth;
+			double absWidErr = maxWidth - minWidth;
 			System.out.println(" relativeError="+relWidErr+" absoluteError="+absWidErr);
-			System.out.println("   W="+minWidth+" for "+minWidMos.toString());
-			System.out.println("   W="+maxWidth+" for "+maxWidMos.toString());
+			System.out.println("    W="+minWidth+" for "+minWidMos.toString());
+			System.out.println("    W="+maxWidth+" for "+maxWidMos.toString());
 			// Capacitor mismatches deserve warnings not errors
-			if (!isCap)  matches = false;
+			/*if (!isCap)*/  matches = false;
 		}
     }
     private void checkLengthMismatch() {
-		double relLenErr = (maxLength - minLength) / minLength;
-    	double absLenErr = maxLength - minLength;
-    	if (absLenErr>absTol && relLenErr>relTol) {
+    	if (!NccUtils.sizesMatch(maxLength, minLength, options)) {
 			boolean isCap = minLenMos.isCapacitor(); 
 			if (isCap) {
-				System.out.print("Warning: MOS capacitor widths don't match. ");
+				System.out.print("  MOS capacitor lengths don't match. ");
 			} else {
-				System.out.print("MOS widths don't match. ");
+				System.out.print("  MOS lengths don't match. ");
 			}
+			double relLenErr = (maxLength - minLength) / minLength;
+			double absLenErr = maxLength - minLength;
 			System.out.println(" relativeError="+relLenErr+" absoluteError="+absLenErr);
-			System.out.println("   L="+minLength+" for "+minLenMos.toString());
-			System.out.println("   L="+maxLength+" for "+maxLenMos.toString());
+			System.out.println("    L="+minLength+" for "+minLenMos.toString());
+			System.out.println("    L="+maxLength+" for "+maxLenMos.toString());
 			// Capacitor mismatches deserve warnings not errors
-			if (!isCap)  matches = false;
+			/*if (!isCap)*/  matches = false;
     	}
     }
 
@@ -101,25 +99,29 @@ public class StratCheckSizes extends Strategy {
 	
 	public Integer doFor(NetObject n) {
 		Part p = (Part) n;
-		globals.error(!(p instanceof Transistor), "unimplemented part type");
-		Transistor t = (Transistor) p;
-		double w = t.getWidth();
-		if (w<minWidth) {
-			minWidth = w;
-			minWidMos = t;
-		}
-		if (w>maxWidth) {
-			maxWidth = w;
-			maxWidMos = t;
-		}
-		double l = t.getLength();
-		if (l<minLength) {
-			minLength = l;
-			minLenMos = t;
-		}
-		if (l>maxLength) {
-			maxLength = l;
-			maxLenMos = t;
+		if (p instanceof Subcircuit) {
+			minWidth = maxWidth = minLength = maxLength = 1;
+		} else {
+			globals.error(!(p instanceof Transistor), "unimplemented part type");
+			Transistor t = (Transistor) p;
+			double w = t.getWidth();
+			if (w<minWidth) {
+				minWidth = w;
+				minWidMos = t;
+			}
+			if (w>maxWidth) {
+				maxWidth = w;
+				maxWidMos = t;
+			}
+			double l = t.getLength();
+			if (l<minLength) {
+				minLength = l;
+				minLenMos = t;
+			}
+			if (l>maxLength) {
+				maxLength = l;
+				maxLenMos = t;
+			}
 		}
 		return CODE_NO_CHANGE;
 	}

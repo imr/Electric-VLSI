@@ -67,7 +67,7 @@ public class NccEngine {
 
 	// ----------------------- private methods --------------------------------
 	private List buildNccNetlists(List cells, List contexts, List netlists, 
-	                              HierarchyInfo hierInfo) {
+	                              boolean blackBox, HierarchyInfo hierInfo) {
 		globals.error(cells.size()!=contexts.size() || 
 					  contexts.size()!=netlists.size(),
 					  "number of cells, contexts, and netlists must be the same");										
@@ -79,8 +79,8 @@ public class NccEngine {
 			Cell cell = (Cell) itCell.next();
 			VarContext context = (VarContext) itCon.next();
 			Netlist netlist = (Netlist) itNet.next();
-			NccNetlist nccList = 
-				new NccNetlist(cell, context, netlist, hierInfo, globals);
+			NccNetlist nccList = new NccNetlist(cell, context, netlist, 
+			                                    hierInfo, blackBox, globals);
 			nccLists.add(nccList);
 		}
 		return nccLists;
@@ -105,13 +105,13 @@ public class NccEngine {
 		String[] cellNames = globals.getRootCellNames();
 		for (int i=0; i<cellNames.length; i++) {
 			System.out.println(
-				"    Cell: "+cellNames[i]+" has "+wireCounts[i]+" wires and "+
+				"  Cell: "+cellNames[i]+" has "+wireCounts[i]+" wires and "+
 				partCounts[i]+" parts, after series/parallel combination"
 			);
 		}
 	}
 	
-	private NccResult designsMatch(HierarchyInfo hierInfo) {
+	private NccResult designsMatch(HierarchyInfo hierInfo, boolean hierInfoOnly) {
 		if (globals.getRoot()==null) {
 			globals.println("empty cell");
 			return new NccResult(true, true, true);
@@ -166,15 +166,18 @@ public class NccEngine {
 		return exportAssertionsOK;
 	}
 	private NccResult areEquivalent(List cells, List contexts, 
-					  		        List netlists, HierarchyInfo hierInfo, 
+					  		        List netlists, HierarchyInfo hierInfo,
+					  		        boolean blackBox, 
 					  		        NccOptions options) {
 		globals = new NccGlobals(options);
 		
 		globals.println("****************************************"+					  		
 		                "****************************************");					  		
 
+		// black boxing is implemented by building netlists that are empty 
+		// except for their Exports.
 		List nccNetlists = 
-			buildNccNetlists(cells, contexts, netlists, hierInfo);
+			buildNccNetlists(cells, contexts, netlists, blackBox, hierInfo);
 
 		/** If export assertions aren't OK then some netlist is invalid */
 		if (!exportAssertionsOK(nccNetlists)) {
@@ -182,13 +185,39 @@ public class NccEngine {
 		}
 
 		globals.setInitialNetlists(nccNetlists);
-		NccResult result = designsMatch(hierInfo);
+		NccResult result = designsMatch(hierInfo, false);
 
 		globals.println("****************************************"+					  		
 		                "****************************************");
 		return result;		              					  				
 	}
-
+	
+	private static NccResult compare2(Cell cell1, VarContext context1, 
+									  Cell cell2, VarContext context2, 
+									  HierarchyInfo hierInfo,
+									  boolean blackBox,
+									  NccOptions options) {
+		ArrayList cells = new ArrayList();
+		cells.add(cell1);
+		cells.add(cell2);
+		ArrayList contexts = new ArrayList();
+		contexts.add(context1);
+		contexts.add(context2);
+		ArrayList netlists = new ArrayList();
+		netlists.add(cell1.getNetlist(true));
+		netlists.add(cell2.getNetlist(true));
+				
+		return compareMany(cells, contexts, netlists, hierInfo, blackBox, 
+		                   options);
+	}
+	private static NccResult compareMany(List cells, List contexts, List netlists,
+									     HierarchyInfo hierCompInfo,
+									     boolean blackBox, 
+									     NccOptions options) {
+		NccEngine ncc = new NccEngine();
+		return ncc.areEquivalent(cells, contexts, netlists, hierCompInfo, 
+								 blackBox, options);
+	}
 	// -------------------------- public methods ------------------------------
 	/** 
 	 * Check to see if all cells are electrically equivalent.  Note that
@@ -208,25 +237,23 @@ public class NccEngine {
 	public static NccResult compare(List cells, List contexts, List netlists,
 	                                HierarchyInfo hierCompInfo, 
 	                                NccOptions options) {
-		NccEngine ncc = new NccEngine();
-		return ncc.areEquivalent(cells, contexts, netlists, hierCompInfo, 
-		                         options);
+		return compareMany(cells, contexts, netlists, hierCompInfo, false, 
+		                   options);
 	}
-	/** compare two Cells starting at their roots */
+	/** compare two Cells */
 	public static NccResult compare(Cell cell1, VarContext context1, 
-	    						    Cell cell2, VarContext context2, 
-	    						    HierarchyInfo hierInfo,
-	    						    NccOptions options) {
-		ArrayList cells = new ArrayList();
-		cells.add(cell1);
-		cells.add(cell2);
-		ArrayList contexts = new ArrayList();
-		contexts.add(context1);
-		contexts.add(context2);
-		ArrayList netlists = new ArrayList();
-		netlists.add(cell1.getNetlist(true));
-		netlists.add(cell2.getNetlist(true));
-		
-		return compare(cells, contexts, netlists, hierInfo, options);
+	                                Cell cell2, VarContext context2, 
+	                                HierarchyInfo hierInfo, 
+	                                NccOptions options) {
+		return 
+		  compare2(cell1, context1, cell2, context2, hierInfo, false, options);
+	}
+	public static boolean buildBlackBoxes(Cell cell1, VarContext ctxt1, 
+								          Cell cell2, VarContext ctxt2,
+								          HierarchyInfo hierInfo, 
+								          NccOptions options) {
+		NccResult r = 
+			compare2(cell1, ctxt1, cell2, ctxt2, hierInfo, true, options);
+		return r.exportMatch();
 	}
 }

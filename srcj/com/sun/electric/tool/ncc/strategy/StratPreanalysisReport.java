@@ -52,21 +52,21 @@ public class StratPreanalysisReport extends Strategy {
 	private void printCircuitContents(Circuit ckt, int cktNdx, String t) {
 		String cktName = globals.getRootCellNames()[cktNdx];
 		int numNetObjs = ckt.numNetObjs();
-		prln("  In "+cktName+" "+numNetObjs+" "+t+
+		prln("      In "+cktName+" "+numNetObjs+" "+t+
              " have these characteristics: ");
 		for (Iterator it=ckt.getNetObjs(); it.hasNext();) {
 			NetObject o = (NetObject) it.next();
-			prln("    "+o.toString());
+			prln("        "+o.toString());
 		}
 	}
 	
 	private void printMismatchedRecord(EquivRecord r) {
 		String t = r.getNetObjType()==PART ? "parts" : "wires";
     			 
-		prln("The "+t+" in this set share the following characteristics:");
+		prln("    The "+t+" in this set share the following characteristics:");
 		List reasons = r.getPartitionReasonsFromRootToMe();
 		for (Iterator it=reasons.iterator(); it.hasNext();) {
-			prln("    "+it.next());
+			prln("      "+it.next());
 		}
 		int cktNdx = 0;
 		for (Iterator it=r.getCircuits(); it.hasNext(); cktNdx++) {
@@ -81,7 +81,7 @@ public class StratPreanalysisReport extends Strategy {
     	options.verbose = true;
     	
     	if (mismatched.size()!=0) 
-    		globals.println("\nMismatches found during local partitioning:\n");
+    		globals.println("\n  Mismatches found during local partitioning:\n");
     		
     	for (Iterator it=mismatched.iterator(); it.hasNext();) {
     		EquivRecord r = (EquivRecord) it.next();

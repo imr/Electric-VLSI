@@ -81,11 +81,12 @@ public class NccNetlist {
 
 	// ---------------------------- public methods ---------------------------
 	public NccNetlist(Cell root, VarContext context, Netlist netlist, 
-					  HierarchyInfo hierInfo, NccGlobals globals) {
+					  HierarchyInfo hierInfo, boolean blackBox, 
+					  NccGlobals globals) {
 		this.globals = globals;
 		this.rootCell = root; 
 
-		Visitor v = new Visitor(globals, hierInfo);
+		Visitor v = new Visitor(globals, hierInfo, blackBox, context);
 		HierarchyEnumerator.enumerateCell(root, context, netlist, v);
 		wires = v.getWireList();
 		parts = v.getPartList();
@@ -101,7 +102,8 @@ public class NccNetlist {
 
 /** map from netID to NCC Wire */
 class Wires {
-	private ArrayList wires = new ArrayList();
+	private final ArrayList wires = new ArrayList();
+	private final String pathPrefix; 
 	private void growIfNeeded(int ndx) {
 		while(ndx>wires.size()-1) wires.add(null);
 	}
@@ -110,7 +112,9 @@ class Wires {
 	 * @param mergedNetIDs contains sets of net IDs that must be merged
 	 * into the same Wire. */
 	public Wires(TransitiveRelation mergedNetIDs, 
-	             HierarchyEnumerator.CellInfo info) {
+	             HierarchyEnumerator.CellInfo info,
+	             String pathPrefix) {
+		this.pathPrefix = pathPrefix;
 		for (Iterator it=mergedNetIDs.getSetsOfRelatives(); it.hasNext();) {
 			Set relatives = (Set) it.next();
 			Iterator ni = relatives.iterator();
@@ -129,6 +133,7 @@ class Wires {
 		Wire wire = (Wire) wires.get(netID);
 		if (wire==null) {
 			String wireNm = info.getUniqueNetName(netID, "/");
+			wireNm = NccUtils.removePathPrefix(wireNm, pathPrefix);
 			wire = new Wire(wireNm, info.isGlobalNet(netID));
 			wires.set(netID, wire);
 		}
@@ -270,7 +275,9 @@ class ExportGlobal {
 }
 
 /** Iterate over a Cell's Exports and global signals. This is useful because
- * NCC creates a Port for each of them. */
+ * NCC creates a Port for each of them. 
+ * <p>TODO: RK This was a stupid idea. The next time this has a bug delete it and 
+ * replace it with a straightforward loop that returns a list!!! */
 class ExportGlobalIter {
 	private final int CHECK_EXPORT = 0;
 	private final int INIT_GLOBAL = 1;
@@ -343,7 +350,12 @@ class ExportGlobalIter {
 class Visitor extends HierarchyEnumerator.Visitor {
 	// --------------------------- private data -------------------------------
 	private static final boolean debug = false;
-	private NccGlobals globals;
+	private final NccGlobals globals;
+	/** If I'm building a netlist from a node that isn't at the top of the 
+	 * design hierarchy then Part and Wire names all share a common prefix.
+	 * This is VERY annoying to the user. Save the path prefix here so I can
+	 * remove it whenever I build Parts or Wires. */
+	private final String pathPrefix;
 	private boolean exportAssertionsOK = true;
 	private int depth = 0;
 
@@ -355,6 +367,8 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	private final ArrayList ports = new ArrayList();
 	/** treat these Cells as primitives */
 	private final HierarchyInfo hierarchicalCompareInfo;
+	/** generate only hierarchical comparison information */
+	private final boolean blackBox;
 	
 	// --------------------------- private methods ----------------------------
 	private void error(boolean pred, String msg) {globals.error(pred, msg);}
@@ -393,7 +407,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	private void initWires(NccCellInfo rootInfo) {
 		TransitiveRelation mergedNetIDs = new TransitiveRelation();
 		doExportsConnAnnots(mergedNetIDs, rootInfo);
-		wires = new Wires(mergedNetIDs, rootInfo);
+		wires = new Wires(mergedNetIDs, rootInfo, pathPrefix);
 	}
 	
 	private void createPortsFromExports(HierarchyEnumerator.CellInfo rootInfo){
@@ -447,6 +461,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 
 	private void buildMOS(NodeInst ni, Transistor.Type type, NccCellInfo info) {
 		String name = info.getUniqueNodableName(ni, "/");
+		name = NccUtils.removePathPrefix(name, pathPrefix);
 //		int mul = info.getSizeMultiplier();
 //		if (mul!=1) {
 //			globals.println("mul="+mul+" for "+
@@ -621,6 +636,8 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		if (info.isRootCell()) {
 			initWires(info);
 			createPortsFromExports(info);
+			// "black box" means only use Export information. Ignore contents.
+			if (blackBox) return false;
 		} else {
 			// We need to test exportsConnectedByParent assertions here
 			// because if assertions fail then doSubcircuit will attempt
@@ -680,9 +697,13 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	public boolean exportAssertionsOK() {return exportAssertionsOK;}
 	
 	public Visitor(NccGlobals globals, 
-	               HierarchyInfo hierarchicalCompareInfo) {
+	               HierarchyInfo hierarchicalCompareInfo,
+	               boolean blackBox,
+	               VarContext context) {
 		this.globals = globals;
 		this.hierarchicalCompareInfo = hierarchicalCompareInfo;
+		this.blackBox = blackBox;
+		this.pathPrefix = context.getInstPath("/");
 	}
 }
 //abstract class ExportGlobalEnumerator {

@@ -57,6 +57,7 @@ public class SubcircuitInfo {
 		}
 
 		ReferenceInfo(String name, int ID, String[] portNames) {
+			LayoutLib.error(name==null, "No name?");
 			this.name = name;
 			this.ID = ID;
 			this.portNames = portNames;
