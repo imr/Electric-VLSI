@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01aw: *********************************
 
+IMP: (12/14/04, GVG) New colors/patterns for VTH/VTL/Native transistors in TSMC90 (Bug #113)
+
+IMP: (12/14/04, GVG) DRC: first modifications for VTH/VTL/Native transistors.
+
 BUG: (12/14/04, SMR) Duplicating a PMOS schematic transistor creates one named "nmos@xx" (Bug #115)
 FIX: In Clipboard.copyListToCell(), create nodes with the proper "tech specific" value.
 
