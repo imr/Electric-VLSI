@@ -3017,9 +3017,9 @@ public class Quick
 			if (layer1 != layer2)
 				errorMessage += ", layer " + layer1.getName();
 
-			if (actual < 0) errorMessage += " OVERLAPS "; else
-				if (actual == 0) errorMessage += " TOUCHES "; else
-					errorMessage += " LESS (BY " + TextUtils.formatDouble(limit-actual) + ") THAN " + TextUtils.formatDouble(limit) + " TO ";
+			if (actual < 0) errorMessage += " OVERLAPS ";
+			else if (actual == 0) errorMessage += " TOUCHES ";
+			else errorMessage += " LESS (BY " + TextUtils.formatDouble(limit-actual) + ") THAN " + TextUtils.formatDouble(limit) + " TO ";
 
 			if (np1 != np2)
 				errorMessage += "cell " + np2.describe() + ", ";

@@ -2,13 +2,13 @@
 
 
 ************************* Version 8.01h: *********************************
-
+IMP (8/18/04, GVG): Extra sizing rules for metals (another level)
 
 ************************* Version 8.01g: *********************************
 
 FIX (8/17/04, RK) exportsConnectedByParent works on "implicit" expots created for global signals
 
-IMP: (8/17/04, GVG) More rules for new technology. Important changes in DRC code so previous version was tagged as version-8-01g just in case
+IMP/MAN: (8/17/04, GVG) More rules for new technology. Important changes in DRC code so previous version was tagged as version-8-01g just in case
 
 FIX (8/15/04, JKG) Closing a library now actually closes all Cells in library as well.
 
