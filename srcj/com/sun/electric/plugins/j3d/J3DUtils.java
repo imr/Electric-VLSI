@@ -232,16 +232,16 @@ public final class J3DUtils
         GeometryArray ga = (GeometryArray)shape.getGeometry();
         Point3d[] pts = new Point3d[8];
         double[] values = new double[3*8];
-        double[] newValues = ga.getCoordRefDouble();
+        //double[] newValues = ga.getCoordRefDouble();
 
         // They must be 8-points polyhedra
         for (int i = 0; i < 4; i++)
         {
-            newValues[i*3+2] = z1;
-//            pts[i] = new Point3d();
-//            ga.getCoordinate(i, pts[i]);
-//            pts[i].z = z1;
-//            //ga.setCoordinate(i, pts[i]);
+//            newValues[i*3+2] = z1;
+            pts[i] = new Point3d();
+            ga.getCoordinate(i, pts[i]);
+            pts[i].z = z1;
+            ga.setCoordinate(i, pts[i]);
 //            values[i*3] = pts[i].x;
 //            values[i*3+1] = pts[i].y;
 //            values[i*3+2] = z1;
@@ -249,14 +249,16 @@ public final class J3DUtils
 
         for (int i = 4; i < 8; i++)
         {
-            newValues[i*3+2] = z2;
-//            pts[i] = new Point3d();
-//            ga.getCoordinate(i, pts[i]);
+            //newValues[i*3+2] = z2;
+            pts[i] = new Point3d();
+            ga.getCoordinate(i, pts[i]);
+            pts[i].z = z2;
+            ga.setCoordinate(i, pts[i]);
 //            values[i*3] = pts[i].x;
 //            values[i*3+1] = pts[i].y;
 //            values[i*3+2] = z2;
         }
-        ga.updateData(new JGeometryUpdater(newValues));
+        //ga.updateData(new JGeometryUpdater(newValues));
     }
 
     /**

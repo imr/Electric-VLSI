@@ -23,7 +23,7 @@ public class JAppearance extends Appearance
     private static final HashMap graphics3DTransModePrefs = new HashMap(); // NONE is the default
     private static final HashMap graphics3DTransFactorPrefs = new HashMap(); // 0 is the default
     private static final int JAPP_DEFAULT_MODE = TransparencyAttributes.NONE;
-    private static final float JAPP_DEFAULT_FACTOR = 0;
+    private static final float JAPP_DEFAULT_FACTOR = 0.05f;
 
     private EGraphics graphics; // reference to layer for fast access to appearance
     /** highligh appearance **/ public static final JAppearance highligtAp = new JAppearance(null, TransparencyAttributes.BLENDED, 0.5f);
@@ -44,30 +44,12 @@ public class JAppearance extends Appearance
         this.graphics = app.graphics;
         TransparencyAttributes oldTa = app.getTransparencyAttributes();
         setOtherAppearanceValues(this, oldTa.getTransparencyMode(), oldTa.getTransparency());
-//        TransparencyAttributes ta = new TransparencyAttributes(oldTa.getTransparencyMode(), oldTa.getTransparency());
-//        ta.setCapability(TransparencyAttributes.ALLOW_VALUE_READ);
-//        ta.setCapability(TransparencyAttributes.ALLOW_VALUE_WRITE);
-//        ta.setCapability(TransparencyAttributes.ALLOW_MODE_READ);
-//        ta.setCapability(TransparencyAttributes.ALLOW_MODE_WRITE);
-//        //setCapability(Appearance.ALLOW_TRANSPARENCY_ATTRIBUTES_WRITE);
-//        setCapability(Appearance.ALLOW_TRANSPARENCY_ATTRIBUTES_READ);
-//        setTransparencyAttributes(ta);
-
     }
-
     public JAppearance(EGraphics graphics, int mode, float factor)
     {
         super();
         this.graphics = graphics;
         setOtherAppearanceValues(this, mode, factor);
-//
-//        // Transparency values
-//        TransparencyAttributes ta = new TransparencyAttributes(mode, factor);
-//        ta.setCapability(TransparencyAttributes.ALLOW_VALUE_READ);
-//        ta.setCapability(TransparencyAttributes.ALLOW_VALUE_WRITE);
-//        ta.setCapability(TransparencyAttributes.ALLOW_MODE_READ);
-//        ta.setCapability(TransparencyAttributes.ALLOW_MODE_WRITE);
-//        setTransparencyAttributes(ta);
     }
     public void seGraphics(EGraphics graphics) {this.graphics = graphics;}
     public EGraphics getGraphics() { return graphics;}

@@ -210,8 +210,6 @@ public class JThreeDTab extends ThreeDTab
         threeD.add(rotYField, gbc);
         rotYField.setText(TextUtils.formatDouble(User.get3DRotY()));
 
-		threeDValuesChanged(false);
-
 		threeDPerspective.setSelected(User.is3DPerspective());
         // to turn on antialising if available. No by default because of performance.
         threeDAntialiasing.setSelected(User.is3DAntialiasing());
@@ -228,6 +226,9 @@ public class JThreeDTab extends ThreeDTab
         {
             public void actionPerformed(ActionEvent evt) { threeDValuesChanged(true); }
         });
+
+        // Setting the initial values
+		threeDValuesChanged(false);
 	}
 
     /**
@@ -246,11 +247,20 @@ public class JThreeDTab extends ThreeDTab
 
 	private void threeDValuesChanged(boolean set)
 	{
-        if (!set) initial3DTextChanging = true;
-        else if (initial3DTextChanging) return;
 		String layerName = (String)threeDLayerList.getSelectedValue();
 		Layer layer = curTech.findLayer(layerName);
 		if (layer == null) return;
+        processDataInFields(layer, set);
+	}
+
+    /**
+     * To process data in fields either from layer list or from
+     * object picked.
+     */
+    public void processDataInFields(Layer layer, boolean set)
+    {
+        if (!set) initial3DTextChanging = true;
+        else if (initial3DTextChanging) return;
 		GenMath.MutableDouble thickness = (GenMath.MutableDouble)threeDThicknessMap.get(layer);
 		GenMath.MutableDouble height = (GenMath.MutableDouble)threeDDistanceMap.get(layer);
         JAppearance app = (JAppearance)transparencyMap.get(layer);
@@ -279,9 +289,9 @@ public class JThreeDTab extends ThreeDTab
                 }
             }
         }
-		threeDSideView.showLayer(layer);
         if (!set) initial3DTextChanging = false;
-	}
+        threeDSideView.showLayer(layer);
+    }
 
 	/**
 	 * Method called when the "OK" panel is hit.

@@ -76,12 +76,13 @@ public class JThreeDSideView extends JPanel
             Layer layer = (Layer)it.next();
             if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
             if (!layer.isVisible()) continue;
+            double xyFactor = (layer.getFunctionExtras() == Layer.Function.CONMETAL) ? 0.8 : 1;
             JAppearance ap = (JAppearance)parentDialog.transparencyMap.get(layer);
             GenMath.MutableDouble thickness = (GenMath.MutableDouble)dialog.threeDThicknessMap.get(layer);
             GenMath.MutableDouble distance = (GenMath.MutableDouble)dialog.threeDDistanceMap.get(layer);
             double dis = distance.doubleValue();
             double thick = thickness.doubleValue();
-            Rectangle2D bounds = new Rectangle2D.Double(0, 0, 10, 20);
+            Rectangle2D bounds = new Rectangle2D.Double(0, 0, 10*xyFactor, 20*xyFactor);
             layerPolyhedra.put(layer, J3DUtils.addPolyhedron(bounds, dis, thick, ap, objTrans));
             if (dis < lowHeight)
                 lowHeight = dis;
@@ -145,7 +146,7 @@ public class JThreeDSideView extends JPanel
 //        u.getViewingPlatform().setViewPlatformBehavior(orbit);
 
         u.getViewingPlatform().setNominalViewingTransform();
-        rotate.setRotation(1.57, 0.5);
+        rotate.setRotation(1.57, -0.5);
         zoom.setZoom(0.5);
         //translate.setView(-10, -50);
         J3DUtils.setViewPoint(u, canvas, objRoot, new Rectangle2D.Double(0, 0, 100, 100));
@@ -163,7 +164,8 @@ public class JThreeDSideView extends JPanel
         {
             // For this shape, its appareance has to be set back to normal
             shape = (Shape3D)layerPolyhedra.get(currentLayerSelected);
-            shape.setAppearance((JAppearance)parentDialog.transparencyMap.get(currentLayerSelected));
+            if (shape != null) // is null if previous shape belongs to another dialog (another tech)
+                shape.setAppearance((JAppearance)parentDialog.transparencyMap.get(currentLayerSelected));
         }
         shape = (Shape3D)layerPolyhedra.get(layer);
         shape.setAppearance(JAppearance.highligtAp);
@@ -174,7 +176,7 @@ public class JThreeDSideView extends JPanel
     {
         Shape3D shape = (Shape3D)layerPolyhedra.get(layer);
 
-        //J3DUtils.updateZValues(shape, distance, distance+thickness);
+        J3DUtils.updateZValues(shape, distance, distance+thickness);
     }
 
     // the MouseEvent events
@@ -202,7 +204,7 @@ public class JThreeDSideView extends JPanel
                 {
                     Layer layer = app.getGraphics().getLayer();
                     parentDialog.threeDLayerList.setSelectedValue(layer.getName(), false);
-                    showLayer(layer);
+                    parentDialog.processDataInFields(layer, false);
                 }
             }
 		}
