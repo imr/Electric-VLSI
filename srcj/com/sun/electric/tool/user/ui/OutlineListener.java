@@ -68,7 +68,7 @@ class OutlineListener
 		oldx = evt.getX();
 		oldy = evt.getY();
 		EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-		EditWindow wnd = ecp.wnd;
+		EditWindow wnd = ecp.getEditWindow();
 		Cell cell = wnd.getCell();
         if (cell == null) return;
 
@@ -102,7 +102,7 @@ class OutlineListener
 	public void mouseReleased(MouseEvent evt)
 	{
 		EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-		EditWindow wnd = ecp.wnd;
+		EditWindow wnd = ecp.getEditWindow();
 		Cell cell = wnd.getCell();
         if (cell == null) return;
 
@@ -132,7 +132,7 @@ class OutlineListener
 		int newX = evt.getX();
 		int newY = evt.getY();
 		EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-		EditWindow wnd = ecp.wnd;
+		EditWindow wnd = ecp.getEditWindow();
 
 		Point2D delta = wnd.deltaScreenToDatabase(newX - oldx, newY - oldy);
 		EditWindow.gridAlign(delta);
@@ -161,7 +161,7 @@ class OutlineListener
 	{
 		int chr = evt.getKeyCode();
 		EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-		EditWindow wnd = ecp.wnd;
+		EditWindow wnd = ecp.getEditWindow();
 		Cell cell = wnd.getCell();
         if (cell == null) return;
 

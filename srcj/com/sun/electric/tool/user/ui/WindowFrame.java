@@ -319,7 +319,9 @@ public class WindowFrame
 			TopLevel.addToDesktop(jif);
             // add tool bar as listener so it can find out state of cell history in EditWindow
             jif.addInternalFrameListener(TopLevel.getTopLevel().getToolBar());
-            content.getPanel().addPropertyChangeListener(TopLevel.getTopLevel().getToolBar());
+            //content.getPanel().addPropertyChangeListener(TopLevel.getTopLevel().getToolBar());
+            content.getPanel().addPropertyChangeListener(EditWindow.propGoBackEnabled, TopLevel.getTopLevel().getToolBar());
+            content.getPanel().addPropertyChangeListener(EditWindow.propGoForwardEnabled, TopLevel.getTopLevel().getToolBar());
 //			frame.jif.moveToFront();
 			try
 			{

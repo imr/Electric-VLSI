@@ -92,7 +92,7 @@ public class ZoomAndPanListener
  		if (evt.getSource() instanceof EditWindow.CircuitPart)
 		{
 			EditWindow.CircuitPart dispPart = (EditWindow.CircuitPart)evt.getSource();
-			EditWindow wnd = dispPart.wnd;
+			EditWindow wnd = dispPart.getEditWindow();
 
 			double scale = wnd.getScale();
 			if (mode == ToolBar.CursorMode.ZOOM)
@@ -122,7 +122,7 @@ public class ZoomAndPanListener
 		} else if (evt.getSource() instanceof EditWindow.CircuitPart)
 		{
 			EditWindow.CircuitPart dispPart = (EditWindow.CircuitPart)evt.getSource();
-			EditWindow wnd = dispPart.wnd;
+			EditWindow wnd = dispPart.getEditWindow();
 		}
 	}
 
@@ -136,7 +136,7 @@ public class ZoomAndPanListener
  		if (evt.getSource() instanceof EditWindow.CircuitPart)
 		{
 			EditWindow.CircuitPart dispPart = (EditWindow.CircuitPart)evt.getSource();
-			EditWindow wnd = dispPart.wnd;
+			EditWindow wnd = dispPart.getEditWindow();
 
 			// zooming the window scale
 			Highlight.clear();

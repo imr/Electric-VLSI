@@ -219,7 +219,7 @@ public class ClickZoomWireListener
 		if (evt.getSource() instanceof EditWindow.CircuitPart)
 		{
 			EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-			EditWindow wnd = ecp.wnd;
+			EditWindow wnd = ecp.getEditWindow();
 	        Cell cell = wnd.getCell();
 	        if (cell == null) return;
 	        clickX = evt.getX();
@@ -399,7 +399,7 @@ public class ClickZoomWireListener
  		if (evt.getSource() instanceof EditWindow.CircuitPart)
 		{
 			EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-			EditWindow wnd = ecp.wnd;
+			EditWindow wnd = ecp.getEditWindow();
 	        Cell cell = wnd.getCell();
 	        if (cell == null) return;
 	
@@ -546,7 +546,7 @@ public class ClickZoomWireListener
 		if (evt.getSource() instanceof EditWindow.CircuitPart)
 		{
 			EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-			EditWindow wnd = ecp.wnd;
+			EditWindow wnd = ecp.getEditWindow();
 	        Cell cell = wnd.getCell();
 	        if (cell == null) return;
 	        // add back in offset
@@ -713,7 +713,7 @@ public class ClickZoomWireListener
 		if (evt.getSource() instanceof EditWindow.CircuitPart)
 		{
 			EditWindow.CircuitPart dispPart = (EditWindow.CircuitPart)evt.getSource();
-			EditWindow wnd = dispPart.wnd;
+			EditWindow wnd = dispPart.getEditWindow();
 			Cell cell = wnd.getCell();
 			if (cell == null) return;
 
@@ -762,7 +762,7 @@ public class ClickZoomWireListener
 		if (evt.getSource() instanceof EditWindow.CircuitPart)
 		{
 			EditWindow.CircuitPart dispPart = (EditWindow.CircuitPart)evt.getSource();
-			EditWindow wnd = dispPart.wnd;
+			EditWindow wnd = dispPart.getEditWindow();
 			Cell cell = wnd.getCell();
 			if (cell == null) return;
 
@@ -796,7 +796,7 @@ public class ClickZoomWireListener
 		if (evt.getSource() instanceof EditWindow.CircuitPart)
 		{
 			EditWindow.CircuitPart dispPart = (EditWindow.CircuitPart)evt.getSource();
-			EditWindow wnd = dispPart.wnd;
+			EditWindow wnd = dispPart.getEditWindow();
 			Cell cell = wnd.getCell();
 			if (cell == null) return;
 

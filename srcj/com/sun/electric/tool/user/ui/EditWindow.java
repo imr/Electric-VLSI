@@ -121,9 +121,12 @@ public class EditWindow
 	public class CircuitPart extends JPanel
 		implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener
 	{
-		EditWindow wnd;
+		private EditWindow wnd;
 
 		CircuitPart(EditWindow wnd) { this.wnd = wnd; }
+
+        /** Get the EditWindow containing this circuit part */
+        public EditWindow getEditWindow() { return wnd; }
 
 		/**
 		 * Method to repaint this EditWindow.
@@ -1374,9 +1377,9 @@ public class EditWindow
      */
     public void fireCellHistoryStatus() {
         if (cellHistoryLocation > 0)
-            dispArea.firePropertyChange(propGoBackEnabled, false, true);
+            getPanel().firePropertyChange(propGoBackEnabled, false, true);
         if (cellHistoryLocation < (cellHistory.size() - 1))
-            dispArea.firePropertyChange(propGoForwardEnabled, false, true);
+            getPanel().firePropertyChange(propGoForwardEnabled, false, true);
     }
 
     /** Adds to cellHistory record list
@@ -1400,11 +1403,12 @@ public class EditWindow
                 cellHistory.remove(i);
             }
             // disable previously enabled forward button
-            dispArea.firePropertyChange(propGoForwardEnabled, true, false);
+            getPanel().firePropertyChange(propGoForwardEnabled, true, false);
         }
 
         // if location is 0, adding should enable back button
-        if (cellHistoryLocation == 0) dispArea.firePropertyChange(propGoBackEnabled, false, true);
+        if (cellHistoryLocation == 0)
+            getPanel().firePropertyChange(propGoBackEnabled, false, true);
 
         // update history
         cellHistory.add(history);
@@ -1448,20 +1452,20 @@ public class EditWindow
         if (cellHistoryLocation == (cellHistory.size()-1)) {
             // was at end, forward button was disabled
             if (location < (cellHistory.size()-1))
-                dispArea.firePropertyChange(propGoForwardEnabled, false, true);
+                getPanel().firePropertyChange(propGoForwardEnabled, false, true);
         } else {
             // not at end, forward button was enabled
             if (location == (cellHistory.size()-1))
-                dispArea.firePropertyChange(propGoForwardEnabled, true, false);
+                getPanel().firePropertyChange(propGoForwardEnabled, true, false);
         }
         if (cellHistoryLocation == 0) {
             // at beginning, back button was disabled
             if (location > 0)
-                dispArea.firePropertyChange(propGoBackEnabled, false, true);
+                getPanel().firePropertyChange(propGoBackEnabled, false, true);
         } else {
             // not at beginning, back button was enabled
             if (location == 0)
-                dispArea.firePropertyChange(propGoBackEnabled, true, false);
+                getPanel().firePropertyChange(propGoBackEnabled, true, false);
         }
 
         //System.out.println("Setting cell to location="+location+", cellHistory.size()="+cellHistory.size());

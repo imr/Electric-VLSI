@@ -54,7 +54,7 @@ class ClickAndDragListener
 		oldx = evt.getX();
 		oldy = evt.getY();
 		EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-		EditWindow wnd = ecp.wnd;
+		EditWindow wnd = ecp.getEditWindow();
 		Cell cell = wnd.getCell();
         if (cell == null) return;
 
@@ -107,7 +107,7 @@ class ClickAndDragListener
 	public void mouseReleased(MouseEvent evt)
 	{
 		EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-		EditWindow wnd = ecp.wnd;
+		EditWindow wnd = ecp.getEditWindow();
 		Cell cell = wnd.getCell();
         if (cell == null) return;
 
@@ -160,7 +160,7 @@ class ClickAndDragListener
 		int newX = evt.getX();
 		int newY = evt.getY();
 		EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-		EditWindow wnd = ecp.wnd;
+		EditWindow wnd = ecp.getEditWindow();
 
 		Point2D delta = wnd.deltaScreenToDatabase(newX - oldx, newY - oldy);
 		EditWindow.gridAlign(delta);
@@ -200,7 +200,7 @@ class ClickAndDragListener
 	{
 		int chr = evt.getKeyCode();
 		EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-		EditWindow wnd = ecp.wnd;
+		EditWindow wnd = ecp.getEditWindow();
 		Cell cell = wnd.getCell();
         if (cell == null) return;
 
@@ -239,7 +239,7 @@ class ClickAndDragListener
 	{
         // scale distance according to arrow motion
 		EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-		EditWindow wnd = ecp.wnd;
+		EditWindow wnd = ecp.getEditWindow();
 		double arrowDistance = ToolBar.getArrowDistance();
 		dX *= arrowDistance;
 		dY *= arrowDistance;

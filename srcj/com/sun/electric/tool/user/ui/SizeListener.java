@@ -118,7 +118,7 @@ public class SizeListener
 
 		// handle scaling the selected objects
 		EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-		EditWindow wnd = ecp.wnd;
+		EditWindow wnd = ecp.getEditWindow();
 		Point2D newSize = getNewSize(evt);
 		ScaleObject job = new ScaleObject(stretchGeom, newSize);
 		wnd.repaint();
@@ -128,7 +128,7 @@ public class SizeListener
 	{
 		int chr = evt.getKeyCode();
 		EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-		EditWindow wnd = ecp.wnd;
+		EditWindow wnd = ecp.getEditWindow();
 		Cell cell = wnd.getCell();
         if (cell == null) return;
 
@@ -158,7 +158,7 @@ public class SizeListener
 		if (evt != null)
 		{
 			EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-			EditWindow wnd = ecp.wnd;
+			EditWindow wnd = ecp.getEditWindow();
 			Point2D newSize = getNewSize(evt);
 			if (stretchGeom instanceof NodeInst)
 			{
@@ -206,7 +206,7 @@ public class SizeListener
 	{
 		// get the coordinates of the cursor in database coordinates
 		EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-		EditWindow wnd = ecp.wnd;
+		EditWindow wnd = ecp.getEditWindow();
 		int oldx = evt.getX();
 		int oldy = evt.getY();
 		Point2D pt = wnd.screenToDatabase(oldx, oldy);

@@ -652,7 +652,7 @@ public class KeyBindingManager {
     private synchronized KeyBindings addKeyBinding(String actionDesc, KeyStrokePair pair) {
         if (pair == null) return null;
 
-        //System.out.println("Adding binding for "+actionDesc+": "+pair.toString());
+        if (DEBUG) System.out.println("Adding binding for "+actionDesc+": "+pair.toString());
         KeyStroke prefixStroke = pair.getPrefixStroke();
         KeyStroke stroke = pair.getStroke();
 

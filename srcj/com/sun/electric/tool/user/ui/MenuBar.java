@@ -342,6 +342,8 @@ public class MenuBar extends JMenuBar
     public MenuBar(String name) {
         super();
         menuBarGroup = MenuBarGroup.newInstance(name);
+        ignoreKeyBindings = false;
+        ignoreTextEditKeys = false;
     }
 
     public JMenu add(JMenu c) {
@@ -393,6 +395,7 @@ public class MenuBar extends JMenuBar
                 menuBarGroup.menuItems.put(key, list);
                 // add default binding
                 addDefaultKeyBinding(item, accelerator, null);
+                //System.out.println("added key binding for "+item.getText()+": "+accelerator);
                 // add listener that will perform same thing as if user clicked on menu
                 // this is needed to change the state of button and fire off to listeners
                 menuBarGroup.keyBindingManager.addActionListener(item.getText(), new ActionListener() {

@@ -84,7 +84,7 @@ public class WiringListener
 		int startx = evt.getX();
 		int starty = evt.getY();
 		EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-		EditWindow wnd = ecp.wnd;
+		EditWindow wnd = ecp.getEditWindow();
 		startPoint = wnd.screenToDatabase(startx, starty);
 
 		boolean another = false;
@@ -163,7 +163,9 @@ public class WiringListener
 		// stop now if not wiring
 		if (!doingWiringDrag) return;
 
-		EditWindow wnd = (EditWindow)evt.getSource();
+        if (!(evt.getSource() instanceof EditWindow.CircuitPart)) return;
+        EditWindow.CircuitPart source = (EditWindow.CircuitPart)evt.getSource();
+        EditWindow wnd = source.getEditWindow();
 		getEndObject(evt.getX(), evt.getY(), wnd);
 		WiringPlan [] wpEndList = WiringPlan.getClosestEnd(endGeom, endPort, endPoint, startPoint);
 
@@ -213,7 +215,7 @@ public class WiringListener
 		doingWiringDrag = false;
 
 		EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-		EditWindow wnd = ecp.wnd;
+		EditWindow wnd = ecp.getEditWindow();
 		getEndObject(evt.getX(), evt.getY(), wnd);
 		WiringPlan [] wpEndList = WiringPlan.getClosestEnd(endGeom, endPort, endPoint, startPoint);
 
@@ -238,7 +240,7 @@ public class WiringListener
 	{
 		int chr = evt.getKeyCode();
 		EditWindow.CircuitPart ecp = (EditWindow.CircuitPart)evt.getSource();
-		EditWindow wnd = ecp.wnd;
+		EditWindow wnd = ecp.getEditWindow();
 		if (chr == KeyEvent.VK_DELETE || chr == KeyEvent.VK_BACK_SPACE)
 		{
 			CircuitChanges.deleteSelected();

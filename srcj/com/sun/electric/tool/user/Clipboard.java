@@ -897,7 +897,9 @@ public class Clipboard
 		{
 			origX = evt.getX();
 			origY = evt.getY();
-			EditWindow wnd = (EditWindow)evt.getSource();
+            if (!(evt.getSource() instanceof EditWindow.CircuitPart)) return;
+            EditWindow.CircuitPart source = (EditWindow.CircuitPart)evt.getSource();
+			EditWindow wnd = source.getEditWindow();
 			wnd.repaint();
 		}
 

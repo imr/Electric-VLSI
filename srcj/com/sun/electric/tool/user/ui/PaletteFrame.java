@@ -1011,7 +1011,7 @@ public class PaletteFrame
 		{
 			if (!(source instanceof EditWindow.CircuitPart)) return;
 			EditWindow.CircuitPart dispPart = (EditWindow.CircuitPart)source;
-			EditWindow wnd = dispPart.wnd;
+			EditWindow wnd = dispPart.getEditWindow();
 			if (isDrawn)
 			{
 				// undraw it
@@ -1073,7 +1073,7 @@ public class PaletteFrame
 		{
 			if (!(evt.getSource() instanceof EditWindow.CircuitPart)) return;
 			EditWindow.CircuitPart dispPart = (EditWindow.CircuitPart)evt.getSource();
-			EditWindow wnd = dispPart.wnd;
+			EditWindow wnd = dispPart.getEditWindow();
 
 			oldx = evt.getX();
 			oldy = evt.getY();
