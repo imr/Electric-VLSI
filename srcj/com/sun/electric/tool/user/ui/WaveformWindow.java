@@ -1994,7 +1994,16 @@ public class WaveformWindow implements WindowContent
 			wp.finished();
 		}
 	}
-	
+
+	public void requestRepaint()
+	{
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			wp.repaint();
+		}
+	}
+
 	public void fireCellHistoryStatus()
 	{
 	}

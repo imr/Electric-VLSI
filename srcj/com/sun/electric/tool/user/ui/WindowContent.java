@@ -34,7 +34,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
  */
 public interface WindowContent
 {
-    public abstract void finished();
+	public abstract void finished();
+	public abstract void requestRepaint();
 	public abstract void fillScreen();
 	public abstract void zoomOutContents();
 	public abstract void zoomInContents();

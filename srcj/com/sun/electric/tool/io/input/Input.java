@@ -24,6 +24,7 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
@@ -37,6 +38,8 @@ import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.dialogs.Progress;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.MenuCommands;
+import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.WindowContent;
 
 import java.awt.geom.Point2D;
 import java.io.InputStream;
@@ -47,6 +50,7 @@ import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Iterator;
 
 /**
  * This class manages reading files in different formats.
@@ -181,6 +185,14 @@ public class Input extends IOTool
 				// library already exists, prompt for save
 				if (MenuCommands.preventLoss(lib, 2)) return null;
 				lib.erase();
+				for (Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+				{
+					WindowFrame wf = (WindowFrame)it.next();
+					WindowContent content = wf.getContent();
+					Cell cell = content.getCell();
+					if (cell != null && cell.getLibrary() == lib)
+						content.setCell(null, null);
+				}
 			} else
 			{
 				lib = Library.newInstance(libName, fileURL);

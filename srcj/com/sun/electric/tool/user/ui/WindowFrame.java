@@ -122,6 +122,7 @@ public class WindowFrame
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			wf.wantToRedoLibraryTree = true;
+			wf.getContent().requestRepaint();
 		}
 	}
 
@@ -131,6 +132,7 @@ public class WindowFrame
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			wf.wantToRedoJobTree = true;
+			wf.getContent().requestRepaint();
 		}
 	}
 
@@ -140,6 +142,7 @@ public class WindowFrame
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			wf.wantToRedoErrorTree = true;
+			wf.getContent().requestRepaint();
 		}
 	}
 

@@ -51,7 +51,7 @@ public class SmartSpiceOut extends Simulate
 		throws IOException
 	{
 		// open the file
-		InputStream stream = TextUtils.getURLStream(fileURL, null);
+		InputStream stream = TextUtils.getURLStream(fileURL);
 		if (stream == null) return null;
 		if (openBinaryInput(fileURL, stream)) return null;
 

@@ -94,7 +94,7 @@ public class HSpiceOut extends Simulate
 		{
 		}
 		if (pa0URL == null) return null;
-		InputStream pa0Stream = TextUtils.getURLStream(pa0URL, null);
+		InputStream pa0Stream = TextUtils.getURLStream(pa0URL);
         if (pa0Stream == null) return null;
 		if (openTextInput(fileURL, pa0Stream)) return null;
 
@@ -124,7 +124,7 @@ public class HSpiceOut extends Simulate
 	private SimData readTR0File(URL fileURL, List pa0List)
 		throws IOException
 	{
-		InputStream tr0Stream = TextUtils.getURLStream(fileURL, null);
+		InputStream tr0Stream = TextUtils.getURLStream(fileURL);
 		if (tr0Stream == null) return null;
 		if (openBinaryInput(fileURL, tr0Stream)) return null;
 

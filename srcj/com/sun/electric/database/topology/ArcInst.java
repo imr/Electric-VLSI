@@ -305,7 +305,6 @@ public class ArcInst extends Geometric
 
 		// track the change
 		Undo.modifyArcInst(this, oldxA, oldyA, oldxB, oldyB, oldWidth);
-		parent.setDirty();
 	}
 
 	/**
@@ -837,6 +836,9 @@ public class ArcInst extends Geometric
 		// compute the bounds
 		Poly poly = makePoly(length, width, Poly.Type.FILLED);
 		visBounds.setRect(poly.getBounds2D());
+
+		// the cell must recompute its bounds
+		if (parent != null) parent.setDirty();
 	}
 
 	/****************************** CONNECTIONS ******************************/
@@ -1138,14 +1140,22 @@ public class ArcInst extends Geometric
 	 * End-extension causes an arc to extend past its endpoint by half of its width.
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
 	 */
-	public void setExtended() { userBits &= ~NOEXTEND; }
+	public void setExtended()
+	{
+		userBits &= ~NOEXTEND;
+		updateGeometric(getAngle());
+	}
 
 	/**
 	 * Method to set this ArcInst to have its ends not extended.
 	 * End-extension causes an arc to extend past its endpoint by half of its width.
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
 	 */
-	public void clearExtended() { userBits |= NOEXTEND; }
+	public void clearExtended()
+	{
+		userBits |= NOEXTEND;
+		updateGeometric(getAngle());
+	}
 
 	/**
 	 * Method to tell whether this ArcInst has its ends extended.
@@ -1189,7 +1199,11 @@ public class ArcInst extends Geometric
 	 * head to be ignored.  For example, the directional arrow is on the arc head,
 	 * so skipping the head will remove the arrow-head, but not the body of the arrow.
 	 */
-	public void setSkipHead() { userBits |= NOTEND0; }
+	public void setSkipHead()
+	{
+		userBits |= NOTEND0;
+		updateGeometric(getAngle());
+	}
 
 	/**
 	 * Method to set this ArcInst to have its head not skipped.
@@ -1197,7 +1211,11 @@ public class ArcInst extends Geometric
 	 * head to be ignored.  For example, the directional arrow is on the arc head,
 	 * so skipping the head will remove the arrow-head, but not the body of the arrow.
 	 */
-	public void clearSkipHead() { userBits &= ~NOTEND0; }
+	public void clearSkipHead()
+	{
+		userBits &= ~NOTEND0;
+		updateGeometric(getAngle());
+	}
 
 	/**
 	 * Method to tell whether this ArcInst has its head skipped.
@@ -1214,7 +1232,11 @@ public class ArcInst extends Geometric
 	 * tail to be ignored.  For example, the negating bubble is on the arc tail,
 	 * so skipping the tail will remove the bubble.
 	 */
-	public void setSkipTail() { userBits |= NOTEND1; }
+	public void setSkipTail()
+	{
+		userBits |= NOTEND1;
+		updateGeometric(getAngle());
+	}
 
 	/**
 	 * Method to set this ArcInst to have its tail not skipped.
@@ -1222,7 +1244,11 @@ public class ArcInst extends Geometric
 	 * tail to be ignored.  For example, the negating bubble is on the arc tail,
 	 * so skipping the tail will remove the bubble.
 	 */
-	public void clearSkipTail() { userBits &= ~NOTEND1; }
+	public void clearSkipTail()
+	{
+		userBits &= ~NOTEND1;
+		updateGeometric(getAngle());
+	}
 
 	/**
 	 * Method to tell whether this ArcInst has its tail skipped.
@@ -1238,14 +1264,22 @@ public class ArcInst extends Geometric
 	 * A reversed arc switches its head and tail.
 	 * This is useful if the negating bubble appears on the wrong end.
 	 */
-	public void setReverseEnds() { userBits |= REVERSEEND; }
+	public void setReverseEnds()
+	{
+		userBits |= REVERSEEND;
+		updateGeometric(getAngle());
+	}
 
 	/**
 	 * Method to restore the proper ends of this ArcInst.
 	 * A reversed arc switches its head and tail.
 	 * This is useful if the negating bubble appears on the wrong end.
 	 */
-	public void clearReverseEnds() { userBits &= ~REVERSEEND; }
+	public void clearReverseEnds()
+	{
+		userBits &= ~REVERSEEND;
+		updateGeometric(getAngle());
+	}
 
 	/**
 	 * Method to tell whether this ArcInst has been reversed.

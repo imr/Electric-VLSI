@@ -2,16 +2,25 @@
 
 ************************* Version 8.00a: Released  *************************
 
+BUG: (5/17/04, SMR) When a cell is displayed, its bounds are set to include text.
+FIX: In "EditWindow.fillScreen()" do not adjust the cell bounds stored in the cell.
+
+BUG: (5/17/04, SMR) When a library is read back in, existing windows remain to its former contents.
+FIX: In "Input.java" clear windows that reference replaced libraries.
+
+BUG: (5/17/04, SMR) When an arc changes its "end extension", its bounds are not recomputed.
+FIX: Recompute bounds in "ArcInst.java".
+
 IMP: (5/17/04, JKG) Various dialog improvements.
 
-IMP: (5/15/04, SR) Added reflection interface to Bean Shell.
+IMP: (5/15/04, SMR) Added reflection interface to Bean Shell.
 
-IMP: (5/14/04, SR) Added the concept of "negated connections" instead of arcs.
+IMP: (5/14/04, SMR) Added the concept of "negated connections" instead of arcs.
 
-IMP: (5/14/04, SR) Added Schematics.getShapeOfPort() which is used for
+IMP: (5/14/04, SMR) Added Schematics.getShapeOfPort() which is used for
      intelligent selection of locations on the left side of gates (AND, OR).
 
-BUG: (5/14/04, SR) Option reconciliation (when libraries with different options are read) broken.
+BUG: (5/14/04, SMR) Option reconciliation (when libraries with different options are read) broken.
 FIX: Organized display into columns; used more meaningful names;
      Also fixed bug that did not display all relevant options.
 
@@ -28,12 +37,12 @@ FIX: Now stored by menu path.
 
 BUG: (5/14/04, JKG) Menu shortcut key not updated in menu.  Fixed.
 
-IMP: (5/13/04, SR) Waveform display is available.
+IMP: (5/13/04, SMR) Waveform display is available.
 
-BUG: (5/11/04, SR) Node "Get Info" dialog does not handle SizeOffset right, displays sizes too large.
+BUG: (5/11/04, SMR) Node "Get Info" dialog does not handle SizeOffset right, displays sizes too large.
 FIX: Use SizeOffset.
 
-BUG: (5/11/04, SR) DRC displays too many digits.
+BUG: (5/11/04, SMR) DRC displays too many digits.
 FIX: Created "TextUtils.formatDouble()" and use it in DRC error reporting.
 
 BUG: (5/10/04, JKG) DraggingMustEncloseEntire object did not allow object selection
@@ -41,12 +50,12 @@ FIX: in Highlight, areaMustEnclose is ignored if bounds size is (0,0) (single cl
 
 IMP: (5/10/04, JKG) Fixed and improved Edit->Change.
 
-IMP: (5/10/04, SR) Put "IO Options" under "File" and "Tool Options" under "Tool".
+IMP: (5/10/04, SMR) Put "IO Options" under "File" and "Tool Options" under "Tool".
 
-BUG: (5/10/04, SR) "IO Options" crashes if there are libraries read in.
+BUG: (5/10/04, SMR) "IO Options" crashes if there are libraries read in.
 FIX: In "Layer.getLayerPref()" make sure "factory" is not null.
 
-IMP: (5/7/04, SR) Generalized the contents of a WindowFrame.  Created the
+IMP: (5/7/04, SMR) Generalized the contents of a WindowFrame.  Created the
      interface WindowContent and made both EditWindow and WaveformWindow
      an implementation of that.
 
@@ -59,18 +68,18 @@ FIX: Name now transferred to one of new arc segments
 
 IMP: (5/6/04, JKG) Command button on MACs now converts clicks to "right" clicks
 
-IMP: (5/6/04, SR) Added the "File/Save All Libraries" command.
+IMP: (5/6/04, SMR) Added the "File/Save All Libraries" command.
 
-IMP: (5/5/04, SR) The "Misc" palette entry now has Spice code and Verilog code/declarations.
+IMP: (5/5/04, SMR) The "Misc" palette entry now has Spice code and Verilog code/declarations.
 
-IMP: (5/5/04, SR) Converted file paths to URLs.
+IMP: (5/5/04, SMR) Converted file paths to URLs.
 
-IMP: (5/5/04, SR) Can now select default font in the "Text" tab of the
+IMP: (5/5/04, SMR) Can now select default font in the "Text" tab of the
      "Edit Options" dialog.
 
-IMP: (5/4/04, SR) More improvements to waveform display.
+IMP: (5/4/04, SMR) More improvements to waveform display.
 
-IMP: (5/4/04, SR) Added "Scale" tab in IO Options to set scale factors.
+IMP: (5/4/04, SMR) Added "Scale" tab in IO Options to set scale factors.
 
-BUG: (5/4/04, SR) Can create two exports with the same name.
+BUG: (5/4/04, SMR) Can create two exports with the same name.
 FIX: Disabled this both in Export.newInstance() and in the dialog.

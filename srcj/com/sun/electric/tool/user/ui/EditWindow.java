@@ -323,6 +323,8 @@ public class EditWindow
 
 	public void repaint() { dispArea.repaint(); }
 
+	public void requestRepaint() { dispArea.repaint(); }
+	
 	public JPanel getPanel() { return overall; }
 
 	public void loadExplorerTree(DefaultMutableTreeNode rootNode)
@@ -1133,7 +1135,9 @@ public class EditWindow
 				Rectangle2D relativeTextBounds = cell.getRelativeTextBounds(this);
 				if (relativeTextBounds != null)
 				{
-					Rectangle2D.union(relativeTextBounds, cellBounds, cellBounds);
+					Rectangle2D newCellBounds = new Rectangle2D.Double();
+					Rectangle2D.union(relativeTextBounds, cellBounds, newCellBounds);
+					cellBounds = newCellBounds;
 				}
 				focusScreen(cellBounds);
 				return;

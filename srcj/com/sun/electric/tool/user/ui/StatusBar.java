@@ -265,7 +265,7 @@ public class StatusBar extends JPanel
 				sizeMsg = "LINES: " + len;
 			} else
 			{
-				String width = Double.toString(cell.getBounds().getWidth());
+//				String width = Double.toString(cell.getBounds().getWidth());
 				Rectangle2D bounds = cell.getBounds();
 				sizeMsg = "SIZE: " + TextUtils.formatDouble(bounds.getWidth(),3) + "x" +
                         TextUtils.formatDouble(bounds.getHeight(), 3);

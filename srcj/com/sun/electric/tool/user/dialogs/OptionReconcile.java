@@ -29,6 +29,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Frame;
+import java.awt.Insets;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.util.Iterator;
@@ -76,6 +77,7 @@ public class OptionReconcile extends JDialog
 		gbc.weightx = 0.2;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.WEST;
 		gbc.fill = GridBagConstraints.NONE;
+		gbc.insets = new Insets(4, 4, 4, 4);
 		optionBox.add(new JLabel("OPTION"), gbc);
 
 		// the third column header: the current value
@@ -84,6 +86,7 @@ public class OptionReconcile extends JDialog
 		gbc.weightx = 0.2;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.WEST;
 		gbc.fill = GridBagConstraints.NONE;
+		gbc.insets = new Insets(4, 4, 4, 4);
 		optionBox.add(new JLabel("CURRENT VALUE"), gbc);
 
 		// the fourth column header: the Libraries value
@@ -92,6 +95,7 @@ public class OptionReconcile extends JDialog
 		gbc.weightx = 0.2;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.WEST;
 		gbc.fill = GridBagConstraints.NONE;
+		gbc.insets = new Insets(4, 4, 4, 4);
 		optionBox.add(new JLabel("LIBRARY VALUE"), gbc);
 
 		// the fifth column header: the location of the option
@@ -100,6 +104,7 @@ public class OptionReconcile extends JDialog
 		gbc.weightx = 0.2;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.WEST;
 		gbc.fill = GridBagConstraints.NONE;
+		gbc.insets = new Insets(4, 4, 4, 4);
 		optionBox.add(new JLabel("OPTION LOCATION"), gbc);
 
 		// the separator between the header and the body

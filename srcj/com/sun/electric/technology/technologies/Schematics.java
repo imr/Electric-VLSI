@@ -342,6 +342,7 @@ public class Schematics extends Technology
 		wirePinNode.setFunction(NodeProto.Function.PIN);
 		wirePinNode.setSquare();
 		wirePinNode.setWipeOn1or2();
+		wirePinNode.setCanBeZeroSize();
 
 		/** bus pin */
 		busPinNode = PrimitiveNode.newInstance("Bus_Pin", this, 2.0, 2.0, null,
@@ -362,6 +363,7 @@ public class Schematics extends Technology
 		busPinNode.setFunction(NodeProto.Function.PIN);
 		busPinNode.setSquare();
 		busPinNode.setWipeOn1or2();
+		busPinNode.setCanBeZeroSize();
 
 		/** wire con */
 		Technology.NodeLayer letterJ;

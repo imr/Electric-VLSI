@@ -510,8 +510,18 @@ public class TextUtils
 	/**
 	 * Method to open an input stream to a URL.
 	 * @param url the URL to the file.
-     * @param errorMsg a string buffer in which to print any error message. If null,
-     * any error message is printed to System.out
+	 * @return the InputStream, or null if the file cannot be found.
+	 */
+	public static InputStream getURLStream(URL url)
+	{
+		return getURLStream(url, null);
+	}
+
+	/**
+	 * Method to open an input stream to a URL.
+	 * @param url the URL to the file.
+	 * @param errorMsg a string buffer in which to print any error message. If null,
+	 * any error message is printed to System.out
 	 * @return the InputStream, or null if the file cannot be found.
 	 */
 	public static InputStream getURLStream(URL url, StringBuffer errorMsg)
