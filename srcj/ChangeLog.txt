@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01x: *********************************
 
+IMP/MAN: (10/13/04, SMR) Added "maze routing".
+
 IMP: (10/12/04, SMR) A holdover from "C Electric" is the "temporary object".  It is unsafe and wastes memory.
      Its use has been replaced with HashMaps, and it has been removed from Geometric, ArcProto, and Cell.
 
