@@ -158,6 +158,19 @@ public class MenuBar extends JMenuBar
         }
     }
 
+    public static class RepeatLastCommandListener implements ActionListener {
+        private AbstractButton lastActivated;
+        private RepeatLastCommandListener() {}
+
+        public synchronized void actionPerformed(ActionEvent e) {
+            Object source = e.getSource();
+            if (source instanceof AbstractButton) lastActivated = (AbstractButton)source;
+        }
+
+        public synchronized AbstractButton getLastActivated() { return lastActivated; }
+    }
+
+
     /**
      * Common Interface for all MenuItem types:
      * Menu, MenuItem, CheckBoxMenuItem, RadioButtonMenuItem
@@ -316,6 +329,8 @@ public class MenuBar extends JMenuBar
             ((MenuItemInterface)item).setParentMenu(this);
             // set accelerator so user sees shortcut key on menu
             item.setAccelerator(accelerator);
+            // add a listener that will record this command
+            item.addActionListener(repeatLastCommandListener);
             // add action listeners so when user selects menu, actions will occur
             item.addActionListener(action);
             // add logger listener
@@ -343,6 +358,7 @@ public class MenuBar extends JMenuBar
     /** whether to ignore all shortcuts keys */ boolean ignoreKeyBindings;
     /** whether to ignore text editing keys */  boolean ignoreTextEditKeys;
     /** For logging menu activiations */        private static MenuLogger menuLogger = new MenuLogger();
+    /** For the "Repeat Last Action" command */ public static final RepeatLastCommandListener repeatLastCommandListener = new RepeatLastCommandListener();
 
     /**
      * See MenuBar(String name). This creates a MenuBar belonging

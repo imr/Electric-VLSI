@@ -108,6 +108,7 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
     public static ToolBarButton newInstance(String text, Icon icon) {
         // new button
         ToolBarButton b = new ToolBarButton(text, icon);
+        b.addActionListener(MenuBar.repeatLastCommandListener);
         b.addActionListener(ToolBarButton.updater);
         b.addActionListener(MenuBar.MenuBarGroup.getUpdaterFor(""));
         b.addActionListener(buttonLogger);

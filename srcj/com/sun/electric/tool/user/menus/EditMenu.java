@@ -88,6 +88,8 @@ public class EditMenu {
         Undo.addPropertyChangeListener(new MenuCommands.MenuEnabler(redo, Undo.propRedoEnabled));
         redo.setEnabled(Undo.getRedoEnabled());
         // TODO: figure out how to remove this property change listener for correct garbage collection
+        editMenu.addMenuItem("Repeat Last Action", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { repeatLastCommand(); } });
 
 		editMenu.addSeparator();
 
@@ -392,6 +394,14 @@ public class EditMenu {
 			return true;
 		}
 	}
+
+    /**
+     * Repeat the last Command
+     */
+    public static void repeatLastCommand() {
+        AbstractButton lastActivated = MenuBar.repeatLastCommandListener.getLastActivated();
+        if (lastActivated != null) lastActivated.doClick();
+    }
 
 	/**
 	 * This method implements the command to show the Key Bindings Options dialog.
