@@ -121,8 +121,10 @@ public class PolyQTree
 			done = root.insert(rootBox, obj, areaBB);
 		//@TODO GVG Check this case
 		// Could be comming from big-cross poly!!
+		/*
 		if (!done)
 			System.out.println("Repeated element?");
+			*/
 	}
 
 	/**

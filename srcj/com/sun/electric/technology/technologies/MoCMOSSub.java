@@ -25,20 +25,13 @@
  */
 package com.sun.electric.technology.technologies;
 
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitiveArc;
-import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.EdgeH;
-import com.sun.electric.technology.EdgeV;
-import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.*;
+import com.sun.electric.technology.technologies.utils.MOSRules;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.tool.drc.DRC;
 
 import java.awt.Color;
 
@@ -2128,8 +2121,8 @@ public class MoCMOSSub extends Technology
 	 * Method to return the "factory "design rules for this Technology.
 	 * @return the design rules for this Technology.
 	 */
-	public DRC.Rules getFactoryDesignRules()
+	public DRCRules getFactoryDesignRules()
 	{
-		return DRC.makeSimpleRules(this, conDist, unConDist);
+		return MOSRules.makeSimpleRules(this, conDist, unConDist);
 	}
 }

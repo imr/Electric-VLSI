@@ -25,7 +25,6 @@ package com.sun.electric.technology;
 
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
@@ -48,13 +47,10 @@ import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.MoCMOSOld;
 import com.sun.electric.technology.technologies.MoCMOSSub;
 import com.sun.electric.technology.technologies.nMOS;
-import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.Main;
 
-import java.awt.Dimension;
 import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -104,7 +100,31 @@ import java.util.prefs.Preferences;
  */
 public class Technology extends ElectricObject
 {
-	/**
+
+    /**
+	 * Method to determine the index in the upper-left triangle array for two layers.
+	 * @param layer1Index the first layer index.
+	 * @param layer2Index the second layer index.
+	 * @return the index in the array that corresponds to these two layers.
+	 */
+	public int getLayerIndex(int layer1Index, int layer2Index)
+	{
+		if (layer1Index > layer2Index) { int temp = layer1Index; layer1Index = layer2Index;  layer2Index = temp; }
+		int pIndex = (layer1Index+1) * (layer1Index/2) + (layer1Index&1) * ((layer1Index+1)/2);
+		pIndex = layer2Index + getNumLayers() * layer1Index - pIndex;
+		return pIndex;
+	}
+
+    public static Layer getLayerFromOverride(String override, int startPos, char endChr, Technology tech)
+    {
+        int endPos = override.indexOf(endChr, startPos);
+        if (endPos < 0) return null;
+        String layerName = override.substring(startPos, endPos);
+        Layer layer = tech.findLayer(layerName);
+        return layer;
+    }
+
+    /**
 	 * Defines a single layer of a PrimitiveArc.
 	 * A PrimitiveArc has a list of these ArcLayer objects, one for
 	 * each layer in a typical ArcInst.
@@ -2453,7 +2473,36 @@ public class Technology extends ElectricObject
 	 * @return the design rules for this Technology.
 	 * Returns null if there are no design rules in this Technology.
 	 */
-	public DRC.Rules getFactoryDesignRules(ErrorLogger errorLogger)
+	public DRCRules getFactoryDesignRules()
+	{
+		return null;
+	}
+
+	/**
+	 * Method to compare a Rules set with the "factory" set and construct an override string.
+	 * @param origRules
+	 * @param newRules
+	 * @return a StringBuffer that describes any overrides.  Returns "" if there are none.
+	 */
+	public static StringBuffer getRuleDifferences(DRCRules origRules, DRCRules newRules)
+	{
+		return (new StringBuffer(""));
+	}
+
+	/**
+	 * Method to be called from DRC:setRules
+	 * @param newRules
+	 */
+	public void setRuleVariables(DRCRules newRules) {;}
+
+	/**
+	 * Method to create a set of Design Rules from some simple spacing arrays.
+	 * Used by simpler technologies that do not have full-sets of design rules.
+	 * @param conDist an upper-diagonal array of layer-to-layer distances (when connected).
+	 * @param unConDist an upper-diagonal array of layer-to-layer distances (when unconnected).
+	 * @return a set of design rules for the Technology.
+	 */
+	public static DRCRules makeSimpleRules(double [] conDist, double [] unConDist)
 	{
 		return null;
 	}
@@ -2763,7 +2812,7 @@ public class Technology extends ElectricObject
 	 * in node "nty" to "surround".  The array "minsize" is the minimum size of each layer.
 	 */
 	protected void setLayerSurroundLayer(PrimitiveNode nty, Layer outerLayer, Layer innerLayer,
-	                                     double surround, Double [] minSize, ErrorLogger errorLogger)
+	                                     double surround, double minSizeValue)
 	{
 		// find the inner layer
 		Technology.NodeLayer inLayer = nty.findNodeLayer(innerLayer);
@@ -2795,8 +2844,9 @@ public class Technology extends ElectricObject
 		double topIndent = inTop.getAdder() + surround;
 		double xSize = nty.getDefWidth() - leftIndent - rightIndent;
 		double ySize = nty.getDefHeight() - bottomIndent - topIndent;
-		int outerLayerIndex = outerLayer.getIndex();
-		double minSizeValue = minSize[outerLayerIndex].doubleValue();
+		//int outerLayerIndex = outerLayer.getIndex();
+		//double minSizeValue = minSize[outerLayerIndex].doubleValue();
+        //double minSizeValue = minSize[outerLayerIndex].doubleValue();
 		if (xSize < minSizeValue || ySize < minSizeValue)
 		{
 			// make it irregular to force the proper minimum size
@@ -2842,15 +2892,7 @@ public class Technology extends ElectricObject
 			hasChanged = true;
 			errorMessage += " bottom=" + bottomIndent;
 		}
-		if (hasChanged)
-		{
-			if (errorLogger != null)
-				errorLogger.logError(errorMessage, null, outerLayer.getIndex());
-			/*
-			else if (Main.getDebug())
-				System.out.println(errorMessage);
-				*/
-		}
+		if (hasChanged && Main.getDebug()) System.out.println(errorMessage);
 	}
 
 	/**
@@ -2888,7 +2930,7 @@ public class Technology extends ElectricObject
 	 * the layers are at least "width" wide.  Affects the default arc width
 	 * and the default pin size.
 	 */
-	protected void setLayerMinWidth(String layername, String rulename, double width, ErrorLogger errorLogger)
+	protected void setLayerMinWidth(String layername, String rulename, double width)
 	{
 		// find the arc and set its default width
 		PrimitiveArc ap = findArcProto(layername);
@@ -2923,19 +2965,14 @@ public class Technology extends ElectricObject
 			// describe the error
 			String errorMessage = "Layer Minimum Size correction of " + indent + " done in '"
 					+ layername + ":" + getTechDesc() + "' by rule " + rulename;
-			if (errorLogger != null)
-				errorLogger.logError(errorMessage, null, -1);
-			/*
-			else if (Main.getDebug())
-				System.out.println(errorMessage);
-				*/
+			if (Main.getDebug()) System.out.println(errorMessage);
 		}
 	}
 
 	/**
 	* Method to set the true node size (the highlighted area) of node "nodename" to "wid" x "hei".
 	*/
-	protected void setDefNodeSize(PrimitiveNode nty, double wid, double hei, DRC.Rules rules)
+	protected void setDefNodeSize(PrimitiveNode nty, double wid, double hei, DRCRules rules)
 	{
 		//SizeOffset so = nty.getProtoSizeOffset();
 		double xindent = (nty.getDefWidth() - wid) / 2;
@@ -2949,8 +2986,12 @@ public class Technology extends ElectricObject
 			if (np == nty) break;
 			index++;
 		}
+		rules.setMinNodeSize(index*2, wid);
+		rules.setMinNodeSize(index*2+1, hei);
+		/*
 		rules.minNodeSize[index*2] = new Double(wid);
 		rules.minNodeSize[index*2+1] = new Double(hei);
+		*/
 	}
 
 	/**

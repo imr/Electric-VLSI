@@ -1,6 +1,8 @@
 			Java Electric change log
 
 ************************* Version 8.01l: *********************************
+IMP: (08/30/04) Refactoring DRC code. Decoupling Technology from DRC
+
 IMP: (08/26/04) Hierarchical minimum area and enclosed area available in DRC.
 
 BUG: (8/26/04, DN) Network tool keeps global nets after deleting global and power symbols.

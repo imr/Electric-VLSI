@@ -24,10 +24,8 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.*;
+import com.sun.electric.technology.technologies.utils.MOSRules;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -64,7 +62,7 @@ public class DesignRulesTab extends PreferencePanel
 
 	private JList designRulesFromList, designRulesToList;
 	private DefaultListModel designRulesFromModel, designRulesToModel;
-	private DRC.Rules drRules;
+	private MOSRules drRules;
 	private boolean designRulesUpdating = false;
 	private boolean designRulesFactoryReset = false;
 	private boolean [] designRulesValidLayers;
@@ -76,13 +74,13 @@ public class DesignRulesTab extends PreferencePanel
 	public void init()
 	{
 		// get the design rules for the current technology
-		drRules = DRC.getRules(curTech);
-		if (drRules == null || drRules.displayMessage != null)
+		DRCRules rules = DRC.getRules(curTech);
+		if (rules == null || !(rules instanceof MOSRules))
 		{
-			if (drRules == null)
+			if (rules == null)
 				drTechName.setText(curTech.getTechName() + " HAS NO DESIGN RULES");
 			else
-				drTechName.setText(curTech.getTechName() + ":" + drRules.displayMessage);
+				drTechName.setText(curTech.getTechName() + ": UNDER CONSTRUCTION");
 			drLayers.setEnabled(false);
 			drNodes.setEnabled(false);
 			drShowOnlyLinesWithRules.setEnabled(false);
@@ -108,6 +106,7 @@ public class DesignRulesTab extends PreferencePanel
 			return;
 		}
 
+        drRules = (MOSRules)rules;
 		drLayers.setSelected(true);
 
 		// build the "from" layer/node list
@@ -170,8 +169,9 @@ public class DesignRulesTab extends PreferencePanel
 		drWideLimit.getDocument().addDocumentListener(myDocumentListener);
 
 		// figure out which layers are valid
-		designRulesValidLayers = new boolean[drRules.numLayers];
-		for(int i=0; i<drRules.numLayers; i++) designRulesValidLayers[i] = false;
+        int numLayers = curTech.getNumLayers();
+		designRulesValidLayers = new boolean[numLayers];
+		for(int i=0; i<numLayers; i++) designRulesValidLayers[i] = false;
 		for(Iterator it = curTech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
@@ -203,7 +203,7 @@ public class DesignRulesTab extends PreferencePanel
 		});
 
 		// load the dialog
-		drTechName.setText("'"+drRules.techName+"'");
+		drTechName.setText("'"+curTech.getTechName()+"'");
 		designRulesSetupForLayersOrNodes();
 		designRulesGetSelectedLayerLoadDRCToList();
 	}
@@ -256,11 +256,11 @@ public class DesignRulesTab extends PreferencePanel
 			{
 				if (!nName.equals(drRules.nodeNames[node])) continue;
 				String a = drMinWidth.getText();
-				if (a.length() == 0) drRules.minNodeSize[node*2] = new Double(-1); else
-					drRules.minNodeSize[node*2] = new Double(TextUtils.atof(a));
+				if (a.length() == 0) drRules.minNodeSize[node*2] = new Double(-1);
+                else drRules.minNodeSize[node*2] = new Double(TextUtils.atof(a));
 				a = drMinHeight.getText();
-				if (a.length() == 0) drRules.minNodeSize[node*2+1] = new Double(-1); else
-					drRules.minNodeSize[node*2+1] = new Double(TextUtils.atof(a));
+				if (a.length() == 0) drRules.minNodeSize[node*2+1] = new Double(-1);
+                else drRules.minNodeSize[node*2+1] = new Double(TextUtils.atof(a));
 				drRules.minNodeSizeRules[node] = drMinWidthRule.getText();
 				break;
 			}
@@ -272,9 +272,12 @@ public class DesignRulesTab extends PreferencePanel
 			int layer2 = designRulesGetSelectedLayer(designRulesToList);
 			if (layer2 < 0) return;
 			int lowLayer = layer1, highLayer = layer2;
+            /*
 			if (lowLayer > highLayer) { int temp = lowLayer; lowLayer = highLayer;  highLayer = temp; }
 			int dindex = (lowLayer+1) * (lowLayer/2) + (lowLayer&1) * ((lowLayer+1)/2);
 			dindex = highLayer + drRules.numLayers * lowLayer - dindex;
+            */
+            int dindex = curTech.getLayerIndex(layer1, layer2);
 
 			// get new normal spacing values
 			String a = drNormalConnected.getText();
@@ -315,8 +318,7 @@ public class DesignRulesTab extends PreferencePanel
 			// get new width limit
 			a = drWideLimit.getText();
 			double value = TextUtils.atof(a);
-			if (value > 0)
-				drRules.setWideLimits(new double[] {value});
+            drRules.wideLimit = new Double(TextUtils.atof(a));
 
 			// redraw the entry in the "to" list
 			int lineNo = designRulesToList.getSelectedIndex();
@@ -396,12 +398,15 @@ public class DesignRulesTab extends PreferencePanel
 			drNormalEdge.setEditable(true);
 			drNormalEdgeRule.setEditable(true);
 			drWideLimit.setEditable(true);
+            drWideLimit.setText(drRules.wideLimit.toString());
+            /*
 			Object[] set = drRules.getWideLimits().toArray();
 			if (set.length > 0)
 			{
 				Double wideLimit = ((Double)set[0]);
 				drWideLimit.setText(TextUtils.formatDouble(wideLimit.doubleValue()));
 			}
+            */
 			drWideConnected.setEditable(true);
 			drWideConnectedRule.setEditable(true);
 			drWideUnconnected.setEditable(true);
@@ -571,7 +576,9 @@ public class DesignRulesTab extends PreferencePanel
 		if (designRulesFactoryReset)
 		{
 			DRC.resetDRCDates();
-			drRules = curTech.getFactoryDesignRules(null);
+            DRCRules rules = curTech.getFactoryDesignRules();
+            if (rules instanceof MOSRules)
+			    drRules = (MOSRules)rules;
 		}
 		DRC.setRules(curTech, drRules);
 	}

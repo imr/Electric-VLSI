@@ -41,6 +41,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.DRCRules;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -315,8 +316,8 @@ public class ERCWellCheck
 					if (wa.layer != oWa.layer) continue;
 					boolean con = false;
 					if (wa.netNum == oWa.netNum && wa.netNum >= 0) con = true;
-					DRC.Rule rule = DRC.getSpacingRule(wa.layer, wa.layer, con, false, 0);
-					if (rule.value < 0) continue;
+					DRCRules.DRCRule rule = DRC.getSpacingRule(wa.layer, wa.layer, con, false, 0);
+					if (rule == null || rule.value < 0) continue;
 					if (wa.bounds.getMinX() > oWa.bounds.getMaxX()+rule.value ||
 						oWa.bounds.getMinX() > wa.bounds.getMaxX()+rule.value ||
 						wa.bounds.getMinY() > oWa.bounds.getMaxY()+rule.value ||

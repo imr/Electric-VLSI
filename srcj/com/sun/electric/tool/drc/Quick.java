@@ -41,11 +41,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitiveArc;
-import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -262,12 +258,14 @@ public class Quick
 		    Layer layer = (Layer)it.next();
 
 		    // Storing min areas
-			DRC.Rule minAreaRule = DRC.getMinValue(layer, DRC.RuleTemplate.AREA);
-		    if (minAreaRule != null) minAreaLayerMap.put(layer, minAreaRule);
+			DRCRules.DRCRule minAreaRule = DRC.getMinValue(layer, DRCTemplate.AREA);
+		    if (minAreaRule != null)
+			    minAreaLayerMap.put(layer, minAreaRule);
 
 		    // Storing enclosed areas
-		    DRC.Rule enclosedAreaRule = DRC.getMinValue(layer, DRC.RuleTemplate.ENCLOSEDAREA);
-		    if (enclosedAreaRule != null) enclosedAreaLayerMap.put(layer, enclosedAreaRule);
+		    DRCRules.DRCRule enclosedAreaRule = DRC.getMinValue(layer, DRCTemplate.ENCLOSEDAREA);
+		    if (enclosedAreaRule != null)
+			    enclosedAreaLayerMap.put(layer, enclosedAreaRule);
 	    }
 
 		// initialize all cells for hierarchical network numbering
@@ -1063,9 +1061,9 @@ public class Quick
 						if (con && touch) continue;
 
 						double nMinSize = npoly.getMinSize();
-								DRC.Rule dRule = getAdjustedMinDist(tech, layer, minSize,
-							nLayer, nMinSize, con, multi);
-						DRC.Rule eRule = DRC.getEdgeRule(layer, nLayer);
+						DRCRules.DRCRule dRule = getAdjustedMinDist(tech, layer, minSize,
+                                nLayer, nMinSize, con, multi);
+						DRCRules.DRCRule eRule = DRC.getEdgeRule(layer, nLayer);
 						if (dRule == null && eRule == null) continue;
 						double dist = -1;
 						boolean edge = false;
@@ -1135,9 +1133,9 @@ public class Quick
 
 					// see how close they can get
 					double nMinSize = nPoly.getMinSize();
-					DRC.Rule dRule = getAdjustedMinDist(tech, layer, minSize,
+					DRCRules.DRCRule dRule = getAdjustedMinDist(tech, layer, minSize,
 						nLayer, nMinSize, con, multi);
-					DRC.Rule eRule = DRC.getEdgeRule(layer, nLayer);
+					DRCRules.DRCRule eRule = DRC.getEdgeRule(layer, nLayer);
 					if (dRule == null && eRule == null) continue;
 					double dist = -1;
 					boolean edge = false;
@@ -1240,7 +1238,7 @@ public class Quick
 				if (pd <= 0)
 				{
 					// they are electrically connected and they touch: look for minimum size errors
-					DRC.Rule wRule = DRC.getMinValue(layer1, DRC.RuleTemplate.MINWID);
+					DRCRules.DRCRule wRule = DRC.getMinValue(layer1, DRCTemplate.MINWID);
 					if (wRule != null)
 					{
 						double minWidth = wRule.value;
@@ -1901,7 +1899,7 @@ public class Quick
 	private boolean checkMinWidth(Geometric geom, Layer layer, Poly poly, Technology tech)
 	{
 		Cell cell = geom.getParent();
-		DRC.Rule minWidthRule = DRC.getMinValue(layer, DRC.RuleTemplate.MINWID);
+		DRCRules.DRCRule minWidthRule = DRC.getMinValue(layer, DRCTemplate.MINWID);
 		if (minWidthRule == null) return false;
 		double minWidth = minWidthRule.value;
 
@@ -2063,8 +2061,8 @@ public class Quick
 			for(Iterator it = pNp.layerIterator(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
-				DRC.Rule minAreaRule = (DRC.Rule)minAreaLayerMap.get(layer);
-				DRC.Rule encloseAreaRule = (DRC.Rule)enclosedAreaLayerMap.get(layer);
+				DRCRules.DRCRule minAreaRule = (DRCRules.DRCRule)minAreaLayerMap.get(layer);
+				DRCRules.DRCRule encloseAreaRule = (DRCRules.DRCRule)enclosedAreaLayerMap.get(layer);
 
 				// Layer doesn't have min area
 				if (minAreaRule == null && encloseAreaRule == null) continue;
@@ -2081,7 +2079,7 @@ public class Quick
 					{
 						PolyQTree.PolyNode simplePn = (PolyQTree.PolyNode)polyArray[i];
 						double area = simplePn.getArea();
-						DRC.Rule minRule = (i%2 == 0) ? minAreaRule : encloseAreaRule;  // Even is enclosed area
+						DRCRules.DRCRule minRule = (i%2 == 0) ? minAreaRule : encloseAreaRule;  // Even is enclosed area
 
 						if (minRule == null) continue;
 
@@ -2380,8 +2378,6 @@ public class Quick
 		{
 			if (!fun.isContact() || (funExtras&Layer.Function.CONDIFF) == 0) return false;
 		}
-		if (Main.getDebug() && funExtras != layer2.getFunctionExtras())
-			System.out.println("This seems an error. Ask Steve!");
 		funExtras = layer2.getFunctionExtras();
 		fun = layer2.getFunction();
 		if (!fun.isDiff())
@@ -2880,7 +2876,7 @@ public class Quick
 	 * "tech" and library "lib".  If "con" is true, the layers are connected.  Also forces
 	 * connectivity for same-implant layers.
 	 */
-	private DRC.Rule getAdjustedMinDist(Technology tech, Layer layer1, double size1,
+	private DRCRules.DRCRule getAdjustedMinDist(Technology tech, Layer layer1, double size1,
 		Layer layer2, double size2, boolean con, boolean multi)
 	{
 		// if they are implant on the same layer, they connect
@@ -2902,9 +2898,8 @@ public class Quick
 		boolean wide = false;
 		//if (size1 > wideLimit || size2 > wideLimit) wide = true;
 
-		DRC.Rule rule = DRC.getSpacingRule(layer1, layer2, con, multi, wideS);
+		return (DRC.getSpacingRule(layer1, layer2, con, multi, wideS));
 		//DRC.Rule rule = DRC.getSpacingRule(layer1, layer2, con, wide, multi, wideS);
-		return rule;
 	}
 
 	/**
