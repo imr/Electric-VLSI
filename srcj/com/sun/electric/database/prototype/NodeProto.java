@@ -1323,14 +1323,14 @@ public abstract class NodeProto extends ElectricObject
 	}
 
 	/**
-	 * Method to determine whether this NodeProto  is an icon Cell.
+	 * Method to determine whether this NodeProto is an icon Cell.
 	 * overriden in Cell
 	 * @return true if this NodeProto is an icon  Cell.
 	 */
 	public boolean isIcon() { return false; }
 
 	/**
-	 * Method to determine whether this NodeProto  is an icon of another Cell.
+	 * Method to determine whether this NodeProto is an icon of another Cell.
 	 * overriden in Cell
 	 * @param cell the other cell which this may be an icon of.
 	 * @return true if this NodeProto is an icon of that other Cell.

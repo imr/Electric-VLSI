@@ -28,7 +28,9 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.Technology;
@@ -62,6 +64,8 @@ public class MoCMOS extends Technology
 
 	/** key of Variable for saving technology state. */
 	public static final Variable.Key TECH_LAST_STATE = ElectricObject.newKey("TECH_last_state");
+	/** key of Variable for saving scalable transistor contact information. */
+	public static final Variable.Key TRANS_CONTACT = ElectricObject.newKey("MOCMOS_transcontacts");
 
 	// layers
 	private Layer poly1_lay, transistorPoly_lay;
@@ -562,7 +566,7 @@ public class MoCMOS extends Technology
 		setTechName("mocmos");
 		setTechShortName("MOSIS CMOS");
 		setTechDesc("MOSIS CMOS");
-		setFactoryScale(200);			// in nanometers: really 0.2 micron
+		setFactoryScale(200, true);			// in nanometers: really 0.2 micron
 		setNoNegatedArcs();
 		setStaticTechnology();
 		setNumTransparentLayers(5);
@@ -2810,25 +2814,6 @@ public class MoCMOS extends Technology
 	 */
 	private void setState()
 	{
-//		// set stick-figure state
-//		if ((state&MOCMOSSTICKFIGURE) != 0)
-//		{
-//			// stick figure drawing
-//			tech->nodesizeoffset = nodesizeoffset;
-//			tech->arcpolys = arcpolys;
-//			tech->shapearcpoly = shapearcpoly;
-//			tech->allarcpolys = allarcpolys;
-//			tech->arcwidthoffset = arcwidthoffset;
-//		} else
-//		{
-//			// full figure drawing
-//			tech->nodesizeoffset = 0;
-//			tech->arcpolys = 0;
-//			tech->shapearcpoly = 0;
-//			tech->allarcpolys = 0;
-//			tech->arcwidthoffset = 0;
-//		}
-
 		// set rules
 		if (loadDRCtables()) return;
 
@@ -2947,6 +2932,197 @@ public class MoCMOS extends Technology
 		if (isSpecialTransistors()) description += ", shows special transistors";
 		if (isStickFigures()) description += ", stick-figures";
 		return description + ")";
+	}
+
+	/******************** SCALABLE TRANSISTOR DESCRIPTION ********************/
+
+	private static final int SCALABLE_ACTIVE_TOP = 0;
+	private static final int SCALABLE_METAL_TOP  = 1;
+	private static final int SCALABLE_ACTIVE_BOT = 2;
+	private static final int SCALABLE_METAL_BOT  = 3;
+	private static final int SCALABLE_ACTIVE_CTR = 4;
+	private static final int SCALABLE_POLY       = 5;
+	private static final int SCALABLE_WELL       = 6;
+	private static final int SCALABLE_SUBSTRATE  = 7;
+	private static final int SCALABLE_TOTAL      = 8;
+
+	/**
+	 * Method to return a list of Polys that describe a given NodeInst.
+	 * This method overrides the general one in the Technology object
+	 * because of the unusual primitives in this Technology.
+	 * @param ni the NodeInst to describe.
+	 * @param wnd the window in which this node will be drawn.
+	 * @param electrical true to get the "electrical" layers.
+	 * This makes no sense for Schematics primitives.
+	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
+	 * This makes no sense for Schematics primitives.
+	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
+	 * @param layerOverride the layer to use for all generated polygons (if not null).
+	 * @return an array of Poly objects.
+	 */
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride)
+	{
+		NodeProto prototype = ni.getProto();
+		if (prototype != scalablePTransistor_node && prototype != scalableNTransistor_node)
+		{
+			return super.getShapeOfNode(ni, wnd, electrical, reasonable, primLayers, layerOverride);
+		}
+
+		// determine special configurations (number of active contacts, inset of active contacts)
+		int numContacts = 2;
+		boolean insetContacts = false;
+		Variable var = ni.getVar(TRANS_CONTACT, String.class);
+		if (var != null)
+		{
+			String pt = (String)var.getObject();
+			for(int i=0; i<pt.length(); i++)
+			{
+				char chr = pt.charAt(i);
+				if (chr == '0' || chr == '1' || chr == '2')
+				{
+					numContacts = chr - '0';
+				} else if (chr == 'i' || chr == 'I') insetContacts = true;
+			}
+		}
+		int boxOffset = 4 - numContacts * 2;
+	
+		// determine width
+		PrimitiveNode np = (PrimitiveNode)ni.getProto();
+		double nodeWid = ni.getXSize();
+		double activeWid = nodeWid - 14;
+		int extraInset = 0;
+		var = ni.getVar(Schematics.ATTR_WIDTH);
+		if (var != null)
+		{
+			double requestedWid = TextUtils.atof(var.getPureValue(-1, -1));
+			if (requestedWid > activeWid)
+			{
+				System.out.println("Warning: cell " + ni.getParent().describe() + ", node " +
+					ni.describe() + " requests width of " + requestedWid + " but is only " + activeWid + " wide");
+			}
+			if (requestedWid < activeWid && requestedWid > 0)
+			{
+				extraInset = (int)((activeWid - requestedWid) / 2);
+				activeWid = requestedWid;
+			}
+		}
+		double actInset = (nodeWid-activeWid) / 2;
+		double polyInset = actInset - 2;
+		double actContInset = 7 + extraInset;
+	
+		// contacts must be 5 wide at a minimum
+		if (activeWid < 5) actContInset -= (5-activeWid)/2;
+		double metContInset = actContInset + 0.5;
+	
+		// determine the multicut information
+		double [] specialValues = metal1PActiveContact_node.getSpecialValues();
+		double cutSize = specialValues[0];
+		double cutIndent = specialValues[2];
+		double cutSep = specialValues[3];
+		int numCuts = (int)((activeWid-cutIndent*2+cutSep) / (cutSize+cutSep));
+		if (numCuts <= 0) numCuts = 1;
+		double cutBase = 0;
+		if (numCuts != 1)
+			cutBase = (activeWid-cutIndent*2 - cutSize*numCuts -
+				cutSep*(numCuts-1)) / 2 + (nodeWid-activeWid)/2 + cutIndent;
+	
+		// now compute the number of polygons
+		int extraCuts = numCuts*2 - (2-numContacts) * numCuts;
+		Technology.NodeLayer [] layers = np.getLayers();
+		int count = SCALABLE_TOTAL + extraCuts - boxOffset;
+		Technology.NodeLayer [] newNodeLayers = new Technology.NodeLayer[count];
+
+		// load the basic layers
+		int fillIndex = 0;
+		for(int box = boxOffset; box < SCALABLE_TOTAL; box++)
+		{
+			TechPoint [] oldPoints = layers[box].getPoints();
+			TechPoint [] points = new TechPoint[oldPoints.length];
+			for(int i=0; i<oldPoints.length; i++) points[i] = oldPoints[i].duplicate();
+			switch (box)
+			{
+				case SCALABLE_ACTIVE_CTR:		// active that passes through gate
+					points[0].getX().setAdder(actInset);
+					points[0].getX().setAdder(actInset);
+					points[1].getX().setAdder(-actInset);
+					break;
+				case SCALABLE_ACTIVE_TOP:		// active surrounding contacts
+				case SCALABLE_ACTIVE_BOT:
+					points[0].getX().setAdder(actContInset);
+					points[1].getX().setAdder(-actContInset);
+					if (insetContacts)
+					{
+						double shift = 0.5;
+						if (points[0].getY().getAdder() < 0) shift = -0.5;
+						points[0].getY().setAdder(points[0].getY().getAdder() + shift);
+						points[1].getY().setAdder(points[1].getY().getAdder() + shift);
+					}
+					break;
+				case SCALABLE_POLY:				// poly
+					points[0].getX().setAdder(polyInset);
+					points[1].getX().setAdder(-polyInset);
+					break;
+				case SCALABLE_METAL_TOP:		// metal surrounding contacts
+				case SCALABLE_METAL_BOT:
+					points[0].getX().setAdder(metContInset);
+					points[1].getX().setAdder(-metContInset);
+					if (insetContacts)
+					{
+						double shift = 0.5;
+						if (points[0].getY().getAdder() < 0) shift = -0.5;
+						points[0].getY().setAdder(points[0].getY().getAdder() + shift);
+						points[1].getY().setAdder(points[1].getY().getAdder() + shift);
+					}
+					break;
+				case SCALABLE_WELL:				// well and select
+				case SCALABLE_SUBSTRATE:
+					if (insetContacts)
+					{
+						points[0].getY().setAdder(points[0].getY().getAdder() + 0.5);
+						points[1].getY().setAdder(points[1].getY().getAdder() - 0.5);
+					}
+					break;
+			}
+			newNodeLayers[fillIndex] = new Technology.NodeLayer(layers[box].getLayer(), layers[box].getPortNum(),
+				layers[box].getStyle(), layers[box].getRepresentation(), points);
+			fillIndex++;
+		}
+
+		// load the contact cuts
+		for(int box = 0; box < extraCuts; box++)
+		{
+			int oldIndex = SCALABLE_TOTAL;
+			if (box >= numCuts) oldIndex++;
+
+			// make a new description of this layer
+			TechPoint [] oldPoints = layers[oldIndex].getPoints();
+			TechPoint [] points = new TechPoint[oldPoints.length];
+			for(int i=0; i<oldPoints.length; i++) points[i] = oldPoints[i].duplicate();
+			if (numCuts == 1)
+			{
+				points[0].getX().setAdder(ni.getXSize() / 2 - cutSize/2);
+				points[1].getX().setAdder(ni.getXSize() / 2 + cutSize/2);
+			} else
+			{
+				int cut = box % numCuts;
+				double base = cutBase + cut * (cutSize + cutSep);
+				points[0].getX().setAdder(base);
+				points[1].getX().setAdder(base + cutSize);
+			}
+			if (insetContacts)
+			{
+				double shift = 0.5;
+				if (points[0].getY().getAdder() < 0) shift = -0.5;
+				points[0].getY().setAdder(points[0].getY().getAdder() + shift);
+				points[1].getY().setAdder(points[1].getY().getAdder() + shift);
+			}
+			newNodeLayers[fillIndex] = new Technology.NodeLayer(layers[oldIndex].getLayer(), layers[oldIndex].getPortNum(),
+				layers[oldIndex].getStyle(), layers[oldIndex].getRepresentation(), points);
+			fillIndex++;
+		}
+
+		// now let the superclass convert it to Polys
+		return super.getShapeOfNode(ni, wnd, false, reasonable, newNodeLayers, null);
 	}
 
 	/******************** PARAMETERIZABLE DESIGN RULES ********************/
@@ -3802,7 +3978,7 @@ public class MoCMOS extends Technology
 		delVar(TECH_LAST_STATE);
 
 		boolean oldNoStackedVias = (oldBits&MOCMOSNOSTACKEDVIAS) != 0;
-		if (oldNoStackedVias != isDisallowStackedVias())
+//		if (oldNoStackedVias != isDisallowStackedVias())
 		{
 			newVar(cacheDisallowStackedVias.getPrefName(), new Integer(oldNoStackedVias?1:0));
 			Pref.changedMeaningVariable(cacheDisallowStackedVias.getMeaning());
@@ -3817,7 +3993,7 @@ public class MoCMOS extends Technology
 			case MOCMOS5METAL: numMetals = 5;   break;
 			case MOCMOS6METAL: numMetals = 6;   break;
 		}
-		if (numMetals != getNumMetal())
+//		if (numMetals != getNumMetal())
 		{
 			newVar(cacheNumberOfMetalLayers.getPrefName(), new Integer(numMetals));
 			Pref.changedMeaningVariable(cacheNumberOfMetalLayers.getMeaning());
@@ -3830,21 +4006,21 @@ public class MoCMOS extends Technology
 			case MOCMOSDEEPRULES:  ruleSet = DEEPRULES;   break;
 			case MOCMOSSCMOSRULES: ruleSet = SCMOSRULES;  break;
 		}
-		if (ruleSet != getRuleSet())
+//		if (ruleSet != getRuleSet())
 		{
 			newVar(cacheRuleSet.getPrefName(), new Integer(ruleSet));
 			Pref.changedMeaningVariable(cacheRuleSet.getMeaning());
 		}
 
 		boolean alternateContactRules = (oldBits&MOCMOSALTAPRULES) != 0;
-		if (alternateContactRules != isAlternateActivePolyRules())
+//		if (alternateContactRules != isAlternateActivePolyRules())
 		{
 			newVar(cacheAlternateActivePolyRules.getPrefName(), new Integer(alternateContactRules?1:0));
 			Pref.changedMeaningVariable(cacheAlternateActivePolyRules.getMeaning());
 		}
 
 		boolean secondPoly = (oldBits&MOCMOSTWOPOLY) != 0;
-		if (secondPoly != isSecondPolysilicon())
+//		if (secondPoly != isSecondPolysilicon())
 		{
 			newVar(cacheSecondPolysilicon.getPrefName(), new Integer(secondPoly?1:0));
 			Pref.changedMeaningVariable(cacheSecondPolysilicon.getMeaning());
@@ -4127,207 +4303,6 @@ public class MoCMOS extends Technology
 //	}
 //}
 
-///******************** SCALABLE TRANSISTOR DESCRIPTION ********************/
-//
-//INTBIG initializescalabletransistor(NODEINST *ni, INTBIG *reasonable, WINDOWPART *win, POLYLOOP *pl, MOCPOLYLOOP *mocpl)
-//{
-//	REGISTER INTBIG pindex, count, lambda, activewid, requestedwid, extrainset, nodewid, extracuts;
-//	REGISTER INTBIG cutsize, cutindent, cutsep;
-//	INTBIG olx, ohx, oly, ohy;
-//	REGISTER VARIABLE *var;
-//	REGISTER CHAR *pt;
-//	TECH_NODES *thistn;
-//	REGISTER NODEPROTO *np;
-//
-//	// determine the width
-//	np = ni->proto;
-//	pindex = np->primindex;
-//	lambda = lambdaofnode(ni);
-//	nodewid = (ni->highx - ni->lowx) * WHOLE / lambda;
-//	activewid = nodewid - K14;
-//	extrainset = 0;
-//
-//	// determine special configurations (number of active contacts, inset of active contacts)
-//	mocpl->numcontacts = 2;
-//	mocpl->insetcontacts = FALSE;
-//	var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, transcontactkey);
-//	if (var != NOVARIABLE)
-//	{
-//		pt = (CHAR *)var->addr;
-//		if (*pt == '0' || *pt == '1' || *pt == '2')
-//		{
-//			mocpl->numcontacts = *pt - '0';
-//			pt++;
-//		}
-//		if (*pt == 'i' || *pt == 'I') mocpl->insetcontacts = TRUE;
-//	}
-//	mocpl->boxoffset = 4 - mocpl->numcontacts * 2;
-//
-//	// determine width
-//	var = getvalkey((INTBIG)ni, VNODEINST, -1, el_attrkey_width);
-//	if (var != NOVARIABLE)
-//	{
-//		pt = describevariable(var, -1, -1);
-//		if (*pt == '-' || *pt == '+' || isdigit(*pt))
-//		{
-//			requestedwid = atofr(pt);
-//			if (requestedwid > activewid)
-//			{
-//				ttyputmsg(_("Warning: cell %s, node %s requests width of %s but is only %s wide"),
-//					describenodeproto(ni->parent), describenodeinst(ni), frtoa(requestedwid),
-//						frtoa(activewid));
-//			}
-//			if (requestedwid < activewid && requestedwid > 0)
-//			{
-//				extrainset = (activewid - requestedwid) / 2;
-//				activewid = requestedwid;
-//			}
-//		}
-//	}
-//	mocpl->actinset = (nodewid-activewid) / 2;
-//	mocpl->polyinset = mocpl->actinset - K2;
-//	mocpl->actcontinset = K7 + extrainset;
-//
-//	// contacts must be 5 wide at a minimum
-//	if (activewid < K5) mocpl->actcontinset -= (K5-activewid)/2;
-//	mocpl->metcontinset = mocpl->actcontinset + H0;
-//
-//	// determine the multicut information
-//	mocpl->moscutsize = cutsize = mpa.f1;
-//	cutindent = mpa.f3;
-//	mocpl->moscutsep = cutsep = mpa.f4;
-//	nodesizeoffset(ni, &olx, &oly, &ohx, &ohy);
-//	mocpl->numcuts = (activewid-cutindent*2+cutsep) / (cutsize+cutsep);
-//	if (mocpl->numcuts <= 0) mocpl->numcuts = 1;
-//	if (mocpl->numcuts != 1)
-//		mocpl->moscutbase = (activewid-cutindent*2 - cutsize*mocpl->numcuts -
-//			cutsep*(mocpl->numcuts-1)) / 2 + (nodewid-activewid)/2 + cutindent;
-//
-//	// now compute the number of polygons
-//	extracuts = (mocpl->numcuts-1)*2 - (2-mocpl->numcontacts) * mocpl->numcuts;
-//	count = tech_nodepolys(ni, reasonable, win, pl) + extracuts - mocpl->boxoffset;
-//	thistn = np->tech->nodeprotos[pindex-1];
-//	pl->realpolys = thistn->layercount + extracuts;
-//	return(count);
-//}
-//
-//void iteratescalabletransistor(NODEINST *ni, INTBIG box, POLYGON *poly, POLYLOOP *pl, MOCPOLYLOOP *mocpl)
-//{
-//	TECH_POLYGON *lay;
-//	REGISTER INTBIG i, lambda, count, cut, pindex, shift;
-//	REGISTER TECH_NODES *thistn;
-//	REGISTER NODEPROTO *np;
-//	TECH_POLYGON localtp;
-//	INTBIG mypoints[8];
-//
-//	np = ni->proto;
-//	pindex = np->primindex;
-//	thistn = tech->nodeprotos[pindex-1];
-//	box += mocpl->boxoffset;
-//	if (box <= 7)
-//	{
-//		lay = &thistn->layerlist[box];
-//		lambda = lambdaofnode(ni);
-//		localtp.layernum = lay->layernum;
-//		localtp.portnum = lay->portnum;
-//		localtp.count = lay->count;
-//		localtp.style = lay->style;
-//		localtp.representation = lay->representation;
-//		localtp.points = mypoints;
-//		for(i=0; i<8; i++) mypoints[i] = lay->points[i];
-//		switch (box)
-//		{
-//			case 4:		// active that passes through gate
-//				mypoints[1] = mocpl->actinset;
-//				mypoints[5] = -mocpl->actinset;
-//				break;
-//			case 0:		// active surrounding contacts
-//			case 2:
-//				mypoints[1] = mocpl->actcontinset;
-//				mypoints[5] = -mocpl->actcontinset;
-//				if (mocpl->insetcontacts)
-//				{
-//					if (mypoints[3] < 0) shift = -H0; else shift = H0;
-//					mypoints[3] += shift;
-//					mypoints[7] += shift;
-//				}
-//				break;
-//			case 5:		// poly
-//				mypoints[1] = mocpl->polyinset;
-//				mypoints[5] = -mocpl->polyinset;
-//				break;
-//			case 1:		// metal surrounding contacts
-//			case 3:
-//				mypoints[1] = mocpl->metcontinset;
-//				mypoints[5] = -mocpl->metcontinset;
-//				if (mocpl->insetcontacts)
-//				{
-//					if (mypoints[3] < 0) shift = -H0; else shift = H0;
-//					mypoints[3] += shift;
-//					mypoints[7] += shift;
-//				}
-//				break;
-//			case 6:		// well and select
-//			case 7:
-//				if (mocpl->insetcontacts)
-//				{
-//					mypoints[3] += H0;
-//					mypoints[7] -= H0;
-//				}
-//				break;
-//		}
-//		tech_fillpoly(poly, &localtp, ni, lambda, FILLED);
-//		poly->desc = tech->layers[poly->layer];
-//		if (lay->portnum < 0) poly->portproto = NOPORTPROTO; else
-//			poly->portproto = thistn->portlist[lay->portnum].addr;
-//		return;
-//	}
-//	if (box >= pl->realpolys)
-//	{
-//		// displayable variables
-//		(void)tech_filldisplayablenvar(ni, poly, pl->curwindowpart, 0, pl);
-//		return;
-//	}
-//
-//	// multiple contact cuts
-//	count = thistn->layercount - 2;
-//	if (box >= count)
-//	{
-//		lambda = lambdaofnode(ni);
-//		lay = &thistn->layerlist[count+(box-count) / mocpl->numcuts];
-//		cut = (box-count) % mocpl->numcuts;
-//		localtp.layernum = lay->layernum;
-//		localtp.portnum = lay->portnum;
-//		localtp.count = lay->count;
-//		localtp.style = lay->style;
-//		localtp.representation = lay->representation;
-//		localtp.points = mypoints;
-//		for(i=0; i<8; i++) mypoints[i] = lay->points[i];
-//
-//		if (mocpl->numcuts == 1)
-//		{
-//			mypoints[1] = (ni->highx-ni->lowx)/2 * WHOLE/lambda - mocpl->moscutsize/2;
-//			mypoints[5] = (ni->highx-ni->lowx)/2 * WHOLE/lambda + mocpl->moscutsize/2;
-//		} else
-//		{
-//			mypoints[1] = mocpl->moscutbase + cut * (mocpl->moscutsize + mocpl->moscutsep);
-//			mypoints[5] = mypoints[1] + mocpl->moscutsize;
-//		}
-//		if (mocpl->insetcontacts)
-//		{
-//			if (mypoints[3] < 0) shift = -H0; else shift = H0;
-//			mypoints[3] += shift;
-//			mypoints[7] += shift;
-//		}
-//
-//		tech_fillpoly(poly, &localtp, ni, lambda, FILLED);
-//		poly->desc = tech->layers[poly->layer];
-//		poly->portproto = NOPORTPROTO;
-//		return;
-//	}
-//	tech_shapenodepoly(ni, box, poly, pl);
-//}
-//
 ///******************** ARC DESCRIPTION ********************/
 //
 //void intshapearcpoly(ARCINST *ai, INTBIG box, POLYGON *poly, POLYLOOP *pl, MOCPOLYLOOP *mocpl)

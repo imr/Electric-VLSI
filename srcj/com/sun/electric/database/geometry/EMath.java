@@ -69,6 +69,35 @@ public class EMath
 		public String toString() { return Integer.toString(value); }
 	}
 
+	/**
+	 * Method to compare two objects for equality.
+	 * This does more than a simple "equal" because they may have the same value
+	 * but have diffent type (one Float, the other Double).
+	 * @param first the first object to compare.
+	 * @param second the second object to compare.
+	 * @return true if they are equal.
+	 */
+	public static boolean objectsReallyEqual(Object first, Object second)
+	{
+		// a simple test
+		if (first.equals(second)) return true;
+
+		// better comparison of numbers (because one may be Float and the other Double)
+		boolean firstNumeric = false, secondNumeric = false;
+		double firstValue = 0, secondValue = 0;
+		if (first instanceof Float) { firstNumeric = true; firstValue = ((Float)first).floatValue(); } else
+		if (first instanceof Double) { firstNumeric = true; firstValue = ((Double)first).doubleValue(); } else
+		if (first instanceof Integer) { firstNumeric = true; firstValue = ((Integer)first).intValue(); }
+		if (second instanceof Float) { secondNumeric = true; secondValue = ((Float)second).floatValue(); } else
+		if (second instanceof Double) { secondNumeric = true; secondValue = ((Double)second).doubleValue(); } else
+		if (second instanceof Integer) { secondNumeric = true; secondValue = ((Integer)second).intValue(); }
+		if (firstNumeric && secondNumeric)
+		{
+			if (firstValue == secondValue) return true;
+		}
+		return false;
+	}
+
 	/** A transformation matrix that does nothing (identity). */
 	public static final AffineTransform MATID = new AffineTransform();
 

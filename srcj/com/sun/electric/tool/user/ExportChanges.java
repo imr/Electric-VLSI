@@ -550,6 +550,39 @@ public final class ExportChanges
 	}
 
 	/**
+	 * Method to delete the currently selected exports.
+	 */
+	public static void deleteExport()
+	{
+		// make sure there is a current cell
+		Cell cell = WindowFrame.needCurCell();
+		if (cell == null) return;
+
+		// disallow port action if lock is on
+		if (CircuitChanges.cantEdit(cell, null, true)) return;
+
+		List exportsToDelete = new ArrayList();
+		List highs = Highlight.getHighlightedText();
+		for(Iterator it = highs.iterator(); it.hasNext(); )
+		{
+			Highlight h = (Highlight)it.next();
+			if (h.getVar() != null) continue;
+			if (h.getName() != null) continue;
+			if (h.getElectricObject() instanceof Export)
+			{
+				Export pp = (Export)h.getElectricObject();
+				exportsToDelete.add(pp);
+			}
+		}
+		if (exportsToDelete.size() == 0)
+		{
+			System.out.println("There are no selected exports to delete");
+			return;
+		}
+		DeleteExports job = new DeleteExports(exportsToDelete);
+	}
+
+	/**
 	 * Method to delete all exports on the highlighted objects.
 	 */
 	public static void deleteExportsOnHighlighted()
@@ -624,6 +657,69 @@ public final class ExportChanges
 		DeleteExports job = new DeleteExports(exportsToDelete);
 	}
 
+	/**
+	 * Method to move the currently selected export from one node to another.
+	 */
+	public static void moveExport()
+	{
+		Export source = null;
+		PortInst dest = null;
+		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
+		{
+			Highlight h = (Highlight)it.next();
+			boolean used = false;
+			if (h.getType() == Highlight.Type.EOBJ)
+			{
+				if (h.getElectricObject() instanceof PortInst)
+				{
+					if (dest != null)
+					{
+						System.out.println("Must select only one node-port as a destination of the move");
+						return;
+					}
+					dest = (PortInst)h.getElectricObject();
+					used = true;
+				}
+			} else if (h.getType() == Highlight.Type.TEXT)
+			{
+				if (h.getVar() == null && h.getName() == null && h.getElectricObject() instanceof Export)
+				{
+					source = (Export)h.getElectricObject();
+					used = true;
+				}
+			}
+			if (!used)
+			{
+				System.out.println("Moving exports: select one export to move, and one node-port as its destination");
+				return;
+			
+			}
+		}
+		if (source == null || dest == null)
+		{
+			System.out.println("First select one export to move, and one node-port as its destination");
+			return;
+		}
+		MoveExport job = new MoveExport(source, dest);
+	}
+
+	/**
+	 * Method to rename the currently selected export.
+	 */
+	public static void renameExport()
+	{
+		Highlight h = Highlight.getOneHighlight();
+		if (h.getVar() != null || h.getName() != null || !(h.getElectricObject() instanceof Export))
+		{
+			System.out.println("Must select an export name before renaming it");
+			return;
+		}
+		Export pp = (Export)h.getElectricObject();
+		String response = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "Rename export", pp.getProtoName());
+		if (response == null) return;
+		RenameExport job = new RenameExport(pp, response);
+	}
+
 	protected static class DeleteExports extends Job
 	{
 		List exportsToDelete;
@@ -637,6 +733,10 @@ public final class ExportChanges
 
 		public void doIt()
 		{
+			// clear the highlighting
+			Highlight.clear();
+			Highlight.finished();
+
 			int total = 0;
 			for(Iterator it = exportsToDelete.iterator(); it.hasNext(); )
 			{
@@ -646,6 +746,47 @@ public final class ExportChanges
 			}
 			if (total == 0) System.out.println("No exports deleted"); else
 				System.out.println(total + " exports deleted");
+		}
+	}
+
+	protected static class MoveExport extends Job
+	{
+		Export source;
+		PortInst dest;
+
+		protected MoveExport(Export source, PortInst dest)
+		{
+			super("Move export", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.source = source;
+			this.dest = dest;
+			startJob();
+		}
+
+		public void doIt()
+		{
+			source.move(dest);
+		}
+	}
+
+	/**
+	 * Class to rename a cell in a new thread.
+	 */
+	protected static class RenameExport extends Job
+	{
+		Export pp;
+		String newName;
+
+		protected RenameExport(Export pp, String newName)
+		{
+			super("Rename Export" + pp.getProtoName(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.pp = pp;
+			this.newName = newName;
+			startJob();
+		}
+
+		public void doIt()
+		{
+			pp.rename(newName);
 		}
 	}
 
@@ -851,6 +992,8 @@ public final class ExportChanges
 			Highlight.addLine(labelLocs[i], portList[index].loc, cell);
 		}
 		Highlight.finished();
+		if (total == 0)
+			System.out.println("No exported ports to show");
 		if (ignored > 0)
 			System.out.println("Could not display " + ignored + " ports (outside of the window)");
 	}

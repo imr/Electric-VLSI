@@ -876,9 +876,7 @@ public class ExplorerTree extends JTree
 		private void renameLibraryAction()
 		{
 			Library lib = (Library)currentSelectedObject;
-			String response = JOptionPane.showInputDialog(tree, "New name for library:", lib.getLibName());
-			if (response == null) return;
-			System.out.println("Want to rename library " + lib.getLibName() + " to " + response + " BUT CAN'T YET");
+			CircuitChanges.renameLibrary(lib);
 		}
 
 		private void deleteLibraryAction()

@@ -980,14 +980,27 @@ public class User extends Listener
 	/**
 	 * Method to tell whether Duplicate/Paste/Array of NodeInst copies exports.
 	 * The default is "false".
-	 * @return true if the system copies exports when doing a Duplicate/Paste/Array of NodeInst.
+	 * @return true if the system copies exports when doing a Duplicate/Paste/Array of a NodeInst.
 	 */
 	public static boolean isDupCopiesExports() { return cacheDupCopiesExports.getBoolean(); }
 	/**
 	 * Method to set whether Duplicate/Paste/Array of NodeInst copies exports.
-	 * @param on true if the system copies exports when doing a Duplicate/Paste/Array of NodeInst.
+	 * @param on true if the system copies exports when doing a Duplicate/Paste/Array of a NodeInst.
 	 */
 	public static void setDupCopiesExports(boolean on) { cacheDupCopiesExports.setBoolean(on); }
+
+	private static Pref cacheExtractCopiesExports = Pref.makeBooleanPref("ExtractCopiesExports", User.tool.prefs, false);
+	/**
+	 * Method to tell whether Extract of NodeInst copies exports.
+	 * The default is "false".
+	 * @return true if the system copies exports when doing an Extract of a NodeInst.
+	 */
+	public static boolean isExtractCopiesExports() { return cacheExtractCopiesExports.getBoolean(); }
+	/**
+	 * Method to set whether Extract of NodeInst copies exports.
+	 * @param on true if the system copies exports when doing an Extract of a NodeInst.
+	 */
+	public static void setExtractCopiesExports(boolean on) { cacheExtractCopiesExports.setBoolean(on); }
 
 	private static Pref cacheNewNodeRotation = Pref.makeIntPref("NewNodeRotation", User.tool.prefs, 0);
 	/**

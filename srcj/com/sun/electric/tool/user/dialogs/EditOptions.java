@@ -32,6 +32,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
@@ -236,6 +237,7 @@ public class EditOptions extends EDialog
 	private boolean initialNewNodesDisallowModificationLockedPrims;
 	private boolean initialNewNodesMoveAfterDuplicate;
 	private boolean initialNewNodesDupCopiesExports;
+	private boolean initialNewNodesExtractCopiesExports;
 	private boolean newNodesDataChanging = false;
 
 	/**
@@ -250,8 +252,9 @@ public class EditOptions extends EDialog
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
 			PrimNodeInfo pni = new PrimNodeInfo();
-			pni.initialWid = pni.wid = np.getDefWidth();
-			pni.initialHei = pni.hei = np.getDefHeight();
+			SizeOffset so = np.getSizeOffset();
+			pni.initialWid = pni.wid = np.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
+			pni.initialHei = pni.hei = np.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
 			initialNewNodesPrimInfo.put(np, pni);
 			nodePrimitive.addItem(np.getProtoName());
 		}
@@ -265,8 +268,9 @@ public class EditOptions extends EDialog
 		// set checkboxes for "all nodes" area
 		nodeDisallowModificationLockedPrims.setSelected(initialNewNodesDisallowModificationLockedPrims = User.isDisallowModificationLockedPrims());
 		nodeMoveAfterDuplicate.setSelected(initialNewNodesMoveAfterDuplicate = User.isMoveAfterDuplicate());
-		nodeCopyExports.setSelected(initialNewNodesDupCopiesExports = User.isDupCopiesExports());
-
+		nodeDupArrayCopyExports.setSelected(initialNewNodesDupCopiesExports = User.isDupCopiesExports());
+		nodeExtractCopyExports.setSelected(initialNewNodesExtractCopiesExports = User.isExtractCopiesExports());
+		
 		// setup listeners to react to any changes to a primitive size
 		nodePrimitive.addActionListener(new ActionListener()
 		{
@@ -331,7 +335,12 @@ public class EditOptions extends EDialog
 			PrimitiveNode np = (PrimitiveNode)it.next();
 			PrimNodeInfo pni = (PrimNodeInfo)initialNewNodesPrimInfo.get(np);
 			if (pni.wid != pni.initialWid || pni.hei != pni.initialHei)
+			{
+				SizeOffset so = np.getSizeOffset();
+				pni.wid += so.getLowXOffset() + so.getHighXOffset();
+				pni.hei += so.getLowYOffset() + so.getHighYOffset();
 				np.setDefSize(pni.wid, pni.hei);
+			}
 		}
 
 		boolean currentCheckCellDates = nodeCheckCellDates.isSelected();
@@ -354,9 +363,13 @@ public class EditOptions extends EDialog
 		if (currentMoveAfterDuplicate != initialNewNodesMoveAfterDuplicate)
 			User.setMoveAfterDuplicate(currentMoveAfterDuplicate);
 
-		boolean currentCopyExports = nodeCopyExports.isSelected();
+		boolean currentCopyExports = nodeDupArrayCopyExports.isSelected();
 		if (currentCopyExports != initialNewNodesDupCopiesExports)
 			User.setDupCopiesExports(currentCopyExports);
+
+		boolean currentExtractCopyExports = nodeExtractCopyExports.isSelected();
+		if (currentExtractCopyExports != initialNewNodesExtractCopiesExports)
+			User.setExtractCopiesExports(currentExtractCopyExports);
 	}
 
 	//******************************** NEW ARCS ********************************
@@ -1666,7 +1679,8 @@ public class EditOptions extends EDialog
         jPanel4 = new javax.swing.JPanel();
         nodeDisallowModificationLockedPrims = new javax.swing.JCheckBox();
         nodeMoveAfterDuplicate = new javax.swing.JCheckBox();
-        nodeCopyExports = new javax.swing.JCheckBox();
+        nodeDupArrayCopyExports = new javax.swing.JCheckBox();
+        nodeExtractCopyExports = new javax.swing.JCheckBox();
         newArc = new javax.swing.JPanel();
         jPanel7 = new javax.swing.JPanel();
         arcRigid = new javax.swing.JCheckBox();
@@ -2079,7 +2093,6 @@ public class EditOptions extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         jPanel4.add(nodeDisallowModificationLockedPrims, gridBagConstraints);
@@ -2088,19 +2101,25 @@ public class EditOptions extends EDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         jPanel4.add(nodeMoveAfterDuplicate, gridBagConstraints);
 
-        nodeCopyExports.setText("Duplicate/Array/Extract copies exports");
+        nodeDupArrayCopyExports.setText("Duplicate/Array/Paste copies exports");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        jPanel4.add(nodeDupArrayCopyExports, gridBagConstraints);
+
+        nodeExtractCopyExports.setText("Extract copies exports");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
-        jPanel4.add(nodeCopyExports, gridBagConstraints);
+        jPanel4.add(nodeExtractCopyExports, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -3808,8 +3827,9 @@ public class EditOptions extends EDialog
     private javax.swing.ButtonGroup newArcGroup;
     private javax.swing.JPanel newNode;
     private javax.swing.JCheckBox nodeCheckCellDates;
-    private javax.swing.JCheckBox nodeCopyExports;
     private javax.swing.JCheckBox nodeDisallowModificationLockedPrims;
+    private javax.swing.JCheckBox nodeDupArrayCopyExports;
+    private javax.swing.JCheckBox nodeExtractCopyExports;
     private javax.swing.JCheckBox nodeMoveAfterDuplicate;
     private javax.swing.JCheckBox nodePlaceCellCenter;
     private javax.swing.JComboBox nodePrimitive;

@@ -691,7 +691,7 @@ public class EditWindow
 
 	// ************************************* CELL FRAME *************************************
 
-	private static final double FRAMESCALE = 170.0;
+	private static final double FRAMESCALE = 18.0;
 	private static final double HASCHXSIZE = ( 8.5  * FRAMESCALE);
 	private static final double HASCHYSIZE = ( 5.5  * FRAMESCALE);
 	private static final double ASCHXSIZE  = (11.0  * FRAMESCALE);
@@ -810,7 +810,7 @@ public class EditWindow
 			showFrameLine(g, point3, point0);
 
 			Point2D textSize = deltaDatabaseToScreen(frameWid, frameWid);
-			int height = (int)Math.abs(textSize.getY());
+			int height = (int)Math.abs(textSize.getY()) - 2;
 
 			// tick marks along the top and bottom sides
 			for(int i=0; i<xSections; i++)

@@ -23,12 +23,15 @@
  */
 package com.sun.electric.database.text;
 
+import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.user.dialogs.OptionReconcile;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.prefs.Preferences;
@@ -70,6 +73,7 @@ public class Pref
 	public static class Meaning
 	{
 		private ElectricObject eObj;
+		private boolean valid;
 		private Object desiredValue;
 		private Pref pref;
 		private String description, location;
@@ -89,6 +93,7 @@ public class Pref
 			this.pref = pref;
 			this.location = location;
 			this.description = description;
+			this.valid = true;
 		}
 
 		/**
@@ -114,6 +119,16 @@ public class Pref
 		 * @return the Pref description of this Meaning option.
 		 */
 		public String getDescription() { return description; }
+
+		public void setValidOption(boolean valid) { this.valid = valid; }
+
+		/**
+		 * Method to tell whether this Meaning option is valid and should be reconciled.
+		 * Some should not, for example, the scale value on technologies that
+		 * don't use scaling (such as Schematics, Artwork, etc.)
+		 * @return true if this Meaning option is valid and should be reconciled.
+		 */
+		public boolean isValidOption() { return valid; }
 
 		/**
 		 * Method to associate an array of strings to be used for integer Meaning options.
@@ -152,7 +167,7 @@ public class Pref
 	protected Object      factoryObj;
 
 	private static List allPrefs = new ArrayList();
-	private static List meaningVariablesThatChanged;
+	private static Set meaningVariablesThatChanged;
 
 	protected Pref() {}
 
@@ -533,7 +548,7 @@ public class Pref
 	 */
 	public static void initMeaningVariableGathering()
 	{
-		meaningVariablesThatChanged = new ArrayList();
+		meaningVariablesThatChanged = new HashSet();
 	}
 
 	/**
@@ -565,12 +580,13 @@ public class Pref
 		{
 			Meaning meaning = (Meaning)it.next();
 			meaning.marked = true;
-//System.out.println("Found meaning variable "+meaning.pref.name+" found on " + meaning.eObj);
 			Variable var = meaning.eObj.getVar(meaning.pref.name);
 			if (var == null) continue;
 			Object obj = var.getObject();
-			if (obj.equals(meaning.pref.cachedObj)) continue;
+			if (EMath.objectsReallyEqual(obj, meaning.pref.cachedObj)) continue;
 			meaning.setDesiredValue(obj);
+			if (!meaning.isValidOption()) continue;
+System.out.println("Meaning variable "+meaning.pref.name+" found on " + meaning.eObj+" is "+obj+" but is cached as "+meaning.pref.cachedObj);
 			meaningsToReconcile.add(meaning);
 		}
 		for(Iterator it = allPrefs.iterator(); it.hasNext(); )
@@ -580,10 +596,11 @@ public class Pref
 			if (pref.meaning.marked) continue;
 
 			// this one is not mentioned in the library: make sure it is at factory defaults
-			if (pref.cachedObj.equals(pref.factoryObj)) continue;
+			if (EMath.objectsReallyEqual(pref.cachedObj, pref.factoryObj)) continue;
 
-//System.out.println("Adding fake meaning variable "+pref.name+" where current="+pref.cachedObj+" but should be "+pref.factoryObj);
+System.out.println("Adding fake meaning variable "+pref.name+" where current="+pref.cachedObj+" but should be "+pref.factoryObj);
 			pref.meaning.setDesiredValue(pref.factoryObj);
+			if (!pref.meaning.isValidOption()) continue;
 			meaningsToReconcile.add(pref.meaning);
 		}
 

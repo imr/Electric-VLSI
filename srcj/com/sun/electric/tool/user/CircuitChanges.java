@@ -34,9 +34,11 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -51,6 +53,8 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
+import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -64,6 +68,8 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.Date;
 import java.util.ArrayList;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.Comparator;
 import java.util.Collections;
 import javax.swing.JOptionPane;
@@ -654,7 +660,12 @@ public class CircuitChanges
 	 */
 	public static void arcDirectionalCommand()
 	{
-		int numSet = 0;
+		setSelectedArcs(1);
+	}
+
+	private static void setSelectedArcs(int how)
+	{
+		int numSet = 0, numUnset = 0;
 		for(Iterator it = Highlight.getHighlights(); it.hasNext(); )
 		{
 			Highlight h = (Highlight)it.next();
@@ -663,17 +674,409 @@ public class CircuitChanges
 			if (eobj instanceof ArcInst)
 			{
 				ArcInst ai = (ArcInst)eobj;
-				if (!ai.isDirectional())
+				switch (how)
 				{
-					ai.setDirectional();
-					numSet++;
+					case 1:		// directional
+						if (ai.isDirectional())
+						{
+							ai.clearDirectional();
+							numUnset++;
+						} else
+						{
+							ai.setDirectional();
+							numSet++;
+						}
+						break;
+					case 2:		// end-extended
+						if (ai.isExtended())
+						{
+							ai.clearExtended();
+							numUnset++;
+						} else
+						{
+							ai.setExtended();
+							numSet++;
+						}
+						break;
+					case 3:		// reverse end
+						if (ai.isReverseEnds())
+						{
+							ai.clearReverseEnds();
+							numUnset++;
+						} else
+						{
+							ai.setReverseEnds();
+							numSet++;
+						}
+						break;
+					case 4:		// skip head
+						if (ai.isSkipHead())
+						{
+							ai.clearSkipHead();
+							numUnset++;
+						} else
+						{
+							ai.setSkipHead();
+							numSet++;
+						}
+						break;
+					case 5:		// skip tai;
+						if (ai.isSkipTail())
+						{
+							ai.clearSkipTail();
+							numUnset++;
+						} else
+						{
+							ai.setSkipTail();
+							numSet++;
+						}
+						break;
 				}
 			}
 		}
-		if (numSet == 0) System.out.println("No arcs made Directional"); else
+		if (numSet == 0 && numUnset == 0) System.out.println("No changes were made"); else
 		{
-			System.out.println("Made " + numSet + " arcs Directional");
+			if (how == 3) { numSet += numUnset;   numUnset= 0; }
+			String action = "Directional";
+			switch (how)
+			{
+				case 2: action = "have ends extended";   break;
+				case 3: action = "reversed";   break;
+				case 4: action = "skip head";   break;
+				case 5: action = "skip tail";   break;
+			}
+			if (numUnset == 0) System.out.println("Made " + numSet + " arcs " + action); else
+				if (numSet == 0) System.out.println("Made " + numUnset + " arcs not " + action); else
+					System.out.println("Made " + numSet + " arcs " + action + "; and " + numUnset + " arcs not " + action);
 			EditWindow.repaintAllContents();
+		}
+	}
+
+	/**
+	 * This method sets the highlighted arcs to be End-Extended.
+	 */
+	public static void arcEndsExtendCommand()
+	{
+		setSelectedArcs(2);
+	}
+
+	/**
+	 * This method sets the highlighted arcs to be Reversed.
+	 */
+	public static void arcReverseCommand()
+	{
+		setSelectedArcs(3);
+	}
+
+	/**
+	 * This method sets the highlighted arcs to have their head skipped.
+	 */
+	public static void arcSkipHeadCommand()
+	{
+		setSelectedArcs(4);
+	}
+
+	/**
+	 * This method sets the highlighted arcs to have their tail skipped.
+	 */
+	public static void arcSkipTailCommand()
+	{
+		setSelectedArcs(5);
+	}
+
+	/**
+	 * Method to rip the currently selected bus arc out into individual wires.
+	 */
+	public static void ripBus()
+	{
+		List list = Highlight.getHighlighted(false, true);
+		if (list.size() == 0)
+		{
+			System.out.println("Must select bus arcs to rip into individual signals");
+			return;
+		}
+		RipTheBus job = new RipTheBus(list);
+	}
+
+	private static class RipTheBus extends Job
+	{
+		List list;
+
+		protected RipTheBus(List list)
+		{
+			super("Rip Bus", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.list = list;
+			startJob();
+		}
+
+		public void doIt()
+		{
+			for(Iterator it = list.iterator(); it.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)it.next();
+				if (ai.getProto() != Schematics.tech.bus_arc) continue;
+				Netlist netList = ai.getParent().getUserNetlist();
+				int busWidth = netList.getBusWidth(ai);
+				String netName = netList.getNetworkName(ai);
+				if (netName.length() == 0)
+				{
+					System.out.println("Bus " + ai.describe() + " has no name");
+					continue;
+				}
+
+				// determine length of stub wires
+				double stublen = (int)(ai.getLength() / 3 + 0.5);
+				double lowXBus = 0, lowYBus = 0;
+				int lowEnd = 1;
+				double sepX = 0, sepY = 0;
+				double lowX = 0, lowY = 0;
+
+				// determine location of individual signals
+				if (ai.getHead().getLocation().getX() == ai.getTail().getLocation().getX())
+				{
+					lowX = ai.getHead().getLocation().getX();
+					if (lowX < ai.getParent().getBounds().getCenterX()) lowX += stublen; else
+						lowX -= stublen;
+
+					if (ai.getConnection(0).getLocation().getY() < ai.getConnection(1).getLocation().getY()) lowEnd = 0;
+					lowY = (int)(ai.getConnection(lowEnd).getLocation().getY());
+					double highy = (int)(ai.getConnection(1-lowEnd).getLocation().getY());
+					if (highy-lowY >= busWidth-1)
+					{
+						// signals fit on grid
+						sepY = (int)((highy-lowY) / (busWidth-1));
+						lowY = (int)(((highy - lowY) - (sepY * (busWidth-1))) / 2 + lowY);
+					} else
+					{
+						// signals don't fit: just make them even
+						lowY = ai.getConnection(lowEnd).getLocation().getY();
+						highy = ai.getConnection(1-lowEnd).getLocation().getY();
+						sepY = (highy-lowY) / (busWidth-1);
+					}
+					lowXBus = ai.getTail().getLocation().getX();   lowYBus = lowY;
+				} else if (ai.getTail().getLocation().getY() == ai.getHead().getLocation().getY())
+				{
+					lowY = ai.getTail().getLocation().getY();
+					if (lowY < ai.getParent().getBounds().getCenterY()) lowY += stublen; else
+						lowY -= stublen;
+
+					if (ai.getConnection(0).getLocation().getX() < ai.getConnection(1).getLocation().getX()) lowEnd = 0;
+					lowX = (int)(ai.getConnection(lowEnd).getLocation().getX());
+					double highx = (int)(ai.getConnection(1-lowEnd).getLocation().getX());
+					if (highx-lowX >= busWidth-1)
+					{
+						// signals fit on grid
+						sepX = (int)((highx-lowX) / (busWidth-1));
+						lowX = (int)(((highx - lowX) - (sepX * (busWidth-1))) / 2 + lowX);
+					} else
+					{
+						// signals don't fit: just make them even
+						lowX = ai.getConnection(lowEnd).getLocation().getX();
+						highx = ai.getConnection(1-lowEnd).getLocation().getX();
+						sepX = (highx-lowX) / (busWidth-1);
+					}
+					lowXBus = lowX;   lowYBus = ai.getTail().getLocation().getY();
+				} else
+				{
+					System.out.println("Bus " + ai.describe() + " must be horizontal or vertical to be ripped out");
+					continue;
+				}
+
+				// copy names to a local array
+				String [] localStrings = new String[busWidth];
+				for(int i=0; i<busWidth; i++)
+				{
+					JNetwork subNet = netList.getNetwork(ai, i);
+					if (subNet.hasNames()) localStrings[i] = (String)subNet.getNames().next(); else
+						localStrings[i] = subNet.describe();
+				}
+
+				// turn off highlighting
+				Highlight.clear();
+				Highlight.finished();
+
+				double sxw = Schematics.tech.wirePinNode.getDefWidth();
+				double syw = Schematics.tech.wirePinNode.getDefHeight();
+				double sxb = Schematics.tech.busPinNode.getDefWidth();
+				double syb = Schematics.tech.busPinNode.getDefHeight();
+				ArcProto apW = Schematics.tech.wire_arc;
+				ArcProto apB = Schematics.tech.bus_arc;
+				NodeInst niBLast = null;
+				for(int i=0; i<busWidth; i++)
+				{
+					// make the wire pin
+					NodeInst niw = NodeInst.makeInstance(Schematics.tech.wirePinNode, new Point2D.Double(lowX, lowY), sxw, syw, 0, ai.getParent(), null);
+					if (niw == null) break;
+
+					// make the bus pin
+					NodeInst nib = NodeInst.makeInstance(Schematics.tech.busPinNode, new Point2D.Double(lowXBus, lowYBus), sxb, syb, 0, ai.getParent(), null);
+					if (nib == null) break;
+
+					// wire them
+					PortInst head = niw.getOnlyPortInst();
+					PortInst tail = nib.getOnlyPortInst();
+					ArcInst aiw = ArcInst.makeInstance(apW, apW.getDefaultWidth(), head, tail, null);
+					if (aiw == null) break;
+					aiw.setName(localStrings[i]);
+
+					// wire to the bus pin
+					if (i == 0)
+					{
+						PortInst first = ai.getConnection(lowEnd).getPortInst();
+						aiw = ArcInst.makeInstance(apB, apB.getDefaultWidth(), first, tail, null);
+					} else
+					{
+						PortInst first = niBLast.getOnlyPortInst();
+						aiw = ArcInst.makeInstance(apB, apB.getDefaultWidth(), first, tail, null);
+					}
+					if (aiw == null) break;
+
+					// advance to the next segment
+					niBLast = nib;
+					lowX += sepX;      lowY += sepY;
+					lowXBus += sepX;   lowYBus += sepY;
+				}
+
+				// wire up the last segment
+				PortInst head = niBLast.getOnlyPortInst();
+				PortInst tail = ai.getConnection(1-lowEnd).getPortInst();
+				ArcInst aiw = ArcInst.makeInstance(apB, apB.getDefaultWidth(), head, tail, null);
+				if (aiw == null) return;
+				aiw.setName(netName);
+
+				// remove original arc
+				ai.kill();
+			}
+		}
+	}
+
+	/****************************** DELETE SELECTED GEOMETRY ******************************/
+
+	/**
+	 * Method to delete all selected objects.
+	 */
+	public static void deleteSelectedGeometry()
+	{
+		DeleteSelectedGeometry job = new DeleteSelectedGeometry();
+	}
+
+	private static class DeleteSelectedGeometry extends Job
+	{
+		protected DeleteSelectedGeometry()
+		{
+			super("Delete selected geometry", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			startJob();
+		}
+
+		public void doIt()
+		{
+			EditWindow wnd = EditWindow.getCurrent();
+			Cell cell = null;
+			if (wnd != null) cell = wnd.getCell();
+			if (cell == null)
+			{
+				System.out.println("No current cell");
+				return;
+			}
+
+			// disallow erasing if lock is on
+			if (cantEdit(cell, null, true)) return;
+
+			Rectangle2D bounds = Highlight.getHighlightedArea(wnd);
+			if (bounds == null)
+			{
+				System.out.println("Outline an area first");
+				return;
+			}
+
+			// grid the area
+			double lX = Math.floor(bounds.getMinX());
+			double hX = Math.ceil(bounds.getMaxX());
+			double lY = Math.floor(bounds.getMinY());
+			double hY = Math.ceil(bounds.getMaxY());
+
+			// crop arcs that cross the area boundary
+			List arcsInCell = new ArrayList();
+			for(Iterator aIt = cell.getArcs(); aIt.hasNext(); )
+				arcsInCell.add(aIt.next());
+			for(Iterator aIt = arcsInCell.iterator(); aIt.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)aIt.next();
+
+				// if an end is inside, ignore
+				Point2D headPt = ai.getHead().getLocation();
+				Point2D tailPt = ai.getTail().getLocation();
+
+				// if length is zero, ignore
+				if (tailPt.getX() == headPt.getX() &&
+					tailPt.getY() == headPt.getY()) continue;
+
+				// if the arc doesn't intersect the area, ignore
+				double halfWidth = (ai.getWidth() - ai.getProto().getWidthOffset()) / 2;
+				double lXExt = lX - halfWidth;
+				double hXExt = hX + halfWidth;
+				double lYExt = lY - halfWidth;
+				double hYExt = hY + halfWidth;
+				Point2D tailPtAdj = new Point2D.Double(tailPt.getX(), tailPt.getY());
+				Point2D headPtAdj = new Point2D.Double(headPt.getX(), headPt.getY());
+				if (EMath.clipLine(tailPtAdj, headPtAdj, lXExt, hXExt, lYExt, hYExt)) continue;
+				if (tailPtAdj.distance(headPt) + headPtAdj.distance(tailPt) <
+					headPtAdj.distance(headPt) + tailPtAdj.distance(tailPt))
+				{
+					Point2D swap = headPtAdj;
+					headPtAdj = tailPtAdj;
+					tailPtAdj = swap;
+				}
+				if (!tailPt.equals(tailPtAdj))
+				{
+					// create a pin at this point
+					PrimitiveNode pin = ((PrimitiveArc)ai.getProto()).findPinProto();
+					NodeInst ni = NodeInst.makeInstance(pin, tailPtAdj, pin.getDefWidth(), pin.getDefHeight(), 0, cell, null);
+					if (ni == null) continue;
+
+					ArcInst ai1 = ArcInst.makeInstance(ai.getProto(), ai.getWidth(),
+						ai.getTail().getPortInst(), ai.getTail().getLocation(),
+						ni.getOnlyPortInst(), tailPtAdj, ai.getName());
+					if (ai1 == null) continue;
+					ai.copyVars(ai1);
+				}
+				if (!headPt.equals(headPtAdj))
+				{
+					// create a pin at this point
+					PrimitiveNode pin = ((PrimitiveArc)ai.getProto()).findPinProto();
+					NodeInst ni = NodeInst.makeInstance(pin, headPtAdj, pin.getDefWidth(), pin.getDefHeight(), 0, cell, null);
+					if (ni == null) continue;
+
+					ArcInst ai1 = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), ni.getOnlyPortInst(), headPtAdj,
+						ai.getHead().getPortInst(), ai.getHead().getLocation(), ai.getName());
+					if (ai1 == null) continue;
+					ai.copyVars(ai1);
+				}
+				ai.kill();
+			}
+
+			// now remove nodes in the area
+			List nodesToDelete = new ArrayList();
+			for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)nIt.next();
+		
+				// if the node is outside of the area, ignore it
+				double cX = ni.getTrueCenterX();
+				double cY = ni.getTrueCenterY();
+				if (cX > hX || cX < lX || cY > hY || cY < lY) continue;
+		
+				// if it cannot be modified, stop
+				if (cantEdit(cell, ni, true)) continue;
+				nodesToDelete.add(ni);
+			}
+
+			// delete the nodes
+			for(Iterator nIt = nodesToDelete.iterator(); nIt.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)nIt.next();
+				eraseNodeInst(ni);		
+			}
 		}
 	}
 
@@ -1157,6 +1560,375 @@ public class CircuitChanges
 				System.out.println("Deleted " + totalDeleted + " cells");
 				EditWindow.repaintAll();
 			}
+		}
+	}
+
+	/****************************** EXTRACT CELL INSTANCES ******************************/
+
+	/**
+	 * Method to package the selected objects into a new cell.
+	 */
+	public static void packageIntoCell()
+	{
+		// get the specified area
+		EditWindow wnd = EditWindow.needCurrent();
+		if (wnd == null) return;
+		Cell curCell = wnd.getCell();
+		if (curCell == null)
+		{
+			System.out.println("No cell in this window");
+			return;
+		}
+		Rectangle2D bounds = Highlight.getHighlightedArea(wnd);
+		if (bounds == null)
+		{
+			System.out.println("Must first select circuitry to package");
+			return;
+		}
+
+		String newCellName = JOptionPane.showInputDialog("New cell name:", curCell.getProtoName());
+		if (newCellName == null) return;
+		newCellName += "{" + curCell.getView().getAbbreviation() + "}";
+
+		PackageCell job = new PackageCell(curCell, bounds, newCellName);
+	}
+
+	/**
+	 * This class implement the command to delete unused old versions of cells.
+	 */
+	private static class PackageCell extends Job
+	{
+		Cell curCell;
+		Rectangle2D bounds;
+		String newCellName;
+
+		protected PackageCell(Cell curCell, Rectangle2D bounds, String newCellName)
+		{
+			super("Package Cell", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.curCell = curCell;
+			this.bounds = bounds;
+			this.newCellName = newCellName;
+			startJob();
+		}
+
+		public void doIt()
+		{
+			// create the new cell
+			Cell cell = Cell.makeInstance(Library.getCurrent(), newCellName);
+			if (cell == null) return;
+
+			// copy the nodes into the new cell
+			HashMap newNodes = new HashMap();
+			Geometric.Search search = new Geometric.Search(bounds, curCell);
+			for(;;)
+			{
+				Geometric look = search.nextObject();
+				if (look == null) break;
+				if (!(look instanceof NodeInst)) continue;
+				NodeInst ni = (NodeInst)look;
+
+				NodeInst newNi = NodeInst.makeInstance(ni.getProto(), new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY()),
+					ni.getXSize(), ni.getYSize(), ni.getAngle(), cell, ni.getName());
+				if (newNi == null) return;
+				newNodes.put(ni, newNi);
+				newNi.lowLevelSetUserbits(ni.lowLevelGetUserbits());
+				ni.copyVars(newNi);
+				newNi.setNameTextDescriptor(ni.getNameTextDescriptor());
+	
+				// make ports where this nodeinst has them
+				for(Iterator it = ni.getExports(); it.hasNext(); )
+				{
+					Export pp = (Export)it.next();
+					PortInst pi = newNi.findPortInstFromProto(pp.getOriginalPort().getPortProto());
+					Export newPp = Export.newInstance(cell, pi, pp.getProtoName());
+					if (newPp != null)
+					{
+						newPp.setCharacteristic(pp.getCharacteristic());
+						newPp.setTextDescriptor(pp.getTextDescriptor());
+						pp.copyVars(newPp);
+					}
+				}
+			}
+	
+			// copy the arcs into the new cell
+			search = new Geometric.Search(bounds, curCell);
+			for(;;)
+			{
+				Geometric look = search.nextObject();
+				if (look == null) break;
+				if (!(look instanceof ArcInst)) continue;
+				ArcInst ai = (ArcInst)look;
+				NodeInst niTail = (NodeInst)newNodes.get(ai.getTail().getPortInst().getNodeInst());
+				NodeInst niHead = (NodeInst)newNodes.get(ai.getHead().getPortInst().getNodeInst());
+				if (niTail == null || niHead == null) continue;
+				PortInst piTail = niTail.findPortInstFromProto(ai.getTail().getPortInst().getPortProto());
+				PortInst piHead = niHead.findPortInstFromProto(ai.getHead().getPortInst().getPortProto());
+
+				ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), piHead, ai.getHead().getLocation(),
+					piTail, ai.getTail().getLocation(), ai.getName());
+				if (newAi == null) return;
+				ai.copyVars(newAi);
+			}
+			System.out.println("Cell " + cell.describe() + " created");
+		}
+	}
+	
+	/**
+	 * Method to yank the contents of complex node instance "topno" into its
+	 * parent cell.
+	 */
+	public static void extractCells()
+	{
+		Cell cell = WindowFrame.needCurCell();
+		if (cell == null) return;
+		ExtractCellInstances job = new ExtractCellInstances();
+	}
+
+	/**
+	 * This class implement the command to delete unused old versions of cells.
+	 */
+	protected static class ExtractCellInstances extends Job
+	{
+		protected ExtractCellInstances()
+		{
+			super("Extract Cell Instances", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			startJob();
+		}
+
+		public void doIt()
+		{
+			List nodes = Highlight.getHighlighted(true, false);
+			Highlight.clear();
+			Highlight.finished();
+			boolean foundInstance = false;
+			for(Iterator it = nodes.iterator(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				NodeProto np = ni.getProto();
+				if (!(np instanceof Cell)) continue;
+				foundInstance = true;
+				extractOneNode(ni);
+			}
+			if (!foundInstance)
+			{
+				System.out.println("Must selecte cell instances to extract");
+				return;
+			}
+		}
+	}
+
+	private static void extractOneNode(NodeInst topno)
+	{
+		// make transformation matrix for this cell
+		Cell cell = topno.getParent();
+		Cell subCell = (Cell)topno.getProto();
+		AffineTransform localTrans = topno.translateOut();
+		AffineTransform localRot = topno.rotateOut();
+		localTrans.preConcatenate(localRot);
+
+		// build a list of nodes to copy
+		List nodes = new ArrayList();
+		for(Iterator it = subCell.getNodes(); it.hasNext(); )
+			nodes.add(it.next());
+
+		// sort the nodes by name
+		Collections.sort(nodes, new NodesByName());
+
+		// copy the nodes
+		HashMap newNodes = new HashMap();
+		for(Iterator it = nodes.iterator(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+
+			// do not yank "cell center" or "essential bounds" primitives
+			NodeProto np = ni.getProto();
+			if (np == Generic.tech.cellCenterNode || np == Generic.tech.essentialBoundsNode) continue;
+
+			Point2D pt = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
+			localTrans.transform(pt, pt);
+			int newAngle = ni.getAngle();
+			if (ni.isXMirrored() == ni.isYMirrored()) newAngle += topno.getAngle(); else
+				newAngle = newAngle + 3600 - topno.getAngle();
+			newAngle = newAngle % 3600;   if (newAngle < 0) newAngle += 3600;
+			NodeInst newNi = NodeInst.makeInstance(np, pt, ni.getXSize(), ni.getYSize(), newAngle, cell, ni.getName());
+			if (newNi == null) return;
+			newNodes.put(ni, newNi);
+			newNi.setNameTextDescriptor(ni.getNameTextDescriptor());
+			newNi.lowLevelSetUserbits(ni.lowLevelGetUserbits());
+			ni.copyVars(newNi);
+		}
+
+		// make a list of arcs to extract
+		List arcs = new ArrayList();
+		for(Iterator it = subCell.getArcs(); it.hasNext(); )
+			arcs.add(it.next());
+
+		// sort the arcs by name
+		Collections.sort(arcs, new ArcsByName());
+
+		// extract the arcs
+		for(Iterator it = arcs.iterator(); it.hasNext(); )
+		{
+			ArcInst ai = (ArcInst)it.next();
+
+			// ignore arcs connected to nodes that didn't get yanked
+			NodeInst niTail = (NodeInst)newNodes.get(ai.getTail().getPortInst().getNodeInst());
+			NodeInst niHead = (NodeInst)newNodes.get(ai.getHead().getPortInst().getNodeInst());
+			if (niTail == null || niHead == null) continue;
+			PortInst piTail = niTail.findPortInstFromProto(ai.getTail().getPortInst().getPortProto());
+			PortInst piHead = niHead.findPortInstFromProto(ai.getHead().getPortInst().getPortProto());
+
+			Point2D ptTail = new Point2D.Double();
+			localTrans.transform(ai.getTail().getLocation(), ptTail);
+			Point2D ptHead = new Point2D.Double();
+			localTrans.transform(ai.getHead().getLocation(), ptHead);
+
+			// make sure the head end fits in the port
+			Poly polyHead = piHead.getPoly();
+			if (!polyHead.isInside(ptHead))
+			{
+				ptHead.setLocation(polyHead.getCenterX(), polyHead.getCenterY());
+			}
+
+			// make sure the tail end fits in the port
+			Poly polyTail = piTail.getPoly();
+			if (!polyTail.isInside(ptTail))
+			{
+				ptTail.setLocation(polyTail.getCenterX(), polyTail.getCenterY());
+			}
+
+			ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), piHead, ptHead, piTail, ptTail, ai.getName());
+			if (newAi == null) return;
+			ai.copyVars(newAi);
+		}
+
+		// replace arcs to the cell
+		List replaceTheseArcs = new ArrayList();
+		for(Iterator it = topno.getConnections(); it.hasNext(); )
+		{
+			Connection con = (Connection)it.next();
+			replaceTheseArcs.add(con.getArc());
+		}
+		for(Iterator it = replaceTheseArcs.iterator(); it.hasNext(); )
+		{
+			ArcInst ai = (ArcInst)it.next();
+//			if ((ai->userbits&DEADA) != 0) continue;
+			ArcProto ap = ai.getProto();
+			double wid = ai.getWidth();
+			String name = ai.getName();
+			PortInst [] pis = new PortInst[2];
+			Point2D [] pts = new Point2D[2];
+			for(int i=0; i<2; i++)
+			{
+				pis[i] = ai.getConnection(i).getPortInst();
+				pts[i] = ai.getConnection(i).getLocation();
+				if (pis[i].getNodeInst() != topno) continue;
+				Export pp = (Export)pis[i].getPortProto();
+				NodeInst subNi = pp.getOriginalPort().getNodeInst();
+				NodeInst newNi = (NodeInst)newNodes.get(subNi);
+				if (newNi == null) continue;
+				pis[i] = newNi.findPortInstFromProto(pp.getOriginalPort().getPortProto());
+			}
+			if (pis[0] == null || pis[1] == null) continue;
+
+			ai.kill();
+			ArcInst newAi = ArcInst.makeInstance(ap, wid, pis[0], pts[0], pis[1], pts[1], name);
+			if (newAi == null) return;
+
+			// copy variables
+			ai.copyVars(newAi);
+		}
+
+		// replace the exports
+		List existingExports = new ArrayList();
+		for(Iterator it = topno.getExports(); it.hasNext(); )
+			existingExports.add(it.next());
+		for(Iterator it = existingExports.iterator(); it.hasNext(); )
+		{
+			Export pp = (Export)it.next();
+			Export subPp = (Export)pp.getOriginalPort().getPortProto();
+			NodeInst subNi = subPp.getOriginalPort().getNodeInst();
+			NodeInst newNi = (NodeInst)newNodes.get(subNi);
+			if (newNi == null) continue;
+			PortInst pi = newNi.findPortInstFromProto(subPp.getOriginalPort().getPortProto());
+			pp.move(pi);
+		}
+
+		// copy the exports if requested
+		if (User.isExtractCopiesExports())
+		{
+			// initialize for queueing creation of new exports
+			List queuedExports = new ArrayList();
+			for(Iterator it = subCell.getPorts(); it.hasNext(); )
+				queuedExports.add(it.next());
+
+			// sort the exports by name
+			Collections.sort(queuedExports, new ExportsByName());
+
+			for(Iterator it = queuedExports.iterator(); it.hasNext(); )
+			{
+				Export pp = (Export)it.next();
+				NodeInst subNi = pp.getOriginalPort().getNodeInst();
+				NodeInst newNi = (NodeInst)newNodes.get(subNi);
+				if (newNi == null) continue;
+				PortInst pi = newNi.findPortInstFromProto(pp.getOriginalPort().getPortProto());
+
+				// don't copy if the port is already exported
+				boolean alreadyDone = false;
+				for(Iterator eIt = newNi.getExports(); eIt.hasNext(); )
+				{
+					Export oPp = (Export)eIt.next();
+					if (oPp.getOriginalPort() == pi)
+					{
+						alreadyDone = true;
+						break;
+					}
+				}
+				if (alreadyDone) continue;
+
+				// copy the port
+				String portName = ElectricObject.uniqueObjectName(pp.getProtoName(), cell, PortProto.class);
+				Export.newInstance(cell, pi, portName);
+			}
+		}
+
+		// delete the cell instance
+		eraseNodeInst(topno);
+	}
+
+	static class NodesByName implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			NodeInst n1 = (NodeInst)o1;
+			NodeInst n2 = (NodeInst)o2;
+			String s1 = n1.getName();
+			String s2 = n2.getName();
+			return TextUtils.nameSameNumeric(s1, s2);
+		}
+	}
+
+	static class ArcsByName implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			ArcInst a1 = (ArcInst)o1;
+			ArcInst a2 = (ArcInst)o2;
+			String s1 = a1.getName();
+			String s2 = a2.getName();
+			return TextUtils.nameSameNumeric(s1, s2);
+		}
+	}
+
+	static class ExportsByName implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Export e1 = (Export)o1;
+			Export e2 = (Export)o2;
+			String s1 = e1.getProtoName();
+			String s2 = e2.getProtoName();
+			return TextUtils.nameSameNumeric(s1, s2);
 		}
 	}
 
@@ -1755,6 +2527,14 @@ public class CircuitChanges
 		public void doIt()
 		{
 			cell.setView(newView);
+			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			{
+				WindowFrame wf = (WindowFrame)it.next();
+				if (wf.getContent().getCell() == cell)
+				{
+					wf.getContent().setCell(cell, VarContext.globalContext);
+				}
+			}
 			EditWindow.repaintAll();
 		}
 	}
@@ -3592,6 +4372,214 @@ public class CircuitChanges
 		addr.newVar(var.getKey(), newIncrString);
 
 		return retVal;
+	}
+
+	/****************************** LIBRARY CHANGES ******************************/
+
+	/**
+	 * Method to implement the "Change Current Library" command.
+	 * Prompts the user for a new "current library".
+	 */
+	public static void changeCurrentLibraryCommand()
+	{
+		ChangeCurrentLib.showDialog();
+	}
+
+	/**
+	 * Method to implement the "List Libraries" command.
+	 */
+	public static void listLibrariesCommand()
+	{
+		System.out.println("----- Libraries: -----");
+		int k = 0;
+		for(Iterator it = Library.getVisibleLibrariesSortedByName().iterator(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			if (lib.isHidden()) continue;
+			StringBuffer infstr = new StringBuffer();
+			infstr.append(lib.getLibName());
+			if (lib.isChangedMajor() || lib.isChangedMinor())
+			{
+				infstr.append("*");
+				k++;
+			}
+			if (lib.getLibFile() != null)
+				infstr.append(" (disk file: " + lib.getLibFile() + ")");
+			System.out.println(infstr.toString());
+
+			// see if there are dependencies
+			Set dummyLibs = new HashSet();
+			FlagSet fs = Library.getFlagSet(1);
+			for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+			{
+				Library oLib = (Library)lIt.next();
+				oLib.clearBit(fs);
+			}
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = (Cell)cIt.next();
+				for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+				{
+					NodeInst ni = (NodeInst)nIt.next();
+					if (!(ni.getProto() instanceof Cell)) continue;
+					Cell subCell = (Cell)ni.getProto();
+					Variable var = subCell.getVar(Input.IO_TRUE_LIBRARY, String.class);
+					if (var != null)
+					{
+						String pt = (String)var.getObject();
+						dummyLibs.add(pt);
+					}
+					subCell.getLibrary().setBit(fs);
+				}
+			}
+			for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+			{
+				Library oLib = (Library)lIt.next();
+				if (oLib == lib) continue;
+				if (!oLib.isBit(fs)) continue;
+				System.out.println("   Makes use of cells in library " + oLib.getLibName());
+				infstr = new StringBuffer();
+				infstr.append("      These cells make reference to that library:");
+				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+				{
+					Cell cell = (Cell)cIt.next();
+					boolean found = false;
+					for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+					{
+						NodeInst ni = (NodeInst)nIt.next();
+						if (!(ni.getProto() instanceof Cell)) continue;
+						Cell subCell = (Cell)ni.getProto();
+						if (subCell.getLibrary() == oLib) { found = true;   break; }
+					}
+					if (found) infstr.append(" " + cell.noLibDescribe());
+				}
+				System.out.println(infstr.toString());
+			}
+			for(Iterator dIt = dummyLibs.iterator(); dIt.hasNext(); )
+			{
+				String dummyLibName = (String)dIt.next();
+				System.out.println("   Has dummy cells that should be in library " + dummyLibName);
+				infstr = new StringBuffer();
+				infstr.append("      Instances of these dummy cells are in:");
+				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+				{
+					Cell cell = (Cell)cIt.next();
+					boolean found = false;
+					for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+					{
+						NodeInst ni = (NodeInst)nIt.next();
+						if (!(ni.getProto() instanceof Cell)) continue;
+						Cell subCell = (Cell)ni.getProto();
+						Variable var = subCell.getVar(Input.IO_TRUE_LIBRARY, String.class);
+						if (var == null) continue;
+						if (((String)var.getObject()).equals(dummyLibName)) { found = true;   break; }
+					}
+					if (found) infstr.append(" " + cell.noLibDescribe());
+				}
+				System.out.println(infstr.toString());
+			}
+		}
+		if (k != 0) System.out.println("   (* means library has changed)");
+	}
+
+	/**
+	 * Method to implement the "Rename Library" command.
+	 */
+	public static void renameLibraryCommand()
+	{
+		renameLibrary(Library.getCurrent());
+	}
+
+	/**
+	 * Method to implement the "Rename Library" command.
+	 */
+	public static void renameLibrary(Library lib)
+	{
+		String val = JOptionPane.showInputDialog("New Name of Library:", lib.getLibName());
+		if (val == null) return;
+		RenameLibrary job = new RenameLibrary(lib, val);
+	}
+
+	/**
+	 * This class implement the command to make a new version of a cell.
+	 */
+	private static class RenameLibrary extends Job
+	{
+		Library lib;
+		String newName;
+
+		protected RenameLibrary(Library lib, String newName)
+		{
+			super("Renaming library " + lib.getLibName(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.lib = lib;
+			this.newName = newName;
+			startJob();
+		}
+
+		public void doIt()
+		{
+			String oldName = lib.getLibName();
+			if (lib.setLibName(newName)) return;
+			System.out.println("Library " + oldName + " renamed to " + newName);
+	
+			// mark for saving, all libraries that depend on this
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library oLib = (Library)it.next();
+				if (oLib.isHidden()) continue;
+				if (oLib == lib) continue;
+				if (oLib.isChangedMajor()) continue;
+	
+				// see if any cells in this library reference the renamed one
+				for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+				{
+					Cell cell = (Cell)cIt.next();
+					for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
+					{
+						NodeInst ni = (NodeInst)nIt.next();
+						if (!(ni.getProto() instanceof Cell)) continue;
+						Cell subCell = (Cell)ni.getProto();
+						if (subCell.getLibrary() == lib)
+						{
+							oLib.setChangedMajor();
+							break;
+						}
+					}
+					if (oLib.isChangedMajor()) break;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Method to implement the "Mark All Libraries for Saving" command.
+	 */
+	public static void markAllLibrariesForSavingCommand()
+	{
+		// mark all libraries as "changed"
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			if (lib.isHidden()) continue;
+			lib.setChangedMajor();
+			lib.setChangedMinor();
+		}
+		System.out.println("All libraries now need to be saved");
+	}
+
+	/**
+	 * Method to implement the "Repair Librariesy" command.
+	 */
+	public static void checkAndRepairCommand()
+	{
+		int errorCount = 0;
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			errorCount += lib.checkAndRepair();
+		}
+		if (errorCount > 0) System.out.println("Found " + errorCount + " errors"); else
+			System.out.println("No errors found");
 	}
 
 	/****************************** DETERMINE ABILITY TO MAKE CHANGES ******************************/

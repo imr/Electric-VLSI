@@ -26,6 +26,7 @@ package com.sun.electric.database.hierarchy;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
@@ -107,6 +108,22 @@ public class Export extends PortProto
 	}
 
 	/**
+	 * Method to rename this Export.
+	 * @param newName the new name of this Export.
+	 */
+	public void rename(String newName)
+	{
+		checkChanging();
+
+		// do the rename
+		Name oldName = getProtoNameKey();
+		lowLevelRename(newName);
+
+		// handle change control, constraint, and broadcast
+		Undo.renameObject(this, oldName);
+	}
+
+	/**
 	 * Method to move this Export to a different PortInst in the Cell.
 	 * The method expects both ports to be in the same place and simply shifts
 	 * the arcs without re-constraining them.
@@ -116,7 +133,7 @@ public class Export extends PortProto
 	public boolean move(PortInst newPi)
 	{
 		NodeInst newno = newPi.getNodeInst();
-		Export newsubpt = (Export)newPi.getPortProto();
+		PortProto newsubpt = (PortProto)newPi.getPortProto();
 		Cell cell = (Cell)getParent();
 
 		// error checks
@@ -161,6 +178,16 @@ public class Export extends PortProto
 		setProtoName(protoName);
 		setParent(parent);
 		return false;
+	}
+
+	/**
+	 * Low-level access method to rename this Export.
+	 * Unless you know what you are doing, do not use this method...use "rename()" instead.
+	 * @param newName the new name of this Export.
+	 */
+	public void lowLevelRename(String newName)
+	{
+		setProtoName(newName);
 	}
 
 	/**

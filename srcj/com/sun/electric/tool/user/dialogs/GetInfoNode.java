@@ -45,6 +45,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
@@ -72,7 +73,7 @@ public class GetInfoNode extends EDialog
 	private static PortProto shownPort = null;
 	private double initialXPos, initialYPos;
 	private double initialXSize, initialYSize;
-	private int initialRotation, initialListPopupEntry;
+	private int initialRotation, initialListPopupEntry, initialPopupIndex;
 	private boolean initialEasyToSelect, initialInvisibleOutsideCell, initialLocked, initialExpansion;
 	private String initialName, initialTextField;
 	private String initialPopupEntry, initialListTextField;
@@ -82,6 +83,7 @@ public class GetInfoNode extends EDialog
 	private List allParameters;
 	private List portObjects;
 	private boolean bigger;
+	private boolean scalableTrans;
 
     private static Preferences prefs = Preferences.userNodeForPackage(GetInfoNode.class);
 
@@ -412,14 +414,50 @@ public class GetInfoNode extends EDialog
 			popupLabel.setText("Transistor type:");
 			popup.addItem(fun.getName());
 		}
-		if (fun == NodeProto.Function.DIODE || fun == NodeProto.Function.DIODEZ)
+		scalableTrans = false;
+		if (np instanceof PrimitiveNode)
 		{
-			if (fun == NodeProto.Function.DIODEZ)
-				textFieldLabel.setText("Zener diode size:"); else
-					textFieldLabel.setText("Diode size:");
-			Variable var = ni.getVar(Schematics.SCHEM_DIODE);
-			if (var == null) initialTextField = "0"; else
-				initialTextField = new String(var.getObject().toString());
+			if (np.getTechnology() == MoCMOS.tech)
+			{
+				if (np.getProtoName().equals("P-Transistor-Scalable") ||
+					np.getProtoName().equals("N-Transistor-Scalable"))
+						scalableTrans = true;
+			}
+		}
+		if (scalableTrans)
+		{
+			popupLabel.setText("Contacts:");
+			popup.addItem("Top & Bottom / normal spacing");
+			popup.addItem("Top & Bottom / half-unit closer");
+			popup.addItem("Only Bottom / normal spacing");
+			popup.addItem("Only Bottom / half-unit closer");
+			popup.addItem("None");
+			Variable var = ni.getVar(MoCMOS.TRANS_CONTACT, String.class);
+			int numContacts = 2;
+			boolean insetContacts = false;
+			if (var != null)
+			{
+				String pt = (String)var.getObject();
+				for(int i=0; i<pt.length(); i++)
+				{
+					char chr = pt.charAt(i);
+					if (chr == '0' || chr == '1' || chr == '2')
+					{
+						numContacts = chr - '0';
+					} else if (chr == 'i' || chr == 'I') insetContacts = true;
+				}
+			}
+			initialPopupIndex = (2 - numContacts) * 2;
+			if (insetContacts && numContacts > 0) initialPopupIndex++;
+			popup.setSelectedIndex(initialPopupIndex);
+			popup.setEnabled(true);
+
+			
+			textFieldLabel.setText("Width:");
+			var = ni.getVar(Schematics.ATTR_WIDTH);
+			double width = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+			if (var != null) width = TextUtils.atof(var.getPureValue(-1, -1));
+			initialTextField = Double.toString(width);
 			textField.setEditable(true);
 			textField.setText(initialTextField);
 		}
@@ -778,6 +816,32 @@ public class GetInfoNode extends EDialog
 						dialog.initialTextField = currentTextField;
 						changed = true;
 					}
+				}
+			}
+			if (dialog.scalableTrans)
+			{
+				int index = dialog.popup.getSelectedIndex();
+				if (index != dialog.initialPopupIndex)
+				{
+					int numContacts = 2 - (index / 2);
+					boolean inset = (index&1) != 0;
+					String contactInfo = String.valueOf(numContacts);
+					if (inset) contactInfo += "i";
+					ni.newVar(MoCMOS.TRANS_CONTACT, contactInfo);
+				}
+
+				String currentTextField = dialog.textField.getText();
+				if (!currentTextField.equals(dialog.initialTextField))
+				{
+					double width = TextUtils.atof(currentTextField);
+					Variable oldVar = ni.getVar(Schematics.ATTR_WIDTH);
+					Variable var = ni.updateVar(Schematics.ATTR_WIDTH, new Double(width));
+					if (var != null && oldVar == null)
+					{
+						var.setDisplay();
+						var.getTextDescriptor().setDispPart(TextDescriptor.DispPos.NAMEVALUE);
+					}
+					dialog.initialTextField = currentTextField;
 				}
 			}
 			NodeProto.Function fun = ni.getFunction();

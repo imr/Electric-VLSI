@@ -88,12 +88,11 @@ public class Artwork extends Technology
 		setTechName("artwork");
 		setTechShortName("Artwork");
 		setTechDesc("General-purpose artwork components");
-		setFactoryScale(2000);			// in nanometers: really 2 micron
+		setFactoryScale(2000, false);			// in nanometers: really 2 micron
 		setNonStandard();
 		setNonElectrical();
 		setNoNegatedArcs();
 		setStaticTechnology();
-		setScaleRelevant(false);
 
 		//**************************************** LAYERS ****************************************
 
@@ -417,7 +416,7 @@ public class Artwork extends Technology
 	/**
 	 * Method to return a list of Polys that describe a given NodeInst.
 	 * This method overrides the general one in the Technology object
-	 * because of the unusual primitives in the Artwork Technology.
+	 * because of the unusual primitives in this Technology.
 	 * @param ni the NodeInst to describe.
 	 * @param wnd the window in which this node will be drawn.
 	 * @param electrical true to get the "electrical" layers.
@@ -509,7 +508,7 @@ public class Artwork extends Technology
 	/**
 	 * Method to return a list of Polys that describe a given ArcInst.
 	 * This method overrides the general one in the Technology object
-	 * because of the unusual primitives in the Artwork Technology.
+	 * because of the unusual primitives in this Technology.
 	 * @param ai the ArcInst to describe.
 	 * @param wnd the window in which this arc will be drawn.
 	 * @return an array of Poly objects.

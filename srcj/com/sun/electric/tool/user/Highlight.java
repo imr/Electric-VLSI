@@ -28,6 +28,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
@@ -62,6 +63,8 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.ArrayList;
 
 /*
@@ -476,6 +479,80 @@ public class Highlight
 			}
 		}
 		return highlightedGeoms;
+	}
+
+	/**
+	 * Method to return a set of the currently selected networks.
+	 * @return a set of the currently selected networks.
+	 * If there are no selected networks, the list is empty.
+	 */
+	public static Set getHighlightedNetworks()
+	{
+		Set nets = new HashSet();
+		Cell cell = WindowFrame.getCurrentCell();
+		if (cell != null)
+		{
+			Netlist netlist = cell.getUserNetlist();
+			for(Iterator it = highlightList.iterator(); it.hasNext(); )
+			{
+				Highlight h = (Highlight)it.next();
+				if (h.type == Type.EOBJ)
+				{
+					ElectricObject eObj = h.getElectricObject();
+					if (eObj instanceof PortInst)
+					{
+						PortInst pi = (PortInst)eObj;
+						JNetwork net = netlist.getNetwork(pi);
+						if (net != null) nets.add(net); else
+						{
+							// if port is isolated, grab all nets
+							if (pi.getPortProto().isIsolated())
+							{
+								for(Iterator aIt = pi.getNodeInst().getConnections(); aIt.hasNext(); )
+								{
+									Connection con = (Connection)aIt.next();
+									ArcInst ai = con.getArc();
+									net = netlist.getNetwork(ai, 0);
+									if (net != null) nets.add(net);
+								}
+							}
+						}
+					} else if (eObj instanceof NodeInst)
+					{
+						NodeInst ni = (NodeInst)eObj;
+						PortInst pi = ni.getOnlyPortInst();
+						if (pi != null)
+						{
+							JNetwork net = netlist.getNetwork(pi);
+							if (net != null) nets.add(net);
+						}
+					} else if (eObj instanceof ArcInst)
+					{
+						ArcInst ai = (ArcInst)eObj;
+						int width = netlist.getBusWidth(ai);
+						for(int i=0; i<width; i++)
+						{
+							JNetwork net = netlist.getNetwork((ArcInst)eObj, i);
+							if (net != null) nets.add(net);
+						}
+					}
+				} else if (h.type == Type.TEXT)
+				{
+					if (h.getVar() == null && h.getName() == null &&
+						h.getElectricObject() instanceof Export)
+					{
+						Export pp = (Export)h.getElectricObject();
+						int width = netlist.getBusWidth(pp);
+						for(int i=0; i<width; i++)
+						{
+							JNetwork net = netlist.getNetwork(pp, i);
+							if (net != null) nets.add(net);
+						}
+					}
+				}
+			}
+		}		
+		return nets;
 	}
 
 	/**

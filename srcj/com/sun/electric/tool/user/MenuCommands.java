@@ -32,6 +32,10 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.NodeUsage;
+import com.sun.electric.database.network.JNetwork;
+import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -39,17 +43,19 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.EvalJavaBsh;
+import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
-//import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.erc.ERCWellCheck;
@@ -80,6 +86,7 @@ import com.sun.electric.tool.user.ui.PaletteFrame;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.SizeListener;
+import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.ZoomAndPanListener;
@@ -174,8 +181,16 @@ public final class MenuCommands
 
 		fileMenu.addSeparator();
 
-        fileMenu.addMenuItem("Repair Libraries", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { checkAndRepairCommand(); } });
+		fileMenu.addMenuItem("Change Current Library...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.changeCurrentLibraryCommand(); } });
+		fileMenu.addMenuItem("List Libraries", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.listLibrariesCommand(); } });
+		fileMenu.addMenuItem("Rename Library...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.renameLibraryCommand(); } });
+		fileMenu.addMenuItem("Mark All Libraries for Saving", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.markAllLibrariesForSavingCommand(); } });
+		fileMenu.addMenuItem("Repair Libraries", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.checkAndRepairCommand(); } });
 
         fileMenu.addSeparator();
 
@@ -216,8 +231,19 @@ public final class MenuCommands
 		arcSubMenu.addMenuItem("Not Fixed Angle", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcNotFixedAngleCommand(); }});
 		arcSubMenu.addSeparator();
-		arcSubMenu.addMenuItem("Directional", null,
+		arcSubMenu.addMenuItem("Toggle Directionality", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcDirectionalCommand(); }});
+		arcSubMenu.addMenuItem("Toggle Ends Extension", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcEndsExtendCommand(); }});
+		arcSubMenu.addMenuItem("Reverse", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcReverseCommand(); }});
+		arcSubMenu.addMenuItem("Toggle Head-Skip", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcSkipHeadCommand(); }});
+		arcSubMenu.addMenuItem("Toggle Tail-Skip", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcSkipTailCommand(); }});
+		arcSubMenu.addSeparator();
+		arcSubMenu.addMenuItem("Rip Bus", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.ripBus(); }});
 
 		editMenu.addSeparator();
 
@@ -225,8 +251,6 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { undoCommand(); } });
 		editMenu.addMenuItem("Redo", KeyStroke.getKeyStroke('Y', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { redoCommand(); } });
-        editMenu.addMenuItem("Show Undo List", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); } });
 
 		editMenu.addSeparator();
 
@@ -248,8 +272,15 @@ public final class MenuCommands
 		mirrorSubMenu.addMenuItem("Vertically (flip over Y-axis)", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.mirrorObjects(false); }});
 
-		editMenu.addMenuItem("Adjust Size", KeyStroke.getKeyStroke('B', buckyBit),
+		Menu sizeSubMenu = new Menu("Size", 'S');
+		editMenu.add(sizeSubMenu);
+		sizeSubMenu.addMenuItem("Interactively", KeyStroke.getKeyStroke('B', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { SizeListener.sizeObjects(); } });
+		sizeSubMenu.addMenuItem("All Selected Nodes...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { SizeListener.sizeAllNodes(); }});
+		sizeSubMenu.addMenuItem("All Selected Arcs...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { SizeListener.sizeAllArcs(); }});
+
 
 		Menu moveSubMenu = new Menu("Move", 'V');
 		editMenu.add(moveSubMenu);
@@ -280,6 +311,8 @@ public final class MenuCommands
 		m=editMenu.addMenuItem("Erase", KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.deleteSelected(); } });
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), null);
+		editMenu.addMenuItem("Erase Geometry", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.deleteSelectedGeometry(); } });
 
 		editMenu.addSeparator();
 
@@ -292,8 +325,13 @@ public final class MenuCommands
 
 		editMenu.addMenuItem("Get Info...", KeyStroke.getKeyStroke('I', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { getInfoCommand(); } });
-		editMenu.addMenuItem("Attributes...", null,
+		Menu editInfoSubMenu = new Menu("Info", 'V');
+		editMenu.add(editInfoSubMenu);
+		editInfoSubMenu.addMenuItem("Attributes...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { attributesCommand(); } });
+		editInfoSubMenu.addSeparator();
+		editInfoSubMenu.addMenuItem("List Layer Coverage", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(); } });
 
 		editMenu.addSeparator();
 
@@ -341,10 +379,33 @@ public final class MenuCommands
 		if (ad == 0.5) moveHalf.setSelected(true); else
 			moveQuarter.setSelected(true);
 
+		Menu modeSubMenuSelect = new Menu("Select");
+		modeSubMenu.add(modeSubMenuSelect);
+		ButtonGroup selectGroup = new ButtonGroup();
+		JMenuItem selectArea, selectObjects;
+		selectArea = modeSubMenuSelect.addRadioButton(ToolBar.selectAreaName, true, selectGroup, null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.selectAreaCommand(); } });
+		selectObjects = modeSubMenuSelect.addRadioButton(ToolBar.selectObjectsName, false, selectGroup, null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.selectObjectsCommand(); } });
+		ToolBar.SelectMode sm = ToolBar.getSelectMode();
+		if (sm == ToolBar.SelectMode.AREA) selectArea.setSelected(true); else
+			selectObjects.setSelected(true);
+		modeSubMenuSelect.addCheckBox(ToolBar.specialSelectName, false, null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.toggleSelectSpecialCommand(e); } });
+
 		editMenu.addMenuItem("Array...", KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Array.showArrayDialog(); } });
 		editMenu.addMenuItem("Change...", KeyStroke.getKeyStroke('C', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Change.showChangeDialog(); } });
+
+		Menu textSubMenu = new Menu("Text");
+		editMenu.add(textSubMenu);
+		textSubMenu.addMenuItem("Find Text...", KeyStroke.getKeyStroke('L', buckyBit),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FindText.findTextDialog(); }});
+		textSubMenu.addMenuItem("Read Text Cell...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.readTextCell(); }});
+		textSubMenu.addMenuItem("Save Text Cell...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.writeTextCell(); }});
 
 		Menu cleanupSubMenu = new Menu("Cleanup Cell");
 		editMenu.add(cleanupSubMenu);
@@ -357,19 +418,10 @@ public final class MenuCommands
 		cleanupSubMenu.addMenuItem("Shorten Selected Arcs", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.shortenArcsCommand(); }});
 
-		Menu modeSubMenuSelect = new Menu("Select");
-		modeSubMenu.add(modeSubMenuSelect);
-		ButtonGroup selectGroup = new ButtonGroup();
-        JMenuItem selectArea, selectObjects;
-		selectArea = modeSubMenuSelect.addRadioButton(ToolBar.selectAreaName, true, selectGroup, null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.selectAreaCommand(); } });
-		selectObjects = modeSubMenuSelect.addRadioButton(ToolBar.selectObjectsName, false, selectGroup, null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.selectObjectsCommand(); } });
-		ToolBar.SelectMode sm = ToolBar.getSelectMode();
-		if (sm == ToolBar.SelectMode.AREA) selectArea.setSelected(true); else
-			selectObjects.setSelected(true);
-		modeSubMenuSelect.addCheckBox(ToolBar.specialSelectName, false, null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.toggleSelectSpecialCommand(e); } });
+		Menu specialSubMenu = new Menu("Special Function");
+		editMenu.add(specialSubMenu);
+		specialSubMenu.addMenuItem("Show Undo List", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); } });
 
 		Menu selListSubMenu = new Menu("Selection");
 		editMenu.add(selListSubMenu);
@@ -473,6 +525,12 @@ public final class MenuCommands
 		unExpandListSubMenu.addMenuItem("Specified Amount", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { unexpandSpecificCommand(); }});
 
+		cellMenu.addSeparator();
+		cellMenu.addMenuItem("Package Into Cell...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.packageIntoCell(); } });
+		cellMenu.addMenuItem("Extract Cell Instance", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.extractCells(); } });
+
 		/****************************** THE EXPORT MENU ******************************/
 
 		Menu exportMenu = new Menu("Export", 'X');
@@ -492,10 +550,16 @@ public final class MenuCommands
 
 		exportMenu.addSeparator();
 
+		exportMenu.addMenuItem("Delete Export", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.deleteExport(); } });
 		exportMenu.addMenuItem("Delete All Exports on Highlighted", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.deleteExportsOnHighlighted(); } });
 		exportMenu.addMenuItem("Delete Exports in Area", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.deleteExportsInArea(); } });
+		exportMenu.addMenuItem("Move Export", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.moveExport(); } });
+		exportMenu.addMenuItem("Rename Export", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.renameExport(); } });
 
 		exportMenu.addSeparator();
 
@@ -518,6 +582,8 @@ public final class MenuCommands
 
 		viewMenu.addMenuItem("View Control...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { viewControlCommand(); } });
+		viewMenu.addMenuItem("Change Cell's View...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { changeViewCommand(); } });
 
 		viewMenu.addSeparator();
 
@@ -669,7 +735,20 @@ public final class MenuCommands
 
 		Menu networkSubMenu = new Menu("Network", 'N');
 		toolMenu.add(networkSubMenu);
-		networkSubMenu.addMenuItem("redo Network Numbering", null,
+		networkSubMenu.addMenuItem("Show Network", KeyStroke.getKeyStroke('K', buckyBit),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { showNetworkCommand(); } });
+		networkSubMenu.addMenuItem("List Networks", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { listNetworksCommand(); } });
+		networkSubMenu.addMenuItem("List Connections on Network", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { listConnectionsOnNetworkCommand(); } });
+		networkSubMenu.addMenuItem("List Exports on Network", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { listExportsOnNetworkCommand(); } });
+		networkSubMenu.addMenuItem("List Exports below Network", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { listExportsBelowNetworkCommand(); } });
+		networkSubMenu.addMenuItem("List Geometry on Network", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { listGeometryOnNetworkCommand(); } });
+		networkSubMenu.addSeparator();
+		networkSubMenu.addMenuItem("Redo Network Numbering", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { redoNetworkNumberingCommand(); } });
 
 		Menu logEffortSubMenu = new Menu("Logical Effort", 'L');
@@ -718,8 +797,11 @@ public final class MenuCommands
 			helpMenu.addMenuItem("About Electric...", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { aboutCommand(); } });
 		}
-        helpMenu.addMenuItem("Help Index", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { toolTipsCommand(); } });
+		helpMenu.addMenuItem("Help Index", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { toolTipsCommand(); } });
+		helpMenu.addSeparator();
+		helpMenu.addMenuItem("Describe this Technology", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { describeTechnologyCommand(); } });
 		helpMenu.addSeparator();
 		helpMenu.addMenuItem("Make fake circuitry", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand(); } });
@@ -1406,9 +1488,127 @@ public final class MenuCommands
 		}
 	}
 
+	/**
+	 * Method to handle the "Attributes" command.
+	 */
 	public static void attributesCommand()
 	{
 		Attributes2.showDialog();
+	}
+
+	/**
+	 * Method to handle the "List Layer Coverage" command.
+	 */
+	public static void layerCoverageCommand()
+	{
+		System.out.println("Can't Yet");
+//		// initialize for analysis
+//		us_coveragetech = cell->tech;
+//
+//		// determine which layers are being collected
+//		us_coveragelayercount = 0;
+//		for(i=0; i<us_coveragetech->layercount; i++)
+//		{
+//			fun = layerfunction(us_coveragetech, i);
+//			if ((fun&LFPSEUDO) != 0) continue;
+//			if (!layerismetal(fun) && !layerispoly(fun)) continue;
+//			us_coveragelayercount++;
+//		}
+//		if (us_coveragelayercount == 0)
+//		{
+//			ttyputerr(_("No metal or polysilicon layers in this technology"));
+//			return;
+//		}
+//		us_coveragelayers = (INTBIG *)emalloc(us_coveragelayercount * SIZEOFINTBIG, us_tool->cluster);
+//		if (us_coveragelayers == 0) return;
+//		us_coveragelayercount = 0;
+//		for(i=0; i<us_coveragetech->layercount; i++)
+//		{
+//			fun = layerfunction(us_coveragetech, i);
+//			if ((fun&LFPSEUDO) != 0) continue;
+//			if (!layerismetal(fun) && !layerispoly(fun)) continue;
+//			us_coveragelayers[us_coveragelayercount++] = i;
+//		}
+//
+//		// show the progress dialog
+//		us_coveragedialog = DiaInitProgress(_("Merging geometry..."), 0);
+//		if (us_coveragedialog == 0)
+//		{
+//			termerrorlogging(TRUE);
+//			return;
+//		}
+//		DiaSetProgress(us_coveragedialog, 0, 1);
+//
+//		// reset merging information
+//		for(lib = el_curlib; lib != NOLIBRARY; lib = lib->nextlibrary)
+//		{
+//			for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
+//			{
+//				np->temp1 = 0;
+//
+//				// if this cell has parameters, force its polygons to be examined for every instance
+//				for(i=0; i<np->numvar; i++)
+//				{
+//					var = &np->firstvar[i];
+//					if (TDGETISPARAM(var->textdescript) != 0) break;
+//				}
+//				if (i < np->numvar) np->temp1 = -1;
+//			}
+//		}
+//
+//		// run through the work and count the number of polygons
+//		us_coveragepolyscrunched = 0;
+//		us_gathercoveragegeometry(cell, el_matid, 0);
+//		us_coveragejobsize = us_coveragepolyscrunched;
+//
+//		// now gather all of the geometry into the polygon merging system
+//		polymerge = (void **)emalloc(us_coveragelayercount * (sizeof (void *)), us_tool->cluster);
+//		if (polymerge == 0) return;
+//		for(i=0; i<us_coveragelayercount; i++)
+//			polymerge[i] = mergenew(us_tool->cluster);
+//		us_coveragepolyscrunched = 0;
+//		us_gathercoveragegeometry(cell, el_matid, polymerge);
+//
+//		// extract the information
+//		us_coveragearea = (float *)emalloc(us_coveragelayercount * (sizeof (float)), us_tool->cluster);
+//		if (us_coveragearea == 0) return;
+//		for(i=0; i<us_coveragelayercount; i++)
+//		{
+//			us_coveragearea[i] = 0.0;
+//			mergeextract(polymerge[i], us_getcoveragegeometry);
+//		}
+//
+//		// show the results
+//		totalarea = (float)(cell->highx - cell->lowx);
+//		totalarea *= (float)(cell->highy - cell->lowy);
+//		ttyputmsg(x_("Cell is %g square lambda"), totalarea/(float)lambda/(float)lambda);
+//		for(i=0; i<us_coveragelayercount; i++)
+//		{
+//			if (us_coveragearea[i] == 0.0) continue;
+//			if (totalarea == 0.0) coverageratio = 0.0; else
+//				coverageratio = us_coveragearea[i] / totalarea;
+//			percentcoverage = (INTBIG)(coverageratio * 100.0 + 0.5);
+//
+//			ttyputmsg(x_("Layer %s covers %g square lambda (%ld%%)"),
+//				layername(us_coveragetech, us_coveragelayers[i]),
+//				us_coveragearea[i]/(float)lambda/(float)lambda, percentcoverage);
+//		}
+//
+//		// delete merge information
+//		for(lib = el_curlib; lib != NOLIBRARY; lib = lib->nextlibrary)
+//		{
+//			for(np = lib->firstnodeproto; np != NONODEPROTO; np = np->nextnodeproto)
+//			{
+//				if (np->temp1 == 0 || np->temp1 == -1) continue;
+//				submerge = (void **)np->temp1;
+//				for(i=0; i<us_coveragelayercount; i++)
+//					mergedelete(submerge[i]);
+//				efree((CHAR *)submerge);
+//			}
+//		}
+//		for(i=0; i<us_coveragelayercount; i++)
+//			mergedelete(polymerge[i]);
+//		efree((CHAR *)polymerge);
 	}
 
 	/**
@@ -1779,6 +1979,26 @@ public final class MenuCommands
 		dialog.show();
 	}
 
+	public static void changeViewCommand()
+	{
+		Cell cell = WindowFrame.getCurrentCell();
+		if (cell == null) return;
+
+		List views = View.getOrderedViews();
+		String [] viewNames = new String[views.size()];
+		for(int i=0; i<views.size(); i++)
+			viewNames[i] = ((View)views.get(i)).getFullName();
+		Object newName = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "New view for this cell",
+			"Choose alternate view", JOptionPane.QUESTION_MESSAGE, null, viewNames, cell.getView().getFullName());
+		if (newName == null) return;
+		String newViewName = (String)newName;
+		View newView = View.findView(newViewName);
+		if (newView != null && newView != cell.getView())
+		{
+			CircuitChanges.changeCellView(cell, newView);
+		}
+	}
+
 	public static void editLayoutViewCommand()
 	{
 		Cell curCell = WindowFrame.needCurCell();
@@ -2121,6 +2341,372 @@ public final class MenuCommands
 
     }
 
+	/**
+	 * Method to handle the "Show Network" command.
+	 */
+	public static void showNetworkCommand()
+	{
+		Set nets = Highlight.getHighlightedNetworks();
+		Highlight.clear();
+		for(Iterator it = nets.iterator(); it.hasNext(); )
+		{
+			JNetwork net = (JNetwork)it.next();
+			Cell cell = net.getParent();
+			Netlist netlist = cell.getUserNetlist();
+			for(Iterator aIt = cell.getArcs(); aIt.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)aIt.next();
+				int width = netlist.getBusWidth(ai);
+				for(int i=0; i<width; i++)
+				{
+					JNetwork oNet = netlist.getNetwork(ai, i);
+					if (oNet == net)
+					{
+						Highlight.addElectricObject(ai, cell);
+						break;
+					}
+				}
+			}
+		}
+		Highlight.finished();
+	}
+
+	/**
+	 * Method to handle the "List Networks" command.
+	 */
+	public static void listNetworksCommand()
+	{
+		Cell cell = WindowFrame.getCurrentCell();
+		if (cell == null) return;
+		Netlist netlist = cell.getUserNetlist();
+		int total = 0;
+		for(Iterator it = netlist.getNetworks(); it.hasNext(); )
+		{
+			JNetwork net = (JNetwork)it.next();
+			String netName = net.describe();
+			if (netName.length() == 0) continue;
+			StringBuffer infstr = new StringBuffer();
+			infstr.append("'" + netName + "'");
+//			if (net->buswidth > 1)
+//			{
+//				formatinfstr(infstr, _(" (bus with %d signals)"), net->buswidth);
+//			}
+			boolean connected = false;
+			for(Iterator aIt = net.getArcs(); aIt.hasNext(); )
+			{
+				ArcInst ai = (ArcInst)aIt.next();
+				if (!connected)
+				{
+					connected = true;
+					infstr.append(", on arcs:");
+				}
+				infstr.append(" " + ai.describe());
+			}
+
+			boolean exported = false;
+			for(Iterator eIt = net.getExports(); eIt.hasNext(); )
+			{
+				Export pp = (Export)eIt.next();
+				if (!exported)
+				{
+					exported = true;
+					infstr.append(", with exports:");
+				}
+				infstr.append(" " + pp.getProtoName());
+			}
+			System.out.println(infstr.toString());
+			total++;
+		}
+		if (total == 0) System.out.println("There are no networks in this cell");
+	}
+
+	/**
+	 * Method to handle the "List Connections On Network" command.
+	 */
+	public static void listConnectionsOnNetworkCommand()
+	{
+		Cell cell = WindowFrame.needCurCell();
+		if (cell == null) return;
+		Set nets = Highlight.getHighlightedNetworks();
+		Netlist netlist = cell.getUserNetlist();
+		for(Iterator it = nets.iterator(); it.hasNext(); )
+		{
+			JNetwork net = (JNetwork)it.next();
+			System.out.println("Network '" + net.describe() + "':");
+
+			int total = 0;
+			for(Iterator nIt = netlist.getNodables(); nIt.hasNext(); )
+			{
+				Nodable no = (Nodable)nIt.next();
+				NodeProto np = no.getProto();
+
+				HashMap portNets = new HashMap();
+				for(Iterator pIt = np.getPorts(); pIt.hasNext(); )
+				{
+					PortProto pp = (PortProto)pIt.next();
+					if (pp.isIsolated())
+					{
+						NodeInst ni = (NodeInst)no;
+						for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+						{
+							Connection con = (Connection)cIt.next();
+							ArcInst ai = con.getArc();
+							JNetwork oNet = netlist.getNetwork(ai, 0);
+							portNets.put(oNet, pp);
+						}
+					} else
+					{
+						int width = 1;
+						if (pp instanceof Export)
+						{
+							Export e = (Export)pp;
+							width = netlist.getBusWidth(e);
+						}
+						for(int i=0; i<width; i++)
+						{
+							JNetwork oNet = netlist.getNetwork(no, pp, i);
+							portNets.put(oNet, pp);
+						}
+					}
+				}
+				
+				// if there is only 1 net connected, the node is unimportant
+				if (portNets.size() <= 1) continue;
+				PortProto pp = (PortProto)portNets.get(net);
+				if (pp == null) continue;
+
+				if (total == 0) System.out.println("  Connects to:");
+				String name = null;
+				if (no instanceof NodeInst) name = ((NodeInst)no).describe(); else
+				{
+					name = no.getName();						
+				}
+				System.out.println("    Node " + name + ", port " + pp.getProtoName());
+				total++;
+			}
+			if (total == 0) System.out.println("  Not connected");
+		}
+	}
+
+	/**
+	 * Method to handle the "List Exports On Network" command.
+	 */
+	public static void listExportsOnNetworkCommand()
+	{
+		Cell cell = WindowFrame.needCurCell();
+		if (cell == null) return;
+		Set nets = Highlight.getHighlightedNetworks();
+		Netlist netlist = cell.getUserNetlist();
+		for(Iterator it = nets.iterator(); it.hasNext(); )
+		{
+			JNetwork net = (JNetwork)it.next();
+			System.out.println("Network '" + net.describe() + "':");
+
+			// find all exports on network "net"
+			FlagSet fs = Geometric.getFlagSet(1);
+			for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+			{
+				Library lib = (Library)lIt.next();
+				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+				{
+					Cell oCell = (Cell)cIt.next();
+					for(Iterator pIt = oCell.getPorts(); pIt.hasNext(); )
+					{
+						Export pp = (Export)pIt.next();
+						pp.clearBit(fs);
+					}
+				}
+			}
+			System.out.println("  Going up the hierarchy from cell " + cell.describe() + ":");
+			findPortsUp(netlist, net, cell, fs);
+			System.out.println("  Going down the hierarchy from cell " + cell.describe() + ":");
+			findPortsDown(netlist, net, cell, fs);
+			fs.freeFlagSet();
+		}
+	}
+
+	/**
+	 * Method to handle the "List Exports Below Network" command.
+	 */
+	public static void listExportsBelowNetworkCommand()
+	{
+		Cell cell = WindowFrame.needCurCell();
+		if (cell == null) return;
+		Set nets = Highlight.getHighlightedNetworks();
+		Netlist netlist = cell.getUserNetlist();
+		for(Iterator it = nets.iterator(); it.hasNext(); )
+		{
+			JNetwork net = (JNetwork)it.next();
+			System.out.println("Network '" + net.describe() + "':");
+
+			// find all exports on network "net"
+			FlagSet fs = Geometric.getFlagSet(1);
+			for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+			{
+				Library lib = (Library)lIt.next();
+				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+				{
+					Cell oCell = (Cell)cIt.next();
+					for(Iterator pIt = oCell.getPorts(); pIt.hasNext(); )
+					{
+						Export pp = (Export)pIt.next();
+						pp.clearBit(fs);
+					}
+				}
+			}
+			findPortsDown(netlist, net, cell, fs);
+			fs.freeFlagSet();
+		}
+	}
+
+	/**
+	 * helper method for "telltool network list-hierarchical-ports" to print all
+	 * ports connected to net "net" in cell "cell", and recurse up the hierarchy
+	 */
+	private static void findPortsUp(Netlist netlist, JNetwork net, Cell cell, FlagSet fs)
+	{
+		// look at every node in the cell
+		for(Iterator it = cell.getPorts(); it.hasNext(); )
+		{
+			Export pp = (Export)it.next();
+			int width = netlist.getBusWidth(pp);
+			for(int i=0; i<width; i++)
+			{
+				JNetwork ppNet = netlist.getNetwork(pp, i);
+				if (ppNet != net) continue;
+				if (pp.isBit(fs)) continue;
+				pp.setBit(fs);
+				System.out.println("    Export " + pp.getProtoName() + " in cell " + cell.describe());
+
+				// code to find the proper instance
+				Cell instanceCell = cell.iconView();
+				if (instanceCell == null) instanceCell = cell;
+
+				// ascend to higher cell and continue
+				for(Iterator uIt = instanceCell.getUsagesOf(); uIt.hasNext(); )
+				{
+					NodeUsage nu = (NodeUsage)uIt.next();
+					Cell superCell = nu.getParent();
+					Netlist superNetlist = superCell.getUserNetlist();
+					for(Iterator nIt = superNetlist.getNodables(); nIt.hasNext(); )
+					{
+						Nodable no = (Nodable)nIt.next();
+						if (no.getProto() != cell) continue;
+						JNetwork superNet = superNetlist.getNetwork(no, pp, i);
+						findPortsUp(superNetlist, superNet, superCell, fs);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * helper method for "telltool network list-hierarchical-ports" to print all
+	 * ports connected to net "net" in cell "cell", and recurse down the hierarchy
+	 */
+	private static void findPortsDown(Netlist netlist, JNetwork net, Cell cell, FlagSet fs)
+	{
+		// look at every node in the cell
+		for(Iterator it = netlist.getNodables(); it.hasNext(); )
+		{
+			Nodable no = (Nodable)it.next();
+
+			// only want complex nodes
+			NodeProto subnp = no.getProto();
+			if (!(subnp instanceof Cell)) continue;
+			Cell subCell = (Cell)subnp;
+
+			// look at all wires connected to the node
+			for(Iterator pIt = subCell.getPorts(); pIt.hasNext(); )
+			{
+				Export pp = (Export)pIt.next();
+				int width = netlist.getBusWidth(pp);
+				for(int i=0; i<width; i++)
+				{
+					JNetwork oNet = netlist.getNetwork(no, pp, i);
+					if (oNet != net) continue;
+
+					// found the net here: report it
+					if (pp.isBit(fs)) continue;
+					pp.setBit(fs);
+					System.out.println("    Export " + pp.getProtoName() + " in cell " + subCell.describe());
+					Netlist subNetlist = subCell.getUserNetlist();
+					JNetwork subNet = subNetlist.getNetwork(pp, i);
+					findPortsDown(subNetlist, subNet, subCell, fs);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Method to handle the "List Geometry On Network" command.
+	 */
+	public static void listGeometryOnNetworkCommand()
+	{
+		System.out.println("Can't Yet");
+//		/* gather geometry on this network */
+//		np = net->parent;
+//		firstarpe = net_gathergeometry(net, &p_gate, &n_gate, &p_active, &n_active, TRUE);
+//
+//		/* copy the linked list to an array for sorting */
+//		total = 0;
+//		for(arpe = firstarpe; arpe != NOAREAPERIM; arpe = arpe->nextareaperim)
+//			if (arpe->layer >= 0) total++;
+//		if (total == 0)
+//		{
+//			ttyputmsg(_("No geometry on network '%s' in cell %s"), describenetwork(net),
+//				describenodeproto(np));
+//			return;
+//		}
+//		arpelist = (AREAPERIM **)emalloc(total * (sizeof (AREAPERIM *)), net_tool->cluster);
+//		if (arpelist == 0) return;
+//		i = 0;
+//		for(arpe = firstarpe; arpe != NOAREAPERIM; arpe = arpe->nextareaperim)
+//			if (arpe->layer >= 0) arpelist[i++] = arpe;
+//
+//		/* sort the layers */
+//		esort(arpelist, total, sizeof (AREAPERIM *), net_areaperimdepthascending);
+//
+//		ttyputmsg(_("For network '%s' in cell %s:"), describenetwork(net),
+//			describenodeproto(np));
+//		lambda = lambdaofcell(np);
+//		widest = 0;
+//		for(i=0; i<total; i++)
+//		{
+//			arpe = arpelist[i];
+//			lname = layername(arpe->tech, arpe->layer);
+//			len = estrlen(lname);
+//			if (len > widest) widest = len;
+//		}
+//		totalWire = 0;
+//		for(i=0; i<total; i++)
+//		{
+//			arpe = arpelist[i];
+//			lname = layername(arpe->tech, arpe->layer);
+//			infstr = initinfstr();
+//			for(j=estrlen(lname); j<widest; j++) addtoinfstr(infstr, ' ');
+//			pad = returninfstr(infstr);
+//			if (arpe->perimeter == 0)
+//			{
+//				ttyputmsg(_("Layer %s:%s area=%7g  half-perimeter=%s"), lname, pad,
+//					arpe->area/(float)lambda/(float)lambda, latoa(arpe->perimeter/2, 0));
+//			} else
+//			{
+//				ratio = (arpe->area / (float)lambda) / (float)(arpe->perimeter/2);
+//				ttyputmsg(_("Layer %s:%s area=%7g  half-perimeter=%s ratio=%g"), lname,
+//					pad, arpe->area/(float)lambda/(float)lambda,
+//						latoa(arpe->perimeter/2, lambda), ratio);
+//
+//				/* accumulate total wire length on all metal/poly layers */
+//				fun = layerfunction(arpe->tech, arpe->layer);
+//				if ((layerispoly(fun) && !layerisgatepoly(fun)) || layerismetal(fun))
+//					totalWire += arpe->perimeter / 2;
+//			}
+//			efree((CHAR *)arpelist[i]);
+//		}
+//		if (totalWire > 0.0) ttyputmsg(_("Total wire length = %s"), latoa(totalWire,lambda));
+	}
+
 	public static void redoNetworkNumberingCommand()
 	{
 		long startTime = System.currentTimeMillis();
@@ -2222,16 +2808,98 @@ public final class MenuCommands
         dialog.show();
     }
 
-	public static void checkAndRepairCommand()
+	public static void describeTechnologyCommand()
 	{
-		int errorCount = 0;
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		Technology tech = Technology.getCurrent();
+		System.out.println("Technology " + tech.getTechName());
+		System.out.println("    Full name: " + tech.getTechDesc());
+		if (tech.isScaleRelevant())
 		{
-			Library lib = (Library)it.next();
-			errorCount += lib.checkAndRepair();
+			System.out.println("    Scale: 1 grid unit is " + tech.getScale() + " nanometers (" +
+				(tech.getScale()/1000) + " microns)");
 		}
-		if (errorCount > 0) System.out.println("Found " + errorCount + " errors"); else
-			System.out.println("No errors found");
+		int arcCount = 0;
+		for(Iterator it = tech.getArcs(); it.hasNext(); )
+		{
+			PrimitiveArc ap = (PrimitiveArc)it.next();
+			if (!ap.isNotUsed()) arcCount++;
+		}
+		StringBuffer sb = new StringBuffer();
+		sb.append("    Has " + arcCount + " arcs (wires):");
+		for(Iterator it = tech.getArcs(); it.hasNext(); )
+		{
+			PrimitiveArc ap = (PrimitiveArc)it.next();
+			if (ap.isNotUsed()) continue;
+			sb.append(" " + ap.getProtoName());
+		}
+		System.out.println(sb.toString());
+
+		int pinCount = 0, totalCount = 0, pureCount = 0, contactCount = 0;
+		for(Iterator it = tech.getNodes(); it.hasNext(); )
+		{
+			PrimitiveNode np = (PrimitiveNode)it.next();
+			if (np.isNotUsed()) continue;
+			NodeProto.Function fun = np.getFunction();
+			totalCount++;
+			if (fun == NodeProto.Function.PIN) pinCount++; else
+			if (fun == NodeProto.Function.CONTACT || fun == NodeProto.Function.CONNECT) contactCount++; else
+			if (fun == NodeProto.Function.NODE) pureCount++;
+		}
+		if (pinCount > 0)
+		{
+			sb = new StringBuffer();
+			sb.append("    Has " + pinCount + " pin nodes for making bends in arcs:");
+			for(Iterator it = tech.getNodes(); it.hasNext(); )
+			{
+				PrimitiveNode np = (PrimitiveNode)it.next();
+				if (np.isNotUsed()) continue;
+				NodeProto.Function fun = np.getFunction();
+				if (fun == NodeProto.Function.PIN) sb.append(" " + np.getProtoName());
+			}
+			System.out.println(sb.toString());
+		}
+		if (contactCount > 0)
+		{
+			sb = new StringBuffer();
+			sb.append("    Has " + contactCount + " contact nodes for joining different arcs:");
+			for(Iterator it = tech.getNodes(); it.hasNext(); )
+			{
+				PrimitiveNode np = (PrimitiveNode)it.next();
+				if (np.isNotUsed()) continue;
+				NodeProto.Function fun = np.getFunction();
+				if (fun == NodeProto.Function.CONTACT || fun == NodeProto.Function.CONNECT)
+					sb.append(" " + np.getProtoName());
+			}
+			System.out.println(sb.toString());
+		}
+		if (pinCount+contactCount+pureCount < totalCount)
+		{
+			sb = new StringBuffer();
+			sb.append("    Has " + (totalCount-pinCount-contactCount-pureCount) + " regular nodes:");
+			for(Iterator it = tech.getNodes(); it.hasNext(); )
+			{
+				PrimitiveNode np = (PrimitiveNode)it.next();
+				if (np.isNotUsed()) continue;
+				NodeProto.Function fun = np.getFunction();
+				if (fun != NodeProto.Function.PIN && fun != NodeProto.Function.CONTACT &&
+					fun != NodeProto.Function.CONNECT && fun != NodeProto.Function.NODE)
+						sb.append(" " + np.getProtoName());
+			}
+			System.out.println(sb.toString());
+		}
+		if (pureCount > 0)
+		{
+			sb = new StringBuffer();
+			sb.append("    Has " + pureCount + " pure-layer nodes for creating custom geometry:");
+			for(Iterator it = tech.getNodes(); it.hasNext(); )
+			{
+				PrimitiveNode np = (PrimitiveNode)it.next();
+				if (np.isNotUsed()) continue;
+				NodeProto.Function fun = np.getFunction();
+				if (fun == NodeProto.Function.NODE) sb.append(" " + np.getProtoName());
+			}
+			System.out.println(sb.toString());
+		}
 	}
 
 	/**

@@ -2,6 +2,25 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (5/31/04, SMR) Implemented cell instance extraction and packaging.
+
+IMP: (5/31/04, SMR) Implemented MOSIS CMOS scalable transistors.
+
+IMP: (5/30/04, SMR) Implemented Tool / Network / "Show Network", "List Networks", "List Connections on Network",
+     "List Exports on Network", and "List Exports below Network".
+
+IMP: (5/28/04, SMR) Implemented View / "Change Cell's View".
+
+IMP: (5/28/04, SMR) Implemented Edit / "Erase Geometry".
+
+IMP: (5/28/04, SMR) Implemented Help / "Describe Current Technology".
+
+IMP: (5/28/04, SMR) Implemented Edit / Size commands: "All Selected Nodes" and "All Selected Arcs".
+
+IMP: (5/28/04, SMR) Implemented Export commands: "Delete Export", "Rename Export", "Move Export".
+
+IMP: (5/28/04, SMR) Implemented Arc commands "Toggle Ends Extension", "Reverse", "Toggle Head-Skip", "Toggle Tail-Skip"
+
 IMP: (5/28/04, GVG) Testing qTree in ERC Check Well (new function doesn't overwrite current one).
 
 IMP: (5/28/04, GVG) Added execution flag to Job class. Second version of qTree for polygon merging
@@ -9,6 +28,10 @@ IMP: (5/28/04, GVG) Added execution flag to Job class. Second version of qTree f
 IMP: (5/28/04, RK) Added fill cells: fill456_pwr and fill456w_pwr. Merge Jonathan's gate generator code into mine. Add user interface checks.
 
 IMP: (5/27/04, RK) Added _pwr gates to layout generators. Added fill56_pwr and fill56w_pwr to fill cell generator.
+
+IMP: (5/27/04, SMR) Implemented "Change Current Library", "List Libraries", "Mark All Libraries for Saving", "Rename Library"
+
+IMP: (5/27/04, SMR) Implemented bus ripping.
 
 IMP: (5/26/04, SMR) Implemented schematic frames.
 

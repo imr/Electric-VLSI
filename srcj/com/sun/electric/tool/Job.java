@@ -167,7 +167,6 @@ public abstract class Job implements ActionListener, Runnable {
 				notify();
 			allJobs.add(j);
             if (j.getDisplay()) {
-//                explorerTree.add(j.myNode);
                 WindowFrame.wantToRedoJobTree();
             }
 		}
@@ -182,20 +181,18 @@ public abstract class Job implements ActionListener, Runnable {
 				if (index < numStarted) numStarted--;
 			}
             if (j.getDisplay()) {
-//                explorerTree.remove(j.myNode);
                 WindowFrame.wantToRedoJobTree();        
             }
 		}
 
-	/**
-	 * A static object is used so that its open/closed tree state can be maintained.
-	 */
-	private static String jobNode = "JOBS";
-
-	/** Build Job explorer tree */
+		/**
+		 * A static object is used so that its open/closed tree state can be maintained.
+		 */
+		private static String jobNode = "JOBS";
+	
+		/** Build Job explorer tree */
 		public synchronized DefaultMutableTreeNode getExplorerTree() {
 			DefaultMutableTreeNode explorerTree = new DefaultMutableTreeNode(jobNode);
-//			explorerTree.removeAllChildren();
 			for (Iterator it = allJobs.iterator(); it.hasNext();) {
                 Job j = (Job)it.next();
                 if (j.getDisplay()) {

@@ -29,6 +29,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.technology.Technology;
@@ -36,19 +37,30 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.dialogs.EDialog;
 
 import java.awt.Cursor;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseWheelListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.AffineTransform;
 import java.util.EventListener;
 import java.util.List;
+import java.util.Iterator;
+import javax.swing.JLabel;
+import javax.swing.JButton;
+import javax.swing.JTextField;
 
 public class SizeListener
 	implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
@@ -60,6 +72,9 @@ public class SizeListener
 
 	private SizeListener() {}
 
+	/**
+	 * Method to do an interactive sizing of the currently selected object.
+	 */
 	public static void sizeObjects()
 	{
 		List geomList = Highlight.getHighlighted(true, true);
@@ -93,6 +108,203 @@ public class SizeListener
 			TopLevel.setCurrentCursor(sizeCursor);
 		}
 	}
+
+	/**
+	 * Method to present a dialog to resize all selected nodes.
+	 */
+	public static void sizeAllNodes()
+	{
+		SizeObjects dialog = new SizeObjects(TopLevel.getCurrentJFrame(), true, true);
+		dialog.show();
+	}
+
+	/**
+	 * Method to present a dialog to resize all selected arcs.
+	 */
+	public static void sizeAllArcs()
+	{
+		SizeObjects dialog = new SizeObjects(TopLevel.getCurrentJFrame(), true, false);
+		dialog.show();
+	}
+
+	/**
+	 * Class to handle the "Size all selected nodes/arcs" dialog.
+	 */
+	private static class SizeObjects extends EDialog
+	{
+		private JTextField xSize, ySize;
+		boolean nodes;
+
+		/** Creates new form About */
+		public SizeObjects(java.awt.Frame parent, boolean modal, boolean nodes)
+		{
+			super(parent, modal);
+
+			getContentPane().setLayout(new GridBagLayout());
+			String label = "Width:";
+			this.nodes = nodes;
+			if (nodes)
+			{
+				label = "X Size:";
+				setTitle("Set Node Size");
+
+				JLabel ySizeLabel = new JLabel("Y Size:");
+				GridBagConstraints gbc = new GridBagConstraints();
+				gbc.gridx = 0;
+				gbc.gridy = 1;
+				gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+				getContentPane().add(ySizeLabel, gbc);
+	
+				ySize = new JTextField();
+				ySize.setColumns(6);
+				gbc = new GridBagConstraints();
+				gbc.gridx = 1;
+				gbc.gridy = 1;
+				gbc.weightx = 1;
+				gbc.fill = GridBagConstraints.HORIZONTAL;
+				gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+				getContentPane().add(ySize, gbc);
+			} else
+			{
+				setTitle("Set Arc Size");
+			}
+
+			JLabel xSizeLabel = new JLabel(label);
+			GridBagConstraints gbc = new GridBagConstraints();
+			gbc.gridx = 0;
+			gbc.gridy = 0;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(xSizeLabel, gbc);
+
+			xSize = new JTextField();
+			xSize.setColumns(6);
+			gbc = new GridBagConstraints();
+			gbc.gridx = 1;
+			gbc.gridy = 0;
+			gbc.weightx = 1;
+			gbc.fill = GridBagConstraints.HORIZONTAL;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(xSize, gbc);
+
+			JButton ok = new JButton("OK");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 1;
+			gbc.gridy = 2;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(ok, gbc);
+
+			JButton cancel = new JButton("Cancel");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;
+			gbc.gridy = 2;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(cancel, gbc);
+
+			addWindowListener(new WindowAdapter()
+			{
+				public void windowClosing(WindowEvent evt) { SizeObjectsClosing(evt); }
+			});
+			cancel.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { cancel(evt); }
+			});
+			ok.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { ok(evt); }
+			});
+
+			pack();
+
+			getRootPane().setDefaultButton(ok);
+
+			// determine default size
+			double xS = 0, yS = 0;
+			for(Iterator it = Highlight.getHighlighted(true, true).iterator(); it.hasNext(); )
+			{
+				Geometric geom = (Geometric)it.next();
+				if (geom instanceof NodeInst && nodes)
+				{
+					NodeInst ni = (NodeInst)geom;
+					SizeOffset so = ni.getProto().getSizeOffset();					
+					xS = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+					yS = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+				} else if (geom instanceof ArcInst && !nodes)
+				{
+					ArcInst ai = (ArcInst)geom;
+					xS = ai.getWidth() - ai.getProto().getWidthOffset();
+				}
+			}
+			xSize.setText(Double.toString(xS));
+			if (nodes)
+				ySize.setText(Double.toString(yS));
+		}
+
+		private void cancel(java.awt.event.ActionEvent evt)
+		{
+			SizeObjectsClosing(null);
+		}
+
+		private void ok(java.awt.event.ActionEvent evt)
+		{
+			// create the array
+			ResizeStuff job = new ResizeStuff(this);
+			SizeObjectsClosing(null);
+		}
+
+		private void SizeObjectsClosing(WindowEvent evt)
+		{
+			setVisible(false);
+			dispose();
+		}
+	}
+
+	/**
+	 * Class to create an array in a new thread.
+	 */
+	private static class ResizeStuff extends Job
+	{
+		SizeObjects dialog;
+	
+		protected ResizeStuff(SizeObjects dialog)
+		{
+			super("Resize Objects", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.dialog = dialog;
+			startJob();
+		}
+
+		public void doIt()
+		{
+			double xS = TextUtils.atof(dialog.xSize.getText());
+			double yS = 0;
+			if (dialog.nodes)
+				yS = TextUtils.atof(dialog.ySize.getText());
+			boolean didSomething = false;
+			for(Iterator it = Highlight.getHighlighted(true, true).iterator(); it.hasNext(); )
+			{
+				Geometric geom = (Geometric)it.next();
+				if (geom instanceof NodeInst && dialog.nodes)
+				{
+					NodeInst ni = (NodeInst)geom;
+					SizeOffset so = ni.getProto().getSizeOffset();					
+					double x = xS + so.getLowXOffset() + so.getHighXOffset();
+					double y = yS + so.getLowYOffset() + so.getHighYOffset();
+					ni.modifyInstance(0, 0, x - ni.getXSize(), y - ni.getYSize(), 0);
+					didSomething = true;
+				} else if (geom instanceof ArcInst && !dialog.nodes)
+				{
+					ArcInst ai = (ArcInst)geom;
+					double w = xS + ai.getProto().getWidthOffset();
+					ai.modify(w - ai.getWidth(), 0, 0, 0, 0);
+					didSomething = true;
+				}
+			}
+			if (!didSomething)
+			{
+				System.out.println("Could not find any " + (dialog.nodes?"nodes":"arcs") + " to resize");
+			}
+		}
+	}
+
 
 	public void mousePressed(MouseEvent evt)
 	{

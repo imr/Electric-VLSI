@@ -186,6 +186,16 @@ public class Technology extends ElectricObject
 		}
 
 		/**
+		 * Method to make a copy of this TechPoint, with all newly allocated parts.
+		 * @return a new TechPoint with the values in this one.
+		 */
+		public TechPoint duplicate()
+		{
+			TechPoint newTP = new TechPoint(new EdgeH(x.getMultiplier(), x.getAdder()), new EdgeV(y.getMultiplier(), y.getAdder()));
+			return newTP;
+		}
+
+		/**
 		 * Method to make a 2-long TechPoint array that describes a point at the center of the node.
 		 * @return a new TechPoint array that describes a point at the center of the node.
 		 */
@@ -2215,10 +2225,12 @@ public class Technology extends ElectricObject
 	 * the unit-based values in Electric to real-world values (in nanometers).
 	 * @param factory the factory scale between this technology and the real units.
 	 */
-	public void setFactoryScale(double factory)
+	protected void setFactoryScale(double factory, boolean scaleRelevant)
 	{
+		this.scaleRelevant = scaleRelevant;
 		prefScale = Pref.makeDoublePref(getScaleVariableName(), prefs, factory);
-		prefScale.attachToObject(this, "IO Options, Scale tab", getTechShortName() + " scale");
+		Pref.Meaning meaning = prefScale.attachToObject(this, "IO Options, Scale tab", getTechShortName() + " scale");
+		meaning.setValidOption(isScaleRelevant());
 	}
 
 	/**
@@ -2243,17 +2255,6 @@ public class Technology extends ElectricObject
 	 * @return true if scaling is relevant for this Technology.
 	 */
 	public boolean isScaleRelevant() { return scaleRelevant; }
-
-	/**
-	 * Method to set whether scaling is relevant for this Technology.
-	 * Most technolgies produce drawings that are exact images of a final product.
-	 * For these technologies (CMOS, bipolar, etc.) the "scale" from displayed grid
-	 * units to actual dimensions is a relevant factor.
-	 * Other technologies, such as schematics, artwork, and generic,
-	 * are not converted to physical objects, and "scale" is not relevant no meaning for them.
-	 * @param scaleRelevant true if scaling is relevant for this Technology.
-	 */
-	protected void setScaleRelevant(boolean scaleRelevant) { this.scaleRelevant = scaleRelevant; }
 
 	/**
 	 * Sets the number of transparent layers in this technology.

@@ -83,10 +83,15 @@ public class Clipboard
 
 	private static void init()
 	{
-		if (clipLib != null) return;
-		clipLib = Library.newInstance("Clipboard!!", null);
-		clipLib.setHidden();
-		clipCell = Cell.newInstance(clipLib, "Clipboard!!");
+		if (clipLib == null)
+		{
+			clipLib = Library.newInstance("Clipboard!!", null);
+			clipLib.setHidden();
+		}
+		if (clipCell == null)
+		{
+			clipCell = Cell.newInstance(clipLib, "Clipboard!!");
+		}
 	}
 
 	/**

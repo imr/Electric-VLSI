@@ -814,16 +814,32 @@ public class NodeInst extends Geometric implements Nodable
 	/**
 	 * Method to return whether NodeInst is mirrored about a 
 	 * horizontal line running through its center.
-	 * @return true if mirrored 
+	 * @return true if mirrored.
 	 */
 	public boolean isMirroredAboutXAxis() { return sY<0;}
 	
 	/** 
 	 * Method to return whether NodeInst is mirrored about a
 	 * vertical line running through its center.
-	 * @return true if mirrored
+	 * @return true if mirrored.
 	 */
 	public boolean isMirroredAboutYAxis() { return sX<0; }
+
+	/**
+	 * Method to tell whether this NodeInst is mirrored in the X coordinate.
+	 * Mirroring in the X axis implies that X coordinates are negated.
+	 * Thus, it is equivalent to mirroring ABOUT the Y axis.
+	 * @return true if this NodeInst is mirrored in the X coordinate.
+	 */
+	public boolean isXMirrored() { return sX < 0; }
+
+	/**
+	 * Method to tell whether this NodeInst is mirrored in the Y coordinate.
+	 * Mirroring in the Y axis implies that Y coordinates are negated.
+	 * Thus, it is equivalent to mirroring ABOUT the X axis.
+	 * @return true if this NodeInst is mirrored in the Y coordinate.
+	 */
+	public boolean isYMirrored() { return sY < 0; }
 
 	/**
 	 * Method to return the starting and ending angle of an arc described by this NodeInst.
@@ -1017,10 +1033,12 @@ public class NodeInst extends Geometric implements Nodable
 		// add in the exports
 		if (numExports > 0)
 		{
+			AffineTransform unTrans = rotateIn();
 			for(Iterator it = getExports(); it.hasNext(); )
 			{
 				Export pp = (Export)it.next();
 				polys[start] = pp.getNamePoly();
+				polys[start].transform(unTrans);
 				start++;
 
 				// add in variables on the exports
@@ -2404,22 +2422,6 @@ public class NodeInst extends Geometric implements Nodable
 	 * @return the Technology-specific value on this NodeInst.
 	 */
 	public int getTechSpecific() { return (userBits & NTECHBITS) >> NTECHBITSSH; }
-
-	/**
-	 * Method to tell whether this NodeInst is mirrored in the X axis.
-	 * Mirroring in the X axis implies that X coordinates are negated.
-	 * Thus, it is equivalent to mirroring ABOUT the Y axis.
-	 * @return true if this NodeInst is mirrored in the X axis.
-	 */
-	public boolean isXMirrored() { return sX < 0; }
-
-	/**
-	 * Method to tell whether this NodeInst is mirrored in the Y axis.
-	 * Mirroring in the Y axis implies that Y coordinates are negated.
-	 * Thus, it is equivalent to mirroring ABOUT the X axis.
-	 * @return true if this NodeInst is mirrored in the Y axis.
-	 */
-	public boolean isYMirrored() { return sY < 0; }
 
 	/**
 	 * Return the Essential Bounds of this NodeInst.

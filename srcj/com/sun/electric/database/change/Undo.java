@@ -481,7 +481,20 @@ public class Undo
 				{
 					Cell cell = (Cell)obj;
 					Name oldName = (Name)o1;
+					o1 = Name.findName(cell.getProtoName());
 					cell.lowLevelRename(oldName.toString());
+				} else if (obj instanceof Export)
+				{
+					Export pp = (Export)obj;
+					Name oldName = (Name)o1;
+					o1 = pp.getProtoNameKey();
+					pp.lowLevelRename(oldName.toString());
+				} else if (obj instanceof Library)
+				{
+					Library lib = (Library)obj;
+					Name oldName = (Name)o1;
+					o1 = Name.findName(lib.getLibName());
+					lib.lowLevelRename(oldName.toString());
 				}
 				return;
 			}

@@ -496,6 +496,7 @@ public class TextUtils
 	 */
 	public static String getFilePath(URL url)
 	{
+		if (url == null) return "";
 		String filePath = url.getFile();
 		int slashPos = filePath.lastIndexOf('/');
 		if (slashPos < 0) return "";
@@ -532,6 +533,7 @@ public class TextUtils
 	 */
 	public static String getExtension(URL url)
 	{
+		if (url == null) return "";
 		String fileName = url.getFile();
 		int dotPos = fileName.lastIndexOf('.');
 		if (dotPos < 0) return "";

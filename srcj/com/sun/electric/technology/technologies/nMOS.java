@@ -60,7 +60,7 @@ public class nMOS extends Technology
 		setTechName("nmos");
 		setTechShortName("nMOS");
 		setTechDesc("nMOS (Mead & Conway abstract rules)");
-		setFactoryScale(2000);   // in nanometers: really 2 microns
+		setFactoryScale(2000, true);   // in nanometers: really 2 microns
 		setNoNegatedArcs();
 		setStaticTechnology();
 		setNumTransparentLayers(5);
