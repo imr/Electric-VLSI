@@ -33,8 +33,9 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -162,24 +163,9 @@ public class AutoStitch
 					{
 						PortProto pp = (PortProto)pIt.next();
 
-						PortProto.FindPrimitive fp = new PortProto.FindPrimitive(ni, pp);
+						PortOriginal fp = new PortOriginal(ni, pp);
 						AffineTransform trans = fp.getTransformToTop();
 						NodeInst rNi = fp.getBottomNodeInst();
-
-						// the above 3 lines replace the loop below
-//						AffineTransform trans = ni.rotateOut();
-//						NodeInst rNi = ni;
-//						PortProto rPp = pp;
-//						while (rNi.getProto() instanceof Cell)
-//						{
-//							AffineTransform temp = rNi.translateOut();
-//							temp.preConcatenate(trans);
-//							PortInst subPi = ((Export)rPp).getOriginalPort();
-//							rPp = subPi.getPortProto();
-//							rNi = subPi.getNodeInst();
-//							trans = rNi.rotateOut();
-//							trans.preConcatenate(temp);
-//						}
 
 						Rectangle2D bounds = new Rectangle2D.Double(rNi.getAnchorCenterX() - rNi.getXSize()/2, 
 							rNi.getAnchorCenterY() - rNi.getYSize()/2, rNi.getXSize(), rNi.getYSize());

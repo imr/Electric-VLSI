@@ -844,7 +844,8 @@ public class Highlight
                 // it figures out what's connected and adds them manually. Because they are added
                 // in addNetwork, we shouldn't try and add connected objects here.
                 if (highlightConnected) {
-                    Netlist netlist = cell.getUserNetlist();
+                    Netlist netlist = cell.acquireUserNetlist();
+					if (netlist == null) return;
                     Nodable no = Netlist.getNodableFor(ni, 0);
                     PortProto epp = pp.getEquivalent();
                     if (epp == null) epp = pp;

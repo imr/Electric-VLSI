@@ -60,8 +60,8 @@ public class Netlist
 	int expectedModCount;
 
 	/** An equivalence map of PortInsts and NetNames. */
-	int[] netMap;
-	int[] nm_net;
+	final int[] netMap;
+	final int[] nm_net;
 
 	/** An array of Networks in this Cell. */
 	private Network[] networks;
@@ -71,17 +71,19 @@ public class Netlist
 	/**
 	 * The constructor of Netlist object..
 	 */
-	Netlist(NetCell netCell) {
+	Netlist(NetCell netCell, int size) {
 		this.netCell = netCell;
 		expectedModCount = netCell.modCount;
+		netMap = new int[size];
+		for (int i = 0; i < netMap.length; i++) netMap[i] = i;
+		nm_net = new int[netMap.length];
 	}
 
-	void initNetMap(int size) {
-		if (netMap == null || netMap.length != size) {
-			netMap = new int[size];
-			nm_net = new int[size];
-		}
-		for (int i = 0; i < netMap.length; i++) netMap[i] = i;
+	Netlist(NetCell netCell, Netlist other) {
+		this.netCell = netCell;
+		expectedModCount = netCell.modCount;
+		netMap = other.netMap.clone();
+		nm_net = new int[netMap.length];
 	}
 
 	void initNetworks() {

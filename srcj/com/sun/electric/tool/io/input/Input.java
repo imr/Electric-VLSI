@@ -27,7 +27,6 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Name;
@@ -118,30 +117,33 @@ public class Input // extends IOTool
 
 		LibDirs.readLibDirs();
 		LibraryFiles.initializeLibraryInput();
-		Undo.changesQuiet(true);
-		Cell.setAllowCircularLibraryDependences(true);
-		Pref.initMeaningVariableGathering();
 
-		// show progress
-		startProgressDialog("library", fileURL.getFile());
+		Library lib = null;
+		try {
+			// show progress
+			startProgressDialog("library", fileURL.getFile());
 
-        StringBuffer errmsg = new StringBuffer();
-		boolean exists = TextUtils.URLExists(fileURL, errmsg);
-        Library lib = null;
-        if (!exists) System.out.print(errmsg.toString()); else
-		    lib = readALibrary(fileURL, null, type);
-		if (LibraryFiles.VERBOSE)
-			System.out.println("Done reading data for all libraries");
+			Undo.changesQuiet(true);
+			Cell.setAllowCircularLibraryDependences(true);
+			Pref.initMeaningVariableGathering();
 
-		LibraryFiles.cleanupLibraryInput();
-		if (LibraryFiles.VERBOSE)
-			System.out.println("Done instantiating data for all libraries");
+			StringBuffer errmsg = new StringBuffer();
+			boolean exists = TextUtils.URLExists(fileURL, errmsg);
+			if (!exists) System.out.print(errmsg.toString()); else
+				lib = readALibrary(fileURL, null, type);
+			if (LibraryFiles.VERBOSE)
+				System.out.println("Done reading data for all libraries");
 
-		stopProgressDialog();
+			LibraryFiles.cleanupLibraryInput();
+			if (LibraryFiles.VERBOSE)
+				System.out.println("Done instantiating data for all libraries");
+		} finally {
+			stopProgressDialog();
+			Cell.setAllowCircularLibraryDependences(false);
+			Undo.changesQuiet(false);
+			errorLogger.termLogging(true);
+		}
 
-		Undo.changesQuiet(false);
-		Cell.setAllowCircularLibraryDependences(false);
-		NetworkTool.reload();
 		if (lib != null)
 		{
 			long endTime = System.currentTimeMillis();
@@ -150,7 +152,6 @@ public class Input // extends IOTool
             Pref.reconcileMeaningVariables(lib.getName());
 		}
 
-        errorLogger.termLogging(true);
 
 		return lib;
 	}
@@ -209,35 +210,39 @@ public class Input // extends IOTool
 		long startTime = System.currentTimeMillis();
         errorLogger = ErrorLogger.newInstance("File Import");
 		LibDirs.readLibDirs();
-		Undo.changesQuiet(true);
 
-		// initialize progress
-		startProgressDialog("import", fileURL.getFile());
+		try {
+			Undo.changesQuiet(true);
 
-		Input in;
-		if (type == OpenFile.Type.CIF)
-		{
-			in = (Input)new CIF();
-			if (in.openTextInput(fileURL)) return null;
-		} else if (type == OpenFile.Type.GDS)
-		{
-			in = (Input)new GDS();
-			if (in.openBinaryInput(fileURL)) return null;
-		} else
-		{
-			System.out.println("Unsupported input format");
-			return null;
+			// initialize progress
+			startProgressDialog("import", fileURL.getFile());
+
+			Input in;
+			if (type == OpenFile.Type.CIF)
+			{
+				in = (Input)new CIF();
+				if (in.openTextInput(fileURL)) return null;
+			} else if (type == OpenFile.Type.GDS)
+			{
+				in = (Input)new GDS();
+				if (in.openBinaryInput(fileURL)) return null;
+			} else
+			{
+				System.out.println("Unsupported input format");
+				return null;
+			}
+
+			// import the library
+			boolean error = in.importALibrary(lib);
+			in.closeInput();
+
+		} finally {
+			// clean up
+			stopProgressDialog();
+			Undo.changesQuiet(false);
+			errorLogger.termLogging(true);
 		}
 
-		// import the library
-		boolean error = in.importALibrary(lib);
-		in.closeInput();
-
-		// clean up
-		stopProgressDialog();
-		Undo.changesQuiet(false);
-		NetworkTool.reload();
-		errorLogger.termLogging(true);
 		if (lib == null)
 		{
 			System.out.println("Error importing library " + lib.getName());

@@ -56,6 +56,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.network.Network;
+import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.prototype.NodeProto;
@@ -243,7 +244,7 @@ public class ToolMenu {
 		networkSubMenu.addMenuItem("Validate Power and Ground", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { validatePowerAndGround(); } });
 		networkSubMenu.addMenuItem("Redo Network Numbering", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { redoNetworkNumberingCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { new NetworkTool.RenumberJob(); } });
 
 		//------------------- Logical Effort
 
@@ -823,25 +824,6 @@ public class ToolMenu {
         }
         if (total == 0) System.out.println("No problems found"); else
             System.out.println("Found " + total + " export problems");
-    }
-
-    public static void redoNetworkNumberingCommand()
-    {
-        long startTime = System.currentTimeMillis();
-        int ncell = 0;
-        for(Iterator it = Library.getLibraries(); it.hasNext(); )
-        {
-            Library lib = (Library)it.next();
-            for(Iterator cit = lib.getCells(); cit.hasNext(); )
-            {
-                Cell cell = (Cell)cit.next();
-                ncell++;
-                cell.getNetlist(false);
-            }
-        }
-        long endTime = System.currentTimeMillis();
-        float finalTime = (endTime - startTime) / 1000F;
-        System.out.println("**** Renumber networks of "+ncell+" cells took " + finalTime + " seconds");
     }
 
     /**

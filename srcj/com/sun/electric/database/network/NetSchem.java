@@ -390,6 +390,10 @@ class NetSchem extends NetCell {
 	/* Implementation of this NetSchem. */							NetSchem implementation;
 	/* Mapping from ports of this to ports of implementation. */	int[] portImplementation;
 
+	/**
+     * Equivalence of ports. equivPorts.size == ports.size.
+	 * equivPorts[i] contains minimal index among ports of its group.
+     */																private int[] equivPortsF, equivPortsT;
 	/** Node offsets. */											int[] nodeOffsets;
 	/** Node offsets. */											int[] drawnOffsets;
 	/** Node offsets. */											Proxy[] nodeProxies;
@@ -400,6 +404,9 @@ class NetSchem extends NetCell {
 
 	/** */															Name[] drawnNames;
 	/** */															int[] drawnWidths;
+
+	/** Netlist for different shortResistors options. */			private Netlist netlistF, netlistT;
+
 
 	NetSchem(Cell cell) {
 		super(cell);
@@ -474,6 +481,11 @@ class NetSchem extends NetCell {
 			return busIndex == 0 ? portIndex : -1;
 		NetCell netCell = NetworkTool.getNetCell((Cell)np);
 		return netCell.getPortOffset(portIndex, busIndex);
+	}
+
+	Netlist getNetlist(boolean shortResistors) {
+		if ((flags & VALID) == 0) redoNetworks();
+		return shortResistors ? netlistT : netlistF;
 	}
 
 	/**
@@ -685,8 +697,10 @@ class NetSchem extends NetCell {
 				portOffsets[i] = mapOffset;
 			}
 		}
-		if (equivPorts == null || equivPorts.length != mapOffset)
-			equivPorts = new int[mapOffset];
+		if (equivPortsF == null || equivPortsF.length != mapOffset) {
+			equivPortsF = new int[mapOffset];
+			equivPortsT = new int[mapOffset];
+		}
 
 		for (int i = 0; i < numDrawns; i++) {
 			drawnOffsets[i] = mapOffset;
@@ -737,9 +751,9 @@ class NetSchem extends NetCell {
 						proxy = new Proxy(ni, i);
 						if (!name.isTempname())
 							name2proxy.put(name, proxy);
-						if (NetworkTool.debug) System.out.println(proxy+" "+mapOffset+" "+netSchem.equivPorts.length);
+						if (NetworkTool.debug) System.out.println(proxy+" "+mapOffset+" "+netSchem.equivPortsF.length);
 						proxy.nodeOffset = mapOffset;
-						mapOffset += (netSchem.equivPorts.length - netSchem.globals.size());
+						mapOffset += (netSchem.equivPortsF.length - netSchem.globals.size());
 					}
 				}
 				nodeProxies[~proxyOffset + i] = proxy;
@@ -916,9 +930,9 @@ class NetSchem extends NetCell {
 			int drawnOffset = drawnOffsets[drawn];
 			if (busWidth != drawnWidths[drawn]) continue;
 			for (int i = 0; i < busWidth; i++) {
-				userNetlist.connectMap(portOffset + i, drawnOffset + i);
+				netlistF.connectMap(portOffset + i, drawnOffset + i);
 				NetName nn = (NetName)netNames.get(expNm.subname(i));
-				userNetlist.connectMap(portOffset + i, netNamesOffset + nn.index);
+				netlistF.connectMap(portOffset + i, netNamesOffset + nn.index);
 			}
 		}
 
@@ -933,7 +947,7 @@ class NetSchem extends NetCell {
 				Global g = globalInst(ni);
 				if (g != null) {
 					int drawn = drawns[ni_pi[k]];
-					userNetlist.connectMap(globals.indexOf(g), drawnOffsets[drawn]);
+					netlistF.connectMap(globals.indexOf(g), drawnOffsets[drawn]);
 				}
 				if (np == Schematics.tech.wireConNode)
 					connectWireCon(ni);
@@ -966,8 +980,9 @@ class NetSchem extends NetCell {
 					int nodeOffset = proxy.nodeOffset + portOffset;
 					int busOffset = drawnOffsets[drawn];
 					if (width != busWidth) busOffset += busWidth*i;
-					for (int j = 0; j < busWidth; j++)
-						userNetlist.connectMap(busOffset + j, nodeOffset + j);
+					for (int j = 0; j < busWidth; j++) {
+						netlistF.connectMap(busOffset + j, nodeOffset + j);
+					}
 				}
 			}
 		}
@@ -985,7 +1000,7 @@ class NetSchem extends NetCell {
 			int drawnOffset = drawnOffsets[drawn];
 			for (int i = 0; i < busWidth; i++) {
 				NetName nn = (NetName)netNames.get(arcNm.subname(i));
-				userNetlist.connectMap(drawnOffset + i, netNamesOffset + nn.index);
+				netlistF.connectMap(drawnOffset + i, netNamesOffset + nn.index);
 			}
 		}
 	}
@@ -1019,7 +1034,7 @@ class NetSchem extends NetCell {
 			large = temp;
 		}
 		for (int i = 0; i < drawnWidths[large]; i++)
-			userNetlist.connectMap(drawnOffsets[large] + i, drawnOffsets[small] + (i % drawnWidths[small]));
+			netlistF.connectMap(drawnOffsets[large] + i, drawnOffsets[small] + (i % drawnWidths[small]));
 	}
 
 	private void internalConnections()
@@ -1030,20 +1045,20 @@ class NetSchem extends NetCell {
 			int nodeOffset = ni_pi[k];
 			NodeProto np = ni.getProto();
 			if (np instanceof PrimitiveNode) {
-				if (np == Schematics.tech.resistorNode && NetworkTool.shortResistors)
-					userNetlist.connectMap(drawns[nodeOffset], drawns[nodeOffset + 1]);
+				if (np == Schematics.tech.resistorNode)
+					netlistT.connectMap(drawns[nodeOffset], drawns[nodeOffset + 1]);
 				continue;
 			}
 			NetCell netCell = NetworkTool.getNetCell((Cell)np);
 			if (nodeOffsets[k] < 0) continue;
-			int[] eq = netCell.equivPorts;
-			for (int i = 0; i < eq.length; i++) {
-				int j = eq[i];
+			for (int i = 0, numPorts = getNumEquivPorts(); i < numPorts; i++) {
+				int j = netCell.getEquivPorts(i);
 				if (i == j) continue;
 				int di = drawns[nodeOffset + i];
 				int dj = drawns[nodeOffset + j];
 				if (di < 0 || dj < 0) continue;
-				userNetlist.connectMap(di, dj);
+				netlistF.connectMap(di, dj);
+				netlistT.connectMap(di, dj);
 			}
 		}
 		for (int k = 0; k < nodeProxies.length; k++) {
@@ -1053,34 +1068,47 @@ class NetSchem extends NetCell {
 			NetSchem schem = (NetSchem)NetworkTool.getNetCell((Cell)np);
 			int numGlobals = schem.portOffsets[0];
 			int nodeOffset = proxy.nodeOffset - numGlobals;
-			int[] eq = schem.equivPorts;
-			for (int i = 0; i < eq.length; i++) {
-				int j = eq[i];
-				if (i == j) continue;
+			int[] eqF = schem.equivPortsF;
+			int[] eqT = schem.equivPortsT;
+			assert(eqF.length == eqT.length);
+			for (int i = 0; i < eqF.length; i++) {
 				int io = (i >= numGlobals ? nodeOffset + i : this.globals.indexOf(schem.globals.get(i)));
-				int jo = (j >= numGlobals ? nodeOffset + j : this.globals.indexOf(schem.globals.get(j)));
-				userNetlist.connectMap(io, jo);
+
+				int jF = eqF[i];
+				if (i != jF) {
+					int jo = (jF >= numGlobals ? nodeOffset + jF : this.globals.indexOf(schem.globals.get(jF)));
+					netlistF.connectMap(io, jo);
+				}
+				int jT = eqT[i];
+				if (i != jT) {
+					int jo = (jT >= numGlobals ? nodeOffset + jT : this.globals.indexOf(schem.globals.get(jT)));
+					netlistT.connectMap(io, jo);
+				}
 			}
 		}
 	}
 
-	private void buildNetworkList()
+	private void buildNetworkLists()
 	{
-		userNetlist.initNetworks();
+		netlistF.initNetworks();
+		netlistT.initNetworks();
 		for (int i = 0; i < globals.size(); i++) {
-			userNetlist.getNetworkByMap(i).addName(globals.get(i).getName(), true);
+			netlistF.getNetworkByMap(i).addName(globals.get(i).getName(), true);
+			netlistT.getNetworkByMap(i).addName(globals.get(i).getName(), true);
 		}
 		for (Iterator it = netNames.values().iterator(); it.hasNext(); )
 		{
 			NetName nn = (NetName)it.next();
 			if (nn.index < 0 || nn.index >= exportedNetNameCount) continue;
-			userNetlist.getNetworkByMap(netNamesOffset + nn.index).addName(nn.name.toString(), true);
+			netlistF.getNetworkByMap(netNamesOffset + nn.index).addName(nn.name.toString(), true);
+			netlistT.getNetworkByMap(netNamesOffset + nn.index).addName(nn.name.toString(), true);
 		}
 		for (Iterator it = netNames.values().iterator(); it.hasNext(); )
 		{
 			NetName nn = (NetName)it.next();
 			if (nn.index < exportedNetNameCount) continue;
-			userNetlist.getNetworkByMap(netNamesOffset + nn.index).addName(nn.name.toString(), false);
+			netlistF.getNetworkByMap(netNamesOffset + nn.index).addName(nn.name.toString(), false);
+			netlistT.getNetworkByMap(netNamesOffset + nn.index).addName(nn.name.toString(), false);
 		}
 		
 		// add temporary names to unnamed nets
@@ -1089,8 +1117,12 @@ class NetSchem extends NetCell {
 			int drawn = drawns[arcsOffset + i];
 			if (drawn < 0) continue;
 			for (int j = 0; j < drawnWidths[drawn]; j++) {
-				Network network = userNetlist.getNetwork(ai, j);
-				if (network == null || network.hasNames()) continue;
+				Network networkF = netlistF.getNetwork(ai, j);
+				if (networkF != null && networkF.hasNames()) networkF = null;
+				Network networkT = netlistT.getNetwork(ai, j);
+				if (networkT != null && networkT.hasNames()) networkT = null;
+
+				if (networkF == null && networkT == null) continue;
 				if (drawnNames[drawn] == null) continue;
 				String netName;
 				if (drawnWidths[drawn] == 1)
@@ -1099,7 +1131,11 @@ class NetSchem extends NetCell {
 					netName = drawnNames[drawn].toString() + "[" + j + "]";
 				else
 					netName = drawnNames[drawn].subname(j).toString();
-				network.addName(netName, false);
+
+				if (networkF != null)
+					networkF.addName(netName, false);
+				if (networkT != null)
+					networkT.addName(netName, false);
 			}
 		}
 
@@ -1110,9 +1146,12 @@ class NetSchem extends NetCell {
 			for (int i = 0, numPorts = np.getNumPorts(); i < numPorts; i++) {
 				PortProto pp = np.getPort(i);
 				for (int k = 0, busWidth = pp.getNameKey().busWidth(); k < busWidth; k++) {
-					Network network = userNetlist.getNetwork(no, pp, k);
-					if (network == null || network.hasNames()) continue;
-					network.addName(no.getName() + "." + pp.getNameKey().subname(k), false);
+					Network networkF = netlistF.getNetwork(no, pp, k);
+					if (networkF != null && !networkF.hasNames())
+						networkF.addName(no.getName() + "." + pp.getNameKey().subname(k), false);
+					Network networkT = netlistT.getNetwork(no, pp, k);
+					if (networkT != null && !networkT.hasNames())
+						networkT.addName(no.getName() + "." + pp.getNameKey().subname(k), false);
 				}
 			}
 		}
@@ -1166,10 +1205,14 @@ class NetSchem extends NetCell {
 	 */
 	private boolean updateInterface() {
 		boolean changed = false;
-		for (int i = 0; i < equivPorts.length; i++) {
-			if (equivPorts[i] != userNetlist.netMap[i]) {
+		for (int i = 0; i < equivPortsF.length; i++) {
+			if (equivPortsF[i] != netlistF.netMap[i]) {
 				changed = true;
-				equivPorts[i] = userNetlist.netMap[i];
+				equivPortsF[i] = netlistF.netMap[i];
+			}
+			if (equivPortsT[i] != netlistT.netMap[i]) {
+				changed = true;
+				equivPortsT[i] = netlistT.netMap[i];
 			}
 		}
 		return changed;
@@ -1192,11 +1235,12 @@ class NetSchem extends NetCell {
 		boolean changed = initNodables();
 		// Gather port and arc names
 		int mapSize = netNamesOffset + netNames.size();
-		userNetlist.initNetMap(mapSize);
-
+		netlistF = new Netlist(this, mapSize);
 		localConnections();
+
+		netlistT = new Netlist(this, netlistF);
 		internalConnections();
-		buildNetworkList();
+		buildNetworkLists();
 		if (updatePortImplementation()) changed = true;
 		if (updateInterface()) changed = true;
 		return changed;

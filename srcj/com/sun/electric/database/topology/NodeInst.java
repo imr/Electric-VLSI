@@ -32,6 +32,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
@@ -54,7 +55,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -1567,22 +1567,10 @@ public class NodeInst extends Geometric implements Nodable
 	public Poly getShapeOfPort(PortProto thePort, Point2D selectPt, boolean forWiringTool, double arcWidth)
 	{
 		// look down to the bottom level node/port
-		PortProto.FindPrimitive fp = new PortProto.FindPrimitive(this, thePort);
+		PortOriginal fp = new PortOriginal(this, thePort);
 		AffineTransform trans = fp.getTransformToTop();
 		NodeInst ni = fp.getBottomNodeInst();
 		PortProto pp = fp.getBottomPortProto();
-
-		// the above 4 lines replace the loop below
-//		NodeInst ni = this;
-//		PortProto pp = thePort;
-//		AffineTransform trans = ni.rotateOut();
-//		while (ni.getProto() instanceof Cell)
-//		{
-//			trans = ni.translateOut(trans);
-//			ni = ((Export)pp).getOriginalPort().getNodeInst();
-//			pp = ((Export)pp).getOriginalPort().getPortProto();
-//			trans = ni.rotateOut(trans);
-//		}
 
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		Technology tech = np.getTechnology();

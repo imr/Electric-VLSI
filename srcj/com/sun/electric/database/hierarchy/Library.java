@@ -631,15 +631,15 @@ public class Library extends ElectricObject
 	 */
 	public static void clearChangeLocks()
 	{
-		for (int i = 0; i < libraries.size(); i++)
-		{
-			Library l = (Library) libraries.get(i);
-			for (int j = 0; j < l.cells.size(); j++)
-			{
-				Cell c = (Cell) l.cells.get(j);
-				c.clearChangeLock();
-			}
-		}
+// 		for (int i = 0; i < libraries.size(); i++)
+// 		{
+// 			Library l = (Library) libraries.get(i);
+// 			for (int j = 0; j < l.cells.size(); j++)
+// 			{
+// 				Cell c = (Cell) l.cells.get(j);
+// 				c.clearChangeLock();
+// 			}
+// 		}
 	}
 
 	/**

@@ -397,10 +397,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	/** Whether the bounds have anything in them. */				private boolean boundsEmpty;
 	/** The geometric data structure. */							private Geometric.RTNode rTree;
 	/** The Change object. */										private Undo.Change change;
-	/** Lock count. lock=0 "no locked",
-	 *  lock=-1 "locked for changes".
-	 *  lock=n>0 "locked for examination n times"
-	 */                                                             private int lock;
+// 	/** Lock count. lock=0 "no locked",
+// 	 *  lock=-1 "locked for changes".
+// 	 *  lock=n>0 "locked for examination n times"
+// 	 */                                                             private int lock;
 	/** 0-based index of this Cell. */								private int cellIndex;
 	/** This Cell's Technology. */									private Technology tech;
 	/** The temporary integer value. */								private int tempInt;
@@ -3009,13 +3009,21 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
      * <p>Because shorting resistors is a fairly common request, it is 
      * implemented in the method if @param shortResistors is set to true.
 	 * @return the Netlist structure for this cell.
+	 * @throws NetworkTool.NetlistNotReady if called from GUI thread and change Job hasn't prepared Netlist yet
      */
 	public Netlist getNetlist(boolean shortResistors) { return NetworkTool.getNetlist(this, shortResistors); }
 
-	/** Recompute the Netlist structure for this Cell, using current network options.
+	/** Returns the Netlist structure for this Cell, using current network options.
+	 * Waits for completion of change Job when called from GUI thread
 	 * @return the Netlist structure for this cell.
      */
 	public Netlist getUserNetlist() { return NetworkTool.getUserNetlist(this); }
+
+	/** Returns the Netlist structure for this Cell, using current network options.
+	 * Returns null if change Job hasn't prepared GUI Netlist
+	 * @return the Netlist structure for this cell.
+     */
+	public Netlist acquireUserNetlist() { return NetworkTool.acquireUserNetlist(this); }
 
 	/****************************** DATES ******************************/
 
@@ -3362,24 +3370,24 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public void setChangeLock()
 	{
-		if (lock < 0) return;
-		if (lock > 0)
-		{
-			System.out.println("An attemt to set change lock of cell "+describe()+" being examined");
-			return;
-		}
-		lock = -1;
-		for (Iterator it = getUsagesOf(); it.hasNext(); )
-		{
-			NodeUsage nu = (NodeUsage)it.next();
-			nu.getParent().setChangeLock();
-		}
-		if (!isSchematicView()) return;
-		for (Iterator it = cellGroup.getCells(); it.hasNext(); )
-		{
-			Cell cell = (Cell)it.next();
-			if (cell.view == View.ICON) cell.setChangeLock();
-		}
+// 		if (lock < 0) return;
+// 		if (lock > 0)
+// 		{
+// 			System.out.println("An attemt to set change lock of cell "+describe()+" being examined");
+// 			return;
+// 		}
+// 		lock = -1;
+// 		for (Iterator it = getUsagesOf(); it.hasNext(); )
+// 		{
+// 			NodeUsage nu = (NodeUsage)it.next();
+// 			nu.getParent().setChangeLock();
+// 		}
+// 		if (!isSchematicView()) return;
+// 		for (Iterator it = cellGroup.getCells(); it.hasNext(); )
+// 		{
+// 			Cell cell = (Cell)it.next();
+// 			if (cell.view == View.ICON) cell.setChangeLock();
+// 		}
 	}
 
 	/**
@@ -3439,34 +3447,34 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	/**
 	 * Method to clear change lock of this cell.
 	 */
-	public void clearChangeLock()
-	{
-		if (lock >= 0) return;
-		lock = 0;
-	}
+// 	public void clearChangeLock()
+// 	{
+// 		if (lock >= 0) return;
+// 		lock = 0;
+// 	}
 
 	/**
 	 * Routing to check whether changing of this cell allowed or not.
 	 */
-	public void checkChanging()
-	{
-        if (Main.NOTHREADING) return;
+// 	public void checkChanging()
+// 	{
+//         if (Main.NOTHREADING) return;
 
-		if (Job.getChangingThread() != Thread.currentThread())
-		{
-			if (Job.getChangingThread() == null)
-				System.out.println(this+" is changing without Undo.startChanges() lock");
-			else
-				System.out.println(this+" is changing by another thread "+Job.getChangingThread());
-			//throw new IllegalStateException("Cell.checkChanging()");
-		}
-		Cell rootCell = Job.getChangingCell();
-		if (lock != -1 && rootCell != null)
-		{
-			System.out.println("Change to cell "+rootCell.describe()+" affects cell "+describe()+" which is not above it in the hierarchy");
-			//throw new IllegalStateException("Cell.checkChanging()");
-		}
-	}
+// 		if (Job.getChangingThread() != Thread.currentThread())
+// 		{
+// 			if (Job.getChangingThread() == null)
+// 				System.out.println(this+" is changing without Undo.startChanges() lock");
+// 			else
+// 				System.out.println(this+" is changing by another thread "+Job.getChangingThread());
+// 			//throw new IllegalStateException("Cell.checkChanging()");
+// 		}
+// 		Cell rootCell = Job.getChangingCell();
+// 		if (lock != -1 && rootCell != null)
+// 		{
+// 			System.out.println("Change to cell "+rootCell.describe()+" affects cell "+describe()+" which is not above it in the hierarchy");
+// 			//throw new IllegalStateException("Cell.checkChanging()");
+// 		}
+// 	}
 
 	/**
 	 * Method to set a Change object on this Cell.

@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -1609,6 +1610,7 @@ public class Undo
 	 * Quiet changes are not passed to constraint satisfaction, not recorded for Undo and are not broadcast.
 	 */
 	public static void changesQuiet(boolean quiet) {
+		NetworkTool.changesQuiet(quiet);
         doChangesQuietly = quiet;
         setNextChangeQuiet(quiet);
     }

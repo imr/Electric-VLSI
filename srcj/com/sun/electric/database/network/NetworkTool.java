@@ -23,11 +23,11 @@
  */
 package com.sun.electric.database.network;
 
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.NodeUsage;
-import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.ArcInst;
@@ -36,6 +36,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -49,14 +50,56 @@ import java.util.Iterator;
 public class NetworkTool extends Listener
 {
 
+	/**
+	 * Signals that a method has been invoked at an illegal or
+	 * inappropriate time.  In other words, the Java environment or
+	 * Java application is not in an appropriate state for the requested
+	 * operation.
+	 */
+	public static class NetlistNotReady extends RuntimeException {
+	    /**
+		 * Constructs an IllegalStateException with no detail message.
+		 * A detail message is a String that describes this particular exception.
+		 */
+		public NetlistNotReady() {
+			super("User netlist is not ready");
+		}
+
+		/**
+		 * Constructs an IllegalStateException with the specified detail
+		 * message.  A detail message is a String that describes this particular
+		 * exception.
+		 *
+		 * @param s the String that contains a detailed message
+		 */
+		public NetlistNotReady(String s) {
+			super(s);
+		}
+	}
+
+    public static class RenumberJob extends Job
+    {
+        public RenumberJob()
+        {
+            super("Renumber All Networks", NetworkTool.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            startJob();
+        }
+
+        public boolean doIt()
+        {
+			redoNetworkNumbering(true);
+            return true;
+        }
+    }
+
 	// ---------------------- private and protected methods -----------------
 
 	/** the Network tool. */						public static final NetworkTool tool = new NetworkTool();
 	/** flag for debug print. */					static boolean debug = false;
 
-	/** current valuse of shortResistors flag. */	static boolean shortResistors;
-
 	/** NetCells. */								private static NetCell[] cells;
+	/** All cells have networks up-to-date */ 		private static boolean networksValid = false;
+	/** Mutex object */								private static Object mutex = new Object();
 
     /** The logger for logging Network errors */    static ErrorLogger errorLogger = ErrorLogger.newInstance("Network Errors", true);
     /** sort keys for sorting network errors */     static final int errorSortNetworks = 0;
@@ -75,7 +118,7 @@ public class NetworkTool extends Listener
 	/**
 	 * Reloads cell information after major changes such as librairy read.
 	 */
-	static public void reload()
+	static private void reload()
 	{
 		int maxCell = 1;
 		for (Iterator lit = Library.getLibraries(); lit.hasNext(); )
@@ -130,6 +173,60 @@ public class NetworkTool extends Listener
 
 	static final NetCell getNetCell(Cell cell) { return cells[cell.getCellIndex()]; }
 
+    private static void redoNetworkNumbering(boolean reload)
+    {
+		// Check that we are in changing thread
+		Job.checkChanging();
+
+        long startTime = System.currentTimeMillis();
+		if (reload) {
+			reload();
+		}
+        int ncell = 0;
+        for(Iterator it = Library.getLibraries(); it.hasNext(); )
+        {
+            Library lib = (Library)it.next();
+            for(Iterator cit = lib.getCells(); cit.hasNext(); )
+            {
+                Cell cell = (Cell)cit.next();
+                ncell++;
+                cell.getNetlist(false);
+            }
+        }
+        long endTime = System.currentTimeMillis();
+        float finalTime = (endTime - startTime) / 1000F;
+		if (ncell != 0 && reload)
+			System.out.println("**** Renumber networks of " + ncell + " cells took " + finalTime + " seconds");
+
+		synchronized(mutex) {
+			networksValid = true;
+			mutex.notify();
+		}
+    }
+
+	private static void invalidate() {
+		// Check that we are in changing thread
+		Job.checkChanging();
+
+		if (!networksValid)
+			return;
+		synchronized(mutex) {
+			networksValid = false;
+		}
+	}
+
+	/**
+	 * Method to set the subsequent changes to be "quiet".
+	 * Quiet changes are not passed to constraint satisfaction, not recorded for Undo and are not broadcast.
+	 */
+	public static void changesQuiet(boolean quiet) {
+		if (quiet) {
+			invalidate();
+		} else {
+			redoNetworkNumbering(true);
+		}
+    }
+
 	/****************************** PUBLIC METHODS ******************************/
 
 	/**
@@ -137,11 +234,42 @@ public class NetworkTool extends Listener
 	 * @param cell cell to get Netlist.
 	 * @return Netlist of this cell.
 	 */
-	public static synchronized Netlist getUserNetlist(Cell cell) {
-        //synchronized(cells) {
-            return getNetCell(cell).getUserNetlist();
-		//}
-    }
+	public static Netlist acquireUserNetlist(Cell cell) {
+		Netlist netlist = null;
+		try {
+			netlist = getNetlist(cell, isIgnoreResistors());
+		} catch (NetlistNotReady e) {
+		}
+		return netlist;
+	}
+
+	/**
+	 * Returns Netlist for a given cell obtain with user-default set of options.
+	 * @param cell cell to get Netlist.
+	 * @return Netlist of this cell.
+	 */
+	public static Netlist getUserNetlist(Cell cell) {
+		if (Thread.currentThread() == Job.databaseChangesThread) {
+			NetCell netCell = getNetCell(cell);
+			return netCell.getNetlist(isIgnoreResistors());
+		}
+		boolean shortResistors = isIgnoreResistors();
+		synchronized(mutex) {
+			while (!networksValid) {
+				try {
+					System.out.println("Waiting for User Netlist...");
+					mutex.wait(1000);
+					if (!networksValid)
+						throw new NetlistNotReady();
+				} catch (InterruptedException e) {
+				} catch (NetlistNotReady e) {
+					e.printStackTrace(System.err);
+				}
+			}
+			NetCell netCell = getNetCell(cell);
+			return netCell.getNetlist(shortResistors);
+		}
+	}
 
 	/** Recompute the Netlist structure for given Cell.
 	 * @param cell cell to recompute Netlist structure.
@@ -149,20 +277,17 @@ public class NetworkTool extends Listener
      * implemented in the method if @param shortResistors is set to true.
 	 * @return the Netlist structure for Cell.
      */
-	public static synchronized Netlist getNetlist(Cell cell, boolean shortResistors) {
-        //synchronized(cells) {
-            if (NetworkTool.shortResistors != shortResistors)
-            {
-                for (int i = 0; i < cells.length; i++)
-                {
-                    NetCell netCell = cells[i];
-                    if (netCell != null) netCell.setInvalid(true);
-                }
-                NetworkTool.shortResistors = shortResistors;
-//                System.out.println("shortResistors="+shortResistors);
-            }
-		    return getNetCell(cell).getUserNetlist();
-		//}
+	public static Netlist getNetlist(Cell cell, boolean shortResistors) {
+		if (Thread.currentThread() == Job.databaseChangesThread) {
+			NetCell netCell = getNetCell(cell);
+			return netCell.getNetlist(shortResistors);
+		}
+		synchronized(mutex) {
+			if (!networksValid)
+				throw new NetlistNotReady();
+			NetCell netCell = getNetCell(cell);
+			return netCell.getNetlist(shortResistors);
+		}
 	}
 
 	/****************************** CHANGE LISTENER ******************************/
@@ -203,6 +328,7 @@ public class NetworkTool extends Listener
 
 	public void endBatch()
 	{
+		redoNetworkNumbering(false);
 		if (!debug) return;
 		System.out.println("NetworkTool.endBatch()");
 	}
@@ -245,6 +371,7 @@ public class NetworkTool extends Listener
 
 	public void newObject(ElectricObject obj)
 	{
+		invalidate();
 		Cell cell = obj.whichCell();
 		if (obj instanceof Cell)
 		{
@@ -263,6 +390,7 @@ public class NetworkTool extends Listener
 
 	public void killObject(ElectricObject obj)
 	{
+		invalidate();
 		Cell cell = obj.whichCell();
 		if (obj instanceof Cell)
 		{
@@ -278,6 +406,7 @@ public class NetworkTool extends Listener
 
 	public void killExport(Export pp, Collection oldPortInsts)
 	{
+		invalidate();
 		Cell cell = (Cell)pp.getParent();
 		exportsChanged(cell);
 		if (!debug) return;
@@ -286,6 +415,7 @@ public class NetworkTool extends Listener
 
 	public void renameObject(ElectricObject obj, Name oldName)
 	{
+		invalidate();
 		Cell cell = obj.whichCell();
 		if (obj instanceof Geometric)
 		{

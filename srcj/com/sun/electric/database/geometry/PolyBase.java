@@ -24,6 +24,7 @@
 package com.sun.electric.database.geometry;
 
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -467,21 +468,9 @@ public class PolyBase implements Shape
 	public void reducePortPoly(PortInst pi, double wid, int angle)
 	{
 		// look down to the bottom level node/port
-		PortProto.FindPrimitive fp = new PortProto.FindPrimitive(pi);
+		PortOriginal fp = new PortOriginal(pi);
 		AffineTransform trans = fp.getTransformToTop();
 		NodeInst ni = fp.getBottomNodeInst();
-
-		// the above 3 lines replace the loop below
-//		NodeInst ni = pi.getNodeInst();
-//		PortProto pp = pi.getPortProto();
-//		AffineTransform trans = ni.rotateOut();
-//		while (ni.getProto() instanceof Cell)
-//		{
-//			trans = ni.translateOut(trans);
-//			ni = ((Export)pp).getOriginalPort().getNodeInst();
-//			pp = ((Export)pp).getOriginalPort().getPortProto();
-//			trans = ni.rotateOut(trans);
-//		}
 
 		// do not reduce port if not filled
 		if (getStyle() != Poly.Type.FILLED && getStyle() != Poly.Type.CROSSED &&

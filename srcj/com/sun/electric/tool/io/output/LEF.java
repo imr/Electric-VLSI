@@ -27,13 +27,14 @@ package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.network.Network;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
@@ -42,8 +43,9 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
 
 import java.awt.geom.AffineTransform;
@@ -186,9 +188,9 @@ public class LEF extends Output
 			if (first) first = false; else printWriter.println("");
 			printWriter.println("  PIN " + e.getName());
 
-			PortProto.FindPrimitive fp = new PortProto.FindPrimitive(e.getOriginalPort());
+			PortOriginal fp = new PortOriginal(e.getOriginalPort());
 			NodeInst rni = fp.getBottomNodeInst();
-			PortProto rpp = fp.getBottomPortProto();
+			PrimitivePort rpp = fp.getBottomPortProto();
 			AffineTransform trans = fp.getTransformToTop();
 			printWriter.println("    PORT");
 			io_lefoutcurlayer = null;

@@ -525,8 +525,7 @@ public abstract class ElectricObject
 	{
 		if (isDeprecatedVariable(key))
 		{
-			System.out.println("Deprecated variable " + key.getName() + " was not created on " + this);
-			return null;
+			System.out.println("Deprecated variable " + key.getName() + " on " + this);
 		}
 		checkChanging();
         Variable oldVar;
@@ -1038,7 +1037,7 @@ public abstract class ElectricObject
 	 * By default checks whole database change. Overriden in subclasses.
 	 */
 	public void checkChanging() {
-        if (!isDatabaseObject()) return;
+//        if (!isDatabaseObject()) return;
         Job.checkChanging();
     }
 

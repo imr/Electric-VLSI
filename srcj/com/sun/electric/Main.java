@@ -295,28 +295,30 @@ public final class Main
 
 		public boolean doIt()
 		{
-            Undo.changesQuiet(true);
+			try {
+				Undo.changesQuiet(true);
 
-			// initialize all of the technologies
-			Technology.initAllTechnologies();
+				// initialize all of the technologies
+				Technology.initAllTechnologies();
 
-			// initialize all of the tools
-			Tool.initAllTools();
+				// initialize all of the tools
+				Tool.initAllTools();
 
-			// initialize the constraint system
-			Layout con = Layout.getConstraint();
-			Constraints.setCurrent(con);
+				// initialize the constraint system
+				Layout con = Layout.getConstraint();
+				Constraints.setCurrent(con);
 
-            if (hasCommandLineOption(argsList, "-NOMINMEM")) {
-                // do nothing, just consume option: handled in Launcher
-            }
+				// run script
+				//if (beanShellScript != null) EvalJavaBsh.runScript(beanShellScript);
+			} finally {
+				Undo.changesQuiet(false);
+			}
+
+			if (hasCommandLineOption(argsList, "-NOMINMEM")) {
+				// do nothing, just consume option: handled in Launcher
+			}
 			final String beanShellScript = getCommandLineOption(argsList, "-s");
 			openCommandLineLibs(argsList);
-
-			// run script
-			//if (beanShellScript != null) EvalJavaBsh.runScript(beanShellScript);
-
-            Undo.changesQuiet(false);
 
             // finish initializing the GUI
             SwingUtilities.invokeLater(new Runnable() {

@@ -336,7 +336,7 @@ public abstract class Job implements ActionListener, Runnable {
 	}
 
 	/** default execution time in milis */      private static final int MIN_NUM_SECONDS = 60000;
-	/** database changes thread */              private static final DatabaseChangesThread databaseChangesThread = new DatabaseChangesThread();
+	/** database changes thread */              public static final DatabaseChangesThread databaseChangesThread = new DatabaseChangesThread();
 	/** changing job */                         private static Job changingJob;
     /** my tree node */                         private DefaultMutableTreeNode myNode;
     /** delete when done if true */             private boolean deleteWhenDone;
@@ -807,23 +807,18 @@ public abstract class Job implements ActionListener, Runnable {
 	 */
 	public static void checkChanging()
 	{
-        if (!Main.getDebug()) return;
-        if (Main.NOTHREADING) return;
-
-		if (changingJob == null)
+		if (Thread.currentThread() != databaseChangesThread)
 		{
-			String msg = "Database is changing but no change job is running";
-            System.out.println(msg);
-            Error e = new Error(msg);
-            throw e;
-			//throw new IllegalStateException("Job.checkChanging()");
-		} else if (Thread.currentThread() != databaseChangesThread)
-		{
+			if (Main.NOTHREADING) return;
 			String msg = "Database is changing by other thread";
             System.out.println(msg);
-            Error e = new Error(msg);
-            throw e;
-			//throw new IllegalStateException("Job.checkChanging()");
+			throw new IllegalStateException(msg);
+		} else if (changingJob == null)
+		{
+			if (Main.NOTHREADING) return;
+			String msg = "Database is changing but no change job is running";
+            System.out.println(msg);
+			throw new IllegalStateException(msg);
 		}
 /*       else if (changingJob.upCell != null)
 		{

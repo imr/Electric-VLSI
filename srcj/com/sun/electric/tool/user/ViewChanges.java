@@ -33,6 +33,7 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
@@ -237,7 +238,7 @@ public class ViewChanges
 				Export pp = (Export)it.next();
 
 				// traverse to the bottom of the hierarchy for this Export
-				PortProto.FindPrimitive fp = new PortProto.FindPrimitive(pp.getOriginalPort());
+				PortOriginal fp = new PortOriginal(pp.getOriginalPort());
 				PortInst bottomPort = fp.getBottomPort();
 				NodeInst bottomNi = bottomPort.getNodeInst();
 				PortProto bottomPp = bottomPort.getPortProto();

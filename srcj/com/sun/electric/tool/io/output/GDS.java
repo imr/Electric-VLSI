@@ -29,20 +29,20 @@ package com.sun.electric.tool.io.output;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.IOTool;
 
 import java.awt.geom.Point2D;
@@ -199,25 +199,10 @@ public class GDS extends Geometry
 				Export pp = (Export)it.next();
 
 				// find the node at the bottom of this export
-				PortProto.FindPrimitive fp = new PortProto.FindPrimitive(pp.getOriginalPort());
+				PortOriginal fp = new PortOriginal(pp.getOriginalPort());
 				PortInst bottomPort = fp.getBottomPort();
 				NodeInst bottomNi = bottomPort.getNodeInst();
 				AffineTransform trans = fp.getTransformToTop();
-
-				// the above 4 lines replace the loop below
-//				NodeInst bottomNi = pp.getOriginalPort().getNodeInst();
-//				PortProto bottomPp = pp.getOriginalPort().getPortProto();
-//				AffineTransform trans = bottomNi.rotateOut();
-//				while (bottomNi.getProto() instanceof Cell)
-//				{
-//					AffineTransform tempTrans = bottomNi.translateOut();
-//					tempTrans.preConcatenate(trans);
-//					PortInst pi = ((Export)bottomPp).getOriginalPort();
-//					bottomNi = pi.getNodeInst();
-//					bottomPp = pi.getPortProto();
-//					trans = bottomNi.rotateOut();
-//					trans.preConcatenate(tempTrans);
-//				}
 
 				// find the layer associated with this node
 				boolean wasWiped = bottomNi.isWiped();

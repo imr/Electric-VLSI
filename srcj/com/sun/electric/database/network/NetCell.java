@@ -82,7 +82,7 @@ class NetCell
 	/**
      * Equivalence of ports. equivPorts.size == ports.size.
 	 * equivPorts[i] contains minimal index among ports of its group.
-     */																int[] equivPorts;
+     */																private int[] equivPorts;
 	/** Node offsets. */											int[] ni_pi;
 	/** */															int arcsOffset;
 	/** */															private int[] headConn;
@@ -94,7 +94,7 @@ class NetCell
 	/** Counter for enumerating NetNames. */						private int netNameCount;
 	/** Counter for enumerating NetNames. */						int exportedNetNameCount;
 	
-	/** Netlist for current user options. */						Netlist userNetlist;
+	/** Netlist. */													private Netlist netlist;
 
 	/** */															private static PortProto busPinPort = Schematics.tech.busPinNode.getPort(0);
 	/** */															private static ArcProto busArc = Schematics.tech.bus_arc;
@@ -114,9 +114,9 @@ class NetCell
 		setInvalid(true);
 	}
 
-	Netlist getUserNetlist() {
+	Netlist getNetlist(boolean shortResistros) {
 		if ((flags & VALID) == 0) redoNetworks();
-		return userNetlist;
+		return netlist;
 	}
 
 	/**
@@ -384,12 +384,12 @@ class NetCell
 			return;
 		}
 		NodeInst ni = pi.getNodeInst();
-		if (np == Schematics.tech.resistorNode && NetworkTool.shortResistors) {
-			
-			addToDrawn1(ni.getPortInst(0));
-			addToDrawn1(ni.getPortInst(1));
-			return;
-		}
+// 		if (np == Schematics.tech.resistorNode && NetworkTool.shortResistors) {
+//			
+// 			addToDrawn1(ni.getPortInst(0));
+// 			addToDrawn1(ni.getPortInst(1));
+// 			return;
+// 		}
 		int topology = pp.getTopology();
 		for (int i = 0; i < numPorts; i++) {
 			if (np.getPort(i).getTopology() != topology) continue;
@@ -562,7 +562,7 @@ class NetCell
 			for (int i = 0; i < eq.length; i++)
 			{
 				if (eq[i] == i) continue;
-				userNetlist.connectMap(drawns[nodeOffset + i], drawns[nodeOffset + eq[i]]);
+				netlist.connectMap(drawns[nodeOffset + i], drawns[nodeOffset + eq[i]]);
 			}
 		}
 	}
@@ -577,7 +577,7 @@ class NetCell
 
 	private void buildNetworkList()
 	{
-		userNetlist.initNetworks();
+		netlist.initNetworks();
 		Network[] netNameToNet = new Network[netNames.size()];
 		int numPorts = cell.getNumPorts();
 		for (int i = 0; i < numPorts; i++) {
@@ -596,7 +596,7 @@ class NetCell
 			ArcInst ai = cell.getArc(i);
 			int drawn = drawns[arcsOffset + i];
 			if (drawn < 0) continue;
-			Network network = userNetlist.getNetworkByMap(drawn);
+			Network network = netlist.getNetworkByMap(drawn);
 			if (network.hasNames()) continue;
 			network.addName(ai.getName(), false);
 		}
@@ -605,7 +605,7 @@ class NetCell
 			for (int j = 0; j < ni.getProto().getNumPorts(); j++) {
 				int drawn = drawns[ni_pi[i] + j];
 				if (drawn < 0) continue;
-				Network network  = userNetlist.getNetworkByMap(drawn);
+				Network network  = netlist.getNetworkByMap(drawn);
 				if (network.hasNames()) continue;
 				network.addName(ni.getName() + "@" + ni.getProto().getPort(j).getName(), false);
 			}
@@ -635,7 +635,7 @@ class NetCell
 	}
 
 	private void setNetName(Network[] netNamesToNet, int drawn, Name name, boolean exported) {
-		Network network = userNetlist.getNetworkByMap(drawn);
+		Network network = netlist.getNetworkByMap(drawn);
 		NetName nn = (NetName)netNames.get(name);
 		if (netNamesToNet[nn.index] != null) {
 			if (netNamesToNet[nn.index] == network) return;
@@ -675,7 +675,7 @@ class NetCell
 		int[] netToPort = new int[numPorts];
 		Arrays.fill(netToPort, -1);
 		for (int i = 0; i < numPorts; i++) {
-			int net = userNetlist.netMap[drawns[i]];
+			int net = netlist.netMap[drawns[i]];
 			if (netToPort[net] < 0)
 				netToPort[net] = i;
 			if (equivPorts[i] != netToPort[net]) {
@@ -685,6 +685,10 @@ class NetCell
 		}
 		return changed;
 	}
+
+
+	int getNumEquivPorts() { return equivPorts.length; }
+	int getEquivPorts(int portIndex) { return equivPorts[portIndex]; }
 
 	/**
 	 * Show map of equivalent ports newEquivPort.
@@ -752,7 +756,6 @@ class NetCell
 		makeDrawns();
 		// Gather port and arc names
 		initNetnames();
-		if (userNetlist == null) userNetlist = new Netlist(this);
 
 		if (redoNetworks1())
 			invalidateUsagesOf(true);
@@ -762,7 +765,7 @@ class NetCell
 	boolean redoNetworks1() {
 		/* Set index of NodeInsts */
 		checkLayoutCell();
-		userNetlist.initNetMap(numDrawns);
+		netlist = new Netlist(this, numDrawns);
 
 		internalConnections();
 		buildNetworkList();
