@@ -449,7 +449,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         {
             Variable var = (Variable)it.next();
             if (cellRenderer.getShowAttrOnly()) {
-                if (!var.isDisplay()) continue;
+                if (!var.isAttribute()) continue;
             }
             variables.add(var);
         }
