@@ -1650,8 +1650,8 @@ public final class MenuCommands
 
 		public boolean doIt()
 		{
-			Highlight.clear();
-			Highlight.finished();
+			//Highlight.clear();
+			//Highlight.finished();
 			if (!Undo.undoABatch())
 				System.out.println("Undo failed!");
 			return true;
@@ -1673,8 +1673,6 @@ public final class MenuCommands
 
 		public boolean doIt()
 		{
-			Highlight.clear();
-			Highlight.finished();
 			if (!Undo.redoABatch())
 				System.out.println("Redo failed!");
 			return true;

@@ -37,6 +37,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.user.Highlight;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -767,6 +768,11 @@ public class Undo
 		private Tool tool;
 		private String activity;
 		private Cell upCell;
+        private List startingHighlights = null;            // highlights before changes made
+        private Point2D startHighlightsOffset = null;      // highlights offset before changes made
+        private List preUndoHighlights = null;             // highlights before undo of changes done
+        private Point2D preUndoHighlightsOffset = null;    // highlights offset before undo of changes done
+
 
 		private ChangeBatch() {}
 		
@@ -980,7 +986,8 @@ public class Undo
 	 * @param activity a String describing the activity.
 	 * @param cell root of up-tree or null for whole database lock
 	 */
-	public static void startChanges(Tool tool, String activity, Cell cell)
+	public static void startChanges(Tool tool, String activity, Cell cell,
+                                    List startingHighlights, Point2D startingHighlightsOffset)
 	{
 		// close any open batch of changes
 		endChanges();
@@ -999,6 +1006,8 @@ public class Undo
 		currentBatch.tool = tool;
 		currentBatch.activity = activity;
 		currentBatch.upCell = cell;
+        currentBatch.startingHighlights = startingHighlights;
+        currentBatch.startHighlightsOffset = startingHighlightsOffset;
 
 		// put at head of list
 		doneList.add(currentBatch);
@@ -1500,6 +1509,14 @@ public class Undo
 	 */
 	public static boolean undoABatch()
 	{
+        // save highlights for redo
+        List savedHighlights = new ArrayList();
+        for (Iterator it = Highlight.getHighlights(); it.hasNext(); ) {
+            savedHighlights.add(it.next());
+        }
+        Highlight.clear();
+        Highlight.finished();
+
 		// close out the current batch
 		endChanges();
 
@@ -1511,6 +1528,10 @@ public class Undo
 		undoneList.add(batch);
         if (doneList.size() == 0) setUndoEnabled(false);
         setRedoEnabled(true);
+
+        // save pre undo highlights
+        batch.preUndoHighlights = savedHighlights;
+        batch.preUndoHighlightsOffset = Highlight.getHighlightOffset();
 
 		// look through the changes in this batch
 		boolean firstChange = true;
@@ -1534,6 +1555,17 @@ public class Undo
 			listener.endBatch();
 		}
 
+        // restore highlights (must be done after all other tools have
+        // responded to changes)
+        List highlights = new ArrayList();
+        for (Iterator it = batch.startingHighlights.iterator(); it.hasNext(); ) {
+            highlights.add(it.next());
+        }
+        Highlight.setHighlightList(highlights);
+        Highlight.setHighlightOffset((int)batch.startHighlightsOffset.getX(),
+                (int)batch.startHighlightsOffset.getY());
+        Highlight.finished();
+
 		// mark that this batch is undone
 		batch.done = false;
 		return true;
@@ -1545,6 +1577,9 @@ public class Undo
 	 */
 	public static boolean redoABatch()
 	{
+        Highlight.clear();
+        Highlight.finished();
+
 		// close out the current batch
 		endChanges();
 
@@ -1579,6 +1614,16 @@ public class Undo
 			Listener listener = (Listener)it.next();
 			listener.endBatch();
 		}
+
+        // set highlights to what they were before undo
+        List highlights = new ArrayList();
+        for (Iterator it = batch.preUndoHighlights.iterator(); it.hasNext(); ) {
+            highlights.add(it.next());
+        }
+        Highlight.setHighlightList(highlights);
+        Highlight.setHighlightOffset((int)batch.preUndoHighlightsOffset.getX(),
+                (int)batch.preUndoHighlightsOffset.getY());
+        Highlight.finished();
 
 		// mark that this batch is redone
 		batch.done = true;

@@ -279,7 +279,6 @@ public class ClickZoomWireListener
 	                        startObj = h1.getElectricObject();
 	                        endObj = h2.getElectricObject();
 	                        EditWindow.gridAlign(dbClick);
-	                        router.startInteractiveRoute();
 	                        router.highlightRoute(wnd, h1.getElectricObject(), h2.getElectricObject(), dbClick);
 	                        return;
 	                    }
@@ -294,7 +293,6 @@ public class ClickZoomWireListener
 	                        startObj = h1.getElectricObject();
 	                        endObj = null;
 	                        EditWindow.gridAlign(dbClick);
-	                        router.startInteractiveRoute();
 	                        router.highlightRoute(wnd, h1.getElectricObject(), null, dbClick);
 	                        return;
 	                    }

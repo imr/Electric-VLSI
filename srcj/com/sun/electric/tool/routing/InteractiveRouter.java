@@ -64,9 +64,11 @@ import java.util.ArrayList;
 public abstract class InteractiveRouter extends Router {
 
     /** for highlighting the start of the route */  private List startRouteHighlights = new ArrayList();
+    /** if start has been called */                 private boolean started;
 
     public InteractiveRouter() {
         verbose = true;
+        started = false;
     }
 
     // --------------------- Abstract Router Classes ------------------------------
@@ -82,7 +84,7 @@ public abstract class InteractiveRouter extends Router {
      * in addition to route highlighting.  If routing it cancelled,
      * it also restores the original highlighting.
      */
-    public void startInteractiveRoute() {
+    private void startInteractiveRoute() {
         // copy current highlights
         startRouteHighlights.clear();
         for (Iterator it = Highlight.getHighlights(); it.hasNext(); ) {
@@ -90,6 +92,7 @@ public abstract class InteractiveRouter extends Router {
             startRouteHighlights.add(h);
         }
         Highlight.clear();
+        started = true;
     }
 
     /**
@@ -100,6 +103,7 @@ public abstract class InteractiveRouter extends Router {
         Highlight.clear();
         Highlight.setHighlightList(startRouteHighlights);
         Highlight.finished();
+        started = false;
     }
 
     /**
@@ -112,11 +116,16 @@ public abstract class InteractiveRouter extends Router {
      * @param clicked the point where the user clicked
      */
     public void makeRoute(EditWindow wnd, ElectricObject startObj, ElectricObject endObj, Point2D clicked) {
-
+        if (!started) startInteractiveRoute();
         // plan the route
         Route route = planRoute(wnd, startObj, endObj, clicked);
+        // restore highlights at start of planning, so that
+        // they will correctly show up if this job is undone.
+        Highlight.clear();
+        Highlight.setHighlightList(startRouteHighlights);
         // create route
         createRoute(route, wnd.getCell());
+        started = false;
     }
 
     /**
@@ -128,6 +137,7 @@ public abstract class InteractiveRouter extends Router {
      * @return true on sucess
      */
     public boolean makeVerticalRoute(PortInst startPort, ArcProto arc) {
+        if (!started) startInteractiveRoute();
         // do nothing if startPort can already connect to arc
         if (startPort.getPortProto().connectsTo(arc)) return true;
 
@@ -139,7 +149,12 @@ public abstract class InteractiveRouter extends Router {
         VerticalRoute vroute = new VerticalRoute(startRE, arc);
         if (!vroute.specifyRoute()) return false;
         vroute.buildRoute(route, startRE.getCell(), startRE.getLocation());
+        // restore highlights at start of planning, so that
+        // they will correctly show up if this job is undone.
+        Highlight.clear();
+        Highlight.setHighlightList(startRouteHighlights);
         createRoute(route, startPort.getNodeInst().getParent());
+        started = false;
         return true;
     }
 
@@ -154,6 +169,7 @@ public abstract class InteractiveRouter extends Router {
      * @param clicked the point where the user clicked
      */
     public void highlightRoute(EditWindow wnd, ElectricObject startObj, ElectricObject endObj, Point2D clicked) {
+        if (!started) startInteractiveRoute();
         // highlight route
         Route route = planRoute(wnd, startObj, endObj, clicked);
         highlightRoute(wnd, route);
@@ -165,6 +181,7 @@ public abstract class InteractiveRouter extends Router {
      * @param route the route to be highlighted
      */
     public void highlightRoute(EditWindow wnd, Route route) {
+        if (!started) startInteractiveRoute();
         // highlight all objects in route
         Highlight.clear();
         //Highlight.setHighlightList(startRouteHighlights);
@@ -294,6 +311,7 @@ public abstract class InteractiveRouter extends Router {
             Point2D location = getClosestOrthogonalPoint(startRE.getLocation(), clicked);
             endRE = RouteElement.newNode(cell, pn, pn.getPort(0), location,
                     pn.getDefWidth(), pn.getDefHeight());
+            reverseRoute = false;
         }
 
         // favors arcs for location of contact cuts

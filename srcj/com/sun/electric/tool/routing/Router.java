@@ -142,8 +142,8 @@ public abstract class Router {
 
             // check if we can edit this cell
             if (CircuitChanges.cantEdit(cell, null, true)) {
-                Highlight.clear();
-                Highlight.finished();
+                //Highlight.clear();
+                //Highlight.finished();
                 return false;
             }
 

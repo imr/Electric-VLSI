@@ -29,9 +29,11 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Toolkit;
+import java.awt.geom.Point2D;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
@@ -66,7 +68,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
  */
 public abstract class Job implements ActionListener, Runnable {
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
 	/**
 	 * Type is a typesafe enum class that describes the type of job (CHANGE or EXAMINE).
@@ -260,8 +262,10 @@ public abstract class Job implements ActionListener, Runnable {
     /** top of "down-tree" of cells affected */ private Cell downCell;
     /** status */                               private String status = null;
     /** progress */                             private String progress = null;
-    
-    
+    /** list of saved Highlights */             private List savedHighlights;
+    /** saved Highlight offset */               private Point2D savedHighlightsOffset;
+
+
     /**
 	 * Constructor creates a new instance of Job.
 	 * @param jobName a string that describes this Job.
@@ -284,6 +288,9 @@ public abstract class Job implements ActionListener, Runnable {
         startTime = endTime = 0;
         started = finished = aborted = scheduledToAbort = false;
         myNode = null;
+        savedHighlights = new ArrayList();
+        if (jobType == Job.Type.CHANGE || jobType == Job.Type.UNDO)
+            saveHighlights();
 	}
 	
     /**
@@ -353,7 +360,7 @@ public abstract class Job implements ActionListener, Runnable {
 
         if (DEBUG) System.out.println(jobType+" Job: "+jobName+" started");
 		try {
-			if (jobType == Type.CHANGE)	Undo.startChanges(tool, jobName, upCell);
+			if (jobType == Type.CHANGE)	Undo.startChanges(tool, jobName, upCell, savedHighlights, savedHighlightsOffset);
 			if (jobType != Type.EXAMINE) changingJob = this;
 			doIt();
 			if (jobType == Type.CHANGE)	Undo.endChanges();
@@ -411,6 +418,15 @@ public abstract class Job implements ActionListener, Runnable {
         }
         scheduledToAbort = true;
         WindowFrame.wantToRedoJobTree();
+    }
+
+    /** Save current Highlights */
+    private void saveHighlights() {
+        savedHighlights.clear();
+        for (Iterator it = Highlight.getHighlights(); it.hasNext(); ) {
+            savedHighlights.add(it.next());
+        }
+        savedHighlightsOffset = Highlight.getHighlightOffset();
     }
 
 	/** Confirmation that thread is aborted */
