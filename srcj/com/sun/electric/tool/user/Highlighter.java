@@ -304,7 +304,7 @@ public class Highlighter implements DatabaseChangeListener {
             }
         }
         synchronized(this) {
-            this.showNetworkLevel = showNetworkLevel++;
+            this.showNetworkLevel = showNetworkLevel+1;
         }
         if (count == 0) {
             System.out.println("Nothing more in hierarchy on network(s) to show");
