@@ -2869,8 +2869,9 @@ public class CircuitChanges
 			{
 				Reconnect re = (Reconnect)it.next();
 				if (!re.ni.isLinked()) continue;
-				re.reconnectArcs();
-				re.ni.kill();
+				List created = re.reconnectArcs();
+				if (created.size() > 0)
+					re.ni.kill();
 			}
 			for(Iterator it = pinsToScale.keySet().iterator(); it.hasNext(); )
 			{
