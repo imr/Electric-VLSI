@@ -1846,8 +1846,7 @@ public class Highlighter implements DatabaseChangeListener {
 		// standard distance to the arc
 		double wid = ai.getWidth() - ai.getProto().getWidthOffset();
 		if (DBMath.doublesEqual(wid, 0)) wid = 1;
-//		if (curvedarcoutline(ai, poly, FILLED, wid))
-			Poly poly = ai.makePoly(ai.getLength(), wid, Poly.Type.FILLED);
+		Poly poly = ai.makePoly(ai.getLength(), wid, Poly.Type.FILLED);
 		return poly.polyDistance(bounds);
 	}
 

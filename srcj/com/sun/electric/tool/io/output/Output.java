@@ -167,7 +167,7 @@ public class Output//extends IOTool
 		URL libFile = lib.getLibFile();
 		if (libFile == null)
 			libFile = TextUtils.makeURLToFile(lib.getName());
-		if (type == OpenFile.Type.ELIB)
+		if (type == OpenFile.Type.ELIB || type == OpenFile.Type.JELIB)
 		{
 			// backup previous files if requested
 			int backupScheme = IOTool.getBackupRedundancy();
@@ -207,14 +207,25 @@ public class Output//extends IOTool
 					}
 				}
 			}
-			ELIB elib = new ELIB();
-			if (compatibleWith6) elib.write6Compatible();
-			out = (Output)elib;
-			String properOutputName = TextUtils.getFilePath(libFile) + TextUtils.getFileNameWithoutExtension(libFile) + ".elib";
-            if (out.openBinaryOutputStream(properOutputName)) return true;
-            if (out.writeLib(lib)) return true;
-            if (out.closeBinaryOutputStream()) return true;
-		} else if (type == OpenFile.Type.READABLEDUMP)
+			if (type == OpenFile.Type.ELIB)
+			{
+				ELIB elib = new ELIB();
+				if (compatibleWith6) elib.write6Compatible();
+				out = (Output)elib;
+				String properOutputName = TextUtils.getFilePath(libFile) + TextUtils.getFileNameWithoutExtension(libFile) + ".elib";
+				if (out.openBinaryOutputStream(properOutputName)) return true;
+				if (out.writeLib(lib)) return true;
+				if (out.closeBinaryOutputStream()) return true;
+			} else
+			{
+				JELIB jelib = new JELIB();
+				out = (Output)jelib;
+				String properOutputName = TextUtils.getFilePath(libFile) + TextUtils.getFileNameWithoutExtension(libFile) + ".jelib";
+				if (out.openTextOutputStream(properOutputName)) return true;
+				if (out.writeLib(lib)) return true;
+				if (out.closeTextOutputStream()) return true;
+			}
+ 		} else if (type == OpenFile.Type.READABLEDUMP)
 		{
 			out = (Output)new ReadableDump();
 			String properOutputName = TextUtils.getFilePath(libFile) + TextUtils.getFileNameWithoutExtension(libFile) + ".txt";

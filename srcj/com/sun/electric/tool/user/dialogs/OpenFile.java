@@ -45,6 +45,7 @@ public class OpenFile
 	public static class Type
 	{
 		/** Describes any file.*/				public static final Type ANY          = new Type("All", new String[] {}, "All Files");
+		/** Describes JELIB files.*/			public static final Type JELIB        = new Type("JELIB", new String[] {"jelib"}, "Library File (jelib)");
 		/** Describes ELIB files.*/				public static final Type ELIB         = new Type("ELIB", new String[] {"elib"}, "Library File (elib)");
 		/** Describes text files. */			public static final Type TEXT         = new Type("Text", new String[] {"txt"}, "Text File (txt)");
 		/** Describes HTML files. */			public static final Type HTML         = new Type("HTML", new String[] {"html"}, "HTML File (html)");

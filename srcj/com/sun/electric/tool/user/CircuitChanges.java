@@ -2746,18 +2746,14 @@ public class CircuitChanges
 				Connection con = (Connection)cIt.next();
 				ArcInst ai = con.getArc();
 				double i = ai.getWidth() - ai.getProto().getWidthOffset();
-				Poly poly = ai.curvedArcOutline(ai, Poly.Type.CLOSED, i);
-				if (poly == null)
-					poly = ai.makePoly(ai.getLength(), i, Poly.Type.FILLED);
+				Poly poly = ai.makePoly(ai.getLength(), i, Poly.Type.FILLED);
 				for(Iterator oCIt = ni.getConnections(); oCIt.hasNext(); )
 				{
 					Connection oCon = (Connection)oCIt.next();
 					ArcInst oAi = oCon.getArc();
 					if (ai.getArcIndex() <= oAi.getArcIndex()) continue;
 					double oI = oAi.getWidth() - oAi.getProto().getWidthOffset();
-					Poly oPoly = oAi.curvedArcOutline(oAi, Poly.Type.CLOSED, oI);
-					if (oPoly == null)
-						oPoly = oAi.makePoly(oAi.getLength(), oI, Poly.Type.FILLED);
+					Poly oPoly = oAi.makePoly(oAi.getLength(), oI, Poly.Type.FILLED);
 					double dist = poly.separation(oPoly);
 					if (dist <= 0) continue;
 					nodeIsBad = true;
@@ -4660,7 +4656,7 @@ public class CircuitChanges
 					Cell cell = (Cell)np;
 
 					// allow cross-library references to stay
-					if (cell.getLibrary() != fromCell.getLibrary()) continue;
+//					if (cell.getLibrary() != fromCell.getLibrary()) continue;
 					if (cell.getLibrary() == toLib) continue;
 
 					// see if the cell is already there

@@ -1007,6 +1007,7 @@ public abstract class Geometric extends ElectricObject
 
 	/**
 	 * Method to return the bounds of this Geometric.
+	 * TODO: dangerous to give a pointer to our internal field; should make a copy of visBounds
 	 * @return the bounds of this Geometric.
 	 */
 	public Rectangle2D getBounds() { return visBounds; }

@@ -2617,12 +2617,14 @@ public class WaveformWindow implements WindowContent, HighlightListener
 	{
 		rebuildingSignalNameList = true;
 		signalNameList.removeAllItems();
+		boolean hasSignals = false;
 		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
 		{
 			Panel wp = (Panel)it.next(); 
 			signalNameList.addItem("Panel " + Integer.toString(wp.panelNumber) + (wp.hidden ? " (HIDDEN)" : ""));
+			hasSignals = true;
 		}
-		signalNameList.setSelectedIndex(0);
+		if (hasSignals) signalNameList.setSelectedIndex(0);
 		rebuildingSignalNameList = false;
 	}
 
@@ -2900,6 +2902,8 @@ public class WaveformWindow implements WindowContent, HighlightListener
 
 	private void redrawAllPanels()
 	{
+		left.repaint();
+		right.repaint();
 		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
 		{
 			Panel wp = (Panel)it.next();

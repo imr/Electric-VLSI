@@ -142,6 +142,22 @@ public class TextDescriptor
 		public Poly.Type getPolyType() { return pt; }
 
 		/**
+		 * Method to return the Position to use for the given Poly.Type.
+		 * The Poly.Type will vary through the 9 "anchor point" locations:
+		 * center, left, right, up, down, up-left, up-right, down-left, down-right.
+		 * @return the Position to use for the given Poly.Type.
+		 */
+		public static Position getPosition(Poly.Type type)
+		{
+			for(Iterator it = positions.iterator(); it.hasNext(); )
+			{
+				Position pos = (Position)it.next();
+				if (type == pos.pt) return pos;
+			}
+			return CENT;
+		}
+
+		/**
 		 * Method to return the number Positions.
 		 * @return the number of Positions.
 		 */

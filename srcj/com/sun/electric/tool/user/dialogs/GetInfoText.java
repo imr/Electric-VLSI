@@ -32,6 +32,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.Highlight;
@@ -73,6 +74,8 @@ import javax.swing.BorderFactory;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JTextField;
+import javax.swing.text.JTextComponent;
+import javax.swing.JEditorPane;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 
@@ -96,6 +99,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 	    private ElectricObject owner;
 	    private String description;
 		private boolean instanceName;
+		private boolean multiLineCapable;
 
 		/**
 		 * Method to load the field variables from a Highlight.
@@ -108,12 +112,17 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 			initialText = "";
 			td = null;
 			owner = shownText.getElectricObject();
-			instanceName = false;
+			instanceName = multiLineCapable = false;
 			NodeInst ni = null;
-			if (owner instanceof NodeInst) ni = (NodeInst) owner;
+			if (owner instanceof NodeInst)
+			{
+				ni = (NodeInst) owner;
+			}
 			var = shownText.getVar();
 			if (var != null)
 			{
+				if (ni != null && ni.isInvisiblePinWithText() && var.getKey() == Artwork.ART_MESSAGE)
+					multiLineCapable = true;
 				td = var.getTextDescriptor();
 				Object obj = var.getObject();
 				if (obj instanceof Object[])
@@ -170,6 +179,14 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 		 * @return true if the highlighted text is the name of a cell instance.
 		 */
 		public boolean isInstanceName() { return instanceName; }
+
+		/**
+		 * Method to tell whether the highlighted text can be expressed with
+		 * more than 1 line of text.
+		 * This only applies to text on Invisible Pins (annotation text).
+		 * @return true if the highlighted text can have more than 1 line.
+		 */
+		public boolean isMultiLineCapable() { return multiLineCapable; }
 	}
 
     /**
@@ -212,13 +229,16 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
         if (!isVisible()) return;
 
         boolean reload = false;
-        for (Iterator it = batch.getChanges(); it.hasNext(); ) {
-            Undo.Change change = (Undo.Change)it.next();
-            ElectricObject obj = change.getObject();
-            if (obj == cti.owner) {
-                reload = true;
-                break;
-            }
+        if (cti != null)
+        {
+	        for (Iterator it = batch.getChanges(); it.hasNext(); ) {
+	            Undo.Change change = (Undo.Change)it.next();
+	            ElectricObject obj = change.getObject();
+	            if (obj == cti.owner) {
+	                reload = true;
+	                break;
+	            }
+	        }
         }
         if (reload) {
             // update dialog
@@ -404,7 +424,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 		private CachedTextInfo cti;
 		private EditWindow wnd;
 		private EventListener oldListener;
-		private JTextField tf;
+		private JTextComponent tc;
 		private MenuBar mb;
 
 		public EditInPlaceListener(CachedTextInfo cti, EditWindow wnd, Font theFont, int width, int height, int lowX, int lowY)
@@ -412,20 +432,29 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 			this.cti = cti;
 			this.wnd = wnd;
 
-			tf = new JTextField(cti.initialText);
-			tf.setSize(new Dimension(width, height));
-			tf.setBorder(new EmptyBorder(0,0,0,0));
-			tf.addActionListener(new ActionListener()
+			if (cti.isMultiLineCapable())
 			{
-				public void actionPerformed(ActionEvent evt) { closeEditInPlace(); }
-			});
-			if (theFont != null) tf.setFont(theFont);
-			Dimension dim = tf.getSize();
-			tf.setLocation(lowX + width - dim.width, lowY);
-			tf.selectAll();
+				tc = new JEditorPane("text/plain", cti.initialText);
+				height *= 2;
+			} else
+			{
+				JTextField tf = new JTextField(cti.initialText);
+				tf.addActionListener(new ActionListener()
+				{
+					public void actionPerformed(ActionEvent evt) { closeEditInPlace(); }
+				});
+				tc = tf;
+			}
+			tc.setSize(new Dimension(width, height));
+			tc.setLocation(lowX, lowY);
+			tc.setBorder(new EmptyBorder(0,0,0,0));
+			if (theFont != null) tc.setFont(theFont);
+			tc.selectAll();
+	
+			wnd.add(tc);
+			tc.setVisible(true);
+			tc.repaint();
 
-			wnd.add(tf);
-			tf.setVisible(true);
 			oldListener = WindowFrame.getListener();
 			WindowFrame.setListener(this);
 
@@ -437,10 +466,11 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 		private void closeEditInPlace()
 		{
 			WindowFrame.setListener(oldListener);
-			wnd.remove(tf);
+			wnd.remove(tc);
+			wnd.repaint();
 			mb.setIgnoreTextEditKeys(false);
 
-			String currentText = tf.getText();
+			String currentText = tc.getText();
 			if (!currentText.equals(cti.initialText))
 			{
 				String[] textArray = currentText.split("\\n");

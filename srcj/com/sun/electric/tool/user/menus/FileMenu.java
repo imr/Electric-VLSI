@@ -107,6 +107,8 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.writeTextCell(); }});
 		exportSubMenu.addMenuItem("Readable Dump...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.READABLEDUMP, false); } });
+		exportSubMenu.addMenuItem("Version 8 JELIB...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.JELIB, true); } });
 		exportSubMenu.addMenuItem("Version 6 ELIB...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent(), OpenFile.Type.ELIB, true); } });
 
@@ -403,11 +405,16 @@ public class FileMenu {
     {
         String [] extensions = type.getExtensions();
         String extension = extensions[0];
-        String fileName;
-        if (lib.isFromDisk() && type == OpenFile.Type.ELIB && !compatibleWith6)
+        String fileName = null;
+        if (lib.isFromDisk())
         {
-            fileName = lib.getLibFile().getPath();
-        } else
+        	if (type == OpenFile.Type.JELIB ||
+        		(type == OpenFile.Type.ELIB && !compatibleWith6))
+	        {
+	            fileName = lib.getLibFile().getPath();
+	        }
+        }
+        if (fileName == null)
         {
             fileName = OpenFile.chooseOutputFile(type, null, lib.getName() + "." + extension);
             if (fileName == null) return false;

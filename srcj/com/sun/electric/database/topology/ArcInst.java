@@ -26,6 +26,7 @@ package com.sun.electric.database.topology;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
@@ -534,6 +535,12 @@ public class ArcInst extends Geometric
 	 */
 	public Poly makePoly(double length, double width, Poly.Type style)
 	{
+		if (protoType.isCurvable())
+		{
+			Poly curvedPoly = curvedArcOutline(style, width);
+			if (curvedPoly != null) return curvedPoly;
+		}
+
 		Point2D endH = ends[HEADEND].getLocation();
 		Point2D endT = ends[TAILEND].getLocation();
 
@@ -569,24 +576,61 @@ public class ArcInst extends Geometric
 	}
 
 	/**
+	 * Method to get the curvature radius on this ArcInst.
+	 * The curvature (used in artwork and round-cmos technologies) lets an arc
+	 * curve.
+	 * @return the curvature radius on this ArcInst.
+	 * Returns negative if there is no curvature information.
+	 */
+	public Double getRadius()
+	{
+		Variable var = getVar(ARC_RADIUS);
+		if (var == null) return null;
+
+		// get the radius of the circle, check for validity
+		Object obj = var.getObject();
+
+		if (obj instanceof Integer)
+		{
+			return new Double(((Integer)obj).intValue() / 2000.0);
+		}
+		if (obj instanceof Double)
+		{
+			return new Double(((Double)obj).doubleValue());
+		}
+		return null;
+	}
+
+	/**
+	 * when arcs are curved, the number of line segments will be
+	 * between this value, and half of this value.
+	 */
+	private static final int MAXARCPIECES = 16;
+
+	/**
 	 * Method to fill polygon "poly" with the outline of the curved arc in
 	 * "ai" whose width is "wid".  The style of the polygon is set to "style".
 	 * If there is no curvature information in the arc, the routine returns null,
 	 * otherwise it returns the curved polygon.
 	 */
-	public Poly curvedArcOutline(ArcInst ai, Poly.Type style, double wid)
+	public Poly curvedArcOutline(Poly.Type style, double wid)
 	{
 		// get the radius information on the arc
-		Variable var = ai.getVar(ARC_RADIUS);
-		if (var == null) return null;
-		double radius = TextUtils.atof(var.getObject().toString());
+		Double radiusDouble = getRadius();
+		if (radiusDouble == null) return null;
+
+		// get information about the curved arc
+		double radius = radiusDouble.doubleValue();
+		double pureRadius = Math.abs(radius);
+		Point2D headPt = getTail().getLocation();
+		Point2D tailPt = getHead().getLocation();
+		double length = headPt.distance(tailPt);
 
 		// see if the radius can work with these arc ends
-		if (Math.abs(radius)*2 < ai.getLength()) return null;
+		if (pureRadius*2 < length) return null;
 
 		// determine the center of the circle
-		Point2D [] centers = DBMath.findCenters(Math.abs(radius), ai.getHead().getLocation(),
-			ai.getTail().getLocation(), ai.getLength());
+		Point2D [] centers = DBMath.findCenters(pureRadius, headPt, tailPt, length);
 		if (centers == null) return null;
 
 		Point2D centerPt = centers[1];
@@ -597,9 +641,9 @@ public class ArcInst extends Geometric
 		}
 
 		// determine the base and range of angles
-		int angleBase = DBMath.figureAngle(centerPt, ai.getHead().getLocation());
-		int angleRange = DBMath.figureAngle(centerPt, ai.getTail().getLocation());
-		if (ai.isReverseEnds())
+		int angleBase = DBMath.figureAngle(centerPt, headPt);
+		int angleRange = DBMath.figureAngle(centerPt, tailPt);
+		if (isReverseEnds())
 		{
 			int i = angleBase;
 			angleBase = angleRange;
@@ -610,7 +654,7 @@ public class ArcInst extends Geometric
 
 		// determine the number of intervals to use for the arc
 		int pieces = angleRange;
-		while (pieces > 16) pieces /= 2;
+		while (pieces > MAXARCPIECES) pieces /= 2;
 
 		// initialize the polygon
 		int points = (pieces+1) * 2;

@@ -123,6 +123,7 @@ public class Artwork extends Technology
 		});
 		solidArc.setFunction(PrimitiveArc.Function.NONELEC);
 		solidArc.setFactoryFixedAngle(false);
+		solidArc.setCurvable();
 		solidArc.setWipable();
 		solidArc.setFactoryAngleIncrement(0);
 
@@ -133,6 +134,7 @@ public class Artwork extends Technology
 		});
 		dottedArc.setFunction(PrimitiveArc.Function.NONELEC);
 		dottedArc.setFactoryFixedAngle(false);
+		dottedArc.setCurvable();
 		dottedArc.setWipable();
 		dottedArc.setFactoryAngleIncrement(0);
 
@@ -143,6 +145,7 @@ public class Artwork extends Technology
 		});
 		dashedArc.setFunction(PrimitiveArc.Function.NONELEC);
 		dashedArc.setFactoryFixedAngle(false);
+		dashedArc.setCurvable();
 		dashedArc.setWipable();
 		dashedArc.setFactoryAngleIncrement(0);
 
@@ -153,6 +156,7 @@ public class Artwork extends Technology
 		});
 		thickerArc.setFunction(PrimitiveArc.Function.NONELEC);
 		thickerArc.setFactoryFixedAngle(false);
+		thickerArc.setCurvable();
 		thickerArc.setWipable();
 		thickerArc.setFactoryAngleIncrement(0);
 

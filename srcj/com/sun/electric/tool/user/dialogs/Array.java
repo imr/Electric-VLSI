@@ -384,15 +384,28 @@ public class Array extends EDialog
 			// make lists of nodes and arcs that will be arrayed
 			List nodeList = new ArrayList();
 			List arcList = new ArrayList();
+			List exportList = new ArrayList();
 			for(Iterator it = dialog.selected.keySet().iterator(); it.hasNext(); )
 			{
 				Geometric geom = (Geometric)it.next();
 				cell = geom.getParent();
-				if (geom instanceof NodeInst) nodeList.add(geom); else
+				if (geom instanceof NodeInst)
+				{
+					nodeList.add(geom);
+					if (User.isDupCopiesExports())
+					{
+						NodeInst ni = (NodeInst)geom;
+						for(Iterator eIt = ni.getExports(); eIt.hasNext(); )
+							exportList.add(eIt.next());
+					}
+				} else
+				{
 					arcList.add(geom);
+				}
 			}
 			Collections.sort(nodeList, new GeometricsByName());
 			Collections.sort(arcList, new GeometricsByName());
+			Collections.sort(exportList, new ExportsByName());
 
 			// determine the distance between arrayed entries
 			double xOverlap = lastXDistance;
@@ -444,6 +457,7 @@ public class Array extends EDialog
 
 				// first replicate the nodes
 				boolean firstNode = true;
+				HashMap nodeMap = new HashMap();
 				for(Iterator it = nodeList.iterator(); it.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)it.next();
@@ -488,24 +502,7 @@ public class Array extends EDialog
 							newNi.setName(ElectricObject.uniqueObjectName(nodeName, cell, NodeInst.class));
 					}
 
-					// copy the ports, too
-                    List portInstsToExport = new ArrayList();
-                    List referenceExports = new ArrayList();
-					if (User.isDupCopiesExports())
-					{
-						for(Iterator eit = ni.getExports(); eit.hasNext(); )
-						{
-							Export pp = (Export)eit.next();
-                            referenceExports.add(pp);
-							// find port on new nodeinst to export
-                            PortInst pi = ExportChanges.getNewPortFromReferenceExport(newNi, pp);
-                            portInstsToExport.add(pi);
-						}
-					}
-                    ExportChanges.reExportPorts(portInstsToExport, true, false, false, referenceExports);
-
-
-					ni.setTempObj(newNi);
+					nodeMap.put(ni, newNi);
 					if (lastDRCGood && firstNode)
 					{
 						geomsToCheck[checkNodeCount++] = newNi;
@@ -538,8 +535,8 @@ public class Array extends EDialog
 						yOff1 = -yOff1;
 					}
 
-					NodeInst ni0 = (NodeInst)ai.getHead().getPortInst().getNodeInst().getTempObj();
-					NodeInst ni1 = (NodeInst)ai.getTail().getPortInst().getNodeInst().getTempObj();
+					NodeInst ni0 = (NodeInst)nodeMap.get(ai.getHead().getPortInst().getNodeInst());
+					NodeInst ni1 = (NodeInst)nodeMap.get(ai.getTail().getPortInst().getNodeInst());
 					cX0 = ni0.getAnchorCenterX();
 					cY0 = ni0.getAnchorCenterY();
 					cX1 = ni1.getAnchorCenterX();
@@ -558,10 +555,22 @@ public class Array extends EDialog
 						String arcName = ai.getName();
 						if (arcName != null) {
 							newAi.setName(ElectricObject.uniqueObjectName(arcName, cell, ArcInst.class));
-                            newAi.getNameTextDescriptor().copy(ai.getNameTextDescriptor());
-                        }
+							newAi.getNameTextDescriptor().copy(ai.getNameTextDescriptor());
+						}
 					}
 				}
+
+				// copy the exports, too
+				List portInstsToExport = new ArrayList();
+				for(Iterator eit = exportList.iterator(); eit.hasNext(); )
+				{
+					Export pp = (Export)eit.next();
+					PortInst oldPI = pp.getOriginalPort();
+					NodeInst newNI = (NodeInst)nodeMap.get(oldPI.getNodeInst());
+					PortInst pi = newNI.findPortInstFromProto(oldPI.getPortProto());
+					portInstsToExport.add(pi);
+				}
+				ExportChanges.reExportPorts(portInstsToExport, false, true, false, exportList);
 			}
 
 			// rename the replicated objects
@@ -600,6 +609,18 @@ public class Array extends EDialog
 				String name2 = g2.getName();
 				if (name1 == null || name2 == null) return 0;
 				return name1.compareToIgnoreCase(name2);
+			}
+		}
+
+		static class ExportsByName implements Comparator
+		{
+			public int compare(Object o1, Object o2)
+			{
+				Export p1 = (Export)o1;
+				Export p2 = (Export)o2;
+				String s1 = p1.getName();
+				String s2 = p2.getName();
+				return TextUtils.nameSameNumeric(s1, s2);
 			}
 		}
 

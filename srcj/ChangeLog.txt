@@ -1,14 +1,31 @@
 			Java Electric change log
 
 ************************* Version 8.01l: *********************************
-IMP: (08/30/04) Refactoring DRC code. Decoupling Technology from DRC
 
-IMP: (08/26/04) Hierarchical minimum area and enclosed area available in DRC.
+BUG: (8/30/04, SMR) Crashes when the last waveform panel is deleted.
+FIX: Only select a panel if there are any.
+
+BUG: (8/30/04, SMR) "Cross-library copy" doesn't copy subcells if they are not in the original library.
+FIX: In "CircuitChanges.copyRecursively()" do not skip cells that are in the wrong library.
+
+BUG: (8/30/04, SMR) "Array" places exports out of order if nodes are named out of order.
+FIX: In "Array.java" sort the export names.
+
+IMP: (08/30/04, GVG) Refactoring DRC code. Decoupling Technology from DRC
+
+IMP: (08/26/04, GVG) Hierarchical minimum area and enclosed area available in DRC.
 
 BUG: (8/26/04, DN) Network tool keeps global nets after deleting global and power symbols.
 FIX: Don't traverse self icon when gathering globals.
 
 ************************* Version 8.01k: *********************************
+
+IMP: (8/29/04, SMR) Added "rcmos" technology (round rules).
+
+BUG: (8/27/04, SMR) Newly placed cell-centers are made "easy to select".
+FIX: "cell center" and "essential bounds" made hard-to-select in PaletteFrame.PlaceNewNode.doIt().
+
+IMP: (8/25/04, SMR) In-line text editing works for multi-line text.
 
 BUG: (8/25/04, JKG) Automatic reinheritance of default parameters inside getVar() was a
     bad idea. Call ElectricObject.getParameter() or ElectricObject.getParameters() if you

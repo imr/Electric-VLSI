@@ -58,8 +58,8 @@ public class Library extends ElectricObject
 	/** library has changed significantly */				private static final int LIBCHANGEDMAJOR =           01;
 //	/** set to see library in explorer */					private static final int OPENINEXPLORER =            02;
 	/** set if library came from disk */					private static final int READFROMDISK =              04;
-	/** internal units in library (see INTERNALUNITS) */	private static final int LIBUNITS =                 070;
-	/** right shift for LIBUNITS */							private static final int LIBUNITSSH =                 3;
+//	/** internal units in library (see INTERNALUNITS) */	private static final int LIBUNITS =                 070;
+//	/** right shift for LIBUNITS */							private static final int LIBUNITSSH =                 3;
 	/** library has changed insignificantly */				private static final int LIBCHANGEDMINOR =         0100;
 	/** library is "hidden" (clipboard library) */			private static final int HIDDENLIBRARY =           0200;
 //	/** library is unwanted (used during input) */			private static final int UNWANTEDLIB =             0400;
@@ -485,18 +485,18 @@ public class Library extends ElectricObject
 	 */
 	public boolean isHidden() { return (userBits & HIDDENLIBRARY) != 0; }
 
-	/**
-	 * Method to set the Units value for this Library.
-	 * The Units indicate which display units to use for distance, voltage, current, etc.
-	 */
-	public void setUnits(int value) { userBits = (userBits & ~LIBUNITS) | (value << LIBUNITSSH); }
-
-	/**
-	 * Method to get the Units value for this Library.
-	 * The Units indicate which display units to use for distance, voltage, current, etc.
-	 * @return the Units value for this Library.
-	 */
-	public int getUnits() { return (userBits & LIBUNITS) >> LIBUNITSSH; }
+//	/**
+//	 * Method to set the Units value for this Library.
+//	 * The Units indicate which display units to use for distance, voltage, current, etc.
+//	 */
+//	public void setUnits(int value) { userBits = (userBits & ~LIBUNITS) | (value << LIBUNITSSH); }
+//
+//	/**
+//	 * Method to get the Units value for this Library.
+//	 * The Units indicate which display units to use for distance, voltage, current, etc.
+//	 * @return the Units value for this Library.
+//	 */
+//	public int getUnits() { return (userBits & LIBUNITS) >> LIBUNITSSH; }
 
 	/**
 	 * Method to return the current Library.

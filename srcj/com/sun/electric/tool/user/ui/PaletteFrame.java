@@ -851,6 +851,8 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 
 			NodeInst newNi = NodeInst.makeInstance(np, where, width, height, defAngle, cell, null);
 			if (newNi == null) return false;
+			if (np == Generic.tech.cellCenterNode || np == Generic.tech.essentialBoundsNode)
+				newNi.setHardSelect();
 			if (varName != null)
 			{
 				// text object: add initial text
@@ -859,7 +861,7 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 				{
 					var.setDisplay(true);
 					TextDescriptor td = TextDescriptor.getAnnotationTextDescriptor(null);
-					if (!varName.equals("ART_message")) td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
+//					if (!varName.equals("ART_message")) td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
 					var.setTextDescriptor(td);
 					Highlight h = highlighter.addText(newNi, cell, var, null);
 				}

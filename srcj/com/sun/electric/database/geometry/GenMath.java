@@ -478,6 +478,179 @@ public class GenMath
         return new Point2D.Double(fy, (-fb1 * fy - fc1) / fa1);
     }
 
+
+
+	/**
+	 * Method to compute the bounding box of the arc that runs clockwise from
+	 * "s" to "e" and is centered at "c".  The bounding box is returned.
+	 */
+	public static Rectangle2D arcBBox(Point2D s, Point2D e, Point2D c)
+	{
+		/* determine radius and compute bounds of full circle */
+		double radius = c.distance(s);
+		double lx = c.getX() - radius;
+		double ly = c.getY() - radius;
+		double hx = c.getX() + radius;
+		double hy = c.getY() + radius;
+
+		/* compute quadrant of two endpoints */
+		double x1 = s.getX() - c.getX();    double x2 = e.getX() - c.getX();
+		double y1 = s.getY() - c.getY();    double y2 = e.getY() - c.getY();
+		int q1 = db_quadrant(x1, y1);
+		int q2 = db_quadrant(x2, y2);
+
+		/* see if the two endpoints are in the same quadrant */
+		if (q1 == q2)
+		{
+			/* if the arc runs a full circle, use the MBR of the circle */
+			if (q1 == 1 || q1 == 2)
+			{
+				if (x1 > x2) return null;
+			} else
+			{
+				if (x1 < x2) return null;
+			}
+
+			/* use the MBR of the two arc points */
+			lx = Math.min(s.getX(), e.getX());
+			hx = Math.max(s.getX(), e.getX());
+			ly = Math.min(s.getY(), e.getY());
+			hy = Math.max(s.getY(), e.getY());
+			return new Rectangle2D.Double(lx, ly, hx-lx, hy-ly);
+		}
+
+		switch (q1)
+		{
+			case 1: switch (q2)
+			{
+				case 2:	/* 3 quadrants clockwise from Q1 to Q2 */
+				hy = Math.max(y1,y2) + c.getY();
+				break;
+
+				case 3:	/* 2 quadrants clockwise from Q1 to Q3 */
+				lx = x2 + c.getX();
+				hy = y1 + c.getY();
+				break;
+
+				case 4:	/* 1 quadrant clockwise from Q1 to Q4 */
+				lx = Math.min(x1,x2) + c.getX();
+				ly = y2 + c.getY();
+				hy = y1 + c.getY();
+				break;
+			}
+			break;
+
+			case 2: switch (q2)
+			{
+				case 1:	/* 1 quadrant clockwise from Q2 to Q1 */
+				lx = x1 + c.getX();
+				ly = Math.min(y1,y2) + c.getY();
+				hx = x2 + c.getX();
+				break;
+
+				case 3:	/* 3 quadrants clockwise from Q2 to Q3 */
+				lx = Math.min(x1,x2) + c.getX();
+				break;
+
+				case 4:	/* 2 quadrants clockwise from Q2 to Q4 */
+				lx = x1 + c.getX();
+				ly = y2 + c.getY();
+				break;
+			}
+			break;
+
+			case 3: switch (q2)
+			{
+				case 1:	/* 2 quadrants clockwise from Q3 to Q1 */
+				ly = y1 + c.getY();
+				hx = x2 + c.getX();
+				break;
+
+				case 2:	/* 1 quadrant clockwise from Q3 to Q2 */
+				ly = y1 + c.getY();
+				hx = Math.max(x1,x2) + c.getX();
+				hy = y2 + c.getY();
+				break;
+
+				case 4:	/* 3 quadrants clockwise from Q3 to Q4 */
+				ly = Math.min(y1,y2) + c.getY();
+				break;
+			}
+			break;
+
+			case 4: switch (q2)
+			{
+				case 1:	/* 3 quadrants clockwise from Q4 to Q1 */
+				hx = Math.max(x1,x2) + c.getX();
+				break;
+
+				case 2:	/* 2 quadrants clockwise from Q4 to Q2 */
+				hx = x1 + c.getX();
+				hy = y2 + c.getY();
+				break;
+
+				case 3:	/* 1 quadrant clockwise from Q4 to Q3 */
+				lx = x2 + c.getX();
+				hx = x1 + c.getX();
+				hy = Math.max(y1,y2) + c.getY();
+				break;
+			}
+			break;
+		}
+		return new Rectangle2D.Double(lx, ly, hx-lx, hy-ly);
+	}
+
+
+	/**
+	 * compute the quadrant of the point x,y   2 | 1
+	 * Standard quadrants are used:            -----
+	 *                                         3 | 4
+	 */
+	private static int db_quadrant(double x, double y)
+	{
+		if (x > 0)
+		{
+			if (y >= 0) return 1;
+			return 4;
+		}
+		if (y > 0) return 2;
+		return 3;
+	}
+
+
+	/**
+	 * Method to find the two possible centers for a circle whose radius is
+	 * "r" and has two points (x01,y01) and (x02,y02) on the edge.  The two
+	 * center points are returned in (x1,y1) and (x2,y2).  The distance between
+	 * the points (x01,y01) and (x02,y02) is in "d".  The routine returns
+	 * false if successful, true if there is no intersection.  This code
+	 * was written by John Mohammed of Schlumberger.
+	 */
+	public static Point2D [] findCenters(double r, double x01, double y01, double x02, double y02, double d)
+	{
+		/* quit now if the circles concentric */
+		if (x01 == x02 && y01 == y02) return null;
+
+		/* find the intersections, if any */
+		double r2 = r * r;
+		double delta_1 = -d / 2.0;
+		double delta_12 = delta_1 * delta_1;
+
+		/* quit if there are no intersections */
+		if (r2 < delta_12) return null;
+
+		/* compute the intersection points */
+		double delta_2 = Math.sqrt(r2 - delta_12);
+		Point2D [] points = new Point2D[2];
+		double x1 = x02 + ((delta_1 * (x02 - x01)) + (delta_2 * (y02 - y01))) / d;
+		double y1 = y02 + ((delta_1 * (y02 - y01)) + (delta_2 * (x01 - x02))) / d;
+		double x2 = x02 + ((delta_1 * (x02 - x01)) + (delta_2 * (y01 - y02))) / d;
+		double y2 = y02 + ((delta_1 * (y02 - y01)) + (delta_2 * (x02 - x01))) / d;
+		points[0] = new Point2D.Double(x1, y1);
+		points[1] = new Point2D.Double(x2, y2);
+		return points;
+	}
+
     /** smallest such that 1.0+DBL_EPSILON != 1.0 */	private static double DBL_EPSILON = 2.2204460492503131e-016;
 
     /**

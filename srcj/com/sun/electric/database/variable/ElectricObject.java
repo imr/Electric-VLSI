@@ -205,6 +205,25 @@ public class ElectricObject
     }
 
 	/**
+	 * Method to return the number of persistent Variables on this ElectricObject.
+	 * A persistent Variable is one that will be saved with the library when written to disk.
+	 * @return the number of persistent Variables on this ElectricObject.
+	 */
+	public int numPersistentVariables()
+	{
+		if (vars == null) return 0;
+
+		int numVars = 0;
+		for(Iterator it = vars.values().iterator(); it.hasNext(); )
+		{
+			Variable var = (Variable)it.next();
+			if (var.isDontSave()) continue;
+			numVars++;
+		}
+		return numVars;
+	}
+
+	/**
 	 * Method to return the number of displayable Variables on this ElectricObject.
 	 * A displayable Variable is one that will be shown with its object.
 	 * Displayable Variables can only sensibly exist on NodeInst and ArcInst objects.

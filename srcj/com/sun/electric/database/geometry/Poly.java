@@ -927,6 +927,10 @@ public class Poly implements Shape
 	 */
 	public static Type rotateType(Type origType, ElectricObject eObj)
 	{
+		// centered text does not rotate its anchor
+		if (origType == Type.TEXTCENT || origType == Type.TEXTBOX) return origType;
+
+		// get node this sits on
 		NodeInst ni = null;
 		if (eObj instanceof NodeInst)
 		{
@@ -936,25 +940,73 @@ public class Poly implements Shape
 			Export pp = (Export)eObj;
 			ni = pp.getOriginalPort().getNodeInst();
 		} else return origType;
-		int nodeAngle = ni.getAngle();
-		if (nodeAngle != 0 || ni.isMirroredAboutXAxis() || ni.isMirroredAboutYAxis())
-		{
-			if ((nodeAngle%900) == 0 && origType != Type.TEXTCENT && origType != Type.TEXTBOX)
-			{
-				int angle = origType.getTextAngle();
-				AffineTransform trans = NodeInst.pureRotate(nodeAngle, ni.isMirroredAboutXAxis(), ni.isMirroredAboutYAxis());
-				Point2D pt = new Point2D.Double(100, 0);
-				trans.transform(pt, pt);
-				int xAngle = GenMath.figureAngle(new Point2D.Double(0, 0), pt);
-				if (ni.isMirroredAboutXAxis() != ni.isMirroredAboutYAxis() &&
-					((angle%1800) == 0 || (angle%1800) == 1350)) angle += 1800;
-				angle = (angle + xAngle) % 3600;
 
-				Type style = Type.getTextTypeFromAngle(angle);
-				return style;
-			}
-		}
-		return origType;
+		// no need to rotate anchor if the node is not transformed
+		int nodeAngle = ni.getAngle();
+		if (nodeAngle == 0 && !ni.isMirroredAboutXAxis() && !ni.isMirroredAboutYAxis()) return origType;
+
+		// can only rotate anchor when node is in a manhattan orientation
+		if ((nodeAngle%900) != 0) return origType;
+
+		// rotate the anchor
+		int angle = origType.getTextAngle();
+		AffineTransform trans = NodeInst.pureRotate(nodeAngle, ni.isMirroredAboutXAxis(), ni.isMirroredAboutYAxis());
+		Point2D pt = new Point2D.Double(100, 0);
+		trans.transform(pt, pt);
+		int xAngle = GenMath.figureAngle(new Point2D.Double(0, 0), pt);
+		if (ni.isMirroredAboutXAxis() != ni.isMirroredAboutYAxis() &&
+			((angle%1800) == 0 || (angle%1800) == 1350)) angle += 1800;
+		angle = (angle + xAngle) % 3600;
+
+		Type style = Type.getTextTypeFromAngle(angle);
+		return style;
+	}
+
+	/**
+	 * Method to unrotate a text Type according to the rotation of the object on which it resides.
+	 * Unrotation implies converting apparent anchor information to actual stored anchor information
+	 * on a transformed node.  For example, if the node is rotated, and the anchor appears to be at the
+	 * bottom, then the actual anchor that is stored with the node will be different (and when transformed
+	 * will appear to be at the bottom).
+	 * @param origType the original text Type.
+	 * @param eObj the ElectricObject on which the text resides.
+	 * @return the new text Type that accounts for the rotation.
+	 */
+	public static Type unRotateType(Type origType, ElectricObject eObj)
+	{
+		// centered text does not rotate its anchor
+		if (origType == Type.TEXTCENT || origType == Type.TEXTBOX) return origType;
+
+		// get node this sits on
+		NodeInst ni = null;
+		if (eObj instanceof NodeInst)
+		{
+			ni = (NodeInst)eObj;
+		} else if (eObj instanceof Export)
+		{
+			Export pp = (Export)eObj;
+			ni = pp.getOriginalPort().getNodeInst();
+		} else return origType;
+
+		// no need to rotate anchor if the node is not transformed
+		int nodeAngle = ni.getAngle();
+		if (nodeAngle == 0 && !ni.isMirroredAboutXAxis() && !ni.isMirroredAboutYAxis()) return origType;
+
+		// can only rotate anchor when node is in a manhattan orientation
+		if ((nodeAngle%900) != 0) return origType;
+
+		// rotate the anchor
+		int angle = origType.getTextAngle();
+		AffineTransform trans = ni.pureRotateIn();
+		Point2D pt = new Point2D.Double(100, 0);
+		trans.transform(pt, pt);
+		int xAngle = GenMath.figureAngle(new Point2D.Double(0, 0), pt);
+		if (ni.isMirroredAboutXAxis() != ni.isMirroredAboutYAxis() &&
+			((angle%1800) == 0 || (angle%1800) == 1350)) angle += 1800;
+		angle = (angle + xAngle) % 3600;
+
+		Type style = Type.getTextTypeFromAngle(angle);
+		return style;
 	}
 
 	/**

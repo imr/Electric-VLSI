@@ -321,7 +321,7 @@ public class ELIB extends LibraryFiles
 		// allocate pointers for the Technologies
 		techList = new Technology[techCount];
 		techError = new String[techCount];
-		techScale = new double[techCount];
+		techScale = new double[Technology.getNumTechnologies()];
 		arcProtoList = new PrimitiveArc[arcProtoCount];
 		arcProtoError = new String[arcProtoCount];
 		primNodeProtoList = new PrimitiveNode[primNodeProtoCount];
@@ -626,19 +626,22 @@ public class ELIB extends LibraryFiles
 					if (pp == null)
 					{
 						Iterator it = pnp.getPorts();
-						pp = (PrimitivePort) it.next();
-						if (!primNodeProtoError[primNodeProtoCount])
+						if (it.hasNext())
 						{
-							String errorMessage = name + " on ";
-							if (primNodeProtoOrig[primNodeProtoCount] != null)
-								errorMessage += primNodeProtoOrig[primNodeProtoCount]; else
+							pp = (PrimitivePort)it.next();
+							if (!primNodeProtoError[primNodeProtoCount])
 							{
-								if (techError[techIndex] != null)
-									errorMessage += techError[techIndex]; else
-										errorMessage += tech.getTechName();
-								errorMessage += ":" + pnp.getName();
+								String errorMessage = name + " on ";
+								if (primNodeProtoOrig[primNodeProtoCount] != null)
+									errorMessage += primNodeProtoOrig[primNodeProtoCount]; else
+								{
+									if (techError[techIndex] != null)
+										errorMessage += techError[techIndex]; else
+											errorMessage += tech.getTechName();
+									errorMessage += ":" + pnp.getName();
+								}
+								primPortProtoError[primPortProtoCount] = errorMessage;
 							}
-							primPortProtoError[primPortProtoCount] = errorMessage;
 						}
 					}
 					primPortProtoList[primPortProtoCount++] = pp;

@@ -72,7 +72,7 @@ public class CrossLibCopy extends EDialog
 		if (curIndex >= 0)
         {
             librariesLeft.setSelectedIndex(curIndex);
-            librariesRight.setSelectedIndex(curIndex); //@TODO GVG Check with Steve
+            librariesRight.setSelectedIndex(curIndex);
         }
 
 		// make the left list

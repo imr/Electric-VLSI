@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.TextUtils;
@@ -266,7 +267,13 @@ public class TextInfoPanel extends javax.swing.JPanel
             // The TextDescriptor cannot be set to boxed, so remove it from the list
             textAnchor.removeItem(TextDescriptor.Position.BOXED);
         }
-        textAnchor.setSelectedItem(td.getPos());
+
+		// set anchor
+		Poly.Type type = td.getPos().getPolyType();
+		type = Poly.rotateType(type, owner);
+		TextDescriptor.Position pos = TextDescriptor.Position.getPosition(type);
+        textAnchor.setSelectedItem(pos);
+
         // update enable/disabled state of boxed height, width textfields
         textAnchorItemStateChanged(null);
 
@@ -334,6 +341,10 @@ public class TextInfoPanel extends javax.swing.JPanel
 
         // handle changes to the anchor point
         TextDescriptor.Position newPosition = (TextDescriptor.Position)textAnchor.getSelectedItem();
+
+		Poly.Type type = newPosition.getPolyType();
+		type = Poly.unRotateType(type, owner);
+		newPosition = TextDescriptor.Position.getPosition(type);
         if (newPosition != initialPos) changed = true;
         double newBoxedWidth = 10;
         double newBoxedHeight = 10;
