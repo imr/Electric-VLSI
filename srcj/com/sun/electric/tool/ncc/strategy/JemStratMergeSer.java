@@ -25,7 +25,7 @@
 /**
  * JemStratMergeSer merges series transistors
  * it starts with all wires, separating them into two groups:
- * 0) uninteristing wires and
+ * 0) uninteresting wires and
  * 1) "short" Wires with exactly two diffusions
  * before releasing a short wire JemStratMergeSer attempts
  * to merge the transistors that it links.
@@ -33,9 +33,9 @@
 package com.sun.electric.tool.ncc.strategy;
 import com.sun.electric.tool.ncc.*;
 import com.sun.electric.tool.ncc.basicA.Messenger;
-import com.sun.electric.tool.ncc.jemNets.*;
-import com.sun.electric.tool.ncc.jemNets.TransistorOne;
-import com.sun.electric.tool.ncc.jemNets.TransistorTwo;
+import com.sun.electric.tool.ncc.jemNets.Transistor;
+import com.sun.electric.tool.ncc.jemNets.Wire;
+import com.sun.electric.tool.ncc.jemNets.Part;
 import com.sun.electric.tool.ncc.trees.*;
 import com.sun.electric.tool.ncc.lists.*;
 
@@ -79,8 +79,8 @@ public class JemStratMergeSer extends JemStrat {
     		Wire w = (Wire) toBeDeleted.get(i); 
     		w.killMe();
     	}
-		globals.println("JemStratMergeSer formed " +
-					  toBeDeleted.size() + " TransTwo, processing " +
+		globals.println("JemStratMergeSer performed " +
+					  toBeDeleted.size() + " series merges, processing " +
 					  numWires + " Wires = " +
 					  numShort + " two-diff Wires, of which " +
 					  numLeft + " remain.");
@@ -94,30 +94,30 @@ public class JemStratMergeSer extends JemStrat {
 		return doFor((Wire)n);
     }
 
-    private Integer doFor(Wire n){
+    private Integer doFor(Wire w){
 		//does it have exactly two diffusions?
 		numWires++;
 
-		// make sure there are no ports on this
-		if (n.getPorts().hasNext())  return CODE_NO_CHANGE;
+		// make sure there are no ports on wire
+		if (w.getPort()!=null)  return CODE_NO_CHANGE;
 		
 		// wires declared GLOBAL in Electric aren't internal nodes of MOS stacks
-		if (n.isGlobal()) return CODE_NO_CHANGE;
+		if (w.isGlobal()) return CODE_NO_CHANGE;
 		
 		int count= 0;
-		for(Iterator it=n.getParts(); it.hasNext();){
+		for(Iterator it=w.getParts(); it.hasNext();){
 			Part p= (Part)it.next();
-			if(!(p instanceof TransistorOne)) return CODE_NO_CHANGE;
-			TransistorOne t= (TransistorOne)p;
-			if(!t.touchesAtDiffusion(n)) return CODE_NO_CHANGE;
+			if(!(p instanceof Transistor)) return CODE_NO_CHANGE;
+			Transistor t= (Transistor)p;
+			if(!t.touchesAtDiffusion(w)) return CODE_NO_CHANGE;
 			count++;
 			if(count > 2)return CODE_NO_CHANGE;
 		}
 		if(count != 2) return CODE_NO_CHANGE;
 		//we've got a candidate
 		numShort++;
-		if(TransistorTwo.joinOnWire(n)){
-			toBeDeleted.add(n);
+		if(Transistor.joinOnWire(w)){
+			toBeDeleted.add(w);
 			return CODE_NO_CHANGE;
 		}
 		numLeft++;

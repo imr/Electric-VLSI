@@ -55,7 +55,6 @@ public class NccJob extends Job {
 	private void compareCellToSelf(Cell cell) {
 		messenger.println("SelfComparison of: "+fullName(cell));
 		NccOptions options = new NccOptions();
-		options.messenger = messenger;
 		options.checkSizes = false;
 		options.mergeParallelCells = true;
 
@@ -116,7 +115,6 @@ public class NccJob extends Job {
 	
     public boolean doIt() {
 		System.out.println("Ncc starting");
-		
 		String homeDir;
 		if (!LayoutLib.osIsWindows()) {
 			homeDir = "/home/rkao/";
@@ -124,8 +122,7 @@ public class NccJob extends Job {
 			homeDir = "x:/";
 		}
 		String testDir = homeDir+"ivanTest/qFourP1/electric-final/";
-		messenger = new Messenger(testDir+"jeminiLog.txt");
-		
+
 		doOneCell(testDir);		
 		//doLib(testDir, "purple");		
 		//doLib(testDir, "inv");		

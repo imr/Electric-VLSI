@@ -38,19 +38,19 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.ncc.lists.*;
 import com.sun.electric.tool.ncc.trees.JemCircuit;
 import com.sun.electric.tool.ncc.trees.JemEquivRecord;
-// import com.sun.electric.tool.ncc.trees.JemTree;
 import com.sun.electric.tool.ncc.jemNets.NccNetlist;
 import com.sun.electric.tool.ncc.basicA.Messenger;
-//import com.sun.electric.tool.ncc.strategy.NccGlobals;
-//import com.sun.electric.tool.ncc.strategy.JemStrat;
 import com.sun.electric.tool.ncc.strategy.JemStratFixed;
 import com.sun.electric.tool.ncc.strategy.JemStratVariable;
 import com.sun.electric.tool.ncc.strategy.JemStratDebug;
 import com.sun.electric.tool.ncc.strategy.JemStratResult;
+import com.sun.electric.tool.ncc.strategy.JemExportChecker;
 
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.io.File;
+import java.io.FileOutputStream;
 
 public class NccEngine {
 	// ------------------------------ private data ----------------------------
@@ -80,9 +80,7 @@ public class NccEngine {
 	
 	private NccEngine(List cells, List contexts, List netlists,
 					  NccOptions options) {
-		Messenger messenger = options.messenger;
-		if (messenger==null)  messenger = new Messenger(options.logFile);
-		globals = new NccGlobals(options, messenger);
+		globals = new NccGlobals(options);
 				
 		globals.print("****************************************");					  		
 		globals.println("****************************************");					  		
@@ -94,11 +92,13 @@ public class NccEngine {
 			globals.println("empty cell");
 			matched = true;				  	
 		} else {
+			JemExportChecker expCheck = new JemExportChecker(globals);
 			JemStratFixed.doYourJob(globals);
 			JemStratVariable.doYourJob(globals);
+			matched = expCheck.ensureExportsWithMatchingNamesAreOnEquivalentNets();
 			//JemStratDebug.doYourJob(globals);
-
-			matched = JemStratResult.doYourJob(mismatchList, activeList, globals);
+			
+			matched &= JemStratResult.doYourJob(mismatchList, activeList, globals);
 		    if (!matched) JemStratDebug.doYourJob(globals);
 		}
 
@@ -120,15 +120,14 @@ public class NccEngine {
 	 * use the Cell's current netlist. 
 	 */
 	public static boolean compare(List cells, List contexts, List netlists,
-							   NccOptions options) {
+							      NccOptions options) {
 		NccEngine ncc = new NccEngine(cells, contexts, netlists, options);
 		return ncc.matched;
 	}
 	/** compare two Cells */
-	public static boolean compare(
-		Cell cell1, VarContext context1, Netlist netlist1, 
-	    Cell cell2, VarContext context2, Netlist netlist2, NccOptions options) {
-	    	
+	public static boolean compare(Cell cell1, VarContext context1, 
+	    						  Cell cell2, VarContext context2, 
+	    						  NccOptions options) {
 		ArrayList cells = new ArrayList();
 		cells.add(cell1);
 		cells.add(cell2);
@@ -136,8 +135,8 @@ public class NccEngine {
 		contexts.add(context1);
 		contexts.add(context2);
 		ArrayList netlists = new ArrayList();
-		netlists.add(netlist1);
-		netlists.add(netlist2);
+		netlists.add(cell1.getNetlist(true));
+		netlists.add(cell2.getNetlist(true));
 		
 		return compare(cells, contexts, netlists, options);
 	}

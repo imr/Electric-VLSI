@@ -2,6 +2,12 @@
 
 ************************* Version 8.00: Released  *************************
 
+IMP: (6/17/04, RK) Remove "Universal Arcs" from layout generators because Java-Electric NCC doesn't need them.
+
+IMP: (6/17/04, RK) Add Export checking to NCC.
+
+IMP: (6/17/04, RK) Remove various Transistor types. Change Transistor to allow stacking of arbitrary number of series transistors.
+
 IMP: (6/17/04, GVG) Change LayerManager in StatusBar to GridLayout to avoid "flickering" in messages.
 Add TextUtils.formatDouble(<double>, 2) to coordinates. Refresh of window titles when current cell changes.
 

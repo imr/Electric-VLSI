@@ -108,21 +108,21 @@ public class Nand3_star_sy3 {
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, nand);
 		stdCell.wireVddGnd(pmoss, StdCellParams.EVEN, nand);
 		
-		// fool Electric's NCC into paralleling NMOS stacks by connecting
-		// stacks' internal diffusion nodes.
-		for (int i=6; i<nmos.nbInternalSrcDrns(); i+=6) {
-			for (int j=0; j<6; j++) {
-				if (i/6 % 2 == 0) {
-					LayoutLib.newArcInst(Tech.universalArc, 0,
-										 nmos.getInternalSrcDrn(j),
-										 nmos.getInternalSrcDrn(i+j));
-				} else {
-					LayoutLib.newArcInst(Tech.universalArc, 0,
-										 nmos.getInternalSrcDrn(j),
-										 nmos.getInternalSrcDrn(i+(5-j)));
-				}
-			}
-		}
+//		// fool Electric's NCC into paralleling NMOS stacks by connecting
+//		// stacks' internal diffusion nodes.
+//		for (int i=6; i<nmos.nbInternalSrcDrns(); i+=6) {
+//			for (int j=0; j<6; j++) {
+//				if (i/6 % 2 == 0) {
+//					LayoutLib.newArcInst(Tech.universalArc, 0,
+//										 nmos.getInternalSrcDrn(j),
+//										 nmos.getInternalSrcDrn(i+j));
+//				} else {
+//					LayoutLib.newArcInst(Tech.universalArc, 0,
+//										 nmos.getInternalSrcDrn(j),
+//										 nmos.getInternalSrcDrn(i+(5-j)));
+//				}
+//			}
+//		}
 		
 		// Nand input A
 		double inaHiY = 11;
@@ -255,7 +255,7 @@ public class Nand3_star_sy3 {
 		
 		// perform Network Consistency Check
 		// RKao fixme.  NCC with "wrong" schematic
-		stdCell.doNCC(nand, "nand3LT_sy3{sch}");
+		stdCell.doNCC(nand, nm+"{sch}");
 		
 		return nand;
 	}

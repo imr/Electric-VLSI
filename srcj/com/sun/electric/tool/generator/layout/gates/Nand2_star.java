@@ -109,15 +109,15 @@ class Nand2_star {
 		stdCell.wireVddGnd(nmoss, StdCellParams.EVEN, nand);
 		stdCell.wireVddGnd(pmos, StdCellParams.EVEN, nand);
 		
-		// fool Electric's NCC into paralleling NMOS stacks by connecting
-		// stacks' internal diffusion nodes.
-		for (int i=0; i<nmoss.length; i++) {
-			for (int j=0; j<nmoss[i].nbInternalSrcDrns(); j++) {
-				LayoutLib.newArcInst(Tech.universalArc, 0,
-									 nmoss[0].getInternalSrcDrn(0),
-									 nmoss[i].getInternalSrcDrn(j));
-			}
-		}
+//		// fool Electric's NCC into paralleling NMOS stacks by connecting
+//		// stacks' internal diffusion nodes.
+//		for (int i=0; i<nmoss.length; i++) {
+//			for (int j=0; j<nmoss[i].nbInternalSrcDrns(); j++) {
+//				LayoutLib.newArcInst(Tech.universalArc, 0,
+//									 nmoss[0].getInternalSrcDrn(0),
+//									 nmoss[i].getInternalSrcDrn(j));
+//			}
+//		}
 		
 		// Nand input A
 		LayoutLib.newExport(nand, "ina", PortProto.Characteristic.IN, Tech.m1,
@@ -192,7 +192,7 @@ class Nand2_star {
 		stdCell.addEssentialBounds(wellMinX, wellMaxX, nand);
 		
 		// perform Network Consistency Check
-		stdCell.doNCC(nand, "nand2{sch}");
+		stdCell.doNCC(nand, nm+"{sch}");
 		
 		return nand;
 	}

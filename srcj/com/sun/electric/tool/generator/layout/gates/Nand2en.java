@@ -119,13 +119,13 @@ public class Nand2en {
 		allPmoss[pmoss.length] = weak;
 		stdCell.wireVddGnd(allPmoss, StdCellParams.EVEN, nand);
 		
-		// fool Electric's NCC into paralleling NMOS stacks by connecting
-		// stacks' internal diffusion nodes.
-		for (int i=0; i<nmos.nbInternalSrcDrns(); i++) {
-			LayoutLib.newArcInst(Tech.universalArc, 0,
-								 nmos.getInternalSrcDrn(0),
-								 nmos.getInternalSrcDrn(i));
-		}
+//		// fool Electric's NCC into paralleling NMOS stacks by connecting
+//		// stacks' internal diffusion nodes.
+//		for (int i=0; i<nmos.nbInternalSrcDrns(); i++) {
+//			LayoutLib.newArcInst(Tech.universalArc, 0,
+//								 nmos.getInternalSrcDrn(0),
+//								 nmos.getInternalSrcDrn(i));
+//		}
 
 		// Nand input: inb
 		// m1_wid + m1_space + m1_wid/2

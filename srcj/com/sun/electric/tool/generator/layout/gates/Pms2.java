@@ -90,13 +90,13 @@ public class Pms2 {
 		// create gnd export and connect to MOS source/drains
 		stdCell.wireVddGnd(pmos, StdCellParams.EVEN, pms2);
 		
-		// fool Electric's NCC into paralleling PMOS stacks by connecting
-		// stacks' internal diffusion nodes.
-		for (int i=1; i<pmos.nbInternalSrcDrns(); i+=1) {
-			LayoutLib.newArcInst(Tech.universalArc, 0,
-								 pmos.getInternalSrcDrn(0),
-								 pmos.getInternalSrcDrn(i));
-		}
+//		// fool Electric's NCC into paralleling PMOS stacks by connecting
+//		// stacks' internal diffusion nodes.
+//		for (int i=1; i<pmos.nbInternalSrcDrns(); i+=1) {
+//			LayoutLib.newArcInst(Tech.universalArc, 0,
+//								 pmos.getInternalSrcDrn(0),
+//								 pmos.getInternalSrcDrn(i));
+//		}
 		
 		// connect inputs a and b
 		TrackRouter g = new TrackRouterH(Tech.m1, 3, gY, pms2);

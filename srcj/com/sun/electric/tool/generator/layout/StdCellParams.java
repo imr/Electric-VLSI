@@ -36,6 +36,10 @@ import com.sun.electric.database.network.*;
 import com.sun.electric.database.variable.*;
 import com.sun.electric.technology.*;
 
+import com.sun.electric.tool.ncc.NccEngine;
+import com.sun.electric.tool.ncc.NccOptions;
+
+
 /** The bottom of the PMOS well and the top of the NMOS well are at
  * y=0.  PMOS tracks are numbered from 1 to nbPmosTracks(). These
  * numbers correspond to the lowest and highest, respectively,
@@ -814,31 +818,29 @@ public class StdCellParams {
 
 	/** Perform Network Consistency Check if the user has so requested */
 	public void doNCC(Cell layout, String schemNm) {
-		/* Not implemented
-		if (schemLib == null)
-			return;
-		Cell schem = schemLib.findCell(schemNm);
+		if (schemLib == null) return;
+		Cell schem = schemLib.findNodeProto(schemNm);
 		error(schem == null, "can't find schematic: " + schemNm);
 
 		NccOptions options = new NccOptions();
-		options.absTolerance = 200;
-		options.checkExportNames = true;
-		options.checkSizes = false;
-		options.hierarchical = true;
-		options.ignorePwrGnd = false;
-		options.interactive = false;
-		options.mergeParallel = true;
-		options.mergeSeries = false;
-		options.percentTolerance = 100;
-		options.preAnalyze = false;
-		options.recurse = false;
-		options.verboseText = false;
-		options.verboseGraphics = false;
+		options.verbose = false;
+//		options.absTolerance = 200;
+//		options.checkExportNames = true;
+//		options.checkSizes = false;
+//		options.hierarchical = true;
+//		options.ignorePwrGnd = false;
+//		options.interactive = false;
+//		options.mergeParallel = true;
+//		options.mergeSeries = false;
+//		options.percentTolerance = 100;
+//		options.preAnalyze = false;
+//		options.recurse = false;
+//		options.verboseText = false;
+//		options.verboseGraphics = false;
 
-		boolean mismatch =
-			Electric.networkConsistencyCheck(schem, null, layout, options);
-		error(mismatch, "layout not topologically identical to schematic!");
-		*/
+		boolean match =
+			NccEngine.compare(schem, null, layout, null, options);
+		error(!match, "layout not topologically identical to schematic!");
 	}
 
 	public static double getSize(NodeInst iconInst, VarContext context) {

@@ -164,41 +164,41 @@ class Nand3_star_en_star {
 		}
 	}
 	
-	// fool Electric's NCC into paralleling NMOS stacks by connecting
-	// stacks' internal diffusion nodes.
-	private static void universalArcSymmetric(FoldedMos nmos) {
-		// First do the source/drain just above (in the schematic) ground.
-		for (int i=2; i<nmos.nbInternalSrcDrns(); i+=2) {
-			LayoutLib.newArcInst(Tech.universalArc, 0,
-								 nmos.getInternalSrcDrn(0),
-								 nmos.getInternalSrcDrn(i+(i/2 %2)));
-		}
-		// Then do the source/drain just below (in the schematic) the output.
-		for (int i=4; i<nmos.nbInternalSrcDrns(); i+=4) {
-			int d1 = (i/4 % 2)==0 ? 1 : 2;
-			int d2 = (i/4 % 2)==0 ? 2 : 1;
-			LayoutLib.newArcInst(Tech.universalArc, 0,
-								 nmos.getInternalSrcDrn(1),
-								 nmos.getInternalSrcDrn(i+d1));
-			LayoutLib.newArcInst(Tech.universalArc, 0,
-								 nmos.getInternalSrcDrn(2),
-								 nmos.getInternalSrcDrn(i+d2));
-		}
-	}
-	// fool Electric's NCC into paralleling NMOS stacks by connecting
-	// stacks' internal diffusion nodes.
-	private static void universalArcAsymmetric(FoldedMos nmos) {
-		for (int i=2; i<nmos.nbInternalSrcDrns(); i+=2) {
-			// The source/drain just above (in the schematic) ground.
-			LayoutLib.newArcInst(Tech.universalArc, 0,
-								 nmos.getInternalSrcDrn(0),
-								 nmos.getInternalSrcDrn(i+(i/2 %2)));
-			// The source/drain just below (in the schematic) output.
-			LayoutLib.newArcInst(Tech.universalArc, 0,
-								 nmos.getInternalSrcDrn(1),
-								 nmos.getInternalSrcDrn(i+((i/2+1) %2)));
-		}
-	}
+//	// fool Electric's NCC into paralleling NMOS stacks by connecting
+//	// stacks' internal diffusion nodes.
+//	private static void universalArcSymmetric(FoldedMos nmos) {
+//		// First do the source/drain just above (in the schematic) ground.
+//		for (int i=2; i<nmos.nbInternalSrcDrns(); i+=2) {
+//			LayoutLib.newArcInst(Tech.universalArc, 0,
+//								 nmos.getInternalSrcDrn(0),
+//								 nmos.getInternalSrcDrn(i+(i/2 %2)));
+//		}
+//		// Then do the source/drain just below (in the schematic) the output.
+//		for (int i=4; i<nmos.nbInternalSrcDrns(); i+=4) {
+//			int d1 = (i/4 % 2)==0 ? 1 : 2;
+//			int d2 = (i/4 % 2)==0 ? 2 : 1;
+//			LayoutLib.newArcInst(Tech.universalArc, 0,
+//								 nmos.getInternalSrcDrn(1),
+//								 nmos.getInternalSrcDrn(i+d1));
+//			LayoutLib.newArcInst(Tech.universalArc, 0,
+//								 nmos.getInternalSrcDrn(2),
+//								 nmos.getInternalSrcDrn(i+d2));
+//		}
+//	}
+//	// fool Electric's NCC into paralleling NMOS stacks by connecting
+//	// stacks' internal diffusion nodes.
+//	private static void universalArcAsymmetric(FoldedMos nmos) {
+//		for (int i=2; i<nmos.nbInternalSrcDrns(); i+=2) {
+//			// The source/drain just above (in the schematic) ground.
+//			LayoutLib.newArcInst(Tech.universalArc, 0,
+//								 nmos.getInternalSrcDrn(0),
+//								 nmos.getInternalSrcDrn(i+(i/2 %2)));
+//			// The source/drain just below (in the schematic) output.
+//			LayoutLib.newArcInst(Tech.universalArc, 0,
+//								 nmos.getInternalSrcDrn(1),
+//								 nmos.getInternalSrcDrn(i+((i/2+1) %2)));
+//		}
+//	}
 	
 	static Cell makePart(double sz, String threshold, String symmetry,
 						 StdCellParams stdCell) {
@@ -277,11 +277,11 @@ class Nand3_star_en_star {
 		stdCell.wireVddGnd(new FoldedMos[] {pmoss[0], pmosa},
 						   StdCellParams.EVEN, nand);
 		
-		if (symmetry.equals("SY")) {
-			universalArcSymmetric(nmos);
-		} else {
-			universalArcAsymmetric(nmos);
-		}
+//		if (symmetry.equals("SY")) {
+//			universalArcSymmetric(nmos);
+//		} else {
+//			universalArcAsymmetric(nmos);
+//		}
 		
 		// Nand input C
 		double incHiY = 11;

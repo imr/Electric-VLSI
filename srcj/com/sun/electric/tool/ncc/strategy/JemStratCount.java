@@ -262,14 +262,15 @@ public class JemStratCount extends JemStrat {
     public Integer doFor(NetObject n){
     	error(n.getNetObjType()!=netObjType, "mixed type leaf record");
         maxDepth = Math.max(maxDepth, getDepth());
-        if(n instanceof Wire){
+        if (n instanceof Wire) {
         	doFor((Wire)n); 
-       	} else if(n instanceof Part) {
+       	} else if (n instanceof Part){
        		doFor((Part)n); 
-       	} else { 
-        	error(!(n instanceof Port), "expecting Port");
-		}
-        return CODE_NO_CHANGE;
+       	} else {
+			error(!(n instanceof Port), "expecting Port");
+       	}
+
+       	return CODE_NO_CHANGE;
     }
 
     // ---------- for Wire -------------

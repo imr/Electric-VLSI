@@ -98,13 +98,13 @@ public class Nms2 {
 		// create gnd export and connect to MOS source/drains
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, nms2);
 
-		// fool Electric's NCC into paralleling NMOS stacks by connecting
-		// stacks' internal diffusion nodes.
-		for (int i = 1; i < nmos.nbInternalSrcDrns(); i += 1) {
-			LayoutLib.newArcInst(Tech.universalArc, 0,
-								 nmos.getInternalSrcDrn(0),
-								 nmos.getInternalSrcDrn(i));
-		}
+//		// fool Electric's NCC into paralleling NMOS stacks by connecting
+//		// stacks' internal diffusion nodes.
+//		for (int i = 1; i < nmos.nbInternalSrcDrns(); i += 1) {
+//			LayoutLib.newArcInst(Tech.universalArc, 0,
+//								 nmos.getInternalSrcDrn(0),
+//								 nmos.getInternalSrcDrn(i));
+//		}
 
 		// connect inputs a and b
 		TrackRouter g = new TrackRouterH(Tech.m1, 3, gY, nms2);
@@ -138,7 +138,7 @@ public class Nms2 {
 		stdCell.addNstackEssentialBounds(wellMinX, wellMaxX, nms2);
 
 		// perform Network Consistency Check
-		stdCell.doNCC(nms2, nm + "{sch}");
+		stdCell.doNCC(nms2, nm+"{sch}");
 
 		return nms2;
 	}

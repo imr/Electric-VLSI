@@ -277,7 +277,7 @@ class Nand3_star_en_sy3 {
 		
 		// perform Network Consistency Check
 		// RKao fixme.  NCC with "wrong" schematic
-		stdCell.doNCC(nand, "nand3en_sy3{sch}");
+		stdCell.doNCC(nand, nm+"{sch}");
 		
 		return nand;
 	}

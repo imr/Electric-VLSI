@@ -87,12 +87,14 @@ public class JemCircuit {
 			NetObject n= (NetObject)it.next();
 			error(!(n instanceof Wire), "getExportMap expects only Wires");
 			Wire w= (Wire)n;
-			for (Iterator pi=w.getPorts(); pi.hasNext();) {
-				Port pp= (Port)pi.next();
-				String exportNm = pp.getName();
-				error(out.containsKey(exportNm),
-					  "different wires have the same export name?");
-				out.put(exportNm, w);
+			Port p = w.getPort();
+			if (p!=null) {
+				for (Iterator ni=p.getExportNames(); ni.hasNext();) {
+					String exportNm = (String) ni.next();
+					error(out.containsKey(exportNm),
+						  "different wires have the same export name?");
+					out.put(exportNm, w);
+				}
 			}
 		}
 //		printTheMap(out);

@@ -30,7 +30,8 @@ import com.sun.electric.tool.ncc.jemNets.Wire;
 
 public class Resistor extends Part {
     // ---------- private data -------------
-    private static final int TERM_COEFFS[] = {17,17}; //resistors are symmetric
+    private static final int TERM_COEFFS[] = 
+    	{Primes.get(1), Primes.get(1)}; //resistors are symmetric
     private float resistance;
 
     // ---------- private methods ----------
@@ -54,6 +55,11 @@ public class Resistor extends Part {
 	public String valueString(){
 		String sz= "R= " + resistance;
 		return sz;
+	}
+	public Integer hashCodeForParallelMerge() {
+		int hc = pins[0].hashCode() + pins[1].hashCode() +
+				 getClass().hashCode();
+		return new Integer(hc);
 	}
 	
     // ---------- public methods ----------

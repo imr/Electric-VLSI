@@ -41,7 +41,7 @@ import java.util.Hashtable;
 public class Wire extends NetObject{
     // ---------- private data -------------
     private Set content = new HashSet();
-	private Set ports;		// usually null because most Wires have no Port
+	private Port port;  	  // usually null because most Wires have no Port
 	private boolean isGlobal; // in Electric this is a Global wire 	
 
     // ---------- private methods ----------
@@ -76,16 +76,14 @@ public class Wire extends NetObject{
 	 * add a Port to this Wire
 	 * @param p the Port to add
 	 */
-    public void add(Port p) {
-		error(p==null, "Wires can't add null Port");
-		if (ports==null)  ports = new HashSet();
-		ports.add(p); 
+    public Port addExportName(String portName) {
+		if (port==null)  port = new Port(portName, this);
+		else port.addExportName(portName); 
+		return port;
     }
 	
 	//return the Ports on this Wire
-	public Iterator getPorts() {
-		return ports==null ? (new HashSet()).iterator() : ports.iterator();
-	}
+	public Port getPort() {return port;}
 	
     public Type getNetObjType() {return Type.WIRE;}
 
@@ -95,7 +93,7 @@ public class Wire extends NetObject{
      */
     public void killMe() {
     	error(content.size()!=0, "Can't kill: wire connected to a Part");
-    	error(ports!=null, "Can't kill: wire connected to a Port");
+    	error(port!=null, "Can't kill: wire connected to a Port");
     	error(isGlobal(), "Can't kill: wire declared GLOBAL in Electric");
     	getParent().remove(this);
     }
@@ -148,12 +146,7 @@ public class Wire extends NetObject{
 	 * @return true if it touches, false if not
 	 */
     public boolean touches(Part p){return content.contains(p);}
-    
-	public boolean touches(Port pp){
-		if (ports==null) return false;
-		return ports.contains(pp);
-	}
-	
+    public boolean touches(Port p) {return port==p;}
     public Integer computeHashCode(){
         int sum= 0;
         for (Iterator it=getParts(); it.hasNext();) {

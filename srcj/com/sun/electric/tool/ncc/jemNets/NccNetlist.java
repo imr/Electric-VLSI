@@ -43,10 +43,12 @@ import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.jemNets.Wire;
 
 /**
+ * NCC's representation of a netlist.
  */
 public class NccNetlist {
 	private NccGlobals globals;
 	private ArrayList wires, parts, ports;
+	private String rootCellName;
 	
 	// ---------------------------- public methods ---------------------------
 	public NccNetlist(Cell root, VarContext context, Netlist netlist, 
@@ -58,10 +60,15 @@ public class NccNetlist {
 		wires = v.getWireList();
 		parts = v.getPartList();
 		ports = v.getPortList();
+		String libNm = root.getLibrary().getName();
+		String cellNm = root.getName();
+		String viewNm = root.getView().getAbbreviation();
+		rootCellName = libNm+":"+cellNm+"{"+viewNm+"}";
 	}
 	public ArrayList getWireArray() {return wires;}
 	public ArrayList getPartArray() {return parts;}
 	public ArrayList getPortArray() {return ports;}
+	public String getRootCellName() {return rootCellName;}
 }
 
 /** map from netID to NCC Wire */
@@ -213,6 +220,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	}
 	
 	private void getExports(HierarchyEnumerator.CellInfo rootInfo) {
+		HashSet portSet = new HashSet();
 		Cell rootCell = rootInfo.getCell();
 		Netlist rootNetlist = rootInfo.getNetlist();
 		for (Iterator it=rootCell.getPorts(); it.hasNext();) {
@@ -221,10 +229,11 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			for (int i=0; i<expNetIDs.length; i++) {
 				Wire wire = wires.get(expNetIDs[i], rootInfo);
 				String expName = e.getNameKey().subname(i).toString();
-				Port p = new Port(expName, wire);
-				ports.add(p);
+				portSet.add(wire.addExportName(expName));
 			}
 		}
+		for (Iterator it=portSet.iterator(); it.hasNext();) 
+			ports.add(it.next());
 	}
 	
 	/** 
@@ -259,7 +268,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		Wire s = getWireForPortInst(ni.getTransistorSourcePort(), info);
 		Wire g = getWireForPortInst(ni.getTransistorGatePort(), info);
 		Wire d = getWireForPortInst(ni.getTransistorDrainPort(), info);
-		Part t = new TransistorOne(type, name, width, length, s, g, d);
+		Part t = new Transistor(type, name, width, length, s, g, d);
 		parts.add(t);								 
 	}
 	

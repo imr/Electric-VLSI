@@ -111,25 +111,25 @@ class Nand3_star {
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, nand);
 		stdCell.wireVddGnd(pmoss, StdCellParams.EVEN, nand);
 		
-		// fool Electric's NCC into paralleling NMOS stacks by connecting
-		// stacks' internal diffusion nodes.
-		for (int i=2; i<nmos.nbInternalSrcDrns(); i+=2) {
-			if ( (i/2) %2 == 0 ) {
-				LayoutLib.newArcInst(Tech.universalArc, 0,
-									 nmos.getInternalSrcDrn(0),
-									 nmos.getInternalSrcDrn(i));
-				LayoutLib.newArcInst(Tech.universalArc, 0,
-									 nmos.getInternalSrcDrn(1),
-									 nmos.getInternalSrcDrn(i+1));
-			} else {
-				LayoutLib.newArcInst(Tech.universalArc, 0,
-									 nmos.getInternalSrcDrn(0),
-									 nmos.getInternalSrcDrn(i+1));
-				LayoutLib.newArcInst(Tech.universalArc, 0,
-									 nmos.getInternalSrcDrn(1),
-									 nmos.getInternalSrcDrn(i));
-			}
-		}
+//		// fool Electric's NCC into paralleling NMOS stacks by connecting
+//		// stacks' internal diffusion nodes.
+//		for (int i=2; i<nmos.nbInternalSrcDrns(); i+=2) {
+//			if ( (i/2) %2 == 0 ) {
+//				LayoutLib.newArcInst(Tech.universalArc, 0,
+//									 nmos.getInternalSrcDrn(0),
+//									 nmos.getInternalSrcDrn(i));
+//				LayoutLib.newArcInst(Tech.universalArc, 0,
+//									 nmos.getInternalSrcDrn(1),
+//									 nmos.getInternalSrcDrn(i+1));
+//			} else {
+//				LayoutLib.newArcInst(Tech.universalArc, 0,
+//									 nmos.getInternalSrcDrn(0),
+//									 nmos.getInternalSrcDrn(i+1));
+//				LayoutLib.newArcInst(Tech.universalArc, 0,
+//									 nmos.getInternalSrcDrn(1),
+//									 nmos.getInternalSrcDrn(i));
+//			}
+//		}
 		
 		// Nand input C
 		TrackRouter inc = new TrackRouterH(Tech.m1, 3, incY, nand);
@@ -224,9 +224,7 @@ class Nand3_star {
 		stdCell.addEssentialBounds(wellMinX, wellMaxX, nand);
 		
 		// perform Network Consistency Check
-		// Can't do this yet because purple has no nand3
-		// RKao fixme NCC with "wrong" schematic
-		stdCell.doNCC(nand, "nand3{sch}");
+		stdCell.doNCC(nand, nm+"{sch}");
 		
 		return nand;
 	}

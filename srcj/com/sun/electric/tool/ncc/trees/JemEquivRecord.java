@@ -46,7 +46,7 @@ import java.util.Set;
  */
 public class JemEquivRecord {
 	/** points toward root */ 	             private JemEquivRecord parent;
-	/** the fixed random code */             private int randCode;
+	/** the immutable random code */         private int randCode;
 	/** int that distinguished this Record */private int value;
 
 	// At any given time only one of this lists is non-null
@@ -341,7 +341,7 @@ public class JemEquivRecord {
 	/** 
 	 * printMe prints this JemEquivRecord
 	 */
-	public void printMe(NccGlobals globals) {globals.print(toString());}
+	public void printMe(NccGlobals globals) {globals.print(nameString()+"\n");}
 
 	/**
 	 * Construct a leaf JemEquivRecord that holds circuits

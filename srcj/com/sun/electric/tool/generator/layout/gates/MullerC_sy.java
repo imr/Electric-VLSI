@@ -96,21 +96,21 @@ public class MullerC_sy {
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, mull);
 		stdCell.wireVddGnd(pmos, StdCellParams.EVEN, mull);
 		
-		// fool Electric's NCC into paralleling NMOS stacks by connecting
-		// stacks' internal diffusion nodes.
-		for (int i=2; i<nmos.nbInternalSrcDrns(); i++) {
-			LayoutLib.newArcInst(Tech.universalArc, 0,
-								 nmos.getInternalSrcDrn(i%2),
-								 nmos.getInternalSrcDrn(i));
-		}
-		
-		// fool Electric's NCC into paralleling NMOS stacks by connecting
-		// stacks' internal diffusion nodes.
-		for (int i=2; i<pmos.nbInternalSrcDrns(); i++) {
-			LayoutLib.newArcInst(Tech.universalArc, 0,
-								 pmos.getInternalSrcDrn(i%2),
-								 pmos.getInternalSrcDrn(i));
-		}
+//		// fool Electric's NCC into paralleling NMOS stacks by connecting
+//		// stacks' internal diffusion nodes.
+//		for (int i=2; i<nmos.nbInternalSrcDrns(); i++) {
+//			LayoutLib.newArcInst(Tech.universalArc, 0,
+//								 nmos.getInternalSrcDrn(i%2),
+//								 nmos.getInternalSrcDrn(i));
+//		}
+//		
+//		// fool Electric's NCC into paralleling NMOS stacks by connecting
+//		// stacks' internal diffusion nodes.
+//		for (int i=2; i<pmos.nbInternalSrcDrns(); i++) {
+//			LayoutLib.newArcInst(Tech.universalArc, 0,
+//								 pmos.getInternalSrcDrn(i%2),
+//								 pmos.getInternalSrcDrn(i));
+//		}
 		
 		// connect input ina
 		TrackRouter ina = new TrackRouterH(Tech.m1, 3, inaY, mull);

@@ -73,48 +73,49 @@ public class GateRegression extends Job {
 	private static void aPass(double x, StdCellParams stdCell) {
 		tracePass(x);
 		
-//		MullerC_sy.makePart(x, stdCell); traceGate();
-//		Nms1.makePart(x, stdCell); traceGate();
-//		Nms2.makePart(x, stdCell); traceGate();
-//		Nms2_sy.makePart(x, stdCell); traceGate();
-//		Nms3_sy3.makePart(x, stdCell); traceGate();
-//		Pms1.makePart(x, stdCell); traceGate();
-//		Pms2.makePart(x, stdCell); traceGate();
-//		Pms2_sy.makePart(x, stdCell); traceGate();
-//		Inv_passgate.makePart(x, stdCell); traceGate();
+		MullerC_sy.makePart(x, stdCell); traceGate();
+		Nms1.makePart(x, stdCell); traceGate();
+		Nms2.makePart(x, stdCell); traceGate();
+		Nms2_sy.makePart(x, stdCell); traceGate();
+		Nms3_sy3.makePart(x, stdCell); traceGate();
+		Pms1.makePart(x, stdCell); traceGate();
+		Pms2.makePart(x, stdCell); traceGate();
+		Pms2_sy.makePart(x, stdCell); traceGate();
+		Inv_passgate.makePart(x, stdCell); traceGate();
 		Inv.makePart(x, stdCell); traceGate();
-//		Inv2_star.makePart(x, "", stdCell); traceGate();
-//		InvCTLn.makePart(x, stdCell); traceGate();
-//		InvLT.makePart(x, stdCell); traceGate();
-//		InvHT.makePart(x, stdCell); traceGate();
-//		Inv2iKp.makePart(x, stdCell); traceGate();
-//
-//		Inv2iKn.makePart(x, stdCell); traceGate();
-//		Inv2i.makePart(x, stdCell); traceGate();
-//		Nor2.makePart(x, stdCell); traceGate();
-//		Nor2LT.makePart(x, stdCell); traceGate();
-//		Nor2kresetV.makePart(x, stdCell); traceGate();
-//		Nand2.makePart(x, stdCell); traceGate();
-//
-//		Nand2en.makePart(x, stdCell); traceGate();
-//		Nand2PH.makePart(x, stdCell); traceGate();
-//		Nand2HLT.makePart(x, stdCell); traceGate();
-//		Nand2PHfk.makePart(x, stdCell); traceGate();
-//		Nand2LT.makePart(x, stdCell); traceGate();
-//		Nand2_sy.makePart(x, stdCell); traceGate();
-//		Nand2HLT_sy.makePart(x, stdCell); traceGate();
-//		Nand2LT_sy.makePart(x, stdCell); traceGate();
-//		Nand2en_sy.makePart(x, stdCell); traceGate();
-//		Nand3.makePart(x, stdCell); traceGate();
-//		Nand3LT.makePart(x, stdCell); traceGate();
-//		Nand3MLT.makePart(x, stdCell); traceGate();
-//		Nand3_sy3.makePart(x, stdCell); traceGate();
-//		Nand3LT_sy3.makePart(x, stdCell); traceGate();
-//		Nand3en_sy.makePart(x, stdCell); traceGate();
-//		Nand3LTen_sy.makePart(x, stdCell); traceGate();
-//		Nand3en.makePart(x, stdCell); traceGate();
-//		Nand3LTen.makePart(x, stdCell); traceGate();
-//
+		Inv2_star.makePart(x, "", stdCell); traceGate();
+		InvCTLn.makePart(x, stdCell); traceGate();
+		InvLT.makePart(x, stdCell); traceGate();
+		InvHT.makePart(x, stdCell); traceGate();
+		Inv2iKp.makePart(x, stdCell); traceGate();
+
+		Inv2iKn.makePart(x, stdCell); traceGate();
+		Inv2i.makePart(x, stdCell); traceGate();
+		Nor2.makePart(x, stdCell); traceGate();
+		
+		//Nor2LT.makePart(x, stdCell); traceGate(); no purple schematic
+		Nor2kresetV.makePart(x, stdCell); traceGate();
+		Nand2.makePart(x, stdCell); traceGate();
+
+		Nand2en.makePart(x, stdCell); traceGate();
+		Nand2PH.makePart(x, stdCell); traceGate();
+		//Nand2HLT.makePart(x, stdCell); traceGate(); no purple schematic
+		Nand2PHfk.makePart(x, stdCell); traceGate();
+		Nand2LT.makePart(x, stdCell); traceGate();
+		Nand2_sy.makePart(x, stdCell); traceGate();
+		Nand2HLT_sy.makePart(x, stdCell); traceGate();
+		Nand2LT_sy.makePart(x, stdCell); traceGate();
+		//Nand2en_sy.makePart(x, stdCell); traceGate(); no purple schematic
+		Nand3.makePart(x, stdCell); traceGate();
+		Nand3LT.makePart(x, stdCell); traceGate();
+		Nand3MLT.makePart(x, stdCell); traceGate();
+		//Nand3_sy3.makePart(x, stdCell); traceGate(); no purple schematic
+		Nand3LT_sy3.makePart(x, stdCell); traceGate();
+		//Nand3en_sy.makePart(x, stdCell); traceGate(); // real NCC mismatch
+		//Nand3LTen_sy.makePart(x, stdCell); traceGate(); // real NCC mismatch
+		Nand3en.makePart(x, stdCell); traceGate();
+		Nand3LTen.makePart(x, stdCell); traceGate();
+
 //		//if (x>=1.7) Nand3en_sy3.makePart(x, stdCell);
 //		//if (x>=2.5) Nand3LTen_sy3.makePart(x, stdCell);
 //
@@ -130,7 +131,7 @@ public class GateRegression extends Job {
 
 	private static void allSizes(StdCellParams stdCell) {
 		double minSz = 0.1;
-		double maxSz = 1000;
+		double maxSz = 500;
 		for (double d=minSz; d<maxSz; d*=10) {
 			for (double x=d; x<Math.min(d*10, maxSz); x*=1.01) {
 				aPass(x, stdCell);
@@ -155,7 +156,7 @@ public class GateRegression extends Job {
 
 		StdCellParams stdCell = new StdCellParams(scratchLib);
 		stdCell.enableNCC(
-			homeDir + "work/async/electric-jkl-28august/purpleFour.elib");
+			homeDir + "loco-final/purpleFour.elib");
 		stdCell.setSizeQuantizationError(0.05);
 		stdCell.setMaxMosWidth(1000);
 		stdCell.setVddY(21);

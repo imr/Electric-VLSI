@@ -73,7 +73,10 @@ public class NccGlobals {
     /** subtree holding ports */              private JemEquivRecord ports;
 	/** subtree holding wires without gates */private JemEquivRecord withoutGates;
 	/** subtree holding wires with gates */   private JemEquivRecord withGates;
+	/** number of netlists we're comparing */ private int numNetlistsBeingCompared;
+	/** name of root Cell of each netlist */  private String[] rootCellNames;
 	/** pass number shared by strategies */   public int passNumber;
+	
 	
 	private List getNetObjs(int code, NccNetlist nets) {
 		switch (code) {
@@ -106,9 +109,9 @@ public class NccGlobals {
 	 * @param list of NccNetlists, one per Cell to be compared
 	 * @param options 
 	 */
-	public NccGlobals(NccOptions options, Messenger messenger) {
+	public NccGlobals(NccOptions options) {
 		this.options = options;
-		this.messenger = messenger;
+		this.messenger = new Messenger(true);
 	}
 	public void setInitialNetlists(List nccNets) {
 		parts = buildEquivRec(CODE_PART, nccNets);
@@ -121,6 +124,14 @@ public class NccGlobals {
 		if (ports!=null) el.add(ports);
 
 		root = JemEquivRecord.newRootRecord(el);
+		
+		numNetlistsBeingCompared = nccNets.size();
+		rootCellNames = new String[numNetlistsBeingCompared];
+		int i=0;
+		for (Iterator it=nccNets.iterator(); it.hasNext(); i++) {
+			NccNetlist nl = (NccNetlist) it.next();
+			rootCellNames[i] = nl.getRootCellName();
+		}
 	}
 	public void setWithWithoutGates(JemEquivRecord withGates, 
 								 	JemEquivRecord withoutGates) {
@@ -140,10 +151,18 @@ public class NccGlobals {
 	public JemEquivRecord getPorts() {return ports;}
 	public JemEquivRecord getWiresWithoutGates() {return withoutGates;}
 	public JemEquivRecord getWiresWithGates() {return withGates;}
+	public int getNumNetlistsBeingCompared() {return numNetlistsBeingCompared;}
+	public String[] getRootCellNames() {return rootCellNames;}
 	
-	public void println(String msg) {messenger.println(msg);}
-	public void println() {messenger.println();}
-	public void print(String msg) {messenger.print(msg);}
+	public void println(String msg) {
+		if (options.verbose) messenger.println(msg);
+	}
+	public void println() {
+		if (options.verbose) messenger.println();
+	}
+	public void print(String msg) {
+		if (options.verbose) messenger.print(msg);
+	}
 	public void flush() {messenger.flush();}
 	public void error(boolean pred, String msg) {
 		messenger.error(pred, msg);

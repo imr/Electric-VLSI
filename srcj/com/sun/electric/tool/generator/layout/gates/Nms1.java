@@ -121,7 +121,7 @@ public class Nms1 {
 		stdCell.addNstackEssentialBounds(wellMinX, wellMaxX, nms1);
 		
 		// perform Network Consistency Check
-		stdCell.doNCC(nms1, "nms1{sch}");
+		stdCell.doNCC(nms1, nm+"{sch}");
 		
 	   return nms1;
 	}

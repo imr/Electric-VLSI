@@ -163,7 +163,7 @@ public class Inv2_star {
 		stdCell.addEssentialBounds(wellMinX, wellMaxX, inv);
 
 		// perform Network Consistency Check
-		stdCell.doNCC(inv, "inv{sch}");
+		stdCell.doNCC(inv, nm+"{sch}");
 
 		return inv;
 	}

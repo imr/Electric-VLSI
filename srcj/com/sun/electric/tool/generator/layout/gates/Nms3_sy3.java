@@ -87,21 +87,21 @@ public class Nms3_sy3 {
 		// create vdd and gnd exports and connect to MOS source/drains
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, nand);
 
-		// fool Electric's NCC into paralleling NMOS stacks by connecting
-		// stacks' internal diffusion nodes.
-		for (int i = 6; i < nmos.nbInternalSrcDrns(); i += 6) {
-			for (int j = 0; j < 6; j++) {
-				if (i/6 % 2 == 0) {
-					LayoutLib.newArcInst(Tech.universalArc, 0,
-										 nmos.getInternalSrcDrn(j),
-										 nmos.getInternalSrcDrn(i+j));
-				} else {
-					LayoutLib.newArcInst(Tech.universalArc, 0,
-										 nmos.getInternalSrcDrn(j),
-										 nmos.getInternalSrcDrn(i+(5-j)));
-				}
-			}
-		}
+//		// fool Electric's NCC into paralleling NMOS stacks by connecting
+//		// stacks' internal diffusion nodes.
+//		for (int i = 6; i < nmos.nbInternalSrcDrns(); i += 6) {
+//			for (int j = 0; j < 6; j++) {
+//				if (i/6 % 2 == 0) {
+//					LayoutLib.newArcInst(Tech.universalArc, 0,
+//										 nmos.getInternalSrcDrn(j),
+//										 nmos.getInternalSrcDrn(i+j));
+//				} else {
+//					LayoutLib.newArcInst(Tech.universalArc, 0,
+//										 nmos.getInternalSrcDrn(j),
+//										 nmos.getInternalSrcDrn(i+(5-j)));
+//				}
+//			}
+//		}
 
 		// Nand input A
 		double inaHiY = -11;
@@ -211,7 +211,7 @@ public class Nms3_sy3 {
 		stdCell.addNstackEssentialBounds(wellMinX, wellMaxX, nand);
 
 		// perform Network Consistency Check
-		stdCell.doNCC(nand, "nms3_sy3{sch}");
+		stdCell.doNCC(nand, nm+"{sch}");
 
 		return nand;
 	}

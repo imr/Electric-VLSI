@@ -96,18 +96,18 @@ public class Nand2LT_sy {
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, nand);
 		stdCell.wireVddGnd(pmoss, StdCellParams.EVEN, nand);
 		
-		// fool Electric's NCC into paralleling NMOS stacks by connecting
-		// stacks' internal diffusion nodes.
-		for (int i=2; i<nmos.nbInternalSrcDrns(); i+=2) {
-			LayoutLib.newArcInst(Tech.universalArc, 0,
-								 nmos.getInternalSrcDrn(0),
-								 nmos.getInternalSrcDrn(i));
-		}
-		for (int i=3; i<nmos.nbInternalSrcDrns(); i+=2) {
-			LayoutLib.newArcInst(Tech.universalArc, 0,
-								 nmos.getInternalSrcDrn(1),
-								 nmos.getInternalSrcDrn(i));
-		}
+//		// fool Electric's NCC into paralleling NMOS stacks by connecting
+//		// stacks' internal diffusion nodes.
+//		for (int i=2; i<nmos.nbInternalSrcDrns(); i+=2) {
+//			LayoutLib.newArcInst(Tech.universalArc, 0,
+//								 nmos.getInternalSrcDrn(0),
+//								 nmos.getInternalSrcDrn(i));
+//		}
+//		for (int i=3; i<nmos.nbInternalSrcDrns(); i+=2) {
+//			LayoutLib.newArcInst(Tech.universalArc, 0,
+//								 nmos.getInternalSrcDrn(1),
+//								 nmos.getInternalSrcDrn(i));
+//		}
 		
 		// Nand input B
 		LayoutLib.newExport(nand, "inb", PortProto.Characteristic.IN, Tech.m1,

@@ -23,8 +23,8 @@
 */
 
 /**
- * Messenger prints to System.out. It also prints to a log file if one
- * has been set.
+ * Messenger prints to System.out. It also prints to a log file if 
+ * requested.
  */
 package com.sun.electric.tool.ncc.basicA;
 
@@ -36,20 +36,23 @@ import java.util.Date;
 public class Messenger {
 	private PrintStream logStrm;
 	
-	public Messenger(String logFileName){
-		File f = new File(logFileName);
-		System.out.println("Log file: "+f.getAbsolutePath());
-		FileOutputStream fileStrm=null;
-		try {
-			fileStrm = new FileOutputStream(logFileName);
-		} catch (Exception e) {
-			String msg = "can't write to log file: "+logFileName;
-			throw new RuntimeException(msg);
+	public Messenger(boolean logToFile) {
+		if (logToFile) {
+			File f = new File("nccLog.txt");
+			String fileName = f.getAbsolutePath();
+			System.out.println("Ncc Logging to file: "+fileName);
+			FileOutputStream fileStrm = null;
+			try {
+				fileStrm = new FileOutputStream(f);
+			} catch (Exception e) {
+				String msg = "can't write to log file: "+fileName;
+				throw new RuntimeException(msg);
+			}
+			BufferedOutputStream bufStrm = new BufferedOutputStream(fileStrm);
+			logStrm = new PrintStream(bufStrm);
+			Date d= new Date();
+			logStrm.println(fileName+" file started "+d);
 		}
-		BufferedOutputStream bufStrm = new BufferedOutputStream(fileStrm);
-		logStrm = new PrintStream(bufStrm);
-		Date d= new Date();
-		logStrm.println(logFileName+" file started "+d);
 	}
 	/** print without trailing newline */
 	public void print(String s){
@@ -73,6 +76,7 @@ public class Messenger {
 	/** print, dump stack, and halt */
     public void error(boolean pred, String msg){
 		flush();
+		if (pred) println(msg);
     	LayoutLib.error(pred, msg);
     }
 	

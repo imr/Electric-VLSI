@@ -105,13 +105,13 @@ class Nor2_star {
 		stdCell.wireVddGnd(nmoss, StdCellParams.EVEN, nor);
 		stdCell.wireVddGnd(pmos, StdCellParams.EVEN, nor);
 		
-		// fool Electric's NCC into paralleling PMOS stacks by connecting
-		// stacks' internal diffusion nodes.
-		for (int i=0; i<pmos.nbInternalSrcDrns(); i++) {
-			LayoutLib.newArcInst(Tech.universalArc, 0,
-								 pmos.getInternalSrcDrn(0),
-								 pmos.getInternalSrcDrn(i));
-		}
+//		// fool Electric's NCC into paralleling PMOS stacks by connecting
+//		// stacks' internal diffusion nodes.
+//		for (int i=0; i<pmos.nbInternalSrcDrns(); i++) {
+//			LayoutLib.newArcInst(Tech.universalArc, 0,
+//								 pmos.getInternalSrcDrn(0),
+//								 pmos.getInternalSrcDrn(i));
+//		}
 		
 		// Nor input A
 		double inaX = StdCellParams.getRightDiffX(pmos, nmoss) + 2 + 3 + 2;
@@ -175,7 +175,7 @@ class Nor2_star {
 		
 		// perform Network Consistency Check
 		// RKao fixme NCC with "wrong" library element
-		stdCell.doNCC(nor, "nor2{sch}");
+		stdCell.doNCC(nor, nm+"{sch}");
 		
 		return nor;
 	}

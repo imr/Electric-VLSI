@@ -122,13 +122,13 @@ public class Nor2kresetV {
 		stdCell.wireVddGnd(nmoss, StdCellParams.EVEN, nor);
 		stdCell.wireVddGnd(pmos, StdCellParams.EVEN, nor);
 		
-		// fool Electric's NCC into paralleling PMOS stacks by connecting
-		// stacks' internal diffusion nodes.
-		for (int i=0; i<pmos.nbInternalSrcDrns(); i++) {
-			LayoutLib.newArcInst(Tech.universalArc, 0,
-								 pmos.getInternalSrcDrn(0),
-								 pmos.getInternalSrcDrn(i));
-		}
+//		// fool Electric's NCC into paralleling PMOS stacks by connecting
+//		// stacks' internal diffusion nodes.
+//		for (int i=0; i<pmos.nbInternalSrcDrns(); i++) {
+//			LayoutLib.newArcInst(Tech.universalArc, 0,
+//								 pmos.getInternalSrcDrn(0),
+//								 pmos.getInternalSrcDrn(i));
+//		}
 		
 		// Nor input B
 		double inbHiY = outHiY;

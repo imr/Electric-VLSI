@@ -26,9 +26,6 @@ import com.sun.electric.tool.ncc.*;
 import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.jemNets.*;
 import com.sun.electric.tool.ncc.jemNets.Transistor;
-import com.sun.electric.tool.ncc.jemNets.TransistorZero;
-import com.sun.electric.tool.ncc.jemNets.TransistorOne;
-import com.sun.electric.tool.ncc.jemNets.TransistorTwo;
 import com.sun.electric.tool.ncc.trees.*;
 import com.sun.electric.tool.ncc.lists.*;
 
@@ -37,6 +34,8 @@ import java.util.Collection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Map;
 
 /**
  * MergeParallel works by seeking a wire with many gates on it it then
@@ -47,11 +46,7 @@ import java.util.Iterator;
 public class JemStratMergePar extends JemStrat {
 
     //statistics to gather
-    private int numTransCandidates= 0;
-    private int numCapCandidates= 0;
-    private int numTransOneDone= 0;
-    private int numTransTwoDone= 0;
-    private int numCapDone= 0;
+    private int numMerged = 0;
 
     private JemStratMergePar(NccGlobals globals) {super(globals);}
 
@@ -77,99 +72,69 @@ public class JemStratMergePar extends JemStrat {
 
     //do at the end
     private void summary(){
-		globals.println(" Parallel merged " +
-					  numTransOneDone + " TransOne and " +
-					  numTransTwoDone + " TransTwo of " +
-					  numTransCandidates + " candidates and " +
-					  numCapDone + " Capacitors of " +
-					  numCapCandidates + " candidates");
+		globals.println(" Parallel merged " + numMerged + " Parts");
 		elapsedTime();
     }
 
 	//------------- for NetObject ------------
 
-    //Given a JemEquivRecord of Wires there won't be any Parts.
+    // Given a JemEquivRecord of Wires there won't be any Parts.
     public Integer doFor(NetObject n){
 		error(!(n instanceof Wire), "JemStratMergePar expects only Wires");
 		return doFor((Wire)n);
     }
 
-    //process candidate transistors from one Wire
-    private Integer doFor(Wire w){
-        List transOne= new ArrayList(3);
-        List transTwo= new ArrayList(3);
-        List capacitors= new ArrayList(3);
-		
-		//the connections loop
-		for(Iterator wi=w.getParts(); wi.hasNext();){
-			Part p= (Part)wi.next();
-			if(p instanceof Transistor){
-				Transistor t= (Transistor)p;
-				if(t.touchesAtGate(w)){
-					if(t instanceof TransistorZero){
-						capacitors.add(t);
-						numCapCandidates++;
-					}else if(t instanceof TransistorOne){
-						if(((TransistorOne)t).isCapacitor()){
-							capacitors.add(t);
-							numCapCandidates++;
-						}else{
-							transOne.add(t);
-							numTransCandidates++;
-						}
-					}else if(t instanceof TransistorTwo){
-						transTwo.add(t);
-						numTransCandidates++;
-					}
-				}
+	/** processAllCandidatesInList attempts to parallel merge the Parts in
+	 * parts. Because there is a possibility of hash code collisions,
+	 * I examine all n^2 combinations to guarantee that all possible
+	 * parallel merges are performed.
+	 * @param parts Collection of Parts to merge in parallel
+	 * @return the count of Parts actually merged */
+	private static int processAllCandidatesInList(Collection parts){
+		// Clone the list so we don't surprise the caller by changing it
+		LinkedList pts = new LinkedList(parts);
+		int numMerged = 0;
+		while (true) {
+			Iterator it= pts.iterator();
+			if (!it.hasNext()) break;
+			Part first= (Part)it.next();
+			it.remove();			
+			while (it.hasNext()) {
+				Part p = (Part)it.next();
+				if (first.parallelMerge(p)) {
+					it.remove();
+					numMerged++;
+				} 
 			}
 		}
-		//convert the capacitors
-		capacitors= convert(capacitors);
-		numCapDone+= processTransList(capacitors);
-		numTransOneDone+= processTransList(transOne);
-		numTransTwoDone+= processTransList(transTwo);
-		return CODE_NO_CHANGE; // not enough to merge
-    }
-
-	//this converts TransistorOne capacitors into real capacitors
-    private List convert(List s){
-		List out= new ArrayList();
-		for(Iterator it=s.iterator(); it.hasNext();){
-			Object oo= it.next();
-			if(oo instanceof TransistorOne){
-				TransistorOne t1= (TransistorOne)oo;
-				TransistorZero t0= TransistorZero.please(t1);
-				oo= t0;
-			}
-			out.add(oo);
-		}
-		return out;
-    }
-
-    //process one candidate transistor list
-    private int processTransList(List ttt){
-		//ttt is a list of possible transistors
-		HashMap h= new HashMap();
-		
-		for(Iterator it=ttt.iterator(); it.hasNext();){
-			Transistor t= (Transistor)it.next();
-			Integer code= t.computeNameCode();
-			ArrayList list= (ArrayList) h.get(code);
-			if (list==null) {
-				list= new ArrayList();
-				h.put(code,list);
-			}
-			list.add(t);
-		}
-
-		//hashmap contains the lists of candidates
+		return numMerged;
+	}
+	
+	private int processEachListInMap(Map map) {
 		int numDone= 0;
-		for(Iterator it=h.keySet().iterator(); it.hasNext();){
-			ArrayList j= (ArrayList) h.get(it.next());
-			numDone += Part.parallelMerge(j);
+		for(Iterator it=map.keySet().iterator(); it.hasNext();){
+			ArrayList j= (ArrayList) map.get(it.next());
+			numDone += processAllCandidatesInList(j);
 		}
 		return numDone;
-    }
+	}
 
+
+    //process candidate transistors from one Wire
+    private Integer doFor(Wire w){
+		HashMap  map = new HashMap();
+		
+		for (Iterator wi=w.getParts(); wi.hasNext();) {
+			Part p = (Part)wi.next();
+			Integer code = p.hashCodeForParallelMerge();
+			ArrayList list= (ArrayList) map.get(code);
+			if (list==null) {
+				list= new ArrayList();
+				map.put(code,list);
+			}
+			list.add(p);
+		}
+		numMerged += processEachListInMap(map);
+		return CODE_NO_CHANGE;
+    }
 }

@@ -103,12 +103,12 @@ public class InvCTLn {
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, inv);
 		stdCell.wireVddGnd(pmoss, StdCellParams.EVEN, inv);
 		
-		// fool Electric's NCC into paralleling NMOS stacks by connecting
-		// stacks' internal diffusion nodes.
-		for (int i=0; i<nmos.nbInternalSrcDrns(); i++) {
-			LayoutLib.newArcInst(Tech.universalArc, 0,nmos.getInternalSrcDrn(0),
-								 nmos.getInternalSrcDrn(i));
-		}
+//		// fool Electric's NCC into paralleling NMOS stacks by connecting
+//		// stacks' internal diffusion nodes.
+//		for (int i=0; i<nmos.nbInternalSrcDrns(); i++) {
+//			LayoutLib.newArcInst(Tech.universalArc, 0,nmos.getInternalSrcDrn(0),
+//								 nmos.getInternalSrcDrn(i));
+//		}
 		
 		// Inv input: in 
 		// m1_wid + m1_space + m1_wid/2

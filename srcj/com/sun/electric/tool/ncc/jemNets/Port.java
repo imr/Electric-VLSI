@@ -21,50 +21,38 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
 */
-//	Updated 9 October 2003
-
 package com.sun.electric.tool.ncc.jemNets;
 import com.sun.electric.tool.ncc.basicA.Messenger;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.trees.JemCircuit;
 import com.sun.electric.tool.ncc.trees.NetObject;
 
-//import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.HashSet;
 
-
+/** An NCC Port holds all the Export names associated with a single NCC
+ * Wire. */ 
 public class Port extends NetObject {
     // ---------- private data -------------
 	private Wire wire;    
+	private HashSet names = new HashSet();
     
     // ---------- public methods ----------
 	public Port(String name, Wire w) {
-		super(name);  
+		super("");
 		wire = w;
-		wire.add(this);
+		names.add(name);
 	}
-
-    public Type getNetObjType() {return Type.PORT;}
-
+	public Type getNetObjType() {return Type.PORT;}
 	public Iterator getConnected() {return (new ArrayList()).iterator();}
+	
+	public void addExportName(String nm) {names.add(nm);}
 
-    // ---------- abstract commitment ----------
-    public int size(){return 1;}
-
-    public void connect(Wire w){
-        wire = w;
-		wire.add(this);
-    }
-
-	public Wire getMyWire(){return wire;}
-
-    public String nameString(){
-        return ("Port " + getName());
-    }
+	public Wire getWire(){return wire;}
 
     public String connectionString(int n){return "is on Wire: "+wire.getName();}
 
@@ -75,11 +63,25 @@ public class Port extends NetObject {
 			  nameString()+" has inconsistant connection to " + 
 			  wire.nameString());
 	}
+	public String exportNamesString() {
+		String s= "";
+		for (Iterator it=names.iterator(); it.hasNext();) {
+			if (s.length()!=0)  s+=" ";
+			s += (String) it.next();
+		}
+		return s;
+	}
+	public String nameString() {return "Port " + exportNamesString();}
+	public Iterator getExportNames() {return names.iterator();}
 
 	public void printMe(int maxCon, Messenger messenger){
-		String n= nameString();
-		String c= connectionString(maxCon);
-		messenger.println(n + " " + c);
+		messenger.print("Port on wire: " + wire.getName() +
+		                "has Export names: ");
+		for (Iterator it=names.iterator(); it.hasNext();) {
+			String nm = (String) it.next();
+			messenger.print(" "+nm);
+		}
+		messenger.println();
 	}
 }
 

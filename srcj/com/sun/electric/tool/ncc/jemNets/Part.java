@@ -49,7 +49,7 @@ import java.util.HashSet;
 
 public abstract class Part extends NetObject {
     // ---------- private data -------------
-    protected final Wire[] pins;
+    protected Wire[] pins;
 
     // ---------- private methods ----------
 
@@ -96,35 +96,14 @@ public abstract class Part extends NetObject {
 	 * @return true if merge was successful, false otherwise
 	 */
 	public abstract boolean parallelMerge(Part p);
-
-    /** 
-	 * parallelMerge attempts to parallel merge the Parts in
-	 * parts. Because there is a possibility of hash code collisions,
-	 * I examine all n^2 combinations to guarantee that all possible
-	 * parallel merges are performed.
-	 * @param parts Collection of Parts to merge in parallel
-	 * @return the count of Parts actually merged
+	/**
+	 * Compute a hash code for this part for the purpose of performing
+	 * parallel merge. If two parallel Parts should be merged into one then
+	 * hashCodeForParallelMerge() must return the same value for both
+	 * Parts. 
 	 */
-    public static int parallelMerge(Collection parts){
-    	// Clone the list so we don't surprise the caller by changing it
-    	LinkedList pts = new LinkedList(parts);
-		int merged= 0;
-		while (true) {
-			Iterator it= pts.iterator();
-			if (!it.hasNext()) break;
-			Part first= (Part)it.next();
-			it.remove();			
-			while(it.hasNext()){
-				Part p= (Part)it.next();
-				if(first.parallelMerge(p)) {
-					it.remove();
-					merged++;
-				} 
-			}
-		}
-		return merged;
-    }
-		
+	public abstract Integer hashCodeForParallelMerge();
+
 	/** 
 	 * A method to disconnect a Wire from this Part
 	 * @param w the Wire to disconnect
@@ -198,23 +177,6 @@ public abstract class Part extends NetObject {
 //		if(type == 3) return computeHashCode();
 //		return null;
 //	} //end of computeCode
-
-    /**
-     * compute the name code for this object. The name code is the
-     * sum of the Object hashCode()'s of its wires
-     */
-    public Integer computeNameCode(){
-        int sum= 0;
-		int hash= 0;
-		int codes[]= getTermCoefs();
-		for(int i=0; i<pins.length; i++){
-			int code= 0;
-			Wire w= pins[i];
-			if(w!=null)hash= w.hashCode(); //use the Object function!
-			sum= sum+hash*codes[i];
-        }
-        return new Integer(sum);
-    }
 
 //	public Integer computeWithoutGateCode(){
 //        int sum= 0;
