@@ -114,6 +114,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	{
 		// private data
 		private ArrayList cells;
+		private Cell mainSchematic;
 
 		// ------------------------- public methods -----------------------------
 
@@ -148,6 +149,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			synchronized (cells)
 			{
 				cells.remove(f);
+				if (f == mainSchematic) mainSchematic = null;
 			}
 		}
 
@@ -178,21 +180,39 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			Collections.sort(sortedList, new TextUtils.CellsByView());
 			return sortedList;
 		}
+
 		/**
 		 * Method to return main schematics Cell in ths CellGroup.
+		 * The main schematic is the one that is shown when descending into an icon.
+		 * Other schematic views may exist in the group, but they are "alternates".
 		 * @return main schematics Cell  in this CellGroup.
 		 */
 		public Cell getMainSchematics()
 		{
+			if (mainSchematic != null) return mainSchematic;
+
+			// not set: see if it is obvious
 			for (Iterator it = getCells(); it.hasNext();)
 			{
 				Cell c = (Cell) it.next();
-				if (c.isSchematicView()) {
+				if (c.isSchematicView())
+				{
                     // get latest version
-                    return c.getNewestVersion();
+					mainSchematic = c.getNewestVersion();
+                    return mainSchematic;
                 }
 			}
 			return null;
+		}
+		/**
+		 * Method to set the main schematics Cell in ths CellGroup.
+		 * The main schematic is the one that is shown when descending into an icon.
+		 * Other schematic views may exist in the group, but they are "alternates".
+		 * @param cell the new main schematics Cell in this CellGroup.
+		 */
+		public void setMainSchematics(Cell cell)
+		{
+			mainSchematic = cell;
 		}
 
         /**

@@ -7,6 +7,9 @@ NOTE: Please place changes under the version that will be released next.
 IMP: (10/20/04, DN) Deprectated those variables on Technology, Tool,
 View, PrimitiveNode/Arc/Part objects which are not meaningful preferences.
 
+IMP: (10/20/04, SMR) Now preserving the "main schematic" for a cell group.
+     Also saving and restoring it through "jelib" files.
+
 ************************* Version 8.01aa: *********************************
 
 IMP: (10/20/04, GVG) Moving rounding operation from PolyBase.calcBound to ELIB.getArcEnd.
