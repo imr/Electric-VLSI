@@ -2,7 +2,10 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.01u: *********************************
+
 ************************* Version 8.01t: *********************************
+
 IMP: (9/19/04, RK) Implement Variable Value caching and simple expression evaluation in VarContext. These two bypass 80% of the bean shell calls
 
 IMP: (9/19/04, RK) Allow the user to enable more detailed progress reports.
