@@ -34,7 +34,7 @@ import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.parasitic.ParasiticTool;
+import com.sun.electric.tool.extract.ParasiticTool;
 
 import java.util.ArrayList;
 import java.util.Iterator;

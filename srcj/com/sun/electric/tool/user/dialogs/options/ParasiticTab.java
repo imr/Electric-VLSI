@@ -23,7 +23,8 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.tool.parasitic.ParasiticTool;
+import com.sun.electric.tool.extract.ParasiticTool;
+import com.sun.electric.tool.extract.ParasiticTool;
 
 import javax.swing.JPanel;
 

@@ -23,7 +23,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 
-package com.sun.electric.tool.parasitic;
+package com.sun.electric.tool.extract;
 
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
