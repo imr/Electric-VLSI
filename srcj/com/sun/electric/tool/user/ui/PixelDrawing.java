@@ -38,6 +38,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
@@ -193,6 +194,7 @@ public class PixelDrawing
 
 	/** the EditWindow being drawn */						private EditWindow wnd;
 	/** the size of the EditWindow */						private Dimension sz;
+    /** the area of the cell to draw, in DB units */        private Rectangle2D drawBounds;
 
 	// the full-depth image
     /** the offscreen opaque image of the window */			private Image img;
@@ -232,6 +234,11 @@ public class PixelDrawing
 	private static EGraphics portGraphics = new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 255,0,0, 1.0,1,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 
+
+    private static final boolean DEBUGRENDERTIMING = false;
+    private static long renderTextTime;
+    private static long renderPolyTime;
+
     // ************************************* TOP LEVEL *************************************
 
 	/**
@@ -242,6 +249,7 @@ public class PixelDrawing
 	{
 		this.wnd = wnd;
 		this.sz = wnd.getScreenSize();
+        this.drawBounds = wnd.getDisplayedBounds();
 
 		// allocate pointer to the opaque image
 		img = new BufferedImage(sz.width, sz.height, BufferedImage.TYPE_INT_RGB);
@@ -282,11 +290,11 @@ public class PixelDrawing
 	/**
 	 * This is the entrypoint for rendering.
 	 * It displays a cell in this offscreen window.
-	 * @param bounds the area in the cell to expand fully.
+	 * @param expandBounds the area in the cell to expand fully.
 	 * If null, draw the cell normally; otherwise expand all the way in that area.
 	 * The rendered Image can then be obtained with "getImage()".
 	 */
-	public void drawImage(Rectangle2D bounds)
+	public void drawImage(Rectangle2D expandBounds)
 	{
 		Cell cell = wnd.getCell();
 		long startTime = 0;
@@ -322,7 +330,7 @@ public class PixelDrawing
 			countCell(cell, DBMath.MATID);
 
 			// now render it all
-			drawCell(cell, bounds, DBMath.MATID, true);
+			drawCell(cell, expandBounds, DBMath.MATID, true);
 		}
 
 		// merge transparent image into opaque one
@@ -509,8 +517,11 @@ public class PixelDrawing
 	/**
 	 * Method to draw the contents of a cell, transformed through "prevTrans".
 	 */
-	private void drawCell(Cell cell, Rectangle2D bounds, AffineTransform prevTrans, boolean topLevel)
+	private void drawCell(Cell cell, Rectangle2D expandBounds, AffineTransform prevTrans, boolean topLevel)
 	{
+        renderPolyTime = 0;
+        renderTextTime = 0;
+
 		// draw all arcs
 		for(Iterator arcs = cell.getArcs(); arcs.hasNext(); )
 		{
@@ -520,7 +531,7 @@ public class PixelDrawing
 		// draw all nodes
 		for(Iterator nodes = cell.getNodes(); nodes.hasNext(); )
 		{
-			drawNode((NodeInst)nodes.next(), prevTrans, topLevel, bounds);
+			drawNode((NodeInst)nodes.next(), prevTrans, topLevel, expandBounds);
 		}
 
 		// show cell variables if at the top level
@@ -532,6 +543,11 @@ public class PixelDrawing
 			cell.addDisplayableVariables(CENTERRECT, polys, 0, wnd, true);
 			drawPolys(polys, DBMath.MATID);
 		}
+
+        if (DEBUGRENDERTIMING) {
+            System.out.println("Total time to render polys: "+TextUtils.getElapsedTime(renderPolyTime));
+            System.out.println("Total time to render text: "+TextUtils.getElapsedTime(renderTextTime));
+        }
 	}
 
 	/**
@@ -539,8 +555,9 @@ public class PixelDrawing
 	 * @param ni the NodeInst to draw.
 	 * @param trans the transformation of the NodeInst to the display.
 	 * @param topLevel true if this is the top-level of display (not in a subcell).
+     * @param expandBounds bounds in which to draw nodes fully expanded
 	 */
-	public void drawNode(NodeInst ni, AffineTransform trans, boolean topLevel, Rectangle2D bounds)
+	public void drawNode(NodeInst ni, AffineTransform trans, boolean topLevel, Rectangle2D expandBounds)
 	{
 		NodeProto np = ni.getProto();
 		AffineTransform localTrans = ni.rotateOut(trans);
@@ -582,18 +599,18 @@ public class PixelDrawing
 			// cell instance
 			Cell subCell = (Cell)np;
 			boolean expanded = ni.isExpanded();
-			if (bounds != null)
+			if (expandBounds != null)
 			{
-				if (ni.getBounds().intersects(bounds))
+				if (ni.getBounds().intersects(expandBounds))
 				{
 					expanded = true;
 					AffineTransform transRI = ni.rotateIn();
 					AffineTransform transTI = ni.translateIn();
 					transRI.preConcatenate(transTI);
 					Rectangle2D subBounds = new Rectangle2D.Double();
-					subBounds.setRect(bounds);
+					subBounds.setRect(expandBounds);
 					DBMath.transformRect(subBounds, transRI);
-					bounds = subBounds;
+					expandBounds = subBounds;
 				}
 			}
 
@@ -603,10 +620,10 @@ public class PixelDrawing
 				// show the contents of the cell
 				AffineTransform subTrans = ni.translateOut(localTrans);
 
-				if (expandedCellCached(subCell, subTrans, bounds)) return;
+				if (expandedCellCached(subCell, subTrans, expandBounds)) return;
 
 				// just draw it directly
-				drawCell(subCell, bounds, subTrans, false);
+				drawCell(subCell, expandBounds, subTrans, false);
 				showCellPorts(ni, trans, Color.BLACK);
 			} else
 			{
@@ -693,10 +710,11 @@ public class PixelDrawing
 	 */
 	public void drawArc(ArcInst ai, AffineTransform trans)
 	{
-		// see if the arc is completely clipped from the screen
+        // see if the arc is completely clipped from the screen
 		Rectangle2D arcBounds = ai.getBounds();
-		double arcSize = Math.max(arcBounds.getWidth(), arcBounds.getHeight());
+        if (!arcBounds.intersects(drawBounds)) return;
 
+        double arcSize = Math.max(arcBounds.getWidth(), arcBounds.getHeight());
 		// if the arc it tiny, just approximate it with a single dot
 		totalArcs++;
 		if (arcSize * wnd.getScale() < 2)
@@ -1147,7 +1165,9 @@ public class PixelDrawing
 			poly.transform(trans);
 
 			// render the polygon
+            long startTime = System.currentTimeMillis();
 			renderPoly(poly, graphics);
+            renderPolyTime += (System.currentTimeMillis() - startTime);
 
 			// handle refreshing
 			if (periodicRefresh)
@@ -1950,7 +1970,9 @@ public class PixelDrawing
 		}
 
 		// render the text
+        long startTime = System.currentTimeMillis();
 		Raster ras = renderText(s, fontName, size, italic, bold, underline, boxedWidth, boxedHeight);
+        renderTextTime += (System.currentTimeMillis() - startTime);
 		if (ras == null) return;
 		Point pt = getTextCorner(ras, style, rect, rotation);
 		int atX = pt.x;
