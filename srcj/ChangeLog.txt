@@ -2,7 +2,11 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.01r: *********************************
+
 ************************* Version 8.01q: *********************************
+
+FIX: (9/16/04, JKG) Can now set Serpentine transistor length from GetInfoNode dialog
 
 BUG: (9/16/04, SMR) Arcs that run from a node to itself are not constrained right.
 FIX: Disallow such arcs from moving more than once.
