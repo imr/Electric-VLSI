@@ -2112,12 +2112,20 @@ public class Schematics extends Technology
             Object lengthObj = context.evalVar(ni.getVar(ATTR_LENGTH), ni);
 	        double length = VarContext.objectToDouble(lengthObj, -1);
             if (length != -1) lengthObj = new Double(length);
-            if (lengthObj == null) lengthObj = ni.getVar(ATTR_LENGTH).getObject();
+            if (lengthObj == null) {
+                Variable var = ni.getVar(ATTR_LENGTH);
+                if (var != null) lengthObj = var.getObject();
+                else lengthObj = "none";
+            }
 
             Object widthObj = context.evalVar(ni.getVar(ATTR_WIDTH), ni);
 	        double width = VarContext.objectToDouble(widthObj, -1);
             if (width != -1) widthObj = new Double(width);
-            if (widthObj == null) widthObj = ni.getVar(ATTR_WIDTH).getObject();
+            if (widthObj == null) {
+                Variable var = ni.getVar(ATTR_WIDTH);
+                if (var != null) widthObj = var.getObject();
+                else widthObj = "none";
+            }
 			//Dimension2D dim = new Dimension2D.Double(width, length);
 	        //return dim;
             TransistorSize size = new TransistorSize(widthObj, lengthObj);
@@ -2147,18 +2155,26 @@ public class Schematics extends Technology
         if (ni.isFET())
         {
             Variable var = ni.getVar(ATTR_LENGTH);
-            if (var != null) {
-                ni.updateVar(var.getKey(), new Double(length));
+            if (var == null) {
+                var = ni.newVar(ATTR_LENGTH, new Double(length));
+            } else {
+                var = ni.updateVar(var.getKey(), new Double(length));
             }
+            if (var != null) var.setDisplay(true);
+
             var = ni.getVar(ATTR_WIDTH);
-            if (var != null) {
-                ni.updateVar(var.getKey(), new Double(width));
+            if (var == null) {
+                var = ni.newVar(ATTR_WIDTH, new Double(width));
+            } else {
+                var = ni.updateVar(var.getKey(), new Double(width));
             }
+            if (var != null) var.setDisplay(true);
         } else {
             Variable var = ni.getVar(ATTR_AREA);
             if (var != null) {
-                ni.updateVar(var.getKey(), new Double(width));
+                var = ni.updateVar(var.getKey(), new Double(width));
             }
+            if (var != null) var.setDisplay(true);
         }
     }
 
@@ -2175,21 +2191,26 @@ public class Schematics extends Technology
         if (ni.isFET())
         {
             Variable var = ni.getVar(ATTR_LENGTH);
-            if (var != null) {
-                ni.updateVar(var.getKey(), length);
-                var.setDisplay(true);
+            if (var == null) {
+                var = ni.newVar(ATTR_LENGTH, length);
+            } else {
+                var = ni.updateVar(var.getKey(), length);
             }
+            if (var != null) var.setDisplay(true);
+
             var = ni.getVar(ATTR_WIDTH);
-            if (var != null) {
-                ni.updateVar(var.getKey(), width);
-                var.setDisplay(true);
+            if (var == null) {
+                var = ni.newVar(ATTR_WIDTH, width);
+            } else {
+                var = ni.updateVar(var.getKey(), width);
             }
+            if (var != null) var.setDisplay(true);
         } else {
             Variable var = ni.getVar(ATTR_AREA);
             if (var != null) {
-                ni.updateVar(var.getKey(), width);
-                var.setDisplay(true);
+                var = ni.updateVar(var.getKey(), width);
             }
+            if (var != null) var.setDisplay(true);
         }
     }
 
