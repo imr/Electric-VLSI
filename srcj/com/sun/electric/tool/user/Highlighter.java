@@ -285,6 +285,10 @@ public class Highlighter implements DatabaseChangeListener {
      * @param cell the cell in which to create the highlights
      */
     public void showNetworks(Set nets, Netlist netlist, Cell cell) {
+        int showNetworkLevel;
+        synchronized(this) {
+            showNetworkLevel = this.showNetworkLevel;
+        }
         if (showNetworkLevel == 0) clear();
         int count = 0;
         for (Iterator netIt = nets.iterator(); netIt.hasNext(); ) {
@@ -298,7 +302,9 @@ public class Highlighter implements DatabaseChangeListener {
                 count++;
             }
         }
-        showNetworkLevel++;
+        synchronized(this) {
+            this.showNetworkLevel = showNetworkLevel++;
+        }
         if (count == 0) {
             System.out.println("Nothing more in hierarchy on network(s) to show");
         }
@@ -426,7 +432,7 @@ public class Highlighter implements DatabaseChangeListener {
      * This is a hack, don't use it.
      * @param highlighter
      */
-    public void copyState(Highlighter highlighter) {
+    public synchronized void copyState(Highlighter highlighter) {
         clear();
         lastHighlightListEndObj = highlighter.lastHighlightListEndObj;
         for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext(); ) {
@@ -446,6 +452,11 @@ public class Highlighter implements DatabaseChangeListener {
      */
     public void showHighlights(EditWindow wnd, Graphics g) {
         int num = getNumHighlights();
+        int highOffX, highOffY;
+        synchronized(this) {
+            highOffX = this.highOffX;
+            highOffY = this.highOffY;
+        }
 
         for (Iterator it = getHighlights().iterator(); it.hasNext(); ) {
             Highlight h = (Highlight)it.next();
@@ -482,18 +493,26 @@ public class Highlighter implements DatabaseChangeListener {
     }
 
     /** Notify listeners that highlights have changed */
-    private synchronized void fireHighlightChanged() {
-        List listenersCopy = new ArrayList(highlightListeners);
+    private void fireHighlightChanged() {
+        List listenersCopy;
+        synchronized(this) {
+            listenersCopy = new ArrayList(highlightListeners);
+        }
         for (Iterator it = listenersCopy.iterator(); it.hasNext(); ) {
             HighlightListener l = (HighlightListener)it.next();
             l.highlightChanged(this);
         }
-        changed = false;
+        synchronized(this) {
+            changed = false;
+        }
     }
 
     /** Notify listeners that the current Highlighter has changed */
     private synchronized void fireHighlighterLostFocus(Highlighter highlighterGainedFocus) {
-        List listenersCopy = new ArrayList(highlightListeners);
+        List listenersCopy;
+        synchronized(this) {
+            listenersCopy = new ArrayList(highlightListeners);
+        }
         for (Iterator it = listenersCopy.iterator(); it.hasNext(); ) {
             HighlightListener l = (HighlightListener)it.next();
             l.highlighterLostFocus(highlighterGainedFocus);
@@ -1067,7 +1086,9 @@ public class Highlighter implements DatabaseChangeListener {
 							{
 								alreadyHighlighted.setElectricObject(got.getElectricObject());
 								alreadyHighlighted.setPoint(got.getPoint());
-								changed = true;
+                                synchronized(this) {
+								    changed = true;
+                                }
 							}
 							break;
 						}

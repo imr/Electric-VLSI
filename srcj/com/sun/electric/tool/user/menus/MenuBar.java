@@ -89,7 +89,7 @@ public class MenuBar extends JMenuBar
         /** Name of this group */                                       private String name;
         /** Preferences for User Bindings */                            private Preferences prefs;
         /** All menu items created, stores as ArrayLists in HashMap */  private HashMap menuItems;
-        /** Key Binding Manager for menu items */                       public KeyBindingManager keyBindingManager;
+        /** Key Binding Manager for menu items */                       public final KeyBindingManager keyBindingManager;
 
         /** Factory method to create/get a group */
         public static MenuBarGroup newInstance(String name) {
@@ -353,7 +353,7 @@ public class MenuBar extends JMenuBar
     // ================================== MenuBar ========================================
 
 
-    /** Menu bar group this belongs to */       private MenuBarGroup menuBarGroup;
+    /** Menu bar group this belongs to */       private final MenuBarGroup menuBarGroup;
     /** hidden menus */                         private ArrayList hiddenMenus = new ArrayList();
     /** whether to ignore all shortcuts keys */ boolean ignoreKeyBindings;
     /** whether to ignore text editing keys */  boolean ignoreTextEditKeys;
@@ -451,8 +451,8 @@ public class MenuBar extends JMenuBar
                 menuBarGroup.keyBindingManager.setEventSource(((MenuItemInterface)item).getDescription(), item);
             }
             list.add(item);
+            item.addActionListener(menuBarGroup);
         }
-        item.addActionListener(menuBarGroup);
         item.addActionListener(ToolBarButton.updater);
         // update with any user defined bindings
         updateAccelerator(((MenuItemInterface)item).getDescription());

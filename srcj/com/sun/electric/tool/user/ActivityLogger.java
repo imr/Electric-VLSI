@@ -189,7 +189,7 @@ public class ActivityLogger {
     /**
      * Print a delimiter between log events for easier reading of the log file
      */
-    private static void printDelimeter(boolean printThreadInfo) {
+    private static synchronized void printDelimeter(boolean printThreadInfo) {
         if (out == null) return;
         out.println("--------------- "+loggedCount+ " --------------");
         Exception e = new Exception("stack trace");

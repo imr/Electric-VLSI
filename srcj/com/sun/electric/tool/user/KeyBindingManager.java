@@ -105,7 +105,7 @@ public class KeyBindingManager {
         this.prefPrefix = prefPrefix;
 
         // add prefix action to action map
-        actionMap.put(prefixAction.actionDesc, prefixAction);
+        actionMap.put(PrefixAction.actionDesc, prefixAction);
 
         // register this with KeyboardFocusManager
         // so we receive all KeyEvents
@@ -133,7 +133,7 @@ public class KeyBindingManager {
     /**
      * Initialize: Reads all stored key bindings from preferences
      */
-    private void initialize() {
+    private synchronized void initialize() {
         String [] allKeys;
         try {
             allKeys = prefs.keys();
@@ -192,7 +192,7 @@ public class KeyBindingManager {
      * that a prefix key has been hit.
      * @param prefix the prefix key
      */
-    private void setPrefixKey(KeyStroke prefix) {
+    private synchronized void setPrefixKey(KeyStroke prefix) {
         this.lastPrefix = prefix;
     }
 
