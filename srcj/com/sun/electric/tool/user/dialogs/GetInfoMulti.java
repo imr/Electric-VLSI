@@ -38,6 +38,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.technology.SizeOffset;
 
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
@@ -159,8 +160,10 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 		numNodes = numArcs = numExports = 0;
 		Geometric firstGeom = null;
 		Geometric secondGeom = null;
-		double xPositionLow=0, xPositionHigh=0, yPositionLow=0, yPositionHigh=0;
-		double xSizeLow=0, xSizeHigh=0, ySizeLow=0, ySizeHigh=0;
+		double xPositionLow=Double.MAX_VALUE, xPositionHigh=-Double.MAX_VALUE;
+		double yPositionLow=Double.MAX_VALUE, yPositionHigh=-Double.MAX_VALUE;
+		double xSizeLow=Double.MAX_VALUE, xSizeHigh=Double.MIN_VALUE;
+		double ySizeLow=Double.MAX_VALUE, ySizeHigh=Double.MIN_VALUE;
 		double widthLow=0, widthHigh=0;
 		selectionCount.setText(Integer.toString(highlightList.size()) + " selections:");
 		listModel.clear();
@@ -181,23 +184,19 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 				if (eobj instanceof NodeInst)
 				{
 					NodeInst ni = (NodeInst)eobj;
-					if (numNodes != 0)
-					{
-						xPositionLow = Math.min(xPositionLow, ni.getAnchorCenterX());
-						xPositionHigh = Math.max(xPositionHigh, ni.getAnchorCenterX());
-						yPositionLow = Math.min(yPositionLow, ni.getAnchorCenterY());
-						yPositionHigh = Math.max(yPositionHigh, ni.getAnchorCenterY());
-						xSizeLow = Math.min(xSizeLow, ni.getXSize());
-						xSizeHigh = Math.max(xSizeHigh, ni.getXSize());
-						ySizeLow = Math.min(ySizeLow, ni.getYSize());
-						ySizeHigh = Math.max(ySizeHigh, ni.getYSize());
-					} else
-					{
-						xPositionLow = xPositionHigh = ni.getAnchorCenterX();
-						yPositionLow = yPositionHigh = ni.getAnchorCenterY();
-						xSizeLow = xSizeHigh = ni.getXSize();
-						ySizeLow =  ySizeHigh = ni.getYSize();
-					}
+					SizeOffset so = ni.getSizeOffset();
+			        double xVal = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+					double yVal = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+
+					xPositionLow = Math.min(xPositionLow, ni.getAnchorCenterX());
+					xPositionHigh = Math.max(xPositionHigh, ni.getAnchorCenterX());
+					yPositionLow = Math.min(yPositionLow, ni.getAnchorCenterY());
+					yPositionHigh = Math.max(yPositionHigh, ni.getAnchorCenterY());
+
+					xSizeLow = Math.min(xSizeLow, xVal);
+					xSizeHigh = Math.max(xSizeHigh, xVal);
+					ySizeLow = Math.min(ySizeLow, yVal);
+					ySizeHigh = Math.max(ySizeHigh, yVal);
 					numNodes++;
 					description = "Node " + ni.describe();
 				} else if (eobj instanceof ArcInst)
