@@ -43,6 +43,7 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
@@ -761,6 +762,13 @@ public class EditMenu {
 			if (mustBeHard && !hard) continue;
 			highlighter.addElectricObject(ai, curCell);
 		}
+		// Selecting annotations
+		for(Iterator it = curCell.getVariables(); it.hasNext(); )
+		{
+			Variable var = (Variable)it.next();
+			if (var.isAttribute())
+				highlighter.addText(curCell, curCell, var, null);
+		}
 		highlighter.finished();
 	}
 
@@ -917,7 +925,8 @@ public class EditMenu {
         Highlighter highlighter = wnd.getHighlighter();
 		Rectangle2D selection = highlighter.getHighlightedArea(wnd);
 		highlighter.clear();
-		highlighter.selectArea(wnd, selection.getMinX(), selection.getMaxX(), selection.getMinY(), selection.getMaxY(), false,
+		if (selection != null )
+			highlighter.selectArea(wnd, selection.getMinX(), selection.getMaxX(), selection.getMinY(), selection.getMaxY(), false,
 			ToolBar.getSelectSpecial());
 		highlighter.finished();
 	}
