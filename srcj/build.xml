@@ -16,7 +16,7 @@
             <classpath><pathelement location="${AppleJava}"/></classpath>
             <exclude name="intervalsimulation/"/>
 	        <exclude name="com/sun/electric/tests/"/>
-	        <exclude name="com/sun/electric/tool/user/ui/j3d/"/>
+	        <exclude name="com/sun/electric/plugins/j3d/*.*"/>
         </javac>
     </target>
 
@@ -80,13 +80,12 @@
         <delete file="com/sun/electric/plugins/tsmc90/TSMC90.class"/>
     </target>
 
-    <target name="jar3D" depends="init" description="Make binary Jar plugin for #D View">
+    <target name="jar3D" depends="init" description="Make binary Jar plugin for 3D View">
         <javac debug="true" deprecation="true" destdir="." srcdir="." source="1.4">
             <include name="com/sun/electric/plugins/j3d/View3DWindow.java"/>
 	        <classpath><pathelement location="${Java3DCore}"/></classpath>
 	        <classpath><pathelement location="${Java3DUtils}"/></classpath>
 	        <classpath><pathelement location="${JavaVecMath}"/></classpath>
-            <classpath><pathelement location="${AppleJava}"/></classpath>
         </javac>
         <jar basedir="." compress="true" jarfile="electric3d.jar">
             <include name="com/sun/electric/plugins/j3d/View3DWindow.class"/>
@@ -108,6 +107,7 @@
             <exclude name="electric${version}.mf"/>
             <exclude name="Hack_stack.txt"/>
             <exclude name="com/sun/electric/plugins/tsmc90/TSMC90.*"/>
+	        <exclude name="com/sun/electric/plugins/j3d/*.*"/>
             <exclude name="**/*.java"/>
             <exclude name="**/*.form"/>
         </jar>
