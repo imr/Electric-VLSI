@@ -1308,7 +1308,7 @@ public class Cell extends NodeProto implements Comparable
         // grandfather code: allow circular dependencies on library read-in
         Job changingJob = Job.getChangingJob();
         boolean disallowCirDep = true;
-        if ((changingJob instanceof FileMenu.ReadELIB) || (changingJob instanceof FileMenu.ReadInitialELIBs))
+        if ((changingJob instanceof FileMenu.ReadLibrary) || (changingJob instanceof FileMenu.ReadInitialELIBs))
             disallowCirDep = false;
 
         // check to see if this instantiation would create a circular library dependency

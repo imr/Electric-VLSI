@@ -207,7 +207,7 @@ public class ManualViewer extends EDialog
 	public static void loadSamplesLibrary()
 	{
 		URL url = ManualViewer.class.getResource("helphtml/samples.elib");
-		FileMenu.ReadELIB job = new FileMenu.ReadELIB(url);
+		FileMenu.ReadLibrary job = new FileMenu.ReadLibrary(url, OpenFile.Type.ELIB);
 	}
 
 	private void loadMenuBar()

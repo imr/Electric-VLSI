@@ -173,6 +173,10 @@ public class Input // extends IOTool
 		{
 			in = (LibraryFiles)new ELIB();
 			if (in.openBinaryInput(fileURL)) return null;
+		} else if (type == OpenFile.Type.JELIB)
+		{
+			in = (LibraryFiles)new JELIB();
+			if (in.openTextInput(fileURL)) return null;
 		} else if (type == OpenFile.Type.READABLEDUMP)
 		{
 			in = (LibraryFiles)new ReadableDump();

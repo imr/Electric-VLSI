@@ -79,8 +79,10 @@ public class FileMenu {
 
 		MenuBar.Menu importSubMenu = new MenuBar.Menu("Import");
 		fileMenu.add(importSubMenu);
+		importSubMenu.addMenuItem("Version 8 JELIB...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.JELIB); } });
 		importSubMenu.addMenuItem("Readable Dump...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(OpenFile.Type.READABLEDUMP); } });
 		importSubMenu.addMenuItem("Text Cell Contents...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.readTextCell(); }});
 
@@ -186,30 +188,33 @@ public class FileMenu {
         {
             // start a job to do the input
             URL fileURL = TextUtils.makeURLToFile(fileName);
-            ReadELIB job = new ReadELIB(fileURL);
+			ReadLibrary job = new ReadLibrary(fileURL, OpenFile.Type.ELIB);
         }
     }
 
-    /**
-     * Class to read a library in a new thread.
-     * For a non-interactive script, use ReadELIB job = new ReadELIB(filename).
-     */
-    public static class ReadELIB extends Job
-    {
-        URL fileURL;
+	/**
+	 * Class to read a text library in a new thread.
+	 * For a non-interactive script, use ReadLibrary job = new ReadLibrary(filename, format).
+	 */
+	public static class ReadLibrary extends Job
+	{
+		private URL fileURL;
+		private OpenFile.Type type;
 
-        public ReadELIB(URL fileURL)
-        {
-            super("Read Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.fileURL = fileURL;
-            startJob();
-        }
+		public ReadLibrary(URL fileURL, OpenFile.Type type)
+		{
+			super("Read External Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.fileURL = fileURL;
+			this.type = type;
+			startJob();
+		}
 
-        public boolean doIt()
-        {
-            return openALibrary(fileURL);
-        }
-    }
+		public boolean doIt()
+		{
+			openALibrary(fileURL, type);
+			return true;
+		}
+	}
 
     public static class ReadInitialELIBs extends Job
     {
@@ -231,7 +236,7 @@ public class FileMenu {
             boolean success = false;
             for (Iterator it = fileURLs.iterator(); it.hasNext(); ) {
                 URL file = (URL)it.next();
-                if (openALibrary(file)) success = true;
+                if (openALibrary(file, OpenFile.Type.ELIB)) success = true;
             }
             if (success) {
                 // close no name library
@@ -249,13 +254,17 @@ public class FileMenu {
     }
 
     /** Opens a library */
-    private static boolean openALibrary(URL fileURL) {
-        Library lib = Input.readLibrary(fileURL, OpenFile.Type.ELIB);
-        if (lib != null) {
+    private static boolean openALibrary(URL fileURL, OpenFile.Type type)
+    {
+        Library lib = Input.readLibrary(fileURL, type);
+        if (lib != null)
+        {
             // new library open: check for default "noname" library and close if empty
             Library noname = Library.findLibrary("noname");
-            if (noname != null) {
-                if (!noname.getCells().hasNext()) {
+            if (noname != null)
+            {
+                if (!noname.getCells().hasNext())
+                {
                     noname.kill();
                 }
             }
@@ -264,9 +273,7 @@ public class FileMenu {
         if (lib == null) return false;
         lib.setCurrent();
         Cell cell = lib.getCurCell();
-        if (cell == null)
-            System.out.println("No current cell in this library");
-        else
+        if (cell == null) System.out.println("No current cell in this library"); else
         {
             // check if edit window open with null cell, use that one if exists
             for (Iterator it = WindowFrame.getWindows(); it.hasNext(); )
@@ -282,6 +289,7 @@ public class FileMenu {
                 }
             }
             WindowFrame.createEditWindow(cell);
+
             // no clean for now.
             TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
         }
@@ -289,63 +297,20 @@ public class FileMenu {
 
     }
 
-    /**
-     * This method implements the command to import a library (Readable Dump format).
-     * It is interactive, and pops up a dialog box.
-     */
-    public static void importLibraryCommand()
-    {
-        String fileName = OpenFile.chooseInputFile(OpenFile.Type.READABLEDUMP, null);
-        if (fileName != null)
-        {
-            // start a job to do the input
-            URL fileURL = TextUtils.makeURLToFile(fileName);
-            ReadTextLibrary job = new ReadTextLibrary(fileURL);
-        }
-    }
-
-    /**
-     * Class to read a text library in a new thread.
-     * For a non-interactive script, use ReadTextLibrary job = new ReadTextLibrary(filename).
-     */
-    private static class ReadTextLibrary extends Job
-    {
-        URL fileURL;
-        protected ReadTextLibrary(URL fileURL)
-        {
-            super("Read Text Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.fileURL = fileURL;
-            startJob();
-        }
-
-        public boolean doIt()
-        {
-            Library lib = Input.readLibrary(fileURL, OpenFile.Type.READABLEDUMP);
-            Undo.noUndoAllowed();
-            if (lib == null) return false;
-            lib.setCurrent();
-            Cell cell = lib.getCurCell();
-            if (cell == null) System.out.println("No current cell in this library"); else
-            {
-                // check if edit window open with null cell, use that one if exists
-                for (Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-                {
-                    WindowFrame wf = (WindowFrame)it.next();
-                    WindowContent content = wf.getContent();
-                    if (content instanceof EditWindow)
-                    {
-                        if (content.getCell() == null)
-                        {
-                            content.setCell(cell, VarContext.globalContext);
-                            return true;
-                        }
-                    }
-                }
-                WindowFrame.createEditWindow(cell);
-            }
-            return true;
-        }
-    }
+	/**
+	 * This method implements the command to import a library (Readable Dump or JELIB format).
+	 * It is interactive, and pops up a dialog box.
+	 */
+	public static void importLibraryCommand(OpenFile.Type type)
+	{
+		String fileName = OpenFile.chooseInputFile(type, null);
+		if (fileName != null)
+		{
+			// start a job to do the input
+			URL fileURL = TextUtils.makeURLToFile(fileName);
+			ReadLibrary job = new ReadLibrary(fileURL, type);
+		}
+	}
 
     public static void closeLibraryCommand(Library lib)
     {

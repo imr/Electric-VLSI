@@ -109,6 +109,7 @@ public class JELIB extends Output
 		printWriter.print("# R main cell name\n");
 		printWriter.print("# T technology information\n");
 		printWriter.print("# V view information\n");
+		printWriter.print("# X end of cell\n");
 		printWriter.print("\n");
 
 		// pick up all full names that might become abbreviations
@@ -251,8 +252,9 @@ public class JELIB extends Output
 			printWriter.print("C" + cell.getName());
 			printWriter.print("|" + cell.getView().getAbbreviation());
 			printWriter.print("|" + cell.getVersion());
-			printWriter.print("|" + ELIBConstants.dateToSeconds(cell.getCreationDate()));
-			printWriter.print("|" + ELIBConstants.dateToSeconds(cell.getRevisionDate()));
+			printWriter.print("|" + cell.getTechnology().getTechName());
+			printWriter.print("|" + cell.getCreationDate().getTime());
+			printWriter.print("|" + cell.getRevisionDate().getTime());
 			writeVars(cell, cell);
 			printWriter.print("\n");
 
@@ -270,9 +272,9 @@ public class JELIB extends Output
 				printWriter.print(nodeTypeName.toString());
 				printWriter.print("|" + ni.getName());
 				printWriter.print("|" + TextUtils.formatDouble(ni.getAnchorCenterX()));
-				printWriter.print("|" + TextUtils.formatDouble(ni.getAnchorCenterX()));
+				printWriter.print("|" + TextUtils.formatDouble(ni.getAnchorCenterY()));
 				printWriter.print("|" + TextUtils.formatDouble(ni.getXSizeWithMirror()));
-				printWriter.print("|" + TextUtils.formatDouble(ni.getXSizeWithMirror()));
+				printWriter.print("|" + TextUtils.formatDouble(ni.getYSizeWithMirror()));
 				printWriter.print("|" + ni.getAngle());
 				StringBuffer nodeBits = new StringBuffer();
 				if (ni.isExpanded()) nodeBits.append("E");
@@ -284,11 +286,11 @@ public class JELIB extends Output
 				int ts = ni.getTechSpecific();
 				if (ts != 0) nodeBits.append(ts);
 				printWriter.print("|" + nodeBits.toString());
-//				if (np instanceof Cell)
-//				{
-//					printWriter.print("descript: " + ni.getProtoTextDescriptor().lowLevelGet0() + "/" +
-//						ni.getProtoTextDescriptor().lowLevelGet0() + "\n");
-//				}
+				if (np instanceof Cell)
+				{
+					String tdString = describeDescriptor(null, ni.getProtoTextDescriptor());
+					printWriter.print("|" + tdString);
+				}
 				writeVars(ni, cell);
 				printWriter.print("\n");
 			}
@@ -349,13 +351,20 @@ public class JELIB extends Output
 				if (subNI.getProto().getNumPorts() > 1)
 					printWriter.print(subPP.getName());
 
-				// need to write both words
-//				TextDescriptor td = pp.getTextDescriptor();
-//				printWriter.print("descript: " + td.lowLevelGet0() + "/" + td.lowLevelGet1() + "\n");
-//				printWriter.print("userbits: " + pp.lowLevelGetUserbits() + "\n");
+				String tdString = describeDescriptor(null, pp.getTextDescriptor());
+				printWriter.print("|" + tdString);
+
+				// port information
+				printWriter.print("|" + pp.getCharacteristic().getShortName());
+				if (pp.isAlwaysDrawn()) printWriter.print("/A");
+				if (pp.isBodyOnly()) printWriter.print("/B");
+
 				writeVars(pp, cell);
 				printWriter.print("\n");
 			}
+
+			// write the end-of-cell marker
+			printWriter.print("X\n");
 		}
 
 		// write groups in alphabetical order
@@ -488,25 +497,113 @@ public class JELIB extends Output
 		abbreviationMap.put(cell, new StringBuffer(cell.noLibDescribe()));
 	}
 
-	private String describeDescriptor(TextDescriptor td)
+	/**
+	 * Method to convert a variable to a string that describes its TextDescriptor
+	 * @param var the Variable being described (may be null).
+	 * @param td the TextDescriptor being described.
+	 * @return a String describing the variable/textdescriptor.
+	 * The string has these fields:
+	 *    Asize; for absolute size
+	 *    B if bold
+	 *    Cindex; if color index
+	 *    Dx for display position (2=bottom 8=top 4=left 6=right 7=upleft 9=upright 1=downleft 3=downright 5=centered 0=boxed)
+	 *    FfontName; if a nonstandard font
+	 *    Gsize; for relative (grid unit) size
+	 *    H if inherit
+	 *    I if italic
+	 *    L if underline
+	 *    N if name=value;
+	 *    Ol for language (J=Java L=Lisp T=TCL)
+	 *    P if parameter
+	 *    R/RR/RRR if rotated (90, 180, 270)
+	 *    T if interior
+	 *    Ux for units (R=resistance C=capacitance I=inductance A=current V=voltage D=distance T=time)
+	 *    Xoffset; for X offset
+	 *    Yoffset; for Y offset
+	 */
+	private String describeDescriptor(Variable var, TextDescriptor td)
 	{
 		StringBuffer ret = new StringBuffer();
-		// Asize; for absolute size
-		// B if bold
-		// Cindex; if color index
-		// Dx for display position (2=bottom 8=top 4=left 6=right 7=upleft 9=upright 1=downleft 3=downright 0=boxed)
-		// FfontName; if a nonstandard font
-		// Gsize; for relative (grid unit) size
-		// H if inherit
-		// I if italic
-		// L if underline
-		// N if name=value;
-		// P if parameter
-		// R/RR/RRR if rotated (90, 180, 270)
-		// T if interior
-		// Ux for units (R=resistance C=capacitance I=inductance A=current V=voltage D=distance T=time)
-		// Xoffset; for X offset
-		// Yoffset; for Y offset
+		if (var == null || var.isDisplay())
+		{
+			// displayable: write display position
+			ret.append("D");
+			TextDescriptor.Position pos = td.getPos();
+			if (pos == TextDescriptor.Position.UP) ret.append("8"); else
+			if (pos == TextDescriptor.Position.DOWN) ret.append("2"); else
+			if (pos == TextDescriptor.Position.LEFT) ret.append("4"); else
+			if (pos == TextDescriptor.Position.RIGHT) ret.append("6"); else
+			if (pos == TextDescriptor.Position.UPLEFT) ret.append("7"); else
+			if (pos == TextDescriptor.Position.UPRIGHT) ret.append("9"); else
+			if (pos == TextDescriptor.Position.DOWNLEFT) ret.append("1"); else
+			if (pos == TextDescriptor.Position.DOWNRIGHT) ret.append("3"); else
+			if (pos == TextDescriptor.Position.BOXED) ret.append("0"); else
+				ret.append("5");
+
+			// write display type
+			TextDescriptor.DispPos dispPos = td.getDispPart();
+			if (dispPos == TextDescriptor.DispPos.NAMEVALUE) ret.append("N");
+			
+			// write size
+			TextDescriptor.Size size = td.getSize();
+			if (size.isAbsolute()) ret.append("A" + (int)size.getSize()); else
+				ret.append("G" + TextUtils.formatDouble(size.getSize()));
+
+			// write offset
+			double offX = td.getXOff();
+			if (offX != 0) ret.append("X" + TextUtils.formatDouble(offX) + ";");
+			double offY = td.getYOff();
+			if (offY != 0) ret.append("Y" + TextUtils.formatDouble(offY) + ";");
+
+			// write bold/italic/underline
+			if (td.isBold()) ret.append("B");
+			if (td.isItalic()) ret.append("I");
+			if (td.isUnderline()) ret.append("L");
+
+			// write font
+			int font = td.getFace();
+			if (font != 0)
+			{
+				TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(font);
+				ret.append("F" + af.toString() + ";");
+			}
+
+			// write color
+			int color = td.getColorIndex();
+			if (color != 0)
+				ret.append("C" + color + ";");
+
+			// write rotation
+			TextDescriptor.Rotation rot = td.getRotation();
+			if (rot == TextDescriptor.Rotation.ROT90) ret.append("R"); else
+			if (rot == TextDescriptor.Rotation.ROT180) ret.append("RR"); else
+			if (rot == TextDescriptor.Rotation.ROT270) ret.append("RRR");
+		}
+
+		// write inherit/interior/parameter
+		if (td.isInherit()) ret.append("H");
+		if (td.isInterior()) ret.append("T");
+		if (td.isParam()) ret.append("P");
+
+		// write language
+		if (var != null && var.isCode())
+		{
+			Variable.Code codeType = var.getCode();
+			if (codeType == Variable.Code.JAVA) ret.append("OJ"); else
+			if (codeType == Variable.Code.LISP) ret.append("OL"); else
+			if (codeType == Variable.Code.TCL) ret.append("OT");
+		}
+
+		// write units
+		TextDescriptor.Unit unit = td.getUnit();
+		if (unit == TextDescriptor.Unit.RESISTANCE) ret.append("UR"); else
+		if (unit == TextDescriptor.Unit.CAPACITANCE) ret.append("UC"); else
+		if (unit == TextDescriptor.Unit.INDUCTANCE) ret.append("UI"); else
+		if (unit == TextDescriptor.Unit.CURRENT) ret.append("UA"); else
+		if (unit == TextDescriptor.Unit.VOLTAGE) ret.append("UV"); else
+		if (unit == TextDescriptor.Unit.DISTANCE) ret.append("UD"); else
+		if (unit == TextDescriptor.Unit.TIME) ret.append("UT");
+
 		return ret.toString();
 	}
 
@@ -522,33 +619,13 @@ public class JELIB extends Output
 		{
 			Variable var = (Variable)it.next();
 			if (var.isDontSave()) continue;
-			printWriter.print("|" + var.getKey().getName() + "=" + var.getObject());
-//			int type = var.lowLevelGetFlags() & ~(ELIBConstants.VTYPE|ELIBConstants.VISARRAY|ELIBConstants.VLENGTH);
-//			Object varObj = var.getObject();
-//
-//			String pt = makeString(varObj, curCell);
-//			if (pt == null) pt = "";
-//			printName(var.getKey().getName());
-//			TextDescriptor td = var.getTextDescriptor();
-//
-//			if (varObj instanceof Object[])
-//			{
-//				Object [] objList = (Object [])varObj;
-//				int objType = ELIBConstants.getVarType(objList[0]);
-//				if (objType == ELIBConstants.VDOUBLE) objType = ELIBConstants.VFLOAT;
-//				int len = objList.length;
-//				type |= objType | ELIBConstants.VISARRAY | (len << ELIBConstants.VLENGTHSH);
-//				printWriter.print("(" + len + ")[0" + Integer.toOctalString(type) + ",0" +
-//					Integer.toOctalString(td.lowLevelGet0()) + "/0" + Integer.toOctalString(td.lowLevelGet1()) + "]: ");
-//			} else
-//			{
-//				int objType = ELIBConstants.getVarType(varObj);
-//				if (objType == ELIBConstants.VDOUBLE) objType = ELIBConstants.VFLOAT;
-//				type |= objType;
-//				printWriter.print("[0" + Integer.toOctalString(type) + ",0" +
-//					Integer.toOctalString(td.lowLevelGet0()) + "/0" + Integer.toOctalString(td.lowLevelGet1()) + "]: ");
-//			}
-//			printWriter.print(pt + "\n");
+			String tdString = describeDescriptor(var, var.getTextDescriptor());
+			printWriter.print("|" + var.getKey().getName() + "(" + tdString + ")");
+
+			Object varObj = var.getObject();
+			String pt = makeString(varObj, curCell);
+			if (pt == null) pt = "";
+			printWriter.print(pt);
 		}
 	}
 
@@ -556,91 +633,98 @@ public class JELIB extends Output
 	 * Method to convert variable "var" to a string for printing in the text file.
 	 * returns zero on error
 	 */
-//	private String makeString(Object obj, Cell curCell)
-//	{
-//		StringBuffer infstr = new StringBuffer();
-//		if (obj instanceof Object[])
-//		{
-//			Object [] objArray = (Object [])obj;
-//			int len = objArray.length;
-//			for(int i=0; i<len; i++)
-//			{
-//				Object oneObj = objArray[i];
-//				if (i == 0) infstr.append("["); else
-//					infstr.append(",");
-//				makeStringVar(infstr, oneObj, curCell);
-//			}
-//			infstr.append("]");
-//		} else makeStringVar(infstr, obj, curCell);
-//		return infstr.toString();
-//	}
+	private String makeString(Object obj, Cell curCell)
+	{
+		StringBuffer infstr = new StringBuffer();
+		if (obj instanceof Object[])
+		{
+			Object [] objArray = (Object [])obj;
+			int len = objArray.length;
+			for(int i=0; i<len; i++)
+			{
+				Object oneObj = objArray[i];
+				if (i != 0) infstr.append(","); else
+				{
+					infstr.append(getVarType(oneObj));
+					infstr.append("[");
+				}					
+				makeStringVar(infstr, oneObj, curCell);
+			}
+			infstr.append("]");
+		} else
+		{
+			infstr.append(getVarType(obj));
+			makeStringVar(infstr, obj, curCell);
+		}
+		return infstr.toString();
+	}
 
 	/**
 	 * Method to make a string from the value in "addr" which has a type in
 	 * "type".
 	 */
-//	private void makeStringVar(StringBuffer infstr, Object obj, Cell curCell)
-//	{
-//		if (obj instanceof Integer)
-//		{
-//			infstr.append(((Integer)obj).intValue());
-//			return;
-//		}
-//		if (obj instanceof Short)
-//		{
-//			infstr.append(((Short)obj).shortValue());
-//			return;
-//		}
-//		if (obj instanceof Byte)
-//		{
-//			infstr.append(((Byte)obj).byteValue());
-//			return;
-//		}
-//		if (obj instanceof String)
-//		{
-//			infstr.append("\"");
-//			infstr.append(convertString((String)obj));
-//			infstr.append("\"");
-//			return;
-//		}
-//		if (obj instanceof Float)
-//		{
-//			infstr.append(((Float)obj).floatValue());
-//			return;
-//		}
-//		if (obj instanceof Double)
-//		{
-//			infstr.append(((Double)obj).doubleValue());
-//			return;
-//		}
-//		if (obj instanceof Boolean)
-//		{
-//			infstr.append(((Boolean)obj).booleanValue() ? 1 : 0);
-//			return;
-//		}
-//		if (obj instanceof Long)
-//		{
-//			infstr.append(((Long)obj).longValue());
-//			return;
-//		}
-//		if (obj instanceof Technology)
-//		{
-//			Technology tech = (Technology)obj;
-//			infstr.append(tech.getTechName());
-//			return;
-//		}
-//		if (obj instanceof Library)
-//		{
-//			Library lib = (Library)obj;
-//			infstr.append("\"" + lib.getName() + "\"");
-//			return;
-//		}
-//		if (obj instanceof Tool)
-//		{
-//			Tool tool = (Tool)obj;
-//			infstr.append(tool.getName());
-//			return;
-//		}
+	private void makeStringVar(StringBuffer infstr, Object obj, Cell curCell)
+	{
+		if (obj instanceof Integer)
+		{
+			infstr.append(((Integer)obj).intValue());
+			return;
+		}
+		if (obj instanceof Short)
+		{
+			infstr.append(((Short)obj).shortValue());
+			return;
+		}
+		if (obj instanceof Byte)
+		{
+			infstr.append(((Byte)obj).byteValue());
+			return;
+		}
+		if (obj instanceof String)
+		{
+			infstr.append("\"");
+			infstr.append(convertString((String)obj));
+			infstr.append("\"");
+			return;
+		}
+		if (obj instanceof Float)
+		{
+			infstr.append(((Float)obj).floatValue());
+			return;
+		}
+		if (obj instanceof Double)
+		{
+			infstr.append(((Double)obj).doubleValue());
+			return;
+		}
+		if (obj instanceof Boolean)
+		{
+			infstr.append(((Boolean)obj).booleanValue() ? 1 : 0);
+			return;
+		}
+		if (obj instanceof Long)
+		{
+			infstr.append(((Long)obj).longValue());
+			return;
+		}
+		if (obj instanceof Technology)
+		{
+			Technology tech = (Technology)obj;
+			infstr.append(tech.getTechName());
+			return;
+		}
+		if (obj instanceof Library)
+		{
+			Library lib = (Library)obj;
+			infstr.append("\"" + lib.getName() + "\"");
+			return;
+		}
+		if (obj instanceof Tool)
+		{
+			Tool tool = (Tool)obj;
+			infstr.append(tool.getName());
+			return;
+		}
 //		if (obj instanceof NodeInst)
 //		{
 //			NodeInst ni = (NodeInst)obj;
@@ -692,40 +776,49 @@ public class JELIB extends Output
 //			infstr.append(Integer.toString(cIndex));
 //			return;
 //		}
-//		typeError++;
-//	}
+	}
+
+	/**
+	 * Method to make a string from the value in "addr" which has a type in
+	 * "type".
+	 */
+	private String getVarType(Object obj)
+	{
+		if (obj instanceof ArcInst) return "A";
+		if (obj instanceof Boolean) return "B";
+		if (obj instanceof Cell) return "C";
+		if (obj instanceof Double) return "D";
+		if (obj instanceof Export) return "E";
+		if (obj instanceof Float) return "F";
+		if (obj instanceof Long) return "G";
+		if (obj instanceof Short) return "H";
+		if (obj instanceof Integer) return "I";
+		if (obj instanceof Library) return "L";
+		if (obj instanceof NodeInst) return "N";
+		if (obj instanceof Tool) return "O";
+		if (obj instanceof PrimitiveNode) return "P";
+		if (obj instanceof ArcProto) return "R";
+		if (obj instanceof String) return "S";
+		if (obj instanceof Technology) return "T";
+		if (obj instanceof Byte) return "Y";
+		return null;
+	}
 
 	/**
 	 * Method to add the string "str" to the infinite string and to quote the
 	 * special characters '[', ']', '"', and '^'.
 	 */
-//	private String convertString(String str)
-//	{
-//		StringBuffer infstr = new StringBuffer();
-//		int len = str.length();
-//		for(int i=0; i<len; i++)
-//		{
-//			char ch = str.charAt(i);
-//			if (ch == '[' || ch == ']' || ch == '"' || ch == '^')
-//				infstr.append('^');
-//			infstr.append(ch);
-//		}
-//		return infstr.toString();
-//	}
-
-	/**
-	 * Method to print the variable name in "name" on file "file".  The
-	 * conversion performed is to quote with a backslash any of the characters
-	 * '(', '[', or '^'.
-	 */
-//	private void printName(String name)
-//	{
-//		int len = name.length();
-//		for(int i=0; i<len; i++)
-//		{
-//			char pt = name.charAt(i);
-//			if (pt == '^' || pt == '[' || pt == '(') printWriter.print("^");
-//			printWriter.print(pt);
-//		}
-//	}
+	private String convertString(String str)
+	{
+		StringBuffer infstr = new StringBuffer();
+		int len = str.length();
+		for(int i=0; i<len; i++)
+		{
+			char ch = str.charAt(i);
+			if (ch == '"' || ch == '^')
+				infstr.append('^');
+			infstr.append(ch);
+		}
+		return infstr.toString();
+	}
 }
