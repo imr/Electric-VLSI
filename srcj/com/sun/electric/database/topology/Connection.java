@@ -19,9 +19,6 @@ import java.util.HashMap;
  * discover connectivity. */
 public class Connection extends ElectricObject
 {
-//	/** The Connection class */									public static Class CLASS      = (new Connection()).getClass();
-//	/** The Connection[] class */								public static Class ARRAYCLASS = (new Connection[0]).getClass();
-
 	// ------------------------- private data --------------------------------
 //	private static final JNetwork NO_SUBNET = new JNetwork(null);
 

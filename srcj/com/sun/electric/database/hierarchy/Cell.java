@@ -35,9 +35,6 @@ import java.text.DateFormat;
  */
 public class Cell extends NodeProto
 {
-	/** The Cell class */								public static Class CLASS      = (new Cell()).getClass();
-	/** The Cell[] class */								public static Class ARRAYCLASS = (new Cell[0]).getClass();
-
 	// ------------------------- private classes -----------------------------
 
 	private class VersionGroup
@@ -209,8 +206,8 @@ public class Cell extends NodeProto
 //		removeAll(nodes); // kill nodes
 
 		// arcs should have been killed by ditching the nodes
-		error(arcs.size() != 0,
-			"Arcs should have been removed when the nodes were killed");
+		if (arcs.size() != 0)
+			System.out.println("Arcs should have been removed when the nodes were killed");
 
 		super.remove();
 	}
@@ -219,7 +216,8 @@ public class Cell extends NodeProto
 	{
 		if (arcs.contains(a))
 		{
-			error("Cell " + this +" already contains arc " + a);
+			System.out.println("Cell " + this +" already contains arc " + a);
+			return;
 		}
 		arcs.add(a);
 
@@ -231,7 +229,8 @@ public class Cell extends NodeProto
 	{
 		if (!arcs.contains(a))
 		{
-			error("Cell " + this +" doesn't contain arc " + a);
+			System.out.println("Cell " + this +" doesn't contain arc " + a);
+			return;
 		}
 		arcs.remove(a);
 
@@ -247,7 +246,8 @@ public class Cell extends NodeProto
 		// error check
 		if (nodes.contains(ni))
 		{
-			error("Cell " + this +" already contains node inst " + ni);
+			System.out.println("Cell " + this +" already contains node inst " + ni);
+			return;
 		}
 
 		// add the node
@@ -274,7 +274,8 @@ public class Cell extends NodeProto
 	{
 		if (!nodes.contains(ni))
 		{
-			error("Cell " + this +" doesn't contain node inst " + ni);
+			System.out.println("Cell " + this +" doesn't contain node inst " + ni);
+			return;
 		}
 		nodes.remove(ni);
 
@@ -307,15 +308,18 @@ public class Cell extends NodeProto
 				// make sure all connected ports have the same parent
 				if (j == 0)
 					parent = pp.getParent();
-				error(
-					pp.getParent() != parent,
-					"PortProtos in the same connected"
-						+ " list must belong to same NodeProto");
+				if (pp.getParent() != parent)
+				{
+					System.out.println("PortProtos in the same connected" + " list must belong to same NodeProto");
+					return null;
+				}
 
 				// make sure it's not already present
-				error(
-					connPorts.containsKey(pp),
-					"PortProto occurs more than once in the connected Ports lists");
+				if (connPorts.containsKey(pp))
+				{
+					System.out.println("PortProto occurs more than once in the connected Ports lists");
+					return null;
+				}
 
 				connPorts.put(pp, dummyNet);
 			}
@@ -379,9 +383,11 @@ public class Cell extends NodeProto
 		{
 			Export e = (Export) it.next();
 			String expNm = e.getProtoName();
-			error(
-				expNm == null,
-				"Cell.addExportNamesToNet: Export with no name!");
+			if (expNm == null)
+			{
+				System.out.println("Cell.addExportNamesToNet: Export with no name!");
+				return;
+			}
 			e.getNetwork().addName(expNm);
 		}
 	}
@@ -402,12 +408,14 @@ public class Cell extends NodeProto
 				JNetwork subNet =
 					piNew.getPortProto().getEquivalent().getNetwork();
 
-				error(
-					subNet == null && ni.getProto() instanceof Cell,
-					"Cell.mergeNets... : no subNet on Cell: "
+				if (subNet == null && ni.getProto() instanceof Cell)
+				{
+					System.out.println("Cell.mergeNets... : no subNet on Cell: "
 						+ ni.getProto().getProtoName()
 						+ " port: "
 						+ piNew.getPortProto());
+					return;
+				}
 
 				if (subNet != null)
 				{
@@ -640,9 +648,11 @@ public class Cell extends NodeProto
 				String nm = oldInst.getName();
 				if (nm != null)
 					newInst.setName(nm);
-				error(
-					oldToNew.containsKey(oldInst),
-					"oldInst already in oldToNew?!");
+				if (oldToNew.containsKey(oldInst))
+				{
+					System.out.println("oldInst already in oldToNew?!");
+					return null;
+				}
 				oldToNew.put(oldInst, newInst);
 			}
 		}
@@ -652,11 +662,17 @@ public class Cell extends NodeProto
 	private PortInst getNewPortInst(PortInst oldPort, HashMap oldToNew)
 	{
 		NodeInst newInst = (NodeInst) oldToNew.get(oldPort.getNodeInst());
-		error(
-			newInst == null,
-			"no new instance for old instance in oldToNew?!");
+		if (newInst == null)
+		{
+			System.out.println( "no new instance for old instance in oldToNew?!");
+			return null;
+		}
 		String portNm = oldPort.getPortProto().getProtoName();
-		error(portNm == null, "PortProto with no name?");
+		if (portNm == null)
+		{
+			System.out.println("PortProto with no name?");
+			return null;
+		}
 		return newInst.findPortInst(portNm);
 	}
 
@@ -680,7 +696,11 @@ public class Cell extends NodeProto
 		{
 			Export e = (Export) it.next();
 			PortInst newPort = getNewPortInst(e.getPortInst(), oldToNew);
-			error(newPort == null, "can't find new PortInst to export");
+			if (newPort == null)
+			{
+				System.out.println("can't find new PortInst to export");
+				return;
+			}
 			f.newExport(e.getProtoName(), newPort);
 		}
 	}

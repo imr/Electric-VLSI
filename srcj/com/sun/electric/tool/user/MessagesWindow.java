@@ -236,7 +236,7 @@ public class MessagesWindow
 		} else if (cmds[0].equals("read"))
 		{
 			System.out.println("reading test.elib ...");
-			Library lib = Input.ReadLibrary("C:\\DevelE\\Electric\\srcj\\test.elib", Input.ImportType.BINARY);
+			Library lib = Input.ReadLibrary("C:\\DevelE\\Electric\\srcj\\test.elib", null, Input.ImportType.BINARY);
 			if (lib != null)
 			{
 				Cell cell = lib.getCurCell();

@@ -15,9 +15,6 @@ import java.util.Iterator;
  */
 public class Tool extends ElectricObject
 {
-	/** The Tool class */									public static Class CLASS      = (new Tool()).getClass();
-	/** The Tool[] class */									public static Class ARRAYCLASS = (new Tool[0]).getClass();
-
 	// The name of this tool
 	private String toolName;
 	private int toolState;

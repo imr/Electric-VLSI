@@ -44,6 +44,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.Variable;
 
 import java.awt.Point;
 import java.awt.geom.Point2D;
@@ -551,7 +552,7 @@ public class TecArtwork extends Technology
 	 * Routine to convert the "count" spline control points in "points" that are centered at (cx,cy)
 	 * to a line approximation in "poly".  Uses "steps" lines per spline segment.
 	 */
-	Point2D.Double []  fillSpline(double cX, double cY, Integer [] tracePoints)
+	Point2D.Double [] fillSpline(double cX, double cY, Integer [] tracePoints)
 	{
 		int steps = SPLINEGRAIN;
 		int count = tracePoints.length / 2;
@@ -641,7 +642,7 @@ public class TecArtwork extends Technology
 	void getGraphics(ElectricObject obj)
 	{
 		// get the color information
-		ElectricObject.Variable var = obj.getVal("ART_color", ElectricObject.INTEGERCLASS);
+		Variable var = obj.getVal("ART_color", Integer.class);
 		EGraphics graphics = G_lay.getGraphics();
 		if (var == null)
 		{

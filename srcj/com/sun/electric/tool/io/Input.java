@@ -50,7 +50,7 @@ public class Input
 
 	public boolean ReadLib() { return true; }
 
-	public static Library ReadLibrary(String fileName, ImportType type)
+	public static Library ReadLibrary(String fileName, Library lib, ImportType type)
 	{
 		Input in;
 
@@ -61,7 +61,9 @@ public class Input
 			return null;
 		}
 		in.filePath = fileName;
-		in.lib = Library.newInstance(fileName, fileName);
+		if (lib == null)
+			lib = Library.newInstance(fileName, fileName);
+		in.lib = lib;
 		try
 		{
 			in.fileInputStream = new FileInputStream(fileName);

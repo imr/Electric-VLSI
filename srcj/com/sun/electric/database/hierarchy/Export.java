@@ -18,9 +18,6 @@ import java.awt.geom.AffineTransform;
  */
 public class Export extends PortProto
 {
-	/** The Export class */									public static Class CLASS      = (new Export()).getClass();
-	/** The Export[] class */								public static Class ARRAYCLASS = (new Export[0]).getClass();
-
 	// -------------------------- private data ---------------------------
 	/** the PortProto that the exported port belongs to */	private PortInst originalPort;
 	/** the NodeInst that the exported port belongs to */	private NodeInst originalNode;

@@ -2,6 +2,7 @@ package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.Variable;
 
 /**
  * VarContext represents a hierarchical path of NodeInsts.  Its
@@ -95,7 +96,7 @@ public class VarContext
 		if (ni == null)
 			return def;
 
-		ElectricObject.Variable val = ni.getVal(name);
+		Variable val = ni.getVal(name);
 		return val == null ? def : val.getObject();
 	}
 
@@ -113,7 +114,7 @@ public class VarContext
 		VarContext scan = this;
 		while (scan != null && ni != null)
 		{
-			ElectricObject.Variable val = ni.getVal(name);
+			Variable val = ni.getVal(name);
 			if (val != null)
 				return val.getObject();
 			scan = scan.prev;

@@ -22,9 +22,6 @@ import java.awt.geom.AffineTransform;
  */
 public class Geometric extends ElectricObject
 {
-	/** The Geometric class */									public static Class CLASS      = (new Geometric()).getClass();
-	/** The Geometric[] class */								public static Class ARRAYCLASS = (new Geometric[0]).getClass();
-
 	// ------------------------------- private data ------------------------------
 
 	// The internal representation of position and orientation is the

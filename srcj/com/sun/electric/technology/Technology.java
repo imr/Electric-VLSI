@@ -28,9 +28,6 @@ import java.awt.geom.Rectangle2D;
  */
 public class Technology extends ElectricObject
 {
-//	/** The Technology class */											public static Class CLASS      = (new Technology()).getClass();
-//	/** The Technology[] class */										public static Class ARRAYCLASS = (new Technology[0]).getClass();
-
 	/** technology is not electrical */									private static final int NONELECTRICAL =       01;
 	/** has no directional arcs */										private static final int NODIRECTIONALARCS =   02;
 	/**  has no negated arcs */											private static final int NONEGATEDARCS =       04;

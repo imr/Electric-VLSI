@@ -218,7 +218,7 @@ public abstract class NodeProto extends ElectricObject
 	{
 		if (networks.contains(n))
 		{
-			error("Cell " + this +" already contains network " + n);
+			System.out.println("Cell " + this +" already contains network " + n);
 		}
 		networks.add(n);
 	}
@@ -228,7 +228,7 @@ public abstract class NodeProto extends ElectricObject
 	{
 		if (!networks.contains(n))
 		{
-			error("Cell " + this +" doesn't contain network " + n);
+			System.out.println("Cell " + this +" doesn't contain network " + n);
 		}
 		networks.remove(n);
 	}

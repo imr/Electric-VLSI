@@ -19,9 +19,6 @@ import java.util.Iterator;
  */
 public class Library extends ElectricObject
 {
-	/** The Library class */								public static Class CLASS      = (new Library()).getClass();
-	/** The Library[] class */								public static Class ARRAYCLASS = (new Library[0]).getClass();
-
 	// ------------------------ private data ------------------------------
 
 	/** library has changed significantly */				private static final int LIBCHANGEDMAJOR =           01;
@@ -85,7 +82,8 @@ public class Library extends ElectricObject
 		// sanity check: make sure Cell isn't already in the list
 		if (cells.contains(c))
 		{
-			error("Tried to re-add a cell to a library: " + c);
+			System.out.println("Tried to re-add a cell to a library: " + c);
+			return;
 		}
 		cells.add(c);
 	}
@@ -95,7 +93,8 @@ public class Library extends ElectricObject
 		// sanity check: make sure Cell is in the list
 		if (!cells.contains(c))
 		{
-			error("Tried to remove a non-existant Cell from a library: " + c);
+			System.out.println("Tried to remove a non-existant Cell from a library: " + c);
+			return;
 		}
 		cells.remove(c);
 	}
@@ -147,7 +146,7 @@ public class Library extends ElectricObject
 		// make sure it is in the list of libraries
 		if (!libraries.contains(this))
 		{
-			error("Cannot delete library " + this);
+			System.out.println("Cannot delete library " + this);
 			return;
 		}
 

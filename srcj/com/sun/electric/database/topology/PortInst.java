@@ -16,9 +16,6 @@ import java.util.Iterator;
  * that the PortInst objects simplify client programs considerably. */
 public class PortInst
 {
-	/** The PortInst class */								public static Class CLASS      = (new PortInst()).getClass();
-	/** The PortInst[] class */								public static Class ARRAYCLASS = (new PortInst[0]).getClass();
-
 	// ------------------------ private data ------------------------
 
 	private NodeInst nodeInst;

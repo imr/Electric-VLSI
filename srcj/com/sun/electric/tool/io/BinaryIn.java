@@ -14,6 +14,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
@@ -21,6 +22,7 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.tool.Tool;
 
 import java.io.IOException;
+import java.io.File;
 import java.util.Iterator;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -306,7 +308,7 @@ public class BinaryIn extends Input
 		arcCounts = new int[nodeProtoCount];
 		firstArcIndex = new int[nodeProtoCount+1];
 		portCounts = new int[nodeProtoCount];
-		firstPortIndex = new int[nodeProtoCount+1];
+		firstPortIndex = new int[nodeProtoCount];
 
 		// allocate pointers for the NodeInsts
 		nodeList = new NodeInst[nodeCount];
@@ -695,9 +697,6 @@ public class BinaryIn extends Input
 //				lambda = muldiv(j, den, num);
 //			}
 
-			// if this is to be the current library, adjust technologies
-//			if (lib == el_curlib)
-//				changetechnologylambda(tech, lambda);
 			int index = tech.getIndex();
 			techScale[index] = lambda;
 		}
@@ -794,14 +793,13 @@ public class BinaryIn extends Input
 			if (cell == null) continue;
 			if (readNodeProto(cell, i)) return true;
 		}
-		firstPortIndex[nodeProtoCount] = portProtoCount;
 
 		// add in external cells
 		for(int i=0; i<nodeProtoCount; i++)
 		{
 			Cell cell = nodeProtoList[i];
 			if (cell != null) continue;
-//			readExternalNodeProto(lib, i);
+			readExternalNodeProto(lib, i);
 		}
 
 		// now that external cells are resolved, fix all variables that may have used them
@@ -1008,7 +1006,7 @@ public class BinaryIn extends Input
 
 		// finish initializing the Exports in the cell
 		int startPort = firstPortIndex[cellIndex];
-		int endPort = firstPortIndex[cellIndex+1];
+		int endPort = startPort + portCounts[cellIndex];
 		for(int i=startPort; i<endPort; i++)
 		{
 			Export pp = portProtoList[i];
@@ -1169,6 +1167,8 @@ public class BinaryIn extends Input
 		// read the portprotos on this nodeproto
 		firstPortIndex[cellIndex] = portProtoCount;
 		int portCount = readBigInteger();
+		if (portCount != portCounts[cellIndex])
+			System.out.println("Error! Cell header lists " + portCounts[cellIndex] + " exports, but body lists " + portCount);
 		for(int j=0; j<portCount; j++)
 		{
 			// set pointers to portproto
@@ -1278,6 +1278,268 @@ public class BinaryIn extends Input
 
 		// cell read successfully
 		return false;
+	}
+
+	/** routine to read node prototype for external references */
+	void readExternalNodeProto(Library lib, int cellIndex)
+		throws IOException
+	{
+		// read the cell information (version 9 and later)
+		String theProtoName;
+		if (magic >= MAGIC11)
+		{
+			// only versions 9 to 11
+			int k = readBigInteger();
+			theProtoName = fakeCellList[k].cellName;
+		} else
+		{
+			// version 12 or later
+			theProtoName = readString();
+			int k = readBigInteger();
+//			cell->nextcellgrp = nodeProtoList[k];
+			k = readBigInteger();
+//			cell->nextcont = nodeProtoList[k];
+		}
+		View v = getView(readBigInteger());
+		if (v == null) v = View.UNKNOWN;
+		int version = readBigInteger();
+		theProtoName += ";" + version + "{" + v.getShortName() + "}";
+		int creationDate = readBigInteger();
+		int revisionDate = readBigInteger();
+//		cell.lowLevelSetCreationDate(fromElectricDate(creationDate));
+//		cell.lowLevelSetRevisionDate(fromElectricDate(revisionDate));
+
+		// read the nodeproto bounding box
+		int lowX = readBigInteger();
+		int highX = readBigInteger();
+		int lowY = readBigInteger();
+		int highY = readBigInteger();
+
+		// get the path to the library file
+		File libFile = new File(readString());
+
+		// see if this library is already read in
+		String libFileName = libFile.getName();
+		String libFilePath = libFile.getParent();
+		ImportType importType = ImportType.BINARY;
+		String libName = libFileName;
+		if (libName.endsWith(".elib"))
+		{
+			libName = libName.substring(0, libName.length()-5);
+		} else if (libName.endsWith(".txt"))
+		{
+			libName = libName.substring(0, libName.length()-4);
+			importType = ImportType.TEXT;
+		}
+		Library elib = Library.findLibrary(libName);
+		if (elib == null)
+		{
+			// library does not exist: see if file is there
+			String externalFile = null;
+//			io = xopen(libfilename, filetype, io_mainlibdirectory, &filename);
+//			if (io == 0)
+			{
+				// try the path specified in the reference
+				if (libFile.exists()) externalFile = libFile.getPath(); else
+				{
+//					// try the library area
+//					io = xopen(libfilename, filetype, el_libdir, &filename);
+				}
+			}
+			if (externalFile != null)
+			{
+				System.out.println("Reading referenced library " + externalFile);
+			} else
+			{
+				System.out.println("CANNOT FIND referenced library " + libFile.getPath());
+//				infstr = initinfstr();
+//				formatinfstr(infstr, _("Reference library '%s'"), libname);
+//				pt = fileselect(returninfstr(infstr), filetype, x_(""));
+//				if (pt != 0) filename = pt;
+			}
+			elib = Library.newInstance(libName, externalFile);
+			if (elib == null) return;
+
+			// read the external library
+//			if (io_verbose < 0 && filelength > 0 && io_inputprogressdialog != 0)
+//			{
+//				(void)allocstring(&oldline2, DiaGetTextProgress(io_inputprogressdialog), el_tempcluster);
+//			}
+
+//			len = estrlen(elib->libfile);
+//			if (len > 4 && namesame(&elib->libfile[len-4], x_(".txt")) == 0)
+//			{
+//				// ends in ".txt", presume text file
+//				failed = io_doreadtextlibrary(elib, FALSE);
+//			} else
+			{
+				// all other endings: presume binary file
+				elib = ReadLibrary(externalFile, elib, importType);
+			}
+//			if (failed) elib->userbits |= UNWANTEDLIB; else
+//			{
+//				// queue this library for announcement through change control
+//				io_queuereadlibraryannouncement(elib);
+//			}
+//			if (io_verbose < 0 && filelength > 0 && io_inputprogressdialog != 0)
+//			{
+//				DiaSetProgress(io_inputprogressdialog, bytecount, filelength);
+//				infstr = initinfstr();
+//				formatinfstr(infstr, _("Reading library %s"), lib->libname);
+//				DiaSetCaptionProgress(io_inputprogressdialog, returninfstr(infstr));
+//				DiaSetTextProgress(io_inputprogressdialog, oldline2);
+//				efree(oldline2);
+//			}
+		}
+
+		// read the portproto names on this nodeproto
+		int portCount = readBigInteger();
+		String [] localPortNames = new String[portCount];
+		for(int j=0; j<portCount; j++)
+			localPortNames[j] = readString();
+
+		// find this cell in the external library
+		Cell npDummy = null;
+		String dummyCellName = null;
+		for(int index=0; ; index++)
+		{
+			dummyCellName = theProtoName + "FROM" + elib.getLibName();
+			if (index > 0) dummyCellName += "." + index;
+			if (lib.findNodeProto(dummyCellName) == null) break;
+		}
+		Cell c = lib.findNodeProto(theProtoName);
+		if (c == null)
+		{
+			// cell not found in library: issue warning
+			System.out.println("Cannot find cell " + theProtoName + " in library " + elib.getLibName());
+		}
+
+		// if cell found, check that size is unchanged
+		if (c != null)
+		{
+//			if (np->lowx != lowx || np->highx != highx ||
+//				np->lowy != lowy || np->highy != highy)
+//			{
+//				ttyputerr(_("Error: cell %s in library %s has changed size since its use in library %s"),
+//					nldescribenodeproto(np), elib->libname, lib->libname);
+//				np = NONODEPROTO;
+//			}
+		}
+
+		// if cell found, check that ports match
+		if (c != null)
+		{
+//			for(pp = np->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
+//				pp->temp1 = 0;
+//			for(j=0; j<portCount; j++)
+//			{
+//				protoname = localPortNames[j];
+//				for(pp = np->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
+//					if (namesame(protoname, pp->protoname) == 0) break;
+//				if (pp == NOPORTPROTO)
+//				{
+//					ttyputerr(_("Error: cell %s in library %s must have port %s"),
+//						describenodeproto(np), elib->libname, protoname);
+//					np = NONODEPROTO;
+//					break;
+//				}
+//				pp->temp1 = 1;
+//			}
+		}
+
+		// if cell found, warn if minor modification was made
+		if (c != null)
+		{
+//			if (np->revisiondate != revision)
+//			{
+//				ttyputerr(_("Warning: cell %s in library %s has changed since its use in library %s"),
+//					describenodeproto(np), elib->libname, lib->libname);
+//			}
+		}
+
+		// make new cell if needed
+		boolean newCell = false;
+		if (c == null)
+		{
+//			// create a cell that meets these specs
+//			newCell = true;
+//			ttyputerr(_("...Creating dummy version of cell in library %s"), lib->libname);
+//			np = allocnodeproto(lib->cluster);
+//			if (np == NONODEPROTO) return;
+//			np->primindex = 0;
+//			np->lowx = lowx;
+//			np->highx = highx;
+//			np->lowy = lowy;
+//			np->highy = highy;
+//			np->firstinst = NONODEINST;
+//			np->firstnodeinst = NONODEINST;
+//			np->firstarcinst = NOARCINST;
+//			np->tech = NOTECHNOLOGY;
+//			np->lib = lib;
+//			np->firstportproto = NOPORTPROTO;
+//			np->adirty = 0;
+//			np->cellview = v;
+//			np->creationdate = creation;
+//			np->revisiondate = revision;
+//			setval((INTBIG)np, VNODEPROTO, x_("IO_true_library"), (INTBIG)elib->libname, VSTRING);
+//
+//			// rename cell
+//			(void)reallocstring(&np->protoname, dummycellname, lib->cluster);
+//
+//			// determine version number of this cell
+//			np->version = 1;
+//			FOR_CELLGROUP(onp, np)
+//			{
+//				if (onp->cellview == v && namesame(onp->protoname, np->protoname) == 0 &&
+//					onp->version >= np->version)
+//						np->version = onp->version + 1;
+//			}
+//
+//			// insert in the library and cell structures
+//			if (i != 0)		// why not always?
+//			{
+//				db_insertnodeproto(np);
+//			}
+//
+//			// create initial R-tree data
+//			if (geomstructure(np)) return;
+//
+//			// create an artwork "Crossed box" to define the cell size
+//			ni = allocnodeinst(lib->cluster);
+//			ni->proto = art_crossedboxprim;
+//			ni->parent = np;
+//			ni->nextnodeinst = np->firstnodeinst;
+//			np->firstnodeinst = ni;
+//			ni->lowx = lowx;   ni->highx = highx;
+//			ni->lowy = lowy;   ni->highy = highy;
+//			ni->geom = allocgeom(lib->cluster);
+//			ni->geom->entryisnode = TRUE;   ni->geom->entryaddr.ni = ni;
+//			linkgeom(ni->geom, np);
+		}
+		nodeProtoList[cellIndex] = c;
+
+		// read the portprotos on this Cell
+		firstPortIndex[cellIndex] = portProtoCount;
+		if (portCount != portCounts[cellIndex])
+			System.out.println("Error! Cell header lists " + portCounts[cellIndex] + " exports, but body lists " + portCount);
+		for(int j=0; j<portCount; j++)
+		{
+			// read the portproto name
+			String protoName = localPortNames[j];
+			Export pp = c.findExport(protoName);
+			if (pp == null)
+			{
+//				if (newcell == 0)
+//					ttyputerr(_("Cannot find port %s on cell %s in library %s"), 
+//						protoname, describenodeproto(np), elib->libname);
+//				pp = allocportproto(lib->cluster);
+//				(void)allocstring(&pp->protoname, protoname, lib->cluster);
+//				pp->parent = np;
+//				pp->temp2 = 0;
+			}
+			portProtoList[portProtoCount] = pp;
+			portProtoCount++;
+		}
 	}
 
 	/**
@@ -1661,7 +1923,7 @@ public class BinaryIn extends Input
 			if (!invalid)
 			{
 //				nextChangeQuiet();
-				ElectricObject.Variable var = obj.setVal(realName[key], newAddr);
+				Variable var = obj.setVal(realName[key], newAddr);
 				if (var == null) return(-1);
 				var.getTextDescriptor().lowLevelSet(descript0, descript1);
 				var.lowLevelSetFlags(newtype);
@@ -1708,19 +1970,19 @@ public class BinaryIn extends Input
 //				for(j=0; j<len; j++)
 //				{
 //					np = nparray[j];
-//					if ((INTBIG)np >= 0 && (INTBIG)np < io_binindata.nodeprotoindex)
+//					if ((INTBIG)np >= 0 && (INTBIG)np < nodeprotoindex)
 //					{
 //						k = (INTBIG)np;
-//						nparray[j] = io_binindata.nodeprotolist[k];
+//						nparray[j] = nodeprotolist[k];
 //					}
 //				}
 //			} else
 //			{
 //				np = (NODEPROTO *)var->addr;
-//				if ((INTBIG)np >= 0 && (INTBIG)np < io_binindata.nodeprotoindex)
+//				if ((INTBIG)np >= 0 && (INTBIG)np < nodeprotoindex)
 //				{
 //					k = (INTBIG)np;
-//					var->addr = (INTBIG)io_binindata.nodeprotolist[k];
+//					var->addr = (INTBIG)nodeprotolist[k];
 //				}
 //			}
 //		}

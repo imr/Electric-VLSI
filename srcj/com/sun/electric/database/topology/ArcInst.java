@@ -6,6 +6,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitivePort;
 
@@ -22,9 +23,6 @@ import java.awt.geom.Rectangle2D;
  */
 public class ArcInst extends Geometric /*implements Networkable*/
 {
-	/** The ArcInst class */								public static Class CLASS      = (new ArcInst()).getClass();
-	/** The ArcInst[] class */								public static Class ARRAYCLASS = (new ArcInst[0]).getClass();
-
 	// -------------------------- private data ----------------------------------
 
 	/** fixed-length arc */								private static final int FIXED =                     01;
@@ -382,7 +380,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 
 	public String getName()
 	{
-		Variable var = getVal(VAR_ARC_NAME, ElectricObject.STRINGCLASS);
+		Variable var = getVal(VAR_ARC_NAME, String.class);
 		if (var == null) return null;
 		return (String) var.getObject();
 	}

@@ -9,6 +9,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.Variable;
 
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -28,9 +29,6 @@ import java.util.Iterator;
  */
 public class NodeInst extends Geometric
 {
-	/** The NodeInst class */								public static Class CLASS      = (new NodeInst()).getClass();
-	/** The NodeInst[] class */								public static Class ARRAYCLASS = (new NodeInst[0]).getClass();
-
 	// -------------------------- constants --------------------------------
 //	/** node is not in use */								private static final int DEADN =                     01;
 	/** node has text that is far away */					private static final int NHASFARTEXT =               02;
@@ -270,11 +268,7 @@ public class NodeInst extends Geometric
 			String portNm = e.getPortInst().getPortProto().getProtoName();
 //			e.delete();
 			PortInst newPort = newInst.findPortInst(portNm);
-			error(
-				newPort == null,
-				"NodeInst.moveExports: can't find port: "
-					+ portNm
-					+ " on new inst");
+			if (newPort == null) System.out.println("NodeInst.moveExports: can't find port: " + portNm + " on new inst");
 			parent.newExport(expNm, newPort);
 		}
 	}
@@ -419,7 +413,7 @@ public class NodeInst extends Geometric
 	public PortInst getOnlyPortInst()
 	{
 		int sz = portMap.size();
-		error(sz != 1, "NodeInst.getOnlyPort: there isn't exactly one port: " + sz);
+		if (sz != 1) System.out.println("NodeInst.getOnlyPort: there isn't exactly one port: " + sz);
 		return (PortInst) portMap.values().iterator().next();
 	}
 
@@ -432,7 +426,7 @@ public class NodeInst extends Geometric
 	
 	public Integer [] getTrace()
 	{
-		ElectricObject.Variable var = this.getVal("trace", ElectricObject.INTEGERARRAYCLASS);
+		Variable var = this.getVal("trace", Integer[].class);
 		if (var == null) return null;
 		Object obj = var.getObject();
 		if (obj instanceof Object[]) return (Integer []) obj;
@@ -509,7 +503,7 @@ public class NodeInst extends Geometric
 	/** Return the instance name. <p> If there is no name return null. */
 	public String getName()
 	{
-		Variable var = getVal(VAR_INST_NAME, ElectricObject.STRINGCLASS);
+		Variable var = getVal(VAR_INST_NAME, String.class);
 		if (var == null) return null;
 		return (String) var.getObject();
 	}

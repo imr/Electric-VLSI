@@ -13,9 +13,6 @@ import java.util.Iterator;
  */
 public class View extends ElectricObject
 {
-	/** The View class */									public static Class CLASS      = (new View()).getClass();
-	/** The View[] class */									public static Class ARRAYCLASS = (new View[0]).getClass();
-
 	// -------------------------- private data -----------------------------
 
 	/** view contains only text */							private final static int TEXTVIEW       = 01;	
