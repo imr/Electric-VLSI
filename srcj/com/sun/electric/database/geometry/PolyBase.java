@@ -32,7 +32,6 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.Main;
 
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -1517,13 +1516,13 @@ public class PolyBase implements Shape
      * @param area  Java2D structure containing the geometrical information
      * @param layer
      * @param simple if true, polygons with inner loops will return in sample Poly.
+     * @param includeLastPoint
      * @return List of PolyBase elements
      */
-	public static List getPointsInArea(Area area, Layer layer, boolean simple, List polyList)
+	public static List getPointsInArea(Area area, Layer layer, boolean simple, boolean includeLastPoint, List polyList)
 	{
 		if (area == null) return null;
 
-		//List polyList = new ArrayList();
         if (polyList == null) polyList = new ArrayList();
 		double [] coords = new double[6];
 		List pointList = new ArrayList();
@@ -1537,7 +1536,7 @@ public class PolyBase implements Shape
 			int type = pIt.currentSegment(coords);
 			if (type == PathIterator.SEG_CLOSE)
 			{
-				if (lastMoveTo != null) pointList.add(lastMoveTo);
+				if (includeLastPoint && lastMoveTo != null) pointList.add(lastMoveTo);
 				Point2D [] points = new Point2D[pointList.size()];
 				int i = 0;
 				for(Iterator it = pointList.iterator(); it.hasNext(); )

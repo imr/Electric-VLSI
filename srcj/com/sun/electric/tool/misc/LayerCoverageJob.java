@@ -25,9 +25,7 @@
 
 package com.sun.electric.tool.misc;
 
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.PolyQTree;
-import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -58,20 +56,20 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class LayerCoverageJob extends Job
 {
 	private Cell curCell;
 	private boolean testCase;
-	private PolyQTree tree; // = new PolyQTree(curCell.getBounds());
+    private int mode;
+	private GeometryHandler tree; // = new PolyQTree(curCell.getBounds());
 	public final static int AREA = 0;   // function Layer Coverage
 	public final static int MERGE = 1;  // Generic merge polygons function
 	public final static int IMPLANT = 2; // Coverage implants
 	public final static int NETWORK = 3; // List Geometry on Network function
 	private final int function;
-	private java.util.List deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
+	private List deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
 	private HashMap originalPolygons = new HashMap(); // Storing initial nodes
 	private Highlighter highlighter; // To highlight new implants
 	private GeometryOnNetwork geoms;  // Valid only for network job
@@ -81,7 +79,7 @@ public class LayerCoverageJob extends Job
 	    double lambda = 1; // lambdaofcell(np);
 	    GeometryOnNetwork geoms = new GeometryOnNetwork(cell, nets, lambda, printable);
 
-		Job job = new LayerCoverageJob(Job.Type.EXAMINE, cell, NETWORK, false, null, geoms);
+		Job job = new LayerCoverageJob(Job.Type.EXAMINE, cell, NETWORK, false, GeometryHandler.ALGO_QTREE, null, geoms);
         job.startJob();
 	    return geoms;
 
@@ -93,7 +91,7 @@ public class LayerCoverageJob extends Job
         double lambda = 1; // lambdaofcell(np);
         GeometryOnNetwork geoms = new GeometryOnNetwork(cell, nets, lambda, printable);
 
-        Job job = new LayerCoverageJob(Job.Type.EXAMINE, cell, NETWORK, false, null, geoms);
+        Job job = new LayerCoverageJob(Job.Type.EXAMINE, cell, NETWORK, false, GeometryHandler.ALGO_QTREE, null, geoms);
         job.doIt();
         return geoms;
     }
@@ -101,7 +99,8 @@ public class LayerCoverageJob extends Job
 	public static class LayerVisitor extends HierarchyEnumerator.Visitor
 	{
 		private boolean testCase;
-		private PolyQTree tree;
+		private GeometryHandler tree;
+        private int mode;
 		private List deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
 		private final int function;
 		private HashMap originalPolygons;
@@ -126,7 +125,7 @@ public class LayerCoverageJob extends Job
 			}
 		}
 
-		public LayerVisitor(boolean test, PolyQTree t, java.util.List delList, int func, HashMap original, Set netSet)
+		public LayerVisitor(boolean test, GeometryHandler t, List delList, int func, HashMap original, Set netSet)
 		{
 			this.testCase = test;
 			this.tree = t;
@@ -134,9 +133,18 @@ public class LayerCoverageJob extends Job
 			this.function = func;
 			this.originalPolygons = original;
 			this.netSet = netSet;
+
+            if (t instanceof PolySweepMerge)
+                mode = GeometryHandler.ALGO_SWEEP;
+            else if (t instanceof PolyMerge)
+               mode = GeometryHandler.ALGO_MERGE;
+            else
+               mode = GeometryHandler.ALGO_QTREE;
 		}
 		public void exitCell(HierarchyEnumerator.CellInfo info)
 		{
+            if (mode == GeometryHandler.ALGO_SWEEP)
+                ((PolySweepMerge)tree).postProcess();
 		}
 
 		public boolean enterCell(HierarchyEnumerator.CellInfo info)
@@ -201,10 +209,12 @@ public class LayerCoverageJob extends Job
                     // If points are not rounded, in IMPLANT map.containsValue() might not work
                     poly.roundPoints();
 
-                    PolyQTree.PolyNode pnode = new PolyQTree.PolyNode(poly);
-
                     storeOriginalPolygons(layer, poly);
-					//if (layer.getName().equals("Metal-1"))
+                    Object pnode = poly;
+
+                    if (mode == GeometryHandler.ALGO_QTREE)
+                        pnode = new PolyQTree.PolyNode(poly);
+
 					tree.add(layer, pnode, /*false*/function==NETWORK);  // tmp fix
 				}
 			}
@@ -290,22 +300,37 @@ public class LayerCoverageJob extends Job
                 // If points are not rounded, in IMPLANT map.containsValue() might not work
                 poly.roundPoints();
 
-				PolyQTree.PolyNode pnode = new PolyQTree.PolyNode(poly);
-
                 storeOriginalPolygons(layer, poly);
+                Object pnode = poly;
 
-				//if (layer.getName().equals("Metal-1"))
+                if (mode == GeometryHandler.ALGO_QTREE)
+                    pnode = new PolyQTree.PolyNode(poly);
+
 				tree.add(layer, pnode, /*false*/function==NETWORK);
 			}
 			return (true);
 		}
 	}
 
-	public LayerCoverageJob(Type jobType, Cell cell, int func, boolean test, Highlighter highlighter, GeometryOnNetwork geoms)
+	public LayerCoverageJob(Type jobType, Cell cell, int func, boolean test, int mode, Highlighter highlighter, GeometryOnNetwork geoms)
 	{
 		super("Layer Coverage", User.tool, jobType, null, null, Priority.USER);
 		this.curCell = cell;
 		this.testCase = test;
+        this.mode = mode;
+        switch (mode)
+        {
+            case GeometryHandler.ALGO_MERGE:
+                this.tree = new PolyMerge();
+                break;
+            case GeometryHandler.ALGO_QTREE:
+                this.tree = new PolyQTree(curCell.getBounds());
+                break;
+            case GeometryHandler.ALGO_SWEEP:
+                this.tree = new PolySweepMerge();
+                break;
+        }
+        if (mode == GeometryHandler.ALGO_MERGE)
 		this.tree = new PolyQTree(curCell.getBounds());
 		this.function = func;
 		this.deleteList = new ArrayList(); // should only be used by IMPLANT
@@ -318,8 +343,8 @@ public class LayerCoverageJob extends Job
 	public boolean doIt()
 	{
 		// enumerate the hierarchy below here
-		LayerVisitor visitor = new LayerVisitor(testCase, tree, deleteList, function, originalPolygons,
-                (geoms != null) ? (geoms.nets) : null);
+		LayerVisitor visitor = new LayerVisitor(testCase, tree, deleteList, function,
+                originalPolygons, (geoms != null) ? (geoms.nets) : null);
 		HierarchyEnumerator.enumerateCell(curCell, VarContext.globalContext, null, visitor);
 
 		switch (function)
@@ -357,6 +382,9 @@ public class LayerCoverageJob extends Job
 					if (highlighter != null) highlighter.clear();
 					boolean noNewNodes = true;
 					boolean isMerge = (function == MERGE);
+                    Rectangle2D rect;
+                    PolyBase polyB = null;
+                    Point2D [] points;
 
 					// Need to detect if geometry was really modified
 					for(Iterator it = tree.getKeyIterator(); it.hasNext(); )
@@ -368,15 +396,30 @@ public class LayerCoverageJob extends Job
 						// Ready to create new implants.
 						for (Iterator i = set.iterator(); i.hasNext(); )
 						{
-							PolyQTree.PolyNode qNode = (PolyQTree.PolyNode)i.next();
+                            if (mode == GeometryHandler.ALGO_QTREE)
+                            {
+                                PolyQTree.PolyNode qNode = (PolyQTree.PolyNode)i.next();
+                                points = qNode.getPoints(false);
 
-							// One of the original elements
-							if (polySet != null)
+                                // One of the original elements
+                                if (polySet != null)
+                                {
+                                    polyB = new PolyBase(points);
+                                    polyB.roundPoints();
+                                }
+                                rect = qNode.getBounds2D();
+                            }
+                            else
+                            {
+                                polyB = (PolyBase)i.next();
+                                points = polyB.getPoints();
+                                rect = polyB.getBounds2D();
+                            }
+
+                            // One of the original elements
+                            if (polySet != null)
                             {
                                 Object[] array = polySet.toArray();
-                                Point2D[] pts = qNode.getPoints(false);
-                                PolyBase polyB = new PolyBase(pts);
-                                polyB.roundPoints();
                                 boolean foundOrigPoly = false;
                                 for (int j = 0; j < array.length; j++)
                                 {
@@ -388,7 +431,6 @@ public class LayerCoverageJob extends Job
                                     continue;
                             }
 
-							Rectangle2D rect = qNode.getBounds2D();
 							Point2D center = new Point2D.Double(rect.getCenterX(), rect.getCenterY());
 							PrimitiveNode priNode = layer.getPureLayerNode();
 							// Adding the new implant. New implant not assigned to any local variable                                .
@@ -398,7 +440,6 @@ public class LayerCoverageJob extends Job
 
 							if (isMerge)
 							{
-								Point2D [] points = qNode.getPoints(true);
 								node.newVar(NodeInst.TRACE, points);
 							}
 							else
@@ -437,9 +478,18 @@ public class LayerCoverageJob extends Job
 						// Get all objects and sum the area
 						for (Iterator i = set.iterator(); i.hasNext(); )
 						{
-							PolyQTree.PolyNode area = (PolyQTree.PolyNode)i.next();
-							layerArea += area.getArea();
-							perimeter += area.getPerimeter();
+                            if (mode == GeometryHandler.ALGO_QTREE)
+                            {
+                                PolyQTree.PolyNode area = (PolyQTree.PolyNode)i.next();
+                                layerArea += area.getArea();
+							    perimeter += area.getPerimeter();
+                            }
+                            else
+                            {
+                                PolyBase poly = (PolyBase)i.next();
+                                layerArea += poly.getArea();
+							    perimeter += poly.getPerimeter();
+                            }
 						}
 						layerArea /= lambda;
 						perimeter /= 2;

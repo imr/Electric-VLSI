@@ -62,9 +62,9 @@ import java.util.List;
  * for each layer, and it returns an array of PolyBases on that layer.
  */
 public class PolyMerge
-        implements GeometryHandler
+        extends GeometryHandler
 {
-	private HashMap allLayers = new HashMap(); // should be more efficient here
+	//private HashMap layers = new HashMap(); // should be more efficient here
 
 	/**
 	 * Method to create a new "merge" object.
@@ -92,11 +92,11 @@ public class PolyMerge
 	 */
 	public void addPolygon(Layer layer, PolyBase poly)
 	{
-		Area area = (Area)allLayers.get(layer);
+		Area area = (Area)layers.get(layer);
 		if (area == null)
 		{
 			area = new Area();
-			allLayers.put(layer, area);
+			layers.put(layer, area);
 		}
 
 		// add "poly" to "area"
@@ -117,7 +117,7 @@ public class PolyMerge
 	 */
 	public void subPolygon(Layer layer, PolyBase poly)
 	{
-		Area area = (Area)allLayers.get(layer);
+		Area area = (Area)layers.get(layer);
 		if (area == null) return;
 		Area subtractArea = new Area(poly);
 		area.subtract(subtractArea);
@@ -141,16 +141,16 @@ public class PolyMerge
 	 */
 	public void addMerge(PolyMerge other, AffineTransform trans)
 	{
-		for(Iterator it = other.allLayers.keySet().iterator(); it.hasNext(); )
+		for(Iterator it = other.layers.keySet().iterator(); it.hasNext(); )
 		{
 			Layer subLayer = (Layer)it.next();
-			Area subArea = (Area)other.allLayers.get(subLayer);
+			Area subArea = (Area)other.layers.get(subLayer);
 
-			Area area = (Area)allLayers.get(subLayer);
+			Area area = (Area)layers.get(subLayer);
 			if (area == null)
 			{
 				area = new Area();
-				allLayers.put(subLayer, area);
+				layers.put(subLayer, area);
 			}
 			Area newArea = subArea.createTransformedArea(trans);
 			area.add(newArea);
@@ -165,7 +165,7 @@ public class PolyMerge
 	 */
 	public boolean intersects(Layer layer, PolyBase poly)
 	{
-		Area layerArea = (Area)allLayers.get(layer);
+		Area layerArea = (Area)layers.get(layer);
 		if (layerArea == null) return false;
 
 		// simple calculation for manhattan polygon
@@ -191,10 +191,10 @@ public class PolyMerge
 	public void intersectLayers(Layer sourceA, Layer sourceB, Layer dest)
 	{
 		Area destArea = null;
-		Area sourceAreaA = (Area)allLayers.get(sourceA);
+		Area sourceAreaA = (Area)layers.get(sourceA);
 		if (sourceAreaA != null)
 		{
-			Area sourceAreaB = (Area)allLayers.get(sourceB);
+			Area sourceAreaB = (Area)layers.get(sourceB);
 			if (sourceAreaB != null)
 			{
 				destArea = new Area(sourceAreaA);
@@ -202,8 +202,8 @@ public class PolyMerge
 				if (destArea.isEmpty()) destArea = null;
 			}
 		}
-		if (destArea == null) allLayers.remove(dest); else
-			allLayers.put(dest, destArea);
+		if (destArea == null) layers.remove(dest); else
+			layers.put(dest, destArea);
 	}
 
 	/**
@@ -214,10 +214,10 @@ public class PolyMerge
 	 */
 	public void insetLayer(Layer source, Layer dest, double amount)
 	{
-		Area sourceArea = (Area)allLayers.get(source);
-		if (sourceArea == null) allLayers.remove(dest); else
+		Area sourceArea = (Area)layers.get(source);
+		if (sourceArea == null) layers.remove(dest); else
 		{
-			allLayers.put(dest, sourceArea.clone());
+			layers.put(dest, sourceArea.clone());
 			if (amount == 0) return;
 			List orig = getAreaPoints(sourceArea, source, true);
 			Point2D [] subtractPoints = new Point2D[4];
@@ -255,7 +255,7 @@ public class PolyMerge
 	 */
 	public void deleteLayer(Layer layer)
 	{
-		allLayers.remove(layer);
+		layers.remove(layer);
 	}
 
 	/**
@@ -266,7 +266,7 @@ public class PolyMerge
 	 */
 	public boolean contains(Layer layer, Rectangle2D rect)
 	{
-		Area area = (Area)allLayers.get(layer);
+		Area area = (Area)layers.get(layer);
 		if (area == null) return false;
 		return area.contains(rect);
 	}
@@ -280,7 +280,7 @@ public class PolyMerge
 	public boolean contains(Layer layer, PolyBase poly)
 	{
 		// find the area for the given layer
-		Area area = (Area)allLayers.get(layer);
+		Area area = (Area)layers.get(layer);
 		if (area == null) return false;
 
 		// create an area that is the new polygon minus the original area
@@ -314,7 +314,7 @@ public class PolyMerge
 	 */
 	public boolean contains(Layer layer, Point2D pt)
 	{
-		Area area = (Area)allLayers.get(layer);
+		Area area = (Area)layers.get(layer);
 		if (area == null) return false;
 		return area.contains(pt);
 	}
@@ -325,7 +325,16 @@ public class PolyMerge
 	 */
 	public Iterator getKeyIterator()
 	{
-		return allLayers.keySet().iterator();
+		return layers.keySet().iterator();
+	}
+
+    /**
+     * Access to keySet to create a collection for example.
+     * @return
+     */
+	public Collection getKeySet()
+	{
+		return (layers.keySet());
 	}
 
 	public Collection getObjects(Object layer, boolean modified, boolean simple)
@@ -343,7 +352,7 @@ public class PolyMerge
 	 */
     public List getMergedPoints(Layer layer, boolean simple)
 	{
-		Area area = (Area)allLayers.get(layer);
+		Area area = (Area)layers.get(layer);
 		if (area == null) return null;
 		return getAreaPoints(area, layer, simple);
 	}
@@ -411,7 +420,7 @@ public class PolyMerge
 		}
         if (Main.LOCALDEBUGFLAG)
         {
-            List newList = PolyBase.getPointsInArea(area, layer, simple, null);
+            List newList = PolyBase.getPointsInArea(area, layer, simple, true, null);
 
             if (newList.size() != polyList.size())
                 System.out.println("Error in getPointsInArea");

@@ -24,10 +24,7 @@
 
 package com.sun.electric.tool.user.menus;
 
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.PolyBase;
-import com.sun.electric.database.geometry.PolyMerge;
+import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -178,23 +175,27 @@ public class DebugMenus {
         gildaMenu.addMenuItem("Parasitic", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.parasiticCommand(); } });
 	    gildaMenu.addMenuItem("Check Wells Sweep", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(ERCWellCheck.ALGO_SWEEP); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(GeometryHandler.ALGO_SWEEP); } });
 	    gildaMenu.addMenuItem("Check Wells Orig", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(ERCWellCheck.ALGO_POLYMERGE); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(GeometryHandler.ALGO_MERGE); } });
 	    gildaMenu.addMenuItem("Check Wells QTree", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(ERCWellCheck.ALGO_QTREE); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(GeometryHandler.ALGO_QTREE); } });
 	    gildaMenu.addMenuItem("List Geometry on Network", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.listGeometryOnNetworkCommand(); } });
 	    gildaMenu.addMenuItem("3D View", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) { WindowMenu.create3DViewCommand(); } });
-        gildaMenu.addMenuItem("Merge Polyons", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.MERGE, true);}});
-        gildaMenu.addMenuItem("Covering Implants", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, true);}});
+        gildaMenu.addMenuItem("Merge Polyons qTree", null,
+                new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.MERGE, GeometryHandler.ALGO_QTREE, true);}});
+        gildaMenu.addMenuItem("Merge Polyons Sweep", null,
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.MERGE, GeometryHandler.ALGO_SWEEP, true);}});        
+        gildaMenu.addMenuItem("Covering Implants qTree", null,
+                new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_QTREE, true);}});
+        gildaMenu.addMenuItem("Covering Implants Sweep", null,
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_SWEEP, true);}});
         gildaMenu.addMenuItem("Covering Implants Old", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(false, false);}});
         gildaMenu.addMenuItem("List Layer Coverage", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, true); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_QTREE, true); } });
 
         /****************************** Dima's TEST MENU ******************************/
 

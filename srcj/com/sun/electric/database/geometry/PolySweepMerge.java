@@ -23,9 +23,9 @@ import java.util.Set;
  * Time: 4:39:34 PM
  * To change this template use File | Settings | File Templates.
  */
-public class PolySweepMerge implements GeometryHandler
+public class PolySweepMerge extends GeometryHandler
 {
-	private HashMap layers = new HashMap(); // should be more efficient here
+	//private HashMap layers = new HashMap(); // should be more efficient here
     static final PolySweepShapeSort shapeSort = new PolySweepShapeSort();
     static final PolySweepAreaSort areaSort = new PolySweepAreaSort();
 
@@ -103,18 +103,36 @@ public class PolySweepMerge implements GeometryHandler
 		{
 			Object layer = it.next();
             PolySweepContainer container = (PolySweepContainer)layers.get(layer);
+
+            // Nothing valid in top cell
+            if (container == null)
+            {
+                container = new PolySweepContainer();
+                layers.put(layer, container);
+                container.areas = new ArrayList();
+            }
+
             PolySweepContainer otherContainer = (PolySweepContainer)other.layers.get(layer);
-            Collections.sort(otherContainer.areas, areaSort);
-            Collections.sort(container.areas, areaSort);
+            // Since I have to apply local transformation, I can't use the same array
+            List otherAreas = new ArrayList(otherContainer.areas.size());
             for (int i = 0; i < otherContainer.areas.size(); i++)
             {
                 Area area = (Area)otherContainer.areas.get(i);
+                otherAreas.add(area.clone());
+            }
+            Collections.sort(otherAreas, areaSort);
+            Collections.sort(container.areas, areaSort);
+
+            for (int i = 0; i < otherAreas.size(); i++)
+            {
+                Area area = (Area)otherAreas.get(i);
+                area.transform(tTrans);
                 Rectangle2D rect = area.getBounds2D();
                 double areaMinX = rect.getMinX();
                 double areaMaxX = rect.getMaxX();
-                double minSweep = -Double.MAX_VALUE;
                 boolean done = false;
                 list.clear();
+                
                 // Search for all elements that might overlap
                 for (int j = 0; j < container.areas.size() && !done; j++)
                 {
@@ -195,7 +213,7 @@ public class PolySweepMerge implements GeometryHandler
                         maxSweep = y;
                 }
                 // Can't use HashSet due to Comparator
-                if (!container.areas.contains(areaTmp))
+                if (areaTmp != null && !container.areas.contains(areaTmp))
                     container.areas.add(areaTmp);
             }
         }
@@ -217,7 +235,7 @@ public class PolySweepMerge implements GeometryHandler
         for (Iterator it = container.areas.iterator(); it.hasNext(); )
         {
             Area area = (Area)it.next();
-            PolyBase.getPointsInArea(area, (Layer)layer, simple, list);
+            PolyBase.getPointsInArea(area, (Layer)layer, simple, false, list);
         }
 
         return list;

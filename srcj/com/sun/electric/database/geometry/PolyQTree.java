@@ -47,12 +47,11 @@ import java.util.Set;
  * @author  Gilda Garreton
  * @version 0.1
  */
-public class PolyQTree implements GeometryHandler
+public class PolyQTree extends GeometryHandler
 {
 	private static int MAX_NUM_CHILDREN = 4;
 	private static int MAX_NUM_NODES = 10;
 	//private static int MAX_DEPTH = 10;
-    private HashMap layers = new HashMap();
 	private Rectangle2D rootBox;
 
 	//--------------------------PUBLIC METHODS--------------------------
@@ -73,32 +72,6 @@ public class PolyQTree implements GeometryHandler
 			if (root != null)
 				root.print();
 		}
-	}
-
-	/**
-	 * Access to keySet to create a collection for example.
-	 */
-	public Collection getKeySet()
-	{
-		return (layers.keySet());
-	}
-
-	/**
-	 * Access to keySet with iterator
-	 * @return iterator for keys in hashmap
-	 */
-	public Iterator getKeyIterator()
-	{
-		return (getKeySet().iterator());
-	}
-
-	/**
-	 * Iterator among all layers inserted.
-	 * @return an iterator over all layers inserted.
-	 */
-	public Iterator getIterator()
-	{
-		return (layers.values().iterator());
 	}
 
 	/**

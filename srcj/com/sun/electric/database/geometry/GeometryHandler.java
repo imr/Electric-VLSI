@@ -27,20 +27,49 @@ package com.sun.electric.database.geometry;
 import java.awt.geom.AffineTransform;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.HashMap;
 
 /**
  * To handle merge operation. Two different classes have been proposed
  * and this interface would handle the implementation
  */
-public interface GeometryHandler {
-	// To insert new element into handler
-	public void add(Object key, Object value, boolean fasterAlgorithm);
+public abstract class GeometryHandler {
+    HashMap layers = new HashMap();
+    public static final int ALGO_MERGE = 0;
+    public static final int ALGO_QTREE = 1;
+    public static final int ALGO_SWEEP = 2;
+
+    // To insert new element into handler
+	public void add(Object key, Object value, boolean fasterAlgorithm) {;}
 
 	// To add an entire GeometryHandler like collections
-	public void addAll(GeometryHandler subMerge, AffineTransform tTrans);
+	public void addAll(GeometryHandler subMerge, AffineTransform tTrans) {;}
 
-	// To iterate among leave elements
-	public Iterator getKeyIterator();
+	/**
+	 * Access to keySet to create a collection for example.
+	 */
+	public Collection getKeySet()
+	{
+		return (layers.keySet());
+	}
+
+	/**
+	 * Access to keySet with iterator
+	 * @return iterator for keys in hashmap
+	 */
+	public Iterator getKeyIterator()
+	{
+		return (getKeySet().iterator());
+	}
+
+	/**
+	 * Iterator among all layers inserted.
+	 * @return an iterator over all layers inserted.
+	 */
+	public Iterator getIterator()
+	{
+		return (layers.values().iterator());
+	}
 
 	/**
 	 * To retrieve leave elements from internal structure
@@ -48,5 +77,8 @@ public interface GeometryHandler {
 	 * @param modified to avoid retrieving original polygons
 	 * @param simple to obtain simple polygons
 	 */
-	public Collection getObjects(Object layer, boolean modified, boolean simple);
+	public Collection getObjects(Object layer, boolean modified, boolean simple)
+    {
+        return null;
+    }
 }

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02f: *********************************
 
+IMP: (02/02/05, GVG) Second version of sweep algorithm for merging areas. GeometryHandler transformed into a abstract class.
+
 BUG: (02/01/05, GVG) Covering implants not working with PolyQTree structure after
 code re-organization. Job was not started and it was not detecting correctly original geometries.
 

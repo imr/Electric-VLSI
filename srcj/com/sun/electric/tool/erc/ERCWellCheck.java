@@ -61,11 +61,8 @@ import java.util.List;
  */
 public class ERCWellCheck
 {
-    public static final int ALGO_POLYMERGE = 0;
-    public static final int ALGO_QTREE = 1;
-    public static final int ALGO_SWEEP = 2;
-	Cell cell;
-	int newAlgorithm;
+    Cell cell;
+	int mode;
 	ErrorLogger errorLogger;
 	Highlighter highlighter;
 	List wellCons = new ArrayList();
@@ -93,7 +90,7 @@ public class ERCWellCheck
 	public ERCWellCheck(Cell cell, WellCheckJob job, int newAlgorithm, Highlighter highlighter)
 	{
 		this.job = job;
-		this.newAlgorithm = newAlgorithm;
+		this.mode = newAlgorithm;
 		this.cell = cell;
 		this.highlighter = highlighter;
 	}
@@ -127,13 +124,15 @@ public class ERCWellCheck
 	{
 		long startTime = System.currentTimeMillis();
 		errorLogger = ErrorLogger.newInstance("ERC Well Check ");
+        long initialMemory = 0;
 
 		System.out.println("Checking Wells and Substrates in '" + cell.libDescribe() + "' ...");
 		// announce start of analysis
 		if (Main.getDebug())
 		{
+            initialMemory = Runtime.getRuntime().freeMemory();
 			System.out.println("Free v/s Total Memory " +
-					Runtime.getRuntime().freeMemory() + " / " + Runtime.getRuntime().totalMemory());
+					initialMemory + " / " + Runtime.getRuntime().totalMemory());
 		}
 
 		// enumerate the hierarchy below here
@@ -154,23 +153,19 @@ public class ERCWellCheck
 			// Not sure if null goes here
 			Collection set = topMerge.getObjects(layer, false, true);
 
+            System.out.println("Layer " + layer.getName() + " " + set.size());
 			for(Iterator pIt = set.iterator(); pIt.hasNext(); )
 			{
 				WellArea wa = new WellArea();
 				PolyBase poly = null;
 
-                switch(newAlgorithm)
+                if (mode == GeometryHandler.ALGO_QTREE)
                 {
-                    case ALGO_SWEEP:
-                        poly = (PolyBase)pIt.next();
-                        break;
-                    case ALGO_QTREE:
-                        PolyQTree.PolyNode pn = (PolyQTree.PolyNode)pIt.next();
-					    poly = new PolyBase(pn.getPoints(true));
-                        break;
-                    case ALGO_POLYMERGE:
-                        poly = (PolyBase)pIt.next();
-                        break;
+                    PolyQTree.PolyNode pn = (PolyQTree.PolyNode)pIt.next();
+                    poly = new PolyBase(pn.getPoints(true));
+
+                } else {
+                    poly = (PolyBase)pIt.next();
                 }
 
 				wa.poly = poly;
@@ -187,7 +182,7 @@ public class ERCWellCheck
 					" contact regions (took " + TextUtils.getElapsedTime(System.currentTimeMillis() - startTime) + ")");
 			System.out.println("Free v/s Total Memory Intermediate step: " +
 					Runtime.getRuntime().freeMemory() + " / " + Runtime.getRuntime().totalMemory());
-
+            System.out.println("Memory Intermediate consumption: " + (initialMemory - Runtime.getRuntime().freeMemory()));
 		}
 
 		boolean foundPWell = false;
@@ -565,15 +560,15 @@ public class ERCWellCheck
 
 			if (thisMerge == null)
 			{
-                switch(check.newAlgorithm)
+                switch(check.mode)
                 {
-                    case ALGO_SWEEP:
+                    case GeometryHandler.ALGO_SWEEP:
                         thisMerge = new PolySweepMerge();
                         break;
-                    case ALGO_QTREE:
+                    case GeometryHandler.ALGO_QTREE:
                         thisMerge = new PolyQTree(cell.getBounds());
                         break;
-                    case ALGO_POLYMERGE:
+                    case GeometryHandler.ALGO_MERGE:
                         thisMerge = new PolyMerge();
                         break;
                 }
@@ -595,7 +590,7 @@ public class ERCWellCheck
 
 	        if (check.doneCells.get(cell) == null)
 	        {
-                boolean qTreeAlgo = check.newAlgorithm == ALGO_QTREE;
+                boolean qTreeAlgo = check.mode == GeometryHandler.ALGO_QTREE;
 
 				for(Iterator it = cell.getArcs(); it.hasNext(); )
 				{
@@ -622,6 +617,9 @@ public class ERCWellCheck
 	        // To mark if cell is already done
 			check.doneCells.put(cell, cell);
 
+            if (check.mode == GeometryHandler.ALGO_SWEEP)
+                ((PolySweepMerge)thisMerge).postProcess();
+
 			// merge everything sub trees
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
 			{
@@ -636,8 +634,6 @@ public class ERCWellCheck
 					thisMerge.addAll(subMerge, tTrans);
 				}
 			}
-            if (check.newAlgorithm == ALGO_SWEEP)
-                ((PolySweepMerge)thisMerge).postProcess();
        }
         public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
         {
@@ -659,7 +655,7 @@ public class ERCWellCheck
 	        // No done yet
 	        if (check.doneCells.get(cell) == null)
 	        {
-                boolean qTreeAlgo = check.newAlgorithm == ALGO_QTREE;
+                boolean qTreeAlgo = check.mode == GeometryHandler.ALGO_QTREE;
 				NodeProto subNp = ni.getProto();
 				if (subNp instanceof PrimitiveNode)
 				{

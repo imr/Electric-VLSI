@@ -48,6 +48,7 @@ import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
@@ -235,7 +236,7 @@ public class ToolMenu {
 		MenuBar.Menu ercSubMenu = new MenuBar.Menu("ERC", 'E');
 		toolMenu.add(ercSubMenu);
 		ercSubMenu.addMenuItem("Check Wells", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(ERCWellCheck.ALGO_POLYMERGE); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(GeometryHandler.ALGO_MERGE); } });
 		ercSubMenu.addMenuItem("Antenna Check", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { new ERCAntenna(); } });
 
@@ -351,7 +352,7 @@ public class ToolMenu {
 		MenuBar.Menu generationSubMenu = new MenuBar.Menu("Generation", 'G');
 		toolMenu.add(generationSubMenu);
 		generationSubMenu.addMenuItem("Coverage Implants Generator", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) {layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, false);}});
+			new ActionListener() { public void actionPerformed(ActionEvent e) {layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_QTREE, false);}});
 		generationSubMenu.addMenuItem("Pad Frame Generator", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
 		generationSubMenu.addMenuItem("ROM Generator...", null,
@@ -1126,7 +1127,7 @@ public class ToolMenu {
      * Method to handle the "List Layer Coverage", "Coverage Implant Generator",  polygons merge
      * except "List Geometry on Network" commands.
      */
-    public static void layerCoverageCommand(Job.Type jobType, int func, boolean test)
+    public static void layerCoverageCommand(Job.Type jobType, int func, int mode, boolean test)
     {
         Cell curCell = WindowFrame.needCurCell();
         if (curCell == null) return;
@@ -1135,7 +1136,7 @@ public class ToolMenu {
 	    if ((wnd != null) && (wnd.getCell() == curCell))
 		    highlighter = wnd.getHighlighter();
 
-        Job job = new LayerCoverageJob(jobType, curCell, func, test, highlighter, null);
+        Job job = new LayerCoverageJob(jobType, curCell, func, test, mode, highlighter, null);
         job.startJob();
     }
 
