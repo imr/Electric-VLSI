@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 
@@ -65,6 +66,7 @@ public class CellProperties extends EDialog
         Pref charX, charY;
         Pref frameSize;
         Pref designerName;
+        Pref technologyName;
 
         private PerCellValues(Cell cell) {
 
@@ -97,6 +99,10 @@ public class CellProperties extends EDialog
             var = cell.getVar(User.FRAME_DESIGNER_NAME, String.class);
             if (var != null) dName = (String)var.getObject();
             designerName = Pref.makeStringPref(null, null, dName);
+
+            // remember the technology
+            String tName = cell.getTechnology().getTechName();
+            technologyName = Pref.makeStringPref(null, null, tName);
         }
 	}
 
@@ -108,27 +114,27 @@ public class CellProperties extends EDialog
 
 		// cache all information
 		origValues = new HashMap();
-/*		for(Iterator it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library lib = (Library)it.next();
-			if (lib.isHidden()) continue;
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
-			{
-				Cell cell = (Cell)cIt.next();
-				PerCellValues pcv = new PerCellValues(cell);
-				origValues.put(cell, pcv);
-			}
-		}*/
 
 		// build the cell list
 		cellListModel = new DefaultListModel();
 		cellList = new JList(cellListModel);
 		cellList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		cellPane.setViewportView(cellList);
-		cellList.addMouseListener(new java.awt.event.MouseAdapter()
+//		cellList.addMouseListener(new java.awt.event.MouseAdapter()
+//		{
+//			public void mouseClicked(java.awt.event.MouseEvent evt) { cellListClick(); }
+//		});
+		cellList.addListSelectionListener(new javax.swing.event.ListSelectionListener()
 		{
-			public void mouseClicked(java.awt.event.MouseEvent evt) { cellListClick(); }
+			public void valueChanged(javax.swing.event.ListSelectionEvent evt) { cellListClick(); }
 		});
+
+		// build the technology popup
+		for(Iterator it = Technology.getTechnologiesSortedByName().iterator(); it.hasNext();)
+		{
+			Technology tech = (Technology)it.next();
+			whichTechnology.addItem(tech.getTechName());
+		}
 
 		// initialize frame information
 		frameSize.addItem("None");
@@ -186,7 +192,6 @@ public class CellProperties extends EDialog
 			Library curLib = Library.getCurrent();
 			if (lib == curLib && curLib.getCurCell() != null)
 			{
-//System.out.println("Setting current cell "+curLib.getCurCell().noLibDescribe());
 				cellList.setSelectedValue(curLib.getCurCell().noLibDescribe(), true);
 			} else
 			{
@@ -217,9 +222,11 @@ public class CellProperties extends EDialog
     /**
      * Lazy caching
      */
-    private PerCellValues getPCV(Cell cell) {
+    private PerCellValues getPCV(Cell cell)
+    {
         PerCellValues pcv = (PerCellValues)origValues.get(cell);
-        if (pcv == null) {
+        if (pcv == null)
+        {
             pcv = new PerCellValues(cell);
             origValues.put(cell, pcv);
         }
@@ -247,6 +254,7 @@ public class CellProperties extends EDialog
 		charXSpacing.setText(TextUtils.formatDouble(pcv.charX.getDouble()));
 		charYSpacing.setText(TextUtils.formatDouble(pcv.charY.getDouble()));
 		frameDesigner.setText(pcv.designerName.getString());
+		whichTechnology.setSelectedItem(pcv.technologyName.getString());
 
 		frameSize.setSelectedIndex(0);
 		frameLandscape.setSelected(true);
@@ -378,6 +386,8 @@ public class CellProperties extends EDialog
         frameTitleBox = new javax.swing.JCheckBox();
         jLabel18 = new javax.swing.JLabel();
         frameDesigner = new javax.swing.JTextField();
+        jLabel5 = new javax.swing.JLabel();
+        whichTechnology = new javax.swing.JComboBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -402,7 +412,7 @@ public class CellProperties extends EDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 10;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.weightx = 0.5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -419,7 +429,7 @@ public class CellProperties extends EDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 5;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 10;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.weightx = 0.5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -446,7 +456,7 @@ public class CellProperties extends EDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.gridheight = 9;
+        gridBagConstraints.gridheight = 10;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
@@ -825,14 +835,46 @@ public class CellProperties extends EDialog
         jPanel1.add(frameDesigner, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.gridwidth = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(jPanel1, gridBagConstraints);
 
+        jLabel5.setText("Technology:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(jLabel5, gridBagConstraints);
+
+        whichTechnology.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                whichTechnologyActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(whichTechnology, gridBagConstraints);
+
         pack();
     }//GEN-END:initComponents
+
+	private void whichTechnologyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_whichTechnologyActionPerformed
+	{//GEN-HEADEREND:event_whichTechnologyActionPerformed
+		Cell cell = getSelectedCell();
+		if (cell == null) return;
+		PerCellValues pcv = getPCV(cell);
+		pcv.technologyName.setString((String)whichTechnology.getSelectedItem());
+	}//GEN-LAST:event_whichTechnologyActionPerformed
 
 	private void frameTitleBoxActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_frameTitleBoxActionPerformed
 	{//GEN-HEADEREND:event_frameTitleBoxActionPerformed
@@ -1037,42 +1079,46 @@ public class CellProperties extends EDialog
 		{
             for (Iterator it = dialog.origValues.keySet().iterator(); it.hasNext(); )
 			{
-                    Cell cell = (Cell)it.next();
-					PerCellValues pcv = dialog.getPCV(cell);
-					if (pcv.disAllMod.getBoolean() != pcv.disAllMod.getBooleanFactoryValue())
-					{
-						if (pcv.disAllMod.getBoolean()) cell.setAllLocked(); else cell.clearAllLocked();
-					}
-					if (pcv.disInstMod.getBoolean() != pcv.disInstMod.getBooleanFactoryValue())
-					{
-						if (pcv.disInstMod.getBoolean()) cell.setInstancesLocked(); else cell.clearInstancesLocked();
-					}
-					if (pcv.inCellLib.getBoolean() != pcv.inCellLib.getBooleanFactoryValue())
-					{
-						if (pcv.inCellLib.getBoolean()) cell.setInCellLibrary(); else cell.clearInCellLibrary();
-					}
-					if (pcv.useTechEditor.getBoolean() != pcv.useTechEditor.getBooleanFactoryValue())
-					{
-						if (pcv.useTechEditor.getBoolean()) cell.setInTechnologyLibrary(); else cell.clearInTechnologyLibrary();
-					}
-					if (pcv.defExpanded.getBoolean() != pcv.defExpanded.getBooleanFactoryValue())
-					{
-						if (pcv.defExpanded.getBoolean()) cell.setWantExpanded(); else cell.clearWantExpanded();
-					}
-					if (pcv.charX.getDouble() != ((Double)pcv.charX.getFactoryValue()).doubleValue() ||
-						pcv.charY.getDouble() != ((Double)pcv.charY.getFactoryValue()).doubleValue())
-					{
-						cell.setCharacteristicSpacing(pcv.charX.getDouble(), pcv.charY.getDouble());
-					}
-					if (!pcv.frameSize.getString().equals(pcv.frameSize.getFactoryValue()))
-					{
-						cell.newVar(User.FRAME_SIZE, pcv.frameSize.getString());
-					}
-					if (!pcv.designerName.getString().equals(pcv.designerName.getFactoryValue()))
-					{
-						cell.newVar(User.FRAME_DESIGNER_NAME, pcv.designerName.getString());
-                    }
-
+                Cell cell = (Cell)it.next();
+				PerCellValues pcv = dialog.getPCV(cell);
+				if (pcv.disAllMod.getBoolean() != pcv.disAllMod.getBooleanFactoryValue())
+				{
+					if (pcv.disAllMod.getBoolean()) cell.setAllLocked(); else cell.clearAllLocked();
+				}
+				if (pcv.disInstMod.getBoolean() != pcv.disInstMod.getBooleanFactoryValue())
+				{
+					if (pcv.disInstMod.getBoolean()) cell.setInstancesLocked(); else cell.clearInstancesLocked();
+				}
+				if (pcv.inCellLib.getBoolean() != pcv.inCellLib.getBooleanFactoryValue())
+				{
+					if (pcv.inCellLib.getBoolean()) cell.setInCellLibrary(); else cell.clearInCellLibrary();
+				}
+				if (pcv.useTechEditor.getBoolean() != pcv.useTechEditor.getBooleanFactoryValue())
+				{
+					if (pcv.useTechEditor.getBoolean()) cell.setInTechnologyLibrary(); else cell.clearInTechnologyLibrary();
+				}
+				if (pcv.defExpanded.getBoolean() != pcv.defExpanded.getBooleanFactoryValue())
+				{
+					if (pcv.defExpanded.getBoolean()) cell.setWantExpanded(); else cell.clearWantExpanded();
+				}
+				if (pcv.charX.getDouble() != ((Double)pcv.charX.getFactoryValue()).doubleValue() ||
+					pcv.charY.getDouble() != ((Double)pcv.charY.getFactoryValue()).doubleValue())
+				{
+					cell.setCharacteristicSpacing(pcv.charX.getDouble(), pcv.charY.getDouble());
+				}
+				if (!pcv.frameSize.getString().equals(pcv.frameSize.getFactoryValue()))
+				{
+					cell.newVar(User.FRAME_SIZE, pcv.frameSize.getString());
+				}
+				if (!pcv.designerName.getString().equals(pcv.designerName.getFactoryValue()))
+				{
+					cell.newVar(User.FRAME_DESIGNER_NAME, pcv.designerName.getString());
+                }
+				if (!pcv.technologyName.getString().equals(pcv.technologyName.getFactoryValue()))
+				{
+					Technology tech = Technology.findTechnology(pcv.technologyName.getString());
+					if (tech != null) cell.setTechnology(tech);
+                }
 			}
 			return true;
 		}
@@ -1110,6 +1156,7 @@ public class CellProperties extends EDialog
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JComboBox libraryPopup;
     private javax.swing.JButton ok;
@@ -1120,6 +1167,7 @@ public class CellProperties extends EDialog
     private javax.swing.JButton setUseTechEditor;
     private javax.swing.JRadioButton unexpandNewInstances;
     private javax.swing.JCheckBox useTechEditor;
+    private javax.swing.JComboBox whichTechnology;
     // End of variables declaration//GEN-END:variables
 	
 }
