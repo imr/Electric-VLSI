@@ -5,7 +5,7 @@ public class EdgeV
 	double multiplier;
 	double adder;
 
-	private EdgeV(double multiplier, double adder)
+	public EdgeV(double multiplier, double adder)
 	{
 		this.multiplier = multiplier;
 		this.adder = adder;

@@ -11,6 +11,8 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.technologies.TecGeneric;
 import com.sun.electric.technology.technologies.TecSchematics;
+import com.sun.electric.technology.technologies.TecArtwork;
+import com.sun.electric.technology.technologies.TecCMOS;
 import com.sun.electric.technology.technologies.TecMoCMOS;
 
 import java.awt.Point;
@@ -28,6 +30,8 @@ public final class Electric
 		// Because of lazy evaluation, technologies aren't initialized unless they're referenced here
 		Technology.setCurrent(TecGeneric.tech);
 		Technology.setCurrent(TecSchematics.tech);
+		Technology.setCurrent(TecArtwork.tech);
+		Technology.setCurrent(TecCMOS.tech);
 		Technology.setCurrent(TecMoCMOS.tech);
 
 		// get information about the nodes

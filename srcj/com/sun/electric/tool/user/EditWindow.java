@@ -288,13 +288,35 @@ public class EditWindow extends JPanel
 				System.out.println("Cannot render THICKCIRCLE polygon");
 			} else if (style == Poly.Type.DISC)
 			{
-				System.out.println("Cannot render DISC polygon");
+				AffineTransform saveAT = g2.getTransform();
+				double scale = 100;
+				g2.scale(1/scale, 1/scale);
+				Point2D [] points = poly.getPoints();
+				int ctrX = (int)(points[0].getX() * scale);
+				int ctrY = (int)(points[0].getY() * scale);
+				int edgeX = (int)(points[1].getX() * scale);
+				int edgeY = (int)(points[1].getY() * scale);
+				int diameter;
+				if (edgeX == ctrX) diameter = Math.abs(ctrY - edgeY); else
+					if (edgeY == ctrY) diameter = Math.abs(ctrX - edgeX); else
+						diameter = (int)Math.sqrt((ctrY - edgeY)*(ctrY - edgeY) + (ctrX - edgeX) * (ctrX - edgeX));
+System.out.println("Disc center=("+ctrX+","+ctrY+") diameter ("+diameter+")");
+				g2.fillOval(ctrX, ctrY, diameter, diameter);
+				g2.setTransform(saveAT);
 			} else if (style == Poly.Type.CIRCLEARC)
 			{
 				System.out.println("Cannot render CIRCLEARC polygon");
 			} else if (style == Poly.Type.THICKCIRCLEARC)
 			{
 				System.out.println("Cannot render THICKCIRCLEARC polygon");
+			} else if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTTOP || style == Poly.Type.TEXTBOT ||
+				style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT || style == Poly.Type.TEXTTOPLEFT ||
+				style == Poly.Type.TEXTBOTLEFT || style == Poly.Type.TEXTTOPRIGHT || style == Poly.Type.TEXTBOTRIGHT ||
+				style == Poly.Type.TEXTBOX)
+			{
+				double x = poly.getCenterX();
+				double y = poly.getCenterY();
+				drawTextCentered(g2, x, y, poly.getString(), 0.25, Color.black);
 			} else if (style == Poly.Type.GRIDDOTS)
 			{
 				System.out.println("Cannot render GRIDDOTS polygon");

@@ -66,6 +66,7 @@ public class Poly implements Shape
 	private Point2D points[];
 	private Rectangle2D.Double bounds;
 	private Poly.Type style;
+	private String string;
 
 	/* text font sizes (in VARIABLE, NODEINST, PORTPROTO, and POLYGON->textdescription) */
 	/** points from 1 to TXTMAXPOINTS */					public static final int TXTPOINTS=        077;
@@ -130,6 +131,9 @@ public class Poly implements Shape
 
 	public Poly.Type getStyle() { return style; }
 	public void setStyle(Poly.Type style) { this.style = style; }
+
+	public String getString() { return string; }
+	public void setString(String string) { this.string = string; }
 
 	public Point2D [] getPoints() { return points; }
 

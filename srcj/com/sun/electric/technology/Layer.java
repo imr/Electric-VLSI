@@ -95,6 +95,7 @@ public class Layer
 	private Function function;
 	private int functionExtras;
 	private String cifLayer;
+	private String dxfLayer;
 	private String gdsLayer;
 	private String skillLayer;
 	private double thickness, height;
@@ -137,6 +138,9 @@ public class Layer
 
 	public void setCIFLayer(String cifLayer) { this.cifLayer = cifLayer; }
 	public String getCIFLayer() { return cifLayer; }
+
+	public void setDXFLayer(String dxfLayer) { this.dxfLayer = dxfLayer; }
+	public String getDXFLayer() { return dxfLayer; }
 
 	public void setGDSLayer(String gdsLayer) { this.gdsLayer = gdsLayer; }
 	public String getGDSLayer() { return gdsLayer; }

@@ -125,11 +125,11 @@ public abstract class ArcProto extends ElectricObject
 	public boolean isSlidable() { return (userBits & WANTCANTSLIDE) == 0; }
 
 	/** Set the End-extension bit */
-	public void setExtended() { userBits &= ~WANTCANTSLIDE; }
+	public void setExtended() { userBits &= ~WANTNOEXTEND; }
 	/** Clear the End-extension bit */
-	public void clearExtended() { userBits |= WANTCANTSLIDE; }
+	public void clearExtended() { userBits |= WANTNOEXTEND; }
 	/** Get the End-extension bit */
-	public boolean isExtended() { return (userBits & WANTCANTSLIDE) == 0; }
+	public boolean isExtended() { return (userBits & WANTNOEXTEND) != 0; }
 
 	/** Set the Negated bit */
 	public void setNegated() { userBits |= WANTNEGATED; }

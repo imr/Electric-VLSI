@@ -55,7 +55,7 @@ public class BinaryIn extends Input
 	/** list of all technology-related errors in the library */				private String [] techError;
 	/** scale factors for each technology in the library */					private double [] techScale;
 	/** the number of ArcProtos in the file */								private int arcProtoCount;
-	/** list of all ArcProtos in the library */								private ArcProto [] arcProtoList;
+	/** list of all ArcProtos in the library */								private PrimitiveArc [] arcProtoList;
 	/** list of all ArcProto-related errors in the library */				private String [] arcProtoError;
 	/** the number of primitive NodeProtos in the file */					private int primNodeProtoCount;
 	/** list of all Primitive NodeProtos in the library */					private PrimitiveNode [] primNodeProtoList;
@@ -281,7 +281,7 @@ public class BinaryIn extends Input
 		techList = new Technology[techCount];
 		techError = new String[techCount];
 		techScale = new double[techCount];
-		arcProtoList = new ArcProto[arcProtoCount];
+		arcProtoList = new PrimitiveArc[arcProtoCount];
 		arcProtoError = new String[arcProtoCount];
 		primNodeProtoList = new PrimitiveNode[primNodeProtoCount];
 		primNodeProtoError = new boolean[primNodeProtoCount];
@@ -606,7 +606,7 @@ public class BinaryIn extends Input
 				arcProtoError[arcProtoCount] = null;
 				name = readString();
 				if (imosconv) name = name.substring(6);
-				ArcProto ap = tech.findArcProto(name);
+				PrimitiveArc ap = tech.findArcProto(name);
 				if (ap == null)
 				{
 					ap = tech.convertOldArcName(name);
@@ -614,7 +614,7 @@ public class BinaryIn extends Input
 				if (ap == null)
 				{
 					Iterator it = tech.getArcIterator();
-					ap = (ArcProto) it.next();
+					ap = (PrimitiveArc) it.next();
 					String errorMessage;
 					if (techError[techIndex] != null)
 						errorMessage = techError[techIndex]; else
@@ -723,7 +723,7 @@ public class BinaryIn extends Input
 		// read the arcproto variables
 		for(int i=0; i<arcProtoCount; i++)
 		{
-			ArcProto ap = arcProtoList[i];
+			PrimitiveArc ap = arcProtoList[i];
 			int j = readVariables(ap);
 			if (j < 0) return true;
 			if (j > 0) getArcProtoList(i);
@@ -810,7 +810,7 @@ public class BinaryIn extends Input
 		}
 		for(int i=0; i<arcProtoCount; i++)
 		{
-			ArcProto ap = arcProtoList[i];
+			PrimitiveArc ap = arcProtoList[i];
 			fixExternalVariables(ap);
 		}
 		for(int i=0; i<primNodeProtoCount; i++)
@@ -1381,7 +1381,7 @@ public class BinaryIn extends Input
 
 		// read the arcproto pointer
 		int protoIndex = readBigInteger();
-		ArcProto ap = convertArcProto(protoIndex);
+		PrimitiveArc ap = convertArcProto(protoIndex);
 		arcTypeList[arcIndex] = ap;
 
 		// read the arc length (versions 5 or older)
@@ -1809,7 +1809,7 @@ public class BinaryIn extends Input
 	/**
 	 * routine to convert the arcproto index "i" to a true arcproto pointer.
 	 */
-	ArcProto convertArcProto(int i)
+	PrimitiveArc convertArcProto(int i)
 	{
 		int aindex = -i - 2;
 		if (aindex >= arcProtoCount || aindex < 0)
@@ -1856,7 +1856,7 @@ public class BinaryIn extends Input
 		return(primNodeProtoList[i]);
 	}
 
-	ArcProto getArcProtoList(int i)
+	PrimitiveArc getArcProtoList(int i)
 	{
 		if (arcProtoError[i] != null)
 		{

@@ -114,6 +114,7 @@ public class Technology extends ElectricObject
 		private Poly.Type style;
 		private int representation;
 		private TechPoint [] points;
+		private String message;
 
 		/** list of scalable points */		public static final int POINTS=     0;
 		/** a rectangle */					public static final int BOX=        1;
@@ -138,6 +139,8 @@ public class Technology extends ElectricObject
 		public EdgeV getBottomEdge() { return points[0].getY(); }
 		public EdgeH getRightEdge() { return points[1].getX(); }
 		public EdgeV getTopEdge() { return points[1].getY(); }
+		public String getMessage() { return message; }
+		public void setMessage(String message) { this.message = message; }
 	}
 
 	/** name of the technology */						private String techName;
@@ -267,7 +270,7 @@ public class Technology extends ElectricObject
 	{
 		NodeProto prototype = ni.getProto();
 		if (!(prototype instanceof PrimitiveNode)) return null;
-		
+
 		// see if the node is "wiped" (not drawn)
 		if (ni.isWiped()) return null;
 		if (prototype.isWipeOn1or2())
@@ -284,7 +287,7 @@ public class Technology extends ElectricObject
 		double halfHeight = ni.getYSize() / 2;
 		double lowY = ni.getCenterY() - halfHeight;
 		double highY = ni.getCenterY() + halfHeight;
-		
+
 		// construct the polygons
 		Poly [] polys = new Poly[primLayers.length];
 		for(int i = 0; i < primLayers.length; i++)
@@ -317,6 +320,13 @@ public class Technology extends ElectricObject
 					pointList[j] = new Point2D.Double(x, y);
 				}
 				polys[i] = new Poly(pointList);
+			}
+			if (style == Poly.Type.TEXTCENT || style == Poly.Type.TEXTTOP || style == Poly.Type.TEXTBOT ||
+				style == Poly.Type.TEXTLEFT || style == Poly.Type.TEXTRIGHT || style == Poly.Type.TEXTTOPLEFT ||
+				style == Poly.Type.TEXTBOTLEFT || style == Poly.Type.TEXTTOPRIGHT || style == Poly.Type.TEXTBOTRIGHT ||
+				style == Poly.Type.TEXTBOX)
+			{
+				polys[i].setString(primLayer.getMessage());
 			}
 			polys[i].setStyle(style);
 			polys[i].setLayer(primLayer.getLayer());
@@ -414,30 +424,12 @@ public class Technology extends ElectricObject
 	/*
 	 * Routine to convert old primitive node names to their proper nodeprotos.
 	 */
-	public PrimitiveNode convertOldNodeName(String name)
-	{
-//		if (tech == art_tech)
-//		{
-//			if (name == "Message" || name == "Centered-Message" ||
-//				name == "Left-Message" || name == "Right-Message") return gen_invispinprim;
-//			if (name == "Opened-FarDotted-Polygon") return art_openedthickerpolygonprim;
-//		}
-		return null;
-	}
+	public PrimitiveNode convertOldNodeName(String name) { return null; }
 
 	/*
 	 * Routine to convert old primitive node names to their proper nodeprotos.
 	 */
-	public ArcProto convertOldArcName(String name)
-	{
-//		if (tech == art_tech)
-//		{
-//			if (name == "Dash-1") return art_dottedarc;
-//			if (name == "Dash-2") return art_dashedarc;
-//			if (name == "Dash-3") return art_thickerarc;
-//		}
-		return null;
-	}
+	public PrimitiveArc convertOldArcName(String name) { return null; }
 
 	/*
 	 * Routine to convert old primitive port names to their proper portprotos.

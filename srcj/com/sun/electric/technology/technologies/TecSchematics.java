@@ -109,96 +109,96 @@ public class TecSchematics extends Technology
 //#define CENTERD2T   0,-T2	/* 2.75 */
 //#define CENTERD3Q   0,-Q3	/* 3.25 */
 //#define CENTERD3T   0,-T3	/* 3.75 */
-//
-///* this much from the center to the left edge */
-//#define LEFTBYP1   -D1,0		/* 0.1 */
-//#define LEFTBYP125 (-K1/15),0   /* 0.13333... */  /* wanted 0.125 but can't */
-//#define LEFTBYP166 (-K1/12),0	/* 0.16666... */
-//#define LEFTBYP2   -D2,0		/* 0.2 */
-//#define LEFTBYP25  (-D2-FO),0   /* 0.25 */
-//#define LEFTBYP3   -D3,0		/* 0.3 */
-//#define LEFTBYP33  (-K1/6),0	/* 0.3333... */
-//#define LEFTBYP35  -(D3+FO),0	/* 0.35 (21/60) */
-//#define LEFTBYP3666 -22,0		/* 0.3666... (22/60) */
-//#define LEFTBYP4   -D4,0		/* 0.4 */
-//#define LEFTBYP45  -(D4+FO),0   /* 0.45 (27/60) */
-//#define LEFTBYP5   -D5,0		/* 0.5 */
-//#define LEFTBYP6   -D6,0		/* 0.6 */
-//#define LEFTBYP6333  -38,0		/* 0.6333... (38/60) */
-//#define LEFTBYP66  (-K1/3),0	/* 0.6666... */
-//#define LEFTBYP7   -D7,0		/* 0.7 */
-//#define LEFTBYP75  (-D7-FO),0   /* 0.75 */
-//#define LEFTBYP8   -D8,0        /* 0.8 */
-//#define LEFTBYP875 -D9,0        /* 0.9 */ /* wanted 0.875 but can't */
-//#define LEFTBYP9   -D9,0		/* 0.9 */
-//#define LEFTBYP12  -D12,0		/* 1.2 */
-//#define LEFTBYP14  -D14,0		/* 1.4 */
-//#define LEFTBY1P6   -H0-D6,0	/* 1.6 */
-//
-///* this much from the center to the right edge */
-//#define RIGHTBYP1   D1,0		/* 0.1       (6/60) */
-//#define RIGHTBYP125 (K1/15),0   /* 0.133...  (8/60) */ /* not precise */
-//#define RIGHTBYP166 (K1/12),0	/* 0.166...  (10/60) */
-//#define RIGHTBYP2   D2,0		/* 0.2       (12/60) */
-//#define RIGHTBYP25  (D2+FO),0   /* 0.25      (15/60) */
-//#define RIGHTBYP3   D3,0		/* 0.3       (18/60) */
-//#define RIGHTBYP33  (K1/6),0	/* 0.33...   (20/60) */
-//#define RIGHTBYP35  (D3+FO),0	/* 0.35      (21/60) */
-//#define RIGHTBYP3666  22,0		/* 0.3666... (22/60) */
-//#define RIGHTBYP3833  23,0		/* 0.3833... (23/60) */
-//#define RIGHTBYP4   D4,0		/* 0.4       (24/60) */
-//#define RIGHTBYP433  26,0		/* 0.433...  (26/60) */
-//#define RIGHTBYP45  (D4+FO),0   /* 0.45      (27/60) */
-//#define RIGHTBYP5   D5,0		/* 0.5       (30/60) */
-//#define RIGHTBYP5166   31,0		/* 0.5166... (31/60) */
-//#define RIGHTBYP55  (D5+FO),0	/* 0.55      (33/60) */
-//#define RIGHTBYP566   34,0		/* 0.566...  (34/60) */
-//#define RIGHTBYP6   D6,0		/* 0.6       (36/60) */
-//#define RIGHTBYP6166   37,0		/* 0.6166... (37/60) */
-//#define RIGHTBYP6333   38,0		/* 0.6333... (38/60) */
-//#define RIGHTBYP66  (K1/3),0	/* 0.66...   (40/60) */
-//#define RIGHTBYP7   D7,0		/* 0.7       (42/60) */
-//#define RIGHTBYP75  (D7+FO),0   /* 0.75      (45/60) */
-//#define RIGHTBYP8   D8,0        /* 0.8       (48/60) */
-//#define RIGHTBYP875 D9,0        /* 0.9       (54/60) */ /* not precise */
-//#define RIGHTBYP9   D9,0		/* 0.9       (54/60) */
-//
-///* this much from the center to the bottom edge */
-//#define BOTBYP1    -D1,0		/* 0.1 */
-//#define BOTBYP125  (-K1/15),0   /* 0.133...  (8/60) */ /* not precise */
-//#define BOTBYP166  (-K1/12),0	/* 0.166... (10/60) */
-//#define BOTBYP2    -D2,0		/* 0.2 */
-//#define BOTBYP25   (-D2-FO),0	/* 0.25 */
-//#define BOTBYP3    -D3,0		/* 0.3 */
-//#define BOTBYP33   (-K1/6),0	/* 0.3333... */
-//#define BOTBYP375  -D4,0        /* 0.4 */
-//#define BOTBYP4    -D4,0		/* 0.4 */
-//#define BOTBYP5    -D5,0		/* 0.5 */
-//#define BOTBYP6    -D6,0		/* 0.6 */
-//#define BOTBYP66   (-K1/3),0	/* 0.6666... */
-//#define BOTBYP7    -D7,0		/* 0.7 */
-//#define BOTBYP75   (-D7-FO),0	/* 0.75 */
-//#define BOTBYP8    -D8,0		/* 0.8 */
-//#define BOTBYP875  -D9,0        /* 0.9 */ /* wanted 0.875 but can't */
-//#define BOTBYP9    -D9,0		/* 0.9 */
-//
-///* this much from the center to the top edge */
-//#define TOPBYP1     D1,0		/* 0.1 */
-//#define TOPBYP2     D2,0		/* 0.2 */
-//#define TOPBYP25    (D2+FO),0   /* 0.25 */
-//#define TOPBYP3     D3,0		/* 0.3 */
-//#define TOPBYP33    (K1/6),0	/* 0.3333... */
-//#define TOPBYP4     D4,0		/* 0.4 */
-//#define TOPBYP5     D5,0		/* 0.5 */
-//#define TOPBYP5833  35,0		/* 0.58333... (35/60) */
-//#define TOPBYP6     D6,0		/* 0.6 */
-//#define TOPBYP66    (K1/3),0	/* 0.6666... */
-//#define TOPBYP7     D7,0		/* 0.7 */
-//#define TOPBYP75    45,0		/* 0.75       (45/60) */
-//#define TOPBYP8     D8,0		/* 0.8 */
-//#define TOPBYP866   (K1/12*5),0	/* 0.8666... */
-//#define TOPBYP875   D9,0        /* 0.9 */ /* wanted 0.875 but can't */
-//#define TOPBYP9     D9,0		/* 0.9 */
+
+	// this much from the center to the left edge
+	/* 0.1 */			private static final EdgeH LEFTBYP1 = new EdgeH(-0.1,0);
+	/* 0.1333... */		private static final EdgeH LEFTBYP125 = new EdgeH(-0.1333,0);
+	/* 0.1666... */		private static final EdgeH LEFTBYP166 = new EdgeH(-0.1666,0);
+	/* 0.2 */			private static final EdgeH LEFTBYP2 = new EdgeH(-0.2,0);
+	/* 0.25 */			private static final EdgeH LEFTBYP25 = new EdgeH(-0.25,0);
+	/* 0.3 */			private static final EdgeH LEFTBYP3 = new EdgeH(-0.3,0);
+	/* 0.3333... */		private static final EdgeH LEFTBYP33 = new EdgeH(-0.3333,0);
+	/* 0.35 */			private static final EdgeH LEFTBYP35 = new EdgeH(-0.35,0);
+	/* 0.3666... */		private static final EdgeH LEFTBYP3666 = new EdgeH(-0.3666,0);
+	/* 0.4 */			private static final EdgeH LEFTBYP4 = new EdgeH(-0.4,0);
+	/* 0.45 */			private static final EdgeH LEFTBYP45 = new EdgeH(-0.45,0);
+	/* 0.5 */			private static final EdgeH LEFTBYP5 = new EdgeH(-0.5,0);
+	/* 0.6 */			private static final EdgeH LEFTBYP6 = new EdgeH(-0.6,0);
+	/* 0.6333... */		private static final EdgeH LEFTBYP6333 = new EdgeH(-0.6333,0);
+	/* 0.6666... */		private static final EdgeH LEFTBYP66 = new EdgeH(-0.6666,0);
+	/* 0.7 */			private static final EdgeH LEFTBYP7 = new EdgeH(-0.7,0);
+	/* 0.75 */			private static final EdgeH LEFTBYP75 = new EdgeH(-0.75,0);
+	/* 0.8 */			private static final EdgeH LEFTBYP8 = new EdgeH(-0.8,0);
+	/* 0.875 */			private static final EdgeH LEFTBYP875 = new EdgeH(-0.875,0);
+	/* 0.9 */			private static final EdgeH LEFTBYP9 = new EdgeH(-0.9,0);
+	/* 1.2 */			private static final EdgeH LEFTBYP12 = new EdgeH(-1.2,0);
+	/* 1.4 */			private static final EdgeH LEFTBYP14 = new EdgeH(-1.4,0);
+	/* 1.6 */			private static final EdgeH LEFTBY1P6 = new EdgeH(-1.6,0);
+
+	// this much from the center to the right edge
+	/* 0.1 */			private static final EdgeH RIGHTBYP1 = new EdgeH(0.1,0);
+	/* 0.1333... */		private static final EdgeH RIGHTBYP125 = new EdgeH(0.1333,0);
+	/* 0.1666... */		private static final EdgeH RIGHTBYP166 = new EdgeH(0.1666,0);
+	/* 0.2 */			private static final EdgeH RIGHTBYP2 = new EdgeH(0.2,0);
+	/* 0.25 */			private static final EdgeH RIGHTBYP25 = new EdgeH(0.25,0);
+	/* 0.3 */			private static final EdgeH RIGHTBYP3 = new EdgeH(0.3,0);
+	/* 0.3333... */		private static final EdgeH RIGHTBYP33 = new EdgeH(0.3333,0);
+	/* 0.35 */			private static final EdgeH RIGHTBYP35 = new EdgeH(0.35,0);
+	/* 0.3666... */		private static final EdgeH RIGHTBYP3666 = new EdgeH(0.3666,0);
+	/* 0.3833... */		private static final EdgeH RIGHTBYP3833 = new EdgeH(0.3833,0);
+	/* 0.4 */			private static final EdgeH RIGHTBYP4 = new EdgeH(0.4,0);
+	/* 0.4333... */		private static final EdgeH RIGHTBYP433 = new EdgeH(0.4333,0);
+	/* 0.45 */			private static final EdgeH RIGHTBYP45 = new EdgeH(0.45,0);
+	/* 0.5 */			private static final EdgeH RIGHTBYP5 = new EdgeH(0.5,0);
+	/* 0.5166... */		private static final EdgeH RIGHTBYP5166 = new EdgeH(0.5166,0);
+	/* 0.55 */			private static final EdgeH RIGHTBYP55 = new EdgeH(0.55,0);
+	/* 0.5666... */		private static final EdgeH RIGHTBYP566 = new EdgeH(0.5666,0);
+	/* 0.6 */			private static final EdgeH RIGHTBYP6 = new EdgeH(0.6,0);
+	/* 0.6166... */		private static final EdgeH RIGHTBYP6166 = new EdgeH(0.6166,0);
+	/* 0.6333... */		private static final EdgeH RIGHTBYP6333 = new EdgeH(0.6333,0);
+	/* 0.6666... */		private static final EdgeH RIGHTBYP66 = new EdgeH(0.6666,0);
+	/* 0.7 */			private static final EdgeH RIGHTBYP7 = new EdgeH(0.7,0);
+	/* 0.75 */			private static final EdgeH RIGHTBYP75 = new EdgeH(0.75,0);
+	/* 0.8 */			private static final EdgeH RIGHTBYP8 = new EdgeH(0.8,0);
+	/* 0.875 */			private static final EdgeH RIGHTBYP875 = new EdgeH(0.875,0);
+	/* 0.9 */			private static final EdgeH RIGHTBYP9 = new EdgeH(0.9,0);
+
+	// this much from the center to the bottom edge
+	/* 0.1 */			private static final EdgeV BOTBYP1 = new EdgeV(-0.1,0); 
+	/* 0.125 */			private static final EdgeV BOTBYP125 = new EdgeV(-0.125,0);   
+	/* 0.166...  */		private static final EdgeV BOTBYP166 = new EdgeV(-0.166,0);	
+	/* 0.2 */			private static final EdgeV BOTBYP2 = new EdgeV(-0.2,0); 
+	/* 0.25 */			private static final EdgeV BOTBYP25 = new EdgeV(-0.25,0);	
+	/* 0.3 */			private static final EdgeV BOTBYP3 = new EdgeV(-0.3,0); 
+	/* 0.3333... */		private static final EdgeV BOTBYP33 = new EdgeV(-0.3333,0);	
+	/* 0.375 */			private static final EdgeV BOTBYP375 = new EdgeV(-0.375,0);        
+	/* 0.4 */			private static final EdgeV BOTBYP4 = new EdgeV(-0.4,0); 
+	/* 0.5 */			private static final EdgeV BOTBYP5 = new EdgeV(-0.5,0); 
+	/* 0.6 */			private static final EdgeV BOTBYP6 = new EdgeV(-0.6,0); 
+	/* 0.6666... */		private static final EdgeV BOTBYP66 = new EdgeV(-0.6666,0);	
+	/* 0.7 */			private static final EdgeV BOTBYP7 = new EdgeV(-0.7,0); 
+	/* 0.75 */			private static final EdgeV BOTBYP75 = new EdgeV(-0.75,0);	
+	/* 0.8 */			private static final EdgeV BOTBYP8 = new EdgeV(-0.8,0); 
+	/* 0.875 */			private static final EdgeV BOTBYP875 = new EdgeV(-0.875,0);        
+	/* 0.9 */			private static final EdgeV BOTBYP9 = new EdgeV(-0.9,0);	
+
+	// this much from the center to the top edge
+	/* 0.1 */			private static final EdgeV TOPBYP1 = new EdgeV(0.1,0);	
+	/* 0.2 */			private static final EdgeV TOPBYP2 = new EdgeV(0.2,0);	
+	/* 0.25 */			private static final EdgeV TOPBYP25 = new EdgeV(0.25,0);	
+	/* 0.3 */			private static final EdgeV TOPBYP3 = new EdgeV(0.3,0);	
+	/* 0.3333... */		private static final EdgeV TOPBYP33 = new EdgeV(0.3333,0);	
+	/* 0.4 */			private static final EdgeV TOPBYP4 = new EdgeV(0.4,0);	
+	/* 0.5 */			private static final EdgeV TOPBYP5 = new EdgeV(0.5,0);	
+	/* 0.5833... */		private static final EdgeV TOPBYP5833 = new EdgeV(0.5833,0);	
+	/* 0.6 */			private static final EdgeV TOPBYP6 = new EdgeV(0.6,0);	
+	/* 0.6666... */		private static final EdgeV TOPBYP66 = new EdgeV(0.6666,0);	
+	/* 0.7 */			private static final EdgeV TOPBYP7 = new EdgeV(0.7,0);	
+	/* 0.75 */			private static final EdgeV TOPBYP75 = new EdgeV(0.75,0);	
+	/* 0.8 */			private static final EdgeV TOPBYP8 = new EdgeV(0.8,0);	
+	/* 0.8666... */		private static final EdgeV TOPBYP866 = new EdgeV(0.8666,0);	
+	/* 0.875 */			private static final EdgeV TOPBYP875 = new EdgeV(0.875,0);	
+	/* 0.9 */			private static final EdgeV TOPBYP9 = new EdgeV(0.9,0);	
 
 //INTBIG            sch_meterkey;			/* key for "SCHEM_meter_type" */
 //INTBIG            sch_diodekey;			/* key for "SCHEM_diode" */
@@ -248,13 +248,13 @@ public class TecSchematics extends Technology
 
 		/** arc layer */
 		Layer arc_lay = Layer.newInstance("Arc",
-			new EGraphics(EGraphics.LAYERO, EGraphics.BLUE, EGraphics.SOLIDC, EGraphics.SOLIDC, 96,209,255,0.8,1,
+			new EGraphics(EGraphics.LAYERO, EGraphics.BLUE, EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,255,0.8,1,
 			new int[] {0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,
 				0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF}));
 
 		/** bus layer */
 		Layer bus_lay = Layer.newInstance("Bus",
-			new EGraphics(EGraphics.LAYERT3, EGraphics.COLORT3, EGraphics.SOLIDC, EGraphics.PATTERNED, 96,209,255,0.8,1,
+			new EGraphics(EGraphics.LAYERT3, EGraphics.COLORT3, EGraphics.SOLIDC, EGraphics.PATTERNED, 107,226,96,0.8,1,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -274,13 +274,13 @@ public class TecSchematics extends Technology
 
 		/** node layer */
 		Layer node_lay = Layer.newInstance("Node",
-			new EGraphics(EGraphics.LAYERO, EGraphics.RED, EGraphics.SOLIDC, EGraphics.SOLIDC, 96,209,255,0.8,1,
+			new EGraphics(EGraphics.LAYERO, EGraphics.RED, EGraphics.SOLIDC, EGraphics.SOLIDC, 255,0,0,0.8,1,
 			new int[] {0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,
 				0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF}));
 
 		/** text layer */
 		Layer text_lay = Layer.newInstance("Text",
-			new EGraphics(EGraphics.LAYERO, EGraphics.CELLTXT, EGraphics.SOLIDC, EGraphics.SOLIDC, 96,209,255,0.8,1,
+			new EGraphics(EGraphics.LAYERO, EGraphics.CELLTXT, EGraphics.SOLIDC, EGraphics.SOLIDC, 0,0,0,0.8,1,
 			new int[] {0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,
 				0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF}));
 
@@ -567,11 +567,12 @@ public class TecSchematics extends Technology
 		busPin_node.setArcsWipe();
 
 		/** wire con */
+		Technology.NodeLayer letterJ;
 		wireCon_node = PrimitiveNode.newInstance("Wire_Con", this, 2.0, 2.0, 0.0, 0.0,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSEDRECT, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX),
-				new Technology.NodeLayer(text_lay, 0, Poly.Type.TEXTCENT, Technology.NodeLayer.POINTS, Technology.TechPoint.ATCENTER)
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.FULLBOX),
+				letterJ = new Technology.NodeLayer(text_lay, 0, Poly.Type.TEXTCENT, Technology.NodeLayer.POINTS, Technology.TechPoint.ATCENTER)
 			});
 		wireCon_node.addPrimitivePorts(new PrimitivePort []
 			{
@@ -579,109 +580,147 @@ public class TecSchematics extends Technology
 					EdgeH.fromLeft(0.5), EdgeV.fromBottom(0.5), EdgeH.fromRight(0.5), EdgeV.fromTop(0.5))
 			});
 		wireCon_node.setFunction(NodeProto.Function.CONNECT);
+		letterJ.setMessage("J");
 
+		/** general buffer */
+		buffer_node = PrimitiveNode.newInstance("Buffer", this, 6.0, 6.0, 0.0, 0.0,
+			new Technology.NodeLayer []
+			{
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS,
+					new Technology.TechPoint [] {
+						new Technology.TechPoint(RIGHTBYP66, EdgeV.AtCenter),
+						new Technology.TechPoint(EdgeH.LeftEdge, TOPBYP875),
+						new Technology.TechPoint(EdgeH.LeftEdge, BOTBYP875)
+					})
+			});
+		buffer_node.addPrimitivePorts(new PrimitivePort []
+			{
+				PrimitivePort.newInstance(this, buffer_node, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Function.UNKNOWN,
+					EdgeH.LeftEdge, EdgeV.AtCenter, EdgeH.LeftEdge, EdgeV.AtCenter),
+				PrimitivePort.newInstance(this, buffer_node, new ArcProto[] {wire_arc}, "c", 270,0, 1, PortProto.Function.UNKNOWN,
+					EdgeH.AtCenter, BOTBYP33, EdgeH.AtCenter, BOTBYP33),
+				PrimitivePort.newInstance(this, buffer_node, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 2, PortProto.Function.UNKNOWN,
+					RIGHTBYP66, EdgeV.AtCenter, RIGHTBYP66, EdgeV.AtCenter)
+			});
+		buffer_node.setFunction(NodeProto.Function.BUFFER);
 
-///* wire-con */
-//static TECH_PORTS sch_wirecon_p[] = {				/* ports */
-//	{new ArcProto[] {wire_arc, bus_arc}, x_("wire"), NOPORTPROTO, (180<<PORTARANGESH)|PORTISOLATED,
-//		LEFTIN0H, BOTIN0H, RIGHTIN0H, TOPIN0H}};
-//static TECH_POLYGON sch_wirecon_l[] = {				/* layers */
-//	{node_lay, 0,                4, CLOSEDRECT, BOX, sch_g_bbox},
-//	{text_lay, TXTSETQLAMBDA(8), 1, TEXTCENT, POINTS, (INTBIG *)sch_g_wireconj}};
-//static TECH_NODES sch_wirecon = {
-//	x_("Wire_Con"),NWIRECON,NONODEPROTO,			/* name */
-//	K2,K2,											/* size */
-//	1,sch_wirecon_p,								/* ports */
-//	2,sch_wirecon_l,								/* layers */
-//	(NPCONNECT<<NFUNCTIONSH),						/* userbits */
-//	0,0,0,0,0,0,0,0,0};								/* characteristics */
-//
-///* general buffer */
-//static TECH_PORTS sch_buf_p[] = {					/* ports */
-//	{new ArcProto[] {wire_arc, bus_arc}, x_("a"), NOPORTPROTO, (180<<PORTANGLESH)|(0<<PORTARANGESH)|
-//		(0<<PORTNETSH)|INPORT, LEFTEDGE, CENTER, LEFTEDGE, CENTER},
-//	{ new ArcProto[] {wire_arc}, x_("c"), NOPORTPROTO, (270<<PORTANGLESH)|(0<<PORTARANGESH)|
-//		(1<<PORTNETSH)|INPORT, CENTER, BOTBYP33, CENTER, BOTBYP33},
-//	{new ArcProto[] {wire_arc, bus_arc}, x_("y"), NOPORTPROTO, (0<<PORTANGLESH)|(0<<PORTARANGESH)|
-//		(2<<PORTNETSH)|OUTPORT, RIGHTBYP66, CENTER, RIGHTBYP66, CENTER}};
-//static TECH_POLYGON sch_buf_l[] = {					/* layers */
-//	{node_lay, 0, 3, CLOSED, POINTS, sch_g_inv}};
-//static TECH_NODES sch_buf = {
-//	x_("Buffer"), NBUF, NONODEPROTO,				/* name */
-//	K6,K6,											/* size */
-//	3,sch_buf_p,									/* ports */
-//	1,sch_buf_l,									/* layers */
-//	(NPBUFFER<<NFUNCTIONSH),						/* userbits */
-//	0,0,0,0,0,0,0,0,0};								/* characteristics */
-//
-///* general and */
-//static TECH_PORTS sch_and_p[] = {					/* ports */
-//	{new ArcProto[] {wire_arc, bus_arc}, x_("a"), NOPORTPROTO, (180<<PORTANGLESH)|(0<<PORTARANGESH)|
-//		(0<<PORTNETSH)|INPORT|PORTISOLATED, CENTERL4,BOTEDGE,CENTERL4,TOPEDGE},
-//	{new ArcProto[] {wire_arc, bus_arc}, x_("y"), NOPORTPROTO, (0<<PORTANGLESH)|(0<<PORTARANGESH)|
-//		(1<<PORTNETSH)|OUTPORT, CENTERR3H, CENTER, CENTERR3H, CENTER},
-//	{new ArcProto[] {wire_arc, bus_arc}, x_("yt"), NOPORTPROTO, (0<<PORTANGLESH)|(0<<PORTARANGESH)|
-//		(2<<PORTNETSH)|OUTPORT, CENTERR2T, CENTERU2, CENTERR2T, CENTERU2},
-//	{new ArcProto[] {wire_arc, bus_arc}, x_("yc"), NOPORTPROTO, (0<<PORTANGLESH)|(0<<PORTARANGESH)|
-//		(3<<PORTNETSH)|OUTPORT, CENTERR2T, CENTERD2, CENTERR2T, CENTERD2}};
-//static TECH_POLYGON sch_and_l[] = {					/* layers */
-//	{node_lay, 0, 3, CIRCLEARC,  POINTS, sch_g_and},
-//	{node_lay, 0, 6, OPENED,     POINTS, sch_g_andbox}};
-//static TECH_NODES sch_and = {
-//	x_("And"), NAND, NONODEPROTO,					/* name */
-//	K8,K6,											/* size */
-//	4,sch_and_p,									/* ports */
-//	2,sch_and_l,									/* layers */
-//	(NPGATEAND<<NFUNCTIONSH),						/* userbits */
-//	0,0,0,0,0,0,0,0,0};								/* characteristics */
-//
-///* general or */
-//static TECH_PORTS sch_or_p[] = {					/* ports */
-//	{new ArcProto[] {wire_arc, bus_arc}, x_("a"), NOPORTPROTO, (180<<PORTANGLESH)|(0<<PORTARANGESH)|
-//		(0<<PORTNETSH)|INPORT|PORTISOLATED, CENTERL4,BOTEDGE, CENTERL3,TOPEDGE},
-//	{new ArcProto[] {wire_arc, bus_arc}, x_("y"), NOPORTPROTO, (0<<PORTANGLESH)|(0<<PORTARANGESH)|
-//		(1<<PORTNETSH)|OUTPORT, CENTERR4H, CENTER, CENTERR4H, CENTER},
-//	{new ArcProto[] {wire_arc, bus_arc}, x_("yt"), NOPORTPROTO, (0<<PORTANGLESH)|(0<<PORTARANGESH)|
-//		(2<<PORTNETSH)|OUTPORT, CENTERR2+D13, CENTERU2, CENTERR2+D13, CENTERU2},
-//	{new ArcProto[] {wire_arc, bus_arc}, x_("yc"), NOPORTPROTO, (0<<PORTANGLESH)|(0<<PORTARANGESH)|
-//		(3<<PORTNETSH)|OUTPORT, CENTERR2+D13, CENTERD2, CENTERR2+D13, CENTERD2}};
-//static TECH_POLYGON sch_or_l[] = {					/* layers */
-//	{node_lay, 0, 3, CIRCLEARC, POINTS, sch_g_orl},
-//	{node_lay, 0, 3, CIRCLEARC, POINTS, sch_g_ort},
-//	{node_lay, 0, 3, CIRCLEARC, POINTS, sch_g_orb},
-//	{node_lay, 0, 8, VECTORS,   POINTS, sch_g_or}};
-//static TECH_NODES sch_or = {
-//	x_("Or"), NOR, NONODEPROTO,						/* name */
-//	K10,K6,											/* size */
-//	4,sch_or_p,										/* ports */
-//	4,sch_or_l,										/* layers */
-//	(NPGATEOR<<NFUNCTIONSH),						/* userbits */
-//	0,0,0,0,0,0,0,0,0};								/* characteristics */
-//
-///* general xor */
-//static TECH_PORTS sch_xor_p[] = {					/* ports */
-//	{new ArcProto[] {wire_arc, bus_arc}, x_("a"), NOPORTPROTO, (180<<PORTANGLESH)|(0<<PORTARANGESH)|
-//		(0<<PORTNETSH)|INPORT|PORTISOLATED, CENTERL4,BOTEDGE, CENTERL3,TOPEDGE},
-//	{new ArcProto[] {wire_arc, bus_arc}, x_("y"), NOPORTPROTO, (0<<PORTANGLESH)|(0<<PORTARANGESH)|
-//		(1<<PORTNETSH)|OUTPORT, CENTERR4H, CENTER, CENTERR4H, CENTER},
-//	{new ArcProto[] {wire_arc, bus_arc}, x_("yt"), NOPORTPROTO, (0<<PORTANGLESH)|(0<<PORTARANGESH)|
-//		(2<<PORTNETSH)|OUTPORT, CENTERR2+D13, CENTERU2, CENTERR2+D13, CENTERU2},
-//	{new ArcProto[] {wire_arc, bus_arc}, x_("yc"), NOPORTPROTO, (0<<PORTANGLESH)|(0<<PORTARANGESH)|
-//		(3<<PORTNETSH)|OUTPORT, CENTERR2+D13, CENTERD2, CENTERR2+D13, CENTERD2}};
-//static TECH_POLYGON sch_xor_l[] = {					/* layers */
-//	{node_lay, 0, 3, CIRCLEARC, POINTS, sch_g_orl},
-//	{node_lay, 0, 3, CIRCLEARC, POINTS, sch_g_ort},
-//	{node_lay, 0, 3, CIRCLEARC, POINTS, sch_g_orb},
-//	{node_lay, 0, 3, CIRCLEARC, POINTS, sch_g_xor},
-//	{node_lay, 0, 8, VECTORS,   POINTS, sch_g_or}};
-//static TECH_NODES sch_xor = {
-//	x_("Xor"), NXOR, NONODEPROTO,					/* name */
-//	K10,K6,											/* size */
-//	4,sch_xor_p,									/* ports */
-//	5,sch_xor_l,									/* layers */
-//	(NPGATEXOR<<NFUNCTIONSH),						/* userbits */
-//	0,0,0,0,0,0,0,0,0};								/* characteristics */
-//
+		/** general and */
+		and_node = PrimitiveNode.newInstance("And", this, 8.0, 6.0, 0.0, 0.0,
+			new Technology.NodeLayer []
+			{
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromCenter(0.5), EdgeV.AtCenter),
+					new Technology.TechPoint(EdgeH.fromCenter(0.5), EdgeV.fromCenter(3)),
+					new Technology.TechPoint(EdgeH.fromCenter(0.5), EdgeV.fromCenter(-3))}),
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS,
+					new Technology.TechPoint [] {
+						new Technology.TechPoint(EdgeH.fromCenter(0.5), EdgeV.fromCenter(3)),
+						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(3)),
+						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.TopEdge),
+						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.BottomEdge),
+						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(-3)),
+						new Technology.TechPoint(EdgeH.fromCenter(0.5), EdgeV.fromCenter(-3))
+					})
+			});
+		and_node.addPrimitivePorts(new PrimitivePort []
+			{
+				PrimitivePort.newInstance(this, and_node, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Function.IN,
+					EdgeH.fromCenter(3.5), EdgeV.BottomEdge, EdgeH.fromCenter(3.5), EdgeV.TopEdge),
+				PrimitivePort.newInstance(this, and_node, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 1, PortProto.Function.OUT,
+					EdgeH.fromCenter(-4), EdgeV.BottomEdge, EdgeH.fromCenter(-4), EdgeV.TopEdge),
+				PrimitivePort.newInstance(this, and_node, new ArcProto[] {wire_arc, bus_arc}, "yt", 0,0, 2, PortProto.Function.OUT,
+					EdgeH.fromCenter(2.75), EdgeV.fromCenter(2), EdgeH.fromCenter(2.75), EdgeV.fromCenter(2)),
+				PrimitivePort.newInstance(this, and_node, new ArcProto[] {wire_arc, bus_arc}, "yc", 0,0, 3, PortProto.Function.OUT,
+					EdgeH.fromCenter(2.75), EdgeV.fromCenter(-2), EdgeH.fromCenter(2.75), EdgeV.fromCenter(-2))
+			});
+		and_node.setFunction(NodeProto.Function.GATEAND);
+
+		/** general or */
+		or_node = PrimitiveNode.newInstance("Or", this, 10.0, 6.0, 0.0, 0.0,
+			new Technology.NodeLayer []
+			{
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromCenter(-9), EdgeV.AtCenter),
+					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(3)),
+					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(-3))}),
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(-3)),
+					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(3)),
+					new Technology.TechPoint(EdgeH.fromCenter(-4.5), EdgeV.AtCenter)}),
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(3)),
+					new Technology.TechPoint(EdgeH.fromCenter(4.5), EdgeV.AtCenter),
+					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(-3))}),
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS,
+					new Technology.TechPoint [] {
+						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.TopEdge),
+						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(3)),
+						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(3)),
+						new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(3)),
+						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.BottomEdge),
+						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(-3)),
+						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(-3)),
+						new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(-3))
+					})
+			});
+		or_node.addPrimitivePorts(new PrimitivePort []
+			{
+				PrimitivePort.newInstance(this, or_node, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Function.IN,
+					EdgeH.fromCenter(-4), EdgeV.BottomEdge, EdgeH.fromCenter(-3), EdgeV.TopEdge),
+				PrimitivePort.newInstance(this, or_node, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 1, PortProto.Function.OUT,
+					EdgeH.fromCenter(4.5), EdgeV.AtCenter, EdgeH.fromCenter(4.5), EdgeV.AtCenter),
+				PrimitivePort.newInstance(this, or_node, new ArcProto[] {wire_arc, bus_arc}, "yt", 0,0, 2, PortProto.Function.OUT,
+					EdgeH.fromCenter(2.65), EdgeV.fromCenter(2), EdgeH.fromCenter(2.65), EdgeV.fromCenter(2)),
+				PrimitivePort.newInstance(this, or_node, new ArcProto[] {wire_arc, bus_arc}, "yc", 0,0, 3, PortProto.Function.OUT,
+					EdgeH.fromCenter(2.65), EdgeV.fromCenter(-2), EdgeH.fromCenter(2.65), EdgeV.fromCenter(-2))
+			});
+		or_node.setFunction(NodeProto.Function.GATEOR);
+
+		/** general xor */
+		xor_node = PrimitiveNode.newInstance("Xor", this, 10.0, 6.0, 0.0, 0.0,
+			new Technology.NodeLayer []
+			{
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromCenter(-9), EdgeV.AtCenter),
+					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(3)),
+					new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(-3))}),
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(-3)),
+					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(3)),
+					new Technology.TechPoint(EdgeH.fromCenter(-4.5), EdgeV.AtCenter)}),
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(3)),
+					new Technology.TechPoint(EdgeH.fromCenter(4.5), EdgeV.AtCenter),
+					new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(-3))}),
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromCenter(-10), EdgeV.AtCenter),
+					new Technology.TechPoint(EdgeH.fromCenter(-5), EdgeV.fromCenter(3)),
+					new Technology.TechPoint(EdgeH.fromCenter(-5), EdgeV.fromCenter(-3))}),
+				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS,
+					new Technology.TechPoint [] {
+						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.TopEdge),
+						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(3)),
+						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(3)),
+						new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(3)),
+						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.BottomEdge),
+						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(-3)),
+						new Technology.TechPoint(EdgeH.fromCenter(-4), EdgeV.fromCenter(-3)),
+						new Technology.TechPoint(EdgeH.fromCenter(-0.75), EdgeV.fromCenter(-3))
+					})
+			});
+		xor_node.addPrimitivePorts(new PrimitivePort []
+			{
+				PrimitivePort.newInstance(this, xor_node, new ArcProto[] {wire_arc, bus_arc}, "a", 180,0, 0, PortProto.Function.IN,
+					EdgeH.fromCenter(-4), EdgeV.BottomEdge, EdgeH.fromCenter(-3), EdgeV.TopEdge),
+				PrimitivePort.newInstance(this, xor_node, new ArcProto[] {wire_arc, bus_arc}, "y", 0,0, 1, PortProto.Function.OUT,
+					EdgeH.fromCenter(4.5), EdgeV.AtCenter, EdgeH.fromCenter(4.5), EdgeV.AtCenter),
+				PrimitivePort.newInstance(this, xor_node, new ArcProto[] {wire_arc, bus_arc}, "yt", 0,0, 2, PortProto.Function.OUT,
+					EdgeH.fromCenter(2.65), EdgeV.fromCenter(2), EdgeH.fromCenter(2.65), EdgeV.fromCenter(2)),
+				PrimitivePort.newInstance(this, xor_node, new ArcProto[] {wire_arc, bus_arc}, "yc", 0,0, 3, PortProto.Function.OUT,
+					EdgeH.fromCenter(2.65), EdgeV.fromCenter(-2), EdgeH.fromCenter(2.65), EdgeV.fromCenter(-2))
+			});
+		xor_node.setFunction(NodeProto.Function.GATEXOR);
+
 ///* general flip flop */
 //static TECH_PORTS sch_ff_p[] = {					/* ports */
 //	{ new ArcProto[] {wire_arc}, x_("i1"), NOPORTPROTO, (180<<PORTANGLESH)|(45<<PORTARANGESH)|
