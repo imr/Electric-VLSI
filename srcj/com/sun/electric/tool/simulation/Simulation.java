@@ -693,6 +693,19 @@ public class Simulation extends Tool
 	 */
 	public static void setCDLConvertBrackets(boolean c) { cacheCDLConvertBrackets.setBoolean(c); }
 
+    private static Pref cacheCDLIgnoreResistors = Pref.makeBooleanPref("CDLLIgnoreResistors", Simulation.tool.prefs, true);
+//    static { cacheCDLLibName.attachToObject(Simulation.tool, "IO/CDL tab", "Cadence library name"); }
+    /**
+     * Method to get the state of "ignore resistors" for netlisting
+     * @return the state of "ignore resistors"
+     */
+    public static boolean getCDLIgnoreResistors() { return cacheCDLIgnoreResistors.getBoolean(); }
+    /**
+     * Method to get the state of "ignore resistors" for netlisting
+     * @param b the state of "ignore resistors"
+     */
+    public static void setCDLIgnoreResistors(boolean b) { cacheCDLIgnoreResistors.setBoolean(b); }
+
 	/****************************** IRSIM OPTIONS ******************************/
 
 	private static Pref cacheIRSIMResimulateEach = Pref.makeBooleanPref("IRSIMResimulateEach", Simulation.tool.prefs, false);
