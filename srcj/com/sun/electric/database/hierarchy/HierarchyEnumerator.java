@@ -85,6 +85,11 @@ public final class HierarchyEnumerator {
 		public String toString() {
 			return makePath(context, sep) + leafName();		
 		}
+        public String toString(int numRemoveParents) {
+            VarContext localContext = context.removeParentContext(numRemoveParents);
+            String ret = makePath(localContext, sep) + leafName();
+            return ret;
+        }
 	}
 	public static class NetNameProxy extends NameProxy {
 		private Network net;
