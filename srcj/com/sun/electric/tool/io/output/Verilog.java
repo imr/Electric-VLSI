@@ -970,6 +970,10 @@ public class Verilog extends Topology
 	/** Abstract method to return the proper name of a Global signal */
 	protected String getGlobalName(Global glob) { return "glbl." + glob.getName(); }
 
+    /** Abstract method to decide whether export names take precedence over
+     * arc names when determining the name of the network. */
+    protected boolean isNetworksUseExportedNames() { return true; }
+
 	/*
 	 * Method to adjust a network name to be safe for Verilog output.
 	 * Verilog does permit a digit in the first location; prepend a "_" if found.

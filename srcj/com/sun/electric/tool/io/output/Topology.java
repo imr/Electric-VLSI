@@ -121,6 +121,10 @@ public abstract class Topology extends Output
 	/** Abstract method to return the proper name of a Global signal */
 	protected abstract String getGlobalName(Global glob);
 
+    /** Abstract method to decide whether export names take precedence over
+     * arc names when determining the name of the network. */
+    protected abstract boolean isNetworksUseExportedNames();
+
 	/**
 	 * Method to tell whether the topological analysis should mangle cell names that are parameterized.
 	 */
@@ -169,7 +173,7 @@ public abstract class Topology extends Output
 			CellNetInfo cni = null;
 			if (info.isRootCell())
 			{
-				cni = getNetworkInformation(cell, false, cell.getName());
+				cni = getNetworkInformation(cell, false, cell.getName(), isNetworksUseExportedNames());
 			} else
 			{
 				MyCellInfo mci = (MyCellInfo)info;
@@ -192,7 +196,7 @@ public abstract class Topology extends Output
 
 			Cell cell = (Cell)np;
 			Netlist netList = getNetlistForCell(cell);
-			CellNetInfo cni = getNetworkInformation(cell, false, mci.currentInstanceParametizedName);
+			CellNetInfo cni = getNetworkInformation(cell, false, mci.currentInstanceParametizedName, isNetworksUseExportedNames());
 			cellTopos.put(mci.currentInstanceParametizedName, cni);
 
 			// else just a cell
@@ -279,9 +283,9 @@ public abstract class Topology extends Output
 		protected Netlist getNetList() { return netList; }
 	}
 
-	private CellNetInfo getNetworkInformation(Cell cell, boolean quiet, String paramName)
+	private CellNetInfo getNetworkInformation(Cell cell, boolean quiet, String paramName, boolean useExportedName)
 	{
-		CellNetInfo cni = doGetNetworks(cell, quiet, paramName);
+		CellNetInfo cni = doGetNetworks(cell, quiet, paramName, useExportedName);
 //printWriter.print("********Decomposition of cell " + cell.describe() + "\n");
 //printWriter.print(" Have " + cni.cellSignals.size() + " signals:\n");
 //for(Iterator it = cni.cellSignals.values().iterator(); it.hasNext(); )
@@ -299,7 +303,7 @@ public abstract class Topology extends Output
 		return cni;
 	}
 
-	private CellNetInfo doGetNetworks(Cell cell, boolean quiet, String paramName)
+	private CellNetInfo doGetNetworks(Cell cell, boolean quiet, String paramName, boolean useExportedName)
 	{
 		// create the object with cell net information
 		CellNetInfo cni = new CellNetInfo();
@@ -338,7 +342,17 @@ public abstract class Topology extends Output
 				cs.name = getGlobalName(cs.globalSignal);
 			} else
 			{
-				if (net.hasNames()) cs.name = (String)net.getNames().next(); else
+				if (net.hasNames())
+                {
+                    String name = null;
+                    if (useExportedName && net.getExports().hasNext()) {
+                        //name = ((Export)net.getExports().next()).getName();
+                        name = (String)net.getNames().next();
+                    } else
+                        name = (String)net.getNames().next();
+                    cs.name = name;
+                    //cs.name = (String)net.getNames().next();
+                } else
 				{
 					cs.name = net.describe();
 					if (cs.name.equals(""))

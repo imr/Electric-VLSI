@@ -1055,6 +1055,10 @@ public class Spice extends Topology
 	/** Abstract method to return the proper name of a Global signal */
 	protected String getGlobalName(Global glob) { return glob.getName(); }
 
+    /** Abstract method to decide whether export names take precedence over
+     * arc names when determining the name of the network. */
+    protected boolean isNetworksUseExportedNames() { return false; }
+
 	/*
 	 * Method to adjust a network name to be safe for Spice output.
 	 * Spice has a list of legal punctuation characters that it allows.
