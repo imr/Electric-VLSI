@@ -194,7 +194,7 @@ public class KeyBindingManager {
      * that a prefix key has been hit.
      * @param prefix the prefix key
      */
-    protected void setPrefixKey(KeyStroke prefix) {
+    private void setPrefixKey(KeyStroke prefix) {
         this.lastPrefix = prefix;
     }
 
@@ -327,9 +327,11 @@ public class KeyBindingManager {
      */
     public static List getConflictsAllManagers(KeyStrokePair pair) {
         List conflicts = new ArrayList();
-        for (Iterator it = allManagers.iterator(); it.hasNext(); ) {
-            KeyBindingManager m = (KeyBindingManager)it.next();
-            conflicts.addAll(m.getConflictingKeyBindings(pair));
+        synchronized(allManagers) {
+            for (Iterator it = allManagers.iterator(); it.hasNext(); ) {
+                KeyBindingManager m = (KeyBindingManager)it.next();
+                conflicts.addAll(m.getConflictingKeyBindings(pair));
+            }
         }
         return conflicts;
     }

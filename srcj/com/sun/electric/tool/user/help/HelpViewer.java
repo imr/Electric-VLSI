@@ -135,7 +135,7 @@ public class HelpViewer extends javax.swing.JDialog {
         List list = Arrays.asList(allTips);
         int i = list.indexOf(tip);
         if (i == -1) {
-            i = rand.nextInt() % allTips.length;
+            i = rand.nextInt(allTips.length);
             i = Math.abs(i);
         }
         loadTip(i);
