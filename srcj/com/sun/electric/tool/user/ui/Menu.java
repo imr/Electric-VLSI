@@ -34,10 +34,12 @@ import com.sun.electric.tool.user.MenuCommands;
 import com.sun.electric.tool.user.dialogs.EditKeyBindings;
 
 import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.HashMap;
 import java.util.prefs.Preferences;
+import javax.swing.AbstractButton;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JRadioButtonMenuItem;
@@ -67,12 +69,21 @@ import javax.swing.ButtonGroup;
  * existence of MenuItem, CheckBoxMenuItem, or RadioButtonMenuItem.
  * Internally the code deals with the extended classes, however.  It just 
  * hides this from the rest of the code.
+ * <p>
+ * A usage of this custom class is in SDI mode where there are 
+ * multiple menubars and menus (for each window) that must maintain 
+ * consistency across the multiple instances.  This is ensured by using a 
+ * HashMap to store ArrayLists of associated menuitems, and adding this class 
+ * as an ActionListener. This class then takes care of updating associated 
+ * menus when one menu changes to state, to ensure consistency across all
+ * the menubars.
  */
 
-public class Menu extends JMenu 
+public class Menu extends JMenu implements ActionListener
 {
     /** Preferences for User Bindings */                            private static Preferences prefs = Preferences.userNodeForPackage(Menu.class);
     /** All menu items created, stores as ArrayLists in HashMap */  private static HashMap menuItems = new HashMap(40);
+    /** global object to be used as listener */                     public static Menu updater = Menu.createMenu(null);
     
     /** Extend JMenuItem so we can store default KeyBinding */
     private class MenuItem extends JMenuItem
@@ -224,6 +235,30 @@ public class Menu extends JMenu
         if (item instanceof RadioButtonMenuItem) return ((RadioButtonMenuItem)item).getDefaultKeyStroke();
         return null;
     }
+    
+    /**
+     * Update associated menuitems in any other menubars on a state change
+     */
+    public void actionPerformed(ActionEvent e)
+    {
+        AbstractButton source = (AbstractButton)e.getSource();
+        String name;
+        if (source instanceof ToolBarButton) name = ((ToolBarButton)source).getName(); else
+            name = source.getText();
+        //System.out.println("ActionPerformed on Menu "+name+", state is "+source.isSelected());
+        ArrayList list = (ArrayList)menuItems.get(name);
+        if (list == null) return;
+        for (Iterator it = list.iterator(); it.hasNext(); ) {
+            AbstractButton b = (AbstractButton)it.next();
+            if (b == source) continue;
+            String name2;
+            if (source instanceof ToolBarButton) name2 = ((ToolBarButton)source).getName(); else
+                name2 = source.getText();
+            //System.out.println("   - SubactionPerformed on Menu "+name2+", state set to "+source.isSelected());
+            // update state on other menus to match state on activated menu
+            b.setSelected(source.isSelected());
+        }
+    }
 
     //------------------------------PRIVATE METHODS--------------------------------------
     
@@ -239,6 +274,8 @@ public class Menu extends JMenu
             if (k != null) item.setAccelerator(k);
         }
 		item.addActionListener(action);
+        item.addActionListener(Menu.updater);
+        item.addActionListener(ToolBarButton.updater);
 		this.add(item);
         // add to hash map
         ArrayList list = (ArrayList)menuItems.get(item.getText());
@@ -258,5 +295,5 @@ public class Menu extends JMenu
         if (item instanceof CheckBoxMenuItem) ((CheckBoxMenuItem)item).setDefaultKeyStroke(key);
         if (item instanceof RadioButtonMenuItem) ((RadioButtonMenuItem)item).setDefaultKeyStroke(key);
     }
-
+    
 }

@@ -27,6 +27,8 @@ package com.sun.electric.tool.routing;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
@@ -37,6 +39,8 @@ import java.awt.geom.Point2D;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Set;
+import java.util.HashSet;
 
 /**
  * User: gainsley
@@ -143,6 +147,41 @@ public class SimpleWirer extends InteractiveRouter {
             route.add(arcRE2);
         }
         return true;
+    }
+    
+    
+    /**
+     * Build a stack of contacts to connect between <code>startRE</code> and
+     * <code>endRE</code>.  This is a recursive method.  It does not actually build
+     * the final arc to endRE, but instead returns a RouteElement in the same
+     * location as startRE that can be used to connect to endRE (using 
+     * getArcToUse(returnedRE, endRE).
+     * @param route a route to add new contacts and arcs to
+     * @param contactsUsed the contacts used so far (prevents duplication).
+     * Should be null or empty list on initial call.
+     * @param startRE the start of the route
+     * @param endRE the end of the route
+     * @return a RouteElement located at startRE's location, that can connect to endRE.
+     */
+    protected RouteElement buildContacts(List route, Set contactsUsed, RouteElement startRE, RouteElement endRE) {
+
+        PortProto startPort = startRE.getPortProto();
+        PortProto endPort = endRE.getPortProto();
+        
+        if (contactsUsed == null) contactsUsed = new HashSet();
+        // go through all contacts, see if any connect to startRE
+        // there may be more than one, in which case more than one
+        // possible solution must be explored
+        // NOTE: use only current technology
+        Technology tech = Technology.getCurrent();
+        for (Iterator it = tech.getNodes(); it.hasNext(); ) {
+            PrimitiveNode pn = (PrimitiveNode)it.next();
+            if (pn.getFunction() != NodeProto.Function.CONTACT) continue;
+            // contacts only have one port, which connects to two arcs
+            PrimitivePort pp = (PrimitivePort)pn.getPorts().next();
+            ArcProto [] arcs = pp.getConnections();
+        }
+        return null;
     }
 
     /**

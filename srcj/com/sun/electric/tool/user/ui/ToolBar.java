@@ -110,20 +110,19 @@ public class ToolBar extends JToolBar
 		/** Describes Selection mode (click and drag). */		public static final SelectMode AREA = new SelectMode("area");
 	}
 
-	private static JToggleButton clickZoomWireButton, selectButton, wireButton, selectSpecialButton, panButton, zoomButton, outlineButton;
-	private static JToggleButton fullButton, halfButton, quarterButton;
-	private static JToggleButton objectsButton, areaButton;
-	private static ButtonGroup modeGroup, arrowGroup, selectGroup;
 	private static CursorMode curMode = CursorMode.SELECT;
 	private static ArrowDistance curArrowDistance = ArrowDistance.FULL;
 	private static SelectMode curSelectMode = SelectMode.OBJECTS;
-	private static Cursor zoomCursor = null;
-	private static Cursor panCursor = null;
-	private static Cursor specialSelectCursor = null;
-	private static Cursor wiringCursor = null;
-	private static Cursor outlineCursor = null;
-	private static ToolBar toolbar;
+    private static Cursor zoomCursor = readCursor("CursorZoom.gif", 6, 6);
+	private static Cursor panCursor = readCursor("CursorPan.gif", 8, 8);
+	private static Cursor specialSelectCursor = readCursor("CursorSelectSpecial.gif", 0, 1);
+	private static Cursor wiringCursor = readCursor("CursorWiring.gif", 0, 0);
+	private static Cursor outlineCursor = readCursor("CursorOutline.gif", 0, 0);
+	private static ToolBar toolbar = null;
 
+    public static final ImageIcon selectSpecialIconOn = new ImageIcon(ToolBar.class.getResource("ButtonSelectSpecialOn.gif"));
+    public static final ImageIcon selectSpecialIconOff = new ImageIcon(ToolBar.class.getResource("ButtonSelectSpecialOff.gif"));
+    
 	private ToolBar() {}
 
 	/**
@@ -135,11 +134,18 @@ public class ToolBar extends JToolBar
 		toolbar = new ToolBar();
 		toolbar.setFloatable(true);
 		toolbar.setRollover(true);
-
+        
+        ToolBarButton clickZoomWireButton, selectButton, wireButton, panButton, zoomButton, outlineButton;
+        ToolBarButton fullButton, halfButton, quarterButton;
+        ToolBarButton objectsButton, areaButton;
+        ToolBarButton selectSpecialButton;
+        ButtonGroup modeGroup, arrowGroup, selectGroup;
+        
 		// the "Select mode" button
 		modeGroup = new ButtonGroup();
 
-        clickZoomWireButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonClickZoomWire.gif")));
+        clickZoomWireButton = ToolBarButton.newInstance(MenuCommands.cursorClickZoomWireName,
+            new ImageIcon(toolbar.getClass().getResource("ButtonClickZoomWire.gif")));
         clickZoomWireButton.addActionListener(
             new ActionListener() { public void actionPerformed(ActionEvent e) { clickZoomWireCommand(); } });
         clickZoomWireButton.setToolTipText("ClickZoomWire");
@@ -147,7 +153,8 @@ public class ToolBar extends JToolBar
         toolbar.add(clickZoomWireButton);
         modeGroup.add(clickZoomWireButton);
 
-		selectButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonSelect.gif")));
+		selectButton = ToolBarButton.newInstance(MenuCommands.cursorSelectName,
+            new ImageIcon(toolbar.getClass().getResource("ButtonSelect.gif")));
 		selectButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectCommand(); } });
 		selectButton.setToolTipText("Select");
@@ -155,23 +162,17 @@ public class ToolBar extends JToolBar
 		modeGroup.add(selectButton);
 
 		// the "Wiring" button
-		wireButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonWiring.gif")));
+		wireButton = ToolBarButton.newInstance(MenuCommands.cursorWiringName, 
+            new ImageIcon(toolbar.getClass().getResource("ButtonWiring.gif")));
 		wireButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { wiringCommand(); } });
 		wireButton.setToolTipText("Wiring");
 		toolbar.add(wireButton);
 		modeGroup.add(wireButton);
 
-		// the "Special select mode" button
-		selectSpecialButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonSelectSpecial.gif")));
-		selectSpecialButton.addActionListener(
-			new ActionListener() { public void actionPerformed(ActionEvent e) { selectSpecialCommand(); } });
-		selectSpecialButton.setToolTipText("Special Select");
-		toolbar.add(selectSpecialButton);
-		modeGroup.add(selectSpecialButton);
-
 		// the "Pan mode" button
-		panButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonPan.gif")));
+		panButton = ToolBarButton.newInstance(MenuCommands.cursorPanName,
+            new ImageIcon(toolbar.getClass().getResource("ButtonPan.gif")));
 		panButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { panCommand(); } });
 		panButton.setToolTipText("Pan");
@@ -179,7 +180,8 @@ public class ToolBar extends JToolBar
 		modeGroup.add(panButton);
 
 		// the "Zoom mode" button
-		zoomButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonZoom.gif")));
+		zoomButton = ToolBarButton.newInstance(MenuCommands.cursorZoomName, 
+            new ImageIcon(toolbar.getClass().getResource("ButtonZoom.gif")));
 		zoomButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { zoomCommand(); } });
 		zoomButton.setToolTipText("Zoom");
@@ -187,7 +189,8 @@ public class ToolBar extends JToolBar
 		modeGroup.add(zoomButton);
 
 		// the "Outline edit mode" button
-		outlineButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonOutline.gif")));
+		outlineButton = ToolBarButton.newInstance(MenuCommands.cursorOutlineName, 
+            new ImageIcon(toolbar.getClass().getResource("ButtonOutline.gif")));
 		outlineButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { outlineEditCommand(); } });
 		outlineButton.setToolTipText("Outline Edit");
@@ -199,7 +202,8 @@ public class ToolBar extends JToolBar
 
 		// the "Full arrow distance" button
 		arrowGroup = new ButtonGroup();
-		fullButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonFull.gif")));
+		fullButton = ToolBarButton.newInstance(MenuCommands.moveFullName, 
+            new ImageIcon(toolbar.getClass().getResource("ButtonFull.gif")));
 		fullButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { fullArrowDistanceCommand(); } });
 		fullButton.setToolTipText("Full motion");
@@ -208,7 +212,8 @@ public class ToolBar extends JToolBar
 		arrowGroup.add(fullButton);
 
 		// the "Half arrow distance" button
-		halfButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonHalf.gif")));
+        halfButton = ToolBarButton.newInstance(MenuCommands.moveHalfName, 
+            new ImageIcon(toolbar.getClass().getResource("ButtonHalf.gif")));
 		halfButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { halfArrowDistanceCommand(); } });
 		halfButton.setToolTipText("Half motion");
@@ -216,7 +221,8 @@ public class ToolBar extends JToolBar
 		arrowGroup.add(halfButton);
 
 		// the "Quarter arrow distance" button
-		quarterButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonQuarter.gif")));
+		quarterButton = ToolBarButton.newInstance(MenuCommands.moveQuarterName, 
+            new ImageIcon(toolbar.getClass().getResource("ButtonQuarter.gif")));
 		quarterButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { quarterArrowDistanceCommand(); } });
 		quarterButton.setToolTipText("Quarter motion");
@@ -226,61 +232,82 @@ public class ToolBar extends JToolBar
 		// a separator
 		toolbar.addSeparator();
 
-		// the "Select Objects" button
+        // the "Select Objects" button
 		selectGroup = new ButtonGroup();
-		objectsButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonObjects.gif")));
+		objectsButton = ToolBarButton.newInstance(MenuCommands.selectObjectsName, 
+            new ImageIcon(toolbar.getClass().getResource("ButtonObjects.gif")));
 		objectsButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectObjectsCommand(); } });
 		objectsButton.setToolTipText("Select Objects");
 		objectsButton.setSelected(true);
 		toolbar.add(objectsButton);
 		selectGroup.add(objectsButton);
-
-		// the "Select Area" button
-		areaButton = new JToggleButton(new ImageIcon(toolbar.getClass().getResource("ButtonArea.gif")));
+        
+        // the "Select Area" button
+		areaButton = ToolBarButton.newInstance(MenuCommands.selectAreaName, 
+            new ImageIcon(toolbar.getClass().getResource("ButtonArea.gif")));
 		areaButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectAreaCommand(); } });
 		areaButton.setToolTipText("Select Area");
 		toolbar.add(areaButton);
 		selectGroup.add(areaButton);
-
+        
+		// the "Special select mode" button
+        // this is a true toggle button, default is no special select
+		selectSpecialButton = ToolBarButton.newInstance(MenuCommands.specialSelectName, selectSpecialIconOff);
+		selectSpecialButton.addActionListener(
+			new ActionListener() { public void actionPerformed(ActionEvent e) { toggleSelectSpecialCommand(e); } });
+		selectSpecialButton.setToolTipText("Toggle Special Select");
+		toolbar.add(selectSpecialButton);
+        
 		// a separator
 		toolbar.addSeparator();
 
 		// the "Options" buttons
-		JButton editOptionButton = Button.newInstance(new ImageIcon(toolbar.getClass().getResource("ButtonOptionEdit.gif")));
+		ToolBarButton editOptionButton = ToolBarButton.newInstance("Edit Options", 
+            new ImageIcon(toolbar.getClass().getResource("ButtonOptionEdit.gif")));
 		editOptionButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.editOptionsCommand(); } });
 		editOptionButton.setToolTipText("Edit Options");
-		toolbar.add(editOptionButton);
+        editOptionButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
+        toolbar.add(editOptionButton);
 
-		JButton toolOptionButton = Button.newInstance(new ImageIcon(toolbar.getClass().getResource("ButtonOptionTool.gif")));
+
+		ToolBarButton toolOptionButton = ToolBarButton.newInstance("Tool Options", 
+            new ImageIcon(toolbar.getClass().getResource("ButtonOptionTool.gif")));
 		toolOptionButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.toolOptionsCommand(); } });
 		toolOptionButton.setToolTipText("Tool Options");
+        toolOptionButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
 		toolbar.add(toolOptionButton);
 
-		JButton ioOptionButton = Button.newInstance(new ImageIcon(toolbar.getClass().getResource("ButtonOptionIO.gif")));
+		ToolBarButton ioOptionButton = ToolBarButton.newInstance("I/O Options", 
+            new ImageIcon(toolbar.getClass().getResource("ButtonOptionIO.gif")));
 		ioOptionButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.ioOptionsCommand(); } });
 		ioOptionButton.setToolTipText("I/O Options");
+        ioOptionButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
 		toolbar.add(ioOptionButton);
 
 		// a separator
 		toolbar.addSeparator();
 
 		// the "Expanded" button
-		JButton expandButton = Button.newInstance(new ImageIcon(toolbar.getClass().getResource("ButtonExpand.gif")));
+		ToolBarButton expandButton = ToolBarButton.newInstance("Expand Cell Instances", 
+            new ImageIcon(toolbar.getClass().getResource("ButtonExpand.gif")));
 		expandButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.expandOneLevelDownCommand(); } });
 		expandButton.setToolTipText("Expand Cell Instances");
+        expandButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
 		toolbar.add(expandButton);
 
 		// the "Unexpanded" button
-		JButton unExpandButton = Button.newInstance(new ImageIcon(toolbar.getClass().getResource("ButtonUnexpand.gif")));
+		ToolBarButton unExpandButton = ToolBarButton.newInstance("Unexpand Cell Instances", 
+            new ImageIcon(toolbar.getClass().getResource("ButtonUnexpand.gif")));
 		unExpandButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { MenuCommands.unexpandOneLevelUpCommand(); } });
 		unExpandButton.setToolTipText("Unexpand Cell Instances");
+        unExpandButton.setModel(new javax.swing.DefaultButtonModel());  // this de-highlights the button after it is released
 		toolbar.add(unExpandButton);
 
 		// return the toolbar
@@ -336,8 +363,6 @@ public class ToolBar extends JToolBar
         EditWindow.setListener(ClickZoomWireListener.theOne);
         TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         curMode = CursorMode.CLICKZOOMWIRE;
-        clickZoomWireButton.setSelected(true);
-        MenuCommands.cursorClickZoomWire.setSelected(true);        
     }
 
 	/**
@@ -348,8 +373,6 @@ public class ToolBar extends JToolBar
 		EditWindow.setListener(ClickAndDragListener.theOne);
 		TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		curMode = CursorMode.SELECT;
-		selectButton.setSelected(true);
-		MenuCommands.cursorSelect.setSelected(true);
 	}
 
 	/**
@@ -358,37 +381,47 @@ public class ToolBar extends JToolBar
 	public static void wiringCommand()
 	{
 		EditWindow.setListener(WiringListener.theOne);
-		makeCursors();
+		//makeCursors();
 		TopLevel.setCurrentCursor(wiringCursor);
 		curMode = CursorMode.WIRE;
-		wireButton.setSelected(true);
-		MenuCommands.cursorWiring.setSelected(true);
 	}
 
 	/**
 	 * Method called when the "select special" button is pressed.
+     * Depricated - replaced by toggleSpecialSelectCommand.
 	 */
 	public static void selectSpecialCommand()
 	{
 		EditWindow.setListener(ClickAndDragListener.theOne);
-		makeCursors();
+		//makeCursors();
 		TopLevel.setCurrentCursor(specialSelectCursor);
 		curMode = CursorMode.SELECTSPECIAL;
-		selectSpecialButton.setSelected(true);
-		MenuCommands.cursorSelectSpecial.setSelected(true);
 	}
 
+    /**
+     * Method called to toggle the state of the "select special"
+     * button.
+     */
+    public static void toggleSelectSpecialCommand(ActionEvent e)
+    {
+        // get new state of special select to set icon
+        AbstractButton b = (AbstractButton)e.getSource();
+        if (b.isSelected()) {
+            ToolBarButton.setIconForButton(MenuCommands.specialSelectName, selectSpecialIconOn);
+        } else {
+            ToolBarButton.setIconForButton(MenuCommands.specialSelectName, selectSpecialIconOff);
+        }
+    }
+    
 	/**
 	 * Method called when the "pan" button is pressed.
 	 */
 	public static void panCommand()
 	{
 		EditWindow.setListener(ZoomAndPanListener.theOne);
-		makeCursors();
+		//makeCursors();
 		TopLevel.setCurrentCursor(panCursor);
 		curMode = CursorMode.PAN;
-		panButton.setSelected(true);
-		MenuCommands.cursorPan.setSelected(true);
 	}
 
 	/**
@@ -399,8 +432,6 @@ public class ToolBar extends JToolBar
 		EditWindow.setListener(ZoomAndPanListener.theOne);
 		TopLevel.setCurrentCursor(zoomCursor);
 		curMode = CursorMode.ZOOM;
-		zoomButton.setSelected(true);
-		MenuCommands.cursorZoom.setSelected(true);
 	}
 
 	/**
@@ -408,20 +439,20 @@ public class ToolBar extends JToolBar
 	 */
 	public static void outlineEditCommand()
 	{
-        ButtonModel oldMode = modeGroup.getSelection();
+        CursorMode oldMode = curMode;
 		NodeInst ni = (NodeInst)Highlight.getOneElectricObject(NodeInst.class);
 		if (ni == null)
 		{
 			System.out.println("Must first select a node with outline capabilities");
-			if (oldMode == outlineButton) selectCommand(); else
-                setMode(oldMode);
+			if (oldMode == CursorMode.OUTLINE) selectCommand(); else
+                setCursorMode(oldMode);
 			return;
 		}
 		if (!ni.getProto().isHoldsOutline())
 		{
 			System.out.println("Cannot edit outline information on " + ni.getProto().describe() + " nodes");
-            if (oldMode == outlineButton) selectCommand(); else
-                setMode(oldMode);
+            if (oldMode == CursorMode.OUTLINE) selectCommand(); else
+                setCursorMode(oldMode);
 			return;
 		}
 
@@ -430,23 +461,20 @@ public class ToolBar extends JToolBar
 		EditWindow.setListener(OutlineListener.theOne);
 		TopLevel.setCurrentCursor(outlineCursor);
 		curMode = CursorMode.OUTLINE;
-		outlineButton.setSelected(true);
-		MenuCommands.cursorOutline.setSelected(true);
 	}
 
     /**
-     * Set cursor mode based on last used button model
-     * @param model the button model corresponding to the desired mode
+     * Set cursor mode
+     * @param mode the CursorMode corresponding to the desired mode
      */
-    public static void setMode(ButtonModel model)
+    public static void setCursorMode(CursorMode mode)
     {
-        if (model == clickZoomWireButton) clickZoomWireCommand();
-        else if (model == selectButton) selectCommand();
-        else if (model == wireButton) wiringCommand();
-        else if (model == selectSpecialButton) selectSpecialCommand();
-        else if (model == panButton) panCommand();
-        else if (model == zoomButton) zoomCommand();
-        else if (model == outlineButton) outlineEditCommand();
+        if (mode == CursorMode.CLICKZOOMWIRE) ToolBarButton.doClick(MenuCommands.cursorClickZoomWireName);
+        else if (mode == CursorMode.SELECT) ToolBarButton.doClick(MenuCommands.cursorSelectName);
+        else if (mode == CursorMode.WIRE) ToolBarButton.doClick(MenuCommands.cursorWiringName);
+        else if (mode == CursorMode.PAN) ToolBarButton.doClick(MenuCommands.cursorPanName);
+        else if (mode == CursorMode.ZOOM) ToolBarButton.doClick(MenuCommands.cursorZoomName);
+        else if (mode == CursorMode.OUTLINE) ToolBarButton.doClick(MenuCommands.cursorOutlineName);
     }
 
 	/**
@@ -461,8 +489,6 @@ public class ToolBar extends JToolBar
 	public static void fullArrowDistanceCommand()
 	{
 		curArrowDistance = ArrowDistance.FULL;
-		fullButton.setSelected(true);
-		MenuCommands.moveFull.setSelected(true);
 	}
 
 	/**
@@ -471,8 +497,6 @@ public class ToolBar extends JToolBar
 	public static void halfArrowDistanceCommand()
 	{
 		curArrowDistance = ArrowDistance.HALF;
-		halfButton.setSelected(true);
-		MenuCommands.moveHalf.setSelected(true);
 	}
 
 	/**
@@ -481,8 +505,6 @@ public class ToolBar extends JToolBar
 	public static void quarterArrowDistanceCommand()
 	{
 		curArrowDistance = ArrowDistance.QUARTER;
-		quarterButton.setSelected(true);
-		MenuCommands.moveQuarter.setSelected(true);
 	}
 
 	/**
@@ -497,8 +519,6 @@ public class ToolBar extends JToolBar
 	public static void selectObjectsCommand()
 	{
 		curSelectMode = SelectMode.OBJECTS;
-		objectsButton.setSelected(true);
-		MenuCommands.selectObjects.setSelected(true);
 	}
 
 	/**
@@ -507,8 +527,6 @@ public class ToolBar extends JToolBar
 	public static void selectAreaCommand()
 	{
 		curSelectMode = SelectMode.AREA;
-		areaButton.setSelected(true);
-		MenuCommands.selectArea.setSelected(true);
 	}
 
 	/**
@@ -517,4 +535,9 @@ public class ToolBar extends JToolBar
 	 */
 	public static SelectMode getSelectMode() { return curSelectMode; }
 
+    /**
+     * Returns state of "select special" button
+     * @return true if select special button selected, false otherwise
+     */
+    public static boolean getSelectSpecial() { return ToolBarButton.getButtonState(MenuCommands.specialSelectName); }
 }

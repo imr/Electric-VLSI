@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: NodeInst.java
+ * File: Button.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -32,12 +32,16 @@ import javax.swing.JPopupMenu;
 import javax.swing.UIManager;
 
 /**
+ * Depricated 23 Mar 2004.  Replaced by ToolBarButton.
+ *
  * This class implements a button.
  * @author Willy Chung
  */
 public class Button extends JButton 
 {
-	private JPopupMenu popupMenu;
+
+    /*
+    private JPopupMenu popupMenu;
 	private Insets popupMenuButton;
 
 	private Button(ImageIcon image)
@@ -124,5 +128,5 @@ public class Button extends JButton
 		}
 		popupMenuButton = insets;
 	}
-
+     */
 }

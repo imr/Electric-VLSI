@@ -116,7 +116,7 @@ public class PaletteFrame
 		// initialize the frame
 		Dimension screenSize = TopLevel.getScreenSize();
 		int screenHeight = (int)screenSize.getHeight();
-		Dimension frameSize = new Dimension(100, screenHeight);
+		Dimension frameSize = new Dimension(100, (int)(screenHeight*0.9)); // multiply by 0.9 to make room for taskbar
 		if (TopLevel.isMDIMode())
 		{
 			JInternalFrame jInternalFrame = new JInternalFrame("Components", true, false, false, false);
@@ -150,16 +150,16 @@ public class PaletteFrame
 		if (TopLevel.isMDIMode())
 		{
 			((JInternalFrame)palette.container).getContentPane().setLayout(new java.awt.BorderLayout());
+			((JInternalFrame)palette.container).getContentPane().add(selector, BorderLayout.NORTH);
 			((JInternalFrame)palette.container).getContentPane().add(palette.panel, BorderLayout.CENTER);
-			((JInternalFrame)palette.container).getContentPane().add(selector, BorderLayout.SOUTH);
 			((JInternalFrame)palette.container).show();
 			TopLevel.addToDesktop((JInternalFrame)palette.container);
 			((JInternalFrame)palette.container).moveToFront();
 		} else
 		{
 			((JFrame)palette.container).getContentPane().setLayout(new java.awt.BorderLayout());
+			((JFrame)palette.container).getContentPane().add(selector, BorderLayout.NORTH);
 			((JFrame)palette.container).getContentPane().add(palette.panel, BorderLayout.CENTER);
-			((JFrame)palette.container).getContentPane().add(selector, BorderLayout.SOUTH);
 			((JFrame)palette.container).show();
 		}
 		return palette;
@@ -311,7 +311,7 @@ public class PaletteFrame
 		}
 		Dimension size = TopLevel.getScreenSize();
 		entrySize = (int)size.getWidth() / menuX;
-		int ysize = (int)(size.getHeight()) / menuY;
+		int ysize = (int)(size.getHeight()*0.9) / menuY;
 		if (ysize < entrySize) entrySize = ysize;
 		size.setSize(entrySize*menuX+1, entrySize*menuY+1);
 		container.setSize(size);

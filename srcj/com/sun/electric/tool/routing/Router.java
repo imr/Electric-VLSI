@@ -158,22 +158,13 @@ public abstract class Router {
         ArcProto invis = Generic.tech.invisible_arc;
         ArcProto unr = Generic.tech.unrouted_arc;
 
-        if (!(port1 instanceof PrimitivePort) && !(port2 instanceof PrimitivePort))
-            return curAp;                               // non-primitives, use current
-
-        PrimitivePort pp1 = null, pp2 = null;
-        // Note: this group of if else junk lets the either of the two
-        // port1, port2 args be null, but down below only pp2 can be null.
-        if (port1 instanceof PrimitivePort) {
-            pp1 = (PrimitivePort)port1;                 // port1 is a primitive port
-            if (port2 instanceof PrimitivePort)
-                pp2 = (PrimitivePort)port2;             // port2 is also a primitive port
-        } else {
-            if (port2 instanceof PrimitivePort)
-                pp1 = (PrimitivePort)port2;             // port2 is a primitive port,
-                                                        // assign it to pp1, leave pp2 null
-        }
-
+        PortProto pp1 = null, pp2 = null;
+        // Note: this makes it so either port1 or port2 can be null,
+        // but only pp2 can be null down below
+        if (port1 == null) pp1 = port2; else {
+            pp1 = port1; pp2 = port2; }
+        if (pp1 == null && pp2 == null) return null;
+        
         // Ignore pp2 if it is null
         if (pp2 == null) {
             // see if current arcproto works

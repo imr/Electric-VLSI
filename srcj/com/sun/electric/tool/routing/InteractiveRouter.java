@@ -30,6 +30,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
@@ -177,6 +178,13 @@ public abstract class InteractiveRouter extends Router {
             // arc: figure out where on arc to start
             startRE = findArcStartPoint(route, (ArcInst)startObj, clicked);
         }
+        if (startObj instanceof NodeInst) {
+            // find closest portinst to start from
+            PortInst pi = ((NodeInst)startObj).findClosestPortInst(clicked);
+            if (pi != null) {
+                startRE = RouteElement.existingPortInst(pi);
+            }
+        }
         if (startRE == null) {
             System.out.println("  Can't route from "+startObj);
             return route;
@@ -210,6 +218,10 @@ public abstract class InteractiveRouter extends Router {
                 ArcInst startArc = (ArcInst)startObj;
                 useArc = startArc.getProto();
             }
+            if (startObj instanceof NodeInst) {
+                PortInst startPort = ((NodeInst)startObj).findClosestPortInst(clicked);
+                useArc = getArcToUse(startPort.getPortProto(), null);
+            }
             if (!(useArc instanceof PrimitiveArc)) {
                 System.out.println("  Don't know how to determine pin for arc "+useArc);
                 return new ArrayList();
@@ -235,7 +247,7 @@ public abstract class InteractiveRouter extends Router {
 
 
     // -------------------- Internal Router Utility Methods --------------------
-
+    
     /**
      * If drawing to/from an ArcInst, we may connect to the some
      * point along the arc.  This may bisect the arc, in which case
