@@ -42,11 +42,7 @@ public class WellCheckTab extends PreferencePanel
 
 	public String getName() { return "Well Check"; }
 
-	private int initialWellCheckPWellRule;
-	private boolean initialWellCheckPWellConnectToGround;
-	private int initialWellCheckNWellRule;
-	private boolean initialWellCheckNWellConnectToPower;
-	private boolean initialWellCheckFindFarthest;
+	//private boolean initialWellCheckNWellConnectToPower;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -54,30 +50,24 @@ public class WellCheckTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		initialWellCheckPWellRule = ERC.getPWellCheck();
-		switch (initialWellCheckPWellRule)
+		switch (ERC.getPWellCheck())
 		{
 			case 0: wellPMustHaveAllContacts.setSelected(true);   break;
 			case 1: wellPMustHave1Contact.setSelected(true);      break;
 			case 2: wellPNoContactCheck.setSelected(true);        break;
 		}
+		wellPMustConnectGround.setSelected(ERC.isMustConnectPWellToGround());
 
-		initialWellCheckPWellConnectToGround = ERC.isMustConnectPWellToGround();
-		wellPMustConnectGround.setSelected(initialWellCheckPWellConnectToGround);
-
-		initialWellCheckNWellRule = ERC.getNWellCheck();
-		switch (initialWellCheckNWellRule)
+		switch (ERC.getNWellCheck())
 		{
 			case 0: wellNMustHaveAllContacts.setSelected(true);   break;
 			case 1: wellNMustHave1Contact.setSelected(true);      break;
 			case 2: wellNNoContactCheck.setSelected(true);        break;
 		}
+		wellNMustConnectPower.setSelected(ERC.isMustConnectNWellToPower());
 
-		initialWellCheckNWellConnectToPower = ERC.isMustConnectNWellToPower();
-		wellNMustConnectPower.setSelected(initialWellCheckNWellConnectToPower);
-
-		initialWellCheckFindFarthest = ERC.isFindWorstCaseWell();
-		wellFindFarthestDistance.setSelected(initialWellCheckFindFarthest);
+		wellFindFarthestDistance.setSelected(ERC.isFindWorstCaseWell());
+		drcCheck.setSelected(ERC.isDRCCheck());
 	}
 
 	/**
@@ -89,26 +79,30 @@ public class WellCheckTab extends PreferencePanel
 		int currentPWellRule = 0;
 		if (wellPMustHave1Contact.isSelected()) currentPWellRule = 1; else
 			if (wellPNoContactCheck.isSelected()) currentPWellRule = 2;
-		if (currentPWellRule != initialWellCheckPWellRule)
+		if (currentPWellRule != ERC.getPWellCheck())
 			ERC.setPWellCheck(currentPWellRule);
 
-		boolean currentPWellGroundCheck = wellPMustConnectGround.isSelected();
-		if (currentPWellGroundCheck != initialWellCheckPWellConnectToGround)
-			ERC.setMustConnectPWellToGround(currentPWellGroundCheck);
+		boolean check = wellPMustConnectGround.isSelected();
+		if (check != ERC.isMustConnectPWellToGround())
+			ERC.setMustConnectPWellToGround(check);
 
 		int currentNWellRule = 0;
 		if (wellNMustHave1Contact.isSelected()) currentNWellRule = 1; else
 			if (wellNNoContactCheck.isSelected()) currentNWellRule = 2;
-		if (currentNWellRule != initialWellCheckNWellRule)
+		if (currentNWellRule != ERC.getNWellCheck())
 			ERC.setNWellCheck(currentNWellRule);
 
-		boolean currentNWellPowerCheck = wellNMustConnectPower.isSelected();
-		if (currentNWellPowerCheck != initialWellCheckNWellConnectToPower)
-			ERC.setMustConnectNWellToPower(currentNWellPowerCheck);
+		check = wellNMustConnectPower.isSelected();
+		if (check != ERC.isMustConnectNWellToPower())
+			ERC.setMustConnectNWellToPower(check);
 
-		boolean currentFarCheck = wellFindFarthestDistance.isSelected();
-		if (currentFarCheck != initialWellCheckFindFarthest)
-			ERC.setFindWorstCaseWell(currentFarCheck);
+		check = wellFindFarthestDistance.isSelected();
+		if (check != ERC.isFindWorstCaseWell())
+			ERC.setFindWorstCaseWell(check);
+
+		check = drcCheck.isSelected();
+		if (check != ERC.isDRCCheck())
+			ERC.setDRCCheck(check);
 	}
 
 	/** This method is called from within the constructor to
@@ -135,6 +129,7 @@ public class WellCheckTab extends PreferencePanel
         wellNMustHaveAllContacts = new javax.swing.JRadioButton();
         wellNMustHave1Contact = new javax.swing.JRadioButton();
         wellNNoContactCheck = new javax.swing.JRadioButton();
+        drcCheck = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -176,8 +171,8 @@ public class WellCheckTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel3.add(wellPNoContactCheck, gridBagConstraints);
 
         wellPMustHave1Contact.setText("Must have at least 1 contact");
@@ -185,8 +180,8 @@ public class WellCheckTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel3.add(wellPMustHave1Contact, gridBagConstraints);
 
         wellPMustHaveAllContacts.setText("Must have contact in every area");
@@ -194,14 +189,13 @@ public class WellCheckTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel3.add(wellPMustHaveAllContacts, gridBagConstraints);
 
         jPanel1.add(jPanel3, new java.awt.GridBagConstraints());
 
         wellCheck.add(jPanel1, new java.awt.GridBagConstraints());
-        jPanel1.getAccessibleContext().setAccessibleName("For P-Well");
         jPanel1.getAccessibleContext().setAccessibleDescription("");
 
         jPanel2.setLayout(new java.awt.GridBagLayout());
@@ -211,8 +205,8 @@ public class WellCheckTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel2.add(wellNMustConnectPower, gridBagConstraints);
 
         jPanel4.setLayout(new java.awt.GridBagLayout());
@@ -223,8 +217,8 @@ public class WellCheckTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel4.add(wellNMustHaveAllContacts, gridBagConstraints);
 
         wellNMustHave1Contact.setText("Must have at least 1 contact");
@@ -232,8 +226,8 @@ public class WellCheckTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel4.add(wellNMustHave1Contact, gridBagConstraints);
 
         wellNNoContactCheck.setText("Do not check for contacts");
@@ -241,13 +235,22 @@ public class WellCheckTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel4.add(wellNNoContactCheck, gridBagConstraints);
 
         jPanel2.add(jPanel4, new java.awt.GridBagConstraints());
 
         wellCheck.add(jPanel2, new java.awt.GridBagConstraints());
+
+        drcCheck.setText("Check DRC Spacing Rule");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+        wellCheck.add(drcCheck, gridBagConstraints);
 
         getContentPane().add(wellCheck, new java.awt.GridBagConstraints());
 
@@ -262,6 +265,7 @@ public class WellCheckTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JCheckBox drcCheck;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;

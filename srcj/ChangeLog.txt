@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01at: *********************************
 
+IMP/MAN: (12/6/04, GVG) ERC: optimizing code (1)DRC check only available by request (not fully decomissioned yet
+until 100% sure about consequences) (2) caching information for arcs in HierarchyEnumerator Visitor.
+
 IMP: (12/7/04, SMR) Screen sizes are computed better on multi-display systems (Bug #48)
 
 BUG: (12/7/04, SMR) Conversin from layout to schematic is broken (Bug #56).

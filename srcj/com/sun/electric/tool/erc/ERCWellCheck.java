@@ -314,54 +314,58 @@ public class ERCWellCheck
 
 		// make sure the wells are separated properly
 		// Local storage of rules.. otherwise getSpacingRule is called too many times
-		HashMap rulesCon = new HashMap();
-		HashMap rulesNonCon = new HashMap();
-		for(Iterator it = wellAreas.iterator(); it.hasNext(); )
+		// THIS IS A DRC JOB .. not efficient if done here.
+		if (ERC.isDRCCheck())
 		{
-			WellArea wa = (WellArea)it.next();
-			for(Iterator oIt = wellAreas.iterator(); oIt.hasNext(); )
+			HashMap rulesCon = new HashMap();
+			HashMap rulesNonCon = new HashMap();
+			for(Iterator it = wellAreas.iterator(); it.hasNext(); )
 			{
-				// Checking if job is scheduled for abort or already aborted
-				if (job != null && job.checkForAbort()) return (0);
-
-				WellArea oWa = (WellArea)oIt.next();
-				if (wa.index <= oWa.index) continue;
-				Layer waLayer = wa.poly.getLayer();
-				if (waLayer != oWa.poly.getLayer()) continue;
-				//if (wa.layer != oWa.layer) continue;
-				boolean con = false;
-				if (wa.netNum == oWa.netNum && wa.netNum >= 0) con = true;
-				DRCRules.DRCRule rule = (con)?
-						(DRCRules.DRCRule)rulesCon.get(waLayer):
-						(DRCRules.DRCRule)rulesNonCon.get(waLayer);
-				// @TODO Might still return NULL the first time!!. Need another array or aux class?
-				if (rule == null)
+				WellArea wa = (WellArea)it.next();
+				for(Iterator oIt = wellAreas.iterator(); oIt.hasNext(); )
 				{
-					rule = DRC.getSpacingRule(waLayer, waLayer, con, false, 0);
+					// Checking if job is scheduled for abort or already aborted
+					if (job != null && job.checkForAbort()) return (0);
+
+					WellArea oWa = (WellArea)oIt.next();
+					if (wa.index <= oWa.index) continue;
+					Layer waLayer = wa.poly.getLayer();
+					if (waLayer != oWa.poly.getLayer()) continue;
+					//if (wa.layer != oWa.layer) continue;
+					boolean con = false;
+					if (wa.netNum == oWa.netNum && wa.netNum >= 0) con = true;
+					DRCRules.DRCRule rule = (con)?
+							(DRCRules.DRCRule)rulesCon.get(waLayer):
+							(DRCRules.DRCRule)rulesNonCon.get(waLayer);
+					// @TODO Might still return NULL the first time!!. Need another array or aux class?
 					if (rule == null)
-						System.out.println("Replace this");
-					if (con)
-						rulesCon.put(waLayer, rule);
-					else
-						rulesNonCon.put(waLayer, rule);
-				}
-				//DRCRules.DRCRule rule = DRC.getSpacingRule(wa.layer, wa.layer, con, false, 0);
-				if (rule == null || rule.value < 0) continue;
-				if (wa.poly.getBounds2D().getMinX() > oWa.poly.getBounds2D().getMaxX()+rule.value ||
-					oWa.poly.getBounds2D().getMinX() > wa.poly.getBounds2D().getMaxX()+rule.value ||
-					wa.poly.getBounds2D().getMinY() > oWa.poly.getBounds2D().getMaxY()+rule.value ||
-					oWa.poly.getBounds2D().getMinY() > wa.poly.getBounds2D().getMaxY()+rule.value) continue;
-				double dist = wa.poly.separation(oWa.poly); // dist == 0 -> intersect or inner loops
-				if (dist > 0 && dist < rule.value)
-				{
-					int layertype = getWellLayerType(waLayer);
-					if (layertype == ERCPSEUDO) continue;
+					{
+						rule = DRC.getSpacingRule(waLayer, waLayer, con, false, 0);
+						if (rule == null)
+							System.out.println("Replace this");
+						if (con)
+							rulesCon.put(waLayer, rule);
+						else
+							rulesNonCon.put(waLayer, rule);
+					}
+					//DRCRules.DRCRule rule = DRC.getSpacingRule(wa.layer, wa.layer, con, false, 0);
+					if (rule == null || rule.value < 0) continue;
+					if (wa.poly.getBounds2D().getMinX() > oWa.poly.getBounds2D().getMaxX()+rule.value ||
+						oWa.poly.getBounds2D().getMinX() > wa.poly.getBounds2D().getMaxX()+rule.value ||
+						wa.poly.getBounds2D().getMinY() > oWa.poly.getBounds2D().getMaxY()+rule.value ||
+						oWa.poly.getBounds2D().getMinY() > wa.poly.getBounds2D().getMaxY()+rule.value) continue;
+					double dist = wa.poly.separation(oWa.poly); // dist == 0 -> intersect or inner loops
+					if (dist > 0 && dist < rule.value)
+					{
+						int layertype = getWellLayerType(waLayer);
+						if (layertype == ERCPSEUDO) continue;
 
-					MessageLog err = errorLogger.logError(waLayer.getName() + " areas too close (are "
-							+ TextUtils.formatDouble(dist, 1) + ", should be "
-							+ TextUtils.formatDouble(rule.value, 1) + ")", cell, 0);
-					err.addPoly(wa.poly, true, cell);
-					err.addPoly(oWa.poly, true, cell);
+						MessageLog err = errorLogger.logError(waLayer.getName() + " areas too close (are "
+								+ TextUtils.formatDouble(dist, 1) + ", should be "
+								+ TextUtils.formatDouble(rule.value, 1) + ")", cell, 0);
+						err.addPoly(wa.poly, true, cell);
+						err.addPoly(oWa.poly, true, cell);
+					}
 				}
 			}
 		}
@@ -570,6 +574,31 @@ public class ERCWellCheck
 	        GeometryHandler thisMerge = (GeometryHandler)check.cellMerges.get(info.getCell());
 			if (thisMerge == null) throw new Error("wrong condition in ERCWellCheck.enterCell()");
 
+	        if (check.doneCells.get(cell) == null)
+	        {
+				for(Iterator it = cell.getArcs(); it.hasNext(); )
+				{
+					ArcInst ai = (ArcInst)it.next();
+
+					Technology tech = ai.getProto().getTechnology();
+					Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
+					int tot = arcInstPolyList.length;
+					for(int i=0; i<tot; i++)
+					{
+						Poly poly = arcInstPolyList[i];
+						Layer layer = poly.getLayer();
+						// Only interested in well/select
+						if (!isERCLayerRelated(layer)) continue;
+						if (getWellLayerType(layer) == ERCPSEUDO) continue;
+						Object newElem = poly;
+
+						if (check.newAlgorithm)
+							newElem = new PolyQTree.PolyNode(poly);
+						thisMerge.add(layer, newElem, check.newAlgorithm);
+					}
+				}
+	        }
+
 	        // To mark if cell is already done
 			check.doneCells.put(cell, cell);
 
@@ -586,27 +615,6 @@ public class ERCWellCheck
 					AffineTransform trans = ni.rotateOut();
 					AffineTransform tTrans = ni.translateOut(trans);
 					thisMerge.addAll(subMerge, tTrans);
-				}
-			}
-			for(Iterator it = cell.getArcs(); it.hasNext(); )
-			{
-				ArcInst ai = (ArcInst)it.next();
-
-				Technology tech = ai.getProto().getTechnology();
-				Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
-				int tot = arcInstPolyList.length;
-				for(int i=0; i<tot; i++)
-				{
-					Poly poly = arcInstPolyList[i];
-					Layer layer = poly.getLayer();
-					// Only interested in well/select
-					if (!isERCLayerRelated(layer)) continue;
-					if (getWellLayerType(layer) == ERCPSEUDO) continue;
-					Object newElem = poly;
-
-					if (check.newAlgorithm)
-						newElem = new PolyQTree.PolyNode(poly);
-					thisMerge.add(layer, newElem, check.newAlgorithm);
 				}
 			}
        }
@@ -646,10 +654,7 @@ public class ERCWellCheck
 						Object newElem = poly;
 
 						if (check.newAlgorithm)
-                        {
-                            //newElem = new PolyQTree.PolyNode(poly.getBounds2D());
                             newElem = new PolyQTree.PolyNode(poly);
-                        }
 						thisMerge.add(layer, newElem, check.newAlgorithm);
 					}
 				}

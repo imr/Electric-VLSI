@@ -148,6 +148,19 @@ public class ERC extends Tool
 	 */
 	public static void setFindWorstCaseWell(boolean on) { cacheFindWorstCaseWellContact.setBoolean(on); }
 
+	private static Pref cacheDRCCheck = Pref.makeBooleanPref("DRCCheckInERC", ERC.tool.prefs, false);
+	/**
+	 * Method to tell whether ERC should check DRC Spacing condition
+	 * The default is "false".
+	 * @return true if ERC should check DRC Spacing condition
+	 */
+	public static boolean isDRCCheck() { return cacheDRCCheck.getBoolean(); }
+	/**
+	 * Method to tell whether ERC should check DRC Spacing condition
+	 * @param on true if ERC should check DRC Spacing condition
+	 */
+	public static void setDRCCheck(boolean on) { cacheDRCCheck.setBoolean(on); }
+
     /**** ANTENNA Preferences ***/
 	private Pref getArcProtoAntennaPref(ArcProto ap)
 	{
