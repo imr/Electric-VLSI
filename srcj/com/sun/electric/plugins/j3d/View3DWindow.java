@@ -202,19 +202,11 @@ public class View3DWindow extends JPanel
 		highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER, wf);
         highlighter.addHighlightListener(this);
 
-		/*
-		overall = new JPanel();
-		//overall.setLayout(new GridBagLayout());
-        overall.setLayout(new BorderLayout()); */
-
-
 		setLayout(new BorderLayout());
         GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
         BoundingSphere infiniteBounds = new BoundingSphere(new Point3d(), Double.MAX_VALUE);
 
 		canvas = new Canvas3D(config);
-		//overall.add("Center", c);
-        //overall.add(this);
 		add("Center", canvas);
 		canvas.addMouseListener(this);
 
@@ -224,7 +216,6 @@ public class View3DWindow extends JPanel
 		ViewingPlatform viewP = new ViewingPlatform(4);
 		viewP.setCapability(ViewingPlatform.ALLOW_CHILDREN_READ);
 		Viewer viewer = new Viewer(canvas);
-		//u = new SimpleUniverse(canvas, 4);
 		u = new SimpleUniverse(viewP, viewer);
 		u.addBranchGraph(scene);
 
@@ -232,12 +223,12 @@ public class View3DWindow extends JPanel
         // objects in the scene can be viewed.
 
 		ViewingPlatform viewingPlatform = u.getViewingPlatform();
-		//viewingPlatform.setCapability(ViewingPlatform.ALLOW_CHILDREN_READ);
 
         JMouseTranslate translate = new JMouseTranslate(canvas, MouseTranslate.INVERT_INPUT);
         translate.setTransformGroup(viewingPlatform.getMultiTransformGroup().getTransformGroup(2));
         translate.setSchedulingBounds(infiniteBounds);
-        translate.setFactor(0.1); // default 0.02
+		double scale = (cell.getDefWidth() < cell.getDefHeight()) ? cell.getDefWidth() : cell.getDefHeight();
+        translate.setFactor(0.01 * scale); // default 0.02
         BranchGroup translateBG = new BranchGroup();
         translateBG.addChild(translate);
         viewingPlatform.addChild(translateBG);
