@@ -47,16 +47,12 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.ErrorLogger.MessageLog;
-import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.Main;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.Area;
 import java.util.*;
 
 /**
@@ -267,6 +263,8 @@ public class ERCWellCheck
 					if (oWc.netNum == -1) continue;   // before ==0
 					if (oWc.fun != wc.fun) continue;
 					if (oWc.netNum == wc.netNum) continue;
+					if (wc.onProperRail && oWc.onProperRail)
+						continue; // Both proper connected to gdn/power exports
 					String errorMsg = "N-Well contacts are not connected";
 					if (wc.fun == NodeProto.Function.WELL) errorMsg = "P-Well contacts are not connected";
 					MessageLog err = errorLogger.logError(errorMsg, cell, 0);

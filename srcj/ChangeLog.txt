@@ -4,8 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01u: *********************************
 
-BUG: (9/20/04, GVG) ERC not properly detecting well contacts not connected to groud/power.
-FIX: Iterate over Export in JNetwork and check if isGround() or isPower().
+BUG: (9/20/04, GVG) ERC not properly detecting well contacts not connected to ground/power.
+FIX: Iterate over Export in JNetwork and check if isGround() or isPower(). Even if contacts are not
+explicitly connected, it won't complain if network has export gnd/power
 
 IMP: (9/19/04, SMR) Serpentine transistors now know port information.
 
