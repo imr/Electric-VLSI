@@ -837,9 +837,11 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 
 			// get default creation angle
 			int defAngle = 0;
+			int techBits = 0;
 			if (ni != null)
 			{
 				defAngle = ni.getAngle();
+				techBits = ni.getTechSpecific();
 			} else
 			{
 				defAngle = np.getDefPlacementAngle();
@@ -850,7 +852,7 @@ public class PaletteFrame implements DatabaseChangeListener, MouseListener
 				}
 			}
 
-			NodeInst newNi = NodeInst.makeInstance(np, where, width, height, defAngle, cell, null, ni.getTechSpecific());
+			NodeInst newNi = NodeInst.makeInstance(np, where, width, height, defAngle, cell, null, techBits);
 			if (newNi == null) return false;
 			if (np == Generic.tech.cellCenterNode || np == Generic.tech.essentialBoundsNode)
 				newNi.setHardSelect();
