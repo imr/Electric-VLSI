@@ -428,7 +428,9 @@ public class ThreeDTab extends PreferencePanel
         if (currentValue != User.get3DRotY())
             User.set3DRotY(currentValue);
         currentValue = TextUtils.atof(threeDZoom.getText());
-        if (currentValue != User.get3DOrigZoom())
+        if (GenMath.doublesEqual(currentValue, 0))
+            System.out.println(currentValue + " is an invalid zoom factor.");
+        else if (currentValue != User.get3DOrigZoom())
             User.set3DOrigZoom(currentValue);
 	}
 
