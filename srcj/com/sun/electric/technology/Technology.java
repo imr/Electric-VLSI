@@ -3229,7 +3229,8 @@ public class Technology implements Comparable
 			hasChanged = true;
 			errorMessage += " bottom=" + bottomIndent;
 		}
-		if (hasChanged && Main.getDebug()) System.out.println(errorMessage);
+        // Message printed only if developer turns local flag on
+		if (hasChanged && Main.LOCALDEBUGFLAG) System.out.println(errorMessage);
 	}
 
 	/**
@@ -3309,9 +3310,9 @@ public class Technology implements Comparable
 			// describe the error
 //			String errorMessage = "Layer Minimum Size correction of " + indent + " done in '"
 //					+ layername + ":" + getTechDesc() + "' by rule " + rulename;
-            String errorMessage = "User preference of " + width + " overwrites layer minimum size in '"
-					+ layername + ":" + getTechShortName() + "' by rule " + rulename;
-			if (Main.getDebug()) System.out.println(errorMessage);
+            String errorMessage = "User preference of " + width + " overwrites original layer minimum size in layer '"
+					+ layername + "', primitive '" + np.getName() + ":" + getTechShortName() + "' by rule " + rulename;
+			if (Main.LOCALDEBUGFLAG) System.out.println(errorMessage);
 		}
 	}
 

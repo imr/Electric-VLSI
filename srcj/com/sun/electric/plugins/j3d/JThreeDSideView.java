@@ -50,63 +50,23 @@ public class JThreeDSideView extends JPanel
         add("Center", canvas);
         canvas.addMouseListener(this);
 
-        BranchGroup objRoot = new BranchGroup();
-        objRoot.setCapability(BranchGroup.ALLOW_BOUNDS_READ);
-        objRoot.setCapability(BranchGroup.ENABLE_PICK_REPORTING);
-        objRoot.setCapability(BranchGroup.ALLOW_BOUNDS_WRITE);
+        BranchGroup scene = createSceneGraph(canvas, infiniteBounds);
 
-        // Create a simple Shape3D node; add it to the scene graph.
-        Background bg = new Background(new Color3f(new Color(User.getColorBackground())));
-        bg.setApplicationBounds(infiniteBounds);
-        objRoot.addChild(bg);
-
-        // Create the TransformGroup node and initialize it to the
-        // identity. Enable the TRANSFORM_WRITE capability so that
-        // our behavior code can modify it at run time. Add it to
-        // the root of the subgraph.
-        TransformGroup objTrans = new TransformGroup();
-        objTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-        objTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-        objTrans.setCapability(TransformGroup.ENABLE_PICK_REPORTING);
-        objRoot.addChild(objTrans);
-
-        layerPolyhedra = new HashMap(dialog.getTech().getNumLayers());
-        for(Iterator it = dialog.getTech().getLayers(); it.hasNext(); )
-        {
-            Layer layer = (Layer)it.next();
-            if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
-            if (!layer.isVisible()) continue;
-            double xyFactor = (layer.getFunctionExtras() == Layer.Function.CONMETAL) ? 0.8 : 1;
-            JAppearance ap = (JAppearance)parentDialog.transparencyMap.get(layer);
-            GenMath.MutableDouble thickness = (GenMath.MutableDouble)dialog.threeDThicknessMap.get(layer);
-            GenMath.MutableDouble distance = (GenMath.MutableDouble)dialog.threeDDistanceMap.get(layer);
-            double dis = distance.doubleValue();
-            double thick = thickness.doubleValue();
-            Rectangle2D bounds = new Rectangle2D.Double(0, 0, 10*xyFactor, 20*xyFactor);
-            layerPolyhedra.put(layer, J3DUtils.addPolyhedron(bounds, dis, thick, ap, objTrans));
-            if (dis < lowHeight)
-                lowHeight = dis;
-            double max = dis + thick;
-            if (max > highHeight)
-                highHeight = max;
-        }
-
-        // lights
-        J3DUtils.createLights(infiniteBounds, objRoot, objTrans);
-
-        // picking tool
-        pickCanvas = new PickCanvas(canvas, objRoot);
-		//pickCanvas.setMode(PickCanvas.BOUNDS);
-        pickCanvas.setMode(PickCanvas.GEOMETRY_INTERSECT_INFO);
-        pickCanvas.setTolerance(4.0f);
-
-        objRoot.compile();
+//        SimpleUniverse u = new SimpleUniverse(canvas);
+//        u.getViewingPlatform().setNominalViewingTransform();
+//        u.addBranchGraph(scene);
 
         ViewingPlatform viewP = new ViewingPlatform(4);
         viewP.setCapability(ViewingPlatform.ALLOW_CHILDREN_READ);
         Viewer viewer = new Viewer(canvas);
         SimpleUniverse u = new SimpleUniverse(viewP, viewer);
-        u.addBranchGraph(objRoot);
+        u.addBranchGraph(scene);
+
+//        BranchGroup rotateBG = new BranchGroup();
+//        Billboard billboard = new Billboard( objTrans, Billboard.ROTATE_ABOUT_AXIS, new Point3f( 1.0f, 1.0f, 0.0f ) );
+//		billboard.setSchedulingBounds( infiniteBounds );
+//		rotateBG.addChild( billboard );
+//        u.getViewingPlatform().addChild(rotateBG);
 
         JMouseRotate rotate = new JMouseRotate(MouseRotate.INVERT_INPUT);
         rotate.setTransformGroup(u.getViewingPlatform().getMultiTransformGroup().getTransformGroup(0));
@@ -130,7 +90,7 @@ public class JThreeDSideView extends JPanel
         BranchGroup translateBG = new BranchGroup();
         translateBG.addChild(translate);
         u.getViewingPlatform().addChild(translateBG);
-//
+
 //        OrbitBehavior orbit = new OrbitBehavior(canvas, OrbitBehavior.REVERSE_ALL);
 //        orbit.setSchedulingBounds(infiniteBounds);
 //                Point3d center = new Point3d(-10, -10, (lowHeight+highHeight)/2);
@@ -146,10 +106,74 @@ public class JThreeDSideView extends JPanel
 //        u.getViewingPlatform().setViewPlatformBehavior(orbit);
 
         u.getViewingPlatform().setNominalViewingTransform();
+
+        //translate.setView(-10, -50);
+        J3DUtils.setViewPoint(u, canvas, scene, new Rectangle2D.Double(0, 0, 10, 20));
         rotate.setRotation(1.57, -0.5);
         zoom.setZoom(0.5);
-        //translate.setView(-10, -50);
-        J3DUtils.setViewPoint(u, canvas, objRoot, new Rectangle2D.Double(0, 0, 100, 100));
+    }
+
+    private BranchGroup createSceneGraph(Canvas3D canvas, BoundingSphere infiniteBounds)
+    {
+        BranchGroup objRoot = new BranchGroup();
+        objRoot.setCapability(BranchGroup.ALLOW_BOUNDS_READ);
+        objRoot.setCapability(BranchGroup.ENABLE_PICK_REPORTING);
+        objRoot.setCapability(BranchGroup.ALLOW_BOUNDS_WRITE);
+
+        // Create a simple Shape3D node; add it to the scene graph.
+        Background bg = new Background(new Color3f(new Color(User.getColorBackground())));
+        bg.setApplicationBounds(infiniteBounds);
+        objRoot.addChild(bg);
+
+        // Create the TransformGroup node and initialize it to the
+        // identity. Enable the TRANSFORM_WRITE capability so that
+        // our behavior code can modify it at run time. Add it to
+        // the root of the subgraph.
+        	// Create a transform group node to scale and position the object.
+	Transform3D t = new Transform3D();
+	t.set(1, new Vector3d(0, -10, -40));
+	TransformGroup objTrans = new TransformGroup(t);
+        objRoot.addChild(objTrans);
+
+        TransformGroup nodesGroup = new TransformGroup();
+        nodesGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+        nodesGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+        nodesGroup.setCapability(TransformGroup.ENABLE_PICK_REPORTING);
+        objTrans.addChild(nodesGroup);
+
+        layerPolyhedra = new HashMap(parentDialog.getTech().getNumLayers());
+        for(Iterator it = parentDialog.getTech().getLayers(); it.hasNext(); )
+        {
+            Layer layer = (Layer)it.next();
+            if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+            if (!layer.isVisible()) continue;
+            double xyFactor = (layer.getFunctionExtras() == Layer.Function.CONMETAL) ? 0.8 : 1;
+            JAppearance ap = (JAppearance)parentDialog.transparencyMap.get(layer);
+            GenMath.MutableDouble thickness = (GenMath.MutableDouble)parentDialog.threeDThicknessMap.get(layer);
+            GenMath.MutableDouble distance = (GenMath.MutableDouble)parentDialog.threeDDistanceMap.get(layer);
+            double dis = distance.doubleValue();
+            double thick = thickness.doubleValue();
+            Rectangle2D bounds = new Rectangle2D.Double(0, 0, 10*xyFactor, 20*xyFactor);
+            layerPolyhedra.put(layer, J3DUtils.addPolyhedron(bounds, dis, thick, ap, nodesGroup));
+            if (dis < lowHeight)
+                lowHeight = dis;
+            double max = dis + thick;
+            if (max > highHeight)
+                highHeight = max;
+        }
+
+        // lights
+        J3DUtils.createLights(infiniteBounds, objRoot, objTrans);
+
+        // picking tool
+        pickCanvas = new PickCanvas(canvas, objRoot);
+		//pickCanvas.setMode(PickCanvas.BOUNDS);
+        pickCanvas.setMode(PickCanvas.GEOMETRY_INTERSECT_INFO);
+        pickCanvas.setTolerance(4.0f);
+
+        objRoot.compile();
+
+        return objRoot;
     }
 
     /**
