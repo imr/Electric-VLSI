@@ -1348,8 +1348,7 @@ public class PolyBase implements Shape
 
 	/**
 	 * Method to compute the area of this Poly.
-	 * @return the area of this Poly.
-	 * The calculation may return a negative value if the polygon points are counter-clockwise.
+	 * @return the area of this Poly. Return always a positive number
 	 */
 	public double getArea()
 	{
@@ -1371,8 +1370,8 @@ public class PolyBase implements Shape
 					/* first line is horizontal */
 					sign = (points[1].getX() - points[0].getX()) * (points[1].getY() - points[2].getY());
 				}
-				if (sign < 0) area = -area;
-				return area;
+				//if (sign < 0) area = -area;
+				return Math.abs(area);
 			}
 
 			return getAreaOfPoints(points);
@@ -1382,9 +1381,9 @@ public class PolyBase implements Shape
 
 	/**
 	 * Method to compute the area of a polygon defined by an array of points.
+     * Returns always positive numbers
 	 * @param points the array of points.
 	 * @return the area of the polygon defined by these points.
-	 * The calculation may return a negative value if the points are counter-clockwise.
 	 */
 	private static double getAreaOfPoints(Point2D [] points)
 	{
@@ -1409,7 +1408,7 @@ public class PolyBase implements Shape
 		double p2 = points[0].getY() + y1;
 		double partial = p1 * p2;
 		area += partial / 2.0f;
-		return area;
+		return Math.abs(area);
 	}
 
 	/**

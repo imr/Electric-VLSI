@@ -1302,7 +1302,33 @@ public class Technology implements Comparable
 	 * @return the PrimitiveNode.Function that describes the NodeInst.
 	 */
 	public PrimitiveNode.Function getPrimitiveFunction(NodeInst ni) { return ni.getProto().getFunction(); }
-	
+
+    private static final List diffLayers = new ArrayList(2);
+
+    static {
+	    diffLayers.add(Layer.Function.DIFFP);
+	    diffLayers.add(Layer.Function.DIFFN);
+    };
+
+    /**
+     * Method to return length of active reqion. This will be used for
+     * parasitics extraction. Electric layers are used for the calculation
+     * @param ni the NodeInst.
+     * @return length of the any active region
+     */
+    public double getTransistorActiveLength(NodeInst ni)
+    {
+        Poly [] diffList = getShapeOfNode(ni, null, true, false, diffLayers);
+        double activeLen = 0;
+        if (diffList.length > 0)
+        {
+            // Since electric layers are used, it takes the first active region
+            Poly poly = diffList[0];
+            activeLen = poly.getBounds2D().getHeight();
+        }
+        return activeLen;
+    }
+
 	/**
 	 * Method to return the size of a transistor NodeInst in this Technology.
      * You should most likely be calling NodeInst.getTransistorSize instead of this.
@@ -1328,9 +1354,10 @@ public class Technology implements Comparable
 			height = 2;
 			double serpentineLength = ni.getSerpentineTransistorLength();
 			if (serpentineLength > 0) height = serpentineLength;
+            System.out.println("No calculating length for active regions yet");
 		}
-
-		TransistorSize size = new TransistorSize(new Double(width), new Double(height));
+        double activeLen = getTransistorActiveLength(ni);
+		TransistorSize size = new TransistorSize(new Double(width), new Double(height), new Double(activeLen));
 		return size;
 	}
 

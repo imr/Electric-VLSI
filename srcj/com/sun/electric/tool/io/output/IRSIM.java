@@ -27,6 +27,7 @@ package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -183,12 +184,6 @@ public class IRSIM extends Output
 	}
 
 	/** IRSIM Netlister */
-    private static final List diffLayers = new ArrayList(2);
-
-    static {
-	    diffLayers.add(Layer.Function.DIFFP);
-	    diffLayers.add(Layer.Function.DIFFN);
-    };
 
 	private class IRSIMNetlister extends HierarchyEnumerator.Visitor
     {
@@ -296,42 +291,23 @@ public class IRSIM extends Output
             ci.netName2 = iinfo.getUniqueNetName(snet, "/").substring(len);
             ci.netName3 = iinfo.getUniqueNetName(dnet, "/").substring(len);
             TransistorSize dim = ni.getTransistorSize(iinfo.getContext());
-            if (dim.getDoubleLength() == 0 || dim.getDoubleWidth() == 0)
-            	dim = new TransistorSize(new Double(2), new Double(2));
+            if (dim == null || dim.getDoubleLength() == 0 || dim.getDoubleWidth() == 0)
+            	dim = new TransistorSize(new Double(2), new Double(2), new Double(2));
             float m = iinfo.getMFactor();
             ci.length = dim.getDoubleLength();
             ci.width = dim.getDoubleWidth() * m;
 
 			// no parasitics yet
-            // Only diffusion layers are required for source and drain
-            Poly [] diffList = info.getCell().getTechnology().getShapeOfNode(ni, null, true, false, diffLayers);
-            if (diffList.length != 2)
-            {
-                System.out.println("ERROR, wrong number of diffusion layers in " + ni + ", cell " + iinfo.getCell());
-                return false;
-            }
-
-            // Drain and source regions are identical -> get value for only one and copy the second for now
-
-            Poly poly = diffList[0];
-            double area = Math.abs(poly.getArea());
-            double perim = poly.getPerimeter();
-            ci.sourceArea = area;
-            ci.sourcePerim = perim;
-            ci.drainArea = area;
-//            ci.drainPerim = perim;
-//            System.out.println("New Source data " + ci.sourceArea + " " + ci.sourcePerim);
-//            System.out.println("New Drain data " + ci.drainArea + " " + ci.drainPerim);
+            double activeLen = dim.getDoubleActiveLength();
 //            ci.sourceArea = dim.getDoubleWidth() * 6;
 //            ci.sourcePerim = dim.getDoubleWidth() + 12;
 //            ci.drainArea = dim.getDoubleWidth() * 6;
 ////            ci.drainPerim = dim.getDoubleWidth() + 12;
-//            ci.sourceArea = dim.getDoubleWidth() * 3;
-//            ci.sourcePerim = (dim.getDoubleWidth() + 3)*2;
-//            ci.drainArea = ci.sourceArea ;
-//            ci.drainPerim = ci.sourcePerim;
-//            System.out.println("Old Source data " + ci.sourceArea + " " + ci.sourcePerim);
-//            System.out.println("Old Drain data " + ci.drainArea + " " + ci.drainPerim);
+            ci.sourceArea = DBMath.round(dim.getDoubleWidth() * activeLen);
+            ci.sourcePerim = DBMath.round((dim.getDoubleWidth() + activeLen)*2);
+            ci.drainArea = ci.sourceArea ;
+            ci.drainPerim = ci.sourcePerim;
+            System.out.println("area source " + ci.sourceArea + " perim " + ci.sourcePerim);
             components.add(ci);
             return false;
         }

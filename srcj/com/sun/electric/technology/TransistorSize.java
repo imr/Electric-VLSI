@@ -33,15 +33,19 @@ import com.sun.electric.database.variable.VarContext;
 public class TransistorSize {
     private final Object width;
     private final Object length;
+    private final Object activeLength; // extension of OD on PO for parasitic calculation
 
-    public TransistorSize(Object width, Object length) {
+    public TransistorSize(Object width, Object length, Object activeLen) {
         this.width = width;
         this.length = length;
+        this.activeLength = activeLen;
     }
     public Object getWidth() {return width;}
 
     public Object getLength() {return length; }
-    
+
+    public Object getActiveLength() {return activeLength; }
+
     /**
      * Gets the width *ONLY IF* the width can be converted to a double.
      * i.e. it is a Number or a parsable String. If it is some other type,
@@ -70,5 +74,15 @@ public class TransistorSize {
      */
     public double getDoubleArea() {
     	return getDoubleWidth() * getDoubleLength();
+    }
+
+    /**
+     * Gets the active length *ONLY IF* the active length can be converted to a double.
+     * i.e. they are Numbers or a parsable Strings. If they are some other type,
+     * this method returns zero.
+     * @return the active length.
+     */
+    public double getDoubleActiveLength() {
+    	return VarContext.objectToDouble(activeLength, 0);
     }
 }
