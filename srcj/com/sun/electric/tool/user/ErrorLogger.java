@@ -97,8 +97,8 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         public boolean isValid() {
             if (type == ERRORTYPEEXPORT) return pp.isLinked();
             if (type == ERRORTYPEGEOM) return geom.isLinked();
-            return pp != null || geom != null;
 	        //return true;
+	        return (cell.isLinked()); // Still have problems with minAre DRC errors
         }
     };
 
