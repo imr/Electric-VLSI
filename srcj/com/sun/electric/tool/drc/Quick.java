@@ -2739,8 +2739,11 @@ public class Quick
 		Rectangle2D polyBnd = poly.getBounds2D();
         Area polyArea = new Area(poly);
         boolean found = polyArea.isEmpty();
+		List checkExtraPoints = new ArrayList();
 
-        found = checkThisCellSelectPolysilicon(geom, layer, poly, cell, polyArea, polyBnd, minOverlapRule, found);
+        found = checkThisCellSelectPolysilicon(geom, layer, poly, cell, polyArea, polyBnd, minOverlapRule,
+                found, checkExtraPoints);
+
 
 		// error if the merged area doesn't contain 100% the search area.
 		if (!found)
@@ -2754,11 +2757,29 @@ public class Quick
                             nPoly, geom, layer, null, null, null);
             }
 		}
+		else
+		{
+			// Checking if not enough coverage
+			Point2D[] extraPoints = new Point2D[checkExtraPoints.size()];
+			checkExtraPoints.toArray(extraPoints);
+			boolean[] founds = new boolean[checkExtraPoints.size()];
+			Arrays.fill(founds, false);
+			Rectangle2D ruleBnd = new Rectangle2D.Double(polyBnd.getMinX()-minOverlapRule.value,
+								polyBnd.getMinY()-minOverlapRule.value,
+								polyBnd.getWidth() + minOverlapRule.value*2,
+								polyBnd.getHeight() + minOverlapRule.value*2);
+			boolean foundAll = allPointsContainedInLayer(geom, cell, ruleBnd, extraPoints, founds);
+
+			if (!foundAll)
+				reportError(POLYSELECTERROR, "No enough surround, ", geom.getParent(), minOverlapRule.value, -1, minOverlapRule.rule,
+									 poly, geom, layer, null, null, null);
+		}
 		return (!found);
 	}
 
     private boolean checkThisCellSelectPolysilicon(Geometric geom, Layer layer, Poly poly, Cell cell, Area polyArea,
-                                                   Rectangle2D polyBnd, DRCRules.DRCRule minOverlapRule, boolean found)
+                                                   Rectangle2D polyBnd, DRCRules.DRCRule minOverlapRule, boolean found,
+                                                   List checkExtraPoints)
     {
         boolean[] founds = new boolean[4];
 
@@ -2782,7 +2803,15 @@ public class Quick
 				DBMath.transformRect(polyBnd, cellDownTrans);
 				polyArea.transform(cellDownTrans);
 				poly.transform(cellDownTrans);
-				found = checkThisCellSelectPolysilicon(geom, layer, poly, (Cell)np, polyArea, polyBnd, minOverlapRule, found);
+				List newExtraPoints = new ArrayList();
+				found = checkThisCellSelectPolysilicon(geom, layer, poly, (Cell)np, polyArea, polyBnd, minOverlapRule,
+				        found, newExtraPoints);
+				for (Iterator it = newExtraPoints.iterator(); it.hasNext();)
+				{
+					Point2D point = (Point2D)it.next();
+					cellUpTrans.transform(point, point);
+					checkExtraPoints.add(point);
+				}
 				DBMath.transformRect(polyBnd, cellUpTrans);
 				polyArea.transform(cellUpTrans);
 				poly.transform(cellUpTrans);
@@ -2827,11 +2856,19 @@ public class Quick
 						if (!found)
 							founds[i] = true;
 					}
+
                     boolean foundAll = allPointsContainedInLayer(geom, cell, ruleBnd, points, founds);
                     if (!foundAll)
                     {
+	                    // Points that should be checked from geom parent
+	                    for (int i = 0; i < founds.length; i++)
+	                    {
+		                    if (!founds[i]) checkExtraPoints.add(points[i]);
+	                    }
+	                    /*
                          reportError(POLYSELECTERROR, "No enough surround, ", geom.getParent(), minOverlapRule.value, -1, minOverlapRule.rule,
                                  distPoly, geom, layer, null, null, null);
+                                 */
                     }
 				}
 			}
@@ -2860,7 +2897,15 @@ public class Quick
 	        if (NodeInst.isSpecialNode(ni)) continue; // Nov 4;
             if (np instanceof Cell)
             {
-                if (allPointsContainedInLayer(geom, (Cell)np, ruleBnd, points, founds))
+
+				AffineTransform cellDownTrans = ni.transformIn();
+				AffineTransform	cellUpTrans = ni.transformOut();
+				DBMath.transformRect(ruleBnd, cellDownTrans);
+	            cellDownTrans.transform(points, 0, points, 0, points.length);
+                boolean allFound = allPointsContainedInLayer(geom, (Cell)np, ruleBnd, points, founds);
+				DBMath.transformRect(ruleBnd, cellUpTrans);
+	            cellUpTrans.transform(points, 0, points, 0, points.length);
+	            if (allFound)
 	                return true;
             }
             else

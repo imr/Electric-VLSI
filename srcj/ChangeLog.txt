@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01aw: *********************************
 
+BUG: (12/14/04, GVG) DRC Select checking: still problems with transformation (Bug #114)
+FIX: "No enough surround" code refactored and placed outside of initial recursive iteration.
+
 IMP: (12/14/04, GVG) New colors/patterns for VTH/VTL/Native transistors in TSMC90 (Bug #113)
 
 IMP: (12/14/04, GVG) DRC: first modifications for VTH/VTL/Native transistors.
