@@ -501,6 +501,8 @@ public class GenMath
      */
     public static void transformRect(Rectangle2D bounds, AffineTransform xform)
     {
+	    if (xform.getType() == AffineTransform.TYPE_IDENTITY)  // nothing to do
+	        return;
         Point2D [] corners = Poly.makePoints(bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(), bounds.getMaxY());
         xform.transform(corners, 0, corners, 0, 4);
         double lX = corners[0].getX();

@@ -196,11 +196,14 @@ public class MOSRules implements DRCRules {
 		double worstLayerRule = -1;
 		int layerIndex = layer.getIndex();
 		int tot = tech.getNumLayers();
+	    double wide = wideLimit.doubleValue();
 
 		for(int i=0; i<tot; i++)
 		{
 			int pIndex = tech.getLayerIndex(layerIndex, i);
-			double dist = unConList[pIndex].doubleValue();
+			double dist = (maxSize > wide) ?
+			        unConListWide[pIndex].doubleValue() :
+					unConList[pIndex].doubleValue();
 			if (dist > worstLayerRule) worstLayerRule = dist;
 		}
 

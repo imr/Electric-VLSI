@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ap: *********************************
 
-IMP: (11/17/04, DN) XSize and YSize of serpentine transistors are not properly calcualted.
+BUG: (11/16/04, GVG) MOSRules.getMaxSurround()didn't consider information about wide rules
+FIX: condition added. Plus 100 is the new wide value for TSMC180nm
+
+IMP: (11/16/04, DN) XSize and YSize of serpentine transistors are not properly calcualted.
 FIX: getShapeOfNode and getShapeOfPort use getAnchorCenter instead of getTrueCenter
      In NodeInst use getShapeOfNode to calculate sizes of primitive with TRACE.
 
