@@ -558,6 +558,11 @@ public class WindowFrame
 				PaletteFrame.autoTechnologySwitch(cell);
 			}
 		}
+		wantToRedoTitleNames();
+	}
+
+	public static void wantToRedoTitleNames()
+	{
 		// rebuild window titles
 		for (Iterator it = getWindows(); it.hasNext(); )
 		{

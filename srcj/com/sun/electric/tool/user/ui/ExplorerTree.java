@@ -871,6 +871,7 @@ public class ExplorerTree extends JTree
 			Library lib = (Library)currentSelectedObject;
 			lib.setCurrent();
 			WindowFrame.wantToRedoLibraryTree();
+			WindowFrame.wantToRedoTitleNames();
 			EditWindow.repaintAll();
 		}
 

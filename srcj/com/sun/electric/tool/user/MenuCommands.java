@@ -1279,6 +1279,7 @@ public final class MenuCommands
 		WindowFrame.removeLibraryReferences(lib);
 		if (lib.kill())
 			System.out.println("Library " + libName + " closed");
+		WindowFrame.wantToRedoTitleNames();
 		WindowFrame.wantToRedoLibraryTree();
 		EditWindow.repaintAll();
 		// Disable save icon if no more libraries are open
@@ -1364,6 +1365,7 @@ public final class MenuCommands
 		Library lib = Library.getCurrent();
 		lib.clearFromDisk();
 		saveLibraryCommand(lib, OpenFile.Type.ELIB);
+		WindowFrame.wantToRedoTitleNames();
 	}
 
 	/**
