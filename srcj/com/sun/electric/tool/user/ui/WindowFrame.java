@@ -138,6 +138,7 @@ public class WindowFrame
 
 			// make sure the edit window has the right size
 			eWnd.setScreenSize(eWnd.getSize());
+			eWnd.repaintContents(null);
 			eWnd.fillScreen();
 		}
         removeUIBinding(frame.js, KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0));
