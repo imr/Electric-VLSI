@@ -125,6 +125,8 @@ public class FileMenu {
 
         fileMenu.addSeparator();
 
+        fileMenu.addMenuItem("Page Setup...", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { pageSetupCommand(); } });
 		fileMenu.addMenuItem("Print...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { printCommand(); } });
 
@@ -601,6 +603,16 @@ public class FileMenu {
 
     }
 
+    private static PageFormat pageFormat = null;
+
+    public static void pageSetupCommand() {
+        PrinterJob pj = PrinterJob.getPrinterJob();
+        if (pageFormat == null)
+            pageFormat = pj.pageDialog(pj.defaultPage());
+        else
+            pageFormat = pj.pageDialog(pageFormat);
+    }
+
     /**
      * This method implements the command to print the current window.
      */
@@ -616,7 +628,10 @@ public class FileMenu {
         pj.setJobName("Cell "+printCell.describe());
         ElectricPrinter ep = new ElectricPrinter();
         ep.setPrintCell(printCell, context);
-        pj.setPrintable(ep);
+        if (pageFormat != null)
+            pj.setPrintable(ep, pageFormat);
+        else
+            pj.setPrintable(ep);
 
         // see if a default printer should be mentioned
         String pName = IOTool.getPrinterName();
