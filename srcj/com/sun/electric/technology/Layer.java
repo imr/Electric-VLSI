@@ -24,10 +24,10 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.text.Pref;
 
 import java.util.Iterator;
-import java.util.prefs.Preferences;
-import java.util.prefs.BackingStoreException;
+import java.util.HashMap;
 
 /**
  * The Layer class defines a single layer of material, out of which NodeInst and ArcInst objects are created.
@@ -61,18 +61,18 @@ public class Layer
 		 */
 		public String toString() { return name; }
 
-		/** Describes a P-type layer. */							public static final int PTYPE =          0100;
-		/** Describes a N-type layer. */							public static final int NTYPE =          0200;
-		/** Describes a depletion layer. */							public static final int DEPLETION =      0400;
-		/** Describes a enhancement layer. */						public static final int ENHANCEMENT =   01000;
-		/** Describes a light doped layer. */						public static final int LIGHT =         02000;
-		/** Describes a heavy doped layer. */						public static final int HEAVY =         04000;
-		/** Describes a pseudo layer. */							public static final int PSEUDO =       010000;
-		/** Describes a nonelectrical layer (does not carry signals). */						public static final int NONELEC =      020000;
-		/** Describes a layer that is contacts metal (used to identify contacts/vias). */		public static final int CONMETAL =     040000;
-		/** Describes a layer that is contacts polysilicon (used to identify contacts/vias). */	public static final int CONPOLY =     0100000;
-		/** Describes a layer that is contacts diffusion (used to identify contacts/vias). */	public static final int CONDIFF =     0200000;
-		/** Describes a layer that is inside transistor. */			public static final int INTRANS =   020000000;
+		/** Describes a P-type layer. */												public static final int PTYPE =          0100;
+		/** Describes a N-type layer. */												public static final int NTYPE =          0200;
+		/** Describes a depletion layer. */												public static final int DEPLETION =      0400;
+		/** Describes a enhancement layer. */											public static final int ENHANCEMENT =   01000;
+		/** Describes a light doped layer. */											public static final int LIGHT =         02000;
+		/** Describes a heavy doped layer. */											public static final int HEAVY =         04000;
+		/** Describes a pseudo layer. */												public static final int PSEUDO =       010000;
+		/** Describes a nonelectrical layer (does not carry signals). */				public static final int NONELEC =      020000;
+		/** Describes a layer that contacts metal (used to identify contacts/vias). */	public static final int CONMETAL =     040000;
+		/** Describes a layer that contacts polysilicon (used to identify contacts). */	public static final int CONPOLY =     0100000;
+		/** Describes a layer that contacts diffusion (used to identify contacts). */	public static final int CONDIFF =     0200000;
+		/** Describes a layer that is inside transistor. */								public static final int INTRANS =   020000000;
 
 		/** Describes an unknown layer. */							public static final Function UNKNOWN    = new Function("unknown",    "LFUNKNOWN", 35, 0);
 		/** Describes a metal layer 1. */							public static final Function METAL1     = new Function("metal-1",    "LFMETAL1", 17, 0);
@@ -113,7 +113,7 @@ public class Layer
 		/** Describes an overglass layer (passivation). */			public static final Function OVERGLASS  = new Function("overglass",  "LFOVERGLASS", 41, 0);
 		/** Describes a resistor layer. */							public static final Function RESISTOR   = new Function("resistor",   "LFRESISTOR", 4, 0);
 		/** Describes a capacitor layer. */							public static final Function CAP        = new Function("capacitor",  "LFCAP", 5, 0);
-		/** Describes a transistor layer (usually a pseudo-layer). */	public static final Function TRANSISTOR = new Function("transistor", "LFTRANSISTOR", 3, 0);
+		/** Describes a transistor layer. */						public static final Function TRANSISTOR = new Function("transistor", "LFTRANSISTOR", 3, 0);
 		/** Describes an emitter layer of a bipolar transistor. */	public static final Function EMITTER    = new Function("emitter",    "LFEMITTER", 6, 0);
 		/** Describes a base layer of a bipolar transistor. */		public static final Function BASE       = new Function("base",       "LFBASE", 7, 0);
 		/** Describes a collector layer of a bipolar transistor. */	public static final Function COLLECTOR  = new Function("collector",  "LFCOLLECTOR", 8, 0);
@@ -216,6 +216,14 @@ public class Layer
 	private double resistance, capacitance, edgeCapacitance;
 	private Layer nonPseudoLayer;
 	private boolean visible;
+
+	private static HashMap cifLayerPrefs = new HashMap();
+	private static HashMap gdsLayerPrefs = new HashMap();
+	private static HashMap dxfLayerPrefs = new HashMap();
+	private static HashMap skillLayerPrefs = new HashMap();
+	private static HashMap resistanceParasiticPrefs = new HashMap();
+	private static HashMap capacitanceParasiticPrefs = new HashMap();
+	private static HashMap edgeCapacitanceParasiticPrefs = new HashMap();
 
 	private Layer(String name, Technology tech, EGraphics graphics)
 	{
@@ -374,53 +382,101 @@ public class Layer
 	 */
 	public double getThickness() { return thickness; }
 
+	private Pref getLayerPref(String what, HashMap map, String factory)
+	{
+		Pref pref = (Pref)map.get(this);
+		if (pref == null)
+		{
+			pref = Pref.makeStringPref(what + "LayerFor" + name + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factory);
+			pref.attachToObject(tech, "IO Options, " + what + " tab", what + " for layer " + name + " in technology " + tech.getTechName());
+			map.put(this, pref);
+		}
+		return pref;
+	}
+
+	private Pref getParasiticPref(String what, HashMap map, double factory)
+	{
+		Pref pref = (Pref)map.get(this);
+		if (pref == null)
+		{
+			pref = Pref.makeDoublePref(what + "ParasiticFor" + name + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factory);
+			pref.attachToObject(tech, "Tool Options, Spice tab", "Technology " + tech.getTechName() + ", " + what + " for layer " + name);
+			map.put(this, pref);
+		}
+		return pref;
+	}
+
+	/**
+	 * Method to set the factory-default CIF name of this Layer.
+	 * @param cifLayer the factory-default CIF name of this Layer.
+	 */
+	public void setFactoryCIFLayer(String cifLayer) { getLayerPref("CIF", cifLayerPrefs, cifLayer); }
+
 	/**
 	 * Method to set the CIF name of this Layer.
 	 * @param cifLayer the CIF name of this Layer.
 	 */
-	public void setCIFLayer(String cifLayer) { this.cifLayer = cifLayer; }
+	public void setCIFLayer(String cifLayer) { getLayerPref("CIF", cifLayerPrefs, this.cifLayer).setString(cifLayer); }
 
 	/**
 	 * Method to return the CIF name of this layer.
 	 * @return the CIF name of this layer.
 	 */
-	public String getCIFLayer() { return cifLayer; }
+	public String getCIFLayer() { return getLayerPref("CIF", cifLayerPrefs, cifLayer).getString(); }
 
 	/**
-	 * Method to set the DXF name of this Layer.
-	 * @param dxfLayer the DXF name of this Layer.
+	 * Method to set the factory-default GDS name of this Layer.
+	 * @param cifLayer the factory-default GDS name of this Layer.
 	 */
-	public void setDXFLayer(String dxfLayer) { this.dxfLayer = dxfLayer; }
-
-	/**
-	 * Method to return the DXF name of this layer.
-	 * @return the DXF name of this layer.
-	 */
-	public String getDXFLayer() { return dxfLayer; }
+	public void setFactoryGDSLayer(String gdsLayer) { getLayerPref("GDS", gdsLayerPrefs, gdsLayer); }
 
 	/**
 	 * Method to set the GDS name of this Layer.
 	 * @param gdsLayer the GDS name of this Layer.
 	 */
-	public void setGDSLayer(String gdsLayer) { this.gdsLayer = gdsLayer; }
+	public void setGDSLayer(String gdsLayer) { getLayerPref("GDS", gdsLayerPrefs, this.gdsLayer).setString(gdsLayer); }
 
 	/**
 	 * Method to return the GDS name of this layer.
 	 * @return the GDS name of this layer.
 	 */
-	public String getGDSLayer() { return gdsLayer; }
+	public String getGDSLayer() { return getLayerPref("GDS", gdsLayerPrefs, gdsLayer).getString(); }
+
+	/**
+	 * Method to set the factory-default DXF name of this Layer.
+	 * @param cifLayer the factory-default DXF name of this Layer.
+	 */
+	public void setFactoryDXFLayer(String dxfLayer) { getLayerPref("DXF", dxfLayerPrefs, dxfLayer); }
+
+	/**
+	 * Method to set the DXF name of this Layer.
+	 * @param dxfLayer the DXF name of this Layer.
+	 */
+	public void setDXFLayer(String dxfLayer) { getLayerPref("DXF", dxfLayerPrefs, this.dxfLayer).setString(dxfLayer); }
+
+	/**
+	 * Method to return the DXF name of this layer.
+	 * @return the DXF name of this layer.
+	 */
+	public String getDXFLayer() { return getLayerPref("DXF", dxfLayerPrefs, dxfLayer).getString(); }
+
+	/**
+	 * Method to set the factory-default Skill name of this Layer.
+	 * @param cifLayer the factory-default Skill name of this Layer.
+	 */
+	public void setFactorySkillLayer(String skillLayer) { getLayerPref("Skill", skillLayerPrefs, skillLayer); }
 
 	/**
 	 * Method to set the Skill name of this Layer.
 	 * @param skillLayer the Skill name of this Layer.
 	 */
-	public void setSkillLayer(String skillLayer) { this.skillLayer = skillLayer; }
+	public void setSkillLayer(String skillLayer) { getLayerPref("Skill", skillLayerPrefs, this.skillLayer).setString(skillLayer); }
 
 	/**
 	 * Method to return the Skill name of this layer.
 	 * @return the Skill name of this layer.
 	 */
-	public String getSkillLayer() { return skillLayer; }
+	public String getSkillLayer() { return getLayerPref("Skill", skillLayerPrefs, skillLayer).getString(); }
 
 	/**
 	 * Method to set the Spice parasitics for this Layer.
@@ -431,87 +487,51 @@ public class Layer
 	 * @param capacitance the capacitance of this Layer.
 	 * @param edgeCapacitance the edge capacitance of this Layer.
 	 */
-	public void setDefaultParasitics(double resistance, double capacitance, double edgeCapacitance)
+	public void setFactoryParasitics(double resistance, double capacitance, double edgeCapacitance)
 	{
-		this.resistance = resistance;
-		this.capacitance = capacitance;
-		this.edgeCapacitance = edgeCapacitance;
+		getParasiticPref("Resistance", resistanceParasiticPrefs, this.resistance = resistance);
+		getParasiticPref("Capacitance", capacitanceParasiticPrefs, this.capacitance = capacitance);
+		getParasiticPref("EdgeCapacitance", edgeCapacitanceParasiticPrefs, this.edgeCapacitance = edgeCapacitance);
 	}
 
 	/**
 	 * Method to return the resistance for this layer.
 	 * @return the resistance for this layer.
 	 */
-	public double getResistance() { tech.gatherParasiticOverrides();   return resistance; }
+	public double getResistance() { return getParasiticPref("Resistance", resistanceParasiticPrefs, resistance).getDouble(); }
 
 	/**
 	 * Method to set the resistance for this Layer.
 	 * Also saves this information in the permanent options.
 	 * @param resistance the new resistance for this Layer.
 	 */
-	public void setResistance(double resistance)
-	{
-		this.resistance = resistance;
-		Preferences prefs = Preferences.userNodeForPackage(tech.getClass());
-		prefs.putDouble("LayerResistance_" + tech.getTechName() + "_" + getName(), resistance);
-		try
-		{
-	        prefs.flush();
-		} catch (BackingStoreException e)
-		{
-			System.out.println("Failed to save resistance option for layer " + getName());
-		}
-	}
+	public void setResistance(double resistance) { getParasiticPref("Resistance", resistanceParasiticPrefs, this.resistance).setDouble(resistance); }
 
 	/**
 	 * Method to return the capacitance for this layer.
 	 * @return the capacitance for this layer.
 	 */
-	public double getCapacitance() { tech.gatherParasiticOverrides();   return capacitance; }
+	public double getCapacitance() { return getParasiticPref("Capacitance", capacitanceParasiticPrefs, capacitance).getDouble(); }
 
 	/**
 	 * Method to set the capacitance for this Layer.
 	 * Also saves this information in the permanent options.
 	 * @param capacitance the new capacitance for this Layer.
 	 */
-	public void setCapacitance(double capacitance)
-	{
-		this.capacitance = capacitance;
-		Preferences prefs = Preferences.userNodeForPackage(tech.getClass());
-		prefs.putDouble("LayerCapacitance_" + tech.getTechName() + "_" + getName(), capacitance);
-		try
-		{
-	        prefs.flush();
-		} catch (BackingStoreException e)
-		{
-			System.out.println("Failed to save capacitance option for layer " + getName());
-		}
-	}
+	public void setCapacitance(double capacitance) { getParasiticPref("Capacitance", capacitanceParasiticPrefs, this.capacitance).setDouble(capacitance); }
 
 	/**
 	 * Method to return the edge capacitance for this layer.
 	 * @return the edge capacitance for this layer.
 	 */
-	public double getEdgeCapacitance() { tech.gatherParasiticOverrides();   return edgeCapacitance; }
+	public double getEdgeCapacitance() { return getParasiticPref("EdgeCapacitance", edgeCapacitanceParasiticPrefs, edgeCapacitance).getDouble(); }
 
 	/**
 	 * Method to set the edge capacitance for this Layer.
 	 * Also saves this information in the permanent options.
 	 * @param edgeCapacitance the new edge capacitance for this Layer.
 	 */
-	public void setEdgeCapacitance(double edgeCapacitance)
-	{
-		this.edgeCapacitance = edgeCapacitance;
-		Preferences prefs = Preferences.userNodeForPackage(tech.getClass());
-		prefs.putDouble("LayerEdgeCapacitance_" + tech.getTechName() + "_" + getName(), edgeCapacitance);
-		try
-		{
-	        prefs.flush();
-		} catch (BackingStoreException e)
-		{
-			System.out.println("Failed to save edge capacitance option for layer " + getName());
-		}
-	}
+	public void setEdgeCapacitance(double edgeCapacitance) { getParasiticPref("EdgeCapacitance", edgeCapacitanceParasiticPrefs, this.edgeCapacitance).setDouble(edgeCapacitance); }
 
 	/**
 	 * Returns a printable version of this Layer.

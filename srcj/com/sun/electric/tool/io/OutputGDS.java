@@ -32,7 +32,6 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -135,18 +134,15 @@ public class OutputGDS extends OutputGeometry
 	 * Main entry point for GDS output.
 	 * @param cell the top-level cell to write.
 	 * @param filePath the name of the file to create.
-	 * @return true on error.
 	 */
-	public static boolean writeGDSFile(Cell cell, String filePath)
+	public static void writeGDSFile(Cell cell, String filePath)
 	{
-		boolean error = false;
 		OutputGDS out = new OutputGDS();
-		if (out.openBinaryOutputStream(filePath)) error = true;
+		if (out.openBinaryOutputStream(filePath)) return;
 		BloatVisitor visitor = out.makeBloatVisitor(getMaxHierDepth(cell));
-		if (out.writeCell(cell, visitor)) error = true;
-		if (out.closeBinaryOutputStream()) error = true;
-		if (!error) System.out.println(filePath + " written");
-		return error;
+		if (out.writeCell(cell, visitor)) return;
+		if (out.closeBinaryOutputStream()) return;
+		System.out.println(filePath + " written");
 	}
 
 	/** Creates a new instance of OutputGDS */
@@ -195,7 +191,7 @@ public class OutputGDS extends OutputGeometry
 		}
 
 		// now write exports
-		if (getDefaultTextLayer() >= 0)
+		if (getGDSOutDefaultTextLayer() >= 0)
 		{
 			for(Iterator it = cell.getPorts(); it.hasNext(); )
 			{
@@ -227,12 +223,12 @@ public class OutputGDS extends OutputGeometry
 				selectLayer(layer);
 
 				int textLayer, pinLayer;
-				textLayer = pinLayer = getDefaultTextLayer();
+				textLayer = pinLayer = getGDSOutDefaultTextLayer();
 				if (currentLayerNumbers.text >= 0) textLayer = currentLayerNumbers.text;
 				if (currentLayerNumbers.pin >= 0) pinLayer = currentLayerNumbers.pin;
 
 				// put out a pin if requested
-				if (isWritesExportPins())
+				if (isGDSOutWritesExportPins())
 				{
 					poly.transform(trans);
 					writePoly(poly, pinLayer);
@@ -281,7 +277,7 @@ public class OutputGDS extends OutputGeometry
 	 */
 	protected boolean mergeGeom(int hierLevelsFromBottom)
 	{
-		return isMergesBoxes();
+		return isGDSOutMergesBoxes();
 	}
 
 	protected boolean selectLayer(Layer layer)
@@ -531,7 +527,7 @@ public class OutputGDS extends OutputGeometry
 		for(int k=0; k<str.length(); k++)
 		{
 			char ch = str.charAt(k);
-			if (isUpperCase()) ch = Character.toUpperCase(ch);
+			if (isGDSOutUpperCase()) ch = Character.toUpperCase(ch);
 			if (ch != '$' && !Character.isDigit(ch) && ch != '?' && !Character.isLetter(ch))
 				ch = '_';
 			ret += ch;
@@ -812,7 +808,7 @@ public class OutputGDS extends OutputGeometry
 	private void outputString(String ptr, int n)
 	{
 		int i = 0;
-		if (isUpperCase())
+		if (isGDSOutUpperCase())
 		{
 			// convert to upper case
 			for( ; i<ptr.length(); i++)
@@ -911,68 +907,4 @@ public class OutputGDS extends OutputGeometry
 		}
 		return answers;
 	}
-
-	/****************************** GDS OUTPUT PREFERENCES ******************************/
-
-	private static Pref cacheMergesBoxes = Pref.makeBooleanPref("GDSMergesBoxes", IOTool.tool.prefs, false);
-	/**
-	 * Method to tell whether GDS Output merges boxes into complex polygons.
-	 * This takes more time but produces a smaller output file.
-	 * The default is "false".
-	 * @return true if GDS Output merges boxes into complex polygons.
-	 */
-	public static boolean isMergesBoxes() { return cacheMergesBoxes.getBoolean(); }
-	/**
-	 * Method to set whether GDS Output merges boxes into complex polygons.
-	 * This takes more time but produces a smaller output file.
-	 * @param on true if GDS Output merges boxes into complex polygons.
-	 */
-	public static void setMergesBoxes(boolean on) { cacheMergesBoxes.setBoolean(on); }
-
-	private static Pref cacheWritesExportPins = Pref.makeBooleanPref("GDSWritesExportPins", IOTool.tool.prefs, false);
-	/**
-	 * Method to tell whether GDS Output writes pins at Export locations.
-	 * Some systems can use this information to reconstruct export locations.
-	 * The default is "false".
-	 * @return true if GDS Output writes pins at Export locations.
-	 */
-	public static boolean isWritesExportPins() { return cacheWritesExportPins.getBoolean(); }
-	/**
-	 * Method to set whether GDS Output writes pins at Export locations.
-	 * Some systems can use this information to reconstruct export locations.
-	 * @param on true if GDS Output writes pins at Export locations.
-	 */
-	public static void setWritesExportPins(boolean on) { cacheWritesExportPins.setBoolean(on); }
-
-	private static Pref cacheUpperCase = Pref.makeBooleanPref("GDSOutputUpperCase", IOTool.tool.prefs, false);
-	/**
-	 * Method to tell whether GDS Output makes all text upper-case.
-	 * Some systems insist on this.
-	 * The default is "false".
-	 * @return true if GDS Output makes all text upper-case.
-	 */
-	public static boolean isUpperCase() { return cacheUpperCase.getBoolean(); }
-	/**
-	 * Method to set whether GDS Output makes all text upper-case.
-	 * Some systems insist on this.
-	 * @param on true if GDS Output makes all text upper-case.
-	 */
-	public static void setUpperCase(boolean on) { cacheUpperCase.setBoolean(on); }
-
-	private static Pref cacheDefaultTextLayer = Pref.makeIntPref("GDSDefaultTextLayer", IOTool.tool.prefs, 230);
-	/**
-	 * Method to tell the default GDS layer to use for the text of Export pins.
-	 * Export pins are annotated with text objects on this layer.
-	 * If this is negative, do not write Export pins.
-	 * The default is "230".
-	 * @return the default GDS layer to use for the text of Export pins.
-	 */
-	public static int getDefaultTextLayer() { return cacheDefaultTextLayer.getInt(); }
-	/**
-	 * Method to set the default GDS layer to use for the text of Export pins.
-	 * Export pins are annotated with text objects on this layer.
-	 * @param num the default GDS layer to use for the text of Export pins.
-	 * If this is negative, do not write Export pins.
-	 */
-	public static void setDefaultTextLayer(int num) { cacheDefaultTextLayer.setInt(num); }
 }

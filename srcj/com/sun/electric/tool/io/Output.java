@@ -43,9 +43,10 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.OutputCIF;
 import com.sun.electric.tool.io.OutputGDS;
+import com.sun.electric.tool.io.OutputMaxwell;
+import com.sun.electric.tool.io.OutputPostScript;
 import com.sun.electric.tool.io.OutputSpice;
 import com.sun.electric.tool.io.OutputVerilog;
-import com.sun.electric.tool.io.OutputPostScript;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.ui.EditWindow;
 
@@ -64,7 +65,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Date;
-import javax.print.PrintServiceLookup;
+//import javax.print.PrintServiceLookup;
 
 /**
  * This class manages writing files in different formats.
@@ -133,7 +134,7 @@ public class Output extends IOTool
      * @return true on error.
      */
     protected boolean writeCell(Cell cell) { return true; }
-    
+
 	/**
 	 * Method to write an entire Library with a particular format.
 	 * This is used for output formats that capture the entire library
@@ -148,11 +149,13 @@ public class Output extends IOTool
 	{
 		Output out;
 
+		// make sure that all "meaning" options are attached to the database
+		Pref.installMeaningVariables();
+
 		// handle different file types
 		Library.Name n;
 		if (lib.getLibFile() != null) n = Library.Name.newInstance(lib.getLibFile()); else
 			n = Library.Name.newInstance(lib.getLibName());
-        boolean error = false;
 		if (type == ExportType.BINARY)
 		{
 			// backup previous files if requested
@@ -196,9 +199,9 @@ public class Output extends IOTool
 
 			out = (Output)new OutputBinary();
 			n.setExtension("elib");
-            if (out.openBinaryOutputStream(n.makeName())) error = true;
-            if (out.writeLib(lib)) error = true;
-            if (out.closeBinaryOutputStream()) error = true;
+            if (out.openBinaryOutputStream(n.makeName())) return true;
+            if (out.writeLib(lib)) return true;
+            if (out.closeBinaryOutputStream()) return true;
 		} else if (type == ExportType.TEXT)
 		{
 //			out = (Output)new OutputText();
@@ -207,21 +210,15 @@ public class Output extends IOTool
 //          if (out.writeLib(lib)) error = true;
 //          if (out.closeTextOutputStream()) error = true;          
             
-			// no text reader yet, see if an elib can be found
+			// no text writer yet, see if an elib can be found
 			out = (Output)new OutputBinary();
 			n.setExtension("elib");
-            if (out.openBinaryOutputStream(n.makeName())) error = true;
-            if (out.writeLib(lib)) error = true;
-            if (out.closeBinaryOutputStream()) error = true;
+            if (out.openBinaryOutputStream(n.makeName())) return true;
+            if (out.writeLib(lib)) return true;
+            if (out.closeBinaryOutputStream()) return true;
 		} else
 		{
 			System.out.println("Unknown export type: " + type);
-			return true;
-		}
-
-		if (error)
-		{
-			System.out.println("Error writing library");
 			return true;
 		}
 		return false;
@@ -236,37 +233,38 @@ public class Output extends IOTool
      * @param cell the Cell to be written.
      * @param filePath the path to the disk file to be written.
      * @param type the format of the output file.
-     * @return true on error.
      */
-    public static boolean writeCell(Cell cell, String filePath, ExportType type)
+    public static void writeCell(Cell cell, String filePath, ExportType type)
     {
-        boolean error = false;
-		if (type == ExportType.CIF)
+		if (type == ExportType.CDL)
 		{
-			error = OutputCIF.writeCIFFile(cell, filePath);
+			OutputSpice.writeSpiceFile(cell, filePath, true);
+		} else if (type == ExportType.CIF)
+		{
+			OutputCIF.writeCIFFile(cell, filePath);
 		} else if (type == ExportType.GDS)
 		{
-			error = OutputGDS.writeGDSFile(cell, filePath);
-		} else if (type == ExportType.SPICE)
+			OutputGDS.writeGDSFile(cell, filePath);
+		} else if (type == ExportType.MAXWELL)
 		{
-			error = OutputSpice.writeSpiceFile(cell, filePath, false);
-		} else if (type == ExportType.CDL)
-		{
-			error = OutputSpice.writeSpiceFile(cell, filePath, true);
-		} else if (type == ExportType.VERILOG)
-		{
-			error = OutputVerilog.writeVerilogFile(cell, filePath);
+			OutputMaxwell.writeMaxwellFile(cell, filePath);
 		} else if (type == ExportType.POSTSCRIPT)
 		{
-			error = OutputPostScript.writePostScriptFile(cell, filePath);
+			OutputPostScript.writePostScriptFile(cell, filePath);
+		} else if (type == ExportType.SPICE)
+		{
+			OutputSpice.writeSpiceFile(cell, filePath, false);
+		} else if (type == ExportType.VERILOG)
+		{
+			OutputVerilog.writeVerilogFile(cell, filePath);
 		}
         
-		if (error)
-		{
-			System.out.println("Error writing "+type+" file");
-			return true;
-		}
-		return false;        
+//		if (error)
+//		{
+//			System.out.println("Error writing "+type+" file");
+//			return true;
+//		}
+//		return false;        
     }
 
 	/**
@@ -514,89 +512,6 @@ public class Output extends IOTool
         printWriter.close();
         return false;
     }
-
-	/****************************** GENERAL OUTPUT PREFERENCES ******************************/
-
-	private static Pref cacheUseCopyrightMessage = Pref.makeBooleanPref("UseCopyrightMessage", IOTool.tool.prefs, false);
-	/**
-	 * Method to tell whether to add the copyright message to output decks.
-	 * The default is "false".
-	 * @return true to add the copyright message to output decks.
-	 */
-	public static boolean isUseCopyrightMessage() { return cacheUseCopyrightMessage.getBoolean(); }
-	/**
-	 * Method to set whether to add the copyright message to output decks.
-	 * @param u true to add the copyright message to output decks.
-	 */
-	public static void setUseCopyrightMessage(boolean u) { cacheUseCopyrightMessage.setBoolean(u); }
-
-	private static Pref cacheCopyrightMessage = Pref.makeStringPref("CopyrightMessage", IOTool.tool.prefs, "");
-	/**
-	 * Method to tell the copyright message that will be added to output decks.
-	 * The default is "".
-	 * @return the copyright message that will be added to output decks.
-	 */
-	public static String getCopyrightMessage() { return cacheCopyrightMessage.getString(); }
-	/**
-	 * Method to set the copyright message that will be added to output decks.
-	 * @param m the copyright message that will be added to output decks.
-	 */
-	public static void setCopyrightMessage(String m) { cacheCopyrightMessage.setString(m); }
-
-	private static Pref cachePlotArea = Pref.makeIntPref("PlotArea", IOTool.tool.prefs, 0);
-	/**
-	 * Method to tell the area of the screen to plot for printing/PostScript/HPGL.
-	 * @return the area of the screen to plot for printing/PostScript/HPGL:
-	 * 0=plot the entire cell (the default);
-	 * 1=plot only the highlighted area;
-	 * 2=plot only the displayed window.
-	 */
-	public static int getPlotArea() { return cachePlotArea.getInt(); }
-	/**
-	 * Method to set the area of the screen to plot for printing/PostScript/HPGL.
-	 * @param pa the area of the screen to plot for printing/PostScript/HPGL.
-	 * 0=plot the entire cell;
-	 * 1=plot only the highlighted area;
-	 * 2=plot only the displayed window.
-	 */
-	public static void setPlotArea(int pa) { cachePlotArea.setInt(pa); }
-
-	private static Pref cachePlotDate = Pref.makeBooleanPref("PlotDate", IOTool.tool.prefs, false);
-	/**
-	 * Method to tell whether to plot the date in PostScript/HPGL output.
-	 * The default is "false".
-	 * @return whether to plot the date in PostScript/HPGL output.
-	 */
-	public static boolean isPlotDate() { return cachePlotDate.getBoolean(); }
-	/**
-	 * Method to set whether to plot the date in PostScript/HPGL output.
-	 * @param pd true to plot the date in PostScript/HPGL output.
-	 */
-	public static void setPlotDate(boolean pd) { cachePlotDate.setBoolean(pd); }
-
-	private static Pref cachePrinterName = null;
-
-	private static Pref getCachePrinterName()
-	{
-		if (cachePrinterName == null)
-		{
-			cachePrinterName = Pref.makeStringPref("PrinterName", IOTool.tool.prefs,
-				PrintServiceLookup.lookupDefaultPrintService().getName());
-		}
-		return cachePrinterName;
-	}
-
-	/**
-	 * Method to tell the default printer name to use.
-	 * The default is "".
-	 * @return the default printer name to use.
-	 */
-	public static String getPrinterName() { return getCachePrinterName().getString(); }
-	/**
-	 * Method to set the default printer name to use.
-	 * @param pName the default printer name to use.
-	 */
-	public static void setPrinterName(String pName) { getCachePrinterName().setString(pName); }
 
 }
 

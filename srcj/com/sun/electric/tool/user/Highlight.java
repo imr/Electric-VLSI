@@ -623,7 +623,7 @@ public class Highlight
 			{
 				if (wnd != null)
 				{
-					Poly poly = computeTextPoly(wnd, h.getElectricObject(), h.getVar(), h.getName());
+					Poly poly = h.getElectricObject().computeTextPoly(wnd, h.getVar(), h.getName());
 					if (poly != null) highBounds = poly.getBounds2D();
 				}
 			} else if (h.getType() == Type.BBOX)
@@ -785,7 +785,7 @@ public class Highlight
 			if (style == Highlight.Type.TEXT)
 			{
 				Point2D start = wnd.screenToDatabase((int)x, (int)y);
-				Poly poly = computeTextPoly(wnd, h.getElectricObject(), h.getVar(), h.getName());
+				Poly poly = h.getElectricObject().computeTextPoly(wnd, h.getVar(), h.getName());
 				if (poly.isInside(start)) return true;
 			} else if (style == Highlight.Type.EOBJ)
 			{
@@ -1172,7 +1172,7 @@ public class Highlight
 	 */
 	public static Point2D [] describeHighlightText(EditWindow wnd, ElectricObject eobj, Variable var, Name name)
 	{
-		Poly poly = computeTextPoly(wnd, eobj, var, name);
+		Poly poly = eobj.computeTextPoly(wnd, var, name);
 		if (poly == null) return null;
 		Poly.Type style = poly.getStyle();
 		Rectangle2D bounds = poly.getBounds2D();
@@ -1293,124 +1293,6 @@ public class Highlight
 			return points;
 		}
 		return null;
-	}
-
-	/**
-	 * Method to compute a Poly that describes the current Highlight text.
-	 * @param wnd the EditWindow in which the text will be drawn.
-	 * @return a Poly that covers the text completely.
-	 */
-	private static Poly computeTextPoly(EditWindow wnd, ElectricObject eobj, Variable var, Name name)
-	{
-		Poly poly = null;
-		if (var != null)
-		{
-			if (eobj instanceof Export)
-			{
-				Export pp = (Export)eobj;
-				PortInst pi = pp.getOriginalPort();
-				Rectangle2D bounds = pi.getPoly().getBounds2D();
-				Poly [] polys = pp.getPolyList(var, bounds.getCenterX(), bounds.getCenterY(), wnd, false);
-				if (polys != null)
-				{
-					poly = polys[0];
-					poly.transform(pi.getNodeInst().rotateOut());
-				}
-			} else if (eobj instanceof PortInst)
-			{
-				PortInst pi = (PortInst)eobj;
-				Rectangle2D bounds = pi.getPoly().getBounds2D();
-				Poly [] polys = pi.getPolyList(var, bounds.getCenterX(), bounds.getCenterY(), wnd, false);
-				if (polys != null)
-				{
-					poly = polys[0];
-					poly.transform(pi.getNodeInst().rotateOut());
-				}
-			} else if (eobj instanceof Geometric)
-			{
-				Geometric geom = (Geometric)eobj;
-				Poly [] polys = geom.getPolyList(var, geom.getTrueCenterX(), geom.getTrueCenterY(), wnd, false);
-				if (polys != null)
-				{
-					poly = polys[0];
-					if (geom instanceof NodeInst)
-						poly.transform(((NodeInst)geom).rotateOut());
-				}
-			} else if (eobj instanceof Cell)
-			{
-				Cell cell = wnd.getCell();
-				Rectangle2D bounds = cell.getBounds();
-				Poly [] polys = cell.getPolyList(var, 0, 0, wnd, false);
-				if (polys != null) poly = polys[0];
-			}
-			if (poly != null)
-				poly.setExactTextBounds(wnd);
-		} else
-		{
-			if (name != null)
-			{
-				if (!(eobj instanceof Geometric)) return null;
-				Geometric geom = (Geometric)eobj;
-				TextDescriptor td = geom.getNameTextDescriptor();
-				Poly.Type style = td.getPos().getPolyType();
-				Point2D [] pointList = null;
-				if (style == Poly.Type.TEXTBOX)
-				{
-					pointList = Poly.makePoints(geom.getBounds());
-				} else
-				{
-					pointList = new Point2D.Double[1];
-					pointList[0] = new Point2D.Double(geom.getTrueCenterX()+td.getXOff(), geom.getTrueCenterY()+td.getYOff());
-				}
-				poly = new Poly(pointList);
-				poly.setStyle(style);
-				if (geom instanceof NodeInst)
-				{
-					poly.transform(((NodeInst)geom).rotateOut());
-				}
-				poly.setTextDescriptor(td);
-				poly.setString(name.toString());
-				poly.setExactTextBounds(wnd);
-			} else
-			{
-				if (eobj instanceof Export)
-				{
-					Export pp = (Export)eobj;
-					Rectangle2D bounds = pp.getOriginalPort().getBounds();
-					TextDescriptor td = pp.getTextDescriptor();
-					Poly.Type style = td.getPos().getPolyType();
-					Point2D [] pointList = new Point2D.Double[1];
-					pointList[0] = new Point2D.Double(bounds.getCenterX()+td.getXOff(), bounds.getCenterY()+td.getYOff());
-					poly = new Poly(pointList);
-					poly.setStyle(style);
-					poly.setTextDescriptor(td);
-					poly.setString(pp.getProtoName());
-					poly.setExactTextBounds(wnd);
-				} else
-				{
-					// cell instance name
-					if (!(eobj instanceof NodeInst)) return null;
-					NodeInst ni = (NodeInst)eobj;
-					TextDescriptor td = ni.getProtoTextDescriptor();
-					Poly.Type style = td.getPos().getPolyType();
-					Point2D [] pointList = null;
-					if (style == Poly.Type.TEXTBOX)
-					{
-						pointList = Poly.makePoints(ni.getBounds());
-					} else
-					{
-						pointList = new Point2D.Double[1];
-						pointList[0] = new Point2D.Double(ni.getTrueCenterX()+td.getXOff(), ni.getTrueCenterY()+td.getYOff());
-					}
-					poly = new Poly(pointList);
-					poly.setStyle(style);
-					poly.setTextDescriptor(td);
-					poly.setString(ni.getProto().describe());
-					poly.setExactTextBounds(wnd);
-				}
-			}
-		}
-		return poly;
 	}
 
 	/**

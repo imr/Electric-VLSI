@@ -32,6 +32,7 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -73,6 +74,7 @@ public class Input extends IOTool
 	/** The length of the file. */							protected long fileLength;
 	/** The progress during input. */						protected static Progress progress = null;
 	/** the path to the library being read. */				protected static String mainLibDirectory = null;
+	/** true if the library is the main one being read. */	protected boolean topLevelLibrary;
 
     
 	/**
@@ -130,6 +132,7 @@ public class Input extends IOTool
 		//Undo.noUndoAllowed();
 		InputLibrary.initializeLibraryInput();
 		Undo.changesQuiet(true);
+		Pref.initMeaningVariableGathering();
 
 		// show progress
 		String fileName = fileURL.getFile();
@@ -156,6 +159,7 @@ public class Input extends IOTool
 			float finalTime = (endTime - startTime) / 1000F;
 			System.out.println("Library " + fileName + " read, took " + finalTime + " seconds");
 		}
+		Pref.reconcileMeaningVariables();
 		return lib;
 	}
 
@@ -176,14 +180,6 @@ public class Input extends IOTool
 		String fileName = fileURL.getFile();
 		Library.Name n = Library.Name.newInstance(fileName);
 
-		// determine whether this is top-level
-		boolean topLevel = false;
-		if (lib == null)
-		{
-			mainLibDirectory = n.getPath() + File.separator;
-			topLevel = true;
-		}
-
 		// handle different file types
 		InputLibrary in;
 		if (type == ImportType.BINARY)
@@ -198,6 +194,14 @@ public class Input extends IOTool
 			return null;
 		}
 
+		// determine whether this is top-level
+		in.topLevelLibrary = false;
+		if (lib == null)
+		{
+			mainLibDirectory = n.getPath() + File.separator;
+			in.topLevelLibrary = true;
+		}
+
 		// get information about the file
 		in.filePath = fileName;
 		in.inputStream = stream;
@@ -208,7 +212,7 @@ public class Input extends IOTool
 		} catch (IOException e)
 		{
 			System.out.println("Could not find file: " + fileName);
-			if (topLevel) mainLibDirectory = null;
+			if (in.topLevelLibrary) mainLibDirectory = null;
 			return null;
 		}
 		in.fileLength = urlCon.getContentLength();
@@ -246,7 +250,7 @@ public class Input extends IOTool
 		if (error)
 		{
 			System.out.println("Error reading library");
-			if (topLevel) mainLibDirectory = null;
+			if (in.topLevelLibrary) mainLibDirectory = null;
 			return null;
 		}
 		return in.lib;

@@ -105,10 +105,10 @@ public class Artwork extends Technology
 		G_lay.setFunction(Layer.Function.ART, Layer.Function.NONELEC);		// Graphics
 
 		// The DXF names
-		G_lay.setDXFLayer("OBJECT");		// Graphics
+		G_lay.setFactoryDXFLayer("OBJECT");		// Graphics
 
 		// The GDS names
-		G_lay.setGDSLayer("1");		// Graphics
+		G_lay.setFactoryGDSLayer("1");		// Graphics
 
 		//******************** ARCS ********************
 

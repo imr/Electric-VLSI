@@ -292,6 +292,8 @@ public class ToolOptions extends javax.swing.JDialog
 			}
 		});
 
+		// not yet
+		drcIncrementalOn.setSelected(false);
 		drcIncrementalOn.setEnabled(false);
 		drcUseMultipleThreads.setEnabled(false);
 		drcNumberOfThreads.setEditable(false);
@@ -2909,7 +2911,7 @@ public class ToolOptions extends javax.swing.JDialog
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         spice4.add(spiceEdgeCapacitance, gridBagConstraints);
 
-        jLabel18.setText("Min Resistance:");
+        jLabel18.setText("Min. Resistance:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;

@@ -101,10 +101,7 @@ public abstract class OutputGeometry extends Output
     protected abstract void writeCellGeom(CellGeom cellGeom);
     
     /** Overridable method to determine whether or not to merge geometry */
-    protected boolean mergeGeom(int hierLevelsFromBottom)
-    {
-        return false;
-    }
+    protected boolean mergeGeom(int hierLevelsFromBottom) { return false; }
     
     
     /**

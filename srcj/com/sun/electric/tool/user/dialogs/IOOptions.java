@@ -31,10 +31,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.io.IOTool;
-import com.sun.electric.tool.io.Output;
-import com.sun.electric.tool.io.OutputCIF;
 import com.sun.electric.tool.io.OutputGDS;
-import com.sun.electric.tool.io.OutputPostScript;
 import com.sun.electric.tool.simulation.Simulation;
 
 import java.awt.event.MouseEvent;
@@ -127,19 +124,19 @@ public class IOOptions extends javax.swing.JDialog
 	 */
 	private void initCIF()
 	{
-		initialCIFOutputMimicsDisplay = OutputCIF.isMimicsDisplay();
+		initialCIFOutputMimicsDisplay = IOTool.isCIFOutMimicsDisplay();
 		cifOutputMimicsDisplay.setSelected(initialCIFOutputMimicsDisplay);
 
-		initialCIFOutputMergesPolygons = OutputCIF.isMergesBoxes();
+		initialCIFOutputMergesPolygons = IOTool.isCIFOutMergesBoxes();
 		cifOutputMergesBoxes.setSelected(initialCIFOutputMergesPolygons);
 
-		initialCIFOutputInstantiatesTopLevel = OutputCIF.isInstantiatesTopLevel();
+		initialCIFOutputInstantiatesTopLevel = IOTool.isCIFOutInstantiatesTopLevel();
 		cifOutputInstantiatesTopLevel.setSelected(initialCIFOutputInstantiatesTopLevel);
 
-		initialCIFOutputCheckResolution = OutputCIF.isCheckResolution();
+		initialCIFOutputCheckResolution = IOTool.isCIFOutCheckResolution();
 		cifCheckResolution.setSelected(initialCIFOutputCheckResolution);
 
-		initialCIFOutputResolution = OutputCIF.getResolution();
+		initialCIFOutputResolution = IOTool.getCIFOutResolution();
 		cifResolutionValue.setText(Double.toString(initialCIFOutputResolution));
 
 		// build the layers list
@@ -257,23 +254,23 @@ public class IOOptions extends javax.swing.JDialog
 		}
 		boolean currentMimicsDisplay = cifOutputMimicsDisplay.isSelected();
 		if (currentMimicsDisplay != initialCIFOutputMimicsDisplay)
-			OutputCIF.setMimicsDisplay(currentMimicsDisplay);
+			IOTool.setCIFOutMimicsDisplay(currentMimicsDisplay);
 
 		boolean currentMergesPolygons = cifOutputMergesBoxes.isSelected();
 		if (currentMergesPolygons != initialCIFOutputMergesPolygons)
-			OutputCIF.setMergesBoxes(currentMergesPolygons);
+			IOTool.setCIFOutMergesBoxes(currentMergesPolygons);
 
 		boolean currentInstantiatesTopLevel = cifOutputInstantiatesTopLevel.isSelected();
 		if (currentInstantiatesTopLevel != initialCIFOutputInstantiatesTopLevel)
-			OutputCIF.setInstantiatesTopLevel(currentInstantiatesTopLevel);
+			IOTool.setCIFOutInstantiatesTopLevel(currentInstantiatesTopLevel);
 
 		boolean currentCheckResolution = cifCheckResolution.isSelected();
 		if (currentCheckResolution != initialCIFOutputCheckResolution)
-			OutputCIF.setCheckResolution(currentCheckResolution);
+			IOTool.setCIFOutCheckResolution(currentCheckResolution);
 
 		double currentResolution = TextUtils.atof(cifResolutionValue.getText());
 		if (currentResolution != initialCIFOutputResolution)
-			OutputCIF.setResolution(currentResolution);
+			IOTool.setCIFOutResolution(currentResolution);
 	}
 
 	//******************************** GDS ********************************
@@ -294,13 +291,13 @@ public class IOOptions extends javax.swing.JDialog
 	{
 		Technology tech = Technology.getCurrent();
 		gdsTechName.setText("Technology " + tech.getTechName() + ":");
-		initialGDSOutputMergesBoxes = OutputGDS.isMergesBoxes();
+		initialGDSOutputMergesBoxes = IOTool.isGDSOutMergesBoxes();
 		gdsOutputMergesBoxes.setSelected(initialGDSOutputMergesBoxes);
-		initialGDSOutputWritesExportPins = OutputGDS.isWritesExportPins();
+		initialGDSOutputWritesExportPins = IOTool.isGDSOutWritesExportPins();
 		gdsOutputWritesExportPins.setSelected(initialGDSOutputWritesExportPins);
-		initialGDSOutputUpperCase = OutputGDS.isUpperCase();
+		initialGDSOutputUpperCase = IOTool.isGDSOutUpperCase();
 		gdsOutputUpperCase.setSelected(initialGDSOutputUpperCase);
-		initialGDSTextLayer = OutputGDS.getDefaultTextLayer();
+		initialGDSTextLayer = IOTool.getGDSOutDefaultTextLayer();
 		gdsDefaultTextLayer.setText(Integer.toString(initialGDSTextLayer));
 
 		// build the layers list
@@ -438,16 +435,16 @@ public class IOOptions extends javax.swing.JDialog
 		}
 		boolean currentOutputMergesBoxes = gdsOutputMergesBoxes.isSelected();
 		if (currentOutputMergesBoxes != initialGDSOutputMergesBoxes)
-			OutputGDS.setMergesBoxes(currentOutputMergesBoxes);
+			IOTool.setGDSOutMergesBoxes(currentOutputMergesBoxes);
 		boolean currentOutputWritesExportPins = gdsOutputWritesExportPins.isSelected();
 		if (currentOutputWritesExportPins != initialGDSOutputWritesExportPins)
-			OutputGDS.setWritesExportPins(currentOutputWritesExportPins);
+			IOTool.setGDSOutWritesExportPins(currentOutputWritesExportPins);
 		boolean currentOutputUpperCase = gdsOutputUpperCase.isSelected();
 		if (currentOutputUpperCase != initialGDSOutputUpperCase)
-			OutputGDS.setUpperCase(currentOutputUpperCase);
+			IOTool.setGDSOutUpperCase(currentOutputUpperCase);
 		int currentTextLayer = TextUtils.atoi(gdsDefaultTextLayer.getText());
 		if (currentTextLayer != initialGDSTextLayer)
-			OutputGDS.setDefaultTextLayer(currentTextLayer);
+			IOTool.setGDSOutDefaultTextLayer(currentTextLayer);
 	}
 
 	//******************************** EDIF ********************************
@@ -582,13 +579,13 @@ public class IOOptions extends javax.swing.JDialog
 	 */
 	private void initCopyright()
 	{
-		initialUseCopyrightMessage = Output.isUseCopyrightMessage();
+		initialUseCopyrightMessage = IOTool.isUseCopyrightMessage();
 		if (initialUseCopyrightMessage) copyrightUse.setSelected(true); else
 			copyrightNone.setSelected(true);
 
 		copyrightTextArea = new JTextArea();
 		copyrightMessage.setViewportView(copyrightTextArea);
-		initialCopyrightMessage = Output.getCopyrightMessage();
+		initialCopyrightMessage = IOTool.getCopyrightMessage();
 		copyrightTextArea.setText(initialCopyrightMessage);
 		copyrightTextArea.addKeyListener(new KeyAdapter()
 		{
@@ -609,11 +606,11 @@ public class IOOptions extends javax.swing.JDialog
 	{
 		boolean currentUseCopyrightMessage = copyrightUse.isSelected();
 		if (currentUseCopyrightMessage != initialUseCopyrightMessage)
-			Output.setUseCopyrightMessage(currentUseCopyrightMessage);
+			IOTool.setUseCopyrightMessage(currentUseCopyrightMessage);
 
 		String msg = copyrightTextArea.getText();
 		if (!msg.equals(initialCopyrightMessage))
-			Output.setCopyrightMessage(msg);
+			IOTool.setCopyrightMessage(msg);
 	}
 
 	//******************************** LIBRARY ********************************
@@ -668,7 +665,7 @@ public class IOOptions extends javax.swing.JDialog
 	 */
 	private void initPrinting()
 	{
-		initialPrintArea = Output.getPlotArea();
+		initialPrintArea = IOTool.getPlotArea();
 		switch (initialPrintArea)
 		{
 			case 0: printPlotEntireCell.setSelected(true);        break;
@@ -676,42 +673,42 @@ public class IOOptions extends javax.swing.JDialog
 			case 2: printPlotDisplayedWindow.setSelected(true);   break;
 		}
 
-		initialPrintDate = OutputPostScript.isPlotDate();
+		initialPrintDate = IOTool.isPlotDate();
 		printPlotDateInCorner.setSelected(initialPrintDate);
 
 		// get list of printers
-		initialPrinter = Output.getPrinterName();
+		initialPrinter = IOTool.getPrinterName();
 		PrintService [] printers = PrintServiceLookup.lookupPrintServices(null, null);
 		PrintService printerToUse = null;
 		for(int i=0; i<printers.length; i++)
 			printDefaultPrinter.addItem(printers[i].getName());
 		printDefaultPrinter.setSelectedItem(initialPrinter);
 
-		initialPrintEncapsulated = OutputPostScript.isEncapsulated();
+		initialPrintEncapsulated = IOTool.isPrintEncapsulated();
 		printEncapsulated.setSelected(initialPrintEncapsulated);
 
-		initialPrintPlotter = OutputPostScript.isForPlotter();
+		initialPrintPlotter = IOTool.isPrintForPlotter();
 		if (initialPrintPlotter) printUsePlotter.setSelected(true); else
 			printUsePrinter.setSelected(true);
 
-		initialPrintWidth = OutputPostScript.getWidth();
+		initialPrintWidth = IOTool.getPrintWidth();
 		printWidth.setText(Double.toString(initialPrintWidth));
-		initialPrintHeight = OutputPostScript.getHeight();
+		initialPrintHeight = IOTool.getPrintHeight();
 		printHeight.setText(Double.toString(initialPrintHeight));
-		initialPrintMargin = OutputPostScript.getMargin();
+		initialPrintMargin = IOTool.getPrintMargin();
 		printMargin.setText(Double.toString(initialPrintMargin));
 
 		printRotation.addItem("No Rotation");
 		printRotation.addItem("Rotate plot 90 degrees");
 		printRotation.addItem("Auto-rotate plot to fit");
-		initialPrintRotation = OutputPostScript.getRotation();
+		initialPrintRotation = IOTool.getPrintRotation();
 		printRotation.setSelectedIndex(initialPrintRotation);
 
 		printPostScriptStyle.addItem("Black&White");
 		printPostScriptStyle.addItem("Color");
 		printPostScriptStyle.addItem("Color Stippled");
 		printPostScriptStyle.addItem("Color Merged");
-		initialPrintColorMethod = OutputPostScript.getColorMethod();
+		initialPrintColorMethod = IOTool.getPrintColorMethod();
 		printPostScriptStyle.setSelectedIndex(initialPrintColorMethod);
 
 		initialCell = Library.getCurrent().getCurCell();
@@ -720,8 +717,8 @@ public class IOOptions extends javax.swing.JDialog
 		if (initialCell != null)
 		{
 			printCellName.setText("For cell: " + initialCell.describe());
-			initialEPSScale = OutputPostScript.getEPSScale(initialCell);
-			initialEPSSyncFile = OutputPostScript.getEPSSynchronizeFile(initialCell);
+			initialEPSScale = IOTool.getPrintEPSScale(initialCell);
+			initialEPSSyncFile = IOTool.getPrintEPSSynchronizeFile(initialCell);
 			printSyncFileName.setText(initialEPSSyncFile);
 			printSetEPSSync.addActionListener(new ActionListener()
 			{
@@ -764,54 +761,54 @@ public class IOOptions extends javax.swing.JDialog
 		if (printPlotHighlightedArea.isSelected()) printArea = 1; else
 			if (printPlotDisplayedWindow.isSelected()) printArea = 2;
 		if (printArea != initialPrintArea)
-			Output.setPlotArea(printArea);
+			IOTool.setPlotArea(printArea);
 
 		boolean plotDate = printPlotDateInCorner.isSelected();
 		if (plotDate != initialPrintDate)
-			OutputPostScript.setPlotDate(plotDate);
+			IOTool.setPlotDate(plotDate);
 
 		String printer = (String)printDefaultPrinter.getSelectedItem();
 		if (!printer.equals(initialPrinter))
 		{
-			Output.setPrinterName(printer);
+			IOTool.setPrinterName(printer);
 		}
 
 		boolean encapsulated = printEncapsulated.isSelected();
 		if (encapsulated != initialPrintEncapsulated)
-			OutputPostScript.setEncapsulated(encapsulated);
+			IOTool.setPrintEncapsulated(encapsulated);
 
 		boolean plotter = printUsePlotter.isSelected();
 		if (plotter != initialPrintPlotter)
-			OutputPostScript.setForPlotter(plotter);
+			IOTool.setPrintForPlotter(plotter);
 
 		double width = TextUtils.atof(printWidth.getText());
 		if (width != initialPrintWidth)
-			OutputPostScript.setWidth(width);
+			IOTool.setPrintWidth(width);
 
 		double height = TextUtils.atof(printHeight.getText());
 		if (height != initialPrintHeight)
-			OutputPostScript.setHeight(height);
+			IOTool.setPrintHeight(height);
 
 		double margin = TextUtils.atof(printMargin.getText());
 		if (margin != initialPrintMargin)
-			OutputPostScript.setMargin(margin);
+			IOTool.setPrintMargin(margin);
 
 		int rotation = printRotation.getSelectedIndex();
 		if (rotation != initialPrintRotation)
-			OutputPostScript.setRotation(rotation);
+			IOTool.setPrintRotation(rotation);
 
 		int colorMethod = printPostScriptStyle.getSelectedIndex();
 		if (colorMethod != initialPrintColorMethod)
-			OutputPostScript.setColorMethod(colorMethod);
+			IOTool.setPrintColorMethod(colorMethod);
 
 		if (initialCell != null)
 		{
 			double currentEPSScale = TextUtils.atof(printEPSScale.getText());
 			if (currentEPSScale != initialEPSScale && currentEPSScale != 0)
-				OutputPostScript.setEPSScale(initialCell, currentEPSScale);
+				IOTool.setPrintEPSScale(initialCell, currentEPSScale);
 			String currentEPSSyncFile = printSyncFileName.getText();
 			if (!currentEPSSyncFile.equals(initialEPSSyncFile))
-				OutputPostScript.setEPSSynchronizeFile(initialCell, currentEPSSyncFile);
+				IOTool.setPrintEPSSynchronizeFile(initialCell, currentEPSSyncFile);
 		}
 	}
 

@@ -698,6 +698,7 @@ public class User extends Listener
 	/****************************** MISCELLANEOUS PREFERENCES ******************************/
 
 	private static Pref cacheSchematicTechnology = Pref.makeStringPref("SchematicTechnology", User.tool.prefs, "");
+    static { cacheSchematicTechnology.attachToObject(User.tool, "Edit Options, Technology tab", "Use scale values from this technology"); }
 	/**
 	 * Method to the technology to use when schematics are found.
 	 * This is important in Spice deck generation (for example) because the Spice primitives may
@@ -758,6 +759,7 @@ public class User extends Listener
 	public static void setPlayClickSoundsWhenCreatingArcs(boolean on) { cachePlayClickSoundsWhenCreatingArcs.setBoolean(on); }
 
 	private static Pref cacheIncludeDateAndVersionInOutput = Pref.makeBooleanPref("IncludeDateAndVersionInOutput", User.tool.prefs, true);
+    static { cacheIncludeDateAndVersionInOutput.attachToObject(User.tool, "Edit Options, General tab", "Include date and version in output"); }
 	/**
 	 * Method to tell whether to include the date and Electric version in output files.
 	 * The default is "true".
@@ -769,6 +771,19 @@ public class User extends Listener
 	 * @param on true if the system should include the date and Electric version in output files.
 	 */
 	public static void setIncludeDateAndVersionInOutput(boolean on) { cacheIncludeDateAndVersionInOutput.setBoolean(on); }
+
+	private static Pref cacheShowFileSelectionForNetlists = Pref.makeBooleanPref("ShowFileSelectionForNetlists", User.tool.prefs, true);
+	/**
+	 * Method to tell whether to display a file selection dialog before writing netlists.
+	 * The default is "true".
+	 * @return true if the system should display a file selection dialog before writing netlists.
+	 */
+	public static boolean isShowFileSelectionForNetlists() { return cacheShowFileSelectionForNetlists.getBoolean(); }
+	/**
+	 * Method to set whether to display a file selection dialog before writing netlists.
+	 * @param on true if the system should display a file selection dialog before writing netlists.
+	 */
+	public static void setShowFileSelectionForNetlists(boolean on) { cacheShowFileSelectionForNetlists.setBoolean(on); }
 
 	private static Pref cacheErrorLimit = Pref.makeIntPref("ErrorLimit", User.tool.prefs, 0);
 	/**

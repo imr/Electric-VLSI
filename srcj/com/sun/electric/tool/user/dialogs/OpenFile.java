@@ -43,6 +43,7 @@ public class OpenFile
 	public static final EFileFilter ELIB       = new EFileFilter(new String[] {"elib"}, "Library File (elib)");
 	public static final EFileFilter SPI        = new EFileFilter(new String[] {"spi", "sp"}, "Spice Deck (spi, sp)");
 	public static final EFileFilter VERILOG    = new EFileFilter(new String[] {"v"}, "Verilog Deck (v)");
+	public static final EFileFilter MAXWELL    = new EFileFilter(new String[] {"mac"}, "Maxwell Deck (mac)");
 	public static final EFileFilter JAVA       = new EFileFilter(new String[] {"java", "bsh"}, "Java Script File (java, bsh)");
 	public static final EFileFilter CIF        = new EFileFilter(new String[] {"cif"}, "CIF File (cif)");
 	public static final EFileFilter GDS        = new EFileFilter(new String[] {"gds"}, "GDS File (gds)");

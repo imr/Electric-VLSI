@@ -30,8 +30,10 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
@@ -44,8 +46,6 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.prefs.Preferences;
-import java.util.prefs.BackingStoreException;
 
 /**
  * This class is the base class of all Electric objects that can be extended with "Variables".
@@ -178,6 +178,129 @@ public class ElectricObject
 			}
 		}
 		return numAddedVariables;
+	}
+
+	/**
+	 * Method to compute a Poly that describes text.
+	 * The text can be described by an ElectricObject (Exports or cell instance names).
+	 * The text can be described by a node or arc name.
+	 * The text can be described by a variable on an ElectricObject.
+	 * @param wnd the EditWindow in which the text will be drawn.
+	 * @param eobj the ElectricObject with the text.
+	 * @param var the Variable on the ElectricObject (may be null).
+	 * @param name the Name of the node or arc in the ElectricObject (may be null).
+	 * @return a Poly that covers the text completely.
+	 * Even though the Poly is scaled for a particular EditWindow,
+	 * its coordinates are in object space, not screen space.
+	 */
+	public Poly computeTextPoly(EditWindow wnd, Variable var, Name name)
+	{
+		Poly poly = null;
+		if (var != null)
+		{
+			if (this instanceof Export)
+			{
+				Export pp = (Export)this;
+				PortInst pi = pp.getOriginalPort();
+				Rectangle2D bounds = pi.getPoly().getBounds2D();
+				Poly [] polys = pp.getPolyList(var, bounds.getCenterX(), bounds.getCenterY(), wnd, false);
+				if (polys != null)
+				{
+					poly = polys[0];
+					poly.transform(pi.getNodeInst().rotateOut());
+				}
+			} else if (this instanceof PortInst)
+			{
+				PortInst pi = (PortInst)this;
+				Rectangle2D bounds = pi.getPoly().getBounds2D();
+				Poly [] polys = pi.getPolyList(var, bounds.getCenterX(), bounds.getCenterY(), wnd, false);
+				if (polys != null)
+				{
+					poly = polys[0];
+					poly.transform(pi.getNodeInst().rotateOut());
+				}
+			} else if (this instanceof Geometric)
+			{
+				Geometric geom = (Geometric)this;
+				Poly [] polys = geom.getPolyList(var, geom.getTrueCenterX(), geom.getTrueCenterY(), wnd, false);
+				if (polys != null)
+				{
+					poly = polys[0];
+					if (geom instanceof NodeInst)
+						poly.transform(((NodeInst)geom).rotateOut());
+				}
+			} else if (this instanceof Cell)
+			{
+				Cell cell = (Cell)this;
+				Rectangle2D bounds = cell.getBounds();
+				Poly [] polys = cell.getPolyList(var, 0, 0, wnd, false);
+				if (polys != null) poly = polys[0];
+			}
+		} else
+		{
+			if (name != null)
+			{
+				if (!(this instanceof Geometric)) return null;
+				Geometric geom = (Geometric)this;
+				TextDescriptor td = geom.getNameTextDescriptor();
+				Poly.Type style = td.getPos().getPolyType();
+				Point2D [] pointList = null;
+				if (style == Poly.Type.TEXTBOX)
+				{
+					pointList = Poly.makePoints(geom.getBounds());
+				} else
+				{
+					pointList = new Point2D.Double[1];
+					pointList[0] = new Point2D.Double(geom.getTrueCenterX()+td.getXOff(), geom.getTrueCenterY()+td.getYOff());
+				}
+				poly = new Poly(pointList);
+				poly.setStyle(style);
+				if (geom instanceof NodeInst)
+				{
+					poly.transform(((NodeInst)geom).rotateOut());
+				}
+				poly.setTextDescriptor(td);
+				poly.setString(name.toString());
+			} else
+			{
+				if (this instanceof Export)
+				{
+					Export pp = (Export)this;
+					Rectangle2D bounds = pp.getOriginalPort().getBounds();
+					TextDescriptor td = pp.getTextDescriptor();
+					Poly.Type style = td.getPos().getPolyType();
+					Point2D [] pointList = new Point2D.Double[1];
+					pointList[0] = new Point2D.Double(bounds.getCenterX()+td.getXOff(), bounds.getCenterY()+td.getYOff());
+					poly = new Poly(pointList);
+					poly.setStyle(style);
+					poly.setTextDescriptor(td);
+					poly.setString(pp.getProtoName());
+				} else
+				{
+					// cell instance name
+					if (!(this instanceof NodeInst)) return null;
+					NodeInst ni = (NodeInst)this;
+					TextDescriptor td = ni.getProtoTextDescriptor();
+					Poly.Type style = td.getPos().getPolyType();
+					Point2D [] pointList = null;
+					if (style == Poly.Type.TEXTBOX)
+					{
+						pointList = Poly.makePoints(ni.getBounds());
+					} else
+					{
+						pointList = new Point2D.Double[1];
+						pointList[0] = new Point2D.Double(ni.getTrueCenterX()+td.getXOff(), ni.getTrueCenterY()+td.getYOff());
+					}
+					poly = new Poly(pointList);
+					poly.setStyle(style);
+					poly.setTextDescriptor(td);
+					poly.setString(ni.getProto().describe());
+				}
+			}
+		}
+		if (poly != null)
+			poly.setExactTextBounds(wnd);
+		return poly;
 	}
 
 	/**

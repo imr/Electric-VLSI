@@ -103,24 +103,22 @@ public class OutputSpice extends OutputTopology
 	 * The main entry point for Spice deck writing.
 	 * @param cell the top-level cell to write.
 	 * @param filePath the disk file to create with Spice.
-	 * @return true on error.
 	 */
-	public static boolean writeSpiceFile(Cell cell, String filePath, boolean cdl)
+	public static void writeSpiceFile(Cell cell, String filePath, boolean cdl)
 	{
-		boolean error = false;
 		OutputSpice out = new OutputSpice();
 		out.useCDL = cdl;
-		if (out.openTextOutputStream(filePath)) error = true;
-		if (out.writeCell(cell)) error = true;
-		if (out.closeTextOutputStream()) error = true;
-		if (!error) System.out.println(filePath + " written");
+		if (out.openTextOutputStream(filePath)) return;
+		if (out.writeCell(cell)) return;
+		if (out.closeTextOutputStream()) return;
+		System.out.println(filePath + " written");
 
 		// write CDL support file if requested
 		if (out.useCDL)
 		{
 			// write the control files
 			String templateFile = cell.getProtoName() + ".cdltemplate";
-			if (out.openTextOutputStream(templateFile)) error = true;
+			if (out.openTextOutputStream(templateFile)) return;
 
 			String deckFile = filePath;
 			String deckPath = "";
@@ -152,7 +150,7 @@ public class OutputSpice extends OutputTopology
 			out.printWriter.print("    'refLib                 \"\"\n");
 			out.printWriter.print("    'globalNodeExpand       \"full\"\n");
 			out.printWriter.print(")\n");
-			if (out.closeTextOutputStream()) error = true;
+			if (out.closeTextOutputStream()) return;
 			System.out.println(templateFile + " written");
 //			ttyputmsg(x_("Now type: exec nino CDLIN %s &"), templatefile);
 		}
@@ -166,7 +164,6 @@ public class OutputSpice extends OutputTopology
 //			if (var == NOVARIABLE) sim_spice_execute(deckfile, x_(""), np); else
 //				sim_spice_execute(deckfile, (CHAR *)var->addr, np);
 //		}
-		return error;
 	}
 
 	/**

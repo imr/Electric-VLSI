@@ -38,6 +38,7 @@ import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.erc.ERC;
+import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.simulation.Simulation;
@@ -47,7 +48,6 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.prefs.Preferences;
-import java.util.prefs.BackingStoreException;
 
 /**
  * This class represents a Tool in Electric.  It's here mostly for the name
@@ -118,6 +118,7 @@ public class Tool extends ElectricObject
         LETool.tool.init();
         Simulation.tool.init();
         Routing.tool.init();
+        IOTool.tool.init();
         DRC.tool.init();
         ERC.tool.init();
 	}

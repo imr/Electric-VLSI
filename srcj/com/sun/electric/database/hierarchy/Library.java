@@ -147,7 +147,9 @@ public class Library extends ElectricObject
 		 */
 		public String makeName()
 		{
-			String libFile = path + File.separator + name;
+			String libFile = "";
+			if (path != null) libFile += path + File.separator;
+			libFile += name;
 			if (extension != null) libFile += "." + extension;
 			return libFile;
 		}

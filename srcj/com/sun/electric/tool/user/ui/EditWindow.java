@@ -898,6 +898,14 @@ public class EditWindow extends JPanel
 	public void focusScreen(Rectangle2D bounds)
 	{
         if (bounds == null) return;
+		setScreenBounds(bounds);
+        setScrollPosition();
+		computeDatabaseBounds();
+		repaintContents();
+	}
+
+	private void setScreenBounds(Rectangle2D bounds)
+	{
 		double width = bounds.getWidth();
 		double height = bounds.getHeight();
 		if (width == 0) width = 2;
@@ -907,9 +915,6 @@ public class EditWindow extends JPanel
 		scale = Math.min(scalex, scaley);
 		offx = bounds.getCenterX();
 		offy = bounds.getCenterY();
-        setScrollPosition();
-		computeDatabaseBounds();
-		repaintContents();
 	}
 
 	/**
@@ -927,6 +932,14 @@ public class EditWindow extends JPanel
 					int defaultCellSize = 60;
 					cellBounds = new Rectangle2D.Double(cellBounds.getCenterX()-defaultCellSize/2,
 						cellBounds.getCenterY()-defaultCellSize/2, defaultCellSize, defaultCellSize);
+				}
+
+				// make sure text fits
+				setScreenBounds(cellBounds);
+				Rectangle2D relativeTextBounds = cell.getRelativeTextBounds(this);
+				if (relativeTextBounds != null)
+				{
+					Rectangle2D.union(relativeTextBounds, cellBounds, cellBounds);
 				}
 				focusScreen(cellBounds);
 				return;

@@ -114,6 +114,7 @@ public class EditOptions extends javax.swing.JDialog
 
 	private boolean initialBeepAfterLongJobs;
 	private boolean initialClickSounds;
+	private boolean initialShowFileSelectionForNetlists;
 	private boolean initialIncludeDateAndVersion;
 	private int initialErrorLimit;
 	private long initialMaxMem;
@@ -130,21 +131,24 @@ public class EditOptions extends javax.swing.JDialog
 		initialClickSounds = User.isPlayClickSoundsWhenCreatingArcs();
 		generalPlayClickSounds.setSelected(initialClickSounds);
 
+		initialShowFileSelectionForNetlists = User.isShowFileSelectionForNetlists();
+		generalShowFileDialog.setSelected(initialShowFileSelectionForNetlists);
+
 		initialIncludeDateAndVersion = User.isIncludeDateAndVersionInOutput();
 		generalIncludeDateAndVersion.setSelected(initialIncludeDateAndVersion);
 
 		initialErrorLimit = User.getErrorLimit();
 		generalErrorLimit.setText(Integer.toString(initialErrorLimit));
 
-		generalExpandableDialogsFull.setEnabled(false);
-		generalShowFileDialog.setEnabled(false);
-		generalMotionHysteresis.setEditable(false);
-
 		java.lang.Runtime runtime = java.lang.Runtime.getRuntime();
 		long maxMemLimit = runtime.maxMemory() / 1024 / 1024;
 		generalMemoryUsage.setText("Current memory usage: " + Long.toString(maxMemLimit) + " megabytes");
 		initialMaxMem = User.getMemorySize();
 		generalMaxMem.setText(Long.toString(initialMaxMem));
+
+		// not yet
+		generalShowFileDialog.setEnabled(false);
+		generalMotionHysteresis.setEditable(false);
 	}
 
 	/**
@@ -266,7 +270,6 @@ public class EditOptions extends javax.swing.JDialog
 		nodePrimitiveRotation.getDocument().addDocumentListener(new NewNodeDocumentListener(this));
 
 		// some things are not available yet
-		nodeTinyCellsHashedOut.setEnabled(false);
 		nodeHashLimit.setEditable(false);
 	}
 
@@ -1168,7 +1171,7 @@ public class EditOptions extends javax.swing.JDialog
 
 	private int initialTechRules;
 	private int initialTechNumMetalLayers;
-	private int initialTechNumPolyLayers;
+	private boolean initialTechSecondPolyLayers;
 	private String initialSchematicTechnology;
 	private boolean initialTechNoStackedVias;
 	private boolean initialTechAlternateContactRules;
@@ -1182,7 +1185,7 @@ public class EditOptions extends javax.swing.JDialog
 	private void initTechnology()
 	{
 		// MOCMOS
-		initialTechRules = MoCMOS.tech.getRuleSet();
+		initialTechRules = MoCMOS.getRuleSet();
 		if (initialTechRules == 0) techMOCMOSSCMOSRules.setSelected(true); else
 			if (initialTechRules == 1) techMOCMOSSubmicronRules.setSelected(true); else
 				techMOCMOSDeepRules.setSelected(true);
@@ -1192,22 +1195,22 @@ public class EditOptions extends javax.swing.JDialog
 		techMOCMOSMetalLayers.addItem("4 Layers");
 		techMOCMOSMetalLayers.addItem("5 Layers");
 		techMOCMOSMetalLayers.addItem("6 Layers");
-		initialTechNumMetalLayers = MoCMOS.tech.getNumMetal();
+		initialTechNumMetalLayers = MoCMOS.getNumMetal();
 		techMOCMOSMetalLayers.setSelectedIndex(initialTechNumMetalLayers-2);
 
-		initialTechNumPolyLayers = MoCMOS.tech.getNumPolysilicon();
-		techMOCMOSSecondPoly.setSelected(initialTechNumPolyLayers == 2);
+		initialTechSecondPolyLayers = MoCMOS.isSecondPolysilicon();
+		techMOCMOSSecondPoly.setSelected(initialTechSecondPolyLayers);
 
-		initialTechNoStackedVias = MoCMOS.tech.isAllowStackedVias();
+		initialTechNoStackedVias = MoCMOS.isDisallowStackedVias();
 		techMOCMOSDisallowStackedVias.setSelected(initialTechNoStackedVias);
 
-		initialTechAlternateContactRules = MoCMOS.tech.isAlternateActivePolyRules();
+		initialTechAlternateContactRules = MoCMOS.isAlternateActivePolyRules();
 		techMOCMOSAlternateContactRules.setSelected(initialTechAlternateContactRules);
 
-		initialTechSpecialTransistors = MoCMOS.tech.isSpecialTransistors();
+		initialTechSpecialTransistors = MoCMOS.isSpecialTransistors();
 		techMOCMOSShowSpecialTrans.setSelected(initialTechSpecialTransistors);
 
-		initialTechStickFigures = MoCMOS.tech.isStickFigures();
+		initialTechStickFigures = MoCMOS.isStickFigures();
 		if (initialTechStickFigures) techMOCMOSStickFigures.setSelected(true); else
 			techMOCMOSFullGeom.setSelected(true);
 
@@ -1259,7 +1262,7 @@ public class EditOptions extends javax.swing.JDialog
 			int currentNumMetals = dialog.techMOCMOSMetalLayers.getSelectedIndex() + 2;
 			if (currentNumMetals != dialog.initialTechNumMetalLayers)
 			{
-				MoCMOS.tech.setNumMetal(currentNumMetals);
+				MoCMOS.setNumMetal(currentNumMetals);
 				redrawPalette = redrawWindows = true;
 			}
 
@@ -1268,40 +1271,39 @@ public class EditOptions extends javax.swing.JDialog
 				if (dialog.techMOCMOSDeepRules.isSelected()) currentRules = 2;
 			if (currentRules != dialog.initialTechRules)
 			{
-				MoCMOS.tech.setRuleSet(currentRules);
+				MoCMOS.setRuleSet(currentRules);
 				redrawPalette = redrawWindows = true;
 			}
 
-			int currentNumPolys = 1;
-			if (dialog.techMOCMOSSecondPoly.isSelected()) currentNumPolys = 2;
-			if (currentNumPolys != dialog.initialTechNumPolyLayers)
+			boolean currentSecondPolys = dialog.techMOCMOSSecondPoly.isSelected();
+			if (currentSecondPolys != dialog.initialTechSecondPolyLayers)
 			{
-				MoCMOS.tech.setNumPolysilicon(currentNumPolys);
+				MoCMOS.setSecondPolysilicon(currentSecondPolys);
 				redrawPalette = redrawWindows = true;
 			}
 
-			boolean currentStackedVias = dialog.techMOCMOSDisallowStackedVias.isSelected();
-			if (currentStackedVias != dialog.initialTechNoStackedVias)
-				MoCMOS.tech.setAllowStackedVias(currentStackedVias);
+			boolean currentNoStackedVias = dialog.techMOCMOSDisallowStackedVias.isSelected();
+			if (currentNoStackedVias != dialog.initialTechNoStackedVias)
+				MoCMOS.setDisallowStackedVias(currentNoStackedVias);
 
 			boolean currentAlternateContact = dialog.techMOCMOSAlternateContactRules.isSelected();
 			if (currentAlternateContact != dialog.initialTechAlternateContactRules)
 			{
-				MoCMOS.tech.setAlternateActivePolyRules(currentAlternateContact);
+				MoCMOS.setAlternateActivePolyRules(currentAlternateContact);
 				redrawPalette = redrawWindows = true;
 			}
 
 			boolean currentSpecialTransistors = dialog.techMOCMOSShowSpecialTrans.isSelected();
 			if (currentSpecialTransistors != dialog.initialTechSpecialTransistors)
 			{
-				MoCMOS.tech.setSpecialTransistors(currentSpecialTransistors);
+				MoCMOS.setSpecialTransistors(currentSpecialTransistors);
 				redrawPalette = true;
 			}
 
 			boolean currentStickFigures = dialog.techMOCMOSStickFigures.isSelected();
 			if (currentStickFigures != dialog.initialTechStickFigures)
 			{
-				MoCMOS.tech.setStickFigures(currentStickFigures);
+				MoCMOS.setStickFigures(currentStickFigures);
 				redrawPalette = redrawWindows = true;
 			}
 
@@ -1346,7 +1348,6 @@ public class EditOptions extends javax.swing.JDialog
         general = new javax.swing.JPanel();
         generalBeepAfterLongJobs = new javax.swing.JCheckBox();
         generalPlayClickSounds = new javax.swing.JCheckBox();
-        generalExpandableDialogsFull = new javax.swing.JCheckBox();
         generalIncludeDateAndVersion = new javax.swing.JCheckBox();
         generalShowFileDialog = new javax.swing.JCheckBox();
         jLabel46 = new javax.swing.JLabel();
@@ -1377,7 +1378,6 @@ public class EditOptions extends javax.swing.JDialog
         nodeCheckCellDates = new javax.swing.JCheckBox();
         nodeSwitchTechnology = new javax.swing.JCheckBox();
         nodePlaceCellCenter = new javax.swing.JCheckBox();
-        nodeTinyCellsHashedOut = new javax.swing.JCheckBox();
         jLabel47 = new javax.swing.JLabel();
         nodeHashLimit = new javax.swing.JTextField();
         jPanel4 = new javax.swing.JPanel();
@@ -1502,8 +1502,10 @@ public class EditOptions extends javax.swing.JDialog
         layers = new javax.swing.JPanel();
         jLabel40 = new javax.swing.JLabel();
         layerName = new javax.swing.JComboBox();
+        jLabel63 = new javax.swing.JLabel();
         colors = new javax.swing.JPanel();
         colorChooser = new javax.swing.JColorChooser();
+        jLabel64 = new javax.swing.JLabel();
         text = new javax.swing.JPanel();
         top = new javax.swing.JPanel();
         jLabel41 = new javax.swing.JLabel();
@@ -1561,6 +1563,7 @@ public class EditOptions extends javax.swing.JDialog
         jSeparator3 = new javax.swing.JSeparator();
         jSeparator4 = new javax.swing.JSeparator();
         threeD = new javax.swing.JPanel();
+        jLabel65 = new javax.swing.JLabel();
         technology = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
         jLabel49 = new javax.swing.JLabel();
@@ -1616,76 +1619,67 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         general.add(generalPlayClickSounds, gridBagConstraints);
 
-        generalExpandableDialogsFull.setText("Expandable dialogs default to full-size");
+        generalIncludeDateAndVersion.setText("Include date and version in output files");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        general.add(generalExpandableDialogsFull, gridBagConstraints);
-
-        generalIncludeDateAndVersion.setText("Include date and version in output files");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         general.add(generalIncludeDateAndVersion, gridBagConstraints);
 
         generalShowFileDialog.setText("Show file-selection dialog before writing netlists");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         general.add(generalShowFileDialog, gridBagConstraints);
 
         jLabel46.setText("Maximum errors to report:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         general.add(jLabel46, gridBagConstraints);
 
         generalErrorLimit.setColumns(6);
         generalErrorLimit.setText(" ");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         general.add(generalErrorLimit, gridBagConstraints);
 
         jLabel50.setText("Prevent motion after selection for:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         general.add(jLabel50, gridBagConstraints);
 
         generalMotionHysteresis.setColumns(6);
         generalMotionHysteresis.setText(" ");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         general.add(generalMotionHysteresis, gridBagConstraints);
 
         jLabel51.setText("seconds");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         general.add(jLabel51, gridBagConstraints);
 
         jLabel53.setText("(0 for infinite)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         general.add(jLabel53, gridBagConstraints);
 
@@ -1696,8 +1690,8 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel11.add(jLabel60, gridBagConstraints);
 
         generalMaxMem.setColumns(6);
@@ -1721,8 +1715,8 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel11.add(generalMemoryUsage, gridBagConstraints);
 
         jLabel62.setText("Changes to memory take effect when Electric is next run");
@@ -1730,13 +1724,13 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel11.add(jLabel62, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         general.add(jPanel11, gridBagConstraints);
@@ -1868,29 +1862,20 @@ public class EditOptions extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         jPanel3.add(nodePlaceCellCenter, gridBagConstraints);
 
-        nodeTinyCellsHashedOut.setText("Tiny cell instances hashed out");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        jPanel3.add(nodeTinyCellsHashedOut, gridBagConstraints);
-
         jLabel47.setText("Units per pixel when cells are hashed:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.insets = new java.awt.Insets(2, 20, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanel3.add(jLabel47, gridBagConstraints);
 
         nodeHashLimit.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanel3.add(nodeHashLimit, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -2920,17 +2905,25 @@ public class EditOptions extends javax.swing.JDialog
         jLabel40.setText("Appearance of layer:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         layers.add(jLabel40, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.weightx = 1.0;
         layers.add(layerName, gridBagConstraints);
+
+        jLabel63.setText("CANNOT CONTROL LAYER APPEARANCE YET");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 20, 0);
+        layers.add(jLabel63, gridBagConstraints);
 
         tabPane.addTab("Layers", layers);
 
@@ -2938,8 +2931,15 @@ public class EditOptions extends javax.swing.JDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridy = 1;
         colors.add(colorChooser, gridBagConstraints);
+
+        jLabel64.setText("CANNOT SET COLORS YET");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 20, 0);
+        colors.add(jLabel64, gridBagConstraints);
 
         tabPane.addTab("Colors", colors);
 
@@ -3394,6 +3394,12 @@ public class EditOptions extends javax.swing.JDialog
 
         threeD.setLayout(new java.awt.GridBagLayout());
 
+        jLabel65.setText("NO 3D FACILITIES AVAILABLE YET");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        threeD.add(jLabel65, gridBagConstraints);
+
         tabPane.addTab("3D", threeD);
 
         technology.setLayout(new java.awt.GridBagLayout());
@@ -3677,7 +3683,6 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JPanel general;
     private javax.swing.JCheckBox generalBeepAfterLongJobs;
     private javax.swing.JTextField generalErrorLimit;
-    private javax.swing.JCheckBox generalExpandableDialogsFull;
     private javax.swing.JCheckBox generalIncludeDateAndVersion;
     private javax.swing.JTextField generalMaxMem;
     private javax.swing.JLabel generalMemoryUsage;
@@ -3772,6 +3777,9 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JLabel jLabel60;
     private javax.swing.JLabel jLabel61;
     private javax.swing.JLabel jLabel62;
+    private javax.swing.JLabel jLabel63;
+    private javax.swing.JLabel jLabel64;
+    private javax.swing.JLabel jLabel65;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
@@ -3813,7 +3821,6 @@ public class EditOptions extends javax.swing.JDialog
     private javax.swing.JTextField nodePrimitiveXSize;
     private javax.swing.JTextField nodePrimitiveYSize;
     private javax.swing.JCheckBox nodeSwitchTechnology;
-    private javax.swing.JCheckBox nodeTinyCellsHashedOut;
     private javax.swing.JButton ok;
     private javax.swing.JPanel port;
     private javax.swing.JRadioButton portCrossExport;

@@ -30,9 +30,6 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.Tool;
 
-//import java.util.prefs.Preferences;
-//import java.util.prefs.BackingStoreException;
-
 /**
  * This is the Simulation Interface tool.
  */
@@ -63,16 +60,19 @@ public class Simulation extends Tool
 	/****************************** VERILOG OPTIONS ******************************/
 
 	private static Pref cacheVerilogUseAssign = Pref.makeBooleanPref("VerilogUseAssign", Simulation.tool.prefs, false);
+    static { cacheVerilogUseAssign.attachToObject(Simulation.tool, "Tool Options, Verilog tab", "Use ASSIGN Construct"); }
 	public static boolean getVerilogUseAssign() { return cacheVerilogUseAssign.getBoolean(); }
 	public static void setVerilogUseAssign(boolean use) { cacheVerilogUseAssign.setBoolean(use); }
 
 	private static Pref cacheVerilogUseTrireg = Pref.makeBooleanPref("VerilogUseTrireg", Simulation.tool.prefs, false);
+    static { cacheVerilogUseTrireg.attachToObject(Simulation.tool, "Tool Options, Verilog tab", "Default wire is Trireg"); }
 	public static boolean getVerilogUseTrireg() { return cacheVerilogUseTrireg.getBoolean(); }
 	public static void setVerilogUseTrireg(boolean use) { cacheVerilogUseTrireg.setBoolean(use); }
 
 	/****************************** CDL OPTIONS ******************************/
 
 	private static Pref cacheCDLLibName = Pref.makeStringPref("CDLLibName", Simulation.tool.prefs, "");
+    static { cacheCDLLibName.attachToObject(Simulation.tool, "IO Options, CDL tab", "Cadence Library Name"); }
 	/**
 	 * Method to return the CDL library name.
 	 * CDL is a weak form of a Spice deck, and it includes a Cadence library name.
@@ -87,6 +87,7 @@ public class Simulation extends Tool
 	public static void setCDLLibName(String libName) { cacheCDLLibName.setString(libName); }
 
 	private static Pref cacheCDLLibPath = Pref.makeStringPref("CDLLibPath", Simulation.tool.prefs, "");
+    static { cacheCDLLibPath.attachToObject(Simulation.tool, "IO Options, CDL tab", "Cadence Library Path"); }
 	/**
 	 * Method to return the CDL library path.
 	 * CDL is a weak form of a Spice deck, and it includes a Cadence library.
@@ -101,6 +102,7 @@ public class Simulation extends Tool
 	public static void setCDLLibPath(String libName) { cacheCDLLibPath.setString(libName); }
 
 	private static Pref cacheCDLConvertBrackets = Pref.makeBooleanPref("CDLConvertBrackets", Simulation.tool.prefs, false);
+    static { cacheCDLConvertBrackets.attachToObject(Simulation.tool, "IO Options, CDL tab", "Convert brackets"); }
 	/**
 	 * Method to tell whether CDL converts square bracket characters.
 	 * CDL is a weak form of a Spice deck, and it includes a Cadence library.
@@ -124,14 +126,17 @@ public class Simulation extends Tool
 	/** SmartSpice engine. */	public static final int SPICE_ENGINE_S = 5;
 
 	private static Pref cacheSpiceEngine = Pref.makeIntPref("SpiceEngine", Simulation.tool.prefs, 1);
+    static { cacheSpiceEngine.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice Engine"); }
 	public static int getSpiceEngine() { return cacheSpiceEngine.getInt(); }
 	public static void setSpiceEngine(int engine) { cacheSpiceEngine.setInt(engine); }
 
 	private static Pref cacheSpiceLevel = Pref.makeStringPref("SpiceLevel", Simulation.tool.prefs, "1");
+    static { cacheSpiceLevel.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice Level"); }
 	public static String getSpiceLevel() { return cacheSpiceLevel.getString(); }
 	public static void setSpiceLevel(String level) { cacheSpiceLevel.setString(level); }
 
 	private static Pref cacheSpiceOutputFormat = Pref.makeStringPref("SpiceOutputFormat", Simulation.tool.prefs, "Standard");
+    static { cacheSpiceOutputFormat.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Output Format"); }
 	public static String getSpiceOutputFormat() { return cacheSpiceOutputFormat.getString(); }
 	public static void setSpiceOutputFormat(String format) { cacheSpiceOutputFormat.setString(format); }
 
@@ -156,30 +161,37 @@ public class Simulation extends Tool
 	}
 
 	private static Pref cacheSpiceHeaderCardInfo = Pref.makeStringPref("SpiceHeaderCardInfo", Simulation.tool.prefs, "");
+    static { cacheSpiceHeaderCardInfo.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Header Card Information"); }
 	public static String getSpiceHeaderCardInfo() { return cacheSpiceHeaderCardInfo.getString(); }
 	public static void setSpiceHeaderCardInfo(String info) { cacheSpiceHeaderCardInfo.setString(info); }
 
 	private static Pref cacheSpiceTrailerCardInfo = Pref.makeStringPref("SpiceTrailerCardInfo", Simulation.tool.prefs, "");
+    static { cacheSpiceTrailerCardInfo.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Trailer Card Information"); }
 	public static String getSpiceTrailerCardInfo() { return cacheSpiceTrailerCardInfo.getString(); }
 	public static void setSpiceTrailerCardInfo(String info) { cacheSpiceTrailerCardInfo.setString(info); }
 
 	private static Pref cacheSpiceUseParasitics = Pref.makeBooleanPref("SpiceUseParasitics", Simulation.tool.prefs, true);
+    static { cacheSpiceUseParasitics.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Use Parasitics"); }
 	public static boolean isSpiceUseParasitics() { return cacheSpiceUseParasitics.getBoolean(); }
 	public static void setSpiceUseParasitics(boolean v) { cacheSpiceUseParasitics.setBoolean(v); }
 
 	private static Pref cacheSpiceUseNodeNames = Pref.makeBooleanPref("SpiceUseNodeNames", Simulation.tool.prefs, true);
+    static { cacheSpiceUseNodeNames.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Use Node Names"); }
 	public static boolean isSpiceUseNodeNames() { return cacheSpiceUseNodeNames.getBoolean(); }
 	public static void setSpiceUseNodeNames(boolean v) { cacheSpiceUseNodeNames.setBoolean(v); }
 
 	private static Pref cacheSpiceForceGlobalPwrGnd = Pref.makeBooleanPref("SpiceForceGlobalPwrGnd", Simulation.tool.prefs, false);
+    static { cacheSpiceForceGlobalPwrGnd.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Force Global VDD/GND"); }
 	public static boolean isSpiceForceGlobalPwrGnd() { return cacheSpiceForceGlobalPwrGnd.getBoolean(); }
 	public static void setSpiceForceGlobalPwrGnd(boolean v) { cacheSpiceForceGlobalPwrGnd.setBoolean(v); }
 
 	private static Pref cacheSpiceUseCellParameters = Pref.makeBooleanPref("SpiceUseCellParameters", Simulation.tool.prefs, false);
+    static { cacheSpiceForceGlobalPwrGnd.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Use Cell Parameters"); }
 	public static boolean isSpiceUseCellParameters() { return cacheSpiceUseCellParameters.getBoolean(); }
 	public static void setSpiceUseCellParameters(boolean v) { cacheSpiceUseCellParameters.setBoolean(v); }
 
 	private static Pref cacheSpiceWriteTransSizeInLambda = Pref.makeBooleanPref("SpiceWriteTransSizeInLambda", Simulation.tool.prefs, false);
+    static { cacheSpiceWriteTransSizeInLambda.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Write Trans Sizes in Lambda"); }
 	public static boolean isSpiceWriteTransSizeInLambda() { return cacheSpiceWriteTransSizeInLambda.getBoolean(); }
 	public static void setSpiceWriteTransSizeInLambda(boolean v) { cacheSpiceWriteTransSizeInLambda.setBoolean(v); }
 }

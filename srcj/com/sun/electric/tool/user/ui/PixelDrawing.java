@@ -2141,6 +2141,7 @@ public class PixelDrawing
 			}
 		}
 		if (underline) height++;
+if (width * height == 0) System.out.println("In PixelDrawing.renderText(), width="+width+" height="+height);
 		BufferedImage textImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
 
 		// now render it

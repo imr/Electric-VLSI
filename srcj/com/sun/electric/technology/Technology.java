@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -63,7 +64,6 @@ import java.util.Iterator;
 import java.util.Comparator;
 import java.util.Collections;
 import java.util.prefs.Preferences;
-import java.util.prefs.BackingStoreException;
 
 /**
  * Technology is the base class for all of the specific technologies in Electric.
@@ -490,6 +490,8 @@ public class Technology extends ElectricObject
 	/** Spice header cards, level 1. */					private String [] spiceHeaderLevel1;
 	/** Spice header cards, level 2. */					private String [] spiceHeaderLevel2;
 	/** Spice header cards, level 3. */					private String [] spiceHeaderLevel3;
+	/** Minimum resistance for this Technology. */		private Pref prefMinResistance;
+	/** Minimum capacitance for this Technology. */		private Pref prefMinCapacitance;
 	/** preferences for all technologies */				private static Preferences prefs = null;
 
 	/* static list of all Technologies in Electric */	private static List technologies = new ArrayList();
@@ -1942,13 +1944,27 @@ public class Technology extends ElectricObject
 
 	/****************************** PARASITICS ******************************/
 
-	protected static Preferences getTechnologyPreferences() { return prefs; }
+	private Pref getParasiticPref(String what, Pref pref, double factory)
+	{
+		if (pref == null)
+		{
+			pref = Pref.makeDoublePref("Mininum" + what + "IN" + getTechName(), prefs, factory);
+			pref.attachToObject(this, "Tool Options, Spice tab", "Technology " + getTechName() + ", Min. " + what);
+		}
+		return pref;
+	}
+
+	public static Preferences getTechnologyPreferences() { return prefs; }
 
 	/**
 	 * Returns the minimum resistance of this Technology.
 	 * @return the minimum resistance of this Technology.
 	 */
-	public double getMinResistance() { gatherParasiticOverrides();   return minResistance; }
+	public double getMinResistance()
+	{
+		prefMinResistance = getParasiticPref("Resistance", prefMinResistance, minResistance);
+		return prefMinResistance.getDouble();
+	}
 
 	/**
 	 * Sets the minimum resistance of this Technology.
@@ -1956,23 +1972,19 @@ public class Technology extends ElectricObject
 	 */
 	public void setMinResistance(double minResistance)
 	{
-		this.minResistance = minResistance;
-		Preferences p = getTechnologyPreferences();
-		p.putDouble("MinResistance_" + techName, minResistance);
-		try
-		{
-	        p.flush();
-		} catch (BackingStoreException e)
-		{
-			System.out.println("Failed to save minimum resistance option for technology " + techName);
-		}
+		prefMinResistance = getParasiticPref("Resistance", prefMinResistance, this.minResistance);
+		prefMinResistance.setDouble(minResistance);
 	}
 
 	/**
 	 * Returns the minimum capacitance of this Technology.
 	 * @return the minimum capacitance of this Technology.
 	 */
-	public double getMinCapacitance() { gatherParasiticOverrides();   return minCapacitance; }
+	public double getMinCapacitance()
+	{
+		prefMinCapacitance = getParasiticPref("Capacitance", prefMinCapacitance, minCapacitance);
+		return prefMinCapacitance.getDouble();
+	}
 
 	/**
 	 * Sets the minimum capacitance of this Technology.
@@ -1980,16 +1992,8 @@ public class Technology extends ElectricObject
 	 */
 	public void setMinCapacitance(double minCapacitance)
 	{
-		this.minCapacitance = minCapacitance;
-		Preferences p = getTechnologyPreferences();
-		p.putDouble("MinCapacitance_" + techName, minCapacitance);
-		try
-		{
-	        p.flush();
-		} catch (BackingStoreException e)
-		{
-			System.out.println("Failed to save minimum capacitance option for technology " + techName);
-		}
+		prefMinCapacitance = getParasiticPref("Capacitance", prefMinCapacitance, this.minCapacitance);
+		prefMinCapacitance.setDouble(minCapacitance);
 	}
 
 	/**
@@ -1998,34 +2002,10 @@ public class Technology extends ElectricObject
 	 * @param minResistance the minimum resistance in this Technology.
 	 * @param minCapacitance the minimum capacitance in this Technology.
 	 */
-	public void setDefaultParasitics(double minResistance, double minCapacitance)
+	public void setFactoryParasitics(double minResistance, double minCapacitance)
 	{
-		this.minResistance = minResistance;
-		this.minCapacitance = minCapacitance;
-	}
-
-	/**
-	 * Method to examine all parasitic overrides for this Layer's Technology.
-	 * It only needs to be done once per session, before any of the parasitics
-	 * are used.
-	 */
-	public void gatherParasiticOverrides()
-	{
-		if (parasiticOverridesGathered) return;
-		parasiticOverridesGathered = true;
-
-		Preferences p = getTechnologyPreferences();
-		minResistance = p.getDouble("MinResistance_" + techName, minResistance);
-		minCapacitance = p.getDouble("MinCapacitance_" + techName, minCapacitance);
-
-		for(Iterator it = getLayers(); it.hasNext(); )
-		{
-			Layer layer = (Layer)it.next();
-			double resistance = p.getDouble("LayerResistance_" + techName + "_" + layer.getName(), layer.getResistance());
-			double capacitance = p.getDouble("LayerCapacitance_" + techName + "_" + layer.getName(), layer.getCapacitance());
-			double edgeCapacitance = p.getDouble("LayerEdgeCapacitance_" + techName + "_" + layer.getName(), layer.getEdgeCapacitance());
-			layer.setDefaultParasitics(resistance, capacitance, edgeCapacitance);
-		}
+		prefMinResistance = getParasiticPref("Resistance", prefMinResistance, this.minResistance = minResistance);
+		prefMinCapacitance = getParasiticPref("Capacitance", prefMinCapacitance, this.minCapacitance = this.minCapacitance);
 	}
 
 	/**

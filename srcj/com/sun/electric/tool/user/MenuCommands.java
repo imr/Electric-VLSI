@@ -603,9 +603,11 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(OutputVerilog.VERILOG_TEMPLATE_KEY); }});
 
 		Menu netlisters = new Menu("Simulation (others)");
-		netlisters.addMenuItem("Write IRSIM Netlist", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { irsimNetlistCommand(); }});
 		toolMenu.add(netlisters);
+		netlisters.addMenuItem("Write IRSIM Deck...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { irsimNetlistCommand(); }});
+		netlisters.addMenuItem("Write Maxwell Deck...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCellCommand(Output.ExportType.MAXWELL, OpenFile.MAXWELL); } });
 
 		Menu ercSubMenu = new Menu("ERC", 'E');
 		toolMenu.add(ercSubMenu);
@@ -657,8 +659,8 @@ public final class MenuCommands
 		helpMenu.addSeparator();
 		helpMenu.addMenuItem("Make fake circuitry...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand(); } });
-		helpMenu.addMenuItem("Whit Diffie's design...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { whitDiffieCommand(); } });
+//		helpMenu.addMenuItem("Whit Diffie's design...", null,
+//			new ActionListener() { public void actionPerformed(ActionEvent e) { whitDiffieCommand(); } });
 
 		/****************************** Russell's TEST MENU ******************************/
 

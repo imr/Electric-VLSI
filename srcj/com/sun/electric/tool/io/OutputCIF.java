@@ -28,7 +28,6 @@ import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.prototype.NodeProto;
@@ -71,20 +70,23 @@ public class OutputCIF extends OutputGeometry
 	/** cell to cell number map */						private HashMap cellNumbers;
 	/** scale factor from internal units. */			private double scaleFactor;
 
-	public static boolean writeCIFFile(Cell cell, String filePath)
+	/**
+	 * Main entry point for CIF output.
+	 * @param cell the top-level cell to write.
+	 * @param filePath the name of the file to create.
+	 */
+	public static void writeCIFFile(Cell cell, String filePath)
 	{
-		boolean error = false;
 		ErrorLog.initLogging("CIF resolution");
 		OutputCIF out = new OutputCIF();
-		if (out.openTextOutputStream(filePath)) error = true;
+		if (out.openTextOutputStream(filePath)) return;
 		CIFVisitor visitor = out.makeCIFVisitor(getMaxHierDepth(cell));
-		if (out.writeCell(cell, visitor)) error = true;
-		if (out.closeTextOutputStream()) error = true;
-		if (!error) System.out.println(filePath + " written");
+		if (out.writeCell(cell, visitor)) return;
+		if (out.closeTextOutputStream()) return;
+		System.out.println(filePath + " written");
 		if (ErrorLog.numErrors() != 0)
 			System.out.println(ErrorLog.numErrors() + " CIF RESOLUTION ERRORS FOUND");
 		ErrorLog.termLogging(true);
-		return error;
 	}
 
 	/**
@@ -99,8 +101,8 @@ public class OutputCIF extends OutputGeometry
 
 		// initialize preferences
 		minAllowedResolution = 0;
-		if (isCheckResolution())
-			minAllowedResolution = getResolution();
+		if (isCIFOutCheckResolution())
+			minAllowedResolution = getCIFOutResolution();
 	}
 
 	protected void start()
@@ -135,7 +137,7 @@ public class OutputCIF extends OutputGeometry
 
 	protected void done()
 	{
-		if (isInstantiatesTopLevel())
+		if (isCIFOutInstantiatesTopLevel())
 			writeLine("C " + cellNumber + ";");
 		writeLine("E");
 
@@ -199,7 +201,7 @@ public class OutputCIF extends OutputGeometry
 	 */
 	protected boolean mergeGeom(int hierLevelsFromBottom)
 	{
-		return isMergesBoxes();
+		return isCIFOutMergesBoxes();
 	}
 
 	/**
@@ -266,7 +268,7 @@ public class OutputCIF extends OutputGeometry
 		Cell cell = (Cell)ni.getProto();
 
 		// if mimicing display and unexpanded, draw outline
-		if (!ni.isExpanded() && OutputCIF.isMimicsDisplay())
+		if (!ni.isExpanded() && isCIFOutMimicsDisplay())
 		{
 			Rectangle2D bounds = ni.getBounds();
 			Poly poly = new Poly(bounds.getCenterX(), bounds.getCenterY(), ni.getXSize(), ni.getYSize());
@@ -386,7 +388,7 @@ public class OutputCIF extends OutputGeometry
 			NodeProto np = ni.getProto();
 			if (np instanceof Cell)
 			{
-				if (!ni.isExpanded() && OutputCIF.isMimicsDisplay())
+				if (!ni.isExpanded() && isCIFOutMimicsDisplay())
 				{
 					return false;
 				}
@@ -394,82 +396,5 @@ public class OutputCIF extends OutputGeometry
 			return super.visitNodeInst(no, info);
 		}
 	}
-
-	/****************************** CIF OUTPUT PREFERENCES ******************************/
-
-	private static Pref cacheMimicsDisplay = Pref.makeBooleanPref("CIFMimicsDisplay", IOTool.tool.prefs, false);
-	/**
-	 * Method to tell whether CIF Output mimics the display.
-	 * To mimic the display, unexpanded cell instances are described as black boxes,
-	 * instead of calls to their contents.
-	 * The default is "false".
-	 * @return true if CIF Output mimics the display.
-	 */
-	public static boolean isMimicsDisplay() { return cacheMimicsDisplay.getBoolean(); }
-	/**
-	 * Method to set whether CIF Output mimics the display.
-	 * To mimic the display, unexpanded cell instances are described as black boxes,
-	 * instead of calls to their contents.
-	 * @param on true if CIF Output mimics the display.
-	 */
-	public static void setMimicsDisplay(boolean on) { cacheMimicsDisplay.setBoolean(on); }
-
-	private static Pref cacheMergesBoxes = Pref.makeBooleanPref("CIFMergesBoxes", IOTool.tool.prefs, false);
-	/**
-	 * Method to tell whether CIF Output merges boxes into complex polygons.
-	 * This takes more time but produces a smaller output file.
-	 * The default is "false".
-	 * @return true if CIF Output merges boxes into complex polygons.
-	 */
-	public static boolean isMergesBoxes() { return cacheMergesBoxes.getBoolean(); }
-	/**
-	 * Method to set whether CIF Output merges boxes into complex polygons.
-	 * This takes more time but produces a smaller output file.
-	 * @param on true if CIF Output merges boxes into complex polygons.
-	 */
-	public static void setMergesBoxes(boolean on) { cacheMergesBoxes.setBoolean(on); }
-
-	private static Pref cacheInstantiatesTopLevel = Pref.makeBooleanPref("CIFInstantiatesTopLevel", IOTool.tool.prefs, true);
-	/**
-	 * Method to tell whether CIF Output instantiates the top-level.
-	 * When this happens, a CIF "call" to the top cell is emitted.
-	 * The default is "true".
-	 * @return true if CIF Output merges boxes into complex polygons.
-	 */
-	public static boolean isInstantiatesTopLevel() { return cacheInstantiatesTopLevel.getBoolean(); }
-	/**
-	 * Method to set whether CIF Output merges boxes into complex polygons.
-	 * When this happens, a CIF "call" to the top cell is emitted.
-	 * @param on true if CIF Output merges boxes into complex polygons.
-	 */
-	public static void setInstantiatesTopLevel(boolean on) { cacheInstantiatesTopLevel.setBoolean(on); }
-
-	private static Pref cacheCheckResolution = Pref.makeBooleanPref("CIFCheckResolution", IOTool.tool.prefs, false);
-	/**
-	 * Method to tell whether to report CIF resolution errors.
-	 * The default is "false".
-	 * @return true to report CIF resolution errors.
-	 */
-	public static boolean isCheckResolution() { return cacheCheckResolution.getBoolean(); }
-	/**
-	 * Method to set whether to report CIF resolution errors.
-	 * @param c whether to report CIF resolution errors.
-	 */
-	public static void setCheckResolution(boolean c) { cacheCheckResolution.setBoolean(c); }
-
-	private static Pref cacheResolution = Pref.makeDoublePref("CIFResolution", IOTool.tool.prefs, 0);
-	/**
-	 * Method to tell the minimum CIF Output resolution.
-	 * This is the smallest feature size that can be safely generated.
-	 * The default is "0".
-	 * @return the minimum CIF Output resolution.
-	 */
-	public static double getResolution() { return cacheResolution.getDouble(); }
-	/**
-	 * Method to set the minimum CIF Output resolution.
-	 * This is the smallest feature size that can be safely generated.
-	 * @param r the minimum CIF Output resolution.
-	 */
-	public static void setResolution(double r) { cacheResolution.setDouble(r); }
 
 }

@@ -122,7 +122,7 @@ public class TopLevel extends JFrame
 
 		// create the status bar
 		sb = new StatusBar(frame);
-		//getContentPane().add(sb, BorderLayout.SOUTH);
+		getContentPane().add(sb, BorderLayout.SOUTH);
 
 		if (isMDIMode())
 		{

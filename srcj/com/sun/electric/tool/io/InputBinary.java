@@ -35,6 +35,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
@@ -2364,19 +2365,29 @@ public class InputBinary extends InputLibrary
 			}
 
 			// see if the variable is deprecated
-			boolean invalid = obj.isDeprecatedVariable(realKey[key]);
-			if (!invalid)
-			{
-				Variable.Key varKey = realKey[key];
-				Variable var = obj.newVar(varKey, newAddr);
-				if (var == null) return(-1);
-				var.setTextDescriptor(new TextDescriptor(null, descript0, descript1));
-				var.lowLevelSetFlags(newtype);
+			Variable.Key varKey = realKey[key];
+			if (obj.isDeprecatedVariable(varKey)) continue;
 
-				// handle updating of technology caches
-//				if (type == VTECHNOLOGY)
-//					changedtechnologyvariable(keyval);
+			// see if the variable is a "meaning option"
+			Pref.Meaning meaning = Pref.getMeaningVariable(obj, varKey.getName());
+			if (meaning != null)
+			{
+				// ignore these when not from top library
+				if (!topLevelLibrary) continue;
+
+				// accumulate this for later
+				Pref.changedMeaningVariable(meaning);
 			}
+
+			// set the variable
+			Variable var = obj.newVar(varKey, newAddr);
+			if (var == null) return(-1);
+			var.setTextDescriptor(new TextDescriptor(null, descript0, descript1));
+			var.lowLevelSetFlags(newtype);
+
+			// handle updating of technology caches
+//			if (type == VTECHNOLOGY)
+//				changedtechnologyvariable(keyval);
 		}
 		return(count);
 	}

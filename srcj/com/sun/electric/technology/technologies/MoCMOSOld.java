@@ -562,117 +562,117 @@ public class MoCMOSOld extends Technology
 		PF_lay.setFunction(Layer.Function.ART);		// Pad-Frame
 
 		// The CIF names
-		M_lay.setCIFLayer("CMF");		// Metal-1
-		M0_lay.setCIFLayer("CMS");		// Metal-2
-		P_lay.setCIFLayer("CPG");		// Polysilicon
-		SA_lay.setCIFLayer("CAA");		// S-Active
-		DA_lay.setCIFLayer("CAA");		// D-Active
-		PS_lay.setCIFLayer("CSG");		// P-Select
-		NS_lay.setCIFLayer("CSG");		// N-Select
-		PW_lay.setCIFLayer("CWG");		// P-Well
-		NW_lay.setCIFLayer("CWG");		// N-Well
-		CC_lay.setCIFLayer("CC");		// Contact-Cut
-		V_lay.setCIFLayer("CVA");		// Via
-		P0_lay.setCIFLayer("COG");		// Passivation
-		T_lay.setCIFLayer("");		// Transistor
-		PC_lay.setCIFLayer("CCP");		// Poly-Cut
-		AC_lay.setCIFLayer("CCA");		// Active-Cut
-		SAW_lay.setCIFLayer("CAA");		// S-Active-Well
-		PM_lay.setCIFLayer("");		// Pseudo-Metal-1
-		PM0_lay.setCIFLayer("");		// Pseudo-Metal-2
-		PP_lay.setCIFLayer("");		// Pseudo-Polysilicon
-		PSA_lay.setCIFLayer("");		// Pseudo-S-Active
-		PDA_lay.setCIFLayer("");		// Pseudo-D-Active
-		PPS_lay.setCIFLayer("");		// Pseudo-P-Select
-		PNS_lay.setCIFLayer("");		// Pseudo-N-Select
-		PPW_lay.setCIFLayer("");		// Pseudo-P-Well
-		PNW_lay.setCIFLayer("");		// Pseudo-N-Well
-		PF_lay.setCIFLayer("CX");		// Pad-Frame
+		M_lay.setFactoryCIFLayer("CMF");		// Metal-1
+		M0_lay.setFactoryCIFLayer("CMS");		// Metal-2
+		P_lay.setFactoryCIFLayer("CPG");		// Polysilicon
+		SA_lay.setFactoryCIFLayer("CAA");		// S-Active
+		DA_lay.setFactoryCIFLayer("CAA");		// D-Active
+		PS_lay.setFactoryCIFLayer("CSG");		// P-Select
+		NS_lay.setFactoryCIFLayer("CSG");		// N-Select
+		PW_lay.setFactoryCIFLayer("CWG");		// P-Well
+		NW_lay.setFactoryCIFLayer("CWG");		// N-Well
+		CC_lay.setFactoryCIFLayer("CC");		// Contact-Cut
+		V_lay.setFactoryCIFLayer("CVA");		// Via
+		P0_lay.setFactoryCIFLayer("COG");		// Passivation
+		T_lay.setFactoryCIFLayer("");		// Transistor
+		PC_lay.setFactoryCIFLayer("CCP");		// Poly-Cut
+		AC_lay.setFactoryCIFLayer("CCA");		// Active-Cut
+		SAW_lay.setFactoryCIFLayer("CAA");		// S-Active-Well
+		PM_lay.setFactoryCIFLayer("");		// Pseudo-Metal-1
+		PM0_lay.setFactoryCIFLayer("");		// Pseudo-Metal-2
+		PP_lay.setFactoryCIFLayer("");		// Pseudo-Polysilicon
+		PSA_lay.setFactoryCIFLayer("");		// Pseudo-S-Active
+		PDA_lay.setFactoryCIFLayer("");		// Pseudo-D-Active
+		PPS_lay.setFactoryCIFLayer("");		// Pseudo-P-Select
+		PNS_lay.setFactoryCIFLayer("");		// Pseudo-N-Select
+		PPW_lay.setFactoryCIFLayer("");		// Pseudo-P-Well
+		PNW_lay.setFactoryCIFLayer("");		// Pseudo-N-Well
+		PF_lay.setFactoryCIFLayer("CX");		// Pad-Frame
 
 		// The DXF names
-		M_lay.setDXFLayer("");		// Metal-1
-		M0_lay.setDXFLayer("");		// Metal-2
-		P_lay.setDXFLayer("");		// Polysilicon
-		SA_lay.setDXFLayer("");		// S-Active
-		DA_lay.setDXFLayer("");		// D-Active
-		PS_lay.setDXFLayer("");		// P-Select
-		NS_lay.setDXFLayer("");		// N-Select
-		PW_lay.setDXFLayer("");		// P-Well
-		NW_lay.setDXFLayer("");		// N-Well
-		CC_lay.setDXFLayer("");		// Contact-Cut
-		V_lay.setDXFLayer("");		// Via
-		P0_lay.setDXFLayer("");		// Passivation
-		T_lay.setDXFLayer("");		// Transistor
-		PC_lay.setDXFLayer("");		// Poly-Cut
-		AC_lay.setDXFLayer("");		// Active-Cut
-		SAW_lay.setDXFLayer("");		// S-Active-Well
-		PM_lay.setDXFLayer("");		// Pseudo-Metal-1
-		PM0_lay.setDXFLayer("");		// Pseudo-Metal-2
-		PP_lay.setDXFLayer("");		// Pseudo-Polysilicon
-		PSA_lay.setDXFLayer("");		// Pseudo-S-Active
-		PDA_lay.setDXFLayer("");		// Pseudo-D-Active
-		PPS_lay.setDXFLayer("");		// Pseudo-P-Select
-		PNS_lay.setDXFLayer("");		// Pseudo-N-Select
-		PPW_lay.setDXFLayer("");		// Pseudo-P-Well
-		PNW_lay.setDXFLayer("");		// Pseudo-N-Well
-		PF_lay.setDXFLayer("");		// Pad-Frame
+		M_lay.setFactoryDXFLayer("");		// Metal-1
+		M0_lay.setFactoryDXFLayer("");		// Metal-2
+		P_lay.setFactoryDXFLayer("");		// Polysilicon
+		SA_lay.setFactoryDXFLayer("");		// S-Active
+		DA_lay.setFactoryDXFLayer("");		// D-Active
+		PS_lay.setFactoryDXFLayer("");		// P-Select
+		NS_lay.setFactoryDXFLayer("");		// N-Select
+		PW_lay.setFactoryDXFLayer("");		// P-Well
+		NW_lay.setFactoryDXFLayer("");		// N-Well
+		CC_lay.setFactoryDXFLayer("");		// Contact-Cut
+		V_lay.setFactoryDXFLayer("");		// Via
+		P0_lay.setFactoryDXFLayer("");		// Passivation
+		T_lay.setFactoryDXFLayer("");		// Transistor
+		PC_lay.setFactoryDXFLayer("");		// Poly-Cut
+		AC_lay.setFactoryDXFLayer("");		// Active-Cut
+		SAW_lay.setFactoryDXFLayer("");		// S-Active-Well
+		PM_lay.setFactoryDXFLayer("");		// Pseudo-Metal-1
+		PM0_lay.setFactoryDXFLayer("");		// Pseudo-Metal-2
+		PP_lay.setFactoryDXFLayer("");		// Pseudo-Polysilicon
+		PSA_lay.setFactoryDXFLayer("");		// Pseudo-S-Active
+		PDA_lay.setFactoryDXFLayer("");		// Pseudo-D-Active
+		PPS_lay.setFactoryDXFLayer("");		// Pseudo-P-Select
+		PNS_lay.setFactoryDXFLayer("");		// Pseudo-N-Select
+		PPW_lay.setFactoryDXFLayer("");		// Pseudo-P-Well
+		PNW_lay.setFactoryDXFLayer("");		// Pseudo-N-Well
+		PF_lay.setFactoryDXFLayer("");		// Pad-Frame
 
 		// The GDS names
-		M_lay.setGDSLayer("10");		// Metal-1
-		M0_lay.setGDSLayer("19");		// Metal-2
-		P_lay.setGDSLayer("12");		// Polysilicon
-		SA_lay.setGDSLayer("2");		// S-Active
-		DA_lay.setGDSLayer("2");		// D-Active
-		PS_lay.setGDSLayer("8");		// P-Select
-		NS_lay.setGDSLayer("7");		// N-Select
-		PW_lay.setGDSLayer("1");		// P-Well
-		NW_lay.setGDSLayer("1");		// N-Well
-		CC_lay.setGDSLayer("9");		// Contact-Cut
-		V_lay.setGDSLayer("18");		// Via
-		P0_lay.setGDSLayer("11");		// Passivation
-		T_lay.setGDSLayer("");		// Transistor
-		PC_lay.setGDSLayer("9");		// Poly-Cut
-		AC_lay.setGDSLayer("9");		// Active-Cut
-		SAW_lay.setGDSLayer("2");		// S-Active-Well
-		PM_lay.setGDSLayer("");		// Pseudo-Metal-1
-		PM0_lay.setGDSLayer("");		// Pseudo-Metal-2
-		PP_lay.setGDSLayer("");		// Pseudo-Polysilicon
-		PSA_lay.setGDSLayer("");		// Pseudo-S-Active
-		PDA_lay.setGDSLayer("");		// Pseudo-D-Active
-		PPS_lay.setGDSLayer("");		// Pseudo-P-Select
-		PNS_lay.setGDSLayer("");		// Pseudo-N-Select
-		PPW_lay.setGDSLayer("");		// Pseudo-P-Well
-		PNW_lay.setGDSLayer("");		// Pseudo-N-Well
-		PF_lay.setGDSLayer("");		// Pad-Frame
+		M_lay.setFactoryGDSLayer("10");		// Metal-1
+		M0_lay.setFactoryGDSLayer("19");		// Metal-2
+		P_lay.setFactoryGDSLayer("12");		// Polysilicon
+		SA_lay.setFactoryGDSLayer("2");		// S-Active
+		DA_lay.setFactoryGDSLayer("2");		// D-Active
+		PS_lay.setFactoryGDSLayer("8");		// P-Select
+		NS_lay.setFactoryGDSLayer("7");		// N-Select
+		PW_lay.setFactoryGDSLayer("1");		// P-Well
+		NW_lay.setFactoryGDSLayer("1");		// N-Well
+		CC_lay.setFactoryGDSLayer("9");		// Contact-Cut
+		V_lay.setFactoryGDSLayer("18");		// Via
+		P0_lay.setFactoryGDSLayer("11");		// Passivation
+		T_lay.setFactoryGDSLayer("");		// Transistor
+		PC_lay.setFactoryGDSLayer("9");		// Poly-Cut
+		AC_lay.setFactoryGDSLayer("9");		// Active-Cut
+		SAW_lay.setFactoryGDSLayer("2");		// S-Active-Well
+		PM_lay.setFactoryGDSLayer("");		// Pseudo-Metal-1
+		PM0_lay.setFactoryGDSLayer("");		// Pseudo-Metal-2
+		PP_lay.setFactoryGDSLayer("");		// Pseudo-Polysilicon
+		PSA_lay.setFactoryGDSLayer("");		// Pseudo-S-Active
+		PDA_lay.setFactoryGDSLayer("");		// Pseudo-D-Active
+		PPS_lay.setFactoryGDSLayer("");		// Pseudo-P-Select
+		PNS_lay.setFactoryGDSLayer("");		// Pseudo-N-Select
+		PPW_lay.setFactoryGDSLayer("");		// Pseudo-P-Well
+		PNW_lay.setFactoryGDSLayer("");		// Pseudo-N-Well
+		PF_lay.setFactoryGDSLayer("");		// Pad-Frame
 
 		// The SPICE information
-		M_lay.setDefaultParasitics(0.03f, 0.03f, 0);		// Metal-1
-		M0_lay.setDefaultParasitics(0.03f, 0.03f, 0);		// Metal-2
-		P_lay.setDefaultParasitics(50.0f, 0.04f, 0);		// Polysilicon
-		SA_lay.setDefaultParasitics(10.0f, 0.1f, 0);		// S-Active
-		DA_lay.setDefaultParasitics(10.0f, 0.1f, 0);		// D-Active
-		PS_lay.setDefaultParasitics(0, 0, 0);		// P-Select
-		NS_lay.setDefaultParasitics(0, 0, 0);		// N-Select
-		PW_lay.setDefaultParasitics(0, 0, 0);		// P-Well
-		NW_lay.setDefaultParasitics(0, 0, 0);		// N-Well
-		CC_lay.setDefaultParasitics(0, 0, 0);		// Contact-Cut
-		V_lay.setDefaultParasitics(0, 0, 0);		// Via
-		P0_lay.setDefaultParasitics(0, 0, 0);		// Passivation
-		T_lay.setDefaultParasitics(0, 0, 0);		// Transistor
-		PC_lay.setDefaultParasitics(0, 0, 0);		// Poly-Cut
-		AC_lay.setDefaultParasitics(0, 0, 0);		// Active-Cut
-		SAW_lay.setDefaultParasitics(0, 0, 0);		// S-Active-Well
-		PM_lay.setDefaultParasitics(0, 0, 0);		// Pseudo-Metal-1
-		PM0_lay.setDefaultParasitics(0, 0, 0);		// Pseudo-Metal-2
-		PP_lay.setDefaultParasitics(0, 0, 0);		// Pseudo-Polysilicon
-		PSA_lay.setDefaultParasitics(0, 0, 0);		// Pseudo-S-Active
-		PDA_lay.setDefaultParasitics(0, 0, 0);		// Pseudo-D-Active
-		PPS_lay.setDefaultParasitics(0, 0, 0);		// Pseudo-P-Select
-		PNS_lay.setDefaultParasitics(0, 0, 0);		// Pseudo-N-Select
-		PPW_lay.setDefaultParasitics(0, 0, 0);		// Pseudo-P-Well
-		PNW_lay.setDefaultParasitics(0, 0, 0);		// Pseudo-N-Well
-		PF_lay.setDefaultParasitics(0, 0, 0);		// Pad-Frame
-		setDefaultParasitics(50, 50);
+		M_lay.setFactoryParasitics(0.03f, 0.03f, 0);		// Metal-1
+		M0_lay.setFactoryParasitics(0.03f, 0.03f, 0);		// Metal-2
+		P_lay.setFactoryParasitics(50.0f, 0.04f, 0);		// Polysilicon
+		SA_lay.setFactoryParasitics(10.0f, 0.1f, 0);		// S-Active
+		DA_lay.setFactoryParasitics(10.0f, 0.1f, 0);		// D-Active
+		PS_lay.setFactoryParasitics(0, 0, 0);		// P-Select
+		NS_lay.setFactoryParasitics(0, 0, 0);		// N-Select
+		PW_lay.setFactoryParasitics(0, 0, 0);		// P-Well
+		NW_lay.setFactoryParasitics(0, 0, 0);		// N-Well
+		CC_lay.setFactoryParasitics(0, 0, 0);		// Contact-Cut
+		V_lay.setFactoryParasitics(0, 0, 0);		// Via
+		P0_lay.setFactoryParasitics(0, 0, 0);		// Passivation
+		T_lay.setFactoryParasitics(0, 0, 0);		// Transistor
+		PC_lay.setFactoryParasitics(0, 0, 0);		// Poly-Cut
+		AC_lay.setFactoryParasitics(0, 0, 0);		// Active-Cut
+		SAW_lay.setFactoryParasitics(0, 0, 0);		// S-Active-Well
+		PM_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-Metal-1
+		PM0_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-Metal-2
+		PP_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-Polysilicon
+		PSA_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-S-Active
+		PDA_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-D-Active
+		PPS_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-P-Select
+		PNS_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-N-Select
+		PPW_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-P-Well
+		PNW_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-N-Well
+		PF_lay.setFactoryParasitics(0, 0, 0);		// Pad-Frame
+		setFactoryParasitics(50, 50);
 		String [] headerLevel1 =
 		{
 			"*CMOS/BULK-NWELL (PRELIMINARY PARAMETERS)",

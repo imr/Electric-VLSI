@@ -33,7 +33,6 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.text.Version;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -101,12 +100,11 @@ public class OutputPostScript extends Output
 	 * Main entry point for PostScript output.
 	 * @param cell the top-level cell to write.
 	 * @param filePath the name of the file to create.
-	 * @return true on error.
 	 */
-	public static boolean writePostScriptFile(Cell cell, String filePath)
+	public static void writePostScriptFile(Cell cell, String filePath)
 	{
 		// just do this file
-		return writeCellToFile(cell, filePath);
+		writeCellToFile(cell, filePath);
 	}
 
 	private static boolean writeCellToFile(Cell cell, String filePath)
@@ -125,7 +123,7 @@ public class OutputPostScript extends Output
 		if (!error)
 		{
 			System.out.println(filePath + " written");
-			if (cell != null) setEPSSavedDate(cell, new Date());
+			if (cell != null) setPrintEPSSavedDate(cell, new Date());
 		}
 		return error;
 	}
@@ -153,7 +151,7 @@ public class OutputPostScript extends Output
 
 		// get control options
 		psUseColor = psUseColorStip = psUseColorMerge = false;
-		switch (OutputPostScript.getColorMethod())
+		switch (OutputPostScript.getPrintColorMethod())
 		{
 			case 1:		// color
 				psUseColor = true;
@@ -165,14 +163,14 @@ public class OutputPostScript extends Output
 				psUseColor = psUseColorMerge = true;
 				break;
 		}
-		boolean usePlotter = OutputPostScript.isForPlotter();
+		boolean usePlotter = OutputPostScript.isPrintForPlotter();
 		plotDates = OutputPostScript.isPlotDate();
-		boolean epsFormat = isEncapsulated();
+		boolean epsFormat = isPrintEncapsulated();
 //		if (printit) epsFormat = false;
 
-		double pageWid = getWidth() * 75;
-		double pageHei = getHeight() * 75;
-		double pageMarginPS = getMargin() * 75;
+		double pageWid = getPrintWidth() * 75;
+		double pageHei = getPrintHeight() * 75;
+		double pageMarginPS = getPrintMargin() * 75;
 		double pageMargin = pageMarginPS;		// not right!!!
 
 		// determine the area of interest
@@ -180,7 +178,7 @@ public class OutputPostScript extends Output
 		if (printBounds == null) return;
 
 		boolean rotatePlot = false;
-		switch (OutputPostScript.getRotation())
+		switch (OutputPostScript.getPrintRotation())
 		{
 			case 1:		// rotate 90 degrees
 				rotatePlot = true;
@@ -250,7 +248,7 @@ public class OutputPostScript extends Output
 		double unitsY = (pageHei-pageMargin*2) * PSSCALE;
 		if (epsFormat)
 		{
-			double scale = getEPSScale(cell);
+			double scale = getPrintEPSScale(cell);
 			if (scale != 0)
 			{
 				unitsX *= scale;
@@ -655,11 +653,11 @@ public class OutputPostScript extends Output
 			for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
 			{
 				Cell oCell = (Cell)cIt.next();
-				String syncFileName = getEPSSynchronizeFile(oCell);
+				String syncFileName = getPrintEPSSynchronizeFile(oCell);
 				if (syncFileName.length() == 0) continue;
 
 				// existing file: check the date to see if it should be overwritten
-				Date lastSavedDate = getEPSSavedDate(oCell);
+				Date lastSavedDate = getPrintEPSSavedDate(oCell);
 				if (lastSavedDate != null)
 				{
 					Date lastChangeDate = oCell.getRevisionDate();
@@ -1538,219 +1536,5 @@ public class OutputPostScript extends Output
 			printWriter.print(ca);
 		}
 		printWriter.print(")");
-	}
-
-	/****************************** POSTSCRIPT OUTPUT PREFERENCES ******************************/
-
-	private static Pref cacheEncapsulated = Pref.makeBooleanPref("PostScriptEncapsulated", IOTool.tool.prefs, false);
-	/**
-	 * Method to tell whether PostScript Output is Encapsulated.
-	 * Encapsulated PostScript can be inserted into other documents.
-	 * The default is "false".
-	 * @return true if PostScript Output is Encapsulated.
-	 */
-	public static boolean isEncapsulated() { return cacheEncapsulated.getBoolean(); }
-	/**
-	 * Method to set whether PostScript Output is Encapsulated.
-	 * Encapsulated PostScript can be inserted into other documents.
-	 * @param on true if PostScript Output is Encapsulated.
-	 */
-	public static void setEncapsulated(boolean on) { cacheEncapsulated.setBoolean(on); }
-
-	private static Pref cacheForPlotter = Pref.makeBooleanPref("PostScriptForPlotter", IOTool.tool.prefs, false);
-	/**
-	 * Method to tell whether PostScript Output is for a plotter.
-	 * Plotters have width, but no height, since they are continuous feed.
-	 * The default is "false".
-	 * @return true if PostScript Output is for a plotter.
-	 */
-	public static boolean isForPlotter() { return cacheForPlotter.getBoolean(); }
-	/**
-	 * Method to set whether PostScript Output is for a plotter.
-	 * Plotters have width, but no height, since they are continuous feed.
-	 * @param on true if PostScript Output is for a plotter.
-	 */
-	public static void setForPlotter(boolean on) { cacheForPlotter.setBoolean(on); }
-
-	private static Pref cacheWidth = Pref.makeDoublePref("PostScriptWidth", IOTool.tool.prefs, 8.5);
-	/**
-	 * Method to tell the width of PostScript Output.
-	 * The width is in inches.
-	 * The default is "8.5".
-	 * @return the width of PostScript Output.
-	 */
-	public static double getWidth() { return cacheWidth.getDouble(); }
-	/**
-	 * Method to set the width of PostScript Output.
-	 * The width is in inches.
-	 * @param wid the width of PostScript Output.
-	 */
-	public static void setWidth(double wid) { cacheWidth.setDouble(wid); }
-
-	private static Pref cacheHeight = Pref.makeDoublePref("PostScriptHeight", IOTool.tool.prefs, 11);
-	/**
-	 * Method to tell the height of PostScript Output.
-	 * The height is in inches, and only applies if printing (not plotting).
-	 * The default is "11".
-	 * @return the height of PostScript Output.
-	 */
-	public static double getHeight() { return cacheHeight.getDouble(); }
-	/**
-	 * Method to set the height of PostScript Output.
-	 * The height is in inches, and only applies if printing (not plotting).
-	 * @param hei the height of PostScript Output.
-	 */
-	public static void setHeight(double hei) { cacheHeight.setDouble(hei); }
-
-	private static Pref cacheMargin = Pref.makeDoublePref("PostScriptMargin", IOTool.tool.prefs, 0.75);
-	/**
-	 * Method to tell the margin of PostScript Output.
-	 * The margin is in inches and insets from all sides.
-	 * The default is "0.75".
-	 * @return the margin of PostScript Output.
-	 */
-	public static double getMargin() { return cacheMargin.getDouble(); }
-	/**
-	 * Method to set the margin of PostScript Output.
-	 * The margin is in inches and insets from all sides.
-	 * @param mar the margin of PostScript Output.
-	 */
-	public static void setMargin(double mar) { cacheMargin.setDouble(mar); }
-
-	private static Pref cacheRotation = Pref.makeIntPref("PostScriptRotation", IOTool.tool.prefs, 0);
-	/**
-	 * Method to tell the rotation of PostScript Output.
-	 * The plot can be normal or rotated 90 degrees to better fit the paper.
-	 * @return the rotation of PostScript Output:
-	 * 0=no rotation (the default);
-	 * 1=rotate 90 degrees;
-	 * 2=rotate automatically to fit best.
-	 */
-	public static int getRotation() { return cacheRotation.getInt(); }
-	/**
-	 * Method to set the rotation of PostScript Output.
-	 * The plot can be normal or rotated 90 degrees to better fit the paper.
-	 * @param rot the rotation of PostScript Output.
-	 * 0=no rotation;
-	 * 1=rotate 90 degrees;
-	 * 2=rotate automatically to fit best.
-	 */
-	public static void setRotation(int rot) { cacheRotation.setInt(rot); }
-
-	private static Pref cacheColorMethod = Pref.makeIntPref("PostScriptColorMethod", IOTool.tool.prefs, 0);
-	/**
-	 * Method to tell the color method of PostScript Output.
-	 * @return the color method of PostScript Output:
-	 * 0=Black & White (the default);
-	 * 1=Color (solid);
-	 * 2=Color (stippled);
-	 * 3=Color (merged).
-	 */
-	public static int getColorMethod() { return cacheColorMethod.getInt(); }
-	/**
-	 * Method to set the color method of PostScript Output.
-	 * @param cm the color method of PostScript Output.
-	 * 0=Black & White;
-	 * 1=Color (solid);
-	 * 2=Color (stippled);
-	 * 3=Color (merged).
-	 */
-	public static void setColorMethod(int cm) { cacheColorMethod.setInt(cm); }
-
-	public static final Variable.Key POSTSCRIPT_EPS_SCALE = ElectricObject.newKey("IO_postscript_EPS_scale");
-	/**
-	 * Method to tell the EPS scale of a given Cell.
-	 * @param cell the cell to query.
-	 * @return the EPS scale of that Cell.
-	 */
-	public static double getEPSScale(Cell cell)
-	{
-		Variable var = cell.getVar(POSTSCRIPT_EPS_SCALE);
-		if (var != null)
-		{
-			Object obj = var.getObject();
-			String desc = obj.toString();
-			double epsScale = TextUtils.atof(desc);
-			return epsScale;
-		}
-		return 1;
-	}
-	/**
-	 * Method to set the EPS scale of a given Cell.
-	 * @param cell the cell to modify.
-	 * @param scale the EPS scale of that Cell.
-	 */
-	public static void setEPSScale(Cell cell, double scale)
-	{
-		tool.setVarInJob(cell, POSTSCRIPT_EPS_SCALE, new Double(scale));
-	}
-
-	public static final Variable.Key POSTSCRIPT_FILENAME = ElectricObject.newKey("IO_postscript_filename");
-	/**
-	 * Method to tell the EPS synchronization file of a given Cell.
-	 * During automatic synchronization of PostScript, any cell changed more
-	 * recently than the date on this file will cause that file to be generated
-	 * from the Cell.
-	 * @param cell the cell to query.
-	 * @return the EPS synchronization file of that Cell.
-	 */
-	public static String getEPSSynchronizeFile(Cell cell)
-	{
-		Variable var = cell.getVar(POSTSCRIPT_FILENAME);
-		if (var != null)
-		{
-			Object obj = var.getObject();
-			String desc = obj.toString();
-			return desc;
-		}
-		return "";
-	}
-	/**
-	 * Method to set the EPS synchronization file of a given Cell.
-	 * During automatic synchronization of PostScript, any cell changed more
-	 * recently than the date on this file will cause that file to be generated
-	 * from the Cell.
-	 * @param cell the cell to modify.
-	 * @param syncFile the EPS synchronization file to associate with that Cell.
-	 */
-	public static void setEPSSynchronizeFile(Cell cell, String syncFile)
-	{
-		tool.setVarInJob(cell, POSTSCRIPT_FILENAME, syncFile);
-	}
-
-	public static final Variable.Key POSTSCRIPT_FILEDATE = ElectricObject.newKey("IO_postscript_filedate");
-	/**
-	 * Method to tell the EPS synchronization file of a given Cell.
-	 * During automatic synchronization of PostScript, any cell changed more
-	 * recently than the date on this file will cause that file to be generated
-	 * from the Cell.
-	 * @param cell the cell to query.
-	 * @return the EPS synchronization file of that Cell.
-	 */
-	public static Date getEPSSavedDate(Cell cell)
-	{
-		Variable varDate = cell.getVar(POSTSCRIPT_FILEDATE, Integer[].class);
-		if (varDate == null) return null;
-		Integer [] lastSavedDateAsInts = (Integer [])varDate.getObject();
-		long lastSavedDateInSeconds = ((long)lastSavedDateAsInts[0].intValue() << 32) |
-			(lastSavedDateAsInts[1].intValue() & 0xFFFFFFFF);
-		Date lastSavedDate = new Date(lastSavedDateInSeconds);
-		return lastSavedDate;
-	}
-	/**
-	 * Method to set the EPS synchronization file of a given Cell.
-	 * During automatic synchronization of PostScript, any cell changed more
-	 * recently than the date on this file will cause that file to be generated
-	 * from the Cell.
-	 * @param cell the cell to modify.
-	 * @param date the EPS synchronization date to associate with that Cell.
-	 */
-	public static void setEPSSavedDate(Cell cell, Date date)
-	{
-		long iVal = date.getTime();
-		Integer [] dateArray = new Integer[2];
-		dateArray[0] = new Integer((int)(iVal >> 32));
-		dateArray[1] = new Integer((int)(iVal & 0xFFFFFFFF));
-		tool.setVarInJob(cell, POSTSCRIPT_FILEDATE, dateArray);
 	}
 }

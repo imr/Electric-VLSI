@@ -57,7 +57,7 @@ import javax.swing.Box;
 
 
 /**
- * Class to handle the "LayerV isibility" dialog.
+ * Class to handle the "Layer Visibility" dialog.
  */
 public class LayerVisibility extends javax.swing.JDialog
 {

@@ -156,6 +156,7 @@ public class StatusBar extends JPanel
 		{
 			// count the number of nodes and arcs selected
 			int nodeCount = 0, arcCount = 0;
+			int textCount = Highlight.getHighlightedText().size();
 			NodeInst theNode = null;
 			ArcInst theArc = null;
 			for(Iterator hIt = Highlight.getHighlighted(true, true).iterator(); hIt.hasNext(); )
@@ -173,13 +174,13 @@ public class StatusBar extends JPanel
 				}
 			}
 
-			if (nodeCount + arcCount == 1)
+			if (nodeCount + arcCount == 1 && textCount == 0)
 			{
 				if (nodeCount == 1) selectedMsg = "SELECTED NODE: " + theNode.describe(); else
 					selectedMsg = "SELECTED ARC: " + theArc.describe();
 			} else
 			{
-				if (nodeCount + arcCount > 0)
+				if (nodeCount + arcCount + textCount > 0)
 				{
 					selectedMsg = "SELECTED:";
 					if (nodeCount > 0) selectedMsg += " " + nodeCount + " NODES";
@@ -187,6 +188,11 @@ public class StatusBar extends JPanel
 					{
 						if (nodeCount > 0) selectedMsg += ",";
 						selectedMsg += " " + arcCount + " ARCS";
+					}
+					if (textCount > 0)
+					{
+						if (nodeCount + arcCount > 0) selectedMsg += ",";
+						selectedMsg += " " + textCount + " TEXT";
 					}
 				}
 			}

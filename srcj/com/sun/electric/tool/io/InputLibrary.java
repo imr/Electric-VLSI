@@ -39,6 +39,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.technologies.MoCMOS;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -204,6 +205,15 @@ public class InputLibrary extends Input
 				System.out.println("   Created " + reader.numScaledCells + " scaled cells in library " + reader.lib.getLibName());
 			}
 		}
+
+		// adjust for old library conversion
+		convertOldLibraries();
+	}
+
+	private static void convertOldLibraries()
+	{
+		// see if the MOSIS CMOS technology now has old-style state information
+		MoCMOS.tech.convertOldState();
 	}
 
 	protected InputLibrary getReaderForLib(Library lib) { return (InputLibrary)libsBeingRead.get(lib); }

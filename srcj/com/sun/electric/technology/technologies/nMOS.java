@@ -376,73 +376,73 @@ public class nMOS extends Technology
 		PD_lay.setFunction(Layer.Function.DIFF, Layer.Function.PSEUDO);		// Pseudo-Diffusion
 
 		// The CIF names
-		M_lay.setCIFLayer("NM");		// Metal
-		P_lay.setCIFLayer("NP");		// Polysilicon
-		D_lay.setCIFLayer("ND");		// Diffusion
-		I_lay.setCIFLayer("NI");		// Implant
-		CC_lay.setCIFLayer("NC");		// Contact-Cut
-		BC_lay.setCIFLayer("NB");		// Buried-Contact
-		O_lay.setCIFLayer("NG");		// Overglass
-		LI_lay.setCIFLayer("NJ");		// Light-Implant
-		OC_lay.setCIFLayer("NO");		// Oversize-Contact
-		HE_lay.setCIFLayer("NE");		// Hard-Enhancement
-		LE_lay.setCIFLayer("NF");		// Light-Enhancement
-		T_lay.setCIFLayer("");		// Transistor
-		PM_lay.setCIFLayer("");		// Pseudo-Metal
-		PP_lay.setCIFLayer("");		// Pseudo-Polysilicon
-		PD_lay.setCIFLayer("");		// Pseudo-Diffusion
+		M_lay.setFactoryCIFLayer("NM");		// Metal
+		P_lay.setFactoryCIFLayer("NP");		// Polysilicon
+		D_lay.setFactoryCIFLayer("ND");		// Diffusion
+		I_lay.setFactoryCIFLayer("NI");		// Implant
+		CC_lay.setFactoryCIFLayer("NC");		// Contact-Cut
+		BC_lay.setFactoryCIFLayer("NB");		// Buried-Contact
+		O_lay.setFactoryCIFLayer("NG");		// Overglass
+		LI_lay.setFactoryCIFLayer("NJ");		// Light-Implant
+		OC_lay.setFactoryCIFLayer("NO");		// Oversize-Contact
+		HE_lay.setFactoryCIFLayer("NE");		// Hard-Enhancement
+		LE_lay.setFactoryCIFLayer("NF");		// Light-Enhancement
+		T_lay.setFactoryCIFLayer("");		// Transistor
+		PM_lay.setFactoryCIFLayer("");		// Pseudo-Metal
+		PP_lay.setFactoryCIFLayer("");		// Pseudo-Polysilicon
+		PD_lay.setFactoryCIFLayer("");		// Pseudo-Diffusion
 
 		// The DXF names
-		M_lay.setDXFLayer("");		// Metal
-		P_lay.setDXFLayer("");		// Polysilicon
-		D_lay.setDXFLayer("");		// Diffusion
-		I_lay.setDXFLayer("");		// Implant
-		CC_lay.setDXFLayer("");		// Contact-Cut
-		BC_lay.setDXFLayer("");		// Buried-Contact
-		O_lay.setDXFLayer("");		// Overglass
-		LI_lay.setDXFLayer("");		// Light-Implant
-		OC_lay.setDXFLayer("");		// Oversize-Contact
-		HE_lay.setDXFLayer("");		// Hard-Enhancement
-		LE_lay.setDXFLayer("");		// Light-Enhancement
-		T_lay.setDXFLayer("");		// Transistor
-		PM_lay.setDXFLayer("");		// Pseudo-Metal
-		PP_lay.setDXFLayer("");		// Pseudo-Polysilicon
-		PD_lay.setDXFLayer("");		// Pseudo-Diffusion
+		M_lay.setFactoryDXFLayer("");		// Metal
+		P_lay.setFactoryDXFLayer("");		// Polysilicon
+		D_lay.setFactoryDXFLayer("");		// Diffusion
+		I_lay.setFactoryDXFLayer("");		// Implant
+		CC_lay.setFactoryDXFLayer("");		// Contact-Cut
+		BC_lay.setFactoryDXFLayer("");		// Buried-Contact
+		O_lay.setFactoryDXFLayer("");		// Overglass
+		LI_lay.setFactoryDXFLayer("");		// Light-Implant
+		OC_lay.setFactoryDXFLayer("");		// Oversize-Contact
+		HE_lay.setFactoryDXFLayer("");		// Hard-Enhancement
+		LE_lay.setFactoryDXFLayer("");		// Light-Enhancement
+		T_lay.setFactoryDXFLayer("");		// Transistor
+		PM_lay.setFactoryDXFLayer("");		// Pseudo-Metal
+		PP_lay.setFactoryDXFLayer("");		// Pseudo-Polysilicon
+		PD_lay.setFactoryDXFLayer("");		// Pseudo-Diffusion
 
 		// The GDS names
-		M_lay.setGDSLayer("");		// Metal
-		P_lay.setGDSLayer("");		// Polysilicon
-		D_lay.setGDSLayer("");		// Diffusion
-		I_lay.setGDSLayer("");		// Implant
-		CC_lay.setGDSLayer("");		// Contact-Cut
-		BC_lay.setGDSLayer("");		// Buried-Contact
-		O_lay.setGDSLayer("");		// Overglass
-		LI_lay.setGDSLayer("");		// Light-Implant
-		OC_lay.setGDSLayer("");		// Oversize-Contact
-		HE_lay.setGDSLayer("");		// Hard-Enhancement
-		LE_lay.setGDSLayer("");		// Light-Enhancement
-		T_lay.setGDSLayer("");		// Transistor
-		PM_lay.setGDSLayer("");		// Pseudo-Metal
-		PP_lay.setGDSLayer("");		// Pseudo-Polysilicon
-		PD_lay.setGDSLayer("");		// Pseudo-Diffusion
+		M_lay.setFactoryGDSLayer("");		// Metal
+		P_lay.setFactoryGDSLayer("");		// Polysilicon
+		D_lay.setFactoryGDSLayer("");		// Diffusion
+		I_lay.setFactoryGDSLayer("");		// Implant
+		CC_lay.setFactoryGDSLayer("");		// Contact-Cut
+		BC_lay.setFactoryGDSLayer("");		// Buried-Contact
+		O_lay.setFactoryGDSLayer("");		// Overglass
+		LI_lay.setFactoryGDSLayer("");		// Light-Implant
+		OC_lay.setFactoryGDSLayer("");		// Oversize-Contact
+		HE_lay.setFactoryGDSLayer("");		// Hard-Enhancement
+		LE_lay.setFactoryGDSLayer("");		// Light-Enhancement
+		T_lay.setFactoryGDSLayer("");		// Transistor
+		PM_lay.setFactoryGDSLayer("");		// Pseudo-Metal
+		PP_lay.setFactoryGDSLayer("");		// Pseudo-Polysilicon
+		PD_lay.setFactoryGDSLayer("");		// Pseudo-Diffusion
 
 		// The SPICE information
-		M_lay.setDefaultParasitics(0.03f, 0.03f, 0);		// Metal
-		P_lay.setDefaultParasitics(50.0f, 0.04f, 0);		// Polysilicon
-		D_lay.setDefaultParasitics(10.0f, 0.1f, 0);		// Diffusion
-		I_lay.setDefaultParasitics(0, 0, 0);		// Implant
-		CC_lay.setDefaultParasitics(0, 0, 0);		// Contact-Cut
-		BC_lay.setDefaultParasitics(0, 0, 0);		// Buried-Contact
-		O_lay.setDefaultParasitics(0, 0, 0);		// Overglass
-		LI_lay.setDefaultParasitics(0, 0, 0);		// Light-Implant
-		OC_lay.setDefaultParasitics(0, 0, 0);		// Oversize-Contact
-		HE_lay.setDefaultParasitics(0, 0, 0);		// Hard-Enhancement
-		LE_lay.setDefaultParasitics(0, 0, 0);		// Light-Enhancement
-		T_lay.setDefaultParasitics(0, 0, 0);		// Transistor
-		PM_lay.setDefaultParasitics(0, 0, 0);		// Pseudo-Metal
-		PP_lay.setDefaultParasitics(0, 0, 0);		// Pseudo-Polysilicon
-		PD_lay.setDefaultParasitics(0, 0, 0);		// Pseudo-Diffusion
-		setDefaultParasitics(50, 50);
+		M_lay.setFactoryParasitics(0.03f, 0.03f, 0);		// Metal
+		P_lay.setFactoryParasitics(50.0f, 0.04f, 0);		// Polysilicon
+		D_lay.setFactoryParasitics(10.0f, 0.1f, 0);		// Diffusion
+		I_lay.setFactoryParasitics(0, 0, 0);		// Implant
+		CC_lay.setFactoryParasitics(0, 0, 0);		// Contact-Cut
+		BC_lay.setFactoryParasitics(0, 0, 0);		// Buried-Contact
+		O_lay.setFactoryParasitics(0, 0, 0);		// Overglass
+		LI_lay.setFactoryParasitics(0, 0, 0);		// Light-Implant
+		OC_lay.setFactoryParasitics(0, 0, 0);		// Oversize-Contact
+		HE_lay.setFactoryParasitics(0, 0, 0);		// Hard-Enhancement
+		LE_lay.setFactoryParasitics(0, 0, 0);		// Light-Enhancement
+		T_lay.setFactoryParasitics(0, 0, 0);		// Transistor
+		PM_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-Metal
+		PP_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-Polysilicon
+		PD_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-Diffusion
+		setFactoryParasitics(50, 50);
 		String [] headerLevel1 =
 		{
 			"*NMOS 4UM PROCESS",

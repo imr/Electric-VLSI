@@ -75,17 +75,14 @@ public class OutputVerilog extends OutputTopology
 	 * The main entry point for Verilog deck writing.
 	 * @param cell the top-level cell to write.
 	 * @param filePath the disk file to create with Verilog.
-	 * @return true on error.
 	 */
-	public static boolean writeVerilogFile(Cell cell, String filePath)
+	public static void writeVerilogFile(Cell cell, String filePath)
 	{
-		boolean error = false;
 		OutputVerilog out = new OutputVerilog();
-		if (out.openTextOutputStream(filePath)) error = true;
-		if (out.writeCell(cell)) error = true;
-		if (out.closeTextOutputStream()) error = true;
-		if (!error) System.out.println(filePath + " written");
-		return error;
+		if (out.openTextOutputStream(filePath)) return;
+		if (out.writeCell(cell)) return;
+		if (out.closeTextOutputStream()) return;
+		System.out.println(filePath + " written");
 	}
 
 	/**
