@@ -856,6 +856,18 @@ public class CMOS extends Technology
 		OC_lay.setPureLayerNode(ocn_node);		// Ohmic-Cut
 		PW_lay.setPureLayerNode(wn_node);		// P-Well
 		O_lay.setPureLayerNode(on_node);		// Overglass
+
+        // Information for palette
+        int maxY = 1 /*metal arc*/ + 2 + /* diff arcs */ + 1 /* text */ + 1 /* poly */ + 1 /* trans */;
+        nodeGroups = new Object[maxY][3];
+        int count = -1;
+
+        nodeGroups[++count][0] = Metal_arc; nodeGroups[count][1] = mp_node; nodeGroups[count][2] = mdsc0_node;
+        nodeGroups[++count][0] = Polysilicon_arc; nodeGroups[count][1] = pp_node; nodeGroups[count][2] = mpc_node;
+        nodeGroups[++count][0] = Diffusion_p_arc; nodeGroups[count][1] = dpp_node; nodeGroups[count][2] = mdpc_node;
+        nodeGroups[++count][0] = Diffusion_well_arc; nodeGroups[count][1] = dwp_node; nodeGroups[count][2] = mdwc_node;
+        nodeGroups[++count][0] = t_node; nodeGroups[count][1] = tw_node; nodeGroups[count][2] = mdsc_node;
+        nodeGroups[++count][0] = "Pure"; nodeGroups[count][1] = "Misc."; nodeGroups[count][2] = "Cell";
 	};
 
 	/**

@@ -4,9 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02g: *********************************
 
-IMP: (02/04/05, GVG) Reorganizing tech palette including Bug#31
+IMP/MAN: (02/04/05, GVG) Reorganizing tech palette including Bug#31
 - Added "n"/"p" to well, active and transistors. Added "Mos" to transistors.
 Added "Act" to actives. On Y axis, 3-node pair (arc, pin, contact) sorted per layer
+Done for all layout technologies.
 
 BUG: (02/04/05, DN) Duplicate or rename cells spoils "getInstancesOf" (Bug #192).
 FIX: In NodeInst.check add checking of NodeUsage to catch corruption in time.
