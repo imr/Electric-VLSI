@@ -1054,7 +1054,6 @@ public class User extends Listener
     public static final String INITIALWORKINGDIRSETTING_USELASTDIR = "Use last used directory";
     private static final String [] initialWorkingDirectorySettingChoices = {INITIALWORKINGDIRSETTING_BASEDONOS, INITIALWORKINGDIRSETTING_USECURRENTDIR, INITIALWORKINGDIRSETTING_USELASTDIR};
     private static Pref cacheInitialWorkingDirectorySetting = Pref.makeStringPref("InitialWorkingDirectorySetting", User.tool.prefs, initialWorkingDirectorySettingChoices[0]);
-    static { cacheInitialWorkingDirectorySetting.attachToObject(User.tool, "General tab", "Choice of working directory"); }
 
     /**
      * Method to get the way Electric chooses the initial working directory

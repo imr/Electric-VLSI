@@ -78,6 +78,7 @@ public class GeneralTab extends PreferencePanel
         initialWorkingDirSetting = User.getInitialWorkingDirectorySetting();
         for (Iterator it = User.getInitialWorkingDirectorySettings(); it.hasNext(); )
             workingDirComboBox.addItem(it.next());
+        workingDirComboBox.setSelectedItem(initialWorkingDirSetting);
 
 		generalPanningDistance.addItem("Small");
 		generalPanningDistance.addItem("Medium");
