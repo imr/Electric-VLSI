@@ -96,6 +96,8 @@ public class Quick
 	private static final int LAYERSURROUNDERROR = 6;
 	private static final int MINAREAERROR       = 7;
 	private static final int ENCLOSEDAREAERROR  = 8;
+	// Different types of warnings
+	private static final int ZEROLENGTHARCWARN  = 9;
 
 	/**
 	 * The CheckInst object is associated with every cell instance in the library.
@@ -550,10 +552,10 @@ public class Quick
 			{
 				goodDRCDate.put(cell, new Date());
 				haveGoodDRCDate = true;
-				System.out.println("   No errors found");
+				System.out.println("   No errors/warnings found");
 			} else
 			{
-				System.out.println("   FOUND " + localErrors + " ERRORS");
+				System.out.println("   FOUND " + localErrors + " ERRORS/WARNINGS");
 			}
 		}
 
@@ -605,7 +607,7 @@ public class Quick
 				if (onlyFirstError) return true;
 				errorsFound = true;
 			}
-			ret = checkMinWidth(ni, layer, poly, tech);
+			ret = checkMinWidth(ni, layer, poly);
 			if (ret)
 			{
 				if (onlyFirstError) return true;
@@ -694,7 +696,7 @@ public class Quick
 				if (onlyFirstError) return true;
 				errorsFound = true;
 			}
-			ret = checkMinWidth(ai, layer, poly, tech);
+			ret = checkMinWidth(ai, layer, poly);
 			if (ret)
 			{
 				if (onlyFirstError) return true;
@@ -1900,10 +1902,9 @@ public class Quick
 	 * @param geom
 	 * @param layer
 	 * @param poly
-	 * @param tech
 	 * @return
 	 */
-	private boolean checkMinWidth(Geometric geom, Layer layer, Poly poly, Technology tech)
+	private boolean checkMinWidth(Geometric geom, Layer layer, Poly poly)
 	{
 		Cell cell = geom.getParent();
 		DRCRules.DRCRule minWidthRule = DRC.getMinValue(layer, DRCTemplate.MINWID);
@@ -1942,16 +1943,31 @@ public class Quick
 			pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
 			Rectangle2D newBounds = new Rectangle2D.Double(bounds.getMinX()-TINYDELTA, bounds.getMinY()-TINYDELTA,
 				bounds.getWidth()+TINYDELTA*2, bounds.getHeight()+TINYDELTA*2);
-			if (lookForLayer(poly, cell, layer, DBMath.MATID, newBounds,
-				left1, left2, left3, pointsFound)) return false;
+            boolean zeroWide = (bounds.getWidth() == 0 || bounds.getHeight() == 0);
 
-			pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
-			if (lookForLayer(poly, cell, layer, DBMath.MATID, newBounds,
-				right1, right2, right3, pointsFound)) return false;
+			boolean overlapLayer = lookForLayer(poly, cell, layer, DBMath.MATID, newBounds,
+			        left1, left2, left3, pointsFound); //) return false;
+			if (overlapLayer && !zeroWide) return false;
 
-			reportError(MINWIDTHERROR, null, cell, minWidth, actual, minWidthRule.rule,
-				poly, geom, layer, null, null, null);
-			return true;
+			// Try the other corner
+	        pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
+			overlapLayer = lookForLayer(poly, cell, layer, DBMath.MATID, newBounds,
+				        right1, right2, right3, pointsFound); //) return false;
+			if (overlapLayer && !zeroWide) return false;
+
+            int errorType = MINWIDTHERROR;
+			String extraMsg = "";
+			String rule = minWidthRule.rule;
+			if (zeroWide)
+			{
+				if (overlapLayer) extraMsg = " but covered by other layer";
+				errorType = ZEROLENGTHARCWARN;
+				rule = null;
+			}
+
+			reportError(errorType, extraMsg, cell, minWidth, actual, rule,
+			        poly, geom, layer, null, null, null);
+			return !overlapLayer;
 		}
 
 		// nonmanhattan polygon: stop now if it has no size
@@ -3213,6 +3229,10 @@ public class Quick
 					errorMessage += "Enclosed area error:";
 					errorMessagePart2 = ", layer " + layer1.getName();
 					errorMessagePart2 += " LESS THAN " + TextUtils.formatDouble(limit) + " IN AREA (IS " + TextUtils.formatDouble(actual) + ")";
+					break;
+				case ZEROLENGTHARCWARN:
+					errorMessage += "Zero wide warning:";
+					errorMessagePart2 = msg;
 					break;
 				case MINWIDTHERROR:
 					errorMessage += "Minimum width error:";
