@@ -1236,9 +1236,8 @@ public class DXF extends Input
 			if (var != null)
 			{
 				var.setDisplay(true);
-				TextDescriptor td = var.getTextDescriptor();
-				td.setPos(TextDescriptor.Position.BOXED);
-				td.setAbsSize(TextDescriptor.Size.TXTMAXPOINTS);
+				var.setPos(TextDescriptor.Position.BOXED);
+				var.setAbsSize(TextDescriptor.Size.TXTMAXPOINTS);
 			}
 			ni.newVar(DXF_LAYER_KEY, layer.layerName);
 			readTexts++;

@@ -155,6 +155,50 @@ public abstract class ElectricObject
         return null;
     }
 
+	/**
+	 * Returns the TextDescriptor on this ElectricObject selected by name.
+	 * This name may be a name of variable on this ElectricObject or one of the
+	 * special names:
+	 * <code>NodeInst.NODE_NAME_TD</code>
+	 * <code>NodeInst.NODE_PROTO_TD</code>
+	 * <code>ArcInst.ARC_NAME_TD</code>
+	 * <code>Export.EXPORT_NAME_TD</code>
+	 * Other strings are not considered special, even they are equal to one of the
+	 * special name. In other words, special names are compared by "==" other than
+	 * by "equals".
+	 * The TextDescriptor gives information for displaying the Variable.
+	 * @param varName name of variable or special name.
+	 * @return the TextDescriptor on this ElectricObject.
+	 */
+	public TextDescriptor getTextDescriptor(String varName)
+	{
+		Variable var = getVar(varName);
+		if (var == null) return null;
+		return var.getTextDescriptor();
+	}
+
+	/**
+	 * Returns the TextDescriptor on this ElectricObject selected by name.
+	 * This name may be a name of variable on this ElectricObject or one of the
+	 * special names:
+	 * <code>NodeInst.NODE_NAME_TD</code>
+	 * <code>NodeInst.NODE_PROTO_TD</code>
+	 * <code>ArcInst.ARC_NAME_TD</code>
+	 * <code>Export.EXPORT_NAME_TD</code>
+	 * Other strings are not considered special, even they are equal to one of the
+	 * special name. In other words, special names are compared by "==" other than
+	 * by "equals".
+	 * The TextDescriptor gives information for displaying the Variable.
+	 * @param varName name of variable or special name.
+	 * @return the TextDescriptor on this ElectricObject.
+	 */
+	public MutableTextDescriptor getMutableTextDescriptor(String varName)
+	{
+		TextDescriptor td = getTextDescriptor(varName);
+		if (td == null) return null;
+		return new MutableTextDescriptor(td);
+	}
+
     private static int debugGetParameterRecurse = 0;
     /**
      * Method to return the Variable on this ElectricObject with the given key
@@ -387,7 +431,7 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 			{
 				if (!(this instanceof Geometric)) return null;
 				Geometric geom = (Geometric)this;
-				TextDescriptor td = geom.getNameTextDescriptor();
+				TextDescriptor td = geom.getTextDescriptor(this instanceof NodeInst ? NodeInst.NODE_NAME_TD : ArcInst.ARC_NAME_TD);
 				Poly.Type style = td.getPos().getPolyType();
 				Point2D [] pointList = null;
 				if (style == Poly.Type.TEXTBOX)
@@ -417,7 +461,7 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 					// cell instance name
 					if (!(this instanceof NodeInst)) return null;
 					NodeInst ni = (NodeInst)this;
-					TextDescriptor td = ni.getProtoTextDescriptor();
+					TextDescriptor td = ni.getTextDescriptor(NodeInst.NODE_PROTO_TD);
 					Poly.Type style = td.getPos().getPolyType();
 					Point2D [] pointList = null;
 					if (style == Poly.Type.TEXTBOX)
@@ -451,16 +495,17 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 	 */
 	public Poly [] getPolyList(Variable var, double cX, double cY, EditWindow wnd, boolean multipleStrings)
 	{
-		TextDescriptor td = var.getTextDescriptor();
-		double offX = td.getXOff();
-		double offY = td.getYOff();
+		double offX = var.getXOff();
+		double offY = var.getYOff();
 		int varLength = var.getLength();
 		double height = 0;
-		Poly.Type style = td.getPos().getPolyType();
+		Poly.Type style = var.getPos().getPolyType();
+		TextDescriptor td = var.getTextDescriptor();
 		if (this instanceof NodeInst && (offX != 0 || offY != 0))
 		{
-			td = new TextDescriptor(null, td);
-			td.setOff(0, 0);
+			MutableTextDescriptor mtd = new MutableTextDescriptor(td);
+			mtd.setOff(0, 0);
+			td = mtd;
 		}
 		boolean headerString = false;
 		Font font = null;
@@ -513,8 +558,9 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 				if (i == 0)
 				{
 					message = var.getTrueName()+ "[" + (varLength-1) + "]:";
-					entryTD = new TextDescriptor(null, td);
-					entryTD.setUnderline(true);
+					MutableTextDescriptor mtd = new MutableTextDescriptor(td);
+					mtd.setUnderline(true);
+					entryTD = mtd;
 				} else
 				{
 					message = var.describe(i-1, context, this);
@@ -638,6 +684,60 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
         newVar.copyFlags(var);
 		lowLevelModVar(var);
 		return newVar;
+	}
+
+	/**
+	 * Updates the TextDescriptor on this ElectricObject selected by varName.
+	 * The varName may be a name of variable on this ElectricObject or one of the
+	 * special names:
+	 * NodeInst.NODE_NAME_TD
+	 * NodeInst.NODE_PROTO_TD
+	 * ArcInst.ARC_NAME_TD
+	 * Export.EXPORT_NAME_TD
+	 * Other strings are not considered special, even they are equal to one of the
+	 * special name. In other words, special names are compared by "==" other than
+	 * by "equals".
+	 * If varName doesn't select any text descriptor, no action is performed.
+	 * The TextDescriptor gives information for displaying the Variable.
+	 * @param varName name of variable or special name.
+	 * @param td new value TextDescriptor
+	 */
+	public void setTextDescriptor(String varName, TextDescriptor td)
+	{
+		checkChanging();
+		Variable var = getVar(varName);
+		if (var == null) return;
+		var.setTextDescriptor(td);
+	}
+
+	/**
+	 * Method to set the X and Y offsets of the text in the TextDescriptor selected by name of
+	 * variable or special name.
+	 * The values are scaled by 4, so a value of 3 indicates a shift of 0.75 and a value of 4 shifts by 1.
+	 * @param varName name of variable or special name.
+	 * @param xd the X offset of the text in the TextDescriptor.
+	 * @param yd the Y offset of the text in the TextDescriptor.
+	 * @see #setTextDescriptor(java.lang.String,com.sun.electric.database.variable.TextDescriptor)
+	 * @see com.sun.electric.database.variable.Variable#setOff(double,double)
+	 */
+	public synchronized void setOff(String varName, double xd, double yd)
+	{
+		MutableTextDescriptor td = getMutableTextDescriptor(varName);
+		if (td == null) return;
+		td.setOff(xd, yd);
+		setTextDescriptor(varName, td);
+	}
+
+	/**
+	 * Method to copy text descriptor from another ElectricObject to this ElectricObject.
+	 * @param other the other ElectricObject from which to copy Variables.
+	 * @param varName selector of textdescriptor
+	 */
+	public void copyTextDescriptorFrom(ElectricObject other, String varName)
+	{
+		TextDescriptor td = other.getTextDescriptor(varName);
+		if (td == null) return;
+		setTextDescriptor(varName, td);
 	}
 
     /**

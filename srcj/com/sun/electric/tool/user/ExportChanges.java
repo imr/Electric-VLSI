@@ -698,13 +698,13 @@ public final class ExportChanges
                 // copy text descriptor, var, and characteristic
 				if (pi.getPortProto() instanceof Export)
 				{
-					newPp.setTextDescriptor(((Export)pi.getPortProto()).getTextDescriptor());
+					newPp.copyTextDescriptorFrom((Export)pi.getPortProto(), Export.EXPORT_NAME_TD);
 					newPp.copyVarsFrom(((Export)pi.getPortProto()));
 				}
                 newPp.setCharacteristic(pi.getPortProto().getCharacteristic());
                 // find original export if any, and copy text descriptor, vars, and characteristic
                 if (refExport != null) {
-                    newPp.setTextDescriptor(refExport.getTextDescriptor());
+                    newPp.copyTextDescriptorFrom(refExport, Export.EXPORT_NAME_TD);
                     newPp.copyVarsFrom(refExport);
                     newPp.setCharacteristic(refExport.getCharacteristic());
                 }
@@ -1289,7 +1289,7 @@ public final class ExportChanges
 	    				pp = Export.newInstance(np, pi, oPp.getName());
 	    				if (pp == null) continue;
 	    				pp.setCharacteristic(oPp.getCharacteristic());
-	    				pp.setTextDescriptor(oPp.getTextDescriptor());
+	    				pp.copyTextDescriptorFrom(oPp, Export.EXPORT_NAME_TD);
 	    				pp.copyVarsFrom(oPp);
 	    				newPorts++;
 	    			}

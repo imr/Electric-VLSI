@@ -36,7 +36,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.EdgeH;
@@ -321,9 +321,9 @@ public class Schematics extends Technology
 		//**************************************** NODES ****************************************
 		
 		// this text descriptor is used for all text on nodes
-		TextDescriptor tdBig = new TextDescriptor(null);
+		MutableTextDescriptor tdBig = new MutableTextDescriptor();
 		tdBig.setRelSize(2);
-		TextDescriptor tdSmall = new TextDescriptor(null);
+		MutableTextDescriptor tdSmall = new MutableTextDescriptor();
 		tdSmall.setRelSize(1);
 
 		/** wire pin */
@@ -1811,7 +1811,7 @@ public class Schematics extends Technology
 			double portY = (portLowY + portHighY) / 2;
 			Poly portPoly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
 			portPoly.setStyle(Poly.Type.FILLED);
-			portPoly.setTextDescriptor(TextDescriptor.getExportTextDescriptor(null)/*pp.getTextDescriptor()*/);
+			portPoly.setTextDescriptor(MutableTextDescriptor.getExportTextDescriptor()/*pp.getTextDescriptor()*/);
 			return portPoly;
 		}
 

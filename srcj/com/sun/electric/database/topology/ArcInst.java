@@ -35,6 +35,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveArc;
@@ -77,6 +78,8 @@ public class ArcInst extends Geometric
 {
 	/** The index of the head of this ArcInst. */		public static final int HEADEND = 0;
 	/** The index of the tail of this ArcInst. */		public static final int TAILEND = 1;
+
+	/** special name for text descriptor of arc name */	public static final String ARC_NAME_TD = new String("ARC_name");
 	/** Key of the obsolete variable holding arc name.*/public static final Variable.Key ARC_NAME = ElectricObject.newKey("ARC_name");
 	/** Key of Varible holding arc curvature. */		public static final Variable.Key ARC_RADIUS = ElectricObject.newKey("ARC_radius");
 
@@ -911,6 +914,43 @@ public class ArcInst extends Geometric
 	/****************************** TEXT ******************************/
 
 	/**
+	 * Returns the TextDescriptor on this ArcInst selected by name.
+	 * This name may be a name of variable on this ArcInst or
+	 * the special name <code>ArcInst.ARC_NAME_TD</code>.
+	 * Other strings are not considered special, even they are equal to the
+	 * special name. In other words, special name is compared by "==" other than
+	 * by "equals".
+	 * The TextDescriptor gives information for displaying the Variable.
+	 * @param varName name of variable or special name.
+	 * @return the TextDescriptor on this ArcInst.
+	 */
+	public TextDescriptor getTextDescriptor(String varName)
+	{
+		if (varName == ARC_NAME_TD) return nameDescriptor;
+		return super.getTextDescriptor(varName);
+	}
+
+	/**
+	 * Updates the TextDescriptor on this ArcInst selected by varName.
+	 * The varName may be a name of variable on this ArcInst or
+	 * the special name <code>ArcInst.EXPORT_NAME_TD</codeOC>.
+	 * If varName doesn't select any text descriptor, no action is performed.
+	 * Other strings are not considered special, even they are equal to the
+	 * special name. In other words, special name is compared by "==" other than
+	 * by "equals".
+	 * The TextDescriptor gives information for displaying the Variable.
+	 * @param varName name of variable or special name.
+	 * @param td new value TextDescriptor
+	 */
+	public void setTextDescriptor(String varName, TextDescriptor td)
+	{
+		if (varName == ARC_NAME_TD)
+			nameDescriptor.copy(td);
+		else
+			super.setTextDescriptor(varName, td);
+	}
+
+	/**
 	 * Method to determine whether a variable key on ArcInst is deprecated.
 	 * Deprecated variable keys are those that were used in old versions of Electric,
 	 * but are no longer valid.
@@ -1088,7 +1128,7 @@ public class ArcInst extends Geometric
         if (fromAi == null) return;
         copyVarsFrom(fromAi);
 		copyConstraintsFrom(fromAi);
-        setNameTextDescriptor(fromAi.getNameTextDescriptor());
+        copyTextDescriptorFrom(fromAi, ArcInst.ARC_NAME_TD);
     }
 
     /**

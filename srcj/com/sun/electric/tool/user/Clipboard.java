@@ -507,8 +507,7 @@ public class Clipboard
 				if (cellVar != null)
 				{
 					cellVar.setTextDescriptor(var.getTextDescriptor());
-					TextDescriptor td = cellVar.getTextDescriptor();
-					td.setOff(td.getXOff() + dX, td.getYOff() + dY);
+					cellVar.setOff(cellVar.getXOff() + dX, cellVar.getYOff() + dY);
 					cellVar.setCode(var.getCode());
 					cellVar.setDisplay(true);
 					if (var.isDontSave()) cellVar.setDontSave();
@@ -623,8 +622,8 @@ public class Clipboard
 			newNi.copyStateBits(ni);
 			newNi.clearWiped();
 			newNi.clearShortened();
-			newNi.setProtoTextDescriptor(ni.getProtoTextDescriptor());
-			newNi.setNameTextDescriptor(ni.getNameTextDescriptor());
+			newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_PROTO_TD);
+			newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME_TD);
 			newNi.copyVarsFrom(ni);
 			newNodes.put(ni, newNi);
 //			us_dupnode = newNi;

@@ -317,8 +317,8 @@ public class ReadableDump extends Output
 				printWriter.print("rotation: " + angle + " transpose: " + transpose + "\n");
 				if (np instanceof Cell)
 				{
-					printWriter.print("descript: " + ni.getProtoTextDescriptor().lowLevelGet0() + "/" +
-						ni.getProtoTextDescriptor().lowLevelGet1() + "\n");
+					printWriter.print("descript: " + ni.getTextDescriptor(NodeInst.NODE_PROTO_TD).lowLevelGet0() + "/" +
+						ni.getTextDescriptor(NodeInst.NODE_PROTO_TD).lowLevelGet1() + "\n");
 				}
 				printWriter.print("userbits: " + ni.lowLevelGetUserbits() + "\n");
 				writeVars(ni, cell);
@@ -375,7 +375,7 @@ public class ReadableDump extends Output
 				printWriter.print("name: " + pp.getName() + "\n");
 
 				// need to write both words
-				TextDescriptor td = pp.getTextDescriptor();
+				TextDescriptor td = pp.getTextDescriptor(Export.EXPORT_NAME_TD);
 				printWriter.print("descript: " + td.lowLevelGet0() + "/" + td.lowLevelGet1() + "\n");
 				printWriter.print("userbits: " + pp.lowLevelGetUserbits() + "\n");
 				writeVars(pp, cell);
@@ -536,10 +536,20 @@ public class ReadableDump extends Output
 		if (eObj instanceof Geometric && ((Geometric)eObj).getNameKey() != null)
 		{
 			Geometric geom = (Geometric)eObj;
-			Variable.Key key = geom instanceof NodeInst ? NodeInst.NODE_NAME : ArcInst.ARC_NAME;
+			Variable.Key key;
+			String varName;
+			if (geom instanceof NodeInst)
+			{
+				key = NodeInst.NODE_NAME;
+				varName = NodeInst.NODE_NAME_TD;
+			} else
+			{
+				key = ArcInst.ARC_NAME;
+				varName = ArcInst.ARC_NAME_TD;
+			}
 			int type = ELIBConstants.VSTRING;
 			if (geom.isUsernamed()) type |= ELIBConstants.VDISPLAY;
-			TextDescriptor td = geom.getNameTextDescriptor();
+			TextDescriptor td = geom.getTextDescriptor(varName);
 			printName(key.getName());
 			printWriter.print("[0" + Integer.toOctalString(type) + ",0" +
 				Integer.toOctalString(td.lowLevelGet0()) + "/0" + Integer.toOctalString(td.lowLevelGet1()) + "]: ");

@@ -39,6 +39,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -489,7 +490,7 @@ public class PostScript extends Output
 				poly.setStyle(Poly.Type.TEXTCENT);
 			}
 			poly.setString(string);
-			TextDescriptor td = TextDescriptor.getNodeTextDescriptor(null);
+			MutableTextDescriptor td = MutableTextDescriptor.getNodeTextDescriptor();
 			td.setRelSize(size * 0.75);
 			poly.setTextDescriptor(td);
 			writer.psText(poly);
@@ -561,7 +562,7 @@ public class PostScript extends Output
 					psPoly(poly);
 	
 					poly.setStyle(Poly.Type.TEXTBOX);
-					TextDescriptor td = TextDescriptor.getInstanceTextDescriptor(null);
+					MutableTextDescriptor td = MutableTextDescriptor.getInstanceTextDescriptor();
 					td.setAbsSize(24);
 					poly.setTextDescriptor(td);
 					poly.setString(ni.getProto().describe());
@@ -698,9 +699,8 @@ public class PostScript extends Output
 				{
 					// combine all features of port text with color of the port
 					TextDescriptor descript = portPoly.getTextDescriptor();
-					TextDescriptor portDescript = pp.getTextDescriptor();
-					TextDescriptor newDescript = new TextDescriptor(pp, portDescript);
-					newDescript.lowLevelSetColorIndex(descript.getColorIndex());
+					MutableTextDescriptor portDescript = pp.getMutableTextDescriptor(Export.EXPORT_NAME_TD);
+					portDescript.setColorIndex(descript.getColorIndex());
 					Poly.Type type = descript.getPos().getPolyType();
 					portPoly.setStyle(type);
 					String portName = pp.getName();
@@ -710,7 +710,7 @@ public class PostScript extends Output
 						portName = pp.getShortName();
 					}
 					portPoly.setString(portName);
-					portPoly.setTextDescriptor(newDescript);
+					portPoly.setTextDescriptor(portDescript);
 					psText(portPoly);
 				}
 			}

@@ -27,6 +27,7 @@ import com.sun.electric.Main;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
@@ -106,9 +107,8 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
                 varTrueName = initialVarTrueName = var.getTrueName();
                 value = initialValue = var.getObject();
                 code = initialCode = var.getCode();
-                TextDescriptor td = var.getTextDescriptor();
-                dispPos = initialDispPos = td.getDispPart();
-                units = initialUnits = td.getUnit();
+                dispPos = initialDispPos = var.getDispPart();
+                units = initialUnits = var.getUnit();
                 display = initialDisplay = var.isDisplay();
                 owner = var.getOwner();
             }
@@ -485,9 +485,8 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
                     if (newVar != null) {
                         // set/update properties
                         newVar.setCode(ve.getCode());
-                        TextDescriptor td = newVar.getTextDescriptor();
-                        td.setDispPart(ve.getDispPos());
-                        td.setUnit(ve.getUnits());
+                        newVar.setDispPart(ve.getDispPos());
+                        newVar.setUnit(ve.getUnits());
                         newVar.setDisplay(ve.isDisplay());
                     }
                 }

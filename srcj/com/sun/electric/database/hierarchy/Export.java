@@ -31,13 +31,16 @@ import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.ui.EditWindow;
 
@@ -61,6 +64,8 @@ import java.util.Iterator;
  */
 public class Export extends ElectricObject implements PortProto, Comparable
 {
+	/** special name for text descriptor of export name */	public static final String EXPORT_NAME_TD = new String("EXPORT_name");
+
 	/** key of Varible holding reference name. */			public static final Variable.Key EXPORT_REFERENCE_NAME = ElectricObject.newKey("EXPORT_reference_name");
 
 	/** set if this port should always be drawn */			private static final int PORTDRAWN =         0400000000;
@@ -128,7 +133,7 @@ public class Export extends ElectricObject implements PortProto, Comparable
 		if (pp.lowLevelName(parent, protoName)) return null;
 		if (pp.lowLevelPopulate(portInst)) return null;
 		if (pp.lowLevelLink(null)) return null;
-		pp.getTextDescriptor().setSmartPlacement();
+		pp.setSmartPlacement();
 
 		if (createOnIcon)
 		{
@@ -177,6 +182,54 @@ public class Export extends ElectricObject implements PortProto, Comparable
 		Undo.newObject(pp);
 		return pp;
 	}	
+
+	/**
+	 * Method to set "smart text placement" on the TextDescriptor of this Export.
+	 */
+	public void setSmartPlacement()
+	{
+		// handle smart text placement relative to attached object
+		int smartVertical = User.getSmartVerticalPlacement();
+		int smartHorizontal = User.getSmartHorizontalPlacement();
+		if (smartVertical == 0 && smartHorizontal == 0) return;
+
+		// figure out location of object relative to environment
+		double dx = 0, dy = 0;
+		PortInst pi = getOriginalPort();
+		NodeInst ni = pi.getNodeInst();
+		Rectangle2D nodeBounds = ni.getBounds();
+		for(Iterator it = ni.getConnections(); it.hasNext(); )
+		{
+			Connection con = (Connection)it.next();
+			if (con.getPortInst() == pi)
+			{
+				ArcInst ai = con.getArc();
+				Rectangle2D arcBounds = ai.getBounds();
+				dx = arcBounds.getCenterX() - nodeBounds.getCenterX();
+				dy = arcBounds.getCenterY() - nodeBounds.getCenterY();
+			}
+		}
+
+		// first move placement horizontally
+		if (smartHorizontal == 2)
+			// place label outside (away from center)
+			dx = -dx;
+		else if (smartHorizontal != 1)
+			// place label inside (towards center)
+			dx = 0;
+
+		// next move placement vertically
+		if (smartVertical == 2)
+			// place label outside (away from center)
+			dy = -dy;
+		else if (smartVertical != 1)
+			// place label inside (towards center)
+			dy = 0;
+
+		MutableTextDescriptor td = getMutableTextDescriptor(EXPORT_NAME_TD);
+		td.setPos(td.getPos().align(Double.compare(dx, 0), Double.compare(dy, 0)));
+		setTextDescriptor(EXPORT_NAME_TD, td);
+	}
 
 	/**
 	 * Method to unlink this Export from its Cell.
@@ -408,7 +461,7 @@ public class Export extends ElectricObject implements PortProto, Comparable
 		Poly poly = getOriginalPort().getPoly();
 		double cX = poly.getCenterX();
 		double cY = poly.getCenterY();
-		TextDescriptor td = getTextDescriptor();
+		TextDescriptor td = getTextDescriptor(EXPORT_NAME_TD);
 		double offX = td.getXOff();
 		double offY = td.getYOff();
 		TextDescriptor.Position pos = td.getPos();
@@ -469,16 +522,55 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	/**
 	 * Method to return the Text Descriptor of this Export.
 	 * Text Descriptors tell how to display the port name.
+	 * This method is equivalent to <code>getTextDescriptor(Export.EXPORT_NAME_ID)</code>.
 	 * @return the Text Descriptor of this Export.
 	 */
-	public TextDescriptor getTextDescriptor() { return descriptor; }
+//	public TextDescriptor getTextDescriptor() { return descriptor; }
 
 	/**
 	 * Method to set the Text Descriptor of this Export.
 	 * Text Descriptors tell how to display the port name.
+	 * This method is equivalent to <code>setTextDescriptor(Export.EXPORT_NAME_ID, descriptor)</code>.
 	 * @param descriptor the Text Descriptor of this Export.
 	 */
-	public void setTextDescriptor(TextDescriptor descriptor) { this.descriptor.copy(descriptor); }
+//	public void setTextDescriptor(TextDescriptor descriptor) { this.descriptor.copy(descriptor); }
+
+	/**
+	 * Returns the TextDescriptor on this Export selected by name.
+	 * This name may be a name of variable on this Export or
+	 * the special name <code>NodeInst.NODE_NAME_TD</code>.
+	 * Other strings are not considered special, even they are equal to the
+	 * special name. In other words, special name is compared by "==" other than
+	 * by "equals".
+	 * The TextDescriptor gives information for displaying the Variable.
+	 * @param varName name of variable or special name.
+	 * @return the TextDescriptor on this Export.
+	 */
+	public TextDescriptor getTextDescriptor(String varName)
+	{
+		if (varName == EXPORT_NAME_TD) return descriptor;
+		return super.getTextDescriptor(varName);
+	}
+
+	/**
+	 * Updates the TextDescriptor on this Export selected by varName.
+	 * The varName may be a name of variable on this Export or
+	 * the special name <code>Export.EXPORT_NAME_TD</code>.
+	 * If varName doesn't select any text descriptor, no action is performed.
+	 * Other strings are not considered special, even they are equal to the
+	 * special name. In other words, special name is compared by "==" other than
+	 * by "equals".
+	 * The TextDescriptor gives information for displaying the Variable.
+	 * @param varName name of variable or special name.
+	 * @param td new value TextDescriptor
+	 */
+	public void setTextDescriptor(String varName, TextDescriptor td)
+	{
+		if (varName == EXPORT_NAME_TD)
+			this.descriptor.copy(td);
+		else
+			super.setTextDescriptor(varName, td);
+	}
 
 	/**
 	 * Method to return the name key of this Export.

@@ -111,7 +111,7 @@ public class RouteElementArc extends RouteElement {
         e.headRE = RouteElementPort.existingPortInst(arcInstToDelete.getHead().getPortInst(), arcInstToDelete.getHead().getLocation());
         e.tailRE = RouteElementPort.existingPortInst(arcInstToDelete.getTail().getPortInst(), arcInstToDelete.getTail().getLocation());
         e.arcName = arcInstToDelete.getName();
-        e.arcNameDescriptor = arcInstToDelete.getNameTextDescriptor();
+        e.arcNameDescriptor = arcInstToDelete.getTextDescriptor(ArcInst.ARC_NAME_TD);
         e.headConnPoint = arcInstToDelete.getHead().getLocation();
         e.tailConnPoint = arcInstToDelete.getTail().getLocation();
         e.arcAngle = 0;
@@ -300,7 +300,7 @@ public class RouteElementArc extends RouteElement {
             if (arcAngle != 0)
                 newAi.setAngle(arcAngle);
             if ((arcName != null) && (arcNameDescriptor != null)) {
-                newAi.getNameTextDescriptor().copy(arcNameDescriptor);
+                newAi.setTextDescriptor(ArcInst.ARC_NAME_TD, arcNameDescriptor);
             }
             setDone();
             arcInst = newAi;

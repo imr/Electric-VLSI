@@ -45,6 +45,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
@@ -1988,9 +1989,7 @@ public class ELIB extends LibraryFiles
 					descript1 = readBigInteger();
 				}
 			}
-			TextDescriptor descript = new TextDescriptor(null, descript0, descript1, 0);
-			Input.fixTextDescriptorFont(descript);
-			pp.setTextDescriptor(descript);
+			pp.setTextDescriptor(Export.EXPORT_NAME_TD, new MutableTextDescriptor(descript0, descript1, 0));
 
 			// ignore the "seen" bits (versions 8 and older)
 			if (magic > ELIBConstants.MAGIC9) readBigInteger();
@@ -2289,9 +2288,7 @@ public class ELIB extends LibraryFiles
 				descript1 = readBigInteger();
 			}
 		}
-		TextDescriptor descript = new TextDescriptor(null, descript0, descript1, 0);
-		Input.fixTextDescriptorFont(descript);
-		ni.setProtoTextDescriptor(descript);
+		ni.setTextDescriptor(NodeInst.NODE_PROTO_TD, new MutableTextDescriptor(descript0, descript1, 0));
 
 		// read the nodeinst name (versions 1, 2, or 3 only)
 		if (magic >= ELIBConstants.MAGIC3)
@@ -2499,7 +2496,6 @@ public class ELIB extends LibraryFiles
 
 			// version 9 and later reads text description on displayable variables
 			boolean definedDescript = false;
-			TextDescriptor td;
 			int descript0 = 0;
 			int descript1 = 0;
 			if (magic <= ELIBConstants.MAGIC9)
@@ -2530,6 +2526,7 @@ public class ELIB extends LibraryFiles
 			{
 //				defaulttextdescript(newDescript, NOGEOM);
 			}
+			MutableTextDescriptor td = new MutableTextDescriptor(descript0, descript1, 0);
 			Object newAddr;
 			if ((newtype&ELIBConstants.VISARRAY) != 0)
 			{
@@ -2604,18 +2601,20 @@ public class ELIB extends LibraryFiles
 			// Geometric names are saved as variables.
 			if (newAddr instanceof String)
 			{
-				if ((obj instanceof NodeInst && varKeys.getKey(key) == NodeInst.NODE_NAME) ||
-					(obj instanceof ArcInst && varKeys.getKey(key) == ArcInst.ARC_NAME))
+				if (obj instanceof NodeInst && varKeys.getKey(key) == NodeInst.NODE_NAME)
 				{
-					Geometric geom = (Geometric)obj;
-					TextDescriptor nameDescript = new TextDescriptor(null, descript0, descript1, 0);
-					Input.fixTextDescriptorFont(nameDescript);
-					geom.setNameTextDescriptor(nameDescript);
-					Name name = makeGeomName(geom, newAddr, newtype);
-					if (obj instanceof NodeInst)
-						nodeInstList.name[index] = name;
-					else
-						arcNameList[index] = name;
+					NodeInst ni = (NodeInst)obj;
+					ni.setTextDescriptor(NodeInst.NODE_NAME_TD, td);
+					Name name = makeGeomName(ni, newAddr, newtype);
+					nodeInstList.name[index] = name;
+					continue;
+				}
+				if (obj instanceof ArcInst && varKeys.getKey(key) == ArcInst.ARC_NAME)
+				{
+					ArcInst ai = (ArcInst)obj;
+					ai.setTextDescriptor(ArcInst.ARC_NAME_TD, td);
+					Name name = makeGeomName(ai, newAddr, newtype);
+					arcNameList[index] = name;
 					continue;
 				}
 			}
@@ -2642,7 +2641,7 @@ public class ELIB extends LibraryFiles
 				System.out.println("Error reading variable");
 				return -1;
 			}
-			var.setTextDescriptor(new TextDescriptor(null, descript0, descript1, 0));
+			var.setTextDescriptor(td);
 			var.lowLevelSetFlags(newtype);
 
 			// handle updating of technology caches

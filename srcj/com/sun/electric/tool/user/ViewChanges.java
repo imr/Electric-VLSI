@@ -41,6 +41,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -162,8 +163,7 @@ public class ViewChanges
 					if (cellVar != null)
 					{
 						cellVar.setTextDescriptor(var.getTextDescriptor());
-						TextDescriptor td = cellVar.getTextDescriptor();
-						td.setOff(td.getXOff(), td.getYOff() + dY);
+						cellVar.setOff(cellVar.getXOff(), cellVar.getYOff() + dY);
 						cellVar.setCode(var.getCode());
 						cellVar.setDisplay(true);
 						if (var.isDontSave()) cellVar.setDontSave();
@@ -317,7 +317,7 @@ public class ViewChanges
 					System.out.println("Could not create port " + pp.getName());
 					return false;
 				}
-				npp.setTextDescriptor(pp.getTextDescriptor());
+				npp.copyTextDescriptorFrom(pp, Export.EXPORT_NAME_TD);
 				npp.copyVarsFrom(pp);
 				npp.setCharacteristic(pp.getCharacteristic());
 				newPortMap.put(pp, npp);
@@ -640,7 +640,7 @@ public class ViewChanges
 		Export port = Export.newInstance(np, pi, pp.getName());
 		if (port != null)
 		{
-			TextDescriptor td = port.getTextDescriptor();
+			MutableTextDescriptor td = port.getMutableTextDescriptor(Export.EXPORT_NAME_TD);
 			switch (User.getIconGenExportStyle())
 			{
 				case 0:		// Centered
@@ -665,6 +665,7 @@ public class ViewChanges
 					}
 					break;
 			}
+			port.setTextDescriptor(Export.EXPORT_NAME_TD, td);
 			double xOffset = 0, yOffset = 0;
 			int loc = User.getIconGenExportLocation();
 			if (!User.isIconGenDrawLeads()) loc = 0;
@@ -680,7 +681,7 @@ public class ViewChanges
 					yOffset = (yPos+yBBPos) / 2 - yPos;
 					break;
 			}
-			td.setOff(xOffset, yOffset);
+			port.setOff(Export.EXPORT_NAME_TD, xOffset, yOffset);
 			if (pp.isAlwaysDrawn()) port.setAlwaysDrawn(); else
 				port.clearAlwaysDrawn();
 			port.setCharacteristic(pp.getCharacteristic());
@@ -864,17 +865,15 @@ public class ViewChanges
 						if (lenVar != null)
 						{
 							lenVar.setDisplay(true);
-							TextDescriptor lenTD = lenVar.getTextDescriptor();
-							lenTD.setRelSize(0.5);
-							lenTD.setOff(-0.5, -1);
+							lenVar.setRelSize(0.5);
+							lenVar.setOff(-0.5, -1);
 						}
 						Variable widVar = schemNI.newVar("ATTR_width", new Double(ts.getDoubleWidth()));
 						if (widVar != null)
 						{
 							widVar.setDisplay(true);
-							TextDescriptor widTD = widVar.getTextDescriptor();
-							widTD.setRelSize(1);
-							widTD.setOff(0.5, -1);
+							widVar.setRelSize(1);
+							widVar.setOff(0.5, -1);
 						}
 					} else
 					{
@@ -900,7 +899,7 @@ public class ViewChanges
 					if (schemPP != null)
 					{
 						schemPP.setCharacteristic(mosPP.getCharacteristic());
-						schemPP.setTextDescriptor(mosPP.getTextDescriptor());
+						schemPP.copyTextDescriptorFrom(mosPP, Export.EXPORT_NAME_TD);
 						schemPP.copyVarsFrom(mosPP);
 					}
 				}
@@ -1393,7 +1392,7 @@ public class ViewChanges
 				Export pp2 = Export.newInstance(newCell, pi, e.getName());
 				if (pp2 == null) return;
 				pp2.setCharacteristic(e.getCharacteristic());
-				pp2.setTextDescriptor(e.getTextDescriptor());
+				pp2.copyTextDescriptorFrom(e, Export.EXPORT_NAME_TD);
 				pp2.copyVarsFrom(e);
 			}
 		}

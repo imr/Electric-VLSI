@@ -39,6 +39,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveArc;
@@ -232,7 +233,7 @@ public class PixelDrawing
 	/** the last Technology that had transparent layers */	private static Technology techWithLayers = null;
 	/** list of cell expansions. */							private static HashMap expandedCells = null;
 	/** scale of cell expansions. */						private static double expandedScale = 0;
-	/** TextDescriptor for empty window text. */			private static TextDescriptor noCellTextDescriptor = null;
+	/** TextDescriptor for empty window text. */			private static MutableTextDescriptor noCellTextDescriptor = null;
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
 	private static EGraphics blackGraphics = new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
@@ -340,7 +341,7 @@ public class PixelDrawing
 		{
 			if (noCellTextDescriptor == null)
 			{
-				noCellTextDescriptor = new TextDescriptor(null);
+				noCellTextDescriptor = new MutableTextDescriptor();
 				noCellTextDescriptor.setAbsSize(18);
 				noCellTextDescriptor.setBold(true);
 			}
@@ -889,9 +890,8 @@ public class PixelDrawing
 				{
 					// combine all features of port text with color of the port
 					TextDescriptor descript = portPoly.getTextDescriptor();
-					TextDescriptor portDescript = pp.getTextDescriptor();
-					TextDescriptor newDescript = new TextDescriptor(pp, portDescript);
-					newDescript.lowLevelSetColorIndex(descript.getColorIndex());
+					MutableTextDescriptor portDescript = pp.getMutableTextDescriptor(Export.EXPORT_NAME_TD);
+					portDescript.setColorIndex(descript.getColorIndex());
 					Poly.Type type = descript.getPos().getPolyType();
 					String portName = pp.getName();
 					if (portDisplayLevel == 1)
@@ -901,7 +901,7 @@ public class PixelDrawing
 					}
 					Point pt = wnd.databaseToScreen(portPoly.getCenterX(), portPoly.getCenterY());
 					Rectangle rect = new Rectangle(pt);
-					drawText(rect, type, newDescript, portName, null, portGraphics, false);
+					drawText(rect, type, portDescript, portName, null, portGraphics, false);
 				}
 			}
 		}
@@ -932,7 +932,7 @@ public class PixelDrawing
 		{
 			Rectangle2D bounds = poly.getBounds2D();
 			Rectangle rect = wnd.databaseToScreen(bounds);
-			TextDescriptor descript = ni.getProtoTextDescriptor();
+			TextDescriptor descript = ni.getTextDescriptor(NodeInst.NODE_PROTO_TD);
 			blackGraphics.setColor(new Color(User.getColorText()));
 			drawText(rect, Poly.Type.TEXTBOX, descript, np.describe(), null, blackGraphics, false);
 		}

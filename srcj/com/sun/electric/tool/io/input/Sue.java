@@ -696,18 +696,17 @@ public class Sue extends Input
 						var.setDisplay(true);
 						if (makeJava) var.setCode(Variable.Code.JAVA);
 						varIndex++;
-						TextDescriptor td = var.getTextDescriptor();
-						td.setOff(xpos, ypos);
+						var.setOff(xpos, ypos);
 						if (halveSize)
 						{
-							if (td.getSize().isAbsolute())
-								td.setAbsSize((int)(td.getSize().getSize() / 2)); else
-									td.setRelSize(td.getSize().getSize() / 2);
+							if (var.getSize().isAbsolute())
+								var.setAbsSize((int)(var.getSize().getSize() / 2)); else
+									var.setRelSize(var.getSize().getSize() / 2);
 						}
 						if (isParam)
 						{
-							td.setParam(true);
-							td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
+							var.setParam(true);
+							var.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
 
 							// make sure the parameter exists in the cell definition
 							NodeProto np = ni.getProto();
@@ -721,9 +720,8 @@ public class Sue extends Input
 									var = cnp.newVar(sueVarName, newObject);
 									if (var != null)
 									{
-										td = var.getTextDescriptor();
-										td.setParam(true);
-										td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);  // really wanted: VTDISPLAYNAMEVALINH
+										var.setParam(true);
+										var.setDispPart(TextDescriptor.DispPos.NAMEVALUE);  // really wanted: VTDISPLAYNAMEVALINH
 									}
 								}
 							}

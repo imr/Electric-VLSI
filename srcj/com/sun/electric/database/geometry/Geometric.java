@@ -30,6 +30,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.user.ui.EditWindow;
 
@@ -812,7 +813,7 @@ public abstract class Geometric extends ElectricObject
 
 	/** Cell containing this Geometric object. */			protected Cell parent;
 	/** name of this Geometric object. */					protected Name name;
-	/** The text descriptor of name of Geometric. */		private TextDescriptor nameDescriptor;
+	/** The text descriptor of name of Geometric. */		protected TextDescriptor nameDescriptor;
 	/** bounds after transformation. */						protected Rectangle2D visBounds;
 	/** Flag bits for this Geometric. */					protected int userBits;
 	/** The temporary flag bits. */							private int flagBits;
@@ -1012,14 +1013,14 @@ public abstract class Geometric extends ElectricObject
 	 * The Text Descriptor applies to the display of that name.
 	 * @return the Text Descriptor for name of this Geometric.
 	 */
-	public TextDescriptor getNameTextDescriptor() { return nameDescriptor; }
+//	public TextDescriptor getNameTextDescriptor() { return nameDescriptor; }
 
 	/**
 	 * Method to set the Text Descriptor associated with name of this Geometric.
 	 * The Text Descriptor applies to the display of that name.
 	 * @param descriptor the Text Descriptor for name of this Geometric.
 	 */
-	public void setNameTextDescriptor(TextDescriptor descriptor) { this.nameDescriptor.copy(descriptor); }
+//	public void setNameTextDescriptor(TextDescriptor descriptor) { this.nameDescriptor.copy(descriptor); }
 
 	/**
 	 * Retruns true if this Geometric was named by user.
@@ -1141,8 +1142,9 @@ public abstract class Geometric extends ElectricObject
 			TextDescriptor td = nameDescriptor;
 			if (this instanceof NodeInst && (offX != 0 || offY != 0))
 			{
-				td = new TextDescriptor(null, nameDescriptor);
-				td.setOff(0, 0);
+				MutableTextDescriptor mtd = new MutableTextDescriptor(td);
+				mtd.setOff(0, 0);
+				td = mtd;
 			    style = Poly.rotateType(style, this);
 			}
 

@@ -201,8 +201,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 		refName.setText(initialRefName);
 
         // set text info panel
-        TextDescriptor td = pp.getTextDescriptor();
-        textPanel.setTextDescriptor(td, null, pp);
+        textPanel.setTextDescriptor(Export.EXPORT_NAME_TD, pp);
 
 		shownExport = pp;
         focusOnTextField(theText);
@@ -212,7 +211,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
         shownExport = null;
         theText.setText("");
         refName.setText("");
-        textPanel.setTextDescriptor(null, null, null);
+        textPanel.setTextDescriptor(null, null);
     }
 
 	/** Creates new form Export Get-Info */

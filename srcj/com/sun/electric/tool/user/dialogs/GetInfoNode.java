@@ -884,7 +884,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 					if (var != null && oldVar == null)
 					{
 						var.setDisplay(true);
-						var.getTextDescriptor().setDispPart(TextDescriptor.DispPos.NAMEVALUE);
+						var.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
 					}
 					dialog.initialTextField = currentTextField;
 				}

@@ -44,6 +44,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
@@ -713,7 +714,7 @@ public class LibraryContents
 			out.print("#" + getName());
 			if (export != null)
 			{
-				out.print("|" + describeJelibDescriptor(null, export.getTextDescriptor()));
+				out.print("|" + describeJelibDescriptor(null, export.getTextDescriptor(Export.EXPORT_NAME_TD)));
 				PortOriginal po = new PortOriginal(export.getOriginalPort());
 				PrimitivePort pp = po.getBottomPortProto();
 				PrimitiveNode pn = (PrimitiveNode)pp.getParent();
@@ -1100,7 +1101,7 @@ public class LibraryContents
 			}
 
 			// get the node name text descriptor
-			loadTextDescriptor(ni.getNameTextDescriptor(), null, textDescriptor);
+			ni.setTextDescriptor(NodeInst.NODE_NAME_TD, loadTextDescriptor(null, textDescriptor));
 
 			// add state bits
 			if (expanded) ni.setExpanded(); else ni.clearExpanded();
@@ -1112,7 +1113,7 @@ public class LibraryContents
 
 			// get text descriptor for cell instance names
 			if (protoTextDescriptor != null)
-				loadTextDescriptor(ni.getProtoTextDescriptor(), null, protoTextDescriptor);
+				ni.setTextDescriptor(NodeInst.NODE_PROTO_TD, loadTextDescriptor(null, protoTextDescriptor));
 
 			addVariables(ni, vars);
 		}
@@ -1341,7 +1342,7 @@ public class LibraryContents
 			}
 
 			// get the ard name text descriptor
-			loadTextDescriptor(ai.getNameTextDescriptor(), null, textDescriptor);
+			ai.setTextDescriptor(ArcInst.ARC_NAME_TD, loadTextDescriptor(null, textDescriptor));
 
 			// add state bits
 			ai.setRigid(rigid);
@@ -1448,7 +1449,7 @@ public class LibraryContents
 				return;
 			}
 
-			loadTextDescriptor(pp.getTextDescriptor(), null, textDescriptor);
+			pp.setTextDescriptor(Export.EXPORT_NAME_TD, loadTextDescriptor(null, textDescriptor));
 
 			// parse state information in field 6
 			if (alwaysDrawn) pp.setAlwaysDrawn();
@@ -1546,8 +1547,7 @@ public class LibraryContents
 			}
 
 			// add in extra information
-			TextDescriptor td = newVar.getTextDescriptor();
-			loadTextDescriptor(td, newVar, varBits);
+			newVar.setTextDescriptor(loadTextDescriptor(newVar, varBits));
 		}
 
 		/**
@@ -2376,13 +2376,14 @@ public class LibraryContents
 
 	/**
 	 * Method to load a TextDescriptor from a String description of it.
-	 * @param td the TextDescriptor to load.
 	 * @param var the Variable that this TextDescriptor resides on.
 	 * It may be null if the TextDescriptor is on a NodeInst or Export.
 	 * @param varBits the String that describes the TextDescriptor.
+	 * @return loaded TextDescriptor
 	 */
-	private void loadTextDescriptor(TextDescriptor td, Variable var, String varBits)
+	private MutableTextDescriptor loadTextDescriptor(Variable var, String varBits)
 	{
+		MutableTextDescriptor td = new MutableTextDescriptor();
 		double xoff = 0, yoff = 0;
 		for(int j=0; j<varBits.length(); j++)
 		{
@@ -2551,6 +2552,7 @@ public class LibraryContents
 			}
 		}
 		td.setOff(xoff, yoff);
+		return td;
 	}
 
 	void fillStat(LibraryStatistics.FileContents fc, LibraryContents total)

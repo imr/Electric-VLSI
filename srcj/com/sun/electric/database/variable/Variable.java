@@ -31,6 +31,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -736,6 +737,306 @@ public class Variable
 	public String toString()
 	{
 		return key.getName();
+	}
+
+	// TextDescriptor
+
+	/**
+	 * Method to return the color index of the Variable's TextDescriptor.
+	 * Color indices are more general than colors, because they can handle
+	 * transparent layers, C-Electric-style opaque layers, and full color values.
+	 * Methods in "EGraphics" manipulate color indices.
+	 * @return the color index of the Variables's TextDescriptor.
+	 */
+	public int getColorIndex() { return descriptor.getColorIndex(); }
+
+	/**
+	 * Method to set the color index of the Variable's TextDescriptor.
+	 * Color indices are more general than colors, because they can handle
+	 * transparent layers, C-Electric-style opaque layers, and full color values.
+	 * Methods in "EGraphics" manipulate color indices.
+	 * @param colorIndex the color index of the Variable's TextDescriptor.
+	 */
+	public void setColorIndex(int colorIndex)
+	{
+		MutableTextDescriptor td = new MutableTextDescriptor(descriptor);
+		td.setColorIndex(colorIndex);
+		setTextDescriptor(td);
+	}
+
+	/**
+	 * Method to return the text position of the Variable's TextDescriptor.
+	 * The text position describes the "anchor point" of the text,
+	 * which is the point on the text that is attached to the object and does not move.
+	 * @return the text position of the Variable's TextDescriptor.
+	 */
+	public TextDescriptor.Position getPos() { return descriptor.getPos(); }
+
+	/**
+	 * Method to set the text position of the Variable's TextDescriptor.
+	 * The text position describes the "anchor point" of the text,
+	 * which is the point on the text that is attached to the object and does not move.
+	 * @param p the text position of the Variable's TextDescriptor.
+	 */
+	public synchronized void setPos(TextDescriptor.Position p)
+	{
+		MutableTextDescriptor td = new MutableTextDescriptor(descriptor);
+		td.setPos(p);
+		setTextDescriptor(td);
+	}
+
+	/**
+	 * Method to return the text size of the text in the Variable's TextDescriptor.
+	 * This is a Size object that can describe either absolute text (in points)
+	 * or relative text (in quarter units).
+	 * @return the text size of the text in the Variable's TextDescriptor.
+	 */
+	public synchronized TextDescriptor.Size getSize() { return descriptor.getSize(); }
+
+	/**
+	 * Method to find the true size in points for the Variable's TextDescriptor in a given EditWindow.
+	 * If the TextDescriptor is already Absolute (in points) nothing needs to be done.
+	 * Otherwise, the scale of the EditWindow is used to determine the acutal point size.
+	 * @param wnd the EditWindow in which drawing will occur.
+	 * @return the point size of the text described by the Variable's TextDescriptor.
+	 */
+	public double getTrueSize(EditWindow wnd) { return descriptor.getTrueSize(wnd); }
+
+	/**
+	 * Method to set the text size of Variable's TextDescriptor to an absolute size (in points).
+	 * The size must be between 1 and 63 points.
+	 * @param s the point size of the Variable's TextDescriptor.
+	 */
+	public synchronized void setAbsSize(int s)
+	{
+		MutableTextDescriptor td = new MutableTextDescriptor(descriptor);
+		td.setAbsSize(s);
+		setTextDescriptor(td);
+	}
+
+	/**
+	 * Method to set the text size of the Variable's TextDescriptor to a relative size (in units).
+	 * The size must be between 0.25 and 127.75 grid units (in .25 increments).
+	 * @param s the unit size of the Variable's TextDescriptor.
+	 */
+	public synchronized void setRelSize(double s)
+	{
+		MutableTextDescriptor td = new MutableTextDescriptor(descriptor);
+		td.setRelSize(s);
+		setTextDescriptor(td);
+	}
+
+	/**
+	 * Method to return the text font of the Variable's TextDescriptor.
+	 * @return the text font of the Variable's TextDescriptor.
+	 */
+	public int getFace() { return descriptor.getFace(); }
+
+	/**
+	 * Method to set the text font of the Variable's TextDescriptor.
+	 * @param f the text font of the Variable's TextDescriptor.
+	 */
+	public synchronized void setFace(int f)
+	{
+		MutableTextDescriptor td = new MutableTextDescriptor(descriptor);
+		td.setFace(f);
+		setTextDescriptor(td);
+	}
+
+	/**
+	 * Method to return the text rotation of the Variable's TextDescriptor.
+	 * There are only 4 rotations: 0, 90 degrees, 180 degrees, and 270 degrees.
+	 * @return the text rotation of the Variable's TextDescriptor.
+	 */
+	public TextDescriptor.Rotation getRotation() { return descriptor.getRotation(); }
+
+	/**
+	 * Method to set the text rotation of the Variable's TextDescriptor.
+	 * There are only 4 rotations: 0, 90 degrees, 180 degrees, and 270 degrees.
+	 * @param r the text rotation of the Variable's TextDescriptor.
+	 */
+	public synchronized void setRotation(TextDescriptor.Rotation r)
+	{
+		MutableTextDescriptor td = new MutableTextDescriptor(descriptor);
+		td.setRotation(r);
+		setTextDescriptor(td);
+	}
+
+	/**
+	 * Method to return the text display part of the Variable's TextDescriptor.
+	 * @return the text display part of the Variable's TextDescriptor.
+	 */
+	public TextDescriptor.DispPos getDispPart() { return descriptor.getDispPart(); }
+
+	/**
+	 * Method to set the text display part of the Variable's TextDescriptor.
+	 * @param d the text display part of the Variable's TextDescriptor.
+	 */
+	public synchronized void setDispPart(TextDescriptor.DispPos d)
+	{
+		MutableTextDescriptor td = new MutableTextDescriptor(descriptor);
+		td.setDispPart(d);
+		setTextDescriptor(td);
+	}
+
+	/**
+	 * Method to return true if the text in the Variable's TextDescriptor is italic.
+	 * @return true if the text in the Variable's TextDescriptor is italic.
+	 */
+	public boolean isItalic() { return descriptor.isItalic(); }
+
+	/**
+	 * Method to set the text in the Variabl's TextDescriptor to be italic.
+	 */
+	public synchronized void setItalic(boolean state)
+	{
+		MutableTextDescriptor td = new MutableTextDescriptor(descriptor);
+		td.setItalic(state);
+		setTextDescriptor(td);
+	}
+
+	/**
+	 * Method to return true if the text in the Variable's TextDescriptor is bold.
+	 * @return true if the text in the Variable's TextDescriptor is bold.
+	 */
+	public boolean isBold() { return descriptor.isBold(); }
+
+	/**
+	 * Method to set the text in the TextDescriptor to be bold.
+	 */
+	public synchronized void setBold(boolean state)
+	{
+		MutableTextDescriptor td = new MutableTextDescriptor(descriptor);
+		td.setBold(state);
+		setTextDescriptor(td);
+	}
+
+	/**
+	 * Method to return true if the text in the Variable's TextDescriptor is underlined.
+	 * @return true if the text in the Variable's TextDescriptor is underlined.
+	 */
+	public boolean isUnderline() { return descriptor.isUnderline(); }
+
+	/**
+	 * Method to set the text in the Variable's TextDescriptor to be underlined.
+	 */
+	public synchronized void setUnderline(boolean state)
+	{
+		MutableTextDescriptor td = new MutableTextDescriptor(descriptor);
+		td.setUnderline(state);
+		setTextDescriptor(td);
+	}
+
+	/**
+	 * Method to return true if the text in the Variable's TextDescriptor is interior.
+	 * Interior text is not seen at higher levels of the hierarchy.
+	 * @return true if the text in the Variable's TextDescriptor is interior.
+	 */
+	public boolean isInterior() { return descriptor.isInterior(); }
+
+	/**
+	 * Method to set the text in the Variable's TextDescriptor to be interior.
+	 * Interior text is not seen at higher levels of the hierarchy.
+	 */
+	public synchronized void setInterior(boolean state)
+	{
+		MutableTextDescriptor td = new MutableTextDescriptor(descriptor);
+		td.setInterior(state);
+		setTextDescriptor(td);
+	}
+
+	/**
+	 * Method to return true if the text in the Variable's TextDescriptor is inheritable.
+	 * Inheritable variables copy their contents from prototype to instance.
+	 * Only Variables on NodeProto and PortProto objects can be inheritable.
+	 * When a NodeInst is created, any inheritable Variables on its NodeProto are automatically
+	 * created on that NodeInst.
+	 * @return true if the text in the Variable's TextDescriptor is inheritable.
+	 */
+	public boolean isInherit() { return descriptor.isInherit(); }
+
+	/**
+	 * Method to set the text in the Variable's TextDescriptor to be inheritable.
+	 * Inheritable variables copy their contents from prototype to instance.
+	 * Only Variables on NodeProto and PortProto objects can be inheritable.
+	 * When a NodeInst is created, any inheritable Variables on its NodeProto are automatically
+	 * created on that NodeInst.
+	 */
+	public synchronized void setInherit(boolean state)
+	{
+		MutableTextDescriptor td = new MutableTextDescriptor(descriptor);
+		td.setInherit(state);
+		setTextDescriptor(td);
+	}
+
+	/**
+	 * Method to return true if the text in the Variable's TextDescriptor is a parameter.
+	 * Parameters are those Variables that have values on instances which are
+	 * passed down the hierarchy into the contents.
+	 * Parameters can only exist on NodeInst objects.
+	 * @return true if the text in the Variable's TextDescriptor is a parameter.
+	 */
+	public boolean isParam() { return descriptor.isParam(); }
+
+	/**
+	 * Method to set the text in the Variable's TextDescriptor to be a parameter.
+	 * Parameters are those Variables that have values on instances which are
+	 * passed down the hierarchy into the contents.
+	 * Parameters can only exist on NodeInst objects.
+	 */
+	public synchronized void setParam(boolean state)
+	{
+		MutableTextDescriptor td = new MutableTextDescriptor(descriptor);
+		td.setParam(state);
+		setTextDescriptor(td);
+	}
+
+	/**
+	 * Method to return the X offset of the text in the Variable's TextDescriptor.
+	 * @return the X offset of the text in the Variable's TextDescriptor.
+	 */
+	public synchronized double getXOff() { return descriptor.getXOff(); }
+
+	/**
+	 * Method to return the Y offset of the text in the Variable's TextDescriptor.
+	 * @return the Y offset of the text in the Variable's TextDescriptor.
+	 */
+	public synchronized double getYOff() { return descriptor.getYOff(); }
+
+	/**
+	 * Method to set the X and Y offsets of the text in the Variable's TextDescriptor.
+	 * The values are scaled by 4, so a value of 3 indicates a shift of 0.75 and a value of 4 shifts by 1.
+	 * @param xd the X offset of the text in the Variable's TextDescriptor.
+	 * @param yd the Y offset of the text in the Variable's TextDescriptor.
+	 */
+	public synchronized void setOff(double xd, double yd)
+	{
+		MutableTextDescriptor td = new MutableTextDescriptor(descriptor);
+		td.setOff(xd, yd);
+		setTextDescriptor(td);
+	}
+
+	/**
+	 * Method to return the Unit of the Variable's TextDescriptor.
+	 * Unit describes the type of real-world unit to apply to the value.
+	 * For example, if this value is in volts, the Unit tells whether the value
+	 * is volts, millivolts, microvolts, etc.
+	 * @return the Unit of the Variable's TextDescriptor.
+	 */
+	public TextDescriptor.Unit getUnit() { return descriptor.getUnit(); }
+
+	/**
+	 * Method to set the Unit of the Variable's TextDescriptor.
+	 * Unit describe the type of real-world unit to apply to the value.
+	 * For example, if this value is in volts, the Unit tells whether the value
+	 * is volts, millivolts, microvolts, etc.
+	 * @param u the Unit of the Variable's TextDescriptor.
+	 */
+	public synchronized void setUnit(TextDescriptor.Unit u)
+	{
+		MutableTextDescriptor td = new MutableTextDescriptor(descriptor);
+		td.setUnit(u);
+		setTextDescriptor(td);
 	}
 }
 

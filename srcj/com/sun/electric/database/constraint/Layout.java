@@ -1130,14 +1130,14 @@ public class Layout extends Constraints
 			return;
 		}
 		ar2.copyVarsFrom(ai);
-		ar2.setNameTextDescriptor(ai.getNameTextDescriptor());
+		ar2.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
 		ar1.setChangeClock(changeClock + arctyp);
 		ar2.setChangeClock(changeClock + arctyp);
 		ar3.setChangeClock(changeClock + arctyp);
 
 		// now kill the arcinst
 		deletedArcs.add(ai);
-		ar2.setNameTextDescriptor(ai.getNameTextDescriptor());
+		ar2.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
 		ai.kill();
 		String oldName = ai.getName();
 		if (oldName != null) ar2.setName(oldName);

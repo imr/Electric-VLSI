@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.user.User;
 
@@ -53,13 +54,13 @@ public class TextTab extends PreferencePanel
 	public String getName() { return "Text"; }
 
 	private String initialTextFontName;
-	private TextDescriptor initialTextNodeDescriptor, currentTextNodeDescriptor;
-	private TextDescriptor initialTextArcDescriptor, currentTextArcDescriptor;
-	private TextDescriptor initialTextExportDescriptor, currentTextExportDescriptor;
-	private TextDescriptor initialTextAnnotationDescriptor, currentTextAnnotationDescriptor;
-	private TextDescriptor initialTextInstanceDescriptor, currentTextInstanceDescriptor;
-	private TextDescriptor initialTextCellDescriptor, currentTextCellDescriptor;
-	private TextDescriptor currentTextDescriptor;
+	private MutableTextDescriptor initialTextNodeDescriptor, currentTextNodeDescriptor;
+	private MutableTextDescriptor initialTextArcDescriptor, currentTextArcDescriptor;
+	private MutableTextDescriptor initialTextExportDescriptor, currentTextExportDescriptor;
+	private MutableTextDescriptor initialTextAnnotationDescriptor, currentTextAnnotationDescriptor;
+	private MutableTextDescriptor initialTextInstanceDescriptor, currentTextInstanceDescriptor;
+	private MutableTextDescriptor initialTextCellDescriptor, currentTextCellDescriptor;
+	private MutableTextDescriptor currentTextDescriptor;
 	private String initialTextNodeFont;
 	private String initialTextArcFont;
 	private String initialTextExportFont;
@@ -90,12 +91,12 @@ public class TextTab extends PreferencePanel
 		}
 
 		// get initial descriptors
-		initialTextNodeDescriptor = TextDescriptor.getNodeTextDescriptor(null);
-		initialTextArcDescriptor = TextDescriptor.getArcTextDescriptor(null);
-		initialTextExportDescriptor = TextDescriptor.getExportTextDescriptor(null);
-		initialTextAnnotationDescriptor = TextDescriptor.getAnnotationTextDescriptor(null);
-		initialTextInstanceDescriptor = TextDescriptor.getInstanceTextDescriptor(null);
-		initialTextCellDescriptor = TextDescriptor.getCellTextDescriptor(null);
+		initialTextNodeDescriptor = MutableTextDescriptor.getNodeTextDescriptor();
+		initialTextArcDescriptor = MutableTextDescriptor.getArcTextDescriptor();
+		initialTextExportDescriptor = MutableTextDescriptor.getExportTextDescriptor();
+		initialTextAnnotationDescriptor = MutableTextDescriptor.getAnnotationTextDescriptor();
+		initialTextInstanceDescriptor = MutableTextDescriptor.getInstanceTextDescriptor();
+		initialTextCellDescriptor = MutableTextDescriptor.getCellTextDescriptor();
 		initialTextNodeFont = TextDescriptor.getNodeTextDescriptorFont();
 		initialTextArcFont = TextDescriptor.getArcTextDescriptorFont();
 		initialTextExportFont = TextDescriptor.getExportTextDescriptorFont();
@@ -104,12 +105,12 @@ public class TextTab extends PreferencePanel
 		initialTextCellFont = TextDescriptor.getCellTextDescriptorFont();
 
 		// get current descriptors (gets changed by dialog)
-		currentTextNodeDescriptor = TextDescriptor.getNodeTextDescriptor(null);
-		currentTextArcDescriptor = TextDescriptor.getArcTextDescriptor(null);
-		currentTextExportDescriptor = TextDescriptor.getExportTextDescriptor(null);
-		currentTextAnnotationDescriptor = TextDescriptor.getAnnotationTextDescriptor(null);
-		currentTextInstanceDescriptor = TextDescriptor.getInstanceTextDescriptor(null);
-		currentTextCellDescriptor = TextDescriptor.getCellTextDescriptor(null);
+		currentTextNodeDescriptor = MutableTextDescriptor.getNodeTextDescriptor();
+		currentTextArcDescriptor = MutableTextDescriptor.getArcTextDescriptor();
+		currentTextExportDescriptor = MutableTextDescriptor.getExportTextDescriptor();
+		currentTextAnnotationDescriptor = MutableTextDescriptor.getAnnotationTextDescriptor();
+		currentTextInstanceDescriptor = MutableTextDescriptor.getInstanceTextDescriptor();
+		currentTextCellDescriptor = MutableTextDescriptor.getCellTextDescriptor();
 		currentTextNodeFont = new StringBuffer(TextDescriptor.getNodeTextDescriptorFont());
 		currentTextArcFont = new StringBuffer(TextDescriptor.getArcTextDescriptorFont());
 		currentTextExportFont = new StringBuffer(TextDescriptor.getExportTextDescriptorFont());

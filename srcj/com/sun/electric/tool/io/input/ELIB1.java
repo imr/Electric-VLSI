@@ -45,6 +45,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveArc;
@@ -2983,18 +2984,24 @@ public class ELIB1 extends LibraryFiles
 			// Geometric names are saved as variables.
 			if (newAddr instanceof String)
 			{
-				if ((obj instanceof NodeInst && varKeys[key].getVariableKey() == NodeInst.NODE_NAME) ||
-					(obj instanceof ArcInst && varKeys[key].getVariableKey() == ArcInst.ARC_NAME))
+				if (obj instanceof NodeInst && varKeys[key].getVariableKey() == NodeInst.NODE_NAME)
 				{
-					Geometric geom = (Geometric)obj;
-					TextDescriptor nameDescript = new TextDescriptor(null, descript0, descript1, 0);
-					Input.fixTextDescriptorFont(nameDescript);
-					geom.setNameTextDescriptor(nameDescript);
-					Name name = makeGeomName(geom, newAddr, newtype);
-					if (obj instanceof NodeInst)
-						nodeInstList.name[index] = name;
-					else
-						arcNameList[index] = name;
+					NodeInst ni = (NodeInst)obj;
+					MutableTextDescriptor nameDescript = new MutableTextDescriptor(descript0, descript1, 0);
+//					Input.fixTextDescriptorFont(nameDescript);
+					ni.setTextDescriptor(NodeInst.NODE_NAME_TD, nameDescript);
+					Name name = makeGeomName(ni, newAddr, newtype);
+					nodeInstList.name[index] = name;
+					continue;
+				}
+				if (obj instanceof ArcInst && varKeys[key].getVariableKey() == ArcInst.ARC_NAME)
+				{
+					ArcInst ai = (ArcInst)obj;
+					MutableTextDescriptor nameDescript = new MutableTextDescriptor(descript0, descript1, 0);
+//					Input.fixTextDescriptorFont(nameDescript);
+					ai.setTextDescriptor(ArcInst.ARC_NAME_TD, nameDescript);
+					Name name = makeGeomName(ai, newAddr, newtype);
+					arcNameList[index] = name;
 					continue;
 				}
 			}
@@ -3021,7 +3028,7 @@ public class ELIB1 extends LibraryFiles
 				System.out.println("Error reading variable");
 				return -1;
 			}
-			var.setTextDescriptor(new TextDescriptor(null, descript0, descript1, 0));
+			var.setTextDescriptor(new MutableTextDescriptor(descript0, descript1, 0));
 			var.lowLevelSetFlags(newtype);
 
 			// handle updating of technology caches

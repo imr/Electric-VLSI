@@ -992,9 +992,8 @@ public class ToolMenu {
             if (var != null)
             {
                 var.setDisplay(true);
-                TextDescriptor td = var.getTextDescriptor();
-                td.setOff(-1.5, -1);
-                td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
+                var.setOff(-1.5, -1);
+                var.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
             }
             return true;
         }
@@ -1034,9 +1033,8 @@ public class ToolMenu {
             if (templateVar != null)
             {
                 templateVar.setDisplay(true);
-                TextDescriptor td = templateVar.getTextDescriptor();
-                td.setInterior(true);
-                td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
+                templateVar.setInterior(true);
+                templateVar.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
                 System.out.println("Set "+templateKey.getName().replaceFirst("ATTR_", "")+" for cell "+cell.describe());
             }
             return true;

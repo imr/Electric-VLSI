@@ -32,7 +32,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.Layer;
@@ -551,7 +551,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 			if (display)
 			{
 				var.setDisplay(true);
-				TextDescriptor td = TextDescriptor.getNodeTextDescriptor(null);
+				MutableTextDescriptor td = MutableTextDescriptor.getNodeTextDescriptor();
 				td.setOff(0, -6);
 				td.setAbsSize(12);
 				var.setTextDescriptor(td);

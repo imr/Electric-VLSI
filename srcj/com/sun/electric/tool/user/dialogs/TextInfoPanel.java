@@ -31,6 +31,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Generic;
@@ -64,7 +65,7 @@ public class TextInfoPanel extends javax.swing.JPanel
     private int initialColorIndex;
 
     private TextDescriptor td;
-    private String futureVarName;
+    private String varName;
     private ElectricObject owner;
     private NodeInst unTransformNi;
 
@@ -131,34 +132,31 @@ public class TextInfoPanel extends javax.swing.JPanel
         // color
         initialColorIndex = 0;
 
-        setTextDescriptor(null, null, null);
+        setTextDescriptor(null, null);
     }
 
     /**
      * Set what the dialog displays: It can display and allow editing of the settings
-     * for a passed text descriptor, or it can display and allow editing of default values
-     * for a text descriptor of a variable that has not yet been created (futureVarName).
-     * <p>if td is non-null, display and allow editing of the td text options
-     * <p>else if futureVarName is non-null, display and allow editing of default values.
-     * <p>if both are null, disable entire panel
-     * <p>if both are non-null, ignore "futureVarName".
-     * @param td the TextDescriptor whose text settings will be displayed.
-     * @param futureVarName the name a variable that will be created later.
+     * for an existing text descriptor, or it can display and allow editing of default values
+     * for a text descriptor of a variable that has not yet been created.
+     * <p>if owner.getTextDescriptor(varName) returns non-null td, display and allow editing of the td text options
+     * <p>else if varName is non-null, display and allow editing of default values.
+     * <p>if varName is null, disable entire panel
+     * @param varName the name a variable that will be created later.
      * @param owner the object the variable is on.
      */
-    public synchronized void setTextDescriptor(TextDescriptor td, String futureVarName, ElectricObject owner)
+    public synchronized void setTextDescriptor(String varName, ElectricObject owner)
     {
         // do not allow empty names for future vars
-        if (futureVarName != null) {
-            futureVarName = futureVarName.trim();
-            if (futureVarName.equals("")) futureVarName = null;
+        if (varName != null) {
+            varName = varName.trim();
+            if (varName.equals("")) varName = null;
         }
 
-        this.td = td;
-        this.futureVarName = futureVarName;
+        this.varName = varName;
         this.owner = owner;
 
-        boolean enabled = ((td == null) && (futureVarName == null)) ? false : true;
+        boolean enabled = owner != null && varName != null;
 
         // update enabled state of everything
         // can't just enable all children because objects might be inside JPanel
@@ -184,7 +182,8 @@ public class TextInfoPanel extends javax.swing.JPanel
 
         // if td is null and we are going to apply value to future var,
         // use current panel settings.
-        if ((td == null) && (futureVarName != null)) return;
+		td = owner.getTextDescriptor(varName);
+        if (td == null) return;
 
         NodeInst ni = null;
         // use location of owner if it is a generic invisible pin, because
@@ -337,7 +336,7 @@ public class TextInfoPanel extends javax.swing.JPanel
      */
     public synchronized boolean applyChanges() {
 
-        if ((td == null) && (futureVarName == null)) return false;
+        if (varName == null) return false;
 
         boolean changed = false;
 
@@ -416,7 +415,7 @@ public class TextInfoPanel extends javax.swing.JPanel
         if (newColorComboIndex > 0) newColorIndex = colorIndices[newColorComboIndex-1];
         if (newColorIndex != initialColorIndex) changed = true;
 
-        if (futureVarName == null) {
+        if (td != null) {
             // no changes on current td, return false
             if (!changed) return false;
         } else {
@@ -430,10 +429,9 @@ public class TextInfoPanel extends javax.swing.JPanel
 
         // changes made: generate job and update initial values
         ChangeText job = new ChangeText(
-                td,
                 owner,
 				unTransformNi,
-                futureVarName,
+                varName,
                 newSize,
                 newPosition, newBoxedWidth, newBoxedHeight,
                 newRotation,
@@ -461,10 +459,9 @@ public class TextInfoPanel extends javax.swing.JPanel
 
     private static class ChangeText extends Job
 	{
-        private TextDescriptor td;
         private ElectricObject owner;
         private NodeInst unTransformNi;
-        private String futureVar;
+        private String varName;
         private TextDescriptor.Size size;
         private TextDescriptor.Position position;
         private double boxedWidth, boxedHeight;
@@ -475,10 +472,9 @@ public class TextInfoPanel extends javax.swing.JPanel
         private int newColorIndex;
 
         private ChangeText(
-                TextDescriptor td,
                 ElectricObject owner,
 				NodeInst unTransformNi,
-                String futureVar,
+                String varName,
                 TextDescriptor.Size size,
                 TextDescriptor.Position position, double boxedWidth, double boxedHeight,
                 TextDescriptor.Rotation rotation,
@@ -488,10 +484,9 @@ public class TextInfoPanel extends javax.swing.JPanel
                 )
         {
             super("Modify Text", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.td = td;
             this.owner = owner;
             this.unTransformNi = unTransformNi;
-            this.futureVar = futureVar;
+            this.varName = varName;
             this.size = size;
             this.position = position;
             this.boxedWidth = boxedWidth;
@@ -507,11 +502,13 @@ public class TextInfoPanel extends javax.swing.JPanel
         public boolean doIt()
         {
             // if td is null, use future var name to look up var and get td
-            if (td == null) {
-                Variable var = owner.getVar(futureVar);
-                if (var == null) return false;                // var doesn't exist, failed
-                td = var.getTextDescriptor();           // use TextDescriptor from new var
-            }
+//             if (td == null) {
+//                 Variable var = owner.getVar(futureVar);
+//                 if (var == null) return false;                // var doesn't exist, failed
+//                 td = var.getTextDescriptor();           // use TextDescriptor from new var
+//             }
+			MutableTextDescriptor td = owner.getMutableTextDescriptor(varName);
+			if (td == null) return false;
 
             // handle changes to the size
             if (size.isAbsolute())
@@ -577,6 +574,8 @@ public class TextInfoPanel extends javax.swing.JPanel
             td.setBold(bold);
             td.setUnderline(underline);
             td.setColorIndex(newColorIndex);
+
+			owner.setTextDescriptor(varName, td);
 			return true;
         }
     }

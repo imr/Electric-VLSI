@@ -26,13 +26,16 @@ package com.sun.electric.tool.io.input;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
@@ -457,18 +460,32 @@ public class Input
 		for(Iterator it = eobj.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
-			fixTextDescriptorFont(var.getTextDescriptor());
+			fixTextDescriptorFont(eobj, var.getKey().getName());
+		}
+		if (eobj instanceof NodeInst)
+		{
+			fixTextDescriptorFont(eobj, NodeInst.NODE_NAME_TD);
+			fixTextDescriptorFont(eobj, NodeInst.NODE_PROTO_TD);
+		}
+		else if (eobj instanceof ArcInst)
+		{
+			fixTextDescriptorFont(eobj, ArcInst.ARC_NAME_TD);
+		}	
+		else if (eobj instanceof Export)
+		{
+			fixTextDescriptorFont(eobj, Export.EXPORT_NAME_TD);
 		}
 	}
 
 	/**
 	 * Method to convert the font number in a TextDescriptor to the proper value as
 	 * cached in the Library.  The caching is examined by "getFontAssociationVariable()".
-	 * @param td the TextDescriptor to convert.
+	 * @param owner the ElectricObject which owns the TextDescriptor
+	 * @param varName the selectro of TextDescriptor to convert.
 	 */
-	public static void fixTextDescriptorFont(TextDescriptor td)
+	public static void fixTextDescriptorFont(ElectricObject owner, String varName)
 	{
-		int fontNumber = td.getFace();
+		int fontNumber = owner.getTextDescriptor(varName).getFace();
 		if (fontNumber == 0) return;
 
 		if (fontNames == null) fontNumber = 0; else
@@ -481,7 +498,9 @@ public class Input
 					fontNumber = af.getIndex();
 			}
 		}
+		MutableTextDescriptor td = owner.getMutableTextDescriptor(varName);
 		td.setFace(fontNumber);
+		owner.setTextDescriptor(varName, td);
 	}
 
 	javax.swing.ProgressMonitorInputStream is = null;
@@ -589,73 +608,4 @@ public class Input
 		}
 		return sb.toString();
 	}
-
-//	private static String [] fontNames = null;
-//
-//	/**
-//	 * Method to grab font associations that were stored on a Library.
-//	 * The font associations are used later to convert indices to true font names and numbers.
-//	 * @param lib the Library to examine.
-//	 */
-//	public static void getFontAssociationVariable(Library lib)
-//	{
-//		fontNames = null;
-//		Variable var = lib.getVar(Library.FONT_ASSOCIATIONS, String[].class);
-//		if (var == null) return;
-//
-//		String [] associationArray = (String [])var.getObject();
-//		int maxAssociation = 0;
-//		for(int i=0; i<associationArray.length; i++)
-//		{
-//			int fontNumber = TextUtils.atoi(associationArray[i]);
-//			if (fontNumber > maxAssociation) maxAssociation = fontNumber;
-//		}
-//		if (maxAssociation <= 0) return;
-//
-//		fontNames = new String[maxAssociation];
-//		for(int i=0; i<maxAssociation; i++) fontNames[i] = null;
-//		for(int i=0; i<associationArray.length; i++)
-//		{
-//			int fontNumber = TextUtils.atoi(associationArray[i]);
-//			if (fontNumber <= 0) continue;
-//			int slashPos = associationArray[i].indexOf('/');
-//			if (slashPos < 0) continue;
-//			fontNames[fontNumber-1] = associationArray[i].substring(slashPos+1);
-//		}
-//
-//		// data cached: delete the association variable
-//		lib.delVar(Library.FONT_ASSOCIATIONS);
-//	}
-//
-//	public static void fixVariableFont(ElectricObject eobj)
-//	{
-//		for(Iterator it = eobj.getVariables(); it.hasNext(); )
-//		{
-//			Variable var = (Variable)it.next();
-//			fixTextDescriptorFont(var.getTextDescriptor());
-//		}
-//	}
-//
-//	/**
-//	 * Method to convert the font number in a TextDescriptor to the proper value as
-//	 * cached in the Library.  The caching is examined by "getFontAssociationVariable()".
-//	 * @param td the TextDescriptor to convert.
-//	 */
-//	public static void fixTextDescriptorFont(TextDescriptor td)
-//	{
-//		int fontNumber = td.getFace();
-//		if (fontNumber == 0) return;
-//
-//		if (fontNames == null) fontNumber = 0; else
-//		{
-//			if (fontNumber <= fontNames.length)
-//			{
-//				String fontName = fontNames[fontNumber-1];
-//				TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(fontName);
-//				if (af == null) fontNumber = 0; else
-//					fontNumber = af.getIndex();
-//			}
-//		}
-//		td.setFace(fontNumber);
-//	}
 }

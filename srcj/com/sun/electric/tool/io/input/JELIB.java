@@ -41,6 +41,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveArc;
@@ -856,7 +857,7 @@ public class JELIB extends LibraryFiles
 			}
 
 			// get the node name text descriptor
-			loadTextDescriptor(ni.getNameTextDescriptor(), null, nameTextDescriptorInfo, cc.fileName, cc.lineNumber + line);
+			ni.setTextDescriptor(NodeInst.NODE_NAME_TD, loadTextDescriptor(null, nameTextDescriptorInfo, cc.fileName, cc.lineNumber + line));
 
 			// insert into map of disk names
 			diskName.put(diskNodeName, ni);
@@ -871,7 +872,7 @@ public class JELIB extends LibraryFiles
 
 			// get text descriptor for cell instance names
 			if (textDescriptorInfo != null)
-				loadTextDescriptor(ni.getProtoTextDescriptor(), null, textDescriptorInfo, cc.fileName, cc.lineNumber + line);
+				ni.setTextDescriptor(NodeInst.NODE_PROTO_TD, loadTextDescriptor(null, textDescriptorInfo, cc.fileName, cc.lineNumber + line));
 
 			// add variables in fields 10 and up
 			addVariables(ni, pieces, numPieces, cc.fileName, cc.lineNumber + line);
@@ -919,7 +920,7 @@ public class JELIB extends LibraryFiles
 
 			// get text descriptor in field 1
 			String textDescriptorInfo = (String)pieces.get(1);
-			loadTextDescriptor(pp.getTextDescriptor(), null, textDescriptorInfo, cc.fileName, cc.lineNumber + line);
+			pp.setTextDescriptor(Export.EXPORT_NAME_TD, loadTextDescriptor(null, textDescriptorInfo, cc.fileName, cc.lineNumber + line));
 
 			// parse state information in field 6
 			String stateInfo = (String)pieces.get(numPieces - 1);
@@ -1028,7 +1029,7 @@ public class JELIB extends LibraryFiles
 
 			// get the ard name text descriptor
 			String nameTextDescriptorInfo = (String)pieces.get(2);
-			loadTextDescriptor(ai.getNameTextDescriptor(), null, nameTextDescriptorInfo, cc.fileName, cc.lineNumber + line);
+			ai.setTextDescriptor(ArcInst.ARC_NAME_TD, loadTextDescriptor(null, nameTextDescriptorInfo, cc.fileName, cc.lineNumber + line));
 
 			// add state bits
 			ai.setRigid(rigid);
@@ -1402,8 +1403,7 @@ public class JELIB extends LibraryFiles
 // 			}
 
 			// add in extra information
-			TextDescriptor td = newVar.getTextDescriptor();
-			loadTextDescriptor(td, newVar, varBits, fileName, lineNumber);
+			newVar.setTextDescriptor(loadTextDescriptor(newVar, varBits, fileName, lineNumber));
 		}
 	}
 
@@ -1495,15 +1495,16 @@ public class JELIB extends LibraryFiles
 
 	/**
 	 * Method to load a TextDescriptor from a String description of it.
-	 * @param td the TextDescriptor to load.
 	 * @param var the Variable that this TextDescriptor resides on.
 	 * It may be null if the TextDescriptor is on a NodeInst or Export.
 	 * @param varBits the String that describes the TextDescriptor.
 	 * @param fileName the name of the file that this came from (for error reporting).
 	 * @param lineNumber the line number in the file that this came from (for error reporting).
+	 * @return loaded TextDescriptor
 	 */
-	private void loadTextDescriptor(TextDescriptor td, Variable var, String varBits, String fileName, int lineNumber)
+	private MutableTextDescriptor loadTextDescriptor(Variable var, String varBits, String fileName, int lineNumber)
 	{
+		MutableTextDescriptor td = new MutableTextDescriptor();
 		double xoff = 0, yoff = 0;
 		for(int j=0; j<varBits.length(); j++)
 		{
@@ -1684,6 +1685,7 @@ public class JELIB extends LibraryFiles
 			}
 		}
 		td.setOff(xoff, yoff);
+		return td;
 	}
 
 	/**

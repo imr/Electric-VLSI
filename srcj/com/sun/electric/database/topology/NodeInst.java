@@ -78,7 +78,10 @@ import java.util.List;
  */
 public class NodeInst extends Geometric implements Nodable
 {
-	/** key of obsolete Varible holding instance name. */		public static final Variable.Key NODE_NAME = ElectricObject.newKey("NODE_name");
+	/** special name for text descriptor of prototype name */	public static final String NODE_PROTO_TD = new String("NODE_proto");
+	/** special name for text descriptor of instance name */	public static final String NODE_NAME_TD = new String("NODE_name");
+
+	/** key of obsolete Variable holding instance name. */		public static final Variable.Key NODE_NAME = ElectricObject.newKey("NODE_name");
 	/** key of Varible holding outline information. */			public static final Variable.Key TRACE = ElectricObject.newKey("trace");
 	/** key of Varible holding serpentine transistor length. */	private static final Variable.Key TRANSISTOR_LENGTH_KEY = ElectricObject.newKey("transistor_width");
 
@@ -659,7 +662,7 @@ public class NodeInst extends Geometric implements Nodable
 				newAi.getTail().setNegated(ai.getTail().isNegated());
 			}
 			newAi.copyVarsFrom(ai);
-			newAi.setNameTextDescriptor(ai.getNameTextDescriptor());
+			newAi.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
 			ai.kill();
 			newAi.setName(ai.getName());
 		}
@@ -683,8 +686,8 @@ public class NodeInst extends Geometric implements Nodable
 
 		// copy all variables on the nodeinst
 		newNi.copyVarsFrom(this);
-		newNi.setNameTextDescriptor(getNameTextDescriptor());
-		newNi.setProtoTextDescriptor(getProtoTextDescriptor());
+		newNi.copyTextDescriptorFrom(this, NodeInst.NODE_NAME_TD);
+		newNi.copyTextDescriptorFrom(this, NodeInst.NODE_PROTO_TD);
 		newNi.lowLevelSetUserbits(lowLevelGetUserbits());
 
 		// now delete the original nodeinst
@@ -1273,7 +1276,7 @@ public class NodeInst extends Geometric implements Nodable
 		{
 			double cX = getTrueCenterX();
 			double cY = getTrueCenterY();
-			TextDescriptor td = getProtoTextDescriptor();
+			TextDescriptor td = getTextDescriptor(NodeInst.NODE_PROTO_TD);
 			double offX = td.getXOff();
 			double offY = td.getYOff();
 			TextDescriptor.Position pos = td.getPos();
@@ -2293,7 +2296,7 @@ public class NodeInst extends Geometric implements Nodable
 	 * The Text Descriptor applies to the display of that name.
 	 * @return the Text Descriptor for this NodeInst.
 	 */
-	public TextDescriptor getProtoTextDescriptor() { return protoDescriptor; }
+//	public TextDescriptor getProtoTextDescriptor() { return protoDescriptor; }
 
 	/**
 	 * Method to set the Text Descriptor associated with this NodeInst.
@@ -2302,7 +2305,47 @@ public class NodeInst extends Geometric implements Nodable
 	 * The Text Descriptor applies to the display of that name.
 	 * @param descriptor the Text Descriptor for this NodeInst.
 	 */
-	public void setProtoTextDescriptor(TextDescriptor descriptor) { this.protoDescriptor.copy(descriptor); }
+//	public void setProtoTextDescriptor(TextDescriptor descriptor) { this.protoDescriptor.copy(descriptor); }
+
+	/**
+	 * Returns the TextDescriptor on this NodeInst selected by name.
+	 * This name may be a name of variable on this NodeInst or one of
+	 * the special names <code>NodeInst.NODE_NAME_TD</code> or <code>Node.NODE_PROTO_TD</code>.
+	 * Other strings are not considered special, even they are equal to the
+	 * special name. In other words, special name is compared by "==" other than
+	 * by "equals".
+	 * The TextDescriptor gives information for displaying the Variable.
+	 * @param varName name of variable or special name.
+	 * @return the TextDescriptor on this NodeInst.
+	 */
+	public TextDescriptor getTextDescriptor(String varName)
+	{
+		if (varName == NODE_NAME_TD) return nameDescriptor;
+		if (varName == NODE_PROTO_TD) return protoDescriptor;
+		return super.getTextDescriptor(varName);
+	}
+
+	/**
+	 * Updates the TextDescriptor on this NodeInst selected by varName.
+	 * The varName may be a name of variable on this NodeInst or one of
+	 * the special names <code>NodeInst.NODE_NAME_TD</code> or <code>NodeInst.NODE_PROTO_ID</code>.
+	 * If varName doesn't select any text descriptor, no action is performed.
+	 * Other strings are not considered special, even they are equal to the
+	 * special name. In other words, special name is compared by "==" other than
+	 * by "equals".
+	 * The TextDescriptor gives information for displaying the Variable.
+	 * @param varName name of variable or special name.
+	 * @param td new value TextDescriptor
+	 */
+	public void setTextDescriptor(String varName, TextDescriptor td)
+	{
+		if (varName == NODE_NAME_TD)
+			nameDescriptor.copy(td);
+		else if (varName == NODE_PROTO_TD)
+			protoDescriptor.copy(td);
+		else
+			super.setTextDescriptor(varName, td);
+	}
 
 	/**
 	 * Method to determine whether a variable key on NodeInst is deprecated.
@@ -2373,11 +2416,11 @@ public class NodeInst extends Geometric implements Nodable
 		for(Iterator it = getExports(); it.hasNext(); )
 		{
 			Export pp = (Export)it.next();
-			TextDescriptor td = pp.getTextDescriptor();
+			TextDescriptor td = pp.getTextDescriptor(Export.EXPORT_NAME_TD);
 			if (td.getXOff() != 0 || td.getYOff() != 0)
 			{
 				Point2D retVal = new Point2D.Double(getAnchorCenterX() + td.getXOff(), getAnchorCenterY() +td.getYOff());
-				if (repair) td.setOff(0, 0);
+				if (repair) pp.setOff(Export.EXPORT_NAME_TD, 0, 0);
 				return retVal;
 			}
 		}
@@ -2385,11 +2428,10 @@ public class NodeInst extends Geometric implements Nodable
 		for(Iterator it = this.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
-			TextDescriptor td = var.getTextDescriptor();
-			if (var.isDisplay() && (td.getXOff() != 0 || td.getYOff() != 0))
+			if (var.isDisplay() && (var.getXOff() != 0 || var.getYOff() != 0))
 			{
-				Point2D retVal = new Point2D.Double(getAnchorCenterX() + td.getXOff(), getAnchorCenterY() +td.getYOff());
-				if (repair) td.setOff(0, 0);
+				Point2D retVal = new Point2D.Double(getAnchorCenterX() + var.getXOff(), getAnchorCenterY() +var.getYOff());
+				if (repair) var.setOff(0, 0);
 				return retVal;
 			}
 		}

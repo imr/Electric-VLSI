@@ -37,7 +37,6 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
@@ -227,18 +226,16 @@ public class Schematic
 				for(Iterator it = ni.getVariables(); it.hasNext(); )
 				{
 					Variable var = (Variable)it.next();
-					TextDescriptor td = var.getTextDescriptor();
-					if (!td.isParam()) continue;
+					if (!var.isParam()) continue;
 
-					TextDescriptor foundTD = null;
+					Variable foundVar = null;
 					for(Iterator cIt = contentsCell.getVariables(); cIt.hasNext(); )
 					{
 						Variable fVar = (Variable)cIt.next();
-						TextDescriptor fTd = fVar.getTextDescriptor();
-						if (!fTd.isParam()) continue;
-						if (var.getKey() == fVar.getKey()) { foundTD = fTd;   break; }
+						if (!fVar.isParam()) continue;
+						if (var.getKey() == fVar.getKey()) { foundVar = fVar;   break; }
 					}
-					if (foundTD == null)
+					if (foundVar == null)
 					{
 						// this node's parameter is no longer on the cell: delete from instance
 						String trueVarName = var.getTrueName();
@@ -253,17 +250,17 @@ public class Schematic
 					} else
 					{
 						// this node's parameter is still on the cell: make sure units are OK
-						if (td.getUnit() != foundTD.getUnit())
+						if (var.getUnit() != foundVar.getUnit())
 						{
 							String trueVarName = var.getTrueName();
 							ErrorLogger.MessageLog err = errorLogger.logError("Parameter '" + trueVarName + "' on node " + ni.describe() +
 								" had incorrect units (now fixed)", cell, 0);
 							err.addGeom(geom, true, cell, null);
-							td.setUnit(foundTD.getUnit());
+							var.setUnit(foundVar.getUnit());
 						}
 
 						// make sure visibility is OK
-						if (foundTD.isInterior())
+						if (foundVar.isInterior())
 						{
 							if (var.isDisplay())
 							{

@@ -34,7 +34,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.PrimitiveArc;
@@ -943,8 +943,9 @@ public class PadGenerator {
                             if (pppad == null)
                                 err("Creating export " + pad.exportsname);
                             else {
-                                TextDescriptor td = pppad.getTextDescriptor();
+                                MutableTextDescriptor td = pppad.getMutableTextDescriptor(Export.EXPORT_NAME_TD);
                                 td.setAbsSize(14);
+								pppad.setTextDescriptor(Export.EXPORT_NAME_TD, td);
             //	/**
 //	 * Method to write a description of this Export.
 //	 * Displays the description in the Messages Window.
@@ -970,9 +971,10 @@ public class PadGenerator {
                                 if (ppcore == null)
                                     err("Creating export core_" + pad.exportsname);
                                 else {
-                                    TextDescriptor td = ppcore.getTextDescriptor();
+                                    MutableTextDescriptor td = ppcore.getMutableTextDescriptor(Export.EXPORT_NAME_TD);
                                     td.setAbsSize(14);
                                     corePorts.add(ppcore);
+									ppcore.setTextDescriptor(Export.EXPORT_NAME_TD, td);
                                 }
                             }
                         } else {

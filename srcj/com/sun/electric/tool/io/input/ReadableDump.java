@@ -43,6 +43,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
@@ -1314,9 +1315,8 @@ public class ReadableDump extends LibraryFiles
 		int slashPos = keyWord.indexOf('/');
 		if (slashPos >= 0)
 			td1 = TextUtils.atoi(keyWord.substring(slashPos+1));
-		TextDescriptor td = new TextDescriptor(null, td0, td1, 0);
-		Input.fixTextDescriptorFont(td);
-		nodeInstList[curCellNumber].theNode[curNodeInstIndex].setProtoTextDescriptor(td);
+		MutableTextDescriptor td = new MutableTextDescriptor(td0, td1, 0);
+		nodeInstList[curCellNumber].theNode[curNodeInstIndex].setTextDescriptor(NodeInst.NODE_PROTO_TD, td);
 	}
 
 	/**
@@ -1548,9 +1548,8 @@ public class ReadableDump extends LibraryFiles
 		int slashPos = keyWord.indexOf('/');
 		if (slashPos >= 0)
 			td1 = TextUtils.atoi(keyWord, slashPos+1);
-		TextDescriptor td = new TextDescriptor(null, td0, td1, 0);
-		Input.fixTextDescriptorFont(td);
-		exportList[curCellNumber].exportList[curExportIndex].setTextDescriptor(td);
+		MutableTextDescriptor td = new MutableTextDescriptor(td0, td1, 0);
+		exportList[curCellNumber].exportList[curExportIndex].setTextDescriptor(Export.EXPORT_NAME_TD, td);
 	}
 
 	/**
@@ -1689,7 +1688,7 @@ public class ReadableDump extends LibraryFiles
 				if (slashPos >= 0)
 					td1 = TextUtils.atoi(keyWord, slashPos+1);
 			}
-			TextDescriptor td = new TextDescriptor(null, td0, td1, 0);
+			MutableTextDescriptor td = new MutableTextDescriptor(td0, td1, 0);
 
 			// get value
 			if (getKeyword())
@@ -1786,17 +1785,20 @@ public class ReadableDump extends LibraryFiles
 			// Geometric names are saved as variables.
 			if (value instanceof String)
 			{
-				if ((naddr instanceof NodeInst && varKey == NodeInst.NODE_NAME) ||
-					(naddr instanceof ArcInst && varKey == ArcInst.ARC_NAME))
+				if (naddr instanceof NodeInst && varKey == NodeInst.NODE_NAME)
 				{
-					Geometric geom = (Geometric)naddr;
-					Input.fixTextDescriptorFont(td);
-					geom.setNameTextDescriptor(td);
-					Name name = makeGeomName(geom, value, type);
-					if (naddr instanceof NodeInst)
-						nodeInstList[curCellNumber].name[curNodeInstIndex] = name;
-					else
-						arcInstList[curCellNumber].arcInstName[curArcInstIndex] = name;
+					NodeInst ni = (NodeInst)naddr;
+					ni.setTextDescriptor(NodeInst.NODE_NAME_TD, td);
+					Name name = makeGeomName(ni, value, type);
+					nodeInstList[curCellNumber].name[curNodeInstIndex] = name;
+					continue;
+				}
+				if (naddr instanceof ArcInst && varKey == ArcInst.ARC_NAME)
+				{
+					ArcInst ai = (ArcInst)naddr;
+					ai.setTextDescriptor(ArcInst.ARC_NAME_TD, td);
+					Name name = makeGeomName(ai, value, type);
+					arcInstList[curCellNumber].arcInstName[curArcInstIndex] = name;
 					continue;
 				}
 			}

@@ -42,6 +42,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
@@ -3345,10 +3346,10 @@ public class EDIF extends Input
 						}
 
 						// determine the size of text, 0.0278 in == 2 points or 36 (2xpixels) == 1 in fonts range from 4 to 31
-						TextDescriptor td = var.getTextDescriptor();
-						td.setRelSize(convertTextSize(textHeight));
-						td.setOff(xOff, yOff);
-						td.setPos(textJustification);
+						var.setOff(xOff, yOff);
+						var.setRelSize(convertTextSize(textHeight));
+						var.setPos(textJustification);
+						
 					} else
 					{
 						System.out.println("Error, line " + lineReader.getLineNumber() + ": nothing to attach text to");
@@ -3596,11 +3597,11 @@ public class EDIF extends Input
 		   						 * of characters as a name, this name is open to the user, for ECO and other
 								 * consistancies, the EDIF_name is saved on a variable)
 								 */
-								TextDescriptor td = null;
+								String varName;
 								if (instanceReference.equalsIgnoreCase(instanceName))
 								{
 									ni.setName(nodeName);
-									td = ni.getNameTextDescriptor();
+									varName = NodeInst.NODE_NAME_TD;
 								} else
 								{
 									// now add the original name as the displayed name (only to the first element)
@@ -3608,7 +3609,7 @@ public class EDIF extends Input
 
 									// now save the EDIF name (not displayed)
 									Variable var = ni.newVar("EDIF_name", nodeName);
-									td = var.getTextDescriptor();
+									varName = var.getKey().getName();
 								}
 
 								// now check for saved name attributes
@@ -3623,9 +3624,12 @@ public class EDIF extends Input
 									 * determine the size of text, 0.0278 in == 2 points or 36 (2xpixels) == 1 in
 									 * fonts range from 4 to 20 points
 									 */
+
+									ni.setOff(varName, xOff, yOff);
+									MutableTextDescriptor td = ni.getMutableTextDescriptor(varName);
 									td.setRelSize(convertTextSize(saveTextHeight));
-									td.setOff(xOff, yOff);
 									td.setPos(saveTextJustification);
+									ni.setTextDescriptor(varName, td);
 								}
 							}
 						}

@@ -1184,8 +1184,8 @@ public class EditMenu {
                 ArcInst newAi2 = ArcInst.makeInstance(ap, width, pi, pi2, insert, insert, null);
                 ArcInst newAi3 = ArcInst.makeInstance(ap, width, pi2, tailPort, insert, tailPt, null);
                 if (tailNegated) newAi3.getTail().setNegated(true);
-				newAi1.setNameTextDescriptor(ai.getNameTextDescriptor());
-				newAi3.setNameTextDescriptor(ai.getNameTextDescriptor());
+				newAi1.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
+				newAi3.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
 				newAi1.getHead().setNegated(ai.getHead().isNegated());
 				newAi3.getTail().setNegated(ai.getTail().isNegated());
 				ai.kill();

@@ -802,7 +802,7 @@ public class ELIB extends Output
 			if (thislib)
 			{
 				// write the text descriptor
-				TextDescriptor td = pp.getTextDescriptor();
+				TextDescriptor td = pp.getTextDescriptor(Export.EXPORT_NAME_TD);
 				writeBigInteger(td.lowLevelGet0());
 				writeBigInteger(td.lowLevelGet1());
 
@@ -881,7 +881,7 @@ public class ELIB extends Output
 		writeBigInteger(transpose);
 		writeBigInteger(rotation);
 
-		TextDescriptor td = ni.getProtoTextDescriptor();
+		TextDescriptor td = ni.getTextDescriptor(NodeInst.NODE_PROTO_TD);
 		writeBigInteger(td.lowLevelGet0());
 		writeBigInteger(td.lowLevelGet1());
 
@@ -1151,15 +1151,25 @@ public class ELIB extends Output
 		if (obj instanceof Geometric && ((Geometric)obj).getNameKey() != null)
 		{
 			Geometric geom = (Geometric)obj;
-			Variable.Key key = geom instanceof NodeInst ? NodeInst.NODE_NAME : ArcInst.ARC_NAME;
+			Variable.Key key;
+			String varName;
+			if (geom instanceof NodeInst)
+			{
+				key = NodeInst.NODE_NAME;
+				varName = NodeInst.NODE_NAME_TD;
+			} else
+			{
+				key = ArcInst.ARC_NAME;
+				varName = ArcInst.ARC_NAME_TD;
+			}
 			writeSmallInteger((short)key.getIndex());
 			int type = ELIBConstants.VSTRING;
 			if (geom.isUsernamed()) type |= ELIBConstants.VDISPLAY;
 			writeBigInteger(type);
 
 			// write the text descriptor of name
-			writeBigInteger(geom.getNameTextDescriptor().lowLevelGet0());
-			writeBigInteger(geom.getNameTextDescriptor().lowLevelGet1());
+			writeBigInteger(geom.getTextDescriptor(varName).lowLevelGet0());
+			writeBigInteger(geom.getTextDescriptor(varName).lowLevelGet1());
 			putOutVar(geom.getName());
 		}
 

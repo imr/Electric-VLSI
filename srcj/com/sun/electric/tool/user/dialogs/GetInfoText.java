@@ -97,6 +97,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 		private Highlight shownText;
 		private String initialText;
 	    private Variable var;
+		private String varName;
 	    private TextDescriptor td;
 	    private ElectricObject owner;
 	    private String description;
@@ -125,7 +126,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 			{
 				if (ni != null && ni.isInvisiblePinWithText() && var.getKey() == Artwork.ART_MESSAGE)
 					multiLineCapable = true;
-				td = var.getTextDescriptor();
+				varName = var.getKey().getName();
 				Object obj = var.getObject();
 				if (obj instanceof Object[])
 				{
@@ -149,30 +150,34 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 					if (owner instanceof Geometric)
 					{
 						Geometric geom = (Geometric) owner;
-						td = geom.getNameTextDescriptor();
 						if (geom instanceof NodeInst)
 						{
-							description = "Name of node " + ((NodeInst) geom).getProto().describe();
+							NodeInst ni1 = (NodeInst)geom;
+							description = "Name of node " + ni1.getProto().describe();
+							varName = NodeInst.NODE_NAME_TD;
 						} else
 						{
-							description = "Name of arc " + ((ArcInst) geom).getProto().describe();
+							ArcInst ai = (ArcInst)geom;
+							description = "Name of arc " + ai.getProto().describe();
+							varName = ArcInst.ARC_NAME_TD;
 						}
 						initialText = geom.getName();
 					}
 				} else if (owner instanceof NodeInst)
 				{
 					description = "Name of cell instance " + ni.describe();
-					td = ni.getProtoTextDescriptor();
+					varName = NodeInst.NODE_PROTO_TD;
 					initialText = ni.getProto().describe();
 					instanceName = true;
 				} else if (owner instanceof Export)
 				{
 					Export pp = (Export)owner;
 					description = "Name of export " + pp.getName();
-					td = pp.getTextDescriptor();
+					varName = Export.EXPORT_NAME_TD;
 					initialText = pp.getName();
 				}
 			}
+			td = owner.getTextDescriptor(varName);
 		}
 
 		/**
@@ -290,8 +295,8 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
             theText.setText("");
             theText.setEnabled(false);
 			cti = null;
-            textPanel.setTextDescriptor(null, null, null);
-            attrPanel.setVariable(null, null, null, null);
+            textPanel.setTextDescriptor(null, null);
+            attrPanel.setVariable(null, null);
             ok.setEnabled(false);
             apply.setEnabled(false);
             multiLine.setEnabled(false);
@@ -337,12 +342,9 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
             }
         }
 
-		boolean cellInstanceName = false;
-		if (cti.var == null && cti.shownText.getName() == null && cti.owner instanceof NodeInst) cellInstanceName = true;
-
         // set the text edit panel
-        textPanel.setTextDescriptor(cti.td, null, cti.owner);
-        attrPanel.setVariable(cti.var, cellInstanceName ? null : cti.td, null, cti.owner);
+        textPanel.setTextDescriptor(cti.varName, cti.owner);
+        attrPanel.setVariable(cti.varName, cti.owner);
 
         // do this last so everything gets packed right
         changeTextComponent(cti.initialText, multiLine.isSelected());
@@ -350,7 +352,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
         focusOnTextField(theText);
 
 		// if this is a cell instance name, disable editing
-		if (cellInstanceName)
+		if (cti.varName == NodeInst.NODE_PROTO_TD)
 		{
 			theText.setEditable(false);
 			theText.setEnabled(false);

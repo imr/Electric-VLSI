@@ -34,7 +34,6 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.Quick;
 import com.sun.electric.tool.user.CircuitChanges;
@@ -488,8 +487,8 @@ public class Array extends EDialog
 					NodeInst newNi = NodeInst.makeInstance(ni.getProto(),
 						new Point2D.Double(xPos, yPos), sx, sy, cell, ro, null, 0);
 					if (newNi == null) continue;
-					newNi.setProtoTextDescriptor(ni.getProtoTextDescriptor());
-					newNi.setNameTextDescriptor(ni.getNameTextDescriptor());
+					newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_PROTO_TD);
+					newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME_TD);
 					if (ni.isExpanded()) newNi.setExpanded(); else newNi.clearExpanded();
 					if (ni.isHardSelect()) newNi.setHardSelect(); else newNi.clearHardSelect();
 					newNi.setTechSpecific(ni.getTechSpecific());
@@ -503,7 +502,7 @@ public class Array extends EDialog
 						if (!nodeNameKey.isTempname())
 						{
 							newNi.setName(ElectricObject.uniqueObjectName(ni.getName(), cell, NodeInst.class));
-							newNi.setNameTextDescriptor(ni.getNameTextDescriptor());
+							newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME_TD);
 						}
 					}
 
@@ -567,7 +566,7 @@ public class Array extends EDialog
 							if (User.isArcsAutoIncremented())
 								newName = ElectricObject.uniqueObjectName(newName, cell, ArcInst.class);
 							newAi.setName(newName);
-							newAi.getNameTextDescriptor().copy(ai.getNameTextDescriptor());
+							newAi.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
 						}
 					}
 				}
@@ -633,8 +632,7 @@ public class Array extends EDialog
 			if (geom instanceof NodeInst && ((NodeInst)geom).getProto() instanceof Cell)
 			{
 				NodeInst ni = (NodeInst)geom;
-				TextDescriptor td = ni.getNameTextDescriptor();
-				td.setOff(0, ni.getYSize() / 4);
+				ni.setOff(NodeInst.NODE_NAME_TD, 0, ni.getYSize() / 4);
 			}
 		}
 	}

@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02a: *********************************
 
+IMP: (01/09/05, DN) Settors are removed from TextDescriptor class. Database TextDescriptors are almost
+readonly (except low-level methods). MutableTextDescriptor class is
+used for TextDescriptors out of database, it has both gettors and settors.
+Variable API is extended by TextDescriptor API (both gettors and settors).
+ElectricObject.getTextDescriptor(varName) and ElectricObject.setTextDescriptor(varName, td) can be
+used for uniform access to text descriptors in database. varName can be also one of:
+NodeInst.NODE_PROTO_TD, NodeInst.NODE_NAME_TD, ArcInst.ARC_NAME_TD, Export.EXPORT_NAME_TD 
+
 IMP: (01/08/05, GVG) Catching expection due to bad filename while generating ImageIO during export.
 
 IMP: (01/08/05, GVG) Avoid exception if new name is null due to errors in Cell.rename.

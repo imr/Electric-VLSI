@@ -372,9 +372,9 @@ public class Output
 			{
 				NodeInst ni = (NodeInst)nIt.next();
 				checkFontUsage(ni, fontFound);
-				updateFontUsage(ni.getNameTextDescriptor(), fontFound);
+				updateFontUsage(ni.getTextDescriptor(NodeInst.NODE_NAME_TD), fontFound);
 				if (ni.getProto() instanceof Cell)
-					updateFontUsage(ni.getProtoTextDescriptor(), fontFound);
+					updateFontUsage(ni.getTextDescriptor(NodeInst.NODE_PROTO_TD), fontFound);
 				for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
 				{
 					PortInst pi = (PortInst)pIt.next();
@@ -385,13 +385,13 @@ public class Output
 			{
 				ArcInst ai = (ArcInst)aIt.next();
 				checkFontUsage(ai, fontFound);
-				updateFontUsage(ai.getNameTextDescriptor(), fontFound);
+				updateFontUsage(ai.getTextDescriptor(ArcInst.ARC_NAME_TD), fontFound);
 			}
 			for(Iterator eIt = cell.getPorts(); eIt.hasNext(); )
 			{
 				Export pp = (Export)eIt.next();
 				checkFontUsage(pp, fontFound);
-				updateFontUsage(pp.getTextDescriptor(), fontFound);
+				updateFontUsage(pp.getTextDescriptor(Export.EXPORT_NAME_TD), fontFound);
 			}
 		}
 // 		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )

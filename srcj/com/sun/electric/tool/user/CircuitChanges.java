@@ -45,6 +45,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -2200,7 +2201,7 @@ public class CircuitChanges
 			if (var != null)
 			{
 				var.setDisplay(true);
-				var.getTextDescriptor().setRelSize(6);
+				var.setRelSize(6);
 			}
 
 			// place the components
@@ -2225,7 +2226,7 @@ public class CircuitChanges
 					if (var != null)
 					{
 						var.setDisplay(true);
-						var.getTextDescriptor().setRelSize(1);
+						var.setRelSize(1);
 					}
 				}
 			}
@@ -2420,7 +2421,7 @@ public class CircuitChanges
 				newNodes.put(ni, newNi);
 				newNi.lowLevelSetUserbits(ni.lowLevelGetUserbits());
 				newNi.copyVarsFrom(ni);
-				newNi.setNameTextDescriptor(ni.getNameTextDescriptor());
+				newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME_TD);
 	
 				// make ports where this nodeinst has them
 				for(Iterator it = ni.getExports(); it.hasNext(); )
@@ -2431,7 +2432,7 @@ public class CircuitChanges
 					if (newPp != null)
 					{
 						newPp.setCharacteristic(pp.getCharacteristic());
-						newPp.setTextDescriptor(pp.getTextDescriptor());
+						newPp.copyTextDescriptorFrom(pp, Export.EXPORT_NAME_TD);
 						newPp.copyVarsFrom(pp);
 					}
 				}
@@ -2555,7 +2556,7 @@ public class CircuitChanges
 			NodeInst newNi = NodeInst.makeInstance(np, pt, xSize, ySize, cell, newAngle, name, 0);
 			if (newNi == null) return;
 			newNodes.put(ni, newNi);
-			newNi.setNameTextDescriptor(ni.getNameTextDescriptor());
+			newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME_TD);
 			newNi.lowLevelSetUserbits(ni.lowLevelGetUserbits());
 			newNi.copyVarsFrom(ni);
 		}
@@ -2690,7 +2691,7 @@ public class CircuitChanges
 				if (newPp != null)
 				{
 					newPp.setCharacteristic(pp.getCharacteristic());
-					newPp.setTextDescriptor(pp.getTextDescriptor());
+					newPp.copyTextDescriptorFrom(pp, Export.EXPORT_NAME_TD);
 					newPp.copyVarsFrom(pp);
 				}
 			}
@@ -3875,57 +3876,65 @@ public class CircuitChanges
 
 				// moving variable on object
 				Variable var = high.getVar();
+				NodeInst ni = null;
+				String varName = null;
 				if (var != null)
 				{
-					TextDescriptor td = var.getTextDescriptor();
-					if (eobj instanceof NodeInst || eobj instanceof PortInst || eobj instanceof Export)
-					{
-						NodeInst ni = null;
-						if (eobj instanceof NodeInst) ni = (NodeInst)eobj; else
-							if (eobj instanceof PortInst) ni = ((PortInst)eobj).getNodeInst(); else
-								if (eobj instanceof Export) ni = ((Export)eobj).getOriginalPort().getNodeInst();
-						if (ni != null)
-						{
-							adjustTextDescriptor(td, ni);
-						}
-					} else
-					{
-						td.setOff(td.getXOff()+dX, td.getYOff()+dY);
-					}
+					varName = var.getKey().getName();
+					if (eobj instanceof NodeInst) ni = (NodeInst)eobj;
+					else if (eobj instanceof PortInst) ni = ((PortInst)eobj).getNodeInst();
+					else if (eobj instanceof Export) ni = ((Export)eobj).getOriginalPort().getNodeInst();
 				} else
 				{
 					if (high.getName() != null)
 					{
-						TextDescriptor td = ((Geometric)eobj).getNameTextDescriptor();
 						if (eobj instanceof NodeInst)
 						{
-							NodeInst ni = (NodeInst)eobj;
-							adjustTextDescriptor(td, ni);
+							ni = (NodeInst)eobj;
+							varName = NodeInst.NODE_NAME_TD;
 						} else
-							td.setOff(td.getXOff()+dX, td.getYOff()+dY);
+						{
+							varName = ArcInst.ARC_NAME_TD;
+						}
 					} else
 					{
 						if (eobj instanceof Export)
 						{
 							Export pp = (Export)eobj;
-							TextDescriptor td = pp.getTextDescriptor();
-							adjustTextDescriptor(td, pp.getOriginalPort().getNodeInst());
+							ni = pp.getOriginalPort().getNodeInst();
+							varName = Export.EXPORT_NAME_TD;
 						}
+						// What about NodeInst.NODE_PROTO_TD ?
 					}
+				}
+				TextDescriptor td = eobj.getTextDescriptor(varName);
+				if (td == null) continue;
+				if (ni != null)
+				{
+					Point2D curLoc = new Point2D.Double(ni.getAnchorCenterX()+td.getXOff(), ni.getAnchorCenterY()+td.getYOff());
+					AffineTransform rotateOut = ni.rotateOut();
+					rotateOut.transform(curLoc, curLoc);
+					curLoc.setLocation(curLoc.getX()+dX, curLoc.getY()+dY);
+					AffineTransform rotateIn = ni.rotateIn();
+					rotateIn.transform(curLoc, curLoc);
+					eobj.setOff(varName, curLoc.getX()-ni.getAnchorCenterX(), curLoc.getY()-ni.getAnchorCenterY());
+				} else
+				{
+					eobj.setOff(varName, td.getXOff()+dX, td.getYOff()+dY);
 				}
 			}
 		}
 
-		private void adjustTextDescriptor(TextDescriptor td, NodeInst ni)
-		{
-			Point2D curLoc = new Point2D.Double(ni.getAnchorCenterX()+td.getXOff(), ni.getAnchorCenterY()+td.getYOff());
-			AffineTransform rotateOut = ni.rotateOut();
-			rotateOut.transform(curLoc, curLoc);
-			curLoc.setLocation(curLoc.getX()+dX, curLoc.getY()+dY);
-			AffineTransform rotateIn = ni.rotateIn();
-			rotateIn.transform(curLoc, curLoc);
-			td.setOff(curLoc.getX()-ni.getAnchorCenterX(), curLoc.getY()-ni.getAnchorCenterY());
-		}
+// 		private void adjustTextDescriptor(TextDescriptor td, NodeInst ni)
+// 		{
+// 			Point2D curLoc = new Point2D.Double(ni.getAnchorCenterX()+td.getXOff(), ni.getAnchorCenterY()+td.getYOff());
+// 			AffineTransform rotateOut = ni.rotateOut();
+// 			rotateOut.transform(curLoc, curLoc);
+// 			curLoc.setLocation(curLoc.getX()+dX, curLoc.getY()+dY);
+// 			AffineTransform rotateIn = ni.rotateIn();
+// 			rotateIn.transform(curLoc, curLoc);
+// 			td.setOff(curLoc.getX()-ni.getAnchorCenterX(), curLoc.getY()-ni.getAnchorCenterY());
+// 		}
 	}
 
 
@@ -4081,12 +4090,12 @@ public class CircuitChanges
             if (ai1.getName() != null && !ai1.getNameKey().isTempname())
             {
                 ra.arcName = ai1.getName();
-                ra.arcNameTD = ai1.getNameTextDescriptor();
+                ra.arcNameTD = ai1.getTextDescriptor(ArcInst.ARC_NAME_TD);
             }
             if (ai2.getName() != null && !ai2.getNameKey().isTempname())
             {
                 ra.arcName = ai2.getName();
-                ra.arcNameTD = ai2.getNameTextDescriptor();
+                ra.arcNameTD = ai2.getTextDescriptor(ArcInst.ARC_NAME_TD);
             }
 
             // special code to handle directionality
@@ -4134,7 +4143,7 @@ public class CircuitChanges
                 if (ra.arcName != null)
                 {
                     newAi.setName(ra.arcName);
-                    newAi.setNameTextDescriptor(ra.arcNameTD);
+                    newAi.setTextDescriptor(ArcInst.ARC_NAME_TD, ra.arcNameTD);
                 }
                 newAi.copyVarsFrom(ra.reconAr[0]);
                 newAi.copyVarsFrom(ra.reconAr[1]);
@@ -5040,7 +5049,7 @@ public class CircuitChanges
 			if (newVar != null)
 			{
 				double lambda = 1;
-				TextDescriptor descript = new TextDescriptor(null);
+				MutableTextDescriptor descript = new MutableTextDescriptor();
 				var.setTextDescriptor(descript);
 				double dX = descript.getXOff();
 				double dY = descript.getYOff();
@@ -5154,13 +5163,11 @@ public class CircuitChanges
             }
         }
 
-		double xc = posVar.getTextDescriptor().getXOff();
+		double xc = posVar.getXOff();
 		if (posVar == var) xc -= np.getBounds().getCenterX();
-		double yc = posVar.getTextDescriptor().getYOff();
+		double yc = posVar.getYOff();
 		if (posVar == var) yc -= np.getBounds().getCenterY();
 
-        TextDescriptor oldDescript = posVar.getTextDescriptor();
-        TextDescriptor newDescript = nivar.getTextDescriptor();
 //        if (oldDescript.isInterior())
 //        {
 //            nivar.clearDisplay();
@@ -5169,26 +5176,26 @@ public class CircuitChanges
 //            nivar.setDisplay();
 //        }
         nivar.setDisplay(posVar.isDisplay());
-        newDescript.setInherit(false);
-        newDescript.setOff(xc, yc);
-        newDescript.setParam(oldDescript.isParam());
-        if (oldDescript.isParam())
+        nivar.setInherit(false);
+        nivar.setOff(xc, yc);
+        nivar.setParam(posVar.isParam());
+        if (posVar.isParam())
         {
-            newDescript.setInterior(false);
-            newDescript.setDispPart(oldDescript.getDispPart());
-            newDescript.setPos(oldDescript.getPos());
-            newDescript.setRotation(oldDescript.getRotation());
-            TextDescriptor.Size s = oldDescript.getSize();
-            newDescript.setRelSize(s.getSize());
-            newDescript.setBold(oldDescript.isBold());
-            newDescript.setItalic(oldDescript.isItalic());
-            newDescript.setUnderline(oldDescript.isUnderline());
-            newDescript.setFace(oldDescript.getFace());
-
-            TextDescriptor.DispPos i = newDescript.getDispPart();
-            newDescript.setDispPart(i);
+            nivar.setInterior(false);
+            nivar.setDispPart(posVar.getDispPart());
+            nivar.setPos(posVar.getPos());
+            nivar.setRotation(posVar.getRotation());
+            nivar.setBold(posVar.isBold());
+            nivar.setItalic(posVar.isItalic());
+            nivar.setUnderline(posVar.isUnderline());
+            nivar.setFace(posVar.getFace());
             //if (i == TextDescriptor.DispPos.NAMEVALINH || i == TextDescriptor.DispPos.NAMEVALINHALL)
             //    newDescript.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
+            TextDescriptor.Size s = posVar.getSize();
+			if (s.isAbsolute())
+				nivar.setAbsSize((int)s.getSize());
+			else
+				nivar.setRelSize(s.getSize());
         }
         nivar.setCode(posVar.getCode());
 	}

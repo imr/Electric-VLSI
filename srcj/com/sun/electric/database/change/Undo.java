@@ -586,8 +586,7 @@ public class Undo
 				int oldDescript0 = descript.lowLevelGet0();
 				int oldDescript1 = descript.lowLevelGet1();
 				int oldColorIndex = descript.getColorIndex();
-				descript.lowLevelSet(i1, i2);
-				descript.lowLevelSetColorIndex(i3);
+				descript.lowLevelSet(i1, i2, i3);
 				i1 = oldDescript0;
 				i2 = oldDescript1;
 				i3 = oldColorIndex;
@@ -879,21 +878,21 @@ public class Undo
 					if (ch.obj instanceof NodeInst)
 					{
 						NodeInst ni = (NodeInst)ch.obj;
-						if (ni.getNameTextDescriptor() == td || ni.getProtoTextDescriptor() == td)
+						if (ni.getTextDescriptor(NodeInst.NODE_NAME_TD) == td || ni.getTextDescriptor(NodeInst.NODE_PROTO_TD) == td)
 							nodeInst++;
 						else
 							variable++;
 					} else if (ch.obj instanceof ArcInst)
 					{
 						ArcInst ai = (ArcInst)ch.obj;
-						if (ai.getNameTextDescriptor() == td)
+						if (ai.getTextDescriptor(ArcInst.ARC_NAME_TD) == td)
 							arcInst++;
 						else
 							variable++;
 					} else if (ch.obj instanceof Export)
 					{
 						Export e = (Export)ch.obj;
-						if (e.getTextDescriptor() == td)
+						if (e.getTextDescriptor(Export.EXPORT_NAME_TD) == td)
 							export++;
 						else
 							variable++;

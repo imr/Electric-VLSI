@@ -33,7 +33,6 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
@@ -362,8 +361,8 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
             newButton.setEnabled(false);
             updateButton.setEnabled(false);
             renameButton.setEnabled(false);
-            textPanel.setTextDescriptor(null, null, null);
-            attrPanel.setVariable(null, null, null, null);
+            textPanel.setTextDescriptor(null, null);
+            attrPanel.setVariable(null, null);
             return;
         }
 
@@ -402,8 +401,8 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
             newButton.setEnabled(false);
             deleteButton.setEnabled(false);
             renameButton.setEnabled(false);
-            textPanel.setTextDescriptor(null, null, null);
-            attrPanel.setVariable(null, null, null, null);
+            textPanel.setTextDescriptor(null, null);
+            attrPanel.setVariable(null, null);
             return;
         }
 
@@ -422,8 +421,8 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
             renameButton.setEnabled(false);
             deleteButton.setEnabled(false);
             list.clearSelection();
-            textPanel.setTextDescriptor(null, varName, selectedObject);
-            attrPanel.setVariable(null, null, varName, selectedObject);
+            textPanel.setTextDescriptor(varName, selectedObject);
+            attrPanel.setVariable(varName, selectedObject);
         }
     }
 
@@ -521,8 +520,8 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         }
 
         // set the text info panel
-        textPanel.setTextDescriptor(var.getTextDescriptor(), null, selectedObject);
-        attrPanel.setVariable(var, var.getTextDescriptor(), null, selectedObject);
+        textPanel.setTextDescriptor(var.getKey().getName(), selectedObject);
+        attrPanel.setVariable(var.getKey().getName(), selectedObject);
 
         // disable create button because var name already exists, enable selected: buttons
         newButton.setEnabled(false);
@@ -582,9 +581,8 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
             if (owner instanceof Cell) {
                 Variable var = owner.getVar(newName);
                 if (var == null) return false;
-                TextDescriptor td = var.getTextDescriptor();
-                td.setParam(true);
-                td.setInherit(true);
+                var.setParam(true);
+                var.setInherit(true);
             }
             return true;
         }

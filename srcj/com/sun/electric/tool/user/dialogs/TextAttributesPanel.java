@@ -25,6 +25,7 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
@@ -42,7 +43,7 @@ public class TextAttributesPanel extends javax.swing.JPanel {
 
     private Variable var;
     private TextDescriptor td;
-    private String futureVarName;
+    private String varName;
     private ElectricObject owner;
     private TextDescriptor.Unit initialUnit;
     private Object initialDispPos;      // this needs to be an object because one choice, "none" is a string
@@ -82,35 +83,28 @@ public class TextAttributesPanel extends javax.swing.JPanel {
         show.setSelectedItem(initialDispPos);
 
         // dialog is disabled by default
-        setVariable(null, null, null, null);
+        setVariable(null, null);
     }
 
     /**
      * Set the Variable that can be edited through this Panel.
-     * <p>Var can be null, if this is the TextDescriptor on a Geom object
-     * <p>td can be null if futureVarName is non-null. If both var and td are null,
-     * the Panel gets filled with default values that will be applied to a variable yet to
-     * be created named "futureVarName".
-     * <p>if all three are null, the entire Panel is disabled.
-     * @param var the Variable to be edited
-     * @param tdesc the TextDescriptor to be edited if if var is null
-     * @param futureVarName the name of a variable yet to be created that will be used if
-     * both var and tdesc are null. 
+     * <p>if owner.getTextDescriptor(varName) returns non-null td, display and allow editing of the td text options
+     * <p>else if varName is non-null, display and allow editing of default values.
+     * <p>if varName is null, the entire Panel is disabled.
+     * @param varName the name of a variable to be changed
      * @param owner the owner of the variable
      */
-    public synchronized void setVariable(Variable var, TextDescriptor tdesc, String futureVarName, ElectricObject owner) {
+    public synchronized void setVariable(String varName, ElectricObject owner) {
 
         // do not allow empty var names
-        if (futureVarName != null) {
-            if (futureVarName.trim().equals("")) futureVarName = null;
+        if (varName != null) {
+            if (varName.trim().equals("")) varName = null;
         }
 
-        this.var = var;
-        this.td = tdesc;
-        this.futureVarName = futureVarName;
+        this.varName = varName;
         this.owner = owner;
 
-        boolean enabled = ((var == null) && (td == null) && (futureVarName == null)) ? false : true;
+        boolean enabled = owner != null && varName != null;
 
         // update enabled state of everything
         // can't just enable all children because objects might be inside JPanel
@@ -120,11 +114,11 @@ public class TextAttributesPanel extends javax.swing.JPanel {
 
         if (!enabled) return;
 
-        if (var != null) this.td = var.getTextDescriptor(); else td = tdesc;
-
-        // if td is null (implies var is null) and futureVarName is null,
-        // then use the current panel values to apply to futureVarName.
-        if ((td == null) && (futureVarName != null)) return;
+        // if td is null (implies var is null)
+        // then use the current panel values to apply to varName.
+        td = owner.getTextDescriptor(varName);
+        if (td == null) return;
+        var = owner.getVar(varName);
 
         // otherwise, use td
 
@@ -162,7 +156,7 @@ public class TextAttributesPanel extends javax.swing.JPanel {
      * @return true if any changes committed to database, false otherwise
      */
     public synchronized boolean applyChanges() {
-        if ((var == null) && (td == null) && (futureVarName == null)) return false;
+        if (varName == null) return false;
 
         boolean changed = false;
 
@@ -176,16 +170,14 @@ public class TextAttributesPanel extends javax.swing.JPanel {
         Object newDisp = show.getSelectedItem();
         if (newDisp != initialDispPos) changed = true;
 
-        if (futureVarName == null) {
+        if (td != null) {
             // nothing changed on current var/td, return
             if (!changed) return false;
         }
 
         ChangeText job = new ChangeText(
                 owner,
-                var,
-                td,
-                futureVarName,
+                varName,
                 newCode,
                 newUnit,
                 newDisp
@@ -213,18 +205,14 @@ public class TextAttributesPanel extends javax.swing.JPanel {
     private static class ChangeText extends Job {
 
         private ElectricObject owner;
-        private Variable var;
-        private TextDescriptor td;
-        private String futureVarName;
+        private String varName;
         private Variable.Code code;
         private TextDescriptor.Unit unit;
         private Object dispPos;
 
         private ChangeText(
                 ElectricObject owner,
-                Variable var,
-                TextDescriptor td,
-                String futureVarName,
+                String varName,
                 Variable.Code code,
                 TextDescriptor.Unit unit,
                 Object dispPos
@@ -232,9 +220,7 @@ public class TextAttributesPanel extends javax.swing.JPanel {
         {
             super("Modify Text Attribute", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.owner = owner;
-            this.var = var;
-            this.td = td;
-            this.futureVarName = futureVarName;
+            this.varName = varName;
             this.code = code;
             this.unit = unit;
             this.dispPos = dispPos;
@@ -242,12 +228,9 @@ public class TextAttributesPanel extends javax.swing.JPanel {
         }
 
         public boolean doIt() {
-            // if var and td not specified, use future var name
-            if ((var == null) && (td == null)) {
-                var = owner.getVar(futureVarName);
-                if (var == null) return false;                // var doesn't exist, abort
-                td = var.getTextDescriptor();
-            }
+			MutableTextDescriptor td = owner.getMutableTextDescriptor(varName);
+			if (td == null) return false;
+			Variable var = owner.getVar(varName);
 
             // change the code type
             if (var != null) {
@@ -263,6 +246,7 @@ public class TextAttributesPanel extends javax.swing.JPanel {
                 if (var != null) var.setDisplay(true);
                 td.setDispPart((TextDescriptor.DispPos)dispPos);
             }
+			owner.setTextDescriptor(varName, td);
 			return true;
        }
     }

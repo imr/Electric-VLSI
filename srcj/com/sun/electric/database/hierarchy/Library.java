@@ -257,7 +257,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	 * Method to add a Cell to this Library.
 	 * @param c the Cell to add.
 	 */
-	public void addCell(Cell c)
+	void addCell(Cell c)
 	{
 		CellName cn = c.getCellName();
 		// sanity check: make sure Cell isn't already in the list
@@ -276,7 +276,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	 * Method to remove a Cell from this Library.
 	 * @param c the Cell to remove.
 	 */
-	public void removeCell(Cell c)
+	void removeCell(Cell c)
 	{
 		CellName cn = c.getCellName();
 		// sanity check: make sure Cell is in the list
@@ -299,7 +299,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
      * @param lib the library to be added as a referenced lib
      * @return null if ok, a LibraryDependency object if this would create circular dependency
      */
-    public LibraryDependency addReferencedLib(Library lib) {
+    LibraryDependency addReferencedLib(Library lib) {
         synchronized(referencedLibs) {
             if (referencedLibs.contains(lib)) return null;          // already a referenced lib, is ok
         }
@@ -355,7 +355,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
      * it is removed as a reference library.
      * @param lib the reference library that may no longer be referenced
      */
-    public void removeReferencedLib(Library lib) {
+    void removeReferencedLib(Library lib) {
         if (lib == this) return;            // we don't store references to self
         synchronized(referencedLibs) {
             assert(referencedLibs.contains(lib));
@@ -404,7 +404,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
      * @param lib the lib to check if it is a referenced lib
      * @return true if it is through any number of references, false otherwise
      */
-    protected boolean isReferencedLib(Library lib, List libDepedencies) {
+    private boolean isReferencedLib(Library lib, List libDepedencies) {
         List reflibsCopy = new ArrayList();
         synchronized(referencedLibs) {
             if (referencedLibs.contains(lib)) {
@@ -428,7 +428,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
         return false;
     }
 
-    public static class LibraryDependency {
+    static class LibraryDependency {
         private List dependencies;
         private Library startLib;
         private Library finalRefLib;

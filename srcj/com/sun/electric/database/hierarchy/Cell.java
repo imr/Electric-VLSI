@@ -606,8 +606,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			newNodes.put(ni, toNi);
 
 			// copy miscellaneous information
-			toNi.setProtoTextDescriptor(ni.getProtoTextDescriptor());
-			toNi.setNameTextDescriptor(ni.getNameTextDescriptor());
+			toNi.copyTextDescriptorFrom(ni, NodeInst.NODE_PROTO_TD);
+			toNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME_TD);
 			toNi.lowLevelSetUserbits(ni.lowLevelGetUserbits());
 
 		}
@@ -693,7 +693,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
 			// copy miscellaneous information
 			ppt.lowLevelSetUserbits(pp.lowLevelGetUserbits());
-			ppt.setTextDescriptor(pp.getTextDescriptor());
+			ppt.copyTextDescriptorFrom(pp, Export.EXPORT_NAME_TD);
 		}
 
 		// copy cell variables

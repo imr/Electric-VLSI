@@ -36,6 +36,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.technologies.Artwork;
@@ -263,7 +264,7 @@ public class Technology implements Comparable
 		private int representation;
 		private TechPoint [] points;
 		private String message;
-		private TextDescriptor descriptor;
+		private MutableTextDescriptor descriptor;
 		private double lWidth, rWidth, extentT, extendB;
 
 		// the meaning of "representation"
@@ -303,8 +304,7 @@ public class Technology implements Comparable
 			this.style = style;
 			this.representation = representation;
 			this.points = points;
-			descriptor = new TextDescriptor(null);
-//			descriptor = new TextDescriptor(layer.getTechnology());
+			descriptor = new MutableTextDescriptor();
 			layer.getTechnology().addNodeLayer(this);
 			this.lWidth = this.rWidth = this.extentT = this.extendB = 0;
 		}
@@ -330,7 +330,7 @@ public class Technology implements Comparable
 			this.style = style;
 			this.representation = representation;
 			this.points = points;
-			descriptor = new TextDescriptor(null);
+			descriptor = new MutableTextDescriptor();
 			layer.getTechnology().addNodeLayer(this);
 			this.lWidth = lWidth;
 			this.rWidth = rWidth;
@@ -430,7 +430,7 @@ public class Technology implements Comparable
 		 */
 		public void setDescriptor(TextDescriptor descriptor)
 		{
-			this.descriptor.copy(descriptor);
+			this.descriptor = new MutableTextDescriptor(descriptor);
 		}
 
 		/**
@@ -2322,7 +2322,7 @@ public class Technology implements Comparable
 				{
 					portPoly.setStyle(Poly.Type.OPENED);
 				}
-				portPoly.setTextDescriptor(TextDescriptor.getExportTextDescriptor(null)/*pp.getTextDescriptor()*/);
+				portPoly.setTextDescriptor(MutableTextDescriptor.getExportTextDescriptor());
 				return portPoly;
 			}
 		}
@@ -2340,7 +2340,7 @@ public class Technology implements Comparable
 		double portY = (portLowY + portHighY) / 2;
 		Poly portPoly = new Poly(portX, portY, portHighX-portLowX, portHighY-portLowY);
 		portPoly.setStyle(Poly.Type.FILLED);
-		portPoly.setTextDescriptor(TextDescriptor.getExportTextDescriptor(null)/*pp.getTextDescriptor()*/);
+		portPoly.setTextDescriptor(MutableTextDescriptor.getExportTextDescriptor());
 		return portPoly;
 	}
 

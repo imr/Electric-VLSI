@@ -34,6 +34,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
@@ -1032,7 +1033,7 @@ public class GDS extends Input
 		if (ni == null) handleError("Could not create text marker");
 
 		// set the text size and orientation
-		TextDescriptor td = ni.getNameTextDescriptor();
+		MutableTextDescriptor td = ni.getMutableTextDescriptor(NodeInst.NODE_NAME_TD);
 		int size = (int)scale;
 		if (size <= 0) size = 8;
 		if (size > TextDescriptor.Size.TXTMAXPOINTS) size = TextDescriptor.Size.TXTMAXPOINTS;
@@ -1068,6 +1069,7 @@ public class GDS extends Input
 					default: td.setPos(TextDescriptor.Position.CENT);  break;
 				}
 		}
+		ni.setTextDescriptor(NodeInst.NODE_NAME_TD, td);
 	}
 
 	/**
