@@ -69,7 +69,11 @@ public class CrossLibCopy extends EDialog
 		}
 		curLibLeft = curLibRight = Library.getCurrent();
 		int curIndex = libList.indexOf(curLibLeft);
-		if (curIndex >= 0) librariesLeft.setSelectedIndex(curIndex);
+		if (curIndex >= 0)
+        {
+            librariesLeft.setSelectedIndex(curIndex);
+            librariesRight.setSelectedIndex(curIndex); //@TODO GVG Check with Steve
+        }
 
 		// make the left list
 		modelLeft = new DefaultListModel();
@@ -272,7 +276,7 @@ public class CrossLibCopy extends EDialog
 		}
 		public boolean doIt()
 		{
-			boolean sameC = (leftC != null && leftC.equals(rightC));
+			boolean sameC = (leftC != null && leftC.myEquals(rightC));
 
 			System.out.println("Cell left and right are " + leftC.compareTo(rightC) + " equal?" + sameC);
 			return (true);

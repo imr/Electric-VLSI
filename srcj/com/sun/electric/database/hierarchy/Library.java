@@ -715,6 +715,7 @@ public class Library extends ElectricObject
 	public boolean equals(Object obj)
 	{
 		// Library comparison
+        if (this == obj) return (true);
 		return (false);
 	}
 }
