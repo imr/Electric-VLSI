@@ -182,7 +182,7 @@ public class InputBinary extends Input
 	 * Routine to read a Library in binary (.elib) format.
 	 * @return true on error.
 	 */
-	protected boolean ReadLib()
+	protected boolean readLib()
 	{
 		try
 		{

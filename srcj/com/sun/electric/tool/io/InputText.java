@@ -149,7 +149,7 @@ public class InputText extends Input
 	 * Routine to read a Library in readable-dump (.txt) format.
 	 * @return true on error.
 	 */
-	protected boolean ReadLib()
+	protected boolean readLib()
 	{
 		try
 		{

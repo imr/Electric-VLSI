@@ -1452,7 +1452,7 @@ public class NodeInst extends Geometric
 //		return Electric.newNodeInst(this.getAddr(), ep.lx, ep.ly, ep.hx, ep.hy, ep.transpose, ep.angle, parent.getAddr());
 //	}
 	/**
-	 * <p>Temporary for testing the HierarchyEnumerator
+	 * Temporary for testing the HierarchyEnumerator.
 	 * 
 	 * <p>Return an AffineTransform that encodes the size, rotation, and 
 	 * center of this NodeInst.
@@ -1494,7 +1494,7 @@ public class NodeInst extends Geometric
 	}
 
 	/**
-	 * <p>Temporary for testing the HierarchyEnumerator
+	 * Temporary for testing the HierarchyEnumerator.
 	 * 
 	 * <p>Set the size, angle, and center of this NodeInst based upon an
 	 * affine transformation. 

@@ -76,6 +76,9 @@ public class Input
 		/** Defines GDS input. */			public static final ImportType GDS =      new ImportType("GDS");
 	}
 
+	/**
+	 * This class is used to convert old "facet" style Libraries to pure Cell Libraries.
+	 */
 	protected static class FakeCell
 	{
 		String cellName;
@@ -94,7 +97,7 @@ public class Input
 	 * Instead, it is always overridden by the appropriate read subclass.
 	 * @return true on error.
 	 */
-	protected boolean ReadLib() { return true; }
+	protected boolean readLib() { return true; }
 
 	// ----------------------- public methods -------------------------------
 
@@ -196,7 +199,7 @@ public class Input
 			progress.setMillisToDecideToPopup(0);
 			progress.setMillisToPopup(0);
 		}
-		boolean error = in.ReadLib();
+		boolean error = in.readLib();
 		if (topLevel && progress != null) progress.close();
 		try
 		{
