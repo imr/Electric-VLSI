@@ -397,6 +397,7 @@ public class InputText extends Input
 			NodeProto np = nil.nodeProto[j];
 			if (np instanceof PrimitiveNode) continue;
 			Cell otherCell = (Cell)np;
+			if (otherCell == null) continue;
 
 			// ignore cross-reference instances
 			if (otherCell.getLibrary() != cell.getLibrary()) continue;
@@ -482,6 +483,7 @@ public class InputText extends Input
 			double width = ail.arcWidth[j] / lambda;
 			PortInst headPortInst = ail.arcHeadNode[j].findPortInst(ail.arcHeadPort[j]);
 			PortInst tailPortInst = ail.arcTailNode[j].findPortInst(ail.arcTailPort[j]);
+			if (ap == null || headPortInst == null || tailPortInst == null) continue;
 			double headX = (ail.arcHeadX[j]-xoff) / lambda;
 			double headY = (ail.arcHeadY[j]-yoff) / lambda;
 			double tailX = (ail.arcTailX[j]-xoff) / lambda;

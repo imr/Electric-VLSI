@@ -75,7 +75,7 @@ public class CellName
 	{
 		// figure out the view and version of the cell
 		CellName n = new CellName();
-		n.view = null;
+		n.view = View.UNKNOWN;
 		int openCurly = name.indexOf('{');
 		int closeCurly = name.lastIndexOf('}');
 		if (openCurly != -1 && closeCurly != -1)

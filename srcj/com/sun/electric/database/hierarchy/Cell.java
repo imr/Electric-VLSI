@@ -266,6 +266,7 @@ public class Cell extends NodeProto
 	/** The Cell's essential-bounds. */								private List essenBounds = new ArrayList();
 	/** A list of NodeInsts in this Cell. */						private List nodes;
 	/** A map from NodeProto to NodeUsages in it */					private Map usagesIn;
+	/** A map from Name to Integer maximal numeric suffix */        private Map maxSuffix;
 	/** A list of ArcInsts in this Cell. */							private List arcs;
 	/** The current timestamp value. */								private static int currentTime = 0;
 	/** The timestamp of last network renumbering of this Cell */	private int networksTime;
@@ -302,6 +303,7 @@ public class Cell extends NodeProto
 		Cell c = new Cell();
 		c.nodes = new ArrayList();
 		c.usagesIn = new HashMap();
+		c.maxSuffix = new HashMap();
 		c.arcs = new ArrayList();
 		c.cellGroup = null;
 		c.tech = null;
@@ -782,6 +784,7 @@ public class Cell extends NodeProto
 		// add the node
 		nodes.add(ni);
 		nu.addInst(ni);
+		updateMaxSuffix(ni);
 
 		// must recompute the bounds of the cell
 		boundsDirty = true;
@@ -871,6 +874,35 @@ public class Cell extends NodeProto
 				nuSch.removeIcon(nu);
 				if (nuSch.isEmpty())
 					removeUsage(nuSch);
+			}
+		}
+	}
+
+	class MaxSuffix { int v = 0; }
+
+	/**
+	 * Update max suffix of node names
+	 * @param ni modified NodeInst
+	 */
+	public void updateMaxSuffix(NodeInst ni)
+	{
+		Name name = ni.getNameLow();
+		if (name == null) return;
+		Name basename = name.getBasename();
+		int numSuffix = name.getNumSuffix();
+		if (basename != null && numSuffix > 0)
+		{
+			basename = basename.lowerCase(); 
+			MaxSuffix ms = (MaxSuffix) maxSuffix.get(basename);
+			if (ms == null)
+			{
+				ms = new MaxSuffix();
+				maxSuffix.put(basename, ms);
+			}
+			if (numSuffix > ms.v)
+			{
+				ms.v = numSuffix;
+				//System.out.println("MaxSuffix "+basename+"="+numSuffix+" in "+this);
 			}
 		}
 	}

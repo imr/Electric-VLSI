@@ -278,6 +278,8 @@ public abstract class Job implements ActionListener, Runnable {
 			if (jobType != Type.EXAMINE) changingJob = this;
 			doIt();
 			if (jobType == Type.CHANGE)	Undo.endChanges();
+		} catch (Throwable e) {
+			e.printStackTrace(System.out);
 		} finally {
 			if (jobType == Type.EXAMINE)
 			{

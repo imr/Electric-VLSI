@@ -32,9 +32,13 @@ import java.util.HashMap;
  * A Name is a text-parsing object for port, node and arc names.
  * These names can use bus notation:<BR>
  * <CENTER>name = itemname { ',' itemname }</CENTER>
- * <CENTER>itemname = string { '[' index ']' }</CENTER>
+ * <CENTER>itemname = simplename { '[' index ']' }</CENTER>
  * <CENTER>index = indexitem { ',' indexitem ']' }</CENTER>
- * <CENTER>indexitem = string | number ':' number</CENTER><BR>
+ * <CENTER>indexitem = simplename | number ':' number</CENTER><BR>
+ * <CENTER>simplename = basename [ numericalSuffix ]</CENTER><BR>
+ * <CENTER>basename = string</CENTER><BR>
+ * <CENTER>numericalSuffix = number</CENTER><BR>
+ * string doesn't contain '[', ']', ',', ':'.
  * Bus names are expanded into a list of subnames.
  */
 public class Name
@@ -42,16 +46,18 @@ public class Name
 	/** the name */				private String ns;
 	/** the lowercase name */	private Name lowerCase;
 	/** list of subnames */		private List subnames;
-	/** Map String -> Name */	private static Map allNames = new HashMap();
+	/** basename */				private Name basename;
+	/** numerical suffix */     private int numSuffix;
 	/** the flags */			private int flags;
 	
+	/** Map String -> Name */	private static Map allNames = new HashMap();
 
 	/**
 	 * Routine to return the name object for this string.
 	 * @param ns given string
 	 * @return the name object for the string.
 	 */
-	public static Name findName(String ns) { return findTrimmedName(trim(ns)); }
+	public static synchronized Name findName(String ns) { return findTrimmedName(trim(ns)); }
 
 	/**
 	 * Routine to check whether or not string is a valid name.
@@ -132,12 +138,38 @@ public class Name
 	 */
 	public int busWidth() { return subnames == null ? 1 : subnames.size(); }
 
+	/**
+	 * Returns basename of simple Name.
+	 * Returns null if not simple Name.
+	 * @return base of name.
+	 */
+	public Name getBasename() { return basename; }
+
+	/**
+	 * Returns numerical suffix of simple Name.
+	 * Returns zero if numerical suffix is absent or name is not simple.
+	 * @return numerical suffix.
+	 */
+	public int getNumSuffix() { return numSuffix; }
+
+	/**
+	 * Returns the name obtained from base of this simple name by adding numerical suffix.
+	 * Returns null if name is not simple or if i is negative.
+	 * @param i numerical suffix
+	 * @return suffixed name.
+	 */
+	public Name findSuffixed(int i)
+	{
+		if (i < 0 || basename == null) return null;
+		return findName(basename.toString()+i);
+	}
 
 	// ------------------ protected and private methods -----------------------
 
 	public static final int ERROR    = 0x1;
 	public static final int LIST     = 0x2;
 	public static final int BUS      = 0x4;
+	public static final int SIMPLE   = 0x8;
 
 	/**
 	 * Returns the name object for this string, assuming that is is trimmed.
@@ -171,10 +203,9 @@ public class Name
 		if (newLen == len) return ns;
 
 		StringBuffer buf = new StringBuffer(newLen);
-		int l = 0;
 		for (int i = 0; i < len; i++)
 		{
-			if (ns.charAt(i) > ' ') buf.setCharAt(l++, ns.charAt(i));
+			if (ns.charAt(i) > ' ') buf.append(ns.charAt(i));
 		}
 		return buf.toString();
 	}
@@ -186,6 +217,7 @@ public class Name
 	{
 		//System.out.println("Name <"+ns+"> allocated");
 		this.ns = ns;
+		this.numSuffix = 0;
 		String lower = ns.toLowerCase();
 		this.lowerCase = (ns.equals(lower) ? this : findTrimmedName(lower));
 		try
@@ -195,6 +227,18 @@ public class Name
 		{
 			flags = ERROR;
 			return;
+		}
+		if ((flags & SIMPLE) != 0)
+		{
+			int l = ns.length();
+			while (l > 0 && Character.isDigit(ns.charAt(l-1))) l--;
+			if (l == ns.length())
+			{
+				basename = this;
+			} else {
+				basename = findTrimmedName(ns.substring(0,l));
+				numSuffix = Integer.parseInt(ns.substring(l));
+			}
 		}
 		if ((flags & BUS) == 0) return;
 
@@ -298,7 +342,7 @@ public class Name
 	 */
 	static int checkNameThrow(String ns) throws NumberFormatException
 	{
-		int flags = 0;
+		int flags = SIMPLE;
 		
 		int bracket = -1;
 		int colon = -1;
@@ -308,10 +352,18 @@ public class Name
 			if (bracket < 0)
 			{
 				colon = -1;
-				if (c == '[') bracket = i;
+				if (c == '[')
+				{
+					bracket = i;
+					flags &= ~SIMPLE;
+				}
 				if (c == ']') throw new NumberFormatException("unmatched ']' in name");
 				if (c == ':') throw new NumberFormatException("':' out of brackets");
-				if (c == ',') flags |= (LIST|BUS);
+				if (c == ',')
+				{
+					flags |= (LIST|BUS);
+					flags &= ~SIMPLE;
+				}
 				continue;
 			}
 			if (c == '[') throw new NumberFormatException("nested bracket '[' in name");

@@ -1555,14 +1555,25 @@ public class NodeInst extends Geometric
 	}
 
 	/**
+	 * Routine to return the Name object of this NodeInst.
+	 * The name is a local string that can be set by the user.
+	 * @return the name of this NodeInst, null if there is no name.
+	 */
+	public Name getNameLow()
+	{
+		return name;
+	}
+
+	/**
 	 * Routine to set the name of this NodeInst.
 	 * The name is a local string that can be set by the user.
 	 * @param name the new name of this NodeInst.
 	 */
 	public Variable setName(String name)
 	{
-		Variable var = setVar(NODE_NAME, name);
+		Variable var = super.setVar(NODE_NAME, name);
 		if (var != null) var.setDisplay();
+		updateName();
 		return var;
 	}
 
@@ -1604,11 +1615,29 @@ public class NodeInst extends Geometric
 			updateName();
 	}
 
+	/**
+	 * Routine is called when node name is updated.
+	 */
 	private void updateName()
 	{
 		Variable var = getVar(NODE_NAME, String.class);
+		/*
+		if (var != null)
+		{
+			System.out.println((var.isDisplay()?"":"Invisible ")+"nodename "+(String) var.getObject()+" parent="+parent+" proto="+protoType);
+		}
+		*/
 		Name newName = var != null ? Name.findName( (String) var.getObject() ) : null;
 		if (newName == name) return;
+		name = newName;
+
+		// If linked, update max suffix
+		if (nodeUsage != null)
+		{
+			parent.updateMaxSuffix(this);
+		}
+
+		// create subs
 		if (subs == null) return;
 		int width = newName != null ? newName.busWidth() : 1;
 		if (width != subs.length) subs = new Subinst[width];
