@@ -470,7 +470,16 @@ public abstract class Job implements ActionListener, Runnable {
         if (getProgress() == null) return "running";
         return getProgress();
     }
-    
+
+    /** Remove job from Job list if it is done */
+    public void remove() {
+        if (!finished && !aborted) {
+            //System.out.println("Cannot delete running jobs.  Wait till finished or abort");
+            return;
+        }
+        databaseChangesThread.removeJob(this);
+    }
+
 	/**
 	 * Returns thread which activated current changes or null if no changes.
 	 * @return thread which activated current changes or null if no changes.
