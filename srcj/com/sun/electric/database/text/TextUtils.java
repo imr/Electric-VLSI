@@ -555,6 +555,23 @@ public class TextUtils
 	}
 
 	/**
+	 * Method to convert real spacing into a database coordinate.
+	 * @param value the real distance to convert.
+	 * @param tech the technology to use for conversion (provides a real scaling).
+	 * @param unitScale the type of unit desired.
+	 * @return the real spacing in the database units.
+	 * For example, if the given technology has a scale of 200 nanometers per unit,
+	 * and the value 1.6 is given with the scale UnitScale.MICRO, then that is 1.6 microns (1600 nanometers).
+	 * Since the technology has 200 nanometers per unit, this converts to 8 units.
+	 */
+	public static double convertFromDistance(double value, Technology tech, UnitScale unitScale)
+	{
+		double scale = tech.getScale();
+		double distanceScale = 0.000000001 / unitScale.getMultiplier().doubleValue() * scale;
+		return value / distanceScale;
+	}
+
+	/**
 	 * Method to express "value" as a string in "unittype" electrical units.
 	 * The scale of the units is in "unitscale".
 	 */

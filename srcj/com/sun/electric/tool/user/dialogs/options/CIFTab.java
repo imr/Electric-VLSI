@@ -60,6 +60,7 @@ public class CIFTab extends PreferencePanel
 	private boolean initialCIFOutputInstantiatesTopLevel;
 	private boolean initialCIFOutputCheckResolution;
 	private double initialCIFOutputResolution;
+	private boolean initialCIFInputSquaresWires;
 	private JList cifLayersList;
 	private DefaultListModel cifLayersModel;
 	private boolean changingCIF = false;
@@ -85,6 +86,9 @@ public class CIFTab extends PreferencePanel
 		initialCIFOutputResolution = IOTool.getCIFOutResolution();
 		cifResolutionValue.setText(TextUtils.formatDouble(initialCIFOutputResolution));
 
+		initialCIFInputSquaresWires = IOTool.isCIFInSquaresWires();
+		cifInputSquaresWires.setSelected(initialCIFInputSquaresWires);
+
 		// build the layers list
 		cifTechnology.setText("Technology " + curTech.getTechName() + ":");
 		cifLayersModel = new DefaultListModel();
@@ -109,9 +113,6 @@ public class CIFTab extends PreferencePanel
 		cifLayersList.setSelectedIndex(0);
 		cifLayer.getDocument().addDocumentListener(new CIFDocumentListener(this));
 		cifClickLayer();
-
-		// not yet
-		cifInputSquaresWires.setEnabled(false);
 	}
 
 	/**
@@ -216,6 +217,10 @@ public class CIFTab extends PreferencePanel
 		double currentResolution = TextUtils.atof(cifResolutionValue.getText());
 		if (currentResolution != initialCIFOutputResolution)
 			IOTool.setCIFOutResolution(currentResolution);
+
+		boolean currentInputSquaresWires = cifInputSquaresWires.isSelected();
+		if (currentInputSquaresWires != initialCIFInputSquaresWires)
+			IOTool.setCIFInSquaresWires(currentInputSquaresWires);
 	}
 
 	/** This method is called from within the constructor to

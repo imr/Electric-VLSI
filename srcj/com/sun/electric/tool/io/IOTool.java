@@ -224,7 +224,7 @@ public class IOTool extends Tool
 	 */
 	public static void setPrinterName(String pName) { getCachePrinterName().setString(pName); }
 
-	/****************************** CIF OUTPUT PREFERENCES ******************************/
+	/****************************** CIF PREFERENCES ******************************/
 
 	private static Pref cacheCIFOutMimicsDisplay = Pref.makeBooleanPref("CIFMimicsDisplay", IOTool.tool.prefs, false);
     static { cacheCIFOutMimicsDisplay.attachToObject(IOTool.tool, "IO/CIF tab", "CIF output mimics display"); }
@@ -304,6 +304,19 @@ public class IOTool extends Tool
 	 * @param r the minimum CIF Output resolution.
 	 */
 	public static void setCIFOutResolution(double r) { cacheCIFOutResolution.setDouble(r); }
+
+	private static Pref cacheCIFInSquaresWires = Pref.makeBooleanPref("CIFInSquaresWires", IOTool.tool.prefs, true);
+	/**
+	 * Method to tell whether CIF input makes wire ends square or round.
+	 * The default is "true" (square).
+	 * @return true if CIF input makes wire ends square.
+	 */
+	public static boolean isCIFInSquaresWires() { return cacheCIFInSquaresWires.getBoolean(); }
+	/**
+	 * Method to set whether CIF input makes wire ends square or round.
+	 * @param s true if CIF input makes wire ends square.
+	 */
+	public static void setCIFInSquaresWires(boolean s) { cacheCIFInSquaresWires.setBoolean(s); }
 
 	/****************************** GDS OUTPUT PREFERENCES ******************************/
 

@@ -102,8 +102,9 @@ public class Input // extends IOTool
 
 	/**
 	 * Method to read a Library from disk.
+	 * This method is for reading full Electric libraries in ELIB, JELIB, and Readable Dump format.
 	 * @param fileURL the URL to the disk file.
-	 * @param type the type of library file (ELIB, CIF, GDS, etc.)
+	 * @param type the type of library file (ELIB, JELIB, etc.)
 	 * @return the read Library, or null if an error occurred.
 	 */
 	public static synchronized Library readLibrary(URL fileURL, OpenFile.Type type)
@@ -150,6 +151,104 @@ public class Input // extends IOTool
 
 		return lib;
 	}
+
+	/**
+	 * Method to import a Library from disk.
+	 * This method is for reading external file formats such as CIF, GDS, etc.
+	 * @param fileURL the URL to the disk file.
+	 * @param type the type of library file (CIF, GDS, etc.)
+	 * @return the read Library, or null if an error occurred.
+	 */
+	public static Library importLibrary(URL fileURL, OpenFile.Type type)
+	{
+		// make sure the file exists
+		if (fileURL == null) return null;
+        StringBuffer errmsg = new StringBuffer();
+		if (!TextUtils.URLExists(fileURL, errmsg))
+		{
+			System.out.print(errmsg.toString());
+			return null;
+		}
+
+		// get the name of the imported library
+		String libName = TextUtils.getFileNameWithoutExtension(fileURL);
+
+		// see if it already exists
+		Library deleteThis = null;
+		Library lib = Library.findLibrary(libName);
+		if (lib != null)
+		{
+			// library already exists, prompt for save
+			if (FileMenu.preventLoss(lib, 2)) return null;
+			WindowFrame.removeLibraryReferences(lib);
+
+			// delete this later (cannot delete last library)
+			deleteThis = lib;
+
+			// mangle the name so that the new one can be created
+			lib.setName(lib.getName()+lib.getName());
+		}
+
+		// create a new library
+		lib = Library.newInstance(libName, fileURL);
+
+		// delete any former library with the same name
+		if (deleteThis != null) deleteThis.kill();
+
+		// initialize timer, error log, etc
+		long startTime = System.currentTimeMillis();
+        errorLogger = ErrorLogger.newInstance("File Import");
+		LibDirs.readLibDirs();
+		Undo.changesQuiet(true);
+
+		// initialize progress
+		startProgressDialog("import", fileURL.getFile());
+
+		Input in;
+		if (type == OpenFile.Type.CIF)
+		{
+			in = (Input)new CIF();
+			if (in.openTextInput(fileURL)) return null;
+//		} else if (type == OpenFile.Type.GDS)
+//		{
+//			in = (Input)new GDS();
+//			if (in.openBinaryInput(fileURL)) return null;
+		} else
+		{
+			System.out.println("Unsupported input format");
+			return null;
+		}
+
+		// import the library
+		boolean error = in.importALibrary(lib);
+		in.closeInput();
+		if (error)
+		{
+			System.out.println("Error importing library " + lib.getName());
+			return null;
+		}
+
+		// clean up
+		stopProgressDialog();
+		Undo.changesQuiet(false);
+		NetworkTool.reload();
+	       errorLogger.termLogging(true);
+		if (lib != null)
+		{
+			long endTime = System.currentTimeMillis();
+			float finalTime = (endTime - startTime) / 1000F;
+			System.out.println("Library " + fileURL.getFile() + " read, took " + finalTime + " seconds");
+		}
+ 		return lib;
+	}
+
+	/**
+	 * Method to import a library from disk.
+	 * This method must be overridden by the various import modules.
+	 * @param lib the library to fill
+	 * @return true on error.
+	 */
+	protected boolean importALibrary(Library lib) { return true; }
 
 	/**
 	 * Method to read a single library file.

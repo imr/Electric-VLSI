@@ -258,7 +258,12 @@ public class FileMenu {
             boolean success = false;
             for (Iterator it = fileURLs.iterator(); it.hasNext(); ) {
                 URL file = (URL)it.next();
-                if (openALibrary(file, OpenFile.Type.DEFAULTLIB)) success = true;
+                OpenFile.Type defType = OpenFile.Type.DEFAULTLIB;
+                String fileName = file.getFile();
+                if (fileName.endsWith(".elib")) defType = OpenFile.Type.ELIB; else
+                    if (fileName.endsWith(".jelib")) defType = OpenFile.Type.JELIB; else
+                        if (fileName.endsWith(".txt")) defType = OpenFile.Type.READABLEDUMP;
+                if (openALibrary(file, defType)) success = true;
             }
             if (success) {
                 // close no name library

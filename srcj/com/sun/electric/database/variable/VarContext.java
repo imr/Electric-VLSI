@@ -138,6 +138,7 @@ public class VarContext
     }
     
     private Object ifNotNumberTryToConvertToNumber(Object val) {
+        if (val == null) return val;
         if (val instanceof Number) return val;
         try {
             Number d = TextUtils.parsePostFixNumber(val.toString());
