@@ -23,6 +23,8 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.text.Version;
+
 import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;
@@ -102,6 +104,7 @@ public class About extends javax.swing.JDialog
 		setLocation(100, 50);
 		initComponents();
         getRootPane().setDefaultButton(ok);
+		version.setText("Version " + Version.CURRENT);
 
 		// setup the region popup
 		jComboBox1.addItem("N.America");
@@ -143,7 +146,7 @@ public class About extends javax.swing.JDialog
         jComboBox1 = new javax.swing.JComboBox();
         TopLeft = new javax.swing.JPanel();
         jLabel4 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
+        version = new javax.swing.JLabel();
         ok = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
         castOfThousands = new javax.swing.JButton();
@@ -216,14 +219,14 @@ public class About extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         TopLeft.add(jLabel4, gridBagConstraints);
 
-        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        jLabel2.setText("Version 7.01a");
+        version.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        version.setText("Version 7.01a");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        TopLeft.add(jLabel2, gridBagConstraints);
+        TopLeft.add(version, gridBagConstraints);
 
         ok.setText("OK");
         ok.addActionListener(new java.awt.event.ActionListener()
@@ -621,13 +624,13 @@ public class About extends javax.swing.JDialog
     private javax.swing.JComboBox jComboBox1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JButton ok;
     private javax.swing.JLabel theIcon;
+    private javax.swing.JLabel version;
     private javax.swing.JButton warrantyDetails;
     // End of variables declaration//GEN-END:variables
 	

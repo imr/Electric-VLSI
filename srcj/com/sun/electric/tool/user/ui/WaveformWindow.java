@@ -159,6 +159,9 @@ public class WaveformWindow
 		/** the cell that is in the window */					private Cell cell;
 		/** true if a time cursor is being dragged */			private boolean draggingMain, draggingExt;
 		/** true if an area is being dragged */					private boolean draggingArea;
+		/** true if the waveform is being panned */				private boolean draggingPan;
+		/** the time panel at the top of this panel. */			private TimeTickPanel timePanel;
+
 		private int dragStartX, dragStartY;
 		private int dragEndX, dragEndY;
 
@@ -297,14 +300,14 @@ public class WaveformWindow
 			rightHalf.add(sep, gbc);
 
 			// the time tick panel
-			TimeTickPanel ttp = new TimeTickPanel(this);
+			timePanel = new TimeTickPanel(this);
 			gbc.gridx = 0;       gbc.gridy = 1;
 			gbc.gridwidth = 1;   gbc.gridheight = 1;
 			gbc.weightx = 1;     gbc.weighty = 0;
 			gbc.anchor = GridBagConstraints.CENTER;
 			gbc.fill = GridBagConstraints.HORIZONTAL;
 			gbc.insets = new Insets(0, 0, 0, 0);
-			rightHalf.add(ttp, gbc);
+			rightHalf.add(timePanel, gbc);
 
 			// the waveform display for this panel
 			gbc.gridx = 0;       gbc.gridy = 2;
@@ -432,10 +435,10 @@ public class WaveformWindow
 
 			// draw the vertical label
 			g.setColor(Color.WHITE);
-			int yLow = scaleValueToY(analogLowValue);
-			int yHigh = scaleValueToY(analogHighValue);
-			g.drawLine(VERTLABELWIDTH, yLow, VERTLABELWIDTH, yHigh);
-			StepSize ss = getSensibleValues(analogHighValue, analogLowValue, 5);
+			g.drawLine(VERTLABELWIDTH, 0, VERTLABELWIDTH, hei);
+			double displayedLow = scaleYToValue(hei);
+			double displayedHigh = scaleYToValue(0);
+			StepSize ss = getSensibleValues(displayedHigh, displayedLow, 5);
 			if (ss.separation != 0.0)
 			{
 				double value = ss.low;
@@ -444,17 +447,20 @@ public class WaveformWindow
 				FontRenderContext frc = new FontRenderContext(null, false, false);
 				for(;;)
 				{
-					if (value > ss.high) break;
-					int y = scaleValueToY(value);
-					g.drawLine(VERTLABELWIDTH-10, y, VERTLABELWIDTH, y);
-					String yValue = prettyPrint(value, ss.rangeScale, ss.stepScale);
-					GlyphVector gv = font.createGlyphVector(frc, yValue);
-					Rectangle2D glyphBounds = gv.getVisualBounds();
-					int height = (int)glyphBounds.getHeight();
-					int yPos = y + height / 2;
-					if (yPos-height <= 0) yPos = height+1;
-					if (yPos >= hei) yPos = hei;
-					g.drawString(yValue, VERTLABELWIDTH-10-(int)glyphBounds.getWidth()-2, yPos);
+					if (value >= displayedLow)
+					{
+						if (value > displayedHigh) break;
+						int y = scaleValueToY(value);
+						g.drawLine(VERTLABELWIDTH-10, y, VERTLABELWIDTH, y);
+						String yValue = prettyPrint(value, ss.rangeScale, ss.stepScale);
+						GlyphVector gv = font.createGlyphVector(frc, yValue);
+						Rectangle2D glyphBounds = gv.getVisualBounds();
+						int height = (int)glyphBounds.getHeight();
+						int yPos = y + height / 2;
+						if (yPos-height <= 0) yPos = height+1;
+						if (yPos >= hei) yPos = hei;
+						g.drawString(yValue, VERTLABELWIDTH-10-(int)glyphBounds.getWidth()-2, yPos);
+					}
 					value += ss.separation;
 				}
 			}
@@ -504,6 +510,17 @@ public class WaveformWindow
 		}
 
 		/**
+		 * Method to scale a delta-X to a delta-time in this window.
+		 * @param dx the delta-X.
+		 * @return the delta-time value corresponding to that coordinate.
+		 */
+		private double scaleDeltaXToTime(int dx)
+		{
+			double dTime = ((double)dx) / (sz.width - VERTLABELWIDTH) * (maxTime - minTime);
+			return dTime;
+		}
+
+		/**
 		 * Method to scale a value to the Y coordinate in this window.
 		 * @param value the value in Y.
 		 * @return the Y coordinate of that value.
@@ -526,6 +543,17 @@ public class WaveformWindow
 		}
 
 		/**
+		 * Method to scale a delta-yY in this window to a delta-value.
+		 * @param dy the delta-Y.
+		 * @return the delta-value corresponding to that Y change.
+		 */
+		private double scaleDeltaYToValue(int dy)
+		{
+			double dValue = - ((double)dy) / (sz.height-1) * analogRange;
+			return dValue;
+		}
+
+		/**
 		 * Method to find the Signals in an area.
 		 * @param lX the low X coordinate of the area.
 		 * @param hX the high X coordinate of the area.
@@ -535,7 +563,12 @@ public class WaveformWindow
 		 */
 		private List findSignalsInArea(int lX, int hX, int lY, int hY)
 		{
-			Point2D cursor = new Point2D.Double((lX+hX)/2, (lY+hY)/2);
+			double lXd = Math.min(lX, hX)-2;
+			double hXd = Math.max(lX, hX)+2;
+			double hYd = Math.min(lY, hY)-2;
+			double lYd = Math.max(lY, hY)+2;
+			if (lXd > hXd) { double swap = lXd;   lXd = hXd;   hXd = swap; }
+			if (lYd > hYd) { double swap = lYd;   lYd = hYd;   hYd = swap; }
 			List foundList = new ArrayList();
 			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
 			{
@@ -544,31 +577,27 @@ public class WaveformWindow
 				{
 					// search analog trace
 					Simulate.SimAnalogSignal as = (Simulate.SimAnalogSignal)ws.sSig;
-					int lx = 0, ly = 0;
+					double lastXd = 0, lastYd = 0;
 					int numEvents = as.values.length;
 					for(int i=0; i<numEvents; i++)
 					{
 						double time = 0;
 						if (ws.sSig.useCommonTime) time = waveWindow.sd.commonTime[i]; else
 							time = as.time[i];
-						int x = scaleTimeToX(time);
-						int y = scaleValueToY(as.values[i]);
-						if (x > lX-5 && x < hX+5 && y > lY-5 && y < hY+5)
-						{
-							foundList.add(ws);
-							break;
-						}
+						double x = scaleTimeToX(time);
+						double y = scaleValueToY(as.values[i]);
 						if (i != 0)
 						{
 							// should see if the line is in the area
-							double dist = EMath.distToLine(new Point2D.Double(lx, ly),  new Point2D.Double(x, y), cursor);
-							if (dist <= 5)
+							Point2D from = new Point2D.Double(lastXd, lastYd);
+							Point2D to = new Point2D.Double(x, y);
+							if (!EMath.clipLine(from, to, lXd, hXd, lYd, hYd))
 							{
 								foundList.add(ws);
 								break;
 							}
 						}
-						lx = x;   ly = y;
+						lastXd = x;   lastYd = y;
 					}
 				}
 			}
@@ -606,7 +635,14 @@ public class WaveformWindow
 		public void mousePressed(MouseEvent evt)
 		{
 			// see if the time cursors are selected
-			draggingMain = draggingExt = draggingArea = false;
+			draggingMain = draggingExt = draggingArea = draggingPan = false;
+			if (ToolBar.getCursorMode() == ToolBar.CursorMode.PAN)
+			{
+				draggingPan = true;
+				dragStartX = evt.getX();
+				dragStartY = evt.getY();
+				return;
+			}
 			int mainX = scaleTimeToX(waveWindow.mainTime);
 			if (Math.abs(mainX - evt.getX()) < 5)
 			{
@@ -674,6 +710,32 @@ public class WaveformWindow
 				double time = scaleXToTime(evt.getX());
 				waveWindow.setExtensionTimeCursor(time);
 				waveWindow.redrawAll();
+			} else if (draggingPan)
+			{
+				dragEndX = evt.getX();
+				dragEndY = evt.getY();
+				double dTime = scaleDeltaXToTime(dragEndX - dragStartX);
+				double dValue = scaleDeltaYToValue(dragEndY - dragStartY);
+				dragStartX = dragEndX;
+				dragStartY = dragEndY;
+				minTime -= dTime;
+				maxTime -= dTime;
+				analogLowValue -= dValue;
+				analogHighValue -= dValue;
+				timePanel.repaint();
+				repaint();
+				if (waveWindow.timeLocked)
+				{
+					for(Iterator it = waveWindow.wavePanels.iterator(); it.hasNext(); )
+					{
+						Panel wp = (Panel)it.next();
+						if (wp == this) continue;
+						wp.minTime -= dTime;
+						wp.maxTime -= dTime;
+						wp.timePanel.repaint();
+						wp.repaint();
+					}
+				}
 			} else if (draggingArea)
 			{
 				dragEndX = evt.getX();
@@ -727,19 +789,22 @@ public class WaveformWindow
 
 			// draw the time ticks
 			g.setColor(Color.WHITE);
-			int xLow = wavePanel.scaleTimeToX(wavePanel.minTime);
-			int xHigh = wavePanel.scaleTimeToX(wavePanel.maxTime);
-			g.drawLine(xLow, hei-1, xHigh, hei-1);
-			StepSize ss = getSensibleValues(wavePanel.maxTime, wavePanel.minTime, 10);
+			g.drawLine(wavePanel.VERTLABELWIDTH, hei-1, wid, hei-1);
+			double displayedLow = wavePanel.scaleXToTime(wavePanel.VERTLABELWIDTH);
+			double displayedHigh = wavePanel.scaleXToTime(wid);
+			StepSize ss = getSensibleValues(displayedHigh, displayedLow, 10);
 			if (ss.separation == 0.0) return;
 			double time = ss.low;
 			for(;;)
 			{
-				if (time > ss.high) break;
-				int x = wavePanel.scaleTimeToX(time);
-				g.drawLine(x, 0, x, hei);
-				String timeVal = convertToEngineeringNotation(time, "s", ss.stepScale);
-				g.drawString(timeVal, x+2, hei-2);
+				if (time >= displayedLow)
+				{
+					if (time > ss.high) break;
+					int x = wavePanel.scaleTimeToX(time);
+					g.drawLine(x, 0, x, hei);
+					String timeVal = convertToEngineeringNotation(time, "s", ss.stepScale);
+					g.drawString(timeVal, x+2, hei-2);
+				}
 				time += ss.separation;
 			}
 		}
@@ -800,14 +865,18 @@ public class WaveformWindow
 	/** the cell being simulated */							private Simulate.SimData sd;
 	/** let panel: the signal names */						private JPanel left;
 	/** right panel: the signal traces */					private JPanel right;
+	private JButton timeLock;
 	private JScrollPane scrollAll;
 	/** labels for the text at the top */					private JLabel mainPos, extPos, delta;
 	/** a list of panels in this window */					private List wavePanels;
 	/** current "main" time cursor */						private double mainTime;
 	/** current "extension" time cursor */					private double extTime;
 	/** default range along horozintal axis */				private double minTime, maxTime;
+	/** true if the time axis is the same in each panel */	private boolean timeLocked;
 
 	private static final ImageIcon iconAddPanel = new ImageIcon(WaveformWindow.class.getResource("ButtonSimAddPanel.gif"));
+	private static final ImageIcon iconLockTime = new ImageIcon(WaveformWindow.class.getResource("ButtonSimLockTime.gif"));
+	private static final ImageIcon iconUnLockTime = new ImageIcon(WaveformWindow.class.getResource("ButtonSimUnLockTime.gif"));
 
     // ************************************* CONTROL *************************************
 
@@ -817,6 +886,7 @@ public class WaveformWindow
 		this.wf = wf;
 		this.sd = sd;
 		wavePanels = new ArrayList();
+		this.timeLocked = true;
 
 		// the total panel in the waveform window
 		JPanel overall = new JPanel();
@@ -853,8 +923,24 @@ public class WaveformWindow
 		{
 			public void actionPerformed(ActionEvent evt) { addSignalInNewPanel(); }
 		});
-		mainPos = new JLabel("Main:");
+
+		timeLock = new JButton(iconLockTime);
+		timeLock.setBorderPainted(false);
+		timeLock.setDefaultCapable(false);
 		gbc.gridx = 1;       gbc.gridy = 0;
+		gbc.gridwidth = 1;   gbc.gridheight = 1;
+		gbc.weightx = 0;     gbc.weighty = 0;
+		gbc.anchor = GridBagConstraints.CENTER;
+		gbc.fill = java.awt.GridBagConstraints.NONE;
+		gbc.insets = new Insets(0, 0, 0, 0);
+		overall.add(timeLock, gbc);
+		timeLock.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { togglePanelTimeLock(); }
+		});
+
+		mainPos = new JLabel("Main:");
+		gbc.gridx = 2;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0.3;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
@@ -862,7 +948,7 @@ public class WaveformWindow
 		gbc.insets = new Insets(0, 0, 0, 0);
 		overall.add(mainPos, gbc);
 		extPos = new JLabel("Ext:");
-		gbc.gridx = 2;       gbc.gridy = 0;
+		gbc.gridx = 3;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0.3;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
@@ -870,7 +956,7 @@ public class WaveformWindow
 		gbc.insets = new Insets(0, 0, 0, 0);
 		overall.add(extPos, gbc);
 		delta = new JLabel("Delta:");
-		gbc.gridx = 3;       gbc.gridy = 0;
+		gbc.gridx = 4;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0.3;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
@@ -1156,6 +1242,51 @@ public class WaveformWindow
 		left.repaint();
 		right.repaint();
 		redrawAll();
+	}
+
+	/**
+	 * Method called to toggle the panel time lock.
+	 */
+	public void togglePanelTimeLock()
+	{
+		timeLocked = ! timeLocked;
+		if (timeLocked)
+		{
+			timeLock.setIcon(iconLockTime);
+			double minTime = 0, maxTime = 0;
+			boolean first = true;
+			for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+			{
+				Panel wp = (Panel)it.next();
+				if (first)
+				{
+					first = false;
+					minTime = wp.minTime;
+					maxTime = wp.maxTime;
+				} else
+				{
+					if (wp.minTime < minTime)
+					{
+						minTime = wp.minTime;
+						maxTime = wp.maxTime;
+					}
+				}
+			}
+			for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+			{
+				Panel wp = (Panel)it.next();
+				if (wp.minTime != minTime || wp.maxTime != maxTime)
+				{
+					wp.minTime = minTime;
+					wp.maxTime = maxTime;
+					wp.timePanel.repaint();
+					wp.repaint();
+				}
+			}
+		} else
+		{
+			timeLock.setIcon(iconUnLockTime);
+		}
 	}
 
 	/**

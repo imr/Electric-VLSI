@@ -175,6 +175,8 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(Library.getCurrent()); } });
 		fileMenu.addMenuItem("Save Library as...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAsLibraryCommand(); } });
+		fileMenu.addMenuItem("Save All Libraries",null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAllLibrariesCommand(); } });
 		Menu exportSubMenu = new Menu("Export");
 		fileMenu.add(exportSubMenu);
 		exportSubMenu.addMenuItem("CIF (Caltech Intermediate Format)", null,
@@ -976,6 +978,20 @@ public final class MenuCommands
 		Library lib = Library.getCurrent();
 		lib.clearFromDisk();
 		saveLibraryCommand(lib);
+	}
+
+	/**
+	 * This method implements the command to save all libraries.
+	 */
+	public static void saveAllLibrariesCommand()
+	{
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			if (lib.isHidden()) continue;
+			if (!lib.isChangedMajor() && !lib.isChangedMinor()) continue;
+			if (!saveLibraryCommand(lib)) break;
+		}
 	}
 
 	/**

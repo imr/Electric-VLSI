@@ -412,7 +412,82 @@ public class EMath
 		long i = Math.round(a * 1000.0);
 		return i / 1000.0;
 	}
-	
+
+	private static final int LEFT    = 1;
+	private static final int RIGHT   = 2;
+	private static final int BOTTOM  = 4;
+	private static final int TOP     = 8;
+
+	/*
+	 * Method to clip a line against a rectangle.
+	 * @param from one end of the line.
+	 * @param to the other end of the line.
+	 * @param lX the low X bound of the clip.
+	 * @param hX the high X bound of the clip.
+	 * @param lY the low Y bound of the clip.
+	 * @param hY the high Y bound of the clip.
+	 * The points are modified to fit inside of the clip area.
+	 * @return true if the line is not visible.
+	 */
+	public static boolean clipLine(Point2D from, Point2D to, double lX, double hX, double lY, double hY)
+	{
+		for(;;)
+		{
+			// compute code bits for "from" point
+			int fc = 0;
+			if (from.getX() < lX) fc |= LEFT; else
+				if (from.getX() > hX) fc |= RIGHT;
+			if (from.getY() < lY) fc |= BOTTOM; else
+				if (from.getY() > hY) fc |= TOP;
+
+			// compute code bits for "to" point
+			int tc = 0;
+			if (to.getX() < lX) tc |= LEFT; else
+				if (to.getX() > hX) tc |= RIGHT;
+			if (to.getY() < lY) tc |= BOTTOM; else
+				if (to.getY() > hY) tc |= TOP;
+
+			// look for trivial acceptance or rejection
+			if (fc == 0 && tc == 0) return false;
+			if (fc == tc || (fc & tc) != 0) return true;
+
+			// make sure the "from" side needs clipping
+			if (fc == 0)
+			{
+				double x = from.getX();
+				double y = from.getY();
+				from.setLocation(to);
+				to.setLocation(x, y);
+				int t = fc;    fc = tc;     tc = t;
+			}
+
+			if ((fc&LEFT) != 0)
+			{
+				if (to.getX() == from.getX()) return true;
+				double t = (to.getY() - from.getY()) * (lX - from.getX()) / (to.getX() - from.getX());
+				from.setLocation(lX, from.getY() + t);
+			}
+			if ((fc&RIGHT) != 0)
+			{
+				if (to.getX() == from.getX()) return true;
+				double t = (to.getY() - from.getY()) * (hX - from.getX()) / (to.getX() - from.getX());
+				from.setLocation(hX, from.getY() + t);
+			}
+			if ((fc&BOTTOM) != 0)
+			{
+				if (to.getY() == from.getY()) return true;
+				double t = (to.getX() - from.getX()) * (lY - from.getY()) / ( to.getY() - from.getY());
+				from.setLocation(from.getX() + t, lY);
+			}
+			if ((fc&TOP) != 0)
+			{
+				if (to.getY() == from.getY()) return true;
+				double t = (to.getX() - from.getX()) * (hY - from.getY()) / (to.getY() - from.getY());
+				from.setLocation(from.getX() + t, hY);
+			}
+		}
+	}
+
 	private static final double [] sineTable = {
 		0.0,0.0017453283658983088,0.003490651415223732,0.00523596383141958,0.0069812602979615525,0.008726535498373935,
 		0.010471784116245792,0.012217000835247169,0.013962180339145272,0.015707317311820675,0.01745240643728351,0.019197442399689665,

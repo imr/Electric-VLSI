@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.Library;
@@ -272,14 +273,6 @@ public class ExplorerTree extends JTree
 		}
 	}
 
-	static class MutableInteger
-	{
-		private int value;
-		public MutableInteger(int value) { setValue(value); }
-		public int getValue() { return value; }
-		public void setValue(int value) { this.value = value; }
-	}
-
 	/**
 	 * Method to build a hierarchical explorer structure.
 	 */
@@ -298,23 +291,23 @@ public class ExplorerTree extends JTree
 				subCell = subCell.contentsView();
 				if (subCell == null) continue;
 			}
-			MutableInteger mi = (MutableInteger)cellCount.get(subCell);
+			EMath.MutableInteger mi = (EMath.MutableInteger)cellCount.get(subCell);
 			if (mi == null)
 			{
-				mi = new MutableInteger(0);
+				mi = new EMath.MutableInteger(0);
 				cellCount.put(subCell, mi);
 			}
-			mi.setValue(mi.getValue()+1);
+			mi.setValue(mi.intValue()+1);
 		}
 
 		// show what is there
 		for(Iterator it = cellCount.keySet().iterator(); it.hasNext(); )
 		{
 			Cell subCell = (Cell)it.next();
-			MutableInteger mi = (MutableInteger)cellCount.get(subCell);
+			EMath.MutableInteger mi = (EMath.MutableInteger)cellCount.get(subCell);
 			if (mi == null) continue;
 
-			CellAndCount cc = new CellAndCount(subCell, mi.getValue());
+			CellAndCount cc = new CellAndCount(subCell, mi.intValue());
 			DefaultMutableTreeNode subCellTree = new DefaultMutableTreeNode(cc);
 			cellTree.add(subCellTree);
 			createHierarchicalExplorerTree(subCell, subCellTree);

@@ -327,6 +327,7 @@ public class WindowFrame
 		{
 			jf.setSize(frameSize);
 			jf.setLocation(frameRect.x, frameRect.y);
+			jf.validate();
 		}
 	}
 
